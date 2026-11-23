@@ -2,8 +2,8 @@
 * djinterp [c]                                                           dtime.c
 *
 * Definitions for the declarations in `dtime.h`.
-*   Each platform-dependent function is defined once per platform -- Windows,
-* POSIX, and a portable fallback -- with the implementation selected at the
+*   Each platform-dependent function is defined once per platform - Windows,
+* POSIX, and a portable fallback - with the implementation selected at the
 * function level rather than by conditionals inside one body.
 *   Build it with -D_XOPEN_SOURCE=700 where the C library hides POSIX in a
 * strict ISO mode (the C guide's rule). timegm, where D_TIME_HAS_TIMEGM
@@ -635,7 +635,7 @@ int d_clock_getres(
 
 /*
 d_clock_getres
-  Windows: reports the tick of the source d_clock_gettime reads -- the
+  Windows: reports the tick of the source d_clock_gettime reads - the
 performance counter's period for CLOCK_MONOTONIC (at least 1 ns), and the 100
 ns FILETIME tick for the realtime and CPU-time clocks.
 */
@@ -1147,8 +1147,8 @@ time_t d_timegm(
 
 /*
 d_timegm
-  Portable fallback: counts whole days from the epoch -- year by year, then
-month by month under the Gregorian leap rule -- and adds the time of day.
+  Portable fallback: counts whole days from the epoch - year by year, then
+month by month under the Gregorian leap rule - and adds the time of day.
 Months outside 0..11 are folded into the year first; days, hours, minutes, and
 seconds are used as given, so out-of-range values carry naturally. Then, as
 timegm does, it writes the normalized time back into _tm, tm_wday and
@@ -1270,7 +1270,7 @@ void d_tzset(void)
 // dj_time_internal_parse
 //   struct: a parse in progress: the input left, the struct it fills, and
 // what the conversions so far have read that d_strptime's last step must
-// settle -- the century and year in it, the week, the 12-hour clock, and
+// settle - the century and year in it, the week, the 12-hour clock, and
 // which of the date's fields the input gave.
 struct dj_time_internal_parse
 {
@@ -2444,8 +2444,8 @@ void d_ns_to_timespec(
 // monotonic time
 /*
 d_monotonic_time_ms
-  Reads CLOCK_MONOTONIC, falling back to CLOCK_REALTIME -- which is not
-monotonic -- when the monotonic clock cannot be read.
+  Reads CLOCK_MONOTONIC, falling back to CLOCK_REALTIME - which is not
+monotonic - when the monotonic clock cannot be read.
 */
 int64_t d_monotonic_time_ms(void)
 {
@@ -2469,8 +2469,8 @@ int64_t d_monotonic_time_ms(void)
 
 /*
 d_monotonic_time_us
-  Reads CLOCK_MONOTONIC, falling back to CLOCK_REALTIME -- which is not
-monotonic -- when the monotonic clock cannot be read.
+  Reads CLOCK_MONOTONIC, falling back to CLOCK_REALTIME - which is not
+monotonic - when the monotonic clock cannot be read.
 */
 int64_t d_monotonic_time_us(void)
 {
@@ -2493,8 +2493,8 @@ int64_t d_monotonic_time_us(void)
 
 /*
 d_monotonic_time_ns
-  Reads CLOCK_MONOTONIC, falling back to CLOCK_REALTIME -- which is not
-monotonic -- when the monotonic clock cannot be read.
+  Reads CLOCK_MONOTONIC, falling back to CLOCK_REALTIME - which is not
+monotonic - when the monotonic clock cannot be read.
 */
 int64_t d_monotonic_time_ns(void)
 {

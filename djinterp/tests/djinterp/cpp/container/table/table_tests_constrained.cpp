@@ -2,7 +2,7 @@
 * djinterp [cpp][container]                          table_tests_constrained.cpp
 *
 * constrained_table.hpp: the table under a row cap and an optional closed
-* domain -- the cap, the domain, the read-only face, and removal.
+* domain - the cap, the domain, the read-only face, and removal.
 *
 *
 * path:      /tests/djinterp/cpp/container/table/table_tests_constrained.cpp

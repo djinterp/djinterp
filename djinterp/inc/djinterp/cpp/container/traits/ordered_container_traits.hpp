@@ -70,7 +70,7 @@ NS_INTERNAL
     {};
 
     // has_key_type_helper specialization
-    //   helper: the detected case -- selected when the type declares the
+    //   helper: the detected case - selected when the type declares the
     // nested type `key_type`.
     template<typename Type>
     struct has_key_type_helper<Type,
@@ -180,7 +180,7 @@ NS_INTERNAL
     {};
 
     // has_c_str_helper specialization
-    //   helper: the detected case -- selected when the type exposes the member
+    //   helper: the detected case - selected when the type exposes the member
     // function `c_str()`.
     template<typename Type>
     struct has_c_str_helper<Type,

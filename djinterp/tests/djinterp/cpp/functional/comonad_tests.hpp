@@ -6,9 +6,9 @@
 * translation unit (one .cpp per like-group semantic section of the header);
 * this head carries only what those files and the runner share.
 *
-*   comonad.hpp ships two concrete instances of its own -- the Env (co-reader)
+*   comonad.hpp ships two concrete instances of its own - the Env (co-reader)
 * comonad over std::pair<E, A> and DKvPair<K, V>, where the focus is the SECOND
-* component and the first rides along as the environment -- so the generic
+* component and the first rides along as the environment - so the generic
 * extract / extend / duplicate are driven directly over those (they are
 * themselves code under test).  In addition a small user-defined comonad,
 * ident<A> (the Identity comonad: a bare focus, no environment), is provided so
@@ -58,7 +58,7 @@
 #include <type_traits>
 #include <utility>
 // djinterp
-// djinterp -- the header under test (which pulls in meta/kv_pair.hpp), plus the
+// djinterp - the header under test (which pulls in meta/kv_pair.hpp), plus the
 //   DTest authoring + runner surface.  NOTE: these two include paths are rooted
 //   at the djinterp include directory (e.g. -I.../inc); adjust them to match
 //   your build tree.
@@ -75,7 +75,7 @@ NS_TESTING
 ///////////////////////////////////////////////////////////////////////////////
 
 // ident
-//   fixture: the Identity comonad -- a bare focus with no environment.  It
+//   fixture: the Identity comonad - a bare focus with no environment.  It
 // proves the generic operations work over a comonad whose shape differs from
 // the shipped Env (pair-based) instances.  Full structural equality.
 template<typename _A>
@@ -114,7 +114,7 @@ struct ident
 ///                II.  CO-KLEISLI FUNCTORS                                  ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// -- generic (any comonad, via extract) --
+// - generic (any comonad, via extract) --
 
 // DCoExtract
 //   W -> A: the focus.  extend(w, DCoExtract) is the comonad left identity.
@@ -182,7 +182,7 @@ struct DCoId
     }
 };
 
-// -- environment-reading (prove extend sees the whole context) --
+// - environment-reading (prove extend sees the whole context) --
 
 // DPairEnvFocus
 //   std::pair<std::string,int> -> int: focus plus the environment's length, so
@@ -262,7 +262,7 @@ NS_END  // djinterp
 NS_DJINTERP
 
 // comonad_traits< ::djinterp::testing::ident<_A> >
-//   instance: the Identity comonad -- extract returns the focus; extend applies
+//   instance: the Identity comonad - extract returns the focus; extend applies
 // f to the whole (bare) context and re-wraps.
 template<typename _A>
 struct comonad_traits< ::djinterp::testing::ident<_A>, void >

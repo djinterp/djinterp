@@ -110,7 +110,7 @@ bool cu_near(
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- declarations - visible in BOTH modes ------------------------------------
+// - declarations - visible in BOTH modes ------------------------------------
 
 // I.   ONE INCLUDE                    (color_tests_include.cpp)
 bool tests_color_umbrella_gives_every_model();
@@ -124,7 +124,7 @@ bool tests_color_umbrella_sits_beside_the_c_header();
 bool tests_color_umbrella_sits_beside_the_pdf_and_css();
 
 
-// -- the spec provider - spec mode only --------------------------------------
+// - the spec provider - spec mode only --------------------------------------
 #ifdef DTEST_SPEC_MODE
 
 // color_spec

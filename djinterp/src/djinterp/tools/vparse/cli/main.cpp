@@ -3,9 +3,9 @@
 *
 * The program `vparse`: vparse's command line, on the process's own streams.
 *   Everything the program does is cli::run(); main() hands it the standard
-* input and the kit's standard sinks -- which write a Windows console
+* input and the kit's standard sinks - which write a Windows console
 * through its wide interface, flush every write and so meet a full disk
-* there -- and main's own arguments, and says what nothing below it can: a
+* there - and main's own arguments, and says what nothing below it can: a
 * failure that escaped before a command ran, which the kit's guard then did
 * not catch.
 *   On Windows the standard input is read in binary mode, as every file the

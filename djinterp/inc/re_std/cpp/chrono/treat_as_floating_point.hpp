@@ -7,7 +7,7 @@
 *
 *   WHY THE ANSWER GOVERNS IMPLICIT CONVERSION:
 *   An integral duration converts implicitly only when the conversion
-* cannot lose anything -- seconds to milliseconds is exact, so it is
+* cannot lose anything - seconds to milliseconds is exact, so it is
 * implicit; milliseconds to seconds truncates, so it requires an explicit
 * duration_cast. That rule is what stops a truncation from happening
 * silently inside an argument list.
@@ -21,7 +21,7 @@
 *   A program with its own fixed-point or checked-arithmetic type
 * specialises this trait to true and gets the same freedom. The
 * specialisation must be written in re_std::chrono, and specialising it
-* for a fundamental type is undefined -- the library already knows the
+* for a fundamental type is undefined - the library already knows the
 * answer for those.
 *
 *

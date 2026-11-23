@@ -24,7 +24,7 @@ bool tests_sort_dispatch_algorithm_enumerators()
     //   The six enumerators and their numeric values.  These cross the ABI
     // in every run-time sort() call and every DSorter<DDynamicAlgorithm>, so
     // reordering them would silently redirect existing callers to a
-    // different algorithm -- an error no compiler would report.
+    // different algorithm - an error no compiler would report.
     result.check(static_cast<int>(DSortAlgorithm::bubble) == 0);
     result.check(static_cast<int>(DSortAlgorithm::selection) == 1);
     result.check(static_cast<int>(DSortAlgorithm::insertion) == 2);

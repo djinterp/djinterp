@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                       runtime_container_concepts.hpp
 *
-* C++20 concepts for the LIFETIME (runtime end) axis -- the `requires`-facing
+* C++20 concepts for the LIFETIME (runtime end) axis - the `requires`-facing
 * view of runtime_container_traits.hpp.
 *
 *   THE CONCEPTS ADD NO POLICY.
@@ -56,7 +56,7 @@ concept RuntimeOnlyContainer = is_runtime_container_v<Type>;
 
 
 // RequiresRuntimeStorageContainer
-//   concept: the STRONGER claim: it actively requires runtime storage -- an
+//   concept: the STRONGER claim: it actively requires runtime storage - an
 // allocator or a growable capacity. Lifetime says WHEN the data are fixed;
 // this isolates the genuine STORAGE signals, which is a different question.
 template<typename Type>

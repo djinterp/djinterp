@@ -60,7 +60,7 @@ bool d_tests_sa_test_cli_unix_consume_next(
 /******************************************************************************
  * IV. STOP TOKEN TESTS
  *****************************************************************************/
-// -- stops processing
+// - stops processing
 bool d_tests_sa_test_cli_unix_stop_token(
     struct dj_test_counter* _counter
 );

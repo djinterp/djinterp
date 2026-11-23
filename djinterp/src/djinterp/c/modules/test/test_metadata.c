@@ -28,8 +28,8 @@ D_EXTERN_C_BEGIN
    and inlining it at the three call sites would be shorter.
 
      It stays because it is the ONE PLACE key equality is defined. A future
-   change -- a tombstone value, a case-folded namespace, a generation counter
-   in the high bits -- lands here rather than in three loops that have to be
+   change - a tombstone value, a case-folded namespace, a generation counter
+   in the high bits - lands here rather than in three loops that have to be
    found. The differential harness also anchors an injection on this function;
    an equality rule spread across three call sites cannot be injected once. */
 static
@@ -158,7 +158,7 @@ void* d_test_metadata_get(
                indistinguishable from a miss only by intent. With a void*
                value there is nothing to map onto: MISS IS null. A row whose
                value is null still counts as present, and contains() is now the
-               ONLY way to tell it from an absent key -- not merely the
+               ONLY way to tell it from an absent key - not merely the
                documented way. */
             return _metadata->rows[i].value;
         }

@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                                table_tests_fixed.cpp
 *
-* fixed_table.hpp: the fixed-shape, mutable rank-2 table -- construction,
+* fixed_table.hpp: the fixed-shape, mutable rank-2 table - construction,
 * the static extents, mutation, the algorithms, equality, the serial pair and
 * detection.
 *

@@ -31,18 +31,18 @@
 *
 *   2. IT CARRIED ITS OWN PRE-ORDER ITERATOR, a byte-for-byte copy of the one
 * in
-*      nary_tree_iterator.hpp -- and `iterator` aliased the COPY, so the
+*      nary_tree_iterator.hpp - and `iterator` aliased the COPY, so the
 *    header
 *      that exists to supply this container's iterators supplied it none. Both
 *      copies dragged a std::vector STACK along, which an LCRS node needs not
 *    at
 *      all: the parent link IS the unwind.  GONE: the iterators come from
 *      nary_tree_iterator.hpp, which owns them, and are now O(1)-space,
-*      noexcept, allocation-free, and BIDIRECTIONAL -- so this container gains
+*      noexcept, allocation-free, and BIDIRECTIONAL - so this container gains
 *      rbegin()/rend(), post-order, leaf order, and level order for nothing.
 *
 *   3. depth(n) COUNTED PARENT LINKS, which is the LEVEL (lambda), not the
-* DEPTH. The spec reserves depth for a node's HEIGHT -- measured downward, to
+* DEPTH. The spec reserves depth for a node's HEIGHT - measured downward, to
 * its deepest leaf.  They are different numbers on the same node and the tree
 * had no way to ask for the second.  level() and height() now both exist;
 * depth() is retained as a spelling of level().
@@ -60,8 +60,8 @@
 *
 *   ADDRESSING. Every component of a tree has a unique PATH from the root, and
 * the word of LABELS along that path is its ADDRESS.  A tree is ADDRESSABLE
-* exactly when its labelling SEPARATES -- the children of every node bear
-* distinct labels -- which is the multiplicity restriction mu_1 read
+* exactly when its labelling SEPARATES - the children of every node bear
+* distinct labels - which is the multiplicity restriction mu_1 read
 * sibling-wise.  An LCRS node carries a PAYLOAD, not a label, so a label is
 * DERIVED from the value (gamma = lab . val); see is_addressable().
 *
@@ -69,7 +69,7 @@
 * severs every descent through it, and the addresses of its whole subtree
 * cease
 * to resolve. So a selection preserves the survivors' addresses IF AND ONLY IF
-* the retained set is PREFIX-CLOSED (ancestor-closed) -- and a predicate on
+* the retained set is PREFIX-CLOSED (ancestor-closed) - and a predicate on
 * VALUES is not in general ancestor-closed. "Keep exactly the nodes that
 * match"
 * is therefore NOT A TREE OPERATION AT ALL: it orphans whatever hung beneath a
@@ -83,19 +83,19 @@
 *                     matches.  Prefix-closed by construction.  `grep -r`
 *                     semantics.  This is the shape both has_native_filter
 *                     (container_filter_traits) and has_filter_method
-*                     (filter.hpp) probe for -- a CONST member yielding a
+*                     (filter.hpp) probe for - a CONST member yielding a
 *                   RESULT
-*                     -- so it is what makes this container's filter strategy
+*                     - so it is what makes this container's filter strategy
 *                     NATIVE rather than external.
 *     prune(pred)     the same closure, applied IN PLACE.
 *     erase_if(pred)  in place, the DUAL: a matching node is removed TOGETHER
 *                     WITH ITS SUBTREE, since its children cannot outlive it.
-*                     Also prefix-closed -- the dual of prune, not its
+*                     Also prefix-closed - the dual of prune, not its
 *                     complement.
 *     select(pred)    a flat gather of the matching nodes.  Reads only; builds
 *                     no tree; raises no structural question.
 *
-*   TRANSFORMING. A map keeps every position and so keeps every ADDRESS -- but
+*   TRANSFORMING. A map keeps every position and so keeps every ADDRESS - but
 * only while the labels hold still. Where the label is derived from the value,
 * a map that is not injective ON LABELS can COLLIDE two siblings onto one
 * label
@@ -104,7 +104,7 @@
 * seen
 * in its structural consequence.  transform_preserves_separation() decides it
 * BEFORE the map is applied.  transform() is likewise CONST and
-* result-returning -- the shape has_native_transform detects -- and
+* result-returning - the shape has_native_transform detects - and
 * transform_in_place() is its destructive twin.
 *
 *   SEQUENCE BRIDGE.  filter.hpp is a SEQUENCE library: its operations are
@@ -112,7 +112,7 @@
 * and
 * does not satisfy is_filterable (it has no push_back and no insert, and
 * should
-* have neither -- a tree has no "back"). values() / leaves() / nodes() flatten
+* have neither - a tree has no "back"). values() / leaves() / nodes() flatten
 * it so filter.hpp's chains may run over its ELEMENTS; what comes back is a
 * SEQUENCE, and the tree's shape is not recoverable from it.  That is not a
 * limitation of the bridge.  It is what the spec says filtering a hierarchy
@@ -208,7 +208,7 @@ NS_DJINTERP
 //
 //   THE SPEC.  This is the DESCENT RELATION |> itself, one level: the children
 // of a node, in sibling order.  It is also the sibling enumeration a SCANNING
-// resolution consumes -- find_child() below is a scan of exactly this range.
+// resolution consumes - find_child() below is a scan of exactly this range.
 
 NS_INTERNAL
 
@@ -500,7 +500,7 @@ public:
                                DContainerIterability::iterable>;
 
     // a tree cannot be configured flat. The structure axis is the one axis
-    // this container does not merely default -- it FIXES.
+    // this container does not merely default - it FIXES.
     static_assert(
         container_axis_value_v<options_type,
                                DContainerAxis::structure,
@@ -648,7 +648,7 @@ public:
     }
 
     // children
-    //   a forward range over _node's direct children -- the descent relation
+    //   a forward range over _node's direct children - the descent relation
     // |>, one level.  An empty range for a null or leaf node.
     D_CONSTEXPR sibling_range_type
     children(
@@ -694,7 +694,7 @@ public:
     //     level(n)   counts UPWARD, root to node.  It is the spec's lambda, the
     //                length of n's PATH, and the length of n's ADDRESS.
     //     height(n)  counts DOWNWARD, node to its deepest leaf.  It is the
-    //                spec's DEPTH -- the number the structure axis means when
+    //                spec's DEPTH - the number the structure axis means when
     // it calls a container "depth >= 2".
     //
     //   They agree only at a root that is also a leaf.  For a node at level L
@@ -750,7 +750,7 @@ public:
     }
 
     // height
-    //   the height of the whole tree -- the DEPTH of the container, in the
+    //   the height of the whole tree - the DEPTH of the container, in the
     // sense the structure axis means. An empty tree has height 0; so does a
     // lone root, and has_root() tells them apart.
     level_type
@@ -776,13 +776,13 @@ public:
     // 5.  ADDRESSABILITY
     // -----------------------------------------------------------------
     //   A tree's components are in bijection with the PATHS to them, and a path
-    // is named by the word of LABELS along it -- its ADDRESS.  The root
+    // is named by the word of LABELS along it - its ADDRESS.  The root
     // contributes NO label: addressing starts from it, it is not a step taken.
     // So |address(n)| == level(n), which is exactly what resolve() consumes.
     //
     //   An LCRS node carries a PAYLOAD, not a label, so a label must be DERIVED
     // from the value: gamma = lab . val.  The Labeller parameter is that lab,
-    // and it defaults to DNaryIdentityLabel -- the value IS its own label.
+    // and it defaults to DNaryIdentityLabel - the value IS its own label.
     //
     //   SEPARATION is the precondition of all of it.  Nothing below checks it
     // on the resolution path (that would cost O(k) per step for a property of
@@ -850,7 +850,7 @@ public:
 
     // path
     //   path(_node): the chain of components from the root down to _node,
-    // ROOT-FIRST, _node last. It names level(_node) + 1 components -- one more
+    // ROOT-FIRST, _node last. It names level(_node) + 1 components - one more
     // than the address has labels, the extra one being the root. Empty when
     // _node is null or is not in this tree.
     std::vector<const node_type*>
@@ -878,7 +878,7 @@ public:
     //   addr(_node): the word of LABELS along path(_node), root-first.
     //
     //   THE ROOT CONTRIBUTES NO LABEL, so the word has exactly level(_node)
-    // entries -- which is exactly what resolve() consumes. Given a separating
+    // entries - which is exactly what resolve() consumes. Given a separating
     // labelling,
     //
     //       resolve(address(n)) == n for every n in the tree,
@@ -960,7 +960,7 @@ public:
     }
 
     // lca
-    //   the lowest common ancestor of _a and _b -- which the spec reads as the
+    //   the lowest common ancestor of _a and _b - which the spec reads as the
     // MEET of their addresses in the prefix order, the longest common prefix
     // of the two words. In a single-rooted tree the meet ALWAYS exists (at
     // worst it is the empty word, the root), so this cannot fail for two nodes
@@ -1019,7 +1019,7 @@ public:
     }
 
     // is_separating
-    //   true if the children of _node bear pairwise distinct labels -- the
+    //   true if the children of _node bear pairwise distinct labels - the
     // SEPARATION condition at one node. O(k^2) in the branching factor.
     template<typename Labeller = DNaryIdentityLabel>
     bool
@@ -1032,12 +1032,12 @@ public:
     }
 
     // is_addressable
-    //   true if EVERY node of the tree separates its children -- the condition
+    //   true if EVERY node of the tree separates its children - the condition
     // under which this tree is ADDRESSABLE, and under which
     // resolve(address(n)) == n holds for every n.
     //
     //   Separation is the multiplicity restriction mu_1 read sibling-wise. It
-    // is NOT a property of the type -- an nary_tree labels by its PAYLOAD, so
+    // is NOT a property of the type - an nary_tree labels by its PAYLOAD, so
     // it is a property of the VALUES currently in it, and a transformation can
     // destroy it (see transform_preserves_separation). Hence a runtime query,
     // not a trait. O(n * k^2).
@@ -1184,7 +1184,7 @@ public:
 
     // leaf_begin / leaf_end
     //   the FRONTIER: the tree's leaves, in document order. These are its
-    // ELEMENTS in the sense of the spec -- the node summand skipped.
+    // ELEMENTS in the sense of the spec - the node summand skipped.
     // Bidirectional.
     leaf_iterator
     leaf_begin() noexcept
@@ -1213,7 +1213,7 @@ public:
 
     // level_begin / level_end
     //   breadth-first: the level strata L_0, L_1, ... in order. Forward only,
-    // and the only order that allocates -- it is not a local walk of the
+    // and the only order that allocates - it is not a local walk of the
     // descent relation, so it must remember its frontier. Each iterator
     // reports the stratum it is on through level().
     level_iterator
@@ -1523,7 +1523,7 @@ public:
     //
     //   WHY filter() IS THE CONST ONE.  The framework's native_filter_helper
     // (container_filter_traits.hpp) and filter.hpp's has_filter_method BOTH
-    // probe for `declval<const T&>().filter(bool(*)(const value_type&))` -- a
+    // probe for `declval<const T&>().filter(bool(*)(const value_type&))` - a
     // CONST member producing a RESULT.  That is the "read plus build" reading
     // of the Filterability axis, and satisfying it is what makes this
     // container's filter strategy NATIVE rather than external.  The in-place
@@ -1531,13 +1531,13 @@ public:
     // axis says it means.
 
     // filter
-    //   const: a NEW TREE holding the ANCESTOR-CLOSURE of {n : _pred(n)} -- a
+    //   const: a NEW TREE holding the ANCESTOR-CLOSURE of {n : _pred(n)} - a
     // node is kept if it, or any node beneath it, matches. This tree is not
     // touched.
     //
     //   PREFIX-CLOSED, and therefore ADDRESSABILITY-PRESERVING: if a node is
-    // kept, so is every one of its ancestors -- an ancestor of a match is
-    // itself an ancestor of a match -- so every survivor's path is intact in
+    // kept, so is every one of its ancestors - an ancestor of a match is
+    // itself an ancestor of a match - so every survivor's path is intact in
     // the result and its address still resolves there. That is precisely the
     // condition the spec puts on filtering a hierarchy, and it is why this,
     // and not the naive reading, is what filter MEANS here.
@@ -1604,8 +1604,8 @@ public:
     //
     //   The subtree goes too because it must: a child cannot outlive the
     // parent that addresses it. The retained set is {m : no ancestor-or-self
-    // of m matches}, which is PREFIX-CLOSED -- if m is kept then so is its
-    // parent, whose ancestors-or-self are a subset of m's -- so this too
+    // of m matches}, which is PREFIX-CLOSED - if m is kept then so is its
+    // parent, whose ancestors-or-self are a subset of m's - so this too
     // preserves the survivors' addresses. It is the DUAL of prune, not its
     // complement.
     template<typename Pred,
@@ -1641,7 +1641,7 @@ public:
     // select
     //   the nodes whose value satisfies _pred, in pre-order. A read: the tree
     // is not modified and no addresses move. This is the container in its
-    // is_filter_source reading -- supplying elements to a selection without
+    // is_filter_source reading - supplying elements to a selection without
     // building one.
     template<typename Pred,
              typename std::enable_if<
@@ -1741,7 +1741,7 @@ public:
     // transform
     //   const: a NEW TREE of the SAME SHAPE, every value rewritten to _fn(v).
     // Every position is kept and every arrangement with it, so every PATH --
-    // and hence every ADDRESS -- carries over intact.
+    // and hence every ADDRESS - carries over intact.
     //
     //   WITH ONE EXCEPTION, and it is the spec's. Where the label is DERIVED
     // from the value (gamma = lab . val), an _fn that is not injective ON
@@ -1808,7 +1808,7 @@ public:
 
     // transform_preserves_separation
     //   true if applying _fn would leave every node's children bearing
-    // distinct labels -- that is, if the map would NOT cost this tree its
+    // distinct labels - that is, if the map would NOT cost this tree its
     // addressability.
     //
     //   The executable form of the spec's warning. Selection preserves mu_1
@@ -1866,18 +1866,18 @@ public:
     // -----------------------------------------------------------------
     //   filter.hpp is a SEQUENCE library: its operations are
     // std::function<vector<size_t>(const vector<T>&)>, and its is_filterable --
-    // like the framework's is_container_filterable -- wants push_back or
+    // like the framework's is_container_filterable - wants push_back or
     // insert. This container has neither and should have neither: a tree has no
     // "back" to push onto, and WHERE a new node goes is a structural decision,
     // not an appending one.  It is therefore a filter SOURCE (is_filter_source)
     // and INPUT-ONLY (is_filter_input_only) by those traits, which is exactly
-    // right -- and it is separately NATIVE (has_native_filter), because
+    // right - and it is separately NATIVE (has_native_filter), because
     // filter() above gives it a selection primitive of its own.
     //
     //   These flatten it so filter.hpp's chains and builders may run over its
     // ELEMENTS.  What comes back is a SEQUENCE: the tree's shape is not
     // recoverable from it, and a filtered sequence cannot be poured back in.
-    // That is not a shortcoming of the bridge -- it is what the spec says
+    // That is not a shortcoming of the bridge - it is what the spec says
     // filtering a hierarchy costs, and the tree-shaped alternatives are
     // filter() / prune() / erase_if() above.
 
@@ -1908,7 +1908,7 @@ public:
 
     // leaves
     //   the FRONTIER: the values at the tree's leaves, in document order.
-    // These are its ELEMENTS in the sense of the spec -- the node summand
+    // These are its ELEMENTS in the sense of the spec - the node summand
     // skipped.
     std::vector<value_type>
     leaves() const
@@ -1933,7 +1933,7 @@ public:
 
     // nodes
     //   every node handle, in pre-order. For callers that need the STRUCTURE
-    // alongside the values -- a level, an address, a parent -- which a flat
+    // alongside the values - a level, an address, a parent - which a flat
     // vector of values throws away.
     std::vector<node_type*>
     nodes()
@@ -2317,14 +2317,14 @@ private:
     // clone_closure
     //   clones into _out the ANCESTOR-CLOSURE of {n : _pred(n)} taken over
     // _src's subtree, hanging the result under _dst_parent (or as _out's root
-    // when _dst_parent is null). Returns true if _src was kept -- that is, if
+    // when _dst_parent is null). Returns true if _src was kept - that is, if
     // _src or anything beneath it matched.
     //
     //   The node is cloned FIRST and un-cloned if it turns out to have earned
     // no place: whether a node survives is a question about its DESCENDANTS,
     // so
     // it cannot be answered before they are walked, and cloning eagerly lets
-    // that one walk do both jobs. The undo is O(1) -- if nothing beneath _src
+    // that one walk do both jobs. The undo is O(1) - if nothing beneath _src
     // matched then every child clone was already removed, so the clone is a
     // leaf by the time we reach it. Total cost stays O(n).
     template<typename Pred>
@@ -2370,7 +2370,7 @@ private:
 
     // clone_mapped
     //   clones _src's children into _out under _dst, mapping every value
-    // through _fn and preserving sibling order -- so the result has the SAME
+    // through _fn and preserving sibling order - so the result has the SAME
     // SHAPE, and every address carries over.
     template<typename Fn>
     void
@@ -2398,7 +2398,7 @@ private:
     }
 
     // prune_node
-    //   returns true if _node, or ANY node beneath it, satisfies _pred -- and,
+    //   returns true if _node, or ANY node beneath it, satisfies _pred - and,
     // on the way, destroys every child subtree that contains no match. The
     // in-place counterpart of clone_closure.
     //

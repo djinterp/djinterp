@@ -142,15 +142,15 @@ struct dj_tests_cli_words
 // 1.3.1
 // dj_tests_cli_make_fn
 //   type: a fixture: makes a section's program over a parser that
-// d_arg_parser_init has made -- d_cli_program_init, then the program's own
-// definitions -- and returns whether everything was made.
+// d_arg_parser_init has made - d_cli_program_init, then the program's own
+// definitions - and returns whether everything was made.
 typedef bool (*dj_tests_cli_make_fn)(struct dj_cli_program* _program,
                                     struct dj_arg_parser*  _parser);
 
 // 1.3.2
 // dj_tests_cli_case
 //   struct: one case: its tag, as a failure names it; its command line; and
-// what running it must come to -- the status d_cli_program_run returns,
+// what running it must come to - the status d_cli_program_run returns,
 // and the whole of what it writes to standard output and standard error.
 struct dj_tests_cli_case
 {
@@ -175,8 +175,8 @@ D_EXTERN_C_BEGIN
 // d_tests_cli_split
 /**
  * @brief Splits a command line into words: at runs of spaces, a pair of
- *        single quotes keeping what is between them -- spaces, and nothing
- *        at all -- as one word, or part of one.
+ *        single quotes keeping what is between them - spaces, and nothing
+ *        at all - as one word, or part of one.
  *
  * @param[in]  _line   the command line.
  * @param[out] _words  receives the words.
@@ -226,8 +226,8 @@ void d_tests_cli_finish(
 // 2.3.1
 // d_tests_cli_case_run
 /**
- * @brief Runs one case on a program of its own -- d_cli_program_run over
- *        its command line -- and compares what it came to.
+ * @brief Runs one case on a program of its own - d_cli_program_run over
+ *        its command line - and compares what it came to.
  *
  * @param[in] _case  the case.
  * @param[in] _make  the fixture.
@@ -290,8 +290,8 @@ bool d_tests_cli_check(
 
 // 2.4.3
 // D_TESTS_CLI_CHECK
-//   macro: records whether _held holds, as D_TEST_EXPECT does -- its source
-// text, file and line, the test going on either way -- then notes `[tag]
+//   macro: records whether _held holds, as D_TEST_EXPECT does - its source
+// text, file and line, the test going on either way - then notes `[tag]
 // what` when it does not. Evaluates each argument once; its value is the
 // verdict.
 #define D_TESTS_CLI_CHECK(_held, _tag, _what)                                 \
@@ -306,8 +306,8 @@ bool d_tests_cli_check(
 //------------------------------------------------------------------------------
 // 2.5.1
 // d_tests_cli_setenv
-//   setting: sets an environment variable of the process -- the C runtime's
-// and, on Windows, the wide one the kit reads -- or unsets it for a NULL
+//   setting: sets an environment variable of the process - the C runtime's
+// and, on Windows, the wide one the kit reads - or unsets it for a NULL
 // value; whether it was done.
 bool d_tests_cli_setenv(
     const char* _name,
@@ -389,9 +389,9 @@ bool d_tests_cli_file_holds(
 // d_tests_cli_redirect
 /**
  * @brief Puts a file in a standard stream's place for a while: the
- *        stream's descriptor saved, the file opened in binary mode -- for
+ *        stream's descriptor saved, the file opened in binary mode - for
  *        reading in standard input's place, written anew in standard
- *        output's or standard error's -- and its descriptor put where the
+ *        output's or standard error's - and its descriptor put where the
  *        stream's was.
  *
  * @param[in] _stream  the stream: 0, 1 or 2.
@@ -418,9 +418,9 @@ void d_tests_cli_restore(
 // 2.9.1
 // d_tests_cli_kit_line
 //   writing: the line `--version --verbose` ends with, as the kit says how it
-// was built (GRAMMAR.md, section 6) -- `kit: LEVEL, COMPILER M.m.p, TYPE`
+// was built (GRAMMAR.md, section 6) - `kit: LEVEL, COMPILER M.m.p, TYPE`
 // and a newline, each part where it is known and the compiler `unknown`
-// where it is not -- composed from d_cli_kit_build, cut to fit `_text`.
+// where it is not - composed from d_cli_kit_build, cut to fit `_text`.
 void d_tests_cli_kit_line(
     char*  _text,
     size_t _size

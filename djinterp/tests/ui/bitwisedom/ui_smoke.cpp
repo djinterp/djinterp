@@ -2,20 +2,20 @@
 * djinterp [cpp][tools]                                             ui_smoke.cpp
 *
 * The window, driven headless through Dear ImGui's null backend.
-*   Every frame of every section is checked for ImGui assertions -- which
-* abort, so a run that reaches the end had none -- and for ID clashes, which
+*   Every frame of every section is checked for ImGui assertions - which
+* abort, so a run that reaches the end had none - and for ID clashes, which
 * this test's own ImGui records in full (IMGUI_DEBUG_HIGHLIGHT_ALL_ID_
 * CONFLICTS). The sections walk the window: every tab of every example,
 * the large ones too, every row in the inspector, every registered setting
 * changed and undone, an operation applied and undone, a file saved and
 * opened again, and a mouse that wanders, clicks and drags at random over
-* everything -- the grid's strokes and its headings included.
+* everything - the grid's strokes and its headings included.
 *   Then the mouse and keyboard as a user would use them, at the places the
 * grid says it drew things: a right-click opens the menu for what it is on;
 * a double-click on a name, F2, or a double-click on a segment's band
 * renames it where it is, and the sheet's references follow; the columns'
 * edges and the ruler's boundaries resize; and code is pasted, copied,
-* dropped and imported -- through a clipboard of the test's own, in memory,
+* dropped and imported - through a clipboard of the test's own, in memory,
 * never the system's, which another program may hold open on Windows. Every frame is checked for ImGui's own errors too:
 * the misuses a release build recovers from and a debug build asserts on --
 * and for vertices a GPU may draw as stray pixels: not a number, far past
@@ -164,8 +164,8 @@ bool id_clash()
             continue;
         }
 
-        // ImGui's own multiline input submits its ID twice -- as an item,
-        // and again when its child window ends -- and the full check flags
+        // ImGui's own multiline input submits its ID twice - as an item,
+        // and again when its child window ends - and the full check flags
         // it every frame. An ID that is a child window's is that pattern.
         bool child = false;
 
@@ -327,7 +327,7 @@ void key(
 }
 
 // press
-//   a key pressed and released with modifiers held -- Ctrl, Shift, Alt --
+//   a key pressed and released with modifiers held - Ctrl, Shift, Alt --
 // as a chord names them.
 void press(
     app&          _window,
@@ -448,7 +448,7 @@ std::string tool_key(
 
 // tool_is_open / tool_in_view
 //   whether a tool window of the workspace in front is open; and whether
-// it drew its content in the last frame -- its tab in front of its dock.
+// it drew its content in the last frame - its tab in front of its dock.
 bool tool_is_open(
     app&                  _window,
     bitwisedom::gui::tool _tool
@@ -1192,7 +1192,7 @@ void code_in_and_out(
 
 // the_grid_fills
 //   the grid takes its panel's width: the cells widened, or the name column,
-// or nothing -- and then its rows end where its columns do.
+// or nothing - and then its rows end where its columns do.
 void the_grid_fills(
     app& _window
 )
@@ -1748,8 +1748,8 @@ void a_wide_sheet(
 }
 
 // json_out_and_in
-//   the sheet as JSON beside its file -- the bitfield alone, and everything
-// -- and each read back: the bitfield dropped on the window, and from the
+//   the sheet as JSON beside its file - the bitfield alone, and everything
+// - and each read back: the bitfield dropped on the window, and from the
 // clipboard.
 void json_out_and_in(
     app& _window
@@ -1771,7 +1771,7 @@ void json_out_and_in(
             (text.find("\"bitwisedom.export\"") != std::string::npos),
            "and everything");
 
-    // dropped, a bitfield is a new sheet, named for its file -- in the
+    // dropped, a bitfield is a new sheet, named for its file - in the
     // new sheet left untouched, which it takes the place of
     const std::size_t rows = _window.state().res.rows.size();
 
@@ -2242,8 +2242,8 @@ float fitted_names(
 symbols_by
   The buttons over the symbols column, which choose what it lists each row
 by: drawn side by side in the band strip, over the column and above its
-label. A press on one lists the rows by symbol name, name or value -- one
-step to undo, and none for the choice already made -- and the column fits
+label. A press on one lists the rows by symbol name, name or value - one
+step to undo, and none for the choice already made - and the column fits
 what it then writes. The mouse on one is a hand, and resting there explains
 it; a press on one starts no drag of the heading, where a drag from the
 label still swaps the columns. A narrow column takes shorter words, a
@@ -2429,8 +2429,8 @@ void symbols_by(
 values_every_way
   The value button, once the symbols column lists rows by value, writes
 them another way at each press: as the header writes them, following the
-tree; then every row alike, lined up at the column's right -- in hex,
-decimal and binary, as a shifted run, as the bits set -- and round again,
+tree; then every row alike, lined up at the column's right - in hex,
+decimal and binary, as a shifted run, as the bits set - and round again,
 the run of presses one step of undo. A right-click on a button lists every way, and
 a way chosen from it lists the rows so. A sheet wider than an integer
 passes over decimal and binary. And a macro with no bits has its cells,
@@ -2957,8 +2957,8 @@ void zoom_like_a_browser(
 // clipboard_text / clipboard_get / clipboard_set / own_clipboard
 //   the smoke test's own clipboard, in memory, which every ImGui it makes
 // reads and writes. ImGui's default on Windows is the system's, which a
-// program watching it -- the clipboard history, a remote desktop, a
-// password manager -- opens the moment after each copy: a copy straight
+// program watching it - the clipboard history, a remote desktop, a
+// password manager - opens the moment after each copy: a copy straight
 // after another then fails without a word, and the test reads the text
 // before it. Its own leaves the user's clipboard alone, too.
 std::string& clipboard_text()
@@ -3034,8 +3034,8 @@ void done_with(
 /*
 the_next_run
   The window closed and opened again opens where it was left: its
-workspaces by name, the one in front, every sheet in them -- a change not
-yet saved too -- each window's zoom, the tool windows open and closed, and
+workspaces by name, the one in front, every sheet in them - a change not
+yet saved too - each window's zoom, the tool windows open and closed, and
 the sheets laid out as they were. Each run is a window of its own, in an
 ImGui of its own, keeping its settings and its session in files of their
 own.
@@ -3321,7 +3321,7 @@ the_grid_as_the_tree
   The grid's symbols column is the tree while the tree's own window is
 closed: a row selected has an "Add child..." field under its group's rows,
 where names are typed one after another; and a row dragged by its name
-drops before a symbol, or into a group -- each a step to undo.
+drops before a symbol, or into a group - each a step to undo.
 */
 void the_grid_as_the_tree(
     app& _window
@@ -3420,8 +3420,8 @@ void the_grid_as_the_tree(
 /*
 special_rows
   The probe and usage rows: shown, pinned at the bottom of the grid, below
-the add row; dragged by the name, the usage into a group -- after its rows,
-counting only them -- and the probe before a row; pinned at the top from
+the add row; dragged by the name, the usage into a group - after its rows,
+counting only them - and the probe before a row; pinned at the top from
 their menu; another added and removed, the last of a kind hidden instead;
 and each a step to undo.
 */
@@ -3594,7 +3594,7 @@ void special_rows(
 /*
 the_add_node
   What ends a group's rows: the "Add child..." field, as wide as what it
-holds or filling its column, and the + beside it -- either, or both. The +
+holds or filling its column, and the + beside it - either, or both. The +
 opens the Add node window, a tab among the sheets or a window of its own,
 where a row of any kind is made in full: a range, three bits wide, added
 in its group, a step to undo; a name another symbol has, refused.
@@ -3736,7 +3736,7 @@ void the_add_node(
 /*
 the_status_bar
   A bar along the window's foot: what the sheet in front is on the left,
-and at its right end what the window last said -- after a "*" while the
+and at its right end what the window last said - after a "*" while the
 sheet has changes. A click there opens the console: every action so far,
 the latest first, a slider dragged one action many times over.
 */
@@ -4151,7 +4151,7 @@ void the_keyboard(
     const int presets  = _window.state().res.find(preset)->parent;
 
     // the columns the cursor stops in, left to right: the names, the
-    // values while they are shown, then the bits -- the reserved ones
+    // values while they are shown, then the bits - the reserved ones
     // folded into one column
     const bitwisedom::gui::grid_columns_seen spans =
         bitwisedom::gui::grid_columns(_window.state().id);
@@ -4468,8 +4468,8 @@ void the_keyboard(
 definition_files
   A definition file a sheet carries, in a tab of its own, brought to the
 front: what the preprocessor cannot read in it is named by its line; Edit
-makes the view an editor, where what is typed is the file's -- a step to
-undo -- and its notes follow; Done makes it a view again.
+makes the view an editor, where what is typed is the file's - a step to
+undo - and its notes follow; Done makes it a view again.
 */
 void definition_files(
     app& _window
@@ -4594,8 +4594,8 @@ void show_in(
 
 /*
 sorted_and_shown
-  The grid's rows sorted, as its menus sort them -- the heading's menu
-opened by a right-click there -- by name, then the last first; the order
+  The grid's rows sorted, as its menus sort them - the heading's menu
+opened by a right-click there - by name, then the last first; the order
 made the sheet's own, and each a step to undo. And what parts of the grid
 show: digits in a group's rows, from the row's menu; no colour in a
 segment's bits, from the band's, its set bits drawn plain; colours nowhere;
@@ -4805,7 +4805,7 @@ const bitwisedom::row* selected_row(
 }
 
 // added_where
-//   whether the row selected -- the one just added -- is of a kind, in a
+//   whether the row selected - the one just added - is of a kind, in a
 // group.
 bool added_where(
     app&                 _window,
@@ -4857,7 +4857,7 @@ void set_colour(
 the_add_control
   The one way to add a row, as the user prefers it: "+ Add", whose menu
 adds the kind chosen into the group selected; or a split button, whose
-face adds the kind it shows and whose arrow opens the menu -- where the
+face adds the kind it shows and whose arrow opens the menu - where the
 kind chosen is added, and is what the face adds from then on. And the
 colour a new row takes: none at first, the palette's, or one colour for
 every new row alike, until the user says otherwise.

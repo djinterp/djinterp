@@ -249,7 +249,7 @@ struct mysql_connect_config
 
     std::map<std::string, std::string> connect_attributes;
 
-    // construction -- the family's defaults, over a generic configuration's
+    // construction - the family's defaults, over a generic configuration's
     mysql_connect_config()
         : client_flags(mysql_client_flag::none),
           default_charset("utf8mb4"),
@@ -294,13 +294,13 @@ struct mariadb_layer
 
     static constexpr const char* utc_offset = "";
 
-    // holds_connection, busy_code -- a stream's run holds the connection,
+    // holds_connection, busy_code - a stream's run holds the connection,
     // whose every other command the layer refuses meanwhile with
     // CR_COMMANDS_OUT_OF_SYNC (2014), as the clients do
     static constexpr bool holds_connection = true;
     static constexpr int  busy_code        = 2014;
 
-    // connection_lost -- whether a result means the connection was lost, as
+    // connection_lost - whether a result means the connection was lost, as
     // the description above lists
     static constexpr
     bool connection_lost(
@@ -320,14 +320,14 @@ struct mariadb_layer
      *
      * @note The connection's message describes its latest failure only
      *       until the next call on it, which is why an operation that must
-     *       call again before it throws -- change_user's ping -- describes
+     *       call again before it throws - change_user's ping - describes
      *       the failure first.
      *
      * @param[in] _db         the connection the call ran on; may be `NULL`.
      * @param[in] _operation  the operation's name.
      * @param[in] _result     the call's result.
      * @return the server's name, the operation, the connection's message --
-     *         the result's own, for a result of the layer's -- the result,
+     *         the result's own, for a result of the layer's - the result,
      *         and an SQLSTATE that says more than the number.
      * @throws std::bad_alloc when memory runs out.
      */
@@ -426,7 +426,7 @@ NS_INTERNAL
     class mariadb_settings
     {
     public:
-        // construction -- empty
+        // construction - empty
         mariadb_settings() = default;
 
         mariadb_settings(
@@ -436,7 +436,7 @@ NS_INTERNAL
             const mariadb_settings&
         ) = delete;
 
-        // adding -- a number, a text, a connect attribute, or a native
+        // adding - a number, a text, a connect attribute, or a native
         // option; each throws std::bad_alloc when memory runs out, and a
         // text or an attribute connection_exception with
         // D_DB_INVALID_ARGUMENT for text holding a NUL
@@ -502,7 +502,7 @@ NS_INTERNAL
             return;
         }
 
-        // reading -- whether a setting of a name is there, and the array
+        // reading - whether a setting of a name is there, and the array
         bool
         has(
             enum dj_mariadb_setting_name _name
@@ -646,7 +646,7 @@ public:
      */
     int next_result();
 
-    // more_results -- false, for the same reason
+    // more_results - false, for the same reason
     bool more_results() const;
 
     /**
@@ -745,8 +745,8 @@ public:
      *       failed statement and a ping report none through either client.
      *
      * @param[in] _kind  the kind of state.
-     * @return the entries, in the server's order -- for system variables a
-     *         name and its value, one after the other, for each -- and none
+     * @return the entries, in the server's order - for system variables a
+     *         name and its value, one after the other, for each - and none
      *         when the reply reported nothing of the kind.
      * @throws query_exception with D_DB_UNSUPPORTED where the server (MySQL
      *         before 5.7.4, MariaDB before 10.2.2) or the client (a MariaDB
@@ -756,7 +756,7 @@ public:
         mysql_session_track _kind
     ) const;
 
-    // session features -- whether the server connected and the client have
+    // session features - whether the server connected and the client have
     // the reset and session tracking, asked of the layer at run time
     // (d_mariadb_supports); false while the connection is not open
     bool supports_reset_connection() const noexcept
@@ -769,7 +769,7 @@ public:
         return m_supports(D_MARIADB_FEATURE_SESSION_TRACKING);
     }
 
-    // result modes -- the client's names for core/db's two ways of reading
+    // result modes - the client's names for core/db's two ways of reading
     // rows: store_result reads them all when the query runs, as
     // execute_query does (mysql_store_result); use_result reads them a page
     // at a time as the stream's cursor reaches them, holding the connection
@@ -798,7 +798,7 @@ public:
      */
     std::string get_stat() const;
 
-    // diagnostics -- the connection's id on the server, and the latest
+    // diagnostics - the connection's id on the server, and the latest
     // statement's warning count and SQLSTATE, as the client keeps them; 0,
     // 0 and "" when closed
     unsigned long get_thread_id() const noexcept;
@@ -867,7 +867,7 @@ public:
         void* _value
     ) const;
 
-    // client flags -- CLIENT_* bits the next connect asks for
+    // client flags - CLIENT_* bits the next connect asks for
     mysql_client_flag get_client_flags() const noexcept;
     void set_client_flags(
         mysql_client_flag _flags
@@ -879,7 +879,7 @@ public:
         mysql_client_flag _flag
     ) const noexcept;
 
-    // connect attributes -- name and value, which performance_schema shows,
+    // connect attributes - name and value, which performance_schema shows,
     // for the next connect, which refuses a NUL in either
     void set_connect_attribute(
         const std::string& _key,
@@ -887,7 +887,7 @@ public:
     );
     const std::map<std::string, std::string>& get_connect_attributes() const noexcept;
 
-    // configuration -- the family's settings, the generic configuration
+    // configuration - the family's settings, the generic configuration
     // among them as it now is (connect(config) and use_database change it);
     // setting them replaces the generic configuration with theirs, for the
     // next connect
@@ -919,7 +919,7 @@ public:
      */
     std::vector<std::string> list_tables() const;
 
-    // vendor queries -- the family, and which of its servers DbType names,
+    // vendor queries - the family, and which of its servers DbType names,
     // at compile time
     static constexpr
     bool is_mysql_family() noexcept
@@ -939,13 +939,13 @@ public:
         return (DbType == database_type::mysql);
     }
 
-    // get_face -- the MariaDB layer's face, for the layer's other calls;
+    // get_face - the MariaDB layer's face, for the layer's other calls;
     // closing or replacing the connection through it is the connection's to
     // do, not the face's
     face::mariadb& get_face() noexcept;
     const face::mariadb& get_face() const noexcept;
 
-    // hooks -- database_connection calls these, programs the operations
+    // hooks - database_connection calls these, programs the operations
     // they implement, whose contracts they keep; connect_start_impl to
     // connect_abandon_impl are connect_async's (database_connection.hpp,
     // db::internal::connect_steps), into a face of their own until connected
@@ -1000,7 +1000,7 @@ public:
     struct ::dj_mariadb* native_handle_impl() const noexcept;
 
 protected:
-    // construction -- the leaves': with the family's defaults, with a
+    // construction - the leaves': with the family's defaults, with a
     // generic configuration, or with the family's. Nothing connects before
     // connect()
     mysql_common_connection();
@@ -1048,14 +1048,14 @@ protected:
         const char*  _operation
     ) const;
 
-    // m_supports -- the layer's answer for the server connected
+    // m_supports - the layer's answer for the server connected
     // (d_mariadb_supports), by its flavor and release; false while the
     // connection is not open
     bool m_supports(
         dj_mariadb_feature _feature
     ) const noexcept;
 
-    // m_supports_modern_sql -- window functions and CTEs, with LATERAL on
+    // m_supports_modern_sql - window functions and CTEs, with LATERAL on
     // MySQL, and with sequences and system versioning on MariaDB, as env
     // defines each flavor's (D_ENV_MYSQL_HAS_MODERN_SQL,
     // D_ENV_MARIADB_HAS_MODERN_SQL), for the server connected; false while
@@ -1065,13 +1065,13 @@ protected:
     mysql_connect_config m_mysql_config;
 
 private:
-    // m_derived -- the leaf, for its two hooks
+    // m_derived - the leaf, for its two hooks
     Derived& m_derived() noexcept;
 
-    // m_prepare_connect -- the settings and the options a connect passes,
-    // the configuration's refusals thrown first; m_finish_connect -- the
+    // m_prepare_connect - the settings and the options a connect passes,
+    // the configuration's refusals thrown first; m_finish_connect - the
     // set-up on a connection made, which the object then takes;
-    // m_refuse_connect -- the connection_exception for a connect that
+    // m_refuse_connect - the connection_exception for a connect that
     // failed, in the client's words where it gave some
     struct dj_mariadb_options m_prepare_connect(
         internal::mariadb_settings& _settings
@@ -1442,7 +1442,7 @@ mysql_common_connection::reset_connection
   The reset is checked for first, so that one the server or the client
 lacks changes nothing; the statements prepared on the connection are closed
 next, while the server still has them, and the layer resets the session and
-sets it up as its connect did -- the init command, the character set --
+sets it up as its connect did - the init command, the character set --
 after which the leaf's set-up runs, as after a connect.
 */
 template<typename      Derived,
@@ -1797,7 +1797,7 @@ const face::mariadb& mysql_common_connection<Derived, DbType>::get_face() const 
 mysql_common_connection::connect_impl
   The leaf's settings go first, so that a TLS mode of its own stands in for
 enable_ssl's (m_prepare_connect); the connection opens into a face of its
-own -- the character set and the init commands applied within the connect
+own - the character set and the init commands applied within the connect
 -- the leaf's on_connected_impl runs there, and only then does the object
 take it (m_finish_connect), so that a failure at any step leaves the old
 state and the new connection closed. A failed

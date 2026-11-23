@@ -24,7 +24,7 @@ D_EXTERN_C_BEGIN
 
 
 // dj_table_region
-//   struct: the region R_C of a layout cell -- a non-empty k-box of atomic
+//   struct: the region R_C of a layout cell - a non-empty k-box of atomic
 // positions,
 //     R_C = ( prod_{r=0..k-1} [origin_r, origin_r + span_r) ) intersect I_T.
 // Its extent |R_C| is the product of the spans; it is a MERGE when that exceeds
@@ -40,7 +40,7 @@ struct dj_table_region
 // dj_table_layout
 //   struct: the cover Gamma over a table's atomic positions, given by its
 // MERGES alone. Every position no declared merge covers is its own singleton
-// cell -- the trivial cover Gamma_0 on the rest -- so a partition of I_T is
+// cell - the trivial cover Gamma_0 on the rest - so a partition of I_T is
 // recovered from the merge list exactly when the merges are in bounds and
 // pairwise disjoint, and a layout with no merges IS Gamma_0. The struct owns
 // nothing: `merges` is caller-owned, exactly as dj_table's cells are, so a
@@ -73,7 +73,7 @@ struct dj_table_region d_table_region_make2(
 );
 
 // d_table_region_singleton
-//   function: the singleton region at _index -- the layout cell the trivial
+//   function: the singleton region at _index - the layout cell the trivial
 // cover Gamma_0 gives every atomic position.
 struct dj_table_region d_table_region_singleton(
     struct dj_table_index _index
@@ -90,7 +90,7 @@ D_NODISCARD D_INLINE size_t d_table_region_origin(
 }
 
 // d_table_region_span
-//   function: shape(C) along coordinate _r -- the region's span there.
+//   function: shape(C) along coordinate _r - the region's span there.
 D_NODISCARD D_INLINE size_t d_table_region_span(
     struct dj_table_region _region,
     uint32_t               _r
@@ -100,7 +100,7 @@ D_NODISCARD D_INLINE size_t d_table_region_span(
 }
 
 // d_table_region_extent
-//   function: |R_C|, the number of atomic positions the region holds -- the
+//   function: |R_C|, the number of atomic positions the region holds - the
 // product of its spans.
 D_NODISCARD D_INLINE size_t d_table_region_extent(
     struct dj_table_region _region
@@ -161,7 +161,7 @@ D_NODISCARD D_INLINE int d_table_region_contains(
 }
 
 // d_table_region_anchor
-//   function: anchor(C) = min_lex R_C -- the canonical representative that
+//   function: anchor(C) = min_lex R_C - the canonical representative that
 // names a merged cell once. For a box that is its origin.
 D_NODISCARD D_INLINE struct dj_table_index d_table_region_anchor(
     struct dj_table_region _region
@@ -198,7 +198,7 @@ int d_table_regions_overlap(
 );
 
 // d_table_layout_none
-//   function: the trivial cover Gamma_0 -- no merges, so every atomic position
+//   function: the trivial cover Gamma_0 - no merges, so every atomic position
 // is its own layout cell. This is the ordinary table.
 D_NODISCARD D_INLINE struct dj_table_layout d_table_layout_none(void)
 {
@@ -218,13 +218,13 @@ struct dj_table_layout d_table_layout_over(
 );
 
 // d_table_layout_wears_no_merges
-//   function: whether every region is a singleton -- the Gamma_0 case.
+//   function: whether every region is a singleton - the Gamma_0 case.
 int d_table_layout_wears_no_merges(
     const struct dj_table_layout* _layout
 );
 
 // d_table_layout_owner
-//   function: cell_T(i) -- the layout cell owning the atomic position _index.
+//   function: cell_T(i) - the layout cell owning the atomic position _index.
 // A declared merge that covers it, or the singleton cell there. Total on I_T
 // by construction, which is what makes Gamma a cover.
 D_NODISCARD D_INLINE struct dj_table_region d_table_layout_owner(
@@ -248,7 +248,7 @@ D_NODISCARD D_INLINE struct dj_table_region d_table_layout_owner(
 }
 
 // d_table_layout_span
-//   function: span_T(i) = R_{cell_T(i)} -- the region of the position's owner.
+//   function: span_T(i) = R_{cell_T(i)} - the region of the position's owner.
 D_NODISCARD D_INLINE struct dj_table_region d_table_layout_span(
     const struct dj_table_layout* _layout,
     struct dj_table_index         _index
@@ -258,7 +258,7 @@ D_NODISCARD D_INLINE struct dj_table_region d_table_layout_span(
 }
 
 // d_table_layout_anchor_of
-//   function: anchor(cell_T(i)) -- the position every index in a merged region
+//   function: anchor(cell_T(i)) - the position every index in a merged region
 // reads as. Off the merges it is the index itself.
 D_NODISCARD D_INLINE struct dj_table_index d_table_layout_anchor_of(
     const struct dj_table_layout* _layout,
@@ -269,7 +269,7 @@ D_NODISCARD D_INLINE struct dj_table_index d_table_layout_anchor_of(
 }
 
 // d_table_layout_is_anchor
-//   function: whether the position names its own cell -- i in A_T. A covered
+//   function: whether the position names its own cell - i in A_T. A covered
 // non-anchor position remains a valid index and defers to the cell anchored
 // elsewhere.
 int d_table_layout_is_anchor(
@@ -278,7 +278,7 @@ int d_table_layout_is_anchor(
 );
 
 // d_table_resolve_index
-//   function: LAYOUT-AWARE access at a rank-k index -- a pointer to the value
+//   function: LAYOUT-AWARE access at a rank-k index - a pointer to the value
 // the position reads as, which is its anchor's cell,
 //     T[i] = T[anchor(cell_T(i))]. The two accesses agree off the merges, so
 // passing Gamma_0 gives exactly d_table_cell_at_const. NULL when the index is
@@ -430,7 +430,7 @@ enum dj_table_status d_table_layout_validate(
 );
 
 
-// layout assertions -- drift becomes a compile error rather than a wire-format
+// layout assertions - drift becomes a compile error rather than a wire-format
 // bug, and both dialects compile them
 D_STATIC_ASSERT(offsetof(struct dj_table_region, origin) == 0,
                 "dj_table_region field drift: the origin must lead");

@@ -4,7 +4,7 @@
 * Declarations, statements, labels and parameters: the items a scope is
 * made of, recognized over tokens and their grouping.
 *   This layer answers where each declaration and statement begins and
-* ends, what it is, what it declares, and how deeply it is nested -- and no
+* ends, what it is, what it declares, and how deeply it is nested - and no
 * more.  It does not decide what an identifier means.  `T * x;` in a block
 * is a statement of kind `simple`, because telling a declaration from a
 * multiplication there needs to know whether `T` names a type, which is a
@@ -12,7 +12,7 @@
 * is decided by tokens alone.
 *   Scopes are walked in the order of their openers, so the item that owns
 * a scope always exists before the scope is walked.  Within a scope, the
-* chain of open braceless bodies -- `if (a) for (;;) x;` -- is threaded
+* chain of open braceless bodies - `if (a) for (;;) x;` - is threaded
 * through each item's `parent`, as the grouping threads its stack through
 * `parent`, so there is no recursion and no work stack.
 *   `level` is the indentation level the structure implies, counting a
@@ -81,7 +81,7 @@ TABLE OF CONTENTS
 //   constant: facts about one item.  RETURNS_VOID, ENDS_RETURN and EMPTY_BODY
 // describe a function; FN_POINTER and FN_TYPE a typedef's declarator; the
 // parameter flags a single parameter; MACRO_HEAD an item whose head is a
-// macro invocation -- `D_TEST(name) { ... }` -- whose parentheses are the
+// macro invocation - `D_TEST(name) { ... }` - whose parentheses are the
 // macro's arguments and not a parameter list.
 //     ALIGNED marks a parameter in a list whose first parameter shares the
 // line of its `(`.  Such a list is laid out by alignment under the first
@@ -89,8 +89,8 @@ TABLE OF CONTENTS
 // column; MISALIGNED marks a parameter that begins a line elsewhere than
 // beneath the first.  Both are geometry, not judgement.
 //     HIDES_TAG marks a typedef whose type is spelled with a `struct`,
-// `union` or `enum` keyword at its own level -- the one kind the guide's
-// Typedefs section forbids -- whatever the declarator's form.  DETACHED marks
+// `union` or `enum` keyword at its own level - the one kind the guide's
+// Typedefs section forbids - whatever the declarator's form.  DETACHED marks
 // every parameter of a declaration whose first parameter begins its own line:
 // the guide lays a declaration's parameters out after its `(`, while a
 // definition's begin their own lines by rule, so only a declaration has it.
@@ -137,7 +137,7 @@ enum dj_syntax_item_kind
 
 // 1.2.2
 // dj_syntax_statement
-//   enum: what a statement is, by its leading token -- which is as far as
+//   enum: what a statement is, by its leading token - which is as far as
 //   tokens can tell.  SIMPLE is an expression statement or a declaration
 //   whose type is a typedef name; the two are not told apart.  MACRO is a
 //   macro invocation followed by a braced body, `D_FOREACH(x) { }`.  OPEN

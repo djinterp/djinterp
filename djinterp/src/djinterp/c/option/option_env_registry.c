@@ -5,7 +5,7 @@
 * list of djins, and settings by full name routed to the frame they name.
 *
 *   A FULL NAME IS RESOLVED BY THE FRAME IT NAMES. The registry only picks the
-* frame -- the djin a name's first part names, or the root -- and hands it
+* frame - the djin a name's first part names, or the root - and hands it
 * the name whole: a named frame takes its own name off the front of what it
 * resolves (option_env.c), so "env_printer.cpp_features.key_width" reads in
 * the djin env_printer as "cpp_features.key_width" does.

@@ -7,7 +7,7 @@
 * walks each table in turn: which sections a configuration has is decided
 * where the sections are, so the count printed here differs by
 * configuration, by design. Each result is flushed as it is printed, so
-* that a section that crashes -- under a sanitizer, say -- is the one after
+* that a section that crashes - under a sanitizer, say - is the one after
 * the last result shown.
 *
 *
@@ -43,7 +43,7 @@
 
 
 // dj_tests_arg_c_suite
-//   struct: one suite -- its table, and where its length is kept. The length
+//   struct: one suite - its table, and where its length is kept. The length
 // is another translation unit's constant, so it is reached by address.
 struct dj_tests_arg_c_suite
 {

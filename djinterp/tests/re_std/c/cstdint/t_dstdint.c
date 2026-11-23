@@ -2,8 +2,8 @@
 * djinterp [re_std]                                                  t_dstdint.c
 *
 *   Conformance harness for dstdint.h. Builds as C (C99 and later) and as C++
-* (C++98 and later), on either backend -- the platform's headers or the
-* header's own definitions -- and checks what the compiler cannot check
+* (C++98 and later), on either backend - the platform's headers or the
+* header's own definitions - and checks what the compiler cannot check
 * alone: that every printf format prints its family's limits as the digits
 * the family's width calls for, that every scanf format reads those digits
 * back, and that a pointer survives a round trip through intptr_t and
@@ -278,8 +278,8 @@ t_digits_for(
 
 /*
 T_PRINTF
-  Prints the limits of the family whose formats end in `_sfx` -- its types `_s`
-and `_u`, its limits `_smin`, `_smax` and `_umax` -- with each of its printf
+  Prints the limits of the family whose formats end in `_sfx` - its types `_s`
+and `_u`, its limits `_smin`, `_smax` and `_umax` - with each of its printf
 formats, and compares each result with the digits for the family's width.
 */
 #define T_PRINTF(_sfx, _s, _u, _smin, _smax, _umax)                           \

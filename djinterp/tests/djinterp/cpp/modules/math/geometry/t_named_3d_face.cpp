@@ -3,9 +3,9 @@
 *
 *   Tests for geometry/named_3d.hpp, at every level from C++98, per family:
 * every named solid's known volume, surface area, centroid and containment
-* -- a sphere, a sphere as an ellipsoid, a box and a cube, a cylinder, a
+* - a sphere, a sphere as an ellipsoid, a box and a cube, a cylinder, a
 * cone, a frustum degenerating to a cylinder, a torus, a hemisphere, a
-* hemispherical cap, a square prism and pyramid -- and the traits.
+* hemispherical cap, a square prism and pyramid - and the traits.
 *
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++98 -Wall -Wextra -Werror -pedantic-errors -Iinc              \

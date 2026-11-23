@@ -1,4 +1,4 @@
-# memory_discipline.hpp unit test suite -- leaf recipe (header-only module, no
+# memory_discipline.hpp unit test suite - leaf recipe (header-only module, no
 # src/).
 #
 #   The tests directory .../meta/ holds other suites too; the glob is

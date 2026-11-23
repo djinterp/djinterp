@@ -2,9 +2,9 @@
 * djinterp [c][env]                                                env_printer.h
 *
 * djinterp environment printer.
-*   The build environment env.h detected -- language, compiler, operating
+*   The build environment env.h detected - language, compiler, operating
 * system, architecture, POSIX, preprocessor limits, build type, C runtime
-* features and, in C++, the C++ feature-test results -- as a report, printed
+* features and, in C++, the C++ feature-test results - as a report, printed
 * onto any output stream in any form a program wants, showing what it wants.
 * Compiled by BOTH C and C++; env_printer.hpp is its C++ face.
 *
@@ -13,7 +13,7 @@
 * languages, and two C++ units may see different standards. So the report is
 * collected where it is asked for, by d_env_report_here, which every unit
 * compiles for itself (it has internal linkage), into constant tables of its
-* own -- nothing is computed at run time. Printing it is the same for every
+* own - nothing is computed at run time. Printing it is the same for every
 * report, and is env_printer.c's, compiled once.
 *
 *   THE PRINTER IS AN ABSTRACT MACHINE. Its program is a set of templates
@@ -32,8 +32,8 @@
 * and a binding may be local to one section: "cpp_features.show_title=0".
 *
 *   SHOW ANYTHING, HIDE ANYTHING. `sections` turns whole sections on and off.
-* `select` is a list of rules over "section.name" paths -- "-cpp_features.*",
-* "+compiler", "-*.has_*" -- of which the last that matches an item decides;
+* `select` is a list of rules over "section.name" paths - "-cpp_features.*",
+* "+compiler", "-*.has_*" - of which the last that matches an item decides;
 * a list that starts with an exclusion starts from everything, one that
 * starts with an inclusion from nothing. `features` keeps the supported or
 * unsupported C++ features only; the show_* switches and the templates' own
@@ -41,7 +41,7 @@
 *
 *   FORMAT IT ANY WAY. text, json, markdown, csv and keyvalue are presets: each
 * is nine templates in the language every template is written in, and any of
-* them can be replaced -- one, or all -- by setting its variable. A template
+* them can be replaced - one, or all - by setting its variable. A template
 * names the item's fields ({label}, {value!json}, {width}) and the printer's
 * variables ({title}, {true_text}, a program's own), and is compiled, with
 * every name checked, once, then run for each part.
@@ -53,9 +53,9 @@
 * are declared once more in a djin, the frame "env_printer"
 * (d_env_printer_djin). Registered in the program's registry
 * (c/option/option_env_registry.h), its variables are the program's
-* settings by full name -- "env_printer.style=json" in a file,
+* settings by full name - "env_printer.style=json" in a file,
 * DJINTERP_ENV_PRINTER_STYLE in the environment, --env_printer.style=json on
-* the command line -- each bound from its source, so the order they arrive
+* the command line - each bound from its source, so the order they arrive
 * in cannot change the outcome. A printer made in it (d_env_printer_init_in)
 * reads them through its own frame, where it binds what is its alone; one
 * made by d_env_printer_init stands alone.
@@ -236,8 +236,8 @@ enum dj_env_section_id
 
 // 1.2.5
 // dj_env_section
-//   struct: one section of a report: its entries or its features, or -- when
-// it has neither -- a note saying why.
+//   struct: one section of a report: its entries or its features, or - when
+// it has neither - a note saying why.
 struct dj_env_section
 {
     const char*                  slug;           // "language": paths, scopes
@@ -471,8 +471,8 @@ struct dj_env_printer_error
 // 2.3.3
 // dj_env_printer
 //   struct: a printer: its environment, its compiled program, and the
-// program's hooks. A value the caller owns -- static, or on a stack with
-// room for it (about 11 KB at the default sizes) -- made by
+// program's hooks. A value the caller owns - static, or on a stack with
+// room for it (about 11 KB at the default sizes) - made by
 // d_env_printer_init or d_env_printer_init_in. It points into itself, so it
 // is never copied: make another and configure it the same way.
 //
@@ -481,7 +481,7 @@ struct dj_env_printer_error
 // print parses nothing.
 //
 //   A field past D_ENV_FIELDS names a variable: field D_ENV_FIELDS + i names
-// the one whose id is vars[i] -- the printer's own, in enum
+// the one whose id is vars[i] - the printer's own, in enum
 // dj_env_printer_var's order, then each d_env_printer_declare added, then
 // any other a template names, as it is compiled. So a field's number stays
 // what it was given out as, whichever frame declared its variable.
@@ -521,8 +521,8 @@ int32_t d_env_printer_init(struct dj_env_printer* _printer);
  * @brief Makes a printer in a parent frame: it reads the parent's bindings
  *        through its own frame, where it binds what is its alone; no hooks.
  *
- * @note When a frame above declares the printer's variables -- the djin, or
- *       another printer's frame -- the printer reads those, so that frame's
+ * @note When a frame above declares the printer's variables - the djin, or
+ *       another printer's frame - the printer reads those, so that frame's
  *       bindings are its defaults; otherwise its frame declares them.
  *
  * @param[out]    _printer  the printer.
@@ -535,15 +535,15 @@ int32_t d_env_printer_init(struct dj_env_printer* _printer);
 int32_t d_env_printer_init_in(struct dj_env_printer* _printer,
                               struct dj_option_env*  _parent);
 
-// back to the defaults -- the parent's bindings, for a printer made in one:
+// back to the defaults - the parent's bindings, for a printer made in one:
 // its frame's every binding removed, the hooks and the declarations kept
 void    d_env_printer_reset(struct dj_env_printer* _printer);
 // lets go of the parent, which then counts the printer a child no more: a
 // printer made in one is released before it goes, and prints only its
 // failure after; harmless on any other printer, and twice
 void    d_env_printer_release(struct dj_env_printer* _printer);
-// the printer's environment, for option_env.h's whole interface -- typed
-// reads and writes, scopes, layers -- and the id one of its variables, enum
+// the printer's environment, for option_env.h's whole interface - typed
+// reads and writes, scopes, layers - and the id one of its variables, enum
 // dj_env_printer_var, has there; D_OPTION_ENV_NONE for one that is none
 struct dj_option_env*
         d_env_printer_env(struct dj_env_printer* _printer);
@@ -580,7 +580,7 @@ struct dj_option_result d_env_printer_declare(
 //   The frame "env_printer": the printer's variables and the sections' scopes,
 // declared once for the whole program, and the bindings every printer made in
 // it reads. In a registry its variables are settings by full name --
-// "env_printer.style", "env_printer.cpp_features.key_width" -- that a file,
+// "env_printer.style", "env_printer.cpp_features.key_width" - that a file,
 // the environment and the command line bind, each from its source. It is
 // written by one thread at a time, as the registry is: configure it before
 // the program starts its threads; then any number of printers made in it may
@@ -690,7 +690,7 @@ struct dj_option_result d_env_printer_set_template(
  * @brief Prints a report onto a stream.
  *
  * @note Writes only: the stream is neither flushed nor closed. A section the
- *       report does not have -- a C++ section in a C unit's -- is left out.
+ *       report does not have - a C++ section in a C unit's - is left out.
  *
  * @param[in,out] _printer  the printer; its program is compiled if a variable
  *                          changed.
@@ -1502,7 +1502,7 @@ d_env_report_here(void)
  *
  * @param[in,out] _os      the stream.
  * @param[in]     _script  statements, as d_env_printer_load reads them --
- *                         "style=json; sections=all" -- or null for the
+ *                         "style=json; sections=all" - or null for the
  *                         defaults.
  * @return as d_env_printer_print(); 0 as well for a script that fails, which
  *         is recorded as D_OSTREAM_INVALID and prints nothing.

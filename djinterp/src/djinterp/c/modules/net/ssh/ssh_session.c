@@ -449,7 +449,7 @@ void d_ssh_internal_release(
 /*
 d_ssh_internal_scan_host
   File-local: one scan of the user's and the system's files for the session's
-host -- with the host key once it has arrived -- reporting the verdict and
+host - with the host key once it has arrived - reporting the verdict and
 the key types recorded.
 */
 D_STATIC enum dj_ssh_error

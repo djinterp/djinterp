@@ -94,7 +94,7 @@ VI.   CONCEPT-CONSTRAINED VISITOR (C++20+)
 
 // std
 #include <type_traits>
-#include <typeinfo>        // std::bad_cast -- D_VISITABLE's dynamic_cast may throw
+#include <typeinfo>        // std::bad_cast - D_VISITABLE's dynamic_cast may throw
 // djinterp
 #include "../../djinterp.hpp"
 #include "../../meta/type_utility.hpp"  // void_t
@@ -115,7 +115,7 @@ VI.   CONCEPT-CONSTRAINED VISITOR (C++20+)
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
     // std
-    #include <concepts>    // std::derived_from -- used by acyclic_visitor_for
+    #include <concepts>    // std::derived_from - used by acyclic_visitor_for
 #endif
 
 
@@ -252,7 +252,7 @@ using visitable_base = DVisitableBase<ReturnType>;
 //   NOTE ON THE CAST: the visitor arrives type-erased as visitor_base<R>&, which
 // declares no visit() at all.  The concrete interface for this element type,
 // visitor_of_impl<R, ThisType>, is a SIBLING base of visitor_base<R> within the
-// concrete visitor -- not a derived class of it -- so recovering it is a
+// concrete visitor - not a derived class of it - so recovering it is a
 // cross-cast.  static_cast cannot express that (the two types are unrelated, and
 // the cast is simply ill-formed); only dynamic_cast can, and both types are
 // polymorphic, so it is well-formed here.
@@ -311,7 +311,7 @@ NS_INTERNAL
 
     // visitor_of_base
     //   trait: recursive base for building visit() overload sets.  TERMINAL
-    // case: no element types, and therefore no visit() -- which is exactly why
+    // case: no element types, and therefore no visit() - which is exactly why
     // the recursive case must never name this one in a using-declaration.
     template<typename ReturnType,
              typename... Types>
@@ -322,7 +322,7 @@ NS_INTERNAL
     };
 
     // visitor_of_base<ReturnType, Head>
-    //   trait: the recursion's BASE CASE -- exactly one element type.  Inherits
+    //   trait: the recursion's BASE CASE - exactly one element type.  Inherits
     // that type's interface and stops.  There is nothing below it to import, so
     // it carries no using-declaration; this is the specialization that keeps the
     // empty terminal above from ever being named by one.
@@ -333,7 +333,7 @@ NS_INTERNAL
     {};
 
     // visitor_of_base<ReturnType, Head, Next, Tail...>
-    //   trait: RECURSIVE case -- two or more element types.  Inherits Head's
+    //   trait: RECURSIVE case - two or more element types.  Inherits Head's
     // interface alongside the chain for the rest, and merges BOTH visit() names
     // into this scope.  Both using-declarations are required: without them the
     // name would be found in two distinct base subobjects and every call would be
@@ -441,7 +441,7 @@ using visitor_of = DVisitorOf<ElementType, ReturnType>;
 //   The no-match default is ReturnType(), produced by D_ACYCLIC_VISITABLE.  It
 // is NOT a template parameter: a second parameter of the form
 // `ReturnType DefaultReturn = ReturnType()` is a NON-TYPE parameter whose type
-// is ReturnType, and void is not a permitted type for one -- so it made
+// is ReturnType, and void is not a permitted type for one - so it made
 // acyclic_visitable<void>, both the default and the documented spelling, ill-
 // formed.  It was also never referenced by the class or the macro.
 template<typename ReturnType = D_VISITOR_DEFAULT_RETURN_TYPE>
@@ -739,7 +739,7 @@ NS_INTERNAL
 
         // dispatch table.  NOT `static`: a variable of static storage duration
         // is not permitted in a constexpr function before C++23, and this
-        // function is D_CONSTEXPR_INLINE -- so the `static` spelling made the
+        // function is D_CONSTEXPR_INLINE - so the `static` spelling made the
         // whole header fail to compile at C++17 and C++20, the very dialects the
         // variant visitor exists for.
         constexpr dispatch_fn table[] =

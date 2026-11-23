@@ -2,8 +2,8 @@
 * djinterp [cpp][math]                                         t_matrix_face.cpp
 *
 *   Tests for linear_algebra/matrix.hpp, at every level from C++98. The
-* compile-time half -- the traits, and from C++14 the operations as constant
-* expressions -- runs wherever the unit compiles. The runtime half checks
+* compile-time half - the traits, and from C++14 the operations as constant
+* expressions - runs wherever the unit compiles. The runtime half checks
 * what the face adds to the C core:
 *
 *     - the generic path agrees with the C families, bit for bit: matrices of

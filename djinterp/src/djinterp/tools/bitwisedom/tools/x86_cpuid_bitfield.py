@@ -3,8 +3,8 @@
 # bitwisedom [tools]                                       x86_cpuid_bitfield.py
 #
 # The x86_cpuid example: ten of CPUID's feature registers, end to end, as a
-# bitfield of 320 bits (docs/bitwisedom/json.md) -- word n of the header's array is the
-# nth register below, as CPUID returns it -- with x86-64's microarchitecture
+# bitfield of 320 bits (docs/bitwisedom/json.md) - word n of the header's array is the
+# nth register below, as CPUID returns it - with x86-64's microarchitecture
 # levels as sets of them; and the platform check, which compares each bit
 # with the compiler's own <cpuid.h>. The grid draws bit 0 at the left, so the
 # registers read left to right in the order of the rows.
@@ -29,7 +29,7 @@ import sys
 import bitfield_json
 
 # the registers, word by word: the segment's name, the group's, its note, and
-# its bits -- each its number, its name, its note, and the names <cpuid.h>
+# its bits - each its number, its name, its note, and the names <cpuid.h>
 # gives it
 REGISTERS = [
     ("1 ECX", "Leaf 1, ECX",

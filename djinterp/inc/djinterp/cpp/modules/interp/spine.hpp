@@ -5,11 +5,11 @@
 * subframework builds parsers and the paradigm subframework matches and
 * dispatches, this module wires them into a running interpreter: read a
 * line into tokens, parse those tokens into a command term, and fold the
-* term into an effect -- threading a value through a `|` pipeline and
+* term into an effect - threading a value through a `|` pipeline and
 * short-circuiting on the first failure.
 *   It was parse's functional_cli.hpp, and moved here, to the interpreter's
 * module (docs/djinterp/interp/DESIGN.md, decision 1). It runs the subset of
-* djinterp.peg it always ran -- commands joined by `|` -- until its legs are
+* djinterp.peg it always ran - commands joined by `|` - until its legs are
 * joined to expression core v2 (DESIGN.md, section 3); its namespace is the
 * interpreter's, djinterp::interp.
 *
@@ -28,7 +28,7 @@
 * `--name` and `--name=value` long options, bundled `-xvf` short clusters,
 * the `--` end-of-options terminator, the `|` pipeline separator, and bare
 * words (the verb and its operands).  Options parse into a plain runtime
-* representation -- flags, key/value bindings, operands -- with no
+* representation - flags, key/value bindings, operands - with no
 * dependency on the option subframework; that richer algebra (option_set,
 * the optionator pipeline) layers on later.
 *
@@ -45,7 +45,7 @@
 *       carrier can be re-pointed onto functional::free<Omega, A> later
 *       without touching the reader or the grammar.
 *     - Command-head dispatch is ordered first-match by name in the
-*       registry -- the degenerate case of the paradigm matcher (name
+*       registry - the degenerate case of the paradigm matcher (name
 *       equality as the pattern).  The matcher earns its keep in the
 *       separate find-style expression module, where dispatch is by
 *       pattern rather than by exact name.
@@ -187,11 +187,11 @@ typedef re_std::int32_t arg_kind;
 constexpr arg_kind DArgKindWord       = 0;   // a verb or an operand
 constexpr arg_kind DArgKindLong       = 1;   // --name  or  --name=value
 constexpr arg_kind DArgKindShort      = 2;   // -x  or a bundled cluster -xvf
-constexpr arg_kind DArgKindTerminator = 3;   // --  (end of options)
+constexpr arg_kind DArgKindTerminator = 3;   // -  (end of options)
 constexpr arg_kind DArgKindPipe       = 4;   // |  (pipeline stage separator)
 
 // arg_token
-//   struct: one lexed argument -- a shape kind plus the payload the
+//   struct: one lexed argument - a shape kind plus the payload the
 // reader extracted.  For a long option, name holds the option name and
 // value / has_value hold an attached =value; for a short cluster, name
 // holds the undivided letters; for a word, name holds the text.
@@ -621,7 +621,7 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 
 // command_invocation
-//   struct: one node of a parsed command term -- a verb naming the
+//   struct: one node of a parsed command term - a verb naming the
 // command plus the options and operands bound to it.  The concrete
 // Omega-application: "apply the command named `verb` with these
 // arguments".
@@ -637,12 +637,12 @@ struct command_invocation
 };
 
 // command_pipeline
-//   type: a parsed command term -- a sequence of invocations threaded by
+//   type: a parsed command term - a sequence of invocations threaded by
 // the value pipe `|`.  This is the concrete stand-in for the free-monad
 // term Free Omega A: a foldable program the interpreter walks.  When the
 // functional free-monad carrier is wired into the CLI it can be re-
 // pointed onto functional::free<Omega, A> without disturbing the reader,
-// the grammar, or the interpreter -- exactly as the parser strata in
+// the grammar, or the interpreter - exactly as the parser strata in
 // parser/free.hpp will be re-pointed at their functional companions.
 typedef std::vector<command_invocation> command_pipeline;
 
@@ -723,8 +723,8 @@ command_invocation build_invocation(
 }
 
 // stage_parser
-//   function: the parser for one pipeline stage -- a verb followed by any
-// number of options and operands -- mapped into a command_invocation.
+//   function: the parser for one pipeline stage - a verb followed by any
+// number of options and operands - mapped into a command_invocation.
 // The verb is the leading word; every subsequent item is an option or an
 // operand.
 D_NODISCARD
@@ -768,7 +768,7 @@ parse::parser<command_invocation, arg_token> stage_parser()
 }
 
 // build_command_parser
-//   function: the whole-line grammar -- one or more stages separated by
+//   function: the whole-line grammar - one or more stages separated by
 // `|`, consuming all input.  Yields the command term (the pipeline).
 D_NODISCARD
 inline
@@ -842,7 +842,7 @@ result<command_pipeline, cli_status> parse_argv(
 ///////////////////////////////////////////////////////////////////////////////
 
 // command_spec
-//   class: a registered command -- a name and the effect it performs.
+//   class: a registered command - a name and the effect it performs.
 // The effect (the handler) receives the command's parsed options and the
 // value threaded in from the pipeline, and returns the value to thread
 // on, or an error to abort the pipeline.  Value is the type carried by
@@ -887,7 +887,7 @@ private:
 };
 
 // command_registry
-//   class: the set of commands the interpreter can dispatch -- the
+//   class: the set of commands the interpreter can dispatch - the
 // concrete Omega.  resolve() performs command-head dispatch: ordered
 // first-match by name, the same ordered-choice device as the paradigm
 // matcher and the parser's or_.
@@ -959,14 +959,14 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 
 // run
-//   function: interprets a command term -- the fold leg.  Walks the
+//   function: interprets a command term - the fold leg.  Walks the
 // pipeline left to right, resolving each invocation's head in the
 // registry and threading the value through its effect, and short-circuits
 // on the first error (an unresolved command, or a handler failure).  The
 // seed opens the pipeline; the final value (or error) is the result.
 //
 //   This is the concrete realisation of a fold over Free Omega A that
-// dispatches each node on its head -- with command_pipeline standing in
+// dispatches each node on its head - with command_pipeline standing in
 // for the free term and the registry standing in for the interpretation
 // algebra.
 template<typename Value>
@@ -981,7 +981,7 @@ result<Value, cli_status> run(
 
     for (std::size_t i = 0; i < _pipeline.size(); ++i)
     {
-        // a prior stage failed -- stop threading
+        // a prior stage failed - stop threading
         if (acc.is_err())
         {
             break;
@@ -1002,7 +1002,7 @@ result<Value, cli_status> run(
 }
 
 // evaluate
-//   function: the whole spine for a command line -- read, parse, and run.
+//   function: the whole spine for a command line - read, parse, and run.
 // A parse failure is reported before any command executes.
 template<typename Value>
 D_NODISCARD
@@ -1023,7 +1023,7 @@ result<Value, cli_status> evaluate(
 }
 
 // evaluate_argv
-//   function: the whole spine for an argument vector -- read, parse, run.
+//   function: the whole spine for an argument vector - read, parse, run.
 template<typename Value>
 D_NODISCARD
 result<Value, cli_status> evaluate_argv(
@@ -1048,7 +1048,7 @@ result<Value, cli_status> evaluate_argv(
 ///////////////////////////////////////////////////////////////////////////////
 
 // is_command_spec
-//   trait: detects a command-spec-shaped type -- a nested value_type plus
+//   trait: detects a command-spec-shaped type - a nested value_type plus
 // a name() face.
 template<typename Type,
          typename = void>
@@ -1064,7 +1064,7 @@ struct is_command_spec<Type, void_t<
 
 
 // is_command_registry
-//   trait: detects a registry-shaped type -- a nested spec_type plus a
+//   trait: detects a registry-shaped type - a nested spec_type plus a
 // resolve(name) face.
 template<typename Type,
          typename = void>

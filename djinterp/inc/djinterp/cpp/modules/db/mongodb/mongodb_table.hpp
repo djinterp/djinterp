@@ -5,7 +5,7 @@
 * changed in place, and written back.
 *   mongo_table binds one collection, or view, of the database a
 * mongo_connection reaches to a cache of its documents. refresh() reads them
-* -- every one, or those a filter, a sort and a page select -- each beside
+* - every one, or those a filter, a sort and a page select - each beside
 * its key, {"_id": ...}, the filter that finds the document it was read as
 * (d_mongodb_find_keyed); the cache is then read and changed document by
 * document, and commit() writes back what changed: a document the cache no
@@ -25,9 +25,9 @@
 * are SQL's rows and statements: a document is not a row of columns, and
 * its fields' types are BSON's, which the generic value cannot carry back
 * (an int32 and an int64 are one integer there). The table's members keep
-* database_table's names where they mean the same -- refresh, commit,
+* database_table's names where they mean the same - refresh, commit,
 * is_dirty, exists, create_table, drop_table, rename_table, truncate_table,
-* row_count_remote -- and its other settings, with no meaning here, it has
+* row_count_remote - and its other settings, with no meaning here, it has
 * not (db_audit.md, 12).
 *
 *
@@ -137,7 +137,7 @@ template<typename Config = void>
 class mongo_table
 {
 public:
-    // identity and container -- the table, its connection, and its
+    // identity and container - the table, its connection, and its
     // documents
     using self_type       = mongo_table<Config>;
     using config_type     = Config;
@@ -147,7 +147,7 @@ public:
     using storage_type    = std::vector<mongo_document>;
     using const_iterator  = typename storage_type::const_iterator;
 
-    // construction -- bound to no connection; or to a connection and a
+    // construction - bound to no connection; or to a connection and a
     // collection's name. Nothing is read: refresh() reads the documents
     mongo_table()
         : m_connection(nullptr),
@@ -219,7 +219,7 @@ public:
 
     ~mongo_table() = default;
 
-    // capacity -- the documents the cache holds
+    // capacity - the documents the cache holds
     size_type
     size() const noexcept
     {
@@ -232,7 +232,7 @@ public:
         return m_documents.empty();
     }
 
-    // access -- a document of the cache, its key, and its text, by position;
+    // access - a document of the cache, its key, and its text, by position;
     // std::out_of_range past the end
     const mongo_document&
     at(
@@ -268,7 +268,7 @@ public:
         return at(_index).document;
     }
 
-    // iteration -- over the cache's documents, which change through the
+    // iteration - over the cache's documents, which change through the
     // members below alone
     const_iterator
     begin() const noexcept
@@ -282,7 +282,7 @@ public:
         return m_documents.cend();
     }
 
-    // changing the cache -- a document replaced, its key kept; a document
+    // changing the cache - a document replaced, its key kept; a document
     // added, with no key, which commit() inserts, its index returned; one
     // removed, which commit() deletes where it was read; and every one
     // removed. std::out_of_range for a position past the end; nothing
@@ -334,7 +334,7 @@ public:
         return;
     }
 
-    // connection -- the connection the table is bound to, nullptr for none;
+    // connection - the connection the table is bound to, nullptr for none;
     // binding another forgets the documents read, the cache keeping its
     // documents as ones the new connection's collection has not seen
     mongo_connection*
@@ -360,7 +360,7 @@ public:
         return;
     }
 
-    // is_connected -- whether the table is bound to a connection that is open
+    // is_connected - whether the table is bound to a connection that is open
     bool
     is_connected() const noexcept
     {
@@ -368,7 +368,7 @@ public:
                  (m_connection->is_connected()) );
     }
 
-    // identity -- the collection's name, in the connection's current
+    // identity - the collection's name, in the connection's current
     // database; setting another forgets the documents read, as
     // set_connection does
     const std::string&
@@ -388,7 +388,7 @@ public:
         return;
     }
 
-    // query -- what refresh() reads: the filter, a JSON document ("" for
+    // query - what refresh() reads: the filter, a JSON document ("" for
     // every document); the sort, a JSON document ({"qty": -1}); and a page,
     // its size and the documents before it skipped; each makes the cache
     // stale
@@ -460,7 +460,7 @@ public:
         return m_offset;
     }
 
-    // atomic -- whether commit() must write as one unit, and so refuses on a
+    // atomic - whether commit() must write as one unit, and so refuses on a
     // deployment without transactions; true unless set false
     void
     set_atomic(
@@ -478,7 +478,7 @@ public:
         return m_atomic;
     }
 
-    // state -- whether the cache was changed since it was read or written;
+    // state - whether the cache was changed since it was read or written;
     // and whether it may be behind its query: never read, or its query
     // changed since
     bool
@@ -622,7 +622,7 @@ public:
         return m_connection->count_documents(m_collection, m_filter);
     }
 
-    // the collection itself -- creating it, with the create command's
+    // the collection itself - creating it, with the create command's
     // options, one there a success with _if_not_exists; dropping it, its
     // indexes with it, the cache then holding nothing read; renaming it,
     // one there under the new name dropped first with _drop_target; and
@@ -686,7 +686,7 @@ public:
     }
 
 private:
-    // validate_connected -- connection_exception unless the table is bound
+    // validate_connected - connection_exception unless the table is bound
     // to an open connection
     void
     validate_connected(
@@ -703,7 +703,7 @@ private:
         return;
     }
 
-    // m_check_index -- std::out_of_range for a position past the end
+    // m_check_index - std::out_of_range for a position past the end
     void
     m_check_index(
         size_type   _index,
@@ -721,7 +721,7 @@ private:
         return;
     }
 
-    // m_find_options -- refresh()'s options: the sort and the page
+    // m_find_options - refresh()'s options: the sort and the page
     std::string
     m_find_options() const
     {
@@ -749,7 +749,7 @@ private:
                                  : "{" + options + "}";
     }
 
-    // m_take -- the documents a keyed find read, and each by its key
+    // m_take - the documents a keyed find read, and each by its key
     static void
     m_take(
         buffered_result_set&                _found,
@@ -784,7 +784,7 @@ private:
 
     /**
      * @brief Plans a commit: the writes, as a bulk write's models, in the
-     *        order they go -- deletes, replacements, inserts -- and how many
+     *        order they go - deletes, replacements, inserts - and how many
      *        replace and insert.
      *
      * @param[out] _operations  the models, a JSON array; "" for none.
@@ -864,7 +864,7 @@ private:
         return;
     }
 
-    // m_add_model -- a model, or models, after those before, a comma between
+    // m_add_model - a model, or models, after those before, a comma between
     static void
     m_add_model(
         std::string&       _models,
@@ -931,7 +931,7 @@ private:
         return;
     }
 
-    // m_send -- the bulk write, ordered, and D_DB_NOT_FOUND where a
+    // m_send - the bulk write, ordered, and D_DB_NOT_FOUND where a
     // replacement found no document, another session having deleted it
     void
     m_send(
@@ -956,7 +956,7 @@ private:
         return;
     }
 
-    // m_settle -- the cache, written, as the documents read
+    // m_settle - the cache, written, as the documents read
     void
     m_settle()
     {
@@ -977,7 +977,7 @@ private:
         return;
     }
 
-    // m_forget_read -- the documents held no longer stand for any read: a
+    // m_forget_read - the documents held no longer stand for any read: a
     // commit inserts each
     void
     m_forget_read() noexcept
@@ -996,7 +996,7 @@ private:
         return;
     }
 
-    // m_reset_moved -- the table moved from: bound to nothing, holding
+    // m_reset_moved - the table moved from: bound to nothing, holding
     // nothing
     void
     m_reset_moved() noexcept

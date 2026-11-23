@@ -2,9 +2,9 @@
 * djinterp [cpp][interp]                                         spine_tests.cpp
 *
 * The spine's suite: what interp/spine.hpp does as it moved from parse's
-* functional_cli.hpp -- the reader's tokens, the grammar's pipeline and each
+* functional_cli.hpp - the reader's tokens, the grammar's pipeline and each
 * invocation's options, and the fold's value threaded through `|` and
-* stopped at the first failure -- so that joining its legs to expression core
+* stopped at the first failure - so that joining its legs to expression core
 * v2 changes only what the design says it changes (docs/djinterp/interp/
 * DESIGN.md, sections 3 and 4). The splitting of `-xvf` into three flags,
 * which decision 2 takes out, is held here as the spine does it today.

@@ -1,8 +1,8 @@
 /*******************************************************************************
 * djinterp [cpp][text]                                            less_tests.hpp
 *
-*   The suite for text's Less headers -- css/less/less.hpp and
-* css/less/less_template.hpp -- in DTest's C face
+*   The suite for text's Less headers - css/less/less.hpp and
+* css/less/less_template.hpp - in DTest's C face
 * (c/modules/test/test_suite.h).
 *   One entry point builds the module "less" imperatively: a block per header
 * and a test per group of checks. Both headers' floor is C++17, and below it

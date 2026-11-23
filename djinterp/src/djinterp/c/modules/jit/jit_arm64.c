@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][jit]                                                  jit_arm64.c
 *
-* djinterp AArch64 (ARM64) JIT encoder -- implementation (jit_arm64.h).
+* djinterp AArch64 (ARM64) JIT encoder - implementation (jit_arm64.h).
 *   Each emitter packs register and immediate fields into a verified base
 * opcode and emits one 32-bit little-endian word. Branch displacements are
 * patched by the two relocations at the top, which the shared label facility

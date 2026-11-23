@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][parsegen]                               vparse_tests_rebase.cpp
 *
-* vparse tests: the carrier adapter -- a compiled program as a parser handle,
+* vparse tests: the carrier adapter - a compiled program as a parser handle,
 * and two of them threading one parse_state.
 *
 *
@@ -49,7 +49,7 @@ bool tests_rebase_handle()
 
 // tests_rebase_compose
 //   two vparse parsers thread one parse_state: the second continues where the
-// first stopped -- the contract seq / bind rely on.
+// first stopped - the contract seq / bind rely on.
 bool tests_rebase_compose()
 {
     const std::string D = "0123456789";

@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][functional]                          interpolate_tests_sink.cpp
 *
-* Section IV -- DInterpStringSink: appends literal runs and resolved values
+* Section IV - DInterpStringSink: appends literal runs and resolved values
 * into a caller-owned buffer.  Verifies literal() and value() (over both a
 * string and a view), ordered accumulation, that the caller's buffer is
 * appended to (never cleared), and that an empty run is a no-op.

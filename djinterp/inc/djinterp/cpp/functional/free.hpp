@@ -19,7 +19,7 @@
 * because fold, bind and lift all map over the F layer.
 *   Free<F, A> registers monad_traits, so monad_bind, monad_map and, through the
 * monad bridge in functor.hpp, functor_map all work on it directly. fold_free
-* interprets a free value against an algebra -- the dual of unfold_cofree
+* interprets a free value against an algebra - the dual of unfold_cofree
 * building a cofree from a seed.
 *
 *
@@ -102,7 +102,7 @@ public:
     {}
 
     // pure
-    //   factory: a finished computation -- a leaf holding _value.
+    //   factory: a finished computation - a leaf holding _value.
     static
     DFree pure(
         const A& _value
@@ -223,7 +223,7 @@ fold_free(
 //------------------------------------------------------------------------------
 // 2.2.1
 // free_bind
-//   function: monadic bind -- replaces every Pure leaf a with _continue(a),
+//   function: monadic bind - replaces every Pure leaf a with _continue(a),
 // which must return a free<F, B>. The F layers are rebuilt around the grafted
 // subtrees; a continuation that returns pure(a) leaves the tree unchanged.
 template<template<typename> class F,
@@ -259,7 +259,7 @@ free_bind(
 // 2.2.2
 // free_map
 //   function: applies _function to every Pure leaf, leaving the F layers
-// untouched -- functorial map, as bind followed by pure.
+// untouched - functorial map, as bind followed by pure.
 template<template<typename> class F,
          typename                 A,
          typename                 Function>
@@ -284,7 +284,7 @@ free_map(
 // 2.2.3
 // lift_free
 //   function: lifts one F layer into a free value: Roll with every position a
-// Pure leaf. The smallest program -- one instruction whose results are final.
+// Pure leaf. The smallest program - one instruction whose results are final.
 template<template<typename> class F,
          typename                 A>
 D_NODISCARD

@@ -4,21 +4,21 @@
 *   The Markdown realisation of DDocumentRenderer, completing the string half of
 * the dialect set (plain / markdown / xml / html).  A heading becomes a `##`
 * run, a list becomes `-` or `1.` at the right indent, and a table becomes a
-* GitHub-flavoured pipe table -- including the delimiter row, which is the one
+* GitHub-flavoured pipe table - including the delimiter row, which is the one
 * place Markdown can carry a column's alignment.
 *
 *   MARKDOWN IS A TEXT FORMAT WITH STRUCTURE, so this renderer sits between the
 * plain and markup ones: it has real block syntax (unlike plain, which fakes
 * headings with underlines) but no attribute surface (unlike markup, which can
-* spell any hint).  The hints it can honour it honours -- `align` through the
-* delimiter row, `bold` / `italic` through emphasis runs -- and the rest
+* spell any hint).  The hints it can honour it honours - `align` through the
+* delimiter row, `bold` / `italic` through emphasis runs - and the rest
 * (`color`, `font`, `size`, `background`) it drops, per the subframework's rule.
 *
 *   ESCAPING IS POSITIONAL, NOT TOTAL.  Escaping every CommonMark punctuation
 * character would turn ordinary prose into backslash soup ("a well\-formed
 * sentence\."), so the rule here is narrower and stated plainly: escape the
-* characters that change meaning MID-LINE -- backslash, backtick, asterisk,
-* underscore, brackets, and the less-than sign -- and, inside a table cell, the
+* characters that change meaning MID-LINE - backslash, backtick, asterisk,
+* underscore, brackets, and the less-than sign - and, inside a table cell, the
 * pipe as well.  Characters that are only structural at the START of a line
 * (`-`, `#`, `.`, `+`) are left alone, because every string this renderer is
 * handed is placed after a block marker, never at column zero.  A newline inside
@@ -31,7 +31,7 @@
 *
 *   TABLES STREAM WITH ONE ROW OF LOOKAHEAD.  A pipe table's delimiter row must
 * follow the header row, and the header is complete once the first begin_row
-* arrives -- so, unlike the plain renderer, no row storage is needed: the
+* arrives - so, unlike the plain renderer, no row storage is needed: the
 * columns are held only until the header is flushed.
 *
 *   PORTABILITY:
@@ -94,11 +94,11 @@ class DMarkdownDocumentRenderer
     : public DDocumentRenderer
 {
 public:
-    // -- public type aliases -------------------------------------------------
+    // - public type aliases -------------------------------------------------
 
     using size_type = std::size_t;
 
-    // -- construction --------------------------------------------------------
+    // - construction --------------------------------------------------------
 
     DMarkdownDocumentRenderer()
         : m_out(),
@@ -110,7 +110,7 @@ public:
           m_head_open(false)
     {}
 
-    // -- result --------------------------------------------------------------
+    // - result --------------------------------------------------------------
 
     // str
     //   the accumulated document.
@@ -120,7 +120,7 @@ public:
     }
 
     // write_to
-    //   writes the accumulated document to an output stream -- the console,
+    //   writes the accumulated document to an output stream - the console,
     // a file, a dj_string, a caller's array, several at once. True only when
     // every byte arrived; the stream keeps why it did not.
     bool write_to(
@@ -142,7 +142,7 @@ public:
         return;
     }
 
-    // -- blocks --------------------------------------------------------------
+    // - blocks --------------------------------------------------------------
 
     void heading(
         size_type             _level,
@@ -231,7 +231,7 @@ public:
         return;
     }
 
-    // -- lists ---------------------------------------------------------------
+    // - lists ---------------------------------------------------------------
 
     void
     begin_list(
@@ -296,7 +296,7 @@ public:
         return;
     }
 
-    // -- tables --------------------------------------------------------------
+    // - tables --------------------------------------------------------------
 
     void
     begin_table(
@@ -326,7 +326,7 @@ public:
     ) D_OVERRIDE
     {
         // the header and its delimiter row are flushed once, ahead of the
-        // first data row -- the whole of the lookahead a pipe table needs
+        // first data row - the whole of the lookahead a pipe table needs
         flush_head();
 
         m_row.clear();
@@ -385,14 +385,14 @@ protected:
     }
 
 private:
-    // -- constants -----------------------------------------------------------
+    // - constants -----------------------------------------------------------
 
     // k_list_indent
-    //   the spaces one list level indents by -- two, which every Markdown
+    //   the spaces one list level indents by - two, which every Markdown
     // implementation reads as nesting for both bullet and ordered lists.
     static constexpr size_type k_list_indent = size_type(2);
 
-    // -- escaping ------------------------------------------------------------
+    // - escaping ------------------------------------------------------------
 
     // escape_inline
     //   backslash-escape the characters that change meaning MID-LINE.  See the
@@ -520,10 +520,10 @@ private:
         return _out;
     }
 
-    // -- table helpers -------------------------------------------------------
+    // - table helpers -------------------------------------------------------
 
     // delimiter_for
-    //   the delimiter-row cell that spells an alignment -- the one hint a pipe
+    //   the delimiter-row cell that spells an alignment - the one hint a pipe
     // table carries structurally.  `justify` has no Markdown spelling and
     // degrades to left.
     D_NODISCARD static const char* delimiter_for(
@@ -638,7 +638,7 @@ private:
         return;
     }
 
-    // -- state ---------------------------------------------------------------
+    // - state ---------------------------------------------------------------
 
     std::string                 m_out;
     std::vector<bool>           m_ordered;    // open lists: ordered?

@@ -36,15 +36,15 @@ bool tests_container_memory_consistent()
 {
     bool _cm_ok = true;
 
-    // -- clause (a): the discipline forces no siting --
+    // - clause (a): the discipline forces no siting --
     D_CM_CHECK( (container_memory_consistent<arena_via_strategy>::value) );   // arena implies nothing
     D_CM_CHECK( (container_memory_consistent<int>::value) );                  // unknown discipline
 
-    // -- clause (b): the siting is undetermined (no storage signal) --
+    // - clause (b): the siting is undetermined (no storage signal) --
     D_CM_CHECK( (container_memory_consistent<pooled_via_strategy>::value) );      // pooled, siting unknown
     D_CM_CHECK( (container_memory_consistent<descriptive_via_strategy>::value) ); // none, siting unknown
 
-    // -- clause (c): the siting carries the forced component --
+    // - clause (c): the siting carries the forced component --
     D_CM_CHECK( (container_memory_consistent<std::vector<int>>::value) );    // individual + dynamic
     D_CM_CHECK( (container_memory_consistent<std::map<int, int>>::value) );  // individual + dynamic
     D_CM_CHECK( (container_memory_consistent<reserve_only>::value) );        // individual + dynamic
@@ -54,7 +54,7 @@ bool tests_container_memory_consistent()
     // hybrid siting carries a dynamic component, so an individual discipline is consistent
     D_CM_CHECK( (container_memory_consistent<alloc_beats_static>::value) );  // individual + hybrid
 
-    // -- the contradiction: individual discipline (forces dynamic) over static-only storage --
+    // - the contradiction: individual discipline (forces dynamic) over static-only storage --
     D_CM_CHECK( (!container_memory_consistent<inconsistent_individual_static>::value) );
 
     return _cm_ok;

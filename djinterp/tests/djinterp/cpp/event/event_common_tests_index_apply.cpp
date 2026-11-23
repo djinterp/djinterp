@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][event]                       event_common_tests_index_apply.cpp
 *
-*   Section I -- INDEX SEQUENCE POLYFILL + tuple-apply utilities.  Covers the
+*   Section I - INDEX SEQUENCE POLYFILL + tuple-apply utilities.  Covers the
 * internal compile-time integer sequence (index_sequence / make_index_sequence)
 * and the runtime tuple-apply helpers (apply_impl / apply_tuple) that stand in
 * for std::apply on C++11/14.  Sequence width is measured with the seq_size

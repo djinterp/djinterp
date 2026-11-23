@@ -5,7 +5,7 @@
 *   `DMemorySource` DERIVES from dj_mem_source and adds no members, so it IS
 * one and may be passed to any C entry point with no conversion. What it adds
 * is that a default-constructed one is the well-defined UNSET source rather
-* than two indeterminate pointers -- which is the single most likely way to
+* than two indeterminate pointers - which is the single most likely way to
 * misuse the C struct, and the only thing a C++ face can fix about it.
 *
 *   `DBufferSource` and `DCountingSource` are HOLDERS, not wrappers: each owns
@@ -132,7 +132,7 @@ public:
 
     // release
     //   operation: returns a block. _bytes and _align MUST be the values that
-    // produced it -- see the contract in mem_source.h.
+    // produced it - see the contract in mem_source.h.
     D_INLINE
     void release(
         void*    _ptr,

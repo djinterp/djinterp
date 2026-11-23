@@ -3,8 +3,8 @@
 *
 * A table of an SQLite database held in memory: database_table over an
 * sqlite_connection, with what SQLite adds.
-*   sqlite_table is database_table<sqlite_connection> -- the cache, refresh,
-* commit and the table's operations, through the SQLite layer -- and adds:
+*   sqlite_table is database_table<sqlite_connection> - the cache, refresh,
+* commit and the table's operations, through the SQLite layer - and adds:
 * the attached database the table lives in, under the name ATTACH gave it;
 * STRICT tables (SQLite 3.37.0) and WITHOUT ROWID tables (3.8.2), which
 * create_table makes; and upkeep: ANALYZE of the table, VACUUM of its
@@ -131,12 +131,12 @@ public:
     using client_capabilities = sqlite_client_capabilities;
     using version_info        = sqlite_version_info;
 
-    // type_support -- client_capabilities, by its former name (2026.10.21),
+    // type_support - client_capabilities, by its former name (2026.10.21),
     // for one release
     using type_support [[deprecated("client_capabilities")]] =
         sqlite_client_capabilities;
 
-    // construction -- as database_table's
+    // construction - as database_table's
     sqlite_table()
         : base_type(),
           m_without_rowid(false),
@@ -182,7 +182,7 @@ public:
     sqlite_table(sqlite_table&&) noexcept            = default;
     sqlite_table& operator=(sqlite_table&&) noexcept = default;
 
-    // attached database -- the name ATTACH gave the database the table lives
+    // attached database - the name ATTACH gave the database the table lives
     // in, "" for the one the connection opened: the table's schema
     void
     set_attach_alias(
@@ -200,14 +200,14 @@ public:
         return this->schema_name();
     }
 
-    // qualified_table_name -- the table's name for SQL, as qualified_name()
+    // qualified_table_name - the table's name for SQL, as qualified_name()
     std::string
     qualified_table_name() const
     {
         return this->qualified_name();
     }
 
-    // table options -- for the next create_table: WITHOUT ROWID, which needs
+    // table options - for the next create_table: WITHOUT ROWID, which needs
     // a primary key, from SQLite 3.8.2; STRICT, which holds each column to
     // its declared type, from 3.37.0
     void
@@ -263,7 +263,7 @@ public:
         return;
     }
 
-    // upkeep -- ANALYZE of the table, for the query planner's statistics;
+    // upkeep - ANALYZE of the table, for the query planner's statistics;
     // VACUUM of the database it lives in, which rebuilds the file and cannot
     // run inside a transaction (the layer refuses a schema's VACUUM before
     // SQLite 3.15.0, D_DB_UNSUPPORTED); REINDEX of the table's indexes. Each

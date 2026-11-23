@@ -54,7 +54,7 @@ bool tests_merge_sort_traits_adaptivity()
     // ordered input every pair of runs is already in order and costs one
     // comparison; there are at most n - 1 such pairs across all the passes
     // (n/2 + n/4 + ... + 1), so the whole sort makes at most n - 1
-    // comparisons -- where random input costs on the order of n log n.
+    // comparisons - where random input costs on the order of n log n.
     for (size_index = 0; size_index < battery_size_count; ++size_index)
     {
         length = battery_size_at(size_index);

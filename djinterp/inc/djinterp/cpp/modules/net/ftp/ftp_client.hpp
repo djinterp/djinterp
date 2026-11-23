@@ -4,7 +4,7 @@
 * The C++ interface to the FTP and FTPS client.
 *   A zero-cost view of ftp_client.h: `client` holds a dj_ftp_client, and each
 * member forwards to one C function, inline. Callbacks are templates, so any
-* functor -- or, from C++11, any lambda -- serves as a sink or a source with
+* functor - or, from C++11, any lambda - serves as a sink or a source with
 * no virtual call and no allocation.
 *   C++98 is the floor; C++11 only adds: copying is deleted rather than hidden,
 * the members are noexcept, and lambdas serve as callbacks. The enumerations
@@ -82,7 +82,7 @@ TABLE OF CONTENTS
 #include "../../../../../re_std/cpp/cstdint/cstdint.hpp"  // uint16_t, uint32_t
 
 // 64-bit floor: this header needs a 64-bit integer type, and compiles to
-// nothing where the build has none -- ISO strict C++98 wherever int64_t is
+// nothing where the build has none - ISO strict C++98 wherever int64_t is
 // `long long`: a 32-bit target, 64-bit Windows or macOS (the owner's ruling of
 // 2026.10.03 on round 3's question 1, (a)). The answer is net_common.h's, taken
 // once per translation unit, so that net's gated headers agree.
@@ -316,7 +316,7 @@ public:
         : m_options(_options)
     {}
 
-    // user -- the login name; NULL logs in as "anonymous"
+    // user - the login name; NULL logs in as "anonymous"
     options& user(
         const char* _user
     ) D_NOEXCEPT
@@ -326,7 +326,7 @@ public:
         return *this;
     }
 
-    // password -- the password; NULL sends "anonymous@"
+    // password - the password; NULL sends "anonymous@"
     options& password(
         const char* _password
     ) D_NOEXCEPT
@@ -336,7 +336,7 @@ public:
         return *this;
     }
 
-    // account -- the ACCT a server may ask for with 332
+    // account - the ACCT a server may ask for with 332
     options& account(
         const char* _account
     ) D_NOEXCEPT
@@ -346,7 +346,7 @@ public:
         return *this;
     }
 
-    // security -- TLS on the control connection
+    // security - TLS on the control connection
     options& security(
         ftp::security::value _security
     ) D_NOEXCEPT
@@ -356,7 +356,7 @@ public:
         return *this;
     }
 
-    // require_security -- no fallback to plaintext, ever
+    // require_security - no fallback to plaintext, ever
     options& require_security(
         bool _require
     ) D_NOEXCEPT
@@ -366,7 +366,7 @@ public:
         return *this;
     }
 
-    // protection -- the PROT level asked for data under TLS
+    // protection - the PROT level asked for data under TLS
     options& protection(
         ftp::protection::value _protection
     ) D_NOEXCEPT
@@ -376,7 +376,7 @@ public:
         return *this;
     }
 
-    // clear_control -- CCC after the login, for NAT-bound servers
+    // clear_control - CCC after the login, for NAT-bound servers
     options& clear_control(
         bool _clear
     ) D_NOEXCEPT
@@ -386,7 +386,7 @@ public:
         return *this;
     }
 
-    // data_mode -- how data connections are made
+    // data_mode - how data connections are made
     options& data_mode(
         ftp::data_mode::value _mode
     ) D_NOEXCEPT
@@ -396,7 +396,7 @@ public:
         return *this;
     }
 
-    // binary -- TYPE I: bytes as they are
+    // binary - TYPE I: bytes as they are
     options& binary() D_NOEXCEPT
     {
         m_options.type.data_type = D_FTP_TYPE_IMAGE;
@@ -404,7 +404,7 @@ public:
         return *this;
     }
 
-    // ascii -- TYPE A: line ends converted to and from CR LF
+    // ascii - TYPE A: line ends converted to and from CR LF
     options& ascii() D_NOEXCEPT
     {
         m_options.type.data_type = D_FTP_TYPE_ASCII;
@@ -412,7 +412,7 @@ public:
         return *this;
     }
 
-    // ignore_pasv_address -- connect PASV data to the control peer
+    // ignore_pasv_address - connect PASV data to the control peer
     options& ignore_pasv_address(
         bool _ignore
     ) D_NOEXCEPT
@@ -422,7 +422,7 @@ public:
         return *this;
     }
 
-    // verify_peer -- check the server's certificate
+    // verify_peer - check the server's certificate
     options& verify_peer(
         bool _verify
     ) D_NOEXCEPT
@@ -432,7 +432,7 @@ public:
         return *this;
     }
 
-    // verify_host -- check the certificate names the host
+    // verify_host - check the certificate names the host
     options& verify_host(
         bool _verify
     ) D_NOEXCEPT
@@ -442,7 +442,7 @@ public:
         return *this;
     }
 
-    // use_utf8 -- OPTS UTF8 ON where the server offers it
+    // use_utf8 - OPTS UTF8 ON where the server offers it
     options& use_utf8(
         bool _use
     ) D_NOEXCEPT
@@ -452,7 +452,7 @@ public:
         return *this;
     }
 
-    // connect_timeout -- milliseconds per connection attempt; 0: none
+    // connect_timeout - milliseconds per connection attempt; 0: none
     options& connect_timeout(
         uint32_t _milliseconds
     ) D_NOEXCEPT
@@ -462,7 +462,7 @@ public:
         return *this;
     }
 
-    // response_timeout -- milliseconds to wait for a reply; 0: none
+    // response_timeout - milliseconds to wait for a reply; 0: none
     options& response_timeout(
         uint32_t _milliseconds
     ) D_NOEXCEPT
@@ -472,7 +472,7 @@ public:
         return *this;
     }
 
-    // idle_timeout -- milliseconds a transfer may stall; 0: none
+    // idle_timeout - milliseconds a transfer may stall; 0: none
     options& idle_timeout(
         uint32_t _milliseconds
     ) D_NOEXCEPT
@@ -482,7 +482,7 @@ public:
         return *this;
     }
 
-    // c_options -- the dj_ftp_options beneath, for what has no member here
+    // c_options - the dj_ftp_options beneath, for what has no member here
     ::dj_ftp_options& c_options() D_NOEXCEPT
     {
         return m_options;
@@ -511,7 +511,7 @@ private:
 // setting `size` to the bytes it wrote and 0 at the end of the data. The
 // trampolines below adapt either to the C client's callbacks. Each member
 // taking one has a `const` overload too, so a callback written in place --
-// a temporary functor, or an unnamed lambda -- binds as well as a named one.
+// a temporary functor, or an unnamed lambda - binds as well as a named one.
 namespace internal {
 
     // 3.1.1
@@ -526,7 +526,7 @@ namespace internal {
             : m_out(&_out)
         {}
 
-        // operator() -- appends the data
+        // operator() - appends the data
         error::value operator()(
             const char* _data,
             std::size_t _size
@@ -555,7 +555,7 @@ namespace internal {
               m_offset(0u)
         {}
 
-        // operator() -- supplies the next bytes, and 0 at the end
+        // operator() - supplies the next bytes, and 0 at the end
         error::value operator()(
             char*        _buffer,
             std::size_t  _capacity,
@@ -671,7 +671,7 @@ public:
         ::d_ftp_client_close(&m_client);
     }
 
-    // tls_config -- fills a TLS configuration from the options
+    // tls_config - fills a TLS configuration from the options
     static
     void tls_config(
         const ftp::options& _options,
@@ -682,7 +682,7 @@ public:
                                   &_config);
     }
 
-    // connect -- connects and reads the greeting; FTPS secures the control
+    // connect - connects and reads the greeting; FTPS secures the control
     // connection first; port 0 picks 21, or 990 for implicit TLS
     error::value connect(
         const char* _host,
@@ -703,13 +703,13 @@ public:
                        _port);
     }
 
-    // login -- USER, PASS, and ACCT as asked; under TLS, PBSZ and PROT
+    // login - USER, PASS, and ACCT as asked; under TLS, PBSZ and PROT
     error::value login() D_NOEXCEPT
     {
         return from_c(::d_ftp_client_login(&m_client));
     }
 
-    // command -- one command that neither changes session state nor opens a
+    // command - one command that neither changes session state nor opens a
     // data connection: CWD, MKD, DELE, SIZE, MDTM, NOOP, and the like
     error::value command(
         ::dj_ftp_command _command,
@@ -721,7 +721,7 @@ public:
                                              _argument));
     }
 
-    // retrieve -- downloads a file into a sink
+    // retrieve - downloads a file into a sink
     template<typename Sink>
     error::value retrieve(
         const char* _path,
@@ -747,7 +747,7 @@ public:
                           internal::context_of(_sink)));
     }
 
-    // retrieve -- downloads a file onto the end of a string
+    // retrieve - downloads a file onto the end of a string
     error::value retrieve(
         const char*  _path,
         std::string& _out
@@ -759,7 +759,7 @@ public:
                         sink);
     }
 
-    // store -- uploads a file from a source
+    // store - uploads a file from a source
     template<typename Source>
     error::value store(
         const char* _path,
@@ -785,7 +785,7 @@ public:
                           internal::context_of(_source)));
     }
 
-    // store -- uploads a string's bytes as a file
+    // store - uploads a string's bytes as a file
     error::value store(
         const char*        _path,
         const std::string& _data
@@ -808,7 +808,7 @@ public:
                      static_cast<const std::string&>(_data));
     }
 
-    // list -- a directory listing into a sink: MLSD where FEAT offered it,
+    // list - a directory listing into a sink: MLSD where FEAT offered it,
     // LIST otherwise, the format chosen reported through _out_format
     template<typename Sink>
     error::value list(
@@ -838,7 +838,7 @@ public:
                                           _out_format));
     }
 
-    // list -- a directory listing onto the end of a string
+    // list - a directory listing onto the end of a string
     error::value list(
         const char*              _path,
         std::string&             _out,
@@ -852,13 +852,13 @@ public:
                     _out_format);
     }
 
-    // quit -- QUIT, then closes every connection in order
+    // quit - QUIT, then closes every connection in order
     error::value quit() D_NOEXCEPT
     {
         return from_c(::d_ftp_client_quit(&m_client));
     }
 
-    // close -- closes every connection, sending nothing
+    // close - closes every connection, sending nothing
     void close() D_NOEXCEPT
     {
         ::d_ftp_client_close(&m_client);
@@ -866,7 +866,7 @@ public:
         return;
     }
 
-    // state -- O(1) reads of the session
+    // state - O(1) reads of the session
     bool connected() const D_NOEXCEPT
     {
         return m_client.connected;
@@ -918,7 +918,7 @@ public:
         return m_client.net_error;
     }
 
-    // c_client -- the dj_ftp_client beneath, for what has no member here
+    // c_client - the dj_ftp_client beneath, for what has no member here
     ::dj_ftp_client& c_client() D_NOEXCEPT
     {
         return m_client;

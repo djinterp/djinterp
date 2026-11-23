@@ -253,7 +253,7 @@ size_t d_internal_spell(
 /**
  * @brief Measures a spelling up to its first newline.
  *
- * A token that spans lines -- a block comment, a raw string, a spliced name --
+ * A token that spans lines - a block comment, a raw string, a spliced name --
  * has a width only on the line where it begins, which is the line a layout rule
  * is about.
  *
@@ -1706,7 +1706,7 @@ unsigned d_internal_roman_value(
  *
  * @param[in] _build  the build.
  * @param[in] _at     the comment's token.
- * @return the character -- `=`, `-` or `/` -- or 0 when the line above is
+ * @return the character - `=`, `-` or `/` - or 0 when the line above is
  *         no delimiter: the shape a heading shares with the others of its
  *         list.
  */
@@ -1984,7 +1984,7 @@ unsigned d_internal_ordinal_value(
  *        letter and not as a Roman numeral.
  *
  * @note Only an ordinal that is a single letter and nothing more is asked:
- *       `C.  name`.  One with a second part -- `VII.1`, `I.a`, `C.II.` --
+ *       `C.  name`.  One with a second part - `VII.1`, `I.a`, `C.II.` --
  *       is read by its first run of numeral letters, as it always was.
  *
  * @param[in] _build  the build.
@@ -2223,8 +2223,8 @@ void d_internal_comment_toc(
         return;
     }
 
-    // what the last entry at each indentation counted as -- a numeral's
-    // value, 0 for a letter -- and whether there was one: the next entry
+    // what the last entry at each indentation counted as - a numeral's
+    // value, 0 for a letter - and whether there was one: the next entry
     // there is read by it, as a heading is by the heading before it
     unsigned last[D_INTERNAL_TOC_INDENT_MAX + 1u] = { 0u };
     bool     seen[D_INTERNAL_TOC_INDENT_MAX + 1u] = { false };
@@ -3132,7 +3132,7 @@ bool d_internal_fn_special(
  * @param[in] _build  the build.
  * @param[in] _k      the function's item index.
  * @return false when each `void` before the name stands among template
- *         arguments -- `result<void> run()` returns a value -- true otherwise.
+ *         arguments - `result<void> run()` returns a value - true otherwise.
  *         Only the head's own tokens are read; a group's are its own.
  */
 static
@@ -3620,8 +3620,8 @@ uint32_t d_internal_item_container(
  *
  * @param[in] _build  the build.
  * @param[in] _k      an `open` item's index.
- * @return true when the item after it in its scope -- braceless bodies, and
- *         items under a conditional the macro is not under, skipped -- is no
+ * @return true when the item after it in its scope - braceless bodies, and
+ *         items under a conditional the macro is not under, skipped - is no
  *         `close` and opens a line further right than the macro does; false
  *         otherwise.
  */

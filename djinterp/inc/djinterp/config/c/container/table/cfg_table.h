@@ -93,7 +93,7 @@
 //==============================================================================
 
 // D_INTERNAL_TABLE_EXTENT
-//   macro: the resolved spelling of a STORED extent -- a row count, a column
+//   macro: the resolved spelling of a STORED extent - a row count, a column
 // count, or a cell size, as it sits in a struct and on the wire. A macro
 // rather than a typedef because C must not hide what a type is, and because
 // the choice must be visible to the preprocessor where table_common.h declares

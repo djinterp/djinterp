@@ -8,8 +8,8 @@
 * scratch, for a build with no allocator.
 *
 *   The named queries are the point.  `disjoint()` answers the one question two
-* separate transforms depend on -- whether a choice can be told apart by a
-* single symbol -- and it answers it INCLUDING the nullability check that a
+* separate transforms depend on - whether a choice can be told apart by a
+* single symbol - and it answers it INCLUDING the nullability check that a
 * caller working from first sets alone would forget.
 *
 *
@@ -151,7 +151,7 @@ public:
 
     // derived
     //   accessor: the capabilities analysis added that the syntax alone did
-    // not show -- LEFT_RECURSION being the one that matters.
+    // not show - LEFT_RECURSION being the one that matters.
     DFeatureSet derived() const noexcept
     {
         return DFeatureSet(implied);
@@ -167,7 +167,7 @@ public:
     }
 
     // first
-    //   accessor: the symbols an expression can begin with -- a sound
+    //   accessor: the symbols an expression can begin with - a sound
     // over-approximation, so it can rule an alternative out but never in.
     const dj_parse_charset* first(
         re_std::int32_t _node
@@ -231,7 +231,7 @@ public:
 
     // disjoint
     //   accessor: whether a choice's alternatives can be told apart by one
-    // symbol -- the precondition both for lowering an unordered choice to an
+    // symbol - the precondition both for lowering an unordered choice to an
     // ordered one and for compiling either as a jump table.  Includes the
     // nullability check, which is the half that gets forgotten.
     bool disjoint(

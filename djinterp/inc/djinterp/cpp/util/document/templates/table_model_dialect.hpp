@@ -3,7 +3,7 @@
 *
 *   The one-shot convenience over table_model_render.hpp: render a table model
 * in a named format and hand back the bytes.  It is separate because it needs
-* document_dialect.hpp, which pulls in every renderer -- and the bridge itself
+* document_dialect.hpp, which pulls in every renderer - and the bridge itself
 * needs none of them.  A caller that already holds a renderer includes only
 * table_model_render.hpp and pays for nothing more; a caller that just wants
 * "this table, as HTML" includes this and gets the whole dialect set.  The same
@@ -43,7 +43,7 @@ NS_DJINTERP
 // render_table_model_to_string
 //   function: render _model as a COMPLETE document in _format, with that
 // dialect's span / header defaults already applied.  Yields an empty string for
-// a format the dialect factory does not serve (pdf, tex, wiki) -- a PDF caller
+// a format the dialect factory does not serve (pdf, tex, wiki) - a PDF caller
 // constructs pdf_document_renderer itself and calls render_table_model, the
 // same opt-in split the rest of the document layer keeps.
 template<typename Model>

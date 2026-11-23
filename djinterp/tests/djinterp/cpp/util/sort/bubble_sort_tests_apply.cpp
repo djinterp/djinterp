@@ -152,7 +152,7 @@ bool tests_bubble_sort_apply_shrinking_boundary()
                                  std::less<int>()));
 
     //   [1, 2, 3, 6, 5, 4]: the inversions sit at the back, so the boundary
-    // retreats one slot per pass -- 5 + 4 + 3 comparisons over three passes.
+    // retreats one slot per pass - 5 + 4 + 3 comparisons over three passes.
     trailing_inversions.push_back(1);
     trailing_inversions.push_back(2);
     trailing_inversions.push_back(3);
@@ -188,7 +188,7 @@ bool tests_bubble_sort_apply_exchange_traffic()
 
     //   A pair is exchanged exactly when the comparator affirms that the later
     // element strictly precedes the carried one, so the affirmations ARE the
-    // exchanges -- counted this way because bubble_pass exchanges by
+    // exchanges - counted this way because bubble_pass exchanges by
     // assignment around a carried element, which no swap counter sees.
     //
     //   Strictly descending input is the worst case: every one of the

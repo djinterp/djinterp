@@ -21,7 +21,7 @@ using namespace ::djinterp::test;
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///   compile-time invariants -- mutation (C++14+ relaxed constexpr)          ///
+///   compile-time invariants - mutation (C++14+ relaxed constexpr)          ///
 ///////////////////////////////////////////////////////////////////////////////
 
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
@@ -83,7 +83,7 @@ static_assert(static_cast<int>(statused_obj().status()) == 4,      "");
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///   runtime tests -- mutation                                               ///
+///   runtime tests - mutation                                               ///
 ///////////////////////////////////////////////////////////////////////////////
 
 /*

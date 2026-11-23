@@ -4,9 +4,9 @@
 * The scratch directory of the argument parser's C suites, declared in
 * arg_tests_files.h.
 *   The one file of the suites that asks the system itself, as arg_system.c
-* is the one of the parser. Each system's primitives -- the working
+* is the one of the parser. Each system's primitives - the working
 * directory, a fresh temporary directory, making and removing a directory, a
-* file, a mode, a link, a FIFO -- are chosen whole, a function at a time, by
+* file, a mode, a link, a FIFO - are chosen whole, a function at a time, by
 * the environment layer's file status: POSIX's, or the Microsoft runtime's
 * with every name widened from UTF-8. A system with neither makes nothing,
 * and every call fails, so that a suite needing files fails rather than
@@ -258,7 +258,7 @@ bool d_tests_arg_files_os_mode(
 
 /**
  * @brief Removes one thing made: a directory with rmdir, anything else --
- *        a link itself, not what it points to -- with unlink.
+ *        a link itself, not what it points to - with unlink.
  *
  * @param[in] _name    its name, relative.
  * @param[in] _folder  whether it is a directory.
@@ -685,8 +685,8 @@ void d_tests_arg_files_failed(
  * @param[in]     _folder  whether it is a directory.
  * @return whether it was made and recorded.
  *
- * A thing made but not recorded -- the record full, or its name not copied
- * -- is removed again at once, so that nothing outlives the directory.
+ * A thing made but not recorded - the record full, or its name not copied
+ * - is removed again at once, so that nothing outlives the directory.
  */
 static
 bool d_tests_arg_files_record(
@@ -846,8 +846,8 @@ bool d_tests_arg_files_folder(
 /*
 d_tests_arg_files_write
   The file is written and closed before it is recorded, so that one the
-record cannot hold is closed when it is removed again -- which Windows
-requires -- and one whose writing failed is recorded all the same, to be
+record cannot hold is closed when it is removed again - which Windows
+requires - and one whose writing failed is recorded all the same, to be
 removed with the rest.
 */
 bool d_tests_arg_files_write(

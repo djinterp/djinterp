@@ -9,7 +9,7 @@
 * CLI11's (cli11_shim.hpp), and the transcripts below are what CLI11 wrote;
 * so the CASES section is written in the part of the face CLI11 shares --
 * every parse through the run, which has a form for each of the parser's,
-* `->` on every handle, no status taken from a call -- and C++98 unless a
+* `->` on every handle, no status taken from a call - and C++98 unless a
 * guard says otherwise. The sections that are the module's own are written
 * apart, after it, each saying why CLI11 cannot write its transcript; the
 * zero-overhead checks are assertions the build itself makes, beside the
@@ -422,7 +422,7 @@ const char COMPLETION_FLAG[] =
 
 // LAYOUT
 //   constant: what the steps of d_tests_arg_cpp_parser_layout write: the
-// module's own -- the face's records read as the C records they are.
+// module's own - the face's records read as the C records they are.
 const char LAYOUT[] =
     "parser: c=1 root=1 sub=1 option=1 defaults=1 validator=1 text=1 span=1\n";
 
@@ -430,7 +430,7 @@ const char LAYOUT[] =
 
 // TRAITS
 //   constant: what the steps of d_tests_arg_cpp_parser_traits write: the
-// module's own -- what the standard's traits tell of the face's types.
+// module's own - what the standard's traits tell of the face's types.
 const char TRAITS[] =
     "trivially copyable: command=1 option=1 error=1 status=1 text=1 lists=1 "
     "standard layout: parser=1 copyable parser=0\n";
@@ -654,7 +654,7 @@ const step_fn EXITS_STEPS[] =
 const std::size_t EXITS_COUNT = sizeof(EXITS_STEPS) / sizeof(EXITS_STEPS[0]);
 
 /**
- * @brief MACRO 1: main through D_ARG_PARSE -- CLI11_PARSE -- going on,
+ * @brief MACRO 1: main through D_ARG_PARSE - CLI11_PARSE - going on,
  *        asked for help and a version, and failing.
  *
  * @param[in,out] _run  the step's run.
@@ -1323,8 +1323,8 @@ const std::size_t RESPONSE_FILES_COUNT =
 #if (D_INTERNAL_ARG_PARSER_SUGGESTIONS == 1)
 
 /**
- * @brief SUGGESTIONS 1: a name mistyped, without suggestions -- as the run
- *        makes its parser -- and with them.
+ * @brief SUGGESTIONS 1: a name mistyped, without suggestions - as the run
+ *        makes its parser - and with them.
  *
  * @param[in,out] _run  the step's run.
  */
@@ -1364,7 +1364,7 @@ const std::size_t SUGGESTIONS_COUNT =
 
 /**
  * @brief EMPTY_VALUES 1: `--note=` before another option, with the switch
- *        off -- as the run makes its parser -- and on.
+ *        off - as the run makes its parser - and on.
  *
  * @param[in,out] _run  the step's run.
  */
@@ -1404,8 +1404,8 @@ const std::size_t EMPTY_VALUES_COUNT =
     sizeof(EMPTY_VALUES_STEPS) / sizeof(EMPTY_VALUES_STEPS[0]);
 
 /**
- * @brief ABBREVIATIONS 1: `--verb` with the switch off -- as the run makes
- *        its parser -- and on; then `--ver`, which two names begin.
+ * @brief ABBREVIATIONS 1: `--verb` with the switch off - as the run makes
+ *        its parser - and on; then `--ver`, which two names begin.
  *
  * @param[in,out] _run  the step's run.
  */
@@ -1569,9 +1569,9 @@ void write_completion(
 
 /**
  * @brief COMPLETION_FLAG 1: the completion option set, asked for by a
- *        parse and ended -- the script, which the completion suite holds,
+ *        parse and ended - the script, which the completion suite holds,
  *        written as its first line and whether it is the error's message
- *        -- then removed.
+ *        - then removed.
  *
  * @param[in,out] _run  the step's run.
  */

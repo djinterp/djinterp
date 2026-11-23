@@ -49,7 +49,7 @@
 #include <type_traits>
 // djinterp
 #include "../../../djinterp.hpp"
-#include "./file_tree_common.hpp"   // file_node_id, file_type -- probes name them
+#include "./file_tree_common.hpp"   // file_node_id, file_type - probes name them
 #include "../../traits/node_container_traits.hpp"  // the shared tree probes
 
 
@@ -58,7 +58,7 @@ NS_DJINTERP
 
 // file_node_id and file_type appear in every has_*_method probe below --
 // name(file_node_id), resolve(...) -> file_node_id, add_child(file_node_id, const char*,
-// file_type) -- and this header imported them from NOWHERE: it included only
+// file_type) - and this header imported them from NOWHERE: it included only
 // <cstddef>, <cstdint>, <type_traits> and djinterp.hpp. Every probe was a hard
 // error the moment it was instantiated, which is why nothing ever caught it:
 // an uninstantiated template is never checked. file_tree_common.hpp supplies

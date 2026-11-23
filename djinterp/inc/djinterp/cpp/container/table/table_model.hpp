@@ -1,8 +1,8 @@
 /*******************************************************************************
 * djinterp [cpp][container]                                      table_model.hpp
 *
-*   THE MEETING POINT. A table has two declaration front ends -- table_builder
-* (C++ types) and table_parser (text) -- and the requirement that anything
+*   THE MEETING POINT. A table has two declaration front ends - table_builder
+* (C++ types) and table_parser (text) - and the requirement that anything
 * expressible in one be expressible in the other, identically.  That is not a
 * convention to be maintained by hand: parse and compose are OPPOSITE LEGS OF
 * ONE
@@ -42,7 +42,7 @@
 *
 *   ALIGNMENT CARRIES THE SPANS. In the text surface a merged cell is not
 * marked;
-* it is SEEN -- its span is read from where the delimiters fall:
+* it is SEEN - its span is read from where the delimiters fall:
 *
 *         |     |   something   |  something else |     <- 3 cells
 *         | foo | bar  | alpha  | beta  | gamma   |     <- 5 cells
@@ -117,7 +117,7 @@ NS_DJINTERP
 // ===========================================================================
 
 // DTableModel
-//   type: the compile-time model -- the shape (the domain I_T and the cell
+//   type: the compile-time model - the shape (the domain I_T and the cell
 // types) and the layout (the cover Gamma), with the option packs that
 // configure how the declaration was read and what the realized container must
 // be. This is what a table_builder IS, once its declarators are folded;
@@ -162,7 +162,7 @@ struct DTableModel
     using element_type = typename Shape::element_type;
     using columns_type = typename Shape::columns_type;
 
-    // column_type_t -- the cell type of column C (tau_c).
+    // column_type_t - the cell type of column C (tau_c).
     template<std::size_t C>
     using column_type_t = typename Shape::template column_type_t<C>;
 
@@ -171,7 +171,7 @@ struct DTableModel
     static D_CONSTEXPR bool        has_merges  = Layout::has_merges;
     static D_CONSTEXPR std::size_t merge_count = Layout::merge_count;
 
-    // owner_of -- the layout cell owning atomic position (R, C). Read its
+    // owner_of - the layout cell owning atomic position (R, C). Read its
     // anchor for the layout-aware access T[i] = T[anchor(cell_T(i))].
     template<std::size_t R,
              std::size_t C>
@@ -179,13 +179,13 @@ struct DTableModel
 
     // --- realization ---
 
-    // realization -- the container family the shape backs onto.
+    // realization - the container family the shape backs onto.
     static D_CONSTEXPR DRealizationKind realization =
         realization_of<Shape>::value;
 
     // --- conformance ---
 
-    // conforms -- the cover is valid for the domain (every merge in bounds, no
+    // conforms - the cover is valid for the domain (every merge in bounds, no
     // two overlapping).
     static D_CONSTEXPR bool conforms =
         layout_valid<Layout, height, width>::value;
@@ -209,8 +209,8 @@ using table_model = DTableModel<Shape, Layout, TableOpts, AxisOpts>;
 
 // model_of
 //   trait: the table_model a table_builder folds to. The builder's declarator
-// surface and the model are deliberately different types -- one is the DSL,
-// the other the carrier -- and this is the arrow between them. Any front end
+// surface and the model are deliberately different types - one is the DSL,
+// the other the carrier - and this is the arrow between them. Any front end
 // that can name a shape and a layout can produce a model the same way.
 //
 // Usage:
@@ -263,7 +263,7 @@ using model_of_t = typename model_of<Builder>::type;
 // ===========================================================================
 
 // DTableModelValue
-//   class: the runtime model -- the same three layers as VALUES. The atomic
+//   class: the runtime model - the same three layers as VALUES. The atomic
 // cells sit in a flat store of height x width; the cover is a runtime_layout;
 // the headers and the open key-value metadata are a table_metadata. This is
 // what the text front end fills and what render writes back out.
@@ -273,7 +273,7 @@ using model_of_t = typename model_of<Builder>::type;
 // the merge's one value (T[i] = T[anchor(cell_T(i))]). raw_at reaches past the
 // overlay to the atomic store.
 //
-//   Cell : the cell type (std::string for the text surface -- the parser's
+//   Cell : the cell type (std::string for the text surface - the parser's
 //               natural output before any typing).
 //   Metadata : the metadata / header carrier (a table_metadata).
 template<typename Cell      = std::string,
@@ -322,7 +322,7 @@ public:
         return m_cols;
     }
 
-    // row_count / column_count -- the names table_metadata::conforms_to reads.
+    // row_count / column_count - the names table_metadata::conforms_to reads.
     D_NODISCARD size_type row_count() const D_NOEXCEPT
     {
         return m_rows;
@@ -343,13 +343,13 @@ public:
         return m_cells.empty();
     }
 
-    // rank -- 2 for this rectangular row/column model.
+    // rank - 2 for this rectangular row/column model.
     D_NODISCARD static D_CONSTEXPR size_type rank() D_NOEXCEPT
     {
         return 2;
     }
 
-    // resize -- re-shape the atomic table, preserving nothing.
+    // resize - re-shape the atomic table, preserving nothing.
     void resize(
         size_type _rows,
         size_type _cols
@@ -364,7 +364,7 @@ public:
 
     // --- cells ---
 
-    // at -- the value at (_r, _c), read through the overlay: a position a
+    // at - the value at (_r, _c), read through the overlay: a position a
     // merge covers reports the merge's value, held at its anchor.
     D_NODISCARD const Cell& at(
         size_type _r,
@@ -376,7 +376,7 @@ public:
         return raw_at(_owner.anchor_row(), _owner.anchor_col());
     }
 
-    // raw_at -- the atomic store, past the overlay.
+    // raw_at - the atomic store, past the overlay.
     D_NODISCARD const Cell& raw_at(
         size_type _r,
         size_type _c
@@ -393,7 +393,7 @@ public:
         return m_cells[index_of(_r, _c)];
     }
 
-    // set -- write the atomic cell at (_r, _c).
+    // set - write the atomic cell at (_r, _c).
     void set(
         size_type _r,
         size_type _c,
@@ -407,7 +407,7 @@ public:
 
     // --- the cover Gamma ---
 
-    // merge -- declare a merged cell spanning _rows x _cols from (_r, _c),
+    // merge - declare a merged cell spanning _rows x _cols from (_r, _c),
     // whose one value is _value (held at the anchor, which is (_r, _c)).
     void merge(
         size_type _r,
@@ -452,7 +452,7 @@ public:
 
     // --- conformance ---
 
-    // conforms -- the cover is valid for the domain AND the headers span the
+    // conforms - the cover is valid for the domain AND the headers span the
     // dimensions (table_metadata's own check, read through row_count /
     // column_count).
     D_NODISCARD bool conforms() const
@@ -462,7 +462,7 @@ public:
     }
 
 private:
-    // index_of -- row-major flattening of the atomic domain.
+    // index_of - row-major flattening of the atomic domain.
     D_NODISCARD size_type index_of(
         size_type _r,
         size_type _c
@@ -491,7 +491,7 @@ using table_model_value = DTableModelValue<Cell, Metadata>;
 // ===========================================================================
 // IV.  render
 // ===========================================================================
-//   The COMPOSE leg: a model, written down.  Alignment is the point -- a merged
+//   The COMPOSE leg: a model, written down.  Alignment is the point - a merged
 // cell is recognised in text by covering its columns' delimiters, so render
 // gives
 // each column a width and a merged cell exactly the width its span occupied.
@@ -598,8 +598,8 @@ NS_END  // internal
 // is_header_stack
 //   trait: whether a header type is the DEFAULT representation table_metadata
 // ships, with TEXT labels (a stack of levels of labelled, spannable cells).
-// Header types are OPEN there -- a caller may store a header set any way at
-// all, under any label type -- so render, which must read labels and spans to
+// Header types are OPEN there - a caller may store a header set any way at
+// all, under any label type - so render, which must read labels and spans to
 // place
 // them on the grid, can only lay out a representation it understands: a stack,
 // whose labels are already text. This is the same stance table_metadata takes
@@ -630,7 +630,7 @@ NS_INTERNAL
     //   function: let the header labels claim their columns. A header level is
     // a
     // row of the grid, so its labels constrain the column widths exactly as
-    // body cells do -- a unit-span label widens its own column, and an
+    // body cells do - a unit-span label widens its own column, and an
     // over-long spanning label widens the last column of its span.
     template<typename Stack>
     inline
@@ -703,7 +703,7 @@ NS_INTERNAL
 
     // apply_header_widths (an opaque stack)
     //   function: a header representation render cannot read contributes no
-    // width -- it is the header type's own business, per table_metadata.
+    // width - it is the header type's own business, per table_metadata.
     template<typename Stack>
     inline void
     apply_header_widths(
@@ -717,7 +717,7 @@ NS_INTERNAL
 NS_END  // internal
 
 // column_widths
-//   function: the render width of each column -- the widest SINGLETON cell in
+//   function: the render width of each column - the widest SINGLETON cell in
 // it (a merged cell constrains no single column), floored at _opts.min_width,
 // then
 // widened where a merged cell or a header label would otherwise overflow the
@@ -804,7 +804,7 @@ NS_INTERNAL
     // what makes the delimiters fall where the span can be read back.
     //
     //   A cell whose anchor lies in an EARLIER row (a vertical merge covering
-    // this one) has no value to write here, so the span renders blank -- the
+    // this one) has no value to write here, so the span renders blank - the
     // value lives at the anchor, per T[i] = T[anchor(cell_T(i))].
     template<typename Cell,
              typename Metadata>
@@ -851,7 +851,7 @@ NS_INTERNAL
     }
 
     // render_separator
-    //   function: the header/body separator -- the line that says "the rows
+    //   function: the header/body separator - the line that says "the rows
     // above are headers". Spans the full grid width so it cannot be mistaken
     // for a row.
     inline
@@ -884,7 +884,7 @@ NS_INTERNAL
     //   function: one level of a header stack, rendered as a row. A header
     // cell
     // carries its own span, so it lands on the grid exactly as a merged body
-    // cell does -- the same alignment identity, the same readability back.
+    // cell does - the same alignment identity, the same readability back.
     template<typename Label>
     inline
     std::string render_header_level(
@@ -944,7 +944,7 @@ NS_INTERNAL
         }
 
         // the separator closes the header block and marks the rows above as
-        // headers -- the signal the text surface reads them back by
+        // headers - the signal the text surface reads them back by
         if (_opts.emit_separator && (!_stack.empty()))
         {
             _out.append(render_separator(_w, _opts));
@@ -970,7 +970,7 @@ NS_INTERNAL
 NS_END  // internal
 
 // render
-//   function: the model as canonical text -- the compose leg of the prism.  The
+//   function: the model as canonical text - the compose leg of the prism.  The
 // column headers stack above a separator, the body follows, and every cell
 // falls
 // at the column its span covers, so parse can read the shape, the contents, and

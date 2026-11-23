@@ -6,14 +6,14 @@
 *
 *       auto secs = time_point_cast<seconds>(a_millisecond_point);
 *
-*   The target is spelled as a DURATION, not as a time_point -- the clock
+*   The target is spelled as a DURATION, not as a time_point - the clock
 * is carried over from the argument and cannot be changed. That is the
 * interface making the mixed-clock error unspellable rather than merely
 * diagnosable.
 *
 *   TRUNCATION IS TOWARD THE EPOCH, NOT TOWARD THE PAST:
 *   The conversion is duration_cast applied to the offset from the epoch,
-* so it truncates toward zero -- and zero is the epoch. For a point after
+* so it truncates toward zero - and zero is the epoch. For a point after
 * the epoch that rounds earlier; for a point BEFORE the epoch it rounds
 * LATER. Pre-1970 system_clock values therefore move forward in time
 * under a coarsening cast, which is rarely what a caller wants.

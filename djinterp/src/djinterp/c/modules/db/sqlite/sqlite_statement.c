@@ -456,7 +456,7 @@ int d_sqlite_bind_blob(
 //------------------------------------------------------------------------------
 /*
 d_sqlite_clear_bindings
-  sqlite3_clear_bindings, which cannot fail -- and which, unlike SQLite's
+  sqlite3_clear_bindings, which cannot fail - and which, unlike SQLite's
 binds, does not refuse a statement part-way through a run: the run may still
 be reading the values it would release, so the layer refuses it, as the binds
 do.

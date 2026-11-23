@@ -103,7 +103,7 @@ bool tests_heap_sort_sift_down_missing_right_child()
 
     //   A node with a left child but no right one.  The right-hand test is
     // guarded by (left + 1) < _size, and that guard short-circuits BEFORE
-    // the comparator runs -- so this is the case that would read off the end
+    // the comparator runs - so this is the case that would read off the end
     // of the heap if the two operands were transposed.
     //
     //   Left child larger: it must be promoted.
@@ -157,7 +157,7 @@ bool tests_heap_sort_sift_down_already_satisfied()
     std::size_t              i;
 
     //   A root that already dominates both children takes the
-    // `largest == current` exit -- the branch that is NOT the leaf exit and
+    // `largest == current` exit - the branch that is NOT the leaf exit and
     // NOT a descent.  Nothing may move.
     data.clear();
     data.push_back(9);
@@ -176,7 +176,7 @@ bool tests_heap_sort_sift_down_already_satisfied()
     //   Equivalent children take the same exit: the comparisons are strict,
     // so an equal child never displaces its parent.  Asserted through the
     // tags of seven equal keys, because "nothing moved" and "moved and moved
-    // back" are indistinguishable from the values alone -- and a sift that
+    // back" are indistinguishable from the values alone - and a sift that
     // moves a hole writes by assignment, which no swap counter would see.
     keyed.reserve(7);
 
@@ -212,7 +212,7 @@ bool tests_heap_sort_sift_down_cascade()
     //     start   1 8 7 6 5 4 3
     //     step 1  8 1 7 6 5 4 3   (1 trades with its larger child, 8)
     //     step 2  8 6 7 1 5 4 3   (1 trades again, with 6)
-    //     step 3  index 3 is a leaf -- stop
+    //     step 3  index 3 is a leaf - stop
     data.clear();
     data.push_back(1);
     data.push_back(8);
@@ -345,7 +345,7 @@ bool tests_heap_sort_larger_child_ties()
     //   heap_larger_child names the child a sift would promote; it takes its
     // comparator by reference, being called once per level.  A child must
     // STRICTLY follow to win, so on a tie between the two children the
-    // LEFT one is kept -- one of the two choices that pin where heap sort
+    // LEFT one is kept - one of the two choices that pin where heap sort
     // leaves equivalent elements.
     keyed.push_back(make_keyed(1, 0));
     keyed.push_back(make_keyed(5, 1));

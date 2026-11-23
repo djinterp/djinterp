@@ -663,7 +663,7 @@ public:
 
 
     // band
-    //   a full-content-width filled strip with text flowed inside it -- the
+    //   a full-content-width filled strip with text flowed inside it - the
     // flow-relative counterpart of text_box, which places at an absolute rect
     // and only strokes.  A section header, a suite band, a callout: anything
     // that wants a coloured ground behind flowing text.

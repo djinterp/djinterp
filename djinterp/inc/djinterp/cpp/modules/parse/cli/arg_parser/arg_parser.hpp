@@ -13,11 +13,11 @@
 * CLI11's exit() ends one: help, a version, a completion script or a
 * failure message written, and the code to end the process with returned.
 * D_ARG_PARSE(app, argc, argv) does both for main, as CLI11_PARSE does,
-* given the parser or its address. A definition that fails -- a name that
-* is bad or taken -- is kept as the parser's definition error, which the
+* given the parser or its address. A definition that fails - a name that
+* is bad or taken - is kept as the parser's definition error, which the
 * next parse reports, as CLI11 throws it where the definition is made.
-*   A parser holds pointers into itself -- each command to its parser and
-* its parent -- so it is neither copied nor moved.
+*   A parser holds pointers into itself - each command to its parser and
+* its parent - so it is neither copied nor moved.
 *   This is also the C++ face's umbrella header: including it includes every
 * header of the face, and so the C library's.
 *
@@ -269,8 +269,8 @@ public:
     // storage sooner
     void clear() D_NOEXCEPT;
 
-    // ending: CLI11's exit(), writing what the status calls for -- help, a
-    // version, a completion script, the failure message -- to the parser's
+    // ending: CLI11's exit(), writing what the status calls for - help, a
+    // version, a completion script, the failure message - to the parser's
     // output and error output, or to the streams given, and returning the
     // code to end the process with. A status that is the last parse's is
     // reported with that parse's message and code, any other with its own;
@@ -309,8 +309,8 @@ public:
     DArgParser& clear_definition_error() D_NOEXCEPT;
 
     // output: where help, versions, completion scripts and deprecation
-    // warnings go, and where failure messages go -- standard output and
-    // standard error at first -- as sinks, or as streams; either must
+    // warnings go, and where failure messages go - standard output and
+    // standard error at first - as sinks, or as streams; either must
     // outlive its use
     DArgParser& output(
         ::dj_pack_sink _out,
@@ -323,8 +323,8 @@ public:
 
 #if (D_INTERNAL_ARG_PARSER_RESPONSE_FILES == 1)
     // response files: whether an `@file` argument stands for the arguments
-    // its file holds, split by the rules given -- the platform's for
-    // response files when none are -- off at first. See
+    // its file holds, split by the rules given - the platform's for
+    // response files when none are - off at first. See
     // d_arg_parser_set_response_files.
     DArgParser& response_files(
         bool _enabled = true
@@ -363,8 +363,8 @@ public:
     bool get_abbreviations() const D_NOEXCEPT;
 
     // setting hook: the C function offered each long option the parse does
-    // not know -- so that a program takes its settings where the parser
-    // reads an option -- with its context; NULL for none, as at first. The
+    // not know - so that a program takes its settings where the parser
+    // reads an option - with its context; NULL for none, as at first. The
     // reason the hook gave with the refusal that ended the last parse is
     // get_setting_status(), 0 otherwise. See d_arg_parser_set_setting_hook.
     DArgParser& setting_hook(
@@ -376,9 +376,9 @@ public:
     int32_t get_setting_status() const D_NOEXCEPT;
 
 #if (D_INTERNAL_ARG_PARSER_COMPLETION == 1)
-    // completion: the option that asks for a completion script -- `prog
+    // completion: the option that asks for a completion script - `prog
     // --completion bash` ends the parse with call_for_completion, and exit()
-    // writes the script -- replacing the one before; no names removes it,
+    // writes the script - replacing the one before; no names removes it,
     // and returns a NULL handle, as a failure does. See
     // d_arg_parser_set_completion_flag.
     cli::option set_completion_flag(
@@ -672,7 +672,7 @@ void DArgParser::clear() D_NOEXCEPT
 }
 
 // DArgParser::exit
-//   d_arg_parser_exit, to the parser's sinks or to the streams given -- the
+//   d_arg_parser_exit, to the parser's sinks or to the streams given - the
 // error stream the parser's own when only the output is given, as CLI11's
 // exit(e, out) keeps std::cerr; an error view through d_arg_command_exit
 // and d_arg_command_exit_to, from the root.

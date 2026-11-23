@@ -2,9 +2,9 @@
 * djinterp [c][parse]                                          arg_command_set.c
 *
 * A command's settings, declared in arg_command.h (section 5).
-*   CLI11's App setters: the name, aliases and texts -- a subcommand's names
+*   CLI11's App setters: the name, aliases and texts - a subcommand's names
 * checked against its fallthrough parent's other subcommands as CLI11 checks
-* them -- the modes and switches, the subcommand and option requirements,
+* them - the modes and switches, the subcommand and option requirements,
 * the callbacks, the needs and excludes, the formatters, and the defaults
 * new options start from.
 *
@@ -201,7 +201,7 @@ void d_arg_command_clear_aliases(
  * @return D_ARG_OK; D_ARG_ERROR_OUT_OF_MEMORY, recorded as a definition error,
  *         the field then unchanged.
  *
- * An owned text field replaced with a copy -- NULL clears it -- the old
+ * An owned text field replaced with a copy - NULL clears it - the old
  * text freed only once the copy exists.
  */
 D_STATIC
@@ -304,8 +304,8 @@ int d_arg_command_set_group(
  * @param[in]     _new_context  the new context.
  * @param[in]     _new_release  frees it; NULL leaves it borrowed.
  *
- * A callback's context put in place of the one kept -- freed unless given
- * again -- and, when no function came with it, freed too, for a removed
+ * A callback's context put in place of the one kept - freed unless given
+ * again - and, when no function came with it, freed too, for a removed
  * callback keeps nothing.
  */
 D_STATIC
@@ -728,7 +728,7 @@ void d_arg_command_set_subcommand_fallthrough(
  *
  * CLI11's ignore_case() and ignore_underscore(): turning the switch on is
  * refused when the command's names would then match another of its
- * fallthrough parent's subcommands -- a root's own, at the root -- the switch
+ * fallthrough parent's subcommands - a root's own, at the root - the switch
  * left off; anything else is simply set.
  */
 D_STATIC
@@ -936,7 +936,7 @@ void d_arg_command_set_enabled_by_default(
  * @param[out] _maximum  receives the most.
  *
  * CLI11's reading of require_subcommand(int) and require_option(int): `n`
- * is exactly `n`, `-n` at most `n` -- its magnitude taken without
+ * is exactly `n`, `-n` at most `n` - its magnitude taken without
  * overflowing at INT_MIN, where CLI11's negation overflows.
  */
 D_STATIC

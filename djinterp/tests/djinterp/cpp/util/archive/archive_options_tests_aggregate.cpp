@@ -119,7 +119,7 @@ bool tests_archive_options_stub_superset()
 /*
 tests_archive_options_nested_blocks_default
   Verifies that constructing the aggregate constructs every nested block
-pristine -- none of them is left indeterminate or partially initialised by
+pristine - none of them is left indeterminate or partially initialised by
 the aggregate constructor, which names only the archive-level fields in its
 initialiser list.
   Tests the following:

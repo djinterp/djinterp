@@ -49,7 +49,7 @@
 #include <utility>
 #include <vector>
 // djinterp
-// djinterp  -- framework header first, then mode-gated.
+// djinterp  - framework header first, then mode-gated.
 #include <djinterp/cpp/djinterp.hpp>            // NS_*, D_* qualifiers, language gates
 #ifndef DTEST_SPEC_MODE
 #include "../../../../../inc/djinterp/cpp/modules/test/test_kind.hpp"   // the header under test (normal mode)
@@ -113,7 +113,7 @@ inline
 
 
 // DFlatSetCore
-//   helper: the common surface of the minimal flat set -- the nested type
+//   helper: the common surface of the minimal flat set - the nested type
 // aliases plus size/empty/clear, key-unique insert (copy and move), key-based
 // erase/find, and iteration.  A linear scan keyed through flat_key_of.
 template<typename _Value, typename _Key>
@@ -243,7 +243,7 @@ using DKindSet  = flat_set< ::djinterp::test::test_kind,
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- test declarations (visible in both modes; defined in the section TUs) ----
+// - test declarations (visible in both modes; defined in the section TUs) ----
 
 // I.   TEST KIND RECORD
 bool tests_test_kind_aggregate();
@@ -263,7 +263,7 @@ bool tests_make_test_kind_constexpr();
 
 bool tests_make_test_kind_noexcept();
 
-// III. TEST KIND SET -- construction / underlying / aliases
+// III. TEST KIND SET - construction / underlying / aliases
 bool tests_set_aliases();
 
 bool tests_set_default_ctor();
@@ -276,7 +276,7 @@ bool tests_set_underlying();
 
 bool tests_set_ctor_noexcept();
 
-// III. TEST KIND SET -- forwarded surface + iteration
+// III. TEST KIND SET - forwarded surface + iteration
 bool tests_set_size_empty();
 
 bool tests_set_clear();
@@ -289,7 +289,7 @@ bool tests_set_find();
 
 bool tests_set_iteration();
 
-// III. TEST KIND SET -- contains + dispatch
+// III. TEST KIND SET - contains + dispatch
 bool tests_set_contains_native();
 
 bool tests_set_contains_fallback();

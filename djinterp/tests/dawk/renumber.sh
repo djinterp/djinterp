@@ -1,14 +1,14 @@
 #!/bin/sh
-# renumber.sh -- tools/renumber_headings.py against the files it should
+# renumber.sh - tools/renumber_headings.py against the files it should
 # leave.
 #
 #   tests/dawk/renumber/before/   headers with Roman headings, in each shape
 #   tests/dawk/renumber/after/    the same headers, as they should come out:
-#                                 seven changed -- headings converted, a
+#                                 seven changed - headings converted, a
 #                                 table renumbered or written, one not
 #                                 written where a section's number is
 #                                 missing, a list counted in letters left as
-#                                 it is among them -- and six left exactly
+#                                 it is among them - and six left exactly
 #                                 as they were
 #
 # The tool is run over a copy of before/ and the copy compared with after/,

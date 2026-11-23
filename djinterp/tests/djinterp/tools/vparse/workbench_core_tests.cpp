@@ -4,11 +4,11 @@
 * The model's suite: what a run holds, what the session decides for it, the
 * heat it leaves, what it counts and what its memo does, and the files it is
 * saved to.
-*   The model is what both of vparse's programs stand on -- the command line
-* and the window -- and it needs nothing but djinterp: no uxoxo, no Dear
+*   The model is what both of vparse's programs stand on - the command line
+* and the window - and it needs nothing but djinterp: no uxoxo, no Dear
 * ImGui, no display. So its suite is built wherever vparse's command line
-* is, the window or not; what the window adds to it -- its model of events,
-* its face -- is workbench_tests.cpp's.
+* is, the window or not; what the window adds to it - its model of events,
+* its face - is workbench_tests.cpp's.
 *   Where a number could come from the code under test, it does not: the
 * program a run holds is compared with the session's disassembly, and the
 * heat figures are the ones the first map of this grammar measured.
@@ -79,8 +79,8 @@ refuses what the library refuses, in its words, in either notation.
   - a grammar the reader cannot read is reported as unread, with where the
     reader stopped, and is not judged further
   - a refusal puts the place where the reader stopped apart from its
-    sentence -- the line and column of the reading's furthest offset, and
-    the headline without them -- and has no place, and the headline whole,
+    sentence - the line and column of the reading's furthest offset, and
+    the headline without them - and has no place, and the headline whole,
     where the grammar was read and refused, or the EBNF reader refused it
 */
 bool tests_workbench_refusals()
@@ -441,7 +441,7 @@ again to the same parts.
   - list_saved finds the run, with its front end and result
   - load_request reads the request back byte for byte
   - the request run again gives every part identically, but for the three
-    summary rows that belong to a run rather than to its request -- when it
+    summary rows that belong to a run rather than to its request - when it
     ran, how long it took, and where it came from, which for the replay is
     the folder
 */

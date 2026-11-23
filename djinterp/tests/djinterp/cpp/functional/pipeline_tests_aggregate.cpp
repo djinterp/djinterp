@@ -2,11 +2,11 @@
 * djinterp [cpp][functional]                        pipeline_tests_aggregate.cpp
 *
 * Aggregating-operation tests (section ii / iii):
-*   test_fold      -- left fold with an explicit init (incl. empty).
-*   test_reduce    -- reduce over a non-empty pipeline.
-*   test_group_by  -- group elements into a map keyed by a function.
-*   test_partition -- split into (passing, failing) pipelines.
-*   test_zip_with  -- elementwise binary combine of two pipelines.
+*   test_fold      - left fold with an explicit init (incl. empty).
+*   test_reduce    - reduce over a non-empty pipeline.
+*   test_group_by  - group elements into a map keyed by a function.
+*   test_partition - split into (passing, failing) pipelines.
+*   test_zip_with  - elementwise binary combine of two pipelines.
 *
 *
 * path:      /tests/djinterp/cpp/functional/pipeline_tests_aggregate.cpp

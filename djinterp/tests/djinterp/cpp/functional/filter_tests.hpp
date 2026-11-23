@@ -185,7 +185,7 @@ struct DMod3Eq
 // native_filter_type
 //   struct: a container-like type exposing a .filter(predicate) member and a
 // value_type, used as the positive fixture for has_filter_method. Minimal by
-// design -- it need not be fully filterable to exercise native detection.
+// design - it need not be fully filterable to exercise native detection.
 struct native_filter_type
 {
     typedef int value_type;
@@ -202,7 +202,7 @@ struct native_filter_type
 // DRawOp
 //   struct: a functor matching the DFilterOpFn protocol (maps a
 // vector<int> to a vector of surviving indices). Here it keeps even indices,
-// but its behaviour is irrelevant to the structural traits -- only its shape
+// but its behaviour is irrelevant to the structural traits - only its shape
 // matters. Named (not a lambda) so decltype is well-formed pre-C++20.
 struct DRawOp
 {

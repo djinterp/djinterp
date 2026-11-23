@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][filesys]                                   file_tests_error.cpp
 *
-*   I. Error (file_common.hpp) -- the errno carrier every operation in the
+*   I. Error (file_common.hpp) - the errno carrier every operation in the
 * layer reports through. Small surface, entirely pure, so every case here is
 * deterministic on a machine with no filesystem at all.
 *
@@ -12,7 +12,7 @@
 * design decision, and a decision worth testing: the case below asserts the
 * conversion does not exist, so re-adding it fails here rather than silently
 * making every call site ambiguous. It is checked with a type trait at compile
-* time -- the only way to assert that something is not callable without failing
+* time - the only way to assert that something is not callable without failing
 * to compile.
 *
 *

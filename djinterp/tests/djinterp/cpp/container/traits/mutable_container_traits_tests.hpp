@@ -704,7 +704,7 @@ bool tests_mutable_container_class_cv_ref_invariance();
 bool tests_mutable_container_class_edge_types();
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // mutable_container_traits_spec
 //   function: the suite as DTest's module spec, one block per section.

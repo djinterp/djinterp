@@ -122,17 +122,17 @@ struct DObNotKey        // no static ::value member
 // II.  TEST DECLARATIONS
 // ===========================================================================
 
-// -- I.  option_partition_wrap --
+// - I.  option_partition_wrap --
 bool wrap_has_value_member();
 bool wrap_key_and_args();
 bool wrap_key_only();
 
-// -- II.  tuple_to_option_set --
+// - II.  tuple_to_option_set --
 bool lift_basic();
 bool lift_empty();
 bool lift_with_passthrough();
 
-// -- III.  option_set_from_flat_t --
+// - III.  option_set_from_flat_t --
 bool pipeline_partition_stage();
 bool pipeline_single_chunk();
 bool pipeline_multiple_chunks();

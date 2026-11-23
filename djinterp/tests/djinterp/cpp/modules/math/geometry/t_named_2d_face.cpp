@@ -5,7 +5,7 @@
 * every named shape's known areas, perimeters, centroids and containment --
 * a unit circle, a 2-by-1 ellipse rotated a quarter turn, a rectangle, a
 * square, a right triangle, a regular hexagon, an annulus, a half-disc
-* sector and segment -- and the traits.
+* sector and segment - and the traits.
 *
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++98 -Wall -Wextra -Werror -pedantic-errors -Iinc              \

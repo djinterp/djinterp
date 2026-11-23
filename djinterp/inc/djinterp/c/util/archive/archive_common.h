@@ -8,8 +8,8 @@
 *
 *   THE THREE-FILE SPLIT:
 *     archive_common.h / .c   this kernel, compiled by BOTH languages.
-*     archive.h               the C face      -- entry/option builders, macros.
-*     archive.hpp / .cpp      the C++ face    -- entry, entry_list, try_archive.
+*     archive.h               the C face      - entry/option builders, macros.
+*     archive.hpp / .cpp      the C++ face    - entry, entry_list, try_archive.
 *   A header that must compile in both languages includes THIS file.
 *
 *   LAYERED ON COMPRESSION, AS THE ENV HEADERS ALREADY ARE:
@@ -21,13 +21,13 @@
 *
 *   AN ENTRY BORROWS:
 *   struct dj_archive_entry holds a name and a payload it does not own.  This is
-* the transient-value case the decision log carves out -- payload bytes use
+* the transient-value case the decision log carves out - payload bytes use
 * offsets rather than pointers where a record must be relocatable, and an entry
 * handed to a writer is not such a record: it lives for the duration of one
 * call.  So an entry is a pointer pair, it allocates nothing, and building an
 * entry list is filling a stack array.
 *
-*   Every string is a struct dj_pack_text -- pointer plus length, never a bare
+*   Every string is a struct dj_pack_text - pointer plus length, never a bare
 * const char*.  A ZIP comment may contain a NUL, and test_compress.hpp already
 * records the round-trip requirement that the payload path never treat a buffer
 * as a C string; a length-carrying text type is the same discipline applied to
@@ -44,7 +44,7 @@
 *   Creation writes one byte stream, so it uses the same two-call buffer
 * protocol as compression.  Extraction produces a VARIABLE NUMBER of entries
 * whose names and payloads must live somewhere, so it takes two caller-owned
-* regions -- an entry array and a byte arena that the entries point into -- and
+* regions - an entry array and a byte arena that the entries point into - and
 * d_archive_measure reports the size of both before the fact.  Still no
 * allocation anywhere in tier 0.
 *
@@ -71,7 +71,7 @@
 TABLE OF CONTENTS
 =================
 
-      (section I is in compress_common.h -- the shared pack vocabulary)
+      (section I is in compress_common.h - the shared pack vocabulary)
 
 II.   FORMAT IDENTITY           (enum dj_format_id, names, suffixes)
       -------------------------------------------------------------
@@ -116,9 +116,9 @@ X.    TRANSFORM LEAVES          (create / measure / extract)
 
 
 //   cfg_qualifiers.h lets a project take ownership of the D_EXTERN_C family by
-// setting D_CFG_DEFINE_EXTERN_C to 0.  This header needs it -- every
+// setting D_CFG_DEFINE_EXTERN_C to 0.  This header needs it - every
 // declaration below must carry C linkage so one compiled object serves both
-// languages -- so say so in one sentence rather than failing as a cascade of
+// languages - so say so in one sentence rather than failing as a cascade of
 // syntax errors fifty lines further down.
 #if !defined(D_EXTERN_C_BEGIN)
     #error "archive_common.h needs D_EXTERN_C_BEGIN; \
@@ -132,7 +132,7 @@ D_EXTERN_C_BEGIN
 // II.  FORMAT IDENTITY
 // =============================================================================
 //   Values are pinned explicitly and MUST NOT be reordered.  This ordering --
-// zip, tar, gz, tar_gz, sevenzip, rar -- is the one output_packaging and
+// zip, tar, gz, tar_gz, sevenzip, rar - is the one output_packaging and
 // document_bundle already pass by value, and it deliberately differs from
 // DTest's test_archive_format, which orders tar_gz before gz.  A static_cast
 // between the two produces the wrong container silently; the bridge is three
@@ -257,7 +257,7 @@ enum dj_sevenzip_method
 // D_ARCHIVE_KNOB_UNSET
 //   constant: the pristine value of every numeric container knob.  The same
 // sentinel compress_common.h uses, for the same reason and resolved the same
-// way -- by the core, never by the backend.
+// way - by the core, never by the backend.
 #define D_ARCHIVE_KNOB_UNSET    D_COMPRESS_KNOB_UNSET
 
 
@@ -340,7 +340,7 @@ struct dj_rar_options
 };
 
 // dj_archive_options
-//   struct: the whole container surface -- the archive-level knobs, the
+//   struct: the whole container surface - the archive-level knobs, the
 // embedded codec tuning, and one block per format.  `codec` is a full
 // dj_compress_options: a container's stream tuning IS codec tuning, and
 // embedding it rather than restating it is what keeps one definition of the
@@ -366,7 +366,7 @@ struct dj_archive_options
 };
 
 // D_ARCHIVE_OPTIONS_INIT
-//   macro: the pristine initialiser -- every numeric knob UNSET and every text
+//   macro: the pristine initialiser - every numeric knob UNSET and every text
 // knob empty.  The `codec` member expands D_COMPRESS_OPTIONS_INIT, so the two
 // vocabularies cannot drift out of step.
 #define D_ARCHIVE_OPTIONS_INIT                                                 \
@@ -398,11 +398,11 @@ struct dj_archive_options
 //
 //   The same type serves creation and extraction.  On the way in the caller
 // fills the spans; on the way out d_archive_extract fills them to point into
-// the arena the caller supplied.  One type, two directions -- a second
+// the arena the caller supplied.  One type, two directions - a second
 // "extracted entry" type would be a second definition of one object.
 
 // dj_archive_entry
-//   struct: a container member -- its path, its bytes, and the metadata a
+//   struct: a container member - its path, its bytes, and the metadata a
 // writer records.  A directory member carries an empty payload; `mode` and
 // `mtime` of 0 mean "let the writer choose", which is how a reproducible
 // archive is requested.
@@ -416,7 +416,7 @@ struct dj_archive_entry
 };
 
 // D_ARCHIVE_ENTRY_INIT
-//   macro: an empty entry -- no name, no payload, not a directory, and both
+//   macro: an empty entry - no name, no payload, not a directory, and both
 // metadata fields left for the writer to choose.
 #define D_ARCHIVE_ENTRY_INIT                                                   \
 {                                                                              \
@@ -429,17 +429,17 @@ struct dj_archive_entry
 
 // D_ARCHIVE_MODE_FILE_DEFAULT
 //   constant: the permission bits a writer records for a regular file when
-// `mode` is 0 -- 0644.  Pinned rather than taken from the process umask, which
+// `mode` is 0 - 0644.  Pinned rather than taken from the process umask, which
 // would make the output depend on the environment and break parity.
 #define D_ARCHIVE_MODE_FILE_DEFAULT     0644u
 
 // D_ARCHIVE_MODE_DIR_DEFAULT
 //   constant: the permission bits a writer records for a directory when `mode`
-// is 0 -- 0755.  Pinned for the same reason.
+// is 0 - 0755.  Pinned for the same reason.
 #define D_ARCHIVE_MODE_DIR_DEFAULT      0755u
 
 // dj_archive_layout
-//   struct: the two region sizes an extraction needs -- how many entries the
+//   struct: the two region sizes an extraction needs - how many entries the
 // container holds, and how many bytes their names and payloads occupy in
 // total.  Returned by d_archive_measure and, filled in, by d_archive_extract.
 struct dj_archive_layout
@@ -461,11 +461,11 @@ struct dj_archive_layout
 // dj_pack_text puts the span at offset 24 on LP64, not 20, because four bytes
 // of padding are inserted to align it.  An assertion that pinned the span to 20
 // would hold on no data model at all, and one that pinned it to 24 would hold
-// on LP64 and fail on ILP32 -- a per-tier assertion is not an invariant.
+// on LP64 and fail on ILP32 - a per-tier assertion is not an invariant.
 //
 //   So the assertions below pin exactly what the code depends on and nothing
 // more.  The NUMERIC prefix of each block is dense, because int32_t is four
-// bytes on every data model and nothing may be interleaved with it -- that
+// bytes on every data model and nothing may be interleaved with it - that
 // density is what lets the numeric knob table be an offset table.  Each TEXT
 // member is asserted only to FOLLOW its block's numeric prefix, which is an
 // ordering fact rather than a padding fact.  Where the padding lands is not
@@ -479,7 +479,7 @@ D_STATIC_ASSERT(offsetof(struct dj_pack_text, data) == 0,
 D_STATIC_ASSERT(offsetof(struct dj_pack_bytes, data) == 0,
                 "dj_pack_bytes: field drift at data");
 
-// -- zip: 4 dense numeric knobs, then password --------------------------------
+// - zip: 4 dense numeric knobs, then password --------------------------------
 D_STATIC_ASSERT(offsetof(struct dj_zip_options, method) == 0,
                 "dj_zip_options: field drift at method");
 D_STATIC_ASSERT(offsetof(struct dj_zip_options, encryption) ==
@@ -495,14 +495,14 @@ D_STATIC_ASSERT(offsetof(struct dj_zip_options, password) >=
                 (4 * sizeof(int32_t)),
                 "dj_zip_options: password must follow the numeric prefix");
 
-// -- tar: 2 dense numeric knobs, no text -------------------------------------
+// - tar: 2 dense numeric knobs, no text -------------------------------------
 D_STATIC_ASSERT(sizeof(struct dj_tar_options) == (2 * sizeof(int32_t)),
                 "dj_tar_options: layout drift");
 D_STATIC_ASSERT(offsetof(struct dj_tar_options, numeric_owner) ==
                 (1 * sizeof(int32_t)),
                 "dj_tar_options: field drift at numeric_owner");
 
-// -- gz: 2 dense numeric knobs, then original_name ---------------------------
+// - gz: 2 dense numeric knobs, then original_name ---------------------------
 D_STATIC_ASSERT(offsetof(struct dj_gz_options, store_mtime) ==
                 (1 * sizeof(int32_t)),
                 "dj_gz_options: field drift at store_mtime");
@@ -510,7 +510,7 @@ D_STATIC_ASSERT(offsetof(struct dj_gz_options, original_name) >=
                 (2 * sizeof(int32_t)),
                 "dj_gz_options: original_name must follow the numeric prefix");
 
-// -- 7z: 5 dense numeric knobs, then password --------------------------------
+// - 7z: 5 dense numeric knobs, then password --------------------------------
 D_STATIC_ASSERT(offsetof(struct dj_sevenzip_options, solid) ==
                 (1 * sizeof(int32_t)),
                 "dj_sevenzip_options: field drift at solid");
@@ -527,7 +527,7 @@ D_STATIC_ASSERT(offsetof(struct dj_sevenzip_options, password) >=
                 (5 * sizeof(int32_t)),
                 "dj_sevenzip_options: password must follow the numeric prefix");
 
-// -- rar: 3 dense numeric knobs, then password -------------------------------
+// - rar: 3 dense numeric knobs, then password -------------------------------
 D_STATIC_ASSERT(offsetof(struct dj_rar_options, solid) ==
                 (1 * sizeof(int32_t)),
                 "dj_rar_options: field drift at solid");
@@ -538,7 +538,7 @@ D_STATIC_ASSERT(offsetof(struct dj_rar_options, password) >=
                 (3 * sizeof(int32_t)),
                 "dj_rar_options: password must follow the numeric prefix");
 
-// -- the aggregate: 4 dense archive-level knobs, then comment, then codec ----
+// - the aggregate: 4 dense archive-level knobs, then comment, then codec ----
 D_STATIC_ASSERT(offsetof(struct dj_archive_options, level) == 0,
                 "dj_archive_options: field drift at level");
 D_STATIC_ASSERT(offsetof(struct dj_archive_options, store_only) ==
@@ -557,7 +557,7 @@ D_STATIC_ASSERT(offsetof(struct dj_archive_options, codec) >
                 offsetof(struct dj_archive_options, comment),
                 "dj_archive_options: codec must follow comment");
 
-// -- the entry ---------------------------------------------------------------
+// - the entry ---------------------------------------------------------------
 D_STATIC_ASSERT(offsetof(struct dj_archive_entry, name) == 0,
                 "dj_archive_entry: field drift at name");
 D_STATIC_ASSERT(offsetof(struct dj_archive_entry, data) ==
@@ -722,7 +722,7 @@ int d_archive_entry_is_valid(
 // hand against emitted bytes (the ZIP end-of-central-directory scan, the ustar
 // magic at offset 257).
 //
-//   tar has no magic at offset 0 -- `ustar` sits at byte 257 -- so recognising
+//   tar has no magic at offset 0 - `ustar` sits at byte 257 - so recognising
 // a tar requires at least a full 512-byte record, and d_format_signature_length
 // reports that rather than a nominal small number.
 
@@ -753,7 +753,7 @@ int d_format_detect(
 // valid empty container; it is a formal error only for gz, which has no
 // directory to be empty.  Passing count 0 with a null entry base is therefore
 // the normal way to ask for an empty archive, and document_bundle already
-// relies on that -- it passes a null base rather than indexing an empty
+// relies on that - it passes a null base rather than indexing an empty
 // vector.
 //
 //   EXTRACT is the two-region form described in the header banner:

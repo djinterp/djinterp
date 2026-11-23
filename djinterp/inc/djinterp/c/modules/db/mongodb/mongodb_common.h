@@ -4,7 +4,7 @@
 * Shared foundation of djinterp's MongoDB convenience layer.
 *   The layer works over MongoDB's C driver, libmongoc with libbson, through
 * a handle of its own, struct dj_mongodb, around the driver's mongoc_client_t:
-* it keeps what the driver does not -- the current database, the session a
+* it keeps what the driver does not - the current database, the session a
 * transaction runs in, the server's version and deployment, the last
 * failure's whole description, and how the layer writes documents. The
 * public headers name only the layer's types, so they never include the
@@ -24,13 +24,13 @@
 *     mongodb_gridfs       files in a GridFS bucket
 *     mongodb_maintenance  sizes, compact, validate
 *   RESULTS. A function that can fail returns 0, or a code that keeps every
-* failure's own number (decision B9). A failure the server reports -- a
-* command's or a write's, or a write concern's -- is the server's own code,
+* failure's own number (decision B9). A failure the server reports - a
+* command's or a write's, or a write concern's - is the server's own code,
 * unchanged and positive: 11000 a duplicate key, 26 a namespace not found,
 * 13 unauthorized, and any other the server sends, which d_mongodb_error_name
 * then names as the server does ("DuplicateKey"). A failure of the driver's
-* own -- no server it could select, a stream that broke, a sign-in that
-* failed -- or of libbson's -- JSON that is not JSON -- is packed above every
+* own - no server it could select, a stream that broke, a sign-in that
+* failed - or of libbson's - JSON that is not JSON - is packed above every
 * code a server uses (its codes reach seven digits), as
 * D_MONGODB_CLIENT_ERRORS + domain * 65536 + code, so that its domain and
 * its code are both recoverable (d_mongodb_result_domain, _code): a
@@ -43,7 +43,7 @@
 * describes the last failure in the words of whoever reported it.
 *   DOCUMENTS. Documents, filters, updates, pipelines and options travel as
 * MongoDB Extended JSON, which the layer reads in any of its forms --
-* canonical, relaxed, or the legacy one -- and writes as the handle's
+* canonical, relaxed, or the legacy one - and writes as the handle's
 * document format says (mongodb_settings.h): canonical by default, every
 * value's BSON type written out, so that what is read and written back keeps
 * its types; relaxed, readable, at the cost of int64 values that fit 32 bits
@@ -303,12 +303,12 @@ enum dj_mongodb_feature
 
 // 2.3    Reading a code
 //------------------------------------------------------------------------------
-// reading a code -- whether a result is a packed failure of the driver's,
+// reading a code - whether a result is a packed failure of the driver's,
 // of libbson's or of the layer's rather than the server's; its domain (0
 // for a server's code, 0 too for 0 and db_common.h's negatives); its code
 // within the domain (the server's code as it is); and whether it is the
-// driver's failure to reach the deployment, in either domain above -- a
-// connection that broke or could not be made, or no server to use -- after
+// driver's failure to reach the deployment, in either domain above - a
+// connection that broke or could not be made, or no server to use - after
 // which the driver connects again by itself for the next request. None can
 // fail
 bool d_mongodb_result_is_client(
@@ -326,7 +326,7 @@ bool d_mongodb_result_is_unreachable(
 
 // 2.4    Result messages
 //------------------------------------------------------------------------------
-// result messages -- an English description of a result the layer returns:
+// result messages - an English description of a result the layer returns:
 // db_common.h's own words for its values, the layer's for its own failures,
 // and for a server's code or the driver's a note that d_mongodb_error_message
 // describes it, since only the handle keeps that text. Never NULL, and never
@@ -343,7 +343,7 @@ const char* d_mongodb_result_message(
 
 // 3.1    Driver
 //------------------------------------------------------------------------------
-// driver -- the driver's version string and number, MAJOR*10000 + MINOR*100
+// driver - the driver's version string and number, MAJOR*10000 + MINOR*100
 // + PATCH, as the program loaded it; libbson's string; "" and 0 in a build
 // without the driver. None can fail
 const char* d_mongodb_client_version(void) D_NOTHROW;
@@ -352,7 +352,7 @@ const char* d_mongodb_bson_version(void) D_NOTHROW;
 
 // 3.2    The driver's log
 //------------------------------------------------------------------------------
-// the driver's log -- the most verbose level the layer's handler passes on
+// the driver's log - the most verbose level the layer's handler passes on
 // to the driver's default handler, from 0 to 6 (cfg_mongodb_common.h,
 // D_CFG_MONGODB_LOG_LEVEL), or -1 for nothing at all: the handler is the
 // process's, so the level is too. Setting it installs the layer's handler at
@@ -360,7 +360,7 @@ const char* d_mongodb_bson_version(void) D_NOTHROW;
 // any thread; a level outside -1 to 6 is D_DB_INVALID_ARGUMENT, the level
 // kept, and D_MONGODB_LAYER_NO_MEMORY means the process could not make the
 // lock the layer takes, nothing installed. Read back, the level set, or the
-// knob's until then -- -1 for a knob of -1 too, which installs no handler of
+// knob's until then - -1 for a knob of -1 too, which installs no handler of
 // the layer's at all. In a build without the driver, setting is
 // D_DB_UNSUPPORTED and the level -1
 int d_mongodb_set_log_level(
@@ -378,11 +378,11 @@ int d_mongodb_get_log_level(void) D_NOTHROW;
 
 // 4.1    Versions
 //------------------------------------------------------------------------------
-// versions -- the server's version string, as buildInfo gives it; its number,
+// versions - the server's version string, as buildInfo gives it; its number,
 // MAJOR*10000 + MINOR*100 + PATCH; whether it is at that version or later;
 // and the newest wire protocol it speaks (its maxWireVersion). A server that
-// refuses buildInfo -- to a strict declared API, which it is outside of, or
-// to a connection that has not signed in -- has its number reckoned from its
+// refuses buildInfo - to a strict declared API, which it is outside of, or
+// to a connection that has not signed in - has its number reckoned from its
 // wire version, the oldest release that speaks it, MAJOR.MINOR.0, and its
 // string empty
 const char* d_mongodb_server_version(
@@ -403,7 +403,7 @@ int d_mongodb_server_wire_version(
 
 // 4.2    Deployment
 //------------------------------------------------------------------------------
-// deployment -- what the handle reached, and the replica set's name, NULL
+// deployment - what the handle reached, and the replica set's name, NULL
 // where there is none
 enum dj_mongodb_topology d_mongodb_server_topology(
     const struct dj_mongodb* _db
@@ -414,7 +414,7 @@ const char* d_mongodb_server_replica_set(
 
 // 4.3    Features
 //------------------------------------------------------------------------------
-// features -- whether the server, its deployment and the driver can do it;
+// features - whether the server, its deployment and the driver can do it;
 // `false` for a value outside enum dj_mongodb_feature
 bool d_mongodb_supports(
     const struct dj_mongodb* _db,
@@ -429,7 +429,7 @@ bool d_mongodb_supports(
 
 // 5.1    The driver's client
 //------------------------------------------------------------------------------
-// the driver's client -- the mongoc_client_t* inside, for the driver's own
+// the driver's client - the mongoc_client_t* inside, for the driver's own
 // calls: cast it where mongoc.h is included. It stays the layer's: close the
 // handle with d_mongodb_close, never with mongoc_client_destroy. NULL for
 // NULL.
@@ -439,11 +439,11 @@ void* d_mongodb_native(
 
 // 5.2    Errors
 //------------------------------------------------------------------------------
-// errors -- the handle's last failure: its result, as the function that
+// errors - the handle's last failure: its result, as the function that
 // failed returned it; its message, in the words of the server, the driver or
 // the layer ("" for none); the server's name for its code ("DuplicateKey"),
-// as the server's reply gives it or, where the reply has none -- a write
-// error's -- or the layer answered the code itself, as the server names it
+// as the server's reply gives it or, where the reply has none - a write
+// error's - or the layer answered the code itself, as the server names it
 // among the codes section 2.2 lists, "" for any other; and whether the
 // server or the driver labelled it so ("TransientTransactionError",
 // "RetryableWriteError"), which says whether a transaction may be retried. A

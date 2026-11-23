@@ -137,7 +137,7 @@ bool tests_quick_sort_apply_adversarial_shapes()
 
         //   A generous ceiling: every shape in the corpus lands between 7n
         // and 27n comparisons at this size, whereas a degenerate partition
-        // would cost on the order of n^2 / 2 -- about a thousand times the
+        // would cost on the order of n^2 / 2 - about a thousand times the
         // limit below.
         result.check(comparisons < (60 * length));
     }

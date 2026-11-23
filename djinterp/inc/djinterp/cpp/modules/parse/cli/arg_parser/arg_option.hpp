@@ -2,13 +2,13 @@
 * djinterp [cpp][parse]                                           arg_option.hpp
 *
 * The argument parser's C++ face: options.
-*   `cli::option` is a handle on a struct dj_arg_option -- one pointer, the
-* cost of CLI11's Option* -- with CLI11's Option interface as members: its
+*   `cli::option` is a handle on a struct dj_arg_option - one pointer, the
+* cost of CLI11's Option* - with CLI11's Option interface as members: its
 * settings, which return the handle so that calls chain with `.` and, as
 * CLI11's do, with `->`; its readers; and its results, read as text, as a
 * value of any type, or into a variable. A handle does not own its option:
 * the command that made it does, and the handle is valid while the option
-* is. A handle on no option -- the one a definition that failed returns --
+* is. A handle on no option - the one a definition that failed returns --
 * is ignored by every call, as the C library ignores NULL, so a chain on a
 * failed definition is harmless, and the failure is the parser's definition
 * error, which its next parse reports.
@@ -16,8 +16,8 @@
 * the option's values, a function writing the type name or the default.
 * Each is copied, the option owning the copy, and called under the guard of
 * arg_common.hpp, so what it throws becomes a status rather than crossing
-* the C library. A callback may return nothing, a cli::status, or -- where
-* CLI11's returns one -- a bool.
+* the C library. A callback may return nothing, a cli::status, or - where
+* CLI11's returns one - a bool.
 *
 *
 * path:      /inc/djinterp/cpp/modules/parse/cli/arg_parser/arg_option.hpp
@@ -95,8 +95,8 @@ namespace cli
 // read the C option's fields through the C calls, a NULL handle reading as
 // an option with nothing set; results are views valid until the option's
 // values change. Its `explicit operator bool`, from C++11, is CLI11's: a
-// value was given, or the callback is forced -- `if (*opt)` reads as
-// CLI11's does -- beside the named predicate is_given(); valid() is whether
+// value was given, or the callback is forced - `if (*opt)` reads as
+// CLI11's does - beside the named predicate is_given(); valid() is whether
 // the handle refers to an option.
 class option
 {
@@ -226,8 +226,8 @@ public:
         bool _value = true
     ) D_NOEXCEPT;
 
-    // defaults: CLI11's default_str(), default_val() -- the value written as
-    // its type writes it, text as it is, then checked as a value -- and
+    // defaults: CLI11's default_str(), default_val() - the value written as
+    // its type writes it, text as it is, then checked as a value - and
     // capture_default_str(); a failure is the definition error
     option default_str(
         DCString _text
@@ -255,7 +255,7 @@ public:
     );
 
     // relations: CLI11's needs() and excludes(), by handle or by name --
-    // from C++11, several at once -- and their removal, which answers
+    // from C++11, several at once - and their removal, which answers
     // whether there was one
     option needs(
         const option& _other
@@ -295,7 +295,7 @@ public:
     ) D_NOEXCEPT;
 
     // validators: CLI11's check() and transform(), given a validator --
-    // copied, or, from C++11, moved -- or a function: check()'s judges a
+    // copied, or, from C++11, moved - or a function: check()'s judges a
     // copy of the value, as CLI11's std::string(const std::string&); a
     // transformation's returns the new value, as CLI11's
     // std::string(std::string). A validator that failed, or could not be
@@ -528,8 +528,8 @@ public:
     template<typename Type>
     Type as() const;
 
-    // working the values: CLI11's add_result() -- each value split as a
-    // given one is -- run_callback() and clear(); reduce() validates and
+    // working the values: CLI11's add_result() - each value split as a
+    // given one is - run_callback() and clear(); reduce() validates and
     // reduces the values now. Each status is the C call's.
     cli::status add_result(
         const text& _value
@@ -599,8 +599,8 @@ NS_INTERNAL
     // callback_failure
     //   class: the handler of guard for an option's callback: memory that ran
     //   out is status_code::out_of_memory; any other exception ends the parse
-    //   with the status given -- a validation error for each(), a conversion
-    //   error for the callback over the values -- what() its message, or,
+    //   with the status given - a validation error for each(), a conversion
+    //   error for the callback over the values - what() its message, or,
     //   with no words, the status's own.
     class callback_failure
     {
@@ -683,8 +683,8 @@ NS_INTERNAL
 
     // 2.1.4
     // DTextCall / text_function
-    //   class, function: a function writing an option's text -- its type
-    //   name, its default -- as dj_arg_option_text_fn: what it returns,
+    //   class, function: a function writing an option's text - its type
+    //   name, its default - as dj_arg_option_text_fn: what it returns,
     //   written to the sink as a text.
     template<typename Function>
     class DTextCall
@@ -2173,8 +2173,8 @@ int internal::callback_failure::operator()(
 }
 
 // internal::DEachCall / each_function
-//   The value as a string, given to the function, whose result -- nothing
-// or a status -- is the each() status.
+//   The value as a string, given to the function, whose result - nothing
+// or a status - is the each() status.
 template<typename Function>
 inline
 internal::DEachCall<Function>::DEachCall(
@@ -2218,8 +2218,8 @@ int internal::each_function(
 }
 
 // internal::DResultsCall / results_function
-//   The values as a list, given to the function, whose result -- nothing, a
-// status or a bool -- is the callback's status.
+//   The values as a list, given to the function, whose result - nothing, a
+// status or a bool - is the callback's status.
 template<typename Function>
 inline
 internal::DResultsCall<Function>::DResultsCall(

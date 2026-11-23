@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                              file_stat.h
 *
-* File metadata -- what the filesystem knows about a path.
+* File metadata - what the filesystem knows about a path.
 *   Every query here is a syscall. The convenience predicates look free and
 * are not: d_file_exists + d_file_is_regular + d_dir_exists on one path is
 * THREE stat calls, and each can disagree with the next if the file changes
@@ -10,7 +10,7 @@
 *   Every predicate is also a TOCTOU hazard by construction:
 * d_file_is_regular(p) followed by d_file_open_stream(p) is two decisions about
 * a path that may name two different files. Where it matters, open first and
-* ask d_file_stat_fd about the descriptor -- that one cannot be swapped
+* ask d_file_stat_fd about the descriptor - that one cannot be swapped
 * underneath you.
 *   The status and size queries come in both widths, d_file_stat32 beside
 * d_file_stat64, and the unsuffixed names follow D_FILE_WIDTH (file_common.h
@@ -18,8 +18,8 @@
 * size, a time or an inode number its type cannot hold. The predicates ask
 * the 64-bit queries, so a file too large for dj_stat32_t still exists, and
 * d_file_mode, which has no width, answers what a path IS at either one.
-*   A build with neither POSIX nor Windows has nothing to ask -- ISO C cannot
-* describe a file -- so there every query fails with ENOSYS and every
+*   A build with neither POSIX nor Windows has nothing to ask - ISO C cannot
+* describe a file - so there every query fails with ENOSYS and every
 * predicate answers no.
 *
 *
@@ -64,8 +64,8 @@ D_EXTERN_C_BEGIN
 // 1.  METADATA
 //==============================================================================
 // The queries report failure as -1 with errno set. The predicates fold every
-// failure into "no". A path that is not there -- ENOENT, or ENOTDIR for a
-// component on the way that is not a directory -- is an answer to the
+// failure into "no". A path that is not there - ENOENT, or ENOTDIR for a
+// component on the way that is not a directory - is an answer to the
 // predicates and to d_file_mode, so they raise no notice for it; every other
 // failure, and any failure of the status queries, is reported. On Windows a
 // trailing separator means what it means on POSIX: "dir\\" names a directory
@@ -79,7 +79,7 @@ D_EXTERN_C_BEGIN
  * @brief Retrieves the status of a path, following symbolic links.
  *
  * @note With D_CFG_FILE_STAT_FOLLOW_SYMLINKS set to 0 this stops at a link
- *       instead, like d_file_stat_nofollow64 -- for an archiver or backup
+ *       instead, like d_file_stat_nofollow64 - for an archiver or backup
  *       tool that must not traverse.
  *
  * @param[in]  _path  the path to query.
@@ -166,8 +166,8 @@ int d_file_stat_fd32(
 // 1.2    Mode
 //------------------------------------------------------------------------------
 /**
- * @brief Retrieves only the mode of a path -- its type bits and permission
- *        bits -- following symbolic links as d_file_stat does.
+ * @brief Retrieves only the mode of a path - its type bits and permission
+ *        bits - following symbolic links as d_file_stat does.
  *
  * @note It asks what a path is, and "nothing" is one of the answers: a path
  *       that is not there fails with ENOENT or ENOTDIR but raises no notice.
@@ -188,7 +188,7 @@ int d_file_mode(
 );
 /**
  * @brief d_file_mode without following a final symbolic link, so that a link
- *        reports as a link -- on Windows a junction too, as
+ *        reports as a link - on Windows a junction too, as
  *        d_file_stat_nofollow64 describes them.
  *
  * @param[in]  _path  the path to query.
@@ -290,7 +290,7 @@ int32_t d_file_size_stream32(
 
 // 1.5    Predicates
 //------------------------------------------------------------------------------
-// predicates -- one stat each, asked as d_file_stat64 asks at every width, so
+// predicates - one stat each, asked as d_file_stat64 asks at every width, so
 // they follow symbolic links as it does and no file is too large to exist;
 // the answer is already stale when it returns. Each answers non-zero for yes
 // and 0 for no, for a NULL path, or for any failure.

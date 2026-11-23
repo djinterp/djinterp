@@ -7,10 +7,10 @@
 * names, utf8mb4 unless the build says otherwise; a bounded connect timeout
 * (cfg_mariadb_connection.h); and LOAD DATA LOCAL off, since it lets a server
 * read any file the client can. d_mariadb_connect_with takes, beside the
-* struct, the client settings a program commonly needs -- timeouts, TLS,
-* compression, an init command, connect attributes, client flags -- and any
-* other of mysql_options's, as given. A program that needs more still -- a
-* plugin directory, its own authentication -- sets up a MYSQL* with the
+* struct, the client settings a program commonly needs - timeouts, TLS,
+* compression, an init command, connect attributes, client flags - and any
+* other of mysql_options's, as given. A program that needs more still - a
+* plugin directory, its own authentication - sets up a MYSQL* with the
 * client's own calls and hands it to d_mariadb_adopt, which wraps it without
 * changing it.
 *   Either way the handle is the layer's until d_mariadb_close, which closes
@@ -64,7 +64,7 @@ TABLE OF CONTENTS
                                                  // floor; int64_t, uint64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -111,7 +111,7 @@ struct dj_mariadb_options
 // which refuses a list it cannot read, and Connector/C's from 3.0, which
 // passes over a version it does not know; TLS_CIPHERSUITES libmysqlclient's
 // from 8.0.16 alone; and CLEARTEXT_PLUGIN libmysqlclient's switch, without
-// which it refuses to send a password in clear text -- MariaDB's clients send
+// which it refuses to send a password in clear text - MariaDB's clients send
 // one unasked, whatever the setting says. CHARSET, or a NATIVE setting of
 // MYSQL_SET_CHARSET_NAME, replaces the layer's character set, and the session
 // is given it where the handshake loses it, as it is given the layer's.
@@ -147,10 +147,10 @@ enum dj_mariadb_setting_name
                                             // option and argument, as given
     D_MARIADB_SETTING_MAX_PACKET,           // number: the largest packet, in
                                             // bytes, the client takes from
-                                            // the server -- a row; a larger
+                                            // the server - a row; a larger
                                             // one loses the connection (2020
                                             // from libmysqlclient, 2013 from
-                                            // Connector/C) -- and, in
+                                            // Connector/C) - and, in
                                             // libmysqlclient, the largest a
                                             // prepared statement's values
                                             // make, refused past it (2020),
@@ -178,7 +178,7 @@ enum dj_mariadb_setting_name
     D_MARIADB_SETTING_GET_SERVER_PUBLIC_KEY, // number: nonzero lets the
                                              // client ask the server for
                                              // that key where no file gives
-                                             // it -- open to a man in the
+                                             // it - open to a man in the
                                              // middle, as a file is not.
                                              // libmysqlclient asks only when
                                              // told to, from 8.0.3
@@ -198,10 +198,10 @@ enum dj_mariadb_setting_name
 // dj_mariadb_ssl_mode
 //   enum: what the connection asks of TLS; PREFERRED where no setting names
 // a mode, with every client. MySQL's client takes each as its --ssl-mode
-// does. MariaDB's client is given each by its two switches -- PREFERRED
+// does. MariaDB's client is given each by its two switches - PREFERRED
 // too, which it would otherwise take, before 3.4, as no TLS unless a key, a
 // certificate or an authority is given, and from 3.4 as TLS insisted on and
-// its certificate checked -- and cannot verify the authority without the
+// its certificate checked - and cannot verify the authority without the
 // server's name as well, so VERIFY_CA is D_DB_UNSUPPORTED with it. With
 // either, a mode that insists on TLS is checked once connected, and a
 // connection without it is refused with 2026.
@@ -273,7 +273,7 @@ int d_mariadb_connect(
  *                        'app'@'localhost' (using password: YES)"), which
  *                        the error number alone cannot give once the failed
  *                        connection is closed, or the layer's for a refusal
- *                        of its own -- released with d_db_free; `NULL` on
+ *                        of its own - released with d_db_free; `NULL` on
  *                        success, and when memory runs out for the copy. May
  *                        be `NULL` when the reason is not wanted.
  * @return as d_mariadb_connect; the client's error number for a setting it
@@ -350,10 +350,10 @@ int d_mariadb_change_user(
  *
  * @note The server ends the session's state: an open transaction is rolled
  *       back and its locks released; temporary tables, user variables and
- *       prepared statements go -- a statement prepared on the connection
+ *       prepared statements go - a statement prepared on the connection
  *       fails from then on (2056 through libmysqlclient, 2013 through
  *       Connector/C) and can only be finalized; session variables take the
- *       server's global values again -- MySQL's character set among them,
+ *       server's global values again - MySQL's character set among them,
  *       MariaDB's returning to the one the session began with. The current
  *       database stays. Then the layer runs again the init commands
  *       d_mariadb_connect_with's settings gave (not one given through a
@@ -377,7 +377,7 @@ int d_mariadb_reset_connection(
 
 // 1.5    Liveness
 //------------------------------------------------------------------------------
-// liveness -- whether the server still answers: 0, or the client's error
+// liveness - whether the server still answers: 0, or the client's error
 // number (2006, gone away; 2013, lost); D_DB_INVALID_ARGUMENT for NULL
 int d_mariadb_ping(
     struct dj_mariadb* _db
@@ -398,12 +398,12 @@ int d_mariadb_server_status(
 
 // 1.6    Rows changed
 //------------------------------------------------------------------------------
-// rows changed -- the AUTO_INCREMENT value the last statement produced, 0 if
+// rows changed - the AUTO_INCREMENT value the last statement produced, 0 if
 // it produced none; the rows it affected, as mysql_affected_rows counts them
 // (an UPDATE counts the rows it changed, not those it matched, and a
 // statement that returned rows counts those), -1 when it failed; and the
 // warnings it raised. Any statement is the last, the layer's own among them
-// -- d_mariadb_has_table asks one -- so read these straight after the
+// - d_mariadb_has_table asks one - so read these straight after the
 // statement they are about. A NULL handle answers 0.
 uint64_t d_mariadb_last_insert_id(
     const struct dj_mariadb* _db
@@ -448,13 +448,13 @@ int d_mariadb_get_option(
 // answers anything else, as the blocking form would; meanwhile the connection
 // is held, every other command on it 2014. MariaDB's client (Connector/C) makes
 // each without blocking, and says what it waits for, its own timeouts among
-// them -- the connect timeout too -- but for a connect's TLS handshake, which
+// them - the connect timeout too - but for a connect's TLS handshake, which
 // before 3.4.10 it makes by waiting itself, up to the connect timeout. Before
 // 3.4.10 it also reads TLS, on POSIX, through a socket it leaves blocking, so
 // the layer makes the socket non-blocking for each of its calls, and blocking
 // again after. libmysqlclient, from 8.0.16, makes only the connect so, and
-// nothing else of this subsection (D_DB_UNSUPPORTED) -- its queries' are in
-// mariadb_query.h -- and says nothing of what it waits for: its calls wait for
+// nothing else of this subsection (D_DB_UNSUPPORTED) - its queries' are in
+// mariadb_query.h - and says nothing of what it waits for: its calls wait for
 // the socket to be readable, and are made again at least every 10 milliseconds,
 // so that a write the socket could not take at once goes on. It keeps no
 // connect timeout in this mode, so the layer keeps it, in whole seconds: once
@@ -463,13 +463,13 @@ int d_mariadb_get_option(
 // finish at once, every answer having come. A connection is made, and set up,
 // as the blocking forms make it, and is the handle's from the start: a connect
 // abandoned is closed with d_mariadb_close. Each first tidies as the blocking
-// forms do -- closes a statement whose prepare failed, and those finalized
-// during a run -- and turns off the multi-statement mode a failed script left
+// forms do - closes a statement whose prepare failed, and those finalized
+// during a run - and turns off the multi-statement mode a failed script left
 // on, which libmysqlclient can do only by waiting. Where the client cannot
 // carry TLS so (d_mariadb_client_nonblocking_tls: Connector/C before 3.4.10
 // with Schannel, or before 3.0.4), each start refuses a connection under TLS
 // with D_DB_UNSUPPORTED, and a connect's start a connection that would ask
-// the server for TLS -- the layer's default, PREFERRED, does -- the reason
+// the server for TLS - the layer's default, PREFERRED, does - the reason
 // given where a message is wanted: such a connection is made with
 // D_MARIADB_SSL_DISABLED and no key, certificate, authority, cipher,
 // fingerprint or defaults file, or by blocking.
@@ -591,7 +591,7 @@ int d_mariadb_ping_start(
     struct dj_mariadb*    _db,
     struct dj_db_pending* _pending
 ) D_NOTHROW;
-// continuing -- each continues what its start of this subsection began,
+// continuing - each continues what its start of this subsection began,
 // told what came, as dj_db_wait, and given what the start or the last
 // continuation wrote, which receives what to wait for next: D_DB_WAIT, or the
 // answer the blocking form gives; D_DB_INVALID_ARGUMENT for a NULL argument,
@@ -616,22 +616,22 @@ int d_mariadb_ping_continue(
 //------------------------------------------------------------------------------
 // The protocol has no cancel of its own: a statement is stopped by KILL QUERY
 // with its connection's id, sent on another connection. d_mariadb_cancel makes
-// one -- to the connection's host and port, or socket, as its user, with the
+// one - to the connection's host and port, or socket, as its user, with the
 // layer's defaults (TLS PREFERRED, the connect timeout) and none of the
-// connection's own settings -- runs KILL QUERY on it, and closes it. The
+// connection's own settings - runs KILL QUERY on it, and closes it. The
 // statement, if it still runs, stops with 1317 (query execution was
 // interrupted), which the connection's reply reports; one that has finished is
-// not touched. Nor is one the server has not yet begun -- sent but not yet
+// not touched. Nor is one the server has not yet begun - sent but not yet
 // read, or waiting for a thread: MariaDB discards a KILL QUERY that reaches a
 // connection between statements, so a request made the moment a statement is
 // sent can miss it. A caller that must stop it waits until the server shows it
 // running (information_schema.PROCESSLIST, its ID d_mariadb_connection_id) and
 // asks then. _cancel_start and _cancel_continue do it without blocking, as 1.8
-// connects -- with libmysqlclient too -- the request's connection a handle of
+// connects - with libmysqlclient too - the request's connection a handle of
 // its own until it is done, abandoned with d_mariadb_close. A user who cannot
-// sign in again -- with a one-time password, say -- cannot cancel this way, and
-// a connection whose settings the second one needs -- a certificate of its own
-// -- is not reached the same way. Where the client cannot carry TLS without
+// sign in again - with a one-time password, say - cannot cancel this way, and
+// a connection whose settings the second one needs - a certificate of its own
+// - is not reached the same way. Where the client cannot carry TLS without
 // blocking (1.8), _cancel_start refuses a connection under TLS, and makes its
 // own without TLS, as the connection was made.
 /**
@@ -642,7 +642,7 @@ int d_mariadb_ping_continue(
  * @param[out] _message  receives the reason when the request could not be
  *                       made, released with d_db_free; `NULL` otherwise;
  *                       may be `NULL`.
- * @return 0, the request made -- which says nothing of whether a statement
+ * @return 0, the request made - which says nothing of whether a statement
  *         stopped; the client's error number when the second connection
  *         could not be made, or KILL QUERY failed;
  *         D_DB_INVALID_ARGUMENT for a `NULL` connection.

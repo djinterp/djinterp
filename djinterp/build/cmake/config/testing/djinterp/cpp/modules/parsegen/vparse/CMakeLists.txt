@@ -10,8 +10,8 @@
 # runner reach each header by a path relative to themselves, so the module
 # include directory this leaf once added for the bare-form headers went with the
 # bare form, and the tests directory with it.
-#   Where the framework's helper is not there -- this leaf configured on its
-# own, or added by a project that has no djinterp_add_test_executable -- the
+#   Where the framework's helper is not there - this leaf configured on its
+# own, or added by a project that has no djinterp_add_test_executable - the
 # leaf builds the same executable with plain CMake instead, once per C++
 # level from the module floor (C++11) up. Every level must run all the
 # suite's sections; a level the compiler cannot select is left out, and the
@@ -99,7 +99,7 @@ endif()
 
 
 #------------------------------------------------------------------------------
-# without it -- plain CMake, one executable per level
+# without it - plain CMake, one executable per level
 #------------------------------------------------------------------------------
 set(DJINTERP_VPARSE_CXX_LEVELS "11;14;17;20;23" CACHE STRING
     "C++ levels the vparse suite is built and run at")
@@ -107,7 +107,7 @@ option(DJINTERP_VPARSE_STRICT
        "Build with the ladder's diagnostics as errors, where there are any"
        ON)
 
-# how many sections the suite has -- every one of them at every level, so a
+# how many sections the suite has - every one of them at every level, so a
 # level that ran fewer has lost one. vparse-AGENTS.md states the same number
 set(_sections 32)
 

@@ -40,7 +40,7 @@ using namespace dtuple_test_types;
 // =========================================================================
 // I.   COMPILE-TIME SHAPE SANITY
 // =========================================================================
-//   tuple_to_pack itself is a runtime function -- there is no metafunction
+//   tuple_to_pack itself is a runtime function - there is no metafunction
 // here to static_assert against.  What we CAN check at compile time is
 // that the helper is callable in all expected shapes (the file simply
 // failing to compile is the sentinel).  These dummy instantiations live

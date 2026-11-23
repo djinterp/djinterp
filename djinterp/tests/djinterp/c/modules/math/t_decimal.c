@@ -1467,9 +1467,9 @@ d_tests_known(void)
 
 // 6.3    Values and their midpoints
 //------------------------------------------------------------------------------
-// For a type of P bits: a value m * 2^u drawn at random -- subnormal; at the
+// For a type of P bits: a value m * 2^u drawn at random - subnormal; at the
 // foot or the top of the range; m all ones, which carries out of P bits when
-// it rounds up; m a power of two, a binade's foot; or anything -- written out
+// it rounds up; m a power of two, a binade's foot; or anything - written out
 // exactly, then the midpoint above it, (2m + 1) * 2^(u - 1), exactly, which
 // must round to whichever of its neighbours is even, and nudged up and down
 // by a digit appended, both inside the buffer and past it.
@@ -1841,7 +1841,7 @@ d_tests_points(
 //------------------------------------------------------------------------------
 
 // d_tests_random_text
-//   a random decimal number into _text: _digits digits, in a pattern -- a
+//   a random decimal number into _text: _digits digits, in a pattern - a
 // few nonzero digits among zeros, runs of nines, a 5 among zeros, or any --
 // with a point anywhere or none, maybe leading zeros and a sign, and an
 // exponent putting the value near 10^_place. Returns its length.

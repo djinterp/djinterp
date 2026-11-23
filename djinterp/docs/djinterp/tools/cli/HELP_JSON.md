@@ -184,8 +184,8 @@ Two kinds come only from a mark:
 - `lit`, never checked: what only looks like an option or a setting, such
   as `` `--` `` or `` `-1` ``.
 
-A span two forms claim -- an undotted name that is a command and a root
-setting both -- is rendered plain, with a warning, for a mark to settle.
+A span two forms claim - an undotted name that is a command and a root
+setting both - is rendered plain, with a warning, for a mark to settle.
 
 The nine kinds, and the mdoc macro each is rendered with:
 

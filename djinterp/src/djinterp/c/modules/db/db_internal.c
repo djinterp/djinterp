@@ -12,8 +12,8 @@
 *   printf and strtod write and read a number's point as the C locale has it,
 * which a program's setlocale can make a comma; SQL's is always a `.`. Each
 * asks printf which point the locale uses, and translates.
-*   A format is read in a dialect -- what a NULL value writes, whether a
-* qualified name can be written -- which every writer it reaches is given;
+*   A format is read in a dialect - what a NULL value writes, whether a
+* qualified name can be written - which every writer it reaches is given;
 * d_internal_db_vformat reads SQL's.
 *
 *
@@ -313,7 +313,7 @@ bool d_internal_db_append_text(
 /*
 d_internal_db_append_integer
   Digits are produced from the right, into a buffer sized for the 20 digits
-of 2^64 - 1 and a sign, so no printf dialect -- MinGW's msvcrt knows no %lld
+of 2^64 - 1 and a sign, so no printf dialect - MinGW's msvcrt knows no %lld
 -- is involved.
 */
 static
@@ -1174,8 +1174,8 @@ bool d_internal_db_names_add(
 
 /*
 d_internal_db_names_finish
-  The block holds count + 1 pointers -- the last one the NULL that ends the
-list -- followed by the text. Offsets are read with memcpy rather than through
+  The block holds count + 1 pointers - the last one the NULL that ends the
+list - followed by the text. Offsets are read with memcpy rather than through
 a cast pointer, which says nothing about the buffer's alignment and so cannot
 trip a strict-alignment target.
 */
@@ -1505,7 +1505,7 @@ bool d_internal_db_rows_blob(
 /*
 d_internal_db_rows_finish
   The block holds the columns, then the values at the offset their alignment
-requires -- which on a 32-bit target need not follow the columns directly --
+requires - which on a 32-bit target need not follow the columns directly --
 and then the text. It starts with the columns, so d_db_rows_free releases it
 through `columns`. Rows without columns allocate nothing.
 */
@@ -1918,7 +1918,7 @@ size_t d_internal_db_key_column(
 //------------------------------------------------------------------------------
 /*
 d_internal_db_kind_of_sqlstate
-  The conditions first, where one sorts apart from its class -- class 42 is
+  The conditions first, where one sorts apart from its class - class 42 is
 both syntax and access rules, and holds every undefined and duplicate object
 -- then the class. MariaDB's own subclass of 42, 42S, names tables, columns
 and indexes not found or already there. Each table is searched in order;

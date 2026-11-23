@@ -4,10 +4,10 @@
 * A CMake file held for change.
 *   A document is a file's text and its records, read by dcmake. A change is
 * made at once: the text is spliced, the result read again, and the change
-* kept only if everything outside the splice reads as it did -- every
+* kept only if everything outside the splice reads as it did - every
 * command before it where it was, its arguments, its block and the command
 * it pairs with, every one after it the same but moved by the splice, every
-* comment likewise -- and the change itself reads back as asked: an argument
+* comment likewise - and the change itself reads back as asked: an argument
 * holds the text it was given, a command the name, a command inserted the
 * arguments it was written with. A change that would do more is refused, and
 * the file left as it was. Every byte a change does not touch is the file's
@@ -173,8 +173,8 @@ bool d_cmake_doc_splice(
 
 // 2.3    Arguments
 //------------------------------------------------------------------------------
-// An argument's text is as it is written in the file -- quotes, brackets
-// and escapes and all -- and must read as one argument and nothing else.
+// An argument's text is as it is written in the file - quotes, brackets
+// and escapes and all - and must read as one argument and nothing else.
 //   d_cmake_doc_set_argument     replaces argument `_argument` of a command
 //   d_cmake_doc_insert_argument  adds one beside argument `_argument`:
 //                                before it, or `_after` it, in its layout;
@@ -244,7 +244,7 @@ bool d_cmake_doc_remove_commands(
     size_t               _last
 );
 // d_cmake_doc_indent writes the indentation a command inserted before
-// command `_before` takes -- as d_cmake_doc_insert_commands takes it -- into
+// command `_before` takes - as d_cmake_doc_insert_commands takes it - into
 // `_out`, which holds `_capacity` bytes, and gives its length.
 size_t d_cmake_doc_indent(
     const struct dj_cmake_doc* _doc,

@@ -5,7 +5,7 @@
 *   Each entry is made by a small factory per kind, from a function that
 * reaches the field in a sheet. One reach serves both directions: reading
 * takes the field, writing assigns it, so the two cannot disagree on which
-* field a path names. A setting whose value is not one field -- the symbols
+* field a path names. A setting whose value is not one field - the symbols
 * column's, which is three; the array words, which are a power of two --
 * has its own read and write.
 *   As text, a number is read and written with the C library's
@@ -258,7 +258,7 @@ sheet_setting text(
 
 // word_of
 //   a label as a word: lower case, each run of anything but letters and
-// digits one underscore -- "Colour-blind safe" is colour_blind_safe.
+// digits one underscore - "Colour-blind safe" is colour_blind_safe.
 std::string word_of(
     const std::string& _label
 )
@@ -513,7 +513,7 @@ sheet_setting segments_setting()
 }
 
 // names_by_setting
-//   what the symbols column writes for each row -- the buttons over it,
+//   what the symbols column writes for each row - the buttons over it,
 // and their menu: its symbol name, its own name, or its value, written as
 // the header writes it or, lined up, every row alike. Values leave the
 // macro names alone, which still say how a range's name is written across
@@ -571,8 +571,8 @@ sheet_setting names_by_setting()
 }
 
 // grid_flag / colour_role / gen_flag / gen_text
-//   structs: a setting by the member it reads and writes -- the grid's flag,
-// a colour's role, the generator's flag or text -- with its path, its label
+//   structs: a setting by the member it reads and writes - the grid's flag,
+// a colour's role, the generator's flag or text - with its path, its label
 // and, for a flag, its help.
 struct grid_flag
 {
@@ -689,7 +689,7 @@ void columns_part(
 
 // order_part
 //   the order the rows are shown in, and what is drawn of what is unused:
-// the sheet's own order, or each group's sorted -- the grid and the tree
+// the sheet's own order, or each group's sorted - the grid and the tree
 // alike, the header never.
 void order_part(
     std::vector<sheet_setting>& _out
@@ -1365,8 +1365,8 @@ std::string setting_text(
 /*
 set_setting
   `auto` where the theme may choose; otherwise the text read as its kind
-reads it, checked against the bounds -- the write would hold a value to
-them, which a script should hear of -- and only then written.
+reads it, checked against the bounds - the write would hold a value to
+them, which a script should hear of - and only then written.
 */
 bool set_setting(
     sheet&               _sheet,

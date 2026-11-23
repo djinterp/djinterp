@@ -213,7 +213,7 @@ inline
     "exact-return-type requirement, the five leaf families, the byte_string "
     "convenience, the encode/decode round trip, and the is_leaf_decodable surface.",
     {
-        // -- I. the reader ------------------------------------------------------
+        // - I. the reader ------------------------------------------------------
         dt::block_spec{
             "reader",
             "byte_reader: construction from the three sources, take() with its "
@@ -239,7 +239,7 @@ inline
             }
         },
 
-        // -- II. the result type ------------------------------------------------
+        // - II. the result type ------------------------------------------------
         dt::block_spec{
             "result",
             "decode_result<T> and its factories, and the has_member_decode trait "
@@ -260,7 +260,7 @@ inline
             }
         },
 
-        // -- III. the leaf families ---------------------------------------------
+        // - III. the leaf families ---------------------------------------------
         dt::block_spec{
             "leaves",
             "The five leaf families dec_tau reads (member, bool, integral, enum, "
@@ -297,7 +297,7 @@ inline
             }
         },
 
-        // -- IV. the round trip -------------------------------------------------
+        // - IV. the round trip -------------------------------------------------
         dt::block_spec{
             "roundtrip",
             "The encode/decode identity: a value encoded by enc_tau and read back "
@@ -320,7 +320,7 @@ inline
             }
         },
 
-        // -- V. leaf-decodability trait -----------------------------------------
+        // - V. leaf-decodability trait -----------------------------------------
         dt::block_spec{
             "decodability",
             "is_leaf_decodable: the trait (and its _v companion) recognising the "

@@ -1,16 +1,16 @@
 # bitwis(e)dom
 
-A bitfield manager -- `bitwisedom` in code, on disk and on the command line. A **sheet** is a word of 1 to 64 bits -- or wider, to 65,536, held
-in C as an array of words -- and a tree of **symbols**, each one row: a name
+A bitfield manager - `bitwisedom` in code, on disk and on the command line. A **sheet** is a word of 1 to 64 bits - or wider, to 65,536, held
+in C as an array of words - and a tree of **symbols**, each one row: a name
 mapped to a value, shown across the bits it sets, and written out as a C or
 C++ macro. Groups collapse like the nodes of a
 tree, runs of columns collapse to one, and long names abbreviate to fit. An
-operation -- a shift, a rotation, a byte swap, arithmetic -- is previewed as
+operation - a shift, a rotation, a byte swap, arithmetic - is previewed as
 the bits it moves and the collisions it makes before it is applied. Sheets
 open side by side in windows that dock, in workspaces of their own.
 
 It reads C as well as writing it: a header, or code pasted from one, becomes
-a sheet, its macros evaluated as C evaluates them -- expanded in a define
+a sheet, its macros evaluated as C evaluates them - expanded in a define
 environment, typed, and checked for what C would do wrong.
 
 It is built on djinterp (the model's integers and bit functions come from
@@ -26,34 +26,34 @@ Dear ImGui. Building it is described in [BUILD.md](BUILD.md).
 The window is laid out as Visual Studio's is: **windows that dock**. Each
 sheet is open in a window of its own, its tab named for its file and marked
 with a dot while it has unsaved changes; around the sheets are the **tool
-windows** -- the Inspector down the right; the Macros and Templates pages
+windows** - the Inspector down the right; the Macros and Templates pages
 at the top, as tabs among the sheets; and below them Operations, Issues,
 Grid lines, Colours, Columns, Naming, Sheet, Display and Console. A tool
 window shows the sheet in front.
 
 The sheets' **tabs run along the top**, from the left, as ImGui's own do.
-**Options > Environment** -- or **The sheets' tabs** in a tab's menu --
+**Options > Environment** - or **The sheets' tabs** in a tab's menu --
 sets them over one column instead: over **the bits**, as Visual Studio's
 code tabs sit over the code, the symbols column running up through the tab
 row to the window's top; over **the symbols column**; or over **the value
 column**. Wherever they run, they keep to its **left** or its **right**.
 **Double-click a sheet's tab** to rename its file: the name is typed over
-the tab -- Enter, or a click away, keeps it; Escape does not -- and
+the tab - Enter, or a click away, keeps it; Escape does not - and
 `.bitwisedom.json` is put after a name with no `.json` of its own. Nothing on the disk changes: the
 sheet is marked changed, and Save writes it under its new name.
 
 The **status bar** runs along the window's foot: what the sheet in front
-is on the left -- its file, its width, its symbols, its issues and the row
-selected -- and at the right end what the window last said, after a `*`
+is on the left - its file, its width, its symbols, its issues and the row
+selected - and at the right end what the window last said, after a `*`
 while the sheet has unsaved changes. **Click the message** for the
-**Console**: every action taken so far, the latest first -- its name, what
-it carried, the sheet it was taken in, and when -- an action repeated, a
+**Console**: every action taken so far, the latest first - its name, what
+it carried, the sheet it was taken in, and when - an action repeated, a
 slider dragged or a name typed, counted as one line many times over. Every
 action is a named event with plain values, as a script will one day send
 them; the console only lists them.
 
-* **Drag a tab** to dock its window somewhere else -- beside, above or below
-  another, or among its tabs, where the drop targets show -- or out on its
+* **Drag a tab** to dock its window somewhere else - beside, above or below
+  another, or among its tabs, where the drop targets show - or out on its
   own, floating. Drag the hairline between two windows to size them.
 * **A tab's x** closes its window. A tool window comes back from **View >
   Tool windows**, where it was; a sheet with unsaved changes asks first.
@@ -61,7 +61,7 @@ them; the console only lists them.
   **Close all tabs to the left** or **to the right** of it, in its row;
   **Pin tab**; renaming a sheet's file; and where the sheets' tabs run.
   A **pinned** tab moves before the rest of its row, shows a pin before
-  its name and no x, and stays open when the others close -- until **Unpin tab**, or
+  its name and no x, and stays open when the others close - until **Unpin tab**, or
   its own Close. Its workspace keeps it pinned in the next run. Closing
   the others leaves a definition file's tab open too: only its own Close,
   or its x, takes the file from the sheet.
@@ -88,7 +88,7 @@ front, from half size to three times; View has them too, and puts every
 window back at its actual size at once.
 
 The window **opens where it was left**: its workspaces, every sheet in them
--- unsaved changes too -- the layout of its windows, their zoom and the
+-- unsaved changes too - the layout of its windows, their zoom and the
 tabs pinned. It
 keeps them in `session.json` beside its settings file, as long as **Open
 where I left off** is on, in the Options.
@@ -96,15 +96,15 @@ where I left off** is on, in the Options.
 ### The Options
 
 **Tools > Options** (**Ctrl+,**) is every setting in one place, as Visual
-Studio's are: the window's own on its first pages -- the theme and colour
+Studio's are: the window's own on its first pages - the theme and colour
 scheme, opening where it was left, where the sheets' tabs run, how the
 symbols tree is shown, how rows are added, what ends a group's rows and how
-the Add node window opens -- and then the sheet's, page by page. The search above the
+the Add node window opens - and then the sheet's, page by page. The search above the
 pages finds a setting by its name or what it does.
 
 **Settings files** keep a set of settings to use again: **Export** writes
-the window's settings and the sheet's preferences -- how it is drawn and
-written, never what is in it -- to a file, and puts it on the list; a file
+the window's settings and the sheet's preferences - how it is drawn and
+written, never what is in it - to a file, and puts it on the list; a file
 on the list is **applied** with a press, to the window and the sheet in
 front. Import adds one from elsewhere. The list is remembered from one run
 to the next for as long as each file is where it was; **Forget** takes one
@@ -114,8 +114,8 @@ settings opens the page.
 ### The symbols tree
 
 The grid's symbols column **is the tree**, by default: its groups open and
-close there, rows drag there to move -- onto a symbol's name to go before
-it, onto a group's to go to its end -- and a selected row's group ends in
+close there, rows drag there to move - onto a symbol's name to go before
+it, onto a group's to go to its end - and a selected row's group ends in
 an **Add child...** field, with a **+** before it. The Options' *The
 symbols tree* shows it in a window of its own as well, beside the grid, as
 it once was.
@@ -123,8 +123,8 @@ it once was.
 ### Adding rows
 
 One control adds a row, as the Options' **Adding rows** chooses: **+ Add**,
-whose menu lists what to add -- a bit, a range, a value in a range, a
-literal, an expression, a macro, or a group -- or a **split button**, whose
+whose menu lists what to add - a bit, a range, a value in a range, a
+literal, an expression, a macro, or a group - or a **split button**, whose
 face adds the kind it shows and whose arrow opens the menu, where the kind
 chosen is added and is what the face adds from then on. A row is added into
 the selected group or range, beside the selected symbol, or at the end of
@@ -139,9 +139,9 @@ alike, chosen with the swatch in the add control's menu or in the Options.
 
 **The Add node window** makes a row of any kind in full before it is
 added: its kind; the group or range it goes into, first or last there; its
-name -- left empty, the one shown faintly -- and its definition, its notes,
+name - left empty, the one shown faintly - and its definition, its notes,
 affixes, colour and format, as the inspector shows a row's; and, as it is
-made, what it comes to -- its macro name, its value every way, the issues
+made, what it comes to - its macro name, its value every way, the issues
 it would have, and why it would be refused. **Add** adds it, a step to
 undo, and starts the next, the same kind, at the next bit free; **Add and
 close** closes the window after. The **+** before a group's Add child field
@@ -161,13 +161,13 @@ other to swap their order; the bit/byte region stays on the right to preserve
 its pinned/scrolling behavior. The choice is stored in sheet JSON.
 
 The Inspector occupies the whole right-hand height; the tool windows below
-the sheets sit below the grid, not below the Inspector -- until they are
+the sheets sit below the grid, not below the Inspector - until they are
 docked elsewhere. What it shows of a row is one form, top to bottom: its
 definition, then the value it comes to every way, then its naming and
 format, each part under a heading of its own.
 
 **Ctrl+S** saves the editable `.bitwisedom.json` and a companion `.h` or
-`.hpp` in the same directory, using the document's name -- its tab's -- as
+`.hpp` in the same directory, using the document's name - its tab's - as
 their shared stem. **File > Save As** (**Ctrl+Shift+S**) chooses the JSON
 path and macro extension; **File > Open** (**Ctrl+O**) asks for the file to
 open, and on Windows offers Explorer's picker. The **Export header** command writes the simple header alone.
@@ -188,7 +188,7 @@ from the sheet, a step to undo; so does the File menu.
 
 Its text is only read for its directives, as a preprocessor would, so
 **what the preprocessor cannot read is underlined in red** and does
-nothing -- a `#define` that does not parse, an `#endif` with no `#if` --
+nothing - a `#define` that does not parse, an `#endif` with no `#if` --
 and what it only assumed, in amber: an `#if` resting on a name nothing
 defines, read as taken. The mouse on an underlined line says what. **Edit**
 makes the window an editor of the whole text, the underlines following
@@ -197,18 +197,18 @@ what is typed, each change a step to undo; **Done** makes it a view again.
 ![A definition file being edited: a #define that does not parse and a stray #endif underlined in red, an #if on a name nothing defines in amber](screenshots/definition-file.png)
 
 The main menu bar holds **File**, **Edit**, **View**, **Window** and
-**Tools** -- the theme and colour scheme are View's **Theme** submenu --
+**Tools** - the theme and colour scheme are View's **Theme** submenu --
 then the list of workspaces, and **Help** at the bar's right end: the
 keyboard shortcuts, and what bitwis(e)dom is. What the window last said is
 at the status bar's right end. **Probe** and **Allocated** rows are hidden
 on new sheets; they can be toggled from the `+ Add new...` row after the
-last symbol -- a `+` with its faded label, which opens the popup -- or from
+last symbol - a `+` with its faded label, which opens the popup - or from
 View. When shown they sit at the grid's foot, below the symbol rows
 ([below](#the-probe-and-usage-rows)). The same popup offers every kind of
 row to add.
 
 Every open group or range that holds rows ends in an **Add child...**
-field -- in the grid, under the selected row's group; in the symbols tree's
+field - in the grid, under the selected row's group; in the symbols tree's
 own window, under each: type a name and press Enter, and a bit of that name
 joins the group or range at the lowest bit free there. The field keeps the
 keyboard, so several can be named one after another; a name that is not a
@@ -219,7 +219,7 @@ clears the field, and a second Escape leaves it.
 ## The sheet
 
 A sheet has a **width** (1 to 64 bits, the widest a C integer literal can be;
-or wider, to 65,536 -- [below](#sheets-wider-than-64-bits)), a **name prefix
+or wider, to 65,536 - [below](#sheets-wider-than-64-bits)), a **name prefix
 and suffix** that every macro name takes, a **bit numbering**
 (LSB 0 or MSB 0, for the screen; the generated header always counts from the
 least significant bit, as C does), a **byte numbering** for byte ranges and
@@ -231,7 +231,7 @@ other ranges, bits, expressions and groups. Its children are indented in the
 tree, and contained ranges may overlap their parents completely (inclusive
 boundaries), while partial overlaps remain flagged. New documents start with
 an editable full-width range named `root`, with no fill, holding one bit,
-`FLAG`, at bit 0 -- `0x...01`. A symbol can use **No fill** in
+`FLAG`, at bit 0 - `0x...01`. A symbol can use **No fill** in
 its inspector to remain transparent instead of receiving an automatic or
 custom fill; binary displays use 8-digit groups, octal uses 3, and hex uses 2. Hold
 **Shift** and drag across bit cells to select a rectangle of rows and bits;
@@ -266,8 +266,8 @@ outermost first, then the row's own; the suffixes close in reverse order.
 in C, or reserved to the implementation (`_Capital`, `double__underscore`), is
 reported.
 
-**Literals** are written in a radix -- hex, decimal, octal, binary, or
-*shifts* (`(1u << 3)`, `(0x7u << 4)`) -- with an integer suffix (`u`, `ul`,
+**Literals** are written in a radix - hex, decimal, octal, binary, or
+*shifts* (`(1u << 3)`, `(0x7u << 4)`) - with an integer suffix (`u`, `ul`,
 `ull`, or none), set for the sheet and overridden by any group or row.
 
 ### Negative and positive
@@ -284,13 +284,13 @@ shown beside it:
 | offset binary (bias 8) | `0101` | -8..7 |
 
 A number that does not fit is a warning, not an error: it still has bits --
-the ones it wraps to -- and they are shown. A literal may be negative, and is
+the ones it wraps to - and they are shown. A literal may be negative, and is
 then written as the number it is: `#define D_ONES (-1)`.
 
 ### Expressions
 
-C's integer operators at C's precedence -- `~ - + !`, `* / %`, `+ -`,
-`<< >>`, `&`, `^`, `|` -- over literals in any base C has, the names of other
+C's integer operators at C's precedence - `~ - + !`, `* / %`, `+ -`,
+`<< >>`, `&`, `^`, `|` - over literals in any base C has, the names of other
 symbols (local or full), parentheses, and `BIT(n)`, `MASK(w)` and
 `GENMASK(high, low)`. Arithmetic is unsigned and 64 bits wide. An expression
 keeps its form in the header, every name replaced by its macro name; a cycle
@@ -302,8 +302,8 @@ Expression evaluation uses 64-bit integer arithmetic, even for wider sheets.
 
 ### Sheets wider than 64 bits
 
-A sheet may be wider than any C integer -- a configuration space, a CPU's
-feature bits, a bitmap of hundreds of flags -- up to 65,536 bits. Its values
+A sheet may be wider than any C integer - a configuration space, a CPU's
+feature bits, a bitmap of hundreds of flags - up to 65,536 bits. Its values
 are sets of bits as wide as the sheet; the grid, the operations, the probe
 and the files work on them as they do on a narrow sheet's, and the value
 column names a set by its runs (`bits 0..15`, `bits 3, 70 and 128..131`). Its
@@ -312,8 +312,8 @@ negation within the sheet's width, literals of any width, and `BIT(n)` past
 bit 63; a product or a shift needs one side an integer, and a quotient two.
 
 No C integer holds such a sheet, so its header keeps it in an **array of
-words** -- 32 bits by default, or 8, 16 or 64 (the Macros page's *array
-words*) -- lowest first, bit *n* being bit *n* % 32 of word *n* / 32. The
+words** - 32 bits by default, or 8, 16 or 64 (the Macros page's *array
+words*) - lowest first, bit *n* being bit *n* % 32 of word *n* / 32. The
 header begins with what works on such an array, named with the sheet's
 prefix: `_WORD_BITS` and `_WORDS`, and `_WORD(n)`, `_MASK(n)`, `_TEST(a, n)`,
 `_SET(a, n)` and `_CLEAR(a, n)` for a bit by its number. Then each symbol is
@@ -329,7 +329,7 @@ what names a place in the array:
 A wide sheet has **templates of its own**, on the Templates page in place of
 a narrow sheet's: a range's `_WIDTH`, its `_WORD` and the `_SHIFT` and
 `_MASK` of its bits there, and `_GET(a)` and `_SET(a, v)`, which read and
-write the range in an array -- word by word, where it crosses from one word
+write the range in an array - word by word, where it crosses from one word
 to the next; a bit's `_WORD`, `_MASK` and `_IS_SET(a)`, and a value's
 `_IS(a)`, to switch on. A range wider than an integer has no `_GET` or
 `_SET`, and the notes say so. In C++'s constants form, places are `int`s,
@@ -338,7 +338,7 @@ type: `inline constexpr std::uint32_t D_ENABLE[D_WORDS] = { ... };`.
 
 The `pci_config_header` example is one: a PCI function's 64 bytes of
 configuration header, sixteen 32-bit registers, each field and bit at its
-byte offset times eight -- `linux/pci_regs.h`'s offsets and masks, which the
+byte offset times eight - `linux/pci_regs.h`'s offsets and masks, which the
 tests compare it with on Linux. `x86_cpuid`, on the Large shelf, is
 another: ten of CPUID's feature registers end to end, so word *n* of its
 array is the *n*th register as CPUID returns it, and `CPUID_TEST(regs,
@@ -370,12 +370,12 @@ the tree to move them.
 The grid has a **cursor**, as a spreadsheet has an active cell, outlined
 in the accent: a click puts it where it lands, and while the sheet's window
 is in front the grid takes Excel's keys. The **arrows** move it a cell;
-**Shift** with an arrow extends the range from it -- the cursor stays
-where it is -- and the range is the selection: its rows selected, its bits
+**Shift** with an arrow extends the range from it - the cursor stays
+where it is - and the range is the selection: its rows selected, its bits
 a block of cells, as a Shift+drag selects them, the cursor's cell left
 plain inside it. **Ctrl** with an arrow goes to the edge of what the row
-or column holds -- the end of a run of set bits, or the next bit set, or
-the end -- and Ctrl+Shift extends there. A row's name and value always hold
+or column holds - the end of a run of set bits, or the next bit set, or
+the end - and Ctrl+Shift extends there. A row's name and value always hold
 something; a group's row holds every bit its rows do.
 
 The symbols and value columns are the grid's **frozen panes**: **Home** goes
@@ -396,7 +396,7 @@ selected, **Ctrl+Backspace** scrolls back to it, and **Ctrl+.** moves it
 to the range's next corner, clockwise. **F8** is **Extend mode**, in which
 the arrows extend as with Shift; Esc ends it, and End mode. **F2** renames
 the cursor's row in place, and **Space** flips the cursor's bit as a click
-does -- the probe's too. A selection made elsewhere, in the tree, takes the
+does - the probe's too. A selection made elsewhere, in the tree, takes the
 cursor with it; the status bar says which bit it is on.
 
 ![uart_cr: TXEN to LOOPBACK over bits 3 to 1 selected by the keyboard, the cursor on RXEN's bit 1 left plain inside the range](screenshots/keyboard-range.png)
@@ -405,11 +405,11 @@ cursor with it; the status bar says which bit it is on.
 
 **The probe** is a scratch value: click its cells or type a value, and the
 operations can act on it too. **The usage row** counts, for each bit, how
-many bit and range symbols claim it -- red where two in an exclusive group
+many bit and range symbols claim it - red where two in an exclusive group
 do.
 
-Both are pinned at the **bottom** of the grid by default -- at its foot,
-while the rows above leave room -- and either may instead be pinned at the
+Both are pinned at the **bottom** of the grid by default - at its foot,
+while the rows above leave room - and either may instead be pinned at the
 **top**, or put **among the rows**: drag one by its name, as a row is
 dragged, onto a group's or a range's name to go to the end of its rows,
 onto a symbol's to go just before it, onto another of them to go before
@@ -417,7 +417,7 @@ it, placed as it is, or into the room below the rows to be pinned at the
 bottom again. A **usage row in a group counts the group's rows**, as a
 subtotal does: *allocated in Enables* counts Enables' bits alone. A
 right-click on one pins it, adds **another** of its kind beside it --
-every probe row shows the one probe -- or removes it; the last of a kind
+every probe row shows the one probe - or removes it; the last of a kind
 is hidden instead, and keeps its place for when it is shown again. Where
 each is is the sheet's, saved with it, and every move a step to undo.
 
@@ -428,8 +428,8 @@ each is is the sheet's, saved with it, and every move a step to undo.
 The grid and the tree show each group's rows in **the sheet's own order**,
 or sorted: by symbol name, name, short name, value, lowest bit, width, kind
 or note, either way. Groups come first among their siblings, sorted by name
-where the key is a name; a row the key says nothing of -- a macro with no
-value, sorted by value -- comes after those it does, whichever way; and
+where the key is a name; a row the key says nothing of - a macro with no
+value, sorted by value - comes after those it does, whichever way; and
 rows the key cannot tell apart keep the sheet's order. The menu is on a
 **right-click on the symbols column's heading**, on the buttons over it,
 on a row and on the sheet, and on **View > Columns > Sort rows by**; the
@@ -440,27 +440,27 @@ The sort is the sheet's, saved with it, and each choice a step to undo.
 
 ### What each part shows
 
-The grid shows **digits** in its cells, a range's **name** -- or a value's
-number -- across its cells, and each row's **colour**, or not, as View >
+The grid shows **digits** in its cells, a range's **name** - or a value's
+number - across its cells, and each row's **colour**, or not, as View >
 Grid says for the whole grid. **Display rules** show or hide each of the
 three in a part of it: a row; a group or a range, and every row in it; a
 run of bits, in every row; or a block of both, selected with **Shift and a
-drag** across the cells. A right-click offers them -- on a row, **Show in
+drag** across the cells. A right-click offers them - on a row, **Show in
 this row** (or *this group*, or *the rows selected*) and **Show in the
-block selected**; on a segment's band, **Show in these bits** -- each part
+block selected**; on a segment's band, **Show in these bits** - each part
 checked where the region shows it, and pressed to show or hide it there;
 **... here only** shows it there and nowhere else; **As the rest of the
 grid** takes the region's own rules back. A cell whose colour is hidden is
 drawn as a row with no fill is: its set bits plain. A range's name is
 written where names are shown over at least half of it.
 
-The **Display** window lists every rule -- its rows, its bits, and each
-part as the grid has it, shown or hidden -- the last rule over a cell
+The **Display** window lists every rule - its rows, its bits, and each
+part as the grid has it, shown or hidden - the last rule over a cell
 winning; a rule is changed or removed there, and **Clear every rule** gives
 every cell back to the grid. The rules are the sheet's, saved with it; a
 rule whose rows are all deleted goes with them.
 
-![uart_cr sorted by name: digits in the Enables group's rows only, no colour in the format segment's bits, DIV's name hidden -- and the Display window listing the three rules](screenshots/display-rules.png)
+![uart_cr sorted by name: digits in the Enables group's rows only, no colour in the format segment's bits, DIV's name hidden - and the Display window listing the three rules](screenshots/display-rules.png)
 
 ### Grid lines
 
@@ -479,12 +479,12 @@ the rows pinned at the grid's foot; **Lines past the last row** runs them
 down the room between as well.
 
 Cell width and height, the gap between cells and their rounding are on the
-same page, with **Proportional cells** -- on by default, and on the View
-menu too -- which makes every row as tall as its share of a bit's cell's
+same page, with **Proportional cells** - on by default, and on the View
+menu too - which makes every row as tall as its share of a bit's cell's
 width: **Row height, of cell width**, four fifths by default, 1.0 for
 square. The cells widen to fill the grid, and the rows grow with them, up
 to the widest a cell may be (56 pixels), past which the room is left. A
-**cell width set by hand** -- its slider, or a ruler boundary dragged -- is
+**cell width set by hand** - its slider, or a ruler boundary dragged - is
 the width the cells take: the room to spare then goes to nothing, and a
 double-click on a boundary gives the cells back to the grid's width. The
 rows stop at the shortest a line of digits fits in, however narrow the
@@ -517,45 +517,45 @@ in them.
 
 * **The theme**, dark or light, sets the window's surfaces and the grid's
   empty cells and lines.
-* **The colour scheme** -- vivid, pastel, earth, neon, or colour-blind safe
+* **The colour scheme** - vivid, pastel, earth, neon, or colour-blind safe
   (Okabe and Ito's seven colours, which stay apart for the common
-  colour-vision deficiencies) -- sets the palette rows take their colours
+  colour-vision deficiencies) - sets the palette rows take their colours
   from, the accent, and the roles: collision, probe, selection, hover, the
   preview's outline. Earth warms the surfaces, neon cools and deepens them.
   Each scheme has a dark and a light version.
 
-Each row has a colour -- its own, or one from the palette -- and set bits are
+Each row has a colour - its own, or one from the palette - and set bits are
 coloured by their row, their group, their kind, or the accent. A sheet's
-colours are **automatic** until it sets one in the Colours tab -- a palette
-of its own, a saturation, an accent, a grid line's colour -- and what it sets
+colours are **automatic** until it sets one in the Colours tab - a palette
+of its own, a saturation, an accent, a grid line's colour - and what it sets
 it keeps, in either theme and every scheme. **Use the scheme's colours**
 (the Colours tab, or View > Theme) gives them all back.
 
 **Text reads whatever the colour.** A cell's digit, a range's name across
 its cells, a band's name, a selected row's name are drawn in the theme's
-text where that reads on what lies beneath -- at WCAG's 4.5:1 -- and in
+text where that reads on what lies beneath - at WCAG's 4.5:1 - and in
 black or white where it does not, so a black range in the light theme has
 white digits and a yellow one in the dark theme dark ones. A row with **No
 fill** has no colour to read in: its set bits are drawn plain, in the
-theme's text, faintly -- but a range's, all set, which its name across its
-cells already says -- and that name sits on the row's own ground, which
+theme's text, faintly - but a range's, all set, which its name across its
+cells already says - and that name sits on the row's own ground, which
 hides the digits beneath it, and is the theme's text; its swatch in the
 tree and the grid is left empty; and the curves the operations' preview
 draws for its bits are the text's, faded. Where a
-row's name is written in the row's colour -- the inspector's title, the
-generated header in the Macros tab -- a colour too near the panel's own is
+row's name is written in the row's colour - the inspector's title, the
+generated header in the Macros tab - a colour too near the panel's own is
 moved toward the text's until it reads at 3:1, and a row with no fill has
 its name in the text's colour.
 
 ### Names, menus and widths
 
 **Renaming** happens where the name is: double-click a name in the tree or
-the grid, press **F2** -- in the grid, it renames the cursor's row -- or
+the grid, press **F2** - in the grid, it renames the cursor's row - or
 choose **Rename** from the row's menu, and type
 over it. Enter renames; Escape, or a click elsewhere with nothing typed,
 gives up. The inspector's name field renames as well, once its edit is
-done. Whatever named the row follows it -- an expression's names, a macro's
-body where it names the macro, a macro's `{NAME}` placeholders -- found with
+done. Whatever named the row follows it - an expression's names, a macro's
+body where it names the macro, a macro's `{NAME}` placeholders - found with
 djinterp's lexer, so a string, a comment or a macro's parameter that only
 shares the spelling is left alone. A rename is one step of undo. A name that
 would not be a C identifier once the affixes are added, or that is another
@@ -563,7 +563,7 @@ symbol's, is refused, and the status line says why. A segment is renamed the
 same way, by a double-click on its heading or from its menu.
 
 **The symbols column lists its rows** by symbol name, name or value, as the
-three small buttons over it choose -- above its `symbol` label, in the strip
+three small buttons over it choose - above its `symbol` label, in the strip
 the segments' bands run along, the choice lit in the accent. By **symbol
 name** each row is the macro the header defines, `UART_CR_PARITY_NONE`; by
 **name**, its own name, `PARITY_NONE`, as the symbols tree has it; by
@@ -572,18 +572,18 @@ where its name would be. **Press value again** and the values are written
 another way at each press, every row alike and **lined up** at the
 column's right, so their digits stand in columns: in hex, to the sheet's
 width; in decimal; in binary, from the nibble that holds the highest set
-bit; as a shifted run, `0x3 << 4`, the way the header writes a mask -- a
+bit; as a shifted run, `0x3 << 4`, the way the header writes a mask - a
 value in a field as the number the field holds, `0x2 << 4`; as the bits it
-sets, `bits 5:4`, by the sheet's numbering -- and then round again. The
+sets, `bits 5:4`, by the sheet's numbering - and then round again. The
 button says which (`hex`, `dec`, `bin`, `shift`, `bits`), and presses one
 after another are one step of undo. A sheet wider than an integer passes
 over decimal and binary. **Right-click** any of the buttons for the whole
-list, to pick one way straight off. By value, a symbol with no value -- a
-function-like macro, or a row in error -- keeps its name, faded, and a
+list, to pick one way straight off. By value, a symbol with no value - a
+function-like macro, or a row in error - keeps its name, faded, and a
 group, which is no symbol, its own name. The choice is the sheet's: saved
 with it, and on View > Columns > **Symbols by** too, and on the Grid lines
-tab. A narrower column has shorter buttons -- `symbol`, `name`, `value`,
-then `S`, `N`, `V` -- and a double-click on its edge fits it to what it
+tab. A narrower column has shorter buttons - `symbol`, `name`, `value`,
+then `S`, `N`, `V` - and a double-click on its edge fits it to what it
 lists; a value lined up in a column too narrow for it keeps its low
 digits. **Macro names in the grid**, on the View menu, is the same choice
 between symbol names and names, and also says how a range's name is
@@ -611,7 +611,7 @@ has wide cells and no empty space beside them; the cells' width is then the
 least they take, and a sheet too wide for the window scrolls. With
 proportional cells the rows deepen as the cells widen, and a narrow sheet
 in a wide window stops at the widest cell. The Grid lines tab's **Room to spare
-goes to** gives it to the name column instead, or to nothing -- and then
+goes to** gives it to the name column instead, or to nothing - and then
 the rows end where the columns do.
 
 **Under a resting mouse**, what is squished, hidden or abbreviated says what
@@ -624,7 +624,7 @@ label cut off by its column ends in `...` and shows itself whole, as does a
 value longer than its field, a combo's choice, a check box's or a tree row's
 name past the panel's edge.
 
-The columns of every table -- the inspector's, the issues', an operation's
+The columns of every table - the inspector's, the issues', an operation's
 -- resize by their edges too, and the window remembers their widths, the
 layout of its windows, the theme and the colour scheme, and the user's own
 preferences from one run to the next, in a settings file of the user's:
@@ -640,7 +640,7 @@ it.
 Select rows (a group stands for every symbol in it), pick an operation and an
 operand, and the Operations page previews it:
 
-* the **flow view** -- the distribution of the sheet's bits before and after,
+* the **flow view** - the distribution of the sheet's bits before and after,
   with a curve from each moved bit to where it lands, a cross on each that
   falls off the end and a mark on each zero filled in;
 * the targets' **values** before and after, the bits lost and gained, and how
@@ -653,7 +653,7 @@ and, or, xor, and-not, add, subtract, multiply, negate, swap bytes, reverse
 bits, and set, clear or toggle one bit. **Apply** keeps each definition's kind
 where the result fits it: a shifted bit is still a bit, a range moved without
 wrapping is still a range, a value moved within its field is still a value,
-and an expression is wrapped in the operation (`(EN | TXEN) << 1`) -- unless
+and an expression is wrapped in the operation (`(EN | TXEN) << 1`) - unless
 its operands moved with it, when it is left as written. Otherwise the symbol
 becomes a literal of its new bits. Every applied operation can be undone.
 
@@ -671,12 +671,12 @@ to the clipboard (**Copy**).
   what may be written: a binary literal needs C23 or C++14, `ull` needs a
   `long long`; what a level cannot honour is replaced by the nearest it can,
   and a note says so.
-* **Form**: macros, or -- for C++ -- constants (`inline constexpr` from
+* **Form**: macros, or - for C++ - constants (`inline constexpr` from
   C++17, `constexpr` from C++11, `const` before), optionally in a namespace.
-* **Style**: *djinterp* follows the house style guide -- the banner at its
+* **Style**: *djinterp* follows the house style guide - the banner at its
   fixed geometry, a table of contents, numbered sections for groups, a
   two-line brief over every macro, aligned values, an include guard derived
-  from the file name, lines kept within 80 columns -- or *plain*.
+  from the file name, lines kept within 80 columns - or *plain*.
 
 **Templates** are macros written beside every symbol of the kinds they apply
 to. The defaults give every range `_SHIFT`, `_WIDTH`, `_GET(x)` and
@@ -705,7 +705,7 @@ A [wide sheet](#sheets-wider-than-64-bits)'s templates have more:
 
 No parameters makes an object-like macro. A **macro row** is the same thing
 for one macro: parameters and a body, with `{NAME}` for any symbol's macro
-name -- and, with no parameters, *function-like* to write `NAME()`. A body
+name - and, with no parameters, *function-like* to write `NAME()`. A body
 over several lines is written in the style guide's layout: a backslash at
 column 80 on every line but the last, and parameters that do not fit one
 line one to a line, aligned under the first. A literal can be given a least
@@ -720,18 +720,18 @@ Symbols in error stay out of the header, and the notes say which.
 ![The attached code imported: its macros evaluated, what C would do wrong in the issues](screenshots/import-define-environment.png)
 
 **File > Open sheet, bitfield or header** opens a sheet, or reads a header or
-a source -- anything that is not JSON -- into a new one, saved beside it
+a source - anything that is not JSON - into a new one, saved beside it
 under its name; JSON is read as the [JSON](#json) section says. A file
 **dropped on the window** is opened the same way. **File > New sheet from the
 clipboard** makes a sheet of what was copied, code or JSON, and **Paste code** (Ctrl+Shift+V, or a row's menu) merges it into the
 open sheet: after the selected row, or into a selected group. A name the
 sheet already has takes the pasted definition. A pasted name keeps the macro
 name it had: where it lands, the affixes it would take are taken off its own
-name -- `UART_CR_EXTRA` pasted into `uart_cr` is the row `EXTRA` -- and one
+name - `UART_CR_EXTRA` pasted into `uart_cr` is the row `EXTRA` - and one
 without them is noted, since it will take them.
 
-Code is read as a preprocessor reads it -- by djinterp's lexer, at the sheet's
-language and level, its conditionals followed -- and each #define in a
+Code is read as a preprocessor reads it - by djinterp's lexer, at the sheet's
+language and level, its conditionals followed - and each #define in a
 branch taken becomes a row:
 
 | written | becomes |
@@ -747,7 +747,7 @@ stays a macro, written as it was, its lines and their indentation kept. The
 comment above a definition becomes its note. A rule of `=` begins a group,
 titled by the heading under it, or else named for what its symbols' names
 share. An include guard, or `#pragma once`, becomes the generator's setting.
-What was left out -- declarations, code -- the Issues page lists.
+What was left out - declarations, code - the Issues page lists.
 
 **Copy as code** (Ctrl+Shift+C, or a row's menu) puts the selected rows on
 the clipboard as their #defines, without the header's banner, contents and
@@ -757,25 +757,25 @@ header.
 ### The define environment
 
 A macro row has the value its name has in C. The name is expanded as the
-preprocessor expands it -- hide sets, `#` and `##`, `__VA_ARGS__` and
-`__VA_OPT__` -- in an environment of definitions: the standard headers'
+preprocessor expands it - hide sets, `#` and `##`, `__VA_ARGS__` and
+`__VA_OPT__` - in an environment of definitions: the standard headers'
 (`<stdint.h>`, `<limits.h>`, `<stdbool.h>`), the sheet's own
-**environment** (on the Macros page: #defines from elsewhere -- another
-header, a compiler's `-D` options -- that the sheet's macros use and its
+**environment** (on the Macros page: #defines from elsewhere - another
+header, a compiler's `-D` options - that the sheet's macros use and its
 header does not write), and every row of the sheet. What it expands to is
 then evaluated with C's types: each literal's own, casts and the fixed-width
 typedefs, the integer promotions and the usual arithmetic conversions, at
 the sheet's language level and **data model** (LP64 for Linux and macOS,
 LLP64 for Windows, ILP32). The inspector shows a macro's value, its C type,
 and what it expands to; in the grid, an object-like macro with a value is
-drawn as any value is, and one with no bits -- one that takes arguments,
-or has no value -- has its cells drawn empty, the grid's lines through
+drawn as any value is, and one with no bits - one that takes arguments,
+or has no value - has its cells drawn empty, the grid's lines through
 them, and its definition as the header writes it over them, centred, in
 the monospace font: `UART_CR_IS_ENABLED(x) (((x) & UART_CR_EN) != 0)`.
 A row in error says why the same way, in the collision colour.
 
-What C would get wrong is reported. Undefined behaviour -- a negative or
-too-wide shift, signed overflow, division by zero -- is a warning, traced
+What C would get wrong is reported. Undefined behaviour - a negative or
+too-wide shift, signed overflow, division by zero - is a warning, traced
 through the macros it came out of (`D_BYTE_BIT_R(3, 0): shift count -4 is
 negative`), and leaves the macro no value; implementation-defined behaviour
 is a note. So are a macro called with the wrong number of arguments; a name
@@ -814,14 +814,14 @@ are bitfields, in `res/djinterp/tools/bitwisedom/examples/large`.
 
 ### JSON
 
-A sheet file is the window's own. For other programs -- a script that makes
+A sheet file is the window's own. For other programs - a script that makes
 bitfields from a datasheet, a generator for another language, a review of
-what changed -- there are two more shapes of JSON, both read wherever a
+what changed - there are two more shapes of JSON, both read wherever a
 sheet is (File > Open, a drop, the clipboard, `bitwisedom-gen`):
 
 * **A bitfield** (`*.bitfield.json`, File > Export the bitfield as JSON, or
   Copy the bitfield as JSON) is the bitfield alone, as a person would write
-  it -- its width, its affixes, and its rows, each in as few keys as say
+  it - its width, its affixes, and its rows, each in as few keys as say
   what it is:
 
   ```json
@@ -837,8 +837,8 @@ sheet is (File > Open, a drop, the clipboard, `bitwisedom-gen`):
   from a sheet and read back, it writes the same header.
 * **An export** (`*.export.json`, File > Export everything as JSON,
   Ctrl+Shift+E) is everything: the sheet whole, the layout, every row as it
-  resolves -- its macro name, its bits, its value in hex, the integer C knows
-  it by, its error -- the issues, and the header's text. Read back, it is the
+  resolves - its macro name, its bits, its value in hex, the integer C knows
+  it by, its error - the issues, and the header's text. Read back, it is the
   sheet it holds.
 
 All three are written a row to a line where the row fits in a hundred
@@ -848,8 +848,8 @@ JSON the same way, for a script that writes bitfields.
 [json.md](json.md) describes both key by key, and
 [bitfield.schema.json](bitfield.schema.json) is a JSON Schema of the
 bitfield for an editor that checks JSON as it is typed. The two large
-examples, in `res/djinterp/tools/bitwisedom/examples/large`, are bitfields made by scripts -- one of
-1,424 rows, one of 320 bits -- to read as examples of the shape.
+examples, in `res/djinterp/tools/bitwisedom/examples/large`, are bitfields made by scripts - one of
+1,424 rows, one of 320 bits - to read as examples of the shape.
 
 ---
 
@@ -884,7 +884,7 @@ some two's complement or offset binary, and some values negative.
 | | `linux_capabilities` | 64 | 41 capabilities in eight bytes, each with its number as a `_BIT` macro |
 | FreeBSD | `freebsd_file_flags` | 32 | the owner's half and the superuser's half of a file's flags |
 | | `freebsd_kevent` | 16 | a `short`'s negative filters, -1 to -15, beside the flags' unsigned bits |
-| Large | `win32_hresults` | 32 | every HRESULT `winerror.h` defines: 1,376 codes, a closed group for each of 22 facilities, under the fields that make them -- every facility a value of the facility field, the DirectX ones with the X bit beside it |
+| Large | `win32_hresults` | 32 | every HRESULT `winerror.h` defines: 1,376 codes, a closed group for each of 22 facilities, under the fields that make them - every facility a value of the facility field, the DirectX ones with the X bit beside it |
 | | `x86_cpuid` | 320 | ten of CPUID's feature registers end to end: 212 flags, the MPX address-width adjust as a field among them, and x86-64-v1 to v4 as sets of them; the probe is a v3 processor, and the grid reads from bit 0, the registers in the order of the rows |
 
 ![The freebsd_kevent example: negative filters, each drawn as its two's complement bits](screenshots/example-kevent.png)
@@ -896,7 +896,7 @@ reads MinGW-w64's `winerror.h` (public domain) for every HRESULT, and
 Intel SDM and AMD's APM. A closed group's row shows the union of its
 codes, so each facility's bits read at a glance before it is opened.
 
-![win32_hresults: twenty facilities closed, WIN32 and DXGI open, E_ACCESSDENIED selected -- DXGI's codes with the X bit set](screenshots/example-hresults.png)
+![win32_hresults: twenty facilities closed, WIN32 and DXGI open, E_ACCESSDENIED selected - DXGI's codes with the X bit set](screenshots/example-hresults.png)
 
 The platform examples are checked against the platform: where the build
 targets Windows, macOS, Linux or FreeBSD, each of that platform's examples
@@ -928,8 +928,8 @@ each one's options:
 | `new`, `import`, `add`, `change`, `duplicate`, `remove`, `rename`, `move`, `sort`, `set`, `get`, `op` | make or change one, written whole or not at all; a change that would give the sheet an error it did not have is refused unless forced (`-f`) |
 | `gui` | open the window on the sheets named, or where it was left |
 
-A SHEET is any of the three shapes of JSON -- a sheet file, a bitfield or
-an export -- `example:NAME` for a built-in example, or `-` for standard
+A SHEET is any of the three shapes of JSON - a sheet file, a bitfield or
+an export - `example:NAME` for a built-in example, or `-` for standard
 input. `set` and `get` take a setting by the name the window's Options show,
 `gen.level`, and anything else a sheet file holds by its path in the file,
 `probe` or `rows.0.name`: read as the file has it, and written as the
@@ -943,8 +943,8 @@ The window is a module of its own, `bitwisedom-gui`, which `bitwisedom gui`
 loads only when it is asked for: the program carries no window system, no
 GPU code and no fonts, and a system with no display can install it alone
 (`BUILD.md` builds the two apart). `bitwisedom gui` hands the window every
-SHEET it is given -- any file the window opens, a header to import among
-them -- and says on standard error, as the window starts, each it cannot
+SHEET it is given - any file the window opens, a header to import among
+them - and says on standard error, as the window starts, each it cannot
 open, as the commands would say it; the window opens on the rest, and the
 run ends with 2 when it closes, so that a script still learns of a typo.
 `--sheets=refuse` refuses such a SHEET before any window opens instead (the
@@ -971,8 +971,8 @@ bitwisedom-gen --save-example NAME FILE
 bitwisedom-gen --list-examples
 ```
 
-The sheet may be any of the three shapes of JSON -- a sheet file, a
-bitfield or an export -- so a bitfield written by a script goes straight to
+The sheet may be any of the three shapes of JSON - a sheet file, a
+bitfield or an export - so a bitfield written by a script goes straight to
 a header. Asked for `--bitfield` or `--export` and not for `-o`, it writes no
 header to stdout. It exits 0 when it did what it was asked, 1 when the sheet
 has errors (the header is still written, without them), and 2 for a usage or
@@ -1000,7 +1000,7 @@ holds, and names any that does not.
 | Ctrl+Shift+A | the Add node window, for the selected row's group |
 | Ctrl+D, Del | duplicate, delete the selected rows |
 | Alt+Up, Alt+Down | move the selected row |
-| F2 | rename the selected row -- in the grid, the cursor's, in place |
+| F2 | rename the selected row - in the grid, the cursor's, in place |
 | Ctrl+Shift+C, Ctrl+Shift+V | copy the selection as code, paste code |
 | Ctrl+J | put the windows below the sheets away, and bring them back |
 | Ctrl+=, Ctrl+-, Ctrl+0 | zoom the window in front in, out, to its actual size |
@@ -1019,7 +1019,7 @@ holds, and names any that does not.
 | Page Up, Page Down (with Shift, extend) | a screen of rows |
 | Alt+Page Up, Alt+Page Down | a screen of columns |
 | Ctrl+Page Up, Ctrl+Page Down | the sheet before, after |
-| Enter, Shift+Enter; Tab, Shift+Tab | down, up; right, left -- round a range; after Tabs, Enter goes back to their first column |
+| Enter, Shift+Enter; Tab, Shift+Tab | down, up; right, left - round a range; after Tabs, Enter goes back to their first column |
 | Shift+Space, Ctrl+Space, Ctrl+A | select the range's rows, its columns, everything |
 | Shift+Backspace, Ctrl+Backspace | the cursor's cell alone; scroll back to it |
 | Ctrl+. | the cursor to the range's next corner |
@@ -1042,4 +1042,4 @@ holds, and names any that does not.
 | Ctrl+wheel | zooms the window under the mouse |
 | drop a file | opens it: a sheet, or a header read as code |
 
-Edits that arrive as a stream -- a drag, typing -- undo as one step.
+Edits that arrive as a stream - a drag, typing - undo as one step.

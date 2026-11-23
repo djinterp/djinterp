@@ -27,7 +27,7 @@
 D_EXTERN_C_BEGIN
 
 
-// vocabulary and addresses -- each returns true when every assertion held
+// vocabulary and addresses - each returns true when every assertion held
 bool d_tests_net_errors(
     struct dj_test_suite* _suite
 );

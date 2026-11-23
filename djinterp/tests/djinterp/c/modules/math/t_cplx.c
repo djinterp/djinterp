@@ -4,7 +4,7 @@
 *   Conformance harness for c/math/cplx.h, all three families and both forms.
 * First, against references: every function at the points of
 * math_tests_cplx_refs.h, and the five C99 has only for real arguments --
-* exp2, log2, log10, log1p and expm1 -- at those of
+* exp2, log2, log10, log1p and expm1 - at those of
 * math_tests_cplx_five_refs.h, each exact in float, the values computed by
 * mpmath at 400 bits or as many more as each needs: each part
 * within its bound, in steps (float_order.h), of the part correctly rounded
@@ -33,8 +33,8 @@
 *
 *   Then C99's Annex G (G.6), as C17 has it (its DR 471 for cacosh and ctanh):
 * every value its text gives at the zeros, the infinities and the NaNs, with the
-* symmetries applied to each entry -- conj for every function, and the odd and
-* even functions' own -- and the functions G.6 defines through others (casin,
+* symmetries applied to each entry - conj for every function, and the odd and
+* even functions' own - and the functions G.6 defines through others (casin,
 * catan, ccos, csin, ctan) equal to their definitions, bit for bit, at every
 * pair of special parts and a few finite ones; and the five's values at the same
 * parts, those of the functions each is a form of: clog's for log2, log10 and
@@ -119,8 +119,8 @@ d_tests_expect(
 // 1.  THE OPERATIONS, FOR EVERY FAMILY
 //==============================================================================
 // Each check names an operation and a family; the family's function is
-// called on parts given as long double values -- each exact in every family,
-// as the references' points are -- and its result widened, exactly, to long
+// called on parts given as long double values - each exact in every family,
+// as the references' points are - and its result widened, exactly, to long
 // double, read through volatile so that no x87 register's extra bits remain.
 
 enum dj_tests_op
@@ -430,7 +430,7 @@ d_tests_steps(
 
 // d_tests_point
 //   m 2^e, exactly: a point's part as the references give it, e past long
-// double's normal exponents among them -- in steps of 2^8000, which pow2
+// double's normal exponents among them - in steps of 2^8000, which pow2
 // reaches, so that only an exact last product can be subnormal.
 static long double
 d_tests_point(
@@ -965,9 +965,9 @@ static const struct dj_tests_edge g_edges[] =
 };
 
 // d_tests_edges
-//   each family's own points at the ends of its range -- near its largest
+//   each family's own points at the ends of its range - near its largest
 // value and in its subnormals, where exp, sinh, cosh, tanh, exp2 and expm1
-// pass its overflow and underflow, and exp2's y ln 2 far out -- against the
+// pass its overflow and underflow, and exp2's y ln 2 far out - against the
 // same bounds; the largest distances printed, family by family.
 static void
 d_tests_edges(void)
@@ -1424,7 +1424,7 @@ d_tests_power_by_products(
 //   z^n at exact points whose powers and inverses are exact, on the axes
 // with zeros of either sign and off them, n from -6 to 6, in every family
 // and both forms: the bits of d_tests_power_by_products, each zero's sign
-// among them -- the products' for n > 0 (S370), the quotient's, the
+// among them - the products' for n > 0 (S370), the quotient's, the
 // formula's, for n < 0 (S382).
 static void
 d_tests_power_zeros(void)
@@ -1534,7 +1534,7 @@ d_tests_whole_powers(void)
 // infinity of either sign, P and p +-pi, H and h +-pi/2, K pi/2 of either
 // sign, Q and q +-pi/4, T and t +-3pi/4; and for log2 and log10 those over ln
 // 2 and ln 10, A, B, C and D +pi, pi/2, pi/4 and 3pi/4 over ln 2, E, F, G
-// and U over ln 10, their lower cases the negatives -- the constants within
+// and U over ln 10, their lower cases the negatives - the constants within
 // a step of the family's nearest. Each entry is checked as written and as
 // each symmetry G.6 states makes it: f(conj z) = conj f(z) for all, f(-z) =
 // -f(z) for the odd and f(-z) = f(z) for the even. The five C99 has only for
@@ -2035,7 +2035,7 @@ d_tests_alike(
 // float and double are on a 32-bit x87 (math_common.h's section 4): there a
 // result the C library returns, or a sum held in a register, keeps the
 // wider type's bits as the compiler places it, so that the same algorithm,
-// inlined twice, may round differently -- its bound holds, not its bits.
+// inlined twice, may round differently - its bound holds, not its bits.
 static bool
 d_tests_wide(
     int _family
@@ -2475,7 +2475,7 @@ d_tests_real_of(
 // d_tests_real_axis
 //   each of the five on the real axis, where its value is real: in every
 // family and both forms, the real function's value in the same form, bit
-// for bit, and the zero of y, of either sign -- at values of x from the
+// for bit, and the zero of y, of either sign - at values of x from the
 // subnormals to past the overflow, and at -inf, +inf and NaN where the real
 // function takes them.
 static void
@@ -2697,7 +2697,7 @@ d_tests_infinities(void)
             // whole powers: (2^20 (1 + i))^-7 = 2^-144 (1 + i), a float's
             // subnormal, where z^7 itself is past float's range; (1 + i)^200
             // = 2^100; and (1 + i)^-260 = -2^-130, again a float's
-            // subnormal, where (1 + i)^260 is past float's range -- the
+            // subnormal, where (1 + i)^260 is past float's range - the
             // power rescaled as it is formed
             const long double scaled[4] =
                 { d_internal_math_ld_pow2(20), d_internal_math_ld_pow2(20),

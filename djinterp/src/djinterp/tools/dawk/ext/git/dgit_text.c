@@ -9,8 +9,8 @@
 * byte, as git's parser walks it, since an entry may follow a section's
 * header on its line and a value continue onto the next. Every line is then
 * told what it is.
-*   Matching is wildmatch written again from what git's does -- the same
-* answers, the same early abandoning of a search that cannot succeed -- and
+*   Matching is wildmatch written again from what git's does - the same
+* answers, the same early abandoning of a search that cannot succeed - and
 * the lookups walk the scopes as git walks its stacks.
 *
 *
@@ -587,8 +587,8 @@ size_t d_internal_line_text(
 /*
 d_internal_add_pattern
   Keeps a pattern of line `_line`, written from `_start` to `_end`, that
-git matches as `_length` bytes from `_bytes` -- a trailing `/` among them,
-taken off here as git takes it -- and marks the line a pattern's or, for
+git matches as `_length` bytes from `_bytes` - a trailing `/` among them,
+taken off here as git takes it - and marks the line a pattern's or, for
 a macro, a macro's.
 */
 static
@@ -691,7 +691,7 @@ size_t d_internal_trimmed(
 d_internal_read_ignore_line
   One line of an ignore file, as git's add_patterns_from_buffer reads it:
 `#` in the first column a comment, an empty line nothing, anything else a
-pattern -- even white space other than spaces. A pattern ends at a NUL, as
+pattern - even white space other than spaces. A pattern ends at a NUL, as
 git's C string does, and a `\r` that ends the file is the ending git adds.
 */
 static
@@ -860,7 +860,7 @@ bool d_internal_attribute_name(
 /*
 d_internal_parse_state
   One state of an attribute line, the token from `_at` to `_end`: "name",
-"-name", "!name", or "name=value" -- an `=` in "-name=value" leaves the
+"-name", "!name", or "name=value" - an `=` in "-name=value" leaves the
 state unset, its value unread, as git leaves it. False for a name git
 refuses.
 */
@@ -914,7 +914,7 @@ bool d_internal_parse_state(
 d_internal_parse_states
   The states of an attribute line, from `_at` to `_end`, kept from the
 file's first free attribute on; false, with nothing kept, when one has a
-name git refuses -- `_refused` then says so -- or memory runs out.
+name git refuses - `_refused` then says so - or memory runs out.
 */
 static
 bool d_internal_parse_states(
@@ -1248,8 +1248,8 @@ struct dj_internal_cursor
 
 // dj_internal_config
 //   struct: a configuration being read: the section it is in, its prefix
-//   as keys begin with it, where reading stopped -- D_GIT_TEXT_NONE until
-//   it does -- the line's end the last value read ended at, whether git
+//   as keys begin with it, where reading stopped - D_GIT_TEXT_NONE until
+//   it does - the line's end the last value read ended at, whether git
 //   counts the line past the one it stopped on, and whether memory ran
 //   out.
 struct dj_internal_config
@@ -1269,7 +1269,7 @@ struct dj_internal_config
 d_internal_next
   The next character, as git's get_next_char gives it: `\r\n` as `\n`, a
 `\r` alone as itself, and the end as `\n`, with `eof` set. `_where`
-receives the place of its first byte -- the end's is the text's length.
+receives the place of its first byte - the end's is the text's length.
 */
 static
 int d_internal_next(
@@ -1667,7 +1667,7 @@ struct dj_internal_value
 /*
 d_internal_value_byte
   One byte of a value that is written: the blanks before it, as spaces,
-then the byte -- an escape's meaning, a quote's toggling, or itself.
+then the byte - an escape's meaning, a quote's toggling, or itself.
 */
 static
 bool d_internal_value_byte(
@@ -1741,7 +1741,7 @@ bool d_internal_value_byte(
 /*
 d_internal_config_value
   An entry's value, as git's parse_value reads it: blanks before it
-skipped, blanks within it -- outside quotes -- each a space, blanks after
+skipped, blanks within it - outside quotes - each a space, blanks after
 it dropped, `;` and `#` outside quotes beginning a comment, and a line's
 end inside quotes refused.
   Long as parse_value is, which it follows: quotes, comments, blanks,
@@ -1853,7 +1853,7 @@ bool d_internal_config_value(
 /*
 d_internal_keep_entry
   Keeps an entry once read, its key the section's prefix, a dot, and the
-name -- or the name alone before any section, as git makes it -- and
+name - or the name alone before any section, as git makes it - and
 counts it among its section's.
   Long as the key is made, the entry kept and its section told, each a step.
 */
@@ -1903,8 +1903,8 @@ bool d_internal_keep_entry(
     _entry->section   = _config->section;
     _entry->line      = d_git_text_line_of(text, _entry->start);
 
-    // the line whose end ended its value -- one a `\` joined to it
-    // among them -- or its own
+    // the line whose end ended its value - one a `\` joined to it
+    // among them - or its own
     _entry->last_line = ( (_config->stop != D_GIT_TEXT_NONE) &&
                           (_config->stop >= _entry->start) )
                         ? d_git_text_line_of(text, _config->stop)
@@ -1937,7 +1937,7 @@ bool d_internal_keep_entry(
 d_internal_config_entry
   An entry, from its name's first byte `_first` at `_start`, as git's
 get_value reads it: the name's letters, digits and `-`, kept in lower
-case, then spaces and tabs, then the line's end -- a name alone -- or `=`
+case, then spaces and tabs, then the line's end - a name alone - or `=`
 and a value.
 */
 static
@@ -2128,7 +2128,7 @@ void d_internal_config_walk(
 /*
 d_internal_config_lines
   Tells each line of a configuration what it is: a section's, an entry's
--- each line it spans -- a comment's, a blank; and each the section it is
+-- each line it spans - a comment's, a blank; and each the section it is
 in. From the line reading stopped at, every line that is not blank is
 refused.
   Long as each line's kind is decided from the records over it, a step for
@@ -2702,7 +2702,7 @@ int d_internal_named_class(
 
 // dj_internal_bracket
 //   struct: a [class] being read: the pattern's place, its byte, the one
-//   before it -- 0 when a range or a class has just ended -- the text's
+//   before it - 0 when a range or a class has just ended - the text's
 //   byte, and whether it has matched.
 struct dj_internal_bracket
 {
@@ -3047,7 +3047,7 @@ int d_internal_star_scan(
 d_internal_wild_star
   Stars, from the first at `*_p`. Without D_GIT_TEXT_PATHNAME a star takes
 anything; with it, one takes no `/`, and `**` alone between slashes takes
-any number of directories -- none among them, tried first. A star that
+any number of directories - none among them, tried first. A star that
 ends the pattern takes the rest of the text; one before a `/` the rest of
 the name, the match going on past the slash, `*_p` and `*_t` moved.
 */
@@ -3124,8 +3124,8 @@ int d_internal_wild_star(
 /*
 d_internal_wild_match
   Git's dowild, from the pattern at `_p` and the text at `_t`: a byte at a
-time, `?` any but a `/` of a path, `\` the next byte as itself -- not
-folded, as git leaves it -- stars and classes by their own parts. The
+time, `?` any but a `/` of a path, `\` the next byte as itself - not
+folded, as git leaves it - stars and classes by their own parts. The
 text running out first abandons the whole match; the pattern running out
 first fails it. `_p` is where this match's pattern begins, which a `**`
 is measured from.
@@ -3335,7 +3335,7 @@ bool d_internal_below(
 d_internal_match_pathname
   A pattern with a slash, as git's match_pathname matches it: a leading
 `/` dropped, the path's part below the base compared, the literal bytes
-the pattern begins with first and the rest by wildmatch -- so a `**` the
+the pattern begins with first and the rest by wildmatch - so a `**` the
 literal part ends at counts as the pattern's beginning, as it does in git.
 */
 static
@@ -3533,8 +3533,8 @@ struct dj_git_text_query d_internal_normal_query(
 /*
 d_git_text_ignored
   Each directory above the path is asked first, as git's prep_exclude asks
-it while pushing each directory's .gitignore: one ignored -- not by a
-negated pattern -- decides for the path. A scope applies to a directory
+it while pushing each directory's .gitignore: one ignored - not by a
+negated pattern - decides for the path. A scope applies to a directory
 only when the directory is below the scope's base, so a directory's own
 .gitignore never decides for the directory.
 */
@@ -3607,7 +3607,7 @@ bool d_git_text_ignored(
 
 // dj_internal_attrs
 //   struct: a path's attributes being found: the scopes, git's own first,
-//   and what has been decided -- unspecified among it, which lines below
+//   and what has been decided - unspecified among it, which lines below
 //   do not override.
 struct dj_internal_attrs
 {
@@ -3621,8 +3621,8 @@ struct dj_internal_attrs
 
 /*
 d_internal_decided_of
-  The index of an attribute among those decided, by name -- names compare
-exactly -- or D_GIT_TEXT_NONE.
+  The index of an attribute among those decided, by name - names compare
+exactly - or D_GIT_TEXT_NONE.
 */
 static
 size_t d_internal_decided_of(

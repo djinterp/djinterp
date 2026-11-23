@@ -1,11 +1,11 @@
 /*******************************************************************************
 * djinterp [c][jit]                                                    jit_ppc.c
 *
-* djinterp PowerPC (PPC32 / PPC64) JIT encoder -- implementation (jit_ppc.h).
+* djinterp PowerPC (PPC32 / PPC64) JIT encoder - implementation (jit_ppc.h).
 *   Emitters assemble each instruction through the shared form encoders (X/XO,
 * D, M, MD, DS) and emit one 32-bit little-endian word. The two relocations at
-* the top patch branch displacements -- I-form (b/bl, +/-32 MB) and B-form (bc,
-* +/-32 KB) -- both PC-relative to the branch and invoked by the label facility
+* the top patch branch displacements - I-form (b/bl, +/-32 MB) and B-form (bc,
+* +/-32 KB) - both PC-relative to the branch and invoked by the label facility
 * in jit.h. PowerPC has no delay slots, so nothing follows a branch implicitly.
 *
 *

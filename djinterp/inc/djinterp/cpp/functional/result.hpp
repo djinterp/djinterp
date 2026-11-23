@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][functional]                                          result.hpp
 *
-* Result<T, E> -- a monadic success-or-error type (C++).
+* Result<T, E> - a monadic success-or-error type (C++).
 *   Represents the outcome of a fallible computation: either a value of
 * type Type (success / ok) or an error of type Error (err). Equivalent in
 * purpose to Rust's Result, Haskell's Either, std::expected (C++23). The
@@ -567,7 +567,7 @@ private:
     // ---- C++20 tagged-union storage ----
     //   Direct union of Type and Error with explicit lifetime management via
     // std::construct_at / std::destroy_at (both constexpr in C++20). No
-    // aligned_storage, placement-new, or void* casts -- so result<T,E>
+    // aligned_storage, placement-new, or void* casts - so result<T,E>
     // is usable in a constant expression.
     union storage_t
     {
@@ -822,7 +822,7 @@ NS_INTERNAL
 
     // is_callable_with_helper
     //   helper: SFINAE-detects whether Fn can be invoked with a single
-    // const Arg&. Return type is unconstrained -- result's value / error
+    // const Arg&. Return type is unconstrained - result's value / error
     // handlers (map, map_err, match arms) accept any return type.
     template<typename Fn,
              typename Arg>
@@ -892,7 +892,7 @@ using result_error_type_t = typename result_error_type<Result>::type;
 
 
 // is_result_value_mapper
-//   trait: true if Fn is callable as Fn(const Type&) -- the value-side
+//   trait: true if Fn is callable as Fn(const Type&) - the value-side
 // handler shape accepted by result::map, result::and_then, and the ok
 // arm of result::match. The return type is unconstrained.
 template<typename Fn,
@@ -902,7 +902,7 @@ struct is_result_value_mapper
 {};
 
 // is_result_error_mapper
-//   trait: true if Fn is callable as Fn(const Error&) -- the error-side
+//   trait: true if Fn is callable as Fn(const Error&) - the error-side
 // handler shape accepted by result::map_err, result::or_else, and the
 // err arm of result::match. The return type is unconstrained.
 template<typename Fn,
@@ -1220,7 +1220,7 @@ struct monad_traits<DResult<Type, Error>>
 //   specialization: makes result participate in the generic foldable
 // protocol over its success type Type. An ok folds its one value; an err is
 // treated as empty (the error is not an element), so fold_left is the
-// identity on err -- consistent with map / bind, which propagate err
+// identity on err - consistent with map / bind, which propagate err
 // untouched. Keyed on is_result so the single instance covers every
 // result<T, E>.
 template<typename Result>
@@ -1281,7 +1281,7 @@ NS_END  // internal
 //   specialization: result is Traversable over its success side. Traversing an
 // ok runs the effect on its value and re-wraps the result in an ok inside the
 // effect (F<B> -> F<result<B,Error>>); traversing an err injects that same err
-// into the effect with pure -- the effect F being recovered from the type of
+// into the effect with pure - the effect F being recovered from the type of
 // f's result, so the err branch is well-typed even though f is never called.
 // Keyed on is_result.
 template<typename Result>
@@ -1322,8 +1322,8 @@ struct traversable_traits<
 
 // bifunctor_traits<result<Type, Error>>
 //   specialization: result is a Bifunctor over (success, error). bimap maps
-// the success side with f and the error side with g -- exactly map followed by
-// map_err -- so the one-sided map_first / map_second recover result's own map
+// the success side with f and the error side with g - exactly map followed by
+// map_err - so the one-sided map_first / map_second recover result's own map
 // and map_err. Keyed on is_result.
 template<typename Result>
 struct bifunctor_traits<
@@ -1361,7 +1361,7 @@ struct bifunctor_traits<
 //   SFINAE-constrained (via is_result on the element type) so this
 // overload is viable only for containers of result. Without the
 // constraint it would collide with the equally-unconstrained
-// collect in maybe.hpp -- a result<T, E> element exposes a nested
+// collect in maybe.hpp - a result<T, E> element exposes a nested
 // value_type, which is all maybe's collect requires, so both
 // overloads would otherwise be ambiguous for a container of result.
 template<typename Container,

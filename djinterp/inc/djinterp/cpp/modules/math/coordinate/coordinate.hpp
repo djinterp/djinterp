@@ -433,7 +433,7 @@ NS_INTERNAL
 
     // is_coord_system_check
     //   trait: true for a type with a static dimension and is_orthogonal, the
-    // structural interface's two constants -- detected by sizeof, which every
+    // structural interface's two constants - detected by sizeof, which every
     // level has: a probe whose defaults name them substitutes, or not.
     template<typename Type>
     struct is_coord_system_check

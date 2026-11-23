@@ -169,8 +169,8 @@ bool d_internal_pop_text_has(
 
 /*
 d_internal_pop_text_is_clean
-  True when a span holds no CR, LF, or NUL -- the three bytes that would split
-or truncate a line -- and, unless `_allow_space`, no SP, which would split an
+  True when a span holds no CR, LF, or NUL - the three bytes that would split
+or truncate a line - and, unless `_allow_space`, no SP, which would split an
 argument in two.
 */
 static
@@ -1155,7 +1155,7 @@ bool d_internal_pop_split_args(
 /*
 d_pop_command_parse
   Keyword, then arguments by the command's own rule. An unknown keyword is not
-a parse failure -- the line is well-formed -- so it is filled in as far as it
+a parse failure - the line is well-formed - so it is filled in as far as it
 goes and reported distinctly, leaving the "-ERR unknown command" reply to the
 server.
 */
@@ -1418,7 +1418,7 @@ void d_internal_pop_parse_resp_code(
 
 /*
 d_pop_response_parse
-  "+OK" must be tested before "+" -- the continuation indicator is its prefix --
+  "+OK" must be tested before "+" - the continuation indicator is its prefix --
 and each indicator must be followed by SP or end of line, so "+OKAY" is not
 mistaken for "+OK".
 */

@@ -10,7 +10,7 @@
 *   make_mesh() adapts any analytic mesh that exposes m_vertices / m_faces
 * (e.g. math::triangle_mesh, including the Platonic solids) into a render mesh.
 * It is a template over that structure, so this header does not depend on the
-* geometry subframework -- only on linalg for positions and transforms.
+* geometry subframework - only on linalg for positions and transforms.
 *
 *
 * path:      /inc/djinterp/cpp/modules/render/mesh.hpp

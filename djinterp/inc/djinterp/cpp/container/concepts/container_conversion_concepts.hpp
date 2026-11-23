@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                    container_conversion_concepts.hpp
 *
-* C++20 concepts for the CONVERSION axis -- the `requires`-facing view of
+* C++20 concepts for the CONVERSION axis - the `requires`-facing view of
 * container_conversion_traits.hpp.
 *
 *   THE CONCEPTS ADD NO POLICY.
@@ -13,7 +13,7 @@
 *
 *   PORTABILITY:
 *   Gated on C++20 + concepts. Below that the header is empty and callers use
-* the `::value` / `_v` forms directly -- which is why
+* the `::value` / `_v` forms directly - which is why
 *
 *
 * path:      /inc/djinterp/cpp/container/concepts/container_conversion_concepts.hpp
@@ -54,7 +54,7 @@ concept container_convertible_to =
 
 
 // losslessly_convertible_to
-//   concept: the conversion loses NOTHING -- no content, no topology, no
+//   concept: the conversion loses NOTHING - no content, no topology, no
 // capacity. The distinction from lossy is not a warning label; it is the
 // difference between a rename and a projection.
 template<typename From, typename To>
@@ -63,7 +63,7 @@ concept losslessly_convertible_to =
 
 
 // lossily_convertible_to
-//   concept: the conversion is possible but DROPS something -- content,
+//   concept: the conversion is possible but DROPS something - content,
 // ordering, or elements over capacity.
 template<typename From, typename To>
 concept lossily_convertible_to =
@@ -91,7 +91,7 @@ concept range_insertable_from =
 
 
 // view_convertible_to
-//   concept: the conversion is a VIEW -- no copy, no ownership, and therefore
+//   concept: the conversion is a VIEW - no copy, no ownership, and therefore
 // no cost and no independence.
 template<typename From, typename To>
 concept view_convertible_to =

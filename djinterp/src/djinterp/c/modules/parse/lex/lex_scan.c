@@ -419,7 +419,7 @@ size_t d_internal_hex_ucn_end(
  *       C++23 forms `\u{X...}` and `\N{NAME}`.  A named character's value is
  *       not resolved, since that needs the Unicode name list; it is reported
  *       as 0xFFFFFFFF and treated as admissible.  Only the shape is checked
- *       here -- whether the value may stand where it does is the caller's
+ *       here - whether the value may stand where it does is the caller's
  *       question.
  *
  * @param[in]  _lexer     the scanner to inspect; not advanced.
@@ -1570,7 +1570,7 @@ size_t d_internal_prefix_length(
  * @brief Resolves an identifier's extent to a keyword kind.
  *
  * @note An identifier whose byte range was rewritten by an earlier phase --
- *       `in`, a splice, then `t` -- is not spelled by its bytes, so the range
+ *       `in`, a splice, then `t` - is not spelled by its bytes, so the range
  *       cannot be offered to the table directly. The rewritten case re-reads
  *       the range through the reader, which is what resolved it in the first
  *       place; the common case compares the bytes where they lie and copies

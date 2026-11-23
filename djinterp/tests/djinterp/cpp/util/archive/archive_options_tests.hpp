@@ -11,8 +11,8 @@
 *   WHAT A PLAIN-DATA HEADER OFFERS A TEST:
 *   archive_options carries no logic of its own: its contract is the knob set,
 * the enum values, the value semantics the compiler generates, and the rule
-* that a fresh set says nothing -- every numeric knob archive_knob_unset,
-* every text knob empty -- so that the kernel's resolution, done once for
+* that a fresh set says nothing - every numeric knob archive_knob_unset,
+* every text knob empty - so that the kernel's resolution, done once for
 * both faces, decides what each unset knob means for the format being
 * written.  The suite pins all of it: the enums' values (a ZIP method is its
 * number on the wire), pristine blocks and what each resolves to, deep
@@ -63,7 +63,7 @@ NS_TESTING
 // =============================================================================
 
 // sample_entries
-//   function: a small, fixed entry list used by the behavioural section -- one
+//   function: a small, fixed entry list used by the behavioural section - one
 // compressible text file and one directory, enough to exercise a writer without
 // making the assertions about it depend on payload specifics.
 //
@@ -214,7 +214,7 @@ NS_END  // djinterp
 
 // D_AO_REQUIRE
 //   macro: a hard precondition.  On failure it prints and returns false at
-// once -- for cases where continuing would be unsafe (an operation that must
+// once - for cases where continuing would be unsafe (an operation that must
 // succeed before its result is inspected).
 #define D_AO_REQUIRE(_cond)                                                    \
     do                                                                         \

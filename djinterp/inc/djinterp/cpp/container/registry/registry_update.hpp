@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                                  registry_update.hpp
 *
-*   The COMMON FUNCTIONAL CORE shared by every registry flavour -- the single
+*   The COMMON FUNCTIONAL CORE shared by every registry flavour - the single
 * body through which a value edit passes, and the two strategies that plug
 * into
 * its one variation point. A registry is a `map`/`multimap` overlay (keyed
@@ -23,21 +23,21 @@
 * records / whole-record value): the VALUE PROJECTION (which sub-region the
 * mutable handle exposes) and the REKEY STRATEGY (step 5).  When the value
 * region is disjoint from the key, step 5 is DEAD CODE and the recompute is
-* skipped entirely -- a static short-circuit, not a runtime branch.
+* skipped entirely - a static short-circuit, not a runtime branch.
 *
 *   THE TWO STRATEGIES (step 5):
-*     reject_rekey      guarded  -- a key change is refused; the entry is left
+*     reject_rekey      guarded  - a key change is refused; the entry is left
 *                                   exactly as it was (the mutation is
 *                                 performed
 *                                   on a copy, so "reject" truly un-rings it).
-*     reposition_rekey  relaxed  -- the stale slot is erased and the mutated
+*     reposition_rekey  relaxed  - the stale slot is erased and the mutated
 *                                   record reinserted at its new key's sorted
 *                                   position (a re-sort + mu re-validation,
 *                                   composed from the erase/insert
 *                                 primitives).
 *
 *   REUSE.  key equivalence is `equal_under` (comparator.hpp): a ~ b iff
-* !cmp(a,b) && !cmp(b,a) -- the E_key of the vocabulary, not a re-rolled test.
+* !cmp(a,b) && !cmp(b,a) - the E_key of the vocabulary, not a re-rolled test.
 * The sorted-key kernel (lower/upper bound, find, ordered insert) is the
 * runtime
 * counterpart of the sorted invariant and is the only search a registry needs.
@@ -56,7 +56,7 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    value / key projections     (tuple_at, whole_record -- convenience)
+I.    value / key projections     (tuple_at, whole_record - convenience)
       -------------------------------------------------------------------
 
 II.   key_equivalent              (E_key, over equal_under)
@@ -65,7 +65,7 @@ II.   key_equivalent              (E_key, over equal_under)
 III.  sorted-key kernel           (reg_lower_bound / _upper_bound / _find /
       ---------------------------------------------------------------------
 
-      _insert / _erase_at -- runtime, internal)
+      _insert / _erase_at - runtime, internal)
 
 IV.   rekey vocabulary            (update_status / update_result / strategies)
       ------------------------------------------------------------------------
@@ -129,7 +129,7 @@ template<std::size_t I>
 using tuple_at = DTupleAt<I>;
 
 // DWholeRecord
-//   projection: the identity value projection -- the value region IS the
+//   projection: the identity value projection - the value region IS the
 // entire record. This is trichotomy option (C); paired with a key projection
 // whose
 // coordinate lies inside the record, it is the flavour in which a value edit
@@ -165,7 +165,7 @@ using whole_record = DWholeRecord;
 
 // key_equivalent
 //   function: the key-equivalence E_key derived from a key comparator, i.e.
-// `equal_under(_cmp)` -- a ~ b iff neither key is less than the other. Named
+// `equal_under(_cmp)` - a ~ b iff neither key is less than the other. Named
 // here so the registry surface speaks the vocabulary directly; it introduces
 // no new logic over comparator.hpp's derived predicate.
 template<typename KeyCompare>
@@ -288,7 +288,7 @@ NS_INTERNAL
 
     // reg_insert
     //   place _rec at its sorted key position, preserving the bundle. Unique
-    // (map): a record of an equivalent key is overwritten IN PLACE -- the key
+    // (map): a record of an equivalent key is overwritten IN PLACE - the key
     // is unchanged, so eta/varsigma hold and this is the key-const value
     // write, not a re-key. Non-unique (multimap): inserted after any equal
     // keys (a stable append within the run). Returns the position it occupies.
@@ -359,10 +359,10 @@ NS_END  // internal
 
 // DUpdateStatus
 //   enum: how an update_at resolved.
-//     committed -- the value was written (key unchanged, or provably
+//     committed - the value was written (key unchanged, or provably
 // immovable).
-//     rejected -- a key change was refused (reject_rekey); store untouched.
-//     moved -- a key change was honoured (reposition_rekey); entry relocated.
+//     rejected - a key change was refused (reject_rekey); store untouched.
+//     moved - a key change was honoured (reposition_rekey); entry relocated.
 enum class DUpdateStatus
 {
     committed,
@@ -374,7 +374,7 @@ enum class DUpdateStatus
 using update_status = DUpdateStatus;
 
 // DUpdateResult
-//   struct: the outcome of update_at -- the status and the entry's index
+//   struct: the outcome of update_at - the status and the entry's index
 // afterwards (its unchanged position on commit/reject, its new position on a
 // move; lookup_absent-style sentinels are the registry's concern, not this
 // kernel's).
@@ -399,7 +399,7 @@ struct reject_rekey
 //   strategy (relaxed): a value edit that moves the key is honoured by erasing
 // the stale slot and reinserting the mutated record at its new sorted position
 // (with mu re-validated for the map). A new sequencing of the erase/insert
-// primitives -- no new structural machinery.
+// primitives - no new structural machinery.
 struct reposition_rekey
 {};
 
@@ -463,11 +463,11 @@ NS_END  // internal
 // reference to the VALUE region (via _vproj) and may change it; the KEY column
 // is never handed out. Dispatch:
 //
-//     KeyDisjoint == true -- the value region cannot reach the key, so the
+//     KeyDisjoint == true - the value region cannot reach the key, so the
 //                               edit is applied IN PLACE and the recompute /
 //                               strategy branch is elided (a compile-time
 //                               short-circuit: models A/B pay nothing extra).
-//     KeyDisjoint == false -- the edit is applied to a COPY (strong
+//     KeyDisjoint == false - the edit is applied to a COPY (strong
 // guarantee);
 //                               if the projected key is unchanged the copy is
 //                               committed, otherwise Strategy decides (reject

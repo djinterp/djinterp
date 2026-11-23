@@ -7,31 +7,31 @@
 * posts; after the frame the events are applied, in order, by apply(). The
 * interface is realized again only when the document in front, or the
 * window around the documents, has changed since it was last realized --
-* their versions say when -- so an idle frame costs a draw and nothing more.
+* their versions say when - so an idle frame costs a draw and nothing more.
 *   An edit to a sheet goes through edit(): the sheet as it was is kept for
 * undo under the edit's merge key, the change is made, and the sheet is
-* resolved again. Edits to how a sheet is looked at -- the selection, the
-* operand -- change its document without touching history, and edits to
-* the window -- its workspaces, its tool windows, a window's zoom -- change
+* resolved again. Edits to how a sheet is looked at - the selection, the
+* operand - change its document without touching history, and edits to
+* the window - its workspaces, its tool windows, a window's zoom - change
 * the shell.
 *   Every document belongs to one workspace, and the window shows the
 * workspace in front: its documents and its tool windows, docked as the
 * user left them. An event posted from a document's window carries that
 * document's id, and brings it to the front before it is applied; the tool
 * windows show, and act on, the document in front.
-*   The host -- a GLFW or a Win32 main -- owns the ImGui context and the
+*   The host - a GLFW or a Win32 main - owns the ImGui context and the
 * backend, and calls frame() between ImGui's NewFrame and Render. It gives
 * the window preferences_path(), the settings file where ImGui keeps the
 * layout of the windows and the widths of the tables' columns, and the
 * window keeps its own preferences there beside them; and session_path(),
-* where the window keeps its workspaces and documents -- unsaved changes
-* too -- so that it opens where it was left. The window reads both before
+* where the window keeps its workspaces and documents - unsaved changes
+* too - so that it opens where it was left. The window reads both before
 * the first frame and writes them as they change and when it closes --
 * itself, rather than through ImGui's IniFilename, so that a value ImGui
 * could not read back is never kept.
-*   The dialogs -- Save As, the definition files to import, closing a sheet
+*   The dialogs - Save As, the definition files to import, closing a sheet
 * with changes, naming a workspace, and Help's keyboard shortcuts and about
-* box -- are the window's own ImGui popups, drawn after the interface.
+* box - are the window's own ImGui popups, drawn after the interface.
 *
 * HOW TO USE
 * ----------
@@ -90,10 +90,10 @@ public:
      * @pre    ImGui's context exists, with IniFilename null: the window
      *         reads and writes the file itself.
      *
-     * @param[in] _preferences  the settings file -- preferences_path() for
+     * @param[in] _preferences  the settings file - preferences_path() for
      *                          a user's window; empty, for a screenshot or
      *                          a test, keeps nothing.
-     * @param[in] _session      the session file -- session_path() for a
+     * @param[in] _session      the session file - session_path() for a
      *                          user's window; empty keeps no session, and
      *                          the window opens on an example.
      */
@@ -120,7 +120,7 @@ public:
      */
     void frame();
 
-    // queueing -- an event applied before the next frame, as if posted
+    // queueing - an event applied before the next frame, as if posted
     void post(
         const uxoxo::event& _event
     );
@@ -130,14 +130,14 @@ public:
     D_NODISCARD const model& state() const;
     D_NODISCARD const shell_state& shell() const;
 
-    // documents -- every one open, in every workspace, in the order opened;
+    // documents - every one open, in every workspace, in the order opened;
     // one by its id, or nullptr
     D_NODISCARD std::vector<const model*> documents() const;
     D_NODISCARD const model* document(
         int _id
     ) const;
 
-    // fonts -- loads the interface and monospace fonts into ImGui's atlas;
+    // fonts - loads the interface and monospace fonts into ImGui's atlas;
     // call once, after the context is created and before the first frame
     static
     void load_fonts(
@@ -419,13 +419,13 @@ private:
  *       is not there.
  *
  * @return the settings file's path, or the empty string when there is
- *         nowhere to keep one -- and then nothing is kept.
+ *         nowhere to keep one - and then nothing is kept.
  */
 std::string preferences_path();
 
 /**
- * @brief Where the window keeps its session -- its workspaces, its
- *        documents and their unsaved changes -- between runs: beside the
+ * @brief Where the window keeps its session - its workspaces, its
+ *        documents and their unsaved changes - between runs: beside the
  *        settings file, as session.json.
  *
  * @return the session file's path, or the empty string when there is

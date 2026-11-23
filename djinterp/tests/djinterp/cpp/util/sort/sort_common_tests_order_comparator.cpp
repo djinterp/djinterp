@@ -57,7 +57,7 @@ bool tests_sort_common_order_comparator_descending()
     result.check(!descending(1, 2));
     result.check(!descending(2, 2));
 
-    //   Equivalence is preserved in both directions -- the property a
+    //   Equivalence is preserved in both directions - the property a
     // negating implementation would lose.
     values[0] = -4;
     values[1] = 0;
@@ -104,7 +104,7 @@ bool tests_sort_common_order_comparator_none()
 
     //   The branch tests for descending ONLY, so sort_order::none falls
     // through to the ascending path.  That is worth pinning: "none" reads
-    // like "leave the order alone", but it sorts -- ascending.
+    // like "leave the order alone", but it sorts - ascending.
     result.check(unspecified(1, 2));
     result.check(!unspecified(2, 1));
     result.check(!unspecified(2, 2));
@@ -159,7 +159,7 @@ bool tests_sort_common_order_comparator_non_const()
     DTallyingLess tally;
 
     //   The wrapper holds a mutable copy of its comparator, so a comparator
-    // whose call operator mutates -- one that tallies its calls, here --
+    // whose call operator mutates - one that tallies its calls, here --
     // works through it even when the wrapper itself is const.  The calls
     // land on the wrapper's copy, not on the caller's.
     const ::djinterp::internal::DOrderComparator<DTallyingLess> descending(

@@ -3,8 +3,8 @@
 *
 * Implementation of the listing parsers declared in ftp_listing.h: detection,
 * the line dispatcher, and the token scanning every dialect shares.
-*   Each dialect has its own file -- ftp_listing_unix.c, ftp_listing_dos.c,
-* and ftp_listing_mlsx.c -- reached through ftp_listing_internal.h.
+*   Each dialect has its own file - ftp_listing_unix.c, ftp_listing_dos.c,
+* and ftp_listing_mlsx.c - reached through ftp_listing_internal.h.
 *
 *
 * path:      /src/djinterp/c/modules/net/ftp/ftp_listing.c

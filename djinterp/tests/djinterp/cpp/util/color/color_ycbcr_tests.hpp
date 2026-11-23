@@ -134,7 +134,7 @@ bool cy_same(
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- declarations - visible in BOTH modes ------------------------------------
+// - declarations - visible in BOTH modes ------------------------------------
 
 // I.   CONSTRUCTION & TYPE IDENTITY   (color_ycbcr_tests_construction.cpp)
 bool tests_color_ycbcr_default_is_zeroed();
@@ -178,7 +178,7 @@ bool tests_color_ycbcr_clamp_is_constexpr();
 bool tests_color_ycbcr_clamp_agrees_with_kernel();
 
 
-// -- the spec provider - spec mode only --------------------------------------
+// - the spec provider - spec mode only --------------------------------------
 #ifdef DTEST_SPEC_MODE
 
 // color_ycbcr_spec

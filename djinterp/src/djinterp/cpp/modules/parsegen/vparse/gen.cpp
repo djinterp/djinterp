@@ -113,7 +113,7 @@ void op_rule_end(
 }
 
 // op_alt_choice
-//   voperator: open an alternative -- emit CHOICE(placeholder).
+//   voperator: open an alternative - emit CHOICE(placeholder).
 void op_alt_choice(
     machine& _m
 )
@@ -124,7 +124,7 @@ void op_alt_choice(
 }
 
 // op_alt_commit
-//   voperator: close a non-last alternative -- COMMIT to the rule exit
+//   voperator: close a non-last alternative - COMMIT to the rule exit
 // (recorded), and patch the opening CHOICE to the next alternative.
 void op_alt_commit(
     machine& _m
@@ -161,7 +161,7 @@ void op_emit_ref(
     return;
 }
 
-// op_emit_any -- match any one char
+// op_emit_any - match any one char
 void op_emit_any(
     machine& _m
 )
@@ -169,7 +169,7 @@ void op_emit_any(
     state& s = self(_m); emit(s, make_instr(peg::ANY)); return;
 }
 
-// op_emit_mark / op_emit_cap -- captures in the generated parser
+// op_emit_mark / op_emit_cap - captures in the generated parser
 void op_emit_mark(
     machine& _m
 )
@@ -183,7 +183,7 @@ void op_emit_cap(
     state& s = self(_m); emit(s, make_instr(peg::CAP, s.cur->tag)); return;
 }
 
-// op_star_begin / op_star_end -- a zero-or-more loop
+// op_star_begin / op_star_end - a zero-or-more loop
 void op_star_begin(
     machine& _m
 )
@@ -241,7 +241,7 @@ op_set make_ops()
 }
 
 // emit_term
-//   helper (host): directives for one term -- capture brackets outside an
+//   helper (host): directives for one term - capture brackets outside an
 // optional star loop around the recognizer.
 static
 void emit_term(

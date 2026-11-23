@@ -3,19 +3,19 @@
 *
 * The argument parser's C++ boundary suite's sections.
 *   Each step gives the face one function of the caller's and runs what
-* calls it: a parse, written as the run writes one -- the ERR line of a
-* parse that fails, then the root's report -- or help, written with its
+* calls it: a parse, written as the run writes one - the ERR line of a
+* parse that fails, then the root's report - or help, written with its
 * status, or the writer the function serves. The results' section runs
 * each function that may return more than one kind of result with each:
-* nothing; a status -- ok, which is no news, one that fails bare, which the
+* nothing; a status - ok, which is no news, one that fails bare, which the
 * parse gives its own message, and one its option or command failed with a
-* message first, which is kept -- given as a cli::status or a status_code;
+* message first, which is kept - given as a cli::status or a status_code;
 * and, for an option's callback, a bool. The sections of exceptions, in a
 * build with them, run every function the face guards throwing a
 * std::runtime_error whose what() names it, one whose what() is empty,
 * std::bad_alloc, then an exception of no standard type, row by row of
 * ISSUES 47's table: an option's functions and a type's; a command's;
-* text's -- help's steps and a sink; filters; and a configuration format's
+* text's - help's steps and a sink; filters; and a configuration format's
 * operations. Every section is the module's own.
 *
 *
@@ -1055,7 +1055,7 @@ void results_each_rejected(
 /**
  * @brief RESULTS 16: an each() function that fails through the option's
  *        fail() with validation_error and a message, which rejects the
- *        value with it -- CLI11's ValidationError("nope") thrown from one.
+ *        value with it - CLI11's ValidationError("nope") thrown from one.
  *
  * @param[in,out] _run  the step's run.
  */
@@ -1565,7 +1565,7 @@ void write_help(
 
 // brittle
 //   struct: a type read with operator>> and written with operator<<, each of
-// which throws what the type names -- the type's, as a value is read into
+// which throws what the type names - the type's, as a value is read into
 // one the face makes.
 template<DThrownKind Kind>
 struct DBrittle

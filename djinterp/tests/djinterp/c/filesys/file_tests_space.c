@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                       file_tests_space.c
 *
-*   XV. Capacity (file_space) -- how much room the filesystem behind a path
+*   XV. Capacity (file_space) - how much room the filesystem behind a path
 * has. The success case sanity-checks the relationships that must hold on any
 * real volume (there is some capacity; neither free nor available exceeds it),
 * rather than asserting exact figures that depend on the host. On failure the
@@ -73,7 +73,7 @@ void d_fs_tests_space(
  *****************************************************************************/
 
 /******************************************************************************
- * XV.  file_space  --  FILESYSTEM CAPACITY
+ * XV.  file_space  -  FILESYSTEM CAPACITY
  *****************************************************************************/
 
 #if D_FILE_SPACE_IS_AVAILABLE
@@ -84,7 +84,7 @@ d_tests_file_space
   The assertion worth having is available <= free <= capacity. It looks
 trivial and is not: `free` and `available` differ by the root reserve, by
 quotas and by container limits, and on the machine this suite was written on
-the gap was 233 GiB -- 249 free against 10 available. A program sizing a write
+the gap was 233 GiB - 249 free against 10 available. A program sizing a write
 off `free` would have overcommitted by that much.
 */
 static

@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                        file_tests_path.c
 *
-*   IX. Paths (file_path) -- purely lexical, zero syscalls, so every case here
+*   IX. Paths (file_path) - purely lexical, zero syscalls, so every case here
 * is deterministic on a machine with no filesystem at all. The documented
 * input/output pairs in file_path.c's own headers are reproduced as assertions;
 * the internal branch structure (root handling, trailing-separator trimming,
@@ -104,7 +104,7 @@ void d_fs_tests_path_dirname(
 
     //   NOT rewritten: these results are SLICED from the caller's string, so
     // their separators are the caller's and pass through untouched. d_fs_sep
-    // belongs on results the module CONSTRUCTS -- what it inserts follows the
+    // belongs on results the module CONSTRUCTS - what it inserts follows the
     // grammar, what it copies does not.
 #endif
     d_test_suite_test(_suite, "full path -> parent directory");
@@ -119,7 +119,7 @@ void d_fs_tests_path_dirname(
 
     //   NOT rewritten: these results are SLICED from the caller's string, so
     // their separators are the caller's and pass through untouched. d_fs_sep
-    // belongs on results the module CONSTRUCTS -- what it inserts follows the
+    // belongs on results the module CONSTRUCTS - what it inserts follows the
     // grammar, what it copies does not.
     d_test_suite_test(_suite, "file at root -> root");
     D_FS_CHECK(_suite, d_path_dirname("/file.txt", buf, sizeof(buf)) == buf);
@@ -135,7 +135,7 @@ void d_fs_tests_path_dirname(
 
     //   NOT rewritten: these results are SLICED from the caller's string, so
     // their separators are the caller's and pass through untouched. d_fs_sep
-    // belongs on results the module CONSTRUCTS -- what it inserts follows the
+    // belongs on results the module CONSTRUCTS - what it inserts follows the
     // grammar, what it copies does not.
     d_test_suite_test(_suite, "root is its own parent");
     D_FS_CHECK(_suite, d_path_dirname("/", buf, sizeof(buf)) == buf);
@@ -201,7 +201,7 @@ void d_fs_tests_path_basename(
 
     //   NOT rewritten: these results are SLICED from the caller's string, so
     // their separators are the caller's and pass through untouched. d_fs_sep
-    // belongs on results the module CONSTRUCTS -- what it inserts follows the
+    // belongs on results the module CONSTRUCTS - what it inserts follows the
     // grammar, what it copies does not.
     d_test_suite_test(_suite, "root names itself");
     D_FS_CHECK(_suite, d_path_basename("/", buf, sizeof(buf)) == buf);
@@ -370,7 +370,7 @@ void d_fs_tests_path_join(
 
     //   NOT rewritten: these results are SLICED from the caller's string, so
     // their separators are the caller's and pass through untouched. d_fs_sep
-    // belongs on results the module CONSTRUCTS -- what it inserts follows the
+    // belongs on results the module CONSTRUCTS - what it inserts follows the
     // grammar, what it copies does not.
     d_test_suite_test(_suite,
                       "an absolute second component replaces the first");
@@ -380,7 +380,7 @@ void d_fs_tests_path_join(
 
     //   NOT rewritten: these results are SLICED from the caller's string, so
     // their separators are the caller's and pass through untouched. d_fs_sep
-    // belongs on results the module CONSTRUCTS -- what it inserts follows the
+    // belongs on results the module CONSTRUCTS - what it inserts follows the
     // grammar, what it copies does not.
     d_test_suite_test(_suite, "joining onto the root keeps a single separator");
     D_FS_CHECK(_suite, d_path_join(buf, sizeof(buf), "/", "b") == buf);
@@ -607,17 +607,17 @@ void d_fs_tests_path(
  *****************************************************************************/
 
 /******************************************************************************
- * IX.  file_path  --  LEXICAL PATH MANIPULATION
+ * IX.  file_path  -  LEXICAL PATH MANIPULATION
  *
  *   The only fs suite that touches no filesystem. Nothing here creates a
- * file, needs a temp directory, or cares what the disk contains -- so it runs
+ * file, needs a temp directory, or cares what the disk contains - so it runs
  * identically on a build server, in a container with a read-only root, and on
  * a target with no storage at all. That is a property of the module, not of
  * the tests, and it is why file_path was split out of file_dir.
  *
  *   It is also the suite most sensitive to configuration. D_CFG_FILE_PATH_-
  * SYNTAX decides which grammar is parsed, so the assertions branch on
- * D_FILE_PATH_UNDERSTANDS_WINDOWS rather than on the host -- which is the
+ * D_FILE_PATH_UNDERSTANDS_WINDOWS rather than on the host - which is the
  * whole point: a Linux build asked to read Windows paths must be TESTED
  * reading Windows paths, and the platform cannot tell you whether it was.
  *****************************************************************************/
@@ -659,7 +659,7 @@ bool d_tests_file_dirname(struct dj_test_suite* _suite)
                      "a file at the root has / for a parent");
 
     // the old dfile left this unspecified; "a/b/" and "a/b" name the same
-    // thing, so they must decompose the same way -- as the shell's basename
+    // thing, so they must decompose the same way - as the shell's basename
     // and dirname do
     d_path_dirname("a/b/", buf, sizeof(buf));
     D_TEST_CHECK_MSG(_suite,
@@ -792,7 +792,7 @@ bool d_tests_file_extension(struct dj_test_suite* _suite)
                      (d_path_extension("filename")) == NULL,
                      "a file with no dot has no extension");
 
-    // ".bashrc" is a hidden file whose whole name is ".bashrc" -- not a file
+    // ".bashrc" is a hidden file whose whole name is ".bashrc" - not a file
     // with a ".bashrc" extension
     D_TEST_CHECK_MSG(_suite,
                      "hidden",
@@ -819,7 +819,7 @@ bool d_tests_file_extension(struct dj_test_suite* _suite)
     #endif
 
     // stem and extension are complements, so they must agree for every input
-    // -- including the hidden-file case, where the extension is nothing and
+    // - including the hidden-file case, where the extension is nothing and
     // the stem is therefore the whole name
     d_path_stem("/a/file.txt", buf, sizeof(buf));
     D_TEST_CHECK_MSG(_suite,
@@ -862,7 +862,7 @@ bool d_tests_file_path_join(struct dj_test_suite* _suite)
     d_path_join(buf, sizeof(buf), "path/to", "file.txt");
     //   Only the INSERTED separator follows the grammar. d_path_join joins;
     // it does not normalize, so a separator already inside an argument is
-    // passed through untouched -- "path/to" stays "path/to" even where the
+    // passed through untouched - "path/to" stays "path/to" even where the
     // emitted one is a backslash. d_path_normalize is the function that
     // rewrites them, and its own assertions below expect exactly that.
     D_TEST_CHECK_MSG(_suite,

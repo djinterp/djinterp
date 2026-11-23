@@ -6,9 +6,9 @@
 * (5.2.1).
 *   The one source of the module that includes a system header. Each question is
 * answered by the implementation env_arg_parser.h's facts select, chosen whole,
-* a function at a time: a file's status through _wstat64 on Windows -- a
+* a function at a time: a file's status through _wstat64 on Windows - a
 * directory named with a separator after it stated again without it, which the
-* older runtime, msvcrt, needs -- through stat where <sys/stat.h> is, and by
+* older runtime, msvcrt, needs - through stat where <sys/stat.h> is, and by
 * opening the file elsewhere; a file opened through the Microsoft runtime's
 * secure functions where it deprecates the others; a variable through _dupenv_s
 * or getenv; the command line through GetCommandLineW; the terminal through the
@@ -84,7 +84,7 @@ static const unsigned int UTF8_LEADS[5] = { 0x00u, 0x00u, 0xC0u, 0xE0u, 0xF0u };
  * @return the sequence's length, 1 to 4; 0 for a byte that cannot lead.
  *
  * The length of the UTF-8 sequence a lead byte starts, by RFC 3629, and the
- * range its second byte must lie in -- narrower after E0, ED, F0 and F4, which
+ * range its second byte must lie in - narrower after E0, ED, F0 and F4, which
  * is what refuses overlong forms, surrogates and values past U+10FFFF; 0 for a
  * byte that cannot lead.
  */
@@ -433,7 +433,7 @@ enum
  * @param[in,out] _wide    the path, UTF-16, which loses the separators that
  *                         end it.
  * @param[out]    _status  receives the status.
- * @return 0 for a directory found so; -1 otherwise -- no separator to drop,
+ * @return 0 for a directory found so; -1 otherwise - no separator to drop,
  *         one that ends a root (`/`, `C:\\`), or a path that is not a
  *         directory.
  *
@@ -490,8 +490,8 @@ int d_arg_internal_system_stat_directory(
  * @return 0 on success; -1 on failure, as _stat64's.
  *
  * The Microsoft runtime's status of a path: a UTF-8 path widened for
- * _wstat64 -- and, where that finds nothing and the path ends in a
- * separator, stated again as a directory without it, for msvcrt -- any
+ * _wstat64 - and, where that finds nothing and the path ends in a
+ * separator, stated again as a directory without it, for msvcrt - any
  * other given to _stat64 in the ANSI code page, whose answer it keeps: a
  * separator's byte there can end a character of two.
  */
@@ -532,7 +532,7 @@ d_arg_internal_path_query
   _wstat64's answer: a directory or not, a regular file or not, the size,
 and the permissions Microsoft's std::filesystem reports for any file --
 read and execute always, write unless the file is read-only, which the
-runtime's write bit says -- rather than the runtime's own execute bit,
+runtime's write bit says - rather than the runtime's own execute bit,
 which only certain extensions get.
 */
 bool d_arg_internal_path_query(
@@ -573,8 +573,8 @@ bool d_arg_internal_path_query(
 /*
 d_arg_internal_path_query
   stat's answer, symbolic links followed: a directory or not, a regular file
-or not, the size, and whether the file's bits let anyone -- owner, group or
-others -- read, write or execute it, as CLI11's permission checks read
+or not, the size, and whether the file's bits let anyone - owner, group or
+others - read, write or execute it, as CLI11's permission checks read
 std::filesystem's.
 */
 bool d_arg_internal_path_query(
@@ -1091,8 +1091,8 @@ size_t d_arg_internal_terminal_measure(void)
  * @return its width in columns; 0 when standard output is not a terminal, or
  *         cannot be measured.
  *
- * Without a way to ask -- or with a system that hides TIOCGWINSZ from the
- * build's feature macros -- nothing is measured.
+ * Without a way to ask - or with a system that hides TIOCGWINSZ from the
+ * build's feature macros - nothing is measured.
  */
 D_STATIC
 size_t d_arg_internal_terminal_measure(void)

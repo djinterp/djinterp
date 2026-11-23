@@ -3,7 +3,7 @@
 *
 * The suite of CLI11's numbers with units (arg_validator_extra.h, section 3):
 * AsNumberWithUnit over integer and floating-point types, its options, and
-* the units it is given -- none, one twice, in either case -- AsSizeValue in
+* the units it is given - none, one twice, in either case - AsSizeValue in
 * both of its bases, the two in composites, the one number written otherwise
 * than CLI11, the units that cannot be made, what the two complete as, and
 * the size check inside a parse.

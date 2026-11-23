@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  reduce_tests_type.cpp
-//   III. reduce_ct over a std::tuple -- the TYPE domain. The recursion walks the
+//   III. reduce_ct over a std::tuple - the TYPE domain. The recursion walks the
 //   element TYPES, feeding each as a type_c carrier; no tuple value is built.
 
 // std
@@ -69,7 +69,7 @@ bool tests_ct_tuple_value_entry()
     static_assert(reduce_ct(count_all(), 0, tup{}) == 3, "three elements");
     static_assert(reduce_ct(digits_type(), 0, tup{}) == 148, "left fold");
 
-    // a populated tuple value folds identically -- only its TYPE is consulted.
+    // a populated tuple value folds identically - only its TYPE is consulted.
     const tup populated{ 'a', 7, 2.5 };
     ok = ok && (reduce_ct(count_all(), 0, populated) == 3);
     ok = ok && (reduce_ct(DSumWith<DTypeLeaf>(), 0, populated) == 13);
@@ -115,7 +115,7 @@ bool tests_ct_tuple_both_entries_agree()
 
 /*
 tests_ct_tuple_empty_returns_the_seed
-  The base case: the empty tuple folds to the accumulator, untouched -- the
+  The base case: the empty tuple folds to the accumulator, untouched - the
   reducer is never invoked.
   Tests the following:
   - the seed comes back, by value and by type, through both entries
@@ -216,7 +216,7 @@ bool tests_ct_tuple_walks_types_not_values()
                   static_cast<int>(sizeof(no_default) + sizeof(int)),
                   "and their sizes summed");
 
-    // the VALUE entry cannot be called for it -- but can for an ordinary tuple.
+    // the VALUE entry cannot be called for it - but can for an ordinary tuple.
     static_assert(!can_value_entry<count_all, int, hard>::value,
                   "the convenience form needs default-constructible elements");
     static_assert(can_value_entry<count_all, int, std::tuple<int, char> >::value,
@@ -298,8 +298,8 @@ bool tests_ct_tuple_duplicate_types()
 
 /*
 tests_ct_tuple_accumulator_may_evolve
-  The recursion recomputes the accumulator type at every step -- it is
-  decltype(rf(acc, type_c<T0>)) -- so, as in the value domain and unlike reduce_rt,
+  The recursion recomputes the accumulator type at every step - it is
+  decltype(rf(acc, type_c<T0>)) - so, as in the value domain and unlike reduce_rt,
   the accumulator's TYPE may change as the fold proceeds.
   Tests the following:
   - folding the element sizes into a growing DValueList changes the accumulator
@@ -385,7 +385,7 @@ bool tests_ct_tuple_heterogeneous_sizes()
                   static_cast<int>(sizeof(char) + sizeof(short) + sizeof(int)),
                   "three unrelated types");
 
-    // a nested tuple counts as ONE element -- the recursion does not flatten.
+    // a nested tuple counts as ONE element - the recursion does not flatten.
     static_assert(reduce_ct(count_all(), 0,
                             type_c<std::tuple<int, std::tuple<int, int> > >) == 2,
                   "two elements, one of them a tuple");
@@ -400,7 +400,7 @@ bool tests_ct_tuple_heterogeneous_sizes()
 
 /*
 tests_ct_tuple_visits_each_element_once
-  The recursion peels exactly one head type per step -- none skipped, none folded
+  The recursion peels exactly one head type per step - none skipped, none folded
   twice. (reduce_ct is constexpr but runs perfectly well at runtime, so a
   recording reducer can observe the visits.)
   Tests the following:

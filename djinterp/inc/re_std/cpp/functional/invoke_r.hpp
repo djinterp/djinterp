@@ -34,7 +34,7 @@ namespace re_std
 {
 
 // invoke_r
-//   function: non-void return -- forwards through invoke and lets the
+//   function: non-void return - forwards through invoke and lets the
 // implicit conversion to R do the work.
 template<typename R,
          typename F,
@@ -51,7 +51,7 @@ invoke_r(
 }
 
 // invoke_r
-//   function: void return -- invokes for side effects and discards.
+//   function: void return - invokes for side effects and discards.
 template<typename R,
          typename F,
          typename... Args>

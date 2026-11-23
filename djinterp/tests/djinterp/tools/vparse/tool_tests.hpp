@@ -77,7 +77,7 @@ namespace wb = ::vparse::workbench;
 //------------------------------------------------------------------------------
 // 1.1.1
 // SUMS
-//   constant: a grammar in the notation that factors its repetition -- the
+//   constant: a grammar in the notation that factors its repetition - the
 // window's own example.
 const char* const SUMS =
     "Sum  = Term More* ;\n"
@@ -119,8 +119,8 @@ const char* const ARITHMETIC =
 // 1.4.1
 // chain
 //   function: a grammar in the notation of `_rules` rules, at least one, each
-// of which may defer to the next -- `R0 = [a-z] R1 | [0-9] ;` and on, the
-// last a digit alone -- which takes up to `_rules - 1` letters and then a
+// of which may defer to the next - `R0 = [a-z] R1 | [0-9] ;` and on, the
+// last a digit alone - which takes up to `_rules - 1` letters and then a
 // digit. At a few hundred rules, reading it takes more steps than a
 // request's default limit.
 inline
@@ -219,7 +219,7 @@ std::string disassembly(
 //------------------------------------------------------------------------------
 // 3.1.1
 // section
-//   struct: one section of a suite -- its name, and the function that runs
+//   struct: one section of a suite - its name, and the function that runs
 // it.
 struct section
 {

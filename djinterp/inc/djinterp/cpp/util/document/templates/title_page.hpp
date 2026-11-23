@@ -2,9 +2,9 @@
 * djinterp [cpp][utility]                                         title_page.hpp
 *
 *   A dialect-agnostic COVER PAGE for documents.  DTitlePage is a pure content
-* model -- a title, an optional subtitle, an optional prominent banner (e.g. a
+* model - a title, an optional subtitle, an optional prominent banner (e.g. a
 * "PASSED" / "FAILED" verdict), and a list of labelled fields (author, date,
-* summary figures) -- with a single render() that streams the page through a
+* summary figures) - with a single render() that streams the page through a
 * DDocumentRenderer.  Like every template here it knows no format: it emits a
 * heading, some paragraphs, some key-values, spacing, and a trailing page break,
 * and lets the renderer decide realisation.  In PDF the title is large and
@@ -15,7 +15,7 @@
 * (centre) hint and a style-name hint (title_page_style_*); a renderer that can
 * centre and colour does, one that cannot ignores them.  The banner's style is
 * caller-supplied (set_banner's second argument), so the producer chooses the
-* palette entry -- a test report passes "verdict.pass" or "verdict.fail", a
+* palette entry - a test report passes "verdict.pass" or "verdict.fail", a
 * release note might pass nothing.
 *
 *   THE STYLE NAMES it emits are exposed as constants so a producer can register
@@ -99,7 +99,7 @@ NS_DJINTERP
 // ===========================================================================
 
 // DTitlePage
-//   class: a cover page as a content model -- title, subtitle, banner, and an
+//   class: a cover page as a content model - title, subtitle, banner, and an
 // ordered list of labelled fields, plus a few layout knobs.  render() streams
 // it through a DDocumentRenderer; to_string() renders it through the plain
 // renderer for text / debugging.
@@ -117,15 +117,15 @@ NS_DJINTERP
 class DTitlePage
 {
 public:
-    // -- public type aliases -------------------------------------------------
+    // - public type aliases -------------------------------------------------
 
     using size_type  = std::size_t;
     using field_type = std::pair<std::string, std::string>;
 
-    // -- a. construction / fields --------------------------------------------
+    // - a. construction / fields --------------------------------------------
 
     // DTitlePage
-    //   constructor: an empty cover -- no title, a trailing page break, and a
+    //   constructor: an empty cover - no title, a trailing page break, and a
     // default top gap.
     DTitlePage()
         : m_title(),
@@ -208,7 +208,7 @@ public:
         return *this;
     }
 
-    // -- b. layout knobs -----------------------------------------------------
+    // - b. layout knobs -----------------------------------------------------
 
     // set_top_gap
     //   the blank space above the title (points, or the renderer's unit); a
@@ -234,7 +234,7 @@ public:
         return *this;
     }
 
-    // -- c. render / to_string -----------------------------------------------
+    // - c. render / to_string -----------------------------------------------
 
     // render
     //   stream the cover through _renderer: top gap, centred title heading,
@@ -343,7 +343,7 @@ private:
     //   the blank space bracketing the banner (points).
     static constexpr double k_banner_gap = 18.0;
 
-    // -- storage -------------------------------------------------------------
+    // - storage -------------------------------------------------------------
 
     std::string             m_title;
     std::string             m_subtitle;

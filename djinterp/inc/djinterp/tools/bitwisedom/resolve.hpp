@@ -4,24 +4,24 @@
 * Resolving a sheet: every row's macro name, value, colour and issues.
 *   A sheet says what each symbol is defined as; its resolution says what
 * that comes to. Names are composed from the affix cascade, values computed
-* -- expressions in dependency order, a cycle reported rather than followed
-* -- and the sheet checked: names C would reject or reserves, names defined
+* - expressions in dependency order, a cycle reported rather than followed
+* - and the sheet checked: names C would reject or reserves, names defined
 * twice, bits outside the width, numbers an encoding cannot hold, and
 * allocations that overlap within a group that asks for its bits to be
 * exclusive.
-*   The usage of each bit -- how many bit and range symbols claim it -- is
+*   The usage of each bit - how many bit and range symbols claim it - is
 * the distribution the grid's usage row shows, and the one an operation's
 * preview compares before and after.
 *   A macro row is evaluated as C: the sheet's macros, its environment text
 * and the standard headers' definitions form an environment (cenv.hpp), its
 * other symbols are constants of the types their literals give them, and
 * the macro's name is expanded and evaluated in it. Its type and expansion
-* are kept, and what the evaluation found -- undefined behaviour above all
-* -- is reported on the row.
+* are kept, and what the evaluation found - undefined behaviour above all
+* - is reported on the row.
 *   A resolution is computed whole, from scratch, after every edit: sheets
 * are small, and a resolution that is always fresh cannot go stale.
 *   The order rows are shown in is the sheet's own, or each group's rows
-* sorted by a key -- a name, the value, the lowest bit -- which a window
+* sorted by a key - a name, the value, the lowest bit - which a window
 * asks for; the header follows the sheet's own order either way.
 *
 *
@@ -102,7 +102,7 @@ struct issue
 // 1.2.1
 // resolved_row
 //   struct: what one row comes to. `bits` is every bit the row sets, in any
-// sheet -- what the grid shows; `value` is the row's value as an integer:
+// sheet - what the grid shows; `value` is the row's value as an integer:
 // in a sheet up to 64 bits wide, the same bits, and in a wider one, the
 // low 64 of them. `span_lsb` and `span_width` are the bits a bit, range or
 // field_value symbol lives in (a field_value's are its field's); -1 and 0
@@ -247,8 +247,8 @@ struct c_constant
  *
  * @note No integer holds such a sheet's values, so its symbols are what
  *       names a place in its arrays: a bit or a range is its lowest bit's
- *       number, a value the bits its field holds -- what the field's _GET
- *       reads, so a negative number is its field's pattern -- a literal
+ *       number, a value the bits its field holds - what the field's _GET
+ *       reads, so a negative number is its field's pattern - a literal
  *       its number, a macro the integer it evaluates to. An expression's
  *       bits, and a literal's past the 64th, are a set no integer holds,
  *       and have none.
@@ -260,7 +260,7 @@ D_NODISCARD c_constant wide_constant(
     const resolved_row& _row
 );
 
-// identifiers -- C's rules, and the forms C and C++ reserve
+// identifiers - C's rules, and the forms C and C++ reserve
 D_NODISCARD bool is_identifier(
     const std::string& _name
 );
@@ -294,7 +294,7 @@ D_NODISCARD std::string macro_body(
 /**
  * @brief The order a sheet's rows are shown in: the sheet's own, or each
  *        group's rows sorted as its grid's sort_by and sort_descending say
- *        -- groups first among their siblings, sorted by name where the
+ *        - groups first among their siblings, sorted by name where the
  *        key is a name and in the sheet's order where it is not; rows the
  *        key says nothing of, such as a symbol with no value sorted by
  *        value, after those it does; and rows the key cannot tell apart in

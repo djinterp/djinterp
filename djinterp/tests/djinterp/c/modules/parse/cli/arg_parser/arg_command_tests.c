@@ -155,8 +155,8 @@ enum dj_tests_arg_command_flag_kind
 };
 
 // dj_tests_arg_command_flag_case
-//   struct: one case of FLAGS: its tag, a flag made before it -- NULL for
-// none -- and the flag tried, with the call that makes it.
+//   struct: one case of FLAGS: its tag, a flag made before it - NULL for
+// none - and the flag tried, with the call that makes it.
 struct dj_tests_arg_command_flag_case
 {
     const char* tag;
@@ -1135,7 +1135,7 @@ static const char LIFECYCLE[] =
 
 // DEPRECATED_NAMED
 //   constant: CLI11's transcript of options deprecated by the name a command
-// finds them by -- deprecate_option(app, name, replacement) -- as the C++
+// finds them by - deprecate_option(app, name, replacement) - as the C++
 // command suite's LIFECYCLE reference writes the same calls; then the
 // module's own: a NULL command or name refused, nothing recorded.
 static const char DEPRECATED_NAMED[] =
@@ -1245,8 +1245,8 @@ static const char PARSED[] =
 // DEPARTED_SUMS
 //   constant: the parses of UNREAD_ARGS, each sum 0 to the function, as the
 // module reads a value that does not convert. CLI11's add_flag_function
-// hands on what its conversion wrote before it failed -- the integer
-// strtoll read at the front of the sum -- so its function is given 1, 3,
+// hands on what its conversion wrote before it failed - the integer
+// strtoll read at the front of the sum - so its function is given 1, 3,
 // 12 and 3, and, for the totals past 64 bits, which CLI11 writes as
 // doubles of 16 digits (9.223372036854776e+18), 9 and -9.
 static const char DEPARTED_SUMS[] =
@@ -1321,7 +1321,7 @@ static const size_t VERSION_STEP_COUNT =
 
 // DEPARTED_TRIGGERS
 //   constant: a trigger enabling a and b: a removed, then t and b parsed --
-// the trigger enables what is left of its list -- then the trigger itself
+// the trigger enables what is left of its list - then the trigger itself
 // removed, and b parsed alone, which stays disabled by default. CLI11's
 // TriggerOn keeps its targets in a lambda that a removal does not reach,
 // so its next use would enable the released subcommand.
@@ -1338,10 +1338,10 @@ static const char DEPARTED_TRIGGERS[] =
 
 // DEPARTED_CONTEXTS
 //   constant: the release counts of two contexts, `first` and `second`,
-// through a command's final callback -- given, given again, replaced,
+// through a command's final callback - given, given again, replaced,
 // removed, given to no command, a usage function given to no command,
-// moved by immediate_callback and released with the parser -- and through
-// a version function -- given, given again, replaced, removed, refused a
+// moved by immediate_callback and released with the parser - and through
+// a version function - given, given again, replaced, removed, refused a
 // taken name, given to no command, and released with the parser. CLI11
 // keeps callbacks as std::function values, which own what they hold;
 // here each context is released by the function given with it, once,
@@ -1398,8 +1398,8 @@ static const char DEPARTED_SWEEP_OPTION[] =
 // root needs, a subcommand below it that an option group needs, and the
 // group excluding it: each link, and the subcommands the parse used,
 // forget them. CLI11's remove_subcommand drops only the needs and excludes
-// its own subcommands hold on the one removed -- the group's exclusion
-// here -- so every other would read a released record.
+// its own subcommands hold on the one removed - the group's exclusion
+// here - so every other would read a released record.
 static const char DEPARTED_SWEEP_COMMAND[] =
     "[s t --inner v]\n"
     "cmd app n=1 miss=[] subs=[s] order=[]\n"
@@ -1964,7 +1964,7 @@ typedef void (*dj_tests_arg_command_case_fn)(
 
 /**
  * @brief Runs cases of a transcript, each in a parser of its own; what a
- *        case's run wrote -- the reports of its parses, and its notes --
+ *        case's run wrote - the reports of its parses, and its notes --
  *        follows the lines the case wrote itself.
  *
  * @param[in,out] _out    the transcript.
@@ -2622,8 +2622,8 @@ d_tests_arg_command_flags
     cannot be positional", leaving no flag; a name taken refused
   - add_flag_callback and add_flag_function take the description given, and
     add_flag_function's flag sums its values
-  - a flag bound to an `int` counts -- it sums, defaults to "0" and is
-    always called back -- one bound to a list takes every value and is set
+  - a flag bound to an `int` counts - it sums, defaults to "0" and is
+    always called back - one bound to a list takes every value and is set
     from a default, and one bound to a `bool` or a `char` captures its
     default; none has a type name
   - a flag bound to a variable whose name is taken is refused
@@ -2926,8 +2926,8 @@ CLI11's rule for leading zeros.
   - add_flag_callback's function is called once its flag is given true, not
     for `false`, and a value that is no truth value is a ConversionError
   - add_flag_function's is given the sum of the values: a use counts 1,
-    `false` -1, a number itself -- with an exponent, or in hexadecimal,
-    octal or binary as strtoll reads them, `08` as a double -- and a word
+    `false` -1, a number itself - with an exponent, or in hexadecimal,
+    octal or binary as strtoll reads them, `08` as a double - and a word
     alone 0
   - sums past 32 bits, to the 64-bit limits, given whole as an intmax_t;
     as a `long` where one has 64 bits, and as 0 where it has 32
@@ -4031,8 +4031,8 @@ void d_tests_arg_command_s19(
 }
 
 /**
- * @brief S20 and S21: option groups found by their groups -- one plain, one
- *        `+`, a nameless subcommand's `SUBCOMMANDS` -- but neither a named
+ * @brief S20 and S21: option groups found by their groups - one plain, one
+ *        `+`, a nameless subcommand's `SUBCOMMANDS` - but neither a named
  *        subcommand nor a group that is not there; then the command's
  *        subcommands.
  *
@@ -5159,8 +5159,8 @@ void d_tests_arg_command_n02(
 }
 
 /**
- * @brief N03: aliases refused -- one a sibling holds, the empty one, one
- *        holding a newline -- and one taken; the display name after.
+ * @brief N03: aliases refused - one a sibling holds, the empty one, one
+ *        holding a newline - and one taken; the display name after.
  *
  * @param[in,out] _case  the case's transcript and run.
  */
@@ -5428,7 +5428,7 @@ alias(), ignore_case() and ignore_underscore() give and refuse them.
     or one holding a newline with IncorrectConstruction; the root's alias
     checked against nothing; aliases written after the name
   - ignore_case and ignore_underscore refused where they would make a
-    subcommand's name match a sibling's -- or the root's one of its own --
+    subcommand's name match a sibling's - or the root's one of its own --
     the switch left off; turning one off never refused
   - aliases cleared and given again; a subcommand renamed to nothing becomes
     nameless, written as an option group, and its old name finds nothing
@@ -5819,8 +5819,8 @@ void d_tests_arg_command_set_rest(
 }
 
 /**
- * @brief N24: a root given every setting -- the switches as N25 turns them
- *        on, the rest as set_rest gives them -- and what a subcommand and
+ * @brief N24: a root given every setting - the switches as N25 turns them
+ *        on, the rest as set_rest gives them - and what a subcommand and
  *        an option group made after take of them.
  *
  * @param[in,out] _case  the case's transcript and run.
@@ -5939,13 +5939,13 @@ them.
   Tests the following:
   - the startup states: disabled or enabled by default, one turning off
     the other only when it is set, and neither turned off
-  - require_subcommand and require_option with a count -- exactly n, at
-    most -n, any for 0 -- and with a range
+  - require_subcommand and require_option with a count - exactly n, at
+    most -n, any for 0 - and with a range
   - allow_config_extras(true) capturing both kinds of extras, false making
     configuration extras errors and leaving the others
-  - a root's settings as made -- allowing Windows-style options where
+  - a root's settings as made - allowing Windows-style options where
     the module's setting for them says so, on Windows by default, as CLI11
-    does -- and a subcommand made after the root is given every setting
+    does - and a subcommand made after the root is given every setting
     takes its switches but for required, disabled, silent,
     positionals at the end, non-standard names and subcommand
     fallthrough, its modes, group, usage, footer and the most subcommands
@@ -7743,8 +7743,8 @@ retire_option arrange, and what using them writes.
     retired and has no effect" when used, once for all its values
   - a name no option has retired as an option taking at most one value,
     whose default is given when it takes none
-  - the names retirement cannot copy -- a flag's value, a non-standard
-    short name, `-h` beside a help flag -- refused with CLI11's errors,
+  - the names retirement cannot copy - a flag's value, a non-standard
+    short name, `-h` beside a help flag - refused with CLI11's errors,
     the option kept
 */
 bool d_tests_arg_command_lifecycle(void)
@@ -7756,8 +7756,8 @@ bool d_tests_arg_command_lifecycle(void)
 }
 
 /**
- * @brief N15c: options deprecated by name -- one by its long name, with a
- *        replacement, one by its short name, without -- and a name no
+ * @brief N15c: options deprecated by name - one by its long name, with a
+ *        replacement, one by its short name, without - and a name no
  *        option has, refused as CLI11's OptionNotFound; then a parse using
  *        both. Last, the module's own: a NULL command and a NULL name,
  *        refused with nothing recorded.

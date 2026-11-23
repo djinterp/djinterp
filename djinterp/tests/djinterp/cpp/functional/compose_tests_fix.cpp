@@ -62,7 +62,7 @@ bool compose_tests_fix()
 
     DUnitTestTally tally;
 
-    // C++11-safe functor recursion -- runs on every standard
+    // C++11-safe functor recursion - runs on every standard
     run_unit_test(verdict,
         tally,
         "fix expresses recursion via a functor body",
@@ -101,7 +101,7 @@ bool compose_tests_fix()
                 "fix factorial(6) == 720");
         });
 
-    // recursive Fibonacci -- a different shape, to show genericity
+    // recursive Fibonacci - a different shape, to show genericity
     run_unit_test(verdict,
         tally,
         "fix expresses a recursive Fibonacci (generic lambda)",

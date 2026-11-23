@@ -1,13 +1,13 @@
 /*******************************************************************************
 * djinterp [cpp][filesys]                                           file_dir.hpp
 *
-* djinterp::directory -- an open directory you can walk with a range-for
+* djinterp::directory - an open directory you can walk with a range-for
 * (roadmap Phase 6).
 *   This is the first C++ piece with iterator machinery rather than a flat set
 * of methods, and it makes the same D4 ownership decision file does, for the
 * same reason: a directory handle cannot be shared by copying.
 *   THE READDIR TRAP, HANDLED ONCE. file_dir.h is explicit that the entry a
-* read returns is BORROWED -- it stays valid only until the next read on the
+* read returns is BORROWED - it stays valid only until the next read on the
 * same handle, and dies with d_dir_close. So DDirectoryEntry does not hold
 * that pointer; it COPIES the name the moment it reads it. An entry you keep
 * is yours; it does not dangle when the walk moves on.
@@ -96,10 +96,10 @@ NS_DJINTERP
 
 
 // DDirectoryEntry
-//   class: one directory entry. A VALUE -- it owns a COPY of the name (the
+//   class: one directory entry. A VALUE - it owns a COPY of the name (the
 // readdir buffer it came from is borrowed and short-lived), so it is safe to
 // keep and copy. Its type comes from the entry's d_type, which some
-// filesystems do not fill in a readdir -- type_known() says whether to trust
+// filesystems do not fill in a readdir - type_known() says whether to trust
 // the predicates or to status() the path instead.
 class DDirectoryEntry
 {
@@ -116,7 +116,7 @@ public:
     // 1.2    Observers
     //--------------------------------------------------------------------------
     /**
-     * @brief Returns the entry's name -- the filename ALONE, not a full path;
+     * @brief Returns the entry's name - the filename ALONE, not a full path;
      *        join it onto the directory's path to open it.
      *
      * @return the name, owned by this entry.
@@ -139,7 +139,7 @@ public:
 
     // 1.3    Type predicates
     //--------------------------------------------------------------------------
-    // one kind each, as the readdir reported it -- all false when it did not
+    // one kind each, as the readdir reported it - all false when it did not
     bool is_regular_file(void) const
     {
         return m_type == DT_REG;
@@ -176,11 +176,11 @@ public:
     }
 
     /**
-     * @brief Reports the type in DFileKind's vocabulary -- file_status's too --
+     * @brief Reports the type in DFileKind's vocabulary - file_status's too --
      *        for callers already speaking it.
      *
      * @note An unreported d_type maps to type_none, meaning "readdir did not
-     *       say" -- distinct from type_unknown, which would be "it exists and
+     *       say" - distinct from type_unknown, which would be "it exists and
      *       is none of the named kinds".
      *
      * @return the matching file type, or type_none.
@@ -261,7 +261,7 @@ private:
 class directory;
 
 // DDirectoryIterator
-//   class: a single-pass input cursor over a directory. NON-OWNING -- it holds
+//   class: a single-pass input cursor over a directory. NON-OWNING - it holds
 // a pointer to the directory (which owns the handle), not the handle itself,
 // so copying an iterator is cheap and copies share the one walk. A null
 // directory pointer is the end sentinel; begin() reads the first entry and ++
@@ -529,7 +529,7 @@ public:
     // 3.3    Range protocol
     //--------------------------------------------------------------------------
     /**
-     * @brief Reads the first entry from the current position -- single pass --
+     * @brief Reads the first entry from the current position - single pass --
      *        and returns a cursor at it.
      *
      * @note A read error during iteration ends the loop; last_error() reports
@@ -581,7 +581,7 @@ public:
 #endif
 
     // after a range-for: the error the walk ended on, and whether there was
-    // one -- a clean walk leaves both clear
+    // one - a clean walk leaves both clear
     const error& last_error(void) const
     {
         return m_error;
@@ -599,7 +599,7 @@ private:
      * @brief Advances to the next real entry, skipping "." and "..".
      *
      * @note A NULL from the readdir with errno clear is a clean end, and with
-     *       errno set a failure -- the classic readdir distinction, made once,
+     *       errno set a failure - the classic readdir distinction, made once,
      *       here.
      *
      * @post At the end of the walk m_at_end is set; on a genuine readdir error
@@ -668,7 +668,7 @@ private:
                      (_name[2] == '\0') ) ) );
     }
 
-    // never copyable -- two owners would double-close the handle
+    // never copyable - two owners would double-close the handle
     D_DELETED_FN(directory(const directory& _other))
     D_DELETED_FN(directory& operator=(const directory& _other))
 
@@ -744,7 +744,7 @@ DDirectoryIterator& DDirectoryIterator::operator++(void)
 /**
  * @brief Makes one directory.
  *
- * @note Its parents must already exist -- that is what d_dir_create does;
+ * @note Its parents must already exist - that is what d_dir_create does;
  *       d_dir_create_parents would make the chain. An existing path is
  *       reported as-is, so the caller can check for EEXIST.
  *

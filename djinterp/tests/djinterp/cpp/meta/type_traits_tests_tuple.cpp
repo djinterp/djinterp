@@ -55,7 +55,7 @@ NS_TESTING
 // I.   first_arg  (compile-time)
 // =========================================================================
 
-// single arg -- ::type names the single type
+// single arg - ::type names the single type
 static_assert(std::is_same<typename first_arg<int>::type, int>::value,
               "first_arg<int>::type == int");
 static_assert(std::is_same<typename first_arg<double>::type, double>::value,
@@ -64,7 +64,7 @@ static_assert(std::is_same<typename first_arg<std::tuple<int>>::type,
                            std::tuple<int>>::value,
               "first_arg<tuple<int>>::type == tuple<int>");
 
-// multi arg -- ::type names the head
+// multi arg - ::type names the head
 static_assert(std::is_same<typename first_arg<int, char>::type, int>::value,
               "first_arg<int, char>::type == int");
 static_assert(std::is_same<typename first_arg<int, char, float>::type,
@@ -91,7 +91,7 @@ static_assert(std::is_same<first_arg_t<int, char, float>, int>::value,
 // II.  is_tuple  (compile-time)
 // =========================================================================
 
-// positive cases -- specializations of std::tuple of various arities
+// positive cases - specializations of std::tuple of various arities
 static_assert(is_tuple<std::tuple<>>::value == true,
               "is_tuple<std::tuple<>> -> true (empty tuple)");
 static_assert(is_tuple<std::tuple<int>>::value == true,
@@ -105,7 +105,7 @@ static_assert(is_tuple<std::tuple<int, char, float, double>>::value == true,
 static_assert(is_tuple<std::tuple<std::tuple<int>>>::value == true,
               "is_tuple<tuple<tuple<int>>> -> true");
 
-// negative cases -- non-tuple class templates
+// negative cases - non-tuple class templates
 static_assert(is_tuple<std::vector<int>>::value == false,
               "is_tuple<std::vector<int>> -> false");
 static_assert(is_tuple<std::pair<int, char>>::value == false,
@@ -115,7 +115,7 @@ static_assert(is_tuple<std::pair<int, char>>::value == false,
 static_assert(is_tuple<std::pair<std::tuple<int>, std::tuple<char>>>::value == false,
               "is_tuple<pair<tuple, tuple>> -> false (the outer type is pair)");
 
-// negative cases -- non-class types
+// negative cases - non-class types
 static_assert(is_tuple<int>::value == false,
               "is_tuple<int> -> false");
 static_assert(is_tuple<void>::value == false,
@@ -130,7 +130,7 @@ static_assert(is_tuple<int[5]>::value == false,
 // III. is_single_tuple_arg  (compile-time)
 // =========================================================================
 
-// positive cases -- exactly one std::tuple in the pack
+// positive cases - exactly one std::tuple in the pack
 static_assert(is_single_tuple_arg<std::tuple<int>>::value == true,
               "is_single_tuple_arg<tuple<int>> -> true");
 static_assert(is_single_tuple_arg<std::tuple<int, char>>::value == true,
@@ -138,11 +138,11 @@ static_assert(is_single_tuple_arg<std::tuple<int, char>>::value == true,
 static_assert(is_single_tuple_arg<std::tuple<>>::value == true,
               "is_single_tuple_arg<tuple<>> -> true (empty tuple is still a tuple)");
 
-// negative case -- empty pack
+// negative case - empty pack
 static_assert(is_single_tuple_arg<>::value == false,
               "is_single_tuple_arg<> -> false (empty pack)");
 
-// negative case -- single non-tuple
+// negative case - single non-tuple
 static_assert(is_single_tuple_arg<int>::value == false,
               "is_single_tuple_arg<int> -> false (not a tuple)");
 static_assert(is_single_tuple_arg<std::vector<int>>::value == false,
@@ -150,7 +150,7 @@ static_assert(is_single_tuple_arg<std::vector<int>>::value == false,
 static_assert(is_single_tuple_arg<std::pair<int, char>>::value == false,
               "is_single_tuple_arg<pair<int, char>> -> false");
 
-// negative case -- multi-arg, even if the head is a tuple
+// negative case - multi-arg, even if the head is a tuple
 static_assert(is_single_tuple_arg<std::tuple<int>, char>::value == false,
               "is_single_tuple_arg<tuple<int>, char> -> false (arity > 1)");
 static_assert(is_single_tuple_arg<int, char>::value == false,
@@ -170,14 +170,14 @@ static_assert(is_single_tuple_arg<int, char>::value == false,
 // IV.  to_tuple  (compile-time)
 // =========================================================================
 
-// empty pack -- explicit specialization avoids the ill-formed
+// empty pack - explicit specialization avoids the ill-formed
 // first_arg<> path that the primary template would otherwise hit.
 static_assert(std::is_same<typename to_tuple<>::type, std::tuple<>>::value,
               "to_tuple<>::type == std::tuple<>");
 static_assert(std::is_same<to_tuple_t<>, std::tuple<>>::value,
               "to_tuple_t<> alias agrees");
 
-// single non-tuple arg -- wrapped exactly once
+// single non-tuple arg - wrapped exactly once
 static_assert(std::is_same<to_tuple_t<int>, std::tuple<int>>::value,
               "to_tuple_t<int> == std::tuple<int>");
 static_assert(std::is_same<to_tuple_t<char>, std::tuple<char>>::value,
@@ -186,7 +186,7 @@ static_assert(std::is_same<to_tuple_t<std::vector<int>>,
                            std::tuple<std::vector<int>>>::value,
               "to_tuple_t<vector<int>> == tuple<vector<int>> (vector is not a tuple)");
 
-// single tuple arg -- pass-through (the whole point of the trait)
+// single tuple arg - pass-through (the whole point of the trait)
 static_assert(std::is_same<to_tuple_t<std::tuple<int>>,
                            std::tuple<int>>::value,
               "to_tuple_t<tuple<int>> == tuple<int> (pass-through, not double-wrapped)");
@@ -197,7 +197,7 @@ static_assert(std::is_same<to_tuple_t<std::tuple<>>,
                            std::tuple<>>::value,
               "to_tuple_t<tuple<>> == tuple<> (empty tuple passes through)");
 
-// multi-arg pack -- always wrapped, even when the head is a tuple
+// multi-arg pack - always wrapped, even when the head is a tuple
 static_assert(std::is_same<to_tuple_t<int, char>,
                            std::tuple<int, char>>::value,
               "to_tuple_t<int, char> == tuple<int, char>");
@@ -208,7 +208,7 @@ static_assert(std::is_same<to_tuple_t<std::tuple<int>, char>,
                            std::tuple<std::tuple<int>, char>>::value,
               "to_tuple_t<tuple<int>, char> == tuple<tuple<int>, char> (NOT unwrapped)");
 
-// idempotence -- applying to_tuple twice is the same as once
+// idempotence - applying to_tuple twice is the same as once
 static_assert(std::is_same<to_tuple_t<to_tuple_t<int>>,
                            to_tuple_t<int>>::value,
               "to_tuple is idempotent on a wrapped scalar");

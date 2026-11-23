@@ -2,7 +2,7 @@
 * djinterp [re_std]                                           has_single_bit.hpp
 *
 * has_single_bit header:
-*   True iff exactly one bit is set -- i.e. the value is an integral
+*   True iff exactly one bit is set - i.e. the value is an integral
 * power of two. False for zero.
 *
 *   Uses the v & (v-1) identity rather than popcount(v) == 1: clearing

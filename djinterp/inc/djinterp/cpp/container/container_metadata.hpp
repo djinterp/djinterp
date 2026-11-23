@@ -4,20 +4,20 @@
 *   The foundational metadata facility for containers. Metadata is, at bottom,
 * nothing more than a COLLECTION OF KEY-VALUE PAIRS whose key and value types
 * are
-* open: a container may carry any optional metadata -- a title, a name, a
-* description, a date, a provenance record -- and this module imposes no fixed
+* open: a container may carry any optional metadata - a title, a name, a
+* description, a date, a provenance record - and this module imposes no fixed
 * metadata type, following the framework's metadata_traits protocol (which
 * asks
 * only whether a type carries metadata, what type it has, and what holds it).
 *
 *   TWO PIECES:
-*   1. DContainerMetadata<Key, Value, Store> -- the store: an ordered
+*   1. DContainerMetadata<Key, Value, Store> - the store: an ordered
 *      collection of Key -> Value entries over an open backing Store. Keys
 *    and
 *      values are ANY types the caller chooses; for heterogeneous values, a
 *      variant or std::any as Value keeps the pairs fully generic
 *      (DContainerMetadata<std::string, std::any> is the maximally open form).
-*   2. DMetadataCarrier<Metadata> -- the attachment: a mixin a container
+*   2. DMetadataCarrier<Metadata> - the attachment: a mixin a container
 * inherits
 *      to CARRY a metadata object and expose it through the metadata_traits
 *      protocol names (metadata(), metadata_type, metadata_container_type), so
@@ -26,7 +26,7 @@
 *      detect and extract it with no further wiring.
 *
 *   OPENNESS. Nothing here fixes the key type, the value type, or the backing.
-* The default backing is a flat vector of pairs with linear lookup -- right
+* The default backing is a flat vector of pairs with linear lookup - right
 * for
 * the handful of entries metadata usually holds, and imposing only equality on
 * the key; a caller wanting ordered or hashed lookup, or non-equality keys,
@@ -125,7 +125,7 @@ public:
 
     // --- key-value surface ---
 
-    // set -- bind _key to _value, overwriting any existing entry for that key.
+    // set - bind _key to _value, overwriting any existing entry for that key.
     void set(const Key& _key, Value _value)
     {
         // overwrite in place when the key is already present
@@ -145,7 +145,7 @@ public:
         return;
     }
 
-    // find -- pointer to the value bound to _key, or nullptr when absent.
+    // find - pointer to the value bound to _key, or nullptr when absent.
     D_NODISCARD const Value* find(const Key& _key) const
     {
         for (const value_type& _entry : m_entries)
@@ -172,7 +172,7 @@ public:
         return nullptr;
     }
 
-    // at -- the value bound to _key; throws std::out_of_range when absent.
+    // at - the value bound to _key; throws std::out_of_range when absent.
     D_NODISCARD const Value& at(const Key& _key) const
     {
         const Value* _p = find(_key);
@@ -186,13 +186,13 @@ public:
         return *_p;
     }
 
-    // contains -- whether _key is bound.
+    // contains - whether _key is bound.
     D_NODISCARD bool contains(const Key& _key) const
     {
         return (find(_key) != nullptr);
     }
 
-    // erase -- remove the entry for _key; returns whether one was removed.
+    // erase - remove the entry for _key; returns whether one was removed.
     bool erase(const Key& _key)
     {
         for (iterator _it = m_entries.begin(); _it != m_entries.end(); ++_it)
@@ -234,14 +234,14 @@ public:
     D_NODISCARD const_iterator cbegin() const noexcept { return m_entries.begin(); }
     D_NODISCARD const_iterator cend()   const noexcept { return m_entries.end();   }
 
-    // entries -- the underlying store (read-only), for interop.
+    // entries - the underlying store (read-only), for interop.
     D_NODISCARD const store_type& entries() const noexcept
     {
         return m_entries;
     }
 
 private:
-    // key_equal -- equality on keys; the only relation the default store
+    // key_equal - equality on keys; the only relation the default store
     // imposes on Key. A store keyed by a non-equality type supplies its own
     // lookup.
     static bool key_equal(const Key& _a, const Key& _b)
@@ -249,7 +249,7 @@ private:
         return (_a == _b);
     }
 
-    // get_key / get_value -- read a pair-like entry's members generically, so
+    // get_key / get_value - read a pair-like entry's members generically, so
     // the store's value_type may be std::pair or any {first, second}
     // aggregate.
     static const Key&   get_key(const value_type& _e)   { return _e.first;  }
@@ -300,7 +300,7 @@ inline constexpr bool is_container_metadata_v =
 
 // operator== / operator!=
 //   two metadata collections are equal iff they bind the same keys to equal
-// values -- an order-INSENSITIVE comparison, since metadata is a set of named
+// values - an order-INSENSITIVE comparison, since metadata is a set of named
 // entries, not a sequence.
 template<typename Key,
          typename Value,
@@ -351,7 +351,7 @@ D_NODISCARD bool operator!=(
 // it through the metadata_traits protocol. It provides metadata() (the
 // accessor the has_metadata trait detects) and the metadata_type /
 // metadata_container_type aliases the extractors read. Metadata is any
-// metadata type -- a DContainerMetadata, a table_metadata, or a user's own;
+// metadata type - a DContainerMetadata, a table_metadata, or a user's own;
 // when the metadata is a collection it is its own container, so both aliases
 // name it.
 //
@@ -368,7 +368,7 @@ public:
     using metadata_type           = Metadata;
     using metadata_container_type = Metadata;
 
-    // metadata -- the carried metadata object (the has_metadata accessor).
+    // metadata - the carried metadata object (the has_metadata accessor).
     D_NODISCARD const Metadata& metadata() const noexcept
     {
         return m_metadata;

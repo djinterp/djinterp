@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][net]                                          smtp_tests_server.c
 *
-* djinterp SMTP kernel tests -- server sessions.
+* djinterp SMTP kernel tests - server sessions.
 *   Standalone tests of smtp_server.c over net_tests_peer.h's scripted peer:
 * dot removal, strict end-of-data framing, limits, policy, every reply,
 * AUTH and the ways an exchange ends, the session's arguments and contexts,
@@ -677,7 +677,7 @@ bool d_tests_smtp_ends(
 /*
 d_tests_smtp_protocol_mid_sasl
   A connection that answers AUTH LOGIN's prompt with a protocol failure of
-its own -- a tunnel's malformed frame, say -- but would still take a reply:
+its own - a tunnel's malformed frame, say - but would still take a reply:
 the session must end on it, PROTOCOL, without the 501 it gives a client's
 undecodable answer.
 */

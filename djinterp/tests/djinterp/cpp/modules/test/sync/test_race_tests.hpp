@@ -77,7 +77,7 @@
 #include <thread>
 #include <vector>
 // djinterp
-// -- (part 1) mode-gated includes ------------------------------------------
+// - (part 1) mode-gated includes ------------------------------------------
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
 #include "../../../../../../inc/djinterp/cpp/modules/test/sync/test_race.hpp"                          // the header under test (normal)
@@ -169,7 +169,7 @@ void hr_fill_log(
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- (part 2) declarations - visible in BOTH modes -------------------------
+// - (part 2) declarations - visible in BOTH modes -------------------------
 
 // I.   RACE PROBE                      (test_race_tests_probe.cpp)
 bool tests_rprobe_report_defaults();
@@ -276,7 +276,7 @@ bool tests_rfactory_make_and_run();
 #endif  // D_HR_FACTORY_RETURNABLE
 
 
-// -- (part 3) the spec provider - spec mode only ---------------------------
+// - (part 3) the spec provider - spec mode only ---------------------------
 #ifdef DTEST_SPEC_MODE
 inline
 dt::module_spec race_spec()

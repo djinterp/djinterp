@@ -8,10 +8,10 @@
 * applied to p.get(). Note the key type: it is the DELETER'S pointer
 * type, not T*. A deleter that defines a nested `pointer` typedef (a
 * fancy pointer, an offset handle) changes what unique_ptr stores, and
-* the hash has to follow it -- which is why this specialisation names
+* the hash has to follow it - which is why this specialisation names
 * unique_ptr<Type, Deleter>::pointer rather than Type*.
 *
-*   In std this specialisation is CONDITIONALLY enabled -- it exists
+*   In std this specialisation is CONDITIONALLY enabled - it exists
 * only when hash<pointer> is itself enabled. re_std's hash primary
 * template is empty rather than deleted, so an unusable pointer type
 * already fails at the point of instantiation with a clear error, and

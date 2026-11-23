@@ -2,8 +2,8 @@
 * djinterp [c][parse]                                               arg_common.h
 *
 * The argument parser's shared vocabulary.
-*   Everything the parser's modules -- types, validators, options, commands,
-* help, configuration files, the parser itself -- say to each other and to a
+*   Everything the parser's modules - types, validators, options, commands,
+* help, configuration files, the parser itself - say to each other and to a
 * caller: the status every fallible call returns, with CLI11's exit codes
 * beside it; CLI11's enumerations, value for value; the forward declarations
 * that let the record types refer to one another; the growable byte buffer
@@ -26,8 +26,8 @@
 *
 * OPTIONS
 * -------
-*   None of its own: the enumerations here -- quoting rules, multi-option
-* policies, prefix modes, the classes of extra arguments -- are the values the
+*   None of its own: the enumerations here - quoting rules, multi-option
+* policies, prefix modes, the classes of extra arguments - are the values the
 * other headers' settings take.
 *
 * CONFIGURATION
@@ -274,7 +274,7 @@ bool d_arg_status_is_error(
 // 1.2.2
 // d_arg_status_name / d_arg_status_message / d_arg_status_exit_code
 //   pure lookups; none allocates or fails. The message is the one a status
-// carries when none was recorded -- CLI11's default where CLI11 has one --
+// carries when none was recorded - CLI11's default where CLI11 has one --
 // as d_arg_error_message reads it. A status outside the enum is named and
 // described "Error" and exits with D_ARG_EXIT_BASE_CLASS.
 D_ARG_PARSER_API const char* d_arg_status_name(
@@ -353,7 +353,7 @@ enum dj_arg_integer_rule
 // dj_arg_extras_mode
 //   enum: what a command does with an argument it does not recognize: report
 // it once parsing ends (ERROR, the default), report it at once, drop it, or
-// keep it for remaining() -- alone, with the one argument after it, with
+// keep it for remaining() - alone, with the one argument after it, with
 // every non-option argument after it, or as it is (CAPTURE).
 enum dj_arg_extras_mode
 {
@@ -395,7 +395,7 @@ enum dj_arg_prefix_mode
 // 2.2.4
 // dj_arg_startup
 //   enum: whether a command or option group is enabled at the start of every
-// parse: as it was left (STABLE), enabled, or disabled -- the mechanism of
+// parse: as it was left (STABLE), enabled, or disabled - the mechanism of
 // trigger_on and trigger_off.
 enum dj_arg_startup
 {
@@ -494,7 +494,7 @@ enum
 // 3.1.1
 // Forward declarations
 //   struct: the records of the other headers, and this header's error report,
-// declared here so that every header -- and every callback below -- can name
+// declared here so that every header - and every callback below - can name
 // every record.
 struct dj_arg_command;
 struct dj_arg_error;
@@ -544,14 +544,14 @@ struct dj_arg_buffer
 // replaced, or removed; registered beside the context. NULL releases nothing.
 // A call given a context with a release function owns the context from then
 // on: it frees it with the record that keeps it, when another context
-// replaces it -- one given again is kept, not freed -- or at once when the
+// replaces it - one given again is kept, not freed - or at once when the
 // call fails or has no record to keep it in.
 typedef void (*dj_arg_release_fn)(void* _context);
 
 // 3.3.2
 // dj_arg_copy_fn
-//   type: duplicates a context for a record that is itself copied -- a
-// validator, which options hold by value -- returning the copy, which the
+//   type: duplicates a context for a record that is itself copied - a
+// validator, which options hold by value - returning the copy, which the
 // matching dj_arg_release_fn frees, or NULL when it could not be made.
 typedef void* (*dj_arg_copy_fn)(const void* _context);
 
@@ -592,16 +592,16 @@ typedef int (*dj_arg_each_fn)(const struct dj_arg_option* _option,
 
 // 3.3.7
 // dj_arg_command_text_fn
-//   type: writes text that belongs to a command -- its usage line, footer, or
-// version -- into a sink when it is needed rather than when it is defined.
+//   type: writes text that belongs to a command - its usage line, footer, or
+// version - into a sink when it is needed rather than when it is defined.
 typedef int (*dj_arg_command_text_fn)(const struct dj_arg_command* _command,
                                      struct dj_pack_sink          _sink,
                                      void*                       _context);
 
 // 3.3.8
 // dj_arg_option_text_fn
-//   type: writes text that belongs to an option -- its type name or its
-// default value -- into a sink when help asks for it.
+//   type: writes text that belongs to an option - its type name or its
+// default value - into a sink when help asks for it.
 typedef int (*dj_arg_option_text_fn)(const struct dj_arg_option* _option,
                                     struct dj_pack_sink         _sink,
                                     void*                      _context);
@@ -647,8 +647,8 @@ typedef int (*dj_arg_setting_fn)(void*        _ctx,
 // `exit_code` is the status's CLI11 exit code, or a runtime error's chosen
 // one. `command` and `option` are where it arose, either NULL when unknown,
 // and set to NULL in a parser's reports when what they point at is
-// released. A parser keeps one, and a definition error stays in it -- the
-// first one is never overwritten by a later one -- until the next parse
+// released. A parser keeps one, and a definition error stays in it - the
+// first one is never overwritten by a later one - until the next parse
 // reports it.
 struct dj_arg_error
 {
@@ -685,8 +685,8 @@ struct dj_arg_string_list
 
 // 3.5.2
 // dj_arg_text_list
-//   struct: spans that borrow their bytes -- from `argv`, or from storage some
-// dj_arg_string_list owns -- and are NUL-terminated at `data[length]`: an
+//   struct: spans that borrow their bytes - from `argv`, or from storage some
+// dj_arg_string_list owns - and are NUL-terminated at `data[length]`: an
 // option's values, as given and as reduced.
 struct dj_arg_text_list
 {
@@ -717,8 +717,8 @@ struct dj_arg_extra_list
 
 // 3.5.5
 // dj_arg_option_list
-//   struct: options a record refers to without owning them -- the ones an
-// option needs or excludes, the parse order -- or, in a command's own list,
+//   struct: options a record refers to without owning them - the ones an
+// option needs or excludes, the parse order - or, in a command's own list,
 // the options it owns.
 struct dj_arg_option_list
 {
@@ -972,8 +972,8 @@ D_ARG_PARSER_API int d_arg_error_setf(
 
 // 4.3.3
 // d_arg_error_message / d_arg_error_exit_code
-//   reading: message is never NULL -- the recorded text, or the status's own,
-// d_arg_status_message's, when none was recorded -- and exit_code is the
+//   reading: message is never NULL - the recorded text, or the status's own,
+// d_arg_status_message's, when none was recorded - and exit_code is the
 // code to end the process with. Both accept NULL, which reads as D_ARG_OK.
 D_ARG_PARSER_API const char* d_arg_error_message(
     const struct dj_arg_error* _error
@@ -986,8 +986,8 @@ D_ARG_PARSER_API int d_arg_error_exit_code(
 //------------------------------------------------------------------------------
 // 4.4.1
 // d_arg_string_list_release / d_arg_text_list_release
-//   lifetime: free what a list owns -- every string and the array of a string
-// list, the array of a text list -- and leave it empty. A zeroed list is an
+//   lifetime: free what a list owns - every string and the array of a string
+// list, the array of a text list - and leave it empty. A zeroed list is an
 // empty one, so a caller's list needs no initialization. Neither fails, and
 // each ignores NULL.
 D_ARG_PARSER_API void d_arg_string_list_release(

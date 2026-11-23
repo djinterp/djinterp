@@ -8,8 +8,8 @@
 * this double in place of itself (the owner's ruling of 2026.10.02), so a unit
 * never holds both. This header keeps its own path-derived include guard.
 *
-*   It reproduces exactly the surface test_pack.hpp consumes -- entry,
-* entry_list, the formats:: tags, try_archive<>, and format_is_writable<> -- but
+*   It reproduces exactly the surface test_pack.hpp consumes - entry,
+* entry_list, the formats:: tags, try_archive<>, and format_is_writable<> - but
 * records rather than builds an archive: try_archive<Tag> writes the observable
 * line
 *
@@ -19,7 +19,7 @@
 * steer.  byte_blob and status come from the sibling compress double, as in
 * the production tree where archive.hpp includes compress.hpp.
 *
-*   The recorded tag ids are the enum-style names the tests expect -- note
+*   The recorded tag ids are the enum-style names the tests expect - note
 * "tar_gz" and "sevenzip", which deliberately differ from the production
 * format_traits::name() ("tar.gz" and "7z"): the double records the selector's
 * identity, not the on-disk extension.
@@ -66,7 +66,7 @@
 #include <string>
 #include <vector>
 // djinterp
-// djinterp  -- angle-bracket paths so the double is location-independent; the
+// djinterp  - angle-bracket paths so the double is location-independent; the
 // sibling compress double is reached by basename (it sits next to this file).
 #include <djinterp/cpp/djinterp.hpp>              // NS_*, D_INLINE
 #include <djinterp/cpp/util/archive/archive_options.hpp>  // archive_options
@@ -167,7 +167,7 @@ namespace formats
 // document_bundle / output_packaging layer chooses a container at RUNTIME
 // through this id rather than through the compile-time formats:: tags, so the
 // double mirrors the production enum here.  The enumerator order matches the
-// production archive.hpp -- NOTE gz precedes tar_gz, which is exactly the
+// production archive.hpp - NOTE gz precedes tar_gz, which is exactly the
 // ordinal mismatch against test_archive_format that test_output_config guards
 // against with a by-value switch.  Plain enum, C++98, as in the real facade.
 enum format_id

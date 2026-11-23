@@ -18,12 +18,12 @@
 * exercised at run time.
 *
 *   SECTION MAP (one .cpp per section):
-*     predicate_tests_binary.cpp   -- and / or / xor combinators + factories
-*     predicate_tests_not.cpp      -- not combinator + factory
-*     predicate_tests_nand_nor.cpp -- nand / nor combinators + factories
-*     predicate_tests_variadic.cpp -- all_of / any_of / none_of folds
-*     predicate_tests_traits.cpp   -- structural is_predicate_* traits
-*     predicate_tests_behavioral.cpp -- behavioral is_predicate + concepts
+*     predicate_tests_binary.cpp   - and / or / xor combinators + factories
+*     predicate_tests_not.cpp      - not combinator + factory
+*     predicate_tests_nand_nor.cpp - nand / nor combinators + factories
+*     predicate_tests_variadic.cpp - all_of / any_of / none_of folds
+*     predicate_tests_traits.cpp   - structural is_predicate_* traits
+*     predicate_tests_behavioral.cpp - behavioral is_predicate + concepts
 *
 *   PORTABILITY:
 *   Compiles and passes under C++11 through C++20. Sections that exercise
@@ -377,7 +377,7 @@ bool test_predicate_behavioral();
 // Both are DEFINED in predicate_tests_runner.cpp.
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // predicate_spec
 //   function: the suite as DTest's module spec, one block per section.

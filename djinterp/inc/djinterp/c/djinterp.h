@@ -335,8 +335,8 @@ TABLE OF CONTENTS
 
 // 2.1.4
 // D_LONG_LONG_DIAG_PUSH / D_LONG_LONG_DIAG_POP
-//   macro: bracket framework code that spells `long long` -- the type, a
-// cast to it, an LL literal -- so it builds without a diagnostic where `long
+//   macro: bracket framework code that spells `long long` - the type, a
+// cast to it, an LL literal - so it builds without a diagnostic where `long
 // long` is an extension rather than standard: C++ before C++11 in the default
 // mode, under -pedantic. GCC and Clang do not report -Wlong-long between them
 // (Clang's -Wc++11-long-long is in that group); everywhere else, including
@@ -687,8 +687,8 @@ TABLE OF CONTENTS
 //   qualifier: ends a C function's declaration, to say the function throws
 // nothing, as C++ hears it: `noexcept` from C++11, `throw()` below; nothing
 // in C, where nothing throws, and nothing on the definition, compiled as C.
-// C++ then keeps no unwinding around a call -- no landing pad for what is
-// live across it, no terminate handler in a noexcept caller -- so a call in
+// C++ then keeps no unwinding around a call - no landing pad for what is
+// live across it, no terminate handler in a noexcept caller - so a call in
 // tail position stays a tail call. Only for a function that runs nothing of
 // its caller's, no callback: an exception thrown through it would end the
 // program. MSVC assumes as much of every extern "C" function under /EHsc;

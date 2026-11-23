@@ -10,7 +10,7 @@
 * counts the sections that will show, which their separators and
 * {section_count} need before the first is printed. For each section, the
 * second counts its items and measures their column; the third prints them.
-* Whether an item shows is asked anew each walk -- `select`, `features` and
+* Whether an item shows is asked anew each walk - `select`, `features` and
 * the filter are cheap, and no array of answers has to be sized for a report
 * of any length.
 *
@@ -22,8 +22,8 @@
 * then any other a template names, each by id, so a field's number does not
 * depend on which frame declared its variable.
 *
-*   THE DJIN IS STATIC. Its frame, its storage and its declarations -- the
-* printer's variables and the sections' scopes -- are its initialiser's, done
+*   THE DJIN IS STATIC. Its frame, its storage and its declarations - the
+* printer's variables and the sections' scopes - are its initialiser's, done
 * before the program runs, so no first call can race another.
 *
 *   EVERY WRITE IS THE STREAM'S, AND IS CHECKED ONCE A SECTION. The templates
@@ -340,8 +340,8 @@ struct dj_internal_env_printer_djin
 // d_internal_env_printer_djin
 //   variable: the djin "env_printer": the printer's variables declared, in
 // the schema's order, and the sections' slugs as its scopes, by its
-// initialiser -- what d_option_env_declare_all and d_option_env_set_scopes
-// would leave -- so it is ready before the program runs.
+// initialiser - what d_option_env_declare_all and d_option_env_set_scopes
+// would leave - so it is ready before the program runs.
 static struct dj_internal_env_printer_djin d_internal_env_printer_djin =
 {
     .frame =
@@ -1077,8 +1077,8 @@ d_env_printer_import(
 
 /*
 d_env_printer_set_template
-  The new template is compiled alone first, into the printer's pool -- which
-is recompiled whole before the next print anyway -- so one that does not
+  The new template is compiled alone first, into the printer's pool - which
+is recompiled whole before the next print anyway - so one that does not
 compile never replaces the one before it.
 */
 struct dj_option_result
@@ -1414,7 +1414,7 @@ d_internal_env_printer_shows(
 }
 
 /**
- * @brief The characters -- UTF-8 code points -- of a text.
+ * @brief The characters - UTF-8 code points - of a text.
  *
  * @param[in] _text  the text; null counts 0.
  * @return the count.
@@ -2432,7 +2432,7 @@ d_env_printer_dump
 its help, its global line, then a line for each section that binds it
 itself. A choice's and flags' names are listed after the help, so the dump
 documents what it may say. A variable a frame above the printer's own
-declares -- the registry root's -- is not the printer's to write.
+declares - the registry root's - is not the printer's to write.
 */
 int32_t
 d_env_printer_dump(

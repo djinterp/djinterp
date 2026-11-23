@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][memory]                                                  memory.h
 *
-* Umbrella header for the memory subframework -- C face.
+* Umbrella header for the memory subframework - C face.
 *   Includes the shared vocabulary and every allocator, in dependency order.
 * Include this when a translation unit wants the whole subframework; include
 * the individual headers when it wants one allocator and no more, since each
@@ -9,7 +9,7 @@
 *
 * THE SUBFRAMEWORK, IN ONE PICTURE:
 *
-*   mem_common      the alphabet -- counter type, status set, block view,
+*   mem_common      the alphabet - counter type, status set, block view,
 *                   alignment arithmetic, accounting, poison and guard bands.
 *                   Allocates nothing.
 *        |
@@ -46,7 +46,7 @@
 #ifndef DJINTERP_C_MEMORY_MEMORY_H
 #define DJINTERP_C_MEMORY_MEMORY_H 1
 
-// djinterp -- dependency order: vocabulary, then supply, then allocators
+// djinterp - dependency order: vocabulary, then supply, then allocators
 #include "./mem_common.h"
 #include "./mem_source.h"
 #include "./arena.h"

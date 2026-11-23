@@ -4,7 +4,7 @@
 * djinterp environment printer, the C++ face.
 *   DEnvPrinter is env_printer.h's machine as a C++ object: configured by
 * statements and scripts, by the process's environment, by its templates and
-* by C++ callables, and printing any report to any destination -- a d_ostream
+* by C++ callables, and printing any report to any destination - a d_ostream
 * or DOutputStream, a FILE*, a std::ostream, a std::string, a caller's array.
 * djinterp::print_env does the same for the calling unit's own environment
 * in one call. Everything is env_printer.h's; this header lets C++ reach it.
@@ -23,8 +23,8 @@
 *   THE REPORT IS THE CALLER'S UNIT'S, SO IT IS PASSED IN. A class's inline
 * members are one definition across a program, and so cannot each call the
 * d_env_report_here of the unit they are compiled in; DEnvPrinter's members
-* take a report, and the print_env functions -- internal linkage, as the
-* collector is -- give them the calling unit's.
+* take a report, and the print_env functions - internal linkage, as the
+* collector is - give them the calling unit's.
 *   A filter or a field hook in C++ is an object deriving from DEnvFilter or
 * DEnvField, or any callable through make_env_filter and make_env_field; each
 * reaches the C machine through one extern "C" function, so the pointer the
@@ -124,7 +124,7 @@ public:
 // 1.1.2
 // DEnvFilterOf
 //   class: a filter from any callable taking a const dj_env_item& and giving
-// something that converts to bool -- a function, a functor, a lambda.
+// something that converts to bool - a function, a functor, a lambda.
 template<typename Callable>
 class DEnvFilterOf : public DEnvFilter
 {
@@ -309,7 +309,7 @@ NS_END  // internal
 // DEnvPrinter
 //   class: the environment printer: a struct dj_env_printer, made at
 // construction. Non-copyable, as the machine points into itself; make
-// another and configure it the same way -- dump() writes the script that
+// another and configure it the same way - dump() writes the script that
 // does it.
 class DEnvPrinter
 {
@@ -353,8 +353,8 @@ public:
     }
 
     /**
-     * @brief A printer made in a parent frame -- the djin,
-     *        *d_env_printer_djin(), or another printer's env() -- and
+     * @brief A printer made in a parent frame - the djin,
+     *        *d_env_printer_djin(), or another printer's env() - and
      *        configured by a script.
      *
      * @param[in,out] _parent  the parent; it must outlive the printer.

@@ -3,32 +3,32 @@
 *
 * The command-line kit's C++ face: the program.
 *   `cli::program` is a dj_cli_program over the parser it is. It derives from
-* cli::DArgParser, so every definition CLI11's App makes -- options, flags,
-* option groups, settings -- is made on it as on any parser, and `&app` is
+* cli::DArgParser, so every definition CLI11's App makes - options, flags,
+* option groups, settings - is made on it as on any parser, and `&app` is
 * still the dj_arg_parser* the C calls take; it holds the kit's record,
 * made by its constructor once the parser is, so that the standard options
 * and the rule that an option given twice takes its last value come before
 * the program's own definitions, and released by its destructor before the
 * parser is.
-*   COMMANDS. A command's work is any function object -- a function, a
-* functor, a lambda -- called as `work(program, command)` with the program
+*   COMMANDS. A command's work is any function object - a function, a
+* functor, a lambda - called as `work(program, command)` with the program
 * and the command the parse reached, and returning the status the program
 * exits with, an int or an exit_status. The program keeps a copy of it, and
 * frees it with itself. The work runs behind the C boundary's guard: an
-* exception it lets out is reported as the program's error -- its what(),
-* or "out of memory" -- and the run is trouble.
+* exception it lets out is reported as the program's error - its what(),
+* or "out of memory" - and the run is trouble.
 *   RUNNING. run() is the whole of main: the parse, its ending where it
 * asked for one, and the work of the command it reached. parse_or_exit()
 * and dispatch() are its halves, for a program with something to do
 * between them. DArgParser's own parse() parses without the kit: no `/?`,
-* no standard commands, the standard options unread -- a program parses
+* no standard commands, the standard options unread - a program parses
 * through these.
 *   DIAGNOSTICS. report(), report_at(), note(), usage_error() and
 * file_error() are the C reports with a message already composed; the GNU
 * shape and the colour are theirs.
 *   THE VERSION. Each constructor tells the kit how the program was built
-* (D_CLI_BUILD_INIT), written where the constructor is compiled -- in the
-* program's own code, the constructors being inline -- so that `--version
+* (D_CLI_BUILD_INIT), written where the constructor is compiled - in the
+* program's own code, the constructors being inline - so that `--version
 * --verbose` says it with nothing asked of the program; add_build() adds
 * lines of its own.
 *
@@ -163,7 +163,7 @@ struct program_flags
 // 1.2.2
 // plugin_versions
 //   enum: the dj_cli_plugin_versions values: what a program does with a
-// module of another version of it -- the build's choice, refuse it, or load
+// module of another version of it - the build's choice, refuse it, or load
 // it with a warning.
 struct plugin_versions
 {
@@ -240,7 +240,7 @@ public:
     bool made() const D_NOEXCEPT;
 
     // commands: d_cli_program_add_command with the work a copy of the
-    // function object given, or with none -- a command that only groups
+    // function object given, or with none - a command that only groups
     // subcommands; under the root, or under a command given. The command,
     // or a NULL handle when it could not be made. Making the copy throws
     // what its copy constructor or `new` throws.
@@ -268,7 +268,7 @@ public:
     );
 
     // the root's own work, for a program of one command or a module:
-    // d_cli_program_set_main; a failure -- memory alone -- leaves the root
+    // d_cli_program_set_main; a failure - memory alone - leaves the root
     // with none
     template<typename Function>
     program& set_main(
@@ -288,7 +288,7 @@ public:
 
     // where a run looks for modules first, and what it does with one of
     // another version: d_cli_program_set_plugin_path, which copies the list
-    // -- empty for none, a want of memory leaving the setting as it was --
+    // - empty for none, a want of memory leaving the setting as it was --
     // and d_cli_program_set_plugin_versions; each overrides the build's
     // knob for the program's runs
     status plugin_path(
@@ -335,7 +335,7 @@ public:
     cli::command reached() const D_NOEXCEPT;
 
     // output: where results and diagnostics go, the parser's help and
-    // failure messages with them -- d_cli_program_set_output -- as sinks or
+    // failure messages with them - d_cli_program_set_output - as sinks or
     // as streams, which must outlive their use; DArgParser's output(),
     // which would leave the kit's own, is hidden
     program& output(
@@ -375,7 +375,7 @@ public:
     ) D_NOEXCEPT;
 
     // diagnostics: d_cli_report, d_cli_report_at and d_cli_note with the
-    // message given whole -- lower case, no full stop; d_cli_usage_error,
+    // message given whole - lower case, no full stop; d_cli_usage_error,
     // for a command or the root, and d_cli_file_error, which return
     // exit_status::trouble for the work to return. None fails.
     void report(
@@ -932,8 +932,8 @@ int program::file_error(
 //------------------------------------------------------------------------------
 // internal::DWorkHolder / DWorkCall / DWorkFailure / work_function
 //   The work is called through the holder, which the C program hands back
-// as the context; what it returns -- an int, or anything that converts to
-// one, an exit_status among them -- is the status. A throw is caught by the
+// as the context; what it returns - an int, or anything that converts to
+// one, an exit_status among them - is the status. A throw is caught by the
 // guard where C++ exceptions are on, and said as the program's error.
 template<typename Function>
 inline

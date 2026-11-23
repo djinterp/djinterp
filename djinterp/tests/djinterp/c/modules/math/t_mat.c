@@ -4,7 +4,7 @@
 *   Conformance harness for c/math/mat.h, all three families: every kernel
 * against the formula it implements, written out here in the same type and
 * order of operations, over 100,000 random matrices per family of every
-* shape from 1 x 1 to 5 x 5 -- so the results must agree bit for bit -- and
+* shape from 1 x 1 to 5 x 5 - so the results must agree bit for bit - and
 * the identities a careless kernel breaks: the transpose of the transpose,
 * the identity as a product's unit, A + A^T symmetric, A^0 the identity,
 * A^k by squaring. Then the square algebra on 40,000 integer-valued
@@ -18,9 +18,9 @@
 * transform.hpp's order of operations, bit for bit; a rotation about a unit
 * axis orthogonal to rounding; the axis and plane rotations' layouts.
 *
-*   Where the build fuses a multiply and an add written apart -- gcc in its GNU
+*   Where the build fuses a multiply and an add written apart - gcc in its GNU
 * modes on a target with the instruction, clang under -ffp-contract=fast
-* (self_test.h's d_math_formulas_fuse) -- the plain formulas' bits follow the
+* (self_test.h's d_math_formulas_fuse) - the plain formulas' bits follow the
 * build (S415), and the check against Rodrigues's formula written out is left
 * out; the harness says so.
 *
@@ -418,7 +418,7 @@ d_tests_square_##S(void)                                                       \
         /* the inverse: false and zero for a singular matrix, else A inv(A) */ \
         /* (Gauss-Jordan in floating point can round a singular        */      \
         /* matrix's last pivot to a tiny non-zero, as the subframework's */    \
-        /* always could -- 57 of the float cases here: only a reported  */     \
+        /* always could - 57 of the float cases here: only a reported  */     \
         /* failure is held to the zero matrix)                          */     \
         ok = d_mat_##S##_inverse(inv, scratch, a, n);                          \
         if (d == (T)0)                                                         \

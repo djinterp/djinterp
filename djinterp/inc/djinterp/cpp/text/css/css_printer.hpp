@@ -232,7 +232,7 @@ public:
         m_mode(_mode)
     {}
 
-    // operator() -- the sink face: write raw bytes to the file.
+    // operator() - the sink face: write raw bytes to the file.
     void operator()(
         const char* _data,
         std::size_t _size
@@ -241,7 +241,7 @@ public:
         m_file.write(_data, static_cast<std::streamsize>(_size));
     }
 
-    // print -- render a stylesheet into the file.
+    // print - render a stylesheet into the file.
     template <typename Sheet>
     void print(
         const Sheet& _sheet

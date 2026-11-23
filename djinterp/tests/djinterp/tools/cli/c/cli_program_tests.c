@@ -12,7 +12,7 @@
 * once for each name, and `--level=N`. SINGLE is a program of one command:
 * no version, its root's own work printing its files and whether `-n` was
 * given. VERSIONED, PARTIAL and SPARSE are COMMANDS told how it was built --
-* wholly, and in part -- for `--version --verbose`, whose lines are composed
+* wholly, and in part - for `--version --verbose`, whose lines are composed
 * where they name the program's file and the kit's own build. REPEATED is
 * COMMANDS with `pick`, whose option group holds `--kind` and which has the
 * flag pair `--fast`/`--no-fast`, for the warning at `-v` (R8); DIGITS is a
@@ -1221,8 +1221,8 @@ bool d_tests_cli_make_repeated(
 // REPEATS
 //   constant: what d_tests_cli_program_repeats's command lines come to: an
 // option that keeps one value, given it twice or more differently, said at
-// -v (R8) -- at the root, through fallthrough, in a command, in an option
-// group, a flag pair, `--color` with `--colour` -- and nothing where the
+// -v (R8) - at the root, through fallthrough, in a command, in an option
+// group, a flag pair, `--color` with `--colour` - and nothing where the
 // values agree, the option collects them, the parse failed, or -v was not
 // given or -q was.
 static const struct dj_tests_cli_case REPEATS[] =
@@ -1356,7 +1356,7 @@ bool d_tests_cli_make_digits(
 // DIGITS
 //   constant: what d_tests_cli_program_digits's command lines come to: `-1`
 // the option the program defines, `-5` a number, as it defines no `-5`, and
-// `-1` after `--` a number too -- what a digit option costs (R6).
+// `-1` after `--` a number too - what a digit option costs (R6).
 static const struct dj_tests_cli_case DIGITS[] =
 {
     { "G01", "prog -1 7", 0,
@@ -1378,8 +1378,8 @@ static const struct dj_tests_cli_case DIGITS[] =
 
 // PLAIN
 //   constant: what d_tests_cli_program_plain's command lines come to on
-// PLAIN: every error without its word -- the parser's failures, the kit's,
-// a command's own, a file's, in colour -- and a warning and a note with
+// PLAIN: every error without its word - the parser's failures, the kit's,
+// a command's own, a file's, in colour - and a warning and a note with
 // theirs; help as it was.
 static const struct dj_tests_cli_case PLAIN[] =
 {
@@ -2128,8 +2128,8 @@ bool d_tests_cli_making_contexts(void)
 }
 
 /**
- * @brief A program whose making fails -- its `-v` defined before the kit's
- *        -- made with flags: its run is trouble, says why in the shape the
+ * @brief A program whose making fails - its `-v` defined before the kit's
+ *        - made with flags: its run is trouble, says why in the shape the
  *        flags ask for, and keeps why.
  *
  * @param[in] _tag       the case's tag.
@@ -2262,7 +2262,7 @@ size_t d_tests_cli_refusing_write(
 
 /**
  * @brief Runs COMMANDS on a line, its output refusing what it is given --
- *        with a reason or without -- and compares the status and the error
+ *        with a reason or without - and compares the status and the error
  *        output: what was asked for, not written, ends the run in trouble
  *        and says so.
  *
@@ -2899,7 +2899,7 @@ bool d_tests_cli_taken_again(
 /*
 d_tests_cli_program_arguments
   Which arguments a program parses: those it is given, unless they are
-main's own -- as many as the C runtime gave main, each the same text --
+main's own - as many as the C runtime gave main, each the same text --
 which on Windows are taken again from the wide command line, in UTF-8. A
 module's arguments, or a test's, are never main's: on Windows a list as
 long as the runtime's, its first word another, is parsed as given, and the
@@ -2985,7 +2985,7 @@ static const struct dj_cli_build VERSION_PARTIAL =
 };
 
 // VERSION_SPARSE
-//   constant: a build of no compiler -- its version, 0, left unsaid -- a
+//   constant: a build of no compiler - its version, 0, left unsaid - a
 // system alone, and a build type.
 static const struct dj_cli_build VERSION_SPARSE =
 {
@@ -3000,7 +3000,7 @@ static const struct dj_cli_build VERSION_SPARSE =
 };
 
 /**
- * @brief VERSIONED: COMMANDS, told how it was built -- VERSION_BUILD -- and
+ * @brief VERSIONED: COMMANDS, told how it was built - VERSION_BUILD - and
  *        given two lines of its own.
  *
  * @param[out]    _program  the program.
@@ -3190,7 +3190,7 @@ bool d_tests_cli_same_part(
 
 /**
  * @brief The kit's own build, as this unit's compiler describes its own:
- *        the same compiler, version, system, machine and type -- the kit is
+ *        the same compiler, version, system, machine and type - the kit is
  *        compiled by the compiler that compiles the suite, and as it does --
  *        and a C level of its own, which need not be the suite's.
  *

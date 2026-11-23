@@ -9,16 +9,16 @@
 *
 *   THE CARRIER IS METADATA, NOT A NEW TYPE.  A node's hints are exactly a
 * COLLECTION OF KEY-VALUE PAIRS, so `DDocAttributes` is nothing more than a
-* DContainerMetadata<std::string, std::string> -- the framework's open kv store,
+* DContainerMetadata<std::string, std::string> - the framework's open kv store,
 * reused wholesale (set / find / contains / iterate).  String values keep the
 * bag portable across every output dialect: a colour is "#2E7D32", a width is
 * "12", a flag is "true".  A renderer reads the keys it understands and ignores
 * the rest, so a `.txt` back end never consults `font` or `color` while an HTML
-* or PDF back end does -- the "ignored when not applicable" rule the templates
+* or PDF back end does - the "ignored when not applicable" rule the templates
 * rest on.
 *
 *   WHY STRING-KEYED RUNTIME METADATA (NOT option_set):
-*   option_set<> is a COMPILE-TIME, NTTP-keyed policy bag -- the right tool to
+*   option_set<> is a COMPILE-TIME, NTTP-keyed policy bag - the right tool to
 * configure a renderer once, at construction.  A document's per-node hints, by
 * contrast, vary at RUN TIME and per node, so the runtime kv store is the fit
 * here.  The two compose: a renderer may take an option_set for its fixed policy
@@ -84,7 +84,7 @@ NS_DJINTERP
 // ===========================================================================
 
 // DDocAttributes
-//   type: a document node's presentation-hint bag -- an open string -> string
+//   type: a document node's presentation-hint bag - an open string -> string
 // key-value store (the framework's DContainerMetadata).  A template writes
 // hints into it; a renderer reads the keys it understands and ignores the rest.
 using DDocAttributes = DContainerMetadata<std::string, std::string>;
@@ -129,8 +129,8 @@ using DDocAttributes = DContainerMetadata<std::string, std::string>;
     inline constexpr const char* doc_attr_background = "background";
 
     // doc_attr_width
-    //   key: a preferred extent -- character cells for a text dialect, points
-    // for PDF, a CSS length for HTML -- interpreted by the renderer.
+    //   key: a preferred extent - character cells for a text dialect, points
+    // for PDF, a CSS length for HTML - interpreted by the renderer.
     inline constexpr const char* doc_attr_width      = "width";
 
     // doc_attr_wrap
@@ -143,7 +143,7 @@ using DDocAttributes = DContainerMetadata<std::string, std::string>;
     inline constexpr const char* doc_attr_indent     = "indent";
 
     // doc_attr_locator
-    //   key: a cross-reference target -- a page number, an anchor, a URL --
+    //   key: a cross-reference target - a page number, an anchor, a URL --
     // carried by an entry (used by table_of_contents leaders).
     inline constexpr const char* doc_attr_locator    = "locator";
 
@@ -261,7 +261,7 @@ D_NODISCARD inline std::string attr_or(
 }
 
 // attr_flag
-//   function: _key read as a boolean -- true for "true" / "1" / "yes" / "on"
+//   function: _key read as a boolean - true for "true" / "1" / "yes" / "on"
 // (first character t/1/y/o, case-insensitive), _fallback when _key is absent,
 // false otherwise.
 D_NODISCARD inline bool attr_flag(

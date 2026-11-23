@@ -2,8 +2,8 @@
 * djinterp [cpp][math]                                         t_vector_face.cpp
 *
 *   Tests for linear_algebra/vector.hpp, at every level from C++98. The
-* compile-time half -- the traits, the families, and from C++14 (C++20 for an
-* angle) the operations as constant expressions -- runs wherever the unit
+* compile-time half - the traits, the families, and from C++14 (C++20 for an
+* angle) the operations as constant expressions - runs wherever the unit
 * compiles. The runtime half checks what the face adds to the C core:
 *
 *     - the generic path agrees with the C families, bit for bit: a vector
@@ -13,8 +13,8 @@
 *       vectors against its formula, the roots against the C library's;
 *     - an integer vector (the generic path, as the subframework always
 *       computed it: roots through double, truncated);
-*     - the constructors at every level -- one to four components, an array
-*       -- and from C++11 std::array and five components and more;
+*     - the constructors at every level - one to four components, an array
+*       - and from C++11 std::array and five components and more;
 *     - angles: parallel vectors at 0, not NaN; perpendicular ones at pi/2;
 *     - a vector as a point: from an array implicitly, {{x, y, z}}, from a
 *       std::array where a point is taken (C++11), begin and end, range-for.

@@ -4,8 +4,8 @@
 * Exercises `dcmake_doc.h`: every change a CMake file takes, the layout each
 * takes from the file, what each refuses, and saving.
 *   With --fuzz, it makes changes at random to every CMake file under a
-* directory instead -- arguments set, inserted and removed, commands renamed,
-* replaced, inserted and removed, and raw splices -- and proves of each that
+* directory instead - arguments set, inserted and removed, commands renamed,
+* replaced, inserted and removed, and raw splices - and proves of each that
 * a change kept left the file readable and every byte outside it as it was,
 * and that a change refused left the file as it was.
 *
@@ -763,7 +763,7 @@ d_tests_same_outside
   Whether two readings agree on the commands outside a change, found here
 afresh: as many wholly before `_start` in each, and wholly after its end in
 each, each the same bytes, at the same depth, taking the same part in its
-block, and paired alike -- with one outside at the same place, or with one
+block, and paired alike - with one outside at the same place, or with one
 the change cut.
   Long as the places are found afresh, apart from the document's own way of
 finding them.

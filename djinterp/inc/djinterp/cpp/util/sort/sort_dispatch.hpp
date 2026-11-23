@@ -25,7 +25,7 @@
 * by argument-dependent lookup, the two match equally well, and the call is
 * ambiguous in the caller's code.  Lookup that finds an object performs no
 * argument-dependent lookup at all, so djinterp::sort is a function object --
-* the remedy std::ranges::sort uses for the same collision -- and the
+* the remedy std::ranges::sort uses for the same collision - and the
 * algorithm goes in the first argument, as an execution policy does in
 * std::sort, rather than in a template argument an object cannot take.
 *
@@ -447,8 +447,8 @@ sort_traits properties_of(
 }
 
 // name_of
-//   function: the name of the algorithm a run-time value names -- the name of
-// its entry point, e.g. "merge_sort" -- or "unknown".
+//   function: the name of the algorithm a run-time value names - the name of
+// its entry point, e.g. "merge_sort" - or "unknown".
 inline
 const char* name_of(
     DSortAlgorithm _algorithm
@@ -467,7 +467,7 @@ const char* name_of(
 ///                    V.   SORTER                                          ///
 ///////////////////////////////////////////////////////////////////////////////
 //   The facility as a callable object.  DSorter<Tag> fixes the algorithm in
-// its type and is empty; DSorter<> -- DSorter<DDynamicAlgorithm> -- holds a
+// its type and is empty; DSorter<> - DSorter<DDynamicAlgorithm> - holds a
 // DSortAlgorithm and resolves it on every call.  The two have the same three
 // call operators.
 
@@ -555,8 +555,8 @@ public:
 
 #if !D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-//   Before C++17 a static constexpr member that is odr-used -- bound to a
-// reference, say -- needs a definition outside the class.  A class template's
+//   Before C++17 a static constexpr member that is odr-used - bound to a
+// reference, say - needs a definition outside the class.  A class template's
 // may sit in a header; from C++17 the members are inline and these would be
 // redundant.
 template<typename Algorithm>
@@ -881,7 +881,7 @@ NS_END  // internal
 //
 //   An object rather than a function template so that an unqualified call is
 // never ambiguous with std::sort; see the banner.  One object per program
-// from C++17, one per translation unit before -- it has no state, so only
+// from C++17, one per translation unit before - it has no state, so only
 // its address can tell them apart.
 D_CONSTEXPR_INLINE_VAR internal::DSortFunction sort{};
 

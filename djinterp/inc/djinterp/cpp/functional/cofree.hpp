@@ -2,7 +2,7 @@
 * djinterp [cpp][functional]                                          cofree.hpp
 *
 * Cofree comonad: turn any functor into a comonad (C++).
-*   The cofree comonad over a functor F is the dual of the free monad -- where
+*   The cofree comonad over a functor F is the dual of the free monad - where
 * Free was Pure-or-Roll, Cofree is *always* a value paired with a layer:
 *
 *     Cofree<F, A> = A :< F (Cofree<F, A>)
@@ -24,11 +24,11 @@
 *   Cofree<F, A> registers comonad_traits, functor_traits, and recursive_traits,
 * so the generic extract / extend / duplicate (comonad.hpp), functor_map, and
 * the universal cata (recursion.hpp) all work on it directly. unfold_cofree
-* coiteratively builds a cofree from a seed -- the dual of fold_free
+* coiteratively builds a cofree from a seed - the dual of fold_free
 * interpreting one.
 *
 *   FOLDABLE, TOO: THE ANNOTATED LAYER. One unrolled layer of a cofree is its
-* annotation paired with an F-layer of children -- the environment pairing
+* annotation paired with an F-layer of children - the environment pairing
 *
 *     DEnvLayer<B, F, X>  =  B x F<X>
 *
@@ -37,7 +37,7 @@
 * fold an ANNOTATED tree, the case recursion.hpp's own "an annotated AST" refers
 * to; annotated_cata is the ergonomic face, taking a binary algebra
 * (B, F<R>) -> R so a node's annotation and its already-folded children arrive
-* side by side. One fold, many algebras -- now annotated: render, number,
+* side by side. One fold, many algebras - now annotated: render, number,
 * collect, and type-check over a labelled tree are each one annotated_cata with
 * a different algebra, the structural recursion still written once.
 *
@@ -122,7 +122,7 @@ VI.   ANNOTATED FOLD                                (annotated_cata)
 #include "../djinterp.hpp"
 #include "./functor.hpp"
 #include "./comonad.hpp"
-#include "./recursion.hpp"   // recursive_traits, cata -- sections V and VI
+#include "./recursion.hpp"   // recursive_traits, cata - sections V and VI
 
 
 NS_DJINTERP
@@ -135,7 +135,7 @@ NS_DJINTERP
 // cofree
 //   class: the cofree comonad over a single-argument functor F. Every node is
 // a head value of type A together with a layer F<shared_ptr<cofree>> of child
-// nodes -- there is no empty case. A and F<shared_ptr<cofree>> must be
+// nodes - there is no empty case. A and F<shared_ptr<cofree>> must be
 // default-constructible; the self-reference is carried by shared_ptr, so the
 // tree lives on the heap.
 template<template<typename> class F,
@@ -201,7 +201,7 @@ private:
 // operations are mutually recursive, so the operations are forward-declared,
 // the helpers defined complete, and the operations defined last.
 
-// -- 1. forward declarations ------------------------------------------------
+// - 1. forward declarations ------------------------------------------------
 
 template<template<typename> class F,
          typename A,
@@ -229,12 +229,12 @@ DCofree<F, typename std::decay<decltype(std::declval<HeadFn&>()(
 unfold_cofree(const Seed& _seed, HeadFn _head_fn, LayerFn _layer_fn);
 
 
-// -- 2. per-layer step helpers (internal) -----------------------------------
+// - 2. per-layer step helpers (internal) -----------------------------------
 
 NS_INTERNAL
 
     // DCofreeMapStep
-    //   helper: per-child step of cofree_map -- recurse and re-wrap.
+    //   helper: per-child step of cofree_map - recurse and re-wrap.
     template<template<typename> class F,
              typename A,
              typename B,
@@ -253,7 +253,7 @@ NS_INTERNAL
     };
 
     // DCofreeExtendStep
-    //   helper: per-child step of cofree_extend -- recurse with the whole-node
+    //   helper: per-child step of cofree_extend - recurse with the whole-node
     // function.
     template<template<typename> class F,
              typename A,
@@ -273,7 +273,7 @@ NS_INTERNAL
     };
 
     // DCofreeUnfoldStep
-    //   helper: per-seed step of unfold_cofree -- grow a child node from a
+    //   helper: per-seed step of unfold_cofree - grow a child node from a
     // seed. Holds both builder functions.
     template<template<typename> class F,
              typename Seed,
@@ -297,10 +297,10 @@ NS_INTERNAL
 NS_END  // internal
 
 
-// -- 3. operation definitions -----------------------------------------------
+// - 3. operation definitions -----------------------------------------------
 
 // cofree_map
-//   function: functorial map -- (A -> B) applied to the head of every node,
+//   function: functorial map - (A -> B) applied to the head of every node,
 // the F-layers preserved. cofree<F, B> from cofree<F, A>.
 template<template<typename> class F,
          typename A,
@@ -326,7 +326,7 @@ cofree_map
 
 
 // cofree_extend
-//   function: the co-bind -- re-decorates every node with f applied to that
+//   function: the co-bind - re-decorates every node with f applied to that
 // node's whole sub-tree (f : cofree<F, A> -> B). cofree<F, B> from
 // cofree<F, A>. The head becomes f(node); each child is extended in turn.
 template<template<typename> class F,
@@ -354,7 +354,7 @@ cofree_extend
 
 
 // unfold_cofree
-//   function: coiteratively builds a cofree from a seed -- _head_fn : S -> A
+//   function: coiteratively builds a cofree from a seed - _head_fn : S -> A
 // gives each node's value, _layer_fn : S -> F<S> gives the seeds of its
 // children. The dual of fold_free. Terminates iff _layer_fn eventually yields
 // an empty F-layer (e.g. nothing, for F = maybe).
@@ -388,7 +388,7 @@ unfold_cofree
 ///             III.  TYPECLASS REGISTRATION                                ///
 ///////////////////////////////////////////////////////////////////////////////
 //   cofree<F, A> is a Functor and a Comonad. Comonad is not derivable from any
-// monad bridge, so both are registered explicitly -- making the generic
+// monad bridge, so both are registered explicitly - making the generic
 // functor_map and extract / extend / duplicate apply to a cofree directly.
 // Its third instance, recursive_traits, needs the base functor of section IV
 // and so is registered in section V.
@@ -451,7 +451,7 @@ struct comonad_traits<DCofree<F, A>, void>
 ///////////////////////////////////////////////////////////////////////////////
 //   The base functor of cofree: one unrolled layer is an annotation paired with
 // an F-layer whose recursive holes are still open. Mapping it maps ONLY those
-// holes -- the annotation is structure carried alongside, not contents -- which
+// holes - the annotation is structure carried alongside, not contents - which
 // is what lets cata rebuild an annotated layer at the result type while it
 // folds. Generic in F, so nothing here names a client.
 
@@ -474,7 +474,7 @@ struct DEnvLayer
 //   applies the function to each recursive hole (through the inner F-layer),
 // yielding an DEnvLayer over the mapped hole type; the annotation passes
 // through unchanged. Delegates to functor_map on the inner layer, so F must
-// itself be a registered Functor -- the same demand cofree already makes.
+// itself be a registered Functor - the same demand cofree already makes.
 template<typename                 B,
          template<typename> class F,
          typename                 X>
@@ -528,7 +528,7 @@ struct recursive_traits<DCofree<F, B>, void>
     // project
     //   peel one layer: (head, F(cofree)). cofree stores its children as
     // shared_ptr<cofree>, so the layer is mapped through a dereference to
-    // present bare cofree holes -- the recursive positions cata folds.
+    // present bare cofree holes - the recursive positions cata folds.
     static
     DEnvLayer<B, F, DCofree<F, B> > project(
         const DCofree<F, B>& _node
@@ -556,7 +556,7 @@ struct recursive_traits<DCofree<F, B>, void>
 // phi : (B, F<Result>) -> Result. A thin face over cata: it wraps phi so it
 // receives the annotation and the folded layer separately instead of a single
 // DEnvLayer, which is how every annotated interpretation wants to read a node
-// -- "given this node's annotation and its already-folded children, produce a
+// - "given this node's annotation and its already-folded children, produce a
 // result". Result is supplied explicitly (as for cata); F and B follow from
 // the cofree, and the algebra from its call.
 template<typename                 Result,
@@ -572,7 +572,7 @@ Result annotated_cata(
     return ::djinterp::cata<Result>(
         [_algebra](const DEnvLayer<B, F, Result>& _env) -> Result
         {
-            // _env.layer is F<Result> -- the children already folded to R
+            // _env.layer is F<Result> - the children already folded to R
             return _algebra(_env.ann, _env.layer);
         },
         _value);

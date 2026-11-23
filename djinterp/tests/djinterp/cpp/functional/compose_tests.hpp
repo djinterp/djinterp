@@ -320,7 +320,7 @@ bool compose_tests_fix();
 // runner engine in document order.
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // compose_spec
 //   function: the suite as DTest's module spec, one block per section.

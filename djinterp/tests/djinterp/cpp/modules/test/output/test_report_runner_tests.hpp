@@ -103,7 +103,7 @@ IX.   COMPRESS         (test_report_runner_tests_compress.cpp)
 #include <string>
 #include <vector>
 // djinterp
-// -- (part 1) mode-gated includes ------------------------------------------
+// - (part 1) mode-gated includes ------------------------------------------
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
 #include "../../../../../../inc/djinterp/cpp/modules/test/output/test_report_runner.hpp"
@@ -167,7 +167,7 @@ bool report_runner_check(
 
 #ifndef DTEST_SPEC_MODE  // (part 1 cont.) fixtures - normal mode only
 
-// -- scratch-file helpers --------------------------------------------------
+// - scratch-file helpers --------------------------------------------------
 
 // rr_read_file
 //   function: the whole contents of _path, or an empty string when it
@@ -376,7 +376,7 @@ private:
 };
 
 
-// -- option setters --------------------------------------------------------
+// - option setters --------------------------------------------------------
 //
 //   report_builder exposes conveniences for document / output_file / split /
 // show only, so the packaging knobs are written here, through the set's
@@ -454,7 +454,7 @@ void rr_set_entries(
 }
 
 
-// -- container and codec readers -------------------------------------------
+// - container and codec readers -------------------------------------------
 //
 //   The archive and compress facades come with D_TEST_REPORT_ENABLE_ARCHIVE,
 // so these read what the packaging arm wrote back through them, rather than
@@ -559,7 +559,7 @@ std::string rr_gunzip(
 #endif  // D_TEST_REPORT_ENABLE_ARCHIVE
 
 
-// -- sample predicates -----------------------------------------------------
+// - sample predicates -----------------------------------------------------
 
 // rr_pass / rr_fail
 //   function: trivial unit-test predicates for driving run().
@@ -590,7 +590,7 @@ int rr_counted(
 }
 
 
-// -- sample builders -------------------------------------------------------
+// - sample builders -------------------------------------------------------
 
 // rr_seed_units
 //   function: records _pass_n passing and _fail_n failing leaf units into
@@ -638,7 +638,7 @@ dt::test_option_set rr_pdf_options()
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- (part 2) declarations - visible in BOTH modes -------------------------
+// - (part 2) declarations - visible in BOTH modes -------------------------
 
 // I.    CONSTRUCTION   (test_report_runner_tests_construction.cpp)
 bool tests_report_runner_default_construction();
@@ -818,7 +818,7 @@ bool tests_report_runner_compress_store_is_loose();
 #endif  // D_TEST_REPORT_ENABLE_ARCHIVE
 
 
-// -- (part 3) the spec provider - spec mode only ---------------------------
+// - (part 3) the spec provider - spec mode only ---------------------------
 #ifdef DTEST_SPEC_MODE
 
 // report_runner_spec

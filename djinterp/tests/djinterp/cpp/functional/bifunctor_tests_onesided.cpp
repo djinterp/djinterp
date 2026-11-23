@@ -6,7 +6,7 @@
 * mapping exactly one parameter while the other is preserved (exercising
 * DBifunctorIdentityHelper), a one-sided type change, the identity edge case,
 * the result types, and the consistency law map_second(map_first(x, f), g) ==
-* bimap(x, f, g) -- over std::pair, DKvPair, and the custom two<A,B> fixture.
+* bimap(x, f, g) - over std::pair, DKvPair, and the custom two<A,B> fixture.
 *
 *   DKvPair equality is key-only, so kv checks read the key / value fields.
 *

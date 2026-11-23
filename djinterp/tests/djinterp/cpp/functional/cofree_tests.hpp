@@ -7,8 +7,8 @@
 * this head carries only what those files and the runner share.
 *
 *   cofree<F, A> needs an F that is a single-argument, registered Functor whose
-* F<shared_ptr<cofree>> is default-constructible.  The fixture opt<T> -- a
-* maybe-like single-argument functor (0 or 1 child) -- serves as that F, so
+* F<shared_ptr<cofree>> is default-constructible.  The fixture opt<T> - a
+* maybe-like single-argument functor (0 or 1 child) - serves as that F, so
 * cofree<opt, A> is a NON-EMPTY descending chain / stream: A :< just(...) :<
 * ... :< nothing.  A linear F keeps the built trees easy to read back.
 *
@@ -63,8 +63,8 @@ NS_TESTING
 ///////////////////////////////////////////////////////////////////////////////
 
 // opt
-//   fixture: a maybe-like single-argument functor -- engaged (one child) or
-// empty (leaf) -- used as cofree's F.  Its empty state is what terminates a
+//   fixture: a maybe-like single-argument functor - engaged (one child) or
+// empty (leaf) - used as cofree's F.  Its empty state is what terminates a
 // cofree chain.  Storage is a plain value; every T it is instantiated at here
 // (a shared_ptr to a child cofree, or a scalar) is default-constructible.
 template<typename _Type>
@@ -127,7 +127,7 @@ std::vector<_A> chain_to_vector(
 ///                III. NAMED FUNCTORS                                       ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// -- head maps (A -> B) --
+// - head maps (A -> B) --
 
 // dbl
 //   int -> int, double.
@@ -165,7 +165,7 @@ struct show
     }
 };
 
-// -- whole-node maps (cofree<opt,int> -> B), for extend --
+// - whole-node maps (cofree<opt,int> -> B), for extend --
 
 // DHeadOfNode
 //   cofree<opt,int> -> int: the node's own head (extend with this is identity
@@ -214,7 +214,7 @@ struct suffix_len
     }
 };
 
-// -- unfold builders (Seed -> A ; Seed -> F<Seed>) --
+// - unfold builders (Seed -> A ; Seed -> F<Seed>) --
 
 // DIdHead
 //   int -> int: each node's head is its seed unchanged.
@@ -254,7 +254,7 @@ struct DDescend
     }
 };
 
-// -- annotated_cata algebras (B, F<Result>) -> Result --
+// - annotated_cata algebras (B, F<Result>) -> Result --
 //   Each takes a node's ANNOTATION and its ALREADY-FOLDED children, so the
 // child slot carries a Result (an int / size_t / string), never a sub-tree.
 // The empty layer is the base case: it contributes the algebra's identity.

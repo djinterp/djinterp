@@ -2,8 +2,8 @@
 * djinterp [c][math]                                                 t_tangent.c
 *
 *   Conformance harness for c/math/tangent.h. For float, tan_c and atan_c
-* must be the correctly rounded result -- the long double library's, rounded
-* to float -- at one float pattern in 1009 across the whole range, at every
+* must be the correctly rounded result - the long double library's, rounded
+* to float - at one float pattern in 1009 across the whole range, at every
 * float in [3/4, 3/2) for atan_c, where its reduction's last interval and its
 * inversion meet, and at every float about pi/2 and pi for tan_c, where the
 * tangent passes its pole and its zero.
@@ -32,8 +32,8 @@
 * (tan_c and atan_c; its count wants a 64-bit long). Compiled as C++, it
 * checks the overloads; from C++14, that all three functions are constant
 * expressions, for every family, with the bits they have at run time. It
-* needs no 64-bit integer -- its random numbers come from
-* math_tests_random.h, the same in every build -- so that ISO-strict C++98
+* needs no 64-bit integer - its random numbers come from
+* math_tests_random.h, the same in every build - so that ISO-strict C++98
 * on a 32-bit target, where dj_math_umax has 32 bits, builds it too.
 *
 *   Build (from the repo root), at any language level from C99:
@@ -533,7 +533,7 @@ d_tests_specials(void)
 
 // d_tests_atan2_float
 //   atan2_c for float against the long double library's atan2l, rounded to
-// float -- the correctly rounded result -- and within an ulp of atan2f, at a
+// float - the correctly rounded result - and within an ulp of atan2f, at a
 // million pairs: every other one two random patterns (NaN, the infinities,
 // the zeros and the subnormals among them, and mostly magnitudes so far
 // apart that the result is y/x, +-pi/2 or +-pi), the rest within twenty

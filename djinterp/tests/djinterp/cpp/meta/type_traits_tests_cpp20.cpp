@@ -47,11 +47,11 @@ static_assert(is_bounded_array<char[100]>::value == true,
 static_assert(is_bounded_array<int[3][4]>::value == true,
               "is_bounded_array<int[3][4]> -> true (multi-dim outermost is bounded)");
 
-// negative cases -- unbounded array
+// negative cases - unbounded array
 static_assert(is_bounded_array<int[]>::value == false,
               "is_bounded_array<int[]> -> false (unbounded)");
 
-// negative cases -- non-array types
+// negative cases - non-array types
 static_assert(is_bounded_array<int>::value == false,
               "is_bounded_array<int> -> false (scalar)");
 static_assert(is_bounded_array<int*>::value == false,
@@ -81,13 +81,13 @@ static_assert(is_unbounded_array<int[]>::value == true,
 static_assert(is_unbounded_array<char[]>::value == true,
               "is_unbounded_array<char[]> -> true");
 
-// negative cases -- bounded array
+// negative cases - bounded array
 static_assert(is_unbounded_array<int[5]>::value == false,
               "is_unbounded_array<int[5]> -> false (bounded)");
 static_assert(is_unbounded_array<int[1]>::value == false,
               "is_unbounded_array<int[1]> -> false (size 1)");
 
-// negative cases -- non-array
+// negative cases - non-array
 static_assert(is_unbounded_array<int>::value == false,
               "is_unbounded_array<int> -> false");
 static_assert(is_unbounded_array<int*>::value == false,

@@ -24,7 +24,7 @@
 NS_DJINTERP
 NS_TESTING
 
-// net/reactor.hpp tests -- each returns true when every check held
+// net/reactor.hpp tests - each returns true when every check held
 bool tests_reactor_mask();
 bool tests_reactor_dispatch();
 bool tests_reactor_echo();

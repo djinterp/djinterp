@@ -3,8 +3,8 @@
 *
 * The parser's own parts, declared in arg_parser.h (sections 3, 5, 6 and 7)
 * and arg_internal.h (7.1).
-*   Failures recorded in the parser's two reports -- the first failed
-* definition kept, the parse's error replaced -- and set aside while a
+*   Failures recorded in the parser's two reports - the first failed
+* definition kept, the parse's error replaced - and set aside while a
 * caller's function runs; the parser made and released around its root;
 * CLI11's exit(), with its two failure messages and the calls a callback
 * fails through; and the parser's settings. The parse itself is in
@@ -101,8 +101,8 @@ struct dj_arg_parser* d_arg_internal_parser_for(
 
 /*
 d_arg_internal_parser_message
-  A failure's message, formatted onto the heap: NULL for no format -- the
-status then speaks for itself -- or for one that could not be expanded.
+  A failure's message, formatted onto the heap: NULL for no format - the
+status then speaks for itself - or for one that could not be expanded.
 */
 D_STATIC
 char* d_arg_internal_parser_message(
@@ -148,7 +148,7 @@ char* d_arg_internal_parser_message(
  *                          the status's own.
  *
  * A report replaced: its message taken over, the exit code the status's,
- * and the record it arose in -- the option's command when no command is
+ * and the record it arose in - the option's command when no command is
  * named.
  */
 D_STATIC
@@ -274,8 +274,8 @@ int d_arg_internal_fail(
 /*
 d_arg_internal_fail_adopt
   A failure of the parse whose message, on the heap, the report takes over:
-a completed request whose message is what it asked for -- a version, a
-completion script -- and has none is a refused allocation instead.
+a completed request whose message is what it asked for - a version, a
+completion script - and has none is a refused allocation instead.
 */
 int d_arg_internal_fail_adopt(
     const struct dj_arg_command* _command,
@@ -313,7 +313,7 @@ int d_arg_internal_fail_adopt(
 
 /*
 d_arg_internal_fail_text
-  A failure of the parse whose message is a span, copied whole -- adopted,
+  A failure of the parse whose message is a span, copied whole - adopted,
 so that a request whose copy was refused is reported as the refusal.
 */
 int d_arg_internal_fail_text(
@@ -459,7 +459,7 @@ static const struct dj_arg_parser PARSER_EMPTY;
 
 /*
 d_arg_parser_init
-  CLI11's App(description, name): the parser's own parts first -- reports,
+  CLI11's App(description, name): the parser's own parts first - reports,
 formatter, configuration format, standard output and error, suggestions on
 -- then the root, then CLI11's help flag; a failure is the definition
 error, the parser left whole.
@@ -508,7 +508,7 @@ int d_arg_parser_init(
 
 /*
 d_arg_parser_release
-  The tree first -- its records leave the reports as they go -- then the
+  The tree first - its records leave the reports as they go - then the
 reports, the formatter, the configuration format and the storage; the
 parser is left as d_arg_parser_init finds any.
 */
@@ -794,7 +794,7 @@ int d_arg_parser_exit(
  * @return D_ARG_OK, or the buffer's status.
  *
  * The line CLI11's simple message ends with: "Run with <help> for more
- * information." -- the help-all flag joined with " or " -- when the command
+ * information." - the help-all flag joined with " or " - when the command
  * has either flag.
  */
 D_STATIC
@@ -874,9 +874,9 @@ int d_arg_internal_parser_emit(
 
 /*
 d_arg_failure_simple
-  CLI11's FailureMessage::simple: the message and a newline -- a refused
+  CLI11's FailureMessage::simple: the message and a newline - a refused
 setting's argument after its status's text, as the message holds only the
-argument -- then the line naming the help flags.
+argument - then the line naming the help flags.
 */
 int d_arg_failure_simple(
     const struct dj_arg_command* _command,

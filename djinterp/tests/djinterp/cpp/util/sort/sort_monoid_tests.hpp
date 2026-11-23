@@ -6,9 +6,9 @@
 * translation units share.
 *
 *   sections (one .cpp each):
-*     sort_monoid_tests_run.cpp        DSortedRun -- construction, accessors,
+*     sort_monoid_tests_run.cpp        DSortedRun - construction, accessors,
 *                                      and the adopting constructor
-*     sort_monoid_tests_merge.cpp      internal::merge_sorted_helper -- the
+*     sort_monoid_tests_merge.cpp      internal::merge_sorted_helper - the
 *                                      two-pointer merge and both tails
 *     sort_monoid_tests_algebra.cpp    the semigroup / monoid registration and
 *                                      the laws: identity, associativity, and
@@ -35,7 +35,7 @@
 #include <type_traits>
 #include <vector>
 // djinterp
-//   core is ALWAYS first and unconditional -- NS_* / D_* qualifiers and the
+//   core is ALWAYS first and unconditional - NS_* / D_* qualifiers and the
 // language gates are needed by both faces of this header.
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
@@ -61,7 +61,7 @@ NS_TESTING
 // UNCONDITIONALLY: the spec provider below needs dt::module_spec too.
 namespace dt = ::djinterp::test;
 
-#ifndef DTEST_SPEC_MODE   // fixtures -- normal mode only
+#ifndef DTEST_SPEC_MODE   // fixtures - normal mode only
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -69,7 +69,7 @@ namespace dt = ::djinterp::test;
 ///////////////////////////////////////////////////////////////////////////////
 
 // DIntRun
-//   type: the run under test in most cases -- ints in the subsystem's default
+//   type: the run under test in most cases - ints in the subsystem's default
 // ascending order.
 typedef DSortedRun<int, std::less<int> > DIntRun;
 
@@ -130,20 +130,20 @@ std::vector<DKeyedValue> keyed_of(
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// run -- DSortedRun
+// run - DSortedRun
 bool tests_sort_monoid_run_default_construction();
 bool tests_sort_monoid_run_comparator_construction();
 bool tests_sort_monoid_run_adopting_construction();
 bool tests_sort_monoid_run_accessors();
 bool tests_sort_monoid_run_value_semantics();
 
-// merge -- internal::merge_sorted_helper
+// merge - internal::merge_sorted_helper
 bool tests_sort_monoid_merge_interleaves();
 bool tests_sort_monoid_merge_empty_operands();
 bool tests_sort_monoid_merge_exhaustion_tails();
 bool tests_sort_monoid_merge_is_stable();
 
-// algebra -- semigroup / monoid registration and laws
+// algebra - semigroup / monoid registration and laws
 bool tests_sort_monoid_semigroup_registration();
 bool tests_sort_monoid_monoid_registration();
 bool tests_sort_monoid_mappend_merges();
@@ -152,7 +152,7 @@ bool tests_sort_monoid_identity_laws();
 bool tests_sort_monoid_associativity();
 bool tests_sort_monoid_mconcat_is_merge_sort();
 
-// factories -- make / adopt / singleton / to_singleton_runs
+// factories - make / adopt / singleton / to_singleton_runs
 bool tests_sort_monoid_make_sorted_run();
 bool tests_sort_monoid_make_sorted_run_default();
 bool tests_sort_monoid_adopt_sorted_run();

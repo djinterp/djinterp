@@ -8,8 +8,8 @@
 * operator still open: a prefix operator awaiting its operand's end, an infix
 * one its right operand's, a chain or a flattening run collecting operands,
 * a mixfix operator awaiting its next part, or one past its last part
-* awaiting its tail. A frame is reduced -- popped, and its node built from
-* the operands above its base -- when an operator that binds looser arrives,
+* awaiting its tail. A frame is reduced - popped, and its node built from
+* the operands above its base - when an operator that binds looser arrives,
 * or when what encloses it closes. A mixfix frame awaiting a part is never
 * reduced past: it is what a bracket is.
 *   POSITIONS. In operand position a token's operand-position roles are
@@ -610,8 +610,8 @@ d_internal_expr_fatal(
  * @param[in,out] _p     the parser.
  * @param[in]     _term  whether it was the term, not a stack.
  *
- * Storage that cannot grow -- the caller's, or any where the heap is not
- * built in -- is full, a capacity failure; storage that could grow and did
+ * Storage that cannot grow - the caller's, or any where the heap is not
+ * built in - is full, a capacity failure; storage that could grow and did
  * not is out of memory.
  */
 static void

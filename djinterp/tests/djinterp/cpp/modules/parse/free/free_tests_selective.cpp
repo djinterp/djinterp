@@ -15,7 +15,7 @@
 *       const typename monad_rebind<_Monad, either<_L,_R>>::type&
 *
 * which is a NON-DEDUCED context for _L and _R, so selective_select(disc,
-* handler) -- called by sel_select with no explicit _L/_R -- cannot deduce them
+* handler) - called by sel_select with no explicit _L/_R - cannot deduce them
 * and is removed from overload resolution.  Until that is fixed (e.g. by giving
 * the bridge's select/branch a deducible discriminant, or by having sel_select
 * pass _L/_R explicitly into a deduction-friendly entry point), the

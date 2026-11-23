@@ -7,7 +7,7 @@
 * C++, and a digraph arrives already carrying its bracket's kind, so this
 * module consults no dialect and is written once.
 *   A directive line is a group of its own.  A macro body may leave a
-* bracket open -- `#define BEGIN {` is legal and common -- so a bracket
+* bracket open - `#define BEGIN {` is legal and common - so a bracket
 * opened on a directive line pairs only within that line, and whatever it
 * left open closes when the line does.  Without that rule one such macro
 * would swallow the rest of the file.
@@ -60,7 +60,7 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 1.1.1
 // D_SYNTAX_NONE
-//   constant: the index reported for no token -- no parent at the top level,
+//   constant: the index reported for no token - no parent at the top level,
 // no partner for an unpaired bracket.
 #define D_SYNTAX_NONE ((uint32_t)-1)
 

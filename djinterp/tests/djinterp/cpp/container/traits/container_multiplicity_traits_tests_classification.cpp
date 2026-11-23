@@ -30,7 +30,7 @@ bool tests_multiplicity_container_class()
 {
     bool _cmp_ok = true;
 
-    // -- vector<int>: comparator-less sequence --
+    // - vector<int>: comparator-less sequence --
     {
         using C = DMultiplicityContainerClass<std::vector<int>>;
         D_CMP_CHECK( (!C::has_equivalence) );
@@ -45,7 +45,7 @@ bool tests_multiplicity_container_class()
         D_CMP_CHECK( (!C::is_multiset) );
     }
 
-    // -- set<int>: unique associative (keyed + unique insert) --
+    // - set<int>: unique associative (keyed + unique insert) --
     {
         using C = DMultiplicityContainerClass<std::set<int>>;
         D_CMP_CHECK( (C::has_equivalence) );
@@ -61,7 +61,7 @@ bool tests_multiplicity_container_class()
         D_CMP_CHECK( (!C::is_multiset) );
     }
 
-    // -- multiset<int>: keyed, no unique insert -> unbounded_multiset --
+    // - multiset<int>: keyed, no unique insert -> unbounded_multiset --
     {
         using C = DMultiplicityContainerClass<std::multiset<int>>;
         D_CMP_CHECK( (C::has_equivalence) );
@@ -73,7 +73,7 @@ bool tests_multiplicity_container_class()
         D_CMP_CHECK( (C::is_multiset) );
     }
 
-    // -- DIntervalSeq: unique via the interval route (no key, no opt-in) --
+    // - DIntervalSeq: unique via the interval route (no key, no opt-in) --
     {
         using C = DMultiplicityContainerClass<DIntervalSeq>;
         D_CMP_CHECK( (!C::has_equivalence) );
@@ -84,7 +84,7 @@ bool tests_multiplicity_container_class()
         D_CMP_CHECK( (C::is_unique) );
     }
 
-    // -- DOptinBounded: bounded_multiset via the opt-in route --
+    // - DOptinBounded: bounded_multiset via the opt-in route --
     {
         using C = DMultiplicityContainerClass<DOptinBounded>;
         D_CMP_CHECK( (!C::has_equivalence) );
@@ -97,7 +97,7 @@ bool tests_multiplicity_container_class()
         D_CMP_CHECK( (C::is_multiset) );
     }
 
-    // -- int: unknown --
+    // - int: unknown --
     {
         using C = DMultiplicityContainerClass<int>;
         D_CMP_CHECK( (!C::has_equivalence) );

@@ -67,7 +67,7 @@
 #include "re_std/cpp/functional/invoke_r.hpp"
 #include "re_std/cpp/functional/mem_fn.hpp"
 #include "re_std/cpp/functional/not_fn.hpp"
-// bind support traits (primary templates only -- bind itself deferred) -
+// bind support traits (primary templates only - bind itself deferred) -
 #include "re_std/cpp/functional/is_bind_expression.hpp"
 #include "re_std/cpp/functional/is_placeholder.hpp"
 // exception types -------------------------------------------------------

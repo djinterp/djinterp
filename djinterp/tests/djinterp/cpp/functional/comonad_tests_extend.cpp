@@ -7,7 +7,7 @@
 * proof that f is handed the whole context (a function that reads the
 * environment), a focus-type change, the three comonad laws (extend(extract) ==
 * id, extract . extend(f) == f, and co-Kleisli associativity), forwarding, and
-* the result types -- over std::pair, DKvPair (field-level, key-only equality),
+* the result types - over std::pair, DKvPair (field-level, key-only equality),
 * and the custom Identity comonad.
 *
 *

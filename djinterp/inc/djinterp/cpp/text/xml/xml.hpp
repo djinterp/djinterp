@@ -5,7 +5,7 @@
 * types, node-type enumerations, encoding identifiers, backend tag
 * dispatch, the tag-based detection trait `is_xml_backend`, the full set
 * of structural SFINAE detection traits for attribute / node / document /
-* backend types, and -- under C++20 -- the matching concept wrappers.
+* backend types, and - under C++20 - the matching concept wrappers.
 *
 *   This is the foundation header: it has no dependency on the templated
 * node/document types. `xml_template.hpp` is a separate module that
@@ -28,7 +28,7 @@
 * this header.
 *
 *   STRUCTURAL DETECTION:
-*   All detection is purely structural -- no base-class checks, no
+*   All detection is purely structural - no base-class checks, no
 * registration, and (beyond the optional `backend_tag`) no tag types.
 * Expose the right members and the trait system classifies the type
 * automatically. To accommodate the divergent naming conventions of the
@@ -660,7 +660,7 @@ struct has_attribute_count_method<Type, void_t<
 
 
 // is_xml_attribute
-//   trait: minimum protocol -- a name accessor and a value accessor.
+//   trait: minimum protocol - a name accessor and a value accessor.
 // This keeps the bar low so libxml++'s `Attribute`, pugixml's
 // `DXmlAttribute`, and our own `DXmlAttribute` all qualify.
 template<typename Type>
@@ -870,7 +870,7 @@ struct has_text_access
 ///////////////////////////////////////////////////////////////////////////////
 
 // is_xml_node
-//   trait: minimum node protocol -- exposes a name accessor and
+//   trait: minimum node protocol - exposes a name accessor and
 // some form of child traversal. Deliberately permissive so that
 // pugixml, libxml++, tinyxml2, and our default backend all qualify.
 template<typename Type>
@@ -883,7 +883,7 @@ struct is_xml_node
 
 
 // is_xml_element
-//   trait: full element-node protocol -- node + attributes + text
+//   trait: full element-node protocol - node + attributes + text
 // access. An element is the concrete tag type that carries
 // attributes and child content.
 template<typename Type>
@@ -1086,7 +1086,7 @@ struct has_save_method<Type, void_t<
 
 
 // is_xml_document
-//   trait: minimum document protocol -- exposes a root-element
+//   trait: minimum document protocol - exposes a root-element
 // accessor in some form.
 template<typename Type>
 struct is_xml_document
@@ -1279,7 +1279,7 @@ struct is_xml_backend_complete
 
 // xml_attribute_type
 //   concept: constrains types satisfying the XML attribute
-// protocol -- a name accessor and a value accessor in either
+// protocol - a name accessor and a value accessor in either
 // short-form or get-form.
 template<typename Type>
 concept xml_attribute_type =
@@ -1288,7 +1288,7 @@ concept xml_attribute_type =
 
 // xml_node_type
 //   concept: constrains types satisfying the minimum XML node
-// protocol -- a name accessor and some form of child traversal.
+// protocol - a name accessor and some form of child traversal.
 template<typename Type>
 concept xml_node_type =
     is_xml_node<Type>::value;
@@ -1296,7 +1296,7 @@ concept xml_node_type =
 
 // xml_element_type
 //   concept: constrains types satisfying the full XML element
-// protocol -- node + attribute container.
+// protocol - node + attribute container.
 template<typename Type>
 concept xml_element_type =
     is_xml_element<Type>::value;
@@ -1304,7 +1304,7 @@ concept xml_element_type =
 
 // xml_document_type
 //   concept: constrains types satisfying the XML document
-// protocol -- a root-element accessor in some form.
+// protocol - a root-element accessor in some form.
 template<typename Type>
 concept xml_document_type =
     is_xml_document<Type>::value;
@@ -1358,8 +1358,8 @@ concept savable_xml_document =
 
 // full_xml_node
 //   concept: constrains nodes that expose the complete
-// structural protocol -- name, kind, attributes, children,
-// and text -- regardless of mutability.
+// structural protocol - name, kind, attributes, children,
+// and text - regardless of mutability.
 template<typename Type>
 concept full_xml_node =
     ( xml_node_type<Type>          &&
@@ -1371,7 +1371,7 @@ concept full_xml_node =
 
 // full_xml_document
 //   concept: constrains documents that expose the complete
-// document protocol -- root + every prolog accessor + read +
+// document protocol - root + every prolog accessor + read +
 // write.
 template<typename Type>
 concept full_xml_document =

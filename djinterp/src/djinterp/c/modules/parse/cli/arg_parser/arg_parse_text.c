@@ -4,13 +4,13 @@
 * Parsing arguments that arrive as text, declared in arg_parser.h (4.1.3, 4.2
 * and 4.3).
 *   CLI11's parse(string): a command line split by CLI11's own rules --
-* reading `:` as `=` for a root that takes Windows-style options -- its
+* reading `:` as `=` for a root that takes Windows-style options - its
 * program's name, when it holds one, naming the root; wmain's arguments and
 * wide lines, converted to UTF-8 first; and CLI11's ensure_utf8, which
 * recovers main's arguments from the process's wide command line, split by
 * the C runtime's rules. The words are the parser's pool's until the next
-* parse, each stacked whole -- a NUL byte an escape gives kept among its
-* bytes, as CLI11's std::string keeps it -- and every parse here then runs as
+* parse, each stacked whole - a NUL byte an escape gives kept among its
+* bytes, as CLI11's std::string keeps it - and every parse here then runs as
 * d_arg_parser_parse runs.
 *   Then CLI11's parse_from_stream: configuration text read with the root's
 * format and parsed as a configuration file's items are, adding to the
@@ -52,7 +52,7 @@
  * CLI11's split in parse(string) of what follows the program's name: into
  * the parser's pool by CLI11's rules, `:` read as `=` where the root takes
  * Windows-style options, each word's span after `_words`'s, to the length it
- * was made with; a malformed escape -- the one text CLI11's rules refuse --
+ * was made with; a malformed escape - the one text CLI11's rules refuse --
  * recorded as CLI11's ParseError, in its words.
  */
 D_STATIC
@@ -351,7 +351,7 @@ d_arg_parser_ensure_utf8
   CLI11's ensure_utf8: the process's wide command line split by the C
 runtime's rules, as the runtime made `argv` from it, kept by the parser and
 returned, a NULL after its last as `argv` has, when it holds as many
-arguments as `argv` -- which it does not when the runtime expanded
+arguments as `argv` - which it does not when the runtime expanded
 wildcards; `argv` where there is no such line.
 */
 char** d_arg_parser_ensure_utf8(
@@ -428,8 +428,8 @@ char** d_arg_parser_ensure_utf8(
  * @param[in]     _text  the text.
  * @return D_ARG_OK, or a failure, recorded.
  *
- * CLI11's _parse_stream: the text read with the root's format -- a malformed
- * quote or escape recorded in the reader's words -- its items parsed, the
+ * CLI11's _parse_stream: the text read with the root's format - a malformed
+ * quote or escape recorded in the reader's words - its items parsed, the
  * root's use counted, its pre-parse step taken with the count of items, and
  * the processing that ends a parse.
  */

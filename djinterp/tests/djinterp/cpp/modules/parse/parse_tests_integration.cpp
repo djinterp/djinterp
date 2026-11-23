@@ -226,7 +226,7 @@ bool tests_parse_integration_sequence_consumes_residual()
 
     dp::parse_state<char> state(text, 3u);
 
-    // digit, then literal, then digit -- a fixed three-symbol production
+    // digit, then literal, then digit - a fixed three-symbol production
     dp::parse_result<int> one = pa_parse_digit(state);
 
     D_PA_CHECK(one.ok());

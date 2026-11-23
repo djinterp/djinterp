@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                          cfg_file_open.h
 *
-* Build-time configuration for c/filesys/file_open.h -- opening, reopening and
+* Build-time configuration for c/filesys/file_open.h - opening, reopening and
 * closing FILE* streams.
 *
 *   file_io's whole-file calls depend on this module, since a whole-file
@@ -81,7 +81,7 @@ TABLE OF CONTENTS
 //   knob: route d_file_open_stream through Annex K's fopen_s where it exists.
 // Follows the subframework's D_CFG_FILE_PREFER_ANNEX_K. Worth knowing before
 // you leave this on: MSVC's fopen_s opens files with sharing denied, so a
-// second opener -- including a tail -f, an editor, or your own test harness --
+// second opener - including a tail -f, an editor, or your own test harness --
 // is locked out. If that bites, turn this off and choose the sharing with
 // D_CFG_FILE_OPEN_SHARE; the two cannot be combined, since fopen_s takes no
 // sharing argument.
@@ -93,14 +93,14 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 1.2.1
 // D_CFG_FILE_OPEN_BINARY_DEFAULT
-//   knob: append 'b' to any mode string that names neither 'b' nor 't' -- nor
-// an encoding (",ccs=UTF-8"), which only a text stream may have -- so a
+//   knob: append 'b' to any mode string that names neither 'b' nor 't' - nor
+// an encoding (",ccs=UTF-8"), which only a text stream may have - so a
 // stream never silently translates line endings. A descriptor adopted with
 // d_file_open_stream_fd gets it too.
 //   Off by default, because it is a real behaviour change: on Windows a text
 // stream turns "\n" into "\r\n" on the way out and back on the way in, and a
 // program written against that is entitled to it. Turn it on for a program
-// that wants byte-for-byte identical files across platforms -- which is most
+// that wants byte-for-byte identical files across platforms - which is most
 // programs that are not writing a .txt for Notepad.
 #ifndef D_CFG_FILE_OPEN_BINARY_DEFAULT
     #define D_CFG_FILE_OPEN_BINARY_DEFAULT 0
@@ -122,8 +122,8 @@ TABLE OF CONTENTS
 
 // 1.3    Sharing (Windows)
 //------------------------------------------------------------------------------
-//   Selection model. POSIX has no equivalent -- an open file is shareable
-// and locking is advisory -- so these are ignored there.
+//   Selection model. POSIX has no equivalent - an open file is shareable
+// and locking is advisory - so these are ignored there.
 
 // 1.3.1
 // D_CFG_FILE_OPEN_SHARE_DEFAULT
@@ -142,7 +142,7 @@ TABLE OF CONTENTS
 
 // 1.3.4
 // D_CFG_FILE_OPEN_SHARE_ALL
-//   constant: permit everything (_SH_DENYNO) -- POSIX-like behaviour.
+//   constant: permit everything (_SH_DENYNO) - POSIX-like behaviour.
 #define D_CFG_FILE_OPEN_SHARE_ALL        3
 
 // 1.3.5
@@ -191,7 +191,7 @@ TABLE OF CONTENTS
 // 1.4.5
 // D_CFG_FILE_OPEN_BUFFER_MODE
 //   knob: stdio buffering applied to a freshly opened stream. Left to stdio by
-// default -- its own heuristics are good, and overriding them costs an
+// default - its own heuristics are good, and overriding them costs an
 // allocation per stream.
 #ifndef D_CFG_FILE_OPEN_BUFFER_MODE
     #define D_CFG_FILE_OPEN_BUFFER_MODE D_CFG_FILE_OPEN_BUFFER_DEFAULT
@@ -206,7 +206,7 @@ TABLE OF CONTENTS
 // D_CFG_FILE_OPEN_BUFFER_SIZE
 //   knob: buffer size in bytes applied with the mode above (value model).
 // Ignored when D_CFG_FILE_OPEN_BUFFER_MODE is D_CFG_FILE_OPEN_BUFFER_DEFAULT,
-// and by glibc, which sizes a buffer it allocates itself -- setvbuf's size
+// and by glibc, which sizes a buffer it allocates itself - setvbuf's size
 // counts there only with a buffer the caller provides; the Windows CRT
 // allocates this many bytes.
 #ifndef D_CFG_FILE_OPEN_BUFFER_SIZE
@@ -261,7 +261,7 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 3.1.1
 // D_INTERNAL_FILE_OPEN_FOPEN_S
-//   resolved: 1 when d_file_open_stream actually calls fopen_s -- it must
+//   resolved: 1 when d_file_open_stream actually calls fopen_s - it must
 // exist, be preferred subframework-wide, and be wanted by this module.
 #if ( (D_INTERNAL_FILE_HAS_FOPEN_S == 1) &&                                    \
       (D_CFG_IS_ON(D_CFG_FILE_OPEN_USE_FOPEN_S)) )
@@ -315,7 +315,7 @@ TABLE OF CONTENTS
 // 3.1.6
 // D_INTERNAL_FILE_OPEN_USE_FSOPEN
 //   resolved: 1 when d_file_open_stream opens through _fsopen, to ask for the
-// sharing D_CFG_FILE_OPEN_SHARE names -- on Windows, when that is not the
+// sharing D_CFG_FILE_OPEN_SHARE names - on Windows, when that is not the
 // CRT's own; 0 otherwise, and on every other platform, which has no such
 // concept.
 #if ( (D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)) &&                                   \

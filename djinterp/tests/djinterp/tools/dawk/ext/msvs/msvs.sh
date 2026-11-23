@@ -1,5 +1,5 @@
 #!/bin/sh
-# msvs.sh -- the -x msvs extension and its parts, -x sln and -x vcxproj,
+# msvs.sh - the -x msvs extension and its parts, -x sln and -x vcxproj,
 # msvs_generate.awk and msvs_survey.awk, against outputs fixed in advance;
 # then the reader and the document layer over real files, and the files
 # generated against an XML parser of Python's own.
@@ -75,7 +75,7 @@ check() {
     fi
 }
 
-# -- vcxproj: reading ---------------------------------------------------------
+# - vcxproj: reading ---------------------------------------------------------
 cat > "$work/p.vcxproj" <<'EOF'
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
@@ -144,7 +144,7 @@ missing -1 cannot read: nope.vcxproj
 status 0" \
     -x vcxproj -v file="$work/p.vcxproj" -f "$work/read.awk"
 
-# -- vcxproj: changes ---------------------------------------------------------
+# - vcxproj: changes ---------------------------------------------------------
 cp "$work/p.vcxproj" "$work/q.vcxproj"
 cat > "$work/change.awk" <<'EOF'
 BEGIN {
@@ -216,7 +216,7 @@ cat > "$work/q.want" <<'EOF'
 EOF
 holds '...the file as changed, every other byte its own' "$work/q.vcxproj" "$work/q.want"
 
-# -- vcxproj: new files, from nothing and from a template --------------------
+# - vcxproj: new files, from nothing and from a template --------------------
 cat > "$work/new.awk" <<'EOF'
 BEGIN {
     f = vcxproj_new(dir "/made/deep/x.vcxproj.filters")
@@ -279,7 +279,7 @@ printf '\357\273\277<?xml version="1.0" encoding="utf-8"?>\r\n<Project ToolsVers
     > "$work/user.want"
 holds '...the user file as Visual Studio writes one' "$work/made/x.vcxproj.user" "$work/user.want"
 
-# -- sln: both forms ----------------------------------------------------------
+# - sln: both forms ----------------------------------------------------------
 mkdir -p "$work/a"
 cp "$work/p.vcxproj" "$work/a/a.vcxproj"
 printf '\357\273\277\r\nMicrosoft Visual Studio Solution File, Format Version 12.00\r\n# Visual Studio Version 17\r\nVisualStudioVersion = 17.14.36327.8\r\nMinimumVisualStudioVersion = 10.0.40219.1\r\nProject("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "p", "p.vcxproj", "{AAAAAAAA-0000-0000-0000-000000000001}"\r\nEndProject\r\nGlobal\r\n\tGlobalSection(SolutionConfigurationPlatforms) = preSolution\r\n\t\tDebug|x64 = Debug|x64\r\n\t\tDebug|x86 = Debug|x86\r\n\tEndGlobalSection\r\n\tGlobalSection(ProjectConfigurationPlatforms) = postSolution\r\n\t\t{AAAAAAAA-0000-0000-0000-000000000001}.Debug|x64.ActiveCfg = Debug|x64\r\n\t\t{AAAAAAAA-0000-0000-0000-000000000001}.Debug|x64.Build.0 = Debug|x64\r\n\t\t{AAAAAAAA-0000-0000-0000-000000000001}.Debug|x86.ActiveCfg = Debug|Win32\r\n\t\t{AAAAAAAA-0000-0000-0000-000000000001}.Debug|x86.Build.0 = Debug|Win32\r\n\tEndGlobalSection\r\n\tGlobalSection(SolutionProperties) = preSolution\r\n\t\tHideSolutionNode = FALSE\r\n\tEndGlobalSection\r\nEndGlobal\r\n' \
@@ -448,7 +448,7 @@ status 0" \
         print (sln_save(a) == 1), (sln_save(b) == 1), sln_projects(a), sln_open(dir "/n.slnx") }'
 check '...each reads back whole' "$READER" --corpus "$work/new"
 
-# -- msvs: the umbrella's own -------------------------------------------------
+# - msvs: the umbrella's own -------------------------------------------------
 mkdir -p "$work/g/sub" "$work/g/.hidden"
 touch "$work/g/a.cpp" "$work/g/b.cpp" "$work/g/b.hpp" "$work/g/sub/c.cpp" "$work/g/.h.cpp"
 same 'guids, relative paths, globs, kinds' "c8a9f80b-5306-5530-997b-7ae52b9a8be3
@@ -482,7 +482,7 @@ same 'the parts alone, and beside the umbrella' "1 1 1
 status 0" \
     -x sln -x vcxproj -x msvs -x sln 'BEGIN { print (sln_new("a.slnx") > 0), (vcxproj_new("a.props") > 0), (msvs_guid("") != "") }'
 
-# -- msvs_generate.awk --------------------------------------------------------
+# - msvs_generate.awk --------------------------------------------------------
 T="$work/tree"
 C="$T/build/cmake/config"
 mkdir -p "$C/testing/djinterp/thing" "$C/testing/djinterp/suites" \
@@ -641,7 +641,7 @@ same 'the generated tree surveyed: nothing stale' \
 "27 files: 12 solutions, 5 projects, 5 filters, 4 user, 1 props; 0 stale
 status 0" -x msvs -f "$RES/msvs_survey.awk" -v quiet=1 "$M/testing" "$M/modules" "$M/djinterp.props"
 
-# -- msvs_survey.awk ----------------------------------------------------------
+# - msvs_survey.awk ----------------------------------------------------------
 S="$work/stale"
 mkdir -p "$S/lib"
 cp "$work/p.vcxproj" "$S/lib/lib.vcxproj"
@@ -719,7 +719,7 @@ $S/lib/lib.vcxproj
 2 files: 1 solutions, 1 projects, 0 filters, 0 user, 0 props; 3 stale
 status 1" -x msvs -f "$RES/msvs_survey.awk" -v quiet=1 "$S/all.slnx" "$S/lib"
 
-# -- the reader and the documents, over real files ----------------------------
+# - the reader and the documents, over real files ----------------------------
 if [ -d build/cmake/msvs ]; then
     check 'the reader over build/cmake' "$READER" --corpus build/cmake
     check 'random changes to its projects, each touching only what it said' \

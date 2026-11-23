@@ -20,7 +20,7 @@
 * HOW TO USE
 * ----------
 *   Bind an option to a variable with the descriptor of its type --
-* d_arg_type_builtin, given a dj_arg_builtin value -- or make a descriptor of
+* d_arg_type_builtin, given a dj_arg_builtin value - or make a descriptor of
 * your own for another type, with its help name, its item counts and its two
 * conversions; section 2's conversions read text as the built-in descriptors do.
 *
@@ -116,12 +116,12 @@ struct dj_arg_convert_context
 
 // 1.1.2
 // dj_arg_convert_fn
-//   type: converts an option's values -- one item's worth for a scalar, all
-// of them for a container -- into the object at `_target`. Returns D_ARG_OK
+//   type: converts an option's values - one item's worth for a scalar, all
+// of them for a container - into the object at `_target`. Returns D_ARG_OK
 // or D_ARG_ERROR_CONVERSION, writing the reason into `_context->message`
 // when there is one. It must not keep a pointer to the values beyond the
 // call except where the type says so (D_ARG_BUILTIN_STRING and _TEXT). The
-// built-in converters read an empty value -- or none -- as the type's zero,
+// built-in converters read an empty value - or none - as the type's zero,
 // as CLI11's lexical_assign value-initializes, and the text types as empty
 // text; and they write `_target` only when they succeed, so a variable a
 // value does not convert into keeps its value, where CLI11's conversions
@@ -149,7 +149,7 @@ typedef int (*dj_arg_format_fn)(const struct dj_arg_type* _type,
 
 // 1.1.4.1
 // D_ARG_TYPE_FLAG_INTEGER
-//   constant: an integer type of any width -- not `bool`, and not `char`,
+//   constant: an integer type of any width - not `bool`, and not `char`,
 // which reads a single character as itself. A flag bound to one wider than
 // a byte sums its occurrences (`-vvv` is 3), as CLI11's
 // default_flag_modifiers arranges.
@@ -205,7 +205,7 @@ typedef int (*dj_arg_format_fn)(const struct dj_arg_type* _type,
 // NULL when a value has no text form; `data` is the descriptor's own,
 // such as a container's element type. A descriptor is immutable and is
 // never copied or freed by the parser, so it must outlive every option
-// bound through it -- a static object, as every built-in one is.
+// bound through it - a static object, as every built-in one is.
 struct dj_arg_type
 {
     const char*      name;
@@ -285,7 +285,7 @@ D_ARG_PARSER_API const struct dj_arg_type* d_arg_type_builtin(
 // 2.  CONVERSIONS
 //==============================================================================
 // The conversions the built-in descriptors use, for a caller converting text
-// itself -- in an option callback, say. Each reads the whole span, accepting
+// itself - in an option callback, say. Each reads the whole span, accepting
 // spaces around the value, and on failure leaves its output untouched.
 
 
@@ -371,8 +371,8 @@ D_ARG_PARSER_API int d_arg_parse_uintmax(
  * @brief Converts text to a `double`, reading `.` as the decimal point in
  *        every locale.
  *
- * @note Accepts what strtod accepts -- exponents, hexadecimal significands,
- *       `inf`, `nan` -- and `_` or `'` as digit separators.
+ * @note Accepts what strtod accepts - exponents, hexadecimal significands,
+ *       `inf`, `nan` - and `_` or `'` as digit separators.
  *
  * @param[in]  _text  the text.
  * @param[out] _out   receives the value on success.

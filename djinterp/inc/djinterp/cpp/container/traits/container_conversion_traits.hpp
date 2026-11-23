@@ -128,7 +128,7 @@ NS_INTERNAL
     template<typename To, typename From, typename = void>
     struct range_constructible_helper : std::false_type {};
     // range_constructible_helper specialization
-    //   helper: the detected case -- selected when the type exposes the
+    //   helper: the detected case - selected when the type exposes the
     // expression `To(...)`.
     template<typename To, typename From>
     struct range_constructible_helper<To, From,
@@ -141,7 +141,7 @@ NS_INTERNAL
     template<typename To, typename From, typename = void>
     struct range_insertable_helper : std::false_type {};
     // range_insertable_helper specialization
-    //   helper: the detected case -- selected when the type exposes the member
+    //   helper: the detected case - selected when the type exposes the member
     // function `insert()`.
     template<typename To, typename From>
     struct range_insertable_helper<To, From,

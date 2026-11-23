@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][meta]                            value_list_tests_detection.cpp
 *
-*   Section II -- is_value_list (+ _v) and the ValueList concept face.
+*   Section II - is_value_list (+ _v) and the ValueList concept face.
 *
 *
 * path:      /tests/djinterp/cpp/meta/value_list_tests_detection.cpp
@@ -45,7 +45,7 @@ bool tests_is_value_list_positive()
 
 /*
 tests_is_value_list_negative
-  Everything else is refused -- notably std::tuple, which is the TYPE-domain
+  Everything else is refused - notably std::tuple, which is the TYPE-domain
   sequence this module is the value-domain counterpart of.
   Tests the following:
   - scalars, an unrelated struct, and a value CARRIER (val_t is not a list)
@@ -156,7 +156,7 @@ bool tests_is_value_list_v_agrees()
 /*
 tests_concept_value_list
   ValueList is the concept face of is_value_list, and it really GATES resolution
-  -- it is a constraint, not merely a bool that happens to be true.
+  - it is a constraint, not merely a bool that happens to be true.
   Tests the following:
   - the face mirrors the trait, positively and negatively
   - a ValueList-constrained function accepts a list and computes over it

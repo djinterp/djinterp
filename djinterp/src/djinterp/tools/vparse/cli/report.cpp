@@ -236,8 +236,8 @@ std::string bracketed(
 /*
 json_quote
   Byte by byte: below U+0080 through JSON's escapes, a well-formed UTF-8
-sequence copied whole, and anything else -- a stray continuation byte, a
-truncated sequence, an overlong form -- as the visible `\xHH`.
+sequence copied whole, and anything else - a stray continuation byte, a
+truncated sequence, an overlong form - as the visible `\xHH`.
 */
 std::string json_quote(
     const std::string& _text
@@ -464,8 +464,8 @@ bool json_array::empty() const
 
 /*
 json_listing
-  The marks and keys a listing also carries are the window's -- a row's tint,
-what two runs are compared by -- and stay out: a program reading a part
+  The marks and keys a listing also carries are the window's - a row's tint,
+what two runs are compared by - and stay out: a program reading a part
 wants its cells.
 */
 std::string json_listing(

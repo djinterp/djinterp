@@ -5,7 +5,7 @@
 *   A traversable is a structure T<A> that can be walked left-to-right while
 * running an applicative effect at each element, collecting the results back
 * into the same shape: traverse(ta, f) takes f : A -> F<B> over an applicative
-* F and yields F<T<B>>. It is the capstone of this layer -- it needs a structure
+* F and yields F<T<B>>. It is the capstone of this layer - it needs a structure
 * that is both a Functor (to rebuild the shape) and a Foldable (to walk the
 * elements), and an Applicative F (to thread and combine the effects), all of
 * which the surrounding headers provide. traverse_sequence is the special case
@@ -13,11 +13,11 @@
 *
 *   The whole point is to run effects and invert the nesting. Traversing a
 * maybe with a result-producing function turns maybe<A> into result<maybe<B>,E>
-* -- the error is hoisted out, the optional preserved. Sequencing a vector of
+* - the error is hoisted out, the optional preserved. Sequencing a vector of
 * maybes, vector<maybe<A>>, yields maybe<vector<A>> that is just(...) only if
 * every element was a value. For the effect F this layer ships maybe and result
 * (the applicatives, via the monad bridge); the traversable structures are
-* maybe, result, and -- materialising their elements -- the lazy sequences view
+* maybe, result, and - materialising their elements - the lazy sequences view
 * and producer.
 *
 *   Because C++ has no native type classes, a traversable is recognized by
@@ -28,7 +28,7 @@
 * folding the sequence and materialising into F<std::vector<B>>).
 *
 *   F (the effect) cannot be deduced from the value of an empty structure --
-* a nothing or an empty sequence never calls f -- so it is recovered from the
+* a nothing or an empty sequence never calls f - so it is recovered from the
 * *type* of f's result, decltype(f(declval<A>())) = F<B>; the empty case then
 * uses pure to inject the empty shape. This is why traverse works even when f
 * is never invoked.
@@ -102,7 +102,7 @@ NS_DJINTERP
 // traversable specializes traversable_traits<T> to expose:
 //
 //     - value_type      : the inner type A of T<A>
-//     - traverse(ta, f)  : static -- walk T<A> running f : A -> F<B> and
+//     - traverse(ta, f)  : static - walk T<A> running f : A -> F<B> and
 //                         collect into F<T'<B>> (T' the rebuilt shape; for the
 //                         lazy sequences, F<std::vector<B>>)
 //     - is_specialized   = true_type (marker)
@@ -208,7 +208,7 @@ NS_INTERNAL
     // DTraversableAppendHelper
     //   helper: the reducer used by the sequence traversables (view,
     // producer) to grow the materialised result vector inside the applicative
-    // -- appends one element and returns the vector. Passed to lift_a2, so its
+    // - appends one element and returns the vector. Passed to lift_a2, so its
     // signature is (std::vector<B>, const B&) -> std::vector<B>. The vector is
     // threaded by value (lift_a2 lifts a pure binary function over the effect).
     template<typename Value>
@@ -335,8 +335,8 @@ auto traverse(
 
 
 // traverse_sequence
-//   function: turns a traversable of effects inside out -- T<F<A>> -> F<T<A>>
-// -- by traversing with the identity function. maybe<F<A>> becomes F<maybe<A>>;
+//   function: turns a traversable of effects inside out - T<F<A>> -> F<T<A>>
+// - by traversing with the identity function. maybe<F<A>> becomes F<maybe<A>>;
 // a vector<F<A>> becomes F<vector<A>>, succeeding only if every effect does.
 template<typename Traversable>
 D_NODISCARD

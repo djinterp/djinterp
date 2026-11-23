@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/modules/test/test_timer/CMakeLists.txt
+# djinterp [test]  -  build/cmake/config/testing/djinterp/c/modules/test/test_timer/CMakeLists.txt
 #
 #   Test leaf for DTest's C timer, c/modules/test/test_timer.h and its tie-in
 # test_timer_event.h, in the C spec form: the runner in this directory, the

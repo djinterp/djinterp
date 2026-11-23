@@ -2,8 +2,8 @@
 * djinterp [c][utility]                                         bench_template.c
 *
 *   The template engine's and the environment printer's cost, measured. One
-* line of the text style's entry -- two spaces, a label padded to a column,
-* two spaces, a value -- written four ways: by hand through the stream, by a
+* line of the text style's entry - two spaces, a label padded to a column,
+* two spaces, a value - written four ways: by hand through the stream, by a
 * compiled template with a literal width and with a width from a field, and
 * by snprintf; then a template's compilation, a whole report printed as text
 * and as JSON, and a printer made and configured by a script. Every stream
@@ -237,7 +237,7 @@ bench_compile(void)
 
 /*
 bench_report
-  A whole report -- this unit's, every section -- printed, in microseconds.
+  A whole report - this unit's, every section - printed, in microseconds.
 */
 static double
 bench_report(

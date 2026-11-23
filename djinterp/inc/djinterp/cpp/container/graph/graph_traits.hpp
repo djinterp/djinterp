@@ -556,7 +556,7 @@ struct is_pseudograph_t
 // ===========================================================================
 // VII.  TOPOLOGY CLASSIFICATION
 // ===========================================================================
-// These traits are STRUCTURAL only -- they detect *declared* topology
+// These traits are STRUCTURAL only - they detect *declared* topology
 // invariants (e.g. types that expose `acyclicity = graph_acyclicity::dag`
 // as a static constant).  Run-time detection of acyclicity / connectivity
 // requires actual algorithms and is out of scope for the trait system.

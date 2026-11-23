@@ -118,7 +118,7 @@ TABLE OF CONTENTS
 // guarantees it, then a vendor spelling that behaves the same, then nothing.
 // There is no __has_cpp_attribute tier: GCC and Clang answer yes below the
 // level that guarantees an attribute, where -pedantic-errors rejects the
-// [[...]] spelling -- and at C++98 the syntax itself does not exist -- so a
+// [[...]] spelling - and at C++98 the syntax itself does not exist - so a
 // probe picks a spelling the build refuses. (D_NODISCARD, defined for both
 // languages in section 3, keeps one probe, behind a compiler and a level.)
 
@@ -548,7 +548,7 @@ TABLE OF CONTENTS
 // function so marked; the _MSG variant adds a reason to it. Standard as
 // [[nodiscard]] in C++17 and C23, and as [[nodiscard(msg)]] in C++20 and C23.
 // Below those levels a spelling is used only where it behaves exactly as the
-// standard attribute does -- a (void) cast silences it -- and -pedantic-errors
+// standard attribute does - a (void) cast silences it - and -pedantic-errors
 // accepts it; elsewhere the macro is empty, which loses the diagnostic but
 // never changes what compiles.
 //

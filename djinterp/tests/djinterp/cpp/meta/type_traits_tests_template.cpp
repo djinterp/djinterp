@@ -13,7 +13,7 @@
 *     True iff T is a specialization of some template-of-typenames with
 *     ZERO arguments (i.e., T == X<>).  The partial specialization that
 *     fires is `is_template<_Type<>>`, so only the empty form matches.
-*     Note: `is_template<std::tuple<int>>::value` is FALSE -- the partial
+*     Note: `is_template<std::tuple<int>>::value` is FALSE - the partial
 *     spec doesn't fire because the template-instantiation has args.
 *
 *   is_template_with_args<T>
@@ -120,7 +120,7 @@ static_assert(is_template_with_args<std::vector<int>>::value == true,
 static_assert(is_template_with_args<std::pair<int, double>>::value == true,
               "is_template_with_args<std::pair<int, double>> -> true");
 
-// negative cases -- not class templates of typenames
+// negative cases - not class templates of typenames
 static_assert(is_template_with_args<int>::value == false,
               "is_template_with_args<int> -> false");
 static_assert(is_template_with_args<void>::value == false,

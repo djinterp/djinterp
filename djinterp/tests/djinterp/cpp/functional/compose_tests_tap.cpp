@@ -85,7 +85,7 @@ bool compose_tests_tap()
             auto probe = ::djinterp::tap([&seen](int _v) { seen = _v; });
 
             // pipe(add_one, tap)(5): add_one(5) = 6, tap observes 6 and
-            // returns 6 -- the chain result must equal add_one alone.
+            // returns 6 - the chain result must equal add_one alone.
             const int piped = ::djinterp::pipe(add_one(), probe)(5);
 
             record_assertion(verdict,

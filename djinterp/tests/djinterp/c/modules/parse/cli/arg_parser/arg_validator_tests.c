@@ -5,7 +5,7 @@
 * arg_validator_tests.h.
 *   The transcripts are CLI11 2.7.2's: each of its default validators, and
 * their composites, run over the same values with CLI11's rule for leading
-* zeros, written as a description line and a line for each value -- whether
+* zeros, written as a description line and a line for each value - whether
 * it passed, as what, or why it was refused. A control character in a value
 * is written as its escape, so that every line of a transcript is one line.
 *
@@ -1648,8 +1648,8 @@ bool d_tests_arg_validator_described(void)
 d_tests_arg_validator_range_int
   CLI11's Range(0, 10) over `int`.
   Tests the following:
-  - the description, and each value converted as an `int` is -- the empty
-    text and fractions out of range -- and refused outside the bounds with
+  - the description, and each value converted as an `int` is - the empty
+    text and fractions out of range - and refused outside the bounds with
     CLI11's message
 */
 bool d_tests_arg_validator_range_int(void)

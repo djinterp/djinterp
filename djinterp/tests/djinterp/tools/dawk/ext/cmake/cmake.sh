@@ -1,5 +1,5 @@
 #!/bin/sh
-# cmake.sh -- the -x cmake functions, cmake_survey.awk and cmake_sources.awk
+# cmake.sh - the -x cmake functions, cmake_survey.awk and cmake_sources.awk
 # against outputs fixed in advance, and the CMake reader against CMake.
 #
 # Each case runs dawk over a file written here and compares what it prints,
@@ -55,7 +55,7 @@ holds() {
     fi
 }
 
-# -- reading -----------------------------------------------------------------
+# - reading -----------------------------------------------------------------
 cat > "$work/CMakeLists.txt" <<'EOF'
 cmake_minimum_required(VERSION 3.16)
 function(add_leaf _name)
@@ -162,7 +162,7 @@ status 0" \
         }
     }'
 
-# -- opening, and what is refused ----------------------------------------------
+# - opening, and what is refused ----------------------------------------------
 printf 'set(a "b\n' > "$work/broken.cmake"
 same 'a file that cannot be read' "-1 cannot read: $work/none.cmake
 status 0" \
@@ -201,7 +201,7 @@ status 0" \
         print cmake_new("n.cmake", "set(a"), cmake_error()
     }'
 
-# -- changing arguments ---------------------------------------------------------
+# - changing arguments ---------------------------------------------------------
 cat > "$work/edit.cmake" <<'EOF'
 add_library(lib STATIC
     "a.c"
@@ -304,7 +304,7 @@ holds '...its endings kept and its own used' "$work/crlf.out.cmake" \
 holds '...and the file it was read from is untouched' "$work/crlf.cmake" \
 'set(a\r\n    b\r\n    c)\r\n'
 
-# -- changing commands ------------------------------------------------------------
+# - changing commands ------------------------------------------------------------
 cat > "$work/commands.cmake" <<'EOF'
 project(p)
 
@@ -365,7 +365,7 @@ status 0" \
     }'
 holds '...the new file holding what was asked' "$work/new/dir/out.cmake2" 'x()'
 
-# -- writing ----------------------------------------------------------------------
+# - writing ----------------------------------------------------------------------
 same 'the writers' "\"a \\\"b\\\" \\\\c\" [=[x]]y]=] -1 a bracket argument cannot hold a CR LF
 plain.c \"a b\" \"\" \"[x\" \"=x\" \"a;b\"
 set(a \"b c\" \"\" \"d;e\") x() -1 not a command's name: 1x
@@ -445,7 +445,7 @@ last;one" ]; then
     fi
 fi
 
-# -- the survey -----------------------------------------------------------------
+# - the survey -----------------------------------------------------------------
 mkdir -p "$work/tree/sub" "$work/tree/CMakeFiles/3.28"
 cp "$work/CMakeLists.txt" "$work/tree/CMakeLists.txt"
 printf '#****\n# banner\n#****\nadd_executable(app a.c)\nadd_library(lib b.c)\nadd_leaf(x)\n' \
@@ -476,7 +476,7 @@ unpaired: $work/tree/sub/broken.cmake:2: endif does not pair
 status 1" \
     -x cmake -T "$work/tree" -f "$RES/cmake_survey.awk" -v files=0
 
-# -- source lists -----------------------------------------------------------------
+# - source lists -----------------------------------------------------------------
 cat > "$work/sources.cmake" <<'EOF'
 add_executable(app WIN32
     a.c
@@ -547,7 +547,7 @@ nothing to change
 status 1" \
     -x cmake -f "$RES/cmake_sources.awk" -v list="$work/sources.cmake" -v target=app -v remove=zz.c
 
-# -- the reader, over the tree and against CMake --------------------------------
+# - the reader, over the tree and against CMake --------------------------------
 if [ -d build/cmake ]; then
     if out=$("$READER" --corpus build/cmake 2>&1); then
         pass=$((pass + 1))

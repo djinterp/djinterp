@@ -80,7 +80,7 @@ NS_INTERNAL
     // surface_tangents
     //   struct: a surface's tangents r_u and r_v at (u, v), by central
     // differences of half-widths m_eps_u and m_eps_v, and their cross
-    // product -- the shared part of both surface integrands.
+    // product - the shared part of both surface integrands.
     template<typename Surface>
     struct surface_tangents
     {
@@ -195,7 +195,7 @@ NS_INTERNAL
     };
 
     // simpson_inner, simpson_outer
-    //   struct: the iterated Simpson rule's two levels -- for a fixed u, the
+    //   struct: the iterated Simpson rule's two levels - for a fixed u, the
     // integral over v; then the integral of that over u.
     template<typename Integrand>
     struct simpson_inner
@@ -472,7 +472,7 @@ NS_END  // internal
 //------------------------------------------------------------------------------
 // 1.1.1
 // patch_area
-//   function: a surface patch's area -- its closed form, or the iterated
+//   function: a surface patch's area - its closed form, or the iterated
 // Simpson integral of |r_u x r_v| over _nu by _nv intervals.
 template<typename Surface>
 typename Surface::value_type

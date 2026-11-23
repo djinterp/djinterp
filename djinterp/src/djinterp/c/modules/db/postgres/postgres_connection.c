@@ -2,12 +2,12 @@
 * djinterp [c][db]                                         postgres_connection.c
 *
 * Implementation of postgres_connection.h.
-*   Every connect builds one plan -- libpq's keyword and value arrays, the
-* layer's defaults first in them -- and hands it to PQconnectdbParams, or to
+*   Every connect builds one plan - libpq's keyword and value arrays, the
+* layer's defaults first in them - and hands it to PQconnectdbParams, or to
 * PQconnectStartParams for a connect that does not block: libpq takes the
-* last value given for a keyword, so whatever the caller names -- in the
+* last value given for a keyword, so whatever the caller names - in the
 * struct, in keywords, or in a connection string, which the layer reads into
-* its parts -- overrides them. A default is given only where libpq's own
+* its parts - overrides them. A default is given only where libpq's own
 * environment variable for it is unset, so that PGCONNECT_TIMEOUT and
 * PGCLIENTENCODING keep their meaning, and the layer's startup option joins
 * PGOPTIONS rather than replacing it. Options of the caller's replace the
@@ -55,7 +55,7 @@
 
 // D_INTERNAL_POSTGRES_KEYWORDS
 //   constant: room for every keyword a connect from the options struct passes
-// -- the layer's three defaults, six fields, and the terminating NULL.
+// - the layer's three defaults, six fields, and the terminating NULL.
 #define D_INTERNAL_POSTGRES_KEYWORDS 10u
 
 // D_INTERNAL_POSTGRES_DIGITS
@@ -81,9 +81,9 @@ struct dj_internal_postgres_params
 };
 
 // dj_internal_postgres_plan
-//   struct: everything a connect hands libpq -- the keyword and value arrays,
+//   struct: everything a connect hands libpq - the keyword and value arrays,
 // NULL-terminated, libpq's own copies of what it parsed, and the text the
-// layer made -- whichever form the connect took.
+// layer made - whichever form the connect took.
 struct dj_internal_postgres_plan
 {
     struct dj_internal_postgres_params defaults;  // the layer's defaults, and
@@ -495,7 +495,7 @@ void d_internal_postgres_plan_free(
 
 /*
 d_internal_postgres_plan_options
-  The defaults, then each field the options give -- NULL options give none
+  The defaults, then each field the options give - NULL options give none
 -- in the defaults' own arrays, which have room for them all. No field is
 options, so the layer's own startup option stands.
 */
@@ -528,8 +528,8 @@ int d_internal_postgres_plan_options(
 
 /*
 d_internal_postgres_digits_ahead
-  Options of the caller's -- among its keywords, or its connection string's
-parts -- replace the layer's, libpq taking the last value given; unless they
+  Options of the caller's - among its keywords, or its connection string's
+parts - replace the layer's, libpq taking the last value given; unless they
 name extra_float_digits themselves, the layer's digits go ahead of them, so
 that the startup packet sets it as the layer's own options would, and the
 caller's own settings, coming after, still win. Nothing after the handshake
@@ -584,7 +584,7 @@ int d_internal_postgres_digits_ahead(
 /*
 d_internal_postgres_plan_fill
   The arrays, in the order libpq is to read them: the defaults, the caller's
-keywords -- a NULL or empty value left out -- then the connection string's
+keywords - a NULL or empty value left out - then the connection string's
 parts, or the database its single word names, so that the string overrides
 the keywords and both the defaults.
 */
@@ -701,7 +701,7 @@ d_internal_postgres_plan_with
   The defaults, the caller's keywords, then the connection string's parts,
 as libpq reads them, or the database a single word names. The string is read
 here rather than expanded at connect, which would expand only the first
-dbname -- a keyword's dbname, given one -- and so a dbname among the keywords
+dbname - a keyword's dbname, given one - and so a dbname among the keywords
 stays a name; reading it here also shows the options it gives. A keyword or
 a string libpq cannot read is checked first, so that its reason is the
 caller's, not a failed connection's.
@@ -799,7 +799,7 @@ int d_internal_postgres_connected(
 /*
 d_internal_postgres_deadline
   The deadline for a connection being made, from the connect_timeout libpq
-settled for it -- the caller's, its environment's or the layer's default --
+settled for it - the caller's, its environment's or the layer's default --
 read as libpq reads it: an integer, surrounded by spaces or not; 0 or less
 for none; and, counted in whole seconds before libpq 17, at least two, since
 the seconds round. Text that is no integer is refused, as libpq 12 and later
@@ -1541,7 +1541,7 @@ int d_postgres_reconnect_continue(
 /*
 d_postgres_cancel
   From libpq 17, a cancel connection made from the connection, which carries
-its settings -- encryption, connect_timeout -- and PQcancelBlocking; before
+its settings - encryption, connect_timeout - and PQcancelBlocking; before
 it, PQcancel, which writes its reason into a buffer of the caller's. A lost
 connection has no backend to reach.
 */

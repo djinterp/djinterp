@@ -5,7 +5,7 @@
 * detection traits on types that have, lack, and set false their flags and
 * closed forms (the same answers at every level); cartesian_lerp and
 * cartesian_distance through a curvilinear system; the Cartesian products;
-* the bounding box -- grown from empty, its center, extent and containment;
+* the bounding box - grown from empty, its center, extent and containment;
 * Simpson's rule on polynomials it integrates exactly; the constants; and
 * from C++11 the std::array overloads and from C++14 pi_v.
 *

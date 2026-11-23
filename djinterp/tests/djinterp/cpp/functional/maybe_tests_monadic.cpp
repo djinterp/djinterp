@@ -4,13 +4,13 @@
 * Monadic / fluent method tests for maybe<T> (section I methods that thread or
 * gate the contained value).
 *
-*   test_map       -- value-preserving and type-changing map over present /
+*   test_map       - value-preserving and type-changing map over present /
 *                     absent maybes.
-*   test_and_then   -- monadic bind: function invoked only when present;
+*   test_and_then   - monadic bind: function invoked only when present;
 *                     empty short-circuits to an empty result.
-*   test_or_else    -- present returns *this; empty invokes the fallback.
-*   test_filter     -- predicate pass keeps the value, fail / empty -> nothing.
-*   test_match      -- pattern-match dispatch across both branches.
+*   test_or_else    - present returns *this; empty invokes the fallback.
+*   test_filter     - predicate pass keeps the value, fail / empty -> nothing.
+*   test_match      - pattern-match dispatch across both branches.
 *
 *
 * path:      /tests/djinterp/cpp/functional/maybe_tests_monadic.cpp

@@ -3,7 +3,7 @@
 *
 * What a grammar means, as opposed to what it says.
 *   A frontend records syntax: this rule has these alternatives, that one
-* repeats. Analysis derives the properties nobody wrote down -- whether a rule
+* repeats. Analysis derives the properties nobody wrote down - whether a rule
 * can match nothing, which symbols can begin it, whether it can ever succeed,
 * whether anything reaches it, and whether it recurses on its own left edge.
 * Everything downstream reads facts, not the grammar: a family decides whether
@@ -13,7 +13,7 @@
 *   LEFT RECURSION IS A FACT, NOT AN ERROR. This is the piece that makes the
 * whole arrangement work. Analysis discovers left recursion and sets
 * LEFT_RECURSION on the grammar; it does not complain about it. Whether that
-* matters is the FAMILY's business, answered by a registry query -- the PEG
+* matters is the FAMILY's business, answered by a registry query - the PEG
 * family rejects the capability and an LR family wants it. A grammar that would
 * have been a hard error under one parser type is simply routed to another,
 * and neither analysis nor the frontend had to know that either existed.
@@ -23,7 +23,7 @@
 * them safe to optimise against: skipping an alternative whose first set
 * excludes the next symbol can never skip an alternative that would have
 * matched. A caller must still check nullability before skipping, since a
-* nullable alternative matches regardless of what comes next -- which is why
+* nullable alternative matches regardless of what comes next - which is why
 * both facts travel together.
 *
 *   ALPHABET. First sets are 256-bit, because this grammar's terminals are
@@ -80,7 +80,7 @@ TABLE OF CONTENTS
                                               // uint8_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -101,7 +101,7 @@ TABLE OF CONTENTS
 // first set, since a nullable alternative matches whatever comes next.
 #define D_PARSEGEN_FACT_NULLABLE        0x0001u
 // D_PARSEGEN_FACT_PRODUCTIVE
-//   constant: this expression or rule can match SOMETHING -- that is, some
+//   constant: this expression or rule can match SOMETHING - that is, some
 // finite input exists that it accepts. A rule that is not productive can never
 // succeed, which makes the grammar unusable rather than merely odd.
 #define D_PARSEGEN_FACT_PRODUCTIVE      0x0002u
@@ -112,7 +112,7 @@ TABLE OF CONTENTS
 // D_PARSEGEN_FACT_LEFT_RECURSIVE
 //   constant: rules only. This rule can reach itself without consuming
 // anything first, so a top-down parser would recurse forever. Reported, never
-// complained about -- see the banner.
+// complained about - see the banner.
 #define D_PARSEGEN_FACT_LEFT_RECURSIVE  0x0008u
 // D_PARSEGEN_FACT_DIRECT_LEFT
 //   constant: rules only. The left recursion is immediate rather than through
@@ -141,7 +141,7 @@ struct dj_parsegen_node_facts
 // dj_parsegen_rule_facts
 //   struct: what was derived about one rule. `left_witness` names a rule the
 // left recursion passes through, so a diagnostic can say more than that a
-// cycle exists -- it is the rule itself when the recursion is direct, and -1
+// cycle exists - it is the rule itself when the recursion is direct, and -1
 // when there is none.
 struct dj_parsegen_rule_facts
 {
@@ -157,14 +157,14 @@ struct dj_parsegen_rule_facts
 // 1.4.1
 // dj_parsegen_facts
 //   struct: the derived properties of one grammar, indexed the same way the
-// grammar is -- so a node index means the same thing in both.
+// grammar is - so a node index means the same thing in both.
 //   `work`, `mark` and `stack` are analysis scratch. They are in the public
 // struct rather than allocated per call because a build with no allocator must
 // still be able to analyse a grammar, and the only way to do that in C is to
 // let the caller supply the space.
 //   `stack` is sized by NODE count rather than by nesting depth, because a
 // choice with a hundred alternatives pushes a hundred entries and a fixed
-// depth would silently stop short -- which would under-report left recursion,
+// depth would silently stop short - which would under-report left recursion,
 // the one direction that is not safe to be wrong in.
 struct dj_parsegen_facts
 {
@@ -242,7 +242,7 @@ void d_parsegen_facts_release(
 // 2.2    Analysis
 //------------------------------------------------------------------------------
 //   Reads the grammar, fills the facts, and folds what it DERIVED into the
-// grammar's capability set -- which is why the grammar is not const. A grammar
+// grammar's capability set - which is why the grammar is not const. A grammar
 // that has not been analysed under-reports what it uses, and a family selected
 // against that under-report would be the wrong family.
 D_NODISCARD int d_parsegen_analyze(
@@ -399,8 +399,8 @@ int d_parsegen_left_recursive(
 //------------------------------------------------------------------------------
 //   The questions a pass or a code generator actually asks. Naming them here
 // rather than leaving each caller to re-derive them from first sets is what
-// keeps one subtle rule -- that a nullable alternative can never be dispatched
-// past -- in one place instead of in every optimiser that forgets it.
+// keeps one subtle rule - that a nullable alternative can never be dispatched
+// past - in one place instead of in every optimiser that forgets it.
 D_NODISCARD int d_parsegen_choice_disjoint(
     const struct dj_parsegen_grammar* _grammar,
     const struct dj_parsegen_facts*   _facts,

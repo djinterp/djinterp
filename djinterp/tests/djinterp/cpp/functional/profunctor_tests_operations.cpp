@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  profunctor_tests_operations.cpp
-//   Section III -- dimap / lmap / rmap and the profunctor laws.
+//   Section III - dimap / lmap / rmap and the profunctor laws.
 
 // std
 #include <string>
@@ -48,7 +48,7 @@ bool tests_dimap_both_ends()
 
 /*
 tests_dimap_type_change
-  dimap can change BOTH parameters -- the input from A to A' and the output from
+  dimap can change BOTH parameters - the input from A to A' and the output from
   B to B'.
   Tests the following:
   - an arrow string -> int becomes double -> double
@@ -157,7 +157,7 @@ bool tests_law_identity()
 /*
 tests_law_composition
   The dimap composition law: dimap(dimap(p, pre1, post1), pre2, post2) equals
-  dimap(p, pre1 . pre2, post2 . post1) -- pre composes contravariantly, post
+  dimap(p, pre1 . pre2, post2 . post1) - pre composes contravariantly, post
   covariantly.
   Tests the following:
   - the two arrows agree at several inputs
@@ -214,7 +214,7 @@ bool tests_rmap_covariant_composition()
 /*
 tests_lmap_contravariant_composition
   lmap composes contravariantly: lmap(lmap(p, pre1), pre2) == lmap(p, pre1 .
-  pre2) -- the outer map's pre runs first.
+  pre2) - the outer map's pre runs first.
   Tests the following:
   - the two arrows agree, with a concrete spot-check
 */

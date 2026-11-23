@@ -5,7 +5,7 @@
 *   The MariaDB connection, mariadb_connection, over the MariaDB layer's C++
 * face through mysql_common_connection, which holds the face and implements
 * what MariaDB and MySQL share; this leaf adds MariaDB's configuration --
-* Galera's causal reads, the default storage engine -- the wire protocol's
+* Galera's causal reads, the default storage engine - the wire protocol's
 * field types (MYSQL_TYPE_*, as mysql_field_type, without the client's
 * header), MariaDB's own (INET6, UUID, the JSON alias), how each maps to
 * field_type, and what the server connected has, asked at run time, beside
@@ -231,7 +231,7 @@ enum class mariadb_field_type : re_std::uint16_t
 // 3.  CLIENT CAPABILITIES
 //==============================================================================
 // What env_mariadb.h found MariaDB's client header to have, by version, at
-// compile time -- the client's capabilities: the data types and the SQL
+// compile time - the client's capabilities: the data types and the SQL
 // features a server of the header's release has, which the server connected
 // may lack, or exceed. Every MariaDB flag is false unless a program asks for
 // env's detection (D_CFG_ENV_USING_MARIADB) or supplies its results; the
@@ -928,7 +928,7 @@ struct mariadb_version_info
 // causal reads, and the session's default storage engine. With either Galera
 // switch on, the session sets wsrep_sync_wait to 1, so that each read waits
 // for the writes the cluster has committed; the default storage engine,
-// where named -- an engine's name, an identifier -- is set for the session.
+// where named - an engine's name, an identifier - is set for the session.
 // Both are init commands, which the client runs within the connect and a
 // reset runs again.
 struct mariadb_connect_config
@@ -942,7 +942,7 @@ struct mariadb_connect_config
     // MariaDB-specific init
     std::string default_storage_engine;  // "": the server's
 
-    // construction -- MariaDB's defaults (localhost, 3306, utf8mb4), over a
+    // construction - MariaDB's defaults (localhost, 3306, utf8mb4), over a
     // generic configuration's
     mariadb_connect_config()
         : galera_wsrep_sync_wait(false),
@@ -995,14 +995,14 @@ public:
     using client_capabilities = mariadb_client_capabilities;
     using version_info        = mariadb_version_info;
 
-    // type_support, feature_support -- client_capabilities, by their former
+    // type_support, feature_support - client_capabilities, by their former
     // names (2026.10.21), for one release
     using type_support [[deprecated("client_capabilities")]] =
         mariadb_client_capabilities;
     using feature_support [[deprecated("client_capabilities")]] =
         mariadb_client_capabilities;
 
-    // construction -- with MariaDB's defaults, or a generic, family or
+    // construction - with MariaDB's defaults, or a generic, family or
     // MariaDB configuration
     mariadb_connection();
     explicit
@@ -1034,13 +1034,13 @@ public:
         mariadb_connection&&
     ) noexcept = default;
 
-    // feature queries -- what the server connected has, by its flavor and
+    // feature queries - what the server connected has, by its flavor and
     // release, asked of the layer at run time (d_mariadb_supports); false
     // while the connection is not open. client_capabilities answers for the
     // client's header at compile time. json_is_native: JSON stored as binary,
     // as MySQL stores it, where MariaDB's JSON is text (LONGTEXT) checked to
     // be JSON; supports_galera: Galera replication in the release, which
-    // this server runs or not as it is configured -- and not at all where
+    // this server runs or not as it is configured - and not at all where
     // MariaDB built it for Windows, which leaves Galera out;
     // supports_modern_sql: window functions, CTEs, sequences and system
     // versioning together (on a MySQL server, its own set: window functions,
@@ -1127,7 +1127,7 @@ public:
         return field_type_to_mariadb_sql(_type);
     }
 
-    // configuration -- MariaDB's settings; setting them replaces the
+    // configuration - MariaDB's settings; setting them replaces the
     // family's and the generic configuration with theirs, for the next
     // connect
     mariadb_connect_config get_mariadb_config() const;
@@ -1137,7 +1137,7 @@ public:
 
     // hooks (mariadb.cpp), for mysql_common_connection's connect: MariaDB
     // adds wsrep_sync_wait and the default storage engine, where configured,
-    // as init commands -- a connect the server refuses either of throws
+    // as init commands - a connect the server refuses either of throws
     // connection_exception, as does an engine's name that is no identifier --
     // and has nothing to run once connected
     void add_settings_impl(
@@ -1169,9 +1169,9 @@ namespace mariadb {
 //==============================================================================
 // Sections 8 to 12, once mariadb_traits.hpp and mariadb_concepts.hpp, detect
 // which of MariaDB's own members a type has: as traits from C++17 and as
-// concepts under C++20. The family's -- the character set, results,
+// concepts under C++20. The family's - the character set, results,
 // options, diagnostics, escaping, the current database, users, the storage
-// engine -- are mysql_common.hpp's. A detector is the type of one member's
+// engine - are mysql_common.hpp's. A detector is the type of one member's
 // call, which is_detected tests.
 
 

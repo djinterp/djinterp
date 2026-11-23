@@ -10,7 +10,7 @@
 * the adapter (adapter.hpp).
 *   A run can also count what it does, as it does it: steps, arrivals and
 * revisits by rule and by position, calls and the calls repeated at a position
-* already tried, and each stack's peak -- a profile, which costs no trace
+* already tried, and each stack's peak - a profile, which costs no trace
 * line, and agrees with the heat map a trace gives. MEMO is CALL through a
 * memo table: a rule's result at a position is kept, and replayed on every
 * later call there, captures and all. memoized() writes it for the rules a
@@ -85,7 +85,7 @@ struct DInstr
 using program = std::vector<DInstr>;
 
 // capture
-//   struct: one tagged span -- the tag and the half-open input range.
+//   struct: one tagged span - the tag and the half-open input range.
 struct capture
 {
     int tag;
@@ -114,7 +114,7 @@ struct layout
 // among them, as the trace lists them; each is counted at the cursor before
 // it runs, in the rule whose code it is (layout_of()), and none of the
 // end-of-input gate's is a rule's.
-//   An arrival is a step at a cell -- a position and a rule -- other than
+//   An arrival is a step at a cell - a position and a rule - other than
 // the step before's, and any step after one of the gate's; a revisit is an
 // arrival at a cell arrived at before. These are the heat map's counts, by
 // rule and by position: each set sums to `revisits`.
@@ -122,7 +122,7 @@ struct layout
 // the rule ran; a repeat is a call at a position the rule was called at
 // before, and its steps are those the rule ran for it, from the rule's first
 // instruction to its RETURN, to the failure that unwound it, or to the end
-// of the run -- the steps a memo would save.
+// of the run - the steps a memo would save.
 struct profile
 {
     // DRuleCounts

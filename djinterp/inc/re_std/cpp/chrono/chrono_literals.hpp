@@ -6,7 +6,7 @@
 *
 *   THE TWO OVERLOADS PER SUFFIX ARE NOT REDUNDANT:
 *   Each suffix has an integer form and a long-double form. `1s` is
-* seconds -- an integral duration -- while `1.5s` is
+* seconds - an integral duration - while `1.5s` is
 * duration<double, ratio<1> >, a different type. Without the second
 * overload `1.5s` would not compile at all; with it, fractional literals
 * work and carry their fractional part into an appropriate
@@ -19,7 +19,7 @@
 * function signature would use.
 *
 *   WHY THE NESTED NAMESPACE IS WORTH RESPECTING:
-*   The suffixes are short, common tokens -- s, h, min, d, y -- and the
+*   The suffixes are short, common tokens - s, h, min, d, y - and the
 * standard confines them to a nested inline namespace so a program opts
 * in deliberately:
 *
@@ -33,7 +33,7 @@
 * namespace scope in a header: `s` is a name other libraries also want.
 *
 *   `d` AND `y` ARE THE DURATION FORMS, NOT THE CALENDAR ONES:
-*   In C++20 these two suffixes are overloaded -- in a calendar context
+*   In C++20 these two suffixes are overloaded - in a calendar context
 * `15d` is a chrono::day and `2020y` is a chrono::year. re_std has no
 * calendar yet, so here they are unambiguously days and years, the
 * duration typedefs. When the calendar lands these literals must be
@@ -174,7 +174,7 @@ inline namespace chrono_literals
     }
 
     // operator""d
-    //   function: days, the DURATION. See the header comment -- in C++20
+    //   function: days, the DURATION. See the header comment - in C++20
     // this suffix also has a calendar meaning re_std does not yet
     // implement.
     RE_STD_CONSTEXPR chrono::days operator"" d(unsigned long long _v)
@@ -189,7 +189,7 @@ inline namespace chrono_literals
     }
 
     // operator""y
-    //   function: years, the DURATION -- the average Gregorian year, not
+    //   function: years, the DURATION - the average Gregorian year, not
     // a calendar year. Same caveat as `d`.
     RE_STD_CONSTEXPR chrono::years operator"" y(unsigned long long _v)
     {

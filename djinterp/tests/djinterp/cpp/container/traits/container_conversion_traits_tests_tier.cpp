@@ -26,7 +26,7 @@ bool tests_conversion_tier_vocabulary()
 {
     bool _ccv_ok = true;
 
-    // -- names (the stable, agent-facing spellings) --
+    // - names (the stable, agent-facing spellings) --
     D_CCV_CHECK( ccv_cstr_eq(conversion_tier_name(DConversionTier::view),
                              "view") );
     D_CCV_CHECK( ccv_cstr_eq(conversion_tier_name(DConversionTier::constructive),
@@ -45,7 +45,7 @@ bool tests_conversion_tier_vocabulary()
     D_CCV_CHECK( !ccv_cstr_eq(conversion_tier_name(DConversionTier::none),
                               "structural") );
 
-    // -- severity order (the enum is declared coarsest-work to greatest, then
+    // - severity order (the enum is declared coarsest-work to greatest, then
     //    `none` off the scale; the file header asserts this ordering) --
     D_CCV_CHECK( static_cast<int>(DConversionTier::view)
                < static_cast<int>(DConversionTier::constructive) );

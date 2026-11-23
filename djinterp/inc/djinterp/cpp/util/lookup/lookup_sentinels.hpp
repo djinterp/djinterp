@@ -41,16 +41,16 @@ struct DLookupNotFound
 {};
 
 // lookup_npos
-//   value: "no position" sentinel -- the maximum value of
+//   value: "no position" sentinel - the maximum value of
 // std::size_t. Mirrors the std::string::npos convention: an
 // unsigned-max marker returned by lookups to mean "not found".
 // Kept unsigned (not ssize_t) so comparisons against .size() and
 // other size_t indices stay sign-clean.
 //
 //   Resolution order:
-//     1. C++17+   -- inline variable: a single definition shared
+//     1. C++17+   - inline variable: a single definition shared
 //        across all translation units.
-//     2. C++11/14 -- static constexpr: internal linkage, so each TU
+//     2. C++11/14 - static constexpr: internal linkage, so each TU
 //        gets its own copy. Harmless for an integral by-value
 //        constant; the only observable difference is the variable's
 //        address, which a sentinel never depends on.

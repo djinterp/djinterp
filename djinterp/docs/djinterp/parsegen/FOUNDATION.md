@@ -27,7 +27,7 @@
 >
 > The Layout section's rule (a subsystem's C in `X/c/`) is the old layout's
 > and is superseded by the restructure's `c/` and `cpp/` trees; the rest of
-> the record -- the substrate, the steps, the decisions -- stands. Expression
+> the record - the substrate, the steps, the decisions - stands. Expression
 > core v2 is built on it: `docs/djinterp/parse/expression_core_v2.md`.
 
 
@@ -66,7 +66,7 @@ beside them, the table that lists them (`d_tests_parse_substrate[]` and its
 `_count`, and so on); the runners are loops over those tables with no
 condition of their own. A section is therefore the unit a language level or a
 configuration knob removes, and the condition that removes it is written
-once, at namespace scope, in the suite's own source -- never as an `#if`
+once, at namespace scope, in the suite's own source - never as an `#if`
 inside a function body.
 
 Two sections exist only from a level up, because the registration shape they
@@ -145,8 +145,8 @@ clang++, strict C++98 to C++23), plain and testing; every level's count above
 with both compilers, no warning; the matrix with both; and the same counts
 on a 64-bit Windows target (MinGW-w64, run under Wine), where `long` is 32
 bits. Since 2026.10.06 the C layer, the suites and the runners have also been
-compiled along the branches `env` takes under cl -- its identity given to
-another compiler -- in cl's default C mode, C11 and C17, and at C++14, 17, 20
+compiled along the branches `env` takes under cl - its identity given to
+another compiler - in cl's default C mode, C11 and C17, and at C++14, 17, 20
 and 23, with no failure; and both leaves have been configured as CMake
 configures them for cl 19.51, through a stand-in for it, and built and run
 that way on the Windows target: 7 of 7 tests, and vparse's 4 of 4. Not
@@ -155,7 +155,7 @@ verified: cl itself, its parser and its library.
 ### Stale copies
 
 The C layer once sat directly under `parse/` and `parsegen/`; it moved into
-`c/` (see Layout). The copies the move left behind are retired -- the headers
+`c/` (see Layout). The copies the move left behind are retired - the headers
 and six sources to `_retired/cpp98_floors_2026.09.30/`, the last four sources
 (`src/djinterp/parse/{diagnostic,machine,program,storage}.c`) to
 `_retired/vparse_suites_2026.10.04/`. A tree that still has files at the old
@@ -165,7 +165,7 @@ paths has two definitions of every function in them, and a build that globs
 A working tree that was only ever unzipped over is such a tree: an unzip adds
 and overwrites, and never deletes, so every retired copy is still live in it.
 `_retired/parse_leftovers_2026.10.06/retire.cmake` applies the repository's
-record to one -- `cmake -P` it from the root -- moving each file that is byte
+record to one - `cmake -P` it from the root - moving each file that is byte
 for byte the retired copy to `_retired/<step>/`, and reporting any other, and
 any include, in a file that stays, of one it moved.
 
@@ -203,7 +203,7 @@ source, and the foundation now builds at C99, C11 and C17 under
 
 Every subsystem X owns `X/`: its C++ lives at `X/`, its C in `X/c/`, and `X/c/`
 mirrors X's layout beneath it. The framework root follows the same rule, and its
-C half, `c/`, is the C foundation -- which is why an optional subsystem never
+C half, `c/`, is the C foundation - which is why an optional subsystem never
 puts anything there: a C user who takes djinterp without parse or parsegen must
 not carry them. Preprocessor-only code (`env/`, `config/`) is language-neutral
 and exempt.
@@ -217,8 +217,8 @@ and exempt.
 A test's directory follows the language it is *written* in, not the API it
 calls: the C++ suite exercises the C API through C++, so it stays outside `c/`.
 
-A C++ face reaches its C layer through `./c/` -- `diagnostic.hpp` includes
-`./c/diagnostic.h` -- the way `djinterp.hpp` reaches `c/djinterp.h`. And a bare
+A C++ face reaches its C layer through `./c/` - `diagnostic.hpp` includes
+`./c/diagnostic.h` - the way `djinterp.hpp` reaches `c/djinterp.h`. And a bare
 `c/` directly under a subsystem means only that subsystem's C half. A language
 as a *subject* sits under a role directory instead: `parse/parsers/c/` (a parser
 of C) already does, and a C export target would go in `parsegen/backends/c/`,
@@ -254,8 +254,8 @@ keeps one meaning.
 | `inc/djinterp/parse/c/storage.h` | C: `d_parse_grow`, the one growth policy |
 | `inc/djinterp/parse/substrate.hpp` | C++: the substrate's one guarded `NS_PARSE` |
 | `tests/djinterp/parse/c/tests_section.h` | `d_tests_section`: a section's name and function, shared by every suite, C and C++ |
-| `tests/djinterp/parse/c/parse_c_tests.{h,c}` | C tests: diagnostics, machine, program -- 7 sections |
-| `tests/djinterp/parsegen/c/parsegen_c_tests.{h,c}` | C tests: grammar, analysis and routing -- 5 sections |
+| `tests/djinterp/parse/c/parse_c_tests.{h,c}` | C tests: diagnostics, machine, program - 7 sections |
+| `tests/djinterp/parsegen/c/parsegen_c_tests.{h,c}` | C tests: grammar, analysis and routing - 5 sections |
 | `.../parsegen/foundation/foundation_c_tests_runner.c` | the C suites' entry point |
 | `inc/djinterp/parsegen/vparse/` | the consolidated vparse; see its `vparse-AGENTS.md` |
 | `inc/djinterp/parsegen/c/feature.h` | C: `d_parsegen_features`, the capability vocabulary |
@@ -275,11 +275,11 @@ keeps one meaning.
 | `inc/djinterp/parsegen/parsegen.hpp` | C++ face: `NS_PARSEGEN` and nothing else |
 | `src/djinterp/parse/c/{diagnostic,machine,charset,pool,program,storage}.c` | definitions |
 | `src/djinterp/parsegen/c/{feature,registry,grammar,analysis}.c` | definitions |
-| `tests/djinterp/parse/parse_substrate_tests.{hpp,cpp}` | diagnostics, machine, interop -- 7 sections, 8 from C++17, 9 from C++20 |
-| `tests/djinterp/parse/parse_program_tests.{hpp,cpp}` | charset, pool, program -- 12 sections |
-| `tests/djinterp/parsegen/parsegen_registry_tests.{hpp,cpp}` | features, registry, storage -- 11 sections |
-| `tests/djinterp/parsegen/parsegen_grammar_tests.{hpp,cpp}` | the neutral grammar -- 13 sections |
-| `tests/djinterp/parsegen/parsegen_analysis_tests.{hpp,cpp}` | analysis and routing -- 13 sections |
+| `tests/djinterp/parse/parse_substrate_tests.{hpp,cpp}` | diagnostics, machine, interop - 7 sections, 8 from C++17, 9 from C++20 |
+| `tests/djinterp/parse/parse_program_tests.{hpp,cpp}` | charset, pool, program - 12 sections |
+| `tests/djinterp/parsegen/parsegen_registry_tests.{hpp,cpp}` | features, registry, storage - 11 sections |
+| `tests/djinterp/parsegen/parsegen_grammar_tests.{hpp,cpp}` | the neutral grammar - 13 sections |
+| `tests/djinterp/parsegen/parsegen_analysis_tests.{hpp,cpp}` | analysis and routing - 13 sections |
 | `.../parsegen/foundation/foundation_tests_runner.cpp` | the C++ suites' entry point |
 | `.../parsegen/foundation/CMakeLists.txt`, `run_foundation_tests.sh` | the CMake leaf and its script twin |
 | `.../parsegen/foundation/expected_sections.txt` | the section count each level must run |
@@ -337,7 +337,7 @@ the caller owns), plus `def_raw` for the plain C form.
 Each has the level its language feature has. The lambda above is C++20: `def`
 constructs its callable on the spot, and a lambda has no default constructor
 before that. At C++11 to 17 the same registration takes an empty functor --
-identical code generated -- and `def` says so in a static assertion rather
+identical code generated - and `def` says so in a static assertion rather
 than failing inside the trampoline. `def_state<&fn>` and `def<&fn>` take a
 `template<auto>` parameter, so they are C++17. `def_object` and `def_raw` are
 C++11, and `def_raw` takes a captureless lambda of the C signature there.
@@ -849,7 +849,7 @@ the open item on `c/djinterp.h` below.
 Writing the C tests found one gap in the C API. Facts, pools, programs,
 registries, operator sets and sinks all have an initializer that binds
 caller-supplied storage; a grammar does not, so C code binds its fields by hand
-(`parsegen_c_tests.c` does, in one helper) -- the same fields `fixed_grammar`
+(`parsegen_c_tests.c` does, in one helper) - the same fields `fixed_grammar`
 binds in C++. A `d_parsegen_grammar_init_fixed` would close it and let
 `fixed_grammar` use it too.
 
@@ -860,7 +860,7 @@ chooses its value with `#if D_ENV_OS_USING_WINDOWS64`. `env_os.h` defines
 that macro only on 64-bit Windows, so everywhere else the `#if` reads a macro
 nobody defined: under `-Werror=undef`, an error. glibc leaves `SSIZE_MAX` out
 of a strict ISO mode unless POSIX names are enabled, so `gcc -std=c99
--Werror=undef` fails on the root header itself -- and the ladder never sees
+-Werror=undef` fails on the root header itself - and the ladder never sees
 it, because every compile there defines `_XOPEN_SOURCE=700`, which makes
 glibc define `SSIZE_MAX` and skips the block. The same test sits a few lines
 above it, inside the cl-only branch.

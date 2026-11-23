@@ -7,15 +7,15 @@
 *
 * THE LOWERING IS GONE BECAUSE THERE IS NOTHING LEFT TO LOWER
 * ===========================================================
-*   An earlier form of this header carried a `kv_field` class -- private
+*   An earlier form of this header carried a `kv_field` class - private
 * inheritance from the C struct, named accessors, four layout assertions
-* proving it added no storage -- and a `lower_field<Field>()` that turned a
+* proving it added no storage - and a `lower_field<Field>()` that turned a
 * compile-time descriptor into a runtime one.
 *
 *   ALL OF THAT EXISTED ONLY BECAUSE dj_kv_field EXISTED. With the C side taking
 * an offset and a width directly, `Field::offset` and `Field::size` ARE the
 * arguments; there is no conversion, no wrapper, and no layout to assert. The
-* bridge did not get simpler -- it stopped being a bridge and became a pair of
+* bridge did not get simpler - it stopped being a bridge and became a pair of
 * integral constants the compiler already had.
 *
 *
@@ -28,7 +28,7 @@
 *
 *   `DMemberField` therefore carries the offset as an optional non-type
 * parameter defaulting to `kv_offset_unknown`, and the functions that hand a
-* field to C -- section V -- are enable_if'd on it being known. A field built
+* field to C - section V - are enable_if'd on it being known. A field built
 * by hand from a bare pointer-to-member is a perfectly good compile-time field
 * and simply cannot address bytes through C; a field built by
 * D_KV_MEMBER_FIELD supplies offsetof and can. THE COMPILER REPORTS THE
@@ -42,13 +42,13 @@
 *
 * WHY BOTH FORMS STILL EXIST
 * ==========================
-*   `DMemberField::get()` is `record.*pointer` -- the member's own type, its
+*   `DMemberField::get()` is `record.*pointer` - the member's own type, its
 * own alignment, no bounds check, because the type system already did the
 * checking a bounds check would repeat. Nothing in section V should be reached
 * for when the record type is visible.
 *
 *   Section V is for what the compile-time form cannot serve: bytes whose
-* record type is not visible where the read happens -- a mapped file, a row
+* record type is not visible where the read happens - a mapped file, a row
 * reached through a void*, a width read from a table at run time.
 *
 *
@@ -199,7 +199,7 @@ struct is_kv_addressable
 
 // is_kv_scalar
 //   trait: whether a member may be carried through the C widened load path at
-// all -- an integral or enumeration type of at most eight bytes. A float, a
+// all - an integral or enumeration type of at most eight bytes. A float, a
 // pointer and a struct are each addressable and none of them is this.
 template<typename Type>
 struct is_kv_scalar
@@ -216,7 +216,7 @@ struct is_kv_scalar
 // kv_offset_unknown
 //   constant: the offset of a field built from a pointer-to-member alone. A
 // pointer-to-member cannot yield its offset in a constant expression, and the
-// null-object subtraction that appears to is undefined -- so the absence is
+// null-object subtraction that appears to is undefined - so the absence is
 // named rather than guessed, and section V is gated on it.
 D_CONSTEXPR_INLINE_VAR std::size_t kv_offset_unknown =
     static_cast<std::size_t>(-1);
@@ -372,7 +372,7 @@ typename std::enable_if<is_kv_scalar<Type>::value, bool>::type kv_store(
 
 // kv_read
 //   function: copy an opaque span out into a typed destination. The width
-// contract is the C one -- the slot and the destination must agree exactly --
+// contract is the C one - the slot and the destination must agree exactly --
 // and the trivially-copyable requirement is asserted rather than hoped for.
 template<typename Type>
 D_INLINE

@@ -10,7 +10,7 @@
 // std
 #include <type_traits>
 // djinterp
-// djinterp [test] -- curry.hpp Section II (predicate traits & concepts)
+// djinterp [test] - curry.hpp Section II (predicate traits & concepts)
 #include "./curry_tests.hpp"
 
 

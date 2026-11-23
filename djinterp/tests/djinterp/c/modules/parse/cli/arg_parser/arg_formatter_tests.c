@@ -3,8 +3,8 @@
 *
 * The suite of help, declared in arg_formatter_tests.h.
 *   Each section of help's is a table of steps (arg_tests_support.h): each
-* case makes a root as the help probe's App does -- its description and
-* name set on a run's parser of its own -- with its options, subcommands and
+* case makes a root as the help probe's App does - its description and
+* name set on a run's parser of its own - with its options, subcommands and
 * groups, the variables options are bound to and any formatter of its own
 * kept by the run, and writes each help as the reference writes it:
 * `=== <tag>`, the help with each line end written `$`, so that trailing
@@ -1801,8 +1801,8 @@ static const size_t COLUMNS_COUNT =
 
 /**
  * @brief Adds a text as the help probe writes one: `=== <tag>`, the text
- *        with each line end written `$` and a newline -- so that trailing
- *        spaces show -- each byte outside printable ASCII, and the
+ *        with each line end written `$` and a newline - so that trailing
+ *        spaces show - each byte outside printable ASCII, and the
  *        backslash, as a hexadecimal escape of two digits, then `|end`.
  *
  * @param[in,out] _run   the run.
@@ -2116,8 +2116,8 @@ void d_tests_arg_formatter_failed(
 }
 
 /**
- * @brief Makes the root the help probe's `ratio` makes -- two options, and
- *        flags of many short and long names -- under a long-name alignment
+ * @brief Makes the root the help probe's `ratio` makes - two options, and
+ *        flags of many short and long names - under a long-name alignment
  *        ratio, and adds its help.
  *
  * @param[in,out] _run    the run.
@@ -2247,8 +2247,8 @@ int d_tests_arg_formatter_footer(
 }
 
 /**
- * @brief The help probe's make_group: `== <group> ==` -- with
- *        ` (positional)` after a positionals' group -- then each option.
+ * @brief The help probe's make_group: `== <group> ==` - with
+ *        ` (positional)` after a positionals' group - then each option.
  *
  * @param[in]  _formatter   the formatter.
  * @param[in]  _group       the group's name.
@@ -2371,7 +2371,7 @@ struct dj_arg_formatter* d_tests_arg_formatter_kept(
 
 /**
  * @brief The help probe's MyFormatter, kept by the run: CLI11's Formatter
- *        with five steps replaced -- groups, subcommands, the footer, an
+ *        with five steps replaced - groups, subcommands, the footer, an
  *        option's name and its description.
  *
  * @param[in,out] _run  the run.
@@ -6265,8 +6265,8 @@ bool d_tests_arg_formatter_as_terminal(
 
 /**
  * @brief The terminal switch on the C checks' root, as COLUMNS changes:
- *        unset, then 60 -- alone and under a narrower width of the
- *        formatter's own -- and the switch off, which COLUMNS cannot reach.
+ *        unset, then 60 - alone and under a narrower width of the
+ *        formatter's own - and the switch off, which COLUMNS cannot reach.
  *
  * @param[in,out] _run  the run, its root built.
  * @return whether every help was made and as expected.
@@ -6327,8 +6327,8 @@ bool d_tests_arg_formatter_switching(
 
 /**
  * @brief Checks d_arg_terminal_width's reading of COLUMNS where standard
- *        output is not a terminal -- known by the width following COLUMNS
- *        through two values -- and says so where it is.
+ *        output is not a terminal - known by the width following COLUMNS
+ *        through two values - and says so where it is.
  *
  * @return whether every value was read as it should be.
  */

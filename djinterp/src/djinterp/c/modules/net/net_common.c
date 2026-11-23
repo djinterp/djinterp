@@ -361,7 +361,7 @@ d_net_error_string(
 /*
 d_net_port_parse
   Accumulates digits left to right, stopping the moment the value passes
-65535, so no digit count -- however many leading zeros -- can overflow it.
+65535, so no digit count - however many leading zeros - can overflow it.
 */
 enum dj_net_error
 d_net_port_parse(

@@ -175,8 +175,8 @@ bool d_internal_nth_holds(
 /*
 d_internal_position
   Counts the present siblings before and after a node, of its type only when
-asked.  Position is document position, so an absent node -- a placeholder for
-something the file does not carry -- is not a sibling for this purpose.
+asked.  Position is document position, so an absent node - a placeholder for
+something the file does not carry - is not a sibling for this purpose.
 */
 static
 void d_internal_position(
@@ -846,7 +846,7 @@ const struct dj_dss_simple* d_internal_unsupported_in(
 d_match_unsupported
   Finds the first simple selector in a sheet that the matcher cannot
 evaluate, and reports the line of the rule that carries it.  A pseudo-class
-the matcher does not know would otherwise match nothing, silently -- a typo
+the matcher does not know would otherwise match nothing, silently - a typo
 that disables a rule and says nothing is the worst failure a linter can have.
 */
 bool d_match_unsupported(
@@ -1086,7 +1086,7 @@ void d_match_index_free(
 /*
 d_match_index_candidates
   Merges the type's bucket with the universal list, both ascending, so the
-caller sees candidates in rule order -- the order first-match resolution and
+caller sees candidates in rule order - the order first-match resolution and
 every report depend on.  A type interned after the index was built has no
 bucket and meets only the universal rules, which is exact: no rule names it.
 */

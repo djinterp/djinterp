@@ -8,7 +8,7 @@
 *   -v              single short flag, strip "-", look up "v"
 *   -xvf            combined short flags, expand to "x", "v", "f"
 *   -o file         last short flag consumes next argv if handler says so
-*   --              stop token, all subsequent args are positional
+*   -              stop token, all subsequent args are positional
 *
 *   The entry table uses bare keys (no operators):
 *

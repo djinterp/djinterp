@@ -1120,12 +1120,12 @@ NS_END  // internal
 //
 //   IMPLEMENTATION NOTE: this trait used to delegate via
 // `std::conditional<is_2d_tuple<...>::value, all_sizes_equal<...>,
-// std::false_type>::type`, but `std::conditional` is NOT lazy -- both
+// std::false_type>::type`, but `std::conditional` is NOT lazy - both
 // branch types must be valid type expressions for the conditional to
 // name `::type`.  Naming the `all_sizes_equal<...>` branch caused
 // `tuple_inner_sizes_helper<std::tuple<Rows...>>::type` to be
 // instantiated even on non-2D inputs, which expands
-// `std::tuple_size<Rows>::value...` -- and `std::tuple_size<int>` is
+// `std::tuple_size<Rows>::value...` - and `std::tuple_size<int>` is
 // undefined by the standard (the primary template has no body), so
 // passing `std::tuple<int>` would error out deep in the helper before
 // the conditional could pick the false branch.  The fix is the same
@@ -1398,7 +1398,7 @@ NS_INTERNAL
     //   NOTE: bool_constant<...> (single template arg) is used here
     // instead of std::integral_constant<bool, ...> because the comma
     // between `bool` and the value-expression would be seen by the
-    // preprocessor as a macro-argument separator -- D_TYPE_TRAIT_TRUE_AS
+    // preprocessor as a macro-argument separator - D_TYPE_TRAIT_TRUE_AS
     // takes exactly three arguments and angle brackets do NOT shield
     // commas (only parentheses do).  bool_constant<X> has no top-level
     // comma in its argument list, so the macro receives the expected

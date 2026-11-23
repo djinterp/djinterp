@@ -4,8 +4,8 @@
 # Arguments in every form, for comparing dcmake's values with CMake's.
 #   Run under CMake, each show(...) below prints its arguments as CMake read
 # them: `argc=N`, then `|[value]` for each. test_dcmake --values prints the
-# same from dcmake's reading of this file -- an unquoted argument divided at
-# its `;` as CMake divides it -- and cmake.sh compares the two byte for byte.
+# same from dcmake's reading of this file - an unquoted argument divided at
+# its `;` as CMake divides it - and cmake.sh compares the two byte for byte.
 # A case is one line here; nothing is expanded, so no case holds a variable
 # reference.
 #

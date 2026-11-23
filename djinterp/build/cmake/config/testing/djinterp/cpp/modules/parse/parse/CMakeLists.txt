@@ -21,7 +21,7 @@
 #   This directory is the component's OWN leaf (guide Section 7.2): a delivery
 # ships the runner and this CMakeLists together one level below the slug so
 # the archive overwrites nothing.  There is deliberately no parent aggregate
-# in the zip -- see the BUILD NOTE at the foot of this file.
+# in the zip - see the BUILD NOTE at the foot of this file.
 #
 #   djinterp_add_test_executable links djinterp_c_runtime, defines D_TESTING=1,
 # builds C++20/C17 (/permissive- /Zc:preprocessor under MSVC), sets the

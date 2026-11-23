@@ -158,7 +158,7 @@ TABLE OF CONTENTS
 // build's feature-test macros. d_strptime does not read it: dtime parses for
 // itself on every platform (decision 120 of the register, as ruled on
 // 2026.10.18), and the flag says only what the system has. glibc and musl
-// declare it for _XOPEN_SOURCE or _GNU_SOURCE -- glibc not for
+// declare it for _XOPEN_SOURCE or _GNU_SOURCE - glibc not for
 // _DEFAULT_SOURCE, so not in the C compilers' default modes, nor for
 // _POSIX_C_SOURCE alone; musl defines _XOPEN_SOURCE itself where the build
 // asks for no standard. FreeBSD declares it unless the build asks for POSIX

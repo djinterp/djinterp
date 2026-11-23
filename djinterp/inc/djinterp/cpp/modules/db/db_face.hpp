@@ -2,8 +2,8 @@
 * djinterp [cpp][db]                                                 db_face.hpp
 *
 * The C++ face of the database layers: what each layer's face shares.
-*   A layer's face -- sqlite_face.hpp, mariadb_face.hpp, postgres_face.hpp,
-* mongodb_face.hpp -- is a class that owns the layer's connection, closing it
+*   A layer's face - sqlite_face.hpp, mariadb_face.hpp, postgres_face.hpp,
+* mongodb_face.hpp - is a class that owns the layer's connection, closing it
 * when the object goes, and has every function of the layer as a member of
 * the same name,
 * the connection argument dropped: d_sqlite_has_table(db, schema, table) is
@@ -25,8 +25,8 @@
 *   The C99 layer is the floor, and the face costs nothing over it: a face is
 * its handle, a list or rows their C struct, text its pointer (section 6
 * asserts each),
-* every member is its C call, inline -- noexcept costing nothing, since the
-* layers declare their functions D_NOTHROW -- and nothing allocates that the
+* every member is its C call, inline - noexcept costing nothing, since the
+* layers declare their functions D_NOTHROW - and nothing allocates that the
 * caller did not ask for: a std::string or a std::vector form, which the
 * exact forms beside them never need. scripts/check_db_face_cost.py checks
 * that a call through a face compiles to the instructions the C call does.
@@ -229,7 +229,7 @@ TABLE OF CONTENTS
 // D_INTERNAL_DB_FACE_NODISCARD_GUARD
 //   attribute: [[nodiscard]] from C++17, on the guards' classes and their
 // constructors, so that a guard made and dropped in one expression --
-// face::transaction<F>{db};, which begins and ends at once -- is warned of
+// face::transaction<F>{db};, which begins and ends at once - is warned of
 // (C++20 gives a constructor the attribute, and the compilers give it from
 // C++17, as a defect report; GCC reads it on the constructor, Clang on
 // either); empty below C++17, whose spellings of it fit neither.
@@ -255,7 +255,7 @@ TABLE OF CONTENTS
 #endif  // D_INTERNAL_DB_FACE_EXPECTED
 
 // 64-bit floor: the layers' query headers need a 64-bit integer type, which
-// dstdint.h declares only where the build can spell one. Below it -- ISO
+// dstdint.h declares only where the build can spell one. Below it - ISO
 // strict C++98 where long is narrower: 32-bit targets, and 64-bit Windows --
 // the face compiles to nothing, as the layers do.
 #if defined(INT64_MAX)
@@ -281,7 +281,7 @@ namespace face
 //   class: a string argument, given as a C string or as a std::string, which
 // the face hands to the layer as a C string; from C++20 a UTF-8 literal or a
 // std::u8string too, which are the same bytes. A NULL C string stays NULL
-// -- the current schema, where a layer reads it so -- and a default-made
+// - the current schema, where a layer reads it so - and a default-made
 // string_arg is NULL. It borrows: a std::string it was made from must
 // outlive it, which a temporary does for the call it is an argument to. It
 // takes no std::string_view, whose text has no terminator for the layer.
@@ -305,7 +305,7 @@ public:
     {}
 
 #if D_INTERNAL_DB_FACE_CHAR8
-    // UTF-8 -- a char8_t string is char's bytes; a template, so that a null
+    // UTF-8 - a char8_t string is char's bytes; a template, so that a null
     // pointer constant still means the C string, as below C++20
     template<typename Char,
              typename = std::enable_if_t<std::is_same_v<Char, char8_t>>>
@@ -322,7 +322,7 @@ public:
     {}
 #endif  // D_INTERNAL_DB_FACE_CHAR8
 
-    // c_str -- the C string, or NULL
+    // c_str - the C string, or NULL
     D_CONSTEXPR
     const char* c_str() const D_NOEXCEPT
     {
@@ -401,8 +401,8 @@ namespace internal
 // a name, %s, %c, %d, %i, %u and their l, ll and (%zu) z forms, %f and %g.
 // SQLite's layer reads the shared dialect in a format that names %I or %T,
 // and sqlite3_mprintf's (%q, %Q, %w, with flags and widths) in any other.
-// MongoDB's layer reads JSON's, the shared dialect without %T -- a command
-// is JSON, %Q and %I writing a JSON string, NULL as null -- since a
+// MongoDB's layer reads JSON's, the shared dialect without %T - a command
+// is JSON, %Q and %I writing a JSON string, NULL as null - since a
 // namespace is one string, which %Q writes. Code written for every SQL face
 // keeps to the shared dialect and names a name with %I. A format is a
 // literal: from C++20 it is checked against its arguments. A format built
@@ -474,7 +474,7 @@ namespace internal
 // From C++20 an `f` form's format parameter is a checked_format, whose
 // constructor runs at compile time: it reads the format as the layer will,
 // and matches each conversion against the argument it takes, as C's `...`
-// passes it -- an int for %d, a long long for %lld, a double for %g, a
+// passes it - an int for %d, a long long for %lld, a double for %g, a
 // string for %s or %Q, two strings for %T. A mismatch, a conversion the
 // dialect lacks, or one argument too many or too few stops the compile at
 // a function whose name says which (the_format_*). The checks are strict
@@ -615,7 +615,7 @@ namespace internal
         };
     };
 
-    // the check's failures -- functions no constant expression may call,
+    // the check's failures - functions no constant expression may call,
     // so that a format that reaches one stops the compile, naming it; never
     // called at run time, since the check runs only at compile time
     inline
@@ -769,7 +769,7 @@ namespace internal
     // names_shared
     /**
      * @brief Whether a format names %I or %T, read as the shared formatter
-     *        reads one -- as SQLite's layer decides its dialect
+     *        reads one - as SQLite's layer decides its dialect
      *        (sqlite_internal.c).
      *
      * @param[in] _format  the format.
@@ -1169,10 +1169,10 @@ namespace internal
         return;
     }
 
-    // shared_dialect -- 2.3.3's definition: its check
+    // shared_dialect - 2.3.3's definition: its check
     struct shared_dialect
     {
-        // check -- the shared dialect's
+        // check - the shared dialect's
         template<typename... Args>
         static consteval
         void check(
@@ -1188,10 +1188,10 @@ namespace internal
         }
     };
 
-    // sqlite_dialect -- 2.3.4's definition: its check
+    // sqlite_dialect - 2.3.4's definition: its check
     struct sqlite_dialect
     {
-        // check -- the shared dialect's when the format names %I or %T, and
+        // check - the shared dialect's when the format names %I or %T, and
         // sqlite3_mprintf's otherwise, as SQLite's layer reads it
         template<typename... Args>
         static consteval
@@ -1218,10 +1218,10 @@ namespace internal
         }
     };
 
-    // json_dialect -- 2.3.5's definition: its check
+    // json_dialect - 2.3.5's definition: its check
     struct json_dialect
     {
-        // check -- the shared dialect's, without %T
+        // check - the shared dialect's, without %T
         template<typename... Args>
         static consteval
         void check(
@@ -1277,7 +1277,7 @@ public:
         : m_text(_format.c_str())
     {}
 
-    // c_str -- the format
+    // c_str - the format
     constexpr
     const char* c_str() const noexcept
     {
@@ -1296,7 +1296,7 @@ private:
 
 // 2.5.1
 // unchecked_format
-//   class: an `f` form's format where nothing checks it -- below C++20, or
+//   class: an `f` form's format where nothing checks it - below C++20, or
 // with the check off: a C string, or a format runtime_format marked. Never a
 // std::string, at any level: that goes through runtime_format, as it must
 // where formats are checked, and a format parameter that took one could be
@@ -1317,7 +1317,7 @@ public:
         : m_text(_format.c_str())
     {}
 
-    // c_str -- the format
+    // c_str - the format
     D_CONSTEXPR
     const char* c_str() const D_NOEXCEPT
     {
@@ -1356,7 +1356,7 @@ using format_arg = unchecked_format;
 //------------------------------------------------------------------------------
 // 3.1.1
 // text
-//   class: text a layer allocated -- a query's text value, a setting -- which
+//   class: text a layer allocated - a query's text value, a setting - which
 // it releases with d_db_free when it goes. Null for SQL NULL, for a failure,
 // and when made empty; std::string has no null, which is why text exists.
 // Not copyable; movable from C++11.
@@ -1390,7 +1390,7 @@ public:
     }
 
 #if D_MOVE_ENABLED
-    // moving -- the text passes to the object moved to, which releases what
+    // moving - the text passes to the object moved to, which releases what
     // it held; the object moved from is null
     text(
         text&& _other
@@ -1409,7 +1409,7 @@ public:
     }
 #endif  // D_MOVE_ENABLED
 
-    // text -- is_null is true for SQL NULL, for a failure, and when empty;
+    // text - is_null is true for SQL NULL, for a failure, and when empty;
     // c_str is the text, or NULL; str is a copy, "" for NULL
     D_NODISCARD bool is_null() const D_NOEXCEPT
     {
@@ -1485,7 +1485,7 @@ public:
         return &m_text;
     }
 
-    // swap -- the two objects trade texts
+    // swap - the two objects trade texts
     void swap(
         text& _other
     ) D_NOEXCEPT
@@ -1538,7 +1538,7 @@ public:
     }
 
 #if D_MOVE_ENABLED
-    // moving -- the names pass to the list moved to, which releases what it
+    // moving - the names pass to the list moved to, which releases what it
     // held; the list moved from is empty
     name_list(
         name_list&& _other
@@ -1561,7 +1561,7 @@ public:
     }
 #endif  // D_MOVE_ENABLED
 
-    // access -- the names, each valid while the list holds it
+    // access - the names, each valid while the list holds it
     D_NODISCARD std::size_t size() const D_NOEXCEPT
     {
         return m_list.count;
@@ -1589,7 +1589,7 @@ public:
         return m_list.names + m_list.count;
     }
 
-    // contains -- whether a name is in the list, byte for byte; NULL is in
+    // contains - whether a name is in the list, byte for byte; NULL is in
     // none
     D_NODISCARD bool contains(
         string_arg _name
@@ -1659,13 +1659,13 @@ public:
         return &m_list;
     }
 
-    // core -- the C list, for the layer's own calls
+    // core - the C list, for the layer's own calls
     D_NODISCARD const struct dj_db_name_list& core() const D_NOEXCEPT
     {
         return m_list;
     }
 
-    // swap -- the two lists trade names
+    // swap - the two lists trade names
     void swap(
         name_list& _other
     ) D_NOEXCEPT
@@ -1710,7 +1710,7 @@ public:
     }
 
 #if D_MOVE_ENABLED
-    // moving -- as name_list's
+    // moving - as name_list's
     column_list(
         column_list&& _other
     ) D_NOEXCEPT
@@ -1732,7 +1732,7 @@ public:
     }
 #endif  // D_MOVE_ENABLED
 
-    // access -- the columns, in the table's order
+    // access - the columns, in the table's order
     D_NODISCARD std::size_t size() const D_NOEXCEPT
     {
         return m_list.count;
@@ -1761,7 +1761,7 @@ public:
         return m_list.columns + m_list.count;
     }
 
-    // find -- the column of a name, byte for byte; NULL for none, and for a
+    // find - the column of a name, byte for byte; NULL for none, and for a
     // NULL name
     D_NODISCARD const struct dj_db_column_info* find(
         string_arg _name
@@ -1817,13 +1817,13 @@ public:
         return &m_list;
     }
 
-    // core -- the C list, for the layer's own calls
+    // core - the C list, for the layer's own calls
     D_NODISCARD const struct dj_db_column_list& core() const D_NOEXCEPT
     {
         return m_list;
     }
 
-    // swap -- the two lists trade columns
+    // swap - the two lists trade columns
     void swap(
         column_list& _other
     ) D_NOEXCEPT
@@ -1869,7 +1869,7 @@ public:
     }
 
 #if D_MOVE_ENABLED
-    // moving -- as name_list's
+    // moving - as name_list's
     rows(
         rows&& _other
     ) D_NOEXCEPT
@@ -1891,7 +1891,7 @@ public:
     }
 #endif  // D_MOVE_ENABLED
 
-    // access -- how many columns and rows; whether there are no rows; a
+    // access - how many columns and rows; whether there are no rows; a
     // column's description, unchecked, as name_list's operator[] is; and
     // the value at a row and a column, as d_db_rows_value finds it: NULL
     // past the last row or column
@@ -1925,7 +1925,7 @@ public:
         return d_db_rows_value(&m_rows, _row, _column);
     }
 
-    // column_index -- a column by its name, as d_db_rows_column_index finds
+    // column_index - a column by its name, as d_db_rows_column_index finds
     // it: exactly, or failing that without ASCII case; its result
     int column_index(
         string_arg   _name,
@@ -1986,13 +1986,13 @@ public:
         return &m_rows;
     }
 
-    // core -- the C rows, for the layer's own calls
+    // core - the C rows, for the layer's own calls
     D_NODISCARD const struct dj_db_rows& core() const D_NOEXCEPT
     {
         return m_rows;
     }
 
-    // swap -- the two objects trade rows
+    // swap - the two objects trade rows
     void swap(
         rows& _other
     ) D_NOEXCEPT
@@ -2099,7 +2099,7 @@ D_NODISCARD inline std::expected<bool, int> value_bool(
 
 // 3.4    Descriptions
 //------------------------------------------------------------------------------
-// descriptions -- db_common.h's words for its results, and the name of a
+// descriptions - db_common.h's words for its results, and the name of a
 // dj_db_type; neither is ever NULL, nor to be freed
 D_NODISCARD inline const char* status_message(
     int _status
@@ -2237,7 +2237,7 @@ public:
         }
     }
 
-    // state -- what beginning returned, and whether the guard still has a
+    // state - what beginning returned, and whether the guard still has a
     // transaction to end
     D_NODISCARD int result() const D_NOEXCEPT
     {
@@ -2281,7 +2281,7 @@ private:
     D_DELETED_FN_MSG(transaction& operator=(const transaction&),
                      "a transaction guard belongs to its scope")
 
-    // m_end -- commits or rolls back; the guard stays active only while the
+    // m_end - commits or rolls back; the guard stays active only while the
     // face is still in the transaction it began
     int
     m_end(
@@ -2378,7 +2378,7 @@ public:
         }
     }
 
-    // state -- as transaction's, and the name, as it was given
+    // state - as transaction's, and the name, as it was given
     D_NODISCARD int result() const D_NOEXCEPT
     {
         return m_result;

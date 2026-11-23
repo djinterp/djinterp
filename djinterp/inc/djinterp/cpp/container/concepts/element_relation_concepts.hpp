@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                        element_relation_concepts.hpp
 *
-* C++20 concepts for the ELEMENT RELATIONS axis -- the `requires`-facing view
+* C++20 concepts for the ELEMENT RELATIONS axis - the `requires`-facing view
 * of element_relation_traits.hpp.
 *
 *   THE CONCEPTS ADD NO POLICY.
@@ -50,7 +50,7 @@ NS_DJINTERP
 
 // EqualityComparableElements
 //   concept: the ELEMENTS compare for equality. This is the precondition for
-// content equality of the containers -- not the same thing as the containers
+// content equality of the containers - not the same thing as the containers
 // themselves being comparable.
 template<typename Type>
 concept EqualityComparableElements = has_equality_comparable_elements_v<Type>;
@@ -63,7 +63,7 @@ concept OrderedComparableElements = has_less_than_comparable_elements_v<Type>;
 
 
 // TotallyOrderedElements
-//   concept: the elements are TOTALLY ordered -- every pair is comparable,
+//   concept: the elements are TOTALLY ordered - every pair is comparable,
 // which is what a sort actually needs and what < alone does not promise.
 template<typename Type>
 concept TotallyOrderedElements = has_totally_ordered_elements_v<Type>;

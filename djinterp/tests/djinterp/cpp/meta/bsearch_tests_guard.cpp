@@ -167,7 +167,7 @@ bool tests_guard_independent_of_pack_contents()
     D_BS_CHECK((std::is_same<pack_element_or_t<false, 0, DLookupNotFound>,
                              DLookupNotFound>::value));
 
-    // false branch, populated pack -- same answer
+    // false branch, populated pack - same answer
     D_BS_CHECK((std::is_same<pack_element_or_t<false, 0, DLookupNotFound, int, char>,
                              DLookupNotFound>::value));
 

@@ -55,7 +55,7 @@
 // 1.1.1
 // dj_internal_mode
 //   enum: how a scope's children divide into items.  A group with no mode is
-//   not a scope -- a condition, an argument list, an initializer -- and is
+//   not a scope - a condition, an argument list, an initializer - and is
 //   never walked; its tokens belong to the item around it.
 enum dj_internal_mode
 {
@@ -1611,7 +1611,7 @@ void d_internal_head_call(
  * @brief Records what a significant child tells an item in its simple state.
  *
  * @note `name(` with nothing before it is a macro invocation at file or block
- *       scope -- `D_TEST(name) {` -- and a constructor in a class, where a
+ *       scope - `D_TEST(name) {` - and a constructor in a class, where a
  *       function may have no return type. The scope is what tells them apart.
  *
  * @param[in,out] _b   the recognition in progress.
@@ -2466,8 +2466,8 @@ void d_internal_param_layout(
  * @brief Walks one scope's children, dividing them into items, then records
  *        each new item as the innermost owner of its tokens.
  *
- * The recording runs in creation order, so an item created inside another -- a
- * braceless body -- claims its tokens after its owner has claimed them all.
+ * The recording runs in creation order, so an item created inside another - a
+ * braceless body - claims its tokens after its owner has claimed them all.
  *
  * @param[in,out] _b       the recognition in progress.
  * @param[in]     _opener  the group's opening token index.
@@ -2775,7 +2775,7 @@ void d_internal_pp_rebase(
 
 
 /**
- * @brief Records how each function's body ends -- empty, or with `return` --
+ * @brief Records how each function's body ends - empty, or with `return` --
  *        once every body has been walked.
  *
  * @param[in,out] _b  the recognition, its walks done.

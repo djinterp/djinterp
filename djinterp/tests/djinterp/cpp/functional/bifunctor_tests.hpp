@@ -6,8 +6,8 @@
 * translation unit (one .cpp per like-group semantic section of the header);
 * this head carries only what those files and the runner share.
 *
-*   bifunctor.hpp ships two concrete instances of its own -- std::pair and
-* DKvPair -- so the generic operations are driven directly over those (they are
+*   bifunctor.hpp ships two concrete instances of its own - std::pair and
+* DKvPair - so the generic operations are driven directly over those (they are
 * themselves code under test).  In addition a small user-defined bifunctor,
 * two<A, B>, is provided (its own bifunctor_traits specialization) so bimap /
 * map_first / map_second are proven generic over a bifunctor beyond the shipped
@@ -55,7 +55,7 @@
 #include <type_traits>
 #include <utility>
 // djinterp
-// djinterp -- the header under test (which pulls in meta/kv_pair.hpp), plus the
+// djinterp - the header under test (which pulls in meta/kv_pair.hpp), plus the
 //   DTest authoring + runner surface.  NOTE: these two include paths are rooted
 //   at the djinterp include directory (e.g. -I.../inc); adjust them to match
 //   your build tree.
@@ -194,7 +194,7 @@ struct DRealInt
 
 // has_bi_types
 //   detector: true iff both bifunctor_traits<decay<_Type>>::first_type and
-// ::second_type are well-formed -- i.e. iff _Type carries the Bifunctor
+// ::second_type are well-formed - i.e. iff _Type carries the Bifunctor
 // protocol's parameter types.  SFINAE-safe: the primary bifunctor_traits is
 // declared but undefined, so for a non-bifunctor the member access soft-fails in
 // the immediate context (false) rather than a hard error.  Deliberately NOT

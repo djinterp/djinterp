@@ -9,8 +9,8 @@
 * cleared before every library call whose outcome SSL_get_error reads, since
 * a stale error left by an earlier call would otherwise decide it. An info
 * callback records alerts as the library writes and reads them, and a failed
-* step is classified by the alert this end sent -- a certificate alert is a
-* verification failure, a negotiation alert a failed handshake -- which reads
+* step is classified by the alert this end sent - a certificate alert is a
+* verification failure, a negotiation alert a failed handshake - which reads
 * the same in every OpenSSL fork, where the library's reason codes do not. A
 * write takes at most one record of plaintext, so no call leaves more than a
 * record's ciphertext inside the engine. And the peer's names and
@@ -75,7 +75,7 @@ D_STATIC_ASSERT((TLS1_3_VERSION == D_SSL_VERSION_TLS1_3),
 
 // dj_internal_ssl_openssl_context
 //   struct: an engine context: the library's context, the plan it was made
-// for, and what its callbacks read -- the ALPN list a server selects from,
+// for, and what its callbacks read - the ALPN list a server selects from,
 // and the key-log sink.
 struct dj_internal_ssl_openssl_context
 {
@@ -155,7 +155,7 @@ bool d_internal_ssl_openssl_out_of_memory(void)
 d_internal_ssl_openssl_missing_certificate
   Whether the library failed because the peer withheld a certificate the
 plan requires. The alert sent for that differs by version --
-certificate_required in TLS 1.3, handshake_failure in TLS 1.2 -- so it is
+certificate_required in TLS 1.3, handshake_failure in TLS 1.2 - so it is
 recognized by the library's reason instead, which every fork shares.
 */
 static
@@ -170,8 +170,8 @@ bool d_internal_ssl_openssl_missing_certificate(void)
 
 /*
 d_internal_ssl_openssl_library_failure
-  The status of a library call that failed outside any exchange -- creating a
-context, a session, or a BIO -- clearing the error it left behind.
+  The status of a library call that failed outside any exchange - creating a
+context, a session, or a BIO - clearing the error it left behind.
 */
 static enum dj_ssl_error
 d_internal_ssl_openssl_library_failure(void)
@@ -1415,7 +1415,7 @@ d_internal_ssl_openssl_session_resume
   Offers the session the library session `_from` holds now. SSL_get1_session
 gives the latest one: under TLS 1.3 that is the session the server's
 NewSessionTicket made, which the library reads with the application data
-after the handshake -- by the time an FTPS client opens a data connection it
+after the handshake - by the time an FTPS client opens a data connection it
 has read several replies, and holds it. With nothing yet to offer the
 handshake is a full one. The reference taken is the offer's own, released
 once SSL_set_session has taken its own.
@@ -1578,7 +1578,7 @@ d_internal_ssl_openssl_handshake(
 /*
 d_internal_ssl_openssl_read
   Decrypts application data. The library absorbs post-handshake messages
-here -- session tickets, key updates -- and answers WANT_READ when they were
+here - session tickets, key updates - and answers WANT_READ when they were
 all the fed ciphertext held.
 */
 static enum dj_ssl_error

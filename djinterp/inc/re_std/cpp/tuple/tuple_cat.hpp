@@ -92,7 +92,7 @@ namespace internal
 
     // tuple_cat_impl_2
     //   function: concatenates exactly two tuples. Builds two index
-    // sequences -- one for each input -- and constructs a fresh
+    // sequences - one for each input - and constructs a fresh
     // tuple from get<i>(a)... get<j>(b)... .
     template<typename       A,
              typename       B,
@@ -202,7 +202,7 @@ tuple_cat(
 // Requiring a third named argument removes it from the two-argument
 // overload set entirely, so the reduction terminates on the 2-arg
 // overload above. A structural fix rather than an enable_if, because
-// the trailing return type is what recurses -- an enable_if in the
+// the trailing return type is what recurses - an enable_if in the
 // return type would still have to name tuple_cat to compute it.
 template<typename    A,
          typename    B,

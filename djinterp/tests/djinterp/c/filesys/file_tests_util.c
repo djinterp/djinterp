@@ -4,7 +4,7 @@
 *   Shared test-environment machinery for the fs suite: it stands up an
 * isolated, absolute-pathed scratch directory with one standard fixture file
 * before the sections run, and tears it down afterwards. The absolute path is
-* the point -- a d_dir_set_current test can leave the working directory anywhere and the
+* the point - a d_dir_set_current test can leave the working directory anywhere and the
 * rest of the suite still resolves its fixtures.
 *
 *   Fixture content is written with raw stdio, never d_file_write_all, so a bug in
@@ -72,7 +72,7 @@ char* d_fs_test_path(
     // it does not change what the running kernel opens. On a POSIX host built
     // for the Windows grammar, d_path_join correctly emits a backslash, and
     // every path this returned then named one file with a backslash IN it
-    // rather than a child of the scratch directory -- so a later opendir found
+    // rather than a child of the scratch directory - so a later opendir found
     // no fixture and a relative lookup after chdir saw nothing.
     //   d_path_join keeps its own tests, which follow the selected grammar
     // because that is precisely what they are testing. This helper is not one
@@ -311,7 +311,7 @@ bool d_tests_file_teardown(void)
             if (d_tests_file_path(path, sizeof(path), entry->d_name))
             {
                 // d_file_remove takes directories too, so a test that left a
-                // subdirectory behind is cleaned up as well -- provided it is
+                // subdirectory behind is cleaned up as well - provided it is
                 // empty, which the tests ensure
                 (void)d_file_remove(path);
             }
@@ -401,7 +401,7 @@ char* d_tests_file_path(
 
     //   Built with the HOST's separator, not with d_path_join.
     //   D_CFG_FILE_PATH_SYNTAX selects which grammar the lexical module PARSES
-    // and EMITS. That is a cross-compilation and parsing facility -- it does
+    // and EMITS. That is a cross-compilation and parsing facility - it does
     // not change what the running kernel accepts. So on a POSIX host built for
     // the Windows grammar, d_path_join correctly emits a backslash, and every
     // path this helper produced then named one file with a backslash in it

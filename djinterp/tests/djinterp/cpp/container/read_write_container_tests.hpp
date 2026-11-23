@@ -84,7 +84,7 @@ VI.   ADAPTIVITY      (read_write_container_tests_adaptivity.cpp)
 #include <cstdio>
 #include <type_traits>
 // djinterp
-// -- (part 1) mode-gated includes ------------------------------------------
+// - (part 1) mode-gated includes ------------------------------------------
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
 #include <array>
@@ -197,7 +197,7 @@ struct rw_void_help
     template<typename _T>                                                     \
     struct _name<_T, D_RW_VOID(decltype(_expr))> : std::true_type {}
 
-// -- the observation surface -----------------------------------------------
+// - the observation surface -----------------------------------------------
 D_RW_DETECT(rw_has_size,   std::declval<const _T&>().size());
 D_RW_DETECT(rw_has_empty,  std::declval<const _T&>().empty());
 D_RW_DETECT(rw_has_sub,    std::declval<_T&>()[0]);
@@ -209,7 +209,7 @@ D_RW_DETECT(rw_has_end,    std::declval<_T&>().end());
 D_RW_DETECT(rw_has_cbegin, std::declval<const _T&>().cbegin());
 D_RW_DETECT(rw_has_cend,   std::declval<const _T&>().cend());
 
-// -- the mutating surface --------------------------------------------------
+// - the mutating surface --------------------------------------------------
 D_RW_DETECT(rw_has_push_back,
     std::declval<_T&>().push_back(std::declval<typename _T::value_type>()));
 D_RW_DETECT(rw_has_push_front,
@@ -420,7 +420,7 @@ struct rw_probe_type
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- (part 2) declarations - visible in BOTH modes -------------------------
+// - (part 2) declarations - visible in BOTH modes -------------------------
 
 // I.   CONSTRUCTION   (read_write_container_tests_construction.cpp)
 bool tests_read_write_default_construction();
@@ -478,7 +478,7 @@ bool tests_read_write_const_surface_is_constexpr();
 bool tests_read_write_detection_battery_is_sound();
 
 
-// -- (part 3) the spec provider - spec mode only ---------------------------
+// - (part 3) the spec provider - spec mode only ---------------------------
 #ifdef DTEST_SPEC_MODE
 
 // read_write_container_spec

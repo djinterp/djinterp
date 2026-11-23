@@ -180,7 +180,7 @@ bool matches(
 ///                TEST DECLARATIONS                                         ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// -- section: construction (sequence_tests_construction.cpp)
+// - section: construction (sequence_tests_construction.cpp)
 bool tests_ctor_default();
 bool tests_ctor_variadic_single();
 bool tests_ctor_variadic_two();
@@ -204,7 +204,7 @@ bool tests_ctor_count_value_zero();
 bool tests_ctor_copy();
 bool tests_ctor_move();
 
-// -- section: element access (sequence_tests_element_access.cpp)
+// - section: element access (sequence_tests_element_access.cpp)
 bool tests_index_operator();
 bool tests_index_operator_const();
 bool tests_index_operator_mutates();
@@ -218,12 +218,12 @@ bool tests_data_const();
 bool tests_data_mutable();
 bool tests_data_contiguous();
 
-// -- section: capacity (sequence_tests_capacity.cpp)
+// - section: capacity (sequence_tests_capacity.cpp)
 bool tests_size();
 bool tests_empty();
 bool tests_capacity_tracks_modification();
 
-// -- section: iteration (sequence_tests_iteration.cpp)
+// - section: iteration (sequence_tests_iteration.cpp)
 bool tests_begin_end();
 bool tests_begin_end_const();
 bool tests_cbegin_cend();
@@ -232,7 +232,7 @@ bool tests_iterator_mutates();
 bool tests_iterator_std_algorithms();
 bool tests_iteration_empty();
 
-// -- section: modification (sequence_tests_modification.cpp)
+// - section: modification (sequence_tests_modification.cpp)
 bool tests_push_back_copy();
 bool tests_push_back_move();
 bool tests_append();
@@ -245,7 +245,7 @@ bool tests_resize_grow();
 bool tests_resize_shrink();
 bool tests_resize_zero();
 
-// -- section: subsequence (sequence_tests_subsequence.cpp)
+// - section: subsequence (sequence_tests_subsequence.cpp)
 bool tests_sub();
 bool tests_sub_zero_count();
 bool tests_sub_full();
@@ -258,7 +258,7 @@ bool tests_tail_zero();
 bool tests_tail_full();
 bool tests_subsequence_is_a_copy();
 
-// -- section: comparison (sequence_tests_comparison.cpp)
+// - section: comparison (sequence_tests_comparison.cpp)
 bool tests_equality();
 bool tests_equality_self();
 bool tests_equality_different_size();
@@ -266,13 +266,13 @@ bool tests_equality_different_elements();
 bool tests_equality_empty();
 bool tests_inequality();
 
-// -- section: conversion (sequence_tests_conversion.cpp)
+// - section: conversion (sequence_tests_conversion.cpp)
 bool tests_vec();
 bool tests_vec_reflects_contents();
 bool tests_release();
 bool tests_release_empties_source();
 
-// -- section: factories (sequence_tests_factories.cpp)
+// - section: factories (sequence_tests_factories.cpp)
 bool tests_make_sequence_variadic();
 bool tests_make_sequence_variadic_two();
 bool tests_make_sequence_variadic_single();

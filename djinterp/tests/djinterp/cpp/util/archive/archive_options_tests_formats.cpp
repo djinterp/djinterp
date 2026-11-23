@@ -79,7 +79,7 @@ reproducible header: no name, no time, and the codec block's OS byte.
   - resolved for gz: store_name and store_mtime off, os the codec block's
     (D_GZIP_OS_DEFAULT)
   - a set os is lowered to the kernel's gz.os
-  - setting original_name does not implicitly raise store_name -- the two
+  - setting original_name does not implicitly raise store_name - the two
     are independent, as the header documents
 */
 bool tests_gz_options_defaults()

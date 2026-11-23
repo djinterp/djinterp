@@ -72,7 +72,7 @@ TABLE OF CONTENTS
 #include "../../../re_std/c/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -93,8 +93,8 @@ TABLE OF CONTENTS
 // fn_expander
 //   function pointer: expands one element into zero or more outputs.
 // Writes its outputs end to end from `_out_array`, at the output stride given
-// to `d_flat_map` or `d_flat_map_state_init` -- which it is not told, so it
-// must already agree with it -- and returns how many it wrote. It has room for
+// to `d_flat_map` or `d_flat_map_state_init` - which it is not told, so it
+// must already agree with it - and returns how many it wrote. It has room for
 // `_capacity` outputs and must not write more; a larger return is clamped to
 // `_capacity`, which bounds what is read back but cannot undo an overrun.
 // Note: `_context` may be NULL.

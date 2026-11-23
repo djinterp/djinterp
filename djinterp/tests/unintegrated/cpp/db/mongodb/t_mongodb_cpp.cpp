@@ -372,7 +372,7 @@ void d_tests_mongodb_cpp_stubs(void)
 /*
 main
   The server-free checks, then a session where a deployment is reached; or,
-over a layer built without the driver -- whose version is then 0 -- the
+over a layer built without the driver - whose version is then 0 - the
 stubs' checks.
 */
 int main(void)

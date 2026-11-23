@@ -349,7 +349,7 @@ d_tests_test_suite_check_msg
   A named check reports its name and message.
   Tests the following:
   - the name stands where the expression would
-  - the message follows it after " -- "
+  - the message follows it after " - "
 */
 bool
 d_tests_test_suite_check_msg(void)

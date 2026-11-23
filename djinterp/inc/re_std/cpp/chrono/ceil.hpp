@@ -3,7 +3,7 @@
 *
 * chrono::ceil for durations and time_points:
 *   Converts to a coarser precision, always rounding TOWARD POSITIVE
-* INFINITY -- later in time, larger in value.
+* INFINITY - later in time, larger in value.
 *
 *       ceil<seconds>(milliseconds(1001))  ->  2s
 *       ceil<seconds>(milliseconds(-1999)) -> -1s

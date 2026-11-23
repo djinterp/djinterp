@@ -12,8 +12,8 @@
 * hand the handle back until the server has answered: the driver connects
 * on its first operation, so the layer pings, which signs in where
 * credentials are given, then asks the server its version and what it is
-* part of. A program that needs more -- its own TLS streams, a pool's client
-* -- sets a mongoc_client_t up with the driver's own calls and hands it to
+* part of. A program that needs more - its own TLS streams, a pool's client
+* - sets a mongoc_client_t up with the driver's own calls and hands it to
 * d_mongodb_adopt, which wraps it as it is.
 *   Either way the handle is the layer's until d_mongodb_close, which closes
 * the driver's client too when the layer made it or was given it to own. A
@@ -58,7 +58,7 @@ TABLE OF CONTENTS
                                                  // floor; int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -81,8 +81,8 @@ D_EXTERN_C_BEGIN
 // for the driver's default; the order suits a positional initializer, which
 // is all C++ before C++20 has:
 //     struct dj_mongodb_options options = { "db.example", "app", secret };
-// With `uri`, the connection string says where -- host and port must then
-// be left NULL and 0 -- and each other field given replaces what it says.
+// With `uri`, the connection string says where - host and port must then
+// be left NULL and 0 - and each other field given replaces what it says.
 // GCC's and Clang's -Wextra warn of the members such a list leaves out;
 // listing them all, as NULL and 0, keeps it quiet.
 struct dj_mongodb_options
@@ -260,8 +260,8 @@ int d_mongodb_connect_uri(
  * @param[in]  _count     how many settings there are.
  * @param[out] _db        receives the handle; `NULL` on failure.
  * @param[out] _message   receives the reason when no connection is made, in
- *                        the words of whoever refused it -- the server, the
- *                        driver or the layer -- which the code alone cannot
+ *                        the words of whoever refused it - the server, the
+ *                        driver or the layer - which the code alone cannot
  *                        give once the failed handle is closed; released
  *                        with d_db_free; `NULL` on success, and when memory
  *                        runs out for the copy. May be `NULL` when the
@@ -271,8 +271,8 @@ int d_mongodb_connect_uri(
  *         the option's 32 bits cannot hold, an option of a value the driver
  *         refuses, or `NULL` settings with a nonzero count; the driver's
  *         code, packed, for a URI_OPTION of a value it cannot read, which
- *         its parser refuses -- one of no name it knows it passes over,
- *         with a warning in its log -- and for settings that cannot go
+ *         its parser refuses - one of no name it knows it passes over,
+ *         with a warning in its log - and for settings that cannot go
  *         together, loadBalanced with a replica set's name among them.
  * @post On success the caller closes `*_db` with d_mongodb_close.
  */
@@ -308,7 +308,7 @@ int d_mongodb_adopt(
     bool                _owned,
     struct dj_mongodb** _db
 ) D_NOTHROW;
-// closes a handle -- ending its session, a transaction in it aborted -- and
+// closes a handle - ending its session, a transaction in it aborted - and
 // the driver's client with it when the layer owns that; NULL is accepted.
 // Returns 0.
 int d_mongodb_close(
@@ -317,7 +317,7 @@ int d_mongodb_close(
 
 // 1.3    Liveness
 //------------------------------------------------------------------------------
-// liveness -- 0 when the server answers a ping; else the failure, the
+// liveness - 0 when the server answers a ping; else the failure, the
 // server's or the driver's; D_DB_INVALID_ARGUMENT for a NULL handle
 int d_mongodb_ping(
     struct dj_mongodb* _db
@@ -325,7 +325,7 @@ int d_mongodb_ping(
 
 // 1.4    The latest write
 //------------------------------------------------------------------------------
-// the latest write -- how many documents the handle's latest successful
+// the latest write - how many documents the handle's latest successful
 // write inserted, changed, deleted or upserted, as the server counted them
 // (an update's documents modified, not those matched; a find-and-modify's
 // document, which its reply does not say was changed); 0 before any, and for
@@ -335,7 +335,7 @@ int64_t d_mongodb_changes(
 ) D_NOTHROW;
 /**
  * @brief Hands back the `_id` of the document the latest insert_one gave
- *        the server, or the latest upsert inserted -- an update's, a
+ *        the server, or the latest upsert inserted - an update's, a
  *        replacement's, a find-and-modify's, or an update command's run
  *        through mongodb_query.h; a bulk write's upserts are not kept.
  *

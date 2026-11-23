@@ -5,7 +5,7 @@
 * one.
 *   An instruction is twelve bytes of plain data: an opcode, a flag word, and
 * two operands. Nothing in it points anywhere. That one property is what the
-* whole pipeline above rests on -- a program becomes memcpy-able, hashable as a
+* whole pipeline above rests on - a program becomes memcpy-able, hashable as a
 * cache key, writable to a file and readable back on another machine, handed to
 * C or to a code generator without a fix-up pass, and a candidate for living in
 * static storage as a literal type. An instruction carrying a string would
@@ -87,7 +87,7 @@ TABLE OF CONTENTS
                                               // uint32_t, ...
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -110,7 +110,7 @@ TABLE OF CONTENTS
 // 1.1.2
 // D_PARSE_KEEP
 //   constant: passed to d_parse_program_patch in place of an operand to leave
-// that operand as it is -- so patching a forward branch target does not have
+// that operand as it is - so patching a forward branch target does not have
 // to restate the operand beside it.
 #define D_PARSE_KEEP                (-2147483647 - 1)
 

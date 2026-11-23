@@ -54,7 +54,7 @@
 
     // std
     #include <limits>       // std::numeric_limits (for in_range)
-    #include <type_traits>  // std::is_signed, std::make_unsigned -- documented localised exception
+    #include <type_traits>  // std::is_signed, std::make_unsigned - documented localised exception
 
 
 namespace re_std
@@ -63,7 +63,7 @@ namespace internal
 {
 
     // ------------------------------------------------------------
-    // primary template: same signedness -- direct comparison.
+    // primary template: same signedness - direct comparison.
     // ------------------------------------------------------------
     template<typename T, typename U,
              bool TSigned = std::is_signed<T>::value,

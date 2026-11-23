@@ -99,13 +99,13 @@ bool tests_detectors_each_fires_only_on_its_own_typedef()
     D_MT_CHECK(!has_key_type<only_value>::value);
     D_MT_CHECK(!has_mapped_type<only_value>::value);
 
-    // DOnlyKey vs DOnlyMapped -- the associative pair are independent
+    // DOnlyKey vs DOnlyMapped - the associative pair are independent
     D_MT_CHECK(has_key_type<DOnlyKey>::value);
     D_MT_CHECK(!has_mapped_type<DOnlyKey>::value);
     D_MT_CHECK(has_mapped_type<DOnlyMapped>::value);
     D_MT_CHECK(!has_key_type<DOnlyMapped>::value);
 
-    // DOnlySize / DOnlyDifference / DOnlyAllocator -- container trio isolated
+    // DOnlySize / DOnlyDifference / DOnlyAllocator - container trio isolated
     D_MT_CHECK(has_size_type<DOnlySize>::value);
     D_MT_CHECK(!has_difference_type<DOnlySize>::value);
     D_MT_CHECK(has_difference_type<DOnlyDifference>::value);

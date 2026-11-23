@@ -14,7 +14,7 @@
 * for url / title / language / heading level / list metadata / etc.
 * This keeps the backend simple and avoids a sum-type machinery
 * dependency. Real backends (cmark, md4c, maddy) are free to use
-* distinct types -- the trait layer detects them structurally.
+* distinct types - the trait layer detects them structurally.
 *
 *   FACADES:
 *   - `DMarkdownBlock<Backend>`    wraps `Backend::block_type`
@@ -535,7 +535,7 @@ private:
 
     // m_node
     //   field: raw pointer to the backend storage node.
-    // Non-owning -- the storage is owned by the document or by
+    // Non-owning - the storage is owned by the document or by
     // the parent block via unique_ptr.
     node_type*  m_node;
 };
@@ -768,7 +768,7 @@ NS_INTERNAL
     // markdown_md_escape_helper
     //   function: writes a markdown-escaped copy of `_in` to
     // `_out`. Backslash-escapes the CommonMark special characters
-    // when they appear in text content -- '<' and '&' among them,
+    // when they appear in text content - '<' and '&' among them,
     // so text never reads back as HTML or as an entity.
     inline
     void markdown_md_escape_helper(
@@ -799,9 +799,9 @@ NS_INTERNAL
 
     // markdown_url_encode_helper
     //   function: a destination as an href or a src: percent-encoded
-    // as CommonMark's renderers normalise it -- every byte but letters,
+    // as CommonMark's renderers normalise it - every byte but letters,
     // digits and ;/?:@&=+$,-_.!~*'()# becomes %XX, and an existing %XX
-    // is kept -- then escaped as an attribute's value.
+    // is kept - then escaped as an attribute's value.
     inline
     void markdown_url_encode_helper(
         std::ostream&      _out,

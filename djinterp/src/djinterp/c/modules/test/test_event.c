@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][test]                                                test_event.c
 *
-*   Implementation of the DTest event module -- the observation record and
+*   Implementation of the DTest event module - the observation record and
 * the dispatch kernel.  Compiled by both languages from this one source.
 *
 *
@@ -23,7 +23,7 @@ D_EXTERN_C_BEGIN
    D_STATIC_INLINE in the header while this module did not exist; the header
    said so and said it would move here when the module was done.  It is done.
 
-     The coercion rule -- an out-of-range status is stored as `error` -- is
+     The coercion rule - an out-of-range status is stored as `error` - is
    stated in the header at VII.a and applied in exactly two places: here, and
    in d_test_event_status_change's two status slots below. */
 
@@ -278,7 +278,7 @@ d_test_dispatch_fire(
        compacts or reorders would break that agreement silently, and the
        parity body records both so the day it stops holding is a diff. */
     /*   THE FOLD.  Verdicts combine under D_TEST_VERDICT_COMBINE with `consume` as
-       the left zero, so the first listener to consume halts the rest -- and
+       the left zero, so the first listener to consume halts the rest - and
        the accumulator can never return to `pass` afterwards, which is what
        "left zero" means and what a plain boolean flag would have got wrong the
        first time someone reordered the loop. */

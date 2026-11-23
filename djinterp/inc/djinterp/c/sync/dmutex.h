@@ -279,7 +279,7 @@ typedef void (*dj_tss_dtor_t)(void*);
 //   macro: static initializer for a dj_rwlock_t.
 //   Note: only the Windows SRWLOCK backend can be statically initialized.
 // On the other two, d_rwlock_init must be called, so D_RWLOCK_INIT is
-// deliberately NOT defined there -- a portable caller uses d_rwlock_init.
+// deliberately NOT defined there - a portable caller uses d_rwlock_init.
 #if D_MUTEX_HAS_PTHREAD
     typedef struct dj_rwlock_t
     {

@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/modules/test/test_common/CMakeLists.txt
+# djinterp [test]  -  build/cmake/config/testing/djinterp/c/modules/test/test_common/CMakeLists.txt
 #
 #   Test leaf for c/modules/test/test_common.h, the DTest vocabulary, in the C
 # spec form: the runner in this directory and the section translation units

@@ -7,7 +7,7 @@
 * C99; ftp_client adds the wire: the TCP transport (net/tcp/tcp.h) and, for
 * FTPS, TLS through the SSL kernel (net/ssl/ssl.h) with whatever engine a
 * caller plugs in. Other backends can share the protocol modules alone.
-*   Environment detection -- which transports and libraries exist -- lives in
+*   Environment detection - which transports and libraries exist - lives in
 * env/net/ftp/env_ftp.h and, for FTPS, env/net/ftps/env_ftps.h; nothing under
 * net/ftp/ needs it.
 *

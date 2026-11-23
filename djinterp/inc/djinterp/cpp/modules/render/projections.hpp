@@ -12,7 +12,7 @@
 * consumer.
 *
 * CONVENTION:
-*   row-major storage, column-vector convention -- a point is transformed as
+*   row-major storage, column-vector convention - a point is transformed as
 * M * p, and the translation lives in the fourth column. Consistent with
 * linalg::matrix and linalg::transform_point.
 *

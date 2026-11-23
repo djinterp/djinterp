@@ -84,7 +84,7 @@ NS_INTERNAL
     };
 
     // element_type_helper specialization
-    //   helper: the detected case -- selected when the type declares the
+    //   helper: the detected case - selected when the type declares the
     // nested type `value_type`.
     template<typename Container>
     struct element_type_helper<Container,
@@ -187,7 +187,7 @@ struct element_type_of
 };
 
 // element_type_of_t
-//   type: the carrier of element_type_of -- its `::type`, for use where a type
+//   type: the carrier of element_type_of - its `::type`, for use where a type
 // rather than a value is wanted.
 template<typename Type>
 using element_type_of_t = typename element_type_of<Type>::type;

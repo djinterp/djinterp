@@ -2,10 +2,10 @@
 * djinterp [cpp][math]                                       t_interval_face.cpp
 *
 *   Tests for the interval faces (math/interval/), at every level from C++98.
-* The compile-time half -- static members as constants, the conversion types,
+* The compile-time half - static members as constants, the conversion types,
 * the traits (with impostors: non-static members, int-valued flags), the
 * families, and from C++14 the operations themselves as constant expressions
-* -- runs wherever the unit compiles, which the C++ ladder does at every rung.
+* - runs wherever the unit compiles, which the C++ ladder does at every rung.
 * The runtime half needs running, and checks what the faces add to the C core:
 *
 *     - the generic path agrees with the C families: an interval over an

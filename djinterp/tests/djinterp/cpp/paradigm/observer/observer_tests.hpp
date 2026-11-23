@@ -57,13 +57,13 @@ NS_TESTING
 ///                TEST DECLARATIONS                                         ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// -- section: signature decomposition (observer_tests_sig_decompose.cpp)
+// - section: signature decomposition (observer_tests_sig_decompose.cpp)
 bool tests_sig_decompose_return_type();
 bool tests_sig_decompose_arity();
 bool tests_sig_decompose_fn_ptr_type();
 bool tests_sig_decompose_void_and_multi();
 
-// -- section: connection handles (observer_tests_connection.cpp)
+// - section: connection handles (observer_tests_connection.cpp)
 bool tests_connection_default();
 bool tests_connection_disconnect();
 bool tests_connection_reset();
@@ -76,7 +76,7 @@ bool tests_scoped_connections_add();
 bool tests_scoped_connections_plus_equals();
 bool tests_scoped_connections_raii();
 
-// -- section: tier 0 delegate (observer_tests_delegate.cpp)
+// - section: tier 0 delegate (observer_tests_delegate.cpp)
 bool tests_delegate_default_state();
 bool tests_delegate_connect_replace();
 bool tests_delegate_disconnect();
@@ -91,7 +91,7 @@ bool tests_delegate_stdfunction_captures();
 bool tests_delegate_multi_arg();
 bool tests_observer_ptr_alias();
 
-// -- section: tier 1 event (observer_tests_event.cpp)
+// - section: tier 1 event (observer_tests_event.cpp)
 bool tests_event_default_state();
 bool tests_event_connect_slot_ids();
 bool tests_event_connect_full_no_slot();
@@ -106,7 +106,7 @@ bool tests_event_operator_call();
 bool tests_event_stdfunction();
 bool tests_event_multi_arg();
 
-// -- section: tier 2 observer (observer_tests_observer.cpp)
+// - section: tier 2 observer (observer_tests_observer.cpp)
 bool tests_observer_default_state();
 bool tests_observer_connect_notify();
 bool tests_observer_operator_plus_equals();
@@ -121,7 +121,7 @@ bool tests_observer_connection_outlives_safe();
 bool tests_observer_fn_ptr_override();
 bool tests_observer_multi_arg();
 
-// -- section: capability traits (observer_tests_traits.cpp)
+// - section: capability traits (observer_tests_traits.cpp)
 bool tests_trait_has_connect();
 bool tests_trait_has_notify();
 bool tests_trait_has_disconnect_all();

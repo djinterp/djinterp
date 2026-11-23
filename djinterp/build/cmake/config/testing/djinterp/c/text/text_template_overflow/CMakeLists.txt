@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/text/
+# djinterp [test]  -  build/cmake/config/testing/djinterp/c/text/
 #                      text_template_overflow/CMakeLists.txt
 #
 #   Test leaf for text_template.c's overflow suite, in DTest's C face: the

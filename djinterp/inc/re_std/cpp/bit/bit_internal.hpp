@@ -13,7 +13,7 @@
 *     unsigned long, unsigned long long
 *
 *   and deliberately NOT bool, char, char8_t, char16_t, char32_t or
-* wchar_t -- even though several of those are unsigned on common
+* wchar_t - even though several of those are unsigned on common
 * platforms and all of them satisfy is_unsigned. Writing the constraint
 * as is_unsigned would therefore accept bool and char, which the
 * standard rejects, and the acceptance would be silently
@@ -29,7 +29,7 @@
 *
 *   RECURSION RATHER THAN LOOPS:
 *   The helpers are recursive so they are constexpr from C++11 rather
-* than C++14 -- a C++11 constexpr function may only be a single return
+* than C++14 - a C++11 constexpr function may only be a single return
 * statement. Depth is bounded by the operand width, so 64 frames at
 * worst, all evaluated at compile time.
 *
@@ -95,7 +95,7 @@ namespace internal
 
     // bit_width_rec
     //   function: position of the highest set bit, 0 for zero. This is the
-    // primitive the whole module is built on -- countl_zero, bit_floor
+    // primitive the whole module is built on - countl_zero, bit_floor
     // and bit_ceil are all one step away from it.
     template<typename T>
     RE_STD_CONSTEXPR int

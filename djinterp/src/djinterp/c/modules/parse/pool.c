@@ -418,7 +418,7 @@ uint32_t d_parse_pool_intern_string(
 d_parse_pool_hash
   A 64-bit digest of everything the pool holds.
 NOTE:
-  FNV-1a over the entry lengths and the blob bytes, in index order -- not over
+  FNV-1a over the entry lengths and the blob bytes, in index order - not over
 the raw byte store, because two pools reaching the same contents by different
 intern orders would otherwise digest differently. This is a cache key, not a
 cryptographic hash.

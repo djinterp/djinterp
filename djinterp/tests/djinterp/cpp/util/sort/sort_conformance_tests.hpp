@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][utility]                             sort_conformance_tests.hpp
 *
-*   unit-test suite for the sort subsystem's CROSS-CUTTING contracts -- the
+*   unit-test suite for the sort subsystem's CROSS-CUTTING contracts - the
 * claims that belong to no single header because they are claims about how the
 * headers fit together, or about a property the banners advertise for the
 * subsystem as a whole.  Declares every tests_sort_conformance_* predicate.
@@ -34,7 +34,7 @@
 #include <type_traits>
 #include <vector>
 // djinterp
-//   core is ALWAYS first and unconditional -- NS_* / D_* qualifiers and the
+//   core is ALWAYS first and unconditional - NS_* / D_* qualifiers and the
 // language gates are needed by both faces of this header.
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
@@ -59,7 +59,7 @@ NS_TESTING
 // UNCONDITIONALLY: the spec provider below needs dt::module_spec too.
 namespace dt = ::djinterp::test;
 
-#ifndef DTEST_SPEC_MODE   // fixtures -- normal mode only
+#ifndef DTEST_SPEC_MODE   // fixtures - normal mode only
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -156,11 +156,11 @@ D_TESTS_SORT_ORDERED_PROBE(conf_heap,      ::djinterp::heap_sort_ordered)
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// adl -- djinterp::sort must be usable unqualified
+// adl - djinterp::sort must be usable unqualified
 bool tests_sort_conformance_unqualified_sort_unambiguous();
 bool tests_sort_conformance_qualified_sort_dispatches();
 
-// surface -- subsystem-wide claims
+// surface - subsystem-wide claims
 bool tests_sort_conformance_ordered_surface_is_uniform();
 bool tests_sort_conformance_ordered_means_the_same();
 

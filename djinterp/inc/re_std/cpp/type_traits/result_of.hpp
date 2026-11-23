@@ -57,7 +57,7 @@ namespace re_std
 
 
     // result_of
-    //   trait: primary template -- intentionally undefined. Only the
+    //   trait: primary template - intentionally undefined. Only the
     //          partial specialization for function types is provided.
     //          Passing a non-function-type yields no `type` member.
     template<typename T>

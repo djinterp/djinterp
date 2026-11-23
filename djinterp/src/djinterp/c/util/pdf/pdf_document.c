@@ -37,7 +37,7 @@
 d_pdf_backend_is_valid
   A table is valid when it reaches every slot of the original protocol,
 through `save`; the optional slots after it are checked one by one when
-used. Null slots are not invalid -- they are reported as unsupported when
+used. Null slots are not invalid - they are reported as unsupported when
 called.
 */
 int32_t d_pdf_backend_is_valid(

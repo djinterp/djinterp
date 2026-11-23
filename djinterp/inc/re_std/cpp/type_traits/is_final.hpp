@@ -57,7 +57,7 @@ namespace re_std
 #if RE_STD_HAS_IS_FINAL
 
 // is_final
-//   trait: intrinsic-backed -- a class marked final.
+//   trait: intrinsic-backed - a class marked final.
 template<typename Type>
 struct is_final : integral_constant<bool, __is_final(Type)>
 {};

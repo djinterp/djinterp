@@ -4,10 +4,10 @@
 * common_type trait:
 *   The "type all of the inputs share" computation, used most prominently
 * by std::min, std::max, and ternary-like generic code. Defined recursively:
-*     common_type<>          -- no `type` member
-*     common_type<T>         -- same as common_type<T, T>
-*     common_type<T1, T2>    -- the rule (see below)
-*     common_type<T1, T2, R...> -- common_type<common_type<T1,T2>::type, R...>
+*     common_type<>          - no `type` member
+*     common_type<T>         - same as common_type<T, T>
+*     common_type<T1, T2>    - the rule (see below)
+*     common_type<T1, T2, R...> - common_type<common_type<T1,T2>::type, R...>
 *
 *   THE RULE (binary base case):
 *   If T1 and T2 are both already "decayed" (i.e. is_same<T, decay<T>::type>
@@ -22,7 +22,7 @@
 * common_type<decay<T1>::type, decay<T2>::type>::type.
 *
 *   re_std applies the P0898R3 fallback rule on all C++11+ tiers, even though
-* it was only standardized in C++20 -- the implementation needs only C++11
+* it was only standardized in C++20 - the implementation needs only C++11
 * features.
 *
 *   USER CUSTOMIZATION:
@@ -71,12 +71,12 @@ namespace re_std
 
 
     // common_type
-    //   trait: primary template -- has no `type` member, matching the
+    //   trait: primary template - has no `type` member, matching the
     //          standard's behavior for common_type<> (zero arguments).
     //          Defined with empty body (rather than as a bare forward
     //          declaration) so that `typename common_type<>::type` is
-    //          reliably "no such member" -- which is SFINAE-eligible
-    //          on all conforming compilers -- rather than "incomplete
+    //          reliably "no such member" - which is SFINAE-eligible
+    //          on all conforming compilers - rather than "incomplete
     //          type", which can hard-error on stricter implementations.
     template<typename... Ts>
     struct common_type

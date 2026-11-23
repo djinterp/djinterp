@@ -9,7 +9,7 @@
 *
 * A MODULE MUST NOT INCLUDE THIS FILE
 * -----------------------------------
-*   Each module includes the one config that owns its knobs -- test_event.h
+*   Each module includes the one config that owns its knobs - test_event.h
 * includes cfg_test_event.h and nothing else.  This umbrella exists for
 * consumers: a build script, a preset, or a tool that wants every DTest knob
 * resolved without naming three headers.
@@ -18,7 +18,7 @@
 * left implied.  Until rev13 this file held every knob for four modules, having
 * absorbed cfg_test_common.h and cfg_test_object.h at revision.md §8 and
 * cfg_test_event.h at rev11.  Each absorption was argued from "one file, one
-* module" -- and the accumulation ended somewhere that rule forbids, because a
+* module" - and the accumulation ended somewhere that rule forbids, because a
 * file serving four modules is the sibling problem at a larger scale.  A module
 * reaching for this umbrella instead of its own config would rebuild the same
 * thing one include at a time.

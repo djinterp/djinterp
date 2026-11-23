@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][event]                                             event_common.c
 *
-* Event foundations -- tier 0 definitions.
+* Event foundations - tier 0 definitions.
 *   Defines the one out-of-line function event_common.h declares: the prime
 * sizing of bucket arrays. Everything else in that header is inline.
 *

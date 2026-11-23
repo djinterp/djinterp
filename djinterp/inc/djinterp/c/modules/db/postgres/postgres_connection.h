@@ -3,9 +3,9 @@
 *
 * Making and closing connections, and what a connection reports.
 *   d_postgres_connect makes a connection from a struct of the usual fields,
-* d_postgres_connect_string from a connection string -- keywords
+* d_postgres_connect_string from a connection string - keywords
 * ("host=db.example dbname=app") or a URI ("postgresql://app@db.example/app")
-* -- and d_postgres_connect_with from libpq's own keywords, any it knows, and
+* - and d_postgres_connect_with from libpq's own keywords, any it knows, and
 * a connection string beside them, whose parts override them. All three set
 * the connection up with the layer's defaults (cfg_postgres_connection.h)
 * where neither the caller nor libpq's environment says otherwise: a bounded
@@ -100,7 +100,7 @@ struct dj_postgres_options
  *                       releases with d_db_free, and `NULL` otherwise; may
  *                       be `NULL` when the reason is not wanted.
  * @return 0; D_POSTGRES_SQLSTATE_CANNOT_CONNECT (08001) when no connection
- *         could be made, for whatever reason -- libpq gives none of its own
+ *         could be made, for whatever reason - libpq gives none of its own
  *         numbers for it, so `_message` says which; 53200 when memory ran
  *         out; or D_DB_INVALID_ARGUMENT for a `NULL` `_db`.
  * @post On success the caller closes `*_db` with d_postgres_close.
@@ -174,7 +174,7 @@ int d_postgres_close(
 
 // 1.3    Liveness
 //------------------------------------------------------------------------------
-// liveness -- whether the server still answers, by a round trip that runs
+// liveness - whether the server still answers, by a round trip that runs
 // nothing, which works inside a failed transaction too: 0, or
 // D_POSTGRES_SQLSTATE_CONNECTION_FAILURE (08006) for a connection that is
 // lost, which stays lost (PQreset makes it again); D_DB_INVALID_ARGUMENT for
@@ -200,7 +200,7 @@ int d_postgres_backend_pid(
 // they do for every connect. libpq keeps no connect_timeout in this mode, so
 // the layer keeps it, as the libpq in use keeps it in its blocking connect --
 // in whole seconds, and at least two, before libpq 17; to the microsecond
-// from it -- but over the whole connect, where libpq gives each host and
+// from it - but over the whole connect, where libpq gives each host and
 // address of a list a timeout of its own. A connection being made is
 // abandoned with d_postgres_close.
 /**
@@ -275,7 +275,7 @@ int d_postgres_connect_with_start(
  *
  * @note libpq is asked to go on only once the socket is ready: a
  *       continuation with neither D_DB_WAIT_READ nor D_DB_WAIT_WRITE in
- *       `_events` -- the deadline passed, or nothing came -- fails the
+ *       `_events` - the deadline passed, or nothing came - fails the
  *       connection when the deadline has passed and otherwise waits again,
  *       for the same thing, for the time left.
  *
@@ -305,7 +305,7 @@ int d_postgres_connect_continue(
 //------------------------------------------------------------------------------
 // Reconnecting closes the connection and makes it again with the parameters it
 // was made with, as libpq's PQreset does: for a connection that was lost, or
-// one to start over on. Whatever the session held -- prepared statements,
+// one to start over on. Whatever the session held - prepared statements,
 // temporary tables, settings made with SET, a transaction, a run of rows --
 // went with it; a statement the layer prepared must be prepared again.
 // _reconnect_start and _reconnect_continue make it without blocking, as 1.4
@@ -349,7 +349,7 @@ int d_postgres_reconnect_start(
  * @param[in,out] _pending  what the start or the last continuation wrote;
  *                          receives what to wait for next.
  * @return 0, the connection made again; D_DB_WAIT; 08001 when it cannot be,
- *         as d_postgres_reconnect gives it -- for a deadline that passed,
+ *         as d_postgres_reconnect gives it - for a deadline that passed,
  *         d_postgres_error_message says nothing of it; or
  *         D_DB_INVALID_ARGUMENT for a `NULL` argument.
  */
@@ -363,7 +363,7 @@ int d_postgres_reconnect_continue(
 //------------------------------------------------------------------------------
 // A cancel request asks the server to stop what the connection is running.
 // It travels on a connection of its own, so it is sent while the connection
-// waits for results -- from another thread, or between continuations -- and
+// waits for results - from another thread, or between continuations - and
 // the server stops the statement, if it is still running, with 57014
 // (query_canceled), which the connection's next result reports; one that
 // arrives after it finished does nothing. d_postgres_cancel sends a request
@@ -380,7 +380,7 @@ int d_postgres_reconnect_continue(
  * @param[out] _message  receives libpq's reason when the request could not
  *                       be delivered, which the caller releases with
  *                       d_db_free, and `NULL` otherwise; may be `NULL`.
- * @return 0, the request delivered -- which says nothing of whether a
+ * @return 0, the request delivered - which says nothing of whether a
  *         statement stopped; 08001 when it could not be; 08006 for a
  *         connection that is lost; 53200 when memory ran out; or
  *         D_DB_INVALID_ARGUMENT for a `NULL` connection.

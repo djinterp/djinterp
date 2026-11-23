@@ -6,7 +6,7 @@
 * directly on its trait (in isolation from the generic wrapper), the instance
 * markers (is_specialized / first_type / second_type), the result-type
 * construction (std::pair via make_pair; DKvPair rebuilt over the mapped types),
-* and -- for DKvPair -- the key-only equality subtlety the header calls out:
+* and - for DKvPair - the key-only equality subtlety the header calls out:
 * mapping the value preserves == (keys unchanged), while mapping the key breaks
 * it.
 *

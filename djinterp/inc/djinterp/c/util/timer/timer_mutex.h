@@ -5,8 +5,8 @@
 * mutex. Every function is timer.h's, function for function, taken under the
 * lock, so the two forms cannot drift.
 *   A mutex rather than atomics, because a timer's state is several fields
-* that change together -- a stop reads the clock and moves both `elapsed` and
-* `running` -- and a lock is the honest way to make that one step.
+* that change together - a stop reads the clock and moves both `elapsed` and
+* `running` - and a lock is the honest way to make that one step.
 *
 *   Set up, then share; stop sharing, then destroy. init creates the mutex and
 * can fail; destroy releases it. Neither is thread-safe.

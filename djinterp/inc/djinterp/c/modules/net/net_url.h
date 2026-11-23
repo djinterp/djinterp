@@ -195,7 +195,7 @@ enum dj_net_url_error d_net_url_parse_authority(
     size_t*             _error_at
 );
 
-// d_net_url_is_absolute -- whether a parsed reference has a scheme
+// d_net_url_is_absolute - whether a parsed reference has a scheme
 bool d_net_url_is_absolute(
     const struct dj_net_url* _url
 );
@@ -337,7 +337,7 @@ enum dj_net_url_error d_net_url_decode(
 
 // 5.1    Schemes
 //------------------------------------------------------------------------------
-// schemes -- case-insensitive; the port a registered scheme implies, 0 for
+// schemes - case-insensitive; the port a registered scheme implies, 0 for
 // others, and whether it runs over TLS from its first byte (https, wss,
 // ftps, smtps, imaps, pop3s, ldaps); each error's name; and the dj_net_error
 // an error maps to, by the rules net.h gives with it

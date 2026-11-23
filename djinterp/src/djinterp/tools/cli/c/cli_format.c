@@ -3,8 +3,8 @@
 *
 * Help as GNU programs lay it out, declared in cli_format.h.
 *   One step builds the whole page: the usage line, the description as a
-* sentence, then the sections -- Arguments, Commands, each group of options,
-* and the root's options a subcommand takes -- and the footer; the root's page
+* sentence, then the sections - Arguments, Commands, each group of options,
+* and the root's options a subcommand takes - and the footer; the root's page
 * ends with the exit statuses (GRAMMAR.md, section 8). Every entry of every
 * section is laid out in two columns, its name on the left and its
 * description on the right, the right column starting where the page's widest
@@ -14,8 +14,8 @@
 * the right column. Widths are counted in code points, which the style
 * guide's single-width rule makes columns.
 *   The formatter's context, when the kit made the program, is the program,
-* which says whether a command has work of its own -- a command without work
-* requires one of its subcommands, and its usage line says so -- and whether
+* which says whether a command has work of its own - a command without work
+* requires one of its subcommands, and its usage line says so - and whether
 * the program reads response files, which every page then lists as `@FILE`
 * among the program's own options (GRAMMAR.md, R14; ruling cli-taken 84):
 * the root's Options, before help and version; a command's Global options,
@@ -201,7 +201,7 @@ size_t d_cli_internal_word_end(
 /**
  * @brief Appends text wrapped at spaces: the first word where the line
  *        stands, each line no wider than the page, and every line after the
- *        first starting at a column -- a line break in the text starting one
+ *        first starting at a column - a line break in the text starting one
  *        too.
  *
  * @param[in,out] _out     the buffer.
@@ -404,8 +404,8 @@ int d_cli_internal_short_names(
 }
 
 /**
- * @brief Appends an option's long names, each after `, ` -- or after two
- *        spaces where it comes first -- and the value after the last:
+ * @brief Appends an option's long names, each after `, ` - or after two
+ *        spaces where it comes first - and the value after the last:
  *        `=TYPE`, or `[=TYPE]` where the value may be left out.
  *
  * @param[in]     _option  the option.
@@ -803,8 +803,8 @@ bool d_cli_internal_needs_command(
 
 /**
  * @brief Appends the words of a usage line that follow the command's name:
- *        `[OPTION]...`, the subcommand -- `COMMAND [ARGUMENT]...`, in
- *        brackets where it may be left out -- then each positional, in
+ *        `[OPTION]...`, the subcommand - `COMMAND [ARGUMENT]...`, in
+ *        brackets where it may be left out - then each positional, in
  *        brackets where it may be left out and with `...` where it takes
  *        more than one value.
  *
@@ -864,8 +864,8 @@ int d_cli_internal_usage_words(
 
 /**
  * @brief Appends `Usage: NAME ` and the usage line's words, wrapped under
- *        the first of them -- or eight columns in, where the name takes
- *        half the page -- and a newline.
+ *        the first of them - or eight columns in, where the name takes
+ *        half the page - and a newline.
  *
  * @param[in]     _name    the command's name as the page shows it.
  * @param[in]     _words   the words.
@@ -1082,8 +1082,8 @@ const char* d_cli_internal_command_group(
 
 /**
  * @brief The group help lists an option under: its own, or "Options" for
- *        the default group -- unset, or named "OPTIONS", as CLI11 names it
- *        -- so that the two are one section.
+ *        the default group - unset, or named "OPTIONS", as CLI11 names it
+ *        - so that the two are one section.
  *
  * @param[in] _option  the option.
  * @return the group's name.
@@ -1178,7 +1178,7 @@ int d_cli_internal_collect_arguments(
 
 /**
  * @brief Collects a command's subcommands: a section for each group, in
- *        the order first met -- "Commands" for those in none.
+ *        the order first met - "Commands" for those in none.
  *
  * @param[in]     _command  the command.
  * @param[in,out] _page     the page.
@@ -1282,7 +1282,7 @@ int d_cli_internal_collect_group(
 /**
  * @brief Whether a page is one of a program that reads response files,
  *        which every page of its help then says (GRAMMAR.md, R14; ruling
- *        cli-taken 84) -- a module's too, whose host read them.
+ *        cli-taken 84) - a module's too, whose host read them.
  *
  * @param[in] _formatter  the formatter, whose context may be the program.
  * @return `true` if it is.
@@ -1325,7 +1325,7 @@ int d_cli_internal_add_responses(
 
 /**
  * @brief The command a command takes options from: its parent, when it
- *        takes them -- fallthrough -- or none.
+ *        takes them - fallthrough - or none.
  *
  * @param[in] _command  the command.
  * @return the parent, or NULL.
@@ -1345,8 +1345,8 @@ const struct dj_arg_command* d_cli_internal_above(
  * @brief Collects a command's named options: a section for each group, in
  *        the order first met, its help and version last, as GNU lists them;
  *        and, where the program reads response files and the command takes
- *        no options from above -- the root, or a command that does not fall
- *        through -- `@FILE` before them, in Options, as `gcc --help` lists
+ *        no options from above - the root, or a command that does not fall
+ *        through - `@FILE` before them, in Options, as `gcc --help` lists
  *        `@<file>`, an Options of its own where the command has none.
  *
  * @param[in]     _formatter  the formatter.
@@ -1471,8 +1471,8 @@ int d_cli_internal_collect_option_groups(
 }
 
 /**
- * @brief Collects the options a command above a subcommand holds -- in
- *        itself, or in one of its option groups -- under "Global options",
+ * @brief Collects the options a command above a subcommand holds - in
+ *        itself, or in one of its option groups - under "Global options",
  *        begun at the first, the help and version flags of the command
  *        above aside.
  *
@@ -1524,8 +1524,8 @@ int d_cli_internal_collect_held(
 
 /**
  * @brief Collects the options a subcommand takes from the commands above
- *        it -- theirs, and their option groups', which fall through as
- *        theirs do -- under "Global options"; and last, where the program
+ *        it - theirs, and their option groups', which fall through as
+ *        theirs do - under "Global options"; and last, where the program
  *        reads response files, `@FILE`, read wherever it stands.
  *
  * @param[in]     _formatter  the formatter.
@@ -1931,7 +1931,7 @@ int d_cli_internal_lay_out(
 
 /**
  * @brief The kit's page: usage, description, sections, footer. Every other
- *        mode of help -- every subcommand expanded -- is the parser's own.
+ *        mode of help - every subcommand expanded - is the parser's own.
  *
  * @param[in]     _formatter  the formatter.
  * @param[in]     _command    the command.

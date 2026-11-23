@@ -7,10 +7,10 @@
 * a buffer of bytes cannot silently take part in arithmetic or be printed
 * as text the way an `unsigned char*` can.
 *
-*   RE_STD OWNS THIS TYPE -- IT IS NOT A RE-EXPORT:
+*   RE_STD OWNS THIS TYPE - IT IS NOT A RE-EXPORT:
 *   Unlike size_t or nullptr_t, byte is an ordinary scoped enumeration with
 * no compiler magic behind it, so re_std defines its own and back-ports it
-* from C++17 to C++11 -- a six-year lead over std. The consequence is
+* from C++17 to C++11 - a six-year lead over std. The consequence is
 * deliberate and worth stating plainly: on C++17 and later re_std::byte and
 * std::byte are DIFFERENT TYPES. Neither converts implicitly to the other.
 * A codebase should pick one spelling, as it would for re_std::any.
@@ -23,7 +23,7 @@
 *   WHY unsigned char AS THE UNDERLYING TYPE:
 *   [cstddef.syn] fixes it. unsigned char is the one type guaranteed to
 * have no padding bits and no trap representations, so every bit pattern
-* is a valid value -- which is what makes byte usable for object
+* is a valid value - which is what makes byte usable for object
 * representations at all.
 *
 *   C++11 FLOOR:
@@ -34,7 +34,7 @@
 * describes. The header gates itself out below C++11 rather than ship a
 * look-alike.
 *
-*   ONE SPELLING DOES NOT BACK-PORT -- byte{0x2A}:
+*   ONE SPELLING DOES NOT BACK-PORT - byte{0x2A}:
 *   Direct-list-initialising a scoped enum from an integer is P0138R2, a
 * C++17 LANGUAGE change. The type back-ports to C++11 cleanly; the brace
 * syntax cannot, because on C++11/14 the compiler rejects the narrowing
@@ -72,7 +72,7 @@ namespace re_std
 
     // byte
     //   enum: distinct type for raw object storage. Scoped, so it never
-    // converts implicitly to an integer -- to_integer<T> is the only way
+    // converts implicitly to an integer - to_integer<T> is the only way
     // out, and it must be asked for by name.
     enum class byte : unsigned char
     {};

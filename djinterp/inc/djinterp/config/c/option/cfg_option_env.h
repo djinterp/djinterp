@@ -5,8 +5,8 @@
 * program's djin registry has, and what an import does with a value it could
 * not bind.
 *   The registry is the program's root frame (option_env_registry.h): it
-* lists every djin, and holds the program-wide settings -- from files, the
-* environment and the command line -- of the variables it declares itself.
+* lists every djin, and holds the program-wide settings - from files, the
+* environment and the command line - of the variables it declares itself.
 * Its storage is static, sized here, so a build that never uses the registry
 * pays for it only if it links option_env_registry.c. A djin's own frame is
 * its module's, sized by the module's configuration.
@@ -67,7 +67,7 @@ TABLE OF CONTENTS
 // 1.1.2
 // D_CFG_OPTION_ENV_REGISTRY_VARIABLES
 //   configuration: the program-wide variables the root frame itself can
-// declare -- what every djin beneath it sees. 64 by default.
+// declare - what every djin beneath it sees. 64 by default.
 #ifndef D_CFG_OPTION_ENV_REGISTRY_VARIABLES
     #define D_CFG_OPTION_ENV_REGISTRY_VARIABLES 64
 #endif  // D_CFG_OPTION_ENV_REGISTRY_VARIABLES

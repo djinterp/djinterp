@@ -1,12 +1,12 @@
 /*******************************************************************************
 * djinterp [cpp][event]                         event_registry_tests_compile.cpp
 *
-*   Section III (compile) -- the staging operation that evaluates a registry's
+*   Section III (compile) - the staging operation that evaluates a registry's
 * static effective word for one event into a single DFusedStep.  Covers an
 * empty registry (a zero-size step that folds to pass); a populated registry
 * (the step's size equals the number of enabled handlers and folding it
 * reproduces the dispatch order and outcome); the compile-time mask (disabled
-* handlers are excluded from the snapshot); and snapshot independence -- a
+* handlers are excluded from the snapshot); and snapshot independence - a
 * DFusedStep captured by compile() is unaffected by later registry edits, since
 * its binding time is compile, not delivery.
 *

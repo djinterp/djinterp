@@ -435,7 +435,7 @@ d_parsegen_registry_select
   The stage of one kind best suited to a capability profile.
 NOTE:
   Registration order decides between stages that all accept, unless one is
-marked default -- so a build's choice is a declaration rather than an accident
+marked default - so a build's choice is a declaration rather than an accident
 of link order. An experimental stage is never selected; it must be named.
   When nothing accepts, every candidate is reported with the reason it was
 ruled out. That listing is the actual product of this function: "no family

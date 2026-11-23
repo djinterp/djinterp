@@ -2,8 +2,8 @@
 * djinterp [c][parse]                                                     expr.h
 *
 * Expression core v2: the umbrella, every header of the C core.
-*   The core parses text into a term by a signature -- a language's operators
-* and roles -- with diagnostics at the character; folds and walks the term
+*   The core parses text into a term by a signature - a language's operators
+* and roles - with diagnostics at the character; folds and walks the term
 * with no recursion; and writes it back as text that reads as the same term.
 * It is generic: it knows no language. The design, and how math, the command
 * language and awk sit on it, is docs/djinterp/parse/expression_core_v2.md.

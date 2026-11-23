@@ -8,16 +8,16 @@
 * D_TOKEN_CPP_FIRST.  Because the ranges do not overlap, a value identifies a
 * kind without reference to the language that produced it, which is what lets
 * one consumer read tokens from both scanners.
-*   A shared kind is reachable under three spellings -- D_TOKEN_IDENTIFIER,
-* D_TOKEN_C_IDENTIFIER and D_TOKEN_CPP_IDENTIFIER -- which name one value.
+*   A shared kind is reachable under three spellings - D_TOKEN_IDENTIFIER,
+* D_TOKEN_C_IDENTIFIER and D_TOKEN_CPP_IDENTIFIER - which name one value.
 * The language-tagged aliases exist so that code written against one language
 * reads consistently, not because the values differ.  Only the shared list has
 * all three; a C-only kind has the neutral and the C spelling, and a C++-only
 * kind the neutral and the C++ spelling.
 *   A token is an offset and a length into the source the scanner was given,
 * so scanning allocates nothing per token and the source is never copied.  A
-* token whose spelling was rewritten in an earlier phase -- a line splice, a
-* trigraph -- covers the rewriting in its byte range and carries a flag saying
+* token whose spelling was rewritten in an earlier phase - a line splice, a
+* trigraph - covers the rewriting in its byte range and carries a flag saying
 * so; the byte range is then its extent, not its spelling.
 *
 *
@@ -112,7 +112,7 @@ TABLE OF CONTENTS
 // a directive whether or not comments are being reported.
 //     The directive flags answer questions phase 7 cannot.  A directive line
 // is consumed in phase 4 and never reaches phase 7, so its name is not a
-// keyword even where it is spelled like one -- `if` in `#if` -- and the
+// keyword even where it is spelled like one - `if` in `#if` - and the
 // identifier a `#define`, `#undef`, `#ifdef`, `#ifndef` or `defined` names is
 // an identifier by definition, even `private`.  Neither is keyword-resolved,
 // and each is flagged so that a rule about macro names can find them.
@@ -185,7 +185,7 @@ enum dj_token_kind
 // dj_token_kind: as members of it they would be duplicate enumerators.
 //     All of them share one enumeration rather than one per language.  C
 // permits two enumerators of the same type to carry the same value and
-// forbids only a repeated name, so this is well formed -- and it is what lets
+// forbids only a repeated name, so this is well formed - and it is what lets
 // D_TOKEN_C_IDENTIFIER be compared with D_TOKEN_CPP_IDENTIFIER, which is a
 // reasonable thing to write and which two enumerations would warn about.
 #define D_TOKEN_ALIAS_(_tag, _name)  D_TOKEN_##_tag##_##_name = D_TOKEN_##_name,
@@ -226,7 +226,7 @@ enum dj_token_kind_tagged
 //   `length` delimit the token in bytes of the physical source, `line` and
 //   `column` address its first character, and `source` is the dj_source's
 //   `id`.  `end_line` and `end_column` address the position just past its
-//   last character -- half-open, like the byte range -- so a block comment or
+//   last character - half-open, like the byte range - so a block comment or
 //   a raw string that crosses lines has its full extent without a rescan.
 //   Columns are one-based and count code points, as the style guide measures
 //   a line.  `kind` is an int rather than the enumeration so that the three

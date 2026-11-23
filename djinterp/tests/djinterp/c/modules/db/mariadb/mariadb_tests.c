@@ -3,8 +3,8 @@
 *
 *   Conformance tests for djinterp's MariaDB/MySQL convenience layer: every
 * function in c/modules/db/mariadb/mariadb_*.h, its success paths, its
-* documented failures and its argument checks, against a live server -- MariaDB
-* from 10.3 or MySQL from 5.7 -- through whichever client it is linked with.
+* documented failures and its argument checks, against a live server - MariaDB
+* from 10.3 or MySQL from 5.7 - through whichever client it is linked with.
 * Where the answer depends on the server, the check asks the server's flavor and
 * version and expects the matching answer, so one suite passes on every server
 * the layer supports.
@@ -45,8 +45,8 @@
 #endif  // _WIN32
 // WIN32_LEAN_AND_MEAN, NOMINMAX
 //   knobs (Windows'): <windows.h>, which <winsock2.h> and the clients' own
-// headers include, without its rarer headers -- rpcndr.h among them, which
-// makes `small` a macro -- and without its min and max macros.
+// headers include, without its rarer headers - rpcndr.h among them, which
+// makes `small` a macro - and without its min and max macros.
 #if defined(_WIN32)
     #if !defined(WIN32_LEAN_AND_MEAN)
         #define WIN32_LEAN_AND_MEAN 1
@@ -56,8 +56,8 @@
     #endif  // NOMINMAX
 #endif  // _WIN32
 // D_CFG_ENV_USING_MARIADB
-//   knob (env's): on, since the harness reads mysql.h itself -- the client's
-// own codes, and its flavor -- as a program asking for env's detection does;
+//   knob (env's): on, since the harness reads mysql.h itself - the client's
+// own codes, and its flavor - as a program asking for env's detection does;
 // the layer turns it on for its own sources alone.
 #ifndef D_CFG_ENV_USING_MARIADB
     #define D_CFG_ENV_USING_MARIADB 1
@@ -275,10 +275,10 @@ struct dj_tests_mariadb_feature_probe
 
 // d_tests_mariadb_probes
 //   table: SQL for the features whose syntax the server either takes or
-// refuses -- Galera's by its variable, which a server built with it has --;
+// refuses - Galera's by its variable, which a server built with it has --;
 // the features a server parses and ignores are probed by what they do, in
-// d_tests_mariadb_features. What a plugin or privileges decide -- roles, the
-// X Plugin, Group Replication -- is the release's alone.
+// d_tests_mariadb_features. What a plugin or privileges decide - roles, the
+// X Plugin, Group Replication - is the release's alone.
 static const struct dj_tests_mariadb_feature_probe
 d_tests_mariadb_probes[] =
 {
@@ -529,8 +529,8 @@ struct dj_mariadb* d_tests_mariadb_connect(
 /*
 d_tests_mariadb_native
   The client's own connection, not yet connected, as a program that adopts
-one makes it: told, with Connector/C from 3.4 -- which otherwise insists on
-TLS and checks the certificate -- what the layer's PREFERRED tells it, so
+one makes it: told, with Connector/C from 3.4 - which otherwise insists on
+TLS and checks the certificate - what the layer's PREFERRED tells it, so
 that it reaches the servers the layer's own connections reach.
 */
 static
@@ -1324,7 +1324,7 @@ d_tests_mariadb_features
   The feature table, against the server's syntax.
   Tests the following:
   - every feature whose syntax a server takes or refuses: d_mariadb_supports
-    agrees with SQL that needs it -- Galera, which it answers by release,
+    agrees with SQL that needs it - Galera, which it answers by release,
     excepted on a server built for Windows, which has no wsrep_on
   - a value outside the enumeration, or a NULL handle, is no feature
 */
@@ -1598,8 +1598,8 @@ d_tests_mariadb_connecting_with
   - no settings connects as d_mariadb_connect does
   - timeouts, compression, an init command, a connect attribute (where the
     server's performance_schema shows it) and a native option each take
-  - a character set a setting names -- CHARSET, or the client's option as
-    a native one -- replaces the layer's: the session's with every pairing,
+  - a character set a setting names - CHARSET, or the client's option as
+    a native one - replaces the layer's: the session's with every pairing,
     where the handshake loses it too, and after a reset
   - an init command that fails fails the connect with the server's number,
     and its reason in the server's words; a password the server refuses, in
@@ -1690,7 +1690,7 @@ void d_tests_mariadb_connecting_with(void)
         d_mariadb_close(db);
     }
 
-    // a character set a setting names, in place of the layer's -- the
+    // a character set a setting names, in place of the layer's - the
     // layer's own setting, or the client's option as a native one: the
     // session's with every pairing, where the handshake loses it too, and
     // what a reset returns to
@@ -2236,7 +2236,7 @@ d_tests_mariadb_server_public_key
     setting: D_DB_UNSUPPORTED)
   - given the key in a file, each connects without asking
   - Connector/C, which always asks, refuses being told not to
-  - a server without caching_sha2_password -- MariaDB -- is skipped
+  - a server without caching_sha2_password - MariaDB - is skipped
 */
 static
 void d_tests_mariadb_server_public_key(void)
@@ -3637,7 +3637,7 @@ d_tests_mariadb_query_attributes
   - they are supported exactly where the server and the client have them
   - where they are, an attribute set goes with the next query, which drops
     it, read back with mysql_query_attribute_string() where the server has
-    the query_attributes component -- which the test installs where it can,
+    the query_attributes component - which the test installs where it can,
     and removes again: setting a name again replaces its value; several go
     together; clearing drops them; a prepared statement's execution neither
     carries nor drops them; a reset drops them; an empty value is one
@@ -4136,13 +4136,13 @@ d_tests_mariadb_cursors
   Tests the following:
   - each fetch returns the columns, named and typed as execute_query's are,
     and the next rows, no more than asked for, each value as execute_query
-    reads it -- a value longer than its column's first buffer whole, and the
+    reads it - a value longer than its column's first buffer whole, and the
     values after it too
   - a short page ends the run; a fetch after is D_DB_INVALID_ARGUMENT, and
     the connection runs its next statement
   - while a run is open, everything that would send the server anything --
     a query, a script, a prepare, another statement's run, a ping, a change
-    of database or character set -- is 2014, having sent nothing; values
+    of database or character set - is 2014, having sent nothing; values
     bound meanwhile serve the next run, which the run itself goes on without
   - rows that fill their last page exactly end with an empty page, which
     still describes the columns; a query finding no rows describes them too
@@ -4790,7 +4790,7 @@ void d_tests_mariadb_database_arguments(void)
 }
 
 //==============================================================================
-// mariadb_schema.h -- tables
+// mariadb_schema.h - tables
 //==============================================================================
 
 /*
@@ -5156,7 +5156,7 @@ void d_tests_mariadb_creation_arguments(void)
 }
 
 //==============================================================================
-// mariadb_schema.h -- described tables and columns
+// mariadb_schema.h - described tables and columns
 //==============================================================================
 
 /*
@@ -6032,7 +6032,7 @@ void d_tests_mariadb_column_arguments(void)
 }
 
 //==============================================================================
-// mariadb_schema.h -- indexes, views and triggers
+// mariadb_schema.h - indexes, views and triggers
 //==============================================================================
 
 /*
@@ -6969,7 +6969,7 @@ d_tests_mariadb_session_tracking
     USE, and by the client's call through libmysqlclient, which reads its
     reply; the state, and the transaction's, once the session asks for them
   - nothing for a statement that changes nothing tracked, one that returns
-    rows, one that fails, a ping, a prepare -- through either client
+    rows, one that fails, a ping, a prepare - through either client
   - where it is not, D_DB_UNSUPPORTED, the list untouched
   - NULL arguments, and a kind outside the enumeration
 */
@@ -7070,8 +7070,8 @@ void d_tests_mariadb_session_tracking(void)
                                     2u, zone_6));
         D_TESTS_MARIADB_OK(db, d_mariadb_finalize(statement));
 
-        // the current database, by the client's call -- whose reply
-        // Connector/C does not read -- and by USE
+        // the current database, by the client's call - whose reply
+        // Connector/C does not read - and by USE
         D_TESTS_MARIADB_OK(db,
                            d_mariadb_use_database(db, "information_schema"));
         D_TESTS_MARIADB_CHECK(
@@ -7293,7 +7293,7 @@ void d_tests_mariadb_upkeep_refusals(void)
 }
 
 //==============================================================================
-// mariadb_connection.h and mariadb_query.h -- without blocking
+// mariadb_connection.h and mariadb_query.h - without blocking
 //==============================================================================
 
 // D_TESTS_MARIADB_ROUNDS
@@ -7540,7 +7540,7 @@ bool d_tests_mariadb_unpended(
 d_tests_mariadb_plain_first
   A test's one setting, behind g_plain while the run's connections go
 without TLS: `_two` filled, the first to pass answered, how many in
-`_count` -- called before the connect, which must not read the count in the
+`_count` - called before the connect, which must not read the count in the
 same expression.
 */
 static
@@ -7563,7 +7563,7 @@ d_tests_mariadb_connect_nonblocking
 connection without TLS while g_plain_count says so.
   Tests the following:
   - with a client that can, a start is D_DB_WAIT, the handle in hand, the
-    socket to wait on -- or 0, where every answer came at once; driven
+    socket to wait on - or 0, where every answer came at once; driven
     through a poll loop, it connects, set up as a blocking connect: the
     character set the layer names, the server described; with one that
     cannot, D_DB_UNSUPPORTED, no handle
@@ -7828,8 +7828,8 @@ d_tests_mariadb_sent_nonblocking
   d_mariadb_send_query_start, _continue, d_mariadb_next_result_start and
 _continue.
   Tests the following:
-  - a statement sent gives its result -- empty rows and a count for one
-    without rows, rows for a query -- then D_DB_NOT_FOUND, again
+  - a statement sent gives its result - empty rows and a count for one
+    without rows, rows for a query - then D_DB_NOT_FOUND, again
   - a procedure's several results come one a call, its status last
   - a result still to come is D_DB_WAIT, the socket to read; meanwhile every
     other command is 2014, a second send among them; an answer the server
@@ -8209,9 +8209,9 @@ continuations, d_mariadb_open_cursor_start, _fetch_rows_start and theirs.
   Tests the following:
   - with libmysqlclient, each start is D_DB_UNSUPPORTED, no statement made
   - a prepare driven through a poll loop compiles the statement, its
-    parameters counted -- after the multi-statement mode a failed script
+    parameters counted - after the multi-statement mode a failed script
     left on, too; one the server refuses is its error, the statement, where
-    the start made one, unprepared -- each run D_DB_INVALID_ARGUMENT -- and
+    the start made one, unprepared - each run D_DB_INVALID_ARGUMENT - and
     finalized
   - a run sent is D_DB_WAIT; read for its count, it gives the rows it
     changed; for its rows, those the blocking run gives; a failure is the
@@ -8574,8 +8574,8 @@ d_tests_mariadb_session_nonblocking
 their continuations.
   Tests the following:
   - with MariaDB's client, each finishes through a poll loop as its blocking
-    form does: a ping answers; a reset ends the session's state -- a user
-    variable gone -- and runs the connect's init commands again; a change
+    form does: a ping answers; a reset ends the session's state - a user
+    variable gone - and runs the connect's init commands again; a change
     of user to the same user signs in again, the database named current
   - while one is under way the connection is held: a statement is 2014,
     where a reset's answer has yet to come when it starts
@@ -8875,7 +8875,7 @@ bool d_tests_mariadb_tls_under(
 /*
 d_tests_mariadb_tls_refusals
   Every start on a connection under TLS, where the client cannot carry it
-without blocking: each D_DB_UNSUPPORTED, nothing pending, nothing held -- the
+without blocking: each D_DB_UNSUPPORTED, nothing pending, nothing held - the
 connection still answers a blocking call after each.
 */
 static
@@ -8968,13 +8968,13 @@ is false.
     any other client with calls that do not block can
   - where it can, a connection under TLS where the server offers it sends
     and reads without blocking
-  - where it cannot: a connect's start that would ask for TLS -- the
-    layer's default -- is D_DB_UNSUPPORTED, no handle, nothing pending, the
+  - where it cannot: a connect's start that would ask for TLS - the
+    layer's default - is D_DB_UNSUPPORTED, no handle, nothing pending, the
     reason given; one with D_MARIADB_SSL_DISABLED connects, without TLS,
     sends and reads, and cancels, its own connection without TLS; on a
-    connection under TLS every start is D_DB_UNSUPPORTED -- a ping, a reset,
+    connection under TLS every start is D_DB_UNSUPPORTED - a ping, a reset,
     a change of user, SQL sent, its results, a prepare, a run, a cursor, its
-    pages, a cancel with its reason -- and the connection carries on by
+    pages, a cancel with its reason - and the connection carries on by
     blocking
 */
 static

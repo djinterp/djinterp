@@ -65,13 +65,13 @@
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
-#include <algorithm>   // std::sort      -- used by sorted(); was not included
+#include <algorithm>   // std::sort      - used by sorted(); was not included
 #include <cstddef>
 #include <cstring>
 #include <functional>
-#include <map>         // std::map       -- used by group_by(); was not included
+#include <map>         // std::map       - used by group_by(); was not included
 #include <string>
-#include <utility>     // std::pair      -- used by partition(); was missing
+#include <utility>     // std::pair      - used by partition(); was missing
 #include <vector>
 // djinterp
 #include "../../../djinterp.hpp"
@@ -85,7 +85,7 @@
 
 NS_DJINTERP
 
-// NOTE. This header used to open NS_FS. There IS NO NS_FS -- nothing in the
+// NOTE. This header used to open NS_FS. There IS NO NS_FS - nothing in the
 // framework defines that macro, so the name appeared bare in the source and
 // the file could not compile. The core, the umbrella, the traits, the concepts
 // and all six scanners are in flat djinterp; so is this now.
@@ -93,8 +93,8 @@ NS_DJINTERP
 // bring in the types we depend on. file_node_id / null_file_node come from
 // file_tree_common.hpp (via file_tree.hpp). The arena is gone: a file_node_id is a
 // POINTER into the pool, not an index. Every bool(file_node_id) predicate below is
-// unaffected -- the handle changed type, not role -- and _tree[id].data still
-// dereferences it. The functional module is FLAT in djinterp -- there is no
+// unaffected - the handle changed type, not role - and _tree[id].data still
+// dereferences it. The functional module is FLAT in djinterp - there is no
 // djinterp::functional namespace, and the eager pipeline is
 // DFunctionPipeline<T>, not d_pipeline<T>. These names are therefore already
 // in scope; the ten using-declarations that stood here named nothing at all.
@@ -459,7 +459,7 @@ DFileNodePredicate by_max_depth(
 // ================================================================
 
 // ----------------------------------------------------------------
-//  path predicates -- these match the ADDRESS, not the disk path
+//  path predicates - these match the ADDRESS, not the disk path
 // ----------------------------------------------------------------
 //   These three used to match against full_path(), and could not work: the old
 // full_path() prepended THE ROOT'S OWN NAME, so every path began "project/..."
@@ -467,7 +467,7 @@ DFileNodePredicate by_max_depth(
 // fixed: address() is the tree-relative word of labels and round-trips through
 // resolve(); full_path() is the openable path on disk, root_path() +
 // address().) They now match the ADDRESS, which is what a caller means by "the
-// path of this node in this tree" -- by_path_prefix("src/core") matches, and
+// path of this node in this tree" - by_path_prefix("src/core") matches, and
 // the answer does not depend on where the tree happens to have been scanned
 // from. For the on-disk spelling, match full_path() instead; it is a different
 // question.
@@ -980,7 +980,7 @@ DFileNodeId first_matching(
 // functional module pipeline API.
 //   TEMPLATED ON THE TREE. file_tree is a template ALIAS (file_tree.hpp maps
 // an operating_system onto a scanner policy), so the bare `const file_tree&`
-// this class used to hold was ill-formed -- an alias template named with no
+// this class used to hold was ill-formed - an alias template named with no
 // argument list. Every use site in this header was a hard error; the header
 // was
 // simply never instantiated, and an uninstantiated header template is never

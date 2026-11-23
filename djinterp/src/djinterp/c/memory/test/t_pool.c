@@ -411,7 +411,7 @@ void test_ceiling_and_geometry(void)
     d_pool_release(&p);
 
     /*   Malformed arguments are REPORTED here and ASSERTED under
-       D_CFG_MEM_STRICT_ARGS, which is what that knob means -- so a strict
+       D_CFG_MEM_STRICT_ARGS, which is what that knob means - so a strict
        build cannot be asked to return from them. */
 #if (D_INTERNAL_MEM_STRICT_ARGS == 0)
     /* a zero-sized slot is refused */

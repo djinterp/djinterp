@@ -176,7 +176,7 @@ struct full_state
 ///                TEST DECLARATIONS                                         ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// -- section: configuration & capability traits (memento_tests_traits.cpp)
+// - section: configuration & capability traits (memento_tests_traits.cpp)
 bool tests_feature_gates();
 bool tests_has_save_state_method();
 bool tests_has_restore_state_method();
@@ -194,7 +194,7 @@ bool tests_is_diff_memento_capable();
 bool tests_memento_capability_aggregate();
 bool tests_trait_v_forms();
 
-// -- section: snapshot strategies (memento_tests_snapshot.cpp)
+// - section: snapshot strategies (memento_tests_snapshot.cpp)
 bool tests_deep_copy_snapshot();
 bool tests_clone_snapshot();
 bool tests_serialized_snapshot();
@@ -204,14 +204,14 @@ bool tests_delta_record();
 bool tests_external_snapshot();
 bool tests_make_external_snapshot();
 
-// -- section: history policies (memento_tests_history.cpp)
+// - section: history policies (memento_tests_history.cpp)
 bool tests_unlimited_history();
 bool tests_bounded_history_evicts();
 bool tests_bounded_history_max_size();
 bool tests_coalescing_history_suppresses();
 bool tests_coalescing_history_distinct();
 
-// -- section: memento core (memento_tests_core.cpp)
+// - section: memento core (memento_tests_core.cpp)
 bool tests_memento_metadata_default();
 bool tests_memento_metadata_sequence();
 bool tests_memento_metadata_tag();
@@ -221,7 +221,7 @@ bool tests_originator_create_restore();
 bool tests_originator_sequence_monotonic();
 bool tests_originator_tagged();
 
-// -- section: memento caretaker (memento_tests_caretaker.cpp)
+// - section: memento caretaker (memento_tests_caretaker.cpp)
 bool tests_caretaker_push_size();
 bool tests_caretaker_pop();
 bool tests_caretaker_peek();
@@ -233,7 +233,7 @@ bool tests_caretaker_try_pop();
 bool tests_caretaker_coalescing();
 bool tests_caretaker_bounded();
 
-// -- section: undo / redo stack (memento_tests_undo_redo.cpp)
+// - section: undo / redo stack (memento_tests_undo_redo.cpp)
 bool tests_undo_redo_checkpoint_undo();
 bool tests_undo_redo_roundtrip();
 bool tests_undo_redo_undo_empty();
@@ -246,7 +246,7 @@ bool tests_undo_redo_clear_redo();
 bool tests_undo_redo_tagged();
 bool tests_undo_redo_peek();
 
-// -- section: type-erased memento (memento_tests_any.cpp)
+// - section: type-erased memento (memento_tests_any.cpp)
 bool tests_any_memento_construct_holds();
 bool tests_any_memento_get_sbo();
 bool tests_any_memento_get_heap();
@@ -261,14 +261,14 @@ bool tests_any_caretaker_for_each();
 bool tests_any_caretaker_empty_clear();
 bool tests_any_caretaker_try_pop();
 
-// -- section: convenience factories (memento_tests_factories.cpp)
+// - section: convenience factories (memento_tests_factories.cpp)
 bool tests_make_memento();
 bool tests_make_memento_with_policy();
 bool tests_restore_memento();
 bool tests_make_caretaker();
 bool tests_make_undo_redo();
 
-// -- section: concept-constrained interfaces (memento_tests_concepts.cpp)
+// - section: concept-constrained interfaces (memento_tests_concepts.cpp)
 bool tests_memento_source_concept();
 bool tests_memento_target_concept();
 bool tests_snapshot_strategy_concept();

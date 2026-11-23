@@ -10,7 +10,7 @@
 * different types. It is NOT true of the representation tier 2 actually built: a
 * `struct dj_maybe` is a VIEW carrying its element width at runtime, so `F<A>` and
 * `F<B>` are the same C type holding different widths, and `map` is
-* `(const struct dj_maybe*, struct dj_maybe*, fn_transformer, void*)` -- which is
+* `(const struct dj_maybe*, struct dj_maybe*, fn_transformer, void*)` - which is
 * the shape `d_maybe_map` already had.
 *   So Functor, Applicative and Monad cost the same as Foldable here, and the
 * macro monomorphisation the assessment offers as encoding (a) is not needed for
@@ -23,8 +23,8 @@
 *
 * APPLICATIVE SUPPLIES `pure` AND `map2`, NOT `ap`. Table 7.3 gives the
 * operations as `pure` and `ap : F<A->B> -> F<A> -> F<B>`. The literal `ap`
-* needs a carrier holding a FUNCTION, which C can express -- a `dj_maybe` over an
-* `fn_transformer` -- but which no caller wants to build. `map2`
+* needs a carrier holding a FUNCTION, which C can express - a `dj_maybe` over an
+* `fn_transformer` - but which no caller wants to build. `map2`
 * (`F<A> x F<B> -> F<C>`, Haskell's `liftA2`) is interdefinable with `ap` given
 * Functor, is what applicative style is actually used for, and needs no carrier
 * of function pointers. The deviation is in the presentation, not the algebra.
@@ -51,7 +51,7 @@
 #include "../../../re_std/c/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).

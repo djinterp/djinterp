@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][jit]                                                        jit.c
 *
-* djinterp portable JIT core -- implementation (jit.h).
+* djinterp portable JIT core - implementation (jit.h).
 *   Executable-memory lifecycle, the emit primitives, and diagnostics. The
 * memory backend is chosen at compile time from env/jit/env_jit.h: this file
 * carries a POSIX (mmap/mprotect) path, a Windows (VirtualAlloc/VirtualProtect)
@@ -16,7 +16,7 @@
 
 #include "../../../../../inc/djinterp/c/modules/jit/jit.h"
 
-// std / platform -- the backend headers for the selected memory API
+// std / platform - the backend headers for the selected memory API
 #include <stdio.h>
 #if (D_ENV_JIT_BACKEND == D_ENV_JIT_BACKEND_WIN32_VIRTUALALLOC)
     // windows
@@ -27,7 +27,7 @@
     #include <sys/mman.h>
     #include <unistd.h>
     #if (D_ENV_JIT_BACKEND == D_ENV_JIT_BACKEND_APPLE_MAP_JIT)
-        // apple -- per-thread W^X toggle for MAP_JIT regions
+        // apple - per-thread W^X toggle for MAP_JIT regions
         #include <pthread.h>
         #include <libkern/OSCacheControl.h>
     #endif
@@ -84,7 +84,7 @@ int d_jit_buffer_init(
     _buf->code = NULL; _buf->size = 0; _buf->capacity = 0; _buf->finalized = 0;
 
 #if !D_ENV_JIT_CAN_ALLOCATE_EXEC
-    /* no executable memory: no backend, or JIT prohibited -- which an App
+    /* no executable memory: no backend, or JIT prohibited - which an App
        Store build for iOS, iPadOS, tvOS, watchOS or visionOS declares with
        D_ENV_JIT_PROHIBITED, the store forbidding JIT there */
     (void)_capacity;

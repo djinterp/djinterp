@@ -2,7 +2,7 @@
 * djinterp [cpp][math]                                          t_eigen_face.cpp
 *
 *   Tests for linear_algebra/eigen.hpp, at every level from C++98, per
-* family: the symmetric eigendecomposition of a known matrix -- its
+* family: the symmetric eigendecomposition of a known matrix - its
 * eigenvalues ascending, A V = V L, V orthogonal; power iteration's
 * dominant eigenpair; the general eigenvalues (chunk 38: balancing, the
 * Hessenberg form and Francis's double-shift QR) of a 2-by-2, an
@@ -13,7 +13,7 @@
 * exactly; and the general solver's eigenpairs as math::complex<T> (chunk
 * 39), in float too: each eigenvalue's real part eigenvalues_qr's bit for
 * bit, A x = l x, x unit with an entry of the largest modulus real and
-* positive, a pair exactly conjugate, its vectors too -- of [[4 1] [2 3]],
+* positive, a pair exactly conjugate, its vectors too - of [[4 1] [2 3]],
 * the non-symmetric 3-by-3, the cyclic shift's pair, -i and i of a right
 * angle's rotation, and 50 random 5-by-5s, most with pairs; a NaN's every
 * eigenvalue and vector NaNs, converged() clear; e_k for a diagonal, and
@@ -317,7 +317,7 @@ namespace
 
         // the general solver, every family (S308): [[4 1] [2 3]], the
         // non-symmetric 3-by-3, the cyclic shift's complex pair, a rotation
-        // by a right angle's, and random 5-by-5s -- each eigenvalue's real
+        // by a right angle's, and random 5-by-5s - each eigenvalue's real
         // part eigenvalues_qr's, A x = l x, x of unit length
         typedef djinterp::math::complex<T> C;
 

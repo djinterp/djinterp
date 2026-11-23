@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/container/buffer/text_buffer/CMakeLists.txt
+# djinterp [test]  -  build/cmake/config/testing/djinterp/c/container/buffer/text_buffer/CMakeLists.txt
 #
 #    Test leaf for container/buffer/text_buffer.h, in DTest's C face: the runner
 # in this directory, the section translation units globbed from the tests tree,

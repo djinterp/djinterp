@@ -104,7 +104,7 @@ size_t d_internal_foldable_drive_result(
 /*
 d_internal_foldable_drive_producer
   The Foldable instance for a producer. Draining is destructive, so a producer
-may be folded only once -- which is a property of the carrier, not of Foldable.
+may be folded only once - which is a property of the carrier, not of Foldable.
 
 Parameter(s):
   _carrier: a `dj_producer_carrier`.
@@ -292,7 +292,7 @@ struct dj_foldable d_foldable_maybe(
 /*
 d_foldable_result
   The Foldable dictionary for `result`. Its carrier is a `struct dj_result`, and
-it yields the success arm only -- an error is an empty sequence, not a failure.
+it yields the success arm only - an error is an empty sequence, not a failure.
 
 Parameter(s):
   _element_size: the width of a yielded element.
@@ -640,8 +640,8 @@ d_alternative_maybe
   Note that `producer` is also an Alternative in Table 7.3 and has no instance
 here: `d_producer_alt` needs caller-owned concat state, and a signature of three
 `void*` has nowhere to put it. That is the same shape of problem as the
-semigroup's width, and it should be solved the same way -- by giving the carrier
-a struct that carries its state -- rather than by a file-static.
+semigroup's width, and it should be solved the same way - by giving the carrier
+a struct that carries its state - rather than by a file-static.
 
 Parameter(s):
   none.

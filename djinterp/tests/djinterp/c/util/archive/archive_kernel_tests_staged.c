@@ -2,8 +2,8 @@
 * djinterp [c][utility]                            archive_kernel_tests_staged.c
 *
 *   The staged create and tar.gz's read path.  tar.gz is written through a
-* caller's stage -- by the archive.h macros from named arrays, and by the
-* calls -- and read with nothing staged; ZIP through a stage is byte for byte
+* caller's stage - by the archive.h macros from named arrays, and by the
+* calls - and read with nothing staged; ZIP through a stage is byte for byte
 * ZIP without one.  The stage and the output are separate regions with
 * separate answers: a short stage is INVALID_ARGUMENT, a short output
 * BUFFER_TOO_SMALL.

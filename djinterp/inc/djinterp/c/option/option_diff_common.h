@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][option]                                      option_diff_common.h
 *
-* The difference algebra over option sets. Tier 0 -- the shared core both faces
+* The difference algebra over option sets. Tier 0 - the shared core both faces
 * compile.
 *
 * THE .tex DEFINES THIS SECTION COMPLETELY, AND IN FOUR PARTS.
@@ -14,7 +14,7 @@
 * Every one of those is a KEY SET, and the fourth is the union of the other
 * three. That last point was missing from the C++ tree and from the first draft
 * of this header: both supplied the three components and a COUNT, but never the
-* union itself, so `diff_pi` -- the operator the section is named for -- could
+* union itself, so `diff_pi` - the operator the section is named for - could
 * not be obtained.
 *
 * THE COUNT IS ONLY CORRECT BECAUSE THE THREE PARTS ARE DISJOINT, and that is
@@ -31,13 +31,13 @@
 *     diff_pi    empty  <=>  the sets are EQUAL under pi
 *
 * So agreement and equality are not separate machinery bolted on next to the
-* difference -- they ARE the difference, read at two different scopes.
+* difference - they ARE the difference, read at two different scopes.
 * `d_option_set_agrees` and `d_option_set_equal` in option_set_common.h must
 * give the same answers as these, and a conformance test should say so rather
 * than trusting that two implementations of one relation happen to concur.
 *
 * PROJECTION AND EXEMPTION ARE SEPARATE AXES, AND THE .tex INSISTS.
-*   pi decides WHAT is compared -- the declared value, a default, an effective
+*   pi decides WHAT is compared - the declared value, a default, an effective
 * value-or-default. epsilon decides WHICH keys are REPORTED. The document is
 * explicit that exemption filters the RESULT rather than threading through the
 * comparison, "leaving both independently composable", and that epsilon "need
@@ -55,12 +55,12 @@
 *     enough room      ->  the keys are written, and the count
 *
 *   The required size travels WITH the failure, so one retry always suffices
-* and a measure pass can never disagree with a produce pass -- they are the
+* and a measure pass can never disagree with a produce pass - they are the
 * same pass. This is the discipline the compress core settled, for the same
 * reason.
 *
 *   ONE DELIBERATE DIVERGENCE FROM THAT PRECEDENT. `compress_common.h` spells
-* the protocol `(_out, _out_capacity, _out_size)` -- status returned, count
+* the protocol `(_out, _out_capacity, _out_size)` - status returned, count
 * written through an out-parameter. These functions return
 * `struct dj_option_result` instead, which carries the count in its success arm
 * and the status in its error arm, so there is no out-parameter at all.
@@ -69,8 +69,8 @@
 * `result` did not exist in C at the time; the status enum was the documented
 * stand-in and the migration was recorded as owed. `result` exists now, so this
 * module takes the dependency the roadmap asked for rather than inheriting a
-* workaround along with the discipline. The discipline -- a failure carrying
-* its own remedy -- is unchanged.
+* workaround along with the discipline. The discipline - a failure carrying
+* its own remedy - is unchanged.
 *
 *
 * path:      /inc/djinterp/c/option/option_diff_common.h
@@ -94,7 +94,7 @@
 #include "../../../re_std/c/cstdint/dstdint.h"  // int32_t, uint32_t, uint64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -113,11 +113,11 @@ D_EXTERN_C_BEGIN
 //
 //   Each writes keys in a STATED order, because two runs over the same inputs
 // must produce the same sequence for the oracle's diff to mean anything. That
-// order is a property of the ENUMERATION, not of the set -- see
+// order is a property of the ENUMERATION, not of the set - see
 // `d_option_set_canon` for the set's own canonical form.
 
 // d_option_set_added_keys
-//   function: K(Ob) \ K(Oa) -- keys the delta introduces. Delta's order.
+//   function: K(Ob) \ K(Oa) - keys the delta introduces. Delta's order.
 struct dj_option_result d_option_set_added_keys(
     const struct dj_option_set* _base,
     const struct dj_option_set* _delta,
@@ -126,7 +126,7 @@ struct dj_option_result d_option_set_added_keys(
 );
 
 // d_option_set_removed_keys
-//   function: K(Oa) \ K(Ob) -- keys the delta drops. Base's order.
+//   function: K(Oa) \ K(Ob) - keys the delta drops. Base's order.
 struct dj_option_result d_option_set_removed_keys(
     const struct dj_option_set* _base,
     const struct dj_option_set* _delta,
@@ -135,7 +135,7 @@ struct dj_option_result d_option_set_removed_keys(
 );
 
 // d_option_set_keys
-//   function: K(O) -- every key in a set, in its own order. Not one of the
+//   function: K(O) - every key in a set, in its own order. Not one of the
 // .tex's operators; it is the enumeration the others are expressed over.
 struct dj_option_result d_option_set_keys(
     const struct dj_option_set* _set,
@@ -152,7 +152,7 @@ struct dj_option_result d_option_set_keys(
 // part that takes pi. Pass NULL for pi = id.
 
 // d_option_set_changed_keys
-//   function: changed_pi -- shared keys whose projections differ. Base's
+//   function: changed_pi - shared keys whose projections differ. Base's
 // order.
 //   Empty exactly when the sets AGREE under pi. That is the .tex's first
 // characterisation, and it makes this function the cheapest correct
@@ -170,7 +170,7 @@ struct dj_option_result d_option_set_changed_keys(
 // d_option_set_unchanged_keys
 //   function: shared keys whose projections agree. Base's order.
 //   The complement of `changed` within the key intersection, so
-// `|changed| + |unchanged| == |key_intersection|` always -- a second
+// `|changed| + |unchanged| == |key_intersection|` always - a second
 // disjointness property, worth asserting alongside the one in the file header.
 //   Not named in the .tex, which is why it sits here rather than in section
 // III: it is a convenience over the document's operators, not one of them.
@@ -194,8 +194,8 @@ struct dj_option_result d_option_set_unchanged_keys(
 // is named for, and the one both the C++ tree and this header's first draft
 // omitted.
 //
-//   Emitted in a stated order -- removed and changed in the base's order, then
-// added in the delta's -- so the result is reproducible. The three parts are
+//   Emitted in a stated order - removed and changed in the base's order, then
+// added in the delta's - so the result is reproducible. The three parts are
 // disjoint, so no key appears twice and the count is their sum.
 struct dj_option_result d_option_set_diff_keys(
     const struct dj_option_set* _base,
@@ -247,7 +247,7 @@ struct dj_option_result d_option_set_diff_keys_exempt(
 // d_option_set_diff_count
 //   function: |diff_pi|. One walk, no storage, and the measurement every
 // enumeration above is sized by.
-//   Equal to |added| + |changed| + |removed| by disjointness -- an identity
+//   Equal to |added| + |changed| + |removed| by disjointness - an identity
 // that is a conformance test, not a comment.
 struct dj_option_result d_option_set_diff_count(
     const struct dj_option_set* _base,
@@ -269,8 +269,8 @@ struct dj_option_result d_option_set_diff_count(
 //   It exists because "print the diff" written over the separate enumerations
 // walks the sets three times and then has to re-associate the answers by key.
 // Written over this record it walks once. The archive work found the same
-// shape -- a fifty-field comparison re-derived by hand at every boundary,
-// collapsed into one loop over a knob table -- and this is the same fix.
+// shape - a fifty-field comparison re-derived by hand at every boundary,
+// collapsed into one loop over a knob table - and this is the same fix.
 //
 //   The verdict set is exactly the .tex's three parts plus the unchanged
 // remainder, so every operator above is recovered by filtering these entries
@@ -285,7 +285,7 @@ struct dj_option_result d_option_set_diff_count(
 
 // dj_option_diff_entry
 //   struct: one key's verdict. Sixteen bytes, no padding, and the verdict is
-// `int32_t` rather than an enum for the reason option_common.h gives -- an
+// `int32_t` rather than an enum for the reason option_common.h gives - an
 // enum has implementation-defined size and this record reaches a wire format.
 struct dj_option_diff_entry
 {
@@ -295,7 +295,7 @@ struct dj_option_diff_entry
 };
 
 // d_option_set_diff
-//   function: the full account as entries -- removed, changed and unchanged in
+//   function: the full account as entries - removed, changed and unchanged in
 // the base's order, then added in the delta's. Same two-call protocol.
 //
 //   Note this reports UNCHANGED keys, which `diff_pi` does not. That is

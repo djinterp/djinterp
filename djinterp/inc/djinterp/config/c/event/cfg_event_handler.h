@@ -47,8 +47,8 @@
 
 // D_CFG_EVENT_HANDLER_SEQ
 //   brief: 1 compiles the explicit sequencing combinator (d_event_step_seq
-// and the C++ seq). Dispatch folds a word regardless -- the fold is the
-// monoid operation and is never optional -- so turning this off removes only
+// and the C++ seq). Dispatch folds a word regardless - the fold is the
+// monoid operation and is never optional - so turning this off removes only
 // the ability to name a composed pair as a single step.
 #ifndef D_CFG_EVENT_HANDLER_SEQ
 #   ifdef D_CFG_EVENT_ALL
@@ -136,7 +136,7 @@
 
 // D_INTERNAL_EVENT_HANDLER_GUARD
 //   brief: 1 when the C++ erased shim should catch escaping exceptions: the
-// knob is on, and the translation unit has exceptions to catch -- a
+// knob is on, and the translation unit has exceptions to catch - a
 // -fno-exceptions build has no try, so there the knob changes nothing. Read
 // by event_handler.hpp's apply_handler.
 #if ( (D_CFG_IS_ON(D_CFG_EVENT_HANDLER_GUARD_EXCEPTIONS)) &&                  \

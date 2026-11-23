@@ -29,7 +29,7 @@ NS_TESTING
 
 
 // adapter / terminal instance types obtained from their factory functions
-// (unevaluated -- decltype only).
+// (unevaluated - decltype only).
 using transform_adapter_t = decltype(djinterp::transform(DFnDouble{}));
 using take_adapter_t       = decltype(djinterp::take(std::size_t(3)));
 using to_vector_terminal_t = decltype(to_vector());

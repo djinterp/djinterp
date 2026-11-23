@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                  hierarchical_container_concepts.hpp
 *
-* C++20 concepts for the STRUCTURE (nesting) axis -- the `requires`-facing
+* C++20 concepts for the STRUCTURE (nesting) axis - the `requires`-facing
 * view of hierarchical_container_traits.hpp.
 *
 *   THE CONCEPTS ADD NO POLICY.
@@ -49,7 +49,7 @@ NS_DJINTERP
 
 
 // ContainerShaped
-//   concept: quacks like a container -- a value_type and a const size(). The
+//   concept: quacks like a container - a value_type and a const size(). The
 // recursion guard the whole structure axis rests on.
 template<typename Type>
 concept ContainerShaped = is_container_shape_v<Type>;
@@ -64,7 +64,7 @@ concept HierarchicalContainer = is_hierarchical_container_v<Type>;
 
 
 // DeclaresNodeSummand
-//   concept: advertises F[T] directly -- a node_type that is itself
+//   concept: advertises F[T] directly - a node_type that is itself
 // container-shaped. The STRONG signal: it decides outright, and a flat tag
 // cannot override it. One does not un-nest a declared node summand.
 template<typename Type>
@@ -73,7 +73,7 @@ concept DeclaresNodeSummand = has_node_summand_v<Type>;
 
 // DeclaresStructureCategory
 //   concept: carries the opt-in flat / hierarchical tag. The way to assert
-// nesting the value_type chain cannot expose -- a trie, whose value_type is
+// nesting the value_type chain cannot expose - a trie, whose value_type is
 // just its mapped type, is exactly this case.
 template<typename Type>
 concept DeclaresStructureCategory = has_structure_category_v<Type>;

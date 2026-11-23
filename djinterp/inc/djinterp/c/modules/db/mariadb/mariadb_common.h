@@ -9,7 +9,7 @@
 * spells `long long`, which ISO C++98 refuses, so a public header can neither
 * name the client's type nor include its header. d_mariadb_native hands back
 * the MYSQL* for the client's own calls, and d_mariadb_adopt wraps one a
-* program set up itself -- for TLS, say. Every module includes this header:
+* program set up itself - for TLS, say. Every module includes this header:
 *     mariadb_connection   connect, adopt, close, ping, ids, changes
 *     mariadb_query        exec, scripts, scalar queries, rows, quoting
 *     mariadb_statement    prepared statements: bind, execute, finalize
@@ -20,8 +20,8 @@
 *                          SQL mode, lock waits, any session variable
 *     mariadb_maintenance  analyze, optimize, check, checksum
 *   RESULTS. A function that can fail returns 0 or the client's error number,
-* as mysql_errno reports it -- a server error such as 1146 (no such table) or
-* a client one such as 2006 (server gone away) -- which d_mariadb_error_message
+* as mysql_errno reports it - a server error such as 1146 (no such table) or
+* a client one such as 2006 (server gone away) - which d_mariadb_error_message
 * then describes. The client has no number for an argument that cannot be
 * right, so that is db_common.h's D_DB_INVALID_ARGUMENT; D_DB_UNSUPPORTED is a
 * server too old for the request, or a build without a client; D_DB_EXISTS
@@ -30,10 +30,10 @@
 * the server anything is CR_COMMANDS_OUT_OF_SYNC (2014), having sent nothing.
 * Predicates come in pairs, as there: `has_x` folds a failure into `false`,
 * `has_x_s` reports it.
-*   NAMES. Every name -- database, table, column -- is quoted by the layer, so
+*   NAMES. Every name - database, table, column - is quoted by the layer, so
 * any name the server accepts is safe to pass. A NULL schema means the
-* connection's current database. Text that is SQL -- a definition, a SELECT,
-* a DEFAULT -- is the caller's SQL and is used as written. Where one server
+* connection's current database. Text that is SQL - a definition, a SELECT,
+* a DEFAULT - is the caller's SQL and is used as written. Where one server
 * has an IF [NOT] EXISTS the other lacks, the layer asks first, so the flags
 * mean the same on both.
 *   VERSIONS. The client floor is libmysqlclient 5.7 or a MariaDB client; the
@@ -186,13 +186,13 @@ enum dj_mariadb_feature
 
 // 2.1    Client
 //------------------------------------------------------------------------------
-// client -- the client library's version string and number (MAJOR*10000 +
+// client - the client library's version string and number (MAJOR*10000 +
 // MINOR*100 + PATCH, as mysql_get_client_version gives it), and whether it is
 // MariaDB's rather than Oracle's; "", 0 and false in a build without one
 const char* d_mariadb_client_version(void) D_NOTHROW;
 unsigned long d_mariadb_client_version_number(void) D_NOTHROW;
 bool d_mariadb_client_is_mariadb(void) D_NOTHROW;
-// nonblocking tls -- whether the client's calls that do not block
+// nonblocking tls - whether the client's calls that do not block
 // (mariadb_connection.h 1.8) can go over TLS: false for Connector/C before
 // 3.4.10 whose TLS is Schannel, Windows' own, and before 3.0.4 whatever its
 // TLS, since their calls that do not block pass TLS by; false for a client
@@ -204,7 +204,7 @@ bool d_mariadb_client_nonblocking_tls(void) D_NOTHROW;
 
 // 2.2    Result messages
 //------------------------------------------------------------------------------
-// result messages -- an English description of a result the layer returns:
+// result messages - an English description of a result the layer returns:
 // db_common.h's own words for its values; the layer's own for the four
 // client numbers it returns itself, 2000 (a failure the server reported
 // without a number), 2008 (out of memory), 2014 (a statement's run holds the
@@ -226,7 +226,7 @@ const char* d_mariadb_result_message(
 
 // 3.1    Versions
 //------------------------------------------------------------------------------
-// versions -- the server's flavor; its version string, as the client keeps
+// versions - the server's flavor; its version string, as the client keeps
 // it (Connector/C drops the "5.5.5-" older MariaDB servers put before their
 // version for old clients, and libmysqlclient keeps it); its version number
 // (MAJOR*10000 + MINOR*100 + PATCH), MariaDB's true one either way; and
@@ -250,14 +250,14 @@ bool d_mariadb_server_at_least(
 
 // 3.2    Features
 //------------------------------------------------------------------------------
-// features -- whether the server can do it, by its flavor and release;
+// features - whether the server can do it, by its flavor and release;
 // `false` for a value outside enum dj_mariadb_feature. What a plugin or a
-// setting adds -- Galera, the X Plugin, Group Replication -- is whether the
+// setting adds - Galera, the X Plugin, Group Replication - is whether the
 // server's release has it; whether this server runs it is its configuration,
 // and its build: MariaDB's Windows builds leave Galera out, its wsrep_*
 // variables with it, which no answer here can see without asking.
-// A feature that is a call of the client's -- the reset, session tracking,
-// query attributes -- needs the client the layer was built with to have it
+// A feature that is a call of the client's - the reset, session tracking,
+// query attributes - needs the client the layer was built with to have it
 // too: Connector/C from 3.0, or libmysqlclient from 5.7.3, 5.7.4 and 8.0.23,
 // Connector/C having no query attributes
 bool d_mariadb_supports(
@@ -273,7 +273,7 @@ bool d_mariadb_supports(
 
 // 4.1    The client's handle
 //------------------------------------------------------------------------------
-// the client's handle -- the MYSQL* inside, for the client's own calls: cast
+// the client's handle - the MYSQL* inside, for the client's own calls: cast
 // it to MYSQL* where mysql.h is included. It stays the layer's: close the
 // handle with d_mariadb_close, never with mysql_close. NULL for NULL.
 void* d_mariadb_native(
@@ -282,7 +282,7 @@ void* d_mariadb_native(
 
 // 4.2    Errors
 //------------------------------------------------------------------------------
-// errors -- the client's last error on the handle: its number (mysql_errno),
+// errors - the client's last error on the handle: its number (mysql_errno),
 // its message (mysql_error, "" for none) and its SQLSTATE (mysql_sqlstate,
 // "00000" for none). A result of the layer's own, negative, leaves them as
 // they were. A NULL handle answers 0 and "".
@@ -298,9 +298,9 @@ const char* d_mariadb_sqlstate(
 
 // 4.3    Kinds
 //------------------------------------------------------------------------------
-// kinds -- what a result was, as db_common.h's kinds name it (1.4):
-// d_mariadb_kind reads the handle's SQLSTATE -- the result must be the
-// handle's last error for it to match; a NULL handle gives none -- and
+// kinds - what a result was, as db_common.h's kinds name it (1.4):
+// d_mariadb_kind reads the handle's SQLSTATE - the result must be the
+// handle's last error for it to match; a NULL handle gives none - and
 // sorts the result by the function the program set with d_mariadb_kind_set,
 // or by d_mariadb_kind_default where it set none (NULL sets none again). The
 // default knows the error numbers MariaDB and MySQL report most: those for a

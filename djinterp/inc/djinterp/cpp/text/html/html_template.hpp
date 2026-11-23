@@ -3,7 +3,7 @@
 *
 *   Templated HTML element / document facades and the bundled default
 * backend. The facades inherit from their XML counterparts so that
-* memory layout is identical -- `DHtmlElement<Backend>` adds NO
+* memory layout is identical - `DHtmlElement<Backend>` adds NO
 * members beyond `DXmlNode<Backend>`, and `DHtmlDocument<Backend>`
 * adds only an `DHtmlVersion` byte and a `std::string` doctype to
 * `DXmlDocument<Backend>`. All HTML-specific behaviour (DOCTYPE
@@ -99,15 +99,15 @@ struct DHtmlDefaultBackend
     using html_backend_tag = DHtmlDefaultBackendTag;
 
     // node_type
-    //   type: storage type for nodes -- shared with XML.
+    //   type: storage type for nodes - shared with XML.
     using node_type        = xml::internal::DDefaultNode;
 
     // attribute_type
-    //   type: storage type for attributes -- shared with XML.
+    //   type: storage type for attributes - shared with XML.
     using attribute_type   = xml::DXmlAttribute;
 
     // document_type
-    //   type: storage type for documents -- shared with XML.
+    //   type: storage type for documents - shared with XML.
     using document_type    = xml::internal::DDefaultDocument;
 
     // element_type
@@ -129,7 +129,7 @@ struct DHtmlDefaultBackend
     // root <html> element with empty <head> and <body> children so
     // callers can immediately start populating either subtree. The
     // returned object is the raw storage document, NOT the
-    // `DHtmlDocument` facade -- use `make_html5_document()` (free
+    // `DHtmlDocument` facade - use `make_html5_document()` (free
     // function below) if you want a wrapped, version-stamped
     // document.
     static
@@ -171,7 +171,7 @@ struct DHtmlDefaultBackend
 //   class: thin facade over `DXmlNode<Backend>` adding HTML
 // semantics (kind enum, class-list manipulation, id accessors,
 // void/block/inline queries). Inherits from `DXmlNode<Backend>`
-// so memory layout is unchanged -- `sizeof(DHtmlElement<B>) ==
+// so memory layout is unchanged - `sizeof(DHtmlElement<B>) ==
 // sizeof(DXmlNode<B>)`.
 template<typename Backend>
 class DHtmlElement
@@ -548,7 +548,7 @@ NS_INTERNAL
         }
         if (_node.kind != ::djinterp::DXmlNodeKind::element)
         {
-            // unsupported / unknown -- skip silently.
+            // unsupported / unknown - skip silently.
             return;
         }
 

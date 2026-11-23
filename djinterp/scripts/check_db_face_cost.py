@@ -85,8 +85,8 @@ def listing(objdump, obj):
         if PADDING.match(text):
             continue
         # a call or a jump its relocation completes names whatever its
-        # unrelocated address falls on -- often the next function, which
-        # differs between the halves -- so its target is the relocation's
+        # unrelocated address falls on - often the next function, which
+        # differs between the halves - so its target is the relocation's
         if (text.startswith('reloc ') and halves[current] and
                 re.match(r'^(call|jmp)q?\s+<[^>]*>$', halves[current][-1])):
             halves[current][-1] = re.sub(r'<[^>]*>$', '<reloc>',

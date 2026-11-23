@@ -11,15 +11,15 @@
 * and the same record as JSON lines or OTLP/JSON, with OpenTelemetry's names.
 *
 *   A CODE SAYS WHAT HAPPENED. Each module keeps a table of its codes beside
-* it -- a number, a name, a class, a grade, a template and the facts the
-* template names -- written once as a macro of rows (section 2.4); the codes'
+* it - a number, a name, a class, a grade, a template and the facts the
+* template names - written once as a macro of rows (section 2.4); the codes'
 * constants and their table come from it. The class says what kind of fault
 * it is, from one vocabulary across modules; the grade what the event did,
 * which sets the record's level (D_CFG_LOG_GRADE_LEVEL, log.grade_<grade>).
 * Text may be reworded; a code's meaning may not.
 *
 *   THE LEVEL CHECK COMES FIRST, AND COSTS A CACHED READ. A record below the
-* threshold -- log.<module>.level, else log.level, else D_CFG_LOG_LEVEL --
+* threshold - log.<module>.level, else log.level, else D_CFG_LOG_LEVEL --
 * builds nothing; one below D_CFG_LOG_LEVEL_MIN is not even compiled. Facts
 * are collected on the caller's stack through desc's collecting machine, up
 * to log.facts_max and log.depth_max; past them, counted. The body is the
@@ -470,7 +470,7 @@ int d_log_wants(const struct dj_log_code* _code,
 /**
  * @brief Opens a record, if the log wants it, and takes its time, when
  *        the event happened: its facts then go to d_log_sink's sink --
- *        d_desc_emit, or any describer -- up to log.facts_max and
+ *        d_desc_emit, or any describer - up to log.facts_max and
  *        log.depth_max. A record may stay open across calls, as for an
  *        error whose note comes after it: no lock is held while it is.
  *
@@ -739,7 +739,7 @@ void d_log_set_writer(const struct dj_log_writer* _writer,
 typedef uint64_t (*fn_log_clock)(void* _context);
 
 /**
- * @brief Takes the time from a program's own clock -- a test fixes it --
+ * @brief Takes the time from a program's own clock - a test fixes it --
  *        until set back with null.
  */
 void d_log_set_clock(fn_log_clock _clock,

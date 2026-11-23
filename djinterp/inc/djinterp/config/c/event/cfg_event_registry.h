@@ -35,7 +35,7 @@
 // ===========================================================================
 
 // D_CFG_EVENT_REGISTRY_RUN
-//   brief: 1 compiles run -- the outer fold of dispatch over a homogeneous
+//   brief: 1 compiles run - the outer fold of dispatch over a homogeneous
 // trace. A caller can always write the loop itself; what run adds is one
 // definition of it, shared by both languages.
 #ifndef D_CFG_EVENT_REGISTRY_RUN
@@ -47,7 +47,7 @@
 #endif
 
 // D_CFG_EVENT_REGISTRY_STAGING
-//   brief: 1 compiles the staging path -- compile() into a fused word, and
+//   brief: 1 compiles the staging path - compile() into a fused word, and
 // drive() over it. This is goals section 9, evaluation freedom: the same
 // dispatch with its binding moved earlier. Switching it off costs the fused
 // path and nothing else, because the fused and erased paths share one fold.
@@ -86,7 +86,7 @@
     D_CFG_NORM(D_CFG_EVENT_REGISTRY_STAGING)
 
 // D_INTERNAL_EVENT_REGISTRY_STAGING_ALLOC
-//   brief: 1 when the allocating compile() should be declared -- staging on,
+//   brief: 1 when the allocating compile() should be declared - staging on,
 // and allocation available. The compile-into-caller-storage form is declared
 // whenever staging is on, so the fused path survives a no-allocator build.
 #if D_CFG_IS_ON(D_CFG_EVENT_REGISTRY_STAGING) &&                              \

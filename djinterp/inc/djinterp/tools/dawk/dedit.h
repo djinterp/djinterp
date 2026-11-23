@@ -9,7 +9,7 @@
 * about.
 *   This is deliberately the whole of the write path.  A repair that needs
 * more than one line, or needs two edits ordered against each other, does not
-* belong here -- it belongs in the edit-collection engine that replaces this
+* belong here - it belongs in the edit-collection engine that replaces this
 * file once more than one extension produces repairs.
 *
 *

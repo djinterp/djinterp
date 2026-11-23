@@ -4,7 +4,7 @@
 * Error-propagation tests. An errored pipeline (from error(code)) carries its
 * state through the chainable operations and short-circuits the queries.
 *
-*   test_error_propagation -- map/filter/take/slice/partition/zip_with carry
+*   test_error_propagation - map/filter/take/slice/partition/zip_with carry
 *                             the error and code; fold returns init; for_each
 *                             no-ops; any/all/none/count and group_by take
 *                             their documented errored-pipeline values. Note

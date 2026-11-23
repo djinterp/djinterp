@@ -1,10 +1,10 @@
 /*******************************************************************************
 * djinterp [cpp][event]                         event_registry_tests_results.cpp
 *
-*   Section I -- DISPATCH AND RUN RESULTS.  Covers the two result aggregates:
+*   Section I - DISPATCH AND RUN RESULTS.  Covers the two result aggregates:
 * DDispatchResult (the enriched (invoked, outcome) pair, with consumed() true
 * exactly when the outcome is verdict::consume) and run_result (the trace
-* aggregate of occurrences / handlers_invoked / consumed_count -- a plain data
+* aggregate of occurrences / handlers_invoked / consumed_count - a plain data
 * holder whose fields are independently stored).
 *
 *

@@ -1179,8 +1179,8 @@ void d_internal_close(
 
 /*
 d_internal_open
-  Opens the package, counts every media use, finds the slides -- by the scene
-list, or else by name, saying so -- and builds the story from them.
+  Opens the package, counts every media use, finds the slides - by the scene
+list, or else by name, saying so - and builds the story from them.
 */
 static
 bool d_internal_open(

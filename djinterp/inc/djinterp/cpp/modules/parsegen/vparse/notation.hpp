@@ -2,7 +2,7 @@
 * djinterp [cpp][parsegen]                                          notation.hpp
 *
 *   The grammar language and its metacircular front-end.  meta_grammar() is the
-* grammar of grammars -- the notation's own syntax, expressed as a ruleset, so
+* grammar of grammars - the notation's own syntax, expressed as a ruleset, so
 * the generator compiles the parser that reads grammar text.  The notation
 * supports alternatives (|), one-or-more (+), zero-or-more (*), character
 * classes ([...] with ranges), rule references, and character literals ('x').

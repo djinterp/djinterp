@@ -834,7 +834,7 @@ using fn_builder_current_type_t =
 
 
 // is_fn_builder_mapper
-//   trait: true if Fn is callable as Fn(const Type&) -- the value-side
+//   trait: true if Fn is callable as Fn(const Type&) - the value-side
 // shape accepted by DFnBuilder::map, and_then, and flat_map. The return
 // type is unconstrained.
 template<typename Fn,
@@ -847,7 +847,7 @@ struct is_fn_builder_mapper
 
 // is_fn_builder_predicate
 //   trait: true if Pred is callable as Pred(const Type&) with a
-// bool-convertible result -- the shape accepted by DFnBuilder::filter and
+// bool-convertible result - the shape accepted by DFnBuilder::filter and
 // where.
 template<typename Pred,
          typename Type>

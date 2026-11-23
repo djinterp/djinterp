@@ -2,9 +2,9 @@
 * djinterp [c][parse]                                                 arg_type.c
 *
 * Implementation of the value types declared in arg_type.h.
-*   The built-in descriptors, CLI11's conversions -- integers under either
+*   The built-in descriptors, CLI11's conversions - integers under either
 * rule, floating point with `.` in every locale, truth values and flag
-* values -- the conversion and formatting entry points, and the arithmetic
+* values - the conversion and formatting entry points, and the arithmetic
 * of the sum policy.
 *
 *
@@ -305,7 +305,7 @@ bool d_arg_internal_flag_word(
  * Whether a number has the shape C23's strtoll reads, which CLI11's
  * to_flag_value reads numbers with: no digit separator, at which strtoll stops
  * short, and, past the space and the sign, no `0o` prefix, which no strtoll
- * knows. A `0b` prefix is read, as C23 reads it -- and the C libraries that
+ * knows. A `0b` prefix is read, as C23 reads it - and the C libraries that
  * follow it, glibc's among them, where CLI11 is built most.
  */
 D_STATIC
@@ -413,8 +413,8 @@ int d_arg_internal_convert_bool(
  * @return D_ARG_OK, or D_ARG_ERROR_CONVERSION for a value of several characters
  *         that is no signed 8-bit integer.
  *
- * CLI11's char conversion: one character is itself -- untrimmed, so a space
- * is a space -- and anything longer is a signed 8-bit integer, the range CLI11
+ * CLI11's char conversion: one character is itself - untrimmed, so a space
+ * is a space - and anything longer is a signed 8-bit integer, the range CLI11
  * reads whatever the signedness of `char`; the empty text is NUL.
  */
 D_STATIC
@@ -1104,7 +1104,7 @@ D_STATIC_ASSERT( (sizeof(BUILTINS) / sizeof(BUILTINS[0])) ==
  *         overflows; `false` otherwise.
  *
  * The exact half of CLI11's sum_string_vector: every value a 64-bit integer
- * -- `true` counting as 1, as CLI11's signed conversion reads it -- and no
+ * - `true` counting as 1, as CLI11's signed conversion reads it - and no
  * partial sum overflowing. False when either fails, so the caller falls back
  * to floating point.
  */

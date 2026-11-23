@@ -4,8 +4,8 @@
 * A grammar session: text in, a runnable parser out.
 *   This is the facade the vparse workbench (djinterp/tools/vparse) drives,
 * and what a headless caller drives to get the same behaviour without a GUI.
-* A session holds one grammar through its whole life -- source text, the
-* program it compiled to, and whatever went wrong -- so a caller can show all
+* A session holds one grammar through its whole life - source text, the
+* program it compiled to, and whatever went wrong - so a caller can show all
 * three without tracking any of it. Both frontends land on the same
 * peg::program: the metacircular notation (notation.hpp) and EBNF (ebnf.hpp).
 *   NOTHING HERE THROWS. A grammar arrives from a text box and is wrong most
@@ -47,7 +47,7 @@ NS_PARSEGEN
 NS_VPARSE
 
 // frontend
-//   enum: which frontend reads the grammar text -- the metacircular notation,
+//   enum: which frontend reads the grammar text - the metacircular notation,
 // described in its own formalism (notation.hpp), or EBNF, with grouping, `?`,
 // quoted literals, `.` and `#` comments (ebnf.hpp).
 enum class frontend
@@ -58,7 +58,7 @@ enum class frontend
 
 // compile_result
 //   struct: what came of a load(). `error` is empty when `ok` is true, and
-// `instructions` is the size of the compiled program -- the one number that
+// `instructions` is the size of the compiled program - the one number that
 // says whether a grammar rewrite made the parser smaller.
 struct compile_result
 {
@@ -116,7 +116,7 @@ public:
         const std::string& _input
     ) const;
 
-    // what is loaded -- none of these can fail, and none changes the
+    // what is loaded - none of these can fail, and none changes the
     // session. The listing is one instruction per line, each prefixed with
     // its address; it is empty, and size() is zero, until a load succeeds.
     std::string disassembly() const;

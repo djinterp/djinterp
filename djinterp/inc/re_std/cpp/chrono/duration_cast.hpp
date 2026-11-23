@@ -2,7 +2,7 @@
 * djinterp [re_std]                                            duration_cast.hpp
 *
 * the duration_cast function template:
-*   The explicit conversion between durations -- the one that is allowed
+*   The explicit conversion between durations - the one that is allowed
 * to lose precision, and therefore the one the caller must write out:
 *
 *       auto ms = duration_cast<milliseconds>(some_micros);
@@ -20,7 +20,7 @@
 *
 *   THE CONSTRAINT IS ON THE TARGET, NOT THE SOURCE:
 *   duration_cast<int>(d) is not a compile error inside the function body
-* -- it is a substitution failure, so the name simply does not match and
+* - it is a substitution failure, so the name simply does not match and
 * the diagnostic points at the call rather than at library internals.
 *
 *

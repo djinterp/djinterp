@@ -4,8 +4,8 @@
 * Implementation of mongodb_common.h.
 *   Results are packed so that reading one needs no driver: the functions of
 * section 1 work in both builds, over the driver or as stubs. What a server
-* can do is decided by what the handle learned of it when it was made -- its
-* version and its deployment -- and, for the one feature that needs a call
+* can do is decided by what the handle learned of it when it was made - its
+* version and its deployment - and, for the one feature that needs a call
 * the driver gained late, by the driver's headers: no request is sent to
 * answer d_mongodb_supports.
 *
@@ -107,8 +107,8 @@ bool d_mongodb_result_is_unreachable(
 //------------------------------------------------------------------------------
 /*
 d_mongodb_result_message
-  db_common.h's words for its own values -- save D_DB_UNSUPPORTED in a build
-without the driver, which the build explains -- the layer's for the codes it
+  db_common.h's words for its own values - save D_DB_UNSUPPORTED in a build
+without the driver, which the build explains - the layer's for the codes it
 packs itself, and a pointer to d_mongodb_error_message for the server's and
 the driver's, whose words only the handle keeps.
 */

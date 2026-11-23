@@ -8,7 +8,7 @@
 * search for a module, and DPluginModule, which holds one loaded. A module
 * written in C++ defines its entry point with D_CLI_PLUGIN, as a C module
 * does: the macro is C and C++ alike, and the module's run function must
-* not let an exception out into the C frame that calls it -- running a
+* not let an exception out into the C frame that calls it - running a
 * cli::program, whose work is guarded, is the usual way to be sure.
 *
 *
@@ -121,7 +121,7 @@ status find_plugin(
 // 2.1.1
 // DPluginModule
 //   class: a dj_cli_module: a module loaded, or none. Its destructor unloads
-// it, as unload() does -- for a loader's tests and tools; a program that
+// it, as unload() does - for a loader's tests and tools; a program that
 // runs a window keeps the module for the process's life, as add_plugin's
 // command does. Neither copied nor moved.
 class DPluginModule
@@ -156,7 +156,7 @@ public:
      */
     void unload() D_NOEXCEPT;
 
-    // what is held: whether a module is, its record -- NULL for none -- and
+    // what is held: whether a module is, its record - NULL for none - and
     // the file it came from, "" for none
     bool loaded() const D_NOEXCEPT;
     const ::dj_cli_plugin* plugin() const D_NOEXCEPT;

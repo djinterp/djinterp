@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][functional]                     interpolate_tests_resolvers.cpp
 *
-* Section III (leaf resolvers) -- DEmptyResolver (identity: everything misses),
+* Section III (leaf resolvers) - DEmptyResolver (identity: everything misses),
 * DMapResolver (linear {key,value} lookup; a miss is a real miss), and
 * DLookupResolver (adapt an always-hit callable, owning its produced value),
 * plus the bindings / lookup factories and the resolvers' value types.
@@ -99,7 +99,7 @@ bool test_lookup_always_hit()
 
     D_INTERP_CHECK(_lr(sv("x")).found());
     D_INTERP_CHECK(_lr(sv("x")).value() == "[x]");
-    // even a "missing" key hits -- the always-hit contract
+    // even a "missing" key hits - the always-hit contract
     D_INTERP_CHECK(_lr(sv("missing")).found());
     D_INTERP_CHECK(_lr(sv("missing")).value() == "[missing]");
 

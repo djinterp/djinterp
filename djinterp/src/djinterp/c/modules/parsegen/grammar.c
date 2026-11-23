@@ -29,7 +29,7 @@
 #define D_INTERNAL_GRAMMAR_MESSAGE  192u
 
 // D_INTERNAL_GRAMMAR_PRIMARY
-//   macro: the binding strength of a terminal or a parenthesised group -- the
+//   macro: the binding strength of a terminal or a parenthesised group - the
 // tightest, so it never needs parentheses of its own.
 #define D_INTERNAL_GRAMMAR_PRIMARY  4u
 
@@ -40,7 +40,7 @@ d_parsegen_kind_info
 NOTE:
   One table, three readers: the builders take `implies` from it, verification
 takes `arity`, and rendering takes `name` and `precedence`. Adding a node kind
-is adding a row here and a builder beside it -- nothing switches on kind.
+is adding a row here and a builder beside it - nothing switches on kind.
 
 Parameter(s):
   _kind: a dj_parsegen_node_kind value.
@@ -125,8 +125,8 @@ void d_parsegen_grammar_init(
 
 /*
 d_parsegen_grammar_init_heap
-  Initialises a grammar over storage it allocates and owns -- nodes, rules, and
-the pool their names and terminals live in -- all of which grow on demand.
+  Initialises a grammar over storage it allocates and owns - nodes, rules, and
+the pool their names and terminals live in - all of which grow on demand.
 
 Parameter(s):
   _grammar: the grammar to initialise; ignored if NULL.
@@ -572,7 +572,7 @@ d_parsegen_literal
   The expression matching an exact sequence of symbols.
 NOTE:
   A literal of more than one symbol sets LITERAL_STRING, since a family that
-only handles single symbols can express one and not the other -- which is a
+only handles single symbols can express one and not the other - which is a
 distinction a capability query has to be able to make.
 
 Parameter(s):
@@ -746,7 +746,7 @@ d_parsegen_ordered
 it.
 NOTE:
   PEG's `/`. Once an alternative matches, the ones after it are never tried,
-even if the overall parse later fails -- which is what makes a PEG
+even if the overall parse later fails - which is what makes a PEG
 unambiguous, and what makes this a different operator from the one below.
 
 Parameter(s):
@@ -945,7 +945,7 @@ d_parsegen_action
   Attaches host-language code to a subexpression.
 NOTE:
   The code is stored verbatim and never interpreted here. What language it is
-in, and whether any backend can emit it, is the backend's business -- this
+in, and whether any backend can emit it, is the backend's business - this
 level only records that the grammar has one, so a capability query can answer.
 
 Parameter(s):
@@ -1367,7 +1367,7 @@ int d_parsegen_grammar_verify(
 d_parsegen_grammar_hash
   A 64-bit digest of a whole grammar.
 NOTE:
-  Over the structure, the rules, and the pool -- not over the memory image, and
+  Over the structure, the rules, and the pool - not over the memory image, and
 not over the source offsets. Two grammars that mean the same thing digest the
 same even when they were read from differently formatted text, which is what
 makes this usable as the key of a compiled-parser cache.
@@ -1767,7 +1767,7 @@ d_parsegen_grammar_render
   Writes a whole grammar in the canonical notation, one rule per line.
 NOTE:
   What the grammar MEANS rather than the spelling it arrived in, so a round
-trip through any frontend produces the same text -- which makes this the
+trip through any frontend produces the same text - which makes this the
 natural oracle for a frontend test as well as the readable form of a grammar
 that was built in code.
 

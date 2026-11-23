@@ -12,7 +12,7 @@
 *
 *   THE MISSING OPERATION IS THE INTERESTING ONE:
 *   There is no `time_point + time_point`. Adding two positions is
-* meaningless -- what would half past three plus half past four be? --
+* meaningless - what would half past three plus half past four be? --
 * and the standard does not define it, so neither does re_std. A time_point
 * is a point in an affine space, a duration is a vector in it, and the
 * operator set above is exactly what that structure allows.
@@ -24,7 +24,7 @@
 *   SUBTRACTION IS WHERE THE CLOCK TAG EARNS ITS KEEP: both operands must
 * name the same clock, or common_type finds no `type` and the overload
 * removes itself. Subtracting a steady_clock reading from a system_clock
-* reading is not a runtime surprise -- it does not compile.
+* reading is not a runtime surprise - it does not compile.
 *
 *
 * path:      /inc/re_std/cpp/chrono/time_point_arithmetic.hpp

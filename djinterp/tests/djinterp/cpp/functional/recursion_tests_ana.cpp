@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  recursion_tests_ana.cpp
-//   Section VI -- ana[psi], the universal unfold.
+//   Section VI - ana[psi], the universal unfold.
 
 // std
 #include <type_traits>
@@ -72,7 +72,7 @@ bool tests_ana_list_range()
 
 /*
 tests_ana_tree_balanced
-  Unfolds a depth seed into a full binary tree -- a coalgebra with TWO holes
+  Unfolds a depth seed into a full binary tree - a coalgebra with TWO holes
   (Branch seeds both children).
   Tests the following:
   - seed d builds a tree of height d
@@ -103,7 +103,7 @@ bool tests_ana_tree_balanced()
 /*
 tests_ana_native_vector
   Unfolds a seed directly into a std::vector<int>, via its corecursive_traits
-  registration -- ana builds a native carrier, not a mu.
+  registration - ana builds a native carrier, not a mu.
   Tests the following:
   - seed 0 builds the empty vector
   - seed n builds [n, n-1, ..., 1] as a real vector

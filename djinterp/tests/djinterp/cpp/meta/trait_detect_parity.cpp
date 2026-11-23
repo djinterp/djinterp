@@ -330,7 +330,7 @@ NS_END  // djinterp
 
 
 // D_INTERNAL_PARITY_CHECK
-//   macro (internal): one row of the table -- TRAIT applied to TYPE gives
+//   macro (internal): one row of the table - TRAIT applied to TYPE gives
 // EXPECTED from every engine this level has.
 #define D_INTERNAL_PARITY_CHECK_ONE(PREFIX, TRAIT, TYPE, EXPECTED)            \
     D_STATIC_ASSERT(                                                          \
@@ -389,7 +389,7 @@ D_INTERNAL_PARITY_CHECK(has_minus, djinterp::internal::parity_ops, 0)
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 // D_INTERNAL_PARITY_CHECK_EXPR
-//   macro (internal): one row for an expression shape -- TRAIT applied to
+//   macro (internal): one row for an expression shape - TRAIT applied to
 // TYPE gives EXPECTED from the void_t engine, the public name, and the
 // requires engine where the level has it. No C++98 column: the shape takes
 // a type expression, which needs decltype.
@@ -452,8 +452,8 @@ D_INTERNAL_PARITY_CHECK_ONE(pub, true_from_class,
                             djinterp::internal::parity_none, 0);
 D_INTERNAL_PARITY_CHECK_ONE(pub, true_from_class, int, 0);
 
-// HAS_BOOL_CONSTANT: a constant usable as a bool template argument -- bool,
-// 0 or 1, an enumerator, a constexpr object -- and nothing else: not 2 (a
+// HAS_BOOL_CONSTANT: a constant usable as a bool template argument - bool,
+// 0 or 1, an enumerator, a constexpr object - and nothing else: not 2 (a
 // narrowing conversion), a static function, a non-static member, or a type
 D_INTERNAL_PARITY_CHECK_EXPR(has_flag_constant,
                              djinterp::internal::parity_flag_true,
@@ -556,7 +556,7 @@ D_STATIC_ASSERT(
 #endif
 
 // D_INTERNAL_PARITY_CHECK_WITH
-//   macro (internal): one row for HAS_METHOD_WITH -- TRAIT applied to the
+//   macro (internal): one row for HAS_METHOD_WITH - TRAIT applied to the
 // type and argument types after EXPECTED gives EXPECTED from the void_t
 // engine, the public name, and the requires engine where the level has it.
 #define D_INTERNAL_PARITY_CHECK_WITH_ONE(PREFIX, TRAIT, EXPECTED, ...)        \
@@ -577,7 +577,7 @@ D_STATIC_ASSERT(
     D_INTERNAL_PARITY_CHECK_WITH_ONE(pub, TRAIT, EXPECTED, __VA_ARGS__);      \
     D_INTERNAL_PARITY_CHECK_WITH_20(TRAIT, EXPECTED, __VA_ARGS__)
 
-// HAS_METHOD_WITH: one name, the arguments given at the use -- is_root with
+// HAS_METHOD_WITH: one name, the arguments given at the use - is_root with
 // an id and without, a call on a const object and on a non-const one, an
 // overload chosen by its arguments, and the wrong arity
 D_INTERNAL_PARITY_CHECK_WITH(has_is_root_with,

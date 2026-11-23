@@ -9,8 +9,8 @@
 * that builds one word at a time. A POSIX shell's and GNU's read quotes and
 * backslashes anywhere in a word; the C runtime's reads backslashes only
 * before a double quote, and a program's name by a rule of its own; CLI11's
-* first cuts the line as split_up cuts it -- a word that opens with a quote
-* or a bracket running to its match -- then strips each word's outer quotes.
+* first cuts the line as split_up cuts it - a word that opens with a quote
+* or a bracket running to its match - then strips each word's outer quotes.
 * d_arg_quote_word writes a word that each set gives back unchanged.
 *
 *
@@ -80,8 +80,8 @@ int d_arg_internal_bracket_index(
  *         when there is none.
  *
  * CLI11's close_string_quote: the position of the quote closing the one
- * opened at `_start`, each character after a backslash skipped -- past the
- * end, by one, when a backslash is last -- or the length.
+ * opened at `_start`, each character after a backslash skipped - past the
+ * end, by one, when a backslash is last - or the length.
  */
 D_STATIC
 size_t d_arg_internal_close_quote(
@@ -118,7 +118,7 @@ size_t d_arg_internal_close_quote(
  *
  * CLI11's close_literal_quote: the next `_closure` after `_start`, or the
  * length. `_start` is the opening quote's position, within the text, so that
- * the search -- of nothing, after a quote that is last -- stays within it.
+ * the search - of nothing, after a quote that is last - stays within it.
  */
 D_STATIC
 size_t d_arg_internal_close_literal(
@@ -328,7 +328,7 @@ bool d_arg_internal_is_split_point(
  * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
  *
  * A word that opens with a quote or a bracket: up to and with its closer --
- * the rest of the text when it never closes -- and the character after the
+ * the rest of the text when it never closes - and the character after the
  * closer taken too when it is a split point or an opener, which would start a
  * sequence of its own.
  */
@@ -514,7 +514,7 @@ int d_arg_internal_words_add(
 
 // dj_arg_internal_split_word
 //   struct: what a split builds: where the words go, the bytes of the one
-// under way, and whether it has begun -- quotes with nothing between them
+// under way, and whether it has begun - quotes with nothing between them
 // begin a word that holds no bytes.
 struct dj_arg_internal_split_word
 {
@@ -1270,7 +1270,7 @@ int d_arg_internal_split_windows(
  *
  * One byte of an argument by buildargv's rules, but a backslash: a quote
  * opens when none is open, and closes the one it matches; any other byte is
- * taken -- a NUL byte too, which the NUL standing for no quote must not
+ * taken - a NUL byte too, which the NUL standing for no quote must not
  * close. Returns the quote open after it, or NUL.
  */
 D_STATIC
@@ -1464,7 +1464,7 @@ char d_arg_internal_split_cli11_lead(
  * CLI11's find_and_modify with escape_detect, for one trigger, `=` or `:`:
  * in order, each trigger after the first byte that a quote follows becomes a
  * space when the last dash, slash, space or quote before it is the option's
- * lead -- `-` for `=`, `/` for `:` -- so that the quoted value is a word of
+ * lead - `-` for `=`, `/` for `:` - so that the quoted value is a word of
  * its own.
  */
 D_STATIC
@@ -1622,7 +1622,7 @@ int d_arg_internal_remove_quotes(
  *         D_ARG_ERROR_OUT_OF_MEMORY.
  *
  * CLI11's split of a command line in parse(string): the trimmed line's
- * triggers rewritten -- `=`, and `:` for Windows-style options -- then split
+ * triggers rewritten - `=`, and `:` for Windows-style options - then split
  * up a piece at a time, each piece losing its quotes as it comes. The pieces
  * stay spans of the line, so that a NUL byte in one is the piece's, as it is
  * a std::string's: a copy would end the piece there before its quotes are
@@ -1755,7 +1755,7 @@ int d_arg_internal_split_by(
 /*
 d_arg_internal_split_words
   The words of a line by a set of rules, stored where they go; on failure
-both lists are cut back to what they held -- the spans borrow, so cutting
+both lists are cut back to what they held - the spans borrow, so cutting
 them back is forgetting them.
 */
 int d_arg_internal_split_words(
@@ -1847,7 +1847,7 @@ static const char CLI11_ESCAPE_CODES[] = "btnfr\"\\";
 
 // POSIX_SAFE
 //   constant: the bytes besides ASCII letters and digits that no POSIX shell
-// reads specially anywhere in a word -- Python's shlex.quote leaves a word of
+// reads specially anywhere in a word - Python's shlex.quote leaves a word of
 // these, letters and digits as it is.
 static const char POSIX_SAFE[] = "@%+=:,./-_";
 
@@ -1911,7 +1911,7 @@ bool d_arg_internal_quote_special(
  *         `false` otherwise.
  *
  * Whether the byte at `_at` is a `=` or `:` that a quote follows, or that
- * ends the word -- where a closing quote will follow it -- which CLI11's
+ * ends the word - where a closing quote will follow it - which CLI11's
  * escape_detect would turn into a space.
  */
 D_STATIC
@@ -2108,8 +2108,8 @@ void d_arg_internal_quote_windows(
  * @param[in,out] _out   the buffer that gains it, its failure kept in it.
  *
  * One byte of a word in CLI11's double quotes: one of add_escaped_characters'
- * -- backspace, tab, line feed, form feed, carriage return, `"` and the
- * backslash -- after a backslash, by its letter; a `=` or `:` before a quote,
+ * - backspace, tab, line feed, form feed, carriage return, `"` and the
+ * backslash - after a backslash, by its letter; a `=` or `:` before a quote,
  * or last, as a `\\u` escape; any other as it is.
  */
 D_STATIC

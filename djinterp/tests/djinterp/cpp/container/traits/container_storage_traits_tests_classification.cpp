@@ -32,7 +32,7 @@ bool tests_container_storage_class()
 {
     bool _stg_ok = true;
 
-    // -- vector<int>: dynamic --
+    // - vector<int>: dynamic --
     {
         using C = DContainerStorageClass<std::vector<int>>;
         D_STG_CHECK( (!C::has_static_signal) );
@@ -44,7 +44,7 @@ bool tests_container_storage_class()
         D_STG_CHECK( (C::size_lifetime_consistent) );
     }
 
-    // -- array<int,4>: static --
+    // - array<int,4>: static --
     {
         using C = DContainerStorageClass<std::array<int, 4>>;
         D_STG_CHECK( (C::has_static_signal) );
@@ -56,7 +56,7 @@ bool tests_container_storage_class()
         D_STG_CHECK( (C::size_lifetime_consistent) );
     }
 
-    // -- DHybridShape: hybrid (both signals, both components) --
+    // - DHybridShape: hybrid (both signals, both components) --
     {
         using C = DContainerStorageClass<DHybridShape>;
         D_STG_CHECK( (C::has_static_signal && C::has_dynamic_signal) );
@@ -67,7 +67,7 @@ bool tests_container_storage_class()
         D_STG_CHECK( (C::size_lifetime_consistent) );
     }
 
-    // -- int: unknown (neither signal, neither component) --
+    // - int: unknown (neither signal, neither component) --
     {
         using C = DContainerStorageClass<int>;
         D_STG_CHECK( (!C::has_static_signal && !C::has_dynamic_signal) );
@@ -78,7 +78,7 @@ bool tests_container_storage_class()
         D_STG_CHECK( (C::size_lifetime_consistent) );
     }
 
-    // -- DOptinDynamicOverride: the STATIC signal fires, but the opt-in resolves
+    // - DOptinDynamicOverride: the STATIC signal fires, but the opt-in resolves
     //    the siting to dynamic -> NO static component (signal != siting) --
     {
         using C = DContainerStorageClass<DOptinDynamicOverride>;
@@ -91,7 +91,7 @@ bool tests_container_storage_class()
         D_STG_CHECK( (C::size_lifetime_consistent) );
     }
 
-    // -- DOptinStaticNoSize: the aggregate surfaces the coherence violation --
+    // - DOptinStaticNoSize: the aggregate surfaces the coherence violation --
     {
         using C = DContainerStorageClass<DOptinStaticNoSize>;
         D_STG_CHECK( (C::duration == DStorageDuration::static_storage) );

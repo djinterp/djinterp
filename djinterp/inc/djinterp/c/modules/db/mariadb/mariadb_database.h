@@ -3,8 +3,8 @@
 *
 * The databases on a MariaDB or MySQL server, and the connection's current
 * one.
-*   A server holds many databases -- what SQL calls schemas, and what SQLite
-* calls attached databases -- and SQL names an object in one as
+*   A server holds many databases - what SQL calls schemas, and what SQLite
+* calls attached databases - and SQL names an object in one as
 * database.object. So these are the functions the other layers spell the
 * same way: d_mariadb_has_database asks whether a database exists on the
 * server, as d_sqlite_has_database asks whether one is attached.
@@ -50,7 +50,7 @@ D_EXTERN_C_BEGIN
 
 // 1.1    Existence
 //------------------------------------------------------------------------------
-// existence -- whether the server has a database of that name, as the
+// existence - whether the server has a database of that name, as the
 // server's own lower_case_table_names setting matches names. The plain form
 // answers false for a failure or a bad argument; the _s form returns 0 and
 // writes the answer, or the failure, the answer then false.
@@ -124,7 +124,7 @@ int d_mariadb_list_databases(
 
 // 2.1    Choosing and asking
 //------------------------------------------------------------------------------
-// the current database -- the one unqualified names, and every NULL schema the
+// the current database - the one unqualified names, and every NULL schema the
 // layer is given, refer to. _use_database makes one current: 0, the client's
 // error number (1049, no such database), or D_DB_INVALID_ARGUMENT for a NULL
 // argument or an empty name. _current_database names it, in a string the

@@ -134,7 +134,7 @@ NS_INTERNAL
             (void)std::remove(key.c_str());
         }
 
-        // write -- a text, whole, to a new file
+        // write - a text, whole, to a new file
         static
         bool write(
             const std::string& _path,
@@ -1746,7 +1746,7 @@ bool tests_tls_moves()
 tests_tls_moving
   Tests the following:
   - connect returns its result by value, and a TLS connection moves: the
-    one moved to carries the bytes, and the one moved from is closed -- it
+    one moved to carries the bytes, and the one moved from is closed - it
     reads, writes, handshakes and shuts down nothing, has no session, tells
     nothing, and has no endpoints
   - assigning a connection over another releases the other, whose server

@@ -3,17 +3,17 @@
 *
 * Profunctor protocol: dimap over a two-parameter arrow (C++).
 *   A profunctor is a two-parameter type P<A, B> that is *contravariant* in its
-* first parameter and *covariant* in its second -- the shape of a computation
+* first parameter and *covariant* in its second - the shape of a computation
 * "from A to B". The one operation, dimap(p, pre, post), pre-composes pre : A'
 * -> A onto the input and post-composes post : B -> B' onto the output, turning
-* a P<A, B> into a P<A', B'>. For the canonical instance -- a function arrow --
+* a P<A, B> into a P<A', B'>. For the canonical instance - a function arrow --
 * dimap(f, pre, post) is exactly post . f . pre. Where Bifunctor mapped both
 * parameters covariantly, Profunctor flips the first: you adapt the input by
 * mapping *into* the original domain, and adapt the output by mapping *out* of
 * the original codomain.
 *
-*   Because C++ has no native type classes -- and because a bare lambda does
-* not expose its domain and codomain as type parameters -- this header ships a
+*   Because C++ has no native type classes - and because a bare lambda does
+* not expose its domain and codomain as type parameters - this header ships a
 * light arrow wrapper, profn<F>, holding a callable and itself callable. It is
 * the canonical Profunctor: dimap composes a new arrow without unwrapping. A
 * profunctor is recognized by specializing profunctor_traits<P> with dimap;
@@ -84,7 +84,7 @@ NS_DJINTERP
 ///////////////////////////////////////////////////////////////////////////////
 
 // profn
-//   struct: a profunctor-wrapped callable -- the canonical Profunctor. Holds a
+//   struct: a profunctor-wrapped callable - the canonical Profunctor. Holds a
 // callable F and forwards operator() to it, so a profn is used exactly like the
 // function it wraps; dimap / lmap / rmap build a new profn around a composed
 // callable without unwrapping.
@@ -132,7 +132,7 @@ DProfn<typename std::decay<Fn>::type> make_profn(
 //   trait: primary template, undefined by default. Each concrete profunctor
 // specializes profunctor_traits<P> to expose:
 //
-//     - dimap(p, pre, post) : static -- P<A', B'> from P<A, B>,
+//     - dimap(p, pre, post) : static - P<A', B'> from P<A, B>,
 //                            pre : A' -> A (contravariant), post : B -> B'
 //                            (covariant)
 //     - is_specialized       = true_type (marker)
@@ -247,8 +247,8 @@ static constexpr bool is_profunctor_v = is_profunctor<Type>::value;
 // identity on the other side. All are D_CONSTEXPR.
 
 // dimap
-//   function: adapts both ends -- pre : A' -> A onto the input, post : B -> B'
-// onto the output -- turning a P<A, B> into a P<A', B'>.
+//   function: adapts both ends - pre : A' -> A onto the input, post : B -> B'
+// onto the output - turning a P<A, B> into a P<A', B'>.
 template<typename Profunctor,
          typename Pre,
          typename Post>
@@ -268,7 +268,7 @@ auto dimap(
 
 
 // lmap
-//   function: adapts only the input -- pre : A' -> A -- leaving the output.
+//   function: adapts only the input - pre : A' -> A - leaving the output.
 // dimap with identity on the right (the contravariant map).
 template<typename Profunctor,
          typename Pre>
@@ -287,7 +287,7 @@ auto lmap(
 
 
 // rmap
-//   function: adapts only the output -- post : B -> B' -- leaving the input.
+//   function: adapts only the output - post : B -> B' - leaving the input.
 // dimap with identity on the left (the covariant map; the profunctor's fmap).
 template<typename Profunctor,
          typename Post>

@@ -4,18 +4,18 @@
 *   Conformance harness for c/math/remainder.h. fmod_c, remainder_c and
 * remquo_c must be exact, and so the C library's fmod, remainder and
 * remquo, exact by C's definition, bit for bit: two million argument pairs
-* for float and for double, in six ranges -- any two values, the subnormals
+* for float and for double, in six ranges - any two values, the subnormals
 * among them; |x| up to 2^60 times |y|; |x| and |y| within a factor of 2; a
 * subnormal y under a normal x; x in the top binade over y about the least
 * subnormal, the longest reductions there are; x a whole multiple of y or a
-* last place either side of one, and angles reduced by 2 pi -- against
+* last place either side of one, and angles reduced by 2 pi - against
 * fmodf, fmod, remainderf, remainder, remquof and remquo; and for long
 * double, in whatever format, two hundred thousand against fmodl,
 * remainderl and remquol, the longest reductions at one pair in sixty.
 * remquo_c's remainder must be remainder_c's, and its quotient congruent
 * mod 8 to the library's, with x / y's sign. For remainder and remquo,
-* besides, a hundred thousand ties a family -- x a whole multiple and a
-* half of y, exactly -- where the quotient goes to the even integer, and a
+* besides, a hundred thousand ties a family - x a whole multiple and a
+* half of y, exactly - where the quotient goes to the even integer, and a
 * hundred thousand whole multiples, where it is known: remquo_c's must be
 * its last three bits. The extremes, and C's special values (Annex F), every
 * family.
@@ -24,10 +24,10 @@
 * four divisors: 2 pi as a float, 1, 0.1 and three times the least
 * subnormal (its count wants a 64-bit long). Compiled as C++, it checks the
 * overloads; from C++14, that fmod_c, remainder_c and remquo_c are constant
-* expressions, for every family -- the longest reduction of a long double
-* among the calls -- with the bits they have at run time. It needs no 64-bit
-* integer -- its random numbers come from math_tests_random.h, the same in
-* every build -- so that ISO-strict C++98 on a 32-bit target, where
+* expressions, for every family - the longest reduction of a long double
+* among the calls - with the bits they have at run time. It needs no 64-bit
+* integer - its random numbers come from math_tests_random.h, the same in
+* every build - so that ISO-strict C++98 on a 32-bit target, where
 * dj_math_umax has 32 bits, builds it too.
 *
 *   Build (from the repo root), at any language level from C99:
@@ -136,7 +136,7 @@ d_tests_same_ld(long double _a, long double _b)
 }
 
 // D_TESTS_REMAINDER_SAME
-//   remainder_c against the library's remainder, bit for bit -- but where
+//   remainder_c against the library's remainder, bit for bit - but where
 // both are zero and only the library's has the sign that is not x's. IEEE
 // 754 gives a zero remainder x's sign. glibc's double remainder does not
 // always where |y| is below 2^-970 (2.39: 1,369 of the two million random
@@ -462,8 +462,8 @@ d_tests_double(void)
 // d_tests_long_double
 //   fmod_c, remainder_c and remquo_c against fmodl, remainderl and remquol,
 // bit for bit, at two hundred thousand argument pairs, in whatever format
-// long double has: the longest reductions -- x in the top binade over y
-// about the least subnormal, some 33,000 halvings on an x87 -- at one pair
+// long double has: the longest reductions - x in the top binade over y
+// about the least subnormal, some 33,000 halvings on an x87 - at one pair
 // in sixty, the others in range 1's place.
 static void
 d_tests_long_double(void)
@@ -502,7 +502,7 @@ d_tests_long_double(void)
 
 // d_tests_ties
 //   remainder_c and remquo_c against the library's where the quotient is a
-// whole number and a half -- x = (k + 1/2) y, exactly, both signs -- so that
+// whole number and a half - x = (k + 1/2) y, exactly, both signs - so that
 // the result is y / 2 or -y / 2 by the quotient's parity, and remquo_c's
 // quotient the last three bits of the even one of k and k + 1: a hundred
 // thousand ties a family, y's mantissa short enough that (2k + 1) y fits the
@@ -565,8 +565,8 @@ d_tests_ties(void)
 
 // d_tests_multiples
 //   remquo_c where the quotient is known: x = n y exactly, n a whole number
-// from 1, either sign each -- a zero with x's sign, and n's last three bits
-// with the sign of x / y -- and against the library's: a hundred thousand a
+// from 1, either sign each - a zero with x's sign, and n's last three bits
+// with the sign of x / y - and against the library's: a hundred thousand a
 // family, y the subnormals among it, its mantissa short enough that n y
 // fits the family.
 static void
@@ -752,7 +752,7 @@ D_TESTS_REMQUO_IS(long double, ld, d_tests_same_ld)
 
 // D_TESTS_REMQUO_SPECIALS
 //   Annex F's special values for remquo in one family, the quotient with
-// each -- 0 where the result is NaN, or y infinite -- and the ties, the
+// each - 0 where the result is NaN, or y infinite - and the ties, the
 // last three bits and the extremes: a quotient 8 gives 0; the largest x
 // over the least y, over itself, and over y where 8y, 4y or 2y would
 // overflow, against the library's; the least values, where y / 2 is not
@@ -818,8 +818,8 @@ D_TESTS_REMQUO_IS(long double, ld, d_tests_same_ld)
 
 // d_tests_specials
 //   every family's special values and extremes; the plain forms, the
-// library's at every level -- before C++11, remainder_c and remquo_c, which
-// agree -- and a null _quo, which stores nothing.
+// library's at every level - before C++11, remainder_c and remquo_c, which
+// agree - and a null _quo, which stores nothing.
 static void
 d_tests_specials(void)
 {

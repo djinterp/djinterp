@@ -1,4 +1,4 @@
-# kv_pair.hpp unit test suite -- leaf recipe (header-only module, no src/).
+# kv_pair.hpp unit test suite - leaf recipe (header-only module, no src/).
 #
 #   Delivery form (djinterp_testing.md S7.2): ships in its OWN leaf directory
 # .../meta/kv_pair/.  Fold into a shared cluster by merging the call below into

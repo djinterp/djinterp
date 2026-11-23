@@ -22,14 +22,14 @@
 *             D_OSTREAM_UNSUPPORTED.
 *
 *   THE STATE IS THE CALLER'S. struct dj_ostream_console holds what a backend
-* needs between writes -- the handle, whether it is a device, the carried
-* UTF-8 bytes -- in storage the caller owns, one per stream. Nothing is
+* needs between writes - the handle, whether it is a device, the carried
+* UTF-8 bytes - in storage the caller owns, one per stream. Nothing is
 * static, so two streams on one console share no hidden state; a stream
 * still belongs to one thread at a time.
 *
 *   ESCAPE SEQUENCES ARE ASKED FOR, NOT ASSUMED. A stream's query says whether
 * they are interpreted now; d_ostream_console_enable_vt asks Windows to start
-* interpreting them, which changes the console's mode -- the reason a query
+* interpreting them, which changes the console's mode - the reason a query
 * never does it.
 *
 *
@@ -109,8 +109,8 @@ struct dj_ostream_console
  * @brief Makes a stream over stdout or stderr.
  *
  * @note On a terminal the stream is line-buffered, which matters once it is
- *       given a buffer. When the channel cannot be opened -- a Windows GUI
- *       process has none -- the stream is left D_OSTREAM_FAILED; without a
+ *       given a buffer. When the channel cannot be opened - a Windows GUI
+ *       process has none - the stream is left D_OSTREAM_FAILED; without a
  *       console backend, or for binary output the backend cannot keep
  *       untranslated, D_OSTREAM_UNSUPPORTED.
  *

@@ -206,7 +206,7 @@ D_NODISCARD inline text_metrics imgui_text_metrics()
 }
 
 // viewer
-//   struct: the persistent per-panel view state -- the orbit camera, the
+//   struct: the persistent per-panel view state - the orbit camera, the
 // hovered and selected cell indices (no_cell when none), and whether the
 // camera has been framed on the scene yet.  Hold one per scene panel, across
 // frames; clear `framed` to frame the camera again.
@@ -428,7 +428,7 @@ void show_scene(
 }
 
 // field_hit
-//   struct: what the mouse is doing over a field panel -- the cell under it,
+//   struct: what the mouse is doing over a field panel - the cell under it,
 // if any, and whether that cell was clicked this frame.
 struct field_hit
 {

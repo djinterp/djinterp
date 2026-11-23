@@ -92,8 +92,8 @@ TABLE OF CONTENTS
 // D_CFG_POSTGRES_CLIENT_MIN_MESSAGES
 //   knob: the client_min_messages a connection the layer makes starts with,
 // as a level the server knows. The default, "warning", keeps NOTICE-level
-// messages -- "relation already exists, skipping", "drop cascades to 2 other
-// objects" -- from being sent at all, as several frameworks' adapters do;
+// messages - "relation already exists, skipping", "drop cascades to 2 other
+// objects" - from being sent at all, as several frameworks' adapters do;
 // "" leaves the server's default, "notice", which libpq's default notice
 // processor prints on stderr.
 #ifndef D_CFG_POSTGRES_CLIENT_MIN_MESSAGES

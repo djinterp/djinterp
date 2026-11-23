@@ -6,8 +6,8 @@
 *   The prefix is matched as bytes; whether a file has the operand's name is
 * asked of filesys, as the kit's own writes ask it, following a symbolic
 * link to what it names. Only the want of memory is a failure: a name that
-* cannot be looked at for any other reason -- not there, not reachable, too
-* long -- is no file to warn of.
+* cannot be looked at for any other reason - not there, not reachable, too
+* long - is no file to warn of.
 *
 *
 * path:      /src/djinterp/tools/cli/c/cli_operand.c

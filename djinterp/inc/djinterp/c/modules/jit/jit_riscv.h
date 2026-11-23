@@ -3,16 +3,16 @@
 *
 * djinterp RISC-V (RV32I / RV64I) JIT encoder (fixed-width 32-bit words):
 *   The RISC-V half of the djinterp JIT. Unlike x86/x86-64 or ARM A32/A64, the
-* RV32I and RV64I base integer encodings are identical -- the register width
-* (XLEN) is not encoded in an instruction -- so one module serves both, and
+* RV32I and RV64I base integer encodings are identical - the register width
+* (XLEN) is not encoded in an instruction - so one module serves both, and
 * RV64 differs only by adding instructions. The shared base ISA (plus the M-
 * extension MUL) is in sections D-K; the RV64I-only instructions (word ops and
 * the wider loads/stores) are isolated in section L and must not be emitted for
 * an RV32 target. All base encodings were verified on both riscv32 and riscv64
 * via llvm-mc; RV64-only ones on riscv64.
 *
-*   Six formats -- R (reg,reg,reg), I (reg,reg,imm), S (store), B (branch), U
-* (upper-immediate), J (jump) -- are assembled internally from the opcode and
+*   Six formats - R (reg,reg,reg), I (reg,reg,imm), S (store), B (branch), U
+* (upper-immediate), J (jump) - are assembled internally from the opcode and
 * funct fields. Immediates are sign-checked where the format bounds them.
 * Branch and jump targets are dj_jit_label (see jit.h).
 *
@@ -42,7 +42,7 @@
 #include "../../../../re_std/c/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -396,7 +396,7 @@ D_NODISCARD int d_jit_riscv_emit_srai(
 // ---------------------------------------------------------------------------
 
 // d_jit_riscv_emit_lb
-//   function: lb rd, _off(base) -- load (signed 12-bit offset).
+//   function: lb rd, _off(base) - load (signed 12-bit offset).
 D_NODISCARD int d_jit_riscv_emit_lb(
     dj_jit_buffer* _buf,
     int            _rd,
@@ -405,7 +405,7 @@ D_NODISCARD int d_jit_riscv_emit_lb(
 );
 
 // d_jit_riscv_emit_lh
-//   function: lh rd, _off(base) -- load (signed 12-bit offset).
+//   function: lh rd, _off(base) - load (signed 12-bit offset).
 D_NODISCARD int d_jit_riscv_emit_lh(
     dj_jit_buffer* _buf,
     int            _rd,
@@ -414,7 +414,7 @@ D_NODISCARD int d_jit_riscv_emit_lh(
 );
 
 // d_jit_riscv_emit_lw
-//   function: lw rd, _off(base) -- load (signed 12-bit offset).
+//   function: lw rd, _off(base) - load (signed 12-bit offset).
 D_NODISCARD int d_jit_riscv_emit_lw(
     dj_jit_buffer* _buf,
     int            _rd,
@@ -423,7 +423,7 @@ D_NODISCARD int d_jit_riscv_emit_lw(
 );
 
 // d_jit_riscv_emit_lbu
-//   function: lbu rd, _off(base) -- load (signed 12-bit offset).
+//   function: lbu rd, _off(base) - load (signed 12-bit offset).
 D_NODISCARD int d_jit_riscv_emit_lbu(
     dj_jit_buffer* _buf,
     int            _rd,
@@ -432,7 +432,7 @@ D_NODISCARD int d_jit_riscv_emit_lbu(
 );
 
 // d_jit_riscv_emit_lhu
-//   function: lhu rd, _off(base) -- load (signed 12-bit offset).
+//   function: lhu rd, _off(base) - load (signed 12-bit offset).
 D_NODISCARD int d_jit_riscv_emit_lhu(
     dj_jit_buffer* _buf,
     int            _rd,
@@ -445,7 +445,7 @@ D_NODISCARD int d_jit_riscv_emit_lhu(
 // ---------------------------------------------------------------------------
 
 // d_jit_riscv_emit_sb
-//   function: sb src, _off(base) -- store (signed 12-bit offset).
+//   function: sb src, _off(base) - store (signed 12-bit offset).
 D_NODISCARD int d_jit_riscv_emit_sb(
     dj_jit_buffer* _buf,
     int            _src,
@@ -454,7 +454,7 @@ D_NODISCARD int d_jit_riscv_emit_sb(
 );
 
 // d_jit_riscv_emit_sh
-//   function: sh src, _off(base) -- store (signed 12-bit offset).
+//   function: sh src, _off(base) - store (signed 12-bit offset).
 D_NODISCARD int d_jit_riscv_emit_sh(
     dj_jit_buffer* _buf,
     int            _src,
@@ -463,7 +463,7 @@ D_NODISCARD int d_jit_riscv_emit_sh(
 );
 
 // d_jit_riscv_emit_sw
-//   function: sw src, _off(base) -- store (signed 12-bit offset).
+//   function: sw src, _off(base) - store (signed 12-bit offset).
 D_NODISCARD int d_jit_riscv_emit_sw(
     dj_jit_buffer* _buf,
     int            _src,
@@ -476,7 +476,7 @@ D_NODISCARD int d_jit_riscv_emit_sw(
 // ---------------------------------------------------------------------------
 
 // d_jit_riscv_emit_lui
-//   function: lui rd, #_imm20 -- rd = _imm20 << 12 (low 20 bits used).
+//   function: lui rd, #_imm20 - rd = _imm20 << 12 (low 20 bits used).
 D_NODISCARD int d_jit_riscv_emit_lui(
     dj_jit_buffer* _buf,
     int            _rd,
@@ -484,7 +484,7 @@ D_NODISCARD int d_jit_riscv_emit_lui(
 );
 
 // d_jit_riscv_emit_auipc
-//   function: auipc rd, #_imm20 -- rd = pc + (_imm20 << 12).
+//   function: auipc rd, #_imm20 - rd = pc + (_imm20 << 12).
 D_NODISCARD int d_jit_riscv_emit_auipc(
     dj_jit_buffer* _buf,
     int            _rd,
@@ -496,7 +496,7 @@ D_NODISCARD int d_jit_riscv_emit_auipc(
 // ---------------------------------------------------------------------------
 
 // d_jit_riscv_emit_beq
-//   function: beq rs1, rs2, _target -- branch if rs1 == rs2.
+//   function: beq rs1, rs2, _target - branch if rs1 == rs2.
 D_NODISCARD int d_jit_riscv_emit_beq(
     dj_jit_buffer* _buf,
     int            _rs1,
@@ -505,7 +505,7 @@ D_NODISCARD int d_jit_riscv_emit_beq(
 );
 
 // d_jit_riscv_emit_bne
-//   function: bne rs1, rs2, _target -- branch if rs1 != rs2.
+//   function: bne rs1, rs2, _target - branch if rs1 != rs2.
 D_NODISCARD int d_jit_riscv_emit_bne(
     dj_jit_buffer* _buf,
     int            _rs1,
@@ -514,7 +514,7 @@ D_NODISCARD int d_jit_riscv_emit_bne(
 );
 
 // d_jit_riscv_emit_blt
-//   function: blt rs1, rs2, _target -- branch if rs1 < signed rs2.
+//   function: blt rs1, rs2, _target - branch if rs1 < signed rs2.
 D_NODISCARD int d_jit_riscv_emit_blt(
     dj_jit_buffer* _buf,
     int            _rs1,
@@ -523,7 +523,7 @@ D_NODISCARD int d_jit_riscv_emit_blt(
 );
 
 // d_jit_riscv_emit_bge
-//   function: bge rs1, rs2, _target -- branch if rs1 >= signed rs2.
+//   function: bge rs1, rs2, _target - branch if rs1 >= signed rs2.
 D_NODISCARD int d_jit_riscv_emit_bge(
     dj_jit_buffer* _buf,
     int            _rs1,
@@ -532,7 +532,7 @@ D_NODISCARD int d_jit_riscv_emit_bge(
 );
 
 // d_jit_riscv_emit_bltu
-//   function: bltu rs1, rs2, _target -- branch if rs1 < unsigned rs2.
+//   function: bltu rs1, rs2, _target - branch if rs1 < unsigned rs2.
 D_NODISCARD int d_jit_riscv_emit_bltu(
     dj_jit_buffer* _buf,
     int            _rs1,
@@ -541,7 +541,7 @@ D_NODISCARD int d_jit_riscv_emit_bltu(
 );
 
 // d_jit_riscv_emit_bgeu
-//   function: bgeu rs1, rs2, _target -- branch if rs1 >= unsigned rs2.
+//   function: bgeu rs1, rs2, _target - branch if rs1 >= unsigned rs2.
 D_NODISCARD int d_jit_riscv_emit_bgeu(
     dj_jit_buffer* _buf,
     int            _rs1,
@@ -554,7 +554,7 @@ D_NODISCARD int d_jit_riscv_emit_bgeu(
 // ---------------------------------------------------------------------------
 
 // d_jit_riscv_emit_jal
-//   function: jal rd, _target -- jump and link; rd gets the return address
+//   function: jal rd, _target - jump and link; rd gets the return address
 // (+/-1 MB). Use REG_RA for a call, REG_ZERO for a plain jump.
 D_NODISCARD int d_jit_riscv_emit_jal(
     dj_jit_buffer* _buf,
@@ -563,7 +563,7 @@ D_NODISCARD int d_jit_riscv_emit_jal(
 );
 
 // d_jit_riscv_emit_jalr
-//   function: jalr rd, _off(rs1) -- indirect jump to (rs1 + _off) & ~1.
+//   function: jalr rd, _off(rs1) - indirect jump to (rs1 + _off) & ~1.
 D_NODISCARD int d_jit_riscv_emit_jalr(
     dj_jit_buffer* _buf,
     int            _rd,
@@ -572,14 +572,14 @@ D_NODISCARD int d_jit_riscv_emit_jalr(
 );
 
 // d_jit_riscv_emit_j
-//   function: j _target -- unconditional jump (jal with rd = zero).
+//   function: j _target - unconditional jump (jal with rd = zero).
 D_NODISCARD int d_jit_riscv_emit_j(
     dj_jit_buffer* _buf,
     dj_jit_label*  _target
 );
 
 // d_jit_riscv_emit_call
-//   function: jal ra, _target -- direct call within +/-1 MB.
+//   function: jal ra, _target - direct call within +/-1 MB.
 D_NODISCARD int d_jit_riscv_emit_call(
     dj_jit_buffer* _buf,
     dj_jit_label*  _target
@@ -592,7 +592,7 @@ D_NODISCARD int d_jit_riscv_emit_ret(
 );
 
 // d_jit_riscv_emit_jr
-//   function: jr rs1 (jalr zero, 0(rs1)) -- indirect jump.
+//   function: jr rs1 (jalr zero, 0(rs1)) - indirect jump.
 D_NODISCARD int d_jit_riscv_emit_jr(
     dj_jit_buffer* _buf,
     int            _rs1
@@ -646,7 +646,7 @@ D_NODISCARD int d_jit_riscv_emit_li(
 // ---------------------------------------------------------------------------
 
 // d_jit_riscv_emit_lwu
-//   function: lwu rd, _off(base) -- load (signed 12-bit offset).
+//   function: lwu rd, _off(base) - load (signed 12-bit offset).
 D_NODISCARD int d_jit_riscv_emit_lwu(
     dj_jit_buffer* _buf,
     int            _rd,
@@ -655,7 +655,7 @@ D_NODISCARD int d_jit_riscv_emit_lwu(
 );
 
 // d_jit_riscv_emit_ld
-//   function: ld rd, _off(base) -- load (signed 12-bit offset).
+//   function: ld rd, _off(base) - load (signed 12-bit offset).
 D_NODISCARD int d_jit_riscv_emit_ld(
     dj_jit_buffer* _buf,
     int            _rd,
@@ -664,7 +664,7 @@ D_NODISCARD int d_jit_riscv_emit_ld(
 );
 
 // d_jit_riscv_emit_sd
-//   function: sd src, _off(base) -- store (signed 12-bit offset).
+//   function: sd src, _off(base) - store (signed 12-bit offset).
 D_NODISCARD int d_jit_riscv_emit_sd(
     dj_jit_buffer* _buf,
     int            _src,
@@ -673,7 +673,7 @@ D_NODISCARD int d_jit_riscv_emit_sd(
 );
 
 // d_jit_riscv_emit_addiw
-//   function: addiw rd, rs1, #_imm -- 32-bit add-immediate (RV64).
+//   function: addiw rd, rs1, #_imm - 32-bit add-immediate (RV64).
 D_NODISCARD int d_jit_riscv_emit_addiw(
     dj_jit_buffer* _buf,
     int            _rd,
@@ -682,7 +682,7 @@ D_NODISCARD int d_jit_riscv_emit_addiw(
 );
 
 // d_jit_riscv_emit_slliw
-//   function: slliw rd, rs1, #_shamt -- 32-bit shift (RV64, shamt 0-31).
+//   function: slliw rd, rs1, #_shamt - 32-bit shift (RV64, shamt 0-31).
 D_NODISCARD int d_jit_riscv_emit_slliw(
     dj_jit_buffer* _buf,
     int            _rd,
@@ -691,7 +691,7 @@ D_NODISCARD int d_jit_riscv_emit_slliw(
 );
 
 // d_jit_riscv_emit_srliw
-//   function: srliw rd, rs1, #_shamt -- 32-bit shift (RV64, shamt 0-31).
+//   function: srliw rd, rs1, #_shamt - 32-bit shift (RV64, shamt 0-31).
 D_NODISCARD int d_jit_riscv_emit_srliw(
     dj_jit_buffer* _buf,
     int            _rd,
@@ -700,7 +700,7 @@ D_NODISCARD int d_jit_riscv_emit_srliw(
 );
 
 // d_jit_riscv_emit_sraiw
-//   function: sraiw rd, rs1, #_shamt -- 32-bit shift (RV64, shamt 0-31).
+//   function: sraiw rd, rs1, #_shamt - 32-bit shift (RV64, shamt 0-31).
 D_NODISCARD int d_jit_riscv_emit_sraiw(
     dj_jit_buffer* _buf,
     int            _rd,

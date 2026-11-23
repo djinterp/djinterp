@@ -3,7 +3,7 @@
 *
 * Matrix factorizations for the linear-algebra subframework.
 *   Three classic decompositions, each as a small value-type object that
-* performs the factorization on construction and then answers queries -- the
+* performs the factorization on construction and then answers queries - the
 * factor-once, use-many pattern. A free factory function (lu / qr / cholesky)
 * produces each object, so the procedural and fluent spellings coincide:
 *   procedural   lu_decomposition<double, 3> f = lu(A);  f.solve(b);
@@ -25,7 +25,7 @@
 *     fraction-free determinant in square.hpp instead.
 *   - LU uses partial pivoting for stability; a zero pivot column sets
 *     is_singular() and makes determinant() return 0 (solve/inverse are then
-*     not meaningful -- guard with is_singular()).
+*     not meaningful - guard with is_singular()).
 *   - QR uses Householder reflectors (numerically stable, full Q). R is upper
 *     triangular (upper-trapezoidal when M > N). Q is M x M and orthogonal.
 *   - Cholesky assumes a symmetric matrix and reads only the lower triangle. It
@@ -355,8 +355,8 @@ NS_INTERNAL
     };
 
     // decomp_requires_float
-    //   struct: the decompositions' requirement -- float, double or long
-    // double -- asserted at class scope.
+    //   struct: the decompositions' requirement - float, double or long
+    // double - asserted at class scope.
     template<typename T>
     struct decomp_requires_float
     {

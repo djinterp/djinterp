@@ -11,8 +11,8 @@
 * the statements between for what it was to do; only then are the file's
 * text and records the candidate's. Comments are compared as statements
 * are.
-*   A change that adds to a statement splices within it -- before its last
-* line ending, not past it -- so that the statement is one the splice cuts.
+*   A change that adds to a statement splices within it - before its last
+* line ending, not past it - so that the statement is one the splice cuts.
 *   Files are read and written with c/text's helpers, the directories a
 * file goes in made with dfs's.
 *
@@ -62,7 +62,7 @@ struct dj_ninja_doc
 // dj_internal_candidate
 //   struct: a change not yet kept: the new text and its records, where the
 //   splice stands in the old text and the new, and how the statements fall
-//   about it -- `before` whole before it in both, the old's from
+//   about it - `before` whole before it in both, the old's from
 //   `old_after` and the new's from `new_after` whole after it.
 struct dj_internal_candidate
 {
@@ -632,8 +632,8 @@ bool d_internal_mapped_within(
 /*
 d_internal_place_statements
   How the statements of both texts fall about the splice: those wholly
-before it in the old, which the new must hold as they were -- a statement
-the splice cut may end where it starts now, and is not among them -- and
+before it in the old, which the new must hold as they were - a statement
+the splice cut may end where it starts now, and is not among them - and
 those wholly after it in each; false when the new has too few, or as many
 do not lie after it in both.
 */

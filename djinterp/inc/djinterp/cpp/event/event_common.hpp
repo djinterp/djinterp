@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][event]                                         event_common.hpp
 *
-* Event foundations -- the alphabet layer:
+* Event foundations - the alphabet layer:
 *   The base vocabulary of the event system, formalized after the companion
 * note "Definition of an Event". Defines event-type introspection
 * (event_traits), the verdict set P = {pass, consume} returned by every
@@ -15,13 +15,13 @@
 * usable and the concepts are simply omitted (no hard #error).
 *
 * FORMAL CORRESPONDENCE ("Definition of an Event"):
-*   event type e, payload A_e   -- an event tag with a nested `payload_type`
+*   event type e, payload A_e   - an event tag with a nested `payload_type`
 *                                  (a std::tuple of value domains); the legacy
 *                                  spelling `args_type` is still accepted.
-*   alphabet  Sigma             -- the (open) set of declared event tags.
-*   verdict   P = {pass,consume} -- enum class verdict; `consume` is the left
+*   alphabet  Sigma             - the (open) set of declared event tags.
+*   verdict   P = {pass,consume} - enum class verdict; `consume` is the left
 *                                  zero of handler sequencing (see handler.hpp).
-*   D_EVENT / D_EVENT_EMPTY      -- declare one summand of the alphabet.
+*   D_EVENT / D_EVENT_EMPTY      - declare one summand of the alphabet.
 *
 * COMPONENTS:
 *   djinterp::verdict                 - the two-point verdict set P

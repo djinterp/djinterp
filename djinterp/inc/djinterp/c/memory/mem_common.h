@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][memory]                                              mem_common.h
 *
-* Memory foundations -- the shared C core (tier 0):
+* Memory foundations - the shared C core (tier 0):
 *   The vocabulary layer of the memory subframework, declared once in C and
 * compiled by both languages. Defines the counter type every allocator counts
 * in, the status set every fallible operation reports through, the byte-block
@@ -123,7 +123,7 @@ VIII. ARGUMENT POLICY
 *     1           - kernels are `static inline`; every TU gets its own copy
 *                   and no .c file is required for them. The out-of-line
 *                   module API (arena, pool, slab operations) still lives in
-*                   the .c files either way -- this knob governs the header
+*                   the .c files either way - this knob governs the header
 *                   kernels only.
 */
 
@@ -232,7 +232,7 @@ struct dj_mem_align_probe
 // D_MEM_ALIGN_DEFAULT
 //   constant: the alignment applied when a caller passes 0. Resolves the
 // configured default, whose 0 means "whatever the platform demands of an
-// allocation of unknown type" -- the only safe answer, and the reason 0 is
+// allocation of unknown type" - the only safe answer, and the reason 0 is
 // what D_CFG_MEM_DEFAULT_ALIGN ships as.
 #if (D_INTERNAL_MEM_DEFAULT_ALIGN_CFG == 0)
 #   define D_MEM_ALIGN_DEFAULT      D_MEM_MAX_ALIGN
@@ -300,7 +300,7 @@ enum dj_mem_status
     // the upstream source refused, or a fixed-capacity allocator is full
     D_MEM_ERR_EXHAUSTED   = 4,
 
-    // the allocator's configuration forbids this operation -- releasing an
+    // the allocator's configuration forbids this operation - releasing an
     // individual block from a monotonic arena, or sweeping a generation in a
     // pool whose release policy carries no generations
     D_MEM_ERR_UNSUPPORTED = 5,
@@ -317,7 +317,7 @@ enum dj_mem_status
 
     // the block was already released: a second release of one slot, caught
     // where D_CFG_POOL_DOUBLE_FREE_CHECK compiles the check. Distinct from
-    // CORRUPT because nothing is broken yet -- the release is refused before
+    // CORRUPT because nothing is broken yet - the release is refused before
     // it can thread the free list through itself
     D_MEM_ERR_RELEASED    = 9
 };
@@ -334,7 +334,7 @@ enum dj_mem_status
 // dj_mem_block
 //   struct: a borrowed view of a contiguous byte range. The universal currency
 // of this subframework: every source hands one back, every arena region is
-// one, and every bulk operation takes one. It OWNS NOTHING -- the allocator
+// one, and every bulk operation takes one. It OWNS NOTHING - the allocator
 // that produced it owns the bytes, and the view is valid only as long as that
 // allocator says it is.
 struct dj_mem_block
@@ -361,7 +361,7 @@ bool d_mem_is_pow2(
 }
 
 // d_mem_align_normalize
-//   kernel: the alignment a request will actually be given -- the caller's
+//   kernel: the alignment a request will actually be given - the caller's
 // value, or the default when it passed 0, raised to the configured floor.
 // Every module normalizes before validating, so that a caller passing 0 is
 // always correct and never merely tolerated.
@@ -381,7 +381,7 @@ dj_mem_size d_mem_align_normalize(
 
 // d_mem_align_is_valid
 //   kernel: true when a NORMALIZED alignment is one this subframework will
-// honour -- a power of two within [D_MEM_ALIGN_MIN, D_MEM_ALIGN_MAX].
+// honour - a power of two within [D_MEM_ALIGN_MIN, D_MEM_ALIGN_MAX].
 D_MEM_FN
 bool d_mem_align_is_valid(
     dj_mem_size _align
@@ -420,7 +420,7 @@ dj_mem_size d_mem_align_accept(
 //   kernel: _value rounded up to the next multiple of _align, which MUST be a
 // power of two. UNCHECKED: when _value is within _align-1 of D_MEM_SIZE_MAX
 // the sum wraps and the result is smaller than _value. Use it only where the
-// magnitude is already known to be bounded -- a slot size, a header size --
+// magnitude is already known to be bounded - a slot size, a header size --
 // and use d_mem_align_up_checked everywhere a caller's number is involved.
 D_MEM_FN
 dj_mem_size d_mem_align_up(
@@ -531,7 +531,7 @@ struct dj_mem_stats
 #define D_MEM_REDZONE_BYTES         D_INTERNAL_MEM_REDZONE_BYTES
 
 // D_MEM_REDZONE_TOTAL
-//   constant: what a guarded block costs over an unguarded one -- two bands.
+//   constant: what a guarded block costs over an unguarded one - two bands.
 #define D_MEM_REDZONE_TOTAL         (D_MEM_REDZONE_BYTES * (dj_mem_size)2)
 
 // d_mem_redzone_lead
@@ -541,7 +541,7 @@ struct dj_mem_stats
 // then skips the lead to reach the payload; if the lead were not a multiple of
 // the alignment, that skip would land the payload off its boundary and each
 // allocator would need its own correction. Rounded, the redzone interacts with
-// alignment in exactly one place -- this function -- and nowhere else.
+// alignment in exactly one place - this function - and nowhere else.
 //   Zero when redzones are off, so a caller adds it unconditionally rather
 // than branching on the knob.
 D_MEM_FN

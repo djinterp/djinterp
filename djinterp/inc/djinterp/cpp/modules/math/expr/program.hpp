@@ -7,7 +7,7 @@
 * each node it builds a vector of its operands' answers, each answer a result
 * that can hold an error's text, and it finds each function, each constant
 * and each variable by its name. A term evaluated many times at other
-* values -- plotted, integrated, solved for, fitted -- pays all of that each
+* values - plotted, integrated, solved for, fitted - pays all of that each
 * time: some 130 times the cost of the same arithmetic written in C++
 * (2026.11.12). A program pays it once.
 *   WHAT IT IS. expr_compile<T>(term) walks the term once, as the fold does,

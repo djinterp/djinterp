@@ -63,7 +63,7 @@ struct dj_tests_imap_command_rule
 
 /*
 ERRORS
-  Every error, its name -- the enumerator's suffix, lower-cased -- and where
+  Every error, its name - the enumerator's suffix, lower-cased - and where
 net_common.h's rules place it.
 */
 static const struct dj_tests_imap_error_case ERRORS[] =

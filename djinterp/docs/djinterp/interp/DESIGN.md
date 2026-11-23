@@ -164,7 +164,7 @@ Later its C core goes in `c/modules/interp/`, as parse has both.
 
 ## 3. The spine on expression core v2
 
-The spine has the right shape -- read, parse, fold -- and runs a subset of
+The spine has the right shape - read, parse, fold - and runs a subset of
 the language: commands joined by `|`. The interpreter keeps the shape and
 replaces each leg's insides.
 
@@ -195,8 +195,8 @@ bracket or the end. The command's own parser decides what they mean.
   - the rulings on the kit's grammar (R1 to R20, cli-taken 13 to 85) hold
     inside the language unchanged.
 
-This is cli-taken 51's principle -- one reading of a command line, the
-parser's -- carried into the language.
+This is cli-taken 51's principle - one reading of a command line, the
+parser's - carried into the language.
 
 ### 3.2 The grammar
 
@@ -303,7 +303,7 @@ answer to `report`.
 P8 is a new construct, not a fix.
 
 - **The alternative** is commands that filter by running a predicate command
-  per item -- find's model -- with no block syntax.
+  per item - find's model - with no block syntax.
 - **Recommended: the block.** The same construct carries awk's shape and the
   language's own `where`, `each` and `sort-by`. A predicate command run per
   item cannot see the item it is run for without a convention outside the
@@ -516,7 +516,7 @@ core's own reading of them (`option_env_desc.h`), so `describe`, `help` and
 `get --show-origin` cannot disagree. With no djin of the program's own yet,
 `list` names the registry's frames as "settings only": every core djin's
 -- parse's, desc's, the environment printer's and the log's, which
-`djinterp` registers from 11-20 -- and the kit's `cli`.
+`djinterp` registers from 11-20 - and the kit's `cli`.
 
 - **`get`** prints statements, `net.timeout_ms = 5000`, one a line, with
   `d_option_env_format_quoted`. So its output can be pasted into a settings
@@ -563,8 +563,8 @@ Not in 0.8. In 0.9:
 - `list` then names where each came from.
 
 **The search list is a setting that decides what code runs**, so where
-`D_CFG_CLI_PLUGIN_VARIABLE` is 0 its rows -- `plugin_path` and
-`cli.plugin_search` -- refuse every source the program's caller controls:
+`D_CFG_CLI_PLUGIN_VARIABLE` is 0 its rows - `plugin_path` and
+`cli.plugin_search` - refuse every source the program's caller controls:
 the user's file, the environment and the command line
 (`D_OPTION_ENV_REFUSES_CALLER`, option_env's decision 69). The program and
 an override still bind them. A builder who trusts one of those sources
@@ -582,7 +582,7 @@ into the language's types.
 
 - **awk is a djin, `awk`, in djinterp's registry.** dawk the tool keeps a
   registry of its own, `dawk`, whose environment prefix is `DAWK_`.
-  - Its command is `run`, which takes a program -- text, or a file -- and
+  - Its command is `run`, which takes a program - text, or a file - and
     its operands.
   - Its settings are the awk machine's own, spelled as rows: `awk.fs`,
     `awk.ofs`, `awk.rs` and `awk.ors`.
@@ -657,7 +657,7 @@ into the language's types.
 | Wed 11-18 | The records' `describe` takes desc's sink, and `D_DJIN_ABI` is 2. `get --show-origin` reads the default from the layers where they end with it. Every result is written through the kit's watched output, so a full disk is said with its reason. `settings`, `cli` and `language` are reserved. |
 | Fri 11-20 | `djinterp` registers every core djin. `describe DJIN [COMMAND]` and `--format=json`. `set` checks each setting as the file will bind it, and writes its canonical name. The plugin rows refuse the caller's sources where `D_CFG_CLI_PLUGIN_VARIABLE` is 0. The kit's suites run on DTest. The kit holds what the user's file and the environment could not set, and says it once the parse ends, as two settings of its own say: `cli.unknown_settings` (by default, nothing for a djin the program does not register) and `cli.shared_refusals` (by default, a note at `-v`). |
 | Mon 11-23 | The kit reads the command line's settings through the argument parser's setting hook. `help --format=json` writes the program's description, `"djinterp.help/1.0"` (`docs/djinterp/tools/cli/HELP_JSON.md`). The interpreter's skeleton, its first step: `language.hpp` reads a line or a command line, sequences and pipelines, into core v2's term through its C API, and `evaluate.hpp` walks it, a pipeline ended by its first stage in trouble. Its suite runs at each C++ level from C++11, in its own leaf (`build/cmake/config/testing/djinterp/cpp/modules/interp/skeleton/`); nothing of it is installed. |
-| Weeks 2 and 3 | The 0.8 preview (6.4) whole: `describe DJIN COMMAND` and `--format=json` on desc's sink, and a djin's commands run. The interpreter's skeleton on core v2 -- sequences and pipelines -- behind it. |
+| Weeks 2 and 3 | The 0.8 preview (6.4) whole: `describe DJIN COMMAND` and `--format=json` on desc's sink, and a djin's commands run. The interpreter's skeleton on core v2 - sequences and pipelines - behind it. |
 | Week 4 | The preview's suites and docs; this note's December half, refined. |
 | December | Predicates, blocks and values; djins through the interpreter; awk run by dawk; the language frozen 12-11; suites, docs and the man page by 12-18. |
 

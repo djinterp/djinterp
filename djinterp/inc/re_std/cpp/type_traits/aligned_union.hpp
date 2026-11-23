@@ -102,7 +102,7 @@ namespace re_std
         // alignment_value
         //   constant: maximum alignment among Types. Declared
         //             `static const` (not `static constexpr`) for
-        //             reliability across the C++11+ matrix -- the
+        //             reliability across the C++11+ matrix - the
         //             integral-type-with-constant-initializer rule has
         //             worked since C++98, so no compiler in our gate
         //             will reject this even if its constexpr support

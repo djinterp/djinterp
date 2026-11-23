@@ -2,7 +2,7 @@
 * djinterp [c][db]                                            mongodb_document.c
 *
 * Implementation of mongodb_document.h.
-*   Each function is the driver's own CRUD call -- insert_one, find_with_opts,
+*   Each function is the driver's own CRUD call - insert_one, find_with_opts,
 * update_one, count_documents, find_and_modify_with_opts, a bulk operation --
 * on a collection the driver hands out from the handle's client, so that
 * reads follow the client's read concern and read preference and writes its
@@ -1735,8 +1735,8 @@ d_internal_mongodb_modify_flag(
  * @return `true`, or `false` for a value the option cannot take.
  *
  * sort, projection, upsert, returnDocument, bypassDocumentValidation and
- * maxTimeMS have calls of the driver's; the rest -- collation, hint,
- * arrayFilters, let, comment, writeConcern -- go into the command as they
+ * maxTimeMS have calls of the driver's; the rest - collation, hint,
+ * arrayFilters, let, comment, writeConcern - go into the command as they
  * are, where the driver reads writeConcern for itself.
  */
 static bool
@@ -2534,8 +2534,8 @@ int d_internal_mongodb_bulk_add(
  *         flags say, or a bypassDocumentValidation that is not a boolean;
  *         the session's failure.
  *
- * bypassDocumentValidation has a call of its own; the rest -- writeConcern,
- * comment, let -- are the bulk's options, which a driver that does not
+ * bypassDocumentValidation has a call of its own; the rest - writeConcern,
+ * comment, let - are the bulk's options, which a driver that does not
  * take one refuses when it is made.
  */
 static
@@ -3090,7 +3090,7 @@ bool d_internal_mongodb_append_replace(
 }
 
 /**
- * @brief Appends a delete model -- deleteOne, deleteMany -- to a client's
+ * @brief Appends a delete model - deleteOne, deleteMany - to a client's
  *        bulk write.
  *
  * @param[in,out] _write    the bulk write.

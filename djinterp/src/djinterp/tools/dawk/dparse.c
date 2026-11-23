@@ -985,7 +985,7 @@ struct dj_awk_node* d_internal_primary(
             }
 
             // A parenthesised comma list is `(subscript) in array` when `in`
-            // follows, and otherwise print's argument list -- `print (a, b)`.
+            // follows, and otherwise print's argument list - `print (a, b)`.
             // Nothing else in the grammar accepts one, so it is carried as a
             // GROUPLIST that print flattens and every other context rejects.
             if (!d_internal_accept(_p, D_AWK_TOK_IN))

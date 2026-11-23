@@ -8,8 +8,8 @@
 * with as<T>(). tools/cppref/cppref.py compiles that section against CLI11
 * 2.7.2, through the face's names for CLI11's (cli11_shim.hpp), and the
 * transcripts below are what CLI11 wrote; so the CASES section is written in
-* the part of the face CLI11 shares -- `->` on every handle, no status taken
-* from a call -- and C++98 unless a guard says otherwise. A variable is
+* the part of the face CLI11 shares - `->` on every handle, no status taken
+* from a call - and C++98 unless a guard says otherwise. A variable is
 * written by the section's own writers, the same in both builds, so that a
 * transcript compares what a parse put in it, not how each library writes
 * it. The sections that are the module's own are written apart, after it,
@@ -413,7 +413,7 @@ const char WIDE_TEXT[] =
 
 // TYPE_NAMES
 //   constant: what the steps of d_tests_arg_cpp_type_names write: the
-// module's own, as CLI11's types have no descriptors to read -- its type
+// module's own, as CLI11's types have no descriptors to read - its type
 // names are a detail of its own, which the sections above compare through
 // the options.
 const char TYPE_NAMES[] =
@@ -514,14 +514,14 @@ const char CALLER_TRAITS[] =
 //   constant: what the steps of d_tests_arg_cpp_type_departures write: the
 // module's own, where the face writes or reads a value otherwise than
 // CLI11. CLI11 writes a default given as a real number to every digit
-// max_digits10 allows -- 0.1 as `0.10000000000000001`, 0.1f as
-// `0.100000001` -- and captures an 8-bit integer as a character, 65 as `A`
+// max_digits10 allows - 0.1 as `0.10000000000000001`, 0.1f as
+// `0.100000001` - and captures an 8-bit integer as a character, 65 as `A`
 // (ISSUES 23); it writes a truth value and a character given as defaults
 // with std::to_string, `true` as `1` and 'c' as `99` (ISSUES 60); it reads
 // `010` as eight, where a parser here reads it as ten unless the option's
 // rule is C's (D_CFG_ARG_PARSER_INTEGER_RULE); it leaves a variable a value
 // does not convert into holding what its conversion wrote before it failed
-// -- `[1]` for a vector given `1 x 3`, `(1,0)` for a complex number given
+// - `[1]` for a vector given `1 x 3`, `(1,0)` for a complex number given
 // `1+zi`, `{b:2}` for a map given `b 2 c x` (ISSUES 34); and, from C++20,
 // it reads an aggregate as made from a number, `1,2` as 12 (ISSUES 53).
 const char DEPARTED[] =
@@ -558,7 +558,7 @@ const char DEPARTED[] =
 // variable, and from C++20 with its unit, `9s`, which its conversion then
 // cannot read, so that default_val throws ConversionError (ISSUES 53); and
 // it writes a value of a type with no text form as nothing, an empty
-// default it then puts, converted, in a bound variable -- `tag_t("")` for
+// default it then puts, converted, in a bound variable - `tag_t("")` for
 // `tag_t("t")` (ISSUES 60).
 const char DEPARTED_CPP11[] =
     "seconds default=[9]\n"
@@ -592,7 +592,7 @@ const char DEPARTED_CPP17[] =
 //   constant: what the steps of d_tests_arg_cpp_type_departures_wide write:
 // the module's own, where the face writes or reads wide text otherwise than
 // CLI11 (ISSUES 53): CLI11 writes a std::wstring as a container of its
-// characters' numbers -- `[100,233]` for L"dé" -- and, from C++20,
+// characters' numbers - `[100,233]` for L"dé" - and, from C++20,
 // where a wchar_t no longer streams, as `[]`, which a default given so
 // then puts in the variable; and its widen throws std::range_error out of
 // the parse for a value that is not UTF-8.
@@ -770,7 +770,7 @@ struct tag_t
 
 // The writers a transcript writes a variable with: a value as a stream
 // writes it, by default, and those a stream writes otherwise or not at all
-// each by an overload of its own -- a truth value as a word, a character
+// each by an overload of its own - a truth value as a word, a character
 // and text between quotes, escaped, and a composed value of its parts. Each
 // is declared before the composed writers that call it, as a call in a
 // template finds only what is declared before the template but through the
@@ -795,8 +795,8 @@ std::string streamed(
 }
 
 /**
- * @brief A value of a type that has no overload of its own -- a number, a
- *        complex number, a streamed type -- as a stream writes it.
+ * @brief A value of a type that has no overload of its own - a number, a
+ *        complex number, a streamed type - as a stream writes it.
  *
  * @param[in] _value  the value.
  * @return the text.
@@ -1242,8 +1242,8 @@ std::string shown(
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 /**
- * @brief Writes how a bound option takes its values -- its type's name,
- *        the values it expects and the size of one -- on one line.
+ * @brief Writes how a bound option takes its values - its type's name,
+ *        the values it expects and the size of one - on one line.
  *
  * @param[in,out] _run     the run.
  * @param[in]     _label   what the line names the option by.
@@ -1778,8 +1778,8 @@ const std::size_t TEXTS_COUNT = sizeof(TEXTS_STEPS) / sizeof(TEXTS_STEPS[0]);
 //------------------------------------------------------------------------------
 
 /**
- * @brief CONTAINERS 1: sequences -- a vector, a list, a double-ended queue
- *        -- each given several values, one negative.
+ * @brief CONTAINERS 1: sequences - a vector, a list, a double-ended queue
+ *        - each given several values, one negative.
  *
  * @param[in,out] _run  the step's run.
  */
@@ -2435,8 +2435,8 @@ void kinds_others(
 }
 
 /**
- * @brief KINDS_CPP11 4: defaults given as values of these types -- a
- *        tuple, an array, enumerations -- and one captured from a type
+ * @brief KINDS_CPP11 4: defaults given as values of these types - a
+ *        tuple, an array, enumerations - and one captured from a type
  *        with no text form.
  *
  * @param[in,out] _run  the step's run.
@@ -2830,9 +2830,9 @@ void write_text(
 }
 
 /**
- * @brief CONVERTED 1: convert() over values of several types -- given,
+ * @brief CONVERTED 1: convert() over values of several types - given,
  *        empty, refused with the target kept, "{}" alone emptying a
- *        container -- and under C's integer rule.
+ *        container - and under C's integer rule.
  *
  * @param[in,out] _run  the step's run.
  */
@@ -3613,8 +3613,8 @@ const std::size_t DEPARTED_CPP11_COUNT =
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 /**
- * @brief DEPARTED_CPP17 1: an optional value's default -- given holding a
- *        value and none, and captured -- written as the value it holds.
+ * @brief DEPARTED_CPP17 1: an optional value's default - given holding a
+ *        value and none, and captured - written as the value it holds.
  *
  * @param[in,out] _run  the step's run.
  */
@@ -3939,8 +3939,8 @@ bool d_tests_arg_cpp_type_convert()
 
 /*
 d_tests_arg_cpp_type_caller_traits
-  Traits of the caller's own -- a type_traits specialization, and one
-deriving from container_traits -- used wherever the type is.
+  Traits of the caller's own - a type_traits specialization, and one
+deriving from container_traits - used wherever the type is.
   Tests the following:
   - an option bound to the type, and to a vector of it, the vector's
     elements converted by the caller's traits; a default written by the

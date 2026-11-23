@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][net]                                        smtp_tests_loopback.c
 *
-* djinterp SMTP kernel tests -- over loopback TCP.
+* djinterp SMTP kernel tests - over loopback TCP.
 *   Live sessions: the client connects with d_smtp_client_connect to a
 * server engine running on a thread of its own behind a tcp.h listener on
 * 127.0.0.1. Plaintext first; then, with the OpenSSL-family engine and the
@@ -252,7 +252,7 @@ void d_tests_smtp_server_stop(
 d_tests_smtp_deliver
   One client session against a started server: connect, authenticate when
 asked, send to two recipients, and quit. Returns the first error; `_client`
-is left closed, its reply and causes kept -- by connect itself, when that
+is left closed, its reply and causes kept - by connect itself, when that
 is what fails, so callers see that it does.
 */
 static enum dj_smtp_error
@@ -1458,8 +1458,8 @@ void d_tests_smtp_fqdn(
 
 /*
 d_tests_smtp_identity_is
-  The identity found for a connection placed at `_local` -- or one that
-knows no address, for NULL -- must be this machine's fully qualified name
+  The identity found for a connection placed at `_local` - or one that
+knows no address, for NULL - must be this machine's fully qualified name
 if it has one, and otherwise `_literal`, or UNSUPPORTED for NULL.
 */
 static

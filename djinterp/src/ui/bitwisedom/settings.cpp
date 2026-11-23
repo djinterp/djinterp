@@ -44,7 +44,7 @@ using uxoxo::option_set;
 /*
 windowed
   The model's setting, given the write the window posts to: the payload's
-"value" -- or, for a colour, its "r", "g", "b" and "a" -- in the form the
+"value" - or, for a colour, its "r", "g", "b" and "a" - in the form the
 model's write takes, each part the payload leaves out the setting's own,
 as it was.
 */

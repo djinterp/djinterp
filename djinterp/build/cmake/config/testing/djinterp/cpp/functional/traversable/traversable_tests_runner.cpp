@@ -6,13 +6,13 @@
 * hands the spec to run_module, whose exit code is the whole of main.
 *
 *   WHERE THE SPEC COMES FROM.  traversable_tests.hpp declares its tests_*
-* predicates flat (visible to every consumer) but -- unlike the cofree suite --
+* predicates flat (visible to every consumer) but - unlike the cofree suite --
 * ships NO per-section block_spec provider and NO inline traversable_spec()
 * provider (it predates the DTEST_SPEC_MODE two-faced-header idiom, and does not
 * pull in test_defaults.hpp).  The module_spec is therefore assembled here, from
 * those declarations, in build_traversable_spec() below; the blocks mirror the
 * header's section groups, and each row's descriptor is lifted from the test
-* body's own comment.  main() stays thin -- the spec is data in a helper.
+* body's own comment.  main() stays thin - the spec is data in a helper.
 *
 *   (If traversable_tests.hpp is later migrated to carry an inline
 * traversable_spec() guarded by DTEST_SPEC_MODE, delete build_traversable_spec()
@@ -30,7 +30,7 @@
 
 // std
 #include <string>
-// djinterp -- the framework surface (module_spec, run_module, the option set)
+// djinterp - the framework surface (module_spec, run_module, the option set)
 //   full-from-inc, and the suite header (bare, via the CMakeLists INCLUDES) for
 //   the tests_* declarations.  The suite header does not itself pull in
 //   test_defaults.hpp, so the runner includes it explicitly.
@@ -63,7 +63,7 @@ namespace
             "concept, the one shipped std::vector instance, and the generic "
             "traverse / sequence operations.",
             {
-                // -- I.  traversable protocol -------------------------------
+                // - I.  traversable protocol -------------------------------
                 dt::block_spec{
                     "I. traversable protocol",
                     "traversable_traits (the undefined primary) and "
@@ -111,7 +111,7 @@ namespace
                     }
                 },
 
-                // -- 0'. structural traits & concepts -----------------------
+                // - 0'. structural traits & concepts -----------------------
                 dt::block_spec{
                     "0'. structural traits & concepts",
                     "traversable_value_type, the internal identity / append "
@@ -161,7 +161,7 @@ namespace
                     }
                 },
 
-                // -- the std::vector instance -------------------------------
+                // - the std::vector instance -------------------------------
                 dt::block_spec{
                     "the std::vector instance",
                     "the one shipped instance: walk left-to-right, run "
@@ -218,7 +218,7 @@ namespace
                     }
                 },
 
-                // -- II. generic operations ---------------------------------
+                // - II. generic operations ---------------------------------
                 dt::block_spec{
                     "II. generic operations",
                     "traverse (delegated to the instance) and sequence (traverse "

@@ -84,16 +84,16 @@ struct dj_host_ninja;
 //   ninja_path(f), ninja_text(f), ninja_changes(f)
 // statements
 //   ninja_statements(f)             how many
-//   ninja_statement(f, n, field)    kind -- variable, rule, build, pool,
-//                                   default, include, subninja -- name, a
+//   ninja_statement(f, n, field)    kind - variable, rule, build, pool,
+//                                   default, include, subninja - name, a
 //                                   build's its rule's; value, unparsed, and
 //                                   value_text, as written, a variable's or
 //                                   an include's file; text, line,
 //                                   end_line, paths, bindings
 //   ninja_find(f, kind[, name[, after]])
 //                                   the first statement after `after` of the
-//                                   kind, and of the name -- a build's
-//                                   outputs, an include's file -- 0 for none
+//                                   kind, and of the name - a build's
+//                                   outputs, an include's file - 0 for none
 // paths and bindings
 //   ninja_paths(f, n[, section])    how many, of a section
 //   ninja_path_at(f, n, k[, field]) text, as written, by default; value,
@@ -132,14 +132,14 @@ struct dj_host_ninja;
 //   ninja_edges(g); ninja_edge(g, e, field)
 //                                   rule, phony, pool, file, line, outputs,
 //                                   implicit_outputs, inputs, implicit,
-//                                   order_only, validations -- the last six
+//                                   order_only, validations - the last six
 //                                   each a path to a line
 //   ninja_edge_var(g, e, name[, raw])
 //                                   a binding evaluated as ninja does, $in
 //                                   and $out shell-escaped unless raw; -1
 //                                   for a cycle
 //   ninja_nodes(g); ninja_node(g, n, field)
-//                                   path, in_edge -- 0 for a source --
+//                                   path, in_edge - 0 for a source --
 //                                   out_edges, validation_edges, each an
 //                                   edge to a line
 //   ninja_find_node(g, path)        made canonical first; 0 for none

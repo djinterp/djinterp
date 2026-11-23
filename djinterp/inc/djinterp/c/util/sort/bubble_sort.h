@@ -18,13 +18,13 @@
 * one in exactly one.
 *
 *   complexity:
-*     best:     O(n)        (already sorted -- one pass, no exchanges)
+*     best:     O(n)        (already sorted - one pass, no exchanges)
 *     average:  O(n^2)
 *     worst:    O(n^2)
 *     space:    O(1)        (in place; the exchange temporary is a stack block)
 *     stable:   yes         (only a STRICT precedence exchanges a pair)
 *
-*   WHEN TO REACH FOR IT.  Almost never on size alone -- quadratic is
+*   WHEN TO REACH FOR IT.  Almost never on size alone - quadratic is
 * quadratic.  It earns its place on ranges already nearly ordered, where the
 * shrinking bound makes it linear and beats an algorithm that cannot exploit
 * existing order, and on ranges small enough that the constant factor decides.

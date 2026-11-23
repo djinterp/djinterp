@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/functional/pipeline/CMakeLists.txt
+# djinterp [test]  -  build/cmake/config/testing/djinterp/c/functional/pipeline/CMakeLists.txt
 #
 #    Test leaf for functional/pipeline.h, in DTest's C face: the runner in this
 # directory, the section translation units globbed from the tests tree, the

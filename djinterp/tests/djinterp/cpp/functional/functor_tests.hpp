@@ -1,22 +1,22 @@
 /*******************************************************************************
 * djinterp [cpp][functional]                                   functor_tests.hpp
 *
-*   Unit-test declarations for core/functional/functor.hpp -- the Functor
+*   Unit-test declarations for core/functional/functor.hpp - the Functor
 * protocol and the generic functorial map.  One declaration group per section of
 * the module under test:
 *
-*     functor_tests_protocol.cpp    -- I.  functor_traits, is_functor (+ _v)
-*     functor_tests_bridge.cpp      -- I.2 the blanket monad bridge
-*     functor_tests_structural.cpp  -- 0.  functor_value_type, is_fmappable,
+*     functor_tests_protocol.cpp    - I.  functor_traits, is_functor (+ _v)
+*     functor_tests_bridge.cpp      - I.2 the blanket monad bridge
+*     functor_tests_structural.cpp  - 0.  functor_value_type, is_fmappable,
 *                                           and the C++20 concept faces
-*     functor_tests_map.cpp         -- II. functor_map and the functor laws
+*     functor_tests_map.cpp         - II. functor_map and the functor laws
 *
 *   FIXTURES.  The header makes two distinct claims about how a type becomes a
 * functor, and the suite supplies one instance of each so the two can be played
 * against one another.
 *
 *     tmaybe<T> / tbox<T>   are MONADS: each specializes monad_traits and NOTHING
-*                           else -- no functor_traits of its own.  If the blanket
+*                           else - no functor_traits of its own.  If the blanket
 *                           bridge works, they are functors anyway, and their map
 *                           is monad_map.  tbox is a second, unrelated monad,
 *                           present to show the bridge costs a NEW monad zero
@@ -27,13 +27,13 @@
 *                           type depends on the mapping function" the header
 *                           describes: mapping it composes into a DLazyView over a
 *                           DIFFERENT function type, so there is no single F<U> to
-*                           name -- and accordingly it supplies NO rebind.  That
+*                           name - and accordingly it supplies NO rebind.  That
 *                           the bridge (keyed on is_monad) does not overlap it is
 *                           checked directly.
 *
 *   The has_rebind probe turns the header's design note into a test: the bridged
 * functors expose rebind, DLazyView does not, and yet BOTH are functors and BOTH
-* map -- which is exactly what "rebind is intentionally not part of the core
+* map - which is exactly what "rebind is intentionally not part of the core
 * protocol" means.  is_complete pins the other half of the protocol's contract:
 * the primary functor_traits is left UNDEFINED, so it is an incomplete type for a
 * non-functor rather than a silently-wrong answer.
@@ -100,7 +100,7 @@ namespace dt = ::djinterp::test;
 ///             0.    FIXTURES                                              ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// -- mapping functions ----------------------------------------------------
+// - mapping functions ----------------------------------------------------
 
 struct dbl
 {
@@ -134,7 +134,7 @@ struct DToStr
     std::string operator()(int _x) const { return std::string(_x, 'x'); }
 };
 
-// DWantsString: a function that CANNOT be applied to an int functor -- the
+// DWantsString: a function that CANNOT be applied to an int functor - the
 // finer-grained question is_fmappable answers.
 struct DWantsString
 {
@@ -142,11 +142,11 @@ struct DWantsString
 };
 
 
-// -- MONAD fixture #1: tmaybe (specializes monad_traits ONLY) -------------
+// - MONAD fixture #1: tmaybe (specializes monad_traits ONLY) -------------
 
 // tmaybe
 //   fixture monad: a maybe-shaped context. It receives a monad_traits
-// specialization and NO functor_traits of its own -- the blanket bridge is what
+// specialization and NO functor_traits of its own - the blanket bridge is what
 // makes it a functor.
 template<typename _Type>
 struct DTmaybe
@@ -174,10 +174,10 @@ DTmaybe<_Type> nothing()
 }
 
 
-// -- MONAD fixture #2: tbox (a SECOND, unrelated monad) -------------------
+// - MONAD fixture #2: tbox (a SECOND, unrelated monad) -------------------
 
 // tbox
-//   fixture monad: the identity context -- always holds a value. Present to show
+//   fixture monad: the identity context - always holds a value. Present to show
 // that a NEW monad becomes a functor with zero per-type functor wiring.
 template<typename _Type>
 struct DTbox
@@ -197,7 +197,7 @@ DTbox<_Type> boxed(
 }
 
 
-// -- NON-MONAD functor: a lazy view --------------------------------------
+// - NON-MONAD functor: a lazy view --------------------------------------
 
 // composed: the composite g . f behind the view's map.
 template<typename _Fn,
@@ -220,7 +220,7 @@ struct composed
 // DLazyView
 //   fixture functor: a source and a pending function. Mapping it composes into a
 // DLazyView over a DIFFERENT function type, so its mapped type follows from the
-// call -- there is no single F<U> to name, and so it supplies NO rebind. It is
+// call - there is no single F<U> to name, and so it supplies NO rebind. It is
 // NOT a monad, so the blanket bridge cannot claim it.
 template<typename _Src,
          typename _Fn>
@@ -244,7 +244,7 @@ DLazyView<_Src, _Fn> make_view(
 }
 
 
-// -- negatives ------------------------------------------------------------
+// - negatives ------------------------------------------------------------
 
 // DNotAFunctor: no functor_traits specialization at all.
 struct DNotAFunctor
@@ -252,13 +252,13 @@ struct DNotAFunctor
 };
 
 // no_marker: a functor_traits specialization WITH a map but WITHOUT the
-// is_specialized marker -- must read as not-a-functor.
+// is_specialized marker - must read as not-a-functor.
 struct no_marker
 {
 };
 
 
-// -- probes ---------------------------------------------------------------
+// - probes ---------------------------------------------------------------
 
 // is_complete
 //   probe: true when _Type is a COMPLETE type. The primary functor_traits is
@@ -290,7 +290,7 @@ struct has_type<_Type, void_t<typename _Type::type> > : std::true_type
 
 // has_rebind
 //   probe: true when a functor_traits specialization supplies rebind<U>. The
-// monad bridge does; a view does NOT -- and both are functors, which is what
+// monad bridge does; a view does NOT - and both are functors, which is what
 // "rebind is not part of the core protocol" means.
 template<typename _Type,
          typename = void>
@@ -413,7 +413,7 @@ bool tests_functor_map_constexpr();
 bool tests_functor_map_generic_over_any_functor();
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // functor_spec
 //   function: the suite as DTest's module spec, one block per section.
@@ -622,7 +622,7 @@ NS_END  // testing
 ///             FIXTURE INSTANCES  (djinterp scope)                         ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// monad_traits<tmaybe<T>>  -- the ONLY wiring tmaybe receives. No functor_traits
+// monad_traits<tmaybe<T>>  - the ONLY wiring tmaybe receives. No functor_traits
 // specialization exists for it anywhere: the blanket bridge supplies that.
 #ifndef DTEST_SPEC_MODE  // fixture instances - normal mode only
 template<typename _Type>
@@ -655,7 +655,7 @@ struct monad_traits<testing::DTmaybe<_Type> >
     }
 };
 
-// monad_traits<tbox<T>>  -- a SECOND monad, wired identically and no further.
+// monad_traits<tbox<T>>  - a SECOND monad, wired identically and no further.
 template<typename _Type>
 struct monad_traits<testing::DTbox<_Type> >
 {
@@ -684,7 +684,7 @@ struct monad_traits<testing::DTbox<_Type> >
     }
 };
 
-// functor_traits<DLazyView<Src, Fn>>  -- an EXPLICIT specialization for a type
+// functor_traits<DLazyView<Src, Fn>>  - an EXPLICIT specialization for a type
 // that is NOT a monad. Its mapped type depends on the mapping function, so it
 // names no rebind; map's result follows from the call alone.
 template<typename _Src,
@@ -695,7 +695,7 @@ struct functor_traits<testing::DLazyView<_Src, _Fn>, void>
     using value_type     = decltype(std::declval<const _Fn&>()(
                                std::declval<const _Src&>()));
 
-    // NOTE: deliberately NO rebind -- there is no single F<U> to name.
+    // NOTE: deliberately NO rebind - there is no single F<U> to name.
 
     // map is SFINAE-constrained on _Gn being applicable to what this view
     // currently yields, so an unusable function makes the pair unmappable --
@@ -715,7 +715,7 @@ struct functor_traits<testing::DLazyView<_Src, _Fn>, void>
     }
 };
 
-// functor_traits<no_marker>  -- a map, but NO is_specialized marker, so
+// functor_traits<no_marker>  - a map, but NO is_specialized marker, so
 // detection must refuse it.
 template<>
 struct functor_traits<testing::no_marker, void>

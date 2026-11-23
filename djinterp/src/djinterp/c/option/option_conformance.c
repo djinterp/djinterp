@@ -118,7 +118,7 @@ int main(void)
     printf("body-options.tex conformance\n");
     printf("============================\n\n");
 
-    // -- Definitions -------------------------------------------------------
+    // - Definitions -------------------------------------------------------
     printf("Definitions\n");
 
     fx_init(&a);
@@ -135,7 +135,7 @@ int main(void)
     check("C02", "the set's own invariant predicate holds",
           d_option_set_is_valid(&a.set));
 
-    // identity is key AND value -- the relation DKvPair::operator== gets wrong
+    // identity is key AND value - the relation DKvPair::operator== gets wrong
     fx_init(&b);
     fx_put(&b, k_foo, 99);
     check("C03", "identity is key AND value: same key, different value "
@@ -146,7 +146,7 @@ int main(void)
                  "(the two relations are distinct)",
           d_option_key_eq(&a.set.options[0], &b.set.options[0]));
 
-    // -- Comparing option sets ---------------------------------------------
+    // - Comparing option sets ---------------------------------------------
     printf("\nComparing option sets\n");
 
     //   the counterexample the .tex's table describes, built exactly:
@@ -185,7 +185,7 @@ int main(void)
               (witness == (uint64_t)k_foo));
     }
 
-    // -- Union and intersection --------------------------------------------
+    // - Union and intersection --------------------------------------------
     printf("\nUnion and intersection\n");
 
     fx_init(&c);
@@ -227,7 +227,7 @@ int main(void)
               ki.is_ok && (ki.payload.value == 1u));
     }
 
-    // -- Precedence --------------------------------------------------------
+    // - Precedence --------------------------------------------------------
     printf("\nPrecedence\n");
 
     {
@@ -309,7 +309,7 @@ int main(void)
         }
     }
 
-    // -- Difference: carriers ----------------------------------------------
+    // - Difference: carriers ----------------------------------------------
     printf("\nCarriers\n");
 
     {
@@ -330,7 +330,7 @@ int main(void)
               d_option_carrier_eq(&present, &present, NULL, NULL));
     }
 
-    // -- Order is not semantic ---------------------------------------------
+    // - Order is not semantic ---------------------------------------------
     printf("\nRepresentation vs object\n");
 
     {

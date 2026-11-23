@@ -15,15 +15,15 @@
 *
 *   NOTHING THROWS ACROSS THE C BOUNDARY. The kernel calls the std::string and
 * std::ostream writers through function pointers, from C frames an exception
-* cannot be thrown through. So each catches everything -- std::bad_alloc, an
-* ostream whose exceptions() mask is set -- and reports a short write
+* cannot be thrown through. So each catches everything - std::bad_alloc, an
+* ostream whose exceptions() mask is set - and reports a short write
 * instead, which the stream records as D_OSTREAM_FAILED. They have C language
 * linkage, because linkage is part of a function's type and the slots' types
 * are declared in C; at least one compiler (Oracle's) holds that line.
 *
 *   A std::string IS A TRANSPORT, NOT A WINDOW. Writing in place into a
 * std::string means resizing it first, which zero-fills what it adds, so each
-* byte would be written twice anyway -- once by resize, once by the stream --
+* byte would be written twice anyway - once by resize, once by the stream --
 * and the string would be unsafe to read between flushes. Appending from the
 * stream's buffer costs the same and leaves the string the caller's: give the
 * stream a buffer (DBufferedOutputStream) and the string grows once per buffer.

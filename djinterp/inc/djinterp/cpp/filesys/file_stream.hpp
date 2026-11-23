@@ -1,29 +1,29 @@
 /*******************************************************************************
 * djinterp [cpp][filesys]                                        file_stream.hpp
 *
-* djinterp::file -- an open file, owned.
+* djinterp::file - an open file, owned.
 *   This is the RAII core of the C++ file layer (roadmap Phase 3), and it makes
 * the two decisions the roadmap reserved for exactly this class.
 *   D4, OWNERSHIP. A file owns a FILE*, and a FILE* cannot be shared by copying
-* -- two owners would each close it. So `file` is NON-COPYABLE on every tier,
+* - two owners would each close it. So `file` is NON-COPYABLE on every tier,
 * and MOVABLE on C++11+. The move is ADDED on C++11 (D1), never substituted: a
 * C++98 caller constructs in place (`file f(p, "rb");`) and passes by
 * reference, and that same source compiles on C++11 unchanged. The copy
 * operations are deleted, not merely private-and-undefined-with-a-comment --
 * see D_DELETED_FN.
 *   D3, ERROR CHANNEL. Every operation reports through an `error& _ec`
-* out-parameter and a bool/size_t return -- the return says whether it worked,
+* out-parameter and a bool/size_t return - the return says whether it worked,
 * _ec says why not. There is no throwing overload here yet; that is a later,
 * additive tier (D1), and valid()-style state plus the return value already
 * carry the news on every standard. The constructor is the one operation that
 * cannot take an _ec (constructors have no return), so a failed open leaves
-* is_open() false and the reason unreadable -- use open(p, mode, ec) on a
+* is_open() false and the reason unreadable - use open(p, mode, ec) on a
 * default-constructed file when you need the reason.
 *   ONE BUFFERING MODEL. `file` is the stdio wrapper: it owns a FILE* and does
 * byte I/O through stdio (fread/fwrite), because mixing buffered stdio with
 * raw-fd reads on the same descriptor desynchronizes the two. The fd-based
 * c/filesys byte functions (d_file_read_fd/d_file_write_fd) are for a caller
-* who opened a raw fd -- a different tool. seek/tell/truncate/sync here call the
+* who opened a raw fd - a different tool. seek/tell/truncate/sync here call the
 * FILE*-taking c/filesys functions (d_file_seek_stream / d_file_tell_stream /
 * d_file_truncate_stream / d_file_sync_stream), which stay on the same side of
 * the buffer.
@@ -36,7 +36,7 @@
 * with EOVERFLOW past 2 GiB - 1, and status with it where the snapshot cannot
 * hold a value. Where a language level has had to narrow the width the rest
 * of the build keeps at 64 (D_FILE_WIDTH_IS_NARROWED), those four are absent
-* -- no level changes what a shared type is -- and the rest of file remains.
+* - no level changes what a shared type is - and the rest of file remains.
 *
 *
 * path:      /inc/djinterp/cpp/filesys/file_stream.hpp
@@ -91,8 +91,8 @@ NS_DJINTERP
 //==============================================================================
 // 1.  FILE
 //==============================================================================
-// The move/noexcept/explicit/deleted spellings -- D_MOVE_ENABLED, D_NOEXCEPT,
-// D_EXPLICIT_BOOL, D_DELETED_FN -- come from djinterp.hpp, through
+// The move/noexcept/explicit/deleted spellings - D_MOVE_ENABLED, D_NOEXCEPT,
+// D_EXPLICIT_BOOL, D_DELETED_FN - come from djinterp.hpp, through
 // file_common.hpp. file was one of the three headers that carried a private
 // copy of that kit (D_FILE_*) as a stopgap; this is the promoted,
 // single-source version, one spelling every C++ module shares rather than a
@@ -117,8 +117,8 @@ public:
     /**
      * @brief Opens a file: the convenient form.
      *
-     * @note It cannot report WHY an open failed -- a constructor has no return
-     *       and this takes no `_ec` -- so when the reason matters,
+     * @note It cannot report WHY an open failed - a constructor has no return
+     *       and this takes no `_ec` - so when the reason matters,
      *       default-construct and call open(p, mode, ec). explicit, because a
      *       path and a mode string do not add up to a file by accident, and an
      *       implicit conversion that OPENED something is exactly the surprise
@@ -142,7 +142,7 @@ public:
      *
      * @note A destructor cannot report a close error, so it is dropped. A
      *       caller who needs to KNOW the final flush succeeded calls close(ec)
-     *       before the object dies -- the whole reason close() is also a named
+     *       before the object dies - the whole reason close() is also a named
      *       method.
      */
     ~file(void)
@@ -171,8 +171,8 @@ public:
     }
 
     /**
-     * @brief Move-assigns: closes what this held first -- dropping it would
-     *        leak -- then takes the other's stream.
+     * @brief Move-assigns: closes what this held first - dropping it would
+     *        leak - then takes the other's stream.
      *
      * @param[in,out] _other  the file to move from; it owns nothing
      *                        afterwards.
@@ -503,7 +503,7 @@ public:
     // not stop a process that never locks from reading or writing the file --
     // that is what "advisory" means, and it is the only kind POSIX offers
     // portably. A lock is released by unlock() or when the file closes.
-    //   The blocking forms wait for the lock; the try_ forms do not -- they
+    //   The blocking forms wait for the lock; the try_ forms do not - they
     // return false immediately when the lock is held elsewhere, and in THAT
     // case _ec is EWOULDBLOCK or EAGAIN, which is how a caller tells an honest
     // contention from a real error. Every form returns true on success, and
@@ -590,7 +590,7 @@ public:
      * @brief Opens a file, reporting the reason on failure.
      *
      * @note Re-opening a file that is already open drops the old stream first,
-     *       without surfacing its close error -- a caller who cares closes
+     *       without surfacing its close error - a caller who cares closes
      *       explicitly before re-opening. An invalid path is rejected as
      *       EINVAL rather than handed to d_file_open_stream as "".
      *
@@ -643,7 +643,7 @@ public:
      *
      * @note It has no name in the filesystem and is deleted automatically the
      *       moment it closes, so it leaves nothing behind and no other process
-     *       can open it by name -- the safe kind of scratch space. Like open(),
+     *       can open it by name - the safe kind of scratch space. Like open(),
      *       re-acquiring drops any file already held; unlike open(), it drops
      *       it only once the temporary exists, so a failure leaves the file
      *       held before still open.
@@ -680,7 +680,7 @@ public:
     /**
      * @brief Closes what is owned.
      *
-     * @note Closing a file that is not open is success -- the postcondition,
+     * @note Closing a file that is not open is success - the postcondition,
      *       nothing owned, already holds.
      *
      * @param[out] _ec  cleared on success; set when the final flush or close
@@ -762,11 +762,11 @@ public:
 
     /**
      * @brief BORROWS the file's descriptor, for an fd-level C call this class
-     *        does not wrap -- fstat, an fd-based lock, fcntl.
+     *        does not wrap - fstat, an fd-based lock, fcntl.
      *
      * @warning The file still owns it: do NOT close the returned descriptor,
      *          and do NOT do raw read/write on it while the stream holds
-     *          buffered data, or the two views desynchronize -- the reason this
+     *          buffered data, or the two views desynchronize - the reason this
      *          class does its own I/O through stdio.
      *
      * @param[out] _ec  cleared on success; EBADF on a closed file, otherwise
@@ -808,7 +808,7 @@ public:
      * @note Unlike the free status(path), this cannot be raced: the descriptor
      *       names one file for its whole lifetime, so what comes back
      *       describes the very bytes you are reading, not whatever the path
-     *       resolves to a moment later -- the TOCTOU-free query file_stat.h
+     *       resolves to a moment later - the TOCTOU-free query file_stat.h
      *       points to.
      *
      * @param[out] _ec  cleared on success; EBADF on a closed file, EOVERFLOW
@@ -850,7 +850,7 @@ private:
     //--------------------------------------------------------------------------
     /**
      * @brief The shared body of the five lock methods: reject a closed
-     *        handle, apply the operation, translate errno -- written once, not
+     *        handle, apply the operation, translate errno - written once, not
      *        five times.
      *
      * @param[in]  _operation  a D_LOCK_* operation, optionally with D_LOCK_NB.
@@ -885,7 +885,7 @@ private:
         return true;
     }
 
-    // never copyable -- two owners would double-close; see D_DELETED_FN
+    // never copyable - two owners would double-close; see D_DELETED_FN
     D_DELETED_FN(file(const file& _other))
     D_DELETED_FN(file& operator=(const file& _other))
 

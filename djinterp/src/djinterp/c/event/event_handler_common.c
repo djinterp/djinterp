@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][event]                                     event_handler_common.c
 *
-* The handler step -- tier 0 definitions.
+* The handler step - tier 0 definitions.
 *   Defines the step functions behind the void-callback adapter and the
 * sequencing node, and the one fold of a word that dispatch and the fused
 * word both use.

@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][functional]                                           maybe.hpp
 *
-* Maybe<T> -- a monadic optional value type (C++).
+* Maybe<T> - a monadic optional value type (C++).
 *   Represents a value that may or may not be present. Equivalent in
 * purpose to std::optional<T> (C++17) but available on C++11+, integrated
 * with the djinterp monad protocol, and with a richer fluent API for
@@ -559,7 +559,7 @@ private:
     // the active member explicitly via m_has_value. std::construct_at and
     // std::destroy_at are constexpr in C++20, so the whole type is usable
     // in a constant expression. No aligned_storage, no placement-new
-    // through void*, no reinterpret_cast -- all of which are barred from
+    // through void*, no reinterpret_cast - all of which are barred from
     // constant evaluation.
     union storage_t
     {
@@ -800,7 +800,7 @@ struct is_maybe
 
 // is_maybe_predicate
 //   trait: true if Pred is callable as Pred(const Type&) and the
-// result is convertible to bool -- the predicate shape accepted by
+// result is convertible to bool - the predicate shape accepted by
 // maybe::filter, from_predicate, and filter_with. False when Pred
 // is not callable with a const Type&, or its result is not
 // bool-convertible.
@@ -839,7 +839,7 @@ concept maybe_type = is_maybe<Type>::value;
 
 // maybe_predicate_for
 //   concept: satisfied when Pred is a valid filter predicate over
-// Type -- callable as Pred(const Type&) with a bool-convertible result.
+// Type - callable as Pred(const Type&) with a bool-convertible result.
 // The C++20 parallel of is_maybe_predicate.
 template<typename Pred,
          typename Type>

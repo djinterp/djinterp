@@ -72,7 +72,7 @@ NS_DJINTERP
 ///////////////////////////////////////////////////////////////////////////////
 
 // DReportDocument
-//   class: the procedural surface for the report dialect -- named methods over
+//   class: the procedural surface for the report dialect - named methods over
 // the generic DLayoutCursor.  Open the document (the body root), add constructs
 // imperatively, and build.  Sections nest via open_section / close_section;
 // everything else is a single call.  build() yields the same term the other
@@ -178,7 +178,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 ///             II.   AGGREGATE SURFACE                                     ///
 ///////////////////////////////////////////////////////////////////////////////
-//   The data-literal surface -- typed aggregates, written with nested braces,
+//   The data-literal surface - typed aggregates, written with nested braces,
 // each converting to the generic DSpecNode so a braced child list may hold
 // different construct specs at once.  This is the module_spec idiom applied to
 // documents.  `to_layout` (layout_spec.hpp) lowers the result.
@@ -265,7 +265,7 @@ struct DSectionSpec
 };
 
 // DDocumentSpec
-//   the whole document -- a body over `children`.  Lower with to_layout.
+//   the whole document - a body over `children`.  Lower with to_layout.
 struct DDocumentSpec
 {
     std::vector<DSpecNode<DReportOp> > children;
@@ -292,7 +292,7 @@ D_NODISCARD inline DLayoutDoc<DReportOp> to_layout(
 ///////////////////////////////////////////////////////////////////////////////
 
 // report_grammar
-//   function: the parse configuration for the report DSL -- the block keywords
+//   function: the parse configuration for the report DSL - the block keywords
 // and their ops, the content-leaf keywords, the body root, and the positional
 // argument key.  This is all parse_document needs; the parser names nothing.
 D_NODISCARD inline DLayoutGrammar<DReportOp> report_grammar()
@@ -324,7 +324,7 @@ D_NODISCARD inline DLayoutGrammar<DReportOp> report_grammar()
 ///             IV.   EQUIVALENCE  (moved)                                  ///
 ///////////////////////////////////////////////////////////////////////////////
 //   The four fixtures that build the same document each way, and the check
-// that they agree, used to live here.  They are TESTS, not library code -- a
+// that they agree, used to live here.  They are TESTS, not library code - a
 // header that ships its own assertions cannot be exercised by the harness and
 // grows a second, unrun copy of the truth.  They now live in
 // /inc/djinterp/cpp/modules/test/output/test_layout_suite.hpp, where the DTest runner

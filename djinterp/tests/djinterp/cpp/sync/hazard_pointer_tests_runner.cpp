@@ -60,7 +60,7 @@ int main()
 
     rb.use_pdf("hazard_pointer_tests_report.pdf");
 
-    // -- 0. the header contract --------------------------------------------
+    // - 0. the header contract --------------------------------------------
     rb.module("0. the header contract",
               "the guard, the live env precondition, the C++11 gate, the C++23 fork");
     rb.run("the include guard is defined, and is 1",     &tests_header_include_guard);
@@ -74,7 +74,7 @@ int main()
     rb.run("no stray macros (one intended)",             &tests_header_defines_no_stray_macros);
     rb.run("the std delegation aliases exist when picked", &tests_the_std_delegation_aliases_exist_when_selected);
 
-    // -- II. hazard_record -------------------------------------------------
+    // - II. hazard_record -------------------------------------------------
     rb.module("II. hazard_record",
               "one atomic slot for one protected pointer");
     rb.run("a fresh record is inactive and null",        &tests_record_default_is_inactive_and_null);
@@ -82,7 +82,7 @@ int main()
     rb.run("the protected slot is a void*",              &tests_record_pointer_is_a_void_pointer);
     rb.run("a record is not copyable",                   &tests_record_is_not_copyable);
 
-    // -- III. hazard_domain -- records -------------------------------------
+    // - III. hazard_domain - records -------------------------------------
     rb.module("III. hazard_domain -- records",
               "claiming and returning slots; the strategy aliases");
     rb.run("it reports its capacity (default 64)",       &tests_domain_reports_its_capacity);
@@ -98,7 +98,7 @@ int main()
     rb.run("a reacquired record carries no stale pin",  &tests_a_reacquired_record_is_clean);
     rb.run("a zero-capacity domain acquires nothing",    &tests_a_zero_capacity_domain_acquires_nothing);
 
-    // -- III. hazard_domain -- scanning ------------------------------------
+    // - III. hazard_domain - scanning ------------------------------------
     rb.module("III. hazard_domain -- scanning and the retire counter",
               "is_protected / collect_protected, and the should_scan heuristic");
     rb.run("is_protected sees a published pointer",      &tests_is_protected_sees_a_published_pointer);
@@ -114,7 +114,7 @@ int main()
     rb.run("should_scan crosses at 2x capacity",         &tests_should_scan_crosses_at_twice_capacity);
     rb.run("a zero-cap domain ALWAYS wants to scan",     &tests_a_zero_capacity_domain_always_wants_to_scan);
 
-    // -- IV. scoped_hazard -------------------------------------------------
+    // - IV. scoped_hazard -------------------------------------------------
     rb.module("IV. scoped_hazard",
               "RAII around a record; and the exhaustion no-op path");
     rb.run("it acquires on construction",                &tests_scoped_acquires_on_construction);
@@ -125,7 +125,7 @@ int main()
     rb.run("it survives pool exhaustion (invalid)",      &tests_scoped_hazard_survives_exhaustion);
     rb.run("protect while invalid is a safe no-op",      &tests_scoped_protect_while_invalid_is_a_no_op);
 
-    // -- V. DTypedHazardPtr -----------------------------------------------
+    // - V. DTypedHazardPtr -----------------------------------------------
     rb.module("V. typed_hazard_ptr",
               "the protect-then-verify loop, with its null-source and zero-retry edges");
     rb.run("it acquires a record",                       &tests_typed_acquires_a_record);
@@ -139,7 +139,7 @@ int main()
     rb.run("clear unpublishes",                          &tests_typed_clear_unpublishes);
     rb.run("on an exhausted domain it is invalid",       &tests_typed_on_an_exhausted_domain_is_invalid);
 
-    // -- VI. DRetiredList --------------------------------------------------
+    // - VI. DRetiredList --------------------------------------------------
     rb.module("VI. retired_list",
               "retire and scan -- where the safety property lands");
     rb.run("a fresh list is empty",                      &tests_retired_list_starts_empty);
@@ -156,7 +156,7 @@ int main()
     rb.run("pending and empty track the queue",          &tests_pending_and_empty_track_the_queue);
     rb.run("scan on an empty list is a no-op",           &tests_scan_on_an_empty_list_is_a_no_op);
 
-    // -- VII. DMultiHazardDomain ------------------------------------------
+    // - VII. DMultiHazardDomain ------------------------------------------
     rb.module("VII. multi_hazard_domain",
               "N contiguous slots per thread, claimed as a group");
     rb.run("it reports its geometry (groups x slots)",   &tests_multi_reports_its_geometry);
@@ -172,7 +172,7 @@ int main()
     rb.run("should_scan crosses at 2x TOTAL slots",      &tests_multi_should_scan_crosses_at_twice_total_slots);
     rb.run("slots_per_thread is the template argument",  &tests_multi_slots_per_thread_is_the_template_argument);
 
-    // -- VIII. DScopedMultiHazard -----------------------------------------
+    // - VIII. DScopedMultiHazard -----------------------------------------
     rb.module("VIII. scoped_multi_hazard",
               "RAII around a slot group; per-slot protect/clear");
     rb.run("it acquires a group",                        &tests_scoped_multi_acquires_a_group);
@@ -184,7 +184,7 @@ int main()
     rb.run("an out-of-range slot is a safe no-op",       &tests_scoped_multi_out_of_range_slot_is_a_no_op);
     rb.run("it survives group-pool exhaustion",          &tests_scoped_multi_survives_exhaustion);
 
-    // -- Concurrency -------------------------------------------------------
+    // - Concurrency -------------------------------------------------------
     rb.module("Concurrency",
               "the safety property under real threads -- deterministic, TSan-clean");
     rb.run("concurrent acquire hands out distinct records", &tests_concurrent_acquire_hands_out_distinct_records);

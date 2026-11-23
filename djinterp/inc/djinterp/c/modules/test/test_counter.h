@@ -8,8 +8,8 @@
 * NOTHING HERE KNOWS WHAT IS COUNTED
 * ----------------------------------
 *   The owner's ruling of 2026-11-09 made DTest default-agnostic: a tally counts
-* under whichever keys its caller chooses -- assertions, tests, retries, bytes,
-* anything -- and holds whichever counters its caller tracks. The fixed fields
+* under whichever keys its caller chooses - assertions, tests, retries, bytes,
+* anything - and holds whichever counters its caller tracks. The fixed fields
 * that came before (assertions_passed, assertions_total, tests_passed,
 * tests_total; ruling #79's field form) are gone; a caller who wants those four
 * tracks four keys of its own.
@@ -31,8 +31,8 @@
 *
 * CONFIGURED IN THREE LAYERS
 * --------------------------
-*   Every setting -- a counter's step and floor, a tally's limit and what it
-* does when full -- has a D_CFG_* knob with a sensible default
+*   Every setting - a counter's step and floor, a tally's limit and what it
+* does when full - has a D_CFG_* knob with a sensible default
 * (cfg_test_counter.h); a run overrides it per counter or per tally through the
 * options structs below; and, opt-in with D_CFG_TEST_COUNTER_MACHINE, a program
 * that runs DTest as an abstract machine gets the same settings as an option_env
@@ -604,8 +604,8 @@ d_test_tally_merge(
 //==============================================================================
 // With D_CFG_TEST_COUNTER_MACHINE, the settings above as variables of an
 // option_env frame (c/option/option_env.h): a program declares the schema in
-// its machine's frame, binds what it likes -- "tally_limit=8" by text, a
-// script, the environment, the command line -- and reads the result into a
+// its machine's frame, binds what it likes - "tally_limit=8" by text, a
+// script, the environment, the command line - and reads the result into a
 // struct dj_test_tally_options. Each variable's default is pinned to its
 // knob, so a frame that binds nothing reads the knobs' defaults.
 

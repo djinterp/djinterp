@@ -4,8 +4,8 @@
 * Definitions for lex_literal.h.
 *   A numeric literal is read left to right in one pass: prefix, digits,
 * fraction, exponent, and whatever is left is the suffix.  Every question the
-* standards answer differently -- binary literals, separators, hexadecimal
-* floats, which suffixes exist -- is put to the dialect, never to a language
+* standards answer differently - binary literals, separators, hexadecimal
+* floats, which suffixes exist - is put to the dialect, never to a language
 * test, so a level that gains a form gains it here by its feature bit.
 *   A quoted literal is read as its prefix, its body and its suffix, the body
 * one c-char at a time.  Each c-char is measured in code units of the
@@ -88,7 +88,7 @@ struct dj_internal_char
 // dj_internal_float_suffix
 //   struct: one standard floating suffix: its lower-case spelling, the width
 //   it names, its D_LEX_SUFFIX_* bit, the feature a dialect needs for it, and
-//   the languages it exists in -- 1 for C, 2 for C++, 3 for both.
+//   the languages it exists in - 1 for C, 2 for C++, 3 for both.
 struct dj_internal_float_suffix
 {
     const char* text;
@@ -464,8 +464,8 @@ size_t d_internal_length_suffix(
 /**
  * @brief Classifies an integer literal's suffix.
  *
- * @note Any order of `u` with at most one length -- `l`, `ll`, `z` or `wb`
- *       -- each where the dialect has it.
+ * @note Any order of `u` with at most one length - `l`, `ll`, `z` or `wb`
+ *       - each where the dialect has it.
  *
  * @param[in]  _dialect  the dialect.
  * @param[in]  _suffix   the suffix.
@@ -921,8 +921,8 @@ void d_internal_integer(
         return;
     }
 
-    // too wide for every integer type on the target -- and a decimal
-    // literal without `u` has only signed types -- unless a bit-precise type
+    // too wide for every integer type on the target - and a decimal
+    // literal without `u` has only signed types - unless a bit-precise type
     // or a literal operator takes it
     if ( d_internal_out_of_range(_d) &&
          ((_d->out->suffix & ( D_LEX_SUFFIX_BIT_PRECISE |
@@ -1321,7 +1321,7 @@ size_t d_internal_ucn(
 
 
 /**
- * @brief Reads a numeric escape -- octal or hexadecimal, braced or not --
+ * @brief Reads a numeric escape - octal or hexadecimal, braced or not --
  *        and checks that it fits one code unit.
  *
  * @param[in,out] _d    the decode.
@@ -1888,7 +1888,7 @@ bool d_lex_literal_decode(
 
 /*
 d_lex_literal_decode_token
-  The common case -- nothing rewritten -- decodes the source bytes where they
+  The common case - nothing rewritten - decodes the source bytes where they
 lie and allocates nothing.
 */
 bool d_lex_literal_decode_token(

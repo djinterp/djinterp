@@ -7,8 +7,8 @@
 * REG_EXTENDED.  Both are specified to report the leftmost-longest overall
 * match and POSIX-preferred submatches, so any disagreement in offset, length
 * or group assignment is a defect in one of them.
-*     The generator avoids constructs POSIX leaves undefined -- empty
-* alternation branches, escapes, quantified anchors -- since an implementation
+*     The generator avoids constructs POSIX leaves undefined - empty
+* alternation branches, escapes, quantified anchors - since an implementation
 * is free to differ there and a difference would not be a finding.
 *
 *

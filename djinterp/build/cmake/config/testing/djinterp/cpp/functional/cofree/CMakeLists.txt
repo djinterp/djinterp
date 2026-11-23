@@ -1,4 +1,4 @@
-# djinterp [test]  cofree.hpp suite -- build wiring
+# djinterp [test]  cofree.hpp suite - build wiring
 #
 #   Leaf recipe (R1): a header-only module under inc/djinterp/cpp/functional
 # with no src/.  The executable is the runner in THIS config directory linked
@@ -6,10 +6,10 @@
 #
 #   INCLUDES gives the target the two roots the bare includes need on top of the
 # inc/ root djinterp_add_test_executable already adds:
-#     * inc/djinterp/cpp/functional -- resolves any bare header-under-test
+#     * inc/djinterp/cpp/functional - resolves any bare header-under-test
 #       include reached from the suite (the suite header itself uses the
 #       full-from-inc form, so this is belt-and-braces / future-proofing);
-#     * tests/djinterp/cpp/functional -- resolves the bare
+#     * tests/djinterp/cpp/functional - resolves the bare
 #       #include "cofree_tests.hpp" from the runner and the section TUs.
 #
 #   Output path, D_TESTING=1, the C++20/C17 flags, djinterp_c_runtime, and the

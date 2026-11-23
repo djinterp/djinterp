@@ -29,7 +29,7 @@ bool tests_selection_sort_min_index_earliest_wins()
     five = 5;
 
     //   [3, 1, 4, 1, 5]: two minima.  A candidate must STRICTLY precede the
-    // incumbent to displace it, so the earlier 1 wins -- one of the two
+    // incumbent to displace it, so the earlier 1 wins - one of the two
     // choices that pin the arrangement this unstable family produces.
     data.push_back(3);
     data.push_back(1);
@@ -90,7 +90,7 @@ bool tests_selection_sort_pass_sub_run()
 
     result.check(ranges_equal(data, original));
 
-    //   The pass sorts [1, 4) and touches nothing outside it -- the property
+    //   The pass sorts [1, 4) and touches nothing outside it - the property
     // a driver handing out sub-runs relies on.
     ::djinterp::internal::selection_pass(data.begin(),
                                          static_cast<std::ptrdiff_t>(1),

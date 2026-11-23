@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/container/vector/ptr_vector/CMakeLists.txt
+# djinterp [test]  -  build/cmake/config/testing/djinterp/c/container/vector/ptr_vector/CMakeLists.txt
 #
 #    Test leaf for container/vector/ptr_vector.h, in DTest's C face: the runner
 # in this directory, the section translation units globbed from the tests tree,

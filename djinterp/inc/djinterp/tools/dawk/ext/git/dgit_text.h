@@ -5,23 +5,23 @@
 *   Three kinds of file, each read as git reads it: the ignore files --
 * .gitignore, info/exclude, core.excludesFile; the attribute files --
 * .gitattributes, info/attributes, core.attributesFile; and the files written
-* in git's configuration syntax -- a repository's config, a user's
+* in git's configuration syntax - a repository's config, a user's
 * .gitconfig, .gitmodules. A file is read into records, each with its place
 * in the text, so a change to one is a splice that leaves every other byte
 * as it was.
 *   The records: every line, with what it is; each pattern of an ignore or
 * attribute file, as written and as git matches it, with an attribute file's
-* states -- set, unset, unspecified, a value -- and its macros; and each
+* states - set, unset, unspecified, a value - and its macros; and each
 * section and entry of a configuration file, as written and as git reads it:
 * the canonical key, the value with its quotes and escapes undone.
-*   Reading never fails on what a file holds. What git refuses -- an
+*   Reading never fails on what a file holds. What git refuses - an
 * attribute of an invalid name, a negative pattern among attributes, a
-* configuration file past a line git cannot read -- is kept as a problem,
+* configuration file past a line git cannot read - is kept as a problem,
 * with its line, and the line kept as text.
 *   Matching is git's: wildmatch, the pattern rules of gitignore(5) and
-* gitattributes(5) -- a pattern without a slash matches a name at any depth,
+* gitattributes(5) - a pattern without a slash matches a name at any depth,
 * one with a slash is anchored to its file's directory, a trailing slash
-* matches only a directory -- the precedence of the files that apply to a
+* matches only a directory - the precedence of the files that apply to a
 * path, the exclusion of everything below a directory that is ignored, and
 * the macros of attribute files, `binary` among them.
 *   Independent of the repository: what a path's ignore and attribute files
@@ -96,13 +96,13 @@ TABLE OF CONTENTS
 // 1.1.1
 // D_GIT_TEXT_NONE
 //   constant: the index of a record that is not there, and the place of
-//   text that is not written -- an entry with no `=`.
+//   text that is not written - an entry with no `=`.
 #define D_GIT_TEXT_NONE ((size_t)-1)
 
 // 1.1.2
 // D_GIT_TEXT_PATHNAME
-//   constant: wildmatch's flag that a `/` is matched only by a `/` -- not
-//   by `?`, `*` or a class -- and that `**` between slashes matches any
+//   constant: wildmatch's flag that a `/` is matched only by a `/` - not
+//   by `?`, `*` or a class - and that `**` between slashes matches any
 //   number of directories.
 #define D_GIT_TEXT_PATHNAME 1u
 
@@ -131,7 +131,7 @@ enum dj_git_text_kind
 enum dj_git_text_line_kind
 {
     D_GIT_TEXT_BLANK = 0,  // nothing git reads: empty, or white space
-    D_GIT_TEXT_COMMENT,    // `#` -- or, in a configuration, `;`
+    D_GIT_TEXT_COMMENT,    // `#` - or, in a configuration, `;`
     D_GIT_TEXT_PATTERN,    // a pattern, an attribute file's with states
     D_GIT_TEXT_MACRO,      // an attribute file's [attr]name and states
     D_GIT_TEXT_SECTION,    // a configuration's [section], perhaps with an
@@ -156,7 +156,7 @@ enum dj_git_text_state
 //------------------------------------------------------------------------------
 // 1.3.1
 // dj_git_text_line
-//   struct: one line: `start` to `end`, its ending -- `\n`, or `\r\n` --
+//   struct: one line: `start` to `end`, its ending - `\n`, or `\r\n` --
 //   not among them, and `next` past its ending, where the next begins.
 //   `pattern` is the pattern or macro a line is; `section` the section a
 //   configuration's line heads or is within; `entry` the entry a line
@@ -203,7 +203,7 @@ struct dj_git_text_pattern
 // 1.3.3
 // dj_git_text_attribute
 //   struct: one state of an attribute line, as written from `start` to
-//   `end` -- "text", "-text", "!text", "eol=lf".  Its name is
+//   `end` - "text", "-text", "!text", "eol=lf".  Its name is
 //   `name_start` to `name_end`; a value's is `value_start` to `value_end`,
 //   each D_GIT_TEXT_NONE for a state that has none.
 struct dj_git_text_attribute
@@ -327,7 +327,7 @@ struct dj_git_text
 //   struct: one file that applies to a path, as a lookup is given it.
 //   `base` is the directory, from the top of the work tree and without a
 //   trailing slash, its patterns are relative to: "" for the top's, and
-//   for a file outside the tree -- info/exclude, core.excludesFile; "a/b"
+//   for a file outside the tree - info/exclude, core.excludesFile; "a/b"
 //   for a/b/.gitignore.  A file applies only to paths below its base.
 //   `macros` is whether an attribute file's macros count, which git
 //   allows only in the top's .gitattributes and in the files outside the
@@ -357,8 +357,8 @@ struct dj_git_text_query
 //   struct: the pattern that decided whether a path is ignored: pattern
 //   `pattern` of scope `scope`; `ignored` is false for a negated one.
 //   `through` is the length of the path's leading directory the pattern
-//   matched, when a directory above the path is ignored -- git looks no
-//   further below one -- and the path's length otherwise.
+//   matched, when a directory above the path is ignored - git looks no
+//   further below one - and the path's length otherwise.
 struct dj_git_text_match
 {
     size_t scope;
@@ -372,8 +372,8 @@ struct dj_git_text_match
 //   struct: what one attribute is for a path: its name, `name_length`
 //   bytes, and its state, a value `value_length` bytes for
 //   D_GIT_TEXT_VALUE; borrowed from the scopes' texts.  `scope` and
-//   `pattern` are the line that said it -- a pattern, or the macro that
-//   expanded to it -- `scope` D_GIT_TEXT_NONE for git's own `binary`.
+//   `pattern` are the line that said it - a pattern, or the macro that
+//   expanded to it - `scope` D_GIT_TEXT_NONE for git's own `binary`.
 struct dj_git_text_value
 {
     const char*           name;
@@ -423,8 +423,8 @@ struct dj_git_buffer
 // and ignore are ignore files; .gitattributes and attributes attribute
 // files; config, config.worktree, .gitconfig, gitconfig, .gitmodules and
 // .lfsconfig configurations; anything else D_GIT_TEXT_OTHER.
-// d_git_text_kind_named reads a name a program gives -- "ignore",
-// "attributes", "config", or a file's name -- and d_git_text_kind_name
+// d_git_text_kind_named reads a name a program gives - "ignore",
+// "attributes", "config", or a file's name - and d_git_text_kind_name
 // gives the kind's own name, "ignore", "attributes", "config", or "other".
 enum dj_git_text_kind d_git_text_kind_of(
     const char* _path
@@ -510,9 +510,9 @@ bool d_git_text_matches(
 /**
  * @brief Finds the pattern that decides whether git ignores a path.
  *
- * @note The scopes are given lowest first -- core.excludesFile,
+ * @note The scopes are given lowest first - core.excludesFile,
  *       info/exclude, the top's .gitignore, then each directory's down to
- *       the path's, then the patterns a command gives -- and the last
+ *       the path's, then the patterns a command gives - and the last
  *       pattern that matches, in the last scope that has one, decides.
  *       Each directory above the path is asked first, as a directory, of
  *       the scopes above it: one that is ignored decides for everything
@@ -537,9 +537,9 @@ bool d_git_text_ignored(
 /**
  * @brief Gives every attribute the attribute files say of a path.
  *
- * @note The scopes are given lowest first -- the system's file,
+ * @note The scopes are given lowest first - the system's file,
  *       core.attributesFile, the top's .gitattributes, each directory's
- *       down to the path's, then info/attributes -- and git's own macro,
+ *       down to the path's, then info/attributes - and git's own macro,
  *       binary = -diff -merge -text, is below them all.  For each
  *       attribute the last line that says it, in the highest scope that
  *       has one, decides; an attribute set that is a macro sets what the
@@ -573,8 +573,8 @@ const struct dj_git_text_value* d_git_text_value_of(
 
 // 2.7    Configuration
 //------------------------------------------------------------------------------
-// d_git_text_key writes a key as git compares keys -- the section and the
-// name in lower case, a subsection between them as given -- and is false
+// d_git_text_key writes a key as git compares keys - the section and the
+// name in lower case, a subsection between them as given - and is false
 // for a key git refuses: one with no section or name, a name not
 // beginning with a letter, a byte other than a letter, digit or `-` in
 // either, a newline in a subsection.  d_git_text_key_parts gives the
@@ -589,8 +589,8 @@ void d_git_text_key_parts(
     size_t*     _out_section,
     size_t*     _out_subsection
 );
-// d_git_text_find_entry is the first entry after `_after` -- or from the
-// first, for D_GIT_TEXT_NONE -- whose key is `_key`, canonical; and
+// d_git_text_find_entry is the first entry after `_after` - or from the
+// first, for D_GIT_TEXT_NONE - whose key is `_key`, canonical; and
 // d_git_text_find_section the first section after `_after` whose prefix
 // is `_prefix`, "section" or "section.subsection", canonical; each
 // D_GIT_TEXT_NONE when there is none.  Neither finds a record past a line
@@ -605,8 +605,8 @@ size_t d_git_text_find_section(
     const char*               _prefix,
     size_t                    _after
 );
-// d_git_text_bool reads a value as git reads a boolean: NULL -- a name
-// alone -- true, "" false, true, yes, on, false, no, off in any case, and
+// d_git_text_bool reads a value as git reads a boolean: NULL - a name
+// alone - true, "" false, true, yes, on, false, no, off in any case, and
 // a number, true when it is not 0; false for anything else.
 // d_git_text_int reads a value as git reads a number: decimal, 0x hex or
 // 0 octal, signed, then k, m or g in either case for 1024, 1024^2 or
@@ -656,7 +656,7 @@ bool d_git_text_unquote(
 //------------------------------------------------------------------------------
 // The buffer's writers add text, keeping it terminated, and are false once
 // memory has run out; d_git_buffer_take gives its text, which the caller
-// frees, and empties it -- NULL if it failed -- and d_git_buffer_free
+// frees, and empties it - NULL if it failed - and d_git_buffer_free
 // frees it.
 bool d_git_buffer_add(
     struct dj_git_buffer* _buffer,

@@ -10,8 +10,8 @@
 *                                                            revised: 2026.09.22
 *******************************************************************************/
 // unit tests: the literal decoder, especially what diff_literal.py cannot ask
-// gcc 13 -- `wb`, decimal suffixes, `\N{}`, unknown escapes, ud-suffixes,
-// misplaced separators, P1854 -- plus diagnostic placement and spliced tokens
+// gcc 13 - `wb`, decimal suffixes, `\N{}`, unknown escapes, ud-suffixes,
+// misplaced separators, P1854 - plus diagnostic placement and spliced tokens
 #include "../../inc/djinterp/c/modules/parse/lang/c/lex_c.h"
 #include "../../inc/djinterp/c/modules/parse/lang/cpp/lex_cpp.h"
 #include "../../inc/djinterp/c/modules/parse/lex/lex_literal.h"

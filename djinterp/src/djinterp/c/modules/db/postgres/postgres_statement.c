@@ -4,14 +4,14 @@
 * Implementation of postgres_statement.h.
 *   A statement is prepared on the server under a name the layer makes from
 * the address of its own record, unique among the statements alive on a
-* connection. The server may still hold a statement of that name -- one
-* whose DEALLOCATE a failed transaction refused, before libpq 17 -- and it
+* connection. The server may still hold a statement of that name - one
+* whose DEALLOCATE a failed transaction refused, before libpq 17 - and it
 * is then deallocated: inside a transaction, which a failed PREPARE would
 * fail, after looking for the name first; outside one, after the prepare
 * fails, which is then tried once more. PQdescribePrepared then says how
 * many parameters there are, which sizes the arrays PQexecPrepared reads.
-*   Values are kept as the server reads them -- text, formatted when bound,
-* or bytes -- so a run only points libpq at them. Numbers are written in the
+*   Values are kept as the server reads them - text, formatted when bound,
+* or bytes - so a run only points libpq at them. Numbers are written in the
 * C locale's absence: integers in decimal, real numbers by db_internal's
 * formatter, which writes a `.` whatever the locale says.
 *   A cursor's run is libpq's single-row mode over PQsendQueryPrepared: the
@@ -27,9 +27,9 @@
 * 17 always does (d_internal_postgres_clear_stale).
 *   A call that does not block is the same exchanges, one at a time: the
 * statement remembers which it is in (its phase), sends the next once the
-* last one's results are read, and keeps what it needs between them -- the
+* last one's results are read, and keeps what it needs between them - the
 * last result that succeeded, the first failure, the text a second prepare
-* needs, a page as it fills -- so that each continuation does what the socket
+* needs, a page as it fills - so that each continuation does what the socket
 * allows and returns. A blocking call of the statement's own ends such a call
 * first, reading its results away, as it ends the statement's run.
 *
@@ -152,9 +152,9 @@ struct dj_postgres_statement
 };
 
 // d_internal_postgres_left_behind
-//   flag: 1 once a statement's server copy has been left behind -- released
+//   flag: 1 once a statement's server copy has been left behind - released
 // while the connection could not take its Close, or in a failed transaction
-// before libpq 17 -- anywhere in the process; never cleared. Each thread only
+// before libpq 17 - anywhere in the process; never cleared. Each thread only
 // ever writes 1, so a thread that reads 0 a moment late merely skips one
 // lookup it did not yet need. sig_atomic_t, the one type C99 promises is
 // written whole.
@@ -274,7 +274,7 @@ int d_internal_postgres_held(
  * A PREPARE that fails fails the transaction it runs in, so there the name
  * is looked for first, at the cost of a round trip; outside one the prepare
  * is tried, and a name still held (42P05) dropped and tried again. libpq's
- * PQclosePrepared, from 17, leaves no name behind, and needs neither -- until
+ * PQclosePrepared, from 17, leaves no name behind, and needs neither - until
  * a statement is released while the connection cannot take its Close
  * (d_internal_postgres_left_behind).
  */
@@ -424,7 +424,7 @@ d_internal_postgres_keep(
  * @param[in] _index      the parameter, from 1.
  * @param[in] _format     the number's conversion: `%lld` or `%g`, which
  *                        db_internal writes the same whatever the C library
- *                        or its locale -- MinGW's msvcrt has no `%lld`.
+ *                        or its locale - MinGW's msvcrt has no `%lld`.
  * @param[in] ...         the number.
  * @return as d_internal_postgres_keep.
  */
@@ -502,8 +502,8 @@ void d_internal_postgres_point(
  *        waiting for what is left of it.
  *
  * @param[in,out] _statement  the statement.
- * @post No call is under way. A run the call was part of -- a cursor's,
- *       being opened or read -- is over too, read to its end, and a page
+ * @post No call is under way. A run the call was part of - a cursor's,
+ *       being opened or read - is over too, read to its end, and a page
  *       being filled is dropped.
  *
  * Whatever the exchange still had to send is written, and its results read
@@ -572,8 +572,8 @@ void d_internal_postgres_end_call(
  * @post The run is over and the connection free of it.
  *
  * The server sends every row whatever the client reads, so the rest of the
- * run is read and dropped; a failure the server reports among them -- a
- * division by zero at the thousandth row -- is still the run's, and the
+ * run is read and dropped; a failure the server reports among them - a
+ * division by zero at the thousandth row - is still the run's, and the
  * transaction's, so it is reported.
  */
 static
@@ -1092,7 +1092,7 @@ d_internal_postgres_send_phase(
  * @param[in,out] _statement  the statement.
  * @param[in]     _result     the result; freed, or kept.
  *
- * No exchange of a statement's can start a COPY -- PREPARE takes none --
+ * No exchange of a statement's can start a COPY - PREPARE takes none --
  * but a COPY would hold the connection, so one is ended as everywhere.
  */
 static
@@ -1338,7 +1338,7 @@ int d_internal_postgres_drive(
  * @param[in]     _result     the result; freed.
  * @return true while the run goes on; false once this result ends it --
  *         the end of its rows, a command's result, a failure, memory, or a
- *         COPY -- the outcome then in `_statement->failure`.
+ *         COPY - the outcome then in `_statement->failure`.
  */
 static
 bool d_internal_postgres_page_add(
@@ -1433,8 +1433,8 @@ int d_internal_postgres_page_give(
 
 /**
  * @brief Does what the socket allows of a page being filled: reads the
- *        run's results until the page is full or the run ends -- read then
- *        to libpq's NULL -- or it must wait.
+ *        run's results until the page is full or the run ends - read then
+ *        to libpq's NULL - or it must wait.
  *
  * @param[in,out] _statement  the statement, a page filling.
  * @param[in,out] _pending    receives what to wait for.
@@ -1768,8 +1768,8 @@ PGconn* d_postgres_statement_connection(
 d_postgres_prepare_start
   The record made, the text kept for a second try, and the first exchange
 sent: the lookup of a stale name where d_internal_postgres_clear_stale would
-make it -- inside a transaction, unless libpq's Close has left no name
-behind -- and otherwise the prepare.
+make it - inside a transaction, unless libpq's Close has left no name
+behind - and otherwise the prepare.
 */
 int d_postgres_prepare_start(
     struct pg_conn*                _db,

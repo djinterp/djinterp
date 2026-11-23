@@ -26,7 +26,7 @@ grammar in [GRAMMAR.md](GRAMMAR.md), installed over the argument parser
 made with the kit has, without writing them, `-h`/`--help`, `--version`,
 `-q`, `-v`, `--color`, the `help` and `completion` commands, help laid out
 as GNU programs lay it out, failures in the GNU shape on standard error, the
-grammar's exit statuses, and -- for a command that is a window -- a module
+grammar's exit statuses, and - for a command that is a window - a module
 loaded only when that command runs.
 
 The kit is C99 (`c/`, the `d_cli_` library), with a C++ face beside it
@@ -113,15 +113,15 @@ main(int argc, char** argv)
 ```
 
 `d_cli_program_run` is the whole of `main`: the parse; the ending a parse
-calls for -- help, a version or a completion script to standard output and
-0, a failure to standard error and 2 -- and otherwise the work of the
+calls for - help, a version or a completion script to standard output and
+0, a failure to standard error and 2 - and otherwise the work of the
 command the arguments reached, whose status the program exits with. A
 program with something to do between the two calls `d_cli_program_parse`,
 which returns `true` when the run is over, and then
 `d_cli_program_dispatch`.
 
-`main` checks nothing it makes. A definition that fails -- the parser's,
-or the kit's, for want of memory or a name used twice -- is kept, by the
+`main` checks nothing it makes. A definition that fails - the parser's,
+or the kit's, for want of memory or a name used twice - is kept, by the
 parser or in the program's `status`, and the run ends in trouble and says
 why, `hello: error: out of memory`, rather than run a program short of a
 command.
@@ -165,11 +165,11 @@ main(int argc, char** argv)
 }
 ```
 
-A command's work is any function object -- a function, a functor, a lambda
+A command's work is any function object - a function, a functor, a lambda
 -- called as `work(program, command)`, returning an `int` or an
 `exit_status`. The program keeps a copy and frees it with itself. The work
 runs behind the face's guard: an exception it lets out is said as the
-program's error -- its `what()`, or `out of memory` -- and the run is
+program's error - its `what()`, or `out of memory` - and the run is
 trouble, 2.
 
 Every definition CLI11's `App` makes is made on a `kit::program` as on any
@@ -181,9 +181,9 @@ parser, since the program is one.
 
 | call | writes | returns |
 |---|---|---|
-| `d_cli_report(program, D_CLI_SEVERITY_ERROR, ...)` | `PROGRAM: error: MESSAGE` | -- |
-| `d_cli_report_at(program, severity, file, line, column, ...)` | `FILE:LINE:COLUMN: warning: MESSAGE` | -- |
-| `d_cli_note(program, level, ...)` | `PROGRAM: note: MESSAGE`, at `-v` for level 1, `-vv` for 2 | -- |
+| `d_cli_report(program, D_CLI_SEVERITY_ERROR, ...)` | `PROGRAM: error: MESSAGE` | - |
+| `d_cli_report_at(program, severity, file, line, column, ...)` | `FILE:LINE:COLUMN: warning: MESSAGE` | - |
+| `d_cli_note(program, level, ...)` | `PROGRAM: note: MESSAGE`, at `-v` for level 1, `-vv` for 2 | - |
 | `d_cli_usage_error(program, command, ...)` | `PROGRAM: error: COMMAND: MESSAGE` and `Try 'PROGRAM COMMAND --help' ...` | 2 |
 | `d_cli_file_error(program, "read", path, errno)` | `PROGRAM: error: cannot read 'PATH': REASON` | 2 |
 | `d_cli_output_error(program, &watch)` *(added 11-18)* | `PROGRAM: error: cannot write standard output: REASON` | 2 |
@@ -197,17 +197,17 @@ on the program, each with the message given whole: a `%` in it is written
 as it is.
 
 Results go to standard output, everything said about them to standard
-error. Help, a version or a script the output refuses -- a full disk -- is
+error. Help, a version or a script the output refuses - a full disk - is
 trouble, said: `hello: error: cannot write standard output: No space left
 on device`. *(added 11-18)* A command's own results are said the same way
 when it writes them through `d_cli_program_watched(program, &watch)`, a sink
 over the program's output that keeps the system's reason for the first
 write refused, and ends with `return d_cli_output_error(program, &watch);`
-when a write fails. `d_cli_write_file` writes a file whole or not at all -- `-` is
-standard output -- and through a symbolic link to the file it leads to,
+when a write fails. `d_cli_write_file` writes a file whole or not at all - `-` is
+standard output - and through a symbolic link to the file it leads to,
 the link kept; a link it cannot follow, for any reason but that it leads
 nowhere, fails the write rather than be replaced. `d_cli_read_file` reads
-a file whole -- `-` is standard input.
+a file whole - `-` is standard input.
 
 **Settings on the command line** *(added 11-18, revised 11-23)*. The
 parser offers the kit each long option it does not know, where it reads it,
@@ -229,8 +229,8 @@ program.add_plugin("gui", "open the window");
 ```
 
 `hello gui ARGUMENT...` then finds `hello-gui` with the platform's suffix for
-a module -- along `HELLO_PLUGIN_PATH`, then beside the program, then in
-`../lib/hello/` from it -- loads it, checks that it is `hello`'s at `1.0`,
+a module - along `HELLO_PLUGIN_PATH`, then beside the program, then in
+`../lib/hello/` from it - loads it, checks that it is `hello`'s at `1.0`,
 and runs it with every argument after `gui`. A module not there, or not
 this program's, is said, with where it was looked for or why it was
 refused, and the run is 2. A module loaded stays loaded until the process
@@ -300,8 +300,8 @@ kit's libraries carry `/Zc:preprocessor`, which djinterp's headers need,
 to everything that links them (cli b).
 
 Without CMake, compile `DJINTERP_ARG_PARSER_SOURCES` and
-`DJINTERP_CLI_SOURCES` -- listed in
-`build/cmake/djinterp/parse/cli/DjinterpCliSources.cmake` -- as C99, with
+`DJINTERP_CLI_SOURCES` - listed in
+`build/cmake/djinterp/parse/cli/DjinterpCliSources.cmake` - as C99, with
 `inc/` on the include path, and link the dynamic loader where the platform
 keeps it apart (`-ldl` on older Linux).
 
@@ -326,7 +326,7 @@ different settings still agree on every layout.
 | `D_CFG_CLI_PLUGIN_SEARCH` | `"$ORIGIN:$ORIGIN/../lib/$PROGRAM"` (`;` on Windows) | the build's directories for a module, after those a run is given and `PROGRAM_PLUGIN_PATH`'s; `$ORIGIN` is the program's directory and `$PROGRAM` its name *(added 11-04: cli-taken 14)* |
 | `D_CFG_CLI_PLUGIN_VARIABLE` | 1 | whether `PROGRAM_PLUGIN_PATH` is read; 0 for a program that must not let its environment choose the code it loads *(added 11-04: cli-taken 14)*. *(added 11-20)* At 0, `plugin_path` and `cli.plugin_search` refuse the user's file, the environment and the command line, and only the program and an override bind them |
 | `D_CFG_CLI_PLUGIN_STRICT_VERSION` | 1 | a module of another program version refused; 0 loads it with a warning naming both versions; a program sets it per run with `d_cli_program_set_plugin_versions`, and a module of another interface version is always refused *(added 11-04: cli-taken 15)* |
-| `D_CFG_CLI_UNKNOWN_SETTINGS` | `D_CLI_UNKNOWN_SETTINGS_TYPOS` | *(added 11-20)* the default of `cli.unknown_settings`: what is said of a line of the user's file -- which every program shares -- that names no setting here. `none`; `typos`, a warning for a near miss and for a djin's setting that djin lacks, nothing for a djin the program does not register; `all`, a warning for each; `error`, an error for each, and exit 2 |
+| `D_CFG_CLI_UNKNOWN_SETTINGS` | `D_CLI_UNKNOWN_SETTINGS_TYPOS` | *(added 11-20)* the default of `cli.unknown_settings`: what is said of a line of the user's file - which every program shares - that names no setting here. `none`; `typos`, a warning for a near miss and for a djin's setting that djin lacks, nothing for a djin the program does not register; `all`, a warning for each; `error`, an error for each, and exit 2 |
 | `D_CFG_CLI_SHARED_REFUSALS` | `D_CLI_SHARED_REFUSALS_VERBOSE` | *(added 11-20)* the default of `cli.shared_refusals`: what is said when the user's file or `DJINTERP_` sets a setting that refuses that source. `none`; `verbose`, a note at `-v`; `warn`; `error`, and exit 2. The program's own prefix is always warned of, and the command line refused |
 
 ---
@@ -336,8 +336,8 @@ different settings still agree on every layout.
 The suites are under `tests/djinterp/tools/cli/`: the C suites in `c/`,
 the C++ suite beside them, and the probe modules the plugin suites load in
 `c/probe/`. Beside the C suites is the allocation sweep,
-`c/cli_sweep_tests.c`: each of its cases -- a program made, a command line
-run to its end, a file written or read, a module found or loaded -- run
+`c/cli_sweep_tests.c`: each of its cases - a program made, a command line
+run to its end, a file written or read, a module found or loaded - run
 once as it is, then once for each allocation it makes with that one
 refused, every run held to leaving nothing live and to doing all the clean
 run did or ending in trouble and saying `out of memory`. It wraps `malloc`
@@ -373,6 +373,6 @@ as `--filter=cli_settings` to run one suite's tests.
 
 A case's expected output is in its table. With `D_TESTS_CLI_DUMP` set in
 the environment, a C run prints what each case came to as the table entry
-that would hold it -- for a change to the kit's words made on purpose, to
+that would hold it - for a change to the kit's words made on purpose, to
 be read, checked, and put in the table. With `D_TESTS_CLI_SWEEP_SHOW` set,
 the sweep prints everything both runs wrote for each run that fell short.

@@ -4,9 +4,9 @@
 * integer_sequence generator and helpers:
 *   Three aliases that build integer_sequence values:
 *
-*     make_integer_sequence<T, N>   -- integer_sequence<T, 0, 1, ..., N-1>
-*     make_index_sequence<N>        -- make_integer_sequence<size_t, N>
-*     index_sequence_for<Ts...>     -- make_index_sequence<sizeof...(Ts)>
+*     make_integer_sequence<T, N>   - integer_sequence<T, 0, 1, ..., N-1>
+*     make_index_sequence<N>        - make_integer_sequence<size_t, N>
+*     index_sequence_for<Ts...>     - make_index_sequence<sizeof...(Ts)>
 *
 *   IMPLEMENTATION:
 *   When the compiler provides __make_integer_seq (Clang) or
@@ -71,7 +71,7 @@ namespace re_std
 {
 
 // =============================================================================
-// MAKE_INTEGER_SEQUENCE -- intrinsic-backed when available
+// MAKE_INTEGER_SEQUENCE - intrinsic-backed when available
 // =============================================================================
 
 #if RE_STD_HAS_MAKE_INTEGER_SEQ

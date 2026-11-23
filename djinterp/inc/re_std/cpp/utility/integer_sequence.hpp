@@ -8,12 +8,12 @@
 * across a function call.
 *
 *   Members:
-*     value_type     -- the integer type T
-*     static size()  -- sizeof...(Is)
+*     value_type     - the integer type T
+*     static size()  - sizeof...(Is)
 *
 *   Family in this file:
-*     integer_sequence<T, Is...>   -- the class template
-*     index_sequence<Is...>        -- alias for integer_sequence<size_t, Is...>
+*     integer_sequence<T, Is...>   - the class template
+*     index_sequence<Is...>        - alias for integer_sequence<size_t, Is...>
 *
 *   The factory generators (make_integer_sequence, make_index_sequence,
 *   index_sequence_for) live in make_integer_sequence.hpp.

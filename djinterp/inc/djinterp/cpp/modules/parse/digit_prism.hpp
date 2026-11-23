@@ -22,7 +22,7 @@
 *                        poly_product< poly_const<char, A>,
 *                                      poly_var<A> > >
 *
-*      -- so F is a genuine, registered Functor, and `compose` is a
+*      - so F is a genuine, registered Functor, and `compose` is a
 *      real catamorphism (functional/recursion.hpp's cata) rather
 *      than a hand-rolled recursive hook.  The recursive position is
 *      the poly_var<A>; cata threads the fold through exactly there.
@@ -30,12 +30,12 @@
 *   2. Because the fold is cata over recursive_traits<D>, the *very
 *      same* structure map serves every interpretation.  `compose`
 *      hands cata a print algebra; an evaluator hands it an
-*      arithmetic algebra; a pretty-printer a layout algebra -- with
+*      arithmetic algebra; a pretty-printer a layout algebra - with
 *      no change to the recursion.  Swapping the algebra is the only
 *      edit.  (An eval algebra is given in section V to discharge
 *      exactly this claim.)
 *
-*   The carrier stays a plain std::vector<char> -- recursive_traits /
+*   The carrier stays a plain std::vector<char> - recursive_traits /
 * corecursive_traits expose it as an F-layer via head/tail, so no
 * rewrite into an explicit fixed point is needed.  That is the point
 * of the structure-map approach: native carriers participate as-is.
@@ -90,7 +90,7 @@ NS_PARSE
 namespace example {
 
 // digit_list
-//   alias: the carrier D -- a sequence of ASCII decimal digits.
+//   alias: the carrier D - a sequence of ASCII decimal digits.
 using digit_list = std::vector<char>;
 
 
@@ -99,7 +99,7 @@ using digit_list = std::vector<char>;
 // poly_* vocabulary.  The left arm is nil (poly_unit); the right
 // arm is cons: a head char (poly_const, X phantom) times a tail
 // (poly_var, the recursive position).  Because every constituent
-// is a registered Functor, list_base<A> is one too -- which is what
+// is a registered Functor, list_base<A> is one too - which is what
 // lets cata fold it.
 template<typename A>
 using list_base =
@@ -118,7 +118,7 @@ NS_END  // djinterp
 // ================================================================
 //   These live at djinterp:: scope, beside the recursion-scheme
 // primaries.  They say "digit_list IS a mu(list_base)" by exposing
-// one layer in each direction -- project peels head/tail, embed
+// one layer in each direction - project peels head/tail, embed
 // prepends.  With them in place, cata and ana work over digit_list
 // with no further glue.
 
@@ -126,8 +126,8 @@ NS_DJINTERP
 
 // recursive_traits<digit_list>
 //   specialisation: the fold-side structure map.  project reads one
-// layer of F from the vector -- nil when empty, else cons(front,
-// rest) -- with the tail carried in the poly_var recursive slot.
+// layer of F from the vector - nil when empty, else cons(front,
+// rest) - with the tail carried in the poly_var recursive slot.
 template<>
 struct recursive_traits< ::djinterp::parse::example::digit_list, void>
 {
@@ -218,7 +218,7 @@ NS_PARSE
 //   specialisation: the print algebra φ : F(Σ*) → Σ*.  It sees ONE
 // layer whose recursive child has already been rendered to a string
 // by the surrounding cata: nil -> "", cons(head, tail_string) ->
-// head ++ tail_string.  No recursion here -- that is cata's job.
+// head ++ tail_string.  No recursion here - that is cata's job.
 template<>
 struct compose_traits<example::digit_list, char>
 {
@@ -250,7 +250,7 @@ struct compose_traits<example::digit_list, char>
 namespace example {
 
 // make_digit_parser
-//   factory: the parse leg -- many(digit()) collecting a digit_list.
+//   factory: the parse leg - many(digit()) collecting a digit_list.
 D_NODISCARD
 inline
 parser<digit_list, char> make_digit_parser()
@@ -262,7 +262,7 @@ parser<digit_list, char> make_digit_parser()
 // make_digit_prism
 //   factory: bundles the parse leg with the compose leg.  The
 // compose leg is cata[φ] over recursive_traits<digit_list> with
-// φ = compose_traits<digit_list>::algebra -- supplied automatically
+// φ = compose_traits<digit_list>::algebra - supplied automatically
 // by make_prism_via_traits.
 D_NODISCARD
 inline
@@ -274,7 +274,7 @@ prism<digit_list, char> make_digit_prism()
 
 
 // ================================================================
-//  IV.  the dual:  ana[ψ] -- build the list by unfolding a string
+//  IV.  the dual:  ana[ψ] - build the list by unfolding a string
 // ================================================================
 
 // digit_coalgebra
@@ -304,7 +304,7 @@ list_base<std::string> digit_coalgebra(
 
 
 // unfold_digits
-//   function: ana[ψ] : Σ* → μF.  The total dual of parse -- it
+//   function: ana[ψ] : Σ* → μF.  The total dual of parse - it
 // unfolds a string into a digit_list via corecursive_traits<
 // digit_list>::embed.  (parse is the *partial* ana, defined only on
 // the digit language; this total one accepts any string char-for-
@@ -326,7 +326,7 @@ digit_list unfold_digits(
 // ================================================================
 //   Nothing above is compose-specific except `algebra`.  To show
 // that, here is a *different* fold over the *same* recursive_traits<
-// digit_list> -- it reads the digit list as a base-10 numeral.
+// digit_list> - it reads the digit list as a base-10 numeral.
 // There is no new recursion: eval_digits is cata again, with an
 // arithmetic algebra in place of the print algebra.  This is the
 // "compose and evaluate are one catamorphism" claim, discharged.
@@ -355,7 +355,7 @@ NS_INTERNAL
 
     // digit_value_algebra
     //   the F-algebra for base-10 evaluation.  nil -> (0, 1);
-    // cons(d, (v, m)) -> ( d*m + v , m*10 ) -- the fold arrives
+    // cons(d, (v, m)) -> ( d*m + v , m*10 ) - the fold arrives
     // tail-first, so the head is the most significant digit and its
     // place value is the tail's accumulated scale.
     inline

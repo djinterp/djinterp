@@ -7,7 +7,7 @@
 *   tuple_apply_all takes a unary metafunction and a pack (or a single
 * tuple wrapping a pack) and yields a tuple of the transformed types.
 * It internally normalizes its input through `to_tuple`, so the
-* tuple-vs-pack distinction collapses early -- both call shapes must
+* tuple-vs-pack distinction collapses early - both call shapes must
 * produce identical results for the same logical element list.
 *
 *   Edge cases:
@@ -41,13 +41,13 @@ using namespace dtuple_test_types;
 // I.   TUPLE_APPLY_ALL  (compile-time)
 // =========================================================================
 
-// empty pack -- to_tuple<>::type collapses to std::tuple<>, helper base
+// empty pack - to_tuple<>::type collapses to std::tuple<>, helper base
 // case yields the same empty tuple
 static_assert(std::is_same<typename tuple_apply_all<std::add_const>::type,
                            std::tuple<>>::value,
               "tuple_apply_all<add_const> (empty pack) should be std::tuple<>");
 
-// single tuple holding the empty pack -- same answer via the unwrapping
+// single tuple holding the empty pack - same answer via the unwrapping
 // route
 static_assert(std::is_same<typename tuple_apply_all<std::add_const_t,
                                                      std::tuple<>>::type,
@@ -75,7 +75,7 @@ static_assert(std::is_same<typename tuple_apply_all<std::add_volatile_t,
                            std::tuple<volatile int, volatile char>>::value,
               "tuple_apply_all<add_volatile_t, int, char>::type should add volatile to each");
 
-// multi-element tuple-shape -- to_tuple unwraps it before iterating
+// multi-element tuple-shape - to_tuple unwraps it before iterating
 static_assert(std::is_same<typename tuple_apply_all<std::add_const_t,
                                                      std::tuple<int, char, float>>::type,
                            std::tuple<const int, const char, const float>>::value,
@@ -85,7 +85,7 @@ static_assert(std::is_same<typename tuple_apply_all<std::add_pointer_t,
                            std::tuple<alpha*, bravo*>>::value,
               "tuple_apply_all<add_pointer_t, std::tuple<alpha, bravo>>::type should add pointer to each");
 
-// identity trait -- result should equal the input tuple shape
+// identity trait - result should equal the input tuple shape
 static_assert(std::is_same<typename tuple_apply_all<identity, int, char>::type,
                            std::tuple<int, char>>::value,
               "tuple_apply_all<identity, int, char>::type should be std::tuple<int, char>");
@@ -94,7 +94,7 @@ static_assert(std::is_same<typename tuple_apply_all<identity,
                            std::tuple<alpha, bravo, charlie>>::value,
               "tuple_apply_all<identity, std::tuple<alpha, bravo, charlie>>::type should preserve the tuple");
 
-// trait that REPLACES the type entirely (different output type) -- proves
+// trait that REPLACES the type entirely (different output type) - proves
 // the transformation is independent of the input type identity
 static_assert(std::is_same<typename tuple_apply_all<add_array_2, int, char>::type,
                            std::tuple<std::array<int, 2>, std::array<char, 2>>>::value,

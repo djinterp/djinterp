@@ -2,8 +2,8 @@
 * djinterp [c][filesys]                                           t_file_width.c
 *
 *   Runtime harness for c/filesys's two widths (file_common.h has the rules).
-* It builds as C from C99 at either width, and as C++ from C++98 -- below the
-* 64-bit floor too, where only the 32-bit twins exist -- and checks, on
+* It builds as C from C99 at either width, and as C++ from C++98 - below the
+* 64-bit floor too, where only the 32-bit twins exist - and checks, on
 * sparse files it makes in the scratch directory it is given:
 *   - offsets and lengths past 2 and 4 GiB: the 32-bit twins reach them, and
 *     fail with EOVERFLOW only on a value they must hand back;
@@ -80,7 +80,7 @@ struct dj_tests_file_paths
 /*
 d_tests_file_expect
   Counts one check, and prints it when it fails, with errno as the check left
-it -- which is usually why.
+it - which is usually why.
 */
 static
 void d_tests_file_expect(
@@ -366,7 +366,7 @@ d_tests_file_times
   Tests the following:
   - a 2030 time fits dj_stat32_t, and reads back exactly
   - a 2040 time does not: d_file_stat32 fails with EOVERFLOW and zeroes its
-    buffer -- checked only where this build's time_t can set 2040
+    buffer - checked only where this build's time_t can set 2040
 */
 static
 bool d_tests_file_times(
@@ -608,7 +608,7 @@ bool d_tests_file_directory(
 
 /*
 d_tests_file_capacity
-  Capacity in KiB, the 32-bit twin's unit: present, and consistent -- or, on
+  Capacity in KiB, the 32-bit twin's unit: present, and consistent - or, on
 a filesystem of 4 TiB or more, refused with EOVERFLOW, as it must be.
 */
 static
@@ -791,7 +791,7 @@ bool d_tests_file_wide_stream(
 
 /*
 d_tests_file_wide_before
-  A time before 1901, which needs 64 bits -- where the filesystem keeps it.
+  A time before 1901, which needs 64 bits - where the filesystem keeps it.
 ext4 clamps it to 1901-12-13, which fits 32, so either answer is right as
 long as it agrees with what d_file_stat64 read.
 */

@@ -24,7 +24,7 @@
 *
 *   A note on parity (framework_goals.md section 2): every knob here is read by
 * BOTH languages, because both compile this same header. A knob therefore
-* cannot make C and C++ disagree -- it can only move both together. Config
+* cannot make C and C++ disagree - it can only move both together. Config
 * that lived in one face would be a parity hazard; config that lives here is
 * not.
 *
@@ -76,13 +76,13 @@
 
 // D_CFG_MEM_ALL
 //   brief: aggregate fallback for every optional memory feature. Not defined
-// by default -- when the user defines it, each child knob whose own value is
+// by default - when the user defines it, each child knob whose own value is
 // unset falls back to it. Set it to 0 for the smallest allocator that still
 // allocates, or 1 to opt every optional feature in. Individual knobs always
 // outrank it.
 
 // D_CFG_MEM_PRESET_MINIMAL
-//   brief: 1 selects the freestanding profile -- no accounting, no poisoning,
+//   brief: 1 selects the freestanding profile - no accounting, no poisoning,
 // no redzones, no zeroing, no reallocate slot, and the null source as the
 // default upstream. Intended for a build that supplies its own memory and
 // wants the allocator structs as small as the algorithm allows. Implemented as
@@ -92,7 +92,7 @@
 #endif
 
 // D_CFG_MEM_PRESET_DEBUG
-//   brief: 1 selects the diagnostic profile -- accounting with peak tracking,
+//   brief: 1 selects the diagnostic profile - accounting with peak tracking,
 // poisoning on both edges, redzones, double-free detection, and strict
 // argument checking. This is what D_CFG_TESTING turns on by default; the knob
 // exists so a release build can be given the same treatment without also
@@ -162,7 +162,7 @@
 //   This is a REPRESENTATION choice, not a policy one, so it is stated in bits
 // rather than as a boolean, and the resulting type is published by
 // mem_common.h as dj_mem_size with D_MEM_SIZE_MAX beside it. Both languages
-// compile the same setting, so it cannot break parity -- but it DOES change
+// compile the same setting, so it cannot break parity - but it DOES change
 // the wire layout, which is why layout assertions key off it.
 
 // D_CFG_MEM_SIZE_NATIVE / _32 / _64
@@ -196,7 +196,7 @@
 // D_CFG_MEM_DEFAULT_ALIGN
 //   brief: the alignment applied when a caller passes 0 for an alignment
 // argument. Defaults to 0, which mem_common.h resolves to the platform's
-// max_align_t -- the only value that is correct for an allocation of unknown
+// max_align_t - the only value that is correct for an allocation of unknown
 // type. Set it to a smaller power of two (8, or 4) when every allocation's
 // type is known to the caller and the padding matters; that is the setting
 // that recovers the last few bytes of a densely packed arena.
@@ -209,7 +209,7 @@
 // whatever the caller asked for. Defaults to 1 (no floor), so the caller's
 // request is honoured exactly. Raising it to the cache line is how a caller
 // buys freedom from false sharing across an entire subsystem without editing
-// a single call site -- and it costs padding on every allocation, which is
+// a single call site - and it costs padding on every allocation, which is
 // why it is not the default.
 #ifndef D_CFG_MEM_MIN_ALIGN
 #   define D_CFG_MEM_MIN_ALIGN 1
@@ -266,8 +266,8 @@
 
 // D_CFG_MEM_POISON
 //   brief: 1 fills freshly vended bytes with D_CFG_MEM_POISON_ALLOC_BYTE and
-// released bytes with D_CFG_MEM_POISON_FREE_BYTE. A BRANCH knob -- it moves no
-// struct field, only time -- so it is safe to leave on longer than the field
+// released bytes with D_CFG_MEM_POISON_FREE_BYTE. A BRANCH knob - it moves no
+// struct field, only time - so it is safe to leave on longer than the field
 // knobs. Its value is that a read of uninitialised or freed memory produces a
 // recognisable value rather than a plausible one.
 #ifndef D_CFG_MEM_POISON
@@ -309,7 +309,7 @@
 
 // D_CFG_MEM_REDZONE_BYTES
 //   brief: the width of ONE guard band, in bytes; a block therefore grows by
-// twice this. Defaults to 8 -- wide enough to catch the single-element
+// twice this. Defaults to 8 - wide enough to catch the single-element
 // overrun that is the common case, narrow enough that it does not dominate a
 // small slot. Rounded up to the block's alignment in use.
 #ifndef D_CFG_MEM_REDZONE_BYTES
@@ -344,7 +344,7 @@
 
 // D_CFG_MEM_STRICT_ARGS
 //   brief: 0 (default) makes the core tolerate a null or malformed argument
-// and report it through the return value -- a null pointer, or an explicit
+// and report it through the return value - a null pointer, or an explicit
 // enum dj_mem_status from the _ex forms. 1 makes it a hard assertion instead,
 // for a build that would rather find the caller than absorb the mistake.
 #ifndef D_CFG_MEM_STRICT_ARGS
@@ -388,7 +388,7 @@
 //   brief: 1 gives every header-defined kernel `static inline` linkage, so no
 // .c file need be compiled or linked. 0 (the default) gives them `inline`,
 // with each module's .c emitting exactly one out-of-line definition under C99
-// inline rules -- which is what lets a non-inlined call and a taken address
+// inline rules - which is what lets a non-inlined call and a taken address
 // resolve. Mirrors D_COLOR_HEADER_ONLY; the two subframeworks answer the same
 // question the same way on purpose.
 #ifndef D_CFG_MEM_HEADER_ONLY
@@ -404,7 +404,7 @@
 //   brief: 1 compiles the memory subframework's concept constraints. Left
 // unset it follows env detection of C++20 concepts. Setting it to 0 on a tier
 // that has them keeps the traits and drops the concepts, which is a legitimate
-// choice for a codebase standardising on the trait spelling -- the concepts
+// choice for a codebase standardising on the trait spelling - the concepts
 // are notation over the traits, and dropping notation changes nothing about
 // what is computed (goals section 2).
 #ifndef D_CFG_MEM_USE_CONCEPTS
@@ -522,7 +522,7 @@
 // ===========================================================================
 
 // D_INTERNAL_MEM_SIZE_BITS
-//   brief: the resolved counter width -- 0 for "track size_t", or 32 / 64.
+//   brief: the resolved counter width - 0 for "track size_t", or 32 / 64.
 // Read by mem_common.h, which turns it into dj_mem_size and D_MEM_SIZE_MAX.
 #define D_INTERNAL_MEM_SIZE_BITS      D_CFG_NORM(D_CFG_MEM_SIZE_BITS)
 
@@ -551,8 +551,8 @@
 // values; _ALLOC and _FREE are the two edges apart. Resolved AGAINST zeroing
 // here rather than in five modules: zeroing is a contract the caller may rely
 // on, poisoning is a diagnostic, so where both are asked for the contract wins
-// on the allocate edge. The release edge is unaffected -- released bytes have
-// no contract -- so poisoning on free survives, which is where most of its
+// on the allocate edge. The release edge is unaffected - released bytes have
+// no contract - so poisoning on free survives, which is where most of its
 // value is.
 #if D_CFG_IS_ON(D_CFG_MEM_POISON) && D_CFG_IS_OFF(D_CFG_MEM_ZERO_ON_ALLOC)
 #   define D_INTERNAL_MEM_POISON_ALLOC 1
@@ -596,7 +596,7 @@
 #define D_INTERNAL_MEM_ASSERT_LAYOUT  D_CFG_NORM(D_CFG_MEM_ASSERT_LAYOUT)
 
 // D_INTERNAL_MEM_ASSERT_SIZES
-//   brief: 1 when exact struct sizes should be asserted -- on LP64 with the
+//   brief: 1 when exact struct sizes should be asserted - on LP64 with the
 // native counter width, or anywhere the user has forced it. Offsets are
 // asserted regardless. A narrowed counter changes every size, so the sizes
 // are only pinned where the width is the platform's own.

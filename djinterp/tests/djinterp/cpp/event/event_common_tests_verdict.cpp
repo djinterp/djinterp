@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][event]                           event_common_tests_verdict.cpp
 *
-*   Section II -- VERDICT (the set P).  Covers the `verdict` enum class and the
+*   Section II - VERDICT (the set P).  Covers the `verdict` enum class and the
 * `consumed` query: the enumerator values, the scoped-enum type properties,
 * and the agreement between `consumed` and a direct comparison against
 * verdict::consume.

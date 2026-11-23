@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                observational_comparison_concepts.hpp
 *
-* C++20 concepts for the OBSERVATIONAL COMPARISON axis -- the
+* C++20 concepts for the OBSERVATIONAL COMPARISON axis - the
 * `requires`-facing view of observational_comparison_traits.hpp.
 *
 *   THE CONCEPTS ADD NO POLICY.
@@ -50,26 +50,26 @@ NS_DJINTERP
 
 
 // SizeObservable
-//   concept: exposes size() -- the weakest observation, and value-free:
+//   concept: exposes size() - the weakest observation, and value-free:
 // knowing HOW MANY is not observing any element.
 template<typename Type>
 concept SizeObservable = has_size_member_v<Type>;
 
 
 // MembershipObservable
-//   concept: exposes contains() -- membership without extraction.
+//   concept: exposes contains() - membership without extraction.
 template<typename Type>
 concept MembershipObservable = has_contains_member_v<Type>;
 
 
 // CountObservable
-//   concept: exposes count() -- multiplicity without extraction.
+//   concept: exposes count() - multiplicity without extraction.
 template<typename Type>
 concept CountObservable = has_count_member_v<Type>;
 
 
 // IndexObservable
-//   concept: exposes indexed access -- the observation that distinguishes a
+//   concept: exposes indexed access - the observation that distinguishes a
 // positional container from a bag.
 template<typename Type>
 concept IndexObservable = has_indexed_access_v<Type>;

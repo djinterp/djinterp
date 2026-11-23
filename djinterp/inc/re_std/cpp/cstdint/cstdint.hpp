@@ -3,7 +3,7 @@
 *
 * the fixed-width integer typedefs (identity-preserving re-exports):
 *   int8_t through uint64_t, the _least and _fast families, intmax_t /
-* uintmax_t and intptr_t / uintptr_t -- surfaced in re_std:: so that code
+* uintmax_t and intptr_t / uintptr_t - surfaced in re_std:: so that code
 * can spell them with one prefix.
 *
 *   THERE IS NOTHING TO IMPLEMENT HERE, AND THAT IS THE POINT:
@@ -11,33 +11,33 @@
 * library choice. `typedef long int64_t;` is right on LP64 and wrong on
 * Windows; `typedef long long int64_t;` is the reverse. Only the
 * implementation knows, so re_std re-exports its answer and preserves
-* identity -- re_std::int64_t IS std::int64_t, so the two spellings pick
+* identity - re_std::int64_t IS std::int64_t, so the two spellings pick
 * the same printf format macro and the same overload.
 *
 *   THE EXACT-WIDTH FAMILY IS OPTIONAL AND IS GATED AS SUCH:
 *   intN_t / uintN_t exist only where the implementation has a type of
-* exactly N bits with no padding -- [cstdint.syn] makes them conditional,
+* exactly N bits with no padding - [cstdint.syn] makes them conditional,
 * and a machine with 9-bit bytes or 36-bit words genuinely lacks them.
 * The standard guarantees the corresponding INTN_MAX macro is defined if
 * and only if the typedef is, which gives an exact preprocessor test, so
 * each pair is gated on its own macro rather than on a compiler
-* whitelist. On a target without them the names are simply absent -- the
+* whitelist. On a target without them the names are simply absent - the
 * header still compiles, which is the rule: degrade or omit, never error.
 *
 *   The _least and _fast families and intmax_t / uintmax_t are mandatory
 * in the standard, but dstdint.h leaves a family out where this build
-* cannot spell its type -- the 64-bit ones under ISO strict C++98 on a
+* cannot spell its type - the 64-bit ones under ISO strict C++98 on a
 * target that makes them `long long`, the _fast ones wherever it cannot
-* tell which types the platform chose -- so each pair is gated on its
+* tell which types the platform chose - so each pair is gated on its
 * limit macro as well. intptr_t / uintptr_t are optional (a machine need
 * not have an integer wide enough to hold a pointer) and are gated the
 * same way.
 *
-*   GRANULARITY -- A DOCUMENTED EXCEPTION:
+*   GRANULARITY - A DOCUMENTED EXCEPTION:
 *   Every public symbol normally gets its own header. These do not, for
 * the same reason numbers.hpp holds all thirteen constants: granularity
 * exists to narrow compile-time dependencies, and every typedef here has
-* the identical dependency -- <cstdint> itself. Thirty-two headers each
+* the identical dependency - <cstdint> itself. Thirty-two headers each
 * containing one using-declaration and the same #include would narrow
 * nothing and cost thirty-two file opens.
 *
@@ -63,10 +63,10 @@
                           // level
 //   dstdint.h, not <cstdint>: <cstdint> is a C++11 header, and dstdint.h is
 // re_std's own answer at every level (decision 4.7; the owner's ruling of
-// 2026.10.01) -- the platform's <stdint.h> where there is one, so the types
+// 2026.10.01) - the platform's <stdint.h> where there is one, so the types
 // are the platform's, and its own derivation otherwise. It also brings the
 // INT*_MIN / INT*_MAX / INT*_C limit and literal macros into scope; they are
-// macros and therefore have no re_std:: spelling -- see the umbrella.
+// macros and therefore have no re_std:: spelling - see the umbrella.
 
 
 namespace re_std
@@ -74,7 +74,7 @@ namespace re_std
 
 
 // ===========================================================================
-// I.   EXACT WIDTH  (optional -- gated per pair on its own limit macro)
+// I.   EXACT WIDTH  (optional - gated per pair on its own limit macro)
 // ===========================================================================
 
 #ifdef INT8_MAX
@@ -193,7 +193,7 @@ namespace re_std
 
 #ifdef INTPTR_MAX
     // intptr_t / uintptr_t
-    //   typedef: integers able to round-trip a void*. Optional -- a target
+    //   typedef: integers able to round-trip a void*. Optional - a target
     // need not have an integer that wide.
     using ::intptr_t;
     using ::uintptr_t;

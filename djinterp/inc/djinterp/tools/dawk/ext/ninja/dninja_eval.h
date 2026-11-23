@@ -248,8 +248,8 @@ size_t d_ninja_roots(
 // The rules of the top scope, phony among them, sorted by name, as ninja's
 // rules tool lists them; d_ninja_rule_binding writes one of a rule's
 // bindings as ninja's Unparse does, `NULL` for one it does not have, for
-// the caller to free.  The pools, the two ninja defines first -- "" and
-// console -- then the manifest's.  d_ninja_variable gives a variable of
+// the caller to free.  The pools, the two ninja defines first - "" and
+// console - then the manifest's.  d_ninja_variable gives a variable of
 // the top scope, "" for none, for the caller to free.
 size_t d_ninja_rule_count(
     const struct dj_ninja_graph* _graph

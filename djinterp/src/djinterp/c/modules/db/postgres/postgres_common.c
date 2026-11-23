@@ -40,7 +40,7 @@ D_STATIC_ASSERT( (INT_MAX >= 2147483647),
                  "a packed SQLSTATE needs an int of 32 bits" );
 
 // dj_internal_postgres_class
-//   struct: an SQLSTATE class -- the code's first two characters -- and the
+//   struct: an SQLSTATE class - the code's first two characters - and the
 // words the PostgreSQL manual's appendix A gives it.
 struct dj_internal_postgres_class
 {
@@ -363,8 +363,8 @@ int d_postgres_result_from_sqlstate(
 
 /*
 d_postgres_result_message
-  db_common.h's words for its own values -- save D_DB_UNSUPPORTED in a build
-without libpq, which the build explains -- the layer's for the five codes it
+  db_common.h's words for its own values - save D_DB_UNSUPPORTED in a build
+without libpq, which the build explains - the layer's for the five codes it
 gives itself, the manual's for the conditions the headers name and for any
 other code's class; a value that is none of these is "unknown result".
 */

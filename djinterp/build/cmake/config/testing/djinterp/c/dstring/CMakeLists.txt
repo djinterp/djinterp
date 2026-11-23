@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/dstring/CMakeLists.txt
+# djinterp [test]  -  build/cmake/config/testing/djinterp/c/dstring/CMakeLists.txt
 #
 #   Test leaf for dstring.h's suite, in DTest's C face: the runner in this
 # directory, the section translation units globbed from the tests tree (the

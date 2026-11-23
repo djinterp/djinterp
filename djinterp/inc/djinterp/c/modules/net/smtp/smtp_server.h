@@ -75,7 +75,7 @@ D_EXTERN_C_BEGIN
 #define D_SMTP_SERVER_MESSAGE_MAX     10485760u
 
 // D_SMTP_SERVER_RECIPIENTS_MAX
-//   constant: default recipients per message -- the minimum RFC 5321 section
+//   constant: default recipients per message - the minimum RFC 5321 section
 // 4.5.3.1.8 requires a server to accept.
 #define D_SMTP_SERVER_RECIPIENTS_MAX  100u
 
@@ -90,7 +90,7 @@ D_EXTERN_C_BEGIN
 // dj_smtp_server_config
 //   struct: one server's settings. Strings, and `tls`, are borrowed and must
 // outlive every session that uses them. `tls` is a server context of the
-// SSL kernel -- its certificate, its key, and what it asks of clients --
+// SSL kernel - its certificate, its key, and what it asks of clients --
 // and STARTTLS is offered only with one.
 struct dj_smtp_server_config
 {
@@ -151,7 +151,7 @@ typedef unsigned int (*dj_smtp_server_rcpt_fn)(
                          const char*                       _recipient);
 
 // dj_smtp_server_message_fn
-//   function type: takes delivery of a complete message -- transparency
+//   function type: takes delivery of a complete message - transparency
 // removed, every line ending CRLF, and NUL-terminated for convenience.
 typedef unsigned int (*dj_smtp_server_message_fn)(
                          void*                             _context,
@@ -187,7 +187,7 @@ struct dj_smtp_server_handler
 
 // 3.1    Initialization
 //------------------------------------------------------------------------------
-// defaults -- neither fails, NULL is ignored. A configuration starts as
+// defaults - neither fails, NULL is ignored. A configuration starts as
 // "localhost" with the D_SMTP_SERVER_* limits, PLAIN and LOGIN, no context,
 // and no requirements; a handler starts with every callback NULL.
 void d_smtp_server_config_init(
@@ -219,7 +219,7 @@ void d_smtp_server_handler_init(
  *         for bad arguments; D_SMTP_ERROR_OUT_OF_MEMORY; D_SMTP_ERROR_PROTOCOL
  *         when the client was dropped for errors; D_SMTP_ERROR_TLS when the
  *         TLS session STARTTLS made failed, in its handshake or after; or
- *         what the connection reported -- D_SMTP_ERROR_CLOSED,
+ *         what the connection reported - D_SMTP_ERROR_CLOSED,
  *         D_SMTP_ERROR_TIMED_OUT, D_SMTP_ERROR_TRANSPORT.
  */
 enum dj_smtp_error d_smtp_server_session(

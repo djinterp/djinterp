@@ -6,14 +6,14 @@
 *
 *   NUMBERS FOR MACHINES DO NOT FOLLOW THE LOCALE. printf's %f, %e and %g take
 * their decimal point from LC_NUMERIC, so under a German locale 1.5 prints as
-* "1,5" -- which is not a number in a PDF content stream, a CSS length or a
+* "1,5" - which is not a number in a PDF content stream, a CSS length or a
 * JSON value, and a document that reads correctly on one machine is corrupt
 * on the next. d_ostream_write_double writes the C form under every locale.
 * Integers need nothing of the kind; ostream.h converts them itself.
 *
-*   A LOCALE PER CALL. Where the platform has locale objects -- POSIX 2008's
+*   A LOCALE PER CALL. Where the platform has locale objects - POSIX 2008's
 * newlocale and uselocale, or the Windows CRT's _create_locale and
-* _snprintf_s_l -- a double is formatted in one for that call alone: the C
+* _snprintf_s_l - a double is formatted in one for that call alone: the C
 * locale for the C form, made once and shared, or a locale the caller made
 * with d_ostream_locale_init for a double meant for people
 * (d_ostream_write_double_l). The program's locale is never read or changed,

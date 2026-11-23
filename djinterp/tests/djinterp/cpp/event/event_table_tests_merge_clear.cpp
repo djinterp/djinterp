@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][event]                        event_table_tests_merge_clear.cpp
 *
-*   Section III (merge + clear) -- whole-table composition and teardown.
+*   Section III (merge + clear) - whole-table composition and teardown.
 * merge realizes the pointwise concatenation rho (+) rho': it appends _other's
 * entries key by key, assigns FRESH ids from this table's id space (the
 * source's ids are not preserved), keeps this table's existing entries first

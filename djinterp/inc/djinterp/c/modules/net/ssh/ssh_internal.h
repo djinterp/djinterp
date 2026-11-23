@@ -92,7 +92,7 @@ struct dj_ssh_internal_scan
 
 // 2.1    Bytes and text
 //------------------------------------------------------------------------------
-// bytes and text -- defined in ssh_common.c.
+// bytes and text - defined in ssh_common.c.
 //   The loads and stores are big-endian; d_ssh_internal_name_list_valid
 // reports whether `_length` bytes form an RFC 4251 name-list. ASCII case
 // folding is net's (net_common.h).
@@ -114,7 +114,7 @@ D_NODISCARD bool d_ssh_internal_name_list_valid(
 
 // 2.2    Status
 //------------------------------------------------------------------------------
-// status -- defined in ssh_common.c.
+// status - defined in ssh_common.c.
 //   Whether a status leaves a session unusable; only these move a session
 // to D_SSH_STATE_FAILED.
 D_NODISCARD bool d_ssh_internal_is_fatal(
@@ -123,7 +123,7 @@ D_NODISCARD bool d_ssh_internal_is_fatal(
 
 // 2.3    Known hosts
 //------------------------------------------------------------------------------
-// known hosts -- defined in ssh_known_hosts.c.
+// known hosts - defined in ssh_known_hosts.c.
 //   d_ssh_internal_host_valid tells whether a host can be recorded, and
 // d_ssh_internal_host_string writes the lowercase name it is recorded
 // under. A scan reads any number of files for one host and, when `_key` is
@@ -157,7 +157,7 @@ void d_ssh_internal_scan_free(
 
 // 2.4    Sessions
 //------------------------------------------------------------------------------
-// sessions -- defined in ssh_session.c.
+// sessions - defined in ssh_session.c.
 //   d_ssh_internal_note records why the last call failed: `_detail`, or
 // else the engine's description, copied. d_ssh_internal_fail ends the
 // session with `_status`. d_ssh_internal_settle applies an engine result:
@@ -178,7 +178,7 @@ enum dj_ssh_error d_ssh_internal_settle(
 
 // 2.5    Engines
 //------------------------------------------------------------------------------
-// engines -- defined in ssh_libssh2.c.
+// engines - defined in ssh_libssh2.c.
 //   Acquire and release libssh2's global state; both do nothing where
 // libssh2 is not compiled.
 D_NODISCARD enum dj_ssh_error d_ssh_internal_libssh2_startup(void);

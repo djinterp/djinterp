@@ -9,8 +9,8 @@
 *   Each function comes twice, as in elementary.h. The _c form is pure
 * arithmetic, so the same text is a constant expression from C++14; the
 * plain form calls the C library (std:: in C++), fast at run time. A
-* remainder is exact -- that of two values of a family is a value of it
-* -- so the _c forms compute it in the family's own arithmetic, by
+* remainder is exact - that of two values of a family is a value of it
+* - so the _c forms compute it in the family's own arithmetic, by
 * differences each exact, and agree with the library's bit for bit: a
 * face may use either and not know which ran. Of remquo's quotient C
 * promises the last three bits, and those are what agree. C++ before
@@ -77,7 +77,7 @@ TABLE OF CONTENTS
 // 1.1    The truncated remainder
 //------------------------------------------------------------------------------
 // fmod_c is x - n y, n the quotient x / y truncated toward 0, exactly --
-// the remainder of two values of the family is a value of it -- in pure
+// the remainder of two values of the family is a value of it - in pure
 // arithmetic, a constant expression from C++14. m = |y| 2^j, the largest
 // not past |x|, is taken away where it fits, then halved, down to |y|: the
 // remainder stays below 2m, so every difference is exact (Sterbenz's lemma).
@@ -119,7 +119,7 @@ d_math_f_fmod_c(
         float m = b;
         int j = 0;
 
-        // |x| below |y| -- x a zero, or y infinite, among them -- is its own
+        // |x| below |y| - x a zero, or y infinite, among them - is its own
         // remainder
         if (a < b)
         {
@@ -175,11 +175,11 @@ d_math_f_fmod(
 // 1.2    The rounded remainder
 //------------------------------------------------------------------------------
 // remainder_c is IEEE's remainder, C's remainder: x - n y, n the quotient
-// x / y rounded to the nearest integer, a half to the even one -- exactly,
+// x / y rounded to the nearest integer, a half to the even one - exactly,
 // so that it lies within |y| / 2 of zero. In pure arithmetic, a constant
 // expression from C++14: fmod_c by 2|y| first, which keeps the quotient's
 // parity, then |y| taken away where the remainder is past |y| / 2, and
-// again where it is past it still -- each difference exact (Sterbenz's
+// again where it is past it still - each difference exact (Sterbenz's
 // lemma). A zero result has x's sign. The rest is C's (Annex F): an
 // infinite x, or y zero, gives NaN; an infinite y gives x; NaN gives NaN,
 // the argument itself. remainder is the C library's, exact too: the two
@@ -283,8 +283,8 @@ d_math_f_remainder(
 // 1.3    The rounded remainder and its quotient
 //------------------------------------------------------------------------------
 // remquo_c is C's remquo: remainder_c's result, and through _quo the last
-// three bits of the quotient n it rounded -- |n| mod 8, 0 to 7, with the
-// sign of x / y -- what C asks for at least, and what a reduction by a
+// three bits of the quotient n it rounded - |n| mod 8, 0 to 7, with the
+// sign of x / y - what C asks for at least, and what a reduction by a
 // quarter turn wants for its quadrant. Pure arithmetic, a constant
 // expression from C++14 where the int _quo points to is the evaluation's
 // own, as with C++23's std::remquo: fmod_c by 8|y| first, which keeps the
@@ -293,7 +293,7 @@ d_math_f_remainder(
 // remainder_c takes it, each difference exact and each counted. The special
 // values are remainder_c's, with the quotient 0. A null _quo stores
 // nothing. remquo is the C library's: the same remainder, and a quotient
-// with the same last three bits -- glibc's on x86-64 gives 8 or -8 where
+// with the same last three bits - glibc's on x86-64 gives 8 or -8 where
 // remquo_c gives 0. C++ before C++11 has no remquo, so there it is
 // remquo_c.
 
@@ -357,7 +357,7 @@ d_math_f_remquo_c(
         }
 
         // r below 2b and the count even: past b / 2 take b away, and again
-        // past it still, as remainder_c does -- a half stays where the
+        // past it still, as remainder_c does - a half stays where the
         // quotient is even. Below twice the least normal value b / 2 may not
         // be exact, but 2r is
         if (b < (FLT_MIN + FLT_MIN))
@@ -418,7 +418,7 @@ d_math_f_remquo(
     int*  _quo
 )
 {
-    // a null _quo: the remainder alone, as remquo_c gives it -- the
+    // a null _quo: the remainder alone, as remquo_c gives it - the
     // library's must have somewhere to store
     int  quotient = 0;
     int* where    = (_quo != NULL) ? _quo : &quotient;
@@ -441,7 +441,7 @@ d_math_f_remquo(
 // 2.1    The truncated remainder
 //------------------------------------------------------------------------------
 // fmod_c is x - n y, n the quotient x / y truncated toward 0, exactly --
-// the remainder of two values of the family is a value of it -- in pure
+// the remainder of two values of the family is a value of it - in pure
 // arithmetic, a constant expression from C++14. m = |y| 2^j, the largest
 // not past |x|, is taken away where it fits, then halved, down to |y|: the
 // remainder stays below 2m, so every difference is exact (Sterbenz's lemma).
@@ -483,7 +483,7 @@ d_math_d_fmod_c(
         double m = b;
         int j = 0;
 
-        // |x| below |y| -- x a zero, or y infinite, among them -- is its own
+        // |x| below |y| - x a zero, or y infinite, among them - is its own
         // remainder
         if (a < b)
         {
@@ -539,11 +539,11 @@ d_math_d_fmod(
 // 2.2    The rounded remainder
 //------------------------------------------------------------------------------
 // remainder_c is IEEE's remainder, C's remainder: x - n y, n the quotient
-// x / y rounded to the nearest integer, a half to the even one -- exactly,
+// x / y rounded to the nearest integer, a half to the even one - exactly,
 // so that it lies within |y| / 2 of zero. In pure arithmetic, a constant
 // expression from C++14: fmod_c by 2|y| first, which keeps the quotient's
 // parity, then |y| taken away where the remainder is past |y| / 2, and
-// again where it is past it still -- each difference exact (Sterbenz's
+// again where it is past it still - each difference exact (Sterbenz's
 // lemma). A zero result has x's sign. The rest is C's (Annex F): an
 // infinite x, or y zero, gives NaN; an infinite y gives x; NaN gives NaN,
 // the argument itself. remainder is the C library's, exact too: the two
@@ -647,8 +647,8 @@ d_math_d_remainder(
 // 2.3    The rounded remainder and its quotient
 //------------------------------------------------------------------------------
 // remquo_c is C's remquo: remainder_c's result, and through _quo the last
-// three bits of the quotient n it rounded -- |n| mod 8, 0 to 7, with the
-// sign of x / y -- what C asks for at least, and what a reduction by a
+// three bits of the quotient n it rounded - |n| mod 8, 0 to 7, with the
+// sign of x / y - what C asks for at least, and what a reduction by a
 // quarter turn wants for its quadrant. Pure arithmetic, a constant
 // expression from C++14 where the int _quo points to is the evaluation's
 // own, as with C++23's std::remquo: fmod_c by 8|y| first, which keeps the
@@ -657,7 +657,7 @@ d_math_d_remainder(
 // remainder_c takes it, each difference exact and each counted. The special
 // values are remainder_c's, with the quotient 0. A null _quo stores
 // nothing. remquo is the C library's: the same remainder, and a quotient
-// with the same last three bits -- glibc's on x86-64 gives 8 or -8 where
+// with the same last three bits - glibc's on x86-64 gives 8 or -8 where
 // remquo_c gives 0. C++ before C++11 has no remquo, so there it is
 // remquo_c.
 
@@ -721,7 +721,7 @@ d_math_d_remquo_c(
         }
 
         // r below 2b and the count even: past b / 2 take b away, and again
-        // past it still, as remainder_c does -- a half stays where the
+        // past it still, as remainder_c does - a half stays where the
         // quotient is even. Below twice the least normal value b / 2 may not
         // be exact, but 2r is
         if (b < (DBL_MIN + DBL_MIN))
@@ -782,7 +782,7 @@ d_math_d_remquo(
     int*   _quo
 )
 {
-    // a null _quo: the remainder alone, as remquo_c gives it -- the
+    // a null _quo: the remainder alone, as remquo_c gives it - the
     // library's must have somewhere to store
     int  quotient = 0;
     int* where    = (_quo != NULL) ? _quo : &quotient;
@@ -805,7 +805,7 @@ d_math_d_remquo(
 // 3.1    The truncated remainder
 //------------------------------------------------------------------------------
 // fmod_c is x - n y, n the quotient x / y truncated toward 0, exactly --
-// the remainder of two values of the family is a value of it -- in pure
+// the remainder of two values of the family is a value of it - in pure
 // arithmetic, a constant expression from C++14. m = |y| 2^j, the largest
 // not past |x|, is taken away where it fits, then halved, down to |y|: the
 // remainder stays below 2m, so every difference is exact (Sterbenz's lemma).
@@ -847,7 +847,7 @@ d_math_ld_fmod_c(
         long double m = b;
         int j = 0;
 
-        // |x| below |y| -- x a zero, or y infinite, among them -- is its own
+        // |x| below |y| - x a zero, or y infinite, among them - is its own
         // remainder
         if (a < b)
         {
@@ -903,11 +903,11 @@ d_math_ld_fmod(
 // 3.2    The rounded remainder
 //------------------------------------------------------------------------------
 // remainder_c is IEEE's remainder, C's remainder: x - n y, n the quotient
-// x / y rounded to the nearest integer, a half to the even one -- exactly,
+// x / y rounded to the nearest integer, a half to the even one - exactly,
 // so that it lies within |y| / 2 of zero. In pure arithmetic, a constant
 // expression from C++14: fmod_c by 2|y| first, which keeps the quotient's
 // parity, then |y| taken away where the remainder is past |y| / 2, and
-// again where it is past it still -- each difference exact (Sterbenz's
+// again where it is past it still - each difference exact (Sterbenz's
 // lemma). A zero result has x's sign. The rest is C's (Annex F): an
 // infinite x, or y zero, gives NaN; an infinite y gives x; NaN gives NaN,
 // the argument itself. remainder is the C library's, exact too: the two
@@ -1011,8 +1011,8 @@ d_math_ld_remainder(
 // 3.3    The rounded remainder and its quotient
 //------------------------------------------------------------------------------
 // remquo_c is C's remquo: remainder_c's result, and through _quo the last
-// three bits of the quotient n it rounded -- |n| mod 8, 0 to 7, with the
-// sign of x / y -- what C asks for at least, and what a reduction by a
+// three bits of the quotient n it rounded - |n| mod 8, 0 to 7, with the
+// sign of x / y - what C asks for at least, and what a reduction by a
 // quarter turn wants for its quadrant. Pure arithmetic, a constant
 // expression from C++14 where the int _quo points to is the evaluation's
 // own, as with C++23's std::remquo: fmod_c by 8|y| first, which keeps the
@@ -1021,7 +1021,7 @@ d_math_ld_remainder(
 // remainder_c takes it, each difference exact and each counted. The special
 // values are remainder_c's, with the quotient 0. A null _quo stores
 // nothing. remquo is the C library's: the same remainder, and a quotient
-// with the same last three bits -- glibc's on x86-64 gives 8 or -8 where
+// with the same last three bits - glibc's on x86-64 gives 8 or -8 where
 // remquo_c gives 0. C++ before C++11 has no remquo, so there it is
 // remquo_c.
 
@@ -1085,7 +1085,7 @@ d_math_ld_remquo_c(
         }
 
         // r below 2b and the count even: past b / 2 take b away, and again
-        // past it still, as remainder_c does -- a half stays where the
+        // past it still, as remainder_c does - a half stays where the
         // quotient is even. Below twice the least normal value b / 2 may not
         // be exact, but 2r is
         if (b < (LDBL_MIN + LDBL_MIN))
@@ -1146,7 +1146,7 @@ d_math_ld_remquo(
     int*        _quo
 )
 {
-    // a null _quo: the remainder alone, as remquo_c gives it -- the
+    // a null _quo: the remainder alone, as remquo_c gives it - the
     // library's must have somewhere to store
     int  quotient = 0;
     int* where    = (_quo != NULL) ? _quo : &quotient;

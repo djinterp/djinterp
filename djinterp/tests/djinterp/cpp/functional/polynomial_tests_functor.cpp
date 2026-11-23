@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  polynomial_tests_functor.cpp
-//   Section III -- functor_traits specialisations, functor_map, the functor
+//   Section III - functor_traits specialisations, functor_map, the functor
 //   laws, and the cata / ana integration those instances exist to serve.
 
 // std

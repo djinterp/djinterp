@@ -4,7 +4,7 @@
 * forwarding header:
 *   span's opt-in to the ranges customisation points --
 * enable_borrowed_range<span<T, E>> and enable_view<span<T, E>>, both true
-* -- is defined once, in re_std/cpp/span/span_range_opt_in.hpp, whose banner
+* - is defined once, in re_std/cpp/span/span_range_opt_in.hpp, whose banner
 * explains why it is a header of its own. This file held a second copy,
 * so a translation unit that included both redefined both
 * specialisations; it now forwards to the single definition, and its

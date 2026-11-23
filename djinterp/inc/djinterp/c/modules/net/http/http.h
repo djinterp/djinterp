@@ -444,7 +444,7 @@ enum dj_http_error
 
 // 3.1    Names
 //------------------------------------------------------------------------------
-// d_http_method_name -- a method's name, or NULL for D_HTTP_METHOD_OTHER,
+// d_http_method_name - a method's name, or NULL for D_HTTP_METHOD_OTHER,
 // whose name only the caller has
 const char* d_http_method_name(
     enum dj_http_method _method
@@ -483,7 +483,7 @@ bool d_http_method_is_idempotent(
 
 // 4.1    Names
 //------------------------------------------------------------------------------
-// d_http_version_name -- "HTTP/1.0", "HTTP/1.1", "HTTP/2", or "HTTP/3"; NULL
+// d_http_version_name - "HTTP/1.0", "HTTP/1.1", "HTTP/2", or "HTTP/3"; NULL
 // for D_HTTP_VERSION_UNKNOWN
 const char* d_http_version_name(
     enum dj_http_version _version
@@ -513,7 +513,7 @@ enum dj_http_error d_http_version_parse(
 
 // 5.1    Validity and parsing
 //------------------------------------------------------------------------------
-// d_http_status_is_valid -- whether a number is a status code, 100 to 599
+// d_http_status_is_valid - whether a number is a status code, 100 to 599
 bool d_http_status_is_valid(
     unsigned int _status
 );
@@ -533,8 +533,8 @@ enum dj_http_error d_http_status_parse(
 
 // 5.2    Classes and reason phrases
 //------------------------------------------------------------------------------
-// class -- by the first digit, D_HTTP_STATUS_CLASS_NONE for a number that is
-// no status code; reason -- the registered phrase, or "" for a code with
+// class - by the first digit, D_HTTP_STATUS_CLASS_NONE for a number that is
+// no status code; reason - the registered phrase, or "" for a code with
 // none registered, and never NULL
 enum dj_http_status_class d_http_status_class_of(
     unsigned int _status
@@ -545,9 +545,9 @@ const char* d_http_status_reason(
 
 // 5.3    Properties
 //------------------------------------------------------------------------------
-// allows_content -- false for 1xx, 204, and 304, whose responses never carry
+// allows_content - false for 1xx, 204, and 304, whose responses never carry
 // content (RFC 9110, 6.4.1), and for a number that is no status code;
-// is_redirect -- 301, 302, 303, 307, and 308, the codes a client may follow
+// is_redirect - 301, 302, 303, 307, and 308, the codes a client may follow
 // on its own (RFC 9110, 15.4)
 bool d_http_status_allows_content(
     unsigned int _status
@@ -564,8 +564,8 @@ bool d_http_status_is_redirect(
 
 // 6.1    Tokens and values
 //------------------------------------------------------------------------------
-// is_token -- one or more tchar (RFC 9110, 5.6.2), as field names, methods,
-// and parameter names are; is_field_value -- visible ASCII, obs-text, and
+// is_token - one or more tchar (RFC 9110, 5.6.2), as field names, methods,
+// and parameter names are; is_field_value - visible ASCII, obs-text, and
 // interior spaces and tabs, with no whitespace at either end and never CR,
 // LF, or NUL (RFC 9110, 5.5), and an empty value is one; trim_whitespace --
 // the text without the SP and HTAB at its ends, the OWS around a value
@@ -581,7 +581,7 @@ struct dj_pack_text d_http_trim_whitespace(
 
 // 6.2    Names
 //------------------------------------------------------------------------------
-// d_http_field_name_equal -- whether two field names are the same, ASCII
+// d_http_field_name_equal - whether two field names are the same, ASCII
 // case ignored (RFC 9110, 5.1)
 bool d_http_field_name_equal(
     struct dj_pack_text _name,
@@ -596,14 +596,14 @@ bool d_http_field_name_equal(
 
 // 7.1    Names
 //------------------------------------------------------------------------------
-// d_http_error_name -- a short phrase for each error, for messages
+// d_http_error_name - a short phrase for each error, for messages
 const char* d_http_error_name(
     enum dj_http_error _error
 );
 
 // 7.2    Mapping
 //------------------------------------------------------------------------------
-// d_http_error_to_net -- the dj_net_error an error maps to, by the rules
+// d_http_error_to_net - the dj_net_error an error maps to, by the rules
 // net.h gives with it
 enum dj_net_error d_http_error_to_net(
     enum dj_http_error _error

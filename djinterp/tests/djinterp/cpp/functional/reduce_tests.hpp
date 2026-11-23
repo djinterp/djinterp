@@ -1,27 +1,27 @@
 /*******************************************************************************
 * djinterp [cpp][functional]                                    reduce_tests.hpp
 *
-*   Unit-test declarations for core/functional/reduce.hpp -- the DRIVERS, the
+*   Unit-test declarations for core/functional/reduce.hpp - the DRIVERS, the
 * iteration half of the step/driver split.  One declaration group per section of
 * the module under test:
 *
-*     reduce_tests_rt.cpp       -- reduce_rt      (the runtime loop; both forms)
-*     reduce_tests_value.cpp    -- reduce_ct      (the value domain: DValueList)
-*     reduce_tests_type.cpp     -- reduce_ct      (the type domain: std::tuple)
-*     reduce_tests_unified.cpp  --                (the step/driver thesis, and
+*     reduce_tests_rt.cpp       - reduce_rt      (the runtime loop; both forms)
+*     reduce_tests_value.cpp    - reduce_ct      (the value domain: DValueList)
+*     reduce_tests_type.cpp     - reduce_ct      (the type domain: std::tuple)
+*     reduce_tests_unified.cpp  -                (the step/driver thesis, and
 *                                                   the C++17 tier)
 *
 *   FIXTURES.  The header's whole claim is that "the same reducer body serves all
 * three domains; only the driver (loop vs. recursion) and the leaf differ."  The
 * fixtures are built to put that claim on trial rather than take it on faith.
 *
-*     count_all      is ONE reducer body -- (acc, anything) -> acc + 1 -- passed
+*     count_all      is ONE reducer body - (acc, anything) -> acc + 1 - passed
 *                    UNCHANGED to all three drivers.  If the thesis holds it
 *                    returns the element count in every domain, and it does.
 *
 *     DSumWith<Leaf> is one reducer body parameterised by a LEAF.  Three leaves --
 *                    DRtLeaf (a runtime value), DValLeaf (a val_t carrier),
-*                    DTypeLeaf (a type_t carrier) -- are the only thing that
+*                    DTypeLeaf (a type_t carrier) - are the only thing that
 *                    changes between the domains, which is exactly what the
 *                    header says should change.
 *
@@ -31,9 +31,9 @@
 *
 *   THE DRIVERS ARE NOT INTERCHANGEABLE, and the suite pins the difference:
 * reduce_rt assigns into its accumulator (`_acc = _rf(_acc, *_it)`) and returns
-* _Acc, so the accumulator TYPE IS FIXED across the fold -- widen proves it, by
+* _Acc, so the accumulator TYPE IS FIXED across the fold - widen proves it, by
 * returning a long that still comes back as an int.  Both reduce_ct overloads
-* recompute the accumulator type at every step, so it may EVOLVE -- DAppendVal and
+* recompute the accumulator type at every step, so it may EVOLVE - DAppendVal and
 * DSizesIntoList prove it, by growing a DValueList whose type changes on each
 * element.
 *
@@ -44,7 +44,7 @@
 * that difference SFINAE-safely.
 *
 *   DCountIter is a generated source with no container behind it, and DAdlRange is
-* found only through free begin/end -- between them they check the two things
+* found only through free begin/end - between them they check the two things
 * reduce_rt's iterable form promises: that lazy sources are fine, and that the
 * `using std::begin;` idiom really does admit ADL.
 *
@@ -114,19 +114,19 @@ namespace dt = ::djinterp::test;
 ///////////////////////////////////////////////////////////////////////////////
 ///             0.    FIXTURES                                              ///
 ///////////////////////////////////////////////////////////////////////////////
-//   reduce_ct and the value carriers are C++17 facilities, so the module -- and
-// therefore every fixture and every test body here -- is gated to that floor.
+//   reduce_ct and the value carriers are C++17 facilities, so the module - and
+// therefore every fixture and every test body here - is gated to that floor.
 // That this suite still COMPILES under C++11 and C++14, having included the
 // header, is precisely the check that the header is inert below its tier.
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 
-// -- ONE reducer body, run unchanged by all three drivers -----------------
+// - ONE reducer body, run unchanged by all three drivers -----------------
 
 // count_all
 //   fixture reducer: (acc, anything) -> acc + 1. Domain-agnostic by construction
-// -- it never looks at the element -- so the SAME object is handed to reduce_rt,
+// - it never looks at the element - so the SAME object is handed to reduce_rt,
 // to reduce_ct over a DValueList, and to reduce_ct over a tuple. If the
 // step/driver split is real, it returns the element count in all three.
 struct count_all
@@ -136,7 +136,7 @@ struct count_all
 };
 
 
-// -- one reducer body + three LEAVES (only the leaf differs) --------------
+// - one reducer body + three LEAVES (only the leaf differs) --------------
 
 // DRtLeaf:   a runtime value  -> itself.
 struct DRtLeaf
@@ -171,7 +171,7 @@ struct DTypeLeaf
 };
 
 // DSumWith
-//   fixture reducer: the SAME body in every domain -- (acc, x) -> acc + leaf(x).
+//   fixture reducer: the SAME body in every domain - (acc, x) -> acc + leaf(x).
 // Only the leaf changes.
 template<typename _Leaf>
 struct DSumWith
@@ -190,7 +190,7 @@ struct DSumWith
 };
 
 
-// -- non-commutative reducers: they pin the LEFT fold in each domain ------
+// - non-commutative reducers: they pin the LEFT fold in each domain ------
 
 struct DDigitsRt
 {
@@ -231,9 +231,9 @@ struct digits_type
 };
 
 
-// -- accumulator-type-EVOLVING reducers (the reduce_ct drivers only) ------
+// - accumulator-type-EVOLVING reducers (the reduce_ct drivers only) ------
 
-// DAppendVal: the accumulator is a DValueList that GROWS -- so its type changes
+// DAppendVal: the accumulator is a DValueList that GROWS - so its type changes
 // at every step, which reduce_rt could not express.
 struct DAppendVal
 {
@@ -249,7 +249,7 @@ struct DAppendVal
     }
 };
 
-// DPrependVal: the same, at the front -- so reduce_ct with it REVERSES the list.
+// DPrependVal: the same, at the front - so reduce_ct with it REVERSES the list.
 struct DPrependVal
 {
     template<auto... _Acc,
@@ -264,7 +264,7 @@ struct DPrependVal
     }
 };
 
-// DSizesIntoList: the type domain's evolving accumulator -- each element TYPE
+// DSizesIntoList: the type domain's evolving accumulator - each element TYPE
 // contributes its size to a growing DValueList.
 struct DSizesIntoList
 {
@@ -281,12 +281,12 @@ struct DSizesIntoList
 };
 
 
-// -- the accumulator type is FIXED in reduce_rt ---------------------------
+// - the accumulator type is FIXED in reduce_rt ---------------------------
 
 // widen
 //   fixture reducer: returns a LONG, though the seed is an int. reduce_rt
 // assigns the result back into its _Acc and returns _Acc, so the result comes
-// back an int -- the accumulator type is fixed across the fold.
+// back an int - the accumulator type is fixed across the fold.
 struct widen
 {
     D_CONSTEXPR
@@ -300,7 +300,7 @@ struct widen
 };
 
 
-// -- counting reducers: they make the visit count observable --------------
+// - counting reducers: they make the visit count observable --------------
 
 // DCountingAny
 //   fixture reducer: records how many times it was called, in ANY domain. The
@@ -321,10 +321,10 @@ struct DCountingAny
 };
 
 
-// -- sources for reduce_rt's iterable form --------------------------------
+// - sources for reduce_rt's iterable form --------------------------------
 
 // DCountIter
-//   fixture iterator: a GENERATED source -- there is no container behind it. It
+//   fixture iterator: a GENERATED source - there is no container behind it. It
 // checks the header's claim that lazy sources are fine: the driver pulls until
 // the range ends and needs nothing more than *, ++ and !=.
 struct DCountIter
@@ -343,7 +343,7 @@ struct DCountIter
 };
 
 // DAdlRange
-//   fixture range: exposes NO member begin/end -- only the free functions below,
+//   fixture range: exposes NO member begin/end - only the free functions below,
 // which reduce_rt can reach solely because it says `using std::begin;` and then
 // calls begin() unqualified.
 struct DAdlRange
@@ -369,7 +369,7 @@ const int* end(
 }
 
 
-// -- a NON-default-constructible element type ----------------------------
+// - a NON-default-constructible element type ----------------------------
 
 // no_default
 //   fixture: cannot be default-constructed, so std::tuple<no_default, ...>
@@ -386,11 +386,11 @@ struct no_default
 };
 
 
-// -- probes ---------------------------------------------------------------
+// - probes ---------------------------------------------------------------
 
 // can_value_entry
 //   probe: is reduce_ct's std::tuple<Ts...> VALUE overload callable for this
-// tuple? False whenever an element is not default-constructible -- which is the
+// tuple? False whenever an element is not default-constructible - which is the
 // whole reason the type_c form is the preferred entry.
 template<typename _Rf,
          typename _Acc,
@@ -430,7 +430,7 @@ int sum_fn(
 ///////////////////////////////////////////////////////////////////////////////
 //   The drivers are deliberately UNCONSTRAINED so one body serves every domain.
 // The header notes that a C++20 caller MAY layer the Reducer concept at the call
-// site instead -- this is that call site, compiled.
+// site instead - this is that call site, compiled.
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
@@ -517,7 +517,7 @@ bool tests_the_drivers_are_unconstrained();
 bool tests_module_tier_gate();
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // reduce_spec
 //   function: the suite as DTest's module spec, one block per section.

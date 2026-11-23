@@ -80,7 +80,7 @@ enum dj_ssh_state
 // dj_ssh_host_key_policy
 //   enum: how a host key is judged. Whatever the policy, a key that differs
 // from every key recorded for the host, or one marked @revoked, fails the
-// connection -- except under INSECURE_ACCEPT_ANY, which consults nothing.
+// connection - except under INSECURE_ACCEPT_ANY, which consults nothing.
 // Numbering starts at 1 so that a zero-initialized options struct is rejected
 // rather than read as a policy.
 enum dj_ssh_host_key_policy
@@ -98,8 +98,8 @@ enum dj_ssh_host_key_policy
 //   typedef: decides a host no known_hosts file records, under
 // D_SSH_HOST_KEY_CALLBACK. It receives the host and port being verified, the
 // key's type, and its fingerprint in OpenSSH's form, to be compared with one
-// obtained out of band. Returns true to accept the key -- setting *_remember
-// to true to record it in the user's known_hosts -- or false to refuse it.
+// obtained out of band. Returns true to accept the key - setting *_remember
+// to true to record it in the user's known_hosts - or false to refuse it.
 typedef bool (*fn_ssh_host_key_decision)(void*        _context,
                                          const char*  _host,
                                          unsigned int _port,
@@ -134,8 +134,8 @@ struct dj_ssh_options
 //------------------------------------------------------------------------------
 // 1.3.1
 // dj_ssh_session
-//   struct: one SSH connection. The caller owns the storage -- usually as the
-// first member of a service module's own session -- and treats every field
+//   struct: one SSH connection. The caller owns the storage - usually as the
+// first member of a service module's own session - and treats every field
 // as read-only. `strings` is one allocation holding the copies that `host`,
 // the file paths, and the algorithm lists point into. `host_key_type` and
 // `fingerprint` stay empty until a host key arrives. `detail` describes the

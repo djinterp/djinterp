@@ -8,7 +8,7 @@
 * whose settings and labels are read back and given to a command, help
 * written under each, CLI11's FormatterLambda, steps replaced by classes
 * deriving from the formatter, as CLI11's subclasses replace its make_*
-* functions, and copies -- their sections CLI11's own transcripts of the
+* functions, and copies - their sections CLI11's own transcripts of the
 * same definitions (the suite's CASES section, compiled against CLI11 by
 * tools/cppref/cppref.py). Then the face's own: a step that fails, help's
 * longest line, and where the face departs from CLI11.

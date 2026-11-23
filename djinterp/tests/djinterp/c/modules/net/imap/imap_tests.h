@@ -5,9 +5,9 @@
 * parsers, and both sides of a session run through them.
 *   imap.h does no I/O: it names, writes and parses what an IMAP client and
 * server exchange. These tests hold it to its header's contracts and to the
-* grammar and examples of RFC 9051 and RFC 3501 -- every name and lookup, the
+* grammar and examples of RFC 9051 and RFC 3501 - every name and lookup, the
 * octets each writer produces, the fields each parser fills and the input it
-* refuses -- and run a scripted session whose client lines the writers build
+* refuses - and run a scripted session whose client lines the writers build
 * and whose server lines the parsers read, over a memory stream that delivers
 * them a few octets at a time. Each test returns true when every assertion
 * held.
@@ -85,7 +85,7 @@ struct dj_tests_imap_capture
 
 // 1.2    Helpers
 //------------------------------------------------------------------------------
-// captures -- init empties a capture and sets its limit, held to the size of
+// captures - init empties a capture and sets its limit, held to the size of
 // `data`; capture_sink writes into one; capture_is compares what it holds
 // with a C string, octet for octet
 void d_tests_imap_capture_init(
@@ -100,7 +100,7 @@ bool d_tests_imap_capture_is(
     const char*                         _text
 );
 
-// spans -- span_is compares a span with a C string; a span without data, or
+// spans - span_is compares a span with a C string; a span without data, or
 // a NULL string, is empty
 bool d_tests_imap_span_is(
     struct dj_pack_text _span,

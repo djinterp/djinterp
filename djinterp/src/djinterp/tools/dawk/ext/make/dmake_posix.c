@@ -6,8 +6,8 @@
 *   pdpmake's input loop, a line at a time. A line of blanks, or with `#` in
 * its first column, is passed over, and a rule's commands go on past it.
 * While a rule is above, a line led by a tab is a command. Any other line
-* loses its comment -- the first `#` on it, which nothing escapes, in a
-* command too -- and is an include when `include` or `-include` and a blank
+* loses its comment - the first `#` on it, which nothing escapes, in a
+* command too - and is an include when `include` or `-include` and a blank
 * begin it; a macro when it holds an `=` outside every reference, its
 * operator `=`, `::=`, `:::=`, `+=`, `?=` or `!=` as the bytes before the
 * `=` make it; otherwise a rule, its first `:` separating targets from
@@ -15,10 +15,10 @@
 * mode reads no conditional, no `::` and no `:=`.
 *   With no conditional to hide a line, what pdpmake refuses of a line
 * whatever its macros hold is refused here, in its words: a command where no
-* rule is above, a line with no separator and no reference -- a last line
+* rule is above, a line with no separator and no reference - a last line
 * no line feed ends among them, which pdpmake takes for neither blank nor
-* comment -- a macro whose
-* left side is not one word, an include that names nothing -- each at the
+* comment - a macro whose
+* left side is not one word, an include that names nothing - each at the
 * line pdpmake names, a continued line's last, and the line before for a
 * last line no line feed ends.
 *
@@ -599,8 +599,8 @@ bool d_internal_line(
     const bool        unended = (_line->next == _line->end);
 
     // a table of what pdpmake passes over or keeps for a rule: a line of
-    // blanks, a comment in the first column -- but a last line no line feed
-    // ends, which its readline returns unexamined -- and a command
+    // blanks, a comment in the first column - but a last line no line feed
+    // ends, which its readline returns unexamined - and a command
     if ( (first == _line->end) &&
          (!unended) )
     {

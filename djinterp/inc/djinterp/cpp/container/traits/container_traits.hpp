@@ -835,7 +835,7 @@ struct is_interval_bounded
 // ===========================================================================
 
 // is_static_storage / is_dynamic_storage
-//   DELETED -- they SHADOWED the predicate they were meant to agree with.
+//   DELETED - they SHADOWED the predicate they were meant to agree with.
 // meta/storage.hpp declares `constexpr bool
 // is_static_storage(storage_duration)` and container_storage_traits.hpp
 // defines its trait BY CALLING it:
@@ -1022,7 +1022,7 @@ struct underlying_container_type_of
 };
 
 // underlying_container_type_of_t
-//   type: the carrier of underlying_container_type_of -- its `::type`, for use
+//   type: the carrier of underlying_container_type_of - its `::type`, for use
 // where a type rather than a value is wanted.
 template<typename Type>
 using underlying_container_type_of_t =
@@ -1098,7 +1098,7 @@ struct size_interval_of
 };
 
 // size_interval_of_t
-//   type: the carrier of size_interval_of -- its `::type`, for use where a
+//   type: the carrier of size_interval_of - its `::type`, for use where a
 // type rather than a value is wanted.
 template<typename Type>
 using size_interval_of_t =
@@ -1114,7 +1114,7 @@ struct depth_interval_of
 };
 
 // depth_interval_of_t
-//   type: the carrier of depth_interval_of -- its `::type`, for use where a
+//   type: the carrier of depth_interval_of - its `::type`, for use where a
 // type rather than a value is wanted.
 template<typename Type>
 using depth_interval_of_t =
@@ -1132,7 +1132,7 @@ struct multiplicity_interval_of
 };
 
 // multiplicity_interval_of_t
-//   type: the carrier of multiplicity_interval_of -- its `::type`, for use
+//   type: the carrier of multiplicity_interval_of - its `::type`, for use
 // where a type rather than a value is wanted.
 template<typename Type>
 using multiplicity_interval_of_t =

@@ -97,7 +97,7 @@ set(_tests "${DJINTERP_FOUNDATION_ROOT}/tests/djinterp")
 #   Under a cl-style driver (MSVC, clang-cl) that is /utf-8 and nothing more:
 # the sources are UTF-8 with no byte-order mark, which cl reads in the system
 # code page unless told, and the ladder's flags mean other things there --
-# /Wall is every warning the compiler has -- so those builds otherwise keep
+# /Wall is every warning the compiler has - so those builds otherwise keep
 # their defaults. Under GCC and Clang it is the ladder's flags, with the
 # usual warnings beside them, unless DJINTERP_FOUNDATION_STRICT is off.
 function(djinterp_foundation_flags _target _language)
@@ -163,7 +163,7 @@ endfunction()
 
 
 #------------------------------------------------------------------------------
-# the foundation library -- C sources, compiled as C at the C floor
+# the foundation library - C sources, compiled as C at the C floor
 #------------------------------------------------------------------------------
 add_library(djinterp_foundation_testing STATIC
     "${_src}/c/modules/parse/charset.c"
@@ -199,7 +199,7 @@ djinterp_foundation_flags(djinterp_foundation_testing C)
 
 
 #------------------------------------------------------------------------------
-# the C++ suites -- one executable per level, linked against the C library
+# the C++ suites - one executable per level, linked against the C library
 # across a real language boundary
 #------------------------------------------------------------------------------
 foreach(_level IN LISTS DJINTERP_FOUNDATION_CXX_LEVELS)
@@ -241,7 +241,7 @@ endforeach()
 
 
 #------------------------------------------------------------------------------
-# the C suites -- the C API called from C, one executable per level, against
+# the C suites - the C API called from C, one executable per level, against
 # the same library
 #------------------------------------------------------------------------------
 foreach(_level IN LISTS DJINTERP_FOUNDATION_C_LEVELS)

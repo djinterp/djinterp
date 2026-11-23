@@ -5,8 +5,8 @@
 *   Existence and listing are information_schema lookups (mariadb_internal.c);
 * creating, changing and dropping are the servers' own statements, names
 * quoted and the caller's SQL used as written. Where MySQL lacks an IF [NOT]
-* EXISTS that MariaDB has -- for indexes, views and, before 8.0.29, triggers
-* -- the layer asks first; MariaDB keeps its own, which is atomic. Asking
+* EXISTS that MariaDB has - for indexes, views and, before 8.0.29, triggers
+* - the layer asks first; MariaDB keeps its own, which is atomic. Asking
 * treats a name as taken the way MariaDB's own clause does: a view's name by
 * any table or view.
 *   Columns are described from information_schema.COLUMNS, their key places
@@ -129,7 +129,7 @@ bool d_internal_mariadb_listed(
  * @param[in]     _db      the connection, for its quoting.
  * @param[in,out] _sql     the definition so far.
  * @param[in]     _column  the column.
- * @param[in]     _keyed   whether the column is a key -- primary or unique --
+ * @param[in]     _keyed   whether the column is a key - primary or unique --
  *                         which an unbounded type cannot be.
  * @return as d_internal_db_format; BAD for NONE without type_sql, or a type
  *         outside enum dj_db_type, which leaves the buffer to the caller.
@@ -557,8 +557,8 @@ bool d_internal_mariadb_default_sql(
 
 /*
 d_internal_mariadb_add_column_info
-  One row of the column query -- COLUMN_NAME, COLUMN_TYPE, COLUMN_DEFAULT,
-IS_NULLABLE, EXTRA, DATA_TYPE, SEQ_IN_INDEX -- into the list, a column
+  One row of the column query - COLUMN_NAME, COLUMN_TYPE, COLUMN_DEFAULT,
+IS_NULLABLE, EXTRA, DATA_TYPE, SEQ_IN_INDEX - into the list, a column
 generated where EXTRA says so (VIRTUAL, STORED or, on older MariaDB,
 PERSISTENT GENERATED, never MySQL's DEFAULT_GENERATED); the builder
 copies every string, so the quoted default's buffer goes at once.

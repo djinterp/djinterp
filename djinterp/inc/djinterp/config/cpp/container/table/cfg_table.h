@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                                          cfg_table.h
 *
-*   Build-time configuration for the table DSL subframework -- the two
+*   Build-time configuration for the table DSL subframework - the two
 * declaration front ends (table_builder, table_parser), the model they meet at,
 * and the templating layer over it.  This header owns every user-overridable
 * knob those modules answer to, validates it, and publishes the effective values
@@ -12,14 +12,14 @@
 * and its knobs are cross-cutting by nature: the default cell-count strictness
 * is read by DTableOptions (as the compile-time default), by table_parser (as
 * the runtime dialect's default), and by table_template (as the placeholder
-* fit).  One knob, one canonical default, one file -- splitting per header would
+* fit).  One knob, one canonical default, one file - splitting per header would
 * put the same default in three places, which is the drift the localization rule
 * exists to prevent.
 *
 *   TWO CONFIGURATION MODELS
 *     layer gate    D_CFG_TABLE_<LAYER> == 0 means "do not compile this layer".
-*                   The optional legs -- the text front end, the compose leg,
-*                   the templating -- so a project that only declares tables
+*                   The optional legs - the text front end, the compose leg,
+*                   the templating - so a project that only declares tables
 *                   in types pays for nothing else.
 *     policy default D_CFG_TABLE_DEFAULT_<CATEGORY> selects the grade a category
 *                   assumes when a declaration names no option.  A small
@@ -27,7 +27,7 @@
 *                   module pastes.
 *
 *   All boolean knobs are strict 0/1; every enum knob is validated against its
-* range.  The shipped defaults fail loud and stay rectangular -- leniency is
+* range.  The shipped defaults fail loud and stay rectangular - leniency is
 * opted into, never inherited.
 *
 *   targets:  cpp/container/table/table_options.hpp
@@ -95,7 +95,7 @@ TABLE OF CONTENTS
 #include "../../../cfg_common.h"
 // (0b) the environment this config's cascade detects from.  Layer 4 of the
 // resolution cascade is "environment-detected", and the concepts gate (0.7a) is
-// exactly that -- so the detection is pulled in HERE and resolved once, rather
+// exactly that - so the detection is pulled in HERE and resolved once, rather
 // than left for each of the seven modules to re-derive.  Both are pure
 // preprocessor and neither reaches back into this file, so there is no cycle:
 //   env.h              -> D_ENV_LANG_IS_CPP20_OR_HIGHER
@@ -124,7 +124,7 @@ TABLE OF CONTENTS
 // 0.2  Layer Gates
 // ================================================================
 //   Which legs of the DSL are compiled.  The model and its shape / layout are
-// unconditional -- they are the carrier everything else names -- but the front
+// unconditional - they are the carrier everything else names - but the front
 // ends and the templating are opt-out, so a project that only ever declares
 // tables in types never compiles the text machinery.
 
@@ -162,7 +162,7 @@ TABLE OF CONTENTS
 
 // D_CFG_TABLE_TEMPLATE
 //   brief: compile the templating layer ({key} interpolation and `name...` run
-// expansion).  C++17 regardless -- interpolate.hpp's own floor.
+// expansion).  C++17 regardless - interpolate.hpp's own floor.
 #ifndef D_CFG_TABLE_TEMPLATE
 #   if defined(D_CFG_TABLE_ALL)
 #       define D_CFG_TABLE_TEMPLATE         D_CFG_TABLE_ALL
@@ -186,7 +186,7 @@ TABLE OF CONTENTS
 // D_CFG_TABLE_STATIC_ASSERTS
 //   brief: compile the conformance assertions (a declared cover must be valid;
 // a row must fit its columns).  Keep 1: they are the DSL's diagnostics, and
-// turning them off buys nothing at runtime -- they are compile-time only.  0
+// turning them off buys nothing at runtime - they are compile-time only.  0
 // exists for bisecting a diagnostic that fires where it should not.
 #ifndef D_CFG_TABLE_STATIC_ASSERTS
 #   define D_CFG_TABLE_STATIC_ASSERTS       1
@@ -209,7 +209,7 @@ TABLE OF CONTENTS
 // 0.3  Policy Grade Vocabulary
 // ================================================================
 //   The small enums the default knobs take.  Named so an override reads as
-// intent -- -DD_CFG_TABLE_DEFAULT_SHAPE=D_CFG_TABLE_SHAPE_JAGGED -- rather than
+// intent - -DD_CFG_TABLE_DEFAULT_SHAPE=D_CFG_TABLE_SHAPE_JAGGED - rather than
 // as a magic number.  These mirror the enumerators of table_options.hpp
 // exactly.
 
@@ -280,8 +280,8 @@ TABLE OF CONTENTS
 // 2026.10.31): exact refuses it, truncate admits a surplus, pad a shortfall,
 // lenient either.  D_CFG_TABLE_DEFAULT_SHAPE never admits or refuses a row; it
 // decides what an admitted short row becomes.  So a declaration that wants
-// short rows kept says both -- allow_jagged with pad_counts or lenient_counts,
-// as table_options.hpp's own example does -- and allow_jagged alone, under
+// short rows kept says both - allow_jagged with pad_counts or lenient_counts,
+// as table_options.hpp's own example does - and allow_jagged alone, under
 // the exact default, still refuses a short row.  table_builder applies the
 // grade in widths_conform; table_parser's parse_grid_options::cell_count
 // starts from it.
@@ -551,7 +551,7 @@ TABLE OF CONTENTS
 #endif
 
 // D_INTERNAL_TABLE_CONCEPTS
-//   brief: effective enable for the C++20 concept faces -- the knob AND the
+//   brief: effective enable for the C++20 concept faces - the knob AND the
 // language actually having concepts.  This is the whole reason the module can
 // read one symbol: the env detection is resolved here, not re-derived there.
 #if ( D_CFG_IS_ON(D_CFG_TABLE_CONCEPTS) &&                                     \
@@ -570,7 +570,7 @@ TABLE OF CONTENTS
 //       default_cell_count =
 //           table_strictness::D_INTERNAL_TABLE_DEFAULT_CELL_COUNT;
 //
-// so table_options.hpp carries no mapping of its own -- it reads the answer.
+// so table_options.hpp carries no mapping of its own - it reads the answer.
 
 // D_INTERNAL_TABLE_DEFAULT_<CATEGORY>
 //   internal: the enumerator each D_CFG_TABLE_DEFAULT_<CATEGORY> names, spelled

@@ -7,7 +7,7 @@
 *
 *   sections (one .cpp each):
 *     sort_view_tests_terminals.cpp  internal::DSortDefaultTerminal and
-*                                    internal::DSortWithTerminal -- the drain,
+*                                    internal::DSortWithTerminal - the drain,
 *                                    the algorithm selection, and the empty
 *                                    pipeline
 *     sort_view_tests_factories.cpp  sorted() / sorted_by() and the operator|
@@ -32,7 +32,7 @@
 #include <type_traits>
 #include <vector>
 // djinterp
-//   core is ALWAYS first and unconditional -- NS_* / D_* qualifiers and the
+//   core is ALWAYS first and unconditional - NS_* / D_* qualifiers and the
 // language gates are needed by both faces of this header.
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
@@ -59,7 +59,7 @@ NS_TESTING
 // UNCONDITIONALLY: the spec provider below needs dt::module_spec too.
 namespace dt = ::djinterp::test;
 
-#ifndef DTEST_SPEC_MODE   // fixtures -- normal mode only
+#ifndef DTEST_SPEC_MODE   // fixtures - normal mode only
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -121,7 +121,7 @@ struct is_negative
 
 // unrecognised_view_algorithm
 //   function: a DSortAlgorithm value outside the six enumerators, produced
-// the only way a caller could produce one -- by casting.  The terminals
+// the only way a caller could produce one - by casting.  The terminals
 // forward it to the run-time dispatcher, whose switch has no default label.
 inline
 DSortAlgorithm unrecognised_view_algorithm()
@@ -168,14 +168,14 @@ const std::vector<int>& view_sample_storage()
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// terminals -- internal::DSortDefaultTerminal / DSortWithTerminal
+// terminals - internal::DSortDefaultTerminal / DSortWithTerminal
 bool tests_sort_view_default_terminal_applies();
 bool tests_sort_view_with_terminal_applies();
 bool tests_sort_view_terminal_algorithm_selection();
 bool tests_sort_view_terminal_empty_pipeline();
 bool tests_sort_view_terminal_is_recognised();
 
-// factories -- sorted() / sorted_by()
+// factories - sorted() / sorted_by()
 bool tests_sort_view_sorted_default_algorithm();
 bool tests_sort_view_sorted_explicit_algorithm();
 bool tests_sort_view_sorted_by_comparator();

@@ -8,7 +8,7 @@
 * abbreviated function-template syntax.
 *
 *   The whole header is gated behind
-* `D_ENV_CPP_FEATURE_LANG_CONCEPTS` -- it produces nothing on
+* `D_ENV_CPP_FEATURE_LANG_CONCEPTS` - it produces nothing on
 * pre-C++20 toolchains so the rest of the markdown module remains
 * language-version-agnostic.
 *
@@ -98,7 +98,7 @@ concept markdown_block_type =
 
 
 // markdown_block_loose_type
-//   concept: looser variant -- the block-kind accessor alone
+//   concept: looser variant - the block-kind accessor alone
 // is sufficient.
 template<typename Type>
 concept markdown_block_loose_type =
@@ -182,7 +182,7 @@ concept markdown_inline_type =
 
 
 // markdown_inline_loose_type
-//   concept: looser variant -- the inline-kind accessor alone.
+//   concept: looser variant - the inline-kind accessor alone.
 template<typename Type>
 concept markdown_inline_loose_type =
     is_markdown_inline_loose<Type>::value;
@@ -248,7 +248,7 @@ concept markdown_document_type =
 
 
 // markdown_document_loose_type
-//   concept: looser variant -- flavor accessor OR any render
+//   concept: looser variant - flavor accessor OR any render
 // method.
 template<typename Type>
 concept markdown_document_loose_type =

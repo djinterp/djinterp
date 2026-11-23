@@ -2,7 +2,7 @@
 * djinterp [c][net]                                               ssh_tests_sa.h
 *
 * Standalone tests of SSH channels, and of a channel as a net.h connection.
-*   Each test runs a real session -- options, connect, authenticate -- over
+*   Each test runs a real session - options, connect, authenticate - over
 * the toy SSH engine of net_tests_ssh_toy.h, which needs no SSH library and
 * no server: a channel reads what the test scripted and keeps what it is
 * sent, and each engine failure is placed exactly where a test asks for it.
@@ -81,7 +81,7 @@ struct dj_tests_ssh_fixture
 
 // 1.2    Helpers
 //------------------------------------------------------------------------------
-// the fixture -- open connects the session and opens the channel, false if
+// the fixture - open connects the session and opens the channel, false if
 // either failed; close frees the channel and ends the session, whatever
 // state either is in; toy is the toy channel behind the fixture's channel;
 // is says whether a result moved `_count` bytes and reported `_error`

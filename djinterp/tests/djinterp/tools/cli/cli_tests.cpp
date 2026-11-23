@@ -2,8 +2,8 @@
 * djinterp [cpp][tools]                                            cli_tests.cpp
 *
 * The command-line kit's C++ suite, declared in cli_tests.hpp.
-*   Each section makes its programs as a C++ program makes them -- a
-* kit::program, its commands added with their work -- and checks what they
+*   Each section makes its programs as a C++ program makes them - a
+* kit::program, its commands added with their work - and checks what they
 * came to through the C suites' support (cli_tests_support.h), compiled as
 * C: what a program writes goes to strings through string_sink, or to
 * streams, and a difference is said under the case's tag. The words of every
@@ -732,8 +732,8 @@ namespace
 
 /**
  * @brief A named operand read through the face: the name in a string, an
- *        operand that is a file's name emptying it, and -- where a name may
- *        hold a colon -- the warning carried for a file of the operand's
+ *        operand that is a file's name emptying it, and - where a name may
+ *        hold a colon - the warning carried for a file of the operand's
  *        name, made here.
  *
  * @param[in,out] _files  the scratch directory the case runs in.
@@ -1066,8 +1066,8 @@ bool d_tests_cli_cpp_edits()
 d_tests_cli_cpp_plugins
   The runner's file; a module found along the list; PROBE loaded and held,
 then OTHER refused with why and nothing held; the module unloaded by the
-destructor; and a run's settings -- where it looks first, what it does with
-a module of another version -- kept in the C record as the C calls keep
+destructor; and a run's settings - where it looks first, what it does with
+a module of another version - kept in the C record as the C calls keep
 them.
 */
 bool d_tests_cli_cpp_plugins()

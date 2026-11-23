@@ -7,8 +7,8 @@
 * `dninja_doc.h`, every change a file takes, the layout each takes from the
 * file, what each refuses, and saving.
 *   With --fuzz, it makes changes at random to every Ninja file under a
-* directory instead -- values, names, bindings and paths set, inserted and
-* removed, statements inserted, replaced and removed, and raw splices -- and
+* directory instead - values, names, bindings and paths set, inserted and
+* removed, statements inserted, replaced and removed, and raw splices - and
 * proves of each that a change kept left the file readable and every byte
 * and statement outside it as it was, and that a change refused left the
 * file as it was.

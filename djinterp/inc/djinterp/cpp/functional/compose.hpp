@@ -167,7 +167,7 @@ NS_INTERNAL
     // is_unary_transformer_helper
     //   trait: non-void branch of is_unary_transformer, selected by the
     // Invocable flag. Primary (false flag): not invocable, so the
-    // result type is never named -- guarantees SFINAE-safety.
+    // result type is never named - guarantees SFINAE-safety.
     template<bool     Invocable,
              typename Function,
              typename Input>
@@ -203,7 +203,7 @@ struct is_unary_transformer
 
 // is_composable
 //   trait: true when the call chain Outer(Inner(Input)) is
-// well-formed -- i.e. Inner accepts Input and Outer accepts the
+// well-formed - i.e. Inner accepts Input and Outer accepts the
 // result of Inner.
 template<typename Outer,
          typename Inner,
@@ -232,7 +232,7 @@ using composition_result_t =
     typename composition_result<Outer, Inner, Input>::type;
 
 // is_composed_transformer
-//   trait: structural predicate -- true when Type exposes the
+//   trait: structural predicate - true when Type exposes the
 // .first() / .second() introspection surface produced by
 // compose / pipe / compose_transformer.
 template<typename Type>
@@ -241,7 +241,7 @@ struct is_composed_transformer
 {};
 
 // is_memoized
-//   trait: structural predicate -- true when Type exposes the
+//   trait: structural predicate - true when Type exposes the
 // .clear_cache() / .cache_size() surface produced by memoize.
 template<typename Type>
 struct is_memoized
@@ -576,7 +576,7 @@ NS_INTERNAL
     struct compose_all_fold;
 
     // compose_all_fold<Function>
-    //   helper: base case -- a single function folds to itself.
+    //   helper: base case - a single function folds to itself.
     template<typename Function>
     struct compose_all_fold<Function>
     {
@@ -593,7 +593,7 @@ NS_INTERNAL
     };
 
     // compose_all_fold<Function1, Function2, Rest...>
-    //   helper: recursive case -- compose(f1, fold(f2, rest...)).
+    //   helper: recursive case - compose(f1, fold(f2, rest...)).
     template<typename    Function1,
              typename    Function2,
              typename... Rest>
@@ -628,7 +628,7 @@ NS_INTERNAL
     struct pipe_all_fold;
 
     // pipe_all_fold<Function>
-    //   helper: base case -- a single function folds to itself.
+    //   helper: base case - a single function folds to itself.
     template<typename Function>
     struct pipe_all_fold<Function>
     {
@@ -645,7 +645,7 @@ NS_INTERNAL
     };
 
     // pipe_all_fold<Function1, Function2, Rest...>
-    //   helper: recursive case -- fold(pipe(f1, f2), rest...).
+    //   helper: recursive case - fold(pipe(f1, f2), rest...).
     template<typename    Function1,
              typename    Function2,
              typename... Rest>

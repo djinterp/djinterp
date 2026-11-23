@@ -1,9 +1,9 @@
 /*******************************************************************************
 * djinterp [cpp][utility]                                       pdf_template.hpp
 *
-*   A PDF-specialised DDocumentTemplate.  Everything a template IS -- an element
+*   A PDF-specialised DDocumentTemplate.  Everything a template IS - an element
 * sequence, `{token}` interpolation, named styles, `repeat` over a bound
-* sequence, a document frame -- lives in DDocumentTemplate and is inherited
+* sequence, a document frame - lives in DDocumentTemplate and is inherited
 * unchanged.  This header adds ONLY what is genuinely PDF-specific and cannot
 * live in the renderer-agnostic base:
 *
@@ -14,7 +14,7 @@
 *        render time.  This is the surface pdf_options re-targets.
 *     2. STYLE REALISATION.  DDocumentTemplate names styles ("heading", "footer");
 *        it does not know what they look like.  A PDF build binds each name to a
-*        canvas_style -- the one place that holds both the abstract name and its
+*        canvas_style - the one place that holds both the abstract name and its
 *        concrete PDF form, because canvas_style is a PDF type the base may not
 *        mention.
 *     3. DOCUMENT METADATA.  Title / author / subject / creator, recorded on the
@@ -31,8 +31,8 @@
 * DDocumentTemplate's; what is left here is the thin PDF face over both.  There
 * is now one layout engine in the PDF layer, not two.
 *
-*   BUILDING ONE.  Use the inherited DDocumentTemplate surface -- tmpl_heading,
-* tmpl_paragraph, tmpl_repeat, add(), frame() -- then bind styles and render:
+*   BUILDING ONE.  Use the inherited DDocumentTemplate surface - tmpl_heading,
+* tmpl_paragraph, tmpl_repeat, add(), frame() - then bind styles and render:
 *
 *       pdf_template t;
 *       t.add(tmpl_heading("{report.title}", 1, "h1"))
@@ -46,7 +46,7 @@
 *       const std::string bytes = t.render_pdf(ctx);
 *
 *   PORTABILITY:
-*   C++11 baseline -- the floors of DDocumentTemplate and DPdfCanvas.  No
+*   C++11 baseline - the floors of DDocumentTemplate and DPdfCanvas.  No
 * third-party dependency in this header; the PDF backend is chosen inside
 * DPdfCanvas as before.
 *
@@ -159,7 +159,7 @@ public:
     // margins
     //   the writable box the flowing cursor stays within, in points.  Installed
     // on the canvas at render time (see DPdfCanvas::set_margins).  Left unset,
-    // the canvas keeps its own default -- so a caller that does not care pays
+    // the canvas keeps its own default - so a caller that does not care pays
     // nothing and inherits sensible margins.
     pdf_template& margins(
         DPdfUnit _left,
@@ -181,7 +181,7 @@ public:
     //   bind a style NAME (as emitted by the inherited elements' `style` hint)
     // to its concrete canvas_style.  A name left unbound falls back to the body
     // style in the renderer, so a producer may emit names a given build does
-    // not define -- the same tolerance DDocumentTemplate assumes.
+    // not define - the same tolerance DDocumentTemplate assumes.
     pdf_template& style(
         const std::string&  _name,
         const canvas_style& _style
@@ -300,7 +300,7 @@ private:
     // configure_
     //   install this template's PDF-specific bindings onto a renderer before a
     // render: margins and metadata onto the driven canvas (margins only when
-    // the renderer owns its canvas -- a borrowed canvas keeps the caller's box),
+    // the renderer owns its canvas - a borrowed canvas keeps the caller's box),
     // then the body style and every named style.
     void configure_(
         DPdfCanvasDocumentRenderer& _renderer,

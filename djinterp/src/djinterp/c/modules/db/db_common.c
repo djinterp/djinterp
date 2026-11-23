@@ -3,8 +3,8 @@
 *
 * Implementation of db_common.h: type names, the release functions for the
 * lists and rows the vendor layers return, and reading rows.
-*   Every list, and every set of rows, is a single block -- the arrays at its
-* start, the text after them -- so each release frees one pointer, through
+*   Every list, and every set of rows, is a single block - the arrays at its
+* start, the text after them - so each release frees one pointer, through
 * the C runtime that allocated it.
 *   The conversions read text as the vendor layers do, through
 * db_internal.h's number readers, which take a `.` for the point whatever the

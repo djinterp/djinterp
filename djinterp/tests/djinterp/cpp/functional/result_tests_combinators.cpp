@@ -2,7 +2,7 @@
 * djinterp [cpp][functional]                        result_tests_combinators.cpp
 *
 * Combinator-factory / pipeline tests for result.hpp section IV:
-*   test_combinators -- or_value_with, map_err_with, unwrap_with, all driven
+*   test_combinators - or_value_with, map_err_with, unwrap_with, all driven
 *                       through operator| against a result.
 *
 *

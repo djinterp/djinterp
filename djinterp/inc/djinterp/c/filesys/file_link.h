@@ -6,7 +6,7 @@
 * guard your uses with D_FILE_LINK_IS_AVAILABLE.
 *   That macro is a claim about the PLATFORM, not about your process. Windows
 * has had symlinks since Vista and still refuses to create one without
-* SeCreateSymbolicLinkPrivilege -- so d_file_symlink can compile, be available,
+* SeCreateSymbolicLinkPrivilege - so d_file_symlink can compile, be available,
 * and fail with EPERM for every ordinary user. Handle the runtime failure; do
 * not infer it from the macro.
 *   On Windows a junction counts as a link too: it names another path, and
@@ -64,7 +64,7 @@ D_EXTERN_C_BEGIN
  *
  * @param[in] _target    what the link points at.
  * @param[in] _linkpath  where to create the link.
- * @return 0, or -1 on failure with errno set -- EEXIST when `_linkpath` is
+ * @return 0, or -1 on failure with errno set - EEXIST when `_linkpath` is
  *         taken, EPERM where the filesystem holds no links.
  */
 int d_file_symlink(
@@ -93,7 +93,7 @@ ssize_t d_file_readlink(
 );
 /**
  * @brief Reports whether a path is itself a symbolic link, without following
- *        it -- on Windows a junction too.
+ *        it - on Windows a junction too.
  *
  * @param[in] _path  the path to test; may be `NULL`.
  * @return non-zero for a symbolic link; 0 otherwise, for `NULL`, or when the

@@ -264,7 +264,7 @@ NS_INTERNAL
 
     // start, finish
     //   function: a server with the recording handlers, listening and
-    // running -- by default a plain one that allows AUTH in the clear --
+    // running - by default a plain one that allows AUTH in the clear --
     // then stopped, its loop joined, and the sessions it left counted.
     static
     bool start(
@@ -435,7 +435,7 @@ NS_INTERNAL
 
     // tls_client
     //   function: options for a client of `_server` trusting the run's CA
-    // alone, by `_mode`, checking the certificate against `_name` -- the
+    // alone, by `_mode`, checking the certificate against `_name` - the
     // host, when empty.
     static
     smtp::client_options tls_client(
@@ -977,8 +977,8 @@ tests_smtp_listen
   - a server listens once, on the port it reports; a second listen is out
     of sequence
   - implicit TLS with neither a certificate nor a context is refused
-  - a certificate that will not load is a TLS failure -- an unsupported one
-    without the engine -- before anything is bound
+  - a certificate that will not load is a TLS failure - an unsupported one
+    without the engine - before anything is bound
 */
 bool tests_smtp_listen()
 {
@@ -1160,8 +1160,8 @@ bool tests_smtp_attached_tls(
 
 /*
 tests_smtp_lent_context
-  A client given a tls_context's lease -- the context trusting the run's CA,
-made in C++ -- upgrades with it and signs in, after the tls_context itself
+  A client given a tls_context's lease - the context trusting the run's CA,
+made in C++ - upgrades with it and signs in, after the tls_context itself
 has gone: the lease keeps the live context (phase 3's finding).
 */
                                             static
@@ -1203,8 +1203,8 @@ has gone: the lease keeps the live context (phase 3's finding).
 
 /*
 tests_smtp_own_context
-  A client that brings a context of its own -- the OpenSSL-family engine's,
-trusting the run's CA, made here -- upgrades with it, and delivers.
+  A client that brings a context of its own - the OpenSSL-family engine's,
+trusting the run's CA, made here - upgrades with it, and delivers.
 */
 static
 bool tests_smtp_own_context(

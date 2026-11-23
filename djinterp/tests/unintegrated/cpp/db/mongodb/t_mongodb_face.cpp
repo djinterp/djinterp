@@ -4,14 +4,14 @@
 *   The C++ face of the MongoDB layer, mongodb_face.hpp, compiled as C++ at
 * every level from ISO strict C++98 to C++26 and driven against a
 * deployment. The layer's suite, mongodb_tests.c, tests what each function
-* does; this tests what the face adds -- ownership of the handle, a cursor
+* does; this tests what the face adds - ownership of the handle, a cursor
 * and a change stream, a failed connection's reason, string and list and
 * text conversion, rows, the transaction guard and its mode, the static
 * members, from C++11 moves and the f forms in JSON's dialect, and the forms
 * each later level adds where the compiler has them: std::optional text and
 * deduced guards (C++17), face::transactional, std::span settings, UTF-8
 * strings and formats checked at compile time (C++20), std::expected results
-* (C++23) -- and samples every module, each member being generated from its
+* (C++23) - and samples every module, each member being generated from its
 * C prototype, its arguments in the C order. The summary names the level
 * forms the build had.
 *   The deployment is the one mongodb_tests.c reaches, by the same setting
@@ -1138,7 +1138,7 @@ void d_tests_mongodb_face_stubs(void)
 /*
 main
   The static members; then, over the driver, a session where a deployment
-answers, or, over the stubs -- whose driver version is 0 -- what the stubs
+answers, or, over the stubs - whose driver version is 0 - what the stubs
 report.
 */
 int main(void)

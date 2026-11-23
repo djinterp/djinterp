@@ -5,7 +5,7 @@
 * shared run-state (`machine`), the type-erased operator and its per-family
 * registry (`op_set`), and the C++20 `Voperator` concept.  The substrate knows
 * no opcode and no family; operator families (peg, lr, gen) attach private
-* per-run state -- including their cursor, where they have one -- through
+* per-run state - including their cursor, where they have one - through
 * `machine::ext`.  Runtime dispatch is deliberately not lifted to compile time
 * (carrier.hpp D5): the meta floor is used where structure is static, not on the
 * VM core.
@@ -48,7 +48,7 @@ NS_PARSEGEN
 NS_VPARSE
 
 // machine
-//   struct: the operator-agnostic run-state -- dispatch/run control only.  The
+//   struct: the operator-agnostic run-state - dispatch/run control only.  The
 // cursor lives in a family's private state (peg threads a parse_state), not
 // here, which is what keeps the substrate agnostic.
 struct machine
@@ -65,7 +65,7 @@ struct machine
 };
 
 // voperator
-//   type: a type-erased parsing operator -- an effect on the machine.
+//   type: a type-erased parsing operator - an effect on the machine.
 using DVoperator = std::function<void(machine&)>;
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS

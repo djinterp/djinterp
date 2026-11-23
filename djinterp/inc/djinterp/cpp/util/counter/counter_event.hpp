@@ -11,8 +11,8 @@
 * ONE HANDLER FOR EVERY COUNTER
 * -----------------------------
 *   counter_handler<Counter> takes any type with value_type, increment,
-* decrement and reset -- counter, atomic_counter, mutex_counter, or a type of
-* the caller's -- and no counter includes this file.
+* decrement and reset - counter, atomic_counter, mutex_counter, or a type of
+* the caller's - and no counter includes this file.
 *
 * WHAT IS COUNTED IS THE CALLER'S CHOICE
 * --------------------------------------

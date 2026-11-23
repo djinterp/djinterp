@@ -2,8 +2,8 @@
 * djinterp [c][net]                                               codec_base64.c
 *
 * Definitions for codec_base64.h: base64 in the variants net's protocols use.
-*   Decoding takes two passes. The first reads the whole text -- digits,
-* padding, whitespace where the variant allows it -- and decides whether the
+*   Decoding takes two passes. The first reads the whole text - digits,
+* padding, whitespace where the variant allows it - and decides whether the
 * text is acceptable and how many octets it holds, so that nothing is written
 * for a refused text or a buffer too small; the second decodes. Encoding knows
 * its length from the input's alone, and checks the buffer before writing.

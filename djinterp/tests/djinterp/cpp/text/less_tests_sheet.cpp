@@ -112,8 +112,8 @@ d_tests_less_vocabulary(void)
 d_tests_less_sheet_build
   Tests the following:
   - a variable gains its @, and knows its stylesheet as its parent
-  - a mixin's selector, parameters -- up to the parenthesis that matches,
-    not into its guard -- and guard; a mixin without parameters gets ()
+  - a mixin's selector, parameters - up to the parenthesis that matches,
+    not into its guard - and guard; a mixin without parameters gets ()
   - an import's options and URL, and a plugin's URL, read back with their
     quotes and backslashes unescaped
 */

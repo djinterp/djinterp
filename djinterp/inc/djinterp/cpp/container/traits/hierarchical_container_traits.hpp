@@ -116,7 +116,7 @@ struct has_node_summand : std::false_type
 {};
 
 // has_node_summand specialization
-//   helper: the detected case -- selected when the type declares the nested
+//   helper: the detected case - selected when the type declares the nested
 // type `node_type`.
 template<typename Type>
 struct has_node_summand<Type,

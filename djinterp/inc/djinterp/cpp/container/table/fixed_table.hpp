@@ -1,18 +1,18 @@
 /*******************************************************************************
 * djinterp [cpp][container]                                      fixed_table.hpp
 *
-*   fixed_table -- the fixed-shape mutable grid of the table trio.  A rank-2,
+*   fixed_table - the fixed-shape mutable grid of the table trio.  A rank-2,
 * rectangular, cell-homogeneous table whose two extents R and C are fixed by
 * the type, held in inline storage, whose cells may be overwritten but whose
 * shape never changes.  It is the table analogue of `std::array` lifted to two
 * coordinates: value-mutable, no growth.
 *
 *   ITS PLACE ON THE FIRST FEW AXES (Part I, in order):
-*   - Lifetime  : mutable_storage  -- an ordinary runtime object.
-*   - Storage   : static_storage   -- an inline std::array, no allocation; the
+*   - Lifetime  : mutable_storage  - an ordinary runtime object.
+*   - Storage   : static_storage   - an inline std::array, no allocation; the
 *                                     compile-time bounds are exactly what an
 *                                     inline table requires.
-*   - Mutability: element_mutable  -- a cell value v_i may be overwritten with
+*   - Mutability: element_mutable  - a cell value v_i may be overwritten with
 *                                     I_T left fixed, but no row or column may
 *                                   be
 *                                     added or removed (structural mutation
@@ -24,7 +24,7 @@
 *   static_table freezes Mutability to immutable (a compile-time constant);
 * table relaxes Storage to dynamic and Mutability to fully_mutable (rows and
 * columns may be added and removed).  The read-only surface is inherited from
-* table_base; this class adds the writable half -- non-const cell, row, and
+* table_base; this class adds the writable half - non-const cell, row, and
 * column access, non-const cell and row iteration, whole-grid fill, and swap.
 *
 *   PORTABILITY:
@@ -310,7 +310,7 @@ public:
         return extent;
     }
 
-    // full -- a fixed-shape table is always exactly full (size == capacity).
+    // full - a fixed-shape table is always exactly full (size == capacity).
     D_NODISCARD constexpr bool full() const noexcept
     {
         return true;
@@ -330,7 +330,7 @@ public:
     using base_type::row_begin;
     using base_type::row_end;
 
-    // operator() -- unchecked writable cell at (_r, _c), row-major.
+    // operator() - unchecked writable cell at (_r, _c), row-major.
     D_NODISCARD DJINTERP_TABLE_MUT_CONSTEXPR reference operator()(
         size_type _r,
         size_type _c
@@ -339,7 +339,7 @@ public:
         return m_cells[(_r * Cols) + _c];
     }
 
-    // at -- checked writable cell; throws std::out_of_range off the domain.
+    // at - checked writable cell; throws std::out_of_range off the domain.
     D_NODISCARD DJINTERP_TABLE_MUT_CONSTEXPR reference at(
         size_type _r,
         size_type _c
@@ -356,7 +356,7 @@ public:
 
     // --- writable subtable and projection ---
 
-    // row / operator[] -- the writable rank-1 subtable T[r].
+    // row / operator[] - the writable rank-1 subtable T[r].
     D_NODISCARD DJINTERP_TABLE_MUT_CONSTEXPR row_type row(size_type _r)
     {
         return row_type(m_cells.data() + (_r * Cols), Cols);
@@ -367,7 +367,7 @@ public:
         return row(_r);
     }
 
-    // column -- the writable projection T[*,c] (strided).
+    // column - the writable projection T[*,c] (strided).
     D_NODISCARD DJINTERP_TABLE_MUT_CONSTEXPR column_type column(size_type _c)
     {
         return column_type(m_cells.data() + _c,
@@ -428,7 +428,7 @@ public:
 
     // sort_rows
     //   stably reorders the rows so consecutive rows are non-decreasing under
-    // _cmp(const_row_type a, const_row_type b) -- the sorted overlay on the
+    // _cmp(const_row_type a, const_row_type b) - the sorted overlay on the
     // row dimension (relational ORDER BY). It permutes which values sit at
     // existing positions and leaves I_T (the R x C shape) fixed, so it is pure
     // element mutation, within reach of an element-mutable table.
@@ -618,7 +618,7 @@ using fixed_table = DFixedTable<Type, Rows, Cols, DifferenceType, SizeType, Iter
 
 
 // ---------------------------------------------------------------------------
-// axis conformance -- the framework's classifiers must agree with the declared
+// axis conformance - the framework's classifiers must agree with the declared
 // positions (representative instantiation).
 // ---------------------------------------------------------------------------
 namespace table_axis_conformance

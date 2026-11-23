@@ -9,7 +9,7 @@
 * is nothing a wrapper would buy that would be worth that.
 *
 *   `program` does derive, adds no data member, and is asserted
-* layout-identical -- so a C driver runs a C++-built program by taking its
+* layout-identical - so a C driver runs a C++-built program by taking its
 * address.  It iterates as a range of instructions, so a backend walks it with
 * a range-for and gets raw PODs.
 *
@@ -336,7 +336,7 @@ public:
     }
 
     // digest
-    //   accessor: a 64-bit key over the whole artifact -- family, entry,
+    //   accessor: a 64-bit key over the whole artifact - family, entry,
     // instructions, and pool.  Stable across a rebuild and across verification,
     // which is what makes it usable as a cache key.
     re_std::uint64_t digest() const noexcept
@@ -425,7 +425,7 @@ public:
 // 2.2.1
 // DFixedProgram
 //   class: a program carrying its own instruction array and pool, for a stage
-// that must not allocate -- a program whose size is known, or one built on a
+// that must not allocate - a program whose size is known, or one built on a
 // target with no allocator at all.
 template<re_std::uint32_t Capacity,
          re_std::uint32_t PoolBytes    = 256u,
@@ -457,8 +457,8 @@ private:
 // 2.3    Layout guarantees
 //------------------------------------------------------------------------------
 //   The instruction assertions are the load-bearing ones: everything the
-// pipeline above expects of a program -- that it copies, hashes, serialises,
-// crosses the language boundary, and can live in static storage -- follows
+// pipeline above expects of a program - that it copies, hashes, serialises,
+// crosses the language boundary, and can live in static storage - follows
 // from the instruction being a trivial, standard-layout, twelve-byte POD.
 static_assert(sizeof(DInstr) == 12u,
               "an instruction is twelve bytes: opcode, flags, and two "

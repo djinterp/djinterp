@@ -566,8 +566,8 @@ bool d_internal_put_head(
 /*
 d_internal_apply_split
   Moves a brace that ends its line to a line of its own. The line must still
-read as it did when the edit was noted -- the brace at its column, nothing
-after it, something before it -- or the edit is dropped for the next pass to
+read as it did when the edit was noted - the brace at its column, nothing
+after it, something before it - or the edit is dropped for the next pass to
 measure again. What is written is checked first.
 */
 static
@@ -787,8 +787,8 @@ bool d_internal_put_part(
 d_internal_lay_out
   Writes the list again: the text up to its `(` as it was, each parameter
 on a line of its own, and the `)` under the function with whatever followed
-it. A parameter with no name to split at -- a function pointer, whose name
-is inside its own brackets -- leaves every name a space from its type.
+it. A parameter with no name to split at - a function pointer, whose name
+is inside its own brackets - leaves every name a space from its type.
 */
 static
 bool d_internal_lay_out(
@@ -889,8 +889,8 @@ size_t d_internal_apply_layout(
 d_internal_apply_join
   Puts an empty pair of braces on one line: `{` and, on a later line, `}`
 with nothing between them become `{}`, followed by whatever followed the
-`}`. The opening brace must still be first on its line -- one that ends a
-line of text is the brace rule's to move first -- and there must be nothing
+`}`. The opening brace must still be first on its line - one that ends a
+line of text is the brace rule's to move first - and there must be nothing
 between the two but space.
 */
 static
@@ -1105,7 +1105,7 @@ bool d_internal_is(
 /*
 d_internal_note_part
   Records one parameter of a list being noted: where it begins, and where
-its declared name stands when the name is the parameter's own child -- a
+its declared name stands when the name is the parameter's own child - a
 function pointer's is a level further in, and is left unrecorded.
 */
 static
@@ -1180,8 +1180,8 @@ void d_internal_note_parts(
 
 /*
 d_internal_layout_from
-  Finds a function's parameter list -- its first parenthesis that holds a
-parameter -- and records where the list and each parameter stand. A list of
+  Finds a function's parameter list - its first parenthesis that holds a
+parameter - and records where the list and each parameter stand. A list of
 one parameter, or of more than an edit can carry, is left. So is a function
 that does not open its line, or stands in another column than its level
 gives: its column is what the list is laid out from, and a wrong one would
@@ -1294,8 +1294,8 @@ const char* d_internal_words(
 
 /*
 d_internal_owner_indent
-  Where a brace moved to its own line goes: under the item that owns it -- a
-statement, a definition, a type -- at that item's own column. A block that
+  Where a brace moved to its own line goes: under the item that owns it - a
+statement, a definition, a type - at that item's own column. A block that
 is a statement by itself owns its own brace and has no column to give but
 the brace's; when it stands after a case label on the label's line, it goes
 under the label. Any other is left.
@@ -1476,7 +1476,7 @@ bool d_internal_join_from(
 d_internal_edit_from
   Turns a `repair` declaration into an edit against the node's line. The
 three forms are told by the first word. A brace is moved only when its owner
-is an item -- a statement, a definition, a type -- whose own column says
+is an item - a statement, a definition, a type - whose own column says
 where the brace goes; a compound statement standing by itself has no such
 owner and is left.
 */
@@ -1620,7 +1620,7 @@ uint32_t d_internal_comments_above(
 d_internal_comments_below
   The line the comments that stand after an item end on, or `_last`, the
 item's own last. They are its siblings just after it that are comments in
-its column -- when what follows them is not in that column, or nothing
+its column - when what follows them is not in that column, or nothing
 follows: they close what the item began. When what follows them is in the
 item's column they are that one's, and move when it does.
 */

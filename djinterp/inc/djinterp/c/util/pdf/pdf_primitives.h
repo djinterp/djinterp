@@ -11,12 +11,12 @@
 * sit, and this file is what pdf_metrics.h depends on.
 *
 *   THE FACE ENUM LIVES HERE AND NOWHERE ELSE. It was first declared in
-* pdf_metrics.h -- fourteen enumerators, correct, and a second declaration of a
+* pdf_metrics.h - fourteen enumerators, correct, and a second declaration of a
 * type belonging to this module. Two enums describing one set of faces agree
 * until somebody adds a face to one, and the drift is silent because both
 * compile. `d_pdf_font_is_monospaced` moved for the same reason: it was written
 * there as a range test over the Courier block, which agrees with the C++ four
-* comparisons only because those faces happen to be contiguous -- agreement by
+* comparisons only because those faces happen to be contiguous - agreement by
 * coincidence of ordering rather than by shared derivation.
 *
 *   UNITS ARE POINTS AND THE TYPE IS `double`. PDF user space is defined in
@@ -27,9 +27,9 @@
 * any integer unit.
 *
 *   COLOUR CHANNELS ARE STORED VERBATIM, NOT CLAMPED. The C++ rgb constructor
-* stores its arguments as given -- measured, pdf_color(1.5, -0.2, 0.5) keeps
+* stores its arguments as given - measured, pdf_color(1.5, -0.2, 0.5) keeps
 * 1.5 and -0.2. Clamping here would mean the two tiers disagree on every
-* out-of-range colour, silently, with the C side "more correct" -- which is
+* out-of-range colour, silently, with the C side "more correct" - which is
 * still a divergence. If clamping is wanted it belongs in both, as a ruling.
 *
 *   PDF library detection does not load with this file, which reads no
@@ -63,7 +63,7 @@ D_EXTERN_C_BEGIN
 
 // dj_pdf_point
 //   type: a coordinate in PDF user space. Origin is BOTTOM-LEFT with y
-// increasing upward -- the opposite of every screen coordinate system, so
+// increasing upward - the opposite of every screen coordinate system, so
 // layout code ported from a raster target has the sign of every vertical
 // offset to invert.
 struct dj_pdf_point
@@ -129,7 +129,7 @@ struct dj_pdf_color
 {
     int32_t space;                  // enum dj_pdf_color_space
     int32_t reserved;               // pad; must be 0
-    double  r;                      // rgb view -- always valid
+    double  r;                      // rgb view - always valid
     double  g;
     double  b;
     double  c;                      // cmyk channels; meaningful when CMYK
@@ -141,7 +141,7 @@ struct dj_pdf_color
 // dj_pdf_base_font
 //   type: the standard-14 faces. Values are the C++ enum's, 0..13 in the same
 // order: a caller bridging the tiers casts between them, and a renumbering
-// here would measure every string in the wrong face -- producing plausible
+// here would measure every string in the wrong face - producing plausible
 // widths, which is the worst kind of wrong.
 enum dj_pdf_base_font
 {
@@ -165,7 +165,7 @@ enum dj_pdf_base_font
 
 // dj_pdf_font
 //   type: a base-14 face at a point size. Defaults are Courier at 10.0, which
-// is the C++ default constructor's pair -- a zeroed struct gives Courier at
+// is the C++ default constructor's pair - a zeroed struct gives Courier at
 // 0.0, an invisible font, so d_pdf_font_init exists rather than a comment
 // saying zero is fine.
 struct dj_pdf_font
@@ -177,7 +177,7 @@ struct dj_pdf_font
 
 // dj_pdf_paint
 //   type: stroke and fill parameters for vector graphics. Defaults are black
-// stroke, black fill, width 1.0, STROKE ON and FILL OFF -- a zeroed struct
+// stroke, black fill, width 1.0, STROKE ON and FILL OFF - a zeroed struct
 // draws nothing at all, which reads as a broken backend rather than as an
 // uninitialised paint.
 struct dj_pdf_paint

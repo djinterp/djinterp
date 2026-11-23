@@ -121,8 +121,8 @@ const char* d_arg_option_positional_name(
 d_arg_option_items_expected_min
   CLI11's type_size_min times expected_min, held at D_ARG_EXPECTED_UNLIMITED
 where the product would overflow, as the maximum is. CLI11 checks only the
-maximum's product: its minimum overflows an `int` -- undefined behaviour,
-which its builds turn into 0 or a negative count -- where this one holds.
+maximum's product: its minimum overflows an `int` - undefined behaviour,
+which its builds turn into 0 or a negative count - where this one holds.
 */
 int d_arg_option_items_expected_min(
     const struct dj_arg_option* _option
@@ -263,7 +263,7 @@ int d_arg_internal_option_describe_one(
 /*
 d_arg_option_type_name
   CLI11's get_type_name: the base name, then each validator's description
-that is not empty after a colon -- an inactive validator describes nothing.
+that is not empty after a colon - an inactive validator describes nothing.
 */
 int d_arg_option_type_name(
     const struct dj_arg_option* _option,
@@ -589,8 +589,8 @@ int d_arg_internal_option_invoke(
  * @return D_ARG_OK, or the refusal, recorded.
  *
  * The second half of CLI11's run_callback: the values the policy kept, else
- * those given, handed on -- nothing when there are none or nowhere to hand
- * them -- with the parser's report watched; then a forced default dropped
+ * those given, handed on - nothing when there are none or nowhere to hand
+ * them - with the parser's report watched; then a forced default dropped
  * again, before a refusal the callback did not record is reported over the
  * values that are left, as CLI11 reports it.
  */
@@ -1001,8 +1001,8 @@ int d_arg_option_as(
  *         FlagOverride, otherwise.
  *
  * CLI11's check of a flag that disables overrides: a name with a value of
- * its own takes only that value -- or the default text of a forced option,
- * which then stands as given, setting `*_stands` -- and any other name takes
+ * its own takes only that value - or the default text of a forced option,
+ * which then stands as given, setting `*_stands` - and any other name takes
  * only "true". A refusal is CLI11's ArgumentMismatch::FlagOverride.
  */
 D_STATIC

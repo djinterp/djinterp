@@ -7,7 +7,7 @@
 * the generic wrappers), the instance markers (is_specialized / value_type =
 * focus), the Env positions (the environment is the FIRST component / the key;
 * the focus is the SECOND / the value), the direct-extend result type, and --
-* for DKvPair -- the interaction of the Env comonad with DKvPair's key-only
+* for DKvPair - the interaction of the Env comonad with DKvPair's key-only
 * equality (extend preserves the key / environment, so == survives a recomputed
 * value).
 *

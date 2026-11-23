@@ -3,9 +3,9 @@
 *
 *   Djins: the named, versioned units of djinterp a program can list,
 * describe, configure and run (docs/djinterp/interp/DESIGN.md, section 6). A
-* djin is a record of constant data -- its name, version and summary, the
+* djin is a record of constant data - its name, version and summary, the
 * commands it registers, and its settings, which are its frame in the
-* program's option_env registry -- so that a djin can be written in C or C++
+* program's option_env registry - so that a djin can be written in C or C++
 * and, later, carried by a module the command-line kit loads.
 *   A program keeps its djins in a set over its registry. Registering a djin
 * checks its record, refuses a name another djin has or one the program keeps
@@ -258,8 +258,8 @@ const struct dj_djin_command*
 /**
  * @brief Writes the djins, a line each, in the order they were registered:
  *        the name, the version and the summary, each column as wide as its
- *        widest entry. A registry frame no djin record names -- a module's
- *        settings alone -- follows, with "-" for its version and "settings
+ *        widest entry. A registry frame no djin record names - a module's
+ *        settings alone - follows, with "-" for its version and "settings
  *        only" for its summary.
  *
  * @param[in] _set   the set.

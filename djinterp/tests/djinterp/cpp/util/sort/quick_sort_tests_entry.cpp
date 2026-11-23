@@ -126,8 +126,8 @@ bool tests_quick_sort_entry_short_range_guard()
     std::vector<int> data;
     std::size_t      length;
 
-    //   The partitioner cannot be handed an empty range -- it forms
-    // _last - 1 before testing anything -- so the public entry point has to
+    //   The partitioner cannot be handed an empty range - it forms
+    // _last - 1 before testing anything - so the public entry point has to
     // keep short ranges away from it.  It does, via the threshold loop:
     // anything of 16 elements or fewer goes straight to insertion sort.
     // These are the calls that would fault if that guard were removed.

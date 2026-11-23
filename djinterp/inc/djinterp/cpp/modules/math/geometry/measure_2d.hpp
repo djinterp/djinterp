@@ -311,7 +311,7 @@ NS_END  // internal
 //------------------------------------------------------------------------------
 // 1.1.1
 // curve_length
-//   function: an edge's arc length -- its closed form, or Simpson's rule
+//   function: an edge's arc length - its closed form, or Simpson's rule
 // over _samples intervals of its speed.
 template<typename Edge>
 typename Edge::value_type

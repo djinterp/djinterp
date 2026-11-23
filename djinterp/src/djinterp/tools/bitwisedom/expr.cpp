@@ -5,7 +5,7 @@
 * C printer.
 *   The parser is one function per precedence level, from | down to the
 * unary operators, each building nodes in the expression's flat list and
-* returning the index of the node it built -- so the tree is a value, copied
+* returning the index of the node it built - so the tree is a value, copied
 * with the sheet that holds it, and nothing points into it.
 *
 *
@@ -719,7 +719,7 @@ bool evaluate_node(
 /*
 evaluate_wide_node
   One node over sets of bits. A count, an index or a divisor must be an
-integer -- 64 bits or fewer -- and so must one side of a product.
+integer - 64 bits or fewer - and so must one side of a product.
 */
 bool evaluate_wide_node(
     const expression&  _expression,

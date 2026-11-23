@@ -5,7 +5,7 @@
 *   Many searches are best seen as something moving through a discrete space
 * over time: a pathfinder expanding cells, a parser trying rules at positions.
 * visit_source records each visit as a cell and a frame, and reports, for any
-* cell and frame, how many visits the cell had received by then -- the heat a
+* cell and frame, how many visits the cell had received by then - the heat a
 * heatmap lens draws. The path at each frame comes from a function the caller
 * supplies (the current best path, a call stack), or is empty.
 *   Every axis must be discrete; its labels are its cells. Visits may arrive in

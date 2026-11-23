@@ -5,14 +5,14 @@
 *   There is one engine.  C and C++ differ to it only by the descriptor they
 * hand it, so a defect fixed in a literal or a comment is fixed for both
 * languages at once and cannot be fixed for one and missed in the other.
-*   Options here are the caller's choices -- emit comments, resolve
-* keywords -- and are kept apart from the dialect's features, which are facts
+*   Options here are the caller's choices - emit comments, resolve
+* keywords - and are kept apart from the dialect's features, which are facts
 * about the language.  Asking for comments is a decision; having `//` at all
 * is not.
 *   Errors do not stop the scan.  An ill-formed construct becomes a token of
 * kind D_TOKEN_ERROR spanning the offending text, a diagnostic is emitted into
-* the sink the caller attached -- the parse subframework's one channel,
-* domain D_PARSE_DIAG_DOMAIN_LEX -- and scanning resumes, so one pass reports
+* the sink the caller attached - the parse subframework's one channel,
+* domain D_PARSE_DIAG_DOMAIN_LEX - and scanning resumes, so one pass reports
 * every defect in a file rather than the first.  With no sink attached the
 * tokens still say what went wrong; a caller wanting only pass or fail attaches
 * a sink with no storage, which counts and allocates nothing.

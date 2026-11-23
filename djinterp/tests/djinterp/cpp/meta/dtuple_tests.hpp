@@ -248,7 +248,7 @@ bool dtuple_tests_2d_all();
 bool dtuple_tests_relations_all();
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // dtuple_spec
 //   function: the suite as DTest's module spec, one block per section.

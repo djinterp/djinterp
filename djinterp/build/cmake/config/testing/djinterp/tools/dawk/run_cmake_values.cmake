@@ -5,7 +5,7 @@
 #   tests/djinterp/tools/dawk/ext/cmake/cmake_values.cmake holds an argument
 # of every form, each in a call to `show`, which prints what it was given.
 # Run under this CMake, the file prints CMake's reading; test_dcmake --values
-# prints dcmake's reading of the same file, in the same form -- the arguments
+# prints dcmake's reading of the same file, in the same form - the arguments
 # CMake passes, an unquoted one divided at its `;`. The two are compared
 # exactly, once as the file is and once with every line ending made CR LF,
 # since a file checked out on Windows has them.

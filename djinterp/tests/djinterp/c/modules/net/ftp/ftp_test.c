@@ -1736,7 +1736,7 @@ void t_errors_to_net(void)
 
 // a scripted transport behind a connection's TCP: reads deliver `in`, then
 // report `read_error`; writes take at most `limit` bytes (0: any) into `out`,
-// or nothing -- with `write_error`, or, when `stalls`, with no error at all
+// or nothing - with `write_error`, or, when `stalls`, with no error at all
 static struct
 {
     const char*      in;
@@ -1976,7 +1976,7 @@ void t_adapter_plain_2(void)
                         D_SSL_ERROR_TRANSPORT) &&
                        (k->failure == D_NET_OK) );
     // judging: the transport's timeout first, then a stream that ended or
-    // broke, then TLS's -- truncation counting as lost on the control
+    // broke, then TLS's - truncation counting as lost on the control
     // connection alone
     k->failure = D_NET_ERROR_TIMED_OUT;
     D_TESTS_FTP_CHECK( (d_ftp_internal_client_failure(&g_cl,
@@ -2215,8 +2215,8 @@ void t_errors_from_net(void)
 /*
 t_timeouts
   Phase 3's finding: the control connection is bounded by
-response_timeout_ms. A listener that never greets -- the kernel completes
-the handshake from its backlog, and no 220 comes -- and connect must give
+response_timeout_ms. A listener that never greets - the kernel completes
+the handshake from its backlog, and no 220 comes - and connect must give
 up near the limit rather than wait for ever.
 */
 static

@@ -8,19 +8,19 @@
 *                          setting, to be opened as it was left
 *     bitwisedom.bitfield  the bitfield alone, as a person would write it:
 *                          its width, its affixes, and its rows, each in as
-*                          few keys as say what it is -- {"name": "EN",
+*                          few keys as say what it is - {"name": "EN",
 *                          "bit": 0}, {"name": "MODE", "bits": "4..6",
 *                          "values": {"FAST": 2}}. An object that names no
 *                          format is read as one.
 *     bitwisedom.export    everything: the sheet as its file holds it, its
-*                          layout, every row as it resolves -- its macro
+*                          layout, every row as it resolves - its macro
 *                          name, its bits, its value and the integer C knows
-*                          it by, its error -- the issues, and the header
+*                          it by, its error - the issues, and the header
 *
 *   A bitfield is read leniently and reported on strictly. A key a row does
 * not have is passed over and noted, with where it was; a row with no
-* definition, or with two, is an error that says where -- rows[1].rows[3]
-* (PARITY) -- and nothing is made of the file. A value in a range names
+* definition, or with two, is an error that says where - rows[1].rows[3]
+* (PARITY) - and nothing is made of the file. A value in a range names
 * that range, by its own name or its macro name, and is placed once every
 * row has been read.
 *   docs/json.md describes the three, key by key.
@@ -137,7 +137,7 @@ D_NODISCARD json_read read_json_sheet(
  * @brief Writes a sheet as a bitfield.
  *
  * @note The definitions only, each key left out where the default says
- *       it: the window's settings -- the grid, its colours, its widths --
+ *       it: the window's settings - the grid, its colours, its widths --
  *       stay in the sheet file. The generator settings that differ from a
  *       new sheet's are kept. Read back, it writes the same header.
  *

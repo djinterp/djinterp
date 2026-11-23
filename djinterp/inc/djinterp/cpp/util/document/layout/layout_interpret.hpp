@@ -4,12 +4,12 @@
 *   The interpreter for a document-structure term: how a DLayoutDoc (layout.hpp)
 * becomes a rendered document, driving a DDocumentRenderer.  Two levels of
 * "render behavior" meet here, and they stay separate.  A construct's STRUCTURAL
-* lowering -- "a section contributes a heading then its children in order; a
-* clearpage forces a page boundary; a toc lists the outline" -- is
+* lowering - "a section contributes a heading then its children in order; a
+* clearpage forces a page boundary; a toc lists the outline" - is
 * dialect-independent and is interpreted by a fold that consults the signature,
 * exactly as expression_render.hpp interprets an operator's layout by consulting
-* the operator_signature.  DIALECT realisation -- an 18pt heading in PDF, an
-* <h2> in HTML, an underline in text -- is the DDocumentRenderer's job, and is
+* the operator_signature.  DIALECT realisation - an 18pt heading in PDF, an
+* <h2> in HTML, an underline in text - is the DDocumentRenderer's job, and is
 * left entirely to it.  The construct set is open, so it is never frozen into
 * the renderer interface; each construct lowers to the renderer's existing
 * semantic verbs, and the renderer decides how to draw them.
@@ -28,7 +28,7 @@
 * action is run.  Emission stays one fold, and ordering is correct.
 *
 *   NUMBERING IS TOP-DOWN.  Assigning 1, 1.1, 1.2, 2 ... is a pre-order
-* traversal threading a counter, so -- honestly -- it is NOT a cata: it is a
+* traversal threading a counter, so - honestly - it is NOT a cata: it is a
 * threaded re-annotation (renumber) that rebuilds the annotated tree with each
 * section's `number` / `level` / `anchor` written into its bag.  The outline and
 * emit passes then read those.  cofree gives the annotated carrier; the traversal
@@ -107,7 +107,7 @@ NS_DJINTERP
 ///////////////////////////////////////////////////////////////////////////////
 
 // DOutlineEntry
-//   struct: one row of the collected document outline -- what a table of
+//   struct: one row of the collected document outline - what a table of
 // contents lists.  Filled by the outline fold from each in-outline node's bag
 // after numbering has run.
 struct DOutlineEntry
@@ -137,7 +137,7 @@ struct DOutlineEntry
 using DRenderAction = std::function<void(DDocumentRenderer&)>;
 
 // DContentResolver
-//   type: the content side of the boundary -- a body_ref leaf's name to how it
+//   type: the content side of the boundary - a body_ref leaf's name to how it
 // emits, or nothing when the name is unbound.  Late binding by name: the layout
 // carries only the name, the caller supplies the content (a map, a file, a live
 // computation closed over here).  A missing binding is a graceful hole, not a
@@ -146,7 +146,7 @@ using DContentResolver =
     std::function<maybe<DRenderAction>(const DLayoutAtom& /*_ref*/)>;
 
 // DRenderCtx
-//   struct: what the emit pass threads to every lowering -- the body resolver,
+//   struct: what the emit pass threads to every lowering - the body resolver,
 // the flat metadata bag meta_ref leaves resolve against, the computed outline a
 // toc lowering renders, and the base heading level.  Held by reference during a
 // run, so it must outlive the DRenderAction the pass returns (render_document
@@ -174,7 +174,7 @@ struct DRenderCtx
 // layout_lowering
 //   type: how a construct lowers to semantic renderer verbs.  Given this node's
 // parameter bag, its already-lowered child actions, the renderer, and the
-// context, it emits -- deciding when to run the children (a section emits its
+// context, it emits - deciding when to run the children (a section emits its
 // heading, THEN the children; a clearpage has none).  A plain function pointer,
 // so DLayoutDescriptor stays a literal-ish value.
 typedef void (*layout_lowering)(const DDocAttributes&             /*_bag*/,
@@ -183,7 +183,7 @@ typedef void (*layout_lowering)(const DDocAttributes&             /*_bag*/,
                                 const DRenderCtx&                  /*_ctx*/);
 
 // DLayoutDescriptor
-//   struct: the per-construct metadata the signature maps each op to -- the
+//   struct: the per-construct metadata the signature maps each op to - the
 // document analogue of operator_descriptor.  Structural flags drive the number
 // and outline passes; the lowering drives emission; spelling names the construct
 // for the (future) textual grammar.  A null lowering means "just emit the
@@ -226,7 +226,7 @@ struct DLayoutDescriptor
 };
 
 // DLayoutSignature
-//   alias: the described construct set of one document dialect -- reuse
+//   alias: the described construct set of one document dialect - reuse
 // operator_signature with DLayoutDescriptor as its value.  `.define(op, d)`
 // registers a construct; `.describe(op)` recovers it (a first-match walk, the
 // runtime face of the lookup family).  Nothing is built in; a dialect IS the
@@ -242,7 +242,7 @@ using DLayoutSignature = operator_signature<OpId, DLayoutDescriptor>;
 NS_INTERNAL
 
     // parse_level
-    //   helper: the leading unsigned decimal of _s, or 1 when absent -- reads a
+    //   helper: the leading unsigned decimal of _s, or 1 when absent - reads a
     // node's `level` back out of its bag.
     D_NODISCARD inline std::size_t parse_level(
         const std::string& _s
@@ -362,7 +362,7 @@ DRenderAction emit(
                 {
                     // (extension point: if _renderer.begin_structure(...) claims
                     //  it, run children then _renderer.end_structure(...) and
-                    //  return -- see the header note.)
+                    //  return - see the header note.)
 
                     // a described construct lowers itself; otherwise emit the
                     // children in order (the default container behaviour)
@@ -390,7 +390,7 @@ DRenderAction emit(
 
 // outline
 //   function: collect an DOutlineEntry for every in-outline node, in pre-order
-// -- the rows a table of contents renders.  A clean bottom-up fold: a node
+// - the rows a table of contents renders.  A clean bottom-up fold: a node
 // contributes its own row (when its descriptor is in_outline) ahead of its
 // children's, child lists concatenated through the vector monoid (mconcat), the
 // same combinator expression_ops.hpp uses.  Run AFTER renumber so `number` /
@@ -565,7 +565,7 @@ NS_END  // internal
 //   function: assign hierarchical numbers (1, 1.1, 1.2, 2, ...) to the numbered
 // constructs, returning a re-annotated layout with `number` / `level` / `anchor`
 // written into each numbered node's bag.  A top-down, counter-threaded
-// traversal (not a cata) -- numbering is inherently pre-order and stateful.  The
+// traversal (not a cata) - numbering is inherently pre-order and stateful.  The
 // root is treated as a single sibling group so a root section is numbered too.
 template<typename OpId,
          typename Atom>
@@ -593,7 +593,7 @@ DLayoutDoc<OpId, Atom> renumber(
 ///////////////////////////////////////////////////////////////////////////////
 
 // render_document
-//   function: the whole pipeline for one document -- number the term, collect
+//   function: the whole pipeline for one document - number the term, collect
 // its outline into the context, emit the deferred action, and run it against
 // _renderer between begin_document / end_document.  _body resolves body-content
 // names; _metadata answers meta_ref leaves and seeds constructs (a cover's

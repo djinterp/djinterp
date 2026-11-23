@@ -3,11 +3,11 @@
 *
 * Commands' lives and lookups, declared in arg_command.h (3.4.1, 6.1.3 and
 * 6.3.2) and arg_internal.h (7.3).
-*   Making a command -- a root with CLI11's App defaults, or a subcommand
-* inheriting what CLI11's App constructor copies from its parent -- and
+*   Making a command - a root with CLI11's App defaults, or a subcommand
+* inheriting what CLI11's App constructor copies from its parent - and
 * releasing one; matching names against a command's; finding subcommands
 * and options the way CLI11's _find_subcommand and get_option_no_throw find
-* them; and collecting the options a command lists -- every one, or those a
+* them; and collecting the options a command lists - every one, or those a
 * filter passes, as CLI11's get_options(filter) collects them.
 *
 *
@@ -89,7 +89,7 @@ void d_arg_internal_command_defaults(
  *         written or the flag could not be made, the setter recording its
  *         refusal.
  *
- * One of the parent's help flags -- the help-all flag when `_all` -- made
+ * One of the parent's help flags - the help-all flag when `_all` - made
  * again on the command under all its names, with their flag values, and its
  * description, as CLI11's App constructor makes it; the setter records what it
  * refuses.
@@ -258,7 +258,7 @@ int d_arg_internal_command_inherit(
 
 /*
 d_arg_internal_command_init
-  The defaults, the name and description, then -- for a subcommand -- the
+  The defaults, the name and description, then - for a subcommand - the
 help flags and the inherited settings, in CLI11's order; a failure is
 recorded against the parent, which outlives a subcommand that failed, and
 leaves the command releasable.
@@ -465,7 +465,7 @@ size_t d_arg_internal_command_skip(
  *
  * CLI11's comparison in check_name_detail, without copying either name:
  * underscores skipped and case folded as asked, the name is EXACT when the two
- * read the same, and PREFIX -- when prefixes may match -- when it reads as a
+ * read the same, and PREFIX - when prefixes may match - when it reads as a
  * proper beginning of `_local`.
  */
 D_STATIC
@@ -1046,13 +1046,13 @@ struct dj_arg_parser* d_arg_internal_parser_of(
  * @param[in]  _option  the option.
  * @param[out] _found   receives whether it does.
  * @return D_ARG_OK, or the failure to write a name --
- *         D_ARG_ERROR_OUT_OF_MEMORY -- with `*_found` false.
+ *         D_ARG_ERROR_OUT_OF_MEMORY - with `*_found` false.
  *
  * Whether `_option` answers to the display name of an option the list
  * already holds, as CLI11 checks before adding a fallthrough parent's option.
  * A name that cannot be written is a failure, not a name that does not
  * match: the want of memory would otherwise list a parent's option a
- * subcommand shadows -- its `--help` twice.
+ * subcommand shadows - its `--help` twice.
  */
 D_STATIC
 int d_arg_internal_command_has_display(
@@ -1097,8 +1097,8 @@ int d_arg_internal_command_has_display(
  * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY with the options collected
  *         before the failure kept.
  *
- * The fallthrough parent's options a command lists -- those that pass the
- * test -- that answer to none of the display names collected so far, as
+ * The fallthrough parent's options a command lists - those that pass the
+ * test - that answer to none of the display names collected so far, as
  * CLI11 compares them against the list its filter has already narrowed.
  */
 D_STATIC

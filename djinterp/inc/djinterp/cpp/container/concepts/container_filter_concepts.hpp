@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                        container_filter_concepts.hpp
 *
-* C++20 concepts for the FILTERING axis -- the `requires`-facing view of
+* C++20 concepts for the FILTERING axis - the `requires`-facing view of
 * container_filter_traits.hpp.
 *
 *   THE CONCEPTS ADD NO POLICY.
@@ -13,7 +13,7 @@
 *
 *   PORTABILITY:
 *   Gated on C++20 + concepts. Below that the header is empty and callers use
-* the `::value` / `_v` forms directly -- which is why nothing else in the
+* the `::value` / `_v` forms directly - which is why nothing else in the
 * framework is allowed to depend on
 *
 *
@@ -48,7 +48,7 @@ NS_DJINTERP
 
 
 // filterable_container
-//   concept: can be filtered into a container of its own kind -- it can be
+//   concept: can be filtered into a container of its own kind - it can be
 // walked AND rebuilt.
 template<typename Type>
 concept filterable_container =
@@ -56,7 +56,7 @@ concept filterable_container =
 
 
 // natively_filterable_container
-//   concept: carries its OWN filter -- so filtering need not go through the
+//   concept: carries its OWN filter - so filtering need not go through the
 // generic walk-and-rebuild path, and can keep structure the generic path would
 // have to discard.
 template<typename Type>
@@ -66,8 +66,8 @@ concept natively_filterable_container =
 
 // filter_source_container
 //   concept: can be filtered FROM even if not INTO. A container that can be
-// read but not rebuilt elementwise -- a radix tree is exactly this, because an
-// element carries no key -- is a source and not a sink.
+// read but not rebuilt elementwise - a radix tree is exactly this, because an
+// element carries no key - is a source and not a sink.
 template<typename Type>
 concept filter_source_container =
     is_filter_source_v<clean_t<Type>>;
@@ -96,7 +96,7 @@ concept order_preserving_filter =
 
 
 // uniqueness_preserving_filter
-//   concept: filtering cannot introduce duplicates -- a restriction of an
+//   concept: filtering cannot introduce duplicates - a restriction of an
 // injective map is injective.
 template<typename Type>
 concept uniqueness_preserving_filter =
@@ -104,7 +104,7 @@ concept uniqueness_preserving_filter =
 
 
 // sortedness_preserving_filter
-//   concept: filtering keeps the sort -- a subsequence of a sorted sequence is
+//   concept: filtering keeps the sort - a subsequence of a sorted sequence is
 // sorted.
 template<typename Type>
 concept sortedness_preserving_filter =

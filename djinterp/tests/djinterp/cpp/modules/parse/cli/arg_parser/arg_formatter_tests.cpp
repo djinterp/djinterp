@@ -342,8 +342,8 @@ const char LINES[] =
 // the module's own, where the face departs from CLI11: CLI11 copies a
 // command's formatter into a subcommand when the subcommand is made, so
 // that one made before the root is given a formatter keeps the one it was
-// made with -- its help in columns 30 wide, `  -h,     --help` and then the
-// description at the thirtieth column -- where here a subcommand without a
+// made with - its help in columns 30 wide, `  -h,     --help` and then the
+// description at the thirtieth column - where here a subcommand without a
 // formatter of its own follows its parent's whenever help is made (ISSUES
 // 18).
 const char DEPARTED[] =
@@ -403,7 +403,7 @@ void write_formatter(
 /**
  * @brief Defines the program the help steps write: a description and a
  *        footer, a required option, one with a captured default, flags --
- *        one with a value of its own -- a positional, an option in a group
+ *        one with a value of its own - a positional, an option in a group
  *        of its own, and a subcommand with an option.
  *
  * @param[in,out] _run  the run.
@@ -636,8 +636,8 @@ void help_switches(
 
 /**
  * @brief HELP 5: the program's help with every fixed word and type name
- *        help writes translated by labels -- with an option read from the
- *        environment and one that needs and excludes others -- then of the
+ *        help writes translated by labels - with an option read from the
+ *        environment and one that needs and excludes others - then of the
  *        program unnamed, at most one subcommand required.
  *
  * @param[in,out] _run  the step's run.
@@ -933,11 +933,11 @@ public:
 
 // bracketed
 //   class: a formatter that replaces every step it can, each writing the
-// formatter's own piece of help between marks naming the step -- H for
+// formatter's own piece of help between marks naming the step - H for
 // make_help, G make_group, P make_positionals, SS make_subcommands, S
 // make_subcommand, E make_expanded, F make_footer, D make_description, U
 // make_usage, O make_option, ON make_option_name, OO make_option_opts, OD
-// make_option_desc and OU make_option_usage -- so that its help shows which
+// make_option_desc and OU make_option_usage - so that its help shows which
 // step wrote each piece, and which steps each calls.
 class bracketed : public cli::formatter
 {

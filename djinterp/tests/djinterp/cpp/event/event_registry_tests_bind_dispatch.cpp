@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][event]                   event_registry_tests_bind_dispatch.cpp
 *
-*   Section III (bind + dispatch) -- typed registration and the inner fold.
+*   Section III (bind + dispatch) - typed registration and the inner fold.
 * bind type-erases a compatible callable, stores it under the event's key, and
 * returns a managing DHandlerId (valid, distinct per bind, reflected in the
 * registry's counts and typed queries).  dispatch builds one occurrence's

@@ -84,7 +84,7 @@ V.    BUILDERS     (test_compress_options_tests_builders.cpp)
 #include <string>
 #include <vector>
 // djinterp
-// -- (part 1) mode-gated includes ------------------------------------------
+// - (part 1) mode-gated includes ------------------------------------------
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
 #include "../../../../../../inc/djinterp/cpp/modules/test/compress/test_compress_options.hpp"
@@ -205,7 +205,7 @@ struct co_field
 };
 
 
-// -- the fifty mutators ----------------------------------------------------
+// - the fifty mutators ----------------------------------------------------
 //   One per field of compress_options, named after the field it moves.
 
 inline void co_m_level(dj::compress_options& o) { o.level = co_bump(o.level); }
@@ -507,7 +507,7 @@ std::vector<std::string> co_split_csv(
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- (part 2) declarations - visible in BOTH modes -------------------------
+// - (part 2) declarations - visible in BOTH modes -------------------------
 
 // I.   BLOCKS   (test_compress_options_tests_blocks.cpp)
 bool tests_compress_options_deflate_equal_reflexive();
@@ -583,7 +583,7 @@ bool tests_compress_options_zstd_builder_scope();
 bool tests_compress_options_zstd_vs_generic_level();
 
 
-// -- (part 3) the spec provider - spec mode only ---------------------------
+// - (part 3) the spec provider - spec mode only ---------------------------
 #ifdef DTEST_SPEC_MODE
 
 // compress_options_spec

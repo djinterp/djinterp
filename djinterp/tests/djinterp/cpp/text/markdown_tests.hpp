@@ -1,8 +1,8 @@
 /*******************************************************************************
 * djinterp [cpp][text]                                        markdown_tests.hpp
 *
-*   The suite for text's Markdown headers -- markdown/markdown.hpp,
-* markdown/markdown_template.hpp and its traits and concepts -- in DTest's C
+*   The suite for text's Markdown headers - markdown/markdown.hpp,
+* markdown/markdown_template.hpp and its traits and concepts - in DTest's C
 * face (c/modules/test/test_suite.h).
 *   One entry point builds the module "markdown" imperatively: a block per
 * header and a test per group of checks. Every header's floor is C++11, and

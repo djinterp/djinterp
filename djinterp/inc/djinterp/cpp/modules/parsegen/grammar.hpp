@@ -10,7 +10,7 @@
 *   The builder is where the C++ side earns its place.  Sequences and choices
 * take an initializer list rather than a pointer and a count, `at()` returns a
 * scope guard that restores the previous origin, and the three classic
-* repetition forms have names -- so a frontend reads as the notation it is
+* repetition forms have names - so a frontend reads as the notation it is
 * reading rather than as arena bookkeeping.
 *
 *   ONE OMISSION IS DELIBERATE: there is no `choice()`.  `ordered()` and
@@ -92,7 +92,7 @@ constexpr re_std::int32_t no_node = D_PARSEGEN_NO_NODE;
 
 // grammar
 //   class: the nodes, the rules, their pool, and the capability set the whole
-// thing uses -- with lifetime.  Move-only, as every owning container here is.
+// thing uses - with lifetime.  Move-only, as every owning container here is.
 class grammar : public dj_parsegen_grammar
 {
 public:
@@ -298,7 +298,7 @@ public:
     }
 
     // ordered
-    //   function: PEG's `/` -- the FIRST child that matches wins and commits.
+    //   function: PEG's `/` - the FIRST child that matches wins and commits.
     re_std::int32_t ordered(
         std::initializer_list<re_std::int32_t> _children
     ) noexcept
@@ -310,7 +310,7 @@ public:
     }
 
     // unordered
-    //   function: BNF's `|` -- ANY child may match and the order carries no
+    //   function: BNF's `|` - ANY child may match and the order carries no
     // meaning.  A grammar using this may be ambiguous.
     re_std::int32_t unordered(
         std::initializer_list<re_std::int32_t> _children
@@ -334,7 +334,7 @@ public:
     }
 
     // optional
-    //   function: `?` -- {0, 1}.
+    //   function: `?` - {0, 1}.
     re_std::int32_t optional(
         re_std::int32_t _child
     ) noexcept
@@ -343,7 +343,7 @@ public:
     }
 
     // star
-    //   function: `*` -- {0, unbounded}.
+    //   function: `*` - {0, unbounded}.
     re_std::int32_t star(
         re_std::int32_t _child
     ) noexcept
@@ -352,7 +352,7 @@ public:
     }
 
     // plus
-    //   function: `+` -- {1, unbounded}.
+    //   function: `+` - {1, unbounded}.
     re_std::int32_t plus(
         re_std::int32_t _child
     ) noexcept
@@ -372,7 +372,7 @@ public:
     }
 
     // require
-    //   function: `&` -- asserts the child matches here, consuming nothing.
+    //   function: `&` - asserts the child matches here, consuming nothing.
     re_std::int32_t require(
         re_std::int32_t _child
     ) noexcept
@@ -381,7 +381,7 @@ public:
     }
 
     // forbid
-    //   function: `!` -- asserts the child does NOT match here, consuming
+    //   function: `!` - asserts the child does NOT match here, consuming
     // nothing.
     re_std::int32_t forbid(
         re_std::int32_t _child
@@ -450,7 +450,7 @@ public:
 
     // resolve
     //   function: binds every reference to the rule it names, reporting every
-    // unbound one.  Does not compute LEFT_RECURSION -- that is analysis's.
+    // unbound one.  Does not compute LEFT_RECURSION - that is analysis's.
     D_NODISCARD bool resolve(
         dj_parse_diag_sink* _diag = nullptr
     ) noexcept
@@ -558,7 +558,7 @@ public:
 
 // DFixedGrammar
 //   class: a grammar carrying its own node arena, rule table, and pool, for a
-// frontend that must not allocate -- a build with no allocator, or one that
+// frontend that must not allocate - a build with no allocator, or one that
 // caps how large a grammar it will accept.  The same shape every other
 // container here offers.
 template<re_std::uint32_t Nodes,

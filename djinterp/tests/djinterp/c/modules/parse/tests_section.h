@@ -5,7 +5,7 @@
 *   A suite is a table of these, defined beside the sections themselves. That
 * is deliberate: a section exists from the language level, and under the
 * configuration, that its subject exists at, so which sections a build has is
-* decided in one place -- the suite's own source, at namespace scope -- and a
+* decided in one place - the suite's own source, at namespace scope - and a
 * runner walks whatever table it is handed without a condition of its own.
 *   It is a plain struct with no behaviour, shared by the C suites and the C++
 * ones, and it is not a test framework: DTest is being rewritten, and these
@@ -26,7 +26,7 @@
 
 
 // dj_tests_section
-//   struct: one test section -- the name a report prints, and the function
+//   struct: one test section - the name a report prints, and the function
 // that runs it and says whether it held.
 struct dj_tests_section
 {

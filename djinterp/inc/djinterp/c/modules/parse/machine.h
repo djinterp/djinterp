@@ -14,7 +14,7 @@
 * no element type. It formerly carried `const char* input` and an `sp`, which
 * silently made every family a byte-at-a-time recogniser over one contiguous
 * string. A family that reads tokens, or one that reads nothing at all and
-* only emits -- a generator -- paid for a cursor it could not use, and a driver
+* only emits - a generator - paid for a cursor it could not use, and a driver
 * over a token stream had nowhere to put its own. Both now live behind `ext`,
 * where every other piece of family-private state already lived.
 *
@@ -100,8 +100,8 @@ typedef void (*dj_parse_trace_hook)(void*                         _ctx,
 //------------------------------------------------------------------------------
 // 1.2.1
 // dj_parse_machine
-//   struct: the shared run-state. Public-payload layout -- the substrate IS
-// the protocol the operators manipulate -- so these members are unprefixed and
+//   struct: the shared run-state. Public-payload layout - the substrate IS
+// the protocol the operators manipulate - so these members are unprefixed and
 // written directly by handlers.
 //   `ok` is meaningful only once `halted` is set. `step_limit` of 0 disables
 // the runaway guard. `diag` may be NULL, in which case a halted run reports
@@ -257,7 +257,7 @@ D_EXTERN_C_END
 //------------------------------------------------------------------------------
 // 2.1.1
 // dj_parse_voperator
-//   type: a parsing operator -- an effect on the machine. A plain function
+//   type: a parsing operator - an effect on the machine. A plain function
 // pointer plus a context pointer rather than a closure object, so the
 // indirection is one call through a known signature, the registry is a POD,
 // and a handler written in either language is callable from the other.
@@ -287,7 +287,7 @@ struct dj_parse_op
 // machine operator-agnostic and opcode spaces family-private.
 //   `family` names WHICH private space, so a program written for one family
 // and a registry reading another can be caught rather than merely documented
-// -- see d_parse_program_verify. Two registries over one opcode space, such as
+// - see d_parse_program_verify. Two registries over one opcode space, such as
 // an interpreter and a code generator, share a family and differ only in what
 // their handlers do.
 struct dj_parse_op_set

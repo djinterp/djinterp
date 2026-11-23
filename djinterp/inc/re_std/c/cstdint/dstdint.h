@@ -7,9 +7,9 @@
 * in C, whose framework floor is C99, from C++11 in C++, and in C++98 wherever
 * the compiler ships them. It then adds only what the platform leaves out: the
 * format macros of a freestanding build, which need have only <stdint.h>, and
-* the macros an older C++ library withholds. Otherwise -- a C++98 toolchain
+* the macros an older C++ library withholds. Otherwise - a C++98 toolchain
 * without the headers, or a C++98 build that asked for ISO strictness
-* (RE_STD_CFG_ISO_STRICT), to which they do not belong -- it defines the same
+* (RE_STD_CFG_ISO_STRICT), to which they do not belong - it defines the same
 * names itself; RE_STD_CFG_STDINT_BACKEND (section 1) can pin either backend.
 * Either way the names are the standard ones: include this header in place of
 * <stdint.h> or <inttypes.h>, and change nothing else.
@@ -37,8 +37,8 @@
 * compiler's predefined macros can disagree with the C library (Clang
 * predefines `short` for int_fast16_t on Linux; glibc declares `long`). The
 * self-defined path declares them only where it knows which <stdint.h> the
-* platform uses -- the compiler's own, or a C library whose choice section 2.4
-* records -- and leaves them out elsewhere, with everything of theirs: a
+* platform uses - the compiler's own, or a C library whose choice section 2.4
+* records - and leaves them out elsewhere, with everything of theirs: a
 * family is present or absent as a whole. Below C99 and C++11 the 8-bit scanf
 * formats are left out too, since their `hh` modifier came with those, and so
 * they are where the runtime's scanf has none (MinGW on Microsoft's
@@ -168,7 +168,7 @@ TABLE OF CONTENTS
 // platform's headers; PLATFORM is the platform's <inttypes.h>, or its
 // <stdint.h> where that is all it has, completed here where it falls short
 // of C99; OWN is this header's own definitions, taken from the compiler's
-// predefined macros or derived from <limits.h> -- available everywhere, and
+// predefined macros or derived from <limits.h> - available everywhere, and
 // pinning it where the platform has the headers is how the definitions are
 // tested against them.
 #define RE_STD_CFG_STDINT_BACKEND_AUTO      0
@@ -327,8 +327,8 @@ TABLE OF CONTENTS
 //==============================================================================
 // 2.  TYPE DESCRIPTIONS
 //==============================================================================
-//   Each family of types -- 8, 16, 32 and 64 exact-width, LEAST8 to LEAST64,
-// PTR and MAX -- is described by four internal macros: its signed and unsigned
+//   Each family of types - 8, 16, 32 and 64 exact-width, LEAST8 to LEAST64,
+// PTR and MAX - is described by four internal macros: its signed and unsigned
 // types (RE_STD_INTERNAL_STDINT_<F>_S / _U) and their maxima (_SMAX / _UMAX).
 // The maxima are the compiler's own literals, and a literal's suffix names the
 // type it has, which is how this header learns, without inspecting a type,
@@ -788,8 +788,8 @@ TABLE OF CONTENTS
 // <stdint.h> chooses them, and a compiler's predefined macros speak for the
 // compiler's own header only (Clang predefines `short` for int_fast16_t on
 // Linux, where glibc declares `long`). So they are described only where it
-// is known which <stdint.h> declares them here -- the one the platform
-// backend included, or the one it would include -- and are absent where it
+// is known which <stdint.h> declares them here - the one the platform
+// backend included, or the one it would include - and are absent where it
 // is not: no type of the same width stands in, since a function that takes
 // an int_fast16_t would then have two ABIs.
 
@@ -1749,7 +1749,7 @@ TABLE OF CONTENTS
 // family this header declared, and one more kind: a family this build
 // cannot spell, which the platform's <stdint.h> declared before this header
 // was included. Under ISO strict C++98 that is int64_t wherever it is `long
-// long` -- a 32-bit target, 64-bit Windows or macOS -- once any header has
+// long` - a 32-bit target, 64-bit Windows or macOS - once any header has
 // brought <stdint.h> with it. A format is a string, and needs no spelling of
 // the type; with it the family is whole, as every other is, and `#ifdef
 // INT64_MAX` remains a sufficient test.
@@ -1959,7 +1959,7 @@ TABLE OF CONTENTS
 // `short int` as the compiler or section 2.3 spells it, and 0 when it is
 // `int`. The first token is pasted onto a prefix that expands to the answer
 // and the opening of a conditional, `1 ? 1 :` or `0 ? 0 :`, so whatever
-// follows -- nothing, or the `int` of `short int` -- lands in the arm that is
+// follows - nothing, or the `int` of `short int` - lands in the arm that is
 // never evaluated, where #if takes an identifier without giving it a value
 // and without -Wundef's objection. A spelling that begins otherwise
 // (`signed short`, which no compiler emits) does not preprocess: a loud

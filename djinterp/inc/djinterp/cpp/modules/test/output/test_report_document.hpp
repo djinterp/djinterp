@@ -2,7 +2,7 @@
 * djinterp [cpp][test]                                  test_report_document.hpp
 *
 *   The report's page design, expressed as a document template rather than a
-* painter -- the piece that lets test_render_pdf_table.hpp's bespoke PDF
+* painter - the piece that lets test_render_pdf_table.hpp's bespoke PDF
 * composition retire.
 *
 * WHAT WAS LEFT
@@ -10,8 +10,8 @@
 *   That header held two different things: a table engine and a page design.
 * The table half (per-cell fills and colours, ruled cells, header re-draw across
 * page breaks) moved into DPdfCanvas::table + DCellFormat, which is where a
-* table engine belongs.  What remained was composition -- a title block, a dark
-* suite band per module, a metadata block, a card per test -- and composition is
+* table engine belongs.  What remained was composition - a title block, a dark
+* suite band per module, a metadata block, a card per test - and composition is
 * a template: a sequence of semantic calls, not a sequence of rectangles.
 *
 * THE PAYOFF OF SAYING IT SEMANTICALLY
@@ -19,13 +19,13 @@
 *   The painter could only ever produce PDF, because it spoke in fills and glyph
 * placements.  The same design written as DDocumentRenderer calls renders as PDF
 * (canvas-backed: real bands, ruled tables), as HTML (bands become styled divs,
-* tables become <table>), as Markdown, and as plain monospace -- from one
+* tables become <table>), as Markdown, and as plain monospace - from one
 * description.  A band is `heading` carrying a `background` hint; a card is a
 * heading plus a table. Every dialect honours what it can and drops the rest,
 * which is the whole of the hint contract.
 *
 *   The palette is data (DReportPalette), not constants baked into draw calls,
-* so a caller restyles without touching the composition -- and a dialect that
+* so a caller restyles without touching the composition - and a dialect that
 * cannot colour simply never reads it.  The default is the slate palette the
 * painter used, so the PDF output stays recognisably the same document.
 *
@@ -38,7 +38,7 @@
 *
 * PORTABILITY
 * -----------
-*   C++11 baseline (DDocumentRenderer's floor).  No PDF dependency -- this
+*   C++11 baseline (DDocumentRenderer's floor).  No PDF dependency - this
 * header is renderer-agnostic and a text-only build includes it happily.
 *
 * HOW TO USE
@@ -111,7 +111,7 @@ NS_TEST
 struct DReportPalette
 {
     // suite_band
-    //   the ground behind a module's heading -- the painter's dark slate.
+    //   the ground behind a module's heading - the painter's dark slate.
     std::string suite_band;
 
     // suite_text
@@ -127,7 +127,7 @@ struct DReportPalette
 
     // zebra
     //   the alternate-row stripe, for a renderer that can stripe (the canvas
-    // renderer's set_zebra; HTML via a stylesheet).  Not consumed here -- it is
+    // renderer's set_zebra; HTML via a stylesheet).  Not consumed here - it is
     // carried so one palette describes the whole document.
     std::string zebra;
 
@@ -200,7 +200,7 @@ struct DReportDocumentOptions
 NS_INTERNAL
 
     // band_attrs_helper
-    //   helper: the hint bag for a banded heading -- a ground and a type
+    //   helper: the hint bag for a banded heading - a ground and a type
     // colour, both dropped when the palette leaves them empty.
     D_NODISCARD inline DDocAttributes band_attrs_helper(
         const std::string& _fill,
@@ -231,7 +231,7 @@ NS_END  // internal
 
 
 // render_report_document
-//   function: compose the whole report into _renderer -- title block, run
+//   function: compose the whole report into _renderer - title block, run
 // summary, then a banded section per module holding a card per unit, each card
 // carrying its assertion table.
 //
@@ -285,7 +285,7 @@ void render_report_document(
         const report_module& _module = _report.modules[_m];
 
         // a fresh page per suite, when asked and when the dialect paginates.
-        // Never before the first -- that would open on a blank page.
+        // Never before the first - that would open on a blank page.
         if ( _opts.page_break_per_module &&
              (_m > std::size_t(0)) )
         {

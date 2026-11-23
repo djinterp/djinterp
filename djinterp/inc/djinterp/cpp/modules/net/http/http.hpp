@@ -264,7 +264,7 @@ struct http_error
 
 // 1.2    Conversions
 //------------------------------------------------------------------------------
-// to_c / from_c -- the same values under the other language's names; the
+// to_c / from_c - the same values under the other language's names; the
 // enumerators are defined as each other, so these are casts
 D_NODISCARD inline dj_http_method to_c(
     http_method::value _method
@@ -425,7 +425,7 @@ NS_END  // http_media
 
 // 3.1    Methods
 //------------------------------------------------------------------------------
-// http_method_name -- the name, or null for other; safe and idempotent
+// http_method_name - the name, or null for other; safe and idempotent
 // as RFC 9110 defines them, and other is neither
 D_NODISCARD inline const char* http_method_name(
     http_method::value _method
@@ -478,7 +478,7 @@ D_NODISCARD inline http_error::value parse_http_method(
 
 // 3.2    Versions
 //------------------------------------------------------------------------------
-// http_version_name -- "HTTP/1.1" and the rest, or null for unknown
+// http_version_name - "HTTP/1.1" and the rest, or null for unknown
 D_NODISCARD inline const char* http_version_name(
     http_version::value _version
 ) D_NOEXCEPT
@@ -649,7 +649,7 @@ D_NODISCARD inline bool http_field_name_equal(
 
 // 3.5    Errors
 //------------------------------------------------------------------------------
-// http_error_name -- a short phrase for each error, for messages
+// http_error_name - a short phrase for each error, for messages
 D_NODISCARD inline const char* http_error_name(
     http_error::value _error
 ) D_NOEXCEPT
@@ -657,7 +657,7 @@ D_NODISCARD inline const char* http_error_name(
     return ::d_http_error_name(to_c(_error));
 }
 
-// http_error_to_net -- the io_error an error maps to, by the rules net.h
+// http_error_to_net - the io_error an error maps to, by the rules net.h
 // gives with dj_net_error
 D_NODISCARD inline io_error::value http_error_to_net(
     http_error::value _error
@@ -833,7 +833,7 @@ D_NODISCARD inline bool method_from_string(
 
 // 4.2.4
 // is_informational
-//   function: 1xx -- the request was received, continuing process.
+//   function: 1xx - the request was received, continuing process.
 D_NODISCARD inline D_CONSTEXPR bool is_informational(
     int _code
 )
@@ -843,7 +843,7 @@ D_NODISCARD inline D_CONSTEXPR bool is_informational(
 
 // 4.2.5
 // is_success
-//   function: 2xx -- the request was successfully received and accepted.
+//   function: 2xx - the request was successfully received and accepted.
 D_NODISCARD inline D_CONSTEXPR bool is_success(
     int _code
 )
@@ -853,7 +853,7 @@ D_NODISCARD inline D_CONSTEXPR bool is_success(
 
 // 4.2.6
 // is_redirection
-//   function: 3xx -- further action is needed to complete the request.
+//   function: 3xx - further action is needed to complete the request.
 D_NODISCARD inline D_CONSTEXPR bool is_redirection(
     int _code
 )
@@ -863,7 +863,7 @@ D_NODISCARD inline D_CONSTEXPR bool is_redirection(
 
 // 4.2.7
 // is_client_error
-//   function: 4xx -- the request contains bad syntax or cannot be fulfilled.
+//   function: 4xx - the request contains bad syntax or cannot be fulfilled.
 D_NODISCARD inline D_CONSTEXPR bool is_client_error(
     int _code
 )
@@ -873,7 +873,7 @@ D_NODISCARD inline D_CONSTEXPR bool is_client_error(
 
 // 4.2.8
 // is_server_error
-//   function: 5xx -- the server failed to fulfill a valid request.
+//   function: 5xx - the server failed to fulfill a valid request.
 D_NODISCARD inline D_CONSTEXPR bool is_server_error(
     int _code
 )
@@ -1079,7 +1079,7 @@ void set_header(
         }
     }
 
-    // no existing field -- append
+    // no existing field - append
     _headers.push_back(header_field(_name,
                                     _value));
 

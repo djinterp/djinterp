@@ -202,7 +202,7 @@ int d_internal_truncate_raw(
 /*
 d_file_seek_stream64
   Not just fseek: on a 32-bit build fseek takes a long, so seeking past 2 GiB
-either fails or -- worse -- wraps and silently succeeds at the wrong place.
+either fails or - worse - wraps and silently succeeds at the wrong place.
 This routes to _fseeki64 or fseeko, which do not, and a build with neither
 refuses an offset that does not fit a long instead of wrapping it
 (d_internal_seek_raw).
@@ -283,7 +283,7 @@ dj_off64_t d_file_tell_stream64(
 /*
 d_file_rewind_stream
   rewind() returns void, so a caller cannot tell a rewound stream from one
-that refused -- and a stream that refused is usually a pipe, which is exactly
+that refused - and a stream that refused is usually a pipe, which is exactly
 the case worth knowing about. So this seeks, and clears the error flag only
 once the seek has succeeded.
 */

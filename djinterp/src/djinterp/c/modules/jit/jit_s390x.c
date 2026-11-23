@@ -1,13 +1,13 @@
 /*******************************************************************************
 * djinterp [c][jit]                                                  jit_s390x.c
 *
-* djinterp s390x (IBM z/Architecture) JIT encoder -- implementation.
+* djinterp s390x (IBM z/Architecture) JIT encoder - implementation.
 *   Instructions are variable length (2/4/6 bytes) and big-endian, so each form
 * encoder fills a byte array most-significant-byte first and appends it whole.
 * The eight helpers cover the formats used here: RR, RRE, RI, RIL, RX, RXY, RS,
 * and RSY. The RXY/RSY 20-bit displacement is split into a 12-bit low part and
 * an 8-bit high part. The relocations patch a branch's halfword displacement
-* -- ri16 for the RI relative branches, ril32 for the RIL ones -- a signed
+* - ri16 for the RI relative branches, ril32 for the RIL ones - a signed
 * count of halfwords from the branch, with a big-endian read-modify-write.
 *
 *
@@ -804,7 +804,7 @@ int d_jit_s390x_emit_cgfi(
 
 
 // ===========================================================================
-// IX.  STORAGE -- RX (12-bit unsigned displacement)
+// IX.  STORAGE - RX (12-bit unsigned displacement)
 // ===========================================================================
 
 int d_jit_s390x_emit_l(
@@ -887,7 +887,7 @@ int d_jit_s390x_emit_la(
 
 
 // ===========================================================================
-// X.   STORAGE -- RXY (20-bit signed displacement)
+// X.   STORAGE - RXY (20-bit signed displacement)
 // ===========================================================================
 
 int d_jit_s390x_emit_lg(

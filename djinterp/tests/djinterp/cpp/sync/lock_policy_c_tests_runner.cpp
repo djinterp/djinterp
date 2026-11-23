@@ -63,7 +63,7 @@ int main()
 
     rb.use_pdf("lock_policy_c_tests_report.pdf");
 
-    // -- 0. the header contract --------------------------------------------
+    // - 0. the header contract --------------------------------------------
     rb.module("0. the header contract",
               "self-sufficiency, platform facilities, gating, and a banner-vs-code note");
     rb.run("the include guard is defined, and is 1",       &tests_header_include_guard);
@@ -76,7 +76,7 @@ int main()
     rb.run("the spinlock is gated to C++11",               &tests_the_spinlock_is_gated_to_cpp11);
     rb.run("c_shared is present at this standard",         &tests_c_shared_is_available_at_this_standard);
 
-    // -- I. the platform mutex classes -------------------------------------
+    // - I. the platform mutex classes -------------------------------------
     rb.module("I. platform mutex classes",
               "the raw primitives; reentrancy is what sets recursive apart");
     rb.run("an exclusive mutex constructs and destructs",  &tests_exclusive_mutex_constructs_and_destructs);
@@ -90,7 +90,7 @@ int main()
     rb.run("rwlock write try_lock succeeds when free",     &tests_rwlock_try_lock_when_free);
     rb.run("the concrete classes back the policies",       &tests_the_concrete_classes_back_the_policies);
 
-    // -- II. the C-backed RAII guards --------------------------------------
+    // - II. the C-backed RAII guards --------------------------------------
     rb.module("II. the C-backed RAII guards",
               "acquire/release; non-copyable and (the sharp edge) non-movable");
     rb.run("c_lock_guard acquires on construction",        &tests_lock_guard_acquires_on_construction);
@@ -103,7 +103,7 @@ int main()
     rb.run("c_shared_guard is NOT movable",                &tests_shared_guard_is_not_movable);
     rb.run("the guards are generic over any C mutex",      &tests_the_guards_are_templates_over_any_c_mutex);
 
-    // -- III. the C-backed policy structs ----------------------------------
+    // - III. the C-backed policy structs ----------------------------------
     rb.module("III. the C-backed policy structs",
               "aliases, descriptors, levels; three policies share one level");
     rb.run("c_exclusive names a c_lock_guard",             &tests_c_exclusive_aliases);
@@ -118,7 +118,7 @@ int main()
     rb.run("c_recursive level is exclusive (no rec rung)", &tests_c_recursive_level_is_exclusive);
     rb.run("three policies share the exclusive level",     &tests_three_policies_share_the_exclusive_level);
 
-    // -- IV. the spinlock --------------------------------------------------
+    // - IV. the spinlock --------------------------------------------------
     rb.module("IV. the spinlock (mutex + policy)",
               "atomic_flag test-and-set; noexcept; NOT reentrant (C++11+)");
     rb.run("spinlock constructs (starts unlocked)",        &tests_spinlock_mutex_constructs);
@@ -131,7 +131,7 @@ int main()
     rb.run("c_spinlock names spinlock_mutex + guard",      &tests_c_spinlock_aliases);
     rb.run("c_spinlock descriptors and level",             &tests_c_spinlock_descriptors_and_level);
 
-    // -- Concurrency -------------------------------------------------------
+    // - Concurrency -------------------------------------------------------
     rb.module("Concurrency",
               "what the locks are for -- exclusion, reader overlap, recursion, spin");
     rb.run("c_exclusive serializes writers (exact total)", &tests_c_exclusive_serializes_writers);

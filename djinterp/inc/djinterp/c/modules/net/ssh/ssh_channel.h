@@ -9,7 +9,7 @@
 * channel reports its program's exit status once closed.
 *   A channel is also a net.h connection: its `base` reads the channel's
 * standard output and writes its data, so a protocol written for any
-* connection -- SFTP among them -- runs over a channel unchanged.
+* connection - SFTP among them - runs over a channel unchanged.
 *
 *
 * path:      /inc/djinterp/c/modules/net/ssh/ssh_channel.h
@@ -278,7 +278,7 @@ void d_ssh_channel_free(
 // 2.5    As a connection
 //------------------------------------------------------------------------------
 // `base` is the channel as net.h's dj_net_connection, from d_ssh_channel_open
-// or _open_tcpip -- whether or not it succeeded -- for as long as the storage
+// or _open_tcpip - whether or not it succeeded - for as long as the storage
 // lasts; a channel freed, or one whose open failed, is a closed connection:
 //   read      the channel's standard output, waiting for at least a byte;
 //             its end is a read of nothing, as net.h has it

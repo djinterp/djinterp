@@ -1,4 +1,4 @@
-# hierarchical.hpp unit test suite -- leaf recipe (header-only tag module).
+# hierarchical.hpp unit test suite - leaf recipe (header-only tag module).
 #
 #   Delivery form (djinterp_testing.md S7.2): ships in its OWN leaf directory
 # .../container/structure/hierarchical/.  Fold into a shared cluster by merging
@@ -13,7 +13,7 @@
 # name (tests_tag_hierarchical_* here, tests_tag_flat_* there) and each suite's
 # fixtures are module-namespaced (hierarchical_depth_probe / flat_depth_probe),
 # so the two suites may be built separately (as here, via the prefix-scoped glob)
-# OR aggregated into one executable -- see the sibling ../structure_tags leaf for
+# OR aggregated into one executable - see the sibling ../structure_tags leaf for
 # a combined build.  The globs below are prefix-scoped so this target pulls only
 # its own section TUs.
 

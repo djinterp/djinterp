@@ -12,11 +12,11 @@
 *   Computed as N - bit_width, which sidesteps the trap in the obvious
 * intrinsic implementation: __builtin_clz is UNDEFINED for a zero
 * argument, and zero is the case callers most often pass. Deriving it
-* from bit_width has no such edge -- bit_width(0) is 0, so the answer
+* from bit_width has no such edge - bit_width(0) is 0, so the answer
 * is N.
 *
 *   N is numeric_limits<T>::digits, so a narrow type gets its own width
-* rather than the promoted one -- countl_zero(uint8_t(1)) is 7, not 31.
+* rather than the promoted one - countl_zero(uint8_t(1)) is 7, not 31.
 *
 *   PORTABILITY:
 *   C++20 in std, back-ported to C++11 and constexpr from C++11.

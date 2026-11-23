@@ -3,12 +3,12 @@
 *
 * Operations that do not block, over the C layers' calls that do not wait.
 *   async_operation<Result> is one operation of a connection or a prepared
-* statement -- connect_async, execute_query_async, execute_update_async,
-* execute_async -- made without waiting on the network: start() begins it,
+* statement - connect_async, execute_query_async, execute_update_async,
+* execute_async - made without waiting on the network: start() begins it,
 * pending() says what it waits for, as the C layers' dj_db_pending does, and
 * resume() goes on with what came, as dj_db_wait, until done(). result() then
 * gives what the blocking operation returns, or throws what it throws. The
-* program waits however it likes -- poll(2), its own event loop -- on the
+* program waits however it likes - poll(2), its own event loop - on the
 * socket and the deadline pending() names; the operation never waits.
 *   SQLite has no socket and nothing to wait for: its operations are done as
 * soon as they start. With libmysqlclient, which has no statement calls that
@@ -19,7 +19,7 @@
 * layer's busy code. An operation destroyed while under way abandons it,
 * which leaves the connection lost: reconnect() makes another. cancel() asks
 * the server to stop what the operation runs, from a connection of its own,
-* and the operation goes on to its end -- the server's refusal, or its
+* and the operation goes on to its end - the server's refusal, or its
 * result where it finished first.
 *   From C++20, an operation is awaited in a coroutine with on(loop), the
 * loop being the program's own (concepts::db_event_loop): told what to wait
@@ -125,7 +125,7 @@ NS_INTERNAL
     //   class template: what one kind of operation does, behind
     // async_operation: begun once, advanced with what came until it is done,
     // its result then taken once. begin and advance answer true once done,
-    // false while waiting -- `_pending` then saying for what -- and throw
+    // false while waiting - `_pending` then saying for what - and throw
     // what the blocking operation throws for a failure, which the operation
     // keeps for result(); ended lets the connection go, done or failed;
     // cancel asks the server to stop it; abandon gives it up while it
@@ -199,7 +199,7 @@ NS_INTERNAL
     // 1.1.3
     // at_once_steps
     //   class template: an operation a vendor makes without waiting on
-    // anything -- SQLite's, which has no socket -- done as it begins: the
+    // anything - SQLite's, which has no socket - done as it begins: the
     // blocking operation run, its result kept.
     template<typename Result>
     class at_once_steps final : public async_steps<Result>
@@ -276,10 +276,10 @@ NS_END  // internal
 //   class template: one operation that does not block, as the banner
 // describes. Before start() it has done nothing; from then until done() it
 // is under way, holding its connection; once done, result() hands over its
-// result, or throws its failure, once. An operation made empty -- default
-// constructed, or moved from -- has nothing to start. Calling a member out
-// of that order -- resume() before start() or after done(), result()
-// before done() or twice -- throws std::logic_error. Not copyable; movable.
+// result, or throws its failure, once. An operation made empty - default
+// constructed, or moved from - has nothing to start. Calling a member out
+// of that order - resume() before start() or after done(), result()
+// before done() or twice - throws std::logic_error. Not copyable; movable.
 template<typename Result>
 class async_operation
 {
@@ -327,7 +327,7 @@ public:
      *
      * @throws std::logic_error for an empty operation, or one started
      *         already.
-     * @post The operation is under way, or done -- SQLite's always, and any
+     * @post The operation is under way, or done - SQLite's always, and any
      *       that needed nothing it had to wait for, or that failed.
      */
     void start();
@@ -345,7 +345,7 @@ public:
         unsigned _events
     );
 
-    // state -- whether the operation was started, and whether it is done;
+    // state - whether the operation was started, and whether it is done;
     // what it waits for while under way, nothing pending otherwise
     bool started() const noexcept;
     bool done() const noexcept;
@@ -366,11 +366,11 @@ public:
      *
      * @note The request goes from a connection of its own, which it makes
      *       and closes, waiting for both; the operation goes on, and ends
-     *       with the server's refusal -- 1317 on MariaDB and MySQL, 57014 on
-     *       PostgreSQL -- or with its result, where it finished first. A
+     *       with the server's refusal - 1317 on MariaDB and MySQL, 57014 on
+     *       PostgreSQL - or with its result, where it finished first. A
      *       request the server receives before it has begun the statement
-     *       may be lost -- MariaDB discards a KILL QUERY between statements
-     *       -- so a caller that must stop the statement asks once the
+     *       may be lost - MariaDB discards a KILL QUERY between statements
+     *       - so a caller that must stop the statement asks once the
      *       server runs it. A connect has nothing to stop; destroying it
      *       abandons it.
      *
@@ -396,17 +396,17 @@ public:
 #endif  // D_INTERNAL_DB_ASYNC_AWAIT
 
 private:
-    // m_run -- one step of the steps, its failure kept: done, the result
+    // m_run - one step of the steps, its failure kept: done, the result
     // taken and the connection let go
     template<typename Step>
     void m_run(
         Step&& _step
     ) noexcept;
 
-    // m_abandon -- the steps given up while under way
+    // m_abandon - the steps given up while under way
     void m_abandon() noexcept;
 
-    // m_unpend -- nothing pending
+    // m_unpend - nothing pending
     void m_unpend() noexcept;
 
     std::unique_ptr<internal::async_steps<Result>> m_steps;
@@ -465,8 +465,8 @@ NS_CONCEPTS
     // db_event_loop
     //   concept: a program's loop, which an operation awaited waits through:
     // watch(pending, wakeup) arranges for the wakeup to be called once what
-    // `pending` names has come -- its socket readable or writable, or its
-    // deadline passed -- and returns at once.
+    // `pending` names has come - its socket readable or writable, or its
+    // deadline passed - and returns at once.
     template<typename Loop>
     concept db_event_loop =
         requires(Loop&               _loop,
@@ -507,7 +507,7 @@ public:
     Result await_resume();
 
 private:
-    // m_woken -- the loop's wakeup: on with the operation, then the
+    // m_woken - the loop's wakeup: on with the operation, then the
     // coroutine woken once it is done, or the loop told to wait again
     static
     void m_woken(
@@ -715,7 +715,7 @@ auto async_operation<Result>::on(
 /*
 async_operation::m_run
   A failure is kept whatever it is, and ends the operation as success does;
-taking the result can fail too -- for want of memory -- and is kept the same
+taking the result can fail too - for want of memory - and is kept the same
 way. The connection is let go either way.
 */
 template<typename Result>
@@ -785,8 +785,8 @@ void async_operation<Result>::m_unpend() noexcept
 //------------------------------------------------------------------------------
 /*
 async_awaitable::await_ready
-  The operation starts here when it has not; one done as it starts -- every
-SQLite operation -- never sleeps.
+  The operation starts here when it has not; one done as it starts - every
+SQLite operation - never sleeps.
 */
 template<typename Result,
          typename Loop>

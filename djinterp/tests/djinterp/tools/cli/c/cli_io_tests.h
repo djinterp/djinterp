@@ -8,7 +8,7 @@
 * among them, its bytes as they are; writing a file whole or not at all --
 * a new one, one replaced with its permissions kept, one a symbolic link
 * leads to, a device and a FIFO written to, a directory refused, standard
-* output -- and nothing left behind; and every call given nothing.
+* output - and nothing left behind; and every call given nothing.
 *   What the system has decides what is tested: symbolic links, FIFOs,
 * devices and permission bits where the system is POSIX; the standard
 * streams' redirection everywhere.

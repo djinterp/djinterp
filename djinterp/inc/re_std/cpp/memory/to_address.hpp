@@ -45,7 +45,7 @@
 
 namespace re_std
 {
-// forward declaration -- internal::to_address_impl names re_std::to_address in
+// forward declaration - internal::to_address_impl names re_std::to_address in
 // a trailing return type, and that qualified-id is looked up where it is
 // written rather than at instantiation, so it must be declared first.  Only
 // the raw-pointer overload is needed: the impl applies it to p.operator->().

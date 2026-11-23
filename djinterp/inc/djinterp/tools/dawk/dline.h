@@ -3,8 +3,8 @@
 *
 * Text-layer extension: the file as lines, before any language reads it.
 *   Emits one `text` node beneath a file node, carrying the facts that are
-* about the file as a whole -- a byte-order mark, its line endings, how many
-* newlines it ends with, whether a generator wrote it -- and beneath that one
+* about the file as a whole - a byte-order mark, its line endings, how many
+* newlines it ends with, whether a generator wrote it - and beneath that one
 * `line` node per physical line, carrying what the style guide's Line Length
 * and Whitespace sections measure: length in characters, tabs, trailing
 * space, carriage returns, and characters that are not one column wide.

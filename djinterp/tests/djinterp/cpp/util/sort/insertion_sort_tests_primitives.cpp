@@ -52,7 +52,7 @@ bool tests_insertion_sort_place_landing_index()
                  (data[2] == 3) && (data[3] == 5));
 
     //   Already in order relative to its predecessor: one comparison, no
-    // move, and the candidate reports its own index -- the O(n) best case.
+    // move, and the candidate reports its own index - the O(n) best case.
     original    = data;
     comparisons = 0;
 
@@ -93,7 +93,7 @@ bool tests_insertion_sort_place_stops_at_equivalent()
 
     //   [(1,0), (3,1), (5,2)] and a candidate (3,3): it passes the 5, which
     // it strictly precedes, and stops at the equivalent 3 rather than passing
-    // it.  Equal elements keep their input order -- the stability that
+    // it.  Equal elements keep their input order - the stability that
     // lives in the scan.
     keyed.push_back(make_keyed(1, 0));
     keyed.push_back(make_keyed(3, 1));
@@ -137,7 +137,7 @@ bool tests_insertion_sort_pass_sub_run()
 
     result.check(ranges_equal(data, original));
 
-    //   The pass sorts [1, 4) and touches nothing outside it -- the property
+    //   The pass sorts [1, 4) and touches nothing outside it - the property
     // quick_sort_apply relies on when it hands insertion sort a sub-range,
     // and a block-partitioned driver when it hands one to each worker.
     ::djinterp::internal::insertion_pass(data.begin(),

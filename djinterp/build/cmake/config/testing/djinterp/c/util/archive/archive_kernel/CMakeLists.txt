@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/util/archive/
+# djinterp [test]  -  build/cmake/config/testing/djinterp/c/util/archive/
 #                      archive_kernel/CMakeLists.txt
 #
 #   Test leaf for the archive kernel's suite, in DTest's C face: the runner in

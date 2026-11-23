@@ -4,7 +4,7 @@
 *   Build-time tuning for the C++ sort subsystem.  One knob so far: the size
 * below which quicksort stops partitioning and finishes a sub-range with
 * insertion sort.  It changes how fast a sort runs, never what it produces --
-* every value sorts correctly -- so it is a tuning knob rather than a policy.
+* every value sorts correctly - so it is a tuning knob rather than a policy.
 *
 *   targets:  cpp/util/sort/quick_sort_common.hpp
 *             -> D_INTERNAL_SORT_QUICK_INSERTION_THRESHOLD

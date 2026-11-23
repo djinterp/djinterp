@@ -8,7 +8,7 @@
 * stays good while it makes them. Two that would overlap are refused, as
 * neither could then be kept whole. Applying them writes a new text in which
 * every byte no change touched is the old text's own.
-*   A caller that edits a format -- a CMake file, a Visual Studio project --
+*   A caller that edits a format - a CMake file, a Visual Studio project --
 * decides what makes a change sound in it; this only keeps the changes apart
 * and applies them.
 *
@@ -78,8 +78,8 @@ enum dj_text_edit_result
 //------------------------------------------------------------------------------
 // dj_text_edit_fn_between
 //   function: asked, where a change's text meets the text before or after
-// it, for a byte to stand between the two -- the space that keeps two
-// arguments apart -- or '\0' for none.
+// it, for a byte to stand between the two - the space that keeps two
+// arguments apart - or '\0' for none.
 typedef char (*dj_text_edit_fn_between)(void* _user,
                                         char  _before,
                                         char  _after);

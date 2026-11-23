@@ -48,7 +48,7 @@ namespace lr
 
 // opcodes
 //   enum: this family's private opcode space, numbered from zero like every
-// other family's -- they never collide, because each family owns its op_set.
+// other family's - they never collide, because each family owns its op_set.
 enum
 {
     SHIFT = 0,

@@ -3,7 +3,7 @@
 *
 * djinterp s390x (IBM z/Architecture) JIT encoder (variable-length, big-endian)
 *   The z/Architecture (64-bit s390x) half of the djinterp JIT. Unlike every
-* other target so far, instructions are VARIABLE LENGTH -- 2, 4, or 6 bytes --
+* other target so far, instructions are VARIABLE LENGTH - 2, 4, or 6 bytes --
 * and, like SPARC, BIG-ENDIAN. Each emitter writes its exact byte length most-
 * significant-byte first, and the two branch relocations do big-endian
 * read-modify-writes on the displacement field.
@@ -51,7 +51,7 @@
 #include "../../../../re_std/c/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -125,7 +125,7 @@ D_EXTERN_C_BEGIN
 // ---------------------------------------------------------------------------
 
 // d_jit_s390x_emit_lr
-//   function: lr r1, r2 -- copy r2 to r1 (32-bit).
+//   function: lr r1, r2 - copy r2 to r1 (32-bit).
 D_NODISCARD int d_jit_s390x_emit_lr(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -133,7 +133,7 @@ D_NODISCARD int d_jit_s390x_emit_lr(
 );
 
 // d_jit_s390x_emit_lgr
-//   function: lgr r1, r2 -- copy (64-bit).
+//   function: lgr r1, r2 - copy (64-bit).
 D_NODISCARD int d_jit_s390x_emit_lgr(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -141,7 +141,7 @@ D_NODISCARD int d_jit_s390x_emit_lgr(
 );
 
 // d_jit_s390x_emit_lgfr
-//   function: lgfr r1, r2 -- sign-extend r2[32] into r1 (64-bit).
+//   function: lgfr r1, r2 - sign-extend r2[32] into r1 (64-bit).
 D_NODISCARD int d_jit_s390x_emit_lgfr(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -149,7 +149,7 @@ D_NODISCARD int d_jit_s390x_emit_lgfr(
 );
 
 // d_jit_s390x_emit_llgfr
-//   function: llgfr r1, r2 -- zero-extend r2[32] into r1 (64-bit).
+//   function: llgfr r1, r2 - zero-extend r2[32] into r1 (64-bit).
 D_NODISCARD int d_jit_s390x_emit_llgfr(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -157,7 +157,7 @@ D_NODISCARD int d_jit_s390x_emit_llgfr(
 );
 
 // d_jit_s390x_emit_ltr
-//   function: ltr r1, r2 -- copy and set condition code (32-bit).
+//   function: ltr r1, r2 - copy and set condition code (32-bit).
 D_NODISCARD int d_jit_s390x_emit_ltr(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -165,7 +165,7 @@ D_NODISCARD int d_jit_s390x_emit_ltr(
 );
 
 // d_jit_s390x_emit_ltgr
-//   function: ltgr r1, r2 -- copy and set condition code (64-bit).
+//   function: ltgr r1, r2 - copy and set condition code (64-bit).
 D_NODISCARD int d_jit_s390x_emit_ltgr(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -173,7 +173,7 @@ D_NODISCARD int d_jit_s390x_emit_ltgr(
 );
 
 // d_jit_s390x_emit_lcr
-//   function: lcr r1, r2 -- load complement -r2 into r1 (32-bit).
+//   function: lcr r1, r2 - load complement -r2 into r1 (32-bit).
 D_NODISCARD int d_jit_s390x_emit_lcr(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -181,7 +181,7 @@ D_NODISCARD int d_jit_s390x_emit_lcr(
 );
 
 // d_jit_s390x_emit_lcgr
-//   function: lcgr r1, r2 -- load complement -r2 into r1 (64-bit).
+//   function: lcgr r1, r2 - load complement -r2 into r1 (64-bit).
 D_NODISCARD int d_jit_s390x_emit_lcgr(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -193,7 +193,7 @@ D_NODISCARD int d_jit_s390x_emit_lcgr(
 // ---------------------------------------------------------------------------
 
 // d_jit_s390x_emit_lhi
-//   function: lhi r1, imm -- load signed 16-bit immediate (32-bit).
+//   function: lhi r1, imm - load signed 16-bit immediate (32-bit).
 D_NODISCARD int d_jit_s390x_emit_lhi(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -201,7 +201,7 @@ D_NODISCARD int d_jit_s390x_emit_lhi(
 );
 
 // d_jit_s390x_emit_lghi
-//   function: lghi r1, imm -- load signed 16-bit immediate (64-bit).
+//   function: lghi r1, imm - load signed 16-bit immediate (64-bit).
 D_NODISCARD int d_jit_s390x_emit_lghi(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -209,7 +209,7 @@ D_NODISCARD int d_jit_s390x_emit_lghi(
 );
 
 // d_jit_s390x_emit_lgfi
-//   function: lgfi r1, imm -- load signed 32-bit immediate (64-bit).
+//   function: lgfi r1, imm - load signed 32-bit immediate (64-bit).
 D_NODISCARD int d_jit_s390x_emit_lgfi(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -217,7 +217,7 @@ D_NODISCARD int d_jit_s390x_emit_lgfi(
 );
 
 // d_jit_s390x_emit_load_imm
-//   function: load any 64-bit constant into r1 -- lghi when it fits 16
+//   function: load any 64-bit constant into r1 - lghi when it fits 16
 // bits, lgfi when it fits 32, else iihf+iilf.
 D_NODISCARD int d_jit_s390x_emit_load_imm(
     dj_jit_buffer* _buf,
@@ -226,7 +226,7 @@ D_NODISCARD int d_jit_s390x_emit_load_imm(
 );
 
 // d_jit_s390x_emit_larl
-//   function: larl r1, _target -- load the address of _target (PC-relative
+//   function: larl r1, _target - load the address of _target (PC-relative
 // long, halfword displacement) into r1.
 D_NODISCARD int d_jit_s390x_emit_larl(
     dj_jit_buffer* _buf,
@@ -239,7 +239,7 @@ D_NODISCARD int d_jit_s390x_emit_larl(
 // ---------------------------------------------------------------------------
 
 // d_jit_s390x_emit_ar
-//   function: ar r1, r2 -- add (32-bit).
+//   function: ar r1, r2 - add (32-bit).
 D_NODISCARD int d_jit_s390x_emit_ar(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -247,7 +247,7 @@ D_NODISCARD int d_jit_s390x_emit_ar(
 );
 
 // d_jit_s390x_emit_agr
-//   function: agr r1, r2 -- add (64-bit).
+//   function: agr r1, r2 - add (64-bit).
 D_NODISCARD int d_jit_s390x_emit_agr(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -255,7 +255,7 @@ D_NODISCARD int d_jit_s390x_emit_agr(
 );
 
 // d_jit_s390x_emit_sr
-//   function: sr r1, r2 -- subtract (32-bit).
+//   function: sr r1, r2 - subtract (32-bit).
 D_NODISCARD int d_jit_s390x_emit_sr(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -263,7 +263,7 @@ D_NODISCARD int d_jit_s390x_emit_sr(
 );
 
 // d_jit_s390x_emit_sgr
-//   function: sgr r1, r2 -- subtract (64-bit).
+//   function: sgr r1, r2 - subtract (64-bit).
 D_NODISCARD int d_jit_s390x_emit_sgr(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -271,7 +271,7 @@ D_NODISCARD int d_jit_s390x_emit_sgr(
 );
 
 // d_jit_s390x_emit_msr
-//   function: msr r1, r2 -- multiply (32-bit).
+//   function: msr r1, r2 - multiply (32-bit).
 D_NODISCARD int d_jit_s390x_emit_msr(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -279,7 +279,7 @@ D_NODISCARD int d_jit_s390x_emit_msr(
 );
 
 // d_jit_s390x_emit_msgr
-//   function: msgr r1, r2 -- multiply (64-bit).
+//   function: msgr r1, r2 - multiply (64-bit).
 D_NODISCARD int d_jit_s390x_emit_msgr(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -287,7 +287,7 @@ D_NODISCARD int d_jit_s390x_emit_msgr(
 );
 
 // d_jit_s390x_emit_msgfr
-//   function: msgfr r1, r2 -- multiply r1 by r2[32] (64-bit).
+//   function: msgfr r1, r2 - multiply r1 by r2[32] (64-bit).
 D_NODISCARD int d_jit_s390x_emit_msgfr(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -295,7 +295,7 @@ D_NODISCARD int d_jit_s390x_emit_msgfr(
 );
 
 // d_jit_s390x_emit_ahi
-//   function: ahi r1, imm -- add signed 16-bit immediate (32-bit).
+//   function: ahi r1, imm - add signed 16-bit immediate (32-bit).
 D_NODISCARD int d_jit_s390x_emit_ahi(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -303,7 +303,7 @@ D_NODISCARD int d_jit_s390x_emit_ahi(
 );
 
 // d_jit_s390x_emit_aghi
-//   function: aghi r1, imm -- add signed 16-bit immediate (64-bit).
+//   function: aghi r1, imm - add signed 16-bit immediate (64-bit).
 D_NODISCARD int d_jit_s390x_emit_aghi(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -311,7 +311,7 @@ D_NODISCARD int d_jit_s390x_emit_aghi(
 );
 
 // d_jit_s390x_emit_afi
-//   function: afi r1, imm -- add signed 32-bit immediate (32-bit).
+//   function: afi r1, imm - add signed 32-bit immediate (32-bit).
 D_NODISCARD int d_jit_s390x_emit_afi(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -319,7 +319,7 @@ D_NODISCARD int d_jit_s390x_emit_afi(
 );
 
 // d_jit_s390x_emit_agfi
-//   function: agfi r1, imm -- add signed 32-bit immediate (64-bit).
+//   function: agfi r1, imm - add signed 32-bit immediate (64-bit).
 D_NODISCARD int d_jit_s390x_emit_agfi(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -327,7 +327,7 @@ D_NODISCARD int d_jit_s390x_emit_agfi(
 );
 
 // d_jit_s390x_emit_mhi
-//   function: mhi r1, imm -- multiply by signed 16-bit immediate (32-bit).
+//   function: mhi r1, imm - multiply by signed 16-bit immediate (32-bit).
 D_NODISCARD int d_jit_s390x_emit_mhi(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -335,7 +335,7 @@ D_NODISCARD int d_jit_s390x_emit_mhi(
 );
 
 // d_jit_s390x_emit_mghi
-//   function: mghi r1, imm -- multiply by signed 16-bit immediate (64-bit).
+//   function: mghi r1, imm - multiply by signed 16-bit immediate (64-bit).
 D_NODISCARD int d_jit_s390x_emit_mghi(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -347,7 +347,7 @@ D_NODISCARD int d_jit_s390x_emit_mghi(
 // ---------------------------------------------------------------------------
 
 // d_jit_s390x_emit_dsgr
-//   function: dsgr r1, r2 -- signed 64-bit: r1<-remainder, r1+1<-quotient of
+//   function: dsgr r1, r2 - signed 64-bit: r1<-remainder, r1+1<-quotient of
 //   (r1:r1+1)/r2.
 D_NODISCARD int d_jit_s390x_emit_dsgr(
     dj_jit_buffer* _buf,
@@ -356,7 +356,7 @@ D_NODISCARD int d_jit_s390x_emit_dsgr(
 );
 
 // d_jit_s390x_emit_dsgfr
-//   function: dsgfr r1, r2 -- signed 64/32-bit: divide r1+1 by r2[32].
+//   function: dsgfr r1, r2 - signed 64/32-bit: divide r1+1 by r2[32].
 D_NODISCARD int d_jit_s390x_emit_dsgfr(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -364,7 +364,7 @@ D_NODISCARD int d_jit_s390x_emit_dsgfr(
 );
 
 // d_jit_s390x_emit_dlgr
-//   function: dlgr r1, r2 -- unsigned 64-bit divide of the r1:r1+1 pair by r2.
+//   function: dlgr r1, r2 - unsigned 64-bit divide of the r1:r1+1 pair by r2.
 D_NODISCARD int d_jit_s390x_emit_dlgr(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -376,7 +376,7 @@ D_NODISCARD int d_jit_s390x_emit_dlgr(
 // ---------------------------------------------------------------------------
 
 // d_jit_s390x_emit_nr
-//   function: nr r1, r2 -- AND (32-bit).
+//   function: nr r1, r2 - AND (32-bit).
 D_NODISCARD int d_jit_s390x_emit_nr(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -384,7 +384,7 @@ D_NODISCARD int d_jit_s390x_emit_nr(
 );
 
 // d_jit_s390x_emit_ngr
-//   function: ngr r1, r2 -- AND (64-bit).
+//   function: ngr r1, r2 - AND (64-bit).
 D_NODISCARD int d_jit_s390x_emit_ngr(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -392,7 +392,7 @@ D_NODISCARD int d_jit_s390x_emit_ngr(
 );
 
 // d_jit_s390x_emit_or
-//   function: or r1, r2 -- OR (32-bit).
+//   function: or r1, r2 - OR (32-bit).
 D_NODISCARD int d_jit_s390x_emit_or(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -400,7 +400,7 @@ D_NODISCARD int d_jit_s390x_emit_or(
 );
 
 // d_jit_s390x_emit_ogr
-//   function: ogr r1, r2 -- OR (64-bit).
+//   function: ogr r1, r2 - OR (64-bit).
 D_NODISCARD int d_jit_s390x_emit_ogr(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -408,7 +408,7 @@ D_NODISCARD int d_jit_s390x_emit_ogr(
 );
 
 // d_jit_s390x_emit_xr
-//   function: xr r1, r2 -- XOR (32-bit).
+//   function: xr r1, r2 - XOR (32-bit).
 D_NODISCARD int d_jit_s390x_emit_xr(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -416,7 +416,7 @@ D_NODISCARD int d_jit_s390x_emit_xr(
 );
 
 // d_jit_s390x_emit_xgr
-//   function: xgr r1, r2 -- XOR (64-bit).
+//   function: xgr r1, r2 - XOR (64-bit).
 D_NODISCARD int d_jit_s390x_emit_xgr(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -424,7 +424,7 @@ D_NODISCARD int d_jit_s390x_emit_xgr(
 );
 
 // d_jit_s390x_emit_nilf
-//   function: nilf r1, imm -- AND low 32 bits with a 32-bit mask.
+//   function: nilf r1, imm - AND low 32 bits with a 32-bit mask.
 D_NODISCARD int d_jit_s390x_emit_nilf(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -432,7 +432,7 @@ D_NODISCARD int d_jit_s390x_emit_nilf(
 );
 
 // d_jit_s390x_emit_oilf
-//   function: oilf r1, imm -- OR low 32 bits with a 32-bit mask.
+//   function: oilf r1, imm - OR low 32 bits with a 32-bit mask.
 D_NODISCARD int d_jit_s390x_emit_oilf(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -440,7 +440,7 @@ D_NODISCARD int d_jit_s390x_emit_oilf(
 );
 
 // d_jit_s390x_emit_xilf
-//   function: xilf r1, imm -- XOR low 32 bits with a 32-bit mask.
+//   function: xilf r1, imm - XOR low 32 bits with a 32-bit mask.
 D_NODISCARD int d_jit_s390x_emit_xilf(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -448,7 +448,7 @@ D_NODISCARD int d_jit_s390x_emit_xilf(
 );
 
 // d_jit_s390x_emit_iihf
-//   function: iihf r1, imm -- insert a 32-bit value into the high 32 bits.
+//   function: iihf r1, imm - insert a 32-bit value into the high 32 bits.
 D_NODISCARD int d_jit_s390x_emit_iihf(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -456,7 +456,7 @@ D_NODISCARD int d_jit_s390x_emit_iihf(
 );
 
 // d_jit_s390x_emit_iilf
-//   function: iilf r1, imm -- insert a 32-bit value into the low 32 bits.
+//   function: iilf r1, imm - insert a 32-bit value into the low 32 bits.
 D_NODISCARD int d_jit_s390x_emit_iilf(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -468,7 +468,7 @@ D_NODISCARD int d_jit_s390x_emit_iilf(
 // ---------------------------------------------------------------------------
 
 // d_jit_s390x_emit_sll
-//   function: sll r1, count -- shift left logical (32-bit).
+//   function: sll r1, count - shift left logical (32-bit).
 D_NODISCARD int d_jit_s390x_emit_sll(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -476,7 +476,7 @@ D_NODISCARD int d_jit_s390x_emit_sll(
 );
 
 // d_jit_s390x_emit_srl
-//   function: srl r1, count -- shift right logical (32-bit).
+//   function: srl r1, count - shift right logical (32-bit).
 D_NODISCARD int d_jit_s390x_emit_srl(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -484,7 +484,7 @@ D_NODISCARD int d_jit_s390x_emit_srl(
 );
 
 // d_jit_s390x_emit_sra
-//   function: sra r1, count -- shift right arithmetic (32-bit).
+//   function: sra r1, count - shift right arithmetic (32-bit).
 D_NODISCARD int d_jit_s390x_emit_sra(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -492,7 +492,7 @@ D_NODISCARD int d_jit_s390x_emit_sra(
 );
 
 // d_jit_s390x_emit_sllg
-//   function: sllg r1, r3, count -- shift left logical (64-bit) (r1 <- r3
+//   function: sllg r1, r3, count - shift left logical (64-bit) (r1 <- r3
 //   shifted).
 D_NODISCARD int d_jit_s390x_emit_sllg(
     dj_jit_buffer* _buf,
@@ -502,7 +502,7 @@ D_NODISCARD int d_jit_s390x_emit_sllg(
 );
 
 // d_jit_s390x_emit_srlg
-//   function: srlg r1, r3, count -- shift right logical (64-bit) (r1 <- r3
+//   function: srlg r1, r3, count - shift right logical (64-bit) (r1 <- r3
 //   shifted).
 D_NODISCARD int d_jit_s390x_emit_srlg(
     dj_jit_buffer* _buf,
@@ -512,7 +512,7 @@ D_NODISCARD int d_jit_s390x_emit_srlg(
 );
 
 // d_jit_s390x_emit_srag
-//   function: srag r1, r3, count -- shift right arithmetic (64-bit) (r1 <- r3
+//   function: srag r1, r3, count - shift right arithmetic (64-bit) (r1 <- r3
 //   shifted).
 D_NODISCARD int d_jit_s390x_emit_srag(
     dj_jit_buffer* _buf,
@@ -526,7 +526,7 @@ D_NODISCARD int d_jit_s390x_emit_srag(
 // ---------------------------------------------------------------------------
 
 // d_jit_s390x_emit_cr
-//   function: cr r1, r2 -- compare signed (32-bit).
+//   function: cr r1, r2 - compare signed (32-bit).
 D_NODISCARD int d_jit_s390x_emit_cr(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -534,7 +534,7 @@ D_NODISCARD int d_jit_s390x_emit_cr(
 );
 
 // d_jit_s390x_emit_cgr
-//   function: cgr r1, r2 -- compare signed (64-bit).
+//   function: cgr r1, r2 - compare signed (64-bit).
 D_NODISCARD int d_jit_s390x_emit_cgr(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -542,7 +542,7 @@ D_NODISCARD int d_jit_s390x_emit_cgr(
 );
 
 // d_jit_s390x_emit_clr
-//   function: clr r1, r2 -- compare unsigned (32-bit).
+//   function: clr r1, r2 - compare unsigned (32-bit).
 D_NODISCARD int d_jit_s390x_emit_clr(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -550,7 +550,7 @@ D_NODISCARD int d_jit_s390x_emit_clr(
 );
 
 // d_jit_s390x_emit_clgr
-//   function: clgr r1, r2 -- compare unsigned (64-bit).
+//   function: clgr r1, r2 - compare unsigned (64-bit).
 D_NODISCARD int d_jit_s390x_emit_clgr(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -558,7 +558,7 @@ D_NODISCARD int d_jit_s390x_emit_clgr(
 );
 
 // d_jit_s390x_emit_chi
-//   function: chi r1, imm -- compare with signed 16-bit immediate (32-bit).
+//   function: chi r1, imm - compare with signed 16-bit immediate (32-bit).
 D_NODISCARD int d_jit_s390x_emit_chi(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -566,7 +566,7 @@ D_NODISCARD int d_jit_s390x_emit_chi(
 );
 
 // d_jit_s390x_emit_cghi
-//   function: cghi r1, imm -- compare with signed 16-bit immediate (64-bit).
+//   function: cghi r1, imm - compare with signed 16-bit immediate (64-bit).
 D_NODISCARD int d_jit_s390x_emit_cghi(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -574,7 +574,7 @@ D_NODISCARD int d_jit_s390x_emit_cghi(
 );
 
 // d_jit_s390x_emit_cfi
-//   function: cfi r1, imm -- compare with signed 32-bit immediate (32-bit).
+//   function: cfi r1, imm - compare with signed 32-bit immediate (32-bit).
 D_NODISCARD int d_jit_s390x_emit_cfi(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -582,7 +582,7 @@ D_NODISCARD int d_jit_s390x_emit_cfi(
 );
 
 // d_jit_s390x_emit_cgfi
-//   function: cgfi r1, imm -- compare with signed 32-bit immediate (64-bit).
+//   function: cgfi r1, imm - compare with signed 32-bit immediate (64-bit).
 D_NODISCARD int d_jit_s390x_emit_cgfi(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -594,7 +594,7 @@ D_NODISCARD int d_jit_s390x_emit_cgfi(
 // ---------------------------------------------------------------------------
 
 // d_jit_s390x_emit_l
-//   function: l r1, disp(index, base) -- load r1 (32-bit).
+//   function: l r1, disp(index, base) - load r1 (32-bit).
 D_NODISCARD int d_jit_s390x_emit_l(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -604,7 +604,7 @@ D_NODISCARD int d_jit_s390x_emit_l(
 );
 
 // d_jit_s390x_emit_st
-//   function: st r1, disp(index, base) -- store r1 (32-bit).
+//   function: st r1, disp(index, base) - store r1 (32-bit).
 D_NODISCARD int d_jit_s390x_emit_st(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -614,7 +614,7 @@ D_NODISCARD int d_jit_s390x_emit_st(
 );
 
 // d_jit_s390x_emit_a
-//   function: a r1, disp(index, base) -- add storage to r1 (32-bit).
+//   function: a r1, disp(index, base) - add storage to r1 (32-bit).
 D_NODISCARD int d_jit_s390x_emit_a(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -624,7 +624,7 @@ D_NODISCARD int d_jit_s390x_emit_a(
 );
 
 // d_jit_s390x_emit_s
-//   function: s r1, disp(index, base) -- subtract storage (32-bit).
+//   function: s r1, disp(index, base) - subtract storage (32-bit).
 D_NODISCARD int d_jit_s390x_emit_s(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -634,7 +634,7 @@ D_NODISCARD int d_jit_s390x_emit_s(
 );
 
 // d_jit_s390x_emit_c
-//   function: c r1, disp(index, base) -- compare r1 with storage (32-bit).
+//   function: c r1, disp(index, base) - compare r1 with storage (32-bit).
 D_NODISCARD int d_jit_s390x_emit_c(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -644,7 +644,7 @@ D_NODISCARD int d_jit_s390x_emit_c(
 );
 
 // d_jit_s390x_emit_la
-//   function: la r1, disp(index, base) -- load the address disp(index,base)
+//   function: la r1, disp(index, base) - load the address disp(index,base)
 //   into r1.
 D_NODISCARD int d_jit_s390x_emit_la(
     dj_jit_buffer* _buf,
@@ -659,7 +659,7 @@ D_NODISCARD int d_jit_s390x_emit_la(
 // ---------------------------------------------------------------------------
 
 // d_jit_s390x_emit_lg
-//   function: lg r1, disp(index, base) -- load r1 (64-bit).
+//   function: lg r1, disp(index, base) - load r1 (64-bit).
 D_NODISCARD int d_jit_s390x_emit_lg(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -669,7 +669,7 @@ D_NODISCARD int d_jit_s390x_emit_lg(
 );
 
 // d_jit_s390x_emit_stg
-//   function: stg r1, disp(index, base) -- store r1 (64-bit).
+//   function: stg r1, disp(index, base) - store r1 (64-bit).
 D_NODISCARD int d_jit_s390x_emit_stg(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -679,7 +679,7 @@ D_NODISCARD int d_jit_s390x_emit_stg(
 );
 
 // d_jit_s390x_emit_ag
-//   function: ag r1, disp(index, base) -- add storage to r1 (64-bit).
+//   function: ag r1, disp(index, base) - add storage to r1 (64-bit).
 D_NODISCARD int d_jit_s390x_emit_ag(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -689,7 +689,7 @@ D_NODISCARD int d_jit_s390x_emit_ag(
 );
 
 // d_jit_s390x_emit_sg
-//   function: sg r1, disp(index, base) -- subtract storage (64-bit).
+//   function: sg r1, disp(index, base) - subtract storage (64-bit).
 D_NODISCARD int d_jit_s390x_emit_sg(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -699,7 +699,7 @@ D_NODISCARD int d_jit_s390x_emit_sg(
 );
 
 // d_jit_s390x_emit_cg
-//   function: cg r1, disp(index, base) -- compare r1 with storage (64-bit).
+//   function: cg r1, disp(index, base) - compare r1 with storage (64-bit).
 D_NODISCARD int d_jit_s390x_emit_cg(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -709,7 +709,7 @@ D_NODISCARD int d_jit_s390x_emit_cg(
 );
 
 // d_jit_s390x_emit_ly
-//   function: ly r1, disp(index, base) -- load r1 (32-bit, long displacement).
+//   function: ly r1, disp(index, base) - load r1 (32-bit, long displacement).
 D_NODISCARD int d_jit_s390x_emit_ly(
     dj_jit_buffer* _buf,
     int            _r1,
@@ -719,7 +719,7 @@ D_NODISCARD int d_jit_s390x_emit_ly(
 );
 
 // d_jit_s390x_emit_sty
-//   function: sty r1, disp(index, base) -- store r1 (32-bit, long
+//   function: sty r1, disp(index, base) - store r1 (32-bit, long
 //   displacement).
 D_NODISCARD int d_jit_s390x_emit_sty(
     dj_jit_buffer* _buf,
@@ -730,7 +730,7 @@ D_NODISCARD int d_jit_s390x_emit_sty(
 );
 
 // d_jit_s390x_emit_lay
-//   function: lay r1, disp(index, base) -- load the address disp(index,base)
+//   function: lay r1, disp(index, base) - load the address disp(index,base)
 //   into r1.
 D_NODISCARD int d_jit_s390x_emit_lay(
     dj_jit_buffer* _buf,
@@ -741,7 +741,7 @@ D_NODISCARD int d_jit_s390x_emit_lay(
 );
 
 // d_jit_s390x_emit_lgf
-//   function: lgf r1, disp(index, base) -- load and sign-extend storage[32]
+//   function: lgf r1, disp(index, base) - load and sign-extend storage[32]
 //   into r1 (64-bit).
 D_NODISCARD int d_jit_s390x_emit_lgf(
     dj_jit_buffer* _buf,
@@ -752,7 +752,7 @@ D_NODISCARD int d_jit_s390x_emit_lgf(
 );
 
 // d_jit_s390x_emit_llgf
-//   function: llgf r1, disp(index, base) -- load and zero-extend storage[32]
+//   function: llgf r1, disp(index, base) - load and zero-extend storage[32]
 //   into r1 (64-bit).
 D_NODISCARD int d_jit_s390x_emit_llgf(
     dj_jit_buffer* _buf,
@@ -767,7 +767,7 @@ D_NODISCARD int d_jit_s390x_emit_llgf(
 // ---------------------------------------------------------------------------
 
 // d_jit_s390x_emit_brc
-//   function: brc mask, _target -- branch relative on condition (+/-64
+//   function: brc mask, _target - branch relative on condition (+/-64
 // KB). mask is a D_JIT_S390X_CC_* value; the named wrappers cover the usual
 // conditions.
 D_NODISCARD int d_jit_s390x_emit_brc(
@@ -777,7 +777,7 @@ D_NODISCARD int d_jit_s390x_emit_brc(
 );
 
 // d_jit_s390x_emit_brcl
-//   function: brcl mask, _target -- branch relative on condition long
+//   function: brcl mask, _target - branch relative on condition long
 // (+/-4 GB).
 D_NODISCARD int d_jit_s390x_emit_brcl(
     dj_jit_buffer* _buf,
@@ -786,56 +786,56 @@ D_NODISCARD int d_jit_s390x_emit_brcl(
 );
 
 // d_jit_s390x_emit_je
-//   function: je _target -- brc, branch if equal.
+//   function: je _target - brc, branch if equal.
 D_NODISCARD int d_jit_s390x_emit_je(
     dj_jit_buffer* _buf,
     dj_jit_label*  _target
 );
 
 // d_jit_s390x_emit_jne
-//   function: jne _target -- brc, branch if not equal.
+//   function: jne _target - brc, branch if not equal.
 D_NODISCARD int d_jit_s390x_emit_jne(
     dj_jit_buffer* _buf,
     dj_jit_label*  _target
 );
 
 // d_jit_s390x_emit_jlt
-//   function: jlt _target -- brc, branch if less.
+//   function: jlt _target - brc, branch if less.
 D_NODISCARD int d_jit_s390x_emit_jlt(
     dj_jit_buffer* _buf,
     dj_jit_label*  _target
 );
 
 // d_jit_s390x_emit_jgt
-//   function: jgt _target -- brc, branch if greater.
+//   function: jgt _target - brc, branch if greater.
 D_NODISCARD int d_jit_s390x_emit_jgt(
     dj_jit_buffer* _buf,
     dj_jit_label*  _target
 );
 
 // d_jit_s390x_emit_jle
-//   function: jle _target -- brc, branch if less or equal.
+//   function: jle _target - brc, branch if less or equal.
 D_NODISCARD int d_jit_s390x_emit_jle(
     dj_jit_buffer* _buf,
     dj_jit_label*  _target
 );
 
 // d_jit_s390x_emit_jge
-//   function: jge _target -- brc, branch if greater or equal.
+//   function: jge _target - brc, branch if greater or equal.
 D_NODISCARD int d_jit_s390x_emit_jge(
     dj_jit_buffer* _buf,
     dj_jit_label*  _target
 );
 
 // d_jit_s390x_emit_jmp
-//   function: jmp _target -- brc, branch if unconditionally.
+//   function: jmp _target - brc, branch if unconditionally.
 D_NODISCARD int d_jit_s390x_emit_jmp(
     dj_jit_buffer* _buf,
     dj_jit_label*  _target
 );
 
 // d_jit_s390x_emit_brasl
-//   function: brasl r1, _target -- branch relative and save (call); the
+//   function: brasl r1, _target - branch relative and save (call); the
 // return address lands in r1.
 D_NODISCARD int d_jit_s390x_emit_brasl(
     dj_jit_buffer* _buf,
@@ -844,7 +844,7 @@ D_NODISCARD int d_jit_s390x_emit_brasl(
 );
 
 // d_jit_s390x_emit_basr
-//   function: basr r1, r2 -- branch and save to the address in r2 (call
+//   function: basr r1, r2 - branch and save to the address in r2 (call
 // through a register).
 D_NODISCARD int d_jit_s390x_emit_basr(
     dj_jit_buffer* _buf,
@@ -853,7 +853,7 @@ D_NODISCARD int d_jit_s390x_emit_basr(
 );
 
 // d_jit_s390x_emit_bcr
-//   function: bcr mask, r2 -- branch on condition to the address in r2.
+//   function: bcr mask, r2 - branch on condition to the address in r2.
 D_NODISCARD int d_jit_s390x_emit_bcr(
     dj_jit_buffer* _buf,
     unsigned       _mask,
@@ -861,7 +861,7 @@ D_NODISCARD int d_jit_s390x_emit_bcr(
 );
 
 // d_jit_s390x_emit_br
-//   function: br r2 -- unconditional branch to r2 (bcr 15, r2); with r14,
+//   function: br r2 - unconditional branch to r2 (bcr 15, r2); with r14,
 // the standard return.
 D_NODISCARD int d_jit_s390x_emit_br(
     dj_jit_buffer* _buf,

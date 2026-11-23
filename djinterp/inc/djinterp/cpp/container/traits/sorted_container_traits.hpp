@@ -89,7 +89,7 @@ NS_INTERNAL
     {};
 
     // has_interval_bounds_helper specialization
-    //   helper: the detected case -- selected when the type declares the
+    //   helper: the detected case - selected when the type declares the
     // static members `lower_bound` and `upper_bound`.
     template<typename Type>
     struct has_interval_bounds_helper<Type,

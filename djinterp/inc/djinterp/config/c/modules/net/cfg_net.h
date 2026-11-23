@@ -61,7 +61,7 @@ TABLE OF CONTENTS
 // 1.1.1
 // D_CFG_NET_HOST_MAX
 //   brief: the longest host a dj_net_endpoint stores, in bytes, terminator
-// excluded -- a name, a numeric literal, or a unix-domain path. Default 255,
+// excluded - a name, a numeric literal, or a unix-domain path. Default 255,
 // which holds any DNS name (253 at most), any IPv6 literal with a zone, and
 // every platform's unix-domain path (108 at most). Each endpoint embeds this
 // many bytes plus one. Must lie in [64, 1024].
@@ -72,8 +72,8 @@ TABLE OF CONTENTS
 // 1.1.2
 // D_CFG_NET_IO_CHUNK
 //   brief: the size in bytes of the stack buffer the stream algorithms move
-// data through -- read-all, pump, framed reads into a sink, and a small
-// frame's single write -- and so the most any one of their reads asks for.
+// data through - read-all, pump, framed reads into a sink, and a small
+// frame's single write - and so the most any one of their reads asks for.
 // Default 4096. Raising it trades stack for fewer calls on bulk transfers.
 // Must lie in [256, 65536].
 #ifndef D_CFG_NET_IO_CHUNK
@@ -100,7 +100,7 @@ TABLE OF CONTENTS
 // 1.3.1
 // D_CFG_NET_REQUIRE_BACKENDS
 //   configuration: 0, the default, lets a net header whose backend or floor is
-// absent -- epoll, a 64-bit integer type -- compile to nothing, as its banner
+// absent - epoll, a 64-bit integer type - compile to nothing, as its banner
 // says; 1 turns that silence into an #error naming what is missing (decision
 // 101 of the register).
 #ifndef D_CFG_NET_REQUIRE_BACKENDS

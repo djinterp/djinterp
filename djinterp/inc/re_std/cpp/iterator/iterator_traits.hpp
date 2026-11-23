@@ -192,7 +192,7 @@ namespace internal
     // ---- detection: does Iter expose all five member typedefs? ----
 
     // iter_traits_sink
-    //   trait: void for any five types -- the detection sink. Five fixed
+    //   trait: void for any five types - the detection sink. Five fixed
     // parameters rather than void_t's pack, so detection needs no C++11
     // feature and iterator_traits exists from C++98, as std's does.
     template<typename A,

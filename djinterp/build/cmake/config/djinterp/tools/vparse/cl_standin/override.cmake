@@ -6,7 +6,7 @@
 # toolchain.cmake sets.
 #   Those files call link.exe and lib.exe with their command lines, by way of
 # the manifest step. Here an executable is linked by the script link, a
-# module -- a DLL, such as the window `vparse gui` loads -- by the same
+# module - a DLL, such as the window `vparse gui` loads - by the same
 # script, and an archive made by ar, each in the usual form. The Windows
 # libraries cl links by default are not named: the MinGW-w64 driver names its
 # own.

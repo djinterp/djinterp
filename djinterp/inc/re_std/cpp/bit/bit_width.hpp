@@ -7,7 +7,7 @@
 *
 *     bit_width(0u) -> 0    bit_width(1u) -> 1    bit_width(255u) -> 8
 *
-*   This is the primitive the rest of the module leans on -- countl_zero
+*   This is the primitive the rest of the module leans on - countl_zero
 * is N minus this, bit_floor is one shift from it, and bit_ceil is one
 * shift from it applied to v-1.
 *

@@ -5,9 +5,9 @@
 * and 8.4.8).
 *   CLI11's _parse_arg: an argument recognized as an option is split into
 * its name, its value and what follows a short name, and taken by the
-* command's option that answers to the name -- or one an option group, a
+* command's option that answers to the name - or one an option group, a
 * non-standard short name, CLI11's dot notation or the fallthrough parent
-* finds -- which takes its values from the argument and those after it;
+* finds - which takes its values from the argument and those after it;
 * otherwise it is an unused argument, with what follows it as the extras
 * mode keeps that. Where the parser takes a unique prefix of a long name for
 * the name, an argument that is one is replaced by the name before the
@@ -336,7 +336,7 @@ struct dj_arg_option* d_arg_internal_parse_non_standard(
  *
  * The subcommand CLI11's dot notation names: in `sub.name`, cut at the first
  * dot past the first character and before the last, `sub` among the
- * command's subcommands, used ones included -- unless the command has met its
+ * command's subcommands, used ones included - unless the command has met its
  * maximum of subcommands and `sub` is not among them. `_name` receives what
  * follows the dot.
  */
@@ -451,7 +451,7 @@ int d_arg_internal_parse_dotted_push(
  * @return D_ARG_OK, or the error a step raised, recorded.
  *
  * What follows CLI11's dot notation once the subcommand took the option:
- * the subcommand listed as parsed unless silent -- again, should it be
+ * the subcommand listed as parsed unless silent - again, should it be
  * listed already; the command, not the subcommand, counted once more with
  * its pre-parse step, as CLI11 has it; then the subcommand's parse-complete
  * callback.
@@ -926,7 +926,7 @@ bool d_arg_internal_parse_begins(
 
 /**
  * @brief Replaces an abbreviated argument on the stack with the long name it
- *        begins, its `=VALUE` kept -- `=` alone too, an empty value -- and
+ *        begins, its `=VALUE` kept - `=` alone too, an empty value - and
  *        splits the argument again.
  *
  * @param[in]     _command  the command whose search it is.
@@ -1039,14 +1039,14 @@ int d_arg_internal_parse_ambiguous(
  *                          replaced.
  * @param[in]     _local    whether the search is local, as CLI11's dot
  *                          notation makes it; a local one takes none.
- * @return D_ARG_OK -- the argument replaced by the long name it begins,
- *         where it begins one option's, else left as it is -- or, recorded,
+ * @return D_ARG_OK - the argument replaced by the long name it begins,
+ *         where it begins one option's, else left as it is - or, recorded,
  *         D_ARG_ERROR_EXTRAS where it begins several, or
  *         D_ARG_ERROR_OUT_OF_MEMORY.
  *
  * A `--word` that no option the search reaches has whole, and that begins
  * long names of options it reaches: those help shows, and only where it
- * begins none of them, the hidden ones -- so that a hidden option never
+ * begins none of them, the hidden ones - so that a hidden option never
  * makes a shown one's prefix ambiguous. A word with a dot is CLI11's dot
  * notation's, and left to it.
  */
@@ -1150,7 +1150,7 @@ int d_arg_internal_parse_min(
 d_arg_internal_parse_max
   CLI11's max_num: the most values an option takes; for one that could take
 very many without taking extra arguments, its type's largest size for each
-value it expects at least -- the unlimited count should that overflow.
+value it expects at least - the unlimited count should that overflow.
 */
 int d_arg_internal_parse_max(
     const struct dj_arg_option* _option
@@ -1203,7 +1203,7 @@ int d_arg_internal_parse_order(
  * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY, recorded.
  *
  * A value the option takes from the arguments, as CLI11's add_result(value,
- * count) adds it -- split, perhaps -- the values it made counted, and the
+ * count) adds it - split, perhaps - the values it made counted, and the
  * option in the parse order.
  */
 D_STATIC
@@ -1234,8 +1234,8 @@ int d_arg_internal_parse_collect(
  * @return D_ARG_OK, or the failure, recorded.
  *
  * CLI11's get_flag_value for the name given with an input, added as the
- * option's value as its add_result(value) adds it -- the value's storage
- * becoming the option's own -- and the option in the parse order.
+ * option's value as its add_result(value) adds it - the value's storage
+ * becoming the option's own - and the option in the parse order.
  */
 D_STATIC
 int d_arg_internal_parse_flag(
@@ -1283,7 +1283,7 @@ int d_arg_internal_parse_flag(
  * @return D_ARG_OK, or the failure, recorded.
  *
  * CLI11's first value of an option argument: a flag's value for an option
- * that takes none; else the value after `=` -- an empty one too, where the
+ * that takes none; else the value after `=` - an empty one too, where the
  * parser takes `--name=` as one (d_arg_parser_set_empty_values); else what
  * follows a short name, which is then used up.
  */
@@ -1439,8 +1439,8 @@ int d_arg_internal_parse_minimum(
  *
  * Whether CLI11's optional gathering takes the next argument: room left or
  * extra arguments taken, an argument that is a positional, more arguments
- * left than the required positionals still need, and -- where the command
- * validates optional arguments -- validators that accept it.
+ * left than the required positionals still need, and - where the command
+ * validates optional arguments - validators that accept it.
  */
 D_STATIC
 int d_arg_internal_parse_wants(
@@ -1559,7 +1559,7 @@ int d_arg_internal_parse_optional(
  *
  * CLI11's check that each item was given whole: a count of values that is
  * no multiple of the type's largest size is marked with an empty value where
- * the size may vary, and refused -- its PartialType mismatch -- where it may
+ * the size may vary, and refused - its PartialType mismatch - where it may
  * not.
  */
 D_STATIC
@@ -1682,7 +1682,7 @@ int d_arg_internal_parse_values(
 /*
 d_arg_internal_parse_arg
   CLI11's _parse_arg: the argument split as recognized; an option of the
-command's that answers to the name -- or one the further search finds --
+command's that answers to the name - or one the further search finds --
 takes it, with its values; otherwise the search has dealt with it.
 */
 int d_arg_internal_parse_arg(
@@ -1751,8 +1751,8 @@ int d_arg_internal_parse_arg(
  * @param[in] _command  the command the dot notation named.
  * @param[in] _name     what followed the dot.
  * @return `true` when one of the command's options or its option groups'
- *         answers to the name -- a long name for one of two characters or
- *         more, a short name for one -- or a further dot names an option of
+ *         answers to the name - a long name for one of two characters or
+ *         more, a short name for one - or a further dot names an option of
  *         a subcommand of its; `false` otherwise.
  *
  * What d_arg_internal_parse_dotted_arg's local search would take: the name
@@ -1910,7 +1910,7 @@ bool d_arg_internal_parse_setting_unknown(
  *         D_ARG_ERROR_HORRIBLE for more arguments than an int counts.
  *
  * The arguments as the hook sees them: those the parse began with, up to the
- * offered one -- the program's name first -- then the stack from its top
+ * offered one - the program's name first - then the stack from its top
  * down, the offered one first, then NULL. The stack is a tail of the
  * arguments the parse began with whenever a long option is on top, so the
  * offered one sits where it was given; were it not, it would sit after

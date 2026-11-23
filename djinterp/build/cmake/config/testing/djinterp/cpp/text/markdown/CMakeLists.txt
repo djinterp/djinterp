@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/cpp/text/
+# djinterp [test]  -  build/cmake/config/testing/djinterp/cpp/text/
 #                      markdown/CMakeLists.txt
 #
 #   Test leaf for text's Markdown headers (markdown/markdown.hpp,

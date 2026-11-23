@@ -38,7 +38,7 @@
 
 // D_INTERNAL_POOL_LEAD
 //   macro (internal): the bytes between a slot's first byte and the byte the
-// CALLER sees -- the leading guard band, or zero when redzones are off.
+// CALLER sees - the leading guard band, or zero when redzones are off.
 //   Everything internal to this file addresses slots by their BASE, and every
 // pointer crossing the API boundary is a PAYLOAD pointer, base + lead. Keeping
 // that distinction explicit is not pedantry: conflating the two wrote the
@@ -62,7 +62,7 @@ d_pool_align_for
   Computes the alignment a pool's slots will actually carry, given a requested
 alignment and a release policy.
   Exposed rather than internal because a caller sizing a buffer for a pool --
-or a C++ wrapper asserting that it adds nothing -- needs the answer before any
+or a C++ wrapper asserting that it adds nothing - needs the answer before any
 pool exists.
 
 Parameter(s):
@@ -81,7 +81,7 @@ d_pool_align_for(
     dj_mem_size link_align;
 
     // a monotonic pool never stores a link, so its slots answer only to the
-    // caller's alignment -- which is how it reaches the smallest slot of the
+    // caller's alignment - which is how it reaches the smallest slot of the
     // three policies
     link_align = (_policy == D_POOL_POLICY_MONOTONIC)
         ? (dj_mem_size)0
@@ -140,7 +140,7 @@ d_pool_stride_for(
 #if (D_INTERNAL_POOL_GENERATIONAL == 1)
     // a generational slot carries its counter AFTER the payload rather than
     // before it. Before it, the counter would have to be padded out to the
-    // slot alignment to keep the payload aligned -- sixteen wasted bytes on a
+    // slot alignment to keep the payload aligned - sixteen wasted bytes on a
     // 16-aligned slot for a two-byte counter. After it, the counter lands in
     // padding the stride was going to contain anyway whenever the payload is
     // not already a multiple of the alignment.
@@ -287,7 +287,7 @@ d_internal_pool_table_grow
   Makes room in the block table for one more entry, doubling when full.
   The table is what turns "which block holds slot n" into a division and an
 array index. Without it the answer costs a walk of the block chain, which is
-fine for a diagnostic and useless for handle resolution -- which is why the
+fine for a diagnostic and useless for handle resolution - which is why the
 generational policy forces this on.
 
 Parameter(s):
@@ -349,7 +349,7 @@ d_internal_pool_table_grow(
 d_internal_pool_block_for
   Finds the block holding a given slot index.
   With the block table this is a division and an array index. Without it, it
-is a walk of the chain -- correct either way, which is what lets the table be
+is a walk of the chain - correct either way, which is what lets the table be
 optional for pools that never resolve a handle.
 
 Parameter(s):
@@ -483,7 +483,7 @@ dj_pool_index d_internal_pool_link_read(
     // payload pointer. Converting here is what keeps the two conventions from
     // meeting: without it, a build with redzones AND pointer links reads every
     // link back as "no such slot" and silently truncates the free list to one
-    // entry -- which shows up only as a pool that grows when it should have
+    // entry - which shows up only as a pool that grows when it should have
     // recycled.
     return d_pool_index_of(_pool, D_INTERNAL_POOL_PAYLOAD_OF(_pool, next));
 #endif
@@ -935,7 +935,7 @@ d_pool_reserve(
 /*
 d_pool_reset
   Reclaims every slot, keeping the blocks for reuse.
-  NO DESTRUCTOR RUNS -- the pool holds raw storage, and anything with a
+  NO DESTRUCTOR RUNS - the pool holds raw storage, and anything with a
 lifetime must have been finalized by the caller first.
   A GENERATIONAL POOL ADVANCES EVERY SLOT'S COUNTER, so that every handle
 issued before the reset is stale afterwards. That is the property that makes
@@ -1253,8 +1253,8 @@ list are found only where D_CFG_POOL_DOUBLE_FREE_CHECK compiles the walk.
 the memory around the pointer, and that ordering is load-bearing rather than
 stylistic: verifying a guard band reads the bytes on either side of the
 payload, and a foreign pointer is precisely the case where those bytes are not
-ours to read. Checking the band first turns a caller's mistake -- passing the
-wrong pointer -- into an out-of-bounds read inside the allocator, which is a
+ours to read. Checking the band first turns a caller's mistake - passing the
+wrong pointer - into an out-of-bounds read inside the allocator, which is a
 worse bug than the one being diagnosed. The guard check still precedes
 RECYCLING, which is all its own rationale ever required.
 */
@@ -1297,7 +1297,7 @@ d_pool_release_slot(
         return D_MEM_ERR_FOREIGN;
     }
 
-    // (3) now the guard bands may safely be read -- and are read before the
+    // (3) now the guard bands may safely be read - and are read before the
     // slot is recycled, so a report names the block that overran rather than
     // whatever lands there next
     if (!d_mem_redzone_verify(_slot, _pool->payload))
@@ -1441,7 +1441,7 @@ d_pool_acquire_handle(
     }
 
     // the counter advances on acquire as well as on release, so that a fresh
-    // slot's counter is never zero -- and a zero-initialised handle
+    // slot's counter is never zero - and a zero-initialised handle
     // therefore cannot accidentally resolve to a never-used slot
     generation  = d_internal_pool_generation_at(_pool, base);
     *generation = (dj_pool_generation)(*generation + 1);
@@ -1584,7 +1584,7 @@ Parameter(s):
   _handle: the handle whose slot should be returned.
 Return:
   D_MEM_OK, D_MEM_ERR_NULL, D_MEM_ERR_UNSUPPORTED, D_MEM_ERR_FOREIGN, or
-D_MEM_ERR_STALE -- the last meaning the slot was already released, which this
+D_MEM_ERR_STALE - the last meaning the slot was already released, which this
 detects rather than double-freeing.
 */
 enum dj_mem_status
@@ -1647,7 +1647,7 @@ d_pool_release_handle(
 /*
 d_pool_at
   Returns the slot with the given index.
-  This does NOT say whether the slot is live -- the pool holds raw storage and
+  This does NOT say whether the slot is live - the pool holds raw storage and
 does not track occupancy per slot except through the generation counter. On a
 generational pool, resolve a handle instead.
 
@@ -1686,8 +1686,8 @@ d_pool_index_of
 
   COST: O(blocks), because the block table indexes by slot number and not by
 address, so the block containing an arbitrary address must be found by
-scanning. That is why a generational caller should release by handle -- the
-handle already carries the index -- and why this is documented rather than
+scanning. That is why a generational caller should release by handle - the
+handle already carries the index - and why this is documented rather than
 hidden.
 
 Parameter(s):
@@ -1988,7 +1988,7 @@ Parameter(s):
   _pool: the pool; may be NULL.
 Return:
   The payload size, or 0 when _pool is NULL. NOTE that this is what the caller
-asked for, not the stride -- use d_pool_bytes_allocated to learn what the pool
+asked for, not the stride - use d_pool_bytes_allocated to learn what the pool
 actually costs.
 */
 dj_mem_size d_pool_slot_size(
@@ -2054,7 +2054,7 @@ d_pool_bytes_allocated
   Reports the total bytes the pool holds from its upstream source, including
 per-block headers and the block table.
   This is the honest cost of the pool, as distinct from capacity times slot
-size -- which omits exactly the overhead a caller weighing the pool wants to
+size - which omits exactly the overhead a caller weighing the pool wants to
 see.
 
 Parameter(s):
@@ -2127,7 +2127,7 @@ Parameter(s):
   _out:  receives a copy of the block; must not be NULL.
 Return:
   D_MEM_OK on success, D_MEM_ERR_NULL when either pointer is NULL, or
-D_MEM_ERR_UNSUPPORTED when this build carries no accounting -- in which case
+D_MEM_ERR_UNSUPPORTED when this build carries no accounting - in which case
 _out is zeroed rather than left undefined.
 */
 enum dj_mem_status

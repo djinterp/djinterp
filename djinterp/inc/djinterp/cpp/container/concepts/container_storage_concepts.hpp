@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                       container_storage_concepts.hpp
 *
-* C++20 concepts for the STORAGE (siting) axis -- the `requires`-facing view
+* C++20 concepts for the STORAGE (siting) axis - the `requires`-facing view
 * of container_storage_traits.hpp.
 *
 *   THE CONCEPTS ADD NO POLICY.
@@ -49,7 +49,7 @@ NS_DJINTERP
 
 
 // StaticStorageContainer
-//   concept: the cells sit in the container's own footprint -- an extent or a
+//   concept: the cells sit in the container's own footprint - an extent or a
 // tuple_size. Storage answers WHERE; Lifetime answers WHEN, and the two are
 // independent.
 template<typename Type>
@@ -57,14 +57,14 @@ concept StaticStorageContainer = is_static_storage_container_v<Type>;
 
 
 // DynamicStorageContainer
-//   concept: the cells are acquired out of line -- an allocator_type or a
+//   concept: the cells are acquired out of line - an allocator_type or a
 // reserve(n). Static storage takes no allocator, so either probe is decisive.
 template<typename Type>
 concept DynamicStorageContainer = is_dynamic_storage_container_v<Type>;
 
 
 // HybridStorageContainer
-//   concept: the siting spans both -- small-buffer optimisation. Only ever
+//   concept: the siting spans both - small-buffer optimisation. Only ever
 // true via the opt-in: SBO is not legible from a public surface, so it is
 // DECLARED, never detected.
 template<typename Type>
@@ -77,13 +77,13 @@ concept HybridStorageContainer = is_hybrid_storage_container_v<Type>;
 
 
 // HasStaticStorage
-//   concept: the siting INCLUDES an inline part -- static or hybrid.
+//   concept: the siting INCLUDES an inline part - static or hybrid.
 template<typename Type>
 concept HasStaticStorage = has_static_storage_component_container_v<Type>;
 
 
 // HasDynamicStorage
-//   concept: the siting INCLUDES an out-of-line part -- dynamic or hybrid.
+//   concept: the siting INCLUDES an out-of-line part - dynamic or hybrid.
 template<typename Type>
 concept HasDynamicStorage = has_dynamic_storage_component_container_v<Type>;
 

@@ -4,7 +4,7 @@
 * The msvs extension: Visual Studio's files, all of them, from awk.
 *   An umbrella over two parts: sln, for solutions, and vcxproj, for MSBuild's
 * files; installing msvs installs both, and what a file generator needs
-* besides -- a GUID made from a name, a path relative to a directory, the
+* besides - a GUID made from a name, a path relative to a directory, the
 * files a pattern names, and what a path is. A program that only reads
 * solutions can install sln alone, and one that only edits projects,
 * vcxproj alone.
@@ -58,8 +58,8 @@ struct dj_host_msvs;
 
 // 2.1    The extension
 //------------------------------------------------------------------------------
-// d_host_msvs_install adds every sln_* and vcxproj_* function -- see
-// dhost_sln.h and dhost_vcxproj.h -- and these, as a program calls them:
+// d_host_msvs_install adds every sln_* and vcxproj_* function - see
+// dhost_sln.h and dhost_vcxproj.h - and these, as a program calls them:
 //   msvs_guid(name)              a GUID made from the name, the same every
 //                                time: lower case, without braces
 //   msvs_relative(directory, path[, separator])

@@ -150,7 +150,7 @@ bool d_tests_cli_io_wanted(
 
 /**
  * @brief `auto` where nothing refuses colour: yes for a terminal that takes
- *        sequences, and nothing else -- which is what the runner's own
+ *        sequences, and nothing else - which is what the runner's own
  *        streams decide.
  *
  * @return whether every check held.
@@ -508,7 +508,7 @@ unsigned int d_tests_cli_io_mode(
 
 /**
  * @brief Whether the working directory holds exactly the names given: what
- *        a write made beside a file -- its replacement -- is gone.
+ *        a write made beside a file - its replacement - is gone.
  *
  * @param[in] _names  the names, NULL after the last.
  * @return `true` if it holds those and nothing else.
@@ -611,8 +611,8 @@ bool d_tests_cli_io_modes(
 /**
  * @brief Writing through symbolic links: the file a link leads to is
  *        replaced and the link kept; a link that leads nowhere is replaced
- *        as a file would be; a link that cannot be followed -- round a loop
- *        -- fails the write, and is kept.
+ *        as a file would be; a link that cannot be followed - round a loop
+ *        - fails the write, and is kept.
  *
  * @param[in,out] _files  the scratch directory.
  * @return whether every check held.

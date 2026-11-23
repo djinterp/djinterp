@@ -156,90 +156,90 @@ bool d_fs_test_write(
  * SECTION BUILDERS  (one per like-group module; each populates one module)
  *****************************************************************************/
 
-// I.    Foundation      -- notifications, backend/level naming (file_common)
+// I.    Foundation      - notifications, backend/level naming (file_common)
 void d_fs_tests_common(
     struct dj_test_suite* _suite
 );
 
-// II.   Streams         -- fopen / fopen_s / freopen / freopen_s / fdopen /
+// II.   Streams         - fopen / fopen_s / freopen / freopen_s / fdopen /
 //                          fclose (file_open)
 void d_fs_tests_open(
     struct dj_test_suite* _suite
 );
 
-// III.  Descriptors     -- open / fileno / dup / dup2 / close (file_desc)
+// III.  Descriptors     - open / fileno / dup / dup2 / close (file_desc)
 void d_fs_tests_desc(
     struct dj_test_suite* _suite
 );
 
-// IV.   Transfer        -- read / read_full / pread / write / write_full /
+// IV.   Transfer        - read / read_full / pread / write / write_full /
 //                          pwrite / fread_all* / fwrite_all / fappend_all
 //                          (file_io)
 void d_fs_tests_io(
     struct dj_test_suite* _suite
 );
 
-// V.    Position        -- fseeko / ftello / rewind / ftruncate /
+// V.    Position        - fseeko / ftello / rewind / ftruncate /
 //                          ftruncate_stream (file_seek)
 void d_fs_tests_seek(
     struct dj_test_suite* _suite
 );
 
-// VI.   Durability      -- fsync / fsync_stream / fflush (file_sync)
+// VI.   Durability      - fsync / fsync_stream / fflush (file_sync)
 void d_fs_tests_sync(
     struct dj_test_suite* _suite
 );
 
-// VII.  Locking         -- flock / flock_stream (file_lock)
+// VII.  Locking         - flock / flock_stream (file_lock)
 void d_fs_tests_lock(
     struct dj_test_suite* _suite
 );
 
-// VIII. Metadata        -- stat / lstat / fstat / access / chmod / file_size /
+// VIII. Metadata        - stat / lstat / fstat / access / chmod / file_size /
 //                          file_size_stream / exists / is_file / is_dir
 //                          (file_stat)
 void d_fs_tests_stat(
     struct dj_test_suite* _suite
 );
 
-// IX.   Paths           -- dirname / basename / get_extension / path_stem /
+// IX.   Paths           - dirname / basename / get_extension / path_stem /
 //                          path_join / path_is_absolute / path_root_length /
 //                          path_normalize (file_path)
 void d_fs_tests_path(
     struct dj_test_suite* _suite
 );
 
-// X.    Directories     -- mkdir / mkdir_p / rmdir / opendir / readdir /
+// X.    Directories     - mkdir / mkdir_p / rmdir / opendir / readdir /
 //                          rewinddir / closedir / getcwd / chdir / realpath
 //                          (file_dir)
 void d_fs_tests_dir(
     struct dj_test_suite* _suite
 );
 
-// XI.   Operations      -- remove / unlink / rename / copy_file (file_ops)
+// XI.   Operations      - remove / unlink / rename / copy_file (file_ops)
 void d_fs_tests_ops(
     struct dj_test_suite* _suite
 );
 
-// XII.  Temporaries     -- tmpfile / tmpfile_s / mkstemp / tmpnam_s / tempdir
+// XII.  Temporaries     - tmpfile / tmpfile_s / mkstemp / tmpnam_s / tempdir
 //                          (file_temp)
 void d_fs_tests_temp(
     struct dj_test_suite* _suite
 );
 
-// XIII. Links           -- symlink / readlink / is_symlink (file_link).
+// XIII. Links           - symlink / readlink / is_symlink (file_link).
 //   Always declared; the definition is compiled out when the platform has no
 // symbolic links, and the runner splices it in only when they are available.
 void d_fs_tests_link(
     struct dj_test_suite* _suite
 );
 
-// XIV.  Pipes           -- popen / pclose (file_pipe). As links above.
+// XIV.  Pipes           - popen / pclose (file_pipe). As links above.
 void d_fs_tests_pipe(
     struct dj_test_suite* _suite
 );
 
-// XV.   Capacity        -- space (file_space)
+// XV.   Capacity        - space (file_space)
 void d_fs_tests_space(
     struct dj_test_suite* _suite
 );
@@ -274,7 +274,7 @@ void d_fs_tests_space(
 
 // D_TEST_FILE_TEST_CONTENT
 //   constant: the fixture's contents. Written in binary mode, so its length
-// is its byte count on every platform -- a text-mode write would make this
+// is its byte count on every platform - a text-mode write would make this
 // 37 bytes on Windows and 35 everywhere else, and every size assertion in the
 // suite would need a platform branch.
 #define D_TEST_FILE_TEST_CONTENT   "Hello, World!\nThis is a test file.\n"
@@ -306,9 +306,9 @@ void d_fs_tests_space(
 //   constant: the separator file_path EMITS, as a string, for building the
 // expected results of lexical assertions.
 //   Three separators are in play and they are not the same question:
-//     - what file_path ACCEPTS as input   -- both, under the Windows grammar
-//     - what file_path EMITS              -- this
-//     - what the running kernel opens     -- D_TEST_FILE_HOST_SEP
+//     - what file_path ACCEPTS as input   - both, under the Windows grammar
+//     - what file_path EMITS              - this
+//     - what the running kernel opens     - D_TEST_FILE_HOST_SEP
 //   D_FILE_PATH_UNDERSTANDS_WINDOWS is the module's own published answer, and
 // its comment already says the suite uses it to decide which syntax to assert.
 // It did not: every expected string was written with a literal '/', so the
@@ -356,7 +356,7 @@ char* d_tests_file_child(
  * PER-MODULE SUITES  (one per c/filesys module, same order as dfile.h)
  *****************************************************************************/
 
-// I.    file_common  -- notifications, backend introspection
+// I.    file_common  - notifications, backend introspection
 bool d_tests_file_common_all(struct dj_test_suite* _suite);
 
 // II.   file_open

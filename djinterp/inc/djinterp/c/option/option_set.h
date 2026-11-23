@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][option]                                              option_set.h
 *
-* The C face of the option_set module. Tier 1a -- C ERGONOMICS over the tier 0
+* The C face of the option_set module. Tier 1a - C ERGONOMICS over the tier 0
 * core, adding no semantics of its own.
 *
 * WHAT THIS BUYS OVER CALLING THE CORE DIRECTLY.
@@ -15,20 +15,20 @@
 *
 *   TWO: typed access. `d_option_set_get` takes a `void*` and a width, which is
 * correct and unpleasant. The macros here take a typed lvalue and derive both,
-* so the width can no longer disagree with the destination -- the mismatch the
+* so the width can no longer disagree with the destination - the mismatch the
 * core is obliged to report as D_OPTION_STATUS_VALUE_TYPE_MISMATCH becomes one it
 * never has to.
 *
 *   THREE: a loop that reads like a loop.
 *
 *   None of it computes anything the core does not. Delete this header and
-* every program still expressible, just longer -- which is the test tier 1a
+* every program still expressible, just longer - which is the test tier 1a
 * has to pass.
 *
 * THE SCHEMA EMITTERS ARE WHERE THE C FACE EARNS ITS PLACE.
 *   `D_OPTION_SET_DECLARE_SCHEMA` and `D_OPTION_SET_INIT_SCHEMA` turn one
 * X-macro table into a storage type, a name table, and a populated set. The
-* C++ face reads the SAME table -- a C macro expands under a C++ compiler,
+* C++ face reads the SAME table - a C macro expands under a C++ compiler,
 * which is the direction that works, and is why the schema lives on this side
 * rather than as a C++ pack that C could never see.
 *
@@ -54,7 +54,7 @@
 #include "../../../re_std/c/cstdint/dstdint.h"  // int32_t, uint32_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -68,7 +68,7 @@ D_EXTERN_C_BEGIN
 ///////////////////////////////////////////////////////////////////////////////
 
 // D_OPTION_SCHEMA_BYTES_ROW / D_OPTION_SCHEMA_VALUE_BYTES
-//   macro: an UPPER BOUND on the value block a schema needs -- the sum of its
+//   macro: an UPPER BOUND on the value block a schema needs - the sum of its
 // value widths plus seven bytes of alignment slack per row.
 //   An upper bound and not an exact size, deliberately. The set packs slots
 // under their own alignment, so the exact figure depends on the order the rows
@@ -103,7 +103,7 @@ D_EXTERN_C_BEGIN
 
 // D_OPTION_SCHEMA_ADD_ROW
 //   macro (internal): one row's contribution to D_OPTION_SET_INIT_SCHEMA.
-// Adds the column, then seeds its default -- so a freshly initialised set
+// Adds the column, then seeds its default - so a freshly initialised set
 // already holds every default and D_OPTION_FLAG_ASSIGNED distinguishes what a
 // caller has since changed.
 //
@@ -140,7 +140,7 @@ D_EXTERN_C_BEGIN
 // D_OPTION_SET_INIT_SCHEMA
 //   macro: populate a viewed set from a schema, in declaration order, seeding
 // every default. Declaration order is preserved because the parity oracle
-// diffs line by line -- see option_set_common.h section I.
+// diffs line by line - see option_set_common.h section I.
 //
 //   Note the seeding leaves D_OPTION_FLAG_ASSIGNED raised on every valued
 // column, since a default IS a write. Clear it with
@@ -167,7 +167,7 @@ void d_option_set_mark_pristine(
 
 // d_option_set_is_pristine
 //   function: whether no column has been assigned since the last
-// `d_option_set_mark_pristine`. One walk over a flat table -- the same fold
+// `d_option_set_mark_pristine`. One walk over a flat table - the same fold
 // the archive core uses to answer the same question about its knobs, rather
 // than a comparison against a second set that has to be constructed first.
 bool d_option_set_is_pristine(
@@ -205,7 +205,7 @@ bool d_option_set_is_pristine(
 // D_OPTION_GET_OR
 //   macro: read a key's value, or evaluate to `fallback` when the key is
 // absent, unary, or of another width. The one accessor that discards the
-// status, and it says so in its name -- every other spelling reports.
+// status, and it says so in its name - every other spelling reports.
 #define D_OPTION_GET_OR(set, key, dest, fallback)                            \
     ( (d_option_result_status_of(D_OPTION_GET((set), (key), (dest))) == D_OPTION_STATUS_OK) \
           ? (dest)                                                           \
@@ -233,7 +233,7 @@ int32_t d_option_result_status_of(
 //         printf("%u %llu\n", i, (unsigned long long)cell->key);
 //     }
 //
-//   The callback form -- `d_option_set_for_each` with an `fn_option_visit` --
+//   The callback form - `d_option_set_for_each` with an `fn_option_visit` --
 // remains the composable path and is what a fold should use. This is for the
 // cases where writing a callback and its context struct is more machinery
 // than the loop it replaces.

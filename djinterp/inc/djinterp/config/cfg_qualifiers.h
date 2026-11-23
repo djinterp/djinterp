@@ -12,7 +12,7 @@
 *
 *   TWO CONFIGURATION MODELS
 *     define-gate   D_CFG[_TESTING]_DEFINE_<Q> == 0 means "do NOT define this
-*                   qualifier -- the user will supply it".  Used by STATIC,
+*                   qualifier - the user will supply it".  Used by STATIC,
 *                   INLINE and EXTERN_C, whose spelling must stay
 *                   linker-correct.
 *     strip         D_CFG_TESTING_STRIP_CONSTEXPR == 1 means "define D_CONSTEXPR
@@ -130,7 +130,7 @@ TABLE OF CONTENTS
 
 // D_CFG_DEFINE_EXTERN_C
 //   brief: define the D_EXTERN_C family (D_EXTERN_C, D_EXTERN_C_BEGIN,
-// D_EXTERN_C_END).  Set 0 to supply your own -- same contract as
+// D_EXTERN_C_END).  Set 0 to supply your own - same contract as
 // D_CFG_DEFINE_STATIC.  Headers that need the family say so with a one-line
 // #error rather than failing as a syntax cascade, so a forgotten replacement
 // is one sentence, not fifty diagnostics.
@@ -141,12 +141,12 @@ TABLE OF CONTENTS
 // D_CFG_EXTERN_C_LINKAGE
 //   brief: whether the family EMITS `extern "C"` under a C++ compiler.  Under
 // a C compiler the question does not arise and all three spellings expand to
-// nothing regardless -- which is what makes them safe to write unconditionally
+// nothing regardless - which is what makes them safe to write unconditionally
 // in a shared header instead of scattering #ifdef __cplusplus.
 //
 //   Setting this to 0 has exactly one real use: compiling djinterp's own
 // sources AS C++ and wanting C++ linkage (overloads, namespacing) for them.
-// It is NOT a way to consume a C-compiled archive from C++ -- that combination
+// It is NOT a way to consume a C-compiled archive from C++ - that combination
 // cannot work, and fails loudly at link time
 // (`undefined reference to 'd_file_read_all(char const*, unsigned long*)'`)
 // rather than quietly:
@@ -180,7 +180,7 @@ TABLE OF CONTENTS
 #endif
 
 // D_CFG_TESTING_STRIP_CONSTEXPR
-//   brief: STRIP semantics -- when 1, D_CONSTEXPR expands to nothing in a test
+//   brief: STRIP semantics - when 1, D_CONSTEXPR expands to nothing in a test
 // build so otherwise constant-evaluated code can execute and be instrumented.
 // Off by default: stripping breaks contexts that REQUIRE a constant
 // expression (array bounds, template args, static_assert, ...).
@@ -297,7 +297,7 @@ TABLE OF CONTENTS
 #endif
 
 // D_INTERNAL_QUAL_STRIP_CONSTEXPR
-//   brief: 1 when D_CONSTEXPR must expand to nothing -- only in a test build,
+//   brief: 1 when D_CONSTEXPR must expand to nothing - only in a test build,
 // and only if the strip config or the legacy D_TESTING_CONSTEXPR alias asks
 // for it.
 #if ( D_INTERNAL_QUAL_TESTING &&                                              \
@@ -320,7 +320,7 @@ TABLE OF CONTENTS
 
 // D_INTERNAL_QUAL_EXTERN_C_LINKAGE
 //   brief: 1 when the family must actually emit `extern "C"`.  ALWAYS 0 under
-// a C compiler -- there is no such thing to emit -- which is the property that
+// a C compiler - there is no such thing to emit - which is the property that
 // lets a shared header write D_EXTERN_C_BEGIN unconditionally.
 #if ( defined(__cplusplus) && D_CFG_IS_ON(D_CFG_EXTERN_C_LINKAGE) )
     #define D_INTERNAL_QUAL_EXTERN_C_LINKAGE 1
@@ -341,7 +341,7 @@ TABLE OF CONTENTS
 
 // D_QUAL_EXTERN_C_IS_ACTIVE
 //   brief: 1 when the D_EXTERN_C family currently emits `extern "C"`, else 0.
-// Safe in #if.  Ask this rather than `defined(__cplusplus)` -- the two differ
+// Safe in #if.  Ask this rather than `defined(__cplusplus)` - the two differ
 // whenever D_CFG_EXTERN_C_LINKAGE is 0.
 #define D_QUAL_EXTERN_C_IS_ACTIVE           D_INTERNAL_QUAL_EXTERN_C_LINKAGE
 

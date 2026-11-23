@@ -2,8 +2,8 @@
 * djinterp [cpp][tools]                                                 view.cpp
 *
 * The workbench's view and update.
-*   The screen is one shell template with five holes -- toolbar, editors, runs,
-* files and detail -- closed each frame with uxoxo's closing pass, so the layout
+*   The screen is one shell template with five holes - toolbar, editors, runs,
+* files and detail - closed each frame with uxoxo's closing pass, so the layout
 * is written once and each region is built by its own function. Everything is
 * made of uxoxo elements; the two the workbench defines itself, listing and
 * tape, come from workbench_elements.

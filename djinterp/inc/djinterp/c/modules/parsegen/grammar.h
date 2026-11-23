@@ -14,18 +14,18 @@
 *   IT IS AN ARENA, NOT A POINTER GRAPH. Nodes live in one flat array and refer
 * to each other by index, exactly as instructions refer to pool entries. That
 * is what keeps a grammar copyable, hashable as a cache key, serialisable, and
-* handed to C without a fix-up -- the same properties the instruction stream
+* handed to C without a fix-up - the same properties the instruction stream
 * has, for the same reasons.
 *
 *   ORDERED AND UNORDERED CHOICE ARE DIFFERENT NODE KINDS. Not one kind with a
 * flag, and emphatically not one kind with a default. PEG's `/` commits to the
 * first alternative that matches and BNF's `|` does not, so collapsing them
-* would silently change which language a grammar denotes -- and the damage
+* would silently change which language a grammar denotes - and the damage
 * would surface as a wrong parse rather than as an error. Having no neutral
 * `choice` node means a frontend cannot build one without saying which it meant.
 *
 *   REPETITION CARRIES BOUNDS. `{min, max}`, not a star flag. `?` is {0,1}, `*`
-* is {0, unbounded}, `+` is {1, unbounded}, and ABNF's `3*5x` is {3,5} -- one
+* is {0, unbounded}, `+` is {1, unbounded}, and ABNF's `3*5x` is {3,5} - one
 * representation for all of them, so adding ABNF costs a frontend and no change
 * here or below.
 *
@@ -99,7 +99,7 @@ TABLE OF CONTENTS
                                               // uint8_t, ...
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -115,7 +115,7 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 1.1.1
 // D_PARSEGEN_NO_NODE
-//   constant: the node index meaning "none" -- an absent child, an absent
+//   constant: the node index meaning "none" - an absent child, an absent
 // sibling, an unresolved reference, or a construction that failed.
 #define D_PARSEGEN_NO_NODE          (-1)
 
@@ -132,7 +132,7 @@ TABLE OF CONTENTS
 // 1.2.1
 // dj_parsegen_node_kind
 //   enum: what an expression node is. Kinds that differ in MEANING are
-// separate kinds rather than one kind with a modifier flag -- see the banner
+// separate kinds rather than one kind with a modifier flag - see the banner
 // on ordered versus unordered choice, which is the case that matters.
 enum dj_parsegen_node_kind
 {
@@ -164,7 +164,7 @@ enum dj_parsegen_node_kind
 //   `a` and `b` mean what the node's kind descriptor says they mean: a pool
 // index for a class, literal, or reference; the bounds for a repetition; the
 // tag for a capture. `offset` and `length` say where in the source text the
-// expression came from, so a diagnostic can point at it -- byte positions only,
+// expression came from, so a diagnostic can point at it - byte positions only,
 // with line and column derived when something is actually rendered.
 struct dj_parsegen_node
 {
@@ -194,7 +194,7 @@ enum dj_parsegen_arity
 
 // 1.4.2
 // dj_parsegen_node_info
-//   struct: everything this level knows about a node kind -- its name, its
+//   struct: everything this level knows about a node kind - its name, its
 // arity, what its operands mean, how tightly it binds when rendered, and which
 // capabilities using it implies.
 //   One table drives feature accumulation, verification, and rendering. Adding
@@ -251,7 +251,7 @@ struct dj_parsegen_rule
 // and the capability set the whole thing uses.
 //   `origin` is the byte range the CURRENT construction is attributed to. A
 // frontend sets it once per token and every node built afterwards inherits it,
-// which is the shape a frontend already has -- rather than threading a span
+// which is the shape a frontend already has - rather than threading a span
 // through every construction call.
 struct dj_parsegen_grammar
 {
@@ -295,7 +295,7 @@ struct dj_parsegen_grammar
 // D_PARSEGEN_DIAG_DOMAIN_GRAMMAR. A code is meaningful only alongside its
 // domain, and together they are the stable identity of a diagnostic: tests and
 // tools match on the pair, and the message text may be reworded freely.
-// Append-only -- a code once published is never renumbered.
+// Append-only - a code once published is never renumbered.
 enum dj_parsegen_grammar_diag
 {
     D_PARSEGEN_DIAG_GRAMMAR_UNRESOLVED_REF = 0,

@@ -2,7 +2,7 @@
 * djinterp [re_std]                             time_point_compare_three_way.hpp
 *
 * the time_point three-way comparison:
-*   operator<=> between two points on the same clock. C++20 only -- the
+*   operator<=> between two points on the same clock. C++20 only - the
 * spaceship operator is a language feature with no back-port.
 *
 *   The comparison delegates to the durations' three-way comparison, so

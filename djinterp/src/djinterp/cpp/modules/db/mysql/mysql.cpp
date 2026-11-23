@@ -5,11 +5,11 @@
 * query attributes and hooks, and the MySQL family's members instantiated
 * for it.
 *   Everything the connection does is mysql_common_connection's, over the
-* MariaDB layer's face; what MySQL adds is its configuration -- a TLS mode of
+* MariaDB layer's face; what MySQL adds is its configuration - a TLS mode of
 * its own, connect attributes, the TLS versions and cipher suites, the
 * authentication plugin and the clear-text switch by the client's options
 * where it has them, session tracking by an init command, and the refusal of
-* the X protocol and a statement cache, which neither client has -- and the
+* the X protocol and a statement cache, which neither client has - and the
 * query attributes only its server reads.
 *
 *

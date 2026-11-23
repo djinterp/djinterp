@@ -121,7 +121,7 @@ bool tests_parse_state_explicit_construction()
 /*
 tests_parse_state_construction_does_not_clamp
   PINNED BEHAVIOUR.  Verifies that the constructor stores an out-of-range
-initial offset verbatim -- it does NOT clamp to length -- while the derived
+initial offset verbatim - it does NOT clamp to length - while the derived
 queries stay defensive and report exhaustion rather than reading past the
 buffer.  The stored-offset assertion is expected to invert if the
 constructor ever adds a clamp.
@@ -392,7 +392,7 @@ bool tests_parse_state_advance_overflow_wraps()
     D_PA_CHECK(!state.at_end());
 
     // the wrap has made the stream claim MORE input than before the
-    // advance -- a real over-run would have exhausted it
+    // advance - a real over-run would have exhausted it
     D_PA_CHECK(state.remaining() == 6u);
     D_PA_CHECK(state.current() != nullptr);
     D_PA_CHECK(*state.current() == 'e');
@@ -491,7 +491,7 @@ bool tests_parse_state_save_and_restore()
 /*
 tests_parse_state_copy_independence
   Verifies a copied parse_state is an independent snapshot, since the alt
-combinator effectively takes one when it saves the offset -- advancing one
+combinator effectively takes one when it saves the offset - advancing one
 copy must not disturb another.
   Tests the following:
   - a copy shares the same backing data pointer and length,

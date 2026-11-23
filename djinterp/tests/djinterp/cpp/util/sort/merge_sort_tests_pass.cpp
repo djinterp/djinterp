@@ -29,7 +29,7 @@ bool tests_merge_sort_pass_short_and_lone_runs()
     std::size_t      end;
 
     //   Seven elements in ordered runs of 2, width 2: the runs pair as
-    // [0,2)+[2,4) and [4,6)+[6,7) -- the second pair's right run is SHORT.
+    // [0,2)+[2,4) and [4,6)+[6,7) - the second pair's right run is SHORT.
     // Each block of 2 * width comes out ordered, and only from its own
     // elements: the pairs are disjoint, which is the property a concurrent
     // driver exploits.
@@ -72,8 +72,8 @@ bool tests_merge_sort_pass_short_and_lone_runs()
 
     result.check(ranges_equal(dst, src));
 
-    //   Over a longer input whose width-3 runs are ordered -- as the passes
-    // before this one would have left them -- every block of 6 comes out as
+    //   Over a longer input whose width-3 runs are ordered - as the passes
+    // before this one would have left them - every block of 6 comes out as
     // the sorted contents of the same block of the source.
     src = shape_random(50);
 

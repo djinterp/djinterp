@@ -8,11 +8,11 @@
 * app's frame in the middle of the loop. The window is DPI-aware and the
 * interface is scaled to the monitor it opens on, unless `bitwisedom gui`
 * was given a scale; its size is the one asked, in points at that scale.
-* The events `bitwisedom gui` was given -- the sheets named, each --do --
+* The events `bitwisedom gui` was given - the sheets named, each --do --
 * are posted before the first frame.
-*   The window keeps the user's settings file, at preferences_path() -- the
+*   The window keeps the user's settings file, at preferences_path() - the
 * layout of its windows, the tables' column widths and the user's own
-* preferences last from one run to the next -- and its session, at
+* preferences last from one run to the next - and its session, at
 * session_path(): its workspaces and every sheet in them, unsaved changes
 * too, so it opens where it was left. A file dropped on the window is
 * opened as File > Open opens one.
@@ -128,7 +128,7 @@ void release_target()
 
 /*
 create_device
-  The device and its swap chain on the GPU -- or, asked for or with no
+  The device and its swap chain on the GPU - or, asked for or with no
 hardware device, on WARP: S_OK, or the HRESULT that stopped it.
 */
 HRESULT
@@ -326,7 +326,7 @@ LRESULT WINAPI window_procedure(
 
 /*
 this_module
-  The module this code is in -- the window's, not the program's -- found by
+  The module this code is in - the window's, not the program's - found by
 an address inside it, as a window class whose procedure it holds is
 registered under it.
 */
@@ -546,7 +546,7 @@ void draw_frame(
 /*
 run_frames
   The app, with its settings and its session, its events posted, and its
-frames until the window has gone -- closed by the user, or by the app
+frames until the window has gone - closed by the user, or by the app
 quitting.
 */
 void run_frames(
@@ -600,8 +600,8 @@ std::string bitwisedom::gui::window_host()
 
 /*
 run_window
-  The process made DPI-aware, the scale chosen -- the one asked, else the
-primary monitor's -- the class registered, the window opened and run, and
+  The process made DPI-aware, the scale chosen - the one asked, else the
+primary monitor's - the class registered, the window opened and run, and
 everything let go in the order it was made.
 */
 int bitwisedom::gui::run_window(

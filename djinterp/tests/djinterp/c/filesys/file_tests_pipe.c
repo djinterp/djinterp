@@ -1,11 +1,11 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                        file_tests_pipe.c
 *
-*   XIV. Pipes (file_pipe) -- running a command and streaming its input or
+*   XIV. Pipes (file_pipe) - running a command and streaming its input or
 * output. Compiled out where the platform has no command pipes
 * (D_FILE_PIPE_IS_AVAILABLE is 0). The read path runs a command with known
 * output and checks the bytes; the write path streams into a consumer; and the
-* guards are checked -- a NULL command and a mode that is neither read nor
+* guards are checked - a NULL command and a mode that is neither read nor
 * write are both rejected, and d_pipe_close rejects a NULL stream.
 *
 *
@@ -99,7 +99,7 @@ void d_fs_tests_pipe(
  *****************************************************************************/
 
 /******************************************************************************
- * XIV.  file_pipe  --  PROCESS PIPES
+ * XIV.  file_pipe  -  PROCESS PIPES
  *****************************************************************************/
 
 #if D_FILE_PIPE_IS_AVAILABLE

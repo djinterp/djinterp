@@ -5,7 +5,7 @@
 *   Tables, indexes, views and triggers are all rows of a schema's catalogue
 * (sqlite_master, or sqlite_temp_master for "temp"), told apart by `type`, so
 * one query each answers "has", "list" and their variants; DROP differs only
-* in its keyword. Values -- a type, a name to find -- are bound; names that
+* in its keyword. Values - a type, a name to find - are bound; names that
 * become part of a statement are quoted with %w; SQL the caller wrote is
 * inserted as written, which is the contract.
 *   Columns come from PRAGMA table_xinfo, or table_info before 3.26.0.
@@ -672,7 +672,7 @@ int d_internal_sqlite_prepare_columns(
  *                            finalized here.
  * @param[in]     _hidden     whether rows carry a `hidden` column (6).
  * @param[in,out] _builder    receives the columns.
- * @return the last step's result -- SQLITE_DONE when every row was read --
+ * @return the last step's result - SQLITE_DONE when every row was read --
  *         or SQLITE_NOMEM when a name or a copy could not be had.
  *
  * Rows are name (1), type (2), NOT NULL (3), the default's SQL (4) and the

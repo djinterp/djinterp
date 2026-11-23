@@ -3,8 +3,8 @@
 *
 * Reads the Ninja build language into records: see dninja.h.
 *   One pass over the text, by hand, as ninja's re2c lexer and its manifest
-* parser make it: a token at a time -- a keyword, a name, `=`, `:`, the three
-* pipes, an indent, a line ending -- with comments skipped wherever a token
+* parser make it: a token at a time - a keyword, a name, `=`, `:`, the three
+* pipes, an indent, a line ending - with comments skipped wherever a token
 * may start, and blanks and `$` line continuations eaten after every token
 * but a line ending. A value is read as ninja's ReadEvalString reads one,
 * in a path's sense or a value's. Where ninja's parser reports a fault, the
@@ -58,8 +58,8 @@ enum dj_internal_token
 //------------------------------------------------------------------------------
 // 1.2.1
 // dj_internal_reader
-//   struct: the lexer's place -- `at`, ninja's ofs_, and `last`, its
-//   last_token_ -- and the records it grows.
+//   struct: the lexer's place - `at`, ninja's ofs_, and `last`, its
+//   last_token_ - and the records it grows.
 struct dj_internal_reader
 {
     struct dj_ninja* ninja;
@@ -445,8 +445,8 @@ d_internal_keyword(
 
 /*
 d_internal_comment_at
-  The end of a comment line from a place -- blanks, `#`, the rest, and its
-line feed -- or the place itself when none stands there.
+  The end of a comment line from a place - blanks, `#`, the rest, and its
+line feed - or the place itself when none stands there.
 */
 static
 size_t d_internal_comment_at(

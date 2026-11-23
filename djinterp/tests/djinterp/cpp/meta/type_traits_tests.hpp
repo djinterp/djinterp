@@ -4,7 +4,7 @@
 *   Test-suite header for the djinterp type_traits.hpp module.
 *
 *   Public surface:
-*     - `type_traits_spec()` -- the whole suite as one module_spec (plain
+*     - `type_traits_spec()` - the whole suite as one module_spec (plain
 *       data: a block of `{ name, descriptor, bool() }` unit tests, one per
 *       section), in spec mode only. The runner hands it to run_module
 *       (test_defaults.hpp), which runs it and reports it, on the console
@@ -370,7 +370,7 @@ bool type_traits_tests_tuple();
 
 
 // type_traits_spec
-//   provider: the whole type_traits suite as one module_spec -- a single
+//   provider: the whole type_traits suite as one module_spec - a single
 // block whose fifteen unit tests are the per-section workers, in the same
 // declared order as the aggregate driver below.  Hand this to run_module
 // (see the runner) to drive both the six-kind tree and the report / PDF.

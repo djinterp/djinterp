@@ -558,7 +558,7 @@ bool tests_report_expand_repeats_a_placeholder()
 // reason.
 bool tests_report_expand_is_vulnerable_to_placeholder_injection()
 {
-    // -- a module named "{title}" pulls in the report title ---------------------
+    // - a module named "{title}" pulls in the report title ---------------------
     D_RT_CHECK(dt::expand_report_file_name("{module}.{ext}",
                                            "{title}",      // the module's NAME
                                            0,
@@ -566,7 +566,7 @@ bool tests_report_expand_is_vulnerable_to_placeholder_injection()
                                            "pdf") ==
                "SECRET.pdf");                              // <- the title, not the module
 
-    // -- a module named "{ext}" pulls in the extension --------------------------
+    // - a module named "{ext}" pulls in the extension --------------------------
     D_RT_CHECK(dt::expand_report_file_name("{module}.{ext}",
                                            "{ext}",
                                            0,
@@ -574,7 +574,7 @@ bool tests_report_expand_is_vulnerable_to_placeholder_injection()
                                            "pdf") ==
                "pdf.pdf");
 
-    // -- a module named "{index}" pulls in the index ----------------------------
+    // - a module named "{index}" pulls in the index ----------------------------
     D_RT_CHECK(dt::expand_report_file_name("{module}.{ext}",
                                            "{index}",
                                            42,
@@ -582,7 +582,7 @@ bool tests_report_expand_is_vulnerable_to_placeholder_injection()
                                            "pdf") ==
                "42.pdf");
 
-    // -- a module named "{date}" pulls in the live clock ------------------------
+    // - a module named "{date}" pulls in the live clock ------------------------
     const std::string _dated =
         dt::expand_report_file_name("{module}.{ext}", "{date}", 0, "T", "pdf");
 
@@ -590,10 +590,10 @@ bool tests_report_expand_is_vulnerable_to_placeholder_injection()
     D_RT_CHECK(is_digits(_dated.substr(0, 8)));
     D_RT_CHECK(_dated.compare(0, 2, "20") == 0);           // ...it really is the date
 
-    // -- the injection survives sanitization, which is why it works -------------
+    // - the injection survives sanitization, which is why it works -------------
     D_RT_CHECK(dt::internal::sanitize_file_component_helper("{title}") == "{title}");
 
-    // -- TWO MODULES CAN COLLIDE ONTO ONE FILENAME -----------------------------
+    // - TWO MODULES CAN COLLIDE ONTO ONE FILENAME -----------------------------
     //     the practical consequence: a document_per_module run writes both of these
     //   modules to the SAME path, and the second silently overwrites the first
     const std::string _honest =
@@ -605,7 +605,7 @@ bool tests_report_expand_is_vulnerable_to_placeholder_injection()
     D_RT_CHECK(_injected == "pdf.pdf");
     D_RT_CHECK(_honest == _injected);                      // <- a collision
 
-    // -- the ORDER of the passes is what decides which way the injection runs ---
+    // - the ORDER of the passes is what decides which way the injection runs ---
     //     {module} is substituted FIRST, so it can reach every other placeholder.
     //   {ext} is substituted LAST, so it can reach none of them - an extension
     //   named "{module}" stays literal.

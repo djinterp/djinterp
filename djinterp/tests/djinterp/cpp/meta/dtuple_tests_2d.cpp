@@ -74,7 +74,7 @@ static_assert(is_2d_tuple<alpha>::value == false,
 static_assert(is_2d_tuple<std::pair<int, int>>::value == false,
               "is_2d_tuple<std::pair<int, int>>::value should be false");
 
-// empty outer -- vacuously true
+// empty outer - vacuously true
 static_assert(is_2d_tuple<std::tuple<>>::value == true,
               "is_2d_tuple<std::tuple<>>::value should be true (vacuous)");
 
@@ -84,7 +84,7 @@ static_assert(is_2d_tuple<std::tuple<int>>::value == false,
 static_assert(is_2d_tuple<std::tuple<int, char>>::value == false,
               "is_2d_tuple<std::tuple<int, char>>::value should be false");
 
-// all-tuple rows -- true
+// all-tuple rows - true
 static_assert(is_2d_tuple<std::tuple<std::tuple<int>>>::value == true,
               "is_2d_tuple<tuple<tuple<int>>>::value should be true");
 static_assert(is_2d_tuple<DUniform2>::value == true,
@@ -94,13 +94,13 @@ static_assert(is_2d_tuple<jagged>::value == true,
 static_assert(is_2d_tuple<DEmptyRows>::value == true,
               "is_2d_tuple<empty_rows>::value should be true (rows of empty tuples)");
 
-// mixed tuple + non-tuple rows -- false
+// mixed tuple + non-tuple rows - false
 static_assert(is_2d_tuple<std::tuple<std::tuple<int>, int>>::value == false,
               "is_2d_tuple<tuple<tuple<int>, int>>::value should be false");
 static_assert(is_2d_tuple<std::tuple<int, std::tuple<int>>>::value == false,
               "is_2d_tuple<tuple<int, tuple<int>>>::value should be false");
 
-// rows with cv-/ref-qualified TUPLE types still count -- helper applies clean_t
+// rows with cv-/ref-qualified TUPLE types still count - helper applies clean_t
 static_assert(is_2d_tuple<std::tuple<const std::tuple<int>>>::value == true,
               "is_2d_tuple<tuple<const tuple<int>>>::value should be true (clean_t strips cv)");
 static_assert(is_2d_tuple<std::tuple<std::tuple<int>&>>::value == true,
@@ -125,7 +125,7 @@ static_assert(is_2d_tuple<std::tuple<const std::tuple<int>&,
 // II.  TUPLE_INNER_SIZES  (compile-time)
 // =========================================================================
 
-// empty 2D tuple -- explicit specialization
+// empty 2D tuple - explicit specialization
 static_assert(std::is_same<typename tuple_inner_sizes<DEmpty2d>::type,
                            std::index_sequence<>>::value,
               "tuple_inner_sizes<empty_2d>::type should be std::index_sequence<>");
@@ -151,12 +151,12 @@ static_assert(std::is_same<typename tuple_inner_sizes<jagged>::type,
                            std::index_sequence<1, 2, 3>>::value,
               "tuple_inner_sizes<jagged>::type should be index_sequence<1, 2, 3>");
 
-// rows of empty tuples -- sizes are all zero
+// rows of empty tuples - sizes are all zero
 static_assert(std::is_same<typename tuple_inner_sizes<DEmptyRows>::type,
                            std::index_sequence<0, 0>>::value,
               "tuple_inner_sizes<empty_rows>::type should be index_sequence<0, 0>");
 
-// cv-/ref-qualified rows -- clean_t strips and reports the underlying size
+// cv-/ref-qualified rows - clean_t strips and reports the underlying size
 static_assert(std::is_same<typename tuple_inner_sizes<std::tuple<const std::tuple<int, char>,
                                                                   std::tuple<float>&>>::type,
                            std::index_sequence<2, 1>>::value,
@@ -172,19 +172,19 @@ static_assert(std::is_same<tuple_inner_sizes_t<DUniform2>,
 // III. TUPLE_OUTER_SIZE  (compile-time)
 // =========================================================================
 
-// non-tuple types -- primary template, 0
+// non-tuple types - primary template, 0
 static_assert(tuple_outer_size<int>::value == 0,
               "tuple_outer_size<int>::value should be 0 (not a tuple)");
 static_assert(tuple_outer_size<alpha>::value == 0,
               "tuple_outer_size<alpha>::value should be 0");
 
-// 1D tuples -- specialization returns 0 because is_2d_tuple is false
+// 1D tuples - specialization returns 0 because is_2d_tuple is false
 static_assert(tuple_outer_size<std::tuple<int>>::value == 0,
               "tuple_outer_size<tuple<int>>::value should be 0 (1D, not 2D)");
 static_assert(tuple_outer_size<std::tuple<int, char>>::value == 0,
               "tuple_outer_size<tuple<int, char>>::value should be 0 (1D, not 2D)");
 
-// 2D tuples -- row count
+// 2D tuples - row count
 static_assert(tuple_outer_size<DEmpty2d>::value == 0,
               "tuple_outer_size<empty_2d>::value should be 0");
 static_assert(tuple_outer_size<DOneRow>::value == 1,
@@ -235,7 +235,7 @@ static_assert(std::is_same<typename tuple_flatten_types<jagged>::type,
                            std::tuple<int, int, char, int, char, float>>::value,
               "tuple_flatten_types<jagged>::type should concat row_1 + row_2 + row_3");
 
-// rows of empty tuples -- nothing to flatten
+// rows of empty tuples - nothing to flatten
 static_assert(std::is_same<typename tuple_flatten_types<DEmptyRows>::type,
                            std::tuple<>>::value,
               "tuple_flatten_types<empty_rows>::type should be std::tuple<>");
@@ -258,25 +258,25 @@ static_assert(std::is_same<tuple_flatten_types_t<jagged>,
 // V.   IS_UNIFORM_2D_TUPLE  (compile-time)
 // =========================================================================
 
-// non-tuple -- primary template, false
+// non-tuple - primary template, false
 static_assert(is_uniform_2d_tuple<int>::value == false,
               "is_uniform_2d_tuple<int>::value should be false");
 
-// non-2D tuple -- false
+// non-2D tuple - false
 static_assert(is_uniform_2d_tuple<std::tuple<int>>::value == false,
               "is_uniform_2d_tuple<tuple<int>>::value should be false (not 2D)");
 
-// empty 2D -- vacuously true (all_sizes_equal<empty>)
+// empty 2D - vacuously true (all_sizes_equal<empty>)
 static_assert(is_uniform_2d_tuple<DEmpty2d>::value == true,
               "is_uniform_2d_tuple<empty_2d>::value should be true (vacuous)");
 
-// single-row 2D -- vacuously true (all_sizes_equal<single>)
+// single-row 2D - vacuously true (all_sizes_equal<single>)
 static_assert(is_uniform_2d_tuple<DOneRow>::value == true,
               "is_uniform_2d_tuple<one_row>::value should be true (single-row vacuous)");
 static_assert(is_uniform_2d_tuple<std::tuple<DRow3>>::value == true,
               "is_uniform_2d_tuple<tuple<row_3>>::value should be true (single-row vacuous)");
 
-// uniform multi-row -- true
+// uniform multi-row - true
 static_assert(is_uniform_2d_tuple<DUniform2>::value == true,
               "is_uniform_2d_tuple<uniform2>::value should be true");
 static_assert(is_uniform_2d_tuple<DUniform3>::value == true,
@@ -284,7 +284,7 @@ static_assert(is_uniform_2d_tuple<DUniform3>::value == true,
 static_assert(is_uniform_2d_tuple<DEmptyRows>::value == true,
               "is_uniform_2d_tuple<empty_rows>::value should be true (all 0)");
 
-// jagged -- false
+// jagged - false
 static_assert(is_uniform_2d_tuple<jagged>::value == false,
               "is_uniform_2d_tuple<jagged>::value should be false");
 static_assert(is_uniform_2d_tuple<std::tuple<DRow1, DRow2>>::value == false,
@@ -316,15 +316,15 @@ static_assert(is_jagged_tuple<int>::value == false,
 static_assert(is_jagged_tuple<std::tuple<int>>::value == false,
               "is_jagged_tuple<tuple<int>>::value should be false (not 2D)");
 
-// empty -- not jagged (< 2 rows)
+// empty - not jagged (< 2 rows)
 static_assert(is_jagged_tuple<DEmpty2d>::value == false,
               "is_jagged_tuple<empty_2d>::value should be false (< 2 rows)");
 
-// single-row -- not jagged (< 2 rows; documented edge case)
+// single-row - not jagged (< 2 rows; documented edge case)
 static_assert(is_jagged_tuple<DOneRow>::value == false,
               "is_jagged_tuple<one_row>::value should be false (< 2 rows)");
 
-// uniform multi-row -- not jagged
+// uniform multi-row - not jagged
 static_assert(is_jagged_tuple<DUniform2>::value == false,
               "is_jagged_tuple<uniform2>::value should be false (uniform)");
 static_assert(is_jagged_tuple<DUniform3>::value == false,
@@ -381,7 +381,7 @@ static_assert(DTupleTotalElements<std::tuple<DRowEmpty, DRow2, DRowEmpty>>::valu
 // VIII. TUPLE_COMMON_ELEMENT_TYPE  (compile-time)
 // =========================================================================
 
-// empty outer -- void
+// empty outer - void
 static_assert(std::is_same<typename tuple_common_element_type<DEmpty2d>::type, void>::value,
               "tuple_common_element_type<empty_2d>::type should be void");
 
@@ -414,7 +414,7 @@ static_assert(std::is_same<tuple_common_element_type_t<std::tuple<std::tuple<int
 // IX.  MAKE_2D_TUPLE_OF  (compile-time)
 // =========================================================================
 
-// no row sizes -- empty 2D
+// no row sizes - empty 2D
 static_assert(std::is_same<typename make_2d_tuple_of<int>::type, std::tuple<>>::value,
               "make_2d_tuple_of<int>::type should be std::tuple<>");
 static_assert(std::is_same<typename make_2d_tuple_of<alpha>::type, std::tuple<>>::value,

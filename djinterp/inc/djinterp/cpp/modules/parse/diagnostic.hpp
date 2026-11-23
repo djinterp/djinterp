@@ -6,7 +6,7 @@
 * `diagnostics` from dj_parse_diag_sink, neither adds a data member, and both
 * are asserted layout-identical to their base. A C++ sink is therefore passed
 * to a C stage by taking its address, with no conversion, no wrapper object,
-* and no copy -- which is what makes this a face rather than a binding.
+* and no copy - which is what makes this a face rather than a binding.
 *
 *   What the C++ side adds is lifetime and iteration: `diagnostics` releases
 * what it owns, `fixed_diagnostics<N, M>` carries its own storage so a stage
@@ -483,7 +483,7 @@ public:
 
     // emit
     //   function: accepts a diagnostic.  Returns false only when the sink
-    // rejected it outright -- a stored-or-not distinction is truncated().
+    // rejected it outright - a stored-or-not distinction is truncated().
     bool emit(
         severity         _severity,
         re_std::uint16_t _domain,

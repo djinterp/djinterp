@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                                file_io.h
 *
-* Moving bytes -- through a descriptor, at an offset, or a whole file at once.
+* Moving bytes - through a descriptor, at an offset, or a whole file at once.
 *   Read and write live together because they are one mechanism seen from two
 * directions: the same chunking rule, the same short-transfer retry, the same
 * open/size/close scaffolding behind the whole-file helpers. Splitting them
@@ -10,7 +10,7 @@
 * descriptor the caller already holds. The whole-file helpers open by path and
 * so depend on file_open.h.
 *   Whether d_file_write_all replaces a file atomically and whether it waits
-* for durable storage are build-time decisions -- see cfg_file_io.h, and
+* for durable storage are build-time decisions - see cfg_file_io.h, and
 * D_FILE_WRITE_IS_ATOMIC / D_FILE_WRITE_IS_DURABLE to query them.
 *   The positional calls come in both widths, d_file_pread_fd32 beside
 * d_file_pread_fd64; the unsuffixed names follow D_FILE_WIDTH (file_common.h
@@ -62,7 +62,7 @@ D_EXTERN_C_BEGIN
 // no descriptors; the whole-file functions work on every backend. A
 // descriptor call moves at most one chunk (D_CFG_FILE_READ_CHUNK_SIZE,
 // D_CFG_FILE_WRITE_CHUNK_SIZE), and never more than one platform call can
-// carry -- INT_MAX bytes on Windows; a zero-length call needs no buffer.
+// carry - INT_MAX bytes on Windows; a zero-length call needs no buffer.
 
 
 // 1.1    Descriptor reads
@@ -107,8 +107,8 @@ ssize_t d_file_read_full_fd(
 /**
  * @brief Reads from a fixed offset without moving the descriptor's position.
  *
- * @warning Atomic only where the platform has pread. Elsewhere -- Windows
- *          among them -- it is emulated by seek, read and seek back, and two
+ * @warning Atomic only where the platform has pread. Elsewhere - Windows
+ *          among them - it is emulated by seek, read and seek back, and two
  *          threads sharing the descriptor can interleave;
  *          D_FILE_READ_PREAD_IS_ATOMIC says which.
  *
@@ -185,8 +185,8 @@ ssize_t d_file_write_full_fd(
 /**
  * @brief Writes at a fixed offset without moving the descriptor's position.
  *
- * @warning Atomic only where the platform has pwrite; elsewhere -- Windows
- *          among them -- it is emulated by seek, write and seek back, and is
+ * @warning Atomic only where the platform has pwrite; elsewhere - Windows
+ *          among them - it is emulated by seek, write and seek back, and is
  *          not. On Linux a descriptor opened with O_APPEND appends whatever
  *          the offset, as the kernel documents.
  *
@@ -232,8 +232,8 @@ ssize_t d_file_pwrite_fd32(
  *
  * @param[in]  _path  the file to read.
  * @param[out] _size  receives the number of payload bytes; may be `NULL`.
- * @return the buffer -- NUL-terminated past `*_size` when
- *         D_CFG_FILE_READ_NUL_TERMINATE is on -- or `NULL` on failure with
+ * @return the buffer - NUL-terminated past `*_size` when
+ *         D_CFG_FILE_READ_NUL_TERMINATE is on - or `NULL` on failure with
  *         errno set: EFBIG past the read ceiling (D_CFG_FILE_READ_MAX_SIZE,
  *         or the allocation ceiling less the terminator's byte).
  * @post The caller owns the buffer and releases it with the configured
@@ -251,8 +251,8 @@ void* d_file_read_all(
  *       stream reads translated, so the size can be smaller than the
  *       file's.
  * @note A measurable source costs one allocation, and is read to the length
- *       it had when it was measured. One that cannot be measured -- a pipe,
- *       a /proc entry -- is read by growing the buffer, or, when
+ *       it had when it was measured. One that cannot be measured - a pipe,
+ *       a /proc entry - is read by growing the buffer, or, when
  *       D_CFG_FILE_READ_GROW_UNSIZED is 0, refused with ESPIPE unless it is
  *       empty.
  *
@@ -272,7 +272,7 @@ void* d_file_read_all_stream(
  *        allocating.
  *
  * @note A file larger than the buffer fails with ERANGE rather than being
- *       truncated -- before a byte is read, when it can be measured, and
+ *       truncated - before a byte is read, when it can be measured, and
  *       otherwise once it fills the buffer and has more. With
  *       D_CFG_FILE_READ_NUL_TERMINATE on, the terminator takes one byte of
  *       `_bufsize`.
@@ -281,7 +281,7 @@ void* d_file_read_all_stream(
  * @param[out] _buf      receives the contents.
  * @param[in]  _bufsize  size of `_buf`, in bytes.
  * @param[out] _size     receives the number of payload bytes; may be `NULL`.
- * @return 0, or a non-zero errno-style code -- ERANGE when the file does not
+ * @return 0, or a non-zero errno-style code - ERANGE when the file does not
  *         fit.
  */
 int d_file_read_all_into(

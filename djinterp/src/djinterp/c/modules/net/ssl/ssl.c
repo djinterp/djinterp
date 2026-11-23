@@ -2,8 +2,8 @@
 * djinterp [c][net]                                                        ssl.c
 *
 * Implementation of the shared SSL/TLS kernel declared in ssl.h.
-*   Pure computation over caller-owned memory -- names, ALPN lists, PEM,
-* fingerprints, configuration -- and the session pump, which moves ciphertext
+*   Pure computation over caller-owned memory - names, ALPN lists, PEM,
+* fingerprints, configuration - and the session pump, which moves ciphertext
 * between an engine and the net.h connection a session runs over. The only
 * I/O is through the connections the caller passes in, and the only TLS
 * through the engine it names. A session is a connection itself, its
@@ -928,7 +928,7 @@ d_ssl_verify_describe(
 
 /*
 d_internal_ssl_is_label_char
-  Letters, digits, and hyphens -- the LDH rule -- plus the underscore that
+  Letters, digits, and hyphens - the LDH rule - plus the underscore that
 deployed names carry.
 */
 static
@@ -3028,7 +3028,7 @@ bool d_internal_ssl_session_ok(
 d_internal_ssl_session_clear
   Empties a session record, stage included, and points its base back at the
 view's table, so a session cleared by a failed init or by destroy is still
-a connection -- a closed one.
+a connection - a closed one.
 */
 static
 void d_internal_ssl_session_clear(
@@ -3127,7 +3127,7 @@ d_internal_ssl_fail(
 /*
 d_internal_ssl_lost
   What a transport's failed write means to a session: a peer that has gone
--- the stream closed, reset, or aborted -- no longer reads, which is CLOSED;
+-- the stream closed, reset, or aborted - no longer reads, which is CLOSED;
 anything else is a broken transport.
 */
 static enum dj_ssl_error
@@ -3331,7 +3331,7 @@ d_internal_ssl_pull(
 /*
 d_internal_ssl_await
   An engine step answered WANT_READ. Whatever the step produced goes out first
--- the peer may be waiting on exactly that -- and only then is the transport
+-- the peer may be waiting on exactly that - and only then is the transport
 read. OK means the step may be retried.
 */
 static enum dj_ssl_error
@@ -3353,7 +3353,7 @@ d_internal_ssl_await(
 d_internal_ssl_io_failure
   Judges what flush, pull, or await returned. WOULD_BLOCK is not a failure:
 the caller retries later. A transport that ends, in either direction, before
-the TLS stream has is TRUNCATED -- never CLOSED, which is
+the TLS stream has is TRUNCATED - never CLOSED, which is
 reserved for close_notify, so truncation cannot pass for a clean end.
 Everything else fails the session as it is.
 */
@@ -3722,7 +3722,7 @@ d_internal_ssl_handshake(
 /*
 d_internal_ssl_read
   The read pump of an established session. A WANT_READ may follow records
-the engine absorbed without yielding data -- session tickets, key updates --
+the engine absorbed without yielding data - session tickets, key updates --
 so the loop runs until data, the peer's close_notify, or a failure.
 */
 static enum dj_ssl_error
@@ -4004,7 +4004,7 @@ d_ssl_session_resume
   Every check is the kernel's, so an engine's hook sees only a client
 session that has not begun and an established one of its own context; the
 offer itself is the engine's, and a refusal by the server is not a failure
-here -- the handshake reports it.
+here - the handshake reports it.
 */
 enum dj_ssl_error
 d_ssl_session_resume(

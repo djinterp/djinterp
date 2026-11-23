@@ -44,8 +44,8 @@
  * @return D_ARG_OK; D_ARG_ERROR_OUT_OF_MEMORY when the buffer ran out of
  *         memory; otherwise the usage's or the footer's status.
  *
- * A command's usage or footer -- CLI11's get_usage() or get_footer(), what
- * d_arg_command_usage or d_arg_command_footer writes -- caught in a buffer;
+ * A command's usage or footer - CLI11's get_usage() or get_footer(), what
+ * d_arg_command_usage or d_arg_command_footer writes - caught in a buffer;
  * a buffer that ran out of memory turns the sink's refusal into what it was.
  */
 D_STATIC
@@ -136,7 +136,7 @@ int d_arg_internal_help_requirement(
 d_arg_format_description_default
   CLI11's make_description: the description, " REQUIRED " for a required
 command, the requirement sentence, and a blank line after whatever was
-written -- nothing at all when that was nothing.
+written - nothing at all when that was nothing.
 */
 int d_arg_format_description_default(
     const struct dj_arg_formatter* _formatter,
@@ -403,8 +403,8 @@ int d_arg_internal_help_usage_marker(
  * @param[in,out] _out        the buffer that gains the line.
  * @return D_ARG_OK, or the failure of a step.
  *
- * The usage line make_usage composes: a line feed, the name -- or "Usage:"
- * for a nameless command -- the options badge, the positionals and the
+ * The usage line make_usage composes: a line feed, the name - or "Usage:"
+ * for a nameless command - the options badge, the positionals and the
  * subcommand marker, then a blank line.
  */
 D_STATIC
@@ -612,7 +612,7 @@ struct dj_arg_internal_help_groups
  * @param[in] _option   the option.
  * @param[in] _context  the dj_arg_internal_help_groups: the group, the mode and
  *                      the command.
- * @return `true` for an option of the group with a name -- for an expanded
+ * @return `true` for an option of the group with a name - for an expanded
  *         subcommand, not its own help flags; `false` otherwise.
  *
  * The filter of make_groups: an option of the group, with a name, but, for
@@ -686,7 +686,7 @@ int d_arg_internal_help_group_visit(
 /*
 d_arg_format_groups
   CLI11's make_groups: the groups of the command's own options, in the order
-first met, each with the options the command lists in it -- its option
+first met, each with the options the command lists in it - its option
 groups' merged ones and its fallthrough parent's among them.
 */
 int d_arg_format_groups(
@@ -728,7 +728,7 @@ int d_arg_format_groups(
 d_arg_format_subcommand_default
   CLI11's make_subcommand: "  name, aliases", with the REQUIRED label for a
 required one, padded to the left column, then the description in the right
-column -- on the next line when the name fills the left.
+column - on the next line when the name fills the left.
 */
 int d_arg_format_subcommand_default(
     const struct dj_arg_formatter* _formatter,
@@ -834,7 +834,7 @@ bool d_arg_internal_help_seen(
  * @return D_ARG_OK, or the failure of a subcommand's step or of the buffer.
  *
  * One group of make_subcommands: its heading, then each named subcommand in
- * it -- whatever the case of its group -- on a line of its own or, for
+ * it - whatever the case of its group - on a line of its own or, for
  * help-all, with its own expanded help, built by its own formatter within the
  * room this one leaves, and a line feed.
  */
@@ -909,7 +909,7 @@ int d_arg_internal_help_subgroup(
  * @return D_ARG_OK, or the failure of an expansion or of the list.
  *
  * The first pass of make_subcommands: each option group expanded where it
- * stands -- but the hidden ones and those whose group starts with `+` -- and
+ * stands - but the hidden ones and those whose group starts with `+` - and
  * the groups of the named subcommands noted in the order first met.
  */
 D_STATIC
@@ -1060,7 +1060,7 @@ int d_arg_internal_help_indent(
  * @return D_ARG_OK, or the buffer's status.
  *
  * CLI11's format_aliases: "     aliases: " right-aligned in the width --
- * setw without std::left -- then the aliases joined by ", ", each with
+ * setw without std::left - then the aliases joined by ", ", each with
  * fourteen spaces after every carriage return or line feed in it, as
  * fix_newlines inserts them, and a line feed.
  */
@@ -1284,7 +1284,7 @@ int d_arg_internal_help_body(
  * @return D_ARG_OK, or the failure of a footer's step or of the buffer.
  *
  * An expanded command's footer, but, inside an expanded help, not one its
- * parent shows as well -- the copy a subcommand inherits.
+ * parent shows as well - the copy a subcommand inherits.
  */
 D_STATIC
 int d_arg_internal_help_expanded_footer(

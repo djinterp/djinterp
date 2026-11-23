@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                          flat_container_concepts.hpp
 *
-* C++20 concepts for the STRUCTURE (flat side) axis -- the `requires`-facing
+* C++20 concepts for the STRUCTURE (flat side) axis - the `requires`-facing
 * view of flat_container_traits.hpp.
 *
 *   THE CONCEPTS ADD NO POLICY.
@@ -49,7 +49,7 @@ NS_DJINTERP
 
 
 // LeafOnlyContainer
-//   concept: a container that does NOT nest -- depth 1, leaves only. Defined
+//   concept: a container that does NOT nest - depth 1, leaves only. Defined
 // as the complement of nesting over container-shaped types, so every nuance of
 // that verdict carries over: a node_type keeps a type OUT of this.
 template<typename Type>
@@ -57,7 +57,7 @@ concept LeafOnlyContainer = is_flat_container_v<Type>;
 
 
 // StrictlyLeafOnlyContainer
-//   concept: flat AND of value_type-chain depth exactly 1 -- flat by the DEPTH
+//   concept: flat AND of value_type-chain depth exactly 1 - flat by the DEPTH
 // measure, not merely by the absence of the hierarchy signals. The two differ
 // only for a type whose flatness rests on a tag.
 template<typename Type>

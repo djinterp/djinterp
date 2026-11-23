@@ -5,12 +5,12 @@
 * every level from ISO strict C++98 to C++26 and driven against in-memory
 * databases and a file in the directory it is given. The layer's suite,
 * sqlite_tests.c, tests what each function does; this tests what the face adds
-* -- ownership, string and list and text conversion, statements and rows,
+* - ownership, string and list and text conversion, statements and rows,
 * the guards, the static members, from C++11 moves and the f forms, and the
 * forms each later level adds where the compiler has them: std::optional
 * text and deduced guards (C++17), face::connection, std::span columns,
 * UTF-8 strings and formats checked at compile time (C++20), std::expected
-* results (C++23) -- and samples every module, each member being generated
+* results (C++23) - and samples every module, each member being generated
 * from its C prototype, its arguments in the C order. The summary names the
 * level forms the build had.
 *   Over a layer built without SQLite (D_CFG_SQLITE 0) it checks that the face
@@ -20,7 +20,7 @@
 * d_tests_sqlite_face_variadic).
 *
 *   Build: compile the layer's C sources as C, this file as C++, and link them
-* with SQLite -- scripts/ci/check_db_sqlite.sh does, at every level.
+* with SQLite - scripts/ci/check_db_sqlite.sh does, at every level.
 *
 *
 * path:      /tests/unintegrated/cpp/db/sqlite/t_sqlite_face.cpp
@@ -596,7 +596,7 @@ void d_tests_sqlite_face_cpp23(
 /*
 d_tests_sqlite_face_statements
   Rows and statements: a statement prepared into a face, its parameters
-described and bound -- text from a std::string too -- run for a count and
+described and bound - text from a std::string too - run for a count and
 for rows; rows read by place and by name, their values converted; a
 statement finalized by hand, by its destructor, and on a failed prepare,
 which leaves it empty; from C++11 one moved and swapped, and the f form;

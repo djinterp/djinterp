@@ -6,9 +6,9 @@
 * translation unit (one .cpp per like-group semantic section of the header);
 * this head carries only what those files and the runner share.
 *
-*   applicative.hpp ships one concrete instance of its own -- the monad bridge
+*   applicative.hpp ships one concrete instance of its own - the monad bridge
 * (every is_monad<F> is automatically an applicative, pure via monad_unit, ap
-* via monad_bind + monad_map) -- and derives lift_a2 generically.  A suite must
+* via monad_bind + monad_map) - and derives lift_a2 generically.  A suite must
 * therefore supply BOTH a monad (to drive the bridge, the path maybe / result
 * take) and a directly-specialized non-monad applicative (the view / producer
 * path), so the generic ops are proven not to secretly assume the bridge.  Two
@@ -19,7 +19,7 @@
 *       functor and an applicative, so pure / ap / lift_a2 all run through the
 *       bridge over it, and its empty state gives ap / lift_a2 their maybe-style
 *       short-circuit.  Storage is a 0-or-1-element vector so the empty state
-*       never default-constructs the value type -- essential, because lift_a2's
+*       never default-constructs the value type - essential, because lift_a2's
 *       internal DApplicativeA2Binder is not default-constructible.
 *     - ident<T> : a total Identity applicative specialized DIRECTLY
 *       (functor_traits + applicative_traits, NOT monad_traits), so is_monad is
@@ -59,7 +59,7 @@
 #include <utility>
 #include <vector>
 // djinterp
-// djinterp -- the header under test (which pulls in monad.hpp + functor.hpp),
+// djinterp - the header under test (which pulls in monad.hpp + functor.hpp),
 //   plus the DTest authoring + runner surface.  NOTE: these two include paths
 //   are rooted at the djinterp include directory (e.g. -I.../inc); adjust them
 //   to match your build tree.
@@ -76,7 +76,7 @@ NS_TESTING
 ///////////////////////////////////////////////////////////////////////////////
 
 // box
-//   fixture: a maybe-like monad -- engaged (holds a value) or empty.  Storage
+//   fixture: a maybe-like monad - engaged (holds a value) or empty.  Storage
 // is a 0-or-1-element std::vector so the empty state never default-constructs T
 // (lift_a2's internal binder is not default-constructible, and its empty branch
 // materializes an empty box over that binder type).  Via the monad bridges box
@@ -243,7 +243,7 @@ struct to_text
 
 // has_app_value_type
 //   detector: true iff applicative_traits<decay<_Type>>::value_type is
-// well-formed -- i.e. iff _Type carries the Applicative protocol's inner value
+// well-formed - i.e. iff _Type carries the Applicative protocol's inner value
 // type (whether via the monad bridge or a direct specialization).  SFINAE-safe:
 // the primary applicative_traits is declared but undefined, so for a
 // non-applicative the member access soft-fails in the immediate context (false)
@@ -296,7 +296,7 @@ NS_DJINTERP
 // monad_traits< ::djinterp::testing::box<_Type> >
 //   instance: a maybe-like monad.  unit is just; bind threads an engaged value
 // through the Kleisli arrow and propagates empty otherwise (the empty branch
-// returns a default-constructed result box -- an empty vector -- so it never
+// returns a default-constructed result box - an empty vector - so it never
 // default-constructs the result's value type).
 template<typename _Type>
 struct monad_traits< ::djinterp::testing::box<_Type> >
@@ -362,7 +362,7 @@ struct functor_traits< ::djinterp::testing::ident<_Type>, void >
 // applicative_traits< ::djinterp::testing::ident<_Type> >
 //   instance: the Identity applicative's direct pure / ap (no monad bridge).
 // When used by ap, _Type is the wrapped-function type; when used by pure, it is
-// the value type -- each instantiation is self-consistent.
+// the value type - each instantiation is self-consistent.
 template<typename _Type>
 struct applicative_traits< ::djinterp::testing::ident<_Type>, void >
 {

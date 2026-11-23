@@ -145,8 +145,8 @@ TABLE OF CONTENTS
 //==============================================================================
 // 2.  NATIVE TRANSPORT
 //==============================================================================
-// What a native engine -- the framework speaking IMAP itself over the net
-// transport -- would run on. IMAP is a TCP protocol; implicit TLS (port 993)
+// What a native engine - the framework speaking IMAP itself over the net
+// transport - would run on. IMAP is a TCP protocol; implicit TLS (port 993)
 // and STARTTLS both need a TLS backend on top. Most servers accept
 // credentials only over TLS (RFC 8314), so plaintext-only readiness serves
 // loopback and test servers but rarely production.
@@ -382,7 +382,7 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 4.3.1
 // D_ENV_IMAP_LIBETPAN_AVAILABLE
-//   feature: 1 when a libetpan IMAP backend can be compiled here -- the
+//   feature: 1 when a libetpan IMAP backend can be compiled here - the
 // mailimap header is present, and the platform has the TCP transport that
 // libetpan's own socket layer drives. No version floor is imposed; mailimap is
 // part of every libetpan release.
@@ -422,7 +422,7 @@ TABLE OF CONTENTS
 
 // 5.1.2
 // D_ENV_IMAP_MAILUTILS_AVAILABLE
-//   feature: 1 when a Mailutils IMAP backend can be compiled here -- the
+//   feature: 1 when a Mailutils IMAP backend can be compiled here - the
 // header is present and the platform has a TCP transport.
 #ifndef D_ENV_IMAP_MAILUTILS_AVAILABLE
     #if ( (D_ENV_IMAP_HAS_MAILUTILS) &&                                        \
@@ -490,7 +490,7 @@ TABLE OF CONTENTS
 
 // 5.2.5
 // D_ENV_IMAP_VMIME_AVAILABLE
-//   feature: 1 when a VMime IMAP backend can be compiled here -- the compiler
+//   feature: 1 when a VMime IMAP backend can be compiled here - the compiler
 // is C++, VMime is present and was built with IMAP, and the platform has a
 // TCP transport. Always 0 in C.
 #ifndef D_ENV_IMAP_VMIME_AVAILABLE
@@ -784,7 +784,7 @@ TABLE OF CONTENTS
 
 // 8.1.2
 // D_ENV_IMAP_AVAILABLE
-//   feature: 1 if some IMAP backend could run here -- a library backend, or
+//   feature: 1 if some IMAP backend could run here - a library backend, or
 // the native engine's transport.
 #ifndef D_ENV_IMAP_AVAILABLE
     #if ( (D_ENV_IMAP_HAS_LIBRARY) ||                                          \

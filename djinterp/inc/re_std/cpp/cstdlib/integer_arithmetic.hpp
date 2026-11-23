@@ -11,7 +11,7 @@
 * set of std::abs overloads visible at a call site decides which one
 * wins, and a separate re_std::abs would create a second, differently
 * populated set. Code that included both headers would get different
-* answers depending on include order -- the classic abs(-3.5) yielding 3
+* answers depending on include order - the classic abs(-3.5) yielding 3
 * bug, reintroduced by the library that was meant to prevent it.
 *
 *   WHICH abs YOU GET DEPENDS ON WHAT ELSE IS INCLUDED:
@@ -32,7 +32,7 @@
 * definition time for exactly this reason.
 *
 *   div RETURNS BOTH RESULTS AT ONCE, and its truncation direction is
-* guaranteed toward zero -- which since C++11 is also what / and % do, so
+* guaranteed toward zero - which since C++11 is also what / and % do, so
 * the family's original reason for existing has largely lapsed.
 *
 *
@@ -66,7 +66,7 @@ namespace re_std
 
     // abs / labs / llabs
     //   function: magnitude. Undefined for the most-negative value of the
-    // type -- see the header comment.
+    // type - see the header comment.
     using ::std::abs;
     using ::std::labs;
     using ::std::llabs;

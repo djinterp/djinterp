@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                                    path_iterator.hpp
 *
-*   The PATH iterator: a traversal of the descent relation UPWARD -- the
+*   The PATH iterator: a traversal of the descent relation UPWARD - the
 * unique chain of components from a node back to its root. It is the exact
 * converse of tree_iterator.hpp, which walks the same relation downward, and
 * between them the two exhaust it.
@@ -17,7 +17,7 @@
 *
 * so paths and components are in bijection, and a path may be identified with
 * the component it ends at. Its length N is the LEVEL of n, written lambda(n),
-* and it is also the length of n's ADDRESS -- the word of labels along the
+* and it is also the length of n's ADDRESS - the word of labels along the
 * path,
 *
 *       addr(n)  =  < gamma(n_1), gamma(n_2), ..., gamma(n_N) >.
@@ -36,7 +36,7 @@
 * Downward is not symmetric: from an ancestor there is NO WAY to know which of
 * its children leads to the target without consulting the target.  The
 * root-first
-* reading of a path is therefore not a cheap reversal -- it is either the
+* reading of a path is therefore not a cheap reversal - it is either the
 * ascent
 * MATERIALISED (container_path_ancestor_chain) or the address RESOLVED
 * (resolve(addr(n))), and the second is what resolution has always been.  This
@@ -46,7 +46,7 @@
 *   ANCHORING.  A path iterator is bounded by an ANCHOR, which it yields last.
 * Anchoring at the container's root gives the absolute path; anchoring at any
 * other ancestor gives the path RELATIVE to that ancestor, and the level it
-* reports is relative to it too -- which is the spec's reading exactly: an
+* reports is relative to it too - which is the spec's reading exactly: an
 * address is relative to a designated root. A node that is not in the anchor's
 * subtree has no path to it, and the iterator is empty.
 *
@@ -107,7 +107,7 @@ NS_DJINTERP
 ///////////////////////////////////////////////////////////////////////////////
 
 // path_reaches
-//   function: true if _anchor lies on the parent chain of _node -- that is, if
+//   function: true if _anchor lies on the parent chain of _node - that is, if
 // _node is _anchor or a descendant of it, and so HAS a path to _anchor.
 //
 //   This is the ANCESTOR relation, and by the spec it is the PREFIX ORDER
@@ -144,7 +144,7 @@ bool path_reaches(
 
 // path_level
 //   function: the LEVEL (lambda) of _node measured from _anchor, which is at
-// level 0 -- the number of descents from the anchor down to the node, and
+// level 0 - the number of descents from the anchor down to the node, and
 // hence the length of the node's address. O(lambda).
 //
 //   Returns 0 when _node does not reach _anchor; use path_reaches to tell that
@@ -196,8 +196,8 @@ struct path_iterator_end_tag
 
 
 // DPathIterator
-//   class: a forward iterator over path(n) -- the unique chain of components
-// from a node up to its anchor -- yielded LEAF-FIRST, the node itself first and
+//   class: a forward iterator over path(n) - the unique chain of components
+// from a node up to its anchor - yielded LEAF-FIRST, the node itself first and
 // the anchor last.
 //
 //   The anchor IS yielded: path(n) is the chain (c |> ... |> n), and c is one
@@ -208,10 +208,10 @@ struct path_iterator_end_tag
 //
 //   Dereference yields the node's INDEX, by const reference to the iterator's
 // own state, so the reference is valid for the lifetime of the iterator and no
-// longer -- the same contract the other iterators of this family keep.
+// longer - the same contract the other iterators of this family keep.
 //
 //   The LEVEL is exact and O(1) to read.  It is established once, at
-// construction, by a single climb to the anchor (O(lambda) -- the same cost the
+// construction, by a single climb to the anchor (O(lambda) - the same cost the
 // traversal itself will pay), and thereafter decremented, reaching 0 at the
 // anchor.  A node that does not reach the anchor has no path to it, and the
 // iterator is constructed already at its end.
@@ -329,7 +329,7 @@ public:
     }
 
     // is_anchor
-    //   true if the walk is resting on the anchor -- the last component of the
+    //   true if the walk is resting on the anchor - the last component of the
     // path, and the one that contributes NO label to an address.
     D_CONSTEXPR
     bool is_anchor() const
@@ -450,7 +450,7 @@ private:
 
     // advance
     //   ascends to the parent. The anchor is the last component yielded, so
-    // stepping off it ends the walk -- the walk must never climb past its own
+    // stepping off it ends the walk - the walk must never climb past its own
     // anchor, whose own ancestors lie outside the path.
     D_CONSTEXPR_CPP14
     void advance()
@@ -502,8 +502,8 @@ using path_iterator = DPathIterator<Policy, Container>;
 ///////////////////////////////////////////////////////////////////////////////
 
 // DPathView
-//   class: a range over path(_node) -- the chain of components from _node up
-// to _anchor, leaf-first -- so a path may drive a range-for. Holds a policy, a
+//   class: a range over path(_node) - the chain of components from _node up
+// to _anchor, leaf-first - so a path may drive a range-for. Holds a policy, a
 // container pointer, the node, and the anchor; it owns nothing, and it
 // allocates nothing. This is what replaces materialising an ancestor chain
 // into a vector merely to walk it once.
@@ -549,7 +549,7 @@ public:
     }
 
     // empty
-    //   true if _node has no path to _anchor -- that is, if it does not reach
+    //   true if _node has no path to _anchor - that is, if it does not reach
     // it. A node that DOES reach the anchor always yields at least itself.
     bool empty() const
     {
@@ -558,7 +558,7 @@ public:
 
     // level
     //   the level (lambda) of _node, and so the length of its ADDRESS. The
-    // path itself yields one more component than this -- the anchor, which
+    // path itself yields one more component than this - the anchor, which
     // contributes no label.
     std::size_t level() const
     {
@@ -594,7 +594,7 @@ using path_view = DPathView<Policy, Container>;
 
 
 // make_path_view
-//   factory: a range over path(_node) anchored at _anchor -- the components
+//   factory: a range over path(_node) anchored at _anchor - the components
 // from _node up to and including _anchor, leaf-first.
 //
 // Usage:

@@ -14,7 +14,7 @@
 // build_digits_program
 //   function: hand-assemble the PEG program for `S = [0-9]+ ;` (one or more
 // digits, whole input).  Exercises CALL/RETURN, SET, the CHOICE/COMMIT star
-// loop, the `!.` end-of-input predicate, and MATCH -- 8 of the 9 opcodes
+// loop, the `!.` end-of-input predicate, and MATCH - 8 of the 9 opcodes
 // (JUMP is reserved for optimization and stays unused, as expected).
 using djinterp::parsegen::program;
 

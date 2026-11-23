@@ -10,7 +10,7 @@
 *                                                            revised: 2026.09.22
 *******************************************************************************/
 // dogfood: measure the style guide's function tripwires on the bundle's own
-// sources with the item layer -- 60 lines, 4 levels of nesting, 5 parameters
+// sources with the item layer - 60 lines, 4 levels of nesting, 5 parameters
 #include "../../inc/djinterp/c/modules/parse/lang/c/lex_c.h"
 #include "../../inc/djinterp/c/modules/parse/syntax/syntax_item.h"
 #include <stdio.h>

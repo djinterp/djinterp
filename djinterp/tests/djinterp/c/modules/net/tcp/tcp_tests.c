@@ -3,7 +3,7 @@
 *
 * The section of net's TCP suite, in DTest's C face: every test, in the
 * order run, each a test of its own in module tcp. A watchdog ends a run
-* that hangs -- a blocked accept that never woke -- instead of letting it
+* that hangs - a blocked accept that never woke - instead of letting it
 * wait forever.
 *
 *

@@ -1,8 +1,8 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/util/counter/CMakeLists.txt
+# djinterp [test]  -  build/cmake/config/testing/djinterp/c/util/counter/CMakeLists.txt
 #
-#   Test leaf for c/util/counter -- counter.h, counter_atomic.h,
-# counter_mutex.h and counter_event.h -- in the C spec form: the runner in this
+#   Test leaf for c/util/counter - counter.h, counter_atomic.h,
+# counter_mutex.h and counter_event.h - in the C spec form: the runner in this
 # directory, the section translation units globbed from the tests tree, and the
 # event core's tier-0 sources the bindings fire through. The four units under
 # test come from djinterp_c_runtime and djinterp_c_sync, the latter with

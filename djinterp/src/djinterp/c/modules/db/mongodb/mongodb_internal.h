@@ -7,8 +7,8 @@
 * include reaches this header's driver half: cfg_mongodb_common.h then has
 * env include mongoc.h. A build without the driver (D_CFG_MONGODB 0) sees
 * nothing here but the stubs' needs, which are none.
-*   RESULTS. A failure is recorded on the handle as it is returned -- its
-* result, its message, the server's name for its code, its reply -- and an
+*   RESULTS. A failure is recorded on the handle as it is returned - its
+* result, its message, the server's name for its code, its reply - and an
 * operation in an open transaction that fails marks the transaction failed.
 * A success records nothing.
 *   JSON. A document or an array the caller gives is read whole: libbson's
@@ -17,7 +17,7 @@
 * which of the two it is, which libbson does not, reading an array as a
 * document of "0", "1" and on.
 *   MEMORY. What the layer hands back is malloc's, released by d_db_free;
-* what libbson writes -- JSON text -- is copied there and bson_free'd.
+* what libbson writes - JSON text - is copied there and bson_free'd.
 *
 *
 * path:      /src/djinterp/c/modules/db/mongodb/mongodb_internal.h
@@ -100,7 +100,7 @@ TABLE OF CONTENTS
 
 // 1.1    Floors
 //------------------------------------------------------------------------------
-// floors -- the driver's header must be in scope, which cfg_mongodb_common.h
+// floors - the driver's header must be in scope, which cfg_mongodb_common.h
 // arranges for a source that says it is one of the layer's, and must be the
 // floor's or later; and the build must spell a 64-bit integer, as every C99
 // one does, since the layer's sources are C
@@ -258,7 +258,7 @@ enum dj_internal_mongodb_kind
 
 // 3.1    Packing
 //------------------------------------------------------------------------------
-// packing -- the result a driver's or libbson's failure is returned as: the
+// packing - the result a driver's or libbson's failure is returned as: the
 // server's code where its domain is the server's or a write concern's, and
 // otherwise packed above every server code, as mongodb_common.h describes,
 // libbson's domains from D_MONGODB_DOMAIN_BSON. A code past 16 bits in a
@@ -270,14 +270,14 @@ int d_internal_mongodb_pack(
 
 // 3.2    Recording
 //------------------------------------------------------------------------------
-// recording -- each records a failure on the handle and returns its result:
+// recording - each records a failure on the handle and returns its result:
 // _fail a driver's failure of an operation that carried the open
 // transaction's session, its reply (may be NULL) kept for its labels and
 // details; _fail_outside one that ran outside it; _fail_bson libbson's;
 // _answer a result of the layer's own, or a server code it answers itself,
 // with its message, printf-formatted. A failure the server's transaction does
-// not survive -- any the server reports, and any labelled
-// TransientTransactionError -- marks an open transaction failed when _fail
+// not survive - any the server reports, and any labelled
+// TransientTransactionError - marks an open transaction failed when _fail
 // records it, and only then: the server never saw the others. A NULL handle
 // records nothing; each still returns the result.
 int d_internal_mongodb_fail(
@@ -316,7 +316,7 @@ int d_internal_mongodb_reply_failure(
 
 // 4.1    Reading
 //------------------------------------------------------------------------------
-// reading -- each initializes _out, which the caller destroys whatever the
+// reading - each initializes _out, which the caller destroys whatever the
 // result, and reads into it the JSON given: one document, or one array, and
 // nothing after it. NULL is an empty document or array unless _required, when
 // it is D_DB_INVALID_ARGUMENT, as text that is the other of the two is.
@@ -333,15 +333,15 @@ int d_internal_mongodb_read_array(
     bool               _required,
     bson_t*            _out
 );
-// a document or an array, whichever the text is -- an update, which may be
-// either -- `_array` saying which; NULL is D_DB_INVALID_ARGUMENT
+// a document or an array, whichever the text is - an update, which may be
+// either - `_array` saying which; NULL is D_DB_INVALID_ARGUMENT
 int d_internal_mongodb_read_either(
     struct dj_mongodb* _db,
     const char*        _json,
     bson_t*            _out,
     bool*              _array
 );
-// a single value as Extended JSON -- an id, say -- read into _holder, which
+// a single value as Extended JSON - an id, say - read into _holder, which
 // the caller destroys whatever the result, and found in it; _value is valid
 // while _holder is
 int d_internal_mongodb_read_value(
@@ -353,7 +353,7 @@ int d_internal_mongodb_read_value(
 
 // 4.2    Writing
 //------------------------------------------------------------------------------
-// writing -- a document or a value as Extended JSON in the format given,
+// writing - a document or a value as Extended JSON in the format given,
 // canonical for D_MONGODB_BSON, copied into malloc's memory for d_db_free;
 // NULL when memory runs out
 char* d_internal_mongodb_json(
@@ -399,7 +399,7 @@ int d_internal_mongodb_vformat(
 
 // 5.1    Names
 //------------------------------------------------------------------------------
-// names -- the database a function acts in: the one given, or the handle's
+// names - the database a function acts in: the one given, or the handle's
 // current one for NULL; NULL, D_DB_INVALID_ARGUMENT recorded, where there
 // is neither
 const char* d_internal_mongodb_database(
@@ -409,7 +409,7 @@ const char* d_internal_mongodb_database(
 
 // 5.2    Options
 //------------------------------------------------------------------------------
-// options -- initializes _opts, which the caller destroys whatever the
+// options - initializes _opts, which the caller destroys whatever the
 // result, from the options given as JSON, adding by _what (D_INTERNAL_
 // MONGODB_*) the handle's time limit, where they name no maxTimeMS, and the
 // open transaction's session
@@ -428,7 +428,7 @@ int d_internal_mongodb_session(
 
 // 5.3    Commands
 //------------------------------------------------------------------------------
-// commands -- runs a command on a database as written, with the open
+// commands - runs a command on a database as written, with the open
 // transaction's session unless _outside, on the primary; _reply, which the
 // caller destroys whatever the result, receives the reply. A reply that
 // reports a write's failure is a failure. 0, or the result recorded
@@ -442,7 +442,7 @@ int d_internal_mongodb_run(
 
 // 5.4    Rows
 //------------------------------------------------------------------------------
-// rows -- a builder's one column for documents, "document", or for values,
+// rows - a builder's one column for documents, "document", or for values,
 // "value"; a document added as a row in the format given; a value as one
 bool d_internal_mongodb_rows_column(
     struct dj_internal_db_rows* _rows,
@@ -482,7 +482,7 @@ int d_internal_mongodb_cursor_rows(
 
 // 5.5    The catalog
 //------------------------------------------------------------------------------
-// the catalog -- what a name of a database is, asked of listCollections
+// the catalog - what a name of a database is, asked of listCollections
 // outside any transaction, which the server keeps it from; 0, or the
 // failure, recorded
 int d_internal_mongodb_kind_of(
@@ -502,7 +502,7 @@ int d_internal_mongodb_list_kind(
 
 // 5.6    Writes
 //------------------------------------------------------------------------------
-// writes -- the counts a write's reply holds, by the names insert, update,
+// writes - the counts a write's reply holds, by the names insert, update,
 // delete, a bulk write's and findAndModify's replies give them; the latest
 // write's count recorded on the handle; and its new _id, recorded, or none
 void d_internal_mongodb_counts(
@@ -520,7 +520,7 @@ void d_internal_mongodb_new_id(
 
 // 5.7    The log
 //------------------------------------------------------------------------------
-// the log -- _start initializes the driver, once for the process, and the
+// the log - _start initializes the driver, once for the process, and the
 // first time any handle is made or wrapped installs the layer's handler for
 // the driver's log at the level D_CFG_MONGODB_LOG_LEVEL names, unless the
 // knob is -1 or _log_set ran first; _log_set installs it at the level given,
@@ -535,7 +535,7 @@ int d_internal_mongodb_log_get(void);
 
 // 5.8    Collections
 //------------------------------------------------------------------------------
-// collections -- the driver's handle on a collection of a database, the
+// collections - the driver's handle on a collection of a database, the
 // database NULL for the handle's current one; NULL, the refusal recorded,
 // for no database, no collection's name (D_DB_INVALID_ARGUMENT), or an
 // empty one (the server's 73, InvalidNamespace). The caller destroys it
@@ -548,11 +548,11 @@ mongoc_collection_t* d_internal_mongodb_collection(
 
 // 5.9    Concerns
 //------------------------------------------------------------------------------
-// concerns -- a write concern, a read concern and a read preference read
+// concerns - a write concern, a read concern and a read preference read
 // from the document a command writes each as; each refuses, as
 // D_DB_INVALID_ARGUMENT recorded, a field of no such name, a value of the
-// wrong type, a level, a mode or a w of no such name, a w of 0 -- the layer
-// reports what every write did, which needs it acknowledged -- a mode of
+// wrong type, a level, a mode or a w of no such name, a w of 0 - the layer
+// reports what every write did, which needs it acknowledged - a mode of
 // primary with tags or a staleness, and a staleness under 90 seconds. An
 // empty write or read concern is the deployment's default, *_out NULL; a read
 // preference must name its mode. The caller destroys *_out
@@ -586,7 +586,7 @@ bool d_internal_mongodb_field_document(
 
 // 5.10   Cursors
 //------------------------------------------------------------------------------
-// cursors -- each opens the driver's cursor over a query, the caller's to
+// cursors - each opens the driver's cursor over a query, the caller's to
 // destroy: a find, its filter and options as d_mongodb_find reads them, the
 // open transaction's session and the handle's time limit added, `_one`
 // limiting it to its first document in one batch; an aggregation, on a
@@ -634,7 +634,7 @@ int d_internal_mongodb_run_cursor(
     mongoc_cursor_t**  _cursor,
     bson_t*            _reply
 );
-// ending -- ends the cursors of a transaction that has just ended, as a
+// ending - ends the cursors of a transaction that has just ended, as a
 // commit or a rollback leaves it: each driver's cursor is destroyed, which
 // asks the server to kill it outside any transaction, before a later one
 // could carry the request and fail by it; the layer's cursors stay, ended,

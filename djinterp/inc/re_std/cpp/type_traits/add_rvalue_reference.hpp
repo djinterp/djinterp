@@ -15,7 +15,7 @@
 *
 *   PORTABILITY:
 *   Rvalue references are a C++11 feature. On C++98/03 this trait is a
-* pure passthrough -- it yields Type unchanged for any input. This
+* pure passthrough - it yields Type unchanged for any input. This
 * preserves compilation but is semantically degraded; calling code that
 * requires an rvalue reference must itself be gated on
 * RE_STD_LANG_HAS_RVALUE_REFERENCES.

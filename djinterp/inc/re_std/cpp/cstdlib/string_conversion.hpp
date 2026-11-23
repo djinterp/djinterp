@@ -7,14 +7,14 @@
 *
 *   THESE ARE RUNTIME FUNCTIONS, NOT LIBRARY CODE:
 *   strtod's result depends on the C locale's decimal point, on the
-* platform's floating-point parsing and on errno -- state that lives in
+* platform's floating-point parsing and on errno - state that lives in
 * the C runtime. A reimplementation would be a second parser with
 * different rounding on the last digit, which is exactly the class of
 * silent divergence re_std exists to avoid. So they are re-exported:
 * re_std::strtod IS std::strtod.
 *
 *   PREFER THE strto* FAMILY TO THE ato* FAMILY:
-*   atoi and friends have no way to report failure -- atoi("hello") is 0,
+*   atoi and friends have no way to report failure - atoi("hello") is 0,
 * indistinguishable from atoi("0"), and out-of-range input is undefined
 * behaviour rather than a diagnosable error. strtol sets errno to ERANGE
 * and hands back an end pointer. The ato* family is surfaced for

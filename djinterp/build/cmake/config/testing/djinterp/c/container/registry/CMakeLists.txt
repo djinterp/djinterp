@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/container/registry/CMakeLists.txt
+# djinterp [test]  -  build/cmake/config/testing/djinterp/c/container/registry/CMakeLists.txt
 #
 #   Aggregate over the container/registry suites' C leaves: every leaf below this
 # directory.

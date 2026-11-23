@@ -2,13 +2,13 @@
 * djinterp [cpp][tools]                                                 expr.hpp
 *
 * Integer expressions over symbols, as a C macro body spells them.
-*   A symbol defined by an expression -- `READ | WRITE`, `~MODE & 0xFF`,
-* `GENMASK(7, 4)` -- keeps its form all the way to the generated header,
+*   A symbol defined by an expression - `READ | WRITE`, `~MODE & 0xFF`,
+* `GENMASK(7, 4)` - keeps its form all the way to the generated header,
 * where it becomes `#define D_RW (D_READ | D_WRITE)`. So an expression is
 * parsed once into a tree that can be evaluated against the sheet and
 * printed back as C with every name replaced by its full macro name.
-*   THE LANGUAGE is C's integer operators at C's precedence -- unary `~ - + !`,
-* then `* / %`, `+ -`, `<< >>`, `&`, `^`, `|` -- over integer literals in
+*   THE LANGUAGE is C's integer operators at C's precedence - unary `~ - + !`,
+* then `* / %`, `+ -`, `<< >>`, `&`, `^`, `|` - over integer literals in
 * every base C has (bits.hpp's parse_integer reads them), names, parentheses,
 * and three functions: BIT(n), MASK(w) and GENMASK(high, low).
 *   ARITHMETIC is unsigned and 64 bits wide, and wraps. A shift by 64 or more
@@ -115,7 +115,7 @@ struct expr_node
 //------------------------------------------------------------------------------
 // 1.3.1
 // expression
-//   struct: a parsed expression -- its nodes, the root's index, and the
+//   struct: a parsed expression - its nodes, the root's index, and the
 // error that stopped the parse, if one did (then `root` is -1).
 struct expression
 {
@@ -149,7 +149,7 @@ D_NODISCARD expression parse_expression(
     std::string_view _text
 );
 
-// names -- every name an expression refers to, in order of appearance
+// names - every name an expression refers to, in order of appearance
 D_NODISCARD std::vector<std::string> referenced_names(
     const expression& _expression
 );

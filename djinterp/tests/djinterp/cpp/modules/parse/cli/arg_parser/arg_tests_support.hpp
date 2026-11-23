@@ -17,8 +17,8 @@
 * line for each option, a list's items separated by `|`, each argument,
 * value and message escaped as escape() writes it. A callback adds lines of
 * its own as it runs, which come before the report. Everything a run
-* reports it reads through the face -- uses, values, names, the order of a
-* parse -- so that a transcript checks the face's readers as well as the
+* reports it reads through the face - uses, values, names, the order of a
+* parse - so that a transcript checks the face's readers as well as the
 * parse.
 *   The interface is written so that it can be had over CLI11 too: the
 * programs that wrote the expected transcripts give CLI11's App the same
@@ -161,7 +161,7 @@ public:
     // MultiOptionPolicy::TakeAll, as the checks against CLI11 made the
     // options they gave several values; the make calls define an option, a
     // flag, a subcommand or an option group with no description and watch
-    // it -- a subcommand and a group under their names
+    // it - a subcommand and a group under their names
     cli::option watch(
         const char*        _label,
         const cli::option& _option
@@ -198,8 +198,8 @@ public:
         const char*         _name
     );
 
-    // the label a command or an option is reported under -- what a
-    // callback's note names it by -- or "?" for one the run does not report
+    // the label a command or an option is reported under - what a
+    // callback's note names it by - or "?" for one the run does not report
     const char* label(
         const cli::option& _option
     ) const D_NOEXCEPT;
@@ -313,7 +313,7 @@ public:
 #endif  // D_INTERNAL_ARG_PARSER_WIDE_ARGV
     /**
      * @brief Parses arguments as parse() does, then again as main does with
-     *        D_ARG_PARSE -- CLI11's CLI11_PARSE -- and writes what main
+     *        D_ARG_PARSE - CLI11's CLI11_PARSE - and writes what main
      *        comes to: a line `main` and the code it returns, -1 when the
      *        parse goes on, then what that parse wrote to the output and to
      *        the error output, each on a line after `out` or `err`,
@@ -328,7 +328,7 @@ public:
     );
     /**
      * @brief Parses arguments once, as main does with D_ARG_PARSE --
-     *        CLI11's CLI11_PARSE -- and writes what main comes to, as
+     *        CLI11's CLI11_PARSE - and writes what main comes to, as
      *        parse_main() writes it: a ported program's own parse, which
      *        runs its callbacks once.
      *
@@ -457,7 +457,7 @@ bool text_holds(
 // cases_hold
 /**
  * @brief Runs each case of a table on a run of its own, after a line
- *        naming it -- `<tag> [<arguments>]` -- and compares the whole with
+ *        naming it - `<tag> [<arguments>]` - and compares the whole with
  *        the transcript expected.
  *
  * @param[in] _name      the section's transcript's name, for a mismatch.
@@ -502,7 +502,7 @@ bool steps_hold(
 //------------------------------------------------------------------------------
 // 3.1.1
 // escape / render
-//   functions: a text as a transcript line holds it -- a tab as `\t`, a
+//   functions: a text as a transcript line holds it - a tab as `\t`, a
 // newline as `\n`, any other control byte as `\x` and two hexadecimal
 // digits, and, by escape() but not by render(), a backslash as `\\` --
 // so that a line stays one line and a backslash is told from an escape.
@@ -542,7 +542,7 @@ std::string number(
  *
  * @note A value's line is the value in brackets, then `-> pass` and the
  *       value it became, `-> fail` and why, or, where the validator stopped
- *       with an error of its own -- CLI11's validators throw there --
+ *       with an error of its own - CLI11's validators throw there --
  *       `-> status` and the message, each in angle brackets. Integers are
  *       read under CLI11's rule for leading zeros.
  *
@@ -569,7 +569,7 @@ void transcribe(
 // 5.1.1
 // DScratchDirectory
 //   class: the C suites' scratch directory (c/arg_tests_files.h), entered by
-// its constructor and left -- everything in it removed -- by its
+// its constructor and left - everything in it removed - by its
 // destructor, with the files a case lists made in it. `ok()` is whether
 // everything asked of it was done.
 class DScratchDirectory

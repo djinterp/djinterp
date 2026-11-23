@@ -15,7 +15,7 @@
 * Collapsing them at the grammar level would silently change which language a
 * grammar denotes, and the damage would show up as a wrong parse rather than
 * as an error. A pass may lower unordered to ordered, but only where the
-* alternatives' first sets are disjoint -- which is a proof obligation, and
+* alternatives' first sets are disjoint - which is a proof obligation, and
 * exactly the kind of thing a feature bit makes it possible to state.
 *
 *   A BIT IS VOCABULARY, NOT A PROMISE. Naming a feature here says the concept
@@ -67,7 +67,7 @@ TABLE OF CONTENTS
 #include "../../../../re_std/c/cstdint/dstdint.h"  // uint64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -84,8 +84,8 @@ TABLE OF CONTENTS
 // 1.1.1
 // dj_parsegen_features
 //   type: a set of capability bits. One word, so every question selection asks
-// -- does this stage reject anything this grammar uses, does it get everything
-// it needs -- is two instructions.
+// - does this stage reject anything this grammar uses, does it get everything
+// it needs - is two instructions.
 typedef uint64_t dj_parsegen_features;
 
 // D_PARSEGEN_FEATURE_NONE

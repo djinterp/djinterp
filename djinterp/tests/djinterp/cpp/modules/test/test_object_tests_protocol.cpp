@@ -21,7 +21,7 @@ using namespace ::djinterp::test;
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///   compile-time invariants -- read-only query surface                      ///
+///   compile-time invariants - read-only query surface                      ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // operator bool is non-explicit, so an object is implicitly bool-convertible
@@ -57,7 +57,7 @@ static_assert(k_pend.failed() == false,           "");
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///   runtime tests -- read-only query surface                                ///
+///   runtime tests - read-only query surface                                ///
 ///////////////////////////////////////////////////////////////////////////////
 
 /*

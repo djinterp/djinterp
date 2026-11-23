@@ -141,7 +141,7 @@ struct recorder
 ///                TEST DECLARATIONS                                         ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// -- section: status codes & tokens (publisher_tests_status_token.cpp)
+// - section: status codes & tokens (publisher_tests_status_token.cpp)
 bool tests_status_codes();
 bool tests_status_default_publish_codes();
 bool tests_token_default();
@@ -150,7 +150,7 @@ bool tests_token_valid();
 bool tests_token_equality();
 bool tests_token_id_type();
 
-// -- section: subscription handles (publisher_tests_subscription.cpp)
+// - section: subscription handles (publisher_tests_subscription.cpp)
 bool tests_subscription_default();
 bool tests_subscription_active();
 bool tests_subscription_token_accessor();
@@ -174,13 +174,13 @@ bool tests_scoped_subscriptions_plus_equals();
 bool tests_scoped_subscriptions_raii();
 bool tests_scoped_subscriptions_unsubscribe_all();
 
-// -- section: message envelope (publisher_tests_message.cpp)
+// - section: message envelope (publisher_tests_message.cpp)
 bool tests_message_default();
 bool tests_message_copy_ctor();
 bool tests_message_move_ctor();
 bool tests_message_typedefs();
 
-// -- section: subscriber registry (publisher_tests_registry.cpp)
+// - section: subscriber registry (publisher_tests_registry.cpp)
 bool tests_registry_default();
 bool tests_registry_add();
 bool tests_registry_dispatch();
@@ -200,7 +200,7 @@ bool tests_registry_topic_count();
 bool tests_registry_empty();
 bool tests_registry_reserve_topics();
 
-// -- section: broker surface (publisher_tests_broker.cpp)
+// - section: broker surface (publisher_tests_broker.cpp)
 bool tests_broker_default_state();
 bool tests_broker_subscribe_tokens();
 bool tests_broker_publish_delivers();
@@ -225,7 +225,7 @@ bool tests_broker_empty();
 bool tests_broker_reserve_topics();
 bool tests_broker_not_directly_constructible();
 
-// -- section: customization points & bus (publisher_tests_customization.cpp)
+// - section: customization points & bus (publisher_tests_customization.cpp)
 bool tests_bus_default_hooks();
 bool tests_bus_typedefs();
 bool tests_bus_fn_ptr_handler();
@@ -236,7 +236,7 @@ bool tests_hook_should_publish_state();
 bool tests_hook_do_deliver_override();
 bool tests_hook_do_publish_override();
 
-// -- section: traits & concepts (publisher_tests_traits.cpp)
+// - section: traits & concepts (publisher_tests_traits.cpp)
 bool tests_trait_has_subscribe();
 bool tests_trait_has_publish();
 bool tests_trait_has_unsubscribe();
@@ -247,7 +247,7 @@ bool tests_trait_is_subscription_v();
 bool tests_concept_broker_type();
 bool tests_concept_handler_for();
 
-// -- section: factories (publisher_tests_factories.cpp)
+// - section: factories (publisher_tests_factories.cpp)
 bool tests_make_bus();
 bool tests_make_bus_custom_handler();
 bool tests_make_message();

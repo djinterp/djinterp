@@ -110,7 +110,7 @@ bool d_ftp_internal_has_token(
 /*
 d_ftp_internal_feature_tokens
   File-local: records a feature whose parameters name what it offers: AUTH's
-mechanisms -- "TLS", "SSL", or variants such as "TLS-C" -- "REST STREAM",
+mechanisms - "TLS", "SSL", or variants such as "TLS-C" - "REST STREAM",
 and "MODE Z". Reports whether `_name` was one of them.
 */
 D_STATIC

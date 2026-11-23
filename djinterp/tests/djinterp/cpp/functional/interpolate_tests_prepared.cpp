@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][functional]                      interpolate_tests_prepared.cpp
 *
-* Section VIII -- DPreparedInterpolation: scan ONCE into a shared piece cache
+* Section VIII - DPreparedInterpolation: scan ONCE into a shared piece cache
 * and replay it every render.  Verifies the mirrored builder surface (identity,
 * frame, interpolate_if, recursive, conversion, accessors), the hot-path
 * resolver-argument terminals (str(resolver) / into(sink, resolver)) reused
@@ -55,7 +55,7 @@ bool test_prepared_hot_path_str()
     const auto _p = ::djinterp::prepare<char>(sv("{a}"));
 
     D_INTERP_CHECK(_p.str(::djinterp::DMapResolver<char>{ {"a", "1"} }) == "1");
-    // same cache, a different resolver -- nothing re-scanned
+    // same cache, a different resolver - nothing re-scanned
     D_INTERP_CHECK(_p.str(::djinterp::DMapResolver<char>{ {"a", "2"} }) == "2");
 
     return true;

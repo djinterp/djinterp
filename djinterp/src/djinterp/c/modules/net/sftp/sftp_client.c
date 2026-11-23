@@ -41,7 +41,7 @@
 
 // PACKET_ROOM
 //   constant: bytes a READ reply or a WRITE request carries besides its data
-// -- header, id, handle, offset, and length -- rounded up generously; a
+// - header, id, handle, offset, and length - rounded up generously; a
 // chunk plus this must fit the server's packet limit.
 static const uint64_t PACKET_ROOM = 1024u;
 
@@ -51,8 +51,8 @@ static const uint64_t PACKET_ROOM = 1024u;
 
 /*
 d_sftp_internal_client_failed
-  File-local: records a stream failure -- the connection's error and, over
-the client's own channel, the SSH status beneath it -- and returns its
+  File-local: records a stream failure - the connection's error and, over
+the client's own channel, the SSH status beneath it - and returns its
 error. A read of nothing with no error is the stream's end, before the
 reply's: D_NET_ERROR_CLOSED, the stream ended too soon, as
 d_net_read_exactly would say, and the channel's output ended beneath it.
@@ -83,8 +83,8 @@ d_sftp_internal_client_failed(
 /*
 d_sftp_internal_client_receive
   Reads the next whole packet. Before reading more, a partial
-packet moves to the front of the buffer, which -- sized for the largest
-packet plus room -- then always has space for the rest of it. The packet's
+packet moves to the front of the buffer, which - sized for the largest
+packet plus room - then always has space for the rest of it. The packet's
 reader borrows the buffer until the next call.
 */
 enum dj_sftp_error
@@ -236,8 +236,8 @@ d_sftp_internal_client_reply(
 
 /*
 d_sftp_internal_client_status
-  Reads a STATUS reply, keeping its code and message -- the
-message truncated to fit, and NUL-terminated -- and returns the error it
+  Reads a STATUS reply, keeping its code and message - the
+message truncated to fit, and NUL-terminated - and returns the error it
 means. A packet that is not a well-formed STATUS breaks the protocol.
 */
 enum dj_sftp_error
@@ -278,8 +278,8 @@ d_sftp_internal_client_status(
 
 /*
 d_sftp_internal_client_done
-  File-local: awaits a request that STATUS alone answers -- REMOVE, MKDIR,
-CLOSE, and the like -- and returns what it means.
+  File-local: awaits a request that STATUS alone answers - REMOVE, MKDIR,
+CLOSE, and the like - and returns what it means.
 */
 D_STATIC enum dj_sftp_error
 d_sftp_internal_client_done(
@@ -300,7 +300,7 @@ d_sftp_internal_client_done(
 /*
 d_sftp_internal_client_answer
   File-local: awaits a reply of `_type`. A STATUS instead carries the
-server's refusal -- or, if it claims success, breaks the protocol, since it
+server's refusal - or, if it claims success, breaks the protocol, since it
 answered without the result asked for.
 */
 D_STATIC enum dj_sftp_error
@@ -385,8 +385,8 @@ d_sftp_internal_client_path_attributes(
 
 /*
 d_sftp_internal_client_handle_request
-  File-local: sends a request whose body is a handle -- CLOSE, FSTAT,
-READDIR -- or, with `_extension`, an EXTENDED request naming it first.
+  File-local: sends a request whose body is a handle - CLOSE, FSTAT,
+READDIR - or, with `_extension`, an EXTENDED request naming it first.
 */
 D_STATIC enum dj_sftp_error
 d_sftp_internal_client_handle_request(

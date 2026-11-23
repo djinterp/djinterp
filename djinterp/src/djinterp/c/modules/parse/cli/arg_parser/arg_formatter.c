@@ -2,7 +2,7 @@
 * djinterp [c][parse]                                            arg_formatter.c
 *
 * Help formatters, declared in arg_formatter.h (3, 4.1 and 5.1).
-*   A formatter's lifetime, settings and labels -- CLI11's FormatterBase --
+*   A formatter's lifetime, settings and labels - CLI11's FormatterBase --
 * and the formatter a command's help uses; the dispatch of each step to the
 * formatter's table, or to the default step when its entry is empty; and help
 * itself, CLI11's App::help, built whole into a buffer before a byte of it is
@@ -985,8 +985,8 @@ int d_arg_internal_help_pad(
  * @param[in,out] _at    the place to read from, moved past the word.
  * @return the word; an empty span when none is left.
  *
- * The next word of a line from `*_at` on -- the run of characters up to a
- * space, the spaces before it skipped -- with `*_at` moved past it; an empty
+ * The next word of a line from `*_at` on - the run of characters up to a
+ * space, the spaces before it skipped - with `*_at` moved past it; an empty
  * span when none is left. CLI11 reads the words with `>>`, whose spaces are
  * the "C" locale's six.
  */
@@ -1342,7 +1342,7 @@ size_t d_arg_internal_help_fit(
  * The command whose help App::help gives: the last subcommand the last
  * parse used, followed down the tree. The name is built on the way, the words
  * before and each command's own joined by a space unless there are none
- * before -- so a nameless command after words leaves a trailing space, as in
+ * before - so a nameless command after words leaves a trailing space, as in
  * CLI11.
  */
 D_STATIC

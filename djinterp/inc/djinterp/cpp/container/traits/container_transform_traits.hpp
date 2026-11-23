@@ -429,7 +429,7 @@ NS_INTERNAL
     template<typename Container, typename = void>
     struct has_allocator_helper : std::false_type {};
     // has_allocator_helper specialization
-    //   helper: the detected case -- selected when the type declares the
+    //   helper: the detected case - selected when the type declares the
     // nested type `allocator_type`.
     template<typename Container>
     struct has_allocator_helper<Container,
@@ -478,7 +478,7 @@ struct rebind_element
 };
 
 // rebind_element_t
-//   type: the carrier of rebind_element -- its `::type`, for use where a type
+//   type: the carrier of rebind_element - its `::type`, for use where a type
 // rather than a value is wanted.
 template<typename Container,
          typename Sigma>
@@ -528,7 +528,7 @@ struct transform_result_type
 };
 
 // transform_result_type_t
-//   type: the carrier of transform_result_type -- its `::type`, for use where
+//   type: the carrier of transform_result_type - its `::type`, for use where
 // a type rather than a value is wanted.
 template<typename Type,
          typename Sigma>

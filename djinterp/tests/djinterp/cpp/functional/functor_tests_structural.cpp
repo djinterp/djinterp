@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  functor_tests_structural.cpp
-//   Section 0 -- the structural detection vocabulary: functor_value_type,
+//   Section 0 - the structural detection vocabulary: functor_value_type,
 //   is_fmappable, and the C++20 concept faces.
 
 // std
@@ -24,7 +24,7 @@ NS_TESTING
 
 /*
 tests_functor_value_type
-  The inner value type T of a functor F -- the first of the finer-grained
+  The inner value type T of a functor F - the first of the finer-grained
   questions generic code depends on.
   Tests the following:
   - the inner type of both bridged monads, at several inners
@@ -93,12 +93,12 @@ bool tests_functor_value_type_t_alias()
 /*
 tests_functor_value_type_helper_sfinae
   The extraction is built on a SFINAE helper whose primary is a COMPLETE but
-  MEMBERLESS struct -- a soft failure, yielding no ::type rather than an error.
+  MEMBERLESS struct - a soft failure, yielding no ::type rather than an error.
   This is the machinery behind the trait's SFINAE-friendliness claim, and it is
   the level at which that claim can actually be read.
   Tests the following:
   - the helper has a ::type for both kinds of functor
-  - it has NONE for a non-functor -- and is nevertheless a complete type, so the
+  - it has NONE for a non-functor - and is nevertheless a complete type, so the
     failure is soft
   NOTE: the PUBLIC functor_value_type re-declares `type` unconditionally, so
   naming functor_value_type<non-functor>::type is a hard error rather than a
@@ -113,7 +113,7 @@ bool tests_functor_value_type_helper_sfinae()
     static_assert(has_type<vt_helper<DTbox<int> > >::value, "the other monad");
     static_assert(has_type<vt_helper<DLazyView<int, dbl> > >::value, "explicit");
 
-    // absent for a non-functor -- softly.
+    // absent for a non-functor - softly.
     static_assert(!has_type<vt_helper<DNotAFunctor> >::value,
                   "no ::type for a non-functor");
     static_assert(!has_type<vt_helper<int> >::value, "nor for a scalar");
@@ -166,7 +166,7 @@ tests_is_fmappable_negative
   It is strictly finer-grained than is_functor: a perfectly good functor paired
   with a function that cannot be applied to its inner type is NOT mappable.
   Tests the following:
-  - a functor with an incompatible function is refused -- though it IS a functor
+  - a functor with an incompatible function is refused - though it IS a functor
   - a non-functor is refused with any function
   - the pairing really is what fails (the same functor maps fine with a fitting
     function)
@@ -185,12 +185,12 @@ bool tests_is_fmappable_negative()
     // ...and it does fit the functor whose inner type IS a string.
     ok = ok && (is_fmappable<DTmaybe<std::string>, DWantsString>::value);
 
-    // not a functor at all -- there is no map to call, so the expression is
+    // not a functor at all - there is no map to call, so the expression is
     // ill-formed.
     ok = ok && (!is_fmappable<DNotAFunctor, dbl>::value);
     ok = ok && (!is_fmappable<int, dbl>::value);
 
-    // NB: no_marker is NOT here -- it has a map, so it IS fmappable, though it
+    // NB: no_marker is NOT here - it has a map, so it IS fmappable, though it
     // is not a functor. See tests_is_fmappable_does_not_require_the_marker.
 
     return ok;
@@ -203,7 +203,7 @@ tests_is_fmappable_does_not_require_the_marker
   is_fmappable keys on whether the EXPRESSION functor_map(F, Fn) is well-formed.
   Those are different questions, and they can disagree: a functor_traits
   specialization that carries a map but no marker is NOT a functor, yet IS
-  fmappable -- because its map is there to be called.
+  fmappable - because its map is there to be called.
   Tests the following:
   - no_marker is not a functor, but IS fmappable, and functor_map really does
     call its map
@@ -314,7 +314,7 @@ tests_fmappable_with_concept
   Tests the following:
   - it mirrors the trait
   - a constrained overload is excluded for a functor paired with a function that
-    does not fit it -- the near-miss the plain Functor face cannot catch
+    does not fit it - the near-miss the plain Functor face cannot catch
 */
 bool tests_fmappable_with_concept()
 {

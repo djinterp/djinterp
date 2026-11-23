@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][functional]                   interpolate_tests_composition.cpp
 *
-* Section III (composition) -- DChainResolver (try A, else B; first hit wins,
+* Section III (composition) - DChainResolver (try A, else B; first hit wins,
 * second consulted only on a miss) and DWhenResolver (gate a resolver on a key
 * predicate; non-matching keys fall through as a miss), plus the chain / when
 * factories.  Pins the two documented properties: chain's lazy fall-through

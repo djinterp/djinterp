@@ -9,14 +9,14 @@
 * base type tau) and an optional NODE summand F[T] (a sub-container).  The node
 * summand is present exactly where nesting occurs, so its presence IS hierarchy;
 * the depth d counts nodes, and a container is HIERARCHICAL (nested) when d >= 2.
-* This tag names that case.  Where the nesting is regular -- every leaf at one
-* depth -- the type collapses to an iterated container of fixed depth; in the
+* This tag names that case.  Where the nesting is regular - every leaf at one
+* depth - the type collapses to an iterated container of fixed depth; in the
 * general composite case two values may nest differently and depth is a property
 * of values, but the TYPE is hierarchical all the same.
 *
 *   USE - IN CONJUNCTION WITH STRUCTURAL DETECTION:
 *   The structure axis is decided primarily by structural SFINAE traits (see
-* hierarchical_container_traits.hpp): a node_type member -- the F[T] summand --
+* hierarchical_container_traits.hpp): a node_type member - the F[T] summand --
 * is the strong, authoritative tell, and a container-shaped value_type is a
 * weaker structural heuristic.  This tag is the OPT-IN supplement a type carries
 * through `using structure_category = hierarchical;`, asserting hierarchy that

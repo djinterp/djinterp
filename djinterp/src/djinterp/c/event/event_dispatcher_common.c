@@ -1,17 +1,17 @@
 /*******************************************************************************
 * djinterp [c][event]                                  event_dispatcher_common.c
 *
-* The queue and the facade -- tier 0 definitions.
+* The queue and the facade - tier 0 definitions.
 *   Implements event_dispatcher_common.h. The queue is two rings: slots, and
 * the payload bytes they name by offset. A payload is never split across the
-* end of the byte ring -- a handler receives one contiguous block -- so when
+* end of the byte ring - a handler receives one contiguous block - so when
 * it does not fit before the end it goes to the start and the gap it skips is
 * charged to it until it is released. Payloads are placed on
 * D_INTERNAL_EVENT_QUEUE_ALIGN boundaries relative to the arena, which an
 * allocating queue gets from malloc and a fixed queue from its caller.
 *   The occurrence being dispatched stays in both rings until its handlers
 * return, so a re-entrant enqueue can never overwrite it: that is the whole
-* of the re-entrancy guarantee, plus two refusals while processing -- a
+* of the re-entrancy guarantee, plus two refusals while processing - a
 * nested process, and discarding the occurrence in flight.
 *
 *
@@ -126,7 +126,7 @@ bool d_internal_event_queue_place(
 
 /*
 d_internal_event_queue_release_head
-  Pops the head slot and returns its bytes -- everything from bytes_head to
+  Pops the head slot and returns its bytes - everything from bytes_head to
 the end of its payload, which includes any gap charged to it. An empty
 payload holds no bytes and returns none.
 */
@@ -281,8 +281,8 @@ void d_event_queue_dispose(
 
 /*
 d_event_queue_clear
-  While processing, the occurrence in flight is kept -- its handlers are
-still reading its payload -- and everything behind it is discarded, so the
+  While processing, the occurrence in flight is kept - its handlers are
+still reading its payload - and everything behind it is discarded, so the
 running process stops after it.
 */
 void d_event_queue_clear(
@@ -332,7 +332,7 @@ void d_event_queue_clear(
 d_event_queue_enqueue
   All room is found before anything is written, so a refusal leaves the
 queue untouched. Under the drop-oldest policy the oldest occurrences are
-released unprocessed to make room -- but never while processing, when the
+released unprocessed to make room - but never while processing, when the
 oldest is the one in flight.
 */
 int d_event_queue_enqueue(

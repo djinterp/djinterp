@@ -541,8 +541,8 @@ int d_internal_parse_escape_byte(
 
 /*
 d_internal_parse_bracket_sub
-  Parses a bracketed sub-expression of a bracket expression -- a named class
-[:name:], a collating element [.c.] or an equivalence class [=c=] -- when one
+  Parses a bracketed sub-expression of a bracket expression - a named class
+[:name:], a collating element [.c.] or an equivalence class [=c=] - when one
 starts at the parser's position, and adds its members to the set.
 
 Parameter(s):
@@ -604,8 +604,8 @@ int d_internal_parse_bracket_sub(
 
 /*
 d_internal_parse_bracket_member
-  Parses one member of a bracket expression -- a byte, escaped or not, or a
-range of them -- and adds it to the set.
+  Parses one member of a bracket expression - a byte, escaped or not, or a
+range of them - and adds it to the set.
 
 Parameter(s):
   _parser: the parser positioned at the member.
@@ -1746,7 +1746,7 @@ bool d_internal_compile_repeat(
 
 /*
 d_internal_compile_leaf
-  Lowers a leaf -- a byte, a class, the wildcard or an anchor -- to its one
+  Lowers a leaf - a byte, a class, the wildcard or an anchor - to its one
 instruction.
 
 Parameter(s):
@@ -2318,7 +2318,7 @@ bool d_internal_run(
 // 6.  CAPTURE PASS
 //==============================================================================
 // The second execution path.  Its input is a window already fixed by the
-// simulation, so it never decides where the match is -- only how the groups
+// simulation, so it never decides where the match is - only how the groups
 // divide it.  Anchoring both ends discards most candidate parses before they
 // are built, and the step budget bounds what remains.
 
@@ -2417,7 +2417,7 @@ bool d_internal_capture_trail(
 
 /*
 d_internal_capture_consume
-  Steps a consuming instruction -- a byte, the wildcard or a class -- over
+  Steps a consuming instruction - a byte, the wildcard or a class - over
 the byte at the position, within the window.
 
 Parameter(s):
@@ -2482,7 +2482,7 @@ back-edge and counts; an empty iteration is kept only when it is the only
 one.
 NOTE:
   GNU regex reports group 1 of /(a{0,1})*b/ against "b" as an empty match at
-  offset zero, but reports (a?)* against "aa" as (1,1) -- the trailing
+  offset zero, but reports (a?)* against "aa" as (1,1) - the trailing
   empty iteration is discarded once an earlier one consumed.  Diverting keeps
   the writes; failing unwinds them.
 

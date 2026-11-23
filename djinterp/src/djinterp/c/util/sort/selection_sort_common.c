@@ -21,7 +21,7 @@ scan finds it without a second code path, because direction is applied inside
 d_sort_precedes.
   A candidate must STRICTLY precede the incumbent to displace it, so among
 equal elements the earliest wins. That, together with the forward scan, is what
-pins the arrangement this family produces -- see the note in the header. The
+pins the arrangement this family produces - see the note in the header. The
 comparison is also why the run cannot be cut short: nothing learned about the
 first k elements says anything about the remaining ones, which is the whole of
 why this algorithm is not adaptive.
@@ -88,7 +88,7 @@ exchanging it to the front of the unsorted remainder.
 an optimisation: it is what holds the exchange count to "at most n-1", which is
 this algorithm's entire reason for existing, and a self-exchange on a large
 element would spend real writes to accomplish nothing.
-  The final position needs no pass of its own -- once every other element has
+  The final position needs no pass of its own - once every other element has
 been placed, the one remaining is the largest, and there is nothing left to
 compare it against. So the loop stops one short of the end.
   The caller owns the range. A pass does not verify it, because it is called by

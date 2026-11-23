@@ -1,14 +1,14 @@
 /*******************************************************************************
 * djinterp [cpp][meta]                            memory_discipline_concepts.hpp
 *
-* C++20 concepts for the MEMORY-DISCIPLINE vocabulary -- the `requires`-facing
+* C++20 concepts for the MEMORY-DISCIPLINE vocabulary - the `requires`-facing
 * view of {traits}. THE CONCEPTS ADD NO POLICY. Each is exactly its trait,
 * spelled so it can constrain a template instead of gating one through
 * enable_if. The trait stays the single source of truth. NAMES.
 * meta/concepts.hpp already owns the general type-level concepts (the `_c`
 * family), and constexpr_iterator_concepts.hpp the constexpr-iteration ones;
 * neither is duplicated here. Where an obvious name is otherwise taken, the
-* concept takes a form that cannot collide -- a concept and a class of one name
+* concept takes a form that cannot collide - a concept and a class of one name
 * in one namespace is a hard redeclaration. PORTABILITY: Gated on C++20 +
 * concepts. Below that the header is empty and callers use the `::value` / `_v`
 *
@@ -45,7 +45,7 @@ NS_DJINTERP
 
 
 // DeclaresStrategyKind
-// concept: advertises a strategy_kind -- the tell that a type is a memory
+// concept: advertises a strategy_kind - the tell that a type is a memory
 // strategy at all, the guard the discipline classifier rests on.
 template<typename Type>
 concept DeclaresStrategyKind =
@@ -53,14 +53,14 @@ concept DeclaresStrategyKind =
 
 
 // ByteAllocatingStrategy
-//   concept: allocates by BYTES -- an untyped region (arena / bump).
+//   concept: allocates by BYTES - an untyped region (arena / bump).
 template<typename Type>
 concept ByteAllocatingStrategy =
     has_byte_allocate_signal_v<clean_t<Type>>;
 
 
 // ElementAllocatingStrategy
-//   concept: allocates by ELEMENTS -- a typed slot source (pool / individual).
+//   concept: allocates by ELEMENTS - a typed slot source (pool / individual).
 template<typename Type>
 concept ElementAllocatingStrategy =
     has_element_allocate_signal_v<clean_t<Type>>;
@@ -73,7 +73,7 @@ concept ElementAllocatingStrategy =
 
 // DeclaresPointerStability
 // concept: states whether its slots move. Pointer stability is exactly what
-// tells a pool from a heap -- both release per object -- so this constant is
+// tells a pool from a heap - both release per object - so this constant is
 // the discriminator, named by contract rather than by any concrete pool type.
 template<typename Type>
 concept DeclaresPointerStability =

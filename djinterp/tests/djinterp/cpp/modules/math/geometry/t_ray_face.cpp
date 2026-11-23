@@ -2,7 +2,7 @@
 * djinterp [cpp][math]                                            t_ray_face.cpp
 *
 *   Tests for geometry/ray.hpp, at every level from C++98: points along a
-* ray; the box test as the C core's -- the answer and the parameters -- for
+* ray; the box test as the C core's - the answer and the parameters - for
 * corners and for an aabb; the triangle test likewise; an integer ray
 * through double; from C++11 std::array corners and vertices, and from C++14
 * the tests as constant expressions.

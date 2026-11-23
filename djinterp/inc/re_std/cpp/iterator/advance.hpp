@@ -7,7 +7,7 @@
 *
 * complexity:
 *   O(1) for random-access iterators (uses += directly).
-*   O(|_n|) otherwise (loop with ++, or -- for bidirectional).
+*   O(|_n|) otherwise (loop with ++, or - for bidirectional).
 *
 * selected by tag dispatch on iterator_traits<It>::iterator_category.
 *

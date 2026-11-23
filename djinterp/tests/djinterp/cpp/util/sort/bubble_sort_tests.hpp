@@ -7,9 +7,9 @@
 *
 *   sections (one .cpp each):
 *     bubble_sort_tests_primitives.cpp  bubble_compare_exchange / bubble_pass
-*                                       -- the strict exchange and the pass
+*                                       - the strict exchange and the pass
 *                                       that reports its last exchange
-*     bubble_sort_tests_apply.cpp       internal::bubble_sort_apply -- the
+*     bubble_sort_tests_apply.cpp       internal::bubble_sort_apply - the
 *                                       driver, its early exit, and its
 *                                       shrinking boundary
 *     bubble_sort_tests_entry.cpp       the public bubble_sort /
@@ -29,7 +29,7 @@
 #include <cstddef>
 #include <vector>
 // djinterp
-//   core is ALWAYS first and unconditional -- NS_* / D_* qualifiers and the
+//   core is ALWAYS first and unconditional - NS_* / D_* qualifiers and the
 // language gates are needed by both faces of this header.
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
@@ -55,7 +55,7 @@ NS_TESTING
 // UNCONDITIONALLY: the spec provider below needs dt::module_spec too.
 namespace dt = ::djinterp::test;
 
-#ifndef DTEST_SPEC_MODE   // fixtures -- normal mode only
+#ifndef DTEST_SPEC_MODE   // fixtures - normal mode only
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -147,20 +147,20 @@ D_TESTS_SORT_ORDERED_PROBE(bubble, ::djinterp::bubble_sort_ordered)
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// primitives -- bubble_compare_exchange / bubble_pass
+// primitives - bubble_compare_exchange / bubble_pass
 bool tests_bubble_sort_compare_exchange_is_strict();
 bool tests_bubble_sort_pass_reports_last_exchange();
 bool tests_bubble_sort_pass_degenerate_runs();
 bool tests_bubble_sort_pass_bound_invariant();
 
-// apply -- internal::bubble_sort_apply
+// apply - internal::bubble_sort_apply
 bool tests_bubble_sort_apply_degenerate_ranges();
 bool tests_bubble_sort_apply_ordering_battery();
 bool tests_bubble_sort_apply_early_exit();
 bool tests_bubble_sort_apply_shrinking_boundary();
 bool tests_bubble_sort_apply_exchange_traffic();
 
-// entry -- bubble_sort / bubble_sort_ordered
+// entry - bubble_sort / bubble_sort_ordered
 bool tests_bubble_sort_entry_comparator();
 bool tests_bubble_sort_entry_default();
 bool tests_bubble_sort_entry_ordered();

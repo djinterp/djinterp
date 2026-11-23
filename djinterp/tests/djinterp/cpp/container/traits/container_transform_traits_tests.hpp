@@ -173,35 +173,35 @@ struct DPairBox
 // Test-function declarations (defined in the section .cpp files)
 // ===========================================================================
 
-// -- I.   Capability detection --
+// - I.   Capability detection --
 bool tests_is_transform_source();
 bool tests_is_container_transformable();
 bool tests_is_transform_input_only();
 bool tests_has_native_transform();
 
-// -- II.  Strategy --
+// - II.  Strategy --
 bool tests_transform_strategy_name();
 bool tests_container_transform_strategy();
 
-// -- III. Stage --
+// - III. Stage --
 bool tests_transform_stage_name();
 bool tests_transform_stage_of();
 
-// -- IV.  Preservation --
+// - IV.  Preservation --
 bool tests_transform_preserves_order();
 bool tests_transform_preserves_size_and_capacity();
 bool tests_transform_preserves_sortedness_and_uniqueness();
 
-// -- V.   Result type and element rebind --
+// - V.   Result type and element rebind --
 bool tests_rebind_element();
 bool tests_transform_result_type();
 
-// -- VI.  Combined classification + variable-template companions --
+// - VI.  Combined classification + variable-template companions --
 bool tests_container_transform_class();
 bool tests_transform_variable_templates();
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // container_transform_traits_spec
 //   function: the suite as DTest's module spec, one block per section.

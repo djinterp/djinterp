@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  functor_tests_bridge.cpp
-//   Section I.2 -- the blanket monad bridge: every monad is a functor, keyed on
+//   Section I.2 - the blanket monad bridge: every monad is a functor, keyed on
 //   is_monad, with no per-type wiring.
 
 // std
@@ -25,7 +25,7 @@ NS_TESTING
 /*
 tests_bridge_every_monad_is_a_functor
   The headline claim. tmaybe and tbox each carry a monad_traits specialization
-  and NOTHING else -- there is no functor_traits<tmaybe> or functor_traits<tbox>
+  and NOTHING else - there is no functor_traits<tmaybe> or functor_traits<tbox>
   anywhere in this suite. If they are functors, the blanket specialization is
   what made them so.
   Tests the following:
@@ -55,7 +55,7 @@ bool tests_bridge_every_monad_is_a_functor()
 
 /*
 tests_bridge_is_keyed_on_is_monad
-  The bridge is keyed on is_monad, so monad-ness IMPLIES functor-ness -- but not
+  The bridge is keyed on is_monad, so monad-ness IMPLIES functor-ness - but not
   the reverse. Functor is the strictly broader protocol.
   Tests the following:
   - every monad fixture is a functor
@@ -87,7 +87,7 @@ bool tests_bridge_is_keyed_on_is_monad()
 /*
 tests_bridge_derives_map_from_monad_map
   The bridge derives the functor operation from the monad's own bind + unit, via
-  monad_map. So over a monad, functor_map IS monad_map -- same value and same
+  monad_map. So over a monad, functor_map IS monad_map - same value and same
   type, not merely a similar one.
   Tests the following:
   - the two agree in value, on a present and an absent context
@@ -151,7 +151,7 @@ bool tests_bridge_value_type_from_monad()
 /*
 tests_bridge_rebind_from_monad
   Where the monad names an F<U>, the bridge passes it through as the functor's
-  rebind -- even though rebind is not part of the core functor protocol.
+  rebind - even though rebind is not part of the core functor protocol.
   Tests the following:
   - the functor's rebind and the monad's agree
   - it really does change the inner type
@@ -214,7 +214,7 @@ tests_bridge_does_not_overlap_explicit
   non-monad, so there is no ambiguity to resolve.
   Tests the following:
   - the view is not a monad, so the bridge cannot claim it
-  - the view's own specialization is the one in force -- its map is its own, not
+  - the view's own specialization is the one in force - its map is its own, not
     monad_map (which would not even compile for it)
   - both kinds of functor coexist and are mapped by the same generic call
 */

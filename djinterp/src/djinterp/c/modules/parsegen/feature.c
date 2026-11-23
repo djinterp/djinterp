@@ -71,7 +71,7 @@ Parameter(s):
   _size: the size of _out in bytes, including the terminator.
 Return:
   The number of characters the full rendering would occupy, excluding the
-terminator -- so a return of _size or more means the output was truncated.
+terminator - so a return of _size or more means the output was truncated.
 */
 size_t d_parsegen_features_render(
     dj_parsegen_features _set,

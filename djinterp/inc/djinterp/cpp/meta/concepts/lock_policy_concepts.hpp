@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][meta]                                  lock_policy_concepts.hpp
 *
-*   C++20 concepts for the LOCK-POLICY contract -- the `requires`-facing view of
+*   C++20 concepts for the LOCK-POLICY contract - the `requires`-facing view of
 * {traits}.
 *
 *   THE CONCEPTS ADD NO POLICY.  Each is exactly its trait, spelled so it can
@@ -11,7 +11,7 @@
 *   NAMES.  meta/concepts.hpp already owns the general type-level concepts (the
 * `_c` family), and constexpr_iterator_concepts.hpp the constexpr-iteration
 * ones; neither is duplicated here.  Where an obvious name is otherwise taken,
-* the concept takes a form that cannot collide -- a concept and a class of one
+* the concept takes a form that cannot collide - a concept and a class of one
 * name in one namespace is a hard redeclaration.
 *
 *   PORTABILITY:
@@ -59,7 +59,7 @@ concept LockPolicy =
 
 
 // SharedLockPolicy
-// concept: a policy that permits concurrent readers -- is_shared. A
+// concept: a policy that permits concurrent readers - is_shared. A
 // reader/writer lock, as against a plain exclusive one.
 template<typename Type>
 concept SharedLockPolicy =
@@ -67,7 +67,7 @@ concept SharedLockPolicy =
 
 
 // TimedLockPolicy
-// concept: a policy whose acquisition can time out -- is_timed. The only kind a
+// concept: a policy whose acquisition can time out - is_timed. The only kind a
 // caller can wait on with a bound.
 template<typename Type>
 concept TimedLockPolicy =
@@ -75,7 +75,7 @@ concept TimedLockPolicy =
 
 
 // SynchronizingLockPolicy
-// concept: a policy that actually synchronises -- is_threadsafe. The null
+// concept: a policy that actually synchronises - is_threadsafe. The null
 // policy is a valid policy that is NOT this, which is exactly what lets the
 // same code compile with locking switched off.
 template<typename Type>

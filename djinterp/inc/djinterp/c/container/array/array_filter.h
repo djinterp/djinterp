@@ -44,8 +44,8 @@
 #include "../container.h"           // the D_CFG_CONTAINER_ARRAY_FILTER cascade
 
 //   THE GATE THE HEADER PROMISES. The block above states a zero-overhead
-// guarantee -- "when D_CFG_CONTAINER_ARRAY_FILTER is 0, this header expands
-// to nothing beyond its include guard" -- and this #if keeps it: off, which
+// guarantee - "when D_CFG_CONTAINER_ARRAY_FILTER is 0, this header expands
+// to nothing beyond its include guard" - and this #if keeps it: off, which
 // is the cascade's default, the header adds nothing but the two includes
 // above, which it needs to read the knob; on, it includes dmemory.h and the
 // functional module's filter.h, whose chains and results the wrappers below

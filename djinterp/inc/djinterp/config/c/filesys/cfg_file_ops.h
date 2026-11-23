@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                           cfg_file_ops.h
 *
-* Build-time configuration for c/filesys/file_ops.h -- whole-file operations
+* Build-time configuration for c/filesys/file_ops.h - whole-file operations
 * (remove, unlink, rename, copy).
 *
 *   This is where D_INTERNAL_FILE_USE_NATIVE_COPY from cfg_file_common.h is
@@ -76,12 +76,12 @@ TABLE OF CONTENTS
 // 1.1.2
 // D_CFG_FILE_OPS_COPY_NATIVE
 //   knob: hand a whole-file copy to the platform's own engine --
-// copy_file_range(2) on Linux, fcopyfile(3) on macOS -- instead of shuttling
+// copy_file_range(2) on Linux, fcopyfile(3) on macOS - instead of shuttling
 // bytes through user space. Windows has none here, so there it changes
 // nothing.
 //   On by default and worth it: copy_file_range never leaves the kernel and
 // can be serviced by the filesystem itself, so on btrfs or XFS a "copy"
-// becomes a reflink -- instant, and consuming no additional space. On Linux
+// becomes a reflink - instant, and consuming no additional space. On Linux
 // the engine is there only where the build gives file_ops.c _GNU_SOURCE (its
 // banner; D_CFG_FILE_HAS_COPY_FILE_RANGE).
 //   Set 0 when you need the copy to be observable, byte-by-byte, in the same
@@ -114,7 +114,7 @@ TABLE OF CONTENTS
 // D_CFG_FILE_OPS_COPY_OVERWRITE
 //   knob: let d_file_copy replace an existing destination.
 //   ON, matching cp(1) and the old dfile behaviour. Set 0 to make an existing
-// destination an EEXIST failure -- the safer default for a program that never
+// destination an EEXIST failure - the safer default for a program that never
 // intends to clobber, and one that turns a data-loss bug into an error.
 #ifndef D_CFG_FILE_OPS_COPY_OVERWRITE
     #ifdef D_CFG_FILE_ALL

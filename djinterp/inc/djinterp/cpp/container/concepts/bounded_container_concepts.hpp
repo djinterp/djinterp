@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                       bounded_container_concepts.hpp
 *
-* C++20 concepts for the BOUNDEDNESS axis -- the `requires`-facing view of
+* C++20 concepts for the BOUNDEDNESS axis - the `requires`-facing view of
 * bounded_container_traits.hpp.
 *
 *   THE CONCEPTS ADD NO POLICY.
@@ -47,7 +47,7 @@ NS_DJINTERP
 
 
 // bounded_container
-//   concept: kappa < infinity -- the container's total size is capped by its
+//   concept: kappa < infinity - the container's total size is capped by its
 // type. Positive evidence only: a fixed extent, a tuple_size, static interval
 // bounds, or a capacity() that no reserve() can move.
 template<typename Type>
@@ -56,7 +56,7 @@ concept bounded_container =
 
 
 // unbounded_container
-//   concept: kappa = infinity -- it looks like a container (it has size()) and
+//   concept: kappa = infinity - it looks like a container (it has size()) and
 // shows no capacity-bounding evidence at all.
 template<typename Type>
 concept unbounded_container =
@@ -82,7 +82,7 @@ concept domain_bounded_container =
 
 
 // fixed_extent_container
-//   concept: carries a static `extent` -- the compile-time fixed-capacity
+//   concept: carries a static `extent` - the compile-time fixed-capacity
 // convention.
 template<typename Type>
 concept fixed_extent_container =
@@ -90,7 +90,7 @@ concept fixed_extent_container =
 
 
 // growable_container
-//   concept: exposes reserve(n) -- the ANTI-signal that disqualifies a
+//   concept: exposes reserve(n) - the ANTI-signal that disqualifies a
 // capacity() from meaning a FIXED capacity.
 template<typename Type>
 concept growable_container =

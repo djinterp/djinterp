@@ -61,7 +61,7 @@ TABLE OF CONTENTS
 // 1.1.1
 // D_CFG_FTP_REPLY_SIZE
 //   knob: bytes kept of a reply's text, its terminator included; 512 to
-// 65536. A longer reply -- FEAT, HELP, and STAT run long -- is truncated but
+// 65536. A longer reply - FEAT, HELP, and STAT run long - is truncated but
 // still parsed whole.
 #ifndef D_CFG_FTP_REPLY_SIZE
     #define D_CFG_FTP_REPLY_SIZE 4096

@@ -3,8 +3,8 @@
 *
 * Standalone tests of a session over TCP: one end of an AF_UNIX stream pair
 * is adopted by tcp.c and handed to the session, and the test plays the peer
-* on the other end with plain reads and writes. What tcp.c reports -- a
-* deadline, a peer that has gone -- reaches the session through
+* on the other end with plain reads and writes. What tcp.c reports - a
+* deadline, a peer that has gone - reaches the session through
 * d_starttls_error_from_net, with its own error kept as the cause.
 *
 *

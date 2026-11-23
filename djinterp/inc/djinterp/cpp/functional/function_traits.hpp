@@ -9,7 +9,7 @@
 *
 *   The primary template inspects T::operator() (the lambda case), and
 * specializations handle every other shape. Generic lambdas and templated
-* operator() are NOT inspectable -- their signature depends on the
+* operator() are NOT inspectable - their signature depends on the
 * arguments and cannot be deduced ahead of call.
 *
 *   This module complements is_callable / callable_result_t in
@@ -370,7 +370,7 @@ static constexpr bool is_inspectable_v = is_inspectable<Fn>::value;
 ///             VIII. CALL DETECTION                                        ///
 ///////////////////////////////////////////////////////////////////////////////
 //   function_traits (above) inspects the DECLARED shape of a callable and so
-// cannot see through a templated / generic operator() -- exactly the shape a
+// cannot see through a templated / generic operator() - exactly the shape a
 // transducer's reducer-producing closures take. The traits here answer the
 // complementary question by EXPRESSION probing: given concrete argument
 // types, can Fn be called, and what does that call yield? These succeed on

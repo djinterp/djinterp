@@ -406,13 +406,13 @@ d_internal_severity
 rule whose `severity` declaration covers the property wins, among the rule
 making the claim and the rules that only set a severity.  `severity: advise;`
 covers every property; `severity: advise required;` covers only `required`.
-Scoping matters because severity belongs to a claim, not to a node -- a
+Scoping matters because severity belongs to a claim, not to a node - a
 missing `revised:` line is a backfill question, while the geometry of a
 `revised:` line that exists is not.
   A severity declared beside another rule's claims is passed over: it says
 how that rule's findings are reported, and two rules matching one node would
 otherwise report the later one's finding at the earlier one's level.  An
-exemption -- a rule holding nothing but a severity -- still outranks every
+exemption - a rule holding nothing but a severity - still outranks every
 rule below it, which is how a sheet turns a subtree off.
 */
 static enum dj_check_severity
@@ -427,7 +427,7 @@ d_internal_severity(
 )
 {
     // severity.mode=ignore: declarations say nothing; everything is the
-    // fallback.  That includes carve-outs -- turning severity off turns off
+    // fallback.  That includes carve-outs - turning severity off turns off
     // the exemptions built from it, which is what "off" has to mean.
     if (!_honour)
     {
@@ -647,7 +647,7 @@ bool d_internal_insertion(
         return false;
     }
 
-    // Everything after the insertion point must be blank -- unless the
+    // Everything after the insertion point must be blank - unless the
     // extension marked it as a replaceable block comment, which it verified
     // holds one identifier and nothing else.  Anything else is not ours.
     bool replaces = false;
@@ -714,7 +714,7 @@ void d_internal_refuse(
 d_internal_claim_for
   States what an ordinary repair claims to have changed, from the node it
 targeted and the property it served.  The claim is built from the node's
-recorded geometry, which is exactly what goes stale -- so checking it against
+recorded geometry, which is exactly what goes stale - so checking it against
 the line on disk is what exposes a stale repair.
 */
 static
@@ -814,8 +814,8 @@ static const struct dj_setting_def d_check_settings[] =
 #define D_CHECK_IMPORT_DEPTH_MAX 16u
 
 // D_CHECK_PATH_MAX
-//   constant: the room the driver gives a path it builds for itself -- an
-// import's, from the sheet that names it -- or prints in a message.  It is
+//   constant: the room the driver gives a path it builds for itself - an
+// import's, from the sheet that names it - or prints in a message.  It is
 // the driver's own number: ISO C has no name for a system's limit, and a path
 // the system hands back is never copied into room of this size.
 #define D_CHECK_PATH_MAX 4096
@@ -1250,7 +1250,7 @@ void d_internal_expansion_free(
 /*
 d_internal_assign_layers
   Gives every rule its layer rank.  Layer order is the order names first
-appear -- in an `@layer a, b;` statement or an import's layer() -- and later
+appear - in an `@layer a, b;` statement or an import's layer() - and later
 layers outrank earlier ones.  Unlayered rules outrank every layer, as in CSS.
 Only called when layers are in force: otherwise every rank stays zero and
 ranking reduces to first match.
@@ -1570,7 +1570,7 @@ int main(
     // A sheet states the settings it was written for with `@set name value;`
     // (and `@resolve mode;`, the older spelling).  They stand above defaults
     // and below the environment and the command line, and whatever is in
-    // force is printed -- a sheet read under the wrong settings means
+    // force is printed - a sheet read under the wrong settings means
     // something different and would otherwise say nothing.
     for (size_t at = 0; at < d_dss_at_rule_count(sheet); ++at)
     {
@@ -1864,7 +1864,7 @@ int main(
 
         // A node's attributes must be contiguous, so every fact about the
         // file is attached before any other extension adds attributes of its
-        // own -- otherwise the file's range runs into theirs.
+        // own - otherwise the file's range runs into theirs.
         // the file's path as the tree knows it, which is what git prints
         const char* relative = record;
 
@@ -1964,7 +1964,7 @@ int main(
         // not share geometry, so repairs to different lines may proceed in
         // the same pass.  `repaired_this_file` marks a *structural* edit --
         // a deletion, which moves every later line, or a table, which
-        // rewrites several -- and either ends the file's pass.
+        // rewrites several - and either ends the file's pass.
         bool     repaired_this_file = false;
         uint32_t touched[512];
         size_t   touched_count      = 0;

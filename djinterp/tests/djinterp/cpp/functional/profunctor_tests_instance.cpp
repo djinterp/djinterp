@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  profunctor_tests_instance.cpp
-//   Section IV -- the profn<F> instance (and generic dispatch to a second one).
+//   Section IV - the profn<F> instance (and generic dispatch to a second one).
 
 // std
 #include <type_traits>
@@ -45,7 +45,7 @@ bool tests_instance_composition_order()
 
 /*
 tests_instance_returns_profn
-  dimap composes a NEW arrow without unwrapping -- the result is again a profn.
+  dimap composes a NEW arrow without unwrapping - the result is again a profn.
   Tests the following:
   - dimap / lmap / rmap each return a profn
   - that profn is a live, callable profunctor
@@ -151,7 +151,7 @@ bool tests_instance_is_specialized()
 /*
 tests_instance_generic_dispatch
   The generic operations dispatch through profunctor_traits, so a SECOND,
-  unrelated instance (DPfArrow) works identically -- and its results are its own
+  unrelated instance (DPfArrow) works identically - and its results are its own
   carrier, not profn.
   Tests the following:
   - dimap / lmap / rmap over DPfArrow compute the same as over profn

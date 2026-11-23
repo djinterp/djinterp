@@ -1,13 +1,13 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                          cfg_file_stat.h
 *
-* Build-time configuration for c/filesys/file_stat.h -- file metadata.
+* Build-time configuration for c/filesys/file_stat.h - file metadata.
 *
 *   This is the module that consumes D_CFG_FILE_HAS_STAT_NSEC and
 * D_CFG_FILE_HAS_BIRTHTIME from cfg_file_common.h. Those gates exist because
 * the timestamp members of the platform's struct stat are spelled differently
 * everywhere (st_mtim on POSIX 2008, st_mtimespec on macOS/BSD, FILETIME on
-* Win32) -- env cannot rename djinterp's OWN fields to dodge the st_mtime
+* Win32) - env cannot rename djinterp's OWN fields to dodge the st_mtime
 * macro collision, but it can tell this module which member to READ. What the
 * module actually reads, which is less than the platforms offer, is section
 * 3's to say.
@@ -108,10 +108,10 @@ TABLE OF CONTENTS
 //   ON where available, and it is the only reason st_created can be real on
 // Linux: btime exists in the inode but stat() has no field to return it in.
 // statx also returns everything in one syscall that stat reports in pieces,
-// and it is asked as stat asks -- for a descriptor as for a path, and without
+// and it is asked as stat asks - for a descriptor as for a path, and without
 // automounting the path's last component.
 //   It degrades by itself: statx is Linux 4.11+ and glibc 2.28+, and a seccomp
-// sandbox or an old kernel answers ENOSYS or EPERM -- in which case this
+// sandbox or an old kernel answers ENOSYS or EPERM - in which case this
 // falls back to stat() and st_created reads 0, which is the same honest
 // answer as any other platform without btime. A refusal stat then answers
 // for is remembered for the life of the process. So turning it off costs the
@@ -132,7 +132,7 @@ TABLE OF CONTENTS
 //   ON, which is what stat() means and what callers expect: d_dir_exists on a
 // link to a directory says yes. d_file_stat_nofollow is always available when
 // you want the link itself, so this knob is for the rare program that wants
-// EVERY query to stop at the link -- an archiver, a backup tool, anything that
+// EVERY query to stop at the link - an archiver, a backup tool, anything that
 // must not traverse.
 #ifndef D_CFG_FILE_STAT_FOLLOW_SYMLINKS
     #ifdef D_CFG_FILE_ALL
@@ -203,19 +203,19 @@ TABLE OF CONTENTS
 // 3.1.3
 // D_INTERNAL_FILE_STAT_BIRTHTIME
 //   resolved: 1 when dj_stat_t.st_created carries a real creation time. When 0
-// the field reads 0, never a substituted ctime -- a fabricated timestamp is a
+// the field reads 0, never a substituted ctime - a fabricated timestamp is a
 // lie the caller cannot detect.
 //
 //   NOTE THE THIRD TERM, and why it is not redundant with
 // D_CFG_FILE_HAS_BIRTHTIME. That knob answers "does the PLATFORM have a
 // creation time"; this one answers "does THIS MODULE deliver one", and they
-// are not the same question. Linux has btime -- but only through statx(2), so
+// are not the same question. Linux has btime - but only through statx(2), so
 // before the statx path existed this macro reported 1 while the field was
 // always 0. A caller can branch on a macro that says no; it cannot defend
 // against one that says yes and lies.
 //   Windows' CRT ctime IS creation, Apple's systems expose st_birthtime, and
 // Linux now qualifies through statx. One term per delivery mechanism, in one
-// place -- FreeBSD and NetBSD through their stat
+// place - FreeBSD and NetBSD through their stat
 // (D_INTERNAL_FILE_STAT_BSD_BIRTH, 2026.10.21); OpenBSD and DragonFly record no
 // creation time, and get no term that would say they do.
 

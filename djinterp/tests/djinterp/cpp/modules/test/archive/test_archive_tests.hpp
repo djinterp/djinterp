@@ -96,7 +96,7 @@ VI.   ROUNDTRIP    (test_archive_tests_roundtrip.cpp)
 #include <string>
 #include <vector>
 // djinterp
-// -- (part 1) mode-gated includes ------------------------------------------
+// - (part 1) mode-gated includes ------------------------------------------
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
 #include "../../../../../../inc/djinterp/cpp/modules/test/archive/test_archive.hpp"
@@ -468,7 +468,7 @@ bool ta_format_contract_holds(
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- (part 2) declarations - visible in BOTH modes -------------------------
+// - (part 2) declarations - visible in BOTH modes -------------------------
 
 // I.   ENDIAN   (test_archive_tests_endian.cpp)
 bool tests_archive_read_u16_le_byte_order();
@@ -557,7 +557,7 @@ bool tests_archive_roundtrip_handles_degenerate_lists();
 bool tests_archive_writability_is_independent();
 
 
-// -- (part 3) the spec provider - spec mode only ---------------------------
+// - (part 3) the spec provider - spec mode only ---------------------------
 #ifdef DTEST_SPEC_MODE
 
 // archive_spec

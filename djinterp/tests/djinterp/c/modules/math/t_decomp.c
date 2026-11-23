@@ -8,20 +8,20 @@
 * to 6; Householder QR, Cholesky, the one-sided Jacobi SVD and the cyclic
 * Jacobi symmetric eigensolver, their _c forms against their library forms
 * (the root is correctly rounded in both, so bit for bit too); and the
-* algebra the factors must satisfy -- P A = L U, A = Q R with Q orthogonal
+* algebra the factors must satisfy - P A = L U, A = Q R with Q orthogonal
 * and R upper triangular, A = L L^T, A = U S V^T with V orthogonal and S
-* descending, A V = V L with V orthogonal and L ascending, A x = b -- to
+* descending, A V = V L with V orthogonal and L ascending, A x = b - to
 * rounding; singular and non-positive-definite matrices detected.
 *   The general eigenvalue core (chunk 13), its _c forms against the
 * library's bit for bit: the Hessenberg form zero below the subdiagonal,
 * its trace and norm kept; a symmetric matrix's eigenvalues Jacobi's to
 * rounding, ascending; L T L^-1's, T's integer diagonal; 2^e A's, 2^e
 * times A's exactly; an eigenvector unit, its largest entry positive, A x
-* = l x to rounding; and matrices with known answers -- zero, identity,
+* = l x to rounding; and matrices with known answers - zero, identity,
 * diagonal, triangular, a rotation and a cyclic shift (complex, flagged),
 * a NaN and an infinity, no steps allowed.
 *   The eigenvalue path of chunk 38, LAPACK's dgeev, at every matrix of
-* math_tests_eig_refs.h -- each exact in float, its eigenvalues computed by
+* math_tests_eig_refs.h - each exact in float, its eigenvalues computed by
 * mpmath at 80 digits with their condition numbers: the driver and its _c
 * form bit for bit; each eigenvalue within 32 epsilons times |A|_F times its
 * condition number of the reference, ascending, a pair exactly conjugate, a
@@ -39,14 +39,14 @@
 * singular systems reached on purpose: dlaln2's and dlanv2's every branch,
 * the scaled norms, the reflector below the safe minimum, the exceptional
 * shifts, the vectors' scalings and a vector underflowing, balancing across
-* the range -- D^-1 P^T A P D exactly where no entry passes below the least
-* normal on the way -- and the _c forms of the tangent. From C++14,
+* the range - D^-1 P^T A P D exactly where no entry passes below the least
+* normal on the way - and the _c forms of the tangent. From C++14,
 * the driver of a 3-by-3 matrix with a complex pair, and sym_eigen at a
 * threshold of 0, as constant expressions with the run time's bits.
 *
-*   Where the build fuses a multiply and an add written apart -- gcc in its GNU
+*   Where the build fuses a multiply and an add written apart - gcc in its GNU
 * modes on a target with the instruction, clang under -ffp-contract=fast
-* (self_test.h's d_math_formulas_fuse) -- the plain formulas' bits follow the
+* (self_test.h's d_math_formulas_fuse) - the plain formulas' bits follow the
 * build (S415), and the checks against lu's algorithm written out, and of
 * mat.h's solve against LU's, are left out; the harness says so.
 *
@@ -1188,7 +1188,7 @@ d_tests_schur_case_##S(const struct dj_tests_eig_case* _c)                     \
     for (i = 0; i < n; ++i) okc = okc && d_tests_csame_##S(sval[i], svalc[i]); \
     D_TESTS_EXPECT(okc, #S " schur_c is schur, bit for bit");                  \
     /* quasi-triangular, each block of two standard, its values the */         \
-    /* blocks' -- a pair positive first -- and the diagonal's        */        \
+    /* blocks' - a pair positive first - and the diagonal's        */        \
     for (i = 0; i < n; ++i)                                                    \
         for (j = 0; j + 1 < i; ++j) ok = ok && (t[i * n + j] == (T)0);         \
     for (i = 0; i < n; )                                                       \
@@ -1383,7 +1383,7 @@ D_TESTS_SCHUR_FAMILY(long double, ld, LDBL_EPSILON, LDBL_MAX_EXP, 3000,
 // D_TESTS_GUARD_FAMILY
 //   stamps, for one family, d_tests_guard_<S>: the paths dgeev's parts take
 // at the range's ends and at nearly singular systems, each reached on
-// purpose and checked -- dlaln2's small systems, dlanv2's blocks of two,
+// purpose and checked - dlaln2's small systems, dlanv2's blocks of two,
 // the scaled norms, the reflector below the safe minimum, a NaN's hypot and
 // the parts of order 0, a subnormal matrix, Hessenberg matrices found to
 // need the exceptional shifts, the Schur vectors' scalings and a vector
@@ -2182,8 +2182,8 @@ D_TESTS_GUARD_FAMILY(long double, ld, LDBL_EPSILON, LDBL_MIN, LDBL_MAX_EXP)
       (__cplusplus >= 201402L) )
 
 /* from C++14, d_decomp_<S>_eigen_c of a 3-by-3 matrix with a complex    */
-/* pair as a constant expression -- its values' parts and its first      */
-/* vector's, one call apiece -- against the run time's, bit for bit; and */
+/* pair as a constant expression - its values' parts and its first      */
+/* vector's, one call apiece - against the run time's, bit for bit; and */
 /* sym_eigen_c at a threshold of 0 where theta^2 would overflow          */
 #define D_TESTS_SCHUR_CONSTANT(T, S, EMAX)                                     \
 static constexpr T                                                             \

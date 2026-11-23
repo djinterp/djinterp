@@ -47,7 +47,7 @@
 // D_CFG_ENV_TLS_PROBE_ALL
 //   configuration: 0, the default, has env_tls.h probe mbedTLS's, GnuTLS's
 // and wolfSSL's headers only for the library D_ENV_TLS_BACKEND selects, so a
-// build that uses OpenSSL takes nothing from the others -- wolfSSL's options
+// build that uses OpenSSL takes nothing from the others - wolfSSL's options
 // header, for one, redefines _FORTIFY_SOURCE. 1 probes every one of them
 // that is present, so each library's D_ENV_TLS_<LIBRARY>_HAS_* flags answer
 // for it; at 0 an unselected library's version-gated flags read 0 unless

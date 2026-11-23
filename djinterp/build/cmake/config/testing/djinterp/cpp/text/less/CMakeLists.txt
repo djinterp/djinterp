@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/cpp/text/
+# djinterp [test]  -  build/cmake/config/testing/djinterp/cpp/text/
 #                      less/CMakeLists.txt
 #
 #   Test leaf for text's Less headers (css/less/less.hpp and

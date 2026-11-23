@@ -57,7 +57,7 @@ option(DJINTERP_USE_OWN_CMAKE
 #-------------------------------------------------------------------------------
 #   Defined before anything below, because it is just a directory and is
 # always correct. uxoxo consumes djinterp headers too, so it needs this
-# without linking the parse foundation's objects -- and anything else that
+# without linking the parse foundation's objects - and anything else that
 # grows into this build will need the same.
 add_library(djinterp_headers INTERFACE)
 add_library(djinterp::headers ALIAS djinterp_headers)
@@ -69,8 +69,8 @@ target_include_directories(djinterp_headers INTERFACE "${DJINTERP_ROOT}/inc")
 # djinterp's own build, when asked for
 #-------------------------------------------------------------------------------
 # djinterp keeps its CMake under build/cmake/config/ rather than at the root
-# -- its root list file, the djinterp_add_test_executable helper beside it,
-# and the test leaves below -- so that is a candidate, with the places
+# - its root list file, the djinterp_add_test_executable helper beside it,
+# and the test leaves below - so that is a candidate, with the places
 # nearer the root one would look first.
 set(_djinterp_entry "")
 
@@ -153,8 +153,8 @@ endif()
 
 # The C layer once sat directly under parse/ and parsegen/, and a tree that
 # was only ever unzipped over still has those copies: an unzip adds and
-# overwrites, and never deletes. Nothing here builds them -- the globs above
-# take c/ alone -- but each defines the functions its successor under c/
+# overwrites, and never deletes. Nothing here builds them - the globs above
+# take c/ alone - but each defines the functions its successor under c/
 # does, so anything that globs either directory links every function twice.
 # Say so once, where it will be read, with the way out.
 set(_djinterp_stale "")
@@ -274,7 +274,7 @@ if(_djinterp_vparse_sources)
 
     # Its headers reach one another by relative path and its sources reach
     # them through inc/, so djinterp's include path is all it needs. It does
-    # not use the C foundation yet -- the port onto it is still to come -- so
+    # not use the C foundation yet - the port onto it is still to come - so
     # the headers alone are its dependency.
     target_link_libraries(djinterp_vparse PUBLIC djinterp::headers)
 

@@ -2,16 +2,16 @@
 * djinterp [c][utility]                                          ostream_tests.c
 *
 *   The output stream's suite, in DTest's C face (c/modules/test/test_suite.h):
-* the kernel (c/util/ostream/ostream.h), its destinations -- a sink, a fixed
-* array, a dj_string, a fan-out, a FILE*, the console -- the cursors, and the
+* the kernel (c/util/ostream/ostream.h), its destinations - a sink, a fixed
+* array, a dj_string, a fan-out, a FILE*, the console - the cursors, and the
 * formatting unit (c/text/ostream_format.h). Each group below is a test of
 * the module "ostream", in a block per header, and each of its checks is
 * recorded against that test, so a failing check does not stop its group.
 *
 *   A DIFFERENTIAL TEST CARRIES MOST OF THE WEIGHT. d_tests_ostream_random
-* replays thousands of random operation sequences -- writes of every length,
+* replays thousands of random operation sequences - writes of every length,
 * single characters, cursor batches, reserve and commit, integers, fills,
-* flushes -- onto every kind of destination at once, and holds each to a
+* flushes - onto every kind of destination at once, and holds each to a
 * plain byte array that received the same bytes. Window boundaries, drains,
 * growth and spills fall wherever the dice put them.
 *

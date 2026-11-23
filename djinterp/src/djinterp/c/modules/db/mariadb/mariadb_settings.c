@@ -195,7 +195,7 @@ d_mariadb_set_isolation_level(
 /*
 d_mariadb_get_isolation_level
   The variable's value names the level with hyphens. A value the layer does
-not know -- none exists -- is the unknown error.
+not know - none exists - is the unknown error.
 */
 int
 d_mariadb_get_isolation_level(

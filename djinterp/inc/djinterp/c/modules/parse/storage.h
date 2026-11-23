@@ -4,9 +4,9 @@
 * The one growth policy the subframework's containers share.
 *   Four containers here hold an array that may be caller-supplied or owned:
 * the operator registry, the operand pool's two arrays, the instruction stream,
-* and the diagnostic sink. Each had written the same twelve lines -- refuse if
+* and the diagnostic sink. Each had written the same twelve lines - refuse if
 * the storage is not ours, double until the requirement fits, reallocate, zero
-* the tail -- and the fourth copy is the one that justifies extracting it.
+* the tail - and the fourth copy is the one that justifies extracting it.
 *
 *   WHAT IS NOT EXTRACTED, AND WHY. Not the containers themselves. A generic
 * buffer carrying an element size would turn every access into a runtime
@@ -43,7 +43,7 @@
 D_EXTERN_C_BEGIN
 
 //   Growth. Returns the storage to use, which may be the storage passed in,
-// or NULL if the requirement cannot be met -- so a caller assigns the result
+// or NULL if the requirement cannot be met - so a caller assigns the result
 // back and checks it for NULL, with no pointer-to-pointer cast anywhere.
 void* d_parse_grow(
     void*     _data,

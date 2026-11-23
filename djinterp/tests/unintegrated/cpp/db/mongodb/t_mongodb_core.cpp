@@ -2,13 +2,13 @@
 * djinterp [cpp][db]                                          t_mongodb_core.cpp
 *
 *   core/db's MongoDB connection, mongo_connection, over the MongoDB layer,
-* against a live deployment -- MongoDB from 4.2, a replica set, through
+* against a live deployment - MongoDB from 4.2, a replica set, through
 * whichever driver the layer is built with, 1.21 and later of either line.
 * MongoDB has no SQL, so the shared checks of t_db_core.hpp, written in SQL,
-* do not apply; this harness checks what they check -- running a statement,
+* do not apply; this harness checks what they check - running a statement,
 * here a command, and reading its rows, transactions and their guard,
 * failures and the refusals of text a NUL would cut short, and how what the
-* connection hands out lives and dies with it -- over MongoDB's own
+* connection hands out lives and dies with it - over MongoDB's own
 * members, and then those: documents, cursors and change streams, the
 * schema, GridFS, upkeep, settings, the server and the latest failure; the
 * gating of B6, which leaves the connection no prepare; the operations that
@@ -30,7 +30,7 @@
 *   Build: compile the layer's C sources and src/djinterp/c/sync/dmutex.c as
 * C, src/djinterp/cpp/modules/db/database.cpp, database_statement.cpp and
 * mongodb/mongodb.cpp and this file as C++17 or later, and link them with
-* the driver and -lpthread -- scripts/ci/check_db_mongodb.sh does.
+* the driver and -lpthread - scripts/ci/check_db_mongodb.sh does.
 *
 *
 * path:      /tests/unintegrated/cpp/db/mongodb/t_mongodb_core.cpp
@@ -75,7 +75,7 @@ using mongodb::mongo_connection;
 // AT COMPILE TIME
 //==============================================================================
 
-// prepare_t, stream_query_t, ... -- the members B6 gates, as calls
+// prepare_t, stream_query_t, ... - the members B6 gates, as calls
 template<typename Type,
          typename = void>
 struct has_prepare : std::false_type
@@ -203,7 +203,7 @@ static_assert(!mongodb::mongo_is_full_connection<int>);
 static_assert(
     std::is_void_v<mongodb::enable_if_mongo_connection<mongo_connection>>);
 
-// the concepts (C++20) -- mongodb::concepts' own, the class's name among
+// the concepts (C++20) - mongodb::concepts' own, the class's name among
 // them, and the former names, which forward for one release
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 static_assert(db::concepts::async_connection<mongo_connection>);
@@ -293,7 +293,7 @@ static_assert(mongodb::mongo_full_connection<mongo_connection>);
 // HELPERS
 //==============================================================================
 
-// g_uri, g_standalone, g_database -- the deployment, the standalone server
+// g_uri, g_standalone, g_database - the deployment, the standalone server
 // ("" for none), and the run's database
 std::string g_uri;
 std::string g_standalone;

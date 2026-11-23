@@ -3,7 +3,7 @@
 *
 *   Tests for linear_algebra/square.hpp, at every level from C++98: the
 * generic path (t_real, a user's type wrapping a double) against the C core,
-* bit for bit -- determinant, submatrix, minor, cofactor, the cofactor matrix
+* bit for bit - determinant, submatrix, minor, cofactor, the cofactor matrix
 * and adjugate, orthogonality; each C family against the algebra's
 * identities on integer-valued matrices, where every step is exact (A adj(A)
 * = det(A) I, A inv(A) = I to rounding, a singular matrix's zero inverse);

@@ -1,10 +1,10 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                        file_tests_seek.c
 *
-*   V. Position (file_seek) -- 64-bit positioning and truncation. The stream
+*   V. Position (file_seek) - 64-bit positioning and truncation. The stream
 * positioners run on every backend; truncation is descriptor-based and reports
 * ENOSYS on the ISO C backend. d_file_truncate_fd is checked in both directions --
-* shrinking discards the tail, extending zero-fills -- since neither is a
+* shrinking discards the tail, extending zero-fills - since neither is a
 * no-op, and the stream form's flush-then-truncate contract is exercised
 * through a written file.
 *
@@ -331,7 +331,7 @@ void d_fs_tests_seek(
  *****************************************************************************/
 
 /******************************************************************************
- * V.  file_seek  --  POSITION AND EXTENT
+ * V.  file_seek  -  POSITION AND EXTENT
  *****************************************************************************/
 
 /*
@@ -415,7 +415,7 @@ bool d_tests_file_seek_tell(struct dj_test_suite* _suite)
 
 /*
 d_tests_file_truncate
-  Tests d_file_truncate_fd and d_file_truncate_stream -- including the dirty-buffer trap.
+  Tests d_file_truncate_fd and d_file_truncate_stream - including the dirty-buffer trap.
 */
 static
 bool d_tests_file_truncate(struct dj_test_suite* _suite)
@@ -473,7 +473,7 @@ bool d_tests_file_truncate(struct dj_test_suite* _suite)
     // THE trap. Truncation acts on the descriptor; stdio's buffer is
     // invisible to it. With 200 bytes pending and a truncate to 10, an
     // unflushed build writes them out AFTERWARDS and the file ends up 200
-    // bytes -- while the call returns 0. Nothing fails. The file is wrong.
+    // bytes - while the call returns 0. Nothing fails. The file is wrong.
     {
         char  dirty[D_TEST_FILE_PATH_BUF];
         FILE* file;

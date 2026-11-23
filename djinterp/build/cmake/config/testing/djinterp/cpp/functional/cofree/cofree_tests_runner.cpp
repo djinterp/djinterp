@@ -5,7 +5,7 @@
 * authoring guide, a runner is thin: it assembles the module's spec, chooses a
 * handful of options, and hands both to run_module, whose exit code is the whole
 * of main.  It carries no per-test logic, no report formatting, and no
-* templating -- run_module (test_defaults.hpp) owns all of that.
+* templating - run_module (test_defaults.hpp) owns all of that.
 *
 *   WHERE THE SPEC COMES FROM.  cofree_tests.hpp predates the DTEST_SPEC_MODE
 * two-faced-header idiom: rather than a single inline cofree_spec() provider, the
@@ -28,7 +28,7 @@
 
 // std
 #include <string>
-// djinterp -- cofree_tests.hpp pulls in test_defaults.hpp (module_spec,
+// djinterp - cofree_tests.hpp pulls in test_defaults.hpp (module_spec,
 //   run_module, the option set) and declares the section block providers.  The
 //   bare include resolves through the INCLUDES the CMakeLists adds.
 #include "cofree_tests.hpp"

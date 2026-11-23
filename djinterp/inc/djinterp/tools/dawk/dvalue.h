@@ -140,8 +140,8 @@ void d_awk_value_free(
 
 // 2.2    Assignment
 //------------------------------------------------------------------------------
-// Input-derived text -- a field, a getline result, an ARGV or ENVIRON element,
-// a split() result, FILENAME -- goes through d_awk_value_set_input.  A string
+// Input-derived text - a field, a getline result, an ARGV or ENVIRON element,
+// a split() result, FILENAME - goes through d_awk_value_set_input.  A string
 // constant in the program text never does.
 void d_awk_value_set_uninit(
     struct dj_awk_value* _value

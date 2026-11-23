@@ -5,7 +5,7 @@
 * registry, and the instruction stream, each through the C API alone.
 *   Every section runs on storage it declares, so each holds in every
 * configuration, including one with no allocator at all. The one section whose
-* subject a knob removes -- the transport format -- is defined and listed under
+* subject a knob removes - the transport format - is defined and listed under
 * that knob, and no section carries a conditional inside its body.
 *
 *
@@ -34,7 +34,7 @@
 static const uint16_t TOY_FAMILY = 9u;
 
 // the toy family's opcodes: one that takes a class, one that branches, and one
-// that takes nothing -- every operand shape a section needs
+// that takes nothing - every operand shape a section needs
 enum dj_tests_parse_c_op
 {
     OP_SET = 0,
@@ -58,7 +58,7 @@ static const char* const TOY_NAMES[OP_COUNT] = { "SET", "JUMP", "HALT" };
 
 // dj_tests_parse_c_toy
 //   struct: the toy family's registry and one program for it, over storage the
-// struct itself carries -- so that a section needs no allocator -- with where
+// struct itself carries - so that a section needs no allocator - with where
 // the program's parts landed.
 struct dj_tests_parse_c_toy
 {
@@ -468,7 +468,7 @@ bool d_tests_parse_c_program_measure(void)
 #endif  // D_INTERNAL_PARSE_PROGRAM_TRANSPORT
 
 // d_tests_parse_c
-//   constant: the suite -- every section this build has, the sink before the
+//   constant: the suite - every section this build has, the sink before the
 // machine that reports into it, and the machine before the program it runs.
 const struct dj_tests_section d_tests_parse_c[] =
 {

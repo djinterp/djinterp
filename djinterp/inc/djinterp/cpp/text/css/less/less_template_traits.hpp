@@ -171,7 +171,7 @@ struct has_variable_name_access
 
 // has_is_detached_ruleset_method
 //   trait: true if `Type` exposes
-// `is_detached_ruleset()` const -- variable declarations whose
+// `is_detached_ruleset()` const - variable declarations whose
 // value is a curly-brace block.
 template<typename Type, typename = void>
 struct has_is_detached_ruleset_method : std::false_type {};
@@ -384,7 +384,7 @@ struct has_namespace_path_method<Type, void_t<
 
 // has_detached_ruleset_body_method
 //   trait: true if `Type` exposes
-// `detached_ruleset_body()` const -- the body of a detached
+// `detached_ruleset_body()` const - the body of a detached
 // ruleset value.
 template<typename Type, typename = void>
 struct has_detached_ruleset_body_method : std::false_type {};
@@ -478,7 +478,7 @@ struct is_less_rule
 
 
 // is_less_rule_loose
-//   trait: looser variant -- any CSS rule qualifies.
+//   trait: looser variant - any CSS rule qualifies.
 template<typename Type>
 struct is_less_rule_loose
 {
@@ -552,7 +552,7 @@ struct is_less_stylesheet
 
 
 // is_less_stylesheet_loose
-//   trait: looser variant -- any CSS stylesheet qualifies.
+//   trait: looser variant - any CSS stylesheet qualifies.
 template<typename Type>
 struct is_less_stylesheet_loose
 {

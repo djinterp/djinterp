@@ -94,7 +94,7 @@ bool table_check(
     while (0)
 
 
-#ifndef DTEST_SPEC_MODE  // fixtures -- normal mode only
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 // tbl_throws
 //   function: whether calling _fn throws an exception of type Ex (any other

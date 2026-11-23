@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][event]                                        event_handler.hpp
 *
-* The handler -- a step with a verdict:
+* The handler - a step with a verdict:
 *   A handler is the single primitive of the event layer: given the (ambient)
 * state and an occurrence's payload, it yields a verdict in P = {pass,
 * consume}. This header provides the opaque DHandlerId handle, compile-time
@@ -18,12 +18,12 @@
 * handler, since the monoid unit skip yields pass).
 *
 * FORMAL CORRESPONDENCE ("Definition of an Event"):
-*   handler  h : S x A_e -> S x P   -- a callable verdict(payload...); state S
+*   handler  h : S x A_e -> S x P   - a callable verdict(payload...); state S
 *                                     is ambient (captured), the verdict is
 *                                     returned (see handler_traits).
-*   sequencing  h1 ; h2             -- seq(h1, h2)
-*   unit        skip(s,a)=(s,pass)  -- skip() / skip_t
-*   left zero   consume             -- a handler returning verdict::consume
+*   sequencing  h1 ; h2             - seq(h1, h2)
+*   unit        skip(s,a)=(s,pass)  - skip() / skip_t
+*   left zero   consume             - a handler returning verdict::consume
 *                                     short-circuits the remainder.
 *
 * COMPONENTS:
@@ -347,7 +347,7 @@ public:
 // skip_t
 //   struct: the unit handler. Ignores the payload and always yields
 // verdict::pass. Folding a handler word is invariant under inserting or
-// removing skip -- the algebraic reason masking a handler is well-defined.
+// removing skip - the algebraic reason masking a handler is well-defined.
 struct skip_t
 {
     template<typename... Args>

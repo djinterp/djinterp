@@ -51,13 +51,13 @@ struct disjunction : false_type
 {};
 
 // disjunction<B1>
-//   trait: single-trait base case -- inherit from B1.
+//   trait: single-trait base case - inherit from B1.
 template<typename B1>
 struct disjunction<B1> : B1
 {};
 
 // disjunction<B1, Bn...>
-//   trait: recursive case -- if B1 is true, inherit from it
+//   trait: recursive case - if B1 is true, inherit from it
 // (short-circuit); otherwise recurse into the tail.
 template<typename    B1,
          typename... Bn>

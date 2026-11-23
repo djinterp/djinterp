@@ -98,8 +98,8 @@ std::string hex(
 }
 
 // count_of
-//   an operand as a count, held to the width: a count past it -- or past
-// any integer -- is the width.
+//   an operand as a count, held to the width: a count past it - or past
+// any integer - is the width.
 int count_of(
     const wide& _operand,
     int         _width

@@ -6,7 +6,7 @@
 * computed, for both languages.
 *
 *   THE SHAPE OF THIS FILE:
-*   Sections I-VIII are pure data and pure functions -- tables, the knob
+*   Sections I-VIII are pure data and pure functions - tables, the knob
 * algebra, the option operations, the sinks.  They have no dependency on any
 * third-party library and are identical on every build, which is what makes
 * them the parity floor: an option set compares, diffs and resolves the same
@@ -22,7 +22,7 @@
 *   The buffer form of every transform is defined as the sink form driven
 * against a dj_pack_buffer_sink, and the measure pass is the sink form driven
 * against a dj_pack_counting_sink.  So measuring, producing and overflowing all
-* run the same encoder and cannot disagree about a byte count -- the failure
+* run the same encoder and cannot disagree about a byte count - the failure
 * mode a separate "compute the size" path always eventually develops.
 *
 *   THE STORE CODEC IS NOT A PLACEHOLDER:
@@ -60,7 +60,7 @@ III.  THE KNOB TABLE
 IV.   OPTION OPERATIONS
       -----------------
 
-V.    THE DEFAULT TABLE            (PROVISIONAL -- see the banner in IV.c)
+V.    THE DEFAULT TABLE            (PROVISIONAL - see the banner in IV.c)
       --------------------------------------------------------------------
 
 VI.   AVAILABILITY
@@ -531,7 +531,7 @@ d_compress_options_knob_get
 
   The read is a memcpy through the computed offset rather than a cast of the
 struct to int32_t* followed by an index.  The cast is what everyone writes and
-it is not well defined in C++ -- accessing a struct's members through an
+it is not well defined in C++ - accessing a struct's members through an
 unrelated pointer type is an aliasing violation there even when every member
 happens to be that type.  memcpy is defined in both languages and compiles to
 the same load.
@@ -649,7 +649,7 @@ Parameter(s):
   _b: the second set; may be null.
 Return:
   1 when both are null or every knob matches, 0 otherwise.  A null set never
-equals a non-null one, even a pristine one -- absence and pristine are
+equals a non-null one, even a pristine one - absence and pristine are
 different answers.
 */
 int d_compress_options_equal(
@@ -777,7 +777,7 @@ d_compress_options_diff(
 //   *** What is NOT provisional is that the table exists and that both
 //   *** language faces read it.  Letting each backend supply its own default
 //   *** would make the output depend on which library version happened to be
-//   *** linked -- parity failing for environmental reasons, which is the
+//   *** linked - parity failing for environmental reasons, which is the
 //   *** defect already recorded against the BUILTIN backend.  Pinning the
 //   *** values here makes that impossible; deciding WHICH values is a
 //   *** separate, cheap, one-place edit once the chapter lands.
@@ -835,7 +835,7 @@ d_compress_resolve_level
   Map the generic effort onto a codec's own scale.
 
   The generic scale is 0-9.  A codec whose native range differs is mapped here,
-once, rather than at each call site -- which is what stops one caller sending
+once, rather than at each call site - which is what stops one caller sending
 brotli a level of 9 (mid-range) while another sends it 11 (maximum) and both
 believing they asked for "best".
 
@@ -913,14 +913,14 @@ report wants to print.  Resolution needs a wider question, because two of the
 codec families share one knob block:
 
     deflate / zlib / gzip   one encoder, three framings, one set of DEFLATE
-                            knobs -- windowBits selects the framing and is not
+                            knobs - windowBits selects the framing and is not
                             a separate tuning surface
     xz                      carries the lzma block
 
   Asking only the declared owner is what makes `resolve` leave DEFLATE knobs
 UNSET when the target is gzip, so the encoder is handed INT32_MIN as its
 memLevel and fails at init.  That is exactly the bug this function exists to
-prevent, and it is invisible through the ZIP path -- which dispatches on
+prevent, and it is invisible through the ZIP path - which dispatches on
 DEFLATE and so resolves correctly by accident.
 
 Parameter(s):
@@ -1119,7 +1119,7 @@ struct dj_internal_knob_range
 
 // d_internal_knob_ranges
 //   table: the knobs whose domain is a bounded interval, with that interval.
-// A knob absent from this table is unconstrained beyond its type -- either
+// A knob absent from this table is unconstrained beyond its type - either
 // because its range is a backend detail (dict_size, job_size) or because the
 // value is a member of a constant set the caller cannot mistype without also
 // mistyping the enumerator.
@@ -1585,7 +1585,7 @@ d_codec_detect
   Ordered strongest signature first.  zlib is tried LAST among the framed
 codecs because its check is a validity rule rather than a magic number and can
 be satisfied by chance; the four-and-six byte magics cannot.  The three codecs
-with no framing at all are never detected, which is correct -- an unframed
+with no framing at all are never detected, which is correct - an unframed
 stream is indistinguishable from arbitrary data and claiming otherwise would be
 a guess presented as a fact.
 
@@ -1699,9 +1699,9 @@ struct dj_internal_tee
     size_t              total;
 };
 
-//   The counting and buffer sinks -- d_pack_counting_sink_init,
+//   The counting and buffer sinks - d_pack_counting_sink_init,
 // d_pack_buffer_sink_init, d_pack_sink_from_counter and d_pack_sink_from_buffer
-// -- are defined in sink_common.c, beside their declarations, so a program
+// - are defined in sink_common.c, beside their declarations, so a program
 // that uses a sink without compression links.
 
 /*
@@ -1798,8 +1798,8 @@ d_internal_emit(
 // IX.  BACKEND LEAVES
 // =============================================================================
 //   The only environment-dependent section.  Each codec is one compress leaf
-// and one decompress leaf, guarded by its cfg_compress.h value -- detected AND
-// wanted -- so a codec the build excluded is not compiled; an absent codec
+// and one decompress leaf, guarded by its cfg_compress.h value - detected AND
+// wanted - so a codec the build excluded is not compiled; an absent codec
 // gets a stub returning D_PACK_STATUS_UNAVAILABLE.
 //
 //   Every leaf has the same signature and the same contract: consume the whole
@@ -2156,7 +2156,7 @@ d_internal_zlib_take_header(
 
 /*
 d_internal_zlib_compress
-  The DEFLATE-family compress leaf, serving raw DEFLATE, zlib and gzip -- one
+  The DEFLATE-family compress leaf, serving raw DEFLATE, zlib and gzip - one
 implementation with one framing parameter, rather than three near-copies.
 
 Parameter(s):
@@ -3112,7 +3112,7 @@ Parameter(s):
 Return:
   D_PACK_STATUS_OK, or a status describing the failure.  A codec this build
 cannot perform yields D_PACK_STATUS_UNAVAILABLE, which is a formal answer and
-not an error -- see facade_roundtrip_ok in test_compress.hpp.
+not an error - see facade_roundtrip_ok in test_compress.hpp.
 */
 enum dj_pack_status
 d_compress_to_sink(
@@ -3515,7 +3515,7 @@ d_internal_run_to_buffer(
 
     // a MEASURE call (null destination, zero capacity) asked only for that
     // number and has succeeded.  An overflow is only a failure when the caller
-    // actually offered somewhere to put the bytes -- conflating the two would
+    // actually offered somewhere to put the bytes - conflating the two would
     // make the documented measure form report a mechanical failure for doing
     // exactly what it was asked to do.
     if ( (_out == NULL) &&

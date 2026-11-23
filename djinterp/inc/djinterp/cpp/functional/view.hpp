@@ -3256,7 +3256,7 @@ struct is_terminal
 // operator| (view | terminal)  and  (container | terminal)
 //   drives a view (or a container, lifted to a DRefView) into a
 // terminal operator such as to_vector()/to<C>()/count(). These were
-// documented -- `(some_view) | to_vector()` -- but never implemented;
+// documented - `(some_view) | to_vector()` - but never implemented;
 // only the adapter pipe overloads existed, so terminals could not be
 // piped at all. Constrained on is_terminal, which is now the exact
 // complement of is_adapter, so there is no overlap with the adapter
@@ -3462,7 +3462,7 @@ using view_value_type_t = typename view_value_type<View>::type;
 
 // is_pipeable_to_view
 //   trait: true if Type may appear on the left of operator| as a
-// pipeline source -- either it is already a view, or it is a
+// pipeline source - either it is already a view, or it is a
 // container-like type (has begin/end) that the pipeline implicitly
 // lifts to a DRefView. This is exactly the disjunction the operator|
 // overloads accept on the left-hand side.
@@ -3502,13 +3502,13 @@ template<typename Type>
 concept view_type = is_view<Type>::value;
 
 // view_adapter
-//   concept: satisfied by a pipeline adapter -- a type whose apply(view)
+//   concept: satisfied by a pipeline adapter - a type whose apply(view)
 // yields another view. The C++20 parallel of is_adapter.
 template<typename Type>
 concept view_adapter = is_adapter<Type>::value;
 
 // view_terminal
-//   concept: satisfied by a terminal operator -- a type whose
+//   concept: satisfied by a terminal operator - a type whose
 // apply(view) yields a non-view. The C++20 parallel of is_terminal.
 template<typename Type>
 concept view_terminal = is_terminal<Type>::value;
@@ -3529,7 +3529,7 @@ concept pipeable_to_view = is_pipeable_to_view<Type>::value;
 //   A view is a Functor: transform is its map. This teaches the generic
 // functor_map (functor.hpp) to drive a view through the one canonical name, so
 // the same call that maps a maybe / result / producer also maps a view. A
-// view's mapped type is DTransformView<V, F> -- it depends on the mapping
+// view's mapped type is DTransformView<V, F> - it depends on the mapping
 // function F, so there is no single F<U> to rebind; the result type is named
 // directly. Keyed on is_view, mutually exclusive with the monad bridge in
 // functor.hpp (a view is not a monad) and the producer instance.
@@ -3570,8 +3570,8 @@ struct functor_traits<
 ///////////////////////////////////////////////////////////////////////////////
 //   A view is a Foldable: its elements are collapsed by iterating the lazy
 // pipeline once and threading the reducer through them. This teaches the
-// generic fold_left (foldable.hpp) -- and therefore fold_to_vector,
-// fold_length, fold_any, fold_all, fold_right, ... -- to drive a view through
+// generic fold_left (foldable.hpp) - and therefore fold_to_vector,
+// fold_length, fold_any, fold_all, fold_right, ... - to drive a view through
 // the one canonical name. Keyed on is_view so the single instance covers every
 // view type; mutually exclusive with the maybe / result / producer instances
 // (a view is none of those). Forcing the fold is a runtime act, so an infinite
@@ -3587,7 +3587,7 @@ struct foldable_traits<
 
     // fold_left
     //   strict left fold by iterating the view; the accumulator is threaded
-    // by move so collecting folds stay O(n). D_CONSTEXPR -- a view is not a
+    // by move so collecting folds stay O(n). D_CONSTEXPR - a view is not a
     // literal type before C++20.
     template<typename Accumulator,
              typename Function>

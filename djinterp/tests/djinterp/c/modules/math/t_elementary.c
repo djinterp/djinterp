@@ -2,14 +2,14 @@
 * djinterp [c][math]                                              t_elementary.c
 *
 *   Conformance harness for c/math/elementary.h. sqrt_c must be the C
-* library's sqrt, bit for bit: every float in [1, 4) -- every mantissa the
-* root's core sees -- and one float in 37 across the whole range; ten million
+* library's sqrt, bit for bit: every float in [1, 4) - every mantissa the
+* root's core sees - and one float in 37 across the whole range; ten million
 * random doubles, squares of random doubles and their neighbours (the cases
 * nearest a rounding midpoint), every power of two, the subnormals; two
 * million random long doubles.
 *
-*   asin_c and acos_c: for float, the correctly rounded result -- the long
-* double library's, rounded to float -- at one float pattern in 1009, and
+*   asin_c and acos_c: for float, the correctly rounded result - the long
+* double library's, rounded to float - at one float pattern in 1009, and
 * within an ulp of asinf and acosf; for double, within an ulp of asin and
 * acos at two million arguments, a third of them uniform in [-1, 1), a third
 * within 2^-1 to 2^-52 of +-1 and a third from 2^-1 down to the least
@@ -22,13 +22,13 @@
 * and two for long double, below 2^20, at the multiples of pi/2, and in every
 * binade from 2^20 to the largest finite value, where the reduction by pi/2
 * is Payne and Hanek's; for float they must be the correctly rounded result
-* -- the long double library's, rounded to float -- at one pattern in 2003;
+* - the long double library's, rounded to float - at one pattern in 2003;
 * and for double, exact against values from a 400-bit computation at huge
 * arguments (the double nearest a multiple of pi/2 among them) and at the
 * arguments whose long double result lands on a double's rounding midpoint.
 *
 *   sqrt_settle_digits, the root's last bit settled in digits of 16 bits --
-* sqrt_c's for a double where dj_math_umax has 32 bits -- is called directly,
+* sqrt_c's for a double where dj_math_umax has 32 bits - is called directly,
 * so that every build checks it: the library's root from Newton's root and
 * from a place and two either side, at every sixteenth float in [1, 4), and
 * at 250,000 random doubles there and 50,000 squares and their neighbours;
@@ -38,7 +38,7 @@
 *
 *   sqrt, the C library's root, must be sqrt_c's as it comes back: taken
 * straight into a long double, which keeps what a call leaves in an x87
-* register -- glibc's sqrtf leaves 64 bits, which sqrt stores away where
+* register - glibc's sqrtf leaves 64 bits, which sqrt stores away where
 * float is evaluated wider. One positive float pattern in 4093, 500,000
 * random doubles and 200,000 random long doubles.
 *
@@ -46,8 +46,8 @@
 * (its count wants a 64-bit long). Compiled as C++, it checks the overloads;
 * from C++14, that sin_c, cos_c, asin_c, acos_c and sqrt_settle_digits are
 * constant expressions, at huge arguments too, with the bits they have at
-* run time. It needs no 64-bit integer -- its random numbers come from
-* math_tests_random.h, the same in every build -- so that ISO-strict C++98
+* run time. It needs no 64-bit integer - its random numbers come from
+* math_tests_random.h, the same in every build - so that ISO-strict C++98
 * on a 32-bit target, where dj_math_umax has 32 bits, builds it too.
 *
 *   Build (from the repo root), at any language level from C99:
@@ -75,7 +75,7 @@
 
 // the C library's functions, called through volatile pointers: clang at -O2
 // on a 32-bit x87 target inlines sqrt as fsqrt, which rounds to 64 bits and
-// then to 53 -- twice -- and is not the library's correctly rounded root
+// then to 53 - twice - and is not the library's correctly rounded root
 static float       (*volatile g_sqrtf)(float)             = sqrtf;
 static double      (*volatile g_sqrt)(double)             = sqrt;
 static long double (*volatile g_sqrtl)(long double)       = sqrtl;
@@ -302,9 +302,9 @@ d_tests_ulps(long double _got, long double _want, int _mant)
 
 // d_tests_arcs_float
 //   asin_c and acos_c for float, at one pattern in 1009 across all of them,
-// or every one: the long double library's result rounded to float -- the
+// or every one: the long double library's result rounded to float - the
 // correctly rounded one wherever long double has eleven bits more than
-// float -- and within an ulp of asinf and acosf; NaN past +-1.
+// float - and within an ulp of asinf and acosf; NaN past +-1.
 static void
 d_tests_arcs_float(bool _exhaustive)
 {
@@ -561,8 +561,8 @@ d_tests_arcs_long_double(void)
 static void
 d_tests_arcs_specials(void)
 {
-    // for each kind of argument -- 0 a zero, 1 the least subnormal, 2 one,
-    // 3 the next value past one, 4 infinity, 5 NaN -- the kinds of asin's
+    // for each kind of argument - 0 a zero, 1 the least subnormal, 2 one,
+    // 3 the next value past one, 4 infinity, 5 NaN - the kinds of asin's
     // result (odd), acos's and acos's at the argument negated: 0 the
     // argument itself (asin) or a zero (acos), 1 pi/2, 2 pi, 3 NaN
     static const int kinds[6][3] = {
@@ -888,9 +888,9 @@ d_tests_newton_d(double _m)
 }
 
 // d_tests_sqrt_digits
-//   sqrt_settle_digits -- the last bit settled in digits of 16 bits, which
+//   sqrt_settle_digits - the last bit settled in digits of 16 bits, which
 // sqrt_unit takes where two dj_math_umax limbs do not hold (2^(P+1))^2: a
-// double where dj_math_umax has 32 bits -- called directly, so that every
+// double where dj_math_umax has 32 bits - called directly, so that every
 // build checks it: the library's root, bit for bit, settled from Newton's
 // root and from it a place and two either side. For float, every sixteenth
 // float in [1, 4), and every sixty-fourth from the places either side; for
@@ -1005,7 +1005,7 @@ d_tests_sqrt_digits(void)
 // d_tests_plain_roots
 //   sqrt, the C library's root, against sqrt_c, bit for bit, as it comes
 // back: taken straight into a long double, which keeps what the call left in
-// the register -- on a 32-bit x87, glibc's sqrtf leaves 64 bits, which sqrt
+// the register - on a 32-bit x87, glibc's sqrtf leaves 64 bits, which sqrt
 // stores away (math_common.h's D_MATH_FLT_EVAL_WIDE). For float, one
 // positive finite pattern in 4093; for double and long double, 500,000 and
 // 200,000 random positive values, every exponent. It draws last, so that
@@ -1135,7 +1135,7 @@ d_tests_reach_d(double _m)
 
 // d_tests_sqrt_reach
 //   sqrt_settle_digits over the whole reach of its loops: from the library's
-// root moved up to four places either way it must give the root -- its
+// root moved up to four places either way it must give the root - its
 // residual stays small enough there for the low digits it is taken in to
 // keep its sign. Every sixty-fourth float in [1, 4) and 100,000 random
 // doubles there; and, for both families, the edges: 1 and the value above

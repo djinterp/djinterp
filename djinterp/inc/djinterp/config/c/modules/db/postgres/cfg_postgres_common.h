@@ -10,8 +10,8 @@
 * libpq-fe.h can be found.
 *   Built over libpq, the layer's sources reach libpq-fe.h through
 * env_postgres.h, which includes it only when D_CFG_ENV_USING_POSTGRESQL is
-* 1. This file therefore sets that knob for the layer's own sources -- each
-* defines D_INTERNAL_POSTGRES_SOURCE before its first include -- unless the
+* 1. This file therefore sets that knob for the layer's own sources - each
+* defines D_INTERNAL_POSTGRES_SOURCE before its first include - unless the
 * build already has, and only then includes env's configuration, so that
 * env's cascade honours it (the config README, 6.2). A build that asks for
 * libpq but sets that knob to 0, or includes dconfig.h first, stops at the
@@ -82,9 +82,9 @@ TABLE OF CONTENTS
 // 1.1.1
 // D_CFG_POSTGRES
 //   knob: build the layer over libpq (1) or as stubs (0). Defaults to 1 where
-// libpq-fe.h can be found -- at D_CFG_ENV_POSTGRESQL_C_PATH when the build
+// libpq-fe.h can be found - at D_CFG_ENV_POSTGRESQL_C_PATH when the build
 // names one, else as <libpq-fe.h> or <postgresql/libpq-fe.h>, where env
-// looks -- and to 0 where it cannot; to 1 where the preprocessor has no
+// looks - and to 0 where it cannot; to 1 where the preprocessor has no
 // __has_include to look with. Define it as 1 to require libpq, which stops a
 // build that lacks it with an #error, or as 0 to build the stubs whatever is
 // installed.

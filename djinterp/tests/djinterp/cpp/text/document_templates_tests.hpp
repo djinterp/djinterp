@@ -17,7 +17,7 @@
 * everywhere).  The PDF back end exposes no post-render text, so V is
 * integration-level: each construct is driven through the renderer and the
 * emitted document is checked to be a well-formed PDF (%PDF header) with no
-* fault -- which exercises the escape, table-forwarding, and style-resolution
+* fault - which exercises the escape, table-forwarding, and style-resolution
 * paths end to end.
 *
 *
@@ -45,7 +45,7 @@
 namespace djinterp {
 namespace testing {
 
-// -- small shared predicates (inline: this header may be included widely) --
+// - small shared predicates (inline: this header may be included widely) --
 
 // contains
 //   whether _needle occurs in _hay.

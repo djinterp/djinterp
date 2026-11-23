@@ -22,7 +22,7 @@ using namespace ::djinterp::test;
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///   compile-time invariants -- II. FACTORY FUNCTION                         ///
+///   compile-time invariants - II. FACTORY FUNCTION                         ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // the factory is a constant expression (single-return aggregate init)
@@ -46,7 +46,7 @@ static_assert(std::is_same<decltype(make_test_kind(0, "", 0, false)),
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///   runtime tests -- II. FACTORY FUNCTION                                   ///
+///   runtime tests - II. FACTORY FUNCTION                                   ///
 ///////////////////////////////////////////////////////////////////////////////
 
 /*

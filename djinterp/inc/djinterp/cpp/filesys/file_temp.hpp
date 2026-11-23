@@ -2,14 +2,14 @@
 * djinterp [cpp][filesys]                                          file_temp.hpp
 *
 * Temporary-file support (roadmap Phase 8).
-*   The atomic, safe part of temp handling -- creating an anonymous scratch
-* file -- is a METHOD on file (file::open_temp), because a temp file IS a file
+*   The atomic, safe part of temp handling - creating an anonymous scratch
+* file - is a METHOD on file (file::open_temp), because a temp file IS a file
 * and wants file's RAII. What remains here is the one query that returns a path
 * rather than a handle: where the system keeps its temporary files.
 *   WHY NOT A NAME GENERATOR. file_temp.h offers d_file_temp_name, and
 * deliberately labels it racy: a name handed back is not a file, and between
 * generating it and opening it another process can win the name. This header
-* does not surface that -- the safe pattern is file::open_temp (choose the name
+* does not surface that - the safe pattern is file::open_temp (choose the name
 * and open it as one atomic step, with no name ever exposed), and
 * temp_directory_path only tells you the DIRECTORY, for when you must place a
 * named artifact there yourself and accept the responsibility that comes with

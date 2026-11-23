@@ -34,8 +34,8 @@ enum dj_tests_ssl_switched
 };
 
 // dj_tests_ssl_switch
-//   struct: the operation thrown and what it answers instead -- for drain,
-// OK is the lie of a byte more than its room -- and the names the last
+//   struct: the operation thrown and what it answers instead - for drain,
+// OK is the lie of a byte more than its room - and the names the last
 // session_create was handed, "(null)" for none.
 struct dj_tests_ssl_switch
 {
@@ -160,8 +160,8 @@ d_tests_ssl_switched_feed(
 
 /*
 d_tests_ssl_switched_drain
-  Answers in the engine's place, moving nothing -- with OK, it claims a byte
-more than `_capacity` -- or passes the call on.
+  Answers in the engine's place, moving nothing - with OK, it claims a byte
+more than `_capacity` - or passes the call on.
 */
 static enum dj_ssl_error
 d_tests_ssl_switched_drain(
@@ -296,7 +296,7 @@ bool d_tests_ssl_names_handed(
 d_tests_sa_ssl_engine_names
   Tests the following:
   - a client that checks names hands its engine the host to check and, a
-    name, to send as SNI -- a name of one letter as much as any
+    name, to send as SNI - a name of one letter as much as any
   - an address is checked but never sent
   - a trailing dot reaches the engine stripped
   - a client that checks no names still sends one

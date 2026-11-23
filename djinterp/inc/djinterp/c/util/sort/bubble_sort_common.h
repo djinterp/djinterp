@@ -16,8 +16,8 @@
 *     - A block-partitioned concurrent driver gives each worker a sub-range and
 *       calls d_bubble_pass on it, then reconciles the boundaries.
 *
-*     - An odd-even transposition driver -- the standard parallel bubble sort
-*       -- alternates two phases: pairs (0,1),(2,3),... then (1,2),(3,4),...
+*     - An odd-even transposition driver - the standard parallel bubble sort
+*       - alternates two phases: pairs (0,1),(2,3),... then (1,2),(3,4),...
 *       Within a phase every pair is disjoint, so the pairs can be exchanged in
 *       any order or all at once, which is what makes the algorithm parallel.
 *       That driver uses d_bubble_compare_exchange directly and never needs a
@@ -26,7 +26,7 @@
 *   THE ATOM IS WHERE STABILITY LIVES.  d_bubble_compare_exchange exchanges
 * only on a STRICT precedence, so equivalent elements are never moved past one
 * another.  Every driver built on it inherits that, and any driver that
-* open-codes the comparison instead may not -- which is the practical reason
+* open-codes the comparison instead may not - which is the practical reason
 * the atom is a function and not advice.
 *
 *   complexity of one pass:
@@ -58,16 +58,16 @@ D_EXTERN_C_BEGIN
 // I.     properties
 
 // D_BUBBLE_SORT_IS_STABLE
-//   macro: 1 -- only a strict precedence exchanges a pair, so equivalent
+//   macro: 1 - only a strict precedence exchanges a pair, so equivalent
 // elements never move past one another.
 #define D_BUBBLE_SORT_IS_STABLE     1
 
 // D_BUBBLE_SORT_IS_IN_PLACE
-//   macro: 1 -- O(1) auxiliary storage, none of it allocated.
+//   macro: 1 - O(1) auxiliary storage, none of it allocated.
 #define D_BUBBLE_SORT_IS_IN_PLACE   1
 
 // D_BUBBLE_SORT_IS_ADAPTIVE
-//   macro: 1 -- a sweep reports where it last exchanged, which lets a driver
+//   macro: 1 - a sweep reports where it last exchanged, which lets a driver
 // shrink its bound and finish ordered input in one pass.
 #define D_BUBBLE_SORT_IS_ADAPTIVE   1
 

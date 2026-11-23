@@ -18,15 +18,15 @@
 *   Products and quotients take Knuth's form (TAOCP 4.5.1): each numerator is
 * cancelled against the other's denominator first, so the reduced result is
 * formed directly and no intermediate exceeds it. A sum's one intermediate
-* that can exceed a word -- the cross term t = a * (d / g) + c * (b / g) for
-* a/b + c/d, g = gcd(b, d) -- is formed in double width, two words of
+* that can exceed a word - the cross term t = a * (d / g) + c * (b / g) for
+* a/b + c/d, g = gcd(b, d) - is formed in double width, two words of
 * dj_math_umax, and divided down before the result is tested; double width is
 * also how the products are tested and how comparisons are made, so nothing
 * here needs a type wider than dj_math_umax.
 *
 *   ONE TEXT, BOTH LANGUAGES. As in the rest of the C core, every kernel is
 * pure arithmetic (D_MATH_FN): a header inline in C and below C++14, and a
-* constant expression from C++14 -- also the ones that store their result
+* constant expression from C++14 - also the ones that store their result
 * through a pointer, when it points at the evaluation's own object. A
 * kernel's arguments come by value, two words each.
 *

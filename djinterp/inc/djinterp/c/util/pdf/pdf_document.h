@@ -11,13 +11,13 @@
 * abstract class with nine pure virtuals; C spells it as `dj_pdf_backend`. The
 * answers to the questions that made it a decision rather than a translation:
 *
-*     WHO OWNS THE CONTEXT -- the caller, always. The facade never frees it and
+*     WHO OWNS THE CONTEXT - the caller, always. The facade never frees it and
 *   never copies it. A backend that allocates cleans up in its own `destroy`
 *   slot, which the facade calls only if the caller asked it to by setting
 *   `owns_context`. Ownership is therefore stated at the call site that knows
 *   the answer, rather than inferred by a facade that does not.
 *
-*     WHAT A NULL SLOT MEANS -- unsupported, not a crash. Every dispatch checks
+*     WHAT A NULL SLOT MEANS - unsupported, not a crash. Every dispatch checks
 *   before calling and reports failure through the return, so a minimal backend
 *   supplies four slots and leaves five null rather than writing five stubs
 *   that do nothing. This mirrors the C++ side's split between pure virtuals
@@ -25,7 +25,7 @@
 *   inherit a fallback, so the check moves to the caller and is written once
 *   here.
 *
-*     WHETHER THE TABLE IS VERSIONED -- yes, by a leading `size` field. A
+*     WHETHER THE TABLE IS VERSIONED - yes, by a leading `size` field. A
 *   caller compiled against an older header passes a smaller table, and the
 *   facade tests `size` before reading any slot beyond the original set. The
 *   alternative is that adding a tenth operation silently reads past the end
@@ -41,7 +41,7 @@
 *
 *   THE FACADE IS A VALUE, NOT A HANDLE. `dj_pdf_document` is a struct the
 * caller owns and may put on the stack; there is no create/destroy pair,
-* because the facade holds no memory of its own -- only a borrowed backend and
+* because the facade holds no memory of its own - only a borrowed backend and
 * four bits of page state.
 *
 *   NO UMBRELLA HEADER. The C++ module has `pdf.hpp`, which contains one
@@ -79,7 +79,7 @@ struct dj_ostream;
 
 // dj_pdf_backend
 //   type: the backend protocol. Every slot takes the context as its first
-// argument and returns int32_t -- 1 on success, 0 on failure -- including the
+// argument and returns int32_t - 1 on success, 0 on failure - including the
 // slots whose C++ counterparts return void, because a C caller has no
 // exception to catch and a write that failed must be reportable.
 //

@@ -181,7 +181,7 @@ NS_INTERNAL
     {};
 
     // DTsKept
-    //   type: the accumulator of the recursion below -- a bare list of the
+    //   type: the accumulator of the recursion below - a bare list of the
     // options kept so far, which only ts_strip_lp_impl unpacks.
     template<typename... Kept>
     struct DTsKept

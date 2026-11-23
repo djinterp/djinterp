@@ -40,7 +40,7 @@
 
 
 // D_INTERNAL_OSTREAM_FORMAT_LOCALE
-//   resolved: the locale mechanism in effect -- a D_CFG_OSTREAM_FORMAT_LOCALE_*
+//   resolved: the locale mechanism in effect - a D_CFG_OSTREAM_FORMAT_LOCALE_*
 // selector, never AUTO. POSIX is keyed on what <locale.h> declared here
 // (LC_NUMERIC_MASK comes with newlocale); WINDOWS on the Microsoft CRT.
 #if (D_CFG_NORM(D_CFG_OSTREAM_FORMAT_LOCALE) !=                               \
@@ -130,8 +130,8 @@
  * @param[in]     _length  its length.
  * @return the new length.
  *
- * printf's %f, %e and %g take nothing else from the locale -- no grouping
- * without the ' flag, and the digits are always ASCII -- so this one
+ * printf's %f, %e and %g take nothing else from the locale - no grouping
+ * without the ' flag, and the digits are always ASCII - so this one
  * substitution gives the C locale's text. The point can be more than one byte
  * (Pashto's is two), so the text after it moves up.
  */
@@ -603,8 +603,8 @@ d_internal_format_long_vprintf(
 /*
 d_ostream_vprintf
   The first pass formats through a copy of the arguments into the window when
-it has room worth trying -- so most calls are formatted in place and only
-committed -- or into a stack buffer. Text that did not fit was measured by
+it has room worth trying - so most calls are formatted in place and only
+committed - or into a stack buffer. Text that did not fit was measured by
 that pass, and the second pass formats it, from the original arguments, into
 room exactly that large. A window too small to try is never written to, so
 nothing past its end is touched; vsnprintf writes its terminator inside the

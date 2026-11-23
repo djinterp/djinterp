@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][memory]                                          cfg_mem_source.h
 *
-*   Configuration for the upstream byte-source protocol -- the layer every
+*   Configuration for the upstream byte-source protocol - the layer every
 * allocator in the memory subframework obtains its backing storage through.
 * Selects which built-in sources are compiled, which platform API satisfies an
 * over-aligned request, which source a caller gets when it asks for "the
@@ -10,7 +10,7 @@
 *   THE VTABLE IS A STRUCT, SO ITS SLOTS ARE BYTES. D_CFG_MEM_SOURCE_REALLOC
 * and D_CFG_MEM_SOURCE_MAX_SIZE remove function pointers from
 * dj_mem_source_vtable, not merely calls to them. One vtable is shared by every
-* instance of a source, so the saving is small in absolute terms -- but the
+* instance of a source, so the saving is small in absolute terms - but the
 * protocol is the thing every other module is written against, and a narrower
 * protocol is a narrower thing to implement when a caller supplies its own
 * source. That, rather than the bytes, is why the slots are optional.
@@ -88,7 +88,7 @@
 #endif
 
 // D_CFG_MEM_SOURCE_COUNTER
-//   brief: 1 compiles the counting decorator -- a source that forwards to
+//   brief: 1 compiles the counting decorator - a source that forwards to
 // another and accounts for what passes through. Follows D_CFG_MEM_STATS,
 // since it reports through the same struct and a build with no accounting has
 // nothing to report into.
@@ -112,8 +112,8 @@
 // the contiguous arena and the contiguous pool both grow by reallocation, and
 // a source that can grow in place (system malloc's realloc can) saves a copy
 // of everything already allocated.
-//   Turning it OFF does not remove the capability -- d_mem_source_reallocate
-// emulates it as allocate + copy + release -- so this trades a function
+//   Turning it OFF does not remove the capability - d_mem_source_reallocate
+// emulates it as allocate + copy + release - so this trades a function
 // pointer and an implementer's obligation for a copy. A caller writing its own
 // source over a mapping that cannot grow in place should take that trade.
 #ifndef D_CFG_MEM_SOURCE_REALLOC
@@ -151,7 +151,7 @@
 //   malloc guarantees alignment suitable for any fundamental type and nothing
 // more. A request above that has four possible answers, and which one is
 // available is a property of the platform's library rather than of its
-// language level -- so this resolves by DETECTION and the knob exists to force
+// language level - so this resolves by DETECTION and the knob exists to force
 // a path for a bisect, not because a user is expected to choose.
 
 // D_CFG_MEM_SOURCE_ALIGN_AUTO / _C11 / _POSIX / _WIN32 / _MANUAL
@@ -196,7 +196,7 @@
 #define D_CFG_MEM_SOURCE_DEFAULT_NULL   1
 
 // D_CFG_MEM_SOURCE_DEFAULT
-//   brief: what d_mem_source_default() returns -- the source an allocator
+//   brief: what d_mem_source_default() returns - the source an allocator
 // takes when its configuration names none. SYSTEM where malloc is compiled in,
 // NULL otherwise, which is what makes a freestanding build fail loudly at the
 // first unconfigured allocator rather than quietly at link time.
@@ -287,7 +287,7 @@
 // D_INTERNAL_MEM_SOURCE_ALIGNED_API
 //   brief: the resolved over-alignment path, never AUTO. The detection order
 // prefers the standard spelling, then the POSIX one, then the Microsoft one,
-// and falls back to the portable manual path -- which is always correct, so
+// and falls back to the portable manual path - which is always correct, so
 // the cascade can end without an #error and the tier law holds.
 //   posix_memalign is probed through _POSIX_C_SOURCE rather than __unix__: the
 // question is whether the LIBRARY has the function, and a version macro is the

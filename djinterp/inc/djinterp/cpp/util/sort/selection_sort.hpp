@@ -5,7 +5,7 @@
 * In-place, iterative, comparison-based, NOT stable.  Each position takes the
 * minimum of everything that remains, exchanged in from wherever it was found.
 * The driver is a single call into selection_sort_common.hpp, so a concurrent
-* driver -- which parallelises the SCAN rather than the sort -- shares the
+* driver - which parallelises the SCAN rather than the sort - shares the
 * primitives rather than restating them.
 *
 *   CHOOSE IT FOR THE WRITES, NEVER FOR THE COMPARISONS.  It always performs
@@ -23,13 +23,13 @@
 *
 *   The other half changed.  For bubble and insertion the duplication was free
 * of risk, because those are stable and "sorted and stable" names exactly one
-* arrangement -- two correct implementations could not disagree.  Selection is
+* arrangement - two correct implementations could not disagree.  Selection is
 * NOT stable, so the sorted arrangement is not unique and two correct
 * implementations genuinely can differ.  Agreement here is bought, not given,
 * and what buys it is that both modules implement the same two normative
 * choices: the scan runs forward, and only a strict precedence displaces the
 * incumbent.  Both are stated in selection_sort_common.hpp, and the parity
-* check exercises them -- for this algorithm that check can actually fail,
+* check exercises them - for this algorithm that check can actually fail,
 * which is not true of the two before it.
 *
 *   complexity:
@@ -42,7 +42,7 @@
 *
 *   REQUIREMENTS.  RandomIterator must be a random-access iterator; the
 * element type must be swappable.  Comparator must be a std::sort-convention
-* binary predicate -- which every model of is_comparator is, so the composed
+* binary predicate - which every model of is_comparator is, so the composed
 * comparators from the functional layer drop in unchanged:
 *
 *       selection_sort(v.begin(), v.end(), by_key(&person::age));

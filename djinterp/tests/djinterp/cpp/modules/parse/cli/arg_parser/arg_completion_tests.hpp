@@ -3,7 +3,7 @@
 *
 * The argument parser's C++ completion suite: shell completion scripts,
 * through the C++ face's functions.
-*   The C completion suite holds the scripts themselves -- each shell's
+*   The C completion suite holds the scripts themselves - each shell's
 * text for each kind of tree, and the scripts run by the shells; this one
 * holds the face's way to them: the shells by name, and a command's script
 * for each shell, made a std::string or written to a sink, which is the C

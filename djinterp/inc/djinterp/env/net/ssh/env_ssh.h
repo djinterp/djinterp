@@ -4,7 +4,7 @@
 * djinterp SSH environment detection.
 *   Compile-time detection of what the SSH family of modules needs from the
 * environment, expressed through the D_ENV_SSH_* interface. SSH's transport
-* layer -- key exchange, host-key signatures, the cipher and MAC suites -- is
+* layer - key exchange, host-key signatures, the cipher and MAC suites - is
 * code that belongs in a maintained library rather than in each program, so
 * the first question is which SSH library is present and how recent it is: the
 * release decides which host-key algorithms it can verify, and whether it

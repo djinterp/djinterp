@@ -5,13 +5,13 @@
 * and history of dgit_repo.h; dgit_object.c reads objects, and dgit_index.c
 * the index and the work tree.
 *   Opening follows git's setup: GIT_DIR, or a walk up from a directory for a
-* .git -- a directory, or a file naming one -- or a bare repository, each
+* .git - a directory, or a file naming one - or a bare repository, each
 * proved a repository as git proves one, by a HEAD that reads as a ref or a
 * name, and objects and refs beside it. The format is read from the
 * repository's own configuration before anything else is.
 *   The configuration is every scope's files, in git's order, each read by
 * dgit_text and its settings kept in order: an include's settings come in
-* place of the include, conditions decided as git decides them -- gitdir:,
+* place of the include, conditions decided as git decides them - gitdir:,
 * gitdir/i:, onbranch:, and hasconfig:remote.*.url:, which needs every
 * remote's URL first, and so a first pass that follows every such include.
 *   Refs are read as the files backend reads them: a ref of one of a work
@@ -195,7 +195,7 @@ char* d_git_path_join(
 
 /*
 d_internal_separator, d_internal_root_length
-  Whether a byte separates a path's names -- `/` or `\` -- and how long a
+  Whether a byte separates a path's names - `/` or `\` - and how long a
 path's root is: a separator, a drive's `C:` and a separator, a drive's
 `C:` alone, or none.
 */
@@ -232,8 +232,8 @@ size_t d_internal_root_length(
 
 /*
 d_internal_separator, d_internal_root_length
-  Whether a byte separates a path's names -- `/` alone, as a backslash is
-a name's own on POSIX -- and how long a path's root is: `/`, or none.
+  Whether a byte separates a path's names - `/` alone, as a backslash is
+a name's own on POSIX - and how long a path's root is: `/`, or none.
 */
 static
 bool d_internal_separator(
@@ -640,7 +640,7 @@ bool d_internal_oids_add(
 /*
 d_internal_headref
   Whether a HEAD reads as git's validate_headref wants one: a link into
-refs/, "ref:" and a ref in refs/, or a name in hex -- forty digits, as git
+refs/, "ref:" and a ref in refs/, or a name in hex - forty digits, as git
 reads a HEAD before it knows the repository's hash.
 */
 static
@@ -728,7 +728,7 @@ char* d_internal_common_of(
 /*
 d_internal_is_git_dir
   Whether a directory is a repository's, as git's is_git_directory proves
-one: a HEAD that reads as one, and objects -- or GIT_OBJECT_DIRECTORY --
+one: a HEAD that reads as one, and objects - or GIT_OBJECT_DIRECTORY --
 and refs in its common directory.
 */
 static
@@ -1015,7 +1015,7 @@ bool d_internal_known_extension(
 d_internal_format_entry
   One setting of the repository's own configuration, as git's
 read_repository_format reads it: the format's version, its extensions --
-objectformat sha256, refstorage refused -- core.bare and core.worktree.
+objectformat sha256, refstorage refused - core.bare and core.worktree.
 */
 static
 bool d_internal_format_entry(
@@ -1154,7 +1154,7 @@ bool d_internal_read_format(
 //   struct: settings being read: the repository they are for, where they
 //   go, how deep the includes are, whether the work tree has a file of its
 //   own, and the remote URLs hasconfig asks of
-//   -- read, the first time one asks, by a pass that follows every such
+//   - read, the first time one asks, by a pass that follows every such
 //   include, `unconditional`; within one of its includes, a URL is
 //   refused.
 struct dj_internal_loader
@@ -1778,7 +1778,7 @@ bool d_internal_condition(
 /*
 d_internal_setting_includes
   What a setting just read includes: include.path its path; an
-includeIf.<condition>.path its path when the condition holds -- read, in
+includeIf.<condition>.path its path when the condition holds - read, in
 the pass that reads URLs, with a URL in it refused.
 */
 static
@@ -2146,7 +2146,7 @@ bool d_internal_sq_step(
 /*
 d_internal_parameter
   One word of GIT_CONFIG_PARAMETERS: 'key=value' of old, split at its first
-`=` -- a key with none is a name alone -- or 'key'='value' and 'key'= of
+`=` - a key with none is a name alone - or 'key'='value' and 'key'= of
 new.
 */
 static
@@ -2244,8 +2244,8 @@ bool d_internal_load_parameters(
 
 /*
 d_internal_load_all
-  Every scope's settings, in git's order: the system's -- unless
-GIT_CONFIG_NOSYSTEM -- the user's, the repository's, the work tree's when
+  Every scope's settings, in git's order: the system's - unless
+GIT_CONFIG_NOSYSTEM - the user's, the repository's, the work tree's when
 extensions.worktreeConfig is set, and the command's.
 */
 static
@@ -2776,7 +2776,7 @@ bool d_internal_refname_ok(
 /*
 d_internal_worktree_ref
   Whether a ref is a work tree's own, kept in its own directory: HEAD and
-the other pseudorefs -- names of capitals and `_` -- and those under
+the other pseudorefs - names of capitals and `_` - and those under
 refs/worktree/, refs/bisect/ and refs/rewritten/.
 */
 static
@@ -2922,7 +2922,7 @@ int d_internal_compare_packed(
 d_internal_packed_line
   One line of packed-refs: a name in hex, a space and a ref; or `^` and the
 name the ref before it peels to. A comment is passed over.
-  Long as packed-refs' lines -- its header, a ref, a peeled line -- are told
+  Long as packed-refs' lines - its header, a ref, a peeled line - are told
 apart and read here.
 */
 static
@@ -3770,7 +3770,7 @@ struct dj_internal_reflog
 
 /*
 d_internal_reflog_read
-  A ref's reflog, logs/<ref> -- a work tree's own refs' in its directory --
+  A ref's reflog, logs/<ref> - a work tree's own refs' in its directory --
 each line two names in hex, an identity, a tab and a message. False when
 there is none.
 */
@@ -3890,7 +3890,7 @@ bool d_internal_is_null(
 /*
 d_internal_reflog_nth
   A ref's value n changes ago, as git's read_ref_at counts them: @{0} the
-newest line's new name; @{n} the old name of the nth newest -- or of the
+newest line's new name; @{n} the old name of the nth newest - or of the
 first older with one, past a line that made the ref.
 */
 static
@@ -4401,7 +4401,7 @@ bool d_internal_at_mark(
 /*
 d_internal_basic
   A name as git's get_oid_basic reads it: whole in hex; `@` for HEAD; a ref
-rev-parse's rules complete -- not one ambiguous_path refuses. The reflog's
+rev-parse's rules complete - not one ambiguous_path refuses. The reflog's
 @{...} is not read.
 */
 static
@@ -4642,7 +4642,7 @@ bool d_internal_parent_of(
 
 /*
 d_internal_suffix
-  A trailing ~n or ^n: its kind, the length before it, and n -- 1 when no
+  A trailing ~n or ^n: its kind, the length before it, and n - 1 when no
 digits follow, as git counts it.
 */
 static
@@ -4687,7 +4687,7 @@ char d_internal_suffix(
 
 /*
 d_internal_onion
-  A trailing ^{type}: what is before it, peeled -- ^{} of its tags, ^{object}
+  A trailing ^{type}: what is before it, peeled - ^{} of its tags, ^{object}
 not at all, ^{commit}, ^{tree}, ^{blob}, ^{tag} to the type.
 */
 static
@@ -4982,7 +4982,7 @@ bool d_git_repo_rev(
 
 // d_internal_node
 //   struct: a commit of a walk: its name, its date and tree once parsed,
-//   its parents -- which simplifying may cut -- its marks, what its tree
+//   its parents - which simplifying may cut - its marks, what its tree
 //   holds at the walk's path, once asked, and the last walk of ancestors
 //   that visited it.
 struct dj_internal_node
@@ -5011,7 +5011,7 @@ struct dj_internal_slot
 
 // dj_internal_walker
 //   struct: a walk: its commits and the table that finds them by name,
-//   the queue -- latest date first, ties first in first out -- the
+//   the queue - latest date first, ties first in first out - the
 //   shallow commits, whose parents git does not see, and what the walk is
 //   limited by, and how many walks of ancestors there have been.
 struct dj_internal_walker
@@ -5196,7 +5196,7 @@ bool d_internal_is_shallow(
 /*
 d_internal_parse_node
   A commit read and parsed, once: its date the committer's, its parents
-met -- none for a shallow commit.
+met - none for a shallow commit.
 */
 static
 bool d_internal_parse_node(
@@ -5576,7 +5576,7 @@ d_internal_simplify
 path: a root is TREESAME when its tree has nothing there; a commit with a
 parent of the same there, that parent interesting, has that parent alone
 and is TREESAME; otherwise it is TREESAME only when no parent that counts
-differs -- the interesting ones, if any are, else all.
+differs - the interesting ones, if any are, else all.
   Long as try_to_simplify_commit is, which it follows step by step.
 */
 static
@@ -5856,7 +5856,7 @@ int d_internal_compare_starts(
 /*
 d_internal_start
   One revision a walk starts from: named, peeled to its commit, marked --
-uninteresting, its parents too, when it is excluded -- and kept to be
+uninteresting, its parents too, when it is excluded - and kept to be
 queued, once.
 */
 static

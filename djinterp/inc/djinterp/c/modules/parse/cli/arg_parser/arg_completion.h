@@ -6,12 +6,12 @@
 *   d_arg_completion_script writes a script, generated from the command tree
 * as it is defined, that completes subcommand names and aliases, option
 * names, and the values of options and positionals: the values a validator
-* lists (an is_member's set, a transformer's keys -- see
+* lists (an is_member's set, a transformer's keys - see
 * d_arg_validator_each_choice), directories or files for a path validator,
-* nothing for a number, a truth value or a character -- a validator that
-* says so (D_ARG_VALIDATOR_NUMBER) or a bound type -- and files otherwise.
-* What help hides -- an option or subcommand in the empty group, a disabled
-* subcommand or option group -- the script leaves out, but for a hidden
+* nothing for a number, a truth value or a character - a validator that
+* says so (D_ARG_VALIDATOR_NUMBER) or a bound type - and files otherwise.
+* What help hides - an option or subcommand in the empty group, a disabled
+* subcommand or option group - the script leaves out, but for a hidden
 * positional, which it counts, completing nothing for it. A name is listed
 * once under a command, for the option the parse finds it in first: its
 * own options before its option groups'.
@@ -140,9 +140,9 @@ D_ARG_PARSER_API const char* d_arg_shell_name(
  * @brief Writes a completion script for a command and its subcommands.
  *
  * @note The script completes the command as `_program`, defining shell
- *       functions and variables named after it -- `_djarg_<name>` and
+ *       functions and variables named after it - `_djarg_<name>` and
  *       `__djarg_<name>_*`, the name's bytes other than ASCII letters and
- *       digits escaped -- so that scripts for several programs live side by
+ *       digits escaped - so that scripts for several programs live side by
  *       side; PowerShell's keeps its own in a closure. What it completes is
  *       described above. A subcommand's options include those its option
  *       groups hold, and, with fallthrough, its parent's.
@@ -150,8 +150,8 @@ D_ARG_PARSER_API const char* d_arg_shell_name(
  * @param[in] _command  the command, usually a parser's root.
  * @param[in] _shell    a dj_arg_shell value.
  * @param[in] _program  the name the shell runs the program by; empty for
- *                      the last component of the command's name -- after
- *                      its last `/` or `\` -- less any ".exe".
+ *                      the last component of the command's name - after
+ *                      its last `/` or `\` - less any ".exe".
  * @param[in] _sink     where the script goes, written at once.
  * @return D_ARG_OK when written; D_ARG_ERROR_FILE when the sink refused the
  *         text; D_ARG_ERROR_OUT_OF_MEMORY when it could not be built; the
@@ -180,11 +180,11 @@ D_ARG_PARSER_API int d_arg_completion_script(
  *       {bash,zsh,fish,powershell,pwsh}". It is not configurable, and is
  *       called back first, as the help flag is: given, it ends the parse
  *       before the configuration, the environment and the requirements are
- *       read -- a help or version flag given with it winning -- with
+ *       read - a help or version flag given with it winning - with
  *       D_ARG_CALL_FOR_COMPLETION, the script the error's message, and
  *       d_arg_parser_exit writes it to the parser's output. The script is
- *       for the program as `argv[0]` names it -- its last component, less
- *       any ".exe" -- or, after a parse given no program name, as the root
+ *       for the program as `argv[0]` names it - its last component, less
+ *       any ".exe" - or, after a parse given no program name, as the root
  *       is named. Replaces the option made before, if any, wherever it was
  *       moved.
  *

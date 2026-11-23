@@ -2,8 +2,8 @@
 * djinterp [cpp][math]                                            t_svd_face.cpp
 *
 *   Tests for linear_algebra/svd.hpp, at every level from C++98, per family:
-* the SVD of a known matrix -- its singular values, U S V^T = A, V
-* orthogonal, rank and condition number -- and of a rank-deficient one;
+* the SVD of a known matrix - its singular values, U S V^T = A, V
+* orthogonal, rank and condition number - and of a rank-deficient one;
 * the pseudoinverse as the inverse of a square nonsingular matrix, as the
 * least-squares solver of a tall one, and of a wide one through the
 * transpose.

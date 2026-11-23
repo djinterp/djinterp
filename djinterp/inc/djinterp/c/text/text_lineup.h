@@ -3,7 +3,7 @@
 *
 *   Text lineup: tokens laid out in aligned columns across wrapped lines, with
 * a separator between them, a prefix before the first line and a suffix after
-* the last, and a prefix and suffix on each line -- the shape of a long
+* the last, and a prefix and suffix on each line - the shape of a long
 * initializer list, an enum's members, or a macro's continued lines. Every
 * token takes a slot as wide as the widest (or the template's minimum); a
 * short token is padded right-aligned by default, or left-aligned or centred

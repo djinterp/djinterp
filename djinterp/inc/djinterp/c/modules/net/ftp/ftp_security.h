@@ -2,8 +2,8 @@
 * djinterp [c][net]                                               ftp_security.h
 *
 * FTP security settings (RFC 2228, RFC 4217).
-*   How TLS protects the control connection -- not at all, explicitly after
-* AUTH TLS, or implicitly from the first byte -- and the PROT levels that
+*   How TLS protects the control connection - not at all, explicitly after
+* AUTH TLS, or implicitly from the first byte - and the PROT levels that
 * protect the data connection.
 *
 *

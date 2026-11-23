@@ -17,15 +17,15 @@
 *     sqlite_maintenance  vacuum, analyze, checks, checkpoints, backups
 *   RESULTS. A function that can fail returns SQLITE_OK (0) or the SQLite
 * result code of the failure, which sqlite3_errmsg on the same connection then
-* describes; an argument that cannot be right -- a NULL handle, an empty name
-* -- is SQLITE_MISUSE. The few conditions SQLite has no code for are
+* describes; an argument that cannot be right - a NULL handle, an empty name
+* - is SQLITE_MISUSE. The few conditions SQLite has no code for are
 * db_common.h's: D_DB_UNSUPPORTED when the SQLite library in use is too old
 * for the request, D_DB_EXISTS and D_DB_NOT_FOUND. Predicates come in pairs,
 * as db_common.h describes: `has_x` folds a failure into `false`, `has_x_s`
 * reports it.
-*   NAMES. Every name -- schema, table, column -- is quoted by the layer, so
+*   NAMES. Every name - schema, table, column - is quoted by the layer, so
 * any string SQLite accepts as a name is safe to pass. A NULL schema means
-* "main". Text that is SQL -- a column definition, a SELECT, a DEFAULT -- is
+* "main". Text that is SQL - a column definition, a SELECT, a DEFAULT - is
 * the caller's SQL and is used as written.
 *   VERSIONS. The floor is SQLite 3.7.17. C API calls newer than that are
 * chosen when the layer is compiled, from the version env_sqlite.h detects
@@ -146,7 +146,7 @@ enum dj_sqlite_feature
 
 // 2.1    Versions
 //------------------------------------------------------------------------------
-// versions -- the "library" is the one loaded at run time, the "header" the
+// versions - the "library" is the one loaded at run time, the "header" the
 // one the layer was compiled against; numbers are MAJOR*1000000 + MINOR*1000
 // + PATCH, as SQLITE_VERSION_NUMBER encodes them
 const char* d_sqlite_library_version(void) D_NOTHROW;
@@ -160,7 +160,7 @@ bool d_sqlite_library_at_least(
 
 // 2.2    Features
 //------------------------------------------------------------------------------
-// features -- whether the library loaded now can do it, and, for an API
+// features - whether the library loaded now can do it, and, for an API
 // beyond the floor's (serialization, extensions), the layer's build calls it
 // too; `false` for a value outside enum dj_sqlite_feature. _threadsafe says
 // how the loaded library was built to be shared between threads, as
@@ -174,7 +174,7 @@ int d_sqlite_library_threadsafe(void) D_NOTHROW;
 
 // 2.3    Result messages
 //------------------------------------------------------------------------------
-// result messages -- an English description of any result this layer
+// result messages - an English description of any result this layer
 // returns, SQLite's own included; never NULL, and never to be freed
 const char* d_sqlite_result_message(
     int _result
@@ -182,14 +182,14 @@ const char* d_sqlite_result_message(
 
 // 2.4    Kinds
 //------------------------------------------------------------------------------
-// kinds -- what a result of SQLite's was, as db_common.h's kinds name it
+// kinds - what a result of SQLite's was, as db_common.h's kinds name it
 // (1.4): d_sqlite_kind sorts a result by the function the program set with
 // d_sqlite_kind_set, or by d_sqlite_kind_default where it set none (NULL
 // sets none again). SQLite has no SQLSTATE, so the function is given NULL
 // for one. The default reads the primary result, and the extended where it
 // says more: SQLITE_CONSTRAINT is a constraint, SQLITE_BUSY and
-// SQLITE_LOCKED busy, SQLITE_ERROR syntax -- SQLite's code for a statement it
-// could not prepare -- SQLITE_CANTOPEN and SQLITE_NOTADB a connection,
+// SQLITE_LOCKED busy, SQLITE_ERROR syntax - SQLite's code for a statement it
+// could not prepare - SQLITE_CANTOPEN and SQLITE_NOTADB a connection,
 // SQLITE_PERM, SQLITE_AUTH and SQLITE_READONLY auth, SQLITE_MISMATCH,
 // SQLITE_TOOBIG and SQLITE_RANGE data, SQLITE_MISUSE and SQLITE_NOLFS
 // unsupported, and SQLITE_IOERR, SQLITE_CORRUPT, SQLITE_NOMEM and the rest of
@@ -218,7 +218,7 @@ enum dj_db_vendor_kind d_sqlite_kind_default(
 
 // 3.1    Errors
 //------------------------------------------------------------------------------
-// errors -- the message SQLite keeps for the connection's most recent
+// errors - the message SQLite keeps for the connection's most recent
 // failure, as sqlite3_errmsg words it ("no such table: users"), where
 // d_sqlite_result_message words the result code alone; "not an error" when
 // the latest call succeeded. NULL for a NULL connection, or in a build

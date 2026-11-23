@@ -6,13 +6,13 @@
 * time, not knowing how many will come. It adds each to a builder, which keeps
 * the text in one growing buffer and the records in another, and finishing
 * packs both into the single allocation db_common.h promises its callers --
-* the arrays first, the strings after them -- so that one free releases
+* the arrays first, the strings after them - so that one free releases
 * everything.
 *   Offsets, not pointers, are kept while building: the text buffer moves each
 * time it grows, and an offset survives that where a pointer would not.
 *   It also formats SQL for the layers whose client has no formatter of its
-* own -- a printf-like format, with conversions for a quoted value and a
-* quoted name, each quoted by the vendor's own rules -- and reads the numbers
+* own - a printf-like format, with conversions for a quoted value and a
+* quoted name, each quoted by the vendor's own rules - and reads the numbers
 * a server sends as text. Both write and read the decimal point as SQL spells
 * it, whatever the C locale says. A format's dialect says what a NULL value
 * writes and whether a qualified name can be written: SQL's for the SQL
@@ -277,7 +277,7 @@ bool d_internal_db_rows_column(
     enum dj_db_type             _type,
     const char*                 _type_name
 );
-// values -- each adds the next value of the current row, which begins once
+// values - each adds the next value of the current row, which begins once
 // the row before it is whole: SQL NULL; an integer; a real number; text or
 // bytes, `_size` bytes copied, and a terminator after them. Each returns
 // `true`, or `false` when memory ran out, the builder unchanged.
@@ -332,8 +332,8 @@ void d_internal_db_rows_release(
 // 3.1.1
 // dj_internal_db_quote_fn
 //   type: a vendor's way of writing one string into SQL: it appends the
-// string, quoted, to the buffer, and returns `false` when it cannot -- for
-// want of memory, or for a string the vendor cannot quote -- leaving the
+// string, quoted, to the buffer, and returns `false` when it cannot - for
+// want of memory, or for a string the vendor cannot quote - leaving the
 // buffer's length as it found it.
 typedef bool (*dj_internal_db_quote_fn)(void*                        _context,
                                        struct dj_internal_db_buffer* _out,
@@ -460,10 +460,10 @@ enum dj_internal_db_format_status d_internal_db_vformat_dialect(
 
 // 4.1    Numbers
 //------------------------------------------------------------------------------
-// numbers -- read as a server writes them in text: an optional sign, digits,
+// numbers - read as a server writes them in text: an optional sign, digits,
 // and for a real number a `.` point and an exponent, with nothing before or
-// after. Text of any other shape -- spaces, "0x10", "inf", a comma for the
-// point -- is not a number. Each returns `true` and writes the value, or
+// after. Text of any other shape - spaces, "0x10", "inf", a comma for the
+// point - is not a number. Each returns `true` and writes the value, or
 // `false` and writes nothing: _integer for text that is not an integer or
 // one outside int64_t, exactly; _real for text that is not a number or one
 // beyond double's range, rounding to the nearest double and reading the point
@@ -485,7 +485,7 @@ bool d_internal_db_parse_real(
 
 // 5.1    Primary keys
 //------------------------------------------------------------------------------
-// primary keys -- a column set's key, in the order struct dj_db_column's
+// primary keys - a column set's key, in the order struct dj_db_column's
 // key_place gives it. _places_ok says whether the places are sound: every
 // key_place 0, or the key's columns, and only they, numbered 1 to their
 // count, each once. _key_column answers the index of the column at a place,
@@ -510,7 +510,7 @@ size_t d_internal_db_key_column(
 
 // 6.1    SQLSTATEs
 //------------------------------------------------------------------------------
-// kind of an SQLSTATE -- db_common.h's kind of a five-character SQLSTATE, for
+// kind of an SQLSTATE - db_common.h's kind of a five-character SQLSTATE, for
 // the vendors that report one: by its class, its first two characters, and,
 // for class 42 and a few others, by the condition. 00 and 01, success and a
 // warning, are of no kind; a class it does not sort, malformed text and

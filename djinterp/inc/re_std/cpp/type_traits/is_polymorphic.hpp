@@ -58,7 +58,7 @@ namespace re_std
 #if RE_STD_HAS_IS_POLYMORPHIC
 
 // is_polymorphic
-//   trait: intrinsic-backed -- a class with a virtual function.
+//   trait: intrinsic-backed - a class with a virtual function.
 template<typename Type>
 struct is_polymorphic : integral_constant<bool, __is_polymorphic(Type)>
 {};

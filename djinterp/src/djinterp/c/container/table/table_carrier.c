@@ -183,7 +183,7 @@ void d_table_internal_fill_cells(
         return;
     }
 
-    // nothing to write -- and the seeding step below would write one cell too
+    // nothing to write - and the seeding step below would write one cell too
     // many, which a widening resize with no new columns exposed
     if (_count == 0)
     {
@@ -192,7 +192,7 @@ void d_table_internal_fill_cells(
 
     // seed one cell, then double the written run each pass.  The block moves
     // vectorise where a per-cell memcpy cannot: cell-by-cell measured 14.3x the
-    // hand-coded baseline, this way 0.91x -- faster than a naive scalar loop,
+    // hand-coded baseline, this way 0.91x - faster than a naive scalar loop,
     // because memcpy may use wider stores than the cell type allows.
     memcpy((void*)_at, _value, width);
 
@@ -217,7 +217,7 @@ break.
 
   This is BYTE equality, not value equality. Padding inside a cell and the
 several representations of a floating-point value both break it, and the
-framework's answer to that -- the per-type equality hook -- is an open question,
+framework's answer to that - the per-type equality hook - is an open question,
 so a caller comparing cells whose type has either must supply its own predicate
 rather than reading a false negative here as a difference.
 
@@ -635,7 +635,7 @@ d_table_insert_column
     _table->extent[1] = (D_INTERNAL_TABLE_EXTENT)new_cols;
 
     // capacity is in bytes and means the same thing at the new width, so there
-    // is nothing here to recompute -- which is the point of storing it in bytes
+    // is nothing here to recompute - which is the point of storing it in bytes
     return D_TABLE_STATUS_OK;
 }
 
@@ -643,7 +643,7 @@ d_table_insert_column
 d_table_insert_row
   Inserts a row of _width cells at index _at, shifting the rows at and after it
 one position later. Structural mutation: it alters a bound function, hence the
-domain I_T. Rectangularity is preserved or the insertion is refused -- a row of
+domain I_T. Rectangularity is preserved or the insertion is refused - a row of
 the wrong width is a shape error, never a truncation.
 
   An empty table adopts _width as its column count, which is how a table built
@@ -794,7 +794,7 @@ d_table_pop_row
 
 /*
 d_table_push_row
-  Appends a row -- d_table_insert_row at the end.
+  Appends a row - d_table_insert_row at the end.
 
 Parameter(s):
   _table: the table to append to.
@@ -824,7 +824,7 @@ d_table_push_row
 /*
 d_table_release
   Returns the cell buffer to the strategy that supplied it and leaves the table
-empty but still usable -- its width and cell size survive, its buffer does not.
+empty but still usable - its width and cell size survive, its buffer does not.
 A table over caller-owned memory is released by passing a strategy with no
 release function, which detaches the buffer without freeing it.
 
@@ -1240,7 +1240,7 @@ D_NODISCARD D_INLINE_DEF struct dj_table d_table_empty_of(
 
 /*
 d_table_row_capacity
-  the leading slices the buffer can hold AT THE CURRENT SHAPE -- a derived
+  the leading slices the buffer can hold AT THE CURRENT SHAPE - a derived
   quantity, recomputed on demand rather than stored, so that a shape change
   cannot leave it describing a slice of a different size.
 
@@ -1269,7 +1269,7 @@ D_NODISCARD size_t d_table_row_capacity(
 
 /*
 d_table_holds_invariant
-  whether the rectangularity invariant holds -- the cells in use fit the bytes
+  whether the rectangularity invariant holds - the cells in use fit the bytes
   the buffer holds, the rank is within this build's cap, and a buffer-less table
   carries no capacity. The predicate the debug knob checks and the conformance
   test asserts after every structural operation.
@@ -1303,7 +1303,7 @@ D_NODISCARD int d_table_holds_invariant(
 
 /*
 d_table_get
-  copy the cell at (_row, _column) into _out -- the byte-copy form of val_T, for
+  copy the cell at (_row, _column) into _out - the byte-copy form of val_T, for
   a caller holding a cell of the right width but not its type.
 
 Parameter(s):
@@ -1348,7 +1348,7 @@ d_table_get
 
 /*
 d_table_set
-  overwrite the cell at (_row, _column) from _value -- element mutation, which
+  overwrite the cell at (_row, _column) from _value - element mutation, which
   leaves I_T fixed.
 
 Parameter(s):

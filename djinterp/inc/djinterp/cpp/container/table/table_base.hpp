@@ -3,7 +3,7 @@
 *
 *   Shared support for the rank-2 table containers of Part II (static_table,
 * fixed_table, table).  A table is a container whose positions are addressed
-* by multi-indices of fixed rank -- a tuple presented as a container -- with
+* by multi-indices of fixed rank - a tuple presented as a container - with
 *   Pos(T) = I_T subset N^k,   val_T : Pos(T) -> cell type,   |T| = |I_T|.
 * This header fixes the leading case: k = 2 (the row-and-column table), a
 * rectangular box domain I_T = {0..R-1} x {0..C-1}, and one cell type for
@@ -12,20 +12,20 @@
 * Sortedness assigns a table.
 *
 *   THREE PIECES:
-*   1. basic_row_view / basic_column_view -- the subtable and projection of
+*   1. basic_row_view / basic_column_view - the subtable and projection of
 * the
 *      formal definition.  A row is the rank-1 subtable T[r]; a column is the
 *      projection T[*,c] (strided). Each is a non-owning window, const when
 *    its
 *      cell parameter is const-qualified.
-*   2. row_cursor / column_cursor -- proxy iterators that sweep rows and
+*   2. row_cursor / column_cursor - proxy iterators that sweep rows and
 * columns;
 *      dereferencing yields a view by value (a cursor, not a handle onto a
 *      stored reference).
-*   3. table_base<Derived, ...> -- a CRTP mixin supplying every read-only
+*   3. table_base<Derived, ...> - a CRTP mixin supplying every read-only
 *      operation a rank-2 table has, written once against a contiguous cell
-*      buffer.  The derived container supplies exactly three hooks -- data(),
-*      rows(), cols() -- and inherits rank/shape/size, checked and unchecked
+*      buffer.  The derived container supplies exactly three hooks - data(),
+*      rows(), cols() - and inherits rank/shape/size, checked and unchecked
 *      cell access, row (subtable) and column (projection) access, and the
 *    cell
 *      and row const-iteration surfaces.  The base never owns or allocates.
@@ -33,7 +33,7 @@
 *   AXES CARRIED HERE (shared by all three tables):
 *   Beyond the read-only cell/subtable/projection surface, this base supplies
 * the shared face of several Part I axes: Structure (element_type, node_type,
-* the hierarchical structure_category tag, and depth = rank -- a rank-k table
+* the hierarchical structure_category tag, and depth = rank - a rank-k table
 * is
 * the uniformly-nested F_1[..F_k[tau]..]), Iterability (the cell, row, and
 * column cursors), Multiplicity (count, the per-class occurrence count #_E
@@ -41,9 +41,9 @@
 * identity equivalence), and Sortedness (is_sorted / is_row_sorted, the
 * checkable "sits in comparator order" predicates).  Boundedness and the
 * structural side of Sortedness (sort_rows) differ per concrete table and live
-* there. The three axes that separate the concrete tables -- Lifetime,
+* there. The three axes that separate the concrete tables - Lifetime,
 * Storage,
-* Mutability (Part I, in order) -- also live in the derived classes; this base
+* Mutability (Part I, in order) - also live in the derived classes; this base
 * is the material they share.
 *
 *   PORTABILITY:
@@ -115,7 +115,7 @@ NS_DJINTERP
 NS_INTERNAL
 
     // basic_row_view
-    //   class: a non-owning window onto one row of a row-major table -- the
+    //   class: a non-owning window onto one row of a row-major table - the
     // rank-1 subtable T[r]. Cell is `const Type` for a read-only row and
     // `Type` for a writable one; every member follows that qualification.
     template<typename Cell>
@@ -393,7 +393,7 @@ NS_INTERNAL
 
 
     // basic_column_view
-    //   class: a non-owning strided window onto one column -- the projection
+    //   class: a non-owning strided window onto one column - the projection
     // T[*,c] = (v_{r,c})_r. Read-only when Cell is const-qualified.
     template<typename Cell>
     class basic_column_view
@@ -687,7 +687,7 @@ NS_END  // internal
 
 // DTableBase
 //   class: CRTP mixin supplying the read-only surface every rank-2
-// cell-homogeneous table shares -- rank and shape, checked and unchecked cell
+// cell-homogeneous table shares - rank and shape, checked and unchecked cell
 // access, row (subtable) and column (projection) access, and the cell and row
 // const-iteration surfaces. It reads the derived container through three
 // hooks it must expose publicly:
@@ -714,7 +714,7 @@ public:
     using const_pointer    = const Type*;
 
     // index_type
-    //   struct: a multi-index into a rank-2 table -- the coordinate pair (row,
+    //   struct: a multi-index into a rank-2 table - the coordinate pair (row,
     // column) that addresses one cell.
     struct index_type
     {
@@ -739,12 +739,12 @@ public:
     // --- structure (uniformly nested: a rank-k table is F_1[..F_k[tau]..]) ---
 
     // element_type
-    //   the leaf/base type tau carried at each cell -- an atomic type, not a
+    //   the leaf/base type tau carried at each cell - an atomic type, not a
     // container. The cell-homogeneous table carries this single element type.
     using element_type = Type;
 
     // node_type
-    //   the F[T] node summand -- a component that is itself a sub-container.
+    //   the F[T] node summand - a component that is itself a sub-container.
     // For this rank-2 table the node at the outer level is a row (F_2[tau]); a
     // row view is container-shaped (value_type + size()), so it is the formal
     // node.
@@ -760,7 +760,7 @@ public:
 
     // depth
     //   the uniform-nesting depth d = rank: leaves sit at level d, each
-    // coordinate is one level, and d is fixed by the type -- a static
+    // coordinate is one level, and d is fixed by the type - a static
     // quantity, not a per-value height. (The value_type-chain heuristic
     // under-counts this, seeing only the flat cell buffer; the true type-level
     // depth is the rank.)
@@ -789,7 +789,7 @@ public:
         return rank;
     }
 
-    // row_count / column_count -- the two extents (m_1 + 1, m_2 + 1).
+    // row_count / column_count - the two extents (m_1 + 1, m_2 + 1).
     D_NODISCARD D_CONSTEXPR size_type row_count() const D_NOEXCEPT
     {
         return self().rows();
@@ -826,7 +826,7 @@ public:
 
     // --- cell access (atomic access to the underlying tuple) ---
 
-    // operator() -- unchecked cell value at (_r, _c), row-major.
+    // operator() - unchecked cell value at (_r, _c), row-major.
     D_NODISCARD D_CONSTEXPR const_reference operator()(
         size_type _r,
         size_type _c
@@ -835,7 +835,7 @@ public:
         return self().data()[(_r * self().cols()) + _c];
     }
 
-    // at -- checked cell value; throws std::out_of_range off the domain, since
+    // at - checked cell value; throws std::out_of_range off the domain, since
     // an out-of-domain index is undefined, not blank.
     D_NODISCARD D_CONSTEXPR_CPP14 const_reference at(
         size_type _r,
@@ -853,7 +853,7 @@ public:
 
     // --- subtable and projection ---
 
-    // row / operator[] -- the rank-1 subtable T[r], a read-only window onto
+    // row / operator[] - the rank-1 subtable T[r], a read-only window onto
     // one row. operator[] spells the prefix-bracketing T[r] of the definition.
     D_NODISCARD D_CONSTEXPR const_row_type row(
         size_type _r
@@ -884,7 +884,7 @@ public:
         return row(_r);
     }
 
-    // column -- the projection T[*,c], a read-only strided window onto one
+    // column - the projection T[*,c], a read-only strided window onto one
     // column.
     D_NODISCARD D_CONSTEXPR const_column_type column(
         size_type _c
@@ -971,7 +971,7 @@ public:
     // count
     //   the per-class occurrence count #_E(c, _value) under the identity
     // equivalence: how many cells hold a value equal to _value. A table caps
-    // this at nothing (m = infinity) -- equal values may recur at any indices,
+    // this at nothing (m = infinity) - equal values may recur at any indices,
     // since a cell is identified by its position, not its value.
     D_NODISCARD D_CONSTEXPR_CPP14 size_type count(
         const value_type& _value
@@ -996,7 +996,7 @@ public:
 
     // is_sorted (comparator)
     //   true iff the cells, visited in row-major (lexicographic multi-index)
-    // order, are non-decreasing under _cmp -- the adjacent-pair test that a
+    // order, are non-decreasing under _cmp - the adjacent-pair test that a
     // transitive comparator's sortedness reduces to. A table is ordered but
     // not sorted in itself; this reports whether a given instance happens to
     // sit in comparator order (the checkable face of the sorted overlay).
@@ -1028,7 +1028,7 @@ public:
 
     // is_row_sorted
     //   true iff consecutive rows are non-decreasing under a row comparator
-    // _cmp(const_row_type a, const_row_type b) -- the row-dimension reading of
+    // _cmp(const_row_type a, const_row_type b) - the row-dimension reading of
     // sortedness (relational ORDER BY as a checkable property).
     template<typename RowCompare>
     D_NODISCARD D_CONSTEXPR_CPP14 bool is_row_sorted(

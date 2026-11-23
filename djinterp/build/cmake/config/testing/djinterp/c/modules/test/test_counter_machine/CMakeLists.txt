@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/modules/test/test_counter_machine/CMakeLists.txt
+# djinterp [test]  -  build/cmake/config/testing/djinterp/c/modules/test/test_counter_machine/CMakeLists.txt
 #
 #   Test leaf for section 4 of c/modules/test/test_counter.h, the counters'
 # opt-in abstract machine, which compiles only with D_CFG_TEST_COUNTER_MACHINE:

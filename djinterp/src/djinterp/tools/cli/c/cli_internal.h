@@ -2,7 +2,7 @@
 * djinterp [c][tools]                                             cli_internal.h
 *
 * Private helpers shared by the command-line kit's C sources.
-*   What the kit asks of the operating system -- terminals, the standard
+*   What the kit asks of the operating system - terminals, the standard
 * streams, the environment, the program's own file and loadable modules --
 * answered in cli_system.c, the one source that includes a system header;
 * then the text the other sources share: words in lower case, and the
@@ -112,15 +112,15 @@ size_t d_cli_internal_terminal_columns(void);
 // 1.2.1
 // d_cli_internal_binary_streams
 //   setting: puts the three standard streams in binary mode where the C
-// runtime translates line ends -- Windows -- once; nothing elsewhere.
+// runtime translates line ends - Windows - once; nothing elsewhere.
 void d_cli_internal_binary_streams(void);
 
 // 1.2.2
 // d_cli_internal_write_stream
-//   writing: writes bytes to standard output or standard error -- through
+//   writing: writes bytes to standard output or standard error - through
 // WriteConsoleW to a Windows console, as UTF-8 converted, a sequence split
 // across two writes kept for the second; as bytes, flushed, to anything
-// else -- and returns how many were taken: all, or fewer on failure.
+// else - and returns how many were taken: all, or fewer on failure.
 size_t d_cli_internal_write_stream(
     int         _stream,
     const void* _data,
@@ -133,8 +133,8 @@ size_t d_cli_internal_write_stream(
 // d_cli_internal_getenv
 //   lookup: an environment variable's value in UTF-8, in a block of the
 // kit's, through `_value`: NULL when the variable is unset. Returns 0;
-// or ENOMEM when there was no room for the value -- or, on Windows, for its
-// name, or a value that is no UTF-16 to convert -- `_value` then NULL too,
+// or ENOMEM when there was no room for the value - or, on Windows, for its
+// name, or a value that is no UTF-16 to convert - `_value` then NULL too,
 // so that a caller can tell a variable it could not read from one not set.
 int d_cli_internal_getenv(
     const char* _name,
@@ -143,11 +143,11 @@ int d_cli_internal_getenv(
 
 // 1.3.2
 // d_cli_internal_main_arguments
-//   query: whether arguments are the ones the C runtime gave main -- as
-// many, each the same text -- which on Windows it made from the process's
+//   query: whether arguments are the ones the C runtime gave main - as
+// many, each the same text - which on Windows it made from the process's
 // wide command line in the ANSI code page, so that they are the ones worth
-// taking again from that line in UTF-8. False for any others -- a module's,
-// a test's, a list a program made -- and everywhere but Windows, where
+// taking again from that line in UTF-8. False for any others - a module's,
+// a test's, a list a program made - and everywhere but Windows, where
 // nothing is taken again.
 bool d_cli_internal_main_arguments(
     int                _argc,
@@ -172,7 +172,7 @@ int d_cli_internal_executable(
 //   loading: opens a module into `*_module`, every symbol resolved at once
 // and its own kept to itself. D_ARG_OK; D_ARG_ERROR_FILE, `*_module` NULL
 // and the system's words appended to `_why`; or D_ARG_ERROR_OUT_OF_MEMORY
-// where there was no room for the name the system takes -- Windows'
+// where there was no room for the name the system takes - Windows'
 // UTF-16.
 int d_cli_internal_module_open(
     const char*           _path,
@@ -232,7 +232,7 @@ char* d_cli_internal_copy(
 // 2.2.1
 // d_cli_internal_lower_first
 //   query: whether a message's first letter should be lowered for the GNU
-// shape: an ASCII capital followed by a small letter -- `The following`, not
+// shape: an ASCII capital followed by a small letter - `The following`, not
 // `SHEET` or `--level`.
 bool d_cli_internal_lower_first(
     const char* _text,

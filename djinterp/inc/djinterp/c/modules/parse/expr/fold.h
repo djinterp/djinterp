@@ -4,7 +4,7 @@
 * Expression core v2: folds and walks over a term.
 *   A FOLD is an algebra applied bottom-up: each node's value computed from
 * its children's. The arena is in post-order, so a fold is one pass over it in
-* order -- no recursion, no stack -- visiting only the nodes the root reaches,
+* order - no recursion, no stack - visiting only the nodes the root reaches,
 * each once, so the operand a chain shares is folded once. The values live in
 * an array the caller sizes, one per node up to the root.
 *   A WALK is depth first with an explicit stack: `enter` may skip a node's

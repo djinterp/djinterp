@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][memory]                                              memory.hpp
 *
-* Umbrella header for the memory subframework -- C++ face.
+* Umbrella header for the memory subframework - C++ face.
 *   Includes the C core (through memory.h) and every C++ face over it. See
 * memory.h for the shape of the subframework; this header adds only the
 * wrappers, which add only lifetime and notation.
@@ -45,7 +45,7 @@
 #include "../../env/env.h"  // D_ENV_LANG_*
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-// djinterp -- the C core first, then the faces over it
+// djinterp - the C core first, then the faces over it
 #include "../../c/memory/memory.h"
 #include "./mem_common.hpp"
 #include "./mem_source.hpp"

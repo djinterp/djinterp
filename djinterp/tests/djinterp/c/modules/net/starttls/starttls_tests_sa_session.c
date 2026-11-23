@@ -1196,7 +1196,7 @@ struct dj_tests_starttls_first d_tests_starttls_first_line(
 /*
 d_tests_starttls_malformed
   Whether one line of `_text` (`_length` bytes) is refused as a protocol
-violation, fatally, both with strict_crlf on and with it off -- or, when
+violation, fatally, both with strict_crlf on and with it off - or, when
 `_strict_only`, with it on alone.
 */
 static
@@ -1860,7 +1860,7 @@ bool d_tests_starttls_refuses_line(
 /*
 d_tests_starttls_refuses_lines
   Whether `_session` refuses every line that holds a break or a NUL --
-plain, or put there by a formatted argument -- a NULL line, and a NULL
+plain, or put there by a formatted argument - a NULL line, and a NULL
 session, sending nothing, and stays plaintext.
 */
 static

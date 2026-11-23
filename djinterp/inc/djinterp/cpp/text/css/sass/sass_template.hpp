@@ -157,7 +157,7 @@ namespace sass {
 //   class: thin facade extending `css::DCssRule<Backend>`
 // with Sass-specific accessors. The Sass kind discriminator
 // is derived from the underlying CSS rule kind plus the
-// at-keyword string -- no extra storage required for the
+// at-keyword string - no extra storage required for the
 // default backend.
 template<typename Backend>
 class DSassRule
@@ -369,7 +369,7 @@ public:
     }
 
     // function_name
-    //   function: alias of `mixin_name` -- @function and @mixin
+    //   function: alias of `mixin_name` - @function and @mixin
     // share the same default-backend encoding.
     DSassString function_name() const
     {
@@ -428,7 +428,7 @@ public:
     }
 
     // arguments
-    //   function: alias of `parameters()` -- the syntactic form
+    //   function: alias of `parameters()` - the syntactic form
     // is identical for default-backend storage.
     DSassString arguments() const
     {
@@ -553,7 +553,7 @@ public:
 
 
 private:
-    // (no extra members -- the facade is pointer-only via the
+    // (no extra members - the facade is pointer-only via the
     // CSS base class.)
 };
 
@@ -661,7 +661,7 @@ NS_INTERNAL
              (_node.rule_kind != K::declaration_block) &&
              (!style) && (!at) )
         {
-            // unknown / unsupported -- skip silently.
+            // unknown / unsupported - skip silently.
             return;
         }
         sass_emit_indent_helper(_out, _depth);

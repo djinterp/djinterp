@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  reduce_tests_unified.cpp
-//   IV. The step/driver split -- the header's thesis, put on trial: "the same
+//   IV. The step/driver split - the header's thesis, put on trial: "the same
 //   reducer body serves all three domains; only the driver (loop vs. recursion)
 //   and the leaf differ." Plus the C++17 tier gate.
 
@@ -28,7 +28,7 @@ NS_TESTING
 
 /*
 tests_one_reducer_body_three_domains
-  THE THESIS. count_all is one reducer -- (acc, anything) -> acc + 1 -- and the
+  THE THESIS. count_all is one reducer - (acc, anything) -> acc + 1 - and the
   SAME object is handed unchanged to all three drivers: the runtime loop, the
   value-domain recursion, and the type-domain recursion. If the step/driver split
   is real, it counts the elements in every one of them, and nothing about the
@@ -45,7 +45,7 @@ bool tests_one_reducer_body_three_domains()
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
     constexpr int carr[3] = { 1, 2, 3 };
 
-    // ONE reducer body -- three drivers, three domains.
+    // ONE reducer body - three drivers, three domains.
     static_assert(reduce_rt(count_all(), 0, carr) == 3, "runtime values");
     static_assert(reduce_ct(count_all(), 0, DValueList<1, 2, 3>{}) == 3,
                   "NTTP value carriers");
@@ -74,7 +74,7 @@ bool tests_one_reducer_body_three_domains()
 /*
 tests_only_the_driver_and_the_leaf_differ
   The finer form of the thesis: where a reducer must actually LOOK at its element,
-  the body still does not change -- only the LEAF does. DSumWith<Leaf> is one body;
+  the body still does not change - only the LEAF does. DSumWith<Leaf> is one body;
   DRtLeaf, DValLeaf and DTypeLeaf are the three leaves, and between them they are
   the only difference across the three domains.
   Tests the following:
@@ -124,8 +124,8 @@ bool tests_only_the_driver_and_the_leaf_differ()
 tests_the_drivers_differ_on_the_accumulator
   Where the two drivers genuinely part company. reduce_rt assigns into its
   accumulator and returns _Acc, so the accumulator TYPE IS FIXED across the fold.
-  Both reduce_ct overloads recompute it -- the value domain through DValueList's
-  fold, the type domain through decltype(rf(acc, type_c<T0>)) -- so there the
+  Both reduce_ct overloads recompute it - the value domain through DValueList's
+  fold, the type domain through decltype(rf(acc, type_c<T0>)) - so there the
   accumulator's type may EVOLVE.
   Tests the following:
   - reduce_rt's result type is the seed's, even when the reducer returns a wider
@@ -160,7 +160,7 @@ bool tests_the_drivers_differ_on_the_accumulator()
         DValueList<sizeof(char), sizeof(int)> >::value, "and here as well");
 
     // the seed and the result are the same type in reduce_rt, and different in
-    // reduce_ct -- which is the whole distinction, in one line each.
+    // reduce_ct - which is the whole distinction, in one line each.
     static_assert(std::is_same<int, decltype(reduce_rt(widen(), 0, carr))>::value,
                   "rt: seed type == result type");
     static_assert(!std::is_same<
@@ -179,7 +179,7 @@ bool tests_the_drivers_differ_on_the_accumulator()
 /*
 tests_the_drivers_agree_on_the_same_data
   The same numbers, expressed once as a runtime range and once as an NTTP
-  sequence, fold to the same answer under the same reducer body -- which is what
+  sequence, fold to the same answer under the same reducer body - which is what
   it means for the domains to be two views of one computation.
   Tests the following:
   - a sum and a left fold agree between reduce_rt and reduce_ct over 1, 2, 3
@@ -253,7 +253,7 @@ bool tests_the_drivers_are_unconstrained()
     ok = ok && (reduce_ct(count_all(), 0, DValueList<1, 2>{}) == 2);
 
 #  if D_ENV_CPP_FEATURE_LANG_CONCEPTS
-    // the driver demands nothing -- but a caller MAY layer the Reducer face.
+    // the driver demands nothing - but a caller MAY layer the Reducer face.
     static_assert(Reducer<DSumWith<DRtLeaf>, int, int>,
                   "the functor satisfies it");
     static_assert(Reducer<int (*)(int, int), int, int>,
@@ -272,7 +272,7 @@ tests_module_tier_gate
   The TIER claim: reduce_ct and the value carriers are C++17 facilities, so the
   module is gated to that floor and "under C++11 this header is empty." That this
   translation unit includes the header and still compiles under -std=c++11 and
-  -std=c++14 IS the check -- nothing below the gate may name reduce_rt or
+  -std=c++14 IS the check - nothing below the gate may name reduce_rt or
   reduce_ct at all.
   Tests the following:
   - at C++17 and above, both drivers are present and work
@@ -292,7 +292,7 @@ bool tests_module_tier_gate()
                   "the gate agrees with the language level");
 #else
     // below the tier: the header declared nothing. Naming reduce_rt here would
-    // not compile -- which is exactly the property under test, and the build
+    // not compile - which is exactly the property under test, and the build
     // itself is the assertion.
     ok = ok && true;
 #endif

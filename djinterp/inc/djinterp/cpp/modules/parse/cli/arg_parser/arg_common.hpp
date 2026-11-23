@@ -13,8 +13,8 @@
 *   Nothing here holds more than the C value it stands for: a status is the
 * dj_arg_status, a text is the dj_pack_text it derives from, an error a
 * pointer to the C report. A C++ call therefore costs what its C call costs.
-*   The C core calls back into C++ -- to write to a std::string, to run a
-* C++ callback -- through functions that run their work under
+*   The C core calls back into C++ - to write to a std::string, to run a
+* C++ callback - through functions that run their work under
 * internal::guard, which, in a build with exceptions, catches whatever the
 * work throws and returns a status in its place: an exception crossing a C
 * frame is undefined.
@@ -140,7 +140,7 @@ namespace cli
 //==============================================================================
 // CLI11's enumerations, struct-scoped as C++98 allows: each is a struct
 // holding an enum named `value`, its enumerators the C values under CLI11's
-// names in lower case -- `cli::multi_option_policy::take_last` is
+// names in lower case - `cli::multi_option_policy::take_last` is
 // D_ARG_MULTI_TAKE_LAST, CLI11's MultiOptionPolicy::TakeLast. A setting takes
 // the `value` type, so a value of another kind, or a bare integer, is
 // refused at compile time.
@@ -151,7 +151,7 @@ namespace cli
 // 1.1.1
 // status_code
 //   enum: the dj_arg_status values, named for CLI11's error classes --
-// call_for_help is CallForHelp, bad_name_string BadNameString -- with ok
+// call_for_help is CallForHelp, bad_name_string BadNameString - with ok
 // for D_ARG_OK and the last three the C library's own. See status.
 struct status_code
 {
@@ -397,10 +397,10 @@ struct quoting
 //------------------------------------------------------------------------------
 // 2.1.1
 // status
-//   class: what a call or a parse came to -- a dj_arg_status held as a value,
+//   class: what a call or a parse came to - a dj_arg_status held as a value,
 // which is how the C++ face reports where CLI11 throws. ok() is true for
-// status_code::ok alone; a completed request -- help, a version, a
-// completion script, CLI11's Success -- is not ok() and not an error, and,
+// status_code::ok alone; a completed request - help, a version, a
+// completion script, CLI11's Success - is not ok() and not an error, and,
 // like an error, goes to DArgParser::exit, which writes what it calls for
 // and gives the code to end with. `explicit operator bool`, from C++11, is
 // ok().
@@ -452,7 +452,7 @@ bool operator!=(
 //------------------------------------------------------------------------------
 // 2.2.1
 // text
-//   class: a run of bytes viewed, not owned -- a dj_pack_text, which it derives
+//   class: a run of bytes viewed, not owned - a dj_pack_text, which it derives
 // from and adds nothing to, so it passes wherever the C API takes a span.
 // Values, results and names come back as text; it compares by content,
 // converts to a std::string when one is wanted, and, from C++17, to and
@@ -526,8 +526,8 @@ public:
 // 2.2.2
 // Comparing and writing text
 //   functions: comparisons byte by byte, a shorter text that is a prefix of a
-// longer one first -- a C string or a std::string compares as the text it
-// makes -- and writing a text to a stream, NUL bytes and all. None
+// longer one first - a C string or a std::string compares as the text it
+// makes - and writing a text to a stream, NUL bytes and all. None
 // allocates; the comparisons do not fail.
 bool operator==(
     const text& _first,
@@ -562,8 +562,8 @@ std::ostream& operator<<(
 //------------------------------------------------------------------------------
 // 2.3.1
 // DCString
-//   class: the type of the string parameters that become a C string -- names,
-// descriptions, groups -- made, implicitly, from a C string, NULL
+//   class: the type of the string parameters that become a C string - names,
+// descriptions, groups - made, implicitly, from a C string, NULL
 // included, or from a std::string, whose c_str() it keeps: one pointer,
 // valid for the call it is passed to, which is all the C call needs. A
 // std::string_view is not taken, holding no terminator, as CLI11's
@@ -589,7 +589,7 @@ private:
 //------------------------------------------------------------------------------
 // 2.4.1
 // error
-//   class: a view of an error report -- the last parse's, the parser's
+//   class: a view of an error report - the last parse's, the parser's
 // definition error, or the one a failure message is asked to describe --
 // read as CLI11's Error is read: get_name(), get_exit_code(), what(). The
 // report is the C library's, so the view holds a pointer to it and is valid
@@ -602,8 +602,8 @@ public:
         const ::dj_arg_error& _error
     ) D_NOEXCEPT;
 
-    // reading: what() is never NULL -- the message, or the status's own
-    // text -- and none allocates or fails
+    // reading: what() is never NULL - the message, or the status's own
+    // text - and none allocates or fails
     status get_status() const D_NOEXCEPT;
     int get_exit_code() const D_NOEXCEPT;
     const char* get_name() const D_NOEXCEPT;
@@ -618,8 +618,8 @@ private:
 //------------------------------------------------------------------------------
 // 2.5.1
 // DBasicTextList
-//   class: a view of an array the C library keeps -- an option's values, a
-// command's names -- read as CLI11's std::vector<std::string> is read: its
+//   class: a view of an array the C library keeps - an option's values, a
+// command's names - read as CLI11's std::vector<std::string> is read: its
 // size, its elements by index and by iterator, each element a text, and,
 // implicitly, a std::vector<std::string> copy. Item is the array's element
 // type, a dj_pack_text or a C string. It is valid while the array is: the
@@ -728,20 +728,20 @@ private:
 
 // 2.5.2
 // DTextList / name_list
-//   types: the views of the C library's two kinds of array: spans -- an
-// option's values, results and kept text -- and C strings -- the names of
+//   types: the views of the C library's two kinds of array: spans - an
+// option's values, results and kept text - and C strings - the names of
 // an option or a command.
 typedef DBasicTextList< ::dj_pack_text> DTextList;
 typedef DBasicTextList<char*>          name_list;
 
 // 2.5.3
 // DBasicHandleList
-//   class: a view of an array of the C library's records -- the options an
-// option needs, a command's subcommands -- whose elements are handles, made
+//   class: a view of an array of the C library's records - the options an
+// option needs, a command's subcommands - whose elements are handles, made
 // as they are read: Item is the record type, Handle the handle over it. It
 // reads as CLI11's std::vector<App*> and std::set<Option*> are read: its
-// size, its elements by index and by iterator -- and so, from C++11, by a
-// range-based for -- each element a handle. Valid while the array is.
+// size, its elements by index and by iterator - and so, from C++11, by a
+// range-based for - each element a handle. Valid while the array is.
 template<typename Handle,
          typename Item>
 class DBasicHandleList
@@ -846,8 +846,8 @@ private:
 //------------------------------------------------------------------------------
 // 2.6.1
 // buffer
-//   class: a view of a dj_arg_buffer the C library builds text in -- help, a
-// configuration -- that a step of the caller's appends to: what CLI11's
+//   class: a view of a dj_arg_buffer the C library builds text in - help, a
+// configuration - that a step of the caller's appends to: what CLI11's
 // make_* and to_config return as a std::string, here written into the text
 // being built, without a copy. Each append returns status_code::ok, or
 // out_of_memory once the buffer could not grow, after which every append
@@ -899,8 +899,8 @@ private:
 // string_sink / stream_sink
 //   functions: sinks over a std::string, which they append to, and over a
 // std::ostream, which they write with write(); either must outlive the
-// sink's use. A write the string cannot take -- it could not grow -- or the
-// stream refuses -- it is, or becomes, not good() -- is refused whole, and
+// sink's use. A write the string cannot take - it could not grow - or the
+// stream refuses - it is, or becomes, not good() - is refused whole, and
 // the C call writing it reports D_ARG_ERROR_FILE, as for any sink; an
 // exception either throws is caught. Neither allocates or fails.
 ::dj_pack_sink string_sink(
@@ -927,7 +927,7 @@ NS_INTERNAL
      *        through a C frame.
      *
      * @note Every function the C core calls into C++ through runs its work
-     *       here. With C++ exceptions -- D_INTERNAL_ARG_PARSER_CPP_CATCH --
+     *       here. With C++ exceptions - D_INTERNAL_ARG_PARSER_CPP_CATCH --
      *       an exception the work lets out is caught and given to
      *       `_handler`, with whether it is std::bad_alloc: a std::exception
      *       as itself, anything else as NULL. Without them, the work's result
@@ -936,8 +936,8 @@ NS_INTERNAL
      * @param[in] _work     a function object taking nothing, with a
      *                      `result_type`.
      * @param[in] _handler  a function object taking a `const
-     *                      std::exception*` and a `bool` -- the exception,
-     *                      and whether memory ran out -- and returning the
+     *                      std::exception*` and a `bool` - the exception,
+     *                      and whether memory ran out - and returning the
      *                      work's result type: what to return instead.
      * @return the work's result, or the handler's for an exception.
      */
@@ -977,7 +977,7 @@ NS_INTERNAL
     //   function: what an exception guard caught has to say, for a handler
     //   that makes it a message or a reason: its what(), when that holds
     //   anything; NULL for an exception of no standard type or an empty
-    //   what(), so that the status it becomes speaks for itself -- and a
+    //   what(), so that the status it becomes speaks for itself - and a
     //   value a validator throws over is not passed for want of a reason.
     const char* exception_words(
         const std::exception* _exception
@@ -1050,8 +1050,8 @@ NS_END  // internal
 
 // 4.3    Callables
 //------------------------------------------------------------------------------
-//   A callback of the caller's may return nothing, a cli::status -- or a
-// status_code -- or, where CLI11's returns one, a bool. What it returns is
+//   A callback of the caller's may return nothing, a cli::status - or a
+// status_code - or, where CLI11's returns one, a bool. What it returns is
 // told at compile time, at every language level, without decltype: in
 // `(call, DReturnsTag())`, a call returning void leaves the built-in comma,
 // whose result is the tag, while any other finds the comma operator below,
@@ -1076,8 +1076,8 @@ NS_INTERNAL
 
     // 4.3.2
     // result_kind / result_probe
-    //   enum, functions: the kinds of result -- nothing, a status, a truth
-    //   value, anything else -- and the overloads whose array sizes are
+    //   enum, functions: the kinds of result - nothing, a status, a truth
+    //   value, anything else - and the overloads whose array sizes are
     //   those kinds; declared and never defined.
     struct result_kind
     {
@@ -1303,7 +1303,7 @@ NS_INTERNAL
     // 4.5.1
     // scratch
     //   class: a dj_arg_buffer released when it goes, for the C calls that
-    //   write into one -- names, help, descriptions -- whose content is then
+    //   write into one - names, help, descriptions - whose content is then
     //   copied into a std::string.
     class scratch
     {
@@ -1351,7 +1351,7 @@ NS_END  // internal
 //   macro: D_STATIC_ASSERT for a condition a function template's parameters
 // decide, as a statement in its body: static_assert, through D_STATIC_ASSERT,
 // from C++11; below, sizeof of internal::static_check, which a failed
-// condition leaves incomplete -- since a fallback that sizes an array by the
+// condition leaves incomplete - since a fallback that sizes an array by the
 // condition is given a dependent size there, which compilers judge only once
 // the template is made, and may warn of as a sign conversion.
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
@@ -2542,8 +2542,8 @@ std::size_t internal::DStreamInsert::operator()() const
 }
 
 // internal::string_sink_write / stream_sink_write
-//   The work under the guard; an exception -- std::bad_alloc from the
-// string, the stream's failure when it throws -- takes no bytes.
+//   The work under the guard; an exception - std::bad_alloc from the
+// string, the stream's failure when it throws - takes no bytes.
 inline
 std::size_t internal::string_sink_write(
     void*       _context,

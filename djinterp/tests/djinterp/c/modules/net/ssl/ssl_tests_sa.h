@@ -101,7 +101,7 @@ struct dj_tests_ssl_pair
 
 // 1.2    Helpers
 //------------------------------------------------------------------------------
-// the world -- d_tests_ssl_world returns the run's, made by
+// the world - d_tests_ssl_world returns the run's, made by
 // d_tests_ssl_world_open, NULL before then or after a failure; a context
 // may be remade from a configuration the test adjusts
 bool d_tests_ssl_world_open(void);
@@ -120,7 +120,7 @@ void d_tests_ssl_server_config(
 );
 struct dj_tests_ssl_world* d_tests_ssl_world(void);
 
-// pairs -- open makes the pipe and both sessions, the client naming `_host`;
+// pairs - open makes the pipe and both sessions, the client naming `_host`;
 // handshake calls both sides in turn until both are established or one
 // fails, reporting the two outcomes; move sends `_size` bytes one way,
 // reading them as they go, and checks they arrived whole

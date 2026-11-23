@@ -5,8 +5,8 @@
 *   One place states it: the release this tree is working toward, as three
 * numbers and a pre-release label, which semantic versioning orders before
 * the release it names: 0.8.0-dev comes before 0.8.0-rc.1, which comes
-* before 0.8.0. The build reads it from here too -- the CMake project takes
-* its VERSION from these lines -- so a release changes this file and nothing
+* before 0.8.0. The build reads it from here too - the CMake project takes
+* its VERSION from these lines - so a release changes this file and nothing
 * else names a number.
 *   D_VERSION_NUMBER puts the three numbers in one integer that #if can
 * compare, and D_VERSION_AT_LEAST compares it with a version of the caller's:

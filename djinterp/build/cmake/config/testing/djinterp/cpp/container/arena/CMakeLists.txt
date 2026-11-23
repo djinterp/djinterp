@@ -1,4 +1,4 @@
-# container/arena/ unit test suite -- leaf recipe (header-only module, no
+# container/arena/ unit test suite - leaf recipe (header-only module, no
 # src/).
 #
 #   One executable for container/arena/ (the floor suite): arena.hpp, its traits

@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/text/
+# djinterp [test]  -  build/cmake/config/testing/djinterp/c/text/
 #                      ostream_format_null/CMakeLists.txt
 #
 #   Test leaf for printf's heap fallback with no heap, in DTest's C face: the

@@ -4,12 +4,12 @@
 * has_unique_object_representations trait header:
 *   has_unique_object_representations<T>::value is true iff T is trivially
 * copyable AND any two objects with the same value have the same object
-* representation -- no padding bytes, no redundant encodings.
+* representation - no padding bytes, no redundant encodings.
 *
 *   THE PRACTICAL MEANING IS: MAY I HASH THIS BY ITS BYTES? If the answer
 * is true, hashing the object representation is sound. If it is false --
 * because of padding, or because the type is a float with a negative zero
-* -- then two equal values can hash differently, which breaks every
+* - then two equal values can hash differently, which breaks every
 * hash-based container quietly and non-reproducibly.
 *
 *   BACK-PORT: std added this in C++17; re_std surfaces it from C++11 --
@@ -68,7 +68,7 @@ namespace re_std
 #if RE_STD_HAS_HAS_UNIQUE_OBJECT_REPRESENTATIONS
 
 // has_unique_object_representations
-//   trait: intrinsic-backed -- every distinct value has exactly one object representation.
+//   trait: intrinsic-backed - every distinct value has exactly one object representation.
 template<typename Type>
 struct has_unique_object_representations : integral_constant<bool, __has_unique_object_representations(Type)>
 {};
@@ -79,7 +79,7 @@ struct has_unique_object_representations : integral_constant<bool, __has_unique_
 //   trait: degraded fallback (always false) when the intrinsic is absent.
 // False is emphatically the safe direction: a wrong true would authorise
 // byte-wise hashing of a type with padding, producing different hashes
-// for equal values -- a bug that appears only under specific padding
+// for equal values - a bug that appears only under specific padding
 // contents and is close to unreproducible.
 template<typename Type>
 struct has_unique_object_representations : false_type

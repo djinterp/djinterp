@@ -27,7 +27,7 @@ namespace
 {
 
 // tb_shape
-//   type: just enough of a table for conforms_to -- its two counts.
+//   type: just enough of a table for conforms_to - its two counts.
 struct tb_shape
 {
     std::size_t r;

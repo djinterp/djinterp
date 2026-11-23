@@ -285,7 +285,7 @@ using file_tree = DFileTree<OS, Pool, Options...>;
 
 // DFileTreeDefault
 //   type: the detected-backend file tree, for code that wants a plain
-// non-template name. NOTE that `DFileTree` is a template ALIAS -- naming it
+// non-template name. NOTE that `DFileTree` is a template ALIAS - naming it
 // bare, as `const file_tree&`, is ill-formed. Use this, or file_tree<>, or
 // template on the tree type.
 using DFileTreeDefault = DFileTree<DOperatingSystem::automatic>;

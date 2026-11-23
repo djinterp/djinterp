@@ -7,7 +7,7 @@
 * option suite's CLI11 reference writes CLI11's: one transcript for each of
 * the reference's blocks, compared whole, with values written as they are.
 * A refusal is written as CLI11's exception, `ERR <name> <exit code>:
-* <message>` -- a definition's from the parser's definition error, which is
+* <message>` - a definition's from the parser's definition error, which is
 * then cleared, as catching the exception lets a program go on; any other's
 * from the error the parser reports; a validator CLI11 does not find, which
 * it throws as OptionNotFound and the module answers with NULL, as `none`.
@@ -15,9 +15,9 @@
 * counts too large for an `int`, and a variable a refused default leaves;
 * a third, of defaults given as typed values, ends with the module's own
 * refusals.
-*   The cases of the earlier option probes -- counts and policies, values
+*   The cases of the earlier option probes - counts and policies, values
 * split and reduced, values and defaults read as a list, flag values,
-* callbacks -- are those probes' own, run here on options a command made.
+* callbacks - are those probes' own, run here on options a command made.
 *
 *
 * path:      /tests/djinterp/c/modules/parse/cli/arg_parser/arg_option_tests.c
@@ -321,7 +321,7 @@ enum dj_tests_arg_option_setter
 
 // dj_tests_arg_option_count_step
 //   struct: one step of COUNTS: the label of the line written after it --
-// NULL for none -- the setter it calls, the setter's arguments, and whether
+// NULL for none - the setter it calls, the setter's arguments, and whether
 // it starts with a fresh option rather than going on with the last.
 struct dj_tests_arg_option_count_step
 {
@@ -587,7 +587,7 @@ static const size_t AS_COUNT = sizeof(AS_CASES) / sizeof(AS_CASES[0]);
 
 // AS_UNDEFINED
 //   constant: the reading case whose values CLI11 reads as one text past
-// the end of an empty list -- undefined behaviour -- and so are not read so.
+// the end of an empty list - undefined behaviour - and so are not read so.
 enum
 {
     AS_UNDEFINED = 11
@@ -2624,8 +2624,8 @@ static const char CALLBACKS[] =
 
 // TEXT
 //   constant: CLI11's text of an option after each of its setters: its
-// description, option text, group, type name -- with its validators'
-// descriptions -- environment variable and name; and of an option bound
+// description, option text, group, type name - with its validators'
+// descriptions - environment variable and name; and of an option bound
 // to an `int`.
 static const char TEXT[] =
     "new desc=<a description> text=<> group=<OPTIONS> type=<> env=<> "
@@ -2689,7 +2689,7 @@ static const char DEFAULTS[] =
 
 // DEFAULT_TYPED
 //   constant: CLI11's default text of options given defaults as values of
-// their types -- an `int`, a `double`, text -- rather than as text, and the
+// their types - an `int`, a `double`, text - rather than as text, and the
 // variables the values reached. Then the module's own: a type that writes no
 // value refused, the default kept, where CLI11 sets the nothing it writes
 // for one as the default (ISSUES 60); and NULL arguments refused with
@@ -2810,7 +2810,7 @@ static const char RESULTS[] =
 
 // DEPARTED_COUNTS
 //   constant: the counts of the options of DEPARTED_STEPS, whose items --
-// the type size times the expected count -- an `int` cannot hold: the
+// the type size times the expected count - an `int` cannot hold: the
 // minimum held at D_ARG_EXPECTED_UNLIMITED, as CLI11 holds the maximum.
 // CLI11 multiplies the minimum unchecked, and the `int` overflows --
 // undefined behaviour, which its builds turn into `items=0,536870912` for
@@ -3959,7 +3959,7 @@ bool d_tests_arg_option_configured(
  * @return D_ARG_OK; D_ARG_ERROR_CONVERSION when the list has no room.
  *
  * `{}` alone is the empty list, and `{}` followed by an empty value or `%%`
- * -- the marker of an empty container -- a list of `{}` alone, as CLI11's
+ * - the marker of an empty container - a list of `{}` alone, as CLI11's
  * conversion stops after the first value; any other values are the list.
  */
 static
@@ -4725,7 +4725,7 @@ void d_tests_arg_option_text_cleared(
 
 // dj_tests_arg_option_defaulted
 //   struct: what DEFAULTS works on: the run, the transcript, its options --
-// one bound to nothing, one to `n`, one to `s` -- and the two variables,
+// one bound to nothing, one to `n`, one to `s` - and the two variables,
 // which the options borrow for as long as the run lasts.
 struct dj_tests_arg_option_defaulted
 {
@@ -4855,7 +4855,7 @@ void d_tests_arg_option_typed_try(
 
 /**
  * @brief Appends DEFAULTS' first lines: each option new, then each
- *        option's default captured -- the `int`'s again once it changed.
+ *        option's default captured - the `int`'s again once it changed.
  *
  * @param[in,out] _defaulted  what DEFAULTS works on.
  */
@@ -5009,8 +5009,8 @@ enum
  *
  * @param[in,out] _out      the transcript.
  * @param[in]     _list     the list.
- * @param[in]     _options  RELATIONS' options, whose names -- `--a`, `--b`,
- *                          `-c`, `pos` -- are in sorted order already, so
+ * @param[in]     _options  RELATIONS' options, whose names - `--a`, `--b`,
+ *                          `-c`, `pos` - are in sorted order already, so
  *                          that listing the ones the list holds in this
  *                          order sorts them.
  */
@@ -5543,8 +5543,8 @@ void d_tests_arg_option_validators_found(
 
 /**
  * @brief Appends a line of VALIDATORS: an option's values validated and
- *        reduced as a parse leaves them -- CLI11's run_callback of an
- *        option with no callback -- then its values as validation left
+ *        reduced as a parse leaves them - CLI11's run_callback of an
+ *        option with no callback - then its values as validation left
  *        them; or the refusal.
  *
  * @param[in,out] _out     the transcript.
@@ -6167,8 +6167,8 @@ d_tests_arg_option_names
   - `-x` is a short name, `--x` a long name, anything else the positional
     name; spaces around a name and empty parts are ignored, a name given
     twice is kept twice, and case is kept
-  - the name written plainly -- the first long name, else the first short,
-    else the positional -- with the positional name, with every name, and
+  - the name written plainly - the first long name, else the first short,
+    else the positional - with the positional name, with every name, and
     with both
   - the single name, without dashes; whether the option is positional,
     nonpositional, or both; the empty definition, an option of no names
@@ -6323,7 +6323,7 @@ and the names two options share, as CLI11's matching_name.
   Tests the following:
   - ignore_case and ignore_underscore refused with OptionAlreadyAdded --
     "adding ignore case caused a name conflict with <name> is already
-    added" -- when a long, short or positional name of another option would
+    added" - when a long, short or positional name of another option would
     then match, the setting kept off; allowed, and kept, when none would
   - matching_name: a long name both hold; a one-character long name and a
     short name, and a positional name and any other name, only while both
@@ -6418,10 +6418,10 @@ d_tests_arg_option_counts
   The counts each count setter leaves, as CLI11's.
   Tests the following:
   - expected(n): exactly n, 0 for none; a negative n, at least |n| --
-    keeping a larger maximum -- and extra arguments; unlimited, at least
+    keeping a larger maximum - and extra arguments; unlimited, at least
     one and extra arguments
-  - expected(min, max): negative bounds -- the minimum's magnitude, an
-    unlimited maximum -- and reversed bounds
+  - expected(min, max): negative bounds - the minimum's magnitude, an
+    unlimited maximum - and reversed bounds
   - type_size(n) and type_size(min, max): negative sizes, which make the
     count unlimited; a size of 0, which clears required; an unlimited
     size, which injects separators
@@ -6447,7 +6447,7 @@ capture_default_str, default_val and default_function.
     a bound variable's value as it is then, and nothing without a variable
   - default_str sets the text alone; default_val checks the value as one
     given, leaves the values given as they were, and runs the callback --
-    the bound variable takes the default -- unless run_callback_for_default
+    the bound variable takes the default - unless run_callback_for_default
     is off
   - a default the variable cannot take refused with ConversionError, in
     CLI11's words, the default text kept; one a validator refuses, with
@@ -6745,7 +6745,7 @@ get_validator.
   Tests the following:
   - checks run in the order added, after the transformations, each added
     before the others; each() runs where it was added
-  - a validator found by name -- the empty name finding the unnamed one --
+  - a validator found by name - the empty name finding the unnamed one --
     and by index; none past either
   - values changed by a transformation, and kept as given among the
     option's results; a check refusing one with ValidationError, "<name>:
@@ -6807,8 +6807,8 @@ CLI11's add_result, reduced_results and as<std::string>.
     character doubled, a bracketed value as it is; how many values each
     made
   - each policy reducing one to four values: Throw's ArgumentMismatch for
-    too many or too few, TakeLast, TakeFirst, Join -- with a newline or the
-    delimiter -- TakeAll, Sum and Reverse, two at a time where two are
+    too many or too few, TakeLast, TakeFirst, Join - with a newline or the
+    delimiter - TakeAll, Sum and Reverse, two at a time where two are
     expected; `{}`, and `{}` and `%%`, the empty container's markers
   - the values read as one text: the first of several, the empty text for
     none
@@ -6834,7 +6834,7 @@ as<std::vector<std::string>> and as<std::string>.
   Tests the following:
   - an option given no values reads its default text, split and reduced as
     a value given would be; one without a default reads an empty value
-  - each policy's values read as a list, and as one text -- the first
+  - each policy's values read as a list, and as one text - the first
   - a policy's refusal, for both
   - `[]`, which leaves no values: Throw refuses it, TakeAll reads none
   - values given rather than the default
@@ -6868,10 +6868,10 @@ flag `--flag,--no-flag{false},-f{2}`.
   - with no input, or `{}`: `true` for a name without a value of its own,
     else the name's value; for a flag expecting a value, its default text
   - with an input: the input; for a name whose value is `false`, the input
-    inverted -- `false` for `true` or 1, `true` for `false`, 0 or -1, a
+    inverted - `false` for `true` or 1, `true` for `false`, 0 or -1, a
     number's negation, a word as it is
   - an override refused with ArgumentMismatch when the flag disables them:
-    any input but the name's own value -- `true` for a name without one --
+    any input but the name's own value - `true` for a name without one --
     unless it is a forced flag's default text
   - names matched as the flag matches them: with case and underscores
     ignored, `NO-FLAG` and `no_flag` are `no-flag`
@@ -6901,7 +6901,7 @@ d_tests_arg_option_callbacks
   - the callback given what the policy kept, once, and whether it ran; the
     results left as they were given
   - a callback that refuses: ConversionError, "Could not convert: <name> =
-    <values>", the values given joined by commas -- and a hidden option's
+    <values>", the values given joined by commas - and a hidden option's
     name written as nothing
   - a forced option with no values: its default text, split and reduced,
     or an empty value without one, dropped again after the callback ran;
@@ -7053,8 +7053,8 @@ d_tests_arg_option_departures
   Where the module does otherwise than CLI11, on purpose: each constant
 says what CLI11 does instead.
   Tests the following:
-  - items expected past what an `int` holds -- the type size times the
-    expected count -- held at D_ARG_EXPECTED_UNLIMITED for the minimum, as
+  - items expected past what an `int` holds - the type size times the
+    expected count - held at D_ARG_EXPECTED_UNLIMITED for the minimum, as
     for the maximum
   - a bound `int` keeps its value when a default it cannot take is refused
 */

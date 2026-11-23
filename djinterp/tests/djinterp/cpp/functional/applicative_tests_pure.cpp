@@ -3,7 +3,7 @@
 *
 *   Section II.1 of the applicative.hpp suite: pure, which lifts a bare value
 * into an explicitly-named applicative (the dual of monad_unit).  Covers pure
-* over the monad-bridge applicative (box, where it is the monad's unit -- an
+* over the monad-bridge applicative (box, where it is the monad's unit - an
 * engaged/just value) and the direct applicative (ident), a class element type,
 * the delegation of the bridge's pure to monad_unit, and the result type
 * identity.

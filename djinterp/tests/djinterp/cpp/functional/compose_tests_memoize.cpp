@@ -76,7 +76,7 @@ bool compose_tests_memoize()
                 (m(5) == 6),
                 "memoized counted_add_one(5) == 6");
 
-            // repeat the same input -- should be served from cache
+            // repeat the same input - should be served from cache
             record_assertion(verdict,
                 (m(5) == 6),
                 "repeated input returns the same result");

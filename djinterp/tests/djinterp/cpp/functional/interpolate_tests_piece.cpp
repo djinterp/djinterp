@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][functional]                         interpolate_tests_piece.cpp
 *
-* Section I -- scan-event vocabulary: DPieceKind and the `DPiece` token every
+* Section I - scan-event vocabulary: DPieceKind and the `DPiece` token every
 * scanner emits (its default state, the literal vs key faces, is_key(), and the
 * framework typedefs a piece exposes).
 *

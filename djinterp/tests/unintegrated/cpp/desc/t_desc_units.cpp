@@ -2,9 +2,9 @@
 * djinterp [cpp][desc]                                          t_desc_units.cpp
 *
 *   desc's C++ face's harness (cpp/desc/desc_units.hpp), at every level from
-* C++98: a template container whose units its parameters choose -- its
+* C++98: a template container whose units its parameters choose - its
 * element's name from type_name, "fixed-size" kept by pick only where the
-* type is fixed -- described in each ring, to a std::string and to a put,
+* type is fixed - described in each ring, to a std::string and to a put,
 * and its facts from its field list. A standalone program, as the other tests
 * not yet in DTest are: it prints a line per group and one per failed check,
 * ends with "N checks, M failed", and exits 0 only when nothing failed.

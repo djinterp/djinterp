@@ -4,7 +4,7 @@
 * Extractors (projections) and the contravariant mapping that consumes them.
 *   An extractor reads one feature out of a value: `Source -> Target`. That is
 * already `fn_transformer`, so this header adds no new callable shape. What it
-* adds is the thing that makes extractors worth naming -- CONTRAMAP, which runs
+* adds is the thing that makes extractors worth naming - CONTRAMAP, which runs
 * a projection BEFORE a context instead of after.
 *
 * WHY THIS PAIRS TWO C++ MODULES. `extractor.hpp` elevates key functions to
@@ -23,7 +23,7 @@
 * THE BINDINGS ARE CALLER-OWNED AND CARRY SCRATCH. Projecting `Source` to
 * `Target` needs somewhere to put the `Target`, and a C function pointer has no
 * captures. So each binding holds the projection, its context, the downstream
-* callable, its context, and a scratch slot -- and is itself passed as the
+* callable, its context, and a scratch slot - and is itself passed as the
 * `void* _context` of an ordinary `fn_predicate` or `fn_binary_predicate`. The
 * result drops straight into `d_sorted`, `d_transducer_filter`, or anything else
 * taking those types, with no new overloads anywhere.

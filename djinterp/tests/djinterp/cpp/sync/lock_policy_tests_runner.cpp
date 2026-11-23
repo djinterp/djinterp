@@ -60,7 +60,7 @@ int main()
 
     rb.use_pdf("lock_policy_tests_report.pdf");
 
-    // -- 0. the header contract --------------------------------------------
+    // - 0. the header contract --------------------------------------------
     rb.module("0. the header contract",
               "the guard, the LIVE env precondition, the internal-vs-public split, per-standard gating");
     rb.run("the include guard is defined, and is 1",       &tests_header_include_guard);
@@ -72,7 +72,7 @@ int main()
     rb.run("no stray macros",                              &tests_header_defines_no_stray_macros);
     rb.run("the policies are gated by standard",           &tests_the_policies_are_gated_by_standard);
 
-    // -- I. the level enum -------------------------------------------------
+    // - I. the level enum -------------------------------------------------
     rb.module("I. thread_safety_leavel (the level enum)",
               "six ordered levels; a misspelled name with a corrected alias");
     rb.run("it has the six named values (0..5)",           &tests_level_has_the_six_named_values);
@@ -81,7 +81,7 @@ int main()
     rb.run("the corrected alias names the same enum",      &tests_the_correctly_spelled_alias_names_the_same_enum);
     rb.run("a level is usable in a constant expression",   &tests_level_is_usable_in_a_constant_expression);
 
-    // -- II. the null policy -----------------------------------------------
+    // - II. the null policy -----------------------------------------------
     rb.module("II. null policy (no_op_mutex, no_op_guard, null_lock_policy)",
               "zero-cost scaffolding; try_lock always succeeds; guard non-movable");
     rb.run("no_op_mutex operations are callable",          &tests_no_op_mutex_operations_are_callable);
@@ -94,7 +94,7 @@ int main()
     rb.run("null policy descriptors are all false",        &tests_null_policy_descriptors_are_all_false);
     rb.run("null policy level is none",                    &tests_null_policy_level_is_none);
 
-    // -- III. exclusive_lock_policy ----------------------------------------
+    // - III. exclusive_lock_policy ----------------------------------------
     rb.module("III. exclusive_lock_policy",
               "std::mutex; read and write are the same exclusive lock");
     rb.run("it names std::mutex and unique_lock",          &tests_exclusive_aliases);
@@ -102,7 +102,7 @@ int main()
     rb.run("descriptors: threadsafe, not shared/timed",    &tests_exclusive_descriptors);
     rb.run("its level is exclusive",                       &tests_exclusive_level_is_exclusive);
 
-    // -- IV. timed_lock_policy ---------------------------------------------
+    // - IV. timed_lock_policy ---------------------------------------------
     rb.module("IV. timed_lock_policy",
               "std::timed_mutex; exclusive, with timeout support");
     rb.run("it names std::timed_mutex and unique_lock",    &tests_timed_aliases);
@@ -110,7 +110,7 @@ int main()
     rb.run("descriptors: threadsafe, timed, not shared",   &tests_timed_descriptors);
     rb.run("its level is timed (above exclusive)",         &tests_timed_level_is_timed);
 
-    // -- V. shared_lock_policy ---------------------------------------------
+    // - V. shared_lock_policy ---------------------------------------------
     rb.module("V. shared_lock_policy (C++17+)",
               "std::shared_mutex; shared read, exclusive write");
     rb.run("it names shared_mutex, shared/unique locks",   &tests_shared_aliases);
@@ -119,7 +119,7 @@ int main()
     rb.run("its level is shared (above timed)",            &tests_shared_level_is_shared);
     rb.run("the read lock is a std::shared_lock",          &tests_shared_read_lock_is_a_shared_lock);
 
-    // -- VI. shared_timed_lock_policy --------------------------------------
+    // - VI. shared_timed_lock_policy --------------------------------------
     rb.module("VI. shared_timed_lock_policy (C++14+)",
               "std::shared_timed_mutex; the most capable policy");
     rb.run("it names shared_timed_mutex and its locks",    &tests_shared_timed_aliases);
@@ -128,7 +128,7 @@ int main()
     rb.run("its level is shared_timed (the top)",          &tests_shared_timed_level_is_shared_timed);
     rb.run("it is the most capable (shared + timed)",      &tests_shared_timed_is_the_most_capable);
 
-    // -- VII. the policy selector ------------------------------------------
+    // - VII. the policy selector ------------------------------------------
     rb.module("VII. the policy selector",
               "level -> policy, with per-standard fallbacks");
     rb.run("none maps to the null policy",                 &tests_selector_none_maps_to_null);
@@ -140,7 +140,7 @@ int main()
     rb.run("select_lock_policy aliases the impl",          &tests_select_lock_policy_is_the_public_alias_over_the_impl);
     rb.run("the selector resolves every level",            &tests_selector_resolves_every_level);
 
-    // -- VIII. default_lock_policy -----------------------------------------
+    // - VIII. default_lock_policy -----------------------------------------
     rb.module("VIII. default_lock_policy",
               "the project default, and its invariant with the selector");
     rb.run("the default is right for this standard",       &tests_default_policy_for_this_standard);

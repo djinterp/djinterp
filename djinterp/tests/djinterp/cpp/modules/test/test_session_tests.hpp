@@ -48,7 +48,7 @@
 #include <utility>
 #include <vector>
 // djinterp
-// djinterp  -- framework header first, then mode-gated.
+// djinterp  - framework header first, then mode-gated.
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
 #include "../../../../../inc/djinterp/cpp/modules/test/test_session.hpp"

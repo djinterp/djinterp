@@ -612,7 +612,7 @@ bool d_layout_table_repair(
 
 #ifndef D_AUDIT_DISABLED
         // the rebuild proved the input lossless; this checks the output
-        // independently -- a table may move text and may not change it
+        // independently - a table may move text and may not change it
         struct dj_audit_claim audit;
         const char*          why = NULL;
 

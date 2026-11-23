@@ -14,7 +14,7 @@
 * records the failure in its parser's error report as a definition error,
 * which the parser's next parse reports, as CLI11 throws it at once.
 *   Values are spans (struct dj_pack_text), NUL-terminated, that stay valid
-* until the option is cleared -- by the next parse, d_arg_option_clear, or
+* until the option is cleared - by the next parse, d_arg_option_clear, or
 * the parser's clear or release. They borrow `argv` where a value is a whole
 * argument or its tail, and are the option's own copies otherwise; the
 * copies a default value made outlive clearing, so that a variable bound to
@@ -22,8 +22,8 @@
 *
 * HOW TO USE
 * ----------
-*   Make an option on a command (arg_command.h) by its names -- `-o,--out`, or a
-* positional's `NAME` -- then chain its setters: how many values it takes, its
+*   Make an option on a command (arg_command.h) by its names - `-o,--out`, or a
+* positional's `NAME` - then chain its setters: how many values it takes, its
 * validators, its default, its environment variable, what it needs or excludes.
 * After a parse, read what it was given with d_arg_option_values and its count.
 *
@@ -301,7 +301,7 @@ struct dj_arg_option_defaults
 // 2.2.1
 // dj_arg_option
 //   struct: one option, owned by its `parent`, the command in whose
-// `options` it is -- an option group, once moved into one. The name lists
+// `options` it is - an option group, once moved into one. The name lists
 // hold names without their dashes; `flag_names` and `flag_values` are
 // parallel, a flag name and the value it stands for (`--no-x{false}`, or
 // `!--x` for "false"). Every string is owned; `group` NULL means "OPTIONS";
@@ -374,7 +374,7 @@ D_EXTERN_C_BEGIN
  * @note With no form, the first long name with `--`, else the first short
  *       name with `-`, else the positional name. D_ARG_NAME_POSITIONAL
  *       writes the positional name. D_ARG_NAME_ALL writes every name joined
- *       by commas -- the positional name only when asked for or alone --
+ *       by commas - the positional name only when asked for or alone --
  *       and, for an option expecting no values, each flag name's value as
  *       `{value}` unless D_ARG_NAME_NO_FLAG_VALUES. An option in the empty
  *       group, hidden from help, writes nothing.
@@ -393,7 +393,7 @@ D_ARG_PARSER_API int d_arg_option_name(
 
 // 3.1.2
 // d_arg_option_single_name
-//   lookup: CLI11's get_single_name -- the first long name, else the first
+//   lookup: CLI11's get_single_name - the first long name, else the first
 // short name, else the positional name, else the environment variable's
 // name, all without dashes; "" when there is none or `_option` is NULL.
 D_ARG_PARSER_API const char* d_arg_option_single_name(
@@ -460,8 +460,8 @@ D_ARG_PARSER_API const char* d_arg_option_matching_name(
 //------------------------------------------------------------------------------
 // 4.1.1
 // d_arg_option_set_description and kin
-//   settings: CLI11's description(), option_text() -- which replaces the type
-// name, default and requirements in help -- group(), which hides the
+//   settings: CLI11's description(), option_text() - which replaces the type
+// name, default and requirements in help - group(), which hides the
 // option from help when empty and refuses a newline with
 // D_ARG_ERROR_INCORRECT_CONSTRUCTION, type_name(), and envname(). Each
 // copies its text; NULL clears it, and for the group restores "OPTIONS".
@@ -599,7 +599,7 @@ D_ARG_PARSER_API void d_arg_option_set_integer_rule(
 //------------------------------------------------------------------------------
 // 4.4.1
 // d_arg_option_set_required and kin
-//   settings: set or clear one D_ARG_OPTION_* flag -- required (CLI11's
+//   settings: set or clear one D_ARG_OPTION_* flag - required (CLI11's
 // required() and mandatory()), configurable, disable_flag_override,
 // always_capture_default, allow_extra_args, trigger_on_parse,
 // force_callback, run_callback_for_default, inject_separator. None fails.
@@ -687,9 +687,9 @@ D_ARG_PARSER_API int d_arg_option_set_default_text(
  * @brief Sets a default that the option checks as it would a value;
  *        CLI11's default_val().
  *
- * @note The text runs through the option's validators -- and, with
+ * @note The text runs through the option's validators - and, with
  *       D_ARG_OPTION_RUN_CALLBACK_FOR_DEFAULT, through its callback, so a
- *       bound variable takes it -- and becomes the default text only when
+ *       bound variable takes it - and becomes the default text only when
  *       accepted. The option's values are kept as they were either way.
  *
  * @param[in,out] _option  the option.
@@ -726,7 +726,7 @@ D_ARG_PARSER_API int d_arg_option_set_default_value(
  * @param[in]     _value   the value, read as `_type` reads one.
  * @return D_ARG_OK; the status of the type's writing --
  *         D_ARG_ERROR_UNSUPPORTED for a type that writes no value,
- *         D_ARG_ERROR_OUT_OF_MEMORY for text that could not be built -- or
+ *         D_ARG_ERROR_OUT_OF_MEMORY for text that could not be built - or
  *         of d_arg_option_set_default_value; D_ARG_ERROR_BAD_ARGUMENT for a
  *         NULL argument.
  */
@@ -759,7 +759,7 @@ D_ARG_PARSER_API void d_arg_option_set_default_fn(
 // 4.5.5
 // d_arg_option_capture_default
 //   operation: CLI11's capture_default_str(): replaces the default text with
-// what the default function writes -- for a variable bound by
+// what the default function writes - for a variable bound by
 // d_arg_option_bind, its current value as its type writes it. Does nothing
 // without a function. Returns D_ARG_OK, or the status of a write or copy
 // that failed.
@@ -801,7 +801,7 @@ D_ARG_PARSER_API int d_arg_option_excludes(
 // 4.6.2
 // d_arg_option_needs_name / d_arg_option_excludes_name
 //   relations by name: as above, the other option found from the option's
-// command as d_arg_command_option finds it -- and, for an option in an option
+// command as d_arg_command_option finds it - and, for an option in an option
 // group, then from the command the group belongs to, where CLI11 finds one
 // moved into the group; a name nothing matches is
 // D_ARG_ERROR_INCORRECT_CONSTRUCTION, "Option <name> is not defined".
@@ -816,7 +816,7 @@ D_ARG_PARSER_API int d_arg_option_excludes_name(
 
 // 4.6.3
 // d_arg_option_remove_needs / d_arg_option_remove_excludes
-//   relations: undo a needs or an excludes -- only this option's half of an
+//   relations: undo a needs or an excludes - only this option's half of an
 // exclusion, as in CLI11. Each returns whether there was one to undo.
 D_ARG_PARSER_API bool d_arg_option_remove_needs(
     struct dj_arg_option*       _option,
@@ -898,9 +898,9 @@ D_ARG_PARSER_API int d_arg_option_each(
 
 // 4.7.4
 // d_arg_option_validator / d_arg_option_validator_at
-//   lookups: CLI11's get_validator(name) -- the first validator so named, a
+//   lookups: CLI11's get_validator(name) - the first validator so named, a
 // NULL or empty name matching an unnamed one, else, for a NULL or empty
-// name, the first validator -- and get_validator(index). NULL when there is
+// name, the first validator - and get_validator(index). NULL when there is
 // none, which CLI11 throws as OptionNotFound; the validator stays the
 // option's.
 D_ARG_PARSER_API struct dj_arg_validator* d_arg_option_validator(
@@ -1014,8 +1014,8 @@ bool d_arg_option_has_flag(
 
 // 5.1.3
 // d_arg_option_items_expected_min / d_arg_option_items_expected_max
-//   arithmetic: CLI11's get_items_expected_min and _max, the values -- not
-// items -- the option takes: the type size times the expected count, held
+//   arithmetic: CLI11's get_items_expected_min and _max, the values - not
+// items - the option takes: the type size times the expected count, held
 // at D_ARG_EXPECTED_UNLIMITED where the product would overflow. 0 for NULL.
 D_ARG_PARSER_API int d_arg_option_items_expected_min(
     const struct dj_arg_option* _option
@@ -1189,8 +1189,8 @@ D_ARG_PARSER_API int d_arg_option_add_results(
 
 // 6.3.2
 // d_arg_option_clear
-//   operation: CLI11's clear(): drops the values and their copies -- all but
-// those a default value made -- and returns the option to PARSING. Ignores
+//   operation: CLI11's clear(): drops the values and their copies - all but
+// those a default value made - and returns the option to PARSING. Ignores
 // NULL.
 D_ARG_PARSER_API void d_arg_option_clear(
     struct dj_arg_option* _option
@@ -1231,7 +1231,7 @@ D_ARG_PARSER_API int d_arg_option_run_callback(
  * @note With no input (or `{}`), a flag-like option gives `true`, or the
  *       name's own value; any other option gives its default text, or the
  *       name's value. With an input, a name whose value is `false` inverts
- *       the input -- `true` for 1, `false` for -1, the negation otherwise --
+ *       the input - `true` for 1, `false` for -1, the negation otherwise --
  *       and any other gives the input.
  *
  * @param[in]     _option  the option.

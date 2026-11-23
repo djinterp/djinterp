@@ -2,8 +2,8 @@
 * djinterp [cpp][text]                                       css_tests_sheet.cpp
 *
 *   The groups for css/css_template.hpp, on its default backend: building a
-* stylesheet through the facades, and its three renderings -- formatted,
-* minified and SCSS -- over style rules, nesting, comments and every form of
+* stylesheet through the facades, and its three renderings - formatted,
+* minified and SCSS - over style rules, nesting, comments and every form of
 * at-rule. Each expected text is written as CSS (and CSS Nesting) has it.
 *   The facades' add_style_rule, add_at_rule and add_rule make rules in
 * place. The freestanding factories (make_style_rule and the rest), and

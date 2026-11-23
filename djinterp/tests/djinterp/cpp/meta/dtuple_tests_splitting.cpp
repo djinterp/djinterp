@@ -16,7 +16,7 @@
 *   tuple_subsequence is the half-open `[Start, End)` slice variant.
 * The implementation comment in dtuple.hpp explains an MSVC ambiguity
 * in the older recursive helper that was rewritten as an index_sequence
-* lookup -- we verify the rewritten implementation by hitting every
+* lookup - we verify the rewritten implementation by hitting every
 * relevant Start/End combination on a five-element fixture tuple,
 * including:
 *     - empty slice (Start == End)
@@ -57,7 +57,7 @@ static_assert(std::is_same<typename DTupleSplit<0, std::tuple<>>::after,
 
 // ---- pack-shape, size 3 (int, char, float) ----
 
-// index 0 -- empty before, full after
+// index 0 - empty before, full after
 static_assert(std::is_same<typename DTupleSplit<0, int, char, float>::before,
                            std::tuple<>>::value,
               "tuple_split<0, int, char, float>::before should be std::tuple<>");
@@ -65,7 +65,7 @@ static_assert(std::is_same<typename DTupleSplit<0, int, char, float>::after,
                            std::tuple<int, char, float>>::value,
               "tuple_split<0, int, char, float>::after should be std::tuple<int, char, float>");
 
-// index 1 -- before has the first element
+// index 1 - before has the first element
 static_assert(std::is_same<typename DTupleSplit<1, int, char, float>::before,
                            std::tuple<int>>::value,
               "tuple_split<1, int, char, float>::before should be std::tuple<int>");
@@ -73,7 +73,7 @@ static_assert(std::is_same<typename DTupleSplit<1, int, char, float>::after,
                            std::tuple<char, float>>::value,
               "tuple_split<1, int, char, float>::after should be std::tuple<char, float>");
 
-// index 2 -- before has the first two, after has the last
+// index 2 - before has the first two, after has the last
 static_assert(std::is_same<typename DTupleSplit<2, int, char, float>::before,
                            std::tuple<int, char>>::value,
               "tuple_split<2, int, char, float>::before should be std::tuple<int, char>");
@@ -81,7 +81,7 @@ static_assert(std::is_same<typename DTupleSplit<2, int, char, float>::after,
                            std::tuple<float>>::value,
               "tuple_split<2, int, char, float>::after should be std::tuple<float>");
 
-// index 3 (= size) -- full before, empty after
+// index 3 (= size) - full before, empty after
 static_assert(std::is_same<typename DTupleSplit<3, int, char, float>::before,
                            std::tuple<int, char, float>>::value,
               "tuple_split<3, int, char, float>::before should be the whole input");
@@ -101,7 +101,7 @@ static_assert(std::is_same<typename DTupleSplit<3, std::tuple<int, char, float>>
                            std::tuple<int, char, float>>::value,
               "tuple_split tuple-shape index 3 ::before");
 
-// ---- pack-shape, size 5 -- larger sample to exercise deeper recursion ----
+// ---- pack-shape, size 5 - larger sample to exercise deeper recursion ----
 
 static_assert(std::is_same<typename DTupleSplit<2, int, char, float, double, long>::before,
                            std::tuple<int, char>>::value,

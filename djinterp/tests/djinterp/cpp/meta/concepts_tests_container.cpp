@@ -67,7 +67,7 @@ bool concepts_tests_container()
     DT_NOT_CONCEPT(has_const_iterator<trivial_class>);
 
     // -------------------------------------------------------------------
-    // sizeable -- size_type + size() returning a size_type-convertible
+    // sizeable - size_type + size() returning a size_type-convertible
     // -------------------------------------------------------------------
 
     DT_CONCEPT    (sizeable<sized_container>);
@@ -81,7 +81,7 @@ bool concepts_tests_container()
     DT_NOT_CONCEPT(sizeable<int>);
 
     // -------------------------------------------------------------------
-    // has_max_size_c -- size_type + static max_size convertible to size_type
+    // has_max_size_c - size_type + static max_size convertible to size_type
     // -------------------------------------------------------------------
 
     DT_CONCEPT    (has_max_size_c<bounded_container>);
@@ -90,7 +90,7 @@ bool concepts_tests_container()
     DT_NOT_CONCEPT(has_max_size_c<int>);
 
     // -------------------------------------------------------------------
-    // bounded_c -- the predicate-template version
+    // bounded_c - the predicate-template version
     // -------------------------------------------------------------------
     //   bounded_c<T, UnaryTrait> = UnaryTrait<T>::value && has_max_size_c<T>
     // We pass std::is_class as the predicate.

@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][event]                               event_table_tests_core.cpp
 *
-*   Section III (core) -- the DEventTable lifecycle operations.  Covers the
+*   Section III (core) - the DEventTable lifecycle operations.  Covers the
 * empty initial state; insert (ids handed out from 1 and strictly increasing,
 * new entries enabled, total/enabled counts advanced, contains true); remove
 * (found -> true and counts decremented; the disabled-then-removed path that
@@ -121,7 +121,7 @@ bool tests_remove_disabled_bookkeeping()
 {
     bool ok = true;
 
-    // removing a *disabled* entry must decrement only the total count -- the
+    // removing a *disabled* entry must decrement only the total count - the
     // enabled count was already decremented at disable time and must not be
     // decremented again.
     DEventTable t;

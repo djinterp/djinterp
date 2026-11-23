@@ -4,7 +4,7 @@
 *   Section 0 + I of the comonad.hpp suite: the protocol and its detection
 * vocabulary.  Covers is_comonad (and its _v shorthand), comonad_value_type
 * (and the _t alias, well-formed and SFINAE-safe absent arms), and the C++20
-* Comonad concept -- across the two shipped Env instances (std::pair, DKvPair),
+* Comonad concept - across the two shipped Env instances (std::pair, DKvPair),
 * the custom Identity ident<A> fixture, and non-comonads (a scalar, a class
 * type, a one-parameter container).  A focus test verifies the semantic that
 * matters most: the comonad's value_type is the SECOND component (the focus),

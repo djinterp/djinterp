@@ -23,15 +23,15 @@
 # sqlite3ext.h is found (the amalgamation's directory, or the compiler's own
 # paths), and named to them in DJINTERP_TEST_SQLITE_EXTENSION; where it
 # cannot be built, they check what fails without it, and say so.
-# Each SQLite is an amalgamation -- a directory holding sqlite3.c and
-# sqlite3.h, which scripts/ci/fetch_sqlite.sh makes from a release tag -- built
+# Each SQLite is an amalgamation - a directory holding sqlite3.c and
+# sqlite3.h, which scripts/ci/fetch_sqlite.sh makes from a release tag - built
 # once per compiler, or the word `system`, for the installed library and header.
 # The suite asks the library's version for every check whose answer depends
 # on it, so one suite covers every release from the floor, 3.7.17. The word
 # `stubs` builds the layer without SQLite (D_CFG_SQLITE=0), runs
 # sqlite_stubs_tests.c in place of sqlite_tests.c, and links no SQLite at
-# all. A C++ standard a compiler does not have -- C++26 before GCC 14 and
-# Clang 17 -- is skipped, and said to be.
+# all. A C++ standard a compiler does not have - C++26 before GCC 14 and
+# Clang 17 - is skipped, and said to be.
 #   The C suites are DTest's: tests/djinterp/c/modules/db/sqlite/sqlite_tests.c
 # and sqlite_stubs_tests.c, each built with its runner, in the CMake leaf
 # (build/cmake/config/testing/djinterp/c/modules/db/sqlite/), and DTest's C

@@ -5,9 +5,9 @@
 * cursors and change streams, and the MongoDB layer's failures, over the
 * layer's face.
 *   Every operation is one call of the face, whose result decides: 0 returns,
-* anything else throws, through mongodb_layer::raise, with the result -- the
+* anything else throws, through mongodb_layer::raise, with the result - the
 * server's code as it sent it, a failure of the driver's, libbson's or the
-* layer's packed above it, or a negative D_DB_* -- as the exception's
+* layer's packed above it, or a negative D_DB_* - as the exception's
 * error_code(), and the server's, the driver's or the layer's own message
 * where the handle recorded one about the failure. Connecting connects a
 * face of its own, with the configuration's connection string, its options
@@ -144,7 +144,7 @@ public:
         const connect_settings&
     ) = delete;
 
-    // number -- a setting that reads a number: milliseconds, a switch
+    // number - a setting that reads a number: milliseconds, a switch
     void
     number(
         enum dj_mongodb_setting_name _name,
@@ -213,7 +213,7 @@ public:
     }
 
 private:
-    // m_keep -- a copy of the text, alive while the settings are, refused
+    // m_keep - a copy of the text, alive while the settings are, refused
     // where it holds a NUL
     const char* m_keep(
         const std::string& _text
@@ -659,7 +659,7 @@ void check_read(
     mongodb_layer::raise(_db, failure_kind::query, _operation, _result);
 }
 
-// refuse_closed -- query_exception for a read of a closed cursor or
+// refuse_closed - query_exception for a read of a closed cursor or
 // stream
 [[noreturn]]
 void refuse_closed(
@@ -2876,8 +2876,8 @@ const face::mongodb& mongo_connection::get_face() const noexcept
 // hooks
 /*
 mongo_connection::connect_impl
-  The handle is made in a face of its own -- from the configuration, or
-over the client adopt() handed in -- and the object takes it only once it
+  The handle is made in a face of its own - from the configuration, or
+over the client adopt() handed in - and the object takes it only once it
 is open, so that a failure leaves the old state and the new handle closed.
 The current database, which a connection string may name, is the
 configuration's from then on.

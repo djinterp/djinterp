@@ -14,8 +14,8 @@
 *   IT IS A TYPEDEF, NOT A CLASS, AND THAT IS OBSERVABLE:
 *   high_resolution_clock::time_point and steady_clock::time_point are
 * therefore the SAME type on most platforms, and the two are freely
-* interchangeable. Code that relies on them being distinct -- overloading
-* on them, say -- will not behave as intended. Since the standard allows
+* interchangeable. Code that relies on them being distinct - overloading
+* on them, say - will not behave as intended. Since the standard allows
 * precisely this aliasing, such code was never portable.
 *
 *   PREFER NAMING THE CLOCK YOU MEAN:

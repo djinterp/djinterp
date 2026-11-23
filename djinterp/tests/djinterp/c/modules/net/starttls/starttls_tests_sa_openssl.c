@@ -273,7 +273,7 @@ bool d_tests_starttls_session_on(
 /*
 d_tests_starttls_serve
   The server thread: greets, waits for STARTTLS, sends the go-ahead it was
-given, and upgrades -- or upgrades at once for implicit TLS -- then reads a
+given, and upgrades - or upgrades at once for implicit TLS - then reads a
 line, answers it, and closes, with close_notify unless told to truncate.
 */
 static
@@ -385,8 +385,8 @@ void d_tests_starttls_exchange(
 
 /*
 d_tests_starttls_converse
-  The client's side: reads the greeting and negotiates -- or upgrades at
-once for implicit TLS -- then, once secure, exchanges a line each way.
+  The client's side: reads the greeting and negotiates - or upgrades at
+once for implicit TLS - then, once secure, exchanges a line each way.
 */
 static
 void d_tests_starttls_converse(

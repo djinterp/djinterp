@@ -22,7 +22,7 @@
 *   ALIGNMENT DEFAULT:
 *   The default alignment is computed from a local union of fundamental
 * types (char through long double, plus pointers and a function pointer).
-* This is intentionally NOT std::max_align_t -- using it would pull a
+* This is intentionally NOT std::max_align_t - using it would pull a
 * std-namespace name into the trait's default-argument expression, which
 * is awkward for a trait whose entire raison d'etre is to be std-free.
 * The local union approach matches the practical behavior of

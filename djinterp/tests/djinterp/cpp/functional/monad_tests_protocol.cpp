@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][functional]                            monad_tests_protocol.cpp
 *
-*   Tests for monad.hpp Section I: the monad protocol -- is_monad
+*   Tests for monad.hpp Section I: the monad protocol - is_monad
 * detection and the monad_traits surface that every concrete monad
 * must provide.  Covers positive detection of the test monad, negative
 * detection of non-monads, decay-insensitivity of is_monad, and direct

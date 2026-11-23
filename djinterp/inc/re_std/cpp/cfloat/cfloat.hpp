@@ -3,7 +3,7 @@
 *
 * the floating-point limit macros:
 *   FLT_ / DBL_ / LDBL_ radix, precision, range and rounding constants.
-* All macros, so none of them can live in re_std:: -- macros have no
+* All macros, so none of them can live in re_std:: - macros have no
 * namespace. As with <climits>, this header's contribution is to fill the
 * gaps a platform's own <cfloat> may leave, never to override it.
 *
@@ -13,7 +13,7 @@
 * uses DBL_TRUE_MIN fails to compile on them even though the compiler
 * knows the value perfectly well. Each is recovered from the matching
 * GCC/Clang __DBL_DENORM_MIN__-style builtin, which is the compiler
-* stating a fact about its own float format -- a re-derivation, not an
+* stating a fact about its own float format - a re-derivation, not an
 * estimate.
 *
 *   WHERE NO BUILTIN EXISTS, NOTHING IS DEFINED:
@@ -46,7 +46,7 @@
 #define RE_STD_CFLOAT_CFLOAT_HPP 1
 
 // std
-//   the macros themselves -- the whole payload of the header.
+//   the macros themselves - the whole payload of the header.
 #include <cfloat>
 // re_std
 #include "../../config.hpp"  // RE_STD_* configuration
@@ -89,7 +89,7 @@
 // II.  TRUE_MIN FAMILY  (C11 / C++17)
 // ===========================================================================
 //
-//   Smallest positive value INCLUDING subnormals -- distinct from *_MIN,
+//   Smallest positive value INCLUDING subnormals - distinct from *_MIN,
 // which is the smallest positive NORMAL value. The two differ by many
 // orders of magnitude (for double, 4.9e-324 against 2.2e-308), so
 // substituting one for the other is not a rounding difference.

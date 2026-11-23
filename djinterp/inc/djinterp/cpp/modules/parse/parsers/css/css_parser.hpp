@@ -72,7 +72,7 @@ NS_CSS
 
 
 // ================================================================
-//  internal -- low-level scanner helpers
+//  internal - low-level scanner helpers
 // ================================================================
 
 NS_INTERNAL
@@ -715,7 +715,7 @@ NS_INTERNAL
     // parse_declaration
     //   function: consumes a single property:value declaration,
     // optionally suffixed by `!important`.  The trailing `;` is
-    // NOT consumed -- the caller handles it as a separator.
+    // NOT consumed - the caller handles it as a separator.
     inline
     parse_result<css_declaration> parse_declaration(
         text_parse_state& _s
@@ -1293,7 +1293,7 @@ NS_INTERNAL
 
             char c = _s.peek();
 
-            // end of selector -- caller resumes
+            // end of selector - caller resumes
             if ( (c == ',') ||
                  (c == '{') ||
                  (c == ')') )
@@ -1322,7 +1322,7 @@ NS_INTERNAL
             }
             else
             {
-                // no whitespace and no explicit combinator -- but
+                // no whitespace and no explicit combinator - but
                 // we did not match a structural terminator either.
                 // Restore the offset and bail (the caller decides).
                 _s.offset = before_ws;
@@ -1517,7 +1517,7 @@ NS_INTERNAL
 
             if (c == '}')
             {
-                // do not consume '}' -- caller handles it
+                // do not consume '}' - caller handles it
                 return;
             }
 
@@ -1983,7 +1983,7 @@ public:
 
 // css_declaration_parser
 //   class: parses a sequence of declarations terminated by ';'
-// or end-of-input -- the shape of an inline `style="..."`
+// or end-of-input - the shape of an inline `style="..."`
 // attribute value (without the surrounding `{}`).
 class css_declaration_parser
     : public parse::DTextParserBase<css_declaration_parser>

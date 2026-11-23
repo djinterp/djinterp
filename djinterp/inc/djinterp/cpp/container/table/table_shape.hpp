@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                                      table_shape.hpp
 *
-*   The type-level SHAPE of a table -- the structural half of the table model
+*   The type-level SHAPE of a table - the structural half of the table model
 * both declaration front ends (table_builder, table_parser) fold their input
 * into.  A table is a rank-k tuple T = (T_, I_T, Gamma) (containers.tex, The
 * table); this header carries the first two layers for the leading case k = 2,
@@ -21,7 +21,7 @@
 * the
 * builder computes a shape, and the realization kind names its backing.
 *
-*   STRUCTURE ONLY -- NO CELL VALUES.  A shape describes the table's TYPE, not
+*   STRUCTURE ONLY - NO CELL VALUES.  A shape describes the table's TYPE, not
 * its contents; the cell VALUES v_i are a separate layer of the model (their
 * compile-time encoding is a distinct concern; see the design notes).  Keeping
 * values out here lets a shape be a pure, value-free type usable on any
@@ -97,7 +97,7 @@ NS_DJINTERP
 // ===========================================================================
 
 // dynamic_extent
-//   value: the height sentinel for a runtime-sized table -- a table whose row
+//   value: the height sentinel for a runtime-sized table - a table whose row
 // count is read at runtime (Lifetime: runtime-expressible size), as opposed to
 // a height fixed by the type. Mirrors std::dynamic_extent in spirit. The width
 // is always a compile-time quantity here (it is the length of the column-type
@@ -167,7 +167,7 @@ NS_END  // internal
 // ===========================================================================
 
 // DTableShape
-//   type: the rank-2 rectangular shape of a table -- a height and a list of
+//   type: the rank-2 rectangular shape of a table - a height and a list of
 // column types. The domain is the box {0..height-1} x {0..width-1}; the cell
 // type at column c is the c-th column type (tau_{r,c} = tau_c). Homogeneity is
 // derived, not declared: a shape is cell-homogeneous exactly when every column
@@ -188,7 +188,7 @@ struct DTableShape
     // --- extents ---
 
     // rank
-    //   value: the number of coordinates -- 2 for this rectangular row/column
+    //   value: the number of coordinates - 2 for this rectangular row/column
     // shape (a rank-k generalisation lets a column type be a table_shape).
     static D_CONSTEXPR std::size_t rank = 2;
 
@@ -207,7 +207,7 @@ struct DTableShape
     // --- cell types ---
 
     // is_homogeneous
-    //   value: whether one cell type serves every column (S = empty) -- the
+    //   value: whether one cell type serves every column (S = empty) - the
     // cell-homogeneous table. A width-0 shape is vacuously homogeneous.
     static D_CONSTEXPR bool is_homogeneous = internal::all_same<Cols...>::value;
 
@@ -218,7 +218,7 @@ struct DTableShape
         typename internal::first_type<(sizeof...(Cols) > 0), Cols...>::type;
 
     // columns_type
-    //   type: the column-type list as a tuple -- the axis-typed record's
+    //   type: the column-type list as a tuple - the axis-typed record's
     // column types, and the row-record type of a heterogeneous realization.
     using columns_type = std::tuple<Cols...>;
 
@@ -267,7 +267,7 @@ using realization_kind = DRealizationKind;
 // ===========================================================================
 
 // realization_of
-//   trait: the realization_kind a table_shape backs onto -- the pivot the
+//   trait: the realization_kind a table_shape backs onto - the pivot the
 // builder reads to pick a concrete container for a computed shape.
 template<typename Shape>
 struct realization_of;

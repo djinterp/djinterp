@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][net]                                         ftps_tests_support.h
 *
-* FTPS test support: what ftps_tests_support.c gives the suites -- the toy
+* FTPS test support: what ftps_tests_support.c gives the suites - the toy
 * TLS engine and its settings, the threaded server and what it saw, and the
 * files it serves.
 *
@@ -80,7 +80,7 @@ struct dj_tests_ftps_server
 };
 
 // g_big, HELLO
-//   variable: the files the server serves -- big.bin, 200000 octets of
+//   variable: the files the server serves - big.bin, 200000 octets of
 // g_big, and hello.txt.
 extern char       g_big[200000];
 extern const char HELLO[];

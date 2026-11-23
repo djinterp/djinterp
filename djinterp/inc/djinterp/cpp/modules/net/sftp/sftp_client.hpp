@@ -83,7 +83,7 @@ TABLE OF CONTENTS
 #include "../../../../../re_std/cpp/expected/expected.hpp"  // re_std::expected
 
 // 64-bit floor: this header needs a 64-bit integer type, and compiles to
-// nothing where the build has none -- ISO strict C++98 wherever int64_t is
+// nothing where the build has none - ISO strict C++98 wherever int64_t is
 // `long long`: a 32-bit target, 64-bit Windows or macOS (the owner's ruling of
 // 2026.10.03 on round 3's question 1, (a)). The answer is net_common.h's, taken
 // once per translation unit, so that net's gated headers agree.
@@ -237,7 +237,7 @@ namespace internal {
             : m_out(&_out)
         {}
 
-        // operator() -- appends the data
+        // operator() - appends the data
         error::value operator()(
             const char* _data,
             std::size_t _size
@@ -266,7 +266,7 @@ namespace internal {
               m_offset(0u)
         {}
 
-        // operator() -- supplies the next bytes, and 0 at the end
+        // operator() - supplies the next bytes, and 0 at the end
         error::value operator()(
             char*        _buffer,
             std::size_t  _capacity,
@@ -365,7 +365,7 @@ namespace internal {
 // 2.2.1
 // client
 //   class: an SFTP session over an SSH session, or over any net.h
-// connection -- a C++ net::connection through net.hpp's
+// connection - a C++ net::connection through net.hpp's
 // c_connection_adapter. Every member blocks, as the C client does,
 // and reports its outcome as an error; the destructor closes the session.
 // The C client holds pointers into itself, so a client can be neither
@@ -384,7 +384,7 @@ public:
         ::d_sftp_client_close(&m_client);
     }
 
-    // open -- starts SFTP on an authenticated SSH session, which must
+    // open - starts SFTP on an authenticated SSH session, which must
     // outlive the client
     error::value open(
         ::dj_ssh_session& _session
@@ -394,7 +394,7 @@ public:
                                            &_session));
     }
 
-    // open -- starts SFTP over a connection already carrying it, which
+    // open - starts SFTP over a connection already carrying it, which
     // must outlive the client's use of it
     error::value open(
         ::dj_net_connection* _connection
@@ -404,7 +404,7 @@ public:
                                                       _connection));
     }
 
-    // close -- ends the session, closing a channel it opened
+    // close - ends the session, closing a channel it opened
     void close() D_NOEXCEPT
     {
         ::d_sftp_client_close(&m_client);
@@ -412,7 +412,7 @@ public:
         return;
     }
 
-    // realpath -- the canonical absolute form of a path
+    // realpath - the canonical absolute form of a path
     error::value realpath(
         const char*  _path,
         std::string& _out
@@ -423,7 +423,7 @@ public:
                        _out);
     }
 
-    // stat -- a path's attributes, following a final link
+    // stat - a path's attributes, following a final link
     error::value stat(
         const char* _path,
         attributes& _out
@@ -434,7 +434,7 @@ public:
                                            &_out));
     }
 
-    // lstat -- a path's attributes, not following a final link
+    // lstat - a path's attributes, not following a final link
     error::value lstat(
         const char* _path,
         attributes& _out
@@ -445,7 +445,7 @@ public:
                                             &_out));
     }
 
-    // setstat -- sets the attributes whose flags are present
+    // setstat - sets the attributes whose flags are present
     error::value setstat(
         const char*       _path,
         const attributes& _attributes
@@ -456,7 +456,7 @@ public:
                                               &_attributes));
     }
 
-    // remove -- deletes a file
+    // remove - deletes a file
     error::value remove(
         const char* _path
     ) D_NOEXCEPT
@@ -465,7 +465,7 @@ public:
                                              _path));
     }
 
-    // rename -- moves a file; _replace overwrites an existing target where
+    // rename - moves a file; _replace overwrites an existing target where
     // the server offers posix-rename@openssh.com
     error::value rename(
         const char* _from,
@@ -479,7 +479,7 @@ public:
                                              _replace));
     }
 
-    // readlink -- a symbolic link's target
+    // readlink - a symbolic link's target
     error::value readlink(
         const char*  _path,
         std::string& _out
@@ -490,7 +490,7 @@ public:
                        _out);
     }
 
-    // symlink -- makes _link a symbolic link to _target
+    // symlink - makes _link a symbolic link to _target
     error::value symlink(
         const char* _target,
         const char* _link
@@ -501,7 +501,7 @@ public:
                                               _link));
     }
 
-    // mkdir -- makes a directory, with the attributes given, if any
+    // mkdir - makes a directory, with the attributes given, if any
     error::value mkdir(
         const char*       _path,
         const attributes* _attributes = NULL
@@ -512,7 +512,7 @@ public:
                                             _attributes));
     }
 
-    // rmdir -- removes an empty directory
+    // rmdir - removes an empty directory
     error::value rmdir(
         const char* _path
     ) D_NOEXCEPT
@@ -521,7 +521,7 @@ public:
                                             _path));
     }
 
-    // list -- calls a walker for each entry of a directory, "." and ".."
+    // list - calls a walker for each entry of a directory, "." and ".."
     // included, as the server sends them
     template<typename Walker>
     error::value list(
@@ -548,7 +548,7 @@ public:
                           internal::context_of(_walker)));
     }
 
-    // open_file -- opens a file with OPEN_* flags; _attributes, if any,
+    // open_file - opens a file with OPEN_* flags; _attributes, if any,
     // apply to a file OPEN_CREATE makes
     error::value open_file(
         const char*       _path,
@@ -564,7 +564,7 @@ public:
                                                 &_out));
     }
 
-    // close_file -- closes an open file
+    // close_file - closes an open file
     error::value close_file(
         const handle& _handle
     ) D_NOEXCEPT
@@ -573,7 +573,7 @@ public:
                                                  &_handle));
     }
 
-    // read -- reads up to _capacity bytes at an offset; error::eof past
+    // read - reads up to _capacity bytes at an offset; error::eof past
     // the end
     error::value read(
         const handle& _handle,
@@ -591,7 +591,7 @@ public:
                                            &_out_read));
     }
 
-    // write -- writes all of the data at an offset, pipelined
+    // write - writes all of the data at an offset, pipelined
     error::value write(
         const handle& _handle,
         uint64_t      _offset,
@@ -606,7 +606,7 @@ public:
                                             _size));
     }
 
-    // fstat -- an open file's attributes
+    // fstat - an open file's attributes
     error::value fstat(
         const handle& _handle,
         attributes&   _out
@@ -617,7 +617,7 @@ public:
                                             &_out));
     }
 
-    // fsync -- flushes an open file to stable storage, where the server
+    // fsync - flushes an open file to stable storage, where the server
     // offers fsync@openssh.com
     error::value fsync(
         const handle& _handle
@@ -627,7 +627,7 @@ public:
                                             &_handle));
     }
 
-    // get -- downloads a whole file into a sink, pipelined
+    // get - downloads a whole file into a sink, pipelined
     template<typename Sink>
     error::value get(
         const char* _path,
@@ -652,7 +652,7 @@ public:
                                           internal::context_of(_sink)));
     }
 
-    // get -- downloads a whole file onto the end of a string
+    // get - downloads a whole file onto the end of a string
     error::value get(
         const char*  _path,
         std::string& _out
@@ -664,7 +664,7 @@ public:
                    sink);
     }
 
-    // put -- uploads a whole file from a source, pipelined, creating or
+    // put - uploads a whole file from a source, pipelined, creating or
     // truncating it; _attributes, if any, apply to a file it creates
     template<typename Source>
     error::value put(
@@ -695,7 +695,7 @@ public:
                           internal::context_of(_source)));
     }
 
-    // put -- uploads a string's bytes as a whole file
+    // put - uploads a string's bytes as a whole file
     error::value put(
         const char*        _path,
         const std::string& _data,
@@ -722,7 +722,7 @@ public:
                    _attributes);
     }
 
-    // value-returning forms -- each returns what the reference form writes,
+    // value-returning forms - each returns what the reference form writes,
     // or the error, as re_std::expected at every level
     re_std::expected<std::string, error::value> realpath(
         const char* _path
@@ -811,7 +811,7 @@ public:
                               out);
     }
 
-    // state -- O(1) reads of the session
+    // state - O(1) reads of the session
     bool is_open() const D_NOEXCEPT
     {
         return m_client.open;
@@ -847,7 +847,7 @@ public:
         return m_client.ssh_status;
     }
 
-    // c_client -- the dj_sftp_client beneath, for what has no member here
+    // c_client - the dj_sftp_client beneath, for what has no member here
     ::dj_sftp_client& c_client() D_NOEXCEPT
     {
         return m_client;
@@ -862,13 +862,13 @@ private:
     D_DELETED_FN(client(const client&))
     D_DELETED_FN(client& operator=(const client&))
 
-    // text_fn -- the C form of realpath and readlink
+    // text_fn - the C form of realpath and readlink
     typedef ::dj_sftp_error (*text_fn)(::dj_sftp_client*,
                                       const char*,
                                       char*,
                                       size_t);
 
-    // text_of -- runs a text-producing call into a string, doubling the
+    // text_of - runs a text-producing call into a string, doubling the
     // room from 4 KiB while the answer does not fit, up to 1 MiB
     error::value text_of(
         text_fn      _call,
@@ -903,7 +903,7 @@ private:
         return from_c(result);
     }
 
-    // value_or_error -- a value on success, the error otherwise; the value
+    // value_or_error - a value on success, the error otherwise; the value
     // is swapped in, not copied, at every level
     template<typename Value>
     static

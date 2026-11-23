@@ -8,7 +8,7 @@
 *                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp [test]  functional_traits_tests_aliases.cpp
-//   Section III -- the _v variable-template shorthands (C++14+).
+//   Section III - the _v variable-template shorthands (C++14+).
 
 // std
 #include <string>

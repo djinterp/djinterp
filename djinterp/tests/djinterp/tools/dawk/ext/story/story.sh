@@ -1,5 +1,5 @@
 #!/bin/sh
-# story.sh -- res/djinterp/tools/dawk/ext/story/relink_audio.awk against a story built
+# story.sh - res/djinterp/tools/dawk/ext/story/relink_audio.awk against a story built
 # to the layout the Articulate driver assumes.
 #
 # The story is test_dhost_story's fixture: three slides in scene-list order,

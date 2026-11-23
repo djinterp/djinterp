@@ -5,7 +5,7 @@
 * and 3.1) and arg_internal.h (8.3.2).
 *   CLI11's split_program_name, which looks on disk for the program a line
 * starts with, so that an unquoted path holding spaces is found whole;
-* response files, read whole -- a byte-order mark honoured -- split by the
+* response files, read whole - a byte-order mark honoured - split by the
 * parser's rules, and expanded on the parser's stack before the parse, each
 * `@file` in place and its words expanded in turn, as deep as the build
 * allows; and wide text converted to UTF-8, as wmain's arguments are, and
@@ -80,7 +80,7 @@ size_t d_arg_internal_program_space(
  * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY when the copy was refused.
  *
  * CLI11's check_path(commandline.substr(0, _end).c_str()) == file: whether
- * the line's first `_end` bytes -- all of it for NPOS -- name something that
+ * the line's first `_end` bytes - all of it for NPOS - name something that
  * is not a directory, into `*_is_file`; a refused copy is the failure.
  */
 D_STATIC
@@ -165,7 +165,7 @@ int d_arg_internal_program_find(
  *
  * CLI11's find_and_replace(name, "\\\\" + key, key): each quote after a
  * backslash written without it. The name is what a quote encloses, so its last
- * byte is no backslash -- the quote after it would not have closed it -- and
+ * byte is no backslash - the quote after it would not have closed it - and
  * the bound only keeps the look at the next byte within the name.
  */
 D_STATIC
@@ -206,7 +206,7 @@ int d_arg_internal_program_unescape(
  *
  * CLI11's fallback for a line that opens with a quote: the next such quote
  * that no backslash precedes closes it, and what it encloses is the name, its
- * escaped quotes unescaped -- CLI11 unescapes only when the search passed one,
+ * escaped quotes unescaped - CLI11 unescapes only when the search passed one,
  * but a name holding none comes out of the unescaping as it went in. `*_end`
  * receives the position after the closing quote, or NPOS when it never
  * closes. The line holds the opening quote, so each search, of what follows a
@@ -266,7 +266,7 @@ int d_arg_internal_program_quoted(
  * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
  *
  * CLI11's choice of the name once the search for a file is over: the run of
- * words that named one; or else a quoted name; or else the first word -- the
+ * words that named one; or else a quoted name; or else the first word - the
  * run, or the first word, less its trailing whitespace. `*_end` receives the
  * position CLI11 continues from.
  */
@@ -755,7 +755,7 @@ int d_arg_internal_response_file(
 /*
 d_arg_internal_response_word
   One argument met in order: one starting with `@` before any `--` stands
-for its file's words -- unless it holds a NUL byte, which no path can;
+for its file's words - unless it holds a NUL byte, which no path can;
 anything else, the `--` included, is kept.
 */
 D_STATIC
@@ -788,7 +788,7 @@ int d_arg_internal_response_word(
 
 /*
 d_arg_internal_expand_responses
-  The stack walked from its top -- the next argument -- down, each argument
+  The stack walked from its top - the next argument - down, each argument
 expanded into a list in argument order, which then replaces the stack, the
 first argument on top again.
 */
@@ -891,7 +891,7 @@ int d_arg_utf8_from_wide(
 /*
 d_arg_utf8_from_wide
   Wide text where `wchar_t` has more than 16 bits: UTF-32, a surrogate or a
-value past U+10FFFF -- a negative one too -- U+FFFD.
+value past U+10FFFF - a negative one too - U+FFFD.
 */
 int d_arg_utf8_from_wide(
     const wchar_t*        _text,

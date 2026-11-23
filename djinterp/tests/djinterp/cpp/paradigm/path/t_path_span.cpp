@@ -1,4 +1,4 @@
-// t_path_span.cpp -- path_span, the C++ face of the generic path, at every
+// t_path_span.cpp - path_span, the C++ face of the generic path, at every
 // level from C++98: the same grammars the C test reads by.
 #include "../../../../../inc/djinterp/cpp/paradigm/path/path_span.hpp"
 #include <cstdio>

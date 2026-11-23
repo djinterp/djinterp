@@ -4,9 +4,9 @@
 *   The sort subsystem in one include, with its seams into the functional
 * layer.  It brings in:
 *
-*     - functional/comparator.hpp : the comparator algebra -- natural, by_key,
+*     - functional/comparator.hpp : the comparator algebra - natural, by_key,
 *                                   by_member, by_function, reversed, then,
-*                                   lifted -- whose every model drops into
+*                                   lifted - whose every model drops into
 *                                   every comparator parameter below
 *     - sort_common.hpp           : sort_order and internal::DOrderComparator
 *     - sort_dispatch.hpp         : the six algorithm headers, and over them
@@ -24,7 +24,7 @@
 *     2. participate  sort is a Semigroup and a Monoid through DSortedRun, so
 *                     mappend, mconcat and fold_monoid work on it
 *                     (sort_monoid.hpp)
-*     3. connect      sort is a terminal of the lazy view pipeline -- opt-in
+*     3. connect      sort is a terminal of the lazy view pipeline - opt-in
 *                     (sort_view.hpp)
 *
 *   DIALECTS.  The include is valid from C++98.  Before C++11 it contributes

@@ -4,7 +4,7 @@
 * Node tree:
 *   The tree a selector matches against.  A node carries an interned type, a
 * run of interned attribute pairs, tree links, and the source geometry a
-* layout property needs -- line, start column, end column, width.
+* layout property needs - line, start column, end column, width.
 *   Links are uint32_t indices rather than pointers, so the tree survives the
 * array being reallocated and a node's identity is stable across stages.  The
 * origin field is that identity: assigned once at build, never reassigned, so

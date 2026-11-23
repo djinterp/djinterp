@@ -3,7 +3,7 @@
 *
 * The event subframework umbrella:
 *   One include for the whole module. Follows the shared-core convention set
-* by c/meta/type_info.h -- the umbrella pulls in the language-neutral
+* by c/meta/type_info.h - the umbrella pulls in the language-neutral
 * `_common` headers and then dispatches to the face for the language actually
 * compiling it. Nothing in this file declares a type or a function.
 *
@@ -31,8 +31,8 @@
 * not one object in two notations. C bound at most one handler per event id
 * and its callback returned nothing; C++ bound an ordered word of handlers,
 * each returning a verdict, with a mask, a merge, and a staging operation. No
-* amount of wrapping reconciles those, so the core is the C++ object -- the
-* one the note defines -- lowered into C, and the C side gains the word, the
+* amount of wrapping reconciles those, so the core is the C++ object - the
+* one the note defines - lowered into C, and the C side gains the word, the
 * verdict, the merge, and the fused path it did not have.
 *
 *   event_c.h section VI carries the symbol-by-symbol migration map.
@@ -53,9 +53,9 @@
 // djinterp
 // ---- tier -2: the environment the configuration detects on ----
 //   These come FIRST, ahead of config, and the order is load-bearing.
-// cfg_event_common.h resolves two knobs by DETECTION -- the iteration tier
+// cfg_event_common.h resolves two knobs by DETECTION - the iteration tier
 // (probing dmacro's generated tables) and the C++ notation tier (probing the
-// env's concepts feature) -- and a detection that runs before the thing it
+// env's concepts feature) - and a detection that runs before the thing it
 // detects on has been loaded always reports "absent". That is the quiet kind
 // of wrong: the build still compiles, it just silently takes the fallback
 // tier. Every individual module header already loads its prerequisites ahead
@@ -84,7 +84,7 @@
 #include "../../../re_std/c/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).

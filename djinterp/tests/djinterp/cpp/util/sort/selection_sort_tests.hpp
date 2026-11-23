@@ -7,7 +7,7 @@
 *
 *   sections (one .cpp each):
 *     selection_sort_tests_primitives.cpp  selection_min_index /
-*                                          selection_pass -- the forward scan
+*                                          selection_pass - the forward scan
 *                                          and the pass over a sub-run
 *     selection_sort_tests_apply.cpp       internal::selection_sort_apply --
 *                                          the minimum scan, the swap bound,
@@ -29,7 +29,7 @@
 #include <cstddef>
 #include <vector>
 // djinterp
-//   core is ALWAYS first and unconditional -- NS_* / D_* qualifiers and the
+//   core is ALWAYS first and unconditional - NS_* / D_* qualifiers and the
 // language gates are needed by both faces of this header.
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
@@ -55,7 +55,7 @@ NS_TESTING
 // UNCONDITIONALLY: the spec provider below needs dt::module_spec too.
 namespace dt = ::djinterp::test;
 
-#ifndef DTEST_SPEC_MODE   // fixtures -- normal mode only
+#ifndef DTEST_SPEC_MODE   // fixtures - normal mode only
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -143,18 +143,18 @@ D_TESTS_SORT_ORDERED_PROBE(selection, ::djinterp::selection_sort_ordered)
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// primitives -- selection_min_index / selection_pass
+// primitives - selection_min_index / selection_pass
 bool tests_selection_sort_min_index_earliest_wins();
 bool tests_selection_sort_pass_sub_run();
 
-// apply -- internal::selection_sort_apply
+// apply - internal::selection_sort_apply
 bool tests_selection_sort_apply_degenerate_ranges();
 bool tests_selection_sort_apply_ordering_battery();
 bool tests_selection_sort_apply_comparison_count();
 bool tests_selection_sort_apply_swap_bound();
 bool tests_selection_sort_apply_self_swap_skipped();
 
-// entry -- selection_sort / selection_sort_ordered
+// entry - selection_sort / selection_sort_ordered
 bool tests_selection_sort_entry_comparator();
 bool tests_selection_sort_entry_default();
 bool tests_selection_sort_entry_ordered();

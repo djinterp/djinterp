@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                          cfg_file_temp.h
 *
-* Build-time configuration for c/filesys/file_temp.h -- temporary files.
+* Build-time configuration for c/filesys/file_temp.h - temporary files.
 *
 *   Temporary-file APIs are where the classic security bugs live, and the
 * reason is always the same: any interface that hands you a NAME and lets you
@@ -81,7 +81,7 @@ TABLE OF CONTENTS
 //   ON for compatibility, but understand what it is. Any function that
 // returns a NAME for you to open later is a TOCTOU race by construction:
 // between the name being chosen and your open, an attacker in the same
-// directory can create it -- as a symlink to /etc/passwd, classically -- and
+// directory can create it - as a symlink to /etc/passwd, classically - and
 // your program writes there instead, with your privileges.
 //   d_file_temp_create has no such window: it chooses and opens atomically.
 // Every use of d_file_temp_name should be a d_file_temp_create instead. Set
@@ -102,8 +102,8 @@ TABLE OF CONTENTS
 //   ON, matching every POSIX tool and the C library itself. Note the security
 // consequence, which is real but is not fixed by turning this off: an
 // attacker who controls the environment controls where your temporaries go.
-// Turning it off is right for a set-uid program -- which should not trust the
-// environment for anything -- and wrong for everything else, where a user who
+// Turning it off is right for a set-uid program - which should not trust the
+// environment for anything - and wrong for everything else, where a user who
 // points TMPDIR at a big disk expects to be obeyed.
 #ifndef D_CFG_FILE_TEMP_HONOUR_ENV
     #ifdef D_CFG_FILE_ALL

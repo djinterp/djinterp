@@ -78,8 +78,8 @@ d_tests_djin_world_make(
 /*
 d_tests_djin_text
   Checks what a writer wrote into `_buffer`: written whole (`_wrote`, the
-writer's answer, and no overflow), with no CR in it -- which the text check
-would pass over before an LF -- and, by DTest's text check, exactly
+writer's answer, and no overflow), with no CR in it - which the text check
+would pass over before an LF - and, by DTest's text check, exactly
 `_expected`, the check named `_name`.
 */
 static bool

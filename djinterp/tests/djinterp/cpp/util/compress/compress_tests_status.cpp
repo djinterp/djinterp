@@ -100,8 +100,8 @@ bool tests_compress_status_unknown()
 /*
 tests_compress_status_enum_values
   Pins the numeric values of the status enum to the kernel's taxonomy
-  (compress_common.h 1.1): formal statuses -- the request is not defined --
-  below 0x100, mechanical ones -- the machinery ran short -- from 0x100. The
+  (compress_common.h 1.1): formal statuses - the request is not defined --
+  below 0x100, mechanical ones - the machinery ran short - from 0x100. The
   dispatch leaves and callers compare against these, and status_ok == 0 is
   relied on throughout, so a renumbering must be caught here.
   Tests the following:

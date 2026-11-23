@@ -4,7 +4,7 @@
 *   The primitives every quicksort is built from.  A quicksort is a driver
 * wrapped around two operations: choose a pivot and move it to the front of the
 * range, then partition the rest around it.  What distinguishes one quicksort
-* from another is how it recurses -- which side it descends, which it loops
+* from another is how it recurses - which side it descends, which it loops
 * on, and where it stops subdividing.
 *
 *     - The sequential driver (quick_sort.hpp) partitions, recurses into the
@@ -18,7 +18,7 @@
 *
 *   MEDIAN OF THREE, MOVED TO THE FRONT.  The pivot is the median of the
 * first, middle and last elements, which keeps ordered and reversed input --
-* the cases a first-element pivot turns quadratic -- at O(n log n).  The three
+* the cases a first-element pivot turns quadratic - at O(n log n).  The three
 * are put in order in place, so the middle one is the median, and that median
 * is then exchanged to the front, where the partition expects its pivot.
 *
@@ -26,7 +26,7 @@
 * of the range; each stops at an element equivalent to the pivot, and the two
 * stopped elements are exchanged.  Stopping on equals costs exchanges that a
 * run of equivalent elements does not need, but it splits such a run down the
-* middle -- a partitioner that skipped equals would put the whole run on one
+* middle - a partitioner that skipped equals would put the whole run on one
 * side, and an input of one repeated value would go quadratic.
 *
 *
@@ -84,7 +84,7 @@ NS_INTERNAL
     // quick_sort_median_of_three
     //   function: orders the elements at _first, _mid and _end so that
     // *_first, *_mid, *_end ascend under _comparator, then exchanges the
-    // median -- now at _mid -- to _first, where quick_sort_partition expects
+    // median - now at _mid - to _first, where quick_sort_partition expects
     // the pivot.  On return *_mid holds the smallest of the three and *_end
     // the largest.
     //
@@ -170,7 +170,7 @@ NS_INTERNAL
                 break;
             }
 
-            // two misplaced elements -- or two equivalents of the pivot,
+            // two misplaced elements - or two equivalents of the pivot,
             // which this splits between the sides
             std::iter_swap(low, high);
 

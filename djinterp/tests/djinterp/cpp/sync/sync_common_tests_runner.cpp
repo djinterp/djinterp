@@ -62,7 +62,7 @@ int main()
 
     rb.use_pdf("sync_common_tests_report.pdf");
 
-    // -- 0. the header contract --------------------------------------------
+    // - 0. the header contract --------------------------------------------
     rb.module("0. the header contract",
               "guard, idempotency, standing first, namespace, and gating");
     rb.run("the include guard is defined, and is 1",     &tests_header_include_guard);
@@ -73,7 +73,7 @@ int main()
     rb.run("it publishes its two ownership macros",      &tests_header_publishes_its_ownership_macros);
     rb.run("the utilities are gated to C++11",           &tests_header_is_gated_to_cpp11);
 
-    // -- I. ownership bases and macros -------------------------------------
+    // - I. ownership bases and macros -------------------------------------
     rb.module("I. ownership bases and macros",
               "noncopyable keeps move, nonmovable pins; the macros must agree");
     rb.run("noncopyable blocks copying",                 &tests_noncopyable_blocks_copying);
@@ -87,7 +87,7 @@ int main()
     rb.run("derived types stay constructible",           &tests_derived_types_stay_constructible);
     rb.run("derived types keep their destructor",        &tests_derived_types_keep_their_destructor);
 
-    // -- II. spin backoff ---------------------------------------------------
+    // - II. spin backoff ---------------------------------------------------
     rb.module("II. spin backoff",
               "cpu_relax and the bounded, adaptive wait built on it");
     rb.run("cpu_relax is callable and noexcept",         &tests_cpu_relax_is_callable_and_noexcept);
@@ -99,7 +99,7 @@ int main()
     rb.run("it costs only a counter",                    &tests_backoff_costs_only_a_counter);
     rb.run("it survives a very long spin loop",          &tests_backoff_survives_a_long_spin_loop);
 
-    // -- III. scope guard ---------------------------------------------------
+    // - III. scope guard ---------------------------------------------------
     rb.module("III. scope guard",
               "run exactly once on scope exit, unless dismissed or moved away");
     rb.run("the action runs on scope exit",              &tests_scope_guard_runs_on_scope_exit);

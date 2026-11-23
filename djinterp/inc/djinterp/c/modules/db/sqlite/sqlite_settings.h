@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][db]                                             sqlite_settings.h
 *
-* SQLite's settings -- its PRAGMAs -- as get/set pairs.
+* SQLite's settings - its PRAGMAs - as get/set pairs.
 *   The settings most programs touch have typed functions; d_sqlite_set_pragma
 * and d_sqlite_get_pragma reach any other. Settings that belong to one
 * database (journal mode, synchronous, the two version numbers) take its
@@ -10,8 +10,8 @@
 * cannot change inside a transaction, and an in-memory database has no WAL.
 * Every set here therefore reads the setting back, and answers
 * D_DB_UNSUPPORTED when it did not take, rather than letting the caller
-* believe it had. Where reading back cannot tell -- a library older than
-* 3.11.0 stores synchronous EXTRA without knowing it -- the version decides.
+* believe it had. Where reading back cannot tell - a library older than
+* 3.11.0 stores synchronous EXTRA without knowing it - the version decides.
 *
 *
 * path:      /inc/djinterp/c/modules/db/sqlite/sqlite_settings.h
@@ -101,7 +101,7 @@ enum dj_sqlite_synchronous
  *
  * @param[in] _db       the connection.
  * @param[in] _enabled  whether to enforce.
- * @return SQLITE_OK; D_DB_UNSUPPORTED when the setting did not take -- inside
+ * @return SQLITE_OK; D_DB_UNSUPPORTED when the setting did not take - inside
  *         a transaction, or in a library built without foreign keys; the
  *         SQLite result code of a failure; or SQLITE_MISUSE.
  */
@@ -124,7 +124,7 @@ int d_sqlite_get_foreign_keys(
 
 // 2.2    Busy timeout
 //------------------------------------------------------------------------------
-// busy timeout -- how long the connection waits, in milliseconds, for a lock
+// busy timeout - how long the connection waits, in milliseconds, for a lock
 // another connection holds before reporting SQLITE_BUSY; 0 does not wait.
 // Each returns SQLITE_OK, the SQLite result code of a failure, or
 // SQLITE_MISUSE for a NULL argument or a negative timeout; get writes only on
@@ -150,7 +150,7 @@ int d_sqlite_get_busy_timeout(
 
 // 3.1    Journal mode
 //------------------------------------------------------------------------------
-// journal mode -- set answers D_DB_UNSUPPORTED when the database kept another
+// journal mode - set answers D_DB_UNSUPPORTED when the database kept another
 // mode (an in-memory database takes only MEMORY and OFF); SQLite refuses
 // with SQLITE_ERROR to leave or enter WAL inside a transaction. Get answers
 // D_DB_UNSUPPORTED for a mode this enumeration does not name.
@@ -167,7 +167,7 @@ int d_sqlite_get_journal_mode(
 
 // 3.2    Synchronous
 //------------------------------------------------------------------------------
-// synchronous -- set answers D_DB_UNSUPPORTED for EXTRA before 3.11.0, which
+// synchronous - set answers D_DB_UNSUPPORTED for EXTRA before 3.11.0, which
 // an older library stores and reads back but treats as FULL, and when the
 // value did not take
 int d_sqlite_set_synchronous(
@@ -183,7 +183,7 @@ int d_sqlite_get_synchronous(
 
 // 3.3    Version numbers
 //------------------------------------------------------------------------------
-// version numbers -- two integers in the database header that SQLite stores
+// version numbers - two integers in the database header that SQLite stores
 // and never interprets: user_version, for an application's schema version,
 // and application_id, which identifies the file format to tools like file(1)
 int d_sqlite_set_user_version(

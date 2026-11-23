@@ -660,8 +660,8 @@ std::vector<sample> generate(
 /*
 judge
   One run, on a machine of its own with the given limit, untraced. A run that
-finished is one the machine halted -- a MATCH, or a failure with nowhere to
-go back to -- rather than one the step limit stopped.
+finished is one the machine halted - a MATCH, or a failure with nowhere to
+go back to - rather than one the step limit stopped.
 */
 verdict judge(
     const peg::program& _program,

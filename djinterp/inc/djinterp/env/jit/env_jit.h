@@ -6,8 +6,8 @@
 * needs, expressed through the unified D_ENV_JIT_* interface. Like env_net.h,
 * it is deliberately agnostic of any particular backend, here any particular
 * CPU: it describes the environment an encoder backend requires. The runtime
-* machinery that acts on these answers -- the code buffer, the cache-flush
-* operation, and the per-architecture instruction encoders -- lives in the
+* machinery that acts on these answers - the code buffer, the cache-flush
+* operation, and the per-architecture instruction encoders - lives in the
 * jit/ modules (jit.h and the jit_* encoders). This header contains detection
 * only. It covers:
 *     - the executable-memory backend (mmap, VirtualAlloc, MAP_JIT)     [1]
@@ -262,8 +262,8 @@ TABLE OF CONTENTS
 // D_ENV_MOBILE_NO_JIT, and so answered for iOS only where env_ios.h had been
 // included first.
 //   App Store note: the App Store forbids JIT to general apps on iOS, iPadOS,
-// tvOS, watchOS and visionOS -- executable memory needs an entitlement it
-// does not grant them -- so a build for those stores pre-defines this as 1,
+// tvOS, watchOS and visionOS - executable memory needs an entitlement it
+// does not grant them - so a build for those stores pre-defines this as 1,
 // and D_ENV_JIT_CAN_ALLOCATE_EXEC follows. env_ios.h's D_ENV_MOBILE_NO_JIT
 // states the same policy for those targets. A macOS app, a Mac Catalyst app
 // among them, may JIT under the hardened runtime with the allow-jit
@@ -315,8 +315,8 @@ TABLE OF CONTENTS
 // 2.2.1
 // D_INTERNAL_ENV_JIT_STORE_TARGET
 //   constant (internal): 1 when the target is one whose App Store refuses
-// JIT to general apps -- iOS, iPadOS, tvOS, watchOS and visionOS, all of
-// which env reports as D_ENV_OS_FLAG_IOS -- and not Mac Catalyst, which env
+// JIT to general apps - iOS, iPadOS, tvOS, watchOS and visionOS, all of
+// which env reports as D_ENV_OS_FLAG_IOS - and not Mac Catalyst, which env
 // reports the same way but whose apps are macOS apps; 0 otherwise.
 #if ((D_ENV_OS_ID) == D_ENV_OS_FLAG_IOS)
     #if defined(TARGET_OS_MACCATALYST)
@@ -582,7 +582,7 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 5.1.1
 // D_ENV_JIT_CAN_ALLOCATE_EXEC
-//   feature: 1 if the platform can obtain executable memory at all -- some
+//   feature: 1 if the platform can obtain executable memory at all - some
 // backend exists and JIT is not prohibited. The baseline gate for any code
 // generation. App Store note: on iOS, iPadOS, tvOS, watchOS and visionOS this
 // reads 1 unless the build pre-defines D_ENV_JIT_PROHIBITED, and the store
@@ -599,7 +599,7 @@ TABLE OF CONTENTS
 // 5.1.2
 // D_ENV_JIT_AVAILABLE
 //   feature: 1 if djinterp can both obtain executable memory and emit code
-// for this target -- CAN_ALLOCATE_EXEC and an encoder module are both present.
+// for this target - CAN_ALLOCATE_EXEC and an encoder module are both present.
 #ifndef D_ENV_JIT_AVAILABLE
     #if ( (D_ENV_JIT_CAN_ALLOCATE_EXEC) &&                                     \
           (D_ENV_JIT_HAS_ENCODER) )

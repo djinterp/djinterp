@@ -35,7 +35,7 @@
 
 /*
 d_git_file_read
-  Read in pieces that double, so a file whose size cannot be asked -- a pipe
+  Read in pieces that double, so a file whose size cannot be asked - a pipe
 -- reads as well as one whose can.
   Long as a file is read a block at a time, its size not known until its
 end.
@@ -118,7 +118,7 @@ char* d_git_file_read(
 
 /*
 d_internal_is_separator, d_internal_make_directory, d_internal_is_directory
-  Whether a byte separates a path's parts -- `/` and `\` -- a directory
+  Whether a byte separates a path's parts - `/` and `\` - a directory
 made, 0 when it is, and whether a path is a directory.
 */
 static
@@ -154,7 +154,7 @@ bool d_internal_is_directory(
 
 /*
 d_internal_is_separator, d_internal_make_directory, d_internal_is_directory
-  Whether a byte separates a path's parts -- `/` -- a directory made, 0
+  Whether a byte separates a path's parts - `/` - a directory made, 0
 when it is, and whether a path is a directory.
 */
 static

@@ -18,13 +18,13 @@
 *   modes.  This header re-homes the live path onto it, so the other two have
 *   nothing left to do.
 *
-*   The mappings are switches, not casts -- deliberately, and permanently.
+*   The mappings are switches, not casts - deliberately, and permanently.
 * output_packaging.hpp says it outright: test_archive_format and format_id order
 * `tar_gz` and `gz` differently, so a static_cast silently produces the wrong
 * container.  The facades own DCodecId / format_id because compress.cpp and
 * archive.cpp are C++98 and dispatch on them; DTest owns its typed enums because
 * they are part of an option_set schema.  Neither can move, so the bridge is
-* real work rather than an accident -- and being three explicit switches is what
+* real work rather than an accident - and being three explicit switches is what
 * keeps it correct when either side gains a member.
 *
 *   One enum did collapse: the document format.  test_doc_type, doc_format and
@@ -33,7 +33,7 @@
 *
 * PORTABILITY
 * -----------
-*   C++17 (output_packaging's floor -- output_config carries a std::function
+*   C++17 (output_packaging's floor - output_config carries a std::function
 * naming policy); self-suppresses below it, as DDocumentBundle does.
 *
 * HOW TO USE
@@ -154,7 +154,7 @@ D_NODISCARD inline DCodecId to_codec_id(
 //
 //   THIS IS THE ONE THAT CANNOT BE A CAST.  test_archive_format orders
 // { zip, tar, tar_gz, gz, ... } and format_id orders { zip, tar, gz, tar_gz,
-// ... } -- `tar_gz` and `gz` are transposed.  A static_cast between them
+// ... } - `tar_gz` and `gz` are transposed.  A static_cast between them
 // compiles cleanly and writes the wrong container.
 D_NODISCARD inline format_id to_format_id(
     test_archive_format _format
@@ -181,7 +181,7 @@ D_NODISCARD inline format_id to_format_id(
 // to_output_config
 //   function: the four packaging knobs lowered into the single decision
 // DDocumentBundle::write consumes.  Taken as explicit values rather than as an
-// option_set so this header does not have to know the accessor spellings -- a
+// option_set so this header does not have to know the accessor spellings - a
 // caller reads them from its own options and passes them through.
 D_NODISCARD inline output_config to_output_config(
     DTestOutputPack     _pack,
@@ -206,7 +206,7 @@ D_NODISCARD inline output_config to_output_config(
 ///////////////////////////////////////////////////////////////////////////////
 
 // DReportDocumentProducer
-//   type: one rendered document -- a logical name, a format, and the bytes.
+//   type: one rendered document - a logical name, a format, and the bytes.
 // The bytes are produced LAZILY, so a bundle can be assembled from every format
 // a run might emit and only the selected ones are ever rendered.
 using DReportDocumentProducer = std::function<byte_blob()>;
@@ -217,7 +217,7 @@ using DReportDocumentProducer = std::function<byte_blob()>;
 // document and its format; the extension comes from document_format.hpp's
 // single table, so a bundle and a bare write agree on what a file is called.
 //
-//   The producers are the caller's -- render_report_pdf_bytes_table for PDF,
+//   The producers are the caller's - render_report_pdf_bytes_table for PDF,
 // render_table_model_to_string or a document_template render for the string
 // formats.  Keeping them out of this header is what stops the packaging layer
 // depending on the PDF engine.
@@ -242,7 +242,7 @@ D_NODISCARD inline DDocumentBundle bundle_report(
 // emit_report_to_disk
 //   function: bundle a run's documents, package them per the knobs, and write
 // them through _path.  This is the whole of what write_archived_report and
-// test_zip_store were doing by hand -- with a naming policy, both pack modes and
+// test_zip_store were doing by hand - with a naming policy, both pack modes and
 // a sink abstraction they did not have.
 D_NODISCARD inline bool emit_report_to_disk(
     const std::string&                                                       _base_name,
@@ -264,7 +264,7 @@ D_NODISCARD inline bool emit_report_to_disk(
 
 
 // emit_report_to_buffer
-//   function: the in-memory counterpart -- every packaged payload concatenated
+//   function: the in-memory counterpart - every packaged payload concatenated
 // into _out.  What a test of the emit path wants, and what an embedder that
 // ships the report somewhere other than a file wants.
 D_NODISCARD inline bool emit_report_to_buffer(

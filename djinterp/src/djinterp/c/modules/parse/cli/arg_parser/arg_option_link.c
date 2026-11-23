@@ -4,7 +4,7 @@
 * Options' links to other things, declared in arg_option.h (sections 4.6
 * to 4.8).
 *   The options an option needs and excludes, the validators it runs --
-* CLI11's check, transform and each -- and the callback and bound variable
+* CLI11's check, transform and each - and the callback and bound variable
 * its values are handed to.
 *
 *
@@ -174,8 +174,8 @@ int d_arg_option_excludes(
  * @return the option named; NULL when there is none.
  *
  * The option a needs or an excludes by name refers to, found as CLI11's
- * get_option_no_throw finds it from the option's command, then -- for an
- * option in an option group -- from the command the group belongs to, where
+ * get_option_no_throw finds it from the option's command, then - for an
+ * option in an option group - from the command the group belongs to, where
  * CLI11 looks for an option moved into the group, since its option keeps the
  * command it was made on; CLI11's MissingOption when neither has it.
  */
@@ -492,8 +492,8 @@ struct dj_arg_internal_option_each_context
  *
  * Runs the caller's function on the value, watching the parser's report: a
  * status other than D_ARG_OK rejects the value with the message the function
- * recorded through d_arg_option_fail, or else the status's own -- its
- * d_arg_status_message, as a callback's failure reads -- and is returned, so
+ * recorded through d_arg_option_fail, or else the status's own - its
+ * d_arg_status_message, as a callback's failure reads - and is returned, so
  * a validation error stands as the rejection CLI11 catches, and any other
  * ends the parse as CLI11 lets anything else an each() function throws.
  */
@@ -732,7 +732,7 @@ int d_arg_option_each(
 /*
 d_arg_option_validator
   CLI11's get_validator(name): the first validator whose name is the one
-asked for -- an empty name matches an unnamed validator -- else, for an
+asked for - an empty name matches an unnamed validator - else, for an
 empty name, the first validator.
 */
 struct dj_arg_validator* d_arg_option_validator(

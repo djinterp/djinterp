@@ -6,8 +6,8 @@
 * twice: each case makes its options and commands as CLI11's
 * App("d", "prog") would, on a run's parser of its own, turns the
 * parser's suggestions on, or leaves them off, parses its arguments, and is
-* written as the reference writes it -- a line of its tag and arguments,
-* then the parse as the runs report one -- each pass compared whole with
+* written as the reference writes it - a line of its tag and arguments,
+* then the parse as the runs report one - each pass compared whole with
 * its transcript. The cases come from tools/gen/suggest_rows.py, which
 * writes the reference's too; those of the suggestion probe
 * (probes/suggest/mine_suggest.c) keep its tags, S01-S29, and those after
@@ -691,7 +691,7 @@ void d_tests_arg_suggest_line(
 
 /**
  * @brief Runs one case on a run of its own: its definitions, its line, then
- *        the parse -- the parser's suggestions on or off -- as the run
+ *        the parse - the parser's suggestions on or off - as the run
  *        reports it.
  *
  * @param[in,out] _out   the pass's transcript.
@@ -745,8 +745,8 @@ bool d_tests_arg_suggest_case(
 }
 
 /**
- * @brief Runs a section's cases twice -- with the parser's suggestions, then
- *        without them -- and compares each pass with its transcript.
+ * @brief Runs a section's cases twice - with the parser's suggestions, then
+ *        without them - and compares each pass with its transcript.
  *
  * @note Every case runs in each pass, whatever the ones before it came to,
  *       so that a mismatch shows the whole transcript.
@@ -3045,7 +3045,7 @@ bool d_tests_arg_suggest_options(void)
 {
     // expected
     //   the transcripts of the two passes: with the parser's suggestions --
-    // CLI11's own message where they are not built -- and without them.
+    // CLI11's own message where they are not built - and without them.
     const char* const expected[2] =
     {
         (D_INTERNAL_ARG_PARSER_SUGGESTIONS == 1) ? OPTIONS : OPTIONS_PLAIN,
@@ -4597,7 +4597,7 @@ bool d_tests_arg_suggest_commands(void)
 {
     // expected
     //   the transcripts of the two passes: with the parser's suggestions --
-    // CLI11's own message where they are not built -- and without them.
+    // CLI11's own message where they are not built - and without them.
     const char* const expected[2] =
     {
         (D_INTERNAL_ARG_PARSER_SUGGESTIONS == 1) ? COMMANDS : COMMANDS_PLAIN,
@@ -4903,7 +4903,7 @@ static const size_t DISTANCE_COUNT =
 
 /*
 d_tests_arg_suggest_distances
-  How near a name must be: within two edits -- a swap of neighbours one -- and
+  How near a name must be: within two edits - a swap of neighbours one - and
 half the longer name, nearer than any other.
   Tests the following:
   - a swap of neighbours, a letter more, two letters fewer, and three edits, too
@@ -4915,7 +4915,7 @@ bool d_tests_arg_suggest_distances(void)
 {
     // expected
     //   the transcripts of the two passes: with the parser's suggestions --
-    // CLI11's own message where they are not built -- and without them.
+    // CLI11's own message where they are not built - and without them.
     const char* const expected[2] =
     {
         (D_INTERNAL_ARG_PARSER_SUGGESTIONS == 1) ? DISTANCES : DISTANCES_PLAIN,
@@ -6571,7 +6571,7 @@ bool d_tests_arg_suggest_reach(void)
 {
     // expected
     //   the transcripts of the two passes: with the parser's suggestions --
-    // CLI11's own message where they are not built -- and without them.
+    // CLI11's own message where they are not built - and without them.
     const char* const expected[2] =
     {
         (D_INTERNAL_ARG_PARSER_SUGGESTIONS == 1) ? REACH : REACH_PLAIN,
@@ -6591,8 +6591,8 @@ bool d_tests_arg_suggest_reach(void)
 #if (D_INTERNAL_ARG_PARSER_SUGGESTIONS == 1)
 
 // DISTANCE_LONGEST / DISTANCE_SHOWN
-//   constant: the longest text the distance's checks make -- a word of the
-// long pairs, grown by its edits -- and the most mismatches the section
+//   constant: the longest text the distance's checks make - a word of the
+// long pairs, grown by its edits - and the most mismatches the section
 // prints, of all it counts.
 enum
 {
@@ -6639,7 +6639,7 @@ size_t d_tests_arg_suggest_smaller(
 
 /**
  * @brief The optimal string alignment distance between two texts, by the
- *        whole table -- Levenshtein's, with a swap of neighbours one edit --
+ *        whole table - Levenshtein's, with a swap of neighbours one edit --
  *        the reference d_arg_internal_edit_distance's band is held to.
  *
  * @param[in] _a  the first text, at most DISTANCE_LONGEST bytes.
@@ -6700,7 +6700,7 @@ size_t d_tests_arg_suggest_osa(
 /**
  * @brief Measures one pair within each of DISTANCE_LIMITS, as the band and
  *        as the whole table, which must agree: the distance, or the limit --
- *        at most 8 -- plus one when it is further.
+ *        at most 8 - plus one when it is further.
  *
  * @param[in]     _a       the first text.
  * @param[in]     _b       the second.
@@ -6753,7 +6753,7 @@ void d_tests_arg_suggest_pair(
 
 /**
  * @brief Writes the word of an index: the words over `a`, `b` and `c` in
- *        order of length, then of their letters -- the empty word, the
+ *        order of length, then of their letters - the empty word, the
  *        three of one letter, the nine of two, and so on.
  *
  * @param[in]  _index  the word's index.
@@ -6844,7 +6844,7 @@ size_t d_tests_arg_suggest_next(
 
 /**
  * @brief One edit of a word, at a place the sequence picks: a letter
- *        replaced, put in, taken out, or swapped with the next -- each within
+ *        replaced, put in, taken out, or swapped with the next - each within
  *        DISTANCE_LONGEST letters, and none where the word is too short for
  *        it.
  *
@@ -6913,8 +6913,8 @@ void d_tests_arg_suggest_edit(
 
 /**
  * @brief Pairs of longer words, each a word over `a`, `b` and `c` of up to
- *        fourteen letters and that word after up to ten edits -- distances
- *        on both sides of every reach, and lengths far apart -- measured
+ *        fourteen letters and that word after up to ten edits - distances
+ *        on both sides of every reach, and lengths far apart - measured
  *        within each limit.
  *
  * @param[in,out] _misses  the mismatches so far.

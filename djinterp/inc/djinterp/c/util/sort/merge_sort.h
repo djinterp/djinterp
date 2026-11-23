@@ -2,7 +2,7 @@
 * djinterp [c][utility]                                             merge_sort.h
 *
 *   Merge sort: the sequential driver.
-* Stable, comparison-based, O(n log n) in every case -- no input defeats it,
+* Stable, comparison-based, O(n log n) in every case - no input defeats it,
 * which is what separates it from quicksort.  It is the only algorithm in the
 * subsystem that is not in place, and the only one whose entry point can fail
 * for a reason that is not a caller error.
@@ -18,7 +18,7 @@
 *
 *   Measure, then sort.  This is where the status enum's split earns itself: a
 * buffer that is too small returns D_SORT_STATUS_BUFFER_TOO_SMALL, which is
-* MECHANICAL -- the request was well formed and the machinery ran short, so the
+* MECHANICAL - the request was well formed and the machinery ran short, so the
 * caller can supply more and retry.  Every other failure is FORMAL and means
 * the request was never sortable.  A caller that distinguishes them with
 * D_SORT_STATUS_IS_MECHANICAL can retry the first and must not retry the
@@ -31,15 +31,15 @@
 * NOT, and is the one way to get this wrong.
 *
 *   complexity:
-*     best:       O(n)      comparisons (ordered input -- ordered run pairs
+*     best:       O(n)      comparisons (ordered input - ordered run pairs
 *                           are detected and copied rather than merged)
 *     average:    O(n log n)
 *     worst:      O(n log n)   (guaranteed)
 *     space:      O(n)      auxiliary, supplied by the caller
 *     stable:     yes
 *
-*   WHEN TO REACH FOR IT.  When the worst case matters -- it has no bad input,
-* where quicksort does -- or when stability is required at O(n log n), which no
+*   WHEN TO REACH FOR IT.  When the worst case matters - it has no bad input,
+* where quicksort does - or when stability is required at O(n log n), which no
 * other algorithm here offers.  The price is the buffer.
 *
 *

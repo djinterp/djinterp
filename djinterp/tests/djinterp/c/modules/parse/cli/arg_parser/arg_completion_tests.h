@@ -2,7 +2,7 @@
 * djinterp [c][parse]                                     arg_completion_tests.h
 *
 * The suite of shell completion (arg_completion.h): the names the shells are
-* looked up by; what the scripts are made of -- the identifier a program's
+* looked up by; what the scripts are made of - the identifier a program's
 * functions are named by, the lines their marks are replaced in, and the
 * first line of a description; what d_arg_completion_script refuses; the
 * scripts for programs of every kind of name and for command trees of every

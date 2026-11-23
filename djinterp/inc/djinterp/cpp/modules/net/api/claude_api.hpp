@@ -3,7 +3,7 @@
 *
 *   Higher-level programmatic-workflow layer for Anthropic's Claude, built on
 * the typed synchronous surface in claude.hpp. Its centerpiece is the Message
-* Batches API -- the supported path for queueing large volumes of requests for
+* Batches API - the supported path for queueing large volumes of requests for
 * asynchronous, server-side processing (at reduced cost) rather than driving
 * the interactive product. It also provides a small sequential conversation
 * runner for dependent multi-turn workloads.
@@ -17,14 +17,14 @@
 *     IV.  result  (one line of the JSONL results file) + parsing/indexing
 *     V.   item (custom_id + params) + create-body serialization + helpers
 *     VI.  poll_config, outcome
-*     VII. client -- create / retrieve / cancel / delete / list / results /
+*     VII. client - create / retrieve / cancel / delete / list / results /
 *          poll / submit_and_wait
 *   namespace djinterp::net::vendor::claude::queue
-*     VIII. run_conversation -- linear dependent-turn runner over claude::client
+*     VIII. run_conversation - linear dependent-turn runner over claude::client
 *
 *   WHY BATCHES: a batch request is exactly {custom_id, params} where params is
 * the same object claude::message_request::to_json() already emits, so this
-* layer is a thin wrapper -- submit a queue, poll (most batches finish within
+* layer is a thin wrapper - submit a queue, poll (most batches finish within
 * an hour; 24-hour ceiling), then stream the JSONL results and reconcile them
 * by custom_id (batch results are not returned in submission order).
 *
@@ -49,7 +49,7 @@
 #include <ctime>    // timespec
 #include <string>   // std::string
 #include <vector>   // std::vector
-// djinterp -- typed synchronous Claude surface (pulls curl.hpp and http.hpp)
+// djinterp - typed synchronous Claude surface (pulls curl.hpp and http.hpp)
 #include "../../../../c/sync/dmutex.h"   // d_thread_sleep, for the polling wait
 #include "../../../../c/modules/net/net_common.h"  // d_net_ascii_is_*
 #include "../../../../c/modules/net/codec/codec_line.h"   // d_net_line_next, d_net_line_chomp
@@ -82,7 +82,7 @@ NS_INTERNAL
     // key (followed by ':') whose value is an integer, decodes it into `_out`,
     // and returns true. An optional leading '+'/'-' is honored. Returns false
     // when no such key/integer pair is found. A targeted reader matching the
-    // string helpers in claude.hpp -- adequate for the small, uniquely-named
+    // string helpers in claude.hpp - adequate for the small, uniquely-named
     // numeric fields (request counts) this layer reads.
     inline
     bool json_int_value(
@@ -158,7 +158,7 @@ NS_INTERNAL
     }
 
     // json_int
-    //   function: convenience -- the first integer value for `_key`, or
+    //   function: convenience - the first integer value for `_key`, or
     // `_fallback`.
     inline
     long json_int(
@@ -611,7 +611,7 @@ D_NODISCARD inline const result* find_result(
 ///////////////////////////////////////////////////////////////////////////////
 
 // item
-//   struct: one request in a batch -- a caller-chosen custom_id plus the
+//   struct: one request in a batch - a caller-chosen custom_id plus the
 // message parameters (a claude::message_request). custom_id must match
 // ^[a-zA-Z0-9_-]{1,64}$ (see is_valid_custom_id) and be unique within a batch.
 struct item
@@ -668,7 +668,7 @@ D_NODISCARD inline bool is_valid_custom_id(
 }
 
 // user_item
-//   function: convenience -- a batch item carrying a single user prompt. Ideal
+//   function: convenience - a batch item carrying a single user prompt. Ideal
 // for bulk independent one-shot requests.
 D_NODISCARD inline item user_item(
     const std::string& _custom_id,
@@ -756,7 +756,7 @@ struct poll_config
 };
 
 // outcome
-//   struct: the combined result of a submit-then-wait run -- the final batch
+//   struct: the combined result of a submit-then-wait run - the final batch
 // status and the parsed per-request results (empty unless the batch ended and
 // results were fetched).
 struct outcome
@@ -957,7 +957,7 @@ public:
     }
 
     // results
-    //   function: convenience -- retrieves a batch by id and, if it has ended,
+    //   function: convenience - retrieves a batch by id and, if it has ended,
     // downloads and parses its results.
     D_NODISCARD std::vector<result> results(
         const std::string& _batch_id
@@ -988,7 +988,7 @@ public:
                 return st;
             }
 
-            // finished -- results are ready
+            // finished - results are ready
             if (st.is_ended())
             {
                 return st;
@@ -1014,7 +1014,7 @@ public:
     }
 
     // submit_and_wait
-    //   function: the headline convenience -- creates a batch from `_items`,
+    //   function: the headline convenience - creates a batch from `_items`,
     // polls until it ends, and fetches its results. On a create failure the
     // outcome carries the failing status and no results; on a poll timeout it
     // carries the last (still-processing) status and no results.
@@ -1052,7 +1052,7 @@ private:
     // base_request
     //   function: builds a neutral net::request for a batch endpoint, applying
     // the standard Anthropic auth/version headers, any default headers, and --
-    // when a body is supplied -- the JSON content type and body.
+    // when a body is supplied - the JSON content type and body.
     D_NODISCARD request base_request(
         net::http_method::value _method,
         const std::string&      _url,
@@ -1129,7 +1129,7 @@ D_NAMESPACE(queue)
 ///////////////////////////////////////////////////////////////////////////////
 
 // turn_result
-//   struct: one exchanged turn in a run_conversation run -- the user input that
+//   struct: one exchanged turn in a run_conversation run - the user input that
 // was sent and the model's response to it.
 struct turn_result
 {

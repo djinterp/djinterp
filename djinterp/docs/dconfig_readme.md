@@ -403,15 +403,15 @@ carries its switches into re_std through `config/cfg_re_std.h`, which
 Three things to know:
 
 - The carry is `#ifndef`-guarded, so it holds only where djinterp's config
-  is read before the first re_std header -- through the framework root or
+  is read before the first re_std header - through the framework root or
   `cfg_common.h`. djinterp's own files see to it: their re_std includes sit
   in a `// re_std` group after `// djinterp`. Where a translation unit reads
   re_std's config first anyway and djinterp's later, and the two disagree,
   `config/cfg_re_std.h` stops the build with an `#error` rather than let
   re_std run on another configuration than djinterp's. A build that must
   not depend on include order at all sets each `RE_STD_CFG_*` switch beside
-  its `D_CFG_*` one -- `RE_STD_CFG_ISO_STRICT=1` with
-  `D_CFG_ENV_ISO_STRICT=1`, `RE_STD_CFG_TESTING=1` with `D_TESTING=1` -- as
+  its `D_CFG_*` one - `RE_STD_CFG_ISO_STRICT=1` with
+  `D_CFG_ENV_ISO_STRICT=1`, `RE_STD_CFG_TESTING=1` with `D_TESTING=1` - as
   the CI ladder does.
 - Clang 20 and older, freestanding, on the platform backend, give
   `UINT8_C` and `UINT16_C` the wrong type (WG14 DR 209, fixed in Clang 21);

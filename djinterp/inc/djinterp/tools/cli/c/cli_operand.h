@@ -4,8 +4,8 @@
 * The command-line kit's operands that name something other than a file
 * (GRAMMAR.md, R13).
 *   An operand that names something else says so with a prefix of two
-* lowercase letters or more and a colon -- `example:uart_cr`, the built-in
-* example named `uart_cr` -- as git, docker and scp name what is not a
+* lowercase letters or more and a colon - `example:uart_cr`, the built-in
+* example named `uart_cr` - as git, docker and scp name what is not a
 * file; a Windows drive, one letter, is never a prefix. A command reads
 * each of its operands through d_cli_named_operand, which gives it the name
 * after the prefix, or tells it the operand is a file's name.
@@ -16,7 +16,7 @@
 *     PROGRAM: warning: 'example:x' is the built-in example; the file is
 *     './example:x'
 *
-* -- so that the file is never passed over in silence, and the thing named
+* - so that the file is never passed over in silence, and the thing named
 * stays reachable by its name.
 *
 * HOW TO USE

@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  monoid_tests_operations.cpp
-//   Section IV -- GENERIC MONOID OPERATIONS (mempty / mconcat / fold_monoid).
+//   Section IV - GENERIC MONOID OPERATIONS (mempty / mconcat / fold_monoid).
 
 // std
 #include <cstddef>

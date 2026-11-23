@@ -17,8 +17,8 @@
 * The result is exact. An integer is a wide integer, however small, so that
 * arithmetic begun with one stays exact past dj_math_imax; a result that is no
 * integer, a quotient or anything with a rational, is an inline rational,
-* where it fits the family. A result past both -- an integer of more than 256
-* bits, or a ratio whose terms do not fit dj_math_imax -- is the long double
+* where it fits the family. A result past both - an integer of more than 256
+* bits, or a ratio whose terms do not fit dj_math_imax - is the long double
 * nearest it, flagged D_MATH_VALUE_FLAG_INEXACT (roadmap gate G2, until
 * bignum). That long double is rounded once, from the exact ratio, whose
 * terms run to twice a wide integer's width: wide.h's division takes the
@@ -30,8 +30,8 @@
 * value.h has every inline number meet a boxed one: converted through the
 * kind's table to the nearest value of its type, ties to even, the rounding's
 * direction keeping a comparison exact. A lower boxed operand the kind cannot
-* read exactly -- one that is no number, an inexact one, or an exact one past
-* the family -- gives a domain error, and no order, as value.h gives where an
+* read exactly - one that is no number, an inexact one, or an exact one past
+* the family - gives a domain error, and no order, as value.h gives where an
 * inline number cannot read a lower boxed operand.
 *
 *   ITS STORAGE. Every result of the kind is a box of its own, allocated

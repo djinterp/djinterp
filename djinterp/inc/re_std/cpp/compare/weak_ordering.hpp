@@ -68,7 +68,7 @@ namespace internal
 {
 
     // weak_ordering_values
-    //   struct: the values of weak_ordering -- less, equivalent and greater --
+    //   struct: the values of weak_ordering - less, equivalent and greater --
     // for C++11 and C++14, as static data members of a class template that
     // weak_ordering inherits from. weak_ordering's own static members need
     // out-of-class definitions, which a header can only give as inline

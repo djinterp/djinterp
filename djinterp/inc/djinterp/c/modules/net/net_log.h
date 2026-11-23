@@ -7,7 +7,7 @@
 * the log links it. net logs nothing itself: a caller that logs a net
 * failure registers the table once, before it reads settings, with
 * d_net_log_add, and then finds a failure's code by its number, adding the
-* facts only it knows -- the peer, the operation.
+* facts only it knows - the peer, the operation.
 *
 * HOW TO USE
 * ----------

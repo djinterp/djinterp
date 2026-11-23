@@ -216,8 +216,8 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
     // 2.1.1
     // <unistd.h>
-    //   the macros read below -- _POSIX_VERSION, _XOPEN_VERSION, and the
-    // _POSIX_* feature options -- are defined by <unistd.h>, so it is
+    //   the macros read below - _POSIX_VERSION, _XOPEN_VERSION, and the
+    // _POSIX_* feature options - are defined by <unistd.h>, so it is
     // included here wherever it exists, unless the build opts out
     // (D_CFG_ENV_POSIX_UNISTD set to 0), and the result does not depend on
     // what the unit included first.

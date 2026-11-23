@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][event]                      event_registry_tests_management.cpp
 *
-*   Section III (management) -- the delegated lifecycle surface the registry
+*   Section III (management) - the delegated lifecycle surface the registry
 * forwards to its underlying DEventTable, plus the registry merge, the typed
 * and aggregate queries, and table access.  Covers unbind (removal reflected in
 * contains and the counts); enable/disable (mask flips reflected in is_enabled,

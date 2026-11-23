@@ -6,7 +6,7 @@
 * table in turn and reports. It carries no condition of its own: which sections
 * a language level or a configuration has is decided where the sections are,
 * and what arrives here is whatever this build has. The count it prints
-* therefore differs by level and by configuration, by design -- see
+* therefore differs by level and by configuration, by design - see
 * run_foundation_tests.sh for the count each level expects.
 *   The suites run substrate first, so the first failure reported is the most
 * fundamental one.
@@ -33,7 +33,7 @@ namespace
 {
 
 // suite
-//   struct: one suite -- its table, and where its length is kept. The length
+//   struct: one suite - its table, and where its length is kept. The length
 // is another translation unit's constant, so it is reached by address.
 struct suite
 {

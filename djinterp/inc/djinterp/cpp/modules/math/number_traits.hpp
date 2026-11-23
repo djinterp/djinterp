@@ -4,10 +4,10 @@
 * The static side of the generic value: what generic code needs to know of a
 * number type, and which type two numbers combine to.
 *   NUMBER_TRAITS<T> answers, from C++98: whether it was written for T
-* (is_specialized); the field's traits -- whether T's arithmetic never rounds
+* (is_specialized); the field's traits - whether T's arithmetic never rounds
 * (is_exact), whether T holds integers alone (is_integer), whether its
 * quotients are a field's (is_field) and its products commute
-* (is_commutative), its zero and one; the order's -- whether < orders it
+* (is_commutative), its zero and one; the order's - whether < orders it
 * (is_ordered) and |x|; the magnitude generic code pivots by (magnitude),
 * |x| for an ordered type and, for one with no order, a nonnegative number
 * of an ordered type (magnitude_type); its square root, exact for an integer
@@ -246,8 +246,8 @@ NS_END  // internal
 // gives a nonnegative number of an ordered type, a modulus or a sum of
 // moduli, and says so. epsilon(x) is the precision x carries, 0 for an
 // exact value, and epsilon() the type's; tolerance() is the relative
-// tolerance of approximate comparisons given none, a few epsilons -- four
-// -- of the type, 0 for an exact one; tolerance(a, b) that times the larger
+// tolerance of approximate comparisons given none, a few epsilons - four
+// - of the type, 0 for an exact one; tolerance(a, b) that times the larger
 // magnitude, with the larger epsilon of the two, 0 where both are exact.
 // The four are of magnitude_type, as the magnitudes they scale are.
 template<typename Type>

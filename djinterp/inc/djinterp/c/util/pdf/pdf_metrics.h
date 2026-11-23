@@ -13,7 +13,7 @@
 * /Encoding the foundation emits; multi-byte encodings are out of scope.
 *   Advances are integer and exact; only the point-size scaling is real-valued.
 * The sum is taken in integer and scaled ONCE, where the C++ side scales each
-* glyph and sums reals -- so the two can differ in the last bits on long
+* glyph and sums reals - so the two can differ in the last bits on long
 * strings. Doing it the accurate way here and recording the difference is
 * better than reproducing a rounding artefact for a bit-identical answer.
 *
@@ -22,15 +22,15 @@
 * detector: one wrong digit produces widths correct for every string not
 * containing that glyph. They were pulled from pdf_metrics.hpp by a script
 * asserting 256 values per face, and the differential compares all 3,584 cells
-* -- fourteen faces, ten tabulated and four computed -- rather than sampling.
+* - fourteen faces, ten tabulated and four computed - rather than sampling.
 *
 *   COURIER IS COMPUTED, NOT TABULATED, but NOT unconditional: the control
 * range below 0x20 has no printable glyph and contributes 0, exactly as every
 * tabulated face does. The first port returned 600 there, on the reading that
-* Courier is "uniformly 600/1000 em" -- true of every printable code and false
+* Courier is "uniformly 600/1000 em" - true of every printable code and false
 * of thirty-two others. The differential caught it as 128 divergent cells.
 *   An UNRECOGNISED face falls to the same path, so a garbage enum measures as
-* Courier rather than trapping. That is deliberate on both sides -- a metrics
+* Courier rather than trapping. That is deliberate on both sides - a metrics
 * call is on the layout hot path and has no error channel.
 *
 *   THE FACE ENUM IS NOT DECLARED HERE. It belongs to pdf_primitives.h, which

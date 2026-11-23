@@ -7,7 +7,7 @@
 * or a unit's text, so the run-time units and the macro layer share words.
 *
 *   A description is put together as a person says one: the determiner; the
-* adjectives by kind -- condition, size, quality, shape, then origin -- the
+* adjectives by kind - condition, size, quality, shape, then origin - the
 * noun; what completes the noun; and remarks after it, each a sentence. Words
 * of one kind are coordinate and take commas between them; words of
 * different kinds take none: "a full fixed-size ordered tree". Each word's

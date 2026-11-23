@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][meta]                               value_list_tests_access.cpp
 *
-*   Section III -- value_list_size, value_list_at, and at(): the trait faces and
+*   Section III - value_list_size, value_list_at, and at(): the trait faces and
 * the carrier-returning element accessor.
 *
 *
@@ -54,7 +54,7 @@ bool tests_value_list_size_trait()
 
 /*
 tests_value_list_size_integral_constant
-  It IS an integral_constant, so it carries that whole surface -- the same as
+  It IS an integral_constant, so it carries that whole surface - the same as
   std::tuple_size.
   Tests the following:
   - value_type, type, and the derivation from integral_constant
@@ -145,7 +145,7 @@ bool tests_value_list_at_positions()
 
 /*
 tests_value_list_at_preserves_value_type
-  An NTTP carries its type with it, so the extracted value keeps that type -- an
+  An NTTP carries its type with it, so the extracted value keeps that type - an
   int stays an int, a char a char, an enum an enum.
   Tests the following:
   - each element of a heterogeneous list comes back with its own type
@@ -313,7 +313,7 @@ bool tests_at_feeds_the_carrier_pipeline()
 /*
 tests_traits_require_an_unqualified_list
   A sharp edge, pinned. is_value_list applies clean_t and so accepts any cv-ref
-  spelling -- but value_list_size and value_list_at do NOT: their primary template
+  spelling - but value_list_size and value_list_at do NOT: their primary template
   is declared-but-undefined, so a const-qualified or reference spelling matches the
   primary and is an INCOMPLETE type, not a false answer. That matters in practice,
   because `constexpr auto l = append(...)` gives decltype(l) == const DValueList<...>,

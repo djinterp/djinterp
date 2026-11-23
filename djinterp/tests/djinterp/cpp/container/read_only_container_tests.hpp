@@ -91,7 +91,7 @@ V.    ADAPTIVITY    (read_only_container_tests_adaptivity.cpp)
 #include <cstdio>
 #include <type_traits>
 // djinterp
-// -- (part 1) mode-gated includes ------------------------------------------
+// - (part 1) mode-gated includes ------------------------------------------
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
 #include <array>
@@ -208,7 +208,7 @@ struct ro_void_help
     template<typename _T>                                                     \
     struct _name<_T, D_RO_VOID(decltype(_expr))> : std::true_type {}
 
-// -- the observation surface -----------------------------------------------
+// - the observation surface -----------------------------------------------
 D_RO_DETECT(ro_has_size,   std::declval<const _T&>().size());
 D_RO_DETECT(ro_has_empty,  std::declval<const _T&>().empty());
 D_RO_DETECT(ro_has_sub,    std::declval<_T&>()[0]);
@@ -220,7 +220,7 @@ D_RO_DETECT(ro_has_end,    std::declval<_T&>().end());
 D_RO_DETECT(ro_has_cbegin, std::declval<const _T&>().cbegin());
 D_RO_DETECT(ro_has_cend,   std::declval<const _T&>().cend());
 
-// -- the mutating surface, which must be absent ----------------------------
+// - the mutating surface, which must be absent ----------------------------
 D_RO_DETECT(ro_has_push_back,
     std::declval<_T&>().push_back(std::declval<typename _T::value_type>()));
 D_RO_DETECT(ro_has_push_front,
@@ -379,7 +379,7 @@ struct ro_probe_type
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- (part 2) declarations - visible in BOTH modes -------------------------
+// - (part 2) declarations - visible in BOTH modes -------------------------
 
 // I.   CONSTRUCTION   (read_only_container_tests_construction.cpp)
 bool tests_read_only_default_construction();
@@ -427,7 +427,7 @@ bool tests_read_only_supports_array_and_string();
 bool tests_read_only_is_usable_in_constant_expressions();
 bool tests_read_only_detection_battery_is_sound();
 
-// -- (part 3) the spec provider - spec mode only ---------------------------
+// - (part 3) the spec provider - spec mode only ---------------------------
 #ifdef DTEST_SPEC_MODE
 
 // read_only_container_spec

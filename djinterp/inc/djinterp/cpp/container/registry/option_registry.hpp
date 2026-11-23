@@ -12,7 +12,7 @@
 *     column).
 *
 * An option<Key, ...> names WHERE (its key selects the row via the registry's
-* key lookup) and WHAT (its value, placed in that row's value column -- the
+* key lookup) and WHAT (its value, placed in that row's value column - the
 * column ValueProj designates, never the key column).  Applying an option is
 * therefore exactly `locate(key)` then `set_value(value)`, inserting the entry
 * when the key is absent so an option ESTABLISHES a setting rather than merely
@@ -31,7 +31,7 @@
 *                                     ensuring the entry is present).
 *     apply_all(reg, opt, ...)        a pack of options / pairs, in order.
 *     apply_all(reg, option_set) a whole set / subset: each option applied
-*                                     -- compile-time values everywhere, plus,
+*                                     - compile-time values everywhere, plus,
 *                                     under C++20, the set instance's runtime
 *                                     field<T> values read through get<>.
 *     reg << opt      / reg <<= opt   the stream-style idiom for the same, so
@@ -40,7 +40,7 @@
 *
 *   COLUMN SAFETY, FOR FREE. The value is always written through
 * set()/update(),
-* which target the value column and hold the key const -- so an option can
+* which target the value column and hold the key const - so an option can
 * never
 * rewrite a key. For a WHOLE-RECORD registry (value projection = whole_record,
 * a tuple whose columns share one record), place_at<J> directs a value into
@@ -51,7 +51,7 @@
 *
 *   DOMAIN. apply_option()/the operators target a registry with a DISTINCT
 * value column
-* (kv rows or projected-key records -- Reg::value_disjoint); there "set the
+* (kv rows or projected-key records - Reg::value_disjoint); there "set the
 * value" is well defined.  For a whole-record registry, drive edits with
 * place_at<J> (an explicit column) or the registry's own update() family.
 *
@@ -82,10 +82,10 @@ I.    materialisation traits   (option_key_v, option_ct_value)
 II.   apply outcome            (option_apply_status / option_apply_result)
       --------------------------------------------------------------------
 
-III.  apply_option -- primitive  (key+value / pair / option / key-only)
+III.  apply_option - primitive  (key+value / pair / option / key-only)
       -----------------------------------------------------------------
 
-IV.   apply_all -- sets/packs    (option pack, option_set fold)
+IV.   apply_all - sets/packs    (option pack, option_set fold)
       ---------------------------------------------------------
 
 V.    place_at<J>              (whole-record column-directed placement)
@@ -125,7 +125,7 @@ NS_DJINTERP
 //   Reading an option down to a runtime (key, value): the key is the option's
 // NTTP key; the value is, by the framework's own convention (container_options'
 // DOptionEnumValue), the first arg's static ::value.  Args are opaque, so this
-// is a POLICY -- specialise option_ct_value for an arg shape that carries its
+// is a POLICY - specialise option_ct_value for an arg shape that carries its
 // value differently.
 
 // option_key_v
@@ -141,7 +141,7 @@ inline constexpr auto option_key_v = clean_t<Option>::key;
 // when the option's first arg exposes a static ::value (an integral_constant,
 // a val_t<>, an enum-valued constant); ::value is then that value. A unary
 // option (no args) or a field<T> option (runtime value, no ::value) yields
-// ::has == false -- the caller then treats the option as key-only.
+// ::has == false - the caller then treats the option as key-only.
 NS_INTERNAL
 
     template<typename Option,
@@ -174,10 +174,10 @@ struct option_ct_value : internal::option_ct_value_impl<clean_t<Option>>
 
 // DOptionApplyStatus
 //   enum: how applying one option resolved.
-//     updated -- the key was present; its value column was written.
-//     inserted -- the key was absent; a new entry was established.
-//     located -- key-only application; the key was present (nothing written).
-//     absent -- the key was absent and could not be established (no runtime
+//     updated - the key was present; its value column was written.
+//     inserted - the key was absent; a new entry was established.
+//     located - key-only application; the key was present (nothing written).
+//     absent - the key was absent and could not be established (no runtime
 //                 value, or the record is not constructible from key + value).
 enum class DOptionApplyStatus
 {
@@ -205,13 +205,13 @@ using option_apply_result = DOptionApplyResult<SizeType>;
 
 
 // ===========================================================================
-// III. apply_option -- the primitive
+// III. apply_option - the primitive
 // ===========================================================================
 
 // apply_option (key, value)
 //   THE primitive: locate _key in _reg and place _value in its value column
 // (set(), which targets ValueProj and holds the key const). When _key is
-// absent and _insert_if_absent, establish the entry -- but only when the
+// absent and _insert_if_absent, establish the entry - but only when the
 // record is constructible from key + value (kv rows, key/value tuples); a
 // wider record cannot be synthesised from a key/value alone and is left for
 // update()/insert() of a full record. Targets a distinct-value-column
@@ -312,7 +312,7 @@ DOptionApplyResult<typename Reg::size_type> apply_key(
 
 
 // apply_option (DKvPair)
-//   the runtime pair form -- unpack and place.
+//   the runtime pair form - unpack and place.
 template<typename Reg,
          typename Key,
          typename Value>
@@ -355,7 +355,7 @@ apply_option(
 
 
 // ===========================================================================
-// IV.  apply_all -- sets / packs
+// IV.  apply_all - sets / packs
 // ===========================================================================
 
 NS_INTERNAL

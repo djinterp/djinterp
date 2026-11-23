@@ -2,8 +2,8 @@
 * djinterp [test]                                applicative_tests_runner.cpp
 *
 *   Entry point for the applicative.hpp unit suite.  Assembles the five section
-* blocks -- each contributed by its own translation unit through the block-
-* providers declared in applicative_tests.hpp -- into a single module_spec and
+* blocks - each contributed by its own translation unit through the block-
+* providers declared in applicative_tests.hpp - into a single module_spec and
 * hands it to the framework runner.
 *
 *   Sections:

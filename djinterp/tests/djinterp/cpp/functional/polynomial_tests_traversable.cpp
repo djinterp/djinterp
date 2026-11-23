@@ -8,7 +8,7 @@
 *                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp [test]  polynomial_tests_traversable.cpp
-//   Section IV -- traversable_traits specialisations, traverse, and sequence.
+//   Section IV - traversable_traits specialisations, traverse, and sequence.
 //   The effect threaded is the header's DTestMaybe<T>.
 
 // std
@@ -140,7 +140,7 @@ tests_traverse_poly_unit
   Exercises traverse over the unit carrier.
   Tests the following:
   - the effect function is never invoked (no X inhabitants)
-  - the result is the empty unit lifted via pure -- present regardless of what
+  - the result is the empty unit lifted via pure - present regardless of what
     the (uncalled) function would have produced
   - the result type is F<poly_unit<inner>> keyed on the function's return
 */

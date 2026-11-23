@@ -211,7 +211,7 @@ struct is_predicate
 NS_INTERNAL
 
     // is_predicate_contextual_helper
-    //   trait: primary template -- the call, or the bool cast of its result,
+    //   trait: primary template - the call, or the bool cast of its result,
     // is ill-formed.
     template<typename    AlwaysVoid,
              typename    Pred,
@@ -235,8 +235,8 @@ NS_END  // internal
 
 // is_predicate_contextual
 //   trait: true when a const-lvalue Pred can be called on Args and the result
-// converts to bool contextually -- by static_cast, as an if or while
-// condition converts it -- so a callable returning an optional or a
+// converts to bool contextually - by static_cast, as an if or while
+// condition converts it - so a callable returning an optional or a
 // unique_ptr qualifies. The looser twin of is_predicate, which keeps
 // std::predicate's implicit conversion; the owner's ruling of 2026.10.02
 // keeps both. Arguments are probed as is_predicate probes them.

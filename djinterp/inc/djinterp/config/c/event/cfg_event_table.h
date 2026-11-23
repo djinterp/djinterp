@@ -5,7 +5,7 @@
 * capacities, the rehash policy, and which optional operations compile.
 *
 *   The sizing knobs here were literal constants in the pre-config header.
-* That is exactly what the localization rule forbids -- a default living in a
+* That is exactly what the localization rule forbids - a default living in a
 * module header is a default nobody can override without editing the tree.
 *
 *   targets:  c/event/event_table_common.h, cpp/event/event_table.hpp
@@ -34,7 +34,7 @@
 // ===========================================================================
 
 // D_CFG_EVENT_TABLE_ALLOC
-//   brief: 1 compiles the allocating table -- d_event_table_init, _rehash,
+//   brief: 1 compiles the allocating table - d_event_table_init, _rehash,
 // _reserve, and the growth path. 0 leaves only the fixed form over
 // caller-provided storage, which is the freestanding profile: the event
 // subframework then performs no allocation anywhere and needs no allocator to
@@ -71,7 +71,7 @@
 // The threshold is an exact rational rather than a float so that both
 // languages take the decision at the same entry count. A double literal would
 // make the rehash point depend on rounding, and a rehash that happens at a
-// different moment in C than in C++ changes iteration order -- which is
+// different moment in C than in C++ changes iteration order - which is
 // observable in a statistics dump, and therefore a parity break.
 
 // D_CFG_EVENT_TABLE_LOAD_NUM / D_CFG_EVENT_TABLE_LOAD_DEN
@@ -98,8 +98,8 @@
 
 // D_CFG_EVENT_TABLE_STATS
 //   brief: 1 compiles struct dj_event_table_stats and d_event_table_get_stats.
-// Instrumentation, not formal content -- the note defines no statistics
-// record -- so it is genuinely optional. It is declared in the SHARED header
+// Instrumentation, not formal content - the note defines no statistics
+// record - so it is genuinely optional. It is declared in the SHARED header
 // rather than once per language because the pre-core forms had different
 // fields on each side, and two shapes for one report is a silent parity break
 // the moment either is printed.
@@ -125,7 +125,7 @@
 
 // D_CFG_EVENT_TABLE_ORDERED_ITERATION
 //   brief: 1 makes d_event_table_for_each visit entries in ascending handler
-// id -- global bind order. 0 visits them in bucket order, which is cheaper
+// id - global bind order. 0 visits them in bucket order, which is cheaper
 // and is fine for a build that only counts.
 //   Turning this off has a stated consequence: bucket order depends on the
 // hash and the capacity, so two tables holding the same bindings iterate

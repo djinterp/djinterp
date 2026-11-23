@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][meta]                                            flat_tests.hpp
 *
-* Unit test suite for flat.hpp -- the FLAT structural-kind tag.
+* Unit test suite for flat.hpp - the FLAT structural-kind tag.
 *   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.md S3):
 *
 *     - normal mode (the section TUs): pulls in the header under test and
@@ -16,7 +16,7 @@
 *     static constexpr bool        nests     = false;
 *     static constexpr std::size_t min_depth = 1;
 *     static constexpr const char* name() noexcept;   // "flat"
-* There is no runtime state and no algorithm -- the suite pins the three
+* There is no runtime state and no algorithm - the suite pins the three
 * members' VALUES, their being genuine constant expressions (usable as template
 * arguments and in static_assert), the emptiness of the tag, and the fact that
 * `name()` is a function (so taking the tag never needs an out-of-line
@@ -49,7 +49,7 @@
 #include <cstring>
 #include <type_traits>
 // djinterp
-// -- (part 1) mode-gated includes --------------------------------------------
+// - (part 1) mode-gated includes --------------------------------------------
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
 #include "../../../../inc/djinterp/cpp/meta/flat.hpp"                             // the header under test (normal)
@@ -106,7 +106,7 @@ bool flat_check(
     while (0)
 
 
-#ifndef DTEST_SPEC_MODE  // (part 1 cont.) fixtures -- normal mode only
+#ifndef DTEST_SPEC_MODE  // (part 1 cont.) fixtures - normal mode only
 
 ///////////////////////////////////////////////////////////////////////////////
 ///             F.1   COMPILE-TIME PROBE                                    ///
@@ -124,7 +124,7 @@ struct flat_depth_probe
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- (part 2) declarations -- visible in BOTH modes --------------------------
+// - (part 2) declarations - visible in BOTH modes --------------------------
 
 // I.   TAG   (flat_tests_tag.cpp)
 bool tests_tag_flat_nests_is_false();
@@ -134,7 +134,7 @@ bool tests_tag_flat_is_empty_tag();
 bool tests_tag_flat_members_are_constant_expressions();
 
 
-// -- (part 3) the spec provider -- spec mode only ----------------------------
+// - (part 3) the spec provider - spec mode only ----------------------------
 #ifdef DTEST_SPEC_MODE
 
 // flat_spec

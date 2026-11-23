@@ -5,9 +5,9 @@
 * server reports changing in the session.
 *   Each setting here is the connection's own: a SET SESSION, or the client's
 * call for it, which lasts until the connection closes and touches no other.
-* The named pairs cover what programs change most -- autocommit, isolation,
+* The named pairs cover what programs change most - autocommit, isolation,
 * the character set, the time zone, the SQL mode, how long to wait for a
-* row lock -- and set_variable and get_variable reach any other session
+* row lock - and set_variable and get_variable reach any other session
 * variable by name. d_mariadb_session_track reads what a statement changed
 * in the session, as the server reports it with its reply.
 *   Getters write their answer only on success. A string they return is the
@@ -121,7 +121,7 @@ enum dj_mariadb_track
 
 // 2.1    Autocommit
 //------------------------------------------------------------------------------
-// autocommit -- whether each statement commits by itself, as it does by
+// autocommit - whether each statement commits by itself, as it does by
 // default; turning it off leaves a transaction open until commit or rollback.
 // The getter reads the status the server sent with its last reply, and asks
 // nothing
@@ -136,7 +136,7 @@ int d_mariadb_get_autocommit(
 
 // 2.2    Isolation level
 //------------------------------------------------------------------------------
-// isolation level -- for the transactions the session begins from now on;
+// isolation level - for the transactions the session begins from now on;
 // _set_next for the next transaction alone, begun explicitly or by a
 // statement with autocommit off, after which the session's level holds
 // again. The server refuses _set_next inside a transaction (1568).
@@ -155,7 +155,7 @@ int d_mariadb_set_next_isolation_level(
 
 // 2.3    Lock waits
 //------------------------------------------------------------------------------
-// lock waits -- how long, in seconds, a statement waits for a row lock before
+// lock waits - how long, in seconds, a statement waits for a row lock before
 // failing with 1205 (innodb_lock_wait_timeout); 1 to 1073741824, MySQL's
 // ceiling, which MariaDB lowers to its own
 int d_mariadb_set_lock_wait_timeout(
@@ -179,7 +179,7 @@ int d_mariadb_get_lock_wait_timeout(
 
 // 3.1    Character set
 //------------------------------------------------------------------------------
-// character set -- the connection's, through the client's own call, so that
+// character set - the connection's, through the client's own call, so that
 // the client quotes values for it too; the getter reads the client's record
 // of it, and asks nothing
 int d_mariadb_set_charset(
@@ -193,7 +193,7 @@ int d_mariadb_get_charset(
 
 // 3.2    Time zone
 //------------------------------------------------------------------------------
-// time zone -- "+00:00", "SYSTEM", or a name such as "Europe/Paris" where the
+// time zone - "+00:00", "SYSTEM", or a name such as "Europe/Paris" where the
 // server has its time zone tables loaded
 int d_mariadb_set_time_zone(
     struct dj_mariadb* _db,
@@ -206,7 +206,7 @@ int d_mariadb_get_time_zone(
 
 // 3.3    SQL mode
 //------------------------------------------------------------------------------
-// SQL mode -- a comma-separated list, such as
+// SQL mode - a comma-separated list, such as
 // "STRICT_TRANS_TABLES,NO_ZERO_DATE"; "" for none
 int d_mariadb_set_sql_mode(
     struct dj_mariadb* _db,
@@ -271,8 +271,8 @@ int d_mariadb_get_variable(
 /**
  * @brief Reads what the server reported changing in the session, of one
  *        kind, with its reply to the last command the layer sent: a
- *        statement, the layer's own among them -- d_mariadb_has_table asks
- *        one -- a change of database, user or character set, a reset.
+ *        statement, the layer's own among them - d_mariadb_has_table asks
+ *        one - a change of database, user or character set, a reset.
  *
  * @note The server reports changes with the OK packet that ends a reply.
  *       Through Connector/C, rows end without one, so a statement that
@@ -287,8 +287,8 @@ int d_mariadb_get_variable(
  * @param[in]  _db       the connection.
  * @param[in]  _kind     the kind of state.
  * @param[out] _entries  receives the entries, in the order the server sent
- *                       them -- for system variables a name and its value,
- *                       one after the other, for each -- and none when the
+ *                       them - for system variables a name and its value,
+ *                       one after the other, for each - and none when the
  *                       reply reported nothing of the kind; written only on
  *                       success. An entry with a NUL byte in it reads only
  *                       to the NUL.

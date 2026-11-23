@@ -3,7 +3,7 @@
 *
 * The Markdown driver: a GitHub wiki's pages.
 *   Blocks are read as CommonMark reads them, a line at a time: the line is
-* matched against the containers open -- quotes, lists' items -- and what
+* matched against the containers open - quotes, lists' items - and what
 * is left either goes on in the leaf open or begins a block. GitHub's tables
 * are read as cmark-gfm reads them: a paragraph's last line, then a line of
 * dashes with as many cells. A paragraph's definitions, [label]: destination,
@@ -14,7 +14,7 @@
 * code spans, autolinks and HTML before all else; then brackets, kept on a
 * stack until a `]` closes one as a link, an image or text; then emphasis,
 * which matters here only for what a heading's title says. GitHub's bare
-* links -- www., http://, an address -- are read where a bracket is not
+* links - www., http://, an address - are read where a bracket is not
 * open, and Gollum's [[Text|Page]] before a bracket is.
 *   The anchor of a title is GitHub's: lower case, without punctuation, its
 * spaces dashes; a second of one anchor has -1 after it, a third -2.
@@ -256,8 +256,8 @@ struct dj_internal_link_parts
 //   struct: an <a> or an <img> being read, in a text: where it is, `at` to
 //   `close`; whether it is an image; the attribute just read, its name
 //   `name` to `name_end` and its value `from` to `to`, D_WIKI_NONE for
-//   none; and the values wanted -- href or src, `value` to `stop`, and an
-//   image's alt, `alt` to `alt_end` -- D_WIKI_NONE for none.
+//   none; and the values wanted - href or src, `value` to `stop`, and an
+//   image's alt, `alt` to `alt_end` - D_WIKI_NONE for none.
 struct dj_internal_html_tag
 {
     size_t at;
@@ -587,8 +587,8 @@ bool d_internal_set_text(
 /*
 d_internal_classify
   Where a link leads, from its destination: an anchor here, a URL, an
-address, an image, a file of the wiki, or a page of it -- a relative path
-whose last part has no extension, or a page's -- named by that part.
+address, an image, a file of the wiki, or a page of it - a relative path
+whose last part has no extension, or a page's - named by that part.
 */
 static
 bool d_internal_classify(
@@ -5557,8 +5557,8 @@ size_t d_internal_inline_link(
 /*
 d_internal_link_after
   What follows the `]` at `_at` of a bracket: an inline link's destination,
-or a reference's label -- full, collapsed, or the bracket's own text for a
-shortcut -- that names a definition.  Gives whether either makes a link.
+or a reference's label - full, collapsed, or the bracket's own text for a
+shortcut - that names a definition.  Gives whether either makes a link.
 */
 static
 bool d_internal_link_after(
@@ -5613,7 +5613,7 @@ bool d_internal_link_after(
 /*
 d_internal_link_of
   The link a bracket and what follows its `]` make: where it is on the
-page, where it leads -- as written, or as its definition says -- and an
+page, where it leads - as written, or as its definition says - and an
 empty label, which its content gives once emphasis is read.  Gives whether
 memory held.
 */

@@ -600,7 +600,7 @@ size_t d_internal_reference(
 
     *_out_written = d_internal_utf8(code, _out);
 
-    // a reference to no character -- a surrogate, a value past Unicode -- is
+    // a reference to no character - a surrogate, a value past Unicode - is
     // no reference, and is copied as it stands
     if (*_out_written == 0u)
     {

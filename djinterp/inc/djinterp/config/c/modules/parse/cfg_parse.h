@@ -59,7 +59,7 @@
 // 1.1.1
 // D_CFG_PARSE_ALL
 //   brief: optional aggregate for the parse subframework's boolean gates. NOT
-// defaulted -- its absence is meaningful. Define it to 0 or 1 and every gate
+// defaulted - its absence is meaningful. Define it to 0 or 1 and every gate
 // with no explicit value of its own falls back to it.
 
 // 1.2    Allocation
@@ -165,7 +165,7 @@
 // D_CFG_PARSE_PROGRAM_TRANSPORT
 //   brief: 1 compiles d_parse_program_write and _read, which move a compiled
 // program between processes, runs, or machines in a defined little-endian
-// layout; 0 leaves a program an in-memory artifact only. Default 1 -- this is
+// layout; 0 leaves a program an in-memory artifact only. Default 1 - this is
 // the door to shipping a generated parser as a build product.
 #ifndef D_CFG_PARSE_PROGRAM_TRANSPORT
 #   if defined(D_CFG_PARSE_ALL)
@@ -217,8 +217,8 @@
 
 // 1.3.7
 // D_CFG_PARSE_LIBCLANG
-//   brief: 1 compiles the libclang parsers -- parsers/c/c_parser.hpp,
-// parsers/cpp/cpp_parser.hpp, cpp_def_parser.hpp and clang_util.hpp -- where
+//   brief: 1 compiles the libclang parsers - parsers/c/c_parser.hpp,
+// parsers/cpp/cpp_parser.hpp, cpp_def_parser.hpp and clang_util.hpp - where
 // <clang-c/Index.h> is found; 0 compiles them to nothing, wherever libclang
 // is installed. Default 0, and not set by D_CFG_PARSE_ALL: the parsers still
 // use the arena's API from before its rename, so they do not compile yet,
@@ -333,7 +333,7 @@
 //------------------------------------------------------------------------------
 // 2.3.1
 // D_PARSE_MACHINE_STEP_LIMIT
-//   brief: the default runaway guard -- operators dispatched before a run is
+//   brief: the default runaway guard - operators dispatched before a run is
 // halted with D_PARSE_DIAG_STEP_LIMIT. A driver may raise or lower it per run
 // by assigning machine.step_limit; 0 means no limit.
 #ifndef D_PARSE_MACHINE_STEP_LIMIT

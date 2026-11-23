@@ -521,6 +521,6 @@ struct char_traits<char8_t>
 #endif  // RE_STD_LANG_IS_CPP20_OR_HIGHER
 
 
-}  // re_std   (added 2026-08-25 -- was never closed)
+}  // re_std   (added 2026-08-25 - was never closed)
 
 #endif  // RE_STD_STRING_VIEW_CHAR_TRAITS_HPP

@@ -23,8 +23,8 @@
 *   maps to Interlocked* or __sync_* with the same cost.
 *
 * DEPENDENCIES:
-*   datomic.h   -- dj_atomic_flag, test_and_set, clear, memory orders
-*   dmutex.h    -- d_thread_hardware_concurrency (re-exported)
+*   datomic.h   - dj_atomic_flag, test_and_set, clear, memory orders
+*   dmutex.h    - d_thread_hardware_concurrency (re-exported)
 *
 *
 * path:      /inc/djinterp/c/sync/threadsafe_common.h
@@ -95,7 +95,7 @@ enum dj_thread_safety_levels
 
 // dj_spinlock_t
 //   type: inline spinlock backed by dj_atomic_flag. A single atomic flag with
-// acquire/release semantics -- the lightest mutex there is.
+// acquire/release semantics - the lightest mutex there is.
 struct dj_spinlock
 {
     dj_atomic_flag flag;
@@ -143,7 +143,7 @@ void d_spinlock_lock(
     while (d_atomic_flag_test_and_set_explicit(
         &_lock->flag, D_MEMORY_ORDER_ACQUIRE))
     {
-        // spin -- suitable only for very short
+        // spin - suitable only for very short
         // critical sections
     }
 
@@ -186,7 +186,7 @@ void d_spinlock_unlock(
 
 // IV    Hardware concurrency
 // Re-exports d_thread_hardware_concurrency from dmutex.h
-// for convenience. No additional wrapper -- the dmutex.h
+// for convenience. No additional wrapper - the dmutex.h
 // declaration is sufficient. Documented here for
 // discoverability.
 //

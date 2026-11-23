@@ -26,7 +26,7 @@
 * be worse than an absent one.
 *
 *   WHAT A C FACE IS FOR:
-*   The core's calling convention is honest and verbose -- a pristine option
+*   The core's calling convention is honest and verbose - a pristine option
 * struct declared, mutated, and passed by address; a measure call; a produce
 * call; a status compared against an enumerator.  Correct, and tedious at every
 * call site.  This header supplies four things and stops:
@@ -46,7 +46,7 @@
 *
 *   TIERING:
 *   _Generic is C11.  Below it the codec-naming macro degrades to requiring an
-* enumerator, which every call site can already supply -- so a C99 build loses
+* enumerator, which every call site can already supply - so a C99 build loses
 * a spelling, not a capability, and nothing fails to compile.  Every other
 * macro here is C99 and needs no tier.
 *
@@ -165,7 +165,7 @@ VI.   AVAILABLE-CODEC ITERATION
 // =============================================================================
 //   A tuned option set as a single expression, so a call site does not need a
 // named local and three statements to raise one knob.  Each builder starts from
-// D_COMPRESS_OPTIONS_INIT -- every knob UNSET -- and moves exactly what it
+// D_COMPRESS_OPTIONS_INIT - every knob UNSET - and moves exactly what it
 // names.  That is the same discipline test_compress_options.hpp's builders
 // follow on the C++ side, and for the same reason: a test can then assert both
 // the intended change and that nothing else drifted.  These are the C
@@ -173,12 +173,12 @@ VI.   AVAILABLE-CODEC ITERATION
 // in step with them.
 //
 //   WHY THESE ARE FUNCTIONS AND NOT MACROS.  The obvious spelling is a compound
-// literal with designated initialisers -- roughly
+// literal with designated initialisers - roughly
 // `#define D_COMPRESS_TUNED(...)
 //      ((struct dj_compress_options){ __VA_ARGS__ })`.
 //   It is wrong, and silently.  C zero-initialises every member a designated
 // initialiser does not name, so D_COMPRESS_TUNED(.zstd.workers = 4) would set
-// the other forty-nine knobs to 0 rather than leaving them UNSET -- and 0 is a
+// the other forty-nine knobs to 0 rather than leaving them UNSET - and 0 is a
 // MEANINGFUL value for many of them (level 0 is "no compression", not "unset").
 // The result would be a fully-specified option set masquerading as a pristine
 // one, which no round-trip test catches because the wrong values survive the
@@ -186,7 +186,7 @@ VI.   AVAILABLE-CODEC ITERATION
 // form for a compound literal, so the builder has to be a function that
 // declares a pristine set and then assigns.
 //
-//   For tuning a knob with no named builder, declare and assign -- two lines,
+//   For tuning a knob with no named builder, declare and assign - two lines,
 // and unambiguous:
 //       struct dj_compress_options opt = D_COMPRESS_OPTIONS_INIT;
 //       opt.zstd.workers = 4;
@@ -220,7 +220,7 @@ struct dj_compress_options d_compress_at_level(
 // d_compress_at_codec_level
 //   function: a pristine set with a codec's OWN level set and the generic
 // effort left UNSET.  Pairs with d_compress_at_level for testing which of the
-// two a call site actually consults -- the same pairing zstd_level_options
+// two a call site actually consults - the same pairing zstd_level_options
 // provides on the C++ side.  A codec with no private level leaves the set
 // pristine.
 D_INLINE struct dj_compress_options
@@ -264,7 +264,7 @@ d_compress_at_codec_level(
 
 // d_compress_reproducible
 //   function: a pristine set tuned so that two runs over identical input
-// produce identical bytes -- no thread-count dependence, no timestamp.  Worth
+// produce identical bytes - no thread-count dependence, no timestamp.  Worth
 // a named builder because getting it wrong is silent: the output is valid
 // either way, and only a byte comparison across runs reveals the difference.
 //   The gzip header's own timestamp is a CONTAINER knob and is cleared through
@@ -313,7 +313,7 @@ struct dj_compress_options d_compress_reproducible(void)
 #if D_ENV_LANG_IS_C11_OR_HIGHER
 
 // d_internal_codec_from_any
-//   function: the string arm of D_CODEC -- resolves a codec name, falling back
+//   function: the string arm of D_CODEC - resolves a codec name, falling back
 // to store when the name is unknown.  A fallback rather than a diagnostic
 // because this is an expression: a caller needing to DETECT a bad name calls
 // d_codec_id_from_name, which reports it.
@@ -330,7 +330,7 @@ d_internal_codec_from_any(
 }
 
 // d_internal_codec_identity
-//   function: the enumerator arm of D_CODEC -- the identity, present so both
+//   function: the enumerator arm of D_CODEC - the identity, present so both
 // arms of the _Generic are function calls and the macro has one shape.
 D_INLINE enum dj_codec_id
 d_internal_codec_identity(
@@ -351,7 +351,7 @@ d_internal_codec_identity(
 #else   // C99: no _Generic
 
 // D_CODEC
-//   macro: degraded form -- forwards an enumerator unchanged.  The string
+//   macro: degraded form - forwards an enumerator unchanged.  The string
 // spelling is unavailable below C11; call d_codec_id_from_name for it.
 #define D_CODEC(_x)     (_x)
 
@@ -363,7 +363,7 @@ d_internal_codec_identity(
 // =============================================================================
 //   The core's transforms with the options argument omitted.  A NULL options
 // pointer means "the core's pinned defaults", which is the same set
-// D_COMPRESS_OPTIONS produces -- so these are shorthands and not a second
+// D_COMPRESS_OPTIONS produces - so these are shorthands and not a second
 // default policy.  There is exactly one place defaults are decided, and it is
 // d_compress_options_resolve.
 
@@ -383,7 +383,7 @@ d_internal_codec_identity(
 // D_DECOMPRESS_MEASURE
 //   macro: the measure call for decompression.  Decompression has no bound, so
 // this is the only way to size a buffer without reading a length the container
-// recorded -- see the asymmetry note in compress_common.h section X.
+// recorded - see the asymmetry note in compress_common.h section X.
 #define D_DECOMPRESS_MEASURE(_codec, _in, _in_size, _out_size)                 \
     d_decompress(D_CODEC(_codec), (_in), (_in_size),                           \
                  NULL, (size_t)0, (_out_size))
@@ -434,7 +434,7 @@ d_internal_codec_identity(
 // =============================================================================
 //   Walking the codecs a build actually has.  This is the loop a diagnostic
 // banner, a capability report, and a differential test sweep all write, and it
-// is easy to write subtly wrong -- by iterating the enumerators and forgetting
+// is easy to write subtly wrong - by iterating the enumerators and forgetting
 // that a named codec need not be present, or by hardcoding nine cases and
 // missing one when a tenth codec is added.
 //

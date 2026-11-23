@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][tools]                                                 json.hpp
 *
-* A small JSON value, reader and writer -- enough for a sheet file.
+* A small JSON value, reader and writer - enough for a sheet file.
 *   Numbers are kept as the text they were read from, not as doubles: a
 * sheet holds 64-bit values, and a double holds 53 bits of them. Objects keep
 * their members in the order they were written, so a saved sheet reads the
@@ -86,7 +86,7 @@ struct json_value
     std::vector<json_value>  items;
     std::vector<json_member> members;
 
-    // makers -- one per kind
+    // makers - one per kind
     D_NODISCARD static json_value boolean(
         bool _flag
     );
@@ -102,7 +102,7 @@ struct json_value
     D_NODISCARD static json_value array();
     D_NODISCARD static json_value object();
 
-    // members -- find returns nullptr for a missing key or a non-object
+    // members - find returns nullptr for a missing key or a non-object
     D_NODISCARD const json_value* find(
         const std::string& _key
     ) const;
@@ -114,7 +114,7 @@ struct json_value
         json_value _value
     );
 
-    // readers -- each returns _fallback for the wrong kind or a bad number
+    // readers - each returns _fallback for the wrong kind or a bad number
     D_NODISCARD bool as_bool(
         bool _fallback
     ) const;

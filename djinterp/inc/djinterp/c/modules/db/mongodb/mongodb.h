@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][db]                                                     mongodb.h
 *
-* Umbrella for djinterp's MongoDB convenience layer -- includes every module.
+* Umbrella for djinterp's MongoDB convenience layer - includes every module.
 *   Convenience, not architecture: each module is its own source, so a
 * program that only connects and inserts links mongodb_common,
 * mongodb_connection and mongodb_document, mongodb_internal beneath them, and
@@ -11,7 +11,7 @@
 * driver's mongoc_client_t, and none of them includes mongoc.h; include it
 * as well to call the driver directly, with d_mongodb_native's client. Build
 * the sources against MongoDB's C driver, 1.21 or later of either line, and
-* link it (pkg-config's libmongoc-1.0 or mongoc2) -- or, where there is none,
+* link it (pkg-config's libmongoc-1.0 or mongoc2) - or, where there is none,
 * as stubs that report D_DB_UNSUPPORTED (D_CFG_MONGODB).
 *
 *

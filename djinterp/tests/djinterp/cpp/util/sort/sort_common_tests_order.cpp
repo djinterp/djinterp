@@ -62,7 +62,7 @@ bool tests_sort_common_order_shape()
 {
     verdict result;
 
-    //   sort_order is a struct wrapping an unscoped enum named value -- the
+    //   sort_order is a struct wrapping an unscoped enum named value - the
     // C++98 spelling of a scoped enumeration, which keeps sort_common.hpp and
     // every *_sort_ordered entry point valid from C++98.  The enumerators are
     // named through the struct, as a scoped enum's would be.
@@ -70,7 +70,7 @@ bool tests_sort_common_order_shape()
     result.check(std::is_enum<sort_order::value>::value);
 
     //   The property the *_sort_ordered entry points rely on: no implicit
-    // conversion reaches sort_order::value, so a bool -- or an int -- handed
+    // conversion reaches sort_order::value, so a bool - or an int - handed
     // to the fourth parameter is a compile error rather than a direction.
     result.check((!std::is_convertible<bool, sort_order::value>::value));
     result.check((!std::is_convertible<int, sort_order::value>::value));

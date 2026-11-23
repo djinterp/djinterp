@@ -107,7 +107,7 @@ concept has_metadata_method = requires(const Type& _t)
 // has_metadata_nested_type
 //   concept: satisfied when `Type` exposes a nested type
 // alias named `metadata`, seen through any reference and
-// cv-qualifier, as the trait sees it -- a reference has no
+// cv-qualifier, as the trait sees it - a reference has no
 // nested types of its own.
 template<typename Type>
 concept has_metadata_nested_type = requires

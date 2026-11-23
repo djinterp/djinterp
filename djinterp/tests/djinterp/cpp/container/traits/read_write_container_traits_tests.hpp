@@ -789,7 +789,7 @@ bool tests_access_container_class_agreement();
 bool tests_access_container_class_cv_ref();
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // read_write_container_traits_spec
 //   function: the suite as DTest's module spec, one block per section.

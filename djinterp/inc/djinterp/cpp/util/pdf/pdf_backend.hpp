@@ -333,8 +333,8 @@ public:
     ) = 0;
 
     // save_to
-    //   writes the document to a stream -- a string, the console, a caller's
-    // array, a file, several at once -- and returns true only when the
+    //   writes the document to a stream - a string, the console, a caller's
+    // array, a file, several at once - and returns true only when the
     // stream took every byte; the stream keeps why it did not. The default
     // writes serialize()'s bytes, so every backend has it; one that can
     // write as it goes overrides it. The C table's save_to slot is the same.

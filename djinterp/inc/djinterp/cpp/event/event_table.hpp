@@ -2,7 +2,7 @@
 * djinterp [cpp][event]                                          event_table.hpp
 *
 * The erased store:
-*   Type-erased handler storage for the event system -- the realization of
+*   Type-erased handler storage for the event system - the realization of
 * erasure. An injection kappa : T_e -> K presents each event type as a
 * std::size_t key; the table maps keys to insertion-ordered words of
 * type-erased handler entries. It provides insert, remove, enable/disable
@@ -17,15 +17,15 @@
 * event_table_concepts.hpp.
 *
 * FORMAL CORRESPONDENCE ("Definition of an Event"):
-*   erasure   kappa : T_e -> K        -- internal::type_key<Event>()
-*   key set   K                       -- std::size_t
-*   word per type, rho_e              -- a bucket (vector of DHandlerEntry)
-*   mask      m : L -> {on,off}       -- DHandlerEntry::enabled
-*   bind / unbind                     -- insert / remove
-*   enable / disable                  -- enable / disable (flip the mask)
-*   merge     rho (+) rho'            -- merge (pointwise concatenation;
+*   erasure   kappa : T_e -> K        - internal::type_key<Event>()
+*   key set   K                       - std::size_t
+*   word per type, rho_e              - a bucket (vector of DHandlerEntry)
+*   mask      m : L -> {on,off}       - DHandlerEntry::enabled
+*   bind / unbind                     - insert / remove
+*   enable / disable                  - enable / disable (flip the mask)
+*   merge     rho (+) rho'            - merge (pointwise concatenation;
 *                                        identity: the empty table)
-*   fibre condition                   -- each erased entry touches the payload
+*   fibre condition                   - each erased entry touches the payload
 *                                        only as its own type, because bind
 *                                        and dispatch key by the same kappa.
 *

@@ -2,11 +2,11 @@
 # vparse [ui]                                                     CMakeLists.txt
 #
 # vparse's window: the workbench, the module `vparse gui` loads (GRAMMAR.md,
-# section 7), made on uxoxo and Dear ImGui outside the djinterp tree -- its
+# section 7), made on uxoxo and Dear ImGui outside the djinterp tree - its
 # sources in inc/ui/vparse, src/ui/vparse and tests/ui/vparse.
 #   A top-level build: it builds djinterp's vparse
-# (build/cmake/djinterp/tools/vparse) -- the library, the model, the command
-# line and, under VPARSE_UI_BUILD_TESTS, their suites -- into its own binary
+# (build/cmake/djinterp/tools/vparse) - the library, the model, the command
+# line and, under VPARSE_UI_BUILD_TESTS, their suites - into its own binary
 # directory, then uxoxo, which cmake/UiRoots.cmake finds and cmake/Uxoxo.cmake
 # checks and adds, and makes:
 #
@@ -22,9 +22,9 @@
 #                              GLFW + OpenGL 3 elsewhere, or none
 #                              (VPARSE_UI_HOST chooses)
 #
-# and, under VPARSE_UI_BUILD_TESTS, the window's two suites -- its model and
+# and, under VPARSE_UI_BUILD_TESTS, the window's two suites - its model and
 # face as values, and the face drawn on Dear ImGui's null backend, where
-# Dear ImGui has it -- and three runs of the command line that find, load and
+# Dear ImGui has it - and three runs of the command line that find, load and
 # run the module as a user's would, with no window opened: its help, its
 # version, and a grammar it cannot read.
 #   The module is a shared object that links the model, the kit and uxoxo,

@@ -4,18 +4,18 @@
 *   Unit-test declarations for core/functional/profunctor.hpp.  One declaration
 * group per section of the module under test:
 *
-*     profunctor_tests_arrow.cpp       -- I.   profn<F> + make_profn
-*     profunctor_tests_protocol.cpp    -- II.  profunctor_traits, is_profunctor,
+*     profunctor_tests_arrow.cpp       - I.   profn<F> + make_profn
+*     profunctor_tests_protocol.cpp    - II.  profunctor_traits, is_profunctor,
 *                                               the internal helpers, the concept
-*     profunctor_tests_operations.cpp  -- III. dimap / lmap / rmap and the laws
-*     profunctor_tests_instance.cpp    -- IV.  the profn<F> instance
+*     profunctor_tests_operations.cpp  - III. dimap / lmap / rmap and the laws
+*     profunctor_tests_instance.cpp    - IV.  the profn<F> instance
 *
 *   FIXTURES.  The generic operations dispatch through profunctor_traits, so to
 * prove they are not hard-wired to profn the suite also defines a SECOND,
 * distinct profunctor instance, DPfArrow<F> (its own carrier, make function, and
 * profunctor_traits::dimap).  A handful of constexpr function objects (doubler,
 * add_one, add_ten, DEvenP, b2i) drive the conditional-constexpr paths under
-* static_assert -- including input/output type changes at compile time -- while
+* static_assert - including input/output type changes at compile time - while
 * runtime tests use lambdas.  Two negatives pin the detector: DNotProfunctor
 * (no specialisation) and DPfNoMarker (a profunctor_traits WITHOUT the
 * is_specialized marker, which must read as not-a-profunctor).
@@ -88,7 +88,7 @@ namespace dt = ::djinterp::test;
 ///             0.    FIXTURES                                              ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// -- constexpr function objects (drive the constexpr paths) ---------------
+// - constexpr function objects (drive the constexpr paths) ---------------
 
 // doubler / add_one / add_ten: int -> int, constexpr.
 struct doubler
@@ -106,20 +106,20 @@ struct add_ten
     constexpr int operator()(int _x) const { return _x + 10; }
 };
 
-// DEvenP: int -> bool, constexpr -- a covariant (output) type change.
+// DEvenP: int -> bool, constexpr - a covariant (output) type change.
 struct DEvenP
 {
     constexpr bool operator()(int _x) const { return (_x % 2) == 0; }
 };
 
-// b2i: bool -> int, constexpr -- a contravariant (input) type change.
+// b2i: bool -> int, constexpr - a contravariant (input) type change.
 struct DB2i
 {
     constexpr int operator()(bool _b) const { return _b ? 10 : 0; }
 };
 
 
-// -- negatives ------------------------------------------------------------
+// - negatives ------------------------------------------------------------
 
 // DNotProfunctor: no profunctor_traits specialisation at all.
 struct DNotProfunctor
@@ -127,13 +127,13 @@ struct DNotProfunctor
 };
 
 // DPfNoMarker: a profunctor_traits specialisation WITHOUT is_specialized
-// (defined below at djinterp scope) -- must read as not-a-profunctor.
+// (defined below at djinterp scope) - must read as not-a-profunctor.
 struct DPfNoMarker
 {
 };
 
 
-// -- a second, distinct profunctor instance (generic-dispatch witness) ----
+// - a second, distinct profunctor instance (generic-dispatch witness) ----
 
 // DPfArrow
 //   fixture profunctor: a parallel arrow wrapper, unrelated to profn, so that
@@ -184,10 +184,10 @@ struct DPfCompose
 };
 
 
-// -- helper trait: is the result of dimap still a profn? ------------------
+// - helper trait: is the result of dimap still a profn? ------------------
 
 // is_profn_type
-//   trait: true exactly for profn<F> -- used to confirm dimap returns a fresh
+//   trait: true exactly for profn<F> - used to confirm dimap returns a fresh
 // arrow WITHOUT unwrapping.
 template<typename _Type>
 struct is_profn_type : std::false_type
@@ -265,7 +265,7 @@ bool tests_instance_is_specialized();
 bool tests_instance_generic_dispatch();
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // profunctor_spec
 //   function: the suite as DTest's module spec, one block per section.
@@ -430,7 +430,7 @@ NS_END  // testing
 ///             FIXTURE PROFUNCTOR INSTANCES  (djinterp scope)              ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// profunctor_traits<DPfArrow<_Fn>>  -- the second instance: dimap composes a
+// profunctor_traits<DPfArrow<_Fn>>  - the second instance: dimap composes a
 // fresh DPfArrow around post . fn . pre, exactly as profn does for itself.
 #ifndef DTEST_SPEC_MODE  // fixture instances - normal mode only
 template<typename _Fn>
@@ -452,7 +452,7 @@ struct profunctor_traits<testing::DPfArrow<_Fn>, void>
     }
 };
 
-// profunctor_traits<DPfNoMarker>  -- present but WITHOUT the is_specialized
+// profunctor_traits<DPfNoMarker>  - present but WITHOUT the is_specialized
 // marker, so is_profunctor<DPfNoMarker> must be false.
 template<>
 struct profunctor_traits<testing::DPfNoMarker, void>

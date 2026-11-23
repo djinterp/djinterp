@@ -3,7 +3,7 @@
 *
 * The command-line kit's commands that change a file, declared in cli_edit.h.
 *   Defining is the parser's work, with help composed from what the command
-* changes; a failure is kept where a run will say it -- the parser's own
+* changes; a failure is kept where a run will say it - the parser's own
 * record, or, for a want of memory nothing recorded, the program's status.
 * Where the result goes is read from the values the parse left; a file is
 * written by d_cli_write_file, whole or not at all, and standard output
@@ -573,7 +573,7 @@ int d_cli_internal_edit_file_write(
 
 /*
 d_cli_edit_write
-  Nothing after `-n`; else standard output, or the file -- `-o`'s, or the
+  Nothing after `-n`; else standard output, or the file - `-o`'s, or the
 one read.
 */
 int d_cli_edit_write(

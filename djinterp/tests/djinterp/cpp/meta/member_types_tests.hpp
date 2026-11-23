@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][meta]                                    member_types_tests.hpp
 *
-* Unit test suite for member_types.hpp -- the framework's shared nested-typedef
+* Unit test suite for member_types.hpp - the framework's shared nested-typedef
 * detectors and the pick_member_type extraction helper.
 *   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.md S3):
 *
@@ -14,7 +14,7 @@
 * D_TYPE_TRAIT_HAS_TYPE (from trait_detect.hpp) ten times to emit the concrete
 * detectors has_input_type, has_result_type, has_item_type, has_kind_type,
 * has_value_type, has_key_type, has_mapped_type, has_size_type,
-* has_difference_type, has_allocator_type -- each a SFINAE bool trait probing
+* has_difference_type, has_allocator_type - each a SFINAE bool trait probing
 * `typename clean_t<_Type>::<name>`, each with a `_v` companion on C++14+.  It
 * also defines internal::pick_member_type<Present, Extracted, Fallback>, a
 * two-specialization chooser.  The tests treat the emitted traits as the public
@@ -30,7 +30,7 @@
 *
 *   COMPLETENESS.  Because the probe is `typename clean_t<_Type>::X` in an
 * unevaluated SFINAE context, has_X<incomplete_type> is a clean false, not a
-* hard error -- so the detectors are usable on forward-declared types.  (This
+* hard error - so the detectors are usable on forward-declared types.  (This
 * is the opposite of is_passthrough in the sibling passthrough suite, which
 * needs a complete type.)
 *
@@ -41,10 +41,10 @@
 *                     detector can be shown to fire on its own typedef and on no
 *                     other.  (Realized as ten small named structs, not a
 *                     template, since the member NAME differs per case.)
-*     DValueShaped    a struct with `static constexpr int value_type` -- a VALUE
+*     DValueShaped    a struct with `static constexpr int value_type` - a VALUE
 *                     named like the typedef, to prove the typedef probe rejects
 *                     it.
-*     void_typedef    a struct whose value_type is `void` -- a typedef to void is
+*     void_typedef    a struct whose value_type is `void` - a typedef to void is
 *                     still a typedef, so detection is true.
 *     incomplete_type a forward declaration, never defined, to pin the soft-false
 *                     on an incomplete type.
@@ -79,7 +79,7 @@
 #include <type_traits>
 #include <vector>
 // djinterp
-// -- (part 1) mode-gated includes --------------------------------------------
+// - (part 1) mode-gated includes --------------------------------------------
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
 #include "../../../../inc/djinterp/cpp/meta/member_types.hpp"                     // the header under test (normal)
@@ -136,7 +136,7 @@ bool member_types_check(
     while (0)
 
 
-#ifndef DTEST_SPEC_MODE  // (part 1 cont.) fixtures -- normal mode only
+#ifndef DTEST_SPEC_MODE  // (part 1 cont.) fixtures - normal mode only
 
 ///////////////////////////////////////////////////////////////////////////////
 ///             F.1   ALL / NONE                                            ///
@@ -190,7 +190,7 @@ struct DOnlyAllocator   { using allocator_type  = int; };
 
 // DValueShaped
 //   struct: a static DATA member named like a typedef.  The typedef probe must
-// reject it -- `X::value_type` names a value here, not a type.
+// reject it - `X::value_type` names a value here, not a type.
 struct DValueShaped
 {
     static constexpr int value_type = 0;
@@ -211,7 +211,7 @@ struct incomplete_type;
 // derived_from_has_all
 //   struct: inherits the ten typedefs.  clean_t does not flatten inheritance
 // away, but a nested typedef is visible through a derived class, so the
-// detectors see the inherited members -- pinned to document the behaviour.
+// detectors see the inherited members - pinned to document the behaviour.
 struct derived_from_has_all : has_all
 {};
 
@@ -230,7 +230,7 @@ struct DProbeExtracted {};
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- (part 2) declarations -- visible in BOTH modes --------------------------
+// - (part 2) declarations - visible in BOTH modes --------------------------
 
 // I.   DETECTORS   (member_types_tests_detectors.cpp)
 bool tests_detectors_all_ten_fire_on_has_all();
@@ -256,11 +256,11 @@ bool tests_extraction_fallback_ignores_extracted();
 bool tests_extraction_distinct_types_are_distinguished();
 
 
-// -- (part 3) the spec provider -- spec mode only ----------------------------
+// - (part 3) the spec provider - spec mode only ----------------------------
 #ifdef DTEST_SPEC_MODE
 
 // member_types_spec
-//   function: the authoritative description of this suite -- one block per
+//   function: the authoritative description of this suite - one block per
 // section TU, one row per tests_* body, every node named and described.
 inline
 dt::module_spec member_types_spec()

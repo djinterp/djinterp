@@ -4,15 +4,15 @@
 # The tests: the model at every level, the headers it writes compiled at
 # every level, and the window driven headless.
 #
-#     model_c++NN        the model's suite, built at C++17, 20 and 23 -- each
+#     model_c++NN        the model's suite, built at C++17, 20 and 23 - each
 #                        level this compiler can select; 42 sections
 #     header_*           each example's header and self-test, written by
 #                        bitwisedom-gen and compiled at every C and C++ level
 #                        the compiler can select: the self-test does not
 #                        compile unless every macro has the sheet's value;
 #                        21 examples, 16 tests each under GCC and Clang, 10
-#                        under cl. A sheet wider than an integer -- the PCI
-#                        and CPUID examples, and tests/sheets/wide_mix -- has
+#                        under cl. A sheet wider than an integer - the PCI
+#                        and CPUID examples, and tests/sheets/wide_mix - has
 #                        its self-test run as well, which checks its arrays
 #                        and the macros that read and write them; and again
 #                        with arrays of 8-, 16- and 64-bit words
@@ -20,8 +20,8 @@
 #                        each test sheet, read and written back as a
 #                        bitfield: the same bytes
 #     platform_*         the platform examples that describe the platform
-#                        the build targets -- Windows, macOS, Linux or
-#                        FreeBSD -- each compiled beside the platform's own
+#                        the build targets - Windows, macOS, Linux or
+#                        FreeBSD - each compiled beside the platform's own
 #                        headers, every value compared; and, where GCC or
 #                        Clang targets x86, the CPUID example beside
 #                        <cpuid.h>
@@ -97,7 +97,7 @@ set(_examples
     win32_hresults x86_cpuid)
 
 # the sheets wider than an integer, whose self-tests run: an example, and a
-# sheet made to try the generator where it is hardest -- fields across every
+# sheet made to try the generator where it is hardest - fields across every
 # word size's boundaries, values in every encoding, a range too wide for an
 # integer, literals an integer holds and one it does not
 set(_array_examples pci_config_header x86_cpuid)

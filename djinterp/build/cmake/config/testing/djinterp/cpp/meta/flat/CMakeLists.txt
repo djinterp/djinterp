@@ -1,4 +1,4 @@
-# flat.hpp unit test suite -- leaf recipe (header-only tag module, no src/).
+# flat.hpp unit test suite - leaf recipe (header-only tag module, no src/).
 #
 #   Delivery form (djinterp_testing.md S7.2): this suite ships in its OWN leaf
 # directory .../container/structure/flat/ so the archive owns every path it
@@ -14,7 +14,7 @@
 # name (tests_tag_flat_* here, tests_tag_hierarchical_* there) and each suite's
 # fixtures are module-namespaced (flat_depth_probe / hierarchical_depth_probe),
 # so the two suites may be built separately (as here, via the prefix-scoped glob)
-# OR aggregated into one executable -- see the sibling ../structure_tags leaf for
+# OR aggregated into one executable - see the sibling ../structure_tags leaf for
 # a combined build.  The globs below are prefix-scoped so this target pulls only
 # its own section TUs.
 

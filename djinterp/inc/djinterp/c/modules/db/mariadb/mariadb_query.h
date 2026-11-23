@@ -8,7 +8,7 @@
 * runs several, separated by semicolons, by turning the client's
 * multi-statement mode on for just that call. The d_mariadb_query_* functions
 * run one statement and return the first column of its first row, which
-* covers the common single-value case -- a count, a version, a setting -- in
+* covers the common single-value case - a count, a version, a setting - in
 * one call; d_mariadb_query_rows returns all of its rows, as db_common.h's
 * dj_db_rows.
 *   Each comes in a plain form, which takes SQL as written, and an `f` form,
@@ -23,8 +23,8 @@
 * column's type says: an integer column's values as INTEGER, except an
 * unsigned BIGINT's past INT64_MAX, which stay TEXT; FLOAT and DOUBLE as
 * REAL, read back exactly from the shortest text the servers write; a binary
-* string, BLOB, BIT or spatial value as a BLOB; and every other value -- DECIMAL
-* among them, which a double cannot hold exactly -- as TEXT. A column's type
+* string, BLOB, BIT or spatial value as a BLOB; and every other value - DECIMAL
+* among them, which a double cannot hold exactly - as TEXT. A column's type
 * is its field type, and type_name its name as DDL writes it, " UNSIGNED"
 * added where the column has it:
 *     TINYINT(1)                                    D_DB_TYPE_BOOLEAN
@@ -40,12 +40,12 @@
 * A string column counts as binary by its character set, `binary`. TINYTEXT,
 * MEDIUMTEXT and LONGTEXT, and their BLOBs, are named so. MySQL's JSON is a
 * type of its own; MariaDB's JSON is a LONGTEXT, and arrives as TEXT.
-*   ATTRIBUTES. MySQL from 8.0.23 takes attributes with a query -- names and
+*   ATTRIBUTES. MySQL from 8.0.23 takes attributes with a query - names and
 * values beside its text, which the server's query_attributes component
-* reads with mysql_query_attribute_string() -- set here for the next query
+* reads with mysql_query_attribute_string() - set here for the next query
 * the connection sends.
-*   STATEMENTS SENT. d_mariadb_send_query_start sends SQL -- one statement,
-* or several where the multi-statement mode allows -- and
+*   STATEMENTS SENT. d_mariadb_send_query_start sends SQL - one statement,
+* or several where the multi-statement mode allows - and
 * d_mariadb_next_result_start reads its results one at a time, each without
 * blocking (db_common.h 1.3), as PostgreSQL's layer's do.
 *
@@ -85,7 +85,7 @@ TABLE OF CONTENTS
                                                  // floor; int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -102,7 +102,7 @@ D_EXTERN_C_BEGIN
 
 // 1.1    Running statements
 //------------------------------------------------------------------------------
-// running statements -- each returns 0, the client's error number for the
+// running statements - each returns 0, the client's error number for the
 // statement that failed, which d_mariadb_error_message then describes,
 // CR_OUT_OF_MEMORY (2008) when the text could not be built, or
 // D_DB_INVALID_ARGUMENT for a NULL handle or SQL, or a format the layer
@@ -128,7 +128,7 @@ int d_mariadb_exec_script(
 
 // 1.2    Rows changed
 //------------------------------------------------------------------------------
-// rows changed -- as d_mariadb_exec and d_mariadb_execf, and on success write
+// rows changed - as d_mariadb_exec and d_mariadb_execf, and on success write
 // what d_mariadb_changes would read straight after: the rows the statement
 // affected (an UPDATE counts those it changed, not those it matched), or the
 // rows it returned; 0 for a statement that counts none, such as CREATE TABLE.
@@ -147,7 +147,7 @@ int d_mariadb_execf_changes(
 
 // 1.3    Single values
 //------------------------------------------------------------------------------
-// single values -- each runs one statement and reads the first column of its
+// single values - each runs one statement and reads the first column of its
 // first row. A row yields 0 and the value, written only then; no row, or no
 // rows at all, is D_DB_NOT_FOUND; a failure is as for the statements above.
 // A NULL value reads as 0, or as a NULL string. The text is the caller's,
@@ -203,7 +203,7 @@ int d_mariadb_query_textf(
  *         (2008) when the rows could not be built; D_DB_INVALID_ARGUMENT for
  *         a `NULL` argument.
  * @post On success the caller releases `_rows` with d_db_rows_free. A
- *       statement that returns no rows -- an INSERT, say -- gives rows with
+ *       statement that returns no rows - an INSERT, say - gives rows with
  *       no columns. Every result after the first, which only a CALL
  *       produces, is read and discarded.
  */
@@ -270,8 +270,8 @@ char* d_mariadb_quote_literal(
  *        mysql_bind_param does; setting a name again replaces its value.
  *
  * @note The next query is whatever the layer sends next, its own among them
- *       -- d_mariadb_has_table asks one, d_mariadb_set_charset sends SET
- *       NAMES -- and it drops every attribute set, whether it succeeds or
+ *       - d_mariadb_has_table asks one, d_mariadb_set_charset sends SET
+ *       NAMES - and it drops every attribute set, whether it succeeds or
  *       not. A prepared statement's execution neither carries nor drops
  *       them; a reset, a change of user and a close drop them. A query a
  *       program sends with the client's own calls carries them too, the
@@ -308,16 +308,16 @@ int d_mariadb_clear_query_attributes(
 //------------------------------------------------------------------------------
 // d_mariadb_send_query_start sends SQL as d_mariadb_exec would, never
 // waiting: it answers D_DB_WAIT until the client has sent it,
-// d_mariadb_send_query_continue going on each time -- and, with
+// d_mariadb_send_query_continue going on each time - and, with
 // libmysqlclient, whose calls read a reply only with its query, until the
 // first statement has run and its answer has come. MariaDB's client sends
 // alone, as PostgreSQL's layer does. d_mariadb_next_result_start then gives
-// the results one a call, each once it has arrived -- a statement's rows,
+// the results one a call, each once it has arrived - a statement's rows,
 // typed as 1.4 describes, or empty rows for one that returns none, and its
-// count -- and D_DB_NOT_FOUND once every result is read, continued by
+// count - and D_DB_NOT_FOUND once every result is read, continued by
 // d_mariadb_next_result_continue meanwhile. The first statement's failure
 // comes as the first result, as every failure does, and ends the results; a
-// failure of the client's own while sending -- the connection lost -- is the
+// failure of the client's own while sending - the connection lost - is the
 // send's. Until the last result is read the connection is held: every other
 // command on it is 2014, a send among them. MariaDB's client and
 // libmysqlclient from 8.0.16 can do both (D_DB_UNSUPPORTED otherwise, and
@@ -371,7 +371,7 @@ int d_mariadb_next_result_start(
     struct dj_db_rows*    _rows,
     int64_t*              _changes
 ) D_NOTHROW;
-// continuing -- _send_query_continue goes on with a send, and
+// continuing - _send_query_continue goes on with a send, and
 // _next_result_continue with a result's read, given what came, as dj_db_wait,
 // and what the start or the last continuation wrote, which receives what to
 // wait for next; each answers as its start does, and D_DB_INVALID_ARGUMENT

@@ -7,10 +7,10 @@
 * PDF without a per-dialect table engine.
 *
 *   WHY THIS EXISTS.  Both halves already had a table.  container/table carries
-* the richer MODEL -- a merge cover (regions, anchors, spans) and multi-level
-* GROUPED headers on both dimensions -- and one text renderer that round-trips
-* with table_parser.  util/document carries the richer DIALECT set -- plain,
-* Markdown, XML, HTML, PDF -- behind one semantic sink, but a flat model
+* the richer MODEL - a merge cover (regions, anchors, spans) and multi-level
+* GROUPED headers on both dimensions - and one text renderer that round-trips
+* with table_parser.  util/document carries the richer DIALECT set - plain,
+* Markdown, XML, HTML, PDF - behind one semantic sink, but a flat model
 * (DDocumentTable: a column list and string rows, no merges, no row headers).
 * Neither is wrong; they answer different questions.  This header lets the
 * richer model reach the wider dialect set, which is what makes the several
@@ -25,14 +25,14 @@
 * anything shaped like it.  The document subframework therefore does not take a
 * dependency on the table container family (which is C++17 and pulls the option
 * pack), and a text-only build pays for neither.  This is the same decoupling
-* table_metadata::conforms_to already uses -- any type with the accessors works.
+* table_metadata::conforms_to already uses - any type with the accessors works.
 *
 *   SPANS ARE A DIALECT QUESTION, so they are a POLICY (DSpanPolicy):
-*     hint  -- a layout cell emits ONCE, at its anchor, carrying colspan /
+*     hint  - a layout cell emits ONCE, at its anchor, carrying colspan /
 *              rowspan hints; covered positions are skipped entirely.  Correct
 *              for HTML, which expresses merges natively.  A dialect that
 *              ignores the hints sees a short row.
-*     fill  -- one cell per atomic position: the anchor carries the value, the
+*     fill  - one cell per atomic position: the anchor carries the value, the
 *              positions it covers render empty.  Correct for monospace and
 *              Markdown, where a row must keep its column count for the grid to
 *              line up.  The merge reads visually but is not marked.
@@ -41,9 +41,9 @@
 *
 *   GROUPED HEADERS meet a protocol that has ONE header row (table_column per
 * column).  Two honest answers, and no third:
-*     join  -- fold a column's levels into its header text ("coordinate / x").
+*     join  - fold a column's levels into its header text ("coordinate / x").
 *              Lossless in reading, works in every dialect.  The default.
-*     rows  -- emit the coarser levels as leading body rows carrying colspan.
+*     rows  - emit the coarser levels as leading body rows carrying colspan.
 *              Shows the grouping structurally; in markup they land in the body
 *              rather than the header block, which is valid but not ideal.
 *   Extending DDocumentRenderer with a header_row verb would beat both; that is
@@ -104,7 +104,7 @@ NS_DJINTERP
 
 // DSpanPolicy
 //   enum: how a model's merge cover reaches the renderer.  See the header note
-// -- `hint` is right for a dialect that expresses merges, `fill` for one whose
+// - `hint` is right for a dialect that expresses merges, `fill` for one whose
 // grid depends on every row carrying every column.
 enum class DSpanPolicy
 {
@@ -147,7 +147,7 @@ struct DTableRenderOptions
 
     // emit_row_headers
     //   whether the row headers (when the model carries them) are prepended as
-    // a leading column.  Its column header is empty -- the corner cell.
+    // a leading column.  Its column header is empty - the corner cell.
     bool                emit_row_headers;
 
     // column_aligns
@@ -269,7 +269,7 @@ NS_INTERNAL
     {
         DDocAttributes _attrs;
 
-        // an unhinted column stays unhinted -- the model carries no presentation
+        // an unhinted column stays unhinted - the model carries no presentation
         if (_index < _aligns.size())
         {
             _attrs.set(doc_attr_align, align_to_string(_aligns[_index]));
@@ -500,8 +500,8 @@ void render_table_model(
 // ===========================================================================
 // IV.  ONE-SHOT CONVENIENCE
 // ===========================================================================
-//   `render_table_model_to_string(model, format)` -- pick the dialect, apply
-// the per-format defaults, render, hand back the bytes -- lives in
+//   `render_table_model_to_string(model, format)` - pick the dialect, apply
+// the per-format defaults, render, hand back the bytes - lives in
 // table_model_dialect.hpp, not here.  It needs document_dialect.hpp, which
 // includes every renderer; this header deliberately needs none of them, so a
 // caller that already holds a renderer pays for nothing extra.  Same split as

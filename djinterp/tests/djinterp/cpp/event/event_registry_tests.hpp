@@ -26,8 +26,8 @@
 *
 *   Fixtures.  Three event tags model payloads of arity one (DEvInt), two
 * (DEvTwo), and zero (DEvNone), declared with the D_EVENT macros.  The handler
-* functors are deliberately C++11-clean (no generic lambdas) and -- crucially
-* -- take their payload value domains by value or const-reference, the only
+* functors are deliberately C++11-clean (no generic lambdas) and - crucially
+* - take their payload value domains by value or const-reference, the only
 * shapes handler_traits accepts (a non-const lvalue-reference handler such as
 * verdict(int&) is NOT a compatible handler and will not bind).  DUnaryRec /
 * DBinaryRec / DNullaryRec record invocation order and return a configurable
@@ -55,7 +55,7 @@
 #include <tuple>
 #include <vector>
 // djinterp
-// djinterp  -- framework header FIRST (event_registry.hpp requires it), then
+// djinterp  - framework header FIRST (event_registry.hpp requires it), then
 // the header under test.
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
@@ -98,7 +98,7 @@ bool event_registry_check(
 
 
 // =========================================================================
-//  shared fixtures -- event tags (payload arities 1, 2, 0)
+//  shared fixtures - event tags (payload arities 1, 2, 0)
 // =========================================================================
 
 D_EVENT(DEvInt, "t.event.registry.int", int);  // std::tuple<int>
@@ -107,7 +107,7 @@ D_EVENT_EMPTY(DEvNone, "t.event.registry.none");  // std::tuple<>
 
 
 // =========================================================================
-//  shared fixtures -- handlers (compatible: by value / const-ref only)
+//  shared fixtures - handlers (compatible: by value / const-ref only)
 // =========================================================================
 
 // DUnaryRec
@@ -215,7 +215,7 @@ struct void_h
 
 
 // =========================================================================
-//  shared fixtures -- raw erased step for direct DFusedStep construction
+//  shared fixtures - raw erased step for direct DFusedStep construction
 // =========================================================================
 
 // DStepRec

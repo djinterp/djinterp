@@ -3,7 +3,7 @@
 *
 * Line editing:
 *   The whole of the write path.  A line's own terminator is reproduced, so a
-* repair never normalises line endings it was not asked about -- a fixer that
+* repair never normalises line endings it was not asked about - a fixer that
 * changes bytes no sheet declared has become a defect itself.
 *
 *
@@ -91,7 +91,7 @@ bool d_edit_read_line(
 /*
 d_edit_rewrite_line
   Replaces one line of a file in place.  The whole file is read, one line is
-substituted, and the result is written back -- which is correct and slow, and
+substituted, and the result is written back - which is correct and slow, and
 the right shape for a first fixer: a file is rewritten only when it has a
 defect, and the alternative is an edit-ordering problem that does not need
 solving yet.
@@ -196,7 +196,7 @@ bool d_edit_rewrite_line(
 /*
 d_edit_delete_line
   Removes one line, terminator and all.  Every later line moves up by one, so
-a caller that edits by line number must re-measure afterwards -- which the
+a caller that edits by line number must re-measure afterwards - which the
 fixpoint driver already does, since it applies one repair per file per pass
 and rebuilds the tree from disk on the next.
 */

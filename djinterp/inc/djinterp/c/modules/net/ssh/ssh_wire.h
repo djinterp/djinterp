@@ -47,7 +47,7 @@ TABLE OF CONTENTS
 #include "../../../../../re_std/c/cstdint/dstdint.h"  // uint8_t, uint32_t, uint64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, and compiles to
-// nothing where the build has none -- ISO strict C++98 wherever int64_t is
+// nothing where the build has none - ISO strict C++98 wherever int64_t is
 // `long long`: a 32-bit target, 64-bit Windows or macOS (the owner's ruling of
 // 2026.10.03 on round 3's question 1, (a)). The answer is net_common.h's, taken
 // once per translation unit, so that net's gated headers agree.

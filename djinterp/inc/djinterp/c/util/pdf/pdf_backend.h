@@ -4,12 +4,12 @@
 * Backend capabilities and the backend taxonomy.
 *   A PDF backend is whatever actually writes bytes: the built-in serializer,
 * or an adapter over libHaru, PDFHummus, PoDoFo or Cairo. This header carries
-* the two VALUE types that describe one -- what it can do, and which one it is.
+* the two VALUE types that describe one - what it can do, and which one it is.
 *
 *   THE SELECTOR VALUES ARE NOT RESTATED HERE. `dj_pdf_backend_kind` is defined
 * in terms of the D_ENV_PDF_BACKEND_* macros from env_pdf.h, exactly as the C++
 * enum is. Writing 0..4 again would be a second copy of a mapping that already
-* exists in a C header both tiers include -- and a detected backend would then
+* exists in a C header both tiers include - and a detected backend would then
 * round-trip correctly through one language and not the other.
 *
 *   THERE IS NO d_pdf_env HERE, AND THAT IS THE POINT. The C++ side lifts the
@@ -21,7 +21,7 @@
 *
 *   THE ABSTRACT PROTOCOL IS DELIBERATELY ABSENT. `DPdfBackend` is a C++ class
 * with nine pure virtuals, and its C form is a struct of function pointers plus
-* a context -- a real design decision (who owns the context, what a null slot
+* a context - a real design decision (who owns the context, what a null slot
 * means, whether the table is versioned) rather than a mechanical translation.
 * It belongs with the module that first needs to dispatch through it, and
 * inventing it here to look complete would fix those answers before anything
@@ -29,7 +29,7 @@
 *
 *   CAPABILITIES DEFAULT TO TEXT-ONLY. `text` is the one capability every PDF
 * engine has, so a zeroed struct would describe a backend that cannot do
-* anything -- including the thing all of them can. `d_pdf_capabilities_init`
+* anything - including the thing all of them can. `d_pdf_capabilities_init`
 * produces the same defaults as the C++ constructor: text true, the rest false.
 * A caller memsetting the struct to zero gets a DIFFERENT default, which is why
 * the initialiser exists rather than a comment saying "zero is fine".
@@ -85,7 +85,7 @@ struct dj_pdf_capabilities
 //   THE ONE NAME THIS TIER HAS TO CARRY. env_pdf.h defines
 // D_ENV_PDF_LIBHARU_NAME, _PODOFO_NAME, _PDFHUMMUS_NAME and _CAIRO_PDF_NAME,
 // but spells the builtin's name inline inside the #else that sets
-// D_ENV_PDF_PREFERRED_BACKEND_NAME -- so there is no macro to forward. The
+// D_ENV_PDF_PREFERRED_BACKEND_NAME - so there is no macro to forward. The
 // string is duplicated here rather than invented: it must match that branch
 // exactly or the two tiers report different names for the same backend, which
 // is how the first version of this file was wrong.

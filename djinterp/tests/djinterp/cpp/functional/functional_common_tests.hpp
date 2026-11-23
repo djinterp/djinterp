@@ -1,26 +1,26 @@
 /*******************************************************************************
 * djinterp [cpp][functional]                         functional_common_tests.hpp
 *
-*   Unit-test declarations for core/functional/functional_traits.hpp -- the
+*   Unit-test declarations for core/functional/functional_traits.hpp - the
 * shared callable vocabulary (and, since the merge, its C++20 concept faces).
 * One declaration group per section of the module under test:
 *
-*     functional_traits_tests_callable.cpp   -- I.   is_callable,
+*     functional_traits_tests_callable.cpp   - I.   is_callable,
 *                                                     callable_result_t
-*     functional_traits_tests_predicate.cpp  -- II.  is_predicate
-*     functional_traits_tests_aliases.cpp    -- III. is_callable_v,
+*     functional_traits_tests_predicate.cpp  - II.  is_predicate
+*     functional_traits_tests_aliases.cpp    - III. is_callable_v,
 *                                                     is_predicate_v  (C++14+)
-*     functional_traits_tests_concepts.cpp   -- IV.  Callable, Predicate (C++20)
+*     functional_traits_tests_concepts.cpp   - IV.  Callable, Predicate (C++20)
 *
-*   FIXTURES.  The traits probe an EXPRESSION -- "can a const-lvalue F be called
-* on Args?" -- so the fixtures are chosen to pin exactly that contract from both
+*   FIXTURES.  The traits probe an EXPRESSION - "can a const-lvalue F be called
+* on Args?" - so the fixtures are chosen to pin exactly that contract from both
 * sides.  const_fn is callable; nonconst_fn (a non-const operator()) and
 * rvalue_fn (an &&-qualified one) are NOT, because neither can be invoked on a
 * const lvalue.  generic_fn / generic_pred have TEMPLATED operator()s, the shape
 * the header promises to accept and the one std::function-style probes reject.
 * On the predicate side the sharp edge is convertibility: DPredImplicit returns a
 * type with an implicit operator bool (a predicate), pred_explicit returns one
-* with an EXPLICIT operator bool (not a predicate -- not implicitly convertible),
+* with an EXPLICIT operator bool (not a predicate - not implicitly convertible),
 * and pred_int / DPredPtr return types that convert to bool by the ordinary
 * standard conversions.
 *
@@ -92,9 +92,9 @@ namespace dt = ::djinterp::test;
 ///             0.    FIXTURES                                              ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// -- callables ------------------------------------------------------------
+// - callables ------------------------------------------------------------
 
-// const_fn: the ordinary shape -- a const operator(), callable on a const
+// const_fn: the ordinary shape - a const operator(), callable on a const
 // lvalue.
 struct const_fn
 {
@@ -108,14 +108,14 @@ struct nonconst_fn
     int operator()(int _x) { return _x * 2; }
 };
 
-// rvalue_fn: an &&-qualified operator(), callable only on an rvalue -- also
+// rvalue_fn: an &&-qualified operator(), callable only on an rvalue - also
 // rejected by a const-lvalue probe.
 struct rvalue_fn
 {
     int operator()(int _x) const && { return _x; }
 };
 
-// generic_fn: a TEMPLATED operator() -- the generic-lambda shape the header
+// generic_fn: a TEMPLATED operator() - the generic-lambda shape the header
 // promises to accept.
 struct generic_fn
 {
@@ -123,7 +123,7 @@ struct generic_fn
     _Type operator()(_Type _x) const { return _x; }
 };
 
-// DOverloadedFn: an overload set -- the trait must resolve per _Args.
+// DOverloadedFn: an overload set - the trait must resolve per _Args.
 struct DOverloadedFn
 {
     int         operator()(int) const                 { return 1; }
@@ -136,7 +136,7 @@ struct void_fn
     void operator()(int) const {}
 };
 
-// ref_fn: takes and returns a reference -- pins argument-category exactness and
+// ref_fn: takes and returns a reference - pins argument-category exactness and
 // reference preservation in the result type.
 struct ref_fn
 {
@@ -170,7 +170,7 @@ inline int  free_fn(int _x)   { return _x + 1; }
 inline bool free_pred(int _x) { return _x > 0; }
 
 
-// -- bool-conversion probes (the predicate edge) --------------------------
+// - bool-conversion probes (the predicate edge) --------------------------
 
 // DImplicitBool: implicitly convertible to bool.
 struct DImplicitBool
@@ -178,7 +178,7 @@ struct DImplicitBool
     operator bool() const { return true; }
 };
 
-// DExplicitBool: EXPLICITLY convertible only -- NOT implicitly convertible, so
+// DExplicitBool: EXPLICITLY convertible only - NOT implicitly convertible, so
 // a function returning it is not a predicate.
 struct DExplicitBool
 {
@@ -186,7 +186,7 @@ struct DExplicitBool
 };
 
 
-// -- predicates -----------------------------------------------------------
+// - predicates -----------------------------------------------------------
 
 // pred_bool / pred_int / DPredPtr: results that are bool or convert to it.
 struct pred_bool
@@ -221,7 +221,7 @@ struct pred_str
     std::string operator()(int) const { return "no"; }
 };
 
-// generic_pred: a TEMPLATED predicate -- a predicate for many _Arg at once.
+// generic_pred: a TEMPLATED predicate - a predicate for many _Arg at once.
 struct generic_pred
 {
     template<typename _Type>
@@ -245,7 +245,7 @@ struct DStrPred
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
-// keep_if: the USAGE example -- Predicate<const int&> as a constrained template
+// keep_if: the USAGE example - Predicate<const int&> as a constrained template
 // parameter (the concept partially applied to its second argument).
 template<Predicate<const int&> _Pred>
 int keep_if(
@@ -261,7 +261,7 @@ int keep_if(
     return n;
 }
 
-// apply_to: the USAGE example -- Callable in a requires-clause.
+// apply_to: the USAGE example - Callable in a requires-clause.
 template<typename _Fn,
          typename _Type>
     requires Callable<_Fn, const _Type&>
@@ -356,7 +356,7 @@ bool tests_concept_callable_but_not_predicate();
 bool tests_concepts_gating();
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // functional_common_spec
 //   function: the suite as DTest's module spec, one block per section.

@@ -128,7 +128,7 @@ struct ov_is_swap_target : std::is_same<_Arg, DOvSwapTarget> {};
 //   Every test is a nullary predicate returning true iff its facet holds.
 // Grouped by the section of option_override.hpp it covers; all flat here.
 
-// -- I.  option (re)construction helpers (internal::) --
+// - I.  option (re)construction helpers (internal::) --
 bool helper_args_as_tuple();
 bool helper_rebuild_option();
 bool helper_args_rebuild_roundtrip();
@@ -136,7 +136,7 @@ bool helper_replace_or_append_arg();
 bool helper_replace_or_append_base_cases();
 bool helper_option_swap_arg();
 
-// -- II.  merge_args_union --
+// - II.  merge_args_union --
 bool merge_both_have_args();
 bool merge_base_unary();
 bool merge_delta_unary();
@@ -145,7 +145,7 @@ bool merge_delta_wins_order();
 bool merge_no_dedupe();
 bool merge_preserves_arg_qualifiers();
 
-// -- III.  lazy on_delta_only + append_if_kept (internal::) --
+// - III.  lazy on_delta_only + append_if_kept (internal::) --
 bool lazy_drop_true_yields_dropped();
 bool lazy_false_keep_delta_keeps();
 bool lazy_false_keep_base_drops();
@@ -155,7 +155,7 @@ bool lazy_true_guards_strict_assert();
 bool append_if_kept_appends();
 bool append_if_kept_skips_dropped();
 
-// -- IV.  option_set_override engine --
+// - IV.  option_set_override engine --
 bool engine_tuple_to_option_set();
 bool engine_result_is_option_set();
 bool engine_empty_base();
@@ -166,7 +166,7 @@ bool engine_overlap_replaces_whole_option();
 bool engine_overlap_preserves_base_order();
 bool engine_t_alias_matches_struct();
 
-// -- V.  ready-made policies --
+// - V.  ready-made policies --
 bool policy_override_replace();
 bool policy_override_keep();
 bool policy_override_subset();

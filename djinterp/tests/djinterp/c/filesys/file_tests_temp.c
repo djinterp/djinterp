@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                        file_tests_temp.c
 *
-*   XII. Temporaries (file_temp) -- temporary files and the temporary
+*   XII. Temporaries (file_temp) - temporary files and the temporary
 * directory. d_file_temp_stream / d_file_temp_create choose a name and open it in one step;
 * d_file_temp_create is descriptor-based and reports ENOSYS on the ISO C backend, and it
 * rewrites the caller's template in place, so the template must be a mutable
@@ -262,7 +262,7 @@ void d_fs_tests_temp(
  *****************************************************************************/
 
 /******************************************************************************
- * XII.  file_temp  --  TEMPORARY FILES
+ * XII.  file_temp  -  TEMPORARY FILES
  *****************************************************************************/
 
 /*
@@ -320,7 +320,7 @@ bool d_tests_file_tmpfile(struct dj_test_suite* _suite)
 
 /*
 d_tests_file_mkstemp
-  Tests d_file_temp_create -- the only SAFE named form.
+  Tests d_file_temp_create - the only SAFE named form.
 */
 static
 bool d_tests_file_mkstemp(struct dj_test_suite* _suite)
@@ -414,7 +414,7 @@ bool d_tests_file_tempdir(struct dj_test_suite* _suite)
     #endif
 
 #if D_FILE_TEMP_HAS_TMPNAM
-    // present for compatibility, and racy by construction -- the flaw is the
+    // present for compatibility, and racy by construction - the flaw is the
     // interface, not the implementation. Set D_CFG_FILE_TEMP_ALLOW_TMPNAM=0
     // and the symbol disappears from the object file entirely.
     memset(buf, 0, sizeof(buf));

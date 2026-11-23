@@ -140,7 +140,7 @@ int d_lex_unicode_nfc_check(
  * @note Exact when `_complete`: the sequence is decomposed, reordered and
  *       recomposed by UAX #15 and compared with itself.  When the caller
  *       holds only part of a name, only the quick check's definite answers --
- *       a NO character, or combining marks out of canonical order -- count,
+ *       a NO character, or combining marks out of canonical order - count,
  *       so the result can miss a violation but never invents one.
  *
  * @param[in] _code_points  the sequence.

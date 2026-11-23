@@ -10,7 +10,7 @@
 * "db.vendor:3", and a debug build checks their keys. A record of a vendor's
 * failure takes its code from the vendor's kind (d_sqlite_kind and the
 * others), and carries the vendor's product, code, SQLSTATE and message as
-* facts -- the message only as d_db_log_vendor_message allows.
+* facts - the message only as d_db_log_vendor_message allows.
 *
 * HOW TO USE
 * ----------

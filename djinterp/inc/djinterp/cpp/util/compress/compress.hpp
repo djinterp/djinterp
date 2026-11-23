@@ -28,7 +28,7 @@
 *   ============================================
 *   The public surface above is unchanged.  What changed is where the
 * definitions come from.  This header used to declare `status`, `DCodecId` and
-* the option set itself, in parallel with the C fork's own copies -- two
+* the option set itself, in parallel with the C fork's own copies - two
 * definitions of one formal object, so parity was a coincidence rather than a
 * construction.  All three now come from compress_common.h, which both
 * languages compile.
@@ -50,7 +50,7 @@
 *      previous enumerator still exists and still means what it did.  Code that
 *      compares against the NAMES is unaffected; code that persisted or
 *      transmitted the integer VALUE is not.  Nothing in this facade or in
-*      archive.hpp did that -- both only ever compare against status_ok -- but
+*      archive.hpp did that - both only ever compare against status_ok - but
 *      an external caller might have.
 *
 *   2. A default-constructed compress_options is PRISTINE, not zero.  See
@@ -111,7 +111,7 @@ typedef std::string byte_blob;
 
 // status
 //   type: result code returned by every non-throwing operation.  An ALIAS of
-// the kernel's enum, not a second declaration -- so a status crossing the
+// the kernel's enum, not a second declaration - so a status crossing the
 // language boundary needs no translation and cannot be translated wrongly.
 typedef enum dj_pack_status status;
 
@@ -242,7 +242,7 @@ template<typename Codec>
 struct codec_traits;
 
 // codec_traits<codecs::store>
-//   trait: store is always available -- the kernel implements it
+//   trait: store is always available - the kernel implements it
 // unconditionally, which is what keeps a build with no third-party codec a
 // working build rather than a degraded one.
 template<>
@@ -343,7 +343,7 @@ struct codec_traits<codecs::brotli>
 // compress_options.hpp, which now DERIVES it from the kernel's
 // dj_compress_options at zero cost rather than declaring a parallel copy.  The
 // dispatch leaves read `level` plus whichever per-codec block matches the
-// selected codec -- and the kernel resolves any knob left UNSET from its own
+// selected codec - and the kernel resolves any knob left UNSET from its own
 // pinned default table, so C and C++ hand a backend identical parameters.
 
 

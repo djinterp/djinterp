@@ -679,7 +679,7 @@ d_internal_slnx_place
   Where a child named `_name`, ordered by `_attribute`, goes beneath an
 element: before the first such child whose attribute sorts after
 `_value`; else after the last such child; else before the first child
-named `_after_none` -- what such children stand before -- or last.
+named `_after_none` - what such children stand before - or last.
 */
 static
 size_t d_internal_slnx_place(
@@ -1512,8 +1512,8 @@ bool d_internal_sln_remove_spans(
 
 /*
 d_internal_sln_pick
-  Adds to the spans each line from `_start` to `_close` -- of a section, or
-of a project's dependencies -- whose left side is `_left`, or, for a
+  Adds to the spans each line from `_start` to `_close` - of a section, or
+of a project's dependencies - whose left side is `_left`, or, for a
 prefix, that begins with `_left` and a `.`: a project's configurations.
 Gives how many spans there are then.
 */

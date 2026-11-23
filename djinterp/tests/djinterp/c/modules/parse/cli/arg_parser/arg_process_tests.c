@@ -5,8 +5,8 @@
 * declared in arg_process_tests.h.
 *   Each section is a case table (arg_tests_support.h): each case makes its
 * options and commands as CLI11's App("d", "prog") would, on a run's parser
-* of its own, parses its arguments -- with the environment variables it
-* names set for the parse -- and is written as the processing suite's CLI11
+* of its own, parses its arguments - with the environment variables it
+* names set for the parse - and is written as the processing suite's CLI11
 * reference writes it: a line of its tag and arguments, what its callbacks
 * noted, and the parse as the runs report one, the section's cases compared
 * whole. A callback's note names its command or option by the label the run

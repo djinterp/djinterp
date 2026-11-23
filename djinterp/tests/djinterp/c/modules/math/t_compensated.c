@@ -36,9 +36,9 @@
 * the edges: products past the range, a subnormal part, a zero operand's
 * +0, NaNs and infinities the formula's, a column with an infinity.
 *
-*   Where the build fuses a multiply and an add written apart -- gcc in its GNU
+*   Where the build fuses a multiply and an add written apart - gcc in its GNU
 * modes on a target with the instruction, clang under -ffp-contract=fast
-* (self_test.h's d_math_formulas_fuse) -- the plain formulas' bits follow the
+* (self_test.h's d_math_formulas_fuse) - the plain formulas' bits follow the
 * build (S415), and the check that dot_fast, a _fast form, makes products that
 * cancel past the range NaN is left out; the harness says so.
 *
@@ -193,7 +193,7 @@ d_tests_entry_##S(void)                                                        \
 }                                                                              \
                                                                                \
 /* whether _r is the correct rounding of a value within 4 _n^2 2^-2UW s of */  \
-/* x -- x = _x 2^_e, s = _s 2^_e: the oracle's nearest value to x, or x    */  \
+/* x - x = _x 2^_e, s = _s 2^_e: the oracle's nearest value to x, or x    */  \
 /* within that of the midpoint between _r and its neighbour toward x;      */  \
 /* *_nearest whether it is the nearest. A 0 is x's nearest where x is 0,   */  \
 /* and else within where x is, the cases' sums lying far above the least   */  \
@@ -461,7 +461,7 @@ d_tests_edges_##S(void)                                                        \
 }                                                                              \
                                                                                \
 /* mat.h's products and trace: each entry the compensated dot of its row */  \
-/* and column, the trace the compensated sum of the diagonal -- on 2,000   */  \
+/* and column, the trace the compensated sum of the diagonal - on 2,000   */  \
 /* random products of orders 1 to 5, a row of each tenth past the range    */  \
 static void                                                                    \
 d_tests_products_##S(void)                                                     \
@@ -635,7 +635,7 @@ D_TESTS_COMPENSATED_FAMILY(long double, ld, frexpl, nextafterl, LDBL_MANT_DIG,
 //   stamps, for one family, the complex kernels' checks (S410): cmat.h's
 // products against exact arithmetic and against vec.h's dot of the parts,
 // the refined complex solve on math_tests_csolve_refs.h's systems, and the
-// edges -- on the family's helpers above.
+// edges - on the family's helpers above.
 #define D_TESTS_COMPENSATED_COMPLEX(T, S, P, MINV, MAXV, MAXEXP, WIDE)         \
 /* whether _x and _y are the same value: equal, of one sign, or both NaN */    \
 static bool                                                                    \

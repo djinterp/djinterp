@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][db]                                                    postgres.h
 *
-* Umbrella for djinterp's PostgreSQL convenience layer -- includes every
+* Umbrella for djinterp's PostgreSQL convenience layer - includes every
 * module.
 *   Convenience, not architecture: each module is its own source, so a
 * program that only connects and checks for a table links postgres_common,
@@ -11,7 +11,7 @@
 *   The modules work on libpq's own connection, PGconn, and none of them
 * includes libpq-fe.h; include it as well to call libpq directly, passing the
 * same pointer. Build the sources against libpq 10 or later and link it
-* (-lpq) -- or, where there is none, as stubs that report D_DB_UNSUPPORTED
+* (-lpq) - or, where there is none, as stubs that report D_DB_UNSUPPORTED
 * (D_CFG_POSTGRES).
 *
 *

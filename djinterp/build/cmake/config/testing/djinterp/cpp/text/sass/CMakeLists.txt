@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/cpp/text/
+# djinterp [test]  -  build/cmake/config/testing/djinterp/cpp/text/
 #                      sass/CMakeLists.txt
 #
 #   Test leaf for text's Sass headers (css/sass/sass.hpp,

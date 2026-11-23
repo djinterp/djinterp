@@ -142,7 +142,7 @@ struct DTagPattern
 ///                TEST DECLARATIONS                                         ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// -- section: status codes + capture map (pattern_tests_capture.cpp)
+// - section: status codes + capture map (pattern_tests_capture.cpp)
 bool tests_status_codes();
 bool tests_capture_construction();
 bool tests_map_capacity();
@@ -156,14 +156,14 @@ bool tests_map_merge();
 bool tests_map_iteration();
 bool tests_map_entries();
 
-// -- section: match result (pattern_tests_match_result.cpp)
+// - section: match result (pattern_tests_match_result.cpp)
 bool tests_match_result_default();
 bool tests_match_result_success();
 bool tests_match_result_failure();
 bool tests_match_result_operator_bool();
 bool tests_match_result_captures();
 
-// -- section: CRTP base faces (pattern_tests_base.cpp)
+// - section: CRTP base faces (pattern_tests_base.cpp)
 bool tests_base_match();
 bool tests_base_operator_call();
 bool tests_base_extract_matched();
@@ -172,7 +172,7 @@ bool tests_base_render();
 bool tests_base_rewrite_matching();
 bool tests_base_rewrite_nonmatching();
 
-// -- section: capability traits + concept (pattern_tests_traits.cpp)
+// - section: capability traits + concept (pattern_tests_traits.cpp)
 bool tests_trait_has_input_type();
 bool tests_trait_has_key_type();
 bool tests_trait_has_value_type();
@@ -185,7 +185,7 @@ bool tests_trait_is_pattern_nonconforming();
 bool tests_trait_is_pattern_v();
 bool tests_trait_pattern_type_concept();
 
-// -- section: combinators (pattern_tests_combinators.cpp)
+// - section: combinators (pattern_tests_combinators.cpp)
 bool tests_and_match();
 bool tests_and_extract_merge();
 bool tests_and_extract_collision();

@@ -22,7 +22,7 @@
 *       p.first = 42;                       // writes through to n
 *
 * behave as the standard requires. The C++98 pass-by-value overload
-* cannot unwrap -- reference_wrapper is C++11+ -- so the deviation
+* cannot unwrap - reference_wrapper is C++11+ - so the deviation
 * survives only on that tier.
 *
 *
@@ -57,7 +57,7 @@ namespace re_std
 
     // make_pair (C++11+: perfect forwarding, decay + unwrap)
     //   function: constructs a pair<V1, V2> from forwarded arguments,
-    //   where Vi is unwrap_ref_decay<Ti> -- decay applied first
+    //   where Vi is unwrap_ref_decay<Ti> - decay applied first
     //   (stripping references and cv, and applying array-to-pointer /
     //   function-to-pointer), then reference_wrapper<X> collapsed to
     //   X&. Matches std::make_pair exactly.

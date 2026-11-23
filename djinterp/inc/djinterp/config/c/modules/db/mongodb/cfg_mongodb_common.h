@@ -4,16 +4,16 @@
 * Build-time configuration shared by every module of djinterp's MongoDB layer
 * (c/modules/db/mongodb/mongodb_*.h).
 *   One knob decides what the layer is built over: MongoDB's C driver,
-* libmongoc with libbson -- either of its lines, 1.x from 1.21 or 2.x, whose
+* libmongoc with libbson - either of its lines, 1.x from 1.21 or 2.x, whose
 * headers are both reached as <mongoc/mongoc.h> through the directory each
-* line's own flags name (pkg-config's libmongoc-1.0 or mongoc2) -- or stubs
+* line's own flags name (pkg-config's libmongoc-1.0 or mongoc2) - or stubs
 * that report D_DB_UNSUPPORTED, so that code using the layer compiles and
 * links where no driver is installed and decides at run time, as the other
 * layers do. It defaults to whether the driver's header can be found.
 *   Built over the driver, the layer's sources reach mongoc.h through
 * env_mongodb.h, which includes it only when D_CFG_ENV_USING_MONGODB is 1.
-* This file sets that knob for the layer's own sources -- each defines
-* D_INTERNAL_MONGODB_SOURCE before its first include -- unless the build
+* This file sets that knob for the layer's own sources - each defines
+* D_INTERNAL_MONGODB_SOURCE before its first include - unless the build
 * already has, and only then includes env's configuration, so that env's
 * cascade honours it (the config README, 6.2). Nothing else that includes the
 * layer meets the driver's names: not the public headers, which name only
@@ -86,9 +86,9 @@ TABLE OF CONTENTS
 // 1.1.1
 // D_CFG_MONGODB
 //   knob: build the layer over MongoDB's C driver (1) or as stubs (0).
-// Defaults to 1 where the driver's header can be found where env looks -- at
+// Defaults to 1 where the driver's header can be found where env looks - at
 // D_CFG_ENV_MONGODB_C_PATH when the build names one, else as
-// <mongoc/mongoc.h>, the path both of the driver's lines install -- and to 0
+// <mongoc/mongoc.h>, the path both of the driver's lines install - and to 0
 // where it cannot; to 1 where the preprocessor has no __has_include to look
 // with. A path the build names but cannot be found leaves the stubs. Define
 // it as 1 to require the driver, which stops a build that lacks it with an
@@ -123,9 +123,9 @@ TABLE OF CONTENTS
 // D_CFG_MONGODB_DOCUMENT_FORMAT
 //   knob: how a handle the layer makes writes the documents it returns, until
 // d_mongodb_set_document_format says otherwise (mongodb_settings.h): 0,
-// canonical extended JSON, every value's BSON type written out -- {"n":
-// {"$numberLong": "5"}} -- so that a document read and written back keeps
-// every type; 1, relaxed extended JSON, numbers as plain JSON -- {"n": 5} --
+// canonical extended JSON, every value's BSON type written out - {"n":
+// {"$numberLong": "5"}} - so that a document read and written back keeps
+// every type; 1, relaxed extended JSON, numbers as plain JSON - {"n": 5} --
 // readable, but read back an int64 that fits 32 bits becomes an int32 and a
 // double without a fraction an integer; 2, the document's BSON itself, as
 // bytes. Defaults to 0. The layer reads every extended JSON, canonical,
@@ -141,7 +141,7 @@ TABLE OF CONTENTS
 //   knob: what the driver's log may print. The driver logs through one
 // handler for the whole process, whose default prints errors, criticals and
 // warnings on stderr, and messages, information and debugging on stdout --
-// a failed sign-in among them -- where they mix with a program's own output.
+// a failed sign-in among them - where they mix with a program's own output.
 // From 0 to 6, the driver's levels (error, critical, warning, message, info,
 // debug, trace): the layer installs a handler of its own the first time it
 // makes or wraps a handle, which passes what is at that level or more urgent

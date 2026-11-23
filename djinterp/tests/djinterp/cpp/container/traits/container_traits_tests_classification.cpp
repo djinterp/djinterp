@@ -37,7 +37,7 @@ bool tests_container_class()
 {
     bool _ct_ok = true;
 
-    // -- std::array<int,4>: upper-bounded, static storage, fundamental --
+    // - std::array<int,4>: upper-bounded, static storage, fundamental --
     {
         using C = DContainerClass<std::array<int, 4>>;
         D_CT_CHECK( (!C::is_compile_time) );
@@ -50,7 +50,7 @@ bool tests_container_class()
         D_CT_CHECK( (C::has_reverse_iteration) );
     }
 
-    // -- std::vector<int>: dynamic storage, fundamental (bounds are C++20) --
+    // - std::vector<int>: dynamic storage, fundamental (bounds are C++20) --
     {
         using C = DContainerClass<std::vector<int>>;
         D_CT_CHECK( (!C::is_compile_time) );
@@ -61,7 +61,7 @@ bool tests_container_class()
         D_CT_CHECK( (C::is_upper_bounded && !C::is_unbounded) );   // C++20: constexpr max_size < SIZE_MAX/2
     }
 
-    // -- std::set<int>: enforces uniqueness, unbounded, dynamic --
+    // - std::set<int>: enforces uniqueness, unbounded, dynamic --
     {
         using C = DContainerClass<std::set<int>>;
         D_CT_CHECK( (C::enforces_uniqueness && !C::allows_duplicates) );
@@ -71,7 +71,7 @@ bool tests_container_class()
         D_CT_CHECK( (C::has_reverse_iteration) );
     }
 
-    //   -- DEmptyCt: a compile-time container whose siting is not legible (no
+    //   - DEmptyCt: a compile-time container whose siting is not legible (no
     // inline aggregate, no allocator): the axes are independent --
     {
         using C = DContainerClass<DEmptyCt>;
@@ -83,7 +83,7 @@ bool tests_container_class()
         D_CT_CHECK( (!C::has_reverse_iteration) );
     }
 
-    // -- adaptor: underlying, NOT fundamental --
+    // - adaptor: underlying, NOT fundamental --
     {
         using C = DContainerClass<DAdaptor>;
         D_CT_CHECK( (C::is_underlying && !C::is_fundamental) );
@@ -93,7 +93,7 @@ bool tests_container_class()
         D_CT_CHECK( (C::allows_duplicates) );
     }
 
-    // -- std::forward_list<int>: dynamic (its allocator); no reverse iteration --
+    // - std::forward_list<int>: dynamic (its allocator); no reverse iteration --
     {
         using C = DContainerClass<std::forward_list<int>>;
         D_CT_CHECK( (!C::is_static_storage && C::is_dynamic_storage) );

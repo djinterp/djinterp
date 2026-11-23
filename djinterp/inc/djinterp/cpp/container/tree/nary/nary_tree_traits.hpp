@@ -378,7 +378,7 @@ struct has_parent_field : has_parent<Type>
 
 // The parent() method and the unified field-or-method probe are
 // node_common.hpp's has_parent_method and has_parent_access (decision L1).
-// This header asks them of a const tree -- has_parent_access<const Type&> --
+// This header asks them of a const tree - has_parent_access<const Type&> --
 // as its own copies did.
 
 // has_depth_method
@@ -561,7 +561,7 @@ NS_INTERNAL
 
     // nary_has_remove_subtree
     //   trait: true if Type has root() and remove_subtree can be called on it
-    // with what root() returns -- node_container_traits.hpp's
+    // with what root() returns - node_container_traits.hpp's
     // has_remove_subtree_method, given an n-ary tree's argument (decision
     // L1).
     template<typename Type,
@@ -784,7 +784,7 @@ struct root_handle_type
 };
 
 // root_handle_type_t
-//   type: the carrier of root_handle_type -- its `::type`, for use where a
+//   type: the carrier of root_handle_type - its `::type`, for use where a
 // type rather than a value is wanted.
 template<typename Type>
 using root_handle_type_t =
@@ -1056,7 +1056,7 @@ struct nary_tree_node_type
 {};
 
 // nary_tree_node_type_t
-//   type: the carrier of nary_tree_node_type -- its `::type`, for use where a
+//   type: the carrier of nary_tree_node_type - its `::type`, for use where a
 // type rather than a value is wanted.
 template<typename Type>
 using nary_tree_node_type_t =
@@ -1078,7 +1078,7 @@ struct nary_tree_data_type
 };
 
 // nary_tree_data_type_t
-//   type: the carrier of nary_tree_data_type -- its `::type`, for use where a
+//   type: the carrier of nary_tree_data_type - its `::type`, for use where a
 // type rather than a value is wanted.
 template<typename Type>
 using nary_tree_data_type_t =

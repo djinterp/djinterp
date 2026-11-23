@@ -6,7 +6,7 @@
 * ap_apply runs the function-parser then the argument-parser in sequence,
 * threading the residual and short-circuiting on the first failure; ap_map is
 * the constant-function specialisation.  Unlike the monadic stratum there is no
-* value-dependency between the two effects -- the shape is static.
+* value-dependency between the two effects - the shape is static.
 *
 *
 * path:      /tests/djinterp/cpp/modules/parse/free/free_tests_applicative.cpp

@@ -4,7 +4,7 @@
 # Run in script mode by a test d_cli_add_test made (DjinterpCli.cmake): runs
 # D_CLI_TEST_COMMAND, a program and its arguments, and fails unless it ends
 # with the status D_CLI_TEST_STATUS and, where D_CLI_TEST_MATCHES is not
-# empty, what it says -- its output and its errors together -- matches that
+# empty, what it says - its output and its errors together - matches that
 # expression. What it said is printed either way, for the test's log. Where
 # D_CLI_TEST_OUTPUT_FILE is not empty, the program's output goes to that file
 # instead, and what it says is its errors alone.

@@ -1,11 +1,11 @@
 #!/bin/sh
-# ninja.sh -- the -x ninja functions, ninja_tool.awk, ninja_set.awk and
+# ninja.sh - the -x ninja functions, ninja_tool.awk, ninja_set.awk and
 # ninja_survey.awk against outputs fixed in advance, and the Ninja reader
 # and loader against ninja.
 #
 # Each case runs dawk over a file written here and compares what it prints,
 # its status, and, when it writes, the bytes it wrote. Where ninja is
-# installed, ninja_tool.awk then answers as ninja does -- what each tool
+# installed, ninja_tool.awk then answers as ninja does - what each tool
 # writes, its status, and the first line it writes to standard error --
 # over every manifest in cases/, a CR LF one made here, and, where cmake is
 # installed too, a build CMake generates for Ninja; NINJA names another
@@ -58,7 +58,7 @@ holds() {
     fi
 }
 
-# -- a file for the functions to read ------------------------------------------
+# - a file for the functions to read ------------------------------------------
 mkdir -p "$work/f"
 cat > "$work/f/build.ninja" <<'EOF'
 # the build
@@ -78,7 +78,7 @@ EOF
 printf 'rule gen\n  command = touch $out\n' > "$work/f/rules.ninja"
 cd "$work/f" || exit 2
 
-# -- reading -----------------------------------------------------------------
+# - reading -----------------------------------------------------------------
 expect 'every statement, its fields' -x ninja 'BEGIN {
     F = ninja_open("build.ninja"); n = ninja_statements(F)
     print F, n, ninja_comments(F)
@@ -140,7 +140,7 @@ expect 'statements found; paths, bindings and comments read' -x ninja 'BEGIN {
 status 0
 EOF
 
-# -- changes, and saving -----------------------------------------------------
+# - changes, and saving -----------------------------------------------------
 cp build.ninja edit.ninja
 expect 'every kind of change, kept' -x ninja 'BEGIN {
     F = ninja_open("edit.ninja")
@@ -258,7 +258,7 @@ no file has the handle 9
 status 0
 EOF
 
-# -- writing -------------------------------------------------------------------
+# - writing -------------------------------------------------------------------
 expect 'paths and values escaped; paths canonical and shell-quoted' \
        -x ninja 'BEGIN {
     printf "[%s] [%s] [%s]\n", ninja_escape("a b:c$"),
@@ -275,7 +275,7 @@ a path cannot hold a `|`, a newline, a CR or a NUL
 status 0
 EOF
 
-# -- builds --------------------------------------------------------------------
+# - builds --------------------------------------------------------------------
 expect 'a build: its edges, each binding evaluated' -x ninja 'BEGIN {
     g = ninja_load("build.ninja")
     print g, ninja_edges(g), ninja_nodes(g)
@@ -373,7 +373,7 @@ y]
 status 0
 EOF
 
-# -- ninja_tool.awk ------------------------------------------------------------
+# - ninja_tool.awk ------------------------------------------------------------
 expect 'ninja_tool: targets all' -x ninja -f "$ROOT/$TOOL" -- -t targets all <<'EOF'
 a.o: cc
 b c.o: cc
@@ -449,7 +449,7 @@ ninja_tool: no tool browse: targets, commands, query or rules
 status 2
 EOF
 
-# -- ninja_set.awk -------------------------------------------------------------
+# - ninja_set.awk -------------------------------------------------------------
 SET=$ROOT/$RES/ninja_set.awk
 cp build.ninja set.ninja
 expect 'ninja_set: variables, shown and not saved' -x ninja -f "$SET" \
@@ -492,7 +492,7 @@ holds 'ninja_set: the file as saved' set.ninja \
 build a.o b$ c.o | a.d: cc a.c | a.h || gen |@ check\n  cflags = -O3
 build app: phony a.o\ndefault app\ninclude rules.ninja\n'
 
-# -- ninja_survey.awk ----------------------------------------------------------
+# - ninja_survey.awk ----------------------------------------------------------
 mkdir -p "$work/tree/sub" "$work/tree/bad"
 cp build.ninja rules.ninja "$work/tree/sub/"
 printf 'x\n' > "$work/tree/bad/build.ninja"
@@ -517,7 +517,7 @@ status 1
 EOF
 cd "$ROOT" || exit 2
 
-# -- ninja itself ----------------------------------------------------------------
+# - ninja itself ----------------------------------------------------------------
 # answers NINJA VERSION DIR FILE ARGS...: ninja_tool.awk's must be ninja's
 answers() {
     nj=$1
@@ -614,7 +614,7 @@ else
     skipped="$skipped cmake"
 fi
 
-# -- the documents' own check: changes at random -------------------------------
+# - the documents' own check: changes at random -------------------------------
 if out=$("$UNIT" --fuzz "$work/cases" 1 200 2>&1); then
     pass=$((pass + 1))
 else

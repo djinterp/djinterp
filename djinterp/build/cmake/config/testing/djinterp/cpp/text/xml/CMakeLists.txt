@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/cpp/text/
+# djinterp [test]  -  build/cmake/config/testing/djinterp/cpp/text/
 #                      xml/CMakeLists.txt
 #
 #   Test leaf for text's XML headers (xml/xml.hpp, xml/xml_dialect.hpp and

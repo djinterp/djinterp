@@ -15,20 +15,20 @@
 // lookup per dispatch.  The static visitor pays neither: the derived visitor's
 // type is a template parameter, so `static_cast<_Derived*>(this)->visit(_element)`
 // resolves at compile time and the whole hierarchy can be devirtualized away.
-// tests_static_visitor_has_no_vtable pins that directly -- if a static visitor were
+// tests_static_visitor_has_no_vtable pins that directly - if a static visitor were
 // ever polymorphic, the strategy would have lost the only thing it is chosen for.
 //
 //   The consequence is that "the visitor does not handle this element" is no longer
 // a runtime outcome at all.  There is no default to return and no exception to
 // throw: the call simply does not compile.  That makes visit_result the load-
-// bearing piece of the section -- it is the SFINAE-friendly detector that decides
+// bearing piece of the section - it is the SFINAE-friendly detector that decides
 // whether apply() even exists for a given visitor/element pair, and
 // tests_visit_result_is_sfinae_friendly checks it reports absence as a missing
 // ::type rather than a hard error.  A detector that hard-errored would take the
 // whole overload set down with it.
 //
 //   The other thing worth pinning is apply()'s three overloads.  They differ only
-// in constness -- of the element, and of the visitor -- and the fixtures return
+// in constness - of the element, and of the visitor - and the fixtures return
 // four DIFFERENT strings precisely so a mis-selection is visible.  A visitor whose
 // overloads all returned the same thing would pass a dispatch test while apply()
 // picked the wrong one every single time.
@@ -49,7 +49,7 @@ namespace
     // has_visit_result
     //   trait: does internal::visit_result<V, E> have a ::type?  Detected rather
     // than asserted, so that "no, it does not" is an ANSWER and not a compile
-    // error -- which is the very property under test.
+    // error - which is the very property under test.
     template<typename _Visitor,
              typename _Element,
              typename = void>
@@ -183,7 +183,7 @@ tests_visit_result_distinguishes_const_elements
   - visit_result<V, E> and visit_result<V, const E> both resolve for tag_visitor,
     which has a distinct overload for each
   - const_tag_visitor, whose visit() is const-qualified, resolves under a CONST
-    visitor -- declval<const V>() cannot call a non-const member, so this is
+    visitor - declval<const V>() cannot call a non-const member, so this is
     exactly what separates apply()'s third overload from its second
   - and a non-const-callable visitor does NOT resolve under a const visitor
 */
@@ -277,7 +277,7 @@ bool tests_static_visitor_apply_selects_const_element_overload()
 
 /*
 tests_static_visitor_apply_selects_const_visitor_overload
-  Verifies a CONST VISITOR selects the third overload -- apply(const E&) const --
+  Verifies a CONST VISITOR selects the third overload - apply(const E&) const --
   which is the only one whose `this` is const and therefore the only one that can
   reach a const-qualified visit().  This is a different axis from the element's
   constness, and the two are easy to conflate.
@@ -354,7 +354,7 @@ bool tests_static_visitor_return_type_follows_the_visitor()
 /*
 tests_static_visitor_has_no_vtable
   Verifies the CRTP payoff: a static visitor is NOT polymorphic.  This is the only
-  reason to choose this strategy over the other three -- dispatch resolves at
+  reason to choose this strategy over the other three - dispatch resolves at
   compile time, there is no vtable pointer in the object and no indirect call at
   the site.  A static_visitor that had somehow acquired a virtual function would
   still pass every dispatch test in this file while having silently given up the
@@ -362,7 +362,7 @@ tests_static_visitor_has_no_vtable
   Tests the following:
   - static_visitor<D> and its derived visitors are NOT polymorphic
   - static_visitable<D> and its derived elements are NOT polymorphic
-  - by contrast, the two runtime roots ARE -- which is what makes the comparison
+  - by contrast, the two runtime roots ARE - which is what makes the comparison
     mean something rather than being a vacuous check on an empty class
 */
 bool tests_static_visitor_has_no_vtable()
@@ -391,7 +391,7 @@ bool tests_static_visitor_has_no_vtable()
 
 /*
 tests_static_visitable_accept_forwards_to_apply
-  Verifies element.accept(v) is v.apply(element) -- accept() exists only to put the
+  Verifies element.accept(v) is v.apply(element) - accept() exists only to put the
   call the other way round, and must not change the outcome.
   Tests the following:
   - accept() and apply() produce the same value, for each element
@@ -460,7 +460,7 @@ bool tests_static_visitable_accept_const()
 
 /*
 tests_static_visitable_accept_return_type
-  Verifies accept() reports the visitor's return type -- so an element can be
+  Verifies accept() reports the visitor's return type - so an element can be
   visited by visitors of entirely different result types without the element
   knowing anything about them.
   Tests the following:
@@ -498,8 +498,8 @@ bool tests_static_visitable_accept_return_type()
 /*
 tests_static_visitor_dispatch_is_compile_time
   Verifies the strategy's defining property: an unhandled element is a COMPILE-TIME
-  fact.  There is no default return and no exception -- the two runtime strategies'
-  answers to this question -- because there is no runtime dispatch at all.  The call
+  fact.  There is no default return and no exception - the two runtime strategies'
+  answers to this question - because there is no runtime dispatch at all.  The call
   simply does not exist.
   Tests the following:
   - apply() and accept() exist for every handled element
@@ -517,7 +517,7 @@ bool tests_static_visitor_dispatch_is_compile_time()
     static_assert(has_apply<tag_visitor, static_rect>::value,
                   "for each visitor/element pair that is handled");
 
-    // unhandled: the call does NOT exist.  No default, no throw -- no function.
+    // unhandled: the call does NOT exist.  No default, no throw - no function.
     static_assert(!has_apply<id_visitor, static_tri>::value,
                   "and does not exist at all for an unhandled one");
     static_assert(!has_apply<tag_visitor, static_tri>::value,

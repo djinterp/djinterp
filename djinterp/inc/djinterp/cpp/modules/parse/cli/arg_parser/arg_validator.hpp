@@ -4,24 +4,24 @@
 * The argument parser's C++ face: validators.
 *   `cli::validator` is CLI11's Validator as a C++ value: it derives from
 * struct dj_arg_validator and adds nothing, owns what the C validator owns,
-* copies it whole -- d_arg_validator_copy -- and releases it when it goes,
+* copies it whole - d_arg_validator_copy - and releases it when it goes,
 * so a validator is made, kept, copied and combined as any value is, and an
 * option given one keeps a copy, or, from C++11, takes one that is moved.
 * `&`, `|` and `!` combine validators as CLI11's operators do, through
 * d_arg_validator_and, _or and _not.
 *   Any function object that takes a std::string& and returns a std::string
-* -- the empty string to pass the value, a reason to reject it -- makes a
+* - the empty string to pass the value, a reason to reject it - makes a
 * validator, as CLI11's Validator(op, description, name) does: the
 * validator owns a copy of it, which a copied validator copies, so a lambda
 * costs what it captures. What it throws, in a build with exceptions, stops
 * the validation with what() as the reason, as CLI11's throw does.
 *   CLI11's validators are functions here, named as CLI11 names them in lower
-* case -- range(), is_member(), existing_file() -- each returning the C
+* case - range(), is_member(), existing_file() - each returning the C
 * library's validator. Those of arg_validator_extra.h and
 * arg_validator_path.h exist with their knobs,
 * D_INTERNAL_ARG_PARSER_EXTRA_VALIDATORS and _PATH_VALIDATORS. A filter --
 * ignore_case, ignore_underscore, ignore_space, or a function of the caller's
-* -- is a cli::filter, so that is_member(set, cli::ignore_case) reads as
+* - is a cli::filter, so that is_member(set, cli::ignore_case) reads as
 * CLI11's IsMember does; filters exist with the extra validators, as the C
 * library's do.
 *
@@ -153,8 +153,8 @@ namespace cli
 // 1.1.1
 // validator
 //   class: CLI11's Validator: a dj_arg_validator owned as a value. A copy is
-// whole -- the name, the description and the context, through the
-// context's own copy function -- and may fail as d_arg_validator_copy
+// whole - the name, the description and the context, through the
+// context's own copy function - and may fail as d_arg_validator_copy
 // fails: the copy is then a failed validator, whose status get_status()
 // gives, and which an option it is given to records as a definition error,
 // as CLI11 would throw. A validator whose function is a C++ object holds a
@@ -166,7 +166,7 @@ public:
     // making: CLI11's default Validator, which passes every value and
     // describes nothing; one described by the text alone, as CLI11's
     // Validator(desc); and one over a C validator, which this one takes
-    // over -- the caller must no longer release it
+    // over - the caller must no longer release it
     validator() D_NOEXCEPT;
     explicit
     validator(
@@ -275,8 +275,8 @@ public:
         const std::string& _value
     ) const;
 
-    // handing over: the C validator, which the caller -- a C call that
-    // consumes it -- now owns; this one is left the default validator
+    // handing over: the C validator, which the caller - a C call that
+    // consumes it - now owns; this one is left the default validator
     ::dj_arg_validator detach() D_NOEXCEPT;
 
     // swapping: two validators exchange what they hold; neither fails
@@ -346,8 +346,8 @@ D_STATIC_ASSERT( (sizeof(validator) == sizeof(::dj_arg_validator)),
 //------------------------------------------------------------------------------
 // 1.4.1
 // DValidatorHandle
-//   class: a handle on a validator an option holds -- one pointer, as CLI11's
-// get_validator() gives a Validator* -- with the validator's settings and
+//   class: a handle on a validator an option holds - one pointer, as CLI11's
+// get_validator() gives a Validator* - with the validator's settings and
 // readers; a NULL handle, which every call ignores, when there is none. The
 // option owns the validator: the handle is valid until the option is
 // released or the validator removed, and copy() makes an owned one.
@@ -415,7 +415,7 @@ private:
 //   class: how a set or a mapping compares a value with its members: a
 // dj_arg_filter owned as a value. CLI11's three filters are flags, which the
 // C library applies first, in any order; a function object of the caller's
-// -- taking a std::string and returning one, as CLI11's filters do -- runs
+// - taking a std::string and returning one, as CLI11's filters do - runs
 // after them, a copy of it owned by the filter and copied with it. A filter
 // is made from a function implicitly, so that is_member(set, function)
 // reads as CLI11's IsMember does, and from CLI11's filters as functions,
@@ -473,8 +473,8 @@ public:
 // ignore_case / ignore_underscore / ignore_space
 //   functions: CLI11's three filters: ASCII letters compared as lower case;
 // `_` removed; spaces and tabs removed. None allocates or fails; none is
-// declared noexcept, so that each is a `filter (*)()` -- which filter's
-// constructor takes -- at every language level, C++17's included.
+// declared noexcept, so that each is a `filter (*)()` - which filter's
+// constructor takes - at every language level, C++17's included.
 filter ignore_case();
 filter ignore_underscore();
 filter ignore_space();
@@ -501,7 +501,7 @@ D_STATIC_ASSERT( (sizeof(filter) == sizeof(::dj_arg_filter)),
 // Each returns the C library's validator, whose contract (arg_validator.h,
 // arg_validator_extra.h, arg_validator_path.h) says what it accepts,
 // rewrites, rejects with and is described as. A construction that fails --
-// a bad argument, a copy refused -- returns a failed validator, which an
+// a bad argument, a copy refused - returns a failed validator, which an
 // option records as a definition error.
 
 
@@ -510,7 +510,7 @@ D_STATIC_ASSERT( (sizeof(filter) == sizeof(::dj_arg_filter)),
 // 3.1.1
 // range
 //   functions: CLI11's Range(min, max) and Range(max), from 0, over an
-// arithmetic type -- one of the C library's built-in types -- or, from
+// arithmetic type - one of the C library's built-in types - or, from
 // C++11, an enumeration, compared as the number it converts through;
 // described, unless a description is given, as "<TYPE> in [<min> - <max>]",
 // an enumeration's TYPE "ENUM" and its bounds numbers, as CLI11 writes an
@@ -544,8 +544,8 @@ validator escaped_string();
 //------------------------------------------------------------------------------
 // 3.2.1
 // type_validator / number
-//   functions: CLI11's TypeValidator<T> -- the value must convert to the
-// type, "Failed parsing <value> as a <TYPE>" when it does not -- and
+//   functions: CLI11's TypeValidator<T> - the value must convert to the
+// type, "Failed parsing <value> as a <TYPE>" when it does not - and
 // Number. A built-in type is the C library's d_arg_validator_type; any
 // other converts into an object of its own, through type_traits.
 template<typename Type>
@@ -576,7 +576,7 @@ validator valid_ipv4();
 // is_member
 //   functions: CLI11's IsMember over the elements of a container, an array
 // or, from C++11, a braced list, and up to three filters, combined as `|`
-// combines them. An element that is a pair -- a map's included -- is its
+// combines them. An element that is a pair - a map's included - is its
 // first, as CLI11 takes a map's keys. Members of a built-in type or an
 // enumeration are compared as values of their type, as CLI11 compares
 // them; any other as the text type_traits writes them as. Each member is
@@ -610,7 +610,7 @@ validator is_member(
 // transformer / checked_transformer
 //   functions: CLI11's Transformer and CheckedTransformer over a mapping --
 // a container of pairs, std::map among them, or, from C++11, a braced list
-// of std::pair<std::string, std::string> -- and up to three filters. Keys
+// of std::pair<std::string, std::string> - and up to three filters. Keys
 // compare as is_member's elements do; each key and value is written as
 // text, which the C library copies.
 template<typename Mapping>
@@ -732,9 +732,9 @@ NS_INTERNAL
     // copy_context / release_context
     //   functions: the copy and release functions of a context that is a C++
     //   object, as dj_arg_copy_fn and dj_arg_release_fn: a copy made with
-    //   `new (std::nothrow)`, NULL when it could not be made -- the
+    //   `new (std::nothrow)`, NULL when it could not be made - the
     //   allocation refused, or the copy constructor throwing, which is
-    //   caught -- and `delete`.
+    //   caught - and `delete`.
     template<typename Context>
     void* copy_context(
         const void* _context
@@ -776,8 +776,8 @@ NS_INTERNAL
     //   ran out stops the validation as status_code::out_of_memory; any
     //   other exception rejects the value and stops the validation as
     //   status_code::validation_error, with what() as the reason, or, with
-    //   no words, the status's own -- an exception never passes the value,
-    //   as an empty reason would -- and a reason that cannot be kept stops
+    //   no words, the status's own - an exception never passes the value,
+    //   as an empty reason would - and a reason that cannot be kept stops
     //   it with that failure.
     class DValidationFailure
     {
@@ -932,8 +932,8 @@ NS_INTERNAL
     // compare_type
     //   trait: the descriptor a set compares its members as: the type's own
     //   for one of the C library's built-in types other than the text types
-    //   and, from C++11, for an enumeration -- objects the C library may make
-    //   without constructing them -- and NULL, comparing text, for any other.
+    //   and, from C++11, for an enumeration - objects the C library may make
+    //   without constructing them - and NULL, comparing text, for any other.
     template<typename Type>
     struct compare_type
     {
@@ -944,7 +944,7 @@ NS_INTERNAL
     // 4.4.2
     // member_of
     //   trait: the part of an element a set compares, as CLI11's
-    //   pair_adaptor reads one: a pair's first -- a map's key -- and any
+    //   pair_adaptor reads one: a pair's first - a map's key - and any
     //   other element whole; `type` is that part's type, without the const
     //   of a map's key, and `get()` reaches it.
     template<typename Element>
@@ -1033,7 +1033,7 @@ NS_INTERNAL
     // failed_validator
     //   function: a validator that failed with a status, for a set whose
     //   members could not be written: the C library's failed validator --
-    //   which owns nothing -- carrying the status.
+    //   which owns nothing - carrying the status.
     validator failed_validator(
         const cli::status& _status
     );
@@ -2033,7 +2033,7 @@ validator valid_ipv4()
 }
 
 // is_member
-//   Each element's member -- a pair's first, any other element whole --
+//   Each element's member - a pair's first, any other element whole --
 // written as text, then the C constructor over the texts, the member type's
 // descriptor to compare as, and the filters combined.
 template<typename Container>
@@ -2780,8 +2780,8 @@ validator internal::mapping_validator(
 
 // internal::describe_validator / run_validator
 //   The description into a scratch buffer; a validation of the value, run,
-// read back -- the value rewritten when it changed, and the reason, or, for
-// an error with none recorded, the status's text -- and released.
+// read back - the value rewritten when it changed, and the reason, or, for
+// an error with none recorded, the status's text - and released.
 inline
 std::string internal::describe_validator(
     const ::dj_arg_validator* _validator
@@ -2871,7 +2871,7 @@ std::string internal::run_validator(
 }
 
 // internal::name_enumeration
-//   The description worked out, its first word -- the name of the type --
+//   The description worked out, its first word - the name of the type --
 // replaced.
 inline
 void internal::name_enumeration(

@@ -32,7 +32,7 @@
 *   A row was an interned key beside an untyped `void*`, and that pointer is
 * still borrowed, still never dereferenced or freed by the container, still the
 * caller's business in every respect that matters.  What it lacked was any
-* statement of how many bytes it leads to or what they mean -- so two metadata
+* statement of how many bytes it leads to or what they mean - so two metadata
 * Values could not be compared.  dj_option has d_option_carrier_eq for exactly
 * this; metadata had nothing, so a parity diff over metadata could compare keys
 * and pointer identity and no more.  Metadata is where a suite attaches its
@@ -40,7 +40,7 @@
 *
 *   The row grows from two members to five and, at the default key width, from
 * sixteen bytes to twenty-four.  That is the same trade test_object.h makes for
-* `status` in its own words -- widening costs bytes and removes a question --
+* `status` in its own words - widening costs bytes and removes a question --
 * rather than a new principle.
 *
 * IT IS NOT A KNOB
@@ -64,8 +64,8 @@
 *   DBasicMetadata<> is std::string to std::string, owning and allocating; this
 * is an interned id to a borrowed void*.  Those are not divergent in layout,
 * they are divergent in ownership, and no amount of descriptor work closes
-* that.  Typing the value narrows the gap -- values become comparable across
-* the boundary -- and the interned key closes the key half outright, since
+* that.  Typing the value narrows the gap - values become comparable across
+* the boundary - and the interned key closes the key half outright, since
 * interning a std::string at the boundary is what interning is for.  The value
 * half waits for dj_string, exactly as test_object.h says.
 *
@@ -125,11 +125,11 @@
 // D_EXTERN_C and leave D_EXTERN_C_END unchanged.  That pairing does not
 // compile: djinterp.h defines D_EXTERN_C as a linkage specification on ONE
 // declaration and D_EXTERN_C_BEGIN/_END as the block form, and flags the
-// asymmetry itself -- "`extern "C" { ... }` is a linkage block, `extern "C"
+// asymmetry itself - "`extern "C" { ... }` is a linkage block, `extern "C"
 // decl;` is a linkage specification on one declaration."  Swapping only the
 // opener leaves `extern "C"` applied to the next declaration and an unmatched
-// `}` at the end of the file.  The guard removal -- which is what §8 is
-// actually for -- is done; the token swap is not.  See the log.
+// `}` at the end of the file.  The guard removal - which is what §8 is
+// actually for - is done; the token swap is not.  See the log.
 
 //   THE WHOLE MODULE IS OPTIONAL, AND THIS IS THE GATE.  With
 // D_CFG_TEST_METADATA off, this header declares nothing: no struct, no
@@ -139,7 +139,7 @@
 //
 //   struct dj_test_object's LAYOUT DOES NOT CHANGE EITHER WAY.  Its metadata
 // member is a POINTER, and a pointer to an incomplete type is legal whether or
-// not this header declared one -- so the node is the same size and shape in
+// not this header declared one - so the node is the same size and shape in
 // both configurations. That is why revision.md 6 chose a pointer over an
 // embedded member: optionality that alters a shared struct is the one-layout
 // hazard of dconfig 6.2, and two TUs disagreeing about sizeof diagnose as
@@ -154,7 +154,7 @@ D_EXTERN_C_BEGIN
 // =============================================================================
 
 // dj_test_kv
-//   struct: one metadata row.  Both halves are BORROWED -- the key is
+//   struct: one metadata row.  Both halves are BORROWED - the key is
 // normally a literal and the value usually is too.  This is the C form of
 // DKvPair<_Key, _Value> at the framework's default instantiation.
 // dj_test_key_id
@@ -176,7 +176,7 @@ D_STATIC_ASSERT((sizeof(dj_test_key_id) == 1) || (sizeof(dj_test_key_id) == 2) |
 
 // dj_test_kv
 //   struct: one interned key and one BORROWED, UNTYPED value. The container
-// stores the pointer and never dereferences, copies or frees it -- what it
+// stores the pointer and never dereferences, copies or frees it - what it
 // points at, how long it lives and what type it really is are all the caller's
 // business.
 struct dj_test_kv
@@ -187,7 +187,7 @@ struct dj_test_kv
 
 // dj_test_metadata
 //   struct: a flat, back-insertable row sequence with linear-scan lookup.
-// Borrowed storage, never owned, never grown -- set() on a full container
+// Borrowed storage, never owned, never grown - set() on a full container
 // returns FULL rather than reallocating.
 //
 //   ORDER IS INSERTION ORDER and that is a contract, not an accident: a
@@ -213,14 +213,14 @@ struct dj_test_metadata
 #define D_TEST_METADATA_MISS    ((void*)0)
 
 //   THE NEVER-NULL CONTRACT IS GONE, AND IT COULD NOT SURVIVE THIS CHANGE.
-// MISS was "" -- an empty string, matching what a value-initialised
+// MISS was "" - an empty string, matching what a value-initialised
 // std::string is, so the C++ face's container and this one agreed about a miss
 // without converting, and get() could be printed without a null test. A void*
 // has no empty value. Null is the only miss a pointer can express.
 //
 //   SO get() CAN NOW RETURN NULL, and two different situations return it: the
 // key is absent, and the key is present with a null value. THAT IS WHAT
-// contains() IS FOR -- it was already the documented way to tell those apart
+// contains() IS FOR - it was already the documented way to tell those apart
 // back when the distinction was rarer. It is now the only way, and every caller
 // that reads a value it did not itself store needs it.
 //
@@ -264,7 +264,7 @@ D_STATIC_ASSERT(offsetof(struct dj_test_metadata, count) >
 // briefly specified a null return here.  It was wrong on three counts and the
 // rev02 session was right to flag it rather than implement it quietly: it
 // contradicted the summary sentence directly above it ("a null container reads
-// as empty" -- and an EMPTY container's get returns MISS); it broke
+// as empty" - and an EMPTY container's get returns MISS); it broke
 // D_TEST_METADATA_MISS' standing contract ("Never null: a caller printing the
 // result would then have to test it, and half of them would not"); and it was a
 // silent change to EXISTING behaviour, since the delivered get() already
@@ -315,7 +315,7 @@ D_EXTERN_C_END
 // test_object.h's pointer member still names a type and every consumer that
 // only stores or forwards the pointer keeps compiling. A consumer that tries to
 // DEREFERENCE it gets an incomplete-type error naming this file, which is the
-// diagnostic you want -- not an unknown-identifier error three headers away.
+// diagnostic you want - not an unknown-identifier error three headers away.
 struct dj_test_metadata;
 
 #endif  // D_INTERNAL_TEST_METADATA

@@ -128,7 +128,7 @@ struct tick
 ///                TEST DECLARATIONS                                         ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// -- section: configuration & mediator traits (mediator_tests_traits.cpp)
+// - section: configuration & mediator traits (mediator_tests_traits.cpp)
 bool tests_feature_gates();
 bool tests_has_notify_method();
 bool tests_has_subscribe_method();
@@ -138,7 +138,7 @@ bool tests_is_mediator_like();
 bool tests_is_colleague_like();
 bool tests_mediator_capability();
 
-// -- section: classic mediator (mediator_tests_classic.cpp)
+// - section: classic mediator (mediator_tests_classic.cpp)
 bool tests_colleague_id_type();
 bool tests_colleague_base_defaults();
 bool tests_concrete_mediator_add();
@@ -146,7 +146,7 @@ bool tests_concrete_mediator_broadcast();
 bool tests_concrete_mediator_remove();
 bool tests_colleague_send_no_mediator();
 
-// -- section: event bus (mediator_tests_event_bus.cpp)
+// - section: event bus (mediator_tests_event_bus.cpp)
 bool tests_subscription_token_type();
 bool tests_event_bus_subscribe_publish();
 bool tests_event_bus_type_filtering();
@@ -159,7 +159,7 @@ bool tests_event_bus_notify_type_gated();
 bool tests_event_bus_handler_counts();
 bool tests_event_bus_clear();
 
-// -- section: variant event bus (mediator_tests_variant_bus.cpp)
+// - section: variant event bus (mediator_tests_variant_bus.cpp)
 bool tests_variant_bus_subscribe_publish();
 bool tests_variant_bus_multiple_types();
 bool tests_variant_bus_subscribe_all();
@@ -167,7 +167,7 @@ bool tests_variant_bus_unsubscribe();
 bool tests_variant_bus_handler_count();
 bool tests_variant_bus_clear();
 
-// -- section: signal hub (mediator_tests_signal_hub.cpp)
+// - section: signal hub (mediator_tests_signal_hub.cpp)
 bool tests_signal_id_type();
 bool tests_signal_hub_connect_emit();
 bool tests_signal_hub_connect_literal();
@@ -181,7 +181,7 @@ bool tests_signal_hub_string_view_connect();
 bool tests_signal_hub_has_channel();
 bool tests_signal_hub_clear();
 
-// -- section: static mediator — CRTP (mediator_tests_static.cpp)
+// - section: static mediator — CRTP (mediator_tests_static.cpp)
 bool tests_static_colleague_defaults();
 bool tests_static_mediator_register();
 bool tests_static_mediator_get_colleague();
@@ -189,12 +189,12 @@ bool tests_static_mediator_broadcast();
 bool tests_static_mediator_broadcast_reverse();
 bool tests_static_colleague_send_no_mediator();
 
-// -- section: dispatch policies (mediator_tests_dispatch.cpp)
+// - section: dispatch policies (mediator_tests_dispatch.cpp)
 bool tests_broadcast_policy();
 bool tests_targeted_policy();
 bool tests_filtered_policy();
 
-// -- section: factories + concept-constrained interfaces (mediator_tests_factory_concepts.cpp)
+// - section: factories + concept-constrained interfaces (mediator_tests_factory_concepts.cpp)
 bool tests_make_event_bus();
 bool tests_make_signal_hub();
 bool tests_subscribe_many();

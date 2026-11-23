@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][net]                                          smtp_tests_client.c
 *
-* djinterp SMTP kernel tests -- client sessions.
+* djinterp SMTP kernel tests - client sessions.
 *   Standalone tests of smtp_client.c over net_tests_peer.h's scripted peer,
 * which checks the exact bytes on the wire: pipelining, SASL (CRAM-MD5
 * against RFC 2195's own example among it), the HELO fallback, recipient
@@ -939,8 +939,8 @@ void d_tests_smtp_command(
 /*
 d_tests_smtp_script_for
   What a peer that takes everything says to a pipelined session sending from
-`_envelope` -- a greeting, an EHLO list of PIPELINING alone, and a positive
-reply to every command -- into `_replies`; and what the session must write
+`_envelope` - a greeting, an EHLO list of PIPELINING alone, and a positive
+reply to every command - into `_replies`; and what the session must write
 into `_wire`, `_body` being the message as it must go, its end included.
 */
 static

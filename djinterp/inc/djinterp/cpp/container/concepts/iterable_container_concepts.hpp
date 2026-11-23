@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                      iterable_container_concepts.hpp
 *
-* C++20 concepts for the ITERABILITY axis -- the `requires`-facing view of
+* C++20 concepts for the ITERABILITY axis - the `requires`-facing view of
 * iterable_container_traits.hpp.
 *
 *   THE CONCEPTS ADD NO POLICY.
@@ -50,15 +50,15 @@ NS_DJINTERP
 
 // IterableContainer
 //   concept: exposes a begin()/end() traversal. Two thirds of the trait system
-// keys on this -- copy, merge, filter, conversion, transform all walk elements
-// -- so a container without it is not less convenient, it is INVISIBLE.
+// keys on this - copy, merge, filter, conversion, transform all walk elements
+// - so a container without it is not less convenient, it is INVISIBLE.
 template<typename Type>
 concept IterableContainer = is_iterable_container_v<Type>;
 
 
 // PositionalOnlyContainer
 //   concept: looks like a container (it has value_type) but offers NO
-// traversal -- positional access only.
+// traversal - positional access only.
 template<typename Type>
 concept PositionalOnlyContainer = is_non_iterable_container_v<Type>;
 
@@ -75,7 +75,7 @@ concept ConstIterableContainer = is_const_iterable_container_v<Type>;
 
 
 // MutablyIterableContainer
-//   concept: *begin() is a settable lvalue -- values may be REPLACED at
+//   concept: *begin() is a settable lvalue - values may be REPLACED at
 // existing positions. This does NOT subsume insertion or erasure; that is the
 // Mutability axis.
 template<typename Type>

@@ -118,7 +118,7 @@ NS_INTERNAL
               m_open(true)
         {}
 
-        // feed -- replaces the bytes reads deliver, from their start
+        // feed - replaces the bytes reads deliver, from their start
         void feed(
             const std::vector<net::byte>& _input
         )
@@ -215,7 +215,7 @@ NS_INTERNAL
         std::size_t            shutdowns;  // shutdown calls
 
     private:
-        // m_cut -- a request cut to what is available and to the limit
+        // m_cut - a request cut to what is available and to the limit
         std::size_t m_cut(
             std::size_t _wanted,
             std::size_t _available

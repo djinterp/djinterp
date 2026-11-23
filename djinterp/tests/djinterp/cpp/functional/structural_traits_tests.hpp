@@ -1,40 +1,40 @@
 /*******************************************************************************
 * djinterp [cpp][functional]                         structural_traits_tests.hpp
 *
-*   Unit-test declarations for core/functional/structural_traits.hpp -- the
+*   Unit-test declarations for core/functional/structural_traits.hpp - the
 * structural detection traits behind the parse/scanner/pattern layers and the
 * functional dataflow roles (producer / consumer / view).  One declaration group
 * per section of the module under test:
 *
-*     structural_traits_tests_members.cpp   -- I.   has_match_result_type,
+*     structural_traits_tests_members.cpp   - I.   has_match_result_type,
 *                                                    has_find_method
-*     structural_traits_tests_arity.cpp     -- II.  the arity trilogy
+*     structural_traits_tests_arity.cpp     - II.  the arity trilogy
 *                                                    (nullary / unary / binary)
-*     structural_traits_tests_optional.cpp  -- III. DProducesOptionalLike,
+*     structural_traits_tests_optional.cpp  - III. DProducesOptionalLike,
 *                                                    is_unfold_step
-*     structural_traits_tests_aliases.cpp   -- IV.  the _v shorthands (C++14+)
-*     structural_traits_tests_concepts.cpp  -- V.   BinaryCallable, Reducer,
+*     structural_traits_tests_aliases.cpp   - IV.  the _v shorthands (C++14+)
+*     structural_traits_tests_concepts.cpp  - V.   BinaryCallable, Reducer,
 *                                                    Transducer, UnfoldStep
 *
 *   FIXTURES.  Every trait here is a SFINAE probe of one exact expression, so the
 * fixtures are chosen to pin each probe from every side it can be got at.
 *
-*   The arity trilogy probes `declval<T&>()` -- a MUTABLE lvalue.  Four fixtures
+*   The arity trilogy probes `declval<T&>()` - a MUTABLE lvalue.  Four fixtures
 * determine that expression uniquely and admit no other: DConstStep (a const
-* operator(), accepted), DMutStep (a NON-const one, accepted -- so the probe is
-* not `const T&`), DLrefStep (an &-qualified one, accepted -- so it is an lvalue),
-* and DRrefStep (an &&-qualified one, REJECTED -- so it is not `T&&`).  The
+* operator(), accepted), DMutStep (a NON-const one, accepted - so the probe is
+* not `const T&`), DLrefStep (an &-qualified one, accepted - so it is an lvalue),
+* and DRrefStep (an &&-qualified one, REJECTED - so it is not `T&&`).  The
 * mutable half is load-bearing, not incidental: a pull source advances on every
 * call and a tallying reducer accumulates, so both must have a non-const
 * operator().  Note this is the OPPOSITE of functional_traits' is_callable, which
-* probes a const lvalue -- and note has_find_method, in this same header, probes
+* probes a const lvalue - and note has_find_method, in this same header, probes
 * `declval<const T&>()` too.
 *
 *   has_find_method converts the result with static_cast<bool>, an EXPLICIT
 * conversion, so DPatExplicit (whose find returns a type with an explicit
 * operator bool) is accepted where an implicit-convertibility check would refuse
-* it.  The optional-like traits require BOTH halves -- bool-testable AND
-* dereferenceable -- so DSrcInt (testable, not dereferenceable) and DSrcDeref
+* it.  The optional-like traits require BOTH halves - bool-testable AND
+* dereferenceable - so DSrcInt (testable, not dereferenceable) and DSrcDeref
 * (dereferenceable, not testable) each fail on exactly one.
 *
 *   Fixtures are named functors rather than lambdas, and maybe<T> is a plain
@@ -110,10 +110,10 @@ namespace dt = ::djinterp::test;
 ///             0.    FIXTURES                                              ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// -- the optional-like carrier -------------------------------------------
+// - the optional-like carrier -------------------------------------------
 
 // maybe
-//   fixture carrier: bool-testable and dereferenceable -- the shape a pull
+//   fixture carrier: bool-testable and dereferenceable - the shape a pull
 // source yields. A plain aggregate (no NSDMI, no user constructor) so it
 // brace-initialises on every floor, including C++11.
 template<typename _Type>
@@ -126,7 +126,7 @@ struct maybe
     const _Type& operator*() const { return value; }
 };
 
-// DDerefOnly: dereferenceable but NOT bool-testable -- fails exactly one half.
+// DDerefOnly: dereferenceable but NOT bool-testable - fails exactly one half.
 struct DDerefOnly
 {
     int operator*() const { return 1; }
@@ -140,11 +140,11 @@ struct DExplicitBool
 };
 
 
-// -- patterns (the scanner protocol) --------------------------------------
+// - patterns (the scanner protocol) --------------------------------------
 
 // DPatScan
 //   fixture pattern: the canonical searchable shape --
-// `bool find(const In&, size_t&, Result&) const` -- and it really scans, so the
+// `bool find(const In&, size_t&, Result&) const` - and it really scans, so the
 // detected shape can be driven, not merely recognised. Finds each 'x' in the
 // input, writing the position into the result and advancing pos.
 struct DPatScan
@@ -170,14 +170,14 @@ struct DPatNone
 {
 };
 
-// DPatNonconst:  find is NOT const -- rejected, because has_find_method probes a
+// DPatNonconst:  find is NOT const - rejected, because has_find_method probes a
 //                const lvalue (unlike the arity traits in this same header).
 struct DPatNonconst
 {
     bool find(const std::string&, std::size_t&, int&) { return true; }
 };
 
-// DPatVoid:      find yields void -- not static_cast-able to bool.
+// DPatVoid:      find yields void - not static_cast-able to bool.
 struct DPatVoid
 {
     void find(const std::string&, std::size_t&, int&) const {}
@@ -196,7 +196,7 @@ struct DPatString
     }
 };
 
-// DPatExplicit:  find yields an EXPLICITLY bool-convertible type -- accepted,
+// DPatExplicit:  find yields an EXPLICITLY bool-convertible type - accepted,
 //                since the probe uses static_cast<bool>.
 struct DPatExplicit
 {
@@ -210,13 +210,13 @@ struct DPatExplicit
     }
 };
 
-// DPatInt:       find yields int -- converts to bool, so accepted.
+// DPatInt:       find yields int - converts to bool, so accepted.
 struct DPatInt
 {
     int find(const std::string&, std::size_t&, int&) const { return 1; }
 };
 
-// DPatByvalue:   find takes size_t by value and the result by const ref -- still
+// DPatByvalue:   find takes size_t by value and the result by const ref - still
 //                callable with the probe's lvalues, so accepted.
 struct DPatByvalue
 {
@@ -253,15 +253,15 @@ struct DMrtData
 };
 
 
-// -- callables, by arity and by qualifier ---------------------------------
+// - callables, by arity and by qualifier ---------------------------------
 
-// DConstStep:  a const operator()          -- accepted (callable on an lvalue).
+// DConstStep:  a const operator()          - accepted (callable on an lvalue).
 struct DConstStep
 {
     int operator()(int _x) const { return _x * 2; }
 };
 
-// DMutStep:    a NON-const operator()      -- accepted; the probe is not const.
+// DMutStep:    a NON-const operator()      - accepted; the probe is not const.
 struct DMutStep
 {
     int calls;
@@ -271,19 +271,19 @@ struct DMutStep
     int operator()(int _x) { ++calls; return _x * 2; }
 };
 
-// DLrefStep:   an &-qualified operator()   -- accepted; the probe is an lvalue.
+// DLrefStep:   an &-qualified operator()   - accepted; the probe is an lvalue.
 struct DLrefStep
 {
     int operator()(int _x) & { return _x; }
 };
 
-// DRrefStep:   an &&-qualified operator()  -- REJECTED; the probe is not T&&.
+// DRrefStep:   an &&-qualified operator()  - REJECTED; the probe is not T&&.
 struct DRrefStep
 {
     int operator()(int _x) && { return _x; }
 };
 
-// in_place:    takes int& -- undetectable, because clean_t strips the reference
+// in_place:    takes int& - undetectable, because clean_t strips the reference
 //              off _Arg and the probe then offers an rvalue.
 struct in_place
 {
@@ -329,7 +329,7 @@ struct not_callable
 };
 
 
-// -- reducers and transducers ---------------------------------------------
+// - reducers and transducers ---------------------------------------------
 
 // sum_reducer:  a pure binary step (acc, x) -> acc.
 struct sum_reducer
@@ -337,7 +337,7 @@ struct sum_reducer
     int operator()(int _acc, int _x) const { return _acc + _x; }
 };
 
-// DTallyReducer: a STATEFUL binary step -- non-const, as an accumulating reducer
+// DTallyReducer: a STATEFUL binary step - non-const, as an accumulating reducer
 //                must be.
 struct DTallyReducer
 {
@@ -348,14 +348,14 @@ struct DTallyReducer
     int operator()(int _acc, int _x) { ++seen; return _acc + _x; }
 };
 
-// void_reducer:  binary, but yields void -- still satisfies Reducer, which
+// void_reducer:  binary, but yields void - still satisfies Reducer, which
 //                checks arity only, not the (acc, x) -> acc result.
 struct void_reducer
 {
     void operator()(int, int) const {}
 };
 
-// DDoubledReducer: the reducer a transducer produces -- doubles each element
+// DDoubledReducer: the reducer a transducer produces - doubles each element
 //                  before handing it to the wrapped reducer.
 struct DDoubledReducer
 {
@@ -364,7 +364,7 @@ struct DDoubledReducer
     int operator()(int _acc, int _x) const { return rf(_acc, _x * 2); }
 };
 
-// DDoublingXform:  a transducer -- reducer -> reducer.
+// DDoublingXform:  a transducer - reducer -> reducer.
 struct DDoublingXform
 {
     DDoubledReducer operator()(
@@ -377,9 +377,9 @@ struct DDoublingXform
 };
 
 
-// -- sources (nullary) and unfold steps (unary, state-threaded) -----------
+// - sources (nullary) and unfold steps (unary, state-threaded) -----------
 
-// DSrcPull:  the canonical pull source -- stateful, so operator() is non-const;
+// DSrcPull:  the canonical pull source - stateful, so operator() is non-const;
 //            yields three values, then exhausts.
 struct DSrcPull
 {
@@ -400,7 +400,7 @@ struct DSrcPull
     }
 };
 
-// DSrcConst: a const nullary source (also accepted -- const is callable on an
+// DSrcConst: a const nullary source (also accepted - const is callable on an
 //            lvalue).
 struct DSrcConst
 {
@@ -411,7 +411,7 @@ struct DSrcConst
     }
 };
 
-// src_ptr:   a pointer-yielding source -- pointers are bool-testable and
+// src_ptr:   a pointer-yielding source - pointers are bool-testable and
 //            dereferenceable, so they are optional-like.
 struct src_ptr
 {
@@ -422,25 +422,25 @@ struct src_ptr
     int* operator()() { return &v; }
 };
 
-// DSrcInt:   yields int -- bool-testable, NOT dereferenceable.
+// DSrcInt:   yields int - bool-testable, NOT dereferenceable.
 struct DSrcInt
 {
     int operator()() const { return 1; }
 };
 
-// DSrcDeref: yields DDerefOnly -- dereferenceable, NOT bool-testable.
+// DSrcDeref: yields DDerefOnly - dereferenceable, NOT bool-testable.
 struct DSrcDeref
 {
     DDerefOnly operator()() const { return DDerefOnly(); }
 };
 
-// DSrcVoid:  yields void -- neither.
+// DSrcVoid:  yields void - neither.
 struct DSrcVoid
 {
     void operator()() const {}
 };
 
-// step_count: an unfold step -- State -> maybe<next State>; terminates at 3.
+// step_count: an unfold step - State -> maybe<next State>; terminates at 3.
 struct step_count
 {
     maybe<int> operator()(
@@ -457,7 +457,7 @@ struct step_count
     }
 };
 
-// DStepMut:   a stateful unfold step -- non-const operator().
+// DStepMut:   a stateful unfold step - non-const operator().
 struct DStepMut
 {
     int calls;
@@ -474,13 +474,13 @@ struct DStepMut
     }
 };
 
-// DStepPlain: unary, but yields a plain value -- not optional-like.
+// DStepPlain: unary, but yields a plain value - not optional-like.
 struct DStepPlain
 {
     int operator()(int _s) const { return _s; }
 };
 
-// DStepDeref: unary, yields DDerefOnly -- dereferenceable, not bool-testable.
+// DStepDeref: unary, yields DDerefOnly - dereferenceable, not bool-testable.
 struct DStepDeref
 {
     DDerefOnly operator()(int) const { return DDerefOnly(); }
@@ -496,7 +496,7 @@ struct DStepDeref
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
-// reduce_with: runs any Reducer over a range -- the `step` half of the
+// reduce_with: runs any Reducer over a range - the `step` half of the
 // step/driver split.
 template<typename _Fn>
     requires Reducer<_Fn, int, int>
@@ -640,7 +640,7 @@ bool tests_concept_overload_gating();
 bool tests_concepts_gating();
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // structural_traits_spec
 //   function: the suite as DTest's module spec, one block per section.

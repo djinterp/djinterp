@@ -3,8 +3,8 @@
 *
 *   Conformance harness for the floating-point interval families
 * (c/math/interval_float.h). The float family against brute force: every
-* interval whose bounds are two of 13 consecutive floats -- near 1, across
-* zero, among the subnormals, at the top of the range -- each bound open or
+* interval whose bounds are two of 13 consecutive floats - near 1, across
+* zero, among the subnormals, at the top of the range - each bound open or
 * closed, continuous or with a stride of 1 to 3 ulps or a decimal one; the
 * members found by stepping with nextafterf, every kernel checked at every
 * float of the window and the real-line overlap at every midpoint. Then the

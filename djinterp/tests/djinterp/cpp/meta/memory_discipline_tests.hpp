@@ -95,7 +95,7 @@ bool memory_discipline_check(
     while (0)
 
 
-#ifndef DTEST_SPEC_MODE  // fixtures -- normal mode only
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 // str_eq
 //   helper: byte-wise C-string equality, so a test may compare a returned

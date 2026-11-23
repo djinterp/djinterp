@@ -3,8 +3,8 @@
 *
 * djinterp MongoDB connection module:
 *   The MongoDB connection, mongo_connection, over the MongoDB layer's C++
-* face (c/modules/db/mongodb/mongodb_face.hpp), whose handle -- the layer's
-* struct dj_mongodb, around the driver's client -- it holds: every operation is
+* face (c/modules/db/mongodb/mongodb_face.hpp), whose handle - the layer's
+* struct dj_mongodb, around the driver's client - it holds: every operation is
 * the layer's, and core/db adds exceptions, result sets that outlive their
 * query, and cursors and change streams that close with the connection.
 *   MongoDB has no query language: execute_query, execute_update and execute
@@ -306,7 +306,7 @@ const char* field_type_to_bson_type_name(
 //==============================================================================
 // What env_mongodb.h found the driver's and libbson's headers to have, and
 // what the target server version and edition configured for env have
-// (D_CFG_ENV_MONGO_SERVER_VERSION), at compile time -- the client's
+// (D_CFG_ENV_MONGO_SERVER_VERSION), at compile time - the client's
 // capabilities: BSON's types, the server's features by its release, and the
 // driver's own. Every flag is false unless a program asks for env's
 // detection (D_CFG_ENV_USING_MONGODB) or supplies its results, and a
@@ -811,7 +811,7 @@ struct mongo_version_info
     static constexpr bool             server_known =
         (D_ENV_MONGO_SERVER_VERSION_ID > 0);
 
-    // server_at_least, driver_at_least -- whether the configured target
+    // server_at_least, driver_at_least - whether the configured target
     // server, or the driver's header, is at a version or later
     static constexpr
     bool server_at_least(
@@ -860,8 +860,8 @@ enum class mongo_read_concern : re_std::uint8_t
 // 4.1.2
 // mongo_write_concern
 //   enum: the write concerns for a count of members: one, or a majority. A
-// write concern the enum cannot say -- journalled, a tag set, a time limit
-// -- is set as JSON; one of no acknowledgement, w: 0, the layer refuses,
+// write concern the enum cannot say - journalled, a tag set, a time limit
+// - is set as JSON; one of no acknowledgement, w: 0, the layer refuses,
 // since it reports what every write did.
 enum class mongo_write_concern : re_std::uint8_t
 {
@@ -942,13 +942,13 @@ enum class mongo_auth_mechanism : re_std::uint8_t
 // 5.1.1
 // mongo_connect_config
 //   struct: MongoDB's settings, beside the generic ones in base. A
-// connection string says where -- one host or several, mongodb:// or
-// mongodb+srv:// -- and then base's host and port are not read; without one,
+// connection string says where - one host or several, mongodb:// or
+// mongodb+srv:// - and then base's host and port are not read; without one,
 // they are. base's user, password and database, where given, replace the
 // string's; its connect_timeout is the socket's, its read_timeout the
 // reply's (0: as long as it takes); enable_ssl insists on TLS, ssl_ca names
 // the authorities, ssl_cert the client's certificate and its key, one PEM
-// file -- ssl_key, a key apart, is refused -- and verify_ssl false accepts
+// file - ssl_key, a key apart, is refused - and verify_ssl false accepts
 // a certificate no authority signed, or for another host. base's charset,
 // schema, write_timeout and max_packet_size have no meaning for MongoDB, and
 // are not read. Each optional setting left empty is the deployment's, the
@@ -978,7 +978,7 @@ struct mongo_connect_config
 
     std::map<std::string, std::string> extra_options;
 
-    // construction -- the defaults (localhost, 27017); a generic
+    // construction - the defaults (localhost, 27017); a generic
     // configuration; or a connection string alone
     mongo_connect_config()
         : auth_mechanism(mongo_auth_mechanism::none),
@@ -1014,7 +1014,7 @@ struct mongo_connect_config
         base.port = 0;
     }
 
-    // with_replica_set -- a replica set's connection string, and the
+    // with_replica_set - a replica set's connection string, and the
     // database to use
     static
     mongo_connect_config with_replica_set(
@@ -1029,7 +1029,7 @@ struct mongo_connect_config
         return config;
     }
 
-    // with_tls -- a connection string, TLS insisted on, and the authorities
+    // with_tls - a connection string, TLS insisted on, and the authorities
     // that vouch for the server's certificate
     static
     mongo_connect_config with_tls(
@@ -1045,7 +1045,7 @@ struct mongo_connect_config
         return config;
     }
 
-    // with_atlas -- an Atlas cluster's mongodb+srv:// string, which implies
+    // with_atlas - an Atlas cluster's mongodb+srv:// string, which implies
     // TLS, and the database to use
     static
     mongo_connect_config with_atlas(
@@ -1104,18 +1104,18 @@ struct mongo_validation
 // statement_face, and prepared_statement and streaming_result_set are never
 // made of it. A result means the connection was lost when it is the
 // driver's failure to reach the deployment (d_mongodb_result_is_unreachable)
-// -- a connection that broke or could not be made, or no server to use in
-// the time the driver waits for one -- which leaves the connection in error
+// - a connection that broke or could not be made, or no server to use in
+// the time the driver waits for one - which leaves the connection in error
 // until reconnect(), though the driver would try again by itself.
 struct mongodb_layer
 {
     using handle_type = struct ::dj_mongodb*;
 
-    // holds_connection -- false: a cursor or a change stream reads through
+    // holds_connection - false: a cursor or a change stream reads through
     // the connection while it runs other operations
     static constexpr bool holds_connection = false;
 
-    // connection_lost -- whether a result means the connection was lost, as
+    // connection_lost - whether a result means the connection was lost, as
     // the description above says
     static
     bool connection_lost(
@@ -1129,8 +1129,8 @@ struct mongodb_layer
      * @brief Describes a failed call of the MongoDB layer, as raise does.
      *
      * @note The handle keeps the message of its latest failure, until the
-     *       next; a failure the handle did not record -- one before there
-     *       was a handle, or one of a NULL handle -- has the result's own
+     *       next; a failure the handle did not record - one before there
+     *       was a handle, or one of a NULL handle - has the result's own
      *       description.
      *
      * @param[in] _db         the handle the call ran on; may be `NULL`.
@@ -1175,9 +1175,9 @@ struct mongodb_layer
      * @param[in] _operation  the operation's name, for the message.
      * @param[in] _result     the call's result.
      * @throws connection_exception for a lost connection, otherwise as
-     *         `_kind` says, with `_result` -- the server's code, the
+     *         `_kind` says, with `_result` - the server's code, the
      *         driver's, libbson's or the layer's packed, or a negative D_DB_*
-     *         -- as its error_code().
+     *         - as its error_code().
      */
     [[noreturn]] static
     void raise(
@@ -1244,7 +1244,7 @@ public:
         std::size_t _max
     );
 
-    // state -- whether the cursor is open, and whether its documents are
+    // state - whether the cursor is open, and whether its documents are
     // done: true once a page came back short, or the cursor closed
     bool is_open() const noexcept;
     bool is_done() const noexcept;
@@ -1266,7 +1266,7 @@ private:
         face::mongodb_cursor&&             _cursor
     );
 
-    // m_closed -- the session closing the cursor, as the connection closes
+    // m_closed - the session closing the cursor, as the connection closes
     static
     void m_closed(
         void* _cursor
@@ -1282,8 +1282,8 @@ private:
 //   class: the changes made to a collection, a database or a whole
 // deployment, as they happen (mongodb_cursor.h), as mongo_connection's
 // watch_collection, watch_database and watch_deployment open them. Each
-// fetch waits for events as long as the options' maxAwaitTimeMS -- the
-// server's own wait, a second, without one -- and returns those that
+// fetch waits for events as long as the options' maxAwaitTimeMS - the
+// server's own wait, a second, without one - and returns those that
 // arrived, none when none did, each a document of one column, "document".
 // The stream resumes by itself after a failure the driver can resume from;
 // its resume token says where it is, for a stream opened later to start
@@ -1337,7 +1337,7 @@ public:
      */
     std::optional<std::string> resume_token() const;
 
-    // is_open -- whether the stream is open
+    // is_open - whether the stream is open
     bool is_open() const noexcept;
 
     /**
@@ -1357,7 +1357,7 @@ private:
         face::mongodb_change_stream&&      _stream
     );
 
-    // m_closed -- the session closing the stream, as the connection closes
+    // m_closed - the session closing the stream, as the connection closes
     static
     void m_closed(
         void* _stream
@@ -1385,13 +1385,13 @@ private:
 // which the configuration's database, or the connection string's, names
 // first, and use_database changes; a filter, a document, an update, a
 // pipeline or options is Extended JSON, and an empty string means none --
-// every document, for a filter -- where the layer takes none. Documents come
+// every document, for a filter - where the layer takes none. Documents come
 // back as the document format writes them, canonical Extended JSON unless
 // set otherwise. Each write records what it changed, which
 // get_affected_rows() then answers.
 //   Transactions run in the connection's own session, on a replica set, a
 // sharded cluster or a load balancer: begin_transaction, commit and
-// rollback, and begin_transaction with options -- readConcern,
+// rollback, and begin_transaction with options - readConcern,
 // writeConcern, readPreference, maxCommitTimeMS. A failure inside one
 // fails it on the server: everything but a rollback then throws,
 // in_failed_transaction() saying so. There is no auto-commit mode to turn
@@ -1399,8 +1399,8 @@ private:
 //   A member throws as the operations do (database_connection.hpp):
 // connection_exception when the connection is not open, or a failure lost
 // it, and otherwise the exception its contract names, with the layer's
-// result -- the server's code as it sent it, the driver's, libbson's or the
-// layer's packed above every code a server uses, or a negative D_DB_* -- as
+// result - the server's code as it sent it, the driver's, libbson's or the
+// layer's packed above every code a server uses, or a negative D_DB_* - as
 // its error_code(); text holding a NUL is refused first, with
 // D_DB_INVALID_ARGUMENT. Not copyable; movable.
 //
@@ -1419,7 +1419,7 @@ public:
     using client_capabilities = mongo_client_capabilities;
     using version_info        = mongo_version_info;
 
-    // type_support, feature_support -- client_capabilities, by their former
+    // type_support, feature_support - client_capabilities, by their former
     // names (2026.10.28), for one release
     using type_support [[deprecated("client_capabilities")]] =
         mongo_client_capabilities;
@@ -1429,7 +1429,7 @@ public:
     // the base's begin_transaction, beside the one with options below
     using base_type::begin_transaction;
 
-    // construction -- with mongo_connect_config's defaults (localhost,
+    // construction - with mongo_connect_config's defaults (localhost,
     // 27017); with a generic configuration; with a MongoDB one; or with a
     // connection string alone. Nothing connects before connect()
     mongo_connection();
@@ -1542,7 +1542,7 @@ public:
         bool               _ordered = true
     );
 
-    // finding -- the documents a filter matches, a find's options among
+    // finding - the documents a filter matches, a find's options among
     // them (sort, projection, skip, limit, hint, collation, ...): every one,
     // a row each; the first in the options' sort, std::nullopt for none; and
     // every one beside its _id, as d_mongodb_find_keyed returns them, both
@@ -1563,7 +1563,7 @@ public:
         const std::string& _options = ""
     );
 
-    // updating and replacing -- the first document the filter matches, or
+    // updating and replacing - the first document the filter matches, or
     // every one, with update operators ({"$set": ...}) or a pipeline; or the
     // first replaced by a document without operators; the options an
     // update's (upsert, arrayFilters, collation, hint, let, comment). Each
@@ -1587,7 +1587,7 @@ public:
         const std::string& _options = ""
     );
 
-    // deleting -- the first document the filter matches, or every one; the
+    // deleting - the first document the filter matches, or every one; the
     // options a delete's. Each returns how many it deleted
     re_std::int64_t delete_one(
         const std::string& _collection,
@@ -1600,7 +1600,7 @@ public:
         const std::string& _options = ""
     );
 
-    // counting -- the documents a filter matches, exactly (skip, limit,
+    // counting - the documents a filter matches, exactly (skip, limit,
     // hint, collation among the options); and the collection's documents
     // as its metadata counts them, quickly, which a transaction refuses
     // (D_DB_UNSUPPORTED). A collection that is not there has none
@@ -1614,7 +1614,7 @@ public:
         const std::string& _options = ""
     ) const;
 
-    // distinct, aggregating -- a field's values among the documents a
+    // distinct, aggregating - a field's values among the documents a
     // filter matches, a row each, one column, "value"; and a pipeline's
     // documents, the pipeline a JSON array of stages, on a collection, or
     // on the database for a collection of "" ($currentOp, $documents)
@@ -1630,7 +1630,7 @@ public:
         const std::string& _options = ""
     );
 
-    // finding and modifying -- the first document the filter matches,
+    // finding and modifying - the first document the filter matches,
     // updated, replaced or deleted in one step, and returned as it was, or
     // as it became with "returnDocument": "after" among the options;
     // std::nullopt where none matched and none was upserted
@@ -1703,7 +1703,7 @@ public:
     //   replica set or a sharded cluster (supports_change_streams), and
     //   throws query_exception with D_DB_UNSUPPORTED on a standalone server.
 
-    // cursors -- a find, an aggregation, or any command whose reply holds a
+    // cursors - a find, an aggregation, or any command whose reply holds a
     // cursor, read a page at a time
     std::unique_ptr<mongo_cursor> find_cursor(
         const std::string& _collection,
@@ -1719,7 +1719,7 @@ public:
         const std::string& _command
     );
 
-    // change streams -- a collection's, the current database's, or the whole
+    // change streams - a collection's, the current database's, or the whole
     // deployment's changes, a pipeline of $match and $project stages
     // filtering them, and the options a stream's (fullDocument,
     // resumeAfter, startAfter, startAtOperationTime, maxAwaitTimeMS,
@@ -1745,7 +1745,7 @@ public:
     //   collection there already, 26 for one that is not), and with
     //   D_DB_INVALID_ARGUMENT for an empty name.
 
-    // databases -- whether the deployment has one of the name (MongoDB has
+    // databases - whether the deployment has one of the name (MongoDB has
     // no empty database: one exists from its first collection); dropping
     // one, a database not there a success with _if_exists; the names; and
     // making one current, which the configuration then names
@@ -1761,7 +1761,7 @@ public:
         const std::string& _name
     );
 
-    // collections -- whether the current database has one of the name, a
+    // collections - whether the current database has one of the name, a
     // view not counting; making one with the create command's options
     // ({"capped": true, "size": 4096}, {"timeseries": {...}}, {"validator":
     // {...}}), one there a success with _if_not_exists; dropping one, its
@@ -1791,7 +1791,7 @@ public:
         const std::string& _name
     ) const;
 
-    // views -- whether there is one of the name; making one of a collection
+    // views - whether there is one of the name; making one of a collection
     // or a view, over a pipeline, with a collation among the options; one
     // there a success with _if_not_exists; dropping one, never a
     // collection; and the names
@@ -1811,7 +1811,7 @@ public:
     );
     std::vector<std::string> list_views() const;
 
-    // indexes -- whether a collection has one of the name; building one
+    // indexes - whether a collection has one of the name; building one
     // over keys ({"qty": 1}), unique or not, with createIndexes' options,
     // the collection made if it is not there, one of the name there a
     // success with _if_not_exists (whatever its keys); dropping one; the
@@ -1856,7 +1856,7 @@ public:
         const std::string& _options
     );
 
-    // in_failed_transaction -- whether the open transaction failed on the
+    // in_failed_transaction - whether the open transaction failed on the
     // server, so that only a rollback is left; false outside one
     bool in_failed_transaction() const noexcept;
 
@@ -1867,7 +1867,7 @@ public:
     //   D_DB_NOT_FOUND for no file of the _id, and with the server's or the
     //   driver's code otherwise.
 
-    // uploading -- bytes, or a file of the client's, under a file name, with
+    // uploading - bytes, or a file of the client's, under a file name, with
     // metadata, as JSON; each returns the file's _id
     std::string gridfs_upload(
         const std::string&                  _filename,
@@ -1882,7 +1882,7 @@ public:
         const std::string& _bucket = ""
     );
 
-    // downloading and deleting -- a file's bytes, or into a file of the
+    // downloading and deleting - a file's bytes, or into a file of the
     // client's; and the file, its chunks with it
     std::vector<re_std::uint8_t> gridfs_download(
         const std::string& _id,
@@ -1898,7 +1898,7 @@ public:
         const std::string& _bucket = ""
     );
 
-    // finding -- the newest file of a name, std::nullopt for none; and the
+    // finding - the newest file of a name, std::nullopt for none; and the
     // files' descriptions a filter matches, a row each
     std::optional<std::string> gridfs_find_id(
         const std::string& _filename,
@@ -1934,7 +1934,7 @@ public:
     //   may replace for one operation; commands run as written. Each is
     //   given and read back as MongoDB writes it in a command, as JSON --
     //   {"level": "majority"}, {"w": "majority", "j": true}, {"mode":
-    //   "secondaryPreferred", "maxStalenessSeconds": 120} -- "" setting the
+    //   "secondaryPreferred", "maxStalenessSeconds": 120} - "" setting the
     //   deployment's own default, which reads back as "{}" (a read
     //   preference as primary's); or as its enum. Each throws
     //   query_exception with D_DB_INVALID_ARGUMENT for JSON that is not the
@@ -1961,7 +1961,7 @@ public:
     );
     std::string get_read_preference() const;
 
-    // document format and time limit -- how the documents returned are
+    // document format and time limit - how the documents returned are
     // written, canonical until set; and the maxTimeMS each read whose options
     // name none is given, 0 for none, a negative one refused. Read back while
     // the connection is not open, canonical and 0
@@ -1979,7 +1979,7 @@ public:
     //   read with no round trip: 0, false, "" and unknown while the
     //   connection is not open.
 
-    // the server -- its version's number, MAJOR*10000 + MINOR*100 + PATCH,
+    // the server - its version's number, MAJOR*10000 + MINOR*100 + PATCH,
     // whether it is at a version or later, the newest wire protocol it
     // speaks, what the connection reached, and the replica set's name
     unsigned long server_version_number() const noexcept;
@@ -1992,7 +1992,7 @@ public:
     mongo_topology get_server_topology() const noexcept;
     std::string get_replica_set_name() const;
 
-    // feature queries -- what the server connected, its deployment and the
+    // feature queries - what the server connected, its deployment and the
     // driver can do (d_mongodb_supports): multi-document transactions (a
     // replica set from 4.0, a sharded cluster from 4.2, a load balancer);
     // change streams (not standalone); time series collections (5.0);
@@ -2013,7 +2013,7 @@ public:
     bool supports_hidden_indexes() const noexcept;
     bool supports_wildcard_indexes() const noexcept;
 
-    // the driver -- its version as the program loaded it, its number, and
+    // the driver - its version as the program loaded it, its number, and
     // libbson's version; "" and 0 in a build without the driver
     static
     std::string get_client_version();
@@ -2037,7 +2037,7 @@ public:
     static
     int get_log_level() noexcept;
 
-    // the latest failure, beyond its message and code -- the server's name
+    // the latest failure, beyond its message and code - the server's name
     // for its code ("DuplicateKey"), "" for none; whether the server or the
     // driver labelled it so ("TransientTransactionError",
     // "RetryableWriteError"), which says whether a transaction may be tried
@@ -2064,15 +2064,15 @@ public:
      */
     std::optional<std::string> get_last_inserted_id() const;
 
-    // native_client -- the driver's mongoc_client_t*, for its own calls,
+    // native_client - the driver's mongoc_client_t*, for its own calls,
     // nullptr while the connection is not open: cast it where mongoc.h is
     // included; it stays the connection's, never to be destroyed
     void* get_native_client() const noexcept;
 
-    // the operations that do not block -- refused, D_DB_UNSUPPORTED, since
+    // the operations that do not block - refused, D_DB_UNSUPPORTED, since
     // the driver has none (ruling 11.26.6; database_connection.hpp)
 
-    // type mapping -- a BSON type as field_type, and a field_type as the
+    // type mapping - a BSON type as field_type, and a field_type as the
     // BSON type name $type and $jsonSchema spell, as section 1 maps them
     static
     field_type map_bson_type(
@@ -2090,7 +2090,7 @@ public:
         return field_type_to_bson_type_name(_type);
     }
 
-    // configuration -- the MongoDB settings, base among them as the
+    // configuration - the MongoDB settings, base among them as the
     // connection's generic configuration now is, which connect(config)
     // replaces; setting them replaces the generic configuration with
     // theirs, for the next connect
@@ -2099,13 +2099,13 @@ public:
         const mongo_connect_config& _config
     );
 
-    // get_face -- the MongoDB layer's face, for the layer's other calls --
+    // get_face - the MongoDB layer's face, for the layer's other calls --
     // its f forms, a cursor's own options; closing or replacing the handle
     // through it is the connection's to do, not the face's
     face::mongodb& get_face() noexcept;
     const face::mongodb& get_face() const noexcept;
 
-    // hooks (mongodb.cpp) -- database_connection calls these, programs the
+    // hooks (mongodb.cpp) - database_connection calls these, programs the
     // operations they implement, whose contracts they keep
     void connect_impl();
     void disconnect_impl() noexcept;
@@ -2151,17 +2151,17 @@ private:
         const char*  _operation
     ) const;
 
-    // m_wrote -- what the latest write changed, as get_affected_rows() then
+    // m_wrote - what the latest write changed, as get_affected_rows() then
     // answers
     void m_wrote() noexcept;
 
-    // m_supports -- the layer's answer for the server connected; false
+    // m_supports - the layer's answer for the server connected; false
     // while the connection is not open
     bool m_supports(
         dj_mongodb_feature _feature
     ) const noexcept;
 
-    // m_document -- the first row's document, as text or as bytes;
+    // m_document - the first row's document, as text or as bytes;
     // std::nullopt for no row
     static
     std::optional<std::string> m_document(
@@ -2183,13 +2183,13 @@ private:
         const char*       _operation
     );
 
-    // m_rows -- rows a call wrote, as a result set
+    // m_rows - rows a call wrote, as a result set
     static
     std::unique_ptr<buffered_result_set> m_rows(
         face::rows&& _rows
     );
 
-    // m_cursor, m_stream -- what a call opened, enrolled in the session
+    // m_cursor, m_stream - what a call opened, enrolled in the session
     std::unique_ptr<mongo_cursor> m_cursor(
         face::mongodb_cursor&& _opened
     );
@@ -2197,7 +2197,7 @@ private:
         face::mongodb_change_stream&& _opened
     );
 
-    // m_connect -- the handle the configuration names, opened into
+    // m_connect - the handle the configuration names, opened into
     // `_opened`; connection_exception on failure
     void m_connect(
         face::mongodb& _opened
@@ -2551,7 +2551,7 @@ struct is_mongo_connection
 
 // 9.1    Individual capabilities
 //------------------------------------------------------------------------------
-// mongo_can_insert, ... -- whether T has the member each detector names
+// mongo_can_insert, ... - whether T has the member each detector names
 template<typename T, typename = void>
 constexpr bool mongo_can_insert = false;
 
@@ -2610,7 +2610,7 @@ constexpr bool mongo_can_create_collection<T,
 
 // 9.2    Compound capabilities
 //------------------------------------------------------------------------------
-// mongo_does_document_crud, ... -- whether T has every member of a group
+// mongo_does_document_crud, ... - whether T has every member of a group
 template<typename T, typename = void>
 constexpr bool mongo_does_document_crud = false;
 
@@ -2638,7 +2638,7 @@ constexpr bool mongo_does_transactions<T,
                                       mongo_commit_t<T>,
                                       mongo_rollback_t<T>>> = true;
 
-// mongo_is_full_connection -- whether T connects, disconnects, has document
+// mongo_is_full_connection - whether T connects, disconnects, has document
 // CRUD, aggregates and makes collections
 template<typename T>
 constexpr bool mongo_is_full_connection =
@@ -2656,7 +2656,7 @@ constexpr bool mongo_is_full_connection =
 
 // 10.1   enable_if helpers
 //------------------------------------------------------------------------------
-// enable_if_mongo_connection, ... -- void where T has what the trait of the
+// enable_if_mongo_connection, ... - void where T has what the trait of the
 // name says, and no type otherwise
 template<typename T>
 using enable_if_mongo_connection =

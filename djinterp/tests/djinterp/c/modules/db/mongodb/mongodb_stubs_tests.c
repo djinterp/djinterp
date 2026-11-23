@@ -2,8 +2,8 @@
 * djinterp [c][db]                                         mongodb_stubs_tests.c
 *
 *   The MongoDB layer built without the driver (D_CFG_MONGODB 0): every
-* function answers as such a build must -- D_DB_UNSUPPORTED, or false, 0, ""
-* or NULL where it cannot fail -- writes the answers it promises even on
+* function answers as such a build must - D_DB_UNSUPPORTED, or false, 0, ""
+* or NULL where it cannot fail - writes the answers it promises even on
 * failure (no handle, no cursor, no stream, "no" for an existence, the counts
 * of no writes), and leaves every other output alone. The functions that read
 * results need no driver and work as they always do. Building and linking it

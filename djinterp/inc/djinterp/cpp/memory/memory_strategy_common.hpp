@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][memory]                              memory_strategy_common.hpp
 *
-* The memory-strategy contract -- C++ notation over the C allocators.
+* The memory-strategy contract - C++ notation over the C allocators.
 *   A STRATEGY is a uniform surface over "where storage comes from", so that a
 * container can be written once and instantiated over an arena, a pool, a
 * std::allocator, or an inline buffer without knowing which. It publishes two
@@ -10,7 +10,7 @@
 *
 *   THIS TIER HAS NO C COUNTERPART, AND CORRECTLY SO. It is structural
 * detection over a duck-typed surface, resolved entirely at translation time,
-* and C has no notion of any of that -- so per the framework's phase rule
+* and C has no notion of any of that - so per the framework's phase rule
 * (AGENT_README.md section 8) it is C++-only NOTATION rather than a second
 * implementation. Nothing here allocates, computes an offset, or decides a
 * policy. Every fact it publishes about a djinterp allocator is READ OFF the C
@@ -101,7 +101,7 @@ NS_DJINTERP
 
 // storage_kind
 //   enum: the storage discipline a strategy declares.
-//   A container reads this to decide what it may do -- whether it can grow,
+//   A container reads this to decide what it may do - whether it can grow,
 // whether it must bound itself, whether it can be constructed without
 // touching an allocator at all. The values are ordered from least to most
 // capable, which lets a container compare rather than switch.
@@ -289,7 +289,7 @@ struct has_extent<
 ///////////////////////////////////////////////////////////////////////////////
 
 // is_memory_strategy
-//   trait: true when a type satisfies the whole contract -- the operational
+//   trait: true when a type satisfies the whole contract - the operational
 // pair AND the three mandatory descriptive constants.
 //   BOTH HALVES ARE REQUIRED, and the reason is worth stating: a type with
 // allocate/deallocate but no constants would compile against a container that
@@ -353,7 +353,7 @@ struct strategy_value_type
 };
 
 // is_byte_strategy
-//   trait: true when a strategy vends raw bytes -- the shape an arena-backed
+//   trait: true when a strategy vends raw bytes - the shape an arena-backed
 // strategy takes, since an arena has no element type.
 template<typename Type>
 struct is_byte_strategy
@@ -456,7 +456,7 @@ struct is_stable_strategy
 
 // is_releasing_strategy
 //   trait: true when a single allocation can be returned on its own. False
-// for an arena, which reclaims only in bulk -- so a container over one must
+// for an arena, which reclaims only in bulk - so a container over one must
 // not pretend to erase.
 template<typename Type>
 struct is_releasing_strategy

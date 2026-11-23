@@ -5,7 +5,7 @@
 *   re_std::hash specialisation for shared_ptr.
 *
 *   THE CONTRACT, WHICH IS EASY TO GET WRONG:
-*   hash<shared_ptr<T>>(p) is defined to equal hash<T*>(p.get()) -- the
+*   hash<shared_ptr<T>>(p) is defined to equal hash<T*>(p.get()) - the
 * STORED POINTER, not the control block. Two shared_ptrs that own the
 * same object through different control blocks therefore hash equally,
 * and an aliasing shared_ptr hashes as its aliased pointer rather than
@@ -17,7 +17,7 @@
 *
 *   PORTABILITY:
 *   std added this in C++11; re_std matches. Not noexcept-annotated
-* beyond what hash<T*> provides, and not constexpr -- hash<T*> uses a
+* beyond what hash<T*> provides, and not constexpr - hash<T*> uses a
 * reinterpret_cast, which is non-constexpr on every tier.
 *
 *

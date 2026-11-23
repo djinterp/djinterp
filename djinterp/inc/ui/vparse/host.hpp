@@ -9,9 +9,9 @@
 * source implements it for each pair of Dear ImGui backends, and the build
 * compiles exactly one:
 *
-*     host_win32.cpp     Win32 and Direct3D 11 -- on Windows, with
+*     host_win32.cpp     Win32 and Direct3D 11 - on Windows, with
 *                             nothing to find
-*     host_glfw.cpp   GLFW and OpenGL 3 -- wherever GLFW is found
+*     host_glfw.cpp   GLFW and OpenGL 3 - wherever GLFW is found
 *     host_none.cpp           no window: host_open() says why; a run is
 *                             printed by vparse, the command line, which
 *                             needs no window
@@ -35,7 +35,7 @@
 *
 * CONFIGURATION
 * -------------
-*   VPARSE_UI_HOST, at configuration -- auto, win32, glfw or none -- chooses the
+*   VPARSE_UI_HOST, at configuration - auto, win32, glfw or none - chooses the
 * one source that implements the host; C++17, uxoxo's floor: below it the header
 * is empty.
 *
@@ -106,8 +106,8 @@ struct window_options
 // 2.1    Identity
 //------------------------------------------------------------------------------
 // 2.1.1
-// what this build's host is -- "Win32 + Direct3D 11", "GLFW + OpenGL 3", or
-// "none" -- and the monitor's content scale, 1 at 96 dots per inch; the scale
+// what this build's host is - "Win32 + Direct3D 11", "GLFW + OpenGL 3", or
+// "none" - and the monitor's content scale, 1 at 96 dots per inch; the scale
 // is 1 until a window is open
 const char* host_name();
 float host_scale();

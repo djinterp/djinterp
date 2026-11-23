@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/cpp/text/
+# djinterp [test]  -  build/cmake/config/testing/djinterp/cpp/text/
 #                      text_core/CMakeLists.txt
 #
 #   Test leaf for text's core C++ headers (text_align.hpp, text_template.hpp

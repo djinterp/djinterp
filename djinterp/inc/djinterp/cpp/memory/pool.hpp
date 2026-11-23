@@ -3,7 +3,7 @@
 *
 * C++ face of the fixed-slot pool.
 *   `DRawPool` DERIVES from dj_pool and adds no data members. `DPool<T>` derives
-* from DRawPool and adds no data members either -- it supplies sizeof(T) and
+* from DRawPool and adds no data members either - it supplies sizeof(T) and
 * alignof(T) as compile-time constants and layers object lifetime on top of
 * the kernel's raw slots. Both sizes are asserted equal to sizeof(dj_pool)
 * below.
@@ -24,7 +24,7 @@
 *
 * HANDLES:
 *   DPoolHandle<T> is dj_pool_handle with a phantom type parameter. It adds no
-* bytes -- asserted -- and buys the thing an untyped handle cannot: a handle
+* bytes - asserted - and buys the thing an untyped handle cannot: a handle
 * from one pool cannot be silently resolved against another pool of a
 * different element type.
 *
@@ -85,7 +85,7 @@ NS_DJINTERP
 // DRawPool
 //   class: an untyped fixed-slot allocator. Derives from dj_pool and adds no
 // state; every operation forwards to the C kernel.
-//   Use this directly when the slot size is not known until run time -- a
+//   Use this directly when the slot size is not known until run time - a
 // pool of records whose width comes from a schema, say. Use DPool<T> when the
 // type is known, which is most of the time.
 class DRawPool : public ::dj_pool
@@ -125,7 +125,7 @@ public:
 
     // ~DRawPool
     //   destructor: returns every block to the source. Runs NO destructors on
-    // anything the pool held -- the kernel deals in raw storage. DPool<T> is
+    // anything the pool held - the kernel deals in raw storage. DPool<T> is
     // the face that knows better.
     D_INLINE
     ~DRawPool()
@@ -265,7 +265,7 @@ public:
 
     // bytes_allocated
     //   query: the honest cost of the pool, including per-block headers and
-    // the block table -- as distinct from capacity times slot size, which
+    // the block table - as distinct from capacity times slot size, which
     // omits exactly the overhead a caller weighing the pool wants to see.
     D_INLINE
     size_type bytes_allocated() const
@@ -329,7 +329,7 @@ private:
 
 // DPoolHandle
 //   struct: a generation-checked reference to a slot holding a Type. The
-// type parameter is PHANTOM: it adds no bytes -- asserted below -- and exists
+// type parameter is PHANTOM: it adds no bytes - asserted below - and exists
 // so that a handle into one pool cannot be resolved against a pool of a
 // different element type without a diagnostic.
 template<typename Type>
@@ -399,8 +399,8 @@ struct DPoolHandle : ::dj_pool_handle
 //   WHY THE POLICY IS A TEMPLATE PARAMETER AND NOT A CONSTRUCTOR ARGUMENT.
 // The kernel carries the policy as a runtime field, which is right for C: one
 // compiled implementation has to serve every policy. But the facts that follow
-// from the policy -- whether a slot can be released individually, whether the
-// pool sweeps generations -- are what the strategy layer above publishes as
+// from the policy - whether a slot can be released individually, whether the
+// pool sweeps generations - are what the strategy layer above publishes as
 // `static constexpr`, and a runtime field cannot produce a constant.
 //   Lifting it to a template parameter is the phase distinction again, and it
 // costs nothing: the parameter is not a member, the kernel field is still set
@@ -421,7 +421,7 @@ public:
 
     // slot_bytes / slot_alignment
     //   constant: the geometry the kernel will compute, computed HERE at
-    // translation time. Identical numbers, earlier -- which is the whole
+    // translation time. Identical numbers, earlier - which is the whole
     // claim this face makes.
     static D_CONSTEXPR const DMemSize slot_bytes     = size_of<Type>::value;
     static D_CONSTEXPR const DMemSize slot_alignment = align_of<Type>::value;
@@ -466,7 +466,7 @@ public:
     }
 
     // ---------------------------------------------------------------
-    //  object lifetime -- the capability the kernel cannot have
+    //  object lifetime - the capability the kernel cannot have
     // ---------------------------------------------------------------
 
     // create

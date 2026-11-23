@@ -256,14 +256,14 @@ struct inconsistent_individual_static
 // Test-function declarations (defined in the section .cpp files)
 // ===========================================================================
 
-// -- I.   Strategy-alias detection --
+// - I.   Strategy-alias detection --
 bool tests_has_memory_strategy_alias();
 
-// -- II.  Discipline classifier --
+// - II.  Discipline classifier --
 bool tests_container_memory_discipline();
 bool tests_container_memory_discipline_companions();
 
-// -- III. Discipline predicates --
+// - III. Discipline predicates --
 bool tests_container_has_inline_storage();
 bool tests_container_uses_individual_heap();
 bool tests_container_uses_pool();
@@ -271,15 +271,15 @@ bool tests_container_uses_arena();
 bool tests_container_allocates();
 bool tests_container_memory_resolved();
 
-// -- IV.  Cross-axis consistency --
+// - IV.  Cross-axis consistency --
 bool tests_container_memory_consistent();
 
-// -- V.   Aggregate snapshot + variable-template companions --
+// - V.   Aggregate snapshot + variable-template companions --
 bool tests_container_memory_class();
 bool tests_memory_variable_templates();
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // container_memory_traits_spec
 //   function: the suite as DTest's module spec, one block per section.

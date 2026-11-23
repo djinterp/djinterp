@@ -10,7 +10,7 @@
 // std
 #include <array>
 #include <cmath>
-// test_calc.cpp -- exercises the math/calculus subframework.
+// test_calc.cpp - exercises the math/calculus subframework.
 #include <cstdio>
 // djinterp
 #include "djinterp/cpp/modules/math/calculus/calculus.hpp"

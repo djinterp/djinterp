@@ -3,8 +3,8 @@
 *
 * SQLite's databases: the ones a connection has attached, and the files they
 * live in.
-*   A connection sees several databases at once -- "main", "temp", and each one
-* ATTACHed -- and SQL names an object in one of them as schema.object, which is
+*   A connection sees several databases at once - "main", "temp", and each one
+* ATTACHed - and SQL names an object in one of them as schema.object, which is
 * what MariaDB calls database.object. So the connection-level functions here
 * are the ones the other vendors' layers spell the same way: has_database asks
 * whether a database is attached, as d_mariadb_has_database asks whether one
@@ -60,7 +60,7 @@ D_EXTERN_C_BEGIN
 
 // 1.1    Existence
 //------------------------------------------------------------------------------
-// existence -- whether a database of that name is attached to the connection.
+// existence - whether a database of that name is attached to the connection.
 // "main" and "temp" always are. Names match as SQLite matches them, ignoring
 // ASCII case. The plain form answers false for a failure or a bad argument;
 // the _s form returns SQLITE_OK and writes the answer, or SQLITE_MISUSE.
@@ -87,7 +87,7 @@ int d_sqlite_has_database_s(
  *                   in-memory or temporary database.
  * @param[in] _name  the name to attach it as; SQL then reaches its objects as
  *                   name.object.
- * @return SQLITE_OK, or the SQLite result code of the failure -- among them
+ * @return SQLITE_OK, or the SQLite result code of the failure - among them
  *         SQLITE_ERROR for a name already in use, or too many attached --
  *         or SQLITE_MISUSE for a `NULL` argument or an empty name.
  */
@@ -102,8 +102,8 @@ int d_sqlite_attach_database(
  * @param[in] _db    the connection.
  * @param[in] _name  the name it was attached as; "main" and "temp" cannot be
  *                   detached.
- * @return SQLITE_OK, or the SQLite result code of the failure -- SQLITE_ERROR
- *         when no such database is attached, or it is in use -- or
+ * @return SQLITE_OK, or the SQLite result code of the failure - SQLITE_ERROR
+ *         when no such database is attached, or it is in use - or
  *         SQLITE_MISUSE for a `NULL` argument or an empty name.
  */
 int d_sqlite_detach_database(
@@ -180,7 +180,7 @@ int d_sqlite_delete_database_file(
 
 // 2.2    Recognising
 //------------------------------------------------------------------------------
-// recognising -- true when the path names a file SQLite can read as a
+// recognising - true when the path names a file SQLite can read as a
 // database, an empty file included (SQLite treats one as an empty database);
 // false for a missing file, anything else, or an encrypted database whose key
 // is not given

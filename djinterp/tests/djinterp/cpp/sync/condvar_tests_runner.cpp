@@ -62,7 +62,7 @@ int main()
 
     rb.use_pdf("condvar_tests_report.pdf");
 
-    // -- 0. the header contract --------------------------------------------
+    // - 0. the header contract --------------------------------------------
     rb.module("0. the header contract",
               "the guard, the include ORDER, what it hands you, what it leaves behind");
     rb.run("the include guard is defined, and is 1",   &tests_header_include_guard);
@@ -74,7 +74,7 @@ int main()
     rb.run("public in djinterp, details in internal",  &tests_entities_live_in_the_djinterp_namespace);
     rb.run("sections III and IV are gated to C++11",   &tests_sections_three_and_four_are_gated_to_cpp11);
 
-    // -- I. the thread yield -----------------------------------------------
+    // - I. the thread yield -----------------------------------------------
     rb.module("I. d_thread_yield",
               "the hint a spinloop gives the scheduler when spinning stops paying");
     rb.run("a nullary void function",                  &tests_yield_is_a_nullary_void_function);
@@ -85,7 +85,7 @@ int main()
     rb.run("a yielding spin loop MAKES PROGRESS",      &tests_yield_in_a_spin_loop_makes_progress);
     rb.run("one definition, one address, all TUs",     &tests_yield_has_one_definition_across_tus);
 
-    // -- II. hardware concurrency ------------------------------------------
+    // - II. hardware concurrency ------------------------------------------
     rb.module("II. hardware_concurrency",
               "how many agents the machine can really run -- and the zero it may answer");
     rb.run("a nullary unsigned function",              &tests_hardware_returns_unsigned);
@@ -97,7 +97,7 @@ int main()
     rb.run("four threads, one answer",                 &tests_hardware_is_callable_from_many_threads);
     rb.run("one definition, one address, all TUs",     &tests_hardware_has_one_definition_across_tus);
 
-    // -- III. portable_once ------------------------------------------------
+    // - III. portable_once ------------------------------------------------
     rb.module("III. portable_once",
               "run this exactly once -- and what 'exactly once' turns out to mean");
     rb.run("default-constructible, and unfired",       &tests_once_is_default_constructible);
@@ -116,7 +116,7 @@ int main()
     rb.run("...and does NOT consume the flag",         &tests_once_retries_after_an_exception);
     rb.run("two flags, two gates",                     &tests_once_instances_are_independent);
 
-    // -- IV. the condvar selector ------------------------------------------
+    // - IV. the condvar selector ------------------------------------------
     rb.module("IV. the condvar selector",
               "which condition variable a policy's mutex gets -- and what it can then do");
     rb.run("std::mutex -> condition_variable",         &tests_selector_maps_std_mutex_to_condition_variable);
@@ -131,7 +131,7 @@ int main()
     rb.run("only the REAL ones have wait_until",       &tests_only_the_real_condvars_have_wait_until);
     rb.run("only the ANY one takes a stop_token",      &tests_only_condition_variable_any_takes_a_stop_token);
 
-    // -- IV. the no-op condvar ---------------------------------------------
+    // - IV. the no-op condvar ---------------------------------------------
     rb.module("IV. the no-op condvar",
               "the single-threaded condvar: free, and not what its call sites read like");
     rb.run("an empty class, one byte",                 &tests_no_op_condvar_is_empty);
@@ -145,7 +145,7 @@ int main()
     rb.run("it is an internal detail",                 &tests_no_op_condvar_lives_in_internal);
     rb.run("the null policy's condvar is FREE",        &tests_the_null_policy_condvar_is_free);
 
-    // -- IV. portable_condvar's surface ------------------------------------
+    // - IV. portable_condvar's surface ------------------------------------
     rb.module("IV. portable_condvar's surface",
               "what the wrapper IS, before anything blocks on it");
     rb.run("default-constructible under every policy", &tests_condvar_is_default_constructible);
@@ -160,7 +160,7 @@ int main()
     rb.run("notifying nobody is harmless",             &tests_condvar_notify_without_waiters_is_harmless);
     rb.run("two condvars, two queues",                 &tests_condvar_instances_are_independent);
 
-    // -- IV. wait + notify -------------------------------------------------
+    // - IV. wait + notify -------------------------------------------------
     rb.module("IV. wait + notify",
               "what actually happens when a thread blocks -- deterministically");
     rb.run("a bare wait blocks until notified",        &tests_wait_blocks_until_notified);
@@ -174,7 +174,7 @@ int main()
     rb.run("notify_one wakes AT LEAST one of four",    &tests_notify_one_wakes_at_least_one_of_many);
     rb.run("a notification with no waiter is LOST",    &tests_a_notification_with_no_waiter_is_lost);
 
-    // -- IV. timed waits ---------------------------------------------------
+    // - IV. timed waits ---------------------------------------------------
     rb.module("IV. timed waits",
               "wait_for and wait_until: the deadline, and the three edges around it");
     rb.run("wait_for times out (and really waits)",    &tests_wait_for_times_out);
@@ -190,7 +190,7 @@ int main()
     rb.run("the condition_variable_any path times out", &tests_wait_for_on_the_condition_variable_any_path);
     rb.run("wait_until(lock, tp, pred) is NOT forwarded", &tests_wait_until_has_no_predicate_overload);
 
-    // -- IV. the lock policies ---------------------------------------------
+    // - IV. the lock policies ---------------------------------------------
     rb.module("IV. the lock policies",
               "every policy, with its own lock type -- and the C++20 stop_token");
     rb.run("the null policy cannot block",             &tests_the_null_policy_never_blocks);

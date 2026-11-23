@@ -15,8 +15,8 @@
 *         work.commit();
 *     }
 * Results are the layer's: SQLITE_OK (0), SQLite's result code, or a
-* negative D_DB_*. Functions that need no connection -- versions, features,
-* database files, quoting -- are static. db_face.hpp describes what the
+* negative D_DB_*. Functions that need no connection - versions, features,
+* database files, quoting - are static. db_face.hpp describes what the
 * face adds, how strings, lists and text cross it, and what each language
 * level adds beside the exact forms: from C++17 std::optional text, from
 * C++20 formats checked at compile time and std::span columns, from C++23
@@ -41,8 +41,8 @@
 *   The members that forward are generated, by scripts/gen_db_face.py from the
 * layer's prototypes and scripts/db_face/sqlite_face.hpp.in, and keep the C
 * functions' contracts, in the headers each part names; those written by
-* hand in the template -- the ones that open, close or hand over the
-* connection or the statement -- carry their own. Edit the template, not
+* hand in the template - the ones that open, close or hand over the
+* connection or the statement - carry their own. Edit the template, not
 * this file.
 *
 *
@@ -167,7 +167,7 @@ public:
     }
 
 #if D_MOVE_ENABLED
-    // moving -- the statement passes to the object moved to, which
+    // moving - the statement passes to the object moved to, which
     // finalizes what it held; the object moved from holds none
     sqlite_statement(
         sqlite_statement&& _other
@@ -186,7 +186,7 @@ public:
     }
 #endif  // D_MOVE_ENABLED
 
-    // the handle -- the statement, for the layer's or SQLite's own calls,
+    // the handle - the statement, for the layer's or SQLite's own calls,
     // NULL when there is none; and whether there is one
     D_NODISCARD struct sqlite3_stmt*
     handle() const D_NOEXCEPT
@@ -280,7 +280,7 @@ public:
         return &m_statement;
     }
 
-    // swap -- the two objects trade statements
+    // swap - the two objects trade statements
     void
     swap(
         sqlite_statement& _other
@@ -551,7 +551,7 @@ public:
     }
 
 #if D_MOVE_ENABLED
-    // moving -- the connection passes to the face moved to, which closes
+    // moving - the connection passes to the face moved to, which closes
     // what it held; the face moved from holds none
     sqlite(
         sqlite&& _other
@@ -570,7 +570,7 @@ public:
     }
 #endif  // D_MOVE_ENABLED
 
-    // the handle -- the connection, for the layer's or SQLite's own calls,
+    // the handle - the connection, for the layer's or SQLite's own calls,
     // NULL when there is none; and whether there is one
     D_NODISCARD struct sqlite3*
     handle() const D_NOEXCEPT
@@ -636,7 +636,7 @@ public:
         return;
     }
 
-    // swap -- the two faces trade connections
+    // swap - the two faces trade connections
     void
     swap(
         sqlite& _other
@@ -650,7 +650,7 @@ public:
         return;
     }
 
-    // default_transaction_mode -- how face::transaction begins when told
+    // default_transaction_mode - how face::transaction begins when told
     // nothing: DEFERRED
     D_NODISCARD static D_CONSTEXPR transaction_mode
     default_transaction_mode() D_NOEXCEPT
@@ -2944,7 +2944,7 @@ private:
     D_DELETED_FN_MSG(sqlite& operator=(const sqlite&),
                      "a face owns its connection; move it")
 
-    // m_take -- an open's result; the connection it made replaces the
+    // m_take - an open's result; the connection it made replaces the
     // face's when it succeeded. Each open calls the layer first, in a
     // statement of its own, since the order a call's arguments are
     // evaluated in is the compiler's.
@@ -2968,7 +2968,7 @@ private:
 
 // 1.3    Swapping
 //------------------------------------------------------------------------------
-// swapping -- the two connections, or statements, trade places, as std::swap
+// swapping - the two connections, or statements, trade places, as std::swap
 // would have them, for code that swaps unqualified
 inline void
 swap(

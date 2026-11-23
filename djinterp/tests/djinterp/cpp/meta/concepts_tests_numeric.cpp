@@ -35,7 +35,7 @@ bool concepts_tests_numeric()
     using fixtures::trivial_class;
 
     // -------------------------------------------------------------------
-    // valid_size_type -- unsigned AND arithmetic
+    // valid_size_type - unsigned AND arithmetic
     // -------------------------------------------------------------------
 
     DT_CONCEPT    (valid_size_type<unsigned int>);
@@ -62,7 +62,7 @@ bool concepts_tests_numeric()
     DT_NOT_CONCEPT(valid_size_type<double>);
 
     // -------------------------------------------------------------------
-    // nonzero_size -- _N != 0
+    // nonzero_size - _N != 0
     // -------------------------------------------------------------------
 
     DT_CONCEPT    (nonzero_size<1>);
@@ -72,7 +72,7 @@ bool concepts_tests_numeric()
     DT_NOT_CONCEPT(nonzero_size<0>);
 
     // -------------------------------------------------------------------
-    // zero_size -- _N == 0
+    // zero_size - _N == 0
     // -------------------------------------------------------------------
 
     DT_CONCEPT    (zero_size<0>);

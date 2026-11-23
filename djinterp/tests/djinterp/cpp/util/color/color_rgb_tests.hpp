@@ -152,7 +152,7 @@ struct cr_has_model_tag<T, void_t<typename T::model_tag> >
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- declarations - visible in BOTH modes ------------------------------------
+// - declarations - visible in BOTH modes ------------------------------------
 
 // I.   CONSTRUCTION                   (color_rgb_tests_construction.cpp)
 bool tests_color_rgb_default_is_zeroed();
@@ -205,7 +205,7 @@ bool tests_color_rgba_lerp_includes_alpha();
 bool tests_color_rgba_lerp_returns_rgba();
 
 
-// -- the spec provider - spec mode only --------------------------------------
+// - the spec provider - spec mode only --------------------------------------
 #ifdef DTEST_SPEC_MODE
 
 // color_rgb_spec

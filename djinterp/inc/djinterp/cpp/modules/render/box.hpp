@@ -4,7 +4,7 @@
 * Axis-aligned boxes as a renderer sees them.
 *   The corner, edge and face tables of a box, and its projection through a
 * camera into screen space. Corner i's bits choose the sign of the half-extent
-* on each axis -- bit 0 for x, bit 1 for y, bit 2 for z -- so corner 0 is the
+* on each axis - bit 0 for x, bit 1 for y, bit 2 for z - so corner 0 is the
 * minimum and corner 7 the maximum. Faces list their corners in perimeter
 * order, ready to fill as quadrilaterals.
 *   A projected box keeps each corner's depth beside its screen position, which
@@ -122,7 +122,7 @@ D_NODISCARD D_CONSTEXPR math::linalg::vector<T, 3> box_corner(
 //------------------------------------------------------------------------------
 // 2.1.1
 // projected_box
-//   struct: a box after camera projection -- each corner as (x, y) in pixels
+//   struct: a box after camera projection - each corner as (x, y) in pixels
 // and z as its depth key (larger is farther), plus the projected centre.
 template<typename T = double>
 struct projected_box

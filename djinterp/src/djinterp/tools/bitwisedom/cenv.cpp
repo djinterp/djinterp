@@ -11,8 +11,8 @@
 *   The evaluator is a recursive descent over the expanded tokens, one
 * function per precedence level. It never stops at a problem it can carry:
 * undefined behaviour marks the operand and is reported once, where it
-* arose; only an error -- a name nothing defines, a string, a syntax
-* error -- ends the evaluation.
+* arose; only an error - a name nothing defines, a string, a syntax
+* error - ends the evaluation.
 *
 *
 * path:      /src/djinterp/tools/bitwisedom/cenv.cpp
@@ -1428,7 +1428,7 @@ private:
     /*
     substitute
       A macro's replacement for one invocation: parameters replaced by
-    their arguments -- expanded, except beside # and ## -- # and ## and
+    their arguments - expanded, except beside # and ## - # and ## and
     __VA_OPT__ applied, then every token given the invocation's hide set,
     and the first the spacing the macro's name had.
     */
@@ -1994,7 +1994,7 @@ private:
     /*
     names_known
       Before anything is computed, every name the expansion left is
-    looked up -- so that all of the names nothing defines are reported
+    looked up - so that all of the names nothing defines are reported
     together, each with what it might have meant, rather than the first
     alone. In an #if, a name nothing defines is 0.
     */
@@ -4586,8 +4586,8 @@ std::size_t c_branches::depth() const
 
 /*
 c_branches::decide
-  An #if's or #elif's condition: true, false, or -- resting on a name
-nothing defines -- assumed true and noted.
+  An #if's or #elif's condition: true, false, or - resting on a name
+nothing defines - assumed true and noted.
 */
 bool c_branches::decide(
     const std::vector<c_token>& _line,
@@ -4739,8 +4739,8 @@ bool c_branches::feed(
 
 /*
 read_define
-  A #define's tokens, after the `#`, as a macro: its name, then -- when a
-'(' follows the name with no space between -- its parameters, then its
+  A #define's tokens, after the `#`, as a macro: its name, then - when a
+'(' follows the name with no space between - its parameters, then its
 body.
 */
 bool read_define(

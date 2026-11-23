@@ -16,8 +16,8 @@
 *   A RUN IS TRACED FOR WHAT IT EXPLAINS. A trace is what a failure's
 * frontier and a saved run's heat are recovered from, and it costs memory in
 * proportion to the steps. match runs each input untraced and runs a failed
-* one again, traced, to say where it stopped -- the machine is
-* deterministic, so the second run is the first one, watched -- unless it is
+* one again, traced, to say where it stopped - the machine is
+* deterministic, so the second run is the first one, watched - unless it is
 * given -q or --no-trace. A run match saves is traced from the start.
 * check and compile never trace: where a grammar's reading stops, the model
 * reads it again, traced, to say where.
@@ -88,8 +88,8 @@ struct outcome
 
 // match_report
 //   struct: what match found: the grammar's name and the frontend that read
-// it, how many inputs there were, each input's run -- ending at the first
-// whose grammar was refused, if one was -- and the session folder the runs
+// it, how many inputs there were, each input's run - ending at the first
+// whose grammar was refused, if one was - and the session folder the runs
 // were saved in, in UTF-8; empty when they were not.
 struct match_report
 {
@@ -227,7 +227,7 @@ bool save(
  * @return the verdict, one or two lines.
  *
  * An accepted grammar whose run over nothing ran to the step limit is left
- * recursive in all but name -- PEG makes no progress there -- so check says
+ * recursive in all but name - PEG makes no progress there - so check says
  * so, though the session accepted it and the status says it did.
  */
 std::string check_text(
@@ -296,8 +296,8 @@ std::string check_json(
  *
  * @param[in] _outcome  the input's run.
  * @param[in] _as_text  whether the input was given as text.
- * @return the object: the input as it was given -- a file name, `-`, or
- *         the text itself -- and how its run went.
+ * @return the object: the input as it was given - a file name, `-`, or
+ *         the text itself - and how its run went.
  */
 std::string outcome_json(
     const outcome& _outcome,
@@ -508,8 +508,8 @@ json_object run_tail(
 /**
  * @brief Prints a run and its parts, as JSON.
  *
- * @param[in] _head   the members naming where the run came from -- the
- *                    grammar and the input, or the saved folder -- which
+ * @param[in] _head   the members naming where the run came from - the
+ *                    grammar and the input, or the saved folder - which
  *                    come first.
  * @param[in] _run    the run.
  * @param[in] _parts  the parts to include.
@@ -766,8 +766,8 @@ fs::path session_of(
  * @return the run's exit status; REFUSED, too, when the output could not be
  *         written.
  *
- * A run whose grammar was refused is printed all the same -- its parts say
- * how far it got -- and the refusal is said as an error.
+ * A run whose grammar was refused is printed all the same - its parts say
+ * how far it got - and the refusal is said as an error.
  */
 template<typename Command>
 int print_run(

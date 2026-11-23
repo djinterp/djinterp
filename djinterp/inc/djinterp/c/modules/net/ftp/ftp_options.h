@@ -2,7 +2,7 @@
 * djinterp [c][net]                                                ftp_options.h
 *
 * FTP client options.
-*   Backend-neutral settings for a client session -- credentials, security,
+*   Backend-neutral settings for a client session - credentials, security,
 * data-connection mode, representation type, verification, and timeouts --
 * with defaults that favor safety.
 *

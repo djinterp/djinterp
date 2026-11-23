@@ -2,7 +2,7 @@
 * djinterp [cpp][tools]                                          model_tests.cpp
 *
 * The model's suite: bits, expressions, sheets, resolution, operations, the
-* generator, files and history, and the C environment and importer -- and
+* generator, files and history, and the C environment and importer - and
 * the order a sheet's rows are shown in, what each cell of the grid shows,
 * where the grid's probe and usage rows are, and what the preprocessor
 * cannot read in a definition file; then the edits the window and the
@@ -2387,12 +2387,12 @@ bool depth_first(
 /*
 sorted_and_shown
   A sheet's rows in the order the grid and the tree show them: the sheet's
-own, or each group's rows sorted -- groups first, by name; a row the key
+own, or each group's rows sorted - groups first, by name; a row the key
 says nothing of after those it does, whichever way; rows the key cannot
-tell apart as the sheet has them -- and kept in a file. And what each cell
+tell apart as the sheet has them - and kept in a file. And what each cell
 shows: the grid's settings, as the rules over its rows and bits change
-them -- a group's rows, a run of bits, a region of both; the last rule
-winning; shown in one place only; back as the grid shows the rest -- kept
+them - a group's rows, a run of bits, a region of both; the last rule
+winning; shown in one place only; back as the grid shows the rest - kept
 in a file; and a rule whose rows have all gone, gone with them.
 */
 void sorted_and_shown()
@@ -2584,7 +2584,7 @@ void sorted_and_shown()
 special_rows
   The grid's probe and usage rows: one of each in a new sheet, pinned at
 the bottom and hidden; another added just after one, placed as it is;
-moved -- pinned at the top, among the rows before a row or at a group's
+moved - pinned at the top, among the rows before a row or at a group's
 end, and in their order; removed, the last of a kind hidden instead, its
 place kept; anchors to rows gone let go of; and all of it kept in a file,
 a file from before them opening with the two at the bottom.
@@ -2695,9 +2695,9 @@ void special_rows()
 
 /*
 definition_notes
-  An imported definition file's lines the preprocessor cannot read -- a
-#define that does not parse, an #endif with no #if -- and what it only
-assumed -- an #if resting on a name nothing defines -- each named by its
+  An imported definition file's lines the preprocessor cannot read - a
+#define that does not parse, an #endif with no #if - and what it only
+assumed - an #if resting on a name nothing defines - each named by its
 line, kept with the file it is in; what it reads still defines.
 */
 void definition_notes()
@@ -2753,7 +2753,7 @@ void definition_notes()
 /*
 edits_tried
   A row tried before it is added: named for its kind and made unique, a bit
-at the lowest its group leaves free, and refused -- the sheet unchanged --
+at the lowest its group leaves free, and refused - the sheet unchanged --
 where the window refuses it: nowhere to put it, a macro name that is no C
 identifier, or another symbol's. Its issues go with it, not refused.
 */

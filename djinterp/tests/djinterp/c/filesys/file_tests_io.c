@@ -1,12 +1,12 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                          file_tests_io.c
 *
-*   IV. Transfer (file_io) -- moving bytes through a descriptor, at an offset,
+*   IV. Transfer (file_io) - moving bytes through a descriptor, at an offset,
 * or a whole file at a time.
 *
 *   Descriptor reads and writes are descriptor-based and so report ENOSYS on
 * the ISO C backend; that branch is checked directly and the transfer
-* behaviour is exercised on a backend that has descriptors -- round-trip
+* behaviour is exercised on a backend that has descriptors - round-trip
 * integrity, the *_full loops, and the position-independence of the positional
 * forms (verified by reading from offset 0 afterwards rather than by trusting
 * a raw seek). The whole-file helpers run on every backend: the sized fast path
@@ -108,7 +108,7 @@ void d_fs_tests_io_read_write(
     if (fd >= 0)
     {
         //   d_file_read_full_fd, not d_file_read_fd: a short read IS success for the
-        // primitive -- read(2) says so, and D_CFG_FILE_READ_CHUNK_SIZE makes it
+        // primitive - read(2) says so, and D_CFG_FILE_READ_CHUNK_SIZE makes it
         // happen deliberately. What is being checked here is the CONTENT, which
         // needs every byte, so the function that promises every byte is the one
         // to call. Asserting == on d_file_read_fd passed at the default chunk size by
@@ -291,7 +291,7 @@ void d_fs_tests_io_positional(
         //   There is no d_pread_full, so this asserts what the primitive
         // promises rather than a length: SOME bytes, never more than asked,
         // and the ones delivered are the ones AT the offset. Demanding all
-        // four was demanding a guarantee d_file_pread_fd does not make -- true at the
+        // four was demanding a guarantee d_file_pread_fd does not make - true at the
         // default chunk size, false at a chunk of 1.
         n = d_file_pread_fd(fd, buf, 4, 5);
         at_offset = (n > 0) &&
@@ -328,7 +328,7 @@ void d_fs_tests_io_positional(
         // not disturb the cursor
         //   The bytes checked are the three BEFORE the offset. They are
         // untouched however much of "XY" landed, so the assertion isolates the
-        // cursor -- which is the claim -- instead of also depending on the
+        // cursor - which is the claim - instead of also depending on the
         // transfer being complete, which d_file_pwrite_fd never promised.
         memset(buf, 0, sizeof(buf));
         if (d_file_read_full_fd(fd, buf, 3) == 3)
@@ -773,7 +773,7 @@ void d_fs_tests_io(
  *****************************************************************************/
 
 /******************************************************************************
- * IV.  file_io  --  BYTE TRANSFER
+ * IV.  file_io  -  BYTE TRANSFER
  *****************************************************************************/
 
 /*
@@ -798,7 +798,7 @@ bool d_tests_file_read_write(struct dj_test_suite* _suite)
     //   d_file_read_fd and d_file_write_fd are the SHORT-TRANSFER primitives: read(2)'s
     // contract is that a short transfer is success, and the chunk knobs make
     // it happen deliberately. Asserting == on them passed at the default 1 MiB
-    // chunk by coincidence -- it was testing a lucky number, not the contract,
+    // chunk by coincidence - it was testing a lucky number, not the contract,
     // and it failed the moment the matrix set the chunk to 1. What each one
     // actually promises is asserted below: the primitive moves SOME bytes and
     // never more than asked; the _full variant moves ALL of them.
@@ -838,7 +838,7 @@ bool d_tests_file_read_write(struct dj_test_suite* _suite)
 
     // d_file_read_full_fd loops over short reads; on a regular file it must deliver
     // everything, and report the shortfall honestly at EOF. The integrity
-    // check belongs HERE, after the full read -- hung off d_file_read_fd it was
+    // check belongs HERE, after the full read - hung off d_file_read_fd it was
     // asserting the whole content survived a call that never promised to
     // deliver it.
     fd = d_file_open(path, O_RDONLY);
@@ -1033,7 +1033,7 @@ bool d_tests_file_fwrite_all(struct dj_test_suite* _suite)
 
 /*
 d_tests_file_fread_all_into
-  Tests d_file_read_all_into -- the no-allocation form.
+  Tests d_file_read_all_into - the no-allocation form.
 */
 static
 bool d_tests_file_fread_all_into(struct dj_test_suite* _suite)

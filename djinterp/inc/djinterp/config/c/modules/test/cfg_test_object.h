@@ -12,7 +12,7 @@
 * actually is: cfg_test.h had grown to serve four modules at once, which made it
 * the thing the rule forbids at a larger scale than the sibling it was written
 * to prevent.  There is deliberately no copy under config/test/ for the C++ fork
-* -- a knob's value must be identical in both forks (dconfig 6.2), and two
+* - a knob's value must be identical in both forks (dconfig 6.2), and two
 * files, one per fork, would be that rule broken by directory structure rather
 * than by anyone's decision.
 *
@@ -26,7 +26,7 @@
 * for one answer.
 *
 *   The three type knobs are validated by static assertion, not by `#error`.
-* A knob that names a type cannot be checked by the preprocessor -- there is no
+* A knob that names a type cannot be checked by the preprocessor - there is no
 * directive that can ask whether `int32_t` is signed.  The boolean knob below
 * gets its `#error` in section II; the three type knobs get signedness and
 * width assertions in test_common.h, beside the typedefs they produce.
@@ -65,17 +65,17 @@
 // =============================================================================
 
 // D_CFG_TEST_STATUS_TYPE
-//   knob: type of dj_test_status. Must be SIGNED integral -- the value set is
+//   knob: type of dj_test_status. Must be SIGNED integral - the value set is
 // dense from 0 and d_test_status_is_valid rejects on `< 0`, which an unsigned
 // type cannot express.
-//   Default int32_t -- what the field was before it was configurable.
+//   Default int32_t - what the field was before it was configurable.
 #ifndef D_CFG_TEST_STATUS_TYPE
 #   define D_CFG_TEST_STATUS_TYPE int32_t
 #endif
 
 // D_CFG_TEST_TYPE_ID_TYPE
 //   knob: type of dj_test_type_id. Must be SIGNED integral.
-//   Default int32_t -- what the type was before it was configurable.
+//   Default int32_t - what the type was before it was configurable.
 #ifndef D_CFG_TEST_TYPE_ID_TYPE
 #   define D_CFG_TEST_TYPE_ID_TYPE int32_t
 #endif
@@ -90,7 +90,7 @@
 // D_CFG_TEST_OBJECT_VALIDATE_STATUS
 //   brief: an out-of-range status handed to set_status is stored as ERROR
 // rather than passed through.  On by default, and it is the same rule
-// d_test_event_make and d_test_event_status_change already apply -- three
+// d_test_event_make and d_test_event_status_change already apply - three
 // modules agreeing about what an invalid status means, which is a thing to
 // state once and read three times rather than to reimplement.
 #ifndef D_CFG_TEST_OBJECT_VALIDATE_STATUS

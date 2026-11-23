@@ -17,15 +17,15 @@
 * run_module (producer_tests_runner.cpp).
 *
 *   SECTION MAP (one .cpp per section):
-*     producer_tests_step.cpp       -- DProducerStep<T>, make_step, no_step
-*     producer_tests_generators.cpp -- iterate / unfold / range / iota /
+*     producer_tests_step.cpp       - DProducerStep<T>, make_step, no_step
+*     producer_tests_generators.cpp - iterate / unfold / range / iota /
 *                                      repeat / repeat_n / cycle / generate /
 *                                      empty / single / from_container
-*     producer_tests_adapters.cpp   -- take_n / drop_n / concat / interleave /
+*     producer_tests_adapters.cpp   - take_n / drop_n / concat / interleave /
 *                                      transform / filter, and the CRTP
 *                                      DProducerBase::collect terminal
-*     producer_tests_terminals.cpp  -- free collect / for_each / fold
-*     producer_tests_traits.cpp     -- is_producer_step / is_producer /
+*     producer_tests_terminals.cpp  - free collect / for_each / fold
+*     producer_tests_traits.cpp     - is_producer_step / is_producer /
 *                                      producer_value_type + C++20 concepts
 *
 *   PORTABILITY:
@@ -362,7 +362,7 @@ bool test_producer_traits();
 // Both are DEFINED in producer_tests_runner.cpp.
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // producer_spec
 //   function: the suite as DTest's module spec, one block per section.

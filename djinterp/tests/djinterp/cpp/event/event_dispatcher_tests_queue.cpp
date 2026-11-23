@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][event]                         event_dispatcher_tests_queue.cpp
 *
-*   Sections I-II -- INTERNAL QUEUE SUPPORT and EVENT QUEUE.  Exercises the
+*   Sections I-II - INTERNAL QUEUE SUPPORT and EVENT QUEUE.  Exercises the
 * DEventQueue: enqueue appends (payload captured by value) and is reflected in
 * pending()/empty(); clear() discards without dispatching; process() folds
 * dispatch over a prefix against a supplied registry, in order, returning the

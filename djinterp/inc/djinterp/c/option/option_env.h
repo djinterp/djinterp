@@ -1,16 +1,16 @@
 /*******************************************************************************
 * djinterp [c][option]                                              option_env.h
 *
-*   An abstract machine's environment: the variables a machine -- a printer,
-* a parser, a test runner -- is configured by. They are named and typed, and
+*   An abstract machine's environment: the variables a machine - a printer,
+* a parser, a test runner - is configured by. They are named and typed, and
 * their defaults are pinned in the machine's schema, from its D_CFG_* knobs.
 * Frames hold bindings, which can be set at run time, and frames nest. Built
 * on the option core: a frame's bindings are dj_option cells in a
 * dj_option_set.
 *
 *   A MACHINE DECLARES, A PROGRAM BINDS. A machine declares its variables once,
-* in a constant table of struct dj_option_env_var -- name, kind, default, the
-* values it accepts, one line of help -- and reads them through this header.
+* in a constant table of struct dj_option_env_var - name, kind, default, the
+* values it accepts, one line of help - and reads them through this header.
 * A program changes only what it wants changed:
 *     d_option_env_put(&env, "key_width=30");                   // by text
 *     d_option_env_load(&env, "style=json; select=-cpp_*", NULL);  // a script
@@ -28,13 +28,13 @@
 * first. The program's root frame, the djin registry, is the top of every
 * chain that wants one (option_env_registry.h).
 *   A SCOPE is local to a part of a machine: a printer's section, a parser's
-* phase. A frame names its scopes, and a binding made in one -- by text,
-* "cpp_features.key_width=40" -- is seen only there, ahead of the frame's
+* phase. A frame names its scopes, and a binding made in one - by text,
+* "cpp_features.key_width=40" - is seen only there, ahead of the frame's
 * unscoped binding.
 *
 *   EVERY BINDING SAYS WHERE IT CAME FROM. A binding is made from a source --
 * the program, a file, the process's environment, the command line, or an
-* override -- and a frame keeps one binding per source. The value in force is
+* override - and a frame keeps one binding per source. The value in force is
 * the one with the highest standing; among equals, the innermost frame's,
 * and in it the scoped binding before the unscoped one; with none, the
 * default, which names the knob it came from. So the order in which sources
@@ -169,7 +169,7 @@ enum dj_option_env_kind
 // 1.1.2
 // dj_option_env_name
 //   struct: one named value of a CHOICE or FLAGS variable: a choice's value,
-// or the bits a flag name stands for -- one bit, or several, as "all" does.
+// or the bits a flag name stands for - one bit, or several, as "all" does.
 // An INT may name values too, as "unbounded" for a depth guard: text may give
 // one by name, it is written back by name, and it is taken even outside the
 // INT's range.
@@ -187,8 +187,8 @@ struct dj_option_env_name
 //   The default is pinned here and nowhere else (option.h: "DEFAULTS ARE
 // PINNED IN THE SCHEMA"): `integer` for BOOL, INT, CHOICE and FLAGS, `real`
 // for REAL, `text` for TEXT; `knob` names the D_CFG_* it is, when it is one.
-// A name, and an alias, must be an identifier -- letters, digits,
-// underscores -- so it can be written in text and in a template.
+// A name, and an alias, must be an identifier - letters, digits,
+// underscores - so it can be written in text and in a template.
 //   What a row accepts is checked on every binding: an INT within [minimum,
 // maximum], or one of its named values; a CHOICE's names, a FLAGS's bits; and
 // a default must be one of these. A name in `unbuilt` is ruled
@@ -443,8 +443,8 @@ typedef int32_t (*fn_option_env_getenv)(void*       _context,
 // scopes, its text arena. Built over caller storage by D_OPTION_ENV_VIEW; it
 // points into that storage, so it is not copied.
 //
-//   A variable's id is its declaring frame's depth -- its count of ancestors
-// -- in bits 20 to 27, and its index among that frame's declarations below;
+//   A variable's id is its declaring frame's depth - its count of ancestors
+// - in bits 20 to 27, and its index among that frame's declarations below;
 // a scope's id is the same with the index plus 1, and 0 is the global scope.
 // So a root's ids are plain indices, ids from different frames never meet,
 // and a frame may declare while frames beneath it exist.
@@ -563,8 +563,8 @@ struct dj_option_env_layer
 //------------------------------------------------------------------------------
 // 2.3.1
 // D_OPTION_ENV_DECLARE
-//   macro: declares a frame's storage: room for `bindings` bindings -- one
-// per source, per scope, per variable bound -- `vars` declarations (0 for a
+//   macro: declares a frame's storage: room for `bindings` bindings - one
+// per source, per scope, per variable bound - `vars` declarations (0 for a
 // frame that declares none) and `text` bytes of arena. Every slot a binding
 // needs is at most eight bytes and eight-aligned, so a uint64_t per binding
 // is enough value block.
@@ -724,9 +724,9 @@ struct dj_option_result d_option_env_set_name(
  */
 void        d_option_env_clear(struct dj_option_env* _env);
 
-// the frame's parent -- d_option_env_set_parent(_env, NULL) -- let go of
+// the frame's parent - d_option_env_set_parent(_env, NULL) - let go of
 void        d_option_env_detach(struct dj_option_env* _env);
-// the generation in force: the sum of the frame's and its parents' -- a
+// the generation in force: the sum of the frame's and its parents' - a
 // machine that compiled from the variables recompiles when it changes
 uint32_t    d_option_env_generation(const struct dj_option_env* _env);
 // the root frame: the one with no parent
@@ -741,7 +741,7 @@ const char* d_option_env_source_name(int32_t _source);
 //==============================================================================
 // 3.  VARIABLES AT RUN TIME
 //==============================================================================
-//   Every function takes a scope -- D_OPTION_ENV_GLOBAL or a named one -- and a
+//   Every function takes a scope - D_OPTION_ENV_GLOBAL or a named one - and a
 // variable's id, from d_option_env_find, a schema's first id plus a row's
 // index, or d_option_env_var_id. The status vocabulary is the option core's:
 // KEY_ABSENT for an id or scope the frame cannot see, VALUE_TYPE_MISMATCH for
@@ -819,7 +819,7 @@ struct dj_option_result d_option_env_resolve(
                             uint32_t*                   _scope);
 
 /**
- * @brief Did you mean: the visible name nearest a name nothing has -- a
+ * @brief Did you mean: the visible name nearest a name nothing has - a
  *        variable's, an alias, or, for a name's scope part, a scope's.
  *
  * @note Nearest by edit distance, a swap of two neighbours counting one; at
@@ -880,7 +880,7 @@ const char* d_option_env_text(const struct dj_option_env* _env,
 int32_t     d_option_env_source(const struct dj_option_env* _env,
                                 uint32_t                    _scope,
                                 uint32_t                    _var);
-// whether this frame -- not a parent -- binds the variable in the scope,
+// whether this frame - not a parent - binds the variable in the scope,
 // from any source
 bool        d_option_env_is_bound(const struct dj_option_env* _env,
                                   uint32_t                    _scope,
@@ -1059,8 +1059,8 @@ int32_t d_option_env_reason_of(const struct dj_option_env* _env,
 
 /**
  * @brief A reason's stock words: "out of range", "not taken from this
- *        source". A caller with more to say -- the range itself, the
- *        source's name -- words its own.
+ *        source". A caller with more to say - the range itself, the
+ *        source's name - words its own.
  * @param[in] _reason  D_OPTION_ENV_REASON_*.
  * @return the words; "?" for no such reason; never null.
  */
@@ -1160,9 +1160,9 @@ struct dj_option_result d_option_env_assign(struct dj_option_env* _env,
  *        the name.
  *
  * @note Space around the name and the value is ignored. A value in double
- *       quotes is read with C's escapes -- a backslash before a quote, an
+ *       quotes is read with C's escapes - a backslash before a quote, an
  *       apostrophe, a backslash, n, r, t, 0, or x and two hexadecimal
- *       digits -- and may hold anything; otherwise it runs to the end.
+ *       digits - and may hold anything; otherwise it runs to the end.
  *
  * @param[in,out] _env        the frame.
  * @param[in]     _statement  the statement, NUL-terminated.
@@ -1195,7 +1195,7 @@ struct dj_option_result d_option_env_put_n_from(
                             int32_t               _source);
 
 // where a script's statement that starts at _at ends: at ';', a line break
-// or '#' outside double quotes, or at the script's NUL -- how
+// or '#' outside double quotes, or at the script's NUL - how
 // d_option_env_load splits a script, for a caller that routes statements
 // to several frames
 size_t      d_option_env_statement_end(const char* _script,
@@ -1230,7 +1230,7 @@ struct dj_option_result d_option_env_load(struct dj_option_env* _env,
 /**
  * @brief Binds variables from the process's environment: each variable the
  *        frame can see whose name, upper-cased after a prefix, is set there
- *        -- "DJINTERP_ENV_PRINTER_KEY_WIDTH" for "key_width" -- is assigned
+ *        - "DJINTERP_ENV_PRINTER_KEY_WIDTH" for "key_width" - is assigned
  *        its text, globally, from the environment; an alias is tried when the
  *        name is not set.
  *
@@ -1370,7 +1370,7 @@ struct dj_option_env_checked
  * @brief Checks a value as binding it from text, from a source, would, and
  *        writes it as d_option_env_format_quoted would once bound; binds
  *        nothing, so the frame is as it was. What a program that writes a
- *        setting somewhere else -- a settings file -- checks it with first.
+ *        setting somewhere else - a settings file - checks it with first.
  *
  * @note The name is resolved, the text read as the kind reads it, and the
  *       value admitted by the same rules binding applies: the range, the

@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  traversable_tests_vector.cpp
-//   The std::vector instance -- the one concrete traversable the header ships:
+//   The std::vector instance - the one concrete traversable the header ships:
 //   walk left-to-right, run f : A -> F<B> at each element, combine with lift_a2
 //   into F<std::vector<B>>.
 
@@ -56,7 +56,7 @@ bool tests_vector_traverse_all_succeed()
 /*
 tests_vector_traverse_one_failure_sinks_it
   ALL-OR-NOTHING. The effects are combined with lift_a2, so a single failing
-  element sinks the entire traversal -- there is no partial result.
+  element sinks the entire traversal - there is no partial result.
   Tests the following:
   - a failure in the middle, at the head, and at the tail each yields nothing
   - the same vector with no failures succeeds (the contrast)
@@ -109,7 +109,7 @@ bool tests_vector_traverse_empty_uses_pure()
 
     const std::vector<int> empty;
 
-    // pure(empty vector) -- a success, not a failure.
+    // pure(empty vector) - a success, not a failure.
     const DTmaybe<std::vector<int> > r = traverse(empty, pos_or_nothing());
     ok = ok && (r.has());
     ok = ok && (r.get().empty());
@@ -223,7 +223,7 @@ bool tests_vector_traverse_changes_inner_type()
 /*
 tests_vector_traverse_result_type
   The result type is F<std::vector<B>>, assembled through monad_rebind from the
-  effect F named by f's result -- the elements are MATERIALISED, which is the
+  effect F named by f's result - the elements are MATERIALISED, which is the
   documented behaviour for a sequence-shaped traversable.
   Tests the following:
   - the declared result type for each effect and each B

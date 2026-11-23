@@ -79,7 +79,7 @@ int d_file_sync_fd(
  *
  * @param[in] _stream  an open output stream, or an update stream last written:
  *                     what fflush needs.
- * @return 0, or -1 on failure with errno set -- EBADF for a stream with no
+ * @return 0, or -1 on failure with errno set - EBADF for a stream with no
  *         descriptor; ENOSYS on the ISO C backend.
  */
 int d_file_sync_stream(

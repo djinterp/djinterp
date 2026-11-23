@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][functional]                       interpolate_tests_builder.cpp
 *
-* Section VII -- the lazy `interpolation` functor: a bound template plus a
+* Section VII - the lazy `interpolation` functor: a bound template plus a
 * resolver chain carried in the type, forced by a terminal.  Verifies the
 * interpolate() seed (identity passthrough), a single frame, the inline-bindings
 * convenience overload, chained frames collapsing into one pass, frame priority,

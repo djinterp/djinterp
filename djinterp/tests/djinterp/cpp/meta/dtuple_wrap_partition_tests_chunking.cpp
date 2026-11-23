@@ -2,7 +2,7 @@
 * djinterp [cpp][meta]                  dtuple_wrap_partition_tests_chunking.cpp
 *
 *   Section II of dtuple_wrap_partition.hpp: the core chunk-and-wrap behavior
-* over runs of consecutive NON-passthrough slots (no passthroughs here -- that
+* over runs of consecutive NON-passthrough slots (no passthroughs here - that
 * is section III).  This drives the walk's step, its schema-exhausted base, and
 * the dispatch accumulate/complete branches:
 *

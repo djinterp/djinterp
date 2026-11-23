@@ -2,7 +2,7 @@
 * djinterp [c][utility]                                            sink_common.c
 *
 *   The spans and the sink.  Nothing here allocates, opens anything, or knows
-* what the bytes mean -- which is what lets every producer in the framework
+* what the bytes mean - which is what lets every producer in the framework
 * share one destination abstraction instead of inventing its own.
 *
 *
@@ -80,7 +80,7 @@ d_pack_bytes_from_span(
 d_pack_text_equal
   Whether two text spans carry the same bytes.
 
-  Length first, then memcmp -- never strcmp, because a span may contain an
+  Length first, then memcmp - never strcmp, because a span may contain an
 interior NUL and may not be terminated at all.
 */
 int
@@ -161,7 +161,7 @@ d_sink_emit(
  * @param[in] _context  a struct dj_pack_counting_sink.
  * @param[in] _data     ignored.
  * @param[in] _size     the byte count to add.
- * @return _size always -- a counting sink never refuses.
+ * @return _size always - a counting sink never refuses.
  */
 static size_t
 d_internal_count_write(

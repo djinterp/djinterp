@@ -12,12 +12,12 @@
 // another, both of which do the same two jobs - THREAD the remaining source
 // forward, and SHORT-CIRCUIT on failure:
 //
-//     kleisli_then(P, Q)   -- the note's `Q <> P`.  Run P; on success feed P's
+//     kleisli_then(P, Q)   - the note's `Q <> P`.  Run P; on success feed P's
 //                             leftover to Q and keep Q's result (P's result is
 //                             discarded).  P and Q share tau and E; rho may
 //                             differ.
 //
-//     kleisli_bind(P, k)   -- the note's `P >>= k`.  Run P; on success apply the
+//     kleisli_bind(P, k)   - the note's `P >>= k`.  Run P; on success apply the
 //                             continuation k to P's RESULT to choose the next
 //                             parser, then run that on P's leftover.
 //
@@ -218,7 +218,7 @@ bool tests_kleisli_bind_passes_the_result_to_the_continuation()
     bool ok = true;
 
     ok = ok && (outcome.is_ok());
-    ok = ok && (outcome.value() == 42);        // 42, not 2 -- k saw P's result
+    ok = ok && (outcome.value() == 42);        // 42, not 2 - k saw P's result
 
     // change P's result and the answer tracks it
     auto other = bound(carrier("71xyz"));

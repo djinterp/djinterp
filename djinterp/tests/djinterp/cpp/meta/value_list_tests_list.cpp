@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][meta]                                 value_list_tests_list.cpp
 *
-*   Section I -- DValueList<auto...>: the NTTP sequence and its size().
+*   Section I - DValueList<auto...>: the NTTP sequence and its size().
 *
 *
 * path:      /tests/djinterp/cpp/meta/value_list_tests_list.cpp
@@ -38,7 +38,7 @@ bool tests_value_list_size_member()
     static_assert(DValueList<1, 2, 3>::size() == 3u, "three");
     static_assert(DValueList<0, 1, 2, 3, 4, 5, 6, 7>::size() == 8u, "eight");
 
-    // on an instance, too -- the list is passed by value.
+    // on an instance, too - the list is passed by value.
     constexpr DValueList<1, 2, 3> list{};
     static_assert(list.size() == 3u, "instance");
 
@@ -51,7 +51,7 @@ bool tests_value_list_size_member()
 
 /*
 tests_value_list_is_empty_object
-  The values live in the TYPE, so the list carries no storage -- it is an empty
+  The values live in the TYPE, so the list carries no storage - it is an empty
   struct, cheap to pass by value into the constexpr free-function ops.
   Tests the following:
   - the list is an empty class, whatever its length
@@ -86,7 +86,7 @@ bool tests_value_list_is_empty_object()
 
 /*
 tests_value_list_heterogeneous
-  The pack is auto..., so the elements need not share a type -- this is the
+  The pack is auto..., so the elements need not share a type - this is the
   value-domain analog of a std::tuple's heterogeneity.
   Tests the following:
   - an int, a char, a bool, and a scoped enum coexist in one list
@@ -114,7 +114,7 @@ bool tests_value_list_heterogeneous()
 
 /*
 tests_value_list_size_noexcept
-  size() is a static constexpr noexcept function -- usable anywhere a constant is
+  size() is a static constexpr noexcept function - usable anywhere a constant is
   needed, and never throwing.
   Tests the following:
   - the call is noexcept
@@ -168,7 +168,7 @@ bool tests_value_list_duplicates()
 
 /*
 tests_value_list_type_identity
-  Two lists are the same type exactly when their packs match -- so ORDER matters,
+  Two lists are the same type exactly when their packs match - so ORDER matters,
   and so does the TYPE of each value, since an NTTP carries its type with it.
   Tests the following:
   - reordering the values yields a different type
@@ -207,7 +207,7 @@ tests_value_list_tier_gate
   The TIER claim: DValueList is an auto-NTTP facility, so the module is gated to
   C++17 and below that the header declares NOTHING (it adds no trait-floor
   surface). That this translation unit includes the header and still compiles
-  under -std=c++11 and -std=c++14 IS the check -- nothing below the gate may name
+  under -std=c++11 and -std=c++14 IS the check - nothing below the gate may name
   DValueList at all.
   Tests the following:
   - at C++17 and above, the sequence and its ops are present and work
@@ -226,7 +226,7 @@ bool tests_value_list_tier_gate()
                   "the gate agrees with the language level");
 #else
     // below the tier: the header declared nothing. Naming DValueList here would
-    // not compile -- which is exactly the property under test, and the build
+    // not compile - which is exactly the property under test, and the build
     // itself is the assertion.
     ok = ok && true;
 #endif

@@ -10,7 +10,7 @@
 * answers 26 for a source that is not there and 48 for a target that is.
 *   DDL runs as the drivers run it: outside a transaction with the client's
 * write concern, which the layer appends, and inside one with its session,
-* where the server takes it -- a create of a collection or an index, from
+* where the server takes it - a create of a collection or an index, from
 * 4.4. A drop or a rename the server never takes in a transaction, and the
 * layer refuses before sending, which the server would do by ending the
 * transaction.

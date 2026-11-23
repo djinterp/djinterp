@@ -4,19 +4,19 @@
 * The connection every djinterp C++17 database connection derives from, its
 * operations written once for every vendor.
 *   database_connection implements connection's operations over hooks of the
-* vendor's class -- connect_impl, execute_update_impl, and so on, each
-* named after its operation -- and around each call keeps what every vendor
+* vendor's class - connect_impl, execute_update_impl, and so on, each
+* named after its operation - and around each call keeps what every vendor
 * shares: the connection's state, the error each failure threw, the rows the
 * latest statement changed, and the session its prepared statements belong
 * to, which closes them before the connection closes.
 *   A failure throws, with the layer's result (database.hpp, section 2); a
-* connection_exception -- a connection that could not be made, or that the
-* database dropped -- leaves the connection in DConnectionState::error, which
+* connection_exception - a connection that could not be made, or that the
+* database dropped - leaves the connection in DConnectionState::error, which
 * reconnect() leaves. A connection never reconnects on its own.
 *   connect_async and the SQL members ending in _async are the operations
 * that do not block (database_async.hpp), over the layer's calls that do
-* not wait where the vendor's face has them -- MariaDB's, MySQL's and
-* PostgreSQL's -- and done as they start where it does not, as SQLite's;
+* not wait where the vendor's face has them - MariaDB's, MySQL's and
+* PostgreSQL's - and done as they start where it does not, as SQLite's;
 * MongoDB's connection, whose driver has none, refuses them with
 * D_DB_UNSUPPORTED (ruling 11.26.6). While one is under way it holds the
 * connection, as a stream's run does. has_async_operations, and from C++20
@@ -24,7 +24,7 @@
 * three SQL members (section 2): every vendor's has.
 *   Prepared statements and transactions are gated, each operation by its
 * own hook (B6), as isolation levels and savepoints are: a vendor without
-* them lacks those operations at compile time -- MongoDB's connection has no
+* them lacks those operations at compile time - MongoDB's connection has no
 * prepare and no stream_query.
 *   A vendor's class derives from database_connection<Derived, X>, Derived
 * being itself, and provides the hooks the class's description lists, public
@@ -135,7 +135,7 @@ NS_END  // internal
 //     disconnect_impl()         closes it; noexcept
 //     is_connected_impl()       whether it is open; const, noexcept
 //     ping_impl()               whether the database answers; const
-//     execute_query_impl(text)  runs one statement -- SQL, or the vendor's
+//     execute_query_impl(text)  runs one statement - SQL, or the vendor's
 //                               own language: a MongoDB command document --
 //                               its face::rows
 //     execute_update_impl(text) runs it: what it changed
@@ -215,7 +215,7 @@ public:
      */
     void reconnect();
 
-    // liveness -- whether the connection is open, as the vendor sees it;
+    // liveness - whether the connection is open, as the vendor sees it;
     // whether the database answers, false for any failure; and the state,
     // `error` once a statement found the connection lost
     bool is_connected() const noexcept;
@@ -333,13 +333,13 @@ public:
      * @note MariaDB, MySQL and PostgreSQL make the handshake without
      *       waiting, but resolve the host's name before it, waiting for
      *       that; the setup a configuration asks for beyond the handshake
-     *       -- on MariaDB and MySQL a character set other than utf8mb4,
+     *       - on MariaDB and MySQL a character set other than utf8mb4,
      *       Galera's causal reads, a default storage engine; on PostgreSQL
-     *       a search path, a statement timeout -- is made once connected,
+     *       a search path, a statement timeout - is made once connected,
      *       waiting, a round trip each. SQLite opens as it starts. An open
      *       connection stays as it is, the operation done as it starts. A
      *       vendor whose client has no calls that do not block, and that
-     *       is not embedded as SQLite is -- MongoDB -- refuses it (ruling
+     *       is not embedded as SQLite is - MongoDB - refuses it (ruling
      *       11.26.6), as it refuses the SQL members below.
      *
      * @return the operation; its result() throws as connect() does, the
@@ -374,8 +374,8 @@ public:
      *        does, without waiting: an operation to drive; gated.
      *
      * @param[in] _query  the SQL, copied.
-     * @return the operation; its result() is execute_update's -- the count
-     *         of the last result -- or throws what execute_update throws;
+     * @return the operation; its result() is execute_update's - the count
+     *         of the last result - or throws what execute_update throws;
      *         refused, as execute_query_async's.
      */
     template<typename Type = Derived,
@@ -455,7 +455,7 @@ public:
      *
      * @throws connection_exception when the connection is not open, or the
      *         database drops it; transaction_exception, with the layer's
-     *         result, when the transaction cannot begin -- one already open
+     *         result, when the transaction cannot begin - one already open
      *         among the reasons.
      */
     template<typename Type = Derived,
@@ -477,7 +477,7 @@ public:
         isolation_level _isolation
     );
 
-    // ending -- commit and rollback end the transaction, and throw as
+    // ending - commit and rollback end the transaction, and throw as
     // begin_transaction() does when the database refuses; PostgreSQL's commit
     // of a failed transaction rolls it back and throws, 25P02; each gated
     template<typename Type = Derived,
@@ -488,14 +488,14 @@ public:
              typename      = internal::rollback_hook_t<Type>>
     void rollback();
 
-    // in_transaction -- whether a transaction is open, as the vendor sees it:
+    // in_transaction - whether a transaction is open, as the vendor sees it:
     // one begun with SQL counts too; gated, existing where the vendor can say
     // or transactions begin through the connection
     template<typename Type = Derived,
              typename      = internal::in_transaction_gate_t<Type>>
     bool in_transaction() const noexcept;
 
-    // isolation -- the level of the transactions the session begins from
+    // isolation - the level of the transactions the session begins from
     // now on; each gated, and throwing as begin_transaction() does
     template<typename Type = Derived,
              typename      = internal::get_isolation_level_hook_t<Type>>
@@ -507,7 +507,7 @@ public:
         isolation_level _level
     );
 
-    // savepoints -- by name, inside a transaction; each gated, and throwing
+    // savepoints - by name, inside a transaction; each gated, and throwing
     // as begin_transaction() does
     template<typename Type = Derived,
              typename      = internal::create_savepoint_hook_t<Type>>
@@ -527,7 +527,7 @@ public:
         const std::string& _name
     );
 
-    // metadata -- the server's version, read once when the connection opens
+    // metadata - the server's version, read once when the connection opens
     // ("" while it is closed); the configured database; the id the latest
     // INSERT generated on this connection, 0 when none has, throwing as
     // execute_query does; and the rows the latest statement run on it
@@ -560,14 +560,14 @@ public:
      */
     bool get_auto_commit() const;
 
-    // errors -- the latest failure an operation threw: its message and the
+    // errors - the latest failure an operation threw: its message and the
     // layer's result, until clear_error() or the next connect()
     std::string get_last_error() const;
     int get_last_error_code() const noexcept;
     bool has_error() const noexcept;
     void clear_error() noexcept;
 
-    // reconnection -- how many failed reconnections in a row reconnect()
+    // reconnection - how many failed reconnections in a row reconnect()
     // allows (3 by default), and how many there have been
     std::size_t get_max_reconnect_attempts() const noexcept;
     void set_max_reconnect_attempts(
@@ -599,13 +599,13 @@ protected:
         database_connection&& _other
     ) noexcept;
 
-    // ensure_connected -- connection_exception unless the connection is open
+    // ensure_connected - connection_exception unless the connection is open
     // and no statement found it lost; query_exception, with the layer's
     // busy_code, while a stream's run, or an operation that does not block,
     // holds it
     void ensure_connected() const;
 
-    // capture_error -- records a failure as the latest, for vendor members
+    // capture_error - records a failure as the latest, for vendor members
     // that report one without throwing it
     void capture_error(
         int                _code,
@@ -646,13 +646,13 @@ protected:
         Function&& _function
     ) const -> decltype(_function());
 
-    // record_changes -- the rows a vendor operation changed, as
+    // record_changes - the rows a vendor operation changed, as
     // get_affected_rows() then answers
     void record_changes(
         re_std::int64_t _changes
     ) noexcept;
 
-    // close_statements -- closes every statement prepared on the
+    // close_statements - closes every statement prepared on the
     // connection, which stays open: for a vendor operation that ends the
     // session's statements without closing the connection, as a reset does
     void close_statements() noexcept;
@@ -666,7 +666,7 @@ protected:
      */
     void close_session_noexcept() noexcept;
 
-    // share_session -- the session, for a vendor's own objects that read
+    // share_session - the session, for a vendor's own objects that read
     // through the connection and must close before it does, as prepared
     // statements do: MongoDB's cursors and change streams enroll in it, mark
     // it lost where a failure lost the connection, and withdraw as they
@@ -683,17 +683,17 @@ private:
              database_type Vendor>
     friend class internal::connect_steps;
 
-    // m_close_quietly -- the statements, then the connection; nothing thrown
+    // m_close_quietly - the statements, then the connection; nothing thrown
     void m_close_quietly() noexcept;
 
-    // m_query_as -- execute_query_impl, for an operation of another name:
+    // m_query_as - execute_query_impl, for an operation of another name:
     // its rows, or its failure under `_operation`
     face::rows m_query_as(
         const char*        _operation,
         const std::string& _query
     );
 
-    // m_refused -- an operation that does not block, refused (ruling
+    // m_refused - an operation that does not block, refused (ruling
     // 11.26.6): its result() throws, as `_kind` says, with D_DB_UNSUPPORTED,
     // recorded as the latest failure, the connection as it was
     template<typename Result>
@@ -702,16 +702,16 @@ private:
         failure_kind _kind
     );
 
-    // m_refuse_nul_settings -- connection_exception with
+    // m_refuse_nul_settings - connection_exception with
     // D_DB_INVALID_ARGUMENT for a setting of the generic configuration that
     // holds a NUL, which the layer would read cut short
     void m_refuse_nul_settings() const;
 
-    // m_effective_state -- the state, `error` where a statement found the
+    // m_effective_state - the state, `error` where a statement found the
     // connection lost
     DConnectionState m_effective_state() const noexcept;
 
-    // m_capture -- records a core/db exception as the latest failure
+    // m_capture - records a core/db exception as the latest failure
     void m_capture(
         const exception& _exception
     ) const;
@@ -820,8 +820,8 @@ database_connection<Derived, DbType>::operator=(
 database_connection::connect
   The session is made before the connection opens: making it can fail for
 memory, and a failure after the open would leave an open connection marked
-otherwise. A connection in error -- one a statement found lost, or one that
-failed to open -- is closed first, so that its old handle goes.
+otherwise. A connection in error - one a statement found lost, or one that
+failed to open - is closed first, so that its old handle goes.
 */
 template<typename      Derived,
          database_type DbType>
@@ -1333,7 +1333,7 @@ void database_connection<Derived, DbType>::rollback()
 
 /*
 database_connection::in_transaction
-  A vendor whose connection can say -- every one with a layer -- is asked,
+  A vendor whose connection can say - every one with a layer - is asked,
 so that a transaction begun with SQL counts; one that cannot is answered
 from what this class saw begin and end.
 */
@@ -1661,8 +1661,8 @@ void database_connection<Derived, DbType>::capture_error(
 database_connection::run_guarded
   The state is put back on every path out: `connected` after success or a
 failure of the statement's own, `error` after a connection_exception, and
-`connected` after anything else that propagates -- a std::bad_alloc among
-it -- which is rethrown untouched.
+`connected` after anything else that propagates - a std::bad_alloc among
+it - which is rethrown untouched.
 */
 template<typename      Derived,
          database_type DbType>
@@ -1953,7 +1953,7 @@ const Derived& database_connection<Derived, DbType>::m_self() const noexcept
 //------------------------------------------------------------------------------
 NS_INTERNAL
 
-    // send_query_start_t, connect_start_hook_t -- a face that sends SQL
+    // send_query_start_t, connect_start_hook_t - a face that sends SQL
     // without waiting, and a vendor that connects without waiting, as the
     // calls; their absence makes the operation done as it starts for an
     // embedded vendor (SQLite), and refused for any other (MongoDB)
@@ -1971,8 +1971,8 @@ NS_INTERNAL
     // 1.3.1
     // sent_steps
     //   class template: SQL sent without waiting, and every result it
-    // produces read as it arrives -- the rows of the first kept, the count of
-    // each -- for execute_query_async (Result the rows), execute_update_async
+    // produces read as it arrives - the rows of the first kept, the count of
+    // each - for execute_query_async (Result the rows), execute_update_async
     // (the count) and execute_async (true). A failure among the results is
     // described at once, while the connection's message is its own, and
     // thrown once the results are read to their end, so that the connection
@@ -2017,7 +2017,7 @@ NS_INTERNAL
         void abandon() noexcept override;
 
     private:
-        // m_sent, m_read -- the send's answer, and a result's: false while
+        // m_sent, m_read - the send's answer, and a result's: false while
         // waiting, true once every result is read
         bool m_sent(
             int            _result,
@@ -2028,13 +2028,13 @@ NS_INTERNAL
             dj_db_pending& _pending
         );
 
-        // m_raise -- the layer's exception for a failed call
+        // m_raise - the layer's exception for a failed call
         [[noreturn]]
         void m_raise(
             int _result
         ) const;
 
-        // m_guarded -- a step, its failure recorded as the connection's
+        // m_guarded - a step, its failure recorded as the connection's
         // blocking operations record theirs
         template<typename Step>
         bool m_guarded(
@@ -2056,10 +2056,10 @@ NS_INTERNAL
     // 1.3.2
     // connect_steps
     //   class template: connect_async over the vendor's hooks that connect
-    // without waiting -- connect_start_impl, connect_continue_impl, each the
+    // without waiting - connect_start_impl, connect_continue_impl, each the
     // layer's result, D_DB_WAIT while waiting, throwing for a failure;
     // connect_finish_impl, the setup that follows; connect_abandon_impl,
-    // the connection being made closed -- around which it keeps the
+    // the connection being made closed - around which it keeps the
     // connection's state as connect() keeps it.
     template<typename      Derived,
              database_type DbType>
@@ -2088,13 +2088,13 @@ NS_INTERNAL
         void abandon() noexcept override;
 
     private:
-        // m_after -- a hook's answer: false while waiting; true once
+        // m_after - a hook's answer: false while waiting; true once
         // connected, the setup made and the state kept
         bool m_after(
             int _result
         );
 
-        // m_guarded -- a step, a failure leaving the connection in error
+        // m_guarded - a step, a failure leaving the connection in error
         template<typename Step>
         bool m_guarded(
             Step&& _step
@@ -2632,7 +2632,7 @@ NS_INTERNAL
         return;
     }
 
-    // cancel -- a connect has nothing on the server to stop
+    // cancel - a connect has nothing on the server to stop
     template<typename      Derived,
              database_type DbType>
     void connect_steps<Derived, DbType>::cancel()

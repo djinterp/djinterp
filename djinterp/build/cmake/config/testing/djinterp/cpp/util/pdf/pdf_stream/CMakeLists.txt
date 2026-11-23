@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/cpp/util/pdf/
+# djinterp [test]  -  build/cmake/config/testing/djinterp/cpp/util/pdf/
 #                      pdf_stream/CMakeLists.txt
 #
 #   Test leaf for the C++ PDF writer's stream suite, in DTest's C face: the

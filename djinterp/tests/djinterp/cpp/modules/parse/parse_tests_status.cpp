@@ -282,7 +282,7 @@ bool tests_parse_status_classification()
     D_PA_CHECK(user_codes == 1u);
 
     // the unnamed reserved code is neither a named standard code nor a
-    // user code -- it belongs to the reserved band
+    // user code - it belongs to the reserved band
     D_PA_CHECK(samples[5] != dp::DParseStatusMalformed);
     D_PA_CHECK(samples[5] <  dp::DParseStatusUserBase);
     D_PA_CHECK(samples[5] >  dp::DParseStatusMalformed);

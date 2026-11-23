@@ -77,8 +77,8 @@ uint32_t be32(
 
 /*
 toy_queue
-  Appends one toy record -- a five-octet header with the payload's length,
-then the payload -- to the session's outgoing octets; 0 when it does not
+  Appends one toy record - a five-octet header with the payload's length,
+then the payload - to the session's outgoing octets; 0 when it does not
 fit.
 */
 static
@@ -870,8 +870,8 @@ void sc_close(
 srv_data
   Opens the data connection a transfer command needs; 0 on failure, 2 when TLS
 did not resume and the configuration requires it. It runs past 75 lines
-because it opens the connection either way -- accepting the client's, or
-connecting to its active address -- then secures it and judges resumption.
+because it opens the connection either way - accepting the client's, or
+connecting to its active address - then secures it and judges resumption.
 */
 static
 int srv_data(
@@ -1053,7 +1053,7 @@ void srv_receive_file(
     }
 
     _s->upload_clean = (st == D_SSL_ERROR_CLOSED);
-    // like vsftpd, answer close_notify with close_notify -- after a pause that
+    // like vsftpd, answer close_notify with close_notify - after a pause that
     // shows whether the client waited for it: one that closed at once has left
     // an end of stream to peek at by now
     if (_d->secured && _s->upload_clean)

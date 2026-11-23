@@ -328,7 +328,7 @@ d_ftp_command_format_raw(
 /*
 d_ftp_command_parse
   The verb is taken up to the first space, never beyond, so an argument full
-of spaces -- a file name, say -- survives intact after that one separator.
+of spaces - a file name, say - survives intact after that one separator.
 */
 enum dj_ftp_error
 d_ftp_command_parse(

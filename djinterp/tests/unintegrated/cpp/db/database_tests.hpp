@@ -51,8 +51,8 @@
 *       with the suffix `_impl`. mock_conn has both: the operation, which
 *       the base forwards to, and the hook, which its gate asks for.
 *   Every other connection method forwards to the helper's member of the
-* same name -- in_transaction, get_state and get_auto_commit among them,
-* which the database answers rather than the base -- so a helper declares
+* same name - in_transaction, get_state and get_auto_commit among them,
+* which the database answers rather than the base - so a helper declares
 * each one a test calls: a forwarder whose member the helper lacks would call
 * itself. transaction<> likewise asks its connection in_transaction(), after
 * a commit or a rollback that failed.

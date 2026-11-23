@@ -1,5 +1,5 @@
 #!/bin/sh
-# dcheck.sh -- dcheck's resolution of a sheet's claims, against a golden.
+# dcheck.sh - dcheck's resolution of a sheet's claims, against a golden.
 #
 #   tests/dawk/dcheck/claims.dss       the sheet
 #   tests/dawk/dcheck/root/            the tree it is run over

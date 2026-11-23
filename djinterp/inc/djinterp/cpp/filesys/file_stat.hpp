@@ -1,32 +1,32 @@
 /*******************************************************************************
 * djinterp [cpp][filesys]                                          file_stat.hpp
 *
-* djinterp::file_status -- what the filesystem knows about a path, captured
+* djinterp::file_status - what the filesystem knows about a path, captured
 * once (roadmap Phase 5).
 *   This is the C++ answer to the warning at the top of file_stat.h: the
 * convenience predicates each cost a syscall and each can disagree with the
 * next if the file changes in between, so the right shape is to stat ONCE and
 * read the fields.
 *   file_status IS that one stat. Construct it (a single d_file_stat call),
-* then ask it as many questions as you like -- type, size, timestamps,
-* permissions -- and every answer describes the SAME snapshot.
+* then ask it as many questions as you like - type, size, timestamps,
+* permissions - and every answer describes the SAME snapshot.
 * is_regular_file() and size() on one file_status cannot race each other,
 * because there is no second syscall between them.
-*   The free predicates below -- exists(), is_directory(), file_size() -- exist
+*   The free predicates below - exists(), is_directory(), file_size() - exist
 * for the genuine one-question case, and each is honest about being one query.
 * When you have more than one question, take a file_status and ask it, not
 * three of these.
 *   TOCTOU. Every path-based query here is a hazard by construction: what
 * status(p) saw and what the next open(p) gets may be two different files.
-* When it matters, open the file and call file::status() -- an fstat on the
+* When it matters, open the file and call file::status() - an fstat on the
 * live descriptor, which names one file for its whole lifetime and cannot be
 * swapped underneath you. That method lives in file_stream.hpp; this header is
 * what it returns.
-*   A VALUE, not a resource. file_status owns nothing -- it is a struct and an
+*   A VALUE, not a resource. file_status owns nothing - it is a struct and an
 * enum. It copies freely on every tier, needs no move, and carries none of the
 * D_*_ portability kit, because a snapshot has no handle to guard. Its tier
 * ladder is therefore FLAT: the same source builds identically on every
-* standard, which is the point -- not every type needs the ceremony file does.
+* standard, which is the point - not every type needs the ceremony file does.
 *   NO OS. Type is read from st_mode with the S_IS* tests file_common.h
 * guarantees (defined portably where the platform lacks them), the same way
 * this layer uses SEEK_SET and D_LOCK_EX. There is no platform branch here;
@@ -39,7 +39,7 @@
 * file_status and its queries are absent instead, since no level changes what
 * a shared type is. What a path NAMES needs no width: DFileKind and the type
 * queries ask for the mode alone (d_file_mode), so they answer on every
-* build -- a file too large for a 32-bit snapshot still exists, and is still
+* build - a file too large for a 32-bit snapshot still exists, and is still
 * a regular file.
 *
 *
@@ -98,7 +98,7 @@ NS_DJINTERP
 
 
 // DFileKind
-//   class: what a path names, with no width -- the vocabulary file_status, a
+//   class: what a path names, with no width - the vocabulary file_status, a
 // directory entry and the type queries share. It holds no data, so it exists
 // on every build, and file_status inherits it.
 class DFileKind
@@ -110,7 +110,7 @@ public:
     //   enum: what a path names. A plain (unscoped) enum so it is available
     // unchanged on C++98; enum class would need a portability shim this
     // vocabulary is deliberately without. type_none is "no query has run";
-    // not_found is "the query ran and there is nothing there" -- a real,
+    // not_found is "the query ran and there is nothing there" - a real,
     // useful distinction (a permission error is none, an absent file is
     // not_found).
     enum file_type
@@ -191,7 +191,7 @@ public:
 //==============================================================================
 // What a path names, from its mode alone. Each is one query, following
 // symlinks. An absent file is a plain false with no error; a failure to find
-// out -- a permission problem, say -- sets _ec. The mode has no width, so
+// out - a permission problem, say - sets _ec. The mode has no width, so
 // these answer on every build: a file too large for a 32-bit snapshot still
 // exists, and is still a regular file.
 
@@ -331,7 +331,7 @@ bool is_directory(
 
 
 // file_status
-//   class: one filesystem snapshot of one path. A value type -- copy it, store
+//   class: one filesystem snapshot of one path. A value type - copy it, store
 // it, compare its fields; it holds no handle. Its vocabulary of kinds is
 // DFileKind's, inherited, so file_status::type_regular still names it.
 class file_status : public DFileKind
@@ -341,7 +341,7 @@ public:
     //--------------------------------------------------------------------------
     // size_type / time_type
     //   type: the snapshot's byte count and its Unix seconds, at the C layer's
-    // D_FILE_WIDTH -- the types of dj_stat_t's st_size and st_modified.
+    // D_FILE_WIDTH - the types of dj_stat_t's st_size and st_modified.
 #if (D_FILE_WIDTH == 64)
     typedef uint64_t size_type;
     typedef int64_t  time_type;
@@ -377,7 +377,7 @@ public:
     {}
 
     /**
-     * @brief Constructs a snapshot that carries only a type and no data -- for
+     * @brief Constructs a snapshot that carries only a type and no data - for
      *        type_none and type_not_found, which have no fields to report.
      *
      * @param[in] _type  the type to report.
@@ -413,7 +413,7 @@ public:
                  (m_type != type_not_found) );
     }
 
-    // one kind each -- none can fail, and all describe the one snapshot
+    // one kind each - none can fail, and all describe the one snapshot
     bool is_regular_file(void) const
     {
         return m_type == type_regular;
@@ -475,7 +475,7 @@ public:
         return m_stat.st_size;
     }
 
-    // timestamps -- Unix seconds. change_time is 0 on platforms with no
+    // timestamps - Unix seconds. change_time is 0 on platforms with no
     // metadata-change concept; creation_time is 0 where unavailable and NEVER
     // falls back to change_time, so a 0 here means "not reported", not "the
     // epoch"
@@ -567,7 +567,7 @@ NS_INTERNAL
      *
      * @note An absent file (ENOENT or ENOTDIR) is reported as type_not_found
      *       with NO error, because successfully learning a file is not there
-     *       is not a failure; any other errno -- a permission problem, say --
+     *       is not a failure; any other errno - a permission problem, say --
      *       is a real error and yields type_none with `_ec` set. This mirrors
      *       what a std::filesystem status query does with its error_code.
      *
@@ -668,7 +668,7 @@ file_status symlink_status(
 // 4.3    Size
 //------------------------------------------------------------------------------
 /**
- * @brief Reports the size of a regular file, in bytes -- one stat, following
+ * @brief Reports the size of a regular file, in bytes - one stat, following
  *        symlinks.
  *
  * @param[in]  _p   the file to measure.

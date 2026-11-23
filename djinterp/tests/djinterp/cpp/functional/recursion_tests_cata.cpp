@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  recursion_tests_cata.cpp
-//   Section V -- cata[phi], the universal fold.
+//   Section V - cata[phi], the universal fold.
 
 // std
 #include <string>
@@ -73,7 +73,7 @@ bool tests_cata_list_sum()
 
 /*
 tests_cata_list_length
-  Folds a list to its length -- the algebra ignores the head payload and counts
+  Folds a list to its length - the algebra ignores the head payload and counts
   only structure, exercising the payload-vs-hole distinction.
   Tests the following:
   - length of the empty list is 0
@@ -100,7 +100,7 @@ bool tests_cata_list_length()
 /*
 tests_cata_list_to_string
   Folds a list to a std::string, so the result carrier differs from both the
-  fixed point and the element type -- exercising the explicit _Result pin.
+  fixed point and the element type - exercising the explicit _Result pin.
   Tests the following:
   - the empty list folds to the empty string
   - elements are concatenated left to right
@@ -126,7 +126,7 @@ bool tests_cata_list_to_string()
 
 /*
 tests_cata_tree_leaf_sum
-  Folds a binary tree to the sum of its leaves -- a Branch algebra combines the
+  Folds a binary tree to the sum of its leaves - a Branch algebra combines the
   results of BOTH recursive holes.
   Tests the following:
   - a single leaf folds to its value
@@ -154,7 +154,7 @@ bool tests_cata_tree_leaf_sum()
 
 /*
 tests_cata_tree_height
-  Folds a binary tree to its height -- a Branch algebra takes the max over both
+  Folds a binary tree to its height - a Branch algebra takes the max over both
   holes, another two-child fold.
   Tests the following:
   - a leaf has height 0
@@ -189,7 +189,7 @@ bool tests_cata_tree_height()
 /*
 tests_cata_native_vector
   Folds a plain std::vector<int> as a list, via its recursive_traits
-  registration -- cata runs over a native carrier, not a mu.
+  registration - cata runs over a native carrier, not a mu.
   Tests the following:
   - the empty vector folds to 0
   - a populated vector sums and counts correctly

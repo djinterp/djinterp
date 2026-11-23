@@ -2,9 +2,9 @@
 * djinterp [c][math]                                                t_interval.c
 *
 *   Conformance harness for the interval kernels (c/math/interval.h): every
-* kernel of both families checked against a brute-force reference -- the
+* kernel of both families checked against a brute-force reference - the
 * members of an interval found by testing each integer, and the real-line
-* overlap found by testing every half-integer -- over every interval with
+* overlap found by testing every half-integer - over every interval with
 * bounds in a small window, each bound open or closed, and steps 0 to 4; then
 * the families' extremes, where a careless difference overflows.
 *   The same file compiles as C++ (-x c++), at any level from C++98, and must
@@ -664,8 +664,8 @@ d_tests_interval_intersects(void)
 }
 
 // d_tests_interval_number_theory
-//   the lattice helpers on their own -- mulmod against exact products, the
-// inverse against its definition -- and intersects over random lattices
+//   the lattice helpers on their own - mulmod against exact products, the
+// inverse against its definition - and intersects over random lattices
 // with steps up to 60 against brute force: periods the window above never
 // reaches.
 static void

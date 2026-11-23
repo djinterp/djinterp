@@ -23,7 +23,7 @@
 * `DParseOutcome` is that sink (a result rho paired with the remaining source
 * tau, summed with an error E), and `kleisli_then` / `kleisli_bind` sequence
 * parsers by threading the remaining source forward and short-circuiting on
-* failure -- the note's `Q <> P` and `P >>= k`.
+* failure - the note's `Q <> P` and `P >>= k`.
 *
 *   Stands on the core / meta headers only (djinterp.hpp, trait_detect.hpp,
 * type_traits.hpp; concepts.hpp under C++20).  Requires C++14+ (higher-order
@@ -51,27 +51,27 @@ I.    TRANSFORMATION TRAITS
 
 II.   THE ALGEBRA
       -----------
-      i.    evaluate                 -- ev : (tau -> sigma) x tau -> sigma
-      ii.   DTransformerHelper       -- F_t = F(t, .) (internal)
-      iii.  instantiate              -- F_hat at a point
-      iv.   DTemplateSystem          -- packages (tau, sigma, F)
+      i.    evaluate                 - ev : (tau -> sigma) x tau -> sigma
+      ii.   DTransformerHelper       - F_t = F(t, .) (internal)
+      iii.  instantiate              - F_hat at a point
+      iv.   DTemplateSystem          - packages (tau, sigma, F)
       v.    make_template_system
 
 III.  STAGE PIPELINES
       ---------------
-      i.    unary_chain_helper       -- g_n . ... . g_1 (internal)
-      ii.   DStageChainHelper       -- f_n . ... . f_1, f_1 binary (internal)
-      iii.  stages                   -- template consumed at stage 1
-      iv.   reader_chain_helper      -- ambient template (internal)
-      v.    reader_stages            -- the Reader / environment variant
+      i.    unary_chain_helper       - g_n . ... . g_1 (internal)
+      ii.   DStageChainHelper       - f_n . ... . f_1, f_1 binary (internal)
+      iii.  stages                   - template consumed at stage 1
+      iv.   reader_chain_helper      - ambient template (internal)
+      v.    reader_stages            - the Reader / environment variant
 
 IV.   PARSERS  (sigma = (rho x tau) + E)
       ----------------------------------
       i.    DParseSuccessTag / DParseFailureTag (internal)
-      ii.   DParseOutcome            -- the parser sink
+      ii.   DParseOutcome            - the parser sink
       iii.  parse_success / parse_failure
       iv.   is_parse_outcome + _v
-      v.    DParserSystem            -- alias pinning sigma
+      v.    DParserSystem            - alias pinning sigma
       vi.   DKleisliThenHelper / DKleisliBindHelper (internal)
       vii.  kleisli_then / kleisli_bind
 
@@ -126,7 +126,7 @@ NS_DJINTERP
 // the return type of an overloaded probe and reads it back with `decltype`.
 // The `(int)` overload is preferred when the expression type-checks; on
 // substitution failure the `(...)` fallback supplies `nonesuch`.  No
-// `typename = void` slot and no void_t-keyed partial specialization -- the same
+// `typename = void` slot and no void_t-keyed partial specialization - the same
 // structural style the core `is_invocable` uses.  Each `is_X` is then just the
 // statement that the corresponding sink is detectable, so the detection
 // expression lives in exactly one place.
@@ -136,14 +136,14 @@ NS_INTERNAL
     // transformation_sink_probe
     //   trait: tagless detector for `F(const Tau&, const Tau&)`.  The leading
     // overload's return type is the deduced sink; on substitution failure the
-    // variadic overload yields `nonesuch`.  Declared, never defined -- used
+    // variadic overload yields `nonesuch`.  Declared, never defined - used
     // only in unevaluated context.
     //
     //   Fn is probed as `const Fn&`, NOT as an rvalue.  This is what the
     // algebra actually does: `DTransformerHelper` and `DTemplateSystem` store F
     // by value and invoke it from const member functions, so a transformation
     // must be const-callable.  Probing the rvalue instead would admit a functor
-    // whose operator() is non-const -- `is_transformation` (and the
+    // whose operator() is non-const - `is_transformation` (and the
     // `transformation_for` concept built on it) would report true, and the
     // failure would then surface deep inside the algebra rather than at the
     // constraint.  F is a mathematical map; const-callability is the contract.
@@ -160,7 +160,7 @@ NS_INTERNAL
     ) -> nonesuch;
 
     // source_transformer_probe
-    //   trait: tagless detector for `g(const Tau&)` -- the shape of a
+    //   trait: tagless detector for `g(const Tau&)` - the shape of a
     // source-transformer F_t.  Same overload structure, and the same const-
     // callability contract: the kleisli helpers store parsers by value and
     // invoke them from const member functions, and the canonical F_t
@@ -199,7 +199,7 @@ using transformation_sink_t = typename transformation_sink<Fn, Tau>::type;
 
 
 // is_transformation
-//   trait: true iff Fn is a transformation over carrier Tau -- callable as
+//   trait: true iff Fn is a transformation over carrier Tau - callable as
 // `F(const Tau&, const Tau&)`, i.e. its sink is detectable.  Parallel
 // concept: `transformation_for`.
 template<typename Fn,
@@ -246,7 +246,7 @@ using source_transformer_sink_t =
 
 // is_source_transformer
 //   trait: true iff Fn is a source-transformer F_t : tau -> sigma over carrier
-// Tau -- callable as `g(const Tau&)`, i.e. its sink is detectable.  Parallel
+// Tau - callable as `g(const Tau&)`, i.e. its sink is detectable.  Parallel
 // concept: `source_transformer_for`.
 template<typename Fn,
          typename Tau>
@@ -278,7 +278,7 @@ struct is_source_transformer
 //   function: the universal evaluation map ev : (tau -> sigma) x tau -> sigma.
 // Applies a source-transformer _g (an F_t) to a source _alpha and returns the
 // sink.  The whole module exists to make `evaluate(instantiate(fn, t), alpha)`
-// equal `fn(t, alpha)` -- the factorization F = ev . (F_hat x id).
+// equal `fn(t, alpha)` - the factorization F = ev . (F_hat x id).
 template<typename Transformer,
          typename Source>
 D_NODISCARD D_CONSTEXPR auto evaluate(
@@ -293,7 +293,7 @@ D_NODISCARD D_CONSTEXPR auto evaluate(
 NS_INTERNAL
 
     // DTransformerHelper
-    //   class: the curried transformer F_t = F(t, .) : tau -> sigma -- the image
+    //   class: the curried transformer F_t = F(t, .) : tau -> sigma - the image
     // of a template t under F_hat.  Holds the transformation F (decayed) and the
     // bound template; calling it with a source applies F.  Returned by
     // `instantiate` and by `DTemplateSystem::instantiate`.
@@ -376,7 +376,7 @@ public:
         : m_fn(_fn)
     {}
 
-    // apply -- the uncurried F(t, alpha) = beta
+    // apply - the uncurried F(t, alpha) = beta
     D_NODISCARD D_CONSTEXPR sink_type
     apply(
         const Tau& _bound_template,
@@ -386,7 +386,7 @@ public:
         return m_fn(_bound_template, _source);
     }
 
-    // operator() -- alias for apply
+    // operator() - alias for apply
     D_NODISCARD D_CONSTEXPR sink_type
     operator()(
         const Tau& _bound_template,
@@ -396,7 +396,7 @@ public:
         return m_fn(_bound_template, _source);
     }
 
-    // instantiate -- F_hat: decode a template into its transformer F_t
+    // instantiate - F_hat: decode a template into its transformer F_t
     D_NODISCARD D_CONSTEXPR transformer_type
     instantiate(
         const Tau& _bound_template
@@ -405,7 +405,7 @@ public:
         return transformer_type(m_fn, _bound_template);
     }
 
-    // transformation -- the underlying F
+    // transformation - the underlying F
     D_NODISCARD D_CONSTEXPR const Fn&
     transformation() const
     {
@@ -437,7 +437,7 @@ make_template_system(
 // III. STAGE PIPELINES
 // ===========================================================================
 //   A transformation may be assembled from stages F = f_n . ... . f_1.  Only
-// f_1 is binary -- it alone consumes the (template, source) product; every
+// f_1 is binary - it alone consumes the (template, source) product; every
 // later stage is unary.  The result is itself a transformation, pluggable as
 // the F of a DTemplateSystem.
 
@@ -450,7 +450,7 @@ NS_INTERNAL
     class unary_chain_helper;
 
     // unary_chain_helper<> (identity)
-    //   class: the empty chain -- returns its argument unchanged.
+    //   class: the empty chain - returns its argument unchanged.
     template<>
     class unary_chain_helper<>
     {
@@ -561,7 +561,7 @@ NS_INTERNAL
     class reader_chain_helper;
 
     // reader_chain_helper<F> (last stage)
-    //   class: a single ambient stage -- apply f(template, x).
+    //   class: a single ambient stage - apply f(template, x).
     template<typename F>
     class reader_chain_helper<F>
     {
@@ -587,7 +587,7 @@ NS_INTERNAL
     };
 
     // reader_chain_helper<F, Next, Rest...>
-    //   class: run the head ambient stage, then the rest -- both fed the same
+    //   class: run the head ambient stage, then the rest - both fed the same
     // template.
     template<typename    F,
              typename    Next,
@@ -645,7 +645,7 @@ D_NODISCARD D_CONSTEXPR internal::reader_chain_helper<clean_t<First>, clean_t<Re
 // ===========================================================================
 //   A parser is just a transformation whose sink has the shape (rho x tau) + E:
 // a result rho paired with the remaining source tau on success, or an error E.
-// Nothing in the schema changes -- only the choice of sigma.  An instantiated
+// Nothing in the schema changes - only the choice of sigma.  An instantiated
 // parser is the source-transformer P_t : tau -> DParseOutcome.
 
 NS_INTERNAL
@@ -718,19 +718,19 @@ public:
         return m_ok;
     }
 
-    // value -- the produced result rho (defined only when is_ok())
+    // value - the produced result rho (defined only when is_ok())
     D_NODISCARD D_CONSTEXPR const Result& value() const
     {
         return m_value;
     }
 
-    // remaining -- the leftover source tau threaded to the next stage
+    // remaining - the leftover source tau threaded to the next stage
     D_NODISCARD D_CONSTEXPR const Source& remaining() const
     {
         return m_remaining;
     }
 
-    // error -- the failure E (defined only when is_err())
+    // error - the failure E (defined only when is_err())
     D_NODISCARD D_CONSTEXPR const Error& error() const
     {
         return m_error;
@@ -746,7 +746,7 @@ private:
 
 // parse_success
 //   function: build a successful DParseOutcome carrying a result _value and the
-// remaining source _rem.  The error type Error is explicit -- on success no E
+// remaining source _rem.  The error type Error is explicit - on success no E
 // is otherwise present to deduce it from.
 template<typename Error,
          typename Result,
@@ -766,7 +766,7 @@ parse_success(
 
 // parse_failure
 //   function: build a failed DParseOutcome carrying an _error.  The result and
-// source types are explicit -- on failure no rho / tau value is present.
+// source types are explicit - on failure no rho / tau value is present.
 template<typename Result,
          typename Source,
          typename Error>
@@ -953,7 +953,7 @@ template<typename Fn,
 concept source_transformer_for = is_source_transformer<Fn, Tau>::value;
 
 // parse_outcome_c
-//   concept: Type is a DParseOutcome<...> -- a (rho x tau) + E parser sink.
+//   concept: Type is a DParseOutcome<...> - a (rho x tau) + E parser sink.
 template<typename Type>
 concept parse_outcome_c = is_parse_outcome<Type>::value;
 

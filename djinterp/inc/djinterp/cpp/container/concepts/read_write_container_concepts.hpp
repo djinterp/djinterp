@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                    read_write_container_concepts.hpp
 *
-* C++20 concepts for the ACCESS (the baseline) axis -- the `requires`-facing
+* C++20 concepts for the ACCESS (the baseline) axis - the `requires`-facing
 * view of read_write_container_traits.hpp.
 *
 *   THE CONCEPTS ADD NO POLICY.
@@ -49,7 +49,7 @@ NS_DJINTERP
 
 
 // ReadWriteContainer
-//   concept: a handle grants BOTH observation and mutation -- the baseline the
+//   concept: a handle grants BOTH observation and mutation - the baseline the
 // two restrictions sit below. Named `_accessible`: read_write_container is a
 // CLASS here.
 template<typename Type>

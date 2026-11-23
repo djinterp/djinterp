@@ -1,4 +1,4 @@
-# bsearch.hpp unit test suite -- leaf recipe (header-only module, no src/).
+# bsearch.hpp unit test suite - leaf recipe (header-only module, no src/).
 #
 #   Delivery form (djinterp_testing.md S7.2): this suite ships in its OWN leaf
 # directory .../meta/bsearch/ so the archive owns every path it writes and

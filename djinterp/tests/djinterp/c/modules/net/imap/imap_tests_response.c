@@ -768,7 +768,7 @@ bool d_tests_imap_partial_row(
 d_tests_imap_literal_arrives
   FETCH data whose literal arrives an octet at a time, lexed from a lexer
 saved before it: each partial input is INCOMPLETE, the position kept and
-the literal described -- its count, and the octets present -- until the
+the literal described - its count, and the octets present - until the
 last octet completes it.
 */
 static

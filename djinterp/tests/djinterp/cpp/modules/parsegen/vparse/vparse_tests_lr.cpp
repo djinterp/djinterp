@@ -2,7 +2,7 @@
 * djinterp [cpp][parsegen]                                   vparse_tests_lr.cpp
 *
 * vparse tests: the LR family, over a hand-built SLR(1) table for a
-* left-recursive grammar -- the one the PEG family cannot run.
+* left-recursive grammar - the one the PEG family cannot run.
 *   The table is the standalone prototype's arithmetic demo:
 *     0: E -> E + T    1: E -> T    2: T -> n
 * with semantic actions that sum.
@@ -79,7 +79,7 @@ bool lex(
 }
 
 // sum
-//   function: the table's semantic action -- production 0 adds, the others
+//   function: the table's semantic action - production 0 adds, the others
 // pass their one value through.
 long sum(
     int                      _production,

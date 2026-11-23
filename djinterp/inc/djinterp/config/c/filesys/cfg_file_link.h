@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                          cfg_file_link.h
 *
-* Build-time configuration for c/filesys/file_link.h -- symbolic links.
+* Build-time configuration for c/filesys/file_link.h - symbolic links.
 *
 *   The gate that matters is D_INTERNAL_FILE_HAS_SYMLINKS from
 * cfg_file_common.h, which is a COMPILE-time claim about the platform. It is
@@ -60,7 +60,7 @@ TABLE OF CONTENTS
 //   knob: pass SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE on Windows, so
 // symlink creation works without administrator rights when Developer Mode is
 // enabled.
-//   ON. The flag is harmless where it is not honoured -- older Windows 10
+//   ON. The flag is harmless where it is not honoured - older Windows 10
 // builds reject the whole call with ERROR_INVALID_PARAMETER, which this module
 // detects and retries without it. Without the flag, d_file_symlink simply fails
 // for every ordinary user, which is why the old dfile test suite had to probe

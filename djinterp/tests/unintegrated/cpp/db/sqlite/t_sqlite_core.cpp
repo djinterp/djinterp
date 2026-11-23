@@ -5,7 +5,7 @@
 * the operations every vendor shares (t_db_core.hpp), on an in-memory
 * database, database_table among them, and what sqlite_connection adds --
 * opening files, the journal, PRAGMAs, attached databases, the schema,
-* transaction modes, backups -- with files in the directory it is given, and
+* transaction modes, backups - with files in the directory it is given, and
 * what sqlite_table adds: attached databases, STRICT and WITHOUT ROWID
 * tables, upkeep. Over a layer built without SQLite (D_CFG_SQLITE 0) it
 * checks that nothing opens, and that a connection that did not open, and a
@@ -14,7 +14,7 @@
 *
 *   Build: compile the layer's C sources as C, src/djinterp/cpp/modules/db/
 * database.cpp, database_statement.cpp and sqlite/sqlite.cpp and this file as
-* C++17 or later, and link them with SQLite -- scripts/ci/check_db_sqlite.sh does.
+* C++17 or later, and link them with SQLite - scripts/ci/check_db_sqlite.sh does.
 *
 *
 * path:      /tests/unintegrated/cpp/db/sqlite/t_sqlite_core.cpp
@@ -55,7 +55,7 @@ using sqlite::sqlite_connection;
 static_assert(db::has_async_operations<sqlite::sqlite_connection>::value);
 static_assert(!db::has_async_operations<int>::value);
 
-// the concepts (C++20) -- sqlite::concepts' own, every one of which the
+// the concepts (C++20) - sqlite::concepts' own, every one of which the
 // class satisfies, none of which int does; and a former name, which
 // forwards to its concept for one release
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS

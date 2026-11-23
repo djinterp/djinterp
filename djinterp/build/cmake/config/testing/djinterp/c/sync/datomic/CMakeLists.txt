@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/sync/datomic/CMakeLists.txt
+# djinterp [test]  -  build/cmake/config/testing/djinterp/c/sync/datomic/CMakeLists.txt
 #
 #   Test leaf for c/sync/datomic.h, in DTest's C face: the runner
 # in this directory, the section translation units globbed from the tests

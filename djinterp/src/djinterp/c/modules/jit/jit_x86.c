@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][jit]                                                    jit_x86.c
 *
-* djinterp x86 (32-bit) JIT encoder -- implementation (jit_x86.h).
+* djinterp x86 (32-bit) JIT encoder - implementation (jit_x86.h).
 *   A general ModR/M + SIB + displacement encoder drives every operand-taking
 * instruction, so register-direct and all memory addressing forms
 * ([base + index*scale + disp], absolute, index-only) share one code path.

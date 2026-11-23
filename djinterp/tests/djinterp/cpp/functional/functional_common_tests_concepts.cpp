@@ -8,7 +8,7 @@
 *                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp [test]  functional_traits_tests_concepts.cpp
-//   Section IV -- the C++20 concept faces (Callable / Predicate).
+//   Section IV - the C++20 concept faces (Callable / Predicate).
 
 // std
 #include <string>
@@ -24,7 +24,7 @@ NS_TESTING
 
 /*
 tests_concept_callable_mirrors_trait
-  Callable is the concept face of is_callable -- the same answer, in concept
+  Callable is the concept face of is_callable - the same answer, in concept
   syntax.
   Tests the following:
   - the two agree across positives, negatives, the const-lvalue edge, the
@@ -95,7 +95,7 @@ bool tests_concept_predicate_mirrors_trait()
 
 /*
 tests_concept_constrained_parameter
-  Predicate is usable as a CONSTRAINED TEMPLATE PARAMETER -- partially applied to
+  Predicate is usable as a CONSTRAINED TEMPLATE PARAMETER - partially applied to
   its argument type, as the header's usage shows: template<Predicate<const int&>
   P>.
   Tests the following:
@@ -152,7 +152,7 @@ bool tests_concept_requires_clause()
 
 /*
 tests_concept_overload_gating
-  The concepts really GATE overload resolution -- they are constraints, not just
+  The concepts really GATE overload resolution - they are constraints, not just
   bools that happen to be true.
   Tests the following:
   - a constrained overload wins for a matching argument
@@ -186,7 +186,7 @@ bool tests_concept_overload_gating()
 /*
 tests_concept_callable_but_not_predicate
   The two faces are distinct: every predicate is callable, but not every callable
-  is a predicate -- Predicate is the strictly stronger constraint.
+  is a predicate - Predicate is the strictly stronger constraint.
   Tests the following:
   - a string-returning and a void-returning callable satisfy Callable but not
     Predicate

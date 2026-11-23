@@ -181,7 +181,7 @@ NS_INTERNAL
     // is_consumer_result_helper
     //   trait: void-result branch of is_consumer, selected by the
     // Callable flag.  Primary (false flag): not callable, so the
-    // result type is never named -- guarantees SFINAE-safety.
+    // result type is never named - guarantees SFINAE-safety.
     template<bool     Callable,
              typename Consumer,
              typename Type>
@@ -204,7 +204,7 @@ NS_INTERNAL
     // is_transformer_result_helper
     //   trait: non-void-result branch of is_transformer, selected by the
     // Callable flag.  Primary (false flag): not callable, so the result
-    // type is never named -- guarantees SFINAE-safety.
+    // type is never named - guarantees SFINAE-safety.
     template<bool     Callable,
              typename Function,
              typename Type>
@@ -257,8 +257,8 @@ struct is_consumer
           Consumer, Type>
 {};
 
-// (the predicate shape filtered / conditional require -- callable with a
-// `const Type&`, the result convertible to bool -- is functional_common.hpp's
+// (the predicate shape filtered / conditional require - callable with a
+// `const Type&`, the result convertible to bool - is functional_common.hpp's
 // is_predicate<Predicate, const Type&>; this header used to define its own
 // is_predicate<Predicate, Type>, which no translation unit could include
 // beside functional_common.hpp's.)
@@ -277,7 +277,7 @@ struct is_transformer
 
 // is_boxable
 //   trait: true when Consumer can be type-erased into a
-// DBoxedConsumer<Type> -- i.e. it is convertible to
+// DBoxedConsumer<Type> - i.e. it is convertible to
 // std::function<void(const Type&)>.  Every value that satisfies
 // is_consumer<Consumer, Type> is boxable, but the check is stated in
 // terms of the std::function target so it also covers plain function
@@ -340,7 +340,7 @@ using contramap_input_t = typename contramap_input<Function, Input>::type;
 
     // predicate_for
     //   concept: satisfied when Predicate is a bool-returning callable
-    // over `const Type&` -- Predicate<Predicate, const Type&>, in this
+    // over `const Type&` - Predicate<Predicate, const Type&>, in this
     // section's consumer-side spelling.
     template<typename Predicate,
              typename Type>

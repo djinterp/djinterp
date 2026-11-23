@@ -19,9 +19,9 @@
 * no statement outlives the connection it runs on; a closed statement then
 * refuses to run, with query_exception. A failure throws, as the connection's
 * do, with the layer's result.
-*   A layer is described to the templates by a class of its own -- sqlite_layer
+*   A layer is described to the templates by a class of its own - sqlite_layer
 * in sqlite.hpp, mariadb_layer in mysql_common.hpp, postgres_layer in
-* postgres.hpp -- that names:
+* postgres.hpp - that names:
 *     statement_face    the face's statement class
 *     handle_type       the connection handle a statement belongs to, as
 *                       statement_face::statement_connection() returns it
@@ -32,12 +32,12 @@
 *                       dropped the connection
 *     raise             static, never returning: throws the exception for a
 *                       failed call, given the handle, the failure_kind, the
-*                       operation's name and the result -- connection_exception
+*                       operation's name and the result - connection_exception
 *                       for a lost connection, which it may learn of from the
 *                       handle where the result alone cannot say
 *     holds_connection  static constexpr bool: whether a statement's run,
 *                       read a page at a time, holds the connection until it
-*                       ends -- false for SQLite, which steps a statement while
+*                       ends - false for SQLite, which steps a statement while
 *                       the connection runs others
 *     busy_code         static constexpr int, where holds_connection: the
 *                       layer's result for a call the run would refuse --
@@ -45,12 +45,12 @@
 *                       PostgreSQL
 *     cancel            static, where holds_connection: asks the server to
 *                       stop what a connection runs, throwing
-*                       query_exception when it cannot -- for the
+*                       query_exception when it cannot - for the
 *                       operations that do not block
 *   prepared_statement's execute_query_async, execute_update_async and
 * execute_async are its operations that do not block (database_async.hpp):
 * over the face's execute_start and its continuations where it has them --
-* MariaDB's client and libpq; libmysqlclient answers D_DB_UNSUPPORTED -- and
+* MariaDB's client and libpq; libmysqlclient answers D_DB_UNSUPPORTED - and
 * done as they start where it does not, as SQLite's. Each holds the
 * connection while under way, and the statement's values with it.
 *   Neither class is thread-safe: a connection, its statements and its result
@@ -189,7 +189,7 @@ NS_INTERNAL
             closer _close
         );
 
-        // withdrawing, closing -- withdraw forgets one statement, which
+        // withdrawing, closing - withdraw forgets one statement, which
         // closes itself; close_all closes every statement enrolled and forgets
         // them all, as the connection closes
         void withdraw(
@@ -197,7 +197,7 @@ NS_INTERNAL
         ) noexcept;
         void close_all() noexcept;
 
-        // state -- the rows the latest statement changed, as each run
+        // state - the rows the latest statement changed, as each run
         // records them; whether a statement found the connection lost; and
         // starting afresh for a new connection
         void record(
@@ -208,7 +208,7 @@ NS_INTERNAL
         bool lost() const noexcept;
         void renew() noexcept;
 
-        // holding -- hold names the stream whose run holds the connection,
+        // holding - hold names the stream whose run holds the connection,
         // and the result the layer gives any other call meanwhile; release
         // forgets it, when it is that stream; holder answers it, NULL while
         // the connection is free, and busy_code its result. close_all and
@@ -269,7 +269,7 @@ NS_END  // internal
 class buffered_result_set : public result_set<buffered_result_set>
 {
 public:
-    // construction -- empty, or holding the rows a layer filled
+    // construction - empty, or holding the rows a layer filled
     buffered_result_set() noexcept;
     explicit
     buffered_result_set(
@@ -285,7 +285,7 @@ public:
         buffered_result_set&& _other
     ) noexcept;
 
-    // navigation -- each moves the cursor and answers whether it is on a row
+    // navigation - each moves the cursor and answers whether it is on a row
     bool next() noexcept;
     bool previous() noexcept;
     bool first() noexcept;
@@ -294,7 +294,7 @@ public:
         re_std::int64_t _row
     ) noexcept;
 
-    // metadata -- column_name, column_type and column_index throw
+    // metadata - column_name, column_type and column_index throw
     // std::out_of_range for a column that is not there; column_index finds a
     // name exactly, or failing that without ASCII case
     std::size_t column_count() const noexcept;
@@ -310,7 +310,7 @@ public:
     re_std::int64_t row_count() const noexcept;
     re_std::int64_t current_row() const noexcept;
 
-    // values by column index -- the current row's, as the class describes
+    // values by column index - the current row's, as the class describes
     value get_value(
         std::size_t _index
     ) const;
@@ -336,7 +336,7 @@ public:
         std::size_t _index
     ) const;
 
-    // values by column name -- column_index(name), then as by index
+    // values by column name - column_index(name), then as by index
     value get_value(
         const std::string& _name
     ) const;
@@ -387,12 +387,12 @@ public:
      */
     void close() noexcept;
 
-    // rows -- the C rows themselves, for reading values exactly as the
+    // rows - the C rows themselves, for reading values exactly as the
     // layer holds them (face::rows, db_common.h's dj_db_value)
     const face::rows& rows() const noexcept;
 
 private:
-    // m_require_row, m_value -- std::out_of_range unless the cursor is on a
+    // m_require_row, m_value - std::out_of_range unless the cursor is on a
     // row; and the current row's value in a column, or std::out_of_range
     void m_require_row(
         const char* _caller
@@ -436,7 +436,7 @@ inline constexpr std::size_t stream_page_size = 256u;
 // moves one row on, reading the next page when the one held is spent; last()
 // and absolute() to a later row read ahead, keeping the page they land in;
 // previous(), and first() or absolute() to a row before the cursor, throw
-// query_exception, D_DB_UNSUPPORTED -- first() excepted while the first page
+// query_exception, D_DB_UNSUPPORTED - first() excepted while the first page
 // is the one held, and a negative absolute(), which reads to the end and
 // counts back, where the row is in the last page. row_count() is -1 until
 // the last page has been read; current_row() counts from 0 across pages.
@@ -449,7 +449,7 @@ inline constexpr std::size_t stream_page_size = 256u;
 // Layer::busy_code without calling the layer. On every vendor the
 // statement's own values cannot change meanwhile: binding or clearing them
 // throws query_exception, D_DB_INVALID_ARGUMENT. The run ends with its last
-// page -- one shorter than the page size --, a failure, close() or the
+// page - one shorter than the page size --, a failure, close() or the
 // destructor; running the statement again, closing it, or closing the
 // connection ends it too, and closes the stream, whose next move throws
 // query_exception. A failure reading a page throws, with the layer's result,
@@ -479,7 +479,7 @@ public:
         streaming_result_set&&
     ) = delete;
 
-    // navigation -- each answers whether the cursor is on a row; each throws
+    // navigation - each answers whether the cursor is on a row; each throws
     // query_exception on a closed stream, and as the class describes for a
     // move backward or a page that fails
     bool next();
@@ -490,7 +490,7 @@ public:
         re_std::int64_t _row
     );
 
-    // metadata -- as buffered_result_set's, of the page held; row_count -1
+    // metadata - as buffered_result_set's, of the page held; row_count -1
     // until the last page is read, then every row the run gave; current_row
     // from 0 across pages, -1 before the first row and row_count() after the
     // last
@@ -507,7 +507,7 @@ public:
     re_std::int64_t row_count() const noexcept;
     re_std::int64_t current_row() const noexcept;
 
-    // values by column index and by name -- the current row's, as
+    // values by column index and by name - the current row's, as
     // buffered_result_set reads them
     value get_value(
         std::size_t _index
@@ -558,7 +558,7 @@ public:
         const std::string& _name
     ) const;
 
-    // rows -- the current row by column name, as buffered_result_set's; and
+    // rows - the current row by column name, as buffered_result_set's; and
     // every row after the cursor, read to the run's end, the cursor after
     // the last
     row get_current_row() const;
@@ -573,7 +573,7 @@ public:
      */
     void close() noexcept;
 
-    // state -- whether the stream is open, and whether its run has ended
+    // state - whether the stream is open, and whether its run has ended
     // (the last page read, or a failure); the page held, for reading values
     // exactly as the layer holds them
     bool is_open() const noexcept;
@@ -589,19 +589,19 @@ private:
         std::size_t                _page_size
     ) noexcept;
 
-    // m_fetch -- the next page, the run ended with a short one; a failure
+    // m_fetch - the next page, the run ended with a short one; a failure
     // ends the run and throws, naming `_operation`
     buffered_result_set m_fetch(
         const char* _operation
     );
 
-    // m_end_run -- the run over: the connection free of it
+    // m_end_run - the run over: the connection free of it
     void m_end_run() noexcept;
 
-    // m_detach -- the statement ending the stream: closed, its page released
+    // m_detach - the statement ending the stream: closed, its page released
     void m_detach() noexcept;
 
-    // m_require_open, m_backward -- query_exception for a closed stream, and
+    // m_require_open, m_backward - query_exception for a closed stream, and
     // D_DB_UNSUPPORTED for a move to a row the stream no longer holds
     void m_require_open(
         const char* _operation
@@ -682,7 +682,7 @@ public:
         prepared_statement&&
     ) = delete;
 
-    // binding by index -- each throws query_exception for a parameter the
+    // binding by index - each throws query_exception for a parameter the
     // statement does not have, with the layer's result; bind_string also
     // for text that holds a NUL, D_DB_INVALID_ARGUMENT, which bind_binary
     // binds instead
@@ -734,7 +734,7 @@ public:
         const value& _value
     );
 
-    // binding by name -- where the layer names parameters; each throws
+    // binding by name - where the layer names parameters; each throws
     // query_exception, D_DB_NOT_FOUND, for a name no parameter has, and
     // otherwise as binding by index
     template<typename Face = statement_face,
@@ -863,12 +863,12 @@ public:
      *       Layer::busy_code, as everything else on the connection does.
      *
      * @return the operation; its result() is execute_query's, or throws
-     *         what execute_query throws -- D_DB_UNSUPPORTED with
+     *         what execute_query throws - D_DB_UNSUPPORTED with
      *         libmysqlclient.
      */
     async_operation<std::unique_ptr<buffered_result_set>> execute_query_async();
 
-    // the counts that do not block -- execute_update_async and
+    // the counts that do not block - execute_update_async and
     // execute_async run the statement as execute_update and execute do,
     // as execute_query_async runs it: operations whose result() is the
     // count, and true
@@ -914,11 +914,11 @@ public:
         std::size_t                         _page_size
     );
 
-    // describing -- the number of the highest parameter; throws
+    // describing - the number of the highest parameter; throws
     // query_exception when the statement is closed
     std::size_t parameter_count() const;
 
-    // clearing, resetting -- clear_parameters makes every parameter NULL
+    // clearing, resetting - clear_parameters makes every parameter NULL
     // again, and throws as binding does; reset does nothing, every run
     // starting from the beginning and leaving the statement ready
     void clear_parameters();
@@ -931,7 +931,7 @@ public:
      */
     void close() noexcept;
 
-    // state and handle -- whether the statement is still open, and the
+    // state and handle - whether the statement is still open, and the
     // layer's own statement, for its calls, NULL once closed
     bool is_open() const noexcept;
     auto get_native_handle() const noexcept;
@@ -943,14 +943,14 @@ private:
              typename Result>
     friend class internal::statement_steps;
 
-    // m_require_open -- query_exception for a closed statement
+    // m_require_open - query_exception for a closed statement
     void m_require_open(
         const char* _operation
     ) const;
 
-    // m_require_free -- query_exception, Layer's busy_code, while another
+    // m_require_free - query_exception, Layer's busy_code, while another
     // statement's stream, or an operation that does not block, holds the
-    // connection; m_require_unstreamed -- query_exception,
+    // connection; m_require_unstreamed - query_exception,
     // D_DB_INVALID_ARGUMENT, while the statement's own stream's run is open,
     // and Layer's busy_code while an operation of its own is under way, for
     // a call that would change its values
@@ -961,18 +961,18 @@ private:
         const char* _operation
     ) const;
 
-    // m_end_stream -- the statement's stream, if it has one, ended: its run
+    // m_end_stream - the statement's stream, if it has one, ended: its run
     // read away, the connection freed, the stream closed
     void m_end_stream() noexcept;
 
-    // m_check -- nothing for 0; for any other result, marks a lost connection
+    // m_check - nothing for 0; for any other result, marks a lost connection
     // in the session, then throws what the layer raises
     void m_check(
         int         _result,
         const char* _operation
     ) const;
 
-    // m_close_from_session -- the session's closer for this class
+    // m_close_from_session - the session's closer for this class
     static
     void m_close_from_session(
         void* _self
@@ -1496,8 +1496,8 @@ prepared_statement::m_check
   A statement cannot reach its connection object, which may have moved; the
 session is what they share, so a lost connection is marked there, and the
 connection reads it before its next operation. A result that means a lost
-connection marks it at once; a layer that learns more as it raises -- the
-MariaDB layer's 2020, a statement's failure or the connection's -- says so
+connection marks it at once; a layer that learns more as it raises - the
+MariaDB layer's 2020, a statement's failure or the connection's - says so
 by the exception it throws, a connection_exception for a statement's
 failure being only ever a lost connection's.
 */
@@ -2110,7 +2110,7 @@ void streaming_result_set<Layer>::m_backward(
 //------------------------------------------------------------------------------
 NS_INTERNAL
 
-    // execute_start_t -- a statement face that runs without waiting, as the
+    // execute_start_t - a statement face that runs without waiting, as the
     // call; its absence makes the operation done as it starts
     template<typename Face>
     using execute_start_t =
@@ -2119,7 +2119,7 @@ NS_INTERNAL
 
     // 4.4.1
     // statement_steps
-    //   class template: a statement run without waiting -- its values sent
+    //   class template: a statement run without waiting - its values sent
     // by the face's execute_start, its results read by the continuation for
     // what Result is: the rows of the first, for execute_query_async; the
     // count, for execute_update_async; true, for execute_async. A failure is
@@ -2155,7 +2155,7 @@ NS_INTERNAL
         void abandon() noexcept override;
 
     private:
-        // m_answer -- a continuation's answer: false while waiting, true once
+        // m_answer - a continuation's answer: false while waiting, true once
         // read, a failure thrown
         bool m_answer(
             int _result
@@ -2171,7 +2171,7 @@ NS_INTERNAL
     statement_steps::begin
       As the blocking runs begin: open, its own stream ended, the connection
     free; held from here until the operation ends. A start that answered 0
-    -- none does -- would still leave the results to read.
+    - none does - would still leave the results to read.
     */
     template<typename Layer,
              typename Result>

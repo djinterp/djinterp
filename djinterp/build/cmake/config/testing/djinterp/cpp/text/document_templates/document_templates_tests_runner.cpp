@@ -33,7 +33,7 @@ int main()
 
     rb.use_pdf("document_templates_tests_report.pdf");
 
-    // -- I. document_attributes -------------------------------------------
+    // - I. document_attributes -------------------------------------------
     rb.module("I. document_attributes",
               "the open kv hint bag: keys, flags, tokens");
     rb.run("set and read",              &tests_attr_set_and_read);
@@ -41,7 +41,7 @@ int main()
     rb.run("align token round trip",    &tests_align_token_roundtrip);
     rb.run("attr_align reads its key",  &tests_attr_align_reads_key);
 
-    // -- II. DDocumentRenderer (plain) ------------------------------------
+    // - II. DDocumentRenderer (plain) ------------------------------------
     rb.module("II. document_renderer",
               "the abstract protocol, in its plain realization");
     rb.run("heading and paragraph",     &tests_plain_heading_and_paragraph);
@@ -49,7 +49,7 @@ int main()
     rb.run("key-value and rule",        &tests_plain_key_value_and_rule);
     rb.run("page break",                &tests_plain_page_break);
 
-    // -- III. DDocumentTable ----------------------------------------------
+    // - III. DDocumentTable ----------------------------------------------
     rb.module("III. document_table",
               "content model: build API, queries, render");
     rb.run("build and query",           &tests_table_build_queries);
@@ -57,13 +57,13 @@ int main()
     rb.run("ragged row",                &tests_table_ragged_row);
     rb.run("make_document_table",       &tests_make_document_table_factory);
 
-    // -- IV. DTitlePage ---------------------------------------------------
+    // - IV. DTitlePage ---------------------------------------------------
     rb.module("IV. title_page", "cover composition and knobs");
     rb.run("composition",               &tests_title_page_composition);
     rb.run("page-break toggle",         &tests_title_page_page_break_toggle);
     rb.run("style-name constants",      &tests_title_page_style_name_constants);
 
-    // -- V. DPdfCanvasDocumentRenderer ------------------------------------
+    // - V. DPdfCanvasDocumentRenderer ------------------------------------
     rb.module("V. DPdfCanvasDocumentRenderer",
               "the PDF face over DPdfCanvas, end to end");
     rb.run("title page to PDF",         &tests_pdf_renders_title_page);

@@ -29,7 +29,7 @@
 NS_DJINTERP
 NS_TESTING
 
-// net/net.hpp tests -- each returns true when every check held
+// net/net.hpp tests - each returns true when every check held
 bool tests_net_vocabulary();
 bool tests_net_endpoints();
 bool tests_net_bridge_from_c();

@@ -59,7 +59,7 @@
 #include <cstdio>
 #include <vector>
 // djinterp
-// djinterp  -- framework header FIRST, then the header under test (normal mode)
+// djinterp  - framework header FIRST, then the header under test (normal mode)
 // or the enriched authoring surface (spec mode).
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
@@ -109,7 +109,7 @@ bool test_container_check(
 
 
 // =========================================================================
-//  shared fixtures -- element types (drive the element protocol both ways)
+//  shared fixtures - element types (drive the element protocol both ways)
 // =========================================================================
 
 // DMiniEvaluable
@@ -145,7 +145,7 @@ struct DTcNode
 
 
 // =========================================================================
-//  shared fixtures -- container stand-ins (each carries exactly one subset)
+//  shared fixtures - container stand-ins (each carries exactly one subset)
 // =========================================================================
 
 // object_container_min

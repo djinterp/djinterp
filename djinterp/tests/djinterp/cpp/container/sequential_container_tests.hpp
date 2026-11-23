@@ -273,7 +273,7 @@ struct can_contains_subsequence<_C, _S,
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- declarations - visible in BOTH modes ----------------------------------
+// - declarations - visible in BOTH modes ----------------------------------
 
 // I.   traits   (sequential_container_tests_traits.cpp)
 bool tests_sequential_sequences_are_sequential();
@@ -305,7 +305,7 @@ bool tests_sequential_algorithms_on_string();
 bool tests_sequential_algorithms_gating();
 
 
-// -- spec provider - spec mode only ----------------------------------------
+// - spec provider - spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 inline
 dt::module_spec sequential_container_spec()

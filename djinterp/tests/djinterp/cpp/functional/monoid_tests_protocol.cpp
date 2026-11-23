@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  monoid_tests_protocol.cpp
-//   Section II -- MONOID PROTOCOL (is_monoid / is_monoid_v / Monoid).
+//   Section II - MONOID PROTOCOL (is_monoid / is_monoid_v / Monoid).
 
 // std
 #include <string>
@@ -54,7 +54,7 @@ bool tests_is_monoid_positive()
 /*
 tests_is_monoid_negative
   Confirms is_monoid is false for types with no monoid_traits specialization,
-  and -- critically -- that the detector resolves cleanly rather than hard-
+  and - critically - that the detector resolves cleanly rather than hard-
   erroring on the undefined primary template.
   Tests the following:
   - scalars (int, double, char, bool)

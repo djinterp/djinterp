@@ -2,10 +2,10 @@
 * djinterp [cpp][functional]                                maybe_tests_free.cpp
 *
 * Free-function helper tests for maybe.hpp section VI:
-*   test_zip_with -- combine two maybes via a binary function; nothing if
+*   test_zip_with - combine two maybes via a binary function; nothing if
 *                    either side is empty.
-*   test_flatten  -- collapse maybe<maybe<T>> to maybe<T>.
-*   test_collect  -- container of maybe<T> -> maybe<vector<T>>: just iff all
+*   test_flatten  - collapse maybe<maybe<T>> to maybe<T>.
+*   test_collect  - container of maybe<T> -> maybe<vector<T>>: just iff all
 *                    elements are present.
 *
 *

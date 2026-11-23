@@ -23,10 +23,10 @@ using namespace ::djinterp::test;
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///   compile-time invariants -- III. EVENT SYSTEM                            ///
+///   compile-time invariants - III. EVENT SYSTEM                            ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// -- DTestEventId : exactly std::size_t --------------------------------------
+// - DTestEventId : exactly std::size_t --------------------------------------
 static_assert(std::is_same<DTestEventId, std::size_t>::value,
               "test_event_id must be std::size_t");
 static_assert(std::is_integral<DTestEventId>::value,
@@ -37,7 +37,7 @@ static_assert(std::numeric_limits<DTestEventId>::max()
                   == std::numeric_limits<std::size_t>::max(),
               "test_event_id must span the whole std::size_t range");
 
-// -- DTestEvent : member layout and value semantics ---------------------------
+// - DTestEvent : member layout and value semantics ---------------------------
 static_assert(std::is_same<decltype(DTestEvent::event), DTestEventId>::value,
               "test_event::event must be test_event_id");
 static_assert(std::is_same<decltype(DTestEvent::status), test_status>::value,
@@ -95,7 +95,7 @@ static_assert(!std::is_aggregate<DTestEvent>::value,
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///   runtime tests -- III. EVENT SYSTEM                                      ///
+///   runtime tests - III. EVENT SYSTEM                                      ///
 ///////////////////////////////////////////////////////////////////////////////
 
 /*

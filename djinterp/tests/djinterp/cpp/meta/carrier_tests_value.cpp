@@ -120,7 +120,7 @@ bool tests_carrier_value_recover_cvref()
 
 /*
 tests_carrier_value_runtime
-  Verifies a value carrier collapses to an ordinary runtime value -- the
+  Verifies a value carrier collapses to an ordinary runtime value - the
   carrier contract. These are genuine run-time checks (not just compile-time
   assertions): the recovered NTTPs are read into runtime variables.
   Tests the following:

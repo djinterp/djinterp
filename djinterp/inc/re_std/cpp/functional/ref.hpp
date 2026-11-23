@@ -40,7 +40,7 @@ ref(
 }
 
 // ref (rvalue overload)
-//   function: deleted -- forbidden, would dangle.
+//   function: deleted - forbidden, would dangle.
 template<typename Type>
 void ref(const Type&&) = delete;
 

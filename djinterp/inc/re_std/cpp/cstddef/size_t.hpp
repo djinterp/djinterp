@@ -3,8 +3,8 @@
 *
 * size_t typedef (identity-preserving re-export):
 *   size_t is the type `sizeof` yields. The language, not the library,
-* decides what that type is -- it is unsigned long on one LP64 target,
-* unsigned long long on another, unsigned int on a 32-bit one -- and no
+* decides what that type is - it is unsigned long on one LP64 target,
+* unsigned long long on another, unsigned int on a 32-bit one - and no
 * portable definition can name it correctly on every platform. Writing
 * `typedef unsigned long size_t;` would be right on Linux and wrong on
 * Windows, and the mismatch would only surface at a link boundary.

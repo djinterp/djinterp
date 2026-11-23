@@ -16,7 +16,7 @@
 * the exception is caught where libcurl calls back into C++, the transfer
 * ends and is cleaned up, and the driver rethrows it: from C++11 the very
 * exception, through std::exception_ptr; below C++11, which cannot carry
-* one past the C frames, its nearest standard kind -- std::bad_alloc as
+* one past the C frames, its nearest standard kind - std::bad_alloc as
 * itself, any other std::exception as a std::runtime_error with its what(),
 * anything else as a std::runtime_error saying so. Builds without
 * exceptions compile none of this.
@@ -121,8 +121,8 @@ D_NAMESPACE(D_KEYWORD_CURL)
 // 2.1    Status mapping
 //------------------------------------------------------------------------------
 // to_transport_error
-//   function: a binding status as a transport_error. UNSUPPORTED -- a build
-// without libcurl -- is unsupported_protocol, and INVALID_ARGUMENT, a field
+//   function: a binding status as a transport_error. UNSUPPORTED - a build
+// without libcurl - is unsupported_protocol, and INVALID_ARGUMENT, a field
 // the binding refuses, is unknown.
 D_NODISCARD inline transport_error::value
 to_transport_error(
@@ -429,7 +429,7 @@ NS_INTERNAL
             : m_error()
         {}
 
-        // keep -- holds the exception being handled; call in a handler
+        // keep - holds the exception being handled; call in a handler
         void keep() D_NOEXCEPT
         {
             m_error = std::current_exception();
@@ -437,7 +437,7 @@ NS_INTERNAL
             return;
         }
 
-        // rethrow -- throws it again, if there is one
+        // rethrow - throws it again, if there is one
         void rethrow() const
         {
             // only a kept exception is thrown
@@ -468,7 +468,7 @@ NS_INTERNAL
               m_what()
         {}
 
-        // keep -- classifies the exception being handled; call in a handler
+        // keep - classifies the exception being handled; call in a handler
         void keep() D_NOEXCEPT
         {
             try
@@ -492,7 +492,7 @@ NS_INTERNAL
             return;
         }
 
-        // rethrow -- throws the nearest standard kind, if one was kept
+        // rethrow - throws the nearest standard kind, if one was kept
         void rethrow() const
         {
             switch (m_kind)
@@ -843,7 +843,7 @@ NS_END  // internal
  * @param[in]  _options  how the transfer runs.
  * @return the outcome, as stored in `_meta.error`: none once a response
  *         arrived, whatever its HTTP status; unsupported_protocol without
- *         libcurl; unknown for a header field the binding refuses -- a
+ *         libcurl; unknown for a header field the binding refuses - a
  *         colon in its name, or a line break or NUL in either part.
  * @throws whatever `_sink` threw, rethrown once the transfer has ended and
  *         been cleaned up; and std::bad_alloc.

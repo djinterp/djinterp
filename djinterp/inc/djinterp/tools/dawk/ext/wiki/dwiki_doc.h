@@ -4,9 +4,9 @@
 * A wiki's page held for change.
 *   A document is a page's text and its records, read by dwiki. A change is
 * made at once: the text is spliced, the result read again, and the change
-* kept only if everything outside the splice reads as it did -- every block,
+* kept only if everything outside the splice reads as it did - every block,
 * heading, link, template and region before it where it was, every one after
-* it where it was but moved by the splice -- and the change itself reads
+* it where it was but moved by the splice - and the change itself reads
 * back as asked: a link leads where it was told to, a section has the
 * heading it was given, a region holds the text it was given. A change that
 * would do more is refused, and the page left as it was. Every byte a change
@@ -182,7 +182,7 @@ bool d_wiki_doc_splice(
 // `_label`, either `NULL` to keep it: written in the link's own form, the
 // destination as the dialect writes one and the label as markup.  A label
 // "" leaves Gollum's or MediaWiki's [[...]] showing its page.  A link that
-// shows its destination -- <https://...>, a bare one -- has no label to
+// shows its destination - <https://...>, a bare one - has no label to
 // set.  d_wiki_doc_unlink replaces a link with the text it shows; an image
 // or a category it removes.
 bool d_wiki_doc_set_link(
@@ -263,8 +263,8 @@ bool d_wiki_doc_remove_region(
 
 // 2.6    Templates
 //------------------------------------------------------------------------------
-// d_wiki_doc_set_argument sets a template's argument of a key -- the last of
-// it, as MediaWiki reads the last -- keeping the space about a named one's
+// d_wiki_doc_set_argument sets a template's argument of a key - the last of
+// it, as MediaWiki reads the last - keeping the space about a named one's
 // value, or adds it before the template's close, numbered when its key is
 // the next number; d_wiki_doc_remove_argument removes it, and its `|`.
 bool d_wiki_doc_set_argument(

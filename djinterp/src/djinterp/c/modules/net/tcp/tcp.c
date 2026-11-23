@@ -5,8 +5,8 @@
 *   Implements tcp.h in parts the preprocessor chooses whole: a BSD layer and
 * a Winsock layer, each defining the same static d_tcp_os_* functions; the
 * socket code the two backends share, written against those functions; and
-* stubs for a build without a backend. What needs no socket -- initializers,
-* queries, and the dj_net_connection table -- is common to every build.
+* stubs for a build without a backend. What needs no socket - initializers,
+* queries, and the dj_net_connection table - is common to every build.
 *
 *
 * path:      /src/djinterp/c/modules/net/tcp/tcp.c
@@ -1772,9 +1772,9 @@ d_tcp_pending_error(
 
 /*
 d_tcp_connect_once
-  One connect. One that has not finished at once -- under way on a
+  One connect. One that has not finished at once - under way on a
 non-blocking socket, or interrupted by a signal, after which it continues
-in the background -- is finished by waiting for the socket to become
+in the background - is finished by waiting for the socket to become
 writable and reading its pending error; calling connect again would not
 report the outcome.
 */

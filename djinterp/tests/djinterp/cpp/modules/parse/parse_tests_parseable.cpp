@@ -174,7 +174,7 @@ bool tests_parse_is_parseable_explicit_specialisations()
     D_PA_CHECK(dp::is_parseable<char*>::value);
 
     // none of them has nested aliases, so only an explicit specialisation
-    // can be answering -- confirm the SFINAE arm could not have fired
+    // can be answering - confirm the SFINAE arm could not have fired
     D_PA_CHECK(!dp::is_parseable<std::wstring>::value);
     D_PA_CHECK(!dp::is_parseable<signed char*>::value);
     D_PA_CHECK(!dp::is_parseable<const unsigned char*>::value);
@@ -201,7 +201,7 @@ bool tests_parse_is_parseable_no_cv_ref_decay()
     D_PA_CHECK(dp::is_parseable<char*>::value);
 
     // adding cv-qualification changes the type, and the specialisation is
-    // keyed on the exact type -- so detection is lost
+    // keyed on the exact type - so detection is lost
     D_PA_CHECK(!dp::is_parseable<const std::string>::value);
     D_PA_CHECK(!dp::is_parseable<volatile std::string>::value);
     D_PA_CHECK(!dp::is_parseable<char* const>::value);

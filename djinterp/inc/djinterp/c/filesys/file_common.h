@@ -3,12 +3,12 @@
 *
 * Shared foundation for the djinterp filesys subframework.
 *   Every c/filesys/file_*.h includes this one and nothing else of djinterp's
-* filesys tree, so a program that wants only one capability -- reading a file,
-* say -- compiles and links exactly this plus that one module.
+* filesys tree, so a program that wants only one capability - reading a file,
+* say - compiles and links exactly this plus that one module.
 *   It owns what genuinely crosses module boundaries: the platform includes,
 * the portable types (offsets, file status, directory entries, dj_dir_t), the
 * POSIX constants that a non-POSIX target lacks, and the notification hook. It
-* contains no configuration logic -- every D_CFG_FILE_* knob is resolved in
+* contains no configuration logic - every D_CFG_FILE_* knob is resolved in
 * cfg_file_common.h and only read here.
 *   TWO WIDTHS. Whatever holds an offset, a size, a timestamp, an inode number
 * or a capacity is declared twice, each with a fixed layout: a 32-bit twin
@@ -21,7 +21,7 @@
 *       build, so the unsuffixed names do too.
 *     - A 32-bit twin takes its arguments as they come and hands back what
 *       its 64-bit twin would, or fails with EOVERFLOW when a value does not
-*       fit its 32-bit type -- a large size or offset, a time past 2038, a
+*       fit its 32-bit type - a large size or offset, a time past 2038, a
 *       wide inode number. It never truncates. The one change of unit is
 *       capacity, which the 32-bit twin counts in KiB (file_space.h).
 *     - The library calls the 64-bit twins internally, so a 32-bit twin's only
@@ -30,7 +30,7 @@
 *     - On a 32-bit POSIX host the library builds with the large-file
 *       interface and, where the C library offers it, 64-bit time
 *       (-D_FILE_OFFSET_BITS=64 -D_TIME_BITS=64, which its sources assert),
-*       so both twins reach past 2 GiB and 2038 there too -- on a handle this
+*       so both twins reach past 2 GiB and 2038 there too - on a handle this
 *       subframework opened. A FILE* or descriptor opened elsewhere without
 *       that interface stays capped at 2 GiB by the kernel, whichever twin it
 *       is handed to.
@@ -227,7 +227,7 @@ TABLE OF CONTENTS
 
 // 2.1    Linkage
 //------------------------------------------------------------------------------
-//   Linkage comes from the framework -- djinterp.h defines the D_EXTERN_C
+//   Linkage comes from the framework - djinterp.h defines the D_EXTERN_C
 // family, config/cfg_qualifiers.h gates it. A filesys-local `extern "C"` block
 // would be a second answer to a question the framework already answers, and
 // the two would drift apart the first time one of them changed.
@@ -271,7 +271,7 @@ D_EXTERN_C_BEGIN
 //------------------------------------------------------------------------------
 // 3.1.1
 // dj_off32_t / dj_off64_t
-//   type: a file offset -- signed, since a seek may count back from the end --
+//   type: a file offset - signed, since a seek may count back from the end --
 // at a fixed width whatever the platform's off_t is.
 typedef int32_t dj_off32_t;
 #if D_FILE_64_IS_AVAILABLE
@@ -282,12 +282,12 @@ typedef int32_t dj_off32_t;
 // dj_stat64_t / dj_stat32_t
 //   struct: portable file status, in two fixed layouts. dj_stat64_t holds every
 // field at full width; dj_stat32_t is the same structure with each 64-bit
-// field narrowed to 32 bits of the same signedness -- a size to 4 GiB, a time
-// to 2038 -- and is filled only when every value fits.
+// field narrowed to 32 bits of the same signedness - a size to 4 GiB, a time
+// to 2038 - and is filled only when every value fits.
 //   The timestamps are deliberately NOT called st_mtime / st_atime /
 // st_ctime. Those are not member names on a modern POSIX host, they are
-// MACROS -- glibc has `#define st_mtime st_mtim.tv_sec`, macOS has
-// `#define st_mtime st_mtimespec.tv_sec` -- so a struct declaring them
+// MACROS - glibc has `#define st_mtime st_mtim.tv_sec`, macOS has
+// `#define st_mtime st_mtimespec.tv_sec` - so a struct declaring them
 // expands to `uint64_t st_mtim.tv_sec;` and does not compile, and any code
 // reading the field hits the same expansion. The macros only appear once
 // _POSIX_C_SOURCE >= 200809L or _GNU_SOURCE is set, which is why the old
@@ -297,7 +297,7 @@ typedef int32_t dj_off32_t;
 // metadata change time, NOT the creation time; only Windows (and Linux via
 // statx) reports true creation, and calling the field st_ctime invited
 // everyone to read it as the wrong one. So creation gets its own field and
-// the two never substitute for each other -- a fabricated timestamp is a lie
+// the two never substitute for each other - a fabricated timestamp is a lie
 // the caller cannot detect. Where a platform lacks one, it reports 0.
 #if D_FILE_64_IS_AVAILABLE
 struct dj_stat64_t
@@ -345,7 +345,7 @@ struct dj_stat32_t
 //   struct: portable directory entry, in two fixed layouts that differ only in
 // the inode number's width. d_name is sized from the resolved
 // D_CFG_FILE_NAME_MAX, so a target with longer names is a rebuild rather
-// than a patch -- but note it is an ABI break for anything that embeds one.
+// than a patch - but note it is an ABI break for anything that embeds one.
 #if D_FILE_64_IS_AVAILABLE
 struct dj_dirent64_t
 {
@@ -571,7 +571,7 @@ struct dj_dir_t;
 // 4.2.6
 // S_IFLNK
 //   constant: the type bits of a symbolic link, which the Windows CRT does not
-// define -- file_stat describes a link there as POSIX describes one.
+// define - file_stat describes a link there as POSIX describes one.
 #ifndef S_IFLNK
     #define S_IFLNK 0120000
 #endif  // S_IFLNK
@@ -630,7 +630,7 @@ enum dj_file_notify_level
 // 5.1.2
 // dj_file_notice
 //   struct: one notification record. Every string it carries is a literal
-// with static storage duration -- the handler may read them but must copy
+// with static storage duration - the handler may read them but must copy
 // anything it intends to keep past the callback.
 struct dj_file_notice
 {
@@ -702,7 +702,7 @@ void d_file_notify_default_handler(
 
 // 5.3    Diagnostic names
 //------------------------------------------------------------------------------
-// display names -- static, NUL-terminated and never NULL: "unknown" for a
+// display names - static, NUL-terminated and never NULL: "unknown" for a
 // level outside enum dj_file_notify_level, and "native", "posix" or "stdc" for
 // the backend this build resolved to
 const char* d_file_notify_level_name(
@@ -795,7 +795,7 @@ void d_internal_file_notify_emit(
 // D_INTERNAL_FILE_NOTIFY
 //   macro: raise a notice if this build compiles that severity in. The level
 // test is a preprocessor test, so a filtered-out notice costs nothing at all
-// -- not a branch, and not the string it would have carried.
+// - not a branch, and not the string it would have carried.
 #if (D_INTERNAL_FILE_NOTIFY_LEVEL > 0)
     #define D_INTERNAL_FILE_NOTIFY(_level, _error, _fn, _path, _msg)           \
         do                                                                     \
@@ -817,7 +817,7 @@ void d_internal_file_notify_emit(
 
 // 6.2.3
 // D_INTERNAL_FILE_NOTIFY_PATH
-//   macro: the path to attach to a notice -- the real one, or NULL when this
+//   macro: the path to attach to a notice - the real one, or NULL when this
 // build must not leak paths to the handler.
 #if D_CFG_IS_ON(D_CFG_FILE_NOTIFY_PATHS)
     #define D_INTERNAL_FILE_NOTIFY_PATH(_path) (_path)
@@ -827,7 +827,7 @@ void d_internal_file_notify_emit(
 
 // 6.2.4
 // D_INTERNAL_FILE_FAIL
-//   macro: the single failure exit used by every parameter check -- set
+//   macro: the single failure exit used by every parameter check - set
 // errno, raise an error notice, and hand back the caller's error value. It
 // is one macro so that a build with validation off, errno off and
 // notifications off leaves literally nothing behind.
@@ -847,7 +847,7 @@ void d_internal_file_notify_emit(
 // 6.2.5
 // D_INTERNAL_FILE_REQUIRE
 //   macro: the parameter guard. Expands to nothing when validation is off,
-// which is the whole point of the knob -- the check is not merely predicted
+// which is the whole point of the knob - the check is not merely predicted
 // away, it is never emitted.
 #if (D_INTERNAL_FILE_VALIDATE == 1)
     #define D_INTERNAL_FILE_REQUIRE(_cond, _code, _fn, _path, _msg, _ret)      \
@@ -946,8 +946,8 @@ int d_internal_file_errno_win32(
  * @brief Reports whether a reparse tag makes a link: a symbolic link or a
  *        junction, the two kinds that name another path.
  *
- * @note Every other reparse point -- a cloud placeholder, a deduplicated file,
- *       an app alias -- is the file or directory it appears to be, and
+ * @note Every other reparse point - a cloud placeholder, a deduplicated file,
+ *       an app alias - is the file or directory it appears to be, and
  *       c/filesys describes it as one.
  *
  * @param[in] _tag  a reparse tag, as FILE_ATTRIBUTE_TAG_INFO or a find
@@ -989,7 +989,7 @@ int d_internal_file_is_link_win32(
 
 // 6.6.1
 // dj_internal_file_nchar_t
-//   type: the character the platform's path calls take -- wchar_t where this
+//   type: the character the platform's path calls take - wchar_t where this
 // build hands Windows UTF-16, char everywhere else.
 #if (D_INTERNAL_FILE_WIDE == 1)
     typedef wchar_t dj_internal_file_nchar_t;
@@ -1010,7 +1010,7 @@ int d_internal_file_is_link_win32(
 #endif
 
 /**
- * @brief Gives text that is no path -- a mode -- the form the platform's
+ * @brief Gives text that is no path - a mode - the form the platform's
  *        calls take: converted from UTF-8 to UTF-16 into `_buf` where this
  *        build hands Windows UTF-16, and `_text` itself everywhere else.
  *
@@ -1051,7 +1051,7 @@ const dj_internal_file_nchar_t* d_internal_file_to_native(
 // D_INTERNAL_FILE_NATIVE_ON_HEAP
 //   constant: 1 where a path's room in the platform's text is on the heap --
 // a build that hands Windows UTF-16 with long paths, where the room is 32767
-// characters and some -- and 0 where it is an array on the stack.
+// characters and some - and 0 where it is an array on the stack.
 #if ( (D_INTERNAL_FILE_WIDE == 1) &&                                           \
       (D_CFG_IS_ON(D_CFG_FILE_LONG_PATHS)) )
     #define D_INTERNAL_FILE_NATIVE_ON_HEAP 1
@@ -1073,7 +1073,7 @@ const dj_internal_file_nchar_t* d_internal_file_to_native(
 //   struct: room for a path in the platform's text. It is an array in the
 // struct where that is small; in a long-path build it is a block on the
 // heap, allocated when first asked for and returned by
-// d_internal_file_native_release -- 64 KiB a path is no stack's to give.
+// d_internal_file_native_release - 64 KiB a path is no stack's to give.
 // Zero-initialize it.
 struct dj_internal_file_native
 {
@@ -1121,7 +1121,7 @@ void d_internal_file_native_release(
 );
 // D_INTERNAL_FILE_PATH_ON_HEAP
 //   constant: 1 where a buffer that builds a path in UTF-8 is kept on the
-// heap -- a long-path Windows build, where D_FILE_PATH_MAX is 32767 -- and 0
+// heap - a long-path Windows build, where D_FILE_PATH_MAX is 32767 - and 0
 // where it is an array on the stack: 260 bytes on Windows, PATH_MAX on POSIX.
 #if ( (D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)) &&                                   \
       (D_CFG_IS_ON(D_CFG_FILE_LONG_PATHS)) )
@@ -1160,8 +1160,8 @@ char* d_internal_file_path_room(
     struct dj_internal_file_path* _path
 );
 /**
- * @brief Returns a holder's room, where it was allocated, leaving errno -- and
- *        on Windows the last error -- as they were.
+ * @brief Returns a holder's room, where it was allocated, leaving errno - and
+ *        on Windows the last error - as they were.
  *
  * @param[in,out] _path  the holder; releasing it twice is releasing it once.
  */
@@ -1234,7 +1234,7 @@ int d_internal_file_utf16_to_wtf8(
 
 /**
  * @brief The reverse of d_internal_file_to_native: text the platform handed
- *        back -- a name, a directory -- as UTF-8 where this build converts,
+ *        back - a name, a directory - as UTF-8 where this build converts,
  *        and as it is everywhere else. A lone surrogate, which Windows allows
  *        in a name and UTF-8 cannot carry, comes back in WTF-8's three bytes,
  *        which d_internal_file_to_native takes back unchanged.

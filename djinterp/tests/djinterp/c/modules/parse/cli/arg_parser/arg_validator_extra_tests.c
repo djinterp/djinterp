@@ -1233,7 +1233,7 @@ static const char DEPARTED_IPV4[] =
 // DEPARTED_BDBL
 //   constant: CLI11's Bound(0.1, 0.3) over `double`, run over CLAMPED. A
 // clamped value is written as the type writes values, the shortest text
-// that reads back as the same number -- `0.1`, `0.3` -- where CLI11 writes
+// that reads back as the same number - `0.1`, `0.3` - where CLI11 writes
 // every digit a `double` holds: `0.10000000000000001`,
 // `0.29999999999999999`. Each text reads back as the same value.
 static const char DEPARTED_BDBL[] =
@@ -1592,9 +1592,9 @@ d_tests_arg_extra_type_integers
   Tests the following:
   - each described as its type's name, and refusing with "Failed parsing
     <value> as a <TYPE>"
-  - a value judged as an option of the type converts it -- leading zeros
+  - a value judged as an option of the type converts it - leading zeros
     octal, the `0x`, `0o` and `0b` prefixes, the separators, `true` as 1,
-    each type's limits -- but for the empty text, which no number is
+    each type's limits - but for the empty text, which no number is
   - a passing value stands as it was given
 */
 bool d_tests_arg_extra_type_integers(void)

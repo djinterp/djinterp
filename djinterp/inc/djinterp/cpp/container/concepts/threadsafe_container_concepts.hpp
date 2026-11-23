@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                    threadsafe_container_concepts.hpp
 *
-* C++20 concepts for the THREAD SAFETY (the lock surface) axis -- the
+* C++20 concepts for the THREAD SAFETY (the lock surface) axis - the
 * `requires`-facing view of threadsafe_container_traits.hpp.
 *
 *   THE CONCEPTS ADD NO POLICY.
@@ -57,27 +57,27 @@ concept ThreadsafeContainer =
 
 
 // SharedLockableContainer
-//   concept: exposes lock_shared() -- many readers, one writer.
+//   concept: exposes lock_shared() - many readers, one writer.
 template<typename Type>
 concept SharedLockableContainer = has_lock_shared_method_v<Type>;
 
 
 // TryLockableContainer
-//   concept: exposes try_lock() -- acquisition that may FAIL rather than
+//   concept: exposes try_lock() - acquisition that may FAIL rather than
 // block, which is the only kind a caller can back out of.
 template<typename Type>
 concept TryLockableContainer = has_try_lock_method_v<Type>;
 
 
 // DeclaresLockPolicy
-//   concept: carries a lock_policy_type -- it names HOW it is guarded, rather
+//   concept: carries a lock_policy_type - it names HOW it is guarded, rather
 // than leaving the caller to infer it from the surface.
 template<typename Type>
 concept DeclaresLockPolicy = has_lock_policy_type_v<Type>;
 
 
 // VersionedContainer
-//   concept: exposes a version stamp -- the basis of optimistic reads, where
+//   concept: exposes a version stamp - the basis of optimistic reads, where
 // you check afterwards whether what you read was torn.
 template<typename Type>
 concept VersionedContainer = has_version_method_v<Type>;

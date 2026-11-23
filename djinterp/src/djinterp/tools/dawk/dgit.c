@@ -1,4 +1,4 @@
-// SCRATCH STUB -- see dgit.h.  Reports no history.
+// SCRATCH STUB - see dgit.h.  Reports no history.
 #include "../../../../inc/djinterp/tools/dawk/dgit.h"  // corresponding header
 // std
 #include <stddef.h>  // NULL

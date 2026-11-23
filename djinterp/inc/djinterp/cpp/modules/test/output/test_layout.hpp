@@ -15,7 +15,7 @@
 *                          "a candidate to factor into one visitor-driven walk".
 *   Both are now one fold to a term plus the interpreter's single fold over it.
 *
-*   Dtest defines no new constructs -- and that is the point.  A test report is
+*   Dtest defines no new constructs - and that is the point.  A test report is
 * a cover, a table of contents, and nested numbered sections holding content;
 * report_dialect.hpp already names exactly that set (body / cover / clearpage /
 * toc / section, with content as a body_ref leaf).  So this header registers
@@ -30,7 +30,7 @@
 *       report_unit   -> section(unit name)   { content(assertion table) }
 *       report_check  -> a row of that table  (see test_report_content.hpp)
 *   Numbering and the table of contents fall out of the interpreter's passes:
-*   modules number 1, 2, 3 and their units 1.1, 1.2 -- which the old flat
+*   modules number 1, 2, 3 and their units 1.1, 1.2 - which the old flat
 *   report_layout could not express at all, since it had one literal per level
 *   and no notion of depth.
 *
@@ -38,14 +38,14 @@
 * ---------------------------------
 *   The term carries keys, not text; the resolver binds them against the report
 * at render time (test_report_content.hpp).  The report is borrowed by reference
-* into that closure, so it must outlive the render call -- the same lifetime
+* into that closure, so it must outlive the render call - the same lifetime
 * rule test_output's deferred producers already carry, and it holds by
 * construction for the entry points below, which build and render within one
 * call.
 *
 * PORTABILITY
 * -----------
-*   C++14 (layout.hpp's floor -- the interpreter's higher-order deduction);
+*   C++14 (layout.hpp's floor - the interpreter's higher-order deduction);
 * self-suppresses below it.
 *
 * HOW TO USE
@@ -124,7 +124,7 @@ NS_TEST
 
 // report_to_layout
 //   function: the fold from the report model to the document term.  Structure
-// only -- every piece of text that is CONTENT rather than STRUCTURE leaves as a
+// only - every piece of text that is CONTENT rather than STRUCTURE leaves as a
 // named body_ref, resolved later.  The result is an ordinary DLayoutDoc: the
 // interpreter cannot tell it was built here rather than by the cursor, the
 // aggregate spec, or the block-form parser.
@@ -220,7 +220,7 @@ D_NODISCARD inline ::djinterp::DDocAttributes report_metadata_bag(
 ///////////////////////////////////////////////////////////////////////////////
 
 // make_report_resolver
-//   function: the content side of the boundary -- a body_ref key to how it
+//   function: the content side of the boundary - a body_ref key to how it
 // emits, bound against _report.
 //
 //   LIFETIME: _report is borrowed by pointer into the returned closure and MUST
@@ -240,7 +240,7 @@ D_NODISCARD inline ::djinterp::DContentResolver make_report_resolver(
             const std::string _key = _ref.key;
 
             // a key this report does not bind is a graceful hole, per the
-            // interpreter's contract -- decided by the predicate, so nothing
+            // interpreter's contract - decided by the predicate, so nothing
             // is rendered twice
             if (!report_binds_content(*_borrowed, _key))
             {
@@ -266,7 +266,7 @@ D_NODISCARD inline ::djinterp::DContentResolver make_report_resolver(
 // _renderer between begin_document and end_document. The template arguments
 // are named because an annotated term's atom type is never deduced: DLayoutDoc
 // is an alias whose atom sits in a nested-name-specifier. (This spelled the
-// pipeline out while render_document could not be instantiated -- R1; lane 2's
+// pipeline out while render_document could not be instantiated - R1; lane 2's
 // round 3 named its passes' arguments, and this became a call.)
 inline
 void render_report_layout(
@@ -288,7 +288,7 @@ void render_report_layout(
 }
 
 // render_test_report
-//   function: the whole pipeline for one report -- fold to a term, bind its
+//   function: the whole pipeline for one report - fold to a term, bind its
 // content, and drive _renderer through the interpreter (number -> outline ->
 // emit -> run).  One traversal, any dialect.
 inline

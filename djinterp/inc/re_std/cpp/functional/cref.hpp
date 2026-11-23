@@ -39,7 +39,7 @@ cref(
 }
 
 // cref (rvalue overload)
-//   function: deleted -- would dangle.
+//   function: deleted - would dangle.
 template<typename Type>
 void cref(const Type&&) = delete;
 

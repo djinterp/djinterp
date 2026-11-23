@@ -4,8 +4,8 @@
 * The suite of the parser's setting hook, declared in arg_setting_tests.h.
 *   Most sections are case tables (arg_tests_support.h): each case makes a
 * parser as CLI11's App("d", "prog") would, sets the stand-in hook on it,
-* parses its arguments -- given without a program name, so the hook's
-* `argv[0]` is "" -- and is written as the hook's calls, then the parse's
+* parses its arguments - given without a program name, so the hook's
+* `argv[0]` is "" - and is written as the hook's calls, then the parse's
 * report. The rest are steps that parse main's arguments or a line, so that
 * the program's name is there to see, or that end a parse as CLI11's exit()
 * does, so that the messages a refusal writes are there to read.
@@ -648,8 +648,8 @@ static const char REFUSALS[] =
 //==============================================================================
 
 /**
- * @brief Whether a setting's text -- what follows `--`, or `--set`'s
- *        argument -- binds: `NAME=VALUE` with NAME the setting known.
+ * @brief Whether a setting's text - what follows `--`, or `--set`'s
+ *        argument - binds: `NAME=VALUE` with NAME the setting known.
  *
  * @param[in]  _text    the text.
  * @param[out] _status  receives the reason, where it does not bind.

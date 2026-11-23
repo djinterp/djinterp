@@ -19,7 +19,7 @@
 d_tests_file_run_all
   Runs every fs module suite and returns the result tree.
   The tree's shape follows the BUILD, not the platform. A module the config
-compiled out contributes nothing -- not an empty group, not a green "skipped"
+compiled out contributes nothing - not an empty group, not a green "skipped"
 assertion. So the count is derived from what actually ran, and the suite
 cannot claim to have tested something it did not.
 

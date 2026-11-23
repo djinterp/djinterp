@@ -2,8 +2,8 @@
 #*******************************************************************************
 # djinterp [ci]                                                  fetch_sqlite.sh
 #
-# Makes the SQLite amalgamation -- sqlite3.c and sqlite3.h, and sqlite3ext.h
-# for building extensions -- of each release named, from SQLite's official
+# Makes the SQLite amalgamation - sqlite3.c and sqlite3.h, and sqlite3ext.h
+# for building extensions - of each release named, from SQLite's official
 # mirror on GitHub, for scripts/ci/check_db_sqlite.sh.
 # Each lands in <out>/<version>/; a version already there is kept.
 #   The amalgamation is generated from the release's own tree, by its own

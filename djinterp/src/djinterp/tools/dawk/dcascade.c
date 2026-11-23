@@ -3,8 +3,8 @@
 *
 * Definitions for the non-inline declarations in dcascade.h.
 *   Matches are appended as (node, rule, specificity) triples, then counted
-* into per-node runs -- a counting sort, stable, so a run keeps the order the
-* host recorded -- and each run is insertion-sorted by the policy.  Runs are
+* into per-node runs - a counting sort, stable, so a run keeps the order the
+* host recorded - and each run is insertion-sorted by the policy.  Runs are
 * a handful long, where an insertion sort is the fast one.  A host that
 * records rules in ascending order under FIRST with no layers therefore
 * pays one pass and no swaps.
@@ -89,8 +89,8 @@ bool d_internal_outranks(
  * @param[in] _cascade   the cascade.
  * @param[in] _rule      the rule.
  * @param[in] _property  the property's symbol.
- * @return the declaration's index -- the first under FIRST and ALL, the last
- *         under CSS -- or `D_DSS_NO_INDEX` when the rule declares none.
+ * @return the declaration's index - the first under FIRST and ALL, the last
+ *         under CSS - or `D_DSS_NO_INDEX` when the rule declares none.
  */
 static
 uint32_t d_internal_declaration_in(

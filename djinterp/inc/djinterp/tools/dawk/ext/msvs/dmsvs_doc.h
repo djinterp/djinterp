@@ -4,7 +4,7 @@
 * A Visual Studio file held for change.
 *   A document is a file's text and its records, read by dmsvs. A change is
 * made at once: the text is spliced, the result read again, and the change
-* kept only if the file reads whole -- so a document is always a file Visual
+* kept only if the file reads whole - so a document is always a file Visual
 * Studio could open, and its records always the text's own. Every byte a
 * change does not touch is the old text's, its line endings, its indenting,
 * its byte-order mark among them.
@@ -17,7 +17,7 @@
 * writes has no prefix: MSBuild reads namespaces, and a prefix not bound to
 * one is an error there. An element added
 * is written on a line of its own, indented as its siblings are, or one
-* step past its parent, the step the file uses -- spaces or a tab.
+* step past its parent, the step the file uses - spaces or a tab.
 *   A document is made from a file, or from a text not yet on disk, and saved
 * to its own path or another; saving writes only a file that would change,
 * and makes the directories it needs.

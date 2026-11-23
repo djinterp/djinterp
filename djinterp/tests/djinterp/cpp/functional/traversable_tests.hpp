@@ -1,17 +1,17 @@
 /*******************************************************************************
 * djinterp [cpp][functional]                               traversable_tests.hpp
 *
-*   Unit-test declarations for core/functional/traversable.hpp -- the capstone of
+*   Unit-test declarations for core/functional/traversable.hpp - the capstone of
 * the functional layer: walk a structure left-to-right, run an applicative effect
 * at each element, and collect the results back into the same shape.  One
 * declaration group per section of the module under test:
 *
-*     traversable_tests_protocol.cpp    -- I.  traversable_traits, is_traversable
-*     traversable_tests_structural.cpp  -- 0.  traversable_value_type, the
+*     traversable_tests_protocol.cpp    - I.  traversable_traits, is_traversable
+*     traversable_tests_structural.cpp  - 0.  traversable_value_type, the
 *                                                internal helpers, the concept
-*     traversable_tests_vector.cpp      --     the std::vector instance (the one
+*     traversable_tests_vector.cpp      -     the std::vector instance (the one
 *                                                concrete instance shipped here)
-*     traversable_tests_operations.cpp  -- II. traverse and sequence
+*     traversable_tests_operations.cpp  - II. traverse and sequence
 *
 *   FIXTURES.  Traversal needs two things that must not be confused: a STRUCTURE
 * T to walk, and an EFFECT F to thread.  The suite supplies both, and keeps them
@@ -20,7 +20,7 @@
 *     tmaybe<T>   is BOTH.  As an EFFECT it is an applicative that can fail (via
 *                 the monad bridge), giving the all-or-nothing semantics that make
 *                 a failed traversal observable.  As a STRUCTURE it is a second
-*                 traversable instance -- zero-or-one element -- so the generic
+*                 traversable instance - zero-or-one element - so the generic
 *                 traverse can be shown to dispatch through traversable_traits
 *                 rather than being wired to std::vector.
 *
@@ -35,11 +35,11 @@
 * incidental: lift_a2 (which the vector instance uses) threads an internal
 * DApplicativeA2Binder THROUGH the effect, and that binder has no default
 * constructor.  An effect monad whose empty state requires a T{} therefore will
-* not compile against the vector traversable -- a real constraint on effects, and
+* not compile against the vector traversable - a real constraint on effects, and
 * one worth knowing before writing maybe.hpp's instance.
 *
 *   logging_fn records every call it receives.  It proves two claims at once: that
-* the walk is LEFT-TO-RIGHT, and -- traversing an EMPTY structure -- that f is
+* the walk is LEFT-TO-RIGHT, and - traversing an EMPTY structure - that f is
 * never invoked at all, even though F is still recovered correctly from the TYPE
 * of f's result.
 *
@@ -92,10 +92,10 @@ NS_TESTING
 ///             0.    FIXTURES                                              ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// -- EFFECT #1 / STRUCTURE #2:  tmaybe<T> --------------------------------
+// - EFFECT #1 / STRUCTURE #2:  tmaybe<T> --------------------------------
 
 // tmaybe
-//   fixture: a maybe-shaped monad -- hence an applicative and a functor, via the
+//   fixture: a maybe-shaped monad - hence an applicative and a functor, via the
 // bridges. It serves as the failing EFFECT (all-or-nothing) and, through its own
 // traversable_traits below, as a second traversable STRUCTURE.
 //
@@ -131,10 +131,10 @@ DTmaybe<_Type> nothing()
 }
 
 
-// -- EFFECT #2:  tbox<T>  (a Functor + Applicative, but NOT a Traversable) -
+// - EFFECT #2:  tbox<T>  (a Functor + Applicative, but NOT a Traversable) -
 
 // tbox
-//   fixture: the identity monad -- always holds a value, never fails. Used as a
+//   fixture: the identity monad - always holds a value, never fails. Used as a
 // second, non-failing EFFECT, and as the suite's sharpest negative: it is a
 // Functor and an Applicative, yet NOT a Traversable, because traversability is a
 // separate obligation that nothing else implies.
@@ -156,7 +156,7 @@ DTbox<_Type> boxed(
 }
 
 
-// -- the effect-producing functions f : A -> F<B> -------------------------
+// - the effect-producing functions f : A -> F<B> -------------------------
 
 // pos_or_nothing : int -> tmaybe<int>   (fails on a non-positive element)
 struct pos_or_nothing
@@ -200,7 +200,7 @@ struct to_maybe_str
 
 // logging_fn
 //   fixture function: records every element it is called with, so the walk order
-// is observable -- and so is the fact that an EMPTY structure never calls it.
+// is observable - and so is the fact that an EMPTY structure never calls it.
 struct logging_fn
 {
     std::vector<int>* log;
@@ -215,7 +215,7 @@ struct logging_fn
 };
 
 
-// -- negatives ------------------------------------------------------------
+// - negatives ------------------------------------------------------------
 
 // not_traversable: no traversable_traits specialization at all.
 struct not_traversable
@@ -223,13 +223,13 @@ struct not_traversable
 };
 
 // no_marker: a traversable_traits WITH a traverse but WITHOUT the
-// is_specialized marker -- must read as not-a-traversable.
+// is_specialized marker - must read as not-a-traversable.
 struct no_marker
 {
 };
 
 
-// -- probes ---------------------------------------------------------------
+// - probes ---------------------------------------------------------------
 
 // is_complete
 //   probe: true when _Type is a COMPLETE type. The primary traversable_traits is
@@ -352,7 +352,7 @@ NS_END  // testing
 ///             FIXTURE INSTANCES  (djinterp scope)                         ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// monad_traits<tmaybe<T>>  -- makes tmaybe a monad, hence (via the bridges) an
+// monad_traits<tmaybe<T>>  - makes tmaybe a monad, hence (via the bridges) an
 // applicative and a functor. Its empty state constructs NO payload.
 template<typename _Type>
 struct monad_traits<testing::DTmaybe<_Type> >
@@ -380,13 +380,13 @@ struct monad_traits<testing::DTmaybe<_Type> >
     {
         using result_t = decltype(_f(_m.get()));
 
-        // the empty case builds no payload -- the inner type need not be
+        // the empty case builds no payload - the inner type need not be
         // default-constructible, and lift_a2's binder is not.
         return _m.has() ? _f(_m.get()) : result_t{};
     }
 };
 
-// monad_traits<tbox<T>>  -- the identity monad: an effect that always succeeds.
+// monad_traits<tbox<T>>  - the identity monad: an effect that always succeeds.
 template<typename _Type>
 struct monad_traits<testing::DTbox<_Type> >
 {
@@ -415,7 +415,7 @@ struct monad_traits<testing::DTbox<_Type> >
     }
 };
 
-// traversable_traits<tmaybe<T>>  -- a SECOND traversable structure, over its
+// traversable_traits<tmaybe<T>>  - a SECOND traversable structure, over its
 // zero-or-one element. The shape is preserved: T<A> -> F<T<B>>.
 //
 //   The empty case never calls f, so the effect F cannot be deduced from a
@@ -456,7 +456,7 @@ struct traversable_traits<testing::DTmaybe<_Type>, void>
     }
 };
 
-// traversable_traits<no_marker>  -- a traverse, but NO is_specialized marker, so
+// traversable_traits<no_marker>  - a traverse, but NO is_specialized marker, so
 // detection must refuse it.
 template<>
 struct traversable_traits<testing::no_marker, void>

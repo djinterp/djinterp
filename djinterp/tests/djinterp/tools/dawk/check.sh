@@ -1,5 +1,5 @@
 #!/bin/sh
-# check.sh -- build dawk with its extensions from the tree, and run every
+# check.sh - build dawk with its extensions from the tree, and run every
 # suite that needs nothing outside it: the unit tests, regress.sh, story.sh,
 # cmake.sh, which also reads every CMake file under build/cmake and, where
 # cmake is installed, compares the CMake reader with CMake itself,

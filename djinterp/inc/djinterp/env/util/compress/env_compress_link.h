@@ -70,8 +70,8 @@ TABLE OF CONTENTS
 //==============================================================================
 
 
-// The knobs -- the master switch, each library's name and liblzma's static
-// switch -- are cfg_env_compress_link.h's (decision 105 of the register).
+// The knobs - the master switch, each library's name and liblzma's static
+// switch - are cfg_env_compress_link.h's (decision 105 of the register).
 
 
 // 1.1    MSVC gate and link-request helper

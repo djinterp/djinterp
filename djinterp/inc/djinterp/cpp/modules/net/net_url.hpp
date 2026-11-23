@@ -158,7 +158,7 @@ struct url_part
 
 // 1.2    Conversions
 //------------------------------------------------------------------------------
-// to_c / from_c -- the same values under the other language's names; the
+// to_c / from_c - the same values under the other language's names; the
 // enumerators are defined as each other, so these are casts
 D_NODISCARD inline dj_net_url_error to_c(
     url_error::value _error
@@ -202,7 +202,7 @@ D_NODISCARD inline url_part::value from_c(
     return static_cast<url_part::value>(_part);
 }
 
-// url_error_name -- a short phrase for an error, for messages
+// url_error_name - a short phrase for an error, for messages
 D_NODISCARD inline const char* url_error_name(
     url_error::value _error
 ) D_NOEXCEPT
@@ -210,7 +210,7 @@ D_NODISCARD inline const char* url_error_name(
     return ::d_net_url_error_name(to_c(_error));
 }
 
-// url_error_to_net -- the io_error an error maps to, by the rules net.h
+// url_error_to_net - the io_error an error maps to, by the rules net.h
 // gives with dj_net_error
 D_NODISCARD inline io_error::value url_error_to_net(
     url_error::value _error
@@ -608,8 +608,8 @@ public:
         return from_c(m_parts.host_kind);
     }
 
-    // port -- the explicit port, or 0; effective_port -- that, or else the
-    // scheme's default; is_tls -- whether the scheme begins with TLS
+    // port - the explicit port, or 0; effective_port - that, or else the
+    // scheme's default; is_tls - whether the scheme begins with TLS
     D_NODISCARD port_type port() const D_NOEXCEPT
     {
         return m_parts.port;
@@ -666,7 +666,7 @@ private:
     std::string  m_text;
     ::dj_net_url  m_parts;
 
-    // m_parse -- parses the text in place; used only on text known to parse
+    // m_parse - parses the text in place; used only on text known to parse
     void m_parse() D_NOEXCEPT
     {
         (void)::d_net_url_parse(internal::url_pack(m_text),
@@ -676,7 +676,7 @@ private:
         return;
     }
 
-    // m_clear -- becomes the empty reference
+    // m_clear - becomes the empty reference
     void m_clear() D_NOEXCEPT
     {
         m_text.clear();
@@ -685,7 +685,7 @@ private:
         return;
     }
 
-    // m_rebase -- moves every view from a copy of the text at _from onto
+    // m_rebase - moves every view from a copy of the text at _from onto
     // this url's own text, at the same offsets
     void m_rebase(
         const char* _from
@@ -774,7 +774,7 @@ struct url_text_result
 
 // 3.1    Parsing
 //------------------------------------------------------------------------------
-// url::parse -- the text moved into the url, and parsed where it now lives
+// url::parse - the text moved into the url, and parsed where it now lives
 inline
 url_result url::parse(
     std::string _text
@@ -803,7 +803,7 @@ url_result url::parse(
 
 // 3.2    Resolution and normalization
 //------------------------------------------------------------------------------
-// url::resolve -- the target's text produced by the C resolver, then parsed
+// url::resolve - the target's text produced by the C resolver, then parsed
 // as a url of its own
 inline
 url_result url::resolve(
@@ -828,7 +828,7 @@ url_result url::resolve(
     return result;
 }
 
-// url::normalized -- the normal form's text, then parsed as a url
+// url::normalized - the normal form's text, then parsed as a url
 inline
 url_result url::normalized() const
 {
@@ -850,7 +850,7 @@ url_result url::normalized() const
 
 // 3.3    Percent-encoding
 //------------------------------------------------------------------------------
-// url_encode -- raw bytes encoded for a component; a url_part is always a
+// url_encode - raw bytes encoded for a component; a url_part is always a
 // valid part, so only the buffer's size can intervene, and never fatally
 D_NODISCARD inline std::string url_encode(
     const std::string& _raw,
@@ -890,7 +890,7 @@ D_NODISCARD inline url_text_result url_decode(
 
 // 3.4    Schemes and endpoints
 //------------------------------------------------------------------------------
-// url_default_port, url_scheme_is_tls -- net_url.h's, for a scheme string
+// url_default_port, url_scheme_is_tls - net_url.h's, for a scheme string
 D_NODISCARD inline port_type url_default_port(
     const std::string& _scheme
 ) D_NOEXCEPT
@@ -1288,8 +1288,8 @@ NS_END  // internal
 
 // 4.3.3
 // split_url
-//   function: an absolute URL with an authority -- scheme "://" [userinfo
-// "@"] host [":" port] path ["?" query] ["#" fragment] -- split into
+//   function: an absolute URL with an authority - scheme "://" [userinfo
+// "@"] host [":" port] path ["?" query] ["#" fragment] - split into
 // url_parts by net_url.h's RFC 3986 parser, so IP literals, zones,
 // userinfo and ports read as the RFC has them. False, with `_out`
 // unchanged, for a text that does not parse, a relative reference, or a

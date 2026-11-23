@@ -238,7 +238,7 @@ bool d_internal_mongodb_given_uri(
  *         value, or a host's refusal; D_MONGODB_LAYER_NO_MEMORY.
  *
  * A value keeps `,` and `:` as they are, which separate the parts of the
- * options that have parts -- readPreferenceTags, authMechanismProperties.
+ * options that have parts - readPreferenceTags, authMechanismProperties.
  */
 static
 int d_internal_mongodb_uri_text(

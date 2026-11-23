@@ -2,10 +2,10 @@
 * djinterp [cpp][functional]                          pipeline_tests_slicing.cpp
 *
 * Slicing / reordering tests (section ii, part 2):
-*   test_take    -- take, take_last, take_while (incl. edge counts).
-*   test_skip    -- skip, skip_while (incl. edge counts).
-*   test_slice   -- slice(start, end, step), including the step == 0 error.
-*   test_reorder -- reversed, sorted(cmp), sorted() default.
+*   test_take    - take, take_last, take_while (incl. edge counts).
+*   test_skip    - skip, skip_while (incl. edge counts).
+*   test_slice   - slice(start, end, step), including the step == 0 error.
+*   test_reorder - reversed, sorted(cmp), sorted() default.
 *
 *
 * path:      /tests/djinterp/cpp/functional/pipeline_tests_slicing.cpp

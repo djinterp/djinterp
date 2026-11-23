@@ -6,13 +6,13 @@
 * translation units share.
 *
 *   sections (one .cpp each):
-*     quick_sort_tests_traits.cpp     quick_sort_traits -- the property block
+*     quick_sort_tests_traits.cpp     quick_sort_traits - the property block
 *                                     and the configured insertion threshold
 *     quick_sort_tests_median.cpp     internal::quick_sort_median_of_three --
 *                                     all six orderings of a distinct triple
-*     quick_sort_tests_partition.cpp  internal::quick_sort_partition -- the
+*     quick_sort_tests_partition.cpp  internal::quick_sort_partition - the
 *                                     Hoare convergence and its post-condition
-*     quick_sort_tests_apply.cpp      internal::quick_sort_apply -- the
+*     quick_sort_tests_apply.cpp      internal::quick_sort_apply - the
 *                                     threshold, the insertion-sort tail, and
 *                                     the tail-call loop
 *     quick_sort_tests_entry.cpp      the public quick_sort /
@@ -38,7 +38,7 @@
 #include <cstddef>
 #include <vector>
 // djinterp
-//   core is ALWAYS first and unconditional -- NS_* / D_* qualifiers and the
+//   core is ALWAYS first and unconditional - NS_* / D_* qualifiers and the
 // language gates are needed by both faces of this header.
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
@@ -64,7 +64,7 @@ NS_TESTING
 // UNCONDITIONALLY: the spec provider below needs dt::module_spec too.
 namespace dt = ::djinterp::test;
 
-#ifndef DTEST_SPEC_MODE   // fixtures -- normal mode only
+#ifndef DTEST_SPEC_MODE   // fixtures - normal mode only
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -231,26 +231,26 @@ void quick_sort_keyed_ordered_ascending(
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// traits -- quick_sort_traits
+// traits - quick_sort_traits
 bool tests_quick_sort_traits_values();
 
-// median -- internal::quick_sort_median_of_three
+// median - internal::quick_sort_median_of_three
 bool tests_quick_sort_median_all_permutations();
 bool tests_quick_sort_median_duplicates();
 bool tests_quick_sort_median_degenerate_positions();
 
-// partition -- internal::quick_sort_partition
+// partition - internal::quick_sort_partition
 bool tests_quick_sort_partition_postcondition();
 bool tests_quick_sort_partition_all_equal();
 bool tests_quick_sort_partition_extreme_pivots();
 bool tests_quick_sort_partition_minimal_ranges();
 
-// apply -- internal::quick_sort_apply
+// apply - internal::quick_sort_apply
 bool tests_quick_sort_apply_threshold_boundary();
 bool tests_quick_sort_apply_ordering_battery();
 bool tests_quick_sort_apply_adversarial_shapes();
 
-// entry -- quick_sort / quick_sort_ordered
+// entry - quick_sort / quick_sort_ordered
 bool tests_quick_sort_entry_comparator();
 bool tests_quick_sort_entry_default();
 bool tests_quick_sort_entry_ordered();

@@ -30,7 +30,7 @@ namespace
 {
 
 // tb_grid
-//   type: the smallest table table_base can serve -- a 2 x 3 grid of ints over
+//   type: the smallest table table_base can serve - a 2 x 3 grid of ints over
 // an owned buffer, supplying the three hooks data(), rows() and cols().
 struct tb_grid
     : public DTableBase<tb_grid, int, std::size_t, std::ptrdiff_t>

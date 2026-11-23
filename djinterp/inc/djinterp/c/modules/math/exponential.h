@@ -101,9 +101,9 @@ TABLE OF CONTENTS
 // computed here, in long double, whose precision is at least double's: a
 // float or double result is the kernel's value rounded once more, a long
 // double result is the kernel's value. To be right in long double itself the
-// kernels carry the reduced argument, and the last sum, as exact pairs -- a
+// kernels carry the reduced argument, and the last sum, as exact pairs - a
 // value and the rounding error below it, by elementary.h's exact sums and
-// products (its section 1.1) -- so that only the final addition rounds.
+// products (its section 1.1) - so that only the final addition rounds.
 // Nothing depends on long double's format beyond <float.h>: the text is the
 // same for an x87's 64 bits, for a long double that is double, and for a
 // quad's 113 bits.
@@ -133,8 +133,8 @@ struct dj_internal_math_ld_exp_split
 // d_internal_math_ld_expm1_series
 //   e^_r - 1, |_r| <= ln 2 / 2 (a last place past it does no harm), as high +
 // low: r + r^2/2 + r^3/6 + (r^4/24) q, q = 1 + r/5 (1 + r/6 (...)) from its
-// 26th term in. r^2/2 is exact, r^3/6 a pair -- r^3/2 exact, its third with
-// the division's residual -- and the three summed exactly, so that the
+// 26th term in. r^2/2 is exact, r^3/6 a pair - r^3/2 exact, its third with
+// the division's residual - and the three summed exactly, so that the
 // series' rounding is confined to its fourth term on, some r^3/8 of the
 // result below its last place, and only the last sum rounds.
 D_MATH_FN struct dj_internal_math_ld_pair
@@ -238,13 +238,13 @@ d_internal_math_ld_exp_split_of(
 // log(m 2^e) = e ln 2 + log(1 + f), f = m - 1 with m in [1/sqrt(2), sqrt(2)],
 // and log(1 + f) = 2 atanh(s) = 2s + 2s^3 (1/3 + s^2/5 + s^4/7 + ...), s = f /
 // (2 + f), |s| < 0.172: 24 terms reach past a quad's precision. s is carried
-// as s + slo -- 2 + f kept as a pair, the quotient's residual taken by an
-// exact product -- and e ln2_hi + 2s is taken exactly, so that only the final
+// as s + slo - 2 + f kept as a pair, the quotient's residual taken by an
+// exact product - and e ln2_hi + 2s is taken exactly, so that only the final
 // addition rounds, and what it rounds off is kept.
 
 // dj_internal_math_ld_log_arg
 //   struct: a positive finite value as m 2^exponent, m in [1/sqrt(2),
-// sqrt(2)] -- what every family's logarithms hand the kernels.
+// sqrt(2)] - what every family's logarithms hand the kernels.
 struct dj_internal_math_ld_log_arg
 {
     long double m;
@@ -448,7 +448,7 @@ d_internal_math_ld_log10_of(
 // log(1 + x) for x > -1: where 1 + x lies in [1/sqrt(2), sqrt(2)], the
 // logarithm's core on f = x itself, exact, so that 1 + x is never rounded;
 // past it, 1 + x = u + u_lo exactly, by two-sum, and log(u) + u_lo / u, u =
-// m 2^e as the logarithm's core takes it -- the second term's own second
+// m 2^e as the logarithm's core takes it - the second term's own second
 // order, (u_lo / u)^2 / 2, lies below 2^-2P of the first. e^x - 1: within
 // ln 2 / 2 of 0, the exponential's series on r = x without its leading 1, x
 // + x^2/2 (1 + x/3 (1 + x/4 (...))), x^2 by Dekker's exact product, so that
@@ -613,7 +613,7 @@ d_internal_math_ld_expm1_of(
 
 // d_internal_math_f_infinity
 //   +inf: HUGE_VAL, which C89 and C++98 both define and which is +inf wherever
-// the type has one -- a constant, so that no overflow is evaluated to make it
+// the type has one - a constant, so that no overflow is evaluated to make it
 // (GCC refuses one in a constant expression).
 D_MATH_FN float
 d_internal_math_f_infinity(void)
@@ -987,8 +987,8 @@ d_math_f_log10(
 //------------------------------------------------------------------------------
 // log1p_c is log(1 + x) in pure arithmetic, a constant expression from
 // C++14: the kernel's pair (section 1.5) rounded once to the family. Below
-// 2^-P in magnitude, P long double's precision, a value is its own -- the
-// square's term lies below half its last place -- the zeros among them; +inf
+// 2^-P in magnitude, P long double's precision, a value is its own - the
+// square's term lies below half its last place - the zeros among them; +inf
 // stays +inf, -1 gives -inf, and a value below -1 or NaN gives NaN. log1p is
 // the C library's; C++ before C++11 has none, and there log1p is log1p_c.
 
@@ -1108,7 +1108,7 @@ d_math_f_expm1(
 
 // d_internal_math_d_infinity
 //   +inf: HUGE_VAL, which C89 and C++98 both define and which is +inf wherever
-// the type has one -- a constant, so that no overflow is evaluated to make it
+// the type has one - a constant, so that no overflow is evaluated to make it
 // (GCC refuses one in a constant expression).
 D_MATH_FN double
 d_internal_math_d_infinity(void)
@@ -1221,7 +1221,7 @@ d_internal_math_d_log_arg_of(
 // 3.2    Exponential
 //------------------------------------------------------------------------------
 // exp_c is the exponential correctly rounded, in double arithmetic alone --
-// no long double and no C library -- and a constant expression from C++14
+// no long double and no C library - and a constant expression from C++14
 // (S416). x is reduced to (128 e + j) ln2/128 + r, 128 e + j the integer
 // nearest x 128/ln2 and |r| < 0.00271, ln2/128 in three parts whose first two
 // products by that integer are exact; then exp(x) = 2^e 2^(j/128) e^r, with
@@ -1232,7 +1232,7 @@ d_internal_math_d_log_arg_of(
 // answers some 99.8% of arguments; phase 2, in pairs of doubles (dd.h),
 // within 2^-101.2; phase 3, in fixed point of 256 bits, within 2^-218.3,
 // far closer than a double's exponential is known to come to a rounding
-// boundary -- the hardest case known, Lefevre and Muller's x =
+// boundary - the hardest case known, Lefevre and Muller's x =
 // 0x1.9e9cbbfd6080bp-31, lies 2^-58.6 of an ulp from one. A result below
 // the least normal is rounded to the subnormals at each phase's test. The
 // bounds hold whether or not the compiler fuses a multiply and an add
@@ -1546,8 +1546,8 @@ d_internal_math_d_exp_t(
 
 // d_internal_math_d_exp_pow2
 //   2^_e for _e from -1022 to 1023, exact: from its bits where the language
-// can read a double's -- a union in C, gcc's and clang's __builtin_bit_cast
-// in C++, a constant expression there -- and by float_order.h's squarings
+// can read a double's - a union in C, gcc's and clang's __builtin_bit_cast
+// in C++, a constant expression there - and by float_order.h's squarings
 // elsewhere.
 D_MATH_FN double
 d_internal_math_d_exp_pow2(
@@ -1659,7 +1659,7 @@ d_internal_math_d_exp_side(
 
 // d_internal_math_d_exp_subnormal
 //   (_yh + _yl) 2^_e rounded to a multiple of the least subnormal, 2^-1074,
-// where that is the rounding -- the result below 2^-1021 -- and the exact
+// where that is the rounding - the result below 2^-1021 - and the exact
 // value is within _err of _yh + _yl, |_yl| < |_yh|: decided where both ends
 // of the interval round alike. The pair is first normalized, exactly, by
 // Fast2Sum; z = y 2^(e + 1074), below 2^52, is scaled exactly; n0, the
@@ -1821,7 +1821,7 @@ d_internal_math_d_exp_phase2(
 
 // The third phase computes in fixed point, exactly but for truncations it
 // counts: a value is the integer of 16 limbs of 16 bits, limb i of weight
-// 2^(16 i), times 2^-224 -- limbs of 16 bits, so that two multiply into an
+// 2^(16 i), times 2^-224 - limbs of 16 bits, so that two multiply into an
 // unsigned long, which every language level has, and which holds a column's
 // sum. ln2/128 is held to 240 bits, 2^(j/128) to 224, as digits (below);
 // x - k ln2/128 is then within 3.1 units of 2^-224 of r, e^r's series is
@@ -2453,7 +2453,7 @@ d_math_d_exp(
 // 3.3    Natural logarithm
 //------------------------------------------------------------------------------
 // log_c is the natural logarithm correctly rounded, in double arithmetic
-// alone -- no long double and no C library -- and a constant expression from
+// alone - no long double and no C library - and a constant expression from
 // C++14 (S424). x = m 2^e, m in [1, 2), a subnormal first lifted by 2^54; i,
 // from 0 to 128, picks the c = 1 + i/128 nearest m, and from c > sqrt(2), i
 // from 53, m and c are halved and e raised by 1; then log(x) = e ln2 + L +
@@ -2465,7 +2465,7 @@ d_math_d_exp(
 // 2^-67.1 of the logarithm, relatively, answers some 99.8% of arguments;
 // phase 2, in pairs of doubles (dd.h), within 2^-101.4; phase 3, in fixed
 // point of 256 bits, within 2^-165.8, far closer than a double's logarithm is
-// known to come to a rounding boundary -- the hardest case known, Lefevre
+// known to come to a rounding boundary - the hardest case known, Lefevre
 // and Muller's x = 0x1.62a88613629b6p+678, lies 2^-118.0 of its logarithm
 // from one. The bounds hold whether or not the compiler fuses a multiply
 // and an add (math_common.h, section 5). NaN and +inf are their own
@@ -3036,8 +3036,8 @@ d_internal_math_d_ln_decide(
 // nearest rh, rs^2/2 taken exactly and rt (rs + rh)/2 kept, rh^2 = rs^2 + rt
 // (rs + rh); log1p(rh) - rh + rh^2/2 = rh^3 q(rh), q of degree 5 (Sollya's),
 // within 2^-54.58 of it; rl adds rl (1 - rh); the low parts summed. Within
-// 2^-67.1 of log(x), relatively, in each of three cases -- e not 0; e 0 and
-// i neither 0 nor 128; e 0 and i 0 or 128, where r = x - 1 -- (proofs/
+// 2^-67.1 of log(x), relatively, in each of three cases - e not 0; e 0 and
+// i neither 0 nor 128; e 0 and i 0 or 128, where r = x - 1 - (proofs/
 // log_phase1_*.g): tested against 2^-64 times the result's high part.
 D_MATH_FN struct dj_internal_math_d_exp_result
 d_internal_math_d_ln_phase1(
@@ -3334,7 +3334,7 @@ d_internal_math_d_ln_digits(
 
 // d_internal_math_d_ln_phase3
 //   log(x) from _a in fixed point, correctly rounded: the positive parts in
-// up and the negative ones in down -- e ln2 of e's sign, L_i positive below
+// up and the negative ones in down - e ln2 of e's sign, L_i positive below
 // 53 and negative from 53, and log1p(r)'s terms, r^k/k, each of the sign
 // (-1)^(k+1) r^k has; up - down then rounded at 53 bits, as the exact
 // value is: no rounding boundary is known to lie so close (the note above).
@@ -3642,8 +3642,8 @@ d_math_d_log10(
 //------------------------------------------------------------------------------
 // log1p_c is log(1 + x) in pure arithmetic, a constant expression from
 // C++14: the kernel's pair (section 1.5) rounded once to the family. Below
-// 2^-P in magnitude, P long double's precision, a value is its own -- the
-// square's term lies below half its last place -- the zeros among them; +inf
+// 2^-P in magnitude, P long double's precision, a value is its own - the
+// square's term lies below half its last place - the zeros among them; +inf
 // stays +inf, -1 gives -inf, and a value below -1 or NaN gives NaN. log1p is
 // the C library's; C++ before C++11 has none, and there log1p is log1p_c.
 
@@ -3775,7 +3775,7 @@ d_math_d_expm1(
 
 // d_internal_math_ld_infinity
 //   +inf: HUGE_VAL, which C89 and C++98 both define and which is +inf wherever
-// the type has one -- a constant, so that no overflow is evaluated to make it
+// the type has one - a constant, so that no overflow is evaluated to make it
 // (GCC refuses one in a constant expression).
 D_MATH_FN long double
 d_internal_math_ld_infinity(void)
@@ -4149,8 +4149,8 @@ d_math_ld_log10(
 //------------------------------------------------------------------------------
 // log1p_c is log(1 + x) in pure arithmetic, a constant expression from
 // C++14: the kernel's pair (section 1.5) rounded once to the family. Below
-// 2^-P in magnitude, P long double's precision, a value is its own -- the
-// square's term lies below half its last place -- the zeros among them; +inf
+// 2^-P in magnitude, P long double's precision, a value is its own - the
+// square's term lies below half its last place - the zeros among them; +inf
 // stays +inf, -1 gives -inf, and a value below -1 or NaN gives NaN. log1p is
 // the C library's; C++ before C++11 has none, and there log1p is log1p_c.
 

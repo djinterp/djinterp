@@ -11,7 +11,7 @@
 *     is_permutation(f1, l1, f2, l2, pred)       4-arg, predicate
 *
 *   STRATEGY:
-*   Strip the common matching prefix first -- the usual case where the
+*   Strip the common matching prefix first - the usual case where the
 * ranges are equal then costs O(N) and never reaches the quadratic
 * phase. For the remaining suffix, each distinct element is counted in
 * both ranges and the counts compared; elements already seen earlier
@@ -142,8 +142,8 @@ namespace internal
 // ===========================================================================
 
 // is_permutation (3-arg, predicate)
-//   function: true iff the range beginning at _first2 -- taken to be as
-// long as [_first1, _last1) -- is a rearrangement of it.
+//   function: true iff the range beginning at _first2 - taken to be as
+// long as [_first1, _last1) - is a rearrangement of it.
 template<typename ForwardIt1,
          typename ForwardIt2,
          typename Pred>

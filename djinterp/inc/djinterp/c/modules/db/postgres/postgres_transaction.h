@@ -3,7 +3,7 @@
 *
 * Transactions and savepoints on a PostgreSQL connection.
 *   Outside a transaction every statement commits on its own. Inside one,
-* PostgreSQL makes everything transactional, schema changes too -- and a
+* PostgreSQL makes everything transactional, schema changes too - and a
 * statement that fails leaves the transaction failed: everything after it is
 * refused (D_POSTGRES_SQLSTATE_IN_FAILED_SQL_TRANSACTION) until the caller
 * rolls back, to a savepoint set before the failure or the whole way.
@@ -60,7 +60,7 @@ D_EXTERN_C_BEGIN
 enum dj_postgres_transaction_mode
 {
     D_POSTGRES_TRANSACTION_DEFAULT = 0,      // BEGIN: the session's isolation
-                                             // level and access mode -- READ
+                                             // level and access mode - READ
                                              // COMMITTED, read write, unless
                                              // the session says otherwise
     D_POSTGRES_TRANSACTION_READ_ONLY,        // BEGIN READ ONLY: the server
@@ -76,7 +76,7 @@ enum dj_postgres_transaction_mode
                                              // READ ONLY DEFERRABLE: waits
                                              // for a snapshot that cannot
                                              // fail to serialize, then never
-                                             // does -- for long reports
+                                             // does - for long reports
     D_POSTGRES_TRANSACTION_READ_COMMITTED    // ISOLATION LEVEL READ COMMITTED:
                                              // a snapshot for each statement,
                                              // whatever the session's level
@@ -84,7 +84,7 @@ enum dj_postgres_transaction_mode
 
 // 1.2    Beginning and ending
 //------------------------------------------------------------------------------
-// beginning and ending -- each returns 0, the SQLSTATE of a failure, or
+// beginning and ending - each returns 0, the SQLSTATE of a failure, or
 // D_DB_INVALID_ARGUMENT for a NULL connection or a mode outside the enum.
 // Beginning inside a transaction is refused with
 // D_POSTGRES_SQLSTATE_ACTIVE_SQL_TRANSACTION (25001), which the server only
@@ -123,7 +123,7 @@ enum dj_postgres_transaction_state
     D_POSTGRES_STATE_UNKNOWN                  // no connection, or a lost one
 };
 
-// state -- whether a transaction is open, failed or not; and whether it is
+// state - whether a transaction is open, failed or not; and whether it is
 // open and failed, so that only a rollback can end it. False for NULL.
 bool d_postgres_in_transaction(
     const struct pg_conn* _db
@@ -131,7 +131,7 @@ bool d_postgres_in_transaction(
 bool d_postgres_in_failed_transaction(
     const struct pg_conn* _db
 ) D_NOTHROW;
-// the state -- every state libpq knows, as above; D_POSTGRES_STATE_UNKNOWN
+// the state - every state libpq knows, as above; D_POSTGRES_STATE_UNKNOWN
 // for NULL
 enum dj_postgres_transaction_state d_postgres_transaction_status(
     const struct pg_conn* _db
@@ -145,7 +145,7 @@ enum dj_postgres_transaction_state d_postgres_transaction_status(
 
 // 2.1    Savepoints
 //------------------------------------------------------------------------------
-// savepoints -- inside a transaction only: outside one, the server refuses
+// savepoints - inside a transaction only: outside one, the server refuses
 // with D_POSTGRES_SQLSTATE_NO_ACTIVE_SQL_TRANSACTION (25P01). Rolling back to
 // one undoes what followed it, mends a failed transaction, and keeps it;
 // releasing one forgets it and those after it, keeping what they did. Each

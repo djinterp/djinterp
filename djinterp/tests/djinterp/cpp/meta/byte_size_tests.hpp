@@ -18,7 +18,7 @@
 * size() and walk the container, so they are not constexpr; those checks live
 * only in the run-time predicates and compare the module's output against an
 * expectation computed from the SAME public surface (capacity(), size(),
-* iterator distance, sizeof) -- exact by construction and portable across
+* iterator distance, sizeof) - exact by construction and portable across
 * library implementations.
 *
 *   API (matches AGENTS-cmake.md):
@@ -195,7 +195,7 @@ bool tests_byte_size_total_const_input();
 bool tests_byte_size_integration();
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // byte_size_spec
 //   function: the suite as DTest's module spec, one block per section.

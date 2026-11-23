@@ -7,8 +7,8 @@
 *
 *   The ladder here has two rungs, and that is the demonstration: an error-code
 * baseline that runs on every standard, and an expected group that is added on
-* C++11. On C++98 the second group is omitted -- not an empty group, not a
-* green "skipped" -- so the count grows from base to base+expected exactly at
+* C++11. On C++98 the second group is omitted - not an empty group, not a
+* green "skipped" - so the count grows from base to base+expected exactly at
 * the standard where re_std::expected arrives. A higher standard adds; it never
 * changes the rung below.
 *
@@ -25,10 +25,10 @@ TABLE OF CONTENTS
 0.    STANDALONE HARNESS
       ------------------
 
-I.    ERROR-CODE CORE    the out-parameter queries (every tier) -- the baseline
+I.    ERROR-CODE CORE    the out-parameter queries (every tier) - the baseline
       -------------------------------------------------------------------------
 
-II.   EXPECTED SURFACE   the re_std::expected overloads (C++11) -- the added rung
+II.   EXPECTED SURFACE   the re_std::expected overloads (C++11) - the added rung
       ------------------------------------------------------------------------
 
       master runner + main
@@ -145,12 +145,12 @@ void d_tests_exp_print(
 
 
 // ===========================================================================
-// I.   ERROR-CODE CORE   (every tier -- the baseline the expected rung adds to)
+// I.   ERROR-CODE CORE   (every tier - the baseline the expected rung adds to)
 // ===========================================================================
 
 /*
 d_tests_exp_errorcode
-  The out-parameter queries these overloads are built on -- present and correct
+  The out-parameter queries these overloads are built on - present and correct
 on every standard, which is exactly why the expected surface can be a pure
 addition rather than a replacement.
 */
@@ -191,14 +191,14 @@ struct dj_test_object* d_tests_exp_errorcode(void)
 
 
 // ===========================================================================
-// II.  EXPECTED SURFACE   (C++11 -- the added rung)
+// II.  EXPECTED SURFACE   (C++11 - the added rung)
 // ===========================================================================
 
 #if D_INTERNAL_HAVE_EXPECTED
 /*
 d_tests_exp_expected
   The one-argument re_std::expected overloads: a value on success, an unexpected on
-failure, and absence handled as a VALUE (not a failure) -- the same semantics as
+failure, and absence handled as a VALUE (not a failure) - the same semantics as
 the error-code forms, carried in the return type instead of an out-parameter.
 */
 static

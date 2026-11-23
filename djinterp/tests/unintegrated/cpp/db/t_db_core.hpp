@@ -2,10 +2,10 @@
 * djinterp [cpp][db]                                               t_db_core.hpp
 *
 *   The checks every vendor's core/db harness shares: the operations
-* database_connection writes once for every vendor -- running SQL and
+* database_connection writes once for every vendor - running SQL and
 * reading its rows, prepared statements, transactions and their guard,
 * failures and the refusals of text a NUL would cut short, and how
-* statements live and die with their connection -- run over a vendor's
+* statements live and die with their connection - run over a vendor's
 * connection, with a dialect that says what differs: the SQL that makes a
 * table, how parameters are written, the codes a failure carries and the
 * field types the vendor reports. Each harness (t_sqlite_core.cpp,
@@ -670,7 +670,7 @@ streams
   Rows a page at a time.
   Tests the following:
   - a stream's rows are the buffered run's, value for value, its first page
-    read before execute_stream returns -- the columns known; row_count is -1
+    read before execute_stream returns - the columns known; row_count is -1
     until the last page, then every row; current_row counts across pages
   - while the run is open the connection's operations, a prepare, another
     statement's run and another stream throw query_exception with the
@@ -1718,7 +1718,7 @@ unsigned wait(
 drive
   An operation started, where it was not, and driven to its end, as a
 program's loop would: its result, or its failure thrown. Without sockets --
-SQLite -- every operation is done as it starts.
+SQLite - every operation is done as it starts.
 */
 template<typename Result>
 Result drive(
@@ -1794,8 +1794,8 @@ struct has_backend_pid<Type,
 
 /*
 session_id
-  The server's id for a connection's session -- the MySQL family's thread
-id, PostgreSQL's backend pid -- or 0 for a vendor with neither.
+  The server's id for a connection's session - the MySQL family's thread
+id, PostgreSQL's backend pid - or 0 for a vendor with neither.
 */
 template<typename Connection>
 unsigned long session_id(
@@ -1823,7 +1823,7 @@ await_running
   Whether the server runs the dialect's long query on the session of _db,
 asked every 20 milliseconds for five seconds on a connection of _make's: a
 cancel the server receives before it has begun a statement is lost --
-MariaDB discards a KILL QUERY that comes between statements -- so the check
+MariaDB discards a KILL QUERY that comes between statements - so the check
 of cancel() waits until the statement runs, as mariadb_tests.c's does.
 */
 template<typename Connection,
@@ -2011,13 +2011,13 @@ false for libmysqlclient, whose are D_DB_UNSUPPORTED.
     rows as execute_query does, execute_async gives true; a failure is
     result()'s to throw, with the vendor's code, the connection free after
   - SQL the server takes a while over is under way after start(): every
-    other operation of the connection -- SQL, a statement's run, another
-    operation, a bind on a statement under way -- throws query_exception
+    other operation of the connection - SQL, a statement's run, another
+    operation, a bind on a statement under way - throws query_exception
     with the busy code; done, the connection is free. SQLite's are done as
     they start
   - a prepared statement's operations give what its blocking runs give
   - cancel() stops a long statement, soon: the vendor's refusal, or the
-    result where the server let the statement finish -- cancelled once the
+    result where the server let the statement finish - cancelled once the
     server runs it, which a second connection watches for, since a cancel
     that comes before the server has begun the statement is lost
   - connect_async opens a connection as connect() does, and leaves an open

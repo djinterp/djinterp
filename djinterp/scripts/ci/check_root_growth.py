@@ -10,8 +10,8 @@
 # relay 93 lost `namespace functional = ::djinterp;`, which five vparse
 # headers need, and NS_UI, which seventeen ui headers need, and each loss was
 # found only by recompiling what used it. This check finds it at the merge:
-# it lists what each root declares at a base revision -- its macros, its
-# namespaces and namespace aliases, its type aliases and its types -- and
+# it lists what each root declares at a base revision - its macros, its
+# namespaces and namespace aliases, its type aliases and its types - and
 # fails when the tree's root lacks one of them.
 #   A declaration removed on purpose is named with --allow, in the commit
 # that removes it.

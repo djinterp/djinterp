@@ -8,7 +8,7 @@
 *
 *   THE TWO KNOBS THAT MOVE THE MOST BYTES:
 *
-*     D_CFG_POOL_INDEX_BITS sets the width of every slot index -- which is the
+*     D_CFG_POOL_INDEX_BITS sets the width of every slot index - which is the
 *   free-list link stored inside each free slot, so it is also the pool's
 *   MINIMUM SLOT SIZE. At 32 bits a pool of 8-byte objects has 8-byte slots;
 *   at 64 it still has 8-byte slots, but a pool of 4-byte objects has 8-byte
@@ -22,7 +22,7 @@
 *   reuses of one slot is not a bug this mechanism was ever going to find.
 *
 *   WHY THE FREE LIST IS THREADED BY INDEX AND NOT BY POINTER: an index-linked
-* free list is smaller (see above), and it is RELOCATABLE -- a pool whose
+* free list is smaller (see above), and it is RELOCATABLE - a pool whose
 * internal links are offsets can be memcpy'd, written to a file, and read back
 * somewhere else. That is the framework's standing offsets-not-pointers
 * decision applied to the one data structure in this subframework that has a
@@ -69,7 +69,7 @@
 // ===========================================================================
 //  1.  WHICH RELEASE POLICIES EXIST
 // ===========================================================================
-//   A pool's release policy is chosen per instance, at init -- so a program
+//   A pool's release policy is chosen per instance, at init - so a program
 // may hold a monotonic pool and a generational one at once. These knobs decide
 // which policies are COMPILED; asking for one that is not returns
 // D_MEM_ERR_INVALID rather than silently taking a different one.
@@ -79,7 +79,7 @@
 // with no guaranteed answer.
 
 // D_CFG_POOL_FREE_LIST
-//   brief: 1 compiles the free-list release policy -- released slots are
+//   brief: 1 compiles the free-list release policy - released slots are
 // threaded onto a list and reused by the next acquire. This is what most
 // callers mean by "a pool", so it defaults ON everywhere including MINIMAL.
 #ifndef D_CFG_POOL_FREE_LIST
@@ -87,7 +87,7 @@
 #endif
 
 // D_CFG_POOL_GENERATIONAL
-//   brief: 1 compiles the generational release policy -- each slot carries a
+//   brief: 1 compiles the generational release policy - each slot carries a
 // counter that advances on every release, and a handle carries the counter it
 // was issued against, so resolving a handle to a slot that has since been
 // reused reports D_MEM_ERR_STALE instead of returning the new occupant.
@@ -113,8 +113,8 @@
 // free-list link and therefore the pool's minimum slot size, so it is the
 // knob that decides whether a pool of small objects is dense or padded.
 //   32 by default, which caps one pool at about four billion slots. 16 is a
-// real choice for an embedded pool of a few hundred entries -- it makes the
-// minimum slot two bytes -- and 64 exists for the pool that genuinely needs
+// real choice for an embedded pool of a few hundred entries - it makes the
+// minimum slot two bytes - and 64 exists for the pool that genuinely needs
 // more slots than a 32-bit index can name.
 #ifndef D_CFG_POOL_INDEX_BITS
 #   define D_CFG_POOL_INDEX_BITS 32
@@ -125,7 +125,7 @@
 // 64. Paid on every slot of a generational pool.
 //   16 by default. The counter's job is to catch a handle held across a
 // release, and it fails only when a slot is reused exactly 2^n times between
-// the handle being taken and being used -- which at 16 bits is 65536 reuses
+// the handle being taken and being used - which at 16 bits is 65536 reuses
 // of one specific slot, and a program doing that has a different problem. 8
 // is defensible for a pool that is reset rather than recycled; 32 matches the
 // conventional slot-map and is the setting to take if a handle may be
@@ -143,7 +143,7 @@
 //   brief: 1 threads the free list by slot INDEX, 0 by pointer.
 //   Indexed is the default and is better on both counts that matter: the link
 // is D_CFG_POOL_INDEX_BITS wide rather than a whole pointer, and a pool whose
-// internal links are offsets is relocatable -- memcpy it, write it out, read
+// internal links are offsets is relocatable - memcpy it, write it out, read
 // it back at a different address, and the free list is still correct.
 //   Pointer links exist for the pool that needs more slots than the configured
 // index can name and does not want to widen the index for every other pool in
@@ -172,7 +172,7 @@
 // so that resolving a slot index to an address is a division and an index
 // rather than a walk of the chain.
 //   REQUIRED BY THE GENERATIONAL POLICY, and forced on below when that policy
-// is compiled -- resolving a handle is the generational pool's whole purpose,
+// is compiled - resolving a handle is the generational pool's whole purpose,
 // and an O(blocks) resolve would make it useless at the sizes it is for. For
 // a monotonic or free-list pool the table buys only d_pool_at and
 // d_pool_index_of, so it is optional there.
@@ -195,7 +195,7 @@
 // already on it; a slot that is gets D_MEM_ERR_RELEASED (D_MEM_ERR_CORRUPT
 // until 2026.10.31), and a list that loops gets D_MEM_ERR_CORRUPT. 0 releases
 // without looking.
-//   O(free slots) PER RELEASE -- this is a testing-mode check and nothing
+//   O(free slots) PER RELEASE - this is a testing-mode check and nothing
 // else. Its value is that a double free into a free-list pool otherwise
 // produces a cycle in the list, after which two callers are handed the same
 // slot and the corruption appears arbitrarily far from its cause. Follows
@@ -211,7 +211,7 @@
 // D_CFG_POOL_OWNS
 //   brief: 1 compiles d_pool_owns, which answers whether a pointer names a
 // slot of this pool. O(blocks) without the block table, O(blocks) with it
-// too -- the table indexes by slot, not by address -- so it stays a
+// too - the table indexes by slot, not by address - so it stays a
 // diagnostic. Defaults ON.
 #ifndef D_CFG_POOL_OWNS
 #   ifdef D_CFG_MEM_ALL
@@ -290,7 +290,7 @@
 // D_INTERNAL_POOL_FREE_LIST
 //   brief: 1 when the free-list release policy is compiled. Forced on when
 // the generational policy is, since a generational pool recycles through the
-// same list -- resolved here so pool.c never tests both.
+// same list - resolved here so pool.c never tests both.
 #if D_CFG_IS_ON(D_CFG_POOL_FREE_LIST) || D_CFG_IS_ON(D_CFG_POOL_GENERATIONAL)
 #   define D_INTERNAL_POOL_FREE_LIST 1
 #else

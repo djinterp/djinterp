@@ -1,8 +1,8 @@
 /*******************************************************************************
 * djinterp [cpp][utility]                    archive_options_tests_semantics.cpp
 *
-*   Tests for the value semantics archive_options relies on -- copy, assign, and
-* the deep independence its std::string members require -- and for the shared
+*   Tests for the value semantics archive_options relies on - copy, assign, and
+* the deep independence its std::string members require - and for the shared
 * comparators in test_archive_options.hpp that the rest of the suite trusts.
 *
 *   The comparator tests are deliberate: a deep comparator that silently forgets
@@ -179,7 +179,7 @@ bool tests_options_assignment()
 tests_options_deep_string_independence
   Verifies the four std::string members are deep-copied, not shared.  The blocks
 are plain data with compiler-generated copies, so this pins that mutating a copy
-never reaches back into its source (and vice versa) -- the property every
+never reaches back into its source (and vice versa) - the property every
 "forward these options onward" call site depends on.
   Tests the following:
   - comment, zip.password, gz.original_name, and sevenzip.password each stay
@@ -248,7 +248,7 @@ bool tests_comparator_detects_archive_fields()
 /*
 tests_comparator_detects_format_fields
   Verifies the shared comparator notices a change to every field of every
-per-format block -- all twenty-one of them across zip, tar, gz, sevenzip, and
+per-format block - all twenty-one of them across zip, tar, gz, sevenzip, and
 rar.
   Tests the following:
   - each DZipOptions field (method, encryption, password, zip64, utf8_names)
@@ -431,7 +431,7 @@ bool tests_option_diff_description()
     }
 
     // a block is named as its knobs are: the coarse name is the prefix of
-    // describe_compress_option_diff's fine one, for every block -- lzma's
+    // describe_compress_option_diff's fine one, for every block - lzma's
     // included, whose knobs xz takes and which reports as codec.lzma
     {
         archive_options moved[6];
@@ -486,7 +486,7 @@ bool tests_option_diff_description()
 /*
 tests_option_builders
   Verifies each shared builder moves exactly the one thing it advertises and
-leaves the rest of the tree pristine -- the property that makes them safe to use
+leaves the rest of the tree pristine - the property that makes them safe to use
 as the starting point of a focused assertion.
   Tests the following:
   - store_only_options moves only store_only

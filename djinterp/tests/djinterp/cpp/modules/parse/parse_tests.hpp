@@ -25,7 +25,7 @@
 *       functional::result<_ValueType, parse_error>
 *       functional::internal::DOkTag  /  functional::internal::DErrTag
 *
-* but result.hpp opens NS_DJINTERP only -- it declares result, DOkTag, and
+* but result.hpp opens NS_DJINTERP only - it declares result, DOkTag, and
 * DErrTag in ::djinterp and ::djinterp::internal.  There is no `functional`
 * namespace anywhere in the tree, and no NS_FUNCTIONAL macro is defined in
 * djinterp.hpp (the identifier appears in that header's table of contents
@@ -64,7 +64,7 @@
 *      returning parse_result<U> makes them ILL-FORMED.  Callables must
 *      return the base result<U, parse_error>.  This is a hard error in the
 *      function body, not a substitution failure, so it cannot be probed by
-*      SFINAE -- the suite pins the root cause (the missing constructors)
+*      SFINAE - the suite pins the root cause (the missing constructors)
 *      via is_constructible instead, and exercises the base-returning form.
 *
 *   2. is_result<parse_result<T>>::value is FALSE.  is_result matches the
@@ -74,7 +74,7 @@
 *
 *   3. parse_state::advance adds before it clamps, so the addition can wrap.
 *      From offset 5 over a length-10 input, advance(SIZE_MAX) yields offset
-*      4 -- the stream moves BACKWARDS.  A clamp written as
+*      4 - the stream moves BACKWARDS.  A clamp written as
 *      `if (_count > (length - offset)) { offset = length; }` would not.
 *
 *
@@ -101,7 +101,7 @@
 #include <string>
 #include <type_traits>
 // djinterp
-// -- (part 1) mode-gated includes -------------------------------------------
+// - (part 1) mode-gated includes -------------------------------------------
 //   djinterp core is always first and unconditional (NS_*, D_* qualifiers,
 // language gates), so both faces have it.
 #include <djinterp/cpp/djinterp.hpp>
@@ -168,14 +168,14 @@ bool pa_check_report(
     while (0)
 
 
-#ifndef DTEST_SPEC_MODE  // (part 1 cont.) fixtures -- normal mode only
+#ifndef DTEST_SPEC_MODE  // (part 1 cont.) fixtures - normal mode only
 
 // dp
 //   namespace alias: the subsystem under test (djinterp::parse).
 namespace dp = ::djinterp::parse;
 
 // pa_fn
-//   namespace alias: where result.hpp's free surface actually lives -- the
+//   namespace alias: where result.hpp's free surface actually lives - the
 // factories (ok / err), the pipeline combinator factories (or_value_with /
 // map_err_with / unwrap_with), operator|, and to_maybe.  See the BUILD
 // PREREQUISITE note above: today that is ::djinterp.  If result.hpp is ever
@@ -185,7 +185,7 @@ namespace pa_fn = ::djinterp;
 
 
 // ---------------------------------------------------------------------------
-//  trait probes -- the shapes is_parseable must and must not detect
+//  trait probes - the shapes is_parseable must and must not detect
 // ---------------------------------------------------------------------------
 
 // DPaProbePair
@@ -237,7 +237,7 @@ struct DPaProbeDerived : dp::DParseable<unsigned char, std::string>
 {};
 
 // DPaProbeSame
-//   struct: minor and major are the SAME type -- a degenerate but legal
+//   struct: minor and major are the SAME type - a degenerate but legal
 // parseable domain (a stream of aggregates parsed into an aggregate).
 struct DPaProbeSame
 {
@@ -247,7 +247,7 @@ struct DPaProbeSame
 
 
 // ---------------------------------------------------------------------------
-//  stream element fixtures -- parse_state is agnostic to its element type
+//  stream element fixtures - parse_state is agnostic to its element type
 // ---------------------------------------------------------------------------
 
 // DPaToken
@@ -273,7 +273,7 @@ bool operator==(
 
 
 // ---------------------------------------------------------------------------
-//  payload fixture -- proves the value branch is moved, not copied
+//  payload fixture - proves the value branch is moved, not copied
 // ---------------------------------------------------------------------------
 
 // DPaMoveProbe
@@ -361,7 +361,7 @@ bool operator==(
 
 
 // ---------------------------------------------------------------------------
-//  a hand-written parser toolkit -- the integration block's subject
+//  a hand-written parser toolkit - the integration block's subject
 // ---------------------------------------------------------------------------
 //   These are the smallest parsers that exercise the formal shape parse.hpp
 // documents: a function taking parse_state<char>& (the residual Sigma*,
@@ -382,7 +382,7 @@ bool pa_is_digit(
 }
 
 // pa_parse_digit
-//   function: the atomic parser -- consumes one ASCII digit and yields its
+//   function: the atomic parser - consumes one ASCII digit and yields its
 // numeric value.  Fails with DParseStatusEndOfInput at exhaustion and with
 // DParseStatusMalformed on a non-digit, each carrying the offset at which
 // the failure occurred.
@@ -493,7 +493,7 @@ dp::parse_result<int> pa_parse_number(
 }
 
 // pa_attempt
-//   function: the Alternative `alt` semantics parse.hpp documents -- save
+//   function: the Alternative `alt` semantics parse.hpp documents - save
 // the offset, run the parser, and restore the offset if it failed, so a
 // failed branch never leaks consumed input to the next one.  Returns the
 // parser's result unchanged.
@@ -539,7 +539,7 @@ std::string pa_remaining_text(
 
 // pa_result_error_payload_collides
 //   trait: true when parse_result<_Value> would carry two identical
-// constructor signatures -- which is exactly when _Value is parse_error,
+// constructor signatures - which is exactly when _Value is parse_error,
 // since the value constructors take (const _Value& / _Value&&) and the
 // error constructors take (const parse_error& / parse_error&&).  Computed
 // WITHOUT instantiating parse_result<_Value>: for the colliding case that
@@ -558,7 +558,7 @@ struct pa_result_error_payload_collides
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- (part 2) declarations -- visible in BOTH modes -------------------------
+// - (part 2) declarations - visible in BOTH modes -------------------------
 
 // I.   PARSEABLE / PARSE_TRAITS        (parse_tests_parseable.cpp)
 bool tests_parse_parseable_aliases();
@@ -645,11 +645,11 @@ bool tests_parse_integration_error_propagates_untouched();
 bool tests_parse_integration_traits_drive_the_stream();
 
 
-// -- (part 3) the spec provider -- spec mode only ---------------------------
+// - (part 3) the spec provider - spec mode only ---------------------------
 #ifdef DTEST_SPEC_MODE
 
 // parse_spec
-//   provider: the one authoritative description of this suite -- a module
+//   provider: the one authoritative description of this suite - a module
 // carrying one block per section translation unit, every node named and
 // described.  run_module walks it, runs each predicate once, and renders
 // the report from these strings.

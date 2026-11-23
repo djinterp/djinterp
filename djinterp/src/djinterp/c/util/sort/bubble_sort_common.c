@@ -18,7 +18,7 @@ d_bubble_pass
 each pair that is out of order, and reports where it last had to.
   That report is what makes the family adaptive. Nothing at or after the last
 exchange moved during the sweep, so every element from there on is already at
-least as large as everything before it and will not move again -- a sequential
+least as large as everything before it and will not move again - a sequential
 driver can take the returned index as its next bound rather than stepping down
 by one. A sweep that exchanged nothing returns 0, which ends the driver's loop
 without needing a separate flag: the two mechanisms are the same mechanism.

@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  reduce_tests_value.cpp
-//   II. reduce_ct over a DValueList -- the VALUE domain. The unified entry point;
+//   II. reduce_ct over a DValueList - the VALUE domain. The unified entry point;
 //   the recursion itself lives in DValueList's own fold.
 
 // std
@@ -116,8 +116,8 @@ bool tests_ct_value_list_is_a_left_fold()
 /*
 tests_ct_value_list_delegates_to_fold
   The value-domain recursion lives in DValueList's own fold; reduce_ct is purely
-  the unified entry point. Note the argument order is NOT the same -- reduce_ct
-  takes (rf, acc, list) and fold takes (list, acc, rf) -- so the delegation has to
+  the unified entry point. Note the argument order is NOT the same - reduce_ct
+  takes (rf, acc, list) and fold takes (list, acc, rf) - so the delegation has to
   put them back in the right places.
   Tests the following:
   - reduce_ct(rf, acc, list) equals fold(list, acc, rf), in value and in TYPE
@@ -156,7 +156,7 @@ tests_ct_value_list_accumulator_may_evolve
   reducer's result becomes the next accumulator, so its TYPE may change at every
   step.
   Tests the following:
-  - folding with append grows a DValueList -- a different type at each step --
+  - folding with append grows a DValueList - a different type at each step --
     ending as the copied list
   - folding with prepend REVERSES it, which pins the traversal order a second way
   - the empty case still yields the seed's type
@@ -171,7 +171,7 @@ bool tests_ct_value_list_accumulator_may_evolve()
         decltype(reduce_ct(DAppendVal(), DValueList<>{}, DValueList<1, 2, 3>{})),
         DValueList<1, 2, 3> >::value, "append rebuilds the list");
 
-    // prepend reverses it -- so the elements really did arrive left-to-right.
+    // prepend reverses it - so the elements really did arrive left-to-right.
     static_assert(std::is_same<
         decltype(reduce_ct(DPrependVal(), DValueList<>{}, DValueList<1, 2, 3>{})),
         DValueList<3, 2, 1> >::value, "prepend REVERSES");
@@ -248,7 +248,7 @@ bool tests_ct_value_list_single_element()
 
 /*
 tests_ct_value_list_visits_each_element_once
-  The recursion peels exactly one head per step -- no element is skipped and none
+  The recursion peels exactly one head per step - no element is skipped and none
   is folded twice. (reduce_ct is constexpr but perfectly runnable at runtime, so a
   recording reducer can observe the visits.)
   Tests the following:

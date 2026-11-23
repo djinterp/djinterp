@@ -2,16 +2,16 @@
 # djinterp [tools]                                                CMakeLists.txt
 #
 # Test leaf for the command-line kit.
-#   Builds the argument parser's C sources and the kit's -- with filesys,
-# which the kit reads and writes files through -- as C, at the C floor,
+#   Builds the argument parser's C sources and the kit's - with filesys,
+# which the kit reads and writes files through - as C, at the C floor,
 # position-independent, into two static libraries in the testing
 # configuration, from the lists the kit's CMake module takes them from
 # (DjinterpCliSources.cmake). The probe modules the plugin suites load are
 # made as a program's modules are made, by d_cli_add_plugin, linking those
 # libraries: `prog-KIND` for each kind cli_tests_probe.c builds. The C
 # suites link against the libraries once per C level, from the floor (C99)
-# up; the C++ suite -- the C++ face, called from C++ across a real language
-# boundary -- once per C++ level, from the face's floor (C++98, in strict
+# up; the C++ suite - the C++ face, called from C++ across a real language
+# boundary - once per C++ level, from the face's floor (C++98, in strict
 # ISO) up, and again without exceptions at the lowest and the highest level
 # built. Where the linker wraps symbols (--wrap), an allocation sweep runs
 # the kit's cases with every allocation refused in turn. Each run is given
@@ -22,8 +22,8 @@
 # one source each executable compiles at its own level, as the parse
 # settings leaf does: this leaf stands alone, in the testing configuration.
 # A suite is a block of DTest's spec form, and each of its sections a test,
-# which a configuration knob removes -- or a language level, or exceptions
-# turned off -- so the number of tests run differs by configuration, by
+# which a configuration knob removes - or a language level, or exceptions
+# turned off - so the number of tests run differs by configuration, by
 # design. expected_sections.txt holds the count each build has in the
 # default configuration, and every test here must report exactly that many
 # passed, and none failed or skipped.
@@ -122,7 +122,7 @@ set(_dtest "${DJINTERP_CLI_ROOT}/src/djinterp/c/modules/test/test_suite.c")
 # djinterp_cli_flags
 #   function: gives a target what the tree's sources need of a compiler, and
 # the diagnostics the CI ladder builds with, judged by the compiler of the
-# language given -- C, or CXX for the C++ suite, whose C sources take the
+# language given - C, or CXX for the C++ suite, whose C sources take the
 # same. Under a cl-style driver that is /utf-8 alone.
 function(djinterp_cli_flags _target _language)
     if(MSVC)
@@ -223,7 +223,7 @@ endfunction()
 # djinterp_cli_cpp_test
 #   function: one build of the C++ suite at a C++ level, run as a test held
 # to the count expected_sections.txt gives `_key`; anything after the key
-# is a compile option of the C++ sources -- the one that turns exceptions
+# is a compile option of the C++ sources - the one that turns exceptions
 # off. C++98 without extensions is the framework's strict ISO mode. The
 # suite's C sources, the C suites' support, the scratch directories and
 # DTest, are C99, as the libraries are.
@@ -257,7 +257,7 @@ endfunction()
 
 
 #------------------------------------------------------------------------------
-# the libraries -- C sources, compiled as C at the C floor, position-
+# the libraries - C sources, compiled as C at the C floor, position-
 # independent so that a module links them; in testing mode, which the
 # libraries and every consumer must agree on, so the knobs are PUBLIC
 #------------------------------------------------------------------------------
@@ -297,7 +297,7 @@ include("${DJINTERP_CLI_ROOT}/build/cmake/config/djinterp/tools/cli/DjinterpCli.
 
 
 #------------------------------------------------------------------------------
-# the probe modules -- one source, built once for each kind it names, in the
+# the probe modules - one source, built once for each kind it names, in the
 # order of its D_TESTS_CLI_PROBE_* values
 #------------------------------------------------------------------------------
 set(_probes "")
@@ -323,7 +323,7 @@ endforeach()
 
 
 #------------------------------------------------------------------------------
-# the C suites -- the C API called from C, one executable per level, against
+# the C suites - the C API called from C, one executable per level, against
 # the same libraries
 #------------------------------------------------------------------------------
 foreach(_level IN LISTS DJINTERP_CLI_C_LEVELS)
@@ -362,7 +362,7 @@ endforeach()
 
 
 #------------------------------------------------------------------------------
-# the allocation sweep -- every allocation of the kit's cases refused in
+# the allocation sweep - every allocation of the kit's cases refused in
 # turn, at the C floor, where the linker wraps malloc and kin (GNU ld's,
 # lld's and MinGW's --wrap): the sweep's wrappers then stand in front of
 # every allocation the libraries make
@@ -409,7 +409,7 @@ endif()
 
 
 #------------------------------------------------------------------------------
-# the C++ suite -- the C++ face called from C++, one executable per level,
+# the C++ suite - the C++ face called from C++, one executable per level,
 # against the same libraries, across a real language boundary
 #------------------------------------------------------------------------------
 get_property(_languages GLOBAL PROPERTY ENABLED_LANGUAGES)

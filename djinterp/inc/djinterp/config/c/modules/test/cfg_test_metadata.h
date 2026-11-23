@@ -12,7 +12,7 @@
 * actually is: cfg_test.h had grown to serve four modules at once, which made it
 * the thing the rule forbids at a larger scale than the sibling it was written
 * to prevent.  There is deliberately no copy under config/test/ for the C++ fork
-* -- a knob's value must be identical in both forks (dconfig 6.2), and two
+* - a knob's value must be identical in both forks (dconfig 6.2), and two
 * files, one per fork, would be that rule broken by directory structure rather
 * than by anyone's decision.
 *
@@ -76,7 +76,7 @@
 // This gate is C-ONLY. In C++ metadata is mandatory: DTestObject<> holds its
 // container BY VALUE as a default template argument, which must name a complete
 // type, so test_object.hpp includes test_metadata.hpp unconditionally. Making
-// it conditional would change what basic_test IS under a knob -- the one-layout
+// it conditional would change what basic_test IS under a knob - the one-layout
 // hazard reappearing as template identity.
 //   UNCOVERED. No gate in this package exercises the off path; see the log.
 #ifndef D_CFG_TEST_METADATA
@@ -85,7 +85,7 @@
 
 // D_CFG_TEST_METADATA_REPLACE
 //   brief: set() on an existing key replaces the row in place.  On by
-// default.  Off appends, which makes lookup depend on scan direction -- so
+// default.  Off appends, which makes lookup depend on scan direction - so
 // off is a compatibility escape hatch and not a supported configuration for a
 // build the oracle runs against.
 //   It grades one condition, the key already existing (content.exists): on,

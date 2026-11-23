@@ -260,7 +260,7 @@ const std::size_t EXIT_CODES_COUNT =
 // 2.  THE MODULE'S OWN
 //==============================================================================
 // What CLI11 cannot write: the face's vocabulary as the C library's values,
-// and its values -- statuses, text, parameters, report and list views,
+// and its values - statuses, text, parameters, report and list views,
 // buffers and sinks. Each is a step written here, through the whole face.
 
 namespace
@@ -683,8 +683,8 @@ int sign_of(
 
 /**
  * @brief Writes what a text reads on one line: its size, whether it is
- *        empty, its bytes escaped, read three ways -- by index, by iterator
- *        and as a std::string -- and whether its data is NULL.
+ *        empty, its bytes escaped, read three ways - by index, by iterator
+ *        and as a std::string - and whether its data is NULL.
  *
  * @param[in,out] _run    the run.
  * @param[in]     _label  what the line names the text by.
@@ -797,8 +797,8 @@ void write_order(
 }
 
 /**
- * @brief TEXT 2: texts compared byte by byte -- equal, a prefix first, a
- *        NUL byte counted, empty first -- and against C strings and
+ * @brief TEXT 2: texts compared byte by byte - equal, a prefix first, a
+ *        NUL byte counted, empty first - and against C strings and
  *        std::strings on either side.
  *
  * @param[in,out] _run  the step's run.

@@ -1,6 +1,6 @@
 # =============================================================================
 # testing/djinterp/c/util/ostream/
-#   AGGREGATE only -- recurses into the child directories that carry a
+#   AGGREGATE only - recurses into the child directories that carry a
 # CMakeLists (ostream/) and publishes all_djinterp_c_util_ostream over every
 # test exe at or below here. The parent aggregate recurses straight through
 # this file.

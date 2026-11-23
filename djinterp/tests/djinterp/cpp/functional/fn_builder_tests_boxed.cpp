@@ -3,7 +3,7 @@
 *
 * Type-erasure tests (section IV): DBoxedFnBuilder and box_builder.
 *
-*   test_boxed -- erase a typed builder into a single concrete
+*   test_boxed - erase a typed builder into a single concrete
 *                 DBoxedFnBuilder type (via direct construction and via
 *                 box_builder), then execute it; including a type-changing
 *                 chain and the operator() container overload.

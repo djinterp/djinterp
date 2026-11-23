@@ -10,14 +10,14 @@
 * producer specialize it in their own headers), so a suite must SUPPLY one.
 * Two fixtures are provided here:
 *
-*     - opt<T> : a maybe-like Alternative -- engaged (holds a value) or empty --
+*     - opt<T> : a maybe-like Alternative - engaged (holds a value) or empty --
 *       with its own alternative_traits specialization (empty() = the disengaged
 *       value; choice(a, b) keeps the first that is engaged).  This is the
 *       uniform alternative every generic op (aempty / alt / asum) is driven on.
 *     - bag<T> : a minimal, ordered Foldable (its own foldable_traits
 *       specialization) distinct from std::vector.  asum sits at the
-*       Foldable x Alternative intersection -- it folds a Foldable of
-*       Alternatives -- so bag<opt<T>> lets asum be exercised over a Foldable
+*       Foldable x Alternative intersection - it folds a Foldable of
+*       Alternatives - so bag<opt<T>> lets asum be exercised over a Foldable
 *       OTHER than the std::vector instance foldable.hpp ships, proving asum is
 *       generic over the Foldable, not vector-specific.
 *
@@ -55,7 +55,7 @@
 #include <utility>
 #include <vector>
 // djinterp
-// djinterp -- the header under test (which pulls in foldable.hpp), plus the
+// djinterp - the header under test (which pulls in foldable.hpp), plus the
 //   DTest authoring + runner surface.  NOTE: these two include paths are rooted
 //   at the djinterp include directory (e.g. -I.../inc); adjust them to match
 //   your build tree.
@@ -74,7 +74,7 @@ NS_TESTING
 // opt
 //   fixture: a minimal maybe-like Alternative.  It is either engaged (carrying
 // a value) or empty; choice keeps the first engaged operand, and the empty
-// value is the identity for that choice -- the smallest concrete Alternative
+// value is the identity for that choice - the smallest concrete Alternative
 // the generic operations can be exercised on.  Equality is by engagement and,
 // when engaged, by value (so opt<T> requires an equality-comparable T; the
 // suite instantiates it at int / double / std::string).
@@ -165,7 +165,7 @@ struct bag
 
 // has_alt_value_type
 //   detector: true iff alternative_traits<decay<_Type>>::value_type is
-// well-formed -- i.e. iff _Type carries the Alternative protocol's inner value
+// well-formed - i.e. iff _Type carries the Alternative protocol's inner value
 // type.  SFINAE-safe: the primary alternative_traits is declared but undefined,
 // so for a non-alternative the member access soft-fails in the immediate context
 // (false) rather than triggering a hard error.  Deliberately NOT written in

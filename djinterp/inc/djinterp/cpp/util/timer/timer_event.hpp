@@ -14,8 +14,8 @@
 * ONE HANDLER FOR EVERY TIMER
 * ---------------------------
 *   timer_handler<Timer> takes any type with duration_type, start, stop,
-* increment, decrement and reset -- timer, atomic_timer, mutex_timer, or a type
-* of the caller's -- and no timer includes this file.
+* increment, decrement and reset - timer, atomic_timer, mutex_timer, or a type
+* of the caller's - and no timer includes this file.
 *
 * THE CALLER OWNS THE TIMER
 * -------------------------

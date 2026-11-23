@@ -312,7 +312,7 @@ D_EXTERN_C_BEGIN
 
 // D_INTERNAL_ATOMIC_DECL_*
 //   macro: declaration stamps, expanded once per integer width by
-// D_ATOMIC_INTEGER_TYPES above. Internal to this header -- they are #undef'd
+// D_ATOMIC_INTEGER_TYPES above. Internal to this header - they are #undef'd
 // nowhere only because the header is include-guarded and self-contained.
 
 #define D_INTERNAL_ATOMIC_DECL_INIT(sfx, vtype, atype, zero)           \

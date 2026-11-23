@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][meta]                                     passthrough_tests.hpp
 *
-* Unit test suite for passthrough.hpp -- the DPassthroughMarker opt-in base,
+* Unit test suite for passthrough.hpp - the DPassthroughMarker opt-in base,
 * the is_passthrough trait, and the C++20 Passthrough concept.
 *   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.md S3):
 *
@@ -27,14 +27,14 @@
 *        the marker still counts).  A pointer to a passthrough is not itself a
 *        passthrough.
 *     3. completeness.  std::is_base_of requires the derived type to be
-*        complete, so is_passthrough<incomplete> is a HARD error -- the suite
+*        complete, so is_passthrough<incomplete> is a HARD error - the suite
 *        therefore never instantiates it and documents the requirement rather
 *        than probing it.  (Contrast the member_types detectors, which are a
 *        soft false on incomplete types.)
 *
 *   THE FIXTURE VOCABULARY (normal mode only)
 *     DPtDirect       inherits DPassthroughMarker publicly (the ordinary case).
-*     DPtChild        a grandchild -- inherits DPtDirect, so the marker is two
+*     DPtChild        a grandchild - inherits DPtDirect, so the marker is two
 *                     levels up; pins transitivity.
 *     DPtPrivate      inherits DPassthroughMarker PRIVATELY; pins that is_base_of
 *                     ignores access.
@@ -66,7 +66,7 @@
 #include <string>
 #include <type_traits>
 // djinterp
-// -- (part 1) mode-gated includes --------------------------------------------
+// - (part 1) mode-gated includes --------------------------------------------
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
 #include "../../../../inc/djinterp/cpp/meta/passthrough.hpp"                      // the header under test (normal)
@@ -123,14 +123,14 @@ bool passthrough_check(
     while (0)
 
 
-#ifndef DTEST_SPEC_MODE  // (part 1 cont.) fixtures -- normal mode only
+#ifndef DTEST_SPEC_MODE  // (part 1 cont.) fixtures - normal mode only
 
 ///////////////////////////////////////////////////////////////////////////////
 ///             F.1   PASSTHROUGH FIXTURES                                  ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // DPtDirect
-//   struct: the ordinary case -- inherits DPassthroughMarker publicly.
+//   struct: the ordinary case - inherits DPassthroughMarker publicly.
 struct DPtDirect
     : DPassthroughMarker
 {};
@@ -164,12 +164,12 @@ struct DPtMulti
 {};
 
 // plain
-//   struct: inherits nothing -- the negative control.
+//   struct: inherits nothing - the negative control.
 struct plain
 {};
 
 // DDerivesUnrelated
-//   struct: inherits only the non-marker base -- inherits SOMETHING, but not the
+//   struct: inherits only the non-marker base - inherits SOMETHING, but not the
 // marker, so must not be detected.
 struct DDerivesUnrelated
     : DUnrelatedBase
@@ -183,7 +183,7 @@ struct DDerivesUnrelated
 #if defined(__cpp_concepts)
 
     // taken_by
-    //   function: constrained overload -- selected for passthroughs, being the
+    //   function: constrained overload - selected for passthroughs, being the
     // more constrained of the pair.
     template<Passthrough _Type>
     inline
@@ -210,7 +210,7 @@ struct DDerivesUnrelated
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- (part 2) declarations -- visible in BOTH modes --------------------------
+// - (part 2) declarations - visible in BOTH modes --------------------------
 
 // I.   MARKER   (passthrough_tests_marker.cpp)
 bool tests_marker_is_empty_and_inheritable();
@@ -237,11 +237,11 @@ bool tests_concept_constrains_overload_resolution();
 #endif
 
 
-// -- (part 3) the spec provider -- spec mode only ----------------------------
+// - (part 3) the spec provider - spec mode only ----------------------------
 #ifdef DTEST_SPEC_MODE
 
 // passthrough_spec
-//   function: the authoritative description of this suite -- one block per
+//   function: the authoritative description of this suite - one block per
 // section TU, one row per tests_* body, every node named and described.
 inline
 dt::module_spec passthrough_spec()

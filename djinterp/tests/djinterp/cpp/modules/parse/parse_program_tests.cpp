@@ -110,7 +110,7 @@ bool d_tests_parse_charset_membership(void)
     const charset letters = charset::of("a-zA-Z");
     const charset negated = charset::of("^\n");
 
-    // two spellings, one set -- the property the pool relies on
+    // two spellings, one set - the property the pool relies on
     if ( (digits != same)         ||
          (!digits.test('5'))      ||
          (digits.test('a'))       ||
@@ -315,7 +315,7 @@ struct layout
 };
 
 // build
-//   function: emits the toy program into a program that owns its storage -- a
+//   function: emits the toy program into a program that owns its storage - a
 // forward jump over a class test and a call, landing on the halt. The jump is
 // emitted with a placeholder and patched once its target is known, which is
 // the shape every generator's backpatching takes.
@@ -354,8 +354,8 @@ d_tests_parse_program_build
     patched once its target is known
   - a valid program verifies against its family's registry and shapes
   - verification annotates branch targets, so a backend need not re-derive them
-  - the digest is over what the program means, so verifying it again -- which
-    sets annotation flags -- does not change it
+  - the digest is over what the program means, so verifying it again - which
+    sets annotation flags - does not change it
 */
 bool d_tests_parse_program_build(void)
 {
@@ -584,7 +584,7 @@ bool d_tests_parse_program_fixed(void)
 }  // namespace
 
 // d_tests_parse_program
-//   constant: the suite -- every section this build has, the class before the
+//   constant: the suite - every section this build has, the class before the
 // pool that interns it and the pool before the program that carries its
 // indices.
 const dj_tests_section d_tests_parse_program[] =

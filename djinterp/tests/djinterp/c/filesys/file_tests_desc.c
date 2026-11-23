@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                        file_tests_desc.c
 *
-*   III. Descriptors (file_desc) -- acquiring, duplicating, and releasing raw
+*   III. Descriptors (file_desc) - acquiring, duplicating, and releasing raw
 * descriptors. The module is descriptor-based to its core, so on the ISO C
 * backend every entry point can only report ENOSYS; that branch is checked
 * directly, and the full behaviour is exercised on a backend that has
@@ -320,7 +320,7 @@ void d_fs_tests_desc(
  *****************************************************************************/
 
 /******************************************************************************
- * III.  file_desc  --  DESCRIPTOR LIFECYCLE
+ * III.  file_desc  -  DESCRIPTOR LIFECYCLE
  *****************************************************************************/
 
 /*

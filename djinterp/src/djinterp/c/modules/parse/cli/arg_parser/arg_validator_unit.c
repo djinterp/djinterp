@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][parse]                                       arg_validator_unit.c
 *
-* CLI11's numbers with units -- AsNumberWithUnit and AsSizeValue -- declared
+* CLI11's numbers with units - AsNumberWithUnit and AsSizeValue - declared
 * in arg_validator_extra.h (3).
 *   AsNumberWithUnit splits a value before the letters that end it, finds the
 * unit among units kept in the order CLI11's std::map keeps them, and
@@ -52,7 +52,7 @@ struct dj_arg_internal_unit
 // dj_arg_internal_units
 //   struct: what AsNumberWithUnit keeps, all of it owned: the number's type,
 // CLI11's options, the units in the order CLI11's std::map keeps them --
-// by name, the lowercase names when units match without case -- the name
+// by name, the lowercase names when units match without case - the name
 // help gives the unit, and the text the names are slices of.
 struct dj_arg_internal_units
 {
@@ -68,7 +68,7 @@ struct dj_arg_internal_units
 // dj_arg_internal_unit_parts
 //   struct: a value as AsNumberWithUnit splits it: the number before the
 // unit, trimmed; the unit, the letters that end the value; and whether the
-// unit is matched -- and written in messages -- in lowercase.
+// unit is matched - and written in messages - in lowercase.
 struct dj_arg_internal_unit_parts
 {
     struct dj_pack_text number;
@@ -204,8 +204,8 @@ int d_arg_internal_unit_thrown(
  *         its message could not be kept, when the value is empty or a required
  *         unit is missing.
  *
- * AsNumberWithUnit's first steps: the value trimmed -- nothing left stops
- * validation with "Input is empty" -- then split before the ASCII letters that
+ * AsNumberWithUnit's first steps: the value trimmed - nothing left stops
+ * validation with "Input is empty" - then split before the ASCII letters that
  * end it into a number, trimmed, and a unit; a unit that must be there and is
  * not stops validation with "Missing mandatory unit". Trimming the front as
  * well, where CLI11 trims only the end, changes nothing: the number is
@@ -559,7 +559,7 @@ bool d_arg_internal_unit_times_integer(
  * The object times the factor, in place; false on overflow, the object then
  * as it was. Floating point is multiplied in its own type, the narrowest
  * first since sizes may coincide; integers through their widened product,
- * refused when it leaves the type's range -- exactly where CLI11's tests in
+ * refused when it leaves the type's range - exactly where CLI11's tests in
  * the type itself refuse it.
  */
 D_STATIC
@@ -1503,7 +1503,7 @@ int d_arg_internal_units_check(
  *         name refused, or D_ARG_ERROR_OUT_OF_MEMORY.
  *
  * The validator over a units record: CLI11's checks first, a failure
- * freeing the record and keeping its reason -- CLI11's message -- as the
+ * freeing the record and keeping its reason - CLI11's message - as the
  * failed validator's description; otherwise the record is the validator's
  * context, owned, copied and freed with it, and its values complete as
  * numbers.
@@ -1615,7 +1615,7 @@ struct dj_arg_validator d_arg_validator_as_number_with_unit(
  * @return `true` for a unit AsSizeValue's map holds; `false` otherwise.
  *
  * AsSizeValue's map without the map: `b` is 1; a prefix alone or with `b`
- * after it is its power of the base -- 1000 with `_kb_is_1000`, else 1024 --
+ * after it is its power of the base - 1000 with `_kb_is_1000`, else 1024 --
  * and with `i` or `ib` after it its power of 1024. Case is folded, as
  * AsSizeValue matches units.
  */
@@ -1688,7 +1688,7 @@ bool d_arg_internal_size_factor(
  *         stopped validation.
  *
  * CLI11's AsSizeValue: AsNumberWithUnit with its options left at their
- * default -- units matched without case, and optional -- over a 64-bit
+ * default - units matched without case, and optional - over a 64-bit
  * unsigned integer, the units' factors worked out rather than looked up.
  */
 D_STATIC

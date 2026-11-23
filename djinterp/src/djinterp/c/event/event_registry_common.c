@@ -1,10 +1,10 @@
 /*******************************************************************************
 * djinterp [c][event]                                    event_registry_common.c
 *
-* The registry and its folds -- tier 0 definitions.
+* The registry and its folds - tier 0 definitions.
 *   Implements event_registry_common.h. The registry is one table, so most of
 * this file forwards; the substance is dispatch, which walks the word for a
-* key and folds it letter by letter through d_event_step_fold -- the same fold
+* key and folds it letter by letter through d_event_step_fold - the same fold
 * the fused word runs over its snapshot, so the two paths cannot diverge in
 * how a step is invoked, how the unit passes, or where consume cuts off.
 *
@@ -333,7 +333,7 @@ struct dj_run_result d_event_registry_run(
 
 /*
 d_event_registry_compile_into
-  The snapshot is the live, enabled letters in word order -- the masked word
+  The snapshot is the live, enabled letters in word order - the masked word
 exactly as a dispatch starting now would fold it.
 */
 int d_event_registry_compile_into(

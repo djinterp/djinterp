@@ -3,9 +3,9 @@
 *
 * Implementation of the durability calls declared in file_sync.h.
 *   What "durable" means is answered once per platform, in
-* d_internal_file_sync_raw -- FlushFileBuffers on Windows, F_FULLFSYNC on
+* d_internal_file_sync_raw - FlushFileBuffers on Windows, F_FULLFSYNC on
 * Apple's systems, where plain fsync stops short of the drive cache, fdatasync
-* or fsync elsewhere -- for d_file_sync_fd and file_io's durable writes alike,
+* or fsync elsewhere - for d_file_sync_fd and file_io's durable writes alike,
 * and the stream-level call layers stdio's flush on top of it. On the ISO C
 * backend only the flush exists.
 *
@@ -57,8 +57,8 @@
 d_internal_sync_lost
   Whether a failed F_FULLFSYNC said something about the data rather than about
 the command: an I/O error, or a full disk or quota. Those are reported as they
-are. Asked next, fsync could report success for the same data -- an error,
-once reported, need not be reported again -- and the data would be called
+are. Asked next, fsync could report success for the same data - an error,
+once reported, need not be reported again - and the data would be called
 durable just after the device had said it could not keep it.
 */
 static
@@ -120,9 +120,9 @@ d_file_sync_fd
   What "durable" means is a per-platform question answered once, so callers
 need not ask it (d_internal_file_sync_raw). On Linux and Windows, fsync and
 FlushFileBuffers push the data to the device. On Apple's systems fsync
-explicitly does NOT ask the drive to flush its own write cache -- it returns,
+explicitly does NOT ask the drive to flush its own write cache - it returns,
 the power fails, and the data is gone from the one call whose purpose was to
-prevent that -- so D_CFG_FILE_SYNC_FULL routes there to fcntl(F_FULLFSYNC).
+prevent that - so D_CFG_FILE_SYNC_FULL routes there to fcntl(F_FULLFSYNC).
 */
 int d_file_sync_fd(
     int _fd
@@ -156,7 +156,7 @@ d_file_sync_stream
   Two layers, in order, and both are required: fflush moves stdio's buffer
 into the kernel, and only then can fsync move the kernel's copy onto the
 device. Calling either alone is the classic way to believe you have durability
-and not have it -- fflush leaves the data in the page cache, and fsync cannot
+and not have it - fflush leaves the data in the page cache, and fsync cannot
 see what stdio has not handed over.
 */
 int d_file_sync_stream(
@@ -251,7 +251,7 @@ int d_internal_file_sync_raw(
 /*
 d_internal_file_sync_raw
   FlushFileBuffers, which on Windows reaches the device and asks it to empty
-its own cache -- called directly, since the CRT's _commit reports every
+its own cache - called directly, since the CRT's _commit reports every
 failure, a full disk and a failing device among them, as EBADF. Only a disk
 file has anything durable behind it: a pipe, a console or a device is refused
 with EINVAL, as Linux refuses one, where FlushFileBuffers would wait on a pipe
@@ -301,8 +301,8 @@ int d_internal_file_sync_raw(
 /*
 d_internal_file_sync_raw
   Apple's systems: fsync explicitly does NOT ask the drive to flush its own
-write cache, so a full sync is fcntl(F_FULLFSYNC) -- what SQLite and every
-serious database there use -- retried across interruptions like any other
+write cache, so a full sync is fcntl(F_FULLFSYNC) - what SQLite and every
+serious database there use - retried across interruptions like any other
 call. A filesystem that refuses the command, as most network ones do, gets
 plain fsync with a warning rather than a failure fsync can spare it; a failure
 that is about the data (d_internal_sync_lost) is reported, not retried.
@@ -344,7 +344,7 @@ d_internal_file_sync_raw
   fdatasync: a file's data, and the metadata needed to read it back, retried
 across interruptions. A directory gets fsync instead: fdatasync need not wait
 for a new entry to reach the device, and the entry is what a directory is
-synced for -- which is why SQLite and PostgreSQL sync directories with fsync.
+synced for - which is why SQLite and PostgreSQL sync directories with fsync.
 A descriptor fstat cannot describe gets fdatasync, which will say why.
 */
 int d_internal_file_sync_raw(

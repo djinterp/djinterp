@@ -4,7 +4,7 @@
 * The certificates net's TLS suites are tested with, made for each run.
 *   A CA; from it a server certificate for localhost and 127.0.0.1, a client
 * certificate, and an expired server certificate; and a server certificate
-* from a second CA no test trusts -- written as PEM files to a directory of
+* from a second CA no test trusts - written as PEM files to a directory of
 * their own, and removed with it. Needs an OpenSSL-family library, as
 * env_tls.h finds one; without it, making reports false.
 *
@@ -45,7 +45,7 @@ struct dj_tests_net_pki
     char rogue_key[320];
 };
 
-// the PKI -- made in a fresh directory under TMPDIR, and removed with it;
+// the PKI - made in a fresh directory under TMPDIR, and removed with it;
 // making reports false, leaving nothing behind, on any failure
 bool d_tests_net_pki_make(
     struct dj_tests_net_pki* _pki

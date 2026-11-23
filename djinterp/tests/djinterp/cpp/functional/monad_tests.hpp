@@ -15,7 +15,7 @@
 *     III+IV. combinators + operator|   monad_tests_pipeline.cpp
 *
 *   THE TEST MONAD:
-*   monad.hpp is a protocol header -- monad_traits<M> is an undefined
+*   monad.hpp is a protocol header - monad_traits<M> is an undefined
 * primary, so the generic operations cannot be exercised without a
 * concrete monad that specializes it.  This header therefore defines a
 * small, self-contained `DTestMaybe<T>` monad (a maybe / optional) and
@@ -456,7 +456,7 @@ bool monad_tests_composition();
 bool monad_tests_pipeline();
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // monad_spec
 //   function: the suite as DTest's module spec, one block per section.

@@ -65,7 +65,7 @@
 *   A `bool m_result` sat beside m_status until the two proved never to be
 * independent.  Every constructor and evaluate() wrote them in lockstep, so the
 * only way to hold a result disagreeing with the status was to call set_status
-* afterwards and strand the old verdict on the node -- and that stranded value
+* afterwards and strand the old verdict on the node - and that stranded value
 * was the whole of what the member added.
 *
 *   The two forks had already diverged over it.  skip() here cleared the

@@ -11,14 +11,14 @@
 *   Both naming conventions are detected for every accessor:
 * short-form (`text()`, `url()`, `level()`) AND getter-form
 * (`get_text()`, `get_url()`, `get_level()`). This keeps backend
-* adapters from being forced into one convention -- libcmark uses
+* adapters from being forced into one convention - libcmark uses
 * getter-form, md4c uses short-form, both classify automatically.
 *
 *   DETECTED PROTOCOLS:
 *
 *   DMarkdownBlock protocol:
 *     A block exposes `block_kind()` (or `get_block_kind()`),
-*     iterable children, and -- for inline-holder blocks -- a way
+*     iterable children, and - for inline-holder blocks - a way
 *     to access inline content.
 *
 *   DMarkdownInline protocol:
@@ -594,7 +594,7 @@ struct has_flavor_access
 
 // is_markdown_block
 //   trait: true if `Type` satisfies the markdown block
-// protocol -- block kind accessor plus children access.
+// protocol - block kind accessor plus children access.
 template<typename Type>
 struct is_markdown_block
 {
@@ -608,7 +608,7 @@ struct is_markdown_block
 
 
 // is_markdown_block_loose
-//   trait: looser variant -- block-kind accessor alone is
+//   trait: looser variant - block-kind accessor alone is
 // enough to be considered a candidate.
 template<typename Type>
 struct is_markdown_block_loose
@@ -620,7 +620,7 @@ struct is_markdown_block_loose
 
 // is_markdown_inline
 //   trait: true if `Type` satisfies the markdown inline
-// protocol -- inline kind accessor plus text-or-children.
+// protocol - inline kind accessor plus text-or-children.
 template<typename Type>
 struct is_markdown_inline
 {
@@ -633,7 +633,7 @@ struct is_markdown_inline
 
 
 // is_markdown_inline_loose
-//   trait: looser variant -- inline-kind accessor alone.
+//   trait: looser variant - inline-kind accessor alone.
 template<typename Type>
 struct is_markdown_inline_loose
 {
@@ -644,7 +644,7 @@ struct is_markdown_inline_loose
 
 // is_markdown_document
 //   trait: true if `Type` satisfies the markdown document
-// protocol -- a flavor accessor and at least one render method.
+// protocol - a flavor accessor and at least one render method.
 template<typename Type>
 struct is_markdown_document
 {
@@ -655,7 +655,7 @@ struct is_markdown_document
 
 
 // is_markdown_document_loose
-//   trait: looser variant -- flavor accessor OR any render
+//   trait: looser variant - flavor accessor OR any render
 // method qualifies.
 template<typename Type>
 struct is_markdown_document_loose
@@ -798,7 +798,7 @@ struct has_make_markdown_document_method<Type, void_t<
 
 // is_markdown_backend_complete
 //   trait: true if `Type` exposes the full markdown backend
-// protocol -- every nested type alias.
+// protocol - every nested type alias.
 template<typename Type>
 struct is_markdown_backend_complete
 {

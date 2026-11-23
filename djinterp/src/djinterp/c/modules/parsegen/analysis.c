@@ -1061,7 +1061,7 @@ NOTE:
   This is the precondition for two separate transforms: lowering an unordered
 choice to an ordered one without changing the language, and compiling either
 into a jump table instead of a cascade of attempts. Both need the same two
-things, and the second is the one that gets forgotten -- a NULLABLE alternative
+things, and the second is the one that gets forgotten - a NULLABLE alternative
 matches whatever comes next, so no amount of first-set inspection can dispatch
 past it.
 

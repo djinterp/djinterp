@@ -4,8 +4,8 @@
 * A table of a database held in memory: the rows a query read, changed in
 * place, and written back.
 *   database_table<Connection> binds one table, or view, of the database a
-* connection reaches to a cache of its rows. refresh() reads them -- every
-* row, or those a filter, an order and a page select -- and the cache is
+* connection reaches to a cache of its rows. refresh() reads them - every
+* row, or those a filter, an order and a page select - and the cache is
 * then read and changed as a table of values, row by row, cell by cell;
 * commit() writes back what changed. The table's own operations go through
 * the C layers, written once for every vendor that has one: fetch_schema()
@@ -17,10 +17,10 @@
 * leaves the database as it was and the program's transaction usable. With
 * a primary key it is differential: each row read stays the row of the
 * database it was read as (table_row), so a row the cache no longer holds is
-* deleted, a changed row is updated -- its key too, in place, so that the
-* key's ON UPDATE rules apply, not its ON DELETE ones -- a new row is
+* deleted, a changed row is updated - its key too, in place, so that the
+* key's ON UPDATE rules apply, not its ON DELETE ones - a new row is
 * inserted, and no other row is touched. Without one it replaces the rows refresh() read --
-* those the filter selected, or every row -- and refuses rows read a page
+* those the filter selected, or every row - and refuses rows read a page
 * at a time, which it could not name. Rows the cache never read are
 * inserted. A NULL in a column that refuses NULL, or in a key, is left out
 * of the row's INSERT, so that the column's default, identity or sequence
@@ -228,9 +228,9 @@ struct column_info
 
 // 1.2.2
 // table_schema
-//   struct: a table's description: its name, the schema it lives in -- the
+//   struct: a table's description: its name, the schema it lives in - the
 // database on MariaDB and MySQL, the attached database on SQLite, the schema
-// on PostgreSQL; empty for the connection's own -- its columns, in order,
+// on PostgreSQL; empty for the connection's own - its columns, in order,
 // and its primary key's columns, in the key's order.
 struct table_schema
 {
@@ -239,13 +239,13 @@ struct table_schema
     std::vector<column_info> columns;
     std::vector<std::string> primary_key_columns;
 
-    // column_count -- how many columns the schema describes
+    // column_count - how many columns the schema describes
     std::size_t column_count() const noexcept
     {
         return columns.size();
     }
 
-    // column_index -- the index of the column of that name; std::nullopt
+    // column_index - the index of the column of that name; std::nullopt
     // when there is none
     std::optional<std::size_t> column_index(
         std::string_view _name
@@ -262,7 +262,7 @@ struct table_schema
         return std::nullopt;
     }
 
-    // column_by_name -- the column of that name; nullptr when there is none
+    // column_by_name - the column of that name; nullptr when there is none
     const column_info* column_by_name(
         std::string_view _name
     ) const
@@ -303,7 +303,7 @@ struct sync_config
           auto_commit(false)
     {}
 
-    // tracks_action -- whether a change of that kind commits at once, where
+    // tracks_action - whether a change of that kind commits at once, where
     // the policy or auto_commit commits changes; an empty list tracks all
     bool tracks_action(
         modify_action _action
@@ -343,8 +343,8 @@ NS_END  // internal
 
 // 1.4.1
 // table_row
-//   class template: a row of a database_table's cache -- its cells, a
-// std::vector of them -- and the row of the database it was read as, which
+//   class template: a row of a database_table's cache - its cells, a
+// std::vector of them - and the row of the database it was read as, which
 // travels with it through copies, moves, swaps and sorts, so that a commit
 // updates that row, its key with it, rather than deleting it and inserting
 // another. A row made from cells stands for none, and is inserted.
@@ -389,7 +389,7 @@ public:
 
     ~table_row() = default;
 
-    // assigning cells -- the row stands for what it stood for
+    // assigning cells - the row stands for what it stood for
     table_row&
     operator=(
         const cells_type& _cells
@@ -426,7 +426,7 @@ private:
              typename>
     friend class database_table;
 
-    // m_origin -- the row read that this one stands for, by its number; 0 for
+    // m_origin - the row read that this one stands for, by its number; 0 for
     // none
     re_std::uint64_t m_origin = 0u;
 };
@@ -544,7 +544,7 @@ NS_INTERNAL
 
     // 2.2    Detectors
     //--------------------------------------------------------------------------
-    // table_savepoint_t -- a connection's create_savepoint(name), under which
+    // table_savepoint_t - a connection's create_savepoint(name), under which
     // commit writes inside a transaction the program began
     template<typename Connection>
     using table_savepoint_t =
@@ -757,7 +757,7 @@ NS_END  // internal
 // pointer to it, which must outlive the table, and every exchange with the
 // database goes through it. The members that ask the C layers --
 // fetch_schema's description of the columns, exists(), and those that
-// change the table -- need a connection with a face (get_face()), which
+// change the table - need a connection with a face (get_face()), which
 // every vendor with a layer has.
 //   ValueType is a cell's type: `value` (database.hpp) by default, whose
 // alternatives the table reads and binds; another type must convert from
@@ -788,7 +788,7 @@ template<typename Connection,
 class database_table
 {
 public:
-    // container -- the standard container types; a value is a cell
+    // container - the standard container types; a value is a cell
     using value_type      = ValueType;
     using size_type       = std::size_t;
     using difference_type = std::ptrdiff_t;
@@ -798,7 +798,7 @@ public:
     using const_pointer   = const value_type*;
     using allocator_type  = std::allocator<value_type>;
 
-    // identity -- the table, its connection and description, and its rows,
+    // identity - the table, its connection and description, and its rows,
     // each a table_row of cells in the schema's column order
     using self_type       = database_table<Connection, ValueType, Config>;
     using config_type     = Config;
@@ -807,19 +807,19 @@ public:
     using row_type        = table_row<value_type>;
     using storage_type    = std::vector<row_type>;
 
-    // iteration -- over rows; a cell is reached through its row
+    // iteration - over rows; a cell is reached through its row
     using iterator               = typename storage_type::iterator;
     using const_iterator         = typename storage_type::const_iterator;
     using reverse_iterator       = typename storage_type::reverse_iterator;
     using const_reverse_iterator =
         typename storage_type::const_reverse_iterator;
 
-    // has_dynamic_rows, has_dynamic_cols -- a table's extent is known only
+    // has_dynamic_rows, has_dynamic_cols - a table's extent is known only
     // once it is read
     static constexpr bool has_dynamic_rows = true;
     static constexpr bool has_dynamic_cols = true;
 
-    // construction -- bound to no connection; to a connection and a table's
+    // construction - bound to no connection; to a connection and a table's
     // name, its columns read by fetch_schema() or refresh(); or to a
     // connection and a schema already known. Nothing is read: refresh()
     // reads the rows.
@@ -881,7 +881,7 @@ public:
           m_read_paged(false)
     {}
 
-    // copying -- whether a copy would share the connection or the rows is
+    // copying - whether a copy would share the connection or the rows is
     // not clear, so there is none
     database_table(const database_table&)            = delete;
     database_table& operator=(const database_table&) = delete;
@@ -950,7 +950,7 @@ public:
 
     ~database_table() = default;
 
-    // capacity -- cells, rows and columns of the cache; a table has as many
+    // capacity - cells, rows and columns of the cache; a table has as many
     // columns as its schema describes
     size_type
     size() const noexcept
@@ -982,7 +982,7 @@ public:
         return size();
     }
 
-    // cell, operator[] -- unchecked access by row and column, or to a row;
+    // cell, operator[] - unchecked access by row and column, or to a row;
     // the non-const forms read a stale cache again first, as the policy says
     reference
     cell(
@@ -1022,7 +1022,7 @@ public:
         return m_data[_row];
     }
 
-    // at, cell_by_name -- checked access, by index or by the column's name;
+    // at, cell_by_name - checked access, by index or by the column's name;
     // std::out_of_range for a row, a column or a name the table lacks
     reference
     at(
@@ -1075,7 +1075,7 @@ public:
         return m_data[_row][col];
     }
 
-    // get_row, get_column -- copies of a row, or of a column's cells, by
+    // get_row, get_column - copies of a row, or of a column's cells, by
     // index or by name; checked as at() is
     row_type
     get_row(
@@ -1114,7 +1114,7 @@ public:
         return get_column(resolve_column(_column_name, "get_column"));
     }
 
-    // iteration -- over the cache's rows
+    // iteration - over the cache's rows
     iterator       begin()        noexcept { return m_data.begin();  }
     const_iterator begin()  const noexcept { return m_data.begin();  }
     const_iterator cbegin() const noexcept { return m_data.cbegin(); }
@@ -1165,7 +1165,7 @@ public:
         return;
     }
 
-    // insert_rows -- appends rows, every width checked before any is added;
+    // insert_rows - appends rows, every width checked before any is added;
     // throws as insert_row
     void
     insert_rows(
@@ -1186,7 +1186,7 @@ public:
         return;
     }
 
-    // remove_row -- removes a row from the cache; std::out_of_range for a row
+    // remove_row - removes a row from the cache; std::out_of_range for a row
     // it lacks, otherwise throws as insert_row
     void
     remove_row(
@@ -1202,7 +1202,7 @@ public:
         return;
     }
 
-    // add_row -- appends a row of NULLs, a cell for each column; throws as
+    // add_row - appends a row of NULLs, a cell for each column; throws as
     // insert_row
     void
     add_row()
@@ -1215,7 +1215,7 @@ public:
         return;
     }
 
-    // clear -- removes every row from the cache, which commit() then removes
+    // clear - removes every row from the cache, which commit() then removes
     // from the table; throws as insert_row
     void
     clear()
@@ -1228,7 +1228,7 @@ public:
         return;
     }
 
-    // update_cell -- sets a cell, by index or by the column's name;
+    // update_cell - sets a cell, by index or by the column's name;
     // std::out_of_range for a cell the table lacks, query_exception with
     // D_DB_UNSUPPORTED for a generated column's, which the database
     // computes, otherwise throws as insert_row
@@ -1301,7 +1301,7 @@ public:
         return;
     }
 
-    // remove_column -- removes a column from the schema and from every cached
+    // remove_column - removes a column from the schema and from every cached
     // row, by index or by name, leaving the table in the database as it is
     // (alter_drop_column changes it); std::out_of_range for a column the
     // table lacks, otherwise throws as insert_row
@@ -1380,7 +1380,7 @@ public:
         return;
     }
 
-    // schema -- the description; a column's name and type, checked as at()
+    // schema - the description; a column's name and type, checked as at()
     // is; the number of columns; and the indexes of the primary key's
     // columns, in the key's order (key_columns throws query_exception with
     // D_DB_MISMATCH for a key column the schema does not describe)
@@ -1453,7 +1453,7 @@ public:
         return keys;
     }
 
-    // connection -- the connection the table is bound to, nullptr for none;
+    // connection - the connection the table is bound to, nullptr for none;
     // binding another forgets the rows read, the cache keeping them as rows
     // the new connection's table has not seen
     Connection*
@@ -1479,7 +1479,7 @@ public:
         return;
     }
 
-    // is_connected -- whether the table is bound to a connection that is open
+    // is_connected - whether the table is bound to a connection that is open
     bool
     is_connected() const noexcept
     {
@@ -1487,7 +1487,7 @@ public:
                  (m_connection->is_connected()) );
     }
 
-    // identity -- the table's name; the schema it lives in, "" for the
+    // identity - the table's name; the schema it lives in, "" for the
     // connection's own, set_schema_name forgetting the rows read, as
     // set_connection does; the name qualified by the schema and quoted as
     // the vendor quotes names, for SQL; and the kind, which says whether its
@@ -1560,7 +1560,7 @@ public:
                  (m_kind == table_kind::temporary) );
     }
 
-    // synchronization -- the policy; whether the cache holds changes not yet
+    // synchronization - the policy; whether the cache holds changes not yet
     // committed; whether it may be behind the database: never read, its
     // query changed, invalidated, or, under the periodic policy, read longer
     // ago than the interval; and when it was last read
@@ -1580,7 +1580,7 @@ public:
         return;
     }
 
-    // is_dirty -- whether the cache holds what commit() would write: a
+    // is_dirty - whether the cache holds what commit() would write: a
     // change through the table's members, or a cell or a row changed
     // through the references and iterators element access gives, compared
     // with the rows read; rows only reordered are no change
@@ -1626,7 +1626,7 @@ public:
         return m_last_refresh;
     }
 
-    // query -- what refresh() reads: the filter, written as a WHERE clause's
+    // query - what refresh() reads: the filter, written as a WHERE clause's
     // condition without the keyword; the order, as ORDER BY's list; and a
     // page, a limit and an offset. Each is SQL as given, and each change
     // marks the cache stale. commit() replaces, without a key, the rows the
@@ -2219,7 +2219,7 @@ public:
         return;
     }
 
-    // comparison -- two tables are equal when they have the same name and
+    // comparison - two tables are equal when they have the same name and
     // their caches hold the same rows
     bool
     operator==(
@@ -2240,7 +2240,7 @@ public:
     }
 
 protected:
-    // commit_plan -- what a keyed commit writes, in the order it writes it:
+    // commit_plan - what a keyed commit writes, in the order it writes it:
     // the rows read that the cache no longer holds, deleted; the rows whose
     // key changed, each with the row read it stands for, updated in place in
     // an order that frees each new key before it is taken; the other changed
@@ -2259,7 +2259,7 @@ protected:
         bool                         initially_deferred = false;
     };
 
-    // adopt_read_row -- numbers a row the database now holds as a row read,
+    // adopt_read_row - numbers a row the database now holds as a row read,
     // for a vendor's table that adds one to the cache and to the rows read
     // alike (mariadb_table's RETURNING)
     static void
@@ -2272,7 +2272,7 @@ protected:
         return;
     }
 
-    // validate_bound, validate_connected -- connection_exception unless the
+    // validate_bound, validate_connected - connection_exception unless the
     // table has a connection, an open one
     void
     validate_bound(
@@ -2303,7 +2303,7 @@ protected:
         return;
     }
 
-    // validate_mutable -- query_exception unless the table's kind can be
+    // validate_mutable - query_exception unless the table's kind can be
     // changed
     void
     validate_mutable(
@@ -2319,7 +2319,7 @@ protected:
         return;
     }
 
-    // validate_clean -- query_exception with D_DB_UNSUPPORTED while the cache
+    // validate_clean - query_exception with D_DB_UNSUPPORTED while the cache
     // holds changes not yet committed, which reading it again would lose
     void
     validate_clean(
@@ -2338,7 +2338,7 @@ protected:
         return;
     }
 
-    // check_row, check_col, check_bounds -- std::out_of_range for a row, a
+    // check_row, check_col, check_bounds - std::out_of_range for a row, a
     // column or a cell the table lacks
     void
     check_row(
@@ -2383,7 +2383,7 @@ protected:
         return;
     }
 
-    // check_row_width -- query_exception for a row of another width than the
+    // check_row_width - query_exception for a row of another width than the
     // table's
     void
     check_row_width(
@@ -2403,7 +2403,7 @@ protected:
         return;
     }
 
-    // resolve_column -- a column's index by name; std::out_of_range for a
+    // resolve_column - a column's index by name; std::out_of_range for a
     // name the schema lacks
     size_type
     resolve_column(
@@ -2423,7 +2423,7 @@ protected:
         return index.value();
     }
 
-    // mark_dirty -- the cache changed; committed at once where the policy or
+    // mark_dirty - the cache changed; committed at once where the policy or
     // auto_commit says so for a change of that kind
     void
     mark_dirty(
@@ -2443,7 +2443,7 @@ protected:
         return;
     }
 
-    // ensure_fresh -- reads a stale cache again where the policy says so,
+    // ensure_fresh - reads a stale cache again where the policy says so,
     // unless it holds changes not yet committed
     void
     ensure_fresh()
@@ -2460,7 +2460,7 @@ protected:
         return;
     }
 
-    // build_select_query -- refresh()'s query: the schema's columns, or every
+    // build_select_query - refresh()'s query: the schema's columns, or every
     // column while none is known; the hint a vendor writes after SELECT and
     // the clause after the table's name; then the filter, the order and the
     // page
@@ -2815,7 +2815,7 @@ protected:
                " VALUES (" + values + ")";
     }
 
-    // bind_value -- binds one cell, the index from 1: a `value` through a
+    // bind_value - binds one cell, the index from 1: a `value` through a
     // statement's own bind_value, which binds a point in time as its vendor
     // reads one; otherwise each alternative through its bind method, a point
     // in time as UTC text
@@ -2844,7 +2844,7 @@ protected:
         return;
     }
 
-    // bind_each -- bind_value's way for a statement without bind_value
+    // bind_each - bind_value's way for a statement without bind_value
     template<typename Statement>
     static void
     bind_each(
@@ -2911,7 +2911,7 @@ protected:
         return;
     }
 
-    // key_of -- a row's key, its integers widened so that the same number
+    // key_of - a row's key, its integers widened so that the same number
     // read and written matches; false for a key holding a NULL
     bool
     key_of(
@@ -2936,7 +2936,7 @@ protected:
         return true;
     }
 
-    // is_mysql_family -- whether the connection's vendor is MariaDB or
+    // is_mysql_family - whether the connection's vendor is MariaDB or
     // MySQL
     bool
     is_mysql_family() const noexcept
@@ -2947,7 +2947,7 @@ protected:
                  (type == database_type::mysql) );
     }
 
-    // layer_scope -- the schema the layer acts in: the table's, or, for a
+    // layer_scope - the schema the layer acts in: the table's, or, for a
     // temporary table, SQLite's temp and PostgreSQL's pg_temp; NULL, the
     // connection's own, otherwise
     face::string_arg
@@ -2976,7 +2976,7 @@ protected:
         return face::string_arg();
     }
 
-    // npos -- no row: a cached row standing for no row read
+    // npos - no row: a cached row standing for no row read
     static constexpr size_type npos = static_cast<size_type>(-1);
 
     Connection*  m_connection;
@@ -2985,13 +2985,13 @@ protected:
     sync_config  m_sync;
     storage_type m_data;
 
-    // m_original, m_original_keys -- the rows as the last refresh() or
+    // m_original, m_original_keys - the rows as the last refresh() or
     // commit() left them, with the key's columns then, which a keyed commit
     // compares the cache with
     storage_type           m_original;
     std::vector<size_type> m_original_keys;
 
-    // state -- whether the cache holds changes not yet committed; whether it
+    // state - whether the cache holds changes not yet committed; whether it
     // may be behind the database; whether it holds the rows the query read;
     // whether those came from the table itself; and whether they were read a
     // page at a time
@@ -3003,7 +3003,7 @@ protected:
 
     std::chrono::steady_clock::time_point m_last_refresh;
 
-    // query -- refresh()'s, and the filter the cache's rows were read with,
+    // query - refresh()'s, and the filter the cache's rows were read with,
     // which a commit without a key replaces
     std::string              m_where_clause;
     std::string              m_order_clause;
@@ -3011,17 +3011,17 @@ protected:
     std::optional<size_type> m_limit;
     std::optional<size_type> m_offset;
 
-    // m_select_hint -- SQL a vendor's table writes after SELECT in
+    // m_select_hint - SQL a vendor's table writes after SELECT in
     // refresh()'s query (mysql_table's optimizer hint)
     std::string m_select_hint;
 
-    // m_table_suffix -- SQL a vendor's table writes after the table's name in
+    // m_table_suffix - SQL a vendor's table writes after the table's name in
     // refresh()'s query (mariadb_table's FOR SYSTEM_TIME); rows read with one
     // are not the table's own, and commit() refuses them
     std::string m_table_suffix;
 
 private:
-    // m_reset_moved -- the table moved from: bound to nothing, holding
+    // m_reset_moved - the table moved from: bound to nothing, holding
     // nothing
     void
     m_reset_moved() noexcept
@@ -3036,7 +3036,7 @@ private:
         return;
     }
 
-    // m_forget_read -- the cache no longer stands for rows the table was read
+    // m_forget_read - the cache no longer stands for rows the table was read
     // for: another table, connection or schema
     void
     m_forget_read() noexcept
@@ -3052,7 +3052,7 @@ private:
         return;
     }
 
-    // m_append_column -- a column appended to the schema, a NULL to every
+    // m_append_column - a column appended to the schema, a NULL to every
     // row, the cache and the rows read alike
     void
     m_append_column(
@@ -3074,7 +3074,7 @@ private:
         return;
     }
 
-    // m_erase_column -- a column removed from the schema, the key's list,
+    // m_erase_column - a column removed from the schema, the key's list,
     // every row and the rows read; the key read with follows
     void
     m_erase_column(
@@ -3113,7 +3113,7 @@ private:
         return;
     }
 
-    // m_install_columns -- fetch_schema's columns and key, the cache emptied
+    // m_install_columns - fetch_schema's columns and key, the cache emptied
     // where the columns' names changed
     void
     m_install_columns(
@@ -3143,7 +3143,7 @@ private:
         return;
     }
 
-    // m_describe -- what the layer adds to a query's description of the
+    // m_describe - what the layer adds to a query's description of the
     // columns; nothing for a table it cannot see
     void
     m_describe(
@@ -3222,7 +3222,7 @@ private:
         return;
     }
 
-    // m_read -- the rows refresh()'s query selects, and the columns a table
+    // m_read - the rows refresh()'s query selects, and the columns a table
     // not yet described takes; nothing else changes
     void
     m_read(
@@ -3274,7 +3274,7 @@ private:
         return;
     }
 
-    // m_take -- rows m_read read, as the cache and as the rows read
+    // m_take - rows m_read read, as the cache and as the rows read
     void
     m_take(
         storage_type&&             _rows,
@@ -3367,7 +3367,7 @@ private:
         return;
     }
 
-    // m_replace -- a commit without a key: the rows read deleted, those the
+    // m_replace - a commit without a key: the rows read deleted, those the
     // filter selected, then every cached row inserted; whether a value was
     // left to the database
     template<typename Inserter>
@@ -3403,7 +3403,7 @@ private:
                               : _insert(rows);
     }
 
-    // m_differ -- a commit by the key, as the plan settled it: the rows read
+    // m_differ - a commit by the key, as the plan settled it: the rows read
     // that the cache no longer holds deleted, those whose key changed
     // updated in place, the other changed rows updated, the new rows
     // inserted; whether a value was left to the database, a generated
@@ -3431,7 +3431,7 @@ private:
                  (recomputed) );
     }
 
-    // m_delete_rows -- each row deleted by its key, as it was read
+    // m_delete_rows - each row deleted by its key, as it was read
     void
     m_delete_rows(
         const std::vector<const row_type*>& _rows,
@@ -3465,7 +3465,7 @@ private:
         return;
     }
 
-    // m_update_rows -- each changed row's other columns set, but those the
+    // m_update_rows - each changed row's other columns set, but those the
     // database computes, the row found by its key as it was read
     void
     m_update_rows(
@@ -3526,7 +3526,7 @@ private:
         return;
     }
 
-    // m_key_condition -- " WHERE k1 = ... AND k2 = ...", the parameters
+    // m_key_condition - " WHERE k1 = ... AND k2 = ...", the parameters
     // numbered after the `_before` that precede them
     std::string
     m_key_condition(
@@ -3549,7 +3549,7 @@ private:
         return condition;
     }
 
-    // m_same_row -- whether two rows hold the same values in the columns a
+    // m_same_row - whether two rows hold the same values in the columns a
     // commit writes, integers compared by number: a generated column's cell
     // is never written, so a change to it is no change
     bool
@@ -3575,7 +3575,7 @@ private:
         return true;
     }
 
-    // m_mark_read -- the cache as the rows read: each row numbered afresh,
+    // m_mark_read - the cache as the rows read: each row numbered afresh,
     // the number it travels with (table_row), and the rows read a copy of it
     void
     m_mark_read()
@@ -3593,7 +3593,7 @@ private:
         return;
     }
 
-    // m_origins -- each row read, by the number it travels with
+    // m_origins - each row read, by the number it travels with
     std::unordered_map<re_std::uint64_t, size_type>
     m_origins() const
     {
@@ -3609,7 +3609,7 @@ private:
         return origins;
     }
 
-    // m_read_index -- the row read a cached row stands for, claimed for it;
+    // m_read_index - the row read a cached row stands for, claimed for it;
     // npos for a new row, or one standing for a row another claimed first
     static size_type
     m_read_index(
@@ -3633,7 +3633,7 @@ private:
         return found->second;
     }
 
-    // m_cache_differs -- whether the cache holds a row, a cell or a missing
+    // m_cache_differs - whether the cache holds a row, a cell or a missing
     // row the rows read do not, each row matched with the row read it stands
     // for; every cell compared, a generated column's too, which commit()
     // then refuses
@@ -3668,7 +3668,7 @@ private:
         return false;
     }
 
-    // m_refuse_generated_changes -- query_exception with D_DB_UNSUPPORTED
+    // m_refuse_generated_changes - query_exception with D_DB_UNSUPPORTED
     // when a cached row changed a generated column's cell of the row read it
     // stands for: the database computes it, and nothing would write it
     void
@@ -3706,7 +3706,7 @@ private:
         return;
     }
 
-    // m_plan -- a keyed commit's plan, every refusal thrown before anything
+    // m_plan - a keyed commit's plan, every refusal thrown before anything
     // is written: two cached rows of one key, D_DB_INVALID_ARGUMENT; a row
     // read with a NULL in its key that the cache changed or removed, which
     // no key can find, and rows exchanging keys where the key cannot be
@@ -3774,7 +3774,7 @@ private:
         return plan;
     }
 
-    // m_plan_row -- a cached row standing for a row read: unchanged, changed
+    // m_plan_row - a cached row standing for a row read: unchanged, changed
     // under its key, given a new key, or given a NULL in its key, which
     // deletes the row read and inserts the cached one, for the database to
     // fill the key
@@ -3822,7 +3822,7 @@ private:
         return;
     }
 
-    // m_require_found -- query_exception with D_DB_UNSUPPORTED for a row
+    // m_require_found - query_exception with D_DB_UNSUPPORTED for a row
     // read with a NULL in its key (SQLite allows one), which no key finds
     void
     m_require_found(
@@ -3935,7 +3935,7 @@ private:
         return ordered;
     }
 
-    // m_deferrable_key -- PostgreSQL's DEFERRABLE primary key constraint on
+    // m_deferrable_key - PostgreSQL's DEFERRABLE primary key constraint on
     // the table, schema-qualified and quoted, and whether it is initially
     // deferred; "" for none, and on every other vendor, which defers none
     std::string
@@ -3981,7 +3981,7 @@ private:
                    database_type::postgresql);
     }
 
-    // m_rekey_rows -- each row whose key changed updated in place, its key
+    // m_rekey_rows - each row whose key changed updated in place, its key
     // and every other column the database does not compute, in the plan's
     // order: found by the key it was read with, or, under a deferred key,
     // where keys repeat until the last update, by its place in the table,
@@ -4070,7 +4070,7 @@ private:
         return;
     }
 
-    // m_locate_rows -- PostgreSQL's place of each row the plan moves, found
+    // m_locate_rows - PostgreSQL's place of each row the plan moves, found
     // by the key it was read with and locked until the unit ends, so that it
     // stays where it was found: its tableoid and ctid, as text, two strings
     // a row; query_exception with D_DB_NOT_FOUND for a row no longer there
@@ -4118,7 +4118,7 @@ private:
         return places;
     }
 
-    // m_defer_key -- the plan's deferred key constraint, deferred before the
+    // m_defer_key - the plan's deferred key constraint, deferred before the
     // updates, and after them checked at once, then returned to deferred
     // where it starts so; nothing where the plan defers none
     void
@@ -4152,7 +4152,7 @@ private:
         return;
     }
 
-    // m_same_cells -- whether two rows hold the same values in every cell,
+    // m_same_cells - whether two rows hold the same values in every cell,
     // integers compared by number
     bool
     m_same_cells(
@@ -4176,7 +4176,7 @@ private:
         return true;
     }
 
-    // m_has_generated -- whether a column of the table is generated
+    // m_has_generated - whether a column of the table is generated
     bool
     m_has_generated() const noexcept
     {
@@ -4191,7 +4191,7 @@ private:
         return false;
     }
 
-    // m_widened -- a `value`'s 32-bit integer as a 64-bit one; any other
+    // m_widened - a `value`'s 32-bit integer as a 64-bit one; any other
     // value, and any other value type's, as it is
     static value_type
     m_widened(
@@ -4210,7 +4210,7 @@ private:
         return _cell;
     }
 
-    // m_is_null -- whether a cell is NULL: a `value`'s monostate; a cell of
+    // m_is_null - whether a cell is NULL: a `value`'s monostate; a cell of
     // another type is never NULL
     static bool
     m_is_null(
@@ -4229,7 +4229,7 @@ private:
         }
     }
 
-    // m_probe_mysql_temporary -- whether a MariaDB or MySQL temporary table
+    // m_probe_mysql_temporary - whether a MariaDB or MySQL temporary table
     // is there, asked of the server itself: 1146 is no such table
     bool
     m_probe_mysql_temporary() const

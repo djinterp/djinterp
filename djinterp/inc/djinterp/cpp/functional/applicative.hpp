@@ -4,7 +4,7 @@
 * Applicative protocol and its generic operations: ap and lift_a2 (C++).
 *   An applicative functor sits between Functor and Monad: it is a context
 * F<T> that, beyond plain map, can (1) lift a bare value into the context --
-* pure -- and (2) apply a wrapped function to a wrapped argument -- ap, the
+* pure - and (2) apply a wrapped function to a wrapped argument - ap, the
 * operation written `<*>` in Haskell, F<(A -> B)> -> F<A> -> F<B>. From those
 * two, lift_a2 lifts an ordinary binary function (A, B) -> C to operate on two
 * contexts at once, F<A> -> F<B> -> F<C>, the applicative counterpart of the
@@ -15,13 +15,13 @@
 * the inner value_type). pure and ap are the only per-type obligations; ap, of
 * necessity, names the same F for the wrapped function and the wrapped
 * argument, so a context already participates by exposing those two pieces.
-* lift_a2 is then derived once, generically, for every applicative -- it is not
+* lift_a2 is then derived once, generically, for every applicative - it is not
 * a per-type obligation.
 *
 *   Every monad is an applicative. A single blanket specialization (keyed on
 * is_monad) derives pure from monad_unit and ap from monad_bind + monad_map, so
 * maybe, result, and any future monad are applicatives automatically, with no
-* per-type wiring -- mirroring the monad bridge in functor.hpp. applicative.hpp
+* per-type wiring - mirroring the monad bridge in functor.hpp. applicative.hpp
 * therefore references monad.hpp (for the bridge) and functor.hpp (lift_a2 is
 * expressed as functor_map followed by ap); the three are sibling protocol
 * headers in the monadic layer.
@@ -107,7 +107,7 @@ NS_INTERNAL
         // The self-type guard keeps this single-argument forwarding
         // constructor from outcompeting the implicit copy / move
         // constructors when the binder itself is copied (the bridge's map
-        // takes its function by value) -- the single-argument analogue of
+        // takes its function by value) - the single-argument analogue of
         // why DKleisliHelper's two-argument constructor is collision-free.
         template<typename FaFwd,
                  typename = typename std::enable_if<
@@ -144,8 +144,8 @@ NS_END  // internal
 // monad specialization below) to expose:
 //
 //     - value_type        : the inner type T of F<T>
-//     - pure(value)        : static F<T> pure(T) -- lift a bare value
-//     - ap(ff, fa)         : static F<U> ap(F<T->U>, F<T>) -- wrapped apply
+//     - pure(value)        : static F<T> pure(T) - lift a bare value
+//     - ap(ff, fa)         : static F<U> ap(F<T->U>, F<T>) - wrapped apply
 //     - is_specialized     = true_type (marker)
 //
 //   pure and ap are the whole obligation; lift_a2 is derived generically
@@ -336,7 +336,7 @@ NS_INTERNAL
     // DApplicativeA2Binder
     //   helper: the inner stage of lift_a2's currying. Stores the binary
     // function f and a fixed first argument a, and applied to a second
-    // argument b yields f(a, b) -- i.e. `\b -> f(a, b)`. A named class (not
+    // argument b yields f(a, b) - i.e. `\b -> f(a, b)`. A named class (not
     // a lambda) so it can appear in trailing return types on every floor.
     template<typename Function,
              typename First>
@@ -371,7 +371,7 @@ NS_INTERNAL
     // DApplicativeA2Curry
     //   helper: the outer stage of lift_a2's currying. Stores the binary
     // function f and, applied to a first argument a, yields the inner
-    // binder `\b -> f(a, b)` -- i.e. `\a -> \b -> f(a, b)`. Mapping this over
+    // binder `\b -> f(a, b)` - i.e. `\a -> \b -> f(a, b)`. Mapping this over
     // the first context turns F<A> into F<B -> C>, ready for ap with F<B>.
     template<typename Function>
     class DApplicativeA2Curry
@@ -491,7 +491,7 @@ struct is_applicable
 // lift_a2
 //   function: applicative-style binary lift. Given a binary function
 //   f : (A, B) -> C and two applicatives fa : F<A>, fb : F<B>, produces
-//   F<C> by mapping the curried f over fa -- giving F<B -> C> -- and then
+//   F<C> by mapping the curried f over fa - giving F<B -> C> - and then
 // applying that to fb with ap. Derived once here for every applicative, the
 // counterpart of the monad layer's lift_m2.
 //

@@ -147,7 +147,7 @@ NS_END  // internal
 
 
 // stellate_result
-//   struct: the mesh stellate returns for Mesh -- its vertices and an apex
+//   struct: the mesh stellate returns for Mesh - its vertices and an apex
 // per face, three faces per base face.
 template<typename Mesh>
 struct stellate_result

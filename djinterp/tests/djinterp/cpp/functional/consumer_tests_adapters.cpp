@@ -155,7 +155,7 @@ bool consumer_tests_adapters()
             std::vector<int> log;
 
             // build: filtered( mapped(sink, double), even )
-            //   -- only even inputs pass; survivors are doubled.
+            //   - only even inputs pass; survivors are doubled.
             auto inner = djinterp::mapped(probe_sink(log),
                                                        doubler());
             auto f     = djinterp::filtered(inner, is_even());

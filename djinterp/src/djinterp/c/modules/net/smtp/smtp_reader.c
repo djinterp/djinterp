@@ -261,8 +261,8 @@ size_t d_smtp_reader_pending(
 
 /*
 d_smtp_reader_discard
-  Drops what was read but not consumed -- what a peer pipelined before
-STARTTLS, say -- and nothing else.
+  Drops what was read but not consumed - what a peer pipelined before
+STARTTLS, say - and nothing else.
 */
 void d_smtp_reader_discard(
     struct dj_smtp_reader* _reader

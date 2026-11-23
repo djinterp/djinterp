@@ -384,7 +384,7 @@ struct filter_result_type
 };
 
 // filter_result_type_t
-//   type: the carrier of filter_result_type -- its `::type`, for use where a
+//   type: the carrier of filter_result_type - its `::type`, for use where a
 // type rather than a value is wanted.
 template<typename Type>
 using filter_result_type_t = typename filter_result_type<Type>::type;

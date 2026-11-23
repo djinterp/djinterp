@@ -13,7 +13,7 @@
 *     underlyings yield a forward stride iterator. Bidirectional
 *     underlyings yield a bidirectional iterator — the m_missing
 *     field tracks the short-of-step overshoot on the final ++ so a
-*     subsequent -- lands on the last stride boundary that ++
+*     subsequent - lands on the last stride boundary that ++
 *     yielded.
 *   - R29: random-access underlyings now yield a random-access
 *     stride iterator with O(1) operator+= / -= / +(n) / -(n) / [n]
@@ -145,7 +145,7 @@ public:
         // positions {0, 3, 6}. After yielding 6, ++ tries to advance
         // 3 more but the underlying has only 2 left, so the iterator
         // lands at end (position 8) with m_missing = 1. A subsequent
-        // -- retreats 3 - 1 = 2 positions, landing back at position
+        // - retreats 3 - 1 = 2 positions, landing back at position
         // 6 (the last valid stride boundary). Without m_missing the
         // retreat would be a full 3, landing at the wrong position.
         difference_type             m_missing;

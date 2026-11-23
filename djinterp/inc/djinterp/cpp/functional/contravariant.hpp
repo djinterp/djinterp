@@ -8,8 +8,8 @@
 *
 *     contramap : (B -> A) -> F<A> -> F<B>
 *
-*   Where a (covariant) Functor's map post-composes -- given F<A> and A -> B it
-* yields F<B> -- a Contravariant pre-composes: given a consumer of A and a way
+*   Where a (covariant) Functor's map post-composes - given F<A> and A -> B it
+* yields F<B> - a Contravariant pre-composes: given a consumer of A and a way
 * to turn a B into an A, it yields a consumer of B.  Predicates, comparators,
 * serializers, and "sinks" are the canonical instances: a predicate on A
 * becomes a predicate on B by mapping each B to an A first; an A -> string
@@ -28,7 +28,7 @@
 *     contramap(id)                 == id
 *     contramap(g) . contramap(f)   == contramap(f . g)
 *
-* -- identity is preserved, and composition is preserved *with the arrows
+* - identity is preserved, and composition is preserved *with the arrows
 * reversed* (the defining inversion of a contravariant functor).  The structural
 * traits and the C++20 Contravariant concept in Section 0 let generic code
 * constrain and introspect without first naming a concrete instance.
@@ -202,7 +202,7 @@ using contravariant_value_type_t =
 
 // contramap
 //   function: the contravariant map.  Pre-composes _g : B -> A onto the
-// consumer _fa : F<A>, yielding F<B> -- the same context now consuming B by
+// consumer _fa : F<A>, yielding F<B> - the same context now consuming B by
 // first turning each B into an A.  The exact result type is whatever the
 // instance's contramap produces (F<B> for a concrete context), so it is
 // deduced rather than named.  Dispatched to contravariant_traits<F>::contramap

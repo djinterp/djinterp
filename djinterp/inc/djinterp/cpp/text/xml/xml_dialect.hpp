@@ -7,7 +7,7 @@
 * attributes for canonicalization, whether to allow XML 1.1 character
 * set, etc.) are exposed as `D_STATIC_CONSTEXPR` constants and
 * `static D_CONSTEXPR` functions whose values fold at compile time
-* when the template is instantiated -- zero runtime cost.
+* when the template is instantiated - zero runtime cost.
 *
 *   The enum `DXmlDialectFlag` is the canonical, greppable list of
 * every recognized XML profile. The template `DXmlDialect<Flag>`
@@ -212,7 +212,7 @@ NS_INTERNAL
 
     // xml_dialect_is_valid_element_name_helper
     //   function: per-dialect element-name validation. Handles
-    // the syntactic tier only -- schema validation is a separate
+    // the syntactic tier only - schema validation is a separate
     // concern. Walks the name iteratively rather than
     // recursively to keep stack usage bounded for large names.
     D_CONSTEXPR_INLINE

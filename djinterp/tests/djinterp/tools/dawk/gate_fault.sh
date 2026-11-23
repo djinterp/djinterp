@@ -1,5 +1,5 @@
 #!/bin/sh
-# gate_fault.sh -- proves the fixer's repair audit is load-bearing.
+# gate_fault.sh - proves the fixer's repair audit is load-bearing.
 #
 # The dawk leaf builds the checker twice with a deliberately wrong repair
 # compiled in (D_AUDIT_FAULT_CORRUPT): a trailing comment, as the sheets add

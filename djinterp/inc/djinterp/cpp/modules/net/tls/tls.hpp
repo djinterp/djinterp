@@ -3,7 +3,7 @@
 *
 * TLS for net.hpp: the SSL kernel's contexts and sessions as C++ classes.
 *   tls_context is a configuration of ssl.h's kernel, made live in an engine
-* -- the OpenSSL family's unless another is given -- by prepare(), by the
+* - the OpenSSL family's unless another is given - by prepare(), by the
 * first connection that needs it, or as soon as a use_* call completes it.
 * tls_connection is a net::connection running a kernel session over a
 * transport connection it owns, which adopt makes of any connection, one a
@@ -218,7 +218,7 @@ class tls_connection;
 // 1.2.1
 // tls_lease
 //   class: a share of a tls_context's live kernel context, for another
-// facade's sessions to use -- smtp.hpp's tls_options take one -- which
+// facade's sessions to use - smtp.hpp's tls_options take one - which
 // keeps that context alive for as long as the lease lives, whatever becomes
 // of the tls_context; copies share it. An empty lease holds nothing.
 class tls_context;
@@ -290,8 +290,8 @@ private:
 //   The use_* calls name PEM files, which the kernel loads when the context
 // is made live; a file that cannot be read is refused at once, and named
 // nowhere. All but use_certificate_file then make a complete context live
-// -- a client's, unless it has half an identity; a server's, once it has a
-// certificate and key -- so a file that does not load, a key that does not
+// - a client's, unless it has half an identity; a server's, once it has a
+// certificate and key - so a file that does not load, a key that does not
 // match, or any setting the kernel refuses is that call's error, with the
 // kernel's reason in failure(). A file refused so stays named, and connects
 // and accepts go on failing until one that loads takes its place.
@@ -424,7 +424,7 @@ public:
 
     // config
     //   function: the kernel configuration the context is made live from,
-    // for what no call here sets -- ALPN, pins, cipher strings, PEM held in
+    // for what no call here sets - ALPN, pins, cipher strings, PEM held in
     // memory, a key log. Strings it is given must last until the context is
     // next prepared; the files use_* name are kept here, and take the
     // place of any set through config(). Asking for the configuration to
@@ -502,7 +502,7 @@ public:
 
     // use_certificate_file
     //   function: presents the certificate chain of a PEM file, leaf first.
-    // It waits for its key -- the one named, or one to come -- and makes
+    // It waits for its key - the one named, or one to come - and makes
     // nothing live, so a certificate replaced before its key is not refused
     // for the key it no longer matches.
     D_NODISCARD io_error::value use_certificate_file(
@@ -980,9 +980,9 @@ public:
     }
 
     // info
-    //   function: what the session negotiated and learned -- the version,
+    //   function: what the session negotiated and learned - the version,
     // the cipher, ALPN's protocol, the verification flags, the peer's
-    // certificate fingerprint -- zeroed before the handshake.
+    // certificate fingerprint - zeroed before the handshake.
     D_NODISCARD ::dj_ssl_info info() const
     {
         ::dj_ssl_info out = ::dj_ssl_info();
@@ -1117,7 +1117,7 @@ private:
 //   class: a net::connector that connects the transport with its own
 // connector, then runs TLS over it as a client of its context, which
 // verifies by default: the server's chain against the system's trust
-// anchors, and the server's name -- the endpoint's host, or the name set --
+// anchors, and the server's name - the endpoint's host, or the name set --
 // against its certificate. The handshake runs at connect, so a certificate
 // or verification failure is the connect's error. Templated on the
 // transport connector (TCP by default).
@@ -1249,7 +1249,7 @@ public:
     }
 
 #if (D_MOVE_ENABLED == 1)
-    // connect -- the same, returning the result, which C++11 can move
+    // connect - the same, returning the result, which C++11 can move
     D_NODISCARD open_result
     connect(
         const endpoint& _endpoint
@@ -1290,7 +1290,7 @@ public:
     {}
 
 #if (D_MOVE_ENABLED == 1)
-    // tls_acceptor(tls_context&&) -- takes a configured context, which
+    // tls_acceptor(tls_context&&) - takes a configured context, which
     // C++11 can move in; below C++11 configure the acceptor's own through
     // context()
     explicit tls_acceptor(
@@ -1363,7 +1363,7 @@ public:
     }
 
 #if (D_MOVE_ENABLED == 1)
-    // accept -- the same, returning the result, which C++11 can move
+    // accept - the same, returning the result, which C++11 can move
     D_NODISCARD open_result
     accept()
     {

@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/container/map/min_enum_map/CMakeLists.txt
+# djinterp [test]  -  build/cmake/config/testing/djinterp/c/container/map/min_enum_map/CMakeLists.txt
 #
 #    Test leaf for container/map/min_enum_map.h, in DTest's C face: the runner
 # in this directory, the section translation units globbed from the tests tree,

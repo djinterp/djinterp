@@ -33,7 +33,7 @@ namespace dt = ::djinterp::test;
 /*
 tests_is_applicative_box_bridge
   Tests the following:
-  - is_applicative is true for the box<T> monad -- i.e. the monad bridge makes
+  - is_applicative is true for the box<T> monad - i.e. the monad bridge makes
     every monad an applicative with no per-type wiring.
 */
 static

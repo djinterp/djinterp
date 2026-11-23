@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][parsegen]                                           ruleset.hpp
 *
-*   The runtime grammar value -- the mutable twin of grammar<N, Σ, P, S>.  An
+*   The runtime grammar value - the mutable twin of grammar<N, Σ, P, S>.  An
 * ordered list of named rules; each rule a choice of alternatives; each
 * alternative a sequence of terms (literal, class, or rule reference), any term
 * optionally starred and/or capture-tagged.  The first rule is the start
@@ -50,7 +50,7 @@ struct term
 };
 
 // rule
-//   struct: a named production -- a choice of one or more alternatives, each a
+//   struct: a named production - a choice of one or more alternatives, each a
 // sequence of terms.
 struct rule
 {

@@ -20,8 +20,8 @@
 > the one vparse has, and section 11 is to be brought up to it. Sections 10
 > and 11 are bitwisedom's and vparse's; the rest is every program's.
 
-One grammar for every djinterp program -- `bitwisedom`, `vparse`, and the
-ones after them -- written so that the same command line means the same
+One grammar for every djinterp program - `bitwisedom`, `vparse`, and the
+ones after them - written so that the same command line means the same
 thing in sh, bash, zsh, fish, cmd.exe and PowerShell, on Linux, the BSDs,
 macOS and Windows. The argument parser (`parse/cli/arg_parser/`) reads it;
 the CLI kit beside this file (`parse/cli/`, the `d_cli_` library and its
@@ -32,7 +32,7 @@ It is built from three sources and departs from them only where they
 disagree with each other or with a shell:
 
 - POSIX.1-2017, XBD 12.1 and 12.2: the utility argument syntax and its
-  fourteen guidelines -- short options, `--`, `-` for a standard stream;
+  fourteen guidelines - short options, `--`, `-` for a standard stream;
 - the GNU coding standards: long options, `--help` and `--version`, the
   shape of a diagnostic, and the exit status of a program that answers a
   question (grep, diff, cmp);
@@ -53,8 +53,8 @@ program [global-option]... command [option | operand]... [-- operand...]
 - **R1.** A program does one thing per run, named by its **command**: a
   lowercase verb, `gen`, `check`, `run`. A command may have subcommands,
   one level deep and no more: `bitwisedom example list`.
-- **R2.** **Options may come anywhere after the program's name** -- before
-  the command, after it, between operands -- as GNU programs take them.
+- **R2.** **Options may come anywhere after the program's name** - before
+  the command, after it, between operands - as GNU programs take them.
   A global option (section 6) is accepted before the command or after it.
 - **R3.** **`--` ends the options.** Every argument after it is an operand,
   even one that starts with `-`. `--` itself is not an operand. The command
@@ -85,13 +85,13 @@ usage and the list of commands to standard error and exits 2. `PROGRAM
   added tomorrow. A name that does not exist is refused, and the nearest
   one that does is suggested.
 - **R6.** A **short name** is one ASCII letter, upper or lower case, and
-  never a digit -- so `-1`, `-0x10` and `-.5` are always words: negative
+  never a digit - so `-1`, `-0x10` and `-.5` are always words: negative
   numbers, as an operand or as the value of the option before them.
 - **R7.** An option's value is **required or absent, never optional** when
   written as a separate argument. An option whose value may be left out
   takes it only after `=`: `--color` means `--color=always`, and in
   `--color never` the word `never` is an operand. **`--name=` is the empty
-  value**, as getopt_long reads it -- `--note=` clears a note -- and never
+  value**, as getopt_long reads it - `--note=` clears a note - and never
   takes the argument after it.
 - **R8.** An option given twice, where it takes one value, **takes the
   last**: `--level=c99 --level=c11` is c11, as GNU programs do, so that a
@@ -110,17 +110,17 @@ usage and the list of commands to standard error and exits 2. `PROGRAM
   reads, standard output where it writes. A file whose name is `-` is
   written `./-`.
 - **R12.** An operand that starts with `-` follows `--`, or is written so
-  that it does not -- `./-file`.
+  that it does not - `./-file`.
 - **R13.** An operand that names something **other than a file** says so
   with a prefix and a colon, as git, docker and scp do: `example:uart_cr`
   is the built-in example named `uart_cr`. A prefix is two letters or more,
   so a Windows drive (`C:`) is never one; a file whose name is such a word
   is written `./example:x`.
 - **R14.** **Response files**, `@FILE`, are read only by a program that
-  says so in its help -- on every page of it, each command's page included
+  says so in its help - on every page of it, each command's page included
   *(changed 11-04: cli-taken 84)*: each argument in FILE is put in the
   `@FILE`'s place,
-  split as the platform's own tools split them -- the POSIX shell's quoting
+  split as the platform's own tools split them - the POSIX shell's quoting
   where GCC reads them, the C runtime's where cl reads them. PowerShell
   reads an unquoted `@` as splatting: there, write `'@FILE'`.
 
@@ -156,7 +156,7 @@ A-Z a-z 0-9   -   _   .   /   :   +   ,   and   =   after the first character
 ```
 
 Everything else is the user's to quote, and an argument that holds them --
-an expression, a macro's body, a grammar given inline -- is quoted, or read
+an expression, a macro's body, a grammar given inline - is quoted, or read
 from a file or from standard input instead. Every command that takes such
 text has a way to read it from a file or `-`.
 
@@ -240,17 +240,17 @@ which the program asks for. `--color=always` colours in every case,
 ## 7. The window
 
 A program with a window has it as a **plugin**: a module loaded only by
-`PROGRAM gui`, so the program itself carries none of it -- no window
-system, no GPU, no fonts -- and a system with no display can install the
+`PROGRAM gui`, so the program itself carries none of it - no window
+system, no GPU, no fonts - and a system with no display can install the
 program alone.
 
 - `PROGRAM gui [ARGUMENT]...` loads the module and gives it every argument
   after `gui`. The module reads them with the same parser and the same
   grammar, so `PROGRAM gui --help` is the window's own help, and an option
-  the window shares with a command -- a sheet to open, a grammar to run --
+  the window shares with a command - a sheet to open, a grammar to run --
   is spelled as the command spells it.
 - The module is `PROGRAM-gui` with the platform's suffix for a loadable
-  module -- `bitwisedom-gui.dll`, `bitwisedom-gui.so` -- and is looked for
+  module - `bitwisedom-gui.dll`, `bitwisedom-gui.so` - and is looked for
   in order: any directories the program is given to look in first, at run
   time; the directories in `PROGRAM_PLUGIN_PATH` (the program's name
   upper-cased, `-` as `_`), separated as `PATH` is, unless the build says
@@ -258,9 +258,9 @@ program alone.
   `D_CFG_CLI_PLUGIN_SEARCH`, which is by default the program's own
   directory, then `../lib/PROGRAM/` from it, where a POSIX installation
   puts it *(changed 11-04: cli-taken 14)*. A program file that carries a tag
-  after the program's name -- `bitwisedom-linux64`, `bitwisedom-win64.exe`,
+  after the program's name - `bitwisedom-linux64`, `bitwisedom-win64.exe`,
   as a build's `bin/` directory names them so that every platform's builds
-  can share it -- has its module carry the same tag,
+  can share it - has its module carry the same tag,
   `bitwisedom-gui-linux64.so`, and that name is looked for first in each
   directory.
 - A module belongs to one program at one version. One made for another
@@ -278,7 +278,7 @@ program alone.
 
 - **R17.** **Standard output holds the result and nothing else**: the
   header, the listing, the JSON. Everything said *about* the work --
-  errors, warnings, notes, progress -- goes to standard error.
+  errors, warnings, notes, progress - goes to standard error.
 - **R18.** Text is UTF-8, its lines ended by LF on every system. On a
   Windows console it is written through the console's own wide interface,
   so it reads correctly whatever the code page; redirected, it is UTF-8
@@ -290,7 +290,7 @@ program alone.
   into a temporary file beside it, then renamed over it. `-o -` writes
   standard output.
 - **R21.** A program never prompts, and never reads the terminal unless a
-  command reads standard input and none was redirected -- then it reads
+  command reads standard input and none was redirected - then it reads
   the terminal, as `cat` does.
 
 **Diagnostics** take the GNU shape:
@@ -323,11 +323,11 @@ Try 'bitwisedom gen --help' for more information.
 | 1 | **done, no**: it did what was asked, and the answer is no | a sheet with errors (the header still written, without them); an input the grammar refuses |
 | 2 | **trouble**: it could not do what was asked | an unknown option; a missing operand; a file that cannot be read or written; a sheet or a grammar that is not one; a plugin that is missing |
 
-Help and version are 0 -- when they were written: an output that refuses
+Help and version are 0 - when they were written: an output that refuses
 them, as a full disk does, is trouble, and said, as `cannot write standard
 output: REASON`. So is running out of memory, whatever was asked: the
 program says `out of memory`, and never what the want of memory made look
-true -- a command that is not there, a module not installed. A program
+true - a command that is not there, a module not installed. A program
 killed by a signal leaves the status the shell gives it, 128 and the
 signal's number; one that catches `SIGINT`
 to remove a temporary file raises it again afterwards, so the shell still
@@ -394,12 +394,12 @@ when           = "auto" / "always" / "never"
 ```
 
 The arguments then form a sequence, read left to right against the
-definitions of the command reached so far -- its options, and its parents'
+definitions of the command reached so far - its options, and its parents'
 global ones:
 
 - **R22.** `-` and a letter starts **short options**, read a letter at a
   time: a flag's letter is followed by the next letter or by nothing; the
-  letter of an option that takes a value is followed by its value -- the
+  letter of an option that takes a value is followed by its value - the
   rest of the argument, or, when nothing is left, the next argument whole.
 - **R23.** A long option that takes a value and has no `=VALUE` takes the
   next argument whole as its value, whatever it looks like: `--offset -3`,
@@ -407,7 +407,7 @@ global ones:
 - **R24.** A word that is not an option's value is the **next command**
   while the command reached so far has subcommands and none has been
   given, and otherwise the **next operand**. A word that is neither --
-  no such command, no room for another operand -- is a usage error, and the
+  no such command, no room for another operand - is a usage error, and the
   nearest command is suggested.
 - **R25.** After `--`, every argument is an operand (R3); `@FILE` and `/?`
   are read as themselves there.
@@ -419,8 +419,8 @@ global ones:
   name (R5), so none is ever taken for a setting.
 
   *(revised 11-23)* The argument parser offers each to the kit where it
-  reads an option -- the long option it does not know, before it tries an
-  abbreviation -- so the parser's own rules decide:
+  reads an option - the long option it does not know, before it tries an
+  abbreviation - so the parser's own rules decide:
   - **A setting in a response file** (`@FILE`) is taken, as if typed.
   - **An abbreviated option's value** (`--out --x.y`, `--out` short for
     `--output`) and **a multi-letter short option's** (`-ab --x.y`, where
@@ -456,7 +456,7 @@ A **SHEET** operand is any of the three shapes of JSON (`docs/bitwisedom/
 json.md`): a sheet file, a bitfield or an export; `-` for standard input;
 or `example:NAME` for a built-in example (R13). A **ROW** is a symbol's
 macro name (`UART_CR_EN`), its own name where only one row has it (`EN`),
-or a group's name -- the rule a sheet's expressions name rows by.
+or a group's name - the rule a sheet's expressions name rows by.
 
 ### Reading a sheet
 
@@ -464,11 +464,11 @@ or a group's name -- the rule a sheet's expressions name rows by.
 |---|---|---|
 | `gen SHEET` | writes the header: C or C++, macros or constants, at a language level | 1 when the sheet has errors (the header is written without them) |
 | `check SHEET...` | lists every issue of every sheet; writes nothing else | 1 when a sheet has errors |
-| `show SHEET` | every row as it resolves: macro name, bits, value, the integer C knows it by | -- |
+| `show SHEET` | every row as it resolves: macro name, bits, value, the integer C knows it by | - |
 | `decode SHEET VALUE...` | the symbols a value holds: each bit set, each field's value and the name it has | 1 when a value sets bits no symbol names |
 | `eval SHEET EXPRESSION...` | evaluates C expressions over the sheet's symbols, every way | 1 when an expression does not evaluate |
-| `convert SHEET` | writes the sheet in another shape: `--to sheet`, `bitfield` or `export` | -- |
-| `examples` | lists the built-in examples, by shelf | -- |
+| `convert SHEET` | writes the sheet in another shape: `--to sheet`, `bitfield` or `export` | - |
+| `examples` | lists the built-in examples, by shelf | - |
 
 `gen`'s options are `bitwisedom-gen`'s, unchanged:
 
@@ -497,11 +497,11 @@ or a group's name -- the rule a sheet's expressions name rows by.
 | `sort SHEET [KEY]` | each group's rows in the order KEY sorts them, made the order the header follows; by default, the order the window shows |
 | `set SHEET KEY=VALUE...` | settings: a KEY is a name the window's Options show (`gen.level`) or, for anything else a sheet file holds, its path in the file (`rows.0.name`, `generator.upper_hex`) |
 | `get SHEET [KEY]...` | settings, every one without a KEY; a path's value as the file holds it |
-| `op SHEET OPERATION [OPERAND]` | previews an operation -- a shift, a rotation, a byte swap, arithmetic -- over rows; `--apply` applies it |
+| `op SHEET OPERATION [OPERAND]` | previews an operation - a shift, a rotation, a byte swap, arithmetic - over rows; `--apply` applies it |
 
 `set` and `get` take `--keys=names`, `--keys=paths` or `--keys=both`: the
 names alone, the paths alone, or a name where a setting has it and a path
-otherwise -- the default, which the build chooses with
+otherwise - the default, which the build chooses with
 `D_CFG_BITWISEDOM_KEYS`. A path's value is written as the member it
 replaces is: a text as it is, a flag as `true` or `false`, a number, an
 array or an object as JSON; a value the sheet would not keep is refused
@@ -514,10 +514,10 @@ input is written to standard output; `-n, --dry-run` writes nothing and
 says what would change. Every issue the change brings is said, at the
 sheet. **A change that would give the sheet an error it does not have** --
 an expression naming a row that is gone, a value whose range is no longer
-one -- **is refused**, nothing written, and the command exits 2; `-f,
+one - **is refused**, nothing written, and the command exits 2; `-f,
 --force` writes it anyway. The window makes any change and shows its
-issues, since it can undo one; a command line cannot. A warning -- bits
-two rows share, a number its field cannot hold -- never stops a change.
+issues, since it can undo one; a command line cannot. A warning - bits
+two rows share, a number its field cannot hold - never stops a change.
 `op --apply` writes the sheet, which is its result; the table it previews
 goes to standard error then, with `-v` or `-n`.
 
@@ -540,8 +540,8 @@ and any of `--note=TEXT`, `--short=TEXT`, `--prefix=TEXT`,
 `none`), `--emit` or `--no-emit`, `--radix=WORD`, `--int-suffix=WORD`,
 `--digits=N`, and for a group or a range `--isolate`, `--name-children`
 and `--exclusive`, each with its `--no-` form; `add` takes `--in=GROUP`
-too. `change` given a part alone -- `--width`, `--number`, `--encoding`,
-`--bias`, `--params`, `--callable` -- changes that part of the definition
+too. `change` given a part alone - `--width`, `--number`, `--encoding`,
+`--bias`, `--params`, `--callable` - changes that part of the definition
 the row has, and keeps the rest of it; whatever it is not given, it keeps.
 An expression or a macro's body, which the shells would take apart, may be
 read from a file instead, or from `-`: `--expr-file=FILE`,
@@ -550,8 +550,8 @@ read from a file instead, or from `-`: `--expr-file=FILE`,
 ### The window
 
 `bitwisedom gui [SHEET]...` opens the window on the sheets named, or where
-it was left. A SHEET is read as the commands read one -- `example:NAME`, or
-a file the window opens, a header to import among them -- except `-`,
+it was left. A SHEET is read as the commands read one - `example:NAME`, or
+a file the window opens, a header to import among them - except `-`,
 since a window cannot read standard input. Every SHEET is handed to the
 window, which says in its status bar what it cannot open; each it cannot
 open is also said on standard error as the window starts, in the commands'
@@ -582,10 +582,10 @@ notation (`--peg`), or `-`. An **INPUT** is a file, `-`, or the text of
 |---|---|---|
 | `run GRAMMAR [INPUT]` | reads the grammar, builds its parser and runs it over the input; prints the result, and any part asked for with `--show=PART` | 1 when the input does not match |
 | `check GRAMMAR` | reads and builds the grammar; says which family it runs on, which table, and what the analysis found | 1 when it cannot be built |
-| `show GRAMMAR [INPUT] PART` | one part of a run: `summary`, `grammar`, `reading`, `rules`, `plan`, `program`, `matches`, `heat` or `trace`, as the workbench's tabs show them | -- |
+| `show GRAMMAR [INPUT] PART` | one part of a run: `summary`, `grammar`, `reading`, `rules`, `plan`, `program`, `matches`, `heat` or `trace`, as the workbench's tabs show them | - |
 | `diff RUN RUN` | two saved runs, part by part, as the workbench compares them | 1 when they differ |
-| `runs [DIR]` | the saved runs under DIR | -- |
-| `gui [ARGUMENT]...` | the workbench | -- |
+| `runs [DIR]` | the saved runs under DIR | - |
+| `gui [ARGUMENT]...` | the workbench | - |
 
 The options that choose the parser are the workbench's, spelled the same
 in `run`, `check`, `show` and `gui`: `--family=auto|peg|lr|earley`,

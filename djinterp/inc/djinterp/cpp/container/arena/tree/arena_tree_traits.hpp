@@ -127,7 +127,7 @@ NS_INTERNAL
 
     // arena_has_add_child
     //   trait: true if Type declares a payload_type and add_child(node_id,
-    // payload_type) can be called on it -- node_container_traits.hpp's
+    // payload_type) can be called on it - node_container_traits.hpp's
     // has_add_child_method, given an arena tree's arguments.
     template<typename Type,
              typename = void>

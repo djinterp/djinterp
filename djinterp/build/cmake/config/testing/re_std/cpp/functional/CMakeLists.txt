@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/re_std/cpp/functional/CMakeLists.txt
+# djinterp [test]  -  build/cmake/config/testing/re_std/cpp/functional/CMakeLists.txt
 #
 #   Test leaf for re_std/cpp/functional/function.hpp, in DTest's C face: the
 # runner in this directory, the section translation units globbed from the

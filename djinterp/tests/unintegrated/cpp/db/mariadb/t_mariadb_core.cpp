@@ -2,11 +2,11 @@
 * djinterp [cpp][db]                                          t_mariadb_core.cpp
 *
 *   core/db's MySQL-family connections, mariadb_connection and
-* mysql_connection, over the MariaDB layer, against a live server -- MariaDB
+* mysql_connection, over the MariaDB layer, against a live server - MariaDB
 * from 10.3 or MySQL from 5.7, through whichever client the layer is built
 * with. Each leaf runs the operations every vendor shares (t_db_core.hpp) and
-* the family's own members (mysql_common_connection's) -- the session's reset
-* and its tracked changes among them -- in a database of its own,
+* the family's own members (mysql_common_connection's) - the session's reset
+* and its tracked changes among them - in a database of its own,
 * database_table among them, and then its own configuration: MariaDB's
 * storage engine and Galera's causal reads, MySQL's TLS modes, connect
 * attributes, the settings it refuses and its query attributes; and its
@@ -23,7 +23,7 @@
 *   Build: compile the layer's C sources as C, src/djinterp/cpp/modules/db/
 * database.cpp, database_statement.cpp, mysql/mysql_common.cpp,
 * mariadb/mariadb.cpp and mysql/mysql.cpp and this file as C++17 or later,
-* and link them with the client -- scripts/ci/check_db_mariadb.sh does.
+* and link them with the client - scripts/ci/check_db_mariadb.sh does.
 *
 *
 * path:      /tests/unintegrated/cpp/db/mariadb/t_mariadb_core.cpp
@@ -40,8 +40,8 @@
 #endif  // _WIN32
 // WIN32_LEAN_AND_MEAN, NOMINMAX
 //   knobs (Windows'): <windows.h>, which <winsock2.h> and the clients' own
-// headers include, without its rarer headers -- rpcndr.h among them, which
-// makes `small` a macro -- and without its min and max macros.
+// headers include, without its rarer headers - rpcndr.h among them, which
+// makes `small` a macro - and without its min and max macros.
 #if defined(_WIN32)
     #if !defined(WIN32_LEAN_AND_MEAN)
         #define WIN32_LEAN_AND_MEAN 1
@@ -89,7 +89,7 @@ static_assert(db::has_async_operations<mariadb::mariadb_connection>::value);
 static_assert(db::has_async_operations<mysql::mysql_connection>::value);
 static_assert(!db::has_async_operations<int>::value);
 
-// the concepts (C++20) -- the family's, in mysql::concepts, which both
+// the concepts (C++20) - the family's, in mysql::concepts, which both
 // leaves satisfy, and each leaf's, in its own namespace's; and the former
 // names, which forward to their concepts for one release
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
@@ -291,7 +291,7 @@ static_assert(mysql::concepts::mysql_user_switchable<mysql::mysql_connection>);
 static_assert(mysql::concepts::mysql_full_connection<mysql::mysql_connection>);
 #endif
 
-// ER_* -- the server errors the checks compare with, as both servers number
+// ER_* - the server errors the checks compare with, as both servers number
 // them
 const int ER_ACCESS_DENIED           = 1045;
 const int ER_DUP_ENTRY               = 1062;
@@ -578,8 +578,8 @@ variable.
   Tests the following:
   - supports_reset_connection and supports_session_tracking: the layer's
     answers once connected, false before
-  - where the server and the client have the reset: a fresh session -- no
-    transaction, user variables gone -- with the database kept, the init
+  - where the server and the client have the reset: a fresh session - no
+    transaction, user variables gone - with the database kept, the init
     command run again, and the statements prepared before closed; where
     not, query_exception with D_DB_UNSUPPORTED, nothing changed
   - where they have tracking: a variable the session asks for, with its
@@ -771,8 +771,8 @@ d_tests_mariadb_core_lost
     connection_exception, 2013 or 2006, and leaves it in error, which a
     statement prepared on it meets too; reconnect opens it again
   - the largest packet the client takes, max_packet_size: a prepared
-    statement's values past it, which libmysqlclient refuses -- a
-    query_exception, 2020, the connection kept -- and Connector/C sends; a
+    statement's values past it, which libmysqlclient refuses - a
+    query_exception, 2020, the connection kept - and Connector/C sends; a
     row past it, which loses the connection: connection_exception, 2020 or
     2013, the connection in error; connection_config's 16 MiB reads 2 MiB
 */
@@ -887,7 +887,7 @@ d_tests_mariadb_core_leaf_mariadb
   - the default storage engine set within the connect; one the server lacks
     leaves the connection unopened, connection_exception, as does a name no
     identifier, refused before connecting (D_DB_INVALID_ARGUMENT)
-  - the same through connect_async, which waits for none of it -- without
+  - the same through connect_async, which waits for none of it - without
     TLS where the client cannot carry it so; a character set other than the
     layer's, carried by the handshake, the session's with both connects and
     every pairing
@@ -1030,7 +1030,7 @@ void d_tests_mariadb_core_leaf_mysql(
     std::unique_ptr<db::buffered_result_set> cipher = plain.execute_query(
         "SHOW SESSION STATUS LIKE 'Ssl_cipher'");
 
-    // without TLS -- which MariaDB's client, with no switch for DISABLED,
+    // without TLS - which MariaDB's client, with no switch for DISABLED,
     // uses unasked from its 3.4
     D_TESTS_DB_CORE_CHECK(cipher->next());
     D_TESTS_DB_CORE_CHECK( ( (db::face::mariadb::client_is_mariadb()) &&
@@ -1674,7 +1674,7 @@ void d_tests_mariadb_core_mariadb_table(
 d_tests_mariadb_core_tls_refused
   Where the client cannot carry TLS without blocking.
   Tests the following:
-  - connect_async that would ask for TLS -- the layer's default -- throws
+  - connect_async that would ask for TLS - the layer's default - throws
     connection_exception with D_DB_UNSUPPORTED, the connection in error;
     told not to use TLS, it connects
   - over a connection under TLS, an operation throws query_exception with

@@ -76,7 +76,7 @@
 TABLE OF CONTENTS
 =================
 
-      PART I  -- TRAITS
+      PART I  - TRAITS
 
 I.    core structural detection          (is_set_like)
       ------------------------------------------------
@@ -108,9 +108,9 @@ IX.   DSetClass aggregate snapshot
 X.    type extractors
       ---------------
 
-      PART II -- CONCEPTS (C++20)
+      PART II - CONCEPTS (C++20)
 
-      PART III -- CONTAINERS
+      PART III - CONTAINERS
 
       set / multiset / unordered_set / unordered_multiset
 */
@@ -150,7 +150,7 @@ NS_DJINTERP
 
 
 // ###########################################################################
-// ##  PART I  --  TRAITS                                                    ##
+// ##  PART I  -  TRAITS                                                    ##
 // ###########################################################################
 
 
@@ -175,7 +175,7 @@ struct is_set_like : std::false_type
 {};
 
 // is_set_like specialization
-//   helper: the detected case -- selected when the type exposes the members
+//   helper: the detected case - selected when the type exposes the members
 // `key_type`, `value_type`, `begin()` and `end()`.
 template<typename Type>
 struct is_set_like<Type, D_VOID_T<
@@ -693,7 +693,7 @@ D_TYPE_TRAIT_MEMBER_TYPE_OR(set_hasher_of, hasher, void)
 
 
 // ###########################################################################
-// ##  PART II  --  CONCEPTS  (C++20)                                        ##
+// ##  PART II  -  CONCEPTS  (C++20)                                        ##
 // ###########################################################################
 //   The concept faces of the Part I traits.  Named in PascalCase after their
 // trait (leading is_/has_ dropped), per the framework's concept-naming
@@ -887,7 +887,7 @@ concept ClassifiedSet = DSetClass<Type>::is_set;
 
 
 // ###########################################################################
-// ##  PART III  --  CONTAINERS                                              ##
+// ##  PART III  -  CONTAINERS                                              ##
 // ###########################################################################
 //   The four concrete sets.  Each delegates to the corresponding standard
 // container and re-exposes the surface the classifier reads: the member types,
@@ -900,7 +900,7 @@ concept ClassifiedSet = DSetClass<Type>::is_set;
 
 
 // ===========================================================================
-// I.   set  --  monotone unique
+// I.   set  -  monotone unique
 // ===========================================================================
 
 // DSet
@@ -1090,7 +1090,7 @@ using set = DSet<Key, Compare, Allocator>;
 
 
 // ===========================================================================
-// II.  multiset  --  monotone multi
+// II.  multiset  -  monotone multi
 // ===========================================================================
 
 // DMultiset
@@ -1266,7 +1266,7 @@ using multiset = DMultiset<Key, Compare, Allocator>;
 
 
 // ===========================================================================
-// III. unordered_set  --  hashed unique
+// III. unordered_set  -  hashed unique
 // ===========================================================================
 
 // DUnorderedSet
@@ -1443,7 +1443,7 @@ using unordered_set = DUnorderedSet<Key, Hash, KeyEqual, Allocator>;
 
 
 // ===========================================================================
-// IV.  unordered_multiset  --  hashed multi
+// IV.  unordered_multiset  -  hashed multi
 // ===========================================================================
 
 // DUnorderedMultiset

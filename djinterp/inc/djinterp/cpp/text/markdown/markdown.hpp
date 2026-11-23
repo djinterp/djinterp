@@ -6,7 +6,7 @@
 * (paragraphs, headings, code blocks, lists, blockquotes, tables,
 * etc.), which contain *inlines* (text, emphasis, links, images,
 * code spans, etc.) and/or other blocks. The structure is
-* deliberately distinct from `xml.hpp` / `html.hpp` -- markdown is
+* deliberately distinct from `xml.hpp` / `html.hpp` - markdown is
 * not a tagged-element format, so inheriting from the XML facades
 * would conflate two different content models.
 *

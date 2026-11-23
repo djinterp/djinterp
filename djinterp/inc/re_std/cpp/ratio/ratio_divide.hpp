@@ -6,7 +6,7 @@
 *
 *   Implemented as R1 multiplied by R2 inverted, which inherits
 * ratio_multiply's cross-reduction and therefore its overflow
-* behaviour -- there is no second algorithm to get wrong.
+* behaviour - there is no second algorithm to get wrong.
 *
 *   Inverting R2 puts its numerator in a denominator position, so a
 * zero-numerator divisor becomes a zero denominator and is caught by

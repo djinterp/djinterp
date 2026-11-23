@@ -16,7 +16,7 @@
 *       a run's minimum is a reduction, so each worker takes a chunk, reports
 *       its chunk's winner, and one comparison per chunk settles the overall
 *       winner.  That is why the search is a separate published primitive with
-*       its own range rather than an inner loop of the pass -- it is the piece
+*       its own range rather than an inner loop of the pass - it is the piece
 *       that partitions.
 *
 *   WHY THIS ALGORITHM EXISTS: MINIMAL WRITES.  Selection sort always performs
@@ -24,8 +24,8 @@
 * What it buys is exchanges: at most n-1 of them, one per position, regardless
 * of how disordered the input is.  Bubble and insertion move an element k
 * places by touching k slots; selection moves it in one exchange no matter how
-* far it travels.  When elements are large and comparison is cheap -- and only
-* then -- that trade is worth making.
+* far it travels.  When elements are large and comparison is cheap - and only
+* then - that trade is worth making.
 *
 *   THIS FAMILY IS NOT STABLE, AND THAT CHANGES WHAT AGREEMENT COSTS.
 * Exchanging the winner into position i evicts whatever was at i to the
@@ -46,7 +46,7 @@
 * language.  Relaxing (2) to "precedes or equals" is a one-character change
 * that still sorts correctly and produces a different array.
 *
-*   If a caller needs stability, the fix is not to patch this algorithm -- a
+*   If a caller needs stability, the fix is not to patch this algorithm - a
 * stable selection sort must rotate the run rather than exchange, which spends
 * the O(n) writes that were the entire reason to choose it.  Use insertion
 * sort, which is stable and faster besides.
@@ -83,16 +83,16 @@ D_EXTERN_C_BEGIN
 // I.     properties
 
 // D_SELECTION_SORT_IS_STABLE
-//   macro: 0 -- exchanging the winner into place evicts the element that was
+//   macro: 0 - exchanging the winner into place evicts the element that was
 // there to an arbitrary slot, past any number of elements equal to it.
 #define D_SELECTION_SORT_IS_STABLE     0
 
 // D_SELECTION_SORT_IS_IN_PLACE
-//   macro: 1 -- O(1) auxiliary storage, none of it allocated.
+//   macro: 1 - O(1) auxiliary storage, none of it allocated.
 #define D_SELECTION_SORT_IS_IN_PLACE   1
 
 // D_SELECTION_SORT_IS_ADAPTIVE
-//   macro: 0 -- the scan must see every remaining element to know the run's
+//   macro: 0 - the scan must see every remaining element to know the run's
 // minimum, so ordered input costs exactly what reversed input costs.
 #define D_SELECTION_SORT_IS_ADAPTIVE   0
 

@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                        file_tests_open.c
 *
-*   II. Streams (file_open) -- opening, reopening, and closing FILE* streams.
+*   II. Streams (file_open) - opening, reopening, and closing FILE* streams.
 * Success paths exercise the standard fixture and staged siblings; the Annex K
 * forms are checked for their clear-the-out-parameter-first contract and their
 * errno-style returns; and d_file_open_stream_fd's descriptor-adoption path is exercised
@@ -424,7 +424,7 @@ void d_fs_tests_open(
  *****************************************************************************/
 
 /******************************************************************************
- * II.  file_open  --  STREAM LIFECYCLE
+ * II.  file_open  -  STREAM LIFECYCLE
  *****************************************************************************/
 
 /*

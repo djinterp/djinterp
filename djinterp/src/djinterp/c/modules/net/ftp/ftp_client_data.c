@@ -313,7 +313,7 @@ bool d_ftp_internal_client_endpoint(
 /*
 d_ftp_internal_client_listen
   File-local: listens on an ephemeral port of the control connection's own
-local address -- the one the server already reaches -- and reports where,
+local address - the one the server already reaches - and reports where,
 as EPRT and PORT will name it.
 */
 D_STATIC enum dj_ftp_error
@@ -521,7 +521,7 @@ d_ftp_internal_client_accept(
 /*
 d_ftp_internal_client_request
   File-local: sends a transfer command and reads its first reply, which
-must be preliminary -- 125 or 150, the data connection opening. A final
+must be preliminary - 125 or 150, the data connection opening. A final
 reply here refuses the transfer.
 */
 D_STATIC enum dj_ftp_error
@@ -743,7 +743,7 @@ d_ftp_internal_client_flush(
 /*
 d_ftp_internal_client_receive
   File-local: reads the data connection to its end. A plain stream ends when
-the server closes it; a TLS stream only at close_notify -- one that simply
+the server closes it; a TLS stream only at close_notify - one that simply
 stops was cut short, and is a TLS failure rather than a complete file.
 */
 D_STATIC enum dj_ftp_error
@@ -986,8 +986,8 @@ then the server's in reply, before the connection closes. Servers such as
 vsftpd answer close_notify with their own and count a connection gone
 before theirs is written as a failed transfer. Once this end's close_notify
 is on the wire the upload is complete, and the server's final reply is the
-verdict, so however the wait ends -- close_notify, the end of the stream,
-or a failure -- is no error; anything else the server sends is discarded,
+verdict, so however the wait ends - close_notify, the end of the stream,
+or a failure - is no error; anything else the server sends is discarded,
 up to one chunk.
 */
 D_STATIC enum dj_ftp_error

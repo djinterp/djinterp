@@ -8,7 +8,7 @@
 * carries none of it (GRAMMAR.md, section 7).
 *   `bitwisedom-gen` is one command's program: gen's options, the sheet as
 * an operand or by --example, and the two jobs it always had beside the
-* header -- listing the examples and saving one -- as the options it always
+* header - listing the examples and saving one - as the options it always
 * spelled them with. Its work is gen's, so the two cannot drift apart.
 *
 *
@@ -62,7 +62,7 @@ struct front_request
 
 /*
 front_job
-  Which of its jobs bitwisedom-gen was given -- one, or a usage error, said:
+  Which of its jobs bitwisedom-gen was given - one, or a usage error, said:
 the examples listed, 0; one saved, 1; a sheet's header, 2.
 */
 int front_job(
@@ -107,7 +107,7 @@ int front_job(
 /*
 run_front
   bitwisedom-gen's work: the examples listed, one saved, or gen's work on
-the sheet or the example named -- exactly one of those, as it always
+the sheet or the example named - exactly one of those, as it always
 required.
 */
 int run_front(

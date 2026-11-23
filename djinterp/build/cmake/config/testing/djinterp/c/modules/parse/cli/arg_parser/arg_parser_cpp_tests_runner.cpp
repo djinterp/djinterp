@@ -9,7 +9,7 @@
 * language level, exceptions or a configuration knob leave a suite is
 * decided where the sections are, so the count printed here differs by
 * level and by configuration, by design. Each result is flushed as it is
-* printed, so that a section that crashes -- under a sanitizer, say -- is
+* printed, so that a section that crashes - under a sanitizer, say - is
 * the one after the last result shown.
 *
 *
@@ -40,7 +40,7 @@ namespace
 {
 
 // suite
-//   struct: one suite -- its table, and where its length is kept. The length
+//   struct: one suite - its table, and where its length is kept. The length
 // is another translation unit's constant, so it is reached by address.
 struct suite
 {
@@ -52,7 +52,7 @@ struct suite
 //   constant: every C++ suite this build has, in the order they run: each
 // part of the face after the parts it builds on, then the functions the C
 // library calls back, then CLI11's examples end to end. A suite of a part a
-// knob leaves out, or below its language level -- the examples are C++11 --
+// knob leaves out, or below its language level - the examples are C++11 --
 // is not compiled, and is not here.
 const suite SUITES[] =
 {

@@ -370,7 +370,7 @@ NS_INTERNAL
 
     // DFanout3Helper
     //   helper: ternary fan-out. Wider arities can be obtained by
-    // nesting fanout2 / fanout3 -- the resulting tuples will nest
+    // nesting fanout2 / fanout3 - the resulting tuples will nest
     // accordingly. We provide explicit 2- and 3-arg shapes so that
     // the common cases don't pay the metaprogramming cost of a
     // fully variadic implementation.

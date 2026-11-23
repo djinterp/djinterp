@@ -1,10 +1,10 @@
 /*******************************************************************************
 * djinterp [c][event]                                    event_registry_common.h
 *
-* The registry and its folds -- the shared C core (tier 0):
+* The registry and its folds - the shared C core (tier 0):
 *   The subscription layer: a registry rho is a table read as a family of
 * words indexed by kappa. This header declares the two folds the note
-* defines -- dispatch (the inner fold of seq over the masked word, for one
+* defines - dispatch (the inner fold of seq over the masked word, for one
 * occurrence) and run (the outer fold of dispatch over a homogeneous trace) --
 * together with their enriched results and the staging operation that
 * evaluates a static word once into a single closed step.
@@ -15,20 +15,20 @@
 * leave only one thing that could break it.
 *
 * FORMAL CORRESPONDENCE ("Definition of an Event"):
-*   registry  rho in prod_e H_e*  -- struct dj_event_registry
-*   dispatch  delta_rho           -- d_event_registry_dispatch: the inner fold
+*   registry  rho in prod_e H_e*  - struct dj_event_registry
+*   dispatch  delta_rho           - d_event_registry_dispatch: the inner fold
 *                                    of seq over mask_m(rho_e)
-*   run       run_rho             -- d_event_registry_run: the outer fold over
+*   run       run_rho             - d_event_registry_run: the outer fold over
 *                                    a trace
-*   enriched dispatch (count, P)  -- struct dj_dispatch_result
-*   merge     rho (+) rho'        -- d_event_registry_merge
-*   staging   hat-h, once         -- d_event_registry_compile -> dj_event_word
+*   enriched dispatch (count, P)  - struct dj_dispatch_result
+*   merge     rho (+) rho'        - d_event_registry_merge
+*   staging   hat-h, once         - d_event_registry_compile -> dj_event_word
 *
 * SNAPSHOT SEMANTICS:
 *   dispatch folds the word in force AT THE START of the occurrence. A handler
 * that binds or unbinds during its own dispatch does not change the word being
 * folded; the edit is visible to the next occurrence. compile() takes the
-* snapshot earlier still -- at compile time -- so a dj_event_word is unaffected
+* snapshot earlier still - at compile time - so a dj_event_word is unaffected
 * by every later registry edit. Binding time is the whole difference between
 * the two paths, and it is the reason drive() and run() are separate calls.
 *
@@ -57,7 +57,7 @@
 #include "../../../re_std/c/cstdint/dstdint.h"  // int32_t, uint32_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -72,7 +72,7 @@ D_EXTERN_C_BEGIN
 ///////////////////////////////////////////////////////////////////////////////
 
 // dj_dispatch_result
-//   struct: the result of dispatching one occurrence -- the pair
+//   struct: the result of dispatching one occurrence - the pair
 // (count, final verdict). Evaluating dispatch in the product with (N, +)
 // counts the letters actually invoked; `outcome` is the verdict of the folded
 // word. `outcome` is int32_t carrying a pinned D_VERDICT_* code, not an enum,
@@ -95,8 +95,8 @@ struct dj_run_result
 
 // dj_drive_result
 //   struct: the aggregate of driving a trace through a fused word. The fused
-// path is deliberately NOT instrumented per handler -- that is the erased
-// path's role -- so only occurrence and consume counts are reported.
+// path is deliberately NOT instrumented per handler - that is the erased
+// path's role - so only occurrence and consume counts are reported.
 struct dj_drive_result
 {
     size_t occurrences;
@@ -115,7 +115,7 @@ bool d_dispatch_result_consumed(
 }
 
 // d_dispatch_result_empty
-//   function: the result of dispatching against an empty word -- zero
+//   function: the result of dispatching against an empty word - zero
 // invocations, verdict pass. This is what dispatch returns for a key with no
 // handlers, and it is NOT an error: an alphabet summand with no subscribers
 // is a well-formed state.
@@ -234,7 +234,7 @@ int d_event_registry_merge(
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///        IV.   DISPATCH -- the inner fold                                 ///
+///        IV.   DISPATCH - the inner fold                                 ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // d_event_registry_dispatch
@@ -262,14 +262,14 @@ struct dj_dispatch_result d_event_registry_dispatch_occurrence(
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///        V.    RUN -- the outer fold                                      ///
+///        V.    RUN - the outer fold                                      ///
 ///////////////////////////////////////////////////////////////////////////////
 
 #if (D_INTERNAL_EVENT_REGISTRY_RUN == 1)
 
 // d_event_registry_run
 //   function: folds dispatch over a homogeneous trace of `_key` occurrences.
-// The trace is a contiguous array of payload blocks -- `_first` is the base,
+// The trace is a contiguous array of payload blocks - `_first` is the base,
 // `_stride` the distance between consecutive blocks, `_count` their number --
 // which is the C spelling of the C++ [first, last) iterator pair.
 //   Each block is dispatched IN PLACE, so a handler taking a mutable payload
@@ -292,7 +292,7 @@ struct dj_run_result d_event_registry_run(
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///        VI.   STAGING -- the fused word                                  ///
+///        VI.   STAGING - the fused word                                  ///
 ///////////////////////////////////////////////////////////////////////////////
 
 #if (D_INTERNAL_EVENT_REGISTRY_STAGING == 1)
@@ -325,7 +325,7 @@ struct dj_event_word
 // caller-provided step storage. No allocation.
 //   `_steps` must hold `_capacity` steps. If the word is longer than
 // `_capacity` the snapshot is TRUNCATED and D_EVENT_ERR_CAPACITY is returned
-// with `_word_out` holding the prefix that fitted -- a truncated word is a
+// with `_word_out` holding the prefix that fitted - a truncated word is a
 // different word, so this is a mechanical failure the caller must not ignore.
 // returns: D_EVENT_OK, D_EVENT_ERR_NULL, or D_EVENT_ERR_CAPACITY.
 int d_event_registry_compile_into(
@@ -378,10 +378,10 @@ int32_t d_event_word_run_one(
 
 // d_event_word_drive
 //   function: runs a homogeneous trace through the fused word as a single
-// loop -- the fused path's outer fold. Trace arguments as for
+// loop - the fused path's outer fold. Trace arguments as for
 // d_event_registry_run.
 //
-//   COHERENCE LAW: for a registry rho held fixed -- no bind, unbind, enable,
+//   COHERENCE LAW: for a registry rho held fixed - no bind, unbind, enable,
 // or disable between the snapshot and the runs --
 //
 //       d_event_registry_compile(&rho, k, &w);

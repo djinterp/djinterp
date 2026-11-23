@@ -96,9 +96,9 @@ NS_MATH
 //==============================================================================
 // 1.  DETECTION TRAITS
 //==============================================================================
-// Each detects by sizeof -- an expression's substitution succeeds or the
+// Each detects by sizeof - an expression's substitution succeeds or the
 // overload drops (expression SFINAE, which GCC and Clang apply at every
-// level) -- so a trait has one answer at every level.
+// level) - so a trait has one answer at every level.
 
 
 // 1.1    The structural flags

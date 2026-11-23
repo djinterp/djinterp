@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  functor_tests_protocol.cpp
-//   Section I -- functor_traits, is_functor (+ _v), and the deliberate absence
+//   Section I - functor_traits, is_functor (+ _v), and the deliberate absence
 //   of rebind from the core protocol.
 
 // std
@@ -49,7 +49,7 @@ bool tests_is_functor_positive()
 
 /*
 tests_is_functor_negative
-  Everything else is refused -- including a bare lambda, which is a mapping
+  Everything else is refused - including a bare lambda, which is a mapping
   FUNCTION, not a context to map over.
   Tests the following:
   - an unrelated struct, scalars, and a raw callable are not functors
@@ -111,7 +111,7 @@ bool tests_is_functor_requires_marker()
 
     ok = ok && (!is_functor<no_marker>::value);
 
-    // it really does have a functor_traits, and a map -- only the marker is
+    // it really does have a functor_traits, and a map - only the marker is
     // missing.
     ok = ok && (is_complete<functor_traits<no_marker> >::value);
     ok = ok && (functor_traits<no_marker>::map(no_marker(), dbl()) == 0);
@@ -240,7 +240,7 @@ bool tests_rebind_is_not_core_protocol()
     static_assert(has_rebind<functor_traits<DTbox<int> > >::value,
                   "and so does the other one");
 
-    // the view cannot -- and does not.
+    // the view cannot - and does not.
     static_assert(!has_rebind<functor_traits<DLazyView<int, dbl> > >::value,
                   "a view names no rebind");
 

@@ -5,7 +5,7 @@
 *   Three numbers, and the middle one is a trap. `free` is every unallocated
 * byte on the filesystem; `available` is what THIS user may actually claim.
 * They differ by the root reserve (ext4 keeps 5% back by default), by quotas,
-* and by whatever an overlay or container decides -- and the gap is not small.
+* and by whatever an overlay or container decides - and the gap is not small.
 * On the machine this module was written on: free 249 GiB, available 10 GiB.
 * A 24x difference. Deciding "will this write fit" from `free` is how a program
 * confidently runs out of disk.
@@ -13,8 +13,8 @@
 *   Two widths, as everywhere in filesys (file_common.h), with one difference
 * the others do not have: the 32-bit twin counts KiB, not bytes, because 32
 * bits of bytes stop at 4 GiB and a disk that small is rare, where 32 bits of
-* KiB reach 4 TiB. The fields are renamed to match -- capacity_kib, free_kib,
-* available_kib -- so code written for one unit fails to compile against the
+* KiB reach 4 TiB. The fields are renamed to match - capacity_kib, free_kib,
+* available_kib - so code written for one unit fails to compile against the
 * other rather than reading the wrong number.
 *
 *
@@ -63,7 +63,7 @@ D_EXTERN_C_BEGIN
 // 1.1.1
 // dj_space64_t
 //   struct: the capacity of the filesystem holding some path. Byte counts,
-// not blocks -- a caller should not have to know what f_frsize is to use
+// not blocks - a caller should not have to know what f_frsize is to use
 // this. The field order and meaning match std::filesystem::space_info
 // deliberately, so the C++ layer is a copy rather than a translation.
 #if D_FILE_64_IS_AVAILABLE
@@ -99,7 +99,7 @@ struct dj_space32_t
  * @brief Reports the capacity of the filesystem holding a path.
  *
  * @note The answer describes the whole filesystem, not the path. Unless the
- *       caller is root, `available` -- not `free` -- says whether a write
+ *       caller is root, `available` - not `free` - says whether a write
  *       will fit.
  * @note On Windows, whose call takes only a directory, a file is measured by
  *       the directory that holds it: the same volume.
@@ -139,7 +139,7 @@ int d_file_space32(
 //------------------------------------------------------------------------------
 // dj_space_t
 //   alias: the struct tag of the capacity twin at D_FILE_WIDTH (file_common.h,
-// 3.2) -- bytes at 64, KiB at 32, under the field names that say which;
+// 3.2) - bytes at 64, KiB at 32, under the field names that say which;
 // d_file_space after it is the same alias for the call.
 #if (D_FILE_WIDTH == 64)
     #define dj_space_t    dj_space64_t

@@ -496,7 +496,7 @@ bool tests_sequential_layout_cv_ref();
 bool tests_sequential_layout_companions();
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // ordered_container_traits_spec
 //   function: the suite as DTest's module spec, one block per section.

@@ -324,7 +324,7 @@ using DContainerOptLockPolicy = option<DContainerAxis::lock_policy, Policy>;
 
 //   container_axis::element_type and container_axis::extent are the two keys
 // of a container whose element type and capacity are options rather than
-// template parameters -- array<>, whose module spells them array_type_key and
+// template parameters - array<>, whose module spells them array_type_key and
 // array_extent_key and wraps them as array_opt_type<T> (the value position is
 // the element type) and DArrayOptExtent<N> (an integral_constant<size_t, N>).
 // They are container_axis enumerators, not keys of an array-local enum,

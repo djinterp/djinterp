@@ -6,9 +6,9 @@
 # djinterp/cpp/util/sort, so they share this single CMakeLists rather than
 # each carrying its own.
 #
-#   Every suite follows the leaf recipe of section 6.1 -- runner listed
+#   Every suite follows the leaf recipe of section 6.1 - runner listed
 # explicitly from THIS directory (it lives in the config tree), section TUs
-# globbed from the tests tree -- and takes the same two INCLUDES:
+# globbed from the tests tree - and takes the same two INCLUDES:
 #
 #     inc/djinterp/cpp/util/sort   so the section TUs' bare
 #                                   #include "bubble_sort.hpp" resolves
@@ -33,8 +33,8 @@ set(_inc_dir   "${DJINTERP_INC_ROOT}/djinterp/cpp/util/sort")
 # djinterp_add_sort_suite
 #   macro: one leaf recipe, twelve times.  <_name> is the suite stem, e.g.
 # bubble_sort_tests.  Each suite's runner lives in its OWN leaf folder named
-# after the stem without the _tests suffix -- bubble_sort_tests -> bubble_sort/
-# bubble_sort_tests_runner.cpp -- matching the per-component layout the rest of
+# after the stem without the _tests suffix - bubble_sort_tests -> bubble_sort/
+# bubble_sort_tests_runner.cpp - matching the per-component layout the rest of
 # the tree uses; the section TUs are still <_name>_*.cpp under the (flat) tests
 # tree.  The runners include their suite header bare (INCLUDES carries the tests
 # dir), so sitting a directory deeper does not affect include resolution.

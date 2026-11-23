@@ -3,7 +3,7 @@
 *
 *   The tar reader on archives its writer would not make, built here record by
 * record: GNU long names, pax global headers, pax size records, typeflags it
-* does not know, and damage -- a malformed record, a bad checksum, a cut.
+* does not know, and damage - a malformed record, a bad checksum, a cut.
 * Every archive is read three ways, measure, extract and find, which share
 * one walk.
 *

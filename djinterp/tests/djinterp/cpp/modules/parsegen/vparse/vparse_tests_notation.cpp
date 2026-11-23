@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][parsegen]                             vparse_tests_notation.cpp
 *
-* vparse tests: the metacircular notation -- the anchor reached through text,
+* vparse tests: the metacircular notation - the anchor reached through text,
 * alternation, '+' with a character literal, and a grammar too long to read
 * under a machine's default step limit.
 *

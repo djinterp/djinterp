@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/text/
+# djinterp [test]  -  build/cmake/config/testing/djinterp/c/text/
 #                      text_lineup/CMakeLists.txt
 #
 #   Test leaf for text_lineup.h's suite, in DTest's C face (the module was

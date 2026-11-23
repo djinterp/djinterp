@@ -7,14 +7,14 @@
 *
 *   THE REPRESENTATION WIDTHS ARE MINIMA THE STANDARD FIXES, NOT CHOICES:
 *   [time.syn] requires each typedef's rep to hold at least a stated
-* range -- nanoseconds must reach +/-292 years, hours +/-40000 years, and
+* range - nanoseconds must reach +/-292 years, hours +/-40000 years, and
 * so on. Those minima are what make the family interconvertible without
 * surprises. re_std uses int_least64_t and int_least32_t rather than
 * int64_t / int32_t so the typedefs still exist on a target without
 * exact-width types, where the exact-width names are not declared at all.
 *
 *   MONTHS AND YEARS ARE AVERAGES, AND THAT IS NOT A BUG:
-*   years is 365.2425 days -- the mean Gregorian year -- expressed as the
+*   years is 365.2425 days - the mean Gregorian year - expressed as the
 * exact ratio 31556952/1. months is exactly years/12, or 2629746 seconds.
 * Neither is a calendar month or a calendar year, and neither knows about
 * leap days:
@@ -29,13 +29,13 @@
 *
 *   WHY days AND weeks ARE EXACT WHERE months AND years ARE NOT:
 *   A day is defined as exactly 86400 seconds, which sidesteps leap
-* seconds by not modelling them at all -- the standard's own decision.
+* seconds by not modelling them at all - the standard's own decision.
 * Months and years cannot be exact at any fixed length, so an average was
 * chosen instead.
 *
 *   BACK-PORT: std added days / weeks / months / years in C++20. re_std
 * provides all four from C++11, since each is a ratio typedef and needs
-* nothing C++20 supplies -- a nine-year lead.
+* nothing C++20 supplies - a nine-year lead.
 *
 *
 * path:      /inc/re_std/cpp/chrono/duration_typedefs.hpp
@@ -92,7 +92,7 @@ namespace chrono
 
     // days
     //   typedef: exactly 86400 seconds. C++20, back-ported. Not a
-    // calendar day -- leap seconds are not modelled.
+    // calendar day - leap seconds are not modelled.
     typedef duration<int_least32_t, ratio<86400> >          days;
 
     // weeks
@@ -100,7 +100,7 @@ namespace chrono
     typedef duration<int_least32_t, ratio<604800> >         weeks;
 
     // months
-    //   typedef: the AVERAGE Gregorian month, 2629746 seconds -- exactly
+    //   typedef: the AVERAGE Gregorian month, 2629746 seconds - exactly
     // years/12. C++20, back-ported. See the header comment before using
     // this for date arithmetic.
     typedef duration<int_least32_t, ratio<2629746> >        months;

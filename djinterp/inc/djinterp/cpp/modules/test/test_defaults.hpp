@@ -855,7 +855,7 @@ test_status status_for(
 //   helper: appends an assertion-level basic_test to the handler's
 // internal sink AND advances the handler's counters via
 // test_handler::record.  One source of truth for the "did this
-// assertion pass?" signal -- both the printed leaf and the counter
+// assertion pass?" signal - both the printed leaf and the counter
 // tally come from the same expression.
 template<typename Handler>
 inline
@@ -932,7 +932,7 @@ struct DUnitTestTally
 // the tally.
 //
 //   The functor runs ALL its `record_assertion` calls into the
-// same handler -- which in turn pushes each leaf into the
+// same handler - which in turn pushes each leaf into the
 // handler's sink.  Together they mirror the C-side framework's
 // "Total Unit Tests / Total Assertions" split: each assertion
 // is a leaf row, the wrapper adds a single roll-up leaf per

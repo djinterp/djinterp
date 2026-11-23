@@ -1,10 +1,10 @@
 /*******************************************************************************
 * djinterp [c][memory]                                              mem_source.h
 *
-* Upstream byte sources -- the shared C core (tier 0):
+* Upstream byte sources - the shared C core (tier 0):
 *   The protocol every allocator in this subframework obtains its backing
 * storage through, and the built-in implementations of it. A source is two
-* pointers -- a vtable and a context -- and answers exactly one question: give
+* pointers - a vtable and a context - and answers exactly one question: give
 * me N bytes aligned to A, and take them back later.
 *
 *   THIS IS THE CONTROL POINT. An arena, a pool and a slab all differ in how
@@ -32,7 +32,7 @@
 *      caller will be blamed for.
 *   4. a source is STATELESS OR OWNS ITS STATE. The vtable is shared; the
 *      context is the instance. Copying a dj_mem_source copies a reference to
-*      the context, never the context -- so two copies of a buffer source
+*      the context, never the context - so two copies of a buffer source
 *      share one buffer, which is the intent.
 *
 * PORTABLE ACROSS:
@@ -96,9 +96,9 @@ D_EXTERN_C_BEGIN
 // KIND, shared by every source of that kind; the per-instance state lives in
 // the context pointer beside it.
 //   Three of the five slots are optional, gated by cfg_mem_source.h. An
-// absent slot is not a missing capability -- d_mem_source_reallocate emulates
+// absent slot is not a missing capability - d_mem_source_reallocate emulates
 // reallocation with allocate/copy/release, and an absent max_size reports
-// "unbounded" -- so a narrower protocol costs a copy or a question, never a
+// "unbounded" - so a narrower protocol costs a copy or a question, never a
 // behaviour.
 //   NOTE FOR C++ IMPLEMENTERS: this declaration sits inside an extern "C"
 // block, so these pointer types carry C language linkage. A C++ source should
@@ -125,7 +125,7 @@ struct dj_mem_source_vtable
     // reallocate
     //   grows or shrinks a block in place where it can, moving it otherwise.
     // May be NULL even when the slot exists, in which case the emulation
-    // applies -- so a source opts in per instance, not per build.
+    // applies - so a source opts in per instance, not per build.
     void*      (*reallocate)(void*      _context,
                              void*      _ptr,
                              dj_mem_size _old_bytes,
@@ -148,7 +148,7 @@ struct dj_mem_source_vtable
 };
 
 // dj_mem_source
-//   struct: a byte source -- an operation table plus the instance state it
+//   struct: a byte source - an operation table plus the instance state it
 // operates on. Two pointers, copied by value, referring to shared state.
 //   A ZEROED dj_mem_source IS THE "UNSET" SOURCE, not a broken one. Every
 // configuration struct in this subframework can therefore be zero-initialised
@@ -169,7 +169,7 @@ struct dj_mem_source
 
 // dj_mem_buffer_source
 //   struct: the state of a source that vends from memory the caller already
-// owns. Monotonic by construction -- it has no free list, because a source
+// owns. Monotonic by construction - it has no free list, because a source
 // that hands whole regions to an arena or a pool is asked for a handful of
 // large blocks over its lifetime, and a free list for a handful of blocks is
 // a data structure that costs more than it saves.

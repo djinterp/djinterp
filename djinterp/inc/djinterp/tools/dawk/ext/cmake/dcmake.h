@@ -4,7 +4,7 @@
 * The CMake language, read without loss.
 *   Enough of cmake-language(7) to say what a CMake file holds and to change
 * it in place: every command invocation, with its name and its arguments --
-* unquoted, quoted and bracket, the legacy unquoted forms included -- every
+* unquoted, quoted and bracket, the legacy unquoted forms included - every
 * comment, line or bracket, and the blocks the commands make: if, foreach,
 * while, function, macro and block, each paired with the command that ends it.
 * Every record keeps its place in the buffer, so the bytes between two records
@@ -70,7 +70,7 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 1.1.1
 // D_CMAKE_NONE
-//   constant: the index of a record that is not there -- a command no block
+//   constant: the index of a record that is not there - a command no block
 //   pairs, a comment outside every command.
 #define D_CMAKE_NONE ((size_t)-1)
 
@@ -245,8 +245,8 @@ bool d_cmake_read(
 void d_cmake_release(
     struct dj_cmake* _cmake
 );
-// d_cmake_generated reports whether CMake wrote the text -- an install
-// script, a CTest file, a cache -- by the marker its first line carries, or
+// d_cmake_generated reports whether CMake wrote the text - an install
+// script, a CTest file, a cache - by the marker its first line carries, or
 // whether its first 4 KiB carry the tree's own `Auto-generated. Do not edit
 // by hand.`
 bool d_cmake_generated(

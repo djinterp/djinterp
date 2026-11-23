@@ -24,7 +24,7 @@ test_core2_take_while
   Verifies take_while forwards values while the predicate holds, then
   short-circuits at the first failure.
   Tests the following:
-  - take_while(under(4)) over {1,2,3,4,5,1} yields {1,2,3} -- stops at 4 and
+  - take_while(under(4)) over {1,2,3,4,5,1} yields {1,2,3} - stops at 4 and
     does NOT resume for the trailing 1
 */
 bool test_core2_take_while()
@@ -65,7 +65,7 @@ test_core2_drop_while
   Verifies drop_while drops the initial run satisfying the predicate, then
   forwards every subsequent value without re-testing.
   Tests the following:
-  - drop_while(under(3)) over {1,2,3,1,4} yields {3,1,4} -- once 3 fails the
+  - drop_while(under(3)) over {1,2,3,1,4} yields {3,1,4} - once 3 fails the
     predicate, the later 1 is still forwarded
 */
 bool test_core2_drop_while()

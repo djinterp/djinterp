@@ -1,14 +1,14 @@
 /*******************************************************************************
 * djinterp [cpp][container]                                     graph_common.hpp
 *
-* Foundational graph types -- enums, descriptors, edge primitives, storage
+* Foundational graph types - enums, descriptors, edge primitives, storage
 * policies, traversal tags, and sentinels.
 *   Sits below `graph.hpp` and `graph_traits.hpp`; both files consume the
 * vocabulary defined here.  Knows nothing about the storage layout of the
 * graph itself; only describes properties.
 *
 *   Most of the property / classification enums refine concepts already
-* declared in `math_common.hpp` -- e.g., `DGraphDirection` reuses
+* declared in `math_common.hpp` - e.g., `DGraphDirection` reuses
 * `math::directionality`, `DGraphAcyclicity` is a refinement of the
 * acyclic-relation property.  Consumers that want the most general form
 * should use the `math::` enums directly; `graph_*` enums add finer
@@ -132,7 +132,7 @@ NS_CONTAINER
     // invalid_id
     //   function (template): the canonical sentinel for an unsigned-integer
     // ID type: always (UInt)-1. (In djinterp::math, in math_common.hpp, until
-    // 2026.11.11: graph's alone -- decision X2.)
+    // 2026.11.11: graph's alone - decision X2.)
     template<typename UInt>
     D_CONSTEXPR_INLINE
     UInt invalid_id() noexcept
@@ -156,14 +156,14 @@ NS_CONTAINER
     }
 
     // depth_t
-    //   type: the depth of a vertex below the root -- the number of edges on
+    //   type: the depth of a vertex below the root - the number of edges on
     // the path from root() to it.
     using depth_t = std::size_t;
 
     // unknown_depth
     //   constant: the depth reported for a vertex that root() does not reach.
     // (math::kUnknownDepth until 2026.11.11: the guide names constexpr values
-    // in snake_case -- decision X2.)
+    // in snake_case - decision X2.)
     static D_CONSTEXPR depth_t unknown_depth =
         static_cast<depth_t>(-1);
 
@@ -976,13 +976,13 @@ NS_CONTAINER
             Container, Default>::type;
 
     // default_adjacency_container_t
-    //   trait: default adjacency container -- a std::vector keyed by the
+    //   trait: default adjacency container - a std::vector keyed by the
     // user's neighbor type. Users may override per-template-arg.
     template<typename NeighborType>
     using default_adjacency_container_t = std::vector<NeighborType>;
 
     // default_vertex_container_t
-    //   trait: default top-level vertex container -- a std::vector.
+    //   trait: default top-level vertex container - a std::vector.
     template<typename VertexEntry>
     using default_vertex_container_t = std::vector<VertexEntry>;
 

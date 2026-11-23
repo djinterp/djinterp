@@ -44,7 +44,7 @@ bool concepts_tests_pack()
     using fixtures::heterogeneous_tuple_t;
 
     // -------------------------------------------------------------------
-    // single_type -- exactly one element in the pack
+    // single_type - exactly one element in the pack
     // -------------------------------------------------------------------
 
     DT_CONCEPT    ((single_type<int>));
@@ -78,7 +78,7 @@ bool concepts_tests_pack()
     DT_CONCEPT    (((single_type<int>)   && (nonempty_pack<int>)));
 
     // -------------------------------------------------------------------
-    // all_same -- leading type + rest pack, all identical
+    // all_same - leading type + rest pack, all identical
     // -------------------------------------------------------------------
     //   The concept is single-arg-minimum (the leading _First is not
     // optional); rest is a variadic pack.
@@ -100,7 +100,7 @@ bool concepts_tests_pack()
     DT_NOT_CONCEPT((all_same<int, int&>));
 
     // -------------------------------------------------------------------
-    // all_convertible_to -- every type convertible to target
+    // all_convertible_to - every type convertible to target
     // -------------------------------------------------------------------
 
     //   empty pack: vacuously true
@@ -116,7 +116,7 @@ bool concepts_tests_pack()
     DT_NOT_CONCEPT((all_convertible_to<int,     int, trivial_class>));  // trivial_class not int-convertible
 
     // -------------------------------------------------------------------
-    // all_derived_from -- every type derived from base
+    // all_derived_from - every type derived from base
     // -------------------------------------------------------------------
 
     //   empty: vacuously true
@@ -136,7 +136,7 @@ bool concepts_tests_pack()
     DT_NOT_CONCEPT((all_derived_from<polymorphic_class, int>));
 
     // -------------------------------------------------------------------
-    // single_type_arg -- pack of exactly one element of type _Type
+    // single_type_arg - pack of exactly one element of type _Type
     // -------------------------------------------------------------------
 
     DT_CONCEPT    ((single_type_arg<int, int>));
@@ -146,7 +146,7 @@ bool concepts_tests_pack()
     DT_NOT_CONCEPT((single_type_arg<int, const int>));       // cv counts
 
     // -------------------------------------------------------------------
-    // single_tuple_arg -- pack of exactly one element that IS a tuple
+    // single_tuple_arg - pack of exactly one element that IS a tuple
     // -------------------------------------------------------------------
     //   New concept added during the audit; parallels
     // djinterp::is_single_tuple_arg.
@@ -168,7 +168,7 @@ bool concepts_tests_pack()
     DT_NOT_CONCEPT((single_tuple_arg<heterogeneous_tuple_t, int>));
 
     // -------------------------------------------------------------------
-    // nonvoid_pack -- every type is non-void
+    // nonvoid_pack - every type is non-void
     // -------------------------------------------------------------------
 
     //   empty pack: vacuously true (no void to find)

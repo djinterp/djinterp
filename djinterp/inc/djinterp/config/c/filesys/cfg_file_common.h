@@ -3,8 +3,8 @@
 *
 * Build-time configuration shared by every module of the djinterp filesys
 * subframework (c/filesys/file_*.h).  It owns the knobs that are meaningful to
-* more than one module -- backend selection, parameter validation,
-* diagnostics, path limits, allocation hooks, descriptor hygiene -- and it
+* more than one module - backend selection, parameter validation,
+* diagnostics, path limits, allocation hooks, descriptor hygiene - and it
 * owns the platform feature gates that used to live inside the old,
 * monolithic dfile.h.  It publishes the D_INTERNAL_FILE_* "effective" values
 * that the modules read.
@@ -160,10 +160,10 @@ TABLE OF CONTENTS
 // 1.1.1
 // D_CFG_FILE_ALL
 //   knob: optional aggregate for the filesys subframework's behaviour gates.
-// It is NOT defaulted here -- its absence is meaningful. Define it to 0 or 1
-// and the gates whose defaults are written to follow it -- validation, errno,
+// It is NOT defaulted here - its absence is meaningful. Define it to 0 or 1
+// and the gates whose defaults are written to follow it - validation, errno,
 // notifications, descriptor hygiene and Annex K here, and some of the
-// modules' own -- take its value unless given one of their own; the #ifndef
+// modules' own - take its value unless given one of their own; the #ifndef
 // block under each knob shows which. Individual knobs still win over it. The
 // platform gates (D_CFG_FILE_HAS_*) never follow it: they say what the target
 // has, not what a program wants.
@@ -184,7 +184,7 @@ TABLE OF CONTENTS
 //   Selection model. The sentinels are ordered by increasing platform
 // specificity; they are values, not gates. The modules tell only two of them
 // apart: the ISO C backend, and the platform's. POSIX and NATIVE build the
-// same code -- each platform's own calls -- and differ only in the name
+// same code - each platform's own calls - and differ only in the name
 // d_file_backend_name reports.
 
 // 1.2.1
@@ -195,12 +195,12 @@ TABLE OF CONTENTS
 // 1.2.2
 // D_CFG_FILE_BACKEND_STDC
 //   constant: ISO C only (fopen/fseek/remove/rename). Maximum portability,
-// minimum capability -- no descriptors, no locking, no directory walk.
+// minimum capability - no descriptors, no locking, no directory walk.
 #define D_CFG_FILE_BACKEND_STDC   1
 
 // 1.2.3
 // D_CFG_FILE_BACKEND_POSIX
-//   constant: the platform's calls on a POSIX host -- open, read, stat,
+//   constant: the platform's calls on a POSIX host - open, read, stat,
 // opendir, flock and the rest. It needs D_CFG_FILE_HAS_POSIX, so it cannot be
 // pinned on Windows (2.1).
 #define D_CFG_FILE_BACKEND_POSIX  2
@@ -247,7 +247,7 @@ TABLE OF CONTENTS
 // 1.3.1
 // D_CFG_FILE_VALIDATE_PARAMS
 //   knob: check pointer/range arguments at every public entry point. On by
-// default -- the whole point of these wrappers is that d_file_open_stream(NULL,
+// default - the whole point of these wrappers is that d_file_open_stream(NULL,
 // "r") returns NULL instead of trapping. Set 0 only for a measured hot path
 // where the caller has already proven its arguments; the functions then inherit
 // the underlying platform's undefined behaviour for bad input.
@@ -290,7 +290,7 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 //   The notification layer is how a filesys module reports "what happened and
 // why" without inventing a return channel. It is compiled out entirely when
-// D_CFG_FILE_NOTIFY is 0 -- no code, no strings, no per-call branch.
+// D_CFG_FILE_NOTIFY is 0 - no code, no strings, no per-call branch.
 
 // 1.4.1
 // D_CFG_FILE_NOTIFY
@@ -351,7 +351,7 @@ TABLE OF CONTENTS
 // 1.5.1
 // D_CFG_FILE_PATH_MAX
 //   knob: maximum path length the filesys modules will construct (value model).
-// Not defaulted here -- 3.1.5 derives it from the platform unless you set
+// Not defaulted here - 3.1.5 derives it from the platform unless you set
 // it. It sizes caller-visible buffers, so raising it is an ABI change for
 // anything that embeds a path array.
 
@@ -364,8 +364,8 @@ TABLE OF CONTENTS
 // D_CFG_FILE_LONG_PATHS
 //   knob: on Windows, take paths past MAX_PATH's 260 characters. The paths
 // this build constructs are sized for 32767 (D_FILE_PATH_MAX, 3.1.5), and a
-// path at or past MAX_PATH less 12 -- the limit CreateDirectoryW keeps, the
-// shortest a path call has -- is made absolute with GetFullPathNameW and
+// path at or past MAX_PATH less 12 - the limit CreateDirectoryW keeps, the
+// shortest a path call has - is made absolute with GetFullPathNameW and
 // handed to Windows behind the \\?\ prefix (\\?\UNC\ for a share), which
 // lifts the limit. A device path (\\.\), or one already in that form, goes
 // as it is, and d_path_resolve gives a path back without a prefix it added.
@@ -373,7 +373,7 @@ TABLE OF CONTENTS
 // (1.5.4); without that, a longer path fits this build's buffers, and
 // whether it opens is the platform's answer. Off by default: every path
 // buffer grows from 260 characters to 32767, and is kept on the heap rather
-// than the stack -- a path's UTF-16 copy, 64 KiB, and a path built in UTF-8,
+// than the stack - a path's UTF-16 copy, 64 KiB, and a path built in UTF-8,
 // 32 KiB (dj_internal_file_native and dj_internal_file_path, file_common.h);
 // a default build keeps its 260-character ones on the stack. No effect on
 // POSIX.
@@ -390,8 +390,8 @@ TABLE OF CONTENTS
 // D_FILE_PATH_MAX characters with ENAMETOOLONG. The conversions are
 // file_common.h's (6.6).
 //   Every module takes it: a path goes in as UTF-8, and a name the platform
-// hands back -- an entry d_dir_read64 reads, the working directory, a full
-// path, d_dir_temp's directory, a link's target -- comes back as UTF-8,
+// hands back - an entry d_dir_read64 reads, the working directory, a full
+// path, d_dir_temp's directory, a link's target - comes back as UTF-8,
 // D_FILE_NAME_MAX growing to hold any name Windows can (3.1.6). The UTF-8 is
 // WTF-8 (2026.10.21): a lone surrogate, which Windows allows in a name and
 // UTF-8 cannot carry, comes back as the three bytes its code point would take
@@ -514,14 +514,14 @@ TABLE OF CONTENTS
 // build whose host headers lie about the target. Where section 3 resolves a
 // gate into a D_INTERNAL_FILE_HAS_* value, folding in the backend or a knob, a
 // module reads that value and never the gate; the gates with no resolved form
-// -- D_CFG_FILE_HAS_POSIX and D_CFG_FILE_HAS_WIN32 above all -- are read as
+// - D_CFG_FILE_HAS_POSIX and D_CFG_FILE_HAS_WIN32 above all - are read as
 // they stand.
 //
 //   INVARIANT: a gate whose call is declared in a POSIX header must include
 // D_CFG_FILE_HAS_POSIX in its own condition. file_common.h includes
 // <unistd.h>, <fcntl.h>, <dirent.h> and friends ONLY when HAS_POSIX is 1, so
 // a gate that says "this target has posix_fadvise" while HAS_POSIX is 0 is
-// claiming a capability whose declaration the build will never see -- and the
+// claiming a capability whose declaration the build will never see - and the
 // module that believes it fails to compile.
 //   This is the same error as gating on the platform instead of the
 // capability, wearing a different hat: `defined(D_ENV_PLATFORM_LINUX)` is not
@@ -557,8 +557,8 @@ TABLE OF CONTENTS
 #endif
 
 // D_INTERNAL_FILE_OS_DARWIN
-//   constant: 1 on Apple's systems -- macOS; iOS, with the systems env
-// reports as iOS; a build told only that it is on an Apple system -- which
+//   constant: 1 on Apple's systems - macOS; iOS, with the systems env
+// reports as iOS; a build told only that it is on an Apple system - which
 // share Darwin's libc. The first test keeps out a build with no OS identity,
 // whose D_ENV_OS_ID would read as 0, the generic Apple flag.
 #if ( (defined(D_ENV_OS_ID)) &&                                                \
@@ -593,7 +593,7 @@ TABLE OF CONTENTS
 
 // D_INTERNAL_FILE_OS_EXTENDED
 //   constant: 1 when Darwin's and the BSDs' headers declare their own
-// extensions -- flock, F_FULLFSYNC, st_mtimespec. They hide them from a build
+// extensions - flock, F_FULLFSYNC, st_mtimespec. They hide them from a build
 // that asks for a POSIX level, as the C guide's -D_XOPEN_SOURCE=700 does;
 // on Darwin _DARWIN_C_SOURCE brings them back, as Darwin's <sys/cdefs.h>
 // decides it.
@@ -609,8 +609,8 @@ TABLE OF CONTENTS
 // 1.9.1
 // D_CFG_FILE_HAS_POSIX
 //   knob: the POSIX file API is present: on every system env counts as
-// POSIX-compliant -- Linux and the other Unix systems, the BSDs, Solaris,
-// macOS, Android -- and on the rest of Apple's.
+// POSIX-compliant - Linux and the other Unix systems, the BSDs, Solaris,
+// macOS, Android - and on the rest of Apple's.
 #ifndef D_CFG_FILE_HAS_POSIX
     #if ( ( (defined(D_ENV_OS_ID)) &&                                          \
             (D_ENV_IS_OS_POSIX_COMPLIANT(D_ENV_OS_ID)) ) ||                    \
@@ -678,7 +678,7 @@ TABLE OF CONTENTS
 // 1.9.7
 // D_CFG_FILE_HAS_SYMLINKS
 //   knob: the target supports symbolic links. True on Windows Vista+, where
-// creating one still needs SeCreateSymbolicLinkPrivilege -- presence here is
+// creating one still needs SeCreateSymbolicLinkPrivilege - presence here is
 // a compile-time claim, not a runtime permission.
 #ifndef D_CFG_FILE_HAS_SYMLINKS
     #if ( (D_CFG_IS_ON(D_CFG_FILE_HAS_POSIX)) ||                               \
@@ -703,7 +703,7 @@ TABLE OF CONTENTS
 
 // 1.9.9
 // D_CFG_FILE_HAS_FLOCK
-//   knob: BSD flock() is available. Not implied by POSIX -- Solaris and
+//   knob: BSD flock() is available. Not implied by POSIX - Solaris and
 // some embedded libcs ship fcntl locking only. Darwin and the BSDs declare it
 // only where they declare their extensions (D_INTERNAL_FILE_OS_EXTENDED), so
 // a build at the C guide's POSIX level locks with fcntl there; Linux and
@@ -731,7 +731,7 @@ TABLE OF CONTENTS
 
 // 1.9.11
 // D_CFG_FILE_HAS_COPY_FILE_RANGE
-//   knob: Linux copy_file_range(2) -- an in-kernel copy that can offload to
+//   knob: Linux copy_file_range(2) - an in-kernel copy that can offload to
 // the filesystem (reflink on btrfs/XFS) and never touches user space. glibc
 // declares it from 2.27, and only under _GNU_SOURCE, which a Linux build
 // gives file_ops.c (its banner; the C guide's rule). Without either the call
@@ -753,7 +753,7 @@ TABLE OF CONTENTS
 
 // 1.9.12
 // D_CFG_FILE_HAS_FCOPYFILE
-//   knob: macOS fcopyfile(3) -- the Apple equivalent, and the only portable
+//   knob: macOS fcopyfile(3) - the Apple equivalent, and the only portable
 // way to bring resource forks and metadata along.
 #ifndef D_CFG_FILE_HAS_FCOPYFILE
     #if ( (defined(D_ENV_OS_ID)) &&                                          \
@@ -766,7 +766,7 @@ TABLE OF CONTENTS
 
 // 1.9.13
 // D_CFG_FILE_HAS_STATX
-//   knob: Linux statx(2) -- one syscall for metadata that stat() reports in
+//   knob: Linux statx(2) - one syscall for metadata that stat() reports in
 // pieces, including true creation time. glibc declares it from 2.28 under
 // _GNU_SOURCE, which a Linux build gives file_stat.c (its banner);
 // cfg_file_stat.h asks for the declaration itself before using it.
@@ -902,21 +902,21 @@ TABLE OF CONTENTS
 //   Selection model. Every declaration that holds a file offset, a size, a
 // timestamp, an inode number or a capacity comes in two widths, each with a
 // fixed layout: a 32-bit twin (dj_stat32_t, d_file_stat32) and a 64-bit one
-// (dj_stat64_t, d_file_stat64). The unsuffixed name -- dj_stat_t, d_file_stat
-// -- is an alias of one of them, and this chooses which. Both twins are
+// (dj_stat64_t, d_file_stat64). The unsuffixed name - dj_stat_t, d_file_stat
+// - is an alias of one of them, and this chooses which. Both twins are
 // declared whatever it says, so code that needs one width names that twin.
 
 // 1.10.1
 // D_CFG_FILE_WIDTH_AUTO
 //   constant: the width that suits the build. 64 where 64-bit arithmetic is
-// native -- a 64-bit architecture -- or where the build asked for large files
+// native - a 64-bit architecture - or where the build asked for large files
 // by setting _FILE_OFFSET_BITS to 64; 32 otherwise, and always 32 below the
 // 64-bit floor (3.1.16), where the 64-bit twins do not exist.
 #define D_CFG_FILE_WIDTH_AUTO 0
 
 // 1.10.2
 // D_CFG_FILE_WIDTH
-//   knob: the width of the unsuffixed names -- D_CFG_FILE_WIDTH_AUTO, 32 or
+//   knob: the width of the unsuffixed names - D_CFG_FILE_WIDTH_AUTO, 32 or
 // 64. Pin 32 to keep a 64-bit build's layouts as narrow as a 32-bit one's, or
 // 64 to reach files past 2 GiB from a 32-bit build; 64 below the 64-bit floor
 // is a build error.
@@ -1064,7 +1064,7 @@ TABLE OF CONTENTS
 #endif
 
 // a pinned backend the target cannot supply is a build error, not a silent
-// downgrade -- a silent downgrade is how you ship a binary that is missing
+// downgrade - a silent downgrade is how you ship a binary that is missing
 // the semantics you pinned it for.
 #if ( (D_CFG_NORM(D_CFG_FILE_BACKEND) == D_CFG_FILE_BACKEND_POSIX) &&          \
       (D_CFG_IS_OFF(D_CFG_FILE_HAS_POSIX)) )
@@ -1095,7 +1095,7 @@ TABLE OF CONTENTS
 
 // 3.1.1
 // D_INTERNAL_FILE_BACKEND
-//   resolved: the resolved backend -- one of the D_CFG_FILE_BACKEND_*
+//   resolved: the resolved backend - one of the D_CFG_FILE_BACKEND_*
 // sentinels, never AUTO. Computed from the requested backend and the detected
 // platform.
 #if (D_CFG_NORM(D_CFG_FILE_BACKEND) != D_CFG_FILE_BACKEND_AUTO)
@@ -1122,7 +1122,7 @@ TABLE OF CONTENTS
 //   resolved: 1 when a djinterp-level failure sets errno.
 //   NOT folded with VALIDATE, though it used to be, on the reasoning that
 // "setting errno for a check that never runs is dead code". That holds for
-// D_INTERNAL_FILE_REQUIRE, whose checks do vanish with validation off -- but
+// D_INTERNAL_FILE_REQUIRE, whose checks do vanish with validation off - but
 // D_INTERNAL_FILE_SET_ERR is also reached from D_INTERNAL_FILE_FAIL, which is
 // not a parameter check and always runs: EEXIST from a non-overwrite rename,
 // ENOSYS from an unsupported backend, ERANGE from a buffer too small, "source
@@ -1172,8 +1172,8 @@ TABLE OF CONTENTS
 //   resolved: the longest path this build constructs, in bytes of the text a
 // caller reads and writes. Honours an explicit D_CFG_FILE_PATH_MAX. Where the
 // build hands Windows UTF-16 (D_CFG_FILE_WIDE_PATHS), it is three bytes for
-// each of the platform's units -- a unit is at most three bytes of UTF-8, and
-// a surrogate pair four for two -- so that every path Windows can hold comes
+// each of the platform's units - a unit is at most three bytes of UTF-8, and
+// a surrogate pair four for two - so that every path Windows can hold comes
 // back whole: 780 bytes, or 98301 behind the long-path prefix. Every other
 // build counts what the platform counts.
 #ifdef D_CFG_FILE_PATH_MAX
@@ -1194,8 +1194,8 @@ TABLE OF CONTENTS
         (D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)) )
     // a build reading its names as UTF-8 (D_INTERNAL_FILE_WIDE, 3.1.20, whose
     // test this repeats, as it is resolved after this): Windows' 255 UTF-16
-    // units, at the three bytes UTF-8 spends on one at most -- a surrogate
-    // pair spends four on two -- so every name a directory holds can be read.
+    // units, at the three bytes UTF-8 spends on one at most - a surrogate
+    // pair spends four on two - so every name a directory holds can be read.
     // Ahead of NAME_MAX, which MinGW's <limits.h> defines as 255 bytes of the
     // code page, and only in a unit that has included it by now: the size of
     // d_name cannot hang on what a unit included first.
@@ -1214,7 +1214,7 @@ TABLE OF CONTENTS
 
 // 3.1.7
 // D_INTERNAL_FILE_HAS_FOPEN_S
-//   resolved: 1 when the modules should call Annex K's fopen_s -- it must both
+//   resolved: 1 when the modules should call Annex K's fopen_s - it must both
 // exist and be preferred.
 #if ( (D_CFG_IS_ON(D_CFG_FILE_HAS_FOPEN_S)) &&                                 \
       (D_CFG_IS_ON(D_CFG_FILE_PREFER_ANNEX_K)) )
@@ -1311,7 +1311,7 @@ TABLE OF CONTENTS
 // 3.1.16
 // D_INTERNAL_FILE_HAS_INT64
 //   resolved: 1 where re_std's dstdint.h declares the 64-bit integer types,
-// else 0 -- the 64-bit floor. ISO strict C++98 has none on a 32-bit target,
+// else 0 - the 64-bit floor. ISO strict C++98 has none on a 32-bit target,
 // on Windows or on macOS; every other build does. Below the floor the 64-bit
 // twins are absent and the 32-bit ones stand alone (the owner's rulings of
 // 2026.10.13: the floor gates declarations, not headers, and a 32-bit twin
@@ -1325,7 +1325,7 @@ TABLE OF CONTENTS
 // 3.1.17
 // D_INTERNAL_FILE_NATURAL_WIDTH
 //   resolved: the width every language level of this build agrees on, 32 or
-// 64 -- what D_INTERNAL_FILE_WIDTH is wherever the 64-bit floor does not
+// 64 - what D_INTERNAL_FILE_WIDTH is wherever the 64-bit floor does not
 // intervene. A pinned width is taken as it stands. AUTO is 64 on a 64-bit
 // architecture, where the wider twins cost nothing; 64 on a 32-bit one built
 // with _FILE_OFFSET_BITS set to 64, which has asked to reach files past 2 GiB
@@ -1416,8 +1416,8 @@ TABLE OF CONTENTS
 //   query: 1 when the modules check their caller's parameters, else 0.
 //   Published because "does this build reject a NULL path" is a question a
 // CONSUMER has to be able to ask, and D_INTERNAL_FILE_VALIDATE is not theirs
-// to read. With validation off, passing NULL is undefined by contract -- the
-// knob is the caller promising not to -- so a test asserting a specific return
+// to read. With validation off, passing NULL is undefined by contract - the
+// knob is the caller promising not to - so a test asserting a specific return
 // value for it is asserting something this build never promised. Without a
 // published macro the suite could not tell the two builds apart, and the only
 // evidence was a segfault.
@@ -1427,14 +1427,14 @@ TABLE OF CONTENTS
 // D_FILE_WIDTH
 //   query: the width of the unsuffixed names, 32 or 64: which twin dj_off_t,
 // dj_stat_t, dj_dirent_t and dj_space_t name, and which every unsuffixed call
-// that takes or fills one -- d_file_seek_stream, d_file_stat, d_dir_read,
-// d_file_space, ... -- forwards to. Safe in #if.
+// that takes or fills one - d_file_seek_stream, d_file_stat, d_dir_read,
+// d_file_space, ... - forwards to. Safe in #if.
 #define D_FILE_WIDTH D_INTERNAL_FILE_WIDTH
 
 // 4.1.5
 // D_FILE_64_IS_AVAILABLE
-//   query: 1 when this build declares the 64-bit twins -- dj_off64_t,
-// dj_stat64_t, dj_dirent64_t, dj_space64_t and every call suffixed 64 -- and 0
+//   query: 1 when this build declares the 64-bit twins - dj_off64_t,
+// dj_stat64_t, dj_dirent64_t, dj_space64_t and every call suffixed 64 - and 0
 // below the 64-bit floor, where only the 32-bit twins exist; those are
 // declared on every build. Safe in #if.
 #define D_FILE_64_IS_AVAILABLE D_INTERNAL_FILE_HAS_INT64
@@ -1442,9 +1442,9 @@ TABLE OF CONTENTS
 // 4.1.6
 // D_FILE_WIDTH_IS_NARROWED
 //   query: 1 when this language level has had to resolve D_FILE_WIDTH to 32
-// where the build's other levels resolve it to 64 -- below the 64-bit floor,
+// where the build's other levels resolve it to 64 - below the 64-bit floor,
 // on a target that is otherwise 64 (ISO strict C++98 on Windows or macOS, or
-// on a 32-bit target built for large files) -- and 0 everywhere else. The C
+// on a 32-bit target built for large files) - and 0 everywhere else. The C
 // names are safe either way, each twin being a symbol of its own. The C++
 // layer's types that carry a width have one name at every level, so where
 // this is 1 they are absent rather than narrowed: no level changes what a

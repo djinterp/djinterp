@@ -67,7 +67,7 @@ int main()
 
     rb.use_pdf("reclamation_common_tests_report.pdf");
 
-    // -- 0. the header contract --------------------------------------------
+    // - 0. the header contract --------------------------------------------
     rb.module("0. the header contract",
               "guard, idempotency, standing first, its dependency, and gating");
     rb.run("the include guard is defined, and is 1",       &tests_header_include_guard);
@@ -78,7 +78,7 @@ int main()
     rb.run("it publishes types, not macros",               &tests_header_defines_no_stray_macros);
     rb.run("the engine is gated to C++11",                 &tests_header_is_gated_to_cpp11);
 
-    // -- I. DReclaimList: retiring and queries ------------------------------
+    // - I. DReclaimList: retiring and queries ------------------------------
     rb.module("I. reclaim_list -- retiring and queries",
               "what retire records, what pending reports, and the advisory "
               "scan threshold");
@@ -95,7 +95,7 @@ int main()
     rb.run("moving carries the pending nodes",             &tests_list_move_carries_the_pending_nodes);
     rb.run("an entry exposes both pointer and tag",        &tests_list_entry_exposes_pointer_and_tag);
 
-    // -- I. DReclaimList: reclamation ---------------------------------------
+    // - I. DReclaimList: reclamation ---------------------------------------
     rb.module("I. reclaim_list -- reclamation (both schemes)",
               "the predicate decides; compaction preserves order; RCU and "
               "hazard both ride the same engine");
@@ -115,7 +115,7 @@ int main()
     rb.run("HAZARD: protected reclamation is reproduced",  &tests_hazard_scheme_reproduces_protected_reclamation);
     rb.run("both schemes really share one engine",         &tests_both_schemes_share_one_engine);
 
-    // -- II. DPublishedPtr ---------------------------------------------------
+    // - II. DPublishedPtr ---------------------------------------------------
     rb.module("II. published_ptr",
               "the publish half of the cycle: swap in, hand the old value back "
               "to retire");

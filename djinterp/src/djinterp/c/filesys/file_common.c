@@ -51,7 +51,7 @@
 // D_INTERNAL_COMMON_ALLOC_CEILING
 //   constant: D_CFG_FILE_MAX_ALLOC as a size_t, or 0 for no ceiling. A ceiling
 // past what a size_t holds refuses nothing a size_t can ask for, so it is no
-// ceiling -- not the remainder a cast would leave, which on a 32-bit build
+// ceiling - not the remainder a cast would leave, which on a 32-bit build
 // makes a 4 GiB ceiling one of 0 bytes and refuses every allocation. A
 // ceiling of 0 is settled here, where comparing it would draw a warning.
 #if (D_CFG_NORM(D_CFG_FILE_MAX_ALLOC) == 0)
@@ -144,7 +144,7 @@ fn_file_notify d_file_notify_get_handler(
 d_file_notify_default_handler
   errno is saved and restored around the write, because a handler runs while
 the failing call's errno is still the value its caller is about to read. It
-is never installed unasked -- a library that writes to a stream nobody asked
+is never installed unasked - a library that writes to a stream nobody asked
 it to write to corrupts somebody's stdout. The line reads "function: message:
 'path' (errno=N)", each part present only when the notice carries it; the
 quotes keep a path apart from the message even when it holds spaces.
@@ -459,8 +459,8 @@ static const struct dj_internal_file_errno_pair d_internal_file_errno_pairs[] =
 
 /*
 d_internal_file_errno_win32
-  One table for every module that calls Win32 directly -- a search, a move, a
-handle query -- so a reason reads the same whichever call met it. Only the
+  One table for every module that calls Win32 directly - a search, a move, a
+handle query - so a reason reads the same whichever call met it. Only the
 reasons a caller can act on get a name of their own
 (d_internal_file_errno_pairs); the rest are I/O failures. A failure is no hot
 path, so the table is searched in order.
@@ -501,8 +501,8 @@ int d_internal_file_tag_is_link_win32(
 /*
 d_internal_file_handle_is_link_win32
   Whether an open reparse point is a link, by its tag. A reparse point whose
-tag cannot be read -- the query fails, or answers as though there were no
-reparse point -- is taken for one: mistaking a link for the directory it
+tag cannot be read - the query fails, or answers as though there were no
+reparse point - is taken for one: mistaking a link for the directory it
 names is the error that costs data.
 */
 static
@@ -651,7 +651,7 @@ const dj_internal_file_nchar_t* d_internal_file_to_native_text(
 
 /**
  * @brief A path in the form Windows takes past MAX_PATH: absolute, from
- *        GetFullPathNameW, behind the long-path prefix -- its UNC form for a
+ *        GetFullPathNameW, behind the long-path prefix - its UNC form for a
  *        share.
  *
  * @param[in,out] _buf    a converted path; rewritten in place where long.
@@ -699,8 +699,8 @@ const dj_internal_file_nchar_t* d_internal_file_long_form(
         return NULL;
     }
 
-    // short enough, absolute, for every path call -- need counts the
-    // terminator -- so it goes as it is
+    // short enough, absolute, for every path call - need counts the
+    // terminator - so it goes as it is
     if ((size_t)need <= (size_t)D_INTERNAL_FILE_LONG_AT)
     {
         return _buf;

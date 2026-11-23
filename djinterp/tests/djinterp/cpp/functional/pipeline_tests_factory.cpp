@@ -2,7 +2,7 @@
 * djinterp [cpp][functional]                          pipeline_tests_factory.cpp
 *
 * Convenience factory tests (section II):
-*   test_factory -- the free pipeline_from(container) and
+*   test_factory - the free pipeline_from(container) and
 *                   pipeline_from(pointer, count), including element-type
 *                   deduction.
 *

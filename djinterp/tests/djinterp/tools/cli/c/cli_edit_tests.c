@@ -5,11 +5,11 @@
 * in cli_edit_tests.h.
 *   Two fixtures make the programs the case tables run, alike but for their
 * rule: BACK (A) and OUTPUT (B), `prog 1.2`, each with two commands. `add
-* FILE LINE` reads the file -- or standard input, for `-` -- and writes it
+* FILE LINE` reads the file - or standard input, for `-` - and writes it
 * with the line after its last, where the edit sends it; in a dry run it
 * says what it would add, and at `-v` what it added. `where FILE` writes
 * nothing but where the result would go: `back`, `out` or `output`, then
-* the file's name -- the operand's, or `-o`'s -- and `(dry run)` after `-n`.
+* the file's name - the operand's, or `-o`'s - and `(dry run)` after `-n`.
 * Each command keeps its edit record as its context, freed with the
 * program.
 *   The writing section runs in a scratch directory: before each case,
@@ -527,7 +527,7 @@ bool d_tests_cli_edit_where(void)
 // dj_tests_cli_edit_write
 //   struct: a write's case: the case, its program's fixture, whether
 // standard input reads `notes.txt`, and what `notes.txt` and `copy.txt`
-// hold after it -- NULL for `copy.txt` not there.
+// hold after it - NULL for `copy.txt` not there.
 struct dj_tests_cli_edit_write
 {
     struct dj_tests_cli_case test;
@@ -538,9 +538,9 @@ struct dj_tests_cli_edit_write
 };
 
 // WRITES
-//   constant: A's writes -- back; to `-o`'s file; to standard output; a dry
+//   constant: A's writes - back; to `-o`'s file; to standard output; a dry
 // run; standard input to standard output; at `-v`; a file that cannot be
-// written, for a directory not there and for a directory -- then B's --
+// written, for a directory not there and for a directory - then B's --
 // standard output; back with `-i`; to `-o`'s file; a dry run.
 static const struct dj_tests_cli_edit_write WRITES[] =
 {

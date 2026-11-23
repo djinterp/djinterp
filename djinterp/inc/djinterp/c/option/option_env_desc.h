@@ -4,13 +4,13 @@
 *   A frame's settings as facts: each variable a frame can see, its value in
 * force, where that came from, its default, the knob behind the default, its
 * help and the sources it refuses, written into a desc sink, so any machine
-* -- text, JSON, a log record, a test -- reads them (option_env's decision
+* - text, JSON, a log record, a test - reads them (option_env's decision
 * 73). option_env keeps the provenance, so this is the one reading of it:
 * describe, help and `get --show-origin` cannot disagree.
 *   Each setting is a level of its own, keyed by its name, so a JSON reader
 * finds "depth": {"value": 5, "source": "default", ...}. The facts sit on
-* desc's layers -- the value on state, its source and knob on provenance, its
-* help on intent, what it accepts and refuses on policy -- so a reader's
+* desc's layers - the value on state, its source and knob on provenance, its
+* help on intent, what it accepts and refuses on policy - so a reader's
 * layers and importance (desc.layers, a sink's filters) choose how much is
 * shown. Flags add a setting's layers, its range or names, and each scope's
 * settings in force.

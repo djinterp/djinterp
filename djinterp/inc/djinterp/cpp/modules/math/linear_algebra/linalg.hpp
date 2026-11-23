@@ -45,7 +45,7 @@
 *
 * NAMESPACE:
 *   All types and functions live in djinterp::math::linalg (one level deeper
-* than the geometry subframework -- see linalg_common.hpp for the rationale).
+* than the geometry subframework - see linalg_common.hpp for the rationale).
 *
 * WIRING INTO math.hpp:
 *   add  #include "./linalg/linalg.hpp"  alongside the geometry/calculus

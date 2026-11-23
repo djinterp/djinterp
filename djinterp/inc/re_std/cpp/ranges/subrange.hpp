@@ -110,7 +110,7 @@ public:
     subrange(
         Iter                _b,
         Sent                _e,
-        difference_type      // _n  -- intentionally unnamed, unused
+        difference_type      // _n  - intentionally unnamed, unused
     )
         : m_begin(static_cast<Iter&&>(_b)),
           m_end(static_cast<Sent&&>(_e))

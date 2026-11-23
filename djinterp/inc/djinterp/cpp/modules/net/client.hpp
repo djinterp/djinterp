@@ -18,7 +18,7 @@
 * level, and from C++11 connect(endpoint) -> open_result as well; everything
 * here is generic over the first, and each convenience has both forms too.
 * From C++20 the `connector` concept states the contract and constrains the
-* templates. The foundation is synchronous/blocking -- an async connector is
+* templates. The foundation is synchronous/blocking - an async connector is
 * a later variant, not a foundation-level fork.
 *
 *   Requires:  net.hpp; C++98 and later. The retry driver sleeps through
@@ -56,7 +56,7 @@ NS_NET
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
 // connector
-//   concept: anything that can produce a connection to an endpoint -- a client
+//   concept: anything that can produce a connection to an endpoint - a client
 // transport backend. connect(endpoint, open_result&) fills the result in
 // place (an owned connection, or the error that prevented it) and returns
 // the error. tcp_connector, tls_connector and an in-process connector model
@@ -410,7 +410,7 @@ public:
     }
 
 #if (D_MOVE_ENABLED == 1)
-    // connect -- the same two, returning the result, which C++11 can move
+    // connect - the same two, returning the result, which C++11 can move
     D_NODISCARD open_result connect(
         const endpoint& _endpoint
     )

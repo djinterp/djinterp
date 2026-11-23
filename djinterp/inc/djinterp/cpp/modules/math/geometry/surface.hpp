@@ -34,7 +34,7 @@
 * and the arithmetic theirs (c/math/vec.h), in the formulas' former order;
 * a polygon's vertices are a re_std::array (from C++11 a std::array of
 * points converts). closed_form_area and normal exist for 3D embeddings
-* only, as before -- through a base class, which C++98 can spell, so that
+* only, as before - through a base class, which C++98 can spell, so that
 * has_closed_form_area answers as it did.
 *
 *
@@ -484,8 +484,8 @@ D_CONSTEXPR_VAR bool bilinear_patch<System>::is_closed;
 //------------------------------------------------------------------------------
 // 2.2.1
 // parametric_surface_edge
-//   struct: wraps a parametric surface type -- a static evaluate(u, v)
-// returning an indexable point, and a static output_dimension -- over a
+//   struct: wraps a parametric surface type - a static evaluate(u, v)
+// returning an indexable point, and a static output_dimension - over a
 // parameter rectangle.
 template<typename ParametricSurface,
          typename System = cartesian<ParametricSurface::output_dimension,
@@ -571,7 +571,7 @@ struct parametric_surface_edge
 
 private:
     // from_raw
-    //   the evaluated point, its components converted -- a template, so the
+    //   the evaluated point, its components converted - a template, so the
     // result's type is deduced at every level.
     template<typename Raw>
     static point_type
@@ -610,8 +610,8 @@ D_CONSTEXPR_VAR bool
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 // 2.3.1
 // implicit_surface
-//   struct: the zero level set of an expression F(x, y, z) -- a type with a
-// static evaluate(std::tuple of x, y, z) -- in 3D.
+//   struct: the zero level set of an expression F(x, y, z) - a type with a
+// static evaluate(std::tuple of x, y, z) - in 3D.
 template<typename Expr,
          typename System = cartesian<3, double> >
 struct implicit_surface

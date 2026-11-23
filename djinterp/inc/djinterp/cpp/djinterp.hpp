@@ -87,7 +87,7 @@ TABLE OF CONTENTS
 // C++98 (-DD_CFG_ENV_ISO_STRICT=1) to C++23, and include no standard C++
 // header. The kit below is the authority on what each level spells; a
 // facility that needs a later level is gated on the env layer's
-// D_ENV_LANG_IS_CPPnn_OR_HIGHER and absent below it -- never an error, and
+// D_ENV_LANG_IS_CPPnn_OR_HIGHER and absent below it - never an error, and
 // never a second meaning for the same name. The env layer is read rather than
 // __cplusplus, so the level compared is the one env detection settled on,
 // MSVC included, whose __cplusplus stays at 199711L unless /Zc:__cplusplus is

@@ -47,8 +47,8 @@
 *   PORTABILITY:
 *   Two engines, one meaning (decision 4.8). From C++11 every macro here is
 * the void_t engine above. At C++98 the purpose-named shapes whose argument is
-* a NAME or an OPERATOR -- D_TYPE_TRAIT_HAS_TYPE, _HAS_STATIC_MEMBER,
-* _HAS_METHOD, _HAS_BINARY_OP, _HAS_UNARY_OP -- are emitted by a sizeof
+* a NAME or an OPERATOR - D_TYPE_TRAIT_HAS_TYPE, _HAS_STATIC_MEMBER,
+* _HAS_METHOD, _HAS_BINARY_OP, _HAS_UNARY_OP - are emitted by a sizeof
 * engine instead: each probe expression sits inside sizeof, so a failed
 * substitution removes an overload (expression SFINAE, which GCC and Clang
 * apply in C++98 mode). Their traits have the same `::value` for the same
@@ -425,7 +425,7 @@ NS_END  // djinterp
 // the single canonical one.  (Subsumes member_traits' D_DEFINE_HAS_MEMBER_TYPE
 // and the cv-naive D_TRAIT_HAS_TYPE.)
 // D_TYPE_TRAIT_DETECTED
-//   macro: the general detector -- emits the trait AND its _v companion.
+//   macro: the general detector - emits the trait AND its _v companion.
 //
 //   THIS MACRO WAS NEVER DEFINED.  Thirty-one call sites across four headers
 // use it (threadsafe_container_traits 13, concurrency_strategy_traits 9,
@@ -530,7 +530,7 @@ NS_END  // djinterp
 // `static constexpr bool MEMBER_NAME = true;`, and a name that is no such
 // constant opts into nothing. (Read by decltype and a cast to bool, as the
 // probes did until 2026.11.11, a static member function of that name read as
-// true -- it decays to a pointer that is never null -- and a non-static data
+// true - it decays to a pointer that is never null - and a non-static data
 // member was a hard error.) A std::integral_constant, plus the _v companion.
 // C++11 and up (see PORTABILITY).
 #define D_INTERNAL_TYPE_TRAIT_11_OPT_IN(TRAIT_NAME, MEMBER_NAME)             \

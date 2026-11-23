@@ -8,8 +8,8 @@
 *   A failure is recorded whole, as the handle's last: its result, its
 * message cut at a character's start, the server's name for its code, its
 * reply. Any failure the server reports inside a transaction ends the
-* transaction on the server -- a duplicate key, a bad operator, a command of
-* no such name alike -- so the layer marks it failed then, and not for a
+* transaction on the server - a duplicate key, a bad operator, a command of
+* no such name alike - so the layer marks it failed then, and not for a
 * failure the server never saw.
 *   JSON is read in three steps: the layer finds where the document or the
 * array given ends, from its brackets, outside its strings, and refuses
@@ -17,8 +17,8 @@
 * (RFC 8259); libbson then reads exactly that text. libbson alone would pass
 * over a comma and what follows, read an array where a document is due, and
 * read "" as no document without a word; and every release of it here takes
-* text that is not JSON -- a bare n or N as 0.0, -01 as 0, NaN and Infinity
-* in any case -- and 1.21's drops a field whose value is a word beginning
+* text that is not JSON - a bare n or N as 0.0, -01 as 0, NaN and Infinity
+* in any case - and 1.21's drops a field whose value is a word beginning
 * with n. The grammar's refusals are libbson's code for corrupt JSON, as its
 * own are, so that what is refused, and how, is the same on every release.
 *
@@ -68,7 +68,7 @@
 // D_INTERNAL_MONGODB_JSON_LEVELS
 //   constant: the most levels libbson's reader takes, every release here
 // alike: each document and array open is one, the outermost among them,
-// and a key or a scalar one more than the container it is in -- so 98
+// and a key or a scalar one more than the container it is in - so 98
 // documents deep, a field at the bottom; deeper, it refuses.
 #define D_INTERNAL_MONGODB_JSON_LEVELS 99u
 
@@ -181,8 +181,8 @@ D_STATIC_ASSERT( (sizeof(d_internal_mongodb_log_levels) /
 d_internal_mongodb_pack
   The second error API reports the server's failures in MONGOC_ERROR_SERVER
 and a write concern's in MONGOC_ERROR_WRITE_CONCERN, the code the server's;
-those come back as they are. Every other domain is under 256 -- libmongoc's
-end in the twenties, libbson's at four -- so its low byte loses nothing.
+those come back as they are. Every other domain is under 256 - libmongoc's
+end in the twenties, libbson's at four - so its low byte loses nothing.
 */
 int d_internal_mongodb_pack(
     const bson_error_t* _error,
@@ -446,7 +446,7 @@ size_t d_internal_mongodb_error_length(
  * @return the failure's result.
  *
  * A failure the server reported, or one the driver labelled
- * TransientTransactionError -- a broken connection inside a transaction --
+ * TransientTransactionError - a broken connection inside a transaction --
  * is one the server's transaction did not survive.
  */
 static
@@ -1355,8 +1355,8 @@ int d_internal_mongodb_check_json(
  * @param[in,out] _out     an initialized document, which receives it.
  * @return 0, or libbson's failure, packed and recorded.
  *
- * A read that fails without a word -- libbson's reader returns 0 for text
- * it finds no document in -- is JSON that ended too soon.
+ * A read that fails without a word - libbson's reader returns 0 for text
+ * it finds no document in - is JSON that ended too soon.
  */
 static
 int d_internal_mongodb_parse(
@@ -2218,7 +2218,7 @@ bool d_internal_mongodb_rows_page(
 d_internal_mongodb_cursor_rows
   A cursor's failure shows only once mongoc_cursor_next returns false, so
 it is asked then, and only then. Done is the driver's guess when the page
-filled -- mongoc_cursor_more may say there are more and find none -- and
+filled - mongoc_cursor_more may say there are more and find none - and
 certain when the cursor ran out.
 */
 int d_internal_mongodb_cursor_rows(

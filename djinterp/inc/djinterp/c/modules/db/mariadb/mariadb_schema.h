@@ -5,13 +5,13 @@
 *   Every function takes the database to act in, and NULL means the
 * connection's current one. Names are quoted, and match as the server matches
 * them: databases, tables and views as its lower_case_table_names setting
-* says -- by case where it is 0, as on Linux -- and triggers so too, except on
+* says - by case where it is 0, as on Linux - and triggers so too, except on
 * MySQL 8, which never matches them by case; column and index names never by
 * case.
 *   Each kind of object has the same verbs: has, create, drop, list. A create
 * or drop is idempotent under D_DB_IF_NOT_EXISTS or D_DB_IF_EXISTS on both
-* servers: where one has no IF [NOT] EXISTS for an object -- MySQL for indexes
-* and views, and for triggers before 8.0.29 -- the layer asks whether the
+* servers: where one has no IF [NOT] EXISTS for an object - MySQL for indexes
+* and views, and for triggers before 8.0.29 - the layer asks whether the
 * object exists first, which is not atomic, so two connections racing to
 * create one may still collide. A name counts as taken as MariaDB's own clause
 * counts it: a view's by any table or view. An index name is unique only
@@ -80,7 +80,7 @@ TABLE OF CONTENTS
                                                  // floor; int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -108,7 +108,7 @@ D_EXTERN_C_BEGIN
 //     DECIMAL          DECIMAL(size, scale), a size of 0 meaning 10
 //     STRING           VARCHAR(size); without a size LONGTEXT, as unbounded
 //                      as the other layers' text, or VARCHAR(255) for a key
-//                      column -- primary or unique -- which LONGTEXT cannot
+//                      column - primary or unique - which LONGTEXT cannot
 //                      be
 //     BINARY           VARBINARY(size); without a size LONGBLOB, or
 //                      VARBINARY(255) for a key column
@@ -127,7 +127,7 @@ D_EXTERN_C_BEGIN
 // AUTO_INCREMENT needs the column to be the whole primary key. `type_sql`,
 // when given, is declared as written instead. `default_sql` follows DEFAULT
 // as written: a literal, CURRENT_TIMESTAMP, or an expression where the
-// server takes one -- MariaDB from 10.2.1, MySQL from 8.0.13, which wants it
+// server takes one - MariaDB from 10.2.1, MySQL from 8.0.13, which wants it
 // in parentheses.
 
 
@@ -138,7 +138,7 @@ D_EXTERN_C_BEGIN
 
 // 2.1    Existence
 //------------------------------------------------------------------------------
-// existence -- whether the database has a base table of that name (a view is
+// existence - whether the database has a base table of that name (a view is
 // not one, nor a temporary table). The plain form answers false for any
 // failure; the _s form returns 0 and writes the answer, or the failure, the
 // answer then false.
@@ -231,7 +231,7 @@ int d_mariadb_rename_table(
 
 // 2.4    Rows
 //------------------------------------------------------------------------------
-// rows -- _truncate_table empties a table with TRUNCATE TABLE, which also
+// rows - _truncate_table empties a table with TRUNCATE TABLE, which also
 // restarts its AUTO_INCREMENT; _count_rows counts its rows into _count,
 // written only on success. 0, the client's error number (1146, no such
 // table), or D_DB_INVALID_ARGUMENT.
@@ -275,7 +275,7 @@ int d_mariadb_list_tables(
 
 // 3.1    Existence
 //------------------------------------------------------------------------------
-// existence -- whether a table has a column of that name. A table that does
+// existence - whether a table has a column of that name. A table that does
 // not exist has none. As for tables, the _s form reports a failure.
 bool d_mariadb_has_column(
     struct dj_mariadb* _db,
@@ -293,7 +293,7 @@ int d_mariadb_has_column_s(
 
 // 3.2    Adding, redefining, renaming and dropping
 //------------------------------------------------------------------------------
-// adding -- a column described, or written as SQL ("note TEXT"), appended to
+// adding - a column described, or written as SQL ("note TEXT"), appended to
 // the table. 0, the client's error number (1060, the name is taken; 1146, no
 // such table), CR_OUT_OF_MEMORY (2008), or D_DB_INVALID_ARGUMENT, as
 // d_mariadb_create_table judges a column.
@@ -309,7 +309,7 @@ int d_mariadb_add_column_sql(
     const char*        _table,
     const char*        _definition
 ) D_NOTHROW;
-// redefining -- the column the description names given that type and those
+// redefining - the column the description names given that type and those
 // attributes, as MODIFY COLUMN gives them: an attribute left out, a default
 // or NOT NULL, is dropped, and the column keeps its place and the keys and
 // indexes it is part of. D_DB_COLUMN_PRIMARY_KEY and D_DB_COLUMN_UNIQUE
@@ -323,7 +323,7 @@ int d_mariadb_modify_column(
     const char*                _table,
     const struct dj_db_column* _column
 ) D_NOTHROW;
-// renaming and dropping -- RENAME COLUMN arrived in MySQL 8.0.3 and MariaDB
+// renaming and dropping - RENAME COLUMN arrived in MySQL 8.0.3 and MariaDB
 // 10.5.2, and an older server answers D_DB_UNSUPPORTED rather than have the
 // layer restate the column's whole definition. 0, the client's error number
 // (1054 renaming and 1091 dropping a column that is not there; 1090, the
@@ -349,8 +349,8 @@ int d_mariadb_drop_column(
  *
  * Each column's `type` is the server's full type (e.g. "varchar(80)",
  * "int(11)" before MySQL 8.0.19 and on MariaDB, "int" after);
- * `default_sql` is the default as SQL -- a string default quoted, NULL for
- * none or for a default of NULL -- as MariaDB reports it, or as the layer
+ * `default_sql` is the default as SQL - a string default quoted, NULL for
+ * none or for a default of NULL - as MariaDB reports it, or as the layer
  * renders what MySQL reports, a string's bare value; `primary_key` is the
  * column's 1-based place in the primary key, or 0; `generated` is true for
  * a VIRTUAL or STORED generated column, whose expression is not a default.
@@ -380,7 +380,7 @@ int d_mariadb_list_columns(
 
 // 4.1    Existence
 //------------------------------------------------------------------------------
-// existence -- whether a table has an index of that name; its primary key is
+// existence - whether a table has an index of that name; its primary key is
 // the index named PRIMARY. As for tables, the _s form reports a failure.
 bool d_mariadb_has_index(
     struct dj_mariadb* _db,
@@ -456,7 +456,7 @@ int d_mariadb_list_indexes(
 
 // 5.1    Existence
 //------------------------------------------------------------------------------
-// existence -- whether the database has a view of that name. As for tables,
+// existence - whether the database has a view of that name. As for tables,
 // the _s form reports a failure.
 bool d_mariadb_has_view(
     struct dj_mariadb* _db,
@@ -472,9 +472,9 @@ int d_mariadb_has_view_s(
 
 // 5.2    Creating and dropping
 //------------------------------------------------------------------------------
-// creating -- CREATE VIEW name AS _select; D_DB_IF_NOT_EXISTS makes an
+// creating - CREATE VIEW name AS _select; D_DB_IF_NOT_EXISTS makes an
 // existing one a success, whatever its query, and a table of the name too, as
-// MariaDB's own clause has it. Dropping -- D_DB_IF_EXISTS makes a missing one
+// MariaDB's own clause has it. Dropping - D_DB_IF_EXISTS makes a missing one
 // a success. Each returns 0, the client's error number (1050,
 // the name is taken; 4092 or 1051, no such view), CR_OUT_OF_MEMORY (2008), or
 // D_DB_INVALID_ARGUMENT.
@@ -509,7 +509,7 @@ int d_mariadb_list_views(
 
 // 6.1    Existence
 //------------------------------------------------------------------------------
-// existence -- whether the database has a trigger of that name. As for
+// existence - whether the database has a trigger of that name. As for
 // tables, the _s form reports a failure.
 bool d_mariadb_has_trigger(
     struct dj_mariadb* _db,
@@ -525,7 +525,7 @@ int d_mariadb_has_trigger_s(
 
 // 6.2    Creating and dropping
 //------------------------------------------------------------------------------
-// creating -- CREATE TRIGGER name _definition, where the definition is the
+// creating - CREATE TRIGGER name _definition, where the definition is the
 // rest of the statement, e.g. "AFTER INSERT ON t FOR EACH ROW SET @n = @n +
 // 1", its table resolved as the server resolves it: in the current database
 // unless qualified, and it must be the trigger's. D_DB_IF_NOT_EXISTS makes an

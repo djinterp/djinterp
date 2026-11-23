@@ -6,14 +6,14 @@
 * translation units share.
 *
 *   sections (one .cpp each):
-*     sort_dispatch_tests_selector.cpp  DSortAlgorithm -- the enumerators and
+*     sort_dispatch_tests_selector.cpp  DSortAlgorithm - the enumerators and
 *                                       the pinned underlying type
 *     sort_dispatch_tests_tags.cpp      the six algorithm tags, is_sort_tag,
 *                                       and DDefaultSortTag
 *     sort_dispatch_tests_bridge.cpp    sort_algorithm_traits, algorithm_tag_t,
-*                                       properties_of, name_of -- including the
+*                                       properties_of, name_of - including the
 *                                       unrecognised enumerator
-*     sort_dispatch_tests_runtime.cpp   internal::dispatch_runtime -- every
+*     sort_dispatch_tests_runtime.cpp   internal::dispatch_runtime - every
 *                                       case of the switch plus its fall-through
 *     sort_dispatch_tests_sorter.cpp    DSorter<tag> and the
 *                                       DSorter<DDynamicAlgorithm>
@@ -43,7 +43,7 @@
 #include <type_traits>
 #include <vector>
 // djinterp
-//   core is ALWAYS first and unconditional -- NS_* / D_* qualifiers and the
+//   core is ALWAYS first and unconditional - NS_* / D_* qualifiers and the
 // language gates are needed by both faces of this header.
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
@@ -71,7 +71,7 @@ NS_TESTING
 // UNCONDITIONALLY: the spec provider below needs dt::module_spec too.
 namespace dt = ::djinterp::test;
 
-#ifndef DTEST_SPEC_MODE   // fixtures -- normal mode only
+#ifndef DTEST_SPEC_MODE   // fixtures - normal mode only
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -251,11 +251,11 @@ private:
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// selector -- DSortAlgorithm
+// selector - DSortAlgorithm
 bool tests_sort_dispatch_algorithm_enumerators();
 bool tests_sort_dispatch_algorithm_underlying_type();
 
-// tags -- the six algorithm tags
+// tags - the six algorithm tags
 bool tests_sort_dispatch_tag_properties();
 bool tests_sort_dispatch_tag_names();
 bool tests_sort_dispatch_tag_values();
@@ -263,19 +263,19 @@ bool tests_sort_dispatch_tag_apply();
 bool tests_sort_dispatch_is_sort_tag();
 bool tests_sort_dispatch_default_tag();
 
-// bridge -- sort_algorithm_traits / properties_of / name_of
+// bridge - sort_algorithm_traits / properties_of / name_of
 bool tests_sort_dispatch_algorithm_traits();
 bool tests_sort_dispatch_algorithm_tag_alias();
 bool tests_sort_dispatch_properties_of();
 bool tests_sort_dispatch_name_of();
 bool tests_sort_dispatch_unrecognised_enumerator();
 
-// runtime -- internal::dispatch_runtime
+// runtime - internal::dispatch_runtime
 bool tests_sort_dispatch_runtime_every_case();
 bool tests_sort_dispatch_runtime_unrecognised_is_noop();
 bool tests_sort_dispatch_runtime_battery();
 
-// DSorter -- DSorter<tag> / DSorter<DDynamicAlgorithm>
+// DSorter - DSorter<tag> / DSorter<DDynamicAlgorithm>
 bool tests_sort_dispatch_sorter_static_surface();
 bool tests_sort_dispatch_sorter_static_calls();
 bool tests_sort_dispatch_sorter_dynamic_construction();
@@ -283,7 +283,7 @@ bool tests_sort_dispatch_sorter_dynamic_rebinding();
 bool tests_sort_dispatch_sorter_dynamic_properties();
 bool tests_sort_dispatch_sorter_ordered_overloads();
 
-// entry -- the six free sort() overloads
+// entry - the six free sort() overloads
 bool tests_sort_dispatch_entry_compile_time_forms();
 bool tests_sort_dispatch_entry_runtime_forms();
 bool tests_sort_dispatch_entry_default_tag();

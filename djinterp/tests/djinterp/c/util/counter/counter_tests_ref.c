@@ -3,7 +3,7 @@
 *
 * The counter suite, block "ref": counter.h's interface over any counter --
 * struct dj_counter_vtable, struct dj_counter_ref and the d_counter_ref_*
-* functions -- on each of the three kinds, and across them.
+* functions - on each of the three kinds, and across them.
 *
 *
 * path:      /tests/djinterp/c/util/counter/counter_tests_ref.c

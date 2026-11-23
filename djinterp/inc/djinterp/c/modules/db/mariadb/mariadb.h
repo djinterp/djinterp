@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][db]                                                     mariadb.h
 *
-* Umbrella for djinterp's MariaDB/MySQL convenience layer -- includes every
+* Umbrella for djinterp's MariaDB/MySQL convenience layer - includes every
 * module.
 *   Convenience, not architecture: each module is its own source, so a
 * program that only connects and checks for a table links mariadb_common,
@@ -11,7 +11,7 @@
 *   The modules work on the layer's struct dj_mariadb, and none of them
 * includes mysql.h; include it as well, and cast d_mariadb_native's answer,
 * to call the client directly. Build the sources against libmysqlclient 5.7
-* or a MariaDB client, and link it (-lmariadb, or -lmysqlclient) -- or,
+* or a MariaDB client, and link it (-lmariadb, or -lmysqlclient) - or,
 * where there is neither, as stubs that report D_DB_UNSUPPORTED
 * (D_CFG_MARIADB).
 *

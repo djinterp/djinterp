@@ -9,7 +9,7 @@
 # sources that are being built, and the set is the style guide's whole
 # baseline; without it, the set is the one djinterp's code is clean under.
 #   vparse_apply_dependency_defaults() is for code this build compiles without
-# owning it -- uxoxo's sources, and Dear ImGui's. It sets the language level
+# owning it - uxoxo's sources, and Dear ImGui's. It sets the language level
 # and the source character set and nothing else. Which Windows macros a GUI
 # framework is compiled under, and which warnings it is held to, are its own
 # business: NOGDI or WIN32_LEAN_AND_MEAN imposed from here would take away
@@ -18,7 +18,7 @@
 # decide what a header means: the character set its bytes are in, which
 # preprocessor expands its macros, which language rules its templates are
 # held to. Every unit that includes djinterp's headers is given the same
-# ones -- this project's, djinterp's, uxoxo's (READS_DJINTERP), djinterp's
+# ones - this project's, djinterp's, uxoxo's (READS_DJINTERP), djinterp's
 # test leaves, and the unit configure compiles to learn whether uxoxo fits --
 # so a header is not read one way where it is probed and another where it is
 # built. They are the VPARSE_CL_READS lists below; Dear ImGui, which includes
@@ -27,7 +27,7 @@
 #   LEVELS. djinterp's C floor is C99, and the foundation and the argument
 # parser are built at it. Its C++ faces and the in-tree vparse have a module
 # floor of C++11. VPARSE_CXX_STANDARD picks the level they are built at --
-# any of 11, 14, 17, 20 or 23 -- and defaults to 20, the level the framework
+# any of 11, 14, 17, 20 or 23 - and defaults to 20, the level the framework
 # targets. VPARSE_TOOL_CXX_STANDARD does the same for the tool's model and
 # its command line, whose floor is C++17 (std::filesystem, djinterp's ui);
 # UXOXO_CXX_STANDARD for uxoxo and the window, which
@@ -112,7 +112,7 @@ endforeach()
 
 # VPARSE_CL_READS, VPARSE_CL_READS_CXX
 #   lists: how a cl-style driver is told to read a source that includes
-# djinterp's headers -- the first for C and C++ alike, the second for C++
+# djinterp's headers - the first for C and C++ alike, the second for C++
 # besides. Both are empty under any other driver. See the banner.
 #   Cache entries, not variables: the window's build, build/cmake/config/ui/vparse, adds
 # this build within it and applies these functions to its own targets and
@@ -183,8 +183,8 @@ endfunction()
 # vparse_apply_compiler_defaults(<target> [PUBLIC|PRIVATE|INTERFACE]
 #                                [CXX_STANDARD <level>] [OWN])
 #   For code this build owns: the levels, the conformance flags and the
-# warning set. The scope defaults to PRIVATE -- flags are a build detail, not
-# something a consumer inherits -- and the level to VPARSE_CXX_STANDARD.
+# warning set. The scope defaults to PRIVATE - flags are a build detail, not
+# something a consumer inherits - and the level to VPARSE_CXX_STANDARD.
 #   OWN marks this project's own sources, which are held to the style guide's
 # whole baseline. djinterp's are held to the set they are clean under: its
 # in-tree vparse has 23 sign conversions that -Wconversion reports under
@@ -216,7 +216,7 @@ function(vparse_apply_compiler_defaults _target)
     # are not written to all of it: re_std's dstdint.h, for one, defines the
     # platform's own request macros (__STDC_LIMIT_MACROS and its siblings),
     # which -Wreserved-identifier reports. So to this project's sources
-    # djinterp is a dependency, and its headers are system headers -- found
+    # djinterp is a dependency, and its headers are system headers - found
     # in the same place, and not judged by a consumer's warnings.
     if(_arg_OWN)
         target_include_directories(${_target} SYSTEM ${_scope}
@@ -263,7 +263,7 @@ function(vparse_apply_compiler_defaults _target)
             target_compile_options(${_target} ${_scope}
                 /MP
                 /diagnostics:caret
-                # C4200: zero-sized array in a struct -- a deliberate idiom
+                # C4200: zero-sized array in a struct - a deliberate idiom
                 # in the C layer's flexible trailing members
                 /wd4200)
 
@@ -287,7 +287,7 @@ function(vparse_apply_compiler_defaults _target)
     #---------------------------------------------------------------------------
     # under GCC or Clang
     #---------------------------------------------------------------------------
-    # the diagnostics djinterp's own ladder builds with -- a construct the
+    # the diagnostics djinterp's own ladder builds with - a construct the
     # level lacks is an error, and so is an #if on a macro nobody defined --
     # with the usual warnings beside them
     target_compile_options(${_target} ${_scope}
@@ -319,7 +319,7 @@ endfunction()
 # vparse_apply_dependency_defaults(<target> [CXX_STANDARD <level>]
 #                                  [READS_DJINTERP])
 #   For code this build compiles and does not own: the levels and the source
-# character set, and nothing else -- no warning set, and no Windows macro.
+# character set, and nothing else - no warning set, and no Windows macro.
 # The level defaults to UXOXO_CXX_STANDARD.
 #   READS_DJINTERP marks a dependency whose sources include djinterp's
 # headers, as uxoxo's do. It is then given the flags every other unit here

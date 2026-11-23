@@ -84,7 +84,7 @@ struct shell
 // 1.2.1
 // shell_from_name / shell_name
 //   functions: "bash", "zsh", "fish", "powershell" or "pwsh", in any ASCII
-// case, as a shell -- true, the shell written to `_shell` -- or false,
+// case, as a shell - true, the shell written to `_shell` - or false,
 // `_shell` unchanged; and a shell's name as shell_from_name reads it.
 bool shell_from_name(
     const text&   _name,

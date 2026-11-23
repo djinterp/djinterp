@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  structural_traits_tests_aliases.cpp
-//   Section IV -- the _v variable-template shorthands (C++14+).
+//   Section IV - the _v variable-template shorthands (C++14+).
 
 // std
 #include <string>
@@ -164,7 +164,7 @@ bool tests_aliases_are_constant_expressions()
 /*
 tests_aliases_gating
   The shorthands exist exactly where the standard allows them: gated on variable
-  templates (C++14+), with the ::value forms as the always-present floor -- the
+  templates (C++14+), with the ::value forms as the always-present floor - the
   header degrades to C++11.
   Tests the following:
   - the gate agrees with the language level

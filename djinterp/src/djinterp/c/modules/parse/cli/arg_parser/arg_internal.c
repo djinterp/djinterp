@@ -4,8 +4,8 @@
 * Implementation of the private helpers declared in arg_internal.h.
 *   ASCII spans, heap copies, integer and floating-point text in both
 * directions with `.` as the decimal point in every locale, the arithmetic
-* values of a type descriptor -- converted as CLI11's lexical_cast converts
-* them, and written as the type writes them -- scratch storage, and array
+* values of a type descriptor - converted as CLI11's lexical_cast converts
+* them, and written as the type writes them - scratch storage, and array
 * growth.
 *
 *
@@ -61,8 +61,8 @@
  *
  * Advances `*_index` to the next byte of `_text` that is not a digit
  * separator, `_` or `'`, and reads it; false at the end. CLI11 removes every
- * separator before converting, so skipping them wherever they stand -- before
- * a sign, inside a prefix -- reads exactly what it reads.
+ * separator before converting, so skipping them wherever they stand - before
+ * a sign, inside a prefix - reads exactly what it reads.
  */
 D_STATIC
 bool d_arg_internal_next_significant(
@@ -321,7 +321,7 @@ bool d_arg_internal_real_parse(
  * @return 1 + ceil(_mantissa * log10(2)).
  *
  * The significant decimal digits that always distinguish the values of a
- * type with `_mantissa` binary digits, 1 + ceil(_mantissa * log10(2)) -- C11's
+ * type with `_mantissa` binary digits, 1 + ceil(_mantissa * log10(2)) - C11's
  * *_DECIMAL_DIG, which C99 lacks: 9, 17, 21 and 36 for the IEEE formats. The
  * logarithm is taken as 30103/100000, exact to the digits that matter here.
  */
@@ -470,8 +470,8 @@ bool d_arg_internal_real_print(
  * @param[in] _value  the object printed.
  * @return `true` when it reads back as exactly the value; `false` otherwise.
  *
- * Whether the text printf just wrote -- with the locale's decimal point, so
- * read back with the same locale -- names exactly the value printed.
+ * Whether the text printf just wrote - with the locale's decimal point, so
+ * read back with the same locale - names exactly the value printed.
  */
 D_STATIC
 bool d_arg_internal_real_round_trips(
@@ -539,7 +539,7 @@ bool d_arg_internal_real_round_trips(
  *
  * Rewrites what printf wrote into the module's one spelling: the locale's
  * decimal point becomes `.`, and an exponent of three or more digits with
- * leading zeros -- the old Microsoft runtime's `1e+006` -- loses them down to
+ * leading zeros - the old Microsoft runtime's `1e+006` - loses them down to
  * C99's two.
  */
 D_STATIC
@@ -912,8 +912,8 @@ bool d_arg_internal_store_unsigned(
  *         otherwise.
  *
  * Narrows a long double into a float, double or long double, refusing a
- * finite value beyond the type's range -- converting one is undefined in C, so
- * the range is checked first -- while infinities and NaNs pass, being
+ * finite value beyond the type's range - converting one is undefined in C, so
+ * the range is checked first - while infinities and NaNs pass, being
  * representable in every format.
  */
 D_STATIC
@@ -1541,7 +1541,7 @@ bool d_arg_internal_real_read_into(
 /*
 d_arg_internal_read_real
   Builds strto*'s input on the stack when it fits, on the heap otherwise --
-the only allocation, for a number written with hundreds of digits -- and
+the only allocation, for a number written with hundreds of digits - and
 requires strto* to read all of it. The number lands in scratch storage
 first, so a failed conversion leaves `_out` untouched.
 */
@@ -1743,7 +1743,7 @@ bool d_arg_internal_text_special(
  * @return the digits the text was printed with; 0 when printing failed.
  *
  * Prints with 1, 2, ... significant digits until the text reads back as the
- * value, which `_last` digits -- the type's decimal digits -- always do; a
+ * value, which `_last` digits - the type's decimal digits - always do; a
  * positive `_precision` prints once, with that many. Returns the digits the
  * search stopped at, or 0 when printing failed.
  */
@@ -2094,8 +2094,8 @@ void d_arg_internal_number_stream(
 /*
 d_arg_internal_lexical_cast
   d_arg_convert with one value, but for the empty text of an arithmetic type:
-CLI11's lexical_cast refuses it, where its lexical_assign -- what an option
-converts with -- value-initializes the variable.
+CLI11's lexical_cast refuses it, where its lexical_assign - what an option
+converts with - value-initializes the variable.
 */
 int d_arg_internal_lexical_cast(
     const struct dj_arg_type*            _type,

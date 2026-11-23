@@ -23,8 +23,8 @@
 *     null_index()  is_null(i)  parent(c,i)  first_child(c,i)
 *     next_sibling(c,i)         component(c,i)
 *
-* so a tree_iterator navigates any container -- arena, vector of records, flat
-* array of links -- that an accessor policy can present as a hierarchy.  The
+* so a tree_iterator navigates any container - arena, vector of records, flat
+* array of links - that an accessor policy can present as a hierarchy.  The
 * policy is held BY VALUE and must therefore be cheap to copy.
 *
 *   THE SPEC (Structure, Addressability).  A container is a finite tree of
@@ -39,9 +39,9 @@
 *                            in pre-order, post-order, or leaf (frontier)
 *                          order.
 *
-* The ASCENT direction -- the unique path root |> ... |> n, the ancestor
+* The ASCENT direction - the unique path root |> ... |> n, the ancestor
 * chain,
-* the level and the address -- is the business of path_iterator.hpp, which
+* the level and the address - is the business of path_iterator.hpp, which
 * reads
 * the same policy in the opposite direction.  Between them the two exhaust |>.
 *
@@ -52,7 +52,7 @@
 *
 *   ITERABILITY (the spec, Iterability).
 *     STAGE. Observation and comparison are D_CONSTEXPR. Advancing must climb
-*              and descend -- a loop -- so traversal is constexpr from C++14
+*              and descend - a loop - so traversal is constexpr from C++14
 *              (relaxed constexpr) and a runtime operation before that, as in
 *              the hierarchical iterator, and for the same reason.
 *     MODE. The traversal observes STRUCTURE and yields node handles; it is a
@@ -131,7 +131,7 @@ NS_DJINTERP
 //            resolution descends, and the order an address is spelled.
 //     post a node after its children. The order a fold bottoms out in: the
 //            children of a node are complete before the node is reached.
-//     leaf the frontier only -- the elements of the container, in document
+//     leaf the frontier only - the elements of the container, in document
 //            order, internal nodes skipped.
 enum class DTreeOrder
 {
@@ -149,7 +149,7 @@ enum class DTreeOrder
 // every template argument is deducible from the call.
 
 // tree_is_leaf
-//   function: true if _node has no children -- a leaf, an element of the
+//   function: true if _node has no children - a leaf, an element of the
 // container in the sense of the spec's Structure.
 template<typename Policy,
          typename Container,
@@ -166,7 +166,7 @@ bool tree_is_leaf(
 
 
 // tree_child_count
-//   function: the branching factor of _node -- the number of its children. The
+//   function: the branching factor of _node - the number of its children. The
 // cost of a scanning resolution step is linear in this.
 template<typename Policy,
          typename Container,
@@ -231,7 +231,7 @@ Index tree_leftmost_leaf(
 // this function folded along the address, and container_path_resolve is
 // exactly that fold. The step is O(k) in the branching factor; a node holding
 // its children as a map from label to child would make it O(1), and a node
-// holding them sorted by label O(log k) -- the native and ordered strategies.
+// holding them sorted by label O(log k) - the native and ordered strategies.
 // All three compute the same descent; only the cost differs.
 //
 //   PRECONDITION (separation). The result is well defined only where the
@@ -275,7 +275,7 @@ Index tree_find_child(
 
 // tree_children_separating
 //   function: true if the children of _parent bear pairwise distinct
-// components -- the SEPARATION condition of the Addressability axis, imposed
+// components - the SEPARATION condition of the Addressability axis, imposed
 // at one node.
 //
 //   Separation is the multiplicity restriction mu_1 read sibling-wise: under
@@ -523,7 +523,7 @@ struct tree_iterator_end_tag
 //
 //   The walk needs no stack: the parent link supplies the way back up, so the
 // iterator carries only the current node, the root that bounds it, and the
-// level. The root bound is what keeps the traversal inside its subtree -- the
+// level. The root bound is what keeps the traversal inside its subtree - the
 // climb stops there and never follows the root's own siblings.
 //
 //   The LEVEL is measured from the traversal's root, which is at level 0. It
@@ -665,7 +665,7 @@ public:
     // component
     //   the component (the label) of the node at the current position. The
     // root of a traversal carries a component like any other node, but it
-    // contributes NO label to an address -- addressing starts from it.
+    // contributes NO label to an address - addressing starts from it.
     component_type
     component() const
     {
@@ -846,7 +846,7 @@ private:
 
     // advance_post
     //   steps to the next node in post-order: the root is last; otherwise the
-    // leftmost leaf of the next sibling, or -- there being no next sibling --
+    // leftmost leaf of the next sibling, or - there being no next sibling --
     // the parent, whose children are now complete.
     D_CONSTEXPR_CPP14
     void
@@ -891,7 +891,7 @@ private:
     // advance_leaf
     //   steps to the next leaf. A pre-order step from a leaf lands on the next
     // subtree in document order, and the leftmost leaf of that subtree is the
-    // next leaf -- so the leaf order is the pre-order step composed with a
+    // next leaf - so the leaf order is the pre-order step composed with a
     // descent, and it visits the frontier of the container exactly.
     D_CONSTEXPR_CPP14
     void
@@ -1079,7 +1079,7 @@ public:
     }
 
     // empty
-    //   true if the traversal visits no node -- that is, if the root is null.
+    //   true if the traversal visits no node - that is, if the root is null.
     // A non-null root always yields at least itself, in every order.
     bool
     empty() const
@@ -1151,7 +1151,7 @@ DTreeView<Policy, Container, Order> make_tree_view(
 
 // make_preorder_view
 //   factory: a range over the subtree rooted at _root, each node before its
-// children -- document order, the order in which an address is spelled.
+// children - document order, the order in which an address is spelled.
 template<typename Policy,
          typename Container,
          typename Index>
@@ -1170,7 +1170,7 @@ DTreeView<Policy, Container, DTreeOrder::pre> make_preorder_view(
 
 // make_postorder_view
 //   factory: a range over the subtree rooted at _root, each node after its
-// children -- the order in which a fold over the tree bottoms out.
+// children - the order in which a fold over the tree bottoms out.
 template<typename Policy,
          typename Container,
          typename Index>
@@ -1188,7 +1188,7 @@ DTreeView<Policy, Container, DTreeOrder::post> make_postorder_view(
 
 
 // make_leaf_view
-//   factory: a range over the frontier of the subtree rooted at _root -- its
+//   factory: a range over the frontier of the subtree rooted at _root - its
 // leaves only, in document order. This is the elements of the container in the
 // sense of the spec, the node summand skipped.
 template<typename Policy,
@@ -1208,7 +1208,7 @@ DTreeView<Policy, Container, DTreeOrder::leaf> make_leaf_view(
 
 
 // make_child_view
-//   factory: a range over the children of _parent -- the descent relation
+//   factory: a range over the children of _parent - the descent relation
 // itself, one level.
 template<typename Policy,
          typename Container,

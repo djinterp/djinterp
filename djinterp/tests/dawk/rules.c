@@ -4,8 +4,8 @@
 * Rule harness: a sheet's findings over fixture files, one per line.
 *   Builds each file's source tree (dext_c or dext_cpp) and its text layer
 * (dline) beneath one file node, evaluates every rule of the sheet through
-* the engine's own d_property_evaluate -- so a finding here is a finding
-* under dcheck -- and prints `path:line:column: message`, sorted by line.
+* the engine's own d_property_evaluate - so a finding here is a finding
+* under dcheck - and prints `path:line:column: message`, sorted by line.
 * rules.sh diffs that against each fixture's `.expected` file.
 *   With `--uncovered` it prints no findings: it reads every file given and
 * then names each rule of the sheet that produced none, as

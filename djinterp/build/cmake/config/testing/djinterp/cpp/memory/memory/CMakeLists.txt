@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/cpp/memory/memory/CMakeLists.txt
+# djinterp [test]  -  build/cmake/config/testing/djinterp/cpp/memory/memory/CMakeLists.txt
 #
 #   Test leaf for cpp/memory (memory.hpp and every face it includes), in
 # DTest's C face: the runner in this directory, the section translation units

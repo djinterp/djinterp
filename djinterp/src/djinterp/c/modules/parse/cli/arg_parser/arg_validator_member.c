@@ -1,12 +1,12 @@
 /*******************************************************************************
 * djinterp [c][parse]                                     arg_validator_member.c
 *
-* CLI11's sets and mappings -- IsMember, Transformer and CheckedTransformer --
+* CLI11's sets and mappings - IsMember, Transformer and CheckedTransformer --
 * declared in arg_validator_extra.h (2).
 *   A set keeps its members, or a mapping its pairs, as slices of one text it
 * owns, with the filter it compares through. A value is filtered as the set
-* filters -- CLI11's built-in filters in one pass, then the filter's
-* function -- and keyed: by its text, or, in a set of a type, by the value
+* filters - CLI11's built-in filters in one pass, then the filter's
+* function - and keyed: by its text, or, in a set of a type, by the value
 * it converts to, widened for an arithmetic type and written back as the
 * type writes it for any other, so that `08` finds 8 and -0 finds 0. The
 * search is CLI11's: the members' own keys first, made once when the set is
@@ -58,7 +58,7 @@ enum dj_arg_internal_member_compare
 
 // dj_arg_internal_member
 //   struct: a member of a set, or a pair of a mapping: `from`, the member;
-// `to`, what it maps to; and the key `from` compares by -- `form`, a text,
+// `to`, what it maps to; and the key `from` compares by - `form`, a text,
 // which is the member itself in a set of text, or `number`.
 struct dj_arg_internal_member
 {
@@ -70,7 +70,7 @@ struct dj_arg_internal_member
 
 // dj_arg_internal_members
 //   struct: what IsMember, Transformer and CheckedTransformer keep: the type
-// compared as -- NULL for text -- how they compare, the filter, its context
+// compared as - NULL for text - how they compare, the filter, its context
 // the set's own copy when `owns` is set, and the members, with the text
 // their slices are of.
 struct dj_arg_internal_members
@@ -824,8 +824,8 @@ int d_arg_internal_member_value_key(
  * The member a value matches: the value keyed as the members are, then
  * searched for; `*_found` the member's index, or the count for none, and
  * `*_converts` false, with D_ARG_OK, for a value that does not convert to
- * the set's type. A failure -- the filter's, whatever its status, or
- * memory's -- is returned as it is.
+ * the set's type. A failure - the filter's, whatever its status, or
+ * memory's - is returned as it is.
  */
 D_STATIC
 int d_arg_internal_member_find(
@@ -1072,8 +1072,8 @@ int d_arg_internal_member_set_describe(
  *         stopped the search, or the replacement's.
  *
  * CLI11's Transformer: a value matching a pair's key becomes the pair's
- * value; anything else -- a value that does not convert to the type among it
- * -- stands; a failure stops the validation with its status.
+ * value; anything else - a value that does not convert to the type among it
+ * - stands; a failure stops the validation with its status.
  */
 D_STATIC
 int d_arg_internal_member_transform_validate(
@@ -1168,7 +1168,7 @@ bool d_arg_internal_member_is_target(
  *
  * CLI11's CheckedTransformer: a value matching a pair's key becomes the
  * pair's value; one equal, as text, to a pair's value stands; any other --
- * one that does not convert to the type among it -- is rejected with "Check
+ * one that does not convert to the type among it - is rejected with "Check
  * <value> value in {...} OR {...} FAILED"; a failure stops the validation
  * with its status.
  */
@@ -1532,7 +1532,7 @@ bool d_arg_internal_member_given(
  * @return D_ARG_OK; D_ARG_ERROR_CONVERSION for a member that does not convert;
  *         or D_ARG_ERROR_OUT_OF_MEMORY.
  *
- * One member's texts gathered into the buffer -- `from`, then `to` -- and its
+ * One member's texts gathered into the buffer - `from`, then `to` - and its
  * key: `from` itself in a set of text; else `from` converted under the
  * configured integer rule, widened, or written back as its type writes it,
  * after the other two.
@@ -1652,7 +1652,7 @@ int d_arg_internal_member_body(
  *         copied.
  *
  * The filter the set keeps: none when none is given; else a copy of it, its
- * context duplicated -- and owned -- when the filter can copy it, borrowed
+ * context duplicated - and owned - when the filter can copy it, borrowed
  * when it cannot.
  */
 D_STATIC

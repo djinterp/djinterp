@@ -2,8 +2,8 @@
 * djinterp [c][parse]                                           arg_argv_tests.c
 *
 * The suite of arguments from text, declared in arg_argv_tests.h.
-*   Each section but the last of each part is a table of rows -- lines,
-* words, files, the arguments of a parse -- each run and written as the
+*   Each section but the last of each part is a table of rows - lines,
+* words, files, the arguments of a parse - each run and written as the
 * reference writes it, the whole compared at once. A text is split, quoted
 * or searched from storage of exactly its length, so that a read past
 * either end is AddressSanitizer's to see; files are made in a scratch
@@ -481,8 +481,8 @@ static const char SPLIT_FLAGS[] =
 //   constant: what the lines of d_tests_arg_argv_split_own come to, the
 // module's own: no reference reads them so. A shell would read the
 // comments, operators and expansions; a NUL byte ends the text any of
-// them is given, and a word CLI11 gives holding one -- its escape `\0`
-// among them -- reads, from the list, as ending there.
+// them is given, and a word CLI11 gives holding one - its escape `\0`
+// among them - reads, from the list, as ending there.
 static const char SPLIT_OWN[] =
     "O01 posix 0 [#a b]: 2 [#a] [b]\n"
     "O02 posix 0 [a #b]: 2 [a] [#b]\n"
@@ -1016,7 +1016,7 @@ static const char RESPONSE_EXPAND_OWN[] =
 
 // RESPONSE_EXPAND_ENTRIES
 //   constant: what the cases of d_tests_arg_argv_response_expand_entries
-// come to: the arguments each is to give CLI11 -- libiberty's expandargv's
+// come to: the arguments each is to give CLI11 - libiberty's expandargv's
 // or LLVM's expansion of its words, or, by the module's own rules, by
 // hand.
 static const char RESPONSE_EXPAND_ENTRIES[] =
@@ -1110,7 +1110,7 @@ struct dj_tests_arg_argv_program
 // USE_READ / USE_EXPAND / USE_OWN / USE_REFUSALS
 //   constant: the sections a response file is made for, the bits of its
 // `uses`: a scratch directory holds no more than D_TESTS_ARG_FILES_MAX, so
-// each section makes the files it reads -- the reading section those its
+// each section makes the files it reads - the reading section those its
 // rows name; GCC's and Windows' expanding sections those their arguments
 // name and those name in turn, and the module's own expanding section
 // those its arguments name and so on; the refusals' the three they read.
@@ -1257,8 +1257,8 @@ enum
 // dj_tests_arg_argv_entry
 //   struct: a parse that names response files, given its words otherwise
 // than main's `argv`: its tag; how it is given them, an ENTRY_* value;
-// the rules its files are read by; and its words -- the line, for
-// ENTRY_LINE -- each a span that may hold NUL bytes, and how many.
+// the rules its files are read by; and its words - the line, for
+// ENTRY_LINE - each a span that may hold NUL bytes, and how many.
 struct dj_tests_arg_argv_entry
 {
     const char*        tag;
@@ -1280,8 +1280,8 @@ enum
 };
 
 // dj_tests_arg_argv_wide
-//   struct: wide text converted: its tag, and its units -- UTF-16's or code
-// points, each a `wchar_t` as it would hold the value -- and how many.
+//   struct: wide text converted: its tag, and its units - UTF-16's or code
+// points, each a `wchar_t` as it would hold the value - and how many.
 struct dj_tests_arg_argv_wide
 {
     const char* tag;
@@ -1367,8 +1367,8 @@ static const size_t WIDE32_COUNT = sizeof(WIDE32_ROWS) / sizeof(WIDE32_ROWS[0]);
 
 // WIDE_TEXT_UTF32
 //   constant: what the code points of WIDE32_ROWS come to: Python's UTF-8 of
-// each, a surrogate or a value past U+10FFFF -- a negative `wchar_t` among them
-// -- U+FFFD.
+// each, a surrogate or a value past U+10FFFF - a negative `wchar_t` among them
+// - U+FFFD.
 static const char WIDE_TEXT_UTF32[] =
     "U01 []: []\n"
     "U02 [61]: [a]\n"
@@ -1590,8 +1590,8 @@ const char* d_tests_arg_argv_rules(
 }
 
 /**
- * @brief A copy of text in storage of exactly its length -- none for no
- *        text -- so that a read past either end of it is AddressSanitizer's
+ * @brief A copy of text in storage of exactly its length - none for no
+ *        text - so that a read past either end of it is AddressSanitizer's
  *        to see.
  *
  * @param[in]  _text  the text.
@@ -2277,7 +2277,7 @@ void d_tests_arg_argv_expand_line(
 
 /**
  * @brief Parses a row's arguments as main's, after the program's name
- *        "prog", built in storage the run keeps -- the way a program's
+ *        "prog", built in storage the run keeps - the way a program's
  *        response files reach the parser.
  *
  * @note The arguments are parted by spaces and built as d_tests_arg_argv
@@ -2492,8 +2492,8 @@ bool d_tests_arg_argv_own_expands(
 
 /**
  * @brief Appends the line of a parse given its words otherwise than main's,
- *        `<tag> <how> <rules> [<words>]`: how -- "args", "reversed",
- *        "line" -- then the words escaped, parted by spaces.
+ *        `<tag> <how> <rules> [<words>]`: how - "args", "reversed",
+ *        "line" - then the words escaped, parted by spaces.
  *
  * @param[in,out] _out  the transcript.
  * @param[in]     _row  the parse.
@@ -2726,7 +2726,7 @@ d_tests_arg_argv_split_posix
   A POSIX shell's words, without expansions, comments or operators
 (d_arg_split_line, D_ARG_QUOTING_POSIX).
   Tests the following:
-  - blanks -- spaces, tabs and line feeds -- separating, other whitespace
+  - blanks - spaces, tabs and line feeds - separating, other whitespace
     ordinary
   - single quotes, double quotes and the escapes they honour, a backslash
     outside them
@@ -3627,8 +3627,8 @@ bool d_tests_arg_argv_split_nothing(void)
 
 /**
  * @brief Words appended after those a list holds, and a split that fails
- *        leaving the list as it was -- by POSIX's rules and by CLI11's,
- *        which have given words before they fail -- without a buffer for the
+ *        leaving the list as it was - by POSIX's rules and by CLI11's,
+ *        which have given words before they fail - without a buffer for the
  *        description.
  *
  * @return whether the list held what it should after each.
@@ -4201,7 +4201,7 @@ bool d_tests_arg_argv_quote_bytes(
  * @brief A word that is not there, with no length, quoted as the empty word
  *        by each set of rules; and a word holding a NUL byte, which POSIX's
  *        quote, the others' leave, and CLI11's keep as it is within quotes
- *        it needs for another reason -- each appended after the buffer's
+ *        it needs for another reason - each appended after the buffer's
  *        text.
  *
  * @return whether each came to its bytes.
@@ -4842,7 +4842,7 @@ bool d_tests_arg_argv_response_expand_entries(void)
 
 /**
  * @brief Reading a response file refused without a path, without a list, or
- *        by rules that are none of the four -- before the file is looked
+ *        by rules that are none of the four - before the file is looked
  *        for, so that one not there is not described.
  *
  * @return whether every call was refused, leaving the list and the
@@ -4879,7 +4879,7 @@ bool d_tests_arg_argv_response_refused(void)
 }
 
 /**
- * @brief Files that cannot be read -- one not there, a folder -- refused as
+ * @brief Files that cannot be read - one not there, a folder - refused as
  *        CLI11 describes a missing file, each description appended; a file
  *        breaking its rules refused with its rules' description, leaving the
  *        list as it was; and a file's words appended after the list's.
@@ -4988,7 +4988,7 @@ bool d_tests_arg_argv_response_whole(
 
 /**
  * @brief A file several times longer than the module reads at a time --
- *        LONG_WORDS numbered words, `w0000 w0001 ...` -- read whole by each
+ *        LONG_WORDS numbered words, `w0000 w0001 ...` - read whole by each
  *        set of rules: every word in order, those across a read's end too.
  *
  * @param[in,out] _scratch  the scratch directory, which the file is made in.
@@ -5070,7 +5070,7 @@ bool d_tests_arg_argv_response_state(
  * @brief The parser's switch for response files: off at first, with the
  *        platform's rules; turned on with rules of the caller's, which rules
  *        that are none leave as they were; and turned off, an `\@file`
- *        then an argument like any other -- and nothing set on no parser.
+ *        then an argument like any other - and nothing set on no parser.
  *
  * @return whether the parser held each setting, and parsed as it said.
  */
@@ -5282,8 +5282,8 @@ bool d_tests_arg_argv_wide_kept(void)
 /*
 d_tests_arg_argv_wide_text
   Wide text converted to UTF-8 (d_arg_utf8_from_wide): UTF-16 units where
-`wchar_t` has 16 bits, code points where it has more -- the table for the
-build's `wchar_t` -- as Python's codecs convert them.
+`wchar_t` has 16 bits, code points where it has more - the table for the
+build's `wchar_t` - as Python's codecs convert them.
   Tests the following:
   - text of one, two, three and four bytes in UTF-8, and U+FFFD itself
   - surrogate pairs; unpaired surrogates, first, last, and in a row, U+FFFD
@@ -5372,7 +5372,7 @@ void d_tests_arg_argv_units(
 
 /**
  * @brief Converts UTF-8 where the conversion must write nothing, into room
- *        for `_capacity` units -- and one past them -- filled with a mark.
+ *        for `_capacity` units - and one past them - filled with a mark.
  *
  * @param[in] _text      the UTF-8, in storage of exactly its length.
  * @param[in] _length    its length.
@@ -5641,8 +5641,8 @@ bool d_tests_arg_argv_wide_back_kept(void)
 /*
 d_tests_arg_argv_wide_back
   UTF-8 converted to wide text (d_arg_wide_from_utf8): UTF-16 units where
-`wchar_t` has 16 bits, code points where it has more -- the transcript for
-the build's `wchar_t` -- as Python's strict UTF-8 codec converts it.
+`wchar_t` has 16 bits, code points where it has more - the transcript for
+the build's `wchar_t` - as Python's strict UTF-8 codec converts it.
   Tests the following:
   - text of one, two, three and four bytes, at the edges of each length and
     beside the surrogates; U+FFFD itself; a byte-order mark and a NUL kept
@@ -5720,8 +5720,8 @@ struct dj_arg_command* d_tests_arg_argv_wide_begin(
 }
 
 /**
- * @brief Appends a wide parse's run: what it wrote -- its ERR line, when it
- *        failed, and its report -- after its line.
+ * @brief Appends a wide parse's run: what it wrote - its ERR line, when it
+ *        failed, and its report - after its line.
  *
  * @param[in,out] _out     the transcript.
  * @param[in]     _line    the parse's line, `<tag> [<arguments>]`.
@@ -5800,8 +5800,8 @@ bool d_tests_arg_argv_wide_args(
 /**
  * @brief A wide line parsed with its program's name
  *        (d_arg_parser_parse_line_wide), written as the reference writes it:
- *        the line as UTF-8 -- the module's own conversion of it, which the
- *        reference's text then checks too -- and the parse's run.
+ *        the line as UTF-8 - the module's own conversion of it, which the
+ *        reference's text then checks too - and the parse's run.
  *
  * @param[in,out] _out     the transcript.
  * @param[in]     _tag     the reference's tag for it.
@@ -5859,7 +5859,7 @@ bool d_tests_arg_argv_wide_line(
 /**
  * @brief The wide lines parsed as the reference's V02 to V04: one past
  *        ASCII and past UTF-16's first range, an escape CLI11 refuses, and
- *        NUL bytes -- U+0000, and one from an escape in double quotes --
+ *        NUL bytes - U+0000, and one from an escape in double quotes --
  *        each word holding them kept whole.
  *
  * @param[in,out] _out  the transcript.
@@ -6014,9 +6014,9 @@ bool d_tests_arg_argv_wide_refusals(
 }
 
 /**
- * @brief Wide parses refused, each before the parser is touched -- the
+ * @brief Wide parses refused, each before the parser is touched - the
  *        program's name of the parse before, the program's name alone,
- *        kept -- and none given, and an empty line, parsed.
+ *        kept - and none given, and an empty line, parsed.
  *
  * @return whether every call came to that.
  */
@@ -6091,7 +6091,7 @@ bool d_tests_arg_argv_wide_ascii(
 
 /**
  * @brief Whether recovered arguments are the C runtime's own: as many as
- *        `__argc`, and each `__argv`'s wherever that is ASCII -- elsewhere
+ *        `__argc`, and each `__argv`'s wherever that is ASCII - elsewhere
  *        the two spell it in different encodings.
  *
  * @param[in] _got    the recovered arguments.
@@ -6174,7 +6174,7 @@ bool d_tests_arg_argv_wide_untouched(
 /**
  * @brief main's arguments recovered in UTF-8 (d_arg_parser_ensure_utf8):
  *        tried with each count of arguments up to ENSURE_MAX, exactly one --
- *        the process's own -- is recovered where the system keeps the
+ *        the process's own - is recovered where the system keeps the
  *        process's wide command line, as copies the parser keeps, ending in
  *        a NULL within their storage, each the runtime's own argument; for
  *        every other count, and everywhere else, `argv` itself, as the

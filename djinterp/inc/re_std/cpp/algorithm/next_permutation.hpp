@@ -10,7 +10,7 @@
 *   ALGORITHM (Pandita's, O(N)):
 *     1. scan right-to-left for the rightmost ascent, i.e. the last
 *        position i with *i < *(i+1);
-*     2. if none exists the range is descending -- reverse it and
+*     2. if none exists the range is descending - reverse it and
 *        report false;
 *     3. otherwise scan right-to-left for the rightmost j with
 *        *i < *j, swap i and j, and reverse the suffix after i.
@@ -84,7 +84,7 @@ next_permutation(
             BidirIt _j = _last;
             while (!(*_i < *--_j))
             {
-                // empty -- the scan itself does the work
+                // empty - the scan itself does the work
             }
             re_std::iter_swap(_i, _j);
             re_std::reverse(_ascent, _last);

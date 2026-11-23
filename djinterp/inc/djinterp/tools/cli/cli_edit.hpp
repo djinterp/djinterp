@@ -3,8 +3,8 @@
 *
 * The command-line kit's C++ face: commands that change a file.
 *   `cli::edit` is the dj_cli_edit record a command keeps, with the C calls of
-* cli_edit.h as its members: the operand -- bound, if the command asks, to
-* the std::string the command reads the file's name from -- and the options
+* cli_edit.h as its members: the operand - bound, if the command asks, to
+* the std::string the command reads the file's name from - and the options
 * for where the result goes, added each where the command's other
 * definitions put it; then, after the parse, where the result goes, whether
 * `-n` was given, and the result written there, whole or not at all. The
@@ -135,8 +135,8 @@ public:
         std::string& _file
     );
 
-    // the options for where the result goes -- `-o FILE` and `-n`, and for
-    // B `-i` -- added where the command's other options are:
+    // the options for where the result goes - `-o FILE` and `-n`, and for
+    // B `-i` - added where the command's other options are:
     // d_cli_edit_add_options
     cli::status add_options(
         program&     _program,
@@ -145,7 +145,7 @@ public:
     ) D_NOEXCEPT;
 
     // after a parse: where the result goes, `-n` aside; whether `-n` was
-    // given -- d_cli_edit_target, d_cli_edit_dry_run
+    // given - d_cli_edit_target, d_cli_edit_dry_run
     edit_place::value target(
         const program& _program
     ) const D_NOEXCEPT;

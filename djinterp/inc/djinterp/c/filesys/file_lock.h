@@ -8,7 +8,7 @@
 * locking; if that is what you need, this module cannot supply it.
 *   Except that on Windows the lock IS enforced, by Windows: while one handle
 * holds an exclusive lock, every other handle's reads and writes of the file
-* fail -- another process's, and this one's through a second descriptor --
+* fail - another process's, and this one's through a second descriptor --
 * and while any handle holds a shared lock nobody may write, its holder
 * included. Code that writes through a descriptor it has share-locked, or
 * through a second one while it holds a lock, works on POSIX and fails there.
@@ -76,7 +76,7 @@ D_EXTERN_C_BEGIN
  * @param[in] _operation  exactly one of D_LOCK_SH, D_LOCK_EX or D_LOCK_UN,
  *                        optionally OR'd with D_LOCK_NB.
  * @return 0, or -1 on failure with errno set. Under D_LOCK_NB a conflict
- *         returns -1 with errno EWOULDBLOCK, EAGAIN or EACCES -- an answer,
+ *         returns -1 with errno EWOULDBLOCK, EAGAIN or EACCES - an answer,
  *         not a fault. A filesystem that cannot lock at all is ENOLCK.
  */
 int d_file_lock_fd(

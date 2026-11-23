@@ -41,15 +41,15 @@
 * the two languages never share a symbol and can be linked together freely.
 *
 *   C has no templates, so a kernel that serves every integer type is written
-* once over the widest integer the build can spell -- dj_math_imax and
-* dj_math_umax, below -- and every narrower type reaches it by a conversion
+* once over the widest integer the build can spell - dj_math_imax and
+* dj_math_umax, below - and every narrower type reaches it by a conversion
 * that loses nothing. That is intmax_t and uintmax_t wherever dstdint.h
 * declares them, and long and unsigned long where it cannot (ISO strict C++98
 * wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS,
 * none of which has a type wider than long for a kernel to miss).
 *
-*   A target may evaluate float and double wider than their types -- a
-* 32-bit x87 holds both in its 64-bit registers -- and FLT_EVAL_METHOD says
+*   A target may evaluate float and double wider than their types - a
+* 32-bit x87 holds both in its 64-bit registers - and FLT_EVAL_METHOD says
 * so. There a value the C library returns can be wider than its type too,
 * and a compiler takes a call's result to be of its type; a kernel that
 * hands such a result on stores it first, so that it is (section 4).
@@ -273,7 +273,7 @@ struct dj_math_ratio
 // How wide the target evaluates each floating type, from FLT_EVAL_METHOD. A
 // 32-bit x87 evaluates float and double in long double (2): there a value held
 // in a register carries more than its type, and so can one the C library
-// returns -- glibc's i386 sqrtf leaves the x87's 64 bits -- which a compiler
+// returns - glibc's i386 sqrtf leaves the x87's 64 bits - which a compiler
 // takes to be of its type. A kernel that hands on the C library's result
 // stores it through a volatile where its type is evaluated wider, so that the
 // value is of its type; elsewhere it returns it as it comes.
@@ -322,7 +322,7 @@ struct dj_math_ratio
 // 4.1.4
 // D_MATH_LDBL_EVAL_WIDE
 //   constant: 1 where the target evaluates long double wider than long
-// double -- C23's 128 with a narrower long double -- or cannot say; 0 where
+// double - C23's 128 with a narrower long double - or cannot say; 0 where
 // it evaluates long double in long double, as every method before C23's
 // does.
 #if ( (D_MATH_EVAL_METHOD < 0) ||                                              \
@@ -339,7 +339,7 @@ struct dj_math_ratio
 // 4.2.1
 // D_MATH_DBL_REFUSE
 //   statement: nothing where double is evaluated in double. Where it is
-// evaluated wider -- a 32-bit x87 -- the double family's correctly rounded
+// evaluated wider - a 32-bit x87 - the double family's correctly rounded
 // functions and dd.h's pairs cannot keep their bounds, as their exact sums
 // and products need each operation rounded to double, so each begins with
 // this: for gcc and clang, a call to a function whose error attribute stops
@@ -378,8 +378,8 @@ struct dj_math_ratio
 // A fused multiply-add computes a b + c with one rounding. A compiler may
 // fuse a multiply and an add of the text on its own: gcc does by default in
 // its GNU modes (its default without -std) wherever the target has the
-// instruction -- every ARM64 and POWER, and x86 with -mfma or a -march that
-// has it -- and clang under -ffp-contract=fast; clang's default fuses within
+// instruction - every ARM64 and POWER, and x86 with -mfma or a -march that
+// has it - and clang under -ffp-contract=fast; clang's default fuses within
 // one expression. Fusing is harmless where the product is exact, and where a
 // kernel's error bound holds for both forms, but it breaks Veltkamp's split,
 // on which Dekker's exact product rests: there the rounding of split * a is
@@ -445,9 +445,9 @@ struct dj_math_ratio
 // 5.2    Each family's fused multiply-add
 //------------------------------------------------------------------------------
 // D_MATH_<F>_FMA is 1 where the target has a fused multiply-add for the
-// family that gcc's or clang's builtin compiles to -- gcc's __FP_FAST_FMA
+// family that gcc's or clang's builtin compiles to - gcc's __FP_FAST_FMA
 // macros, which it defines exactly where it may fuse, and x86's FMA and
-// ARM's, which clang names -- and the builtin may be called: in C; in C++
+// ARM's, which clang names - and the builtin may be called: in C; in C++
 // before C++14, where no kernel is a constant expression; and from C++14
 // where D_MATH_CONSTANT_EVALUATED can keep it out of a constant evaluation.
 // 0 elsewhere, where the exact products take Dekker's form: from C++14 on a
@@ -522,7 +522,7 @@ struct dj_math_ratio
 // it and the including file's state is as it was. clang under
 // -ffp-contract=fast ignores the pragma; gcc ignores it everywhere, and
 // warns. There the exact products are safe by section 5.2, and the plain
-// formulas -- the _fast forms among them -- follow the build.
+// formulas - the _fast forms among them - follow the build.
 #if ( defined(__clang__) &&                                                    \
       ( ( defined(__apple_build_version__) && (__clang_major__ >= 12) ) ||     \
         ( !defined(__apple_build_version__) && (__clang_major__ >= 11) ) ) )

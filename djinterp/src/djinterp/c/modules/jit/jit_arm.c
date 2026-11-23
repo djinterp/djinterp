@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][jit]                                                    jit_arm.c
 *
-* djinterp AArch32 / ARM (A32) JIT encoder -- implementation (jit_arm.h).
+* djinterp AArch32 / ARM (A32) JIT encoder - implementation (jit_arm.h).
 *   Each emitter packs register and immediate fields into a verified base
 * opcode and emits one 32-bit little-endian word. Branch displacements are
 * patched by the relocation at the top (PC base is the branch address plus 8,
@@ -44,8 +44,8 @@ int d_jit_arm_reloc_br24(
 }
 
 // d_jit_arm_encode_imm
-//   function (internal): encode _v as an ARM modified immediate -- an 8-bit
-// value rotated right by an even amount -- into *_op2 (the 12-bit operand2).
+//   function (internal): encode _v as an ARM modified immediate - an 8-bit
+// value rotated right by an even amount - into *_op2 (the 12-bit operand2).
 //   returns: 0 if encodable, -1 otherwise.
 static
 int d_jit_arm_encode_imm(

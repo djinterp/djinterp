@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][memory]                                                   arena.h
 *
-* Monotonic bump arena -- the shared C core (tier 0):
+* Monotonic bump arena - the shared C core (tier 0):
 *   The simplest allocator that is still general: a pointer that moves
 * forward. allocate() aligns the cursor, returns it, and advances; there is no
 * per-allocation header, no free list, and no size class, so an allocation
@@ -17,8 +17,8 @@
 *
 *   WHEN THE ARENA IS THE RIGHT ANSWER: a phase with a known end. A parse, a
 * frame, a request, a compilation unit. The allocations within it have wildly
-* varying lifetimes on paper and exactly one lifetime in practice -- the
-* phase's -- so tracking them individually is bookkeeping that buys nothing.
+* varying lifetimes on paper and exactly one lifetime in practice - the
+* phase's - so tracking them individually is bookkeeping that buys nothing.
 *
 * POINTER STABILITY:
 *   Chained arenas NEVER move a byte they have handed out. Growth adds a
@@ -30,7 +30,7 @@
 * COMPOSITION:
 *   d_arena_as_source presents an arena as a dj_mem_source, so a pool or a slab
 * can draw its blocks from one. One upstream call at startup, an arena over
-* it, and every other allocator in the program carved out of that -- with no
+* it, and every other allocator in the program carved out of that - with no
 * allocator in the chain aware of the arrangement.
 *
 * PORTABLE ACROSS:
@@ -94,7 +94,7 @@ D_EXTERN_C_BEGIN
 // dj_arena_growth
 //   enum: how a chained arena sizes each next region. Declared whatever
 // D_CFG_ARENA_CHAIN says, so that code naming a policy still compiles on a
-// build that cannot chain -- it simply never grows. Degrade, never error.
+// build that cannot chain - it simply never grows. Degrade, never error.
 enum dj_arena_growth
 {
     // every region is the same size: bounded waste, linear upstream calls
@@ -113,7 +113,7 @@ enum dj_arena_growth
 // the arena's region alignment.
 //   The header is deliberately three fields (two without chaining). It is
 // paid once per REGION, not once per allocation, which is the whole reason an
-// arena is cheap -- so the temptation to record more here should be weighed
+// arena is cheap - so the temptation to record more here should be weighed
 // against the fact that nothing in the header is ever read on the hot path
 // except `used`.
 struct dj_arena_region
@@ -183,7 +183,7 @@ struct dj_arena
 
 // dj_arena_config
 //   struct: how one arena differs from the configured defaults. EVERY FIELD
-// MAY BE ZERO, and a zeroed config is exactly "the defaults" -- so a caller
+// MAY BE ZERO, and a zeroed config is exactly "the defaults" - so a caller
 // that wants an ordinary arena passes NULL and one that wants to change a
 // single thing changes a single field.
 struct dj_arena_config
@@ -211,8 +211,8 @@ struct dj_arena_config
 
 // dj_arena_mark
 //   struct: a position in an arena, taken by d_arena_mark_get and restored by
-// d_arena_rewind. A VALUE THE CALLER HOLDS -- the arena carries no field for
-// it -- which is why marks nest naturally and cost the arena nothing.
+// d_arena_rewind. A VALUE THE CALLER HOLDS - the arena carries no field for
+// it - which is why marks nest naturally and cost the arena nothing.
 //   A mark is invalidated by reset, release, and by rewinding to an EARLIER
 // mark. Using an invalidated mark is undefined unless
 // D_CFG_ARENA_VALIDATE_MARKS is on, in which case rewind reports

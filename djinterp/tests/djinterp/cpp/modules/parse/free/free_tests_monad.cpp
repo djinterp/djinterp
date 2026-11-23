@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][parse]                                     free_tests_monad.cpp
 *
-*   Sections III-IV of the parser/free.hpp suite: the monadic stratum -- the
+*   Sections III-IV of the parser/free.hpp suite: the monadic stratum - the
 * parsing_program free-monad construction, lift_to_program / to_parser, the
 * free_parser wrapper, and the free_pure / free_lift / free_bind / free_map
 * factories.  free_bind is a genuine monadic bind (a later parser may depend on

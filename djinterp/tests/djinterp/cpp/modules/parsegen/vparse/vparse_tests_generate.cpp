@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][parsegen]                             vparse_tests_generate.cpp
 *
-* vparse tests: the generator -- the byte-for-byte anchor, and a multi-rule
+* vparse tests: the generator - the byte-for-byte anchor, and a multi-rule
 * grammar with back-patched cross-references.
 *
 *

@@ -341,7 +341,7 @@ d_internal_ostream_drain(
  *
  * The window's bytes are counted before the destination sees them, and base
  * is brought up to cur afterwards whatever the destination did, so a byte is
- * never counted twice -- not even when the grow failed and left the window
+ * never counted twice - not even when the grow failed and left the window
  * where it was.
  */
 static int32_t
@@ -386,7 +386,7 @@ d_internal_ostream_push(
  * @return 1 or 0.
  *
  * A destination that can grow makes room for all of it at once; one that
- * cannot -- a fixed array -- gives what it has, and is asked again.
+ * cannot - a fixed array - gives what it has, and is asked again.
  */
 static int32_t
 d_internal_ostream_store(
@@ -439,7 +439,7 @@ d_internal_ostream_store(
  *
  * What fits beside the buffer's bytes is copied. What does not drains the
  * buffer first, and is then copied into the empty buffer, or sent straight
- * on when it is at least the buffer's size -- unbuffered, always -- so order
+ * on when it is at least the buffer's size - unbuffered, always - so order
  * is kept and nothing is copied twice. A line-buffered stream drains after a
  * write that holds a newline.
  */
@@ -527,7 +527,7 @@ d_internal_ostream_decimal_digits32(
  * @return 1 to 20.
  *
  * Above ten digits, ten at a time come off by one division, which a 32-bit
- * target does in a library call -- but only for values that large.
+ * target does in a library call - but only for values that large.
  */
 static size_t
 d_internal_ostream_decimal_digits(
@@ -559,7 +559,7 @@ d_internal_ostream_decimal_digits(
  *
  * Two digits per division. Above 32 bits the division is 64-bit; below it,
  * 32-bit, which a 32-bit target does in hardware rather than in a library
- * call -- and almost every value written is below it.
+ * call - and almost every value written is below it.
  */
 static void
 d_internal_ostream_decimal_fill(
@@ -1300,8 +1300,8 @@ d_ostream_written(
 /*
 d_ostream_written64
   The wraps are shifted in by half of size_t's width twice, which is a whole
-width where size_t is 32 bits and shifts them out where it is 64 -- where
-they never happen -- without a shift as wide as the type, which C leaves
+width where size_t is 32 bits and shifts them out where it is 64 - where
+they never happen - without a shift as wide as the type, which C leaves
 undefined.
 */
 uint64_t
@@ -1450,7 +1450,7 @@ d_internal_ostream_fixed_usable(
  * While the window is the array's, base sits at the stored length, so a
  * commit adds [base, cur) to it and writes the terminator. Room left in the
  * array is given back as it is, even when it is less than _need: the stream
- * fills it and asks again, and only an array with no room left spills -- so
+ * fills it and asks again, and only an array with no room left spills - so
  * the stored prefix is as long as it can be. The stream has already counted
  * the scratch's bytes, so spilling discards them.
  */

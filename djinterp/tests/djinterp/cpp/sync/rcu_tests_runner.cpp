@@ -76,7 +76,7 @@ int main()
 
     rb.use_pdf("rcu_tests_report.pdf");
 
-    // -- 0. the header contract --------------------------------------------
+    // - 0. the header contract --------------------------------------------
     rb.module("0. the header contract",
               "guard, env-first #error, dependencies, gating, and two version notes");
     rb.run("the include guard is defined, and is 1",       &tests_header_include_guard);
@@ -89,7 +89,7 @@ int main()
     rb.run("std::rcu delegation is off on this build",     &tests_std_rcu_delegation_is_off_on_this_build);
     rb.run("read_lock is, in practice, C++17+",            &tests_read_lock_availability_is_cpp17);
 
-    // -- II. the epoch counter ---------------------------------------------
+    // - II. the epoch counter ---------------------------------------------
     rb.module("II. epoch_counter",
               "the monotonic global epoch; advance() returns the PREVIOUS value");
     rb.run("a fresh counter starts at epoch 0",            &tests_epoch_counter_starts_at_zero);
@@ -101,7 +101,7 @@ int main()
     rb.run("the counter is not movable",                   &tests_epoch_counter_is_not_movable);
     rb.run("its operations are noexcept",                  &tests_epoch_counter_operations_are_noexcept);
 
-    // -- III. the epoch guard ----------------------------------------------
+    // - III. the epoch guard ----------------------------------------------
     rb.module("III. epoch_guard",
               "the RAII reader marker; records on entry, resets to inactive on exit");
     rb.run("it records the epoch on construction",         &tests_epoch_guard_records_epoch_on_construction);
@@ -112,7 +112,7 @@ int main()
     rb.run("construction is noexcept",                     &tests_epoch_guard_construction_is_noexcept);
     rb.run("two slots are independent",                    &tests_epoch_guard_two_slots_are_independent);
 
-    // -- IV. the epoch registry --------------------------------------------
+    // - IV. the epoch registry --------------------------------------------
     rb.module("IV. epoch_registry",
               "the per-thread slot pool; lock-free claim, min-active-epoch scan");
     rb.run("the default capacity is 64",                   &tests_registry_default_capacity_is_64);
@@ -128,7 +128,7 @@ int main()
     rb.run("capacity zero is handled",                     &tests_registry_capacity_zero_is_handled);
     rb.run("the registry is not copyable or movable",      &tests_registry_is_not_copyable_or_movable);
 
-    // -- V. the deferred reclaimer -----------------------------------------
+    // - V. the deferred reclaimer -----------------------------------------
     rb.module("V. deferred_reclaimer",
               "the reclamation engine; retire / scan / force_reclaim, boundary logic");
     rb.run("a fresh reclaimer is empty at epoch 0",        &tests_reclaimer_starts_empty);
@@ -145,7 +145,7 @@ int main()
     rb.run("scan compacts and keeps survivors in order",   &tests_reclaimer_scan_compacts_and_keeps_survivors);
     rb.run("the reclaimer is not copyable or movable",     &tests_reclaimer_is_not_copyable_or_movable);
 
-    // -- VI. the DRcuProtected value ---------------------------------------
+    // - VI. the DRcuProtected value ---------------------------------------
     rb.module("VI. rcu_protected",
               "the complete value; read [C++17+] / update / modify, single-reader");
     rb.run("it constructs from an lvalue",                 &tests_protected_constructs_from_an_lvalue);
@@ -161,7 +161,7 @@ int main()
     rb.run("updates are visible to readers [C++17+]",      &tests_protected_updates_are_visible_to_readers);
     rb.run("a modify is visible to readers [C++17+]",      &tests_protected_modify_is_visible_to_readers);
 
-    // -- Concurrency -------------------------------------------------------
+    // - Concurrency -------------------------------------------------------
     rb.module("Concurrency",
               "the protocol under threads: distinct slots, no UAF, and progress");
     rb.run("concurrent registration hands out distinct slots", &tests_registry_concurrent_registration_is_distinct);

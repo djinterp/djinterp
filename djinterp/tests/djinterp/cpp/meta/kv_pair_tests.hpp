@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][meta]                                         kv_pair_tests.hpp
 *
-* Unit test suite for kv_pair.hpp -- the minimal key-value pair.
+* Unit test suite for kv_pair.hpp - the minimal key-value pair.
 *   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.md S3):
 *
 *     - normal mode (the section TUs): pulls in the header under test and
@@ -58,7 +58,7 @@
 #include <type_traits>
 #include <utility>
 // djinterp
-// -- (part 1) mode-gated includes --------------------------------------------
+// - (part 1) mode-gated includes --------------------------------------------
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
 #include "../../../../inc/djinterp/cpp/meta/kv_pair.hpp"                          // the header under test (normal)
@@ -115,7 +115,7 @@ bool kv_pair_check(
     while (0)
 
 
-#ifndef DTEST_SPEC_MODE  // (part 1 cont.) fixtures -- normal mode only
+#ifndef DTEST_SPEC_MODE  // (part 1 cont.) fixtures - normal mode only
 
 ///////////////////////////////////////////////////////////////////////////////
 ///             F.1   SHORTHANDS                                            ///
@@ -161,7 +161,7 @@ struct tracked
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- (part 2) declarations -- visible in BOTH modes --------------------------
+// - (part 2) declarations - visible in BOTH modes --------------------------
 
 // I.   CONSTRUCTION   (kv_pair_tests_construction.cpp)
 bool tests_construction_member_typedefs();
@@ -184,7 +184,7 @@ bool tests_contract_is_kv_pair();
 bool tests_contract_members_are_the_contracts();
 
 
-// -- (part 3) the spec provider -- spec mode only ----------------------------
+// - (part 3) the spec provider - spec mode only ----------------------------
 #ifdef DTEST_SPEC_MODE
 
 // kv_pair_spec

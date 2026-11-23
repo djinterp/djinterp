@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][parsegen]                              vparse_tests_session.cpp
 *
-* vparse tests: the session -- both frontends reaching a parser that runs, a
+* vparse tests: the session - both frontends reaching a parser that runs, a
 * bad grammar reported rather than thrown, the faults a session refuses in the
 * same words with either frontend, and a failed load leaving the parser that
 * was already there alone.

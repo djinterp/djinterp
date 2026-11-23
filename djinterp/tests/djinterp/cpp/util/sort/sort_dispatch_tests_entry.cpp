@@ -39,7 +39,7 @@ bool tests_sort_dispatch_entry_compile_time_forms()
     sort(DMergeSortTag(), data.begin(), data.end(), std::greater<int>());
     result.check(data == expected_descending);
 
-    //   Form A2: sort(tag(), first, last) -- default comparator.
+    //   Form A2: sort(tag(), first, last) - default comparator.
     data = shape_random(64);
     sort(DHeapSortTag(), data.begin(), data.end());
     result.check(data == expected_ascending);
@@ -203,8 +203,8 @@ bool tests_sort_dispatch_entry_default_tag()
 
     //   sort(first, last, comp) with no explicit tag must be exactly
     // sort(DDefaultSortTag(), first, last, comp).  Identical output is not
-    // enough to show that -- every correct sort of ints produces identical
-    // output -- so the comparison COUNT is checked too.  Two different
+    // enough to show that - every correct sort of ints produces identical
+    // output - so the comparison COUNT is checked too.  Two different
     // algorithms would essentially never agree on it.
     defaulted             = shape_random(256);
     named                 = defaulted;
@@ -216,7 +216,7 @@ bool tests_sort_dispatch_entry_default_tag()
     // standard-library iterator is AMBIGUOUS: ordinary lookup finds
     // djinterp::sort, and ADL on __normal_iterator<int*, std::vector<int> >
     // adds std::sort, which matches equally well.  The default-tag entry
-    // point is still what is under test here -- the qualification only says
+    // point is still what is under test here - the qualification only says
     // WHICH sort, it does not supply a tag.
     ::djinterp::sort(defaulted.begin(),
                      defaulted.end(),

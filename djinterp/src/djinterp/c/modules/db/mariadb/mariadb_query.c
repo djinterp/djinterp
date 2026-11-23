@@ -765,8 +765,8 @@ begun; 3, its answer. MariaDB's client sends alone, as PostgreSQL's layer
 does, and the first statement's answer is the first result's to read.
 libmysqlclient, whose calls read a reply only with its query, reads the
 first statement's answer with the send: its failure is the server's answer
-to the SQL, given by the first result. A failure of the client's own -- the
-connection lost, a command out of sync -- is the send's.
+to the SQL, given by the first result. A failure of the client's own - the
+connection lost, a command out of sync - is the send's.
 */
 static
 int d_internal_mariadb_send_advance(

@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                                     sorted_table.hpp
 *
-*   sorted_table -- the first OVERLAY on the table backing (Overlays:
+*   sorted_table - the first OVERLAY on the table backing (Overlays:
 * containers
 * as restriction bundles). An overlay is a bundle of restrictions a container
 * is
@@ -20,16 +20,16 @@
 *                               value occurs at most once, so a repeated key
 *                             is
 *                               an assignment, not a new row.  With this the
-*                               overlay is {varsigma, mu_1^{E_key}} -- the
+*                               overlay is {varsigma, mu_1^{E_key}} - the
 *                             sorted
-*                               MAP on rows; without it, {varsigma} -- the
+*                               MAP on rows; without it, {varsigma} - the
 *                             sorted
 *                               sequence of rows, keys free to repeat.
 *
 *   PRESERVATION.  Every mutator maintains the bundle: insert places (or, when
 * keys are unique, replaces) a row at its sorted position, and erase removes
 * without disturbing the order of the rest.  Direct cell mutation is therefore
-* NOT exposed -- overwriting a key cell could break varsigma -- so the surface
+* NOT exposed - overwriting a key cell could break varsigma - so the surface
 * is
 * read-only cells plus order-preserving structural change, the discipline an
 * overlay demands.
@@ -39,7 +39,7 @@
 * sorted invariant through the framework's opt-in `sorted_invariant` marker,
 * so
 * the Sortedness classifier reads it as `sorted` rather than the bare table's
-* `order_dependent` -- the axis note "a sorted table is the overlay" made
+* `order_dependent` - the axis note "a sorted table is the overlay" made
 * real.
 *
 *   KEY / VALUE.  This overlay keys on a COLUMN of a cell-homogeneous table
@@ -188,7 +188,7 @@ public:
     using element_type       = Type;
     using structure_category = DHierarchical;   // uniformly nested, like the backing
 
-    // npos -- "no such row" sentinel for the key queries.
+    // npos - "no such row" sentinel for the key queries.
     static constexpr size_type npos = static_cast<size_type>(-1);
 
     // overlay markers (the restriction bundle this container wears).
@@ -337,13 +337,13 @@ public:
         return m_base.row_end();
     }
 
-    // is_sorted -- true by construction; the overlay maintains varsigma.
+    // is_sorted - true by construction; the overlay maintains varsigma.
     D_NODISCARD bool is_sorted() const noexcept
     {
         return true;
     }
 
-    // base -- the underlying table backing (read-only), for interop.
+    // base - the underlying table backing (read-only), for interop.
     D_NODISCARD const backing_type& base() const noexcept
     {
         return m_base;
@@ -351,13 +351,13 @@ public:
 
     // --- 4. key queries (binary search over the sorted order) ---
 
-    // key_at -- the key cell of row _r (its value in the key column).
+    // key_at - the key cell of row _r (its value in the key column).
     D_NODISCARD const_reference key_at(size_type _r) const
     {
         return m_base.row(_r)[key_column];
     }
 
-    // lower_bound -- index of the first row whose key is not less than _key.
+    // lower_bound - index of the first row whose key is not less than _key.
     D_NODISCARD size_type lower_bound(const Type& _key) const
     {
         size_type lo = 0;
@@ -381,7 +381,7 @@ public:
         return lo;
     }
 
-    // upper_bound -- index of the first row whose key is greater than _key.
+    // upper_bound - index of the first row whose key is greater than _key.
     D_NODISCARD size_type upper_bound(const Type& _key) const
     {
         size_type lo = 0;
@@ -405,7 +405,7 @@ public:
         return lo;
     }
 
-    // find -- index of a row whose key is equivalent to _key, or npos.
+    // find - index of a row whose key is equivalent to _key, or npos.
     D_NODISCARD size_type find(const Type& _key) const
     {
         const size_type pos = lower_bound(_key);
@@ -420,13 +420,13 @@ public:
         return npos;
     }
 
-    // contains_key -- whether any row carries a key equivalent to _key.
+    // contains_key - whether any row carries a key equivalent to _key.
     D_NODISCARD bool contains_key(const Type& _key) const
     {
         return (find(_key) != npos);
     }
 
-    // count_key -- how many rows carry a key equivalent to _key (0 or 1 when
+    // count_key - how many rows carry a key equivalent to _key (0 or 1 when
     // keys are unique).
     D_NODISCARD size_type count_key(const Type& _key) const
     {
@@ -435,7 +435,7 @@ public:
 
     // --- 5. structural mutation (invariant-preserving) ---
 
-    // insert -- place _row at its sorted position. When keys are unique and an
+    // insert - place _row at its sorted position. When keys are unique and an
     // equivalent key is present, the existing row is replaced (map
     // assignment); when keys may repeat, the row goes after any equal keys, so
     // equal keys keep their insertion order (as keyed_table and std::multiset
@@ -485,7 +485,7 @@ public:
         return pos;
     }
 
-    // erase_at -- remove the row at index _r.
+    // erase_at - remove the row at index _r.
     void erase_at(size_type _r)
     {
         m_base.erase_row(_r);
@@ -493,7 +493,7 @@ public:
         return;
     }
 
-    // erase_key -- remove every row whose key is equivalent to _key; returns
+    // erase_key - remove every row whose key is equivalent to _key; returns
     // the number removed (0 or 1 when keys are unique).
     size_type erase_key(const Type& _key)
     {
@@ -510,7 +510,7 @@ public:
         return n;
     }
 
-    // clear -- drop all rows.
+    // clear - drop all rows.
     void clear() noexcept
     {
         m_base.clear();
@@ -551,7 +551,7 @@ make_sorted_table(std::initializer_list<std::initializer_list<Type>> _rows)
 
 
 // ---------------------------------------------------------------------------
-// axis / overlay conformance -- the framework's Sortedness classifier must read
+// axis / overlay conformance - the framework's Sortedness classifier must read
 // the overlay's invariant as `sorted` (representative instantiation).
 // ---------------------------------------------------------------------------
 namespace table_axis_conformance

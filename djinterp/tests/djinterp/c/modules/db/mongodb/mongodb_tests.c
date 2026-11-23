@@ -4,7 +4,7 @@
 *   Conformance tests for djinterp's MongoDB convenience layer: every
 * function in c/modules/db/mongodb/mongodb_*.h, its success paths, its
 * documented failures and its argument checks, against a live deployment --
-* MongoDB from 4.2, a replica set -- through whichever driver it is linked with,
+* MongoDB from 4.2, a replica set - through whichever driver it is linked with,
 * 1.21 and later of either line. Where the answer depends on the server or the
 * driver, the check asks the handle the server's version, or the layer the
 * driver's, and expects the matching answer, so one suite passes on every pair
@@ -13,8 +13,8 @@
 * itself, by doing what needs the feature: a version table that drifts from
 * the truth fails here, not in a program.
 *   The tests follow the headers, section by section. Each works in a
-* database of its own, named after the run -- an ObjectId the harness makes,
-* so that two runs against one deployment never meet -- and after the test,
+* database of its own, named after the run - an ObjectId the harness makes,
+* so that two runs against one deployment never meet - and after the test,
 * made current on its handle and dropped at the end.
 *
 *   Deployment: DJINTERP_TEST_MONGODB_URI, a connection string, says where
@@ -43,8 +43,8 @@
 *******************************************************************************/
 // WIN32_LEAN_AND_MEAN, NOMINMAX
 //   knobs (Windows'): <windows.h>, which mongoc.h includes through
-// <winsock2.h>, without its rarer headers -- rpcndr.h among them, which makes
-// `small` a macro -- and without its min and max macros, as the other
+// <winsock2.h>, without its rarer headers - rpcndr.h among them, which makes
+// `small` a macro - and without its min and max macros, as the other
 // vendors' harnesses have it; they precede every include.
 #if defined(_WIN32)
     #if !defined(WIN32_LEAN_AND_MEAN)
@@ -485,8 +485,8 @@ d_tests_mongodb_results
   - only the driver's stream and server selection domains are unreachable
   - every result has words, the layer's own for its constants, and a
     pointer to d_mongodb_error_message for a server's or the driver's
-  - a real failure of libbson's -- JSON that ends too soon -- and of the
-    driver's -- a connection string it cannot read -- are packed so
+  - a real failure of libbson's - JSON that ends too soon - and of the
+    driver's - a connection string it cannot read - are packed so
 */
 static
 void d_tests_mongodb_results(void)
@@ -1487,8 +1487,8 @@ d_tests_mongodb_adopt
   - one not owned outlives the handle, usable by the driver after
   - one that cannot reach a server fails, and stays the caller's
   - the driver's error API: a client never set is set to the second, its
-    server codes the server's; one in the second already -- another
-    handle's, a pool's set so -- is taken as it is; one its maker or its
+    server codes the server's; one in the second already - another
+    handle's, a pool's set so - is taken as it is; one its maker or its
     pool set to the first is D_DB_INVALID_ARGUMENT
   - NULL arguments; close of NULL is 0; ping of NULL is refused
 */
@@ -1836,12 +1836,12 @@ d_tests_mongodb_json
   Tests the following:
   - Extended JSON of every form: canonical, relaxed, legacy ($date with a
     string, $oid), each value of its own type
-  - a document is one: an array where one is due, text after it -- a
-    comma, a second document, a word -- and empty text are
+  - a document is one: an array where one is due, text after it - a
+    comma, a second document, a word - and empty text are
     D_DB_INVALID_ARGUMENT; text that is not JSON, or JSON that ends too
     soon, is libbson's code, packed, in its JSON domain, on every release:
-    what libbson itself lets through too -- n, NaN, Infinity, -01, a word,
-    a trailing comma, a raw tab -- its message counting bytes from the text
+    what libbson itself lets through too - n, NaN, Infinity, -01, a word,
+    a trailing comma, a raw tab - its message counting bytes from the text
     given; a field 98 documents deep is read, 99 refused alike, as
     libbson's reader refuses it
   - space around the document is passed over
@@ -3806,7 +3806,7 @@ void d_tests_mongodb_databases(void)
 d_tests_mongodb_collections
   The collections of mongodb_schema.h.
   Tests the following:
-  - create, with options -- a capped size -- and its info says so; has, a
+  - create, with options - a capped size - and its info says so; has, a
     view not counting; the list, views left out
   - a create of one that is there is 48 on every server, unless
     D_DB_IF_NOT_EXISTS; a drop of one that is not, 26, unless

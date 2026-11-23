@@ -13,9 +13,9 @@ test_functional_parity_quantifiers.cpp
 from test_functional_parity.cpp, and not by preference.
 
   `monoid.hpp` and `accumulator.hpp` cannot be compiled into one TU. Both
-declare `DSum`, `DProduct`, `DMin` and `DMax` flat in namespace `djinterp` -- the
+declare `DSum`, `DProduct`, `DMin` and `DMax` flat in namespace `djinterp` - the
 former as struct templates (monoid.hpp:99-199), the latter as function
-templates (accumulator.hpp:1168-1247) -- because monoid.hpp never opens the
+templates (accumulator.hpp:1168-1247) - because monoid.hpp never opens the
 `namespace monoids` its own header comment, section banner and functional.md
 all describe. Including both yields four `conflicting declaration of template`
 errors. The split here is that defect, made visible rather than worked around.

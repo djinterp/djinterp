@@ -15,7 +15,7 @@
 *
 *   A note on parity (framework_goals.md section 2): every knob here is read by
 * BOTH languages, because both compile this same header. A knob therefore
-* cannot make C and C++ disagree -- it can only move both together. Config
+* cannot make C and C++ disagree - it can only move both together. Config
 * that lived in one face would be a parity hazard; config that lives here is
 * not.
 *
@@ -42,7 +42,7 @@
 // (0) root first: helpers, user overrides, testing flag and preset.
 #include "../../cfg_common.h"  // D_CFG_NORM, D_CFG_IS_INT_LITERAL
 
-//   PREREQUISITE. Two knobs below resolve by DETECTION -- the iteration tier
+//   PREREQUISITE. Two knobs below resolve by DETECTION - the iteration tier
 // probes dmacro's generated tables, the notation tier probes the environment's
 // concepts feature. Whoever includes this file must already have loaded
 // djinterp.h, dmacro.h, and (in C++) djinterp.hpp, or both detections report
@@ -71,13 +71,13 @@
 
 // D_CFG_EVENT_ALL
 //   brief: aggregate fallback for every optional event feature. Not defined by
-// default -- when the user defines it, each child knob whose own value is
+// default - when the user defines it, each child knob whose own value is
 // unset falls back to it. Set it to 0 for the smallest build that still
 // dispatches, or 1 to opt every optional feature in. Individual knobs always
 // outrank it.
 
 // D_CFG_EVENT_PRESET_MINIMAL
-//   brief: 1 selects the freestanding profile -- no allocation, no deferral,
+//   brief: 1 selects the freestanding profile - no allocation, no deferral,
 // no staging, no statistics, no merge. Intended for a build with no allocator
 // and a fixed handler budget. Implemented as guarded #defines below rather
 // than as a forced block, so an explicit knob still wins over the preset.
@@ -218,7 +218,7 @@
 //   brief: 1 expands event payload blocks with dmacro.h's indexed iteration
 // (arity up to D_VARG_COUNT_MAX), 0 with the event subframework's own
 // positional expander (arity up to 12). Left unset it is DETECTED, which is
-// the intent -- set it only to force a tier for a bisect or a bug report.
+// the intent - set it only to force a tier for a bisect or a bug report.
 //
 //   The detection probes the GENERATED TABLE, not the macro that consumes it.
 // dmacro.h always defines D_FOR_EACH_INDEXED and D_INC, but D_INC expands to
@@ -229,7 +229,7 @@
 // "detect features, not versions").
 //
 //   Both tiers generate the same members in the same order, so the payload
-// block has one layout either way. Only the ceiling moves -- which is the
+// block has one layout either way. Only the ceiling moves - which is the
 // tier law working as intended.
 #ifndef D_CFG_EVENT_ITERATION_DMACRO
 #   if defined(D_VARG_COUNT) && defined(D_INTERNAL_INC_0)
@@ -283,7 +283,7 @@
 
 // D_CFG_EVENT_STRICT_ARGS
 //   brief: 0 (default) makes the core tolerate a null argument and report it
-// through the return value -- D_EVENT_ERR_NULL, or the empty dispatch result.
+// through the return value - D_EVENT_ERR_NULL, or the empty dispatch result.
 // 1 makes it a hard assertion instead, for a build that would rather find the
 // caller than absorb the mistake. The core reads it through D_EVENT_STRICT_ARG
 // (event_common.h), in every branch that returns D_EVENT_ERR_NULL.
@@ -294,7 +294,7 @@
 // D_CFG_EVENT_VALIDATE_PAYLOAD
 //   brief: 1 checks a payload view's size and arity against the declaration
 // before the payload is enqueued or dispatched. This is the run-time tier of
-// an invariant the C++ face checks with static_assert -- goals section 2,
+// an invariant the C++ face checks with static_assert - goals section 2,
 // "same invariant, three enforcement tiers". Follows D_CFG_TESTING, so a test
 // build gets the check and a release build does not pay for it.
 //   NOTHING READS IT YET. A queue or a dispatch sees a key and a payload view,
@@ -319,7 +319,7 @@
 //   brief: 1 compiles the event subframework's concept constraints. Left unset
 // it follows env detection of C++20 concepts. Setting it to 0 on a tier that
 // has them keeps the traits and drops the concepts, which is a legitimate
-// choice for a codebase standardising on the trait spelling -- the concepts
+// choice for a codebase standardising on the trait spelling - the concepts
 // are notation over the traits, and dropping notation changes nothing about
 // what is computed (goals section 2).
 #ifndef D_CFG_EVENT_USE_CONCEPTS
@@ -425,7 +425,7 @@
     D_CFG_NORM(D_CFG_EVENT_ASSERT_LAYOUT)
 
 // D_INTERNAL_EVENT_ASSERT_SIZES
-//   brief: 1 when exact struct sizes should be asserted -- on LP64, or
+//   brief: 1 when exact struct sizes should be asserted - on LP64, or
 // anywhere if the user has forced it. Offsets are asserted regardless.
 #if D_CFG_IS_ON(D_CFG_EVENT_ASSERT_LAYOUT)
 #   if D_CFG_IS_ON(D_CFG_EVENT_ASSERT_SIZES_OFF_LP64)

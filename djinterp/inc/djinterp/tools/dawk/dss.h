@@ -2,8 +2,8 @@
 * djinterp [c][tools]                                                      dss.h
 *
 * DSS front end:
-*   Parses the declarative subset of djinterp-dss.peg -- at-rules, style rules,
-* selectors and declarations -- into an index-addressed tree.  Statements,
+*   Parses the declarative subset of djinterp-dss.peg - at-rules, style rules,
+* selectors and declarations - into an index-addressed tree.  Statements,
 * expressions and calc() are not accepted here; a sheet that needs them needs
 * the awk side of the grammar and is rejected with a located error.
 *   Every node is a fixed-size record in a flat array and every reference is a
@@ -187,7 +187,7 @@ struct dj_dss_simple
     uint32_t  name;        // interned: type, class, attribute or pseudo name
     uint32_t  value;       // interned: the attribute value, or NO_INDEX
     double    number;      // the attribute value as a number, when numeric
-    uint32_t  first_argument;  // :not :is :has -- a contiguous run of
+    uint32_t  first_argument;  // :not :is :has - a contiguous run of
     uint32_t  argument_count;  // selectors; zero for any other simple
     int32_t   nth_a;           // :nth-child(An+B) and :nth-last-child
     int32_t   nth_b;

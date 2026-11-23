@@ -43,7 +43,7 @@ int main(void)
     CHECK(d_settings_set(s, "resolve", "all", D_SETTING_SHEET, e, sizeof e), "alias writes");
     CHECK(d_settings_is(s, "cascade.resolve", "all"), "...the real setting");
 
-    /* precedence: apply high first, then low -- the low must not win */
+    /* precedence: apply high first, then low - the low must not win */
     CHECK(d_settings_set(s, "fix", "true", D_SETTING_COMMAND_LINE, e, sizeof e), "cli set");
     CHECK(d_settings_set(s, "fix", "false", D_SETTING_SHEET, e, sizeof e), "a lower source is accepted...");
     CHECK(d_settings_bool(s, "fix"), "...but does not override a higher one");

@@ -43,7 +43,7 @@ namespace re_std
 
 // bit_floor
 //   function: greatest power of two <= _v; 0 when _v is 0. Cannot
-// overflow -- the result never exceeds the operand.
+// overflow - the result never exceeds the operand.
 template<typename T>
 RE_STD_CONSTEXPR typename internal::bit_enable<T>::type
 bit_floor(

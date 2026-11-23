@@ -1,4 +1,4 @@
-# container/table/ unit test suite -- leaf recipe (header-only module, no
+# container/table/ unit test suite - leaf recipe (header-only module, no
 # src/).
 #
 #   One executable for container/table/ (the floor suite): the fifteen table

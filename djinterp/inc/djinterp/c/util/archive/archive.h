@@ -2,7 +2,7 @@
 * djinterp [c][utility]                                                archive.h
 *
 *   The C face of the archive kernel: tier 1a.  Ergonomics ONLY, on the same
-* terms as compress.h -- every macro expands to a call into archive_common.h,
+* terms as compress.h - every macro expands to a call into archive_common.h,
 * and nothing here decides anything.  If a change to this file would change an
 * output byte, it belongs in the core.
 *
@@ -18,18 +18,18 @@
 * seven span builders in section I were casts over brace initialisers; they are
 * now calls to sink_common.h's constructors, which C++ compiles.  What remains
 * C-only here is the _Generic in section IV, and that already degrades below
-* C11.  So the split is currently a POLICY, not a language constraint -- do not
+* C11.  So the split is currently a POLICY, not a language constraint - do not
 * re-justify it by the old reason.  Whether to keep it is an open question and
 * belongs with the same question about compress.h.
 *
-*   NO archive.c -- everything here is a macro or a D_INLINE (`static inline`)
+*   NO archive.c - everything here is a macro or a D_INLINE (`static inline`)
 * function, so this header exports no external symbol.
 *
 *   THE PROBLEM THIS FACE ACTUALLY SOLVES:
 *   The core's entry model is a borrowed pointer pair, which is the right
 * representation and a poor thing to type.  Building a three-file archive by
 * hand is fifteen assignments across three named locals, and the failure mode
-* is silent -- a forgotten `is_directory` or an uninitialised `mtime` produces a
+* is silent - a forgotten `is_directory` or an uninitialised `mtime` produces a
 * valid archive with wrong metadata, which no round-trip test catches because
 * the round trip preserves the wrong value faithfully.
 *
@@ -42,7 +42,7 @@
 *   An entry BORROWS.  The builders below produce compound literals whose
 * storage lasts to the end of the enclosing block, and the name and payload
 * they point at must outlive the d_archive_create call, not merely the builder.
-* Both conditions hold for the ordinary shape -- a literal array of entries over
+* Both conditions hold for the ordinary shape - a literal array of entries over
 * string literals and caller buffers, passed to a create call in the same block.
 * Storing an entry list beyond its block, or over a buffer that is then reused,
 * is the one way to misuse this file, and no macro can catch it.
@@ -90,7 +90,7 @@ VII.  ITERATION                 (entries, formats)
 // c
 #include <stddef.h>
 // djinterp
-#include "../sink_common.h"          // dj_pack_text/bytes_from_* -- section I
+#include "../sink_common.h"          // dj_pack_text/bytes_from_* - section I
 #include "./archive_common.h"       // the kernel this is notation over
 #include "../compress/compress.h"            // D_PACK_OK / D_PACK_TRY / D_CODEC
 // re_std
@@ -101,7 +101,7 @@ VII.  ITERATION                 (entries, formats)
 // I.   SPAN BUILDERS
 // =============================================================================
 //   A dj_pack_text or dj_pack_bytes in two forms, and the distinction is not
-// cosmetic -- it is forced by C and getting it wrong is a compile error at
+// cosmetic - it is forced by C and getting it wrong is a compile error at
 // every static call site.
 //
 //     *_INIT   a BRACE INITIALISER.  Valid wherever an initialiser is, which
@@ -115,7 +115,7 @@ VII.  ITERATION                 (entries, formats)
 // takes the plain ones.
 //
 //   THE PLAIN FORMS ARE THE KERNEL CONSTRUCTORS, NOT COMPOUND LITERALS.  They
-// used to be `((struct dj_pack_text)D_TEXT_INIT(...))` and so on -- seven casts
+// used to be `((struct dj_pack_text)D_TEXT_INIT(...))` and so on - seven casts
 // over brace initialisers, which is a second spelling of
 // d_pack_text_from_cstr / d_pack_text_from_span / d_pack_bytes_from_span, all
 // three of which sink_common.h has exported the whole time.  Two spellings of
@@ -144,7 +144,7 @@ VII.  ITERATION                 (entries, formats)
 
 // D_TEXT_INIT
 //   macro: brace initialiser for a dj_pack_text over the string LITERAL _lit.
-// Only valid for a literal -- for a runtime pointer use D_TEXT_CSTR or
+// Only valid for a literal - for a runtime pointer use D_TEXT_CSTR or
 // D_TEXT_SPAN_INIT.
 #define D_TEXT_INIT(_lit)           { (_lit),                                  \
                                       D_INTERNAL_PACK_LITERAL_LEN(_lit) }
@@ -211,7 +211,7 @@ VII.  ITERATION                 (entries, formats)
 // =============================================================================
 // II.  ENTRY BUILDERS
 // =============================================================================
-//   One expression per entry, every field accounted for -- and, as in section
+//   One expression per entry, every field accounted for - and, as in section
 // I, an _INIT form for the static case.  A file-scope entry table is the normal
 // shape for a fixture, so the _INIT forms are not an edge case.
 //
@@ -239,7 +239,7 @@ VII.  ITERATION                 (entries, formats)
     }
 
 // D_ARCHIVE_DIR_INIT
-//   macro: brace initialiser for a directory entry -- no payload,
+//   macro: brace initialiser for a directory entry - no payload,
 // is_directory raised.
 #define D_ARCHIVE_DIR_INIT(_name)                                              \
     {                                                                          \
@@ -248,7 +248,7 @@ VII.  ITERATION                 (entries, formats)
     }
 
 // D_ARCHIVE_ENTRY_FULL_INIT
-//   macro: brace initialiser for the general entry -- explicit mode and mtime.
+//   macro: brace initialiser for the general entry - explicit mode and mtime.
 // Use when reproducing a source tree's metadata rather than normalising it.
 #define D_ARCHIVE_ENTRY_FULL_INIT(_name, _data, _size, _is_dir, _mode, _mtime) \
     {                                                                          \
@@ -322,7 +322,7 @@ struct dj_archive_options d_archive_options_of(void)
 
 // d_archive_at_level
 //   function: a pristine set with the CONTAINER-level effort at _level.
-// Distinct from the embedded codec's level -- see the note on
+// Distinct from the embedded codec's level - see the note on
 // dj_archive_options.
 D_INLINE
 struct dj_archive_options d_archive_at_level(
@@ -372,7 +372,7 @@ struct dj_archive_options d_archive_store_only(void)
 // identical bytes.  Clears the gzip header's name and timestamp and fixes its
 // OS byte at 255 ("unknown") whatever the build's default, drops owner names
 // in tar in favour of numeric ids, and stops recording permissions and mtimes
-// -- the five places a container otherwise absorbs the environment.
+// - the five places a container otherwise absorbs the environment.
 //   Worth a named builder because every one of those is silent: the archive is
 // valid either way, and only a byte comparison across two machines reveals it.
 D_INLINE
@@ -422,7 +422,7 @@ struct dj_archive_options d_archive_encrypted_zip(
 #if D_ENV_LANG_IS_C11_OR_HIGHER
 
 // d_internal_format_identity
-//   function: the enumerator arm of D_FORMAT -- the identity, so both arms are
+//   function: the enumerator arm of D_FORMAT - the identity, so both arms are
 // function calls and the macro has one shape.
 D_INLINE enum dj_format_id
 d_internal_format_identity(
@@ -433,7 +433,7 @@ d_internal_format_identity(
 }
 
 // d_internal_format_from_any
-//   function: the string arm of D_FORMAT -- resolves a format name, falling
+//   function: the string arm of D_FORMAT - resolves a format name, falling
 // back to zip when unknown.  A caller needing to DETECT a bad name calls
 // d_format_id_from_name, which reports it.
 D_INLINE enum dj_format_id
@@ -459,7 +459,7 @@ d_internal_format_from_any(
 #else   // C99: no _Generic
 
 // D_FORMAT
-//   macro: degraded form -- forwards an enumerator unchanged.  Call
+//   macro: degraded form - forwards an enumerator unchanged.  Call
 // d_format_id_from_name for the string spelling below C11.
 #define D_FORMAT(_x)    (_x)
 
@@ -474,7 +474,7 @@ d_internal_format_from_any(
 // one place; these are shorthands and not a second default policy.
 
 // D_ARCHIVE_MEASURE
-//   macro: the measure call for creation -- sets *_out_size to the exact byte
+//   macro: the measure call for creation - sets *_out_size to the exact byte
 // count the container would occupy.
 #define D_ARCHIVE_MEASURE(_fmt, _entries, _count, _out_size)                   \
     d_archive_create(D_FORMAT(_fmt), (_entries), (_count), NULL,               \
@@ -510,8 +510,8 @@ d_internal_format_from_any(
 // =============================================================================
 //   Extraction is the three-step shape described in archive_common.h section X:
 // measure both regions, supply both, extract.  A caller writing it by hand gets
-// it wrong in one specific way -- sizing the entry array from the arena size or
-// the reverse -- so the two regions are named separately here and never mixed.
+// it wrong in one specific way - sizing the entry array from the arena size or
+// the reverse - so the two regions are named separately here and never mixed.
 //
 //   These macros do NOT allocate.  D_ARCHIVE_EXTRACT_INTO takes both regions
 // from the caller; D_ARCHIVE_EXTRACT_TO_ARRAYS takes them as named arrays and
@@ -525,7 +525,7 @@ d_internal_format_from_any(
 //
 //   The staging buffer is explicit because a tarball is two transforms and the
 // first one's output has to live somewhere.  Making the caller name that place
-// is what lets the C face support tar_gz at all -- the alternative was to have
+// is what lets the C face support tar_gz at all - the alternative was to have
 // only the C++ face support it, which the parity oracle reports as a
 // divergence between the two faces, because it is one.  A _stage shorter than
 // D_ARCHIVE_MEASURE_TAR_GZ reports is D_PACK_STATUS_INVALID_ARGUMENT; a short
@@ -570,7 +570,7 @@ d_internal_format_from_any(
 
 // D_ARCHIVE_READ_ONE
 //   macro: pull a single member out by name without materialising the rest.
-// The common case -- reading one file from a container -- and the one that
+// The common case - reading one file from a container - and the one that
 // needs no arena at all.
 #define D_ARCHIVE_READ_ONE(_fmt, _in, _in_size, _name, _out, _cap, _out_size)  \
     d_archive_extract_entry(D_FORMAT(_fmt), (_in), (_in_size),                 \

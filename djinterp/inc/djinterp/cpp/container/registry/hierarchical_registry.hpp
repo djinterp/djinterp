@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                            hierarchical_registry.hpp
 *
-*   hierarchical_registry -- a registry that NESTS (the Structure axis).  The
+*   hierarchical_registry - a registry that NESTS (the Structure axis).  The
 * Structure section factors a container's component type as the composite
 *
 *       T  ~=  tau  +  F[T]        (a LEAF summand + a NODE summand),
@@ -10,13 +10,13 @@
 * nodes
 * and a container is HIERARCHICAL when d >= 2. Here each entry maps a KEY to a
 * CELL that is either a LEAF (a value : tau) or a NODE (a child registry, the
-* F[T] summand) -- the composite pattern, so navigation treats a value and a
+* F[T] summand) - the composite pattern, so navigation treats a value and a
 * sub-registry alike.  A real registry (HKEY\..., a config tree, a filesystem)
 * is exactly this: keys naming values or further keyed sub-trees.
 *
 *   FLAT IS THE DEGENERATE CASE. A hierarchical_registry all of whose cells
 * are
-* leaves has depth 1 -- the single element-level L_1 -- and behaves as a flat
+* leaves has depth 1 - the single element-level L_1 - and behaves as a flat
 * keyed map.  Depth grows only where a cell is a node; the general (composite)
 * depth is a property of VALUES, a runtime quantity (depth()), not fixed by
 * the
@@ -27,10 +27,10 @@
 * structure traits.
 *
 *   ADDRESSING.  Two surfaces, sharing the composite:
-*     LOCAL -- one node's own entries: local_contains / local_leaf /
+*     LOCAL - one node's own entries: local_contains / local_leaf /
 *   local_node
 *                / put_leaf / make_node / local_erase, plus indexed traversal.
-*     PATH    -- a sequence of keys walking root -> leaf:  set (creating
+*     PATH    - a sequence of keys walking root -> leaf:  set (creating
 *                intermediate nodes, mkdir -p), get / at (read a leaf),
 *              node_at
 *                (reach a sub-tree), contains / is_leaf / is_node, erase. A
@@ -43,7 +43,7 @@
 * writable in place (value-mutable, key-const), matching the flat registry.  A
 * cell's KIND is fixed once set: put_leaf refuses to overwrite a node,
 * make_node
-* refuses to shadow a leaf -- convert only through an explicit erase, so a
+* refuses to shadow a leaf - convert only through an explicit erase, so a
 * subtree
 * is never dropped silently.
 *
@@ -52,7 +52,7 @@
 *
 *   REUSE / SCOPE. A node keeps its entries in sorted key order and looks them
 * up
-* by binary search -- the same ordered discipline as the flat registry's
+* by binary search - the same ordered discipline as the flat registry's
 * kernel
 * (kept local here because the cells are move-only).  Per-node multiplicity is
 * unique (a key names one cell); a multi-valued leaf is modelled by a leaf
@@ -173,23 +173,23 @@ public:
     using size_type   = SizeType;
     using key_compare = KeyCompare;
 
-    // node_type -- the F[T] node summand: a sub-registry is one of THESE. This
+    // node_type - the F[T] node summand: a sub-registry is one of THESE. This
     // container-shaped alias is the STRONG structural tell the hierarchy
     // traits read (hierarchical_container_traits.hpp).
     using node_type = DHierarchicalRegistry;
 
-    // structure_category -- the OPT-IN structure tag; its `nests` bit (true)
+    // structure_category - the OPT-IN structure tag; its `nests` bit (true)
     // asserts hierarchy the value_type chain cannot show.
     using structure_category = DHierarchical;
 
-    // cell_kind -- a cell is a leaf or a node (the composite's two summands).
+    // cell_kind - a cell is a leaf or a node (the composite's two summands).
     enum class cell_kind
     {
         leaf,
         node
     };
 
-    // npos -- "no such entry" sentinel.
+    // npos - "no such entry" sentinel.
     static constexpr size_type npos = static_cast<size_type>(-1);
 
     // overlay / axis markers.
@@ -216,7 +216,7 @@ public:
         DContainerMultiplicity::unique;   // a key names ONE cell per node
 
 private:
-    // entry -- one keyed cell: a leaf value OR a child node (held by pointer
+    // entry - one keyed cell: a leaf value OR a child node (held by pointer
     // for the recursion). Move-only (the unique_ptr); the registry deep-copies
     // at the class level.
     struct entry
@@ -259,7 +259,7 @@ private:
             { return m_cmp(_e.m_key, _key); });
     }
 
-    // find_entry -- pointer to the entry keyed _k, or nullptr.
+    // find_entry - pointer to the entry keyed _k, or nullptr.
     const entry* find_entry(const Key& _k) const
     {
         auto it = lb(_k);
@@ -283,7 +283,7 @@ public:
         : m_entries(), m_cmp(_cmp)
     {}
 
-    // deep copy -- clone the whole tree (nodes are cloned recursively).
+    // deep copy - clone the whole tree (nodes are cloned recursively).
     DHierarchicalRegistry(const DHierarchicalRegistry& _other)
         : m_entries(), m_cmp(_other.m_cmp)
     {
@@ -355,7 +355,7 @@ public:
         return (e != nullptr) && (e->m_kind == cell_kind::node);
     }
 
-    // local_leaf -- pointer to the leaf value at _k, or nullptr (absent, or a
+    // local_leaf - pointer to the leaf value at _k, or nullptr (absent, or a
     // node). const and mutable (the value is writable in place).
     D_NODISCARD const Value* local_leaf(const Key& _k) const
     {
@@ -371,7 +371,7 @@ public:
                                                               : nullptr;
     }
 
-    // local_node -- pointer to the child registry at _k, or nullptr (absent,
+    // local_node - pointer to the child registry at _k, or nullptr (absent,
     // or a leaf). const and mutable.
     D_NODISCARD const DHierarchicalRegistry* local_node(const Key& _k) const
     {
@@ -387,9 +387,9 @@ public:
                                                               : nullptr;
     }
 
-    // put_leaf -- set the leaf value at _k in THIS node (create or overwrite a
+    // put_leaf - set the leaf value at _k in THIS node (create or overwrite a
     // leaf). Returns false, changing nothing, if _k already holds a NODE (a
-    // subtree is never dropped implicitly -- erase it first).
+    // subtree is never dropped implicitly - erase it first).
     bool put_leaf(
         const Key& _k,
         Value       _v
@@ -417,7 +417,7 @@ public:
         return true;
     }
 
-    // make_node -- ensure a child node at _k and return it. Returns the
+    // make_node - ensure a child node at _k and return it. Returns the
     // existing child if _k is already a node; throws std::logic_error if _k
     // holds a leaf (convert only through an explicit erase).
     DHierarchicalRegistry& make_node(const Key& _k)
@@ -444,7 +444,7 @@ public:
         return *ins->m_child;
     }
 
-    // local_erase -- remove the cell at _k (a leaf, or a whole subtree);
+    // local_erase - remove the cell at _k (a leaf, or a whole subtree);
     // returns the number removed (0 or 1).
     size_type local_erase(const Key& _k)
     {
@@ -465,7 +465,7 @@ public:
     // range form.
 
 private:
-    // descend_parent (const) -- follow every key but the LAST as a node;
+    // descend_parent (const) - follow every key but the LAST as a node;
     // yields the node that should CONTAIN the last key, and writes that key to
     // _out. nullptr if the path is empty or an intermediate key is missing / a
     // leaf.
@@ -499,7 +499,7 @@ private:
         return cur;
     }
 
-    // descend_parent_create (mutable) -- as above but creates intermediate
+    // descend_parent_create (mutable) - as above but creates intermediate
     // nodes (mkdir -p). nullptr only if the path is empty or an intermediate
     // key is a LEAF (which cannot become a node implicitly).
     template<typename It>
@@ -537,7 +537,7 @@ private:
     }
 
 public:
-    // set (range) -- write a leaf value at the path, creating intermediate
+    // set (range) - write a leaf value at the path, creating intermediate
     // nodes. Returns false (changing nothing) if the path is empty, an
     // intermediate key is a leaf, or the final key already holds a node.
     template<typename It>
@@ -560,7 +560,7 @@ public:
         return set(_path.begin(), _path.end(), static_cast<Value&&>(_value));
     }
 
-    // get (range) -- pointer to the leaf value at the path, or nullptr (path
+    // get (range) - pointer to the leaf value at the path, or nullptr (path
     // absent, or the target is a node).
     template<typename It>
     D_NODISCARD const Value* get(It _first, It _last) const
@@ -577,7 +577,7 @@ public:
         return get(_path.begin(), _path.end());
     }
 
-    // at (range) -- the leaf value at the path; throws std::out_of_range if
+    // at (range) - the leaf value at the path; throws std::out_of_range if
     // the path is absent or the target is not a leaf.
     template<typename It>
     D_NODISCARD const Value& at(It _first, It _last) const
@@ -596,7 +596,7 @@ public:
         return at(_path.begin(), _path.end());
     }
 
-    // node_at (range) -- pointer to the sub-registry at the path (every key
+    // node_at (range) - pointer to the sub-registry at the path (every key
     // followed as a node), or nullptr. const and mutable.
     template<typename It>
     D_NODISCARD const DHierarchicalRegistry* node_at(It _first, It _last) const
@@ -640,7 +640,7 @@ public:
         return node_at(_path.begin(), _path.end());
     }
 
-    // contains / is_leaf / is_node (range + list) -- classify the path target.
+    // contains / is_leaf / is_node (range + list) - classify the path target.
     template<typename It>
     D_NODISCARD bool contains(It _first, It _last) const
     {
@@ -683,7 +683,7 @@ public:
         return is_node(_path.begin(), _path.end());
     }
 
-    // erase (range + list) -- remove the cell (leaf or subtree) at the path;
+    // erase (range + list) - remove the cell (leaf or subtree) at the path;
     // returns the number removed (0 or 1).
     template<typename It>
     size_type erase(It _first, It _last)
@@ -720,7 +720,7 @@ public:
 
     // --- 5. shape + local traversal ---
 
-    // depth -- the tree height rooted here (a runtime property of the value):
+    // depth - the tree height rooted here (a runtime property of the value):
     // 0 when empty, 1 when every cell is a leaf (the flat case), >= 2 when a
     // cell is a node.
     D_NODISCARD size_type depth() const noexcept
@@ -747,7 +747,7 @@ public:
         return static_cast<size_type>(1 + deepest);
     }
 
-    // leaf_count -- the number of leaves in the whole subtree.
+    // leaf_count - the number of leaves in the whole subtree.
     D_NODISCARD size_type leaf_count() const noexcept
     {
         size_type n = 0;
@@ -761,7 +761,7 @@ public:
         return n;
     }
 
-    // indexed local traversal (cells at THIS node, in key order) -- entries
+    // indexed local traversal (cells at THIS node, in key order) - entries
     // are private (they hold owning pointers), so key + kind are surfaced by
     // index.
     D_NODISCARD const Key& local_key_at(size_type _i) const
@@ -782,7 +782,7 @@ template<typename Key,
          typename SizeType    = std::size_t>
 using hierarchical_registry = DHierarchicalRegistry<Key, Value, KeyCompare, SizeType>;
 
-// swap (free) -- ADL swap for hierarchical_registry.
+// swap (free) - ADL swap for hierarchical_registry.
 template<typename K, typename V, typename KC, typename S>
 void swap(
     DHierarchicalRegistry<K, V, KC, S>& _a,
@@ -798,7 +798,7 @@ void swap(
 // ===========================================================================
 
 // DHkeyRegistry
-//   alias: the common hierarchical registry -- keys of type Key naming leaf
+//   alias: the common hierarchical registry - keys of type Key naming leaf
 // values of type Value or sub-trees of the same shape. (Named for the
 // registry-hive idiom: an HKEY addresses a tree of keyed values.)
 template<typename Key,

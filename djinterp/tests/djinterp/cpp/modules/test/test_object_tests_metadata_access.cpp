@@ -24,7 +24,7 @@ using namespace ::djinterp::test;
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///   compile-time invariants -- metadata access                              ///
+///   compile-time invariants - metadata access                              ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // metadata() overloads return references to the container type
@@ -55,7 +55,7 @@ static_assert(k_meta.metadata().tag == 0, "");
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///   runtime tests -- metadata access                                        ///
+///   runtime tests - metadata access                                        ///
 ///////////////////////////////////////////////////////////////////////////////
 
 /*

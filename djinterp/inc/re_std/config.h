@@ -79,7 +79,7 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 1.2.1
 // RE_STD_CFG_ISO_STRICT
-//   knob: 1 when the build wants ISO C or C++ only -- no compiler extension
+//   knob: 1 when the build wants ISO C or C++ only - no compiler extension
 // used, so below C99 and C++11 `long long` does not exist
 // (RE_STD_HAS_LONG_LONG is 0, and what needs it is absent) and neither do
 // the C library's <stdint.h> and <inttypes.h>. 0 by default; the literal 0
@@ -155,7 +155,7 @@ TABLE OF CONTENTS
 
 // 2.2.3
 // RE_STD_LANG_IS_C99_OR_HIGHER
-//   macro: 1 when compiling C99 or later, else 0 -- in C++ too. As djinterp's
+//   macro: 1 when compiling C99 or later, else 0 - in C++ too. As djinterp's
 // D_ENV_LANG_IS_C99_OR_HIGHER.
 #ifndef RE_STD_LANG_IS_C99_OR_HIGHER
     #if ( (!RE_STD_LANG_IS_CPP)          &&                                    \
@@ -184,11 +184,11 @@ TABLE OF CONTENTS
 //   macro: exactly one is defined, to 1, for the compiler in use (none for
 // another); test them with defined(). Clang is checked first, since it also
 // defines __GNUC__ and, as clang-cl, _MSC_VER; and GCC before Intel, which
-// defines __GNUC__ on Linux -- the order djinterp's env layer uses.
+// defines __GNUC__ on Linux - the order djinterp's env layer uses.
 //   RE_STD_COMPILER_MAJOR, _MINOR, _PATCHLEVEL: its version, 0 when unknown.
 // For MSVC that is the compiler's own version, not the Visual Studio
 // release's: 19.29 is _MSC_VER 1929 (Visual Studio 2019 16.10), the patch
-// level the build number in _MSC_FULL_VER -- the numbers re_std's tests are
+// level the build number in _MSC_FULL_VER - the numbers re_std's tests are
 // written in.
 #if ( (!defined(RE_STD_COMPILER_CLANG)) &&                                     \
       (!defined(RE_STD_COMPILER_GCC))   &&                                     \

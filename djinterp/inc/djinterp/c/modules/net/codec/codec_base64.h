@@ -151,7 +151,7 @@ D_NODISCARD enum dj_net_codec_error d_net_base64_decode(
 
 // 2.3    Single characters
 //------------------------------------------------------------------------------
-// single characters -- for encodings that are not of octets, such as IMAP's
+// single characters - for encodings that are not of octets, such as IMAP's
 // mailbox names, which carry UTF-16 in modified base64; only
 // D_NET_BASE64_MODIFIED is read.
 //   d_net_base64_digit gives the character for a six-bit value, or '\0' for a

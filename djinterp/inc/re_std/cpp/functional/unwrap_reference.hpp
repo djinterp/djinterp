@@ -30,7 +30,7 @@ namespace re_std
 {
 
 // unwrap_reference
-//   trait: primary template -- type is unchanged.
+//   trait: primary template - type is unchanged.
 template<typename Type>
 struct unwrap_reference
 {
@@ -38,7 +38,7 @@ struct unwrap_reference
 };
 
 // unwrap_reference<reference_wrapper<U>>
-//   trait: specialization -- yields U& (the wrapped reference).
+//   trait: specialization - yields U& (the wrapped reference).
 template<typename U>
 struct unwrap_reference< reference_wrapper<U> >
 {

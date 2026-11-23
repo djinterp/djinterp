@@ -2,7 +2,7 @@
 * djinterp [c][tools]                                         cli_format_tests.h
 *
 * The suite of the command-line kit's help (cli_format.c): the page laid out
-* as GNU programs lay it out -- the usage line, the description as a
+* as GNU programs lay it out - the usage line, the description as a
 * sentence, then the positionals, the commands by group, the options by
 * group, the option groups and the options a subcommand takes from above,
 * and the footer; each entry's left column, its names, its value and

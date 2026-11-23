@@ -6,17 +6,17 @@
 * translation units share.
 *
 *   sections (one .cpp each):
-*     merge_sort_tests_traits.cpp    merge_sort_traits -- the property block,
+*     merge_sort_tests_traits.cpp    merge_sort_traits - the property block,
 *                                    and the adaptivity it claims
-*     merge_sort_tests_merge.cpp     internal::merge_runs -- the merge
+*     merge_sort_tests_merge.cpp     internal::merge_runs - the merge
 *                                    primitive in isolation: both exhaustion
 *                                    tails, the left-favouring tie and the
 *                                    ordered-pair copy
 *     merge_sort_tests_pass.cpp      internal::merge_pass and the ping-pong of
-*                                    internal::merge_sort_apply -- short and
+*                                    internal::merge_sort_apply - short and
 *                                    lone runs, and a result that ends in the
 *                                    scratch
-*     merge_sort_tests_buffered.cpp  merge_sort_buffered -- the caller's
+*     merge_sort_tests_buffered.cpp  merge_sort_buffered - the caller's
 *                                    scratch, held to parity with merge_sort
 *     merge_sort_tests_entry.cpp     the public merge_sort /
 *                                    merge_sort_ordered entry points
@@ -40,7 +40,7 @@
 #include <cstddef>
 #include <vector>
 // djinterp
-//   core is ALWAYS first and unconditional -- NS_* / D_* qualifiers and the
+//   core is ALWAYS first and unconditional - NS_* / D_* qualifiers and the
 // language gates are needed by both faces of this header.
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
@@ -66,7 +66,7 @@ NS_TESTING
 // UNCONDITIONALLY: the spec provider below needs dt::module_spec too.
 namespace dt = ::djinterp::test;
 
-#ifndef DTEST_SPEC_MODE   // fixtures -- normal mode only
+#ifndef DTEST_SPEC_MODE   // fixtures - normal mode only
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -97,7 +97,7 @@ void merge_runs_ints(
 
 // merge_runs_keyed
 //   helper: merge_runs under the key-only comparator, so the merge's
-// left-favouring tie -- the source of the algorithm's stability -- is
+// left-favouring tie - the source of the algorithm's stability - is
 // directly observable.
 inline
 void merge_runs_keyed(
@@ -139,7 +139,7 @@ void merge_pass_ints(
 
 // merge_apply_ints
 //   helper: the internal driver over vector<int> iterators, with a scratch
-// buffer it owns for the call -- what the three-argument entry point does.
+// buffer it owns for the call - what the three-argument entry point does.
 inline
 void merge_apply_ints(
     std::vector<int>::iterator _first,
@@ -269,31 +269,31 @@ void merge_sort_keyed_ordered_ascending(
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// traits -- merge_sort_traits
+// traits - merge_sort_traits
 bool tests_merge_sort_traits_values();
 bool tests_merge_sort_traits_adaptivity();
 
-// merge -- internal::merge_runs
+// merge - internal::merge_runs
 bool tests_merge_sort_merge_runs_basic();
 bool tests_merge_sort_merge_runs_empty_runs();
 bool tests_merge_sort_merge_runs_exhaustion_tails();
 bool tests_merge_sort_merge_runs_stability();
 bool tests_merge_sort_merge_runs_ordered_pair_copied();
 
-// pass -- internal::merge_pass / the ping-pong
+// pass - internal::merge_pass / the ping-pong
 bool tests_merge_sort_pass_short_and_lone_runs();
 bool tests_merge_sort_pass_degenerate_widths();
 bool tests_merge_sort_apply_ordering_battery();
 bool tests_merge_sort_apply_pass_parities();
 
-// buffered -- merge_sort_buffered
+// buffered - merge_sort_buffered
 bool tests_merge_sort_buffered_degenerate_ranges();
 bool tests_merge_sort_buffered_ordering_battery();
 bool tests_merge_sort_buffered_parity_with_merge_sort();
 bool tests_merge_sort_buffered_stability();
 bool tests_merge_sort_buffered_reuses_scratch();
 
-// entry -- merge_sort / merge_sort_ordered
+// entry - merge_sort / merge_sort_ordered
 bool tests_merge_sort_entry_comparator();
 bool tests_merge_sort_entry_default();
 bool tests_merge_sort_entry_ordered();

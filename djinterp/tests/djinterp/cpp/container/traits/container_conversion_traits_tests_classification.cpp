@@ -274,7 +274,7 @@ bool tests_conversion_predicates()
 {
     bool _ccv_ok = true;
 
-    // -- view: vector -> vector --
+    // - view: vector -> vector --
     D_CCV_CHECK( (is_convertible_between<std::vector<int>, std::vector<int>>::value) );
     D_CCV_CHECK( (is_view_conversion<std::vector<int>, std::vector<int>>::value) );
     D_CCV_CHECK( (is_lossless_conversion<std::vector<int>, std::vector<int>>::value) );
@@ -285,29 +285,29 @@ bool tests_conversion_predicates()
     D_CCV_CHECK( (is_view_conversion<DSortedVec, std::vector<int>>::value) );
     D_CCV_CHECK( (is_lossless_conversion<DSortedVec, std::vector<int>>::value) );
 
-    // -- constructive: vector -> list -- (lossless, but NOT a view)
+    // - constructive: vector -> list - (lossless, but NOT a view)
     D_CCV_CHECK( (is_convertible_between<std::vector<int>, std::list<int>>::value) );
     D_CCV_CHECK( (!is_view_conversion<std::vector<int>, std::list<int>>::value) );
     D_CCV_CHECK( (is_lossless_conversion<std::vector<int>, std::list<int>>::value) );
     D_CCV_CHECK( (!is_lossy_conversion<std::vector<int>, std::list<int>>::value) );
     D_CCV_CHECK( (!conversion_requires_restructuring<std::vector<int>, std::list<int>>::value) );
 
-    // -- lossy: vector -> set --
+    // - lossy: vector -> set --
     D_CCV_CHECK( (is_convertible_between<std::vector<int>, std::set<int>>::value) );
     D_CCV_CHECK( (!is_view_conversion<std::vector<int>, std::set<int>>::value) );
     D_CCV_CHECK( (!is_lossless_conversion<std::vector<int>, std::set<int>>::value) );
     D_CCV_CHECK( (is_lossy_conversion<std::vector<int>, std::set<int>>::value) );
     D_CCV_CHECK( (!conversion_requires_restructuring<std::vector<int>, std::set<int>>::value) );
 
-    // -- structural: vector -> vector<vector<int>> --
+    // - structural: vector -> vector<vector<int>> --
     D_CCV_CHECK( (is_convertible_between<std::vector<int>, std::vector<std::vector<int>>>::value) );
     D_CCV_CHECK( (!is_view_conversion<std::vector<int>, std::vector<std::vector<int>>>::value) );
     D_CCV_CHECK( (!is_lossless_conversion<std::vector<int>, std::vector<std::vector<int>>>::value) );
     D_CCV_CHECK( (!is_lossy_conversion<std::vector<int>, std::vector<std::vector<int>>>::value) );
     D_CCV_CHECK( (conversion_requires_restructuring<std::vector<int>, std::vector<std::vector<int>>>::value) );
 
-    // -- none: vector -> vector<opaque> (incompatible) and vector -> DSortedVec
-    //    (no path) -- every predicate false
+    // - none: vector -> vector<opaque> (incompatible) and vector -> DSortedVec
+    //    (no path) - every predicate false
     D_CCV_CHECK( (!is_convertible_between<std::vector<int>, std::vector<opaque>>::value) );
     D_CCV_CHECK( (!is_view_conversion<std::vector<int>, std::vector<opaque>>::value) );
     D_CCV_CHECK( (!is_lossless_conversion<std::vector<int>, std::vector<opaque>>::value) );

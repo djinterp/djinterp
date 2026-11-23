@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  polynomial_tests_shapes.cpp
-//   Section II -- type-level shapes (poly_*_t, documentation-only builders).
+//   Section II - type-level shapes (poly_*_t, documentation-only builders).
 
 // std
 #include <cstddef>

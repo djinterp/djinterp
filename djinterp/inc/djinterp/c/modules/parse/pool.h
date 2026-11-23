@@ -10,7 +10,7 @@
 * integer comparison rather than a memcmp.
 *
 *   The pool is two arrays and no pointers into itself: a byte blob and a table
-* of (offset, length). That is deliberate -- it means the pool serialises as
+* of (offset, length). That is deliberate - it means the pool serialises as
 * its own bytes, and an index means the same thing after a round trip.
 *
 *   WHAT THIS IS NOT. It is not a hash table. Lookup is a linear scan filtered
@@ -61,7 +61,7 @@ TABLE OF CONTENTS
 #include "../../../../re_std/c/cstdint/dstdint.h"  // uint32_t, uint8_t, uint64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -77,7 +77,7 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 1.1.1
 // D_PARSE_POOL_NONE
-//   constant: the index meaning "no entry" -- returned by a failed intern and
+//   constant: the index meaning "no entry" - returned by a failed intern and
 // by a lookup that found nothing, and stored in an instruction operand that
 // refers to no blob.
 #define D_PARSE_POOL_NONE           0xFFFFFFFFu

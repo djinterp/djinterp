@@ -24,7 +24,7 @@
  *   Runs against ANY configuration of the memory subframework, including ones
  * with no heap at all: the MINIMAL preset compiles no system source, so the
  * default source refuses every request, and every heap-dependent section here
- * is skipped rather than failed. That is the point -- a configuration knob
+ * is skipped rather than failed. That is the point - a configuration knob
  * that made this harness fail would be a knob that broke the module.
  */
 #include <stdio.h>
@@ -192,7 +192,7 @@ int main(void)
            (int)D_INTERNAL_MEM_REDZONE,
            (int)D_INTERNAL_MEM_SIZE_BITS);
 
-    /* 1. an arena over the caller's own buffer -- works in every build */
+    /* 1. an arena over the caller's own buffer - works in every build */
     CHECK(d_arena_init_buffer(&b, buffer, (dj_mem_size)sizeof(buffer)) ==
           D_MEM_OK);
     CHECK(d_arena_capacity(&b) > 0);

@@ -9,12 +9,12 @@
 *   Each function comes twice, as in elementary.h. The _c form is pure
 * arithmetic, so the same text is a constant expression from C++14; the
 * plain form calls the C library (std:: in C++), fast at run time. The _c
-* forms are computed once, in long double, as exact pairs -- near 0 by
+* forms are computed once, in long double, as exact pairs - near 0 by
 * their series, further out from exponential.h's kernels, the inverses
-* from its logarithms -- and rounded once to the family: the correctly
+* from its logarithms - and rounded once to the family: the correctly
 * rounded value but where the exact one lies within the kernel's error of
-* a midpoint. The library's need not be so close -- glibc's are up to
-* three ulps from these -- and so the two forms can differ in their last
+* a midpoint. The library's need not be so close - glibc's are up to
+* three ulps from these - and so the two forms can differ in their last
 * bits. C++ before C++11 has no asinh, acosh or atanh, and there the
 * plain forms are the _c ones.
 *
@@ -91,7 +91,7 @@ TABLE OF CONTENTS
 // 1.  THE KERNELS (long double)
 //==============================================================================
 // Every family's hyperbolic functions and their inverses are computed here, in
-// long double, as exact pairs -- elementary.h's (its section 1.1) -- and
+// long double, as exact pairs - elementary.h's (its section 1.1) - and
 // rounded once by the family: a float or double result is the kernel's value
 // rounded once more, a long double result is the kernel's value. Nothing
 // depends on long double's format beyond <float.h>.
@@ -102,8 +102,8 @@ TABLE OF CONTENTS
 // sinh a and cosh a for a >= 0, both as pairs scaled by a power of 2, so that
 // neither overflows before its family rounds it. Below 1/2 by their Taylor
 // series: a^2, a^3 = a a^2 and a^4 by Dekker's exact products, a^3/6 and
-// a^4/24 with their residuals, and the terms past them -- under 2^-10 of the
-// sum -- nested to the 31st power, past a quad's precision; a + a^3/6 and
+// a^4/24 with their residuals, and the terms past them - under 2^-10 of the
+// sum - nested to the 31st power, past a quad's precision; a + a^3/6 and
 // 1 + a^2/2 + a^4/24 are summed exactly, so that only the last addition
 // rounds. From 1/2 by (E - 1/E) / 2 and (E + 1/E) / 2, E = e^a from
 // exponential.h's kernel as (y + y_lo) 2^k and 1/E as a pair, its residual by
@@ -120,8 +120,8 @@ struct dj_internal_math_ld_sinh_cosh
 };
 
 // d_internal_math_ld_sinh_cosh_of
-//   sinh(_a) and cosh(_a), for _a from 2^-(P/2 + 1) -- where the squares are
-// exact -- to (EMAX + 2) ln 2, where the exponential's k still fits an int.
+//   sinh(_a) and cosh(_a), for _a from 2^-(P/2 + 1) - where the squares are
+// exact - to (EMAX + 2) ln 2, where the exponential's k still fits an int.
 D_MATH_FN struct dj_internal_math_ld_sinh_cosh
 d_internal_math_ld_sinh_cosh_of(
     long double _a
@@ -244,8 +244,8 @@ d_internal_math_ld_sinh_cosh_of(
 //------------------------------------------------------------------------------
 // asinh a = log(a + sqrt(a^2 + 1)) and acosh x = log(x + sqrt(x^2 - 1)): the
 // square and its sum with 1 or -1 exact as a pair, by Dekker's product and
-// two-sum, its root as a pair -- the long double root, and the residual over
-// twice it -- and the logarithm of the sum with a or x as a pair, by
+// two-sum, its root as a pair - the long double root, and the residual over
+// twice it - and the logarithm of the sum with a or x as a pair, by
 // exponential.h's cores. Near 0 asinh a is log1p(a + a^2 / (1 + sqrt(1 +
 // a^2))), and near 1 acosh x is log1p(t + sqrt(2t + t^2)), t = x - 1 exact
 // by Sterbenz's lemma, so that no 1 + something small is rounded; past
@@ -483,7 +483,7 @@ d_internal_math_f_scale_pair(
 // sinh_c is the hyperbolic sine in pure arithmetic, a constant expression from
 // C++14: the kernel's pair (section 1.1) rounded once to the family. It is
 // odd; below 2^-(P/2 + 1), P long double's precision, a value is its own --
-// the cube's term lies below half its last place -- and so are the zeros and
+// the cube's term lies below half its last place - and so are the zeros and
 // the infinities; past the largest finite result it is +-inf; NaN gives NaN.
 // sinh is the C library's.
 
@@ -854,7 +854,7 @@ d_internal_math_d_scale_pair(
 // sinh_c is the hyperbolic sine in pure arithmetic, a constant expression from
 // C++14: the kernel's pair (section 1.1) rounded once to the family. It is
 // odd; below 2^-(P/2 + 1), P long double's precision, a value is its own --
-// the cube's term lies below half its last place -- and so are the zeros and
+// the cube's term lies below half its last place - and so are the zeros and
 // the infinities; past the largest finite result it is +-inf; NaN gives NaN.
 // sinh is the C library's.
 
@@ -1225,7 +1225,7 @@ d_internal_math_ld_scale_pair(
 // sinh_c is the hyperbolic sine in pure arithmetic, a constant expression from
 // C++14: the kernel's pair (section 1.1) rounded once to the family. It is
 // odd; below 2^-(P/2 + 1), P long double's precision, a value is its own --
-// the cube's term lies below half its last place -- and so are the zeros and
+// the cube's term lies below half its last place - and so are the zeros and
 // the infinities; past the largest finite result it is +-inf; NaN gives NaN.
 // sinh is the C library's.
 

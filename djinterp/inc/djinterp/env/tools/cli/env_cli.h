@@ -77,7 +77,7 @@ TABLE OF CONTENTS
 
 // 1.1.1.1
 // D_ENV_CLI_MODULES_NONE
-//   constant: none -- the platform has no loadable modules the kit knows; a
+//   constant: none - the platform has no loadable modules the kit knows; a
 // plugin command reports that it cannot load one.
 #define D_ENV_CLI_MODULES_NONE    0
 
@@ -135,8 +135,8 @@ TABLE OF CONTENTS
 
 // 2.1.1.1
 // D_ENV_CLI_EXECUTABLE_ARGV
-//   constant: from `argv[0]` -- made absolute where it holds a separator,
-// and looked for along PATH where it does not -- the fallback where the
+//   constant: from `argv[0]` - made absolute where it holds a separator,
+// and looked for along PATH where it does not - the fallback where the
 // system offers nothing better, OpenBSD's case.
 #define D_ENV_CLI_EXECUTABLE_ARGV    0
 

@@ -11,9 +11,9 @@
 * and prefixes in a name, never nested scopes.
 *
 *     parse     (d_parse_*)     everything usable without generating a parser
-*                               -- the carrier, the execution substrate
+*                               - the carrier, the execution substrate
 *                               (machine, op_set), the diagnostic channel
-*     parsegen  (d_parsegen_*)  everything that PRODUCES a parser -- grammars,
+*     parsegen  (d_parsegen_*)  everything that PRODUCES a parser - grammars,
 *                               analysis, passes, families, backends
 *
 *   The split is a dependency direction, not a filing convention. parsegen
@@ -24,7 +24,7 @@
 * program someone wrote by hand is; a pass that rewrites a grammar is not.
 *
 *   The C++ face of this header is parsegen.hpp, which adds NS_PARSEGEN and
-* nothing else -- a namespace macro is the only part of an umbrella that
+* nothing else - a namespace macro is the only part of an umbrella that
 * cannot be written in C.
 *
 *   Requires:  c/djinterp.h (qualifier kit, established here for every header
@@ -83,7 +83,7 @@ TABLE OF CONTENTS
 // 2.  DIAGNOSTIC DOMAINS
 //==============================================================================
 // Every stage that can report something claims a domain and numbers its own
-// codes from zero within it -- the same partition an op_set gives an opcode
+// codes from zero within it - the same partition an op_set gives an opcode
 // space, for the same reason: two emitters can then be added independently and
 // still never collide. The values are offsets from the base parse reserves for
 // this subsystem, so parse may add core domains without renumbering anything

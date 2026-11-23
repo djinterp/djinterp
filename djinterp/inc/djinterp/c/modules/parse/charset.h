@@ -7,7 +7,7 @@
 * several spellings mean the same set. Resolving to bits at build time buys
 * three things at once: membership becomes one shifted load instead of a scan,
 * a class becomes a fixed-size POD that can be interned and hashed, and two
-* spellings of one set become one entry -- canonical by construction, which no
+* spellings of one set become one entry - canonical by construction, which no
 * amount of care with the text would give.
 *
 *   It also carries what an optimiser needs to CHOOSE an encoding. A set that
@@ -64,7 +64,7 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 1.1.1
 // D_PARSE_CHARSET_BYTES
-//   constant: the size of the bitmap -- one bit per byte value.
+//   constant: the size of the bitmap - one bit per byte value.
 #define D_PARSE_CHARSET_BYTES       32u
 
 // 1.1.2

@@ -3,13 +3,13 @@
 *
 * The window's module: what `bitwisedom gui` loads (GRAMMAR.md, section 7).
 *   The module is a program of its own, made from the host that runs it --
-* its name, version, verbosity and colours bitwisedom's -- so that
+* its name, version, verbosity and colours bitwisedom's - so that
 * `bitwisedom gui --help` is the window's help, and what the window says, it
 * says as bitwisedom does. Its operands are SHEETs, every one handed to the
 * window, what it will not open said on standard error as it starts and the
 * run ending in trouble when it closes (window_sheet_opens); or, by --sheets
 * or the build (D_CFG_BITWISEDOM_GUI_SHEETS), refused by the commands' own
-* rules before any window opens (window_sheet_of) -- ruling cli-taken 25.
+* rules before any window opens (window_sheet_of) - ruling cli-taken 25.
 * Its options are the window's size and the
 * display's scale, and, for building and testing, the events posted before
 * the first frame and what the host linked can do besides: a screenshot on
@@ -20,11 +20,11 @@
 * Open posts one, then each --do in order, before the first frame; and the
 * window opens where it was left, its session kept, unless it is taking a
 * screenshot.
-*   On Windows, a console made for this run alone -- one it was started in
-* from a shortcut, not a terminal it shares -- is let go before the window
+*   On Windows, a console made for this run alone - one it was started in
+* from a shortcut, not a terminal it shares - is let go before the window
 * opens, so that no empty console stands behind it.
 *   Nothing escapes the run function: the program's work is guarded by the
-* kit, and what is made before it -- the options, the request they fill --
+* kit, and what is made before it - the options, the request they fill --
 * here.
 *
 *
@@ -451,8 +451,8 @@ bool post_sheets(
 
 /*
 leave_console
-  On Windows, a console this run alone holds -- made for it, as a shortcut
-starts a console program -- let go, so that no empty console stands behind
+  On Windows, a console this run alone holds - made for it, as a shortcut
+starts a console program - let go, so that no empty console stands behind
 the window; one shared with the terminal that started the run is kept, to
 be heard. Nothing elsewhere.
 */
@@ -473,7 +473,7 @@ void leave_console()
 /*
 open_window
   The module's work: the sheets named, then each --do, as the events the
-window posts first; the size asked; and the window, run -- its status, or
+window posts first; the size asked; and the window, run - its status, or
 trouble where a sheet it was handed could not be opened.
 */
 int open_window(
@@ -513,8 +513,8 @@ int open_window(
 
 /*
 add_window_build
-  The host as it names itself, and Dear ImGui -- its docking branch, where
-it is that -- each a line; a want of memory is kept in the program, which
+  The host as it names itself, and Dear ImGui - its docking branch, where
+it is that - each a line; a want of memory is kept in the program, which
 its run says.
 */
 void add_window_build(

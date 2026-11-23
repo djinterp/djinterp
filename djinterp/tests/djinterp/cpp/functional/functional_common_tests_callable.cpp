@@ -8,7 +8,7 @@
 *                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp [test]  functional_traits_tests_callable.cpp
-//   Section I -- is_callable and callable_result_t.
+//   Section I - is_callable and callable_result_t.
 
 // std
 #include <string>
@@ -34,7 +34,7 @@ bool tests_is_callable_positive()
 
     ok = ok && (is_callable<const_fn, int>::value);
 
-    // a lambda -- the shape callers actually write.
+    // a lambda - the shape callers actually write.
     int  captured = 3;
     auto lam = [captured](int _x){ return _x + captured; };
     ok = ok && (is_callable<decltype(lam), int>::value);
@@ -81,7 +81,7 @@ bool tests_is_callable_negative()
 /*
 tests_is_callable_const_lvalue
   The defining contract: the probe is a CONST-LVALUE call, so a callable that
-  cannot be invoked on a const lvalue is not callable -- however happily it would
+  cannot be invoked on a const lvalue is not callable - however happily it would
   answer a non-const call.
   Tests the following:
   - a non-const operator() is rejected
@@ -97,7 +97,7 @@ bool tests_is_callable_const_lvalue()
 
     ok = ok && (is_callable<const_fn, int>::value);
 
-    // the rejected fixtures really are callable -- just not on a const lvalue.
+    // the rejected fixtures really are callable - just not on a const lvalue.
     nonconst_fn nc;
     ok = ok && (nc(5) == 10);
     ok = ok && (rvalue_fn()(5) == 5);
@@ -109,7 +109,7 @@ bool tests_is_callable_const_lvalue()
 /*
 tests_is_callable_templated_operator
   The trait probes an expression, so it succeeds on generic lambdas and other
-  templated operator() callables -- the header's headline claim, and the shape a
+  templated operator() callables - the header's headline claim, and the shape a
   declared-signature probe would miss.
   Tests the following:
   - a templated operator() is callable at several unrelated argument types
@@ -231,7 +231,7 @@ bool tests_is_callable_integral_constant()
 /*
 tests_is_callable_reuses_invocable_with
   is_callable is the functional-facing NAME for function_traits.hpp's
-  is_invocable_with -- a thin reuse, not a reimplementation.
+  is_invocable_with - a thin reuse, not a reimplementation.
   Tests the following:
   - is_callable derives from is_invocable_with, positively and negatively
   - the two agree on every fixture
@@ -294,7 +294,7 @@ bool tests_callable_result_basic()
 
 
 // DHasType
-//   trait: true when Trait has a nested `type` -- how a caller sees whether
+//   trait: true when Trait has a nested `type` - how a caller sees whether
 // callable_result found a well-formed call.
 template<typename Trait,
          typename = void>
@@ -341,7 +341,7 @@ bool tests_callable_result_absent()
 
 /*
 tests_callable_result_preserves_reference
-  The alias reports the call's DECLARED result type -- references are preserved,
+  The alias reports the call's DECLARED result type - references are preserved,
   not decayed away.
   Tests the following:
   - a callable returning int& yields int&, distinct from int

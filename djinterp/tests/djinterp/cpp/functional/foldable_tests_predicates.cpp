@@ -7,7 +7,7 @@
 * result, the non-std seq<T> fixture, and the visitation behaviour.
 *
 *   A NOTE ON "DOES NOT SHORT-CIRCUIT":
-*   The header states these folds do not short-circuit -- meaning the underlying
+*   The header states these folds do not short-circuit - meaning the underlying
 * fold_left LOOP visits every element (there is no early loop exit).  The
 * PREDICATE, however, is guarded by the reducer's `||` / `&&`, which are
 * short-circuiting operators: once the disjunction is true (any) or the

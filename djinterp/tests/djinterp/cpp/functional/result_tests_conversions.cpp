@@ -4,7 +4,7 @@
 * maybe-conversion tests for result<T, E>: the ok() / err() member accessors
 * (section I) and the free to_maybe (section VI).
 *
-*   test_conversions -- result::ok(), result::err(), and to_maybe across both
+*   test_conversions - result::ok(), result::err(), and to_maybe across both
 *                       branches.
 *
 *

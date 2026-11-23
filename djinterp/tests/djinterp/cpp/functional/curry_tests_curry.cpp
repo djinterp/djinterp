@@ -8,7 +8,7 @@
 *                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
-// djinterp [test] -- curry.hpp Section III (curry factories)
+// djinterp [test] - curry.hpp Section III (curry factories)
 #include "./curry_tests.hpp"
 
 

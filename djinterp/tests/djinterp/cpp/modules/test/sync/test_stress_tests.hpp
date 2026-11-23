@@ -75,7 +75,7 @@
 #include <thread>
 #include <vector>
 // djinterp
-// -- (part 1) mode-gated includes ------------------------------------------
+// - (part 1) mode-gated includes ------------------------------------------
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
 #include "../../../../../../inc/djinterp/cpp/modules/test/sync/test_stress.hpp"                        // the header under test (normal)
@@ -184,7 +184,7 @@ inline std::chrono::milliseconds hs_timed_span() { return std::chrono::milliseco
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- (part 2) declarations - visible in BOTH modes -------------------------
+// - (part 2) declarations - visible in BOTH modes -------------------------
 
 // I.   STRESS REPORT                   (test_stress_tests_report.cpp)
 bool tests_sreport_defaults();
@@ -288,7 +288,7 @@ bool tests_sfactory_make_timed_stress();
 #endif  // D_HS_FACTORY_RETURNABLE
 
 
-// -- (part 3) the spec provider - spec mode only ---------------------------
+// - (part 3) the spec provider - spec mode only ---------------------------
 #ifdef DTEST_SPEC_MODE
 inline
 dt::module_spec stress_spec()

@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                        file_tests_lock.c
 *
-*   VII. Locking (file_lock) -- advisory whole-file locks. Descriptor-based, so
+*   VII. Locking (file_lock) - advisory whole-file locks. Descriptor-based, so
 * ENOSYS on the ISO C backend. Elsewhere a process takes and releases its own
 * shared and exclusive locks (non-blocking, to keep the suite from ever
 * stalling), and the operation-validation guard is checked: exactly one of
@@ -178,11 +178,11 @@ void d_fs_tests_lock(
  *****************************************************************************/
 
 /******************************************************************************
- * VII.  file_lock  --  ADVISORY LOCKING
+ * VII.  file_lock  -  ADVISORY LOCKING
  *
  *   Single-process tests, which is a real limit worth naming: contention is
  * the interesting behaviour and it needs a second process, which this harness
- * does not have. So what is covered is the contract -- operations are
+ * does not have. So what is covered is the contract - operations are
  * accepted, contradictions are refused, the backend is what the config says.
  *****************************************************************************/
 
@@ -233,11 +233,11 @@ bool d_tests_file_flock(struct dj_test_suite* _suite)
                      (d_file_lock_fd(-1, D_LOCK_SH)) == (-1),
                      "d_file_lock_fd rejects a bad descriptor");
 
-    // SH|EX is not a richer request, it is a contradiction -- and a platform
+    // SH|EX is not a richer request, it is a contradiction - and a platform
     // handed the OR of two flags does something arbitrary rather than object
     //   Gated: the refusal IS the parameter check. With validation off the
     // operation word is passed through unexamined, which is what the knob
-    // asks for, so there is nothing here to assert -- and asserting it anyway
+    // asks for, so there is nothing here to assert - and asserting it anyway
     // was reporting the build as broken for doing exactly what it was told.
 #if D_FILE_VALIDATE_IS_ACTIVE
     D_TEST_CHECK_MSG(_suite,

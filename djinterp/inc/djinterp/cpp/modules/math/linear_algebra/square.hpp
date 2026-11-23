@@ -37,7 +37,7 @@
 *     library targets.
 *   - inverse requires a floating-point element type (an integer matrix has no
 *     integer inverse in general) and returns the zero matrix for a singular
-*     input -- pair it with is_invertible to guard. It pivots on the
+*     input - pair it with is_invertible to guard. It pivots on the
 *     largest-magnitude entry for numerical stability; in floating point a
 *     singular matrix's last pivot can round to a tiny non-zero, so a
 *     near-singular result is the caller's to recognize, as it always was.

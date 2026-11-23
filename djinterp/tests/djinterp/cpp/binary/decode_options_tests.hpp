@@ -180,7 +180,7 @@ inline
     "/ decode_leaf<E> and put_length / get_length round trips, and the "
     "decode_leaf<E> convenience.",
     {
-        // -- I. the parameterised byte readers ----------------------------------
+        // - I. the parameterised byte readers ----------------------------------
         dt::block_spec{
             "readers",
             "The internal parameterised readers, reached by direct call: "
@@ -202,7 +202,7 @@ inline
             }
         },
 
-        // -- II. the leaf families under both orders ----------------------------
+        // - II. the leaf families under both orders ----------------------------
         dt::block_spec{
             "leaves",
             "The five dec_tau<E> leaf families under both byte orders, their "
@@ -236,7 +236,7 @@ inline
             }
         },
 
-        // -- III. the round trip ------------------------------------------------
+        // - III. the round trip ------------------------------------------------
         dt::block_spec{
             "roundtrip",
             "The parameterised round trip: encode_leaf<E> then decode_leaf<E> "
@@ -258,7 +258,7 @@ inline
             }
         },
 
-        // -- IV. the convenience wrapper ----------------------------------------
+        // - IV. the convenience wrapper ----------------------------------------
         dt::block_spec{
             "convenience",
             "decode_leaf<E>(byte_string): the wrapper that reads one leaf from the "

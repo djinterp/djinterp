@@ -2,8 +2,8 @@
 * djinterp [c][tools]                                        djinterp_commands.c
 *
 * The djinterp program's 0.8 preview, declared in djinterp_commands.h.
-*   The program registers every core djin -- parse's, desc's, the
-* environment printer's and the log's -- before it runs, and the kit starts
+*   The program registers every core djin - parse's, desc's, the
+* environment printer's and the log's - before it runs, and the kit starts
 * the run's settings at the program's first parse, so a command's work finds
 * the registry whole: those djins, the kit's, the root's variables, and every
 * binding from the user's file, the environment and the command line. `list`
@@ -73,7 +73,7 @@
 // D_INTERNAL_DJINTERP_LAYERS
 //   constant: the most layers of a setting `get --show-origin` shows: as
 // many as the option core lists (option_env.c keeps the top 64), far more
-// than a frame chain of the program's can bind -- a binding from each of
+// than a frame chain of the program's can bind - a binding from each of
 // five sources, in two scopes, a frame. Past them the default's line comes
 // from the row.
 #define D_INTERNAL_DJINTERP_LAYERS 64u
@@ -81,7 +81,7 @@
 // d_internal_djinterp_reserved
 //   constant: the names the program keeps for its own commands and the
 // kit's, and those of its manual's pages in sections 5 and 7 --
-// djinterp-settings(5), djinterp-cli(7) and djinterp-language(7) -- which a
+// djinterp-settings(5), djinterp-cli(7) and djinterp-language(7) - which a
 // djin's page, djinterp-NAME(1), would otherwise share.
 static const char* const d_internal_djinterp_reserved[] =
 {
@@ -568,8 +568,8 @@ d_internal_djinterp_origins(
 
 /*
 d_internal_djinterp_get_one
-  One setting's statement -- a comment for a text that is unset, which
-loads as nothing -- and, at `--show-origin`, its source and what lies under
+  One setting's statement - a comment for a text that is unset, which
+loads as nothing - and, at `--show-origin`, its source and what lies under
 it.
 */
 static bool

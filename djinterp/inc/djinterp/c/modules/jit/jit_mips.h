@@ -7,8 +7,8 @@
 * serves both; MIPS64 differs only by adding the doubleword (d*) instructions,
 * which are isolated in section L and must not be emitted for a MIPS32 target.
 *
-*   IMPORTANT -- BRANCH DELAY SLOTS: every branch and jump on MIPS has a delay
-* slot -- the single instruction after it always executes, before the transfer.
+*   IMPORTANT - BRANCH DELAY SLOTS: every branch and jump on MIPS has a delay
+* slot - the single instruction after it always executes, before the transfer.
 * These emitters emit only the branch word; the caller MUST follow every branch
 * or jump with a delay-slot instruction (emit_nop for a bubble, or a useful one
 * moved into it). Nothing is inserted automatically.
@@ -50,7 +50,7 @@
 #include "../../../../re_std/c/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -149,7 +149,7 @@
 //   The primary opcode (bits 31-26) and, for opcode 0 (SPECIAL) and SPECIAL2,
 // the funct (bits 5-0). The emitters combine these internally; verified.
 
-// -- primary opcodes (I-/J-type; opcode 0 is SPECIAL, 0x1C is SPECIAL2) --
+// - primary opcodes (I-/J-type; opcode 0 is SPECIAL, 0x1C is SPECIAL2) --
 
 #define D_JIT_MIPS_OP_SPECIAL   0x00
 #define D_JIT_MIPS_OP_REGIMM    0x01
@@ -182,7 +182,7 @@
 #define D_JIT_MIPS_OP_LD        0x37
 #define D_JIT_MIPS_OP_SD        0x3F
 
-// -- SPECIAL (opcode 0) funct values --
+// - SPECIAL (opcode 0) funct values --
 
 #define D_JIT_MIPS_FN_SLL       0x00
 #define D_JIT_MIPS_FN_SRL       0x02
@@ -224,7 +224,7 @@
 #define D_JIT_MIPS_FN_DMULT     0x1C
 #define D_JIT_MIPS_FN_DMULTU    0x1D
 
-// -- SPECIAL2 (opcode 0x1C) funct, and REGIMM (opcode 0x01) rt selectors --
+// - SPECIAL2 (opcode 0x1C) funct, and REGIMM (opcode 0x01) rt selectors --
 
 #define D_JIT_MIPS_FN_MUL     0x02  // SPECIAL2: mul rd, rs, rt
 #define D_JIT_MIPS_RT_BLTZ    0x00  // REGIMM rt: bltz
@@ -680,14 +680,14 @@ D_NODISCARD int d_jit_mips_emit_bnez(
 );
 
 // d_jit_mips_emit_b
-//   function: b _target -- unconditional branch (beq zero, zero).
+//   function: b _target - unconditional branch (beq zero, zero).
 D_NODISCARD int d_jit_mips_emit_b(
     dj_jit_buffer* _buf,
     dj_jit_label*  _target
 );
 
 // d_jit_mips_emit_bal
-//   function: bal _target -- PC-relative call (bgezal zero); ra = return.
+//   function: bal _target - PC-relative call (bgezal zero); ra = return.
 D_NODISCARD int d_jit_mips_emit_bal(
     dj_jit_buffer* _buf,
     dj_jit_label*  _target
@@ -698,14 +698,14 @@ D_NODISCARD int d_jit_mips_emit_bal(
 // ---------------------------------------------------------------------------
 
 // d_jit_mips_emit_jr
-//   function: jr rs -- jump to the address in rs (use REG_RA to return).
+//   function: jr rs - jump to the address in rs (use REG_RA to return).
 D_NODISCARD int d_jit_mips_emit_jr(
     dj_jit_buffer* _buf,
     int            _rs
 );
 
 // d_jit_mips_emit_jalr
-//   function: jalr rd, rs -- call via rs; rd gets the return address.
+//   function: jalr rd, rs - call via rs; rd gets the return address.
 D_NODISCARD int d_jit_mips_emit_jalr(
     dj_jit_buffer* _buf,
     int            _rd,
@@ -713,7 +713,7 @@ D_NODISCARD int d_jit_mips_emit_jalr(
 );
 
 // d_jit_mips_emit_j
-//   function: j _target_addr -- absolute jump; the target must share the
+//   function: j _target_addr - absolute jump; the target must share the
 // current 256 MB region (index = (_target_addr >> 2) & 0x3FFFFFF).
 D_NODISCARD int d_jit_mips_emit_j(
     dj_jit_buffer* _buf,
@@ -721,7 +721,7 @@ D_NODISCARD int d_jit_mips_emit_j(
 );
 
 // d_jit_mips_emit_jal
-//   function: jal _target_addr -- absolute call (same region constraint).
+//   function: jal _target_addr - absolute call (same region constraint).
 D_NODISCARD int d_jit_mips_emit_jal(
     dj_jit_buffer* _buf,
     uint32_t       _target_addr

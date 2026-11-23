@@ -1,8 +1,8 @@
 /*******************************************************************************
 * djinterp [cpp][text]                                             css_tests.hpp
 *
-*   The suite for text's CSS headers -- css/css.hpp, css/css_template.hpp
-* and css/css_printer.hpp -- in DTest's C face (c/modules/test/test_suite.h).
+*   The suite for text's CSS headers - css/css.hpp, css/css_template.hpp
+* and css/css_printer.hpp - in DTest's C face (c/modules/test/test_suite.h).
 *   One entry point builds the module "css" imperatively: a block per header
 * and a test per group of checks. Every header's floor is C++17, and below it
 * a group is skipped, saying why.

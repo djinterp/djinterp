@@ -3,12 +3,12 @@
 *
 *   The C++ face of the character class declared in charset.h.
 *   `charset` derives from dj_parse_charset, adds no data member, and is
-* asserted layout-identical and trivially copyable -- so it is passed to a C
+* asserted layout-identical and trivially copyable - so it is passed to a C
 * entry point by slicing to its base, stored in a pool as its own 32 bytes, and
 * compared with memcmp, all at no cost.
 *
 *   Membership and the two single-value mutators are constexpr, which is what
-* lets a class be built and queried at compile time -- the first piece of the
+* lets a class be built and queried at compile time - the first piece of the
 * compile-time-parser door that the POD instruction opens the rest of.
 *
 *
@@ -62,7 +62,7 @@ struct charset : dj_parse_charset
     {}
 
     // of
-    //   function: the set a class notation body denotes -- the text between
+    //   function: the set a class notation body denotes - the text between
     // the brackets, with `^` negating and `a-z` forming a range.  Returns the
     // empty set on a malformed spec, which a frontend should have diagnosed
     // before reaching here.

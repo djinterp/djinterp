@@ -9,7 +9,7 @@
 * validators and each() as CLI11's Option has them, their sections CLI11's
 * own transcripts of the same definitions (the suite's CASES section,
 * compiled against CLI11 by tools/cppref/cppref.py); and what the face does
-* that CLI11 does not -- a handle on no option, callbacks returning a status
+* that CLI11 does not - a handle on no option, callbacks returning a status
 * or a truth value, binding a variable after the fact, failures as values --
 * in sections of the module's own.
 *   The suite is a table of sections, defined in arg_option_tests.cpp beside

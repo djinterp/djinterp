@@ -3,9 +3,9 @@
 *
 * A wiki's pages, read without loss.
 *   One page model, read from any of the dialects a wiki is written in, each
-* by a driver of its own: Markdown as a GitHub wiki writes it -- CommonMark,
+* by a driver of its own: Markdown as a GitHub wiki writes it - CommonMark,
 * GitHub's tables, strikethrough and bare links, and Gollum's [[Text|Page]]
-* links -- and MediaWiki's wikitext. A page is read into records, each with
+* links - and MediaWiki's wikitext. A page is read into records, each with
 * its place in the text, so a change to one is a splice that leaves every
 * other byte of the page as it was.
 *   The records: the page's blocks, in document order, containers before
@@ -13,8 +13,8 @@
 * each with its title as plain text and the anchor a link to it uses; its
 * sections, made from the headings at the page's top level, the lead before
 * the first of them; its links, of every form the dialect has, each with
-* where it leads -- a page, an anchor on this page, a URL, a file, an image,
-* a category -- and the text it shows; MediaWiki's templates, parser
+* where it leads - a page, an anchor on this page, a URL, a file, an image,
+* a category - and the text it shows; MediaWiki's templates, parser
 * functions and parameters, each with its arguments; and the regions a
 * program manages, between two comments:
 *       <!-- dawk:begin NAME -->
@@ -22,8 +22,8 @@
 *       <!-- dawk:end NAME -->
 * each on a line of its own, at the page's top level.
 *   Reading never fails on what a page holds: any text is a page. What a
-* reader of the page would want to know -- a region left open, a template
-* never closed -- is kept as a problem, with its line.
+* reader of the page would want to know - a region left open, a template
+* never closed - is kept as a problem, with its line.
 *   A page's name, its file's, and the anchor of a title are each a
 * dialect's own: a GitHub wiki keeps "Page Name" in Page-Name.md and makes
 * an anchor of a title as GitHub does; MediaWiki writes Page_Name and makes
@@ -95,7 +95,7 @@ TABLE OF CONTENTS
 // 1.1.1
 // D_WIKI_NONE
 //   constant: the index of a record that is not there, and the place of
-//   text that is not written -- a link with no label of its own.
+//   text that is not written - a link with no label of its own.
 #define D_WIKI_NONE ((size_t)-1)
 
 // 1.1.2
@@ -193,15 +193,15 @@ struct dj_wiki_segment
 
 // 1.3.2
 // dj_wiki_block
-//   struct: one block.  `start` is where its text begins -- a container's
-//   marker, a leaf's first byte -- and `end` is past its last line's
+//   struct: one block.  `start` is where its text begins - a container's
+//   marker, a leaf's first byte - and `end` is past its last line's
 //   ending.  A leaf's content is `segment_count` segments from
-//   `first_segment` -- an HTML block's first, and a comment's, with the
+//   `first_segment` - an HTML block's first, and a comment's, with the
 //   space before its start, as its content keeps it.  A code block's
 //   language, as written, is `info_start` to `info_end`, D_WIKI_NONE when
 //   there is none.  `level` is a heading's
-//   level and an item's depth among lists; `marker` is an item's -- `-`,
-//   `*`, `+`, `.` or `)` after a number, MediaWiki's last `*#:;` -- or a
+//   level and an item's depth among lists; `marker` is an item's - `-`,
+//   `*`, `+`, `.` or `)` after a number, MediaWiki's last `*#:;` - or a
 //   fence's.  `parent` is the container holding it, and `depth` how many
 //   containers do.
 struct dj_wiki_block
@@ -224,8 +224,8 @@ struct dj_wiki_block
 // 1.3.3
 // dj_wiki_heading
 //   struct: one heading.  `start` and `end` bound its lines, its last
-//   line's ending included -- from the start of its first line when it
-//   stands at the page's top level -- and `title_start` and `title_end` its
+//   line's ending included - from the start of its first line when it
+//   stands at the page's top level - and `title_start` and `title_end` its
 //   title as written.  `title` is that title as plain text, and `anchor`
 //   the anchor a link to it uses, made unique on the page as the dialect
 //   makes one.  `top` says it stands at the page's top level: in no quote,
@@ -269,12 +269,12 @@ struct dj_wiki_section
 // dj_wiki_link
 //   struct: one link.  `start` and `end` bound it, MediaWiki's trail of
 //   letters after `]]` included, and `close` is past its own close.  The
-//   destination as written is `target_start` to `target_end` -- for a
-//   reference, the label it is looked up by -- the text it shows as
+//   destination as written is `target_start` to `target_end` - for a
+//   reference, the label it is looked up by - the text it shows as
 //   written `label_start` to `label_end`, and a Markdown link's title,
 //   its quotes with it, `title_start` to `title_end`; each D_WIKI_NONE
 //   when not written.
-//   `target` is the destination, decoded -- a reference's from its
+//   `target` is the destination, decoded - a reference's from its
 //   definition, `definition`; `page` the page, file, image or category it
 //   names, and `anchor` what follows `#`, each "" when there is none; and
 //   `label` the text it shows, as plain text.  `embedded` says an image is
@@ -314,7 +314,7 @@ struct dj_wiki_link
 // dj_wiki_template
 //   struct: one of MediaWiki's double or triple braces.  `start` and `end`
 //   bound it; its name is `name_start` to `name_end`, past the prefixes
-//   MediaWiki takes off it -- `safesubst:`, `msgnw:`, `msg:`, `raw:` --
+//   MediaWiki takes off it - `safesubst:`, `msgnw:`, `msg:`, `raw:` --
 //   and `name` that name as MediaWiki reads it, trimmed, its comments
 //   gone; a function's name is what is before its `:`.  Its arguments are
 //   `argument_count` from `first_argument`: a parser function's first is
@@ -445,7 +445,7 @@ struct dj_wiki_buffer
 // 2.1    Dialects
 //------------------------------------------------------------------------------
 // d_wiki_dialect_of names a page's dialect by its file's name, in any case;
-// d_wiki_dialect_named by a name a program gives -- "markdown", "md",
+// d_wiki_dialect_named by a name a program gives - "markdown", "md",
 // "github", "gfm", "mediawiki", "wiki", "wikitext"; and d_wiki_dialect_name
 // gives the dialect's own name, "markdown" or "mediawiki", or "other".
 enum dj_wiki_dialect d_wiki_dialect_of(
@@ -540,8 +540,8 @@ char* d_wiki_page_name(
  * @brief Gives the name of the file that holds a page, in a GitHub wiki:
  *        "Page Name" in Page-Name.md, or Page-Name.mediawiki.
  *
- * @note A space, and each byte a file's name cannot hold -- `/`, `\`, `:`,
- *       `*`, `?`, `"`, `<`, `>`, `|` -- becomes `-`.
+ * @note A space, and each byte a file's name cannot hold - `/`, `\`, `:`,
+ *       `*`, `?`, `"`, `<`, `>`, `|` - becomes `-`.
  *
  * @param[in] _name     the page's name.
  * @param[in] _dialect  the dialect, which gives the extension.
@@ -554,8 +554,8 @@ char* d_wiki_page_file(
 );
 // d_wiki_same_page is whether two names name one page: a GitHub wiki's
 // compare in any case, with spaces and dashes alike; MediaWiki's with
-// spaces, underscores and dashes alike -- a page kept in a file is named
-// with dashes -- and the first letter in any case.
+// spaces, underscores and dashes alike - a page kept in a file is named
+// with dashes - and the first letter in any case.
 // d_wiki_page_key writes a name as names compare, so two that name one
 // page are written alike.
 bool d_wiki_same_page(
@@ -571,7 +571,7 @@ bool d_wiki_page_key(
 // d_wiki_anchor writes the anchor a title is linked by, before it is made
 // unique on its page: GitHub's lower case, its punctuation dropped and its
 // spaces dashes; MediaWiki's as its finalizeHeadings makes it, each run of
-// white space -- Unicode's among it -- an underscore but for one at its
+// white space - Unicode's among it - an underscore but for one at its
 // end, and the marks that set a direction gone.
 bool d_wiki_anchor(
     struct dj_wiki_buffer* _out,
@@ -580,7 +580,7 @@ bool d_wiki_anchor(
 );
 // d_wiki_anchors writes the anchors headings of titles, one to a line, are
 // given on a page that has them in that order: each made unique among
-// those before it, as the dialect makes them -- what a table of contents
+// those before it, as the dialect makes them - what a table of contents
 // written before its page links to.
 bool d_wiki_anchors(
     struct dj_wiki_buffer* _out,
@@ -640,7 +640,7 @@ char* d_wiki_copy(
 //   d_wiki_write_region      a region a program manages, its markers about
 //                            the text
 // Each line written ends with a line feed, and inline text with none.
-// Text given -- a title, a label, an item's, a cell's -- is the dialect's
+// Text given - a title, a label, an item's, a cell's - is the dialect's
 // markup, written as it is but for what would break what holds it: a
 // label's unbalanced brackets, a line ending within a line. Text that must
 // read as itself is escaped first, by d_wiki_write_escape.

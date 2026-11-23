@@ -3,9 +3,9 @@
 *
 * A table of an Oracle MySQL database held in memory: mysql_common_table
 * over a mysql_connection, with what MySQL adds.
-*   mysql_table is mysql_common_table<mysql_connection> -- database_table's
+*   mysql_table is mysql_common_table<mysql_connection> - database_table's
 * cache, refresh, commit and table operations, the engine, MODIFY COLUMN and
-* SHOW CREATE TABLE -- and adds: JSON columns told apart, MySQL storing JSON
+* SHOW CREATE TABLE - and adds: JSON columns told apart, MySQL storing JSON
 * as a type of its own; an optimizer hint written into refresh()'s query;
 * and upkeep through the layer: ANALYZE TABLE, OPTIMIZE TABLE and CHECK
 * TABLE.
@@ -83,7 +83,7 @@ public:
     using typename base_type::schema_type;
     using self_type = mysql_table<Config>;
 
-    // construction -- as database_table's
+    // construction - as database_table's
     mysql_table()
         : base_type()
     {}
@@ -121,7 +121,7 @@ public:
     mysql_table(mysql_table&&) noexcept            = default;
     mysql_table& operator=(mysql_table&&) noexcept = default;
 
-    // JSON -- whether a column holds JSON, by index or by name: a column the
+    // JSON - whether a column holds JSON, by index or by name: a column the
     // schema types field_type::json, as a query describes MySQL's JSON
     // columns; false for a column the table lacks. MySQL stores JSON as a
     // type of its own, where MariaDB's JSON is text.
@@ -201,7 +201,7 @@ public:
         return m_optimizer_hint;
     }
 
-    // upkeep -- through the layer: ANALYZE TABLE, for the optimizer's key
+    // upkeep - through the layer: ANALYZE TABLE, for the optimizer's key
     // distribution; OPTIMIZE TABLE, which rebuilds the table; CHECK TABLE,
     // which says whether it is sound. Each throws as database_table's
     // members do, D_DB_NOT_FOUND for a table not there.

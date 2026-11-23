@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  structural_traits_tests_arity.cpp
-//   Section II -- the arity trilogy: is_nullary_callable, is_unary_callable,
+//   Section II - the arity trilogy: is_nullary_callable, is_unary_callable,
 //   is_binary_callable.
 
 // std
@@ -24,7 +24,7 @@ NS_TESTING
 
 /*
 tests_is_nullary_callable_positive
-  A nullary callable -- the "next" step that drives a pull-based source -- is
+  A nullary callable - the "next" step that drives a pull-based source - is
   detected.
   Tests the following:
   - a const nullary, a stateful (non-const) nullary, and a lambda
@@ -69,7 +69,7 @@ bool tests_is_nullary_callable_negative()
 
 /*
 tests_is_unary_callable_positive
-  A unary callable -- the transform and predicate shape -- is detected.
+  A unary callable - the transform and predicate shape - is detected.
   Tests the following:
   - a const step, a stateful step, a lambda, a templated operator()
 */
@@ -113,7 +113,7 @@ bool tests_is_unary_callable_negative()
 
 /*
 tests_is_binary_callable_positive
-  A binary callable -- the reducer step (acc, x) -> acc -- is detected. This is
+  A binary callable - the reducer step (acc, x) -> acc - is detected. This is
   the structural floor the Reducer concept builds on.
   Tests the following:
   - a pure reducer and a STATEFUL (non-const) one, as an accumulating reducer
@@ -160,7 +160,7 @@ bool tests_is_binary_callable_negative()
 
 /*
 tests_arity_mutable_lvalue_contract
-  The defining contract of all three: the probe is declval<_Type&>() -- a MUTABLE
+  The defining contract of all three: the probe is declval<_Type&>() - a MUTABLE
   LVALUE. Four fixtures determine that expression uniquely and admit no other
   reading:
       const operator()   accepted  -> a const callable is fine on an lvalue
@@ -210,7 +210,7 @@ bool tests_arity_mutable_lvalue_contract()
 /*
 tests_arity_argument_decay
   clean_t is applied to _Arg, so every cv-ref spelling of an argument collapses to
-  the same query -- and the probe then offers an RVALUE. Two consequences, both
+  the same query - and the probe then offers an RVALUE. Two consequences, both
   pinned here: the spellings are interchangeable, and a step taking a mutable
   reference is therefore undetectable, since an rvalue will not bind to int&.
   Tests the following:
@@ -250,7 +250,7 @@ bool tests_arity_argument_decay()
 tests_arity_type_decay
   clean_t is also applied to _Type, so cv-ref spellings of the CALLABLE collapse
   too. A consequence worth pinning: the const is stripped before the probe, so a
-  const-qualified stateful source still reads as callable -- the trait answers
+  const-qualified stateful source still reads as callable - the trait answers
   about the underlying type, not about the const you asked with.
   Tests the following:
   - const / reference / rvalue spellings of the callable all agree
@@ -303,7 +303,7 @@ bool tests_arity_trilogy_exclusive()
     ok = ok && (!is_unary_callable<sum_reducer, int>::value);
     ok = ok && (is_binary_callable<sum_reducer, int, int>::value);
 
-    // a templated operator() answers at whatever arity it accepts -- here, one.
+    // a templated operator() answers at whatever arity it accepts - here, one.
     ok = ok && (is_unary_callable<DGenericStep, int>::value);
     ok = ok && (!is_nullary_callable<DGenericStep>::value);
     ok = ok && (!is_binary_callable<DGenericStep, int, int>::value);

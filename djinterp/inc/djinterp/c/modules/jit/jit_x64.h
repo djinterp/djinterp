@@ -3,10 +3,10 @@
 *
 * djinterp x86-64 JIT encoder (byte constants + instruction emitters):
 *   The x86-64 (AMD64 / Intel 64) half of the djinterp JIT. It owns the raw
-* machine-code vocabulary -- legacy prefixes, the REX prefix and its fields,
+* machine-code vocabulary - legacy prefixes, the REX prefix and its fields,
 * ModR/M and SIB layout, register numbers, one/two-byte opcodes, the ALU
 * immediate group, control-transfer opcodes and condition codes, and complete
-* canonical byte sequences -- and a small set of instruction emitters that
+* canonical byte sequences - and a small set of instruction emitters that
 * write those bytes into a dj_jit_buffer from jit.h.
 *
 *   These constants moved here from env/jit/env_jit_x64.h: they describe the
@@ -16,7 +16,7 @@
 *   HOST-INDEPENDENT constants: the byte values are properties of the x86-64
 * ISA and are defined unconditionally (guarded only by `#ifndef` for override).
 * The emitter FUNCTIONS, by contrast, produce x86-64 code and are meaningful
-* only on an x86-64 target -- consult D_ENV_JIT_TARGET_X64.
+* only on an x86-64 target - consult D_ENV_JIT_TARGET_X64.
 *
 *   NAMING CONVENTION:
 *     D_JIT_X64_OP_[MNEMONIC]   - an opcode byte (or opcode-group byte)
@@ -46,7 +46,7 @@
 #include "../../../../re_std/c/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -82,7 +82,7 @@
 #define D_JIT_X64_PFX_ADDRESS_SIZE  0x67
 
 // D_JIT_X64_PFX_LOCK
-//   constant: LOCK -- atomic read-modify-write on the following memory op.
+//   constant: LOCK - atomic read-modify-write on the following memory op.
 #define D_JIT_X64_PFX_LOCK          0xF0
 
 // D_JIT_X64_PFX_REPNE
@@ -132,19 +132,19 @@
 #define D_JIT_X64_REX_BASE      0x40
 
 // D_JIT_X64_REX_W
-//   constant: REX bit mask -- operand-size = 64-bit.
+//   constant: REX bit mask - operand-size = 64-bit.
 #define D_JIT_X64_REX_W      0x08
 
 // D_JIT_X64_REX_R
-//   constant: REX bit mask -- extends ModR/M.reg to 4 bits.
+//   constant: REX bit mask - extends ModR/M.reg to 4 bits.
 #define D_JIT_X64_REX_R      0x04
 
 // D_JIT_X64_REX_X
-//   constant: REX bit mask -- extends SIB.index to 4 bits.
+//   constant: REX bit mask - extends SIB.index to 4 bits.
 #define D_JIT_X64_REX_X      0x02
 
 // D_JIT_X64_REX_B
-//   constant: REX bit mask -- extends rm / base / opcode-reg field to 4 bits.
+//   constant: REX bit mask - extends rm / base / opcode-reg field to 4 bits.
 #define D_JIT_X64_REX_B      0x01
 
 // D_JIT_X64_REX(w, r, x, b)
@@ -160,19 +160,19 @@
 
 // common concrete REX bytes (for the frequent operand-size-64 cases)
 // D_JIT_X64_REX_W_BYTE
-//   constant: REX.W                 -- 64-bit operands.
+//   constant: REX.W                 - 64-bit operands.
 #define D_JIT_X64_REX_W_BYTE     0x48
 
 // D_JIT_X64_REX_B_BYTE
-//   constant: REX.B                 -- rm/base/opcode-reg high bit.
+//   constant: REX.B                 - rm/base/opcode-reg high bit.
 #define D_JIT_X64_REX_B_BYTE     0x41
 
 // D_JIT_X64_REX_X_BYTE
-//   constant: REX.X                 -- index high bit.
+//   constant: REX.X                 - index high bit.
 #define D_JIT_X64_REX_X_BYTE     0x42
 
 // D_JIT_X64_REX_R_BYTE
-//   constant: REX.R                 -- reg high bit.
+//   constant: REX.R                 - reg high bit.
 #define D_JIT_X64_REX_R_BYTE     0x44
 
 // D_JIT_X64_REX_WB_BYTE
@@ -211,19 +211,19 @@
 // ---------------------------------------------------------------------------
 
 // D_JIT_X64_MOD_INDIRECT
-//   constant: ModR/M.mod = [rm] -- indirect, no displacement.
+//   constant: ModR/M.mod = [rm] - indirect, no displacement.
 #define D_JIT_X64_MOD_INDIRECT  0x00
 
 // D_JIT_X64_MOD_DISP8
-//   constant: ModR/M.mod = [rm + disp8] -- 8-bit displacement follows.
+//   constant: ModR/M.mod = [rm + disp8] - 8-bit displacement follows.
 #define D_JIT_X64_MOD_DISP8     0x01
 
 // D_JIT_X64_MOD_DISP32
-//   constant: ModR/M.mod = [rm + disp32] -- 32-bit displacement follows.
+//   constant: ModR/M.mod = [rm + disp32] - 32-bit displacement follows.
 #define D_JIT_X64_MOD_DISP32    0x02
 
 // D_JIT_X64_MOD_REG
-//   constant: ModR/M.mod = rm -- operand is the register itself.
+//   constant: ModR/M.mod = rm - operand is the register itself.
 #define D_JIT_X64_MOD_REG       0x03
 
 // ---------------------------------------------------------------------------
@@ -294,7 +294,7 @@
 //   The 4-bit encoding number for each 64-bit general register. The low 3
 // bits go into a ModR/M or SIB field; bit 3 (r8-r15) is supplied by a REX
 // R/X/B bit. The 32/16/8-bit registers share these same numbers. Note the
-// legacy order is A, C, D, B, SP, BP, SI, DI -- not alphabetical.
+// legacy order is A, C, D, B, SP, BP, SI, DI - not alphabetical.
 
 #define D_JIT_X64_REG_RAX   0
 #define D_JIT_X64_REG_RCX   1
@@ -562,7 +562,7 @@
 #define D_JIT_X64_GRP5_PUSH_RM    6
 
 // ---------------------------------------------------------------------------
-// condition codes (tttn) -- add to 0x70 (Jcc rel8), 0x0F80 (Jcc rel32),
+// condition codes (tttn) - add to 0x70 (Jcc rel8), 0x0F80 (Jcc rel32),
 // 0x0F90 (SETcc), or 0x0F40 (CMOVcc). Aliased mnemonics share a value.
 // ---------------------------------------------------------------------------
 
@@ -666,7 +666,7 @@
 // ===========================================================================
 //   A small, deliberately minimal set of encoders that write a single x86-64
 // instruction into a dj_jit_buffer using the constants above. This is a
-// starting vocabulary -- enough to assemble simple leaf functions -- not a
+// starting vocabulary - enough to assemble simple leaf functions - not a
 // full assembler. Register arguments are D_JIT_X64_REG_* numbers; extended
 // registers (r8-r15) get their REX.B automatically. Each returns 0 on success
 // or -1 if the underlying buffer emit fails.

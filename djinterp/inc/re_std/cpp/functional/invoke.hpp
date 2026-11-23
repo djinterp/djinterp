@@ -23,7 +23,7 @@
 * `RE_STD_CONSTEXPR` lifts to `constexpr` from C++11 onward; the standard
 * did not make INVOKE constexpr until C++20 (P1065), so this header
 * over-qualifies relative to std on C++11 / C++14 / C++17. That is
-* deliberate -- re_std's "constexpr maximization" goal.
+* deliberate - re_std's "constexpr maximization" goal.
 *
 *
 * path:      /inc/re_std/cpp/functional/invoke.hpp
@@ -58,7 +58,7 @@ namespace internal
 {
 
     // -------------------------------------------------------------------
-    // bullet 1: PMF, first arg derived from owning class -- (a1.*f)(args)
+    // bullet 1: PMF, first arg derived from owning class - (a1.*f)(args)
     // -------------------------------------------------------------------
     template<typename F,
              typename Class,
@@ -81,7 +81,7 @@ namespace internal
     }
 
     // -------------------------------------------------------------------
-    // bullet 2: PMF, first arg is reference_wrapper -- (a1.get().*f)(args)
+    // bullet 2: PMF, first arg is reference_wrapper - (a1.get().*f)(args)
     // -------------------------------------------------------------------
     template<typename F,
              typename Class,
@@ -104,7 +104,7 @@ namespace internal
     }
 
     // -------------------------------------------------------------------
-    // bullet 3: PMF, first arg is a pointer -- ((*a1).*f)(args)
+    // bullet 3: PMF, first arg is a pointer - ((*a1).*f)(args)
     // -------------------------------------------------------------------
     template<typename F,
              typename Class,
@@ -128,7 +128,7 @@ namespace internal
     }
 
     // -------------------------------------------------------------------
-    // bullet 4: PMD, first arg derived from owning class -- a1.*f
+    // bullet 4: PMD, first arg derived from owning class - a1.*f
     // -------------------------------------------------------------------
     template<typename F,
              typename Class,
@@ -147,7 +147,7 @@ namespace internal
     }
 
     // -------------------------------------------------------------------
-    // bullet 5: PMD, first arg is reference_wrapper -- a1.get().*f
+    // bullet 5: PMD, first arg is reference_wrapper - a1.get().*f
     // -------------------------------------------------------------------
     template<typename F,
              typename Class,
@@ -166,7 +166,7 @@ namespace internal
     }
 
     // -------------------------------------------------------------------
-    // bullet 6: PMD, first arg is a pointer -- (*a1).*f
+    // bullet 6: PMD, first arg is a pointer - (*a1).*f
     // -------------------------------------------------------------------
     template<typename F,
              typename Class,
@@ -186,7 +186,7 @@ namespace internal
     }
 
     // -------------------------------------------------------------------
-    // bullet 7: anything callable -- f(args...)
+    // bullet 7: anything callable - f(args...)
     //   When F is a pointer-to-member, `forward<F>(f)(args...)` is ill-
     // formed (PMs cannot be called with `()`), so SFINAE on the return
     // type discards this overload and one of bullets 1-6 wins. For

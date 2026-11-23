@@ -4,8 +4,8 @@
 * Definitions for the declarations in dzip.h.
 *   The directory at the end of the archive is the truth about it: the local
 * header before each entry's data repeats some of what the directory says,
-* and may say less of it -- an entry streamed with a data descriptor has zeros
-* there -- so sizes and checksums are taken from the directory and the local
+* and may say less of it - an entry streamed with a data descriptor has zeros
+* there - so sizes and checksums are taken from the directory and the local
 * header is read only for where the data begins.
 *   Inflate is RFC 1951 decoded a bit at a time through canonical Huffman
 * tables, as Mark Adler's puff does it: slower than zlib, and short enough to

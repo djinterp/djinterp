@@ -87,7 +87,7 @@ NS_INTERNAL
 
     // pdf_num
     //   helper: a coordinate or scalar for content-stream emission, as "%g"
-    // writes it in the C locale, whatever the program's locale -- the C
+    // writes it in the C locale, whatever the program's locale - the C
     // tier's d_pdf_num, byte for byte, through the same d_ostream_write_double
     // (the decimal-point ruling, stream 1). "%g" under a German locale wrote
     // "1,5", which no PDF reader takes as a number.

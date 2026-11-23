@@ -74,7 +74,7 @@ D_EXTERN_C_BEGIN
 #if defined(INT64_MAX)
 // 2.1    Sizes
 //------------------------------------------------------------------------------
-// sizes, in bytes, written only on success -- a collection's footprint, its
+// sizes, in bytes, written only on success - a collection's footprint, its
 // documents' storage and every index's, as $collStats' storageStats reckon
 // them; a database's, its collections' and its indexes' storage, as dbStats
 // does, NULL meaning the current one. A view has no storage: its size is
@@ -94,7 +94,7 @@ int d_mongodb_database_size(
 
 // 2.2    Compaction
 //------------------------------------------------------------------------------
-// compaction -- compacts a collection's storage and its indexes'
+// compaction - compacts a collection's storage and its indexes'
 int d_mongodb_compact(
     struct dj_mongodb* _db,
     const char*        _database,

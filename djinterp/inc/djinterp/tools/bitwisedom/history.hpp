@@ -3,7 +3,7 @@
 *
 * Undo and redo, as whole-sheet snapshots.
 *   A sheet is small, so each step keeps the sheet as it was before the
-* edit. Edits that arrive as a stream -- a drag, typing into a field -- share
+* edit. Edits that arrive as a stream - a drag, typing into a field - share
 * a merge key, and a run of edits with one key is one step: dragging a
 * colour across the picker is undone in one go, not frame by frame. seal()
 * ends a run, so the next edit starts a step of its own even with the same
@@ -57,7 +57,7 @@ public:
         const std::string& _key
     );
 
-    // stepping -- each returns false, leaving _current alone, when there is
+    // stepping - each returns false, leaving _current alone, when there is
     // nothing to step to
     bool undo(
         sheet& _current

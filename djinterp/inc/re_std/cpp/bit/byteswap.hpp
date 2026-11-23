@@ -9,7 +9,7 @@
 *
 *   WIDER CONSTRAINT THAN THE REST OF THIS MODULE:
 *   byteswap accepts any INTEGRAL type, not just the unsigned integer
-* types -- signed types and the character types included. It is the one
+* types - signed types and the character types included. It is the one
 * function here that does not use bit_enable.
 *
 *   The work is done on the corresponding unsigned type and cast back.

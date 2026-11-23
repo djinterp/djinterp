@@ -1039,8 +1039,8 @@ d_tests_option_env_random_bind(
 /*
 d_tests_option_env_random_step
   One random change to one frame, from one source, made to the model too
-when the frame took it. A frame may refuse for want of room -- the child has
-fewer bindings and less arena than the model can ask of it -- and only for
+when the frame took it. A frame may refuse for want of room - the child has
+fewer bindings and less arena than the model can ask of it - and only for
 that; the count of any other refusal is returned.
 */
 static size_t
@@ -1172,7 +1172,7 @@ d_tests_option_env_random
   Tests the following:
   - 20000 random binds, rebinds and unbinds from every source over a parent
     and a child, with arenas and value blocks small enough to compact many
-    times, each followed by a full read -- value, bound, source -- against
+    times, each followed by a full read - value, bound, source - against
     the model
 */
 static void
@@ -1565,8 +1565,8 @@ d_tests_option_env_rows
   - an INT's range, by value and by text, at its ends and past them
   - an alias finds the variable, binds it, and is read from getenv when the
     name is not set
-  - a value ruled but not built is refused by name -- a choice's, a flag's
-    -- and by value, as POLICY_REJECTED, where an unknown one is
+  - a value ruled but not built is refused by name - a choice's, a flag's
+    - and by value, as POLICY_REJECTED, where an unknown one is
     INVALID_ARGUMENT
   - a row whose default is a knob names the knob, and reads as the default
 */
@@ -1675,8 +1675,8 @@ static const struct dj_option_env_name NEVER[] =
 };
 
 // D_TESTS_NAMED_ROWS, D_TESTS_NAMED_BAD
-//   constants: the rows the named-value tests declare -- parse's depth
-// guard, one whose knob is the name, one with an unbuilt name -- and two rows
+//   constants: the rows the named-value tests declare - parse's depth
+// guard, one whose knob is the name, one with an unbuilt name - and two rows
 // that cannot be declared.
 #define D_TESTS_KNOB_DEPTH     1000
 #define D_TESTS_KNOB_UNBOUNDED 0xFFFFFFFFu
@@ -2890,8 +2890,8 @@ d_tests_option_env_reader(void)
 /*
 d_tests_option_env_checking
   Tests the following:
-  - a value is checked as binding it would be -- range, choices, unbuilt
-    names, refused sources, unknown names, text a kind does not read -- and
+  - a value is checked as binding it would be - range, choices, unbuilt
+    names, refused sources, unknown names, text a kind does not read - and
     every answer matches what binding the same gives
   - the value is written as format_quoted writes it, a name for a number
     that has one, quotes where text needs them

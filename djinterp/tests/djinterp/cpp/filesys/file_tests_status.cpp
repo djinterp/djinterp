@@ -1,13 +1,13 @@
 /*******************************************************************************
 * djinterp [cpp][filesys]                                  file_tests_status.cpp
 *
-*   III. FILE_STATUS (file_stat.hpp) -- one stat, then as many questions as you
+*   III. FILE_STATUS (file_stat.hpp) - one stat, then as many questions as you
 * like, every answer describing the same snapshot.
 *
 * THE CONTRACT MOST LIKELY TO BE GOT WRONG
 * ----------------------------------------
 *   An absent file is not a failure here. status() on a path that does not exist
-* clears the error and returns type_not_found, mirroring std::filesystem -- "I
+* clears the error and returns type_not_found, mirroring std::filesystem - "I
 * looked, and there is nothing there" is an answer, not an error. A caller who
 * tests _ec.failed() to decide whether a file exists will therefore conclude
 * that every missing file exists. The cases below pin this, and pin the
@@ -25,7 +25,7 @@
 *   The header's whole argument for this type is that is_regular_file() and
 * size() on one file_status cannot race, because there is no second syscall
 * between them. The consistency case below reads every question off a single
-* snapshot and checks they agree -- which is the property the type exists to
+* snapshot and checks they agree - which is the property the type exists to
 * provide.
 *
 *
@@ -167,7 +167,7 @@ void tests_fs_status(
               error       ec;
               file_status s = status(fs_test_path(D_CF_TEST_FILE), ec);
 
-              // every answer below comes from the SAME stat -- this is the
+              // every answer below comes from the SAME stat - this is the
               // property the type exists to provide
               return ( (s.exists()) &&
                        (s.is_regular_file()) &&

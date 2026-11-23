@@ -140,7 +140,7 @@ bool tests_table_parser()
         const std::string canonical = "| a | bc    |\n| d | e | f |\n";
         D_TBL_CHECK(renders_to_same_text(canonical));
         // a NON-canonical but equivalent grid parses to the same model and
-        // renders to the canonical spelling -- which is what a canonical form is for
+        // renders to the canonical spelling - which is what a canonical form is for
         const std::string sloppy = "|a|bc|\n|d|e|f|\n";
         auto ra = parse_table_text<>(canonical);
         auto rb = parse_table_text<>(sloppy);

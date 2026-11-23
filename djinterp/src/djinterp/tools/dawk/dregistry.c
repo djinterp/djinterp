@@ -72,8 +72,8 @@ const char* d_internal_ancestor_attribute(
 /*
 d_registry_derive
   Computes the value a `content:` declaration says a node should hold.  A
-derivation that needs a source this build does not have -- commit history,
-for instance -- returns false, and the property is reported as unevaluated
+derivation that needs a source this build does not have - commit history,
+for instance - returns false, and the property is reported as unevaluated
 rather than silently passing.
 */
 bool d_registry_derive(

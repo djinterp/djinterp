@@ -2,7 +2,7 @@
 * djinterp [cpp][functional]                             cofree_tests_unfold.cpp
 *
 *   Section II.3 (unfold) of the cofree.hpp suite: unfold_cofree, which
-* coiteratively grows a cofree from a seed -- head_fn : S -> A gives each node's
+* coiteratively grows a cofree from a seed - head_fn : S -> A gives each node's
 * value, layer_fn : S -> F<S> gives its children's seeds, terminating when the
 * F-layer is empty.  Covers building a descending chain, the single-node case
 * (layer_fn empty immediately), longer chains, the distinct roles of head_fn

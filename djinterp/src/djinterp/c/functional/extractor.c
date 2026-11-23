@@ -126,7 +126,7 @@ bool d_extractor_chain_init(
 /*
 d_extractor_chain_apply
   Runs a composed projection. Deliberately shaped as an `fn_transformer`, so a
-chain is itself usable anywhere a single projection is -- which is what makes
+chain is itself usable anywhere a single projection is - which is what makes
 composition associative in practice rather than only on paper.
 
 Parameter(s):
@@ -242,7 +242,7 @@ bool d_contramap_test(
 /*
 d_contramap_comparator_init
   Binds an ordering over `Target` to a projection, giving an ordering over
-`Source` -- which is what `sort_by_key` is.
+`Source` - which is what `sort_by_key` is.
 
 Parameter(s):
   _binding:  the binding to initialise.

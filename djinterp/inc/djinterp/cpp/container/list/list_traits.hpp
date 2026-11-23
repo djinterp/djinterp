@@ -797,7 +797,7 @@ struct enable_if_list_container
 };
 
 // enable_if_list_container_t
-//   type: the carrier of enable_if_list_container -- its `::type`, for use
+//   type: the carrier of enable_if_list_container - its `::type`, for use
 // where a type rather than a value is wanted.
 template<typename Type>
 using enable_if_list_container_t =
@@ -811,7 +811,7 @@ struct enable_if_spliceable_list
 };
 
 // enable_if_spliceable_list_t
-//   type: the carrier of enable_if_spliceable_list -- its `::type`, for use
+//   type: the carrier of enable_if_spliceable_list - its `::type`, for use
 // where a type rather than a value is wanted.
 template<typename Type>
 using enable_if_spliceable_list_t =
@@ -825,7 +825,7 @@ struct enable_if_mergeable_list
 };
 
 // enable_if_mergeable_list_t
-//   type: the carrier of enable_if_mergeable_list -- its `::type`, for use
+//   type: the carrier of enable_if_mergeable_list - its `::type`, for use
 // where a type rather than a value is wanted.
 template<typename Type>
 using enable_if_mergeable_list_t =
@@ -839,7 +839,7 @@ struct enable_if_sortable_list
 };
 
 // enable_if_sortable_list_t
-//   type: the carrier of enable_if_sortable_list -- its `::type`, for use
+//   type: the carrier of enable_if_sortable_list - its `::type`, for use
 // where a type rather than a value is wanted.
 template<typename Type>
 using enable_if_sortable_list_t =
@@ -853,7 +853,7 @@ struct enable_if_node_stable_list
 };
 
 // enable_if_node_stable_list_t
-//   type: the carrier of enable_if_node_stable_list -- its `::type`, for use
+//   type: the carrier of enable_if_node_stable_list - its `::type`, for use
 // where a type rather than a value is wanted.
 template<typename Type>
 using enable_if_node_stable_list_t =
@@ -867,7 +867,7 @@ struct enable_if_full_list
 };
 
 // enable_if_full_list_t
-//   type: the carrier of enable_if_full_list -- its `::type`, for use where a
+//   type: the carrier of enable_if_full_list - its `::type`, for use where a
 // type rather than a value is wanted.
 template<typename Type>
 using enable_if_full_list_t =

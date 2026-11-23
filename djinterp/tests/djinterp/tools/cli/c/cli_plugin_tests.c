@@ -11,7 +11,7 @@
 * plugin command for each probe, and `missing`, whose module was never
 * built. KIT writes to the process's standard streams, which a case
 * redirects to files for the run. What `--version --verbose` says is
-* composed where it names a file -- the runner's, a module's -- or the kit's
+* composed where it names a file - the runner's, a module's - or the kit's
 * own build.
 *
 *
@@ -80,7 +80,7 @@ static char d_tests_cli_modules[D_TESTS_CLI_PATH_MAX];
 /*
 d_tests_cli_plugin_modules
   The directory given, made absolute while the working directory is still
-the one it was given from -- the sections move into scratch directories,
+the one it was given from - the sections move into scratch directories,
 and under Wine a path such as /tmp/x names the working directory's drive;
 or the runner's own, its file's name cut off.
 */
@@ -902,7 +902,7 @@ bool d_tests_cli_make_host(
 /**
  * @brief STYLED: HOST saying its errors without their word, keeping the
  *        argument parser's help, taking a prefix of a long name for the
- *        name, and writing a file it changes to standard output -- the
+ *        name, and writing a file it changes to standard output - the
  *        flags a host gives its modules.
  *
  * @param[out]    _program  the program.
@@ -1265,7 +1265,7 @@ static const char PROBE_STYLED[] =
 
 // PROBE_OWN
 //   constant: what it reports run as `prog probe report.txt 0 --help -v
-// -- x`: every argument after the command's name is the module's.
+// - x`: every argument after the command's name is the module's.
 static const char PROBE_OWN[] =
     "abi=1 size=whole program=prog version=1.2 command=prog probe\n"
     "module=" D_TESTS_CLI_MODULE("prog-probe") " executable=given "
@@ -1586,8 +1586,8 @@ bool d_tests_cli_kit_version(
 
 /**
  * @brief KIT through a host that reads response files: its help says
- *        `@FILE`, in the kit's layout and the parser's, and a file -- one
- *        naming another, too -- is read by the host, before KIT is run.
+ *        `@FILE`, in the kit's layout and the parser's, and a file - one
+ *        naming another, too - is read by the host, before KIT is run.
  *
  * @return whether every case held.
  */
@@ -1640,7 +1640,7 @@ bool d_tests_cli_kit_responding(void)
 /*
 d_tests_cli_plugin_kit
   KIT's work, its note at the host's `-v`, its help, its failures in the
-host's colour, and its version, plain and with its build -- `-v` its own,
+host's colour, and its version, plain and with its build - `-v` its own,
 or the host's; through STYLED, a failure without its word, help in the
 parser's layout and a prefix taken for a long name, as the host has them;
 and through RESPONDING, `@FILE` in its help and its files read by the host.
@@ -1740,9 +1740,9 @@ bool d_tests_cli_plugin_kit(void)
 /**
  * @brief What HOST's `--version --verbose` must say: the version's line;
  *        the runner's file, as the system names it; where each command's
- *        module would be loaded from -- each probe's from the modules'
+ *        module would be loaded from - each probe's from the modules'
  *        directory, MISSING's not installed; or, where the kit has no
- *        loader, none -- and the kit's line.
+ *        loader, none - and the kit's line.
  *
  * @param[in,out] _expected  receives the text.
  */
@@ -2170,7 +2170,7 @@ bool d_tests_cli_plugin_module_side(void)
 
 /**
  * @brief Runs a host on a command line and compares its status, what it
- *        wrote to standard output, and its error output -- whole, or the
+ *        wrote to standard output, and its error output - whole, or the
  *        start of it.
  *
  * @param[in] _tag     the case's tag.

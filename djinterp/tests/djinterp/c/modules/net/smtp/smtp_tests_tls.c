@@ -1,10 +1,10 @@
 /*******************************************************************************
 * djinterp [c][net]                                             smtp_tests_tls.c
 *
-* djinterp SMTP kernel tests -- STARTTLS.
+* djinterp SMTP kernel tests - STARTTLS.
 *   Standalone tests of STARTTLS on both sides, with net_tests_peer.h's
 * scripted peer as the other party and its toy engine as the SSL kernel's
-* engine, so every byte on the wire -- plaintext, handshake, and sealed --
+* engine, so every byte on the wire - plaintext, handshake, and sealed --
 * is checked, and every way TLS fails can be had on cue: a session the
 * engine will not make, a handshake it fails, a certificate it doubts, a
 * peer that hangs up or stalls mid-handshake, plaintext injected behind the
@@ -521,8 +521,8 @@ struct dj_tests_smtp_injection
 
 /*
 d_tests_smtp_injected
-  A go-ahead as `_case` has it, with what it puts behind it -- in its own
-turn, which only a connection that counts what waits can see -- over a
+  A go-ahead as `_case` has it, with what it puts behind it - in its own
+turn, which only a connection that counts what waits can see - over a
 peer that counts or not: STARTTLS must end as the case expects, leaving
 the client to be closed.
 */
@@ -629,7 +629,7 @@ struct dj_tests_smtp_breach
 d_tests_smtp_breached
   STARTTLS through a handshake that fails as `_case` says: the client ends
 in QUIT, keeping the kernel's status and the connection's cause, and the
-TLS session it made -- if it made one -- until close releases it.
+TLS session it made - if it made one - until close releases it.
 */
 static
 bool d_tests_smtp_breached(
@@ -949,8 +949,8 @@ bool d_tests_smtp_failed_session(
 /*
 d_tests_smtp_judged
   d_smtp_error_from_tls over a session failed as asked: `_result` must
-become `_status`, writing `_tls_status` and `_cause` -- `_cause` left alone
-when it is the sentinel D_NET_ERROR_ADDRESS_IN_USE -- and the call must
+become `_status`, writing `_tls_status` and `_cause` - `_cause` left alone
+when it is the sentinel D_NET_ERROR_ADDRESS_IN_USE - and the call must
 take NULL for both places too.
 */
 static bool

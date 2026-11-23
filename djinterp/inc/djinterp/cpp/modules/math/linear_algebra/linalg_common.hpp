@@ -11,8 +11,8 @@
 *   A FACE OVER THE C CORE. The kernels are c/math/vec.h's, mat.h's and
 * quat.h's, for float, double and long double; internal::linalg_kernel<Type>
 * forwards to them through the overloads that name each kernel once for the
-* three, and for any other element type -- an integer, a user's numeric type
-* -- runs the same operations in the type's own arithmetic, taking a root
+* three, and for any other element type - an integer, a user's numeric type
+* - runs the same operations in the type's own arithmetic, taking a root
 * through double as the subframework always has: the generic path, kept by
 * the owner's ruling. A root has two forms, the C library's and a pure-
 * arithmetic one, correctly rounded both, so the same bit for bit: below
@@ -24,7 +24,7 @@
 * cplx.h's, and its determinant LU's with partial pivoting by magnitude, as
 * cmat.h's, rather than Bareiss's, which every other type there keeps: its
 * determinant and inverse are cmat.h's bit for bit (S315). Its sums --
-* dot, sum, the products, the trace and the power -- are compensated as the
+* dot, sum, the products, the trace and the power - are compensated as the
 * C families' are, each part rounded once from Dot2's or Sum2's pair by
 * vec.h's accumulator (linalg_sums), and its solve refined with extra
 * precision: both cmat.h's bit for bit, their _fast forms the formulas as
@@ -225,7 +225,7 @@ NS_INTERNAL
     // linalg_sums
     //   trait: the generic path's sums of products and of terms, strided:
     // for every type but math::complex<T>, the formula as written, each
-    // product rounded and added in order from zero -- the generic path's
+    // product rounded and added in order from zero - the generic path's
     // one formula, exact for an exact type.
     template<typename Type>
     struct linalg_sums
@@ -2251,7 +2251,7 @@ NS_INTERNAL
         // entry of largest magnitude at or below the diagonal; each row
         // operation a product on the left, the pivot row divided by its
         // pivot on the left (over it, where products commute), each other
-        // row less its entry times the pivot row -- so that it holds where
+        // row less its entry times the pivot row - so that it holds where
         // products do not commute, for quaternions (S269).
         static D_CONSTEXPR_CPP14 bool
         inverse(Type*       _out,
@@ -2319,7 +2319,7 @@ NS_INTERNAL
         // [A | B] with partial pivoting by magnitude, then back-substitution
         // (S257): each row below less its multiplier times the pivot row,
         // the multiplier the entry over the pivot on the right, each
-        // unknown its row's remainder over the pivot on the left -- products
+        // unknown its row's remainder over the pivot on the left - products
         // kept in their order, so that it holds where they do not commute.
         // _scratch holds n * n entries; neither it nor _x may be _a or _b.
         // An exact A and B give the exact X that inverse(A) B does, at
@@ -2560,7 +2560,7 @@ NS_INTERNAL
         // substitute
         //   _x, n entries _sx apart, a right-hand side already in the
         // factors' row order, solved in place by _lu: forward through L, its
-        // diagonal 1, then back through U, the last row first -- each step
+        // diagonal 1, then back through U, the last row first - each step
         // d_cmat_lu_solve's.
         static D_CONSTEXPR_CPP14 void
         substitute(const Type* _lu, std::size_t _n, Type* _x, std::size_t _sx)
@@ -2600,7 +2600,7 @@ NS_INTERNAL
         // tail) of each of A's rows in the factors' order, each part by Dot2
         // rounded once (linalg_sums), solved in place by the factors.
         // *_largest is the correction's largest part in magnitude,
-        // *_relative its largest relative to its part of x, at most 1 -- 1
+        // *_relative its largest relative to its part of x, at most 1 - 1
         // also where that part is 0: d_cmat_solve's.
         static D_CONSTEXPR_CPP14 void
         correction(Type*              _fix,
@@ -3413,7 +3413,7 @@ NS_INTERNAL
         // diagonal, the first among equals; each row below less its
         // multiplier, the entry over the pivot, times the pivot row; 0 where
         // a column has no pivot, and else the sign of the row swaps times
-        // the diagonal's entries, in order -- the sign 1 or 0 - 1, as the
+        // the diagonal's entries, in order - the sign 1 or 0 - 1, as the
         // product's first factor.
         static D_CONSTEXPR_CPP14 Type
         determinant_by(const Type*       _a,
@@ -3551,8 +3551,8 @@ NS_END  // internal
 // 2.5    Scalar helpers, and the headers not yet on the C core
 //------------------------------------------------------------------------------
 // transform, decomposition, eigen, svd and dynamic_matrix still call these.
-// sqrt_c and acos_c are the C core's now -- correctly rounded, and within an
-// ulp -- rather than a hundred Newton steps and a
+// sqrt_c and acos_c are the C core's now - correctly rounded, and within an
+// ulp - rather than a hundred Newton steps and a
 // 6.7e-5 polynomial; cos_c and sin_c keep their series, reduced without
 // `long long`, which ISO strict C++98 has not. They go when those headers
 // move to the C core.
@@ -3702,15 +3702,15 @@ NS_END  // internal
 
 
 // default_tolerance
-//   function: the relative tolerance the iterative kernels -- the
-// symmetric eigensolver, power iteration, the SVD -- take when the caller
+//   function: the relative tolerance the iterative kernels - the
+// symmetric eigensolver, power iteration, the SVD - take when the caller
 // supplies none, and that is_invertible and is_singular compare a
 // determinant with: as a double, four of double's epsilons, or as
 // default_tolerance<Type>() in another type, Type's number_traits'
 // tolerance, four of its epsilons and 0 for an exact type (S157). (The
 // default template argument it once had is C++11's; the double overload
-// serves every level.) The comparisons given no tolerance -- equals,
-// approx_equal, is_symmetric, is_identity, is_unit, is_orthogonal -- take
+// serves every level.) The comparisons given no tolerance - equals,
+// approx_equal, is_symmetric, is_identity, is_unit, is_orthogonal - take
 // internal::linalg_tolerance's, scaled by their operands.
 inline D_CONSTEXPR double
 default_tolerance() D_NOEXCEPT
@@ -3731,14 +3731,14 @@ NS_INTERNAL
     //   function: the tolerance a comparison of the _n entries of _a with
     // _b's takes when given none (S157, S158): the type's own tolerance for
     // a pair, number_traits<Type>::tolerance(x, y), of x, the entry of the
-    // largest magnitude -- among them 1 where _with_one is set, for a
-    // comparison with the identity or with a unit's norm -- and y, the entry
+    // largest magnitude - among them 1 where _with_one is set, for a
+    // comparison with the identity or with a unit's norm - and y, the entry
     // that carries the largest epsilon: for a floating-point type four of
     // its epsilons times the largest magnitude, for a value 0 where every
     // entry is exact and else four of the largest epsilon times the largest
-    // magnitude -- relative to the operands' scale, as Julia's isapprox and
+    // magnitude - relative to the operands' scale, as Julia's isapprox and
     // Eigen's isApprox are, with a few epsilons rather than their looser
-    // defaults -- and for a type that specializes the traits, what its
+    // defaults - and for a type that specializes the traits, what its
     // author says.
     template<typename Type>
     D_CONSTEXPR_CPP14 typename number_traits<Type>::magnitude_type

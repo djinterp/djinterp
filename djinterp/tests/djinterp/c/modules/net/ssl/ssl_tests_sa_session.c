@@ -369,8 +369,8 @@ d_tests_sa_ssl_resume
   - a resumption offer is refused for a NULL argument, a server's session,
     a session that is not yet established to offer, sessions of different
     contexts, and a session already past its handshake
-  - after the first session has read the server's data -- and with it, under
-    TLS 1.3, the server's session tickets -- a second session offered the
+  - after the first session has read the server's data - and with it, under
+    TLS 1.3, the server's session tickets - a second session offered the
     first resumes it, and says so; the first did not
   It runs past 75 lines because both pairs, and a third context, serve every
   check.
@@ -549,7 +549,7 @@ d_tests_sa_ssl_wants
   - an established session awaits nothing
   - a read with nothing to read would block, awaiting the transport's
     bytes
-  - a write of a whole record -- more than the session's stage holds --
+  - a write of a whole record - more than the session's stage holds --
     into a pipe that takes less is taken whole, and awaits the transport's
     room for the rest
   - the rest goes out as the peer reads, whole, and then nothing is awaited

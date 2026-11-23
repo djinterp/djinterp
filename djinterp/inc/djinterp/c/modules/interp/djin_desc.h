@@ -3,7 +3,7 @@
 *
 *   A djin as facts: its name, version and summary, its commands, its
 * settings and what its own describe slot adds, given to a desc sink
-* (desc/desc.h), so that any of desc's machines writes it -- JSON for
+* (desc/desc.h), so that any of desc's machines writes it - JSON for
 * `djinterp describe --format=json`, text, a log record, a test. A frame of
 * the registry that no djin record names is described the same way, by its
 * name and its settings.

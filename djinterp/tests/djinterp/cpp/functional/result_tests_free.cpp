@@ -2,9 +2,9 @@
 * djinterp [cpp][functional]                               result_tests_free.cpp
 *
 * Free-function helper tests for result.hpp section VI:
-*   test_collect -- container of result<T, E> -> result<vector<T>, E>: ok iff
+*   test_collect - container of result<T, E> -> result<vector<T>, E>: ok iff
 *                   every element is ok, else the first err (short-circuit).
-*   test_combine -- combine two results via a binary function; ok iff both
+*   test_combine - combine two results via a binary function; ok iff both
 *                   ok, else the first err.
 *
 *

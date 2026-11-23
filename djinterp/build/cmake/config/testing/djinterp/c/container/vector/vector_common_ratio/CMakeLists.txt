@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/container/vector/vector_common_ratio/CMakeLists.txt
+# djinterp [test]  -  build/cmake/config/testing/djinterp/c/container/vector/vector_common_ratio/CMakeLists.txt
 #
 #    Test leaf for container/vector/vector_common.h with its growth ratio set
 # as a factor: the vector_common leaf's runner and

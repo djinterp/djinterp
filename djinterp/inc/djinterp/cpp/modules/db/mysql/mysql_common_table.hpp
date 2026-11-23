@@ -3,9 +3,9 @@
 *
 * What a table of a MariaDB or a MySQL database adds to database_table, for
 * both servers: the base of mariadb_table and mysql_table.
-*   mysql_common_table<Connection> is database_table<Connection> -- the
+*   mysql_common_table<Connection> is database_table<Connection> - the
 * cache, refresh, commit and the table's operations, through the MariaDB
-* layer, which serves both servers through either client -- and adds the
+* layer, which serves both servers through either client - and adds the
 * storage engine a create_table uses, MODIFY COLUMN, and SHOW CREATE TABLE.
 * Its database is the table's schema (set_schema_name), "" for the
 * connection's current one.
@@ -124,7 +124,7 @@ public:
     using typename base_type::schema_type;
     using self_type = mysql_common_table<Connection, ValueType, Config>;
 
-    // construction -- as database_table's
+    // construction - as database_table's
     mysql_common_table()
         : base_type(),
           m_engine()
@@ -166,7 +166,7 @@ public:
     mysql_common_table(mysql_common_table&&) noexcept            = default;
     mysql_common_table& operator=(mysql_common_table&&) noexcept = default;
 
-    // engine -- the storage engine create_table uses, "" for the server's
+    // engine - the storage engine create_table uses, "" for the server's
     // default
     const std::string&
     get_engine() const noexcept
@@ -254,8 +254,8 @@ public:
      *        COLUMN does, and the schema with it; a cache that was read is
      *        read again, for the values the new type gave.
      *
-     * @note An attribute left out of the description -- a default, NOT NULL,
-     *       AUTO_INCREMENT -- is dropped. The column keeps its place, and the
+     * @note An attribute left out of the description - a default, NOT NULL,
+     *       AUTO_INCREMENT - is dropped. The column keeps its place, and the
      *       keys and indexes it is part of.
      *
      * @param[in] _column  the column's new description, by its name.
@@ -335,7 +335,7 @@ protected:
     std::string m_engine;
 
 private:
-    // m_set_default_engine -- the session's default storage engine, the
+    // m_set_default_engine - the session's default storage engine, the
     // name given as a quoted string, which the server reads as the engine's
     void
     m_set_default_engine(

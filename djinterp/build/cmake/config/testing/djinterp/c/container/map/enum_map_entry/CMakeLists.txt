@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/container/map/enum_map_entry/CMakeLists.txt
+# djinterp [test]  -  build/cmake/config/testing/djinterp/c/container/map/enum_map_entry/CMakeLists.txt
 #
 #    Test leaf for container/map/enum_map_entry.h, in DTest's C face: the runner
 # in this directory, the section translation units globbed from the tests tree,

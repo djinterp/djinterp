@@ -1110,7 +1110,7 @@ int d_internal_sqlite_run(
 d_internal_sqlite_declared_type
   The common names are matched whole, what precedes any parenthesis, ignoring
 ASCII case; anything else falls to SQLite's own affinity rules, in SQLite's
-order -- INT first, so that SQLite's well-known reading of "FLOATING POINT"
+order - INT first, so that SQLite's well-known reading of "FLOATING POINT"
 as an integer type is kept, since it is how SQLite stores the values.
 */
 enum dj_db_type

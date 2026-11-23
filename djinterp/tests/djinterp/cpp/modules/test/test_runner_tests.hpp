@@ -60,7 +60,7 @@
 #include <string>
 #include <vector>
 // djinterp
-// djinterp  -- framework header first, then the header under test.
+// djinterp  - framework header first, then the header under test.
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
 #include <djinterp/cpp/modules/test/test_runner.hpp>

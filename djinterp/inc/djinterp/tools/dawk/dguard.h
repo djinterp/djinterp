@@ -2,8 +2,8 @@
 * djinterp [c][tools]                                                   dguard.h
 *
 * Include-guard extension:
-*   Builds the node tree for a header's include guard -- the `#ifndef`, the
-* `#define` and the closing `#endif` comment -- as three nodes beneath one
+*   Builds the node tree for a header's include guard - the `#ifndef`, the
+* `#define` and the closing `#endif` comment - as three nodes beneath one
 * `guard` node, each carrying the symbol it names.
 *   This is the second extension, and it exists partly to prove that one is
 * not special.  It contributes its own node types into the same tree the

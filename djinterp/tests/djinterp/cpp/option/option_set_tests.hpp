@@ -124,19 +124,19 @@ struct DOsPassthrough
 // II.  TEST DECLARATIONS
 // ===========================================================================
 
-// -- I + II.  expansion + flattening --
+// - I + II.  expansion + flattening --
 bool expand_option_default_wraps();
 bool expand_option_multi_expander();
 bool expand_option_passthrough_empty();
 bool flatten_tuples_concatenates();
 bool flatten_tuples_edge_cases();
 
-// -- III.  construction checks --
+// - III.  construction checks --
 bool checks_are_all_options();
 bool checks_all_same_type();
 bool checks_run_set_checks_pass();
 
-// -- IV.  option_set pack surface --
+// - IV.  option_set pack surface --
 bool core_empty_set();
 bool core_single_option();
 bool core_multi_preserves_order();
@@ -144,7 +144,7 @@ bool core_expander_flattens();
 bool core_mixed_direct_and_expander();
 bool core_passthrough_contributes_nothing();
 
-// -- V.  field marker + value face --
+// - V.  field marker + value face --
 bool values_field_type();
 bool values_unary_option_alias();
 bool values_option_field_cases();
@@ -157,7 +157,7 @@ bool values_default_value_initialized();
 bool values_member_contains();
 #endif
 
-// -- VI.  queries --
+// - VI.  queries --
 bool queries_is_option_set();
 bool queries_is_option_set_cleans_cvref();
 bool queries_option_set_contains();
@@ -168,7 +168,7 @@ bool queries_find_and_contains_via_expansion();
 bool queries_option_set_key_type();
 #endif
 
-// -- VII.  concepts (C++20) --
+// - VII.  concepts (C++20) --
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER && D_ENV_CPP_FEATURE_LANG_CONCEPTS
 bool concept_keyed();
 bool concept_option_set();

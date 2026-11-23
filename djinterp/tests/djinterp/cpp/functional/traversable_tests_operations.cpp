@@ -8,7 +8,7 @@
 *                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp [test]  traversable_tests_operations.cpp
-//   Section II -- traverse (the one obligation, delegated) and sequence
+//   Section II - traverse (the one obligation, delegated) and sequence
 //   (traverse with the identity function).
 
 // std
@@ -27,7 +27,7 @@ NS_TESTING
 /*
 tests_traverse_delegates_to_the_instance
   traverse names no structure of its own: it delegates to traversable_traits<T>,
-  so it is the instance -- whichever one -- that decides what happens.
+  so it is the instance - whichever one - that decides what happens.
   Tests the following:
   - traverse(ta, f) equals the instance's traverse, in value and in TYPE
   - it dispatches to a DIFFERENT instance for a different structure, proving it
@@ -50,7 +50,7 @@ bool tests_traverse_delegates_to_the_instance()
             std::declval<const std::vector<int>&>(), to_box()))>::value,
         "same type, vector");
 
-    // the maybe instance -- a different structure, a different traverse.
+    // the maybe instance - a different structure, a different traverse.
     ok = ok && (traverse(just(4), to_box()).value.get() ==
                 traversable_traits<DTmaybe<int> >::traverse(
                     just(4), to_box()).value.get());
@@ -73,7 +73,7 @@ bool tests_traverse_delegates_to_the_instance()
 /*
 tests_traverse_over_the_maybe_structure
   For a shape-preserving structure the result is F<T<B>>: the effect is hoisted
-  OUT and the structure is preserved INSIDE it -- the header's own summary of what
+  OUT and the structure is preserved INSIDE it - the header's own summary of what
   traversal is for.
   Tests the following:
   - traversing just(4) with an effectful function yields the effect around a just
@@ -110,7 +110,7 @@ tests_traverse_empty_recovers_the_effect_from_the_type
   Tests the following:
   - traversing an empty maybe calls f ZERO times
   - yet the result type is still the full F<T<B>>, with F taken from f's signature
-  - the value is pure(nothing) -- a SUCCESSFUL effect over an empty shape
+  - the value is pure(nothing) - a SUCCESSFUL effect over an empty shape
   - the same holds for the empty vector
 */
 bool tests_traverse_empty_recovers_the_effect_from_the_type()
@@ -130,7 +130,7 @@ bool tests_traverse_empty_recovers_the_effect_from_the_type()
 
     // and the value is pure(nothing): a success carrying an empty shape.
     ok = ok && (!r.value.has());                 // the shape is empty
-    // (the effect itself succeeded -- tbox always does; with a failing-capable
+    // (the effect itself succeeded - tbox always does; with a failing-capable
     //  effect the same holds, and emptiness is still not failure:)
     const DTmaybe<DTmaybe<int> > m = traverse(nothing<int>(), pos_or_nothing());
     ok = ok && (m.has());                        // the EFFECT succeeded
@@ -151,7 +151,7 @@ bool tests_traverse_empty_recovers_the_effect_from_the_type()
 /*
 tests_traverse_hoists_the_effect
   When f fails somewhere inside the structure, the failure is hoisted out to the
-  effect -- the whole traversal fails, and no partial shape survives.
+  effect - the whole traversal fails, and no partial shape survives.
   Tests the following:
   - traversing just(-1) with a failing function yields a failed effect
   - traversing just(1) with the same function succeeds
@@ -328,7 +328,7 @@ bool tests_sequence_is_traverse_with_identity()
 /*
 tests_sequence_inverts_the_nesting
   The whole point: sequence turns a structure OF effects inside out into an effect
-  OF a structure -- T<F<A>> becomes F<T<A>>.
+  OF a structure - T<F<A>> becomes F<T<A>>.
   Tests the following:
   - tmaybe<tbox<int>> becomes tbox<tmaybe<int>>
   - vector<tbox<int>> becomes tbox<vector<int>>, with the elements in order
@@ -424,7 +424,7 @@ bool tests_sequence_empty()
 {
     bool ok = true;
 
-    // an empty vector of maybes: just({}) -- success, not failure.
+    // an empty vector of maybes: just({}) - success, not failure.
     const std::vector<DTmaybe<int> > none;
     const DTmaybe<std::vector<int> > s = traverse_sequence(none);
     ok = ok && (s.has());

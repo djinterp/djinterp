@@ -5,7 +5,7 @@
 *   CLI11's ConfigBase::from_config, a C function for each of its helpers and
 * steps, over the text a line at a time as getline reads it: lines shorter
 * than three characters, comment lines and `"""` comment blocks skipped; a
-* `[section]` header -- `[[...]]` too, and with a comment after it --
+* `[section]` header - `[[...]]` too, and with a comment after it --
 * closing the section before it and opening the sections it names, as `--`
 * and `++` items; then each `name = value` line split where CLI11 splits it,
 * quotes and comments considered, its value a `'''` or `"""` string that
@@ -90,8 +90,8 @@ size_t d_arg_internal_config_find(
  * @param[in] _from  the place.
  * @return the first's position; NPOS when there is none.
  *
- * find_first_of over a set of three bytes -- NUL among them when one is NUL,
- * as CLI11's std::string of them holds it -- from `_from` on.
+ * find_first_of over a set of three bytes - NUL among them when one is NUL,
+ * as CLI11's std::string of them holds it - from `_from` on.
  */
 D_STATIC
 size_t d_arg_internal_config_find_any(
@@ -394,7 +394,7 @@ bool d_arg_internal_config_ml_escaped(
  *         line does not close the value.
  *
  * CLI11's find_ml_close: the length of a multiline value's content before
- * the three quotes that close it -- unescaped for `"`, with up to two more
+ * the three quotes that close it - unescaped for `"`, with up to two more
  * quotes belonging to the content, and only blanks or a comment after them --
  * or NPOS when the line does not close it.
  */
@@ -568,7 +568,7 @@ int d_arg_internal_config_adopt(
  * @param[in]     _name     the mark: `++` or `--`.
  * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
  *
- * An item marking a section's start or end -- `++` or `--` -- whose
+ * An item marking a section's start or end - `++` or `--` - whose
  * sections are the first `_depth` of `_parents`, appended.
  */
 D_STATIC
@@ -785,8 +785,8 @@ size_t d_arg_internal_config_common(
  * @return the item with the entry's sections and name, the last first; NULL for
  *         none.
  *
- * CLI11's find_matching_config: from the last item back -- only the last,
- * unless searching fully -- the first with an entry's sections and name; NULL
+ * CLI11's find_matching_config: from the last item back - only the last,
+ * unless searching fully - the first with an entry's sections and name; NULL
  * for none.
  */
 D_STATIC
@@ -866,8 +866,8 @@ bool d_arg_internal_config_separated(
  * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
  *
  * CLI11's merge of an entry into the item it repeats: `%%` between the
- * groups -- when both hold several values, or whenever duplicates are
- * allowed -- making the item multiline; then the entry's values appended.
+ * groups - when both hold several values, or whenever duplicates are
+ * allowed - making the item multiline; then the entry's values appended.
  */
 D_STATIC
 int d_arg_internal_config_merge(
@@ -1126,8 +1126,8 @@ int d_arg_internal_config_unquote(
 
 // dj_arg_internal_config_reader
 //   struct: from_config's state across lines: the format; the array
-// characters the read uses -- an INI format's brackets and comma, where it
-// has none of its own -- and whether values split as the default format's
+// characters the read uses - an INI format's brackets and comma, where it
+// has none of its own - and whether values split as the default format's
 // or an INI format's do; the lines, the items and the error; the section
 // under way and the one before it, each a span of the text or "default",
 // the occurrences of a section met again in a row, and whether an item has
@@ -1166,7 +1166,7 @@ struct dj_arg_internal_config_reader
  *         D_ARG_ERROR_OUT_OF_MEMORY.
  *
  * One part of a path, its quotes removed as CLI11's remove_quotes(vector)
- * removes them -- an empty part kept as it is -- added to an item's sections;
+ * removes them - an empty part kept as it is - added to an item's sections;
  * a malformed escape, which d_arg_internal_remove_quotes_text calls text that
  * breaks the rules, is CLI11's ParseError.
  */
@@ -1285,7 +1285,7 @@ int d_arg_internal_config_parts(
  *
  * CLI11's generate_parents: the parts of the section under way, unless it
  * is the default one, then, given a name, its dotted parts but the last,
- * which becomes the name -- each part added to the item's sections without
+ * which becomes the name - each part added to the item's sections without
  * its quotes.
  */
 D_STATIC
@@ -1372,7 +1372,7 @@ int d_arg_internal_config_openers(
  * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
  *
  * CLI11's checkParentSegments after a section's end: the end repeated a
- * level up while it is as deep as the section opened -- or, for one at the
+ * level up while it is as deep as the section opened - or, for one at the
  * top, deeper than one level; then, for a nested section, the end dropped
  * when it lies along the new section's path, or else repeated up to the
  * sections they share, and the enclosing sections not shared opened.
@@ -1430,9 +1430,9 @@ int d_arg_internal_config_reopen(
  * @return D_ARG_OK; D_ARG_ERROR_PARSE for a malformed escape; or
  *         D_ARG_ERROR_OUT_OF_MEMORY.
  *
- * CLI11's checkParentSegments: the section under way opened -- after the
+ * CLI11's checkParentSegments: the section under way opened - after the
  * end of the one before, as d_arg_internal_config_reopen has it, or with its
- * enclosing sections opened first -- and then its own `++` item.
+ * enclosing sections opened first - and then its own `++` item.
  */
 D_STATIC
 int d_arg_internal_config_open(
@@ -1541,8 +1541,8 @@ void d_arg_internal_config_count(
  *         D_ARG_ERROR_OUT_OF_MEMORY.
  *
  * A `[section]` line: the section under way ended, unless it is the default
- * one; the new one named -- without a second pair of brackets, and "default"
- * in any case being the default -- and opened; the section entered by no item
+ * one; the new one named - without a second pair of brackets, and "default"
+ * in any case being the default - and opened; the section entered by no item
  * yet, and its occurrence counted.
  */
 D_STATIC
@@ -1597,7 +1597,7 @@ int d_arg_internal_config_header(
  *
  * A line opening with `"""` or `'''`: a comment, closed on the line itself
  * when it is long enough to hold both ends and ends with the same quotes,
- * else by the first later line that, trimmed, does -- or by the end of the
+ * else by the first later line that, trimmed, does - or by the end of the
  * text.
  */
 D_STATIC
@@ -1703,8 +1703,8 @@ void d_arg_internal_config_header_comment(
 
 // d_arg_internal_config_entry
 //   struct: a name-value line as from_config splits it: the line as read and
-// as trimmed, the name, the values as found -- spans of the line, of the
-// reader's value, or "true" -- and whether the value was a multiline
+// as trimmed, the name, the values as found - spans of the line, of the
+// reader's value, or "true" - and whether the value was a multiline
 // string, which is final as read.
 struct dj_arg_internal_config_entry
 {
@@ -1739,8 +1739,8 @@ struct dj_arg_internal_config_ml
  *
  * CLI11's search_start for a line holding quotes: past quoted runs, blanks
  * and section separators to just before the first value delimiter or comment
- * character -- wrapping round, as CLI11's size_t does, when that is the first
- * character -- or past the end when neither follows. 0 for a line without
+ * character - wrapping round, as CLI11's size_t does, when that is the first
+ * character - or past the end when neither follows. 0 for a line without
  * quotes.
  */
 D_STATIC
@@ -1883,7 +1883,7 @@ int d_arg_internal_config_split(
  *
  * CLI11's array value: from its opening character, later lines added,
  * trimmed, until it ends with the closing one or the text ends; then split at
- * the separator, inside the brackets -- or after the opening one, when it
+ * the separator, inside the brackets - or after the opening one, when it
  * never closed.
  */
 D_STATIC
@@ -2144,8 +2144,8 @@ int d_arg_internal_config_ml_first(
  * @param[in]     _line    the line.
  *
  * A line inside a multiline value, joined to it: trimmed after a line that
- * ended in a backslash, else after a newline -- unless the value is still
- * empty on the first line after its own -- a backslash ending it, in a `"""`
+ * ended in a backslash, else after a newline - unless the value is still
+ * empty on the first line after its own - a backslash ending it, in a `"""`
  * value, dropped to join the next line.
  */
 D_STATIC
@@ -2198,8 +2198,8 @@ void d_arg_internal_config_ml_more(
  *         D_ARG_ERROR_OUT_OF_MEMORY.
  *
  * The line that closes a multiline value: its content before the closing
- * quotes joined as d_arg_internal_config_ml_more joins a line -- but with
- * only its leading whitespace dropped after a backslash -- a newline ending
+ * quotes joined as d_arg_internal_config_ml_more joins a line - but with
+ * only its leading whitespace dropped after a backslash - a newline ending
  * the value dropped, and the value unescaped for `"""`.
  */
 D_STATIC
@@ -2255,8 +2255,8 @@ int d_arg_internal_config_ml_last(
  *         D_ARG_ERROR_OUT_OF_MEMORY.
  *
  * CLI11's multiline string value, `'''` or `"""`: taken from the line as
- * read, past its leading spaces and tabs and the delimiter -- whose position
- * is the trimmed line's, so that other leading whitespace shifts it -- its
+ * read, past its leading spaces and tabs and the delimiter - whose position
+ * is the trimmed line's, so that other leading whitespace shifts it - its
  * own leading whitespace and three characters dropped; lines then added until
  * one closes it or the text ends; a binary string decoded.
  */
@@ -2332,7 +2332,7 @@ int d_arg_internal_config_ml_value(
  *         D_ARG_ERROR_OUT_OF_MEMORY.
  *
  * The two sides of a name-value line's delimiter, trimmed: the name before
- * it, and after it the value -- a multiline string, or, cut at a comment when
+ * it, and after it the value - a multiline string, or, cut at a comment when
  * the line holds one, an array, a list or a single value.
  */
 D_STATIC
@@ -2385,7 +2385,7 @@ int d_arg_internal_config_name_value(
  *         D_ARG_ERROR_OUT_OF_MEMORY.
  *
  * CLI11's split of a name-value line: at the first value delimiter after the
- * search start -- none when a comment character comes first -- or, without
+ * search start - none when a comment character comes first - or, without
  * one, a name alone, before any comment, being `true`.
  */
 D_STATIC
@@ -2440,8 +2440,8 @@ int d_arg_internal_config_split_line(
  * @return D_ARG_OK; D_ARG_ERROR_PARSE for a malformed escape; or
  *         D_ARG_ERROR_OUT_OF_MEMORY.
  *
- * CLI11's process_quoted_string of an item's name -- `"` strings and `'`
- * literals, brackets kept -- naming the item.
+ * CLI11's process_quoted_string of an item's name - `"` strings and `'`
+ * literals, brackets kept - naming the item.
  */
 D_STATIC
 int d_arg_internal_config_name(
@@ -2526,8 +2526,8 @@ int d_arg_internal_config_inputs(
  * @return `true` when it passes; `false` otherwise.
  *
  * CLI11's section filter: with a section asked for and not yet entered, an
- * item belongs only when its outermost section is that one -- in the
- * occurrence asked for, when one is -- and it then loses that section, and
+ * item belongs only when its outermost section is that one - in the
+ * occurrence asked for, when one is - and it then loses that section, and
  * the section is entered, so that later items until the next header pass
  * whatever their sections.
  */
@@ -2572,7 +2572,7 @@ bool d_arg_internal_config_enter(
  *
  * Where CLI11 puts an item read: nowhere when nested deeper than the
  * format's layers, or outside the section asked for; else merged into the
- * item it repeats -- the last, or any, when duplicates are allowed -- or
+ * item it repeats - the last, or any, when duplicates are allowed - or
  * added.
  */
 D_STATIC
@@ -2776,8 +2776,8 @@ int d_arg_internal_config_finish(
  *         the default section under way.
  *
  * A reader at the start of the text: the array characters as CLI11's
- * from_config derives them -- an INI format, whose start and end are alike
- * and blank, reading brackets, and a comma for a space -- with the default
+ * from_config derives them - an INI format, whose start and end are alike
+ * and blank, reading brackets, and a comma for a space - with the default
  * section under way, and the section before it the same.
  */
 D_STATIC

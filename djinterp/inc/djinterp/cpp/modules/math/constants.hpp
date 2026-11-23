@@ -4,7 +4,7 @@
 * Mathematical constants, compile-time rationals, and number bases.
 *   The single source of truth for numeric constants across the math module.
 * Every constant is a static member function of constants::of<Type>, in every
-* build from C++98, and a constant expression from C++11 -- the form
+* build from C++98, and a constant expression from C++11 - the form
 * std::numeric_limits gives its floating-point values, a class holding no
 * floating-point constant before C++11:
 *
@@ -383,7 +383,7 @@ public:
 // 2.2    ratio_to_rational
 //------------------------------------------------------------------------------
 // ratio_to_rational
-//   type: a ratio -- std::ratio, re_std::ratio, anything with num and den --
+//   type: a ratio - std::ratio, re_std::ratio, anything with num and den --
 // as a rational.
 template<typename Ratio>
 using ratio_to_rational = rational<Ratio::num, Ratio::den>;
@@ -497,8 +497,8 @@ D_CONSTEXPR_VAR std::size_t number_base<ValueType, Radix>::radix;
 // 4.1    Detection helpers
 //------------------------------------------------------------------------------
 // A member is found by name with trait_detect.hpp's engines, then counted only
-// if it is static -- a pointer to it is an ordinary pointer, not a pointer to
-// member -- as interval.hpp's are: by name alone, a non-static member is
+// if it is static - a pointer to it is an ordinary pointer, not a pointer to
+// member - as interval.hpp's are: by name alone, a non-static member is
 // found from C++11 and by GCC at C++98, but not by Clang at C++98.
 NS_INTERNAL
 

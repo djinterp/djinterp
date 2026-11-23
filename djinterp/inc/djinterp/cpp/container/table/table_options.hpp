@@ -10,13 +10,13 @@
 * option<> / option_set<> machinery.
 *
 *   TWO LAYERS.
-*   1. The VOCABULARY -- a family of plain enums (table_strictness,
+*   1. The VOCABULARY - a family of plain enums (table_strictness,
 * shape_policy,
 *      ...) naming the graded choices. Available on every standard, so a
 *    runtime
 *      parse context may read the same grades a compile-time option pack
 *    carries.
-*   2. The OPTION surface -- one key type (table_opt_key), a value carrier,
+*   2. The OPTION surface - one key type (table_opt_key), a value carrier,
 * the
 *      option<> aliases, ready-made named options, defaults, and the
 *    compile-time
@@ -27,23 +27,23 @@
 *      so, like the rest of the option pack surface, requires C++17.
 *
 *   STRICTNESS IS GRADED, PER CATEGORY.  A table declaration answers several
-* independent "how strict?" questions -- must a row's cell count match the
+* independent "how strict?" questions - must a row's cell count match the
 * declared width exactly, may the domain be jagged, must a text cell parse to
 * its
 * column type, and so on. Each is its own key with its own grade enum, so they
 * tune independently (the "strictness for certain/all categories" of the
 * sketch).
 * The open question a `| headers... ||||` (a multi-cell placeholder over five
-* cells) raises -- error on a bad fit, ignore the overflow, or pad the
+* cells) raises - error on a bad fit, ignore the overflow, or pad the
 * shortfall
-* -- is exactly table_strictness on the placeholder_fit key.
+* - is exactly table_strictness on the placeholder_fit key.
 *
 *   ONE KEY TYPE. option_set requires every option in a set to share a
 * key_type,
 * so every table option is an enumerator of the single table_opt_key enum; the
 * value rides in the option's arg as an integral_constant.  Container AXIS
 * options (container_options.hpp) carry a different key_type and so form a
-* SEPARATE pack -- table_builder partitions the two before consuming each.
+* SEPARATE pack - table_builder partitions the two before consuming each.
 *
 *   PORTABILITY:
 *   C++11 for the enum vocabulary; C++17 for the option<> surface (the
@@ -134,7 +134,7 @@ X.    concepts                         (C++20 analogs)
 #endif
 
 //   The policy DEFAULTS and the concepts gate below are configuration, so they
-// are resolved in cfg_table.h and merely READ here -- the localization rule: a
+// are resolved in cfg_table.h and merely READ here - the localization rule: a
 // module contains no config logic, it consumes the answer.
 #include "../../../config/cpp/container/table/cfg_table.h"
 
@@ -151,7 +151,7 @@ NS_DJINTERP
 // standard.
 
 // DTableStrictness
-//   enum: how a supplied count must match a required count -- the shared grade
+//   enum: how a supplied count must match a required count - the shared grade
 // of the count-matching categories (a row's width against the declared
 // columns; a multi-cell placeholder against the cells it fills).
 enum class DTableStrictness
@@ -239,7 +239,7 @@ enum class DPipePolicy
 using pipe_policy = DPipePolicy;
 
 // DAnchorPolicy
-//   enum: which position names a merged cell -- its anchor (containers.tex:
+//   enum: which position names a merged cell - its anchor (containers.tex:
 // anchor(C) = min_lex R_C; covered positions defer to it).
 enum class DAnchorPolicy
 {
@@ -263,7 +263,7 @@ using anchor_policy = DAnchorPolicy;
 // deliberately:
 // they are plain enum constants needing no option<> machinery, and BOTH
 // surfaces
-// must read the same ones -- the compile-time readers and the text front end's
+// must read the same ones - the compile-time readers and the text front end's
 // runtime dialect (parse_grid_options), which is C++11.  Gating them on C++17
 // would have forced the runtime side to spell its own copy, which is exactly
 // the
@@ -275,8 +275,8 @@ using anchor_policy = DAnchorPolicy;
 // knob, one canonical home, per the config subframework's
 // single-source-of-truth rule.
 //
-//   The shipped choices fail loud and stay rectangular -- so leniency is
-// always opted into, never inherited by accident -- but a project may set any
+//   The shipped choices fail loud and stay rectangular - so leniency is
+// always opted into, never inherited by accident - but a project may set any
 // of them build-wide (-DD_CFG_TABLE_DEFAULT_SHAPE=D_CFG_TABLE_SHAPE_JAGGED,
 // say).
 
@@ -302,7 +302,7 @@ D_CONSTEXPR_INLINE_VAR DAnchorPolicy default_anchor =
 
 // ---------------------------------------------------------------------------
 //   The option surface (sections II-IX) rides on option<>'s auto-NTTP key form,
-// which -- like the option pack surface and container_options.hpp -- is C++17.
+// which - like the option pack surface and container_options.hpp - is C++17.
 // The vocabulary above remains available below it.
 // ---------------------------------------------------------------------------
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
@@ -660,7 +660,7 @@ NS_INTERNAL
 NS_END  // internal
 
 // is_table_option
-//   trait: true iff Type is an option<> keyed by table_opt_key -- a member of
+//   trait: true iff Type is an option<> keyed by table_opt_key - a member of
 // this vocabulary, as opposed to a container axis option or a foreign option.
 // table_builder partitions a mixed option pack on this trait.
 template<typename Type>
@@ -701,8 +701,8 @@ NS_END  // internal
 // asserts this before treating a pack as a table option set, giving a specific
 // diagnostic where option_set's own single-key-type check would give a general
 // one. (A pack that mixes a foreign key_type in among table options is caught
-// by option_set itself; this pins the intent -- "these are meant to be table
-// options" -- for the pure-foreign-pack case that check cannot see.)
+// by option_set itself; this pins the intent - "these are meant to be table
+// options" - for the pure-foreign-pack case that check cannot see.)
 template<typename... Options>
 struct is_table_option_pack
     : internal::all_table_options<Options...>
@@ -716,7 +716,7 @@ D_CONSTEXPR bool is_table_option_pack_v =
 
 // DTableOptionSet
 //   type: the set of table options. A plain alias over option_set<> --
-// IDENTITY, not a subclass -- so the section-VI readers (which pattern-match
+// IDENTITY, not a subclass - so the section-VI readers (which pattern-match
 // option_set<>) consume it directly. Every entry shares key_type
 // table_opt_key, so option_set's single-key-type check rejects a stray foreign
 // option for free; is_table_option_pack above is the tighter, intent-pinning
@@ -740,11 +740,11 @@ using table_option_set = DTableOptionSet<Options...>;
 //   A declaration configures TWO things at once: how the DSL reads it (the
 // table
 // policies above) and what the realized container is (the universal axis
-// positions of container_options.hpp -- lifetime, bounds, ordering, ...).  They
+// positions of container_options.hpp - lifetime, bounds, ordering, ...).  They
 // cannot share a set: option_set resolves keys with == and so requires one
 // key_type per set, and the two vocabularies key off different enums
 // (table_opt_key vs container_axis).  A mixed pack is therefore PARTITIONED --
-// each half lifted into its own set -- and each half read by its own reader
+// each half lifted into its own set - and each half read by its own reader
 // (the section-VI *_of<> shorthands here; container_axis_value_v there).
 //
 //   The axis aliases themselves need no re-export: DContainerOptBounds<>,
@@ -785,7 +785,7 @@ NS_INTERNAL
 NS_END  // internal
 
 // is_container_axis_option
-//   trait: true iff Type is an option<> keyed by container_axis -- a
+//   trait: true iff Type is an option<> keyed by container_axis - a
 // universal axis position (container_options.hpp), as opposed to a table
 // policy.
 template<typename Type>
@@ -854,7 +854,7 @@ NS_END  // internal
 
 // select_table_options_t
 //   type: the TABLE options of a mixed pack, as a set. Everything that is not
-// a table option -- an axis option, a declarator, anything else -- is dropped,
+// a table option - an axis option, a declarator, anything else - is dropped,
 // so
 // a
 // declaration may interleave the two vocabularies freely and each consumer
@@ -866,7 +866,7 @@ using select_table_options_t =
             is_table_option, std::tuple<>, Pack...>::type>::type;
 
 // select_axis_options_t
-//   type: the container AXIS options of a mixed pack, as a set -- the half
+//   type: the container AXIS options of a mixed pack, as a set - the half
 // container_axis_value_v reads (container_options.hpp).
 template<typename... Pack>
 using select_axis_options_t =
@@ -875,7 +875,7 @@ using select_axis_options_t =
             is_container_axis_option, std::tuple<>, Pack...>::type>::type;
 
 // is_any_table_config
-//   trait: true iff Type is an option this header knows how to route -- a
+//   trait: true iff Type is an option this header knows how to route - a
 // table policy or a container axis position. The test a declarator fold uses
 // to tell a configuration entry from a structural one.
 template<typename Type>

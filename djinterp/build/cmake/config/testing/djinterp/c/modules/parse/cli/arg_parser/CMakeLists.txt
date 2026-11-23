@@ -4,8 +4,8 @@
 # Test leaf for the argument parser.
 #   Builds the parser's C sources as C, at the C floor, into one static
 # library in the testing configuration, then links the C suites against it
-# once per C level, from the floor (C99) up, and the C++ suites -- the C++
-# face, called from C++ across a real language boundary -- once per C++
+# once per C level, from the floor (C99) up, and the C++ suites - the C++
+# face, called from C++ across a real language boundary - once per C++
 # level, from the face's floor (C++98, in strict ISO) up, and again without
 # exceptions at the lowest and the highest level built. Where the linker
 # wraps symbols (--wrap), an allocation sweep runs the C API's scenarios
@@ -13,7 +13,7 @@
 # is left out, and the configure step says so; so are the C++ suites when
 # there is no C++ compiler, and the sweep when the linker cannot wrap.
 #   A suite is a table of sections, and a section is what a configuration
-# knob removes -- or a language level, or exceptions turned off -- so the
+# knob removes - or a language level, or exceptions turned off - so the
 # number of sections run differs by configuration, by design.
 # expected_sections.txt holds the count each build has in the default
 # configuration, and every test here must print exactly that: a section
@@ -119,7 +119,7 @@ set(_tests "${DJINTERP_ARG_PARSER_ROOT}/tests/djinterp/c/modules/parse/cli/arg_p
 # djinterp_arg_parser_flags
 #   function: gives a target what the tree's sources need of a compiler, and
 # the diagnostics the CI ladder builds with, judged by the compiler of the
-# language given -- C, or CXX for a C++ suite, whose one C source takes the
+# language given - C, or CXX for a C++ suite, whose one C source takes the
 # same.
 #   Under a cl-style driver (MSVC, clang-cl) that is /utf-8 and nothing more:
 # the sources are UTF-8 with no byte-order mark, which cl reads in the system
@@ -252,7 +252,7 @@ endfunction()
 
 
 #------------------------------------------------------------------------------
-# the parser's library -- C sources, compiled as C at the C floor
+# the parser's library - C sources, compiled as C at the C floor
 #------------------------------------------------------------------------------
 set(_parser "${_src}/c/modules/parse/cli/arg_parser")
 
@@ -324,7 +324,7 @@ djinterp_arg_parser_sanitize(djinterp_arg_parser_testing)
 
 
 #------------------------------------------------------------------------------
-# the C suites -- the C API called from C, one executable per level, against
+# the C suites - the C API called from C, one executable per level, against
 # the same library
 #------------------------------------------------------------------------------
 foreach(_level IN LISTS DJINTERP_ARG_PARSER_C_LEVELS)
@@ -376,7 +376,7 @@ endforeach()
 
 
 #------------------------------------------------------------------------------
-# the allocation sweep -- the C API's scenarios with every allocation refused
+# the allocation sweep - the C API's scenarios with every allocation refused
 # in turn, at the C floor, where the linker wraps malloc and kin (GNU ld's
 # and lld's --wrap): the sweep's wrappers then stand in front of every
 # allocation the library makes
@@ -422,7 +422,7 @@ endif()
 
 
 #------------------------------------------------------------------------------
-# the C++ suites -- the C++ face called from C++, one executable per level,
+# the C++ suites - the C++ face called from C++, one executable per level,
 # against the same library, across a real language boundary
 #------------------------------------------------------------------------------
 get_property(_languages GLOBAL PROPERTY ENABLED_LANGUAGES)

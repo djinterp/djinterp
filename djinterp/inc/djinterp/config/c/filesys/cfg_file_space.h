@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                         cfg_file_space.h
 *
-* Build-time configuration for c/filesys/file_space.h -- filesystem capacity.
+* Build-time configuration for c/filesys/file_space.h - filesystem capacity.
 *
 *   targets:  c/filesys/file_space.h, c/filesys/file_space.c ->
 *             D_INTERNAL_FILE_SPACE_AVAILABLE

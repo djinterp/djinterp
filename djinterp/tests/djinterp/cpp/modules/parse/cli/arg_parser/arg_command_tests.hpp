@@ -2,7 +2,7 @@
 * djinterp [cpp][parse]                                    arg_command_tests.hpp
 *
 * The argument parser's C++ command suite: CLI11's App interface through the
-* C++ face -- the parser, which is CLI11's App at the root, and the handles
+* C++ face - the parser, which is CLI11's App at the root, and the handles
 * on subcommands and option groups, cli::command and cli::DOptionGroup.
 *   The C command suite holds the C library's commands to CLI11 case by case;
 * this one holds the face to it member by member, through each of the three:
@@ -10,9 +10,9 @@
 * subcommands and option groups found, moved and removed, names and text,
 * every setting and the option defaults, callbacks, needs and excludes, what
 * a parse leaves to ask about, help, triggers, and options deprecated and
-* retired -- their sections CLI11's own transcripts of the same definitions
+* retired - their sections CLI11's own transcripts of the same definitions
 * (the suite's CASES section, compiled against CLI11 by
-* tools/cppref/cppref.py); and what the face does that CLI11 does not -- a
+* tools/cppref/cppref.py); and what the face does that CLI11 does not - a
 * handle on no command, callbacks returning a status, pre_callback as a
 * setting, a failure message over the face's types, formatters borrowed --
 * in sections of the module's own.

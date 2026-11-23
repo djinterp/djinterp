@@ -50,7 +50,7 @@ D_INTERNAL_FILE_ASSERT_LARGE_FILES;
 #define D_INTERNAL_OPEN_NAMES_CLOEXEC 4
 
 // D_INTERNAL_OPEN_MODE_NATIVE
-//   constant: the characters a mode needs in the platform's text -- room for
+//   constant: the characters a mode needs in the platform's text - room for
 // the decorated mode, or for the caller's own where that was too long to
 // decorate, where it is converted (file_common.h, 6.6); one, unused, where it
 // is handed on as it is.
@@ -149,7 +149,7 @@ int d_internal_file_open_names(
 d_internal_file_open_mode
   Rewrites a caller's mode so it carries this build's open policy: a 'b' when
 D_CFG_FILE_OPEN_BINARY_DEFAULT is set and the caller named neither 'b' nor 't'
--- nor an encoding, which only a text stream may have -- and, when _cloexec
+-- nor an encoding, which only a text stream may have - and, when _cloexec
 is set, the target's close-on-exec character. Anything the caller asked for
 is left alone: an explicit "rt" is an explicit request for text mode, and the
 job here is to supply a default, not to overrule. The additions go at the end
@@ -216,7 +216,7 @@ const char* d_internal_file_open_mode(
 
 /*
 d_internal_file_open_configure
-  Applies this build's post-open policy to a freshly opened stream -- at
+  Applies this build's post-open policy to a freshly opened stream - at
 present, the configured stdio buffering. A setvbuf failure is deliberately not
 fatal: the stream is open and usable, and refusing to hand it back because the
 platform declined a buffer size would turn a tuning preference into an outage.
@@ -289,7 +289,7 @@ d_internal_file_open_raw
   The one place this subframework asks the platform to open a path, so the
 backend choice is made once rather than per entry point. This build uses
 fopen_s, which reports through its return value; that is normalized to the
-fopen contract -- NULL, with the code in errno -- so every caller has one
+fopen contract - NULL, with the code in errno - so every caller has one
 failure shape.
 */
 static
@@ -486,8 +486,8 @@ FILE* d_internal_file_open_renamed(
 
 /*
 d_internal_file_open_translation
-  Puts a descriptor in the translation a mode names -- binary for 'b', text
-for 't' -- and leaves it alone when the mode names neither. The result is 0,
+  Puts a descriptor in the translation a mode names - binary for 'b', text
+for 't' - and leaves it alone when the mode names neither. The result is 0,
 or -1 with errno set.
 */
 static
@@ -523,11 +523,11 @@ int d_internal_file_open_translation(
 
 /*
 d_internal_file_open_in_place
-  The CRT cannot reopen a stream on no file -- freopen with a null path is an
-invalid parameter, which by default ends the process -- and the one change it
+  The CRT cannot reopen a stream on no file - freopen with a null path is an
+invalid parameter, which by default ends the process - and the one change it
 can make in place is the translation. So a reopen without a file is that: the
-stream is flushed and made binary when the mode names 'b' -- the build's
-default included -- and text otherwise, and keeps everything else. A refusal
+stream is flushed and made binary when the mode names 'b' - the build's
+default included - and text otherwise, and keeps everything else. A refusal
 closes the stream, as a failed reopen does.
 */
 static
@@ -563,8 +563,8 @@ FILE* d_internal_file_open_in_place(
 /*
 d_internal_file_open_adopt
   The CRT's _fdopen, which takes the stream's translation from the descriptor
-and ignores the mode's 'b' or 't': a mode that names one -- the build's
-default included -- is applied to the descriptor first
+and ignores the mode's 'b' or 't': a mode that names one - the build's
+default included - is applied to the descriptor first
 (d_internal_file_open_translation), so the stream does what the mode says.
 */
 static
@@ -726,10 +726,10 @@ int d_file_open_stream_s(
 
 /*
 d_file_reopen_stream
-  The same mode decoration as d_file_open_stream, then freopen -- or, without
+  The same mode decoration as d_file_open_stream, then freopen - or, without
 a file, the platform's change of mode in place (d_internal_file_open_in_place).
-The C contract makes failure destructive -- the original stream is closed
-whether or not the reopen succeeds -- and the failure notice says so.
+The C contract makes failure destructive - the original stream is closed
+whether or not the reopen succeeds - and the failure notice says so.
 */
 FILE* d_file_reopen_stream(
     const char* _filename,
@@ -906,7 +906,7 @@ FILE* d_file_open_stream_fd(
 /*
 d_file_close_stream
   Closing is a decision this subframework owns rather than one scattered
-across callers -- and fclose's failure mode is worth surfacing: a buffered
+across callers - and fclose's failure mode is worth surfacing: a buffered
 write that could not be flushed is reported here, at close, and nowhere else.
 */
 int d_file_close_stream(

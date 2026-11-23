@@ -2,10 +2,10 @@
 * djinterp [c][parse]                                               arg_config.c
 *
 * Configuration formats and items, declared in arg_config.h (3, 4 and 5.1).
-*   CLI11's ConfigBase settings as a plain record -- ConfigTOML's by default,
-* ConfigINI's on request -- and the lookup a command makes for the format it
-* reads and writes with; CLI11's ConfigItem's lifetime, building -- its parts
-* copied into its storage -- full name and reading as a flag; and the
+*   CLI11's ConfigBase settings as a plain record - ConfigTOML's by default,
+* ConfigINI's on request - and the lookup a command makes for the format it
+* reads and writes with; CLI11's ConfigItem's lifetime, building - its parts
+* copied into its storage - full name and reading as a flag; and the
 * dispatch of reading text and files and of writing a
 * command's values through a format's table, whose empty entries run
 * CLI11's own operations, defined in arg_config_read.c and
@@ -37,7 +37,7 @@
 //==============================================================================
 
 // FORMAT_TOML
-//   constant: CLI11's ConfigBase -- ConfigTOML -- as constructed: `#`
+//   constant: CLI11's ConfigBase - ConfigTOML - as constructed: `#`
 // comments, `[` `]` arrays separated by `,`, `=` between a name and its
 // value, `"` strings and `'` literals, `.` between sections, 255 layers, every
 // section at every index, CLI11's own operations.
@@ -540,7 +540,7 @@ int d_arg_config_item_list_adopt(
 /*
 d_arg_config_item_fullname
   CLI11's fullname(): the parents and the name joined by `.`, as its join
-joins them -- a `.` that ends the text dropped, as when the name is empty.
+joins them - a `.` that ends the text dropped, as when the name is empty.
 */
 int d_arg_config_item_fullname(
     const struct dj_arg_config_item* _item,

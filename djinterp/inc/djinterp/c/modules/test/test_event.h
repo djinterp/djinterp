@@ -13,7 +13,7 @@
 * blended, because a reader who needs one of them should be able to see where
 * the other begins:
 *
-*     The record (§I) is `struct dj_test_event` -- an {id, status, message}
+*     The record (§I) is `struct dj_test_event` - an {id, status, message}
 *     observation, plain data, built by one constructor.  It was extracted
 *     from test_common.h so that module could be event-agnostic, then had no
 *     home for two revisions.  This is the home.
@@ -25,31 +25,31 @@
 * THEY DO NOT REFER TO EACH OTHER
 * -------------------------------
 *   The record does not know a kind exists; dispatch does not carry a record.
-* The one thing they share is a rule -- an out-of-range status is stored as
-* `error` -- and §VII.a is where that is now stated once instead of twice.
+* The one thing they share is a rule - an out-of-range status is stored as
+* `error` - and §VII.a is where that is now stated once instead of twice.
 *
 *
 * WHAT WAS COALESCED, AND WHAT WAS DELIBERATELY NOT
 * =================================================
 *   test_event.hpp declares twelve lifecycle tags through the D_EVENT family
 * from core/event/event_common.hpp.  In that subsystem an event is not an
-* instance but a type -- a tag carrying a nested `payload_type` (a std::tuple
-* of value domains) and a `name()` -- and, in its own words, "the type is the
+* instance but a type - a tag carrying a nested `payload_type` (a std::tuple
+* of value domains) and a `name()` - and, in its own words, "the type is the
 * registration".
 *
 *   Two different things are wrapped up in that sentence and they coalesce
 * differently:
 *
 *     The alphabet is data.  Twelve summands, each with a name, an arity, and
-*     an ordered list of payload domains.  That is a signature -- the F of
-*     F_test -- and it is the thing every walker, handler and reporter in the
+*     an ordered list of payload domains.  That is a signature - the F of
+*     F_test - and it is the thing every walker, handler and reporter in the
 *     framework agrees about.  It lives here.
 *
 *     Tag-as-type is notation.  Registration by declaration, tuple payloads,
 *     and bind-time compatibility checking are how C++ spells the alphabet;
 *     they are not what the alphabet means.  Per goals §11 and the decision
-*     log -- "notation is not semantics", "C needs the object, not the
-*     notation" -- C gets the signature table and a switch, and the tags stay
+*     log - "notation is not semantics", "C needs the object, not the
+*     notation" - C gets the signature table and a switch, and the tags stay
 *     in the C++ face, unchanged at every call site.
 *
 * THE OPEN ALPHABET IS OPEN IN BOTH FORKS AND CHECKED IN NEITHER
@@ -57,8 +57,8 @@
 *   A user tag declared with D_TEST_EVENT needs no enrolment call in C++; in C
 * it takes a kind id at or above D_TEST_EVENT_KIND_COUNT and a context its
 * listeners understand.  An earlier revision claimed C recovered at runtime what
-* C++ rejects at bind time -- "enforcement differs between the languages;
-* behaviour does not" -- via a signature table and a mismatch return.  That was
+* C++ rejects at bind time - "enforcement differs between the languages;
+* behaviour does not" - via a signature table and a mismatch return.  That was
 * not true even then: a user tag had no way to add a table row, so its payload
 * was validated against nothing and its arguments were silently discarded.  The
 * claim is withdrawn rather than restated.  What C++ still has is each tag's
@@ -69,7 +69,7 @@
 * WHY THERE IS NO DEPENDENCY ON THE EVENT SUBFRAMEWORK
 * ====================================================
 *   core/event/event_common.hpp is absent from the working set, and step C's
-* handoff records event_dispatcher.hpp as absent too -- while noting that
+* handoff records event_dispatcher.hpp as absent too - while noting that
 * test_counter and DTestTimer were both written to accept a bridge that
 * nothing yet supplies.
 *
@@ -96,13 +96,13 @@
 *
 *   Two mechanisms now, not three.  A tuple that disagrees with the table is a
 * compile error and a table that disagrees with itself is a static assertion in
-* the .c.  The third -- a fire-site check that a payload's slots matched the
-* signature -- went with the slots, and §III says what that cost.
+* the .c.  The third - a fire-site check that a payload's slots matched the
+* signature - went with the slots, and §III says what that cost.
 *
 *
 * CALLER-PROVIDED STORAGE
 * =======================
-*   The listener array is borrowed, never owned, never grown -- the pattern
+*   The listener array is borrowed, never owned, never grown - the pattern
 * step C made binding for this half of the relay, and which dj_pack_sink,
 * d_archive_extract and dj_counter already use.  d_test_dispatch_on returns
 * full rather than reallocating.  A suite's listener count is a property of
@@ -121,7 +121,7 @@
 *
 *   It is not configurable, and the knob that said it was is gone.
 * D_CFG_TEST_EVENT_STABLE_ORDER was defined, validated and normalised into
-* D_INTERNAL_TEST_EVENT_STABLE_ORDER, which nothing read -- so the off path
+* D_INTERNAL_TEST_EVENT_STABLE_ORDER, which nothing read - so the off path
 * compiled clean, produced identical object code, and read as supported.  The
 * operation it offered to switch off is the one the parity law rests on.  It
 * was deleted rather than wired, on the same argument rev08 makes for
@@ -209,7 +209,7 @@ D_EXTERN_C_BEGIN
 //   type: a lightweight numeric identifier for a lifecycle event.
 //
 //   THE WIDTH COMES FROM THE CONFIG.  This was size_t, so it followed the data
-// model -- 8 bytes on LP64, 4 on ILP32.  That is the platform-varying layout
+// model - 8 bytes on LP64, 4 on ILP32.  That is the platform-varying layout
 // dconfig 6.2 forbids, inside a struct two forks must agree on byte for byte.
 // It is now D_CFG_TEST_EVENT_ID_TYPE, defaulting to uint64_t: identical on the
 // common target, a stated choice on the others.  ON A 32-BIT TARGET THIS
@@ -242,7 +242,7 @@ D_STATIC_ASSERT((sizeof(dj_test_event_id) == 1) ||
 // data, trivially copyable, identical under both languages.
 //
 //   NOT TO BE CONFUSED WITH struct dj_test_event_payload BELOW.  This is an
-// observation -- one id, one status, one message, recorded after the fact.
+// observation - one id, one status, one message, recorded after the fact.
 // That is a fired event's arguments, checked against a signature.  They share
 // a prefix and nothing else, which is exactly why the two files that held them
 // collided by name and not by content.
@@ -255,7 +255,7 @@ struct dj_test_event
 };
 
 // D_TEST_EVENT_INIT
-//   macro: an empty event -- id 0, pending, no message.
+//   macro: an empty event - id 0, pending, no message.
 #define D_TEST_EVENT_INIT                                                      \
 {                                                                              \
     (dj_test_event_id)0, D_TEST_STATUS_PENDING,                                 \
@@ -277,7 +277,7 @@ struct dj_test_event
 //
 //   THE COST, NAMED HERE RATHER THAN DISCOVERED LATER.  An address is on the
 // parity kernel's closed list of unrecordable things, so a parity body cannot
-// compare two forks' `context` -- only whether one was present.  Two forks
+// compare two forks' `context` - only whether one was present.  Two forks
 // differing ONLY in what they hang here are, to the oracle, identical.  That
 // is fine for something that is the producer's private business; it is not
 // fine for anything the differential is meant to catch, and putting the latter
@@ -292,7 +292,7 @@ struct dj_test_event
 // an EVENT's arguments.  Two different things share the word.
 //
 //   WHY THE MESSAGE FIELD STAYS A const char*.  The archive layer uses
-// dj_pack_text -- pointer plus length -- because a ZIP comment may contain a
+// dj_pack_text - pointer plus length - because a ZIP comment may contain a
 // NUL.  An event message may not: it is a literal or a static string, it is
 // never sliced, and every one of the eleven consumers treats it as a C string
 // today.  Changing it would be a surface change with no failure mode behind
@@ -332,8 +332,8 @@ enum dj_test_event_kind
 
 //   WHAT EACH KIND'S `context` POINTS AT.  This table IS the contract of §III:
 // a receiver knows a kind's arguments from the kind, and this is where it knows
-// them from.  Nothing enforces it -- see §III for why that is deliberate and
-// what it costs -- so it is the one comment in this header that must not be
+// them from.  Nothing enforces it - see §III for why that is deliberate and
+// what it costs - so it is the one comment in this header that must not be
 // allowed to drift.  `arity` is the count in the same row, and §IV's macro half
 // is asserted against the C++ tuples, so the NUMBER is checked even though the
 // types are not.
@@ -367,7 +367,7 @@ enum dj_test_event_kind
 
 //   NOTE the two summands that are not node-scoped.  DOnSessionStart and
 // on_session_end bracket the run and carry no node, and DOnListenerThrew
-// carries two strings and no node at all -- it reports a failure IN the
+// carries two strings and no node at all - it reports a failure IN the
 // dispatch machinery, so binding it to a node would suggest the node was at
 // fault.  A signature table that assumed "every event carries a node" would
 // be wrong about three of twelve, which is why the table is explicit.
@@ -378,7 +378,7 @@ enum dj_test_event_kind
 // =============================================================================
 
 // dj_test_event_payload
-//   struct: a fired event -- its kind, and a pointer to its arguments.
+//   struct: a fired event - its kind, and a pointer to its arguments.
 // Trivially copyable and identical under both languages.
 struct dj_test_event_payload
 {
@@ -394,8 +394,8 @@ struct dj_test_event_payload
 //
 //   THIS REPLACED A THREE-SLOT TAGGED ARRAY, and the trade is worth stating
 // because the thing removed looked like a safety net.  The old payload was 104
-// bytes -- three 32-byte slots each holding a domain tag plus five members of
-// which exactly one was ever live -- and it was validated at every fire against
+// bytes - three 32-byte slots each holding a domain tag plus five members of
+// which exactly one was ever live - and it was validated at every fire against
 // a signature table.  What that bought, measured rather than assumed:
 //
 //     THE CHECK WAS VACUOUS.  Every constructor stamped its domains FROM the
@@ -412,7 +412,7 @@ struct dj_test_event_payload
 //     THE OPEN ALPHABET DID NOT WORK.  A user tag was documented to "supply
 //     its own signature row"; there was no API to supply one, the table was
 //     static in the .c, and d_test_event_node on kind 12 returned arity 0 with
-//     the pointer discarded -- and passed validation.
+//     the pointer discarded - and passed validation.
 //
 //   So the slots were paying 104 bytes and a silent-discard bug for a check
 // that could not catch the realistic error and a generality that was not
@@ -420,14 +420,14 @@ struct dj_test_event_payload
 // having no runtime guarantee, and cannot drop what it is given.
 //
 //   WHAT WAS GENUINELY LOST, so it is not rediscovered as a surprise: a parity
-// body could previously walk ANY payload generically -- "kind 10, slot1
-// STATUS=1, slot2 STATUS=4" -- without knowing the kind.  It now needs a
+// body could previously walk ANY payload generically - "kind 10, slot1
+// STATUS=1, slot2 STATUS=4" - without knowing the kind.  It now needs a
 // per-kind decoder.  The twelve-way switch did not disappear; it moved out of
 // the table (data, auditable) and into the recorder (code).  The arity table
 // at §IV survives partly to keep half of that claim checkable.
 
 //   NO ARGUMENT STRUCTS ARE DECLARED HERE, AND THAT IS THE POINT OF THE
-// CONTRACT.  Four were, briefly -- one per multi-argument shape -- and they
+// CONTRACT.  Four were, briefly - one per multi-argument shape - and they
 // bought nothing the contract does not already give away.  A struct with no
 // tag, no size and nothing checking it is a comment that occupies a name: the
 // compiler never compares a producer's struct to a consumer's cast, so the
@@ -436,7 +436,7 @@ struct dj_test_event_payload
 //
 //   THE SHAPES ARE WRITTEN DOWN AT §II INSTEAD, in the alphabet's own comment
 // column, beside the arity each already carried.  One place says what a kind
-// is, how many arguments it takes, and what they are -- rather than a comment
+// is, how many arguments it takes, and what they are - rather than a comment
 // pointing at a struct in another section that a caller must then match by
 // hand anyway.
 //
@@ -455,7 +455,7 @@ struct dj_test_event_payload
 // producer and a consumer in different translation units now agree because both
 // read §II correctly, not because both included one declaration.  Reorder the
 // members in one of them and it is undefined behaviour with nothing to catch
-// it -- no warning, no assertion, no MISMATCH.  That is a further step down the
+// it - no warning, no assertion, no MISMATCH.  That is a further step down the
 // same road §III already took, taken deliberately: the enforcement was already
 // gone, and what is removed here is the appearance of it.
 //
@@ -466,8 +466,8 @@ struct dj_test_event_payload
 // =============================================================================
 // IV.  THE SIGNATURE TABLE, CLAIMED AT COMPILE TIME
 // =============================================================================
-//   The macro half.  Usable in #if, in a static assertion, and -- in the C++
-// face -- against std::tuple_size<payload_type>.  d_test_event_arity() is the
+//   The macro half.  Usable in #if, in a static assertion, and - in the C++
+// face - against std::tuple_size<payload_type>.  d_test_event_arity() is the
 // runtime half of the same claim and the two are tied in the .c.
 
 #define D_TEST_EVENT_ARITY_SESSION_START    0
@@ -525,7 +525,7 @@ struct dj_test_event_payload
 //   THIS WAS STEP D's ONE WRONG CALL, and it was mine.  Step D ruled the
 // verdict "a face concern" and gave the listener a void return.  It is not a
 // face concern: a two-point set with a left annihilator is a MONOID, and
-// dispatch is a fold over it -- which is semantics, and belongs in the kernel
+// dispatch is a fold over it - which is semantics, and belongs in the kernel
 // by exactly the argument step D used to put the alphabet there.  With a void
 // return the dispatcher could not halt propagation at all, so `consume` was
 // unreachable and the subsystem's central law was unimplementable.
@@ -566,7 +566,7 @@ D_STATIC_ASSERT(D_TEST_VERDICT_CONSUME == 1,
 
 // dj_test_listener_fn
 //   function pointer: notified when a bound kind fires.  Takes the payload by
-// const pointer rather than by value -- a payload is ~80 bytes and a listener
+// const pointer rather than by value - a payload is ~80 bytes and a listener
 // has no reason to own a copy.
 //
 //   A listener RETURNS A VERDICT.  `pass` lets dispatch continue to the next
@@ -580,7 +580,7 @@ typedef int (*dj_test_listener_fn)(void*                              _context,
 
 // dj_test_listener
 //   struct: one binding.  `order` is the sequence number issued at bind time
-// and is what makes dispatch order recoverable from the table -- see the
+// and is what makes dispatch order recoverable from the table - see the
 // banner.
 struct dj_test_listener
 {
@@ -624,7 +624,7 @@ enum dj_test_dispatch_result
 // "payload disagrees with the signature", which nothing can now determine: an
 // opaque context has no shape to disagree with.  Keeping the enumerator would
 // have left a value no function returns, and keeping the knob would have left
-// one gating a branch that no longer exists -- an inert knob reading as
+// one gating a branch that no longer exists - an inert knob reading as
 // supported, which is what rev08 and rev11 each deleted rather than kept.
 //
 //   WHAT C GIVES UP IS NAMED, NOT PAPERED OVER.  The header used to argue that
@@ -659,7 +659,7 @@ enum dj_test_dispatch_result
 //   THE RECORD.  Its offsets are asserted AGAINST THE ID TYPE, not against
 // size_t.  The assertion read `>= sizeof(size_t)` while the field WAS size_t;
 // with the type configurable that form fails on a correct 32-bit-id build
-// under LP64 -- the assertion wrong, not the struct.
+// under LP64 - the assertion wrong, not the struct.
 D_STATIC_ASSERT(offsetof(struct dj_test_event, event) == 0,
                 "dj_test_event: field drift at event");
 D_STATIC_ASSERT(offsetof(struct dj_test_event, status) >=
@@ -678,7 +678,7 @@ D_STATIC_ASSERT(offsetof(struct dj_test_event_payload, context) >=
                 sizeof(int32_t),
                 "dj_test_event_payload: context must follow kind");
 //   NOTHING ASSERTS THE ARGUMENT SHAPES, because there are no argument types to
-// assert about -- a caller's local struct is outside this header's reach.  What
+// assert about - a caller's local struct is outside this header's reach.  What
 // was lost with the four structs was three layout assertions that only ever
 // checked the four declarations against themselves.
 D_STATIC_ASSERT(offsetof(struct dj_test_listener, kind) >
@@ -704,14 +704,14 @@ D_STATIC_ASSERT(offsetof(struct dj_test_dispatch, count) >
 // in the extracted record with the reason written down: "this function belongs
 // to the event record and moves to DTestEvent when that module is done; it is
 // here because that module is not."  That module is this one, and it is done,
-// so the interim ends -- house style §10 restored, and it joins the other
+// so the interim ends - house style §10 restored, and it joins the other
 // eighteen definitions in the .c instead of being the one that is not there.
 //
 //   THE COERCION RULE IS STATED HERE ONCE.  d_test_event_status_change (§VII.c)
 // applies the same rule to the two status slots it fills, and its own comment
 // used to be the second place it was written down.  Two records of "what
 // happened to this node" that disagreed about what an out-of-range status
-// means would be a divergence between two of DTest's own modules -- which the
+// means would be a divergence between two of DTest's own modules - which the
 // oracle cannot see, because both are on the same side of it.
 //
 //   ONE MODULE STILL DISAGREES, AND IT IS NOT THIS ONE.
@@ -778,7 +778,7 @@ struct dj_test_event_payload d_test_event_payload_make(
 );
 
 //   ARGUMENT BUILDERS.  Present only where building the struct is not merely
-// filling it in -- which is once.  The node-scoped kinds take the node pointer
+// filling it in - which is once.  The node-scoped kinds take the node pointer
 // directly, and the other three shapes are brace-initialised at the fire site.
 
 //   d_test_event_status_change IS GONE.  It built DOnStatusChange's arguments
@@ -790,7 +790,7 @@ struct dj_test_event_payload d_test_event_payload_make(
 //   THE RULE DID SURVIVE, AND MOVED SOMEWHERE BETTER: d_test_status_or_error in
 // test_common.h.  A coercion policy for dj_test_status belongs in the module
 // that owns dj_test_status, where all three modules that apply it can reach one
-// definition -- which is more than the old arrangement managed, since
+// definition - which is more than the old arrangement managed, since
 // d_test_object_set_status never shared it.
 //
 //   IT IS THE SECOND TIME THIS FUNCTION HAS BEEN DELETED and the difference is

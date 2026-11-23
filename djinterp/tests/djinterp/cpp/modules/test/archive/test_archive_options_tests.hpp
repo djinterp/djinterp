@@ -81,7 +81,7 @@ V.    BUILDERS     (test_archive_options_tests_builders.cpp)
 #include <string>
 #include <vector>
 // djinterp
-// -- (part 1) mode-gated includes ------------------------------------------
+// - (part 1) mode-gated includes ------------------------------------------
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
 #include "../../../../../../inc/djinterp/cpp/modules/test/archive/test_archive_options.hpp"
@@ -188,7 +188,7 @@ struct ao_field
 };
 
 
-// -- archive-level (5) -----------------------------------------------------
+// - archive-level (5) -----------------------------------------------------
 inline void ao_m_level(dj::archive_options& o) { o.level = ao_bump(o.level); }
 inline void ao_m_store_only(dj::archive_options& o)
     { o.store_only = !o.store_only; }
@@ -198,7 +198,7 @@ inline void ao_m_preserve_permissions(dj::archive_options& o)
 inline void ao_m_preserve_mtime(dj::archive_options& o)
     { o.preserve_mtime = !o.preserve_mtime; }
 
-// -- embedded codec, reported coarsely (7) ---------------------------------
+// - embedded codec, reported coarsely (7) ---------------------------------
 //   codec.level is named; each block collapses to its own label, so one
 // representative field per block is enough to drive the table.
 inline void ao_m_codec_level(dj::archive_options& o)
@@ -216,7 +216,7 @@ inline void ao_m_codec_lz4(dj::archive_options& o)
 inline void ao_m_codec_brotli(dj::archive_options& o)
     { o.codec.brotli.quality = ao_bump(o.codec.brotli.quality); }
 
-// -- zip (5) ---------------------------------------------------------------
+// - zip (5) ---------------------------------------------------------------
 inline void ao_m_zip_method(dj::archive_options& o)
     { o.zip.method = ao_bump(o.zip.method); }
 inline void ao_m_zip_encryption(dj::archive_options& o)
@@ -228,13 +228,13 @@ inline void ao_m_zip_zip64(dj::archive_options& o)
 inline void ao_m_zip_utf8_names(dj::archive_options& o)
     { o.zip.utf8_names = !o.zip.utf8_names; }
 
-// -- tar (2) ---------------------------------------------------------------
+// - tar (2) ---------------------------------------------------------------
 inline void ao_m_tar_format(dj::archive_options& o)
     { o.tar.format = ao_bump(o.tar.format); }
 inline void ao_m_tar_numeric_owner(dj::archive_options& o)
     { o.tar.numeric_owner = !o.tar.numeric_owner; }
 
-// -- gz (3) ----------------------------------------------------------------
+// - gz (3) ----------------------------------------------------------------
 inline void ao_m_gz_store_name(dj::archive_options& o)
     { o.gz.store_name = !o.gz.store_name; }
 inline void ao_m_gz_store_mtime(dj::archive_options& o)
@@ -242,7 +242,7 @@ inline void ao_m_gz_store_mtime(dj::archive_options& o)
 inline void ao_m_gz_original_name(dj::archive_options& o)
     { o.gz.original_name += "n"; }
 
-// -- sevenzip (6) ----------------------------------------------------------
+// - sevenzip (6) ----------------------------------------------------------
 inline void ao_m_7z_method(dj::archive_options& o)
     { o.sevenzip.method = ao_bump(o.sevenzip.method); }
 inline void ao_m_7z_solid(dj::archive_options& o)
@@ -256,7 +256,7 @@ inline void ao_m_7z_password(dj::archive_options& o)
 inline void ao_m_7z_threads(dj::archive_options& o)
     { o.sevenzip.threads = ao_bump(o.sevenzip.threads); }
 
-// -- rar (4) ---------------------------------------------------------------
+// - rar (4) ---------------------------------------------------------------
 inline void ao_m_rar_level(dj::archive_options& o)
     { o.rar.level = ao_bump(o.rar.level); }
 inline void ao_m_rar_solid(dj::archive_options& o)
@@ -388,7 +388,7 @@ struct ao_codec_field
     {}
 };
 
-// -- a representative spread inside each codec block -----------------------
+// - a representative spread inside each codec block -----------------------
 inline void ao_c_deflate_a(dj::compress_options& c)
     { c.deflate.window_bits = ao_bump(c.deflate.window_bits); }
 inline void ao_c_deflate_b(dj::compress_options& c)
@@ -495,7 +495,7 @@ std::vector<std::string> ao_split_csv(
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- (part 2) declarations - visible in BOTH modes -------------------------
+// - (part 2) declarations - visible in BOTH modes -------------------------
 
 // I.   BLOCKS   (test_archive_options_tests_blocks.cpp)
 bool tests_archive_options_blocks_reflexive();
@@ -575,7 +575,7 @@ bool tests_archive_options_zip_encrypted();
 bool tests_archive_options_zip_encrypted_empty_pw();
 
 
-// -- (part 3) the spec provider - spec mode only ---------------------------
+// - (part 3) the spec provider - spec mode only ---------------------------
 #ifdef DTEST_SPEC_MODE
 
 // archive_options_spec

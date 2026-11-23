@@ -3,7 +3,7 @@
 *
 * max_align_t typedef:
 *   A POD type whose alignment requirement is at least as strict as every
-* scalar type's -- the alignment ::operator new is required to hand back.
+* scalar type's - the alignment ::operator new is required to hand back.
 * It is an implementation-supplied type, so the primary path re-exports
 * std::max_align_t and preserves identity.
 *
@@ -19,7 +19,7 @@
 * alignof(max_align_t) for its own platform.
 *
 *   Because the fallback is not the same type as std::max_align_t,
-* identity is preserved only on the primary path -- which is why the
+* identity is preserved only on the primary path - which is why the
 * coverage entry records this symbol as a re-export with a documented
 * degraded tier rather than as a clean one.
 *
@@ -76,7 +76,7 @@ namespace re_std
         // max_align_union
         //   union: stand-in for a missing std::max_align_t. Every member is
         // a widest-in-its-family scalar, so the union's alignment is the
-        // strictest of the four. Members are never read -- only the
+        // strictest of the four. Members are never read - only the
         // union's alignment and size matter.
         union max_align_union
         {
@@ -90,7 +90,7 @@ namespace re_std
 
     // max_align_t
     //   typedef: degraded stand-in used where <cstddef> declares no
-    // std::max_align_t. See the header comment -- this is not the
+    // std::max_align_t. See the header comment - this is not the
     // implementation's own type and identity is not preserved.
     typedef internal::max_align_union max_align_t;
 

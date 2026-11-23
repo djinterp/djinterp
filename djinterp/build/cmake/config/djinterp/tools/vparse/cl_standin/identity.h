@@ -4,7 +4,7 @@
 * The second half of a unit compiled by the stand-in for cl: the compiler's
 * identity, changed.
 *   The standard headers have been read by now, under the identity of the
-* compiler that is really at work -- a MinGW-w64 Clang -- and their include
+* compiler that is really at work - a MinGW-w64 Clang - and their include
 * guards keep them from being read again. This header then takes that
 * identity away and puts cl 19.51's in its place: the macros djinterp's env
 * asks about. Everything after it is read as cl's, so env takes the branches
@@ -60,7 +60,7 @@
     #define _CPPRTTI   1
 #else
     // CL_STANDIN_C_DEFAULT
-    //   defined where a C unit was given no /std: -- cl's default C mode,
+    //   defined where a C unit was given no /std: - cl's default C mode,
     // which defines neither of these.
     #ifdef CL_STANDIN_C_DEFAULT
         #undef __STDC_VERSION__

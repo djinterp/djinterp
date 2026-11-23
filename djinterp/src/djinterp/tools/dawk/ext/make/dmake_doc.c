@@ -6,8 +6,8 @@
 * new text with the file's line endings, the text after, read again as the
 * file's make reads it. The candidate is kept only when the statements wholly
 * before the splice are the file's as they were, those wholly after it the
-* file's moved by the splice -- each part, line, depth, branch and orphan
-* mark -- the comments likewise, and the change's own check holds: the part
+* file's moved by the splice - each part, line, depth, branch and orphan
+* mark - the comments likewise, and the change's own check holds: the part
 * asked for holds the text asked for, the words the words, a command the
 * command, statements inserted the statements their text reads as alone.
 * Otherwise the candidate is discarded, the document as it was.
@@ -82,7 +82,7 @@ struct dj_internal_candidate
 // 1.1.3
 // d_internal_words
 //   struct: a change to a rule's words: the part, the word's index, how --
-//   1 inserted, -1 removed, 0 set -- the word written, and the splice that
+//   1 inserted, -1 removed, 0 set - the word written, and the splice that
 //   makes it, its text kept here.
 struct dj_internal_words
 {
@@ -1870,8 +1870,8 @@ size_t d_internal_commands(
 
 /*
 d_make_doc_add_command
-  The line is written with the prefix the rule's first command has -- its
-first byte, or for BSD and NMake the blanks that lead it -- or a tab; a
+  The line is written with the prefix the rule's first command has - its
+first byte, or for BSD and NMake the blanks that lead it - or a tab; a
 file whose last line no line feed ends gets one first. The candidate is
 kept when one recipe line more stands under the rule, at the place asked,
 its command the text.

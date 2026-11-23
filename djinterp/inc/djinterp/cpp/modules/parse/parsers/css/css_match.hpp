@@ -2,7 +2,7 @@
 * djinterp [cpp][parse]                                            css_match.hpp
 *
 * CSS selector matching:
-*   This header makes the css subsystem useful to any application -- not
+*   This header makes the css subsystem useful to any application - not
 * just HTML.  It defines an abstract `style_target_view` that hosts fill
 * in to expose their own objects to the matcher: a type name, an
 * optional id, a list of classes, attribute pairs, a tree position, and
@@ -10,7 +10,7 @@
 *
 *   Given a target view and a parsed selector, the matcher returns a
 * boolean answer with no allocation on the hot path.  Complex selectors
-* are matched right-to-left -- the standard browser optimisation that
+* are matched right-to-left - the standard browser optimisation that
 * lets failing chains bail out early.
 *
 * Contents:
@@ -93,14 +93,14 @@ struct style_target_attribute
 //   For a tree-aware host that wants to support combinators, the
 // `parent` and `prev_sibling` pointers must transitively expose
 // the rest of the relevant ancestors / earlier siblings.  Nothing
-// is allocated by this struct -- pointers are borrowed.
+// is allocated by this struct - pointers are borrowed.
 //
 // Field summary:
 //   type_name           e.g. "button".  May be null for objects
 //                       with no type (matches `*` only).
 //   id                  e.g. "submit".  May be null.
 //   classes             C-string array; not null-terminated as a
-//                       sequence -- length is `classes_count`.
+//                       sequence - length is `classes_count`.
 //   attributes          attribute array; length `attributes_count`.
 //   parent              ptr to parent's view, or null at root.
 //   prev_sibling        ptr to immediately-preceding sibling, or
@@ -177,7 +177,7 @@ typedef bool (*style_pseudo_callback)
 // "hover" -> bit 0, "focus" -> bit 1) and may install a callback
 // that handles any pseudo-class not in the bit registry.
 //
-//   The struct is intentionally trivial -- no virtual dispatch.
+//   The struct is intentionally trivial - no virtual dispatch.
 // Pass it by const reference into match_* functions.
 struct style_match_options
 {
@@ -235,7 +235,7 @@ struct style_match_options
 
 
 // ================================================================
-//  internal -- low-level matching helpers
+//  internal - low-level matching helpers
 // ================================================================
 
 NS_INTERNAL
@@ -653,7 +653,7 @@ bool match_compound(
 
 // match_simple
 //   function: tests whether a single simple selector matches the
-// given target.  Pure -- no allocation, no globals.
+// given target.  Pure - no allocation, no globals.
 inline
 bool match_simple(
     const css_simple_selector& _s,
@@ -839,10 +839,10 @@ bool match_compound(
 // the next compound.
 //
 //   Combinator semantics:
-//     descendant       -- some ancestor of current must match
-//     child            -- the parent of current must match
-//     adjacent_sibling -- the immediately-preceding sibling must
-//     general_sibling  -- some earlier sibling must match
+//     descendant       - some ancestor of current must match
+//     child            - the parent of current must match
+//     adjacent_sibling - the immediately-preceding sibling must
+//     general_sibling  - some earlier sibling must match
 inline
 bool match_complex(
     const css_complex_selector& _c,
@@ -851,7 +851,7 @@ bool match_complex(
 )
 {
     // collect compounds in document order: head first, then tail.
-    // We do not actually allocate -- index in [0..N-1] resolves
+    // We do not actually allocate - index in [0..N-1] resolves
     // through the structure directly.
     std::size_t total;
     std::size_t i;
@@ -992,7 +992,7 @@ bool match_complex(
 //   function: returns true if any selector in the list matches
 // the target.  When _matched_specificity is non-null and at
 // least one selector matches, it receives the highest specificity
-// among matching selectors -- this is the value the cascade uses.
+// among matching selectors - this is the value the cascade uses.
 //
 //   When no selector matches and _matched_specificity is non-null
 // the pointee is left unmodified.

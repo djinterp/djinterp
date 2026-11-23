@@ -10,7 +10,7 @@
 * parse of a string uses; and GCC's for response files. The parser uses it
 * for d_arg_parser_parse_line, for response files and for recovering UTF-8
 * arguments on Windows; it is public so that a program can split text the
-* same way -- options held in an environment variable, say -- and
+* same way - options held in an environment variable, say - and
 * d_arg_quote_word, its inverse, can write words that split back unchanged.
 *
 * HOW TO USE
@@ -24,8 +24,8 @@
 *
 * OPTIONS
 * -------
-*   The quoting rules -- a POSIX shell's, the Microsoft C runtime's, CLI11's,
-* GCC's for response files -- and the split flags, chosen at each call.
+*   The quoting rules - a POSIX shell's, the Microsoft C runtime's, CLI11's,
+* GCC's for response files - and the split flags, chosen at each call.
 *
 * CONFIGURATION
 * -------------
@@ -92,8 +92,8 @@ TABLE OF CONTENTS
 // 1.1.1
 // D_ARG_SPLIT_PROGRAM_NAME
 //   constant: the line starts with a program's name, which the C runtime's
-// rules read by a rule of their own -- quotes open and close, and nothing is
-// escaped -- and always give as the first word, empty or not, as the
+// rules read by a rule of their own - quotes open and close, and nothing is
+// escaped - and always give as the first word, empty or not, as the
 // runtime always gives `argv[0]`. The other rules read it as they read every
 // word.
 #define D_ARG_SPLIT_PROGRAM_NAME  0x00000001u
@@ -107,7 +107,7 @@ TABLE OF CONTENTS
 
 // 1.1.3
 // D_ARG_SPLIT_LINE_BREAKS
-//   constant: for the C runtime's rules, a line break -- `\n` or `\r` --
+//   constant: for the C runtime's rules, a line break - `\n` or `\r` --
 // outside quotes separates words as a space does, as MSVC's tools and
 // clang-cl read a response file; the runtime itself reads a command line,
 // which holds none, with spaces and tabs alone. The other rules always
@@ -130,31 +130,31 @@ D_EXTERN_C_BEGIN
  * @brief Splits a line of text into arguments.
  *
  * @note By `_quoting`. D_ARG_QUOTING_POSIX: a POSIX shell's words, without
- *       expansions, comments or operators -- `;`, `|`, `&`, `<`, `>` and
- *       parentheses are ordinary -- spaces, tabs and line feeds separating,
+ *       expansions, comments or operators - `;`, `|`, `&`, `<`, `>` and
+ *       parentheses are ordinary - spaces, tabs and line feeds separating,
  *       as in the shells, other whitespace being ordinary; a backslash keeps
  *       the next character, removes a newline, and, last, is itself, as
  *       dash and bash read one; single quotes keep all up to the next;
  *       double quotes keep all but a backslash before `$`, a backquote,
  *       `"`, a backslash or a newline. D_ARG_QUOTING_WINDOWS:
- *       the C runtime's -- spaces and tabs separate, and line breaks with
+ *       the C runtime's - spaces and tabs separate, and line breaks with
  *       D_ARG_SPLIT_LINE_BREAKS; 2n backslashes before a `"` give n and
  *       open or close a quote, 2n+1 give n and a `"`; other backslashes are
  *       themselves; `""` within a quote gives `"`; an unclosed quote runs
  *       to the end.
- *       D_ARG_QUOTING_CLI11: CLI11's -- whitespace separates, a word that
+ *       D_ARG_QUOTING_CLI11: CLI11's - whitespace separates, a word that
  *       starts with a quote or a bracket runs to its match, `=` before a
  *       quote after a `-name` ends a word, and each word then loses its
  *       outer quotes, and a double-quoted one its escapes.
  *       D_ARG_QUOTING_GNU: GCC's for response files, libiberty's
- *       buildargv -- whitespace separates, single and double quotes keep all
+ *       buildargv - whitespace separates, single and double quotes keep all
  *       up to their match or the end, and a backslash keeps the next
  *       character inside them as outside; text of whitespace alone holds no
  *       words, as GCC reads a response file.
  *       NATIVE and NATIVE_RESPONSE are the platform's choices.
  *
  * @param[in]     _line     the text; a NUL byte in it is an ordinary
- *                          character, though a word holding one -- or one
+ *                          character, though a word holding one - or one
  *                          that CLI11's escapes `\\0` and `\\u0000` give --
  *                          reads, from the list, as ending there, where
  *                          d_arg_parser_parse_line keeps it whole.
@@ -188,7 +188,7 @@ D_ARG_PARSER_API int d_arg_split_line(
  * @brief Writes a word so that d_arg_split_line, by the same rules, gives it
  *        back as one argument.
  *
- * @note A word the rules would not change is written as it is -- for
+ * @note A word the rules would not change is written as it is - for
  *       POSIX's, only a word of ASCII letters, digits and `@%+=:,./-_`,
  *       which no shell reads specially, as Python's shlex.quote judges, so
  *       that a real shell gives the word back too. Otherwise it is quoted:
@@ -227,7 +227,7 @@ D_ARG_PARSER_API int d_arg_quote_word(
  *       holding spaces is found whole. When no run does, a line starting
  *       with a quote gives what the quote encloses, its escaped quotes
  *       unescaped, and any other line its first word. One byte after the
- *       name is dropped -- the space after it, or, after a quoted name, the
+ *       name is dropped - the space after it, or, after a quoted name, the
  *       byte after the closing quote, whatever it is, as CLI11 drops it.
  *
  * @param[in]     _line  the command line.
@@ -252,15 +252,15 @@ D_ARG_PARSER_API int d_arg_split_program_name(
 /**
  * @brief Reads the arguments a response file holds.
  *
- * @note The file is read whole -- its path taken as UTF-8 on Windows, or in
- *       the ANSI code page when it is not valid UTF-8 -- and split as
+ * @note The file is read whole - its path taken as UTF-8 on Windows, or in
+ *       the ANSI code page when it is not valid UTF-8 - and split as
  *       d_arg_split_line splits it with D_ARG_SPLIT_LINE_BREAKS, line
  *       breaks parting words as the rules read them: by POSIX's, a carriage
  *       return is an ordinary byte, as a shell reads one, so that a file with
  *       Windows' line ends gives words ending in one. A byte-order mark is
  *       honoured, whatever the rules: UTF-8's is skipped, and a file starting
  *       with UTF-16's, little- or big-endian, is read as UTF-16, as MSVC
- *       reads one, an unpaired surrogate -- or an odd byte left at the end --
+ *       reads one, an unpaired surrogate - or an odd byte left at the end --
  *       becoming U+FFFD. A NUL byte is an ordinary character, as
  *       d_arg_split_line reads one: a word holding one reads, from the
  *       list, as ending there, where a parse reading the file keeps it whole
@@ -328,7 +328,7 @@ D_ARG_PARSER_API int d_arg_utf8_from_wide(
  *       a code point past U+FFFF as a surrogate pair, and as UTF-32 where it
  *       has more. Only well-formed UTF-8 converts, as RFC 3629 defines it --
  *       no overlong form, no surrogate, nothing past U+10FFFF, no sequence
- *       cut short -- where CLI11's widen throws std::range_error. A NUL byte
+ *       cut short - where CLI11's widen throws std::range_error. A NUL byte
  *       is a 0 unit, kept. Text never takes more units than it has bytes, so
  *       room for `_length` units always suffices, and a capacity of 0
  *       measures.

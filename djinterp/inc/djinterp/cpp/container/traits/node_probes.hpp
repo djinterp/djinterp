@@ -88,7 +88,7 @@ D_TYPE_TRAIT_HAS_METHOD_WITH(has_add_child_method, add_child)
 
 // has_name_method
 //   trait: has_name_method<Type, Args...> is true if `name(Args...)` can be
-// called on an lvalue Type -- has_name_method<const Tree, file_node_id> for a
+// called on an lvalue Type - has_name_method<const Tree, file_node_id> for a
 // file tree, whose name takes a node id.
 D_TYPE_TRAIT_HAS_METHOD_WITH(has_name_method, name)
 

@@ -2,8 +2,8 @@
 * djinterp [c][functional]                                          functional.h
 *
 *   Root header for the functional programming module.
-*   Includes five of the module's headers -- functional_common.h,
-* predicate.h, compose.h, fn_builder.h and pipeline.h -- and provides
+*   Includes five of the module's headers - functional_common.h,
+* predicate.h, compose.h, fn_builder.h and pipeline.h - and provides
 * convenience macros for type-inferred operations, predicate/transformer/
 * accumulator generation, compound operations, array queries, pipeline
 * shorthands, predicate algebra, and guarded execution.

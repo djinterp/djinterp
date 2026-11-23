@@ -1,4 +1,4 @@
-# djinterp [test]  traversable.hpp suite -- build wiring
+# djinterp [test]  traversable.hpp suite - build wiring
 #
 #   Leaf recipe: the executable is the runner in THIS config directory linked
 # with the suite's section translation units.

@@ -6,7 +6,7 @@
 * deterministically, or to precompile all configuration into a PCH.
 *
 *   You do NOT need this for normal use: each module pulls its own
-* cfg_<module>.h, which pulls cfg_common.h -- so you only pay for the modules
+* cfg_<module>.h, which pulls cfg_common.h - so you only pay for the modules
 * you include (demand-loading). This umbrella is the opt-in "resolve
 * everything" path.
 *

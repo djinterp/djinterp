@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                                table_tests_keyed.cpp
 *
-* keyed_table.hpp: the record table kept in key order -- construction,
+* keyed_table.hpp: the record table kept in key order - construction,
 * lookup, insertion and erasure as a map and as a multimap, the projection
 * forms, and detection.
 *

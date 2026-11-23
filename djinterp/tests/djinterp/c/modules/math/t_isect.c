@@ -3,8 +3,8 @@
 *
 *   Conformance harness for c/math/isect.h, all three families: each test
 * against the geometry headers' former formulas, written out here in the
-* same order, on 200,000 random rays per family -- the same answer and the
-* same parameters, bit for bit -- and the geometry the tests must keep: a
+* same order, on 200,000 random rays per family - the same answer and the
+* same parameters, bit for bit - and the geometry the tests must keep: a
 * hit's parameter lands the ray on the box's surface or in the triangle's
 * plane, inside it; a ray from inside a box enters behind its origin; a box
 * behind the ray, a ray parallel to a slab outside it, and a ray parallel

@@ -4,8 +4,8 @@
 * Standalone tests of the POP3 kernel where it meets net.h: the send
 * helpers, the reader over a connection, and the errors a connection's
 * become here.
-*   The connections are net_memory.h's -- a memory stream playing a scripted
-* peer, a pipe joining a client and a server in one thread -- and a script
+*   The connections are net_memory.h's - a memory stream playing a scripted
+* peer, a pipe joining a client and a server in one thread - and a script
 * of this suite's own, whose reads report bytes and an error together, as
 * net.h allows a backend to. Each test returns true when every assertion
 * held.
@@ -106,14 +106,14 @@ struct dj_tests_pop_capture
 
 // 1.2    Helpers
 //------------------------------------------------------------------------------
-// scripts -- init opens a script over `_count` steps, which it borrows
+// scripts - init opens a script over `_count` steps, which it borrows
 void d_tests_pop_script_init(
     struct dj_tests_pop_script*     _script,
     const struct dj_tests_pop_step* _steps,
     size_t                          _count
 );
 
-// lines -- a command with one argument, or none for a NULL `_argument`, and
+// lines - a command with one argument, or none for a NULL `_argument`, and
 // a status line without a response code; each borrows its C strings
 struct dj_pop_command_line d_tests_pop_command(
     enum dj_pop_command _command,
@@ -124,7 +124,7 @@ struct dj_pop_response d_tests_pop_response(
     const char*           _text
 );
 
-// sinks and texts -- capture_sink wraps a capture, which capture_is compares
+// sinks and texts - capture_sink wraps a capture, which capture_is compares
 // with a C string; connection_sink writes all it is given to a connection,
 // and takes nothing when the connection fails; text_is compares a span with
 // a C string

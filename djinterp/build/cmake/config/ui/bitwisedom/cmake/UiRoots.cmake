@@ -7,7 +7,7 @@
 #   DJINTERP_ROOT defaults to the tree this file is in. UXOXO_ROOT is where
 # -DUXOXO_ROOT, or else the environment's UXOXO_ROOT, points; else the
 # sibling checkout (ruling cli-taken 22): `uxoxo` beside djinterp's checkout
-# -- the directory that holds djinterp's root -- or `uxoxo/uxoxo-project`
+# - the directory that holds djinterp's root - or `uxoxo/uxoxo-project`
 # there; then, for a directory of projects that keeps each project's
 # checkouts in a folder of its own, the same two a level up --
 # `frameworks/djinterp/release` beside `frameworks/uxoxo/uxoxo-project`, the

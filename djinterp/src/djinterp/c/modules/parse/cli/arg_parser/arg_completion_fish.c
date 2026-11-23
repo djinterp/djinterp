@@ -5,7 +5,7 @@
 *   The script holds the model as global lists named after the program --
 * each command's row, the subcommands' names and the options' names with
 * their keys, targets and descriptions, each option's row, the positionals'
-* keys and rows, the choices -- which fish's `contains -i` searches by
+* keys and rows, the choices - which fish's `contains -i` searches by
 * exact text, as no `switch` can, its cases being patterns. Its functions
 * walk the words before the cursor as the parse takes them and print what
 * may come at the cursor, one candidate a line with its description after a
@@ -43,14 +43,14 @@ static const char KIND_LETTERS[] = "-cfdn";
 
 // FISH_LINES
 //   constant: the script's functions: a row of a table; the checks and the
-// unquoting of a word; the walk over the words before the cursor -- whose
+// unquoting of a word; the walk over the words before the cursor - whose
 // state the functions run with -S keep in the caller's variables: cmd and
 // cf, the command reached and its switches; opt, need and room, the option
 // whose values the words are among, the values it still needs and how many
 // more it may take (-1 for any number); only, set past `--`; used and
 // counts, the subcommands each command was given and the values each
 // positional took; extra, the switches of the command a word no positional
-// takes ends at -- and what may come at the cursor.
+// takes ends at - and what may come at the cursor.
 static const char* const FISH_LINES[] =
 {
     "function __djarg_@@_row",
@@ -475,8 +475,8 @@ static const size_t FISH_LINE_COUNT =
  * @param[in]     _line    whether it is a line of a description, each control
  *                         character then a space.
  *
- * Text as one single-quoted word after a space -- `\` and `'` escaped with
- * a backslash, as fish reads them between single quotes -- and, as a line of
+ * Text as one single-quoted word after a space - `\` and `'` escaped with
+ * a backslash, as fish reads them between single quotes - and, as a line of
  * a description, each control character a space; `_dashes` before it, inside
  * the quotes.
  */
@@ -557,8 +557,8 @@ void d_arg_internal_complete_fish_line(
 //==============================================================================
 
 // dj_arg_internal_complete_fish_value
-//   type: writes the value of a list for one record of the model -- the
-// break before it and the value -- or nothing, for a record the list leaves
+//   type: writes the value of a list for one record of the model - the
+// break before it and the value - or nothing, for a record the list leaves
 // out.
 typedef void (*dj_arg_internal_complete_fish_value)(
     const struct dj_arg_internal_model* _model,

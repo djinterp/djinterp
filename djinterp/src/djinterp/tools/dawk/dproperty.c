@@ -257,7 +257,7 @@ bool d_internal_guard_name(
 /*
 d_internal_format_of
   Returns the pattern string of a `format:` declaration's function argument --
-the "YYYY.MM.DD" in `format: date("YYYY.MM.DD")` -- or NULL.
+the "YYYY.MM.DD" in `format: date("YYYY.MM.DD")` - or NULL.
 */
 static
 const char* d_internal_format_of(
@@ -337,7 +337,7 @@ bool d_internal_format_matches_at(
 d_property_format_extract
   Finds the first run of a node's text that matches a `format:` pattern and
 copies it out.  This is the format repair: a value that contains a valid date
-alongside something else -- `date: 2026.03.25` under a `created:` label --
+alongside something else - `date: 2026.03.25` under a `created:` label --
 keeps the date and loses the rest.  It is derivable without a human, which is
 the test every repair has to pass, and it fails closed: no match, no repair.
 */
@@ -386,8 +386,8 @@ bool d_property_format_extract(
 /*
 d_property_derive
   Computes the value a `content:` declaration says a node should hold.  A
-derivation that needs a source this build does not have -- commit history,
-for instance -- returns false, and the property is reported as unevaluated
+derivation that needs a source this build does not have - commit history,
+for instance - returns false, and the property is reported as unevaluated
 rather than silently passing.
 */
 bool d_property_derive(
@@ -582,10 +582,10 @@ double d_property_number(
 /*
 d_property_evaluate
   Applies one declaration to one matched node and reports whether it held.
-This is the engine's one evaluator, and every driver -- dcheck, the lint
-driver, the extension tests -- goes through it, so a sheet means the same
+This is the engine's one evaluator, and every driver - dcheck, the lint
+driver, the extension tests - goes through it, so a sheet means the same
 thing wherever it runs (docs/dss-evaluation.md).  `violation` fails on every
-present node it is applied to.  Modifiers -- severity, initial, immutable --
+present node it is applied to.  Modifiers - severity, initial, immutable --
 are not claims about a node and report as unevaluated, as does a property
 whose derivation source is missing, rather than silently passing.
 */
@@ -612,7 +612,7 @@ bool d_property_evaluate(
 
     // `violation` is an assertion that the match should not exist: any node
     // the rule selects fails it.  It names no expected value, so it is never
-    // repaired -- only reported, with the declaration's text as the message.
+    // repaired - only reported, with the declaration's text as the message.
     if (strcmp(property, "violation") == 0)
     {
         *_out_evaluated = node->present;
@@ -694,7 +694,7 @@ bool d_property_evaluate(
         return true;
     }
 
-    // the whole value must be the format -- a value that merely contains a
+    // the whole value must be the format - a value that merely contains a
     // date somewhere is exactly the defect this property exists to catch
     if (strcmp(property, "format") == 0)
     {
@@ -944,7 +944,7 @@ bool d_property_repair(
 // d_internal_lint_properties
 //   constant: every property a lint sheet may declare, sorted by name.  The
 // evaluable ones share d_property_evaluate, which dispatches within; the
-// modifiers -- severity, initial, immutable -- min-gap, which a table layout
+// modifiers - severity, initial, immutable - min-gap, which a table layout
 // reads beside its display, and repair, which drepair.c reads beside a
 // violation, go through it too and come back unevaluated, exactly as before
 // the registry.

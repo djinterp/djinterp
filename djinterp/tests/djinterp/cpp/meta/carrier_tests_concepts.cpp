@@ -117,7 +117,7 @@ bool tests_carrier_concept_carrier()
 
 /*
 tests_carrier_concept_constrains
-  Verifies the Carrier concept actually constrains overload resolution -- its
+  Verifies the Carrier concept actually constrains overload resolution - its
   intended use. This is a genuine run-time check on the dispatch outcome.
   Tests the following:
   - carrier arguments (type_c, val) select the constrained overload (1)

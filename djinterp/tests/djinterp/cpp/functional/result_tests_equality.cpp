@@ -3,7 +3,7 @@
 *
 * Equality-operator tests for result<T, E>.
 *
-*   test_equality -- result == / != result across ok/err combinations.
+*   test_equality - result == / != result across ok/err combinations.
 *
 *
 * path:      /tests/djinterp/cpp/functional/result_tests_equality.cpp

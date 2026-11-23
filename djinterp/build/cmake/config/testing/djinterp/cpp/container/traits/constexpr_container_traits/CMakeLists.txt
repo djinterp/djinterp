@@ -21,7 +21,7 @@ djinterp_add_test_executable(constexpr_container_traits_tests
 
 # constexpr_container_traits quarantines fixtures that make the traits HARD-ERROR
 # rather than report false (see its hazards TU). Off by default so the suite
-# always builds; reproduce either family -- the build failing IS the finding --
+# always builds; reproduce either family - the build failing IS the finding --
 # with  -DDJINTERP_CCT_HAZARD_TESTS=ON .
 if(DJINTERP_CCT_HAZARD_TESTS)
     target_compile_definitions(constexpr_container_traits_tests

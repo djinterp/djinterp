@@ -25,8 +25,8 @@ bool tests_sort_conformance_unqualified_sort_unambiguous()
     typedef int*                       pointer_iterator;
 
     //   sort(first, last[, comp]) written unqualified inside any namespace
-    // that can see djinterp::sort -- which includes every `using namespace
-    // djinterp;` translation unit -- must resolve when the iterator is a
+    // that can see djinterp::sort - which includes every `using namespace
+    // djinterp;` translation unit - must resolve when the iterator is a
     // standard-library one.  Ordinary lookup finds djinterp::sort; argument-
     // dependent lookup on __normal_iterator<int*, std::vector<int> > would add
     // std::sort, and the two would match equally well.
@@ -65,7 +65,7 @@ bool tests_sort_conformance_qualified_sort_dispatches()
 
     //   The positive control for the probe above: fully qualified, the call
     // is exactly sort(DDefaultSortTag(), ...).  Identical output alone would
-    // not show that -- every correct sort of ints agrees -- so the comparison
+    // not show that - every correct sort of ints agrees - so the comparison
     // COUNT is checked too.
     qualified             = shape_random(128);
     tagged                = qualified;

@@ -6,12 +6,12 @@
 *   The text format is the model's own: a run's parts are its listings as
 * listing_text() lays them out, the same text a saved run's part files hold,
 * so what a terminal shows and what a run folder keeps can be compared with
-* any diff. The JSON format carries the same listings as data -- columns,
-* rows, the note an empty listing has -- beside the run's outcome as fields,
+* any diff. The JSON format carries the same listings as data - columns,
+* rows, the note an empty listing has - beside the run's outcome as fields,
 * so a script reads a run without parsing a table.
 *   JSON TEXT IS UTF-8. Every string is written as UTF-8 with JSON's escapes;
-* a byte that does not belong to a UTF-8 sequence -- a grammar or an input
-* can hold any byte -- is written as the visible escape `\xHH` the listings
+* a byte that does not belong to a UTF-8 sequence - a grammar or an input
+* can hold any byte - is written as the visible escape `\xHH` the listings
 * already use for control characters, since JSON has no way to carry a raw
 * byte, and a document with one in it would not parse.
 *
@@ -96,8 +96,8 @@ std::string json_strings(
 // 1.2.1
 // json_object
 //   class: a JSON object, one member a line, built member by member from
-// values that are already JSON. A value that spans lines -- an object or an
-// array made with the indent of the member it becomes -- nests as it is.
+// values that are already JSON. A value that spans lines - an object or an
+// array made with the indent of the member it becomes - nests as it is.
 class json_object
 {
 public:
@@ -183,8 +183,8 @@ private:
 //------------------------------------------------------------------------------
 // 1.3.1
 // json_listing
-//   function: one part of a run as a JSON object -- its title, its columns,
-// its rows (one row a line, each an array of cells), and its note -- laid
+//   function: one part of a run as a JSON object - its title, its columns,
+// its rows (one row a line, each an array of cells), and its note - laid
 // out for a member `_indent` columns in.
 std::string json_listing(
     const workbench::listing& _listing,
@@ -203,8 +203,8 @@ std::string json_listing(
 // 2.1.1
 // parts_text
 //   function: parts of a run as listing_text() lays them out, in the order
-// given. One part is its listing alone -- what a saved run's part file holds
-// -- and several are each under their title, underlined, with a blank line
+// given. One part is its listing alone - what a saved run's part file holds
+// - and several are each under their title, underlined, with a blank line
 // between one and the next.
 std::string parts_text(
     const workbench::run_record&    _run,

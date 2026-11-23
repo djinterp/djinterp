@@ -5,12 +5,12 @@
 *   A handle is made around a connected MYSQL*, and reads the server's flavor
 * and version from its version string then, once. The connections the layer
 * makes are set up before they connect: a bounded connect timeout, the
-* layer's character set, and LOAD DATA LOCAL off -- it lets a server ask for
+* layer's character set, and LOAD DATA LOCAL off - it lets a server ask for
 * any file the client can read, and libmysqlclient 8.0 already has it off
 * where Connector/C does not. Multiple results are asked for, so that a CALL
 * works through d_mariadb_exec. Where the handshake cannot carry the
-* character set -- libmysqlclient from 8.0 against MariaDB, or MySQL before
-* 8.0 -- it is set again once connected, and again after a change of user.
+* character set - libmysqlclient from 8.0 against MariaDB, or MySQL before
+* 8.0 - it is set again once connected, and again after a change of user.
 * d_mariadb_connect_with applies a program's settings after the layer's
 * defaults, so that one can replace a default, and the handle keeps its init
 * commands and the character set the session began with, which a reset
@@ -894,7 +894,7 @@ int d_internal_mariadb_restore_charset(
 d_internal_mariadb_reason
   Why a connection was not made, in memory the caller releases with
 d_db_free: the client's own words where it has some, which closing the
-connection loses, and the layer's for a refusal of its own -- TLS that a
+connection loses, and the layer's for a refusal of its own - TLS that a
 mode insisted on and did not get, the numbers the layer returns itself, a
 setting it refused; NULL when memory runs out.
 */
@@ -1002,7 +1002,7 @@ int d_mariadb_connect(
 d_internal_mariadb_close_native
   mysql_close, after the one option Connector/C keeps and never frees: the
 server's public key file's name (MYSQL_SERVER_PUBLIC_KEY), which it copies
-when set and lets go only when set again -- to NULL here. libmysqlclient
+when set and lets go only when set again - to NULL here. libmysqlclient
 frees its own.
 */
 static
@@ -1021,8 +1021,8 @@ void d_internal_mariadb_close_native(
 
 /*
 d_mariadb_connect_with
-  The client's handle is made, set up -- the layer's defaults, then the
-settings in order -- connected, wrapped, and its character set settled, in
+  The client's handle is made, set up - the layer's defaults, then the
+settings in order - connected, wrapped, and its character set settled, in
 that order; a failure at any step closes what was made, after its error
 number and its reason are read, since closing would lose them.
 */
@@ -1165,7 +1165,7 @@ d_mariadb_close
 the attributes and init commands it kept, and the statements it kept to
 close later: one whose prepare failed, and those finalized while a run held
 the connection. A run still open ends first; its rest is read only from a
-connection the program keeps, which it gets back free -- unless a call that
+connection the program keeps, which it gets back free - unless a call that
 does not block is under way, whose exchange nothing may interrupt. The statements
 prepared on the connection are left only to be finalized. The client
 statements the handle kept are closed after the connection, which leaves them
@@ -1218,7 +1218,7 @@ d_mariadb_change_user
 attributes, which the layer then frees, whatever the server answers. The new
 session starts from the character set the client names in the request, which
 a reset returns to, and which the servers d_internal_mariadb_loses_charset
-knows of may not have, so it is settled as at connecting -- the client's
+knows of may not have, so it is settled as at connecting - the client's
 current one, which a program may have changed since.
 */
 int d_mariadb_change_user(
@@ -1553,7 +1553,7 @@ statement whose prepare failed closed, which sends nothing; those finalized
 during a run closed, each a packet written with no reply. 0, or 2014 while a
 run or a call that does not block holds the connection. Whether the
 multi-statement mode must go off is left to the operation, which turns it
-off as a step where the client can -- libmysqlclient cannot, and does it
+off as a step where the client can - libmysqlclient cannot, and does it
 here, waiting.
 */
 int d_internal_mariadb_tidy(
@@ -1589,7 +1589,7 @@ int d_internal_mariadb_tidy(
 d_internal_mariadb_mode_off
   The multi-statement mode a failed script left on, turned off as a step:
 stage `_stage` begins it, where it is on, and `_stage` + 1 reads its
-answer. Answers D_DB_WAIT, 0 once off -- or never on -- or the client's
+answer. Answers D_DB_WAIT, 0 once off - or never on - or the client's
 error number.
 */
 int d_internal_mariadb_mode_off(
@@ -1745,8 +1745,8 @@ int d_internal_mariadb_connect_failed(
 
 /*
 d_internal_mariadb_connect_setup
-  As d_mariadb_connect_with sets the client's handle up -- the layer's
-defaults, then the settings in their order -- and the layer's handle around
+  As d_mariadb_connect_with sets the client's handle up - the layer's
+defaults, then the settings in their order - and the layer's handle around
 it, before connecting: its init commands kept, its record made with copies of
 what the connect needs. 0 and the handle; a failure, nothing left behind, the
 reason where wanted.
@@ -2204,7 +2204,7 @@ d_internal_mariadb_user_advance
   0, the multi-statement mode off where a failed script left it on (stages
 0 and 1); 2, the change of user begun; 3, its answer: the attributes
 dropped, the new session's character set noted, and settled where the
-handshake lost it -- which never happens with MariaDB's client, the only
+handshake lost it - which never happens with MariaDB's client, the only
 one that changes user without blocking.
 */
 static
@@ -2795,7 +2795,7 @@ int d_mariadb_connect(
 /*
 d_mariadb_connect_with
   Without a client there is no connection to make: D_DB_UNSUPPORTED, and the
-handle and the reason NULL, as a failure leaves them -- this build's reason
+handle and the reason NULL, as a failure leaves them - this build's reason
 is the result itself.
 */
 int d_mariadb_connect_with(

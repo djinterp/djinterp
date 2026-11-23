@@ -6,7 +6,7 @@
 * of net.h runs over them as it runs over a socket:
 *     - a pipe: two bounded rings joined back to back, whose ends are both
 *       connections. What one end writes the other reads, so a client and a
-*       server -- TLS sessions over them included -- can talk in one thread
+*       server - TLS sessions over them included - can talk in one thread
 *       with no socket at all                                             [2]
 *     - a memory stream: reads from fixed input and writes into a sink, for
 *       feeding a protocol a scripted conversation and keeping its answer [3]
@@ -166,7 +166,7 @@ enum dj_net_error d_net_pipe_init(
     size_t              _capacity_b
 );
 
-// ends and limits -- d_net_pipe_connection returns end _side's connection,
+// ends and limits - d_net_pipe_connection returns end _side's connection,
 // or NULL for a NULL pipe or an unknown side; d_net_pipe_set_chunk caps that
 // end's reads and writes at _chunk bytes, 0 lifting the cap, and ignores a
 // NULL pipe or an unknown side
@@ -220,7 +220,7 @@ struct dj_net_memory
 
 // 3.2    Operations
 //------------------------------------------------------------------------------
-// d_net_memory_init -- an open stream at the start of `_input`, which it
+// d_net_memory_init - an open stream at the start of `_input`, which it
 // borrows, as it does `_output`'s context, with no chunk limit and the end
 // of the stream at the input's end; a NULL `_input` reads as empty, and a
 // NULL `_memory` is ignored

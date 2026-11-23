@@ -5,8 +5,8 @@
 *   Most of what is here works on a value held in the low _width bits of a
 * 64-bit unsigned integer, the widest a C or C++ integer literal can spell.
 * Bits above the width are ignored on the way in and zero on the way out.
-*   A sheet may be wider than any integer -- a bitmap of features, a set of
-* hundreds of flags -- up to MAX_WIDTH bits, and its values are `wide`: as
+*   A sheet may be wider than any integer - a bitmap of features, a set of
+* hundreds of flags - up to MAX_WIDTH bits, and its values are `wide`: as
 * many 64-bit words as the highest set bit needs. The same movements,
 * arithmetic and text work on them, and C holds them as arrays of words.
 *   ENCODINGS are how a field holds a signed number: plain unsigned, two's
@@ -78,8 +78,8 @@ using i64 = re_std::int64_t;
 
 // 1.1.2
 // INTEGER_WIDTH / MAX_WIDTH
-//   constants: the widest C integer, in bits -- the widest value the
-// functions on u64 take -- and the widest sheet.
+//   constants: the widest C integer, in bits - the widest value the
+// functions on u64 take - and the widest sheet.
 const int INTEGER_WIDTH = 64;
 const int MAX_WIDTH     = 65536;
 
@@ -96,7 +96,7 @@ bool is_wide(
 
 // 1.2    Masks and runs
 //------------------------------------------------------------------------------
-// basic masks -- all pure, none allocate; widths outside [0, 64] are clamped
+// basic masks - all pure, none allocate; widths outside [0, 64] are clamped
 // to it
 D_NODISCARD u64 width_mask(
     int _width
@@ -131,7 +131,7 @@ D_NODISCARD bool is_run(
 
 // 1.3    Movement within a width
 //------------------------------------------------------------------------------
-// movement -- each takes and returns a value in the low _width bits
+// movement - each takes and returns a value in the low _width bits
 D_NODISCARD u64 rotate_left(
     u64 _value,
     int _count,
@@ -171,7 +171,7 @@ public:
         u64 _low
     );   // implicit: a narrow value is a wide one
 
-    // construction -- one bit, or a run of them
+    // construction - one bit, or a run of them
     D_NODISCARD static wide bit(
         int _index
     );
@@ -180,7 +180,7 @@ public:
         int _width
     );
 
-    // bits -- out-of-range indices read as clear and are not set
+    // bits - out-of-range indices read as clear and are not set
     D_NODISCARD bool test(
         int _index
     ) const;
@@ -189,14 +189,14 @@ public:
         bool _on = true
     );
 
-    // words -- word 0 holds bits 0..63; past the last, zero
+    // words - word 0 holds bits 0..63; past the last, zero
     D_NODISCARD u64 word(
         int _index
     ) const;
     D_NODISCARD u64 low() const;
     D_NODISCARD int words() const;
 
-    // fields -- up to 64 bits from _lsb, read as an integer and written
+    // fields - up to 64 bits from _lsb, read as an integer and written
     // from one; slice is any run, as a wide value moved down to bit 0
     D_NODISCARD u64 field(
         int _lsb,
@@ -212,7 +212,7 @@ public:
         int _width
     ) const;
 
-    // counting -- lowest and highest are -1, and next is -1 past the last,
+    // counting - lowest and highest are -1, and next is -1 past the last,
     // when no bit is set
     D_NODISCARD bool any() const;
     D_NODISCARD int count() const;
@@ -222,7 +222,7 @@ public:
         int _from
     ) const;
 
-    // width -- whether every set bit lies below it, and the bits above it
+    // width - whether every set bit lies below it, and the bits above it
     // cleared
     D_NODISCARD bool fits(
         int _width
@@ -268,7 +268,7 @@ D_NODISCARD wide operator^(
     const wide& _b
 );
 
-// movement and arithmetic within a width -- each takes and returns a value
+// movement and arithmetic within a width - each takes and returns a value
 // whose set bits lie below _width
 D_NODISCARD wide complement(
     const wide& _value,
@@ -422,7 +422,7 @@ D_NODISCARD i64 decode(
 
 // 3.1    Formatting
 //------------------------------------------------------------------------------
-// formatting -- digits only: no prefix and no suffix; _digits pads with zeros
+// formatting - digits only: no prefix and no suffix; _digits pads with zeros
 D_NODISCARD std::string format_hex(
     u64  _value,
     int  _digits,

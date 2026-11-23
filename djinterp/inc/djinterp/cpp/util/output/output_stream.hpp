@@ -11,14 +11,14 @@
 *   C++98 AND UP, ADDING ONLY. Every member compiles at C++98. C++11 adds the
 * moves and the explicit bool conversion, C++17 string_view; nothing above
 * C++98 replaces anything below it, so the same source builds at every level.
-* The data members are the same at every level -- the C stream and the
-* destination's state -- so a member added above C++98 cannot change the
+* The data members are the same at every level - the C stream and the
+* destination's state - so a member added above C++98 cannot change the
 * layout (decision 3.5's review rule), and all the state is a C struct, the
 * boundary 3.5 already names for mixing.
 *
 *   NOTHING HERE COSTS MORE THAN THE C. Every member is inline and forwards to
 * the kernel; the writes are the kernel's inline paths. Failure is reported by
-* value -- a bool return, with status() and last_errno() to say why -- and
+* value - a bool return, with status() and last_errno() to say why - and
 * nothing throws (D3). There is no OS here: every platform decision was made
 * once, in c/util and c/filesys. Non-copyable at every level, movable from
 * C++11 (D4).
@@ -134,7 +134,7 @@ struct DConsoleChannel
 // value, so in a loop they stay in registers; a full window takes the slow
 // path and comes back with a fresh one. Like any output iterator, keep
 // writing through the one an algorithm returns, and give it back to the
-// stream -- give(), or DOutputStream::give -- before using the stream any
+// stream - give(), or DOutputStream::give - before using the stream any
 // other way.
 class DOutputCursor
 {
@@ -1007,7 +1007,7 @@ protected:
 private:
     // 3.1.8  Implementation
     //--------------------------------------------------------------------------
-    // never copyable -- two owners would close one destination twice
+    // never copyable - two owners would close one destination twice
     D_DELETED_FN(DOutputStream(const DOutputStream& _other))
     D_DELETED_FN(DOutputStream& operator=(const DOutputStream& _other))
 
@@ -1228,7 +1228,7 @@ private:
 // 4.1    DOutputStreamSink
 //------------------------------------------------------------------------------
 // DOutputStreamSink
-//   struct: a callable `(const char*, std::size_t)` over a stream -- the sink
+//   struct: a callable `(const char*, std::size_t)` over a stream - the sink
 // shape writer.hpp, printer.hpp and the document renderers take. Their sinks
 // return nothing, so a failed write is kept by the stream instead: check ok(),
 // or the stream's status, after the renderer has run.

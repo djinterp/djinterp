@@ -37,8 +37,8 @@ namespace re_std
 {
 
 //   align needs an integer that round-trips a pointer. re_std's cstdint
-// provides uintptr_t where the target has one (INTPTR_MAX) -- from C++11
-// today, and at C++98 once it rests on dstdint.h (decision 4.7) -- and
+// provides uintptr_t where the target has one (INTPTR_MAX) - from C++11
+// today, and at C++98 once it rests on dstdint.h (decision 4.7) - and
 // align is absent where it does not.
 #ifdef INTPTR_MAX
 

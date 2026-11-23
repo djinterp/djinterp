@@ -93,7 +93,7 @@ D_NODISCARD size_t d_table_domain_slice_offset(
 
 /*
 d_table_domain_projection_extent
-  the length of the projection along coordinate _r -- over a box domain every
+  the length of the projection along coordinate _r - over a box domain every
   position reaches it, so it is that coordinate's extent.
 
 Parameter(s):
@@ -114,7 +114,7 @@ D_NODISCARD D_INLINE_DEF size_t d_table_domain_projection_extent(
 /*
 d_table_domain_refine
   the finer domain I_T' obtained by subdividing each coordinate by its factor in
-  _factors -- the index-space refinement an ATOMIC SPLIT needs. Every position
+  _factors - the index-space refinement an ATOMIC SPLIT needs. Every position
   of I_T becomes a box of prod_r factor_r positions in I_T'. The projection back
   is d_table_domain_project.
 
@@ -146,7 +146,7 @@ D_NODISCARD D_INLINE_DEF struct dj_table_domain d_table_domain_refine(
 
 /*
 d_table_domain_project
-  pi(i') -- the coarse index a refined index lies over. With the refinement
+  pi(i') - the coarse index a refined index lies over. With the refinement
   above this is coordinatewise integer division by the factor, so pi is total
   and every fibre pi^-1(i) is the box of subpositions of i.
 

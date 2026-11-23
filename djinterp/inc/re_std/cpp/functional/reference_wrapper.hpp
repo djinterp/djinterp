@@ -41,7 +41,7 @@
 #include "re_std/cpp/utility/forward.hpp"
 #include "re_std/cpp/functional/is_reference_wrapper.hpp"
                                     // is_reference_wrapper (+ the fwd decl)
-#include "re_std/cpp/functional/invoke.hpp"            // re_std::invoke -- operator() needs it
+#include "re_std/cpp/functional/invoke.hpp"            // re_std::invoke - operator() needs it
                                     // DECLARED, not merely defined later
 
 namespace re_std

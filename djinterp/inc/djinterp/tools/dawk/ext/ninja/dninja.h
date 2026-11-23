@@ -2,7 +2,7 @@
 * djinterp [c][tools]                                                   dninja.h
 *
 * The Ninja build language, read without loss.
-*   A file of Ninja's -- a build.ninja, a rules.ninja, any file it includes --
+*   A file of Ninja's - a build.ninja, a rules.ninja, any file it includes --
 * read as ninja's own lexer and parser read it: every statement, a variable,
 * a rule, a build, a pool, a default, an include or a subninja, each with
 * its name, its paths in their sections, and the bindings indented beneath
@@ -13,8 +13,8 @@
 *   What ninja's parser refuses of a file on its own is refused here, with
 * ninja's own words and the line ninja gives: a lexing error, a token out of
 * place, a binding a rule or a pool may not have, a rule with no command. What
-* takes more than the one file -- a rule not defined, a pool, an output two
-* builds make -- is dninja_eval's to report, as ninja reports it.
+* takes more than the one file - a rule not defined, a pool, an output two
+* builds make - is dninja_eval's to report, as ninja reports it.
 *   Lines end in LF or CR LF; a lone CR is ninja's lexing error. `$^`, a
 * newline in a value, is read only in a file that requires ninja 1.14 or
 * later, as ninja reads it.
@@ -73,7 +73,7 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 1.1.1
 // D_NINJA_NONE
-//   constant: the index of a record that is not there -- a statement with no
+//   constant: the index of a record that is not there - a statement with no
 //   value, a comment outside every statement.
 #define D_NINJA_NONE ((size_t)-1)
 
@@ -229,8 +229,8 @@ struct dj_ninja_comment
 //   `error_line` and `error` say where and why, in ninja's words, and the
 //   records hold the statements before; `partial` says that the failure
 //   came within a statement, which stands past the last, at
-//   `statements[statement_count]`, as far as it was read -- its name, its
-//   paths, its bindings -- for what ninja would have made of it before it
+//   `statements[statement_count]`, as far as it was read - its name, its
+//   paths, its bindings - for what ninja would have made of it before it
 //   failed.
 struct dj_ninja
 {
@@ -384,7 +384,7 @@ char* d_ninja_escape(
 // path's length and two more; the length written is returned.
 // d_ninja_shell_escape writes a path as ninja writes $in and $out into a
 // command: as it stands when every byte is one a shell takes as itself,
-// and quoted otherwise -- in `'`, each `'` written `'\''`, or, `_win32`,
+// and quoted otherwise - in `'`, each `'` written `'\''`, or, `_win32`,
 // in `"` with backslashes before a quote doubled; the caller frees it.
 size_t d_ninja_canonical(
     const char* _path,

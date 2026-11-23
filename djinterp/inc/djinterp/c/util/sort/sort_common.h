@@ -106,7 +106,7 @@ typedef int (*dj_sort_compare_fn)(const void* _first,
                                  void*       _context);
 
 // dj_sort_comparator
-//   struct: an ordering -- a three-way comparison and the context it reads.
+//   struct: an ordering - a three-way comparison and the context it reads.
 // A comparison that is not a strict weak ordering is a caller error that no
 // algorithm detects; the consequence is an arbitrary arrangement, not an
 // out-of-range access, since every loop is bounded by the element count.

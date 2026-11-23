@@ -94,12 +94,12 @@ struct DOcVal
 // II.  TEST DECLARATIONS
 // ===========================================================================
 
-// -- I.  defopt --
+// - I.  defopt --
 bool defopt_unary();
 bool defopt_with_args();
 bool defopt_multi_arg();
 
-// -- II.  with_option / with_option_as --
+// - II.  with_option / with_option_as --
 bool with_option_as_set_internal();
 bool with_option_add_to_empty();
 bool with_option_add_new_key();
@@ -107,7 +107,7 @@ bool with_option_collision_replaces();
 bool with_option_as_explicit_policy();
 bool with_option_as_strict_same_key();
 
-// -- III.  with_options / with_options_as --
+// - III.  with_options / with_options_as --
 bool with_options_as_delta_set_internal();
 bool with_options_fold_surfaces();
 bool with_options_mixed_surface_and_subset();
@@ -116,7 +116,7 @@ bool with_options_pack_same_key_last_wins();
 bool with_options_empty_pack_is_base();
 bool with_options_as_explicit_policy();
 
-// -- IV.  compose_options / compose_options_as --
+// - IV.  compose_options / compose_options_as --
 bool compose_build_from_empty();
 bool compose_empty();
 bool compose_collision_later_wins();

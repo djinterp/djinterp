@@ -2,8 +2,8 @@
 * djinterp [c]                                                          dmacro.h
 *
 * Comprehensive macro utilities for the djinterp framework.
-*   Most of them are variadic. Without variadic macros -- ISO strict C++98,
-* D_ENV_PP_HAS_VARIADIC_MACROS 0 -- the header keeps only what is not: the
+*   Most of them are variadic. Without variadic macros - ISO strict C++98,
+* D_ENV_PP_HAS_VARIADIC_MACROS 0 - the header keeps only what is not: the
 * configuration constants, the token macros (dmacro_token.h), D_ARRAY_COUNT,
 * and sections XI and XII; the rest is absent, never an error (decision 4.5).
 *   The module also selects generated macro-family variants according to the
@@ -242,7 +242,7 @@ D_ENV_PP_VARIADIC_QUIET_BEGIN
 // =============================================================================
 // 0.   CONFIGURATION SYSTEM
 // =============================================================================
-//   The settings -- the variadic limits, the variant, the family toggles --
+//   The settings - the variadic limits, the variant, the family toggles --
 // and their resolution live in config/c/util/cfg_dmacro.h, the one home the
 // config README gives them. Sections 0.1 to 0.6 are there; 0.7 is below.
 #include "../config/c/util/cfg_dmacro.h"  // D_DMACRO_VARG_MAX, D_DMACRO_VARIANT,

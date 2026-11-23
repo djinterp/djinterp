@@ -225,7 +225,7 @@ struct vector_policy
 ///                TEST DECLARATIONS                                         ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// -- section: configuration & ownership policies (adapter_tests_ownership.cpp)
+// - section: configuration & ownership policies (adapter_tests_ownership.cpp)
 bool tests_feature_gates();
 bool tests_by_reference();
 bool tests_by_pointer();
@@ -233,7 +233,7 @@ bool tests_by_value();
 bool tests_by_shared_ptr();
 bool tests_by_unique_ptr();
 
-// -- section: adaptation traits (adapter_tests_traits.cpp)
+// - section: adaptation traits (adapter_tests_traits.cpp)
 bool tests_has_value_type();
 bool tests_has_size_method();
 bool tests_has_begin_end();
@@ -247,7 +247,7 @@ bool tests_is_structurally_adaptable();
 bool tests_is_invocable_adapter();
 bool tests_adaptation_class();
 
-// -- section: object adapter (adapter_tests_object.cpp)
+// - section: object adapter (adapter_tests_object.cpp)
 bool tests_object_adapter_typedefs();
 bool tests_object_adapter_by_reference();
 bool tests_object_adapter_by_pointer();
@@ -257,7 +257,7 @@ bool tests_object_adapter_by_unique_ptr();
 bool tests_object_adapter_const_access();
 bool tests_object_adapter_forward();
 
-// -- section: class / interface adapters + forwarding (adapter_tests_class_iface.cpp)
+// - section: class / interface adapters + forwarding (adapter_tests_class_iface.cpp)
 bool tests_class_adapter_basic();
 bool tests_class_adapter_polymorphism();
 bool tests_class_adapter_constructors();
@@ -268,7 +268,7 @@ bool tests_interface_adapter_const_adaptee();
 bool tests_forward_as_is();
 bool tests_forward_with_transform();
 
-// -- section: function adapters (adapter_tests_function.cpp)
+// - section: function adapters (adapter_tests_function.cpp)
 bool tests_function_adapter_transform();
 bool tests_function_adapter_transform_const();
 bool tests_function_adapter_passthrough();
@@ -279,7 +279,7 @@ bool tests_argument_adapter();
 bool tests_compose_adapter();
 bool tests_compose_adapter_const();
 
-// -- section: view adapters (adapter_tests_view.cpp)
+// - section: view adapters (adapter_tests_view.cpp)
 bool tests_adapted_ref_basic();
 bool tests_adapted_ref_mutation();
 bool tests_adapted_ref_const();
@@ -288,7 +288,7 @@ bool tests_adapted_view_iteration();
 bool tests_adapted_view_iterator_ops();
 bool tests_adapted_view_size();
 
-// -- section: convenience factories (adapter_tests_factory.cpp)
+// - section: convenience factories (adapter_tests_factory.cpp)
 bool tests_make_object_adapter();
 bool tests_make_owning_adapter();
 bool tests_make_function_adapter_transform();
@@ -298,7 +298,7 @@ bool tests_make_compose();
 bool tests_make_adapted_ref();
 bool tests_make_adapted_view();
 
-// -- section: concept-constrained adapters (adapter_tests_concepts.cpp)
+// - section: concept-constrained adapters (adapter_tests_concepts.cpp)
 bool tests_adaptable_to();
 bool tests_adapter_for();
 bool tests_function_adaptable();

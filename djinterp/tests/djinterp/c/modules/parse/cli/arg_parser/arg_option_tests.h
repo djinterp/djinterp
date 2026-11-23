@@ -5,7 +5,7 @@
 * definition string makes of names, and the names a command refuses; how a
 * name is matched, with case and underscores ignored or not, and the names
 * two options share; an option's text and type name, its counts, defaults
-* -- given as text or as typed values -- relations and validators; how a
+* - given as text or as typed values - relations and validators; how a
 * value is split, how a multi-option policy reduces what was given, and how
 * the values read as one text or as a list; the value a flag name stands
 * for; the callback and a bound variable; and what an option says about its

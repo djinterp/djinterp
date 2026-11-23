@@ -396,7 +396,7 @@ d_text_source_locate(
 /*
 d_text_read
   Reads in doubling chunks rather than asking the file's size, so that a
-file whose size cannot be told -- a pipe -- still reads. A read error is a
+file whose size cannot be told - a pipe - still reads. A read error is a
 failure, not an end.
 */
 char*

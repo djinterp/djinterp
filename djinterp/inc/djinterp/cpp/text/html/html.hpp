@@ -13,7 +13,7 @@
 *   The HTML detection traits (formerly `html_template_traits.hpp`) and
 * the C++20 concept wrappers (formerly `html_template_concepts.hpp`) now
 * live in this header directly, mirroring the XML module. `html.hpp` is a
-* standalone foundation -- it does NOT pull in the templated element /
+* standalone foundation - it does NOT pull in the templated element /
 * document types; `html_template.hpp` is a separate module that includes
 * this header. A single `#include "html.hpp"` brings in the shared types,
 * the trait system, and the concepts together.
@@ -141,7 +141,7 @@ namespace html {
 
 
 // D_HTML_DEFAULT_DOCTYPE
-//   constant: default DOCTYPE string for new documents -- HTML5.
+//   constant: default DOCTYPE string for new documents - HTML5.
 #ifndef D_HTML_DEFAULT_DOCTYPE
     #define D_HTML_DEFAULT_DOCTYPE      "<!DOCTYPE html>"
 #endif
@@ -1607,7 +1607,7 @@ struct is_html_element
 
 
 // is_html_element_loose
-//   trait: looser detection -- any XML element is treated as a
+//   trait: looser detection - any XML element is treated as a
 // candidate HTML element. Used by adapter code that wants to wrap
 // raw XML/DOM types into HTML facades regardless of provenance.
 template<typename Type>
@@ -1674,7 +1674,7 @@ struct is_html_document
 
 
 // is_html_document_loose
-//   trait: looser detection -- any XML document is treated as a
+//   trait: looser detection - any XML document is treated as a
 // candidate HTML document.
 template<typename Type>
 struct is_html_document_loose

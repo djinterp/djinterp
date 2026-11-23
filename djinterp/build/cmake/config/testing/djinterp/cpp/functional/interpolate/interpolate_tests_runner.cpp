@@ -37,7 +37,7 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.07
 ******************************************************************************/
 
-// djinterp -- the suite header lives in the tests tree; this relative depth
+// djinterp - the suite header lives in the tests tree; this relative depth
 // mirrors the per-module runner location under the build/config testing tree.
 #include "../../../../../../../../tests/djinterp/cpp/functional/interpolate_tests.hpp"
 

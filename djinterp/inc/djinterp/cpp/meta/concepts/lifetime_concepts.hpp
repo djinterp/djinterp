@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][meta]                                     lifetime_concepts.hpp
 *
-*   C++20 concepts for the LIFETIME vocabulary -- the `requires`-facing view of
+*   C++20 concepts for the LIFETIME vocabulary - the `requires`-facing view of
 * {traits}.
 *
 *   THE CONCEPTS ADD NO POLICY.  Each is exactly its trait, spelled so it can
@@ -11,7 +11,7 @@
 *   NAMES.  meta/concepts.hpp already owns the general type-level concepts (the
 * `_c` family), and constexpr_iterator_concepts.hpp the constexpr-iteration
 * ones; neither is duplicated here.  Where an obvious name is otherwise taken,
-* the concept takes a form that cannot collide -- a concept and a class of one
+* the concept takes a form that cannot collide - a concept and a class of one
 * name in one namespace is a hard redeclaration.
 *
 *   PORTABILITY:
@@ -51,7 +51,7 @@ NS_DJINTERP
 
 
 // ConstexprLifetimeTyped
-// concept: constexpr-capable -- its lifetime includes the compile-time stage.
+// concept: constexpr-capable - its lifetime includes the compile-time stage.
 // The meta-level predicate; ConstexprContainer is the container view.
 template<typename Type>
 concept ConstexprLifetimeTyped =
@@ -59,14 +59,14 @@ concept ConstexprLifetimeTyped =
 
 
 // RuntimeOnlyLifetimeTyped
-//   concept: the runtime stage EXCLUSIVELY -- not constant-evaluable.
+//   concept: the runtime stage EXCLUSIVELY - not constant-evaluable.
 template<typename Type>
 concept RuntimeOnlyLifetimeTyped =
     is_runtime_only_lifetime_v<clean_t<Type>>;
 
 
 // DualLifetimeTyped
-// concept: spans BOTH stages -- the literal-type case, constexpr-capable and
+// concept: spans BOTH stages - the literal-type case, constexpr-capable and
 // usable at runtime. A fortiori: anything fixed at compile time is available at
 // runtime, so this is the top of the lattice, not a third independent option.
 template<typename Type>
@@ -80,7 +80,7 @@ concept DualLifetimeTyped =
 
 
 // LiteralTyped
-// concept: a literal type by the portable probe -- the general structural
+// concept: a literal type by the portable probe - the general structural
 // signal of constexpr-capability, beneath any opt-in.
 template<typename Type>
 concept LiteralTyped =
@@ -88,7 +88,7 @@ concept LiteralTyped =
 
 
 // DeclaresLifetimeCategory
-//   concept: carries the static `lifetime_category` member -- the opt-in that
+//   concept: carries the static `lifetime_category` member - the opt-in that
 // outranks the structural probe.
 template<typename Type>
 concept DeclaresLifetimeCategory =

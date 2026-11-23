@@ -172,7 +172,7 @@ enum class line_kind
 };
 
 // numbered
-//   a line's leading section number -- "1.", "1.1", "1.1.1" -- its parts
+//   a line's leading section number - "1.", "1.1", "1.1.1" - its parts
 // counted, and what follows it.
 int numbered(
     const std::string& _line,
@@ -253,7 +253,7 @@ line_kind classify_line(
 
     const std::string after = trim(rest);
 
-    // 1.  TITLE -- one part and its dot, two spaces, a title
+    // 1.  TITLE - one part and its dot, two spaces, a title
     if ( (parts == 1) &&
          (dot) &&
          (rest.size() >= 2) &&
@@ -265,7 +265,7 @@ line_kind classify_line(
         return line_kind::heading;
     }
 
-    // 1.1    Title -- two parts, no dot, at least two spaces
+    // 1.1    Title - two parts, no dot, at least two spaces
     if ( (parts == 2) &&
          (!dot) &&
          (rest.compare(0, 2, "  ") == 0) &&
@@ -287,7 +287,7 @@ line_kind classify_line(
 
 // brief_text
 //   a comment block above a definition, as a note. A djinterp brief --
-// the name, then "  category: text" -- is read as one; numbered markers and
+// the name, then "  category: text" - is read as one; numbered markers and
 // doxygen's tags are dropped.
 std::string brief_text(
     const std::vector<std::string>& _lines,
@@ -625,8 +625,8 @@ private:
     }
 
     // read_banner
-    //   a djinterp banner -- a block comment of stars before anything
-    // else -- and the author it names.
+    //   a djinterp banner - a block comment of stars before anything
+    // else - and the author it names.
     void read_banner()
     {
         if ( (m_tokens->empty()) ||
@@ -1678,8 +1678,8 @@ private:
     /*
     name_untitled
       A group no heading named takes the words its names begin with, past
-    those every name in the file begins with -- INTERVAL for
-    D_INTERVAL_A_MEETS_B and its kin -- or, when they share none, the words
+    those every name in the file begins with - INTERVAL for
+    D_INTERVAL_A_MEETS_B and its kin - or, when they share none, the words
     most of them begin with, or else its place.
     */
     void name_untitled()

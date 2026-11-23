@@ -3,7 +3,7 @@
 *
 * is_aggregate trait header:
 *   is_aggregate<T>::value is true iff T is an array type or a class type
-* eligible for aggregate initialisation -- no user-declared or inherited
+* eligible for aggregate initialisation - no user-declared or inherited
 * constructors, no private or protected non-static data members, no
 * virtual functions, no virtual or private or protected base classes.
 *
@@ -13,7 +13,7 @@
 * reimplementation could not track it.
 *
 *   BACK-PORT: std added this in C++17; re_std surfaces it from C++11
-* wherever the compiler publishes the intrinsic -- a six-year lead.
+* wherever the compiler publishes the intrinsic - a six-year lead.
 *
 *   PORTABILITY:
 *   C++11 baseline. The _v spelling is C++14+, as elsewhere.
@@ -68,7 +68,7 @@ namespace re_std
 #if RE_STD_HAS_IS_AGGREGATE
 
 // is_aggregate
-//   trait: intrinsic-backed -- an array or a class with no user-declared constructors.
+//   trait: intrinsic-backed - an array or a class with no user-declared constructors.
 template<typename Type>
 struct is_aggregate : integral_constant<bool, __is_aggregate(Type)>
 {};

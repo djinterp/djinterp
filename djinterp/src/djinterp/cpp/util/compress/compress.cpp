@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][utility]                                           compress.cpp
 *
-*   The C++ facade's dispatch leaves -- three adapters, and nothing else.
+*   The C++ facade's dispatch leaves - three adapters, and nothing else.
 *
 *   WHAT THIS FILE USED TO BE:
 *   Every backend: zlib, bzip2, liblzma, zstd, lz4, brotli, each with an
@@ -12,7 +12,7 @@
 * but ONE place where a compression result is computed.
 *
 *   WHAT AN ADAPTER DOES:
-*   Exactly two things -- turn a byte_blob into a dj_pack_sink, and call the
+*   Exactly two things - turn a byte_blob into a dj_pack_sink, and call the
 * kernel.  Nothing here decides a default, selects a backend, or knows what a
 * codec is.  If a change to this file would move an output byte, the change
 * belongs in the kernel instead.
@@ -20,14 +20,14 @@
 *   ONE PASS, NOT TWO:
 *   The kernel's buffer form measures and then produces, which costs a full
 * encode twice.  This file does not use it.  A byte_blob can grow, so the
-* adapters bind a sink that appends directly and the encoder runs once -- which
+* adapters bind a sink that appends directly and the encoder runs once - which
 * is what keeps the C++ facade from being slower than a native C++
 * implementation would have been.  A wrapper that costs a pass over what it
 * wraps is a defect, not a tradeoff.
 *
 *   THE AUTOLINK INCLUDE MUST STAY.  env_compress_link.h turns each detected
 * library into a link request on MSVC, and it reacts to whichever env headers
-* the translation unit has already included -- so it goes AFTER the facade, and
+* the translation unit has already included - so it goes AFTER the facade, and
 * only in an implementation unit.  compress_common.c carries the same include
 * for the C fork.
 *
@@ -53,7 +53,7 @@ namespace internal
 
 // blob_sink_write
 //   function: the sink write that appends into a byte_blob.  Never refuses, so
-// a short write -- which the kernel treats as a sink failure -- can only happen
+// a short write - which the kernel treats as a sink failure - can only happen
 // if std::string::append throws, and that propagates rather than returning.
 //
 //   This is the whole reason dj_pack_sink carries a context pointer.
@@ -99,7 +99,7 @@ compress_buffer
   Compress [_in, _in + _n) with codec _id into _out.
 
   _out is CLEARED first.  The kernel appends, and a caller reusing a blob
-across calls would otherwise silently concatenate -- which produces a stream
+across calls would otherwise silently concatenate - which produces a stream
 that is still valid for its first member and wrong for everything after it.
 
 Parameter(s):

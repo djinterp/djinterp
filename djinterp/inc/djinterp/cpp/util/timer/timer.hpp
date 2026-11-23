@@ -6,7 +6,7 @@
 * types. A timer can be started, stopped, queried for elapsed time, and
 * optionally bounded by a maximum duration after which it is considered
 * expired. It shares the five operations every counter and timer in djinterp
-* has -- increment and decrement, which add and remove time directly;
+* has - increment and decrement, which add and remove time directly;
 * compare, by elapsed time; merge, which adds another timer's elapsed time;
 * and reset.
 *   Its thread-safe forms are atomic_timer.hpp and mutex_timer.hpp; the

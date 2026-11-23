@@ -1,4 +1,4 @@
-# array family unit test suite -- leaf recipe (header-only module, no src/).
+# array family unit test suite - leaf recipe (header-only module, no src/).
 #
 #   One executable for container/array/: array<>, its options, traits,
 # concepts and iterators, and the four concurrent wrappers.  The section TUs

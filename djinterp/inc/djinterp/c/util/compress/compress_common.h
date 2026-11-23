@@ -8,15 +8,15 @@
 *
 *   THE THREE-FILE SPLIT:
 *     compress_common.h / .c   this kernel, compiled by BOTH languages.
-*     compress.h               the C face      -- macros, _Generic, builders.
-*     compress.hpp / .cpp      the C++ face    -- byte_blob, tags, try_*.
+*     compress.h               the C face      - macros, _Generic, builders.
+*     compress.hpp / .cpp      the C++ face    - byte_blob, tags, try_*.
 *   A header that must compile in both languages includes THIS file.  Only
 * language-specific code reaches for a face, and a face never computes anything
 * the other language cannot: if a change to a face would move an output byte,
 * the change belongs here instead.
 *
 *   compress_common.c is compiled once and linked by both, which is what
-* D_EXTERN_C_BEGIN below is for -- see cfg_qualifiers.h on
+* D_EXTERN_C_BEGIN below is for - see cfg_qualifiers.h on
 * D_CFG_EXTERN_C_LINKAGE for the one case where that is not what you want.
 *
 *   WHAT LIVES HERE:
@@ -54,7 +54,7 @@
 * codec and not two.
 *
 *   WHY NOT fn_write:
-*   djinterp.h's fn_write is `size_t (*)(char* const, size_t)` -- no context
+*   djinterp.h's fn_write is `size_t (*)(char* const, size_t)` - no context
 * pointer, so it cannot drive a growable buffer or a file handle without
 * global mutable state.  struct dj_pack_sink carries a context and is otherwise
 * the same idea.
@@ -77,7 +77,7 @@
 *   Every knob defaults to D_COMPRESS_KNOB_UNSET rather than to a number.  A
 * backend's own default differs between libraries and between versions of one
 * library, so letting the backend choose would break parity for environmental
-* reasons -- the same defect already recorded against the BUILTIN backend.
+* reasons - the same defect already recorded against the BUILTIN backend.
 * d_compress_options_resolve substitutes the core's pinned default for every
 * UNSET knob, and both faces call it before dispatching, so C and C++ hand the
 * backend byte-identical parameters.
@@ -177,9 +177,9 @@ TABLE OF CONTENTS
 
 
 //   cfg_qualifiers.h lets a project take ownership of the D_EXTERN_C family by
-// setting D_CFG_DEFINE_EXTERN_C to 0.  This header needs it -- every
+// setting D_CFG_DEFINE_EXTERN_C to 0.  This header needs it - every
 // declaration below must carry C linkage so one compiled object serves both
-// languages -- so say so in one sentence rather than failing as a cascade of
+// languages - so say so in one sentence rather than failing as a cascade of
 // syntax errors fifty lines further down.
 #if !defined(D_EXTERN_C_BEGIN)
     #error "compress_common.h needs D_EXTERN_C_BEGIN; \
@@ -193,9 +193,9 @@ D_EXTERN_C_BEGIN
 // 1.  STATUS
 //==============================================================================
 //   Two kinds of failure, kept apart on purpose.  A FORMAL failure says the
-// operation is not defined -- this codec was not compiled in, this stream is
+// operation is not defined - this codec was not compiled in, this stream is
 // not what it claims to be.  A MECHANICAL failure says the operation is
-// defined and the machinery ran short -- the buffer was small, the backend
+// defined and the machinery ran short - the buffer was small, the backend
 // could not allocate.  Reporting them identically reads as correct behaviour
 // and is not, so they occupy disjoint numeric ranges: formal below 0x100,
 // mechanical at or above it.  A caller that only wants to know "can I retry
@@ -209,10 +209,10 @@ D_EXTERN_C_BEGIN
 // archive_common.h, which builds on this header.
 enum dj_pack_status
 {
-    // -- success ------------------------------------------------------------
+    // - success ------------------------------------------------------------
     D_PACK_STATUS_OK                = 0,
 
-    // -- formal: the operation is not defined -------------------------------
+    // - formal: the operation is not defined -------------------------------
     D_PACK_STATUS_UNAVAILABLE       = 0x001,
     D_PACK_STATUS_UNSUPPORTED       = 0x002,
     D_PACK_STATUS_INVALID_ARGUMENT  = 0x003,
@@ -220,7 +220,7 @@ enum dj_pack_status
     D_PACK_STATUS_TRUNCATED_INPUT   = 0x005,
     D_PACK_STATUS_WRONG_PASSWORD    = 0x006,
 
-    // -- mechanical: the operation is defined, the machinery ran short ------
+    // - mechanical: the operation is defined, the machinery ran short ------
     D_PACK_STATUS_BUFFER_TOO_SMALL  = 0x100,
     D_PACK_STATUS_NO_MEMORY         = 0x101,
     D_PACK_STATUS_SINK_ERROR        = 0x102,
@@ -293,7 +293,7 @@ enum dj_codec_id
 // 2.1.3
 // D_CODEC_ID_IS_VALID
 //   macro: 1 when _c names a codec this framework knows.  Says nothing about
-// whether the build can perform it -- that is d_codec_is_available.
+// whether the build can perform it - that is d_codec_is_available.
 #define D_CODEC_ID_IS_VALID(_c)                                                \
     ( ((int)(_c) >= 0) && ((int)(_c) < D_CODEC_ID_COUNT) )
 
@@ -324,7 +324,7 @@ int d_codec_id_from_name(
 // D_COMPRESS_KNOB_UNSET
 //   constant: the pristine value of every knob.  Chosen as INT32_MIN because
 // no codec parameter can legitimately take it, so it can never collide with a
-// caller's intent -- unlike 0 or -1, both of which are meaningful to several
+// caller's intent - unlike 0 or -1, both of which are meaningful to several
 // codecs.  d_compress_options_resolve replaces it with the pinned default.
 #define D_COMPRESS_KNOB_UNSET       INT32_MIN
 
@@ -459,7 +459,7 @@ enum dj_brotli_mode
 // 4.  OPTION LAYOUT
 //==============================================================================
 //   Fifty-one knobs: one generic effort plus seven per-codec blocks of 3, 4,
-// 11, 19, 7, 5 and 1.  Declaration order is normative -- it is the knob-table
+// 11, 19, 7, 5 and 1.  Declaration order is normative - it is the knob-table
 // order, the diff-report order, and the serialisation order, and the C++
 // face's field list must match it member for member.
 
@@ -577,7 +577,7 @@ struct dj_gzip_options
 
 // 4.1.8
 // dj_compress_options
-//   struct: the whole codec-tuning surface -- the generic effort plus every
+//   struct: the whole codec-tuning surface - the generic effort plus every
 // per-codec block.  Plain data, no allocation, trivially copyable, and
 // byte-identical under C and C++.  A pristine set has every knob at
 // D_COMPRESS_KNOB_UNSET; see D_COMPRESS_OPTIONS_INIT.
@@ -595,7 +595,7 @@ struct dj_compress_options
 
 // 4.1.9
 // D_COMPRESS_OPTIONS_INIT
-//   macro: the pristine initialiser -- every knob UNSET.  Written as a nested
+//   macro: the pristine initialiser - every knob UNSET.  Written as a nested
 // brace initialiser so a caller may declare a const option set at file scope
 // with no runtime step:
 //     static const struct dj_compress_options k_opt = D_COMPRESS_OPTIONS_INIT;
@@ -697,7 +697,7 @@ D_STATIC_ASSERT(offsetof(struct dj_compress_options, gzip) ==
 //
 //   Because the struct is asserted to be exactly fifty-one int32_t with no
 // padding,
-// the offset table is the IDENTITY -- knob k lives at byte offset
+// the offset table is the IDENTITY - knob k lives at byte offset
 // k * sizeof(int32_t), verified: D_COMPRESS_KNOB_ZSTD_WINDOW_LOG is 20 and
 // offsetof(struct dj_compress_options, zstd.window_log) is 80.  So
 // d_compress_knob_offset needs no stored table and cannot fall out of step with
@@ -827,7 +827,7 @@ int d_compress_options_knob_set(
 //   d_compress_options_diff walks the knob table and writes the index of each
 // differing knob into _out_knobs, returning the count.  Pass _out_knobs ==
 // NULL to count only.  Rendering those indices as text ("zstd.window_log") is
-// d_compress_knob_name's job, and formatting the list is the caller's -- the
+// d_compress_knob_name's job, and formatting the list is the caller's - the
 // core reports the difference, it does not choose a presentation.
 
 // 6.1    Option-set operations
@@ -915,7 +915,7 @@ size_t d_codec_available_list(
 // assert it rather than treat it as a gap.
 //
 //   d_pack_crc32 is here rather than in archive_common.h because BOTH layers
-// need it -- the gzip trailer carries a CRC32 of the uncompressed data, and
+// need it - the gzip trailer carries a CRC32 of the uncompressed data, and
 // every ZIP local header and central-directory record carries one per entry.
 // Defining it once in the lower layer is what stops the two from becoming two
 // implementations of one formal object.  It is the standard IEEE 802.3

@@ -13,8 +13,8 @@
 * counted even after one has failed, so a single run reports the full damage
 * rather than the first symptom.
 *
-*   Determinism is a hard requirement -- a coverage run has to be
-* reproducible -- so the randomised inputs come from a local
+*   Determinism is a hard requirement - a coverage run has to be
+* reproducible - so the randomised inputs come from a local
 * linear-congruential generator rather than <random> (whose distributions are
 * not specified bit-for-bit) or std::rand (whose sequence is implementation
 * defined).
@@ -69,7 +69,7 @@ class verdict
 {
 public:
     // verdict
-    //   ctor: an empty verdict -- vacuously true.
+    //   ctor: an empty verdict - vacuously true.
     verdict()
         : m_ok(true),
           m_checks(0),
@@ -155,7 +155,7 @@ DKeyedValue make_keyed(
 
 // operator<
 //   function: lexicographic ordering on (key, tag).  This is a TOTAL order,
-// used only by the permutation oracle -- never as the sort comparator, since
+// used only by the permutation oracle - never as the sort comparator, since
 // a total order would make stability unobservable.
 inline
 bool operator<(
@@ -380,7 +380,7 @@ DCountingComparator<Compare> make_counting(
 }
 
 // DAffirmationCounter
-//   class: wraps a comparator and counts the calls that answered TRUE -- the
+//   class: wraps a comparator and counts the calls that answered TRUE - the
 // precedences the comparator affirmed.
 //
 //   An exchange-based algorithm moves elements exactly when its comparator
@@ -486,7 +486,7 @@ bool is_sorted_range(
 // is_permutation_of
 //   function: true when _a and _b hold the same elements with the same
 // multiplicities.  The oracle sorts copies of both with the standard library
-// and compares -- an independent implementation, so a bug in the subsystem
+// and compares - an independent implementation, so a bug in the subsystem
 // cannot mask itself.
 template<typename Type>
 bool is_permutation_of(
@@ -554,7 +554,7 @@ bool is_stable_result(
 
 // is_max_heap
 //   function: true when [_first, _last) satisfies the max-heap invariant
-// under _compare -- no parent strictly precedes a child.  Used to validate
+// under _compare - no parent strictly precedes a child.  Used to validate
 // heap_sift_down in isolation from the full sort.  The range spelling matches
 // is_sorted_range above, so the heap suites probe a shrinking heap the same
 // way every other predicate here takes a range.
@@ -651,7 +651,7 @@ private:
 const std::size_t battery_shape_count = 10;
 
 // shape_ascending
-//   function: 0, 1, 2, ... -- the adaptive best case, and the input on which
+//   function: 0, 1, 2, ... - the adaptive best case, and the input on which
 // an early-exit pass must terminate after a single sweep.
 inline
 std::vector<int> shape_ascending(
@@ -672,7 +672,7 @@ std::vector<int> shape_ascending(
 }
 
 // shape_descending
-//   function: the strict reverse -- the quadratic worst case, and the input
+//   function: the strict reverse - the quadratic worst case, and the input
 // that forces the maximum number of swaps.
 inline
 std::vector<int> shape_descending(
@@ -714,7 +714,7 @@ std::vector<int> shape_constant(
 }
 
 // shape_two_valued
-//   function: alternating 0 and 1 -- maximal duplication with a real
+//   function: alternating 0 and 1 - maximal duplication with a real
 // inversion count.
 inline
 std::vector<int> shape_two_valued(
@@ -755,7 +755,7 @@ std::vector<int> shape_few_unique(
 }
 
 // shape_sawtooth
-//   function: repeated ascending runs of sixteen -- many already-ordered
+//   function: repeated ascending runs of sixteen - many already-ordered
 // stretches separated by single large drops.
 inline
 std::vector<int> shape_sawtooth(
@@ -776,7 +776,7 @@ std::vector<int> shape_sawtooth(
 }
 
 // shape_organ_pipe
-//   function: ascending to the midpoint then descending -- the median of
+//   function: ascending to the midpoint then descending - the median of
 // three lands on the maximum, the pathological pivot choice.
 inline
 std::vector<int> shape_organ_pipe(
@@ -1015,7 +1015,7 @@ std::size_t battery_size_at(
 }
 
 // standard_battery
-//   function: the cross-product of every length and every shape -- the
+//   function: the cross-product of every length and every shape - the
 // shared int corpus each algorithm is driven over.
 inline
 std::vector<DBatteryCase> standard_battery()
@@ -1143,7 +1143,7 @@ std::vector<DKeyedBatteryCase> keyed_battery()
 // catches a dropped or duplicated element that an ordering check alone would
 // miss.
 //
-//   Sorter is anything callable as _sorter(begin, end) -- a function pointer
+//   Sorter is anything callable as _sorter(begin, end) - a function pointer
 // adapter or a functor.
 template<typename Sorter,
          typename Compare>
@@ -1220,7 +1220,7 @@ bool verify_battery_raw(
 
 // verify_stability_battery
 //   function: drives _sorter over the keyed corpus and checks ordering,
-// permutation, and -- when _expect_stable -- that equivalents kept their
+// permutation, and - when _expect_stable - that equivalents kept their
 // input order.
 //
 //   The stability check is asserted only for algorithms that claim it: an
@@ -1266,10 +1266,10 @@ bool verify_stability_battery(
 
 // D_TESTS_SORT_ORDERED_PROBE
 //   macro: for the entry point FN, defines
-//     NAME_ordered_probe<It, Cmp>        -- true_type iff
+//     NAME_ordered_probe<It, Cmp>        - true_type iff
 //                                           FN(It, It, Cmp, sort_order::value)
 //                                           is a viable call
-//     NAME_call_ordered(..., tag)        -- tag-dispatched invocation
+//     NAME_call_ordered(..., tag)        - tag-dispatched invocation
 //
 //   The six *_sort_ordered entry points are meant to share one shape, and a
 // generic caller swapping one algorithm for another leans on that.  Naming an

@@ -3,8 +3,8 @@
 *
 * Implementation of mongodb_query.h.
 *   A command runs through mongoc_client_command_with_opts, which applies
-* none of the client's concerns or preference -- the command runs as written
-* -- on the primary. A write's count is read by what the command is, its
+* none of the client's concerns or preference - the command runs as written
+* - on the primary. A write's count is read by what the command is, its
 * first field: insert, update, delete and findAndModify count their
 * documents, and no other command writes any, though count's reply has an
 * n too.

@@ -5,7 +5,7 @@
 *   The magnitude of a duration, as a duration of the same type.
 *
 *   CONSTRAINED TO SIGNED REPRESENTATIONS:
-*   For an unsigned rep the operation is meaningless -- every value is
+*   For an unsigned rep the operation is meaningless - every value is
 * already its own magnitude, and negating one would wrap. The standard
 * constrains it on numeric_limits<Rep>::is_signed, and expressing that as
 * SFINAE means abs(an_unsigned_duration) does not match rather than
@@ -14,7 +14,7 @@
 *   THE ONE VALUE WITH NO MAGNITUDE:
 *   abs(duration::min()) is undefined behaviour, for the same reason
 * abs(INT_MIN) is: on a two's complement rep the most negative count has
-* no representable negation. re_std adds no check, matching std -- a
+* no representable negation. re_std adds no check, matching std - a
 * branch on every call to catch one input would be the wrong trade, and
 * the check the caller actually wants is usually a range assertion
 * further out. It is named here so it is known rather than discovered.

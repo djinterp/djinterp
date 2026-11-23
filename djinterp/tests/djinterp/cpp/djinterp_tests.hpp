@@ -127,7 +127,7 @@ struct throwing_move
 //   test declarations (grouped by the section of djinterp.hpp they cover)
 // ===========================================================================
 
-// I & II -- keyword, namespace, and qualifier macros
+// I & II - keyword, namespace, and qualifier macros
 bool tests_macros_keywords();
 
 bool tests_macros_namespaces();
@@ -136,45 +136,45 @@ bool tests_macros_constexpr_qualifiers();
 
 bool tests_macros_noexcept();
 
-// III.i -- void_t
+// III.i - void_t
 bool tests_void_t_aliases_to_void();
 
 bool tests_void_t_detection_idiom();
 
-// III.ii -- abs_value / abs_value_v / abs_value_to_size_t
+// III.ii - abs_value / abs_value_v / abs_value_to_size_t
 bool tests_abs_value_struct();
 
 bool tests_abs_value_v();
 
 bool tests_abs_value_to_size_t();
 
-// III.iii -- clean / clean_t
+// III.iii - clean / clean_t
 bool tests_clean_basic();
 
 bool tests_clean_edges();
 
 bool tests_clean_t_alias();
 
-// III.iv -- constexpr_swap
+// III.iv - constexpr_swap
 bool tests_constexpr_swap_runtime();
 
 bool tests_constexpr_swap_constexpr();
 
 bool tests_constexpr_swap_noexcept();
 
-// III.v -- repeat_type / repeat_type_t (+ internal repeat_type_helper)
+// III.v - repeat_type / repeat_type_t (+ internal repeat_type_helper)
 bool tests_repeat_zero();
 
 bool tests_repeat_counts();
 
 bool tests_repeat_t_alias_and_types();
 
-// III.vi.a-d -- self / is_self / is_self_v
+// III.vi.a-d - self / is_self / is_self_v
 bool tests_self_is_self_positive();
 
 bool tests_self_is_self_negative();
 
-// III.vi.e-f -- resolve_self / resolve_self_t (+ specializations)
+// III.vi.e-f - resolve_self / resolve_self_t (+ specializations)
 bool tests_resolve_self_passthrough();
 
 bool tests_resolve_self_marker();

@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/filesys/CMakeLists.txt
+# djinterp [test]  -  build/cmake/config/testing/djinterp/c/filesys/CMakeLists.txt
 #
 #   Test leaf for the fs subframework's C unit tests (c/filesys/file_*),
 # written in DTest's C face (c/modules/test/test_suite.h).
@@ -35,7 +35,7 @@ set(_src_dir   "${DJINTERP_SRC_ROOT}/djinterp/c/filesys")
 # d_tests_file_run_all (file_tests.c) builds. This glob also picks up
 # file_tests_util.c (the shared environment helpers). The test header
 # file_tests.h is not matched (.h), and the runner is in THIS config
-# directory -- added explicitly below -- so it is not matched either.
+# directory - added explicitly below - so it is not matched either.
 file(GLOB _sections CONFIGURE_DEPENDS "${_tests_dir}/file_tests*.c")
 
 # The production sources under test (C).

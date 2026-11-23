@@ -117,7 +117,7 @@ int32_t reject_single(
     //   C++ `DStrictSubset` fires a static_assert here. C reports a FORMAL
     // status, so a caller inspecting the range learns the merge was ill-formed
     // rather than under-provisioned. Same invariant, different enforcement
-    // tier -- goal 2 permits exactly this.
+    // tier - goal 2 permits exactly this.
     return -((int32_t)D_OPTION_STATUS_POLICY_REJECTED);
 }
 
@@ -345,7 +345,7 @@ struct dj_option_result d_option_set_override(
         }
     }
 
-    //   pass two: extensions -- keys the delta has and the base does not.
+    //   pass two: extensions - keys the delta has and the base does not.
     // Reached only for keys that genuinely are extensions, which is where the
     // C++ engine needs its SFINAE laziness wrapper and C needs nothing.
     for (i = 0u; i < _delta->count; ++i)
@@ -471,7 +471,7 @@ struct dj_option_result d_option_set_compose(
         return d_option_fail((int32_t)D_OPTION_STATUS_INVALID_ARGUMENT);
     }
 
-    //   COMPOSITION IS REPEATED OVERRIDE -- a LEFT FOLD, which is well defined
+    //   COMPOSITION IS REPEATED OVERRIDE - a LEFT FOLD, which is well defined
     // precisely because (+) is associative (see the header, section V). This
     // is a loop and not a second engine.
     target = _out;

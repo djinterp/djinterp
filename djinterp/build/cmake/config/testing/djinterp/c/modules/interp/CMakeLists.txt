@@ -1,10 +1,10 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/modules/interp/CMakeLists.txt
+# djinterp [test]  -  build/cmake/config/testing/djinterp/c/modules/interp/CMakeLists.txt
 #
 #    Test leaf for modules/interp/djin.h, in DTest's C face: the runner in this
 # directory, the suite's units globbed from the tests tree, the source under
-# test and what it reaches -- option_env and its registry, the option core
-# under them -- and DTest's C face, which djinterp_c_runtime does not yet
+# test and what it reaches - option_env and its registry, the option core
+# under them - and DTest's C face, which djinterp_c_runtime does not yet
 # carry. The runtime carries sink_common.c, which the text writes through.
 #    Run it with
 #        ctest -R c_djin_tests

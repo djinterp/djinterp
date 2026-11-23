@@ -1507,7 +1507,7 @@ void d_tests_event_staging(void)
     (void)d_event_registry_compile_into(&r, k, steps, 4u, &word);
 
 #if (D_INTERNAL_EVENT_REGISTRY_RUN == 1)
-    // COHERENCE LAW: run and drive agree on a registry held fixed -- in
+    // COHERENCE LAW: run and drive agree on a registry held fixed - in
     // occurrences, consumes, side effects and their order
     {
         int                   first[4]  = { 0, 1, 2, 3 };

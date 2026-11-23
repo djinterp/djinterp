@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][parse]                                           free_tests.hpp
 *
-*   Declarations and shared fixtures for the parser/free.hpp unit suite -- the
+*   Declarations and shared fixtures for the parser/free.hpp unit suite - the
 * three "free" strata over the parser carrier: FreeAp (applicative), FreeSel
 * (selective), and Free (monadic), plus lift_to_program / to_parser and the
 * cross-stratum lifts.
@@ -42,7 +42,7 @@
 #include <string>       // std::string
 #include <type_traits>  // std::is_same, for the units
 // djinterp
-// djinterp -- the header under test (which pulls in parse.hpp / parser.hpp /
+// djinterp - the header under test (which pulls in parse.hpp / parser.hpp /
 //   the functional companion), plus the DTest authoring + runner surface.
 //   NOTE: include paths are rooted at the djinterp include directory; adjust to
 //   match your build tree.

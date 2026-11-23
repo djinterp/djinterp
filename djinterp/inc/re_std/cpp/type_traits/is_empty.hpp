@@ -58,7 +58,7 @@ namespace re_std
 #if RE_STD_HAS_IS_EMPTY
 
 // is_empty
-//   trait: intrinsic-backed -- a class type occupying no storage of its own.
+//   trait: intrinsic-backed - a class type occupying no storage of its own.
 template<typename Type>
 struct is_empty : integral_constant<bool, __is_empty(Type)>
 {};

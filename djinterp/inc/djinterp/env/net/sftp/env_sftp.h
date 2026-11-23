@@ -4,7 +4,7 @@
 * SFTP environment detection.
 *   What the SFTP client needs to reach a server: SFTP rides the "sftp"
 * subsystem of an SSH channel, so it needs an SSH connection, which env_ssh.h
-* judges -- a usable SSH library and a TCP transport. The codec and client
+* judges - a usable SSH library and a TCP transport. The codec and client
 * contain no OS code of their own, and over any other net.h connection
 * (d_sftp_client_open_connection) they need nothing from here at all.
 *   Include it after the framework root.
@@ -47,7 +47,7 @@ TABLE OF CONTENTS
 // 1.1.1
 // D_ENV_SFTP_HAS_SSH
 //   flag: 1 when an SSH connection can be made here, as env_ssh.h judges it:
-// a usable library -- libssh2, libssh, or wolfSSH -- and a TCP transport.
+// a usable library - libssh2, libssh, or wolfSSH - and a TCP transport.
 #ifndef D_ENV_SFTP_HAS_SSH
     #if D_ENV_SSH_AVAILABLE
         #define D_ENV_SFTP_HAS_SSH 1

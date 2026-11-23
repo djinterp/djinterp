@@ -11,7 +11,7 @@
 *   three_way_comparable<T, weak_ordering> is satisfied by a type whose
 * <=> yields strong_ordering, because a strong ordering IS a weak one.
 * It is NOT satisfied by one yielding partial_ordering. That direction is
-* the whole point -- a caller asking for weak_ordering is saying "I need
+* the whole point - a caller asking for weak_ordering is saying "I need
 * at least this much", and the check is written through
 * common_comparison_category, which computes the weakest of the two and
 * compares it to the requested category.
@@ -19,7 +19,7 @@
 *   The default is partial_ordering, the weakest, so a bare
 * three_way_comparable<T> asks only that <=> exist and be usable.
 *
-*   C++20 ONLY -- NO BACK-PORT IS POSSIBLE:
+*   C++20 ONLY - NO BACK-PORT IS POSSIBLE:
 *   Both `concept` and `operator<=>` are language features. There is no
 * C++11 spelling of either, so this header gates itself out below C++20
 * rather than shipping a trait-shaped approximation that would accept
@@ -70,22 +70,22 @@ namespace internal
 
     // compares_as
     //   concept: Comp is a comparison category at least as strong as
-    // Cat. Folds the two through common_comparison_category -- which
-    // yields the WEAKER of them -- and asks whether the result is still
+    // Cat. Folds the two through common_comparison_category - which
+    // yields the WEAKER of them - and asks whether the result is still
     // Cat. If Comp were weaker, the fold would produce Comp and the
     // same_as check would fail.
     //
     //   THE CATEGORIES HERE ARE std::, NOT re_std::, AND THEY MUST BE:
     //   re_std::partial_ordering is re_std's OWN class, back-ported to
     // C++11. The builtin operator<=> is a LANGUAGE feature and yields
-    // std::strong_ordering -- the language will never produce an re_std
+    // std::strong_ordering - the language will never produce an re_std
     // category, so a concept whose entire subject is `decltype(a <=> b)`
     // has to speak std's vocabulary or match nothing at all. That was the
     // first version of this file: it folded a std category against an
     // re_std one, got void, and rejected `int`.
     //
     //   This is consistent with the rest of the module rather than a
-    // departure from it -- compare_three_way_result already documents its
+    // departure from it - compare_three_way_result already documents its
     // result as std::strong_ordering, for the same reason.
     //
     //   The consequence to know: pass std::weak_ordering as the category

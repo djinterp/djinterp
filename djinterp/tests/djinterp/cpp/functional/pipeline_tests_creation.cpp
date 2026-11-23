@@ -2,7 +2,7 @@
 * djinterp [cpp][functional]                         pipeline_tests_creation.cpp
 *
 * Pipeline creation tests (section i):
-*   test_creation -- default ctor, from(container/vector&&/init-list/raw
+*   test_creation - default ctor, from(container/vector&&/init-list/raw
 *                    array), of(variadic), and error().
 *
 *
@@ -37,21 +37,21 @@ bool test_creation()
         def.size() == 0 && def.empty() && !def.has_error(),
         "create: default constructor is empty and error-free");
 
-    // from(container) -- generic lvalue container (std::list)
+    // from(container) - generic lvalue container (std::list)
     std::list<int> lst = { 1, 2, 3 };
     pi from_list = pi::from(lst);
     record_assertion(verdict,
         from_list.to_vector() == std::vector<int>({ 1, 2, 3 }),
         "create: from(container) copies a generic container");
 
-    // from(container) -- lvalue vector
+    // from(container) - lvalue vector
     std::vector<int> vec = { 4, 5 };
     pi from_vec = pi::from(vec);
     record_assertion(verdict,
         from_vec.to_vector() == std::vector<int>({ 4, 5 }),
         "create: from(container) copies an lvalue vector");
 
-    // from(vector&&) -- move overload
+    // from(vector&&) - move overload
     pi from_moved = pi::from(std::vector<int>({ 6, 7, 8 }));
     record_assertion(verdict,
         from_moved.to_vector() == std::vector<int>({ 6, 7, 8 }),

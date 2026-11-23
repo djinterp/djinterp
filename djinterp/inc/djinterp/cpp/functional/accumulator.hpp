@@ -307,7 +307,7 @@ make_accumulator(
 
 NS_INTERNAL
 
-    // (the detection idiom -- is_detected, detected_or_t, nonesuch -- is
+    // (the detection idiom - is_detected, detected_or_t, nonesuch - is
     // core/meta/type_traits.hpp's, included above; this header kept its own
     // copy, which no translation unit could include beside that one's)
 

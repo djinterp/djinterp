@@ -14,11 +14,11 @@
 //
 //   The hard part of this strategy is a structural one, and it is worth stating
 // plainly because it is what both of this section's bugs came from.  The element's
-// accept() receives the visitor TYPE-ERASED, as visitor_base<R>& -- and
+// accept() receives the visitor TYPE-ERASED, as visitor_base<R>& - and
 // visitor_base<R> declares no visit() at all.  So accept() has to recover the
 // concrete per-type interface, visitor_of_impl<R, ThisType>, from a reference to
 // a base that knows nothing about it.  Those two are SIBLING bases within the
-// concrete visitor, not base and derived, so the recovery is a CROSS-CAST -- and
+// concrete visitor, not base and derived, so the recovery is a CROSS-CAST - and
 // it only works if two things hold at once:
 //
 //     1.  visitor_of_impl<R, X> is genuinely a base of the visitor for EVERY
@@ -31,13 +31,13 @@
 // visit() on an empty terminal that had none).  And D_VISITABLE used static_cast,
 // which cannot express a cross-cast between unrelated types and is simply
 // ill-formed.  tests_concrete_visitor_inherits_every_per_type_interface pins (1)
-// -- deliberately including a MID-PACK element, since a chain that happened to
+// - deliberately including a MID-PACK element, since a chain that happened to
 // inherit only the last one would still pass a one-element test.
 //
 //   The other thing this section pins is the CONTRACT, in
 // tests_d_visitable_unhandled_element_throws.  A visitor that cannot accept an
-// element is a program error here, not a runtime condition -- the closed set says
-// so -- and it must be reported.  The acyclic section runs the identical scenario
+// element is a program error here, not a runtime condition - the closed set says
+// so - and it must be reported.  The acyclic section runs the identical scenario
 // and requires the OPPOSITE outcome, and a header that got the two backwards would
 // still pass every "does dispatch work" test in both.
 
@@ -145,7 +145,7 @@ bool tests_visitable_base_is_abstract()
 /*
 tests_visitor_of_impl_is_abstract
   Verifies the per-type interface's visit() is pure virtual.  This is what forces
-  a concrete_visitor to implement every element's overload -- the closed-set
+  a concrete_visitor to implement every element's overload - the closed-set
   guarantee is nothing more than this pure virtual, repeated once per element.
   Tests the following:
   - visitor_of_impl<R, E> is abstract
@@ -169,7 +169,7 @@ bool tests_visitor_of_impl_is_abstract()
 tests_concrete_visitor_single_element
   Verifies concrete_visitor instantiates and dispatches for a ONE-element set.
   The shipped overload-set chain failed here: its recursive case imported visit()
-  from the terminal, and the terminal -- the empty pack -- declares none, so a
+  from the terminal, and the terminal - the empty pack - declares none, so a
   single element was already a hard error.
   Tests the following:
   - concrete_visitor<R, A> instantiates
@@ -229,7 +229,7 @@ tests_concrete_visitor_is_a_visitor_base
   Tests the following:
   - concrete_visitor<R, ...> derives from visitor_base<R>
   - a reference to the base binds to a concrete visitor
-  - the base is UNAMBIGUOUS -- a layout that produced two visitor_base subobjects
+  - the base is UNAMBIGUOUS - a layout that produced two visitor_base subobjects
     would make this binding ill-formed, which is precisely what a per-type
     interface deriving from visitor_base would have caused
 */
@@ -257,13 +257,13 @@ bool tests_concrete_visitor_is_a_visitor_base()
 tests_concrete_visitor_inherits_every_per_type_interface
   Verifies the structural property D_VISITABLE's cross-cast depends on:
   visitor_of_impl<R, X> is a base of the visitor for EVERY element type X in the
-  set -- not merely for the last one.
+  set - not merely for the last one.
 
   This is the test the shipped header could not have passed even had it compiled.
   Its chain declared visit() overloads directly and inherited visitor_of_impl for
   no element at all, so the cast had nothing to land on.  A chain that inherited
   the interface only at the recursion's tail would still satisfy a one-element
-  test, which is why classic_rect -- deliberately the MIDDLE of the pack -- is
+  test, which is why classic_rect - deliberately the MIDDLE of the pack - is
   checked here.
   Tests the following:
   - visitor_of_impl<R, X> is a base of the visitor for the first, middle and last
@@ -339,7 +339,7 @@ tests_concrete_visitor_overload_set_is_unambiguous
   brings each element's interface in as a separate base subobject, so without the
   using-declarations that merge them, the name `visit` would be found in two
   distinct bases and every call would be ambiguous BEFORE overload resolution ever
-  ran -- an error that would not depend on the argument type at all.
+  ran - an error that would not depend on the argument type at all.
   Tests the following:
   - calling visit() with each of the three element types resolves
   - the results are distinct, so resolution picked the right overload each time
@@ -427,7 +427,7 @@ bool tests_d_visitable_dispatches_to_the_matching_overload()
 
 /*
 tests_d_visitable_double_dispatch_through_element_base
-  Verifies the dispatch is on the element's DYNAMIC type -- which is the whole
+  Verifies the dispatch is on the element's DYNAMIC type - which is the whole
   point of "double" dispatch, and the thing a single virtual call cannot do.  The
   elements are held as classic_shape*, so their static type carries no information
   about which overload should run; only the vtable does.
@@ -469,7 +469,7 @@ bool tests_d_visitable_double_dispatch_through_element_base()
 
 /*
 tests_d_visitable_dispatch_through_visitor_base
-  Verifies dispatch works with the VISITOR type-erased too -- both halves of the
+  Verifies dispatch works with the VISITOR type-erased too - both halves of the
   double dispatch erased at once.  This is the configuration D_VISITABLE actually
   faces: accept()'s parameter is visitor_base<R>&, a type that declares no visit()
   at all, and the concrete interface has to be recovered by cross-cast.
@@ -537,7 +537,7 @@ tests_d_visitable_void_return
   Verifies the void case works.  void is the return type most visitors use, and
   the one most likely to break a return-type-generic implementation: the macro's
   body is `return <cast>.visit(*this);`, which for void is a return of a void
-  prvalue -- legal, but only if nothing along the way assumed R was an object type.
+  prvalue - legal, but only if nothing along the way assumed R was an object type.
   Tests the following:
   - accept() on a void-returning element compiles and runs
   - the visitor's side effect happens exactly once per accept()
@@ -574,7 +574,7 @@ tests_d_visitable_unhandled_element_throws
   Verifies the CLOSED-SET CONTRACT.  A visitor is required to handle every element;
   circle_only_visitor is a perfectly well-formed visitor over the smaller set
   {classic_circle}, and handing it a classic_rect violates that requirement.  The
-  classic form must report this rather than absorb it -- the pure virtual visit()s
+  classic form must report this rather than absorb it - the pure virtual visit()s
   exist precisely to make forgetting an element impossible, and silently returning
   a default would defeat the guarantee the strategy is chosen FOR.
 
@@ -614,7 +614,7 @@ bool tests_d_visitable_unhandled_element_throws()
 
     ok = ok && threw;
 
-    // and likewise with the visitor erased -- the path D_VISITABLE actually takes
+    // and likewise with the visitor erased - the path D_VISITABLE actually takes
     DVisitorBase<std::string>& erased = v;
 
     bool threw_erased = false;
@@ -640,7 +640,7 @@ bool tests_d_visitable_unhandled_element_throws()
 
 /*
 tests_classic_visitor_accumulates_across_a_traversal
-  Verifies a stateful visitor accumulates over a heterogeneous sequence -- which is
+  Verifies a stateful visitor accumulates over a heterogeneous sequence - which is
   most of why one reaches for the pattern at all.  A visitor that dispatched
   correctly but was copied at each accept() would pass every test above and fail
   this one.

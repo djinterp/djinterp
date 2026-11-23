@@ -17,7 +17,7 @@
 * connection is made and no statement prepared.
 *
 *   Build: compile the layer's C sources as C, this file as C++, and link them
-* with the client -- scripts/ci/check_db_mariadb.sh does, at every level.
+* with the client - scripts/ci/check_db_mariadb.sh does, at every level.
 *
 *
 * path:      /tests/unintegrated/cpp/db/mariadb/t_mariadb_cpp.cpp
@@ -350,7 +350,7 @@ void d_tests_mariadb_cpp_stubs(void)
 /*
 main
   The server-free checks, then a session where a server is reached; or,
-over a layer built without a client -- whose version is then "" -- the
+over a layer built without a client - whose version is then "" - the
 stubs' checks.
 */
 int main(void)

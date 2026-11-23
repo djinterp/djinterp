@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][filesys]                               file_tests_recursive.cpp
 *
-*   X. Recursion (file_recursive.hpp) -- walking a tree and removing one. Pure
+*   X. Recursion (file_recursive.hpp) - walking a tree and removing one. Pure
 * composition over directory, status and the operations, so what is tested here
 * is the COMPOSITION's promises rather than any new syscall.
 *
@@ -10,12 +10,12 @@
 *
 *     Pre-order. walk visits a directory before its contents. A visitor that
 *   builds a tree, or creates mirror directories as it goes, breaks outright on
-*   post-order -- so the ordering case records the visit sequence and checks a
+*   post-order - so the ordering case records the visit sequence and checks a
 *   parent's index precedes its children's rather than merely that both appear.
 *
 *     Symlinks are not followed. A walk that follows links can loop forever on
-*   a link to an ancestor. The case below builds exactly that -- a link back to
-*   the tree root -- and requires the walk to terminate and to classify the
+*   a link to an ancestor. The case below builds exactly that - a link back to
+*   the tree root - and requires the walk to terminate and to classify the
 *   link as a non-directory. An implementation that regressed here would not
 *   fail this case so much as hang in it, which is why the fixture is a real
 *   cycle rather than a link to a sibling.
@@ -236,7 +236,7 @@ void tests_fs_recursive(
                    ec);
 
               // the scratch root is absolute, so every path built from it is
-              // -- and a caller can act on what the visitor hands over
+              // - and a caller can act on what the visitor hands over
               ok = all_absolute;
 
               remove_all(root, ec);
@@ -323,7 +323,7 @@ void tests_fs_recursive(
                        (ec.value() == EINVAL) );
           });
 
-    // a walk that followed links would not fail this case -- it would hang in
+    // a walk that followed links would not fail this case - it would hang in
     // it, so the fixture is a genuine cycle
     _suite.add_if(fs_test_symlinks_creatable(),
                   [](suite_type& _b)

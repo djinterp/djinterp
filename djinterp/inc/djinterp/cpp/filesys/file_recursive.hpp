@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][filesys]                                     file_recursive.hpp
 *
-* Recursive traversal (roadmap Phase 9) -- walking a whole tree, and removing
+* Recursive traversal (roadmap Phase 9) - walking a whole tree, and removing
 * one.
 *   Both are built entirely on the pieces already in place: directory (the
 * one-level walk), the mode query behind the status predicates (to classify an
@@ -10,13 +10,13 @@
 * by mode alone, neither stumbles at D_FILE_WIDTH 32 on a file too large for
 * a 32-bit snapshot.
 *   WHY A TEMPLATE VISITOR, NOT AN ITERATOR. A recursive_directory_iterator
-* would have to own a STACK of open directory handles, one per level -- and a
+* would have to own a STACK of open directory handles, one per level - and a
 * growable container of a move-only handle is not expressible on C++98, where
 * there is no move to grow it with. A recursive FUNCTION sidesteps that: each
 * level's directory is a local, and the C++ call stack is the level stack, with
 * no depth cap and no per-tier divergence. walk() therefore takes a visitor and
-* recurses. The visitor is any callable -- a function pointer on C++98, a
-* lambda on C++11+ -- so the surface is identical on every standard.
+* recurses. The visitor is any callable - a function pointer on C++98, a
+* lambda on C++11+ - so the surface is identical on every standard.
 *   SYMLINKS ARE NOT FOLLOWED. A directory walk that follows symlinks can loop
 * forever (a link pointing at an ancestor) or wander out of the tree entirely.
 * Both walk() and remove_all() see a symlink as a symlink and stop there --
@@ -26,8 +26,8 @@
 * the same line.
 *   walk() is PRE-ORDER and FAIL-FAST: it visits a directory, then its
 * contents, and stops at the first directory it cannot read (with _ec set).
-* remove_all() is POST-ORDER by necessity -- a directory cannot be removed
-* until its children are -- and IDEMPOTENT: removing something already gone is
+* remove_all() is POST-ORDER by necessity - a directory cannot be removed
+* until its children are - and IDEMPOTENT: removing something already gone is
 * success, not ENOENT.
 *   A CHILD'S PATH IS THE KERNEL'S, NOT THE GRAMMAR'S. Both build it with
 * d_dir_entry_path rather than path's operator/, whose grammar follows
@@ -162,7 +162,7 @@ NS_INTERNAL
 
     // DWalkStack
     //   class (internal): the directories open from the root down, each
-    // closed however the walk ends -- a failure, or a visitor that throws.
+    // closed however the walk ends - a failure, or a visitor that throws.
     class DWalkStack
     {
     public:
@@ -192,7 +192,7 @@ NS_INTERNAL
 
             // owner_guard
             //   struct (internal): closes the handle should the frame not be
-            // kept -- push_back throwing where exceptions are on.
+            // kept - push_back throwing where exceptions are on.
             struct owner_guard
             {
                 struct dj_dir_t* m_dir;
@@ -241,7 +241,7 @@ NS_INTERNAL
 
     /**
      * @brief The loop behind walk(): every entry in pre-order, descending only
-     *        into what d_dir_open_at opens -- a directory, never a link to one,
+     *        into what d_dir_open_at opens - a directory, never a link to one,
      *        and looked up in the directory it was read from.
      *
      * @tparam Visitor  the callable's type.
@@ -375,7 +375,7 @@ NS_END  // internal
  *        a directory before its contents.
  *
  * @note Symbolic links are reported but never followed. The visitor is taken
- *       by value -- which is what lets a temporary lambda be passed inline --
+ *       by value - which is what lets a temporary lambda be passed inline --
  *       but one copy is threaded through the whole recursion, so state it
  *       refers to (capture-by-reference on C++11+, a pointer member on C++98)
  *       accumulates across the walk.
@@ -408,12 +408,12 @@ bool walk(
  * @brief Removes a path and everything beneath it.
  *
  * @note A directory is emptied depth-first and then removed; a file or a
- *       symlink is unlinked -- the LINK, never the target it points at.
+ *       symlink is unlinked - the LINK, never the target it points at.
  *       Removing a path that is not there is success, since the postcondition
  *       (nothing at `_p`) already holds.
  * @note Proof against a process that swaps a directory in the tree for a
- *       link while it runs -- the race std::filesystem's own remove_all had
- *       (CVE-2022-21658) -- as d_dir_remove_all is, which it is. One handle
+ *       link while it runs - the race std::filesystem's own remove_all had
+ *       (CVE-2022-21658) - as d_dir_remove_all is, which it is. One handle
  *       is open per level of depth; a tree past PATH_MAX goes too.
  *
  * @param[in]  _p   the path to remove.

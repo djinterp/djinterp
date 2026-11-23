@@ -6,7 +6,7 @@
 * VACUUM FULL ANALYZE table, rather than the parenthesized options 9.0
 * brought, so that one spelling serves all. Sizes are read with the server's
 * own functions, on an object found as a lookup finds it, so that one that is
-* not there is no row -- D_DB_NOT_FOUND -- rather than a failure.
+* not there is no row - D_DB_NOT_FOUND - rather than a failure.
 *
 *
 * path:      /src/djinterp/c/modules/db/postgres/postgres_maintenance.c

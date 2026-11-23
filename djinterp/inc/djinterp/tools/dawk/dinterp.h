@@ -59,8 +59,8 @@ struct dj_awk_interp;
 
 // D_AWK_STACK_BUDGET_DEFAULT
 //   constant: the default stack budget in bytes.  The call count cannot bound
-// the stack on its own -- a call costs from under 1 KB to nearly 4 KB of C
-// stack depending on how deeply its body nests expressions -- so the running
+// the stack on its own - a call costs from under 1 KB to nearly 4 KB of C
+// stack depending on how deeply its body nests expressions - so the running
 // interpreter measures its own stack use against this.  The default leaves
 // headroom under the platform's default main-thread stack: 1 MB on Windows,
 // 8 MB on the others.  An embedder on a smaller thread must set it lower.
@@ -99,8 +99,8 @@ void d_awk_interp_free(
  *       as POSIX has it, so the operand `x='a\nz'` assigns a newline.
  *
  * @param[in,out] _interp  the interpreter.
- * @param[in]     _text    a name -- a letter or an underscore, then letters,
- *                         digits and underscores -- then `=` and the value.
+ * @param[in]     _text    a name - a letter or an underscore, then letters,
+ *                         digits and underscores - then `=` and the value.
  * @return `true` if the assignment was applied; `false` if `_text` is not an
  *         assignment, which makes an operand a file name, or if memory ran
  *         out.

@@ -2,13 +2,13 @@
 * djinterp [cpp][utility]                                     document_table.hpp
 *
 *   A dialect-agnostic TABLE for documents.  DDocumentTable is a pure content
-* model -- columns (each a header plus alignment / width / style hints) and rows
-* of string cells -- with a single render() that streams the table through a
+* model - columns (each a header plus alignment / width / style hints) and rows
+* of string cells - with a single render() that streams the table through a
 * DDocumentRenderer.  It computes no widths, escapes nothing, and knows no
 * format: it declares the columns, opens a row per record, emits a cell per
 * value, and lets the renderer decide realisation.  The plain renderer lays it
 * out as aligned monospace columns; an HTML renderer would emit <table>; a
-* Markdown one a pipe table; a PDF one a ruled grid -- all from this one model.
+* Markdown one a pipe table; a PDF one a ruled grid - all from this one model.
 *
 *   HINTS, NOT STYLING.  A column carries typed conveniences (a DTextAlignment,
 * a width, a style name) that render() folds into the per-column DDocAttributes
@@ -18,7 +18,7 @@
 * ride along untouched.
 *
 *   WHERE LAYOUT LIVES.  Column widths, padding, and separators are the
-* RENDERER's business, not the table's -- so the same DDocumentTable is exact
+* RENDERER's business, not the table's - so the same DDocumentTable is exact
 * in monospace and idiomatic in HTML without the model knowing either.  This is
 * the division the subframework rests on: the template supplies structure and
 * hints; the renderer supplies the dialect.
@@ -80,7 +80,7 @@ NS_DJINTERP
 // ===========================================================================
 
 // DDocumentColumn
-//   struct: one table column -- a header label and the hints that govern its
+//   struct: one table column - a header label and the hints that govern its
 // cells.  `align` and `width` (0 = size to content) and `style` (a renderer
 // style name, "" = none) are the common ones, folded into DDocAttributes at
 // render time; `extra` carries any further dialect-specific hints verbatim.
@@ -125,7 +125,7 @@ struct DDocumentColumn
 // ===========================================================================
 
 // DDocumentTable
-//   class: a table as a content model -- an ordered list of document_columns
+//   class: a table as a content model - an ordered list of document_columns
 // and an ordered list of string-cell rows, plus an optional caption and a
 // table-level hint bag.  render() streams it through a DDocumentRenderer;
 // to_string() renders it through the plain renderer for text / debugging.
@@ -142,13 +142,13 @@ struct DDocumentColumn
 class DDocumentTable
 {
 public:
-    // -- public type aliases -------------------------------------------------
+    // - public type aliases -------------------------------------------------
 
     using size_type   = std::size_t;
     using column_type = DDocumentColumn;
     using row_type    = std::vector<std::string>;
 
-    // -- a. construction / configuration -------------------------------------
+    // - a. construction / configuration -------------------------------------
 
     // DDocumentTable
     //   constructor: an empty table (no columns, no rows, no caption).
@@ -199,7 +199,7 @@ public:
         return m_attrs;
     }
 
-    // -- b. columns ----------------------------------------------------------
+    // - b. columns ----------------------------------------------------------
 
     // add_column
     //   append a column with a header and optional alignment / width / style.
@@ -238,7 +238,7 @@ public:
         return m_columns;
     }
 
-    // -- c. rows -------------------------------------------------------------
+    // - c. rows -------------------------------------------------------------
 
     // add_row
     //   append a row of cells.  A row shorter than the column list is padded
@@ -271,7 +271,7 @@ public:
         return m_rows;
     }
 
-    // -- d. queries ----------------------------------------------------------
+    // - d. queries ----------------------------------------------------------
 
     D_NODISCARD size_type column_count() const D_NOEXCEPT
     {
@@ -289,7 +289,7 @@ public:
                  m_rows.empty() );
     }
 
-    // -- e. render / to_string -----------------------------------------------
+    // - e. render / to_string -----------------------------------------------
 
     // render
     //   stream the table through _renderer: the optional caption, then
@@ -351,7 +351,7 @@ public:
     }
 
     // to_string
-    //   the table rendered through the plain (monospace) renderer -- the
+    //   the table rendered through the plain (monospace) renderer - the
     // convenient text face, and the one used in tests.
     D_NODISCARD std::string to_string() const
     {
@@ -388,7 +388,7 @@ private:
 
             _ca.set(doc_attr_align, std::string(align_to_string(_col.align)));
 
-            // a width of 0 means "size to content" -- no hint emitted
+            // a width of 0 means "size to content" - no hint emitted
             if (_col.width > size_type(0))
             {
                 _ca.set(doc_attr_width, std::to_string(_col.width));
@@ -420,7 +420,7 @@ private:
     //   the heading level a caption is emitted at when none is given.
     static constexpr size_type k_default_caption_level = size_type(3);
 
-    // -- storage -------------------------------------------------------------
+    // - storage -------------------------------------------------------------
 
     std::vector<DDocumentColumn> m_columns;
     std::vector<row_type>        m_rows;
@@ -436,7 +436,7 @@ private:
 
 // make_document_table
 //   function: a DDocumentTable whose columns are the given headers, all left-
-// aligned and auto-width -- the common quick start before rows are added.
+// aligned and auto-width - the common quick start before rows are added.
 D_NODISCARD inline DDocumentTable make_document_table(
     std::initializer_list<std::string> _headers
 )

@@ -8,11 +8,11 @@
 * are the unit tests the spec provider hands to run_module.  Definitions live
 * in the per-section .cpp files:
 *
-*     polynomial_tests_values.cpp       -- I.   value-level poly_* vocabulary
-*     polynomial_tests_shapes.cpp       -- II.  type-level shapes (poly_*_t)
-*     polynomial_tests_functor.cpp      -- III. functor_traits + functor_map
+*     polynomial_tests_values.cpp       - I.   value-level poly_* vocabulary
+*     polynomial_tests_shapes.cpp       - II.  type-level shapes (poly_*_t)
+*     polynomial_tests_functor.cpp      - III. functor_traits + functor_map
 *                                                (incl. cata/ana integration)
-*     polynomial_tests_traversable.cpp  -- IV.  traversable_traits + traverse
+*     polynomial_tests_traversable.cpp  - IV.  traversable_traits + traverse
 *
 *   TEST EFFECT.  The traversable instances need a concrete applicative F to
 * thread.  The framework's maybe / result live in headers not required here, so
@@ -109,7 +109,7 @@ bool close_enough(
 
 
 // DTestMaybe
-//   type: the minimal applicative effect threaded by the traverse tests -- an
+//   type: the minimal applicative effect threaded by the traverse tests - an
 // optional value (has ? val : nothing).  A monad_traits specialisation (below,
 // at djinterp scope) makes it a Functor and an Applicative via the protocol
 // bridges, which is everything traverse / sequence require of the effect F.
@@ -227,7 +227,7 @@ bool tests_sequence_poly_var();
 bool tests_sequence_poly_unit_const();
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // polynomial_spec
 //   function: the suite as DTest's module spec, one block per section.
@@ -397,7 +397,7 @@ NS_END  // testing
 ///////////////////////////////////////////////////////////////////////////////
 
 // monad_traits<testing::DTestMaybe<_Value>>
-//   specialisation: makes the test effect a monad -- and therefore, via the
+//   specialisation: makes the test effect a monad - and therefore, via the
 // protocol bridges, a Functor and an Applicative.  unit injects a value (just);
 // bind runs the Kleisli arrow on a present value and short-circuits an absent
 // one (nothing propagates).  Written at djinterp scope to match the primary.

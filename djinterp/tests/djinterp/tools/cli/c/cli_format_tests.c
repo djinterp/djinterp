@@ -6,16 +6,16 @@
 * the root, an option with a default, one whose names reach past the right
 * column, a short name alone with its value, a flag whose value may be left
 * out and one whose value is a negation, a hidden option, options in groups
-* -- "Output", and "OPTIONS", CLI11's name for the default group, which the
-* page lists with the options in none -- an option group, a description
+* - "Output", and "OPTIONS", CLI11's name for the default group, which the
+* page lists with the options in none - an option group, a description
 * with a line break of its own and one in UTF-8, and a footer long enough
 * to wrap; and commands in a group, in none, with an alias, with a required
 * operand and an optional one, with a usage of its own, with work and
 * subcommands, with subcommands and no work, hidden, and disabled. Its pages
 * are compared whole, at 80 columns and at 40 and 100. JSONED is a smaller
-* program -- an option with a default and a variable, an option group, a
+* program - an option with a default and a variable, an option group, a
 * command with an alias, an option of two choices and any number of
-* operands, and a hidden command -- whose description is compared in
+* operands, and a hidden command - whose description is compared in
 * parts: its head and first command whole, its settings by the kit's own,
 * and its tail whole.
 *
@@ -1320,8 +1320,8 @@ int d_tests_cli_json_modes(
 }
 
 /**
- * @brief JSONED: `prog 1.2`, with `-o, --output=FILE` on its root -- a
- *        default, a variable -- and `--wide` in an option group, `Output`;
+ * @brief JSONED: `prog 1.2`, with `-o, --output=FILE` on its root - a
+ *        default, a variable - and `--wide` in an option group, `Output`;
  *        `show`, alias `sh`, with `--mode=MODE` of two choices and
  *        `[WORD]...`; and `secret`, hidden.
  *

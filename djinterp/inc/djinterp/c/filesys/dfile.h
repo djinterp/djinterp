@@ -1,11 +1,11 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                                  dfile.h
 *
-* Umbrella for the filesys subframework -- includes every c/filesys module.
+* Umbrella for the filesys subframework - includes every c/filesys module.
 *   CONVENIENCE, NOT ARCHITECTURE. The whole point of the split is that a
 * program which only reads a file compiles and links file_common + file_open +
 * file_io, and nothing else: no lock code, no directory walker, no shell.
-* Including this header discards that -- you get every declaration and, once
+* Including this header discards that - you get every declaration and, once
 * the linker is done, most of the objects.
 *   Use it for a quick program or a test harness. In a library, include the
 * two or three modules you actually call; the deps column in the filesys
@@ -20,7 +20,7 @@
 *   The c/filesys sources build with -D_XOPEN_SOURCE=700 where the C library
 * hides POSIX in a strict ISO mode, and with -D_FILE_OFFSET_BITS=64 (plus
 * -D_TIME_BITS=64 from glibc 2.34) where off_t and time_t are otherwise
-* 32-bit -- a 32-bit glibc host -- which they assert (the C guide's rule:
+* 32-bit - a 32-bit glibc host - which they assert (the C guide's rule:
 * feature-test macros come from the build). On Linux, file_ops.c and
 * file_stat.c build with -D_GNU_SOURCE as well, as their banners ask: it
 * brings copy_file_range and statx, and without it each compiles only its

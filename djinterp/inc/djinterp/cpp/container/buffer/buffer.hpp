@@ -981,7 +981,7 @@ struct select_growth_policy<DBufferGrowthStrategy::page_aligned>
 };
 
 // select_growth_policy_t
-//   type: the carrier of select_growth_policy -- its `::type`, for use where a
+//   type: the carrier of select_growth_policy - its `::type`, for use where a
 // type rather than a value is wanted.
 template<DBufferGrowthStrategy Strategy>
 using select_growth_policy_t =
@@ -1009,7 +1009,7 @@ struct select_cursor_policy<DBufferCursorModel::dual>
 };
 
 // select_cursor_policy_t
-//   type: the carrier of select_cursor_policy -- its `::type`, for use where a
+//   type: the carrier of select_cursor_policy - its `::type`, for use where a
 // type rather than a value is wanted.
 template<DBufferCursorModel Model>
 using select_cursor_policy_t = typename select_cursor_policy<Model>::type;

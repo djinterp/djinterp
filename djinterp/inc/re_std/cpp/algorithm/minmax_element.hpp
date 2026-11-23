@@ -105,7 +105,7 @@ minmax_element(
         }
 
         // compare the pair to each other first, then one against each
-        // running extreme -- 3 comparisons per 2 elements.
+        // running extreme - 3 comparisons per 2 elements.
         if (*_first < *_lhs)
         {
             if (*_first < *_min)

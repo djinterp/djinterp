@@ -50,7 +50,7 @@ bool tests_sort_monoid_monoid_registration()
     result.check(is_monoid<DKeyedRun>::value);
 
     //   Every monoid is a semigroup, and the sorted-run instance registers
-    // both -- combine without empty would not be enough for mconcat, which
+    // both - combine without empty would not be enough for mconcat, which
     // needs a value to fold an empty sequence onto.
     result.check(is_semigroup<DIntRun>::value);
 
@@ -89,7 +89,7 @@ bool tests_sort_monoid_mappend_merges()
     result.check(ranges_equal(merged.data(), ints_of(expected, 6)));
     result.check(ranges_equal(merged.data(), combined.data()));
 
-    //   The operands are untouched -- combine takes them by const reference
+    //   The operands are untouched - combine takes them by const reference
     // and returns a new run.
     result.check(ranges_equal(left.data(), ints_of(left_values, 3)));
     result.check(ranges_equal(right.data(), ints_of(right_values, 3)));
@@ -156,7 +156,7 @@ bool tests_sort_monoid_identity_laws()
     std::size_t      size_index;
     std::size_t      length;
 
-    //   The two monoid laws -- mempty <> x == x and x <> mempty == x --
+    //   The two monoid laws - mempty <> x == x and x <> mempty == x --
     // checked over the whole corpus rather than on one hand-picked run, so a
     // size- or shape-dependent regression cannot hide.
     for (size_index = 0; size_index < battery_size_count; ++size_index)

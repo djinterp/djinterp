@@ -2,7 +2,7 @@
 * djinterp [c][math]                                                      wide.h
 *
 * Fixed-width wide integers: signed integers of 256 bits, kept in limbs, with
-* exact arithmetic and no allocation -- the C core of the math module's wide
+* exact arithmetic and no allocation - the C core of the math module's wide
 * integers (roadmap P1).
 *   A wide integer is a magnitude below 2^256 and a sign, so its range is
 * symmetric, -(2^256 - 1) to 2^256 - 1: negation and the absolute value never

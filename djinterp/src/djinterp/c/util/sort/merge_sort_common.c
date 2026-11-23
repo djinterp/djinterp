@@ -25,7 +25,7 @@ in a bottom-up sweep they are the output of the previous pass.
 family's stability: on equivalence the left element goes first, and the left
 run holds the earlier elements.
   Nothing is compared when one run is empty, and nothing is compared at all
-when the pair is already in order -- one test settles that, and the span
+when the pair is already in order - one test settles that, and the span
 becomes a single block copy. That test is why a range arriving ordered costs
 O(n) comparisons rather than O(n log n), which matters most here, where each
 comparison is an indirect call.

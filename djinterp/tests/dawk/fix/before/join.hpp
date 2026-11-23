@@ -18,7 +18,7 @@ struct d_join_built
 };
 
 // d_join_noted
-//   struct: left as it is -- a comment is something.
+//   struct: left as it is - a comment is something.
 struct d_join_noted
 {
     // nothing yet

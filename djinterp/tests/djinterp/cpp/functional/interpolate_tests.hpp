@@ -34,7 +34,7 @@
 * self-suppresses below it; its concepts are C++20-only.  This suite mirrors
 * those gates: below C++17 every block is emitted empty (the fixtures and
 * predicates are compiled out), and the concepts block is additionally empty
-* below C++20 -- so the suite links and reports a clean run at any standard
+* below C++20 - so the suite links and reports a clean run at any standard
 * level rather than failing to build.
 *
 *   FIXTURES use named functor / struct types rather than lambdas so the same
@@ -74,7 +74,7 @@ NS_DJINTERP
 NS_TESTING
 
 
-// dt -- the framework namespace the block/test spec vocabulary lives in.
+// dt - the framework namespace the block/test spec vocabulary lives in.
 namespace dt = ::djinterp::test;
 
 
@@ -98,7 +98,7 @@ namespace dt = ::djinterp::test;
 // ---------------------------------------------------------------------------
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-// sv -- the ubiquitous key/value view type of a char interpolation.
+// sv - the ubiquitous key/value view type of a char interpolation.
 using sv = std::basic_string_view<char>;
 
 
@@ -172,7 +172,7 @@ struct pred_is_a
 // DCountingResolver
 //   helper: a resolver that tallies how many times it is invoked (through a
 // caller-owned counter) and answers with a fixed found/miss.  Used to observe
-// the laziness of chain composition -- a chained fall-through frame must be
+// the laziness of chain composition - a chained fall-through frame must be
 // consulted ONLY when the earlier frame misses.  value type is the view, so it
 // composes with DMapResolver / DEmptyResolver.
 struct DCountingResolver
@@ -203,8 +203,8 @@ struct DCountingResolver
 // DRecordingSink
 //   helper: a sink that records literal runs and resolved values into two
 // separate caller-owned strings (each emission suffixed with '|'), so the
-// engine's dispatch -- literal() for literal runs and misses, value() for hits
-// -- can be asserted precisely rather than only through the merged output.
+// engine's dispatch - literal() for literal runs and misses, value() for hits
+// - can be asserted precisely rather than only through the merged output.
 struct DRecordingSink
 {
     std::string* m_literals = nullptr;

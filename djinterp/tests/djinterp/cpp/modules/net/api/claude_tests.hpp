@@ -22,7 +22,7 @@
 NS_DJINTERP
 NS_TESTING
 
-// net/api/claude.hpp and claude_api.hpp tests -- each returns true when every
+// net/api/claude.hpp and claude_api.hpp tests - each returns true when every
 // check held
 bool tests_claude_request();
 bool tests_claude_send();

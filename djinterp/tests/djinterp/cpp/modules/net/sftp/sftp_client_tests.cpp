@@ -4,8 +4,8 @@
 * C++ tests for net/sftp/sftp_client.hpp: the tiered interface over the C
 * client, against OpenSSH's own sftp-server, run as a child process whose
 * stdin and stdout are one end of a socket pair: a real server, reached by
-* client::open over the other end -- tcp.hpp's socket_connection, handed to
-* the C client by net.hpp's c_connection_adapter -- with no SSH session in
+* client::open over the other end - tcp.hpp's socket_connection, handed to
+* the C client by net.hpp's c_connection_adapter - with no SSH session in
 * between; and over C++ connections that fail as told. POSIX only; the
 * server's tests skip where sftp-server is not installed. The core compiles at
 * C++98, re_std::expected's value-returning forms included; C++11 adds
@@ -144,7 +144,7 @@ void reap(
     return;
 }
 
-// a connection whose reads fail as told -- io_error::none ends the stream --
+// a connection whose reads fail as told - io_error::none ends the stream --
 // and whose writes all succeed; it counts its closes
 class failing : public net::connection
 {

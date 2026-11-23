@@ -2,10 +2,10 @@
 * djinterp [c][tools]                                                    dmsvs.h
 *
 * Visual Studio's files, read without loss.
-*   Two kinds of file. A solution -- .slnx, which is XML, or .sln, Visual
-* Studio's older text -- lists projects, the folders that hold them, what
+*   Two kinds of file. A solution - .slnx, which is XML, or .sln, Visual
+* Studio's older text - lists projects, the folders that hold them, what
 * each must build after, and the configurations the solution builds. An
-* MSBuild file -- .vcxproj, .vcxproj.filters, .props, .targets -- is XML
+* MSBuild file - .vcxproj, .vcxproj.filters, .props, .targets - is XML
 * whose elements are property groups, item definition groups and item
 * groups, imports and targets, each of them perhaps under a Condition.
 *   An XML file is read into its elements, in document order, each with its
@@ -16,7 +16,7 @@
 * into projects, too, the same from either form.
 *   A condition is understood when it tests the configuration, the platform,
 * or both, the way Visual Studio writes it: `'$(Configuration)|$(Platform)'
-* =='Debug|x64'`. Any other condition -- exists(...), a property's value --
+* =='Debug|x64'`. Any other condition - exists(...), a property's value --
 * is reported as such, for a caller to treat as it chooses.
 *   Every record of a solution says where it stands in the text, so a
 * change to one is a splice too: a project's lines or element, a folder's,
@@ -77,7 +77,7 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 1.1.1
 // D_MSVS_NONE
-//   constant: the index of a record that is not there -- the root's parent,
+//   constant: the index of a record that is not there - the root's parent,
 //   a leaf's first child, a last sibling's next.
 #define D_MSVS_NONE ((size_t)-1)
 
@@ -187,7 +187,7 @@ struct dj_msvs_folder
 // 1.3.4
 // dj_msvs_section
 //   struct: one GlobalSection of a .sln: its name, as in
-//   GlobalSection(NestedProjects), and its lines -- `start` its first,
+//   GlobalSection(NestedProjects), and its lines - `start` its first,
 //   `content` the one after, `close` its EndGlobalSection line, and `end`
 //   past that line's ending.
 struct dj_msvs_section
@@ -205,7 +205,7 @@ struct dj_msvs_section
 //   struct: one file read.  The text is the caller's, borrowed while the
 //   records are used.  An XML file has `elements`, the root first; a
 //   solution, of either form, has `projects`, `folders`, `dependencies` and
-//   `configurations` -- each a "Configuration|Platform" the solution builds,
+//   `configurations` - each a "Configuration|Platform" the solution builds,
 //   which a .slnx naming platforms alone builds as Debug and Release.
 //   A .sln has `sections` too, and `global_start`, `global_close` and
 //   `global_end` bound its Global ... EndGlobal lines as a section's are
@@ -288,8 +288,8 @@ void d_msvs_release(
 // d_msvs_is compares an element's name, which XML compares exactly.
 // d_msvs_attribute finds an attribute by its name and gives its value raw,
 // between the quotes; d_msvs_value gives an attribute's value decoded, and
-// d_msvs_text an element's text decoded -- its content, when it holds no
-// element -- each into a buffer the caller sizes as the raw text and one
+// d_msvs_text an element's text decoded - its content, when it holds no
+// element - each into a buffer the caller sizes as the raw text and one
 // more, returning the length written.  Decoding is XML's: line endings are
 // LF, and a value's tabs and line endings spaces, before references are
 // read, so a reference to either is kept.
@@ -335,7 +335,7 @@ bool d_msvs_is_name(
  *
  * @note Understood: '$(Configuration)|$(Platform)'=='C|P', and
  *       '$(Configuration)'=='C' and '$(Platform)'=='P' alone, with any
- *       spacing, either side of the `==` -- what Visual Studio and CMake
+ *       spacing, either side of the `==` - what Visual Studio and CMake
  *       write.  `_out_tested` receives "C|P", or "C|*" or "*|P" for one
  *       tested alone.
  *
@@ -351,14 +351,14 @@ enum dj_msvs_condition d_msvs_condition_of(
     size_t      _capacity
 );
 // d_msvs_config_matches is whether a configuration a condition tests --
-// "Debug|x64", "Debug|*", "*|x64" -- holds for one a caller names,
+// "Debug|x64", "Debug|*", "*|x64" - holds for one a caller names,
 // "Debug|x64", comparing without case, as MSBuild does.
 bool d_msvs_config_matches(
     const char* _tested,
     const char* _config
 );
 // d_msvs_compare_paths orders two files' names as Visual Studio and MSBuild
-// compare them -- in any case, with `/` and `\` alike -- below 0, 0 or
+// compare them - in any case, with `/` and `\` alike - below 0, 0 or
 // above, as strcmp does.
 int d_msvs_compare_paths(
     const char* _left,
@@ -391,8 +391,8 @@ void d_msvs_guid(
  * @brief Writes a path relative to a directory, as Visual Studio writes
  *        one: ..\..\inc\x.h.
  *
- * @note Both are paths from one place -- the root of a tree, or the root of
- *       the file system -- with `/` or `\` between their parts; `.` parts
+ * @note Both are paths from one place - the root of a tree, or the root of
+ *       the file system - with `/` or `\` between their parts; `.` parts
  *       are dropped and `..` parts taken back.  Parts compare without case,
  *       as Windows compares them.  A path to the directory itself is ".".
  *

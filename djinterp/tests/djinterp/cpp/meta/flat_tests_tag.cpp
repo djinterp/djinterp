@@ -41,7 +41,7 @@ tests_tag_flat_min_depth_is_one
   - the value is 1
   - it is of type std::size_t
   - it is strictly less than hierarchical's minimum (a flat type is
-    shallower) -- checked here only against the literal 2 the model fixes
+    shallower) - checked here only against the literal 2 the model fixes
   - it is a constant expression
 */
 bool tests_tag_flat_min_depth_is_one()

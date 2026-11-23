@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][filesys]                                     file_tests_dir.cpp
 *
-*   V. Directory (file_dir.hpp) -- the RAII directory handle and the range-for
+*   V. Directory (file_dir.hpp) - the RAII directory handle and the range-for
 * built on it.
 *
 * THE DOT ENTRIES ARE GONE, AND THAT IS A DIFFERENCE
@@ -10,14 +10,14 @@
 * off, which the c/filesys suite asserts). This layer removes them, because a
 * C++ directory walk is expected to yield contents rather than bookkeeping. The
 * two suites therefore assert opposite things about the same directory, on
-* purpose -- and the case below names that, so a later "fix" that makes them
+* purpose - and the case below names that, so a later "fix" that makes them
 * agree fails loudly here.
 *
 * THE READDIR TRAP, TESTED
 * ------------------------
 *   d_dir_read's entry is borrowed and dies at the next call; DDirectoryEntry
 * promises to copy the name instead. That promise is invisible until you keep an
-* entry and walk on, so the case below does exactly that -- reads one entry,
+* entry and walk on, so the case below does exactly that - reads one entry,
 * advances the walk past it, and then reads the name it kept. Against a
 * borrowing implementation that is a use-after-free; against this one it is just
 * a name.
@@ -375,7 +375,7 @@ void tests_fs_dir(
 
                   remembered = first.name();
 
-                  // advance past it -- against a BORROWED dj_dirent_t this is
+                  // advance past it - against a BORROWED dj_dirent_t this is
                   // exactly the point the earlier name would be overwritten
                   d.read(later, ec);
 

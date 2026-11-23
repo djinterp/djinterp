@@ -12,8 +12,8 @@
 * C++14 but for the plain root forms, which call the C library. A norm
 * is scaled by a power of two where its sum of squares would leave the
 * range, and keeps its bits where it does not (S256). dot, cross and sum
-* are compensated -- Ogita, Rump and Oishi's Dot2 and Sum2, as accurate as
-* the sum computed in twice the precision and rounded once -- and their
+* are compensated - Ogita, Rump and Oishi's Dot2 and Sum2, as accurate as
+* the sum computed in twice the precision and rounded once - and their
 * _fast forms are the formulas as written (S404). project and reject scale
 * their operands where the squared norm or the ratio would leave the range
 * (S301, S409). Dot2's running pair, an accumulator, serves the callers
@@ -90,7 +90,7 @@ TABLE OF CONTENTS
 // dot, sum and cross, and mat.h's products, trace and refinement, sum their
 // terms as Ogita, Rump and Oishi's Dot2 and Sum2 do (S404): each product
 // exact as a pair, by Dekker's product with Veltkamp's split, each sum by
-// Knuth's two-sum, the errors summed apart and added last -- as accurate as
+// Knuth's two-sum, the errors summed apart and added last - as accurate as
 // the sum computed in twice the precision and rounded once. They work in
 // pairs of double where double is evaluated in its own type, as SSE
 // evaluates it, for the float and double families, and in pairs of long
@@ -435,7 +435,7 @@ d_vec_f_lerp(
 // d_internal_vec_f_naive
 //   _c + sum_i _a[i _sa] (_x[i _sx] + _t[i _st]) as written, the products
 // negated where _minus and _t none but where _tailed: each product rounded,
-// then added, in order -- d_vec_f_dot_fast's formula, for operands with a NaN
+// then added, in order - d_vec_f_dot_fast's formula, for operands with a NaN
 // or an infinity.
 D_MATH_FN float
 d_internal_vec_f_naive(
@@ -546,9 +546,9 @@ d_internal_vec_f_exponent_of(
 //   of the _n entries _v[i _stride]: 2 where one is a NaN or an infinity; else
 // 1 where one is not 0 and lies outside about 2^(EMIN/2 + P) to 2^(EMAX/2 - P)
 // in double's terms, where Dekker's products of two such entries neither
-// overflow nor lose their low parts -- its square, rounded, from 2^(EMIN + 2P +
+// overflow nor lose their low parts - its square, rounded, from 2^(EMIN + 2P +
 // 1) to (1 - 2^-P) 2^(EMAX - 2P), bounds the range's own constants make with no
-// power to build -- else 0.
+// power to build - else 0.
 D_MATH_FN int
 d_internal_vec_f_d2_reach(
     const float* _v,
@@ -592,7 +592,7 @@ d_internal_vec_f_d2_reach(
 // times 2^-(_ka + _kx), exactly but where an entry falls into the subnormals;
 // each product exact (d_internal_vec_d2_short), the high parts summed by
 // two-sums, the low parts and the two-sums' errors after, and the pair
-// renormalized -- Ogita, Rump and Oishi's Dot2, the sum as accurate as one in
+// renormalized - Ogita, Rump and Oishi's Dot2, the sum as accurate as one in
 // twice double's precision rounded once. An exact zero is +0.
 D_MATH_FN struct dj_internal_math_d_pair
 d_internal_vec_f_d2_sum_of(
@@ -676,7 +676,7 @@ d_internal_vec_f_d2_sum_of(
 // d_internal_vec_f_d2_round
 //   (_p.high + _p.low) 2^_k rounded once to float, _p a renormalized pair of
 // double: scaled, exactly in double's wider range, then rounded as
-// elementary.h's d_internal_math_f_round_pair rounds a kernel's pair -- the
+// elementary.h's d_internal_math_f_round_pair rounds a kernel's pair - the
 // high part converted, and where it lies exactly between two values of float
 // the low part's sign deciding. Each such midpoint is a value of double, so the
 // high part, the sum rounded to double rather than to long double, lies on one
@@ -701,7 +701,7 @@ d_internal_vec_f_d2_round(
 // _minus and _t none but where _tailed, rounded once to float from Dot2's pair:
 // as they are where every entry lies where Dekker's products are exact and _c
 // within a quarter of double's largest value; else each operand scaled, its
-// largest entry to [1, 2), and the pair back -- or _c itself, where the
+// largest entry to [1, 2), and the pair back - or _c itself, where the
 // products' sum lies below half its rounding. Where an operand has a NaN or an
 // infinity, the formula as written (d_internal_vec_f_naive).
 D_MATH_FN float
@@ -784,9 +784,9 @@ d_internal_vec_f_d2_dot(
 }
 
 // d_internal_vec_f_d2_sum
-//   sum_i _a[i _sa], rounded once to float from Sum2's pair -- Ogita, Rump and
+//   sum_i _a[i _sa], rounded once to float from Sum2's pair - Ogita, Rump and
 // Oishi's: each term into the running sum by a two-sum, the errors summed apart
-// and added last, the pair renormalized -- as accurate as the sum in twice
+// and added last, the pair renormalized - as accurate as the sum in twice
 // double's precision, rounded once. Where twice _n times the largest term could
 // pass double's largest value, the terms are first scaled, the largest to [1,
 // 2), exactly but where one falls into the subnormals, and the sum back. An
@@ -890,9 +890,9 @@ d_internal_vec_f_d2_add_pair(
 //   of the _n entries _v[i _stride]: 2 where one is a NaN or an infinity; else
 // 1 where one is not 0 and lies outside about 2^(EMIN/2 + P) to 2^(EMAX/2 - P)
 // in long double's terms, where Dekker's products of two such entries neither
-// overflow nor lose their low parts -- its square, rounded, from 2^(EMIN + 2P +
+// overflow nor lose their low parts - its square, rounded, from 2^(EMIN + 2P +
 // 1) to (1 - 2^-P) 2^(EMAX - 2P), bounds the range's own constants make with no
-// power to build -- else 0.
+// power to build - else 0.
 D_MATH_FN int
 d_internal_vec_f_ld_reach(
     const float* _v,
@@ -938,7 +938,7 @@ d_internal_vec_f_ld_reach(
 // times 2^-(_ka + _kx), exactly but where an entry falls into the subnormals;
 // each product exact (d_internal_vec_ld_short), the high parts summed by
 // two-sums, the low parts and the two-sums' errors after, and the pair
-// renormalized -- Ogita, Rump and Oishi's Dot2, the sum as accurate as one in
+// renormalized - Ogita, Rump and Oishi's Dot2, the sum as accurate as one in
 // twice long double's precision rounded once. An exact zero is +0.
 D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_vec_f_ld_sum_of(
@@ -1022,7 +1022,7 @@ d_internal_vec_f_ld_sum_of(
 // d_internal_vec_f_ld_round
 //   (_p.high + _p.low) 2^_k rounded once to float, _p a renormalized pair of
 // long double: scaled, exactly in long double's wider range, then rounded as
-// elementary.h's d_internal_math_f_round_pair rounds a kernel's pair -- the
+// elementary.h's d_internal_math_f_round_pair rounds a kernel's pair - the
 // high part converted, and where it lies exactly between two values of float
 // the low part's sign deciding. Each such midpoint is a value of long double,
 // so the high part, the sum rounded to long double rather than to long double,
@@ -1048,7 +1048,7 @@ d_internal_vec_f_ld_round(
 // _minus and _t none but where _tailed, rounded once to float from Dot2's pair:
 // as they are where every entry lies where Dekker's products are exact and _c
 // within a quarter of long double's largest value; else each operand scaled,
-// its largest entry to [1, 2), and the pair back -- or _c itself, where the
+// its largest entry to [1, 2), and the pair back - or _c itself, where the
 // products' sum lies below half its rounding. Where an operand has a NaN or an
 // infinity, the formula as written (d_internal_vec_f_naive).
 D_MATH_FN float
@@ -1131,9 +1131,9 @@ d_internal_vec_f_ld_dot(
 }
 
 // d_internal_vec_f_ld_sum
-//   sum_i _a[i _sa], rounded once to float from Sum2's pair -- Ogita, Rump and
+//   sum_i _a[i _sa], rounded once to float from Sum2's pair - Ogita, Rump and
 // Oishi's: each term into the running sum by a two-sum, the errors summed apart
-// and added last, the pair renormalized -- as accurate as the sum in twice long
+// and added last, the pair renormalized - as accurate as the sum in twice long
 // double's precision, rounded once. Where twice _n times the largest term could
 // pass long double's largest value, the terms are first scaled, the largest to
 // [1, 2), exactly but where one falls into the subnormals, and the sum back. An
@@ -1280,8 +1280,8 @@ d_internal_vec_f_dot2(
 }
 
 // d_internal_vec_f_dot2_direct
-//   d_internal_vec_f_dot2 for operands its caller has found in range -- each of
-// _a's, _x's and _t's entries of reach 0 and _c 0 -- as a product's entries are
+//   d_internal_vec_f_dot2 for operands its caller has found in range - each of
+// _a's, _x's and _t's entries of reach 0 and _c 0 - as a product's entries are
 // where both factors were found so once: no test, no scaling.
 D_MATH_FN float
 d_internal_vec_f_dot2_direct(
@@ -1346,8 +1346,8 @@ d_internal_vec_f_add_pair(
 
 // dj_internal_vec_f_acc
 //   struct: Dot2's running sum for a caller whose terms are not strided arrays
-// of the family's type -- a complex matrix's parts (cmat.h, linalg's complex
-// kernels) -- in the pairs the family sums in: high, the products' high parts
+// of the family's type - a complex matrix's parts (cmat.h, linalg's complex
+// kernels) - in the pairs the family sums in: high, the products' high parts
 // summed by two-sums, and rest, their errors and low parts.
 struct dj_internal_vec_f_acc
 {
@@ -1376,7 +1376,7 @@ d_internal_vec_f_acc_of(
 
 // d_internal_vec_f_acc_add
 //   *_acc plus _a _x, exactly: Dot2's step, each factor of reach 0
-// (d_internal_vec_f_reach_of) -- the caller scales it first where it is not.
+// (d_internal_vec_f_reach_of) - the caller scales it first where it is not.
 D_MATH_FN void
 d_internal_vec_f_acc_add(
     struct dj_internal_vec_f_acc* _acc,
@@ -1769,7 +1769,7 @@ d_vec_f_max(
 // Each root comes in two forms, the same value bit for bit (elementary.h's
 // two square roots are both correctly rounded): the _c form a constant
 // expression from C++14, the plain one the C library's root. A norm is the
-// root of the sum of squares wherever that root is in range -- at most the
+// root of the sum of squares wherever that root is in range - at most the
 // family's largest value, and at least the root of its least normal over its
 // epsilon, where no square overflowed or lost its precision to underflow --
 // and elsewhere the norm of the entries scaled exactly by a power of two to
@@ -1814,7 +1814,7 @@ d_internal_vec_f_largest(
 
 // d_internal_vec_f_power_of
 //   the power of two that brings a positive finite _largest into [1, 2) --
-// its binade -- as *_power, times *_pre, 2^P where _largest is subnormal and
+// its binade - as *_power, times *_pre, 2^P where _largest is subnormal and
 // is lifted first, else 1: an entry scaled by it, times *_pre and then over
 // *_power, is exact (but where it underflows, below the largest's rounding).
 D_MATH_FN void
@@ -1846,7 +1846,7 @@ d_internal_vec_f_power_of(
 }
 
 // d_internal_vec_f_scaled_entry
-//   entry _i of the vector -- _a[_i] - _b[_i], or _a[_i] where _b is NULL --
+//   entry _i of the vector - _a[_i] - _b[_i], or _a[_i] where _b is NULL --
 // times _pre, then over _power.
 D_MATH_FN float
 d_internal_vec_f_scaled_entry(
@@ -2194,7 +2194,7 @@ d_vec_f_normalize(
 
 // d_internal_vec_f_along
 //   _out = _a's projection onto _onto, or where _reject what is left of _a;
-// _out may be either input. In range -- _onto's squared norm d from MIN/EPS
+// _out may be either input. In range - _onto's squared norm d from MIN/EPS
 // to MAX, the compensated dot p 0 or its ratio to d from MIN/EPS to MAX --
 // each component p/d times _onto's, as before (S301: a result in range
 // keeps its bits); so too for the zero vector, or an operand with a NaN or
@@ -2701,7 +2701,7 @@ d_vec_d_lerp(
 // d_internal_vec_d_naive
 //   _c + sum_i _a[i _sa] (_x[i _sx] + _t[i _st]) as written, the products
 // negated where _minus and _t none but where _tailed: each product rounded,
-// then added, in order -- d_vec_d_dot_fast's formula, for operands with a NaN
+// then added, in order - d_vec_d_dot_fast's formula, for operands with a NaN
 // or an infinity.
 D_MATH_FN double
 d_internal_vec_d_naive(
@@ -2812,9 +2812,9 @@ d_internal_vec_d_exponent_of(
 //   of the _n entries _v[i _stride]: 2 where one is a NaN or an infinity; else
 // 1 where one is not 0 and lies outside about 2^(EMIN/2 + P) to 2^(EMAX/2 - P)
 // in double's terms, where Dekker's products of two such entries neither
-// overflow nor lose their low parts -- its square, rounded, from 2^(EMIN + 2P +
+// overflow nor lose their low parts - its square, rounded, from 2^(EMIN + 2P +
 // 1) to (1 - 2^-P) 2^(EMAX - 2P), bounds the range's own constants make with no
-// power to build -- else 0.
+// power to build - else 0.
 D_MATH_FN int
 d_internal_vec_d_d2_reach(
     const double* _v,
@@ -2858,7 +2858,7 @@ d_internal_vec_d_d2_reach(
 // times 2^-(_ka + _kx), exactly but where an entry falls into the subnormals;
 // each product exact (d_internal_vec_d2_product), the high parts summed by
 // two-sums, the low parts and the two-sums' errors after, and the pair
-// renormalized -- Ogita, Rump and Oishi's Dot2, the sum as accurate as one in
+// renormalized - Ogita, Rump and Oishi's Dot2, the sum as accurate as one in
 // twice double's precision rounded once. An exact zero is +0.
 D_MATH_FN struct dj_internal_math_d_pair
 d_internal_vec_d_d2_sum_of(
@@ -2994,7 +2994,7 @@ d_internal_vec_d_d2_round(
 // _minus and _t none but where _tailed, rounded once to double from Dot2's
 // pair: as they are where every entry lies where Dekker's products are exact
 // and _c within a quarter of double's largest value; else each operand scaled,
-// its largest entry to [1, 2), and the pair back -- or _c itself, where the
+// its largest entry to [1, 2), and the pair back - or _c itself, where the
 // products' sum lies below half its rounding. Where an operand has a NaN or an
 // infinity, the formula as written (d_internal_vec_d_naive).
 D_MATH_FN double
@@ -3077,9 +3077,9 @@ d_internal_vec_d_d2_dot(
 }
 
 // d_internal_vec_d_d2_sum
-//   sum_i _a[i _sa], rounded once to double from Sum2's pair -- Ogita, Rump and
+//   sum_i _a[i _sa], rounded once to double from Sum2's pair - Ogita, Rump and
 // Oishi's: each term into the running sum by a two-sum, the errors summed apart
-// and added last, the pair renormalized -- as accurate as the sum in twice
+// and added last, the pair renormalized - as accurate as the sum in twice
 // double's precision, rounded once. Where twice _n times the largest term could
 // pass double's largest value, the terms are first scaled, the largest to [1,
 // 2), exactly but where one falls into the subnormals, and the sum back. An
@@ -3156,7 +3156,7 @@ d_internal_vec_d_d2_sum(
 
 // d_internal_vec_d_d2_add_pair
 //   *_x + *_tail += _d, the pair renormalized: its high part the sum rounded
-// once and its low part the rest, by two-sums -- exact but for the rest's own
+// once and its low part the rest, by two-sums - exact but for the rest's own
 // rounding.
 D_MATH_FN void
 d_internal_vec_d_d2_add_pair(
@@ -3182,9 +3182,9 @@ d_internal_vec_d_d2_add_pair(
 //   of the _n entries _v[i _stride]: 2 where one is a NaN or an infinity; else
 // 1 where one is not 0 and lies outside about 2^(EMIN/2 + P) to 2^(EMAX/2 - P)
 // in long double's terms, where Dekker's products of two such entries neither
-// overflow nor lose their low parts -- its square, rounded, from 2^(EMIN + 2P +
+// overflow nor lose their low parts - its square, rounded, from 2^(EMIN + 2P +
 // 1) to (1 - 2^-P) 2^(EMAX - 2P), bounds the range's own constants make with no
-// power to build -- else 0.
+// power to build - else 0.
 D_MATH_FN int
 d_internal_vec_d_ld_reach(
     const double* _v,
@@ -3230,7 +3230,7 @@ d_internal_vec_d_ld_reach(
 // times 2^-(_ka + _kx), exactly but where an entry falls into the subnormals;
 // each product exact (d_internal_math_ld_product_exact), the high parts summed
 // by two-sums, the low parts and the two-sums' errors after, and the pair
-// renormalized -- Ogita, Rump and Oishi's Dot2, the sum as accurate as one in
+// renormalized - Ogita, Rump and Oishi's Dot2, the sum as accurate as one in
 // twice long double's precision rounded once. An exact zero is +0.
 D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_vec_d_ld_sum_of(
@@ -3315,7 +3315,7 @@ d_internal_vec_d_ld_sum_of(
 // d_internal_vec_d_ld_round
 //   (_p.high + _p.low) 2^_k rounded once to double, _p a renormalized pair of
 // long double: scaled, exactly in long double's wider range, then rounded as
-// elementary.h's d_internal_math_d_round_pair rounds a kernel's pair -- the
+// elementary.h's d_internal_math_d_round_pair rounds a kernel's pair - the
 // high part converted, and where it lies exactly between two values of double
 // the low part's sign deciding. Each such midpoint is a value of long double,
 // so the high part, the sum rounded to long double rather than to long double,
@@ -3341,7 +3341,7 @@ d_internal_vec_d_ld_round(
 // _minus and _t none but where _tailed, rounded once to double from Dot2's
 // pair: as they are where every entry lies where Dekker's products are exact
 // and _c within a quarter of long double's largest value; else each operand
-// scaled, its largest entry to [1, 2), and the pair back -- or _c itself, where
+// scaled, its largest entry to [1, 2), and the pair back - or _c itself, where
 // the products' sum lies below half its rounding. Where an operand has a NaN or
 // an infinity, the formula as written (d_internal_vec_d_naive).
 D_MATH_FN double
@@ -3424,9 +3424,9 @@ d_internal_vec_d_ld_dot(
 }
 
 // d_internal_vec_d_ld_sum
-//   sum_i _a[i _sa], rounded once to double from Sum2's pair -- Ogita, Rump and
+//   sum_i _a[i _sa], rounded once to double from Sum2's pair - Ogita, Rump and
 // Oishi's: each term into the running sum by a two-sum, the errors summed apart
-// and added last, the pair renormalized -- as accurate as the sum in twice long
+// and added last, the pair renormalized - as accurate as the sum in twice long
 // double's precision, rounded once. Where twice _n times the largest term could
 // pass long double's largest value, the terms are first scaled, the largest to
 // [1, 2), exactly but where one falls into the subnormals, and the sum back. An
@@ -3573,8 +3573,8 @@ d_internal_vec_d_dot2(
 }
 
 // d_internal_vec_d_dot2_direct
-//   d_internal_vec_d_dot2 for operands its caller has found in range -- each of
-// _a's, _x's and _t's entries of reach 0 and _c 0 -- as a product's entries are
+//   d_internal_vec_d_dot2 for operands its caller has found in range - each of
+// _a's, _x's and _t's entries of reach 0 and _c 0 - as a product's entries are
 // where both factors were found so once: no test, no scaling.
 D_MATH_FN double
 d_internal_vec_d_dot2_direct(
@@ -3639,8 +3639,8 @@ d_internal_vec_d_add_pair(
 
 // dj_internal_vec_d_acc
 //   struct: Dot2's running sum for a caller whose terms are not strided arrays
-// of the family's type -- a complex matrix's parts (cmat.h, linalg's complex
-// kernels) -- in the pairs the family sums in: high, the products' high parts
+// of the family's type - a complex matrix's parts (cmat.h, linalg's complex
+// kernels) - in the pairs the family sums in: high, the products' high parts
 // summed by two-sums, and rest, their errors and low parts.
 struct dj_internal_vec_d_acc
 {
@@ -3669,7 +3669,7 @@ d_internal_vec_d_acc_of(
 
 // d_internal_vec_d_acc_add
 //   *_acc plus _a _x, exactly: Dot2's step, each factor of reach 0
-// (d_internal_vec_d_reach_of) -- the caller scales it first where it is not.
+// (d_internal_vec_d_reach_of) - the caller scales it first where it is not.
 D_MATH_FN void
 d_internal_vec_d_acc_add(
     struct dj_internal_vec_d_acc* _acc,
@@ -4063,7 +4063,7 @@ d_vec_d_max(
 // Each root comes in two forms, the same value bit for bit (elementary.h's
 // two square roots are both correctly rounded): the _c form a constant
 // expression from C++14, the plain one the C library's root. A norm is the
-// root of the sum of squares wherever that root is in range -- at most the
+// root of the sum of squares wherever that root is in range - at most the
 // family's largest value, and at least the root of its least normal over its
 // epsilon, where no square overflowed or lost its precision to underflow --
 // and elsewhere the norm of the entries scaled exactly by a power of two to
@@ -4108,7 +4108,7 @@ d_internal_vec_d_largest(
 
 // d_internal_vec_d_power_of
 //   the power of two that brings a positive finite _largest into [1, 2) --
-// its binade -- as *_power, times *_pre, 2^P where _largest is subnormal and
+// its binade - as *_power, times *_pre, 2^P where _largest is subnormal and
 // is lifted first, else 1: an entry scaled by it, times *_pre and then over
 // *_power, is exact (but where it underflows, below the largest's rounding).
 D_MATH_FN void
@@ -4140,7 +4140,7 @@ d_internal_vec_d_power_of(
 }
 
 // d_internal_vec_d_scaled_entry
-//   entry _i of the vector -- _a[_i] - _b[_i], or _a[_i] where _b is NULL --
+//   entry _i of the vector - _a[_i] - _b[_i], or _a[_i] where _b is NULL --
 // times _pre, then over _power.
 D_MATH_FN double
 d_internal_vec_d_scaled_entry(
@@ -4488,7 +4488,7 @@ d_vec_d_normalize(
 
 // d_internal_vec_d_along
 //   _out = _a's projection onto _onto, or where _reject what is left of _a;
-// _out may be either input. In range -- _onto's squared norm d from MIN/EPS
+// _out may be either input. In range - _onto's squared norm d from MIN/EPS
 // to MAX, the compensated dot p 0 or its ratio to d from MIN/EPS to MAX --
 // each component p/d times _onto's, as before (S301: a result in range
 // keeps its bits); so too for the zero vector, or an operand with a NaN or
@@ -4995,7 +4995,7 @@ d_vec_ld_lerp(
 // d_internal_vec_ld_naive
 //   _c + sum_i _a[i _sa] (_x[i _sx] + _t[i _st]) as written, the products
 // negated where _minus and _t none but where _tailed: each product rounded,
-// then added, in order -- d_vec_ld_dot_fast's formula, for operands with a NaN
+// then added, in order - d_vec_ld_dot_fast's formula, for operands with a NaN
 // or an infinity.
 D_MATH_FN long double
 d_internal_vec_ld_naive(
@@ -5105,9 +5105,9 @@ d_internal_vec_ld_exponent_of(
 //   of the _n entries _v[i _stride]: 2 where one is a NaN or an infinity; else
 // 1 where one is not 0 and lies outside about 2^(EMIN/2 + P) to 2^(EMAX/2 - P)
 // in long double's terms, where Dekker's products of two such entries neither
-// overflow nor lose their low parts -- its square, rounded, from 2^(EMIN + 2P +
+// overflow nor lose their low parts - its square, rounded, from 2^(EMIN + 2P +
 // 1) to (1 - 2^-P) 2^(EMAX - 2P), bounds the range's own constants make with no
-// power to build -- else 0.
+// power to build - else 0.
 D_MATH_FN int
 d_internal_vec_ld_ld_reach(
     const long double* _v,
@@ -5153,7 +5153,7 @@ d_internal_vec_ld_ld_reach(
 // times 2^-(_ka + _kx), exactly but where an entry falls into the subnormals;
 // each product exact (d_internal_math_ld_product_exact), the high parts summed
 // by two-sums, the low parts and the two-sums' errors after, and the pair
-// renormalized -- Ogita, Rump and Oishi's Dot2, the sum as accurate as one in
+// renormalized - Ogita, Rump and Oishi's Dot2, the sum as accurate as one in
 // twice long double's precision rounded once. An exact zero is +0.
 D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_vec_ld_ld_sum_of(
@@ -5237,7 +5237,7 @@ d_internal_vec_ld_ld_sum_of(
 
 // d_internal_vec_ld_ld_round
 //   (_p.high + _p.low) 2^_k rounded once to long double, _p a renormalized pair
-// -- its high part the sum rounded: the high part scaled, exact where the
+// - its high part the sum rounded: the high part scaled, exact where the
 // result is normal and an infinity past the range, as the sum's rounding makes
 // it; in the subnormals the scaling rounds again, and where the scaled high
 // part lay exactly between two subnormals, the low part's sign decides.
@@ -5289,7 +5289,7 @@ d_internal_vec_ld_ld_round(
 // _minus and _t none but where _tailed, rounded once to long double from Dot2's
 // pair: as they are where every entry lies where Dekker's products are exact
 // and _c within a quarter of long double's largest value; else each operand
-// scaled, its largest entry to [1, 2), and the pair back -- or _c itself, where
+// scaled, its largest entry to [1, 2), and the pair back - or _c itself, where
 // the products' sum lies below half its rounding. Where an operand has a NaN or
 // an infinity, the formula as written (d_internal_vec_ld_naive).
 D_MATH_FN long double
@@ -5372,9 +5372,9 @@ d_internal_vec_ld_ld_dot(
 }
 
 // d_internal_vec_ld_ld_sum
-//   sum_i _a[i _sa], rounded once to long double from Sum2's pair -- Ogita,
+//   sum_i _a[i _sa], rounded once to long double from Sum2's pair - Ogita,
 // Rump and Oishi's: each term into the running sum by a two-sum, the errors
-// summed apart and added last, the pair renormalized -- as accurate as the sum
+// summed apart and added last, the pair renormalized - as accurate as the sum
 // in twice long double's precision, rounded once. Where twice _n times the
 // largest term could pass long double's largest value, the terms are first
 // scaled, the largest to [1, 2), exactly but where one falls into the
@@ -5452,7 +5452,7 @@ d_internal_vec_ld_ld_sum(
 
 // d_internal_vec_ld_ld_add_pair
 //   *_x + *_tail += _d, the pair renormalized: its high part the sum rounded
-// once and its low part the rest, by two-sums -- exact but for the rest's own
+// once and its low part the rest, by two-sums - exact but for the rest's own
 // rounding.
 D_MATH_FN void
 d_internal_vec_ld_ld_add_pair(
@@ -5510,8 +5510,8 @@ d_internal_vec_ld_dot2(
 }
 
 // d_internal_vec_ld_dot2_direct
-//   d_internal_vec_ld_dot2 for operands its caller has found in range -- each
-// of _a's, _x's and _t's entries of reach 0 and _c 0 -- as a product's entries
+//   d_internal_vec_ld_dot2 for operands its caller has found in range - each
+// of _a's, _x's and _t's entries of reach 0 and _c 0 - as a product's entries
 // are where both factors were found so once: no test, no scaling.
 D_MATH_FN long double
 d_internal_vec_ld_dot2_direct(
@@ -5560,8 +5560,8 @@ d_internal_vec_ld_add_pair(
 
 // dj_internal_vec_ld_acc
 //   struct: Dot2's running sum for a caller whose terms are not strided arrays
-// of the family's type -- a complex matrix's parts (cmat.h, linalg's complex
-// kernels) -- in the pairs the family sums in: high, the products' high parts
+// of the family's type - a complex matrix's parts (cmat.h, linalg's complex
+// kernels) - in the pairs the family sums in: high, the products' high parts
 // summed by two-sums, and rest, their errors and low parts.
 struct dj_internal_vec_ld_acc
 {
@@ -5585,7 +5585,7 @@ d_internal_vec_ld_acc_of(
 
 // d_internal_vec_ld_acc_add
 //   *_acc plus _a _x, exactly: Dot2's step, each factor of reach 0
-// (d_internal_vec_ld_reach_of) -- the caller scales it first where it is not.
+// (d_internal_vec_ld_reach_of) - the caller scales it first where it is not.
 D_MATH_FN void
 d_internal_vec_ld_acc_add(
     struct dj_internal_vec_ld_acc* _acc,
@@ -5937,7 +5937,7 @@ d_vec_ld_max(
 // Each root comes in two forms, the same value bit for bit (elementary.h's
 // two square roots are both correctly rounded): the _c form a constant
 // expression from C++14, the plain one the C library's root. A norm is the
-// root of the sum of squares wherever that root is in range -- at most the
+// root of the sum of squares wherever that root is in range - at most the
 // family's largest value, and at least the root of its least normal over its
 // epsilon, where no square overflowed or lost its precision to underflow --
 // and elsewhere the norm of the entries scaled exactly by a power of two to
@@ -5982,7 +5982,7 @@ d_internal_vec_ld_largest(
 
 // d_internal_vec_ld_power_of
 //   the power of two that brings a positive finite _largest into [1, 2) --
-// its binade -- as *_power, times *_pre, 2^P where _largest is subnormal and
+// its binade - as *_power, times *_pre, 2^P where _largest is subnormal and
 // is lifted first, else 1: an entry scaled by it, times *_pre and then over
 // *_power, is exact (but where it underflows, below the largest's rounding).
 D_MATH_FN void
@@ -6014,7 +6014,7 @@ d_internal_vec_ld_power_of(
 }
 
 // d_internal_vec_ld_scaled_entry
-//   entry _i of the vector -- _a[_i] - _b[_i], or _a[_i] where _b is NULL --
+//   entry _i of the vector - _a[_i] - _b[_i], or _a[_i] where _b is NULL --
 // times _pre, then over _power.
 D_MATH_FN long double
 d_internal_vec_ld_scaled_entry(
@@ -6363,7 +6363,7 @@ d_vec_ld_normalize(
 
 // d_internal_vec_ld_along
 //   _out = _a's projection onto _onto, or where _reject what is left of _a;
-// _out may be either input. In range -- _onto's squared norm d from MIN/EPS
+// _out may be either input. In range - _onto's squared norm d from MIN/EPS
 // to MAX, the compensated dot p 0 or its ratio to d from MIN/EPS to MAX --
 // each component p/d times _onto's, as before (S301: a result in range
 // keeps its bits); so too for the zero vector, or an operand with a NaN or

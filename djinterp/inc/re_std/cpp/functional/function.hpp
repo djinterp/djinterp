@@ -2,7 +2,7 @@
 * djinterp [re_std]                                                 function.hpp
 *
 * function class header:
-* class: type-erased owning callable wrapper -- re_std's portable
+* class: type-erased owning callable wrapper - re_std's portable
 *   alternative to `std::function` (C++11).
 *   `function<R(Args...)>` stores any CopyConstructible callable that is
 * invocable as `R(Args...)` (the result being convertible to `R`, or
@@ -17,7 +17,7 @@
 * reached through an abstract base (`internal::fn_base`). This mirrors
 * the ops-table type erasure used by `any`'s heap path. A small-buffer
 * optimisation (in-place storage for small/trivial targets, as libstdc++
-* and libc++ do) is a deliberate follow-on -- see the note below -- not
+* and libc++ do) is a deliberate follow-on - see the note below - not
 * a correctness requirement; the heap path is always correct.
 *
 *   Type identity for `target<T>()` is RTTI-free: it uses the
@@ -84,7 +84,7 @@ namespace re_std
 // function
 //   class: primary template, intentionally undefined. Only a genuine
 // function type `R(Args...)` names a valid specialisation, so
-// `function<int>` is ill-formed -- matching std.
+// `function<int>` is ill-formed - matching std.
 template<typename Signature>
 class function;
 
@@ -217,7 +217,7 @@ namespace internal
     // the `...` overload and are treated as non-null.
     //   A callable passed *by name* deduces to a function type (or a
     // reference to one); its address is never null, so it is excluded via
-    // the `!is_function` guard -- both because the comparison would be a
+    // the `!is_function` guard - both because the comparison would be a
     // pointless always-false test and to avoid a spurious
     // `-Wnonnull-compare` diagnostic. Genuine null pointers still reach the
     // wrapper as pointer *variables*, which are checked.
@@ -491,7 +491,7 @@ public:
     operator()(Args... _a) const
     {
         // an empty wrapper: throw, as std's does, or with exceptions off
-        // abort, as std's does then -- there is no target and no value
+        // abort, as std's does then - there is no target and no value
         if (!m_ptr)
         {
         #if RE_STD_HAS_EXCEPTIONS
@@ -615,9 +615,9 @@ namespace re_std
 // 6 arguments. Each owns its target through internal::fn98_owner, which
 // every arity shares, and calls it through an invoker its constructor
 // instantiates for the target's type. The surface is the C++11 tier's,
-// less what C++98 cannot spell -- moves, construction from and comparison
+// less what C++98 cannot spell - moves, construction from and comparison
 // with nullptr, and operator bool, which only `explicit` makes safe; empty()
-// is the test at every level -- so code written to it means the same at
+// is the test at every level - so code written to it means the same at
 // every level. A target is called with the call syntax, f(args...): a
 // function, a function pointer or a function object. A pointer to member,
 // which the C++11 tier reaches through invoke, is not taken below C++11.
@@ -791,7 +791,7 @@ namespace internal
             return;
         }
 
-        // m_empty_call -- what a call does on an empty wrapper: throws, as
+        // m_empty_call - what a call does on an empty wrapper: throws, as
         // std's does, or with exceptions off aborts
         static void
         m_empty_call()

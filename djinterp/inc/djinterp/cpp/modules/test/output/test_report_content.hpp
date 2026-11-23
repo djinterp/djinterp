@@ -3,8 +3,8 @@
 *
 *   The content half of the layout-driven report render: what a body_ref leaf
 * named by the report's layout term resolves to.  The layout term
-* (test_layout.hpp) carries only structure -- a cover, a toc, a section per
-* module, a section per unit -- and names its content by key.  This header binds
+* (test_layout.hpp) carries only structure - a cover, a toc, a section per
+* module, a section per unit - and names its content by key.  This header binds
 * those keys to render_actions that drive a DDocumentRenderer, and it is the only
 * place in the render path that knows what a report_check looks like.
 *
@@ -12,7 +12,7 @@
 * ------------------------
 *   Everything here is plain DDocumentRenderer calls over the report model: no
 * expression term, no cofree, no interpreter.  That makes it independently
-* compilable and independently testable, which the structural half is not -- and
+* compilable and independently testable, which the structural half is not - and
 * it is where all the DTest-specific detail lives, so it is what a maintainer
 * edits.  Splitting the two along that line keeps the editable part cheap to
 * verify.
@@ -24,7 +24,7 @@
 * deep emitting those literals into a sink. test_render_pdf.hpp did the same
 * walk again against a styled-op list.  Both traversals disappear: the walk is
 * now the interpreter's single fold over the term, and per-format literals are
-* gone entirely -- a renderer decides realisation, so there is nothing left to
+* gone entirely - a renderer decides realisation, so there is nothing left to
 * vary per format.  The projections survive, as the bodies of the actions below;
 * that part was always the useful half.
 *
@@ -34,7 +34,7 @@
 *       "unit.<m>.<u>"       one unit's assertion table
 *   test_layout.hpp mints the same keys when it folds the report, so the two
 *   halves agree by construction rather than by convention.  An unbound key is a
-*   graceful hole (the interpreter's contract), not a crash -- so a term that
+*   graceful hole (the interpreter's contract), not a crash - so a term that
 *   names content this header does not supply still renders.
 *
 *   Assertion tables go through the DDocumentRenderer table protocol, so one
@@ -132,7 +132,7 @@ D_NODISCARD inline std::string content_key_module_summary(
 }
 
 // content_key_unit
-//   function: the key naming unit _u of module _m -- its assertion table.
+//   function: the key naming unit _u of module _m - its assertion table.
 D_NODISCARD inline std::string content_key_unit(
     std::size_t _m,
     std::size_t _u
@@ -186,7 +186,7 @@ D_NODISCARD inline const char* status_style(
 }
 
 // tally_text
-//   function: "passed / total" -- the figure every summary block repeats.
+//   function: "passed / total" - the figure every summary block repeats.
 D_NODISCARD inline std::string tally_text(
     std::size_t _passed,
     std::size_t _total
@@ -201,7 +201,7 @@ D_NODISCARD inline std::string tally_text(
 ///////////////////////////////////////////////////////////////////////////////
 
 // emit_unit_table
-//   function: one unit's assertions as a table -- RESULT / # / ASSERTION /
+//   function: one unit's assertions as a table - RESULT / # / ASSERTION /
 // EXPECTED / ACTUAL.  A check carrying no expression falls back to its
 // description in the ASSERTION column and leaves the value columns blank, so a
 // bare pass/fail leaf degrades cleanly and a value-recording one fills in.
@@ -299,7 +299,7 @@ void emit_module_summary(
 
 
 // emit_run_summary
-//   function: the whole-run figure block -- what the console tally and the
+//   function: the whole-run figure block - what the console tally and the
 // document have always had to agree on, now emitted once.
 inline
 void emit_run_summary(
@@ -352,7 +352,7 @@ void emit_run_summary(
 ///////////////////////////////////////////////////////////////////////////////
 
 // report_binds_content
-//   function: whether _report binds _key at all -- the cheap predicate the
+//   function: whether _report binds _key at all - the cheap predicate the
 // resolver asks before committing to an emission, so bindedness is decided
 // without rendering anything.
 D_NODISCARD inline bool report_binds_content(
@@ -390,7 +390,7 @@ D_NODISCARD inline bool report_binds_content(
 // resolve_report_content
 //   function: emit the content named by _key against _report, reporting whether
 // the key was bound.  This is the whole body of the content_resolver
-// test_layout.hpp hands the interpreter -- kept as a plain function (rather than
+// test_layout.hpp hands the interpreter - kept as a plain function (rather than
 // a closure) so it is callable, and testable, without the interpreter present.
 //
 //   An unknown key returns false and emits nothing; the interpreter turns that

@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][functional]                             contravariant_tests.hpp
 *
-* Unit test suite for contravariant.hpp -- the contravariant functor protocol.
+* Unit test suite for contravariant.hpp - the contravariant functor protocol.
 *   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.md S3):
 *
 *     - normal mode (the section TUs): pulls in the header under test and
@@ -25,8 +25,8 @@
 *                       category of both arguments, so the suite can prove the
 *                       generic contramap forwards rather than copies.
 *     sink_of<A>        a consumer (A -> void, appends to a log) registered
-*                       through the trait's SECOND parameter -- an enable_if
-*                       hook -- rather than by naming the template; deliberately
+*                       through the trait's SECOND parameter - an enable_if
+*                       hook - rather than by naming the template; deliberately
 *                       omits `rebind`, which the protocol makes optional.
 *     DCtPredicate<A,F> a literal-type predicate whose contramap is constexpr,
 *                       used to pin D_CONSTEXPR on the generic operation.
@@ -85,7 +85,7 @@
 #include <utility>
 #include <vector>
 // djinterp
-// -- (part 1) mode-gated includes --------------------------------------------
+// - (part 1) mode-gated includes --------------------------------------------
 // djinterp core is ALWAYS first and unconditional (NS_*, D_* qualifiers,
 // language gates, void_t), so both faces have it.
 #include <djinterp/cpp/djinterp.hpp>
@@ -98,7 +98,7 @@
 
 
 // D_CV_CONSTEXPR_TESTS
-//   macro: 1 when the constant-expression tests can be compiled -- C++14 or
+//   macro: 1 when the constant-expression tests can be compiled - C++14 or
 // later (std::forward is not constexpr before C++14, and the generic contramap
 // forwards) AND the qualifier layer is not stripping constexpr for test
 // instrumentation.  0 otherwise, in which case the constexpr block is omitted
@@ -161,7 +161,7 @@ bool contravariant_check(
     while (0)
 
 
-#ifndef DTEST_SPEC_MODE  // (part 1 cont.) fixtures -- normal mode only
+#ifndef DTEST_SPEC_MODE  // (part 1 cont.) fixtures - normal mode only
 
 ///////////////////////////////////////////////////////////////////////////////
 ///             F.1   ADAPTER-DOMAIN DEDUCTION                              ///
@@ -173,7 +173,7 @@ bool contravariant_check(
 // negative expression-SFINAE test in section `contramap` possible.
 
 // DUnaryDomainImpl
-//   trait: primary -- an unrecognized call signature yields no `type`.
+//   trait: primary - an unrecognized call signature yields no `type`.
 template<typename _Signature>
 struct DUnaryDomainImpl
 {};
@@ -197,7 +197,7 @@ struct DUnaryDomainImpl<_Result (_Class::*)(_Argument)>
 };
 
 // DUnaryDomain
-//   trait: primary -- no `type` unless one of the specializations below
+//   trait: primary - no `type` unless one of the specializations below
 // applies.  Soft failure, never a hard error.
 template<typename _Function,
          typename _Enable = void>
@@ -234,7 +234,7 @@ using unary_domain_t =
 
 // DForwardRecord
 //   struct: what predicate_of's contramap saw about how the generic contramap
-// handed its two arguments over -- the evidence for the forwarding test.
+// handed its two arguments over - the evidence for the forwarding test.
 struct DForwardRecord
 {
     bool saw_call;
@@ -349,7 +349,7 @@ struct sink_of
 };
 
 // is_sink_context
-//   trait: primary -- false for everything that is not a sink_of.
+//   trait: primary - false for everything that is not a sink_of.
 template<typename _Type>
 struct is_sink_context
     : std::false_type
@@ -430,7 +430,7 @@ struct DCtDoubled
 };
 
 // DRefConsumer
-//   struct: trait-shape fixture only -- registered so that its `value_type` is
+//   struct: trait-shape fixture only - registered so that its `value_type` is
 // a reference-to-const, pinning that contravariant_value_type reports what the
 // instance declared and does not decay it.  Not a lawful instance (it has no
 // contramap) and never handed to the generic operation.
@@ -454,13 +454,13 @@ struct no_default
 };
 
 // DMarkerOnly
-//   struct: registered with `is_specialized` but NO `value_type` -- detected as
+//   struct: registered with `is_specialized` but NO `value_type` - detected as
 // contravariant, yet carries no inner type.
 struct DMarkerOnly
 {};
 
 // value_only
-//   struct: registered with `value_type` but NO `is_specialized` -- NOT
+//   struct: registered with `value_type` but NO `is_specialized` - NOT
 // detected as contravariant, yet the value_type extractor still resolves.
 struct value_only
 {};
@@ -555,7 +555,7 @@ struct can_contramap<
 {};
 
 
-NS_END  // testing -- reopened below; trait specializations belong to djinterp
+NS_END  // testing - reopened below; trait specializations belong to djinterp
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -643,7 +643,7 @@ struct contravariant_traits< ::djinterp::testing::predicate_of<_Type> >
 };
 
 // contravariant_traits (sink_of, via the SFINAE hook)
-//   trait: registration through the trait's SECOND parameter -- any type the
+//   trait: registration through the trait's SECOND parameter - any type the
 // is_sink_context predicate accepts is an instance, without naming its
 // template.  Deliberately omits `rebind` (optional in the protocol).
 template<typename _Contravariant>
@@ -707,7 +707,7 @@ struct contravariant_traits< ::djinterp::testing::DCtPredicate<_Type, _Function>
 };
 
 // contravariant_traits (DRefConsumer)
-//   trait: trait-shape fixture -- declares a reference-to-const value_type so
+//   trait: trait-shape fixture - declares a reference-to-const value_type so
 // the extractor can be shown to report it verbatim.
 template<>
 struct contravariant_traits< ::djinterp::testing::DRefConsumer >
@@ -751,7 +751,7 @@ struct contravariant_traits< ::djinterp::testing::DHostileMarked >
 };
 
 
-NS_TESTING  // reopened -- everything below depends on the registrations above
+NS_TESTING  // reopened - everything below depends on the registrations above
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -773,7 +773,7 @@ std::string long_to_text(
 }
 
 // make_show_long
-//   function: the documented `show_long` -- a to_string_of<long> that renders a
+//   function: the documented `show_long` - a to_string_of<long> that renders a
 // long in decimal without <sstream>.
 inline
 to_string_of<long> make_show_long()
@@ -827,7 +827,7 @@ struct DScaledAdapter
         };
 
     // overload_taken
-    //   function: constrained overload -- chosen for contravariant contexts,
+    //   function: constrained overload - chosen for contravariant contexts,
     // being the more constrained of the pair.
     template<Contravariant _Type>
     inline
@@ -854,7 +854,7 @@ struct DScaledAdapter
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- (part 2) declarations -- visible in BOTH modes --------------------------
+// - (part 2) declarations - visible in BOTH modes --------------------------
 
 // I.   PROTOCOL   (contravariant_tests_protocol.cpp)
 bool tests_contravariant_traits_registration_members();
@@ -918,11 +918,11 @@ bool tests_contravariant_concept_composes_in_requires_clause();
 #endif
 
 
-// -- (part 3) the spec provider -- spec mode only ----------------------------
+// - (part 3) the spec provider - spec mode only ----------------------------
 #ifdef DTEST_SPEC_MODE
 
 // contravariant_spec
-//   function: the authoritative description of this suite -- one block per
+//   function: the authoritative description of this suite - one block per
 // section TU, one row per tests_* body, every node named and described.
 inline
 dt::module_spec contravariant_spec()

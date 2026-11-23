@@ -5,13 +5,13 @@
 *   The sections held to CLI11 run what the CASES section defines:
 * validators made by the face's functions of CLI11's names, over the types
 * and containers they take; described, named, set and combined; run over
-* values -- each value's line written by transcribe(), which reads integers
-* under CLI11's rule for leading zeros, as the C suites do -- and given to
+* values - each value's line written by transcribe(), which reads integers
+* under CLI11's rule for leading zeros, as the C suites do - and given to
 * options in parses. tools/cppref/cppref.py compiles that section against
 * CLI11 2.7.2, through the face's names for CLI11's (cli11_shim.hpp), and
 * the transcripts below are what CLI11 wrote; so the CASES section is
-* written in the part of the face CLI11 shares -- `->` on every handle, no
-* status taken from a call -- and C++98 unless a guard says otherwise. The
+* written in the part of the face CLI11 shares - `->` on every handle, no
+* status taken from a call - and C++98 unless a guard says otherwise. The
 * sections that are the module's own are written apart, after it, each
 * saying why CLI11 cannot write its transcript.
 *
@@ -879,10 +879,10 @@ const char FILTERS[] =
 //   constant: what the steps of d_tests_arg_cpp_validator_departures write:
 // the module's own, where the face departs from CLI11. CLI11's
 // get_validator throws OptionNotFound for a validator an option does not
-// have -- "Validator nope Not Found not found", "Validator index is not
-// valid not found" -- where the face gives a NULL handle (ISSUES 50); a
+// have - "Validator nope Not Found not found", "Validator index is not
+// valid not found" - where the face gives a NULL handle (ISSUES 50); a
 // transformation's function that changes a value and then rejects it
-// leaves the change in CLI11's option -- `AB1` for `ab1` -- where here the
+// leaves the change in CLI11's option - `AB1` for `ab1` - where here the
 // result stays as it was given (ISSUES 37), though the value operator() is
 // called on keeps it in both, as SETTINGS shows; and CLI11 streams a
 // range's bounds over an 8-bit integer as characters, `INT in [` with a
@@ -914,8 +914,8 @@ const char DEPARTED[] =
 // write: the module's own, where the face's extra validators depart from
 // CLI11's. CLI11's ValidIPV4 reads each part as a flag's number, so that
 // `true.0.0.1` passes (ISSUES 24); its Bound writes a value it clamps to
-// every digit max_digits10 allows -- 0.05 into [0.1, 0.3] as
-// `0.10000000000000001` -- and an 8-bit integer as a character, its bounds
+// every digit max_digits10 allows - 0.05 into [0.1, 0.3] as
+// `0.10000000000000001` - and an 8-bit integer as a character, its bounds
 // as `[A - d]` and 120 clamped to `d` (ISSUES 23), and its AsNumberWithUnit
 // writes a float factor's product the same way, `0.1 x` with x as 3 as
 // `0.300000012`; it leaves a value AsSizeValue rejects cut, `1` for `1zb`
@@ -953,7 +953,7 @@ const char DEPARTED_EXTRA[] =
 //   constant: what the steps of d_tests_arg_cpp_validator_departures_cpp11
 // write: the module's own, where a range over an enumeration departs from
 // CLI11's: CLI11 writes an enumeration with an operator<< of its own
-// through it -- `ENUM in [pale - deep]` -- where here every bound is written
+// through it - `ENUM in [pale - deep]` - where here every bound is written
 // as the number the enumeration converts through, as CLI11 writes any other
 // enumeration (ISSUES 53).
 const char DEPARTED_CPP11[] =
@@ -969,8 +969,8 @@ const char DEPARTED_CPP11[] =
 //   constant: what the steps of
 // d_tests_arg_cpp_validator_departures_cpp11_extra write: the module's own,
 // where a bound over an enumeration departs from CLI11's: CLI11 writes an
-// enumeration with an operator<< of its own through it -- `ENUM bounded to
-// [pale - deep]`, 5 clamped to `deep` -- where here every bound, and every
+// enumeration with an operator<< of its own through it - `ENUM bounded to
+// [pale - deep]`, 5 clamped to `deep` - where here every bound, and every
 // value a bound clamps, is written as the number the enumeration converts
 // through, as CLI11 writes any other enumeration (ISSUES 53).
 const char DEPARTED_CPP11_EXTRA[] =
@@ -1686,8 +1686,8 @@ std::ostream& operator<<(
 }
 
 /**
- * @brief EXTRA 1: values that must convert to a type -- built-in, text and
- *        streamed -- and to a number.
+ * @brief EXTRA 1: values that must convert to a type - built-in, text and
+ *        streamed - and to a number.
  *
  * @param[in,out] _run  the step's run.
  */
@@ -1849,7 +1849,7 @@ const step_fn EXTRA_STEPS[] =
 const std::size_t EXTRA_COUNT = sizeof(EXTRA_STEPS) / sizeof(EXTRA_STEPS[0]);
 
 /**
- * @brief MEMBER 1: sets over the standard containers -- a vector of text,
+ * @brief MEMBER 1: sets over the standard containers - a vector of text,
  *        a set of integers, a map's keys.
  *
  * @param[in,out] _run  the step's run.
@@ -3403,7 +3403,7 @@ std::ostream& operator<<(
 
 /**
  * @brief DEPARTED_CPP11 1: a range over an enumeration with an operator<<
- *        of its own -- which writes it as a word -- its bounds written as
+ *        of its own - which writes it as a word - its bounds written as
  *        numbers.
  *
  * @param[in,out] _run  the step's run.
@@ -3637,7 +3637,7 @@ d_tests_arg_cpp_validator_paths
   Tests the following:
   - files, folders and paths, existing and not
   - a file on a default path, its error returned and not
-  - permissions -- execution as the system grants it -- and files that are
+  - permissions - execution as the system grants it - and files that are
     not empty
 */
 bool d_tests_arg_cpp_validator_paths()
@@ -3652,7 +3652,7 @@ bool d_tests_arg_cpp_validator_paths()
 /*
 d_tests_arg_cpp_validator_path_sizes
   CLI11's FileSizeValidator, which the face has where a 64-bit integer is
-declared -- every build but ISO strict C++98 on a system whose 64-bit
+declared - every build but ISO strict C++98 on a system whose 64-bit
 integer is `long long`, where the section holds its absence.
   Tests the following:
   - a file's size between two bounds, and from a least alone, for a file, an

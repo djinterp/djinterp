@@ -13,14 +13,14 @@
 * specialized to text: the DTextTemplate is the *template* t, a lookup is the
 * *source*, the produced string is the *sink*, and `interpolate(t)` is the
 * source-transformer F_t = F-hat(t).  (The types here are heterogeneous --
-* template, source and sink are distinct -- so this does not instantiate
+* template, source and sink are distinct - so this does not instantiate
 * DTemplateSystem, which is the homogeneous-carrier case; it realizes the same
 * curry / evaluate factorization by hand.)
 *
 *   Placeholders:
-*     {key}        -- substituted with the source's value for `key`
-*     { key }      -- surrounding whitespace inside the braces is trimmed
-*     {{  and  }}  -- escaped literal `{` and `}`
+*     {key}        - substituted with the source's value for `key`
+*     { key }      - surrounding whitespace inside the braces is trimmed
+*     {{  and  }}  - escaped literal `{` and `}`
 *   Parsing is lenient and never throws: an unmatched `{` (or a lone `}`) is
 * emitted literally; the first `}` closes a placeholder (no nesting).  The bound
 * parser stores segments as offsets into the owned format string, so copying or
@@ -29,7 +29,7 @@
 *   Source contract: any callable `(view_type) -> V` where V is convertible to
 * view_type (a string, a string_view, or a C string).  Build one inline with
 * the initializer_list overloads, or pass a lambda closing over a map.  A
-* temporary returned by the lookup is lifetime-correct -- it is appended before
+* temporary returned by the lookup is lifetime-correct - it is appended before
 * it is destroyed.
 *
 *   Requires C++17 (std::string_view); self-suppresses below it.
@@ -78,16 +78,16 @@ NS_INTERNAL
 // DPlaceholderParser
 //   class: scans a format string with `{key}` placeholders ONCE into a flat
 // list of literal/key segments, each stored as an (offset, length) into the
-// owned format -- so copying or moving the parser is cheap and segments never
+// owned format - so copying or moving the parser is cheap and segments never
 // dangle.  This is the small, self-contained scanner DTextTemplate was written
 // against; it depends only on <string>/<string_view>/<vector> and is
 // deliberately decoupled from the parse-combinator subframework (DTextTemplate
 // needs a `{key}` scan, not a parser carrier).
 //
 //   Dialect (matches DTextTemplate's documented contract):
-//     {key}        -- a key segment named `key`
-//     { key }      -- surrounding whitespace inside the braces is trimmed
-//     {{  }}       -- escaped literal `{` / `}` (emitted as a one-char literal)
+//     {key}        - a key segment named `key`
+//     { key }      - surrounding whitespace inside the braces is trimmed
+//     {{  }}       - escaped literal `{` / `}` (emitted as a one-char literal)
 //   Lenient and never throws: an unmatched `{` with no following `}` is emitted
 // literally, a lone `}` is literal, and the first `}` closes a placeholder (no
 // nesting).
@@ -101,7 +101,7 @@ public:
     using size_type   = std::size_t;
 
     // segment
-    //   struct: one scanned span -- a literal or a key -- as an offset and
+    //   struct: one scanned span - a literal or a key - as an offset and
     // length into the owned format string.  `m_is_key` discriminates the two.
     struct segment
     {
@@ -155,14 +155,14 @@ public:
         scan();
     }
 
-    // segments -- the scanned segment list (literal and key spans, in order).
+    // segments - the scanned segment list (literal and key spans, in order).
     D_NODISCARD const std::vector<segment>&
     segments() const
     {
         return m_segments;
     }
 
-    // text -- the view a segment resolves to within the owned format.  For a
+    // text - the view a segment resolves to within the owned format.  For a
     // key segment this is the (trimmed) key name; for a literal it is the
     // literal span (a single char for an escaped brace).
     D_NODISCARD view_type
@@ -173,14 +173,14 @@ public:
         return view_type(m_format.data() + _seg.m_offset, _seg.m_length);
     }
 
-    // format -- the original (owned) format string.
+    // format - the original (owned) format string.
     D_NODISCARD const string_type&
     format() const
     {
         return m_format;
     }
 
-    // keys -- the placeholder names, in order of appearance.
+    // keys - the placeholder names, in order of appearance.
     D_NODISCARD std::vector<view_type>
     keys() const
     {
@@ -198,7 +198,7 @@ public:
         return _out;
     }
 
-    // literal_size -- total bytes contributed by literal segments (the lower
+    // literal_size - total bytes contributed by literal segments (the lower
     // bound DTextTemplate reserves for the output buffer).
     D_NODISCARD size_type
     literal_size() const
@@ -245,7 +245,7 @@ public:
     }
 
 private:
-    // is_space -- ASCII whitespace test for key trimming.
+    // is_space - ASCII whitespace test for key trimming.
     static bool
     is_space(
         Type _c
@@ -259,7 +259,7 @@ private:
                  _c == static_cast<Type>('\v') );
     }
 
-    // push_literal -- record a literal segment for [_from, _to), if non-empty.
+    // push_literal - record a literal segment for [_from, _to), if non-empty.
     void
     push_literal(
         size_type _from,
@@ -274,7 +274,7 @@ private:
         return;
     }
 
-    // scan -- the one-pass segmentation; see the dialect notes above.
+    // scan - the one-pass segmentation; see the dialect notes above.
     void
     scan()
     {
@@ -417,7 +417,7 @@ public:
         : m_parser(_format)
     {}
 
-    // render_to -- append the interpolation of `_lookup` into `_out` (no result
+    // render_to - append the interpolation of `_lookup` into `_out` (no result
     // allocation).  `_lookup` is callable (view_type) -> (convertible to
     // view_type); the threaded output buffer is the caller's to size.
     template<typename Lookup>
@@ -448,7 +448,7 @@ public:
         return;
     }
 
-    // render_to -- inline-bindings convenience over the callable form
+    // render_to - inline-bindings convenience over the callable form
     void
     render_to(
         string_type&                                          _out,
@@ -460,7 +460,7 @@ public:
         return;
     }
 
-    // render -- the interpolation of `_lookup` as a freshly allocated string;
+    // render - the interpolation of `_lookup` as a freshly allocated string;
     // reserves a capacity estimate up front.
     template<typename Lookup>
     D_NODISCARD string_type
@@ -476,7 +476,7 @@ public:
         return _out;
     }
 
-    // render -- inline-bindings convenience
+    // render - inline-bindings convenience
     D_NODISCARD string_type
     render(
         std::initializer_list<std::pair<view_type, view_type>> _bindings
@@ -485,7 +485,7 @@ public:
         return render(m_make_lookup(_bindings));
     }
 
-    // operator() -- render as a value (the functor face of a DTextTemplate)
+    // operator() - render as a value (the functor face of a DTextTemplate)
     template<typename Lookup>
     D_NODISCARD string_type
     operator()(
@@ -503,14 +503,14 @@ public:
         return render(_bindings);
     }
 
-    // format -- the original format string
+    // format - the original format string
     D_NODISCARD const string_type&
     format() const
     {
         return m_parser.format();
     }
 
-    // parsed -- the bound parser (the format's parsed structure: segments,
+    // parsed - the bound parser (the format's parsed structure: segments,
     // key/literal totals, segment-to-view resolution)
     D_NODISCARD const parser_type&
     parsed() const
@@ -518,7 +518,7 @@ public:
         return m_parser;
     }
 
-    // keys -- the placeholder names, in order of appearance (for validation)
+    // keys - the placeholder names, in order of appearance (for validation)
     D_NODISCARD std::vector<view_type>
     keys() const
     {
@@ -550,7 +550,7 @@ private:
 
     // m_make_lookup
     //   function: a linear-scan lookup over inline bindings; missing keys map to
-    // the empty view.  Captures the list by reference -- it must outlive the
+    // the empty view.  Captures the list by reference - it must outlive the
     // render call (it does: both are arguments to the same statement).
     static auto
     m_make_lookup(

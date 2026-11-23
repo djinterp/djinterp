@@ -2,7 +2,7 @@
 * djinterp [re_std]                               duration_compare_three_way.hpp
 *
 * the duration three-way comparison:
-*   operator<=> for durations of mixed periods. C++20 only -- the
+*   operator<=> for durations of mixed periods. C++20 only - the
 * spaceship operator is a language feature and has no back-port. On
 * C++11 through C++17 the six explicit operators in duration_compare.hpp
 * are the whole comparison surface.
@@ -10,7 +10,7 @@
 *   THE COMPARISON IS DELEGATED TO THE REPRESENTATION:
 *   Both operands convert to the common period, and the two counts are
 * compared with <=>. The result type is therefore whatever the rep's own
-* three-way comparison yields -- std::strong_ordering for the integral
+* three-way comparison yields - std::strong_ordering for the integral
 * reps every predefined duration uses, and std::partial_ordering for a
 * floating-point rep, correctly, since a NaN count is unordered.
 *

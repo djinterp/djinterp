@@ -6,8 +6,8 @@
 * written once, front to back. Nothing written is ever rewritten, and nothing
 * allocates.
 *
-*   A TYPE IS AUTHORED ONCE. A type gives desc a field list -- each value's
-* key, label, layer, importance and truth -- one reader for those fields, a
+*   A TYPE IS AUTHORED ONCE. A type gives desc a field list - each value's
+* key, label, layer, importance and truth - one reader for those fields, a
 * plan, and units that name the fields. Prose comes from the units
 * (d_desc_say); facts come from the field list (d_desc_facts), through
 * desc.h's sink to any machine. Both read the same reader, so they cannot
@@ -103,7 +103,7 @@ D_EXTERN_C_BEGIN
 // 1.2
 // D_DESC_BUILT
 //   macro: whether this build has the units of a ring and a layer, each
-// named without its prefix -- D_DESC_BUILT(LINE, STATE) -- for #if around a
+// named without its prefix - D_DESC_BUILT(LINE, STATE) - for #if around a
 // unit table's row. desc.h's layers are enum constants, which #if cannot
 // read, so the names map to numbers here; a misspelt name is an undefined
 // macro, which -Wundef reports.

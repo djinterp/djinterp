@@ -32,7 +32,7 @@ bool tests_storage_duration_of()
 {
     bool _stg_ok = true;
 
-    // -- dynamic: allocator-backed / growable containers --
+    // - dynamic: allocator-backed / growable containers --
     D_STG_CHECK( (storage_duration_of<std::vector<int>>::value        == DStorageDuration::dynamic_storage) );
     D_STG_CHECK( (storage_duration_of<std::deque<int>>::value         == DStorageDuration::dynamic_storage) );
     D_STG_CHECK( (storage_duration_of<std::list<int>>::value          == DStorageDuration::dynamic_storage) );
@@ -44,21 +44,21 @@ bool tests_storage_duration_of()
     D_STG_CHECK( (storage_duration_of<std::string>::value             == DStorageDuration::dynamic_storage) );
     D_STG_CHECK( (storage_duration_of<reserve_only>::value            == DStorageDuration::dynamic_storage) );
 
-    // -- static: inline compile-time aggregates --
+    // - static: inline compile-time aggregates --
     D_STG_CHECK( (storage_duration_of<std::array<int, 4>>::value   == DStorageDuration::static_storage) );
     D_STG_CHECK( (storage_duration_of<std::pair<int, int>>::value  == DStorageDuration::static_storage) );
     D_STG_CHECK( (storage_duration_of<std::tuple<int, char>>::value == DStorageDuration::static_storage) );
     D_STG_CHECK( (storage_duration_of<extent_only>::value          == DStorageDuration::static_storage) );
 
-    // -- hybrid: SHAPE-synthesised (both signals) and via the opt-in --
+    // - hybrid: SHAPE-synthesised (both signals) and via the opt-in --
     D_STG_CHECK( (storage_duration_of<DHybridShape>::value == DStorageDuration::hybrid_storage) );
     D_STG_CHECK( (storage_duration_of<DOptinHybrid>::value == DStorageDuration::hybrid_storage) );
 
-    // -- unknown: no signal at all --
+    // - unknown: no signal at all --
     D_STG_CHECK( (storage_duration_of<int>::value       == DStorageDuration::unknown) );
     D_STG_CHECK( (storage_duration_of<no_signal>::value == DStorageDuration::unknown) );
 
-    // -- opt-in OVERRIDES shape --
+    // - opt-in OVERRIDES shape --
     // static `extent` shape, but the opt-in pins dynamic
     D_STG_CHECK( (storage_duration_of<DOptinDynamicOverride>::value == DStorageDuration::dynamic_storage) );
     // no shape at all, the opt-in pins static

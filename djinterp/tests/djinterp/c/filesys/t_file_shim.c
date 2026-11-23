@@ -38,7 +38,7 @@ static int g_copies = 0;
 
 /*
 d_tests_shim_next
-  The next definition of a symbol after this library's -- the C library's --
+  The next definition of a symbol after this library's - the C library's --
 as an object pointer, which the callers below store into function pointers
 through memcpy, ISO C having no conversion between the two.
 */

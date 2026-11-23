@@ -301,7 +301,7 @@ void d_ftp_internal_reply_store(
 /*
 d_ftp_internal_reply_repeats_code
   File-local: reports whether the first `_count` bytes of a later line repeat
-the reply's code, bare or followed by a space or hyphen -- the prefix that
+the reply's code, bare or followed by a space or hyphen - the prefix that
 marks the line as the reply's own rather than as text.
 */
 D_STATIC
@@ -746,8 +746,8 @@ d_ftp_internal_reply_lead
   File-local: writes the lead of one formatted line into `_lead`, four
 bytes, and returns its length: the code and a hyphen opening the first line
 of several, the code and a space opening the last, a single space before a
-middle line that begins with a digit -- which could otherwise pass for a
-closing line -- and nothing before any other.
+middle line that begins with a digit - which could otherwise pass for a
+closing line - and nothing before any other.
 */
 D_STATIC
 size_t d_ftp_internal_reply_lead(

@@ -9,7 +9,7 @@
 *     - provide the shared sentinels / helpers the per-knob cascade uses
 *
 *   Depends on nothing: it is the root; nothing in the framework sits below it
-* (in particular it does NOT include env.h -- env.h's own config includes this).
+* (in particular it does NOT include env.h - env.h's own config includes this).
 *
 *   targets:  every cfg_*.h, which includes it first; env/env.h and
 *             env/net/ssh/env_ssh.h -> D_CFG_NORM, D_CFG_IS_ON / _OFF,
@@ -69,7 +69,7 @@ TABLE OF CONTENTS
 // NOTE: no parentheses around x, so an empty expansion becomes unary `+ 0`.
 //   It also reads any non-numeric identifier as 0, so `-DFLAG=yes` normalizes
 // to OFF. That is the arithmetic the language specifies rather than a defect
-// here, so it is left alone -- 0.3 is how a knob asks whether it was handed a
+// here, so it is left alone - 0.3 is how a knob asks whether it was handed a
 // real boolean in the first place.
 #define D_CFG_NORM(x)   (x + 0)
 
@@ -85,8 +85,8 @@ TABLE OF CONTENTS
 // `-DD_CFG_FOO=yes` and `-DD_CFG_FOO=0` are the same value to D_CFG_NORM.
 //
 //   Mechanism: paste the knob's VALUE onto a marker prefix. Every valid
-// spelling lands on a pad -- 1 where it is the literal asked about, 0 where it
-// is the other one -- and anything else lands on nothing, which #if reads as
+// spelling lands on a pad - 1 where it is the literal asked about, 0 where it
+// is the other one - and anything else lands on nothing, which #if reads as
 // 0. Because a well-formed knob always lands on a pad, validating one
 // evaluates no undefined identifier and stays -Wundef-clean. A malformed
 // NUMBER never reaches one either: the value is tested as a number first,
@@ -97,26 +97,26 @@ TABLE OF CONTENTS
 //
 //   THREE THINGS THIS COSTS, all load-bearing:
 //
-//   1. #if ONLY. An unmatched paste leaves an undefined IDENTIFIER -- which is
+//   1. #if ONLY. An unmatched paste leaves an undefined IDENTIFIER - which is
 //      0 to the #if evaluator and a syntax error to the compiler proper.
 //      D_CFG_IS_ON works in both places because (x + 0) is arithmetic; these
 //      cannot. Never write D_CFG_IS_BOOL outside a preprocessor conditional.
 //
 //   2. THE PREFIX MUST REACH ## UNEXPANDED. D_INTERNAL_CFG_LIT0_ is itself a
-//      macro -- it is the empty-value marker -- so an expanding paste turns
+//      macro - it is the empty-value marker - so an expanding paste turns
 //      `LIT0_ ## yes` into `1 ## yes` -> `1yes` -> "invalid suffix on integer
 //      constant". Hence the split below: the PROBE macros expand the VALUE one
 //      level up, and the prefix goes straight into a raw `_a ## _b`.
 //
 //   3. UNDEFINED IS NOT A BOOLEAN. Apply these only AFTER the knob's #ifndef
-//      default has run -- before that, "the user did not set it" and "the user
+//      default has run - before that, "the user did not set it" and "the user
 //      set it to garbage" are the same undefined identifier.
 //
 //   `#define D_CFG_FOO` with no value stays legal and reads as OFF: accepting
 // that documented spelling is exactly what D_INTERNAL_CFG_LIT0_ exists for.
 
 // D_INTERNAL_CFG_PASTE(_a, _b)
-//   internal: the raw paste. Neither operand is expanded -- that is the point.
+//   internal: the raw paste. Neither operand is expanded - that is the point.
 #define D_INTERNAL_CFG_PASTE(_a, _b)      _a ## _b
 
 // D_INTERNAL_CFG_LIT1_PROBE(x) / D_INTERNAL_CFG_LIT0_PROBE(x)
@@ -172,7 +172,7 @@ TABLE OF CONTENTS
 
 // D_INTERNAL_CFG_INT_<N>
 //   internal: the integer landing pads: the decimal literals 0 to 16, and 32
-// and 64 -- every value an enumerated knob in the tree takes. A family that
+// and 64 - every value an enumerated knob in the tree takes. A family that
 // needs another value adds its pad here. The empty value lands too, reading as
 // 0, as it does for a boolean knob.
 #define D_INTERNAL_CFG_INT_               1
@@ -208,7 +208,7 @@ TABLE OF CONTENTS
 //   brief: 1 when x is (or expands to) one of the integer literals above. #if
 // only. Validate every ENUMERATED knob with it after defaulting it: a range
 // check cannot see a misspelled value name, because an undefined identifier
-// reads as 0 -- usually the AUTO member -- and passes.
+// reads as 0 - usually the AUTO member - and passes.
 //     #if !D_CFG_IS_INT_LITERAL(D_CFG_FOO_BACKEND)
 //     #   error "D_CFG_FOO_BACKEND must name one of its values"
 //     #endif
@@ -224,8 +224,8 @@ TABLE OF CONTENTS
 // TU, independent of include order. Pre-define D_CFG_CUSTOM_HEADER to point at
 // a custom path instead.
 //
-//   cfg_user.h is the LEGACY name and is still honoured -- both as a filename
-// and through D_CFG_USER_HEADER -- because that is what the code looked for
+//   cfg_user.h is the LEGACY name and is still honoured - both as a filename
+// and through D_CFG_USER_HEADER - because that is what the code looked for
 // first. cfg_custom.h wins where both exist: it is the name the README
 // documents, and following the documentation should not be the case that
 // silently finds nothing.
@@ -276,7 +276,7 @@ TABLE OF CONTENTS
 #endif
 
 // D_CFG_CUSTOM_IS_APPLIED
-//   brief: the resolved FACT -- 1 when a custom header was actually included.
+//   brief: the resolved FACT - 1 when a custom header was actually included.
 // Deliberately a separate name from D_CFG_CUSTOM: that one is the user's
 // input, this one is the output, and auto-pickup makes the two diverge
 // routinely. One name could not answer both questions.

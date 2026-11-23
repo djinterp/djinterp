@@ -152,7 +152,7 @@ struct dj_http1_response
 
 // 2.1    Setup
 //------------------------------------------------------------------------------
-// init -- cfg_http.h's limits, and nothing scanned; reset -- nothing
+// init - cfg_http.h's limits, and nothing scanned; reset - nothing
 // scanned, limits kept, to parse a head that begins elsewhere, or the same
 // bytes after they have moved
 void d_http1_parser_init(
@@ -231,7 +231,7 @@ enum dj_http_error d_http1_parse_response(
 
 // 4.1    Lookup
 //------------------------------------------------------------------------------
-// d_http1_fields_index -- the index of the first field at or after _from
+// d_http1_fields_index - the index of the first field at or after _from
 // whose name matches, ASCII case ignored, or count if none does; call again
 // from the index after a match to find the next
 size_t d_http1_fields_index(

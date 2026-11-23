@@ -1,5 +1,5 @@
 #!/bin/sh
-# fix.sh -- what `dcheck --fix` does to a file, against the file it should
+# fix.sh - what `dcheck --fix` does to a file, against the file it should
 # leave.
 #
 #   tests/dawk/fix/before/   files with findings whose rules state a repair
@@ -10,7 +10,7 @@
 # must reach.  Three more things are checked, since a fixer that reaches
 # the right text is not thereby safe: no repair was refused; each repaired
 # file is the same to the compiler as its original, by
-# `dcheck --same-tokens` -- every repair here changes white space or adds a
+# `dcheck --same-tokens` - every repair here changes white space or adds a
 # comment; and what was moved in it stands where its brackets put it, by
 # `dcheck --moved-lines`, which so agrees with after/ and not only with its
 # own pairs.

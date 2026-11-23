@@ -21,11 +21,11 @@ using namespace ::djinterp::test;
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///   compile-time invariants -- III. contains dispatch selector              ///
+///   compile-time invariants - III. contains dispatch selector              ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // the trait that selects the dispatch: DIdSet exposes contains(), DIdSetNc
-// does not -- so the two contains_dispatch overloads are both reachable
+// does not - so the two contains_dispatch overloads are both reachable
 static_assert(::djinterp::test::internal::has_set_contains<DIdSet>::value,
               "id_set must expose a native contains()");
 static_assert(!::djinterp::test::internal::has_set_contains<DIdSetNc>::value,
@@ -33,7 +33,7 @@ static_assert(!::djinterp::test::internal::has_set_contains<DIdSetNc>::value,
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///   runtime tests -- III. contains + dispatch                               ///
+///   runtime tests - III. contains + dispatch                               ///
 ///////////////////////////////////////////////////////////////////////////////
 
 /*

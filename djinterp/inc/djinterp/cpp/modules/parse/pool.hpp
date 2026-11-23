@@ -3,7 +3,7 @@
 *
 *   The C++ face of the intern pool declared in pool.h.
 *   `pool` derives from dj_parse_pool, adds no data member, and is asserted
-* layout-identical -- so a C stage interns into a C++ pool by taking its
+* layout-identical - so a C stage interns into a C++ pool by taking its
 * address.  What the C++ side adds is lifetime and the two typed spellings of
 * an intern, since a blob and a string differ only in whether the terminator
 * travels with them and getting that wrong is silent.

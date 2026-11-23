@@ -277,8 +277,8 @@ d_tests_text_source_line_crlf(void)
 d_tests_text_source_locate
   Telling offsets as lines and columns.
   Tests the following:
-  - in "ab\ncd", offsets 0 to 4 are (1,1), (1,2), (1,3) -- the newline, the
-    last byte of line 1 -- (2,1) and (2,2)
+  - in "ab\ncd", offsets 0 to 4 are (1,1), (1,2), (1,3) - the newline, the
+    last byte of line 1 - (2,1) and (2,2)
   - on many lines, the binary search finds each line's first and last byte
   - an offset past the end gives false and writes nothing
 */

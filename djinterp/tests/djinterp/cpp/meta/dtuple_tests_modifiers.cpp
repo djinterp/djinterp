@@ -45,7 +45,7 @@ using namespace dtuple_test_types;
 // I.   WRAP_ALL  (compile-time)
 // =========================================================================
 
-// empty modifier pack -- both the general empty-pack instantiation and
+// empty modifier pack - both the general empty-pack instantiation and
 // the explicit `<>` specialization should resolve to identity.
 static_assert(std::is_same<typename DWrapAll<>::template type<int>, int>::value,
               "wrap_all<>::type<int> should be int (identity)");
@@ -55,7 +55,7 @@ static_assert(std::is_same<typename DWrapAll<>::template type<std::tuple<int>>,
                            std::tuple<int>>::value,
               "wrap_all<>::type<std::tuple<int>> should be std::tuple<int>");
 
-// single modifier -- one application
+// single modifier - one application
 static_assert(std::is_same<typename DWrapAll<std::add_const>::template type<int>,
                            const int>::value,
               "wrap_all<std::add_const>::type<int> should be const int");
@@ -66,7 +66,7 @@ static_assert(std::is_same<typename DWrapAll<std::add_volatile>::template type<i
                            volatile int>::value,
               "wrap_all<std::add_volatile>::type<int> should be volatile int");
 
-// two modifiers -- composition is RIGHT-to-LEFT (rightmost is innermost)
+// two modifiers - composition is RIGHT-to-LEFT (rightmost is innermost)
 static_assert(std::is_same<typename DWrapAll<std::add_pointer,
                                              std::add_const>::template type<int>,
                            const int*>::value,
@@ -84,7 +84,7 @@ static_assert(std::is_same<typename DWrapAll<std::add_lvalue_reference,
                            const int&>::value,
               "wrap_all<add_lvalue_reference, add_const>::type<int> should be const int&");
 
-// three modifiers -- composition continues right-to-left
+// three modifiers - composition continues right-to-left
 static_assert(std::is_same<typename DWrapAll<std::add_lvalue_reference,
                                              std::add_pointer,
                                              std::add_const>::template type<int>,
@@ -105,17 +105,17 @@ static_assert(std::is_same<wrap_all_t<int, std::add_pointer, std::add_const>,
 // II.  TO_LVALUE_REFERENCE  (compile-time)
 // =========================================================================
 
-// plain type -- becomes an lvalue ref
+// plain type - becomes an lvalue ref
 static_assert(std::is_same<typename DToLvalueReference::template type<int>, int&>::value,
               "to_lvalue_reference::type<int> should be int&");
 static_assert(std::is_same<typename DToLvalueReference::template type<alpha>, alpha&>::value,
               "to_lvalue_reference::type<alpha> should be alpha&");
 
-// already an lvalue ref -- stays an lvalue ref
+// already an lvalue ref - stays an lvalue ref
 static_assert(std::is_same<typename DToLvalueReference::template type<int&>, int&>::value,
               "to_lvalue_reference::type<int&> should be int&");
 
-// rvalue ref -- stripped and re-added as lvalue
+// rvalue ref - stripped and re-added as lvalue
 static_assert(std::is_same<typename DToLvalueReference::template type<int&&>, int&>::value,
               "to_lvalue_reference::type<int&&> should be int& (strip rvalue, add lvalue)");
 
@@ -125,7 +125,7 @@ static_assert(std::is_same<typename DToLvalueReference::template type<const int>
 static_assert(std::is_same<typename DToLvalueReference::template type<volatile int>, volatile int&>::value,
               "to_lvalue_reference::type<volatile int> should be volatile int&");
 
-// pointer types -- the pointer survives, an ref is added
+// pointer types - the pointer survives, an ref is added
 static_assert(std::is_same<typename DToLvalueReference::template type<int*>, int*&>::value,
               "to_lvalue_reference::type<int*> should be int*&");
 
@@ -134,15 +134,15 @@ static_assert(std::is_same<typename DToLvalueReference::template type<int*>, int
 // III. TO_RVALUE_REFERENCE  (compile-time)
 // =========================================================================
 
-// plain type -- becomes an rvalue ref
+// plain type - becomes an rvalue ref
 static_assert(std::is_same<typename DToRvalueReference::template type<int>, int&&>::value,
               "to_rvalue_reference::type<int> should be int&&");
 
-// lvalue ref -- stripped and re-added as rvalue
+// lvalue ref - stripped and re-added as rvalue
 static_assert(std::is_same<typename DToRvalueReference::template type<int&>, int&&>::value,
               "to_rvalue_reference::type<int&> should be int&& (strip lvalue, add rvalue)");
 
-// already an rvalue ref -- stays
+// already an rvalue ref - stays
 static_assert(std::is_same<typename DToRvalueReference::template type<int&&>, int&&>::value,
               "to_rvalue_reference::type<int&&> should be int&&");
 
@@ -155,26 +155,26 @@ static_assert(std::is_same<typename DToRvalueReference::template type<const int>
 // IV.  TO_POINTER  (compile-time)
 // =========================================================================
 
-// plain type -- gets one pointer level
+// plain type - gets one pointer level
 static_assert(std::is_same<typename DToPointer::template type<int>, int*>::value,
               "to_pointer::type<int> should be int*");
 static_assert(std::is_same<typename DToPointer::template type<alpha>, alpha*>::value,
               "to_pointer::type<alpha> should be alpha*");
 
-// already a pointer -- strip then re-add -> same single-pointer
+// already a pointer - strip then re-add -> same single-pointer
 static_assert(std::is_same<typename DToPointer::template type<int*>, int*>::value,
               "to_pointer::type<int*> should be int* (normalize, not stack)");
 
-// double pointer -- strip one level then re-add -> double pointer
+// double pointer - strip one level then re-add -> double pointer
 static_assert(std::is_same<typename DToPointer::template type<int**>, int**>::value,
               "to_pointer::type<int**> should be int** (one strip, one add)");
 
-// cv-qualified type -- the cv survives (remove_pointer is a no-op,
+// cv-qualified type - the cv survives (remove_pointer is a no-op,
 // then add_pointer wraps)
 static_assert(std::is_same<typename DToPointer::template type<const int>, const int*>::value,
               "to_pointer::type<const int> should be const int*");
 
-// pointer-to-cv -- strip strips the cv pointer, add re-adds without cv
+// pointer-to-cv - strip strips the cv pointer, add re-adds without cv
 // (the cv was on the POINTER, not the pointee, so remove_pointer drops
 // the pointer entirely; add_pointer makes a fresh non-cv pointer to int)
 static_assert(std::is_same<typename DToPointer::template type<int* const>, int*>::value,
@@ -185,7 +185,7 @@ static_assert(std::is_same<typename DToPointer::template type<int* const>, int*>
 // V.   TO_TYPE  (compile-time)
 // =========================================================================
 
-// identity wrapper -- the type is exposed verbatim
+// identity wrapper - the type is exposed verbatim
 static_assert(std::is_same<typename to_type<int>::type, int>::value,
               "to_type<int>::type should be int");
 static_assert(std::is_same<typename to_type<const int&>::type, const int&>::value,
@@ -207,17 +207,17 @@ static_assert(std::is_same<to_type_t<volatile int*>, volatile int*>::value,
 // VI.  TUPLE_JOIN  (compile-time)
 // =========================================================================
 
-// empty pack of tuples -- the helper's empty-tail base case
+// empty pack of tuples - the helper's empty-tail base case
 static_assert(std::is_same<typename tuple_join<>::type, std::tuple<>>::value,
               "tuple_join<>::type should be std::tuple<>");
 
-// single non-tuple arg -- the helper's single-type-head specialization
+// single non-tuple arg - the helper's single-type-head specialization
 static_assert(std::is_same<typename tuple_join<int>::type, std::tuple<int>>::value,
               "tuple_join<int>::type should be std::tuple<int>");
 static_assert(std::is_same<typename tuple_join<alpha>::type, std::tuple<alpha>>::value,
               "tuple_join<alpha>::type should be std::tuple<alpha>");
 
-// single tuple arg -- the helper's tuple-head specialization
+// single tuple arg - the helper's tuple-head specialization
 static_assert(std::is_same<typename tuple_join<std::tuple<>>::type, std::tuple<>>::value,
               "tuple_join<std::tuple<>>::type should be std::tuple<>");
 static_assert(std::is_same<typename tuple_join<std::tuple<int>>::type, std::tuple<int>>::value,
@@ -234,7 +234,7 @@ static_assert(std::is_same<typename tuple_join<int, char, float>::type,
                            std::tuple<int, char, float>>::value,
               "tuple_join<int, char, float>::type should be std::tuple<int, char, float>");
 
-// two tuples -- concatenated
+// two tuples - concatenated
 static_assert(std::is_same<typename tuple_join<std::tuple<int>, std::tuple<char>>::type,
                            std::tuple<int, char>>::value,
               "tuple_join<std::tuple<int>, std::tuple<char>>::type should be std::tuple<int, char>");
@@ -250,7 +250,7 @@ static_assert(std::is_same<typename tuple_join<std::tuple<int>,
                            std::tuple<int, char, float>>::value,
               "tuple_join<std::tuple<int>, std::tuple<char>, std::tuple<float>>::type should concat all three");
 
-// mixed tuple / non-tuple args -- non-tuples contribute one element
+// mixed tuple / non-tuple args - non-tuples contribute one element
 static_assert(std::is_same<typename tuple_join<std::tuple<int>, char>::type,
                            std::tuple<int, char>>::value,
               "tuple_join<std::tuple<int>, char>::type should append the non-tuple");
@@ -272,7 +272,7 @@ static_assert(std::is_same<typename tuple_join<std::tuple<>, std::tuple<>>::type
                            std::tuple<>>::value,
               "tuple_join<std::tuple<>, std::tuple<>>::type should be empty");
 
-// deeply-nested tuples are NOT flattened recursively -- join goes one
+// deeply-nested tuples are NOT flattened recursively - join goes one
 // level deep only
 static_assert(std::is_same<typename tuple_join<std::tuple<std::tuple<int>>>::type,
                            std::tuple<std::tuple<int>>>::value,

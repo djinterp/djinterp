@@ -23,7 +23,7 @@ using namespace ::djinterp::test;
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///   compile-time invariants -- III. set construction / aliases              ///
+///   compile-time invariants - III. set construction / aliases              ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // forwarded type aliases (id-keyed set of ids)
@@ -65,7 +65,7 @@ static_assert(!std::is_convertible<
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///   runtime tests -- III. set construction / aliases                        ///
+///   runtime tests - III. set construction / aliases                        ///
 ///////////////////////////////////////////////////////////////////////////////
 
 /*

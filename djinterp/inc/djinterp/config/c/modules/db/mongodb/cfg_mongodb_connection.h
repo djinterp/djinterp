@@ -60,8 +60,8 @@ TABLE OF CONTENTS
 // 1.1.1
 // D_CFG_MONGODB_SERVER_SELECTION_TIMEOUT_MS
 //   knob: how long, in milliseconds, an operation waits for a server it may
-// use -- the primary for a write, any member a read preference allows for a
-// read -- before it fails; 0 leaves the driver's own, 30000. Defaults to
+// use - the primary for a write, any member a read preference allows for a
+// read - before it fails; 0 leaves the driver's own, 30000. Defaults to
 // 10000, the connect timeout the other layers keep.
 #ifndef D_CFG_MONGODB_SERVER_SELECTION_TIMEOUT_MS
     #define D_CFG_MONGODB_SERVER_SELECTION_TIMEOUT_MS 10000

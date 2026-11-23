@@ -104,7 +104,7 @@ struct lens_config
 };
 
 // interaction_config
-//   struct: hover / picking behaviour and the colours that mark cells -- the
+//   struct: hover / picking behaviour and the colours that mark cells - the
 // `highlight_color` for a hovered (or lens-highlighted) cell, and the distinct
 // `selection_color` for the clicked, persistently selected cell.
 struct interaction_config

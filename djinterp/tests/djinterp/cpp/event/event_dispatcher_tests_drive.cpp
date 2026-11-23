@@ -1,13 +1,13 @@
 /*******************************************************************************
 * djinterp [cpp][event]                         event_dispatcher_tests_drive.cpp
 *
-*   Section IV -- FUSED DRIVE.  drive runs a homogeneous trace through a
+*   Section IV - FUSED DRIVE.  drive runs a homogeneous trace through a
 * precompiled DFusedStep as a single loop, reporting only the occurrence and
 * consume counts (the fused path is intentionally not instrumented per
 * handler).  Covers the DDriveResult fields; an empty trace (all zero); an
 * ordinary drive (occurrences equal the trace length, side effects delivered);
 * a drive of an empty step (occurrences still counted, none consumed); and the
-* coherence law -- for a registry held fixed, driving the compiled step over a
+* coherence law - for a registry held fixed, driving the compiled step over a
 * trace agrees with running the same trace through the registry on both
 * occurrences and consumed_count, with identical per-occurrence side effects.
 *

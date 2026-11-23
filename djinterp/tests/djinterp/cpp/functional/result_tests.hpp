@@ -413,7 +413,7 @@ bool test_combine();
 ///////////////////////////////////////////////////////////////////////////////
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // result_spec
 //   function: the suite as DTest's module spec, one block per section.

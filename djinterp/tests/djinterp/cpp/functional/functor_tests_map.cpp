@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  functor_tests_map.cpp
-//   Section II -- functor_map (fmap), the one operation, and the functor laws.
+//   Section II - functor_map (fmap), the one operation, and the functor laws.
 
 // std
 #include <string>
@@ -51,7 +51,7 @@ bool tests_functor_map_over_a_monad()
 /*
 tests_functor_map_preserves_context
   map applies the function to the value(s) INSIDE the context and leaves the
-  surrounding shape alone -- it is not a fold, and it cannot create or destroy a
+  surrounding shape alone - it is not a fold, and it cannot create or destroy a
   context.
   Tests the following:
   - an absent value stays absent, and the function is never applied to it
@@ -83,7 +83,7 @@ bool tests_functor_map_preserves_context()
 /*
 tests_functor_map_over_a_view
   For a context whose mapped type depends on the mapping function, functor_map is
-  simply the lazy transform that context already provides -- named uniformly.
+  simply the lazy transform that context already provides - named uniformly.
   Tests the following:
   - mapping a view composes the new function after the pending one
   - it stays lazy: the composed view computes only when asked
@@ -218,8 +218,8 @@ bool tests_functor_map_law_composition()
 
 /*
 tests_functor_map_result_type
-  The result type is whatever the INSTANCE's map produces -- F<U> for a concrete
-  context, the instance's transformed view otherwise -- so it is deduced, never
+  The result type is whatever the INSTANCE's map produces - F<U> for a concrete
+  context, the instance's transformed view otherwise - so it is deduced, never
   named by the protocol.
   Tests the following:
   - a monad yields the rebound context F<U>
@@ -300,7 +300,7 @@ bool tests_functor_map_forwarding()
 /*
 tests_functor_map_constexpr
   DUAL DOMAIN. functor_map is D_CONSTEXPR and folds exactly where the instance's
-  map does -- so over these literal-type fixtures it folds at compile time, and
+  map does - so over these literal-type fixtures it folds at compile time, and
   the same call runs at runtime over values not known to the compiler.
   Tests the following:
   - maps over both roads fold inside static_assert, including a type change
@@ -336,7 +336,7 @@ bool tests_functor_map_constexpr()
 /*
 tests_functor_map_generic_over_any_functor
   The point of the protocol: one generic function, written once against
-  functor_map, works over EVERY functor -- a monad reached through the bridge, a
+  functor_map, works over EVERY functor - a monad reached through the bridge, a
   second unrelated monad, and a view with its own specialization.
   Tests the following:
   - the header's `bump` example maps all three contexts

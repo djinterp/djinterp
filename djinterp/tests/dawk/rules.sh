@@ -1,5 +1,5 @@
 #!/bin/sh
-# rules.sh -- every fixture against its sheet's golden findings.
+# rules.sh - every fixture against its sheet's golden findings.
 #
 #   tests/dawk/fixtures/<sheet>/<name>.<c|h|cpp|hpp>           a fixture
 #   tests/dawk/fixtures/<sheet>/<name>.<c|h|cpp|hpp>.expected  its findings

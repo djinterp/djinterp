@@ -51,7 +51,7 @@ bool concepts_tests_fundamental()
     // II.1.a  Void and null concepts
     // -------------------------------------------------------------------
 
-    // is_void_c -- documented as "(cv-qualified) void"
+    // is_void_c - documented as "(cv-qualified) void"
     DT_CONCEPT    (is_void_c<void>);
     DT_CONCEPT    (is_void_c<const void>);
     DT_CONCEPT    (is_void_c<volatile void>);
@@ -66,7 +66,7 @@ bool concepts_tests_fundamental()
     DT_NOT_CONCEPT(is_null_pointer_c<void*>);
     DT_NOT_CONCEPT(is_null_pointer_c<int>);
 
-    // nonvoid -- the inverse of is_void_c
+    // nonvoid - the inverse of is_void_c
     DT_NOT_CONCEPT(nonvoid<void>);
     DT_NOT_CONCEPT(nonvoid<const void>);
     DT_CONCEPT    (nonvoid<int>);
@@ -77,21 +77,21 @@ bool concepts_tests_fundamental()
     // II.1.b  Array concepts
     // -------------------------------------------------------------------
 
-    // is_array_c -- both bounded and unbounded
+    // is_array_c - both bounded and unbounded
     DT_CONCEPT    (is_array_c<int[5]>);
     DT_CONCEPT    (is_array_c<int[]>);
     DT_CONCEPT    (is_array_c<int[3][4]>);
     DT_NOT_CONCEPT(is_array_c<int>);
     DT_NOT_CONCEPT(is_array_c<int*>);              // pointer is NOT array
 
-    // bounded_array -- only `T[N]`
+    // bounded_array - only `T[N]`
     DT_CONCEPT    (bounded_array<int[5]>);
     DT_CONCEPT    (bounded_array<char[1]>);
     DT_NOT_CONCEPT(bounded_array<int[]>);          // unbounded
     DT_NOT_CONCEPT(bounded_array<int>);
     DT_NOT_CONCEPT(bounded_array<int*>);
 
-    // unbounded_array -- only `T[]`
+    // unbounded_array - only `T[]`
     DT_CONCEPT    (unbounded_array<int[]>);
     DT_NOT_CONCEPT(unbounded_array<int[5]>);       // bounded
     DT_NOT_CONCEPT(unbounded_array<int>);
@@ -107,18 +107,18 @@ bool concepts_tests_fundamental()
     // II.1.c  Enum concepts
     // -------------------------------------------------------------------
 
-    // is_enum_c -- both scoped and unscoped
+    // is_enum_c - both scoped and unscoped
     DT_CONCEPT    (is_enum_c<unscoped_enum_t>);
     DT_CONCEPT    (is_enum_c<scoped_enum_t>);
     DT_NOT_CONCEPT(is_enum_c<int>);
     DT_NOT_CONCEPT(is_enum_c<trivial_class>);
 
-    // scoped_enum -- only enum class / enum struct
+    // scoped_enum - only enum class / enum struct
     DT_CONCEPT    (scoped_enum<scoped_enum_t>);
     DT_NOT_CONCEPT(scoped_enum<unscoped_enum_t>);
     DT_NOT_CONCEPT(scoped_enum<int>);
 
-    // unscoped_enum -- only the C-style ones
+    // unscoped_enum - only the C-style ones
     DT_CONCEPT    (unscoped_enum<unscoped_enum_t>);
     DT_NOT_CONCEPT(unscoped_enum<scoped_enum_t>);
     DT_NOT_CONCEPT(unscoped_enum<int>);
@@ -142,7 +142,7 @@ bool concepts_tests_fundamental()
     DT_NOT_CONCEPT(is_pointer_c<int&>);                       // reference, not pointer
     DT_NOT_CONCEPT(is_pointer_c<int pointee_class::*>);       // member pointer
 
-    // is_member_pointer_c -- both data and function member pointers
+    // is_member_pointer_c - both data and function member pointers
     DT_CONCEPT    (is_member_pointer_c<int pointee_class::*>);
     DT_CONCEPT    (is_member_pointer_c<void (pointee_class::*)()>);
     DT_NOT_CONCEPT(is_member_pointer_c<int*>);                // plain pointer
@@ -159,7 +159,7 @@ bool concepts_tests_fundamental()
     DT_NOT_CONCEPT(is_rvalue_reference_c<int&>);
     DT_NOT_CONCEPT(is_rvalue_reference_c<int>);
 
-    // is_reference_c -- accepts BOTH lvalue and rvalue
+    // is_reference_c - accepts BOTH lvalue and rvalue
     DT_CONCEPT    (is_reference_c<int&>);
     DT_CONCEPT    (is_reference_c<int&&>);
     DT_CONCEPT    (is_reference_c<const int&>);
@@ -176,7 +176,7 @@ bool concepts_tests_fundamental()
     // II.1.e  Class and function concepts
     // -------------------------------------------------------------------
 
-    // is_class_c -- structs and classes both qualify
+    // is_class_c - structs and classes both qualify
     DT_CONCEPT    (is_class_c<trivial_class>);
     DT_NOT_CONCEPT(is_class_c<union_t>);            // union, not class
     DT_NOT_CONCEPT(is_class_c<int>);
@@ -192,7 +192,7 @@ bool concepts_tests_fundamental()
     DT_NOT_CONCEPT(is_class_c<trivial_class> && is_union_c<trivial_class>);
     DT_NOT_CONCEPT(is_class_c<union_t>       && is_union_c<union_t>);
 
-    // is_function_c -- bare function types, NOT function pointers
+    // is_function_c - bare function types, NOT function pointers
     DT_CONCEPT    (is_function_c<void()>);
     DT_CONCEPT    (is_function_c<int(int, double)>);
     DT_NOT_CONCEPT(is_function_c<void(*)()>);                     // function POINTER

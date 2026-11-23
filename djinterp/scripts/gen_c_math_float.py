@@ -122,8 +122,8 @@ def instantiate(template, suffix, ctype, prefix, prose):
 # C++ overloads
 # -----------------------------------------------------------------------------
 # Compiled as C++, each generated header also names its kernels once for all
-# three families -- d_interval_contains(core, value) for d_interval_f_contains,
-# _d_ and _ld_ -- chosen by argument type: what lets one C++ template serve
+# three families - d_interval_contains(core, value) for d_interval_f_contains,
+# _d_ and _ld_ - chosen by argument type: what lets one C++ template serve
 # every floating-point type without a macro.
 
 def overload(qual, ret, name, target, params):
@@ -7597,7 +7597,7 @@ def power():
 # remainder.h
 # -----------------------------------------------------------------------------
 # C's remainder functions (7.12.10): fmod, remainder and remquo. Exact --
-# the remainder of two values of a family is a value of it -- so each
+# the remainder of two values of a family is a value of it - so each
 # family's own arithmetic computes it, no kernel in long double and nothing
 # rounded.
 
@@ -8059,7 +8059,7 @@ def remainder():
 # nearest_integer.h
 # -----------------------------------------------------------------------------
 # C's nearest integer functions (7.12.9) that do not read the rounding mode:
-# floor, ceil, trunc and round. Exact -- each is a value of the family -- and
+# floor, ceil, trunc and round. Exact - each is a value of the family - and
 # right over the whole range, past 2^63 too (N5).
 
 NEAREST_INTEGER_TEMPLATE = r"""
@@ -21930,7 +21930,7 @@ def decomp():
 # array of the two parts, so that it has the layout of T[2] that C99's
 # _Complex T and C++'s std::complex<T> share; the arithmetic once per family,
 # pure, with real, imag, conj and proj, which are exact; and C99's other 18
-# functions twice, as every real function here is -- the _c form on one long
+# functions twice, as every real function here is - the _c form on one long
 # double kernel of pure arithmetic, rounded once to the family, and the plain
 # form on a kernel of each family's own type on the C library's real
 # functions. One kernel text serves both: @W@ is its working

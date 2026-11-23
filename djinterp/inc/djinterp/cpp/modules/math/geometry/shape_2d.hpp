@@ -16,7 +16,7 @@
 *   polygon and parametric_region compile from C++98: points are
 * linalg::vectors, a polygon's vertices a re_std::array (from C++11 a
 * std::array of points converts), and the crossing test, the shoelace
-* area and the centroid are c/math/plane.h's -- for float, double and long
+* area and the centroid are c/math/plane.h's - for float, double and long
 * double, and through double for any other element type. implicit_region
 * evaluates on a std::tuple and shape_from_edges is variadic: both are
 * C++11's.

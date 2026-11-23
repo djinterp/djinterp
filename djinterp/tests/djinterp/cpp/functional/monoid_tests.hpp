@@ -7,10 +7,10 @@
 * on pass, so the same functions are the unit tests
 * the spec provider hands to run_module.  Definitions live in the per-section .cpp files:
 *
-*     monoid_tests_newtypes.cpp     -- I.   MONOID NEWTYPES
-*     monoid_tests_protocol.cpp     -- II.  MONOID PROTOCOL
-*     monoid_tests_instances.cpp    -- III. INSTANCES (semigroup + monoid)
-*     monoid_tests_operations.cpp   -- IV.  GENERIC MONOID OPERATIONS
+*     monoid_tests_newtypes.cpp     - I.   MONOID NEWTYPES
+*     monoid_tests_protocol.cpp     - II.  MONOID PROTOCOL
+*     monoid_tests_instances.cpp    - III. INSTANCES (semigroup + monoid)
+*     monoid_tests_operations.cpp   - IV.  GENERIC MONOID OPERATIONS
 *
 *   All tests are flat in djinterp::testing.
 *
@@ -169,7 +169,7 @@ bool tests_fold_monoid_type_deduction();
 bool tests_fold_monoid_string_concat();
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // monoid_spec
 //   function: the suite as DTest's module spec, one block per section.

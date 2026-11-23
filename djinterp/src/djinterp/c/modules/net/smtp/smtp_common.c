@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][net]                                                smtp_common.c
 *
-* djinterp SMTP protocol vocabulary -- implementation.
+* djinterp SMTP protocol vocabulary - implementation.
 *   Defines everything smtp_common.h declares. Every routine is pure: it reads
 * its arguments and writes caller-owned memory, never allocating and never
 * touching a transport, which keeps the protocol rules testable without a
@@ -241,8 +241,8 @@ d_smtp_error_from_net(
 /*
 d_smtp_error_from_ssl
   One case per enumerator and no default, so the compiler reports a missing
-case. A transport failure that reported nothing -- a write that took
-nothing -- has no error of its own to give, and is TRANSPORT.
+case. A transport failure that reported nothing - a write that took
+nothing - has no error of its own to give, and is TRANSPORT.
 */
 enum dj_smtp_error
 d_smtp_error_from_ssl(
@@ -482,7 +482,7 @@ d_internal_smtp_parse_status
   Reads "class.subject.detail" at the start of reply text: one digit, then one
 to three, then one to three. The class must equal the reply code's first digit
 -- that is how RFC 3463 tells a status code from text that merely begins with a
-number -- and the status must end the text or be followed by a space.
+number - and the status must end the text or be followed by a space.
 */
 static
 bool d_internal_smtp_parse_status(
@@ -763,8 +763,8 @@ bool d_smtp_code_is_permanent(
 
 /*
 d_internal_smtp_reply_head
-  Formats the start of one reply line -- code, separator, and the enhanced
-status when there is one -- returning its length, or 0 on a formatting error.
+  Formats the start of one reply line - code, separator, and the enhanced
+status when there is one - returning its length, or 0 on a formatting error.
 */
 static
 size_t d_internal_smtp_reply_head(
@@ -1312,8 +1312,8 @@ size_t d_internal_smtp_quoted_local(
 
 /*
 d_internal_smtp_local_part
-  Length of the local-part at the start of an address -- a quoted string or a
-dot-string of non-empty atoms -- or 0 when it is malformed.
+  Length of the local-part at the start of an address - a quoted string or a
+dot-string of non-empty atoms - or 0 when it is malformed.
 */
 static
 size_t d_internal_smtp_local_part(
@@ -1462,8 +1462,8 @@ bool d_internal_smtp_address_literal(
 /*
 d_smtp_domain_is_valid
   An address literal goes to its own parser. Otherwise the name is
-read in one pass as labels of 1 to 63 characters -- letters, digits, and
-hyphens neither leading nor trailing -- joined by single dots; with UTF-8
+read in one pass as labels of 1 to 63 characters - letters, digits, and
+hyphens neither leading nor trailing - joined by single dots; with UTF-8
 allowed, bytes from 0x80 count as letters once the whole name has been
 checked as valid UTF-8.
 */

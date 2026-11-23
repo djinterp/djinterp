@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  structural_traits_tests_optional.cpp
-//   Section III -- DProducesOptionalLike and is_unfold_step: the pull-based
+//   Section III - DProducesOptionalLike and is_unfold_step: the pull-based
 //   source protocols (bool-testable AND dereferenceable).
 
 // std
@@ -31,7 +31,7 @@ NS_TESTING
 tests_produces_optional_like_positive
   A nullary callable whose result is both bool-testable and dereferenceable is a
   well-formed pull source. maybe<>, a raw pointer, and std::optional all satisfy
-  it -- the header's own claim.
+  it - the header's own claim.
   Tests the following:
   - a stateful maybe-source, a const one, and a pointer-yielding one
   - std::optional, where the standard provides it
@@ -80,7 +80,7 @@ bool tests_produces_optional_like_requires_bool()
 /*
 tests_produces_optional_like_requires_deref
   The other half. A result that is bool-testable but NOT dereferenceable fails on
-  the "give me the value" half -- so a plain int-yielding source, which would pass
+  the "give me the value" half - so a plain int-yielding source, which would pass
   a bool-only check, is correctly refused.
   Tests the following:
   - a source yielding int is rejected
@@ -103,7 +103,7 @@ bool tests_produces_optional_like_requires_deref()
 
 /*
 tests_produces_optional_like_requires_nullary
-  The source step is NULLARY -- a unary step is a different role (that is
+  The source step is NULLARY - a unary step is a different role (that is
   is_unfold_step's job).
   Tests the following:
   - a unary optional-yielding step is not a source
@@ -197,7 +197,7 @@ bool tests_is_unfold_step_negative()
     ok = ok && (!is_unfold_step<not_callable, int>::value);
     ok = ok && (!is_unfold_step<int, int>::value);
 
-    // DStepPlain IS a unary callable -- it fails only the optional-like half.
+    // DStepPlain IS a unary callable - it fails only the optional-like half.
     ok = ok && (is_unary_callable<DStepPlain, int>::value);
 
     return ok;

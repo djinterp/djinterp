@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][parse]                                      expr_tests_fixtures.c
 *
-* Expression core v2's C suite: the fixtures every section uses -- the
+* Expression core v2's C suite: the fixtures every section uses - the
 * checks, the test lexer, terms written as s-expressions, a parse made
 * whole, and the four languages, each a table built on the core.
 *

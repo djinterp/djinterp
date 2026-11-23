@@ -258,9 +258,9 @@ TABLE OF CONTENTS
         //   constant: defined, empty, when the C standard was inferred rather
         // than reported. MSVC defines __STDC_VERSION__ only under /std:c11
         // and later; in its default C mode it reports nothing, yet from
-        // Visual Studio 2015 (cl 19.00) on it compiles C99 -- the library,
+        // Visual Studio 2015 (cl 19.00) on it compiles C99 - the library,
         // stdbool, designated initializers, compound literals, mixed
-        // declarations -- with two exceptions: variable-length arrays, which
+        // declarations - with two exceptions: variable-length arrays, which
         // the framework does not use, and the `restrict` keyword, which
         // D_ENV_LANG_HAS_RESTRICT reports as absent here.
         #define D_ENV_LANG_C_INFERRED
@@ -476,7 +476,7 @@ TABLE OF CONTENTS
 // (C++ has no `restrict`) at a C99-or-later level the compiler reported.
 // 0 under C++, below C99, and in MSVC's default C mode, whose level is
 // inferred (D_ENV_LANG_C_INFERRED) and which accepts only the vendor
-// spelling -- see D_ENV_COMPILER_HAS_RESTRICT_EXTENSION in env_compiler.h.
+// spelling - see D_ENV_COMPILER_HAS_RESTRICT_EXTENSION in env_compiler.h.
 // Pre-define it to override the detection.
 #ifndef D_ENV_LANG_HAS_RESTRICT
     #if ( (D_ENV_LANG_USING_CPP == 0)        &&                                \

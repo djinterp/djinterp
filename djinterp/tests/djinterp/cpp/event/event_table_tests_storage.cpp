@@ -1,11 +1,11 @@
 /*******************************************************************************
 * djinterp [cpp][event]                            event_table_tests_storage.cpp
 *
-*   Section I -- INTERNAL STORAGE TYPES.  Covers the erasure key kappa
+*   Section I - INTERNAL STORAGE TYPES.  Covers the erasure key kappa
 * (internal::type_key: a per-type token that is stable across calls for the
 * same type and distinct across types) and the type-erased slot
 * (internal::DHandlerEntry: an id, an erased verdict(void*) callable, and the
-* enabled mask bit -- each field stored and retrievable).
+* enabled mask bit - each field stored and retrievable).
 *
 *
 * path:      /tests/djinterp/cpp/event/event_table_tests_storage.cpp

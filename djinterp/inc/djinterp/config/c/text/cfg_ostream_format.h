@@ -11,9 +11,9 @@
 *   A LOCALE PER CALL, WHERE THE PLATFORM HAS ONE. snprintf takes its decimal
 * point from the locale, and setlocale changes the locale for every thread at
 * once, so a double formatted while another thread calls setlocale can come
-* out in either locale. A locale object used for one call -- POSIX 2008's
+* out in either locale. A locale object used for one call - POSIX 2008's
 * newlocale and uselocale, or the Windows CRT's _create_locale and
-* _snprintf_s_l -- is unaffected by setlocale, and also lets a caller write a
+* _snprintf_s_l - is unaffected by setlocale, and also lets a caller write a
 * double for people in a locale the program never set (stream 2). Where the
 * platform has neither, the stream formats in the program's locale and
 * rewrites its decimal point to '.', as it always has: the C form is still

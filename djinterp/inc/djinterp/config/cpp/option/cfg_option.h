@@ -11,7 +11,7 @@
 * option_common.h states the governing identity: an option IS the column
 * descriptor, and the point is that ten options in one set have ten different
 * value types over one block. A build-wide D_CFG_OPTION_VALUE_TYPE collapses
-* the set into a homogeneous map -- a different container -- and deletes the
+* the set into a homogeneous map - a different container - and deletes the
 * `_value_size` and `_value_align` parameters d_option_set_add needs to do its
 * job. The value's TYPE stays per-cell, in `value_type`, where the design put
 * it.
@@ -33,7 +33,7 @@
 *   The resolution is in option_common.h section VIII: the exact assertions
 * SURVIVE FOR THE DEFAULT BUILD, guarded on D_INTERNAL_OPTION_LAYOUT_IS_DEFAULT
 * below, and a narrowed build gets a derived set that checks the relations
-* still expressible -- the key leads, and the struct is exactly the sum of its
+* still expressible - the key leads, and the struct is exactly the sum of its
 * members. That is weaker, and it is weaker only where the strong form has
 * stopped being expressible.
 *
@@ -65,7 +65,7 @@
 
 // D_CFG_OPTION_KEY_TYPE
 //   knob: type of the option key carrier. Must be an UNSIGNED integral type of
-// 1, 2, 4 or 8 bytes. Default uint64_t -- what the field was before it was
+// 1, 2, 4 or 8 bytes. Default uint64_t - what the field was before it was
 // configurable.
 //
 //   NARROWING THIS NARROWS THE INTERNING NAMESPACE, which is the cost the
@@ -75,7 +75,7 @@
 // 65,535 distinct class-type keys for its whole lifetime, which is generous
 // for a configuration surface and wrong for anything content-derived.
 //   Whether handles are session-local or content-derived is still open --
-// AGENT_README §9 item 3 -- so a build that narrows this is betting on the
+// AGENT_README §9 item 3 - so a build that narrows this is betting on the
 // answer to a question the framework has not settled.
 #ifndef D_CFG_OPTION_KEY_TYPE
 #   define D_CFG_OPTION_KEY_TYPE        uint64_t
@@ -126,7 +126,7 @@
 //
 //   WHICH IS WHY THIS IS NOT USABLE IN #if, AND MUST NOT BECOME SO. `sizeof`
 // is a compile-time operator and the preprocessor cannot evaluate it, so
-// `#if D_INTERNAL_OPTION_LAYOUT_IS_DEFAULT` is a hard error -- "missing binary
+// `#if D_INTERNAL_OPTION_LAYOUT_IS_DEFAULT` is a hard error - "missing binary
 // operator before token '('". The guard belongs INSIDE the static assertion,
 // as `(!IS_DEFAULT) || (the strong claim)`, which is how option_common.h
 // section VIII spells it. Rewriting this in terms the preprocessor can read

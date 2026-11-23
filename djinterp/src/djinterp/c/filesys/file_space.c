@@ -93,7 +93,7 @@ int d_internal_space_query(
 /*
 d_internal_space_ask
   GetDiskFreeSpaceEx, whose first out-parameter is quota-aware and is the
-ANALOGUE OF f_bavail, not of f_bfree -- the argument order invites getting
+ANALOGUE OF f_bavail, not of f_bfree - the argument order invites getting
 that backwards. 1 for an answer; 0 for a failure left in GetLastError; -1 for
 a path the platform's text cannot carry, with errno set by the conversion.
 */
@@ -160,8 +160,8 @@ int d_internal_space_refuse(
 d_internal_space_query
   GetDiskFreeSpaceEx takes a directory where statvfs takes any path, and
 refuses a file with ERROR_DIRECTORY; a file is measured by its directory,
-which on Windows is on the same volume. Nothing broader is tried -- the
-volume's root, say -- since that answers for a path that does not exist.
+which on Windows is on the same volume. Nothing broader is tried - the
+volume's root, say - since that answers for a path that does not exist.
 */
 static
 int d_internal_space_query_in(

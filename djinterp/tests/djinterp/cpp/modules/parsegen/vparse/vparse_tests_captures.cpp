@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][parsegen]                             vparse_tests_captures.cpp
 *
-* vparse tests: MARK / CAP captures -- backtrack-safe unwinding, captures the
+* vparse tests: MARK / CAP captures - backtrack-safe unwinding, captures the
 * generator emits, and the traced run on a caller's machine.
 *
 *
@@ -83,8 +83,8 @@ bool tests_captures_generated()
 }
 
 // tests_captures_trace
-//   run() on a caller's machine traces one line per dispatch -- the last is
-// the MATCH -- shows a backtrack restoring the cursor, honours the step limit
+//   run() on a caller's machine traces one line per dispatch - the last is
+// the MATCH - shows a backtrack restoring the cursor, honours the step limit
 // with the offset left put, detaches its state, and agrees with the default
 // run() on result and captures.
 bool tests_captures_trace()

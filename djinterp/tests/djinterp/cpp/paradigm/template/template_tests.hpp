@@ -21,7 +21,7 @@
 * dialects.
 *
 *   BUILD PREREQUISITE (see the accompanying report): as shipped, the tagless
-* detectors deduce `invoke_result_t<_Fn, ...>` -- probing _Fn as an RVALUE --
+* detectors deduce `invoke_result_t<_Fn, ...>` - probing _Fn as an RVALUE --
 * while the algebra stores F by value and invokes it from CONST member
 * functions (DTransformerHelper::operator(), DTemplateSystem::apply).  A functor
 * whose operator() is non-const therefore satisfies is_transformation (and the
@@ -77,7 +77,7 @@ using carrier  = std::string;
 using err_type = std::string;
 
 
-// -- transformations F : tau x tau -> sigma ---------------------------------
+// - transformations F : tau x tau -> sigma ---------------------------------
 
 // concat
 //   fixture: F(t, alpha) = t ":" alpha.  The canonical transformation, with the
@@ -109,7 +109,7 @@ struct total_len
 };
 
 
-// -- unary stages g : x -> y ------------------------------------------------
+// - unary stages g : x -> y ------------------------------------------------
 
 // exclaim
 //   fixture: a unary stage, string -> string.
@@ -148,7 +148,7 @@ struct twice
 };
 
 
-// -- ambient-template (Reader) stages f : (t, x) -> y ------------------------
+// - ambient-template (Reader) stages f : (t, x) -> y ------------------------
 
 // wrap
 //   fixture: an ambient stage; sees the template on every call.
@@ -178,7 +178,7 @@ struct DSuffixTemplate
 };
 
 
-// -- non-conforming shapes (the traits must reject these) --------------------
+// - non-conforming shapes (the traits must reject these) --------------------
 
 // not_callable
 //   fixture: no operator() at all.
@@ -246,7 +246,7 @@ struct DMutableUnary
 };
 
 
-// -- noexcept witnesses (evaluate carries D_NOEXCEPT_IF) ---------------------
+// - noexcept witnesses (evaluate carries D_NOEXCEPT_IF) ---------------------
 
 // DNoexceptUnary
 //   fixture: a non-throwing source-transformer.
@@ -273,7 +273,7 @@ struct DThrowingUnary
 };
 
 
-// -- constexpr fixtures over carrier tau = int -------------------------------
+// - constexpr fixtures over carrier tau = int -------------------------------
 //   Every public entry point in the module is D_CONSTEXPR.  std::string is not
 // a literal type before C++20, so the constant-expression tests run over int.
 
@@ -330,7 +330,7 @@ struct DReaderAdd
 };
 
 
-// -- parsers: sigma = (rho x tau) + E ----------------------------------------
+// - parsers: sigma = (rho x tau) + E ----------------------------------------
 
 // DIntOutcome / DCharOutcome
 //   type: the two parser sinks the fixtures below produce.  They share a source
@@ -457,7 +457,7 @@ struct DFoldContinuation
 ///                TEST DECLARATIONS                                         ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// -- section I: transformation traits (template_tests_traits.cpp)
+// - section I: transformation traits (template_tests_traits.cpp)
 bool tests_transformation_sink_deduces_sigma();
 bool tests_transformation_sink_sigma_differs_from_carrier();
 bool tests_transformation_sink_is_nonesuch_when_not_callable();
@@ -477,7 +477,7 @@ bool tests_is_source_transformer_rejects_non_const_callable();
 bool tests_is_source_transformer_v_agrees_with_trait();
 bool tests_traits_accept_lambdas_and_function_pointers();
 
-// -- section II: the algebra (template_tests_algebra.cpp)
+// - section II: the algebra (template_tests_algebra.cpp)
 bool tests_evaluate_applies_transformer();
 bool tests_evaluate_accepts_rvalue_transformer();
 bool tests_evaluate_propagates_noexcept();
@@ -497,7 +497,7 @@ bool tests_template_system_is_itself_a_transformation();
 bool tests_make_template_system();
 bool tests_algebra_is_constexpr();
 
-// -- section III: stage pipelines (template_tests_pipelines.cpp)
+// - section III: stage pipelines (template_tests_pipelines.cpp)
 bool tests_stages_binary_stage_only();
 bool tests_stages_one_unary_stage();
 bool tests_stages_many_unary_stages();
@@ -511,7 +511,7 @@ bool tests_reader_stages_threads_the_template();
 bool tests_reader_stages_is_a_transformation();
 bool tests_pipelines_are_constexpr();
 
-// -- section IV.i-v: the parser sink (template_tests_parse_outcome.cpp)
+// - section IV.i-v: the parser sink (template_tests_parse_outcome.cpp)
 bool tests_parse_success_construction();
 bool tests_parse_failure_construction();
 bool tests_parse_outcome_is_ok_and_is_err();
@@ -529,7 +529,7 @@ bool tests_parser_system_pins_the_sink();
 bool tests_parser_system_apply_and_instantiate();
 bool tests_parse_outcome_is_constexpr();
 
-// -- section IV.vi-vii: kleisli sequencing (template_tests_kleisli.cpp)
+// - section IV.vi-vii: kleisli sequencing (template_tests_kleisli.cpp)
 bool tests_kleisli_then_threads_the_remaining_source();
 bool tests_kleisli_then_keeps_the_second_result();
 bool tests_kleisli_then_result_type_is_the_second();
@@ -543,7 +543,7 @@ bool tests_kleisli_bind_propagates_continuation_failure();
 bool tests_kleisli_helpers_are_source_transformers();
 bool tests_kleisli_decays_its_arguments();
 
-// -- section V: concepts, C++20 (template_tests_concepts.cpp)
+// - section V: concepts, C++20 (template_tests_concepts.cpp)
 bool tests_concept_transformation_for();
 bool tests_concept_transformation_for_rejects_non_const_callable();
 bool tests_concept_source_transformer_for();

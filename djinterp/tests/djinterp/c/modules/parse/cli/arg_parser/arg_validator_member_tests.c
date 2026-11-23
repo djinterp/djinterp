@@ -1078,8 +1078,8 @@ static const char FC_PREFIX[] =
     "[] -> fail <Check  value in {one->1,two->2,Three->3} OR {1,2,3} FAILED>\n";
 
 // L_SAME
-//   constant: CLI11's IsMember of a type of the caller's -- text read whole
-// and lowered, equal when the text is -- with the members "alpha" and
+//   constant: CLI11's IsMember of a type of the caller's - text read whole
+// and lowered, equal when the text is - with the members "alpha" and
 // "beta".
 static const char L_SAME[] =
     "desc <{alpha,beta}>\n"
@@ -1978,8 +1978,8 @@ bool d_tests_arg_member_unmade_types(void)
 /**
  * @brief A filter's context given with no copy function is borrowed.
  *
- * @return whether the set reads the caller's context -- a change to it
- *         changes what the set finds -- and neither the set nor a copy of
+ * @return whether the set reads the caller's context - a change to it
+ *         changes what the set finds - and neither the set nor a copy of
  *         it frees the context.
  */
 static
@@ -2045,7 +2045,7 @@ bool d_tests_arg_member_owned(void)
  * @brief A context that cannot be copied, and a filter that cannot filter.
  *
  * @return whether a refused copy fails what needed it, keeping nothing --
- *         the set, when it is made, or a copy of the set -- and a filter's
+ *         the set, when it is made, or a copy of the set - and a filter's
  *         failure stops the validation with its status.
  */
 static
@@ -2095,8 +2095,8 @@ bool d_tests_arg_member_refused(void)
  * @brief Filters that fail with a status of their own.
  *
  * @return whether a set, a mapping and a checked mapping stop with the
- *         conversion error a filter returns for the value -- and a set for
- *         a member it filters as it searches -- rather than answer it as
+ *         conversion error a filter returns for the value - and a set for
+ *         a member it filters as it searches - rather than answer it as
  *         they answer a value that does not convert; and whether a value
  *         found before the failing member is still found.
  */
@@ -2160,8 +2160,8 @@ bool d_tests_arg_member_filter_fails(void)
 /**
  * @brief What sets list.
  *
- * @return whether a set lists its members as given, in order -- of a type
- *         too, and through a filter -- a set of no members nothing, and a
+ * @return whether a set lists its members as given, in order - of a type
+ *         too, and through a filter - a set of no members nothing, and a
  *         listing that stops returns the status it stopped with.
  */
 static
@@ -2390,7 +2390,7 @@ d_tests_arg_member_typed
   - members and values compared as numbers: a value finds a member it
     converts to, in any spelling the type reads, and passes as given
   - a leading zero is octal under CLI11's rule, so `010` is no member
-  - -0 is the member 0 -- and so no member of {1, 2, 3, 10}
+  - -0 is the member 0 - and so no member of {1, 2, 3, 10}
   - a value that does not convert stops the validation, the value itself
     its message, as CLI11 throws it
 */
@@ -2637,11 +2637,11 @@ d_tests_arg_member_filter_context
   - with one, the set owns a copy, made when the set is, so a change to
     the caller's is not seen; a copy of the set copies it again, and each
     copy is freed with its set
-  - a context that cannot be copied fails what needed the copy -- the set,
-    D_ARG_ERROR_OUT_OF_MEMORY, or a copy of it -- keeping nothing
+  - a context that cannot be copied fails what needed the copy - the set,
+    D_ARG_ERROR_OUT_OF_MEMORY, or a copy of it - keeping nothing
   - a filter that cannot filter stops the validation with its status:
-    memory's, or one of its own -- a conversion error among them, for the
-    value or for a member -- which no set or mapping reads as a value that
+    memory's, or one of its own - a conversion error among them, for the
+    value or for a member - which no set or mapping reads as a value that
     does not convert
 */
 bool d_tests_arg_member_filter_context(void)
@@ -2668,7 +2668,7 @@ values, compared as CLI11 compares such a type with its own ==.
   Tests the following:
   - members and values compared by the text the type writes: a value in
     any case finds a member, and passes as it was given
-  - a value that does not convert -- the empty text -- stops the
+  - a value that does not convert - the empty text - stops the
     validation, as CLI11 throws it
   - members described as they were given, which departs from CLI11 where
     they were not given as the type writes them
@@ -2705,7 +2705,7 @@ bool d_tests_arg_member_caller_type(void)
 d_tests_arg_member_choices
   What the sets and mappings list for shell completion.
   Tests the following:
-  - a set lists its members, as given, in order -- of a type too, and
+  - a set lists its members, as given, in order - of a type too, and
     through a filter, which lists what was given
   - a mapping lists its keys; a checked mapping its keys, then each value
     not listed already, as a key or as an earlier value

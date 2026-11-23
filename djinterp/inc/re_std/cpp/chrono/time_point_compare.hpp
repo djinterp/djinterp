@@ -7,8 +7,8 @@
 *
 *   Each compares the offsets from the shared epoch, so a millisecond
 * point and a second point compare correctly against each other. Points
-* on different clocks do not match these templates -- the single Clock
-* parameter appears in both arguments -- so mixed-clock comparison is a
+* on different clocks do not match these templates - the single Clock
+* parameter appears in both arguments - so mixed-clock comparison is a
 * compile error rather than a comparison of unrelated epochs.
 *
 *   Only == and < carry logic; the other four reflect through them.

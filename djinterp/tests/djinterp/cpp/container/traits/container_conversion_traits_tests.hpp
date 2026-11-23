@@ -509,21 +509,21 @@ using fn_type = int(int);
 // Test-function declarations (defined in the section .cpp files)
 // ===========================================================================
 
-// -- I.   Tier vocabulary (enum + conversion_tier_name) --
+// - I.   Tier vocabulary (enum + conversion_tier_name) --
 bool tests_conversion_tier_vocabulary();
 
-// -- II.  Construction-path detection --
+// - II.  Construction-path detection --
 bool tests_range_constructible();
 bool tests_range_insertable();
 bool tests_has_constructive_path();
 
-// -- III. Per-concern analysis --
+// - III. Per-concern analysis --
 bool tests_elements_compatible();
 bool tests_conversion_forgets_content();
 bool tests_conversion_clamps_capacity();
 bool tests_conversion_changes_topology();
 
-// -- IV.  Conversion classification --
+// - IV.  Conversion classification --
 bool tests_conversion_tier_of_view();
 bool tests_conversion_tier_of_constructive();
 bool tests_conversion_tier_of_lossy();
@@ -532,17 +532,17 @@ bool tests_conversion_tier_of_none();
 bool tests_conversion_tier_of_cvref();
 bool tests_conversion_predicates();
 
-// -- IV.  Aggregate + variable-template companions --
+// - IV.  Aggregate + variable-template companions --
 bool tests_conversion_class();
 bool tests_conversion_variable_templates();
 
-// -- V.   Construction paths, in depth (container_conversion_traits_tests_paths.cpp) --
+// - V.   Construction paths, in depth (container_conversion_traits_tests_paths.cpp) --
 bool tests_path_range_constructible();
 bool tests_path_range_insertable();
 bool tests_path_iterable_gate();
 bool tests_path_has_constructive_path();
 
-// -- VI.  The view predicate, clause by clause (..._view.cpp) --
+// - VI.  The view predicate, clause by clause (..._view.cpp) --
 bool tests_view_baseline();
 bool tests_view_conjunct_elements();
 bool tests_view_conjunct_content();
@@ -555,7 +555,7 @@ bool tests_view_conjunct_discipline();
 bool tests_view_discipline_asymmetry();
 bool tests_view_non_container();
 
-// -- VII. The standard library (..._stdlib.cpp) --
+// - VII. The standard library (..._stdlib.cpp) --
 bool tests_stdlib_identity();
 bool tests_stdlib_sequences();
 bool tests_stdlib_associative();
@@ -564,14 +564,14 @@ bool tests_stdlib_array_extent();
 bool tests_stdlib_forward_list();
 bool tests_stdlib_structural();
 
-// -- VIII. Robustness: cv-ref, hostile and incomplete types (..._robustness.cpp) --
+// - VIII. Robustness: cv-ref, hostile and incomplete types (..._robustness.cpp) --
 bool tests_cvref();
 bool tests_hostile_types();
 bool tests_incomplete_type();
 bool tests_trait_shape();
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // container_conversion_traits_spec
 //   function: the suite as DTest's module spec, one block per section.

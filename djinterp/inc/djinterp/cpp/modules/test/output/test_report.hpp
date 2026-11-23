@@ -55,7 +55,7 @@
 *
 * HOW TO USE
 * ----------
-*   A runner builds a test_report -- modules, units, checks -- and hands it to a
+*   A runner builds a test_report - modules, units, checks - and hands it to a
 * renderer; expand_report_file_name names the files.
 *
 * OPTIONS

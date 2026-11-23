@@ -1,8 +1,8 @@
 /*******************************************************************************
 * djinterp [cpp][text]                                       text_core_tests.hpp
 *
-*   text's core C++ headers -- text_align.hpp, text_template.hpp and
-* text_pattern.hpp -- in DTest's C face (c/modules/test/test_suite.h).
+*   text's core C++ headers - text_align.hpp, text_template.hpp and
+* text_pattern.hpp - in DTest's C face (c/modules/test/test_suite.h).
 *   One entry point builds the module "text_core" imperatively: a block per
 * header and a test per group of checks. A group runs at its header's floor
 * and up, and below it is skipped, saying why: text_align.hpp and

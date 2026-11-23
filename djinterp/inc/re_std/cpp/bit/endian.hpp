@@ -8,7 +8,7 @@
 *
 *   native compares equal to little on a little-endian platform, equal
 * to big on a big-endian one, and equal to NEITHER on a mixed-endian
-* platform -- which is the only portable way to detect the mixed case,
+* platform - which is the only portable way to detect the mixed case,
 * and the reason the enum has three enumerators rather than two.
 *
 *   DETECTION:
@@ -17,7 +17,7 @@
 * so the fallback treats every MSVC target as little-endian, which is
 * true of every architecture MSVC currently supports. Where neither is
 * available, native is given a distinct value so that it equals neither
-* little nor big -- the mixed-endian answer, which is honest, rather
+* little nor big - the mixed-endian answer, which is honest, rather
 * than guessing little and being silently wrong.
 *
 *   RE_STD_HAS_ENDIAN_DETECTION reports whether the answer came from
@@ -96,7 +96,7 @@ enum class endian
 
 // endian
 //   enum: no detection available. native is given its own value so it
-// equals neither little nor big -- the mixed-endian answer. Reporting
+// equals neither little nor big - the mixed-endian answer. Reporting
 // "unknown" this way is preferable to guessing little.
 enum class endian
 {

@@ -128,7 +128,7 @@ and simply `#include` all the granular modules for that standard header.
    `<new>` / `<initializer_list>` when gated on availability macros.
    Fixed-width integers come from re_std itself, at every level:
    `re_std/cpp/cstdint/cstdint.hpp`, never `<cstdint>` (C++11) or
-   `<stdint.h>` -- only `re_std/c/cstdint/dstdint.h` includes those.
+   `<stdint.h>` - only `re_std/c/cstdint/dstdint.h` includes those.
 4. **Granular modules may include other granular modules.** For example,
    `any_cast.hpp` includes `any.hpp` and `bad_any_cast.hpp`.
 5. **Always include the core header:** every re_std module includes

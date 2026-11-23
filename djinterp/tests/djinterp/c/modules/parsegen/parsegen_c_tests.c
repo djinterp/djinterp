@@ -6,7 +6,7 @@
 *   ONE GAP IN THE C API SHOWS HERE. Facts, pools, programs, registries,
 * operator sets and sinks each have an initializer that binds caller storage; a
 * grammar has none, so d_tests_parsegen_c_scratch_bind binds its fields by
-* hand -- the same fields DFixedGrammar binds in C++. The day C gains
+* hand - the same fields DFixedGrammar binds in C++. The day C gains
 * d_parsegen_grammar_init_fixed, that function is one call.
 *
 *
@@ -342,7 +342,7 @@ bool d_tests_parsegen_c_routing(void)
 }
 
 // d_tests_parsegen_c
-//   constant: the suite -- every section this build has, the grammar before
+//   constant: the suite - every section this build has, the grammar before
 // the analysis of it, and the analysis before what is routed on it.
 const struct dj_tests_section d_tests_parsegen_c[] =
 {

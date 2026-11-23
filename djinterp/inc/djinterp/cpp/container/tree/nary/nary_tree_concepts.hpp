@@ -377,31 +377,31 @@ concept edge_children_nary_tree =
 // stay until 0.9.0-rc.1. A concept takes no attribute, so they stay plain
 // when the other old names start to warn, on 12-11, and go at rc.1.
 
-// nary_tree_type -- old name, until 0.9.0-rc.1
+// nary_tree_type - old name, until 0.9.0-rc.1
 template<typename Type>
 concept nary_tree_type = nary_tree_container_type<Type>;
 
-// nary_node_type -- old name, until 0.9.0-rc.1
+// nary_node_type - old name, until 0.9.0-rc.1
 template<typename Type>
 concept nary_node_type = nary_tree_node_like<Type>;
 
-// rooted_nary_tree -- old name, until 0.9.0-rc.1
+// rooted_nary_tree - old name, until 0.9.0-rc.1
 template<typename Type>
 concept rooted_nary_tree = rooted_nary_tree_type<Type>;
 
-// mutable_nary_tree -- old name, until 0.9.0-rc.1
+// mutable_nary_tree - old name, until 0.9.0-rc.1
 template<typename Type>
 concept mutable_nary_tree = mutable_nary_tree_type<Type>;
 
-// navigable_nary_tree -- old name, until 0.9.0-rc.1
+// navigable_nary_tree - old name, until 0.9.0-rc.1
 template<typename Type>
 concept navigable_nary_tree = fully_navigable_nary_tree<Type>;
 
-// pool_nary_tree -- old name, until 0.9.0-rc.1
+// pool_nary_tree - old name, until 0.9.0-rc.1
 template<typename Type>
 concept pool_nary_tree = pool_backed_nary_tree<Type>;
 
-// versioned_nary_tree -- old name, until 0.9.0-rc.1
+// versioned_nary_tree - old name, until 0.9.0-rc.1
 //   (change tracking: stable identity and versioning, not
 // versioned_nary_tree_type, which asks for versioning alone)
 template<typename Type>

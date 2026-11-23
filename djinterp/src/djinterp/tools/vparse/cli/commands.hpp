@@ -13,8 +13,8 @@
 * default is the one the option shows in help.
 *   Every handler returns an exit status (cli.hpp) and writes its output only
 * once that output is whole, so a run that fails part-way prints the failure
-* and nothing else. Every failure -- a file that cannot be read or written, a
-* grammar refused, a want of memory -- is said as the kit says one,
+* and nothing else. Every failure - a file that cannot be read or written, a
+* grammar refused, a want of memory - is said as the kit says one,
 * `vparse: error: MESSAGE` on the error stream, and is trouble, 2, so that
 * every way the command line can refuse to go on reads the same.
 *
@@ -209,8 +209,8 @@ struct match_command
 // 2.1.4
 // run_command
 //   struct: `vparse run GRAMMAR [INPUT]`; `inputs` is the operand INPUT,
-// which takes one at most -- named as match's is, so that the two are read
-// alike -- `text` is -t/--text, and `parts` is -p/--part.
+// which takes one at most - named as match's is, so that the two are read
+// alike - `text` is -t/--text, and `parts` is -p/--part.
 struct run_command
 {
     struct dj_arg_command* command = nullptr;
@@ -337,7 +337,7 @@ namespace subcommand
 //   handler: reads GRAMMAR and judges it, as the session does; prints, when
 // the grammar was accepted, its rules and the size of its program, and says
 // why, as an error, when it was not. PASSED when accepted, NOT_ACCEPTED --
-// its answer, no -- otherwise.
+// its answer, no - otherwise.
 int check(
     const check_command& _command,
     const context&       _context
@@ -348,7 +348,7 @@ int check(
 // 3.2.1
 // subcommand::compile
 //   handler: builds GRAMMAR's program and writes the session's listing of it
-// -- one instruction a line, after its address -- to standard output or to
+// - one instruction a line, after its address - to standard output or to
 // the file -o names, whole or not at all. PASSED when built, REFUSED
 // otherwise.
 int compile(

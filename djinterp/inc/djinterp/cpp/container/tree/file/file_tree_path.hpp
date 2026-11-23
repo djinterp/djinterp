@@ -59,20 +59,20 @@
 
 NS_DJINTERP
 
-// NOTE. This header used to open NS_FS. There IS NO NS_FS -- nothing in the
+// NOTE. This header used to open NS_FS. There IS NO NS_FS - nothing in the
 // framework defines that macro. Flat djinterp, like everything else in filesys.
 
 
 // DEPENDENCIES.
-//   path.hpp and container_path.hpp both open plain NS_DJINTERP -- there is no
+//   path.hpp and container_path.hpp both open plain NS_DJINTERP - there is no
 // djinterp::path and no djinterp::container namespace holding them. The
 // twenty-eight using-declarations that stood here named nothing, and this
 // header could not compile. Being in djinterp ourselves, the names are already
 // in scope. What we lean on: path.hpp path_separator, path_is_separator,
 // path_normalize, path_extension, path_stem, path_filename, path_parent,
 // path_is_absolute, path_relative_to, path_to_posix, path_to_windows,
-// path_meet (was path_common_prefix -- a meet is what it computes; the old
-// spelling still resolves), path_level (was path_depth -- it counts UPWARD,
+// path_meet (was path_common_prefix - a meet is what it computes; the old
+// spelling still resolves), path_level (was path_depth - it counts UPWARD,
 // which is the level; depth is a node's height) container_path.hpp
 // component_view,
 // path_address, container_path_resolve, container_path_collect,
@@ -83,8 +83,8 @@ NS_DJINTERP
 // nested, in djinterp::container, and are imported below)
 
 // file_node_id / null_file_node / file_node come from file_tree_common.hpp now. The
-// arena is GONE -- nodes live in a djinterp pool and a file_node_id is a POINTER,
-// not an index -- so there is no arena<file_entry> to name and nothing to
+// arena is GONE - nodes live in a djinterp pool and a file_node_id is a POINTER,
+// not an index - so there is no arena<file_entry> to name and nothing to
 // import from djinterp::container.
 
 
@@ -211,7 +211,7 @@ using file_tree_path_policy = DFileTreePathPolicy<Tree>;
 //   class: provides path operations over a file_tree. Wraps the container_path
 // free functions with the file_tree- specific policy, constructed once and
 // passed through all operations.
-//   TEMPLATED ON THE TREE. It used to say `const file_tree&` -- but file_tree
+//   TEMPLATED ON THE TREE. It used to say `const file_tree&` - but file_tree
 // is a template ALIAS (file_tree.hpp maps an operating_system onto a scanner
 // policy), and naming an alias template with no argument list is ill-formed.
 // Every one of these three sites was a hard error; the header simply was never
@@ -393,8 +393,8 @@ public:
     // level
     //   the LEVEL (lambda) of _id: parent links up to the root, which sits at
     // level 0. This is the length of _id's ADDRESS. It was spelled `depth`,
-    // but the spec reserves DEPTH for a node's HEIGHT -- the distance DOWN to
-    // its deepest leaf -- and the two are different numbers on the same node.
+    // but the spec reserves DEPTH for a node's HEIGHT - the distance DOWN to
+    // its deepest leaf - and the two are different numbers on the same node.
     // depth() below is kept, and delegates, so no caller breaks.
     std::size_t
     level
@@ -423,7 +423,7 @@ public:
 
     // height
     //   the HEIGHT of _id: the longest descent BELOW it. This is what the spec
-    // calls the node's DEPTH, and the facade had no way to ask for it -- the
+    // calls the node's DEPTH, and the facade had no way to ask for it - the
     // one measure it named was the other one.
     std::size_t
     height

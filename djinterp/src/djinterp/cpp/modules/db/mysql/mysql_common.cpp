@@ -2,7 +2,7 @@
 * djinterp [cpp][db]                                            mysql_common.cpp
 *
 * Definitions for mysql_common.hpp that are not the template's: the MariaDB
-* layer's failures -- described, then thrown -- and its prepared statements'
+* layer's failures - described, then thrown - and its prepared statements'
 * one instantiation.
 *   mysql_common_connection's own members are defined in its header and
 * instantiated by each leaf's source, mariadb.cpp and mysql.cpp, so that a

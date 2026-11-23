@@ -3,8 +3,8 @@
 *
 * The positional step of the parse, declared in arg_internal.h (8.1.7).
 *   CLI11's _parse_positional: an argument recognized as nothing else is
-* offered to the command's positional options -- the required ones first,
-* when positionals come at the end and only their arguments are left -- and
+* offered to the command's positional options - the required ones first,
+* when positionals come at the end and only their arguments are left - and
 * placed in the first that takes it, as a flag's value for one that expects
 * none; else it goes to an option group, to the fallthrough parent, to a
 * subcommand of the command's met again, or to the parents, or is kept as
@@ -82,8 +82,8 @@ bool d_arg_internal_parse_open(
  * @return D_ARG_OK, or the error a validator stopped with, recorded.
  *
  * The first of the command's options open to a positional, as
- * d_arg_internal_parse_open asks it, whose validators -- when the command
- * validates positionals -- accept it; `_option` is left as it was when none
+ * d_arg_internal_parse_open asks it, whose validators - when the command
+ * validates positionals - accept it; `_option` is left as it was when none
  * is.
  */
 D_STATIC
@@ -269,7 +269,7 @@ int d_arg_internal_parse_triggered(
  * A positional placed in the option CLI11's _parse_positional chose: the
  * option in the parse order, a separator before the value where asked, a
  * trigger whose callback ran started afresh with its values set aside, the
- * value -- as a flag's, for an option that expects none -- then the
+ * value - as a flag's, for an option that expects none - then the
  * trigger's callback, or its values back.
  */
 D_STATIC
@@ -382,7 +382,7 @@ int d_arg_internal_parse_group_positional(
  *         has a parent that can take another; `false` otherwise.
  *
  * CLI11's last look in _parse_positional, with subcommand fallthrough: a
- * subcommand the fallthrough parent -- or, at the root, the command itself --
+ * subcommand the fallthrough parent - or, at the root, the command itself --
  * finds by the argument, used before or not, whose own parent can take
  * another; it is left to the parents.
  */
@@ -507,7 +507,7 @@ int d_arg_internal_parse_nowhere(
  *
  * The end of CLI11's _parse_positional, when no option took the argument:
  * a subcommand of the command's met again, which the command can take once
- * more, is parsed again -- without being listed again -- unless the caller
+ * more, is parsed again - without being listed again - unless the caller
  * halts at one; anything else goes where d_arg_internal_parse_nowhere sends
  * it.
  */
@@ -550,7 +550,7 @@ int d_arg_internal_parse_leftover(
 /*
 d_arg_internal_parse_positional
   CLI11's _parse_positional: the command's own positional options first,
-then its option groups', then -- for a command that falls through -- its
+then its option groups', then - for a command that falls through - its
 fallthrough parent's, which halts at a subcommand when the command has a
 parse-complete callback; then what is left.
 */

@@ -102,7 +102,7 @@ tests_move_iterator_base()
 tests_move_iterator_arithmetic
   Verifies the arithmetic surface.
   Tests the following:
-  - prefix / postfix ++ and -- advance and retreat by one
+  - prefix / postfix ++ and - advance and retreat by one
   - += and -= shift by n
   - it + n, n + it, and it - n produce shifted iterators
   - the iterator difference equals the base difference

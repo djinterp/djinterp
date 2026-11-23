@@ -112,7 +112,7 @@ const char* const STANDARD_INPUT = "-";
 // 1.2.1
 // source
 //   struct: one text a run reads: the name a reader knows it by, the
-// argument that named it -- a file name, `-`, or the text itself -- and its
+// argument that named it - a file name, `-`, or the text itself - and its
 // bytes.
 struct source
 {
@@ -227,9 +227,9 @@ std::string frontend_of(
  *
  * @param[in] _memoize  the subcommand's --memoize option, which collects
  *                      its values; NULL for one that has none.
- * @return the setting the values given make, in order -- a name after
+ * @return the setting the values given make, in order - a name after
  *         names joined to them with a comma, anything else replacing what
- *         came before it -- or the default; "none" for an option not made,
+ *         came before it - or the default; "none" for an option not made,
  *         or a last value of nothing.
  */
 std::string memo_of(
@@ -255,8 +255,8 @@ long number_of(
 //==============================================================================
 // 3.  ENDINGS
 //==============================================================================
-//   A failure is said as the kit says one -- `vparse: error: MESSAGE`, on the
-// error stream, through the context's program -- and is trouble, REFUSED;
+//   A failure is said as the kit says one - `vparse: error: MESSAGE`, on the
+// error stream, through the context's program - and is trouble, REFUSED;
 // an output is written whole, once nothing is left to fail but the writing.
 // A message starts in lower case and has no full stop (GRAMMAR.md, section
 // 8).
@@ -342,7 +342,7 @@ int emit(
  *        subcommand with REFUSED: `NAME:LINE:COLUMN: error: SENTENCE`
  *        where its reader stopped at a place, as a compiler puts the place
  *        first (GRAMMAR.md, section 8), and `vparse: error: NAME: SENTENCE`
- *        where there is none -- the sentence the run's headline, the place
+ *        where there is none - the sentence the run's headline, the place
  *        taken out of it, as a diagnostic is written.
  *
  * @param[in] _context  the run of the command line, whose program says it.

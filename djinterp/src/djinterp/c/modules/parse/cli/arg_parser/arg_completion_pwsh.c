@@ -5,11 +5,11 @@
 *   The script runs in a block of its own, whose variables hold the model --
 * each command's row, the subcommands' and the options' names with their
 * commands, targets and descriptions, each option's row, the positionals'
-* keys and rows, the choices -- and turn it into dictionaries that compare
+* keys and rows, the choices - and turn it into dictionaries that compare
 * names by ordinal, as the parse does, where PowerShell's own hash tables
 * would ignore case. The completer, a closure over them registered for the
 * program as a native command, walks the words before the cursor as the
-* parse takes them and returns CompletionResult objects -- names with their
+* parse takes them and returns CompletionResult objects - names with their
 * descriptions as tool tips, values quoted where PowerShell needs them, files
 * through PowerShell's own completer. Where nothing fits a word, it returns
 * the word itself, so that PowerShell does not offer files in its place.
@@ -600,7 +600,7 @@ uint32_t d_arg_internal_complete_pwsh_decode(
  *         `false` otherwise.
  *
  * Whether a character goes inside single quotes as itself: printable ASCII
- * -- and, in a line of a description, a control character, which becomes a
+ * - and, in a line of a description, a control character, which becomes a
  * space.
  */
 D_STATIC
@@ -659,8 +659,8 @@ void d_arg_internal_complete_pwsh_char(
  * @param[in]     _line   whether the string is a line of a description.
  * @param[in,out] _open   whether a quoted run is open; updated.
  *
- * One character of a string being written: inside the quoted run -- one
- * opened, after " + ", when none is -- as itself, `'` doubled, or as a space
+ * One character of a string being written: inside the quoted run - one
+ * opened, after " + ", when none is - as itself, `'` doubled, or as a space
  * for a control character of a line; else after the run, closed, as [char]
  * values.
  */
@@ -806,8 +806,8 @@ void d_arg_internal_complete_pwsh_name(
 //==============================================================================
 
 // dj_arg_internal_complete_pwsh_value
-//   type: writes an array's value for one record of the model -- the line
-// it takes, indented -- or nothing, for a record the array leaves out.
+//   type: writes an array's value for one record of the model - the line
+// it takes, indented - or nothing, for a record the array leaves out.
 typedef void (*dj_arg_internal_complete_pwsh_value)(
     const struct dj_arg_internal_model* _model,
     size_t                             _index,
@@ -1352,7 +1352,7 @@ void d_arg_internal_complete_pwsh_comment(
  * @param[in]     _program  the program's name.
  *
  * The names the completer is registered for: the program's, and with
- * ".exe" after it -- as PowerShell may know the command on Windows -- unless
+ * ".exe" after it - as PowerShell may know the command on Windows - unless
  * it ends so already.
  */
 D_STATIC

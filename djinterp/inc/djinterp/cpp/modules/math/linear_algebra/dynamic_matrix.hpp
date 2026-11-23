@@ -10,15 +10,15 @@
 *   The fixed-size matrix is compile-time sized and fully D_CONSTEXPR; it should
 * be preferred whenever the dimensions are known at compile time (no allocation,
 * compile-time evaluation, dimensions checked by the type system).
-* dynamic_matrix is intentionally NOT constexpr -- heap storage cannot be a
-* constant expression before C++20 -- and trades those guarantees for runtime
+* dynamic_matrix is intentionally NOT constexpr - heap storage cannot be a
+* constant expression before C++20 - and trades those guarantees for runtime
 * flexibility.
 *   The two interoperate: from_fixed / to_fixed convert between them.
 *
 * A FACE OVER THE C CORE:
 *   The element-wise arithmetic, the transpose, the products, the trace and
 * the norms are c/math's kernels through linalg_kernel, the loops this header
-* wrote, in their order, on the vector's storage -- through double for an
+* wrote, in their order, on the vector's storage - through double for an
 * element type no family holds, as the fixed-size matrix does. The norm's
 * root is the element type's, correctly rounded (it was a double's whatever
 * the type). Everything compiles from C++98; the scalar products select

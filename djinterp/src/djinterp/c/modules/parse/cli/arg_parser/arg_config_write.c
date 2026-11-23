@@ -5,14 +5,14 @@
 *   CLI11's ConfigBase::to_config, a C function for each of its helpers and
 * steps. A command's own configurable options are written group by group --
 * OPTIONS first, with the options of the empty group, then each other group
-* in the order its options first name it -- each with the values its policy
+* in the order its options first name it - each with the values its policy
 * keeps, or, when defaults are asked for and it has none, its default; the
 * values joined and quoted as convert_arg_for_ini and ini_join write them, a
 * flag's as one of its names reads them back, a name quoted when it needs
 * it, a description as a comment. The nameless subcommands follow, option
 * groups among them, each written in turn under the command's prefix, then
-* the named ones: a section of their own when configurable and used -- or
-* when every default is asked for -- else under a dotted prefix. With
+* the named ones: a section of their own when configurable and used - or
+* when every default is asked for - else under a dotted prefix. With
 * descriptions, the command's own heads whatever it wrote.
 *
 *
@@ -144,7 +144,7 @@ bool d_arg_internal_ini_signed(
  *         when they are not there.
  *
  * How much of the value an exponent takes from `_at`: `e` or `E`, a sign,
- * and at least one digit -- none at all when they are not there, as strtold
+ * and at least one digit - none at all when they are not there, as strtold
  * then stops before the `e`.
  */
 D_STATIC
@@ -180,7 +180,7 @@ size_t d_arg_internal_ini_exponent(
  *
  * Whether CLI11 writes a value bare as a number: one strtold reads whole that
  * holds only digits, `.`, `+`, `-`, `e` and `E`, so a decimal floating-point
- * literal -- an optional sign, digits with an optional point and at least one
+ * literal - an optional sign, digits with an optional point and at least one
  * digit, and an optional exponent. Such a value never starts with `0x`, which
  * CLI11 checks first.
  */
@@ -423,8 +423,8 @@ int d_arg_internal_ini_character(
  * @return D_ARG_OK, or the buffer's status.
  *
  * A value holding characters CLI11 escapes: a long one outside an array as a
- * `'''` literal over lines -- a newline at either end doubled, so that the
- * reader's dropping it keeps one -- or, holding `'''` itself, as a binary
+ * `'''` literal over lines - a newline at either end doubled, so that the
+ * reader's dropping it keeps one - or, holding `'''` itself, as a binary
  * string; any other between string quotes with its escapes.
  */
 D_STATIC
@@ -550,7 +550,7 @@ int d_arg_internal_ini_value(
  *
  * CLI11's ini_join: the values as d_arg_internal_ini_value writes them --
  * several between the array's brackets, where the format has them, each then
- * on one line -- separated by the array separator and, unless it is
+ * on one line - separated by the array separator and, unless it is
  * whitespace, a space.
  */
 D_STATIC
@@ -614,8 +614,8 @@ int d_arg_internal_ini_join(
 // dj_arg_internal_ini_writer
 //   struct: one command's part of CLI11's to_config: the format and the
 // command, the output mode, whether descriptions are written, the prefix
-// each name takes, CLI11's key characters -- those that make a name need
-// quotes -- and the text written so far.
+// each name takes, CLI11's key characters - those that make a name need
+// quotes - and the text written so far.
 struct dj_arg_internal_ini_writer
 {
     const struct dj_arg_config_format* format;
@@ -757,8 +757,8 @@ int d_arg_internal_ini_newlines(
  * @param[in,out] _out          the buffer that gains it.
  * @return D_ARG_OK, or the buffer's status.
  *
- * A description as a comment: `_lead` -- the comment character and a
- * space, the comment character doubled for a command's own -- then the
+ * A description as a comment: `_lead` - the comment character and a
+ * space, the comment character doubled for a command's own - then the
  * text, its lines each led the same way, and a line feed.
  */
 D_STATIC
@@ -971,8 +971,8 @@ int d_arg_internal_ini_sum(
  * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
  *
  * CLI11's check of a joined value: without a delimiter, or when the delimiter
- * cannot split the value back -- it ends the value, is doubled in it, or is
- * no rarer than the values given -- the values as given are written instead.
+ * cannot split the value back - it ends the value, is doubled in it, or is
+ * no rarer than the values given - the values as given are written instead.
  */
 D_STATIC
 int d_arg_internal_ini_joined(
@@ -1199,8 +1199,8 @@ int d_arg_internal_ini_default(
  *         report as they were; otherwise the failure.
  *
  * The value as a flag name reads it, CLI11's get_flag_value, replacing the
- * value when the name accepts it; a refusal -- the ArgumentMismatch CLI11
- * catches -- leaves the value and the parser's report as they were.
+ * value when the name accepts it; a refusal - the ArgumentMismatch CLI11
+ * catches - leaves the value and the parser's report as they were.
  */
 D_STATIC
 int d_arg_internal_ini_flag_as(
@@ -1257,7 +1257,7 @@ int d_arg_internal_ini_flag_as(
  * @return D_ARG_OK, or the failure.
  *
  * CLI11's second look at a flag's value, once its single name refused it:
- * every flag name in turn -- none stopping the others -- each reading the
+ * every flag name in turn - none stopping the others - each reading the
  * value as the one before left it, the last that accepted it naming the line.
  */
 D_STATIC
@@ -1359,9 +1359,9 @@ int d_arg_internal_ini_flag(
  *         the buffer failed.
  *
  * An option's line: a flag's value as its names read it back; the
- * description first, as a comment, when asked for -- after a blank line,
+ * description first, as a comment, when asked for - after a blank line,
  * unless it is the first text written; then the name, prefixed and cleaned --
- * commented out, a default, when defaults are -- the value delimiter, the
+ * commented out, a default, when defaults are - the value delimiter, the
  * value and a line feed.
  */
 D_STATIC
@@ -1429,8 +1429,8 @@ int d_arg_internal_ini_line(
  * @param[in,out] _option  the option.
  * @return D_ARG_OK, or the failure of a step.
  *
- * One option of a group's pass: its value -- what it was given, or, when
- * defaults are asked for and that is nothing, its default -- and, unless the
+ * One option of a group's pass: its value - what it was given, or, when
+ * defaults are asked for and that is nothing, its default - and, unless the
  * value is still empty, its line.
  */
 D_STATIC
@@ -1477,11 +1477,11 @@ int d_arg_internal_ini_option(
  *
  * @param[in] _option  the option.
  * @param[in] _group   the pass's group.
- * @return `true` for an option configurable, named, and of the group -- OPTIONS
+ * @return `true` for an option configurable, named, and of the group - OPTIONS
  *         taking the empty group's too; `false` otherwise.
  *
  * Whether a group's pass writes an option: configurable, named, and of the
- * group -- the OPTIONS pass taking the empty group's too.
+ * group - the OPTIONS pass taking the empty group's too.
  */
 D_STATIC
 bool d_arg_internal_ini_matches(
@@ -1638,7 +1638,7 @@ int d_arg_internal_ini_options(
  * @return D_ARG_OK, or the failure of a step.
  *
  * CLI11's pass over the nameless subcommands, option groups among them:
- * each with a value -- or each, when defaults are asked for -- written in
+ * each with a value - or each, when defaults are asked for - written in
  * turn with the command's prefix, after its group's header when descriptions
  * are written and the group is named, not with `+`.
  */
@@ -1730,8 +1730,8 @@ void d_arg_internal_ini_ancestors(
  * @param[in] _sub     the subcommand.
  * @return D_ARG_OK, or the buffer's status.
  *
- * A subcommand's section header: the prefix -- or, below the top without
- * one, the names of the command and its ancestors -- then the subcommand's
+ * A subcommand's section header: the prefix - or, below the top without
+ * one, the names of the command and its ancestors - then the subcommand's
  * name, cleaned, in brackets.
  */
 D_STATIC
@@ -1832,9 +1832,9 @@ int d_arg_internal_ini_subcommand(
  * @param[in] _writer  the writer.
  * @return D_ARG_OK, or the failure of a step.
  *
- * CLI11's pass over the named subcommands: each with a value -- or each,
+ * CLI11's pass over the named subcommands: each with a value - or each,
  * when defaults are asked for, but for the defaults of the subcommands used
- * alone, each used -- written as d_arg_internal_ini_subcommand writes it.
+ * alone, each used - written as d_arg_internal_ini_subcommand writes it.
  */
 D_STATIC
 int d_arg_internal_ini_named(
@@ -1926,7 +1926,7 @@ int d_arg_internal_ini_write(
  * @param[in,out] _out     the buffer that gains it.
  * @return D_ARG_OK, or the failure of a step.
  *
- * The command's text written apart, then appended -- headed by the
+ * The command's text written apart, then appended - headed by the
  * command's description as a comment, when descriptions are written and
  * there is any text.
  */

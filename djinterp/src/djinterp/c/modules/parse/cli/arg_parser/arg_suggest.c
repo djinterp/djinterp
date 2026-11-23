@@ -2,16 +2,16 @@
 * djinterp [c][parse]                                              arg_suggest.c
 *
 * "Did you mean" suggestions, declared in arg_internal.h (9.4).
-*   The optimal string alignment distance between two names -- Levenshtein's,
-* with the swap of two neighbours counting as one edit -- computed only in
+*   The optimal string alignment distance between two names - Levenshtein's,
+* with the swap of two neighbours counting as one edit - computed only in
 * the band of cells within the greatest distance a suggestion may have, so
 * that it needs no memory beyond three short rows on the stack and stops as
 * soon as a row has nothing within it. The name an unexpected argument most
 * likely meant: among the options the command would have matched for `-x`,
-* `--name` or `/name` -- its own and its option groups' -- or among the
+* `--name` or `/name` - its own and its option groups' - or among the
 * subcommands it would have taken for anything not starting with a dash --
 * its own, its option groups', and, with subcommand fallthrough, its
-* parents' -- and those of the commands the parse went on to, the one
+* parents' - and those of the commands the parse went on to, the one
 * nearest, when no other is as near; compared as the option or subcommand
 * compares names, case folded or underscores dropped when it ignores them.
 * And the lines the message about unexpected arguments gains, "Did you mean
@@ -156,7 +156,7 @@ size_t d_arg_internal_suggest_cell(
  * @return the row's least cell.
  *
  * Row `_i` of the band: a cell outside the table is past the limit, and
- * d[i][0] is i -- in the band only for a row within the reach; returns the
+ * d[i][0] is i - in the band only for a row within the reach; returns the
  * row's least cell, which the caller stops on when it passes the limit.
  */
 D_STATIC
@@ -206,8 +206,8 @@ d_arg_internal_edit_distance
 distance within it, so only that is computed, three rows of it at a time,
 row 0 being d[0][j] = j; the rows stop as soon as one has nothing within
 the limit, and lengths further apart than the limit stop at once. No cell
-of the table reads one outside it -- each neighbour of a cell inside lies
-inside, or in the first column, set apart -- so row 0 holds only the cells
+of the table reads one outside it - each neighbour of a cell inside lies
+inside, or in the first column, set apart - so row 0 holds only the cells
 of the table, the others never read.
 */
 size_t d_arg_internal_edit_distance(
@@ -259,7 +259,7 @@ size_t d_arg_internal_edit_distance(
 //==============================================================================
 
 // d_arg_internal_suggest_target
-//   struct: what an unexpected argument names: its name -- without its dashes
+//   struct: what an unexpected argument names: its name - without its dashes
 // or slash and value for an option's, the whole argument for a
 // subcommand's --; whether it names an option, else a subcommand; whether
 // candidates are written after a slash, as a Windows-style option is; and
@@ -342,7 +342,7 @@ struct dj_pack_text d_arg_internal_suggest_fold(
  * @return a span of the text written.
  *
  * A candidate as the user would type it: after the slash for a
- * Windows-style argument; else after its dashes -- one for a short name, two
+ * Windows-style argument; else after its dashes - one for a short name, two
  * for a long one, none for a subcommand's.
  */
 D_STATIC
@@ -387,7 +387,7 @@ struct dj_pack_text d_arg_internal_suggest_write(
  * the candidate's command or option compares them; the nearest kept, and a
  * tie noted when another name, written differently, is as near. Not a
  * suggestion: a candidate written exactly as the argument was given, or one
- * whose distance is more than half the longer name -- so that "u" never
+ * whose distance is more than half the longer name - so that "u" never
  * suggests "s", nor "ab" "cd", while "strat" suggests "start".
  */
 D_STATIC
@@ -620,7 +620,7 @@ void d_arg_internal_suggest_command(
  * @param[in]     _command  the command.
  *
  * The subcommands a command takes itself: its own named ones, and those of
- * its option groups -- not their parents again.
+ * its option groups - not their parents again.
  */
 D_STATIC
 void d_arg_internal_suggest_commands(
@@ -688,8 +688,8 @@ void d_arg_internal_suggest_climb(
  * @param[in]     _command  the command.
  *
  * The commands the last parse used under this one, and under them in turn:
- * an argument they did not take can end up with a command above them -- one
- * that falls through, say -- while the user meant one of theirs.
+ * an argument they did not take can end up with a command above them - one
+ * that falls through, say - while the user meant one of theirs.
  */
 D_STATIC
 void d_arg_internal_suggest_reached(
@@ -734,8 +734,8 @@ void d_arg_internal_suggest_reached(
  *         slash, and whether it names anything.
  *
  * What an argument names: for `-x`, `--name` or `/name`, an option, by its
- * name without the dashes or slash and without the value after `=` -- or,
- * for a Windows-style one, `:` -- written after a slash for a slash; for
+ * name without the dashes or slash and without the value after `=` - or,
+ * for a Windows-style one, `:` - written after a slash for a slash; for
  * anything else, a subcommand, by the whole argument, unless the argument is
  * empty or starts with a dash, as `--` and a negative number do, when it
  * names nothing.
@@ -756,7 +756,7 @@ struct dj_arg_internal_suggest_target d_arg_internal_suggest_target(
                                        : 0u;
     size_t                   end   = skip;
 
-    // a subcommand's name -- which never starts with a dash -- or nothing
+    // a subcommand's name - which never starts with a dash - or nothing
     if (skip == 0u)
     {
         const struct dj_arg_internal_suggest_target bare =
@@ -830,18 +830,18 @@ void d_arg_internal_suggest_search(
  * @brief Writes the name an unexpected argument most likely meant.
  *
  * @note For `-x`, `--name` or `/name`, the short or long name of an option
- *       the command would have matched -- its own and its enabled option
- *       groups' -- hidden ones left out, the name and value after `=` (or
+ *       the command would have matched - its own and its enabled option
+ *       groups' - hidden ones left out, the name and value after `=` (or
  *       `:`) compared without its dashes or slash; for anything else not
  *       starting with a dash, the name or alias of a subcommand it would
- *       have taken -- its own, its option groups', and, with subcommand
- *       fallthrough, its parents' -- disabled and hidden ones left out; and,
+ *       have taken - its own, its option groups', and, with subcommand
+ *       fallthrough, its parents' - disabled and hidden ones left out; and,
  *       either way, those of the commands the last parse used under it,
  *       where an argument they did not take may have meant one of theirs.
  *       Names are compared as their option or subcommand compares them,
  *       case or underscores ignored where it ignores them. Written as the
- *       user would type it -- with its dashes, or after a slash for a
- *       Windows-style argument -- only when one name is nearest, within
+ *       user would type it - with its dashes, or after a slash for a
+ *       Windows-style argument - only when one name is nearest, within
  *       D_INTERNAL_ARG_PARSER_SUGGESTION_DISTANCE edits and half the longer
  *       name, and is not the argument itself; and only when no scratch ran
  *       out of memory, which could have hidden a nearer name. The scratch is

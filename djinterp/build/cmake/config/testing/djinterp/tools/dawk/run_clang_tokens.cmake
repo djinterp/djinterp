@@ -5,8 +5,8 @@
 # Clang's raw lexer, over every C and C++ file under inc, src and tests, the
 # checks' own pairs among them (dawk's decision 45a):
 # tests/dawk/clang_tokens.sh as a CMake script, for a system with no shell.
-#   Each file is lexed both ways -- Clang's `-Xclang -dump-raw-tokens`, then
-# `dcheck --clang-tokens=<that dump>`, which lexes it again -- and the two
+#   Each file is lexed both ways - Clang's `-Xclang -dump-raw-tokens`, then
+# `dcheck --clang-tokens=<that dump>`, which lexes it again - and the two
 # must agree token for token: name, spelling, line and column. A file on
 # tests/dawk/clang_tokens_known.txt may disagree, and one there that agrees
 # must come off it. A generated file is left out, as dcheck leaves it out:

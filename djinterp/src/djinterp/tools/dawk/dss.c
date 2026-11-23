@@ -1175,7 +1175,7 @@ d_internal_selector
 descendant combinator only when a compound follows it, which is what keeps
 `banner > rule {` from reading the brace as a compound.  Steps are gathered
 and stored together, for the same reason as a compound's simples.
-  Whitespace followed by an attribute selector -- `a[x] [y]` -- parses as a
+  Whitespace followed by an attribute selector - `a[x] [y]` - parses as a
 descendant combinator and asks for a `[y]` inside the `a[x]`, which is almost
 never meant: a compound was broken across a line.  The parser warns; writing
 `*[y]` says the descendant is intended and silences it.
@@ -1287,8 +1287,8 @@ bool d_internal_selector(
 
 /*
 d_internal_selector_list
-  Reads comma-separated selectors -- relative ones, each with an optional
-leading combinator, inside :has() -- and stores them as one contiguous run.
+  Reads comma-separated selectors - relative ones, each with an optional
+leading combinator, inside :has() - and stores them as one contiguous run.
 Each selector is stored as it is read, and nested lists store theirs in
 between, so the list's records are copied to the end once all are read.
 */
@@ -2013,8 +2013,8 @@ void d_internal_finish(
 
 /*
 d_dss_bind
-  Every name a matcher or cascade compares -- types, attribute names,
-pseudo-class names, properties -- gets its symbol in the shared table.  A
+  Every name a matcher or cascade compares - types, attribute names,
+pseudo-class names, properties - gets its symbol in the shared table.  A
 sheet binds once; binding again to another table rebinds it.
 */
 bool d_dss_bind(
@@ -2357,8 +2357,8 @@ bool d_dss_set_rule_layer(
 d_dss_outranks
   Reports whether rule `_a` beats rule `_b` for a property both declare: the
 higher layer wins, and within a layer the earlier rule does.  With every
-layer at zero -- which is what the driver leaves them as unless layers are in
-force -- this is exactly first match wins.  Every lookup that picks one
+layer at zero - which is what the driver leaves them as unless layers are in
+force - this is exactly first match wins.  Every lookup that picks one
 declaration goes through here, so there is one definition of "wins".
 */
 bool d_dss_outranks(

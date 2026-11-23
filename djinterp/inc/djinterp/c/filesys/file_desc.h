@@ -1,12 +1,12 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                              file_desc.h
 *
-* Descriptor lifecycle -- getting one, copying one, giving one back.
+* Descriptor lifecycle - getting one, copying one, giving one back.
 *   This module owns descriptors, not the bytes that move through them; those
 * are file_io. So a program handed a descriptor by its parent, which only ever
 * reads it, links file_io and never this.
 *   Every descriptor here is close-on-exec by default (D_CFG_FILE_DESC_CLOEXEC)
-* -- on Windows, not inherited by a child process -- including the one
+* - on Windows, not inherited by a child process - including the one
 * d_file_dup_fd returns, which POSIX and the Windows CRT would otherwise hand
 * back with that silently undone.
 *
@@ -53,7 +53,7 @@ D_EXTERN_C_BEGIN
  * @brief Opens a file and returns a descriptor (POSIX open equivalent).
  *
  * @note    Unless the build turns it off, the descriptor is close-on-exec --
- *          on Windows, its handle is not inherited by a child process -- and
+ *          on Windows, its handle is not inherited by a child process - and
  *          on Windows it is binary unless `_flags` names a text mode.
  * @note    With D_CFG_FILE_WIDE_PATHS, `_path` is UTF-8 on Windows as
  *          everywhere, and one that is not fails with EILSEQ.
@@ -96,7 +96,7 @@ int d_file_descriptor_stream(
  *
  * @note The copy shares the original's file offset and status flags. It is
  *       close-on-exec when D_CFG_FILE_DESC_DUP_CLOEXEC is set, where plain
- *       dup would clear the flag -- on Windows, not inherited by a child,
+ *       dup would clear the flag - on Windows, not inherited by a child,
  *       unless it is a console's, which Windows before 8 cannot change.
  *
  * @param[in] _fd  an open descriptor.

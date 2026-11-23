@@ -17,7 +17,7 @@
 *
 *   The engine is the SHARED CORE for both `DXmlStringTemplate` and
 * `DHtmlStringTemplate`. Those types are thin facades layered on top
-* of `DMarkupStringTemplate<EscapePolicy>` -- they bind a specific
+* of `DMarkupStringTemplate<EscapePolicy>` - they bind a specific
 * escape policy and inherit the rest. The split exists because the
 * only meaningful difference between XML and HTML interpolation is
 * the entity reference for the apostrophe (`&apos;` for XML,
@@ -34,9 +34,9 @@
 *     };
 *
 *   Three policies are provided here:
-*     - `DXmlEscapePolicy`   -- canonical XML entity references
-*     - `DHtmlEscapePolicy`  -- HTML-compatible entity references
-*     - `DNullEscapePolicy` -- no escaping (raw substitution)
+*     - `DXmlEscapePolicy`   - canonical XML entity references
+*     - `DHtmlEscapePolicy`  - HTML-compatible entity references
+*     - `DNullEscapePolicy` - no escaping (raw substitution)
 *
 *   FEATURES:
 *   - variable interpolation        {name}
@@ -122,7 +122,7 @@ struct DMarkupStringTemplateSyntaxTag
 
 
 // DMarkupStringTemplateSyntaxDefault
-//   struct: bundled default delimiter set -- single curly braces.
+//   struct: bundled default delimiter set - single curly braces.
 //   Variable    : {name}
 //   Raw var     : {&name}
 //   Partial     : {>partial_name}
@@ -371,11 +371,11 @@ NS_INTERNAL
     enum class DMarkupStringTemplateTokenKind : re_std::uint8_t
     {
         literal,            // plain text emitted verbatim
-        variable_escaped,   // {name} -- escaped on output
-        variable_raw,       // {&name} -- emitted as-is
-        partial_include,    // {>name} -- recursive partial render
-        section,            // {#name}...{/name} -- conditional / loop
-        comment             // {!...} -- consumed, no output
+        variable_escaped,   // {name} - escaped on output
+        variable_raw,       // {&name} - emitted as-is
+        partial_include,    // {>name} - recursive partial render
+        section,            // {#name}...{/name} - conditional / loop
+        comment             // {!...} - consumed, no output
     };
 
 
@@ -438,7 +438,7 @@ NS_INTERNAL
 NS_END  // internal
 
 
-// (forward declaration -- defined below)
+// (forward declaration - defined below)
 template<typename EscapePolicy>
 class DMarkupStringTemplate;
 
@@ -473,7 +473,7 @@ public:
     using value_map_t   = std::map<std::string, std::string>;
 
     // list_map_t
-    //   type: list bindings -- each list entry is a child context
+    //   type: list bindings - each list entry is a child context
     // used when rendering a section that names this list.
     using list_map_t    = std::map<std::string,
                                    std::vector<DMarkupStringTemplateContext>>;
@@ -695,7 +695,7 @@ private:
 // streams to an `std::ostream`) given a context of variable /
 // list bindings.
 //
-// Parameterised on `EscapePolicy` -- the only behavioural
+// Parameterised on `EscapePolicy` - the only behavioural
 // knob between formats. The bundled policies are
 // `DXmlEscapePolicy`, `DHtmlEscapePolicy`, and
 // `DNullEscapePolicy`; user code can supply any struct with a
@@ -822,7 +822,7 @@ public:
 
     // set_delimiters
     //   function: overrides the open / close delimiter strings.
-    // Either may be empty -- empty open_tag disables
+    // Either may be empty - empty open_tag disables
     // interpolation entirely (the template renders verbatim).
     void set_delimiters(
         const std::string& _open_tag,
@@ -950,7 +950,7 @@ private:
         }
         else
         {
-            // no interpolation -- entire source is one literal.
+            // no interpolation - entire source is one literal.
             internal::DMarkupStringTemplateToken    t;
             t.kind = internal::DMarkupStringTemplateTokenKind::literal;
             t.text = m_source;
@@ -964,7 +964,7 @@ private:
     // (`_in_section`), a section_close matching
     // `_section_terminator`. On match it consumes the close
     // directive and returns. Outside every section a close
-    // directive closes nothing, so it is literal text -- even
+    // directive closes nothing, so it is literal text - even
     // one with an empty name, which a section named "" would
     // otherwise share with the top level. `_pos` is updated by
     // reference so callers can pick up where parsing stopped.
@@ -1028,7 +1028,7 @@ private:
                     _pos = after_close;
                     return out;
                 }
-                // mismatched close -- keep parsing as if literal.
+                // mismatched close - keep parsing as if literal.
                 this->push_literal(out,
                     m_source.substr(open_pos, after_close - open_pos));
                 _pos = after_close;
@@ -1258,7 +1258,7 @@ private:
     /// state
 
     // m_open_tag, m_close_tag
-    //   field: delimiter strings. Either may be empty -- empty
+    //   field: delimiter strings. Either may be empty - empty
     // open_tag disables interpolation entirely.
     std::string     m_open_tag;
     std::string     m_close_tag;

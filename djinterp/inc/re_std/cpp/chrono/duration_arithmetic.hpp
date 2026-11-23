@@ -6,14 +6,14 @@
 *
 *   MIXED-PERIOD ARITHMETIC GOES THROUGH THE COMMON TYPE:
 *   `seconds(1) + milliseconds(5)` is not seconds and is not
-* milliseconds -- it is the finest period that represents both exactly,
+* milliseconds - it is the finest period that represents both exactly,
 * which common_type computes. Both operands convert into it first, so the
 * addition happens in one unit and nothing truncates. That is why this
 * header depends on duration_common_type.hpp.
 *
 *   DIVIDING TWO DURATIONS YIELDS A NUMBER, NOT A DURATION:
-*   seconds / seconds is a dimensionless ratio -- "how many times does
-* this fit into that" -- so the result is the common REPRESENTATION type.
+*   seconds / seconds is a dimensionless ratio - "how many times does
+* this fit into that" - so the result is the common REPRESENTATION type.
 * This is the one operator in the set whose return type is not a
 * duration, and it is dimensional analysis working correctly rather than
 * an inconsistency.
@@ -98,7 +98,7 @@ namespace chrono
 
     // operator/
     //   function: how many times _rhs fits into _lhs. Returns the common
-    // REPRESENTATION -- a dimensionless number, not a duration.
+    // REPRESENTATION - a dimensionless number, not a duration.
     template<typename Rep1, typename Period1,
              typename Rep2, typename Period2>
     RE_STD_CONSTEXPR
@@ -144,7 +144,7 @@ namespace chrono
     }
 
     // operator*
-    //   function: scale up, scalar on the left. Same operation -- offered
+    //   function: scale up, scalar on the left. Same operation - offered
     // because `3 * d` reads naturally and refusing it would be arbitrary.
     template<typename Rep1, typename Rep2, typename Period>
     RE_STD_CONSTEXPR

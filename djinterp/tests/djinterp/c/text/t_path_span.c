@@ -1,4 +1,4 @@
-/* t_path_span.c -- the generic path (c/text/path_span.h), read by three
+/* t_path_span.c - the generic path (c/text/path_span.h), read by three
    grammars a caller might write: a filesystem's, a URL's and an n-ary tree's.
    Self-contained: cc -Iinc tests/djinterp/c/text/t_path_span.c
    src/djinterp/c/text/path_span.c */
@@ -9,7 +9,7 @@
 static int g_checks = 0, g_failed = 0;
 #define CHECK(c, what) do { g_checks++; if (!(c)) { g_failed++; printf("FAIL %s (line %d)\n", what, __LINE__); } } while (0)
 
-/* Three grammars a caller might write -- none ships with the type. */
+/* Three grammars a caller might write - none ships with the type. */
 static
 size_t file_anchor(
     const char*                   t,

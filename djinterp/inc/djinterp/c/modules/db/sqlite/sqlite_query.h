@@ -5,14 +5,14 @@
 *   d_sqlite_exec runs any number of statements and discards their rows, and
 * d_sqlite_exec_changes reports how many rows the last of them changed. The
 * d_sqlite_query_* functions run one statement and return the first column of
-* its first row, which covers the common single-value case -- a count, a
-* version, a setting -- in one call; d_sqlite_query_rows returns all of its
+* its first row, which covers the common single-value case - a count, a
+* version, a setting - in one call; d_sqlite_query_rows returns all of its
 * rows, as db_common.h's dj_db_rows.
 *   Each comes in a plain form, which takes SQL as written, and an `f` form,
 * which takes a printf-like format in one of two dialects. A format is
-* sqlite3_mprintf's -- %q doubles single quotes, %Q also surrounds the value
+* sqlite3_mprintf's - %q doubles single quotes, %Q also surrounds the value
 * with them (or writes NULL for a NULL pointer), %w doubles double quotes,
-* for a name written between them, with printf's flags and widths -- unless
+* for a name written between them, with printf's flags and widths - unless
 * it names %I or %T, which sqlite3_mprintf stops at. Then it is the dialect
 * MariaDB's and PostgreSQL's layers read: %Q a value, %I a name, %T a
 * qualifier and a name written "qualifier"."name" (the name alone when the
@@ -79,7 +79,7 @@ TABLE OF CONTENTS
                                                  // floor; int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -127,7 +127,7 @@ int d_sqlite_execf(
 
 // 1.2    Rows changed
 //------------------------------------------------------------------------------
-// rows changed -- as d_sqlite_exec, and on success writes how many rows the
+// rows changed - as d_sqlite_exec, and on success writes how many rows the
 // last statement inserted, updated or deleted, not counting a trigger's; the
 // rows it returned, for one that changes none and returns rows, a SELECT
 // say; and 0 for any other, CREATE TABLE among them. Written only on success.
@@ -146,7 +146,7 @@ int d_sqlite_execf_changes(
 
 // 1.3    Single values
 //------------------------------------------------------------------------------
-// single values -- each runs one statement and reads the first column of its
+// single values - each runs one statement and reads the first column of its
 // first row. The value is written only on SQLITE_OK. A statement producing no
 // row is D_DB_NOT_FOUND; a NULL reads as 0, and as a NULL string. A failure is
 // its SQLite result code; a NULL argument, SQLITE_MISUSE; and in the `f`
@@ -201,7 +201,7 @@ int d_sqlite_query_textf(
  *         SQLite result code of the failure; SQLITE_MISUSE for a `NULL`
  *         argument, for text holding no statement, or more than one.
  * @post On success the caller releases `_rows` with d_db_rows_free. A
- *       statement that returns no rows -- an INSERT, say -- gives rows with
+ *       statement that returns no rows - an INSERT, say - gives rows with
  *       its columns, if any, and none of them.
  */
 int d_sqlite_query_rows(

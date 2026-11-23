@@ -2,11 +2,11 @@
 * djinterp [c][parse]                                     arg_completion_tests.c
 *
 * The suite of shell completion, declared in arg_completion_tests.h.
-*   Its sections are rows -- names, numbers, bytes, lines and descriptions,
-* each written as a line -- and steps, each making a command tree on a run's
+*   Its sections are rows - names, numbers, bytes, lines and descriptions,
+* each written as a line - and steps, each making a command tree on a run's
 * parser of its own (arg_tests_support.h) and writing the script each shell
 * is given for it, or what a parse with the completion option came to. A
-* script's engines -- the fixed text every script for a shell holds -- are
+* script's engines - the fixed text every script for a shell holds - are
 * held to completion/eng/, the source the library's arrays are written from,
 * and written as one line each, `[engine <name>]`, so that a transcript
 * holds what the tree makes.
@@ -15652,8 +15652,8 @@ static const char FLAG_ENVIRONMENT[] =
 
 // ENGINE_WALK
 //   constant: the walk over the words bash and zsh share, as
-// completion/eng/walk.sh holds it -- the source the library's array is written
-// from -- each `@@` standing for the program's identifier.
+// completion/eng/walk.sh holds it - the source the library's array is written
+// from - each `@@` standing for the program's identifier.
 static const char* const ENGINE_WALK[] =
 {
     "__djarg_@@_first() {",
@@ -15867,8 +15867,8 @@ static const char* const ENGINE_WALK[] =
 };
 
 // ENGINE_BASH
-//   constant: bash's own functions, as completion/eng/bash.sh holds it -- the
-// source the library's array is written from -- each `@@` standing for the
+//   constant: bash's own functions, as completion/eng/bash.sh holds it - the
+// source the library's array is written from - each `@@` standing for the
 // program's identifier.
 static const char* const ENGINE_BASH[] =
 {
@@ -16130,8 +16130,8 @@ static const char* const ENGINE_BASH[] =
 };
 
 // ENGINE_ZSH
-//   constant: zsh's own functions, as completion/eng/zsh.sh holds it -- the
-// source the library's array is written from -- each `@@` standing for the
+//   constant: zsh's own functions, as completion/eng/zsh.sh holds it - the
+// source the library's array is written from - each `@@` standing for the
 // program's identifier.
 static const char* const ENGINE_ZSH[] =
 {
@@ -16274,8 +16274,8 @@ static const char* const ENGINE_ZSH[] =
 };
 
 // ENGINE_FISH
-//   constant: fish's functions, as completion/eng/fish.fish holds it -- the
-// source the library's array is written from -- each `@@` standing for the
+//   constant: fish's functions, as completion/eng/fish.fish holds it - the
+// source the library's array is written from - each `@@` standing for the
 // program's identifier.
 static const char* const ENGINE_FISH[] =
 {
@@ -16683,7 +16683,7 @@ static const char* const ENGINE_FISH[] =
 
 // ENGINE_PWSH
 //   constant: the PowerShell block's own part, as completion/eng/pwsh.ps1 holds
-// it -- the source the library's array is written from -- each `@@` standing
+// it - the source the library's array is written from - each `@@` standing
 // for the program's identifier.
 static const char* const ENGINE_PWSH[] =
 {
@@ -17635,8 +17635,8 @@ static const char* const CHOICES_33[] =
 //==============================================================================
 
 // dj_tests_arg_completion_span
-//   struct: a row of bytes: the row's tag, its bytes -- NULL for a span
-// without data -- and how many.
+//   struct: a row of bytes: the row's tag, its bytes - NULL for a span
+// without data - and how many.
 struct dj_tests_arg_completion_span
 {
     const char* tag;
@@ -17654,7 +17654,7 @@ struct dj_tests_arg_completion_number
 };
 
 // dj_tests_arg_completion_lines
-//   struct: a row of lines: its tag, the lines -- NULL for none -- and how
+//   struct: a row of lines: its tag, the lines - NULL for none - and how
 // many, and the identifier their marks stand for.
 struct dj_tests_arg_completion_lines
 {
@@ -18228,7 +18228,7 @@ size_t d_tests_arg_completion_refuse(
  * @brief A span over bytes, exactly as given: the framework's
  *        d_pack_text_from_span reads data that is NULL as an empty span,
  *        whatever the length, where a caller's own struct can hold a length
- *        beside NULL data -- which is what the refusals and the rows of a
+ *        beside NULL data - which is what the refusals and the rows of a
  *        span without data give the calls.
  *
  * @param[in] _data    the bytes; may be NULL.
@@ -18324,9 +18324,9 @@ void d_tests_arg_completion_called_back(
 
 /**
  * @brief Adds the lines a parse came to, after the parser's exit: its
- *        status and exit code, then what the exit wrote -- a completion
+ *        status and exit code, then what the exit wrote - a completion
  *        script whole, its engines elided, anything else by its first line
- *        -- and the error output; then empties the output for the next.
+ *        - and the error output; then empties the output for the next.
  *
  * @param[in,out] _run     the run.
  * @param[in]     _status  the parse's status.
@@ -18395,7 +18395,7 @@ void d_tests_arg_completion_ended(
 
 /**
  * @brief Parses words as main's arguments, after a program's name, or alone
- *        -- as d_arg_parser_parse_args takes them -- and adds what the parse
+ *        - as d_arg_parser_parse_args takes them - and adds what the parse
  *        came to: `== <tag> <program or -> [<words>]`, what its callbacks
  *        noted, then the lines d_tests_arg_completion_ended adds.
  *
@@ -20609,9 +20609,9 @@ d_tests_arg_completion_program_names
 each shell writes the name, and how it quotes it.
   Tests the following:
   - the program given, or the root's name after its last `/` or `\` less ".exe"
-    in any case -- unless nothing else is left
+    in any case - unless nothing else is left
   - the identifier the functions are named by
-  - the header's comment, each control character a space -- or, in PowerShell's,
+  - the header's comment, each control character a space - or, in PowerShell's,
     each byte past printable ASCII a `?`
   - zsh's `#compdef` only for a name that may follow it
   - PowerShell's registration with ".exe" added unless the name ends so

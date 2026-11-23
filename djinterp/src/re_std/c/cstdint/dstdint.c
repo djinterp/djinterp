@@ -518,8 +518,8 @@ has their `hh` modifier.
 Presence, the other way
   And nothing of a family is defined without it: where its limit macro is
 absent, so is every other name it has. A format or a limit left standing for
-a type the header does not declare -- the fastest minimum-width formats once
-were, on the own backend -- would make a program that tests the limit macro
+a type the header does not declare - the fastest minimum-width formats once
+were, on the own backend - would make a program that tests the limit macro
 right and one that tests any other name wrong.
 */
 #if ( (!defined(INT8_MAX))                                  &&                \
@@ -1350,8 +1350,8 @@ platform has `long`.)
 Formats, against the compiler's own
   Clang predefines the conversion specifier of each <stdint.h> type
 (__INT8_FMTd__ is "hhd", __UINT64_FMTX__ "lX" or "llX", ...). Where the format
-macros are the header's own -- on its own backend, and on the platform one
-where Clang's <stdint.h> came without an <inttypes.h> -- each must be,
+macros are the header's own - on its own backend, and on the platform one
+where Clang's <stdint.h> came without an <inttypes.h> - each must be,
 character for character, what the compiler says: every scanf format, and
 every printf format of a type the integer promotions leave alone. (For a
 narrower type the header's printf format names the promoted type, `d` where
@@ -1584,8 +1584,8 @@ a reason for djinterp not to build, and no part of the framework reads
 either limit.
   The two headers are included here, after every other check, and not at
 the top with the rest: a platform's headers may define names of <stdint.h>
-themselves, on either backend -- FreeBSD's <wchar.h> defines WCHAR_MIN and
-WCHAR_MAX anew, and wasi-libc's headers include its <stdint.h> whole -- and
+themselves, on either backend - FreeBSD's <wchar.h> defines WCHAR_MIN and
+WCHAR_MAX anew, and wasi-libc's headers include its <stdint.h> whole - and
 everything above them is about the header's definitions, not theirs.
 */
 #if (D_INTERNAL_STDINT_VERIFY_SIGNAL == 1)

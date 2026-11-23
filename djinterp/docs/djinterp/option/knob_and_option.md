@@ -93,7 +93,7 @@ program reads its file, its environment and its command line cannot change
 the outcome. Among bindings of one standing, the innermost frame's holds, and
 in it a scoped binding before a global one.
 
-By full name -- `djin.variable` or `djin.scope.variable` -- through the
+By full name - `djin.variable` or `djin.scope.variable` - through the
 registry:
 
 - a file: `d_option_env_registry_load(reg, text, D_OPTION_ENV_SOURCE_FILE,
@@ -141,7 +141,7 @@ D_OPTION_ENV_ROW_REFUSING(D_OPTION_ENV_KIND_TEXT, "plugin_search", NULL, 0u,
 
 The row is still declared, so `get`, `describe` and `--help` show the
 setting, and say why a value was refused. A program whose builder trusts one
-of those sources -- a file in `/etc` that only an administrator writes --
+of those sources - a file in `/etc` that only an administrator writes --
 defines its own `D_OPTION_ENV_REFUSES_CALLER` before including `option_env.h`.
 No run-time option relaxes a refusal: it could be set from the very sources
 it guards.
@@ -230,7 +230,7 @@ binding; each figure includes the loop's own cost):
 | a plain `static int64_t` | 2.4 ns |
 
 A module that need not see a change mid-operation can instead read its rows
-once where it starts one -- a connection's open -- into its own fields.
+once where it starts one - a connection's open - into its own fields.
 
 A row's id is the schema's first id, from `d_option_env_declare_all` (a
 schema's ids are consecutive), plus the row's place. It stays the same once

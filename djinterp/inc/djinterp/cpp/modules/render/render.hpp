@@ -5,8 +5,8 @@
 * transforms, a runtime render mesh, and box projection, all built on the math
 * subframework.
 * Including this header pulls in the render3d types plus the math pieces a 3D
-* renderer works with -- vectors, matrices, transforms, quaternions, rays, and
-* axis-aligned boxes -- so a frontend needs only this one include.
+* renderer works with - vectors, matrices, transforms, quaternions, rays, and
+* axis-aligned boxes - so a frontend needs only this one include.
 *
 * LAYERING:
 *   render3d depends on math and nothing else. It is deliberately free of any

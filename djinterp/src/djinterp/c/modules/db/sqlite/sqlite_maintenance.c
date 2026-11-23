@@ -3,7 +3,7 @@
 *
 * Implementation of sqlite_maintenance.h.
 *   Version-dependent statements are checked against the library loaded, so an
-* old one refuses clearly instead of misreading the statement -- VACUUM of a
+* old one refuses clearly instead of misreading the statement - VACUUM of a
 * schema before 3.15.0 parsed the name and then vacuumed "main". A backup is
 * one sqlite3_backup_step(-1) between init and finish: the whole database in
 * one pass, under the source's read lock.

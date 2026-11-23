@@ -3,21 +3,21 @@
 *
 * The argument parser's C++ boundary suite: the functions of the caller's
 * that the C library calls through the face.
-*   Every kind of function a caller gives the face -- an option's callbacks,
+*   Every kind of function a caller gives the face - an option's callbacks,
 * each(), validators and transformations, a command's callbacks, a type's
 * conversion and writer, the functions that write a type name, a default, a
 * failure, a usage line, a footer or a version, filters, help's steps, a
-* configuration format's operations, and sinks -- runs inside C frames,
+* configuration format's operations, and sinks - runs inside C frames,
 * under the face's guard (ISSUES 46). This suite runs each: returning each
-* kind of result it may -- nothing, a cli::status, and, where CLI11's
-* returns one, a bool -- and, in a build with exceptions, throwing a
+* kind of result it may - nothing, a cli::status, and, where CLI11's
+* returns one, a bool - and, in a build with exceptions, throwing a
 * std::runtime_error, std::bad_alloc and an exception of no standard type,
 * which the guard catches with `...`, row by row of ISSUES 47's table, with
 * what the parse, help or the writer comes to. Every section is the
 * module's own: CLI11 has no status for a function to return, and lets
 * what one throws leave parse().
 *   The suite is a table of sections, defined in arg_boundary_tests.cpp
-* beside the sections themselves; without exceptions -- -fno-exceptions --
+* beside the sections themselves; without exceptions - -fno-exceptions --
 * only the results' section is, and the filters' and the configuration
 * formats' sections are only where their knobs build them, so the table's
 * length is the number of sections this build has.

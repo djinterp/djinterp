@@ -5,18 +5,18 @@
 *   A document is a file's text, the make it is read as, and its records, read
 * by dmake. A change is made at once: the text is spliced, the result read
 * again, and the change kept only if everything outside the splice reads as
-* it did -- every statement before it where it was, each of its parts, its
+* it did - every statement before it where it was, each of its parts, its
 * depth among the conditionals and the branch after it, every one after it
-* the same but moved by the splice, every comment likewise -- and the change
+* the same but moved by the splice, every comment likewise - and the change
 * itself reads back as asked: a value holds the text it was given, a word
 * the text in its place, a command the text under its rule, statements
 * inserted the statements they were written as. A change that would do more
 * is refused, and the file left as it was. Every byte a change does not
 * touch is the file's own; text a change writes takes the file's line
 * endings.
-*   The changes a file takes: a statement's text set -- an assignment's
+*   The changes a file takes: a statement's text set - an assignment's
 * value, a rule's prerequisites, a command, a directive's argument, a loop's
-* values -- its name, its operator, or its body; a word of a rule's targets,
+* values - its name, its operator, or its body; a word of a rule's targets,
 * prerequisites or order-only prerequisites set, inserted or removed, the
 * `|` written when the first order-only one is, and taken when the last
 * goes; a command set, added under its rule, or removed; statements
@@ -218,7 +218,7 @@ bool d_make_doc_set(
 
 // 2.4    Words
 //------------------------------------------------------------------------------
-// A rule's targets, its prerequisites -- D_MAKE_PART_TEXT -- and its
+// A rule's targets, its prerequisites - D_MAKE_PART_TEXT - and its
 // order-only ones are words, as d_make_words splits them, numbered from 0.
 //   d_make_doc_set_word     word `_word` of the part takes the text
 //   d_make_doc_insert_word  a word is written as the `_place`th of the

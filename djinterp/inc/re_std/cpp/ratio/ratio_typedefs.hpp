@@ -11,7 +11,7 @@
 *   WHY FOUR OF THEM ARE CONDITIONAL:
 *   zepto/zetta need 10^21 and yocto/yotta need 10^24. A 64-bit
 * intmax_t tops out near 9.22 x 10^18, so those four literals are not
-* representable and merely WRITING them would be ill-formed -- not a
+* representable and merely WRITING them would be ill-formed - not a
 * silently wrong value, a hard error. The standard makes them
 * conditionally present for exactly this reason, and the #if below is
 * the condition, tested against INTMAX_MAX rather than against a

@@ -14,7 +14,7 @@
 *               arrivals (or steps) at each input position and rule, as of
 *               the current step, with the call stack drawn over it.
 *
-*   Each is a uxoxo element module -- a descriptor and a builder -- plus an
+*   Each is a uxoxo element module - a descriptor and a builder - plus an
 * ImGui renderer registered with set_renderer, which is how uxoxo gives an
 * element type native drawing on one platform. The renderers read the runs
 * through a finder installed once by the host.

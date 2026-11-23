@@ -2,7 +2,7 @@
 * djinterp [cpp][event]                                       event_registry.hpp
 *
 * The registry:
-*   The typed subscription layer of the event system -- the realization of
+*   The typed subscription layer of the event system - the realization of
 * the registry rho and the dispatch/run folds. It wraps DEventTable with
 * compile-time type safety: bind() verifies handler compatibility via
 * static_assert and type-erases the callback; dispatch() evaluates the
@@ -15,14 +15,14 @@
 * is renamed DEventRegistry to match the formal vocabulary.
 *
 * FORMAL CORRESPONDENCE ("Definition of an Event"):
-*   registry  rho in prod_e H_e*      -- DEventRegistry (table keyed by kappa)
-*   dispatch  delta_rho               -- dispatch<Event>(...) : the inner fold
+*   registry  rho in prod_e H_e*      - DEventRegistry (table keyed by kappa)
+*   dispatch  delta_rho               - dispatch<Event>(...) : the inner fold
 *                                        of seq over mask_m(rho_e)
-*   run       run_rho                 -- run<Event>(first, last) : the outer
+*   run       run_rho                 - run<Event>(first, last) : the outer
 *                                        fold over a trace
-*   enriched dispatch (count,verdict) -- DDispatchResult
-*   merge     rho (+) rho'            -- merge(other)
-*   staging   hat-h, computed once    -- compile<Event>() -> DFusedStep
+*   enriched dispatch (count,verdict) - DDispatchResult
+*   merge     rho (+) rho'            - merge(other)
+*   staging   hat-h, computed once    - compile<Event>() -> DFusedStep
 *
 * DESIGN:
 *   - Typed bind: bind<Event>() static_asserts handler_traits compatibility,
@@ -74,7 +74,7 @@ NS_DJINTERP
 // =========================================================================
 
 // DDispatchResult
-//   struct: enriched result of dispatching one occurrence -- the pair
+//   struct: enriched result of dispatching one occurrence - the pair
 // (count, final verdict) of the instrumentation remark. Evaluating dispatch
 // in the product with (N, +) counts invoked letters; the final verdict is
 // the outcome of the folded word.
@@ -92,7 +92,7 @@ struct DDispatchResult
 };
 
 // run_result
-//   struct: aggregate result of running a trace -- the number of occurrences
+//   struct: aggregate result of running a trace - the number of occurrences
 // processed, the total handler invocations across them, and how many
 // occurrences ended in a consume.
 struct run_result

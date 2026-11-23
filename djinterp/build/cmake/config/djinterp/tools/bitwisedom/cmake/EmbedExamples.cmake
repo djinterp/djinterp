@@ -4,7 +4,7 @@
 # The large examples, built in: each res/djinterp/tools/bitwisedom/examples/large/<name>.bitfield.json
 # becomes an array of its bytes, LARGE_<NAME>, in large_examples.inc, which
 # src/examples.cpp includes and reads as it would any bitfield. The examples
-# stay JSON in the tree -- to read, to diff, and to open as files -- and the
+# stay JSON in the tree - to read, to diff, and to open as files - and the
 # window and bitwisedom-gen have them without a file beside them.
 #   The .inc is written as CMake configures, into the build tree, and only
 # when what it holds changes, so a configure that changes nothing compiles

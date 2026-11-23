@@ -6,8 +6,8 @@
 * C at the C floor, across a real language boundary: the suite calls the C++
 * face, and the face calls the C libraries. DTest's C face, built as C, runs
 * it from C++. The suite is one block of DTest's spec form, defined in its
-* own source -- which a language level or exceptions turned off leave
-* sections out of -- run as the module `cli_cpp`, so the count of tests
+* own source - which a language level or exceptions turned off leave
+* sections out of - run as the module `cli_cpp`, so the count of tests
 * differs by level, by design.
 *   NO_COLOR is set before the first test, as the C runner sets it. The
 * first argument, when it is no option, is the directory the probe modules

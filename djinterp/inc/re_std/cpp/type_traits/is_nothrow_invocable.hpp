@@ -9,7 +9,7 @@
 *   Two-step gate: first check is_invocable (does the call form?), and
 * only when invocable does the helper specialization probe noexceptness.
 * The noexcept probe goes directly through the dispatcher's do_invoke,
-* whose noexcept specifier mirrors the underlying expression -- so
+* whose noexcept specifier mirrors the underlying expression - so
 * `noexcept(invoker::do_invoke(...))` returns the noexceptness of the
 * target INVOKE expression, not of the wrapper function itself.
 *

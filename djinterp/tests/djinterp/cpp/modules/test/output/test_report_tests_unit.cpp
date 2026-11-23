@@ -214,7 +214,7 @@ bool tests_report_unit_set_verdict_pins_it_against_later_checks()
 // means what it says.
 bool tests_report_unit_assigning_the_verdict_field_does_not_pin_it()
 {
-    // -- the trap: assign the field, then add a check --------------------------
+    // - the trap: assign the field, then add a check --------------------------
     dt::report_unit _assigned("a");
 
     _assigned.verdict = dt::report_verdict::failed;
@@ -227,7 +227,7 @@ bool tests_report_unit_assigning_the_verdict_field_does_not_pin_it()
     D_RT_CHECK(_assigned.verdict == dt::report_verdict::passed);
     D_RT_CHECK(_assigned.passed());                                // silently green
 
-    // -- the supported form: set_verdict(), then add a check -------------------
+    // - the supported form: set_verdict(), then add a check -------------------
     dt::report_unit _pinned("p");
 
     _pinned.set_verdict(dt::report_verdict::failed);

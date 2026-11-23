@@ -4,8 +4,8 @@
 #
 # Runs c/filesys's runtime harnesses, which check the two widths
 # (c/filesys/file_common.h) and the C++ layer that follows them, in the
-# configurations a build can be in. The library -- every c/filesys source,
-# with the four the C++ layer links against -- is built as a Linux build
+# configurations a build can be in. The library - every c/filesys source,
+# with the four the C++ layer links against - is built as a Linux build
 # makes it: -std=c99 -pedantic-errors -D_XOPEN_SOURCE=700, every warning an
 # error, and file_ops.c and file_stat.c with -D_GNU_SOURCE as well, as their
 # banners ask. It is built three times: natively, natively without

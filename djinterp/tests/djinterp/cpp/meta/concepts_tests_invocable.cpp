@@ -45,27 +45,27 @@ bool concepts_tests_invocable()
     //   (a) std::invocable<Fn, Args...>, AND
     //   (b) std::is_void_v<Ret>  ||  convertible_to<invoke_result, Ret>
 
-    // -- positive: matching return type ----------------------------------
+    // - positive: matching return type ----------------------------------
     DT_CONCEPT    ((invocable_r<int,    returns_int,         int>));
     DT_CONCEPT    ((invocable_r<int,    returns_int_noexcept, int>));
     DT_CONCEPT    ((invocable_r<void,   returns_void>));
 
-    // -- positive: convertible return type -------------------------------
+    // - positive: convertible return type -------------------------------
     DT_CONCEPT    ((invocable_r<long,    returns_int, int>));   // int -> long
     DT_CONCEPT    ((invocable_r<double,  returns_int, int>));   // int -> double
     DT_CONCEPT    ((invocable_r<bool,    returns_int, int>));   // int -> bool
 
-    // -- positive: void return is unconstrained --------------------------
+    // - positive: void return is unconstrained --------------------------
     //   Documented: void on the left short-circuits the convertibility
     // check.  A non-void-returning callable still satisfies the void
     // form.
     DT_CONCEPT    ((invocable_r<void,    returns_int, int>));
 
-    // -- negative: not invocable at all ----------------------------------
+    // - negative: not invocable at all ----------------------------------
     DT_NOT_CONCEPT((invocable_r<int, returns_int>));            // missing arg
     DT_NOT_CONCEPT((invocable_r<int, int, int>));               // int isn't callable
 
-    // -- negative: invocable, but return not convertible -----------------
+    // - negative: invocable, but return not convertible -----------------
     //   returns_void's invoke_result is void, NOT convertible to int
     DT_NOT_CONCEPT((invocable_r<int,  returns_void>));
 

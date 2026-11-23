@@ -2,7 +2,7 @@
 * djinterp [cpp][parse]                                         symbol_model.hpp
 *
 * Parser symbol model:
-*   This header carries the parse subframework's output model -- the payload
+*   This header carries the parse subframework's output model - the payload
 * the libclang frontends and cpp_scanner allocate into the destination arena.
 * It was split out of the former arena/arena_domain.hpp: the symbol side is
 * parse-owned (parse_context, clang_frontend, and cpp_scanner all write it),
@@ -15,7 +15,7 @@
 *   - symbol_data       payload for the parser's symbol tree
 *   - symbol_tree       DNodeArena<symbol_data>
 *
-* Design -- qualifier field:
+* Design - qualifier field:
 *   symbol_data carries a uint64_t `qualifiers` field whose bit positions
 * match the type_info system exactly (type_info_common.h, type_info_c.h,
 * type_info_cpp.hpp), so the D_TYPE_IS_* / D_TYPE_SET_* macros apply directly

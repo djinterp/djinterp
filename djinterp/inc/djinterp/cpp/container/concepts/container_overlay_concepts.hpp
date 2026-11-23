@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                       container_overlay_concepts.hpp
 *
-* C++20 concepts for the OVERLAY axis -- the `requires`-facing view of
+* C++20 concepts for the OVERLAY axis - the `requires`-facing view of
 * container_overlay_traits.hpp.
 *
 *   THE CONCEPTS ADD NO POLICY.
@@ -49,7 +49,7 @@ NS_DJINTERP
 
 
 // KeyedContainer
-//   concept: an overlay imposes a key -- identity is by key, not by position.
+//   concept: an overlay imposes a key - identity is by key, not by position.
 template<typename Type>
 concept KeyedContainer = is_keyed_container_v<Type>;
 

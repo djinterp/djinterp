@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][jit]                                                   jit_mips.c
 *
-* djinterp MIPS (MIPS32 / MIPS64) JIT encoder -- implementation (jit_mips.h).
+* djinterp MIPS (MIPS32 / MIPS64) JIT encoder - implementation (jit_mips.h).
 *   Emitters assemble each instruction from its opcode/funct fields via three
 * format encoders and emit one 32-bit little-endian word. Branch displacements
 * are patched by the relocation at the top (PC-relative to the delay slot,

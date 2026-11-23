@@ -7,11 +7,11 @@
 * holds: every operation is the layer's, and core/db adds exceptions, result
 * sets that outlive their query, and prepared statements that close with the
 * connection. Beside the operations every connection has, it sends SQL without
-* waiting -- in a pipeline, and its rows read a few at a time, if asked -- runs
+* waiting - in a pipeline, and its rows read a few at a time, if asked - runs
 * statements with parameters, copies rows in, listens for notifications, closes
 * statements by name, and quotes values and names. With it, PostgreSQL's types
-* and how they map to field_type -- every built-in type has an OID, stable
-* across versions, arrays their own -- and what the server connected and libpq
+* and how they map to field_type - every built-in type has an OID, stable
+* across versions, arrays their own - and what the server connected and libpq
 * have, asked at run time, beside what libpq's header has, at compile time from
 * env_postgres.h: the client's capabilities.
 *     pg_connection (this file)
@@ -469,7 +469,7 @@ bool pg_oid_is_array(
 // 3.  CLIENT CAPABILITIES
 //==============================================================================
 // What env_postgres.h found libpq's header to have, by version, at compile
-// time -- the client's capabilities: the data types and the SQL features a
+// time - the client's capabilities: the data types and the SQL features a
 // server of the header's release has, which the server connected may lack,
 // or exceed, and what libpq itself has (pipelines, chunked rows, closing a
 // statement). Every flag is false unless a program asks for env's detection
@@ -964,8 +964,8 @@ enum class pg_ssl_mode : re_std::uint8_t
 // pg_connect_config
 //   struct: what a PostgreSQL connection needs beyond connection_config, as
 // libpq's connection keywords. A field left as it was made leaves its
-// keyword to libpq -- its environment variables (PGHOST, PGSSLMODE, ...),
-// its password and service files -- and to the layer's defaults, UTF8 and a
+// keyword to libpq - its environment variables (PGHOST, PGSSLMODE, ...),
+// its password and service files - and to the layer's defaults, UTF8 and a
 // bounded connect timeout; a field set gives its keyword. connection_string,
 // keywords ("host=db.example dbname=app") or a URI, has the last word: what
 // it names overrides every field, and the fields fill in what it leaves out,
@@ -1014,7 +1014,7 @@ struct pg_connect_config
 
     std::map<std::string, std::string> extra_params;
 
-    // construction -- the defaults (localhost, 5432), a generic
+    // construction - the defaults (localhost, 5432), a generic
     // configuration, or a connection string alone
     pg_connect_config()
         : ssl_mode(pg_ssl_mode::prefer),
@@ -1105,14 +1105,14 @@ struct postgres_layer
 
     static constexpr const char* utc_offset = "+00:00";
 
-    // holds_connection, busy_code -- a stream's run holds the connection,
+    // holds_connection, busy_code - a stream's run holds the connection,
     // whose every other call that waits the layer refuses meanwhile with
     // 08000 (postgres_statement.h 3.3)
     static constexpr bool holds_connection = true;
     static constexpr int  busy_code        =
         D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION;
 
-    // connection_lost -- whether a result means the connection was lost, as
+    // connection_lost - whether a result means the connection was lost, as
     // the description above lists
     static constexpr
     bool connection_lost(
@@ -1180,8 +1180,8 @@ struct postgres_layer
      * @param[in] _operation  the operation's name, for the message.
      * @param[in] _result     the call's result.
      * @throws connection_exception for a lost connection, otherwise as
-     *         `_kind` says, with `_result` -- the SQLSTATE packed, or a
-     *         negative D_DB_* -- as its error_code().
+     *         `_kind` says, with `_result` - the SQLSTATE packed, or a
+     *         negative D_DB_* - as its error_code().
      */
     [[noreturn]] static
     void raise(
@@ -1239,9 +1239,9 @@ namespace postgres {
 // PostgreSQL client: everything but a rollback, whole or to a savepoint,
 // throws query_exception with 25P02 until then. There is no auto-commit
 // mode to turn off: outside a transaction every statement commits on its
-// own. The members the connection adds -- statements sent without waiting,
+// own. The members the connection adds - statements sent without waiting,
 // in a pipeline or not, parameters, COPY, notifications, statements closed
-// by name, escaping, the server's parameters, the schema -- throw as the
+// by name, escaping, the server's parameters, the schema - throw as the
 // operations do (database_connection.hpp):
 // connection_exception when the connection is not open, or a failure lost
 // it, and otherwise the exception their contracts name, with the SQLSTATE
@@ -1262,14 +1262,14 @@ public:
     using client_capabilities = pg_client_capabilities;
     using version_info        = pg_version_info;
 
-    // type_support, feature_support -- client_capabilities, by their former
+    // type_support, feature_support - client_capabilities, by their former
     // names (2026.10.21), for one release
     using type_support [[deprecated("client_capabilities")]] =
         pg_client_capabilities;
     using feature_support [[deprecated("client_capabilities")]] =
         pg_client_capabilities;
 
-    // construction -- with pg_connect_config's defaults (localhost, 5432);
+    // construction - with pg_connect_config's defaults (localhost, 5432);
     // with a generic configuration; with a PostgreSQL one; or with a
     // connection string, keywords or a URI, alone, libpq's defaults standing
     // in for what it leaves out. Nothing connects before connect()
@@ -1307,8 +1307,8 @@ public:
     ) noexcept = default;
 
     /**
-     * @brief Sends SQL -- one statement or several, separated by
-     *        semicolons -- without waiting for it to run.
+     * @brief Sends SQL - one statement or several, separated by
+     *        semicolons - without waiting for it to run.
      *
      * @param[in] _query  the SQL.
      * @return true; a failure throws.
@@ -1326,8 +1326,8 @@ public:
     /**
      * @brief Reads the next result of the SQL sent, waiting for it.
      *
-     * @return the next statement's rows -- none, and no columns, for a
-     *         statement that returns none -- whose count get_affected_rows()
+     * @return the next statement's rows - none, and no columns, for a
+     *         statement that returns none - whose count get_affected_rows()
      *         then answers; nullptr once every result has been read.
      * @throws query_exception with the SQLSTATE of a statement that failed,
      *         after which only nullptr follows; as every operation when the
@@ -1335,7 +1335,7 @@ public:
      */
     std::unique_ptr<buffered_result_set> get_result();
 
-    // is_busy -- whether the next result has yet to arrive, get_result then
+    // is_busy - whether the next result has yet to arrive, get_result then
     // waiting for it; false when nothing was sent or the connection is not
     // open. In pipeline mode the result of a statement queued after the last
     // synchronization point arrives only once asked for (pipeline_flush);
@@ -1381,8 +1381,8 @@ public:
      *       each one skipped, with 25P02, and answers nullptr at each
      *       synchronization point, and once nothing is left to read. The
      *       server holds a result until a synchronization point or until
-     *       asked for it -- get_result asks before it waits, and
-     *       pipeline_flush asks -- so a statement queued after the last
+     *       asked for it - get_result asks before it waits, and
+     *       pipeline_flush asks - so a statement queued after the last
      *       point has its results read all the same, though the transaction
      *       it is part of ends only at the next one. Every other operation
      *       that runs SQL throws query_exception, 08000, until
@@ -1394,7 +1394,7 @@ public:
      */
     void enter_pipeline();
 
-    // leaving, synchronizing and flushing -- exit_pipeline ends pipeline
+    // leaving, synchronizing and flushing - exit_pipeline ends pipeline
     // mode, which needs every result read, up to the last synchronization
     // point; pipeline_sync marks a synchronization point and sends what is
     // queued; pipeline_flush sends what is queued and asks the server for
@@ -1409,8 +1409,8 @@ public:
     pg_pipeline_status get_pipeline_status() const noexcept;
 
     /**
-     * @brief Closes a statement the session prepared, by its name -- with
-     *        PREPARE, say, or through the face -- whether or not the session
+     * @brief Closes a statement the session prepared, by its name - with
+     *        PREPARE, say, or through the face - whether or not the session
      *        has one of the name.
      *
      * @note libpq from 17 closes it by the protocol's own message, which a
@@ -1495,7 +1495,7 @@ public:
      * @param[in] _copy_sql  the COPY, as written ("COPY t (a, b) FROM
      *                       STDIN", "COPY t FROM STDIN (FORMAT csv)").
      * @throws query_exception with D_DB_INVALID_ARGUMENT for SQL that is no
-     *         COPY FROM STDIN -- which has run, done what it does --, with
+     *         COPY FROM STDIN - which has run, done what it does --, with
      *         D_DB_UNSUPPORTED for a COPY to the client, and with the
      *         server's SQLSTATE when it fails; as every operation when the
      *         connection is not open.
@@ -1545,7 +1545,7 @@ public:
         const std::string& _reason
     );
 
-    // channels -- listen subscribes the connection to a channel, unlisten
+    // channels - listen subscribes the connection to a channel, unlisten
     // ends that, unlisten_all every subscription; inside a transaction each
     // takes effect when it commits. notify sends a notification, with a
     // payload of up to 7999 bytes, to every connection listening, this one
@@ -1600,7 +1600,7 @@ public:
         const std::string& _input
     ) const;
 
-    // diagnostics, with no round trip -- the process id of the server's
+    // diagnostics, with no round trip - the process id of the server's
     // backend for the connection, 0 when it is not open; where the
     // connection stands: 'I' idle, 'A' with SQL sent still running or its
     // results to read, or a COPY in progress, 'T' in a transaction, 'E' in
@@ -1615,8 +1615,8 @@ public:
     ) const;
 
     /**
-     * @brief Says whether the current schema -- the first of the search
-     *        path that exists, as current_schema() names it -- has a table
+     * @brief Says whether the current schema - the first of the search
+     *        path that exists, as current_schema() names it - has a table
      *        of a name.
      *
      * @param[in] _table_name  the name.
@@ -1637,7 +1637,7 @@ public:
      */
     std::vector<std::string> list_tables() const;
 
-    // feature queries -- what the server connected has, by its release, from
+    // feature queries - what the server connected has, by its release, from
     // libpq's copy of its version (d_postgres_supports, no round trip), and
     // false while the connection is not open; and what the libpq loaded can
     // do (d_postgres_client_supports), which needs no connection: pipelines
@@ -1706,7 +1706,7 @@ public:
         return m_supports(D_POSTGRES_FEATURE_SQL_JSON);
     }
 
-    // type mapping -- an OID as field_type, whether an OID is an array's,
+    // type mapping - an OID as field_type, whether an OID is an array's,
     // and a field_type as the type a column is declared with, as section 2
     // maps them
     static
@@ -1733,7 +1733,7 @@ public:
         return field_type_to_pg_sql(_type);
     }
 
-    // configuration -- the PostgreSQL settings, base among them as the
+    // configuration - the PostgreSQL settings, base among them as the
     // connection's generic configuration now is, which connect(config)
     // replaces; setting them replaces the generic configuration with
     // theirs, for the next connect
@@ -1742,13 +1742,13 @@ public:
         const pg_connect_config& _config
     );
 
-    // get_face -- the PostgreSQL layer's face, for the layer's other calls;
+    // get_face - the PostgreSQL layer's face, for the layer's other calls;
     // closing or replacing the connection through it is the connection's to
     // do, not the face's
     face::postgres& get_face() noexcept;
     const face::postgres& get_face() const noexcept;
 
-    // hooks (postgres.cpp) -- database_connection calls these, programs the
+    // hooks (postgres.cpp) - database_connection calls these, programs the
     // operations they implement, whose contracts they keep
     void connect_impl();
     int connect_start_impl(
@@ -1813,7 +1813,7 @@ private:
         const char*  _operation
     ) const;
 
-    // m_supports, m_server_at_least -- the layer's answers for the server
+    // m_supports, m_server_at_least - the layer's answers for the server
     // connected, from libpq's copy of its version; false while the
     // connection is not open
     bool m_supports(
@@ -1838,19 +1838,19 @@ private:
         const std::vector<const char*>& _values
     );
 
-    // m_finish_connect -- the search path and the statement timeout set on
+    // m_finish_connect - the search path and the statement timeout set on
     // a connection made, which the object then takes
     void m_finish_connect(
         face::postgres& _opened
     );
 
-    // m_session_setup -- the same two as one statement, for a connection
+    // m_session_setup - the same two as one statement, for a connection
     // made without waiting; empty where neither is configured
     std::string m_session_setup(
         face::postgres& _opened
     ) const;
 
-    // m_setup_step -- connect_async's setup on the connection being made,
+    // m_setup_step - connect_async's setup on the connection being made,
     // after the handshake: the statement sent, then its results read, each
     // without waiting; the layer's result, D_DB_WAIT while waiting
     int m_setup_step(

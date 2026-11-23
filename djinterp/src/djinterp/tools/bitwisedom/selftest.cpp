@@ -37,7 +37,7 @@ namespace
 // literal_for
 //   the literal a self-test compares a value with: wide enough for it. C++98
 // has no long long, so there every value is an unsigned long, as the header's
-// own are -- which holds 64 bits only where long does.
+// own are - which holds 64 bits only where long does.
 std::string literal_for(
     u64      _value,
     standard _level
@@ -162,7 +162,7 @@ std::string narrow_self_test(
 // word_type
 //   the type a wide sheet's self-test holds a word in: the header's own --
 // the fixed-width type in the C++ constants form, which includes <cstdint>
-// for it -- and elsewhere the C type as wide.
+// for it - and elsewhere the C type as wide.
 std::string word_type(
     int      _word,
     standard _level,
@@ -187,7 +187,7 @@ std::string word_type(
 
 /*
 wide_self_test
-  A wide sheet's self-test. What C knows as an integer -- a place, a value,
+  A wide sheet's self-test. What C knows as an integer - a place, a value,
 a literal an integer holds, and the templates' words, shifts and masks --
 is checked as it is compiled, as a narrow sheet's values are. What lives in
 arrays is checked as it runs: each array the header defines against the

@@ -200,7 +200,7 @@
 //==============================================================================
 // C++-only qualifiers and feature spellings. The storage / inlining qualifiers
 // (D_STATIC, D_INLINE, D_STATIC_INLINE) are defined ONCE in djinterp.h for
-// both languages and inherited here -- not redefined, so there is no C vs. C++
+// both languages and inherited here - not redefined, so there is no C vs. C++
 // drift. Gates come from cfg_qualifiers.h.
 
 
@@ -306,7 +306,7 @@
 
 // 2.1.8
 // D_CONSTEXPR_REQ
-//   qualifier: `constexpr` from C++11 in every build -- the testing switch
+//   qualifier: `constexpr` from C++11 in every build - the testing switch
 // that strips D_CONSTEXPR (D_CFG_TESTING_STRIP_CONSTEXPR) leaves it alone --
 // and `inline` below C++11. Only for a function a constant expression needs (a
 // template argument, a static assertion, an array bound); everything else
@@ -327,15 +327,15 @@
 //   `inline` is two features wearing one keyword, and they do not share a
 // floor:
 //
-//     inline FUNCTION  -- C++98. One merged definition of a function.
-//     inline VARIABLE  -- C++17. One merged definition of an OBJECT.
+//     inline FUNCTION  - C++98. One merged definition of a function.
+//     inline VARIABLE  - C++17. One merged definition of an OBJECT.
 //
 //   D_INLINE is the FUNCTION spelling and says so; it also carries
 // always_inline, which is a function attribute. Put it on a variable and both
 // halves are wrong at once: below C++17 the `inline` declares an inline
 // variable the tier cannot express (a -Wc++17-extensions error under
 // -pedantic-errors), and at 17 and above the attribute is discarded with
-// -Wattributes. Not a gap in D_INLINE -- the second feature simply had no
+// -Wattributes. Not a gap in D_INLINE - the second feature simply had no
 // spelling until now.
 
 // 2.2.1
@@ -348,7 +348,7 @@
 //   Empty is correct below 17 rather than a stand-in for one. A namespace-
 // scope `const` / `constexpr` object already has INTERNAL linkage in C++, so
 // dropping the `inline` yields one copy per TU that links cleanly and folds
-// away. The only thing lost is address identity across TUs -- measured, not
+// away. The only thing lost is address identity across TUs - measured, not
 // assumed: &k differs between two TUs at 11 and 14 and matches at 17.
 //   A variable TEMPLATE never needed this; its instantiations merge under
 // vague linkage on their own, which is why is_self_v below takes plain
@@ -364,29 +364,29 @@
 
 // 2.2.2
 // D_CONSTEXPR_INLINE_VAR
-//   qualifier: the variable counterpart of D_CONSTEXPR_INLINE -- `constexpr
+//   qualifier: the variable counterpart of D_CONSTEXPR_INLINE - `constexpr
 // inline` on C++17 and above, `static constexpr` below. Component order
 // follows the kit's rule that the NAME lists components in emission order, as
 // D_CONSTEXPR_INLINE already does.
 //
-//   FOR NON-TEMPLATE header constants only -- option.hpp's arg_npos is the
+//   FOR NON-TEMPLATE header constants only - option.hpp's arg_npos is the
 // case. A variable TEMPLATE wants plain D_CONSTEXPR.
 //
 //   THE `static` BELOW 17 IS LOAD-BEARING, and is there because of a knob.
 // The obvious spelling is `D_CONSTEXPR D_INLINE_VAR` at every tier, on the
 // reasoning that a namespace-scope constexpr object already has internal
 // linkage so the empty D_INLINE_VAR costs nothing. That reasoning holds only
-// while the object is const -- and D_CFG_TESTING_STRIP_CONSTEXPR exists
+// while the object is const - and D_CFG_TESTING_STRIP_CONSTEXPR exists
 // precisely to make D_CONSTEXPR expand to nothing. Under that knob, below 17,
 // both halves vanish and `D_CONSTEXPR_INLINE_VAR int k = 7;` becomes a plain
 // mutable `int k = 7;` at namespace scope in a header: external linkage, and
 // a multiple-definition link error the moment a second translation unit
-// includes it. Measured, not theorised -- two TUs at c++14 with
+// includes it. Measured, not theorised - two TUs at c++14 with
 // -DD_CFG_TESTING_STRIP_CONSTEXPR=1 fail to link without this `static`.
 //
 //   It changes nothing when constexpr is NOT stripped: `static constexpr` and
 // `constexpr` have identical linkage at namespace scope, so the address
-// behaviour documented at D_INLINE_VAR is unaffected -- one copy per TU below
+// behaviour documented at D_INLINE_VAR is unaffected - one copy per TU below
 // 17, one merged object at 17 and above.
 #if ( (D_INTERNAL_CFG_CONSTEXPR == 1) &&                                      \
       (D_INTERNAL_CFG_INLINE == 1) )
@@ -441,15 +441,15 @@
 //   THE ONE CASE WHERE IT WOULD NOT BE. Constraints participate in overload
 // resolution and partial ordering, so if two entry points were distinguished
 // ONLY by their constraints, eliding one would silently change which is
-// selected -- a behaviour change, and a D1 violation rather than an addition.
+// selected - a behaviour change, and a D1 violation rather than an addition.
 // Before using this macro, check that the constrained declarations are
 // distinguished by their argument PATTERNS (as every current user is: alias
 // templates, and class-template primary / partial-specialization pairs) and
 // not by the constraint itself. Where they are not, the module states a floor
 // instead.
 //
-//   Pair it with the trait behind the concept -- every concept in this
-// framework is the PascalCase face of one -- so the contract can still be
+//   Pair it with the trait behind the concept - every concept in this
+// framework is the PascalCase face of one - so the contract can still be
 // asserted below C++20 at whatever single point the parameter is actually
 // consumed.
 #ifndef D_CONCEPT_PARAM
@@ -463,8 +463,8 @@
 // 2.4    C++11 feature spellings
 //------------------------------------------------------------------------------
 // each names a C++11 feature and spells it from C++11 up. Below C++11 it is
-// empty, or a declaration with the same access and meaning, or -- where no
-// spelling keeps the meaning -- absent, so a use is diagnosed at the level
+// empty, or a declaration with the same access and meaning, or - where no
+// spelling keeps the meaning - absent, so a use is diagnosed at the level
 // that cannot express it. The choices are the owner's decisions 3.1 to 3.3.
 
 // 2.4.1
@@ -546,7 +546,7 @@
 //           D_DELETED_FN(my_type& operator=(const my_type&))
 // From C++11 any use is a compile error naming the deleted function. Below,
 // a use from outside the class is an access error at compile time, and one
-// from inside the class or a friend a link error -- the one difference, and
+// from inside the class or a friend a link error - the one difference, and
 // why the C++11 spelling is used wherever it exists.
 //   pre-definable.
 #ifndef D_DELETED_FN

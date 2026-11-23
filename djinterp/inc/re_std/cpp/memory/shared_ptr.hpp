@@ -142,7 +142,7 @@ public:
 public:
     // NB: this specifier was `private:` and never reopened, which made
     // every constructor, the destructor, get(), operator*, reset() and
-    // use_count() on the PRIMARY shared_ptr<T> inaccessible -- the class
+    // use_count() on the PRIMARY shared_ptr<T> inaccessible - the class
     // parsed fine and was simply unusable. The array specialisations
     // below get this right (they reopen with `public:` after their member
     // block), which is what the primary was meant to mirror.

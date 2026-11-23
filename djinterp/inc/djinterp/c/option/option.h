@@ -1,20 +1,20 @@
 /*******************************************************************************
 * djinterp [c][option]                                                  option.h
 *
-* The C face of the option module. Tier 1a -- C ERGONOMICS over the tier 0
+* The C face of the option module. Tier 1a - C ERGONOMICS over the tier 0
 * core, adding no semantics of its own.
 *
 * WHAT A FACE IS ALLOWED TO BE.
 *   Everything here expands to a call into `option_common.h` or to a brace
 * initialiser for `struct dj_option`. Nothing computes an answer the core does
 * not already compute. If a macro below were deleted, every program using it
-* could be rewritten by hand against the core -- longer, but identical. That
+* could be rewritten by hand against the core - longer, but identical. That
 * is the test a face has to pass, and it is the same test the C++ face passes
 * by deriving rather than reimplementing.
 *
 * THE SCHEMA TABLE IS THE POINT OF THIS HEADER.
 *   The rest is convenience. `D_OPTION_SCHEMA` is the single declaration of a
-* key set -- its keys, their value types, their defaults, their flags -- and
+* key set - its keys, their value types, their defaults, their flags - and
 * it is an X-macro, so it can be expanded into an enum, into a cell table,
 * into a registry, into CLI binding, and into documentation, from one source.
 *
@@ -35,7 +35,7 @@
 * work at C99. The `_Generic` forms take the value's EXPRESSION and deduce the
 * type, which is nicer and needs C11. Per the Tier law the C11 forms are
 * ABSENT below C11 rather than broken there, and the C99 forms remain the
-* portable path -- a caller that uses only those compiles everywhere.
+* portable path - a caller that uses only those compiles everywhere.
 *
 *
 * path:      /inc/djinterp/c/option/option.h
@@ -57,7 +57,7 @@
 #include "../../../re_std/c/cstdint/dstdint.h"  // uint32_t, uint64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -72,7 +72,7 @@ D_EXTERN_C_BEGIN
 
 // D_OPTION_KEY
 //   macro: widen a key to the core's key representation.
-//   Enumeration constants are integral, so this is a cast -- but it is a cast
+//   Enumeration constants are integral, so this is a cast - but it is a cast
 // with a name, and the name is what stops a caller reaching for `(uint64_t)`
 // directly and thereby losing the one place a future interning step would
 // need to be inserted. A class-type key has no integral value and cannot use
@@ -100,7 +100,7 @@ D_EXTERN_C_BEGIN
 // D_OPTION_CELL
 //   macro: a `struct dj_option` initialiser for a key of type `KT` carrying a
 // value of type `VT`, at a given offset. The offset is normally assigned by
-// `d_option_set_add`, so this form is for STATIC tables -- a schema laid out
+// `d_option_set_add`, so this form is for STATIC tables - a schema laid out
 // at translation time, which is the C analogue of what the C++ face computes
 // from its option pack.
 #define D_OPTION_CELL(key, KT, VT, offset)                                    \
@@ -112,7 +112,7 @@ D_EXTERN_C_BEGIN
                   D_OPTION_FLAG_NONE)
 
 // D_OPTION_CELL_UNARY
-//   macro: a presence-only cell -- no value, no slot, no width.
+//   macro: a presence-only cell - no value, no slot, no width.
 #define D_OPTION_CELL_UNARY(key, KT)                                          \
     D_OPTION_INIT(D_OPTION_KEY(key),                                          \
                   D_OPTION_TYPE(KT),                                          \
@@ -131,7 +131,7 @@ D_EXTERN_C_BEGIN
 //
 //     X(NAME, KEY, KEY_TYPE, VALUE_TYPE, DEFAULT, FLAGS)
 //
-//       NAME        identifier fragment -- the key's spelling in generated
+//       NAME        identifier fragment - the key's spelling in generated
 //                   symbols. Must be a valid identifier; it is pasted.
 //       KEY         the key's value, an integral or enumeration constant.
 //       KEY_TYPE    the key's declared type, as a type name.
@@ -139,13 +139,13 @@ D_EXTERN_C_BEGIN
 //                   type in every row, including unary ones: the emitters
 //                   apply `sizeof` to this column unconditionally, and a
 //                   macro cannot test a type name for being `void`. Write
-//                   `char` for a unary key -- what makes the row unary is the
+//                   `char` for a unary key - what makes the row unary is the
 //                   FLAGS column, not this one, and the byte is never used.
 //       DEFAULT     the initial value, a constant expression of VALUE_TYPE.
-//                   Ignored for a unary key -- write 0.
+//                   Ignored for a unary key - write 0.
 //       FLAGS       D_OPTION_FLAG_* bits, or D_OPTION_FLAG_NONE.
 //
-//   Declared like this -- note that a real schema's rows are joined by
+//   Declared like this - note that a real schema's rows are joined by
 // backslashes, which are omitted here because a `//` comment line ending in a
 // backslash IS a line continuation and would swallow the line after it:
 //
@@ -157,7 +157,7 @@ D_EXTERN_C_BEGIN
 //                                                  D_OPTION_FLAG_UNARY)
 //
 //   ...and then expanded by the emitters in option_set_c.h, or by any
-// consumer of your own -- a CLI binder, a help printer, a registry, the
+// consumer of your own - a CLI binder, a help printer, a registry, the
 // parity oracle's parseable row. The framework provides emitters; it does not
 // require you to use only those.
 //
@@ -170,7 +170,7 @@ D_EXTERN_C_BEGIN
 // D_OPTION_SCHEMA_IS_UNARY
 //   macro: whether a schema row declares a unary key. The test is on the
 // FLAGS column rather than on VALUE_TYPE, because a macro cannot compare a
-// type name to `void` -- so `D_OPTION_FLAG_UNARY` is what makes a row unary
+// type name to `void` - so `D_OPTION_FLAG_UNARY` is what makes a row unary
 // and `void` in the VALUE_TYPE column is documentation.
 #define D_OPTION_SCHEMA_IS_UNARY(flags)                                       \
     ((((uint32_t)(flags)) & D_OPTION_FLAG_UNARY) != 0u)
@@ -186,7 +186,7 @@ D_EXTERN_C_BEGIN
 // D_OPTION_SCHEMA_ENUM_ROW / D_OPTION_SCHEMA_ENUM
 //   macro: expand a schema into enumeration constants, so the key names and
 // the schema cannot drift apart. Emitted as `#define`s rather than as an
-// `enum` for the reason option_common.h states -- an enum has implementation-
+// `enum` for the reason option_common.h states - an enum has implementation-
 // defined size, and these values reach a wire format.
 #define D_OPTION_SCHEMA_ENUM_ROW(name, key, KT, VT, dflt, flags)              \
     D_OPTION_KEY_##name = (key),

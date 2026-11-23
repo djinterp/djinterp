@@ -12,8 +12,8 @@
 * arithmetic operators.
 *
 *   ONLY == AND < CARRY LOGIC:
-*   The other four reflect through them, which is the usual reason -- one
-* place to be correct -- and one specific to durations: the conversion to
+*   The other four reflect through them, which is the usual reason - one
+* place to be correct - and one specific to durations: the conversion to
 * the common type happens once per operator, so keeping the count of
 * real implementations at two keeps the count of places a conversion
 * could be written wrong at two.

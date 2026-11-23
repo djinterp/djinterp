@@ -221,33 +221,33 @@ struct DAliasOnly
 // Test-function declarations (defined in the section .cpp files)
 // ===========================================================================
 
-// -- I.   SFINAE method / alias detection --
+// - I.   SFINAE method / alias detection --
 bool tests_has_begin_end_methods();
 bool tests_alias_detection();
 
-// -- II.  Base classification --
+// - II.  Base classification --
 bool tests_is_iterable_container();
 bool tests_is_non_iterable_container();
 
-// -- III. Mode sub-axis, value-level algebra --
+// - III. Mode sub-axis, value-level algebra --
 bool tests_iteration_mode_name();
 bool tests_mode_value_predicates();
 bool tests_mode_grants();
 bool tests_iteration_mode_rank();
 bool tests_iteration_mode_subsumes();
 
-// -- III. Mode sub-axis, type-level traits --
+// - III. Mode sub-axis, type-level traits --
 bool tests_provides_const_iteration();
 bool tests_provides_mutable_iteration();
 bool tests_iteration_mode_of();
 bool tests_derived_mode_predicates();
 
-// -- V.   Aggregate snapshot + variable-template companions --
+// - V.   Aggregate snapshot + variable-template companions --
 bool tests_iterable_container_class();
 bool tests_variable_templates();
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // iterable_container_traits_spec
 //   function: the suite as DTest's module spec, one block per section.

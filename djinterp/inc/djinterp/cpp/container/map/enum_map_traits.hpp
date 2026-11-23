@@ -18,7 +18,7 @@
 *      - is the key type a known-cardinality enum?
 *      - is the map completeness-checkable (runtime predicate)?
 *      - DEnumMapStrategy: dense_array, sparse_sorted, sparse_hashed,
-*        sparse_linear -- determines the optimal backing layout.
+*        sparse_linear - determines the optimal backing layout.
 *      - Strategy deduction based on enum and backing properties.
 *
 *   3. Combined classification: enum_map_class<T> aggregates all
@@ -57,10 +57,10 @@
 *                            enum_map_is_<identity>
 *
 * DEPENDENCIES:
-*   djinterp.hpp               -- namespace macros, clean_t
-*   type_traits.hpp            -- detection idiom, conjunction, void_t
-*   container_traits.hpp       -- has_key_type, iteration classification
-*   map_traits.hpp             -- has_enum_key, is_map_structured
+*   djinterp.hpp               - namespace macros, clean_t
+*   type_traits.hpp            - detection idiom, conjunction, void_t
+*   container_traits.hpp       - has_key_type, iteration classification
+*   map_traits.hpp             - has_enum_key, is_map_structured
 *
 *
 * path:      /inc/djinterp/cpp/container/map/enum_map_traits.hpp
@@ -202,7 +202,7 @@ struct enum_underlying_type_of
 };
 
 // enum_underlying_type_of_t
-//   type: the carrier of enum_underlying_type_of -- its `::type`, for use
+//   type: the carrier of enum_underlying_type_of - its `::type`, for use
 // where a type rather than a value is wanted.
 template<typename E>
 using enum_underlying_type_of_t =
@@ -218,9 +218,9 @@ using enum_underlying_type_of_t =
 //
 // Default: all members are absent.  Specializations should
 // provide:
-//   static constexpr std::size_t count  -- number of enumerators.
-//   static constexpr E           first  -- first enumerator value.
-//   static constexpr E           last   -- last enumerator value.
+//   static constexpr std::size_t count  - number of enumerators.
+//   static constexpr E           first  - first enumerator value.
+//   static constexpr E           last   - last enumerator value.
 //
 // `first` and `last` are optional; `count` alone is sufficient
 // for completeness checking.  All three enable dense detection.

@@ -8,15 +8,15 @@
 * NOTHING HERE KNOWS WHAT IS COUNTED
 * ----------------------------------
 *   The owner's rulings of 2026-11-09 and 11-10 made DTest default-agnostic: a
-* tally counts under whichever tag types its caller names -- a test passing, an
-* assertion, a retry, any type at all -- and holds whichever counters its caller
+* tally counts under whichever tag types its caller names - a test passing, an
+* assertion, a retry, any type at all - and holds whichever counters its caller
 * tracks. C's counterpart is c/modules/test/test_counter.h, which has the same
 * two types.
 *
 * DERIVED
 * -------
 *   test_counter<V> is a djinterp::counter<V>: every operation and accessor of
-* the generic counter -- the five operations, bounds, children -- is its own.
+* the generic counter - the five operations, bounds, children - is its own.
 * What it adds is a step, and record(), which moves it by one step for one
 * occurrence.
 *
@@ -24,7 +24,7 @@
 * ---------
 *   test_tally<V> keeps one test counter per key type, created at zero the first
 * time the key is tracked. Counters live in a std::deque, so a counter's address
-* -- which a handler may hold -- never moves while the tally lives. Unlike C's,
+* - which a handler may hold - never moves while the tally lives. Unlike C's,
 * it has no capacity, so it never refuses a key and has no overflow.
 *
 * COUNTED BY HAND

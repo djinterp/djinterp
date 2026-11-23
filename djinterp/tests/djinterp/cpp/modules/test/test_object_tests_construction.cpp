@@ -23,10 +23,10 @@ using namespace ::djinterp::test;
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///   compile-time invariants -- construction                                 ///
+///   compile-time invariants - construction                                 ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// -- constexpr construction (literal container) -------------------------------
+// - constexpr construction (literal container) -------------------------------
 namespace
 {
     constexpr DLitObject k_def;
@@ -54,7 +54,7 @@ static_assert(k_passed.passed() == true,  "");
 static_assert(k_failed.result() == false, "");
 static_assert(k_failed.failed() == true,  "");
 
-// -- noexcept matrix ----------------------------------------------------------
+// - noexcept matrix ----------------------------------------------------------
 // default / type_id / result: noexcept iff the container's default ctor is
 static_assert(std::is_nothrow_default_constructible<basic_test>::value, "");
 static_assert(std::is_nothrow_constructible<basic_test, DTestTypeId>::value,
@@ -77,7 +77,7 @@ static_assert(!std::is_nothrow_constructible<DThrowObject,
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///   runtime tests -- construction                                           ///
+///   runtime tests - construction                                           ///
 ///////////////////////////////////////////////////////////////////////////////
 
 /*

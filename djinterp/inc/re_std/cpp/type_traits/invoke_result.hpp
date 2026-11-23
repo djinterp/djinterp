@@ -9,19 +9,19 @@
 *
 *   INVOKE PROTOCOL:
 *   Per [func.require], INVOKE(f, t1, ..., tN) selects one of five forms:
-*     1. (t1.*f)(args...)        -- f is a pmf, t1 is an object/derived ref
-*     2. ((*t1).*f)(args...)     -- f is a pmf, t1 is pointer-like
-*     3. t1.*f                   -- f is a pmd, t1 is an object/derived ref
-*     4. (*t1).*f                -- f is a pmd, t1 is pointer-like
-*     5. f(args...)              -- everything else (function pointer,
+*     1. (t1.*f)(args...)        - f is a pmf, t1 is an object/derived ref
+*     2. ((*t1).*f)(args...)     - f is a pmf, t1 is pointer-like
+*     3. t1.*f                   - f is a pmd, t1 is an object/derived ref
+*     4. (*t1).*f                - f is a pmd, t1 is pointer-like
+*     5. f(args...)              - everything else (function pointer,
 *                                   functor, lambda, function reference)
 *
 *   REFERENCE_WRAPPER FORMS (completed 2026-08-25):
-*   The standard splits forms 1 and 3 three ways, not two -- the middle
+*   The standard splits forms 1 and 3 three ways, not two - the middle
 * case is a reference_wrapper argument, which is neither the object
 * itself nor a dereferenceable pointer:
-*     1b. (t1.get().*f)(args...)  -- f is a pmf, t1 is a reference_wrapper
-*     3b. t1.get().*f             -- f is a pmd, t1 is a reference_wrapper
+*     1b. (t1.get().*f)(args...)  - f is a pmf, t1 is a reference_wrapper
+*     3b. t1.get().*f             - f is a pmd, t1 is a reference_wrapper
 * Without these, invoke_result<Pmf, reference_wrapper<C>> selected the
 * pointer-like form, whose `*t1` is ill-formed for a reference_wrapper,
 * so the trait reported the call as non-invocable. The pointer-like
@@ -33,7 +33,7 @@
 *
 *   IMPLEMENTATION TECHNIQUE:
 *   internal::invoker holds the five forms as static declaration-only
-* template members. They are never called -- they exist only to be probed
+* template members. They are never called - they exist only to be probed
 * via decltype (for the result type) and noexcept (for noexceptness).
 * enable_if constraints on each overload ensure exactly one form is
 * selected for any well-formed INVOKE expression. Each form's noexcept
@@ -94,7 +94,7 @@
 // forms 1b / 3b: reference_wrapper is neither the object nor a pointer.
 // is_reference_wrapper lives in its own header precisely so traits like
 // this one can dispatch on it without pulling in reference_wrapper's
-// definition -- see functional/is_reference_wrapper.hpp.
+// definition - see functional/is_reference_wrapper.hpp.
 #include "../functional/is_reference_wrapper.hpp"
 #include "./is_member_pointer.hpp"
 #include "./is_member_function_pointer.hpp"
@@ -178,7 +178,7 @@ namespace re_std
 
             // form 1b: (t1.get().*f)(args...)
             //   pmf, t1 is a reference_wrapper. Constrained ONLY on
-            //   is_reference_wrapper -- the wrapped type does not have to
+            //   is_reference_wrapper - the wrapped type does not have to
             //   relate to the pmf's class, because a reference_wrapper of
             //   an unrelated type simply makes .get().*f ill-formed and
             //   SFINAEs this overload away on its own.
@@ -261,7 +261,7 @@ namespace re_std
                        >::type;
 
             // form 5: f(args...)
-            //   plain call -- function pointer, function reference,
+            //   plain call - function pointer, function reference,
             //   functor, lambda. F is forwarded to preserve cv/ref.
             template<typename F,
                      typename... Args>

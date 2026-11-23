@@ -6,14 +6,14 @@
 * translation units share.
 *
 *   sections (one .cpp each):
-*     heap_sort_tests_traits.cpp  heap_sort_traits -- the compile-time
+*     heap_sort_tests_traits.cpp  heap_sort_traits - the compile-time
 *                                 property block
 *     heap_sort_tests_sift.cpp    heap_parent / heap_left_child /
-*                                 heap_larger_child / heap_sift_down -- the
+*                                 heap_larger_child / heap_sift_down - the
 *                                 index arithmetic, the tie rule, every exit
 *                                 from the sift loop, and agreement with a
 *                                 swapping sift
-*     heap_sort_tests_apply.cpp   internal::heap_sort_apply -- heapify then
+*     heap_sort_tests_apply.cpp   internal::heap_sort_apply - heapify then
 *                                 extract
 *     heap_sort_tests_entry.cpp   the public heap_sort / heap_sort_ordered
 *                                 entry points
@@ -32,7 +32,7 @@
 #include <cstddef>
 #include <vector>
 // djinterp
-//   core is ALWAYS first and unconditional -- NS_* / D_* qualifiers and the
+//   core is ALWAYS first and unconditional - NS_* / D_* qualifiers and the
 // language gates are needed by both faces of this header.
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
@@ -59,7 +59,7 @@ NS_TESTING
 // UNCONDITIONALLY: the spec provider below needs dt::module_spec too.
 namespace dt = ::djinterp::test;
 
-#ifndef DTEST_SPEC_MODE   // fixtures -- normal mode only
+#ifndef DTEST_SPEC_MODE   // fixtures - normal mode only
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -177,10 +177,10 @@ void heap_sort_keyed_ordered_ascending(
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// traits -- heap_sort_traits
+// traits - heap_sort_traits
 bool tests_heap_sort_traits_values();
 
-// sift -- heap_parent / heap_left_child / heap_larger_child / heap_sift_down
+// sift - heap_parent / heap_left_child / heap_larger_child / heap_sift_down
 bool tests_heap_sort_index_arithmetic();
 bool tests_heap_sort_sift_down_leaf_exit();
 bool tests_heap_sort_sift_down_missing_right_child();
@@ -189,12 +189,12 @@ bool tests_heap_sort_sift_down_cascade();
 bool tests_heap_sort_larger_child_ties();
 bool tests_heap_sort_sift_down_matches_swapping_sift();
 
-// apply -- internal::heap_sort_apply
+// apply - internal::heap_sort_apply
 bool tests_heap_sort_apply_degenerate_ranges();
 bool tests_heap_sort_apply_ordering_battery();
 bool tests_heap_sort_apply_heap_invariant();
 
-// entry -- heap_sort / heap_sort_ordered
+// entry - heap_sort / heap_sort_ordered
 bool tests_heap_sort_entry_comparator();
 bool tests_heap_sort_entry_default();
 bool tests_heap_sort_entry_ordered();

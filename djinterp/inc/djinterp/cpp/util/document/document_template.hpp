@@ -8,7 +8,7 @@
 *   WHY IT IS NOT A PDF MODULE.  The old pdf_template conflated four jobs:
 * flow layout, token substitution, a named style registry, and an element list.
 * Layout now belongs to DPdfCanvas, which measures with real font metrics and
-* owns the cursor -- so what remained in pdf_template was never PDF-specific at
+* owns the cursor - so what remained in pdf_template was never PDF-specific at
 * all.  Substitution, styles-by-name and an element list are DOCUMENT concerns.
 * Lifting them here makes one template render as monospace, Markdown, XML, HTML
 * and PDF, and leaves exactly one layout engine in the PDF layer instead of two.
@@ -16,19 +16,19 @@
 *   WHAT A TEMPLATE IS.  A sequence of ELEMENTS.  Every text field is a
 * DTextTemplate, so `{title}` and `{run.total}` interpolate from a binding
 * environment at render time.  An element carries a STYLE NAME, which becomes a
-* `style` hint -- so a dialect that has a style registry (PDF's canvas_style,
+* `style` hint - so a dialect that has a style registry (PDF's canvas_style,
 * HTML's class) resolves it and one that does not simply drops it.  That is the
 * whole of how one skeleton serves five dialects.
 *
 *   WHAT MAKES IT A TEMPLATE RATHER THAN A FORM: the REPEAT element.  It binds a
 * sequence by name and emits its children once per item, with each item's fields
-* scoped under the loop variable -- so a table of N rows, a section per module,
+* scoped under the loop variable - so a table of N rows, a section per module,
 * or a card per test are all one declaration rather than a hand-written loop.
 * Without repetition a "template" is only a document with holes.
 *
 *   WHAT IT DOES NOT DO.  It does not lay out: no cursor, no pagination, no
 * measurement.  It emits semantic calls and the renderer decides realisation.
-* It does not own a style REGISTRY either -- it names styles; the renderer binds
+* It does not own a style REGISTRY either - it names styles; the renderer binds
 * them.  Both were pdf_template's, and both were the reason it could serve only
 * one back end.
 *
@@ -99,7 +99,7 @@ using DBindingEnv = std::function<std::string(const std::string&)>;
 
 
 // map_bindings
-//   function: a DBindingEnv over a flat map -- the simple case, and what a
+//   function: a DBindingEnv over a flat map - the simple case, and what a
 // caller reaches for when the data is already assembled.
 D_NODISCARD inline DBindingEnv map_bindings(
     std::map<std::string, std::string> _values
@@ -125,7 +125,7 @@ D_NODISCARD inline DBindingEnv map_bindings(
 
 
 // scoped_bindings
-//   function: _inner shadowing _outer under the prefix _scope -- the mechanism
+//   function: _inner shadowing _outer under the prefix _scope - the mechanism
 // a repeat block uses to expose an item's fields.  A lookup of
 // "<scope>.<field>" is answered by _inner with "<field>"; everything else falls
 // through to _outer.  Composable, so nested repeats nest their scopes.
@@ -154,7 +154,7 @@ D_NODISCARD inline DBindingEnv scoped_bindings(
 
 
 // DSequenceEnv
-//   type: a bound sequence -- how many items, and a DBindingEnv for the _i-th.
+//   type: a bound sequence - how many items, and a DBindingEnv for the _i-th.
 // This is the shape a repeat element consumes.  A caller supplies it directly
 // from its own model; nothing is copied into the template.
 struct DSequenceEnv
@@ -195,7 +195,7 @@ using DSequenceLookup = std::function<DSequenceEnv(const std::string&)>;
 
 // DElementKind
 //   enum: what an element emits.  Deliberately the DDocumentRenderer verb set
-// plus `repeat` and `slot` -- a template can say anything a renderer can hear,
+// plus `repeat` and `slot` - a template can say anything a renderer can hear,
 // and nothing it cannot.
 enum class DElementKind
 {
@@ -254,7 +254,7 @@ struct DTemplateElement
     std::string              scope;
 
     // attrs
-    //   literal hints merged into every emission of this element -- alignment,
+    //   literal hints merged into every emission of this element - alignment,
     // colour, width.  Not token-bearing: hints are structure, not content.
     DDocAttributes           attrs;
 
@@ -281,7 +281,7 @@ struct DTemplateElement
 ///////////////////////////////////////////////////////////////////////////////
 
 // DDocumentTemplate
-//   class: the skeleton -- an element sequence plus the document's own frame
+//   class: the skeleton - an element sequence plus the document's own frame
 // hints.  Built once and rendered many times against different bindings, which
 // is the whole point of holding it as data rather than as code.
 class DDocumentTemplate
@@ -306,7 +306,7 @@ public:
     }
 
     // frame
-    //   the hints handed to begin_document -- a title, a class, a page size
+    //   the hints handed to begin_document - a title, a class, a page size
     // name.  Token-bearing values are NOT interpolated here; the frame is
     // structure.
     D_NODISCARD DDocAttributes& frame() D_NOEXCEPT
@@ -336,7 +336,7 @@ private:
 
 
 // ---------------------------------------------------------------------------
-//  builders -- the declarative face
+//  builders - the declarative face
 // ---------------------------------------------------------------------------
 
 // tmpl_heading / tmpl_paragraph / tmpl_key_value / ...
@@ -456,7 +456,7 @@ D_NODISCARD inline DTemplateElement tmpl_repeat(
 //   function: a table whose COLUMNS are declared by _columns (each a
 // token-bearing header, carrying its own align hint in `attrs`) and whose ROWS
 // come from the sequence named _sequence.  Each row's cells are the column
-// elements' `text` re-interpolated in that row's scope -- so a column is
+// elements' `text` re-interpolated in that row's scope - so a column is
 // declared once and serves both the header and every cell.
 D_NODISCARD inline DTemplateElement tmpl_table(
     const std::string&                   _sequence,
@@ -475,7 +475,7 @@ D_NODISCARD inline DTemplateElement tmpl_table(
 }
 
 // tmpl_column
-//   function: one column of a tmpl_table -- `_header` is the header text and
+//   function: one column of a tmpl_table - `_header` is the header text and
 // `_cell` the token-bearing cell source evaluated per row.
 D_NODISCARD inline DTemplateElement tmpl_column(
     const std::string& _header,
@@ -497,7 +497,7 @@ D_NODISCARD inline DTemplateElement tmpl_column(
 }
 
 // tmpl_slot
-//   function: a named hole the CALLER fills -- for content a template cannot
+//   function: a named hole the CALLER fills - for content a template cannot
 // express (a chart, a bespoke table, a nested document).  The renderer sees
 // whatever the slot emitter emits, so a template stays declarative without
 // having to grow a case for every irregular block.
@@ -526,7 +526,7 @@ using DSlotFiller =
 
 
 // DTemplateContext
-//   struct: everything a render needs beyond the skeleton itself -- the
+//   struct: everything a render needs beyond the skeleton itself - the
 // scalars, the sequences, and the slot fillers.  Held together so a nested
 // render (a repeat body) can rebind only the scalars and inherit the rest.
 struct DTemplateContext
@@ -649,7 +649,7 @@ NS_INTERNAL
     }
 
     // render_table_helper
-    //   helper: emit a table -- the columns as headers, then one row per item
+    //   helper: emit a table - the columns as headers, then one row per item
     // of the sequence, each cell being that column's `secondary` source
     // interpolated in the row's scope.
     inline
@@ -834,7 +834,7 @@ void render_elements(
 
 
 // render_template
-//   function: render a whole skeleton as a complete document -- the frame is
+//   function: render a whole skeleton as a complete document - the frame is
 // opened and closed around it, so the result stands alone.
 //
 // Usage:

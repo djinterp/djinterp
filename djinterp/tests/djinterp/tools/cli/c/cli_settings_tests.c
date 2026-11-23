@@ -5,9 +5,9 @@
 * cli_settings_tests.h.
 *   SHOWN is the program the cases run: `prog 1.2`, with `--level LEVEL` and
 * `-o, --output FILE` on its root, and `show [WORD]...` with `--mode MODE`,
-* whose work prints what the kit reads -- `cli.plugin_strict_version`,
+* whose work prints what the kit reads - `cli.plugin_strict_version`,
 * `cli.plugin_search` (`default` for the knob's), `plugin_path` (`-` for
-* none) -- and the values the parser gave the options and the operands.
+* none) - and the values the parser gave the options and the operands.
 * Every case's program lets go of the run's settings first, so that each
 * starts them as a run of its own would. HOOKED is SHOWN as the parser's
 * hook is held to: response files and abbreviations read, a multi-letter
@@ -160,7 +160,7 @@ bool d_tests_cli_settings_make(
 /**
  * @brief Puts the user's settings in a scratch directory of the cases'
  *        own, `cli_settings_home_` and the C level under the current one --
- *        each level's suite runs beside the others' -- holding a file of
+ *        each level's suite runs beside the others' - holding a file of
  *        `_text`, or none for NULL.
  *
  * @param[out] _path      receives the file's path.

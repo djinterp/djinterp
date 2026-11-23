@@ -130,14 +130,14 @@ struct dj_tests_starttls_fixture
 
 // 1.3    Helpers
 //------------------------------------------------------------------------------
-// negotiation -- the SMTP-like negotiator, and an on_upgrade that records
+// negotiation - the SMTP-like negotiator, and an on_upgrade that records
 extern const struct dj_starttls_negotiator d_tests_starttls_smtp_negotiator;
 void d_tests_starttls_forget(
     struct dj_starttls_session* _session,
     void*                       _context
 );
 
-// sessions -- options for a scripted session: the module's defaults with
+// sessions - options for a scripted session: the module's defaults with
 // the role, the policy, the context, and for a client the server name; a
 // plaintext client over a peer that may never upgrade, with a buffer of
 // `_buffer_bytes` (0 for the default); and whether the next line received
@@ -158,7 +158,7 @@ bool d_tests_starttls_line_is(
     const char*                 _expected
 );
 
-// fixtures -- opened for a role and a policy, and closed again
+// fixtures - opened for a role and a policy, and closed again
 bool d_tests_starttls_fixture_open(
     struct dj_tests_starttls_fixture* _fixture,
     enum dj_starttls_role             _role,
@@ -168,7 +168,7 @@ void d_tests_starttls_fixture_close(
     struct dj_tests_starttls_fixture* _fixture
 );
 
-// sockets -- a connected AF_UNIX stream pair with five-second deadlines;
+// sockets - a connected AF_UNIX stream pair with five-second deadlines;
 // whether a descriptor is closed; and a TCP connection adopting a socket,
 // with five-second I/O deadlines, the socket closed if adopting fails
 bool d_tests_starttls_socket_pair(

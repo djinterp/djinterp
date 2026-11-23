@@ -6,10 +6,10 @@
 * trunc and round, exact by C's definition, bit for bit, a zero's sign
 * included: for float and for double, two million random patterns and two
 * million values below 2^(P+1), where fractions are; every value within
-* 2,000 places of each edge that matters -- a zero, the halves and
+* 2,000 places of each edge that matters - a zero, the halves and
 * integers near it, the least normal value, 2^(P-2) where the spacing
 * becomes a half, 2^(P-1) where it becomes 1, 2^32, 2^63 and 2^64 where a
-* conversion's reach ends, the largest value -- either sign; and for long
+* conversion's reach ends, the largest value - either sign; and for long
 * double, in whatever format, two hundred thousand values and the same
 * windows. C's special values (Annex F), every family; the plain forms, the
 * library's.
@@ -17,7 +17,7 @@
 *   With the argument "exhaustive" it checks every float, all 2^32 patterns,
 * besides (its count wants a 64-bit long). Compiled as C++, it checks the
 * overloads; from C++14, that the four are constant expressions, every
-* family -- far past 2^63 among them -- with the bits they have at run time.
+* family - far past 2^63 among them - with the bits they have at run time.
 * It needs no 64-bit integer, so that ISO-strict C++98 on a 32-bit target,
 * where dj_math_umax has 32 bits, builds it too.
 *
@@ -468,7 +468,7 @@ d_tests_long_double(void)
 
 // d_tests_specials
 //   every family's special values; the plain forms, the library's at every
-// level, C++98 included -- there trunc and round are the _c forms, which
+// level, C++98 included - there trunc and round are the _c forms, which
 // agree with it.
 static void
 d_tests_specials(void)
@@ -572,7 +572,7 @@ static_assert(d_math_d_ceil_c(-(double)HUGE_VAL) == -(double)HUGE_VAL,
               "ceil_c(-inf) is -inf, as a constant");
 
 // d_tests_constant_evaluation
-//   the constants are the run time's results, bit for bit -- a zero's sign
+//   the constants are the run time's results, bit for bit - a zero's sign
 // included: the arguments are read through volatiles, so the calls below
 // are not folded.
 static void

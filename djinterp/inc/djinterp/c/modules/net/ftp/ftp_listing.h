@@ -2,9 +2,9 @@
 * djinterp [c][net]                                                ftp_listing.h
 *
 * FTP directory listings: Unix, DOS, MLSx, and bare names.
-*   Detects the dialect of a listing line and parses it into an entry -- type,
+*   Detects the dialect of a listing line and parses it into an entry - type,
 * size, modification time, permissions, owner, group, and link target, as far
-* as the dialect provides them -- as spans into the line.
+* as the dialect provides them - as spans into the line.
 *
 *   Where D_INTERNAL_NET_HAS_INT64 is 0, with no 64-bit integer type, it
 * compiles to nothing, unless D_CFG_NET_REQUIRE_BACKENDS asks for an #error
@@ -49,7 +49,7 @@ TABLE OF CONTENTS
 #include "../../../../../re_std/c/cstdint/dstdint.h"  // uint32_t, uint64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, and compiles to
-// nothing where the build has none -- ISO strict C++98 wherever int64_t is
+// nothing where the build has none - ISO strict C++98 wherever int64_t is
 // `long long`: a 32-bit target, 64-bit Windows or macOS (the owner's ruling of
 // 2026.10.03 on round 3's question 1, (a)). The answer is net_common.h's, taken
 // once per translation unit, so that net's gated headers agree.

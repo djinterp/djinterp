@@ -145,8 +145,8 @@ TABLE OF CONTENTS
 
 // 1.3.3
 // D_CFG_ENV_PRINTER_TEXT
-//   configuration: the bytes a printer keeps text set as text in -- titles,
-// rules, templates -- which it compacts when it fills.
+//   configuration: the bytes a printer keeps text set as text in - titles,
+// rules, templates - which it compacts when it fills.
 #ifndef D_CFG_ENV_PRINTER_TEXT
     #define D_CFG_ENV_PRINTER_TEXT 2048
 #endif  // D_CFG_ENV_PRINTER_TEXT

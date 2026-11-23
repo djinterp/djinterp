@@ -73,7 +73,7 @@
 * quaternion in its parts' floating-point type, by quat.h's _c forms, and
 * expr_quaternion_root an exact square root where the root is a quaternion
 * of rationals. A quaternion's functions that give or take a vector or a
-* matrix -- its parts, its rotations and slerp -- are rotation.hpp's.
+* matrix - its parts, its rotations and slerp - are rotation.hpp's.
 *   ITS NAME. Until chunk 48 this header was quaternion.hpp, the name of
 * the header of math::quaternion<T> (../quaternion.hpp), which it includes;
 * it is named for what it holds, the quaternion kind (S400).

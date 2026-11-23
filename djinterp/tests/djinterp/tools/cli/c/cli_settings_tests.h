@@ -3,12 +3,12 @@
 *
 * The suite of the command-line kit's settings (cli_settings.c): the
 * settings a command line gives taken in each of their forms, and nothing
-* else -- never past `--`, never an option's value; those it names badly,
+* else - never past `--`, never an option's value; those it names badly,
 * each a usage error; the user's settings file, its failing statements said
 * by their lines and the rest read on; the environment under both prefixes,
 * the program's winning; what the kit reads, each source standing where the
 * pattern puts it; and the parser's hook, reading settings where the parse
-* reads options -- a response file's, an abbreviated option's value, a
+* reads options - a response file's, an abbreviated option's value, a
 * plugin command's arguments left to it.
 *   Each case table runs a program the section's fixture makes, a fresh one
 * for each case, the run's settings let go of between them, and compares the

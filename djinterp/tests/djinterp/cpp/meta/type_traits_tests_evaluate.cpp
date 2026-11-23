@@ -31,7 +31,7 @@
 *   - single arg -> inherits from that one trait
 *   - two args  -> XOR
 *   - three+ args -> note the implementation uses "(B1 != B2) && rec(...)",
-*     so multi-arg XOR isn't true logical-XOR over the pack -- we verify
+*     so multi-arg XOR isn't true logical-XOR over the pack - we verify
 *     the implemented behaviour rather than the textbook XOR semantics
 *
 *
@@ -50,7 +50,7 @@ NS_TESTING
 // I.   evaluate_types_for_trait  (compile-time)
 // =========================================================================
 
-// default evaluator (conjunction) -- ALL types must satisfy the trait
+// default evaluator (conjunction) - ALL types must satisfy the trait
 static_assert(evaluate_types_for_trait<std::tuple<int, char, long>,
                                        std::is_integral>::value == true,
               "evaluate_types_for_trait<conjunction>: all integral -> true");
@@ -61,7 +61,7 @@ static_assert(evaluate_types_for_trait<std::tuple<float, double, int>,
                                        std::is_floating_point>::value == false,
               "evaluate_types_for_trait<conjunction>: int among floats -> false");
 
-// disjunction evaluator -- AT LEAST ONE type must satisfy the trait
+// disjunction evaluator - AT LEAST ONE type must satisfy the trait
 static_assert(evaluate_types_for_trait<std::tuple<int, float>,
                                        std::is_integral,
                                        std::disjunction>::value == true,
@@ -84,7 +84,7 @@ static_assert(evaluate_types_for_trait<std::tuple<int>, std::is_integral>::value
 
 
 // =========================================================================
-// II.  evaluate_types_for_trait_v  (compile-time -- bug B3 demo)
+// II.  evaluate_types_for_trait_v  (compile-time - bug B3 demo)
 // =========================================================================
 //   The _v alias ignores the supplied evaluator and forces conjunction.
 // This is observable by comparing the _v alias's answer with the struct
@@ -165,7 +165,7 @@ static_assert(exclusive_disjunction<std::true_type>::value  == true,
 static_assert(exclusive_disjunction<std::false_type>::value == false,
               "exclusive_disjunction<false> -> false");
 
-// two args -- proper XOR
+// two args - proper XOR
 static_assert(exclusive_disjunction<std::true_type, std::true_type>::value   == false,
               "exclusive_disjunction<T, T> -> false (T XOR T = false)");
 static_assert(exclusive_disjunction<std::true_type, std::false_type>::value  == true,
@@ -175,7 +175,7 @@ static_assert(exclusive_disjunction<std::false_type, std::true_type>::value  == 
 static_assert(exclusive_disjunction<std::false_type, std::false_type>::value == false,
               "exclusive_disjunction<F, F> -> false (F XOR F = false)");
 
-// three args -- implementation uses "(B1 != B2) && rec(...)"; verify
+// three args - implementation uses "(B1 != B2) && rec(...)"; verify
 // what the implementation actually computes (not textbook XOR over pack)
 //   - <T, F, F>:   B1!=B2 = true,  rec<F> = false -> false
 //   - <F, T, F>:   B1!=B2 = true,  rec<F> = false -> false (NOT textbook XOR=T)

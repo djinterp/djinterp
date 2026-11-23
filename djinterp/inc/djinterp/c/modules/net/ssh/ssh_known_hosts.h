@@ -54,7 +54,7 @@ D_EXTERN_C_BEGIN
 //   enum: what the known_hosts files say about a host and the key it
 // presented. A host counts as recorded if any line names it with a plain key
 // of any type, so a host recorded with an Ed25519 key that presents an RSA key
-// has CHANGED -- stricter than OpenSSH, which would treat the RSA key as new
+// has CHANGED - stricter than OpenSSH, which would treat the RSA key as new
 // and, under accept-new, trust it.
 enum dj_ssh_host_match
 {

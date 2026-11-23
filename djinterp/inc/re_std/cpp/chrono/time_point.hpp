@@ -9,7 +9,7 @@
 *
 *   THE CLOCK IS PART OF THE TYPE BECAUSE EPOCHS ARE NOT COMPARABLE:
 *   A system_clock reading and a steady_clock reading are both "a number
-* of ticks since some origin", but the origins are unrelated -- one is
+* of ticks since some origin", but the origins are unrelated - one is
 * the Unix epoch, the other is typically system boot. Subtracting them
 * would produce a plausible-looking duration that means nothing. Carrying
 * the clock in the type makes that mistake a compile error instead, which
@@ -27,8 +27,8 @@
 * has an obvious one. `time_point<C> t;` is the epoch.
 *
 *   CONSTEXPR: the observers are constexpr from C++11, matching std. The
-* two mutators are constexpr from C++14 -- re_std ahead of std, which
-* waited for C++17 -- and use RE_STD_CONSTEXPR_CPP14 rather than RE_STD_CONSTEXPR
+* two mutators are constexpr from C++14 - re_std ahead of std, which
+* waited for C++17 - and use RE_STD_CONSTEXPR_CPP14 rather than RE_STD_CONSTEXPR
 * for the further reason that constexpr on a C++11 non-const member
 * implies const.
 *
@@ -88,7 +88,7 @@ namespace chrono
     public:
 
         // time_point
-        //   function: default constructor -- the clock's epoch. Unlike
+        //   function: default constructor - the clock's epoch. Unlike
         // duration, this DOES initialise. See the header comment.
         RE_STD_CONSTEXPR time_point()
             : m_d(duration::zero())
@@ -116,7 +116,7 @@ namespace chrono
 
         // time_since_epoch
         //   function: the offset from the clock's epoch. Meaningful only
-        // in combination with the clock -- see the header comment.
+        // in combination with the clock - see the header comment.
         RE_STD_CONSTEXPR duration time_since_epoch() const
         {
             return m_d;

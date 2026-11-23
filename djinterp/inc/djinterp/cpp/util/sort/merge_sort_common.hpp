@@ -6,8 +6,8 @@
 * ordered runs into one, and sweep a whole range doing that at a fixed run
 * width.
 *
-*   BOTTOM-UP, NOT RECURSIVE.  Runs start at width 1 -- every single element is
-* trivially ordered -- and each pass doubles the width until one run covers the
+*   BOTTOM-UP, NOT RECURSIVE.  Runs start at width 1 - every single element is
+* trivially ordered - and each pass doubles the width until one run covers the
 * range.  Same comparisons as the recursive formulation, and it buys two
 * things: no call stack, and a shape that partitions.  Within a pass the run
 * pairs are DISJOINT, so any subset may be merged in parallel with any other,
@@ -87,7 +87,7 @@ NS_INTERNAL
     // the left run holds the earlier elements.
     //
     //   Nothing is compared when a run is empty, and nothing is compared at
-    // all when the pair is already in order -- one test settles that and the
+    // all when the pair is already in order - one test settles that and the
     // span becomes a straight copy.
     //
     //   _src and _dst must not overlap over [_begin, _end).
@@ -136,7 +136,7 @@ NS_INTERNAL
         for (out = _begin; out < _end; ++out)
         {
             // the left run is spent, or the right element strictly precedes
-            // -- the strictness is what keeps equivalents in input order
+            // - the strictness is what keeps equivalents in input order
             if ( (left >= _mid) ||
                  ( (right < _end) &&
                    (_comparator(_src[right], _src[left])) ) )

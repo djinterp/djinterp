@@ -4,14 +4,14 @@
 * Polynomial functors as first-class, foldable protocol citizens.
 *   A polynomial functor F is built from the variable position (recursion),
 * the unit, constants, sums, and products.  This header carries the
-* value-level inhabitants of F -- the C++ things downstream code folds and
-* traverses -- together with their Functor and Traversable instances, and the
+* value-level inhabitants of F - the C++ things downstream code folds and
+* traverses - together with their Functor and Traversable instances, and the
 * type-level shapes that document F's structure without a value payload.
 *
 *   WHY IT LIVES IN functional/.  These poly_* functors are the canonical base
 * functors for recursion.hpp's cata / ana / hylo: `compose = cata[phi]`,
 * `evaluate = cata[phi_eval]`, and any other interpretation are one
-* catamorphism differing only in the algebra -- the structural recursion is
+* catamorphism differing only in the algebra - the structural recursion is
 * written once, in recursion.hpp, not per carrier.  They also serve as the F
 * parameter to functional::free.  Nothing here depends on a particular carrier
 * (a grammar, an expression IR, an annotated AST): the parse layer's grammar

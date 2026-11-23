@@ -1,30 +1,30 @@
 /*******************************************************************************
 * djinterp [cpp][filesys]                                          file_pipe.hpp
 *
-* djinterp::process -- a child process run through the shell, its standard
+* djinterp::process - a child process run through the shell, its standard
 * input or output connected to this handle by a pipe (the popen model,
 * roadmap Phase 8).
 *   It is the RAII owner of that pipe: reading or writing talks to the
 * command, and closing REAPS the command and yields its exit status.
-*   >>> SECURITY. d_pipe_open runs its command through a SHELL -- /bin/sh -c
-*   on POSIX, cmd.exe /c on Windows -- so EVERY shell metacharacter in the
+*   >>> SECURITY. d_pipe_open runs its command through a SHELL - /bin/sh -c
+*   on POSIX, cmd.exe /c on Windows - so EVERY shell metacharacter in the
 *   string is interpreted. Building the command from anything a user, a file,
 *   or a network peer influenced is a command-injection vulnerability, and
 *   nothing in this class prevents it: the constructor hands the string
-*   straight to the shell. The only fix is not to do it -- run a fixed,
+*   straight to the shell. The only fix is not to do it - run a fixed,
 *   literal command here, and reach for posix_spawn / CreateProcess with an
 *   ARGUMENT VECTOR when any part of the command is variable. This is the one
 *   hazard of this facility, stated where you cannot miss it. <<<
 *   D4, OWNERSHIP. A pipe to a live process cannot be shared by copying, so
-* process is NON-COPYABLE on every tier and MOVABLE on C++11+ -- the same rule
+* process is NON-COPYABLE on every tier and MOVABLE on C++11+ - the same rule
 * file and directory follow, drawing the same spellings (D_DELETED_FN,
 * D_NOEXCEPT) from the shared prelude.
 *   EXIT STATUS IS NOT AN ERROR. A command that runs and exits non-zero has not
-* failed as an I/O operation -- it has reported a result, and that result is
+* failed as an I/O operation - it has reported a result, and that result is
 * information you asked for. So close() returns whether the pipe CLOSED and the
 * process was REAPED (an _ec set only if pclose itself failed), and the
 * command's exit code is read separately via exit_status(), meaningful once
-* exited() is true. A missing command, a command that dies -- these surface as
+* exited() is true. A missing command, a command that dies - these surface as
 * an exit status (127, 128+signal), not as a close failure.
 *   AVAILABILITY. The whole facility is compiled out where the platform has no
 * pipes (D_FILE_PIPE_IS_AVAILABLE == 0); on such a build djinterp::process does
@@ -183,7 +183,7 @@ public:
      *
      * @warning Read the SECURITY note in the banner before passing any
      *          command built from outside input.
-     * @note A process already held is reaped first -- this waits for it --
+     * @note A process already held is reaped first - this waits for it --
      *       and its exit status is not kept; close() it first to read that.
      *
      * @param[in]  _command  the command line, handed to the shell unchanged.
@@ -231,8 +231,8 @@ public:
     /**
      * @brief Reads up to `_n` bytes of the command's output.
      *
-     * @note A short read at the end of the output is success -- the command
-     *       finished writing -- exactly as for a file; only a stream error
+     * @note A short read at the end of the output is success - the command
+     *       finished writing - exactly as for a file; only a stream error
      *       sets `_ec`.
      *
      * @param[out] _buf  receives the bytes; holds at least `_n`, and may be
@@ -379,8 +379,8 @@ public:
     /**
      * @brief Closes the pipe and REAPS the child.
      *
-     * @note A non-zero exit code is NOT reported through `_ec` -- the command
-     *       ran, and its result is data -- so `_ec` is set only if the reap
+     * @note A non-zero exit code is NOT reported through `_ec` - the command
+     *       ran, and its result is data - so `_ec` is set only if the reap
      *       itself failed. Closing an already-closed handle is success.
      *
      * @param[out] _ec  cleared on success; set only when the reap failed.
@@ -478,7 +478,7 @@ public:
     }
 
 private:
-    // never copyable -- two owners would each reap the one child
+    // never copyable - two owners would each reap the one child
     D_DELETED_FN(process(const process& _other))
     D_DELETED_FN(process& operator=(const process& _other))
 

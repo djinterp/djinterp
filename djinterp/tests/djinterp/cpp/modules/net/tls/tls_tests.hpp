@@ -27,7 +27,7 @@
 NS_DJINTERP
 NS_TESTING
 
-// net/tls/tls.hpp tests -- each returns true when every check held;
+// net/tls/tls.hpp tests - each returns true when every check held;
 // tests_tls_engine says whether there is an engine to run them in
 bool tests_tls_engine();
 bool tests_tls_context();

@@ -129,7 +129,7 @@ using re_std::dynamic_extent;
 
 
 // array_type_key, array_extent_key
-//   constants: the array's own two option keys -- the element type (the
+//   constants: the array's own two option keys - the element type (the
 // option's value position is the type, as for container_axis::lock_policy)
 // and the extent (an integral_constant<size_t, N>). option_set takes one key
 // type per set, and an array's pack mixes these with the universal axes
@@ -167,7 +167,7 @@ NS_INTERNAL
 
     // array_is_self_arg
     //   trait: true iff the pack is exactly one argument whose decayed type is
-    // Self -- the copy or move that array<>'s element-list constructor must
+    // Self - the copy or move that array<>'s element-list constructor must
     // leave to the implicit constructors. Chosen by the pack's shape, so an
     // empty pack never asks for its first element (std::tuple_element<0,
     // std::tuple<>> is a hard error, not a substitution failure).

@@ -4,9 +4,9 @@
 * The default steps for an option's help, declared in arg_formatter.h (4.2).
 *   CLI11's Formatter, one C function for each of its make_* functions that
 * lays out options: a group of options under its heading; an option's line,
-* positional -- its name and what follows padded to the left column -- or
+* positional - its name and what follows padded to the left column - or
 * named, its short names and its long names in two columns whose boundary
-* the long-name alignment ratio sets; the names; what follows them -- the
+* the long-name alignment ratio sets; the names; what follows them - the
 * option text, or the type, default, count, requirement, environment
 * variable and links; the description; and an option's form in the usage
 * line. Each calls the others through the dispatchers in arg_formatter.c.
@@ -788,9 +788,9 @@ int d_arg_internal_help_split_names(
  *
  * CLI11's static_cast<int>(static_cast<float>(column_width_) * ratio): the
  * width and the product each rounded to a float, as CLI11's casts and its
- * float operands round them -- through d_arg_internal_float_stored, since a
+ * float operands round them - through d_arg_internal_float_stored, since a
  * compiler for the x87 unit may skip a cast's rounding, so that 30 * 0.7f is
- * 21 everywhere -- and truncated, held at INT_MAX where the int could not
+ * 21 everywhere - and truncated, held at INT_MAX where the int could not
  * hold it.
  */
 D_STATIC
@@ -962,7 +962,7 @@ int d_arg_internal_help_long_column(
  * The non-positional half of CLI11's make_option: the names split into short
  * and long, the short ones in a column the alignment ratio sizes, the long
  * ones in the rest of the left column less however far the short ones ran
- * past theirs, then the description -- on the next line when the two columns
+ * past theirs, then the description - on the next line when the two columns
  * ran past the left one.
  */
 D_STATIC
@@ -1038,7 +1038,7 @@ int d_arg_internal_help_named_line(
  *
  * The positional half of CLI11's make_option: two spaces, the positional
  * name and what follows it, padded to the left column, then the description
- * -- on the next line when the left part fills the column.
+ * - on the next line when the left part fills the column.
  */
 D_STATIC
 int d_arg_internal_help_positional_line(

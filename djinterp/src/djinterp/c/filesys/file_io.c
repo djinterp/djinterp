@@ -5,13 +5,13 @@
 *   Descriptor transfers clamp each request to the build's chunk size and to
 * what one platform call may carry, and retry interrupted calls; the
 * positional ones use pread and pwrite where they exist and an explicit,
-* non-atomic seek emulation where they do not -- Windows among them. The
-* whole-file readers measure the source when its size can be trusted -- what
-* lies past the stream's position -- and grow a buffer when it cannot, never
+* non-atomic seek emulation where they do not - Windows among them. The
+* whole-file readers measure the source when its size can be trusted - what
+* lies past the stream's position - and grow a buffer when it cannot, never
 * past the read ceiling. The whole-file writers go through a descriptor
 * where the backend has one, so a file they create has the configured mode;
-* they sync the file and its directory when the build asks, and -- when
-* configured -- replace the file with a sibling, made exclusively, that is
+* they sync the file and its directory when the build asks, and - when
+* configured - replace the file with a sibling, made exclusively, that is
 * renamed into place.
 *   The positional calls are implemented once, as the 64-bit twins; the
 * 32-bit ones widen the offset and call them.
@@ -53,7 +53,7 @@ D_INTERNAL_FILE_ASSERT_LARGE_FILES;
 // D_INTERNAL_IO_READ_CEILING
 //   constant: D_INTERNAL_FILE_READ_MAX_SIZE as a size_t, or 0 for no ceiling.
 // A ceiling past what a size_t holds admits every length a size_t can name,
-// so it is none -- not the remainder a cast would leave, which on a 32-bit
+// so it is none - not the remainder a cast would leave, which on a 32-bit
 // build makes a ceiling of 4 GiB and 1 MiB one of 1 MiB. A ceiling of 0 is
 // settled here, where comparing it would draw a warning.
 #if (D_INTERNAL_FILE_READ_MAX_SIZE == 0)
@@ -103,7 +103,7 @@ size_t d_internal_file_io_clamp(
 // D_INTERNAL_IO_CALL_MAX
 //   constant: the most bytes one CRT _read or _write carries. Both count in
 // an int, and the UCRT refuses a count past INT_MAX as an invalid parameter
-// -- which, by default, ends the process.
+// - which, by default, ends the process.
 #define D_INTERNAL_IO_CALL_MAX ((size_t)INT_MAX)
 
 /*
@@ -251,7 +251,7 @@ ssize_t d_internal_io_pread(
 
 /*
 d_internal_io_pread
-  pread emulated: save the position, seek, read, and seek back -- not atomic,
+  pread emulated: save the position, seek, read, and seek back - not atomic,
 since another user of the descriptor can move it in between, and said so at
 info severity. The read's errno survives the seek back.
 */
@@ -544,8 +544,8 @@ int d_internal_file_read_size_hint(
 /*
 d_internal_file_read_ends
   Whether a stream that has just filled a buffer is at its end: 1 when the
-next read finds end of file, 0 when there is more -- the byte that said so
-is pushed back, so the stream is as it was -- and -1 when that read fails,
+next read finds end of file, 0 when there is more - the byte that said so
+is pushed back, so the stream is as it was - and -1 when that read fails,
 which fgetc's EOF alone cannot tell from the end.
 */
 static
@@ -572,7 +572,7 @@ int d_internal_file_read_ends(
 /*
 d_internal_file_read_fail
   Ends a whole-file read that failed: frees the buffer, if there is one, and
-reports the failure -- with _code, the module's own, or with 0 for the
+reports the failure - with _code, the module's own, or with 0 for the
 platform's errno; or EIO, when a stream's error indicator is set and errno is
 not, so that a failure never reads as errno 0.
 */
@@ -603,7 +603,7 @@ void* d_internal_file_read_fail(
 /*
 d_internal_file_read_finish
   Ends a whole-file read that succeeded: terminates the payload when the build
-terminates -- the buffer was allocated with the byte for it -- and reports
+terminates - the buffer was allocated with the byte for it - and reports
 its size.
 */
 static
@@ -631,7 +631,7 @@ void* d_internal_file_read_finish(
 /*
 d_internal_file_read_sized
   Reads a source of known length into a fresh allocation. The ceiling is
-checked before allocating -- the whole point of it is not to attempt the
+checked before allocating - the whole point of it is not to attempt the
 allocation. Fewer bytes than measured are not a failure: a text-mode stream
 translates line endings and delivers fewer, and a file that shrank since it
 was measured has fewer to give; only an error is. A file that grew is read
@@ -694,8 +694,8 @@ void* d_internal_file_read_sized(
 /*
 d_internal_file_read_next
   The capacity a full buffer grows to: twice what it was, but never past the
-read ceiling -- the whole point of the ceiling is not to attempt the
-allocation -- so a source the ceiling admits always fits. Without a ceiling
+read ceiling - the whole point of the ceiling is not to attempt the
+allocation - so a source the ceiling admits always fits. Without a ceiling
 a doubling that would overflow, terminator included, is refused with 0.
 */
 static
@@ -811,7 +811,7 @@ int d_internal_file_read_grow(
 d_internal_file_read_shrink
   With D_CFG_FILE_READ_SHRINK_TO_FIT, hands back what was read rather than what
 was reserved. A declined shrink keeps the larger block, since it is no reason
-to fail a read that has succeeded -- and so does an empty read with no
+to fail a read that has succeeded - and so does an empty read with no
 terminator, which would ask the allocator for zero bytes: realloc may free
 the block for that and return NULL, which is not a declined shrink.
 */
@@ -907,7 +907,7 @@ int d_internal_file_read_some(
 
 /*
 d_internal_file_read_unsized
-  Reads a stream of unknown length by doubling a buffer until EOF -- the path
+  Reads a stream of unknown length by doubling a buffer until EOF - the path
 that makes d_file_read_all work on a pipe, a character device, and every
 entry under /proc and /sys, all of which report zero bytes and then hand over
 data. The buffer starts at d_internal_file_read_first and grows by
@@ -935,7 +935,7 @@ void* d_internal_file_read_unsized(
     // read until the source stops producing
     while (more > 0)
     {
-        // a full buffer grows -- or, at the ceiling, may hold all there is
+        // a full buffer grows - or, at the ceiling, may hold all there is
         if (used == capacity)
         {
             more = d_internal_file_read_grow(_stream,
@@ -969,7 +969,7 @@ void* d_internal_file_read_unsized(
 /*
 d_internal_file_read_unsized
   Without D_CFG_FILE_READ_GROW_UNSIZED a source that cannot be measured is
-refused with ESPIPE -- unless one read finds it empty
+refused with ESPIPE - unless one read finds it empty
 (d_internal_file_read_ends): an empty file stats as unmeasurably as a /proc
 entry does, and is no reason to fail. It reads as the empty buffer every
 empty source reads as.
@@ -1021,7 +1021,7 @@ void* d_internal_file_read_unsized(
 /*
 d_internal_file_read_refuse
   Reports d_file_read_all_into's failure and hands back its code: _code, the
-module's own, or with 0 the platform's errno -- or EIO, so that a failure
+module's own, or with 0 the platform's errno - or EIO, so that a failure
 never reads as success.
 */
 static
@@ -1111,7 +1111,7 @@ int d_internal_file_read_into(
 /*
 d_internal_file_write_stream
   fwrite is allowed to come up short, and a caller that treats a short write
-as fatal without retrying loses data it was told was written -- so this
+as fatal without retrying loses data it was told was written - so this
 loops, a clamped chunk at a time. A pass that moves nothing is a real error;
 without that check a stream that keeps returning 0 would spin forever. errno
 is left as the platform set it.
@@ -1155,7 +1155,7 @@ int d_internal_file_write_stream(
 d_internal_io_store
   Writes a file through its own name, rewriting it or appending to it. The ISO
 C backend has only streams: fopen's mode creates a missing file with the
-platform's default permissions -- ISO C cannot choose them -- and neither the
+platform's default permissions - ISO C cannot choose them - and neither the
 sync nor the reservation is available. The close counts, since it is where a
 buffered write finally reports failure; but the first failure is the one
 reported.
@@ -1309,8 +1309,8 @@ int d_internal_io_fill(
 /*
 d_internal_io_finish
   Closes a descriptor that was written through and settles the outcome. The
-close counts -- some filesystems, NFS among them, report a failed write only
-there -- but the first failure is the one reported: the close's only when
+close counts - some filesystems, NFS among them, report a failed write only
+there - but the first failure is the one reported: the close's only when
 everything before it went through.
 */
 static
@@ -1338,7 +1338,7 @@ d_internal_io_store
   Writes a file through its own name, rewriting it or appending to it. A file
 this creates gets D_CFG_FILE_WRITE_CREATE_MODE under the umask; one that
 exists keeps its permission bits, since it keeps its inode. A known size is
-reserved first when the build asks and the file is rewritten -- a reservation
+reserved first when the build asks and the file is rewritten - a reservation
 from offset 0 means nothing to an append.
 */
 static
@@ -1568,12 +1568,12 @@ void d_internal_io_restore_bits(
 /*
 d_internal_io_promote
   Windows' rename fails outright when the target exists, so the promotion goes
-through MoveFileEx, which replaces -- and, with MOVEFILE_WRITE_THROUGH, does
+through MoveFileEx, which replaces - and, with MOVEFILE_WRITE_THROUGH, does
 not return until the move is on disk. A target in use is refused: one held
 open without delete sharing, as the C runtime opens every file, by a reader,
 an indexer or a virus scanner, or one another writer is replacing that
-moment. So the move is retried first, on git's schedule -- a yield, then 1,
-10, 20 and 40 ms -- and a refusal that outlasts it, like every other failure,
+moment. So the move is retried first, on git's schedule - a yield, then 1,
+10, 20 and 40 ms - and a refusal that outlasts it, like every other failure,
 is translated as every Win32 failure here is: in use is EACCES.
 */
 static
@@ -1640,7 +1640,7 @@ int d_internal_io_promote(
 /*
 d_internal_io_kept_bits
   The permission bits of the file a replacement takes the place of, or -1 when
-there is none to keep: no file, or not a regular one -- a directory fails at
+there is none to keep: no file, or not a regular one - a directory fails at
 the rename. stat follows a link, so a link at the path lends the replacement
 its file's bits.
 */
@@ -1667,8 +1667,8 @@ d_internal_io_restore_bits
   A replacement for an existing file is created owner-only, so no one else can
 open it while it is not yet theirs to read; here it takes the old file's bits
 exactly, since the umask the create went through may not take bits away from
-a file that already had them. A filesystem that refuses -- FAT, some network
-mounts -- leaves it owner-only: narrower than the file it replaces, never
+a file that already had them. A filesystem that refuses - FAT, some network
+mounts - leaves it owner-only: narrower than the file it replaces, never
 wider.
 */
 static
@@ -1953,8 +1953,8 @@ ssize_t d_file_read_fd(
 
 /*
 d_file_read_fd
-  One read of at most a chunk -- the build's D_CFG_FILE_READ_CHUNK_SIZE, and no
-more than one platform call carries (d_internal_io_read) -- retried across
+  One read of at most a chunk - the build's D_CFG_FILE_READ_CHUNK_SIZE, and no
+more than one platform call carries (d_internal_io_read) - retried across
 interruptions. A zero-length request returns 0 without calling the platform,
 and needs no buffer, as read(2) needs none.
 */
@@ -2013,7 +2013,7 @@ ssize_t d_file_read_fd(
 /*
 d_file_read_full_fd
   A plain read may come up short for reasons that have nothing to do with the
-data -- a signal, a pipe boundary, a socket's buffer -- so code that wants N
+data - a signal, a pipe boundary, a socket's buffer - so code that wants N
 bytes has to loop. This is that loop, written once; end of file ends it
 early with whatever was collected.
 */
@@ -2096,7 +2096,7 @@ ssize_t d_file_pread_fd64(
 /*
 d_file_pread_fd64
   pread where the platform has it, which is atomic with respect to other users
-of the same descriptor. Where it does not -- Windows among them -- the read
+of the same descriptor. Where it does not - Windows among them - the read
 is emulated by seeking there and back (d_internal_io_pread), which is not.
 */
 ssize_t d_file_pread_fd64(
@@ -2187,8 +2187,8 @@ ssize_t d_file_write_fd(
 
 /*
 d_file_write_fd
-  One write of at most a chunk -- the build's D_CFG_FILE_WRITE_CHUNK_SIZE, and
-no more than one platform call carries (d_internal_io_write) -- retried
+  One write of at most a chunk - the build's D_CFG_FILE_WRITE_CHUNK_SIZE, and
+no more than one platform call carries (d_internal_io_write) - retried
 across interruptions. A zero-length request returns 0 without calling the
 platform, and needs no buffer.
 */
@@ -2246,8 +2246,8 @@ ssize_t d_file_write_fd(
 
 /*
 d_file_write_full_fd
-  A short write is normal -- a pipe fills, a signal lands, a disk quota bites
-mid-transfer -- and the caller almost always wants the retry rather than the
+  A short write is normal - a pipe fills, a signal lands, a disk quota bites
+mid-transfer - and the caller almost always wants the retry rather than the
 news. Unlike the read side, running out of room is a failure here, not a
 graceful end: a partial write is a corrupt file. A pass that moves nothing
 without an error fails with EIO, because looping on it would hang.
@@ -2336,7 +2336,7 @@ ssize_t d_file_pwrite_fd64(
 /*
 d_file_pwrite_fd64
   pwrite where the platform has it, which is atomic with respect to other
-users of the same descriptor. Where it does not -- Windows among them -- the
+users of the same descriptor. Where it does not - Windows among them - the
 write is emulated by seeking there and back (d_internal_io_pwrite), which is
 not.
 */
@@ -2402,8 +2402,8 @@ ssize_t d_file_pwrite_fd64(
 
 /*
 d_file_read_all_stream
-  Takes the sized path when the source can be measured and trusted -- what
-lies past the stream's position -- and the unsized one when it cannot, so a
+  Takes the sized path when the source can be measured and trusted - what
+lies past the stream's position - and the unsized one when it cannot, so a
 pipe or a /proc entry reads correctly rather than returning empty. A stream
 reads in its own mode: a text-mode one delivers translated bytes, fewer than
 it measured, and that is not a failure. The read-ahead hint goes first; it is
@@ -2447,9 +2447,9 @@ void* d_file_read_all_stream(
 
 /*
 d_file_read_all
-  Opens the file in binary mode unconditionally -- a text-mode read would
+  Opens the file in binary mode unconditionally - a text-mode read would
 translate line endings and deliver fewer bytes than the file holds, making
-the returned size disagree with the file's own on exactly one platform -- and
+the returned size disagree with the file's own on exactly one platform - and
 hands the stream to d_file_read_all_stream. The close must not overwrite the
 read's errno, which is the code the caller is about to look at.
 */
@@ -2498,7 +2498,7 @@ void* d_file_read_all(
 d_file_read_all_into
   For the program that cannot or will not allocate: the buffer and its size
 are the caller's, and nothing here calls the allocator. A file larger than
-the buffer fails with ERANGE rather than being truncated -- silently handing
+the buffer fails with ERANGE rather than being truncated - silently handing
 back a prefix is how a caller ends up parsing half a config file
 (d_internal_file_read_into). The terminator, when the build writes one, takes
 a byte of the caller's buffer, and the close must not overwrite the read's
@@ -2565,9 +2565,9 @@ int d_file_read_all_into(
 d_file_write_all
   The target is replaced, or rewritten in place, as the build says
 (d_internal_io_write_all; D_CFG_FILE_WRITE_ATOMIC chooses). Either way the
-bytes go through a descriptor -- so a new file is created with
+bytes go through a descriptor - so a new file is created with
 D_CFG_FILE_WRITE_CREATE_MODE, and _size bytes in are _size bytes on disk on
-every platform -- and are synced, with their directory, when the build asks.
+every platform - and are synced, with their directory, when the build asks.
 The ISO C backend writes through a stream instead, and creates with the
 platform's default mode.
 */
@@ -2601,7 +2601,7 @@ int d_file_write_all(
 d_file_append_all
   Append mode is not merely a seek to the end: on POSIX the offset and the
 write are one operation, which is why this is its own function instead of a
-flag on d_file_write_all. Atomic replacement is not attempted -- a file being
+flag on d_file_write_all. Atomic replacement is not attempted - a file being
 extended cannot be replaced. Otherwise as d_file_write_all's rewrite: through
 the file's own name, a new file created with D_CFG_FILE_WRITE_CREATE_MODE,
 and the file and its directory synced when the build asks.

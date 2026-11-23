@@ -36,11 +36,11 @@
 //==============================================================================
 
 // D_INTERNAL_PIPE_POPEN
-//   constant: the platform's popen -- _popen on Windows, and _wpopen with the
+//   constant: the platform's popen - _popen on Windows, and _wpopen with the
 // command converted where the build hands Windows UTF-16
 // (d_internal_pipe_wpopen).
 // D_INTERNAL_PIPE_PCLOSE
-//   constant: the platform's pclose -- _pclose on Windows.
+//   constant: the platform's pclose - _pclose on Windows.
 #if (D_INTERNAL_FILE_WIDE == 1)
     #define D_INTERNAL_PIPE_POPEN  d_internal_pipe_wpopen
     #define D_INTERNAL_PIPE_PCLOSE _pclose
@@ -134,8 +134,8 @@ FILE* d_internal_pipe_wpopen(
 #if (D_INTERNAL_FILE_PIPE_MODE_CHAR != 0)
 
 // D_INTERNAL_PIPE_MODE_MAX
-//   constant: room for any mode the platforms accept -- "r" or "w", the
-// letters after it, the one this build adds -- and the terminator.
+//   constant: room for any mode the platforms accept - "r" or "w", the
+// letters after it, the one this build adds - and the terminator.
 #define D_INTERNAL_PIPE_MODE_MAX 8
 
 /*
@@ -274,7 +274,7 @@ d_pipe_open
   The command goes through the system shell, with everything the declaration
 warns of. The child inherits every descriptor that is not close-on-exec, which
 is why D_CFG_FILE_CLOEXEC_DEFAULT is on: inheritance becomes something asked
-for rather than something that happens -- and the pipe's own end, which popen
+for rather than something that happens - and the pipe's own end, which popen
 leaves inheritable, is kept back too (d_internal_pipe_raw).
 */
 FILE* d_pipe_open(

@@ -55,12 +55,12 @@
 *     - std::size_t            -> std::size_t  (index-based, no self)
 *
 * INTERFACE:
-*   - data()             -- access the payload
-*   - get_node<I>()      -- compile-time indexed link access
-*   - get_node(i)        -- runtime indexed link access
-*   - edges()            -- reference to the underlying link array
-*   - num_links          -- compile-time link count
-*   - null_link()        -- returns the null/sentinel value for the link type
+*   - data()             - access the payload
+*   - get_node<I>()      - compile-time indexed link access
+*   - get_node(i)        - runtime indexed link access
+*   - edges()            - reference to the underlying link array
+*   - num_links          - compile-time link count
+*   - null_link()        - returns the null/sentinel value for the link type
 *
 *
 * path:      /inc/djinterp/cpp/container/node/linked_node.hpp
@@ -245,7 +245,7 @@ public:
 
     // null_link
     //   function: returns the null/sentinel value for the link type: nullptr
-    // for a raw pointer, size_type(-1) for an index -- the values
+    // for a raw pointer, size_type(-1) for an index - the values
     // is_null_link (node_common.hpp) tests for.
     static D_CONSTEXPR link_type null_link()
     {

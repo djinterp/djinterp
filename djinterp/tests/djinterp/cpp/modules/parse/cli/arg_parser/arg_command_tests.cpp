@@ -8,10 +8,10 @@
 * would with CLI11's App and its App*. tools/cppref/cppref.py compiles that
 * section against CLI11 2.7.2, through the face's names for CLI11's
 * (cli11_shim.hpp), and the transcripts below are what CLI11 wrote; so the
-* CASES section is written in the part of the face CLI11 shares -- `->` on
+* CASES section is written in the part of the face CLI11 shares - `->` on
 * every handle, a call on the parser itself a statement of its own, no
 * status taken from a call, a handle on nothing told by comparing it with
-* one made bare -- and C++98 unless a guard says otherwise. A definition
+* one made bare - and C++98 unless a guard says otherwise. A definition
 * CLI11 refuses is the last statement of its step, since CLI11 throws there.
 * The sections that are the module's own are written apart, after it, each
 * saying why CLI11 cannot write its transcript.
@@ -338,7 +338,7 @@ const char GROUPS[] =
 
 // GROUPS_WINDOWS
 //   constant: GROUPS where a command starts allowing them, as CLI11's does on
-// Windows -- and the module's where its setting for them says so -- and a
+// Windows - and the module's where its setting for them says so - and a
 // subcommand takes the setting from its parent.
 const char GROUPS_WINDOWS[] =
     "moved: option=1 command=1 found=1\n"
@@ -491,7 +491,7 @@ const char SETTINGS[] =
 
 // SETTINGS_WINDOWS
 //   constant: SETTINGS where a command starts allowing them, as CLI11's does on
-// Windows -- and the module's where its setting for them says so -- and a
+// Windows - and the module's where its setting for them says so - and a
 // subcommand takes the setting from its parent.
 const char SETTINGS_WINDOWS[] =
     "root switches: required=0 disabled=0 silent=0 windows=0 at_end=0 "
@@ -763,7 +763,7 @@ const char TRIGGERS[] =
 
 // TRIGGERS_WINDOWS
 //   constant: TRIGGERS where a command starts allowing them, as CLI11's does on
-// Windows -- and the module's where its setting for them says so -- and a
+// Windows - and the module's where its setting for them says so - and a
 // subcommand takes the setting from its parent.
 const char TRIGGERS_WINDOWS[] =
     "target switches: required=0 disabled=0 silent=0 windows=1 at_end=0 "
@@ -1187,7 +1187,7 @@ std::string numbers_of(
 }
 
 /**
- * @brief The names of what a list holds -- options or commands -- in its
+ * @brief The names of what a list holds - options or commands - in its
  *        order: CLI11's lists are std::vectors of pointers, the face's of
  *        handles, and both are read by index with `->`.
  *
@@ -1245,8 +1245,8 @@ std::string command_name(
 }
 
 /**
- * @brief Writes an option as a command made it -- its text, its counts,
- *        its policy -- on one line.
+ * @brief Writes an option as a command made it - its text, its counts,
+ *        its policy - on one line.
  *
  * @param[in,out] _run     the run.
  * @param[in]     _label   what the line names the option by.
@@ -1353,8 +1353,8 @@ void write_modes(
 }
 
 /**
- * @brief Writes a command's text -- its name, description, group, display
- *        name, aliases, usage and footer -- on one line.
+ * @brief Writes a command's text - its name, description, group, display
+ *        name, aliases, usage and footer - on one line.
  *
  * @param[in,out] _run      the run.
  * @param[in]     _label    what the line names the command by.
@@ -1420,7 +1420,7 @@ void write_defaults(
 }
 
 // DNotedCall
-//   struct: a callback taking nothing -- a command's, or a flag's -- which
+//   struct: a callback taking nothing - a command's, or a flag's - which
 // notes its text.
 struct DNotedCall
 {
@@ -1532,7 +1532,7 @@ struct DCountNoted
 };
 
 // text_made
-//   struct: a function giving text -- a version, a usage, a footer.
+//   struct: a function giving text - a version, a usage, a footer.
 struct text_made
 {
     const char* m_text;

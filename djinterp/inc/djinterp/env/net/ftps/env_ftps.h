@@ -50,7 +50,7 @@ TABLE OF CONTENTS
 // 1.1.1
 // D_ENV_FTPS_HAS_TLS
 //   flag: 1 when TLS can run here, as env_ssl.h judges it: an engine the
-// SSL kernel can be built with -- today, over an OpenSSL-family library --
+// SSL kernel can be built with - today, over an OpenSSL-family library --
 // and a TCP stream to carry it.
 #ifndef D_ENV_FTPS_HAS_TLS
     #if D_ENV_SSL_AVAILABLE

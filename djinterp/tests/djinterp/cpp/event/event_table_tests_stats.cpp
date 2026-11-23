@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][event]                              event_table_tests_stats.cpp
 *
-*   Sections II + III (statistics) -- the DEventTableStats aggregate and the
+*   Sections II + III (statistics) - the DEventTableStats aggregate and the
 * get_stats snapshot that fills it.  The deterministic fields are asserted
 * exactly: total_entries, enabled_entries (which tracks the mask),
 * event_type_count (distinct keys), max_entries_per_type (the largest bucket),
@@ -97,7 +97,7 @@ bool tests_stats_populated()
 
     DEventTableStats s = t.get_stats();
 
-    // deterministic fields -- asserted exactly.
+    // deterministic fields - asserted exactly.
     ok = D_ET_CHECK(s.total_entries == 4u) && ok;
     ok = D_ET_CHECK(s.enabled_entries == 3u) && ok;
     ok = D_ET_CHECK(s.event_type_count == 2u) && ok;
@@ -110,7 +110,7 @@ bool tests_stats_populated()
     ok = D_ET_CHECK(s.enabled_entries == t.enabled_count()) && ok;
     ok = D_ET_CHECK(s.event_type_count == t.type_key_count()) && ok;
 
-    // implementation-dependent fields -- invariants only.
+    // implementation-dependent fields - invariants only.
     ok = D_ET_CHECK(s.used_buckets >= 1u) && ok;
     ok = D_ET_CHECK(s.used_buckets <= s.event_type_count) && ok;
     ok = D_ET_CHECK(s.total_buckets >= s.used_buckets) && ok;

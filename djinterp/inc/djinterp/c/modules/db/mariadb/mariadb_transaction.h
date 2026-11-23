@@ -7,8 +7,8 @@
 * to roll back to, and are named, quoted by the layer like every other name.
 *   Both servers end a transaction silently before a statement that changes
 * the schema, and neither nests transactions: beginning one inside another
-* commits the first. Transactions apply to transactional engines -- InnoDB,
-* which both servers use by default -- and not to MyISAM.
+* commits the first. Transactions apply to transactional engines - InnoDB,
+* which both servers use by default - and not to MyISAM.
 *
 *
 * path:      /inc/djinterp/c/modules/db/mariadb/mariadb_transaction.h
@@ -65,7 +65,7 @@ enum dj_mariadb_transaction_mode
 
 // 1.2    Beginning and ending
 //------------------------------------------------------------------------------
-// beginning and ending -- each returns 0, the client's error number for a
+// beginning and ending - each returns 0, the client's error number for a
 // failure, or D_DB_INVALID_ARGUMENT for a NULL handle or a mode outside the
 // enum. A commit or rollback with no transaction open succeeds, as on the
 // servers themselves.
@@ -82,7 +82,7 @@ int d_mariadb_rollback(
 
 // 1.3    State
 //------------------------------------------------------------------------------
-// state -- whether a transaction is open, by the status the server sent with
+// state - whether a transaction is open, by the status the server sent with
 // its last reply; false for NULL
 bool d_mariadb_in_transaction(
     const struct dj_mariadb* _db
@@ -96,7 +96,7 @@ bool d_mariadb_in_transaction(
 
 // 2.1    Savepoints
 //------------------------------------------------------------------------------
-// savepoints -- inside a transaction only: outside one, a savepoint is set and
+// savepoints - inside a transaction only: outside one, a savepoint is set and
 // forgotten at once, as the servers do it. Rolling back to one undoes what
 // followed it and keeps it; releasing one forgets it and those after it. Each
 // returns 0, the client's error number (1305, no such savepoint), or

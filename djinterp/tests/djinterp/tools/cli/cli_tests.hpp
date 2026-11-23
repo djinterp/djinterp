@@ -4,10 +4,10 @@
 * The command-line kit's C++ suite: the face of cli_program.hpp, cli_io.hpp,
 * cli_edit.hpp, cli_operand.hpp and cli_plugin.hpp, called from C++ across a
 * real language boundary.
-*   The C suites hold the kit's behaviour -- every message, page and file;
+*   The C suites hold the kit's behaviour - every message, page and file;
 * this one holds the face's way to it: a program made and released with the
-* parser it is; a command's work as any function object -- a functor at
-* every level, a lambda from C++11 -- kept and freed with the program; the
+* parser it is; a command's work as any function object - a functor at
+* every level, a lambda from C++11 - kept and freed with the program; the
 * run and its halves; output to sinks and to streams; the reports with a
 * message given whole, `%` and all; an exception a command's work lets out,
 * said as the program's error where exceptions are on; a module's program

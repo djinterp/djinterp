@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                                            table.hpp
 *
-*   table -- the fully dynamic member of the table trio.  A rank-2,
+*   table - the fully dynamic member of the table trio.  A rank-2,
 * rectangular, cell-homogeneous table whose two extents are read and changed
 * at
 * runtime: cells may be overwritten, and whole rows and columns may be added
@@ -11,10 +11,10 @@
 * kept rectangular (every row the same width).
 *
 *   ITS PLACE ON THE FIRST FEW AXES (Part I, in order):
-*   - Lifetime  : mutable_storage  -- an ordinary runtime object.
-*   - Storage   : dynamic_storage  -- a heap-backed std::vector; a table whose
+*   - Lifetime  : mutable_storage  - an ordinary runtime object.
+*   - Storage   : dynamic_storage  - a heap-backed std::vector; a table whose
 *                                     row count is read at runtime is dynamic.
-*   - Mutability: fully_mutable    -- both capabilities: element mutation
+*   - Mutability: fully_mutable    - both capabilities: element mutation
 *                                     overwrites a cell value with I_T fixed,
 *                                   and
 *                                     structural mutation changes I_T itself
@@ -234,7 +234,7 @@ public:
 
     // Iterability stage sub-axis: the row count is a runtime value, so neither
     // the cursor nor the values are compile-time-expressible (the "vector /
-    // list" row of the Iterability table) -- runtime-iterable only.
+    // list" row of the Iterability table) - runtime-iterable only.
     static constexpr bool compile_time_iterable = false;
     static constexpr bool compile_time_values   = false;
 
@@ -367,7 +367,7 @@ public:
     // --- boundedness accessors (unbounded: capacity is spare buffer, not a
     // cap) ---
 
-    // capacity -- cells the buffer holds without reallocating. This is spare
+    // capacity - cells the buffer holds without reallocating. This is spare
     // room, not a fixed cap: a table grows past it, so it is NOT a bounding
     // signal (the paired reserve() below is the framework's growability tell).
     D_NODISCARD size_type capacity() const noexcept
@@ -375,7 +375,7 @@ public:
         return static_cast<size_type>(m_cells.capacity());
     }
 
-    // max_size -- the largest cell count the implementation can address.
+    // max_size - the largest cell count the implementation can address.
     D_NODISCARD size_type max_size() const noexcept
     {
         return static_cast<size_type>(m_cells.max_size());
@@ -571,7 +571,7 @@ public:
         // one new cell per row is required, a 0-row table included: there a
         // column must be empty, since its cells would have no row to go in.
         // (Rows adopt a width on an empty table; columns never adopt a
-        // height -- the same rule as the C carrier's d_table_insert_column.)
+        // height - the same rule as the C carrier's d_table_insert_column.)
         if (static_cast<size_type>(_column.size()) != m_rows)
         {
             throw std::invalid_argument(
@@ -820,7 +820,7 @@ public:
 
     // sort_rows
     //   stably reorders the rows so consecutive rows are non-decreasing under
-    // _cmp(const_row_type a, const_row_type b) -- the sorted overlay on the
+    // _cmp(const_row_type a, const_row_type b) - the sorted overlay on the
     // row dimension (relational ORDER BY). It permutes which values sit at
     // existing positions and leaves I_T fixed, so despite this table's full
     // mutability it is a pure element mutation, not a structural one.
@@ -921,7 +921,7 @@ public:
     // order.
     // Row selection preserves rectangularity (a sub-table is a table), so it is
     // closed; |result| <= |this|, and the constant-false predicate yields the
-    // empty (0-row) table -- the one bound selection may break.  The result
+    // empty (0-row) table - the one bound selection may break.  The result
     // keeps this table's width even with no rows, as filter_rows_inplace does.
     template<typename Pred>
     D_NODISCARD DTable filter_rows(Pred _pred) const
@@ -1145,7 +1145,7 @@ using table = DTable<Type, DifferenceType, SizeType, Iterator, ConstIterator, Op
 
 
 // ---------------------------------------------------------------------------
-// axis conformance -- the framework's classifiers must agree with the declared
+// axis conformance - the framework's classifiers must agree with the declared
 // positions (representative instantiation).
 // ---------------------------------------------------------------------------
 namespace table_axis_conformance
@@ -1192,7 +1192,7 @@ namespace table_axis_conformance
                   "table structure_kind must be hierarchical.");
 
     // Filterability and Transformability (composite, detection-only): at the
-    // CELL level a filter/transform SOURCE -- it grows by rows, not cells, so
+    // CELL level a filter/transform SOURCE - it grows by rows, not cells, so
     // it has no cell-level build (push_back) and a re-typed image or
     // cell-selection is a fresh container. Its filterability/transformability
     // is at the ROW level (filter_rows_inplace / map_inplace), which the
@@ -1258,7 +1258,7 @@ void swap(
 // select_rows
 //   the external selection strategy: builds a fresh table<element_type> from
 // the rows of any table-like source whose row view satisfies _pred. This is
-// how a filter SOURCE (static_table, fixed_table -- fixed-shape, so unable to
+// how a filter SOURCE (static_table, fixed_table - fixed-shape, so unable to
 // receive an arbitrary sub-selection in place) feeds a selection: the
 // survivors are gathered into the filterable table type. Arrangement and
 // per-row cells are preserved; the row order carries over unchanged, and the

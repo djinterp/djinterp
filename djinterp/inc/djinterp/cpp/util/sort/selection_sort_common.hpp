@@ -12,7 +12,7 @@
 *       a run's minimum is a reduction, so each worker takes a chunk, reports
 *       its chunk's winner, and one comparison per chunk settles the overall
 *       winner.  That is why the search is a separate primitive with its own
-*       range rather than an inner loop -- it is the piece that partitions.
+*       range rather than an inner loop - it is the piece that partitions.
 *
 *   WHY THIS ALGORITHM EXISTS: MINIMAL WRITES.  It always performs n(n-1)/2
 * comparisons, so insertion sort beats it on every input.  What it buys is
@@ -39,7 +39,7 @@
 *        among equal elements the EARLIEST wins.
 *
 *   Both are normative for every implementation in this family, in either
-* language, and the parity check tests them -- unlike the stable algorithms,
+* language, and the parity check tests them - unlike the stable algorithms,
 * where the equivalent check could not fail.
 *
 *   If a caller needs stability, the fix is not to patch this algorithm: a
@@ -102,7 +102,7 @@ NS_INTERNAL
     //
     //   A candidate must STRICTLY precede the incumbent to displace it, so
     // among equal elements the earliest wins.  That, with the forward scan, is
-    // what pins the arrangement this family produces -- see the header note.
+    // what pins the arrangement this family produces - see the header note.
     // It is also why the scan cannot stop early: nothing learned about the
     // first k elements constrains the rest, which is the whole of why this
     // algorithm is not adaptive.
@@ -148,9 +148,9 @@ NS_INTERNAL
     // not only an optimisation: it is what holds the exchange count to at most
     // n-1, which is this algorithm's entire reason for existing.
     //
-    //   The final position needs no scan of its own -- once everything else is
+    //   The final position needs no scan of its own - once everything else is
     // placed, the one element remaining is the largest, with nothing left to
-    // compare against -- so the loop stops one short of the end.
+    // compare against - so the loop stops one short of the end.
     template<typename RandomIterator,
              typename Difference,
              typename Comparator>

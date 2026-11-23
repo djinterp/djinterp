@@ -1,8 +1,8 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/util/timer/CMakeLists.txt
+# djinterp [test]  -  build/cmake/config/testing/djinterp/c/util/timer/CMakeLists.txt
 #
-#   Test leaf for c/util/timer -- timer.h, timer_atomic.h, timer_mutex.h and
-# timer_event.h -- in the C spec form: the runner in this directory, the
+#   Test leaf for c/util/timer - timer.h, timer_atomic.h, timer_mutex.h and
+# timer_event.h - in the C spec form: the runner in this directory, the
 # section translation units globbed from the tests tree, and the event core's
 # tier-0 sources the bindings fire through. The four units under test, with
 # counter.c for the arithmetic the timer shares and dtime for the monotonic

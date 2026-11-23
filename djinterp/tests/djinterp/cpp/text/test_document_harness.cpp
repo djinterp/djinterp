@@ -427,7 +427,7 @@ void check_tree_flow_invariant(
     //    Flow extraction: scan elements for "MODULE: <name>" headers and
     //    "--- <name> ---" unit headers.
 
-    // -- tree --
+    // - tree --
     const tree_node* _modules_n = nullptr;
 
     for (const auto& _c : _tree_root.children)
@@ -524,7 +524,7 @@ void check_tree_flow_invariant(
         }
     }
 
-    // -- flow --
+    // - flow --
     // find each "MODULE: <name>" header in order
     std::vector<std::string> _flow_module_names;
     std::vector<std::string> _flow_unit_names;

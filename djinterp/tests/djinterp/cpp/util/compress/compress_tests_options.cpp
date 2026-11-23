@@ -63,8 +63,8 @@ namespace
     }
 
     // levels_refused
-    //   helper: if _Codec is available, every level in _levels -- each off
-    // the generic scale -- is refused with status_invalid_argument before
+    //   helper: if _Codec is available, every level in _levels - each off
+    // the generic scale - is refused with status_invalid_argument before
     // the backend sees it. Vacuous when the codec is absent.
     template<typename _Codec>
     bool levels_refused(

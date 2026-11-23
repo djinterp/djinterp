@@ -3,7 +3,7 @@
 *
 * Serialization primitives for the built-in PDF writer.
 *   Escaping, number formatting, colour operators, date stamps and object
-* markers -- the byte-level vocabulary a PDF content stream is written in.
+* markers - the byte-level vocabulary a PDF content stream is written in.
 *
 *   EVERY EMITTER TAKES A CALLER BUFFER AND RETURNS THE LENGTH IT NEEDED, in
 * snprintf's sense: the return is what WOULD have been written, so a caller
@@ -14,7 +14,7 @@
 *
 *   THE DECIMAL POINT IS ALWAYS '.', IN BOTH TIERS. "%g" takes its decimal
 * separator from LC_NUMERIC, so under a German or French locale a coordinate
-* emitted as "1,5" -- which is not a number in a PDF content stream, and makes
+* emitted as "1,5" - which is not a number in a PDF content stream, and makes
 * a file every reader rejects. Both tiers now write numbers through
 * d_ostream_write_double (c/text/ostream_format.h), which gives "%g"'s bytes
 * in the C locale whatever the program's locale: the decimal-point ruling
@@ -23,7 +23,7 @@
 *
 *   THE DATE IS LOCAL TIME, and therefore not reproducible. `pdf_creation_date`
 * stamps a document with the machine's wall clock in its own timezone, so two
-* builds of one document differ -- which defeats byte-comparison of output and
+* builds of one document differ - which defeats byte-comparison of output and
 * is worth knowing before anyone tries it. The C++ side does the same; a
 * reproducible build wants the caller to supply the timestamp instead, which is
 * why `d_pdf_format_date` is exposed separately from `d_pdf_creation_date`.
@@ -65,14 +65,14 @@ D_EXTERN_C_BEGIN
 
 // D_PDF_DATE_MAX
 //   constant: bytes in a PDF date string, excluding the terminator. The form
-// is "D:YYYYMMDDHHmmSS" -- exactly 16, and fixed, so a caller may size to it
+// is "D:YYYYMMDDHHmmSS" - exactly 16, and fixed, so a caller may size to it
 // rather than query.
 #define D_PDF_DATE_MAX  16
 
 // D_PDF_ESCAPE_WORST_CASE
 //   constant: the factor by which escaping can expand a run. A byte outside
 // printable ASCII becomes a four-character octal escape ("\\303"), so the
-// bound is four bytes out per byte in -- not three, which is the count of
+// bound is four bytes out per byte in - not three, which is the count of
 // octal digits and the number a reader is likely to guess.
 #define D_PDF_ESCAPE_WORST_CASE  4
 

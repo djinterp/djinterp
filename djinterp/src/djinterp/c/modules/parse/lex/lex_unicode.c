@@ -235,7 +235,7 @@ int d_lex_unicode_nfc_check(
 // D_INTERNAL_NFC_BUFFER
 //   constant: code points the full check can hold once decomposed.  No
 // canonical decomposition is longer than four, so a name of up to 128 code
-// points -- the scanner's bound -- always fits.
+// points - the scanner's bound - always fits.
 #define D_INTERNAL_NFC_BUFFER 512
 
 
@@ -577,8 +577,8 @@ bool d_internal_quick_check(
 
 /*
 d_lex_unicode_is_nfc
-  The quick check settles almost every name.  Only a MAYBE -- a mark or jamo
-that could compose with what precedes it -- needs the full round trip, and
+  The quick check settles almost every name.  Only a MAYBE - a mark or jamo
+that could compose with what precedes it - needs the full round trip, and
 then the name is normalized in a stack buffer and compared with itself.
 */
 bool d_lex_unicode_is_nfc(

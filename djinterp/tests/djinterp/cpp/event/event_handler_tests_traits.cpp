@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][event]                           event_handler_tests_traits.cpp
 *
-*   Sections III + IV -- HANDLER COMPATIBILITY DETECTION and HANDLER TRAITS.
+*   Sections III + IV - HANDLER COMPATIBILITY DETECTION and HANDLER TRAITS.
 * Covers the internal detection traits (handler_invoke_result: invocable vs
 * not, and the extracted return type; handler_nothrow_helper: noexcept vs not)
 * through the public handler_traits facade.  Exercises is_invocable (with both

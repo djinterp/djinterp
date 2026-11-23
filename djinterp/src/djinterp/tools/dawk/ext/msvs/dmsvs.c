@@ -801,8 +801,8 @@ bool d_internal_pseudo(
 d_internal_declaration_problem
   What is wrong with the XML declaration, if anything.  It stands first in
 the file, is named in lower case, and gives, in this order, its version,
-1.0 or another 1.x, an encoding if any -- which must be UTF-8, the one
-encoding this reader reads -- and standalone, yes or no, if any.
+1.0 or another 1.x, an encoding if any - which must be UTF-8, the one
+encoding this reader reads - and standalone, yes or no, if any.
 */
 static
 const char* d_internal_declaration_problem(

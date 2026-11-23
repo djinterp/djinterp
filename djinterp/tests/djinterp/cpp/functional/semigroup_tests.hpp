@@ -4,20 +4,20 @@
 *   Unit-test declarations for core/functional/semigroup.hpp.  One declaration
 * group per section of the module under test:
 *
-*     semigroup_tests_protocol.cpp   -- I.   semigroup_traits, is_semigroup,
+*     semigroup_tests_protocol.cpp   - I.   semigroup_traits, is_semigroup,
 *                                             the Semigroup concept
-*     semigroup_tests_mappend.cpp    -- II.  mappend, the associative combine
+*     semigroup_tests_mappend.cpp    - II.  mappend, the associative combine
 *
-*   FIXTURES.  semigroup.hpp is the protocol and the operation ALONE -- every
+*   FIXTURES.  semigroup.hpp is the protocol and the operation ALONE - every
 * concrete instance (string, vector, the numeric newtypes) lives in monoid.hpp.
 * So the suite supplies its own semigroups by specialising semigroup_traits at
 * djinterp:: scope, chosen to cover the distinct behaviours:
 *
-*     DSgString   std::string under concatenation   -- runtime, NON-commutative
-*     DSgSum      int under addition                 -- constexpr, commutative
-*     DSgMax      int under max                      -- constexpr, IDEMPOTENT
-*     DSgFirst    left projection combine(a,b)=a     -- constexpr, NON-commut.
-*     z3 / z5     modular addition (Z/nZ)            -- a FAMILY instance keyed
+*     DSgString   std::string under concatenation   - runtime, NON-commutative
+*     DSgSum      int under addition                 - constexpr, commutative
+*     DSgMax      int under max                      - constexpr, IDEMPOTENT
+*     DSgFirst    left projection combine(a,b)=a     - constexpr, NON-commut.
+*     z3 / z5     modular addition (Z/nZ)            - a FAMILY instance keyed
 *                                                       on the _Enable SFINAE
 *                                                       hook, one specialisation
 *                                                       covering both types
@@ -87,7 +87,7 @@ namespace dt = ::djinterp::test;
 ///////////////////////////////////////////////////////////////////////////////
 
 // DNotSemigroup
-//   type: no semigroup_traits specialisation exists -- the plain negative case.
+//   type: no semigroup_traits specialisation exists - the plain negative case.
 struct DNotSemigroup
 {
 };
@@ -130,7 +130,7 @@ bool operator==(
 
 
 // DSgMax
-//   fixture semigroup: int under max -- commutative and idempotent
+//   fixture semigroup: int under max - commutative and idempotent
 // (combine(a, a) == a).  Literal type, constexpr combine.
 struct DSgMax
 {
@@ -165,7 +165,7 @@ bool operator==(
 }
 
 
-// -- the modular family (Z/nZ), detected via the _Enable SFINAE hook ------
+// - the modular family (Z/nZ), detected via the _Enable SFINAE hook ------
 
 // z3 / z5
 //   fixture semigroups: modular addition, with the modulus carried on the type
@@ -221,7 +221,7 @@ struct is_modular<DZ5> : std::true_type
 
 // DSgNoMarker
 //   type: has a semigroup_traits specialisation with combine but WITHOUT the
-// is_specialized marker -- is_semigroup must read false, since detection keys
+// is_specialized marker - is_semigroup must read false, since detection keys
 // on the marker rather than on the presence of combine.
 struct DSgNoMarker
 {
@@ -229,7 +229,7 @@ struct DSgNoMarker
 };
 
 
-// -- generic helper -------------------------------------------------------
+// - generic helper -------------------------------------------------------
 
 // thrice
 //   helper: the header's own generic example, x <> (x <> x), written against
@@ -244,7 +244,7 @@ _Semigroup thrice(
 }
 
 // can_mappend
-//   trait: detects whether mappend(A, B) is well-formed -- used to confirm the
+//   trait: detects whether mappend(A, B) is well-formed - used to confirm the
 // operation requires both operands to be the SAME semigroup type.
 template<typename _A, typename _B, typename = void>
 struct can_mappend : std::false_type
@@ -292,7 +292,7 @@ bool tests_mappend_requires_same_type();
 bool tests_mappend_runtime_domain();
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // semigroup_spec
 //   function: the suite as DTest's module spec, one block per section.
@@ -405,7 +405,7 @@ NS_END  // testing
 ///             FIXTURE SEMIGROUP INSTANCES  (djinterp scope)               ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// semigroup_traits<DSgString>  -- concatenation
+// semigroup_traits<DSgString>  - concatenation
 #ifndef DTEST_SPEC_MODE  // fixture instances - normal mode only
 template<>
 struct semigroup_traits<testing::DSgString, void>
@@ -422,7 +422,7 @@ struct semigroup_traits<testing::DSgString, void>
     }
 };
 
-// semigroup_traits<DSgSum>  -- addition (constexpr)
+// semigroup_traits<DSgSum>  - addition (constexpr)
 template<>
 struct semigroup_traits<testing::DSgSum, void>
 {
@@ -438,7 +438,7 @@ struct semigroup_traits<testing::DSgSum, void>
     }
 };
 
-// semigroup_traits<DSgMax>  -- max (constexpr, idempotent)
+// semigroup_traits<DSgMax>  - max (constexpr, idempotent)
 template<>
 struct semigroup_traits<testing::DSgMax, void>
 {
@@ -454,7 +454,7 @@ struct semigroup_traits<testing::DSgMax, void>
     }
 };
 
-// semigroup_traits<DSgFirst>  -- left projection (constexpr)
+// semigroup_traits<DSgFirst>  - left projection (constexpr)
 template<>
 struct semigroup_traits<testing::DSgFirst, void>
 {
@@ -471,7 +471,7 @@ struct semigroup_traits<testing::DSgFirst, void>
     }
 };
 
-// semigroup_traits<T : is_modular>  -- the family instance, via the _Enable
+// semigroup_traits<T : is_modular>  - the family instance, via the _Enable
 // SFINAE hook: one partial specialisation covers z3 and z5, taking the modulus
 // from the type.
 template<typename _Type>
@@ -491,7 +491,7 @@ struct semigroup_traits<
     }
 };
 
-// semigroup_traits<DSgNoMarker>  -- combine present, is_specialized ABSENT
+// semigroup_traits<DSgNoMarker>  - combine present, is_specialized ABSENT
 // (so is_semigroup<DSgNoMarker> must be false).
 template<>
 struct semigroup_traits<testing::DSgNoMarker, void>

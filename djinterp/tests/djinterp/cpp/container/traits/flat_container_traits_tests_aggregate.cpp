@@ -29,7 +29,7 @@ bool tests_flat_container_class()
 {
     bool _fc_ok = true;
 
-    // -- std::vector<int>: ordinary flat container --
+    // - std::vector<int>: ordinary flat container --
     {
         using C = DFlatContainerClass<std::vector<int>>;
         D_FC_CHECK( (C::is_container) );
@@ -39,7 +39,7 @@ bool tests_flat_container_class()
         D_FC_CHECK( (fc_cstr_eq(C::kind_name, "flat")) );
     }
 
-    // -- std::set<int>: flat despite the node-handle node_type --
+    // - std::set<int>: flat despite the node-handle node_type --
     {
         using C = DFlatContainerClass<std::set<int>>;
         D_FC_CHECK( (C::is_container && C::depth == 1) );
@@ -47,7 +47,7 @@ bool tests_flat_container_class()
         D_FC_CHECK( (C::kind == DStructureKind::flat) );
     }
 
-    // -- std::vector<std::vector<int>>: depth-heuristic hierarchy --
+    // - std::vector<std::vector<int>>: depth-heuristic hierarchy --
     {
         using C = DFlatContainerClass<std::vector<std::vector<int>>>;
         D_FC_CHECK( (C::is_container) );
@@ -57,7 +57,7 @@ bool tests_flat_container_class()
         D_FC_CHECK( (fc_cstr_eq(C::kind_name, "hierarchical")) );
     }
 
-    // -- node_box: node_type hierarchy at value_type-depth 1 --
+    // - node_box: node_type hierarchy at value_type-depth 1 --
     {
         using C = DFlatContainerClass<node_box>;
         D_FC_CHECK( (C::is_container && C::depth == 1) );   // depth is 1 ...
@@ -65,7 +65,7 @@ bool tests_flat_container_class()
         D_FC_CHECK( (C::kind == DStructureKind::hierarchical) );
     }
 
-    // -- hier_tagged: hierarchical tag at depth 1 --
+    // - hier_tagged: hierarchical tag at depth 1 --
     {
         using C = DFlatContainerClass<hier_tagged>;
         D_FC_CHECK( (C::is_container && C::depth == 1) );
@@ -73,7 +73,7 @@ bool tests_flat_container_class()
         D_FC_CHECK( (C::kind == DStructureKind::hierarchical) );
     }
 
-    // -- tagged_flat_str: the divergence - flat by tag, depth 2, kind flat --
+    // - tagged_flat_str: the divergence - flat by tag, depth 2, kind flat --
     {
         using C = DFlatContainerClass<tagged_flat_str>;
         D_FC_CHECK( (C::is_container) );
@@ -84,7 +84,7 @@ bool tests_flat_container_class()
         D_FC_CHECK( (fc_cstr_eq(C::kind_name, "flat")) );
     }
 
-    // -- int / forward_list: non-containers --
+    // - int / forward_list: non-containers --
     {
         using C = DFlatContainerClass<int>;
         D_FC_CHECK( (!C::is_container) );

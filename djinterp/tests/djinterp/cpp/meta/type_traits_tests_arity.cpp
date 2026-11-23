@@ -121,26 +121,26 @@ static_assert(is_single_arg<int, int>::value == false,
 //   `is_single_type_arg<_Probe, _Types...>` -> true iff _Types has
 // exactly one element AND that element == _Probe.
 
-// positive case -- exact match
+// positive case - exact match
 static_assert(is_single_type_arg<int, int>::value == true,
               "is_single_type_arg<int, int> -> true");
 static_assert(is_single_type_arg<double, double>::value == true,
               "is_single_type_arg<double, double> -> true");
 
-// negative case -- single arg but wrong type
+// negative case - single arg but wrong type
 static_assert(is_single_type_arg<int, char>::value == false,
               "is_single_type_arg<int, char> -> false (type mismatch)");
 static_assert(is_single_type_arg<long, int>::value == false,
               "is_single_type_arg<long, int> -> false (long != int)");
 
-// negative case -- wrong arity (2 instead of 1)
+// negative case - wrong arity (2 instead of 1)
 static_assert(is_single_type_arg<int, int, int>::value == false,
               "is_single_type_arg<int, int, int> -> false (arity)");
 
-// NOTE: is_single_type_arg<int> (no pack -- empty _Types...) is NOT
+// NOTE: is_single_type_arg<int> (no pack - empty _Types...) is NOT
 // tested because it hard-errors: see file header.
 
-// _v alias -- note its signature is `<_Types...>` not `<_Type, _Types...>`,
+// _v alias - note its signature is `<_Types...>` not `<_Type, _Types...>`,
 // so the first type given to it acts as the probe and the rest as the
 // candidates.
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES

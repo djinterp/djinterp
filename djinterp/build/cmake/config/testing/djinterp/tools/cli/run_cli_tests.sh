@@ -6,14 +6,14 @@
 # from anywhere, with a compiler and nothing else: the script twin of the
 # CMake leaf beside it.
 #   The argument parser's C sources and the kit's, with filesys, are compiled
-# as C, at the C floor, into one archive -- position-independent where the
+# as C, at the C floor, into one archive - position-independent where the
 # target has such a thing, so that a module links it; then the probe
 # modules the plugin suites load, `prog-KIND`, each its entry point and
 # nothing else exported; then the C suites at each level from the floor
 # (C99) up; where the linker wraps symbols (--wrap), the allocation sweep at
 # the floor, every allocation of the kit's cases refused in turn; and the
-# C++ suite -- the C++ face, called from C++ across a real language
-# boundary -- at each C++ level from the face's floor (C++98, in the
+# C++ suite - the C++ face, called from C++ across a real language
+# boundary - at each C++ level from the face's floor (C++98, in the
 # framework's strict ISO mode) up, and again without exceptions at the
 # lowest and the highest. Each run is given the probes' directory. A level
 # the compiler cannot select is left out, and said so; so is the C++ suite
@@ -104,7 +104,7 @@ KEEP_IN=( -Wl,--exclude-libs,ALL )
 LOADER=()
 CXX_STATIC=()
 
-# a Windows C++ suite is linked whole -- libstdc++, libgcc, winpthreads --
+# a Windows C++ suite is linked whole - libstdc++, libgcc, winpthreads --
 # so that it runs where those DLLs are not, as under Wine they are not
 case "${TARGET}" in
     *mingw*|*windows*|*cygwin*|*msys*)
@@ -190,8 +190,8 @@ CXX_SUITES=( "${TESTS}/cli_tests.cpp"
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/djinterp-cli.XXXXXX")"
 trap 'rm -rf "${WORK}"' EXIT
 
-# a compiler without the sanitizers' runtimes -- clang without its
-# compiler-rt, MinGW -- can make no run of --sanitize at all: said so, rather
+# a compiler without the sanitizers' runtimes - clang without its
+# compiler-rt, MinGW - can make no run of --sanitize at all: said so, rather
 # than as a build failing for want of a library
 if [[ "${sanitize}" -eq 1 ]] &&
    ! echo 'int main(void) { return 0; }' |
@@ -458,8 +458,8 @@ run_sweep()
 }
 
 # run_cxx_suites <level> <out directory> [-fno-exceptions]
-#   Builds the C++ suite at one C++ level -- the C++98 floor in strict ISO
-# -- and runs it, as run_suites does.
+#   Builds the C++ suite at one C++ level - the C++98 floor in strict ISO
+# - and runs it, as run_suites does.
 run_cxx_suites()
 {
     local level="$1" out="$2" flag="" binary="" tag=""

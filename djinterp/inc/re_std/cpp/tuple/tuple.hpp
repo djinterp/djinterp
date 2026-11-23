@@ -88,7 +88,7 @@
 // =============================================================================
 // In C++11 a constexpr member function is IMPLICITLY const. That makes the
 // non-const and const accessor pairs below (head / head_ref / tail_ref)
-// collapse into two functions differing only in return type -- ill-formed,
+// collapse into two functions differing only in return type - ill-formed,
 // and it took every tuple down on the C++11 tier. C++14 dropped the
 // implicit const, so the non-const halves are gated to C++14 and are
 // simply non-constexpr on C++11.
@@ -410,8 +410,8 @@ public:
     // Copy constructor, EXPLICITLY DEFAULTED.
     //
     //   Declaring the move assignment operator above suppresses the
-    // implicit copy constructor -- it is defined as DELETED, not merely
-    // left undeclared -- so without this line no re_std::tuple was
+    // implicit copy constructor - it is defined as DELETED, not merely
+    // left undeclared - so without this line no re_std::tuple was
     // copyable at all. The class still parses and every use site fails
     // instead, which is why it went unnoticed. (Copy ASSIGNMENT is
     // hand-written further up and was unaffected, which is why tuple
@@ -460,7 +460,7 @@ public:
     // THIS member, not through sizeof...(Tail) directly. A condition that
     // depends only on the enclosing class's parameters is already fixed by
     // the time the member is declared, so enable_if<false, ...> becomes a
-    // hard error instead of quietly removing the overload -- which made
+    // hard error instead of quietly removing the overload - which made
     // every tuple<A,B> ill-formed on instantiation, and took tuple_cat
     // down with it.
     template<typename    U1,
@@ -548,7 +548,7 @@ public:
 };
 
 
-}  // re_std -- inside the gate, like the opening it closes
+}  // re_std - inside the gate, like the opening it closes
 
 #endif  // variadic templates && rvalue references
 

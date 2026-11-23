@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/re_std/c/cstdint/CMakeLists.txt
+# djinterp [test]  -  build/cmake/config/testing/re_std/c/cstdint/CMakeLists.txt
 #
 #   Test leaf for re_std/c/cstdint/dstdint.h: the conformance harness
 # tests/re_std/c/cstdint/t_dstdint.c, built as a DTest suite

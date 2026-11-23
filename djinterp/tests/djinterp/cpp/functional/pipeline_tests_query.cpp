@@ -2,8 +2,8 @@
 * djinterp [cpp][functional]                            pipeline_tests_query.cpp
 *
 * Query / consumption tests (section iii):
-*   test_query    -- any, all, none, count over populated and empty pipelines.
-*   test_for_each -- visits every element for side effects and returns the
+*   test_query    - any, all, none, count over populated and empty pipelines.
+*   test_for_each - visits every element for side effects and returns the
 *                    same pipeline for chaining.
 *
 *

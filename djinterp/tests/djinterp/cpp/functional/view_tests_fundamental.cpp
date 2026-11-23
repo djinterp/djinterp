@@ -4,9 +4,9 @@
 * Fundamental view tests (section II): the non-owning, owning, and
 * iterator-pair wrappers.
 *
-*   test_ref_view           -- non-owning wrap over a container.
-*   test_owning_view        -- by-value capture of a (moved-in) container.
-*   test_iterator_pair_view -- a view defined by a raw [first, last) range.
+*   test_ref_view           - non-owning wrap over a container.
+*   test_owning_view        - by-value capture of a (moved-in) container.
+*   test_iterator_pair_view - a view defined by a raw [first, last) range.
 *
 *
 * path:      /tests/djinterp/cpp/functional/view_tests_fundamental.cpp

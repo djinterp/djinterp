@@ -37,7 +37,7 @@
 // dj_internal_huffman
 //   struct: a canonical code: how many codes of each length, its symbols
 //   in the code's order, and the table of codes no longer than
-//   D_INTERNAL_FAST bits -- each entry the code's length times 512 plus
+//   D_INTERNAL_FAST bits - each entry the code's length times 512 plus
 //   its symbol, 0 where no short code begins.
 struct dj_internal_huffman
 {

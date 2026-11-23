@@ -119,7 +119,7 @@ static_assert(std::is_copy_assignable<nonesuch>::value == false,
 //     - else                              ::type = _Default,
 //                                        ::value_t = std::false_type
 
-// success path -- value_type is int
+// success path - value_type is int
 static_assert(std::is_same<typename DDetectedOr<float,
                                                  has_value_type_expr,
                                                  with_int_value_type>::type,
@@ -131,7 +131,7 @@ static_assert(std::is_same<typename DDetectedOr<float,
                            std::true_type>::value,
               "detected_or success: value_t is std::true_type");
 
-// failure path -- falls back to the supplied default
+// failure path - falls back to the supplied default
 static_assert(std::is_same<typename DDetectedOr<float,
                                                  has_value_type_expr,
                                                  without_value_type>::type,
@@ -219,7 +219,7 @@ static_assert(is_detected_convertible<long,
                                        with_unrelated_value_type>::value == false,
               "is_detected_convertible: opaque probed, not convertible to long -> false");
 
-// failure (probe ill-formed) -- nonesuch is not convertible to anything
+// failure (probe ill-formed) - nonesuch is not convertible to anything
 static_assert(is_detected_convertible<long,
                                        has_value_type_expr,
                                        without_value_type>::value == false,
@@ -253,13 +253,13 @@ static_assert(is_detected_exact<long,
                                  with_int_value_type>::value == false,
               "is_detected_exact: long does not match int -> false");
 
-// failure -- nonesuch != int
+// failure - nonesuch != int
 static_assert(is_detected_exact<int,
                                  has_value_type_expr,
                                  without_value_type>::value == false,
               "is_detected_exact: probe failure (nonesuch != int) -> false");
 
-// exact with cv-qualified expected -- strict type-identity
+// exact with cv-qualified expected - strict type-identity
 static_assert(is_detected_exact<const int,
                                  has_value_type_expr,
                                  with_int_value_type>::value == false,

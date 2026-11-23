@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][utility]                                            archive.cpp
 *
-*   The C++ facade's dispatch leaves -- four adapters, and nothing else.
+*   The C++ facade's dispatch leaves - four adapters, and nothing else.
 *
 *   WHAT THIS FILE USED TO BE:
 *   tar and zip writers, plus libarchive / libzip / minizip / 7-Zip / unrar
@@ -12,8 +12,8 @@
 * be installed on the build machine.
 *
 *   WHAT AN ADAPTER DOES:
-*   Lower the C++ types to the kernel's borrowed forms, call in, and -- for
-* extraction -- lift the result back.  Nothing here decides a default, selects
+*   Lower the C++ types to the kernel's borrowed forms, call in, and - for
+* extraction - lift the result back.  Nothing here decides a default, selects
 * a backend, or knows what a container looks like.
 *
 *   WHERE THE ALLOCATION LIVES, AND WHY THAT IS CORRECT:

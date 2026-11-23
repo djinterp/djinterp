@@ -4,8 +4,8 @@
 *   Build-time defaults for how DTest packages its report: whether the report
 * file is written as it is, compressed or put in a container, with which codec
 * and container, and whether the container's entries are stored or compressed.
-*   Every knob here is a default. A test_option_set's slots -- pack,
-* compressor, archive_format, compress_opts and archive_opts -- are the runtime
+*   Every knob here is a default. A test_option_set's slots - pack,
+* compressor, archive_format, compress_opts and archive_opts - are the runtime
 * options and always win; these choose only what default_test_options() holds
 * (the owner's ruling of 2026-11-09: complete configurability when the user
 * decides, sensible defaults when not).

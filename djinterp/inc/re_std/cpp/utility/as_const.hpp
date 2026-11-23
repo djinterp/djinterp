@@ -50,7 +50,7 @@ typename add_const<Type>::type& as_const(Type& _value) noexcept
 }
 
 // as_const (rvalue overload, deleted)
-//   function: forbidden -- as_const on an rvalue would return a
+//   function: forbidden - as_const on an rvalue would return a
 //   reference to a soon-to-die temporary. Deletion is part of the
 //   standard's interface.
 template<typename Type>

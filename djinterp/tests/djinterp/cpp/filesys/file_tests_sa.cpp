@@ -3,7 +3,7 @@
 *
 *   Unit tests for djinterp::file (inc/djinterp/cpp/file.hpp) and the
 * djinterp::error it reports through (inc/djinterp/cpp/error.hpp). One file for
-* the class, sibling to path_tests_sa.cpp -- same three rules, same harness,
+* the class, sibling to path_tests_sa.cpp - same three rules, same harness,
 * one difference that matters: `file` is a resource, not a value. `path` could
 * be tested with pure comparisons and no world; `file` owns an open FILE*, so
 * these assertions do real I/O against a real scratch file and then check what
@@ -27,12 +27,12 @@
 *      inside the file can.
 *
 *   What is not asserted here, and why.
-*      `file` is non-copyable on every tier -- the copy constructor and
+*      `file` is non-copyable on every tier - the copy constructor and
 *   copy-assignment are deleted. That is a compile-time guarantee: there is no
 *   run-time behaviour to observe, because the program that copies a file does
 *   not compile. It is verified by a negative-compile check outside this file
 *   (a TU that copies a file and must fail to build), not by a leaf in the tree
-*   -- asserting it at run time would require the very code that cannot exist.
+*   - asserting it at run time would require the very code that cannot exist.
 *
 *   Why this file carries its own harness.
 *      Identical reason to the sibling: the C harness is not yet
@@ -43,7 +43,7 @@
 *
 *   The scratch file.
 *      Groups that need a file make one with d_tests_file_scratch() (a distinct
-*   name per call) and remove() it when done -- remove() and fopen() are
+*   name per call) and remove() it when done - remove() and fopen() are
 *   standard C, so the test itself keeps the header's discipline: no platform
 *   call anywhere. A missing-file path uses a name under a directory that does
 *   not exist, so the open fails for the reason the assertion expects.
@@ -126,7 +126,7 @@ XI.   TEMP                      anonymous temp file + temp_directory_path (Phase
 // --- 0.1  dj_test_object ---
 
 // dj_test_object
-//   struct: a node in the result tree -- a leaf (assertion) or an interior
+//   struct: a node in the result tree - a leaf (assertion) or an interior
 // group. The layout matches the C harness's, so the bodies below are
 // source-compatible with the real framework once it is C++-consumable.
 struct dj_test_object
@@ -212,7 +212,7 @@ struct dj_test_object* d_test_object_new_interior(
 
 // d_test_object_free
 //   function: release a tree. Present so the whole run is leak-clean under a
-// sanitizer -- the same standard the c/filesys suite is held to.
+// sanitizer - the same standard the c/filesys suite is held to.
 static
 void d_test_object_free(
     struct dj_test_object* _obj
@@ -258,7 +258,7 @@ void d_test_object_free(
 // d_tests_file_group
 //   function: build an interior node from assertions the caller already
 // created, taking the count from what the caller actually filled.
-//   The count is DERIVED, not asserted -- so a conditionally-omitted assertion
+//   The count is DERIVED, not asserted - so a conditionally-omitted assertion
 // simply makes the group smaller, and there is no second number to drift out
 // of sync. Same mechanism the fs suite introduced to delete a bug class.
 static
@@ -355,7 +355,7 @@ void d_tests_file_print(
 
 // d_tests_file_scratch
 //   function: a distinct filename per call, in the working directory, for a
-// group that needs a real file. Standard C throughout -- no platform call --
+// group that needs a real file. Standard C throughout - no platform call --
 // so the test keeps the header's no-OS discipline. The caller remove()s it.
 static
 const char* d_tests_file_scratch(void)
@@ -667,7 +667,7 @@ struct dj_test_object* d_tests_file_durability(void)
 
 /*
 d_tests_file_error_type
-  djinterp::error in isolation -- the failure channel, before any file touches
+  djinterp::error in isolation - the failure channel, before any file touches
 it. A pure value type, tested the way path's value assertions are.
   Tests the following:
   - a default error is success; one from a code has failed() and carries it
@@ -749,7 +749,7 @@ error type earns its place: every one of these would otherwise be a bare int
 the caller has to remember the meaning of.
   Tests the following:
   - open of a missing path fails with ENOENT and opens nothing
-  - open of an INVALID path is EINVAL -- rejected, not handed to fopen as ""
+  - open of an INVALID path is EINVAL - rejected, not handed to fopen as ""
   - read / seek / tell on a closed handle are each EBADF
 */
 static
@@ -826,7 +826,7 @@ struct dj_test_object* d_tests_file_failure(void)
 
 /*
 d_tests_file_ownership
-  The move handoff -- a C++11 ADDITION, absent on C++98 (the group is smaller
+  The move handoff - a C++11 ADDITION, absent on C++98 (the group is smaller
 there and its name says so, not a green skip).
   Non-copyability is NOT here: the copy operations are deleted, so a program
 that copies a file does not compile, and there is no run-time behaviour to
@@ -904,7 +904,7 @@ struct dj_test_object* d_tests_file_ownership(void)
 
 /*
 d_tests_file_desc_lock
-  The fd bridge and advisory locking -- both available on every tier (they are
+  The fd bridge and advisory locking - both available on every tier (they are
 methods, not a language feature), so this group is the same size everywhere.
   Tests the following:
   - descriptor() borrows a valid fd from an open file, and is EBADF when closed
@@ -1005,7 +1005,7 @@ struct dj_test_object* d_tests_file_desc_lock(void)
 
 /*
 d_tests_file_status
-  file::status() is the TOCTOU-free metadata query -- an fstat on the open
+  file::status() is the TOCTOU-free metadata query - an fstat on the open
 descriptor, describing the very file the handle holds rather than whatever a
 path might resolve to. All-tier, like the other methods.
   Tests the following:
@@ -1127,8 +1127,8 @@ struct dj_test_object* d_tests_file_temp(void)
 /*
 d_tests_file_all
   Builds the whole result tree. The count is derived from what actually ran, so
-a group made empty by configuration contributes nothing -- not an empty group,
-not a green "skipped" -- exactly as the c/filesys master runner does.
+a group made empty by configuration contributes nothing - not an empty group,
+not a green "skipped" - exactly as the c/filesys master runner does.
 */
 static
 struct dj_test_object* d_tests_file_all(void)

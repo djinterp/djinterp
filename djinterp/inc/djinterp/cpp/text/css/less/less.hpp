@@ -8,7 +8,7 @@
 * operations, plugins). The Less facades extend the CSS facades so
 * that storage and memory layout are unchanged below the extension
 * surface; Less-specific behaviour is added via methods and free
-* functions only -- never via additional state on the inherited CSS
+* functions only - never via additional state on the inherited CSS
 * shape.
 *
 *   ZERO OVERHEAD:
@@ -27,11 +27,11 @@
 *
 *   KEY DIFFERENCES FROM SASS:
 *   - Variables use `@name: value;` (not `$name: value;`).
-*   - Mixins are NOT a separate declaration form -- any rule
+*   - Mixins are NOT a separate declaration form - any rule
 *     `.name() { ... }` or `.name { ... }` is callable.
 *   - Mixin guards use `when (...)` after the parameter list.
 *   - Extension uses `:extend(selector)` pseudo or `&:extend(...)`.
-*   - No module system -- everything is `@import` (with optional
+*   - No module system - everything is `@import` (with optional
 *     filter keywords: `(less)`, `(css)`, `(reference)`, `(once)`,
 *     `(multiple)`, `(inline)`, `(optional)`).
 *   - Interpolation uses `@{name}` (not `#{name}`).
@@ -183,7 +183,7 @@ enum class DLessRuleKind : re_std::uint8_t
     mixin_definition,           // .name(params) { ... } with body
     mixin_call,                 // .name(args); top-level invocation
     parametric_mixin,           // mixin with a parameter list
-    rule_set_alias,             // .name() { ... }; -- pattern-matching
+    rule_set_alias,             // .name() { ... }; - pattern-matching
                                 //   mixin with the trailing ; to
                                 //   suppress emission
 
@@ -193,7 +193,7 @@ enum class DLessRuleKind : re_std::uint8_t
 
     // guards
     guarded_mixin,              // .name() when (condition) { ... }
-    guard_condition,            // when (condition) -- statement form
+    guard_condition,            // when (condition) - statement form
 
     // imports
     import_with_options,        // @import (reference) 'file.less';
@@ -244,13 +244,13 @@ enum class DLessAtRuleKind : re_std::uint8_t
 enum DLessImportOption : unsigned
 {
     lio_none      = 0u,
-    lio_reference = 1u << 0,    // (reference) -- import without emit
-    lio_inline_   = 1u << 1,    // (inline) -- copy raw content
-    lio_less      = 1u << 2,    // (less) -- force Less parsing
-    lio_css       = 1u << 3,    // (css) -- emit unchanged
-    lio_once      = 1u << 4,    // (once) -- default behaviour
-    lio_multiple  = 1u << 5,    // (multiple) -- re-import
-    lio_optional  = 1u << 6     // (optional) -- skip if missing
+    lio_reference = 1u << 0,    // (reference) - import without emit
+    lio_inline_   = 1u << 1,    // (inline) - copy raw content
+    lio_less      = 1u << 2,    // (less) - force Less parsing
+    lio_css       = 1u << 3,    // (css) - emit unchanged
+    lio_once      = 1u << 4,    // (once) - default behaviour
+    lio_multiple  = 1u << 5,    // (multiple) - re-import
+    lio_optional  = 1u << 6     // (optional) - skip if missing
 };
 
 
@@ -261,8 +261,8 @@ enum DLessImportOption : unsigned
 enum class DLessMergeMode : re_std::uint8_t
 {
     none,                       // no merge (default)
-    comma,                      // `prop+: ...` -- comma-merge
-    space                       // `prop+_: ...` -- space-merge
+    comma,                      // `prop+: ...` - comma-merge
+    space                       // `prop+_: ...` - space-merge
 };
 
 
@@ -619,7 +619,7 @@ bool is_less_property_variable_name(
 
 
 // less_internal_has_paren
-//   function: whether a string holds a '(' -- a loop, which a
+//   function: whether a string holds a '(' - a loop, which a
 // constexpr function may hold from C++14, so nothing recursive is
 // forced inline.
 D_CONSTEXPR inline

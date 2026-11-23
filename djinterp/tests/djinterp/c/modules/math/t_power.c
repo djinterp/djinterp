@@ -4,13 +4,13 @@
 *   Conformance harness for c/math/power.h. cbrt_c must be the correctly
 * rounded cube root. For float that is checked exactly: |x| must lie strictly
 * between the cubes of the midpoints about the result, each cube taken as an
-* exact long double pair -- at one float pattern in 509 across the whole
+* exact long double pair - at one float pattern in 509 across the whole
 * range, at every float in the first and last 2^-6 of [1, 8), where the
 * reduction's interval begins and ends, and at every subnormal with a single
 * bit set and one in 61 of the rest; and the result within an ulp of cbrtf.
 *
-*   For double, three million arguments -- random patterns of either sign and
-* values in [1, 8) -- within three ulps of cbrt (glibc's is up to three from
+*   For double, three million arguments - random patterns of either sign and
+* values in [1, 8) - within three ulps of cbrt (glibc's is up to three from
 * the correctly rounded root), how many differ at all printed; and exact
 * against values from a 400-bit computation: roots of 2, 3 and 10, the range's
 * ends, the perfect cubes, and eight arguments whose root lies within 2e-7 ulp
@@ -21,7 +21,7 @@
 * sum must. NaN, the zeros, the infinities and the subnormals, every family.
 *
 *   pow_c must be correctly rounded too. For float, at a million pairs over
-* six ranges -- x about 1, any x with x^y anywhere in range, integer powers
+* six ranges - x about 1, any x with x^y anywhere in range, integer powers
 * of either sign, x near 1 to a large y, subnormal results, subnormal x --
 * against the double library's pow rounded to float wherever that decides,
 * and within two ulps of powf. For double, two million pairs within two ulps
@@ -38,10 +38,10 @@
 *
 *   hypot_c must be correctly rounded. For float that is checked exactly: the
 * midpoints about the result squared against x^2 + y^2, each exact in long
-* double -- at a million pairs over six ranges: any two values, the
+* double - at a million pairs over six ranges: any two values, the
 * subnormals among them; y/x from 2^-30 to 1; the smaller about where it
 * stops mattering; both subnormal; x in the top binade; integers, many
-* results exact -- and the result within an ulp of hypotf. For double, two
+* results exact - and the result within an ulp of hypotf. For double, two
 * million pairs within an ulp of hypot, how many differ printed, and pairs
 * of integers below 2^26 against sqrt_c of their squares' exact sum; for long
 * double, in whatever format, a million within an ulp of hypotl and the
@@ -56,7 +56,7 @@
 * every positive float with 1 and with 3/4 of itself for hypot_c (its count
 * wants a 64-bit long). Compiled as C++, it checks the overloads; from C++14,
 * that cbrt_c, pow_c and hypot_c are constant expressions, for every family,
-* with the bits they have at run time. It needs no 64-bit integer -- its
+* with the bits they have at run time. It needs no 64-bit integer - its
 * random numbers come from math_tests_random.h, the same in every build --
 * so that ISO-strict C++98 on a 32-bit target, where dj_math_umax has 32
 * bits, builds it too.
@@ -212,7 +212,7 @@ d_tests_cube_sign(long double _a, long double _mid)
 
 // d_tests_cbrt_correct_f
 //   whether _r is the correctly rounded cube root of _x: |_x| strictly
-// between the cubes of the midpoints about |_r| -- half the gap above it,
+// between the cubes of the midpoints about |_r| - half the gap above it,
 // and half the gap below it, which is half as wide at a power of 2.
 static bool
 d_tests_cbrt_correct_f(float _x, float _r)
@@ -499,7 +499,7 @@ d_tests_long_double(void)
 // d_tests_cube_sign_exact
 //   the sign test cbrt_c settles its last bit by: at t + h of few bits, so
 // that (t + h)^3 is exact in any long double, against that cube and the
-// long doubles either side of it -- 0, -1 and 1 -- where the approximation
+// long doubles either side of it - 0, -1 and 1 - where the approximation
 // lies within its error bound of 0 and the exact sum decides.
 static void
 d_tests_cube_sign_exact(void)
@@ -577,7 +577,7 @@ d_tests_specials(void)
                                     1.7031839360032603e-108)),
                     "cbrt_c of the least subnormal", 0);
 
-    // the plain form is the C library's -- read through volatiles, so that
+    // the plain form is the C library's - read through volatiles, so that
     // no compiler folds the call into its own correctly rounded constant --
     // but in C++ before C++11, which has no cbrt, where it is cbrt_c
 #if ( defined(__cplusplus) &&                                                 \
@@ -597,8 +597,8 @@ d_tests_specials(void)
 }
 
 // d_tests_pow_reference_f
-//   x^y correctly rounded to float, from the C library's double pow -- within
-// a little over half a double's last place of x^y -- where that lies past
+//   x^y correctly rounded to float, from the C library's double pow - within
+// a little over half a double's last place of x^y - where that lies past
 // 2^-44 of x^y from a float's midpoint, as it does at all but about one
 // argument in a hundred million: then true, the float in *_want.
 static bool
@@ -817,8 +817,8 @@ d_tests_pow_float(
 }
 
 // d_tests_pow_double
-//   pow_c within two ulps of pow -- glibc's is within a little over half an
-// ulp -- at two million argument pairs in six ranges; how many differ at all
+//   pow_c within two ulps of pow - glibc's is within a little over half an
+// ulp - at two million argument pairs in six ranges; how many differ at all
 // printed.
 static void
 d_tests_pow_double(void)
@@ -1018,8 +1018,8 @@ d_tests_pow_edges(void)
 
 // d_tests_reciprocal_d
 //   whether _q is 1/_r correctly rounded, _r normal: 1/r - q = (1 - q r)/r
-// within half the gap about q, q r exact as Dekker's pair -- 1 - q r is a
-// double's remainder, exact where q is the rounded quotient -- and the
+// within half the gap about q, q r exact as Dekker's pair - 1 - q r is a
+// double's remainder, exact where q is the rounded quotient - and the
 // comparison in long double, which cannot misjudge: 1/r never lies on a
 // midpoint, nor nearer one than 2^-54 of its last place.
 static bool
@@ -1059,8 +1059,8 @@ d_tests_pow_exact(void)
     for (i = 0; i < 200000; ++i)
     {
         // x of at most 13 bits: x^2 and x^3 exact in a double; and a float
-        // of 13 bits, whose square has 25 or 26 -- a midpoint, or rounded
-        // -- against the exact square rounded once
+        // of 13 bits, whose square has 25 or 26 - a midpoint, or rounded
+        // - against the exact square rounded once
         const double   x  = ldexp((double)(1u + (unsigned)d_tests_below(8191u)),
                                   (int)d_tests_below(200u) - 100);
         const uint32_t m  = 4097u + (uint32_t)d_tests_below(4095u);
@@ -1366,7 +1366,7 @@ d_tests_pow_specials(void)
 // _emin to _emax with _mant bits: 0, x and y of any size, the subnormals
 // among them; 1, y/x in [2^-30, 1], x anywhere; 2, y/x from 2^-(P/2) to
 // 2^-(P + 4), where the smaller stops mattering; 3, both subnormal; 4, x in
-// the top binade; 5, integers below 2^(P/2 + 2) in a random binade -- many
+// the top binade; 5, integers below 2^(P/2 + 2) in a random binade - many
 // exact results among them. Either sign, either order.
 static void
 d_tests_hypot_args(
@@ -1471,7 +1471,7 @@ d_tests_hypot_sign_f(
 // d_tests_hypot_correct_f
 //   whether _r is hypot(_x, _y) correctly rounded: the midpoints about _r --
 // half the gap above it and below it, which is half as wide at a power of 2
-// -- the one above past the root, or on it with _r even, and the one below
+// - the one above past the root, or on it with _r even, and the one below
 // short of it, or on it with _r even. +inf where the root lies on or past
 // the midpoint above FLT_MAX; and C's special values.
 static bool
@@ -1601,7 +1601,7 @@ d_tests_hypot_float(
 }
 
 // d_tests_hypot_double
-//   hypot_c within an ulp of hypot -- glibc's is within one -- at two million
+//   hypot_c within an ulp of hypot - glibc's is within one - at two million
 // argument pairs in six ranges, how many differ at all printed; and, at
 // pairs of integers below 2^26 in a random binade, whose squares' sum is
 // exact in a double, the square root of that sum: sqrt_c's, correctly
@@ -2103,7 +2103,7 @@ d_tests_hypot_long_double(void)
 // d_tests_hypot_sign
 //   the sign test the last bit is settled by, about squares of few bits:
 // for (a, b) a Pythagorean pair's legs scaled so that a lies in [1, 2), and
-// t + h their hypotenuse, a^2 + b^2 is (t + h)^2 exactly -- 0 -- and with b
+// t + h their hypotenuse, a^2 + b^2 is (t + h)^2 exactly - 0 - and with b
 // a last place either way, -1 or 1: where the approximation lies within
 // its bound and the exact sum decides.
 static void

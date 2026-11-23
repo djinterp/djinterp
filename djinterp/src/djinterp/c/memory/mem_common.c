@@ -3,7 +3,7 @@
 *
 *   Implementation unit for mem_common.h. Carries the out-of-line vocabulary --
 * block views, checked arithmetic, slot geometry, accounting, the hardening
-* fills and the status names -- and re-declares the header's `inline` kernels
+* fills and the status names - and re-declares the header's `inline` kernels
 * so exactly one external definition of each is emitted for the compiled C
 * library (no effect under D_CFG_MEM_HEADER_ONLY).
 *
@@ -21,7 +21,7 @@
 * `inline` with their bodies in the header, so a C++ TU and an inlining C
 * caller use them directly. Under C99 inline rules that emits NO external
 * definition, which a non-inlined call (at -O0) or a taken address still
-* needs -- so exactly one translation unit must re-declare each of them with
+* needs - so exactly one translation unit must re-declare each of them with
 * `extern inline`, and this is that unit.
 *   Under D_CFG_MEM_HEADER_ONLY the kernels are `static inline` instead,
 * every TU carries its own copy, and re-declaring here would emit a second
@@ -194,7 +194,7 @@ d_mem_block_contains
   NOTE ON PORTABILITY: this compares pointers that are not necessarily part of
 the same array object, which the standard leaves unspecified. Every allocator
 in this subframework needs the question answered anyway, so the comparison is
-done ONCE, here, through uintptr_t -- where the ordering is defined by the
+done ONCE, here, through uintptr_t - where the ordering is defined by the
 implementation's address mapping rather than left to the language.
 
 Parameter(s):
@@ -348,7 +348,7 @@ d_mem_mul_checked(
 d_mem_slot_align
   Computes the alignment a fixed-size slot must carry.
   When the slot will hold an intrusive link while unused, it must also satisfy
-that link's alignment -- which is the whole reason slot geometry is a
+that link's alignment - which is the whole reason slot geometry is a
 computation rather than a copy of the caller's request.
   The link's alignment is a PARAMETER rather than a flag, because the link is
 not always a pointer: a pool threading its free list by 32-bit index needs
@@ -425,7 +425,7 @@ dj_mem_size d_mem_slot_size(
     // same width: the leading one is rounded up to the slot alignment so that
     // the payload, which starts after it, stays aligned. That asymmetry is
     // why this is d_mem_redzone_lead plus D_MEM_REDZONE_BYTES rather than
-    // D_MEM_REDZONE_TOTAL -- and getting it wrong put the leading band on top
+    // D_MEM_REDZONE_TOTAL - and getting it wrong put the leading band on top
     // of the preceding block's header.
     if (D_MEM_REDZONE_BYTES != 0)
     {
@@ -717,7 +717,7 @@ void d_mem_poison(
 /*
 d_mem_poison_free
   Fills a range with the release poison byte. Distinct from d_mem_poison so
-that a dump distinguishes "never written" from "written, then freed" -- which
+that a dump distinguishes "never written" from "written, then freed" - which
 is the difference between an initialisation bug and a use-after-free.
 
 Parameter(s):
@@ -747,7 +747,7 @@ void d_mem_poison_free(
 
 /*
 d_mem_zero
-  Fills a range with zero. Unconditional -- this is the routine a caller asks
+  Fills a range with zero. Unconditional - this is the routine a caller asks
 for explicitly, as distinct from d_mem_prepare, which honours the configured
 policy.
 
@@ -918,7 +918,7 @@ format change and not a cosmetic edit.
 Parameter(s):
   _status: the status to name.
 Return:
-  A pointer to a static, null-terminated name. Never NULL -- an unrecognized
+  A pointer to a static, null-terminated name. Never NULL - an unrecognized
 value yields "unknown", so a caller may print the result without checking it.
 */
 const char*

@@ -82,7 +82,7 @@ bool tests_sort_dispatch_runtime_unrecognised_is_noop()
 
     //   The switch has no default label, so an enumerator outside the six
     // falls through and the range is left exactly as it was.  The header
-    // documents this as a no-op; "no-op" is checked strictly -- not merely
+    // documents this as a no-op; "no-op" is checked strictly - not merely
     // "still a permutation", but byte-for-byte unchanged, with the
     // comparator never consulted.
     data        = shape_random(64);

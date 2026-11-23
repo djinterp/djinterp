@@ -2,8 +2,8 @@
 * djinterp [cpp][functional]                                        foldable.hpp
 *
 * Foldable protocol and the generic folds (C++).
-*   A foldable here is a type constructor F<T> -- a context holding zero or
-* more values of type T -- that can be collapsed to a single accumulated
+*   A foldable here is a type constructor F<T> - a context holding zero or
+* more values of type T - that can be collapsed to a single accumulated
 * result by threading a binary reducer through its elements. Where Functor
 * unified the per-type map, Foldable unifies the per-type fold: maybe<T> and
 * result<T, E> fold over their zero-or-one carried value, a lazy view or a
@@ -11,7 +11,7 @@
 * them with a single call.
 *
 *   Because C++ has no native type classes, a foldable is recognized by
-* specializing foldable_traits<F> with one operation, fold_left -- the strict
+* specializing foldable_traits<F> with one operation, fold_left - the strict
 * left fold (acc, x) -> acc that matches reduce.hpp's runtime driver. That one
 * obligation is enough: fold_right, fold_map, length, emptiness, and the
 * any/all reductions are all derived once, generically, for every foldable.
@@ -20,7 +20,7 @@
 *
 *   Unlike Functor and Applicative, Foldable has no monad bridge: a fold is not
 * expressible through unit and bind, so there is nothing to derive from
-* is_monad. Each foldable supplies its own one-line fold_left instead -- maybe
+* is_monad. Each foldable supplies its own one-line fold_left instead - maybe
 * and result over their carried value, view and producer over their sequence.
 * foldable.hpp therefore stands on the core header alone.
 *
@@ -214,7 +214,7 @@ using foldable_value_type_t = typename foldable_value_type<Foldable>::type;
 //   instance: the canonical container foldable. A std::vector folds over its
 // elements in order. This is provided here (rather than in a type header)
 // because std::vector is a standard type with no djinterp header of its own,
-// and it is the natural materialized foldable -- the target of fold_to_vector
+// and it is the natural materialized foldable - the target of fold_to_vector
 // and the usual argument to mconcat. Written in the explicit two-argument
 // `<T, void>` form against the SFINAE-hooked primary.
 template<typename Type>
@@ -253,7 +253,7 @@ struct foldable_traits<std::vector<Type>, void>
 ///////////////////////////////////////////////////////////////////////////////
 //   DUAL DOMAIN. fold_left delegates to foldable_traits<F>::fold_left; under
 // C++20 it folds at compile time over a foldable whose elements live in a
-// constant expression, and runs at runtime otherwise -- the same conditional-
+// constant expression, and runs at runtime otherwise - the same conditional-
 // constexpr behavior as monad_map / functor_map. The materializing folds
 // (fold_right, fold_to_vector) build a std::vector and so are D_CONSTEXPR
 // (std::vector is a literal type only from C++20). Every operation past
@@ -285,7 +285,7 @@ auto fold_left(
 NS_INTERNAL
 
     // DFoldablePushHelper
-    //   helper: the reducer behind fold_to_vector -- appends each element to
+    //   helper: the reducer behind fold_to_vector - appends each element to
     // the accumulating vector and threads it on by move (so the whole
     // collection is O(n)). A named functor (not a lambda) keeps the reducer
     // usable on every floor.
@@ -305,7 +305,7 @@ NS_INTERNAL
     };
 
     // DFoldableCountHelper
-    //   helper: the reducer behind fold_length -- ignores the element and
+    //   helper: the reducer behind fold_length - ignores the element and
     // increments the running count.
     template<typename Value>
     struct DFoldableCountHelper
@@ -322,7 +322,7 @@ NS_INTERNAL
     };
 
     // DFoldableEmptinessHelper
-    //   helper: the reducer behind fold_is_empty -- the first element seen
+    //   helper: the reducer behind fold_is_empty - the first element seen
     // flips the accumulator to false.
     template<typename Value>
     struct DFoldableEmptinessHelper

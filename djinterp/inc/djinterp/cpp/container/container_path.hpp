@@ -18,7 +18,7 @@
 * same object; the whole of what follows turns on keeping them apart.
 *
 *     PATH      path(n) = ( c |> n_1 |> ... |> n_N ),   a chain of COMPONENTS.
-*               It NAMES N + 1 components -- the root among them.
+*               It NAMES N + 1 components - the root among them.
 *     ADDRESS   addr(n) = < gamma(n_1), ..., gamma(n_N) >,  a word of LABELS.
 *               It carries N labels.  THE ROOT CONTRIBUTES NONE: addressing
 *               starts from the root, it is not a step taken.
@@ -33,7 +33,7 @@
 * container_path_round_trips will assert it over a whole subtree.
 *
 * SEPARATION IS A PRECONDITION, NOT A NICETY. The round trip holds if and only
-* if the labelling SEPARATES -- the children of every node bear distinct
+* if the labelling SEPARATES - the children of every node bear distinct
 * components.  That is the multiplicity restriction mu_1 read sibling-wise:
 * under
 * it a node's children are a MAP from label to child.  Without it, one address
@@ -60,7 +60,7 @@
 *     exclusive.  (Two neighbours already had this right:
 * container_path_relative
 *     stops at the lca, and path_split("/a/b") yields ["a","b"].)
-*   - relative() returned {0, {}} when the lca was null -- the same value it
+*   - relative() returned {0, {}} when the lca was null - the same value it
 *     returns for relative(a, a).  path_address now carries `valid`.
 *   - The sibling scan was open-coded twice here and once more in the iterator
 *     header. Resolution now folds tree_find_child, which is the descent step.
@@ -153,8 +153,8 @@ NS_DJINTERP
 // resolve.
 //
 // SEPARATION.  Every operation that RESOLVES presupposes that the children of a
-// node bear DISTINCT components.  The policy cannot enforce this -- it is a
-// property of the tree, not of the accessor -- so it is stated here and decided
+// node bear DISTINCT components.  The policy cannot enforce this - it is a
+// property of the tree, not of the accessor - so it is stated here and decided
 // by container_path_is_separating.  A tree that does not separate is at best
 // MULTI-addressable: a label names a SET of children, and no resolve inverts
 // addressing.
@@ -214,7 +214,7 @@ using component_view = DComponentView;
 // ================================================================
 
 // DPathAddress
-//   struct: a RELATIVE address -- the (k, v) pair of the spec. k ascents from
+//   struct: a RELATIVE address - the (k, v) pair of the spec. k ascents from
 // the source to the meet of the two addresses, followed by the label word v
 // descending from the meet to the destination.
 //
@@ -262,7 +262,7 @@ using path_address = DPathAddress<Component>;
 
 // container_path_resolve
 //   function: descends from _root, consuming one label per CHILD step, and
-// returns the component the label word names -- or the null sentinel if any
+// returns the component the label word names - or the null sentinel if any
 // label matches no child.
 //
 //   This is the fold of the descent step (tree_find_child) along the word. A
@@ -349,7 +349,7 @@ Index container_path_resolve(
 // ================================================================
 
 // container_path_root
-//   function: the root of _id's tree -- the ancestor with no parent. Returns
+//   function: the root of _id's tree - the ancestor with no parent. Returns
 // _id itself when _id is already a root, and the null sentinel when _id is
 // null.
 template<typename Policy,
@@ -381,7 +381,7 @@ Index container_path_root(
 
 
 // container_path_level
-//   function: the LEVEL (lambda) of _id -- the number of parent links from _id
+//   function: the LEVEL (lambda) of _id - the number of parent links from _id
 // up to its root, which is at level 0. This is the length of _id's address.
 //
 //   It is NOT the spec's depth, which is a node's HEIGHT, counted downward to
@@ -450,7 +450,7 @@ std::size_t container_path_depth(
 // ================================================================
 
 // container_path_address
-//   function: the ADDRESS of _id relative to _anchor -- the word of labels
+//   function: the ADDRESS of _id relative to _anchor - the word of labels
 // along path(_id), root-first.
 //
 //   THE ANCHOR CONTRIBUTES NO LABEL. Addressing starts from the anchor; the
@@ -513,14 +513,14 @@ std::vector<typename Policy::component_type> container_path_address(
 
 
 // container_path_collect
-//   function: the ABSOLUTE address of _id -- its label word from the root of
+//   function: the ABSOLUTE address of _id - its label word from the root of
 // its own tree. The compatibility spelling of container_path_address.
 //
 //   BEHAVIOUR CHANGE. This used to include the ROOT's own component, returning
 // level(_id) + 1 labels where resolve consumes level(_id). It no longer does:
 // the root contributes no label, so collect(root) is now the EMPTY word and
 // collect(n) has exactly level(n) entries. container_path_build, which is
-// built on this, is corrected by the same stroke -- it no longer prefixes the
+// built on this, is corrected by the same stroke - it no longer prefixes the
 // root's name to every path it renders.
 template<typename Policy,
          typename Container,
@@ -564,7 +564,7 @@ std::vector<typename Policy::component_type> container_path_collect(
 // parent up to the root.
 //
 //   These are the components named by the PROPER PREFIXES of addr(_id), and
-// there are exactly level(_id) of them -- one per prefix. The walk is the path
+// there are exactly level(_id) of them - one per prefix. The walk is the path
 // iterator; the vector is only for callers that need to keep the chain. A
 // caller that merely wants to WALK it should use make_path_view and allocate
 // nothing.
@@ -592,7 +592,7 @@ std::vector<Index> container_path_ancestors(
 }
 
 // container_path_ancestor_chain
-//   function: path(_id) itself -- the chain of components from the root down
+//   function: path(_id) itself - the chain of components from the root down
 // to _id, root-first, _id last. It names level(_id) + 1 components: one more
 // than the address has labels, the extra one being the root.
 template<typename Policy,
@@ -639,7 +639,7 @@ std::vector<Index> container_path_ancestor_chain(
 // ================================================================
 
 // container_path_lca
-//   function: the lowest common ancestor of _a and _b -- which the spec reads
+//   function: the lowest common ancestor of _a and _b - which the spec reads
 // as
 // the MEET of their addresses in the prefix order,
 //
@@ -701,11 +701,11 @@ Index container_path_lca(
 // ================================================================
 
 // container_path_relative
-//   function: the relative address of _to as seen from _from -- the (k, v)
+//   function: the relative address of _to as seen from _from - the (k, v)
 // pair of the spec. k is the number of ascents from _from to the meet of the
 // two addresses; v is the label word descending from the meet to _to.
 //
-//   The result is marked INVALID when the two nodes have no meet -- when they
+//   The result is marked INVALID when the two nodes have no meet - when they
 // lie in different trees. Without that flag the caller could not tell such a
 // pair apart from _from == _to, which also yields (0, <>), and those are not
 // the same answer.
@@ -744,7 +744,7 @@ DPathAddress<typename Policy::component_type> container_path_relative(
     }
 
     // v: the labels descending from the meet to _to. The MEET contributes no
-    // label, exactly as a root does not -- it is where this address starts.
+    // label, exactly as a root does not - it is where this address starts.
     result.components =
         container_path_address(_policy, _container, meet, _to);
 
@@ -775,7 +775,7 @@ bool container_path_is_ancestor_or_self(
 
 
 // container_path_is_ancestor
-//   function: true if _ancestor is a STRICT ancestor of _descendant -- a
+//   function: true if _ancestor is a STRICT ancestor of _descendant - a
 // PROPER prefix of its address. A node is not its own ancestor.
 template<typename Policy,
          typename Container,
@@ -806,7 +806,7 @@ bool container_path_is_ancestor(
 
 // container_path_is_separating
 //   function: true if the children of _node bear pairwise distinct components
-// -- the SEPARATION condition, at one node.
+// - the SEPARATION condition, at one node.
 //
 //   Separation is the multiplicity restriction mu_1 read sibling-wise. Under
 // it a node's children are a MAP from label to child; without it a label names
@@ -906,7 +906,7 @@ bool container_path_round_trips(
 //
 // The following are convenience wrappers for policies whose component_type is
 // component_view.  They render an address into a separated string and parse one
-// back -- which is, in the spec's reading, the RENDER FOLD at the text target,
+// back - which is, in the spec's reading, the RENDER FOLD at the text target,
 // restricted to addresses.
 //
 // FAITHFULNESS.  A textual address re-parses to the address it came from if,
@@ -1015,8 +1015,8 @@ std::string container_path_build_from(
 
 
 // container_path_build
-//   function: renders the ABSOLUTE address of _id -- from the root of its own
-// tree -- as a separated string.
+//   function: renders the ABSOLUTE address of _id - from the root of its own
+// tree - as a separated string.
 //
 //   BEHAVIOUR CHANGE. This used to prefix the ROOT's own name to every path it
 // built ("root/a/b"), because container_path_collect included it. It no longer
@@ -1043,7 +1043,7 @@ std::string container_path_build(
 
 // container_path_build_is_faithful
 //   function: true if the address of _id can be rendered with _sep and parsed
-// back unchanged -- that is, if NO label on its path contains the separator.
+// back unchanged - that is, if NO label on its path contains the separator.
 //
 //   Where this is false, container_path_build still produces a string, but
 // container_path_resolve will tear the offending label in two and land
@@ -1090,7 +1090,7 @@ bool container_path_build_is_faithful(
 //   function: renders the relative address from _from to _to as a string with
 // ".." segments.
 //
-//   Returns "." for the same node -- the (0, <>) address -- and the EMPTY
+//   Returns "." for the same node - the (0, <>) address - and the EMPTY
 // string
 // when no relative address exists at all, the two nodes lying in different
 // trees. Those are different answers and are now spelled differently.

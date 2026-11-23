@@ -151,7 +151,7 @@ struct context
  * @param[in] _context  what the run reads and writes; its `program` is not
  *                      read.
  * @return the exit status, an exit_status value; std::bad_alloc, when the
- *         command line cannot be made -- the work of a command, once it
+ *         command line cannot be made - the work of a command, once it
  *         runs, is guarded, a want of memory said and REFUSED.
  */
 int run(

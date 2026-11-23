@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][text]                                                 path_span.h
 *
-* A generic path: an address -- a word of labels -- read from its rendering
+* A generic path: an address - a word of labels - read from its rendering
 * as text, without copying it.
 *   A grammar says how labels are framed (the separators, and the one a
 * rendering writes), where the path proper ends (terminators, as '?' and '#'
@@ -63,8 +63,8 @@ D_EXTERN_C_BEGIN
 //------------------------------------------------------------------------------
 // 1.1.1
 // dj_path_anchor_fn
-//   type: measures the anchor a path's text begins with -- "/" for a
-// filesystem, "https://host/" for a URL -- and returns its length in bytes,
+//   type: measures the anchor a path's text begins with - "/" for a
+// filesystem, "https://host/" for a URL - and returns its length in bytes,
 // 0 for a relative path. _length bytes of _text are the path proper.
 struct dj_path_grammar;
 typedef size_t (*dj_path_anchor_fn)(const char*                  _text,
@@ -101,7 +101,7 @@ struct dj_path_grammar
 // 1.2.1
 // dj_path_label
 //   struct: a run of a path's text: a label, separators excluded, or another
-// run a span hands back -- its anchor, the rest after its path proper.
+// run a span hands back - its anchor, the rest after its path proper.
 struct dj_path_label
 {
     const char* text;    // not NUL-terminated; NULL for none
@@ -128,7 +128,7 @@ struct dj_path_span
 // 1.2.4
 // D_PATH_SPAN_NO_MEET
 //   constant: d_path_span_meet's answer for paths in different anchors, which
-// have no meet at all -- not a meet of level 0.
+// have no meet at all - not a meet of level 0.
 #define D_PATH_SPAN_NO_MEET ((size_t)-1)
 
 
@@ -173,7 +173,7 @@ bool d_path_span_next(
 // level: the labels a path has; is_anchored: whether an anchor begins it;
 // anchor: that anchor's text; last: its last label, empty at level 0; rest:
 // the text after its path proper (a URL's "?q#f"); parent: the path less its
-// last label, anchor kept, rest dropped -- itself at level 0
+// last label, anchor kept, rest dropped - itself at level 0
 size_t d_path_span_level(
     const struct dj_path_span* _span
 );
@@ -210,7 +210,7 @@ bool d_path_label_equal(
  * @param[in] _a  a path.
  * @param[in] _b  another.
  * @return the labels in common, or D_PATH_SPAN_NO_MEET for paths in
- *         different anchors -- one anchored and one not, among them.
+ *         different anchors - one anchored and one not, among them.
  */
 size_t d_path_span_meet(
     const struct dj_path_span* _a,

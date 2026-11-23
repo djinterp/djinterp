@@ -3,14 +3,14 @@
 *
 *   writer.hpp's sinks and printer.hpp's file printer on the output stream
 * (stream 1, step 6): a sink returns nothing, so a failed write is kept by
-* the stream it writes through, and ok() -- the sink's, the writer's, the
-* file printer's -- says so. DStringSink and DStreamSink write as they did;
+* the stream it writes through, and ok() - the sink's, the writer's, the
+* file printer's - says so. DStringSink and DStreamSink write as they did;
 * a std::ostream gone bad, or one that throws, ends the sink; DOutputStreamSink
 * writes into any output stream; DFilePrinter reports a file that would not
 * open, and print_document_to_file returns whether the document reached the
 * file; a document's to_stream and to_file (cpp/util/document) return the
-* same, and the document renderers -- plain, markdown, XML, HTML and the PDF
-* canvas -- write what they rendered to a stream with write_to and save_to.
+* same, and the document renderers - plain, markdown, XML, HTML and the PDF
+* canvas - write what they rendered to a stream with write_to and save_to.
 * C++17 and up, printer.hpp's floor; below it each test is skipped, and says
 * why.
 *   In DTest's C face (c/modules/test/test_suite.h): each group is a test of

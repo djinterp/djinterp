@@ -24,7 +24,7 @@ bool tests_sort_facade_include_guards()
     ok = true;
 
     //   This translation unit includes sort.hpp and nothing else from the
-    // subsystem -- no test support header, no individual algorithm header.
+    // subsystem - no test support header, no individual algorithm header.
     // Everything asserted here is therefore a statement about what the
     // facade alone pulls in.
     //

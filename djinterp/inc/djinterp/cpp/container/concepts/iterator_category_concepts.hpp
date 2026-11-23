@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                       iterator_category_concepts.hpp
 *
-* C++20 concepts for the runtime ITERATOR-CATEGORY layer -- the
+* C++20 concepts for the runtime ITERATOR-CATEGORY layer - the
 * `requires`-facing view of iterator/iterator_category_traits.hpp.
 *
 *   THE CONCEPTS ADD NO POLICY.
@@ -12,7 +12,7 @@
 *   meta/concepts.hpp already owns the general type-level concepts (the `_c`
 * family), and constexpr_iterator_concepts.hpp the constexpr-iteration ones;
 * neither is duplicated here. Where an obvious name is otherwise taken, the
-* concept takes a form that cannot collide -- a concept and a class of one
+* concept takes a form that cannot collide - a concept and a class of one
 * name in one namespace is a hard redeclaration.
 *
 *   PORTABILITY:
@@ -52,7 +52,7 @@ NS_DJINTERP
 
 // ForwardIterableContainer
 //   concept: its begin() iterator is at least forward. These are
-// CONTAINER-level -- they read the category of the container's iterator -- as
+// CONTAINER-level - they read the category of the container's iterator - as
 // against the iterator-level is_forward_iterator<It>, a separate concern. The
 // sequential-layout classifier and the filter strategy both consume these.
 template<typename Type>
@@ -66,13 +66,13 @@ concept BidirectionalIterableContainer = is_bidirectional_iterable_v<Type>;
 
 
 // RandomAccessIterableContainer
-//   concept: its iterator supports O(1) jumps -- indexing, not just stepping.
+//   concept: its iterator supports O(1) jumps - indexing, not just stepping.
 template<typename Type>
 concept RandomAccessIterableContainer = is_random_access_iterable_v<Type>;
 
 
 // ContiguousIterableContainer
-//   concept: random-access AND its elements are contiguous in memory -- it
+//   concept: random-access AND its elements are contiguous in memory - it
 // exposes data(). The strongest category, and the one that licenses treating
 // the range as a buffer.
 template<typename Type>

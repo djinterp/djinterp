@@ -3,7 +3,7 @@
 *
 * Section-delimiter extension:
 *   Emits one `delimiter` node for every full-line rule that separates the
-* sections of a header -- a run of `=` for a section, of `-` for a
+* sections of a header - a run of `=` for a section, of `-` for a
 * subsection.  Two forms are in use and both are reported: the guide's, with
 * the fill directly after `//`, and an older spaced form, `// ===`, which is
 * the one most of the tree still carries.  A CMake file's delimiters are
@@ -41,7 +41,7 @@ uint32_t d_section_build(
     const char*          _path
 );
 // d_section_build_marked reads delimiters whose comment opens with
-// `_comment` -- "//" as d_section_build reads them, "#" in a CMake file
+// `_comment` - "//" as d_section_build reads them, "#" in a CMake file
 uint32_t d_section_build_marked(
     struct dj_node_tree* _tree,
     uint32_t             _file,

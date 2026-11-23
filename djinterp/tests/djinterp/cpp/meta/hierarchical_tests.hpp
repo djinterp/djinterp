@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][meta]                                    hierarchical_tests.hpp
 *
-* Unit test suite for hierarchical.hpp -- the HIERARCHICAL structural-kind tag.
+* Unit test suite for hierarchical.hpp - the HIERARCHICAL structural-kind tag.
 *   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.md S3):
 *
 *     - normal mode (the section TUs): pulls in the header under test and
@@ -16,7 +16,7 @@
 *     static constexpr bool        nests     = true;
 *     static constexpr std::size_t min_depth = 2;
 *     static constexpr const char* name() noexcept;   // "hierarchical"
-* There is no runtime state and no algorithm -- the suite pins the three
+* There is no runtime state and no algorithm - the suite pins the three
 * members' VALUES, their being genuine constant expressions, the emptiness of
 * the tag, and that `name()` is a function.
 *
@@ -51,7 +51,7 @@
 #include <cstring>
 #include <type_traits>
 // djinterp
-// -- (part 1) mode-gated includes --------------------------------------------
+// - (part 1) mode-gated includes --------------------------------------------
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
 #include "../../../../inc/djinterp/cpp/meta/hierarchical.hpp"                     // the header under test (normal)
@@ -108,7 +108,7 @@ bool hierarchical_check(
     while (0)
 
 
-#ifndef DTEST_SPEC_MODE  // (part 1 cont.) fixtures -- normal mode only
+#ifndef DTEST_SPEC_MODE  // (part 1 cont.) fixtures - normal mode only
 
 ///////////////////////////////////////////////////////////////////////////////
 ///             F.1   COMPILE-TIME PROBE                                    ///
@@ -126,7 +126,7 @@ struct hierarchical_depth_probe
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- (part 2) declarations -- visible in BOTH modes --------------------------
+// - (part 2) declarations - visible in BOTH modes --------------------------
 
 // I.   TAG   (hierarchical_tests_tag.cpp)
 bool tests_tag_hierarchical_nests_is_true();
@@ -136,7 +136,7 @@ bool tests_tag_hierarchical_is_empty_tag();
 bool tests_tag_hierarchical_members_are_constant_expressions();
 
 
-// -- (part 3) the spec provider -- spec mode only ----------------------------
+// - (part 3) the spec provider - spec mode only ----------------------------
 #ifdef DTEST_SPEC_MODE
 
 // hierarchical_spec

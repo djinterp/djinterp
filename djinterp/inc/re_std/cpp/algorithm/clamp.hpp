@@ -16,7 +16,7 @@
 *
 *   PRECONDITION:
 *   !(_hi < _lo). As in std, this is the caller s responsibility and
-* is NOT checked -- an inverted range gives an unspecified result
+* is NOT checked - an inverted range gives an unspecified result
 * rather than a diagnostic.
 *
 *   The result is a REFERENCE into one of the three arguments, so the

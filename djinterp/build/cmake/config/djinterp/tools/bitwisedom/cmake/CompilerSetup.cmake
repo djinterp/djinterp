@@ -4,18 +4,18 @@
 # The flags this build gives the code it owns, and the few it gives the code
 # it only compiles.
 #   bitwisedom_apply_compiler_defaults() is for this project's own sources --
-# the library, the command line, the window and the tests -- and with OWN holds
+# the library, the command line, the window and the tests - and with OWN holds
 # them to the style guide's whole baseline: -Wall -Wextra -Wshadow
 # -Wcast-qual -Wconversion under -pedantic-errors and -Werror=undef, and
 # under Clang -Wreserved-identifier and -Wdocumentation besides. Every
-# dependency's headers -- djinterp's, and those a build that includes this one
-# adds -- are system headers to these targets, and so not judged by their
+# dependency's headers - djinterp's, and those a build that includes this one
+# adds - are system headers to these targets, and so not judged by their
 # warnings.
 #   bitwisedom_apply_dependency_defaults() is for code this build compiles
 # without owning it: the level and the source character set, and, under cl,
 # the conforming preprocessor, since that code reads djinterp's headers too.
-#   LEVELS. bitwisedom's floor is C++17 -- the floor of the djinterp
-# headers it stands on -- and BITWISEDOM_CXX_STANDARD picks 17, 20 or 23,
+#   LEVELS. bitwisedom's floor is C++17 - the floor of the djinterp
+# headers it stands on - and BITWISEDOM_CXX_STANDARD picks 17, 20 or 23,
 # defaulting to 20; the window's build gives what it adds the same level.
 # Below the floor every bitwisedom header is empty, as djinterp's are below
 # theirs.
@@ -125,7 +125,7 @@ endfunction()
 
 # bitwisedom_apply_dependency_defaults(<target>)
 #   For code this build compiles and does not own: the level and the source
-# character set, and under cl /Zc:preprocessor -- that code reads djinterp's
+# character set, and under cl /Zc:preprocessor - that code reads djinterp's
 # headers, which every unit of this build reads with the conforming
 # preprocessor, not cl's traditional one. Nothing else: no warnings.
 function(bitwisedom_apply_dependency_defaults _target)

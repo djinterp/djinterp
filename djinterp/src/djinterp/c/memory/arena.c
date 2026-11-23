@@ -176,9 +176,9 @@ d_internal_arena_next_capacity
 
   Three constraints meet here, in this order:
     1. the growth policy proposes a speculative size,
-    2. the per-region ceiling caps it -- so that a doubling arena's twentieth
+    2. the per-region ceiling caps it - so that a doubling arena's twentieth
        region is not measured in gigabytes,
-    3. the actual need overrides both -- a request larger than the ceiling is
+    3. the actual need overrides both - a request larger than the ceiling is
        still satisfied, because the ceiling bounds SPECULATION, not need,
     4. the arena's total budget clamps the result, and a clamp that lands
        below the need means the arena is full.
@@ -254,7 +254,7 @@ d_internal_arena_advance_next_bytes
   Advances the speculative region size according to the growth policy, after a
 region of _just_taken bytes has been added.
   The exponential step is an integer ratio rather than a float multiply, so
-that two builds and two languages compute the same sizes -- which the parity
+that two builds and two languages compute the same sizes - which the parity
 law requires and which a float would not deliver across architectures.
 
 Parameter(s):
@@ -426,7 +426,7 @@ Parameter(s):
   _align: the normalized alignment.
 Return:
   A pointer to the payload, or NULL when the current region cannot satisfy the
-request (which is not an error -- the caller then grows).
+request (which is not an error - the caller then grows).
 */
 static
 void* d_internal_arena_bump(
@@ -529,7 +529,7 @@ d_arena_init
   Prepares an arena.
   NO MEMORY IS OBTAINED HERE. The first region is taken on the first
 allocation, so an arena that is created and never used costs its struct and
-nothing else -- which is what makes it reasonable to give one to every object
+nothing else - which is what makes it reasonable to give one to every object
 that might need one.
 
 Parameter(s):
@@ -568,7 +568,7 @@ d_arena_init(
     }
 
     // a region header must itself be correctly aligned inside the block, and
-    // the block is requested at `align` -- so `align` must cover the header
+    // the block is requested at `align` - so `align` must cover the header
     if (align < D_MEM_LINK_ALIGN)
     {
         align = D_MEM_LINK_ALIGN;
@@ -916,7 +916,7 @@ Parameter(s):
   _bytes: the request size. Zero returns NULL and is not an error.
   _align: the required alignment; 0 means the configured default.
 Return:
-  A pointer to _bytes uninitialized (or poisoned, or zeroed -- see
+  A pointer to _bytes uninitialized (or poisoned, or zeroed - see
 D_CFG_MEM_ZERO_ON_ALLOC) bytes, or NULL if the arena could neither satisfy the
 request nor grow to satisfy it.
 */
@@ -940,7 +940,7 @@ void* d_arena_allocate(
 /*
 d_arena_allocate_ex
   Obtains bytes from the arena, reporting why a failure failed.
-  The two-step shape -- try the current region, grow, try once more -- is the
+  The two-step shape - try the current region, grow, try once more - is the
 whole algorithm. There is no third attempt, because a grow sized to the need
 either produced a region that can hold it or reported that it could not.
 
@@ -1117,7 +1117,7 @@ void* d_arena_duplicate(
 d_arena_duplicate_string
   Copies a null-terminated string into the arena, terminator included.
   Present because it is the single most common thing an arena is asked to do
--- a parser, a command line, a configuration reader all intern strings -- and
+-- a parser, a command line, a configuration reader all intern strings - and
 because writing it out at each call site is where the terminator gets
 forgotten.
 
@@ -1303,7 +1303,7 @@ bool d_arena_pop_last(
     d_mem_poison_free(_ptr, _bytes);
 
     // the cursor rewinds past the payload and its leading guard; the
-    // alignment padding before it is not recovered, which is correct -- the
+    // alignment padding before it is not recovered, which is correct - the
     // padding belongs to whatever preceded the allocation
     region->used = (offset >= lead)
         ? (dj_mem_size)(offset - lead)
@@ -1634,7 +1634,7 @@ Parameter(s):
   _out:   receives a copy of the block; must not be NULL.
 Return:
   D_MEM_OK on success, D_MEM_ERR_NULL when either pointer is NULL, or
-D_MEM_ERR_UNSUPPORTED when this build carries no accounting -- in which case
+D_MEM_ERR_UNSUPPORTED when this build carries no accounting - in which case
 _out is zeroed rather than left undefined, so a caller may print it either
 way.
 */
@@ -1751,7 +1751,7 @@ void* d_internal_arena_source_allocate(
 /*
 d_internal_arena_source_release
   The arena-as-source release slot.
-  An arena cannot free an individual block, so this is a no-op -- EXCEPT for
+  An arena cannot free an individual block, so this is a no-op - EXCEPT for
 the most recent allocation when last-allocation tracking is compiled, where
 popping is exact and free. That covers the case an allocator drawing from an
 arena actually hits: taking a region, finding it unusable, handing it back.
@@ -1801,7 +1801,7 @@ Return:
   An UPPER BOUND on the next satisfiable request: what is left in the current
 region for an arena that cannot grow, and the remaining budget (or the
 upstream's own ceiling) for one that can. Upper bounds are what a growth
-policy wants -- it is deciding how large a step to attempt, and an exact
+policy wants - it is deciding how large a step to attempt, and an exact
 answer would cost a walk.
 */
 static
@@ -1862,7 +1862,7 @@ d_arena_as_source
   Presents an arena as a byte source, so that a pool, a slab, or another arena
 can draw its backing blocks from it.
   THE COMPOSITION POINT OF THE SUBFRAMEWORK. One upstream request at startup,
-an arena over it, and every other allocator carved out of that -- with no
+an arena over it, and every other allocator carved out of that - with no
 allocator in the chain aware of the arrangement, and with the whole graph
 freed by one d_arena_release.
   The arena must outlive every allocator drawing from it, and none of them may

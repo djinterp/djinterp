@@ -2,9 +2,9 @@
 * djinterp [c][tools]                                              dgit_object.c
 *
 * Definitions for the objects of dgit_repo.h: reading, naming and parsing.
-*   An object is looked for in each store in turn -- the repository's own
+*   An object is looked for in each store in turn - the repository's own
 * directory of objects, then its alternates, as objects/info/alternates and
-* GIT_ALTERNATE_OBJECT_DIRECTORIES name them -- loose first, then in each
+* GIT_ALTERNATE_OBJECT_DIRECTORIES name them - loose first, then in each
 * pack. A loose object is a zlib stream of its header and content, checked
 * against its name. A pack's index is read whole, and an object found in it
 * by its first byte's range and a binary search; the pack itself is read at
@@ -436,7 +436,7 @@ char d_internal_list_separator(void)
 /*
 d_internal_stores
   The stores, found the first time an object is wanted: the repository's
-own -- GIT_OBJECT_DIRECTORY's, when it is set -- then its alternates.
+own - GIT_OBJECT_DIRECTORY's, when it is set - then its alternates.
 */
 static
 bool d_internal_stores(
@@ -907,8 +907,8 @@ uint64_t d_internal_pack_end(
 
 
 // dj_internal_entry
-//   struct: one object of a pack, its header read: its type -- a delta's
-//   among them -- the size it inflates to, where its stream begins and
+//   struct: one object of a pack, its header read: its type - a delta's
+//   among them - the size it inflates to, where its stream begins and
 //   ends, and a delta's base: a place back along the pack, or a name.
 struct dj_internal_entry
 {
@@ -934,10 +934,10 @@ struct dj_internal_raw_object
 /*
 d_internal_entry_header
   An object's header at a place in a pack: its type and size, the size
-seven bits a byte after the first four; then a delta's base -- a place
+seven bits a byte after the first four; then a delta's base - a place
 back, in git's offset encoding, or a name.
-  Long as a pack entry's header -- its type, its size, and its base, by
-offset or by name -- is read in one pass.
+  Long as a pack entry's header - its type, its size, and its base, by
+offset or by name - is read in one pass.
 */
 static
 bool d_internal_entry_header(
@@ -1507,7 +1507,7 @@ bool d_internal_chain_grow(
 /*
 d_internal_packed_at
   The object at a place in a pack: its deltas walked back, place by place,
-to a base -- an object of its own, one kept, or one named -- then applied
+to a base - an object of its own, one kept, or one named - then applied
 outward. A base named is read by name, which may lead to another pack.
   Long as a chain of deltas is followed to its base, from the cache or the
 pack, before it is applied.
@@ -2410,7 +2410,7 @@ bool d_git_tree_find(
 
 // d_internal_prefix
 //   struct: a prefix being looked for: its bytes, the length in hex
-//   digits, and what has been found -- the first name, and whether
+//   digits, and what has been found - the first name, and whether
 //   another differs from it.
 struct dj_internal_prefix
 {

@@ -39,7 +39,7 @@ bool tests_merge_sort_merge_runs_basic()
     std::vector<int> src;
     std::vector<int> dst;
 
-    //   [1, 3, 5 | 2, 4, 6] -- the fully interleaved case, where the merge
+    //   [1, 3, 5 | 2, 4, 6] - the fully interleaved case, where the merge
     // alternates runs on every step until the very end.
     src = ints_from(interleaved, 6);
     dst.assign(6, 0);
@@ -76,7 +76,7 @@ bool tests_merge_sort_merge_runs_empty_runs()
     src = ints_from(values, 3);
 
     //   An empty LEFT run (mid == begin): nothing to interleave, so the span
-    // is a straight copy -- with no comparison, since the comparator is not
+    // is a straight copy - with no comparison, since the comparator is not
     // even consulted when one run is empty.
     dst.assign(3, -1);
     merge_runs_ints(src, dst, 0, 0, 3);
@@ -115,7 +115,7 @@ bool tests_merge_sort_merge_runs_exhaustion_tails()
     std::vector<int> src;
     std::vector<int> dst;
 
-    //   [1, 4 | 2, 3, 5] exhausts the LEFT run first -- 1, 2, 3, 4 -- so the
+    //   [1, 4 | 2, 3, 5] exhausts the LEFT run first - 1, 2, 3, 4 - so the
     // last element comes from the right; [3, 4, 5 | 1, 2] exhausts the RIGHT
     // run first, so the rest of the span comes from the left.
     src = ints_from(left_first, 5);

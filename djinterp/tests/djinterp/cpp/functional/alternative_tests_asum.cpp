@@ -5,8 +5,8 @@
 * alternatives with alt from aempty ("take the first that succeeds").  Covers
 * the first-success selection, the empty foldable (yields aempty), all-empty
 * input, single-element inputs, the leading-empties-skipped case, a non-int
-* element type, and -- because asum sits at the Foldable x Alternative
-* intersection -- the same over the bag<T> Foldable fixture (a Foldable other
+* element type, and - because asum sits at the Foldable x Alternative
+* intersection - the same over the bag<T> Foldable fixture (a Foldable other
 * than the std::vector instance) plus the element-type deduction it relies on.
 *
 *

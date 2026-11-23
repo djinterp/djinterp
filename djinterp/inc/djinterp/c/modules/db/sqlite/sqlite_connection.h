@@ -4,7 +4,7 @@
 * Opening and closing SQLite connections, what a connection can say about
 * itself, and the extensions it loads.
 *   d_sqlite_open and its siblings open a connection and set it up with the
-* defaults cfg_sqlite_connection.h chooses -- a busy timeout and foreign
+* defaults cfg_sqlite_connection.h chooses - a busy timeout and foreign
 * keys, unless the build says otherwise; d_sqlite_open_with takes SQLite's
 * own open flags and a VFS, for what the others do not choose. A connection
 * opened natively can be given the same defaults with
@@ -61,7 +61,7 @@ TABLE OF CONTENTS
                                                  // floor; int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -158,7 +158,7 @@ D_EXTERN_C_BEGIN
  *                    database, and "" a private temporary one on disk.
  * @param[out] _db    receives the connection, or `NULL` on failure.
  * @return SQLITE_OK, or the SQLite result code of the failure --
- *         SQLITE_CANTOPEN for a path that cannot be opened -- or
+ *         SQLITE_CANTOPEN for a path that cannot be opened - or
  *         SQLITE_MISUSE for a `NULL` argument.
  * @post On success the caller closes `*_db` with d_sqlite_close.
  */
@@ -248,7 +248,7 @@ int d_sqlite_close(
 
 // 1.3    Location and access
 //------------------------------------------------------------------------------
-// location -- _path is the file behind a schema (NULL meaning "main"): an
+// location - _path is the file behind a schema (NULL meaning "main"): an
 // absolute path, "" for an in-memory or temporary database, or NULL when no
 // database of that name is attached; the string is SQLite's, valid while the
 // database stays attached. _is_readonly is true only for a database attached
@@ -264,7 +264,7 @@ bool d_sqlite_is_readonly(
 
 // 1.4    Rows changed
 //------------------------------------------------------------------------------
-// rows changed -- the rowid of the latest successful INSERT on the connection;
+// rows changed - the rowid of the latest successful INSERT on the connection;
 // the rows the latest INSERT, UPDATE or DELETE changed; and every row changed
 // since the connection opened. Counts are 64-bit where the library offers it
 // (3.37.0), so they do not wrap at 2^31. All are 0 for a NULL connection.
@@ -339,7 +339,7 @@ int d_sqlite_load_extension(
  *        sqlite3_enable_load_extension does.
  *
  * @warning With it on, any SQL the connection runs can load a shared
- *          library -- SQL from outside the program among it. d_sqlite_load_
+ *          library - SQL from outside the program among it. d_sqlite_load_
  *          extension needs it only before SQLite 3.13.0.
  *
  * @param[in] _db       the connection.

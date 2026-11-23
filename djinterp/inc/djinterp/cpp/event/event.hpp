@@ -34,14 +34,14 @@
 *                        event_dispatcher_traits; dispatcher concepts
 *
 * FORMAL CORRESPONDENCE ("Definition of an Event"):
-*   alphabet / occurrence / payload       -- event.hpp
-*   verdict P = {pass, consume}           -- event.hpp (verdict)
-*   handler h : S x A_e -> S x P          -- handler.hpp
-*   sequencing monoid (seq, skip)         -- handler.hpp
-*   erasure kappa; mask m; merge (+)      -- event_table.hpp / registry.hpp
-*   dispatch delta_rho; run; staging      -- registry.hpp
-*   queue q; process; deferral coherence  -- event_dispatcher.hpp
-*   fused vs erased coherence law         -- event_dispatcher.hpp (drive)
+*   alphabet / occurrence / payload       - event.hpp
+*   verdict P = {pass, consume}           - event.hpp (verdict)
+*   handler h : S x A_e -> S x P          - handler.hpp
+*   sequencing monoid (seq, skip)         - handler.hpp
+*   erasure kappa; mask m; merge (+)      - event_table.hpp / registry.hpp
+*   dispatch delta_rho; run; staging      - registry.hpp
+*   queue q; process; deferral coherence  - event_dispatcher.hpp
+*   fused vs erased coherence law         - event_dispatcher.hpp (drive)
 *
 * PORTABLE ACROSS:
 *   C++11, C++14, C++17, C++20, C++23, C++26

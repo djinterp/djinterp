@@ -1,5 +1,5 @@
 # ============================================================================
-# djinterp/util/color -- color test suite
+# djinterp/util/color - color test suite
 #
 #   Leaf recipe.  The runner is listed explicitly from this directory (it
 # lives in the config tree); the section TUs are globbed from the tests tree.

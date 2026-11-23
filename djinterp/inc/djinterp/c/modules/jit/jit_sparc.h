@@ -4,7 +4,7 @@
 * djinterp SPARC (V8 / V9) JIT encoder (fixed-width 32-bit, big-endian words):
 *   The SPARC half of the djinterp JIT. As with the other RISC targets, the V8
 * (32-bit) base encodings are valid on V9 (64-bit); V9 adds instructions
-* -- ldx/stx, the 64-bit shifts sllx/srlx/srax, mulx/udivx/sdivx -- isolated
+* - ldx/stx, the 64-bit shifts sllx/srlx/srax, mulx/udivx/sdivx - isolated
 * in section L. So one module serves both; do not emit section-L forms for a
 * pure V8 target.
 *
@@ -13,7 +13,7 @@
 * buffer's little-endian primitives). This is the first big-endian target.
 *
 *   BRANCH DELAY SLOTS: like MIPS, every control transfer (branch, call, jmpl)
-* has a delay slot -- the next instruction always executes. These emitters emit
+* has a delay slot - the next instruction always executes. These emitters emit
 * only the transfer word; the caller MUST follow each with a delay-slot
 * instruction (emit_nop, or a useful one). Nothing is auto-inserted.
 * Unlike MIPS, a SPARC branch displacement is relative to the branch itself.
@@ -56,7 +56,7 @@
 #include "../../../../re_std/c/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -468,7 +468,7 @@ D_NODISCARD int d_jit_sparc_emit_srai(
 );
 
 // ---------------------------------------------------------------------------
-// multiply / divide (V8; result uses %y -- see rd_y / wr_yi)
+// multiply / divide (V8; result uses %y - see rd_y / wr_yi)
 // ---------------------------------------------------------------------------
 
 // d_jit_sparc_emit_umul
@@ -624,7 +624,7 @@ D_NODISCARD int d_jit_sparc_emit_st(
 // ---------------------------------------------------------------------------
 
 // d_jit_sparc_emit_bicc
-//   function: Bicc cond, _target -- branch on icc (+/-8 MB). cond is a
+//   function: Bicc cond, _target - branch on icc (+/-8 MB). cond is a
 // D_JIT_SPARC_COND_* value; the named wrappers below cover the common ones.
 D_NODISCARD int d_jit_sparc_emit_bicc(
     dj_jit_buffer* _buf,
@@ -710,7 +710,7 @@ D_NODISCARD int d_jit_sparc_emit_blu(
 );
 
 // d_jit_sparc_emit_call
-//   function: call _target -- PC-relative call (30-bit word disp); %o7 =
+//   function: call _target - PC-relative call (30-bit word disp); %o7 =
 // return address.
 D_NODISCARD int d_jit_sparc_emit_call(
     dj_jit_buffer* _buf,
@@ -718,7 +718,7 @@ D_NODISCARD int d_jit_sparc_emit_call(
 );
 
 // d_jit_sparc_emit_jmpl
-//   function: jmpl rs1 + #imm, rd -- jump and link (rd = return address).
+//   function: jmpl rs1 + #imm, rd - jump and link (rd = return address).
 D_NODISCARD int d_jit_sparc_emit_jmpl(
     dj_jit_buffer* _buf,
     int            _rd,
@@ -727,13 +727,13 @@ D_NODISCARD int d_jit_sparc_emit_jmpl(
 );
 
 // d_jit_sparc_emit_ret
-//   function: ret -- return from a non-leaf routine (jmpl %i7+8, %g0).
+//   function: ret - return from a non-leaf routine (jmpl %i7+8, %g0).
 D_NODISCARD int d_jit_sparc_emit_ret(
     dj_jit_buffer* _buf
 );
 
 // d_jit_sparc_emit_retl
-//   function: retl -- return from a leaf routine (jmpl %o7+8, %g0).
+//   function: retl - return from a leaf routine (jmpl %o7+8, %g0).
 D_NODISCARD int d_jit_sparc_emit_retl(
     dj_jit_buffer* _buf
 );
@@ -743,7 +743,7 @@ D_NODISCARD int d_jit_sparc_emit_retl(
 // ---------------------------------------------------------------------------
 
 // d_jit_sparc_emit_save_i
-//   function: save rs1, #imm, rd -- open a register window (e.g.
+//   function: save rs1, #imm, rd - open a register window (e.g.
 //  save %sp, -framesize, %sp).
 D_NODISCARD int d_jit_sparc_emit_save_i(
     dj_jit_buffer* _buf,
@@ -753,7 +753,7 @@ D_NODISCARD int d_jit_sparc_emit_save_i(
 );
 
 // d_jit_sparc_emit_restore
-//   function: restore -- close the register window (restore %g0,%g0,%g0).
+//   function: restore - close the register window (restore %g0,%g0,%g0).
 D_NODISCARD int d_jit_sparc_emit_restore(
     dj_jit_buffer* _buf
 );
@@ -765,7 +765,7 @@ D_NODISCARD int d_jit_sparc_emit_nop(
 );
 
 // d_jit_sparc_emit_mov
-//   function: mov rs, rd -- move register (or %g0, rs, rd).
+//   function: mov rs, rd - move register (or %g0, rs, rd).
 D_NODISCARD int d_jit_sparc_emit_mov(
     dj_jit_buffer* _buf,
     int            _rd,
@@ -773,7 +773,7 @@ D_NODISCARD int d_jit_sparc_emit_mov(
 );
 
 // d_jit_sparc_emit_cmp
-//   function: cmp rs1, rs2 -- compare (subcc rs1, rs2, %g0).
+//   function: cmp rs1, rs2 - compare (subcc rs1, rs2, %g0).
 D_NODISCARD int d_jit_sparc_emit_cmp(
     dj_jit_buffer* _buf,
     int            _rs1,
@@ -781,7 +781,7 @@ D_NODISCARD int d_jit_sparc_emit_cmp(
 );
 
 // d_jit_sparc_emit_cmpi
-//   function: cmp rs1, #imm -- compare with a signed 13-bit immediate.
+//   function: cmp rs1, #imm - compare with a signed 13-bit immediate.
 D_NODISCARD int d_jit_sparc_emit_cmpi(
     dj_jit_buffer* _buf,
     int            _rs1,
@@ -901,7 +901,7 @@ D_NODISCARD int d_jit_sparc_emit_sdivx(
 );
 
 // d_jit_sparc_emit_bpcc
-//   function: BPcc cond, cc, _target -- V9 branch with prediction (+/-1
+//   function: BPcc cond, cc, _target - V9 branch with prediction (+/-1
 // MB). _cc selects %icc or %xcc (the 64-bit codes); predicted taken.
 D_NODISCARD int d_jit_sparc_emit_bpcc(
     dj_jit_buffer* _buf,

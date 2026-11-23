@@ -4,7 +4,7 @@
 *   The C++ face of the PostgreSQL layer, postgres_face.hpp, compiled as C++
 * at every level from ISO strict C++98 to C++26 and driven against a server.
 * The layer's suite, postgres_tests.c, tests what each function does; this
-* tests what the face adds -- ownership, a failed connection's reason,
+* tests what the face adds - ownership, a failed connection's reason,
 * string and list and text conversion, statements and rows, the guards, the
 * static members, from C++11 moves and the f forms, and the forms each later
 * level adds where the compiler has them: std::optional text and deduced
@@ -23,7 +23,7 @@
 * face in a way that must not compile (see d_tests_postgres_face_variadic).
 *
 *   Build: compile the layer's C sources as C, this file as C++, and link them
-* with libpq -- scripts/ci/check_db_postgres.sh does, at every level.
+* with libpq - scripts/ci/check_db_postgres.sh does, at every level.
 *
 *
 * path:      /tests/unintegrated/cpp/db/postgres/t_postgres_face.cpp
@@ -40,8 +40,8 @@
 #endif  // _WIN32
 // WIN32_LEAN_AND_MEAN, NOMINMAX
 //   knobs (Windows'): <windows.h>, which <winsock2.h> and the clients' own
-// headers include, without its rarer headers -- rpcndr.h among them, which
-// makes `small` a macro -- and without its min and max macros.
+// headers include, without its rarer headers - rpcndr.h among them, which
+// makes `small` a macro - and without its min and max macros.
 #if defined(_WIN32)
     #if !defined(WIN32_LEAN_AND_MEAN)
         #define WIN32_LEAN_AND_MEAN 1
@@ -943,7 +943,7 @@ void d_tests_postgres_face_cpp23(
 /*
 d_tests_postgres_face_statements
   Rows and statements: a statement prepared into a face, its parameters
-counted and bound -- text from a std::string too -- run for a count and for
+counted and bound - text from a std::string too - run for a count and for
 rows; rows read by place and by name, their values converted; a statement
 finalized by hand, by its destructor, and on a failed prepare, which leaves
 it empty; from C++11 one moved and swapped, and the f form; from C++23 the
@@ -1642,7 +1642,7 @@ void d_tests_postgres_face_stubs(
 /*
 main
   The static members; then, over libpq, a session where a server answers,
-or, over the stubs -- whose libpq version is 0 -- what the stubs report.
+or, over the stubs - whose libpq version is 0 - what the stubs report.
 */
 int main(void)
 {

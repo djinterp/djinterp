@@ -2,9 +2,9 @@
 * djinterp [cpp][functional]                      fn_builder_tests_transform.cpp
 *
 * Transforming fluent-operation tests (section ii, part 1):
-*   test_map      -- map (incl. type-changing) and and_then (its alias).
-*   test_filter   -- filter and where (its alias).
-*   test_flat_map -- map each element to a container then flatten.
+*   test_map      - map (incl. type-changing) and and_then (its alias).
+*   test_filter   - filter and where (its alias).
+*   test_flat_map - map each element to a container then flatten.
 *
 *
 * path:      /tests/djinterp/cpp/functional/fn_builder_tests_transform.cpp

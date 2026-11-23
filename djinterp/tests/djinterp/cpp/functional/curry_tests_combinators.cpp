@@ -10,7 +10,7 @@
 // std
 #include <string>
 // djinterp
-// djinterp [test] -- curry.hpp Section VI (constant-valued combinators)
+// djinterp [test] - curry.hpp Section VI (constant-valued combinators)
 #include "./curry_tests.hpp"
 
 

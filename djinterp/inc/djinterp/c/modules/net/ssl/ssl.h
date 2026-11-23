@@ -13,14 +13,14 @@
 *     - the sans-I/O engine interface a TLS library is bound through   [9]
 *     - contexts and sessions: the pump, the kernel's own checks, and a
 *       session as a net.h connection over any other                  [10]
-*   THE KERNEL LINKS NO TLS LIBRARY AND NEVER OPENS A SOCKET. An engine -- a
-* derived module wrapping OpenSSL or another library -- turns ciphertext
+*   THE KERNEL LINKS NO TLS LIBRARY AND NEVER OPENS A SOCKET. An engine - a
+* derived module wrapping OpenSSL or another library - turns ciphertext
 * into plaintext and back. The kernel moves every byte between it and the
 * net.h connection a session runs over, and checks names, pins, versions,
 * and ALPN itself, so a session behaves the same under every engine. The
 * kernel allocates nothing; engines allocate.
 *   A session is itself a net.h connection, over its plaintext, so whatever
-* runs over a socket runs over TLS unchanged -- and over a session, another
+* runs over a socket runs over TLS unchanged - and over a session, another
 * session. TLS may begin on a connection that has already carried
 * plaintext, which is what STARTTLS-style upgrades build on; the upgrade
 * commands themselves belong to the protocol modules that speak them.
@@ -167,7 +167,7 @@ TABLE OF CONTENTS
                                               // uint32_t, uint64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, and compiles to
-// nothing where the build has none -- ISO strict C++98 wherever int64_t is
+// nothing where the build has none - ISO strict C++98 wherever int64_t is
 // `long long`: a 32-bit target, 64-bit Windows or macOS (the owner's ruling of
 // 2026.10.03 on round 3's question 1, (a)). The answer is net_common.h's, taken
 // once per translation unit, so that net's gated headers agree.
@@ -183,8 +183,8 @@ D_EXTERN_C_BEGIN
 //==============================================================================
 // 1.  PROTOCOL CONSTANTS
 //==============================================================================
-// Numbers the specifications fix -- RFC 8446 (TLS 1.3), RFC 5246 (TLS 1.2),
-// RFC 1035 (host names), RFC 7301 (ALPN) -- and the two sizes cfg_ssl.h
+// Numbers the specifications fix - RFC 8446 (TLS 1.3), RFC 5246 (TLS 1.2),
+// RFC 1035 (host names), RFC 7301 (ALPN) - and the two sizes cfg_ssl.h
 // chooses. None depends on a TLS library.
 
 
@@ -228,7 +228,7 @@ D_EXTERN_C_BEGIN
 
 // 1.2.4
 // D_SSL_IP_MAX
-//   constant: the size of a binary IP address -- 16 octets for IPv6; IPv4
+//   constant: the size of a binary IP address - 16 octets for IPv6; IPv4
 // uses 4.
 #define D_SSL_IP_MAX                  16
 
@@ -282,8 +282,8 @@ D_EXTERN_C_BEGIN
 // Two kinds of failure, kept apart as in the other kernels. A FORMAL failure
 // says the TLS exchange, the peer, or the configuration is at fault: the same
 // call fails the same way again. A MECHANICAL failure says the machinery ran
-// short -- a buffer, a transport that would block or broke, memory, the
-// library itself -- and the exchange may be sound. The ranges are disjoint,
+// short - a buffer, a transport that would block or broke, memory, the
+// library itself - and the exchange may be sound. The ranges are disjoint,
 // so "may I retry?" is a range test.
 
 
@@ -492,12 +492,12 @@ enum dj_ssl_alert
 // 3.4    Vocabulary operations
 //------------------------------------------------------------------------------
 // Pure lookups; they never fail.
-//   d_ssl_version_name gives the conventional log spelling -- "TLSv1.3",
-// "SSLv3" -- or NULL for NONE or an unknown value. d_ssl_version_is_known is
+//   d_ssl_version_name gives the conventional log spelling - "TLSv1.3",
+// "SSLv3" - or NULL for NONE or an unknown value. d_ssl_version_is_known is
 // true for SSL3 through TLS1_3; d_ssl_version_is_deprecated is true for SSL3,
 // TLS1_0, and TLS1_1 (RFC 8996). d_ssl_version_from_name reads the spellings
-// found in configuration files, case-insensitively -- "TLSv1.2", "TLS1.2",
-// "tls 1.2", "TLS_1_2", "1.2", "SSLv3" -- and returns NONE for anything else.
+// found in configuration files, case-insensitively - "TLSv1.2", "TLS1.2",
+// "tls 1.2", "TLS_1_2", "1.2", "SSLv3" - and returns NONE for anything else.
 //   d_ssl_alert_name gives the RFC name ("close_notify"), or NULL for an
 // unassigned value or D_SSL_ALERT_NONE. d_ssl_alert_error says what an alert
 // means for a session: close_notify is CLOSED; certificate
@@ -536,8 +536,8 @@ enum dj_ssl_error d_ssl_alert_error(
 // What a configuration asks of the peer, and what the session learned. The
 // policy is one of three modes. The result is a set of flags, one per reason
 // a peer can fail: the engine reports what its library found in the chain,
-// and the kernel adds what it checks itself -- the host name, pinned
-// fingerprints, certificate presence -- so a result reads the same whichever
+// and the kernel adds what it checks itself - the host name, pinned
+// fingerprints, certificate presence - so a result reads the same whichever
 // library produced it.
 
 
@@ -563,8 +563,8 @@ enum dj_ssl_verify_mode
 // dj_ssl_verify_flag
 //   enum: bits of a verification result (dj_ssl_info.verify). A result of
 // D_SSL_VERIFY_FLAG_NONE means every check performed passed. NOT_PERFORMED
-// marks a peer that was never authenticated -- verification off, or an
-// optional client certificate that did not arrive -- and is not a failure by
+// marks a peer that was never authenticated - verification off, or an
+// optional client certificate that did not arrive - and is not a failure by
 // itself. OTHER stands for any library reason without a flag of its own.
 enum dj_ssl_verify_flag
 {
@@ -599,8 +599,8 @@ const char* d_ssl_verify_flag_name(
 /**
  * @brief Renders a verification result as a comma-separated list of phrases.
  *
- * @note Flags are listed lowest bit first -- "untrusted issuer, hostname
- *       mismatch" -- and a result of zero renders as "ok". Unassigned bits
+ * @note Flags are listed lowest bit first - "untrusted issuer, hostname
+ *       mismatch" - and a result of zero renders as "ok". Unassigned bits
  *       render once, as "other". The text is NUL-terminated for logging.
  *       Two-call protocol: with `_out` NULL and `_capacity` 0, only the
  *       length is stored.
@@ -626,8 +626,8 @@ enum dj_ssl_error d_ssl_verify_describe(
 //==============================================================================
 // 5.  IDENTITIES
 //==============================================================================
-// Whether a certificate names the host the client meant to reach -- the check
-// that makes a verified chain mean anything -- done once, here, by the rules
+// Whether a certificate names the host the client meant to reach - the check
+// that makes a verified chain mean anything - done once, here, by the rules
 // of RFC 9525 (which replaces RFC 6125):
 //     - DNS names compare case-insensitively, ignoring one trailing dot.
 //     - A wildcard counts only as the entire left-most label, as in
@@ -888,7 +888,7 @@ enum dj_ssl_sniff_result d_ssl_sniff(
 // Library-independent certificate handling: PEM framing (RFC 7468) and its
 // base64 body, SHA-256 fingerprints of DER certificates, and where the
 // platform keeps its trusted authorities. Libraries that take only DER --
-// the OS-provided ones among them -- get it from PEM here, and fingerprints
+// the OS-provided ones among them - get it from PEM here, and fingerprints
 // are computed by the kernel from the DER an engine hands it, so pins and
 // displayed fingerprints mean the same thing under every engine. The
 // fingerprint is SHA-256 over the whole certificate, as `openssl x509
@@ -1033,8 +1033,8 @@ const char* const* d_ssl_ca_dir_candidates(
 //==============================================================================
 // Everything a context needs to know, in one plain record the caller fills
 // and owns. Its pointers are borrowed only for the duration of
-// d_ssl_context_init -- the engine loads files and copies text while creating
-// its context -- so a configuration may live on the stack.
+// d_ssl_context_init - the engine loads files and copies text while creating
+// its context - so a configuration may live on the stack.
 //   d_ssl_config_init gives the safe defaults: TLS 1.2 or newer, a client
 // that verifies the server's chain and name against the system's trusted
 // authorities, a server that asks nothing of its clients. Weakening any of
@@ -1074,8 +1074,8 @@ typedef void (*dj_ssl_keylog_fn)(void*       _context,
 //                        copies it, and the caller should wipe memory copies
 //                        once the context exists.
 //     negotiation        cipher strings in the engine's own syntax (NULL for
-//                        its defaults) -- cipher_list for TLS 1.2 and older,
-//                        cipher_suites for TLS 1.3 -- and an ALPN wire list,
+//                        its defaults) - cipher_list for TLS 1.2 and older,
+//                        cipher_suites for TLS 1.3 - and an ALPN wire list,
 //                        which a client offers and a server chooses from.
 //                        alpn_required fails a handshake that settles on no
 //                        protocol.
@@ -1222,15 +1222,15 @@ enum dj_ssl_error d_ssl_config_plan(
 // 9.  ENGINES
 //==============================================================================
 // An engine binds the kernel to one TLS library. It is a table of functions
-// -- struct dj_ssl_engine -- that a derived module fills in and exports, and
+// - struct dj_ssl_engine - that a derived module fills in and exports, and
 // that an application hands to d_ssl_context_init. The kernel names no
 // engine and links against no library; which engines exist is a matter of
 // which derived modules a build compiles (cfg_ssl.h).
 //   ENGINES ARE SANS-I/O. An engine never touches a transport: the kernel
 // feeds it the ciphertext it reads, drains the ciphertext it must send, and
 // drives it with handshake, read, write, and close steps. Every library can
-// be run this way -- OpenSSL through memory BIOs, the others through their
-// buffer or I/O-callback interfaces -- and in return the kernel implements
+// be run this way - OpenSSL through memory BIOs, the others through their
+// buffer or I/O-callback interfaces - and in return the kernel implements
 // once what would otherwise be written per library: blocking and
 // non-blocking pumping, short reads and writes, WOULD_BLOCK resumption,
 // truncation detection, and the identity, pin, and ALPN checks.
@@ -1245,7 +1245,7 @@ enum dj_ssl_error d_ssl_config_plan(
 //     - On failure, an engine queues the alert it sends, if any, for the
 //       kernel to deliver, and reports it through describe.
 //     - An engine enforces the plan it was given at context creation --
-//       versions, chain verification, certificate requests, ALPN -- inside
+//       versions, chain verification, certificate requests, ALPN - inside
 //       the handshake, where a failure can alert the peer. The kernel checks
 //       the outcome again afterwards, and checks names and pins itself.
 
@@ -1366,7 +1366,7 @@ typedef enum dj_ssl_error (*dj_ssl_engine_feed_fn)(void*       _session,
 // dj_ssl_engine_drain_fn
 //   function pointer: moves up to _capacity bytes of pending outbound
 // ciphertext into _buffer, removing them from the engine, and stores the
-// count in *_out_size -- 0 when nothing is pending. Returns OK or
+// count in *_out_size - 0 when nothing is pending. Returns OK or
 // BACKEND.
 typedef enum dj_ssl_error (*dj_ssl_engine_drain_fn)(void*   _session,
                                                   void*   _buffer,
@@ -1407,7 +1407,7 @@ typedef enum dj_ssl_error (*dj_ssl_engine_write_fn)(void*       _session,
 // dj_ssl_engine_describe_fn
 //   function pointer: fills the engine's part of a dj_ssl_info (see 9.1.2)
 // with what the session knows so far. The kernel resets the record first --
-// version NONE, no alerts, verify NOT_PERFORMED -- so fields the engine
+// version NONE, no alerts, verify NOT_PERFORMED - so fields the engine
 // cannot tell may be left alone. The verify bits are the chain result alone:
 // NONE if the chain validated, NOT_PERFORMED if it was not checked.
 typedef void (*dj_ssl_engine_describe_fn)(void*              _session,
@@ -1435,7 +1435,7 @@ typedef bool (*dj_ssl_engine_peer_certificate_fn)(
 // 9.2.13
 // dj_ssl_engine_session_resume_fn
 //   function pointer: offers a client session, before its handshake, the
-// session `_from` -- another of the context's, established -- to resume, and
+// session `_from` - another of the context's, established - to resume, and
 // returns OK whether or not the server will take it: the handshake decides,
 // and dj_ssl_info's resumed reports it. Returns BACKEND when the library
 // refuses the offer outright.
@@ -1480,10 +1480,10 @@ struct dj_ssl_engine
 //==============================================================================
 // A context is a configuration made live in an engine: trust loaded, keys
 // parsed, the plan fixed. A session is one TLS connection over one
-// transport -- any net.h connection: a socket, a pipe, a proxy tunnel, or
-// another session -- made from a context; many sessions share a context.
-// The kernel owns the session's pump -- moving ciphertext between the engine
-// and the transport -- and its policy checks, so an application sees the
+// transport - any net.h connection: a socket, a pipe, a proxy tunnel, or
+// another session - made from a context; many sessions share a context.
+// The kernel owns the session's pump - moving ciphertext between the engine
+// and the transport - and its policy checks, so an application sees the
 // same behaviour under every engine:
 //     - Operations on a blocking transport complete or fail. On a
 //       non-blocking one, any may return WOULD_BLOCK; retry the same call,

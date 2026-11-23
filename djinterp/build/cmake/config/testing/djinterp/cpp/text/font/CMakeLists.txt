@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/cpp/text/
+# djinterp [test]  -  build/cmake/config/testing/djinterp/cpp/text/
 #                      font/CMakeLists.txt
 #
 #   Test leaf for font.hpp's suite, on DTest's report builder: the runner in

@@ -8,7 +8,7 @@
 * placeholder selectors, parent reference). The Sass facades extend
 * the CSS facades so that storage and memory layout are unchanged
 * below the extension surface; Sass-specific behaviour is added via
-* methods and free functions only -- never via additional state on
+* methods and free functions only - never via additional state on
 * the inherited CSS shape.
 *
 *   COVERS BOTH DIALECTS:
@@ -126,7 +126,7 @@ using DSassString = ::djinterp::css::DCssString;
 
 // D_SASS_PLACEHOLDER_PREFIX
 //   constant: prefix character for Sass placeholder selectors
-// ("%name" -- not emitted in compiled output, only used as
+// ("%name" - not emitted in compiled output, only used as
 // extension targets).
 #ifndef D_SASS_PLACEHOLDER_PREFIX
     #define D_SASS_PLACEHOLDER_PREFIX   "%"
@@ -877,7 +877,7 @@ struct has_is_default_method<Type, void_t<
 
 
 // has_is_global_method
-//   trait: true if `Type` exposes `is_global()` const -- used
+//   trait: true if `Type` exposes `is_global()` const - used
 // for variable declarations carrying `!global`.
 template<typename Type, typename = void>
 struct has_is_global_method : std::false_type {};
@@ -970,7 +970,7 @@ struct has_parameters_access
 
 // has_accepts_content_block_method
 //   trait: true if `Type` exposes `accepts_content_block()`
-// const -- mixins receiving an `@content` block.
+// const - mixins receiving an `@content` block.
 template<typename Type, typename = void>
 struct has_accepts_content_block_method : std::false_type {};
 template<typename Type>
@@ -1017,7 +1017,7 @@ struct has_extend_target_method<Type, void_t<
 
 // has_extend_optional_method
 //   trait: true if `Type` exposes `extend_optional()` const
-// -- @extend ... !optional flag.
+// - @extend ... !optional flag.
 template<typename Type, typename = void>
 struct has_extend_optional_method : std::false_type {};
 template<typename Type>
@@ -1094,7 +1094,7 @@ struct has_loop_to_method<Type, void_t<
 
 // has_loop_through_method
 //   trait: true if `Type` exposes `loop_is_through()` const
-// -- distinguishes `@for $i from 1 through 5` (inclusive)
+// - distinguishes `@for $i from 1 through 5` (inclusive)
 // from `@for $i from 1 to 5` (exclusive).
 template<typename Type, typename = void>
 struct has_loop_through_method : std::false_type {};
@@ -1121,7 +1121,7 @@ struct has_module_url_method<Type, void_t<
 
 // has_module_namespace_method
 //   trait: true if `Type` exposes `module_namespace()` const
-// -- the namespace alias (`@use 'foo' as bar`).
+// - the namespace alias (`@use 'foo' as bar`).
 template<typename Type, typename = void>
 struct has_module_namespace_method : std::false_type {};
 template<typename Type>
@@ -1132,7 +1132,7 @@ struct has_module_namespace_method<Type, void_t<
 
 // has_module_configuration_method
 //   trait: true if `Type` exposes `module_configuration()`
-// const -- the `with (...)` overrides on `@use`.
+// const - the `with (...)` overrides on `@use`.
 template<typename Type, typename = void>
 struct has_module_configuration_method : std::false_type {};
 template<typename Type>
@@ -1184,7 +1184,7 @@ struct has_sass_dialect_method<Type, void_t<
 
 // has_render_to_scss_source_method
 //   trait: true if `Type` exposes
-// `render_to_scss_source(std::ostream&)` const -- emits SCSS
+// `render_to_scss_source(std::ostream&)` const - emits SCSS
 // source rather than compiled CSS.
 template<typename Type, typename = void>
 struct has_render_to_scss_source_method : std::false_type {};
@@ -1197,7 +1197,7 @@ struct has_render_to_scss_source_method<Type, void_t<
 
 // has_render_to_sass_source_method
 //   trait: true if `Type` exposes
-// `render_to_sass_source(std::ostream&)` const -- emits Sass
+// `render_to_sass_source(std::ostream&)` const - emits Sass
 // (indented) source.
 template<typename Type, typename = void>
 struct has_render_to_sass_source_method : std::false_type {};
@@ -1251,7 +1251,7 @@ struct is_sass_rule
 
 
 // is_sass_rule_loose
-//   trait: looser detection -- any CSS rule is treated as a
+//   trait: looser detection - any CSS rule is treated as a
 // candidate Sass rule.
 template<typename Type>
 struct is_sass_rule_loose
@@ -1340,7 +1340,7 @@ struct is_sass_stylesheet
 
 
 // is_sass_stylesheet_loose
-//   trait: looser detection -- any CSS stylesheet qualifies.
+//   trait: looser detection - any CSS stylesheet qualifies.
 template<typename Type>
 struct is_sass_stylesheet_loose
 {
@@ -1456,7 +1456,7 @@ struct has_make_sass_stylesheet_method<Type, void_t<
 
 // is_sass_backend_complete
 //   trait: true if `Type` exposes the full Sass backend
-// protocol -- nested type aliases plus factory.
+// protocol - nested type aliases plus factory.
 template<typename Type>
 struct is_sass_backend_complete
 {
@@ -1572,7 +1572,7 @@ concept sass_rule_type =
 
 
 // sass_rule_loose_type
-//   concept: looser variant -- any CSS rule qualifies.
+//   concept: looser variant - any CSS rule qualifies.
 template<typename Type>
 concept sass_rule_loose_type =
     is_sass_rule_loose<Type>::value;
@@ -1738,7 +1738,7 @@ concept sass_stylesheet_type =
 
 
 // sass_stylesheet_loose_type
-//   concept: looser variant -- any CSS stylesheet qualifies.
+//   concept: looser variant - any CSS stylesheet qualifies.
 template<typename Type>
 concept sass_stylesheet_loose_type =
     is_sass_stylesheet_loose<Type>::value;

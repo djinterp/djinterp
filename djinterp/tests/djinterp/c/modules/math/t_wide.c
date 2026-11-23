@@ -23,7 +23,7 @@
 * snprintf cuts, its whole length returned; a text that is no integer, or
 * one past 2^256 - 1, must be refused with nothing stored.
 *   The operands: 0 and the integers about the powers of two that matter --
-* the limbs', the word's, the float's range and the top -- both signs, each
+* the limbs', the word's, the float's range and the top - both signs, each
 * pair; the divisions where Knuth's algorithm guesses a limb's range,
 * corrects its guess or adds the divisor back; the integers about the types'
 * precisions, their ties and runs of ones, and the powers of ten, each

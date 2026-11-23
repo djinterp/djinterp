@@ -34,7 +34,7 @@ bool tests_container_filter_class()
 {
     bool _cf_ok = true;
 
-    // -- vector<int>: filterable, contiguous, runtime, ordered sequence --
+    // - vector<int>: filterable, contiguous, runtime, ordered sequence --
     {
         using C = DContainerFilterClass<std::vector<int>>;
         D_CF_CHECK( (C::is_filterable) );
@@ -50,7 +50,7 @@ bool tests_container_filter_class()
         D_CF_CHECK( (!C::preserves_capacity_floor) );
     }
 
-    // -- array<int,4>: input-only source, compile-staged, external --
+    // - array<int,4>: input-only source, compile-staged, external --
     {
         using C = DContainerFilterClass<std::array<int, 4>>;
         D_CF_CHECK( (!C::is_filterable) );
@@ -63,7 +63,7 @@ bool tests_container_filter_class()
         D_CF_CHECK( (!C::preserves_uniqueness) );
     }
 
-    // -- set<int>: unique associative, bidirectional, not order-preserving --
+    // - set<int>: unique associative, bidirectional, not order-preserving --
     {
         using C = DContainerFilterClass<std::set<int>>;
         D_CF_CHECK( (C::is_filterable) );
@@ -76,7 +76,7 @@ bool tests_container_filter_class()
         D_CF_CHECK( (C::preserves_uniqueness) );
     }
 
-    // -- DNativeFilterable: own primitive -> native strategy --
+    // - DNativeFilterable: own primitive -> native strategy --
     {
         using C = DContainerFilterClass<DNativeFilterable>;
         D_CF_CHECK( (C::is_filterable) );
@@ -87,7 +87,7 @@ bool tests_container_filter_class()
         D_CF_CHECK( (!C::preserves_uniqueness) );
     }
 
-    // -- DSortedSeq: the sortedness-preserving case --
+    // - DSortedSeq: the sortedness-preserving case --
     {
         using C = DContainerFilterClass<DSortedSeq>;
         D_CF_CHECK( (C::is_filterable) );
@@ -98,7 +98,7 @@ bool tests_container_filter_class()
         D_CF_CHECK( (!C::preserves_uniqueness) );
     }
 
-    // -- int: not a source at all --
+    // - int: not a source at all --
     {
         using C = DContainerFilterClass<int>;
         D_CF_CHECK( (!C::is_filterable) );

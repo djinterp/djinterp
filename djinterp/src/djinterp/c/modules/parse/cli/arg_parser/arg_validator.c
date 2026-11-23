@@ -2,7 +2,7 @@
 * djinterp [c][parse]                                            arg_validator.c
 *
 * Validators, declared in arg_validator.h.
-*   A value's validation -- its replacement and its rejection -- then the
+*   A value's validation - its replacement and its rejection - then the
 * validator record's lifetime, settings and use; CLI11's composition with
 * AND, OR and NOT, word for word; custom validators; and CLI11's default
 * validators: Range, PositiveNumber, NonNegativeNumber and EscapedString.
@@ -257,7 +257,7 @@ int d_arg_internal_validator_replace(
 //==============================================================================
 
 // VALIDATOR_DEFAULT
-//   constant: CLI11's default Validator -- active, modifying, applying to
+//   constant: CLI11's default Validator - active, modifying, applying to
 // every value, passing every value, describing nothing.
 static const struct dj_arg_validator VALIDATOR_DEFAULT =
 {
@@ -382,7 +382,7 @@ int d_arg_internal_validator_raw_describe(
 //==============================================================================
 
 // dj_arg_internal_validator_pair
-//   struct: what a composite owns: its operands -- the second unused, and
+//   struct: what a composite owns: its operands - the second unused, and
 // as the default validator leaves it, for a NOT.
 struct dj_arg_internal_validator_pair
 {
@@ -450,8 +450,8 @@ int d_arg_internal_validator_merge(
  * @return D_ARG_OK once a verdict is reached; otherwise the error the operand
  *         stopped with, its message left in the validation.
  *
- * Runs an operand through its function directly -- its own flags do not
- * apply inside a composite -- and moves its rejection out of the validation,
+ * Runs an operand through its function directly - its own flags do not
+ * apply inside a composite - and moves its rejection out of the validation,
  * which then reads as passing again; an error it stops with is left where it
  * is, with its message, for the composite to stop with too.
  */
@@ -652,8 +652,8 @@ int d_arg_internal_validator_not_validate(
  * @return D_ARG_OK, or the status of an operand's description, or of the
  *         buffer; a description cut short fails with D_ARG_ERROR_OUT_OF_MEMORY.
  *
- * CLI11's _merge_description: the operands' descriptions -- whatever their
- * state -- joined by `_merger`. An operand whose description could not be
+ * CLI11's _merge_description: the operands' descriptions - whatever their
+ * state - joined by `_merger`. An operand whose description could not be
  * worked out fails the whole, with its status: a description cut short is
  * not passed off as a whole one.
  */
@@ -1036,7 +1036,7 @@ uint32_t d_arg_internal_validator_kind_or(
  * @param[in]     _describe  its description.
  * @param[in]     _choices   its listing.
  * @return the composite, which owns the pair; a failed validator, both operands
- *         released, when an operand failed -- with its status and reason -- or
+ *         released, when an operand failed - with its status and reason - or
  *         the pair could not be allocated.
  *
  * A composite over a pair: a failed operand fails it, with the first
@@ -1401,7 +1401,7 @@ void d_arg_validator_set_application_index(
  *         stopped with.
  *
  * CLI11's non_modifying run: the function judges a validation of its own,
- * whose verdict -- rejection or stop -- is moved into `_validation` while
+ * whose verdict - rejection or stop - is moved into `_validation` while
  * whatever it made of the value is dropped.
  */
 D_STATIC
@@ -1473,7 +1473,7 @@ int d_arg_validator_run(
 
 /*
 d_arg_validator_describe
-  CLI11's get_description: nothing while inactive -- or failed -- else the
+  CLI11's get_description: nothing while inactive - or failed - else the
 raw description.
 */
 int d_arg_validator_describe(
@@ -1834,7 +1834,7 @@ int d_arg_internal_validator_interval(
 d_arg_internal_validator_read
   CLI11's lexical_cast for a range's type: the value converted into a scratch
 object, as d_arg_internal_lexical_cast converts it, and widened. A
-conversion that fails is no reading; one that stops -- a refused allocation
+conversion that fails is no reading; one that stops - a refused allocation
 -- stops the validator too.
 */
 int d_arg_internal_validator_read(
@@ -2009,7 +2009,7 @@ int d_arg_internal_validator_non_negative_describe(
 d_arg_validator_range
   The type kept as the parameter, the bounds copied into the validator, so
 nothing is allocated; the type must be arithmetic, convert into a scratch
-object -- which a container's does not, whatever its flags and size say --
+object - which a container's does not, whatever its flags and size say --
 and fit the bounds' room. Its values complete as numbers.
 */
 struct dj_arg_validator d_arg_validator_range(
@@ -2094,7 +2094,7 @@ struct dj_arg_validator d_arg_validator_range_double(
 /*
 d_arg_validator_positive_number
   CLI11's PositiveNumber: a `double` range from the smallest positive value
--- the least subnormal, DBL_MIN * DBL_EPSILON, CLI11's denorm_min -- to the
+-- the least subnormal, DBL_MIN * DBL_EPSILON, CLI11's denorm_min - to the
 largest.
 */
 struct dj_arg_validator d_arg_validator_positive_number(void)

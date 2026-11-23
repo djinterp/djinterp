@@ -6,7 +6,7 @@
 * suite's translation units share.
 *
 *   sections (one .cpp each):
-*     sort_common_tests_order.cpp             sort_order -- the enumerators,
+*     sort_common_tests_order.cpp             sort_order - the enumerators,
 *                                             their parity with the C
 *                                             module's dj_sort_order, and the
 *                                             C++98 shape
@@ -22,7 +22,7 @@
 *
 *   The algebra section is the ONLY place the suite depends on
 * functional/comparator.hpp's spelling.  sort_common.hpp does not include that
-* header -- a caller who sorts with the algebra includes it -- so this suite
+* header - a caller who sorts with the algebra includes it - so this suite
 * does, for that one section.
 *
 *
@@ -41,7 +41,7 @@
 #include <type_traits>
 #include <vector>
 // djinterp
-//   core is ALWAYS first and unconditional -- NS_* / D_* qualifiers and the
+//   core is ALWAYS first and unconditional - NS_* / D_* qualifiers and the
 // language gates are needed by both faces of this header.
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
@@ -70,7 +70,7 @@ NS_TESTING
 // UNCONDITIONALLY: the spec provider below needs dt::module_spec too.
 namespace dt = ::djinterp::test;
 
-#ifndef DTEST_SPEC_MODE   // fixtures -- normal mode only
+#ifndef DTEST_SPEC_MODE   // fixtures - normal mode only
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -112,7 +112,7 @@ bool operator<(
 }
 
 // DEvenFirst
-//   struct: a comparator that is NOT a total order -- every even value
+//   struct: a comparator that is NOT a total order - every even value
 // precedes every odd one and values of the same parity are equivalent.  Used
 // to prove DOrderComparator flips an arbitrary strict weak ordering, not just
 // a natural one.
@@ -162,7 +162,7 @@ struct DCrossTypeLess
 };
 
 // DTallyingLess
-//   struct: an ascending comparator whose call operator is NOT const -- it
+//   struct: an ascending comparator whose call operator is NOT const - it
 // counts its own calls in a member.  DOrderComparator calls the comparator it
 // holds as a non-const lvalue, so this compiles through it and the count lands
 // on the wrapper's own copy.
@@ -190,7 +190,7 @@ struct DTallyingLess
 // constructor, as several of the comparator algebra's helpers have.  Handed a
 // non-const DGreedyLess, that constructor outbids the copy constructor and
 // tries to build the held std::less<int> from a DGreedyLess, which does not
-// compile -- so a wrapper that ever copies one from a non-const lvalue fails
+// compile - so a wrapper that ever copies one from a non-const lvalue fails
 // to build rather than failing a check.
 struct DGreedyLess
 {
@@ -236,12 +236,12 @@ struct DIntKeyOf
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// order -- sort_order
+// order - sort_order
 bool tests_sort_common_order_enumerators();
 bool tests_sort_common_order_matches_c_module();
 bool tests_sort_common_order_shape();
 
-// order_comparator -- internal::DOrderComparator
+// order_comparator - internal::DOrderComparator
 bool tests_sort_common_order_comparator_ascending();
 bool tests_sort_common_order_comparator_descending();
 bool tests_sort_common_order_comparator_none();
@@ -250,13 +250,13 @@ bool tests_sort_common_order_comparator_non_const();
 bool tests_sort_common_order_comparator_copies_from_const();
 bool tests_sort_common_order_comparator_drives_a_sort();
 
-// algebra -- the functional comparator vocabulary
+// algebra - the functional comparator vocabulary
 bool tests_sort_common_is_comparator_trait();
 bool tests_sort_common_natural_matches_less();
 bool tests_sort_common_reversed_matches_greater();
 bool tests_sort_common_composed_comparator_sorts();
 
-// header -- the include guard
+// header - the include guard
 bool tests_sort_common_include_guard();
 
 

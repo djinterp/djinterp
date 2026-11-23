@@ -4,8 +4,8 @@
 * Reads a makefile's statements as BSD make, as bmake reads one: see
 * dmake.h.
 *   bmake's parse loop, a line at a time. A line led by a tab is a command,
-* its comment the shell's. Any other line loses its comment -- a `#` no
-* backslash escapes and no `[` stands before, as in `:[#]` -- and a line
+* its comment the shell's. Any other line loses its comment - a `#` no
+* backslash escapes and no `[` stands before, as in `:[#]` - and a line
 * with `#` in its first column, or only blanks, is passed over. A line with
 * `.` in its first column is tried, blanks after the `.` skipped, as a
 * conditional, as Cond_EvalLine reads one: `endif`, `else` and `elif` as
@@ -14,7 +14,7 @@
 * ones counted; then as an include or one of the other directives, each a
 * prefix of the line, as Parse_File tries them. Then a line is an include in
 * System V's form, or gmake's export; an assignment, as Parse_IsVar finds
-* one -- outside any bracket, the first blank followed only by an operator;
+* one - outside any bracket, the first blank followed only by an operator;
 * in a rule, an indented line with no `:` or `!` is a command; and anything
 * else is a dependency, its first `:`, `::` or `!` the operator, its first
 * `;` after that beginning a command. An assignment ends a rule; a
@@ -250,8 +250,8 @@ size_t d_internal_raw_find(
  * byte after a run of blanks is taken as the operator's or not, its
  * bracket not counted, as Parse_IsVar's loop has it.
  *
- * Long as Parse_IsVar's one loop, whose cases -- blanks, brackets, operators
- * -- stay together so the order of its tests is bmake's.
+ * Long as Parse_IsVar's one loop, whose cases - blanks, brackets, operators
+ * - stay together so the order of its tests is bmake's.
  */
 static
 bool d_internal_is_var(

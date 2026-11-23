@@ -8,8 +8,8 @@
 * PIPELINING (RFC 2920), SIZE (RFC 1870), 8BITMIME (RFC 6152) and SMTPUTF8
 * (RFC 6531).
 *   The client drives any net.h connection. d_smtp_client_connect() opens a
-* TCP connection with tcp.h and runs the whole opening -- greeting, EHLO and
-* the STARTTLS policy -- while d_smtp_client_attach() adopts a caller's
+* TCP connection with tcp.h and runs the whole opening - greeting, EHLO and
+* the STARTTLS policy - while d_smtp_client_attach() adopts a caller's
 * connection and leaves those steps to the caller. Either way,
 * d_smtp_client_send() carries out a whole mail transaction. TLS, implicit
 * or by STARTTLS, is a session of the SSL kernel over the connection, made
@@ -78,7 +78,7 @@ TABLE OF CONTENTS
 #include "../../../../config/c/modules/net/cfg_net.h"  // D_INTERNAL_NET_REQUIRE_BACKENDS
 
 // 64-bit floor: this header needs a 64-bit integer type, and compiles to
-// nothing where the build has none -- ISO strict C++98 wherever int64_t is
+// nothing where the build has none - ISO strict C++98 wherever int64_t is
 // `long long`: a 32-bit target, 64-bit Windows or macOS (the owner's ruling of
 // 2026.10.03 on round 3's question 1, (a)). The answer is net_common.h's, taken
 // once per translation unit, so that net's gated headers agree.
@@ -99,8 +99,8 @@ D_EXTERN_C_BEGIN
 // 1.1.1
 // dj_smtp_security
 //   enum: how the channel is protected. STARTTLS is the default because it
-// fails closed: a server that does not offer the upgrade -- which is also
-// what an attacker stripping it produces -- ends the connection.
+// fails closed: a server that does not offer the upgrade - which is also
+// what an attacker stripping it produces - ends the connection.
 enum dj_smtp_security
 {
     D_SMTP_SECURITY_NONE = 0,           // plaintext; never upgrades
@@ -131,7 +131,7 @@ struct dj_smtp_credentials
 #define D_SMTP_CLIENT_CONNECT_TIMEOUT_MS  30000L
 
 // D_SMTP_CLIENT_IO_TIMEOUT_MS
-//   constant: default limit on each read and write -- the five minutes RFC
+//   constant: default limit on each read and write - the five minutes RFC
 // 5321 section 4.5.3.2 recommends for most replies.
 #define D_SMTP_CLIENT_IO_TIMEOUT_MS       300000L
 
@@ -217,9 +217,9 @@ struct dj_smtp_send_report
 //==============================================================================
 // 3.  CLIENT
 //==============================================================================
-// A client is a state machine over one connection. It is large -- it embeds
+// A client is a state machine over one connection. It is large - it embeds
 // its read buffer, its last reply, the TCP connection connect() opens, and
-// the TLS session it makes -- and must not move while connected, since its
+// the TLS session it makes - and must not move while connected, since its
 // reader points into it.
 
 
@@ -270,7 +270,7 @@ struct dj_smtp_client
 
 // 3.2    Session setup
 //------------------------------------------------------------------------------
-// initialization -- neither fails; NULL is ignored. Options default to
+// initialization - neither fails; NULL is ignored. Options default to
 // STARTTLS and the D_SMTP_CLIENT_*_TIMEOUT_MS limits, without a context.
 void d_smtp_client_options_init(
     struct dj_smtp_client_options* _options
@@ -285,8 +285,8 @@ void d_smtp_client_init(
  *
  * @note Opening the connection is judged apart from what the session reads
  *       and writes: a host whose name does not resolve, or that no route
- *       reaches, is D_SMTP_ERROR_RESOLVE -- tcp.h reports them as
- *       D_NET_ERROR_HOST_NOT_FOUND and D_NET_ERROR_HOST_UNREACHABLE -- and
+ *       reaches, is D_SMTP_ERROR_RESOLVE - tcp.h reports them as
+ *       D_NET_ERROR_HOST_NOT_FOUND and D_NET_ERROR_HOST_UNREACHABLE - and
  *       one that refuses or drops the connection D_SMTP_ERROR_CONNECT.
  *
  * @param[in,out] _client   a closed client.
@@ -388,8 +388,8 @@ enum dj_smtp_error d_smtp_client_hello(
  *        RFC 3207 section 4.2 requires.
  *
  * @note Bytes the server sent after its 220 would be read as if they had
- *       been protected; their presence -- already read, or waiting in a
- *       connection that can count them -- fails the upgrade with
+ *       been protected; their presence - already read, or waiting in a
+ *       connection that can count them - fails the upgrade with
  *       D_SMTP_ERROR_PROTOCOL (response injection) before any TLS.
  *
  * @param[in,out] _client       a client in D_SMTP_CLIENT_READY, not yet
@@ -484,7 +484,7 @@ enum dj_smtp_error d_smtp_client_data(
 
 /**
  * @brief Carries out a whole transaction: MAIL, every RCPT, DATA and the
- *        message -- batched in one write when the server offers PIPELINING.
+ *        message - batched in one write when the server offers PIPELINING.
  *
  * @note The message is delivered if at least one recipient is accepted;
  *       the report says which were refused. When no recipient is accepted,
@@ -509,7 +509,7 @@ enum dj_smtp_error d_smtp_client_send(
 
 // 3.4    Session control
 //------------------------------------------------------------------------------
-// RSET, NOOP and QUIT -- each returns D_SMTP_OK on a 2yz reply,
+// RSET, NOOP and QUIT - each returns D_SMTP_OK on a 2yz reply,
 // D_SMTP_ERROR_REJECTED otherwise, D_SMTP_ERROR_STATE out of sequence, or a
 // transport error. QUIT leaves the client in D_SMTP_CLIENT_QUIT either way.
 enum dj_smtp_error d_smtp_client_reset(
@@ -522,7 +522,7 @@ enum dj_smtp_error d_smtp_client_quit(
     struct dj_smtp_client* _client
 );
 
-// d_smtp_client_close -- ends the session without QUIT: the TLS session the
+// d_smtp_client_close - ends the session without QUIT: the TLS session the
 // client made sends close_notify and is released, and a connection
 // connect() opened is closed, while an attached one is left to its owner.
 // The last reply is kept. Idempotent; NULL is ignored.
@@ -532,7 +532,7 @@ void d_smtp_client_close(
 
 // 3.5    Queries
 //------------------------------------------------------------------------------
-// d_smtp_client_tls_session -- the TLS session this client made, which tells
+// d_smtp_client_tls_session - the TLS session this client made, which tells
 // what was negotiated and, after D_SMTP_ERROR_TLS, why it failed; NULL
 // before one was made, after close, or for NULL
 const struct dj_ssl_session* d_smtp_client_tls_session(

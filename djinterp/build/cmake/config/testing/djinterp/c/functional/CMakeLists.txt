@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/functional/CMakeLists.txt
+# djinterp [test]  -  build/cmake/config/testing/djinterp/c/functional/CMakeLists.txt
 #
 #   Aggregate over the functional suites' C leaves: every leaf below this
 # directory.

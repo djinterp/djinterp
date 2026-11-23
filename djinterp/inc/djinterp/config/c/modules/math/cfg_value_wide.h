@@ -9,8 +9,8 @@
 * (cfg_file_common.h).
 *   Both knobs are of the value model: each expands to a call, not to 0 or 1,
 * and is not validated as a flag. Each is #ifndef-guarded, so a definition
-* made before the kind is first included -- with -D, in cfg_custom.h, or in
-* the including file -- wins over the default here.
+* made before the kind is first included - with -D, in cfg_custom.h, or in
+* the including file - wins over the default here.
 *
 *   targets:  c/math/value_wide.h -> D_CFG_MATH_VALUE_WIDE_MALLOC,
 *                                    D_CFG_MATH_VALUE_WIDE_FREE

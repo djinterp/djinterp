@@ -4,7 +4,7 @@
 * The vcxproj extension: MSBuild's files, read, changed and made from awk.
 *   A .vcxproj, its .vcxproj.filters and .vcxproj.user, a .props or a
 * .targets: XML whose root is <Project>. A program opens one, or makes one
-* new -- from nothing but its root, or from a template file -- and is given
+* new - from nothing but its root, or from a template file - and is given
 * its root's handle; every element it reaches after has a handle of its own,
 * a number that names that element, in that file, for as long as the file
 * is open and the element is in it. A handle is never 0, and never names a
@@ -96,7 +96,7 @@ struct dj_host_vcxproj;
 //     vcxproj_children(e)           how many children it has
 //     vcxproj_find(e, name[, after])
 //                                   the first element within `e` so named
-//                                   -- any, for "" -- after `after`
+//                                   - any, for "" - after `after`
 //     vcxproj_name(e)               its name
 //     vcxproj_line(e)               the line it starts on
 //     vcxproj_depth(e)              how many elements hold it

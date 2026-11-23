@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][event]                            event_common_tests_traits.cpp
 *
-*   Section IV -- EVENT TRAITS.  Covers event_traits<_Event>: the payload_type
+*   Section IV - EVENT TRAITS.  Covers event_traits<_Event>: the payload_type
 * it exposes, the args_type alias that mirrors it, the arity drawn from the
 * payload tuple (0 through 4), the has_name flag, the has_args flag, and the
 * behaviour on legacy-spelled and dual-spelled tags (legacy resolves, both

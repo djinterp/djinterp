@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  monoid_tests_newtypes.cpp
-//   Section I -- MONOID NEWTYPES (sum / product / all / any / min / max).
+//   Section I - MONOID NEWTYPES (sum / product / all / any / min / max).
 
 // std
 #include <type_traits>
@@ -81,7 +81,7 @@ bool tests_product_newtype()
 {
     bool ok = true;
 
-    // default constructs to the multiplicative identity, 1 -- the defining
+    // default constructs to the multiplicative identity, 1 - the defining
     // difference from sum<T>.
     DProduct<int> a;
     ok = ok && (a.value == 1);
@@ -220,7 +220,7 @@ bool tests_min_newtype()
     DMin<double> b(2.5);
     ok = ok && close_enough(b.value, 2.5);
 
-    // NO default ctor -- min<T> is value-only.
+    // NO default ctor - min<T> is value-only.
     ok = ok && (!std::is_default_constructible<DMin<int> >::value);
 
     // explicit value ctor.

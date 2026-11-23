@@ -11,8 +11,8 @@
 * locale's thousands separator; a prefix with no digits after it, or after
 * a sign, which CLI11 reads or refuses by accident of the order it tries
 * things in; and a floating-point value starting with a separator. The
-* written texts are the module's own -- the shortest text that reads back
-* -- where CLI11 writes every digit a type has.
+* written texts are the module's own - the shortest text that reads back
+* - where CLI11 writes every digit a type has.
 *
 *
 * path:      /tests/djinterp/c/modules/parse/cli/arg_parser/arg_type_tests.c
@@ -231,7 +231,7 @@ struct dj_tests_arg_type_signed_row
 
 // SIGNED_ROWS
 //   constant: each signed integer type at its limits, CLI11's results. A
-// type whose width differs by platform -- `long`, ptrdiff_t -- is held to
+// type whose width differs by platform - `long`, ptrdiff_t - is held to
 // the 32-bit limits every platform has.
 static const struct dj_tests_arg_type_signed_row SIGNED_ROWS[] =
 {
@@ -429,7 +429,7 @@ static const struct dj_tests_arg_type_double_row DOUBLE_ROWS[] =
 //   constant: the float nearest 0.1, as an object holds it. A float read is
 // compared with this rather than with `0.1f` itself: where FLT_EVAL_METHOD
 // is 2, as on the x87 unit, C99 lets a compiler evaluate the constant with
-// long double's precision -- GCC does -- and so it equals no float.
+// long double's precision - GCC does - and so it equals no float.
 static const float TENTH = 0.1f;
 
 // dj_tests_arg_type_bool_row
@@ -502,7 +502,7 @@ static const struct dj_tests_arg_type_bool_row BOOL_ROWS[] =
 // FLAG_ROWS
 //   constant: d_arg_flag_value under the C rule, every row CLI11's
 // to_flag_value: a true word is 1, a false word or `0` is -1, any other
-// number is itself -- `-0` being 0 -- and the empty text is 0.
+// number is itself - `-0` being 0 - and the empty text is 0.
 static const struct dj_tests_arg_type_long_row FLAG_ROWS[] =
 {
     { "",            true,  0L },

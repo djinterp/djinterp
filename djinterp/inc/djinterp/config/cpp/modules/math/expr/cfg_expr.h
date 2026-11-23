@@ -6,8 +6,8 @@
 * caller's frame before it asks the heap for them (expr/program.hpp, S395).
 *   The knob is of the value model: it expands to a number, not to 0 or 1, and
 * is validated as one. It is #ifndef-guarded, so a definition made before the
-* language is first included -- with -D, in cfg_custom.h, or in the including
-* file -- wins over the default here.
+* language is first included - with -D, in cfg_custom.h, or in the including
+* file - wins over the default here.
 *
 *   targets:  cpp/modules/math/expr/program.hpp -> D_CFG_MATH_EXPR_PROGRAM_STACK
 *   requires: cfg_common.h (user overrides, the testing preset)

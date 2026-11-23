@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/cpp/util/output/
+# djinterp [test]  -  build/cmake/config/testing/djinterp/cpp/util/output/
 #                      output_stream/CMakeLists.txt
 #
 #   Test leaf for the output stream's C++ suite, in DTest's C face: the runner

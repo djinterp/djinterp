@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  traversable_tests_structural.cpp
-//   Section 0 -- traversable_value_type, the internal helpers (identity and
+//   Section 0 - traversable_value_type, the internal helpers (identity and
 //   append), and the C++20 Traversable concept.
 
 // std
@@ -90,12 +90,12 @@ bool tests_traversable_value_type_t_alias()
 /*
 tests_traversable_value_type_helper_sfinae
   The extraction is built on a SFINAE helper whose primary is a COMPLETE but
-  MEMBERLESS struct -- a soft failure, yielding no ::type rather than an error.
+  MEMBERLESS struct - a soft failure, yielding no ::type rather than an error.
   That is the machinery behind the trait's SFINAE-friendliness, and the level at
   which the claim can actually be read.
   Tests the following:
   - the helper has a ::type for both traversables
-  - it has NONE for a non-traversable -- and is nevertheless complete, so the
+  - it has NONE for a non-traversable - and is nevertheless complete, so the
     failure is soft
   NOTE: the PUBLIC traversable_value_type re-declares `type` unconditionally, so
   naming it on a non-traversable is a hard error rather than a detectable absence
@@ -110,7 +110,7 @@ bool tests_traversable_value_type_helper_sfinae()
     static_assert(has_type<vt_helper<std::vector<int> > >::value, "vector");
     static_assert(has_type<vt_helper<DTmaybe<int> > >::value, "maybe");
 
-    // absent for a non-traversable -- softly.
+    // absent for a non-traversable - softly.
     static_assert(!has_type<vt_helper<not_traversable> >::value,
                   "no ::type for a non-traversable");
     static_assert(!has_type<vt_helper<int> >::value, "nor for a scalar");
@@ -189,7 +189,7 @@ bool tests_identity_helper()
     static_assert(internal::traversable_identity_helper{}(7) == 7,
                   "constexpr");
 
-    // applied to an effect, it is the effect -- the key to sequence.
+    // applied to an effect, it is the effect - the key to sequence.
     const DTbox<int> b = id(boxed(9));
     ok = ok && (b.value == 9);
     static_assert(std::is_same<
@@ -246,7 +246,7 @@ bool tests_append_helper()
 
 /*
 tests_append_helper_threads_by_value
-  The accumulator is threaded BY VALUE -- lift_a2 lifts a PURE binary function
+  The accumulator is threaded BY VALUE - lift_a2 lifts a PURE binary function
   over the effect, so the reducer must not mutate its argument. The helper takes
   the vector by value and returns a new one.
   Tests the following:

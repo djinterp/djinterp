@@ -5,9 +5,9 @@ writes all three:
 
 | `format` | what it is | written by |
 |---|---|---|
-| `bitwisedom.sheet` | the window's own file: the bitfield and every setting the window keeps with it -- the grid, its colours, its widths -- to open as it was left | File > Save |
+| `bitwisedom.sheet` | the window's own file: the bitfield and every setting the window keeps with it - the grid, its colours, its widths - to open as it was left | File > Save |
 | `bitwisedom.bitfield` | the bitfield alone, as a person would write it: its width, its affixes and its rows, each in as few keys as say what it is | File > Export the bitfield as JSON; `bitwisedom-gen --bitfield` |
-| `bitwisedom.export` | everything about it: the sheet whole, every row as it resolves -- its macro name, bits, value, the integer C knows it by, its error -- the issues, and the header | File > Export everything as JSON (Ctrl+Shift+E); `bitwisedom-gen --export` |
+| `bitwisedom.export` | everything about it: the sheet whole, every row as it resolves - its macro name, bits, value, the integer C knows it by, its error - the issues, and the header | File > Export everything as JSON (Ctrl+Shift+E); `bitwisedom-gen --export` |
 
 Any of the three opens with File > Open, dropped on the window, or pasted
 with File > New sheet from the clipboard; `bitwisedom-gen` reads any of them
@@ -21,8 +21,8 @@ bitfield is a width and its rows:
 { "width": 8, "rows": [ { "name": "READY", "bit": 0 } ] }
 ```
 
-Numbers are JSON integers, or strings in any base C has -- `"0x0F00"`,
-`"0b101"`, `"017"`, `"-3"` -- of any width. A number past 2^53, which a reader
+Numbers are JSON integers, or strings in any base C has - `"0x0F00"`,
+`"0b101"`, `"017"`, `"-3"` - of any width. A number past 2^53, which a reader
 that holds numbers as doubles would round, is written as a string of its
 digits.
 
@@ -81,7 +81,7 @@ whether non-preprocessor source and comments are expanded in that tab.
 | `format` | `"bitwisedom.bitfield"` | read as one |
 | `version` | `1` | 1 |
 | `title` | the sheet's name | `"untitled"` |
-| `width` | its bits, 1 to 65,536; past 64 the header keeps it in arrays of words (README, *Sheets wider than 64 bits*) | -- it must be there |
+| `width` | its bits, 1 to 65,536; past 64 the header keeps it in arrays of words (README, *Sheets wider than 64 bits*) | - it must be there |
 | `prefix`, `suffix` | the start and the end of every macro name | none |
 | `trim_both`, `trim_left`, `trim_right` | comma-separated exact tokens removed repeatedly from both, leading or trailing ends of each node name *before* joining prefixes | none |
 | `numbering` | `"lsb0"` or `"msb0"`: how the window numbers the bits (the header always counts from the least significant) | `"lsb0"` |
@@ -91,24 +91,24 @@ whether non-preprocessor source and comments are expanded in that tab.
 | `environment` | `#define`s the macros are evaluated in, which the header does not write | none |
 | `rows` | its groups and symbols, in order | none |
 | `segments` | the grid's named runs of columns, each `{"name", "bits", "collapsed", "colour"}` | one every few bits, as a new sheet has |
-| `generator` | the header's settings, as a sheet file holds them -- `file_name`, `level` (`"c99"` ... `"cpp23"`), `form` (`"macros"`, `"constants"`), `style` (`"djinterp"`, `"plain"`), `radix`, `int_suffix`, `word`, `templates` and the rest; only those that differ from a new sheet's | a new sheet's |
+| `generator` | the header's settings, as a sheet file holds them - `file_name`, `level` (`"c99"` ... `"cpp23"`), `form` (`"macros"`, `"constants"`), `style` (`"djinterp"`, `"plain"`), `radix`, `int_suffix`, `word`, `templates` and the rest; only those that differ from a new sheet's | a new sheet's |
 
 ### Rows
 
-A row is a **group** -- `{"group": NAME, "rows": [...]}` -- or a **symbol**,
+A row is a **group** - `{"group": NAME, "rows": [...]}` - or a **symbol**,
 `{"name": NAME}` and one definition:
 
 | kind | its definition | for example |
 |---|---|---|
 | bit | `bit`: its number | `{"name": "EN", "bit": 0}` |
 | range | `bits`: `"lowest..highest"` (either way round), `"5"` for one bit, or `[lowest, highest]`; or `lsb` and `width` (1 if left out). `values` names its values | `{"name": "MODE", "bits": "4..6", "values": {"SLOW": 1, "FAST": 2}}` |
-| value in a range | `number`, with `field`, the range by its name or its macro name -- or with `bits` of its own; `encoding` and `bias` | `{"name": "GAIN_DOWN", "field": "GAIN", "number": -1, "encoding": "twos_complement"}` |
+| value in a range | `number`, with `field`, the range by its name or its macro name - or with `bits` of its own; `encoding` and `bias` | `{"name": "GAIN_DOWN", "field": "GAIN", "number": -1, "encoding": "twos_complement"}` |
 | literal | `value`: a number, which may be negative and is then written as the number it is | `{"name": "MAGIC", "value": "0x0F00"}` |
 | expression | `expr`: other symbols, by their names or macro names, with C's operators | `{"name": "ALL", "expr": "EN \| MODE"}` |
 | macro | `body`, with `{NAME}` for any symbol's macro name; `params`; `callable` to write one with no parameters as `NAME()` | `{"name": "IS_ON", "params": "x", "body": "(((x) & {EN}) != 0)"}` |
 
 A range's **`values`** are an object, each member a value in it, made a row
-after it in the same group and named by its key -- its own name, so
+after it in the same group and named by its key - its own name, so
 `"FAST"` is `FAST` with the prefixes around it, not `MODE_FAST`. A member is
 the value's number, or an object with its `number` and any of `encoding`,
 `bias` and the keys below. The encodings are `"unsigned"`, `"twos_complement"`,
@@ -155,8 +155,8 @@ rows[1].rows[2] (DIV_115200): its "field", DIVISOR, names no row: unknown name '
 width: a bitfield's width is a number of bits, 1 to 65536
 ```
 
-What is wrong with the bitfield itself -- two bits that collide, a value
-that does not fit its range, an expression's unknown name -- is the sheet's
+What is wrong with the bitfield itself - two bits that collide, a value
+that does not fit its range, an expression's unknown name - is the sheet's
 business, and is on the Issues page as it would be for a sheet.
 
 [`bitfield.schema.json`](bitfield.schema.json) is a JSON Schema (draft
@@ -177,7 +177,7 @@ writes the same header as the sheet it was written from.
 
 All three shapes are written four spaces to an indent, an array of numbers
 or strings on one line, and any other array or object on one line where the
-line -- a hundred columns, the comma after it included -- has room for it,
+line - a hundred columns, the comma after it included - has room for it,
 and a member or an item to a line where not. A bitfield's row is a line,
 note and all, unless its note is long:
 
@@ -213,7 +213,7 @@ on File > Examples > Large and `bitwisedom-gen --example` has by name:
 Each script writes the platform check beside its bitfield --
 `tests/platform/win32_hresults.c`, every code and facility against the
 `winerror.h` a Windows build has; `tests/platform/x86_cpuid.c`, every flag
-against GCC's and Clang's `<cpuid.h>` -- and the tests read each file and
+against GCC's and Clang's `<cpuid.h>` - and the tests read each file and
 write it back as a bitfield, which must give the same bytes.
 
 ---
@@ -266,7 +266,7 @@ A row of `symbols` has:
 | `lsb`, `msb`, `width` | its bits' span: a bit's, a range's, a value's range's |
 | `bits` | its bits as runs, for a person: `"bits 4..5"`, `"bits 0, 3 and 70"` |
 | `value` | its bits, in hex, of any width: `"0x30"` |
-| `integer` | the integer C knows it by, in decimal: its value, or -- a negative literal -- the number; in a sheet wider than 64 bits, a bit's or range's place, the bits a value's field holds, a literal's number. None for an expression of a wide sheet, nor a literal past bit 63 |
+| `integer` | the integer C knows it by, in decimal: its value, or - a negative literal - the number; in a sheet wider than 64 bits, a bit's or range's place, the bits a value's field holds, a literal's number. None for an expression of a wide sheet, nor a literal past bit 63 |
 | `number`, `encoding`, `bias` | a value's number and how its range holds it |
 | `negative` | a literal written as the negative number it is |
 | `expr` | an expression's text |
@@ -291,15 +291,15 @@ in an expression is accepted, and the generator emits a C `#define`
 containing the symbolic references.
 
 `transparent: true` on a symbol or group disables its colored cell fill --
-its set bits are drawn plain, in the theme's text -- and is what a row added
+its set bits are drawn plain, in the theme's text - and is what a row added
 with **New rows' colour** at *none* has; this is separate from `colour`
 being unspecified (automatic palette).
 The **New** command creates a 32-bit sheet with a full-width range named
 `root`, with no fill (`transparent: true`), holding one bit, `FLAG`, at
 bit 0, ready to receive more nested rows. A sheet file's `grid` keeps
-`square_cells`, whether rows follow the cells' width -- proportional
-cells -- and `cell_ratio`, as what share of it, `0.8` by default, `1.0`
-square; a file without them -- one written before them -- opens with
+`square_cells`, whether rows follow the cells' width - proportional
+cells - and `cell_ratio`, as what share of it, `0.8` by default, `1.0`
+square; a file without them - one written before them - opens with
 proportional rows four fifths of a cell's width. `lines_past_rows` is
 whether the bits' lines run on below the last row; a file without it stops
 them where the rows do. It keeps
@@ -308,16 +308,16 @@ value rather than by a name; with it off, `full_names` chooses the symbol
 (macro) name or the row's own, as before, and a file without it opens
 listing rows by name. `names_value_form` says how the values are then
 written: `written`, as the header writes them, where the names would be;
-or every row alike, lined up at the column's right -- `hex`, `dec`, `bin`,
+or every row alike, lined up at the column's right - `hex`, `dec`, `bin`,
 `shift` (a shifted run, `0x3 << 4`) or `bits` (the bits set, `bits 5:4`).
 A file without it, or with a word it does not know, writes them as the
 header does. **Shift+drag** on the grid selects
 a rectangle of cells and rows without editing their bit definitions.
 Binary values in the inspector and grid tooltip are ungrouped.
 
-The grid keeps the order its rows are shown in: `sort_by` -- `sheet`, the
+The grid keeps the order its rows are shown in: `sort_by` - `sheet`, the
 sheet's own, or `symbol`, `name`, `short_name`, `value`, `lowest`, `width`,
-`kind` or `note` -- and `sort_descending`. The rows stay in `rows` in the
+`kind` or `note` - and `sort_descending`. The rows stay in `rows` in the
 sheet's own order, which the header follows; a file without them shows the
 sheet's order. `show_colours` is whether the rows' colours are drawn in
 their cells, as `show_digits` and `show_labels` are whether digits and
@@ -328,7 +328,7 @@ display rules, show or hide those three in parts of the grid, each
 { "rows": [ 7, 12 ], "lsb": 4, "msb": 11, "digits": true, "colour": false }
 ```
 
--- rows by `id`, each with every row inside it; none for every row -- by
+-- rows by `id`, each with every row inside it; none for every row - by
 bits `lsb` to `msb`, every bit when `msb` is below `lsb` (`-1`); with only
 the parts it sets, `digits`, `names` and `colour`, each `true` to show and
 `false` to hide. Rules apply in order, and the last over a cell wins.
@@ -347,7 +347,7 @@ it is shown:
 -- `kind`, `probe` or `usage`; `place`, `bottom` (pinned below every row),
 `top` (above every row) or `tree` (among the rows: just before the row
 whose `id` is `before`, or, with none, at the end of the rows of the group
-or range `parent` -- 0, the sheet's own). A usage row in a group counts
+or range `parent` - 0, the sheet's own). A usage row in a group counts
 the group's rows. Every row of a kind is shown or hidden with the grid's
 `show_probe` or `show_usage`; a file without `specials` has one of each,
 at the bottom, and an anchor to a row the sheet does not have is let go

@@ -4,7 +4,7 @@
 *   Conformance harness for c/math/vec.h, all three families: every kernel
 * against the formula it implements, written out here in the same type and
 * the same order of operations, over 200,000 random vectors of 1 to 8
-* components per family -- so the results must agree bit for bit -- with the
+* components per family - so the results must agree bit for bit - with the
 * two forms of each root required to agree bit for bit with each other, the
 * angle's two forms within two ulps, and the cases a careless kernel gets
 * wrong: the zero vector, parallel vectors (an angle of 0, not NaN), and an
@@ -19,9 +19,9 @@
 *   One test body serves the three families, stamped out by
 * D_TESTS_VEC_FAMILY: the families are one text, and so is their test.
 *
-*   Where the build fuses a multiply and an add written apart -- gcc in its GNU
+*   Where the build fuses a multiply and an add written apart - gcc in its GNU
 * modes on a target with the instruction, clang under -ffp-contract=fast
-* (self_test.h's d_math_formulas_fuse) -- the plain formulas' bits follow the
+* (self_test.h's d_math_formulas_fuse) - the plain formulas' bits follow the
 * build (S415), and the check that project and reject, moved past the range,
 * give the results in range, moved, is left out; the harness says so.
 *
@@ -428,7 +428,7 @@ d_tests_normal_##S(T _x)                                                       \
                                                                                \
 /* project and reject at the range's ends (S301): 2,000 random pairs of */     \
 /* 1 to 8 components, each moved by powers of two, 2^s and 2^t, that    */     \
-/* take the squared norm, the dot or both past the range -- each result */     \
+/* take the squared norm, the dot or both past the range - each result */     \
 /* 2^s times the pair's in range, bit for bit, where it is 0 or normal; */     \
 /* and a vector of two components onto itself at either end, itself and */     \
 /* the zero vector, which the formula's overflow made NaN               */     \

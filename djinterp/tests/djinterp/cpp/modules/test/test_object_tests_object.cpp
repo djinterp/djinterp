@@ -37,10 +37,10 @@ namespace
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///   compile-time invariants -- aliases / status constants / storage / traits ///
+///   compile-time invariants - aliases / status constants / storage / traits ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// -- type aliases -------------------------------------------------------------
+// - type aliases -------------------------------------------------------------
 static_assert(std::is_same<basic_test::status_type, std::uint8_t>::value, "");
 static_assert(std::is_same<basic_test::metadata_container_type,
                            DTestMetadata>::value, "");
@@ -51,14 +51,14 @@ static_assert(std::is_same<DTaggedTest::metadata_container_type,
                            std::vector<std::int32_t> >::value, "");
 static_assert(std::is_same<DTaggedTest::metadata_type, std::int32_t>::value, "");
 
-// -- status constants : values are fixed by contract --------------------------
+// - status constants : values are fixed by contract --------------------------
 static_assert(static_cast<int>(basic_test::status_passed)  == 0, "");
 static_assert(static_cast<int>(basic_test::status_failed)  == 1, "");
 static_assert(static_cast<int>(basic_test::status_skipped) == 2, "");
 static_assert(static_cast<int>(basic_test::status_pending) == 3, "");
 static_assert(static_cast<int>(basic_test::status_error)   == 4, "");
 
-// -- status constants : typed as the chosen status_type -----------------------
+// - status constants : typed as the chosen status_type -----------------------
 static_assert(std::is_same<std::remove_cv<
                   decltype(basic_test::status_passed)>::type,
                   std::uint8_t>::value, "");
@@ -66,7 +66,7 @@ static_assert(std::is_same<std::remove_cv<
                   decltype(DI64Object::status_error)>::type,
                   std::int64_t>::value, "");
 
-// -- storage : member types ---------------------------------------------------
+// - storage : member types ---------------------------------------------------
 //   ruling 13 removed the stored m_result; the verdict is derived, so what is
 // pinned here is the accessor's return type, not a member's.
 static_assert(std::is_same<decltype(std::declval<const basic_test&>().result()),
@@ -81,7 +81,7 @@ static_assert(std::is_same<decltype(basic_test::m_metadata),
                            DTestMetadata>::value, "");
 static_assert(std::is_same<decltype(DLitObject::m_metadata), DLitmeta>::value, "");
 
-// -- traits : triviality tracks the metadata container ------------------------
+// - traits : triviality tracks the metadata container ------------------------
 static_assert(!std::is_trivially_copyable<basic_test>::value, "");
 static_assert(std::is_trivially_copyable<DLitObject>::value, "");
 static_assert(!std::is_trivially_destructible<basic_test>::value, "");
@@ -94,11 +94,11 @@ static_assert(!std::is_trivially_default_constructible<DLitObject>::value, "");
 // the vector-backed instantiations' layout is implementation-defined)
 static_assert(std::is_standard_layout<DLitObject>::value, "");
 
-// -- traits : the type_id constructor is explicit -----------------------------
+// - traits : the type_id constructor is explicit -----------------------------
 static_assert(std::is_constructible<basic_test, DTestTypeId>::value, "");
 static_assert(!std::is_convertible<DTestTypeId, basic_test>::value, "");
 
-// -- traits : the trailing _Options pack is inert -----------------------------
+// - traits : the trailing _Options pack is inert -----------------------------
 static_assert(std::is_same<DOptObject::status_type, std::uint8_t>::value, "");
 static_assert(std::is_same<DOptObject::metadata_container_type,
                            DLitmeta>::value, "");
@@ -106,7 +106,7 @@ static_assert(std::is_trivially_copyable<DOptObject>::value, "");
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///   runtime tests -- aliases / status constants / storage / traits          ///
+///   runtime tests - aliases / status constants / storage / traits          ///
 ///////////////////////////////////////////////////////////////////////////////
 
 /*

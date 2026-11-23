@@ -146,7 +146,7 @@ std::vector<edit> expression_edits(
 /*
 body_edits
   A macro body's references: an identifier that is the old macro name, and
-a {placeholder} that names the row -- but not one of the macro's own
+a {placeholder} that names the row - but not one of the macro's own
 parameters, which only share the spelling.
 */
 std::vector<edit> body_edits(

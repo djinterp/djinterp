@@ -404,6 +404,6 @@ stable_sort(
 
 
 
-}  // re_std   (added 2026-08-25 -- was never closed)
+}  // re_std   (added 2026-08-25 - was never closed)
 
 #endif  // RE_STD_ALGORITHM_STABLE_SORT_HPP

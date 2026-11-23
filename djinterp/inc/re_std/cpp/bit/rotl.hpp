@@ -13,7 +13,7 @@
 *     r  > 0   ->  rotate left by r
 *     r  < 0   ->  rotr(v, -r)
 *
-*   where r is s % N. Reducing first is not an optimisation -- a
+*   where r is s % N. Reducing first is not an optimisation - a
 * raw shift by N or more is undefined behaviour, so a count of
 * exactly N would be UB without it, and the r == 0 case must then be
 * split out because it would otherwise shift by N in the other
@@ -63,7 +63,7 @@ namespace internal
     // rotl_reduced
     //   function: the rotation proper, on an ALREADY-REDUCED count. Split
     // out because a C++11 constexpr function may contain only a single
-    // return statement -- binding N to a local would push this to C++14
+    // return statement - binding N to a local would push this to C++14
     // for no benefit.
     template<typename T>
     RE_STD_CONSTEXPR T
@@ -86,7 +86,7 @@ namespace internal
 
 // rotl
 //   function: bitwise rotation by _s. The count is reduced modulo N
-// first -- a raw shift by N or more is undefined behaviour, so this is
+// first - a raw shift by N or more is undefined behaviour, so this is
 // correctness, not economy.
 template<typename T>
 RE_STD_CONSTEXPR typename internal::bit_enable<T>::type

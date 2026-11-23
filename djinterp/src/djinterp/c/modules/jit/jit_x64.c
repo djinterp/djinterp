@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][jit]                                                    jit_x64.c
 *
-* djinterp x86-64 JIT encoder -- implementation (jit_x64.h).
+* djinterp x86-64 JIT encoder - implementation (jit_x64.h).
 *   The instruction emitters: each encodes one x86-64 instruction from the
 * module's byte constants and appends it to a dj_jit_buffer. REX.B for extended
 * registers is applied where needed.
@@ -91,7 +91,7 @@ int d_jit_x64_emit_mov_reg_imm32(
     uint32_t       _imm
 )
 {
-    /* [REX.B] B8+rd id  -- writing r32 zero-extends into r64 */
+    /* [REX.B] B8+rd id  - writing r32 zero-extends into r64 */
     if (d_jit_x64_internal_needs_rexb(_reg)) {
         if (d_jit_emit_u8(_buf, D_JIT_X64_REX_B_BYTE) != 0) { return -1; }
     }

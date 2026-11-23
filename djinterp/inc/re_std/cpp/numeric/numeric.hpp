@@ -18,10 +18,10 @@
 *     transform_inclusive_scan (C++17), transform_exclusive_scan (C++17).
 *
 * not yet implemented:
-*   midpoint(float/double/long double)              -- focused phase pending
-*   parallel-execution-policy overloads             -- await <execution>
+*   midpoint(float/double/long double)              - focused phase pending
+*   parallel-execution-policy overloads             - await <execution>
 *   C++26 saturation arithmetic: add_sat, sub_sat,
-*     mul_sat, div_sat, saturate_cast               -- focused phase pending
+*     mul_sat, div_sat, saturate_cast               - focused phase pending
 *
 * design notes:
 *   - reduce() and the scan family REQUIRE associative ops; the

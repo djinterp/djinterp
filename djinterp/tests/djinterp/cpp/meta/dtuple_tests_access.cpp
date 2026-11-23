@@ -65,7 +65,7 @@ static_assert(std::is_same<typename DTupleTypeAt<2, std::tuple<int, char, float>
                            float>::value,
               "tuple_type_at<2, std::tuple<int, char, float>>::type should be float");
 
-// long tuple -- exercises a deeper recursion through tuple_type_at_helper
+// long tuple - exercises a deeper recursion through tuple_type_at_helper
 static_assert(std::is_same<typename DTupleTypeAt<3, int, char, float, double, long>::type,
                            double>::value,
               "tuple_type_at<3, int, char, float, double, long>::type should be double");
@@ -141,7 +141,7 @@ bool dtuple_tests_access_all()
             "tuple_type_at_value: index 2 yields 3.14");
     }
 
-    // single-element retrieval -- the index-0 base case in isolation
+    // single-element retrieval - the index-0 base case in isolation
     {
         const std::tuple<int> t_single{7};
 
@@ -152,7 +152,7 @@ bool dtuple_tests_access_all()
 
     // ---- tuple_concat (runtime) ----
 
-    // zero inputs -- yields an empty tuple
+    // zero inputs - yields an empty tuple
     {
         auto cat0 = tuple_concat();
 
@@ -164,7 +164,7 @@ bool dtuple_tests_access_all()
             "tuple_concat: zero inputs -> std::tuple<>");
     }
 
-    // one input -- the same tuple
+    // one input - the same tuple
     {
         std::tuple<int, char> a{1, 'a'};
         auto cat1 = tuple_concat(a);
@@ -177,7 +177,7 @@ bool dtuple_tests_access_all()
             "tuple_concat: single input preserves values");
     }
 
-    // two inputs -- concatenated
+    // two inputs - concatenated
     {
         std::tuple<int, char> a{1, 'a'};
         std::tuple<double>    b{2.5};
@@ -193,7 +193,7 @@ bool dtuple_tests_access_all()
             "tuple_concat: two inputs preserve values");
     }
 
-    // three inputs including an empty tuple -- empty contributes nothing
+    // three inputs including an empty tuple - empty contributes nothing
     {
         std::tuple<int>  a{1};
         std::tuple<>     b{};
@@ -208,7 +208,7 @@ bool dtuple_tests_access_all()
             "tuple_concat: empty-in-middle preserves remaining values");
     }
 
-    // rvalue inputs -- tuple_concat forwards
+    // rvalue inputs - tuple_concat forwards
     {
         auto cat_rv = tuple_concat(std::tuple<int>{9},
                                    std::tuple<char>{'r'});

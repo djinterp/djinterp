@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                    container_copy_merge_concepts.hpp
 *
-* C++20 concepts for the COPY AND MERGE axis -- the `requires`-facing view of
+* C++20 concepts for the COPY AND MERGE axis - the `requires`-facing view of
 * container_copy_merge_traits.hpp.
 *
 *   THE CONCEPTS ADD NO POLICY.
@@ -13,7 +13,7 @@
 *
 *   PORTABILITY:
 *   Gated on C++20 + concepts. Below that the header is empty and callers use
-* the `::value` / `_v` forms directly -- which is why
+* the `::value` / `_v` forms directly - which is why
 *
 *
 * path:      /inc/djinterp/cpp/container/concepts/container_copy_merge_concepts.hpp
@@ -62,7 +62,7 @@ concept copyable_container =
 
 
 // mergeable_with
-//   concept: the two can be merged -- their elements are compatible and a
+//   concept: the two can be merged - their elements are compatible and a
 // merge discipline exists.
 template<typename From, typename To>
 concept mergeable_with =

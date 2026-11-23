@@ -3,7 +3,7 @@
 *
 * Validators: the checks and transformations an option runs on its values.
 *   A `struct dj_arg_validator` is CLI11's Validator as a C value: a function
-* that judges -- and may rewrite -- one value, a description help prints
+* that judges - and may rewrite - one value, a description help prints
 * beside the option, a name to find it by, the position of the value it
 * applies to, and whether it is active and whether its rewriting counts.
 * Options hold validators by value, so a validator is built, configured and
@@ -157,7 +157,7 @@ D_EXTERN_C_BEGIN
 // d_arg_validation_init / d_arg_validation_release
 //   lifetime: init starts a validation of `_value`, which it borrows, with no
 // option and the configured D_INTERNAL_ARG_PARSER_INTEGER_RULE; release
-// frees what the validation came to own -- a replaced value, a message --
+// frees what the validation came to own - a replaced value, a message --
 // after which `value` must not be read. Neither fails, and release accepts
 // NULL.
 D_ARG_PARSER_API void d_arg_validation_init(
@@ -197,7 +197,7 @@ D_ARG_PARSER_API int d_arg_validation_replace(
  * @note A rejection is a verdict, not an error: the validator that records
  *       one still returns D_ARG_OK, as CLI11's returns its message, and a
  *       composite combines it with its other operand's verdict. Returning
- *       an error status instead -- CLI11's throw -- stops a composite at
+ *       an error status instead - CLI11's throw - stops a composite at
  *       once. An empty message records nothing, as an empty string is a
  *       pass in CLI11.
  *
@@ -257,8 +257,8 @@ D_EXTERN_C_END
 // dj_arg_validate_fn
 //   type: judges, and may rewrite, the value of `_validation`, reading its own
 // parameters from `_validator`. It returns D_ARG_OK once it has reached a
-// verdict -- the value passes, or is rejected through
-// d_arg_validation_reject -- and an error status when it cannot reach one
+// verdict - the value passes, or is rejected through
+// d_arg_validation_reject - and an error status when it cannot reach one
 // (CLI11's throw): that stops a composite at once and fails the option, with
 // the message recorded, if any. It may rewrite the value with
 // d_arg_validation_replace; whether the rewriting counts is decided by the
@@ -269,7 +269,7 @@ typedef int (*dj_arg_validate_fn)(const struct dj_arg_validator* _validator,
 // 2.1.2
 // dj_arg_describe_fn
 //   type: appends a description that is worked out when asked for rather than
-// fixed -- a range's, from its bounds; a composite's, from its operands'.
+// fixed - a range's, from its bounds; a composite's, from its operands'.
 // Returns D_ARG_OK or the buffer's status.
 typedef int (*dj_arg_describe_fn)(const struct dj_arg_validator* _validator,
                                  struct dj_arg_buffer*          _out);
@@ -284,7 +284,7 @@ typedef int (*dj_arg_choice_fn)(struct dj_pack_text _choice,
 // 2.1.4
 // dj_arg_choices_fn
 //   type: lists the values a validator accepts, when they are few enough to
-// list -- an is_member's set, a transformer's keys -- for shell completion
+// list - an is_member's set, a transformer's keys - for shell completion
 // and whatever else offers them: calls `_each` once for each, in order, and
 // returns D_ARG_OK or the first other status `_each` returned.
 typedef int (*dj_arg_choices_fn)(const struct dj_arg_validator* _validator,
@@ -327,8 +327,8 @@ typedef int (*dj_arg_choices_fn)(const struct dj_arg_validator* _validator,
 
 // 2.2.1.5
 // D_ARG_VALIDATOR_NUMBER
-//   constant: the values are numbers -- or made of them, as an IPv4 address
-// is -- for which shell completion offers nothing. Set by the ranges, the
+//   constant: the values are numbers - or made of them, as an IPv4 address
+// is - for which shell completion offers nothing. Set by the ranges, the
 // number signs, and, in arg_validator_extra.h, the bounds, the type
 // validators of arithmetic types, the IPv4 check and the unit validators.
 #define D_ARG_VALIDATOR_NUMBER    0x0010u
@@ -337,8 +337,8 @@ typedef int (*dj_arg_choices_fn)(const struct dj_arg_validator* _validator,
 // dj_arg_validator_value
 //   union: a parameter a validator keeps inside itself rather than on the
 // heap, such as a range's bound. It is large and aligned enough for every
-// arithmetic type a built-in descriptor converts to -- the C sources store
-// the integers wider than `long` in it by copying their bytes -- so the
+// arithmetic type a built-in descriptor converts to - the C sources store
+// the integers wider than `long` in it by copying their bytes - so the
 // built-in validators that need nothing else never allocate.
 union dj_arg_validator_value
 {
@@ -361,8 +361,8 @@ union dj_arg_validator_value
 // descriptor, and `low` and `high` hold its numbers. `name` (owned, or
 // NULL) is what an option finds the validator by, and `application_index`
 // the position of the one value it applies to, -1 for every value.
-//   `status` is D_ARG_OK, or why building the validator failed -- a refused
-// allocation, a bad argument -- with the reason in `description` when one
+//   `status` is D_ARG_OK, or why building the validator failed - a refused
+// allocation, a bad argument - with the reason in `description` when one
 // could be kept, and nothing else held. A failed validator runs as an error
 // and composes into a failed one, and an option given one records the
 // failure as a definition error, so a chain of constructors needs no check
@@ -394,7 +394,7 @@ D_EXTERN_C_BEGIN
 //------------------------------------------------------------------------------
 // 2.3.1
 // d_arg_validator_init / d_arg_validator_release
-//   lifetime: init makes CLI11's default Validator -- active, modifying,
+//   lifetime: init makes CLI11's default Validator - active, modifying,
 // applying to every value, passing every value, describing nothing; release
 // frees whatever the validator owns and leaves it as init makes it. Neither
 // fails, and each accepts NULL.
@@ -456,7 +456,7 @@ D_ARG_PARSER_API int d_arg_validator_set_description(
 
 // 2.4.2
 // d_arg_validator_set_active and kin
-//   settings: CLI11's active(), non_modifying() -- with its sense reversed --
+//   settings: CLI11's active(), non_modifying() - with its sense reversed --
 // and application_index(), in which -1 means every value. None fails, and
 // each ignores NULL.
 D_ARG_PARSER_API void d_arg_validator_set_active(
@@ -486,8 +486,8 @@ D_ARG_PARSER_API void d_arg_validator_set_application_index(
  * @param[in]     _validator   the validator.
  * @param[in,out] _validation  the value, which may be rewritten, and where
  *                             the verdict is recorded.
- * @return D_ARG_OK when a verdict was reached -- read it with
- *         d_arg_validation_passed -- or the error status the validator
+ * @return D_ARG_OK when a verdict was reached - read it with
+ *         d_arg_validation_passed - or the error status the validator
  *         stopped with; a failed validator's own status;
  *         D_ARG_ERROR_BAD_ARGUMENT for a NULL argument.
  */
@@ -559,7 +559,7 @@ D_ARG_PARSER_API int d_arg_validator_each_choice(
  *       otherwise. The result is active when both operands are, applies
  *       where `_first` applies, and is modifying. It lists the values of
  *       the first operand that lists any. It completes as a number when
- *       either operand does, and otherwise as a path when either does -- as
+ *       either operand does, and otherwise as a path when either does - as
  *       a directory when either completes as one.
  *
  * @param[in] _first   the first validator, which is consumed.
@@ -709,7 +709,7 @@ D_ARG_PARSER_API void d_arg_validator_set_value_kind(
  * @note Rejects with "Value <value> not in range [<low> - <high>]", and is
  *       described as "<TYPE> in [<low> - <high>]", the bounds written as
  *       CLI11 streams them: a character as itself, integers in full --
- *       8-bit ones too, which CLI11 streams as characters -- and floating
+ *       8-bit ones too, which CLI11 streams as characters - and floating
  *       point to six significant digits. The value is converted as CLI11's
  *       lexical_cast converts it: as an option of the type would, but for
  *       the empty text, which is out of range, so a fraction is out of

@@ -519,7 +519,7 @@ public:
 
     // ---- shared members ----------------------------------------------------
     // Each is true when the intervals share a member: a value both hold,
-    // strides and openness considered -- for two discrete intervals over an
+    // strides and openness considered - for two discrete intervals over an
     // integer type, a value on both strides, by the Chinese remainder
     // theorem. Two continuous intervals share a member where they overlap.
 
@@ -714,8 +714,8 @@ D_INTERNAL_MATH_INTERVAL_STATIC(bool, is_discrete)
 //==============================================================================
 // 2.  INTER-TYPE CONVERSION METAFUNCTIONS
 //==============================================================================
-// Each converts any interval-like type -- one with value_type, size_type and
-// the structural constants -- to one of the four templates, as ::type.
+// Each converts any interval-like type - one with value_type, size_type and
+// the structural constants - to one of the four templates, as ::type.
 
 
 NS_INTERNAL
@@ -1095,8 +1095,8 @@ using DCharStepped =
 //==============================================================================
 // Structural detection of interval types and their properties, at every
 // level: presence by core/meta's detection engine (its sizeof engine below
-// C++11), then a pointer probe for what presence cannot tell -- that a
-// member is static, and of type bool -- which gives the same answer at every
+// C++11), then a pointer probe for what presence cannot tell - that a
+// member is static, and of type bool - which gives the same answer at every
 // level, a non-static member counting as absent.
 
 
@@ -1203,7 +1203,7 @@ NS_INTERNAL
     // has_step
     //   helper: detects a static step member (present on every interval
     // type; a zero step is a continuous interval, so presence alone does not
-    // mean discreteness -- see has_discrete_step).
+    // mean discreteness - see has_discrete_step).
     template<typename Type,
              bool     Named = interval_names_step<Type>::value>
     struct has_step

@@ -11,10 +11,10 @@
 * plain form calls the C library (std:: in C++), fast at run time. cbrt_c
 * is correctly rounded, as elementary.h's sqrt_c is: Newton's iteration in
 * long double, then the family's last bit settled exactly. The library's
-* cube root need not be -- glibc's differs from it at about half of all
-* doubles -- and C++ before C++11 has none, so that there cbrt is cbrt_c.
+* cube root need not be - glibc's differs from it at about half of all
+* doubles - and C++ before C++11 has none, so that there cbrt is cbrt_c.
 * pow_c is exp(y log x) carried some 18 bits past long double, the exact
-* powers -- integer powers, roots' powers, powers of 2 -- computed
+* powers - integer powers, roots' powers, powers of 2 - computed
 * exactly: correctly rounded wherever it has been measured. hypot_c is
 * correctly rounded, as cbrt_c is: the root of the squares' sum in long
 * double, its last bit settled by an exact sum, with no overflow or
@@ -92,15 +92,15 @@ TABLE OF CONTENTS
 //==============================================================================
 // Every family's cube root and power are computed here, in long double. The
 // cube root: Newton's iteration to within a long double's last place or two,
-// rounded to the family, then the family's last bit settled exactly -- by the
+// rounded to the family, then the family's last bit settled exactly - by the
 // sign of (t + h)^3 - m, t the candidate and t + h a midpoint beside it, from
 // an approximation where its error bound decides it and otherwise from an
 // exact sum. The cube root of a value of the family never lies on one of its
-// midpoints -- a midpoint has a bit past the family's precision, and its cube
-// three times as many -- so the sign is never 0, and the root is correctly
+// midpoints - a midpoint has a bit past the family's precision, and its cube
+// three times as many - so the sign is never 0, and the root is correctly
 // rounded. The power: exp(y log x), the logarithm and the exponential carried
 // in pairs to 18 bits and more past long double's precision, and the exact
-// powers -- the only ones that can lie on a midpoint -- computed exactly.
+// powers - the only ones that can lie on a midpoint - computed exactly.
 // Nothing depends on long double's format beyond <float.h>: the text is the
 // same for an x87's 64 bits, for a long double that is double, and for a
 // quad's 113 bits.
@@ -109,7 +109,7 @@ TABLE OF CONTENTS
 // 1.1    Exact sums of many terms
 //------------------------------------------------------------------------------
 // A sum of long doubles held exactly as an expansion: nonoverlapping parts,
-// the least first, each term added by Shewchuk's grow-expansion -- the term
+// the least first, each term added by Shewchuk's grow-expansion - the term
 // carried up through the parts by two-sums, what each leaves kept and its
 // zeros dropped. The sum's sign is its largest part's.
 
@@ -160,7 +160,7 @@ d_internal_math_ld_expansion_grow(
 // 1.2    The sign of a cube about a midpoint
 //------------------------------------------------------------------------------
 // (t + h)^3 - m = (t^3 - m) + 3t^2 h + 3t h^2 + h^3, for m in [1, 8), t near
-// its cube root and h a power of 2 or its negation -- half the family's gap
+// its cube root and h a power of 2 or its negation - half the family's gap
 // above t or below it. t^2 is exact as a pair by Dekker's product, and t^3 as
 // two more; c1, the first of them, lies within a factor of 2 of m, so c1 - m
 // is exact (Sterbenz's lemma); h times any of them is exact. The terms summed
@@ -276,7 +276,7 @@ d_internal_math_ld_cube_sign(
 // d_internal_math_ld_cbrt_newton
 //   cbrt(_m), _m in [1, 8), to within a long double's last place or two: a
 // quadratic within 1.6% of it, then five steps of Newton's iteration, each
-// squaring the relative error -- past a quad's precision.
+// squaring the relative error - past a quad's precision.
 D_MATH_FN long double
 d_internal_math_ld_cbrt_newton(
     long double _m
@@ -356,8 +356,8 @@ d_internal_math_ld_pair_of(
 // precision. log(m 2^e) = e ln 2 + 2 atanh(s), s = (m - 1) / (m + 1) carried
 // as s + s_lo, as exponential.h's section 1.2 has it, but atanh's series in
 // pairs: 2s (1 + z (1/3 + z (1/5 + z (1/7 + z (1/9 + z (1/11 + z q)))))),
-// z = s^2 below 0.03, each coefficient held as ln 2 is -- a head cut to 32
-// bits, exact as written, and the rest -- and q, the series from 1/13, in
+// z = s^2 below 0.03, each coefficient held as ln 2 is - a head cut to 32
+// bits, exact as written, and the rest - and q, the series from 1/13, in
 // long double: z^6 times its error lies past 2^-30 of the value. e ln 2 is
 // e ln2_hi, exact, and e ln2_lo by Dekker's product, the sum of the heads
 // exact; ln 2's two parts carry it to 2^-(P + 32) for every exponent.
@@ -454,11 +454,11 @@ d_internal_math_ld_log_accurate_of(
 // exp(w), w = w_hi + w_lo, as section 1.1 of exponential.h has exp(x), but in
 // pairs throughout: r = w - k ln 2 kept as a pair, and exp(r) = 1 + r + r^2
 // (1/2 + r (1/6 + r (1/24 + r (1/120 + r g)))), |r| <= ln 2 / 2, in pairs
-// to r^5 -- the coefficients' heads of 32 bits, exact as written -- with g =
+// to r^5 - the coefficients' heads of 32 bits, exact as written - with g =
 // (1/720) (1 + r/7 (1 + r/8 (...))) in long double: r^6 times its error lies
 // past 2^-20 of the value, and the whole is good to about 2^-(P + 18).
 // 1 + r + r^2 (...) is then three parts, exact; the first two are rounded
-// together, and where that lands on a midpoint the third decides -- so that
+// together, and where that lands on a midpoint the third decides - so that
 // the pair's high part is the value correctly rounded to long double
 // wherever the pair is that close. 2^v, v a pair, is exp(v ln 2) by the
 // same reduction, v - k exact.
@@ -617,7 +617,7 @@ d_internal_math_ld_exp2_pair_split_of(
 // 1.7    Exact powers
 //------------------------------------------------------------------------------
 // x^y can be exact, or lie on a family's midpoint where no approximation can
-// round it, only for x a power of 2 -- 2^(e y), e y exact -- or for y = n /
+// round it, only for x a power of 2 - 2^(e y), e y exact - or for y = n /
 // 2^k past 1, x a perfect 2^k-th power: then x^y = r^n, r = x^(1/2^k), every
 // square root exact. With r = m 2^e as the logarithm has it (exponential.h),
 // r^n = m^n 2^(e n), and m^n lies within 2^(n/2) of 1, far from both ends
@@ -736,7 +736,7 @@ d_internal_math_ld_exact_power_of(
 
     {
         // r = m 2^e: m^n = m^(n-1) m, each power below it exact; each has a
-        // bit more than the last -- m is no power of 2 -- so that some 113
+        // bit more than the last - m is no power of 2 - so that some 113
         // steps at most are taken
         const struct dj_internal_math_ld_log_arg r =
             d_internal_math_ld_log_arg_of(root);
@@ -783,8 +783,8 @@ d_internal_math_ld_exact_power_of(
 //------------------------------------------------------------------------------
 // hypot(a, b) is settled as the cube root is (section 1.2): by the sign of
 // (t + h)^2 - (a^2 + b^2), t the candidate and t + h a midpoint beside it.
-// a, b, t and h scaled by one power of 2 -- a into [1, 2), b then no less
-// than 2^-(P' + 2), P' the family's precision -- every term is exact: the
+// a, b, t and h scaled by one power of 2 - a into [1, 2), b then no less
+// than 2^-(P' + 2), P' the family's precision - every term is exact: the
 // squares as pairs by Dekker's product, 2th and h^2 since h is a power of 2.
 // The terms summed in long double give the sign wherever the sum lies past
 // its error bound; within it, they are added exactly instead. The sign is 0
@@ -807,7 +807,7 @@ d_internal_math_ld_scale(
 // d_internal_math_ld_hypot_root
 //   sqrt(_v), _v in [1, 8], to within a long double's last place or two: a
 // quadratic within 1.7% of it, then five steps of Newton's iteration, each
-// squaring the relative error -- past a quad's precision.
+// squaring the relative error - past a quad's precision.
 D_MATH_FN long double
 d_internal_math_ld_hypot_root(
     long double _v
@@ -861,7 +861,7 @@ d_internal_math_ld_hypot_sign_exact(
 // Dekker's pairs, for a in [1, 2), b in [2^-(P' + 2), a] and _h a power of
 // 2 or its negation: the terms summed in long double, by seven roundings,
 // each off by at most half a last place of the terms' magnitudes summed --
-// t^2 and a^2 counted by their difference, which cancels -- decide it where
+// t^2 and a^2 counted by their difference, which cancels - decide it where
 // the sum lies past 16 such half places; the exact sum otherwise.
 D_MATH_FN int
 d_internal_math_ld_hypot_sign(
@@ -956,9 +956,9 @@ d_internal_math_f_cbrt_unit(
 // larger and the smaller scaled by 2^_s so that _a lies in [1, 2), from the
 // candidate _t, a value of the family within a few last places of the root:
 // up while the root lies past the midpoint above t, down while it lies
-// short of the one below -- half the family's last place at t, the
+// short of the one below - half the family's last place at t, the
 // subnormals' spacing below the normal range, and below a power of 2 half
-// of it -- and on a midpoint to the even neighbour (section 1.8). +inf on
+// of it - and on a midpoint to the even neighbour (section 1.8). +inf on
 // or past the largest finite value's midpoint above.
 D_MATH_FN float
 d_internal_math_f_hypot_settle(
@@ -1111,7 +1111,7 @@ d_math_f_cbrt(
 // pow_c is x^y in pure arithmetic, a constant expression from C++14:
 // exp(y log x), the logarithm past long double's precision (section 1.5),
 // its product with y as a pair, and the pair's exponential (section 1.6)
-// rounded once to the family -- correctly but where x^y lies within some
+// rounded once to the family - correctly but where x^y lies within some
 // 2^-(P + 16) of a midpoint, P long double's precision. The results that
 // can lie on one are computed exactly (section 1.7): a power of 2 to any y,
 // as 2^(e y); and for y past 1, an integer power or a root's, as a pair.
@@ -1422,7 +1422,7 @@ d_math_f_hypot_c(
 
             {
                 // the root to within a long double's last place or two, put
-                // on the family's values -- the largest at most, which only
+                // on the family's values - the largest at most, which only
                 // a in the top binade can pass
                 const long double root =
                     d_internal_math_ld_hypot_root((sa * sa) + (sb * sb));
@@ -1512,9 +1512,9 @@ d_internal_math_d_cbrt_unit(
 // larger and the smaller scaled by 2^_s so that _a lies in [1, 2), from the
 // candidate _t, a value of the family within a few last places of the root:
 // up while the root lies past the midpoint above t, down while it lies
-// short of the one below -- half the family's last place at t, the
+// short of the one below - half the family's last place at t, the
 // subnormals' spacing below the normal range, and below a power of 2 half
-// of it -- and on a midpoint to the even neighbour (section 1.8). +inf on
+// of it - and on a midpoint to the even neighbour (section 1.8). +inf on
 // or past the largest finite value's midpoint above.
 D_MATH_FN double
 d_internal_math_d_hypot_settle(
@@ -1667,7 +1667,7 @@ d_math_d_cbrt(
 // pow_c is x^y in pure arithmetic, a constant expression from C++14:
 // exp(y log x), the logarithm past long double's precision (section 1.5),
 // its product with y as a pair, and the pair's exponential (section 1.6)
-// rounded once to the family -- correctly but where x^y lies within some
+// rounded once to the family - correctly but where x^y lies within some
 // 2^-(P + 16) of a midpoint, P long double's precision. The results that
 // can lie on one are computed exactly (section 1.7): a power of 2 to any y,
 // as 2^(e y); and for y past 1, an integer power or a root's, as a pair.
@@ -1978,7 +1978,7 @@ d_math_d_hypot_c(
 
             {
                 // the root to within a long double's last place or two, put
-                // on the family's values -- the largest at most, which only
+                // on the family's values - the largest at most, which only
                 // a in the top binade can pass
                 const long double root =
                     d_internal_math_ld_hypot_root((sa * sa) + (sb * sb));
@@ -2068,9 +2068,9 @@ d_internal_math_ld_cbrt_unit(
 // larger and the smaller scaled by 2^_s so that _a lies in [1, 2), from the
 // candidate _t, a value of the family within a few last places of the root:
 // up while the root lies past the midpoint above t, down while it lies
-// short of the one below -- half the family's last place at t, the
+// short of the one below - half the family's last place at t, the
 // subnormals' spacing below the normal range, and below a power of 2 half
-// of it -- and on a midpoint to the even neighbour (section 1.8). +inf on
+// of it - and on a midpoint to the even neighbour (section 1.8). +inf on
 // or past the largest finite value's midpoint above.
 D_MATH_FN long double
 d_internal_math_ld_hypot_settle(
@@ -2223,7 +2223,7 @@ d_math_ld_cbrt(
 // pow_c is x^y in pure arithmetic, a constant expression from C++14:
 // exp(y log x), the logarithm past long double's precision (section 1.5),
 // its product with y as a pair, and the pair's exponential (section 1.6)
-// rounded once to the family -- correctly but where x^y lies within some
+// rounded once to the family - correctly but where x^y lies within some
 // 2^-(P + 16) of a midpoint, P long double's precision. The results that
 // can lie on one are computed exactly (section 1.7): a power of 2 to any y,
 // as 2^(e y); and for y past 1, an integer power or a root's, as a pair.
@@ -2534,7 +2534,7 @@ d_math_ld_hypot_c(
 
             {
                 // the root to within a long double's last place or two, put
-                // on the family's values -- the largest at most, which only
+                // on the family's values - the largest at most, which only
                 // a in the top binade can pass
                 const long double root =
                     d_internal_math_ld_hypot_root((sa * sa) + (sb * sb));

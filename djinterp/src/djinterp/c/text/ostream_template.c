@@ -333,8 +333,8 @@ d_internal_template_convert_of(
 }
 
 /**
- * @brief Reads a width or a precision: digits, or -- where fields are
- *        allowed -- a field's name in braces.
+ * @brief Reads a width or a precision: digits, or - where fields are
+ *        allowed - a field's name in braces.
  *
  * @param[in]     _text     the specification.
  * @param[in]     _size     its length.
@@ -1160,7 +1160,7 @@ d_internal_template_pad(
 }
 
 /**
- * @brief Writes an ASCII body -- a number's or a word's -- with its padding.
+ * @brief Writes an ASCII body - a number's or a word's - with its padding.
  *
  * @param[in,out] _os       the stream.
  * @param[in]     _spec     the specification.
@@ -1557,7 +1557,7 @@ d_internal_template_real_above(
  *   %g writes an exponent once it reaches the precision. Below 10^17 the
  * same digits written out in full can be shorter, and are then chosen:
  * 36028797018963970, not 3.602879701896397e+16. The decimal is the same
- * either way -- the shortest, and of the shortest the nearest -- so only
+ * either way - the shortest, and of the shortest the nearest - so only
  * the notation is a choice.
  */
 static size_t
@@ -2214,8 +2214,8 @@ d_internal_template_block_open(
  * @return D_OSTREAM_TEMPLATE_OK, or why not.
  *
  * An IF or UNLESS is appended with no target; {:} appends a JUMP and points
- * the IF past it; {/} points whichever came last -- the JUMP, or the IF when
- * there was no {:} -- past everything so far. Every jump is forward.
+ * the IF past it; {/} points whichever came last - the JUMP, or the IF when
+ * there was no {:} - past everything so far. Every jump is forward.
  */
 static int32_t
 d_internal_template_block(
@@ -2729,7 +2729,7 @@ d_internal_template_run_field(
 /*
 d_ostream_template_render
   A loop over the operations. Every jump a compiler makes is forward, and one
-that is not -- from operations built some other way -- stops the template
+that is not - from operations built some other way - stops the template
 rather than loop. A field is read once per operation that names it, so a
 resolver may compute.
 */

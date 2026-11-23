@@ -3,7 +3,7 @@
 *
 * The description of a language that the scanner is driven by.
 *   A dialect is data.  It names the standard level to scan at, a feature
-* mask, and three tables -- keywords, operators, literal prefixes -- and the
+* mask, and three tables - keywords, operators, literal prefixes - and the
 * scanner in lex_scan.h consults nothing else about the language.  This is
 * what keeps C and C++ from duplicating a scanner: there is one engine and two
 * descriptors, and the descriptors are generated from the list files in this
@@ -67,8 +67,8 @@ TABLE OF CONTENTS
 // Feature flags
 //   constant: lexical behaviour a dialect either has or does not.  These are
 // facts about the language, fixed when the descriptor is built; behaviour the
-// caller chooses instead -- whether to emit comments, whether to resolve
-// keywords -- belongs to the option mask in lex_scan.h and is not here.
+// caller chooses instead - whether to emit comments, whether to resolve
+// keywords - belongs to the option mask in lex_scan.h and is not here.
 #define D_LEX_FEATURE_NONE             0x000000u
 #define D_LEX_FEATURE_LINE_COMMENT     0x000001u  // `//` ends at the newline
 #define D_LEX_FEATURE_TRIGRAPH         0x000002u  // `??=` and the rest
@@ -145,7 +145,7 @@ struct dj_lex_operator
 
 // 1.2.3
 // dj_lex_prefix
-//   struct: one row of a literal-prefix table -- the empty prefix, `L`, `u`,
+//   struct: one row of a literal-prefix table - the empty prefix, `L`, `u`,
 //   `U`, `u8`, and in C++ the `R` forms.  A prefix is not a token; it is part
 //   of the literal it introduces, and the row exists so that the scanner knows
 //   which identifiers may abut a quote without becoming one.
@@ -162,7 +162,7 @@ struct dj_lex_prefix
 //   with static storage duration, shared by every scanner using that language,
 //   so it carries no state and needs no lifetime management.
 //     `language` and `name` are kept apart because a consumer selecting by
-//   language -- a style sheet scoped to C -- must not have to parse a
+//   language - a style sheet scoped to C - must not have to parse a
 //   standard's name to find it.
 struct dj_lex_dialect
 {
@@ -210,8 +210,8 @@ bool d_lex_dialect_validate(
 // d_lex_dialect_keyword returns the kind for a spelling available at the
 // dialect's level, or D_TOKEN_IDENTIFIER when the spelling is not a keyword
 // there.  A row is rejected on its length and then its first byte before any
-// comparison of the text, so a miss -- which is what almost every identifier
-// is -- costs one or two byte comparisons per row and no allocation.
+// comparison of the text, so a miss - which is what almost every identifier
+// is - costs one or two byte comparisons per row and no allocation.
 int d_lex_dialect_keyword(
     const struct dj_lex_dialect* _dialect,
     const char*                  _text,

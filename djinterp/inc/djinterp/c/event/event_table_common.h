@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][event]                                       event_table_common.h
 *
-* The erased store -- the shared C core (tier 0):
+* The erased store - the shared C core (tier 0):
 *   Type-erased handler storage: the realization of erasure. The table maps
 * each key kappa(e) to an insertion-ordered WORD of handler entries, and
 * carries the mask m that switches individual letters on and off without
@@ -20,22 +20,22 @@
 *   Entries live in one flat arena and chain by 32-bit INDEX, not by pointer,
 * so a table is relocatable, memcpy-able, and fwrite-able (AGENT_README.md
 * section 8). Two forms are provided:
-*     fixed     -- caller supplies the arena and bucket arrays; no allocation,
+*     fixed     - caller supplies the arena and bucket arrays; no allocation,
 *                  so the whole module is usable before the C container
 *                  substrate exists.
-*     allocating -- the table owns its storage and rehashes on load.
+*     allocating - the table owns its storage and rehashes on load.
 *   Both satisfy the same contract; only D_EVENT_ERR_CAPACITY distinguishes
 * them, and only when the fixed form is full.
 *
 * FORMAL CORRESPONDENCE ("Definition of an Event"):
-*   erasure  kappa : T_e -> K   -- the key stored on each entry
-*   word     rho_e              -- the per-key chain, in bind order
-*   mask     m : L -> {on,off}  -- dj_event_entry::enabled
-*   bind / unbind               -- d_event_table_bind / _unbind
-*   enable / disable            -- flip the mask; the letter stays in the word
-*   merge    rho (+) rho'       -- d_event_table_merge (pointwise
+*   erasure  kappa : T_e -> K   - the key stored on each entry
+*   word     rho_e              - the per-key chain, in bind order
+*   mask     m : L -> {on,off}  - dj_event_entry::enabled
+*   bind / unbind               - d_event_table_bind / _unbind
+*   enable / disable            - flip the mask; the letter stays in the word
+*   merge    rho (+) rho'       - d_event_table_merge (pointwise
 *                                  concatenation; identity: the empty table)
-*   fibre condition             -- an erased payload is touched only by code
+*   fibre condition             - an erased payload is touched only by code
 *                                  selected by its own key, because bind and
 *                                  dispatch key by the same kappa
 *
@@ -63,7 +63,7 @@
 #include "../../../re_std/c/cstdint/dstdint.h"  // uint8_t, uint32_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -112,7 +112,7 @@ D_EXTERN_C_BEGIN
 struct dj_event_entry
 {
     dj_handler_id        id;             // 0 when the slot is free
-    dj_event_key         key;            // kappa(e) -- which word this letter
+    dj_event_key         key;            // kappa(e) - which word this letter
                                         // belongs to
     struct dj_event_step step;           // the handler itself
     fn_free             state_free;     // may be NULL (borrowed state)
@@ -137,7 +137,7 @@ struct dj_event_entry
 
 // dj_event_table
 //   struct: the erased store. Bucket chains preserve append order, so the
-// relative order of two entries sharing a key is their bind order -- which is
+// relative order of two entries sharing a key is their bind order - which is
 // the word order, and therefore the dispatch priority.
 struct dj_event_table
 {
@@ -159,7 +159,7 @@ struct dj_event_table
 
 // dj_event_table_stats
 //   struct: a snapshot of table metrics.
-//   NOTE: instrumentation, not formal content -- the note does not define a
+//   NOTE: instrumentation, not formal content - the note does not define a
 // statistics record. It is nonetheless declared HERE rather than once per
 // language because the pre-core forms had DIFFERENT FIELDS (the C
 // dj_event_hash_stats counted only elements; the C++ DEventTableStats also
@@ -248,7 +248,7 @@ size_t d_event_table_clear_key(
 // d_event_table_bind
 //   function: appends a letter to the word for `_key`. The entry is enabled
 // on bind. `_state_free`, when non-NULL, is called on the step's state when
-// the entry is unbound, cleared, or the table is disposed -- which is how the
+// the entry is unbound, cleared, or the table is disposed - which is how the
 // C++ face gives the core ownership of a heap-promoted closure without adding
 // a member to its wrapper.
 //   `_id_out` may be NULL.
@@ -277,7 +277,7 @@ int d_event_table_unbind(
 ///////////////////////////////////////////////////////////////////////////////
 // A masked-off letter remains in the word and acts as skip during dispatch.
 // Because skip is the monoid unit, masking cannot change the verdict of a
-// word that would otherwise pass -- which is the algebraic content of the
+// word that would otherwise pass - which is the algebraic content of the
 // mask and the property its conformance test must assert.
 
 // d_event_table_enable
@@ -404,7 +404,7 @@ typedef bool (*fn_event_entry_visitor)(const struct dj_event_entry* _entry,
 // global bind order.
 //   The ordering is not an incidental choice. Bucket order depends on the
 // hash and the capacity, so it differs between two tables holding the same
-// bindings and would make any dump non-comparable -- and a dump that is not
+// bindings and would make any dump non-comparable - and a dump that is not
 // comparable cannot serve the parity law. Bind order is the one total order
 // both languages agree on without coordination.
 // returns: the number of entries visited.
@@ -433,7 +433,7 @@ size_t d_event_table_for_each_key(
 
 // d_event_table_merge
 //   function: appends every entry of `_other` into `_table`, key by key, with
-// this table's entries first -- the pointwise concatenation rho (+) rho'. The
+// this table's entries first - the pointwise concatenation rho (+) rho'. The
 // merged entries receive FRESH ids from this table's id space, so ids from
 // `_other` do not survive; the mask travels with each letter.
 //   The merged entries borrow their state: `state_free` is NOT copied, since

@@ -190,7 +190,7 @@ public:
                 throw std::bad_alloc();
             #elif RE_STD_HAS_HEADER_NEW
                 // exceptions off: std's allocators abort here, and so must
-                // this one -- callers do not check for a null result
+                // this one - callers do not check for a null result
                 std::abort();
             #else
                 // No <new> means no bad_alloc. Return 0 and trust the

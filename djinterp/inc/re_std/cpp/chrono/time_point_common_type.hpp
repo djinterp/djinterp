@@ -12,7 +12,7 @@
 *   Both arguments name the same Clock, so a pair of time_points from
 * DIFFERENT clocks does not match this specialisation at all. It falls
 * through to the primary template, which finds no conversion between them
-* and so has no `type` member -- and because it has no member rather than
+* and so has no `type` member - and because it has no member rather than
 * a hard error, the failure is SFINAE-friendly: mixed-clock arithmetic
 * removes itself from overload resolution instead of exploding inside the
 * library. That is the mechanism behind "you cannot subtract a

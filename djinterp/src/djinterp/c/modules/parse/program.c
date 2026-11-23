@@ -34,7 +34,7 @@
 #define D_INTERNAL_PROGRAM_FORMAT   1u
 
 // D_INTERNAL_PROGRAM_HEADER
-//   macro: the fixed part of a written program, in bytes -- magic, format,
+//   macro: the fixed part of a written program, in bytes - magic, format,
 // family, entry, and the four counts.
 #define D_INTERNAL_PROGRAM_HEADER   32u
 
@@ -673,7 +673,7 @@ int d_parse_program_verify(
 
 /*
 d_parse_program_hash
-  A 64-bit digest of a whole program -- its family, entry, instructions, and
+  A 64-bit digest of a whole program - its family, entry, instructions, and
 pool.
 NOTE:
   FNV-1a over the fields in a defined order rather than over the memory image,
@@ -803,7 +803,7 @@ Parameter(s):
   _out:     the buffer; may be NULL to measure.
   _size:    the size of _out in bytes.
 Return:
-  The number of bytes the whole program occupies -- so a return greater than
+  The number of bytes the whole program occupies - so a return greater than
 _size means nothing was written and the caller should retry with that size.
 */
 size_t d_parse_program_write(
@@ -1069,7 +1069,7 @@ d_parse_instr_format
   Renders one instruction, taking its mnemonic from the registry and its
 operand meanings from the shape table.
 NOTE:
-  One disassembler for every family. The alternative -- a fmt() per family --
+  One disassembler for every family. The alternative - a fmt() per family --
 is the same function written twice, and the second copy is the one that drifts.
 
 Parameter(s):

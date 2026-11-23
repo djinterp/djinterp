@@ -200,8 +200,8 @@ struct dj_arg_validator d_arg_validator_number(void)
  *
  * CLI11's Bound: a value that does not convert is rejected with "Value
  * <value> could not be converted"; one below the low bound becomes the low
- * bound, one above the high bound the high bound; anything else -- a NaN,
- * which neither comparison catches, among it -- stands.
+ * bound, one above the high bound the high bound; anything else - a NaN,
+ * which neither comparison catches, among it - stands.
  */
 D_STATIC
 int d_arg_internal_extra_bound_validate(
@@ -284,8 +284,8 @@ int d_arg_internal_extra_bound_describe(
 
 /*
 d_arg_validator_bound
-  A range -- its checks on the arguments, its type and bounds kept in the
-validator -- with Bound's functions in place of the range's.
+  A range - its checks on the arguments, its type and bounds kept in the
+validator - with Bound's functions in place of the range's.
 */
 struct dj_arg_validator d_arg_validator_bound(
     const struct dj_arg_type* _type,
@@ -388,7 +388,7 @@ size_t d_arg_internal_extra_ipv4_end(
  *
  * One part of an address, read as an integer under the validation's rule:
  * CLI11's "Failed parsing number (<part>)" for one that is not an integer an
- * `int` holds -- the empty part among them -- and "Each IP number must be
+ * `int` holds - the empty part among them - and "Each IP number must be
  * between 0 and 255 <part>" for an `int` outside an octet's range. Unlike
  * CLI11's conversion to `int`, the word `true` is not an integer here.
  */

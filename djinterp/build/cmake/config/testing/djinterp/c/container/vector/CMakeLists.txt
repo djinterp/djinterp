@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/container/vector/CMakeLists.txt
+# djinterp [test]  -  build/cmake/config/testing/djinterp/c/container/vector/CMakeLists.txt
 #
 #   Aggregate over the container/vector suites' C leaves: every leaf below this
 # directory.

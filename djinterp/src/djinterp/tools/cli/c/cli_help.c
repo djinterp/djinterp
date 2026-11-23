@@ -97,7 +97,7 @@ d_internal_cli_json_ready(
 d_internal_cli_json_value
   Readies the next value: after a member's name, on its line; as an array's
 element, after a comma and on a line of its own; alone, once, at depth 0.
-Anything else -- a value where an object wants a name -- fails the writer.
+Anything else - a value where an object wants a name - fails the writer.
 */
 static bool
 d_internal_cli_json_value(
@@ -860,7 +860,7 @@ d_internal_cli_help_options(
 /*
 d_internal_cli_help_arguments
   `arguments`: the positionals, in order, each its name, what help says of
-it, how many values it takes -- `max` null for no limit -- whether it is
+it, how many values it takes - `max` null for no limit - whether it is
 required, its default and its choices.
 */
 static void
@@ -1089,7 +1089,7 @@ d_internal_cli_help_name_of(
 /*
 d_internal_cli_help_flags
   Flags as names: the one name of the whole value, where it has one --
-`all`, `none` -- and otherwise the names of each single bit it sets.
+`all`, `none` - and otherwise the names of each single bit it sets.
 */
 static void
 d_internal_cli_help_flags(
@@ -1227,7 +1227,7 @@ d_internal_cli_help_names(
 /*
 d_internal_cli_help_sources
   `refuses`, the sources a setting refuses, by name; and `env`, the
-variables it is read from -- the shared prefix's, then the program's --
+variables it is read from - the shared prefix's, then the program's --
 unless it refuses the environment.
 */
 static void

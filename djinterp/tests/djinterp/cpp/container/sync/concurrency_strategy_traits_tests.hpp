@@ -44,8 +44,8 @@
 * written as forwarding invariants (is_vacuously_concurrent_v<T> ==
 * is_immutable_container_v<T>) so they hold regardless of how the real
 * is_immutable_container decides immutability; the true branch is additionally
-* exercised by the DImmutableProbe fixture, immutable by structure -- a size
-* and no mutator -- as mutable_container_traits.hpp recognises it.
+* exercised by the DImmutableProbe fixture, immutable by structure - a size
+* and no mutator - as mutable_container_traits.hpp recognises it.
 *
 *
 * path:      /tests/djinterp/cpp/container/sync/concurrency_strategy_traits_tests.hpp
@@ -67,7 +67,7 @@
 #include <cstddef>
 #include <atomic>
 
-// -- (part 1) mode-gated includes ------------------------------------------
+// - (part 1) mode-gated includes ------------------------------------------
 // djinterp core is ALWAYS first and unconditional (NS_*, D_* qualifiers,
 // language gates), so both faces have it.
 #include "../../../../../inc/djinterp/cpp/djinterp.hpp"
@@ -121,7 +121,7 @@ namespace dt = ::djinterp::test;
 
 #ifndef DTEST_SPEC_MODE  // (part 1 cont.) fixtures - normal mode only
 
-// -- tag fixtures : one per strategy tag (drive the tag fast-path) ----------
+// - tag fixtures : one per strategy tag (drive the tag fast-path) ----------
 struct DTagNone   { using concurrency_strategy_tag = none_strategy_tag;   };
 struct DTagLocked { using concurrency_strategy_tag = locked_strategy_tag; };
 struct DTagCow    { using concurrency_strategy_tag = cow_strategy_tag;    };
@@ -130,13 +130,13 @@ struct DTagAtomic { using concurrency_strategy_tag = atomic_strategy_tag; };
 struct DTagHazard { using concurrency_strategy_tag = hazard_strategy_tag; };
 struct DTagHybrid { using concurrency_strategy_tag = hybrid_strategy_tag; };
 
-// -- stand-in nested types the structural detectors look for ----------------
+// - stand-in nested types the structural detectors look for ----------------
 struct DFixtureLockPolicy {};
 struct DFixtureCowBody    {};
 struct DFixtureRcuBody    {};
 struct DFixtureHazardBody {};
 
-// -- structural LOCKED fixtures --------------------------------------------
+// - structural LOCKED fixtures --------------------------------------------
 // locked-by-structure = has_lock_policy_type && (read_lock() || write_lock()).
 // read_lock() is probed on a const ref, so it must be const-qualified.
 struct DStLockedRw
@@ -168,26 +168,26 @@ struct DStMethodNoPolicy          // read_lock() but NO policy -> NOT locked
     void read_lock() const;
 };
 
-// -- structural COW fixtures : DCowState alias OR snapshot() ----------------
+// - structural COW fixtures : DCowState alias OR snapshot() ----------------
 struct DStCowState    { using cow_state_type = DFixtureCowBody; };
 struct DStCowSnapshot { void snapshot() const;                   };
 
-// -- structural RCU fixtures : DRcuProtected alias OR epoch counter ---------
+// - structural RCU fixtures : DRcuProtected alias OR epoch counter ---------
 struct DStRcuProtected { using rcu_protected_type = DFixtureRcuBody; };
 struct DStRcuEpoch     { using epoch_counter_type = int;             };
 
-// -- structural ATOMIC fixtures : value_type is atomic, OR load(index) ------
+// - structural ATOMIC fixtures : value_type is atomic, OR load(index) ------
 struct st_atomic_value  { using value_type = std::atomic<int>; };
 struct DStAtomicLoadat { int load(std::size_t) const;         };
 struct st_value_plain   { using value_type = int; };  // value_type, NOT atomic
 
-// -- structural HAZARD fixture : hazard_domain alias ------------------------
+// - structural HAZARD fixture : hazard_domain alias ------------------------
 struct DStHazard { using hazard_domain_type = DFixtureHazardBody; };
 
-// -- the empty container : no tag, no structure -> strategy none ------------
+// - the empty container : no tag, no structure -> strategy none ------------
 struct DStPlain {};
 
-// -- immutability probe : opts in through the marker the reference
+// - immutability probe : opts in through the marker the reference
 //    container_traits recognises (drives is_vacuously_concurrent's true arm).
 struct DImmutableProbe
 {
@@ -196,7 +196,7 @@ struct DImmutableProbe
     std::size_t size() const { return 0; }
 };
 
-// -- tag-over-structure precedence fixtures ---------------------------------
+// - tag-over-structure precedence fixtures ---------------------------------
 // carries the cow tag AND full locked structure: the tag must win (cow, and
 // specifically NOT locked and NOT hybrid).
 struct DPrCowtagLockstruct
@@ -222,7 +222,7 @@ struct DPrNonetagCowstruct
     using cow_state_type           = DFixtureCowBody;
 };
 
-// -- structural HYBRID fixtures : two or more strategies, no tag ------------
+// - structural HYBRID fixtures : two or more strategies, no tag ------------
 struct DHyLockedCow                // locked + cow -> hybrid
 {
     using lock_policy_type = DFixtureLockPolicy;
@@ -244,7 +244,7 @@ struct DHyTriple                    // locked + cow + rcu -> hybrid
     using rcu_protected_type  = DFixtureRcuBody;
 };
 
-// -- real /core/sync/ primitives under test (integration) -------------------
+// - real /core/sync/ primitives under test (integration) -------------------
 using real_cow_t    = DCowState<int>;            // cow_strategy_tag
 using real_rcu_t    = DRcuProtected<int>;        // rcu_strategy_tag
 using real_asize_t  = atomic_size;               // atomic_strategy_tag
@@ -255,7 +255,7 @@ using real_mhaz_t   = DMultiHazardDomain<2>;    // hazard_strategy_tag
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- (part 2) declarations - visible in BOTH modes -------------------------
+// - (part 2) declarations - visible in BOTH modes -------------------------
 // One flat list, grouped by section; each banner names the .cpp that defines
 // the group.
 
@@ -313,7 +313,7 @@ bool tests_real_hazard_domains();
 bool tests_real_tag_over_structure();
 
 
-// -- (part 3) the spec provider - spec mode only ---------------------------
+// - (part 3) the spec provider - spec mode only ---------------------------
 #ifdef DTEST_SPEC_MODE
 inline
 dt::module_spec concurrency_strategy_traits_spec()

@@ -4,8 +4,8 @@
 * Implementation of the metadata queries declared in file_stat.h.
 *   Every status query ends in one translation, d_internal_stat_fill, the only
 * code that knows how the target spells a timestamp. On Linux, statx is tried
-* first because it is the only route to a creation time -- for a descriptor
-* as for a path, so the two answers agree -- and a kernel or sandbox that
+* first because it is the only route to a creation time - for a descriptor
+* as for a path, so the two answers agree - and a kernel or sandbox that
 * refuses it is remembered for the life of the process. The predicates are
 * single stat calls, and they and d_file_mode take a path that is not there as
 * an answer rather than a failure worth a notice.
@@ -13,7 +13,7 @@
 * narrow the answer, failing with EOVERFLOW rather than truncate a value; the
 * predicates never narrow, so no file is too large to exist.
 *   MORE THAN POSIX. glibc declares statx only under _GNU_SOURCE. Build this
-* file with -D_GNU_SOURCE on Linux to have it -- a feature-test macro comes
+* file with -D_GNU_SOURCE on Linux to have it - a feature-test macro comes
 * from the build, never from a source (the C guide's rule); without it only
 * the stat() path is compiled, and st_created reads 0 on Linux.
 *
@@ -39,8 +39,8 @@
 // posix
 #if (D_INTERNAL_FILE_STAT_STATX == 1)
     // makedev lives here on glibc. <sys/stat.h> only ever dragged it in
-    // implicitly, and stopped doing so in 2.28 -- the same release that added
-    // statx -- so a build new enough to have statx is exactly one that needs
+    // implicitly, and stopped doing so in 2.28 - the same release that added
+    // statx - so a build new enough to have statx is exactly one that needs
     // this include.
     #include <sys/sysmacros.h>  // makedev
 #endif
@@ -73,7 +73,7 @@ D_INTERNAL_FILE_ASSERT_LARGE_FILES;
 #define D_INTERNAL_STAT_PROBE 2
 
 // D_INTERNAL_STAT_DEFAULT
-//   constant: d_file_stat64's way of asking -- following a link unless the
+//   constant: d_file_stat64's way of asking - following a link unless the
 // build has set D_CFG_FILE_STAT_FOLLOW_SYMLINKS to 0.
 #define D_INTERNAL_STAT_DEFAULT                                                \
     ( (D_INTERNAL_FILE_STAT_FOLLOW == 1) ? D_INTERNAL_STAT_FOLLOW : 0 )
@@ -84,7 +84,7 @@ D_INTERNAL_FILE_ASSERT_LARGE_FILES;
 d_internal_stat_fill_times
   Windows reports creation, last access and last write, in whole seconds
 through the CRT, whose st_ctime IS the creation time. It has no
-metadata-change time at all, so st_changed stays 0 -- substituting the
+metadata-change time at all, so st_changed stays 0 - substituting the
 creation time there is exactly the conflation the field names exist to
 prevent.
 */
@@ -220,8 +220,8 @@ void d_internal_stat_fill_birth(
 
 /*
 d_internal_stat_fill_birth
-  stat(2) has no creation time to read here -- on Linux only statx reports
-one -- so st_created stays 0.
+  stat(2) has no creation time to read here - on Linux only statx reports
+one - so st_created stays 0.
 */
 static
 void d_internal_stat_fill_birth(
@@ -239,7 +239,7 @@ void d_internal_stat_fill_birth(
 
 /*
 d_internal_stat_fill_times
-  POSIX: st_mtime and friends are MACROS here, not members -- the whole reason
+  POSIX: st_mtime and friends are MACROS here, not members - the whole reason
 dj_stat64_t's fields are named st_modified. Reading them off the platform's
 struct is fine; declaring fields by those names is not. The sub-second parts
 and the creation time are read as the build spells them.
@@ -307,7 +307,7 @@ void d_internal_stat_fill(
 
 /*
 d_internal_stat_unix_time
-  A FILETIME -- 100-nanosecond ticks since 1601 -- in Unix seconds. A zeroed
+  A FILETIME - 100-nanosecond ticks since 1601 - in Unix seconds. A zeroed
 one, which no file has, reads 0.
 */
 static
@@ -330,7 +330,7 @@ int64_t d_internal_stat_unix_time(
 /*
 d_internal_stat_native_link
   A symbolic link or a junction, described as POSIX lstat describes a link --
-S_IFLNK, with the link's own times and link count -- where _stat64 would
+S_IFLNK, with the link's own times and link count - where _stat64 would
 follow it. Its size reads 0. Returns 1 for such a link, and 0 for anything
 else, which _stat64 then describes.
 */
@@ -368,7 +368,7 @@ int d_internal_stat_native_link(
 
 /*
 d_internal_stat_trim
-  The length of a path without the separators that end it -- never into its
+  The length of a path without the separators that end it - never into its
 root, and never the one separator a root such as "\\\\server\\share\\" ends
 in.
 */
@@ -546,7 +546,7 @@ d_internal_stat_native_path
 following is done here: a symbolic link or a junction asked about without
 following describes itself (d_internal_stat_native_link). A trailing
 separator is handled as POSIX handles one, since msvcrt's _stat64 fails
-"C:\\dir\\" with ENOENT (d_internal_stat_native_dir) -- and like POSIX it
+"C:\\dir\\" with ENOENT (d_internal_stat_native_dir) - and like POSIX it
 reaches through a link, whatever _follow says.
 */
 static
@@ -787,7 +787,7 @@ int d_internal_stat_chmod(
 /*
 d_internal_stat_native_path
   Neither POSIX nor Windows is here to ask, and ISO C has no way to describe a
-file, so this reports ENOSYS -- the ISO C backend's answer, which is the only
+file, so this reports ENOSYS - the ISO C backend's answer, which is the only
 backend such a build can have. Every query is built on it, so each one says
 the same; the predicates answer no.
 */
@@ -850,7 +850,7 @@ int d_internal_stat_chmod(
 #if (D_INTERNAL_FILE_STAT_STATX_MEMO == 1)
 
 // d_internal_stat_statx_ok
-//   variable: 1 until statx is found refused -- by the kernel or a sandbox,
+//   variable: 1 until statx is found refused - by the kernel or a sandbox,
 // for a path stat then answered. Read and written atomically, since any
 // thread may be the one to find out.
 static int d_internal_stat_statx_ok = 1;
@@ -916,7 +916,7 @@ a filesystem to answer.
 respected rather than assumed: a filesystem that does not store btime returns
 success WITHOUT STATX_BTIME set, and reading stx_btime then would be reading a
 zero and calling it a timestamp. The knobs are honoured here as on the stat
-path -- statx hands back sub-second and birth times whether or not the build
+path - statx hands back sub-second and birth times whether or not the build
 asked for them, and a query macro that says no while the fields say yes is a
 lie the caller cannot defend against.
 */
@@ -966,7 +966,7 @@ int d_internal_stat_statx(
         _out->st_changed_nsec  = (uint32_t)stx.stx_ctime.tv_nsec;
     }
 
-    // the whole point -- but only when the filesystem actually stored one
+    // the whole point - but only when the filesystem actually stored one
     if ( (D_INTERNAL_FILE_STAT_BIRTHTIME == 1) &&
          ((stx.stx_mask & STATX_BTIME) != 0) )
     {
@@ -978,8 +978,8 @@ int d_internal_stat_statx(
 
 /*
 d_internal_stat_refused
-  Whether a statx failure refuses the call itself -- ENOSYS from a kernel
-without it, EPERM from a sandbox that filters it -- rather than answering
+  Whether a statx failure refuses the call itself - ENOSYS from a kernel
+without it, EPERM from a sandbox that filters it - rather than answering
 about the path.
 */
 static
@@ -1313,8 +1313,8 @@ int d_file_stat_fd64(
 
 /*
 d_file_stat_fd64
-  The descriptor asked as a path is asked -- statx where the build has it,
-fstat otherwise -- and the same translation every path query uses, so the
+  The descriptor asked as a path is asked - statx where the build has it,
+fstat otherwise - and the same translation every path query uses, so the
 two answers agree field for field.
 */
 int d_file_stat_fd64(
@@ -1516,7 +1516,7 @@ int d_file_chmod(
 /*
 d_file_size64
   What the filesystem says, which for a /proc or /sys entry is 0 though reading
-it produces kilobytes -- the right answer to "what size does this file
+it produces kilobytes - the right answer to "what size does this file
 report" and the wrong one to "how many bytes will I get". d_file_read_all
 answers the second by distrusting a reported zero.
 */
@@ -1613,7 +1613,7 @@ int64_t d_file_size_stream64(
 /*
 d_file_exists
   One stat, as d_file_stat64 asks. A NULL path does not exist: the caller
-asked a yes/no, and "no" is a meaningful answer rather than an error -- as it
+asked a yes/no, and "no" is a meaningful answer rather than an error - as it
 is for a path that is not there, which raises no notice.
 */
 int d_file_exists(
@@ -1719,7 +1719,7 @@ int d_internal_stat_fits_int32(
 /*
 d_internal_stat_narrow
   Copies a dj_stat64_t into the 32-bit layout, or fails with EOVERFLOW when any
-value does not fit -- checked before anything is written, so the output is
+value does not fit - checked before anything is written, so the output is
 the whole answer or the zeroes the caller already put there. Only the fields
 that are 64-bit in the wide layout need a check; the rest are 32-bit in both.
 */
@@ -1773,7 +1773,7 @@ int d_internal_stat_narrow(
 /*
 d_file_stat32
   d_file_stat64, narrowed. The output is zeroed first, so a failure of any
-kind -- the stat's or the narrowing's -- leaves no stale value behind.
+kind - the stat's or the narrowing's - leaves no stale value behind.
 */
 int d_file_stat32(
     const char*         _path,

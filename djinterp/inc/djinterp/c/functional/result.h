@@ -3,7 +3,7 @@
 *
 * The `result` carrier: one value, or one error, never both and never neither.
 *   Table 7.2 gives `result<T,E>` as a kind `* -> * -> *` carrier modelling
-* Functor, Applicative, Monad, Foldable, Traversable and Bifunctor -- and
+* Functor, Applicative, Monad, Foldable, Traversable and Bifunctor - and
 * explicitly NOT Alternative. That exclusion is a stated non-property and is
 * honoured here: this header supplies no `alt` and no `aempty`, because there
 * is no way to choose between two errors without inventing one.
@@ -53,7 +53,7 @@
 #include "../../../re_std/c/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).

@@ -197,7 +197,7 @@ inline
     "encode() convenience that materialises a fresh byte_string, and the "
     "is_leaf_encodable surface.",
     {
-        // -- I. medium (public vocabulary) --------------------------------------
+        // - I. medium (public vocabulary) --------------------------------------
         dt::block_spec{
             "medium",
             "The serialization medium: the byte / byte_string / encode_length_type "
@@ -210,7 +210,7 @@ inline
             }
         },
 
-        // -- II. trait detection ------------------------------------------------
+        // - II. trait detection ------------------------------------------------
         dt::block_spec{
             "detection",
             "The two structural traits enc_tau dispatches on: a push_back-able byte "
@@ -227,7 +227,7 @@ inline
             }
         },
 
-        // -- III. the leaf families ---------------------------------------------
+        // - III. the leaf families ---------------------------------------------
         dt::block_spec{
             "leaves",
             "The five mutually-exclusive encode_into leaf families and the byte "
@@ -265,7 +265,7 @@ inline
             }
         },
 
-        // -- IV. the convenience wrapper ----------------------------------------
+        // - IV. the convenience wrapper ----------------------------------------
         dt::block_spec{
             "convenience",
             "encode(value): the wrapper that runs enc_tau into a fresh "
@@ -278,7 +278,7 @@ inline
             }
         },
 
-        // -- V. leaf-encodability trait -----------------------------------------
+        // - V. leaf-encodability trait -----------------------------------------
         dt::block_spec{
             "encodability",
             "is_leaf_encodable: the trait (and its _v companion) recognising the "

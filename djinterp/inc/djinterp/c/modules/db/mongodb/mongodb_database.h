@@ -50,10 +50,10 @@ D_EXTERN_C_BEGIN
 
 // 1.1    Existence
 //------------------------------------------------------------------------------
-// existence -- whether the deployment has the database, by its exact name
+// existence - whether the deployment has the database, by its exact name
 // (MongoDB refuses two that differ only in case); has_x_s reports a failure
-// -- the server's, the driver's, or D_DB_INVALID_ARGUMENT for a NULL
-// argument -- and writes false on one
+// - the server's, the driver's, or D_DB_INVALID_ARGUMENT for a NULL
+// argument - and writes false on one
 bool d_mongodb_has_database(
     struct dj_mongodb* _db,
     const char*        _name
@@ -66,7 +66,7 @@ int d_mongodb_has_database_s(
 
 // 1.2    Dropping
 //------------------------------------------------------------------------------
-// dropping -- drops a database, every collection, view and index in it; one
+// dropping - drops a database, every collection, view and index in it; one
 // that is not there is D_DB_NOT_FOUND, which no server reports, unless
 // _flags has D_DB_IF_EXISTS. Returns 0, or the failure: the server's code
 // (13, unauthorized), the driver's, D_DB_INVALID_ARGUMENT for a NULL
@@ -97,7 +97,7 @@ int d_mongodb_list_databases(
 
 // 1.4    The current database
 //------------------------------------------------------------------------------
-// the current database -- use_database makes a database the handle's current
+// the current database - use_database makes a database the handle's current
 // one, which need not exist yet, or, given NULL, leaves the handle with none;
 // it asks the server nothing, and refuses only an empty name, or one MongoDB
 // forbids (a '/', '\', '.', ' ', '"', '$', or NUL, or more than 63 bytes),

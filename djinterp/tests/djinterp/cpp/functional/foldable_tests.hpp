@@ -44,7 +44,7 @@
 #include <utility>
 #include <vector>
 // djinterp
-// djinterp -- the header under test, plus the DTest authoring + runner surface
+// djinterp - the header under test, plus the DTest authoring + runner surface
 //   (module_spec / block_spec / test_spec, the option set, and run_module).
 //   NOTE: these two include paths are rooted at the djinterp include directory
 //   (e.g. -I.../inc); adjust them to match your build tree.
@@ -95,7 +95,7 @@ struct seq
 
 // has_traits_value_type
 //   detector: true iff foldable_traits<decay<_Type>>::value_type is well-formed
-// -- i.e. iff _Type carries the foldable protocol's inner value type.  This is
+// - i.e. iff _Type carries the foldable protocol's inner value type.  This is
 // the SFINAE-safe surface the framework itself detects on: the primary
 // foldable_traits is declared but undefined, so for a non-foldable the member
 // access soft-fails in the immediate context (false) rather than triggering a
@@ -145,7 +145,7 @@ NS_END  // djinterp
 ///////////////////////////////////////////////////////////////////////////////
 //   Specialized in namespace djinterp (where the primary lives), written in the
 // same explicit <F, void> form the std::vector instance uses.  One obligation --
-// the strict left fold -- is enough for every generic fold to work over seq<T>.
+// the strict left fold - is enough for every generic fold to work over seq<T>.
 
 NS_DJINTERP
 

@@ -6,7 +6,7 @@
 * FileOnDefaultPath, permission validators and FileSizeValidator, each
 * answered by one status query of the system layer (arg_internal.h, 9.1),
 * through a copy of the value that ends in a NUL, so that the query sees the
-* path CLI11's c_str() hands the system -- cut at a NUL the value holds. A
+* path CLI11's c_str() hands the system - cut at a NUL the value holds. A
 * size the system cannot give, a directory's or a device's, is refused with
 * the error text libstdc++ and libc++ give, the same on every system.
 *   Without D_INTERNAL_ARG_PARSER_PATH_VALIDATORS nothing here is compiled.
@@ -772,7 +772,7 @@ int d_arg_internal_path_size_check(
  *
  * CLI11's FileSizeValidator: a path that does not exist is "File does not
  * exist: <path>"; one that is not a regular file has no size to give, refused
- * as libstdc++ and libc++ refuse it -- "Error getting file size: Is a
+ * as libstdc++ and libc++ refuse it - "Error getting file size: Is a
  * directory" for a directory, "Error getting file size: Operation not
  * supported" for anything else; then the size is checked against the limits.
  */

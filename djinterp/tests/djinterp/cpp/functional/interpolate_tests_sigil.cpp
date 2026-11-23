@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][functional]                         interpolate_tests_sigil.cpp
 *
-* Section II.ii -- DSigilScanner: the `$name` syntax.  Exercises plain literals,
+* Section II.ii - DSigilScanner: the `$name` syntax.  Exercises plain literals,
 * a single / mid-string / adjacent key, the doubled-sigil escape, a bare sigil
 * (no name and at end-of-source) kept literal, a configurable sigil, the
 * name-character set (alnum + underscore) and its boundary, and a compile-time

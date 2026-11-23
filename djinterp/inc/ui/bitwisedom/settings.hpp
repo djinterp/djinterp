@@ -9,13 +9,13 @@
 * The settings panels are built from this table, and the one "set" event
 * they post is applied through it, so a setting is declared once and is
 * then drawn, editable and scriptable, with nothing to keep in step.
-*   The window's own settings -- the user's, which no sheet keeps -- are a
+*   The window's own settings - the user's, which no sheet keeps - are a
 * second table of the same shape, by paths under "environment.": the theme,
 * how a row is added, the colour a new row takes, whether the window opens
 * where it was left. They are read from and written to the shell, and the
 * same "set" event edits them.
 *   A settings file holds both: the window's settings, and a sheet's that
-* are preferences rather than its content -- how it is drawn and written,
+* are preferences rather than its content - how it is drawn and written,
 * not its title, its width or its names. Exported from one sheet and
 * imported into another, it makes the second look and write as the first.
 *   Values travel as uxoxo payloads: a flag as a bool, an integer or a
@@ -87,7 +87,7 @@ struct setting
                        const uxoxo::option_set&)> write;
 };
 
-// registry -- the table, made from the model's, and one entry by path
+// registry - the table, made from the model's, and one entry by path
 // (nullptr when unknown)
 const std::vector<setting>& settings();
 const setting* find_setting(
@@ -124,7 +124,7 @@ const int ADD_KINDS = 7;
 
 // add_kind_name / add_kind_of
 //   a kind to add, by its place among ADD_KINDS: its name, and the kind
-// "edit.add" takes -- a def_kind's number, or -1 for a group.
+// "edit.add" takes - a def_kind's number, or -1 for a group.
 D_NODISCARD const char* add_kind_name(
     int _index
 );
@@ -132,7 +132,7 @@ D_NODISCARD int add_kind_of(
     int _index
 );
 
-// registry -- the window's own table, and one entry by path
+// registry - the window's own table, and one entry by path
 const std::vector<env_setting>& environment_settings();
 const env_setting* find_env_setting(
     const std::string& _path
@@ -146,7 +146,7 @@ D_NODISCARD bool is_environment(
 
 // is_preference
 //   whether a sheet's setting is a preference a settings file carries --
-// how the sheet is drawn and written -- rather than its content: its
+// how the sheet is drawn and written - rather than its content: its
 // title, width, affixes and names are its own.
 D_NODISCARD bool is_preference(
     const setting& _setting

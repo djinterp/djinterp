@@ -8,7 +8,7 @@
 * its source through it, so every request for the heap is refused.
 *
 *   WHAT THIS PINS. Output that needs the heap fails as any failed allocation
-* does -- D_OSTREAM_FAILED with ENOMEM -- and none of it reaches the
+* does - D_OSTREAM_FAILED with ENOMEM - and none of it reaches the
 * destination; output that fits the stack buffer, or the stream's window, is
 * written as before, because it never asks.
 *

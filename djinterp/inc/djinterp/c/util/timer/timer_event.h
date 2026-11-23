@@ -6,7 +6,7 @@
 * struct dj_event_step) to any timer (timer.h's struct dj_timer_ref), and that
 * is all it does: the caller binds the handler wherever handlers are bound.
 * counter_event.h's design, for time.
-*   A binding is a struct dj_timer_event -- which timer, which operation, by
+*   A binding is a struct dj_timer_event - which timer, which operation, by
 * how much. d_timer_event_step hands it off as the event core's (function,
 * state) step. Timing a span between two events is two bindings on one
 * timer, start and stop, each bound to its own event, as shown below.

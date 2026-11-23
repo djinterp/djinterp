@@ -2,7 +2,7 @@
 * djinterp [re_std]                                                 byte_ops.hpp
 *
 * the byte bit operations:
-*   The eleven operators [cstddef.syn] gives byte -- <<, >>, |, &, ^, ~ and
+*   The eleven operators [cstddef.syn] gives byte - <<, >>, |, &, ^, ~ and
 * their five compound-assignment forms. There is deliberately no +, -, *,
 * /, no comparison beyond the implicit enum ones, and no stream inserter:
 * byte is storage, not a number.
@@ -20,7 +20,7 @@
 *   WHY THE COMPOUND FORMS ARE RE_STD_CONSTEXPR_CPP14:
 *   They mutate their reference parameter, and mutation inside a constexpr
 * function needs the relaxed C++14 rules. On C++11 they remain ordinary
-* inline functions -- usable, just not in a constant expression -- rather
+* inline functions - usable, just not in a constant expression - rather
 * than being omitted. The explicit `inline` matters on that tier: with
 * RE_STD_CONSTEXPR_CPP14 expanding to nothing, constexpr is no longer there to
 * imply it, and a header-defined non-template function without it is an
@@ -72,7 +72,7 @@ namespace re_std
 
     // operator>>
     //   function: b shifted right by _shift bits. The cast to unsigned int
-    // keeps the shift logical -- byte's underlying type is unsigned, so no
+    // keeps the shift logical - byte's underlying type is unsigned, so no
     // sign bit can be replicated in.
     template<typename IntType>
     RE_STD_CONSTEXPR

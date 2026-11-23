@@ -85,7 +85,7 @@ bool arena_check(
     while (0)
 
 
-#ifndef DTEST_SPEC_MODE  // fixtures -- normal mode only
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 // ===========================================================================
 // Fixtures - payloads

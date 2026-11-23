@@ -68,7 +68,7 @@ struct dj_make_reader
 //------------------------------------------------------------------------------
 // d_make_reader_statement adds a statement of a kind over a logical line --
 // its places the line's, every part empty at the line's start, its branch
-// D_MAKE_NONE -- and gives its index, or D_MAKE_NONE when memory runs out,
+// D_MAKE_NONE - and gives its index, or D_MAKE_NONE when memory runs out,
 // the reader then failed.  An index stays good as statements are added; a
 // pointer to one does not.
 //   d_make_reader_comment adds a comment, `_within` the statement its line
@@ -95,13 +95,13 @@ bool d_make_reader_fail(
 // 2.2    Scanning
 //------------------------------------------------------------------------------
 // Each scans from `_at` to `_end`, within one logical line.
-//   d_make_skip_blanks  past the blanks -- space, tab, vertical tab, form
+//   d_make_skip_blanks  past the blanks - space, tab, vertical tab, form
 //                       feed, CR, and a continuation's backslash and line
 //                       ending, which make reads as a space
 //   d_make_trim_end     back from `_end` over the same, not before `_at`
 //   d_make_word_end     past the run of bytes that are not blanks
 //   d_make_find         the first byte of `_stops` that no backslash
-//                       escapes -- an even run of them before it -- outside
+//                       escapes - an even run of them before it - outside
 //                       every reference, or `_end`
 //   d_make_find_with    the same, `_escape` the escape: NMake's `^`
 size_t d_make_skip_blanks(

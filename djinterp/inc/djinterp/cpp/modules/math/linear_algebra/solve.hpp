@@ -20,13 +20,13 @@
 *   - solve is Gaussian elimination of [A | B] with partial pivoting, then
 *     back-substitution (S257), the kernels': for float, double and long
 *     double the C core's d_mat_solve, each column LU's solution refined
-*     with extra precision -- its residual by Dot2, the solution carried
-*     with a tail -- until the corrections stop mattering or stop
+*     with extra precision - its residual by Dot2, the solution carried
+*     with a tail - until the corrections stop mattering or stop
 *     shrinking (S406), so that for a system well away from singular each
 *     entry is the solution correctly rounded but within some cond(A)
 *     eps^2 of a midpoint; for math::complex<T>, cmat.h's d_cmat_solve's
 *     refinement, bit for bit, each part so (S410, S411); for any other
-*     number type but an integer type, its own arithmetic -- exact for an
+*     number type but an integer type, its own arithmetic - exact for an
 *     exact type, products kept in order where they do not commute.
 *     solve_fast is the elimination alone, LU's bits, as solve was until
 *     chunk 49, and for math::complex<T> until chunk 50. A singular A gives
@@ -95,7 +95,7 @@ namespace linalg
 NS_INTERNAL
 
     // solve_requires_float
-    //   struct: the solvers' requirement -- float, double or long double --
+    //   struct: the solvers' requirement - float, double or long double --
     // asserted at class scope, once for every solver that names it.
     template<typename T>
     struct solve_requires_float

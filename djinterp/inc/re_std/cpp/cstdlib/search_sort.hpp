@@ -12,8 +12,8 @@
 * through a pointer; they work on any random-access range rather than a
 * contiguous array; and re_std::sort is O(n log n) worst case, where
 * qsort's complexity is unspecified. These two are surfaced for C
-* interoperation -- passing a comparator to a C library, or sorting a
-* block a C API handed over -- not as a general recommendation.
+* interoperation - passing a comparator to a C library, or sorting a
+* block a C API handed over - not as a general recommendation.
 *
 *   THE TRAP THAT MAKES qsort WORTH A COMMENT:
 *   The comparator must return an int whose SIGN encodes the ordering.

@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                          node_container_concepts.hpp
 *
-* C++20 concepts for the NODE CONTAINERS axis -- the `requires`-facing view of
+* C++20 concepts for the NODE CONTAINERS axis - the `requires`-facing view of
 * node_container_traits.hpp.
 *
 *   THE CONCEPTS ADD NO POLICY.
@@ -50,28 +50,28 @@ NS_DJINTERP
 
 // NodeContainer
 //   concept: exposes a node_type. Named `declares_` because `DNodeContainer`
-// is a CLASS in this namespace -- a concept of that name is a hard
+// is a CLASS in this namespace - a concept of that name is a hard
 // redeclaration.
 template<typename Type>
 concept NodeContainer = has_node_type_v<Type>;
 
 
 // HasEntryPoint
-//   concept: exposes an entry point into the node graph -- the handle
+//   concept: exposes an entry point into the node graph - the handle
 // everything else is reached through.
 template<typename Type>
 concept HasEntryPoint = has_entry_point_method_v<Type>;
 
 
 // RootedNodeContainer
-//   concept: exposes a root -- a node container with a distinguished entry,
+//   concept: exposes a root - a node container with a distinguished entry,
 // i.e. a tree rather than a general graph.
 template<typename Type>
 concept RootedNodeContainer = has_root_method_v<Type>;
 
 
 // LinkedNodeContainer
-//   concept: exposes a head -- a node container threaded as a list.
+//   concept: exposes a head - a node container threaded as a list.
 template<typename Type>
 concept LinkedNodeContainer = has_head_method_v<Type>;
 

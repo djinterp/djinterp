@@ -2,8 +2,8 @@
 * djinterp [c][functional]                                          fn_builder.h
 *
 * Fluent builder pattern for constructing function chains.
-*   Provides a builder that records a chain of steps -- transformers (map,
-* and_then) and predicates (filter, where) -- in the order they are added,
+*   Provides a builder that records a chain of steps - transformers (map,
+* and_then) and predicates (filter, where) - in the order they are added,
 * and runs the chain over an array in that order: a predicate tests the value
 * the steps before it produced, as the C++ face (fn_builder.hpp) does.
 *
@@ -132,7 +132,7 @@ struct dj_fn_builder* d_fn_builder_map(
 
 /**
  * @brief Appends a predicate step: the element is kept only if _test accepts
- *        the value in hand -- the value the steps before it produced.
+ *        the value in hand - the value the steps before it produced.
  *
  * @param[in,out] _builder  the builder; may be NULL.
  * @param[in]     _test     the predicate; NULL adds nothing.

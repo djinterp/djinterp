@@ -3,7 +3,7 @@
 *
 * is_convertible trait header:
 *   is_convertible<From, To>::value is true iff the imaginary function
-* `To test() { return declval<From>(); }` is well-formed -- i.e. an implicit
+* `To test() { return declval<From>(); }` is well-formed - i.e. an implicit
 * conversion from From to To exists.  Both cv void operands are convertible
 * to each other and to nothing else; array and function types decay as usual.
 *
@@ -53,7 +53,7 @@ namespace internal
 {
 
     // is_convertible_probe_
-    //   trait: primary -- the conversion is ill-formed.
+    //   trait: primary - the conversion is ill-formed.
     template<typename From,
              typename To,
              typename = void>
@@ -61,7 +61,7 @@ namespace internal
     {};
 
     // is_convertible_probe_ (viable)
-    //   function: specialization -- selected when a To-taking function may be
+    //   function: specialization - selected when a To-taking function may be
     // called with a From, which is precisely the standard's imaginary-return
     // formulation.
     template<typename From,

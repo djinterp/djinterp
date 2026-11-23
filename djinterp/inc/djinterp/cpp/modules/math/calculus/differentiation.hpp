@@ -3,7 +3,7 @@
 *
 * Symbolic and numerical differentiation.
 *   Symbolic differentiation rewrites the expression AST of expression.hpp
-* into a new AST representing the exact derivative -- one overload per
+* into a new AST representing the exact derivative - one overload per
 * operation, applying the sum, product, quotient and chain rules. Because the
 * result is itself an expression, it evaluates at compile time or run time and
 * can be differentiated again.

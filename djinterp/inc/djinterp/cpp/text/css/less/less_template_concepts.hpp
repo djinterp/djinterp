@@ -8,7 +8,7 @@
 * function-template syntax.
 *
 *   The whole header is gated behind
-* `D_ENV_CPP_FEATURE_LANG_CONCEPTS` -- it produces nothing on
+* `D_ENV_CPP_FEATURE_LANG_CONCEPTS` - it produces nothing on
 * pre-C++20 toolchains so the rest of the less module remains
 * language-version-agnostic.
 *
@@ -106,7 +106,7 @@ concept less_rule_type =
 
 
 // less_rule_loose_type
-//   concept: looser variant -- any CSS rule qualifies.
+//   concept: looser variant - any CSS rule qualifies.
 template<typename Type>
 concept less_rule_loose_type =
     is_less_rule_loose<Type>::value;
@@ -237,7 +237,7 @@ concept less_stylesheet_type =
 
 
 // less_stylesheet_loose_type
-//   concept: looser variant -- any CSS stylesheet qualifies.
+//   concept: looser variant - any CSS stylesheet qualifies.
 template<typename Type>
 concept less_stylesheet_loose_type =
     is_less_stylesheet_loose<Type>::value;

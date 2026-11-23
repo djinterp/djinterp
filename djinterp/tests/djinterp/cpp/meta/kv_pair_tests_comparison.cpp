@@ -2,7 +2,7 @@
 * djinterp [cpp][meta]                              kv_pair_tests_comparison.cpp
 *
 *   Comparison tests: DKvPair's equality, inequality and ordering read the key
-* alone -- the value is ignored entirely -- are constexpr, and hold for string
+* alone - the value is ignored entirely - are constexpr, and hold for string
 * keys.
 *
 *

@@ -15,13 +15,13 @@
 *   internal:        a buffered line reader, request parsing (line, headers,
 *                    Content-Length / chunked body), response serialisation
 *   serve_connection drive the request/response (keep-alive) loop on one
-*                    connection -- usable with any net::connection
+*                    connection - usable with any net::connection
 *   server           binds/runs/stops, a thread of dmutex.h's per connection
 *
 *   HTTP/1.1 keep-alive is honoured (Connection negotiation, bounded reuse);
 * the request body is read by Content-Length or chunked transfer-encoding.
 * Blocking, one thread per connection for its lifetime, at most
-* max_connections at once -- the reactor is the path to massive
+* max_connections at once - the reactor is the path to massive
 * idle-connection counts.
 *
 *   PATCHED, NOT REBUILT. The owner's answer to the register's item 23 (C,
@@ -29,7 +29,7 @@
 * net::server that was never written and on the HTTP reader retired with
 * the old client, and it included itself; it now carries what it needs --
 * the reader, the chunked decoder, an accept loop with a thread per
-* connection -- and the execution-policy parameter, which only the missing
+* connection - and the execution-policy parameter, which only the missing
 * server gave meaning to, is gone. Decision 4 still rebuilds both servers:
 * a generic one at the net root, the HTTP one in net/http/ on the native
 * parser.
@@ -335,7 +335,7 @@ NS_INTERNAL
         }
 
     private:
-        // take -- consumes `_count` buffered bytes into `_out`, returning
+        // take - consumes `_count` buffered bytes into `_out`, returning
         // `_error`
         D_NODISCARD net::io_error::value take(
             std::string&         _out,
@@ -351,7 +351,7 @@ NS_INTERNAL
             return _error;
         }
 
-        // fill -- reads another chunk; closed at the end of the stream
+        // fill - reads another chunk; closed at the end of the stream
         D_NODISCARD net::io_error::value fill()
         {
             // an ended stream gives no more
@@ -384,7 +384,7 @@ NS_INTERNAL
             return net::io_error::none;
         }
 
-        // compact -- reclaims a consumed prefix past 64 KiB
+        // compact - reclaims a consumed prefix past 64 KiB
         void compact()
         {
             // only a large consumed prefix is worth moving the rest for
@@ -681,8 +681,8 @@ NS_INTERNAL
     }
 
     // parse_body
-    //   function: the body the head announces -- chunked, or by
-    // Content-Length, or none -- into `_out`.
+    //   function: the body the head announces - chunked, or by
+    // Content-Length, or none - into `_out`.
     D_NODISCARD inline request_read::value parse_body(
         reader&               _reader,
         const server_options& _options,
@@ -1021,7 +1021,7 @@ void internal::serve_requests(
 ///////////////////////////////////////////////////////////////////////////////
 
 // server
-//   class: an HTTP/1.1 server over a transport acceptor -- net::tcp_acceptor
+//   class: an HTTP/1.1 server over a transport acceptor - net::tcp_acceptor
 // for http, net::tls_acceptor<> for https (load the certificate and key via
 // acceptor().context()). bind(), then run(handler), which blocks serving,
 // a thread per connection and at most max_connections at once, until
@@ -1196,7 +1196,7 @@ private:
         return D_THREAD_SUCCESS;
     }
 
-    // stopping -- whether stop() was called
+    // stopping - whether stop() was called
     bool
     stopping()
     {
@@ -1209,7 +1209,7 @@ private:
         return stop;
     }
 
-    // start_session -- a thread for the connection, once there is room
+    // start_session - a thread for the connection, once there is room
     void
     start_session(
         net::connection* _connection
@@ -1261,7 +1261,7 @@ private:
         return;
     }
 
-    // reap -- joins finished sessions, waiting while more than `_room`
+    // reap - joins finished sessions, waiting while more than `_room`
     // (0 for no cap) are still running
     void
     reap(
@@ -1312,7 +1312,7 @@ private:
         return;
     }
 
-    // finish_sessions -- waits for every session, and joins them: room for
+    // finish_sessions - waits for every session, and joins them: room for
     // fewer than one is room for none
     void
     finish_sessions()

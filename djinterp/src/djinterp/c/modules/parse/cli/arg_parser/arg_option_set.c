@@ -3,7 +3,7 @@
 *
 * Options' settings, declared in arg_option.h (sections 4.1 to 4.5).
 *   The text help shows, the counts of values and items, the multi-option
-* policy and its neighbours, the switches, and the default -- each setter
+* policy and its neighbours, the switches, and the default - each setter
 * as CLI11's, with CLI11's construction errors recorded as the parser's
 * definition error. The relations, validators and callbacks are in
 * arg_option_link.c.
@@ -73,8 +73,8 @@ int d_arg_option_set_option_text(
 
 /*
 d_arg_option_set_group
-  CLI11's group(), which refuses a newline -- the NUL it also refuses
-cannot occur in a C string -- with its IncorrectConstruction; NULL returns
+  CLI11's group(), which refuses a newline - the NUL it also refuses
+cannot occur in a C string - with its IncorrectConstruction; NULL returns
 to "OPTIONS".
 */
 int d_arg_option_set_group(
@@ -661,8 +661,8 @@ void d_arg_option_set_inject_separator(
  *         would then match this one.
  *
  * CLI11's ignore_case and ignore_underscore, which share their shape: turning
- * the switch on is tried against every other option of the command -- each
- * asked whether it now matches this one -- and undone, with CLI11's error, at
+ * the switch on is tried against every other option of the command - each
+ * asked whether it now matches this one - and undone, with CLI11's error, at
  * the first that does. Turning it off, or on again, cannot conflict.
  */
 D_STATIC
@@ -783,8 +783,8 @@ int d_arg_option_set_default_text(
 }
 
 // dj_arg_internal_option_trial
-//   struct: what a default_val trial sets aside and puts back -- the parser's
-// error report, the option's values, and its state -- and where the trial's
+//   struct: what a default_val trial sets aside and puts back - the parser's
+// error report, the option's values, and its state - and where the trial's
 // copies begin in the option's `owned`, so that they can be kept.
 struct dj_arg_internal_option_trial
 {
@@ -870,7 +870,7 @@ void d_arg_internal_option_flip(
  *                         are kept.
  * @param[in]     _first   the first copy the trial made.
  *
- * Moves the copies a trial made -- `owned` from `_first` on -- to just after
+ * Moves the copies a trial made - `owned` from `_first` on - to just after
  * those kept already, where clearing leaves them, so that a variable bound to
  * text keeps pointing at its default: three reversals rotate them past the
  * copies the values made, without allocating.
@@ -966,8 +966,8 @@ void d_arg_internal_option_trial_end(
  *         its message in `_message`.
  *
  * The trial of CLI11's default_val: the default added alone, then the
- * callback -- when it sets defaults and does not already run on every result
- * -- else the validators alone, as CLI11's _validate_results.
+ * callback - when it sets defaults and does not already run on every result
+ * - else the validators alone, as CLI11's _validate_results.
  */
 D_STATIC
 int d_arg_internal_option_try_default(
@@ -1019,8 +1019,8 @@ int d_arg_internal_option_try_default(
 /*
 d_arg_option_set_default_value
   CLI11's default_val: the trial, then the default text. A conversion
-failure is reported as CLI11 reports it -- through ConversionError's
-two-string constructor, whose wording that is -- and any other as raised;
+failure is reported as CLI11 reports it - through ConversionError's
+two-string constructor, whose wording that is - and any other as raised;
 both as definition errors, since CLI11 throws them where the default is
 set.
 */
@@ -1084,9 +1084,9 @@ int d_arg_option_set_default_value(
 
 /*
 d_arg_option_set_default_typed
-  CLI11's default_val given a value: the value written into a buffer -- a
-full buffer is a refused allocation -- then set as text; a value that could
-not be written -- its type has no text form, or its writer failed -- is
+  CLI11's default_val given a value: the value written into a buffer - a
+full buffer is a refused allocation - then set as text; a value that could
+not be written - its type has no text form, or its writer failed - is
 recorded as the definition error and the default kept, where CLI11 writes a
 value it cannot write as nothing and sets that as the default.
 */
@@ -1164,7 +1164,7 @@ void d_arg_option_set_default_fn(
 /*
 d_arg_option_capture_default
   CLI11's capture_default_str: the default function's text, built in a
-buffer, replaces the default only once it is complete -- a full buffer is a
+buffer, replaces the default only once it is complete - a full buffer is a
 refused allocation; without a function nothing changes.
 */
 int d_arg_option_capture_default(

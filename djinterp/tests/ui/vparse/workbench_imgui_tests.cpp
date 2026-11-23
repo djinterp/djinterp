@@ -4,8 +4,8 @@
 * The workbench's face on Dear ImGui, with no window: drawn in frames on Dear
 * ImGui's null backend, pointed at, and clicked, with the events the clicks
 * post carried through update() to the next face.
-*   Dear ImGui recovers from a misuse -- an unbalanced Begin and End, a stack
-* left pushed -- and in a release build says nothing of it, so each frame's
+*   Dear ImGui recovers from a misuse - an unbalanced Begin and End, a stack
+* left pushed - and in a release build says nothing of it, so each frame's
 * count of recovered errors is read, and must stay zero; so must the
 * identifier of a conflict under the pointer. The suite's context turns the
 * asserts on those errors off, so a debug build counts them too rather than
@@ -83,7 +83,7 @@ const float AWAY = -10000.0f;
 const int HOLD = 3;
 
 // section
-//   struct: one section of the suite -- its name, and the function that runs
+//   struct: one section of the suite - its name, and the function that runs
 // it.
 struct section
 {
@@ -316,7 +316,7 @@ event bare(
 }
 
 // states
-//   function: one model in each state the face distinguishes -- no runs; a
+//   function: one model in each state the face distinguishes - no runs; a
 // match; a failure; an unread grammar; an EBNF run; two runs compared; and
 // the heat map measuring steps at a step part way through.
 std::vector<wb::model> states()

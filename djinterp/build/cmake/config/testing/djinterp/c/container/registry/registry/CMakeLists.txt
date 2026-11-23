@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/container/registry/registry/CMakeLists.txt
+# djinterp [test]  -  build/cmake/config/testing/djinterp/c/container/registry/registry/CMakeLists.txt
 #
 #    Test leaf for container/registry/registry.h, in DTest's C face: the runner
 # in this directory, the section translation units globbed from the tests tree,

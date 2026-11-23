@@ -354,8 +354,8 @@ bool capture(
 }
 
 // this_module
-//   the module this code is in -- the window's, which `vparse gui` loads,
-// not the program's -- found by an address inside it, as a window class
+//   the module this code is in - the window's, which `vparse gui` loads,
+// not the program's - found by an address inside it, as a window class
 // whose procedure it holds is registered under it; the program's where it
 // cannot be found.
 HINSTANCE

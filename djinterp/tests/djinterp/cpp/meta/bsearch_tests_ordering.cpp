@@ -25,7 +25,7 @@ tests_ordering_descending_pack
 */
 bool tests_ordering_descending_pack()
 {
-    // keys 9,7,5,3,1 -- sorted DESCENDING, at indices 0..4
+    // keys 9,7,5,3,1 - sorted DESCENDING, at indices 0..4
     using d9 = DIkey<9>; using d7 = DIkey<7>; using d5 = DIkey<5>;
     using d3 = DIkey<3>; using d1 = DIkey<1>;
 
@@ -48,7 +48,7 @@ bool tests_ordering_descending_pack()
 
 /*
 tests_ordering_type_needle_by_sizeof
-  A TYPE needle with no ::key -- entries ordered by sizeof.
+  A TYPE needle with no ::key - entries ordered by sizeof.
   Tests the following:
   - a type whose size matches an entry is found at that entry's position
   - the smallest and largest sizes are found at the ends
@@ -219,7 +219,7 @@ bool tests_ordering_needle_absent_from_engine_signature()
 {
     using e1 = DIkey<1>; using e5 = DIkey<5>; using e9 = DIkey<9>;
 
-    // Both of these are DBsearchBy<SomeBelow, SomeAbove, e1, e5, e9> -- the
+    // Both of these are DBsearchBy<SomeBelow, SomeAbove, e1, e5, e9> - the
     // pack is identical; only the baked-in needle differs.  Distinct results
     // from one engine shape is the whole point.
     D_BS_CHECK((search<1, e1, e5, e9>::index) == 0u);

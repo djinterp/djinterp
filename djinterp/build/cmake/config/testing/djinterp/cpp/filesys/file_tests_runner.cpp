@@ -10,8 +10,8 @@
 * and run() evaluates them afterwards. Two consequences shape this file.
 *
 *     The environment must exist BEFORE the sections are built, not merely
-*   before run(), because add_if evaluates its condition at BUILD time -- the
-*   symlink probe among them -- to decide whether a group of cases is admitted
+*   before run(), because add_if evaluates its condition at BUILD time - the
+*   symlink probe among them - to decide whether a group of cases is admitted
 *   at all. Setting up first is what lets an unavailable capability drop its
 *   cases rather than fail them.
 *

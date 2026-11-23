@@ -44,7 +44,7 @@
                                            // uint64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -116,7 +116,7 @@ typedef struct dj_jit_buffer
 //   function: reserve at least _capacity bytes of writable, executable-capable
 // memory (page-rounded) and initialise _buf to an empty, non-finalized buffer.
 //   returns: 0 on success; -1 on failure (allocation refused, or the platform
-// cannot allocate executable memory -- see D_ENV_JIT_CAN_ALLOCATE_EXEC, and
+// cannot allocate executable memory - see D_ENV_JIT_CAN_ALLOCATE_EXEC, and
 // for App Store targets, D_ENV_JIT_PROHIBITED).
 D_NODISCARD int d_jit_buffer_init(
     dj_jit_buffer* _buf,
@@ -200,7 +200,7 @@ D_EXTERN_C_END
 // a branch target: emit jumps to it at any time, bind it once its position is
 // reached, and the forward references are patched automatically. Backward
 // references (label already bound) are patched immediately. This machinery is
-// architecture-neutral -- each encoder emits its own opcode plus a zero
+// architecture-neutral - each encoder emits its own opcode plus a zero
 // displacement placeholder, then records the placeholder with
 // d_jit_label_reference.
 
@@ -266,7 +266,7 @@ D_NODISCARD int d_jit_buffer_patch(
 
 // d_jit_buffer_read_u32
 //   function: read the 4 little-endian bytes already emitted at _at into *_out
-// -- for read-modify-write patching of a fixed-width instruction word.
+// - for read-modify-write patching of a fixed-width instruction word.
 //   returns: 0 on success; -1 if the range is out of bounds.
 D_NODISCARD int d_jit_buffer_read_u32(
     dj_jit_buffer* _buf,

@@ -5,10 +5,10 @@
 * only when asked for (GRAMMAR.md, section 7).
 *   THE INTERFACE. A program and a module it loads meet at two structures
 * and one function, all C: the module exports `d_cli_plugin_entry`, which
-* returns its dj_cli_plugin -- the ABI it was built to, the program and version
-* it belongs to, its name and summary, and the function that runs it -- and
-* the program calls that function with a dj_cli_plugin_host -- itself, as the
-* module should present it -- and the arguments after the command's name.
+* returns its dj_cli_plugin - the ABI it was built to, the program and version
+* it belongs to, its name and summary, and the function that runs it - and
+* the program calls that function with a dj_cli_plugin_host - itself, as the
+* module should present it - and the arguments after the command's name.
 * Nothing else crosses: each side has its own heap, its own C runtime where
 * the platform gives each module one, and its own copy of whatever library
 * both link, so a module built with another toolchain's runtime still runs,
@@ -17,12 +17,12 @@
 * `PROGRAM-NAME` with the platform's suffix (D_ENV_CLI_MODULE_SUFFIX), looked
 * for in the directories the program was told of at run time
 * (d_cli_program_set_plugin_path), then in those PROGRAM_PLUGIN_PATH lists --
-* the program's name upper-cased, each `-` an `_` -- unless the build reads
+* the program's name upper-cased, each `-` an `_` - unless the build reads
 * no such variable (D_CFG_CLI_PLUGIN_VARIABLE), then in the build's own
 * (D_CFG_CLI_PLUGIN_SEARCH): by default the program's own directory, then
 * `../lib/PROGRAM/` from it. A program whose file carries a tag after its
-* name -- `bitwisedom-linux64`, as a build's bin/ directory names it, so that
-* every platform's builds can share one -- looks in each first for the
+* name - `bitwisedom-linux64`, as a build's bin/ directory names it, so that
+* every platform's builds can share one - looks in each first for the
 * module with the same tag, `bitwisedom-gui-linux64.so`.
 *   LOADING ONE. A module whose ABI is another, or that belongs to another
 * program, is refused. One that belongs to another version of this program
@@ -30,7 +30,7 @@
 * (D_CFG_CLI_PLUGIN_STRICT_VERSION) or the program's setting for the run
 * (d_cli_program_set_plugin_versions) says to load it, with a warning that
 * names both. A module loaded stays loaded until the process ends: what it
-* started -- a window system's or a GPU driver's threads -- may outlive its
+* started - a window system's or a GPU driver's threads - may outlive its
 * run.
 *   ITS PROGRAM. A module reads its arguments with its own parser and the
 * same kit: d_cli_program_init_plugin names its program as the host's and
@@ -156,9 +156,9 @@ TABLE OF CONTENTS
 // words its usage lines begin with, `bitwisedom gui`; its own file and the
 // module's, or NULL where unknown; the verbosity and the dj_cli_colour mode
 // the program's own options gave; and the program's flags that shape how it
-// reads and what it writes -- D_CLI_PROGRAM_PARSER_HELP,
+// reads and what it writes - D_CLI_PROGRAM_PARSER_HELP,
 // D_CLI_PROGRAM_PLAIN_ERRORS, D_CLI_PROGRAM_ABBREVIATIONS and
-// D_CLI_PROGRAM_EDITS_TO_OUTPUT -- so that the module's program reads and
+// D_CLI_PROGRAM_EDITS_TO_OUTPUT - so that the module's program reads and
 // writes as the program does. Every string
 // outlives the run. `flags` came after the record's first size
 // (D_CLI_PLUGIN_HOST_FIRST_SIZE): a record of that size is read without it.
@@ -186,7 +186,7 @@ struct dj_cli_plugin_host
 // 1.2.3
 // dj_cli_plugin_run_fn
 //   type: a module's work: given the host and the arguments after the
-// command's name -- `_argv[0]` the host's `command`, `_argv[_argc]` NULL --
+// command's name - `_argv[0]` the host's `command`, `_argv[_argc]` NULL --
 // it returns the status the program exits with (GRAMMAR.md, section 8).
 typedef int (*dj_cli_plugin_run_fn)(const struct dj_cli_plugin_host* _host,
                                    int                             _argc,
@@ -260,9 +260,9 @@ D_EXTERN_C_BEGIN
 /**
  * @brief Finds the file the running program was started from.
  *
- * @note Asked of the system as D_ENV_CLI_EXECUTABLE says -- the process file
+ * @note Asked of the system as D_ENV_CLI_EXECUTABLE says - the process file
  *       system's link, Windows' module name, macOS's dyld, FreeBSD's sysctl,
- *       Solaris' getexecname -- and, where the system cannot say, worked out
+ *       Solaris' getexecname - and, where the system cannot say, worked out
  *       from `_argv0`: made absolute where it names a directory, and looked
  *       for along PATH where it does not.
  *
@@ -323,8 +323,8 @@ enum dj_cli_plugin_versions
  * @brief Finds the module of a program's command.
  *
  * @note In each directory, the module named with the tag the program's
- *       file carries after the program's name -- `bitwisedom-linux64`'s
- *       `-linux64`, less `.exe` on Windows -- is taken before the one named
+ *       file carries after the program's name - `bitwisedom-linux64`'s
+ *       `-linux64`, less `.exe` on Windows - is taken before the one named
  *       without it.
  *
  * @param[in]     _program     the program's name, `bitwisedom`.
@@ -421,8 +421,8 @@ D_CLI_API int d_cli_module_load(
 /**
  * @brief Unloads a module.
  *
- * @warning Whatever the module started that outlives its run -- threads, a
- *          handler registered with the C runtime -- then runs code that is
+ * @warning Whatever the module started that outlives its run - threads, a
+ *          handler registered with the C runtime - then runs code that is
  *          gone. A program does not unload a window's module; a test of the
  *          loader does.
  *
@@ -446,11 +446,11 @@ D_CLI_API void d_cli_module_unload(
 /**
  * @brief Adds a command whose work is a module's: `bitwisedom gui`.
  *
- * @note The command takes every argument after its name as it is -- its own
- *       `--help` included -- and its work finds the module
+ * @note The command takes every argument after its name as it is - its own
+ *       `--help` included - and its work finds the module
  *       (d_cli_plugin_find), loads it, and runs it with a dj_cli_plugin_host
  *       made from the program, returning the module's status. A module not
- *       found, or refused, is reported -- where it looked, or why -- and is
+ *       found, or refused, is reported - where it looked, or why - and is
  *       D_CLI_EXIT_TROUBLE; so is the command where the kit has no plugin
  *       loader, which says so. The program's `--version --verbose` says
  *       where the module would be loaded from: `gui module: PATH`, or `gui
@@ -519,7 +519,7 @@ D_CLI_API void d_cli_program_set_plugin_versions(
  *        D_CLI_PROGRAM_PARSER_HELP, D_CLI_PROGRAM_PLAIN_ERRORS,
  *        D_CLI_PROGRAM_ABBREVIATIONS and D_CLI_PROGRAM_EDITS_TO_OUTPUT
  *        joined to `_flags`; and the host's D_CLI_PROGRAM_RESPONSE_FILES,
- *        so that its help says `@FILE` -- the host read them -- while its
+ *        so that its help says `@FILE` - the host read them - while its
  *        parser reads none again.
  *
  * @note The parser should be made with the host's `command` as its name,

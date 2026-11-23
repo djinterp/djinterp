@@ -7,7 +7,7 @@
 * HTML5-only kinds, what DOCTYPE to emit, etc.) are exposed as
 * `D_STATIC_CONSTEXPR` constants and `static D_CONSTEXPR` functions
 * whose values fold at compile time when the template is instantiated
-* -- zero runtime cost.
+* - zero runtime cost.
 *
 *   The enum used for the template parameter is the existing
 * `DHtmlVersion` enum from `html.hpp`; that enum already enumerates
@@ -18,8 +18,8 @@
 *
 *   FOR XHTML VARIANTS:
 *   The dialect exposes an `underlying_xml_dialect_t` type alias
-* pointing at an `DXmlDialect<Flag>` instantiation -- specifically
-* `DXmlDialect<DXmlDialectFlag::xhtml_compatible>` -- so XHTML
+* pointing at an `DXmlDialect<Flag>` instantiation - specifically
+* `DXmlDialect<DXmlDialectFlag::xhtml_compatible>` - so XHTML
 * emission can defer to the XML dialect for namespace handling,
 * declaration emission, and canonicalization rules. For pure HTML
 * variants the alias points at `DXmlDialectFlag::unspecified` and
@@ -145,7 +145,7 @@ NS_INTERNAL
     // is_html_strict_family_helper
     //   function: true if `_flag` is one of the strict variants.
     // Strict variants forbid presentational legacy elements
-    // (`<font>`, `<center>`, etc.) -- those are not currently
+    // (`<font>`, `<center>`, etc.) - those are not currently
     // modelled in our element-kind enum, but the predicate is
     // available for adapter layers that do model them.
     D_CONSTEXPR_INLINE
@@ -340,7 +340,7 @@ struct DHtmlDialect
     //   type: the XML dialect that XHTML variants of this flag
     // serialize through. For pure HTML variants this points at
     // `DXmlDialect<DXmlDialectFlag::unspecified>` and is not
-    // meaningful -- callers should gate use on `is_xhtml`.
+    // meaningful - callers should gate use on `is_xhtml`.
     using underlying_xml_dialect_t = DXmlDialect<
         is_xhtml_version(Flag)
             ? DXmlDialectFlag::xhtml_compatible

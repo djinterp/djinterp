@@ -2,8 +2,8 @@
 * djinterp [cpp][utility]                                   heap_sort_common.hpp
 *
 *   The primitives every heap sort is built from.  A heap sort is a driver
-* wrapped around one operation -- sift an element down an implicit binary
-* max-heap until it dominates its children -- and the index arithmetic that
+* wrapped around one operation - sift an element down an implicit binary
+* max-heap until it dominates its children - and the index arithmetic that
 * locates a node's parent and children.  Heapify and extraction are both
 * sequences of sifts; they differ only in which roots get sifted and over how
 * much of the range.
@@ -19,13 +19,13 @@
 * each larger child is assigned up into the slot above it, and is written once,
 * where it comes to rest: one assignment per level, against the three a swap
 * would cost.  The comparisons are the ones a swapping sift makes, in the same
-* order, so the heap it leaves is the same one -- only the writes are fewer.
+* order, so the heap it leaves is the same one - only the writes are fewer.
 * This is the move insertion_sort_common.hpp makes for the same reason.
 *
 *   STRICT COMPARISONS KEEP EQUALS WHERE THEY ARE.  A child replaces its parent
 * only when the parent strictly precedes it, so a run of equivalent elements is
-* never disturbed by a sift.  That does not make heap sort stable -- extraction
-* exchanges across the whole range -- but it does mean a sift over an already
+* never disturbed by a sift.  That does not make heap sort stable - extraction
+* exchanges across the whole range - but it does mean a sift over an already
 * valid heap writes nothing.
 *
 *
@@ -96,7 +96,7 @@ NS_INTERNAL
     }
 
     // heap_larger_child
-    //   function: the index of whichever child of _node is the larger -- or
+    //   function: the index of whichever child of _node is the larger - or
     // _node itself when neither child strictly follows _value, the element
     // being sifted, which conceptually occupies _node.  _left is _node's left
     // child and must lie inside the heap of _size elements.
@@ -153,8 +153,8 @@ NS_INTERNAL
     // both of _root's sub-trees are already heaps.
     //
     //   The element at _root is compared with its children before anything
-    // moves, so a root that already dominates them -- including one equal to
-    // them -- leaves the range untouched.  Otherwise it is held while each
+    // moves, so a root that already dominates them - including one equal to
+    // them - leaves the range untouched.  Otherwise it is held while each
     // larger child is assigned up into the hole above it, level by level,
     // and written once where it comes to rest: at a leaf, or above children
     // that do not strictly follow it.

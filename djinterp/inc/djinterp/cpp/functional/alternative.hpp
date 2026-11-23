@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][functional]                                     alternative.hpp
 *
-* Alternative protocol: a monoid on a functor -- empty and choice (C++).
+* Alternative protocol: a monoid on a functor - empty and choice (C++).
 *   An Alternative is a context F<A> that carries a monoid structure at every
 * element type: a distinguished empty / failure value, and an associative
 * binary choice (Haskell's `<|>`) that picks between two contexts. Where Monoid
@@ -12,25 +12,25 @@
 * running the first sequence and then the second.
 *
 *   Because C++ has no native type classes, an Alternative is recognized by
-* specializing alternative_traits<F> with two operations -- empty() and
+* specializing alternative_traits<F> with two operations - empty() and
 * choice(a, b). The free functions are aempty<F>() (the failure, F explicit,
 * like mempty) and alt(a, b) (the choice). asum folds a Foldable of
-* alternatives with alt from aempty -- the Alternative counterpart of mconcat
+* alternatives with alt from aempty - the Alternative counterpart of mconcat
 * ("take the first that succeeds").
 *
 *   Alternative is conceptually a refinement of Applicative, but the concept
 * here requires only alternative_traits, not a registered Applicative instance:
 * the sequence types (view, producer) carry the empty / choice structure
 * through their own empty / concat without otherwise being applicative in this
-* framework. maybe -- which is applicative via the monad bridge -- satisfies
+* framework. maybe - which is applicative via the monad bridge - satisfies
 * both. result is intentionally NOT an Alternative: like Haskell's Either it has
 * no canonical empty (its failure carries a specific error, so there is no
 * identity err to choose).
 *
 *   For a uniform Alternative such as maybe, empty() and choice() both return
 * F<A>, so they compose and asum is well-typed. For the lazy sequence families
-* the result of choice is a concat view / producer -- a different type with the
-* same value_type, exactly as functor_map yields a transform view -- so the
+* the result of choice is a concat view / producer - a different type with the
+* same value_type, exactly as functor_map yields a transform view - so the
 * laws hold over observable elements rather than over the static type, and asum
 * is intended for the uniform case.
 *
@@ -97,8 +97,8 @@ NS_DJINTERP
 // alternative specializes alternative_traits<F> to expose:
 //
 //     - value_type     : the inner type A of F<A>
-//     - empty()         : static -- the failure / identity for choice
-//     - choice(a, b)     : static -- associative choice between two contexts
+//     - empty()         : static - the failure / identity for choice
+//     - choice(a, b)     : static - associative choice between two contexts
 //     - is_specialized   = true_type (marker)
 //
 //   The second parameter is a SFINAE hook used by the family instances
@@ -259,7 +259,7 @@ auto alt(
 NS_INTERNAL
 
     // DAlternativeChoiceHelper
-    //   helper: the reducer behind asum -- folds the running accumulator and
+    //   helper: the reducer behind asum - folds the running accumulator and
     // the next option together with alt, threading the accumulator by value.
     // A named functor keeps it usable on every floor. Intended for a uniform
     // alternative, whose alt returns the same type (so the fold accumulator is
@@ -282,7 +282,7 @@ NS_END  // internal
 
 // asum
 //   function: chooses across every element of a Foldable whose elements are
-// themselves a (uniform) alternative -- folding from aempty with alt. Returns
+// themselves a (uniform) alternative - folding from aempty with alt. Returns
 // the first element that "succeeds" (for maybe, the first just); aempty if the
 // foldable is empty. The Alternative counterpart of mconcat.
 //

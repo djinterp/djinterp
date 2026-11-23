@@ -18,7 +18,7 @@
 * failing test.
 *
 *   FLOATING-POINT REPRESENTATIONS ARE EXCLUDED:
-*   The target's rep must not be floating point -- the standard
+*   The target's rep must not be floating point - the standard
 * constrains it, and the constraint is meaningful: the tie test compares
 * two distances for exact equality, which is not a question a
 * floating-point count can answer reliably. The exclusion is SFINAE, so

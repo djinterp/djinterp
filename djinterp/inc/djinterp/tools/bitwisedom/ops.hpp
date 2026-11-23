@@ -2,13 +2,13 @@
 * djinterp [cpp][tools]                                                  ops.hpp
 *
 * Operations on symbols, and how they move the sheet's bits around.
-*   An operation -- a shift, a rotation, a logical or arithmetic operation, a
-* byte swap or a bit reversal -- applies to a set of symbols, or to the probe
+*   An operation - a shift, a rotation, a logical or arithmetic operation, a
+* byte swap or a bit reversal - applies to a set of symbols, or to the probe
 * value, within the sheet's width. Before it is applied it is previewed:
 * each target's value before and after, how many of its bits fell off the
 * end, how its definition would be rewritten, and the distribution of the
 * sheet's allocations before and after, with the collisions each makes.
-*   Operations that only move bits -- shifts, rotations, swaps, reversals --
+*   Operations that only move bits - shifts, rotations, swaps, reversals --
 * also have a flow: for each bit of the result, the bit of the operand it
 * came from, which is what the flow view draws.
 *   APPLYING keeps a definition's kind where the result still fits it: a bit
@@ -99,7 +99,7 @@ const int OP_COUNT = 19;
 // 1.1.3
 // op_info
 //   struct: an operation's name, its C spelling where it has one, whether it
-// takes an operand -- a count, a value or a bit -- and whether it only
+// takes an operand - a count, a value or a bit - and whether it only
 // moves bits.
 struct op_info
 {
@@ -111,8 +111,8 @@ struct op_info
 
 // 1.2    Applying to a value
 //------------------------------------------------------------------------------
-// operations on one value -- pure; _value and the result in _width bits.
-// A count -- of a shift, a rotation, a bit -- is the operand's integer;
+// operations on one value - pure; _value and the result in _width bits.
+// A count - of a shift, a rotation, a bit - is the operand's integer;
 // the bitwise operations, addition and subtraction take the operand whole;
 // a product takes its integer.
 D_NODISCARD op_info describe(

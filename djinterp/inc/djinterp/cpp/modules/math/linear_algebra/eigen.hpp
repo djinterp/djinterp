@@ -5,7 +5,7 @@
 *   Three complementary approaches, each as a free factory returning a small
 * value-type result:
 *   - the cyclic Jacobi method for symmetric matrices (all eigenvalues plus an
-*     orthonormal set of eigenvectors) -- the robust, fully featured path;
+*     orthonormal set of eigenvectors) - the robust, fully featured path;
 *   - power iteration for the single dominant eigenpair;
 *   - the shifted QR algorithm with deflation for the eigenvalues of a
 *     general matrix, real or complex, and their eigenvectors.
@@ -379,7 +379,7 @@ private:
 //   function: the real eigenvalues of _a, ascending, by decomp.h: balanced,
 // the Hessenberg form, then Francis's double-shift QR, a subdiagonal entry
 // negligible beside its neighbours by Ahues and Kressner's test, _tol its
-// tolerance (_tol below the type's epsilon -- 0, the default -- is the
+// tolerance (_tol below the type's epsilon - 0, the default - is the
 // epsilon), splitting it, at most _max_iter steps in all. converged() is false
 // where a complex pair was found (its real part twice), where the budget
 // ran out (the unfinished entries the diagonal's), or where _a holds a NaN

@@ -2,7 +2,7 @@
 * djinterp [cpp][functional]                       fn_builder_tests_creation.cpp
 *
 * Builder creation tests (sections i / III):
-*   test_creation -- create(), make_builder(), the identity seed chain, the
+*   test_creation - create(), make_builder(), the identity seed chain, the
 *                    chain_type alias, and reuse of a composed builder across
 *                    multiple inputs (composition is built once, executed many).
 *

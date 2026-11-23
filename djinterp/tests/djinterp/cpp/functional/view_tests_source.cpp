@@ -4,18 +4,18 @@
 * Source view tests (section III): views that produce elements with no input
 * view.
 *
-*   test_iota     -- bounded [start, end), empty when start >= end, and the
+*   test_iota     - bounded [start, end), empty when start >= end, and the
 *                    infinite form bounded by take.
-*   test_repeat   -- repeat_n (incl. zero count) and the infinite form bounded
+*   test_repeat   - repeat_n (incl. zero count) and the infinite form bounded
 *                    by take.
-*   test_generate -- DGenerateView driven directly. NOTE: DGenerateView is the
+*   test_generate - DGenerateView driven directly. NOTE: DGenerateView is the
 *                    one view whose begin() is non-const (it mutates the stored
 *                    function on advance), so unlike every other view it cannot
 *                    flow through the const-by-reference terminal/adapter
 *                    machinery; it is exercised here by direct iteration over a
 *                    non-const instance.
-*   test_empty    -- the zero-element source.
-*   test_single   -- the one-element source.
+*   test_empty    - the zero-element source.
+*   test_single   - the one-element source.
 *
 *
 * path:      /tests/djinterp/cpp/functional/view_tests_source.cpp

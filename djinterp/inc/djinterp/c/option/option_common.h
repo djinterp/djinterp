@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][option]                                           option_common.h
 *
-* The option cell: one key, one typed value slot. Tier 0 -- the shared core
+* The option cell: one key, one typed value slot. Tier 0 - the shared core
 * both faces compile.
 *
 * WHAT AN OPTION IS. `option_registry.hpp` states the governing identity, and
@@ -25,7 +25,7 @@
 * THE C++ FACE ADDS NO MEMBERS. `option<_Key, _Args...>` derives from this
 * struct and contributes only `static constexpr` members and member
 * functions, so `sizeof(option<...>) == sizeof(struct dj_option)` and the base
-* sits at offset 0 -- the Cost law, asserted rather than assumed. The args
+* sits at offset 0 - the Cost law, asserted rather than assumed. The args
 * pack stays where it belongs: it is C++ NOTATION for describing a column, and
 * the column it describes is this struct.
 *
@@ -34,12 +34,12 @@
 * value. The reason it was never a one-line fix is that `operator<` is key-only
 * and correctly so, so repairing `==` in place breaks strict-weak-ordering
 * consistency. The core therefore names the two relations separately from the
-* start -- `d_option_key_less` / `d_option_key_eq` for the ordering, and
-* `d_option_eq` for identity -- and neither face gets to conflate them.
+* start - `d_option_key_less` / `d_option_key_eq` for the ordering, and
+* `d_option_eq` for identity - and neither face gets to conflate them.
 *
 * EQUALITY TAKES ITS COMPARATOR AS AN ARGUMENT. Byte comparison is not value
 * comparison: floats and padding both break it. Where the per-type equality
-* hook lives -- a global registry or a passed context -- is an OPEN question
+* hook lives - a global registry or a passed context - is an OPEN question
 * (AGENT_README section 9, item 2), so this header takes the pure branch and
 * passes the comparator in. That is not a decision about the open question; it
 * is a refusal to encode one, and it costs a parameter.
@@ -77,7 +77,7 @@
 #include "../../../re_std/c/cstdint/dstdint.h"  // int32_t, uint32_t, uint64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -93,15 +93,15 @@ D_EXTERN_C_BEGIN
 // dj_option_status
 //   enum: the result of any option operation.
 //   Two kinds of failure, kept apart on purpose. A FORMAL failure says the
-// operation is not defined -- there is no such key, these sets are in conflict.
+// operation is not defined - there is no such key, these sets are in conflict.
 // A MECHANICAL failure says the operation is defined and the machinery ran
-// short -- the buffer was small, the schema array is full. Reporting them
+// short - the buffer was small, the schema array is full. Reporting them
 // identically reads as correct behaviour and is not, so they occupy disjoint
 // numeric ranges: formal below 0x100, mechanical at or above it. A caller that
 // only wants to know "can I retry with more room?" tests the range, not the
 // enumerator.
 //
-//   THE SPELLING FOLLOWS dj_pack_status EXACTLY -- same range split, same floor
+//   THE SPELLING FOLLOWS dj_pack_status EXACTLY - same range split, same floor
 // constant, same two range macros, same accessor pair. That is deliberate:
 // these are two instances of one discipline, and a reader who has learned one
 // should not have to learn the other. An earlier draft of this header used
@@ -114,10 +114,10 @@ D_EXTERN_C_BEGIN
 // below.
 enum dj_option_status
 {
-    // -- success ------------------------------------------------------------
+    // - success ------------------------------------------------------------
     D_OPTION_STATUS_OK                  = 0,
 
-    // -- formal: the operation is not defined -------------------------------
+    // - formal: the operation is not defined -------------------------------
     D_OPTION_STATUS_KEY_ABSENT          = 0x001,
     D_OPTION_STATUS_KEY_DUPLICATE       = 0x002,
     D_OPTION_STATUS_VALUE_TYPE_MISMATCH = 0x003,
@@ -127,7 +127,7 @@ enum dj_option_status
     D_OPTION_STATUS_CONFLICT            = 0x007,
     D_OPTION_STATUS_INVALID_ARGUMENT    = 0x008,
 
-    // -- mechanical: the operation is defined, the machinery ran short ------
+    // - mechanical: the operation is defined, the machinery ran short ------
     D_OPTION_STATUS_BUFFER_TOO_SMALL    = 0x100,
     D_OPTION_STATUS_CAPACITY            = 0x101,
     D_OPTION_STATUS_VALUE_CAPACITY      = 0x102,
@@ -135,7 +135,7 @@ enum dj_option_status
 };
 
 //   D_OPTION_STATUS_CONFLICT is the one worth pausing on. body-options.tex
-// makes the plain union PARTIAL -- valid "if and only if O1 ~ O2" -- so a
+// makes the plain union PARTIAL - valid "if and only if O1 ~ O2" - so a
 // union over conflicting sets is UNDEFINED, not merely awkward. It is formal
 // for that reason: no amount of extra buffer makes a conflicting union exist,
 // and a mechanical status would tell a caller to retry, which cannot help.
@@ -189,7 +189,7 @@ struct dj_option_result d_option_fail(
 //   NOT named `dj_option_status`, which would collide with the enum. In C it
 // would not: tag names and ordinary identifiers live in separate namespaces, so
 // `enum dj_option_status` and a function of that name coexist happily. In C++
-// they do not -- an enum introduces its name into the ordinary namespace, the
+// they do not - an enum introduces its name into the ordinary namespace, the
 // function would hide it, and every use of the type would then require the
 // elaborated `enum` keyword to compile. That is a C/C++ divergence in a SHARED
 // header, which is the one place the framework cannot tolerate one, so the
@@ -208,7 +208,7 @@ int32_t d_option_result_status(
 #define D_OPTION_FLAG_NONE          ((uint32_t)0u)
 
 // D_OPTION_FLAG_UNARY
-//   constant: the option carries no runtime value -- the `unit` slot of the
+//   constant: the option carries no runtime value - the `unit` slot of the
 // C++ face, a presence-only key. `value_size` is 0 and reading the slot is
 // D_OPTION_STATUS_NO_VALUE; ask `d_option_set_contains` instead.
 #define D_OPTION_FLAG_UNARY         ((uint32_t)(1u << 0))
@@ -223,7 +223,7 @@ int32_t d_option_result_status(
 //   constant: `key` holds an INTERNED IDENTIFIER, not the key's own value.
 //   Integral and enumeration keys store their value directly. A class-type
 // NTTP key (a fixed_string, say) has no integral value to store, so it must be
-// interned -- and whether interned handles are session-local or content-
+// interned - and whether interned handles are session-local or content-
 // derived is OPEN (AGENT_README section 9, item 3). This flag does not settle
 // that. It records WHICH of the two a given cell holds, so that when the
 // question is settled the seam is already named and nothing has to be
@@ -242,7 +242,7 @@ int32_t d_option_result_status(
 ///////////////////////////////////////////////////////////////////////////////
 
 // dj_option
-//   struct: one option -- a key and the description of its value column.
+//   struct: one option - a key and the description of its value column.
 //   Field order is chosen so the struct is 24 bytes with no padding on every
 // supported target, which is why `key` leads and the two 16-bit descriptors
 // are adjacent. The layout assertions in section VII are the check; this
@@ -298,7 +298,7 @@ uint32_t d_option_value_size(
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///             IV.   ORDERING -- KEY ONLY                                  ///
+///             IV.   ORDERING - KEY ONLY                                  ///
 ///////////////////////////////////////////////////////////////////////////////
 //
 //   The ordering relation is key-only, and correctly so: it is what makes a
@@ -316,7 +316,7 @@ int d_option_key_less(
 );
 
 // d_option_key_eq
-//   function: key equality alone -- the ordering's induced equivalence, and
+//   function: key equality alone - the ordering's induced equivalence, and
 // the relation `find` and `contains` are defined over.
 bool d_option_key_eq(
     const struct dj_option* _lhs,
@@ -334,7 +334,7 @@ bool d_option_key_eq(
 //       pi(o) in { _|_ } union { values }
 //
 // where `_|_` denotes "no value of the requested kind". pi selects WHICH
-// aspect of an option is compared -- its declared value, a default, or an
+// aspect of an option is compared - its declared value, a default, or an
 // effective value-or-default. Carrier comparison is structural, with
 // `_|_ != v` for any value v and `_|_ = _|_`.
 //
@@ -352,7 +352,7 @@ bool d_option_key_eq(
 // the same thing in the same shape.
 
 // dj_option_carrier
-//   struct: the result of a projection -- `_|_`, or a value.
+//   struct: the result of a projection - `_|_`, or a value.
 //   `has_value` false IS `_|_`; the other two fields are then meaningless and
 // must be ignored rather than tested. The carrier BORROWS: `data` points into
 // storage the caller owns, and the carrier must not outlive it.
@@ -369,8 +369,8 @@ struct dj_option_carrier
 #define D_OPTION_CARRIER_ABSENT     { NULL, 0u, 0u }
 
 // fn_option_project
-//   function pointer: a value projection pi. Maps an option -- and the value
-// block it addresses -- to the carrier being compared.
+//   function pointer: a value projection pi. Maps an option - and the value
+// block it addresses - to the carrier being compared.
 //   Passing NULL selects `d_option_project_value`, the identity projection,
 // which is the pi = id of the document's "Relation to agreement and equality"
 // paragraph. That is a documented default rather than a silent one: with
@@ -383,7 +383,7 @@ typedef struct dj_option_carrier (*fn_option_project)(
     void*                  _context);
 
 // d_option_project_value
-//   projection: pi = id -- an option's own value, or `_|_` when it is unary.
+//   projection: pi = id - an option's own value, or `_|_` when it is unary.
 // The default projection, and the one every relation in this subframework is
 // specified against unless a caller says otherwise.
 struct dj_option_carrier d_option_project_value(
@@ -402,7 +402,7 @@ struct dj_option_carrier d_option_project_value(
 // compared, `_compare` decides HOW two of those things are compared. NULL
 // selects byte comparison, which is right for the integral and enumeration
 // slots that dominate real option sets and WRONG for floats and for any type
-// with padding -- so it is a choice the caller makes explicitly. Where the
+// with padding - so it is a choice the caller makes explicitly. Where the
 // per-type equality hook should live is an open framework decision, and this
 // header will not settle it by accident.
 bool d_option_carrier_eq(
@@ -414,14 +414,14 @@ bool d_option_carrier_eq(
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///             VI.   IDENTITY -- KEY AND VALUE                             ///
+///             VI.   IDENTITY - KEY AND VALUE                             ///
 ///////////////////////////////////////////////////////////////////////////////
 //
 //   "Two options are IDENTICAL if, and only if, they have the same key and the
 // same value." A DIFFERENT relation from section IV, and deliberately not
 // spelled with a similar name, so that no future maintainer can simplify one
 // into the other: they disagree on exactly the pairs that matter, and the C++
-// tree already shipped that bug once -- `DKvPair::operator==` compares key
+// tree already shipped that bug once - `DKvPair::operator==` compares key
 // only, which is the uniqueness predicate wearing identity's name.
 //
 //   ON SEVERAL DATA. The .tex adds: "If an option carries several data rather
@@ -436,7 +436,7 @@ bool d_option_carrier_eq(
 // not of their formal status.
 
 // d_option_eq
-//   function: identity -- equal keys AND equal carriers under pi. A unary
+//   function: identity - equal keys AND equal carriers under pi. A unary
 // option projects to `_|_`, so two unary options with one key are identical,
 // and a unary option is never identical to a valued one.
 //   Pass NULL for `_project` to get pi = id.
@@ -470,7 +470,7 @@ bool d_option_value_eq(
 //
 //   The "set value in its column" half of the governing identity. These take
 // the value block rather than a set so that a caller holding a bare cell and
-// its storage -- the C++ face lowering one option, say -- can use them without
+// its storage - the C++ face lowering one option, say - can use them without
 // materialising a set.
 
 // d_option_slot / d_option_slot_const

@@ -3,8 +3,8 @@
 *
 * A table of a PostgreSQL database held in memory: database_table over a
 * pg_connection, with what PostgreSQL adds.
-*   postgres_table is database_table<pg_connection> -- the cache, refresh,
-* commit and the table's operations, through the PostgreSQL layer -- and
+*   postgres_table is database_table<pg_connection> - the cache, refresh,
+* commit and the table's operations, through the PostgreSQL layer - and
 * adds: the schema the table lives in; COPY, for the rows a commit inserts;
 * and upkeep through the layer: VACUUM, VACUUM FULL, ANALYZE and REINDEX of
 * the table.
@@ -109,8 +109,8 @@ std::string double_quote(
 // describes. Its schema is set_schema_name's, "" for the current one, the
 // search path's first that exists. With COPY on, a commit sends the rows it
 // inserts as one COPY ... FROM STDIN, rows of text, unless one of them
-// leaves a value to the database -- a NULL a default or an identity fills,
-// a generated column's -- which only an INSERT can: such a commit inserts
+// leaves a value to the database - a NULL a default or an identity fills,
+// a generated column's - which only an INSERT can: such a commit inserts
 // row by row. Each member throws as database_table's do. Not copyable;
 // movable.
 //
@@ -139,14 +139,14 @@ public:
     using client_capabilities = pg_client_capabilities;
     using version_info        = pg_version_info;
 
-    // type_support, feature_support -- client_capabilities, by their former
+    // type_support, feature_support - client_capabilities, by their former
     // names (2026.10.21), for one release
     using type_support [[deprecated("client_capabilities")]] =
         pg_client_capabilities;
     using feature_support [[deprecated("client_capabilities")]] =
         pg_client_capabilities;
 
-    // construction -- as database_table's
+    // construction - as database_table's
     postgres_table()
         : base_type(),
           m_use_copy_on_commit(false)
@@ -188,21 +188,21 @@ public:
     postgres_table(postgres_table&&) noexcept            = default;
     postgres_table& operator=(postgres_table&&) noexcept = default;
 
-    // get_schema_name -- the table's schema, as schema_name()
+    // get_schema_name - the table's schema, as schema_name()
     const std::string&
     get_schema_name() const noexcept
     {
         return this->schema_name();
     }
 
-    // qualified_table_name -- the table's name for SQL, as qualified_name()
+    // qualified_table_name - the table's name for SQL, as qualified_name()
     std::string
     qualified_table_name() const
     {
         return this->qualified_name();
     }
 
-    // COPY -- whether a commit sends the rows it inserts as one COPY
+    // COPY - whether a commit sends the rows it inserts as one COPY
     void
     set_use_copy_on_commit(
         bool _enabled
@@ -247,7 +247,7 @@ public:
         return;
     }
 
-    // upkeep -- through the layer: ANALYZE, for the planner's statistics;
+    // upkeep - through the layer: ANALYZE, for the planner's statistics;
     // VACUUM, reclaiming dead rows' space, and VACUUM FULL, rewriting the
     // table under an exclusive lock, neither inside a transaction (25001);
     // REINDEX TABLE, CONCURRENTLY from PostgreSQL 12 (D_DB_UNSUPPORTED
@@ -309,7 +309,7 @@ protected:
     bool m_use_copy_on_commit;
 
 private:
-    // m_vacuum -- VACUUM of the table, with the layer's flags
+    // m_vacuum - VACUUM of the table, with the layer's flags
     void
     m_vacuum(
         const char* _caller,
@@ -417,7 +417,7 @@ private:
         return false;
     }
 
-    // m_append_copy_text -- a cell as COPY's text format writes it: \N for
+    // m_append_copy_text - a cell as COPY's text format writes it: \N for
     // NULL, t or f, numbers as value_to_string writes them, bytes as bytea's
     // hexadecimal, a point in time in UTC, and every backslash, tab, newline
     // and carriage return escaped
@@ -466,7 +466,7 @@ private:
         return;
     }
 
-    // m_append_escaped -- text with COPY's escapes
+    // m_append_escaped - text with COPY's escapes
     static void
     m_append_escaped(
         std::string&       _text,

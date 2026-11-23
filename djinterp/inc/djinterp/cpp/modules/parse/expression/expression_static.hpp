@@ -4,15 +4,15 @@
 *   The compile-time face of an expression: the term encoded in the *type*,
 * for the zero-overhead path.  Where expression.hpp's term is a heap-backed
 * mu whose shape is decided at runtime, a static expression's shape is fixed
-* at compile time -- each node is a distinct type, operands are stored by
+* at compile time - each node is a distinct type, operands are stored by
 * value, and a fold is template recursion the optimiser flattens.  It is the
 * representation a math kernel wants: `constexpr e = add(lit(2.0), sq(x));`
 * evaluates with no allocation and no dispatch.
 *
 *   THE MIRROR.  Two node kinds parallel the dynamic leaf / apply:
 *
-*     static_leaf<Atom>                 -- a leaf holding an atom by value
-*     static_apply<OpTag, Operands...>  -- an operator applied to operand
+*     static_leaf<Atom>                 - a leaf holding an atom by value
+*     static_apply<OpTag, Operands...>  - an operator applied to operand
 *                                          nodes held by value in a tuple
 *
 * An operator is a *tag type* exposing its id: `OpTag::op_id_type` and
@@ -25,7 +25,7 @@
 * catamorphism), and reify to the dynamic term all reach parity with the
 * dynamic ops.  Rewriting does not: a rewritten static term generally has a
 * different type, which the type system cannot produce from a value, so
-* transforms stay dynamic -- reify first, rewrite there.  static_evaluate's
+* transforms stay dynamic - reify first, rewrite there.  static_evaluate's
 * application handler receives its operands as a std::array<R, N> rather than
 * the dynamic vector<R> (an array is a literal type, so the fold stays
 * constexpr); the leaf handler is identical.
@@ -130,7 +130,7 @@ protected:
 NS_INTERNAL
 
     // static_sum_sizes
-    //   trait: the sum of node_size over a pack of operand nodes -- the
+    //   trait: the sum of node_size over a pack of operand nodes - the
     // child contribution to an application's node_size.
     template<typename... Operands>
     struct static_sum_sizes;
@@ -150,7 +150,7 @@ NS_INTERNAL
     };
 
     // static_max_depths
-    //   trait: the maximum node_depth over a pack of operand nodes -- the
+    //   trait: the maximum node_depth over a pack of operand nodes - the
     // child contribution to an application's node_depth.
     template<typename... Operands>
     struct static_max_depths;
@@ -175,7 +175,7 @@ NS_END  // internal
 
 
 // static_leaf
-//   class: a leaf of a static expression -- a node carrying one atom by
+//   class: a leaf of a static expression - a node carrying one atom by
 // value.  Its shape constants are the base case: no children, size and
 // depth one.
 template<typename Atom>
@@ -238,7 +238,7 @@ public:
     {}
 
     // op_id
-    //   the operator's runtime id (the tag's value) -- the bridge to the
+    //   the operator's runtime id (the tag's value) - the bridge to the
     // dynamic term.
     D_NODISCARD
     D_CONSTEXPR
@@ -329,7 +329,7 @@ std::size_t static_depth(const Node&) { return Node::node_depth; }
 // overloads rather than a runtime branch; the leaf / apply overloads and
 // the per-operand step are mutually recursive, so they are declared first.
 
-// -- forward declarations ---------------------------------------------------
+// - forward declarations ---------------------------------------------------
 
 template<typename Result,
          typename Atom,
@@ -356,7 +356,7 @@ static_evaluate(const static_apply<OpTag, Operands...>& _apply,
 NS_INTERNAL
 
     // static_evaluate_apply
-    //   helper: folds an application -- evaluates each operand to Result,
+    //   helper: folds an application - evaluates each operand to Result,
     // collects the results into a std::array (a literal type, so the fold
     // stays constexpr), then hands the operator id and that array to the
     // application handler.
@@ -392,7 +392,7 @@ NS_INTERNAL
 NS_END  // internal
 
 
-// -- definitions ------------------------------------------------------------
+// - definitions ------------------------------------------------------------
 
 // static_evaluate (leaf)
 template<typename Result,
@@ -442,9 +442,9 @@ static_evaluate
 // rewriting, rendering, substitution.  The target OpId / Atom are named
 // explicitly: the caller says which dynamic language the static shape maps
 // onto (the tag's value must be usable as OpId, each atom as Atom).  This
-// is a runtime bridge -- it materialises the heap-backed term.
+// is a runtime bridge - it materialises the heap-backed term.
 
-// -- forward declarations ---------------------------------------------------
+// - forward declarations ---------------------------------------------------
 
 template<typename OpId,
          typename Atom,
@@ -495,7 +495,7 @@ NS_INTERNAL
 NS_END  // internal
 
 
-// -- definitions ------------------------------------------------------------
+// - definitions ------------------------------------------------------------
 
 // reify (leaf)
 template<typename OpId,
@@ -555,7 +555,7 @@ struct is_static_apply<static_apply<OpTag, Operands...> > : std::true_type
 {};
 
 // is_static_expr
-//   trait: whether a type is a static expression node -- recognized by
+//   trait: whether a type is a static expression node - recognized by
 // derivation from the CRTP base, so user node types built on static_expr
 // are included, after cv-ref stripping.
 template<typename Type>

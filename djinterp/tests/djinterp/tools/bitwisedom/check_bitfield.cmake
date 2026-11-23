@@ -12,7 +12,7 @@
 # the bitfield, so line ends are not compared.
 #
 #     GEN FILE WORK, and EMULATOR: what runs GEN where this machine cannot
-#     -- in a cross build, CMAKE_CROSSCOMPILING_EMULATOR; empty otherwise
+#     - in a cross build, CMAKE_CROSSCOMPILING_EMULATOR; empty otherwise
 #
 # path:      /tests/djinterp/tools/bitwisedom/check_bitfield.cmake
 # link(s):   TBA

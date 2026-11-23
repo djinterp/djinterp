@@ -5,8 +5,8 @@
 * statistics current, checking it, moving its write-ahead log into it, and
 * copying it while it is in use.
 *   Each takes the database's schema, NULL meaning "main". VACUUM of a schema
-* other than "main" needs 3.15.0 -- before it, SQLite accepted the name and
-* vacuumed "main" instead -- and is refused with D_DB_UNSUPPORTED there, as
+* other than "main" needs 3.15.0 - before it, SQLite accepted the name and
+* vacuumed "main" instead - and is refused with D_DB_UNSUPPORTED there, as
 * are VACUUM INTO before 3.27.0, PRAGMA optimize before 3.18.0, and the
 * TRUNCATE checkpoint before 3.8.8.
 *   The backups use SQLite's online backup API, which copies a database page
@@ -53,14 +53,14 @@ D_EXTERN_C_BEGIN
 // 1.  UPKEEP
 //==============================================================================
 // Each returns SQLITE_OK, D_DB_UNSUPPORTED as the banner says, the SQLite
-// result code of a failure -- SQLITE_ERROR for a schema that is not attached,
-// and, for the two VACUUMs, inside a transaction -- or SQLITE_MISUSE for a
+// result code of a failure - SQLITE_ERROR for a schema that is not attached,
+// and, for the two VACUUMs, inside a transaction - or SQLITE_MISUSE for a
 // NULL argument or an empty name.
 
 
 // 1.1    Compacting
 //------------------------------------------------------------------------------
-// compacting -- VACUUM rebuilds the database to reclaim free pages and undo
+// compacting - VACUUM rebuilds the database to reclaim free pages and undo
 // fragmentation; VACUUM INTO writes the rebuilt copy to a new file instead,
 // leaving the database as it was, which makes it a backup as well. The file
 // must not exist, or be empty.
@@ -76,7 +76,7 @@ int d_sqlite_vacuum_into(
 
 // 1.2    Statistics
 //------------------------------------------------------------------------------
-// statistics -- ANALYZE gathers the statistics the query planner chooses
+// statistics - ANALYZE gathers the statistics the query planner chooses
 // indexes by; PRAGMA optimize does so only where they look stale, and is
 // cheap enough to run before closing every long-lived connection
 int d_sqlite_analyze(
@@ -90,7 +90,7 @@ int d_sqlite_optimize(
 
 // 1.3    Checking
 //------------------------------------------------------------------------------
-// checking -- `_ok` receives whether the database passed, written only on
+// checking - `_ok` receives whether the database passed, written only on
 // SQLITE_OK. integrity_check reads everything, indexes against their tables
 // included; quick_check skips that comparison and is much faster.
 int d_sqlite_integrity_check(

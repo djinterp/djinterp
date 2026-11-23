@@ -68,7 +68,7 @@ static size_t findings(const char* sheet_text, const char* src, int cpp)
 }
 
 // what the lint driver reports, not what merely matches: the engine's
-// evaluator decides, as it does for dcheck -- `violation` fails on every
+// evaluator decides, as it does for dcheck - `violation` fails on every
 // match, `start-column` only on a node in another column, and a modifier
 // such as `severity` is not a claim at all
 static size_t violations(const char* sheet_text, const char* src)
@@ -168,7 +168,7 @@ int main(void)
 
     // the shipped sheet itself, not a fragment of it: one violation of each
     // naming and declaration rule, and nothing else, must give one finding
-    // per rule -- a rule that silently matches nothing fails here.  Each
+    // per rule - a rule that silently matches nothing fails here.  Each
     // snippet is otherwise conforming, documentation comments included
     { FILE* f = fopen("res/sheets/c_style.dss", "rb");
       check(f != NULL, "the shipped sheet opens (run from the bundle root)");

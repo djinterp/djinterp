@@ -21,7 +21,7 @@ using namespace ::djinterp::test;
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///   compile-time invariants -- II. STATUS CLASSIFICATION                    ///
+///   compile-time invariants - II. STATUS CLASSIFICATION                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
 static_assert(std::is_enum<test_status>::value,
@@ -52,7 +52,7 @@ static_assert(test_status::pending < test_status::error,   "");
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///   runtime tests -- II. STATUS CLASSIFICATION                              ///
+///   runtime tests - II. STATUS CLASSIFICATION                              ///
 ///////////////////////////////////////////////////////////////////////////////
 
 namespace

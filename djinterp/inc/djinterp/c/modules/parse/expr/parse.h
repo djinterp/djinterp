@@ -329,7 +329,7 @@ struct dj_parse_expr_options
 // 2.2.3
 // dj_parse_expr_result
 //   struct: what a parse found: its status; the term's root; how many errors;
-// the error -- its domain, code and span, and its index in the sink, or
+// the error - its domain, code and span, and its index in the sink, or
 // 0xFFFFFFFF where the sink did not store it; and `next`, the token the parse
 // ended at, unread: the end of the input, or the token D_PARSE_EXPR_OPTION_STOP
 // ended it at (zero where a fatal failure left no token at hand).

@@ -16,7 +16,7 @@
 * sequence
 * of child / sibling / parent steps. A local walk needs NO AUXILIARY STORAGE
 * --
-* the parent link is the way back up -- and it runs in O(1) space with a
+* the parent link is the way back up - and it runs in O(1) space with a
 * noexcept step. This is why pre-order, post-order, and leaf order below carry
 * nothing but a node, an anchor, and a level.
 *
@@ -25,14 +25,14 @@
 * of the spec, and the frontier of a stratum cannot be recovered from any one
 * node by local moves. It must therefore REMEMBER the frontier, which is why
 * it
-* alone allocates -- O(width), in a deque that is genuinely drained -- and why
+* alone allocates - O(width), in a deque that is genuinely drained - and why
 * it alone is not bidirectional.
 *
 *   THE LEVEL of a node (lambda in the spec) is its distance from the anchor,
 * which is at level 0.  It is the length of the node's PATH, and hence the
 * length of its ADDRESS.  Every iterator here reports it, maintained
 * incrementally at no cost.  It is NOT the depth `d` of the spec, which is the
-* HEIGHT of a node -- measured downward, to its deepest leaf.  The two are
+* HEIGHT of a node - measured downward, to its deepest leaf.  The two are
 * complementary halves of the same descent and must not be conflated.
 *
 *   SEPARATION.  A tree is ADDRESSABLE exactly when the children of every node
@@ -40,7 +40,7 @@
 * sibling-wise, and without it an address does not determine what it names. An
 * LCRS node carries a PAYLOAD, not a label, so a label must be DERIVED from
 * the
-* value (gamma = lab . val) -- which is precisely the case in which a
+* value (gamma = lab . val) - which is precisely the case in which a
 * Transformability map that is not injective on labels can COLLIDE two
 * siblings
 * and cost the tree its addressability.  nary_find_child and
@@ -121,31 +121,31 @@ NS_DJINTERP
 // 0.   TRAVERSAL ORDER TAGS
 // =========================================================================
 //   The four order selectors that pick a traversal.  They are empty tag types
-// -- carried only in the type system, to steer nary_iterator_for below -- and
+// - carried only in the type system, to steer nary_iterator_for below - and
 // so are available in every language mode from C++98 onward, needing no
 // D_ENV_LANG_IS_CPP* gate.  Three of the four (pre, post, leaf) name the same
 // orders as DTreeOrder in tree_iterator.hpp; level order is not among
 // DTreeOrder's, which is why these are declared here rather than borrowed.
 
 // DPreOrderTag
-//   struct: selects pre-order traversal -- a node before its children
+//   struct: selects pre-order traversal - a node before its children
 // (document order).
 struct DPreOrderTag
 {};
 
 // DPostOrderTag
-//   struct: selects post-order traversal -- a node after its children.
+//   struct: selects post-order traversal - a node after its children.
 struct DPostOrderTag
 {};
 
 // DLeafOrderTag
-//   struct: selects leaf-order traversal -- the frontier only, internal nodes
+//   struct: selects leaf-order traversal - the frontier only, internal nodes
 // skipped, in document order.
 struct DLeafOrderTag
 {};
 
 // DLevelOrderTag
-//   struct: selects level-order traversal -- breadth-first, stratum by
+//   struct: selects level-order traversal - breadth-first, stratum by
 // stratum.
 struct DLevelOrderTag
 {};
@@ -202,7 +202,7 @@ struct DNaryIteratorEndTag
 // deducible from the call.
 
 // nary_is_leaf
-//   function: true if _node has no children -- a leaf, an element of the
+//   function: true if _node has no children - a leaf, an element of the
 // container in the sense of the spec's Structure.
 template<typename NodeType>
 D_CONSTEXPR
@@ -245,7 +245,7 @@ NodeType* nary_leftmost_leaf(
 
 
 // nary_rightmost_leaf
-//   function: the mirror of nary_leftmost_leaf -- the leaf reached by taking
+//   function: the mirror of nary_leftmost_leaf - the leaf reached by taking
 // LAST children while any remain. It is the LAST node of a pre-order or
 // leaf-order walk of the subtree beneath _node, and so the node --end() lands
 // on for those two orders.
@@ -276,7 +276,7 @@ NodeType* nary_rightmost_leaf(
 
 // nary_level
 //   function: the level (lambda) of _node measured from _anchor, which is at
-// level 0 -- the number of descents from the anchor to the node, and hence the
+// level 0 - the number of descents from the anchor to the node, and hence the
 // length of the node's address. O(level).
 //
 //   This is NOT the depth of the spec, which is a node's HEIGHT, measured
@@ -306,7 +306,7 @@ std::size_t nary_level(
 
 
 // DNaryIdentityLabel
-//   struct: the default labelling -- the value IS its own label. Supplied so
+//   struct: the default labelling - the value IS its own label. Supplied so
 // the descent step below reads the same whether a tree labels its children by
 // their whole payload or by a field of it.
 struct DNaryIdentityLabel
@@ -330,7 +330,7 @@ struct DNaryIdentityLabel
 // the SCANNING strategy of the Addressability axis does. Resolving an address
 // is this function folded along the address. The step is O(k) in the branching
 // factor; a node holding its children as a map from label to child would make
-// it O(1), and one holding them sorted by label O(log k) -- the native and
+// it O(1), and one holding them sorted by label O(log k) - the native and
 // ordered strategies. All three compute the same descent; only the cost
 // differs.
 //
@@ -384,7 +384,7 @@ nary_find_child
 // what it names, and resolve(addr(n)) == n. Without it a label names a SET,
 // and no resolution can invert addressing. Because an LCRS node labels by its
 // PAYLOAD, separation is a property the tree can LOSE under a map that is not
-// injective on labels -- which is exactly the spec's warning that mapping may
+// injective on labels - which is exactly the spec's warning that mapping may
 // break mu_1. The check is O(k^2) in the branching factor and is meant for a
 // debug assertion or a one-off validation, not for the resolution path.
 template<typename NodeType,
@@ -437,8 +437,8 @@ nary_children_separating
 //
 //   NO AUXILIARY STORAGE. The parent link is the way back up, so the unwind
 // that a stack-based walk would pop is here a climb: from a node with no child
-// and no next sibling, ascend until an ancestor -- strictly below the anchor
-// -- has one. State is therefore a node, the anchor, and the level, and
+// and no next sibling, ascend until an ancestor - strictly below the anchor
+// - has one. State is therefore a node, the anchor, and the level, and
 // nothing
 // else: the iterator is trivially copyable in spirit, its step is noexcept,
 // and no traversal ever allocates. (The post-order and leaf iterators below
@@ -467,7 +467,7 @@ public:
 
     // DNaryPreOrderIterator (default)
     //   an unanchored end sentinel. It compares equal to any end of this
-    // order, but it may not be decremented -- it remembers no anchor.
+    // order, but it may not be decremented - it remembers no anchor.
     D_CONSTEXPR
     DNaryPreOrderIterator() noexcept
         : m_current(nullptr),
@@ -689,8 +689,8 @@ private:
     //   moves to the previous node in pre-order, the exact mirror of advance:
     // from the end, the last node of the subtree (its rightmost-deepest); from
     // a node with a previous sibling, that sibling's rightmost-deepest
-    // descendant; otherwise the parent. Decrementing the anchor -- the first
-    // node of the order -- is a no-op, as decrementing begin() always is.
+    // descendant; otherwise the parent. Decrementing the anchor - the first
+    // node of the order - is a no-op, as decrementing begin() always is.
     D_CONSTEXPR_CPP14
     void retreat() noexcept
     {
@@ -800,7 +800,7 @@ public:
 
     // DNaryPostOrderIterator (anchored end)
     //   the past-the-end iterator, which remembers _root and so may be
-    // decremented onto the last node of the order -- the anchor itself.
+    // decremented onto the last node of the order - the anchor itself.
     D_CONSTEXPR
     DNaryPostOrderIterator(
         node_type* _root,
@@ -935,8 +935,8 @@ private:
 
     // advance
     //   moves to the next node in post-order: the anchor is last; otherwise
-    // the leftmost-deepest descendant of the next sibling, or -- there being
-    // no next sibling -- the parent, whose children are now complete.
+    // the leftmost-deepest descendant of the next sibling, or - there being
+    // no next sibling - the parent, whose children are now complete.
     D_CONSTEXPR_CPP14
     void advance() noexcept
     {
@@ -1052,7 +1052,7 @@ private:
 
 // DNaryLeafIterator
 //   class: BIDIRECTIONAL iterator yielding only leaves, in DFS discovery
-// order. This is the FRONTIER of the container -- its elements, in the sense
+// order. This is the FRONTIER of the container - its elements, in the sense
 // of the spec, the node summand skipped. Implemented with parent links, so no
 // auxiliary stack is required in either direction.
 template<typename NodeType>
@@ -1250,8 +1250,8 @@ private:
     }
 
     // advance
-    //   moves to the next leaf: climb rootward until an ancestor -- strictly
-    // below the anchor -- has a next sibling, then descend to that sibling's
+    //   moves to the next leaf: climb rootward until an ancestor - strictly
+    // below the anchor - has a next sibling, then descend to that sibling's
     // leftmost leaf. A pre-order step from a leaf lands on the next subtree in
     // document order, and its leftmost leaf is the next leaf.
     D_CONSTEXPR_CPP14
@@ -1356,7 +1356,7 @@ private:
 // =========================================================================
 
 // DNaryLevelOrderIterator
-//   class: breadth-first FORWARD iterator -- the enumeration of the level
+//   class: breadth-first FORWARD iterator - the enumeration of the level
 // strata L_0, L_1, ... of the spec, in order.
 //
 //   THIS IS THE ONE ORDER THAT IS NOT A LOCAL WALK of the descent relation.
@@ -1368,7 +1368,7 @@ private:
 // that frontier, which is why it alone allocates, and why it alone is forward.
 //
 //   The frontier is held in a deque and is genuinely DRAINED as it is
-// consumed, so the storage is O(width) -- the widest stratum -- and not O(n).
+// consumed, so the storage is O(width) - the widest stratum - and not O(n).
 // Each entry carries its level with it, so level() is exact and free.
 template<typename NodeType>
 class DNaryLevelOrderIterator
@@ -1441,7 +1441,7 @@ public:
     }
 
     // level
-    //   the level (lambda) of the current node -- here the index k of the
+    //   the level (lambda) of the current node - here the index k of the
     // stratum L_k being enumerated, which is what a breadth-first walk is FOR.
     // Carried alongside each frontier entry, so it is exact and free.
     D_CONSTEXPR
@@ -1728,7 +1728,7 @@ public:
     // its address. O(level).
     //
     //   This quantity is NOT the depth of the spec, which is a node's HEIGHT
-    // -- measured downward, to its deepest leaf.
+    // - measured downward, to its deepest leaf.
     // Level counts upward, height counts downward, and they agree only at the
     // anchor. The iterators of this header maintain the level incrementally
     // and so never pay this walk.

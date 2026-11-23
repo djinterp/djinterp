@@ -1,4 +1,4 @@
-# xml_tree.py -- an XML file's element tree, as Python's own parser reads it.
+# xml_tree.py - an XML file's element tree, as Python's own parser reads it.
 #
 # Prints the tree as test_dmsvs --dump prints dmsvs's reading of the same
 # file, so the two can be compared byte for byte: an element to a line, its

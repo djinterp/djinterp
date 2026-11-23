@@ -190,16 +190,16 @@ struct hier_tagged
 // Test-function declarations (defined in the section .cpp files)
 // ===========================================================================
 
-// -- I.  Flat classification --
+// - I.  Flat classification --
 bool tests_is_flat_container();
 bool tests_is_strictly_flat_container();
 
-// -- II. Aggregate snapshot + variable-template companions --
+// - II. Aggregate snapshot + variable-template companions --
 bool tests_flat_container_class();
 bool tests_variable_templates();
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // flat_container_traits_spec
 //   function: the suite as DTest's module spec, one block per section.

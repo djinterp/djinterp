@@ -53,13 +53,13 @@ struct conjunction : true_type
 {};
 
 // conjunction<B1>
-//   trait: single-trait base case -- inherit from B1.
+//   trait: single-trait base case - inherit from B1.
 template<typename B1>
 struct conjunction<B1> : B1
 {};
 
 // conjunction<B1, Bn...>
-//   trait: recursive case -- if B1 is false, inherit from it
+//   trait: recursive case - if B1 is false, inherit from it
 // (short-circuit); otherwise recurse into the tail. Substitution into
 // the tail is suppressed when B1 is false because conditional selects
 // B1 directly.

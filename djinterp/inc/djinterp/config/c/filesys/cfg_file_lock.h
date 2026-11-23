@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                          cfg_file_lock.h
 *
-* Build-time configuration for c/filesys/file_lock.h -- advisory file locking.
+* Build-time configuration for c/filesys/file_lock.h - advisory file locking.
 *
 *   ADVISORY. Every lock here is a convention between programs that agree to
 * check. Nothing stops a process that does not ask from writing the file
@@ -94,14 +94,14 @@ TABLE OF CONTENTS
 // D_CFG_FILE_LOCK_BACKEND
 //   knob: which locking semantics this build has. AUTO prefers flock, whose
 // footguns are the less surprising pair, where the platform declares it
-// (D_CFG_FILE_HAS_FLOCK) -- which Darwin and the BSDs do not for a build at
+// (D_CFG_FILE_HAS_FLOCK) - which Darwin and the BSDs do not for a build at
 // the C guide's POSIX level, so AUTO is fcntl there unless the build asks to
 // see their extensions.
 //   Pin FCNTL if your locks must hold across NFS, and then never close a
 // second descriptor to a locked file.
 //   No effect on Windows, which has one backend of its own, LockFileEx: the
 // lock belongs to the descriptor's handle, as flock's to the open file
-// description, but Windows enforces it -- see file_lock.h.
+// description, but Windows enforces it - see file_lock.h.
 #ifndef D_CFG_FILE_LOCK_BACKEND
     #define D_CFG_FILE_LOCK_BACKEND D_CFG_FILE_LOCK_BACKEND_AUTO
 #endif  // D_CFG_FILE_LOCK_BACKEND
@@ -147,7 +147,7 @@ TABLE OF CONTENTS
 
 // 3.1.2
 // D_INTERNAL_FILE_LOCK_BACKEND
-//   resolved: the resolved backend -- never AUTO. Windows has only its own,
+//   resolved: the resolved backend - never AUTO. Windows has only its own,
 // whatever the knob says.
 #if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
     #define D_INTERNAL_FILE_LOCK_BACKEND D_INTERNAL_FILE_LOCK_BACKEND_WIN32
@@ -169,8 +169,8 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 4.1.1
 // D_FILE_LOCK_IS_PER_DESCRIPTION
-//   query: 1 when a lock belongs to the open file description (flock) -- or,
-// on Windows, to the descriptor's handle -- so closing another descriptor to
+//   query: 1 when a lock belongs to the open file description (flock) - or,
+// on Windows, to the descriptor's handle - so closing another descriptor to
 // the file leaves it; 0 when it belongs to the process (fcntl) and any close
 // drops it. Safe in #if.
 #define D_FILE_LOCK_IS_PER_DESCRIPTION                                         \

@@ -1,17 +1,17 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                         file_tests_dir.c
 *
-*   X. Directories (file_dir) -- creation, removal, traversal, and the working
+*   X. Directories (file_dir) - creation, removal, traversal, and the working
 * directory. Several configured behaviours are pinned here deliberately:
 * d_dir_create_parents treats an existing directory as success (MKDIR_P_EXISTING_OK);
 * d_dir_read yields "." and ".." because dot-entries are not skipped by default,
 * which the traversal test asserts rather than assumes; and d_path_resolve with a
 * NULL buffer allocates (REALPATH_ALLOC) and hands back memory the caller must
-* free -- it does not error.
+* free - it does not error.
 *
 *   The d_dir_set_current case is the one piece of global state in the suite: it saves
 * the working directory, moves, checks the move functionally (a relative name
-* now resolves), and always restores -- using only non-fatal checks so a
+* now resolves), and always restores - using only non-fatal checks so a
 * failure cannot leave the process in the wrong directory for later sections.
 *
 *
@@ -346,7 +346,7 @@ void d_fs_tests_dir_realpath(
     D_FS_CHECK(_suite, d_path_is_absolute(resolved) != 0);
 
     //   NOT gated on validation: a NULL buffer here is a documented MODE --
-    // "allocate the result for me" -- not a rejected parameter. It behaves the
+    // "allocate the result for me" - not a rejected parameter. It behaves the
     // same whether or not the build checks its arguments, so gating it removed
     // a case that was never about validation and, worse, left the free() below
     // holding an uninitialised pointer.
@@ -403,7 +403,7 @@ void d_fs_tests_dir(
  *****************************************************************************/
 
 /******************************************************************************
- * X.  file_dir  --  DIRECTORIES AND RESOLUTION
+ * X.  file_dir  -  DIRECTORIES AND RESOLUTION
  *****************************************************************************/
 
 /*
@@ -750,7 +750,7 @@ bool d_tests_file_cwd(struct dj_test_suite* _suite)
                      d_path_is_absolute(buf),
                      "...to an absolute path");
 
-    // unlike d_path_normalize, this must ask the filesystem -- so a path that
+    // unlike d_path_normalize, this must ask the filesystem - so a path that
     // does not exist cannot be resolved
     D_TEST_CHECK_MSG(_suite,
                      "realpath_missing",

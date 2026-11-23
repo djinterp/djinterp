@@ -107,7 +107,7 @@ struct has_unique_insert : std::false_type
 {};
 
 // has_unique_insert specialization
-//   helper: the detected case -- selected when `insert(value_type)` returns
+//   helper: the detected case - selected when `insert(value_type)` returns
 // something with a `.second` member. That pair-shaped return is how a
 // uniqueness-enforcing container reports whether the insert actually happened,
 // so its presence is the signal that duplicates are rejected.
@@ -137,7 +137,7 @@ NS_INTERNAL
     };
 
     // DMultiplicityMemberHelper specialization
-    //   helper: the detected case -- selected when the type declares the
+    //   helper: the detected case - selected when the type declares the
     // static member `DMultiplicity`.
     template<typename Type>
     struct DMultiplicityMemberHelper<Type,

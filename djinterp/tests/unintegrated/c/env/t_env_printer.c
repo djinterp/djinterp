@@ -2,11 +2,11 @@
 * djinterp [c][env]                                              t_env_printer.c
 *
 *   The environment printer's C harness (env/env_printer.h): the report a C unit
-* collects, and the printer as a machine -- its defaults, every style,
+* collects, and the printer as a machine - its defaults, every style,
 * `sections`, `select`'s rules, scoped variables, templates set and refused, a
 * program's own variables, the filter and the field hook, the dump and its round
-* trip, the djin and its registry -- settings by full name from a file, the
-* command line and the environment, by standing -- a printer made in it and one
+* trip, the djin and its registry - settings by full name from a file, the
+* command line and the environment, by standing - a printer made in it and one
 * whose frame moved, the process's environment. A standalone program, as the
 * other tests not yet in DTest are: it writes every section as JSON to the file
 * its first argument names and as CSV to the one its second names (t_env_printer

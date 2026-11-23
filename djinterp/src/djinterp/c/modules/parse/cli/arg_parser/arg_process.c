@@ -4,8 +4,8 @@
 * The processing that ends a parse, declared in arg_internal.h (8.2).
 *   CLI11's _process and its parts: the callbacks of each priority with the
 * help flags and the version flag among them, the environment, the
-* requirements -- what a command excludes and needs, required options and
-* subcommands, the counts of options and subcommands -- the unused
+* requirements - what a command excludes and needs, required options and
+* subcommands, the counts of options and subcommands - the unused
 * arguments, the completion callbacks of a subcommand that calls back at
 * once, and run_callback, which hands the parse to the commands' own
 * callbacks. A failure of a configuration file waits, as in CLI11, until
@@ -82,8 +82,8 @@ int d_arg_internal_process_call(
  * @return D_ARG_OK, or the failure of a callback, recorded.
  *
  * The middle of CLI11's run_callback: the callbacks of each subcommand the
- * command received -- once for each time it is listed, and only those it is
- * the parent of, an option group running its own -- then of each option
+ * command received - once for each time it is listed, and only those it is
+ * the parent of, an option group running its own - then of each option
  * group that was used.
  */
 D_STATIC
@@ -134,7 +134,7 @@ d_arg_internal_run_callback
   CLI11's run_callback: the pre-callback; in the main parse, the
 parse-complete callback, before anything the command received; the
 subcommands' and option groups' callbacks; then, unless suppressed, the
-final callback of a command that was used -- a named one, one given
+final callback of a command that was used - a named one, one given
 anything, or the root.
 */
 int d_arg_internal_run_callback(
@@ -190,7 +190,7 @@ int d_arg_internal_run_callback(
  * @return D_ARG_OK, or the failure of a callback or of a step, recorded.
  *
  * Declared ahead of its definition, which follows the steps it takes, one of
- * which -- an option group's turn -- calls it again.
+ * which - an option group's turn - calls it again.
  */
 D_STATIC
 int d_arg_internal_process_callbacks(
@@ -310,7 +310,7 @@ int d_arg_internal_process_version(
  * @return D_ARG_OK, or the failure of a callback, recorded.
  *
  * The options' part of CLI11's _process_callbacks: each option at the
- * priority that was given -- or is forced -- and has not been called back.
+ * priority that was given - or is forced - and has not been called back.
  */
 D_STATIC
 int d_arg_internal_process_options(
@@ -343,7 +343,7 @@ d_arg_internal_process_callbacks
   CLI11's _process_callbacks for a priority: the option groups with
 parse-complete callbacks first, then the version flag, then the command's
 options, then each subcommand without a parse-complete callback, used or
-not -- one with such a callback runs its own completion callbacks as its
+not - one with such a callback runs its own completion callbacks as its
 parse ends.
 */
 D_STATIC
@@ -488,7 +488,7 @@ int d_arg_internal_process_help(
  *
  * CLI11's step of _process_env for one option: one not given whose
  * environment variable holds a value takes it, as given, unless its
- * validators reject it -- when it is passed over without a word. A validator
+ * validators reject it - when it is passed over without a word. A validator
  * that stops with another error ends the parse with it.
  */
 D_STATIC
@@ -611,7 +611,7 @@ int d_arg_internal_process_env(
 
 // dj_arg_internal_process_named
 //   struct: what a requirement's message names: an option, or, when it is
-// NULL, a command -- or nothing, both NULL.
+// NULL, a command - or nothing, both NULL.
 struct dj_arg_internal_process_named
 {
     const struct dj_arg_command* command;
@@ -625,7 +625,7 @@ struct dj_arg_internal_process_named
  * @return D_ARG_OK, or the requirement not met, recorded as CLI11's error.
  *
  * Declared ahead of its definition, which follows the steps it takes, the
- * last of which -- a subcommand's own -- calls it again.
+ * last of which - a subcommand's own - calls it again.
  */
 D_STATIC
 int d_arg_internal_process_requirements(
@@ -678,7 +678,7 @@ int d_arg_internal_process_name(
  *
  * A requirement not met, recorded against the command where it was checked
  * and the first option named: "<first> <verb>", then " <second>" when there
- * is a second -- CLI11's RequiredError, RequiresError and ExcludesError.
+ * is a second - CLI11's RequiredError, RequiresError and ExcludesError.
  */
 D_STATIC
 int d_arg_internal_process_refuse(
@@ -736,7 +736,7 @@ int d_arg_internal_process_refuse(
  * CLI11's first check in _process_requirements: of the options and the
  * subcommands the command excludes, the last used names what excludes it, a
  * subcommand before any option. A command so excluded is refused when it was
- * used itself -- CLI11's ExcludesError -- and otherwise spared every other
+ * used itself - CLI11's ExcludesError - and otherwise spared every other
  * check, `_excluded` telling the caller.
  */
 D_STATIC
@@ -797,7 +797,7 @@ int d_arg_internal_process_excluded(
  * CLI11's second check: of the options and the subcommands the command
  * needs, the last not used names what it misses, a subcommand before any
  * option. A command so missing what it needs is refused when it was used
- * itself -- CLI11's RequiresError -- and otherwise spared every other check.
+ * itself - CLI11's RequiresError - and otherwise spared every other check.
  */
 D_STATIC
 int d_arg_internal_process_needed(
@@ -1358,8 +1358,8 @@ bool d_arg_internal_process_skipped(
  * @return D_ARG_OK, or the requirement not met, recorded.
  *
  * The end of CLI11's _process_requirements: each enabled subcommand not
- * passed over has its own requirements checked -- one used, or an option
- * group -- and a required one that was not used is refused.
+ * passed over has its own requirements checked - one used, or an option
+ * group - and a required one that was not used is refused.
  */
 D_STATIC
 int d_arg_internal_process_sub_requirements(
@@ -1411,8 +1411,8 @@ int d_arg_internal_process_sub_requirements(
 d_arg_internal_process_requirements
   CLI11's _process_requirements: a command excluded, or missing what it
 needs, is refused if it was used and otherwise left unchecked; then its
-options, its count of subcommands, its option requirement -- the option
-groups used counting as options -- and its subcommands' requirements.
+options, its count of subcommands, its option requirement - the option
+groups used counting as options - and its subcommands' requirements.
 */
 D_STATIC
 int d_arg_internal_process_requirements(
@@ -1619,7 +1619,7 @@ int d_arg_internal_process(
 /*
 d_arg_internal_process_extras
   CLI11's _process_extras: unused arguments are an error for a command in
-the default extras mode, unless it is a prefix command -- or, under
+the default extras mode, unless it is a prefix command - or, under
 SEPARATOR_ONLY, unless they start with `--`; then each subcommand used, in
 turn.
 */
@@ -1666,7 +1666,7 @@ int d_arg_internal_process_extras(
 /*
 d_arg_internal_process_completion_callbacks
   CLI11's _process_completion_callbacks, for a subcommand with a
-parse-complete callback as its parse ends -- or as its configuration
+parse-complete callback as its parse ends - or as its configuration
 section closes, without the help flags or the environment: the four tiers
 around the environment and the requirements, then its callbacks, its final
 one held back while the parse goes on.

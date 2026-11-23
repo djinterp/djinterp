@@ -56,7 +56,7 @@ static int fails = 0;
 
 
 /*   A container written ONCE, against the contract and nothing else. It never
- * names an arena, a pool, an allocator or a buffer -- it reads the constants
+ * names an arena, a pool, an allocator or a buffer - it reads the constants
  * and adapts. This is the whole reason the strategy tier exists, so the test
  * has to be a real instance of it rather than a call to allocate(). */
 template<typename Strategy>
@@ -241,7 +241,7 @@ int main()
 {
     /*   Every section below draws from a STATIC ARRAY rather than the default
      * source, so the harness runs identically on a build with no heap at all
-     * -- which the MINIMAL preset is. That is not a workaround: heapless is a
+     * - which the MINIMAL preset is. That is not a workaround: heapless is a
      * first-class target, and a strategy tier that only worked over malloc
      * would be a strategy tier that missed the point. */
     static char storage[262144];
@@ -272,7 +272,7 @@ int main()
         DPoolMemoryStrategy<DPool<double, D_POOL_POLICY_MONOTONIC> > s(p);
         exercise("pool_memory_strategy(mono)", s);
         /* a monotonic pool declares no individual release, so the container
-           never tried -- and the slots are still held */
+           never tried - and the slots are still held */
         CHECK(!is_releasing_strategy<decltype(s)>::value);
         CHECK(p.size() == 30);
     }

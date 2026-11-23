@@ -5,8 +5,8 @@
 *   Two layers:
 *
 *   1. AST combinators (djinterp::math) that extend the expression vocabulary
-*      of expression.hpp. Two new primitive operations are introduced -- the
-*      natural logarithm (fn_log) and the arctangent (fn_atan) -- each with a
+*      of expression.hpp. Two new primitive operations are introduced - the
+*      natural logarithm (fn_log) and the arctangent (fn_atan) - each with a
 *      constexpr kernel and a libm fast-path, exactly mirroring fn_exp/fn_sin.
 *      Everything else (sec, csc, cot, sinh, cosh, tanh, asin, acos, pow,
 *      cbrt, exp2, log2, log10) is composed from the existing primitives, so
@@ -155,7 +155,7 @@ NS_END  // internal
 // II.   AST COMBINATORS  (extend the expression vocabulary)
 // ============================================================================
 
-// log / ln  -- natural logarithm (new primitive)
+// log / ln  - natural logarithm (new primitive)
 template<typename _A>
 D_CONSTEXPR
 auto log(
@@ -175,7 +175,7 @@ auto ln(
     return log(_a);
 }
 
-// atan  -- arctangent (new primitive)
+// atan  - arctangent (new primitive)
 template<typename _A>
 D_CONSTEXPR
 auto atan(
@@ -186,7 +186,7 @@ auto atan(
     return unary_node<internal::fn_atan, decltype(e)>(e);
 }
 
-// log2 / log10  -- change of base
+// log2 / log10  - change of base
 template<typename _A>
 D_CONSTEXPR
 auto log2(
@@ -205,7 +205,7 @@ auto log10(
     return log(_a) / constant(constants::ln10<double>);
 }
 
-// reciprocal trig  -- sec, csc, cot
+// reciprocal trig  - sec, csc, cot
 template<typename _A>
 D_CONSTEXPR
 auto sec(
@@ -234,7 +234,7 @@ auto cot(
     return cos(e) / sin(e);
 }
 
-// hyperbolic  -- sinh, cosh, tanh  (composed from exp)
+// hyperbolic  - sinh, cosh, tanh  (composed from exp)
 template<typename _A>
 D_CONSTEXPR
 auto sinh(
@@ -265,7 +265,7 @@ auto tanh(
     return (exp(e) - exp(-e)) / (exp(e) + exp(-e));
 }
 
-// inverse trig  -- asin, acos  (composed from atan and sqrt)
+// inverse trig  - asin, acos  (composed from atan and sqrt)
 template<typename _A>
 D_CONSTEXPR
 auto asin(
@@ -286,7 +286,7 @@ auto acos(
     return constant(constants::half_pi<double>) - asin(e);
 }
 
-// powers  -- pow, cbrt, exp2  (composed from exp and log)
+// powers  - pow, cbrt, exp2  (composed from exp and log)
 template<typename _Base, typename _Exp>
 D_CONSTEXPR
 auto pow(

@@ -92,8 +92,8 @@ int d_arg_internal_option_replace_text(
  * The single-dash branch of CLI11's get_names: one valid character is a
  * short name; one invalid character is CLI11's OneCharName; several are
  * MissingDash unless the command allows non-standard names, when they are a
- * short name if valid and BadLongName -- naming them without the dash, as
- * CLI11 does -- if not.
+ * short name if valid and BadLongName - naming them without the dash, as
+ * CLI11 does - if not.
  */
 D_STATIC
 int d_arg_internal_option_take_short(
@@ -313,7 +313,7 @@ int d_arg_internal_option_take_name(
  *         taking.
  *
  * CLI11's split_names: the text is cut at every comma, each piece trimmed,
- * and an empty piece -- between two commas, or the whole of an empty text --
+ * and an empty piece - between two commas, or the whole of an empty text --
  * names nothing.
  */
 D_STATIC
@@ -457,8 +457,8 @@ struct dj_arg_option* d_arg_internal_option_create(
 
 /*
 d_arg_internal_option_destroy
-  The parser's error reports forget the option; then its values -- their
-copies live in `owned` -- the definition, the three contexts through their
+  The parser's error reports forget the option; then its values - their
+copies live in `owned` - the definition, the three contexts through their
 release functions, and the record.
 */
 void d_arg_internal_option_destroy(
@@ -505,7 +505,7 @@ void d_arg_internal_option_destroy(
 
 // dj_arg_internal_name_writer
 //   struct: where d_arg_option_name's list form writes: the buffer, whether
-// nothing is written yet -- so no comma is due -- and whether flag names
+// nothing is written yet - so no comma is due - and whether flag names
 // carry their values.
 struct dj_arg_internal_name_writer
 {
@@ -735,7 +735,7 @@ const char* d_arg_option_single_name(
 d_arg_option_check_name
   CLI11's check_name: the dashes choose the list; a bare name is compared
 with the positional name under both switches, and then, exactly, with the
-environment variable's name -- which is asked only when the positional
+environment variable's name - which is asked only when the positional
 name did not match.
 */
 bool d_arg_option_check_name(
@@ -857,8 +857,8 @@ bool d_arg_option_check_flag_name(
  * @return the name of `_option`'s that matches; NULL when none does.
  *
  * The first two loops of CLI11's matching_name: this option's short names
- * against the other's short names -- and long names, when both are
- * configurable -- then its long names against the other's long names, and a
+ * against the other's short names - and long names, when both are
+ * configurable - then its long names against the other's long names, and a
  * one-character long name against its short names.
  */
 D_STATIC
@@ -914,7 +914,7 @@ const char* d_arg_internal_option_matching_dashed(
  *
  * CLI11's two positional tests: a configurable option known only by its
  * positional name collides with any name of the other's, and the other's
- * positional name -- when it has no short or flag names, as CLI11 tests --
+ * positional name - when it has no short or flag names, as CLI11 tests --
  * with any of this option's.
  */
 D_STATIC

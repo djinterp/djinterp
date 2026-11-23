@@ -3,8 +3,8 @@
 #
 #   database.hpp's tests, built with the module's production sources (recipe
 # R2, approach A). Since chunk 4.2 (db_audit 9.6) database.hpp is no longer
-# header-only: its out-of-line definitions -- the exceptions, the
-# configurations' defaults, the utilities -- are in
+# header-only: its out-of-line definitions - the exceptions, the
+# configurations' defaults, the utilities - are in
 # src/djinterp/cpp/modules/db/database.cpp, which reads values through the C
 # layers' common code, c/modules/db/db_common.c, and its private helpers,
 # c/modules/db/db_internal.c. The three are named explicitly rather than

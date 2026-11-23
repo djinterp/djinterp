@@ -5,7 +5,7 @@
 *   Number of consecutive 1 bits starting from the least significant.
 *
 *   countr_zero of the complement, with the same narrow-type cast as
-* countl_one -- see that header.
+* countl_one - see that header.
 *
 *   PORTABILITY:
 *   C++20 in std, back-ported to C++11 and constexpr from C++11.

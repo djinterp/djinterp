@@ -5,8 +5,8 @@
 *   A symbol is referred to by name in three places: an expression's text,
 * by its own name or its macro name; a macro's body, by its macro name, as
 * C names it; and a macro's {NAME} placeholders, by either. A rename finds
-* each reference -- through djinterp's lexer, so that a string, a comment or
-* a macro's parameter of the same spelling is not one -- and rewrites it,
+* each reference - through djinterp's lexer, so that a string, a comment or
+* a macro's parameter of the same spelling is not one - and rewrites it,
 * so the sheet means after the rename what it meant before. A field_value's
 * range is referred to by id, and needs nothing.
 *   A group's name is in no macro name, so renaming one changes nothing

@@ -43,7 +43,7 @@ int main()
 {
     std::printf("database.hpp unit tests\n");
 
-    // -- enumerations + type aliases --------------------------------------
+    // - enumerations + type aliases --------------------------------------
     D_DB_RUN(tests_database_type_enum);
     D_DB_RUN(tests_isolation_level_enum);
     D_DB_RUN(tests_connection_state_enum);
@@ -52,7 +52,7 @@ int main()
     D_DB_RUN(tests_value_variant);
     D_DB_RUN(tests_type_aliases);
 
-    // -- exception hierarchy ----------------------------------------------
+    // - exception hierarchy ----------------------------------------------
     D_DB_RUN(tests_exception_base);
     D_DB_RUN(tests_exception_what_and_code);
     D_DB_RUN(tests_connection_exception);
@@ -61,19 +61,19 @@ int main()
     D_DB_RUN(tests_type_conversion_exception);
     D_DB_RUN(tests_exception_polymorphism);
 
-    // -- configuration structs --------------------------------------------
+    // - configuration structs --------------------------------------------
     D_DB_RUN(tests_connection_config_defaults);
     D_DB_RUN(tests_connection_config_mutation);
     D_DB_RUN(tests_pool_config_defaults);
     D_DB_RUN(tests_pool_config_mutation);
 
-    // -- vendor metadata --------------------------------------------------
+    // - vendor metadata --------------------------------------------------
     D_DB_RUN(tests_vendor_info_defaults);
     D_DB_RUN(tests_vendor_traits_primary_statics);
     D_DB_RUN(tests_vendor_traits_get_info);
     D_DB_RUN(tests_vendor_traits_make_default_config);
 
-    // -- result_set -------------------------------------------------------
+    // - result_set -------------------------------------------------------
     D_DB_RUN(tests_result_set_navigation);
     D_DB_RUN(tests_result_set_absolute_sfinae);
     D_DB_RUN(tests_result_set_metadata);
@@ -82,7 +82,7 @@ int main()
     D_DB_RUN(tests_result_set_convenience);
     D_DB_RUN(tests_result_set_move);
 
-    // -- statement --------------------------------------------------------
+    // - statement --------------------------------------------------------
     D_DB_RUN(tests_statement_bind_by_index);
     D_DB_RUN(tests_statement_bind_by_name);
     D_DB_RUN(tests_statement_bind_by_name_sfinae);
@@ -90,7 +90,7 @@ int main()
     D_DB_RUN(tests_statement_metadata);
     D_DB_RUN(tests_statement_move);
 
-    // -- transaction ------------------------------------------------------
+    // - transaction ------------------------------------------------------
     D_DB_RUN(tests_transaction_begin_commit);
     D_DB_RUN(tests_transaction_begin_isolation);
     D_DB_RUN(tests_transaction_rollback);
@@ -102,7 +102,7 @@ int main()
     D_DB_RUN(tests_transaction_savepoint_sfinae);
     D_DB_RUN(tests_transaction_accessors);
 
-    // -- connection -------------------------------------------------------
+    // - connection -------------------------------------------------------
     D_DB_RUN(tests_connection_initial_state);
     D_DB_RUN(tests_connection_lifecycle);
     D_DB_RUN(tests_connection_execution);
@@ -116,7 +116,7 @@ int main()
     D_DB_RUN(tests_connection_move);
     D_DB_RUN(tests_connection_absent_sfinae);
 
-    // -- connection_pool / pooled_connection ------------------------------
+    // - connection_pool / pooled_connection ------------------------------
     D_DB_RUN(tests_pool_construction_preallocate);
     D_DB_RUN(tests_pool_acquire_from_idle);
     D_DB_RUN(tests_pool_acquire_create_new);

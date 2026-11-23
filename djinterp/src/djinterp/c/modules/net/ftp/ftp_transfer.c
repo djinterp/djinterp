@@ -368,8 +368,8 @@ void d_ftp_ascii_init(
 
 /*
 d_ftp_ascii_to_network
-  Remembers whether the last byte was CR, so an existing CR LF -- even one
-split across chunks -- is passed through rather than doubled.
+  Remembers whether the last byte was CR, so an existing CR LF - even one
+split across chunks - is passed through rather than doubled.
 */
 enum dj_ftp_error
 d_ftp_ascii_to_network(

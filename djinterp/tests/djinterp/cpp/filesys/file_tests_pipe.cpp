@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][filesys]                                    file_tests_pipe.cpp
 *
-*   XI. Process (file_pipe.hpp) -- a child run through the shell with a pipe on
+*   XI. Process (file_pipe.hpp) - a child run through the shell with a pipe on
 * its input or output. Compiled out where the platform has no pipes.
 *
 * A NON-ZERO EXIT IS NOT A FAILURE
@@ -9,14 +9,14 @@
 *   This is the contract worth the section. close() reports whether the pipe
 * closed and the child was reaped; the child's own exit code is a separate
 * question, asked through exit_status(). A command that runs and exits 3 has not
-* failed as an I/O operation -- it has answered. An implementation that folded
+* failed as an I/O operation - it has answered. An implementation that folded
 * the exit code into close()'s bool would make every non-zero-exiting command
 * look like a broken pipe, so the case below requires close() to succeed while
 * exit_status() is non-zero.
 *
 * THE RAW STATUS IS NOT THE EXIT CODE
 * -----------------------------------
-*   exit_status() hands back what pclose returned, undecoded -- on POSIX a wait
+*   exit_status() hands back what pclose returned, undecoded - on POSIX a wait
 * status whose exit code sits in the high byte, so `exit 3` yields 768 rather
 * than 3. The cases therefore assert zero versus non-zero, never a specific
 * number: asserting 3 would pass on a platform that decodes and fail on one that

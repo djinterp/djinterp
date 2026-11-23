@@ -4,11 +4,11 @@
 * The commands that rearrange a sheet's rows or change the rest of it:
 * duplicate, remove, rename, move, sort, set, get and op.
 *   set and get take a setting by its registry name, the window's, or by its
-* path in a sheet file, as --keys says -- by default as the build says
+* path in a sheet file, as --keys says - by default as the build says
 * (D_CFG_BITWISEDOM_KEYS), a name where the registry has one and a path for
 * the rest (ruling cli-taken 16).
 *   Each reads its sheet, finds every row it names before it changes
-* anything -- a name no row has stops it, nothing written -- makes the
+* anything - a name no row has stops it, nothing written - makes the
 * change with the model's own edits, the window's, and stores the sheet as
 * every changing command does (cli_internal.hpp): a change that would give
 * the sheet an error it does not have is refused unless forced.
@@ -113,7 +113,7 @@ struct rows_request
 /*
 run_duplicate
   Every row found first, then each copied as the window's Duplicate copies
-it: just after it -- a group's or a range's copy last in it -- named as it
+it: just after it - a group's or a range's copy last in it - named as it
 is with _COPY after, made unique.
 */
 int run_duplicate(
@@ -156,7 +156,7 @@ int run_duplicate(
 
 /*
 run_remove
-  Every row found first -- one that is not stops it, nothing removed -- then
+  Every row found first - one that is not stops it, nothing removed - then
 all of them, and everything in them.
 */
 int run_remove(
@@ -254,7 +254,7 @@ int run_rename(
 //------------------------------------------------------------------------------
 
 // move_request
-//   struct: what `move` was asked: the row, and where -- one of the five.
+//   struct: what `move` was asked: the row, and where - one of the five.
 struct move_request
 {
     std::string sheet;
@@ -300,7 +300,7 @@ bool place_in(
 move_beside
   Before or after another row, among its group's rows, or last in a group:
 as the window's tree drops a row. Returns where it went, as a note says it;
-"" -- the error said -- when it could not go there.
+"" - the error said - when it could not go there.
 */
 std::string move_beside(
     kit::program&       _program,
@@ -448,8 +448,8 @@ std::vector<std::string> sort_words()
 
 /*
 run_sort
-  The key given -- or, without one, the order the window shows the rows
-in, and its way round -- and the model's sort_rows.
+  The key given - or, without one, the order the window shows the rows
+in, and its way round - and the model's sort_rows.
 */
 int run_sort(
     kit::program&       _program,
@@ -733,8 +733,8 @@ int set_one(
 
 /*
 run_set
-  Each KEY=VALUE applied in turn -- the first mistake stops it, nothing
-written -- then the sheet stored.
+  Each KEY=VALUE applied in turn - the first mistake stops it, nothing
+written - then the sheet stored.
 */
 int run_set(
     kit::program&      _program,
@@ -782,8 +782,8 @@ struct asked_key
 
 /*
 settings_asked
-  The settings the KEYs name -- every setting, without a KEY, or every path
-of the file that holds a value where only paths are taken -- each registry
+  The settings the KEYs name - every setting, without a KEY, or every path
+of the file that holds a value where only paths are taken - each registry
 name known before anything is read; false, the usage error said, at a KEY
 that is no setting where paths are not taken either.
 */
@@ -1082,8 +1082,8 @@ std::string op_table(
 
 /*
 run_op
-  The operation previewed over the rows -- the whole sheet when none are
-named -- as a table; with --apply, each target's definition rewritten and
+  The operation previewed over the rows - the whole sheet when none are
+named - as a table; with --apply, each target's definition rewritten and
 the sheet stored, the table said about it.
 */
 int run_op(

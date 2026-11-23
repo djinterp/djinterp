@@ -9,7 +9,7 @@
 *
 *   THIS ONE CAN OVERFLOW, AND THE STANDARD SAYS SO:
 *   When the answer is not representable in T the behaviour is
-* undefined -- and, per [bit.pow.two], the call is then not a constant
+* undefined - and, per [bit.pow.two], the call is then not a constant
 * expression, so a compile-time use is diagnosed while a run-time use
 * is not. bit_ceil(uint8_t(200)) would need 256. No check is added here
 * beyond what the standard mandates: a silent clamp would be worse than
@@ -52,7 +52,7 @@ namespace re_std
 
 // bit_ceil
 //   function: least power of two >= _v; 1 for _v of 0 or 1. Undefined
-// when the result is not representable in T -- see the header note.
+// when the result is not representable in T - see the header note.
 template<typename T>
 RE_STD_CONSTEXPR typename internal::bit_enable<T>::type
 bit_ceil(

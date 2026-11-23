@@ -25,7 +25,7 @@
 * CARRIER. Over a KNOWN carrier the operations are ordinary: `d_maybe_map` takes
 * two views whose widths differ and a transform between them, and nothing
 * higher-kinded is required. So the instances here are concrete instances, not a
-* Functor protocol -- a `struct dj_functor` that any carrier could implement is
+* Functor protocol - a `struct dj_functor` that any carrier could implement is
 * the tier-3 work and is not attempted here.
 *   `traverse` is absent for the reason the parity assessment gives: it composes
 * two constructors, and the corpus needs only a narrow slice of it. That slice
@@ -60,7 +60,7 @@
 #include "../../../re_std/c/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -82,7 +82,7 @@ struct dj_maybe
 //   macro: THE declaration of a maybe cell's layout, and the only one.
 // Goal 4 requires a shared type to be declared once and compiled by both
 // languages. A C++ face cannot reuse `D_MAYBE_DECLARE` inside a template --
-// the macro names the struct -- so the FIELDS are factored out here, and both
+// the macro names the struct - so the FIELDS are factored out here, and both
 // the C macro below and the C++ template in functional_face.hpp expand this
 // same text. Neither language restates the members.
 #define D_MAYBE_FIELDS(type)                                                \

@@ -8,14 +8,14 @@
 *     reading     the grammar text becomes rules. For notation this is itself
 *                 a PEG run (the meta-grammar's program over the text), so it
 *                 is traced like any other; for EBNF it is ebnf::parse.
-*     building    the rules become a PEG program -- through a generation plan
+*     building    the rules become a PEG program - through a generation plan
 *                 for notation, directly for EBNF.
 *     running     the program runs over the input.
 *
 *   From each traced PEG run the record derives the rules that matched (a tree
 * of spans over the text) and, when the run failed, its frontier: the furthest
 * character reached, the rules active there, and what they expected. Every
-* part of the run is also laid out as a listing -- rows of text -- which is
+* part of the run is also laid out as a listing - rows of text - which is
 * what the workbench displays, compares between runs, and saves to files.
 *   Every PEG run is counted as it runs, traced or not (peg::profile): its
 * steps, arrivals and revisits by rule, its calls and the calls it repeated,
@@ -131,7 +131,7 @@ struct span
 //------------------------------------------------------------------------------
 // 1.3.1
 // frontier
-//   struct: where a failing parse got furthest -- the offset, the rules that
+//   struct: where a failing parse got furthest - the offset, the rules that
 // were active there (outermost first), what the failing steps expected, and
 // the trace step of the last failure there.
 struct frontier
@@ -190,7 +190,7 @@ struct listing
 // 2.1.1
 // run_request
 //   struct: what to run. frontend is "notation" or "ebnf"; memoize is which
-// rules the program calls through the memo -- "none", "all", "auto", or
+// rules the program calls through the memo - "none", "all", "auto", or
 // rule names separated by commas (memo_rules); origin says where the request
 // came from (typed in, or a saved run's folder).
 struct run_request
@@ -257,8 +257,8 @@ struct run_record
 // refusal
 //   struct: why a run's grammar was refused, for a diagnostic that puts the
 // place first, as a compiler writes one: the 1-based line and column in the
-// grammar where its reader stopped, both 0 where there is no place -- the
-// reader's step limit, the EBNF reader, a program that was not built -- and
+// grammar where its reader stopped, both 0 where there is no place - the
+// reader's step limit, the EBNF reader, a program that was not built - and
 // the headline's sentence, the place taken out of it.
 struct refusal
 {

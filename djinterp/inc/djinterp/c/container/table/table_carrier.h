@@ -26,14 +26,14 @@ D_EXTERN_C_BEGIN
 
 
 // dj_table
-//   struct: the cell-homogeneous rank-2 table -- the tex's T_ and I_T in their
+//   struct: the cell-homogeneous rank-2 table - the tex's T_ and I_T in their
 // lowered form. One cell type serves every cell, so the cell type is carried
 // as a single byte width and the cells sit contiguously in the atomic
 // (row-major, lexicographic) order. The rectangularity invariant is the
 // module's one structural claim: the
 // cells in use are exactly rows * cols, and every operation that changes the
-// domain restores it before returning. The struct owns nothing -- ownership is
-// the caller's, or the allocator's -- so copying it copies a view, and
+// domain restores it before returning. The struct owns nothing - ownership is
+// the caller's, or the allocator's - so copying it copies a view, and
 // d_table_release is the only thing that frees.
 struct dj_table
 {
@@ -50,7 +50,7 @@ struct dj_table
 // operation takes one of these and there is no default anywhere in the core. A
 // table
 // over a fixed buffer passes a zeroed dj_table_alloc and gets
-// D_TABLE_STATUS_CAPACITY instead of a hidden malloc -- which is what BOUNDED
+// D_TABLE_STATUS_CAPACITY instead of a hidden malloc - which is what BOUNDED
 // means, made mechanical.
 struct dj_table_alloc
 {
@@ -67,7 +67,7 @@ struct dj_table_alloc
 // III.  The carrier   (the CELL-HOMOGENEOUS table)
 
 // d_table_domain_of
-//   function: the domain I_T of a table -- the projection that lets every
+//   function: the domain I_T of a table - the projection that lets every
 // domain query above apply to a table without restating it.
 D_NODISCARD D_INLINE struct dj_table_domain d_table_domain_of(
     const struct dj_table* _table
@@ -138,7 +138,7 @@ D_NODISCARD D_INLINE size_t d_table_size(
 }
 
 // d_table_bytes
-//   function: the number of cell bytes in use -- the runtime sizeof of the
+//   function: the number of cell bytes in use - the runtime sizeof of the
 // table's contents, |T| * cell_size.  (The struct's own sizeof is a
 // compile-time
 // constant and says nothing about the cells.)
@@ -159,7 +159,7 @@ D_NODISCARD D_INLINE size_t d_table_capacity_bytes(
 }
 
 // d_table_row_bytes
-//   function: the byte length of one leading slice -- the product of every
+//   function: the byte length of one leading slice - the product of every
 // extent but the first, times the cell size. For a rank-2 table, one row.
 D_NODISCARD D_INLINE size_t d_table_row_bytes(
     const struct dj_table* _table
@@ -170,7 +170,7 @@ D_NODISCARD D_INLINE size_t d_table_row_bytes(
 }
 
 // d_table_row_capacity
-//   function: the leading slices the buffer can hold AT THE CURRENT SHAPE -- a
+//   function: the leading slices the buffer can hold AT THE CURRENT SHAPE - a
 // derived quantity, recomputed on demand rather than stored, so that a shape
 // change cannot leave it describing a slice of a different size.
 size_t d_table_row_capacity(
@@ -210,7 +210,7 @@ D_NODISCARD D_INLINE int d_table_contains2(
 }
 
 // d_table_holds_invariant
-//   function: whether the rectangularity invariant holds -- the cells in use
+//   function: whether the rectangularity invariant holds - the cells in use
 // fit the bytes the buffer holds, the rank is within this build's cap, and a
 // buffer-less table carries no capacity. The predicate the debug knob checks
 // and the conformance test asserts after every structural operation.
@@ -219,7 +219,7 @@ int d_table_holds_invariant(
 );
 
 // d_table_cell_at
-//   function: a pointer to the cell at _index -- val_T applied to a valid
+//   function: a pointer to the cell at _index - val_T applied to a valid
 // index, in its lowered (byte) form. Unchecked; the caller has established
 // validity.
 D_NODISCARD D_INLINE void* d_table_cell_at(
@@ -272,7 +272,7 @@ D_NODISCARD D_INLINE const void* d_table_cell_at_const(
 }
 
 // d_table_at_index
-//   function: the checked, rank-k cell pointer -- NULL when the index is
+//   function: the checked, rank-k cell pointer - NULL when the index is
 // outside I_T. NULL here reports a FORMAL condition (the index is undefined)
 // and is the C spelling of the C++ face's std::out_of_range.
 D_NODISCARD D_INLINE void* d_table_at_index(
@@ -345,7 +345,7 @@ D_NODISCARD D_INLINE const void* d_table_row_const(
 }
 
 // d_table_get
-//   function: copy the cell at (_row, _column) into _out -- the byte-copy form
+//   function: copy the cell at (_row, _column) into _out - the byte-copy form
 // of val_T, for a caller holding a cell of the right width but not its type.
 enum dj_table_status d_table_get(
     const struct dj_table* _table,
@@ -355,7 +355,7 @@ enum dj_table_status d_table_get(
 );
 
 // d_table_set
-//   function: overwrite the cell at (_row, _column) from _value -- element
+//   function: overwrite the cell at (_row, _column) from _value - element
 // mutation, which leaves I_T fixed.
 enum dj_table_status d_table_set(
     struct dj_table* _table,
@@ -387,8 +387,8 @@ int d_table_alloc_can_grow(
     const struct dj_table_alloc* _alloc
 );
 
-// VII. Structural mutation Structural mutation changes I_T itself -- appending
-// a row alters a bound function, hence the domain -- so it needs storage and
+// VII. Structural mutation Structural mutation changes I_T itself - appending
+// a row alters a bound function, hence the domain - so it needs storage and
 // spare capacity. These are the operations that can fail, and they are defined
 // out of line: they loop, they may allocate, and inlining them would buy
 // nothing the domain algebra above has not already bought. Every one preserves
@@ -463,7 +463,7 @@ int d_table_bytes_equal(
 );
 
 
-// layout assertions -- drift becomes a compile error rather than a wire-format
+// layout assertions - drift becomes a compile error rather than a wire-format
 // bug, and both dialects compile them
 D_STATIC_ASSERT(offsetof(struct dj_table, cells) == 0,
                 "dj_table field drift: cells must lead");

@@ -2,10 +2,10 @@
 * djinterp [c][math]                                             t_float_order.c
 *
 *   Conformance harness for c/math/float_order.h, all three families: next_up
-* and next_down against the C library's nextafter -- over windows of every
+* and next_down against the C library's nextafter - over windows of every
 * consecutive float around zero, the least normal value, 1 and the largest
 * finite value, over a million random values of each type, and at the
-* special values -- and steps and advance against stepping with nextafter,
+* special values - and steps and advance against stepping with nextafter,
 * near and across zero and across binades, and against each other; and
 * both at the order's ends, at a NaN and across one binade's edge.
 *

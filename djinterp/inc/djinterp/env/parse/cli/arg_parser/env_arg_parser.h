@@ -9,11 +9,11 @@
 * variables are read and files opened without a deprecation diagnostic, how
 * a file's status is asked for, how the terminal's width is asked for, how
 * the C runtime turns a `long double` into text and back, and, under C++,
-* whether exceptions are enabled -- the fact the C++ face needs to keep
+* whether exceptions are enabled - the fact the C++ face needs to keep
 * every call from C into C++ from throwing.
 *   It includes no system header. Each fact is derived from env.h's OS and
-* compiler classification -- and, on Windows, env_windows.h's toolchain
-* classification -- is #ifndef-guarded so a build may define it first, and
+* compiler classification - and, on Windows, env_windows.h's toolchain
+* classification - is #ifndef-guarded so a build may define it first, and
 * is read only by cfg_arg_parser.h and the module's sources and C++
 * headers.
 *
@@ -106,7 +106,7 @@ TABLE OF CONTENTS
 // 1.1.1
 // D_ENV_ARG_PARSER_WINDOWS_STYLE_NATIVE
 //   detection: 1 where `/name` and `/name:value` are the platform's own option
-// syntax -- Windows -- and 0 elsewhere. cfg_arg_parser.h makes it the default
+// syntax - Windows - and 0 elsewhere. cfg_arg_parser.h makes it the default
 // of a parser's allow-Windows-style setting, as CLI11 does with `_WIN32`.
 #ifndef D_ENV_ARG_PARSER_WINDOWS_STYLE_NATIVE
     #if D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)
@@ -180,8 +180,8 @@ TABLE OF CONTENTS
 
 // 1.3.3
 // D_ENV_ARG_PARSER_WIDE_NATIVE
-//   detection: 1 where the system's own text is wide -- Windows, whose calls
-// take UTF-16, as its std::filesystem::path holds it -- and 0 elsewhere. The
+//   detection: 1 where the system's own text is wide - Windows, whose calls
+// take UTF-16, as its std::filesystem::path holds it - and 0 elsewhere. The
 // C++ face then makes a value of a type made from both a std::string and a
 // std::wstring from the wide one, its UTF-8 converted exactly, as CLI11
 // makes it under MSVC.
@@ -366,7 +366,7 @@ TABLE OF CONTENTS
 // 2.4.4
 // D_ENV_ARG_PARSER_FOPEN
 //   detection: the secure functions under the Microsoft toolchain's runtime
-// (cl, clang-cl), the standard ones elsewhere, MinGW included -- as
+// (cl, clang-cl), the standard ones elsewhere, MinGW included - as
 // D_ENV_ARG_PARSER_GETENV chooses.
 #ifndef D_ENV_ARG_PARSER_FOPEN
     #if D_ENV_COMPILER_MSVC_FAMILY
@@ -399,8 +399,8 @@ TABLE OF CONTENTS
 // 3.1.1.2
 // D_ENV_ARG_PARSER_LONG_DOUBLE_MINGW
 //   constant: through MinGW-w64's own __mingw_snprintf. MinGW's `long double`
-// is the 80-bit x87 type, but the Microsoft runtime it links -- msvcrt or the
-// UCRT -- formats `%Lg` as a 64-bit double and so prints garbage; MinGW-w64's
+// is the 80-bit x87 type, but the Microsoft runtime it links - msvcrt or the
+// UCRT - formats `%Lg` as a 64-bit double and so prints garbage; MinGW-w64's
 // own formatter, which its strtold already is, reads the full type.
 #define D_ENV_ARG_PARSER_LONG_DOUBLE_MINGW    1
 

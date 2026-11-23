@@ -2,8 +2,8 @@
 * djinterp [c][db]                                                  cfg_db_log.h
 *
 * Build-time configuration for what db gives the log.
-*   A vendor's message can carry a user's data -- the value a constraint
-* refused, the text of a statement that did not parse -- so whether db's
+*   A vendor's message can carry a user's data - the value a constraint
+* refused, the text of a statement that did not parse - so whether db's
 * records of a vendor's failure carry it is a knob (the log's decision 75),
 * and a setting of db's for a run, db.log.vendor_message, whose default it
 * is. db logs neither statements nor parameters, so with the message left

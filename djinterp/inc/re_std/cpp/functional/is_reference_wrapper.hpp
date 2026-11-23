@@ -10,7 +10,7 @@
 *   invoke.hpp needs `is_reference_wrapper` to select the rw-arg INVOKE
 * bullets, and reference_wrapper::operator() needs `re_std::invoke`.  That
 * is a cycle.  Include guards do not resolve it: they prevent infinite
-* recursion, not mis-ordering -- whichever of the two files is entered
+* recursion, not mis-ordering - whichever of the two files is entered
 * first, reference_wrapper::operator()'s trailing return type is parsed
 * before `re_std::invoke` is declared, and because `re_std::invoke` is a
 * qualified-id whose nested-name-specifier does not depend on a template
@@ -43,7 +43,7 @@ namespace re_std
 {
 
 // reference_wrapper
-//   class: forward declaration only -- the trait below needs the name, not
+//   class: forward declaration only - the trait below needs the name, not
 // the definition.  reference_wrapper.hpp supplies the definition.
 template<typename Type>
 class reference_wrapper;
@@ -52,13 +52,13 @@ namespace internal
 {
 
     // is_reference_wrapper_helper
-    //   trait: primary -- false for arbitrary types.
+    //   trait: primary - false for arbitrary types.
     template<typename Type>
     struct is_reference_wrapper_helper : false_type
     {};
 
     // is_reference_wrapper_helper<reference_wrapper<U>>
-    //   trait: specialization -- true for reference_wrapper.
+    //   trait: specialization - true for reference_wrapper.
     template<typename U>
     struct is_reference_wrapper_helper< reference_wrapper<U> > : true_type
     {};

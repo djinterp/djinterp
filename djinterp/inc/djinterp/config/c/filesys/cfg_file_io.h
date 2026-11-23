@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                            cfg_file_io.h
 *
-* Build-time configuration for c/filesys/file_io.h -- reading and writing bytes,
+* Build-time configuration for c/filesys/file_io.h - reading and writing bytes,
 * whether through a descriptor, at an offset, or a whole file at a time.
 *
 *   Read and write share a module because they share their machinery: the same
@@ -100,8 +100,8 @@ TABLE OF CONTENTS
 // unsigned int, and a POSIX read is only required to handle SSIZE_MAX, so a
 // size_t-sized request has to be broken up somewhere regardless. Doing it
 // here means a caller may pass any size and get the loop for free. A chunk
-// larger than one platform call can carry -- INT_MAX bytes on Windows,
-// SSIZE_MAX on POSIX -- is cut to that, whatever this says.
+// larger than one platform call can carry - INT_MAX bytes on Windows,
+// SSIZE_MAX on POSIX - is cut to that, whatever this says.
 //   Default 1 MiB: large enough that the per-call overhead vanishes, small
 // enough to stay friendly to the page cache and to a 32-bit address space.
 #ifndef D_CFG_FILE_READ_CHUNK_SIZE
@@ -111,9 +111,9 @@ TABLE OF CONTENTS
 // 1.1.2
 // D_CFG_FILE_READ_MAX_SIZE
 //   knob: refuse a whole-file read larger than this many bytes (value
-// model), with EFBIG -- a file measured past it before anything is
+// model), with EFBIG - a file measured past it before anything is
 // allocated, and a source that cannot be measured as soon as it passes it.
-// 0 means "no ceiling of its own" -- the D_CFG_FILE_MAX_ALLOC ceiling still
+// 0 means "no ceiling of its own" - the D_CFG_FILE_MAX_ALLOC ceiling still
 // applies, less the terminator's byte, since the buffer has to be
 // allocated. Set it when the read path should be tighter than the
 // subframework's general limit, e.g. a config loader that should never see a
@@ -143,8 +143,8 @@ TABLE OF CONTENTS
 // 1.2.2
 // D_CFG_FILE_READ_GROW_UNSIZED
 //   knob: let d_file_read_all handle sources whose length cannot be known in
-// advance -- pipes, character devices, and every file under /proc and /sys,
-// all of which stat as zero bytes and then produce data anyway -- by growing
+// advance - pipes, character devices, and every file under /proc and /sys,
+// all of which stat as zero bytes and then produce data anyway - by growing
 // the buffer as it reads instead of trusting the reported size.
 //   On by default: without it, reading /proc/self/status silently returns an
 // empty buffer, which is the kind of bug that survives review. Set 0 for a
@@ -222,7 +222,7 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 1.5.1
 // D_CFG_FILE_WRITE_ATOMIC
-//   knob: make d_file_write_all replace a file rather than rewrite it -- write
+//   knob: make d_file_write_all replace a file rather than rewrite it - write
 // to a sibling temporary, then rename over the target, so a reader either
 // sees the whole old file or the whole new one and never a half-written one.
 // The temporary is created exclusively, under a name no one else can have
@@ -240,7 +240,7 @@ TABLE OF CONTENTS
 //       it was opened with delete sharing, which the C runtime never asks
 //       for: the move is retried for a moment, then fails with EACCES;
 //     - rename is atomic in the directory, but a crash can still lose the
-//       rename itself unless the directory is synced -- which is what
+//       rename itself unless the directory is synced - which is what
 //       D_CFG_FILE_WRITE_SYNC adds.
 //   It needs descriptors, so the ISO C backend refuses it. Turn it on for
 // config files, save files, and anything a second process may read while you
@@ -253,12 +253,12 @@ TABLE OF CONTENTS
 // D_CFG_FILE_WRITE_SYNC
 //   knob: force written data to durable storage before d_file_write_all and
 // d_file_append_all return, instead of leaving it in the page cache: the file
-// is synced, and then -- on POSIX -- the directory that holds its name, so a
+// is synced, and then - on POSIX - the directory that holds its name, so a
 // file the call created, or the rename that replaced one, survives a crash
 // too. Both are synced as d_file_sync_fd syncs, so cfg_file_sync.h's choices
 // hold here as well: F_FULLFSYNC on Apple's systems, and fdatasync on Linux
 // when D_CFG_FILE_SYNC_DATA_ONLY asks for it.
-//   Off by default because the cost is not marginal -- it is a device round
+//   Off by default because the cost is not marginal - it is a device round
 // trip, and it can be milliseconds on spinning media or a slow SSD, per
 // call. Without it "the write succeeded" means the kernel accepted the
 // bytes, not that they survive a power cut.
@@ -295,7 +295,7 @@ TABLE OF CONTENTS
 // D_CFG_FILE_WRITE_PREALLOCATE
 //   knob: reserve the file's extents up front when d_file_write_all knows the
 // size (posix_fallocate), instead of letting it grow one write at a time:
-// less fragmentation, for a syscall. A refusal is not reported -- where it is
+// less fragmentation, for a syscall. A refusal is not reported - where it is
 // a shortage of space, the writing that follows meets it and reports it.
 // Follows D_CFG_FILE_OPTIMIZE; a no-op where unsupported, and on the ISO C
 // backend.
@@ -380,7 +380,7 @@ TABLE OF CONTENTS
 #endif
 
 // atomic replace makes its temporary exclusively, so that no one else can
-// have chosen its name -- and only a backend with descriptors can do that.
+// have chosen its name - and only a backend with descriptors can do that.
 // Say so rather than quietly degrading to a plain rewrite, which is the exact
 // failure the knob was set to prevent.
 #if ( (D_CFG_IS_ON(D_CFG_FILE_WRITE_ATOMIC)) &&                                \
@@ -410,8 +410,8 @@ TABLE OF CONTENTS
 // D_INTERNAL_FILE_READ_MAX_SIZE
 //   resolved: the most bytes a whole-file read may return, or 0 for no limit.
 // Resolves the module knob against the subframework's allocation ceiling by
-// taking whichever is tighter -- so a module knob can only ever narrow the
-// limit -- and counts the terminator's byte (3.1.6) against the allocation
+// taking whichever is tighter - so a module knob can only ever narrow the
+// limit - and counts the terminator's byte (3.1.6) against the allocation
 // ceiling, since the buffer holds it too: a size this admits always fits.
 #if ( (D_CFG_NORM(D_CFG_FILE_READ_MAX_SIZE) > 0) &&                            \
       ( (D_CFG_NORM(D_CFG_FILE_MAX_ALLOC) == 0) ||                             \
@@ -517,7 +517,7 @@ TABLE OF CONTENTS
 // 3.1.13
 // D_INTERNAL_FILE_WRITE_SYNC
 //   resolved: 1 when the whole-file path forces data to durable storage.
-// Requires descriptors, so the ISO C backend cannot honour it -- fflush
+// Requires descriptors, so the ISO C backend cannot honour it - fflush
 // pushes to the kernel, which is not the same promise and must not be
 // mistaken for it.
 #if ( (D_CFG_IS_ON(D_CFG_FILE_WRITE_SYNC)) &&                                  \

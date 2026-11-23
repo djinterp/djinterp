@@ -3,7 +3,7 @@
 *
 * Private to the event core's sources: how the registry brackets a dispatch.
 *   Dispatch folds the word in force when the occurrence began, so a letter a
-* handler unbinds mid-dispatch must still be folded -- and its state must not
+* handler unbinds mid-dispatch must still be folded - and its state must not
 * be released before it is. While a table is dispatching, unbind therefore
 * leaves the letter in its chain as a ZOMBIE: gone from every query and count,
 * still linked, state intact. The outermost dispatch reaps the zombies when it

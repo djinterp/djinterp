@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  recursion_tests_mu.cpp
-//   Section I -- mu<F>, the least fixed point (ctor, In, out, empty, sharing).
+//   Section I - mu<F>, the least fixed point (ctor, In, out, empty, sharing).
 
 // std
 #include <type_traits>

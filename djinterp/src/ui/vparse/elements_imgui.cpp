@@ -2,8 +2,8 @@
 * djinterp [cpp][tools]                                       elements_imgui.cpp
 *
 * The workbench's elements on Dear ImGui: their renderers, and the theme.
-*   Listings are green-bar tables -- bands of three rows, as on fanfold
-* printer paper -- drawn a screenful at a time with a list clipper, so a
+*   Listings are green-bar tables - bands of three rows, as on fanfold
+* printer paper - drawn a screenful at a time with a list clipper, so a
 * hundred-thousand-step trace costs what its visible rows cost. Two runs side
 * by side are compared by a longest-common-subsequence over each row's key,
 * computed once per pair of runs and part, and cached; runs never change after
@@ -414,7 +414,7 @@ void draw_table(
 // keyed
 //   the blueprint of one of the workbench's elements: _draw, with the text
 // _text, keyed by the element's "key" attribute, and with its "target"
-// attribute copied into the payload of every event the drawing posts -- the
+// attribute copied into the payload of every event the drawing posts - the
 // two attributes uxoxo's own archetypes give the same meaning everywhere.
 template<typename Draw>
 imgui_blueprint keyed(

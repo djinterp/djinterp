@@ -8,7 +8,7 @@
 * server, current_schema(), and named in the statement, so that an
 * unqualified name never reaches a temporary table, or one further along the
 * search path, that the layer's lookups would not have seen. Where the server
-* lacks an IF NOT EXISTS -- views and triggers -- the layer runs the CREATE
+* lacks an IF NOT EXISTS - views and triggers - the layer runs the CREATE
 * and reads "already exists" as success (d_internal_postgres_tolerate).
 *   Columns are described from pg_attribute, their defaults from pg_attrdef
 * as pg_get_expr writes them, and their key places from the primary key's
@@ -1876,7 +1876,7 @@ int d_postgres_list_sequences(
 /*
 d_postgres_next_value
   nextval() on the sequence's oid, found as a lookup finds it, so that a
-missing sequence is no row -- D_DB_NOT_FOUND -- rather than a failure that
+missing sequence is no row - D_DB_NOT_FOUND - rather than a failure that
 would leave a transaction failed.
 */
 int d_postgres_next_value(

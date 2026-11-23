@@ -1,11 +1,11 @@
 #!/bin/sh
-# git.sh -- dgit against git itself, and the -x git extension and its
+# git.sh - dgit against git itself, and the -x git extension and its
 # scripts against what git says.
 #
 # Repositories are made here with git: a history with branches, a merge and
 # tags of each kind, its refs packed and its objects packed with deltas and
 # some left loose; a reflog and an upstream; a work tree holding every kind
-# of change status reports -- staged, changed, gone, a type changed, a
+# of change status reports - staged, changed, gone, a type changed, a
 # conflict, intent to add, skip-worktree, untracked and ignored files and
 # directories, names that need quotes, \r\n endings and attributes over
 # them; a linked work tree; a submodule; a bare clone; and a repository of
@@ -18,7 +18,7 @@
 # when it is one. Then dawk -x git and git_ignore.awk, git_survey.awk and
 # git_changelog.awk, over the same repositories.
 #   Without git, nothing is compared, and the suite passes saying so; with
-# no dawk -- "none" in its place, as CMake's suite runs it -- only dgit is.
+# no dawk - "none" in its place, as CMake's suite runs it - only dgit is.
 #
 #   sh tests/djinterp/tools/dawk/ext/git/git.sh [build/dawk] [build/test_dgit]
 DAWK=${1:-build/dawk}

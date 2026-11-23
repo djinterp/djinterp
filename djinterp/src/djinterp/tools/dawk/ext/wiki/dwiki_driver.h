@@ -3,9 +3,9 @@
 *
 * What a dialect's driver gives the wiki reader, and what the reader gives
 * its drivers.
-*   A driver reads a page's text into the records of dwiki.h -- its blocks
+*   A driver reads a page's text into the records of dwiki.h - its blocks
 * and their segments, its headings, its links, and, in MediaWiki, its
-* templates -- and makes the anchor of a title, and writes each thing a page
+* templates - and makes the anchor of a title, and writes each thing a page
 * holds. The reader does the rest, the same for every dialect: the lines,
 * the records' places, the anchors made unique, the sections, the regions.
 *   Private to the wiki units: dwiki.c, dwiki_doc.c and the drivers.
@@ -55,7 +55,7 @@ TABLE OF CONTENTS
 //   the text, with their places, and a heading's `title`; the reader fills
 //   the rest.  `anchor` writes a title's anchor before it is made unique,
 //   and a second heading of one anchor is told apart by `separator` and a
-//   number, counting from `first_repeat` -- or, for a dialect with
+//   number, counting from `first_repeat` - or, for a dialect with
 //   `number`, as that tells them apart, each heading's `anchor` its
 //   title's when it is called.  The writers are those of dwiki.h,
 //   less the dialect; `target` and `label` write what goes in place of a
@@ -180,16 +180,16 @@ bool d_wiki_add_utf8(
     struct dj_wiki_buffer* _out,
     uint32_t               _character
 );
-// d_wiki_entity reads a character reference at `_text` -- &name;, &#nn;,
-// &#xhh; -- writing what it stands for, and gives its length, or 0 for
+// d_wiki_entity reads a character reference at `_text` - &name;, &#nn;,
+// &#xhh; - writing what it stands for, and gives its length, or 0 for
 // text that is not one.
 size_t d_wiki_entity(
     const char*            _text,
     size_t                 _length,
     struct dj_wiki_buffer* _out
 );
-// d_wiki_emoji writes the emoji GitHub names `_name` -- "bulb" is U+1F4A1
-// -- and says whether there is one.
+// d_wiki_emoji writes the emoji GitHub names `_name` - "bulb" is U+1F4A1
+// - and says whether there is one.
 bool d_wiki_emoji(
     const char*            _name,
     size_t                 _length,

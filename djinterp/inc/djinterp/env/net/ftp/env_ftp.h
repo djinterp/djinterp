@@ -45,7 +45,7 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 1.1.1
 // D_ENV_FTP_HAS_TRANSPORT
-//   flag: 1 when the TCP transport builds its socket backend here -- a
+//   flag: 1 when the TCP transport builds its socket backend here - a
 // socket API with poll, the condition cfg_tcp.h defaults D_CFG_TCP by.
 // Without it tcp.c builds stubs, and every connection reports the network
 // down.

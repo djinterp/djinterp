@@ -3,7 +3,7 @@
 *
 * is_unbounded_array trait header:
 *   is_unbounded_array<T>::value is true iff T is an array type of UNKNOWN
-* bound -- `U[]`.  This is the incomplete array type that make_unique and the
+* bound - `U[]`.  This is the incomplete array type that make_unique and the
 * shared-pointer factories dispatch on.
 *
 *   PORTABILITY:

@@ -2,7 +2,7 @@
 * djinterp [c][utility]                               archive_kernel_tests_zip.c
 *
 *   The ZIP reader's checks, its methods, and the writer's limits.  Every
-* member read is checked against its record -- size and CRC -- so damage the
+* member read is checked against its record - size and CRC - so damage the
 * codec cannot see, a stored member's bytes most of all, is reported; every
 * offset is checked before it is followed; lzma, which the codec set cannot
 * make, is refused both ways; and what the classic records cannot hold is

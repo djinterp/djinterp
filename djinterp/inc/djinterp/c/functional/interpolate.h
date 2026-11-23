@@ -8,16 +8,16 @@
 * independent axes. The C lowering keeps that split exactly, and every one of
 * the three turns out to be something this subframework already has:
 *
-*     scanner  -- WHERE the placeholders are. A pull cursor yielding one piece
+*     scanner  - WHERE the placeholders are. A pull cursor yielding one piece
 *                 (a literal run or a key) per step. That is a `dj_producer`.
-*     resolver -- WHAT a key becomes. A lookup that may MISS. That is a
+*     resolver - WHAT a key becomes. A lookup that may MISS. That is a
 *                 `maybe`, and chaining frames so a later one runs only when an
 *                 earlier one misses is `alt`, the Alternative instance.
-*     sink     -- HOW output is assembled. Literal runs and resolved values
+*     sink     - HOW output is assembled. Literal runs and resolved values
 *                 arriving one at a time. That is a `dj_reducer`.
 *
 * So the engine is a producer driven through a fold into a sink, and it needed
-* no new machinery -- which is the strongest evidence so far that the tier 1--3
+* no new machinery - which is the strongest evidence so far that the tier 1--3
 * work was factored correctly rather than merely completed.
 *
 * A MISS LEAVES THE PLACEHOLDER UNTOUCHED. This is the property that makes
@@ -59,7 +59,7 @@
 #include "../../../re_std/c/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -75,7 +75,7 @@ enum dj_interp_piece_kind
 };
 
 // dj_interp_piece
-//   struct: one scanner step -- a literal run or a key.
+//   struct: one scanner step - a literal run or a key.
 // `begin` points into the caller's own text; nothing is copied at scan time.
 struct dj_interp_piece
 {

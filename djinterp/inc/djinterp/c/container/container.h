@@ -36,7 +36,7 @@
 
 // dj_merge_conflict_flag
 //   enum: how a merge resolves a key that already exists in the destination
-// container -- leave the incumbent, replace it, or retain both entries.
+// container - leave the incumbent, replace it, or retain both entries.
 enum dj_merge_conflict_flag
 {
     D_MERGE_CONFLICT_FLAG_IGNORE    = 0x00,

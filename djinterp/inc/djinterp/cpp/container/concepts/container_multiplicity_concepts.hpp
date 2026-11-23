@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                  container_multiplicity_concepts.hpp
 *
-* C++20 concepts for the MULTIPLICITY axis -- the `requires`-facing view of
+* C++20 concepts for the MULTIPLICITY axis - the `requires`-facing view of
 * container_multiplicity_traits.hpp.
 *
 *   THE CONCEPTS ADD NO POLICY.
@@ -49,13 +49,13 @@ NS_DJINTERP
 
 
 // UniqueContainer
-//   concept: one occurrence per equivalence class, m = 1 -- set semantics.
+//   concept: one occurrence per equivalence class, m = 1 - set semantics.
 template<typename Type>
 concept UniqueContainer = is_unique_container_v<Type>;
 
 
 // MultisetContainer
-//   concept: a genuine equivalence with m > 1 -- duplicates admitted.
+//   concept: a genuine equivalence with m > 1 - duplicates admitted.
 template<typename Type>
 concept MultisetContainer = is_multiset_container_v<Type>;
 
@@ -75,13 +75,13 @@ concept SequenceMultiplicityContainer = is_sequence_container_v<Type>;
 
 
 // CountableContainer
-//   concept: the axis guard -- a value_type and a const-callable size().
+//   concept: the axis guard - a value_type and a const-callable size().
 template<typename Type>
 concept CountableContainer = is_countable_container_v<Type>;
 
 
 // DeclaresMultiplicityBound
-//   concept: carries the opt-in static `DMultiplicity` -- the authoritative
+//   concept: carries the opt-in static `DMultiplicity` - the authoritative
 // override, and the only way to state a bound with no structural tell (a
 // bounded multiset, or a keyed container whose insert takes a key and a value
 // rather than one value_type).

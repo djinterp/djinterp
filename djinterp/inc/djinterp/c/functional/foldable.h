@@ -5,8 +5,8 @@
 *   `parity_functional_types.md` frames the tier-3 choice as (a) macro
 * monomorphisation or (b) a dictionary of function pointers over `void*`, and
 * recommends both at different layers. It also names the right place to start:
-* "Alternative and Foldable are the easy members here -- `alt` never changes
-* `A`, and `fold_left`'s result leaves `F` entirely -- so they are the right two
+* "Alternative and Foldable are the easy members here - `alt` never changes
+* `A`, and `fold_left`'s result leaves `F` entirely - so they are the right two
 * to build first as proof." This header is that proof, in encoding (b).
 *
 * WHY THESE TWO ARE EASY, PRECISELY. The obstruction at kind `* -> *` is having
@@ -14,13 +14,13 @@
 * returns an `Acc` that has left the carrier entirely, so the dictionary needs
 * one operation over one carrier type. Alternative never does either: `alt` is
 * `F<A> x F<A> -> F<A>`, so `A` is fixed throughout. Functor, Applicative and
-* Monad all change `A`, which is why they are not here -- they need the second
+* Monad all change `A`, which is why they are not here - they need the second
 * carrier type named, and that is the decision this instalment is meant to
 * inform rather than pre-empt.
 *
 * ONE OPERATION IS ENOUGH FOR FOLDABLE, because tier 1 already supplies the
 * driver. A `dj_foldable` says only how to push a carrier's elements at a
-* `dj_reducer`; everything else -- folds, quantifiers, monoid summaries -- is the
+* `dj_reducer`; everything else - folds, quantifiers, monoid summaries - is the
 * tier 1 spine applied through that one call. So `d_foldable_mconcat` folds ANY
 * carrier under ANY monoid, and neither the carrier nor the monoid knows about
 * the other. That is the payoff of the whole three-tier arrangement, and the
@@ -56,7 +56,7 @@
 #include "../../../re_std/c/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).

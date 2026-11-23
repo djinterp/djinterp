@@ -9,7 +9,7 @@
 *   Each function comes twice, as in elementary.h. The _c form is pure
 * arithmetic, so the same text is a constant expression from C++14; the
 * plain form calls the C library (std:: in C++), fast at run time. Each
-* is exact -- the integer it picks is a value of the family -- and right
+* is exact - the integer it picks is a value of the family - and right
 * over the whole range: the integer part is taken by conversion to
 * dj_math_umax, never long long, a wide value's a part at a time, and
 * from 2^(P-1) up every value is its own. So the _c forms agree with the
@@ -74,7 +74,7 @@ TABLE OF CONTENTS
 
 // d_internal_math_f_own_integer
 //   true for a value that floor, ceil, trunc and round all leave as it is:
-// NaN, a zero, and from 2^(P-1) up, where every value is an integer -- the
+// NaN, a zero, and from 2^(P-1) up, where every value is an integer - the
 // infinities among them. 2^(P-1) is 1 / FLT_EPSILON, exactly.
 D_MATH_FN bool
 d_internal_math_f_own_integer(
@@ -92,8 +92,8 @@ d_internal_math_f_own_integer(
 // d_internal_math_f_whole
 //   the integer part of _a, 0 <= _a < 2^(P-1), exactly. A conversion to
 // dj_math_umax truncates exactly any value below 2^W, W its bits: every _a,
-// where P - 1 <= W. Past 2^W -- a quad's long double, or a family under a
-// 32-bit dj_math_umax -- _a is taken W bits at a time from the top: each part
+// where P - 1 <= W. Past 2^W - a quad's long double, or a family under a
+// 32-bit dj_math_umax - _a is taken W bits at a time from the top: each part
 // a whole multiple of a power of 2^W, each difference exact.
 D_MATH_FN float
 d_internal_math_f_whole(
@@ -145,7 +145,7 @@ d_internal_math_f_whole(
 // 1.2    Nearest integers
 //------------------------------------------------------------------------------
 // floor_c, ceil_c, trunc_c and round_c are C's floor, ceil, trunc and round,
-// exactly -- the integer each picks is a value of the family -- in pure
+// exactly - the integer each picks is a value of the family - in pure
 // arithmetic, a constant expression from C++14, over the whole range. round
 // takes a half away from zero. A zero keeps its sign, and so does a result
 // that is a zero: ceil(-0.5), trunc(-0.5) and round(-0.25) are -0. The
@@ -304,7 +304,7 @@ d_math_f_round(
 
 // d_internal_math_d_own_integer
 //   true for a value that floor, ceil, trunc and round all leave as it is:
-// NaN, a zero, and from 2^(P-1) up, where every value is an integer -- the
+// NaN, a zero, and from 2^(P-1) up, where every value is an integer - the
 // infinities among them. 2^(P-1) is 1 / DBL_EPSILON, exactly.
 D_MATH_FN bool
 d_internal_math_d_own_integer(
@@ -322,8 +322,8 @@ d_internal_math_d_own_integer(
 // d_internal_math_d_whole
 //   the integer part of _a, 0 <= _a < 2^(P-1), exactly. A conversion to
 // dj_math_umax truncates exactly any value below 2^W, W its bits: every _a,
-// where P - 1 <= W. Past 2^W -- a quad's long double, or a family under a
-// 32-bit dj_math_umax -- _a is taken W bits at a time from the top: each part
+// where P - 1 <= W. Past 2^W - a quad's long double, or a family under a
+// 32-bit dj_math_umax - _a is taken W bits at a time from the top: each part
 // a whole multiple of a power of 2^W, each difference exact.
 D_MATH_FN double
 d_internal_math_d_whole(
@@ -375,7 +375,7 @@ d_internal_math_d_whole(
 // 2.2    Nearest integers
 //------------------------------------------------------------------------------
 // floor_c, ceil_c, trunc_c and round_c are C's floor, ceil, trunc and round,
-// exactly -- the integer each picks is a value of the family -- in pure
+// exactly - the integer each picks is a value of the family - in pure
 // arithmetic, a constant expression from C++14, over the whole range. round
 // takes a half away from zero. A zero keeps its sign, and so does a result
 // that is a zero: ceil(-0.5), trunc(-0.5) and round(-0.25) are -0. The
@@ -534,7 +534,7 @@ d_math_d_round(
 
 // d_internal_math_ld_own_integer
 //   true for a value that floor, ceil, trunc and round all leave as it is:
-// NaN, a zero, and from 2^(P-1) up, where every value is an integer -- the
+// NaN, a zero, and from 2^(P-1) up, where every value is an integer - the
 // infinities among them. 2^(P-1) is 1 / LDBL_EPSILON, exactly.
 D_MATH_FN bool
 d_internal_math_ld_own_integer(
@@ -552,8 +552,8 @@ d_internal_math_ld_own_integer(
 // d_internal_math_ld_whole
 //   the integer part of _a, 0 <= _a < 2^(P-1), exactly. A conversion to
 // dj_math_umax truncates exactly any value below 2^W, W its bits: every _a,
-// where P - 1 <= W. Past 2^W -- a quad's long double, or a family under a
-// 32-bit dj_math_umax -- _a is taken W bits at a time from the top: each part
+// where P - 1 <= W. Past 2^W - a quad's long double, or a family under a
+// 32-bit dj_math_umax - _a is taken W bits at a time from the top: each part
 // a whole multiple of a power of 2^W, each difference exact.
 D_MATH_FN long double
 d_internal_math_ld_whole(
@@ -605,7 +605,7 @@ d_internal_math_ld_whole(
 // 3.2    Nearest integers
 //------------------------------------------------------------------------------
 // floor_c, ceil_c, trunc_c and round_c are C's floor, ceil, trunc and round,
-// exactly -- the integer each picks is a value of the family -- in pure
+// exactly - the integer each picks is a value of the family - in pure
 // arithmetic, a constant expression from C++14, over the whole range. round
 // takes a half away from zero. A zero keeps its sign, and so does a result
 // that is a zero: ceil(-0.5), trunc(-0.5) and round(-0.25) are -0. The

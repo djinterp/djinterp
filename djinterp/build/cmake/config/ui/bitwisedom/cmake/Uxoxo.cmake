@@ -6,8 +6,8 @@
 # uxoxo::imgui and the backends it can build here, and takes djinterp from
 # the djinterp::headers target djinterp's bitwisedom build defines, which
 # this build adds first. A uxoxo without that file predates the update the
-# window needs -- the controls, the keys and targets, and the build of its
-# own -- and is refused by name; so is one without the popup element and the
+# window needs - the controls, the keys and targets, and the build of its
+# own - and is refused by name; so is one without the popup element and the
 # renames in place of 2026.10.09, one without the window element and the tab
 # bar's buttons of 2026.10.11, and one whose Dear ImGui is not the docking
 # branch, which the window's dock spaces and dockable windows are made of
@@ -83,7 +83,7 @@ endif()
 # node's tab bar begin inset, so a sheet's tabs begin over a column and run
 # on to the right edge; the overlay of 2026.10.20 (2) lets it end inset too,
 # and keep its tabs at its right. Without either, a sheet's tabs run across
-# the whole width from the left, as ImGui's own do -- the default anyway
+# the whole width from the left, as ImGui's own do - the default anyway
 set(_bitwisedom_inset "")
 
 if(EXISTS "${UXOXO_ROOT}/inc/imgui/imgui_internal.h")

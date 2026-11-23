@@ -6,7 +6,7 @@
 *
 *   Folds every storage word through the usual golden-ratio mix. This
 * is well-defined precisely BECAUSE bitset maintains the trimming
-* invariant -- the unused high bits of the last word are always zero,
+* invariant - the unused high bits of the last word are always zero,
 * so two bitsets that compare equal always hash equal. Without that
 * invariant, hashing the raw words would be wrong.
 *

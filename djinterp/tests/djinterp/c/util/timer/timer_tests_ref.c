@@ -3,7 +3,7 @@
 *
 * The timer suite, block "ref": timer.h's interface over any timer --
 * struct dj_timer_vtable, struct dj_timer_ref and the d_timer_ref_* functions
-* -- on each of the three kinds, and across them.
+* - on each of the three kinds, and across them.
 *
 *
 * path:      /tests/djinterp/c/util/timer/timer_tests_ref.c

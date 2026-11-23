@@ -38,7 +38,7 @@ NS_DJINTERP
 NS_UI
 
 // colormap_stop
-//   struct: one control point of a colormap -- the colour at position `at`,
+//   struct: one control point of a colormap - the colour at position `at`,
 // in [0, 1].
 struct colormap_stop
 {

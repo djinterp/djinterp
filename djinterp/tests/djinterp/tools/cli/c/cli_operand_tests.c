@@ -279,7 +279,7 @@ bool d_tests_cli_operand_refused(
 /*
 d_tests_cli_operand_nulls
   Each argument given nothing; then prefixes R13 does not allow: a letter,
-the empty prefix, a capital, a digit -- and one it does, `ex`.
+the empty prefix, a capital, a digit - and one it does, `ex`.
 */
 bool d_tests_cli_operand_nulls(void)
 {

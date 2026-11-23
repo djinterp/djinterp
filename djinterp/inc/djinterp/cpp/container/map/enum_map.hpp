@@ -25,7 +25,7 @@
 * This module provides the general sparse-enum case.
 *
 * ELEMENT TYPES:
-*   enum_entry<E, V>   -- type alias for std::pair<const E, V>.
+*   enum_entry<E, V>   - type alias for std::pair<const E, V>.
 *                          This is the value_type of the container.
 *
 *   The user may insert elements as:
@@ -34,20 +34,20 @@
 *     - via insert(key, value) convenience overload.
 *
 * TEMPLATE PARAMETERS:
-*   Enum        -- the enumeration type (scoped or unscoped).
-*   Value       -- the mapped value type.
-*   Backing     -- the underlying storage container.
+*   Enum        - the enumeration type (scoped or unscoped).
+*   Value       - the mapped value type.
+*   Backing     - the underlying storage container.
 *                   default: std::vector<std::pair<const Enum, Value>>.
-*   Compare     -- key comparison function object type.
+*   Compare     - key comparison function object type.
 *                   default: std::less<Enum>.
 *
 * DEPENDENCIES:
-*   djinterp.hpp                   -- namespace macros, clean_t
-*   type_traits.hpp                -- detection idiom
-*   container_traits.hpp           -- container classification
-*   map.hpp                        -- map_overlay_base, vocabulary types
-*   map_traits.hpp                 -- map structural traits
-*   enum_map_traits.hpp            -- enum-keyed map traits, enum_info
+*   djinterp.hpp                   - namespace macros, clean_t
+*   type_traits.hpp                - detection idiom
+*   container_traits.hpp           - container classification
+*   map.hpp                        - map_overlay_base, vocabulary types
+*   map_traits.hpp                 - map structural traits
+*   enum_map_traits.hpp            - enum-keyed map traits, enum_info
 *
 *
 * path:      /inc/djinterp/cpp/container/map/enum_map.hpp

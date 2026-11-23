@@ -7,7 +7,7 @@
 *
 *   sections (one .cpp each):
 *     insertion_sort_tests_primitives.cpp  insertion_place / insertion_pass
-*                                          -- where a candidate lands, where
+*                                          - where a candidate lands, where
 *                                          it stops, and the pass over a
 *                                          sub-run
 *     insertion_sort_tests_apply.cpp       internal::insertion_sort_apply --
@@ -31,7 +31,7 @@
 #include <cstddef>
 #include <vector>
 // djinterp
-//   core is ALWAYS first and unconditional -- NS_* / D_* qualifiers and the
+//   core is ALWAYS first and unconditional - NS_* / D_* qualifiers and the
 // language gates are needed by both faces of this header.
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
@@ -57,7 +57,7 @@ NS_TESTING
 // UNCONDITIONALLY: the spec provider below needs dt::module_spec too.
 namespace dt = ::djinterp::test;
 
-#ifndef DTEST_SPEC_MODE   // fixtures -- normal mode only
+#ifndef DTEST_SPEC_MODE   // fixtures - normal mode only
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -144,19 +144,19 @@ D_TESTS_SORT_ORDERED_PROBE(insertion, ::djinterp::insertion_sort_ordered)
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// primitives -- insertion_place / insertion_pass
+// primitives - insertion_place / insertion_pass
 bool tests_insertion_sort_place_landing_index();
 bool tests_insertion_sort_place_stops_at_equivalent();
 bool tests_insertion_sort_pass_sub_run();
 
-// apply -- internal::insertion_sort_apply
+// apply - internal::insertion_sort_apply
 bool tests_insertion_sort_apply_degenerate_ranges();
 bool tests_insertion_sort_apply_ordering_battery();
 bool tests_insertion_sort_apply_fast_path();
 bool tests_insertion_sort_apply_full_shift();
 bool tests_insertion_sort_apply_comparison_counts();
 
-// entry -- insertion_sort / insertion_sort_ordered
+// entry - insertion_sort / insertion_sort_ordered
 bool tests_insertion_sort_entry_comparator();
 bool tests_insertion_sort_entry_default();
 bool tests_insertion_sort_entry_ordered();

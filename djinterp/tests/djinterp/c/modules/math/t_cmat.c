@@ -4,7 +4,7 @@
 *   Conformance harness for c/math/cmat.h, all three families and both forms
 * where a function has two. First, the systems of math_tests_cmat_refs.h --
 * Gaussian-integer matrices whose solutions, inverses and determinants are
-* exact, from rationals -- each family's determinant, solutions and inverse
+* exact, from rationals - each family's determinant, solutions and inverse
 * within a bound of the exact ones, in epsilons times the order times the
 * system's condition number; solve_fast's solution each column LU's bits,
 * solve's refined one (S410) no farther from the exact one than LU's, and the
@@ -21,7 +21,7 @@
 * balancing exact, the Hessenberg form zero below the subdiagonal with Q
 * unitary and Q H Q^H the balanced matrix, the Schur form triangular with Z
 * unitary and Z T Z^H the balanced matrix, the Schur vectors eigenvectors of
-* it, each part's two forms alike; and matrices with known answers -- order 0,
+* it, each part's two forms alike; and matrices with known answers - order 0,
 * zero, the identity, a triangular matrix at either end of the range, no steps
 * allowed, a NaN and an infinity. The largest measures are printed, family by
 * family. Then the guards, each path the parts take at the range's ends and at
@@ -35,9 +35,9 @@
 * the determinant and the compensated product as constant expressions, for
 * every family, with the bits they have at run time.
 *
-*   Where the build fuses a multiply and an add written apart -- gcc in its GNU
+*   Where the build fuses a multiply and an add written apart - gcc in its GNU
 * modes on a target with the instruction, clang under -ffp-contract=fast
-* (self_test.h's d_math_formulas_fuse) -- the plain formulas' bits follow the
+* (self_test.h's d_math_formulas_fuse) - the plain formulas' bits follow the
 * build (S415), and the check that the constant evaluation, which never fuses,
 * has the run time's bits is left out; the harness says so.
 *
@@ -907,7 +907,7 @@ D_TESTS_CMAT_FAMILY(long double, ld, LDBL_EPSILON, LDBL_MAX_EXP, 3000,
 // D_TESTS_CMAT_GUARD_FAMILY
 //   stamps, for one family, d_tests_cguard_<S>: the paths zgeev's parts
 // take at the range's ends and at nearly singular systems, each reached on
-// purpose and checked -- the parts of order 0, hypot3 of zeros and of an
+// purpose and checked - the parts of order 0, hypot3 of zeros and of an
 // infinity, a subnormal matrix, a Hermitian entry already zero and the
 // tangent's _c form at run time, the reflector below the safe minimum, a
 // complex subdiagonal made real and the values alone without Z, matrices

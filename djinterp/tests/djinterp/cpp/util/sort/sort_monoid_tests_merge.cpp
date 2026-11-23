@@ -36,7 +36,7 @@ bool tests_sort_monoid_merge_interleaves()
 
     //   The mirror image: starting from the other side must interleave the
     // same values, and because 1 strictly precedes 2 the first element now
-    // comes from the RIGHT operand -- the one branch of the loop that a
+    // comes from the RIGHT operand - the one branch of the loop that a
     // left-only merge would never take.
     merged = ::djinterp::internal::merge_sorted_helper(ints_of(evens, 3),
                                                        ints_of(odds, 3),
@@ -64,7 +64,7 @@ bool tests_sort_monoid_merge_interleaves()
 
     result.check(ranges_equal(merged, ints_of(low_high, 4)));
 
-    //   The result length is always the sum of the operand lengths -- no
+    //   The result length is always the sum of the operand lengths - no
     // element is dropped and none is duplicated.
     result.check(merged.size() == 4);
 
@@ -186,7 +186,7 @@ bool tests_sort_monoid_merge_is_stable()
     //   The merge takes from the right operand ONLY when its element
     // strictly precedes the left one.  Under a key-only comparator every
     // element here is equivalent, so the entire left run must come out
-    // first -- the a-before-b rule the header documents as making combine a
+    // first - the a-before-b rule the header documents as making combine a
     // stable merge.
     left   = keyed_of(all_ones, early_tags, 2);
     right  = keyed_of(all_ones, later_tags, 2);

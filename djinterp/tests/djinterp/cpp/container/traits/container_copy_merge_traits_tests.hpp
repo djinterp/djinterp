@@ -771,7 +771,7 @@ bool tests_merge_class_cv_ref();
 bool tests_traits_metafunction_shape();
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // container_copy_merge_traits_spec
 //   function: the suite as DTest's module spec, one block per section.

@@ -2,9 +2,9 @@
 * djinterp [cpp][functional]                        fn_builder_tests_reorder.cpp
 *
 * Slicing / reordering fluent-operation tests (section ii, part 2):
-*   test_take_skip    -- take and skip, including edge counts.
-*   test_distinct     -- de-duplication via operator==.
-*   test_reverse_sort -- reversed and sorted(cmp).
+*   test_take_skip    - take and skip, including edge counts.
+*   test_distinct     - de-duplication via operator==.
+*   test_reverse_sort - reversed and sorted(cmp).
 *
 *
 * path:      /tests/djinterp/cpp/functional/fn_builder_tests_reorder.cpp

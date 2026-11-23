@@ -7,12 +7,12 @@
 * below is a test of the module "ostream_template", and each of its checks is
 * recorded against that test, so a failing check does not stop its group.
 *
-*   TWO DIFFERENTIAL TESTS CARRY THE NUMBERS. Random integers -- every width
-* to 64 bits, both signs -- with random widths, signs, zero padding and bases
+*   TWO DIFFERENTIAL TESTS CARRY THE NUMBERS. Random integers - every width
+* to 64 bits, both signs - with random widths, signs, zero padding and bases
 * are formatted here and by snprintf, and must agree byte for byte; so must
 * random doubles under f, e and g. Binary and centring, which printf does not
 * have, are checked by hand.
-*   JSON's own groups -- reals that read back, text as UTF-8 -- are in
+*   JSON's own groups - reals that read back, text as UTF-8 - are in
 * ostream_template_tests_json.c, through the helpers shared in the header.
 *
 *

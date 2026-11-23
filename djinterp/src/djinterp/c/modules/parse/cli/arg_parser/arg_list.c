@@ -3,9 +3,9 @@
 *
 * The growable arrays the parser's records keep, declared in arg_internal.h
 * (section 6).
-*   One push, one search and one removal for each element type -- spans,
+*   One push, one search and one removal for each element type - spans,
 * owned strings, option and command pointers, unused arguments, validators
-* -- each growing through d_arg_internal_grow, so that every list doubles
+* - each growing through d_arg_internal_grow, so that every list doubles
 * from the same small start and a refused allocation leaves it as it was;
 * and, for spans and owned strings, a reserve of room ahead.
 *
@@ -506,7 +506,7 @@ int d_arg_internal_extra_push(
  *         the list unchanged.
  *
  * Grows a validator list to hold one more, releasing the validator that
- * was to go into it when it cannot -- the list was to take it over either
+ * was to go into it when it cannot - the list was to take it over either
  * way.
  */
 D_STATIC
@@ -705,8 +705,8 @@ void d_arg_internal_context_release(
 
 /*
 d_arg_internal_context_replace
-  The old context released when it is not the new one -- given again, it
-is only kept -- then the new pair stored.
+  The old context released when it is not the new one - given again, it
+is only kept - then the new pair stored.
 */
 void d_arg_internal_context_replace(
     void**             _context,

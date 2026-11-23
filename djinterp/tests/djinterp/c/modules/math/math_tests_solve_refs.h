@@ -2,8 +2,8 @@
 * djinterp [c/math]                                    math_tests_solve_refs.h
 *
 *   The refined solve's references (S406), for t_compensated.c: linear
-* systems of each family's values -- Hilbert matrices rounded to the family,
-* random matrices, random matrices with rows scaled far apart -- each with
+* systems of each family's values - Hilbert matrices rounded to the family,
+* random matrices, random matrices with rows scaled far apart - each with
 * the solution of the system as rounded, computed exactly and rounded to
 * the family, ties to even, and whether cond(A) u lies below 2^-6 (cond
 * Skeel's, || |A^-1| |A| ||, u 2^-P), where d_mat_*_solve must give that solution

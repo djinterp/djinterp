@@ -78,7 +78,7 @@ NS_INTERNAL
 
     // outward_triangle
     //   function: the face (_i, _j, _k) wound so that its normal points away
-    // from the origin -- (v_j - v_i) x (v_k - v_i), against the face's
+    // from the origin - (v_j - v_i) x (v_k - v_i), against the face's
     // vertex sum.
     template<typename    T,
              std::size_t V>

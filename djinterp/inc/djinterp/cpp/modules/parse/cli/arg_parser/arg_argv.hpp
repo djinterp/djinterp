@@ -5,8 +5,8 @@
 *   The C library's splitting, quoting and conversion (arg_argv.h), with the
 * standard library's strings: a line split into a std::vector of arguments by
 * one of the dj_arg_quoting rules, a word quoted so that it splits back
-* whole, a program's name found at the start of a line -- CLI11's
-* detail::split_program_name -- a response file's arguments read, and, for
+* whole, a program's name found at the start of a line - CLI11's
+* detail::split_program_name - a response file's arguments read, and, for
 * wmain, wide text made UTF-8, as CLI11's narrow() makes it, and UTF-8 made
 * wide, as its widen() makes it.
 *   The words a split gives are std::strings made from the C library's
@@ -160,8 +160,8 @@ std::string quote_word(
 // 2.2.1
 // split_program_name
 //   function: CLI11's detail::split_program_name: the program's name at the
-// start of a command line -- the shortest run of its first words naming
-// something that exists, else a quoted or a first word -- and the rest of
+// start of a command line - the shortest run of its first words naming
+// something that exists, else a quoted or a first word - and the rest of
 // the line after it; d_arg_split_program_name. std::bad_alloc when either
 // cannot be held.
 std::pair<std::string, std::string> split_program_name(
@@ -234,7 +234,7 @@ std::string narrow(
  *       for which CLI11's throws std::range_error, gives the empty string;
  *       the status form tells the two apart.
  *
- * @param[in] _text  the UTF-8: a C string -- NULL is empty text -- a
+ * @param[in] _text  the UTF-8: a C string - NULL is empty text - a
  *                   std::string or, from C++17, a std::string_view
  *                   converts.
  * @return the wide text, or the empty string; std::bad_alloc is thrown, as
@@ -303,8 +303,8 @@ NS_INTERNAL
     // 4.1.2
     // append_strings
     //   function: the words of a list a C call filled, appended to a vector
-    //   only once all are made -- std::bad_alloc, as the vector throws it,
-    //   leaving it as it was -- and the description of the call's failure to
+    //   only once all are made - std::bad_alloc, as the vector throws it,
+    //   leaving it as it was - and the description of the call's failure to
     //   a string; the call's status.
     status append_strings(
         int                       _status,

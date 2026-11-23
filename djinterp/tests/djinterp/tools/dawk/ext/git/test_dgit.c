@@ -6,9 +6,9 @@
 * wildmatch against vectors git's own matcher agreed with; ignoring and
 * attributes over scopes; keys, values and quoting; the documents: every
 * change a file takes, each refusal leaving it as it was, and saving; and a
-* repository built here from nothing -- loose objects deflated by hand and
+* repository built here from nothing - loose objects deflated by hand and
 * by zlib, refs loose and packed, a history with a merge, an index and a
-* work tree -- read for its objects, revisions, history, status, ignored
+* work tree - read for its objects, revisions, history, status, ignored
 * files and attributes.
 *   With --corpus, it reads every ignore, attribute and configuration file
 * under the directories named, proving each reading sound, and every
@@ -565,7 +565,7 @@ struct dj_tests_refusal
 /*
 d_tests_config_refusals
   Where git stops reading a configuration, and the line it says it stopped
-on -- one past the last when a header runs into the end, or a line's end
+on - one past the last when a header runs into the end, or a line's end
 follows a subsection's closing quote, as git counts them.
 */
 static
@@ -649,7 +649,7 @@ void d_tests_config_marks(void)
 // dj_tests_wild
 //   struct: one of wildmatch's vectors: whether the pattern matches the
 //   text with D_GIT_TEXT_PATHNAME, with it and D_GIT_TEXT_CASEFOLD, with
-//   neither, and with D_GIT_TEXT_CASEFOLD alone, each '1' or '0' -- as git's
+//   neither, and with D_GIT_TEXT_CASEFOLD alone, each '1' or '0' - as git's
 //   own wildmatch answered them.
 struct dj_tests_wild
 {
@@ -904,8 +904,8 @@ struct dj_git_text_scope d_tests_scope(
 
 /*
 d_tests_ignoring
-  Ignoring over three scopes -- info/exclude, the top's .gitignore, and
-sub/.gitignore -- each path decided as git check-ignore decided it: the
+  Ignoring over three scopes - info/exclude, the top's .gitignore, and
+sub/.gitignore - each path decided as git check-ignore decided it: the
 last pattern that matches, in the last scope that has one; a directory
 above ignored deciding for what is below it, a negation there too.
 */
@@ -1040,8 +1040,8 @@ void d_tests_attribute_values(
 
 /*
 d_tests_attributing
-  Attributes over four scopes -- the user's, the top's, sub's, and
-info/attributes -- as git check-attr -a gave them: the highest scope's
+  Attributes over four scopes - the user's, the top's, sub's, and
+info/attributes - as git check-attr -a gave them: the highest scope's
 last line deciding, macros expanding where they are set, `!` leaving an
 attribute unspecified, git's own binary macro, and a macro outside the
 top refused.
@@ -1280,7 +1280,7 @@ enum dj_tests_edit_kind
 
 // d_tests_edit
 //   struct: a change to a configuration, as git config made it, and the
-//   text it left -- the text it was, for one refused. Three differ from
+//   text it left - the text it was, for one refused. Three differ from
 //   git config's on purpose: a value set keeps a comment after it and the
 //   name as written, which git config rewrites, and a file of \r\n endings
 //   gets one on a line added, where git config writes \n.
@@ -1598,8 +1598,8 @@ void d_tests_line_edits(void)
 
 /*
 d_tests_state_edits
-  States set on a pattern's line -- one of the name replaced, another
-added -- and taken off; a name git refuses refused.
+  States set on a pattern's line - one of the name replaced, another
+added - and taken off; a name git refuses refused.
 */
 static
 void d_tests_state_edits(void)
@@ -2006,8 +2006,8 @@ struct dj_git_oid d_tests_commit(
 
 /*
 d_tests_world_make
-  A repository's bones beneath a directory -- .git/HEAD on main, its
-config, its objects -- and the repository opened on them.
+  A repository's bones beneath a directory - .git/HEAD on main, its
+config, its objects - and the repository opened on them.
 */
 static
 bool d_tests_world_make(
@@ -2207,7 +2207,7 @@ bool d_tests_index(
 
 // dj_tests_hash
 //   struct: what git hash-object names a blob of n `x`s, in SHA-1 and in
-//   SHA-256 -- lengths whose headers bring the hashed bytes to either side
+//   SHA-256 - lengths whose headers bring the hashed bytes to either side
 //   of a block's end.
 struct dj_tests_hash
 {
@@ -2419,8 +2419,8 @@ char* d_tests_vector_content(
 
 /*
 d_tests_inflating
-  Objects zlib deflated -- fixed codes, dynamic codes, stored blocks, and
-blocks flushed between -- read back whole; one whose check is wrong, one
+  Objects zlib deflated - fixed codes, dynamic codes, stored blocks, and
+blocks flushed between - read back whole; one whose check is wrong, one
 cut short, and one whose content is not its name's, each refused.
   Long as the checks are many, each a line or two.
 */
@@ -3328,7 +3328,7 @@ void d_tests_fail(
 d_tests_walk
   Every file of a kind git reads under a directory, in name order, given to
 `_file`; and every repository, a directory holding .git or a .git itself,
-given to `_repo` -- its own files given to `_file` too.
+given to `_repo` - its own files given to `_file` too.
   Long as each kind of name is told apart in one loop.
 */
 static
@@ -3412,9 +3412,9 @@ void d_tests_walk(
 /*
 d_tests_sound
   Whether a file's records are sound: its lines one after another to its
-end, each record within the line it says, in order -- an entry's value
+end, each record within the line it says, in order - an entry's value
 ending past its last line's end only where a `\` joined the end of the
-text to it -- and a configuration's entries within their sections.
+text to it - and a configuration's entries within their sections.
   Long as each kind of record is proved in its own loop.
 */
 static
@@ -3517,7 +3517,7 @@ bool d_tests_same_text(
 /*
 d_tests_corpus_file
   A file read, proved sound, and each of its first lines set to itself --
-the first's text past a byte-order mark -- which must be kept and change
+the first's text past a byte-order mark - which must be kept and change
 nothing.
   Long as the file is read, proved and its lines set, each a step.
 */
@@ -3923,7 +3923,7 @@ void d_tests_snap_free(
 /*
 d_tests_same_line
   Whether a line of a snapshot reads as a line of a document: its text and
-its kind -- its ending aside, which a line added after one without gives
+its kind - its ending aside, which a line added after one without gives
 it.
 */
 static
@@ -4099,7 +4099,7 @@ bool d_tests_fuzz_change(
 /*
 d_tests_fuzz_text
   Random changes to a text of a kind, each proved: one kept leaves sound
-records, the same a fresh reading of its text gives, and -- for a splice --
+records, the same a fresh reading of its text gives, and - for a splice --
 every line outside it as it was; one refused leaves the text as it was and
 says why.
   Long as each change is made and then proved, a branch for each proof.
@@ -4277,7 +4277,7 @@ void d_tests_fuzz_seeds(
 /*
 d_tests_print_path
   A path as git's porcelain writes one: in C's quotes when it holds a
-control byte, a quote, a backslash or a byte past ASCII -- or, with
+control byte, a quote, a backslash or a byte past ASCII - or, with
 `_space`, a blank.
 */
 static
@@ -4371,7 +4371,7 @@ int d_tests_oracle_names(
 /*
 d_tests_oracle_check
   cat-check: each name read from standard input, as git cat-file
---batch-check writes it -- name, type, size -- BADHASH after one whose
+--batch-check writes it - name, type, size - BADHASH after one whose
 content is not its name's, "missing" for one not read.
 */
 static
@@ -4415,7 +4415,7 @@ int d_tests_oracle_check(
 /*
 d_tests_oracle_log
   log: the commits revisions reach, as git rev-list gives them --
---first-parent, -n most, and -- path among the arguments.
+--first-parent, -n most, and - path among the arguments.
 */
 static
 int d_tests_oracle_log(

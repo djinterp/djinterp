@@ -7,7 +7,7 @@
 * point of the mixed-mode operators is that adding two durations never
 * silently truncates.
 *
-*   THE PERIOD IS gcd(num) / lcm(den) -- AND THE ORDER IS NOT A TYPO:
+*   THE PERIOD IS gcd(num) / lcm(den) - AND THE ORDER IS NOT A TYPO:
 *   The common period must be the coarsest tick that divides both, which
 * means the SMALLEST period, which means taking the greatest common
 * divisor of the numerators over the least common multiple of the
@@ -16,13 +16,13 @@
 * and only a finer tick can represent both inputs without loss.
 *
 *   For milli (1/1000) and micro (1/1000000) that gives
-* gcd(1,1) / lcm(1000, 1000000) = 1/1000000 -- microseconds, the finer of
+* gcd(1,1) / lcm(1000, 1000000) = 1/1000000 - microseconds, the finer of
 * the two. Correct.
 *
 *   THE LCM IS COMPUTED AS (a / gcd) * b, NEVER a * b / gcd:
 *   The two are equal in exact arithmetic and are not equal in intmax_t.
 * Multiplying first overflows for denominators as ordinary as
-* 1000000000 and 1000000007, and the overflow is silent -- it produces a
+* 1000000000 and 1000000007, and the overflow is silent - it produces a
 * wrong period, not a compile error. Dividing first keeps every
 * intermediate no larger than the answer.
 *
@@ -60,7 +60,7 @@ namespace internal
 
     // duration_common_ratio
     //   trait: the finest period that represents both R1 and R2
-    // exactly -- gcd of the numerators over lcm of the denominators.
+    // exactly - gcd of the numerators over lcm of the denominators.
     template<typename R1,
              typename R2>
     struct duration_common_ratio
@@ -74,7 +74,7 @@ namespace internal
             ratio_gcd<R1::den, R2::den>::value;
 
     public:
-        // Divide before multiplying -- see the header comment.
+        // Divide before multiplying - see the header comment.
         typedef ratio<s_gcd_num, (R1::den / s_gcd_den) * R2::den> type;
     };
 

@@ -44,7 +44,7 @@
 // 1.1.1
 // D_CFG_PARSEGEN_ALL
 //   brief: optional aggregate for this subsystem's boolean gates. NOT
-// defaulted -- its absence is meaningful.
+// defaulted - its absence is meaningful.
 
 // 1.2    Allocation
 //------------------------------------------------------------------------------
@@ -117,7 +117,7 @@
 // 3.1.1
 // D_INTERNAL_PARSEGEN_GRAMMAR_HEAP
 //   brief: 1 when a grammar may allocate. A grammar carries an operand pool,
-// so this requires the pool's own gate as well as its own -- the conjunction
+// so this requires the pool's own gate as well as its own - the conjunction
 // that would otherwise be re-derived, wrongly, in grammar.c.
 #if ( D_CFG_IS_ON(D_CFG_PARSEGEN_GRAMMAR_HEAP) &&                             \
       (D_INTERNAL_PARSE_POOL_HEAP == 1) )

@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][filesys]                                file_tests_expected.cpp
 *
-*   XII. Expected (file_expected.hpp) -- the return surface by value, where the
+*   XII. Expected (file_expected.hpp) - the return surface by value, where the
 * value and the reason travel together instead of through an out-parameter.
 *
 *   The section builds from C++11, where file_expected.hpp defines its
@@ -12,7 +12,7 @@
 * ---------------------------------------
 *   These overloads exist beside the error& ones, and a caller must be able to
 * switch between them without learning new rules. The subtle one is status(): an
-* absent file is a value whose exists() is false, not an unexpected -- exactly
+* absent file is a value whose exists() is false, not an unexpected - exactly
 * as the error-code form reports it with a cleared error. If the expected form
 * treated absence as a failure the two spellings would disagree about what "not
 * there" means, so that equivalence is what the cases below pin, function by
@@ -119,7 +119,7 @@ void tests_fs_expected(
               auto result = file_size(fs_test_path("no_such_expected_size"));
 
               // unlike status(), being asked the size of nothing has no
-              // answer -- so here absence IS a failure, in both forms
+              // answer - so here absence IS a failure, in both forms
               return ( (!result.has_value()) &&
                        (result.error().value() == ENOENT) );
           });

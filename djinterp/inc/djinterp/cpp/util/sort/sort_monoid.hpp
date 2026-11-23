@@ -2,12 +2,12 @@
 * djinterp [cpp][utility]                                        sort_monoid.hpp
 *
 *   The merge monoid: where the sort subsystem joins the functional algebra.
-* Sorting does not fit the Functor / Monad / Comonad cluster -- it fixes the
+* Sorting does not fit the Functor / Monad / Comonad cluster - it fixes the
 * element type, rearranges rather than maps, and must see the whole sequence
 * before it yields anything.  It does fit Semigroup and Monoid: two sorted runs
 * combine, associatively, by merging, and the empty run is the identity.
 * "Sorted runs under merge" is a monoid, and mconcat over a Foldable of
-* singleton runs is a merge sort -- bottom-up, written entirely in the
+* singleton runs is a merge sort - bottom-up, written entirely in the
 * functional vocabulary.
 *
 *   DSortedRun<Type, Compare> is the newtype that carries the algebra: a
@@ -28,13 +28,13 @@
 *   The algebra assumes one ordering: every run combined with another should
 * share the same Compare semantics, as monoid.hpp's numeric and container
 * monoids assume one operation per type.  combine is identity-exact even for a
-* stateful Compare -- an empty operand is returned as it is, so its
+* stateful Compare - an empty operand is returned as it is, so its
 * default-constructed comparator is never consulted.
 *
 *   mempty, and so mconcat, needs a Compare that default-constructs: the
 * identity is the empty run, and it carries a default-constructed comparator.
 * std::less, std::greater and natural<T>() do; the algebra's adapters --
-* reversed, by_key, then -- do not, so a fold over runs ordered by one of
+* reversed, by_key, then - do not, so a fold over runs ordered by one of
 * those starts from the first run with mappend rather than from mempty.
 *
 *   The header requires C++11, as the functional protocols it specializes do;
@@ -88,7 +88,7 @@ NS_DJINTERP
 ///////////////////////////////////////////////////////////////////////////////
 
 // DSortedRun
-//   class: a value-semantic sequence of Type held in Compare order -- the
+//   class: a value-semantic sequence of Type held in Compare order - the
 // newtype carrying the merge monoid.  Its invariant is that data() is sorted
 // under compare(); every constructor and factory below establishes it.
 // Compare defaults to std::less<Type>, ascending, and may be any model of
@@ -185,7 +185,7 @@ NS_INTERNAL
     //   An element of _b is taken first only when it STRICTLY precedes the
     // element of _a it is compared with; on equivalence _a's goes first.  That
     // keeps equivalent elements in a-then-b order, which is what makes the
-    // merge -- and every mconcat built on it -- stable.  It is the rule
+    // merge - and every mconcat built on it - stable.  It is the rule
     // merge_runs follows in merge_sort_common.hpp, for the same reason.
     template<typename Type,
              typename Compare>
@@ -244,8 +244,8 @@ NS_END  // internal
 //   Both protocols are specialized in the explicit two-argument <T, void>
 // form against the SFINAE-hooked primaries of semigroup.hpp and monoid.hpp,
 // as every instance in monoid.hpp is written.  Neither operation is
-// D_CONSTEXPR: a run holds a std::vector, so -- like monoid.hpp's std::string
-// and std::vector instances -- they run at run time.
+// D_CONSTEXPR: a run holds a std::vector, so - like monoid.hpp's std::string
+// and std::vector instances - they run at run time.
 
 // semigroup_traits<DSortedRun<Type, Compare> >
 //   instance: the associative combine is a stable merge.  An empty operand is
@@ -354,7 +354,7 @@ DSortedRun<Type, Compare> adopt_sorted_run(
 }
 
 // singleton_run
-//   function: a run of one element, sorted without a comparison -- the atom of
+//   function: a run of one element, sorted without a comparison - the atom of
 // the bottom-up merge sort that to_singleton_runs and mconcat spell out.
 template<typename Type,
          typename Compare>
@@ -383,7 +383,7 @@ DSortedRun<Type> singleton_run(
 
 // to_singleton_runs
 //   function: lifts every element of _values into its own singleton run,
-// giving a Foldable of runs for mconcat -- which merges them back into one
+// giving a Foldable of runs for mconcat - which merges them back into one
 // ordered run:
 //
 //     std::vector<int> ordered = mconcat(to_singleton_runs(values)).data();

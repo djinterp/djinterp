@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][filesys]                                        cfg_file_path.h
 *
-* Build-time configuration for cpp/filesys/file_path.hpp -- djinterp::path.
+* Build-time configuration for cpp/filesys/file_path.hpp - djinterp::path.
 *   Two knobs, both read by that one header: whether a failed allocation
 * throws, and how much stack a lexical operation borrows before it allocates.
 * Plus the one language-feature gate the header needs, three-way comparison.
@@ -63,7 +63,7 @@ TABLE OF CONTENTS
 //   ONLY A RESOURCE FAILURE THROWS, even with this on. Three things stay
 // non-throwing because none of them is one: path(NULL) (a caller bug, and
 // bad_alloc would be a lie about what happened); a lexical operation whose
-// result does not fit (nothing was allocated -- d_path_dirname simply said
+// result does not fit (nothing was allocated - d_path_dirname simply said
 // no); and any operation on an already-invalid path (the failure already
 // happened). Conflating the invalid-path model with the throwing model is what
 // made `path((const char*)0)` raise bad_alloc out of a function that never
@@ -80,7 +80,7 @@ TABLE OF CONTENTS
 //   knob: bytes of stack a lexical operation borrows before it allocates. 512
 // rather than D_FILE_PATH_MAX: on Linux that is 4096, and 4 KiB per frame in a
 // recursive walk is a real price for a case that essentially never happens. A
-// longer path still works -- it just costs one allocation.
+// longer path still works - it just costs one allocation.
 #ifndef D_CFG_PATH_STACK_BUF
     #define D_CFG_PATH_STACK_BUF     512
 #endif  // D_CFG_PATH_STACK_BUF
@@ -125,7 +125,7 @@ TABLE OF CONTENTS
 // 3.2.1
 // D_INTERNAL_PATH_HAS_SPACESHIP
 //   resolved: 1 when path can define operator<=>. Gated on the language
-// feature-test macro -- NOT on __cplusplus, whose C++23 value varies by
+// feature-test macro - NOT on __cplusplus, whose C++23 value varies by
 // compiler; the feature-test macro is the portable signal.
 #if ( (defined(__cpp_impl_three_way_comparison)) &&                            \
       (__cpp_impl_three_way_comparison >= 201907L) )

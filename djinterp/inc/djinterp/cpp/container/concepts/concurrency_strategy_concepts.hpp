@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                    concurrency_strategy_concepts.hpp
 *
-* C++20 concepts for the CONCURRENCY STRATEGY axis -- the `requires`-facing
+* C++20 concepts for the CONCURRENCY STRATEGY axis - the `requires`-facing
 * view of concurrency_strategy_traits.hpp.
 *
 *   THE CONCEPTS ADD NO POLICY.
@@ -13,7 +13,7 @@
 *
 *   PORTABILITY:
 *   Gated on C++20 + concepts. Below that the header is empty and callers use
-* the `::value` / `_v` forms directly -- which is why
+* the `::value` / `_v` forms directly - which is why
 *
 *
 * path:      /inc/djinterp/cpp/container/concepts/concurrency_strategy_concepts.hpp
@@ -47,7 +47,7 @@ NS_DJINTERP
 
 
 // concurrent_container
-//   concept: safe under concurrent use by SOME strategy -- the umbrella the
+//   concept: safe under concurrent use by SOME strategy - the umbrella the
 // six below refine.
 template<typename Type>
 concept concurrent_container =
@@ -70,14 +70,14 @@ concept sequentially_accessed_container =
 
 
 // locked_container
-//   concept: guarded by a lock -- it exposes read_lock() / write_lock().
+//   concept: guarded by a lock - it exposes read_lock() / write_lock().
 template<typename Type>
 concept locked_container =
     is_locked_container_v<clean_t<Type>>;
 
 
 // atomic_container
-//   concept: element access is atomic -- no lock, no snapshot.
+//   concept: element access is atomic - no lock, no snapshot.
 template<typename Type>
 concept atomic_container =
     is_atomic_container_v<clean_t<Type>>;
@@ -112,14 +112,14 @@ concept hazard_container =
 
 
 // synchronized_container
-//   concept: synchronized by SOME mechanism -- locked, atomic, or otherwise.
+//   concept: synchronized by SOME mechanism - locked, atomic, or otherwise.
 template<typename Type>
 concept synchronized_container =
     is_synchronized_container_v<clean_t<Type>>;
 
 
 // vacuously_concurrent_container
-//   concept: safe under concurrency because there is nothing to race ON -- an
+//   concept: safe under concurrency because there is nothing to race ON - an
 // immutable container needs no strategy, and saying it 'has' one would be a
 // category error. This is why is_concurrent is not simply 'declares a
 // strategy'.

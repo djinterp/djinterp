@@ -7,7 +7,7 @@
 * transformation. Per [tuple.creation]:
 *
 *   for each argument of type Ti, the corresponding tuple element type
-*   Vi is decay_t<Ti> -- with one exception: if decay_t<Ti> is
+*   Vi is decay_t<Ti> - with one exception: if decay_t<Ti> is
 *   reference_wrapper<X> for some X, then Vi is X&.
 *
 *     make_tuple(1, 'x', 3.14)
@@ -63,7 +63,7 @@ namespace internal
 {
 
     // make_tuple_decay
-    //   trait: the [tuple.creation] Vi computation -- decay, then
+    //   trait: the [tuple.creation] Vi computation - decay, then
     // collapse reference_wrapper<X> to X&. Kept as a named alias
     // rather than using unwrap_ref_decay directly at the call site so
     // the standard's Vi notation stays visible in the signature.

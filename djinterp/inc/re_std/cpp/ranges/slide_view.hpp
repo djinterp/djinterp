@@ -12,7 +12,7 @@
 *   - C++11+; CRTP + view_interface + custom iterator + sentinel.
 *   - R28: iterator_category derived from underlying. Bidi+
 *     underlyings yield a bidi slide iterator with O(1) operator--.
-*     The exhausted-state has special handling: a -- from exhausted
+*     The exhausted-state has special handling: a - from exhausted
 *     re-enters the last valid window (whose positions are still
 *     cached from when ++ set the flag).
 *   - R29: RA underlyings yield an RA slide iterator with O(1)

@@ -3,7 +3,7 @@
 *
 * The commands that read a sheet: gen, check, show, decode, eval, convert and
 * examples.
-*   Each is a request -- the operands and options the parse filled in -- and
+*   Each is a request - the operands and options the parse filled in - and
 * a function that does the work, the request owned by the work, so that it
 * lives as long as the program does. A command whose answer has structure
 * gives it as text a person reads, or with `--format=json` as JSON a script
@@ -80,7 +80,7 @@ std::string hex_of(
 
 // binary_of
 //   bits as 0b and binary digits, highest first, `_` every four from the
-// lowest -- a form the command line reads back.
+// lowest - a form the command line reads back.
 std::string binary_of(
     const wide& _bits
 )
@@ -647,7 +647,7 @@ std::vector<std::string> values_named(
 
 /*
 decode_range
-  A range's field in the value -- a line and an object -- unless it is zero
+  A range's field in the value - a line and an object - unless it is zero
 and zero has no name, which says nothing.
 */
 void decode_range(
@@ -898,7 +898,7 @@ struct eval_request
 /*
 symbol_bits
   A name in an expression: a macro name, or a symbol's own name where one
-symbol has it -- as row_named takes them, but quietly, the evaluator saying
+symbol has it - as row_named takes them, but quietly, the evaluator saying
 what went wrong.
 */
 bool symbol_bits(
@@ -941,8 +941,8 @@ bool symbol_bits(
 /*
 eval_one
   One expression parsed and evaluated over the sheet's symbols, within its
-width: its object for the JSON, and its text -- hex, decimal while it fits
-64 bits, binary, and the bits it sets -- or the error of one that does not
+width: its object for the JSON, and its text - hex, decimal while it fits
+64 bits, binary, and the bits it sets - or the error of one that does not
 evaluate, said, and false.
 */
 bool eval_one(
@@ -1139,7 +1139,7 @@ json_value examples_object(
 examples_text
   The examples by shelf, each shelf as the File menu lists it, in the order
 the first of each comes: a heading, then a line for each, its width
-right-aligned -- one table, so every shelf's columns line up.
+right-aligned - one table, so every shelf's columns line up.
 */
 std::string examples_text(
     const std::vector<example_info>& _all
@@ -1208,7 +1208,7 @@ int run_examples(
 
 /*
 gen_files
-  The files beside the header -- the bitfield and the export -- each asked
+  The files beside the header - the bitfield and the export - each asked
 for; false, the error said and `_status` set, at the first not written.
 */
 bool gen_files(
@@ -1232,8 +1232,8 @@ bool gen_files(
 
 /*
 gen_write
-  The header, to its file or the output -- the output only when no JSON
-file was asked for alone -- then the self-test, which includes the header
+  The header, to its file or the output - the output only when no JSON
+file was asked for alone - then the self-test, which includes the header
 by its file's name.
 */
 int gen_write(

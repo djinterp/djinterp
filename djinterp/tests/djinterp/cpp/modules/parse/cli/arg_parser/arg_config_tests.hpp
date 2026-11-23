@@ -9,7 +9,7 @@
 * written, text and files read into items, a command's values written, a
 * format given to a command for its parse, operations replaced by classes
 * deriving from the format, as CLI11's subclasses replace its virtual
-* functions, and formats copied -- their sections CLI11's own transcripts
+* functions, and formats copied - their sections CLI11's own transcripts
 * of the same definitions (the suite's CASES section, compiled against
 * CLI11 by tools/cppref/cppref.py). Then the face's own: the settings read
 * back, items built, operations that fail, and where the face departs from

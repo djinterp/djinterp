@@ -11,7 +11,7 @@
 * compile, S418).
 * number_base's members
 * and the number traits, over the library's types and a user's, at every
-* level -- the values the header gave before its port, at C++14 and up,
+* level - the values the header gave before its port, at C++14 and up,
 * where it compiled, but that a non-static radix is no radix. From C++11 the
 * constants are constant expressions; from C++14 the variable templates are
 * of's constants and rational composes as it did.
@@ -255,7 +255,7 @@ namespace
     // ---- number bases and traits -------------------------------------------
 
     // a user's types: a base, a rational, half a rational, a radix that is
-    // a function, and one that is not static -- which counts as absent at
+    // a function, and one that is not static - which counts as absent at
     // every level (before the port it counted from C++14, the only level the
     // header compiled at, and by name alone it would at C++98 with GCC but
     // not with Clang)

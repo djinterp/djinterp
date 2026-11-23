@@ -2,7 +2,7 @@
 * djinterp [c][memory]                                              mem_source.c
 *
 *   Implementation unit for mem_source.h. Carries the four built-in sources --
-* system, null, buffer and counting -- their operation tables, and the generic
+* system, null, buffer and counting - their operation tables, and the generic
 * protocol operations every allocator calls through, including the
 * allocate/copy/release emulation that makes the reallocate slot optional.
 *
@@ -449,7 +449,7 @@ d_internal_mem_null_max_size
 Parameter(s):
   _context: unused.
 Return:
-  Zero -- which lets an allocator discover it can never grow BEFORE it tries,
+  Zero - which lets an allocator discover it can never grow BEFORE it tries,
 and is the reason this slot is worth a pointer.
 */
 static
@@ -581,7 +581,7 @@ void* d_internal_mem_buffer_allocate(
 d_internal_mem_buffer_release
   The buffer source's release slot.
   Reclaims the block only when it is the most recent one, which is the case
-that actually arises -- an allocator that takes a region, finds it unusable,
+that actually arises - an allocator that takes a region, finds it unusable,
 and hands it straight back. Any earlier block is retained until reset, because
 a free list for the handful of large regions this source vends would cost more
 than it recovers.
@@ -635,7 +635,7 @@ d_internal_mem_buffer_max_size
 Parameter(s):
   _context: the struct dj_mem_buffer_source; may be NULL.
 Return:
-  The bytes still unused, ignoring alignment padding -- an upper bound, which
+  The bytes still unused, ignoring alignment padding - an upper bound, which
 is what a growth policy wants when deciding how large a step to attempt.
 */
 static
@@ -1069,7 +1069,7 @@ struct dj_mem_source d_mem_source_none(void)
 d_mem_source_default
   Builds the source an allocator takes when its configuration names none.
   Which one that is comes from D_CFG_MEM_SOURCE_DEFAULT, and it is the null
-source on a build with no system heap -- so a freestanding build that forgets
+source on a build with no system heap - so a freestanding build that forgets
 to configure an allocator fails at that allocator's first request, with a
 status that says exhausted, rather than at link time with an undefined malloc.
 
@@ -1120,7 +1120,7 @@ d_mem_source_resolve
   Turns an unset source into the configured default and leaves any other
 source alone.
   Every allocator in the subframework calls this exactly once, at init, and
-stores the result -- so the "is it set" question is asked one time per
+stores the result - so the "is it set" question is asked one time per
 allocator rather than one time per allocation.
 
 Parameter(s):
@@ -1150,7 +1150,7 @@ Parameter(s):
 Return:
   A pointer to a static, null-terminated name. Never NULL: an unnamed or
 invalid source yields "unknown", so the result may be printed unchecked. When
-D_CFG_MEM_SOURCE_NAMED is off, every source reports "unnamed" -- the slot is
+D_CFG_MEM_SOURCE_NAMED is off, every source reports "unnamed" - the slot is
 absent, not the function.
 */
 const char* d_mem_source_name(
@@ -1304,7 +1304,7 @@ void d_mem_source_release(
     }
 
     //   NORMALIZE, not accept. This must reproduce exactly the alignment that
-    // allocate passed down, and allocate normalized -- so normalizing again
+    // allocate passed down, and allocate normalized - so normalizing again
     // is the only way to arrive at the same number. Validation would be
     // pointless here anyway: allocate already refused every inadmissible
     // value, so a block that exists was allocated at an admissible one.
@@ -1355,7 +1355,7 @@ d_mem_source_reallocate
   Resizes a block, in place where the source can and by copying where it
 cannot.
   THE EMULATION IS THE POINT. A source that leaves its reallocate slot null --
-or a build that removed the slot entirely -- still supports resizing, because
+or a build that removed the slot entirely - still supports resizing, because
 allocate, memcpy and release compose into it. That is what lets
 D_CFG_MEM_SOURCE_REALLOC be a knob about a copy rather than about a
 capability, and what keeps the obligation on a caller-written source to two

@@ -2,8 +2,8 @@
 * djinterp [cpp][utility]                                 cfg_output_packaging.h
 *
 *   Build-time defaults for output packaging: what output_config does with a
-* document when its caller does not say -- write it as it is, compress it, or
-* put it in a container -- and with which codec and container.
+* document when its caller does not say - write it as it is, compress it, or
+* put it in a container - and with which codec and container.
 *   Every knob here is a DEFAULT. output_config's members are the runtime
 * options and always win; these choose only what a default-constructed
 * output_config holds (the owner's ruling of 2026-11-09: complete

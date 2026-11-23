@@ -50,7 +50,7 @@
  * The text CLI11's _add_flag_like_result hands an option for an item with
  * one input or none, read by the format as a flag: for an option refusing
  * flag overrides, given what reads as 1, the item name's own value; else the
- * value the name gives the input -- but a `{}` stays as it is for an option
+ * value the name gives the input - but a `{}` stays as it is for an option
  * that takes several values.
  */
 D_STATIC
@@ -269,10 +269,10 @@ int d_arg_internal_process_flag_refusal(
  * @return D_ARG_OK, or the error CLI11 throws, recorded.
  *
  * CLI11's _add_flag_like_result for an item with several inputs: within
- * what the option takes -- or under a policy that takes or joins them all --
+ * what the option takes - or under a policy that takes or joins them all --
  * they are left for the caller; beyond it they are refused, unless the
  * option refuses flag overrides, when each is added that is one of its
- * values, and any other is CLI11's InvalidError -- in its words, which its
+ * values, and any other is CLI11's InvalidError - in its words, which its
  * one-argument constructor, meant for a name, ends with a sentence about
  * positionals that do not come into it.
  */
@@ -336,8 +336,8 @@ int d_arg_internal_process_flag_several(
 /*
 d_arg_internal_flag_like_result
   CLI11's _add_flag_like_result: an item with one input or none is a
-flag's -- counted by the item's own inputs, whatever was filtered out of
-`_inputs` -- and one with several is checked against what the option
+flag's - counted by the item's own inputs, whatever was filtered out of
+`_inputs` - and one with several is checked against what the option
 takes.
 */
 int d_arg_internal_flag_like_result(
@@ -425,7 +425,7 @@ int d_arg_internal_process_lookup(
  *
  * The first option CLI11's get_options(filter) lists that is configurable
  * and answers to the name as a positional name, a long name or a short one:
- * the command's own, then -- in turn -- those of its nameless subcommands
+ * the command's own, then - in turn - those of its nameless subcommands
  * and of those whose group starts with `+`, then, for a named command that
  * falls through, its fallthrough parent's.
  */
@@ -721,8 +721,8 @@ int d_arg_internal_process_item_error(
  * @return D_ARG_OK, or the error a step raised, recorded.
  *
  * CLI11's section marks in configuration, for a configurable command: `++`
- * opens its section -- a use counted, its pre-parse step with 2 left, listed
- * among its parent's parsed subcommands -- and `--` closes it, running its
+ * opens its section - a use counted, its pre-parse step with 2 left, listed
+ * among its parent's parsed subcommands - and `--` closes it, running its
  * completion callbacks, without the help flags, when it has a parse-complete
  * callback.
  */
@@ -918,7 +918,7 @@ int d_arg_internal_process_item_values(
  * @return D_ARG_OK, or the failure, recorded.
  *
  * The end of CLI11's _parse_single_config: the option an item names takes
- * it -- kept unused when none does and configuration extras are captured;
+ * it - kept unused when none does and configuration extras are captured;
  * refused when the option is not configurable, unless every unknown is
  * ignored; and taken only by an option the command line left without a
  * value. `_handled` receives CLI11's result.
@@ -982,7 +982,7 @@ int d_arg_internal_process_item_to(
  * @return D_ARG_OK, or the failure, recorded.
  *
  * CLI11's _parse_single_config: an item in a section is handed down to the
- * subcommand its next section names -- not handled when none does; the
+ * subcommand its next section names - not handled when none does; the
  * section marks open and close a configurable command's section; any other
  * item goes to the option it names.
  */
@@ -1037,7 +1037,7 @@ int d_arg_internal_process_item(
 /*
 d_arg_internal_parse_config
   CLI11's _parse_config: each item in turn, one that nothing took refused
--- CLI11's ConfigError::Extras -- when configuration extras are errors.
+-- CLI11's ConfigError::Extras - when configuration extras are errors.
 */
 int d_arg_internal_parse_config(
     struct dj_arg_command*                _command,
@@ -1367,7 +1367,7 @@ int d_arg_internal_process_config_unused(
  * @return D_ARG_OK; D_ARG_ERROR_FILE, recorded, when a file is required and
  *         none was given; or the failure of a file, recorded.
  *
- * The files the configuration option names, each read in turn -- each must
+ * The files the configuration option names, each read in turn - each must
  * be read when the option is required or was given; none named is an error
  * when one is required, and none read leaves the option as if unused.
  */

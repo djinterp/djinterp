@@ -99,8 +99,8 @@ struct dj_sftp_internal_memory
 
 /*
 d_sftp_internal_client_broken
-  File-local: reports whether an error leaves the stream unusable -- out of
-step, or gone -- so that no further replies can be trusted or read.
+  File-local: reports whether an error leaves the stream unusable - out of
+step, or gone - so that no further replies can be trusted or read.
 */
 D_STATIC bool
 d_sftp_internal_client_broken(
@@ -894,7 +894,7 @@ d_sftp_client_get(
 
 /*
 d_sftp_client_put
-  OPEN to create or truncate, the pipelined upload, CLOSE -- whose status
+  OPEN to create or truncate, the pipelined upload, CLOSE - whose status
 is the last word on whether the data reached the disk.
 */
 enum dj_sftp_error

@@ -9,7 +9,7 @@
 * ===============================================
 *   lookup.h has to compare keys through a widened carrier, because a runtime
 * descriptor cannot name a type. That is why it has four find entry points --
-* unsigned, signed, string, bytes -- and why a key that is none of those has
+* unsigned, signed, string, bytes - and why a key that is none of those has
 * nowhere to go.
 *
 *   THE COMPILE-TIME FORM HAS NO SUCH LIMIT. `DTypedView` compares keys with
@@ -20,8 +20,8 @@
 * search happens.
 *
 *   BOTH PRODUCE THE SAME ANSWER SHAPE. `DLookupResult` is the C struct's
-* contract -- found, index, and ON A MISS THE INSERTION POINT rather than a
-* sentinel -- so a caller written against one reads the same from the other.
+* contract - found, index, and ON A MISS THE INSERTION POINT rather than a
+* sentinel - so a caller written against one reads the same from the other.
 *
 *
 * THE COMPARATOR IS A TYPE, NOT A FLAG
@@ -126,7 +126,7 @@ struct is_lookup_key
 
 // is_lowerable_key
 //   trait: whether a key of this type can also be searched for through the C
-// entry points -- an integral or enumeration type the widened carrier can
+// entry points - an integral or enumeration type the widened carrier can
 // hold. A key that is ordered but not this is C++-only, and `lower_view` is
 // gated on it rather than silently reinterpreting the bytes.
 template<typename Type>
@@ -140,7 +140,7 @@ struct is_lowerable_key
 
 // sorted_tag
 //   type: asserts the records are in ascending key order, selecting the
-// bisecting scan. A CLAIM, not a check -- verifying it costs the scan the
+// bisecting scan. A CLAIM, not a check - verifying it costs the scan the
 // bisection exists to avoid.
 struct sorted_tag
 {};
@@ -151,7 +151,7 @@ struct unsorted_tag
 {};
 
 // DNaturalLess
-//   struct: the default comparator -- `operator<` on the key's own type.
+//   struct: the default comparator - `operator<` on the key's own type.
 template<typename Key>
 struct DNaturalLess
 {
@@ -196,7 +196,7 @@ using ci_less = DCiLess;
 // DLookupResult
 //   struct: the outcome of a search. On a miss `index` is the INSERTION POINT
 // rather than a sentinel, so a caller that failed to find a key already knows
-// where to put it -- the same contract dj_lookup_result carries.
+// where to put it - the same contract dj_lookup_result carries.
 template<typename Record>
 struct DLookupResult
 {
@@ -553,7 +553,7 @@ using lookup_view = DLookupView;
 // lower_view
 //   function: a compile-time view as a runtime one, for handing to C.
 //   ENABLED ONLY WHEN THE KEY CAN CROSS. A key that is ordered but not scalar
-// -- a std::string, a fixed_string, a user type -- has no widened form, and
+// - a std::string, a fixed_string, a user type - has no widened form, and
 // reinterpreting its bytes as an integer is the class of mistake this whole
 // module exists to remove. The substitution failure says so at the call site.
 template<typename View>
@@ -578,7 +578,7 @@ lower_view(
     //   THE SIGNED FLAG IS FOLDED IN HERE, from the field's member type rather
     // than from a descriptor bit. lookup.h moved it onto the view when the
     // descriptor went away, and this is the one place that knows the key's
-    // actual C++ type -- so it is the right place to decide.
+    // actual C++ type - so it is the right place to decide.
     return DLookupView(
         _view.data(),
         sizeof(typename View::record_type),

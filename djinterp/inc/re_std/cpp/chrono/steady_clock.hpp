@@ -2,8 +2,8 @@
 * djinterp [re_std]                                             steady_clock.hpp
 *
 * the steady_clock class:
-*   The clock for measuring intervals. Its epoch is unspecified -- often
-* system boot -- so a single reading means nothing on its own. The
+*   The clock for measuring intervals. Its epoch is unspecified - often
+* system boot - so a single reading means nothing on its own. The
 * guarantee is the one that matters for timing: it never jumps and never
 * runs backwards. Subtract two readings and the difference is the elapsed
 * time, with no NTP correction or daylight-saving transition able to
@@ -16,12 +16,12 @@
 *
 *   is_steady IS COMPUTED, NOT ASSERTED:
 *   Where a monotonic source exists, is_steady is true and now() reads
-* it. Where none does, the class falls back to the wall clock -- and
+* it. Where none does, the class falls back to the wall clock - and
 * is_steady becomes FALSE, because on that platform the guarantee is
 * genuinely not being met.
 *
 *   Reporting false is the whole design decision here. The alternative --
-* claiming steadiness while silently reading a clock that jumps -- would
+* claiming steadiness while silently reading a clock that jumps - would
 * let a caller's `assert(end >= start)` hold in testing and fail in
 * production during a leap-second smear. A caller can test is_steady and
 * choose; a caller lied to cannot.
@@ -30,7 +30,7 @@
 * practice: older MSVC). CLOCK_MONOTONIC covers every Unix.
 *
 *   PRECISION: nanoseconds. Unlike system_clock, the range concern does
-* not apply -- an interval clock counts from boot, so int64 nanoseconds
+* not apply - an interval clock counts from boot, so int64 nanoseconds
 * covers 292 years of uptime.
 *
 *
@@ -66,7 +66,7 @@
 
 // RE_STD_HAS_MONOTONIC_CLOCK
 //   constant: 1 if a genuinely monotonic time source is available. Drives
-// steady_clock::is_steady -- do not define it to 1 on a platform that
+// steady_clock::is_steady - do not define it to 1 on a platform that
 // cannot honour it.
 #ifndef RE_STD_HAS_MONOTONIC_CLOCK
     #if RE_STD_HAS_POSIX_CLOCK_GETTIME && defined(CLOCK_MONOTONIC)
@@ -98,7 +98,7 @@ namespace chrono
 
         // is_steady
         //   constant: true only where a monotonic source compiled in.
-        // See the header comment -- this is reported honestly rather than
+        // See the header comment - this is reported honestly rather than
         // asserted.
         static RE_STD_CONSTEXPR const bool is_steady =
             (RE_STD_HAS_MONOTONIC_CLOCK != 0);

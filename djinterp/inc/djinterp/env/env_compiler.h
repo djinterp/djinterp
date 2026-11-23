@@ -293,8 +293,8 @@ TABLE OF CONTENTS
 // 1.3.1
 // D_ENV_COMPILER_MSVC_FAMILY
 //   macro: 1 when the compiler uses the Microsoft toolchain's headers and C
-// runtime -- cl itself, and clang-cl and Intel on Windows, which define
-// _MSC_VER as well but are classified above under their own names -- and 0
+// runtime - cl itself, and clang-cl and Intel on Windows, which define
+// _MSC_VER as well but are classified above under their own names - and 0
 // otherwise. Questions about the runtime rather than the compiler, such as
 // whether <sys/types.h> declares ssize_t, key on this macro rather than on
 // D_ENV_COMPILER_MSVC.
@@ -335,9 +335,9 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 1.5.1
 // D_ENV_COMPILER_HAS_ATOMIC_BUILTINS
-//   constant: 1 when the compiler provides the __atomic_* builtins -- the
+//   constant: 1 when the compiler provides the __atomic_* builtins - the
 // memory-model family GCC introduced in 4.7, which Clang, clang-cl, and the
-// GCC-compatible front ends implement -- and 0 otherwise. MSVC does not
+// GCC-compatible front ends implement - and 0 otherwise. MSVC does not
 // provide them.
 //   Detected from __ATOMIC_SEQ_CST, which every such compiler predefines in
 // every language mode. The answer is therefore a property of the compiler and
@@ -355,8 +355,8 @@ TABLE OF CONTENTS
 // 1.5.2
 // D_ENV_COMPILER_HAS_OVERFLOW_BUILTINS
 //   constant: 1 when the compiler provides __builtin_add_overflow,
-// __builtin_sub_overflow and __builtin_mul_overflow -- checked arithmetic on
-// any integer types, which GCC introduced in 5 and Clang in 3.8 -- and 0
+// __builtin_sub_overflow and __builtin_mul_overflow - checked arithmetic on
+// any integer types, which GCC introduced in 5 and Clang in 3.8 - and 0
 // otherwise; MSVC does not provide them. Where __has_builtin exists (GCC 10
 // and later, and Clang), it answers; below it, GCC's version does. Like the
 // atomic builtins, the answer is a property of the compiler and never of the
@@ -405,7 +405,7 @@ TABLE OF CONTENTS
 // 1.6.1
 // D_ENV_COMPILER_HAS_RESTRICT_EXTENSION
 //   constant: 1 when the compiler accepts `__restrict` as a spelling of the
-// C99 `restrict` qualifier in every language mode -- C89, C++, and MSVC's
+// C99 `restrict` qualifier in every language mode - C89, C++, and MSVC's
 // default C mode, none of which have the keyword. GCC, Clang, clang-cl, MSVC,
 // and the Intel front ends all do; 0 for any other compiler. Pre-define it to
 // 0 to simulate a compiler without it.
@@ -498,8 +498,8 @@ TABLE OF CONTENTS
 // D_ENV_PP_HAS_VARIADIC_MACROS
 //   constant: 1 when the build may define variadic macros (`...`,
 // __VA_ARGS__), 0 otherwise. They are standard from C99 and C++11. Below
-// C++11 they are an extension every common compiler offers -- the default
-// C++98 mode, built with -Wno-variadic-macros (decision 3.6) -- unless the
+// C++11 they are an extension every common compiler offers - the default
+// C++98 mode, built with -Wno-variadic-macros (decision 3.6) - unless the
 // build asks for ISO strictness (D_CFG_ENV_ISO_STRICT): ISO C++98 has none,
 // so there every variadic family is absent, never an error (decision 4.5).
 // The C floor is C99, which has them.
@@ -581,7 +581,7 @@ TABLE OF CONTENTS
 //     - __cpp_va_opt, where a C++ compiler defines it (GCC 13 and Clang 18
 //       do not, even at C++20), answers directly.
 //     - a strict ISO mode (__STRICT_ANSI__) whose standard predates
-//       __VA_OPT__ -- C++ before C++20, C before C2x -- reports 0: it is not
+//       __VA_OPT__ - C++ before C++20, C before C2x - reports 0: it is not
 //       part of the language there, and GCC's -pedantic rejects it even in
 //       a macro that is never expanded.
 //     - anything else probes: with __VA_OPT__ support, __VA_OPT__(,) in a

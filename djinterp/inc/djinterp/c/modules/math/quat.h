@@ -16,8 +16,8 @@
 * quotients, the rotation and its matrix, the norm and normalization, the
 * quaternion of a rotation matrix (Shepperd's method) and of two vectors,
 * and nlerp are each one long double kernel, its parts carried as pairs
-* where they cancel -- every product of two parts exact by Dekker's, every
-* sum of products Ogita, Rump and Oishi's Dot2 -- and each family's part
+* where they cancel - every product of two parts exact by Dekker's, every
+* sum of products Ogita, Rump and Oishi's Dot2 - and each family's part
 * the kernel's rounded once, the operands scaled by powers of 2 where
 * Dekker's products could overflow or lose their low parts; float's and
 * double's product, inverse and quotients the same in double's pairs where
@@ -160,7 +160,7 @@ TABLE OF CONTENTS
 // is the kernel's rounded once (d_internal_math_*_round_pair). Sums that
 // cancel are carried as pairs (elementary.h's section 1.1), each product of
 // two parts exact by Dekker's, so that a part's error is some 2^-2P of its
-// terms, P long double's precision -- past twice a double's on the x87, and
+// terms, P long double's precision - past twice a double's on the x87, and
 // twice a double's where long double is double. Operands are scaled by powers
 // of 2 to a largest part in [1, 2) where Dekker's products could overflow or
 // lose their low parts.
@@ -378,7 +378,7 @@ d_internal_quat_ld_fill_nan(
 
 // d_internal_quat_ld_direction
 //   _out = the direction of _v's _n parts, at least one infinite: each
-// infinite part +-1 / sqrt(their count), the rest 0 of their own signs -- the
+// infinite part +-1 / sqrt(their count), the rest 0 of their own signs - the
 // limit of v / |v| as the finite parts are left behind.
 D_MATH_FN_KERNEL void
 d_internal_quat_ld_direction(
@@ -427,8 +427,8 @@ d_internal_quat_ld_direction(
 
 // d_internal_quat_ld_along
 //   _u _s, where _u is 0 a zero, its sign _u's times _s's: a part of a vector
-// that is 0 stays 0, whatever the value it is taken along -- an infinity or a
-// NaN among them -- as an exact 0 times anything is 0.
+// that is 0 stays 0, whatever the value it is taken along - an infinity or a
+// NaN among them - as an exact 0 times anything is 0.
 D_MATH_FN_KERNEL long double
 d_internal_quat_ld_along(
     long double _u,
@@ -450,7 +450,7 @@ d_internal_quat_ld_along(
 //   the sum of the _n products _a[i] _b[i], in order, as a pair: each product
 // exact (Dekker's, its factors safe or scaled), the high parts summed by
 // two-sums, the low parts and the two-sums' errors after, and the pair
-// renormalized -- Ogita, Rump and Oishi's Dot2, as accurate as the sum
+// renormalized - Ogita, Rump and Oishi's Dot2, as accurate as the sum
 // computed in twice the precision and rounded once, so that its high part is
 // the sum rounded once wherever it does not cancel past 2^P of its terms. A
 // sum of 0 is +0, as IEEE's arithmetic makes an exact sum of terms not all
@@ -499,9 +499,9 @@ d_internal_quat_ld_dot(
 
 // d_internal_quat_ld_over
 //   (_u.high + _u.low) / (_n.high + _n.low) as a pair, _n.high in [1, 32):
-// cplx.h's d_internal_cplx_ld_over with its last sum kept as a pair -- the
+// cplx.h's d_internal_cplx_ld_over with its last sum kept as a pair - the
 // quotient q of the high parts, the residual u - q n formed exactly by
-// Dekker's product, and q with the residual over n -- the quotient to some
+// Dekker's product, and q with the residual over n - the quotient to some
 // 2^-2P of it. A zero is q itself, of its sign; a quotient too near the
 // subnormals for Dekker's product q less q n_lo / n.
 D_MATH_FN_KERNEL struct dj_internal_math_ld_pair
@@ -546,7 +546,7 @@ d_internal_quat_ld_over(
 
 // d_internal_quat_ld_lerp
 //   (1 - _t) _a + _t _b as a pair: 1 - t exactly as a pair, each product
-// a pair, their sum a pair -- exact at t = 0 and t = 1.
+// a pair, their sum a pair - exact at t = 0 and t = 1.
 D_MATH_FN_KERNEL struct dj_internal_math_ld_pair
 d_internal_quat_ld_lerp(
     long double _a,
@@ -775,7 +775,7 @@ d_internal_quat_ld_divide(
 // The product, the inverse and the quotients again, in double's pairs, for
 // float's and double's where double is evaluated in its own type, as SSE
 // evaluates it, and long double is not: a float's products exact in double,
-// a double's by Dekker's (cplx.h's), each sum Dot2's -- as accurate as
+// a double's by Dekker's (cplx.h's), each sum Dot2's - as accurate as
 // twice double's precision, some ten times faster than the x87's long
 // double. Where double is evaluated wider, as on a 32-bit x87, the families
 // take section 1.2's kernels.
@@ -1268,7 +1268,7 @@ d_internal_quat_ld_root_c(
 //   |_v|, _n parts, at most 4, as a pair: +inf where a part is infinite, a
 // NaN part a NaN, +0 for 0; otherwise v scaled to a largest part in [1, 2),
 // the sum of its exact squares as a pair (d_internal_quat_ld_dot), its root
-// as a pair, scaled back -- the norm to some 2^-2P of it, rounded once more
+// as a pair, scaled back - the norm to some 2^-2P of it, rounded once more
 // where it falls into the subnormals.
 D_MATH_FN_KERNEL struct dj_internal_math_ld_pair
 d_internal_quat_ld_norm_c(
@@ -1382,7 +1382,7 @@ d_internal_quat_ld_normalize_c(
 // >= 0, by Shepperd's method: of 4w^2 = 1 + m00 + m11 + m22, 4x^2 = 1 + m00 -
 // m11 - m22, 4y^2 = 1 - m00 + m11 - m22 and 4z^2 = 1 - m00 - m11 + m22, each
 // summed as a pair, the largest (w first among equals, then x, y and z) --
-// at least 1, as the four sum to 4 -- gives its part, its root over 2, and
+// at least 1, as the four sum to 4 - gives its part, its root over 2, and
 // the others are the off-diagonal sums and differences over 4 times it; then
 // all four negated where w is negative, so that q is the one of q and -q with
 // w >= 0. A matrix a few steps from orthogonal gives a quaternion as many
@@ -1620,7 +1620,7 @@ d_internal_quat_ld_from_two_vectors_c(
 
 // d_internal_quat_ld_nlerp_c
 //   _out = the normalized linear interpolation from _a (t = 0) to _b (t = 1),
-// along the shorter arc -- b negated where a . b < 0, as q and -q are one
+// along the shorter arc - b negated where a . b < 0, as q and -q are one
 // rotation: ((1 - t) a + t b) / |...|, the sum's parts as pairs of a and b
 // scaled alike to a largest part in [1, 2) (d_internal_quat_ld_lerp), then
 // normalized. A NaN or an infinite part, of t too: a NaN in each part.
@@ -1699,7 +1699,7 @@ d_internal_quat_ld_root(
 //   |_v|, _n parts, at most 4, as a pair: +inf where a part is infinite, a
 // NaN part a NaN, +0 for 0; otherwise v scaled to a largest part in [1, 2),
 // the sum of its exact squares as a pair (d_internal_quat_ld_dot), its root
-// as a pair, scaled back -- the norm to some 2^-2P of it, rounded once more
+// as a pair, scaled back - the norm to some 2^-2P of it, rounded once more
 // where it falls into the subnormals.
 D_MATH_FN_RT struct dj_internal_math_ld_pair
 d_internal_quat_ld_norm(
@@ -1813,7 +1813,7 @@ d_internal_quat_ld_normalize(
 // >= 0, by Shepperd's method: of 4w^2 = 1 + m00 + m11 + m22, 4x^2 = 1 + m00 -
 // m11 - m22, 4y^2 = 1 - m00 + m11 - m22 and 4z^2 = 1 - m00 - m11 + m22, each
 // summed as a pair, the largest (w first among equals, then x, y and z) --
-// at least 1, as the four sum to 4 -- gives its part, its root over 2, and
+// at least 1, as the four sum to 4 - gives its part, its root over 2, and
 // the others are the off-diagonal sums and differences over 4 times it; then
 // all four negated where w is negative, so that q is the one of q and -q with
 // w >= 0. A matrix a few steps from orthogonal gives a quaternion as many
@@ -2051,7 +2051,7 @@ d_internal_quat_ld_from_two_vectors(
 
 // d_internal_quat_ld_nlerp
 //   _out = the normalized linear interpolation from _a (t = 0) to _b (t = 1),
-// along the shorter arc -- b negated where a . b < 0, as q and -q are one
+// along the shorter arc - b negated where a . b < 0, as q and -q are one
 // rotation: ((1 - t) a + t b) / |...|, the sum's parts as pairs of a and b
 // scaled alike to a largest part in [1, 2) (d_internal_quat_ld_lerp), then
 // normalized. A NaN or an infinite part, of t too: a NaN in each part.
@@ -2107,7 +2107,7 @@ d_internal_quat_ld_nlerp(
 //------------------------------------------------------------------------------
 // The exponential, logarithm, square root and real powers of a quaternion
 // are the complex ones in its plane (S275): q = w + v, r = |v|, u = v / r,
-// f(q) = Re f(w + r i) + u Im f(w + r i) -- for a vector part along im alone
+// f(q) = Re f(w + r i) + u Im f(w + r i) - for a vector part along im alone
 // the complex function itself (each family's section 6). r is carried as a
 // pair, and f corrected to first order for its low part, as the plane's
 // point is w + (r_hi + r_lo) i; the logarithm and the root take q scaled by
@@ -2159,7 +2159,7 @@ d_internal_quat_ld_plane_c(
     }
 
     // past the safe range: q's largest part into [1, 2), or [1/2, 2) at an
-    // even power -- only there, as log |q| near 0 would cancel against the
+    // even power - only there, as log |q| near 0 would cancel against the
     // scale's k ln 2
     if ( (_scale > 0) &&
          (d_internal_quat_ld_finite(_q, 4u)) &&
@@ -2435,7 +2435,7 @@ d_internal_quat_ld_pow_c(
 
 // d_internal_quat_ld_slerp_c
 //   _out = the spherical linear interpolation from _a (t = 0) to _b (t = 1),
-// both unit quaternions, along the shorter arc -- b negated where a . b < 0:
+// both unit quaternions, along the shorter arc - b negated where a . b < 0:
 // sin((1 - t) theta) / sin theta a + sin(t theta) / sin theta b, theta = 2
 // atan2(|a - b|, |a + b|), the angle between them accurate near 0 as acos(a
 // . b) is not; at theta = 0, (1 - t) a + t b (d_internal_quat_ld_lerp). Each
@@ -3853,7 +3853,7 @@ d_quat_f_slerp(
 // 2.6    Exponential, logarithm and powers
 //------------------------------------------------------------------------------
 // The complex functions in q's plane (section 1.7), principal values (S275):
-// for a vector part along im alone -- y and z 0 -- the complex function of w
+// for a vector part along im alone - y and z 0 - the complex function of w
 // + x i, cplx.h's in the same form, y and z as they are, so that a complex
 // number's is its own bit for bit; otherwise the _c form the kernel rounded
 // once, the plain one the same in the family's type on cplx.h's plain
@@ -5583,7 +5583,7 @@ d_quat_d_slerp(
 // 3.6    Exponential, logarithm and powers
 //------------------------------------------------------------------------------
 // The complex functions in q's plane (section 1.7), principal values (S275):
-// for a vector part along im alone -- y and z 0 -- the complex function of w
+// for a vector part along im alone - y and z 0 - the complex function of w
 // + x i, cplx.h's in the same form, y and z as they are, so that a complex
 // number's is its own bit for bit; otherwise the _c form the kernel rounded
 // once, the plain one the same in the family's type on cplx.h's plain
@@ -7234,7 +7234,7 @@ d_quat_ld_slerp(
 // 4.6    Exponential, logarithm and powers
 //------------------------------------------------------------------------------
 // The complex functions in q's plane (section 1.7), principal values (S275):
-// for a vector part along im alone -- y and z 0 -- the complex function of w
+// for a vector part along im alone - y and z 0 - the complex function of w
 // + x i, cplx.h's in the same form, y and z as they are, so that a complex
 // number's is its own bit for bit; otherwise the _c form the kernel rounded
 // once, the plain one the same in the family's type on cplx.h's plain

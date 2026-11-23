@@ -557,7 +557,7 @@ private:
     evaluate_value
       A field_value placed in a range row takes that row's bits; one with no
     field takes its own. A number the encoding cannot hold is a warning, not
-    an error: it still has bits -- the ones it wraps to -- and they are shown.
+    an error: it still has bits - the ones it wraps to - and they are shown.
     */
     void evaluate_value(
         std::size_t _index
@@ -870,8 +870,8 @@ private:
     build_environment
       The standard headers' macros, then the sheet's environment text,
     then every macro row in error-free standing, defined under its macro
-    name. A macro row C would refuse -- `#` before a non-parameter, `##` at
-    an end -- is in error, and stays out of the header.
+    name. A macro row C would refuse - `#` before a non-parameter, `##` at
+    an end - is in error, and stays out of the header.
     */
     void build_environment()
     {
@@ -1081,7 +1081,7 @@ private:
 
     // severity_of
     //   what an evaluation's diagnostic is on a row: a value-less macro is
-    // not an error -- it is written as it is either way -- so the worst is a
+    // not an error - it is written as it is either way - so the worst is a
     // warning, and a body that is simply not an integer is a note.
     static
     severity severity_of(
@@ -1253,7 +1253,7 @@ private:
     /*
     check_twins
       Two literals or valued macros in one group with the same value are
-    noted -- codes that should differ often do not, when a flag is ORed
+    noted - codes that should differ often do not, when a flag is ORed
     into bits the code already has. One that is the other's alias, its body
     the other's name alone, is not.
     */

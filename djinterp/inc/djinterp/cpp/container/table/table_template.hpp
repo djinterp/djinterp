@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                                   table_template.hpp
 *
-*   The TEMPLATING layer over a table model -- what turns a table written once
+*   The TEMPLATING layer over a table model - what turns a table written once
 * into a table that can be filled many times.  Two independent features, both
 * model -> model, so they compose with the parse and compose legs rather than
 * complicating either:
@@ -24,7 +24,7 @@
 *        Expanding it replaces the spanning cell with the cells its binding
 *        names. The interesting case is the one the sketch asks about: what if
 *        the binding does not fit the span one-to-one?  That is not a new
-*        question -- it is the placeholder_fit policy (table_options.hpp),
+*        question - it is the placeholder_fit policy (table_options.hpp),
 *        already graded:
 *
 *            exact     a mismatch is an error       (5 cells need 5 values)
@@ -38,11 +38,11 @@
 *
 *   ITERATION. The sketch's `#` sigil marks a cell as iterated. Its detection
 * is here (iteration_of / is_iterated); what an iterated cell EXPANDS to is a
-* binding question, so it routes through the same multi-cell expansion -- an
+* binding question, so it routes through the same multi-cell expansion - an
 * iterated cell is a run whose values a resolver names.
 *
 *   PORTABILITY:
-*   C++17 (interpolate.hpp is C++17 -- std::string_view backs its piece
+*   C++17 (interpolate.hpp is C++17 - std::string_view backs its piece
 * views).
 *
 *
@@ -141,7 +141,7 @@ using template_syntax = DTemplateSyntax;
 // ===========================================================================
 
 // is_multi_placeholder
-//   function: whether _text names a RUN of cells rather than one -- it ends
+//   function: whether _text names a RUN of cells rather than one - it ends
 // with the ellipsis. `headers...` is the run; `headers` is an ordinary cell.
 D_NODISCARD inline bool is_multi_placeholder(
     const std::string&     _text,
@@ -160,7 +160,7 @@ D_NODISCARD inline bool is_multi_placeholder(
 }
 
 // multi_placeholder_key
-//   function: the key a run placeholder names -- its text without the
+//   function: the key a run placeholder names - its text without the
 // ellipsis.
 D_NODISCARD inline std::string multi_placeholder_key(
     const std::string&     _text,
@@ -176,7 +176,7 @@ D_NODISCARD inline std::string multi_placeholder_key(
 }
 
 // is_iterated
-//   function: whether _text carries the iteration sigil, at either end -- the
+//   function: whether _text carries the iteration sigil, at either end - the
 // sketch writes both `bar#` and `#gamma`, so neither position is privileged.
 D_NODISCARD inline bool is_iterated(
     const std::string&     _text,
@@ -193,7 +193,7 @@ D_NODISCARD inline bool is_iterated(
 }
 
 // iteration_of
-//   function: the base name an iterated cell carries -- its text without the
+//   function: the base name an iterated cell carries - its text without the
 // sigil. `bar#` and `#bar` both name bar.
 D_NODISCARD inline std::string iteration_of(
     const std::string&     _text,
@@ -220,7 +220,7 @@ D_NODISCARD inline std::string iteration_of(
 // ===========================================================================
 
 // DMultiBindings
-//   class: what a run placeholder resolves to -- a key bound to a RUN of
+//   class: what a run placeholder resolves to - a key bound to a RUN of
 // values (as opposed to interpolate.hpp's resolvers, which bind a key to ONE
 // value). The distinction is the whole reason this layer exists: `{name}`
 // fills a cell, `name...` fills a span.
@@ -235,7 +235,7 @@ public:
         : m_entries()
     {}
 
-    // set -- bind _key to _run, overwriting any existing binding.
+    // set - bind _key to _run, overwriting any existing binding.
     void set(
         const std::string& _key,
         run_type           _run
@@ -256,7 +256,7 @@ public:
         return;
     }
 
-    // find -- the run bound to _key, or null when unbound. A miss is not an
+    // find - the run bound to _key, or null when unbound. A miss is not an
     // error: an unresolved placeholder is left standing, exactly as
     // interpolate's resolvers leave an unresolved {key}, so a table may be
     // filled in passes.
@@ -305,7 +305,7 @@ NS_INTERNAL
     //   function: whether a run of _have values may fill a span of _want cells
     // under _s. The same grading, in the same direction, as every other count
     // check in the DSL (table_builder's row_width_ok, table_parser's
-    // row_span_ok) -- one rule, three call sites.
+    // row_span_ok) - one rule, three call sites.
     inline
     bool run_fits(
         DTableStrictness _s,
@@ -321,8 +321,8 @@ NS_INTERNAL
 
     // expand_header_stack (a readable stack)
     //   function: expand the run placeholders in a header stack.  This is the
-    // sketch's PRIMARY case -- `| headers... |||||` is a HEADER row, not a body
-    // row -- so a run in a header level must resolve exactly as one in the body
+    // sketch's PRIMARY case - `| headers... |||||` is a HEADER row, not a body
+    // row - so a run in a header level must resolve exactly as one in the body
     // does. A spanning cell becomes the span's worth of unit cells, which
     // leaves
     // the level's EXTENT unchanged and so keeps table_metadata's own
@@ -418,8 +418,8 @@ NS_END  // internal
 //
 //   The fit is the placeholder_fit policy, applied: a run longer than the span
 // is
-// truncated, a shorter one padded, an exact match demanded -- or any of it
-// tolerated -- exactly as the option grades name.  A placeholder whose key is
+// truncated, a shorter one padded, an exact match demanded - or any of it
+// tolerated - exactly as the option grades name.  A placeholder whose key is
 // unbound is LEFT STANDING (and keeps its span), so a template may be expanded
 // in
 // passes, each binding set supplying what it knows.
@@ -503,7 +503,7 @@ D_NODISCARD parse::parse_result<DTableModelValue<Cell, Metadata>> expand_multi_p
                 _is_run ? _bindings.find(_key) : nullptr;
 
             // an unbound (or non-) placeholder is carried across verbatim,
-            // span and all -- a miss leaves the cell untouched
+            // span and all - a miss leaves the cell untouched
             if (_run == nullptr)
             {
                 if (_span > 1)
@@ -558,7 +558,7 @@ D_NODISCARD parse::parse_result<DTableModelValue<Cell, Metadata>> expand_multi_p
 //   function: resolve the {key} placeholders in every cell. Not a
 // re-implementation: each cell's text is handed to interpolate.hpp's engine
 // (DBraceScanner over the cell, the caller's resolver, a string sink), so the
-// table surface inherits that module's whole vocabulary -- inline bindings, a
+// table surface inherits that module's whole vocabulary - inline bindings, a
 // callable lookup, chained frames, predicate-gated frames, recursive expansion
 // --
 // for free, and behaves identically to every other interpolated text in the

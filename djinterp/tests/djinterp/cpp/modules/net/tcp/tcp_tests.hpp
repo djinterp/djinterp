@@ -25,7 +25,7 @@
 NS_DJINTERP
 NS_TESTING
 
-// net/tcp/tcp.hpp tests -- each returns true when every check held
+// net/tcp/tcp.hpp tests - each returns true when every check held
 bool tests_tcp_options();
 bool tests_tcp_loopback();
 bool tests_tcp_streams();

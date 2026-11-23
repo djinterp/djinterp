@@ -3,11 +3,11 @@
 bitwis(e)dom is two builds, since its window is made with uxoxo, which the
 djinterp tree does not hold (2026.10.23):
 
-- **the command line** -- the model, `bitwisedom`, `bitwisedom-gen` and
-  their tests -- from `build/cmake/djinterp/tools/bitwisedom`, which needs
+- **the command line** - the model, `bitwisedom`, `bitwisedom-gen` and
+  their tests - from `build/cmake/djinterp/tools/bitwisedom`, which needs
   djinterp alone;
-- **the window** -- `bitwisedom-gui`, the module `bitwisedom gui` loads, and
-  the smoke test that drives it -- from `build/ui/bitwisedom`, which builds
+- **the window** - `bitwisedom-gui`, the module `bitwisedom gui` loads, and
+  the smoke test that drives it - from `build/ui/bitwisedom`, which builds
   the command line's build within it, then uxoxo, then the module beside the
   program. The window's sources lie beside djinterp's, not in them:
   `inc/ui/bitwisedom`, `src/ui/bitwisedom`, `tests/ui/bitwisedom`.
@@ -29,8 +29,8 @@ binaries go to `<djinterp>/bin/tools/bitwisedom/`, and Debug binaries to
 `bitwisedom-gui-win64.dll`, where `bitwisedom gui` looks for it.
 `DJINTERP_ROOT` defaults to the containing djinterp checkout; `UXOXO_ROOT`,
 which only the window's build reads, to the environment's `UXOXO_ROOT`, then
-to the sibling checkout -- `uxoxo`, or `uxoxo/uxoxo-project`, beside
-djinterp's checkout -- and never to a directory inside djinterp's tree (the
+to the sibling checkout - `uxoxo`, or `uxoxo/uxoxo-project`, beside
+djinterp's checkout - and never to a directory inside djinterp's tree (the
 roots, below).
 
 # Building bitwis(e)dom
@@ -42,7 +42,7 @@ root, and builds the window's module and the smoke test.
 
 It is written for the consolidated djinterp of 2026.10.07, with the owner's
 edits since, and the uxoxo of 2026.10.14 with **Dear ImGui's docking
-branch** in its `inc/imgui` -- the uxoxo overlay of 2026.10.18, which
+branch** in its `inc/imgui` - the uxoxo overlay of 2026.10.18, which
 replaces that directory and nothing else. The window's sheets and tool
 windows dock, float and tab as Visual Studio's do, and those are the
 docking branch's: ImGui 1.92.8 WIP, its `docking` branch at `dee5bf3e`.
@@ -63,18 +63,18 @@ a thousand rows is realized in linear time.
    bitwis(e)dom's window uses
    uxoxo's number, combo, colour, tree, menu, section, table and splitter
    elements, element keys and targets, and uxoxo's own build at
-   `build/cmake/CMakeLists.txt` -- since 2026.10.09, its popup element (the
+   `build/cmake/CMakeLists.txt` - since 2026.10.09, its popup element (the
    context menus), a tree node's rename in place and its right-click and
    double-click actions, and a text field that reports only when its edit
-   is done -- and, since 2026.10.11, its window element (the bottom panel
+   is done - and, since 2026.10.11, its window element (the bottom panel
    floating, or opened over the grid), the buttons at a tab bar's end, line
    splitters and flush columns. The uxoxo of 2026.10.09 lacks the window,
    and configure refuses it by name (`element_window.hpp is missing`), as
    it does the uxoxo of 2026.10.07, which lacks the popup as well, and the
    uxoxo uploaded before 2026.10.04, which lacks everything.
 2. **djinterp is the consolidated tree of 2026.10.07.** bitwis(e)dom reads
-   its headers -- the environment layer, the root's kit, and `re_std`'s
-   integers and bit functions -- and, since 2026.10.09, compiles nine C
+   its headers - the environment layer, the root's kit, and `re_std`'s
+   integers and bit functions - and, since 2026.10.09, compiles nine C
    sources of its parse layer: the C and C++ lexer, its literal decoder and
    the diagnostic sink they report into, with which it reads macro bodies,
    imported headers and environments. A djinterp without them is refused by
@@ -108,7 +108,7 @@ ctest --preset msvc-debug
 `build\cmake\djinterp\tools\bitwisedom`, has the same presets, and its
 programs are five directories down from the root rather than three.
 
-Elsewhere, in `build/ui/bitwisedom` -- naming uxoxo's root only where it is
+Elsewhere, in `build/ui/bitwisedom` - naming uxoxo's root only where it is
 not the sibling checkout beside djinterp's:
 
 ```
@@ -129,11 +129,11 @@ its `bitwisedom-gui.dll`, on Linux (see below).
 | variable | default | must contain |
 |---|---|---|
 | `DJINTERP_ROOT` | the djinterp checkout the build is in | `inc/djinterp/djinterp.hpp` |
-| `UXOXO_ROOT` | the window's build only: the environment's `UXOXO_ROOT`, else the sibling checkout beside djinterp's -- `uxoxo`, else `uxoxo/uxoxo-project`, then both a level up -- never inside djinterp's tree | `inc/uxoxo/element.hpp`, `build/cmake/CMakeLists.txt` |
+| `UXOXO_ROOT` | the window's build only: the environment's `UXOXO_ROOT`, else the sibling checkout beside djinterp's - `uxoxo`, else `uxoxo/uxoxo-project`, then both a level up - never inside djinterp's tree | `inc/uxoxo/element.hpp`, `build/cmake/CMakeLists.txt` |
 | `BITWISEDOM_ROOT` | djinterp's root | |
 
 The djinterp root is found from the build's own directory. uxoxo is looked
-for beside djinterp's checkout -- `uxoxo`, then `uxoxo/uxoxo-project` -- and
+for beside djinterp's checkout - `uxoxo`, then `uxoxo/uxoxo-project` - and
 then the same a level up, where a directory of projects keeps each
 project's checkouts in a folder of its own: a djinterp checked out at
 `D:/sam/code/projects/frameworks/djinterp/release` finds uxoxo at
@@ -160,17 +160,17 @@ select, whatever the build's own level is.
 
 ## Flags
 
-bitwis(e)dom's own sources -- the model, the generator, the window, the tests --
+bitwis(e)dom's own sources - the model, the generator, the window, the tests --
 are held to the style guide's whole baseline: `-Wall -Wextra -Wshadow
 -Wcast-qual -Wconversion` under `-pedantic-errors` and `-Werror=undef`, and
 under Clang `-Wreserved-identifier` and `-Wdocumentation` as well (under `cl`,
 `/W4`). `BITWISEDOM_WARNINGS_AS_ERRORS=ON` makes them errors.
 
-The dependencies' headers -- djinterp's, uxoxo's, Dear ImGui's, GLFW's -- are
+The dependencies' headers - djinterp's, uxoxo's, Dear ImGui's, GLFW's - are
 system headers to bitwis(e)dom's targets, so their warnings are not counted
 against it. uxoxo builds itself with only its level and `/utf-8`. djinterp's
 lexer is compiled as C99, djinterp's floor, with no extensions and no
-warnings asked for -- under `cl`, with `/utf-8` and the conforming
+warnings asked for - under `cl`, with `/utf-8` and the conforming
 preprocessor.
 
 djinterp's lexer headers have no `extern "C"` guards of their own, so
@@ -190,13 +190,13 @@ object past `cl`'s section limit), and `_CRT_SECURE_NO_WARNINGS` for
 
 | target | is |
 |---|---|
-| `bitwisedom::core` | the model: sheets, resolution, expressions, operations, the C/C++ generator, the define environment (expansion and typed evaluation of C), the importer of C and C++, renames, the file format, undo -- no GUI |
+| `bitwisedom::core` | the model: sheets, resolution, expressions, operations, the C/C++ generator, the define environment (expansion and typed evaluation of C), the importer of C and C++, renames, the file format, undo - no GUI |
 | `djinterp::lex` | djinterp's C and C++ lexer, compiled as C99 for the core |
 | `djinterp::cli` | djinterp's command-line kit and the argument parser under it, compiled as C99 |
 | `bitwisedom::cli` | the command line's commands, on the kit |
 | `bitwisedom` | the command line (`inc/djinterp/parse/cli/GRAMMAR.md`, section 10) |
 | `bitwisedom-gen` | the generator's command line, as build scripts have always called it |
-| `bitwisedom-gui` | the window's build only: the module `bitwisedom gui` loads -- the window on Win32 + Direct3D 11 on Windows, GLFW + OpenGL 3 elsewhere -- named as the program looks for it, `bitwisedom-gui-<tag>`, beside it |
+| `bitwisedom-gui` | the window's build only: the module `bitwisedom gui` loads - the window on Win32 + Direct3D 11 on Windows, GLFW + OpenGL 3 elsewhere - named as the program looks for it, `bitwisedom-gui-<tag>`, beside it |
 
 `BITWISEDOM_HOST` (`auto`, `win32`, `glfw`) chooses the window's host;
 `auto` is `win32` on Windows. GLFW on Windows works too, where uxoxo's build
@@ -213,11 +213,11 @@ any window opens, in the commands' words. `--size=WxH` and `--scale=S` set
 the window's size and the display's scale; `--do`, `--screenshot`,
 `--frames` (the GLFW host) and `--warp` (the Win32 host) are for building
 and testing, listed under their own heading in `bitwisedom gui --help`. On
-Windows, a console made for the run alone -- a shortcut's -- is let go when
+Windows, a console made for the run alone - a shortcut's - is let go when
 the window opens.
 
-The two fonts -- Roboto Medium for the interface, Cousine for values and code,
-both Apache 2.0 -- are compiled in, from the copies uxoxo's ImGui carries, as
+The two fonts - Roboto Medium for the interface, Cousine for values and code,
+both Apache 2.0 - are compiled in, from the copies uxoxo's ImGui carries, as
 byte arrays: ImGui's base85 form is one string literal, past `cl`'s 64 KB
 limit (C2026).
 
@@ -227,21 +227,21 @@ limit (C2026).
 
 | test | checks |
 |---|---|
-| `model_c++17`, `model_c++20`, `model_c++23` | the model's suite: 36 sections, from bit masks to undo, every group opened and closed at once, values wider than an integer and the headers that hold them in arrays, the colour schemes, the JSON a bitfield is read from and every example written as one and as an export and read back, and the C environment, the importer and renames -- the code attached on 2026.10.09 read, evaluated against GCC's own answers, exported in the style guide's layout and read back the same -- and File > New's document, square cells, and what the symbols column lists rows by and how it writes their values, kept in the file; and the order a sheet's rows are shown in -- the sheet's own, or each group's sorted by a key, either way, the header in the sheet's order still -- and what each cell shows, as the display rules over its rows and bits say, kept in the file, and a rule whose rows are all deleted gone with them; since 2026.10.19, the rows' share of the cells' width, the probe and usage rows -- one of each, another added, moved, pinned, removed and the last hidden, anchors to rows gone let go of, kept in the file -- and a definition file's lines the preprocessor cannot read, named by their lines |
-| `header_<example>_<level>_<form>` | each of the twenty-one examples' headers, written by `bitwisedom-gen` with a self-test, compiled at that level with `-Wall -Wextra -pedantic-errors -Werror`; the self-test does not compile unless every macro has the sheet's value and every `_GET`/`_SET` agrees with the named values. A sheet wider than an integer -- `pci_config_header`, `x86_cpuid`, and `tests/sheets/wide_mix`, a bitfield in JSON made to be hard: fields across every word size's boundaries, values in every encoding, a range no integer carries -- has its self-test linked and run as well, which checks its arrays and the macros that read and write them; and again, as `header_<sheet>_w<bits>_...`, with arrays of 8-, 16- and 64-bit words at C11 and C++17 |
-| `bitfield_<file>` | each large example's file in `res/djinterp/tools/bitwisedom/examples/large`, and `wide_mix`, read by `bitwisedom-gen` and written back as a bitfield: the same bytes, line ends aside -- nothing of it lost on the way in, and the script that made it laying it out as the writer does |
-| `platform_<example>` | the examples of the platform the build targets -- Windows, macOS, Linux or FreeBSD -- each generated and compiled beside the system's own headers (`tests/platform/<example>.c`), every value the system also defines compared at compile time; on Windows, `win32_hresults` too, its 1,376 codes and 41 facilities against `winerror.h`; on Linux, `pci_config_header`, against `linux/pci_regs.h`; and where GCC or Clang targets x86, `x86_cpuid`, each flag's mask against `<cpuid.h>` under every name GCC's and Clang's give it |
+| `model_c++17`, `model_c++20`, `model_c++23` | the model's suite: 36 sections, from bit masks to undo, every group opened and closed at once, values wider than an integer and the headers that hold them in arrays, the colour schemes, the JSON a bitfield is read from and every example written as one and as an export and read back, and the C environment, the importer and renames - the code attached on 2026.10.09 read, evaluated against GCC's own answers, exported in the style guide's layout and read back the same - and File > New's document, square cells, and what the symbols column lists rows by and how it writes their values, kept in the file; and the order a sheet's rows are shown in - the sheet's own, or each group's sorted by a key, either way, the header in the sheet's order still - and what each cell shows, as the display rules over its rows and bits say, kept in the file, and a rule whose rows are all deleted gone with them; since 2026.10.19, the rows' share of the cells' width, the probe and usage rows - one of each, another added, moved, pinned, removed and the last hidden, anchors to rows gone let go of, kept in the file - and a definition file's lines the preprocessor cannot read, named by their lines |
+| `header_<example>_<level>_<form>` | each of the twenty-one examples' headers, written by `bitwisedom-gen` with a self-test, compiled at that level with `-Wall -Wextra -pedantic-errors -Werror`; the self-test does not compile unless every macro has the sheet's value and every `_GET`/`_SET` agrees with the named values. A sheet wider than an integer - `pci_config_header`, `x86_cpuid`, and `tests/sheets/wide_mix`, a bitfield in JSON made to be hard: fields across every word size's boundaries, values in every encoding, a range no integer carries - has its self-test linked and run as well, which checks its arrays and the macros that read and write them; and again, as `header_<sheet>_w<bits>_...`, with arrays of 8-, 16- and 64-bit words at C11 and C++17 |
+| `bitfield_<file>` | each large example's file in `res/djinterp/tools/bitwisedom/examples/large`, and `wide_mix`, read by `bitwisedom-gen` and written back as a bitfield: the same bytes, line ends aside - nothing of it lost on the way in, and the script that made it laying it out as the writer does |
+| `platform_<example>` | the examples of the platform the build targets - Windows, macOS, Linux or FreeBSD - each generated and compiled beside the system's own headers (`tests/platform/<example>.c`), every value the system also defines compared at compile time; on Windows, `win32_hresults` too, its 1,376 codes and 41 facilities against `winerror.h`; on Linux, `pci_config_header`, against `linux/pci_regs.h`; and where GCC or Clang targets x86, `x86_cpuid`, each flag's mask against `<cpuid.h>` under every name GCC's and Clang's give it |
 | `cli_<transcript>` | the command line's transcripts (`tests/djinterp/tools/bitwisedom/cli/`), each command run as a user would type it, its output and exit status compared line by line |
-| `gui_help`, `gui_unknown_example` | the window's build: `bitwisedom gui --help`, and a SHEET it refuses -- the module found beside the program, loaded and run, with no window opened |
-| `ui_smoke` | the window's build: the window through ImGui's null backend: every tab of every example, each arriving unchanged with its columns fitted to its names and values, every row in the inspector, every setting changed and undone, an operation applied and undone, a file saved and opened, and 600 frames of a mouse that wanders, clicks and drags; then, with the mouse and keyboard where the grid says it drew things, the context menus, renames in the grid, the tree, the inspector and a segment's heading, the columns' edges and the ruler's boundaries dragged and double-clicked, and code pasted, copied, imported and dropped; the grid filling its panel, the bottom panel shown every way, the theme and colour scheme, what a resting mouse shows, a sheet wider than 64 bits, the 1,424 rows of the HRESULT example with every group opened, rows selected across it and one renamed, its groups opened and closed all at once -- by the events the buttons and menus post, by both shortcuts and from a group's own menu -- and the JSON shapes written beside the sheet and read back, dropped and pasted; a new sheet and its add row's "Add new...", children named in the tree's "Add child..." fields, square cells, the menu bar's Help at its right end and its two pages, the buttons over the symbols column -- pressed, undone, fitted to, rested on, dragged from, narrowed and hidden -- the values written every way a press on value takes, lined up, the list a right-click on a button opens, and a macro with no bits written over its cells, and text that reads on every colour in every theme and scheme; and since 2026.10.18 the window around the sheets: the tool windows opened, closed by their x and docked, several sheets at once, workspaces added, switched, renamed and closed and a sheet moved between them, the sheets arranged tabbed, in columns, rows and a grid, each window zoomed, the session kept and opened again as it was -- in a second ImGui, as the next run -- the Options, every page, their search and the settings files exported, applied, forgotten and deleted; the grid's symbols column as the tree; the add control as a button and its menu and as a split button, driven by the mouse, and the colour new rows take; the rows sorted from the heading's menu and the sort made the sheet's own; and digits, names and colours shown in parts of the grid only, by rows, bits and a block, and the Display window; and since 2026.10.19 cells sized by hand and proportional rows, the probe and usage rows dragged by the mouse among the rows and into a group -- whose usage row then counts the group's -- pinned from their menu, added and removed, the Add child field fitted and filling, alone or with its +, the + opening the Add node window as a tab or a window and a range made and added there, the status bar and the console a click on its message opens, a definition file edited, and the sheet's tab over its bits, renamed by a double-click; and since 2026.10.20 the tabs across the whole width by default, over the bits at their left and their right, and over the symbols column, a tab's menu opened by a right-click, a tab pinned before its row and without its x, the tabs to a tab's right closed, then every other but the pinned, then those to a tab's left, the tab unpinned, and a pinned tab pinned still in the next run; and later on 2026.10.20 the grid's keyboard, as Excel's: the arrows, Ctrl and Shift with them along a row's set bits and down a bit's rows, Home, Ctrl+Home and Ctrl+End past the frozen columns, End mode, Enter and Tab round a range and back to where a run of Tabs began, Ctrl+., Shift+Space, Ctrl+Space, Ctrl+A, Shift+Backspace, Extend mode, F2 renaming in place and Space flipping the probe's bit, Page Down, Ctrl+End and Ctrl+Home scrolling the 1,424 rows of HRESULTs with the cursor, and Ctrl+Page Up and Down from sheet to sheet -- 46 sections, every frame checked for ImGui assertions, for ImGui's own errors, for clashing widget IDs, and for vertices a GPU may draw as stray pixels |
+| `gui_help`, `gui_unknown_example` | the window's build: `bitwisedom gui --help`, and a SHEET it refuses - the module found beside the program, loaded and run, with no window opened |
+| `ui_smoke` | the window's build: the window through ImGui's null backend: every tab of every example, each arriving unchanged with its columns fitted to its names and values, every row in the inspector, every setting changed and undone, an operation applied and undone, a file saved and opened, and 600 frames of a mouse that wanders, clicks and drags; then, with the mouse and keyboard where the grid says it drew things, the context menus, renames in the grid, the tree, the inspector and a segment's heading, the columns' edges and the ruler's boundaries dragged and double-clicked, and code pasted, copied, imported and dropped; the grid filling its panel, the bottom panel shown every way, the theme and colour scheme, what a resting mouse shows, a sheet wider than 64 bits, the 1,424 rows of the HRESULT example with every group opened, rows selected across it and one renamed, its groups opened and closed all at once - by the events the buttons and menus post, by both shortcuts and from a group's own menu - and the JSON shapes written beside the sheet and read back, dropped and pasted; a new sheet and its add row's "Add new...", children named in the tree's "Add child..." fields, square cells, the menu bar's Help at its right end and its two pages, the buttons over the symbols column - pressed, undone, fitted to, rested on, dragged from, narrowed and hidden - the values written every way a press on value takes, lined up, the list a right-click on a button opens, and a macro with no bits written over its cells, and text that reads on every colour in every theme and scheme; and since 2026.10.18 the window around the sheets: the tool windows opened, closed by their x and docked, several sheets at once, workspaces added, switched, renamed and closed and a sheet moved between them, the sheets arranged tabbed, in columns, rows and a grid, each window zoomed, the session kept and opened again as it was - in a second ImGui, as the next run - the Options, every page, their search and the settings files exported, applied, forgotten and deleted; the grid's symbols column as the tree; the add control as a button and its menu and as a split button, driven by the mouse, and the colour new rows take; the rows sorted from the heading's menu and the sort made the sheet's own; and digits, names and colours shown in parts of the grid only, by rows, bits and a block, and the Display window; and since 2026.10.19 cells sized by hand and proportional rows, the probe and usage rows dragged by the mouse among the rows and into a group - whose usage row then counts the group's - pinned from their menu, added and removed, the Add child field fitted and filling, alone or with its +, the + opening the Add node window as a tab or a window and a range made and added there, the status bar and the console a click on its message opens, a definition file edited, and the sheet's tab over its bits, renamed by a double-click; and since 2026.10.20 the tabs across the whole width by default, over the bits at their left and their right, and over the symbols column, a tab's menu opened by a right-click, a tab pinned before its row and without its x, the tabs to a tab's right closed, then every other but the pinned, then those to a tab's left, the tab unpinned, and a pinned tab pinned still in the next run; and later on 2026.10.20 the grid's keyboard, as Excel's: the arrows, Ctrl and Shift with them along a row's set bits and down a bit's rows, Home, Ctrl+Home and Ctrl+End past the frozen columns, End mode, Enter and Tab round a range and back to where a run of Tabs began, Ctrl+., Shift+Space, Ctrl+Space, Ctrl+A, Shift+Backspace, Extend mode, F2 renaming in place and Space flipping the probe's bit, Page Down, Ctrl+End and Ctrl+Home scrolling the 1,424 rows of HRESULTs with the cursor, and Ctrl+Page Up and Down from sheet to sheet - 46 sections, every frame checked for ImGui assertions, for ImGui's own errors, for clashing widget IDs, and for vertices a GPU may draw as stray pixels |
 
-With GCC or Clang there are 379 header tests -- twenty-one examples and
+With GCC or Clang there are 379 header tests - twenty-one examples and
 `wide_mix` at C99, C11, C17, C23, and C++98 to C++23 as macros and as
-constants, and the three wide sheets' 27 with other words -- three
+constants, and the three wide sheets' 27 with other words - three
 bitfields read and written back, and two to five platform checks: 391
 tests in all on x86 Linux, 389 on x86 FreeBSD and an Intel Mac, 388 on an
-Apple-silicon one. Where `long` has 32 bits -- Windows, and every 32-bit
-target -- C++98, which has no `long long`, cannot hold the 64-bit constants
+Apple-silicon one. Where `long` has 32 bits - Windows, and every 32-bit
+target - C++98, which has no `long long`, cannot hold the 64-bit constants
 of two examples and of `wide_mix`, and those six tests are left out:
 MinGW-w64 runs 384. Under `cl`, which cannot select C99, C23, C++98 or
 C++11, there are 247 header tests and no CPUID check, and 257 in all.
@@ -251,7 +251,7 @@ them. Since then the command line's build has the nine transcripts,
 `cli_*`, and not the smoke test, which is the window's build's with
 `gui_help` and `gui_unknown_example`: on x86 Linux, 399 tests in the command
 line's build and 402 in the window's; MinGW-w64's window build, 395 under
-Wine -- all run. Elsewhere the same arithmetic gives the command line's
+Wine - all run. Elsewhere the same arithmetic gives the command line's
 build eight more than the counts above, and the window's build three more
 again; those were counted, not run.
 
@@ -264,8 +264,8 @@ is held to every warning by the header tests.
 `ui_smoke` compiles its own ImGui with every ID clash recorded
 (`IMGUI_DEBUG_HIGHLIGHT_ALL_ID_CONFLICTS`); without that, ImGui notices a
 clash only under the mouse. ImGui 1.92.8 in that mode flags its own
-`InputTextMultiline` every frame -- the widget submits its ID as an item and
-again when its child window ends -- so a clash whose ID is a child window's is
+`InputTextMultiline` every frame - the widget submits its ID as an item and
+again when its child window ends - so a clash whose ID is a child window's is
 passed over. A real one is still caught.
 
 ---
@@ -280,11 +280,11 @@ tests would run the code of the overlay before: `model_c++17`, `_20`,
 raises the count they must print (`passed: 36`, `passed: 44`) while the
 old programs print the old one.
 
-So **configure after unzipping** -- `cmake --preset msvc`, as the quick
-start does -- and then build. Each configure keeps a hash of every source
-it watches in the build tree -- bitwisedom's and the kit's in
+So **configure after unzipping** - `cmake --preset msvc`, as the quick
+start does - and then build. Each configure keeps a hash of every source
+it watches in the build tree - bitwisedom's and the kit's in
 `bitwisedom_sources.sha1`, and in the window's build the window's and
-uxoxo's with its Dear ImGui in `bitwisedom_ui_sources.sha1` -- and touches
+uxoxo's with its Dear ImGui in `bitwisedom_ui_sources.sha1` - and touches
 each whose content changed since the last configure, so the build compiles
 it again (`cmake/Freshness.cmake`); it says how many it marked. A build tree
 configured before it kept any hashes has every source marked once, and
@@ -301,8 +301,8 @@ any doubt can do as well.
 rasterizer, instead of the GPU, and says so in its title. Stray pixels on
 the GPU that WARP does not draw are the GPU driver's; pixels WARP draws too
 are the drawing's. `ui_smoke` checks every frame for what a GPU may draw as
-stray pixels -- a vertex that is not a number, one far past any window, or
-one outside the font atlas -- and the grid's lines are cut to what the
+stray pixels - a vertex that is not a number, one far past any window, or
+one outside the font atlas - and the grid's lines are cut to what the
 window shows: a line across a sheet of 65,536 bits once ran a million
 pixels past it.
 
@@ -343,7 +343,7 @@ uxoxo's, marked `[uxoxo]` and announced by `IMGUI_DOCK_TAB_BAR_INSET`:
 builds a self-contained Windows `bitwisedom.exe` and `bitwisedom-gen.exe` on
 Linux with MinGW-w64 (the posix thread model), and from the window's build,
 whose `mingw-cross` preset takes the same file, a self-contained
-`bitwisedom-gui.dll` beside them -- MinGW's runtime linked into each, so no
+`bitwisedom-gui.dll` beside them - MinGW's runtime linked into each, so no
 DLL of it need ship:
 
 ```
@@ -410,12 +410,12 @@ docs/bitwisedom/          this file, LAYOUT.md, json.md, the JSON shapes
 
 ## What was verified, and what was not
 
-On 2026.10.23, after the window was moved out of the djinterp tree -- its
+On 2026.10.23, after the window was moved out of the djinterp tree - its
 sources to `inc/ui`, `src/ui` and `tests/ui`, its hosts made the run
 function of the module `bitwisedom gui` loads, its build made
-`build/ui/bitwisedom` -- and with the command line of 2026.10.22: against
+`build/ui/bitwisedom` - and with the command line of 2026.10.22: against
 the djinterp of that day and, the uxoxo overlays of 2026.10.18 and
-2026.10.20 not being to hand, a stand-in -- the uxoxo of 2026.10.14 with
+2026.10.20 not being to hand, a stand-in - the uxoxo of 2026.10.14 with
 Dear ImGui 1.92.8's docking branch, from imgui-bundle 1.92.801, in its
 `inc/imgui`. The stand-in has no tab bar patch, and configure warned of it.
 
@@ -426,18 +426,18 @@ Dear ImGui 1.92.8's docking branch, from imgui-bundle 1.92.801, in its
 | `bitwisedom -v gui example:uart_cr --screenshot FILE` on a virtual display (Xvfb, Mesa) | the module found beside the program and run; the window drawn, `wrote FILE (1280x800)` |
 | `bitwisedom gui example:uart_cr --do app.quit`, the same display | the window opened, kept its settings and session, and closed; 0 |
 | `bitwisedom gui` with no display | `bitwisedom: error: cannot open the window: GLFW error 65544: X11: The DISPLAY environment variable is missing`; 2 |
-| MinGW-w64 GCC 13, cross, Debug, warnings as errors, the window's build | every target built, the Win32 host among them, no warning; 395 of 395 tests under Wine 9 -- the smoke test's 46 sections, the module found and run by `bitwisedom-win64.exe`, and the command line's nine transcripts among them; the module imports system DLLs alone and exports `d_cli_plugin_entry` alone |
-| `bitwisedom-win64.exe -v gui example:uart_cr --size 1280x800`, under Wine on the virtual display | the Win32 host's window, on Wine's Direct3D 11, drawn as on Linux -- photographed from outside -- and its settings and session kept in `%APPDATA%\bitwisedom`; with `--do app.quit`, closed, 0 |
+| MinGW-w64 GCC 13, cross, Debug, warnings as errors, the window's build | every target built, the Win32 host among them, no warning; 395 of 395 tests under Wine 9 - the smoke test's 46 sections, the module found and run by `bitwisedom-win64.exe`, and the command line's nine transcripts among them; the module imports system DLLs alone and exports `d_cli_plugin_entry` alone |
+| `bitwisedom-win64.exe -v gui example:uart_cr --size 1280x800`, under Wine on the virtual display | the Win32 host's window, on Wine's Direct3D 11, drawn as on Linux - photographed from outside - and its settings and session kept in `%APPDATA%\bitwisedom`; with `--do app.quit`, closed, 0 |
 
 Not run: the window against uxoxo's own overlays; the window on Windows
 itself or on macOS; `cl` and clang-cl.
 
 Later still on 2026.10.20, a build under MSVC reported one section of the
-smoke test failed -- "code in and out", at the code a new sheet is made
-from -- and the rest passed. The section copies a row as code and, at once,
+smoke test failed - "code in and out", at the code a new sheet is made
+from - and the rest passed. The section copies a row as code and, at once,
 puts other code on the clipboard to make a sheet from; and on Windows
 ImGui's clipboard is the system's, whose every copy a program watching it
--- the clipboard history, a remote desktop, a password manager -- opens it
+-- the clipboard history, a remote desktop, a password manager - opens it
 to read, so a copy straight after another can fail without a word, and the
 section read the row's code instead. The smoke test now keeps a clipboard
 of its own, in memory, in every ImGui it makes, as ImGui itself does off
@@ -453,7 +453,7 @@ Later on 2026.10.20, after the grid was given a cursor and Excel's keys --
 the arrows with Shift and Ctrl, Home, End and End mode, Page Up and Page
 Down with Alt and Ctrl, Enter and Tab round a range, Shift+Space,
 Ctrl+Space, Ctrl+A, Shift+Backspace, Ctrl+Backspace, Ctrl+., F8, F2 and
-Space -- against the same djinterp and uxoxo:
+Space - against the same djinterp and uxoxo:
 
 | | result |
 |---|---|
@@ -468,15 +468,15 @@ Space -- against the same djinterp and uxoxo:
 The smoke test presses the keys as a user would, through ImGui's own
 keyboard, and reads where the cursor went, what was selected and where the
 grid scrolled. The window was run on a virtual display and driven by real
-key presses -- a click, the arrows, Shift held across them, End mode,
-Enter -- and photographed, the README's picture of a range with the cursor
+key presses - a click, the arrows, Shift held across them, End mode,
+Enter - and photographed, the README's picture of a range with the cursor
 inside it among those taken.
 
 On 2026.10.20, after a tab's menu was given **Close all other tabs**,
 **Close all tabs to the left** and **to the right**, and **Pin tab**, and
-where the sheets' tabs run was made an option -- along the whole top from
+where the sheets' tabs run was made an option - along the whole top from
 the left, as before, by default; or over the bits, the symbols column or
-the value column, at its left or its right -- with the second form of
+the value column, at its left or its right - with the second form of
 uxoxo's tab bar patch; and after a fault was mended that arranging a
 workspace's sheets could meet, reading a dock node a merge had freed a
 moment before (AddressSanitizer found it: Dear ImGui's record of a dock
@@ -532,13 +532,13 @@ as a view and as an editor, and the tabs over the bits; the README's first
 picture was taken again, and two added.
 
 On 2026.10.19, a build under MSVC reported four of its 257 tests failed:
-the model's suite at its three levels, and `ui_smoke` -- the four whose
-counts the overlay of 2026.10.18 raised -- and every other passed. That is
+the model's suite at its three levels, and `ui_smoke` - the four whose
+counts the overlay of 2026.10.18 raised - and every other passed. That is
 the old programs, run against the new counts: the overlay's files kept
 their archive's times, older than the objects of the build before, and
 the build compiled none of them. The same was done here on fresh trees --
 the overlay of the afternoon of 2026.10.18 built and tested, then the
-overlay of the evening unzipped over it, configured and built -- and the
+overlay of the evening unzipped over it, configured and built - and the
 same four failed, the build having compiled nothing it changed. Configure
 now marks every source whose content changed since the last configure to
 compile again ([After unzipping an overlay](#after-unzipping-an-overlay)),
@@ -546,7 +546,7 @@ and with it the same trees built and passed every test:
 
 | | result |
 |---|---|
-| the overlay of 2026.10.18's afternoon, built, then the evening's unzipped over it, configured and built, GCC 13.3, Debug | the build compiled only the one file the overlay added; 387 of 391 tests -- `model_c++17`, `_20`, `_23` and `ui_smoke` failed, printing `passed: 33` and `passed: 30`, the counts of the overlay before |
+| the overlay of 2026.10.18's afternoon, built, then the evening's unzipped over it, configured and built, GCC 13.3, Debug | the build compiled only the one file the overlay added; 387 of 391 tests - `model_c++17`, `_20`, `_23` and `ui_smoke` failed, printing `passed: 33` and `passed: 30`, the counts of the overlay before |
 | then this overlay unzipped over that, configured and built | configure marked all 168 sources; the build compiled every one, Dear ImGui's too; 391 of 391 tests |
 | GCC 13.3, Linux, Debug, an old-dated change to one source: built, configured, built | the first build compiled nothing; configure marked the one source; the second build compiled it |
 
@@ -565,7 +565,7 @@ built.
 In the evening of 2026.10.18, after the window took Visual Studio's shape
 -- each sheet in a window of its own, tool windows that dock, float, tab
 and close, workspaces and the Window menu's arrangements, a zoom for each
-window, the session kept, the Options and settings files -- and after the
+window, the session kept, the Options and settings files - and after the
 symbols tree became the grid's symbols column, one add control took the
 add buttons' place, new rows took the colour the user chooses, and the
 rows were sorted and the display rules added; against the djinterp of that
@@ -586,11 +586,11 @@ the places the control says it drew them; the heading's menu, a row's and
 a band's by right-clicks; a block selected; and a session written by one
 window and opened by another, in an ImGui of its own. Its sections on the
 sort and the display rules were seen to fail with what they check taken
-away -- the rows shown in the sheet's order whatever the sort, and the
+away - the rows shown in the sheet's order whatever the sort, and the
 grid's digits drawn as its own setting says whatever the rules over a row
 say. Rows added with no colour showed nothing where their bits were set,
 with the digits off, as a row with no fill always had: their set bits are
-now drawn plain, in the theme's text, faintly -- but a range's, which its
+now drawn plain, in the theme's text, faintly - but a range's, which its
 name across its cells already says. The window was photographed on a
 virtual display: two sheets in columns, a sheet sorted with its display
 rules and the Display window, rows added with no colour in both themes,
@@ -598,8 +598,8 @@ the heading's menu and a row's; the README's first picture was taken
 again, and two new ones added. The rest of its pictures show the window
 before it docked. `cl` and a real Windows machine were not tried.
 
-Later on 2026.10.18, after the buttons over the symbols column -- symbol
-name, name, value -- were added, then a press on value again writing the
+Later on 2026.10.18, after the buttons over the symbols column - symbol
+name, name, value - were added, then a press on value again writing the
 values every way, lined up, a right-click listing every way, and a row
 with no bits given its cells and its definition over them, with the same
 djinterp and uxoxo:
@@ -613,7 +613,7 @@ djinterp and uxoxo:
 
 Clang alone found the buttons' tooltip text, two literals joined in an
 array, suspicious (`-Wstring-concatenation`); it is parenthesized. The two
-new smoke sections were seen to fail with what they check taken away -- a
+new smoke sections were seen to fail with what they check taken away - a
 column fitted to its names whatever it lists, a press on a button that
 also drags the heading, a heading that leaves no line for the label below
 the buttons, values that follow the tree in every form, a wide sheet that
@@ -643,7 +643,7 @@ a local `last` in the grid's rectangle drag shadowed the band click's, and
 the toolbar the menu bar replaced was no longer called; and Clang found an
 `int` given to `format_dec` in the main editor's tab names. Each is
 mended. Each new smoke section was seen to fail with what it checks taken
-away -- a field that does not take the keyboard back, an add row that
+away - a field that does not take the keyboard back, an add row that
 answers its "+" alone. The window was run on a virtual display and the
 new sheet, every fill and colour in both themes with and without cell
 boxes, the Macros tab, the View and Help menus and Help's two pages were
@@ -661,7 +661,7 @@ with the same djinterp and uxoxo:
 | GCC 13.3, Linux, Debug, C++20, warnings as errors | every target built; 391 of 391 tests, the model's 30 sections and the smoke test's 23 among them |
 | Clang 18.1, Release | every target built; 391 of 391 tests |
 | GCC 13.3, the window and the model at C++17, Release | every target built; 391 of 391 tests |
-| MinGW-w64 GCC 13, cross, warnings as errors | every target built; 384 of 384 run under Wine 9.0 -- one, `header_x86_cpuid_cpp11_macros`, after a second run: in the first, Wine's client lost its server (`recvmsg: Connection reset by peer`) before `bitwisedom-gen` started |
+| MinGW-w64 GCC 13, cross, warnings as errors | every target built; 384 of 384 run under Wine 9.0 - one, `header_x86_cpuid_cpp11_macros`, after a second run: in the first, Wine's client lost its server (`recvmsg: Connection reset by peer`) before `bitwisedom-gen` started |
 | the whole build configured for `cl` 19.51 through vparse's `tools/cl_standin/` | every unit compiled, no warning; both executables linked; 257 of 257 tests run under Wine |
 
 The smoke test's new section takes under three seconds of its forty in a
@@ -682,14 +682,14 @@ uxoxo of `uxoxo_2026_10_11b.zip`:
 
 **The HRESULTs** are MinGW-w64's `winerror.h`, read by
 `tools/winerror_to_bitfield.py`. Its 1,376 codes were compared with the
-Windows SDK's as the `windows-sys` crate 0.59 carries them -- generated from
+Windows SDK's as the `windows-sys` crate 0.59 carries them - generated from
 the SDK's own metadata: the 1,339 it has agree, every one, and so do its
-facilities; the 37 it lacks -- DXGI's errors, four of DirectWrite's and
-`TBS_E_DEACTIVATED` -- are as Microsoft documents them. The SDK's
+facilities; the 37 it lacks - DXGI's errors, four of DirectWrite's and
+`TBS_E_DEACTIVATED` - are as Microsoft documents them. The SDK's
 `winerror.h` itself has not been compiled against here: on Windows,
 `platform_win32_hresults` does that, with `cl`. A facility the SDK names
-and MinGW-w64 does not -- NAP, TPM_SERVICES, FWP, and the DirectX and
-imaging ones -- is named as the SDK names it, its value compared where the
+and MinGW-w64 does not - NAP, TPM_SERVICES, FWP, and the DirectX and
+imaging ones - is named as the SDK names it, its value compared where the
 header defines it.
 
 **The CPUID flags** are the SDM's and the APM's, from the table in
@@ -711,7 +711,7 @@ byte, as is `wide_mix` rewritten; all three are valid against
 `docs/bitwisedom/bitfield.schema.json` (`jsonschema` 4.26).
 
 **A thousand rows.** The window was timed headless, through ImGui's null
-backend, on the HRESULT example -- 1,424 rows -- a click that selects a row
+backend, on the HRESULT example - 1,424 rows - a click that selects a row
 being the frame after it, in which the window's elements are built again:
 
 | | a click, release | a frame, release | a click, debug | a frame, debug |
@@ -732,8 +732,8 @@ examples and none of this.
 
 The record of the evening of 2026.10.11 follows.
 
-In the evening of 2026.10.11, after the JSON shapes -- the bitfield and the
-export -- were added, with the same djinterp and uxoxo:
+In the evening of 2026.10.11, after the JSON shapes - the bitfield and the
+export - were added, with the same djinterp and uxoxo:
 
 | | result |
 |---|---|
@@ -746,12 +746,12 @@ export -- were added, with the same djinterp and uxoxo:
 Every example was written by `bitwisedom-gen` as a bitfield and as an
 export, at C99 and C++17, as macros and as constants, and each was read back
 and generated again: the bitfield wrote the same header, byte for byte, and
-the export read back as the same sheet -- 76 headers each way. The model's
+the export read back as the same sheet - 76 headers each way. The model's
 tests do the same for every example, at C99. The wide header tests read
 `wide_mix` from a bitfield now, so the generator reads one at every level
 and word size, and each of those 50 self-tests ran.
 
-Every bitfield written -- the nineteen examples' and `wide_mix` -- was
+Every bitfield written - the nineteen examples' and `wide_mix` - was
 checked against `docs/bitwisedom/bitfield.schema.json` with Python's `jsonschema` 4.26,
 and the schema was seen to refuse a misspelt key and a row with two
 definitions. The examples in `docs/bitwisedom/json.md` and the README were read by
@@ -774,7 +774,7 @@ A wide sheet's self-test checks, for `pci_config_header` at C99, 294 things
 as it compiles and 434 as it runs; for `wide_mix`, 71 and 118. Before they
 were trusted they were tried against headers with faults put in by hand --
 a word of an initializer, the array macros' modulus, a field's `_SET` shift
-and its `_GET` mask, a value, a bit's place -- and each fault failed them,
+and its `_GET` mask, a value, a bit's place - and each fault failed them,
 as they compiled or as they ran. The `_GET` mask's at first did not: the
 one pattern a field was written with left its top bit clear, so a mask a
 bit short read it back the same. A field is now written with a pattern and
@@ -783,27 +783,27 @@ compiled", which is how CTest knew a header test had passed; it now says
 only that the run failed.
 
 The generator's narrow output was compared with that of the generator
-before this change: 576 headers -- the eighteen narrow examples at four C
-and four C++ levels, as macros and as constants, in both styles -- byte for
+before this change: 576 headers - the eighteen narrow examples at four C
+and four C++ levels, as macros and as constants, in both styles - byte for
 byte the same, but for one line of `win32_hresult` that ran to 81 columns.
 A body too long for its line is now broken inside nested parentheses as
 well as at its outermost operators, which keeps that line within 80.
 
-A sheet of 65,536 bits -- which `ui_smoke` makes when it sets every setting
-to its highest -- took that section 573 seconds in a debug build: the grid
+A sheet of 65,536 bits - which `ui_smoke` makes when it sets every setting
+to its highest - took that section 573 seconds in a debug build: the grid
 fitted each value's 16,384 hex digits to its column a character at a time.
 It now halves to the fit and names a wide sheet's values by their runs; the
 section takes 10. And the operations' preview coloured red every bit two
 symbols claimed, in whatever groups; it now colours the collisions it
-counts, two claims in an exclusive group, as the usage row does -- which
+counts, two claims in an exclusive group, as the usage row does - which
 the PCI example, whose registers lie under their own flags, made plain.
 
 The record of the morning of 2026.10.11 follows.
 
-On 2026.10.11, after the window's layout was redone -- the panels flush and
+On 2026.10.11, after the window's layout was redone - the panels flush and
 divided by hairlines, a grid that fills its panel, the bottom panel's five
 ways of being shown, the Theme menu with its five colour schemes, and what
-a resting mouse shows -- against djinterp of 2026.10.07 and uxoxo of
+a resting mouse shows - against djinterp of 2026.10.07 and uxoxo of
 2026.10.11:
 
 | | result |
@@ -848,25 +848,25 @@ uxoxo:
 | Clang 18.1, the same | every target built; 295 of 295 tests |
 | GCC 13.3, the window and the model at C++17, warnings as errors | every target built; 295 of 295 tests |
 | MinGW-w64 GCC 13, cross, warnings as errors | every target built; 290 of 290 run under Wine 9.0, the two Windows platform checks among them, compiled against MinGW-w64's `windows.h` |
-| the whole build configured for `cl` 19.51 through vparse's `tools/cl_standin/` | every unit compiled, no warning; both executables linked; 186 of 186 tests run under Wine -- the Windows platform checks compiled `cl`-style, with the real identity, as every unit that includes `<windows.h>` is there |
+| the whole build configured for `cl` 19.51 through vparse's `tools/cl_standin/` | every unit compiled, no warning; both executables linked; 186 of 186 tests run under Wine - the Windows platform checks compiled `cl`-style, with the real identity, as every unit that includes `<windows.h>` is there |
 
 The macOS and FreeBSD checks could not be run on a Mac or a FreeBSD
 machine. They were compiled against stand-ins for the system headers made
 from XNU's own `mach-o/loader.h` and `mach/machine.h`, and from FreeBSD's
-`sys/stat.h` and the `sys/event.h` of FreeBSD 14 and of 15 -- the first
+`sys/stat.h` and the `sys/event.h` of FreeBSD 14 and of 15 - the first
 without the jail filters, so the checks' guards were taken both ways. Then
 every literal in the nine generated headers was changed, one at a time:
 each change to a value the system also defines failed its check, so the
-checks compare what they claim to. (What no system header defines -- a
-field's `_SHIFT` and `_WIDTH`, HRESULT's reserved bits -- the header tests
+checks compare what they claim to. (What no system header defines - a
+field's `_SHIFT` and `_WIDTH`, HRESULT's reserved bits - the header tests
 hold to the sheet.)
 
 Two things changed in the course of it. The self-test wrote a 64-bit value
 as `0x...ULL` at C++98, which has no `long long`, and failed under
 `-pedantic-errors`; it now writes it as the header does, as an `unsigned
 long`. And a sheet taken from the examples, or imported, has its name and
-value columns fitted to what they hold -- a 64-bit example's values no
-longer arrive cut off -- without being marked changed.
+value columns fitted to what they hold - a 64-bit example's values no
+longer arrive cut off - without being marked changed.
 
 The record of 2026.10.09 follows.
 
@@ -893,7 +893,7 @@ MinGW-w64's import libraries; that `bitwisedom.exe` was not run.
 `ui_smoke` checks every frame for Dear ImGui's own errors as well as for
 clashing IDs. That check found one, in uxoxo: a tree node renamed in place
 put ImGui's cursor back with nothing drawn after it, which ImGui 1.92 calls
-an error when the node is the last item of its window -- an assertion in a
+an error when the node is the last item of its window - an assertion in a
 debug build. uxoxo of 2026.10.09 draws the field without moving the cursor
 back; the run has no error in any frame.
 
@@ -914,7 +914,7 @@ it):
 |---|---|
 | GCC 13.3 and Clang 18.1, Linux, Release, warnings as errors | every target built; 52 of 52 tests |
 | the `mingw-cross` preset, warnings as errors | `bitwisedom.exe` and `bitwisedom-gen.exe` built |
-| **the whole build as CMake configures it for `cl` 19.51**, through vparse's `tools/cl_standin/`, `Ninja Multi-Config` as the `msvc` preset has it, Release | CMake reports MSVC 19.51.36260.0 and takes `cl`'s branches; every unit compiled, no warning; 34 of 34 tests -- the thirty generated headers' self-tests compiled `cl`-style, `/W4 /WX` -- run under Wine |
+| **the whole build as CMake configures it for `cl` 19.51**, through vparse's `tools/cl_standin/`, `Ninja Multi-Config` as the `msvc` preset has it, Release | CMake reports MSVC 19.51.36260.0 and takes `cl`'s branches; every unit compiled, no warning; 34 of 34 tests - the thirty generated headers' self-tests compiled `cl`-style, `/W4 /WX` - run under Wine |
 
 In the stand-in, `app/`'s units, which include `<windows.h>`, kept the real
 identity, as Dear ImGui's do: the MinGW-w64 headers will not read it as
@@ -924,7 +924,7 @@ the window's link under it, and a real Windows machine remain unverified.
 
 That run is why two things changed on 2026.10.07: under `cl`, uxoxo's
 library and the UI smoke test, which read djinterp's headers, now take
-`/Zc:preprocessor` as every other unit here does -- before, they were left
+`/Zc:preprocessor` as every other unit here does - before, they were left
 to `cl`'s traditional preprocessor; and the header tests run
 `bitwisedom-gen` through `CMAKE_CROSSCOMPILING_EMULATOR` where a cross build
 has one, which changes nothing in a native build.
@@ -944,8 +944,8 @@ photographed: the screenshots in `docs/` are those runs.
 
 The Windows build was cross-compiled with MinGW-w64 GCC 13 with warnings as
 errors, and both executables were run under Wine 9.0: `bitwisedom-gen.exe`
-wrote headers byte-identical to the Linux build's -- all three examples, in
-both styles -- and `bitwisedom.exe` drew the same window through Wine's
+wrote headers byte-identical to the Linux build's - all three examples, in
+both styles - and `bitwisedom.exe` drew the same window through Wine's
 Direct3D 11.
 
 **Not verified:** `cl` and `clang-cl`, and so the `msvc`, `vs2022`,

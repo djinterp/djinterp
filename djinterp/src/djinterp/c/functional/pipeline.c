@@ -436,7 +436,7 @@ d_functional_pipeline_end
   Always hands the caller a block of its own, to release with free(): an
 owned block is handed over, a view is copied. So after end, the pipeline
 must not also be freed. A failed pipeline, or an empty result, yields NULL
-and a count of 0 -- check error_code first to tell them apart. A failed
+and a count of 0 - check error_code first to tell them apart. A failed
 pipeline's own block is released here.
 */
 void* d_functional_pipeline_end(

@@ -2,8 +2,8 @@
 * djinterp [c][parse]                                        arg_completion_sh.c
 *
 * Completion scripts for bash and zsh, declared in arg_internal.h (11.2.4).
-*   Both scripts hold the model as shell functions -- one `case` statement
-* each, which bash from 3.2 on and zsh run alike -- and walk the words
+*   Both scripts hold the model as shell functions - one `case` statement
+* each, which bash from 3.2 on and zsh run alike - and walk the words
 * before the cursor as the parse takes them, in functions the two share:
 * which subcommand the words reach, which option's values they are among,
 * which positional takes the next word. Each then offers what may come at
@@ -43,8 +43,8 @@
 static const char KIND_LETTERS[] = "-cfdn";
 
 // WALK_LINES
-//   constant: the functions bash and zsh share -- the walk over the words
-// before the cursor -- which read the model through the data functions and
+//   constant: the functions bash and zsh share - the walk over the words
+// before the cursor - which read the model through the data functions and
 // keep their state in the caller's variables: cmd and cf, the command
 // reached and its switches; opt, need and room, the option whose values the
 // words are among, the values it still needs, and how many more it may take
@@ -264,7 +264,7 @@ static const char* const WALK_LINES[] =
 };
 
 // BASH_LINES
-//   constant: bash's own functions -- the words, rejoined; their quoting
+//   constant: bash's own functions - the words, rejoined; their quoting
 // removed; what may come at the cursor; the reply as readline takes it --
 // and the completion function itself.
 static const char* const BASH_LINES[] =
@@ -527,8 +527,8 @@ static const char* const BASH_LINES[] =
 };
 
 // ZSH_LINES
-//   constant: zsh's own functions -- what may come at the cursor, offered
-// through the completion system -- and the completion function itself.
+//   constant: zsh's own functions - what may come at the cursor, offered
+// through the completion system - and the completion function itself.
 static const char* const ZSH_LINES[] =
 {
     "__djarg_@@_values() {",
@@ -984,7 +984,7 @@ void d_arg_internal_complete_sh_options(
  * @param[in,out] _out    the buffer that gains it, its failure kept in it.
  *
  * _pos: a command's positionals in the order they take words, each as its
- * option, r -- empty past the last -- and the most values it takes, y.
+ * option, r - empty past the last - and the most values it takes, y.
  */
 D_STATIC
 void d_arg_internal_complete_sh_slots(
@@ -1182,7 +1182,7 @@ void d_arg_internal_complete_sh_list(
  *                            it.
  *
  * _subs and _opts: each command's subcommand names, and its option names,
- * as the array c -- and for zsh their descriptions, as the array d.
+ * as the array c - and for zsh their descriptions, as the array d.
  */
 D_STATIC
 void d_arg_internal_complete_sh_names(
@@ -1457,8 +1457,8 @@ bool d_arg_internal_complete_zsh_tag(
  * @param[in]     _program  the program's name.
  * @param[in]     _ident    the program's identifier.
  *
- * How the script ends: autoloaded as _<program> -- the file's name, as
- * `#compdef` loads it -- it registers itself and completes at once; sourced,
+ * How the script ends: autoloaded as _<program> - the file's name, as
+ * `#compdef` loads it - it registers itself and completes at once; sourced,
  * it registers itself when compinit is loaded, and says what is missing
  * when it is not.
  */

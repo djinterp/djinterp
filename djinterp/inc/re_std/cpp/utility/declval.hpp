@@ -41,7 +41,7 @@ namespace re_std
 // =============================================================================
 
 // declval
-//   function: declared-only -- never defined, never invokable. Used
+//   function: declared-only - never defined, never invokable. Used
 //   inside unevaluated operands to obtain a value of type T without
 //   requiring T to be default-constructible.
 template<typename Type>

@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][net]                                          smtp_tests_reader.c
 *
-* djinterp SMTP kernel tests -- the line reader.
+* djinterp SMTP kernel tests - the line reader.
 *   Standalone tests of smtp_reader.c over net_tests_peer.h's scripted peer:
 * lines split over reads, CR LF and bare LF, the end of the stream, lines
 * longer than the caller's buffer or the reader's own, what a failing
@@ -229,8 +229,8 @@ d_tests_smtp_edge_line(
 
 /*
 d_tests_smtp_spilled_line
-  Reads a line of 6000 'b's -- said in two turns, the first filling the
-reader's buffer -- into `_capacity` bytes of the heap, which hold no more:
+  Reads a line of 6000 'b's - said in two turns, the first filling the
+reader's buffer - into `_capacity` bytes of the heap, which hold no more:
 its status, its length, whether what was kept is all 'b's, and whether the
 line after it is still found.
 */
@@ -420,8 +420,8 @@ bool d_tests_smtp_reader_refusals(
 
 /*
 d_tests_smtp_reader_cause
-  A reader over a peer that says `_script` and then stalls -- or, with
-`_lies`, claims more than each read had room for -- must fail its first
+  A reader over a peer that says `_script` and then stalls - or, with
+`_lies`, claims more than each read had room for - must fail its first
 read with `_status`, giving up `_held` and holding nothing more, and keep
 `_cause` until it starts again.
 */
@@ -467,7 +467,7 @@ d_tests_smtp_reader_cause(
 d_tests_smtp_reader_failures
   Tests the following:
   - a peer that stalls mid-line times out: TIMED_OUT, the part of the line
-    held given up -- a CR that may have begun its CR LF dropped -- and the
+    held given up - a CR that may have begun its CR LF dropped - and the
     cause kept
   - a read claiming more than it was given room for is TRANSPORT, net.h
     having made it UNKNOWN

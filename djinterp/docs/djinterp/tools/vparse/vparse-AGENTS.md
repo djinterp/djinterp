@@ -262,14 +262,14 @@ relative paths throughout, so they need none of their own.
 The subsystem builds with the project's CMake helper
 (`djinterp_add_test_executable`, which adds `inc/` and defines `D_TESTING=1`).
 Where that helper is not defined, the same leaf builds with plain CMake
-instead -- one executable per level, each held to 15 sections:
+instead - one executable per level, each held to 15 sections:
 
 ```bash
 cmake -S build/cmake/config/testing/djinterp/parsegen/vparse -B out
 cmake --build out && ctest --test-dir out
 ```
 
-The equivalent raw invocation -- useful for a quick agent loop -- with the
+The equivalent raw invocation - useful for a quick agent loop - with the
 flags the ladder uses, at every level:
 
 ```bash
@@ -316,7 +316,7 @@ to this module), which is what catches a construct a lower level lacks.
   `lr::action` have none and brace-initialize at every level.
 - **An empty program is a failed run, not a crash.** `peg::run` on a program
   with no instructions fails with `m.error == "empty program"`. `ebnf::compile`
-  returns an empty program when it fails -- an undefined start rule, say -- so
+  returns an empty program when it fails - an undefined start rule, say - so
   check its `ok` rather than running what came back.
 - **`<windows.h>` and opcode names.** `wingdi.h` defines `ERROR` as a macro,
   so a translation unit that includes `<windows.h>` and then `lr.hpp` fails at

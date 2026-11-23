@@ -385,8 +385,8 @@ d_interval_f_at(
 //------------------------------------------------------------------------------
 // contains honours both bounds exactly and, for a discrete interval, the
 // members; contains_in_range the bounds alone; NaN is in no interval. clamp
-// moves a value to the nearest member toward the interval -- the
-// neighbouring value inside an open bound -- and, inside a discrete one,
+// moves a value to the nearest member toward the interval - the
+// neighbouring value inside an open bound - and, inside a discrete one,
 // down to a member; clamp_nearest to the nearer member, a tie going down.
 // NaN clamps to NaN.
 
@@ -541,7 +541,7 @@ d_interval_f_index_of(
 //------------------------------------------------------------------------------
 // as for the integer families: overlaps compares the inclusive ranges,
 // ignoring strides; overlaps_continuous the real line; intersects asks for
-// a shared member -- for two discrete intervals by testing the members of
+// a shared member - for two discrete intervals by testing the members of
 // the sparser one within the ranges' common part, so its cost is the count
 // of those.
 
@@ -758,7 +758,7 @@ d_interval_f_normalize_discrete_terms(
 
 // d_internal_interval_f_put_value
 //   writes _value at _position as the fewest significant digits (from
-// FLT_DIG) that read back as the same value -- 0.1, not 0.10000000000000001 --
+// FLT_DIG) that read back as the same value - 0.1, not 0.10000000000000001 --
 // and returns the position after it.
 D_MATH_FN_RT size_t
 d_internal_interval_f_put_value(
@@ -1154,8 +1154,8 @@ d_interval_d_at(
 //------------------------------------------------------------------------------
 // contains honours both bounds exactly and, for a discrete interval, the
 // members; contains_in_range the bounds alone; NaN is in no interval. clamp
-// moves a value to the nearest member toward the interval -- the
-// neighbouring value inside an open bound -- and, inside a discrete one,
+// moves a value to the nearest member toward the interval - the
+// neighbouring value inside an open bound - and, inside a discrete one,
 // down to a member; clamp_nearest to the nearer member, a tie going down.
 // NaN clamps to NaN.
 
@@ -1310,7 +1310,7 @@ d_interval_d_index_of(
 //------------------------------------------------------------------------------
 // as for the integer families: overlaps compares the inclusive ranges,
 // ignoring strides; overlaps_continuous the real line; intersects asks for
-// a shared member -- for two discrete intervals by testing the members of
+// a shared member - for two discrete intervals by testing the members of
 // the sparser one within the ranges' common part, so its cost is the count
 // of those.
 
@@ -1527,7 +1527,7 @@ d_interval_d_normalize_discrete_terms(
 
 // d_internal_interval_d_put_value
 //   writes _value at _position as the fewest significant digits (from
-// DBL_DIG) that read back as the same value -- 0.1, not 0.10000000000000001 --
+// DBL_DIG) that read back as the same value - 0.1, not 0.10000000000000001 --
 // and returns the position after it.
 D_MATH_FN_RT size_t
 d_internal_interval_d_put_value(
@@ -1923,8 +1923,8 @@ d_interval_ld_at(
 //------------------------------------------------------------------------------
 // contains honours both bounds exactly and, for a discrete interval, the
 // members; contains_in_range the bounds alone; NaN is in no interval. clamp
-// moves a value to the nearest member toward the interval -- the
-// neighbouring value inside an open bound -- and, inside a discrete one,
+// moves a value to the nearest member toward the interval - the
+// neighbouring value inside an open bound - and, inside a discrete one,
 // down to a member; clamp_nearest to the nearer member, a tie going down.
 // NaN clamps to NaN.
 
@@ -2079,7 +2079,7 @@ d_interval_ld_index_of(
 //------------------------------------------------------------------------------
 // as for the integer families: overlaps compares the inclusive ranges,
 // ignoring strides; overlaps_continuous the real line; intersects asks for
-// a shared member -- for two discrete intervals by testing the members of
+// a shared member - for two discrete intervals by testing the members of
 // the sparser one within the ranges' common part, so its cost is the count
 // of those.
 
@@ -2296,7 +2296,7 @@ d_interval_ld_normalize_discrete_terms(
 
 // d_internal_interval_ld_put_value
 //   writes _value at _position as the fewest significant digits (from
-// LDBL_DIG) that read back as the same value -- 0.1, not 0.10000000000000001 --
+// LDBL_DIG) that read back as the same value - 0.1, not 0.10000000000000001 --
 // and returns the position after it.
 D_MATH_FN_RT size_t
 d_internal_interval_ld_put_value(

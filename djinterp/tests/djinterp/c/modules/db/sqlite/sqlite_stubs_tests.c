@@ -2,8 +2,8 @@
 * djinterp [c][db]                                          sqlite_stubs_tests.c
 *
 *   The SQLite layer built without SQLite (D_CFG_SQLITE 0): every function
-* answers as such a build must -- D_DB_UNSUPPORTED, or false, 0 or NULL where
-* it cannot fail -- writes the answers it promises even on failure, and leaves
+* answers as such a build must - D_DB_UNSUPPORTED, or false, 0 or NULL where
+* it cannot fail - writes the answers it promises even on failure, and leaves
 * every other output alone. Building and linking it at all proves the stubs
 * need neither sqlite3.h nor the library.
 *

@@ -2,7 +2,7 @@
 * djinterp [c][db]                                              mongodb_gridfs.h
 *
 * Files kept in a database, larger than a document may be: GridFS.
-*   A bucket -- "fs" unless named -- keeps each file as a document in
+*   A bucket - "fs" unless named - keeps each file as a document in
 * <bucket>.files, holding its name, its length, its upload date and the
 * program's metadata, and its bytes in pieces in <bucket>.chunks. A file is
 * known by its id, an ObjectId the layer gives it, handed back as Extended
@@ -137,7 +137,7 @@ int d_mongodb_gridfs_download_file(
 
 // 1.3    Deleting
 //------------------------------------------------------------------------------
-// deleting -- deletes a file, its document and its chunks
+// deleting - deletes a file, its document and its chunks
 int d_mongodb_gridfs_delete(
     struct dj_mongodb* _db,
     const char*        _database,

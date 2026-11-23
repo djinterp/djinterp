@@ -4,7 +4,7 @@
 * Tests of the Claude clients, net/api/claude.hpp and claude_api.hpp.
 *   No call reaches Anthropic: a stand-in of net's TCP layer answers on a
 * loopback port, on a thread of dmutex.h's, with the shapes the Messages and
-* Message Batches APIs document -- a message, an error, an event stream, and
+* Message Batches APIs document - a message, an error, an event stream, and
 * a batch that is in progress, then ended, then has results. It keeps the
 * last request it was sent, for the tests to read back. The suite runs from
 * C++98. Link curl.c, net_common.c, tcp.c and dmutex.c, and -lcurl.

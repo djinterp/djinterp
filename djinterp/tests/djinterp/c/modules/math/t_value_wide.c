@@ -33,9 +33,9 @@
 * a value past the family would; "blur", an inexact one at 130; and "token",
 * at 120, no number. The wide integer must read a small through its table,
 * once, and refuse the others without asking them anything.
-*   The operands: wide integers about the powers of two that matter -- the
+*   The operands: wide integers about the powers of two that matter - the
 * limbs', the words', the family's ends, the types' precisions and their
-* ties, the float's range, the top -- and products of small primes, both
+* ties, the float's range, the top - and products of small primes, both
 * signs, some flagged; inline integers and rationals about the family's ends;
 * floating-point values about 2^256, zeros, infinities and NaN; errors,
 * booleans and none; and the harness's kinds. Each wide integer alone, every

@@ -1,11 +1,11 @@
 /*******************************************************************************
 * djinterp [c][event]                                       event_table_common.c
 *
-* The erased store -- tier 0 definitions.
+* The erased store - tier 0 definitions.
 *   Implements event_table_common.h: an entry arena chained by 32-bit index,
 * a free list threaded through the `next` field of free slots, and bucket
 * chains that are only ever appended to, so that the entries of one key stay
-* in bind order -- the word order.
+* in bind order - the word order.
 *   Also implements the private dispatch bracket of event_table_internal.h:
 * while a dispatch runs, unbind turns a letter into a zombie instead of
 * releasing it, and the outermost dispatch reaps the zombies on its way out.
@@ -400,7 +400,7 @@ uint32_t d_internal_event_table_next_of_key(
 d_internal_event_table_bind_at
   bind, also reporting the slot, which merge needs in order to carry the
 mask across without a second lookup. Slots come from the free list first,
-then from the high-water mark, then -- for an owning table -- from growing
+then from the high-water mark, then - for an owning table - from growing
 the arena. The load check runs after the insert; a failed rehash leaves a
 correct if denser table, so it does not fail the bind.
 */
@@ -1458,7 +1458,7 @@ double d_event_table_load_factor(
 d_event_table_rehash
   Rebuilds the chains by walking the old ones in order and appending each
 entry, zombies included, to its new chain. The entries of one key share an
-old chain and a new one, so their relative order -- the word -- survives;
+old chain and a new one, so their relative order - the word - survives;
 only the interleaving of different keys in a bucket can change. Slot indices
 do not move, so a running dispatch's cursor stays valid.
 */

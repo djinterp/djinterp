@@ -4,11 +4,11 @@
 * The window's module: what `vparse gui` loads (GRAMMAR.md, section 7) --
 * vparse's workbench, in a window.
 *   The module is a program of its own, made from the host that runs it --
-* its name, version, verbosity and colours vparse's -- so that `vparse gui
+* its name, version, verbosity and colours vparse's - so that `vparse gui
 * --help` is the window's help, and what the window says, it says as vparse
 * does. Its operands are vparse's: a GRAMMAR and an INPUT, read as the
 * commands read them, and the options it shares with the commands are spelled
-* as they spell them -- `-f, --frontend`, `--ebnf`, `--root` (GRAMMAR.md,
+* as they spell them - `-f, --frontend`, `--ebnf`, `--root` (GRAMMAR.md,
 * section 11). Its own say what the window starts with and how it looks; and,
 * for building and testing, how many frames it draws and where the last is
 * written. Its `--version --verbose` says, after how the module was built,
@@ -18,10 +18,10 @@
 *   The frame loop is the whole of the window: the host begins a frame, the
 * model's face (view.hpp) is realized on uxoxo's Dear ImGui platform and
 * drawn, the events the drawing posted are applied to the model, and the host
-* shows the frame. Which window that is -- Win32 with Direct3D 11, or GLFW
-* with OpenGL 3 -- is the build's choice (host.hpp).
+* shows the frame. Which window that is - Win32 with Direct3D 11, or GLFW
+* with OpenGL 3 - is the build's choice (host.hpp).
 *   Nothing escapes the run function: the program's work is guarded by the
-* kit, and what is made before it -- the options, the request they fill --
+* kit, and what is made before it - the options, the request they fill --
 * here.
 *   LEVELS. The workbench's floor is uxoxo's, C++17; below it this file is
 * empty rather than an error.
@@ -644,8 +644,8 @@ int open_workbench(
 
 /*
 add_window_build
-  The host as it names itself, and Dear ImGui -- its docking branch, where
-it is that -- each a line; a want of memory is kept in the program, which
+  The host as it names itself, and Dear ImGui - its docking branch, where
+it is that - each a line; a want of memory is kept in the program, which
 its run says.
 */
 void add_window_build(

@@ -8,7 +8,7 @@
 *   These types were born inside compress_common.h, because compression is
 * where the need first appeared.  They are not compression concepts.  A sink is
 * "somewhere bytes go"; a span is "borrowed bytes"; both are wanted by anything
-* that PRODUCES output without owning a buffer -- the archive writers, the test
+* that PRODUCES output without owning a buffer - the archive writers, the test
 * framework's parity emitter, and eventually the document renderers.
 *
 *   Leaving them in compress_common.h would have forced the test framework to
@@ -17,7 +17,7 @@
 * and compress_common.h includes this.
 *
 *   WHAT A SINK IS FOR:
-*   Tier 0 has no growable byte buffer -- dj_string lives above it -- and
+*   Tier 0 has no growable byte buffer - dj_string lives above it - and
 * putting an allocator in tier 0 would make every module inherit one.  A sink
 * inverts the problem: the producer streams, and the CONSUMER decides where the
 * bytes live.  A counting sink measures, a bounded sink fills a caller array,
@@ -25,11 +25,11 @@
 * when a new destination appears.
 *   ostream.h builds on it: every sink is a stream's transport, and every
 * stream lowers back to a sink, so a producer that takes a sink reaches the
-* console, a file or a dj_string -- the last written in place, through the
+* console, a file or a dj_string - the last written in place, through the
 * string's own capacity.
 *
 *   WHY NOT fn_write:
-*   djinterp.h's fn_write is `size_t (*)(char* const, size_t)` -- no context
+*   djinterp.h's fn_write is `size_t (*)(char* const, size_t)` - no context
 * pointer, so it cannot drive a growable buffer or a file handle without global
 * mutable state.  struct dj_pack_sink carries a context and is otherwise the
 * same idea.
@@ -84,7 +84,7 @@ D_EXTERN_C_BEGIN
 // 1.  BORROWED SPANS
 //==============================================================================
 //   Neither owns anything, both carry a length, and both are trivially
-// copyable and identical under C and C++ -- which is what lets a C++
+// copyable and identical under C and C++ - which is what lets a C++
 // std::string reach a shared core without that core knowing std::string exists.
 //
 //   The length is authoritative, not the NUL.  A dj_pack_text may point at a
@@ -95,7 +95,7 @@ D_EXTERN_C_BEGIN
 //------------------------------------------------------------------------------
 // 1.1.1
 // dj_pack_text
-//   struct: a borrowed character span -- pointer plus length in bytes.
+//   struct: a borrowed character span - pointer plus length in bytes.
 // Encoding is not implied; a consumer that cares records the intent separately.
 struct dj_pack_text
 {
@@ -105,7 +105,7 @@ struct dj_pack_text
 
 // 1.1.2
 // dj_pack_bytes
-//   struct: a borrowed byte span -- pointer plus size.
+//   struct: a borrowed byte span - pointer plus size.
 struct dj_pack_bytes
 {
     const void* data;

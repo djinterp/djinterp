@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][net]                                                smtp_client.c
 *
-* djinterp SMTP client -- implementation.
+* djinterp SMTP client - implementation.
 *   The client state machine over a net.h connection, with TLS from the SSL
 * kernel and connections from tcp.h. Command lines are assembled from
 * validated parts into fixed buffers, so nothing a caller passes can smuggle
@@ -371,8 +371,8 @@ void d_smtp_client_attach_options_init(
 d_smtp_client_attach_with
   The connection is borrowed: close leaves it to its owner. The identity is
 checked and kept before anything else changes, so a malformed one leaves
-the client as it was. What explained an earlier session's end -- its reply,
-its causes -- is forgotten here, where a new one starts, and so is an
+the client as it was. What explained an earlier session's end - its reply,
+its causes - is forgotten here, where a new one starts, and so is an
 earlier session's leave to authenticate in the clear.
 */
 enum dj_smtp_error
@@ -564,7 +564,7 @@ d_smtp_client_hello(
 /*
 d_internal_smtp_tls_usable
   Whether `_tls` and `_server_name` can make a client's TLS session: a
-context made, and made for a client, and a name the kernel can use -- one
+context made, and made for a client, and a name the kernel can use - one
 there must be when the context checks names. The name is checked here, so
 that a bad one is refused before anything is sent.
 */
@@ -2130,8 +2130,8 @@ d_smtp_client_quit(
 /*
 d_smtp_client_close
   The TLS session goes first, sending close_notify where it still can; then
-a connection connect() opened. What explains the session's end -- the last
-reply, the causes kept -- survives for the caller.
+a connection connect() opened. What explains the session's end - the last
+reply, the causes kept - survives for the caller.
 */
 void d_smtp_client_close(
     struct dj_smtp_client* _client
@@ -2361,7 +2361,7 @@ unsigned int d_internal_smtp_port(
 /*
 d_internal_smtp_connect_error
   What a failure to open the connection is. One tcp.h could not find the
-host for -- by its name (HOST_NOT_FOUND) or by any route (HOST_UNREACHABLE)
+host for - by its name (HOST_NOT_FOUND) or by any route (HOST_UNREACHABLE)
 -- or whose address is malformed or not this host's is RESOLVE; one the host
 refused, or that failed on the way, is CONNECT. A timeout, a lack of memory,
 and a bad argument are their namesakes.

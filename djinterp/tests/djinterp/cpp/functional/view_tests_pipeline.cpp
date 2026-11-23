@@ -4,10 +4,10 @@
 * Pipeline operator tests (section VI): operator| for view|adapter and
 * container|adapter, plus multi-stage chaining.
 *
-*   test_pipeline_view_adapter  -- a view on the left of | feeds an adapter.
-*   test_pipeline_container_lift -- a bare container is implicitly lifted to a
+*   test_pipeline_view_adapter  - a view on the left of | feeds an adapter.
+*   test_pipeline_container_lift - a bare container is implicitly lifted to a
 *                                   DRefView before the adapter applies.
-*   test_pipeline_chain         -- several adapters compose left-to-right and
+*   test_pipeline_chain         - several adapters compose left-to-right and
 *                                   stay lazy until a terminal drains them.
 *
 *

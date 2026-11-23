@@ -8,7 +8,7 @@
 *                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
-// djinterp [test] -- curry.hpp Section V (argument transformations)
+// djinterp [test] - curry.hpp Section V (argument transformations)
 #include "./curry_tests.hpp"
 
 

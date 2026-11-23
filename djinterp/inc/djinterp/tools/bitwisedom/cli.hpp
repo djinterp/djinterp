@@ -113,8 +113,8 @@ D_NODISCARD int run_gen_front(
 // 2.1.1
 // window_sheet
 //   struct: a SHEET operand as the window opens one: a built-in example, by
-// its place in example_names(), or a file -- a sheet, a bitfield, an export,
-// or code to import -- by its path.
+// its place in example_names(), or a file - a sheet, a bitfield, an export,
+// or code to import - by its path.
 struct window_sheet
 {
     int         example = -1;

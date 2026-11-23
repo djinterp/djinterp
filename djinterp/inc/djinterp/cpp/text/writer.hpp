@@ -3,7 +3,7 @@
 *
 *   Generic, type-agnostic IO foundation: output sinks plus the `printer`
 * and `writer` functors. Nothing here knows about documents, XML, HTML,
-* or any concrete value type -- the functors are parameterised on a
+* or any concrete value type - the functors are parameterised on a
 * transform and a destination, so the same machinery serves text, binary,
 * or structured output. The document- and file-specific layers
 * (DDocumentPrinter / node_printer, file_writer, DDocumentWriter + cursors)
@@ -12,14 +12,14 @@
 *
 *   THE TWO FUNCTORS:
 *
-*   DPrinter<Fn> -- a PURE transformation `In -> Out`. It takes its input
+*   DPrinter<Fn> - a PURE transformation `In -> Out`. It takes its input
 *     by const reference and returns a freshly produced output; it never
 *     mutates the input. Printers compose: `p.then(g)` yields a printer
 *     that applies `p` and then `g`. This is the reusable, configurable
-*     "render this value to that representation" object -- the generalised
+*     "render this value to that representation" object - the generalised
 *     form of DTextTemplate's `interpolate`.
 *
-*   DWriter<Sink, Printer> -- an EFFECTFUL builder. It owns a destination
+*   DWriter<Sink, Printer> - an EFFECTFUL builder. It owns a destination
 *     (a sink) and a printer, and `write(x)` renders `x` through the printer
 *     and appends the result to the sink, leaving `x` unchanged. A writer is
 *     therefore "a printer plus somewhere to put the result"; the two ideas
@@ -35,8 +35,8 @@
 *
 *   A SINK RETURNS NOTHING, SO ITS STREAM KEEPS THE FAILURE. The three sinks
 *   here write through an output stream, whose status is sticky: a failed
-*   write -- std::bad_alloc from a string, a std::ostream gone bad, a full
-*   disk -- ends the stream for good instead of throwing through the writer
+*   write - std::bad_alloc from a string, a std::ostream gone bad, a full
+*   disk - ends the stream for good instead of throwing through the writer
 *   or vanishing. Ask the sink, or the writer, ok() once after writing. A
 *   sink of the caller's own that has an ok() is asked the same way.
 *
@@ -251,7 +251,7 @@ NS_INTERNAL
 
     // 2.1.2
     // DToStringFn
-    //   function object: coerces an input to an owned std::string -- the
+    //   function object: coerces an input to an owned std::string - the
     // writers' default transform, so string literals, `const char*`,
     // std::string, and (C++17) std::string_view all write without the
     // caller supplying a printer. Non-string inputs do not compile here,
@@ -270,7 +270,7 @@ NS_INTERNAL
 
     // 2.1.3
     // DComposeFn
-    //   function object: the composition g . f -- applies `f` then `g`.
+    //   function object: the composition g . f - applies `f` then `g`.
     // Produced by `printer::then`; kept as a named type (not a lambda) so a
     // printer's function member is a stable, nameable type.
     template<typename F,
@@ -305,7 +305,7 @@ public:
     using function_type = Fn;
 
     // printer ()
-    //   constructor: default -- usable when `Fn` is default-constructible
+    //   constructor: default - usable when `Fn` is default-constructible
     // (the identity / to-string transforms used as writer defaults). For a
     // lambda-based `Fn` this is simply not available, which is harmless.
     DPrinter() = default;
@@ -330,7 +330,7 @@ public:
     }
 
     // then
-    //   function: compose -- returns a printer that applies THIS transform
+    //   function: compose - returns a printer that applies THIS transform
     // and then `_next` (any callable, including another printer).
     template<typename Next>
     D_NODISCARD auto then(
@@ -370,7 +370,7 @@ D_NODISCARD DPrinter<typename std::decay<Fn>::type> make_printer(
 
 // 2.2.3
 // id_printer
-//   function: the identity printer -- returns its input unchanged.
+//   function: the identity printer - returns its input unchanged.
 D_NODISCARD inline DPrinter<internal::DIdentityFn> id_printer()
 {
     return DPrinter<internal::DIdentityFn>(internal::DIdentityFn{});
@@ -449,7 +449,7 @@ NS_END  // internal
 // the bound printer and appends the result to the sink, leaving `x`
 // unchanged. `Sink` is any callable `(const char*, std::size_t)`;
 // `Printer` renders an input into a contiguous `.data()`/`.size()` range
-// (a std::string by default, via the to-string printer -- so literals,
+// (a std::string by default, via the to-string printer - so literals,
 // `const char*`, and std::string all write without a custom printer).
 // Returns `*this` so writes chain.
 template<typename Sink,
@@ -610,14 +610,14 @@ public:
         return write(_value);
     }
 
-    // str -- the accumulated buffer
+    // str - the accumulated buffer
     D_NODISCARD const std::string&
     str() const
     {
         return m_buffer;
     }
 
-    // take -- move the accumulated buffer out
+    // take - move the accumulated buffer out
     D_NODISCARD std::string
     take()
     {
@@ -656,7 +656,7 @@ D_NODISCARD DWriter<DStreamSink, Printer> stream_writer(
 
 // 3.2.3
 // output_writer
-//   function: a writer bound to the caller's output stream -- the console, a
+//   function: a writer bound to the caller's output stream - the console, a
 // file, a dj_string, a caller's array, several at once. The returned writer
 // holds a `DOutputStreamSink`; the stream must outlive it, and keeps any
 // failure.

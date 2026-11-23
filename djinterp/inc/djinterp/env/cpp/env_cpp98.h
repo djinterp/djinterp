@@ -87,7 +87,7 @@ TABLE OF CONTENTS
 
 // D_INTERNAL_ENV_CPP98_HOSTED
 //   macro: 1 where the implementation says it is hosted (__STDC_HOSTED__ 1),
-// and 0 where it says it is freestanding -- and where it says nothing: this
+// and 0 where it says it is freestanding - and where it says nothing: this
 // header assumes no library it has no word for (decision 91 of the register).
 // Every header a freestanding implementation need not provide reads 0 where
 // this is 0; <new>, <typeinfo>, <exception> and <limits>, which C++98

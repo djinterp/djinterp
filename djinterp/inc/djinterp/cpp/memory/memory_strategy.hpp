@@ -19,7 +19,7 @@
 *   EVERY DESCRIPTIVE CONSTANT IS READ OFF THE C CONFIGURATION rather than
 * asserted here. `DArenaMemoryStrategy::pointer_stable` is
 * D_INTERNAL_ARENA_CHAIN, because an unchained arena that reports exhaustion
-* is trivially stable and a chained one is stable by construction -- but a
+* is trivially stable and a chained one is stable by construction - but a
 * future arena that grew by reallocating would not be, and the constant would
 * follow it automatically. `DPoolMemoryStrategy::supports_individual_release`
 * is a property of the pool's dj_pool_policy. That is what keeps this tier a
@@ -86,8 +86,8 @@ NS_DJINTERP
 //   class: a byte-typed strategy drawing from an arena.
 //   BYTE-TYPED because an arena has no element type: it vends aligned bytes
 // and the caller decides what goes in them. Type is therefore the type the
-// bytes will be SHAPED for -- it fixes the alignment every allocation
-// satisfies -- and value_type is still unsigned char, which is what tells the
+// bytes will be SHAPED for - it fixes the alignment every allocation
+// satisfies - and value_type is still unsigned char, which is what tells the
 // classification traits this is a byte strategy.
 //
 //   deallocate IS A NO-OP, and that is the arena's trade rather than an
@@ -112,7 +112,7 @@ public:
 
     // POINTER STABILITY IS A CONFIG FACT, not a claim. A chained arena never
     // moves a byte it has handed out; an unchained one cannot grow at all, so
-    // it never moves one either. Both are stable -- but writing `true` here
+    // it never moves one either. Both are stable - but writing `true` here
     // would survive a future arena that grew by reallocating, and this
     // expression would not.
     static D_CONSTEXPR const bool pointer_stable =
@@ -164,7 +164,7 @@ public:
     }
 
     // reset
-    //   operation: reclaims everything the arena has vended -- including
+    //   operation: reclaims everything the arena has vended - including
     // storage held by OTHER strategies bound to the same arena. Present
     // because it is the arena's only reclamation, and dangerous for exactly
     // that reason.
@@ -202,7 +202,7 @@ private:
 //   ITS CONSTANTS ARE PROJECTIONS OF THE POOL'S POLICY, which is why the
 // policy had to become a template parameter of DPool<T, Policy>. A monotonic
 // pool reports supports_individual_release == false, so a container needing
-// erase refuses to instantiate over one -- at compile time, with a diagnostic
+// erase refuses to instantiate over one - at compile time, with a diagnostic
 // naming the constant, rather than at run time with a slot that never came
 // back.
 template<typename Pool>
@@ -273,7 +273,7 @@ public:
 
     // deallocate
     //   operation: returns the slot. A no-op on a monotonic pool, which
-    // reports D_MEM_ERR_UNSUPPORTED -- and which the constant above already
+    // reports D_MEM_ERR_UNSUPPORTED - and which the constant above already
     // warned the container about.
     D_INLINE
     void deallocate(
@@ -369,7 +369,7 @@ public:
 
     // allocate
     //   operation: storage for _count objects, or throws when the inline
-    // array cannot cover it. Exhaustion here is PERMANENT -- there is nothing
+    // array cannot cover it. Exhaustion here is PERMANENT - there is nothing
     // to grow into.
     D_INLINE
     value_type* allocate(
@@ -411,7 +411,7 @@ public:
     }
 
     // reset
-    //   operation: reclaims the whole array. RUNS NO DESTRUCTORS -- this is
+    //   operation: reclaims the whole array. RUNS NO DESTRUCTORS - this is
     // raw storage, exactly as the arena and the pool are.
     D_INLINE
     void reset() noexcept
@@ -502,7 +502,7 @@ public:
 
     // DAllocatorMemoryStrategy (parameterized)
     //   constructor: copies _allocator, which is what the Allocator
-    // requirements say a holder should do -- unlike the other three
+    // requirements say a holder should do - unlike the other three
     // strategies, whose resources are far too large to copy.
     explicit D_INLINE
     DAllocatorMemoryStrategy(

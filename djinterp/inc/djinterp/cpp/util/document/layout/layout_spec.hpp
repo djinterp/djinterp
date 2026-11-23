@@ -1,18 +1,18 @@
 /*******************************************************************************
 * djinterp [cpp][utility]                                        layout_spec.hpp
 *
-*   The DECLARATIVE construction surface -- a pure-data description of a document
+*   The DECLARATIVE construction surface - a pure-data description of a document
 * lowered to the term by a free function, the idiom the test framework's
 * module_spec / block_spec use.  A spec is a plain aggregate tree written with
 * nested braces; `to_layout` lowers it to a DLayoutDoc.  No fluent chaining, no
-* interpretation -- just data, so a document literal reads like an outline.
+* interpretation - just data, so a document literal reads like an outline.
 *
 *   HETEROGENEOUS CHILDREN, ONE NODE.  A section's children are a mix of
-* content, sub-sections, tables, breaks -- so the generic carrier is one
+* content, sub-sections, tables, breaks - so the generic carrier is one
 * DSpecNode variant (leaf-or-branch), and a dialect's typed *_spec aggregates
 * convert INTO it.  That conversion is what lets a braced child list hold
 * different construct specs at once (each converts to DSpecNode), exactly as
-* block_spec's list holds homogeneous entries -- generalised to a document's
+* block_spec's list holds homogeneous entries - generalised to a document's
 * heterogeneity.  The typed specs live in the dialect (they name constructs);
 * only the variant and the lowering are generic and live here.
 *
@@ -55,7 +55,7 @@ NS_DJINTERP
 
 
 // DSpecNode
-//   struct: the generic data-literal carrier -- a leaf (an atom) or a branch
+//   struct: the generic data-literal carrier - a leaf (an atom) or a branch
 // (an op applied to child spec_nodes), each with a params bag.  A dialect's
 // typed *_spec aggregates provide `operator spec_node()` so that a braced child
 // list of different construct specs is a vector<DSpecNode> (each element
@@ -71,7 +71,7 @@ struct DSpecNode
     std::vector<DSpecNode>     children;  // branch: sub-structure
 
     // DSpecNode (default)
-    //   an empty leaf -- the aggregate default.
+    //   an empty leaf - the aggregate default.
     DSpecNode()
         : is_leaf (true),
           op      (),
@@ -81,7 +81,7 @@ struct DSpecNode
     {}
 
     // branch
-    //   factory: an application spec -- op _op over _children, params _bag.
+    //   factory: an application spec - op _op over _children, params _bag.
     D_NODISCARD static DSpecNode
     branch(
         const OpId&           _op,

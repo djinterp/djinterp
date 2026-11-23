@@ -132,7 +132,7 @@ bool tests_insertion_sort_apply_full_shift()
     length = 32;
 
     //   The minimum parked at the very end has to travel the entire range,
-    // so the shift loop runs to hole == _first -- the only input that exits
+    // so the shift loop runs to hole == _first - the only input that exits
     // that loop by exhausting the prefix rather than by the break.
     //
     //   Cost: (n-2) fast-path comparisons for the ordered prefix, then 1
@@ -199,7 +199,7 @@ bool tests_insertion_sort_apply_comparison_counts()
         //   Strictly descending is the worst case.  Element k costs one
         // fast-path comparison plus k shift comparisons, so the total is
         //     sum(k = 1 .. n-1) of (k + 1)  =  (n-1)(n+2)/2
-        // -- quadratic, and exactly so.
+        // - quadratic, and exactly so.
         data        = shape_descending(length);
         comparisons = 0;
         expected    = (((length - 1) * (length + 2)) / 2);

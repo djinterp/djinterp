@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][filesys]                                        file_common.hpp
 *
-* Common base for the C++ filesystem layer -- the C++ counterpart to the C
+* Common base for the C++ filesystem layer - the C++ counterpart to the C
 * file_common.h, which it derives from.
 *   Every file_*.hpp module includes this one, directly or transitively, for
 * the shared foundation: the framework prelude (namespace and the D_*
@@ -9,13 +9,13 @@
 * djinterp::error, the failure channel the whole layer reports through.
 *   error is deliberately small. It wraps an errno-style int and nothing more,
 * because that is all the c/filesys modules produce: they report through errno
-* (D_INTERNAL_FILE_SET_ERR sets it), not through a d_error type -- there is
+* (D_INTERNAL_FILE_SET_ERR sets it), not through a d_error type - there is
 * none to wrap. `error` gives that raw int a name, a message and a success
 * test, so a C++ caller is not passing a bare `int& out` around and
 * remembering which sign means trouble.
 *   There is NO operator bool. `if (ec)` reads as either "if error" or "if ok"
 * depending on who wrote it, and the filesys methods already carry success in
-* their return value -- so `error` answers only the unambiguous question,
+* their return value - so `error` answers only the unambiguous question,
 * failed().
 *
 *
@@ -63,7 +63,7 @@ class error
 {
 public:
     /**
-     * @brief Constructs the success value -- no error.
+     * @brief Constructs the success value - no error.
      */
     error(void)
         : m_code(0)

@@ -82,7 +82,7 @@ bool tests_selection_sort_apply_comparison_count()
     //   Selection sort is NOT adaptive: the inner scan always runs to the
     // end of the suffix, so the comparison count is exactly n(n-1)/2 for
     // EVERY input of length n.  Checking that across the whole corpus also
-    // pins the outer loop's extra final pass -- which contributes an empty
+    // pins the outer loop's extra final pass - which contributes an empty
     // scan and therefore no comparisons.
     for (size_index = 0; size_index < battery_size_count; ++size_index)
     {

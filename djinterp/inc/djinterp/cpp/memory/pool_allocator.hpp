@@ -11,20 +11,20 @@
 * NOTHING. Every allocate() call forwards to the kernel, and the adapter's
 * whole content is the typedef set, the rebind machinery, and the comparison
 * operators that the Allocator requirements demand. There is no C counterpart
-* because there is no C notion of an Allocator to have one -- which is exactly
+* because there is no C notion of an Allocator to have one - which is exactly
 * the "C++-only notation over shared semantics" the framework permits.
 *
 * WHICH ADAPTER FOR WHICH CONTAINER:
 *
 *   DPoolAllocator   fixed-size nodes, so it fits the NODE-BASED containers --
 *                    std::list, std::forward_list, std::set, std::map,
-*                    std::unordered_* -- where nearly every allocation is one
+*                    std::unordered_* - where nearly every allocation is one
 *                    node and every node is the same size. This is the pairing
 *                    that makes a pool worth having: a std::list<T> over a
 *                    DPoolAllocator<T> allocates one block per few hundred
 *                    nodes instead of one malloc per node.
 *                    It draws from a `DNodePool`, which sizes itself from the
-*                    container's own node type on first use -- see that class
+*                    container's own node type on first use - see that class
 *                    for why the size cannot be known any earlier.
 *
 *   DArenaAllocator  variable-size allocations that are never individually
@@ -37,7 +37,7 @@
 *
 * LIFETIME:
 *   Both adapters hold a REFERENCE to their allocator, not a copy. The pool or
-* arena must outlive every container that was given one -- and every copy of
+* arena must outlive every container that was given one - and every copy of
 * every iterator into it. Nothing here can check that.
 *
 * PORTABLE ACROSS:
@@ -97,7 +97,7 @@ NS_DJINTERP
 // for anything it cannot serve.
 //
 //   THE PROBLEM IT EXISTS TO SOLVE. A std::list<int, A> does not allocate
-// ints. It allocates its own private node -- an int plus two pointers -- and
+// ints. It allocates its own private node - an int plus two pointers - and
 // rebinds A to that node type internally. The node type's NAME is
 // implementation-private, so a caller cannot write it down, and a pool sized
 // from sizeof(int) produces four-byte slots for twenty-four-byte nodes. There
@@ -106,7 +106,7 @@ NS_DJINTERP
 //
 //   But the REBOUND ALLOCATOR knows: inside the container, the allocator is
 // DPoolAllocator<node_type>, and sizeof(node_type) is available there. So the
-// size arrives at the first allocate() call and not before -- which is why
+// size arrives at the first allocate() call and not before - which is why
 // this class defers configuration to that call rather than to its
 // constructor.
 //
@@ -154,7 +154,7 @@ public:
     ) = delete;
 
     // acquire
-    //   operation: storage for _bytes bytes at _align -- from the pool when
+    //   operation: storage for _bytes bytes at _align - from the pool when
     // its slots fit, from the upstream source otherwise.
     D_INLINE
     void* acquire(
@@ -180,7 +180,7 @@ public:
     // release
     //   operation: returns storage to wherever it came from. The pool is
     // asked whether the pointer is one of its slots, which is exact rather
-    // than inferred from the size -- two different requests can share a size.
+    // than inferred from the size - two different requests can share a size.
     D_INLINE
     void release(
         void*    _ptr,
@@ -294,7 +294,7 @@ public:
 
     // propagate_on_container_move_assignment
     //   trait: move assignment carries the allocator, which is correct
-    // because the allocator is a reference -- moving it moves the reference,
+    // because the allocator is a reference - moving it moves the reference,
     // never the pool.
     using propagate_on_container_move_assignment = std::true_type;
 
@@ -325,7 +325,7 @@ public:
 
     // DPoolAllocator (rebinding copy)
     //   constructor: the conversion the container performs when it rebinds to
-    // its node type -- and the point at which the real node size becomes
+    // its node type - and the point at which the real node size becomes
     // knowable.
     template<typename Other>
     D_INLINE
@@ -431,7 +431,7 @@ bool operator!=(
 //   DEALLOCATE IS A NO-OP. A std::vector over this allocator will leave every
 // earlier buffer behind as it grows, and a container that is filled and
 // cleared repeatedly will consume the arena without bound. That is not a
-// defect being tolerated -- it is what an arena is -- and the right response
+// defect being tolerated - it is what an arena is - and the right response
 // is to reset the arena at the end of the phase, not to reach for a different
 // allocator.
 template<typename Type>
@@ -497,7 +497,7 @@ public:
     }
 
     // deallocate
-    //   operation: nothing. See the class comment -- an arena reclaims in
+    //   operation: nothing. See the class comment - an arena reclaims in
     // bulk, and pretending otherwise here would be the lie that makes the
     // trade invisible.
     D_INLINE
@@ -580,8 +580,8 @@ D_STATIC_ASSERT(sizeof(DArenaAllocator<char>) == sizeof(void*),
 // does the kernel already did. DNodePool is not a wrapper: it holds a dj_pool
 // it has not configured yet, plus the source and geometry it will configure it
 // WITH, plus a flag saying whether it has. Those members exist because the
-// problem is C++-only -- a container's node type has no portable name, so its
-// size cannot arrive until the container rebinds -- and a C caller, who always
+// problem is C++-only - a container's node type has no portable name, so its
+// size cannot arrive until the container rebinds - and a C caller, who always
 // knows what it is allocating, has no use for any of it. Claiming the cost law
 // here would mean either lying about the members or pushing deferred
 // initialization into the kernel to serve a language feature the kernel does

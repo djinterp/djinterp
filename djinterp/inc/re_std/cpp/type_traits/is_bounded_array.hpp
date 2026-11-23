@@ -3,7 +3,7 @@
 *
 * is_bounded_array trait header:
 *   is_bounded_array<T>::value is true iff T is an array type of KNOWN
-* bound -- `U[N]`.  Cv-qualification is preserved by the partial
+* bound - `U[N]`.  Cv-qualification is preserved by the partial
 * specialization, so `const U[N]` matches too.
 *
 *   PORTABILITY:

@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][event]                                             event_common.h
 *
-* Event foundations -- the shared C core (tier 0):
+* Event foundations - the shared C core (tier 0):
 *   The alphabet layer of the event system, declared once in C and compiled by
 * both languages. Defines the erasure key set K, the verdict set
 * P = {pass, consume}, the payload block A_e, the occurrence pair (e, a), and
@@ -13,17 +13,17 @@
 * allocator. It is compilable at the C99 floor.
 *
 * FORMAL CORRESPONDENCE ("Definition of an Event"):
-*   alphabet   Sigma            -- the open set of declared event summands
-*   event type e                -- one summand, named by a dj_event_key
-*   erasure    kappa : T_e -> K -- d_event_key_of_name / the declared key
-*   key set    K                -- dj_event_key (uint64_t)
-*   payload    A_e              -- struct dj_event_payload (bytes + arity)
-*   occurrence (e, a)           -- struct dj_event_occurrence
-*   verdict    P = {pass,consume} -- enum dj_verdict; consume is the left zero
+*   alphabet   Sigma            - the open set of declared event summands
+*   event type e                - one summand, named by a dj_event_key
+*   erasure    kappa : T_e -> K - d_event_key_of_name / the declared key
+*   key set    K                - dj_event_key (uint64_t)
+*   payload    A_e              - struct dj_event_payload (bytes + arity)
+*   occurrence (e, a)           - struct dj_event_occurrence
+*   verdict    P = {pass,consume} - enum dj_verdict; consume is the left zero
 *                                    of handler sequencing (event_handler_
 *                                    common.h)
 *
-* OPEN (AGENT_README.md section 9, questions 1 and 3) -- do not treat as
+* OPEN (AGENT_README.md section 9, questions 1 and 3) - do not treat as
 * settled:
 *   The C++ face derived kappa from the address of a per-type static
 * (event_table.hpp internal::type_key). That value is session-local: it differs
@@ -57,7 +57,7 @@
 #include "../../../re_std/c/cstdint/dstdint.h"  // int32_t, uint32_t, uint64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -78,7 +78,7 @@ D_EXTERN_C_BEGIN
 typedef uint64_t dj_event_key;
 
 // dj_handler_id
-//   type: the named letter of a registry word -- the handle returned by bind
+//   type: the named letter of a registry word - the handle returned by bind
 // and consumed by unbind, enable, and disable. Zero is the null sentinel.
 typedef uint64_t dj_handler_id;
 
@@ -171,7 +171,7 @@ struct dj_event_payload
 };
 
 // dj_event_occurrence
-//   struct: the pair (e, a) -- one occurrence of one event type, carrying its
+//   struct: the pair (e, a) - one occurrence of one event type, carrying its
 // payload. This is what a queue slot rehydrates to and what dispatch consumes.
 struct dj_event_occurrence
 {
@@ -248,7 +248,7 @@ struct dj_event_occurrence d_event_occurrence_make(
     D_INTERNAL_EVENT_U64(0x00000100UL, 0x000001b3UL)
 
 // d_event_key_of_name
-//   function: kappa for a named event summand -- FNV-1a-64 over the name's
+//   function: kappa for a named event summand - FNV-1a-64 over the name's
 // bytes. Never returns D_EVENT_KEY_NONE: a name that hashes to zero is
 // remapped to 1, so the reserved value stays reserved.
 D_STATIC_INLINE
@@ -281,7 +281,7 @@ dj_event_key d_event_key_of_name(
 // d_event_key_hash
 //   function: maps a key onto a bucket index. Mixes the key VALUE rather than
 // its bytes, so the bucket assignment is identical on big- and little-endian
-// hosts -- a byte-wise hash makes cross-key iteration order platform
+// hosts - a byte-wise hash makes cross-key iteration order platform
 // dependent, and iteration order is observable in a statistics dump.
 D_STATIC_INLINE
 size_t d_event_key_hash(
@@ -319,7 +319,7 @@ size_t d_event_next_prime(
 ///        V.    DECLARING A SUMMAND OF Sigma                               ///
 ///////////////////////////////////////////////////////////////////////////////
 //   These macros live in tier 0, not in either face, because what they
-// generate IS A LAYOUT -- the packed block that carries A_e -- and a layout is
+// generate IS A LAYOUT - the packed block that carries A_e - and a layout is
 // declared once and compiled by both languages. The C face and the C++ face
 // both expand the same macro, so an event declared in one language has the
 // same block, the same field offsets, the same arity, and the same key in the
@@ -328,17 +328,17 @@ size_t d_event_next_prime(
 // pre-core module: the C++ face used std::tuple as the lowered payload and
 // passed a pointer to it across the erasure boundary. libstdc++ stores tuple
 // elements in REVERSE declaration order, so a C reader of those bytes gets the
-// fields backwards -- and the standard fixes no order at all, so there is no
+// fields backwards - and the standard fixes no order at all, so there is no
 // correct C reader to write. A generated aggregate has none of that freedom.
 
 //   The tier below is SELECTED IN CONFIG, not here. cfg_event_common.h owns
 // the detection (it probes dmacro's generated D_INTERNAL_INC_ table rather
 // than the macro that consumes it) and publishes the answer as
-// D_INTERNAL_EVENT_ITERATION_DMACRO. This header only reads it -- config
+// D_INTERNAL_EVENT_ITERATION_DMACRO. This header only reads it - config
 // resolution in a module header is the localization rule's one prohibition.
 //
-//   The two tiers generate THE SAME MEMBERS -- _field_0, _field_1, ... in
-// declaration order -- so a payload block has one layout regardless of which
+//   The two tiers generate THE SAME MEMBERS - _field_0, _field_1, ... in
+// declaration order - so a payload block has one layout regardless of which
 // is in force. Only the arity ceiling differs, which is the tier law working
 // as intended: a symbol either compiles on a tier or is absent from it, and
 // no tier changes what a shared type IS.
@@ -386,7 +386,7 @@ D_ENV_PP_VARIADIC_QUIET_BEGIN
 
     // D_INTERNAL_EVENT_FIELDS_n
     //   macro: expands n value domains into n members. Members are named
-    // _field_0, _field_1, ... in declaration order -- positionally, because
+    // _field_0, _field_1, ... in declaration order - positionally, because
     // A_e IS a position-indexed product, and naming the positions after their
     // meaning would put meaning into the notation.
     #define D_INTERNAL_EVENT_FIELDS_1(_t0)                                    \
@@ -458,7 +458,7 @@ D_ENV_PP_VARIADIC_QUIET_END
 // D_CFG_EVENT_KEY_POLICY and resolved into D_INTERNAL_EVENT_KEY_FROM_NAME by
 // cfg_event_common.h.
 //   Under the name-hash policy (the default) the key is FNV-1a-64 over the
-// declared name -- identical in C and C++, across translation units, runs, and
+// declared name - identical in C and C++, across translation units, runs, and
 // byte orders, at the cost of admitting collisions. Under the explicit policy
 // D_EVENT_DECLARE still compiles and still derives from the name, but the
 // house form becomes D_EVENT_DECLARE_KEYED and the project supplies its own
@@ -488,7 +488,7 @@ D_ENV_PP_VARIADIC_QUIET_END
 
 #if D_ENV_PP_HAS_VARIADIC_MACROS
 // D_EVENT_DECLARE
-//   macro: declares one summand of the alphabet -- its packed block, its
+//   macro: declares one summand of the alphabet - its packed block, its
 // arity, its name, its key, and a view constructor. _id is the C handle the
 // generated names use; _name is the event's identity (the event core's
 // decision 15), a string literal, the same one the C++ tag gives, and the
@@ -590,7 +590,7 @@ D_ENV_PP_VARIADIC_QUIET_END
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///        VI.   SIZING CONSTANTS -- moved                                  ///
+///        VI.   SIZING CONSTANTS - moved                                  ///
 ///////////////////////////////////////////////////////////////////////////////
 //   The table and queue capacities, the rehash threshold, and the growth
 // factor used to be literal constants here. They are now knobs, and they live
@@ -629,7 +629,7 @@ enum dj_event_status
 //   macro: what every null-argument branch does before it returns
 // D_EVENT_ERR_NULL. Under D_CFG_EVENT_STRICT_ARGS it asserts, so a malformed
 // call stops at the caller; otherwise it does nothing and the call is
-// reported. One spelling, two policies, no per-function #if -- the same shape
+// reported. One spelling, two policies, no per-function #if - the same shape
 // as memory's D_MEM_REQUIRE.
 #if (D_INTERNAL_EVENT_STRICT_ARGS == 1)
 #   include <assert.h>

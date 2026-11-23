@@ -4,7 +4,7 @@
 * Definitions for the declarations in dhost_story.h.
 *   The model owns its strings and a driver owns its format: the driver is
 * handed a media file's new bytes, never the path they came from, so every
-* check the model makes -- the slide, the kind, the sharing -- is made before
+* check the model makes - the slide, the kind, the sharing - is made before
 * a driver sees anything, and made the same for every format.
 *   The host functions keep one story open at a time. A function that needs
 * one when none is open is a program error and stops the run; opening,

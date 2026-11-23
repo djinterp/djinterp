@@ -24,7 +24,7 @@
 
 
 // dj_tests_c_suite
-//   struct: one suite -- its table, and where its length is kept. The length
+//   struct: one suite - its table, and where its length is kept. The length
 // is another translation unit's constant, so it is reached by address.
 struct dj_tests_c_suite
 {

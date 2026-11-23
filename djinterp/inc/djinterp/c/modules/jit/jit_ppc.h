@@ -55,7 +55,7 @@
 #include "../../../../re_std/c/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -505,7 +505,7 @@ D_NODISCARD int d_jit_ppc_emit_srawi(
 // ---------------------------------------------------------------------------
 
 // d_jit_ppc_emit_rlwinm
-//   function: rlwinm ra, rs, sh, mb, me -- rotate rs left sh, keep mask
+//   function: rlwinm ra, rs, sh, mb, me - rotate rs left sh, keep mask
 //   [mb:me].
 // Covers word shifts, extracts, and clears (_sh/_mb/_me each 0-31).
 D_NODISCARD int d_jit_ppc_emit_rlwinm(
@@ -518,7 +518,7 @@ D_NODISCARD int d_jit_ppc_emit_rlwinm(
 );
 
 // d_jit_ppc_emit_rlwimi
-//   function: rlwimi ra, rs, sh, mb, me -- rotate-insert under mask [mb:me].
+//   function: rlwimi ra, rs, sh, mb, me - rotate-insert under mask [mb:me].
 D_NODISCARD int d_jit_ppc_emit_rlwimi(
     dj_jit_buffer* _buf,
     int            _ra,
@@ -529,7 +529,7 @@ D_NODISCARD int d_jit_ppc_emit_rlwimi(
 );
 
 // d_jit_ppc_emit_rlwnm
-//   function: rlwnm ra, rs, rb, mb, me -- rotate by rb, keep mask [mb:me].
+//   function: rlwnm ra, rs, rb, mb, me - rotate by rb, keep mask [mb:me].
 D_NODISCARD int d_jit_ppc_emit_rlwnm(
     dj_jit_buffer* _buf,
     int            _ra,
@@ -736,21 +736,21 @@ D_NODISCARD int d_jit_ppc_emit_cmplwi(
 // ---------------------------------------------------------------------------
 
 // d_jit_ppc_emit_b
-//   function: b _target -- unconditional branch (+/-32 MB).
+//   function: b _target - unconditional branch (+/-32 MB).
 D_NODISCARD int d_jit_ppc_emit_b(
     dj_jit_buffer* _buf,
     dj_jit_label*  _target
 );
 
 // d_jit_ppc_emit_bl
-//   function: bl _target -- branch and link (call); sets LR.
+//   function: bl _target - branch and link (call); sets LR.
 D_NODISCARD int d_jit_ppc_emit_bl(
     dj_jit_buffer* _buf,
     dj_jit_label*  _target
 );
 
 // d_jit_ppc_emit_bc
-//   function: bc bo, bi, _target -- raw conditional branch (+/-32 KB).
+//   function: bc bo, bi, _target - raw conditional branch (+/-32 KB).
 // bo selects the test, bi the CR bit (4*crf + LT0/GT1/EQ2/SO3).
 D_NODISCARD int d_jit_ppc_emit_bc(
     dj_jit_buffer* _buf,
@@ -808,19 +808,19 @@ D_NODISCARD int d_jit_ppc_emit_ble(
 );
 
 // d_jit_ppc_emit_blr
-//   function: blr -- return (branch to LR).
+//   function: blr - return (branch to LR).
 D_NODISCARD int d_jit_ppc_emit_blr(
     dj_jit_buffer* _buf
 );
 
 // d_jit_ppc_emit_bctr
-//   function: bctr -- jump to CTR.
+//   function: bctr - jump to CTR.
 D_NODISCARD int d_jit_ppc_emit_bctr(
     dj_jit_buffer* _buf
 );
 
 // d_jit_ppc_emit_bctrl
-//   function: bctrl -- call via CTR; sets LR.
+//   function: bctrl - call via CTR; sets LR.
 D_NODISCARD int d_jit_ppc_emit_bctrl(
     dj_jit_buffer* _buf
 );
@@ -862,7 +862,7 @@ D_NODISCARD int d_jit_ppc_emit_mtctr(
 // ---------------------------------------------------------------------------
 
 // d_jit_ppc_emit_mr
-//   function: mr ra, rs -- move register (or ra, rs, rs).
+//   function: mr ra, rs - move register (or ra, rs, rs).
 D_NODISCARD int d_jit_ppc_emit_mr(
     dj_jit_buffer* _buf,
     int            _ra,
@@ -985,7 +985,7 @@ D_NODISCARD int d_jit_ppc_emit_sradi(
 );
 
 // d_jit_ppc_emit_rldicl
-//   function: rldicl ra, rs, sh, mb -- 64-bit rotate, clear left of mb
+//   function: rldicl ra, rs, sh, mb - 64-bit rotate, clear left of mb
 // (_sh/_mb 0-63). The doubleword workhorse for shifts and masks.
 D_NODISCARD int d_jit_ppc_emit_rldicl(
     dj_jit_buffer* _buf,
@@ -996,7 +996,7 @@ D_NODISCARD int d_jit_ppc_emit_rldicl(
 );
 
 // d_jit_ppc_emit_rldicr
-//   function: rldicr ra, rs, sh, me -- 64-bit rotate, clear right of me.
+//   function: rldicr ra, rs, sh, me - 64-bit rotate, clear right of me.
 D_NODISCARD int d_jit_ppc_emit_rldicr(
     dj_jit_buffer* _buf,
     int            _ra,
@@ -1006,7 +1006,7 @@ D_NODISCARD int d_jit_ppc_emit_rldicr(
 );
 
 // d_jit_ppc_emit_rldic
-//   function: rldic ra, rs, sh, mb -- 64-bit rotate then clear.
+//   function: rldic ra, rs, sh, mb - 64-bit rotate then clear.
 D_NODISCARD int d_jit_ppc_emit_rldic(
     dj_jit_buffer* _buf,
     int            _ra,
@@ -1016,7 +1016,7 @@ D_NODISCARD int d_jit_ppc_emit_rldic(
 );
 
 // d_jit_ppc_emit_rldimi
-//   function: rldimi ra, rs, sh, mb -- 64-bit rotate-insert under mask.
+//   function: rldimi ra, rs, sh, mb - 64-bit rotate-insert under mask.
 D_NODISCARD int d_jit_ppc_emit_rldimi(
     dj_jit_buffer* _buf,
     int            _ra,

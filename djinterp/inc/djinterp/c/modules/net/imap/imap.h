@@ -204,7 +204,7 @@ TABLE OF CONTENTS
                                               // UINT64_C
 
 // 64-bit floor: this header needs a 64-bit integer type, and compiles to
-// nothing where the build has none -- ISO strict C++98 wherever int64_t is
+// nothing where the build has none - ISO strict C++98 wherever int64_t is
 // `long long`: a 32-bit target, 64-bit Windows or macOS (the owner's ruling of
 // 2026.10.03 on round 3's question 1, (a)). The answer is net_common.h's, taken
 // once per translation unit, so that net's gated headers agree.
@@ -248,7 +248,7 @@ enum dj_imap_backend
 
 // 1.2    Backend queries
 //------------------------------------------------------------------------------
-// backend queries -- none allocate or fail. Names match env_imap.h's
+// backend queries - none allocate or fail. Names match env_imap.h's
 // D_ENV_IMAP_BACKEND_NAME spellings, and an unknown value reads "unknown".
 // Availability describes the environment imap.c was compiled in, which is C,
 // so VMime never reads as available here; C++ code tests
@@ -318,7 +318,7 @@ enum dj_imap_error
 
 // 2.2    Error queries
 //------------------------------------------------------------------------------
-// error queries -- none allocate or fail. Names are the enumerator suffix in
+// error queries - none allocate or fail. Names are the enumerator suffix in
 // lower case ("invalid_argument"); messages are short sentences for people.
 // An unknown value reads "unknown" and belongs to neither class.
 // d_imap_error_to_net gives the dj_net_error an error maps to, by the rules
@@ -487,7 +487,7 @@ enum dj_imap_command
 
 // 4.3    State and command queries
 //------------------------------------------------------------------------------
-// state and command queries -- none allocate or fail. A state name is a
+// state and command queries - none allocate or fail. A state name is a
 // lower-case description; a command name is its upper-case keyword, and the
 // empty string for D_IMAP_COMMAND_UNKNOWN or any other value without one.
 // _from_name matches case-insensitively and yields D_IMAP_COMMAND_UNKNOWN for
@@ -572,7 +572,7 @@ enum dj_imap_error d_imap_tagger_next(
     struct dj_imap_tagger* _tagger,
     struct dj_imap_tag*    _tag
 );
-// tag views -- none allocate or fail. A tag compares case-sensitively, since
+// tag views - none allocate or fail. A tag compares case-sensitively, since
 // the server echoes it octet for octet; a NULL tag matches nothing.
 struct dj_pack_text d_imap_tag_text(
     const struct dj_imap_tag* _tag
@@ -668,7 +668,7 @@ enum dj_imap_auth_mechanism
 
 // 5.3    Security and mechanism queries
 //------------------------------------------------------------------------------
-// security and mechanism queries -- none allocate or fail. A security name is
+// security and mechanism queries - none allocate or fail. A security name is
 // a lower-case description, "unknown" for an unknown value; its default port
 // is 993 for implicit TLS, 143 otherwise, and 0 for an unknown value. A
 // mechanism name is its SASL name ("SCRAM-SHA-256"), empty for an unknown
@@ -788,7 +788,7 @@ struct dj_imap_capabilities
 
 // 6.2    Capability operations
 //------------------------------------------------------------------------------
-// capability queries -- none allocate or fail. A name is the wire spelling
+// capability queries - none allocate or fail. A name is the wire spelling
 // ("LITERAL+", "THREAD=REFERENCES"), and empty for an unknown value.
 const char* d_imap_capability_name(
     enum dj_imap_capability _capability
@@ -1104,7 +1104,7 @@ struct dj_imap_status_data
 
 // 8.4    Attribute operations
 //------------------------------------------------------------------------------
-// attribute names -- none allocate or fail. A flag or mailbox attribute name
+// attribute names - none allocate or fail. A flag or mailbox attribute name
 // carries its backslash or dollar ("\Seen", "$Junk"); a STATUS item name is
 // its keyword. An unknown value's name is empty.
 const char* d_imap_flag_name(
@@ -1116,7 +1116,7 @@ const char* d_imap_mailbox_attribute_name(
 const char* d_imap_status_item_name(
     enum dj_imap_status_item _item
 );
-// attribute lookups -- case-insensitive, and none allocate. Each returns
+// attribute lookups - case-insensitive, and none allocate. Each returns
 // `false` for a name outside its vocabulary or a NULL out-pointer.
 bool d_imap_flag_from_name(
     struct dj_pack_text _name,
@@ -1496,7 +1496,7 @@ enum dj_imap_error d_imap_seqset_parse(
     size_t                    _capacity,
     size_t*                   _count
 );
-// membership -- none allocate or fail. "*" resolves to `_largest`, the
+// membership - none allocate or fail. "*" resolves to `_largest`, the
 // highest number in use; 0 and a NULL `_ranges` are in no set.
 bool d_imap_seqset_contains(
     const struct dj_imap_seq_range* _ranges,
@@ -1711,7 +1711,7 @@ enum dj_imap_code
 
 // 12.3   Condition and code queries
 //------------------------------------------------------------------------------
-// condition and code queries -- none allocate or fail. Names are the wire
+// condition and code queries - none allocate or fail. Names are the wire
 // spellings ("READ-ONLY"), empty for NONE, OTHER, and unknown values; lookups
 // match case-insensitively and fall back to NONE (conditions) or OTHER
 // (codes), but for an empty name, which is NONE for both. A condition maps
@@ -1905,7 +1905,7 @@ enum dj_imap_error d_imap_lexer_next(
     uint32_t              _flags,
     struct dj_imap_token* _token
 );
-// the unread input -- none allocate or fail; empty for a NULL lexer
+// the unread input - none allocate or fail; empty for a NULL lexer
 struct dj_pack_text d_imap_lexer_rest(
     const struct dj_imap_lexer* _lexer
 );

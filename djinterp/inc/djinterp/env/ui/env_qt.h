@@ -464,8 +464,8 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 2.2.1
 // D_ENV_QT_IS_QT6 / D_ENV_QT_SERIES_NAME
-//   feature: which Qt series is detected -- D_ENV_QT_IS_QT6, _QT5, _QT4,
-// _QT3, or _LEGACY for Qt 1 and 2 -- with D_ENV_QT_SERIES_NAME naming it.
+//   feature: which Qt series is detected - D_ENV_QT_IS_QT6, _QT5, _QT4,
+// _QT3, or _LEGACY for Qt 1 and 2 - with D_ENV_QT_SERIES_NAME naming it.
 #ifndef D_ENV_QT_IS_QT6
     #if (D_ENV_QT_VER >= D_ENV_QT_VERSION_6)
         #define D_ENV_QT_IS_QT6         1

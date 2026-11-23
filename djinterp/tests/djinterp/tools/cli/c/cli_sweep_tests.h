@@ -2,8 +2,8 @@
 * djinterp [c][tools]                                          cli_sweep_tests.h
 *
 * The command-line kit's allocation sweep: every allocation refused in turn.
-*   A case is one thing a program does -- making itself, a command line run
-* to its end, a file written or read, a module found or loaded -- run once as
+*   A case is one thing a program does - making itself, a command line run
+* to its end, a file written or read, a module found or loaded - run once as
 * it is, counting its allocations, then once for each of them with that one
 * refused. Every run must come to an end, with no block of memory left live,
 * and must either do all that its clean run did or end in trouble: the

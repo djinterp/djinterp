@@ -23,7 +23,7 @@ using namespace ::djinterp::test;
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///   compile-time invariants -- convenience aliases                          ///
+///   compile-time invariants - convenience aliases                          ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // basic_test is exactly DTestObject<> and every equivalent spelling of it
@@ -42,7 +42,7 @@ static_assert(std::is_same<DTaggedTest::metadata_type, std::int32_t>::value, "")
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///   runtime tests -- convenience aliases                                    ///
+///   runtime tests - convenience aliases                                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
 /*

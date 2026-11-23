@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][event]                                  event_dispatcher_common.h
 *
-* The queue and the facade -- the shared C core (tier 0):
+* The queue and the facade - the shared C core (tier 0):
 *   Deferred delivery and the unified front end. A queue is a word of pending
 * occurrences q in Sigma-hat*; enqueue appends one with its payload copied BY
 * VALUE, and process folds dispatch over a prefix of that word against the
@@ -17,19 +17,19 @@
 * RE-ENTRANCY:
 *   process() fixes its prefix length before invoking anything. An occurrence
 * enqueued by a handler during processing lands after that prefix and is
-* deferred to a later call -- it is never dispatched by the call that
+* deferred to a later call - it is never dispatched by the call that
 * triggered it. The byte arena is a ring that REFUSES to overwrite bytes
 * belonging to an occurrence still in flight, returning D_EVENT_ERR_CAPACITY
 * instead, so a re-entrant enqueue cannot corrupt the occurrence that made it.
 *
 * FORMAL CORRESPONDENCE ("Definition of an Event"):
-*   immediate fire   delta_rho at once      -- d_event_dispatcher_fire
-*   queue      q in Sigma-hat*              -- struct dj_event_queue
-*   enqueue    q . (e,a)  (right concat)    -- d_event_queue_enqueue
-*   process    fold of delta_rho over q,    -- d_event_queue_process
+*   immediate fire   delta_rho at once      - d_event_dispatcher_fire
+*   queue      q in Sigma-hat*              - struct dj_event_queue
+*   enqueue    q . (e,a)  (right concat)    - d_event_queue_enqueue
+*   process    fold of delta_rho over q,    - d_event_queue_process
 *              rho read at processing time
-*   merge      rho (+) rho'                 -- d_event_dispatcher_merge
-*   fused drive hat-h over a trace          -- d_event_word_drive
+*   merge      rho (+) rho'                 - d_event_dispatcher_merge
+*   fused drive hat-h over a trace          - d_event_word_drive
 *
 *   DEFERRAL COHERENCE LAW: for a registry held fixed,
 *
@@ -66,7 +66,7 @@
 #include "../../../re_std/c/cstdint/dstdint.h"  // uint32_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -283,7 +283,7 @@ size_t d_event_queue_footprint(
 ///////////////////////////////////////////////////////////////////////////////
 
 // dj_event_dispatcher
-//   struct: the unified front end -- a registry composed with a queue. It
+//   struct: the unified front end - a registry composed with a queue. It
 // adds no state of its own beyond the two, which is what makes the C++
 // wrapper free.
 //   This is the successor to the pre-core `struct dj_event_handler`. The
@@ -291,7 +291,7 @@ size_t d_event_queue_footprint(
 // note, and the facade needed a different word.
 //   LAYOUT NOTE: the queue member is present only when deferral is compiled
 // in. This is the one knob in the subframework that changes a shared struct,
-// and goals section 4 sanctions it -- "representation is a policy, not a
+// and goals section 4 sanctions it - "representation is a policy, not a
 // type". Both languages read the same knob, so C and C++ never disagree; two
 // differently-configured BUILDS do, which is what D_INTERNAL_EVENT_LAYOUT_ID
 // in cfg_event.h exists to stamp and detect.
@@ -403,8 +403,8 @@ bool d_event_dispatcher_contains(
 //   function: dispatches one occurrence immediately against the current
 // registry.
 //   NOTE the changed contract: the pre-core d_event_handler_fire_event
-// returned ssize_t -- 1 for "a listener ran", 0 for "none or disabled", -1
-// for a null argument -- which conflated a formal outcome with a mechanical
+// returned ssize_t - 1 for "a listener ran", 0 for "none or disabled", -1
+// for a null argument - which conflated a formal outcome with a mechanical
 // one. It now returns the enriched (count, verdict) result, and a null
 // argument yields d_dispatch_result_empty(); callers needing to distinguish
 // a bad argument check their own pointers, which they can do without

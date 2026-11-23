@@ -2,8 +2,8 @@
 * djinterp [cpp][tools]                                             measures.cpp
 *
 * Definitions for commands.hpp's measures: bench, corpus and compare, which
-* run grammars over many inputs -- those given, the grammar's own corpus
-* (corpus.hpp), or both -- and say what the runs did.
+* run grammars over many inputs - those given, the grammar's own corpus
+* (corpus.hpp), or both - and say what the runs did.
 *   A grammar is judged and built once, by the model's execute() over no
 * input, so a measure refuses a grammar in the words every other subcommand
 * refuses one in, said as an error. The runs over the inputs are then the
@@ -1067,7 +1067,7 @@ std::string file_name(
  * @param[in]  _context  the run of the command line, which says a failure.
  * @param[out] _files    receives each file's path, in UTF-8, in order.
  * @return exit_status::PASSED when every file was written; REFUSED, said,
- *         when the folder could not be made, or a file not written -- the
+ *         when the folder could not be made, or a file not written - the
  *         files before it written, and the one that failed as it was.
  */
 int write_corpus(

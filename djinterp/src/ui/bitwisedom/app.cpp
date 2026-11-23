@@ -3,11 +3,11 @@
 *
 * The bitwisedom window: the frame loop and the reducer.
 *   apply() is a dispatch on the event's kind. Kinds are grouped by their
-* first word -- "row.", "grid.", "ops.", "file." -- and each group's events
+* first word - "row.", "grid.", "ops.", "file." - and each group's events
 * carry the row, setting or segment they concern in "target", as uxoxo's
 * elements pass it through, and the new value in "value".
 *   The context menu and renames say where they were asked for in the
-* kind's last word -- "context.tree", "rename.grid" -- since a row's
+* kind's last word - "context.tree", "rename.grid" - since a row's
 * "target" is its id. A rename goes through rename_row(), which rewrites
 * every reference to the row; the inspector's name field reports only when
 * its edit is done, so a rename is never made of a half-typed name.
@@ -189,7 +189,7 @@ void byte_bits(
 }
 
 // sheet_number
-//   a number typed for a sheet -- an operand, the probe -- as the sheet's
+//   a number typed for a sheet - an operand, the probe - as the sheet's
 // bits: a negative one is its two's complement in the sheet's width.
 bool sheet_number(
     const std::string& _text,
@@ -213,8 +213,8 @@ bool sheet_number(
 }
 
 // remembered
-//   struct: what the settings file holds of the window -- its theme and
-// colour scheme, and the user's preferences -- apart from the window, which
+//   struct: what the settings file holds of the window - its theme and
+// colour scheme, and the user's preferences - apart from the window, which
 // ImGui's context may outlive. The layout of the windows is ImGui's own,
 // in the same file.
 struct remembered
@@ -450,8 +450,8 @@ std::string json_stem(
 /*
 readable
   A settings file's text without the lines ImGui would read back wrongly: a
-number that is no number -- the weight of a table's column, saved before
-the table had laid itself out, is "nan" -- would leave the column no width
+number that is no number - the weight of a table's column, saved before
+the table had laid itself out, is "nan" - would leave the column no width
 at all. The column, without its line, takes its default.
 */
 std::string readable(
@@ -543,7 +543,7 @@ row new_row(
 
 // drawing
 //   the window the renderers draw for: the one whose frame registered them
-// last. A second window -- a test's, in an ImGui of its own -- registers
+// last. A second window - a test's, in an ImGui of its own - registers
 // its own, and each frame puts back those of the window it draws.
 const void*& drawing()
 {
@@ -555,7 +555,7 @@ const void*& drawing()
 // SESSION_FORMAT / SESSION_VERSION / SESSION_PAUSE
 //   constants: what a session file calls itself; the newest version this
 // build reads; and how long, in seconds, the window waits after a change
-// before it writes the session again -- so a drag across the grid writes
+// before it writes the session again - so a drag across the grid writes
 // it once, not every frame.
 const char* const SESSION_FORMAT  = "bitwisedom.session";
 const int         SESSION_VERSION = 1;
@@ -727,7 +727,7 @@ app::app(
     }
 
     // what the settings file remembered of the window: its theme, its
-    // scheme and the user's preferences -- the settings files on the list
+    // scheme and the user's preferences - the settings files on the list
     // only while they are where they were
     if (memory().read)
     {
@@ -761,7 +761,7 @@ app::app(
                        });
     drawing() = this;
 
-    // where it was left -- or, the first time, an example to look at
+    // where it was left - or, the first time, an example to look at
     if (!restore_session())
     {
         (void)add_workspace();
@@ -818,9 +818,9 @@ void app::keep_preferences()
 
 /*
 keep_session
-  The session file: every workspace, every document in them -- its sheet
+  The session file: every workspace, every document in them - its sheet
 with its unsaved changes, where it is kept, what is selected in it, its
-operation -- and each window's zoom. It is written a moment after what it
+operation - and each window's zoom. It is written a moment after what it
 keeps last changed, and at once when the window closes; the layout of the
 windows is ImGui's, in the settings file.
 */
@@ -963,8 +963,8 @@ void app::keep_session(
 /*
 restore_session
   The window as the session file left it, when the user would have it open
-where it was left: its workspaces, its documents -- a sheet saved and
-unchanged read again from its file, which may have changed since -- the
+where it was left: its workspaces, its documents - a sheet saved and
+unchanged read again from its file, which may have changed since - the
 one in front of each, their tool windows and each window's zoom. False,
 and nothing changed, when there is no session to open.
 */
@@ -1086,7 +1086,7 @@ bool app::restore_session()
         ui.op_probe   = truth(each, "op_probe", false);
         ui.op_preview = truth(each, "op_preview", true);
 
-        // a sheet saved, and unchanged since, is its file's -- which may
+        // a sheet saved, and unchanged since, is its file's - which may
         // have changed while the window was closed
         if ( (!ui.dirty)         &&
              (!ui.browsing)      &&
@@ -1275,7 +1275,7 @@ bool app::restore_session()
         }
     }
 
-    // the document in front: the front workspace's -- a new one, for a
+    // the document in front: the front workspace's - a new one, for a
     // workspace left empty
     const int front = current().active;
 
@@ -1426,7 +1426,7 @@ model& app::open_document()
 /*
 activate
   A document put in front: of its workspace, which is put in front of the
-window if it is not already -- and its window brought to the front of its
+window if it is not already - and its window brought to the front of its
 dock, unless the user brought it there already, by clicking in it. A
 document already in front stays so, and nothing is built again.
 */
@@ -1489,7 +1489,7 @@ workspace* app::holding(
 
 /*
 add_workspace
-  A new workspace, with the tool windows a workspace opens with -- the
+  A new workspace, with the tool windows a workspace opens with - the
 symbols tree among them only when the user keeps it apart from the grid --
 and no documents yet. It is added, not put in front.
 */
@@ -1517,7 +1517,7 @@ workspace& app::add_workspace()
 
 /*
 to_workspace
-  A workspace put in front, with the document in front of it -- a new one,
+  A workspace put in front, with the document in front of it - a new one,
 if it has none.
 */
 void app::to_workspace(
@@ -1555,7 +1555,7 @@ void app::to_workspace(
 /*
 move_document
   A document taken from its workspace to another, docked there among the
-other documents, and put in front of it -- and that workspace in front of
+other documents, and put in front of it - and that workspace in front of
 the window. The workspace it left keeps a document: a new one, if it was
 its last.
 */
@@ -1596,7 +1596,7 @@ void app::move_document(
 close_document
   A document closed, unless it has changes and the user has not said to
 lose them: then the dialog asks first. The workspace it was in puts
-another document in front -- a new one, if it was the last.
+another document in front - a new one, if it was the last.
 */
 void app::close_document(
     int  _id,
@@ -1715,7 +1715,7 @@ void app::shell_changed()
 
 /*
 zoom
-  A window's zoom, by its key, a step in or out -- or, for a step of 0,
+  A window's zoom, by its key, a step in or out - or, for a step of 0,
 back to 1.
 */
 void app::zoom(
@@ -1851,7 +1851,7 @@ void app::quietly(
 
 /*
 open_all
-  A group and every group within it opened or closed -- every group the
+  A group and every group within it opened or closed - every group the
 sheet has, for the root's id. As one group's arrow does, it changes how the
 sheet is seen, which is saved with it, and is not a step to undo. A sheet
 already so is left as it was, and not marked changed.
@@ -2275,7 +2275,7 @@ void app::apply(
     note_action(_event);
 
     // an event from a document's window is that document's: it comes to
-    // the front first -- unless it has been closed since
+    // the front first - unless it has been closed since
     const long owner = payload.as_long("document", 0);
 
     if ( (owner != 0) &&
@@ -2919,8 +2919,8 @@ void app::apply(
     }
     else if (kind == "tab.pin")
     {
-        // a window's tab pinned -- before the others, with no x, kept by
-        // closes of other tabs -- or let go
+        // a window's tab pinned - before the others, with no x, kept by
+        // closes of other tabs - or let go
         std::vector<std::string>& pinned = current().pinned;
         const std::string         key    = payload.as_string("target", "");
         const auto                found  = std::find(pinned.begin(),
@@ -2990,7 +2990,7 @@ void app::apply(
         const std::string text      = (clipboard != nullptr) ? clipboard
                                                              : "";
 
-        // JSON -- a sheet, a bitfield or an export -- or code
+        // JSON - a sheet, a bitfield or an export - or code
         if (looks_like_sheet(text))
         {
             import_json_text(std::string(), text);
@@ -3154,7 +3154,7 @@ bool app::apply_shell(
     }
     else if (kind == "workspace.move")
     {
-        // a document -- the one in front, for none -- to a workspace; past
+        // a document - the one in front, for none - to a workspace; past
         // the last, to a new one
         const long target = payload.as_long("target", 0);
         const int  moved  = (target == 0) ? doc().id
@@ -3372,7 +3372,7 @@ bool app::apply_shell(
 
 /*
 set_environment
-  One of the window's own settings, set as its control posted it -- and
+  One of the window's own settings, set as its control posted it - and
 what follows from it: every sheet drawn in a new theme or scheme, the
 symbols tree's window opened or closed in every workspace. The settings
 file keeps it.
@@ -3438,7 +3438,7 @@ void app::restyle()
 /*
 zoom_key
   The window the zoom keys and menu act on: the one last in front, if it is
-still one of this workspace's -- else the document in front.
+still one of this workspace's - else the document in front.
 */
 std::string app::zoom_key() const
 {
@@ -3467,7 +3467,7 @@ std::string app::zoom_key() const
 settings_file
   The settings files: the window's settings and the sheet's preferences
 written to one, read from one and applied, and the files the window keeps
-a list of -- applied again, forgotten, or deleted. A file is kept on the
+a list of - applied again, forgotten, or deleted. A file is kept on the
 list while it is where it was written or read.
 */
 void app::settings_file(
@@ -3646,7 +3646,7 @@ void app::settings_file(
 /*
 fresh_document
   Where something opened goes: the document in front, if it is a new sheet
-never touched or an example only looked at -- else a new document beside
+never touched or an example only looked at - else a new document beside
 it.
 */
 model& app::fresh_document()
@@ -3663,8 +3663,8 @@ model& app::fresh_document()
 
 /*
 close_workspace
-  A workspace closed: its documents go to the workspace before it -- or
-after it, for the first -- docked among the documents there, which comes
+  A workspace closed: its documents go to the workspace before it - or
+after it, for the first - docked among the documents there, which comes
 to the front. The window keeps one workspace at least.
 */
 void app::close_workspace(
@@ -3982,11 +3982,11 @@ void app::place_cursor(
 /*
 cursor_to
   The grid's cursor moved, as its keys move it, Excel's way: the cell it is
-on, the range selected from one corner to the other -- the cursor's own
-cell when there are none -- and the column a run of Tabs began in. The
-rows of the sheet's the range covers -- "rows", in the order the grid shows
-them, or the corners' -- are the selection, the cursor's first; the bits
-it covers -- "low" to "high" -- are the block of cells selected, when it is
+on, the range selected from one corner to the other - the cursor's own
+cell when there are none - and the column a run of Tabs began in. The
+rows of the sheet's the range covers - "rows", in the order the grid shows
+them, or the corners' - are the selection, the cursor's first; the bits
+it covers - "low" to "high" - are the block of cells selected, when it is
 more than one cell. End mode ends with the move.
 */
 void app::cursor_to(
@@ -4203,7 +4203,7 @@ void app::add_row(
 /*
 add_child
   A name entered in the "Add child..." field under a group's or a range's
-rows is a bit of that name, at the lowest bit there that is free -- or, in
+rows is a bit of that name, at the lowest bit there that is free - or, in
 a range with none free, at the range's own lowest bit, where the collision
 shows. The name is tried on a copy of the sheet first: one that is not a C
 identifier once its affixes are added, or that is another symbol's, is
@@ -4347,7 +4347,7 @@ void app::move_row_by(
 /*
 sorted_note
   While the rows are shown sorted, a row moved by hand moves in the sheet
--- and the header -- but is shown where the sort puts it: the status line
+-- and the header - but is shown where the sort puts it: the status line
 says so.
 */
 void app::sorted_note()
@@ -4431,7 +4431,7 @@ namespace
 
 /*
 write_field
-  One of a row's fields, as the inspector edits it -- or the Add node
+  One of a row's fields, as the inspector edits it - or the Add node
 window, its row in the making: by its name, from the event's payload. A
 range or a byte is worked out in the sheet the row is in, and a value's
 default bias from its field's width there.
@@ -4774,8 +4774,8 @@ void app::grid_span(
 
 /*
 collapse_segment
-  A user's segment collapses and expands in place. An automatic one -- a
-byte, say -- has nothing to keep the state in, so clicking it makes it a
+  A user's segment collapses and expands in place. An automatic one - a
+byte, say - has nothing to keep the state in, so clicking it makes it a
 segment of the user's, collapsed, named for its bits.
 */
 void app::collapse_segment(
@@ -4860,8 +4860,8 @@ std::string value_text(
 /*
 note_action
   What the user did, kept for the console: the action's name, what it
-carried -- but the document it came from, which the console names as the
-sheet -- and when; not what the window does by itself, as a sheet arrives
+carried - but the document it came from, which the console names as the
+sheet - and when; not what the window does by itself, as a sheet arrives
 or a window takes the keyboard. The same action again, on the same target, is one
 action more times over: a drag, a slider, a name typed letter by letter.
 Only so many are kept, the oldest let go first.
@@ -4949,12 +4949,12 @@ void app::note_action(
 /*
 node_edit
   The Add node window: "node.open" opens it on the document the event is
-from, its row going into group or range "value" -- 0 for the sheet's own
+from, its row going into group or range "value" - 0 for the sheet's own
 rows; "node.close" closes it. "node.kind" makes its row another kind, by
 NODE_KINDS' index; "node.parent", by container_choices' index, puts it in
 another group or range; "node.first", first there or last. Every other
 "node.FIELD" is one of the row's fields, as the inspector's "row.FIELD"
-is. "node.add" adds the row -- "close" closing the window after -- and the
+is. "node.add" adds the row - "close" closing the window after - and the
 window starts the next. Nothing but the add is a step to undo.
 */
 void app::node_edit(
@@ -5088,7 +5088,7 @@ void app::node_edit(
 /*
 open_node
   The Add node window, open on the document in front, its row going into a
-group or range -- a bit, at the next bit free there, until another kind is
+group or range - a bit, at the next bit free there, until another kind is
 chosen; one already being made keeps what it has, in its new place. It is
 brought to the front.
 */
@@ -5122,7 +5122,7 @@ void app::open_node(
 /*
 refresh_node
   What the row in the making comes to: put in a copy of the sheet where it
-would go -- at the next bit free there, unless its bits were chosen -- and
+would go - at the next bit free there, unless its bits were chosen - and
 the copy resolved. A name that is not a C identifier once its affixes are
 added, or that is another symbol's, is why it would be refused; the issues
 the copy finds with it are shown with it.
@@ -5182,8 +5182,8 @@ void app::refresh_node()
 /*
 add_node
   The row in the making, added where it goes: one step to undo, selected,
-and said on the status line. The window starts the next -- the same kind,
-in the same place, at the next bit free, with no name typed -- or closes.
+and said on the status line. The window starts the next - the same kind,
+in the same place, at the next bit free, with no name typed - or closes.
 A row it would refuse is not added; the status line says why.
 */
 void app::add_node(
@@ -5263,11 +5263,11 @@ void app::add_node(
 /*
 special_edit
   The probe and usage rows: where each is shown, and how many. Each names a
-special row by its id, "value". "special.place" puts it "place" -- "top",
-"bottom" or "tree" -- and, among the rows, before row "before", or at the
+special row by its id, "value". "special.place" puts it "place" - "top",
+"bottom" or "tree" - and, among the rows, before row "before", or at the
 end of group "parent"'s rows; "ahead" is the special row it is put before
 in their order, 0 for last. "special.duplicate" adds another of its kind
-just after it, placed as it is; "special.remove" takes it away -- the last
+just after it, placed as it is; "special.remove" takes it away - the last
 of its kind is hidden instead, and keeps its place. Each shows its kind,
 and is one step to undo.
 */
@@ -5368,7 +5368,7 @@ void app::special_edit(
 /*
 display_edit
   What a part of the grid shows. "display.set" shows or hides a part --
-digits, names, colours -- over a region: rows, by id, as "rows" lists
+digits, names, colours - over a region: rows, by id, as "rows" lists
 them ("" for every row), from bit "lsb" to "msb" (every bit when msb is
 below lsb), "value" 1 shown, 0 hidden, -1 as the rest of the grid; "only"
 there and nowhere else. "display.reset" gives a region back to the grid:
@@ -5518,8 +5518,8 @@ void app::display_edit(
 
 /*
 keep_sorted
-  The order the rows are shown in, made the sheet's own -- the model's
-sort_rows, by the grid's key and way round -- and the sort put back to the
+  The order the rows are shown in, made the sheet's own - the model's
+sort_rows, by the grid's key and way round - and the sort put back to the
 sheet's, so the header, which follows the sheet, follows it too. One step
 to undo.
 */
@@ -5802,7 +5802,7 @@ void app::template_edit(
 
 /*
 open_file
-  A file opened in a document of its own -- or in a new sheet never
+  A file opened in a document of its own - or in a new sheet never
 touched, or an example only looked at, which it takes the place of. A file
 already open brings its document to the front instead. The path typed into
 the document in front's field was a file to open, not that document's new
@@ -5945,10 +5945,10 @@ void app::save_file(
 /*
 close_tabs
   The tabs a tab's menu closes, of the row it was opened on: "this" one;
-every "other"; or those to its "left" or "right" -- a pinned tab staying
+every "other"; or those to its "left" or "right" - a pinned tab staying
 but when it is the one closed. A sheet with changes asks first, as Close
 does, and the rest wait for the menu again; a definition file's tab is
-closed alone -- its x takes the file from its sheet, a step to undo -- and
+closed alone - its x takes the file from its sheet, a step to undo - and
 stays among others.
 */
 void app::close_tabs(
@@ -6017,7 +6017,7 @@ void app::close_tabs(
 
 /*
 close_tab
-  One tab's window closed, by its key: a sheet, as Close closes it -- false
+  One tab's window closed, by its key: a sheet, as Close closes it - false
 when it stopped to ask about its changes, and the rest should wait; a tool
 window, as its x closes it; the Add node window; and a definition file's,
 only when it was _asked for alone, its file taken from its sheet.
@@ -6159,8 +6159,8 @@ void app::rename_file(
 
 /*
 open_dialog
-  File > Open's question: the file to open -- a sheet, a bitfield or a
-header -- typed, or, on Windows, chosen in Explorer's picker. Enter or Open
+  File > Open's question: the file to open - a sheet, a bitfield or a
+header - typed, or, on Windows, chosen in Explorer's picker. Enter or Open
 opens it as a new sheet; Escape or Cancel asks nothing.
 */
 void app::open_dialog()
@@ -6436,8 +6436,8 @@ void app::import_definitions_dialog()
 /*
 help_dialog
   Help's two pages, each a modal popup the window draws after the rest: the
-keyboard shortcuts -- the keys shortcuts() answers, the "Add child..."
-field's, and what the mouse does in the grid -- in a table; and what
+keyboard shortcuts - the keys shortcuts() answers, the "Add child..."
+field's, and what the mouse does in the grid - in a table; and what
 bitwis(e)dom is. Close, or Escape, closes either.
 */
 void app::help_dialog()
@@ -6644,7 +6644,7 @@ void app::export_header()
 /*
 export_json
   The sheet as JSON beside its file: the bitfield alone, which a person or
-a program can write as well as read, or everything -- the sheet, every
+a program can write as well as read, or everything - the sheet, every
 row as it resolves, the issues and the header.
 */
 void app::export_json(
@@ -6679,8 +6679,8 @@ void app::export_json(
 /*
 import_json_text
   JSON as a sheet: a sheet file opens as itself; a bitfield, or an export,
-is a new sheet beside the file it came from -- or, from the clipboard,
-beside the sheet that was open -- named for it, and not yet saved. What
+is a new sheet beside the file it came from - or, from the clipboard,
+beside the sheet that was open - named for it, and not yet saved. What
 the reading passed over is listed on the Issues page.
 */
 void app::import_json_text(
@@ -6939,7 +6939,7 @@ void app::finish_rename(
 
 /*
 begin_segment_rename
-  A band the sheet made itself -- a byte, say -- has no name to keep, so
+  A band the sheet made itself - a byte, say - has no name to keep, so
 renaming it first makes it a segment of the sheet's own.
 */
 void app::begin_segment_rename(
@@ -7102,7 +7102,7 @@ void app::paste_code(
 
 /*
 import_code_text
-  Code made a new sheet, saved -- when it is saved -- beside the code it
+  Code made a new sheet, saved - when it is saved - beside the code it
 came from, under its name. A C++ file is read as C++, at C++17 when the
 sheet was C; the rest at the sheet's own level.
 */

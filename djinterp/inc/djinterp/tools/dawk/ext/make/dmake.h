@@ -2,13 +2,13 @@
 * djinterp [c][tools]                                                    dmake.h
 *
 * Makefiles, read without loss, as each make reads them.
-*   Four makes are read -- GNU make, POSIX make as pdpmake reads it, BSD make
-* (bmake) and Microsoft's NMake -- the make chosen for each file: named by
+*   Four makes are read - GNU make, POSIX make as pdpmake reads it, BSD make
+* (bmake) and Microsoft's NMake - the make chosen for each file: named by
 * the caller, or guessed from what the file holds.
 *   A file is read into its logical lines, each its physical lines joined
-* where its make joins them; then into statements -- assignments, `define`
+* where its make joins them; then into statements - assignments, `define`
 * blocks, rules, the lines of their recipes, conditionals, includes, the
-* other directives -- each with the places of its parts; and comments. A
+* other directives - each with the places of its parts; and comments. A
 * physical line ends in LF or CR LF, the CR no part of it, as all four read
 * it; a lone CR is a byte like any other. A line that ends in a backslash
 * continues on the next: in GNU make and bmake when the backslashes that end
@@ -25,7 +25,7 @@
 * where make's reading turns on what evaluating gives, dmake_eval decides
 * as make does. So the reader refuses only what make refuses whatever the
 * file's variables hold: a conditional that does not close or that closes
-* nothing, a second `else`, a `define` no `endef` ends -- in make's words,
+* nothing, a second `else`, a `define` no `endef` ends - in make's words,
 * at the line make names. A `define` in a conditional's branch is read as
 * make reads one it evaluates, its `define`s nested; in a branch make skips,
 * make nests none, and an `endef` led by the prefix ends one there too.
@@ -81,7 +81,7 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 1.1.1
 // D_MAKE_NONE
-//   constant: the index of a record that is not there -- a comment outside
+//   constant: the index of a record that is not there - a comment outside
 //   every statement, the branch after a conditional's last.
 #define D_MAKE_NONE ((size_t)-1)
 
@@ -191,7 +191,7 @@ struct dj_make_span
 //   A loop's variables are its `name`, and its `in` its `separator`.
 //   A conditional's `depth` is the count of conditionals open about it, from
 //   0, and `next_branch` the index of the conditional that continues it --
-//   the `else` after an `if`, the `endif` after an `else` -- D_MAKE_NONE for
+//   the `else` after an `if`, the `endif` after an `else` - D_MAKE_NONE for
 //   an `endif`.  `orphan` marks a recipe's line with no rule above it, which
 //   make refuses where no rule is live.
 struct dj_make_statement
@@ -273,7 +273,7 @@ struct dj_make_problem
 //   d_make_guess guesses a file's make from the first of its lines, outside
 // a recipe, that only one make reads: a directive of BSD's, `.include` or
 // `.if` and the rest, gives BSD; one of NMake's, `!include` or `!IF` and
-// the rest, NMake; one of GNU's -- `define`, `ifeq`, `ifdef` and the rest --
+// the rest, NMake; one of GNU's - `define`, `ifeq`, `ifdef` and the rest --
 // or a call of one of its functions, `$(call ...`, GNU. A file with none of
 // these is GNU's when an assignment by `:=` or a pattern rule suggests it,
 // as POSIX mode refuses both, and POSIX's otherwise.

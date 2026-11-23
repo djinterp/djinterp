@@ -10,8 +10,8 @@
 * the built-in writers consult reaches them: store_only, level, the embedded
 * codec block (its level the archive's unless it sets its own), the ZIP
 * method, the UTF-8 flag and comment, the preserve_* flags, and the tar
-* format.  A request the writers cannot honour -- ZIP encryption, ZIP's LZMA,
-* tar's gnu and v7 -- is refused with a status, never written as something
+* format.  A request the writers cannot honour - ZIP encryption, ZIP's LZMA,
+* tar's gnu and v7 - is refused with a status, never written as something
 * else.  zip64, numeric_owner and the gz header block are not consulted by
 * the built-in writers; requesting them is safe.
 *
@@ -381,7 +381,7 @@ bool tests_facade_container_knobs_do_not_corrupt()
 /*
 tests_facade_does_not_mutate_options
   Verifies the facade treats the option set as strictly read-only.  It takes a
-const reference, so this cannot fail by accident today -- but it is the
+const reference, so this cannot fail by accident today - but it is the
 invariant every "forward these options onward" call site depends on, and it
 must survive any future rework that starts normalising or defaulting fields
 in place.

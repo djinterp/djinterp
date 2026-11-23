@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][parsegen]                                 vparse_tests_memo.cpp
 *
-* vparse tests: what a run counts as it runs, and the memo -- where a
+* vparse tests: what a run counts as it runs, and the memo - where a
 * program's rules are, a profile held to the trace of the same run, a rule's
 * result replayed with its captures and unwound as they are, a memoized
 * program recognising what the program does, the nested expression grammar

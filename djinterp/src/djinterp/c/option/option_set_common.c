@@ -108,7 +108,7 @@ bool d_option_set_is_valid(
             }
         }
 
-        //   one key type across the set -- the counterpart of all_same_type.
+        //   one key type across the set - the counterpart of all_same_type.
         if (_set->options[0].key_type != option->key_type)
         {
             return false;
@@ -569,7 +569,7 @@ bool d_option_set_agrees(
 
     //   AGREEMENT QUANTIFIES OVER THE OVERLAP ONLY. Keys present in just one
     // set are not consulted at all, which is why disjoint sets agree
-    // vacuously -- and why this relation is NOT transitive.
+    // vacuously - and why this relation is NOT transitive.
     for (i = 0u; i < _lhs->count; ++i)
     {
         if (!d_option_set_find(_rhs, _lhs->options[i].key, &j))
@@ -774,7 +774,7 @@ struct dj_option_result d_option_set_union(
     }
 
     //   THE UNION IS PARTIAL. body-options.tex: valid "if, and only if,
-    // O1 ~ O2". A conflicting union does not exist, so this is FORMAL -- no
+    // O1 ~ O2". A conflicting union does not exist, so this is FORMAL - no
     // amount of extra buffer would make it exist, and a mechanical status
     // would tell the caller to retry.
     if (!d_option_set_agrees(_lhs, _rhs, _project, _compare, _context))
@@ -948,7 +948,7 @@ size_t d_option_set_byte_size(
         return 0u;
     }
 
-    //   arithmetic, not a traversal -- goal 4's runtime sizeof for a flat set.
+    //   arithmetic, not a traversal - goal 4's runtime sizeof for a flat set.
     return ( (sizeof(struct dj_option) * (size_t)_set->count) +
              (size_t)_set->value_used );
 }
@@ -993,8 +993,8 @@ d_internal_option_set_slot_align(
 d_option_set_compact
   The slots are visited in the order of their offsets without sorting the
 cells: each step takes the lowest offset above the last one moved. A moved
-slot never rises -- every slot below it has already come down, and its
-alignment divides where it was -- so its new offset is at or below the old
+slot never rises - every slot below it has already come down, and its
+alignment divides where it was - so its new offset is at or below the old
 one, below every slot still to visit, and the next step's search cannot
 find it again. Unary cells hold no slot and are passed over.
 */

@@ -3,7 +3,7 @@
 *
 * What can be asked of a command, declared in arg_command.h (section 6).
 *   Its fields, as CLI11's getters read them; what the last parse did with
-* it -- how often it and its subcommands were used, which subcommands it
+* it - how often it and its subcommands were used, which subcommands it
 * met; its display name; the options and groups it lists; the arguments it
 * left unused; and the usage, footer and version it writes on demand.
 *
@@ -92,7 +92,7 @@ size_t d_arg_command_count(
 /*
 d_arg_command_count_all
   CLI11's count_all(): the values of the command's options, then those of
-its subcommands in turn, then -- for a command with a name -- its own
+its subcommands in turn, then - for a command with a name - its own
 uses.
 */
 size_t d_arg_command_count_all(
@@ -193,8 +193,8 @@ bool d_arg_command_got_subcommand_name(
 
 /*
 d_arg_command_display_name
-  CLI11's get_display_name: a command without a name -- an option group,
-or a root still unnamed -- by its group; otherwise its name, then each
+  CLI11's get_display_name: a command without a name - an option group,
+or a root still unnamed - by its group; otherwise its name, then each
 alias after a comma when asked.
 */
 int d_arg_command_display_name(

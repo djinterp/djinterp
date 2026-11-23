@@ -5,7 +5,7 @@
 * writes with. A machine turns facts into output; these three are desc's:
 *     TEXT        for people: a report, a line per fact, the label padded and
 *                 a level per indent; or a line, key=value pairs on one line,
-*                 a nested key dotted -- what a log line carries.
+*                 a nested key dotted - what a log line carries.
 *     JSON        for machines: a level opened is "key": {, every key and
 *                 value written by the stream's one JSON escaper
 *                 (d_ostream_write_value, !json), with 64-bit integers and

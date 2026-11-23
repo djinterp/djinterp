@@ -280,26 +280,26 @@ struct cmp_3way
 // Test-function declarations (defined in the section .cpp files)
 // ===========================================================================
 
-// -- II.  Element relation (on the value_type) --
+// - II.  Element relation (on the value_type) --
 bool tests_element_type_of();
 bool tests_has_equality_comparable_elements();
 bool tests_has_less_than_comparable_elements();
 bool tests_has_totally_ordered_elements();
 bool tests_has_three_way_comparable_elements();
 
-// -- III. Comparison degree --
+// - III. Comparison degree --
 bool tests_comparison_degree_name();
 bool tests_comparison_degree_rank_and_weaker();
 bool tests_element_comparison_degree_of();
 
-// -- IV.  Container-level comparison --
+// - IV.  Container-level comparison --
 bool tests_has_container_equality_and_less();
 bool tests_has_three_way_comparable_container();
 bool tests_container_comparison_degree_of();
 bool tests_is_equality_comparable_container();
 bool tests_is_ordered_comparable_container();
 
-// -- V.   Cross-container element compatibility --
+// - V.   Cross-container element compatibility --
 bool tests_elements_same_type();
 bool tests_elements_convertible();
 bool tests_elements_mutually_convertible();
@@ -308,7 +308,7 @@ bool tests_cross_elements_ordered();
 bool tests_variable_templates();
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // element_relation_traits_spec
 //   function: the suite as DTest's module spec, one block per section.

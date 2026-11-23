@@ -1,15 +1,15 @@
 /*******************************************************************************
 * djinterp [cpp][filesys]                                     file_tests_ops.cpp
 *
-*   VI. Operations (file_ops.hpp) -- remove, rename, copy over whole paths.
+*   VI. Operations (file_ops.hpp) - remove, rename, copy over whole paths.
 *
 * RENAME ALWAYS OVERWRITES HERE
 * -----------------------------
 *   The C d_file_rename takes an overwrite flag and the c/filesys suite pins
 * both settings; this layer passes 1 unconditionally, so renaming onto an
 * existing file replaces it rather than failing EEXIST. That is a deliberate
-* narrowing -- rename is the atomic-replace primitive, and a replace that
-* refuses to replace is not one -- but it means a C caller's instinct is wrong
+* narrowing - rename is the atomic-replace primitive, and a replace that
+* refuses to replace is not one - but it means a C caller's instinct is wrong
 * here, so the case below states it outright.
 *
 * THE REMOVAL FAMILY, BY WHAT EACH REFUSES
@@ -137,7 +137,7 @@ void tests_fs_ops(
               }
 
               // the errno is EISDIR or EPERM by platform, so only the refusal
-              // itself is asserted -- pinning one would fail on the other
+              // itself is asserted - pinning one would fail on the other
               ok = (!remove_file(p, ec)) &&
                    (ec.failed())         &&
                    fs_test_exists(p);

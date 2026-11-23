@@ -6,8 +6,8 @@
 * checked streams, so a bad path or a full disk becomes an error message, not
 * an exception. The grammar and input are written in binary mode so the bytes
 * that were run are the bytes that are saved, line endings included.
-*   A path that becomes text -- a run's origin, its session's name, a message
-* -- becomes UTF-8 (utf8_from_path): path::string() is the system's code page
+*   A path that becomes text - a run's origin, its session's name, a message
+* - becomes UTF-8 (utf8_from_path): path::string() is the system's code page
 * on Windows, which cannot spell every name, and throws where it cannot.
 *
 *

@@ -956,7 +956,7 @@ D_NODISCARD D_CONSTEXPR internal::DFlatMapTransducerHelper<typename std::decay<F
 // compose (two transducers)
 //   function: composes two transducers into one. compose(t1, t2)
 // is a transducer that, when applied to a downstream reducer,
-// produces t1(t2(downstream)) -- t1 sees values first, t2 sees
+// produces t1(t2(downstream)) - t1 sees values first, t2 sees
 // them next (closer to the sink). This matches reading order:
 // `compose(a, b, c)` means "first a, then b, then c".
 template<typename T1,
@@ -1067,7 +1067,7 @@ auto into_reducer(
 // accumulator value.
 //
 //   _reducer must have signature
-// (DReducingState<Acc>&, const Value&) -> void  -- the standard
+// (DReducingState<Acc>&, const Value&) -> void  - the standard
 // transducer step shape.
 template<typename Transducer,
          typename Reducer,
@@ -1226,11 +1226,11 @@ void transduce_producer_to_consumer(
 ///////////////////////////////////////////////////////////////////////////////
 //   Structural detection for the three shapes this module trades in:
 //
-//   * a REDUCING STATE  -- a DReducingState<Acc> (the (accumulator, done)
+//   * a REDUCING STATE  - a DReducingState<Acc> (the (accumulator, done)
 //     pair drivers thread through a fold);
-//   * a REDUCER         -- a callable of shape (DReducingState<Acc>&,
+//   * a REDUCER         - a callable of shape (DReducingState<Acc>&,
 //     const Value&) -> void, the step function transducers wrap;
-//   * a TRANSDUCER      -- a callable taking a reducer and returning a new
+//   * a TRANSDUCER      - a callable taking a reducer and returning a new
 //     reducer. The existing is_transducer (above) recognises this module's
 //     own helpers structurally via the DTransducerBase marker; the
 //     transduces_reducer trait here is the behavioural counterpart: it asks
@@ -1288,7 +1288,7 @@ using reducing_state_acc_t =
 
 // is_reducer
 //   trait: true when Fn models the reducer step contract over Acc / Value
-// -- callable as (DReducingState<Acc>&, const Value&). This is the shape
+// - callable as (DReducingState<Acc>&, const Value&). This is the shape
 // every transducer wraps and every driver folds with. The result is
 // conventionally void, but the trait does not insist on it: any well-formed
 // call qualifies, so user reducers returning a value still register.
@@ -1309,7 +1309,7 @@ struct is_reducer
 //   trait: true when Transducer, applied to a Reducer, yields a callable
 // (the new reducer). Because a transducer's operator() is templated, this is
 // the behavioural test for "is Transducer a transducer usable with this
-// downstream reducer?" -- complementary to the marker-based is_transducer.
+// downstream reducer?" - complementary to the marker-based is_transducer.
 //   The produced reducer's own (state, value) shape depends on the upstream
 // value type and so is not pinned here; transducer_result_t exposes the
 // produced type for callers that need to probe it further.
@@ -1373,7 +1373,7 @@ concept reducing_state_c = is_reducing_state<Type>::value;
 
 // reducer_c
 //   concept: satisfied when Fn is callable as (DReducingState<Acc>&,
-// const Value&) -- the reducer step contract.
+// const Value&) - the reducer step contract.
 template<typename Fn,
          typename Acc,
          typename Value>

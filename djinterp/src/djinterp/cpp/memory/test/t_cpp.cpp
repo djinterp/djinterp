@@ -3,7 +3,7 @@
 *
 *   C++ parity and cost-law harness. Checks that every wrapper's base subobject
 * sits at offset zero, and drives the SAME operation through both faces to
-* confirm the C++ tier computes what the C core computes -- earlier, not
+* confirm the C++ tier computes what the C core computes - earlier, not
 * differently.
 *
 *   Build (from the repo root):
@@ -25,7 +25,7 @@
  *   Two questions, and only two:
  *
  *     1. THE COST LAW. Does every wrapper add zero bytes? Most of this is
- *        answered by static_assert inside the headers -- compiling this file
+ *        answered by static_assert inside the headers - compiling this file
  *        at all proves those. The runtime checks here cover what a
  *        static_assert cannot: that the base subobject sits at offset zero,
  *        so a wrapper pointer and a kernel pointer are the same address.
@@ -33,7 +33,7 @@
  *     2. PARITY. Does the C++ face compute the same thing as the C core, or
  *        merely something that looks right? Each section below drives the
  *        SAME operation through both faces and compares the observable
- *        results -- addresses, counts, geometry -- rather than trusting that
+ *        results - addresses, counts, geometry - rather than trusting that
  *        a forwarding call must agree.
  */
 // FLOOR, FOR NOW: below C++11 this test is empty, rather than an error (README
@@ -196,7 +196,7 @@ void test_pool_geometry_parity()
 {
     /*   DPool<T> supplies sizeof(T) and alignof(T) at translation time; the C
      * kernel is told them at run time. The claim is that the two arrive at
-     * the SAME stride and alignment -- earlier, not differently. */
+     * the SAME stride and alignment - earlier, not differently. */
     ::dj_pool_config c_cfg = ::d_pool_config_default(
         static_cast<DMemSize>(sizeof(thing)),
         static_cast<DMemSize>(alignof(thing)));

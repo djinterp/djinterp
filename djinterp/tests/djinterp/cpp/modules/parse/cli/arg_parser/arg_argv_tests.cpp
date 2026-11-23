@@ -10,7 +10,7 @@
 * names for CLI11's (cli11_shim.hpp, whose split_line is App::parse's
 * splitting of a string, and whose split_program_name, narrow and widen are
 * CLI11's own), and the transcripts below are what CLI11 wrote; so the CASES
-* section is written in the part of the face CLI11 shares -- no status
+* section is written in the part of the face CLI11 shares - no status
 * taken from a call, a failure read from the description it writes. The
 * sections that are the module's own are written apart, after it, each
 * saying why CLI11 cannot write its transcript.
@@ -225,7 +225,7 @@ const char WIDE[] =
 // module's own, where the face departs from CLI11: CLI11's narrow() and
 // widen() throw std::range_error from std::wstring_convert --
 // `wstring_convert::to_bytes` for an unpaired surrogate,
-// `wstring_convert::from_bytes` for UTF-8 that is not well-formed -- or
+// `wstring_convert::from_bytes` for UTF-8 that is not well-formed - or
 // std::runtime_error where the C++ library has no <codecvt>, where here an
 // unpaired surrogate is U+FFFD and such UTF-8 is the empty text, which the
 // status form of widen() tells from text that is empty (ISSUES 62).
@@ -405,8 +405,8 @@ const std::size_t SPLIT_COUNT = sizeof(SPLIT_STEPS) / sizeof(SPLIT_STEPS[0]);
 
 /**
  * @brief PROGRAM 1: a program's name found at the start of a line among
- *        files made for it -- one whose name holds a space, and a folder,
- *        which names no program -- or quoted, or the first word.
+ *        files made for it - one whose name holds a space, and a folder,
+ *        which names no program - or quoted, or the first word.
  *
  * @param[in,out] _run  the step's run.
  */
@@ -683,8 +683,8 @@ const DSplitRow SPLIT_ROWS[] =
 const std::size_t SPLIT_ROW_COUNT = sizeof(SPLIT_ROWS) / sizeof(SPLIT_ROWS[0]);
 
 /**
- * @brief RULES 1: lines split by POSIX's rules, the C runtime's -- with a
- *        program's name and with line breaks -- and GCC's; the platform's
+ * @brief RULES 1: lines split by POSIX's rules, the C runtime's - with a
+ *        program's name and with line breaks - and GCC's; the platform's
  *        two, by lines all of them split alike; text each refuses.
  *
  * @param[in,out] _run  the step's run.

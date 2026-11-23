@@ -1,7 +1,7 @@
 # desc: describing anything, in prose and in facts
 
 desc's design, for the agreement of Friday 11-13 (decision 29): the APIs of
-all three of desc's layers -- the units, the facts and the macro layer -- as
+all three of desc's layers - the units, the facts and the macro layer - as
 they are in the tree, and the C++ face over them. It records the owner's
 rulings of 11-12, 11-17 and 11-18, by desc's decision numbers: 20
 (describer forms and machines), 28 (d) (one authored form), 30 (a) (op
@@ -110,8 +110,8 @@ shown.
 
 ### Layers
 
-A unit is on one of desc.h's nine layers -- identity, type, state, intent,
-policy, health, provenance, contents, cost -- so units and facts are
+A unit is on one of desc.h's nine layers - identity, type, state, intent,
+policy, health, provenance, contents, cost - so units and facts are
 selected the same way. A reader hides the layers it does not want; the
 noun, which names the type, is always written.
 
@@ -254,7 +254,7 @@ struct dj_desc_machine
 ```
 
 Each operation that returns int returns 0 to go on and anything else to
-stop. desc's own machines -- text, JSON, a collecting one, a log record's --
+stop. desc's own machines - text, JSON, a collecting one, a log record's --
 are built on this table, and a program writes any other. A table is
 usually a static const, shared by every sink that writes to that kind of
 machine.
@@ -365,8 +365,8 @@ family declares its type and its description from one argument list, so
 nothing is written twice:
 `D_BRT_DECLARE(route_table, uint64_t, route, 0, (immutable)(ordered))`.
 The containers' module writes these on the kit in week 3, for families
-declared per element type, with the two-macro form -- the type's own macro
-and its `D_DESC_MACRO_` twin -- underneath, for a user who wants no
+declared per element type, with the two-macro form - the type's own macro
+and its `D_DESC_MACRO_` twin - underneath, for a user who wants no
 typedef. A concrete type, as db's rows or net's ring, gets a describer
 alone.
 
@@ -452,7 +452,7 @@ never "0,5"), and prose and JSON never differ in their digits.
 
 At compile time by default: `D_DESC_OF(name)` in C, `units<T>` in C++. No
 start-up cost, and a missing description fails to compile. A program that
-wants describing by name -- a debugger, the kit's interpreter -- opts into a
+wants describing by name - a debugger, the kit's interpreter - opts into a
 name registry in week 3: `D_CFG_DESC_REGISTRY` 0 none, 1 the types a
 program registers (the default), 2 every described type.
 

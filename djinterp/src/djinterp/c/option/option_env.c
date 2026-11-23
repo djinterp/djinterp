@@ -8,8 +8,8 @@
 *
 *   A BINDING IS A CELL, AND THE CORE DOES THE WORK. Adding, finding,
 * writing, removing and compacting a binding are d_option_set_add, _find,
-* _set, _remove and _compact; what this unit adds is the key -- (scope <<
-* 32) | (source << 28) | variable -- and the text arena, which the core has
+* _set, _remove and _compact; what this unit adds is the key - (scope <<
+* 32) | (source << 28) | variable - and the text arena, which the core has
 * no call for. Text set as text lives in the arena, and since neither
 * unbinding nor rebinding gives bytes back, the arena is compacted when it
 * fills: every live string slides down in address order, and the generation
@@ -1264,7 +1264,7 @@ d_option_env_set_scopes(
 /*
 d_option_env_set_parent
   A frame with children is refused: their ids are built on its depth. The
-frame's own bindings go -- their ids may name the old chain's variables --
+frame's own bindings go - their ids may name the old chain's variables --
 and its generation is set above the old chain's sum, so every sum read from
 the new chain is above any a cache could hold.
 */
@@ -1317,7 +1317,7 @@ d_option_env_set_parent(
 
 /*
 d_option_env_set_name
-  Borrowed; an identifier, so a full name -- "djin.variable" -- can be read
+  Borrowed; an identifier, so a full name - "djin.variable" - can be read
 back.
 */
 struct dj_option_result
@@ -1998,7 +1998,7 @@ d_internal_option_env_bears(
 
 /**
  * @brief Whether one binding outranks another: higher standing; then, of
- *        equal standing, the deeper frame -- the inner one -- and in one
+ *        equal standing, the deeper frame - the inner one - and in one
  *        frame the scoped binding.
  *
  * @param[in] _a        the one.
@@ -2726,7 +2726,7 @@ d_internal_option_env_bind(
 }
 
 /**
- * @brief Binds an integer -- INT, CHOICE or FLAGS -- from a source, once the
+ * @brief Binds an integer - INT, CHOICE or FLAGS - from a source, once the
  *        variable accepts it.
  *
  * @param[in,out] _env      the frame.
@@ -2892,9 +2892,9 @@ d_option_env_set_value(
  * @param[in]     _source  the source.
  * @return as d_option_env_set_text_copy.
  *
- * The copy is admitted before the arena is touched, so a refused copy -- the
- * kind, the source, a source the row refuses -- costs no room. The source
- * may be in the arena itself -- another binding's text -- so the compaction
+ * The copy is admitted before the arena is touched, so a refused copy - the
+ * kind, the source, a source the row refuses - costs no room. The source
+ * may be in the arena itself - another binding's text - so the compaction
  * an allocation may run follows it.
  */
 static struct dj_option_result
@@ -3195,7 +3195,7 @@ d_internal_option_env_read_int(
  * @param[out] _value  the value.
  * @return 1, or 0 for text that is not one, or one that overflows.
  *
- * The text is held to C's alphabet -- digits, a sign, '.', an exponent --
+ * The text is held to C's alphabet - digits, a sign, '.', an exponent --
  * or to inf, infinity and nan, so a locale's own form ("1,5") is refused, and
  * then copied with the locale's decimal point in place of '.' for strtod.
  */
@@ -3410,8 +3410,8 @@ d_internal_option_env_read_term(
 }
 
 /**
- * @brief Reads flags: terms -- a name or a number, each with an optional
- *        '+' or '-' -- separated by ',', '|' or space. Text starting with a
+ * @brief Reads flags: terms - a name or a number, each with an optional
+ *        '+' or '-' - separated by ',', '|' or space. Text starting with a
  *        sign edits the value in force; text without one starts from 0.
  *
  * @param[in]  _env    the frame.
@@ -3780,7 +3780,7 @@ d_internal_option_env_unescape(
  * @return as d_option_env_assign_from.
  *
  * A TEXT value is admitted, then read straight into the arena, where it will
- * live -- it needs at most its quoted length -- and bound there; any other is
+ * live - it needs at most its quoted length - and bound there; any other is
  * read into a buffer here and then read as its kind. The quoted text may
  * itself be in the arena, so the allocation follows it through a compaction.
  */
@@ -4651,8 +4651,8 @@ d_option_env_report_print(
 
 /*
 d_internal_option_env_setting
-  A variable's full name as the registry resolves it: a djin's frame -- one
-with a name and a parent -- before it and a dot; a root's, or a lone
+  A variable's full name as the registry resolves it: a djin's frame - one
+with a name and a parent - before it and a dot; a root's, or a lone
 frame's, alone. Cut to fit, always NUL-terminated.
 */
 static void
@@ -4825,8 +4825,8 @@ d_internal_option_env_import_one(
 
 /*
 d_option_env_import_each
-  One read per visible variable that its name reaches -- a name an inner
-declaration hides is the inner one's -- and one for its alias when the name
+  One read per visible variable that its name reaches - a name an inner
+declaration hides is the inner one's - and one for its alias when the name
 is unset; then, with D_CFG_OPTION_ENV_SCOPED_IMPORT, the same in each scope
 the frame sees. Every variable is tried; each refusal goes to the report,
 under the name that was read, and the first is the one returned.
@@ -5108,8 +5108,8 @@ d_internal_option_env_format_flags(
 
 /**
  * @brief Writes a double so strtod reads it back exactly, in the fewest
- *        digits that do -- "0.1", not "0.10000000000000001", as JSON's
- *        reals are written (the log's decision 51) -- with '.' for the
+ *        digits that do - "0.1", not "0.10000000000000001", as JSON's
+ *        reals are written (the log's decision 51) - with '.' for the
  *        locale's decimal point.
  *
  * @param[in]     _real      the value.

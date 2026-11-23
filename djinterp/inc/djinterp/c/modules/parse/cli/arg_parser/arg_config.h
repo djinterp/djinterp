@@ -5,8 +5,8 @@
 *   A `struct dj_arg_config_format` is CLI11's ConfigBase in C: the characters
 * that mark comments, arrays, values, quotes and nested sections, the
 * section and index to read, and a table of the three operations a format
-* performs -- reading text into items, writing a command's values as text,
-* and reading an item as a flag -- whose NULL entries run CLI11's own.
+* performs - reading text into items, writing a command's values as text,
+* and reading an item as a flag - whose NULL entries run CLI11's own.
 * d_arg_config_format_init makes CLI11's ConfigTOML, the default, and
 * d_arg_config_format_init_ini its ConfigINI.
 *   A `struct dj_arg_config_item` is one entry read: its section path, its
@@ -28,7 +28,7 @@
 *
 * OPTIONS
 * -------
-*   A format's characters -- comment, array, value, quote and section marks --
+*   A format's characters - comment, array, value, quote and section marks --
 * its section and index to read, and its operations table, each NULL entry
 * CLI11's own.
 *
@@ -242,9 +242,9 @@ D_EXTERN_C_BEGIN
 //------------------------------------------------------------------------------
 // 3.1.1
 // d_arg_config_format_init / d_arg_config_format_init_ini
-//   lifetime: init makes CLI11's ConfigTOML -- `#` comments, `[` `]` arrays
+//   lifetime: init makes CLI11's ConfigTOML - `#` comments, `[` `]` arrays
 // separated by `,`, `=` between name and value, `"` and `'` quotes, `.`
-// between section names, 255 layers -- and init_ini its ConfigINI, which
+// between section names, 255 layers - and init_ini its ConfigINI, which
 // comments with `;`, has no array brackets and separates values with
 // spaces. Neither fails, and each ignores NULL.
 D_ARG_PARSER_API void d_arg_config_format_init(
@@ -333,7 +333,7 @@ D_ARG_PARSER_API void d_arg_config_item_list_release(
 
 // 4.2    Building
 //------------------------------------------------------------------------------
-//   How a format that reads its own way -- a table's from_config -- makes the
+//   How a format that reads its own way - a table's from_config - makes the
 // items it appends: each started as D_ARG_CONFIG_ITEM_INIT makes it, named,
 // given its sections and values, then adopted by the list.
 
@@ -495,8 +495,8 @@ D_ARG_PARSER_API int d_arg_config_from_file(
  *        to_config.
  *
  * @note The command's own configurable options are written group by group,
- *       each with the values its policy keeps -- or, for the modes that ask
- *       for defaults, its default -- then its option groups and other
+ *       each with the values its policy keeps - or, for the modes that ask
+ *       for defaults, its default - then its option groups and other
  *       nameless subcommands, then its named subcommands, as sections of
  *       their own when configurable and used. Values not yet reduced are
  *       reduced on a copy, as CLI11's reduced_results reduces them, and a

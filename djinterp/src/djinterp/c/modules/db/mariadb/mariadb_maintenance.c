@@ -205,7 +205,7 @@ int d_internal_mariadb_maintain(
 /*
 d_internal_mariadb_read_checksum
   CHECKSUM TABLE answers a row of Table and Checksum, the checksum a
-non-negative integer, or NULL for a table it cannot find -- here, one gone
+non-negative integer, or NULL for a table it cannot find - here, one gone
 since it was found.
 */
 static

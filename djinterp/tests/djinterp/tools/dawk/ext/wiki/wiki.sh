@@ -1,5 +1,5 @@
 #!/bin/sh
-# wiki.sh -- the -x wiki extension, wiki_survey.awk, wiki_rename.awk,
+# wiki.sh - the -x wiki extension, wiki_survey.awk, wiki_rename.awk,
 # wiki_toc.awk and wiki_generate.awk, against outputs fixed in advance; then
 # the reader and the documents over the pages made here, and, where they are
 # installed, other readers over the same pages.
@@ -12,7 +12,7 @@
 # the second run writing nothing. After the cases: every page here read and
 # proved sound; random changes made to them, each proved to touch only what
 # it said; and, when python3 has markdown-it-py and pymdownx, or pandoc is
-# installed, the pages read by them too -- and by MediaWiki itself, with its
+# installed, the pages read by them too - and by MediaWiki itself, with its
 # own parser tests, when MW_INSTALL_PATH names a MediaWiki 1.43 set up as
 # wiki_mw_records.php says.
 #
@@ -67,7 +67,7 @@ check() {
     fi
 }
 
-# -- the wikis ----------------------------------------------------------------
+# - the wikis ----------------------------------------------------------------
 M=$work/md
 W=$work/mw
 mkdir -p "$M/docs" "$W" "$work/plain" "$work/src/demo/sub"
@@ -165,7 +165,7 @@ print("[not](a link)")
 </div>
 EOF
 
-# -- reading a page -----------------------------------------------------------
+# - reading a page -----------------------------------------------------------
 cat > "$work/read.awk" <<'EOF'
 BEGIN {
     p = wiki_open(file)
@@ -231,7 +231,7 @@ bad index -1 [the page has no link 99]
 close 1 0
 status 0" -x wiki -f "$work/read.awk" -v file="$M/Usage.md"
 
-# -- changing a page ----------------------------------------------------------
+# - changing a page ----------------------------------------------------------
 cat > "$work/change.awk" <<'EOF'
 BEGIN {
     p = wiki_open(file)
@@ -299,7 +299,7 @@ Welcome to [[Guide]] and [[Guide#Usage|the usage]] and [[Gone]].
 Text.
 EOF
 
-# -- writing ------------------------------------------------------------------
+# - writing ------------------------------------------------------------------
 cat > "$work/write.awk" <<'EOF'
 BEGIN {
     split("markdown mediawiki", ds, " ")
@@ -376,7 +376,7 @@ bad -1 [rst is not a dialect]
 bad -1 [the text cannot be written so]
 status 0" -x wiki -f "$work/write.awk"
 
-# -- files ---------------------------------------------------------------------
+# - files ---------------------------------------------------------------------
 cp -r "$M" "$work/files"
 cat > "$work/files.awk" <<'EOF'
 BEGIN {
@@ -487,7 +487,7 @@ new 1 markdown 1 1 1
 move 1 1 -1 [$work/files/Home.md is there already]
 status 0" -x wiki -f "$work/files.awk" -v dir="$work/files" -v src="$work/src"
 
-# -- wiki_survey.awk ----------------------------------------------------------
+# - wiki_survey.awk ----------------------------------------------------------
 same 'a GitHub wiki surveyed' "$M/Home.md: markdown, 2 sections, 7 links (3 page, 2 anchor, 2 file), 1 region
     line 3: a link to \"Missing Page\": no such page
     line 4: a link to \"docs/lost.txt\": no such file
@@ -508,7 +508,7 @@ $W/Main_Page.mediawiki:
 2 pages: 9 links, 2 broken; 0 orphans
 status 1" -x wiki -f "$RES/wiki_survey.awk" -v quiet=1 "$W"
 
-# -- wiki_rename.awk ----------------------------------------------------------
+# - wiki_rename.awk ----------------------------------------------------------
 cp -r "$M" "$work/renamed"
 R=$work/renamed
 same 'a rename, dry' "$R/Old-Name.md: line 3: Old Name -> New Name
@@ -553,7 +553,7 @@ holds '...the redirect' "$work/mwrenamed/Guide.mediawiki" /dev/stdin <<'EOF'
 #REDIRECT [[Manual]]
 EOF
 
-# -- wiki_toc.awk -------------------------------------------------------------
+# - wiki_toc.awk -------------------------------------------------------------
 cp -r "$M" "$work/toc"
 T=$work/toc
 same 'contents set in the region a page has' "5 pages: 1 changed, 0 as they were, 4 without a toc region
@@ -583,7 +583,7 @@ status 0" -x wiki -f "$RES/wiki_toc.awk" -v add=1 "$T"
 same '...and again, nothing to change' "5 pages: 0 changed, 3 as they were, 2 without a toc region
 status 0" -x wiki -f "$RES/wiki_toc.awk" -v add=1 "$T"
 
-# -- wiki_generate.awk --------------------------------------------------------
+# - wiki_generate.awk --------------------------------------------------------
 G=$work/generated
 same 'pages generated from headers' "2 headers, 1 modules: 5 pages written, 0 as they were
 status 0" -x wiki -f "$RES/wiki_generate.awk" -v out="$G" -v project=demo \
@@ -706,7 +706,7 @@ holds '...a module page' "$GW/Module-demo.mediawiki" /dev/stdin <<'EOF'
 <!-- dawk:end api -->
 EOF
 
-# -- the reader and the documents, over the pages here ------------------------
+# - the reader and the documents, over the pages here ------------------------
 check 'every page here read and proved sound' "$READER" --corpus "$work"
 check 'random changes to them, each touching only what it said' \
     "$READER" --fuzz 1 "$work"

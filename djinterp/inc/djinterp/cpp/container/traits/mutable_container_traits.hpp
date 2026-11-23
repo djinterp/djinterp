@@ -511,23 +511,23 @@ public:
 //  FOLDED IN FROM mutable_container_traits_revised.hpp  (now deleted)
 // ===========================================================================
 //   The "revised" file was a parallel rework of this one.  Its load-bearing
-// API -- mutability, mutability_of, mutability_name, is_mutable_container,
+// API - mutability, mutability_of, mutability_name, is_mutable_container,
 // is_immutable_container, and the 2-D access model (access_restriction_of,
-// constrains_element, constrains_key) -- is what the rest of the framework
+// constrains_element, constrains_key) - is what the rest of the framework
 // consumes (container_traits, the concept modules, the audit), so THIS file
 // stays canonical and keeps all of it unchanged.
 //
 //   What the revised file added is folded in below as ADDITIONS, not
 // replacements:
 // - DRefinedMutabilityGrade: a four-grade refinement (fixed / value_mutable /
-// structure_mutable / fully_mutable) with its _name and predicates -- a finer
+// structure_mutable / fully_mutable) with its _name and predicates - a finer
 // companion to `DMutability` above (the name `DMutabilityGrade` is already taken
-// -- it aliases `DMutability` as the grade DIMENSION of the 2-D model), which
+// - it aliases `DMutability` as the grade DIMENSION of the 2-D model), which
 // stays because existing callers name it. - settable_coordinate_of +
 // DCoordinateAccessRestriction: a coordinate-indexed view of the access
 // dimension. Left as the documented stub it was, pending is_keyed_container /
 // is_unique_container from container_overlay_traits.hpp. The revised file also
-// re-declared has_size_signal locally; this file does NOT -- it takes
+// re-declared has_size_signal locally; this file does NOT - it takes
 // has_size_signal from its single owner, bounded_container_traits.hpp, to avoid
 // the duplicate-definition bug.
 

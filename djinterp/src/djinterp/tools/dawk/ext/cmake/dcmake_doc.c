@@ -60,7 +60,7 @@ struct dj_cmake_doc
 // dj_internal_candidate
 //   struct: a change not yet kept: the new text and its records, where the
 //   splice stands in the old text and the new, and how the commands fall
-//   about it -- `before` whole before it in both, the old's from
+//   about it - `before` whole before it in both, the old's from
 //   `old_after` and the new's from `new_after` whole after it.
 struct dj_internal_candidate
 {
@@ -480,7 +480,7 @@ size_t d_internal_mapped(
 
 /*
 d_internal_same_index
-  Whether an index the old records hold -- a partner, a comment's command
+  Whether an index the old records hold - a partner, a comment's command
 -- is the one the new hold.
 */
 static
@@ -1323,7 +1323,7 @@ size_t d_internal_past_line_end(
 
 /*
 d_internal_comment_after
-  The end of the last comment within command `_n` -- D_CMAKE_NONE for none
+  The end of the last comment within command `_n` - D_CMAKE_NONE for none
 -- that starts on line `_line` at or after `_from`; `_from` when there is
 none.
 */
@@ -1528,7 +1528,7 @@ bool d_internal_same_text(
 d_internal_arguments_read_back
   Whether command `_n` reads back as the change made it: the one command the
 splice cut, its name, its part in its block, every argument it kept as it
-was, and the one at `_slot` -- set or inserted -- the text asked for, with
+was, and the one at `_slot` - set or inserted - the text asked for, with
 the file's endings.
   Long as each argument is matched with the one it was, by what was done.
 */

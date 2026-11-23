@@ -3,7 +3,7 @@
 *
 * is_trivial trait header:
 *   is_trivial<T>::value is true iff T is trivially default constructible
-* AND trivially copyable -- the two properties together, which is why the
+* AND trivially copyable - the two properties together, which is why the
 * standard deprecated it in C++26: almost every caller wanted only one of
 * them and got a stricter test than they meant. Prefer
 * is_trivially_copyable or is_trivially_default_constructible directly.
@@ -65,7 +65,7 @@ namespace re_std
 #if RE_STD_HAS_IS_TRIVIAL
 
 // is_trivial
-//   trait: intrinsic-backed -- trivially default constructible and trivially copyable.
+//   trait: intrinsic-backed - trivially default constructible and trivially copyable.
 template<typename Type>
 struct is_trivial : integral_constant<bool, __is_trivial(Type)>
 {};

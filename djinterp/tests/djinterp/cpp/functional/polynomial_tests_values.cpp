@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  polynomial_tests_values.cpp
-//   Section I -- value-level poly_* vocabulary (var/unit/const/sum/product).
+//   Section I - value-level poly_* vocabulary (var/unit/const/sum/product).
 
 // std
 #include <type_traits>

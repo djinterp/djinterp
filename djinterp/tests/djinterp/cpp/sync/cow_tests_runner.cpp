@@ -57,7 +57,7 @@ int main()
 
     rb.use_pdf("cow_tests_report.pdf");
 
-    // -- 0. the header contract --------------------------------------------
+    // - 0. the header contract --------------------------------------------
     rb.module("0. the header contract",
               "the guard, the include order (a bug), the dependencies, the dead gates");
     rb.run("the include guard is defined, and is 1",   &tests_header_include_guard);
@@ -70,7 +70,7 @@ int main()
     rb.run("public in djinterp, block in internal",    &tests_entities_live_in_the_djinterp_namespace);
     rb.run("no stray macros",                          &tests_header_defines_no_stray_macros);
 
-    // -- I. the control block ----------------------------------------------
+    // - I. the control block ----------------------------------------------
     rb.module("I. the intrusive control block",
               "one allocation: the refcount and the value together");
     rb.run("born at a refcount of one",               &tests_control_block_starts_at_one);
@@ -84,7 +84,7 @@ int main()
     rb.run("an rvalue is moved",                      &tests_control_block_moves_an_rvalue);
     rb.run("it is an internal detail (re-exported)",  &tests_control_block_lives_in_internal);
 
-    // -- II. DCowPtr - lifetime --------------------------------------------
+    // - II. DCowPtr - lifetime --------------------------------------------
     rb.module("II. cow_ptr -- lifetime",
               "who owns the block, and when it dies");
     rb.run("the default is empty",                    &tests_cow_ptr_default_is_empty);
@@ -102,7 +102,7 @@ int main()
     rb.run("the empty pointer's safe half works",     &tests_cow_ptr_empty_operations_are_safe);
     rb.run("sharing is noexcept, writing is not",     &tests_cow_ptr_lifetime_operations_are_noexcept);
 
-    // -- II. DCowPtr - access and the clone --------------------------------
+    // - II. DCowPtr - access and the clone --------------------------------
     rb.module("II. cow_ptr -- access and the clone",
               "read() never clones; write() clones iff shared -- THE type");
     rb.run("read() returns the value (const ref)",    &tests_cow_ptr_read_returns_the_value);
@@ -118,7 +118,7 @@ int main()
     rb.run("the empty pointer must NOT be deref'd",   &tests_the_empty_cow_ptr_must_not_be_dereferenced);
     rb.run("it carries a move-only payload",          &tests_cow_ptr_carries_a_move_only_payload);
 
-    // -- II. DCowPtr - detach and swap -------------------------------------
+    // - II. DCowPtr - detach and swap -------------------------------------
     rb.module("II. cow_ptr -- detach and swap",
               "detach clones even when unique; swap touches no refcount");
     rb.run("detach clones even when UNIQUE",          &tests_detach_clones_even_when_unique);
@@ -130,7 +130,7 @@ int main()
     rb.run("swap touches no refcounts",               &tests_swap_touches_no_refcounts);
     rb.run("both swaps are noexcept",                 &tests_swap_is_noexcept);
 
-    // -- III. DImmutableSnapshot -------------------------------------------
+    // - III. DImmutableSnapshot -------------------------------------------
     rb.module("III. immutable_snapshot",
               "a value ctor COPIES, a cow_ptr ctor SHARES -- and they look alike");
     rb.run("from a value: it COPIES",                 &tests_snapshot_from_a_value_copies_it);
@@ -146,7 +146,7 @@ int main()
     rb.run("from an empty cow_ptr: falsy",            &tests_snapshot_from_an_empty_cow_ptr_is_falsy);
     rb.run("use_count reports the block's",           &tests_snapshot_use_count);
 
-    // -- IV. DCowState - basics --------------------------------------------
+    // - IV. DCowState - basics --------------------------------------------
     rb.module("IV. cow_state -- basics",
               "the shape: aliases, non-copy/non-move, the strategy tag");
     rb.run("it default-constructs its value",         &tests_state_default_constructs_its_value);
@@ -162,7 +162,7 @@ int main()
     rb.run("it exposes its (mutable) mutex",          &tests_state_exposes_its_mutex);
     rb.run("cow_state<T> defaults its policy",        &tests_state_defaults_to_the_default_policy);
 
-    // -- IV. DCowState - the protocol --------------------------------------
+    // - IV. DCowState - the protocol --------------------------------------
     rb.module("IV. cow_state -- the protocol",
               "snapshot then write clones; the reference hazard at the centre");
     rb.run("write mutates and bumps the version",     &tests_state_write_mutates_and_bumps_the_version);
@@ -179,7 +179,7 @@ int main()
     rb.run("replace leaves old snapshots valid",      &tests_state_replace_leaves_old_snapshots_valid);
     rb.run("read/write return UNGUARDED references",  &tests_state_read_and_write_return_unguarded_references);
 
-    // -- IV. DCowState - the lock policies ---------------------------------
+    // - IV. DCowState - the lock policies ---------------------------------
     rb.module("IV. cow_state -- the lock policies",
               "the same source, locked or not, exclusive or shared");
     rb.run("under the null policy (no mutex)",        &tests_state_under_the_null_policy);
@@ -191,7 +191,7 @@ int main()
     rb.run("the null policy costs no mutex",          &tests_state_null_policy_costs_no_mutex);
     rb.run("every policy yields a usable state",      &tests_every_policy_yields_a_usable_state);
 
-    // -- exception safety --------------------------------------------------
+    // - exception safety --------------------------------------------------
     rb.module("Exception safety",
               "what survives a throwing clone -- four sites strong, one not");
     rb.run("make propagates a throwing ctor",         &tests_make_propagates_a_throwing_constructor);
@@ -204,7 +204,7 @@ int main()
     rb.run("modify releases the lock on throw",       &tests_state_modify_releases_the_lock_when_the_callable_throws);
     rb.run("a snapshot survives a failed write",      &tests_a_snapshot_survives_a_failed_write);
 
-    // -- concurrency -------------------------------------------------------
+    // - concurrency -------------------------------------------------------
     rb.module("Concurrency",
               "atomic refcount, serialized writers -- deterministic, never a race");
     rb.run("concurrent copies keep the count exact",  &tests_concurrent_copies_keep_the_refcount_exact);

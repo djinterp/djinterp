@@ -17,7 +17,7 @@
 * checks that no connection is made and no statement prepared.
 *
 *   Build: compile the layer's C sources as C, this file as C++, and link them
-* with libpq -- scripts/ci/check_db_postgres.sh does, at every level.
+* with libpq - scripts/ci/check_db_postgres.sh does, at every level.
 *
 *
 * path:      /tests/unintegrated/cpp/db/postgres/t_postgres_cpp.cpp
@@ -362,7 +362,7 @@ void d_tests_postgres_cpp_stubs(void)
 /*
 main
   The server-free checks, then a session where a server is reached; or,
-over a layer built without libpq -- whose version is then 0 -- the stubs'
+over a layer built without libpq - whose version is then 0 - the stubs'
 checks.
 */
 int main(void)

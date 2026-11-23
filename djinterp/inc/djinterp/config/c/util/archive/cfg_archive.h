@@ -31,7 +31,7 @@
 // djinterp
 // (0) root first.
 #include "../../../cfg_common.h"
-// (0b) the dependency's config, resolved BEFORE this one -- see the banner.
+// (0b) the dependency's config, resolved BEFORE this one - see the banner.
 #include "../compress/cfg_compress.h"
 // (0c) the detection this cascade defaults from.
 #include "../../../../env/util/archive/env_archive.h"
@@ -72,14 +72,14 @@ TABLE OF CONTENTS
 
 // D_CFG_ARCHIVE_FORMAT_ZIP
 //   brief: the ZIP container. Note that turning this OFF removes the format
-// even though the built-in writer needs no library -- which is the point: this
+// even though the built-in writer needs no library - which is the point: this
 // is a surface choice, not a dependency one.
 #ifndef D_CFG_ARCHIVE_FORMAT_ZIP
 #   define D_CFG_ARCHIVE_FORMAT_ZIP D_CFG_ARCHIVE_ALL
 #endif
 
 // D_CFG_ARCHIVE_FORMAT_TAR
-//   brief: ustar, and with it tar.gz -- a tarball is a tar inside a gzip
+//   brief: ustar, and with it tar.gz - a tarball is a tar inside a gzip
 // stream, so excluding tar excludes both.
 #ifndef D_CFG_ARCHIVE_FORMAT_TAR
 #   define D_CFG_ARCHIVE_FORMAT_TAR D_CFG_ARCHIVE_ALL
@@ -99,7 +99,7 @@ TABLE OF CONTENTS
 #endif
 
 // D_CFG_ARCHIVE_FORMAT_RAR
-//   brief: the RAR container, read-only in every configuration -- no library
+//   brief: the RAR container, read-only in every configuration - no library
 // can create RAR, and the proprietary tool backend is not auto-linked.
 #ifndef D_CFG_ARCHIVE_FORMAT_RAR
 #   define D_CFG_ARCHIVE_FORMAT_RAR D_CFG_ARCHIVE_ALL
@@ -115,7 +115,7 @@ TABLE OF CONTENTS
 // every build because they ARE the same code; a detected library produces
 // whatever that library's version produces, so two machines with different
 // libarchive releases diverge. OFF is for a build that wants a library's
-// broader format coverage -- ZIP64, modern methods, encryption -- and accepts
+// broader format coverage - ZIP64, modern methods, encryption - and accepts
 // that its output is versioned.
 //   This knob does not affect READING. A container is read by whatever can
 // read it.
@@ -132,7 +132,7 @@ TABLE OF CONTENTS
 //   ON is what makes two runs over identical entries produce identical bytes,
 // which is the precondition for comparing a C-built archive against a C++-built
 // one at all. It is a behaviour change from the facade's historical
-// documentation, which read "0 selects now" -- and it is the deliberate one,
+// documentation, which read "0 selects now" - and it is the deliberate one,
 // because "now" cannot be compared to anything.
 //   OFF restores clock-reading for a build that wants archives to carry real
 // creation times and does not run a parity suite. A caller wanting a real
@@ -144,7 +144,7 @@ TABLE OF CONTENTS
 
 // D_CFG_ARCHIVE_EPOCH
 //   brief: the timestamp recorded for an entry with no mtime, as a Unix epoch
-// in seconds. Default 315532800 -- 1980-01-01T00:00:00Z, which is the ZIP
+// in seconds. Default 315532800 - 1980-01-01T00:00:00Z, which is the ZIP
 // format's own epoch and therefore the earliest instant both tar and ZIP
 // represent without a special case.
 //   Lowering it below the ZIP epoch makes ZIP output clamp and tar output not,
@@ -319,7 +319,7 @@ TABLE OF CONTENTS
       D_CFG_IS_ON(D_CFG_ARCHIVE_FORMAT_GZ) )
 #define D_INTERNAL_ARCHIVE_CAN_READ_GZ  D_INTERNAL_ARCHIVE_CAN_WRITE_GZ
 
-//   tar.gz needs BOTH halves, and the staging knob on top -- three conditions,
+//   tar.gz needs BOTH halves, and the staging knob on top - three conditions,
 // resolved here so the module tests one symbol.
 #define D_INTERNAL_ARCHIVE_CAN_WRITE_TGZ                                       \
     ( D_INTERNAL_ARCHIVE_CAN_WRITE_TAR &&                                      \

@@ -2,8 +2,8 @@
 * djinterp [c][filesys]                                               file_dir.c
 *
 * Implementation of the directory operations declared in file_dir.h.
-*   struct dj_dir_t wraps the platform's handle -- a DIR* on POSIX, a
-* FindFirstFile search on Windows -- and owns the entry d_dir_read64 hands
+*   struct dj_dir_t wraps the platform's handle - a DIR* on POSIX, a
+* FindFirstFile search on Windows - and owns the entry d_dir_read64 hands
 * out, so the entry's lifetime is the handle's on every target. A build with
 * neither has no directory API to wrap, and every call that needs one reports
 * ENOSYS. Each platform's calls sit in helpers of their own. Entry types
@@ -127,7 +127,7 @@ D_INTERNAL_FILE_ASSERT_LARGE_FILES;
 // entries the readers hand back, which makes that pointer's lifetime a
 // property of the HANDLE rather than of the platform: POSIX readdir returns a
 // pointer into the DIR's own storage and says almost nothing about how long
-// it lasts, while a copy here gives one answer on every target -- valid until
+// it lasts, while a copy here gives one answer on every target - valid until
 // the next read on this handle, dead at d_dir_close. There is one entry per
 // width, since d_dir_read32 narrows what d_dir_read64 has just filled.
 struct dj_dir_t
@@ -260,7 +260,7 @@ size_t d_internal_dir_root_len(
 /*
 d_internal_dir_needs_sep
   Whether a separator goes between a directory and an entry's name: not after
-an empty directory or one that ends in a separator already, and -- on Windows
+an empty directory or one that ends in a separator already, and - on Windows
 -- not after a bare drive, since "C:" names drive C's current directory and
 "C:x" is x inside it.
 */
@@ -286,7 +286,7 @@ int d_internal_dir_needs_sep(
 /*
 d_internal_dir_join
   d_dir_entry_path's work, without its validation: the directory, a separator
-where one is needed, then the name -- or ERANGE when they do not fit.
+where one is needed, then the name - or ERANGE when they do not fit.
 */
 static
 char* d_internal_dir_join(
@@ -472,7 +472,7 @@ int d_internal_dir_is_dots(
 /*
 d_internal_dir_mkdir
   The CRT's _mkdir, which takes no mode: Windows has no permission bits for
-directories. It raises no notice -- d_dir_create reports its own failures,
+directories. It raises no notice - d_dir_create reports its own failures,
 and d_dir_create_parents expects EEXIST and reports only the failures that
 are failures.
 */
@@ -601,7 +601,7 @@ int d_internal_dir_rmdir(
 /*
 d_internal_dir_ensure
   One step of d_dir_create_parents: makes the directory _path names, or
-accepts one already there -- the normal case, since another process building
+accepts one already there - the normal case, since another process building
 the same tree is expected. What exists must be a directory, and for the leaf
 it must not have existed at all when D_CFG_FILE_DIR_MKDIR_P_EXISTING_OK is 0.
 Failures are reported against _whole, the path the caller asked for.
@@ -664,7 +664,7 @@ int d_internal_dir_ensure(
 /*
 d_internal_dir_ensure_root
   d_dir_create_parents for a path that is nothing but a root, which is never
-made: it is there or it is not -- a drive that is not mounted, a share that
+made: it is there or it is not - a drive that is not mounted, a share that
 is not reachable. Being there satisfies the request unless
 D_CFG_FILE_DIR_MKDIR_P_EXISTING_OK is 0.
 */
@@ -719,7 +719,7 @@ int d_internal_dir_ensure_root(
 /*
 d_internal_dir_skip_long
   Passes over an entry whose name is longer than D_FILE_NAME_MAX: it cannot be
-reported, and a truncated name would name another file -- so the caller is
+reported, and a truncated name would name another file - so the caller is
 told, and the next entry is read.
 */
 static
@@ -742,7 +742,7 @@ int d_internal_dir_skip_long(void)
 d_internal_dir_search
   Starts the handle's search, or starts it again. FindFirstFile both opens AND
 reads the first entry, so that entry is marked pending for the next read to
-hand out -- skipping it is the classic bug in every hand-rolled Win32 dirent
+hand out - skipping it is the classic bug in every hand-rolled Win32 dirent
 shim. A search that matches nothing is no failure when the directory is
 there: a drive's root or a share lists no "." or "..", so an empty one matches
 nothing at all, and the handle then reads as empty. A failed search asks what
@@ -806,7 +806,7 @@ int d_internal_dir_search(
     }
 
     // something is there and is no directory, whichever reason the search
-    // gave -- that varies with the Windows version
+    // gave - that varies with the Windows version
     const int code = ( (exists) &&
                        (!is_dir) ) ? ENOTDIR
                                    : d_internal_file_errno_win32(error);
@@ -862,7 +862,7 @@ int d_internal_dir_restart(
 /*
 d_internal_dir_win32_type
   An entry's type from its find data, when the build fills types: only a
-symbolic link or a junction is a link -- every other reparse point is the file
+symbolic link or a junction is a link - every other reparse point is the file
 or directory it appears to be, except one without a tag to tell, which is taken
 for a link, as d_internal_file_is_link_win32 takes it.
 */
@@ -899,7 +899,7 @@ uint8_t d_internal_dir_win32_type(
  * @param[in]  _dstsize  capacity of `_dst`, in bytes.
  * @param[in]  _src      the name the search handed back.
  * @return D_INTERNAL_DIR_TAKEN, or D_INTERNAL_DIR_SKIPPED for a name that
- *         cannot be reported -- longer than D_FILE_NAME_MAX in UTF-8 -- after a
+ *         cannot be reported - longer than D_FILE_NAME_MAX in UTF-8 - after a
  *         notice saying so. A lone surrogate is no longer such a name: it
  *         comes back in WTF-8 (d_internal_file_from_native).
  *
@@ -976,7 +976,7 @@ int d_internal_dir_take_name(
 /*
 d_internal_dir_next
   The next entry of the search. The one FindFirstFile produced is handed out
-before FindNextFile is asked for another -- skipping it is the classic bug in
+before FindNextFile is asked for another - skipping it is the classic bug in
 every hand-rolled Win32 dirent shim. FindNextFile failing other than at the
 end sets EIO, since a caller who cleared errno would read an untouched one as
 the end.
@@ -1226,8 +1226,8 @@ uint8_t d_internal_dir_kernel_type(
 
 /*
 d_internal_dir_posix_type
-  The kernel's answer, and where it is DT_UNKNOWN -- XFS without ftype, most
-network filesystems -- one lstat (d_internal_dir_type_by_stat), though never
+  The kernel's answer, and where it is DT_UNKNOWN - XFS without ftype, most
+network filesystems - one lstat (d_internal_dir_type_by_stat), though never
 for "." and "..", which are directories by definition. See
 D_CFG_FILE_DIR_FILL_TYPE for what that costs.
 */
@@ -1463,7 +1463,7 @@ int d_internal_dir_chdir(
 d_internal_dir_resolve
   realpath, into _found's D_FILE_PATH_MAX bytes. Handed a buffer, realpath
 writes up to PATH_MAX bytes into it, and overruns one when D_CFG_FILE_PATH_MAX
-is set lower -- so it is asked to allocate instead, as POSIX.1-2008 lets it,
+is set lower - so it is asked to allocate instead, as POSIX.1-2008 lets it,
 and its answer is copied over only when it fits: a longer one fails with
 ENAMETOOLONG. The C library's allocation goes back to the C library's free.
 */
@@ -1689,8 +1689,8 @@ int d_internal_dir_resolve(
 
 /*
 d_internal_dir_hand_back
-  The resolved path in the caller's buffer -- ERANGE when it does not fit,
-never a truncated path -- or, with no buffer where the build allows that, in
+  The resolved path in the caller's buffer - ERANGE when it does not fit,
+never a truncated path - or, with no buffer where the build allows that, in
 one allocated to fit it exactly. The allocation goes through the filesys
 allocator, so D_CFG_FILE_MALLOC still owns every byte this subframework
 hands out.
@@ -1783,7 +1783,7 @@ The path is copied into a working buffer and each component boundary is
 briefly overwritten with a terminator, so every prefix can be made in turn
 (d_internal_dir_ensure). The root, as the kernel reads it, is never made: "/"
 and "C:\\" exist by definition, and mkdir on them fails in platform-specific
-ways -- a path that is nothing but a root is only checked. Trailing
+ways - a path that is nothing but a root is only checked. Trailing
 separators are dropped first, so the last real component is the leaf and gets
 the caller's mode, and an empty component ("a//b") is passed over.
 */
@@ -1954,7 +1954,7 @@ d_dir_open
   The handle is allocated through the filesys allocator and keeps a copy of the
 path, for the stat fallback and the Win32 search, and d_internal_dir_start
 opens the platform's view of the directory. An empty path is refused before
-either platform sees it -- POSIX would refuse it too, but Win32 would search
+either platform sees it - POSIX would refuse it too, but Win32 would search
 the current directory. Any failure releases the handle before reporting,
 keeping the platform's errno.
 */
@@ -2039,7 +2039,7 @@ int d_internal_dir_skipped(
 /*
 d_dir_read64
   Each pass takes one platform entry (d_internal_dir_next), which copies its
-name into the handle's own entry -- so the result's lifetime is the handle's
+name into the handle's own entry - so the result's lifetime is the handle's
 -- and fills the type: from the find data on Windows, from the kernel where it
 reports d_type, and by one lstat per entry where it answers DT_UNKNOWN. A name
 longer than D_FILE_NAME_MAX is skipped with a warning rather than truncated,
@@ -2083,7 +2083,7 @@ struct dj_dirent64_t* d_dir_read64(
 d_dir_read32
   Reads through d_dir_read64 and narrows into the handle's second entry. The
 only field that can fail to fit is the inode number; such an entry fails on
-its own -- NULL with EOVERFLOW, as a 32-bit readdir fails it -- and, since
+its own - NULL with EOVERFLOW, as a 32-bit readdir fails it - and, since
 d_dir_read64 has already moved past it, the next call reads on.
 */
 struct dj_dirent32_t* d_dir_read32(
@@ -2129,8 +2129,8 @@ struct dj_dirent32_t* d_dir_read32(
 d_dir_read_name
   Reads through d_dir_read64 and hands back the name and type alone. With no
 inode number in the answer there is nothing to narrow, so this is the reader
-a 32-bit build -- or one below the 64-bit floor, which cannot name
-dj_dirent64_t -- walks with when the inode number does not matter.
+a 32-bit build - or one below the 64-bit floor, which cannot name
+dj_dirent64_t - walks with when the inode number does not matter.
 */
 const char* d_dir_read_name(
     struct dj_dir_t* _dir,
@@ -2166,7 +2166,7 @@ const char* d_dir_read_name(
 d_dir_entry_path
   The kernel's join, not file_path's. d_path_join reads both operands in the
 configured grammar, so a POSIX build reading Windows syntax would find a root
-in an entry's name -- POSIX names may hold ':' and '\\' -- and drop the
+in an entry's name - POSIX names may hold ':' and '\\' - and drop the
 directory: "C:x" would replace it outright. Here the name is never parsed; it
 is one entry of the directory, appended after D_FILE_PATH_SEP where one is
 needed (d_internal_dir_needs_sep). The directory may share _buf, as when a
@@ -2214,7 +2214,7 @@ char* d_dir_entry_path(
 /*
 d_dir_rewind
   Reports failure, unlike POSIX rewinddir, which returns void. That is fine on
-POSIX, where the call cannot fail -- but Win32 has no rewind at all, so the
+POSIX, where the call cannot fail - but Win32 has no rewind at all, so the
 search is closed and restarted, and THAT can fail. A void return would hide
 it and leave the caller iterating a dead handle.
 */
@@ -2296,7 +2296,7 @@ int d_dir_close(
 /*
 d_dir_get_current
   Requires a buffer. POSIX getcwd(NULL, 0) allocates instead, which is
-convenient and is also a second ownership contract for one function -- so this
+convenient and is also a second ownership contract for one function - so this
 one does not offer it.
 */
 char* d_dir_get_current(
@@ -2668,7 +2668,7 @@ struct dj_dir_t* d_internal_dir_open_held(
 
     // a link is refused at the open itself: nothing is followed. Linux says
     // ENOTDIR for one when O_DIRECTORY is asked too, and FreeBSD EMLINK, so a
-    // refusal is looked at once more -- only to name it, ELOOP for a link
+    // refusal is looked at once more - only to name it, ELOOP for a link
     if (fd < 0)
     {
         struct stat st;
@@ -2701,7 +2701,7 @@ struct dj_dir_t* d_internal_dir_open_held(
 
 /**
  * @brief Opens a directory without following a link at its last component,
- *        and holds it -- open without FILE_SHARE_DELETE -- so that nobody can
+ *        and holds it - open without FILE_SHARE_DELETE - so that nobody can
  *        rename it, or replace it with a link, while the handle lives: the
  *        path of every entry beneath then names what was read.
  *
@@ -3085,7 +3085,7 @@ d_dir_remove_all
 directories open from the root down, each opened with d_dir_open_at, which
 refuses to follow a link. An entry is removed relative to the directory it was
 read from (d_dir_remove_at), never by a path built afresh, so no link swapped
-in between can send the removal elsewhere -- the race std::filesystem's own
+in between can send the removal elsewhere - the race std::filesystem's own
 remove_all had (CVE-2022-21658). A directory is removed once read to its end,
 after its handle is closed. One handle is open per level of depth.
 */

@@ -47,7 +47,7 @@ III.  Passthrough                 (C++20 concept analog)
 //   C++14 rather than the framework floor of C++11, because is_passthrough_v
 // below is a variable TEMPLATE and variable templates are C++14. The trait
 // itself, is_passthrough<T>, is C++11 and would be usable at the framework
-// floor -- but this header ships both, so the header's floor is the higher of
+// floor - but this header ships both, so the header's floor is the higher of
 // the two. This module does not include option.hpp and so does not inherit
 // that subframework's C++17 floor.
 #include "../../env/env.h"  // D_ENV_LANG_IS_CPP14_OR_HIGHER

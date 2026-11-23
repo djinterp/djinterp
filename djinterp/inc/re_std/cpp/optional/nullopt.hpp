@@ -23,7 +23,7 @@
 * `nullopt` instance uses the C++17 inline-variable feature when
 * available; on C++11/14, `constexpr` at namespace scope provides
 * internal linkage automatically, giving each translation unit its own
-* copy of nullopt -- functionally indistinguishable since nullopt_t is
+* copy of nullopt - functionally indistinguishable since nullopt_t is
 * stateless.
 *
 *

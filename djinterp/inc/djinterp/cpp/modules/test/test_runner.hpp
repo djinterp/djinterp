@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][test]                                           test_runner.hpp
 *
-*   The top-level run facade for DTest -- the single object that composes the
+*   The top-level run facade for DTest - the single object that composes the
 * pieces so running a suite is one call.  A DTestRunner owns a test_handler
 * (the tree walker + event dispatcher), a test_option_set (the resolved
 * configuration), and an option-driven reporter bundle bound to the event
@@ -54,7 +54,7 @@
 *
 * PORTABILITY
 * -----------
-*   The runner is C++11 throughout -- it drives the runtime test_option_set and
+*   The runner is C++11 throughout - it drives the runtime test_option_set and
 * the free resolve() the option subframework defines.
 *
 * HOW TO USE

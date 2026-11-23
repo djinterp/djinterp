@@ -273,8 +273,8 @@ void d_tests_arg_smoke_bind(
  *                        subcommand, and its own callbacks.
  * @param[in]     _hooks  the tags each callback is given as its context.
  *
- * Registers a callback of each kind -- an option's, a flag's, a
- * subcommand's, and the root's parse-complete and final callbacks -- each with
+ * Registers a callback of each kind - an option's, a flag's, a
+ * subcommand's, and the root's parse-complete and final callbacks - each with
  * its own context.
  */
 static
@@ -791,7 +791,7 @@ d_tests_arg_smoke_conversion
   - ConversionError, exit code 104: "Could not convert: --count = x7"
   - the failure message, with the help flag's hint
   - the variable keeps the value it had, where CLI11's holds whatever its
-    conversion wrote before failing -- 0, for `x7` into an `int`
+    conversion wrote before failing - 0, for `x7` into an `int`
 */
 bool d_tests_arg_smoke_conversion(void)
 {

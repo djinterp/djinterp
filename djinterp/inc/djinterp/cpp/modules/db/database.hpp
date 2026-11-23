@@ -3,12 +3,12 @@
 *
 * The vocabulary every djinterp C++17 database connection shares, and the
 * interfaces each one presents.
-*   A value is a std::variant -- NULL, a boolean, a 32- or 64-bit integer, a
-* double, text, bytes or a point in time -- and a row maps column names to
+*   A value is a std::variant - NULL, a boolean, a 32- or 64-bit integer, a
+* double, text, bytes or a point in time - and a row maps column names to
 * values. A failure throws: exception, or one of the four kinds derived from
 * it, each carrying error_code(), the result of the layer call that failed,
 * so that nothing the database said is lost on the way.
-*   The interfaces are CRTP bases -- connection, statement, result_set -- each
+*   The interfaces are CRTP bases - connection, statement, result_set - each
 * forwarding to the class that derives from it, so code written against
 * connection<Derived> runs on any vendor's connection with no virtual call.
 * database_connection.hpp implements connection's operations once for every
@@ -273,9 +273,9 @@ using result_rows = std::vector<row>;
 // 2.  EXCEPTIONS
 //==============================================================================
 // core/db throws what fails, as the faces return it: each exception carries
-// the result of the layer call that failed -- an SQLite result code, a MySQL
+// the result of the layer call that failed - an SQLite result code, a MySQL
 // client's error number, a PostgreSQL SQLSTATE packed as the layer packs it,
-// or a negative D_DB_* (db_common.h) -- beside a message that says what
+// or a negative D_DB_* (db_common.h) - beside a message that says what
 // failed and why, in the database's words where it gave some. A refusal of
 // core/db's own carries the D_DB_* code that names it, D_DB_INVALID_ARGUMENT
 // for an argument that cannot be right, or 0 where none does.
@@ -308,7 +308,7 @@ public:
         int         _error_code = 0
     );
 
-    // error_code -- the result of the call that failed, or 0 for none
+    // error_code - the result of the call that failed, or 0 for none
     int error_code() const noexcept;
 
 private:
@@ -550,7 +550,7 @@ struct vendor_traits
     static constexpr bool             is_embedded   = false;
     static constexpr bool             supports_ssl  = false;
 
-    // get_info -- the traits as a vendor_info
+    // get_info - the traits as a vendor_info
     static
     vendor_info get_info()
     {
@@ -567,7 +567,7 @@ struct vendor_traits
         return info;
     }
 
-    // make_default_config -- a configuration with the vendor's defaults
+    // make_default_config - a configuration with the vendor's defaults
     static
     connection_config make_default_config()
     {
@@ -656,7 +656,7 @@ NS_INTERNAL
         decltype(std::declval<const Type&>().in_transaction_impl());
 
     // prepare_hook_t, begin_transaction_hook_t, commit_hook_t,
-    // rollback_hook_t -- prepared statements and transactions, each the gate
+    // rollback_hook_t - prepared statements and transactions, each the gate
     // of database_connection's operation of its name: a vendor without
     // prepared statements (MongoDB) has no prepare, nor stream_query over
     // it, and one without transactions none of their operations (B6,
@@ -678,7 +678,7 @@ NS_INTERNAL
     using rollback_hook_t =
         decltype(std::declval<Type&>().rollback_impl());
 
-    // has_transaction_state, in_transaction_gate_t -- whether a connection
+    // has_transaction_state, in_transaction_gate_t - whether a connection
     // can say it is in a transaction: by the vendor's own answer, or from
     // the transactions begun through it; and in_transaction's gate, void
     // where it can and no type otherwise
@@ -692,20 +692,20 @@ NS_INTERNAL
     using in_transaction_gate_t =
         std::enable_if_t<has_transaction_state<Type>::value>;
 
-    // face_hook_t -- the face of a vendor with a layer, through which
+    // face_hook_t - the face of a vendor with a layer, through which
     // run_layer and ask_layer reach the layer's calls
     template<typename Type>
     using face_hook_t =
         decltype(std::declval<const Type&>().get_face());
 
-    // pool_execute_t -- a pooled connection that runs a statement, which
+    // pool_execute_t - a pooled connection that runs a statement, which
     // connection_pool then checks with the configuration's validation_query
     template<typename Type>
     using pool_execute_t =
         decltype(std::declval<Type&>().execute(
             std::declval<const std::string&>()));
 
-    // result_absolute_t, ... -- the members a result set or a statement
+    // result_absolute_t, ... - the members a result set or a statement
     // offers beyond what every one has, as the call
     template<typename Type>
     using result_absolute_t =
@@ -723,7 +723,7 @@ NS_INTERNAL
         decltype(std::declval<Type&>().bind_null(
             std::declval<const std::string&>()));
 
-    // result_absolute_base_t, ... -- the same calls made through the
+    // result_absolute_base_t, ... - the same calls made through the
     // interface's own gated member template, its gate given rather than
     // asked: well formed exactly where Type declares no member of the name,
     // so that the name still reaches the interface's template
@@ -759,7 +759,7 @@ NS_INTERNAL
                                  is_detected<Call, Type>>
     {};
 
-    // result_absolute_gate_t, ... -- the gates: void where Type's own member
+    // result_absolute_gate_t, ... - the gates: void where Type's own member
     // answers the call, and no type otherwise
     template<typename Type>
     using result_absolute_gate_t =
@@ -1132,7 +1132,7 @@ template<typename Derived>
 class result_set
 {
 public:
-    // navigation -- move the cursor, answering whether it is on a row
+    // navigation - move the cursor, answering whether it is on a row
     template<typename Probe = internal::DInterfaceProbe>
     bool
     next()
@@ -1202,7 +1202,7 @@ public:
         return impl().absolute(_row);
     }
 
-    // metadata -- the columns, and where the cursor is
+    // metadata - the columns, and where the cursor is
     template<typename Probe = internal::DInterfaceProbe>
     std::size_t
     column_count() const
@@ -1287,7 +1287,7 @@ public:
         return impl().current_row();
     }
 
-    // values by column index -- the current row's
+    // values by column index - the current row's
     template<typename Probe = internal::DInterfaceProbe>
     value
     get_value(
@@ -1408,7 +1408,7 @@ public:
         return impl().get_binary(_index);
     }
 
-    // values by column name -- the current row's
+    // values by column name - the current row's
     template<typename Probe = internal::DInterfaceProbe>
     value
     get_value(
@@ -1529,7 +1529,7 @@ public:
         return impl().get_binary(_name);
     }
 
-    // rows -- the current one by name, the rest, and releasing them all
+    // rows - the current one by name, the rest, and releasing them all
     template<typename Probe = internal::DInterfaceProbe>
     row
     get_current_row() const
@@ -1571,7 +1571,7 @@ public:
         return;
     }
 
-    // ~result_set -- public, and not virtual: see section 4's description
+    // ~result_set - public, and not virtual: see section 4's description
     ~result_set() = default;
 
 protected:
@@ -1615,7 +1615,7 @@ template<typename Derived>
 class statement
 {
 public:
-    // binding by index -- the parameter, from 1, and its value
+    // binding by index - the parameter, from 1, and its value
     template<typename Probe = internal::DInterfaceProbe>
     void
     bind_null(
@@ -1761,7 +1761,7 @@ public:
         return;
     }
 
-    // binding by name -- where the database names parameters
+    // binding by name - where the database names parameters
     template<typename Probe = internal::DInterfaceProbe,
              typename Type  = Derived,
              typename       = internal::statement_named_gate_t<Type>>
@@ -1901,7 +1901,7 @@ public:
         return;
     }
 
-    // execution -- run the statement with the values bound
+    // execution - run the statement with the values bound
     template<typename Probe = internal::DInterfaceProbe>
     auto
     execute_query()
@@ -1941,7 +1941,7 @@ public:
         return impl().execute();
     }
 
-    // metadata and lifetime -- the parameters, and releasing the statement
+    // metadata and lifetime - the parameters, and releasing the statement
     template<typename Probe = internal::DInterfaceProbe>
     std::size_t
     parameter_count() const
@@ -2157,7 +2157,7 @@ public:
         return;
     }
 
-    // savepoints -- inside the active transaction, by name; each throws
+    // savepoints - inside the active transaction, by name; each throws
     // transaction_exception when the guard is not active, or when the
     // connection's own call fails
     template<typename Type = Connection,
@@ -2203,7 +2203,7 @@ public:
         return;
     }
 
-    // state -- whether the guard still has a transaction to end, and the
+    // state - whether the guard still has a transaction to end, and the
     // level it asked for
     bool is_active() const noexcept
     {
@@ -2227,7 +2227,7 @@ private:
         return;
     }
 
-    // m_end -- commits or rolls back; the guard stays active only while the
+    // m_end - commits or rolls back; the guard stays active only while the
     // connection is still in the transaction it began
     void m_end(
         bool _commit
@@ -2298,7 +2298,7 @@ template<typename Derived>
 class connection
 {
 public:
-    // management -- open, close and test the connection
+    // management - open, close and test the connection
     template<typename Probe = internal::DInterfaceProbe>
     void
     connect()
@@ -2370,7 +2370,7 @@ public:
         return impl().ping();
     }
 
-    // execution -- run SQL, or the vendor's own language, or prepare it;
+    // execution - run SQL, or the vendor's own language, or prepare it;
     // prepare forwards to Derived's, which database_connection gates (B6)
     template<typename Probe = internal::DInterfaceProbe>
     auto
@@ -2432,7 +2432,7 @@ public:
         return impl().prepare(_query);
     }
 
-    // transactions -- begin_transaction with a level, the level itself and
+    // transactions - begin_transaction with a level, the level itself and
     // the savepoints are gated; the others forward to Derived's, which
     // database_connection gates by their hooks (B6)
     template<typename Probe = internal::DInterfaceProbe>
@@ -2603,7 +2603,7 @@ public:
         return;
     }
 
-    // metadata -- the vendor, the database, the server, and what the latest
+    // metadata - the vendor, the database, the server, and what the latest
     // statements did
     template<typename Probe = internal::DInterfaceProbe>
     database_type
@@ -2683,7 +2683,7 @@ public:
         return impl().get_affected_rows();
     }
 
-    // configuration -- set_auto_commit is gated
+    // configuration - set_auto_commit is gated
     const connection_config& get_config() const noexcept
     {
         return m_config;
@@ -2721,7 +2721,7 @@ public:
         return impl().get_auto_commit();
     }
 
-    // errors -- the latest failure an operation threw
+    // errors - the latest failure an operation threw
     template<typename Probe = internal::DInterfaceProbe>
     std::string
     get_last_error() const
@@ -2771,7 +2771,7 @@ protected:
         connection&&
     ) noexcept = default;
 
-    // m_config, ... -- the configuration and the state database_connection
+    // m_config, ... - the configuration and the state database_connection
     // keeps; m_in_transaction and m_auto_commit answer for a vendor whose
     // connection cannot say for itself
     connection_config m_config;
@@ -2855,7 +2855,7 @@ public:
         return *this;
     }
 
-    // access -- the connection borrowed, or NULL once it went back
+    // access - the connection borrowed, or NULL once it went back
     Connection* get() noexcept
     {
         return m_connection.get();
@@ -3093,7 +3093,7 @@ public:
         return;
     }
 
-    // management -- drop every idle connection, or resize the pool
+    // management - drop every idle connection, or resize the pool
     void clear() noexcept
     {
         m_idle_connections.clear();
@@ -3125,7 +3125,7 @@ public:
         return;
     }
 
-    // counts -- connections lent out, idle, both, and requests waiting,
+    // counts - connections lent out, idle, both, and requests waiting,
     // which a pool that never waits keeps at 0
     std::size_t active_connections() const noexcept
     {
@@ -3163,7 +3163,7 @@ public:
     }
 
 protected:
-    // create_connection -- one from the factory, connected; throws as
+    // create_connection - one from the factory, connected; throws as
     // acquire does
     std::unique_ptr<Connection> create_connection()
     {
@@ -3180,7 +3180,7 @@ protected:
         return conn;
     }
 
-    // validate_connection -- whether a connection runs the configuration's
+    // validate_connection - whether a connection runs the configuration's
     // validation_query, where it has one and the connection runs queries,
     // or else answers a ping
     bool validate_connection(
@@ -3216,7 +3216,7 @@ protected:
         }
     }
 
-    // cleanup_idle_connections -- retires the idle connections that lived
+    // cleanup_idle_connections - retires the idle connections that lived
     // past max_lifetime, and, while the pool holds more than its minimum,
     // those that waited past idle_timeout, the longest waiting first;
     // acquire calls it first
@@ -3256,7 +3256,7 @@ protected:
     }
 
 private:
-    // m_make_slot -- a new connection, connected, as an idle slot made now
+    // m_make_slot - a new connection, connected, as an idle slot made now
     DIdleSlot m_make_slot()
     {
         const clock::time_point now = clock::now();
@@ -3264,7 +3264,7 @@ private:
         return DIdleSlot{create_connection(), now, now};
     }
 
-    // m_lived_too_long -- whether a connection made at _created is past
+    // m_lived_too_long - whether a connection made at _created is past
     // max_lifetime; a max_lifetime of 0 is none
     bool m_lived_too_long(
         clock::time_point _created,
@@ -3276,7 +3276,7 @@ private:
                  (_now - _created >= m_config.max_lifetime) );
     }
 
-    // m_waited_too_long -- whether a connection idle since _idle_since is
+    // m_waited_too_long - whether a connection idle since _idle_since is
     // past idle_timeout; an idle_timeout of 0 is none
     bool m_waited_too_long(
         clock::time_point _idle_since,
@@ -3364,8 +3364,8 @@ struct has_last_error : is_detected<connection_last_error_t, Type>
 
 // 5.1.3
 // is_connection
-//   trait: the generic connection interface -- connect, disconnect,
-// is_connected and execute -- that every vendor connection offers.
+//   trait: the generic connection interface - connect, disconnect,
+// is_connected and execute - that every vendor connection offers.
 template<typename Type>
 struct is_connection : conjunction<has_connect<Type>,
                                    has_disconnect<Type>,
@@ -3490,7 +3490,7 @@ std::string escape_string(
 );
 
 /**
- * @brief Quotes a name -- a table's, a column's -- as one identifier in a
+ * @brief Quotes a name - a table's, a column's - as one identifier in a
  *        vendor's dialect.
  *
  * @note MySQL, MariaDB, ArangoDB and Neo4j quote with backticks, Microsoft
@@ -3541,7 +3541,7 @@ std::string value_to_string(
  *       `YYYY-MM-DD`, then optionally ` HH:MM:SS` or `THH:MM:SS`, a
  *       fraction, and `Z` or an offset (`+00`, `+05:30`, `-0800`), UTC when
  *       there is none, a date alone being its midnight; every other type --
- *       decimal, string, time, json, xml, uuid, array, custom -- the text as
+ *       decimal, string, time, json, xml, uuid, array, custom - the text as
  *       it is, so that an exact decimal stays exact.
  *
  * @param[in] _str   the text.
@@ -3557,7 +3557,7 @@ value string_to_value(
 
 // 6.4    Names
 //------------------------------------------------------------------------------
-// names -- a vendor's display name ("PostgreSQL", "Microsoft SQL Server",
+// names - a vendor's display name ("PostgreSQL", "Microsoft SQL Server",
 // "unknown" for unknown), and a field type's enumerator name ("big_integer"),
 // the C layers' d_db_type_name for the types the two share
 std::string get_type_name(
@@ -3580,8 +3580,8 @@ std::string get_field_type_name(
 // Adequacy (enc_T: the container is table-shaped) times coverage ([[.]]_D:
 // the store speaks Theta) is database serializability. Every SQL engine
 // covers Theta, so one encoder per container shape and one renderer per
-// engine suffice: N + M, never N x M. A vendor's dialect -- identifier
-// quoting, type spelling, the statements that change a table -- is the
+// engine suffice: N + M, never N x M. A vendor's dialect - identifier
+// quoting, type spelling, the statements that change a table - is the
 // store side, and already lives below the fold: in the vendor's C layer,
 // which spells each column's type and every change to a table, in
 // quote_identifier, and in database_table's write path, its commit().
@@ -3604,7 +3604,7 @@ enum class DStoreDirection
 // 7.1.2
 // store_table
 //   function template: renders a table-shaped container into the store
-// behind a connection, through Theta -- a database_table bound to that
+// behind a connection, through Theta - a database_table bound to that
 // connection by its commit(), which changes it, so it is taken by a
 // forwarding reference; defined in database_table_render.hpp.
 template<typename Connection,
@@ -3617,7 +3617,7 @@ void store_table(
 // 7.1.3
 // load_table
 //   function template: the adjoint direction, a table-shaped container
-// filled from the store behind a connection -- a database_table bound to
+// filled from the store behind a connection - a database_table bound to
 // that connection by its refresh(); defined in database_table_render.hpp.
 template<typename Connection,
          typename RenderableTable>

@@ -224,7 +224,7 @@ d_parse_charset_equal
   Whether two sets have the same members.
 NOTE:
   Because a set is its bits and nothing else, this is the equality the intern
-pool uses -- which is what makes two spellings of one class share an entry.
+pool uses - which is what makes two spellings of one class share an entry.
 
 Parameter(s):
   _set:   the first set; may be NULL.
@@ -341,8 +341,8 @@ uint32_t d_parse_charset_count(
 d_parse_charset_range
   Whether a set is exactly one contiguous run of values, and which.
 NOTE:
-  A set that passes this compiles to two compares -- `c - low <= high - low`
-after the usual trick -- instead of a table load, which is the single biggest
+  A set that passes this compiles to two compares - `c - low <= high - low`
+after the usual trick - instead of a table load, which is the single biggest
 per-class win available to a code generator. The empty set is not a range.
 
 Parameter(s):
@@ -412,7 +412,7 @@ int d_parse_charset_range(
 
 /*
 d_parse_charset_parse
-  Builds a set from the body of a class notation -- the text between the
+  Builds a set from the body of a class notation - the text between the
 brackets.
 NOTE:
   A leading `^` negates. `a-z` is a range; a `-` first, last, or after a range
@@ -586,7 +586,7 @@ Parameter(s):
   _size: the size of _out in bytes, including the terminator.
 Return:
   The number of characters the full rendering would occupy, excluding the
-terminator -- so a return of _size or more means the output was truncated.
+terminator - so a return of _size or more means the output was truncated.
 */
 size_t d_parse_charset_render(
     const struct dj_parse_charset* _set,

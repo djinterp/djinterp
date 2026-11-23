@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][math]                                     t_measure_2d_face.cpp
 *
-*   Tests for geometry/measure_2d.hpp, at every level from C++98 -- the
+*   Tests for geometry/measure_2d.hpp, at every level from C++98 - the
 * header compiled at no level before, missing named_2d.hpp: a segment's
 * length (closed form) against a straight Bezier's (Simpson's rule); a
 * circle's perimeter, area and centroid; a circle's area by Green's theorem

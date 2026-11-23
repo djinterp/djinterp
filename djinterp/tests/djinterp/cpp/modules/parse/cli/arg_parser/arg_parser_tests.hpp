@@ -1,18 +1,18 @@
 /*******************************************************************************
 * djinterp [cpp][parse]                                     arg_parser_tests.hpp
 *
-* The argument parser's C++ parser suite: the parser itself -- CLI11's App at
-* the root, through the C++ face's cli::DArgParser -- and what it costs.
+* The argument parser's C++ parser suite: the parser itself - CLI11's App at
+* the root, through the C++ face's cli::DArgParser - and what it costs.
 *   It holds the face to CLI11 for what a program does with a parser once its
 * definitions are made: the parse in each of its forms, the ending exit()
 * writes for each kind of result, D_ARG_PARSE as CLI11_PARSE, the name a
-* parse gives a root without one, and what a parse forgets -- its sections
+* parse gives a root without one, and what a parse forgets - its sections
 * CLI11's own transcripts of the same definitions (the suite's CASES
 * section, compiled against CLI11 by tools/cppref/cppref.py). Then what the
 * face has that CLI11 has not, in sections of the module's own: the errors
 * as views, the parser's output, statuses ended that are not the last
 * parse's, response files, suggestions, `--name=` as an empty value and the
-* completion flag, the departures of its parse forms -- and the
+* completion flag, the departures of its parse forms - and the
 * zero-overhead checks: the parser adds no member to its C struct, every
 * handle is one pointer, every value type is its C struct, from C++11 each
 * trivially copyable.

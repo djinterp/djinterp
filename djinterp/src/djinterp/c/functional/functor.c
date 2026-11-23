@@ -108,7 +108,7 @@ bool d_internal_applicative_pure_result(
 d_internal_applicative_map2_maybe
   `map2` for `maybe`: the combine runs only when both cells hold a value, and
 the result is nothing otherwise. This is where the "effects are collected"
-character of Applicative shows up -- absence on either side propagates without
+character of Applicative shows up - absence on either side propagates without
 either side knowing about the other.
 
 Parameter(s):

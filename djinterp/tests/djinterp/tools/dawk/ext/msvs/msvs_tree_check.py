@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# msvs_tree_check.py -- proves a tree msvs_generate.awk made sound, reading
+# msvs_tree_check.py - proves a tree msvs_generate.awk made sound, reading
 # it with Python's own XML parser, apart from the C that made it.
 #
 #   python3 -I msvs_tree_check.py <root> [<cmake-build-dir> <cmake-root>]
@@ -10,8 +10,8 @@
 # ProjectGuid; its filters file lists the same items, each in a filter it
 # defines, each filter's parents defined too.  For every solution: each
 # project it lists is there, by its own ProjectGuid, and each id is used
-# once.  With a CMake build directory -- Visual Studio's files CMake made
-# from the same tree, its paths under <cmake-root> -- each test's compiled
+# once.  With a CMake build directory - Visual Studio's files CMake made
+# from the same tree, its paths under <cmake-root> - each test's compiled
 # files are compared with those CMake gave the target of the same name.
 #
 # path:      /tests/djinterp/tools/dawk/ext/msvs/msvs_tree_check.py

@@ -2,7 +2,7 @@
 * djinterp [cpp][tools]                                                sheet.cpp
 *
 * The sheet: colours, defaults, and the operations on its tree of rows.
-*   The tree is a value -- rows own their children by value -- so lookups
+*   The tree is a value - rows own their children by value - so lookups
 * walk it rather than index it. A sheet holds tens or hundreds of rows, and
 * every edit copies it whole for undo anyway; an index would be one more
 * thing to keep in step.
@@ -1773,7 +1773,7 @@ int add_special(
 
 /*
 remove_special
-  Gone -- unless it is the last of its kind, which stays where it was and is
+  Gone - unless it is the last of its kind, which stays where it was and is
 hidden with its kind.
 */
 bool remove_special(

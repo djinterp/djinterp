@@ -268,14 +268,14 @@ public:
                    : endpoint();
     }
 
-    // native_handle -- the socket, or -1 (INVALID_SOCKET) once closed
+    // native_handle - the socket, or -1 (INVALID_SOCKET) once closed
     D_NODISCARD native_handle_type native_handle() const D_NOEXCEPT
     {
         return static_cast<native_handle_type>(
                    ::d_tcp_connection_native(&m_connection));
     }
 
-    // c_view -- the C connection beneath, still owned here, for tcp.h and
+    // c_view - the C connection beneath, still owned here, for tcp.h and
     // net.h's C algorithms
     D_NODISCARD ::dj_tcp_connection& c_view() D_NOEXCEPT
     {
@@ -321,7 +321,7 @@ public:
         : m_options(_options)
     {}
 
-    // options -- the tunables the next connect uses
+    // options - the tunables the next connect uses
     D_NODISCARD socket_options& options()
     {
         return m_options;
@@ -385,7 +385,7 @@ public:
     }
 
 #if (D_MOVE_ENABLED == 1)
-    // connect -- the same, returning the result, which C++11 can move
+    // connect - the same, returning the result, which C++11 can move
     D_NODISCARD open_result connect(
         const endpoint& _endpoint
     )
@@ -464,7 +464,7 @@ public:
     }
 #endif  // D_MOVE_ENABLED
 
-    // bind -- binds and listens, closing any earlier binding first; port 0
+    // bind - binds and listens, closing any earlier binding first; port 0
     // takes an ephemeral port, which local_endpoint then reports
     D_NODISCARD io_error::value bind(
         const endpoint& _endpoint
@@ -531,7 +531,7 @@ public:
     }
 
 #if (D_MOVE_ENABLED == 1)
-    // accept -- the same, returning the result, which C++11 can move
+    // accept - the same, returning the result, which C++11 can move
     D_NODISCARD open_result accept()
     {
         open_result result;
@@ -547,7 +547,7 @@ public:
         return ::d_tcp_listener_is_open(&m_listener);
     }
 
-    // close -- stops listening, waking a blocked accept; a unix-domain path
+    // close - stops listening, waking a blocked accept; a unix-domain path
     // the acceptor created is removed
     void close()
     {
@@ -556,7 +556,7 @@ public:
         return;
     }
 
-    // local_endpoint -- the address bound, or a default endpoint
+    // local_endpoint - the address bound, or a default endpoint
     D_NODISCARD endpoint local_endpoint() const
     {
         ::dj_net_endpoint recorded = ::dj_net_endpoint();
@@ -567,7 +567,7 @@ public:
                    : endpoint();
     }
 
-    // native_handle -- the listening socket, or -1 (INVALID_SOCKET)
+    // native_handle - the listening socket, or -1 (INVALID_SOCKET)
     D_NODISCARD native_handle_type native_handle() const D_NOEXCEPT
     {
         return static_cast<native_handle_type>(

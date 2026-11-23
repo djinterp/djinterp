@@ -4,15 +4,15 @@
 * Transform / fluent method tests for result<T, E> (section I methods that
 * map or thread the active branch).
 *
-*   test_map      -- value-side map: applies on ok, propagates error on err,
+*   test_map      - value-side map: applies on ok, propagates error on err,
 *                    incl. type-changing map.
-*   test_map_err  -- error-side map: applies on err, propagates value on ok,
+*   test_map_err  - error-side map: applies on err, propagates value on ok,
 *                    incl. type-changing map.
-*   test_and_then -- monadic bind on ok; err short-circuits without invoking;
+*   test_and_then - monadic bind on ok; err short-circuits without invoking;
 *                    inner err propagates.
-*   test_or_else  -- ok passes through; err invokes recovery (to ok or to a
+*   test_or_else  - ok passes through; err invokes recovery (to ok or to a
 *                    different err).
-*   test_match    -- pattern-match dispatch across ok / err arms.
+*   test_match    - pattern-match dispatch across ok / err arms.
 *
 *
 * path:      /tests/djinterp/cpp/functional/result_tests_transform.cpp

@@ -28,7 +28,7 @@ D_EXTERN_C_BEGIN
 
 // dj_tests_net_mock
 //   struct: a scripted connection over caller memory. Reads deliver `input`,
-// at most `read_limit` bytes at a time, then report `read_error` -- the end of
+// at most `read_limit` bytes at a time, then report `read_error` - the end of
 // the stream when that is D_NET_OK. Writes land in `output`, at most
 // `write_limit` bytes at a time, and report `write_error` once it is full. A
 // limit of 0 means none. The counters record every lifecycle call.
@@ -63,7 +63,7 @@ struct dj_tests_net_sink_buffer
     size_t         length;    // how much was taken
 };
 
-// doubles -- d_tests_net_mock_init opens a mock with no input or output. A
+// doubles - d_tests_net_mock_init opens a mock with no input or output. A
 // full mock supplies every optional operation: shutdown, which it records; a
 // remote endpoint of 192.0.2.1:80; a local endpoint of 198.51.100.7:8080
 // once `knows_local` is set, and until then refused after scribbling on the

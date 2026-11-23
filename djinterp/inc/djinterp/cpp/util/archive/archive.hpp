@@ -35,13 +35,13 @@
 * container options now come from archive_common.h, which both languages
 * compile, instead of being declared here in parallel with the C fork's copies.
 * format_id's values are identical to before (zip = 0 through rar = 5) and are
-* now pinned explicitly in the kernel -- test_packaging.hpp records that DTest's
+* now pinned explicitly in the kernel - test_packaging.hpp records that DTest's
 * own format enum orders gz and tar_gz differently, so the bridge between them
 * must stay a switch and must never become a cast.
 *
 *   archive.cpp no longer contains backend code.  What remains is four adapter
 * functions over the kernel, which also carries dependency-free ustar and ZIP
-* writers AND readers -- so tar and zip now work on a build with no third-party
+* writers AND readers - so tar and zip now work on a build with no third-party
 * archive library at all, rather than depending on which headers happen to be
 * installed.
 *
@@ -116,7 +116,7 @@ struct entry
     unsigned int mode;
 
     // mtime: modification time as a unix epoch in seconds. 0 selects a pinned
-    // epoch (1980-01-01), NOT the current time -- see the banner. Pass an
+    // epoch (1980-01-01), NOT the current time - see the banner. Pass an
     // explicit value to record a real timestamp.
     //   Widened to int64_t on the way into the kernel: `long` is 32 bits on
     // LLP64, which would put the 2038 boundary inside the framework and give
@@ -176,7 +176,7 @@ namespace formats
 
 // format_id
 //   type: stable runtime identifier for an archive format.  An ALIAS of the
-// kernel's enum, not a second declaration -- so a format crossing the language
+// kernel's enum, not a second declaration - so a format crossing the language
 // boundary needs no translation and cannot be translated wrongly.  Values are
 // unchanged: zip = 0, tar = 1, gz = 2, tar_gz = 3, sevenzip = 4, rar = 5.
 typedef enum dj_format_id format_id;
@@ -275,8 +275,8 @@ struct format_traits<formats::rar>
 //   struct: tuning knobs passed to a creation call.  The full, format-aware
 // definition lives in archive_options.hpp, included above.
 //
-//   Unlike compress_options -- which now DERIVES from its kernel struct at zero
-// cost -- archive_options is a parallel shape with an explicit lowering,
+//   Unlike compress_options - which now DERIVES from its kernel struct at zero
+// cost - archive_options is a parallel shape with an explicit lowering,
 // because five of its knobs are text and the C++ vocabulary for text is
 // std::string while the kernel's is a borrowed span.  That asymmetry is deliberate and its
 // cost is recorded in archive_options.hpp; read that note before editing either

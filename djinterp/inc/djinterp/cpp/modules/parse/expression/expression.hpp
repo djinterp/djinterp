@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][parse]                                           expression.hpp
 *
-*   The common core of every expression language in the framework -- math,
+*   The common core of every expression language in the framework - math,
 * parser, CLI predicate, and whatever comes next.  An expression is a
 * recursive term over a signature: at each node either a leaf carrying an
 * atom, or an operator applied to child expressions.  This header supplies
@@ -16,7 +16,7 @@
 *
 * Registering functor_traits for expr_layer is all it takes: the universal
 * fold cata (recursion.hpp) then interprets the term, ana builds it, hylo
-* refolds it, and cofree<expr_layer, Ann> gives the annotated variant -- one
+* refolds it, and cofree<expr_layer, Ann> gives the annotated variant - one
 * functor serving the bare term and its decorated form alike.  Evaluate,
 * render, type-check, simplify, and cost are each just an algebra
 * expr_layer<OpId, Atom, R> -> R handed to cata; the structural recursion is
@@ -24,7 +24,7 @@
 *
 *   WHY mu AND NOT free.  free<F, A> would model the same object (its Pure A
 * is this functor's leaf variant), and its free_bind is a ready substitution
-* -- but mu is what recursion.hpp is built for ("an expression IR" is its
+* - but mu is what recursion.hpp is built for ("an expression IR" is its
 * named client), it hands back ana and hylo that free does not, and its one
 * leaf-inclusive functor is reused verbatim by cofree for annotation instead
 * of needing a second, leaf-free functor.  Substitution and rewriting are
@@ -32,15 +32,15 @@
 *
 *   WHAT LIVES WHERE.  This header is the noun: the operator model, the
 * signature functor and its Functor instance, the term and its constructors,
-* the annotated alias, and detection.  The verbs -- fold / evaluate / query /
-* rewrite / substitute -- live in expression_ops.hpp; a compile-time typed
+* the annotated alias, and detection.  The verbs - fold / evaluate / query /
+* rewrite / substitute - live in expression_ops.hpp; a compile-time typed
 * mirror in expression_static.hpp; precedence-aware printing in
 * expression_render.hpp; the precedence-climbing parser in
 * expression_parse.hpp.  cata (recursion.hpp) already folds the term with no
 * further wiring.
 *
 *   REQUIREMENTS.  Atom and OpId must be default-constructible, copyable,
-* and (for signature lookup) OpId equality-comparable -- the same shape mu
+* and (for signature lookup) OpId equality-comparable - the same shape mu
 * and cofree already ask of a layer.  The dynamic term is heap-backed
 * (shared_ptr, via mu) and not constexpr; the compile-time face is
 * expression_static.hpp.
@@ -152,7 +152,7 @@ constexpr fixity DFixMatchfix = 4;   // open x close (|x|, (x), [x])
 
 // operator_descriptor
 //   struct: the metadata common to every operator in every expression
-// language -- arity and the precedence / associativity / fixity a renderer
+// language - arity and the precedence / associativity / fixity a renderer
 // and a parser both need, plus algebraic flags a simplifier can consult.  It
 // carries no identity of its own: it is the *value* of a signature entry,
 // keyed by the operator id.  A literal type, so the compile-time face may
@@ -212,13 +212,13 @@ struct operator_descriptor
 // =================================================================
 
 // operator_signature
-//   class: the described operator set of one expression language -- simply
+//   class: the described operator set of one expression language - simply
 // a sequence of key-value pairs, each an operator id mapped to its metadata.
 // Container-agnostic (any sequence of DKvPair rows: vector, deque, array,
 // list) and value-agnostic (the value defaults to operator_descriptor but
 // may be any per-operator payload a language wants).  A renderer consults it
 // for spelling and parenthesization, a parser for precedence and fixity.
-// Lookup is a first-match-wins walk -- the intuition of the lookup family --
+// Lookup is a first-match-wins walk - the intuition of the lookup family --
 // and a miss yields a null value or the lookup_npos index.
 template<typename OpId,
          typename Value      = operator_descriptor,
@@ -236,8 +236,8 @@ public:
     {}
 
     // operator_signature (from a prebuilt sequence)
-    //   lets a language supply any container of key-value pairs -- a
-    // constexpr std::array of them, say -- instead of building one entry at
+    //   lets a language supply any container of key-value pairs - a
+    // constexpr std::array of them, say - instead of building one entry at
     // a time.
     explicit
     operator_signature(
@@ -340,12 +340,12 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 
 // expr_layer
-//   class: one unrolled layer of an expression -- the signature functor
+//   class: one unrolled layer of an expression - the signature functor
 // whose fixed point is the term.  A layer is either a leaf carrying an atom,
 // or an application of an operator to a sequence of children of type Child
 // (the recursive positions).  As a functor it is single-argument in Child
 // (OpId and Atom are fixed), and mapping a layer maps only the children,
-// leaving the operator and any atom in place -- the shape recursion.hpp and
+// leaving the operator and any atom in place - the shape recursion.hpp and
 // cofree.hpp fold and annotate over.
 template<typename OpId,
          typename Atom,
@@ -508,7 +508,7 @@ NS_END  // internal
 
 
 // expression
-//   alias: an expression over operator ids OpId and atoms Atom -- the
+//   alias: an expression over operator ids OpId and atoms Atom - the
 // least fixed point of expr_layer.  cata folds it, ana builds it, hylo
 // refolds it (all from recursion.hpp), with no further registration.
 template<typename OpId,
@@ -548,7 +548,7 @@ expression<OpId, Atom> expr_apply(
 }
 
 // expr_apply (nullary)
-//   function: an operator with no operands -- a constant symbol.
+//   function: an operator with no operands - a constant symbol.
 template<typename OpId,
          typename Atom>
 D_NODISCARD
@@ -656,7 +656,7 @@ const std::vector<expression<OpId, Atom> >& children_of(
 
 // annotated_expression
 //   alias: an expression whose every node also carries an annotation of
-// type Annotation -- the cofree comonad over the very same signature
+// type Annotation - the cofree comonad over the very same signature
 // functor.  Attribute grammars, inferred-type decoration, source spans, and
 // cached values are all annotations; extract reads a node's, extend
 // re-decorates from whole sub-trees (comonad.hpp), and unfold_cofree builds

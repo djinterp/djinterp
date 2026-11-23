@@ -176,7 +176,7 @@ NS_TEST
 ///////////////////////////////////////////////////////////////////////////////
 
 // test_doc_type
-//   type: the document format a report is rendered as -- an ALIAS of the
+//   type: the document format a report is rendered as - an ALIAS of the
 // framework's single format selector, `DDocumentFormat`.  It was a DTest-local
 // enum spelling a subset of the same concept, which forced a hand-written
 // switch to bridge to the emit layer's `doc_format` and to output_packaging;
@@ -187,7 +187,7 @@ NS_TEST
 // enum's spelling wins, and "txt" survives as an accepted alias in
 // format_from_name for config strings).  `xml` / `html` / `pdf` are unchanged,
 // so a runner that only ever selected PDF is untouched.  `markdown` / `tex` /
-// `wiki` are now selectable here for free -- the emit layer already renders
+// `wiki` are now selectable here for free - the emit layer already renders
 // markdown, and simply had no way to be asked for it.
 using test_doc_type = ::djinterp::DDocumentFormat;
 
@@ -1422,7 +1422,7 @@ using DRoute = option<DTestRouteTag::route, Predicate, Overrides...>;
 
 NS_INTERNAL
 
-    // -- predicate lowering -------------------------------------------------
+    // - predicate lowering -------------------------------------------------
 
     // lower_predicate_helper
     //   trait: a type-level predicate (test_match AST) -> DTestPredicate
@@ -1538,7 +1538,7 @@ NS_INTERNAL
     };
 
 
-    // -- route override lowering --------------------------------------------
+    // - route override lowering --------------------------------------------
 
     // DApplyRouteOverrideHelper
     //   trait: fold one override option onto a test_route (primary handles the
@@ -1652,7 +1652,7 @@ NS_INTERNAL
     };
 
 
-    // -- route lowering -----------------------------------------------------
+    // - route lowering -----------------------------------------------------
 
     // lower_route_helper
     //   trait: one route_ option -> test_route.  Lowers the predicate child,

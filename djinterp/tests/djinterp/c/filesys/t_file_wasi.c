@@ -51,7 +51,7 @@ static int g_failures = 0;
     } while (0)
 
 // T_WASI_CLOCK
-//   constant: the clock gate this build must resolve to -- on only where the
+//   constant: the clock gate this build must resolve to - on only where the
 // build asks for the emulation.
 #if defined(_WASI_EMULATED_PROCESS_CLOCKS)
     #define T_WASI_CLOCK 1

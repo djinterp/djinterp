@@ -4,8 +4,8 @@
 * The suite of the command-line kit's program (cli_program.c): what making a
 * program gives its parser; the endings a parse calls for, and the statuses
 * they exit with; the commands a parse reaches, and their work; the `help`
-* and `completion` commands; the standard options -- `-q`, `-v`, `--color`
-* -- and the rules the grammar reads arguments by (R3, R7, R8); the parser's
+* and `completion` commands; the standard options - `-q`, `-v`, `--color`
+* - and the rules the grammar reads arguments by (R3, R7, R8); the parser's
 * failures in the GNU shape; the reports a command's work makes; a program
 * of one command; `/?`; which arguments are taken again from the wide
 * command line on Windows; what `--version --verbose` says of how the program

@@ -14,7 +14,7 @@
 *       exactly one.
 *
 *     - A block-partitioned concurrent driver hands each worker a sub-range and
-*       calls insertion_pass on it, then merges the ordered blocks -- the
+*       calls insertion_pass on it, then merges the ordered blocks - the
 *       standard first phase of a parallel merge sort, and the reason this is a
 *       range operation rather than a whole-array one.
 *
@@ -22,7 +22,7 @@
 *       subdividing, where insertion's low constant factor wins outright.
 *
 *   PLACEMENT SHIFTS; IT DOES NOT SWAP.  The candidate is moved out once, the
-* run is assigned over the slot it vacated, and it is moved back -- k+2 element
+* run is assigned over the slot it vacated, and it is moved back - k+2 element
 * assignments to travel k places, against the 3k a chain of swaps would cost.
 * This is what separates insertion from bubble in cost rather than in shape,
 * and it is why insertion_place holds the candidate rather than calling
@@ -82,7 +82,7 @@ NS_INTERNAL
     // [_lower, _index) and returns the index it landed at.
     //
     //   The candidate is compared in place first, so an element already in
-    // order relative to its predecessor is never moved out at all -- that test
+    // order relative to its predecessor is never moved out at all - that test
     // is what gives ordered input its O(n) best case and its zero writes.
     //
     //   Otherwise the candidate is held while the run is assigned forward over

@@ -5,7 +5,7 @@
 * walk and remove_all. One file for the facility, sibling to the other suites,
 * same harness and same three rules. Free functions, so a flat tier ladder.
 *
-*   The visitor is a functor holding pointers to the counters it updates -- the
+*   The visitor is a functor holding pointers to the counters it updates - the
 * C++98-clean form of a stateful visitor, and proof that walk's by-value visitor
 * still accumulates external state (every copy shares the pointees). Fixtures
 * build real trees through create_directory / fopen / create_symlink and tear
@@ -13,7 +13,7 @@
 * no opendir/mkdir/unlink directly.
 *
 *   The symlink group is the one that matters most: it proves walk does not
-* descend through a directory symlink, by counting -- following it would visit
+* descend through a directory symlink, by counting - following it would visit
 * the target's contents a second time.
 *
 *

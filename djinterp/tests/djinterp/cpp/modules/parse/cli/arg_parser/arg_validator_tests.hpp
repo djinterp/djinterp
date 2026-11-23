@@ -4,14 +4,14 @@
 * The argument parser's C++ validator suite: CLI11's validators, through
 * the C++ face's cli::validator.
 *   The C validator suites hold the C library's validators to CLI11 value
-* by value; this one holds the face's way to them -- each of CLI11's
+* by value; this one holds the face's way to them - each of CLI11's
 * validators made by the face's function of its name, over the C++ types it
 * takes, as a value: described, named, set and combined with `&`, `|` and
-* `!`, run over values directly and given to options -- their sections
+* `!`, run over values directly and given to options - their sections
 * CLI11's own transcripts of the same definitions (the suite's CASES
 * section, compiled against CLI11 by tools/cppref/cppref.py). Then the
-* face's own: a validator as a value -- copied, moved, swapped and handed
-* over -- the handle on one an option holds, filters as values, and where
+* face's own: a validator as a value - copied, moved, swapped and handed
+* over - the handle on one an option holds, filters as values, and where
 * the face departs from CLI11, in sections of their own.
 *   The suite is a table of sections, defined in arg_validator_tests.cpp
 * beside the sections themselves; a section exists from the language level,

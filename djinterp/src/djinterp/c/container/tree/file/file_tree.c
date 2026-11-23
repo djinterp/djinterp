@@ -1070,7 +1070,7 @@ d_file_tree_internal_scan_node(
                                                      target_buf,
                                                      D_FILE_PATH_MAX);
 
-            // keep the target only when it fit, and terminate it -- one
+            // keep the target only when it fit, and terminate it - one
             // that filled the buffer may have been cut short, and is not
             // kept
             if ( (link_len > 0) &&

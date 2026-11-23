@@ -3,7 +3,7 @@
 *
 * is_abstract trait header:
 *   is_abstract<T>::value is true iff T is a class type with at least one
-* pure virtual function that no derived override has supplied -- that is,
+* pure virtual function that no derived override has supplied - that is,
 * iff T cannot be instantiated.
 *
 *   NO LIBRARY-LEVEL IMPLEMENTATION EXISTS. The classic
@@ -64,7 +64,7 @@ namespace re_std
 #if RE_STD_HAS_IS_ABSTRACT
 
 // is_abstract
-//   trait: intrinsic-backed -- a class type with at least one unoverridden pure virtual function.
+//   trait: intrinsic-backed - a class type with at least one unoverridden pure virtual function.
 template<typename Type>
 struct is_abstract : integral_constant<bool, __is_abstract(Type)>
 {};
@@ -73,7 +73,7 @@ struct is_abstract : integral_constant<bool, __is_abstract(Type)>
 
 // is_abstract
 //   trait: degraded fallback (always false) when the intrinsic is absent.
-// False is the less useful degradation of the two available -- a caller
+// False is the less useful degradation of the two available - a caller
 // told a type is not abstract may attempt to instantiate it and fail to
 // compile. That is still a compile-time failure, not a silent one, and
 // the intrinsic is present on every compiler re_std targets.

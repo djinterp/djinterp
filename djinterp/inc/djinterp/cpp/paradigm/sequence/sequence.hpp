@@ -60,7 +60,7 @@ NS_INTERNAL
 
     // is_sequence_source_iterator
     //   trait: true when Iterator is an iterator (std::iterator_traits names
-    // its category) whose dereference converts to Type -- what sequence's
+    // its category) whose dereference converts to Type - what sequence's
     // iterator-pair constructor reads. Two elements (two std::strings, two
     // ints) are not such a pair, so they go to the variadic constructor.
     template<typename Iterator,

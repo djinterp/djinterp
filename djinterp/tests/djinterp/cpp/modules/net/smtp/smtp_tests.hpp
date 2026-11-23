@@ -2,7 +2,7 @@
 * djinterp [cpp][net]                                             smtp_tests.hpp
 *
 * Tests of the SMTP C++ facade, net/smtp/smtp.hpp, over a loopback server --
-* in plaintext, by STARTTLS and in TLS from the first byte -- and over a
+* in plaintext, by STARTTLS and in TLS from the first byte - and over a
 * scripted net::connection. It is empty without a 64-bit integer type, as
 * smtp.hpp is.
 *
@@ -30,7 +30,7 @@
 NS_DJINTERP
 NS_TESTING
 
-// net/smtp/smtp.hpp tests -- each returns true when every check held
+// net/smtp/smtp.hpp tests - each returns true when every check held
 bool tests_smtp_vocabulary();
 bool tests_smtp_lifting();
 bool tests_smtp_delivery();

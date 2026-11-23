@@ -2,8 +2,8 @@
 * djinterp [cpp][text]                                  css_tests_vocabulary.cpp
 *
 *   The groups for css/css.hpp: the rule kinds' category masks and the
-* predicates over them, every at-rule's keyword both ways -- in any case, as
-* CSS compares keywords -- and its rule kind, custom property names, the name
+* predicates over them, every at-rule's keyword both ways - in any case, as
+* CSS compares keywords - and its rule kind, custom property names, the name
 * constants, and backend detection. The keyword lookups run at compile time
 * and at run time: a recursive comparison forced inline once made GCC refuse
 * every run-time call outside testing.
@@ -101,7 +101,7 @@ d_tests_css_rules(void)
 d_tests_css_at_rules
   Tests the following:
   - each of the 18 named at-rules' keyword reads back as its kind, at run
-    time, and its kind gives the dedicated rule kind -- but @apply, which
+    time, and its kind gives the dedicated rule kind - but @apply, which
     has none
   - a keyword in another case is the same at-rule
   - an unknown keyword and null are unknown, and unknown and custom have

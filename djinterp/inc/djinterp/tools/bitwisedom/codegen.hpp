@@ -2,7 +2,7 @@
 * djinterp [cpp][tools]                                              codegen.hpp
 *
 * The C/C++ header generator: a sheet as macros.
-*   Every symbol becomes an object-like macro -- or, for C++, a constant --
+*   Every symbol becomes an object-like macro - or, for C++, a constant --
 * named by the affix cascade and valued by its definition, written in the
 * radix and with the integer suffix the cascade gives it. An expression
 * keeps its form with every name replaced by a macro name; a macro row is
@@ -104,7 +104,7 @@ D_NODISCARD generated generate(
  * @brief Writes some of a sheet's rows as code to paste elsewhere.
  *
  * @note The rows' definitions, briefs and templates, under their groups'
- *       names, as the header writes them -- without the banner, the table
+ *       names, as the header writes them - without the banner, the table
  *       of contents, the guard, or the section numbers, which belong to a
  *       whole header.
  *
@@ -121,7 +121,7 @@ D_NODISCARD generated generate_code(
 
 // 2.2    Literals and names
 //------------------------------------------------------------------------------
-// levels -- what a language level may spell
+// levels - what a language level may spell
 D_NODISCARD const char* standard_name(
     standard _level
 );

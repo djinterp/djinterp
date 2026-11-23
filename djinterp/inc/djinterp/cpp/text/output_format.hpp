@@ -3,7 +3,7 @@
 *
 *   Number formatting onto a DOutputStream: the C++ face of
 * c/text/ostream_format.h. A double in the C locale's form, whatever the
-* program's locale -- write_double(os, value) and os << value -- a double in a
+* program's locale - write_double(os, value) and os << value - a double in a
 * locale the caller names for one call, write_double(os, value, locale) over a
 * DOutputLocale, and printf-formatted text, write_formatted(os, format, ...),
 * which follows the locale as printf does. The names are the C functions' own
@@ -16,8 +16,8 @@
 * locale; a double's formatting and printf are text's. Free functions keep
 * DOutputStream's header free of them, and a unit that includes this header
 * writes a double exactly as the kernel's members once did. Without it,
-* os << 1.5 does not compile -- each integer overload is as good a match as
-* another -- so a double is never silently written as an integer.
+* os << 1.5 does not compile - each integer overload is as good a match as
+* another - so a double is never silently written as an integer.
 *
 *   write_formatted IS NOT CALLED printf. A function named printf in
 * namespace djinterp would hide ::printf from every unqualified call inside

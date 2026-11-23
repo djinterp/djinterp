@@ -4,7 +4,7 @@
 *   Non-blocking, event-driven backend for the net subframework, built on the
 * readiness mechanism env_net.h selects (epoll on Linux). Where the blocking
 * foundation gives each connection a thread, the reactor multiplexes many
-* connections on one thread via readiness notification -- the C10k model the
+* connections on one thread via readiness notification - the C10k model the
 * would_block vocabulary and the readiness-backend detection were laid down for.
 *
 * CONTENTS (namespace djinterp::net):
@@ -12,7 +12,7 @@
 *   event_mask        readiness/condition flags (readable/writable/error/hangup)
 *   reactor           an epoll event loop: register fds with interest +
 *                     callback, wait, dispatch; thread-safe stop() via eventfd.
-*                     Reentrancy-safe -- a callback may add/modify/remove fds,
+*                     Reentrancy-safe - a callback may add/modify/remove fds,
 *                     including removing its own (erase is deferred past
 *                     dispatch)
 *   event_connection  a non-blocking connection with an outbound buffer:
@@ -25,8 +25,8 @@
 *   The blocking backends remain the default; this is a distinct concurrency
 * model (non-blocking, callback-driven) rather than an execution_policy, since a
 * reactor cannot run to-completion blocking handlers. It reuses
-* socket_connection from tcp.hpp -- already non-blocking-correct (EAGAIN ->
-* would_block) -- and only needs the descriptor made non-blocking and
+* socket_connection from tcp.hpp - already non-blocking-correct (EAGAIN ->
+* would_block) - and only needs the descriptor made non-blocking and
 * registered.
 *
 *   Requires:  net.hpp, tcp.hpp, env_net.h, and epoll (D_ENV_NET_HAS_EPOLL). A
@@ -279,7 +279,7 @@ NS_END  // internal
 // interest set and a callback; run()/run_once() wait and dispatch the callbacks
 // for ready descriptors. A single reactor instance is driven from one thread;
 // stop() (and the internal wake) are thread-safe. Callbacks may add, modify, or
-// remove registrations during dispatch -- including removing their own fd --
+// remove registrations during dispatch - including removing their own fd --
 // because entry erasure is deferred until the current dispatch completes, so a
 // callback is never destroyed while it runs. Non-copyable, non-movable.
 class reactor
@@ -776,7 +776,7 @@ private:
 class event_connection
 {
 public:
-    // event_connection -- over a connected descriptor, which it adopts
+    // event_connection - over a connected descriptor, which it adopts
     explicit event_connection(
         socket_connection::native_handle_type _fd
     )
@@ -790,7 +790,7 @@ public:
     }
 
 #if (D_MOVE_ENABLED == 1)
-    // event_connection -- over a socket_connection, moved in (C++11)
+    // event_connection - over a socket_connection, moved in (C++11)
     explicit event_connection(
         socket_connection&& _socket
     )
@@ -1273,7 +1273,7 @@ private:
     }
 
     // on_connection
-    //   function: services a ready connection -- flush on writable, drain and
+    //   function: services a ready connection - flush on writable, drain and
     // deliver on readable, and close on EOF or error.
     void on_connection(
         int               _fd,

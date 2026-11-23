@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][text]                                          html_printer.hpp
 *
-*   The HTML serialisation policy -- the format half of the printer retargeted
+*   The HTML serialisation policy - the format half of the printer retargeted
 * from XML to HTML. The single behavioural difference that matters is the
 * empty-element rule: HTML has VOID elements (`<br>`, `<img>`, `<input>`, ...)
 * that take no closing tag and no trailing slash, while every other element is
@@ -72,7 +72,7 @@ NS_DJINTERP
 //   struct: HTML serialisation rules. Text/attribute escaping match XML's
 // safe subset (`& < >`, plus `"` in attributes); the substance is `form_of`,
 // which classifies void elements as `voidlike` (open tag only) and everything
-// else as `paired` -- HTML never self-closes a non-void element.
+// else as `paired` - HTML never self-closes a non-void element.
 struct DHtmlPrintPolicy
 {
     // escape_text

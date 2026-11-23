@@ -95,7 +95,7 @@ vp::peg::program digits_program()
 }
 
 // run_matcher
-//   helper: a prefix matcher for one-or-more of a class -- MATCHes WITHOUT an
+//   helper: a prefix matcher for one-or-more of a class - MATCHes WITHOUT an
 // end-of-input gate, so it consumes its run and stops, leaving the rest for a
 // following parser.  Used to exercise composition.
 inline

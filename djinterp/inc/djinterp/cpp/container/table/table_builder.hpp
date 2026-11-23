@@ -1,11 +1,11 @@
 /*******************************************************************************
 * djinterp [cpp][container]                                    table_builder.hpp
 *
-*   The TYPE DSL -- the compile-time front end for declaring a table.  A
+*   The TYPE DSL - the compile-time front end for declaring a table.  A
 * table_builder<...> is a table written as a type: a list of DECLARATORS
 * naming
 * the axes (columns<> / rows<>) and the cells (row<>, cell<>, merged_cell<>,
-* split_cell<>), which this header FOLDS into the table model -- a table_shape
+* split_cell<>), which this header FOLDS into the table model - a table_shape
 * (the domain I_T and the cell types tau_c) and a layout (the overlay Gamma)
 * --
 * whence a concrete container is realized.  It is the compose leg of the prism
@@ -13,7 +13,7 @@
 * leg
 * is table_parser, and both meet at the same model.
 *
-*   EVERY DECLARATOR IS A TYPE. A cell entry is a TYPE, uniformly -- so a row
+*   EVERY DECLARATOR IS A TYPE. A cell entry is a TYPE, uniformly - so a row
 * may mix a bare cell with a merged_cell<> or a split_cell<> in one pack (a
 * C++ pack cannot mix types and values, and the declarators must interleave
 * freely).  A compile-time VALUE rides in a cell as a value-carrying type:
@@ -28,7 +28,7 @@
 *       row<a, merged_cell<1, 2, b>, w, x, y, z> // 1+2+1+1+1+1 = 7 columns
 *
 * is a row of a SEVEN-column table, and a merge is registered at the cursor
-* position it is declared at, its anchor -- min_lex R_C, exactly as the
+* position it is declared at, its anchor - min_lex R_C, exactly as the
 * formalism
 * names a layout cell (containers.tex). A flat rows<...> is walked the same
 * way
@@ -39,9 +39,9 @@
 * declares the table column-wise (the ordinary reading, rows dependent),
 * leading
 * with rows<> declares its TRANSPOSE.  Since a table is an indexed tuple, a
-* transposed declaration is a pure re-reading of the same object -- the
+* transposed declaration is a pure re-reading of the same object - the
 * coordinate
-* swap tau_{r,c} <-> tau_{c,r} -- so every declaration below has an inverse
+* swap tau_{r,c} <-> tau_{c,r} - so every declaration below has an inverse
 * for
 * free, with no second code path.
 *
@@ -134,11 +134,11 @@ NS_DJINTERP
 // ===========================================================================
 // I.   declarators
 // ===========================================================================
-//   The DSL's vocabulary.  Each is an empty type -- a declarator is read by the
+//   The DSL's vocabulary.  Each is an empty type - a declarator is read by the
 // fold, never instantiated as an object.
 
 // DColumns
-//   type: one axis of the table, given by its cell types -- the axis-typed
+//   type: one axis of the table, given by its cell types - the axis-typed
 // reading tau_{r,c} = tau_c, of extent sizeof...(Types). Leading a
 // declaration with columns<> makes the columns the INDEPENDENT axis (the
 // ordinary reading). A second columns<> group adds a dimension (k = groups +
@@ -159,7 +159,7 @@ using columns = DColumns<Types...>;
 //   type: the transposed counterpart of columns<> when it LEADS a declaration
 // (the rows become the independent axis); otherwise, a flat run of cell
 // entries, wrapped at the table's width, so the individual rows are inferred
-// -- the "every four entries is a row" reading of a four-column table.
+// - the "every four entries is a row" reading of a four-column table.
 template<typename... Types>
 struct DRows
 {
@@ -187,7 +187,7 @@ template<typename... Cells>
 using row = DRow<Cells...>;
 
 // DColumn
-//   type: exactly one COLUMN of the table, given by its cell entries -- the
+//   type: exactly one COLUMN of the table, given by its cell entries - the
 // transpose of row<>, used to fill a declaration whose independent axis is the
 // rows (one that leads with rows<>).
 template<typename... Cells>
@@ -201,7 +201,7 @@ template<typename... Cells>
 using column = DColumn<Cells...>;
 
 // cell
-//   type: one atomic cell holding Value -- the trivial layout cell (Gamma_0,
+//   type: one atomic cell holding Value - the trivial layout cell (Gamma_0,
 // span 1x1). Superfluous inside a row<> (a bare entry is already a cell) and
 // accepted for symmetry with the merged / split forms.
 template<typename Value>
@@ -213,7 +213,7 @@ struct cell
 // DMergedCell
 //   type: a cell spanning Rows x Cols atomic positions and holding one value
 // (|R_C| > 1: layout-aware access returns Value for every covered position,
-// which defers to the anchor -- the position the merge is declared at).
+// which defers to the anchor - the position the merge is declared at).
 template<std::size_t Rows,
          std::size_t Cols,
          typename    Value>
@@ -267,7 +267,7 @@ using split_cell = DSplitCell<Rows, Cols, Pieces, Content>;
 // ===========================================================================
 
 // type_list
-//   type: the fold's accumulator -- a bare list of types (the collected
+//   type: the fold's accumulator - a bare list of types (the collected
 // merges, the collected column types). Kept local so the DSL's fold does not
 // drag in the full tuple algebra.
 template<typename... Types>
@@ -341,7 +341,7 @@ NS_END  // internal
 
 // cell_rows / cell_cols
 //   traits: the row and column span of a cell entry. The primary treats any
-// type as a plain 1x1 cell -- so a bare entry (a value-carrying type, a tag, a
+// type as a plain 1x1 cell - so a bare entry (a value-carrying type, a tag, a
 // val_t<>) needs no opt-in; the specializations give the merged / split forms
 // their declared box.
 template<typename Cell>
@@ -407,7 +407,7 @@ struct cell_value<DMergedCell<R, C, V>>
 };
 
 // cell_value_t
-//   type: the carrier of cell_value -- its `::type`, for use where a type
+//   type: the carrier of cell_value - its `::type`, for use where a type
 // rather than a value is wanted.
 template<typename Cell>
 using cell_value_t = typename cell_value<Cell>::type;
@@ -460,7 +460,7 @@ struct is_row : internal::is_row_impl<clean_t<Type>>
 {};
 
 // DTableAxis
-//   enum: which axis a declaration makes independent -- read from its FIRST
+//   enum: which axis a declaration makes independent - read from its FIRST
 // axis declarator. Leading with columns<> is the ordinary column-wise reading;
 // leading with rows<> declares the transpose.
 enum class DTableAxis
@@ -477,7 +477,7 @@ using table_axis = DTableAxis;
 // V.   transposition
 // ===========================================================================
 //   The free symmetry.  A table is an indexed tuple, so exchanging its two
-// coordinates is a pure RE-READING of the same object -- there is no second
+// coordinates is a pure RE-READING of the same object - there is no second
 // table
 // and no second fold.  A declaration that leads with rows<> is therefore
 // NORMALIZED by transposing every declarator (columns<> <-> rows<>, row<> <->
@@ -486,7 +486,7 @@ using table_axis = DTableAxis;
 // may be declared inversely" for one price.
 
 // transpose_decl
-//   trait: the transpose of a declarator -- the same declaration read with its
+//   trait: the transpose of a declarator - the same declaration read with its
 // coordinates exchanged. The primary leaves a bare cell entry alone (a value
 // is orientation-free); the specializations swap each declarator with its
 // opposite and each spanning cell's box.
@@ -557,13 +557,13 @@ using transpose_decl_t = typename transpose_decl<Decl>::type;
 // ===========================================================================
 //   The span walk. Every cell entry advances a column cursor by its column span
 // and, when it covers more than one atomic position, registers a region at the
-// cursor -- its anchor. A row<> walks its entries once; a flat rows<> walks and
+// cursor - its anchor. A row<> walks its entries once; a flat rows<> walks and
 // WRAPS at the table's width, inferring the rows it holds.
 
 NS_INTERNAL
 
     // span_sum
-    //   trait: the total column span of a pack of cell entries -- a row's
+    //   trait: the total column span of a pack of cell entries - a row's
     // width.
     template<typename...>
     struct span_sum : std::integral_constant<std::size_t, 0>
@@ -614,7 +614,7 @@ NS_INTERNAL
     // flat_walk
     //   trait: walk a flat run of entries from (Row, Col), wrapping at
     // Width. Yields the collected merges and the row cursor the run ends at
-    // -- the inference that turns a flat rows<> into rows.
+    // - the inference that turns a flat rows<> into rows.
     template<std::size_t Width,
              std::size_t Row,
              std::size_t Col,
@@ -664,7 +664,7 @@ NS_INTERNAL
     // decl_walk
     //   trait: walk the DATA declarators (row<> / rows<>) in order from row
     // Row, collecting every merge and the final height. Non-data declarators
-    // (the axis groups) are skipped -- they shape the table, they do not fill
+    // (the axis groups) are skipped - they shape the table, they do not fill
     // it.
     template<std::size_t Width,
              std::size_t Row,
@@ -676,7 +676,7 @@ NS_INTERNAL
         static D_CONSTEXPR std::size_t end_row = Row;
     };
 
-    // decl_walk: a row<> -- exactly one row, walked from column 0.
+    // decl_walk: a row<> - exactly one row, walked from column 0.
     template<std::size_t Width,
              std::size_t Row,
              typename... Cells,
@@ -693,7 +693,7 @@ NS_INTERNAL
         static D_CONSTEXPR std::size_t end_row = rest::end_row;
     };
 
-    // decl_walk: a rows<> -- a flat run, wrapped at the width.
+    // decl_walk: a rows<> - a flat run, wrapped at the width.
     template<std::size_t Width,
              std::size_t Row,
              typename... Cells,
@@ -710,7 +710,7 @@ NS_INTERNAL
         static D_CONSTEXPR std::size_t end_row = rest::end_row;
     };
 
-    // decl_walk: anything else (a columns<> group, an option) -- skipped.
+    // decl_walk: anything else (a columns<> group, an option) - skipped.
     template<std::size_t Width,
              std::size_t Row,
              typename    D0,
@@ -728,7 +728,7 @@ NS_END  // internal
 //   The column types, gathered across every top-level axis group.  A rank-2
 // declaration has one group and the collection is simply its types; a
 // multi-group
-// declaration concatenates them -- the flattened rank-2 view of the rank-k
+// declaration concatenates them - the flattened rank-2 view of the rank-k
 // table,
 // which is exactly what the data rows span (a 3-group + 4-group declaration is
 // filled by seven-column rows).
@@ -763,7 +763,7 @@ NS_INTERNAL
     {};
 
     // count_groups
-    //   trait: the number of top-level columns<> groups -- the dimension count
+    //   trait: the number of top-level columns<> groups - the dimension count
     // is this plus one (the dependent data axis).
     template<typename... Decls>
     struct count_groups : std::integral_constant<std::size_t, 0>
@@ -842,7 +842,7 @@ NS_INTERNAL
 
     // row_width_ok
     //   function: whether a row of _actual columns fits a table of _required
-    // columns under _s -- the cell_count strictness, applied. exact demands a
+    // columns under _s - the cell_count strictness, applied. exact demands a
     // one-to-one match; truncate tolerates a surplus (it is dropped); pad
     // tolerates a shortfall (it is filled); lenient tolerates either.
     D_CONSTEXPR inline
@@ -920,7 +920,7 @@ NS_INTERNAL
     {};
 
     // normalize_decls
-    //   trait: the declaration in its canonical column-wise form -- as written
+    //   trait: the declaration in its canonical column-wise form - as written
     // when it already leads with columns<>, transposed when it leads with
     // rows<>. Yields a type_list so the fold has a single entry point.
     template<bool        Transpose,
@@ -968,7 +968,7 @@ NS_INTERNAL
         using shape_type  = typename list_to_shape<height, column_list>::type;
         using layout_type = typename list_to_layout<merge_list>::type;
 
-        // widths_conform -- whether every data declarator fits the width under
+        // widths_conform - whether every data declarator fits the width under
         // a given cell_count strictness. A member template so the grade is
         // read once, by table_builder, from the option pack.
         template<DTableStrictness S>
@@ -1028,19 +1028,19 @@ public:
     // runs, at the default grades.
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
-    // table_options_type -- the table policies declared in the pack.
+    // table_options_type - the table policies declared in the pack.
     using table_options_type = select_table_options_t<Decls...>;
 
-    // axis_options_type -- the container axis positions declared in the pack,
+    // axis_options_type - the container axis positions declared in the pack,
     // read with container_axis_value_v and honoured by the realization.
     using axis_options_type = select_axis_options_t<Decls...>;
 
-    // cell_count_strictness -- how strictly a row's width must match the
+    // cell_count_strictness - how strictly a row's width must match the
     // declared columns (the cell_count policy, or its default).
     static D_CONSTEXPR DTableStrictness cell_count_strictness =
         cell_count_of<table_options_type>;
 
-    // shape_strictness -- which domain shapes the declaration admits. Read,
+    // shape_strictness - which domain shapes the declaration admits. Read,
     // and not yet consulted: the cell count alone admits a row, and shape
     // will decide what an admitted short row becomes (cfg_table.h, at
     // D_CFG_TABLE_DEFAULT_SHAPE).
@@ -1058,39 +1058,39 @@ public:
 
     // --- the declaration, read back ---
 
-    // independent_axis -- which axis the declaration LEADS with. Leading with
+    // independent_axis - which axis the declaration LEADS with. Leading with
     // columns<> is the ordinary reading; leading with rows<> declares the
     // transpose, and the canonical model below is that transpose (a row-typed
     // table is a column-typed one read the other way).
     static D_CONSTEXPR DTableAxis independent_axis = declared_axis_;
 
-    // normalized_decls_type -- the declaration after normalization: as written
+    // normalized_decls_type - the declaration after normalization: as written
     // for a column-major declaration, transposed for a row-major one.
     using normalized_decls_type = normalized_;
 
-    // group_count / rank -- each top-level axis group is a dimension, and the
+    // group_count / rank - each top-level axis group is a dimension, and the
     // cell data is the dependent one: k = groups + 1.
     static D_CONSTEXPR std::size_t group_count = model_::group_count;
 
     static D_CONSTEXPR std::size_t rank = (group_count + 1);
 
-    // is_rank_2 -- whether the declaration is the leading rank-2 case (one
+    // is_rank_2 - whether the declaration is the leading rank-2 case (one
     // axis group), which realizes directly onto the table containers.
     static D_CONSTEXPR bool is_rank_2 = (group_count <= 1);
 
     // --- the folded extents (CANONICAL: the column-wise reading) ---
 
-    // width -- the columns the canonical table spans (the group widths,
+    // width - the columns the canonical table spans (the group widths,
     // summed: the flattened rank-2 view a rank-k declaration's rows fill).
     static D_CONSTEXPR std::size_t width = model_::width;
 
-    // height -- the rows the data declarators fill, INFERRED: each row<> is
+    // height - the rows the data declarators fill, INFERRED: each row<> is
     // one
     // row, and a flat rows<> is walked and wrapped at the width, spans
     // included.
     static D_CONSTEXPR std::size_t height = model_::height;
 
-    // declared_width / declared_height -- the extents as LITERALLY written.
+    // declared_width / declared_height - the extents as LITERALLY written.
     // They are the canonical pair for a column-major declaration and the
     // swapped pair for a row-major one, the two being transposes of one table.
     static D_CONSTEXPR std::size_t declared_width =
@@ -1099,42 +1099,42 @@ public:
     static D_CONSTEXPR std::size_t declared_height =
         (declared_axis_ == DTableAxis::row_major) ? width : height;
 
-    // declares_data -- whether any cells were declared (an empty typed table
+    // declares_data - whether any cells were declared (an empty typed table
     // declares a shape alone).
     static D_CONSTEXPR bool declares_data = model_::declares_data;
 
     // --- the model ---
 
-    // shape_type -- the folded table_shape: the domain and the cell types, in
+    // shape_type - the folded table_shape: the domain and the cell types, in
     // the canonical column-wise reading.
     using shape_type = typename model_::shape_type;
 
-    // layout_type -- the folded cover Gamma: the declared merges, with
+    // layout_type - the folded cover Gamma: the declared merges, with
     // singletons implied on the rest.
     using layout_type = typename model_::layout_type;
 
-    // columns_type -- the column types as a tuple (the row-record type of a
+    // columns_type - the column types as a tuple (the row-record type of a
     // heterogeneous realization).
     using columns_type = typename shape_type::columns_type;
 
     // --- read-through queries ---
 
-    // is_homogeneous -- whether one cell type serves every column.
+    // is_homogeneous - whether one cell type serves every column.
     static D_CONSTEXPR bool is_homogeneous = shape_type::is_homogeneous;
 
-    // element_type -- the common cell type when homogeneous.
+    // element_type - the common cell type when homogeneous.
     using element_type = typename shape_type::element_type;
 
-    // has_merges -- whether the declaration wears a non-trivial layout.
+    // has_merges - whether the declaration wears a non-trivial layout.
     static D_CONSTEXPR bool has_merges  = layout_type::has_merges;
 
     static D_CONSTEXPR std::size_t merge_count = layout_type::merge_count;
 
-    // realization -- the container family the shape backs onto.
+    // realization - the container family the shape backs onto.
     static D_CONSTEXPR DRealizationKind realization =
         realization_of<shape_type>::value;
 
-    // owner_of -- the layout cell owning atomic position (R, C): a declared
+    // owner_of - the layout cell owning atomic position (R, C): a declared
     // merge covering it, or the singleton there.
     template<std::size_t R,
              std::size_t C>
@@ -1142,7 +1142,7 @@ public:
 
     // --- conformance ---
 
-    // widths_conform -- whether every data declarator fits the table's width
+    // widths_conform - whether every data declarator fits the table's width
     // under the declared cell_count strictness. Exact (the default) demands a
     // one-to-one match; truncate / pad / lenient relax it in the named
     // direction.
@@ -1156,7 +1156,7 @@ public:
         "Relax this with a cell_count option -- truncate_counts (drop a "
         "surplus), pad_counts (fill a shortfall), or lenient_counts (either).");
 
-    // layout_conforms -- whether the declared merges form a valid cover of the
+    // layout_conforms - whether the declared merges form a valid cover of the
     // folded extents (in bounds, pairwise disjoint).
     static D_CONSTEXPR bool layout_conforms =
         layout_valid<layout_type, height, width>::value;

@@ -86,7 +86,7 @@ stage make_stage(
 }
 
 // peg_family
-//   function: a PEG family -- it handles ordered choice and predicates and
+//   function: a PEG family - it handles ordered choice and predicates and
 // cannot do left recursion, which is invariant 4 stated as a declaration.
 stage peg_family()
 {
@@ -100,7 +100,7 @@ stage peg_family()
 }
 
 // lr_family
-//   function: an LR family -- it handles what PEG rejects, and rejects the
+//   function: an LR family - it handles what PEG rejects, and rejects the
 // predicates PEG handles.
 stage lr_family()
 {
@@ -142,7 +142,7 @@ stage frontend(
 }
 
 // populate
-//   function: the registry most sections start from -- the PEG family and two
+//   function: the registry most sections start from - the PEG family and two
 // frontends, so that filtering by kind has something to filter.
 bool populate(
     registry& _registry
@@ -365,7 +365,7 @@ bool d_tests_parsegen_registry_flags(void)
         return false;
     }
 
-    // the same kind and name again: four families still, not five -- and the
+    // the same kind and name again: four families still, not five - and the
     // one now marked default wins over the one that merely accepts first
     return ( (reg.add(preferred))                                         &&
              (reg.count_of(DStageKind::family) == 4u)                     &&
@@ -537,7 +537,7 @@ bool d_tests_parsegen_storage_sparse(void)
 }  // namespace
 
 // d_tests_parsegen_registry
-//   constant: the suite -- every section this build has, the vocabulary before
+//   constant: the suite - every section this build has, the vocabulary before
 // the registry that selects by it.
 const dj_tests_section d_tests_parsegen_registry[] =
 {

@@ -2,8 +2,8 @@
 * djinterp [c][option]                                     option_env_registry.h
 *
 *   The djin registry: the program's root frame, and the list of the djins
-* beneath it. A djin is a named frame -- a printer, a logger, desc, a tool's
-* settings -- that declares its own variables; registered, it becomes the
+* beneath it. A djin is a named frame - a printer, a logger, desc, a tool's
+* settings - that declares its own variables; registered, it becomes the
 * registry frame's child, so it sees the program-wide variables the root
 * declares, and the registry can reach every setting of the program by its
 * full name, "env_printer.style" or "env_printer.cpp_features.key_width".
@@ -17,7 +17,7 @@
 *     d_option_env_registry_import(d_option_env_registry(), "DJINTERP_");
 *     d_option_env_registry_take_option(d_option_env_registry(), argc, argv,
 *                                       &at, &result);   // --my_djin.x=1
-*   A machine made after its djin is registered -- a second printer, say --
+*   A machine made after its djin is registered - a second printer, say --
 * makes its own frame a child of the djin's, and binds there what is its
 * alone.
 *
@@ -114,7 +114,7 @@ struct dj_option_env_registry*
         d_option_env_registry(void);
 
 /**
- * @brief Makes a registry of the caller's own -- a test's, a sandbox's --
+ * @brief Makes a registry of the caller's own - a test's, a sandbox's --
  *        empty, its root named `_name`.
  *
  * @param[out] _registry  the registry.
@@ -252,8 +252,8 @@ struct dj_option_result d_option_env_registry_load(
 
 /**
  * @brief Binds settings from the process's environment: the root's under
- *        `_prefix` -- "DJINTERP_COLOR" -- and each djin's under the prefix
- *        and its name -- "DJINTERP_ENV_PRINTER_STYLE".
+ *        `_prefix` - "DJINTERP_COLOR" - and each djin's under the prefix
+ *        and its name - "DJINTERP_ENV_PRINTER_STYLE".
  *
  * @note A djin sees the root's variables too, so the djin's prefix sets one
  *       of them for that djin alone: "DJINTERP_ENV_PRINTER_COLOR".
@@ -318,8 +318,8 @@ struct dj_option_result d_option_env_registry_set_getenv(
  *                           caller steps past it, as a for loop's ++ does.
  * @param[out]    _result    the binding's result when one was tried; may be
  *                           null.
- * @return 1 when it took a setting, 0 when the argument is not one -- an
- *         operand, "--", or no "--" at all -- and -1 when it named a
+ * @return 1 when it took a setting, 0 when the argument is not one - an
+ *         operand, "--", or no "--" at all - and -1 when it named a
  *         setting badly: the result says why, and
  *         d_option_env_registry_suggest what was meant.
  */
@@ -334,7 +334,7 @@ int32_t d_option_env_registry_take_option(
 //------------------------------------------------------------------------------
 /**
  * @brief The full name nearest one that names nothing: its failing part --
- *        the djin, the scope, the variable -- replaced by the nearest that
+ *        the djin, the scope, the variable - replaced by the nearest that
  *        exists, the rest kept.
  *
  * @param[in]  _registry  the registry.

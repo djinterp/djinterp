@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/functional/functional_common/CMakeLists.txt
+# djinterp [test]  -  build/cmake/config/testing/djinterp/c/functional/functional_common/CMakeLists.txt
 #
 #    Test leaf for functional/functional_common.h, in DTest's C face: the runner
 # in this directory, the section translation units globbed from the tests tree,

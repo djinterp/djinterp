@@ -51,7 +51,7 @@ bool concepts_tests_logical()
     bool verdict = true;
 
     // -------------------------------------------------------------------
-    // all_of -- conjunction
+    // all_of - conjunction
     // -------------------------------------------------------------------
     //   Empty pack folds to true (the identity element of &&).
 
@@ -66,7 +66,7 @@ bool concepts_tests_logical()
     DT_NOT_CONCEPT((AllOf<DTT, DTT, DTF>));
 
     // -------------------------------------------------------------------
-    // any_of -- disjunction
+    // any_of - disjunction
     // -------------------------------------------------------------------
     //   Empty pack folds to false (the identity element of ||).
 
@@ -80,7 +80,7 @@ bool concepts_tests_logical()
     DT_NOT_CONCEPT((AnyOf<DTF, DTF, DTF>));
 
     // -------------------------------------------------------------------
-    // none_of -- negation of any_of
+    // none_of - negation of any_of
     // -------------------------------------------------------------------
 
     DT_CONCEPT    ((NoneOf<>));                             // empty -> true
@@ -99,7 +99,7 @@ bool concepts_tests_logical()
     DT_CONCEPT    ((AnyOf<DTF, DTF>  != NoneOf<DTF, DTF>));
 
     // -------------------------------------------------------------------
-    // exactly_one_of -- "one-hot": exactly one predicate true
+    // exactly_one_of - "one-hot": exactly one predicate true
     // -------------------------------------------------------------------
 
     DT_NOT_CONCEPT((exactly_one_of<>));                      // zero true ones
@@ -120,7 +120,7 @@ bool concepts_tests_logical()
     DT_NOT_CONCEPT((exactly_one_of<DTT, DTF, DTT, DTF>));        // one-hot FALSE
 
     // -------------------------------------------------------------------
-    // xor_of -- cumulative pairwise XOR (new concept; parallels
+    // xor_of - cumulative pairwise XOR (new concept; parallels
     //           djinterp::exclusive_disjunction)
     // -------------------------------------------------------------------
     //   Recurrence in concepts.hpp internal::xor_of_impl:
@@ -130,20 +130,20 @@ bool concepts_tests_logical()
     //     3+ args        -> (_B1 != _B2) AND xor_of<_Bs...>
     //   Walk through every shape up to four args.
 
-    //   0 args -- documented false
+    //   0 args - documented false
     DT_NOT_CONCEPT((xor_of<>));
 
-    //   1 arg -- takes the predicate's own value
+    //   1 arg - takes the predicate's own value
     DT_CONCEPT    ((xor_of<DTT>));
     DT_NOT_CONCEPT((xor_of<DTF>));
 
-    //   2 args -- pure XOR
+    //   2 args - pure XOR
     DT_CONCEPT    ((xor_of<DTT, DTF>));                        //  T XOR F  = T
     DT_CONCEPT    ((xor_of<DTF, DTT>));                        //  F XOR T  = T
     DT_NOT_CONCEPT((xor_of<DTT, DTT>));                        //  T XOR T  = F
     DT_NOT_CONCEPT((xor_of<DTF, DTF>));                        //  F XOR F  = F
 
-    //   3 args -- (B1 XOR B2) AND xor_of<[B3]> = (B1 XOR B2) AND B3
+    //   3 args - (B1 XOR B2) AND xor_of<[B3]> = (B1 XOR B2) AND B3
     DT_CONCEPT    ((xor_of<DTT, DTF, DTT>));                    // (T!=F) && T  = T
     DT_CONCEPT    ((xor_of<DTF, DTT, DTT>));                    // (F!=T) && T  = T
     DT_NOT_CONCEPT((xor_of<DTT, DTF, DTF>));                    // (T!=F) && F  = F
@@ -153,7 +153,7 @@ bool concepts_tests_logical()
     DT_NOT_CONCEPT((xor_of<DTT, DTT, DTF>));                    // (T!=T) && F  = F
     DT_NOT_CONCEPT((xor_of<DTF, DTF, DTF>));                    // (F!=F) && F  = F
 
-    //   4 args -- (B1 XOR B2) AND xor_of<[B3, B4]> = (B1!=B2) && (B3!=B4)
+    //   4 args - (B1 XOR B2) AND xor_of<[B3, B4]> = (B1!=B2) && (B3!=B4)
     DT_CONCEPT    ((xor_of<DTT, DTF, DTT, DTF>));                // T && T  = T
     DT_CONCEPT    ((xor_of<DTF, DTT, DTF, DTT>));                // T && T  = T
     DT_CONCEPT    ((xor_of<DTT, DTF, DTF, DTT>));                // T && T  = T

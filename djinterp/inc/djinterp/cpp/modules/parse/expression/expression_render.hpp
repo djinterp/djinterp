@@ -4,7 +4,7 @@
 *   Turning an expression back into text, correctly parenthesized.  Rendering
 * is a fold: each sub-term becomes a string together with the precedence of
 * its top operator, and a parent wraps a child in parentheses exactly when
-* the child would otherwise re-associate -- when it binds looser than the
+* the child would otherwise re-associate - when it binds looser than the
 * parent, or equally loose on the wrong side.  The precedence, associativity,
 * fixity, and spelling all come from the operator_signature (expression.hpp),
 * so a language renders by describing its operators once; no per-operator
@@ -12,9 +12,9 @@
 *
 *   LAYOUT FROM FIXITY.  With a matching arity, an infix operator prints
 * `left OP right`, a prefix `OP operand`, a postfix `operand OP`, and a
-* nullary its bare symbol.  Anything else -- a matchfix operator, an
+* nullary its bare symbol.  Anything else - a matchfix operator, an
 * arity that does not match the fixity, an operator of arity greater than
-* two -- falls back to an unambiguous functional form `OP(a, b, ...)`, which
+* two - falls back to an unambiguous functional form `OP(a, b, ...)`, which
 * needs no parenthesization and reads as a primary.  Spacing adapts to the
 * spelling: a word-like spelling (`and`, `not`) is spaced from its operand,
 * a symbolic one (`-`, `!`) is not.
@@ -28,7 +28,7 @@
 *
 *   STATIC TERMS render by reifying first:
 *     render(reify<OpId, Atom>(static_term), signature, atom_renderer)
-* -- expression_static.hpp supplies reify; this header stays on the dynamic
+* - expression_static.hpp supplies reify; this header stays on the dynamic
 * term and does not depend on the static face.
 *
 *
@@ -73,7 +73,7 @@ NS_DJINTERP
 ///             I.    RENDER CARRIER & LAYOUT                               ///
 ///////////////////////////////////////////////////////////////////////////////
 //   The fold that renders carries, for each sub-term, its rendered text, the
-// precedence of its top operator, and whether it is atomic -- a leaf, a
+// precedence of its top operator, and whether it is atomic - a leaf, a
 // constant, or a functional form that never needs wrapping.  A parent uses
 // those to decide parentheses per the precedence / associativity rule.
 
@@ -105,7 +105,7 @@ NS_INTERNAL
     };
 
     // is_word_char
-    //   helper: whether a character is word-like ([A-Za-z0-9_]) -- used to
+    //   helper: whether a character is word-like ([A-Za-z0-9_]) - used to
     // decide whether a spelling needs a space against its operand.
     inline bool
     is_word_char(char _c)
@@ -160,7 +160,7 @@ NS_INTERNAL
             return true;
         }
 
-        // equal precedence -- keep the child on the operator's associating
+        // equal precedence - keep the child on the operator's associating
         // side unwrapped, wrap it on the other
         if (_assoc == DAssocLeft)
         {
@@ -172,7 +172,7 @@ NS_INTERNAL
             return ((_position + 1) != _arity);
         }
 
-        // non-associative -- wrap to disambiguate
+        // non-associative - wrap to disambiguate
         return true;
     }
 
@@ -196,7 +196,7 @@ NS_INTERNAL
     }
 
     // render_functional
-    //   helper: the unambiguous functional form  head(a, b, ...)  -- the
+    //   helper: the unambiguous functional form  head(a, b, ...)  - the
     // fallback layout, and itself a primary (atomic), so it never needs
     // outer parentheses.
     inline render_carrier
@@ -252,13 +252,13 @@ render
     internal::render_carrier _result =
         evaluate<internal::render_carrier, OpId, Atom>(
             _expression,
-            // on_leaf -- the atom's own text, atomic
+            // on_leaf - the atom's own text, atomic
             [_atom_renderer](const Atom& _atom) -> internal::render_carrier
             {
                 return internal::render_carrier(
                     _atom_renderer(_atom), 0, true);
             },
-            // on_apply -- lay the operator out around its rendered children
+            // on_apply - lay the operator out around its rendered children
             [&_signature]
             (const OpId&                                   _op,
              const std::vector<internal::render_carrier>&    _children)
@@ -269,7 +269,7 @@ render
 
                 const std::size_t _n = _children.size();
 
-                // unknown operator -- unambiguous functional form
+                // unknown operator - unambiguous functional form
                 if (_descriptor == nullptr)
                 {
                     return internal::render_functional("?", _children);
@@ -325,7 +325,7 @@ render
                         _spelling, _precedence, true);
                 }
 
-                // matchfix, arity mismatch, or higher arity -- functional
+                // matchfix, arity mismatch, or higher arity - functional
                 // form
                 return internal::render_functional(_spelling, _children);
             });

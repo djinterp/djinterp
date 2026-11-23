@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  profunctor_tests_protocol.cpp
-//   Section II -- profunctor_traits, is_profunctor, the internal helpers, the
+//   Section II - profunctor_traits, is_profunctor, the internal helpers, the
 //   Profunctor concept.
 
 // std
@@ -49,7 +49,7 @@ bool tests_is_profunctor_positive()
 
 /*
 tests_is_profunctor_negative
-  Non-profunctors are rejected -- including a bare callable, which is precisely
+  Non-profunctors are rejected - including a bare callable, which is precisely
   why the arrow wrapper exists.
   Tests the following:
   - an unrelated struct, scalars, and a raw lambda are not profunctors

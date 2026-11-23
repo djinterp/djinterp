@@ -1,5 +1,5 @@
 #!/bin/sh
-# same_tokens.sh -- `dcheck --same-tokens`, the check every fixer's work is
+# same_tokens.sh - `dcheck --same-tokens`, the check every fixer's work is
 # put through, against pairs it must pass and pairs it must not.
 #
 #   tests/dawk/same_tokens/same/     <name>.before.* and <name>.after.*: what

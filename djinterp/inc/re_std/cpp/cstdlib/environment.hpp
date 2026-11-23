@@ -14,7 +14,7 @@
 *   system IS A SECURITY BOUNDARY:
 *   The argument is handed to a command interpreter, so any part of it
 * built from untrusted input is a shell injection. `system(RE_STD_NULLPTR)`
-* is the one safe call -- it merely reports whether an interpreter is
+* is the one safe call - it merely reports whether an interpreter is
 * available. There is no portable escaping routine, which is why re_std
 * offers none: a helper that looked like it made the call safe would be
 * worse than the raw function.
@@ -49,7 +49,7 @@ namespace re_std
 
     // getenv
     //   function: look up an environment variable, or null if unset. The
-    // result is borrowed -- see the header comment.
+    // result is borrowed - see the header comment.
     using ::std::getenv;
 
     // system

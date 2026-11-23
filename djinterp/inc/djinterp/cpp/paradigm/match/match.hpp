@@ -11,21 +11,21 @@
 *
 *   FIRST-MATCH-WINS IS ORDERED CHOICE.  Clauses are tried in registration
 * order and the first whose pattern matches (and whose guard, if any, holds)
-* commits -- the same total-order-makes-a-nondeterministic-combine-
+* commits - the same total-order-makes-a-nondeterministic-combine-
 * deterministic device as the parser's PEG ordered choice (or_) and as
 * sequential override at execution time.  Registration order therefore *is*
 * the clause precedence.
 *
 *   TWO PATHS (mirroring DParserExpr/parser and filter's typed/erased
 * forms):
-*     - match_clause<Pattern, Handler>  -- a static, zero-erasure clause;
+*     - match_clause<Pattern, Handler>  - a static, zero-erasure clause;
 *           composes and inspects without indirection.
-*     - matcher<Input, Output>          -- a runtime, std::function-erased
+*     - matcher<Input, Output>          - a runtime, std::function-erased
 *           accumulation of clauses: the dispatch table.  Uniform Output
 *           across arms, like a match expression.
 *
 *   HANDLERS.  A handler is invoked with the input and (optionally) the
-* capture map the pattern produced -- whichever of
+* capture map the pattern produced - whichever of
 *     handler(const input&, const captures&)
 *     handler(const input&)
 * is well-formed, preferring the capture-aware form.  Capture-oblivious
@@ -135,8 +135,8 @@ constexpr match_status DMatchStatusUserBase    = 64;
 ///                II.  HANDLER & GUARD TRAITS                              ///
 ///////////////////////////////////////////////////////////////////////////////
 //
-//   A handler is accepted in either of two shapes -- capture-aware
-//   (input, captures) or capture-oblivious (input) -- with the
+//   A handler is accepted in either of two shapes - capture-aware
+//   (input, captures) or capture-oblivious (input) - with the
 //   capture-aware form preferred where both are viable.  These traits
 //   detect the shapes and name the resulting type; the invoke helper
 //   performs the ranked dispatch.
@@ -226,7 +226,7 @@ NS_INTERNAL
     };
 
     // invoke_handler (capture-aware, rank 0)
-    //   helper: preferred overload -- calls handler(input, captures).
+    //   helper: preferred overload - calls handler(input, captures).
     template<typename Handler,
              typename In,
              typename Caps>
@@ -243,7 +243,7 @@ NS_INTERNAL
     }
 
     // invoke_handler (capture-oblivious, rank 1)
-    //   helper: fallback overload -- calls handler(input).
+    //   helper: fallback overload - calls handler(input).
     template<typename Handler,
              typename In,
              typename Caps>
@@ -286,7 +286,7 @@ using match_handler_result_t =
 
 // is_match_handler
 //   trait: true iff Handler is callable in one of the accepted shapes
-// -- (input, captures) or (input).
+// - (input, captures) or (input).
 template<typename Handler,
          typename Input,
          typename Captures>
@@ -300,7 +300,7 @@ struct is_match_handler
 };
 
 // is_input_handler
-//   trait: true iff Handler is callable as (const Input&) -- the shape
+//   trait: true iff Handler is callable as (const Input&) - the shape
 // accepted by matcher::otherwise.
 template<typename Handler,
          typename Input>
@@ -313,7 +313,7 @@ struct is_input_handler
 
 // is_match_guard
 //   trait: true iff Guard is callable as (const Input&) with a
-// bool-convertible result -- the shape accepted by the guarded when().
+// bool-convertible result - the shape accepted by the guarded when().
 template<typename Guard,
          typename Input,
          typename = void>
@@ -360,7 +360,7 @@ static D_CONSTEXPR bool is_match_guard_v =
 // =================================================================
 
 // DMatchClause
-//   class: a static (pattern, handler) pairing -- one arm of a match,
+//   class: a static (pattern, handler) pairing - one arm of a match,
 // with no type erasure.  Exposes the applicability test and the arm
 // action separately, and a try_apply() that fuses them.  The pattern's
 // input_type and capture_map_type are inherited through the pattern<>
@@ -409,7 +409,7 @@ public:
     // run
     //   method: invokes the handler on the input, threading the pattern's
     // captures when the handler accepts them.  Does not itself test the
-    // pattern -- see try_apply for the guarded form.
+    // pattern - see try_apply for the guarded form.
     D_NODISCARD
     result_type run(
         const input_type& _in
@@ -457,7 +457,7 @@ using match_clause = DMatchClause<Pattern, Handler>;
 
 // when
 //   function: constructs a match_clause from a pattern and a handler.
-// The spelling reads as the head of a matcher arm -- when(p, h).
+// The spelling reads as the head of a matcher arm - when(p, h).
 template<typename Pattern,
          typename Handler>
 D_NODISCARD
@@ -482,7 +482,7 @@ when
 ///////////////////////////////////////////////////////////////////////////////
 
 // DMatcher
-//   class: an ordered dispatch table -- a growable list of clauses over a
+//   class: an ordered dispatch table - a growable list of clauses over a
 // shared input_type, each yielding a shared output_type.  Clauses are
 // erased to (test, run) function pairs (mirroring filter's std::function
 // choice over virtual dispatch), so heterogeneous patterns and handlers
@@ -506,7 +506,7 @@ public:
     // -----------------------------------------------------------------
 
     // when
-    //   method: appends a clause -- when the input matches _pattern, the
+    //   method: appends a clause - when the input matches _pattern, the
     // arm _handler produces the output.  Registration order is clause
     // precedence.  Returns *this for chaining.
     template<typename Pattern,
@@ -665,7 +665,7 @@ public:
 
     // apply_result
     //   method: as apply(), but reports the unmatched case as a typed
-    // error -- err(DMatchStatusNoMatch) -- rather than nothing.
+    // error - err(DMatchStatusNoMatch) - rather than nothing.
     D_NODISCARD
     DResult<output_type, status_type> apply_result(
         const input_type& _in
@@ -705,7 +705,7 @@ public:
 
 private:
     // erased_clause
-    //   struct: a type-erased (test, run) pair -- the runtime form of one
+    //   struct: a type-erased (test, run) pair - the runtime form of one
     // clause.  test decides applicability; run produces the output.
     struct erased_clause
     {
@@ -857,7 +857,7 @@ std::vector<typename Matcher::output_type> apply_range(
 ///////////////////////////////////////////////////////////////////////////////
 
 // is_match_clause
-//   trait: detects the static clause surface -- a nested input_type plus
+//   trait: detects the static clause surface - a nested input_type plus
 // a matches(input) -> bool face.  Satisfied by match_clause<> and any
 // user type of the same shape.
 template<typename Type,
@@ -877,7 +877,7 @@ struct is_match_clause<Type, void_t<
 
 
 // is_matcher_like
-//   trait: detects the runtime matcher surface -- nested input_type and
+//   trait: detects the runtime matcher surface - nested input_type and
 // output_type plus an apply(input) face.  Element-agnostic beyond those.
 template<typename Type,
          typename = void>

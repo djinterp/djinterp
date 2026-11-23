@@ -91,7 +91,7 @@
 #include <type_traits>  // std::is_same
 #include <utility>      // std::declval
 // djinterp
-// -- (part 1) mode-gated includes --------------------------------------------
+// - (part 1) mode-gated includes --------------------------------------------
 #include <djinterp/cpp/djinterp.hpp>  // framework root
 #ifndef DTEST_SPEC_MODE
 #include <djinterp/cpp/container/array/array.hpp>             // under test
@@ -157,7 +157,7 @@ bool array_check(
     while (0)
 
 
-#ifndef DTEST_SPEC_MODE  // (part 1 cont.) fixtures -- normal mode only
+#ifndef DTEST_SPEC_MODE  // (part 1 cont.) fixtures - normal mode only
 
 ///////////////////////////////////////////////////////////////////////////////
 ///             F.1   THE SIX CELLS                                         ///
@@ -263,7 +263,7 @@ using ay_array_swap_t = decltype(
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- (part 2) declarations -- visible in BOTH modes --------------------------
+// - (part 2) declarations - visible in BOTH modes --------------------------
 
 // I.    CONSTRUCTION   (array_tests_construction.cpp)
 bool tests_construction_default_value_initializes();
@@ -357,7 +357,7 @@ bool tests_threadsafe_concurrent_apply();
 bool tests_threadsafe_optimistic_is_never_torn();
 
 
-// -- (part 3) the spec provider -- spec mode only ----------------------------
+// - (part 3) the spec provider - spec mode only ----------------------------
 #ifdef DTEST_SPEC_MODE
 
 // array_spec_construction .. array_spec_threadsafe

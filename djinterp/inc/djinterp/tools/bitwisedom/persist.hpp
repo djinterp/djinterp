@@ -45,7 +45,7 @@ namespace bitwisedom
 const char* const SHEET_FORMAT  = "bitwisedom.sheet";
 const int         SHEET_VERSION = 1;
 
-// text -- a sheet as file text, and back
+// text - a sheet as file text, and back
 D_NODISCARD std::string save_sheet(
     const sheet& _sheet
 );
@@ -64,7 +64,7 @@ D_NODISCARD bool load_sheet(
     std::string&     _error
 );
 
-// objects -- a sheet as the JSON object a sheet file holds, and back, for
+// objects - a sheet as the JSON object a sheet file holds, and back, for
 // the formats that carry one (exchange.hpp)
 D_NODISCARD json_value sheet_object(
     const sheet& _sheet
@@ -75,7 +75,7 @@ D_NODISCARD bool sheet_from_object(
     std::string&      _error
 );
 
-// generator settings -- as a sheet file holds them; reading keeps whatever
+// generator settings - as a sheet file holds them; reading keeps whatever
 // the object leaves out
 D_NODISCARD json_value generator_object(
     const gen_settings& _gen
@@ -85,7 +85,7 @@ void read_generator(
     gen_settings&     _gen
 );
 
-// words -- each enumeration a file names, as the word it is written as;
+// words - each enumeration a file names, as the word it is written as;
 // read_enum leaves the value as it was, and is false, for any other word
 D_NODISCARD std::string enum_word(
     encoding _value
@@ -130,7 +130,7 @@ D_NODISCARD bool read_enum(
     def_kind&          _value
 );
 
-// files -- whole-file reads and writes, by a UTF-8 path; false, with a
+// files - whole-file reads and writes, by a UTF-8 path; false, with a
 // reason, on failure
 D_NODISCARD bool read_file(
     const std::string& _path,

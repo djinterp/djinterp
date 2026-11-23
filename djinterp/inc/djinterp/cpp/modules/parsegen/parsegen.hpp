@@ -3,7 +3,7 @@
 *
 *   The C++ face of the parsegen umbrella.
 *   Everything the subsystem needs is in parsegen.h; this adds the one part of
-* an umbrella that cannot be written in C -- the namespace macro -- and
+* an umbrella that cannot be written in C - the namespace macro - and
 * nothing else. A parsegen header written in C includes parsegen.h directly;
 * one written in C++ includes this and opens its scope with NS_PARSEGEN.
 *

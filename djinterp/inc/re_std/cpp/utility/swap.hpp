@@ -8,7 +8,7 @@
 *
 *   Tiered implementation:
 *     C++14+   constexpr, move-based, conditional noexcept
-*     C++11    move-based, conditional noexcept (not constexpr -- move
+*     C++11    move-based, conditional noexcept (not constexpr - move
 *              ctor + two assignments would be a multi-statement
 *              constexpr body, not permitted before C++14)
 *     C++98/03 copy-based, no qualifiers
@@ -55,7 +55,7 @@ namespace re_std
 {
 
 // =============================================================================
-// SWAP -- SCALAR
+// SWAP - SCALAR
 // =============================================================================
 
 #if RE_STD_LANG_IS_CPP14_OR_HIGHER
@@ -79,7 +79,7 @@ namespace re_std
     #else  // rvalue references but no variadic templates
 
         // swap (C++14+ without variadic templates: constexpr, move-based)
-        //   no noexcept clause -- the requisite is_nothrow_* traits
+        //   no noexcept clause - the requisite is_nothrow_* traits
         //   are not available without variadic templates.
         template<typename Type>
         RE_STD_CONSTEXPR void swap(Type& _lhs,
@@ -143,7 +143,7 @@ namespace re_std
 #endif
 
 // =============================================================================
-// SWAP -- ARRAY
+// SWAP - ARRAY
 // =============================================================================
 
 #if RE_STD_LANG_IS_CPP14_OR_HIGHER

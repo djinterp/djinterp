@@ -888,11 +888,11 @@ of a term, `str()` writes as the renderer does, `x ^ 2 * sin(x)`.
   rotations among them (S275); their factors kept in order by
   simplification, p / q the quotient p inv(q), and matrices of
   quaternions, Zhang's standard eigenvalues by complex QR (S277). In three
-  chunks (S357): chunk 44 the first, `quat.h` grown and accurate -- the
+  chunks (S357): chunk 44 the first, `quat.h` grown and accurate - the
   product, inverse and quotients by Dot2 in pairs, the rotation q v q^-1
   of any q not 0, Shepperd's method, two vectors' quaternion, nlerp, slerp
   by the chords' angle, and exp, log, sqrt and powers in q's plane, the
-  former formulas the `_fast` forms -- and both C++ faces taking each
+  former formulas the `_fast` forms - and both C++ faces taking each
   (S358 to S367), and found `cplx.h`'s whole powers off where a part
   cancels (S368); chunk 45 the second, those powers in pairs (S370), then
   the kind in the language, of rank 950, `jm`, `km`, `quat`, `parts`,

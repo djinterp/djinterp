@@ -9,10 +9,10 @@
 * `const char*` and text map onto the C library's own descriptors, so an
 * `int` bound from C++ converts through the descriptor C binds one through,
 * at the same cost. The face gives the rest descriptors of its own, as CLI11
-* classifies a type: std::string; the standard containers -- vector, deque,
+* classifies a type: std::string; the standard containers - vector, deque,
 * list, the sets and the maps, and from C++11 the unordered ones; from
-* C++11, enumerations; the tuple-like types -- std::pair, and from C++11
-* std::tuple and std::array -- which take one value for each part; complex
+* C++11, enumerations; the tuple-like types - std::pair, and from C++11
+* std::tuple and std::array - which take one value for each part; complex
 * numbers; from C++17, std::optional and std::string_view; a type made from
 * a std::string; with wide text, a type made from a std::wstring --
 * std::wstring itself, and, where the system's own text is wide, as on
@@ -22,7 +22,7 @@
 * operator<<, as CLI11 reads and writes a type it knows nothing else of.
 *   The conversions are CLI11's: an empty value is the type's
 * value-initialized object; a container takes one element from each value,
-* or from each group of values for elements taking more -- a map's pairs --
+* or from each group of values for elements taking more - a map's pairs --
 * is emptied by "{}", and its elements convert as the element type does; a
 * streamed value must be read whole; a value made wide must be UTF-8. As the
 * C library's converters do, the face's write their target only when they
@@ -30,7 +30,7 @@
 * implicit conversion, and a streamed type needs both operators; from C++11,
 * the standard's traits tell, and a type without operator<< has no text
 * form, which CLI11 writes as nothing. A duration is its count, which CLI11
-* reads as an `int` and writes as a stream writes the duration -- nothing,
+* reads as an `int` and writes as a stream writes the duration - nothing,
 * or, from C++20, `9s`, which it cannot read back.
 *   A type of the caller's own is given its own conversions by a full
 * specialization of type_traits; a container of the caller's own by one
@@ -184,8 +184,8 @@ namespace cli
 // program; `target(Type&)`, the address its converter writes; and
 // `source(const Type&)`, the address its writer reads. The default is
 // internal::default_traits (section 3.4). A full specialization of the
-// caller's own replaces it for a type -- one deriving from
-// container_traits, for a container -- and is then used wherever the type
+// caller's own replaces it for a type - one deriving from
+// container_traits, for a container - and is then used wherever the type
 // is, the elements of a container included.
 template<typename Type>
 struct type_traits;
@@ -205,8 +205,8 @@ NS_END  // internal
 // 1.2.1
 // container_traits
 //   trait: a container's descriptor: CLI11's conversion of a container of
-// single values -- each value one element, converted as type_traits<value_type>
-// converts it, inserted at the end; "{}" alone an empty container -- and its
+// single values - each value one element, converted as type_traits<value_type>
+// converts it, inserted at the end; "{}" alone an empty container - and its
 // writing, "[a,b]", or "{}" when empty. The descriptor is named, sized and
 // flagged as its element is, with D_ARG_TYPE_FLAG_CONTAINER beside the
 // element's flags, and expects an unlimited number of values; it is made the
@@ -238,7 +238,7 @@ struct container_traits
 //------------------------------------------------------------------------------
 // 2.1.1
 // type_name
-//   function: the name help shows for Type -- "INT", "FLOAT", "TEXT" -- as
+//   function: the name help shows for Type - "INT", "FLOAT", "TEXT" - as
 // its descriptor names it. Neither allocates nor fails.
 template<typename Type>
 const char* type_name();
@@ -327,7 +327,7 @@ NS_INTERNAL
     //   these types under other names, and are found as them; where
     //   std::size_t or std::ptrdiff_t is a type no specialization names --
     //   `unsigned long long` and `long long` where C++98 strict has no such
-    //   types, on a system whose `long` is narrower than a pointer -- it is
+    //   types, on a system whose `long` is narrower than a pointer - it is
     //   found by builtin_fallback, as the C library's SIZE and PTRDIFF.
     template<typename Type>
     struct builtin_fallback
@@ -591,7 +591,7 @@ D_LONG_LONG_DIAG_POP
     // 3.1.5
     // is_const
     //   trait: std::is_const, at every language level, as `value`: a tuple
-    //   whose parts are const -- a map's pair -- is written, not converted
+    //   whose parts are const - a map's pair - is written, not converted
     //   into; and an argument after a name is a description, as CLI11 tells
     //   one from a variable to bind.
     template<typename Type>
@@ -615,8 +615,8 @@ D_LONG_LONG_DIAG_POP
 
     // 3.1.6
     // DTupleAccess / tuple_part
-    //   traits: CLI11's tuple-like types -- std::pair, and from C++11
-    //   std::tuple and std::array -- as `size`, the number of parts, 0 for
+    //   traits: CLI11's tuple-like types - std::pair, and from C++11
+    //   std::tuple and std::array - as `size`, the number of parts, 0 for
     //   any other type, and `writable`, whether no part is const; and part
     //   Index of one, as `type` and `get()`.
     template<typename Type>
@@ -807,8 +807,8 @@ D_LONG_LONG_DIAG_POP
 
     // 3.1.10
     // DTextAbilities / DWideAbilities
-    //   traits: how Type meets a string -- a std::string, and, for
-    //   DWideAbilities, a std::wstring -- as CLI11 classifies it: `from`, it
+    //   traits: how Type meets a string - a std::string, and, for
+    //   DWideAbilities, a std::wstring - as CLI11 classifies it: `from`, it
     //   is assigned or made from one, CLI11's string_assignable and
     //   string_constructible, or wstring_assignable and
     //   wstring_constructible, with `assigns` telling which; and `to`, it
@@ -892,8 +892,8 @@ D_LONG_LONG_DIAG_POP
     //   C library's is made from a number, as `value`: CLI11's
     //   number_constructible (both), integer_constructible (an `int`) and
     //   double_constructible (a `double`), or none. An aggregate is made from
-    //   neither -- C++20 would make `struct { int x, y; }` from an `int`, as
-    //   CLI11 then does -- so that it is read with its stream operators at
+    //   neither - C++20 would make `struct { int x, y; }` from an `int`, as
+    //   CLI11 then does - so that it is read with its stream operators at
     //   every level.
     struct number_kind
     {
@@ -1167,10 +1167,10 @@ NS_INTERNAL
     // first_value / is_separator / quiet_context
     //   functions: the first of a converter's values, or the empty text when
     //   it was given none, as the C library's scalar converters read them;
-    //   whether a value separates groups -- empty, or "%%" -- as CLI11's
+    //   whether a value separates groups - empty, or "%%" - as CLI11's
     //   is_separator judges; and a converter's context without its buffer
     //   for reasons, for a conversion tried as one way among others, whose
-    //   failure is no error -- the configured integer rule without a
+    //   failure is no error - the configured integer rule without a
     //   context. None allocates or fails.
     text first_value(
         const ::dj_pack_text* _values,
@@ -1185,8 +1185,8 @@ NS_INTERNAL
 
     // 3.3.2
     // DStringAssign / string_convert / string_format
-    //   class, functions: std::string's conversion -- the first value,
-    //   copied, as CLI11's lexical_assign copies it -- run under guard, and
+    //   class, functions: std::string's conversion - the first value,
+    //   copied, as CLI11's lexical_assign copies it - run under guard, and
     //   its writing, the string itself.
     class DStringAssign
     {
@@ -1224,8 +1224,8 @@ NS_INTERNAL
     //   classes, functions: a type known by its stream operators, as CLI11's
     //   DFromStream and to_string know it: an empty value is Type(); any
     //   other is read with operator>> into a Type() and must be read whole,
-    //   nothing failing and nothing left -- stream_parse, which the other
-    //   conversions fall back to, as CLI11's do -- written with operator<<.
+    //   nothing failing and nothing left - stream_parse, which the other
+    //   conversions fall back to, as CLI11's do - written with operator<<.
     template<typename Type>
     class DStreamRead
     {
@@ -1289,8 +1289,8 @@ NS_INTERNAL
     //   "{}" alone, an empty container; otherwise each value an element,
     //   converted through the element's descriptor and inserted at the end,
     //   but for "{}" followed by a separator, which makes one element and
-    //   stops. Of elements taking more -- pairs, a map's included, and other
-    //   tuples -- each group of values an element: a pair's two, the last
+    //   stops. Of elements taking more - pairs, a map's included, and other
+    //   tuples - each group of values an element: a pair's two, the last
     //   left alone failing; a larger tuple's as many as it takes, a
     //   separator ending a group early. A map's element converts as a pair
     //   whose key is not const. The elements are built in a container of the
@@ -1361,7 +1361,7 @@ NS_INTERNAL
     // DTupleWalk and kin
     //   structs, class, functions: a tuple-like type's conversion, as
     //   CLI11's tuple_conversion: each part in turn takes as many values as
-    //   its type does -- its descriptor's most -- converted through its own
+    //   its type does - its descriptor's most - converted through its own
     //   descriptor, the values running out leaving the parts after them as
     //   made, into a Tuple() of the converter's own that replaces the target
     //   only when every part converted; its writing, "[a,b]", each part as
@@ -1478,7 +1478,7 @@ NS_INTERNAL
     // DComplexFill / complex_convert
     //   class, function: a std::complex's conversion, as CLI11's: two values,
     //   the real part and the imaginary, an `i` or `j` after it dropped; or
-    //   one -- "1+2i", "-3j", "4" -- split at its last sign, an imaginary
+    //   one - "1+2i", "-3j", "4" - split at its last sign, an imaginary
     //   part known by its `i` or `j`; else read with operator>>, as "(1,2)"
     //   is; an empty value is (0,0). The parts convert as their type does.
     //   It is written with operator<<, as CLI11 writes one.
@@ -1528,10 +1528,10 @@ NS_INTERNAL
 
     // 3.3.8
     // DTextAssign and kin
-    //   classes, functions: a type made from text -- CLI11's
-    //   string_assignable and string_constructible -- given the value as a
-    //   std::string, assigned where it may be -- from C++11, as the
-    //   standard's traits tell -- else made from it; and written as the
+    //   classes, functions: a type made from text - CLI11's
+    //   string_assignable and string_constructible - given the value as a
+    //   std::string, assigned where it may be - from C++11, as the
+    //   standard's traits tell - else made from it; and written as the
     //   std::string it converts to.
     template<typename Type>
     class DTextAssign
@@ -1612,7 +1612,7 @@ NS_INTERNAL
     // DTupleConverter and kin
     //   traits: a descriptor's functions where a type may lack one, as `get()`:
     //   the function, or NULL when the type cannot have it, so that a
-    //   function the type cannot have is never made -- a tuple with a const
+    //   function the type cannot have is never made - a tuple with a const
     //   part, a map's pair, is written but not converted into; a type
     //   without operator<<, or without a std::string to become, has no text
     //   form, as CLI11 writes it as nothing.
@@ -1682,7 +1682,7 @@ NS_INTERNAL
     // DNumberFill and kin
     //   class, traits, function: from C++11, a type made from a number --
     //   CLI11's number_constructible, integer_constructible and
-    //   double_constructible -- given the value read as an `int`, or as a
+    //   double_constructible - given the value read as an `int`, or as a
     //   `double`, as its category allows and in that order, else read with
     //   operator>> where it can be; an empty value is Type(). Each trait
     //   tries one way, or, where the type cannot be made that way, none.
@@ -1785,8 +1785,8 @@ NS_INTERNAL
     // 3.3.11
     // DDurationFill and kin
     //   classes, functions: from C++11, a std::chrono duration's conversion
-    //   -- its count, read through the count's descriptor, made into the
-    //   duration; an empty value Duration() -- and its writing, the count as
+    //   - its count, read through the count's descriptor, made into the
+    //   duration; an empty value Duration() - and its writing, the count as
     //   the count's descriptor writes it.
     template<typename Duration>
     class DDurationFill
@@ -1891,8 +1891,8 @@ NS_INTERNAL
     // 3.3.13
     // view_convert / view_format
     //   functions: from C++17, a std::string_view: a view of the first value,
-    //   which the parser keeps -- as the C library's TEXT descriptor's spans
-    //   -- until its next parse, clear or release; written as the text it
+    //   which the parser keeps - as the C library's TEXT descriptor's spans
+    //   - until its next parse, clear or release; written as the text it
     //   views.
     int view_convert(
         const ::dj_arg_type*            _type,
@@ -1916,12 +1916,12 @@ NS_INTERNAL
     //   functions, classes: with wide text, UTF-8 made a std::wstring --
     //   d_arg_wide_from_utf8's status, `_out` changed only for D_ARG_OK --
     //   and wide text written to a sink as UTF-8; and a type made from wide
-    //   text -- CLI11's wstring_assignable and wstring_constructible -- given
+    //   text - CLI11's wstring_assignable and wstring_constructible - given
     //   the value widened, as CLI11's widen() makes it, assigned where it may
     //   be, else made from it, a value that is not UTF-8 refused as one that
     //   does not convert; and written as the std::wstring it converts to,
     //   made UTF-8, else as the std::string it converts to, else not at all
-    //   -- DWideFormatter's `get()` giving the function, or NULL.
+    //   - DWideFormatter's `get()` giving the function, or NULL.
     int widen_text(
         const text&   _text,
         std::wstring& _out
@@ -2112,8 +2112,8 @@ NS_INTERNAL
     // 3.4.6
     // Enumerations
     //   trait: from C++11, an enumeration converts and writes as its
-    //   underlying type does -- as a number when that type is a character
-    //   type, as CLI11's integral_conversion reads one -- and is named
+    //   underlying type does - as a number when that type is a character
+    //   type, as CLI11's integral_conversion reads one - and is named
     //   "ENUM", flagged D_ARG_TYPE_FLAG_ENUM, and D_ARG_TYPE_FLAG_SIGNED
     //   when it holds negative values. It is not flagged an integer: CLI11
     //   does not count an enumeration's flag, as it counts an integer's.
@@ -2226,7 +2226,7 @@ NS_INTERNAL
 
     // 3.4.8
     // Tuples
-    //   trait: a tuple-like type -- std::pair, std::tuple, std::array --
+    //   trait: a tuple-like type - std::pair, std::tuple, std::array --
     //   converts and writes part by part, named as CLI11 names it,
     //   "[INT,TEXT]", sized by the sums of its parts' sizes, expecting one
     //   group of values, without flags; made the first time it is asked
@@ -2259,8 +2259,8 @@ NS_INTERNAL
 
     // 3.4.10
     // Text-like types
-    //   trait: a type made from a std::string -- CLI11's string_assignable
-    //   and string_constructible -- converts as DTextAssign says and writes
+    //   trait: a type made from a std::string - CLI11's string_assignable
+    //   and string_constructible - converts as DTextAssign says and writes
     //   as the std::string it converts to, or not at all; named "TEXT" and
     //   flagged D_ARG_TYPE_FLAG_STRING, as std::string is.
     template<typename Type>
@@ -2348,11 +2348,11 @@ NS_INTERNAL
 
     // 3.4.15
     // Wide text-like types
-    //   trait: with wide text, a type made from a std::wstring -- CLI11's
+    //   trait: with wide text, a type made from a std::wstring - CLI11's
     //   wstring_assignable and wstring_constructible, std::wstring itself
     //   among them, and, where the system's own text is wide, a type made
     //   from both a std::string and a std::wstring, such as
-    //   std::filesystem::path -- converts as DWideAssign says and writes as
+    //   std::filesystem::path - converts as DWideAssign says and writes as
     //   the UTF-8 of the std::wstring it converts to, else as the std::string
     //   it converts to, or not at all; named "TEXT" and flagged
     //   D_ARG_TYPE_FLAG_STRING, as std::string is.
@@ -2630,8 +2630,8 @@ int internal::string_format(
 }
 
 // internal::DStreamRead / stream_parse / stream_convert
-//   CLI11's DFromStream: read whole -- nothing failed and nothing left in
-// the buffer -- into a Type() of its own, which replaces the target only
+//   CLI11's DFromStream: read whole - nothing failed and nothing left in
+// the buffer - into a Type() of its own, which replaces the target only
 // then; an empty value is Type() itself, as lexical_assign makes it.
 template<typename Type>
 inline
@@ -3434,7 +3434,7 @@ internal::DTupleDescription<Tuple>::DTupleDescription()
 // internal::DComplexFill / complex_convert
 //   CLI11's rules: two values; else one split at its last sign, when that
 // is not its first character; else one part alone, imaginary by its `i` or
-// `j` -- one's rules, for a value that is not empty; and what none of them
+// `j` - one's rules, for a value that is not empty; and what none of them
 // reads, operator>>. Each part converts through its type's descriptor,
 // without a reason, as CLI11's lexical_cast tries it.
 template<typename Complex>
@@ -3994,8 +3994,8 @@ int internal::number_convert(
 }
 
 // internal::DDurationFill / duration_convert
-//   The count, read through its own descriptor -- under the context's rule,
-// without its buffer, as a number-like type's numbers are -- and made into
+//   The count, read through its own descriptor - under the context's rule,
+// without its buffer, as a number-like type's numbers are - and made into
 // the duration, which replaces the target only then.
 template<typename Duration>
 inline

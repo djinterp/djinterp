@@ -6,9 +6,9 @@
 * read again. What lies outside a splice is compared record by record with
 * what was there: the lines and records wholly before it must be as they
 * were, those wholly after it as they were but moved by the splice. An entry
-* is compared by its name, its value and its section -- the section the
+* is compared by its name, its value and its section - the section the
 * same, or, for an entry of a section the splice changed, one the splice
-* changed too -- so renaming a section changes its entries' keys and nothing
+* changed too - so renaming a section changes its entries' keys and nothing
 * else does. A change of several splices keeps the text it began with, to
 * go back to when one of them is refused.
 *
@@ -402,8 +402,8 @@ bool d_internal_same_string(
 
 /*
 d_internal_before, d_internal_after
-  Whether lines are wholly before the splice -- their last ending at or
-before its start -- or wholly after it, their first beginning at or past
+  Whether lines are wholly before the splice - their last ending at or
+before its start - or wholly after it, their first beginning at or past
 its end.
 */
 static
@@ -1639,8 +1639,8 @@ d_internal_state_reads(
 
 /*
 d_git_doc_set_state
-  Long as the state's place on its line -- in place of one of its name, or
-after the last -- and its text are each worked out here.
+  Long as the state's place on its line - in place of one of its name, or
+after the last - and its text are each worked out here.
 */
 bool
 d_git_doc_set_state(
@@ -1788,7 +1788,7 @@ bool d_git_doc_remove_state(
 
 // d_internal_key
 //   struct: a key as given and as git compares it: the canonical key, the
-//   section's prefix it begins with, and the parts as given -- the
+//   section's prefix it begins with, and the parts as given - the
 //   section's name, its subsection, D_GIT_TEXT_NONE long without one, and
 //   the entry's name.
 struct dj_internal_key
@@ -1925,7 +1925,7 @@ bool d_internal_value_reads(
 /*
 d_internal_entry_text
   An entry as git config writes one: a tab, the name, " = " and the value
-quoted as git writes it -- or the name alone for no value -- and the line's
+quoted as git writes it - or the name alone for no value - and the line's
 ending.
 */
 static
@@ -2016,8 +2016,8 @@ size_t d_internal_last_section(
 /*
 d_internal_add_place
   Where git config adds an entry of a key, and what it writes there: after
-the last entry of the last section the key belongs in -- after its header,
-for one with none -- or, when there is no such section, a new one at the
+the last entry of the last section the key belongs in - after its header,
+for one with none - or, when there is no such section, a new one at the
 file's end. A line with no ending is given one first.
 */
 static
@@ -2450,7 +2450,7 @@ bool d_internal_first_on_line(
 /*
 d_internal_entry_span
   The text taking an entry away takes: its lines whole when it begins its
-line -- a comment after it with them -- and otherwise the entry and the
+line - a comment after it with them - and otherwise the entry and the
 blanks before it, after the header it shares its line with.
 */
 static
@@ -3074,8 +3074,8 @@ bool d_git_doc_rename_section(
 
 /*
 d_internal_section_span
-  The text a section's removal takes: from its header -- its line, when
-the header begins it -- to the next section's header, or the file's end.
+  The text a section's removal takes: from its header - its line, when
+the header begins it - to the next section's header, or the file's end.
 */
 static
 struct dj_internal_span d_internal_section_span(

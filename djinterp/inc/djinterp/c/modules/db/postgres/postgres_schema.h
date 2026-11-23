@@ -11,10 +11,10 @@
 * quoted and match exactly, case included.
 *   Each kind of object has the same verbs: has, create, drop, list. A create
 * or drop is idempotent under D_DB_IF_NOT_EXISTS or D_DB_IF_EXISTS. Where the
-* server has the clause -- tables, indexes, sequences, and every drop -- it is
+* server has the clause - tables, indexes, sequences, and every drop - it is
 * the server's; for a view or a trigger, which have none, the layer runs the
 * CREATE and reads "already exists" as success, under a savepoint inside a
-* transaction, so that the transaction survives -- atomic either way. A name
+* transaction, so that the transaction survives - atomic either way. A name
 * counts as taken as the server's own clause counts it: a view's by any
 * relation (table, view, index, sequence), since they share the schema's
 * names. Lists come sorted by name, byte by byte.
@@ -91,7 +91,7 @@ TABLE OF CONTENTS
                                                  // floor; int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -145,7 +145,7 @@ D_EXTERN_C_BEGIN
 
 // 2.1    Existence
 //------------------------------------------------------------------------------
-// existence -- whether the schema has a table of that name, ordinary or
+// existence - whether the schema has a table of that name, ordinary or
 // partitioned (a view, a sequence or a foreign table is not one). The plain
 // form answers false for any failure; the _s form returns 0 and writes the
 // answer, or the failure, the answer then false.
@@ -240,7 +240,7 @@ int d_postgres_rename_table(
 
 // 2.4    Rows
 //------------------------------------------------------------------------------
-// rows -- _truncate_table empties a table with TRUNCATE TABLE ... RESTART
+// rows - _truncate_table empties a table with TRUNCATE TABLE ... RESTART
 // IDENTITY, which also restarts the sequences behind its identity and serial
 // columns, and is refused for a table another table's foreign key references
 // (0A000); _count_rows counts its rows into _count, written only on success.
@@ -286,7 +286,7 @@ int d_postgres_list_tables(
 
 // 3.1    Existence
 //------------------------------------------------------------------------------
-// existence -- whether a table, or a view, has a column of that name; the
+// existence - whether a table, or a view, has a column of that name; the
 // system's own columns (ctid, xmin, ...) are not counted, and a table that
 // does not exist has none. As for tables, the _s form reports a failure.
 bool d_postgres_has_column(
@@ -305,7 +305,7 @@ int d_postgres_has_column_s(
 
 // 3.2    Adding, renaming and dropping
 //------------------------------------------------------------------------------
-// adding -- a column described, or written as SQL ("note text"), appended to
+// adding - a column described, or written as SQL ("note text"), appended to
 // the table. 0, the SQLSTATE of a failure (42701, the name is taken; 42P01, no
 // such table), 53200, or D_DB_INVALID_ARGUMENT, as d_postgres_create_table
 // judges a column.
@@ -321,7 +321,7 @@ int d_postgres_add_column_sql(
     const char*     _table,
     const char*     _definition
 ) D_NOTHROW;
-// renaming and dropping -- 0, the SQLSTATE of a failure (42703, no such
+// renaming and dropping - 0, the SQLSTATE of a failure (42703, no such
 // column; 42701, the new name is taken; 2BP01, a view uses it), or
 // D_DB_INVALID_ARGUMENT. PostgreSQL lets a table lose its last column.
 int d_postgres_rename_column(
@@ -378,7 +378,7 @@ int d_postgres_list_columns(
 
 // 4.1    Existence
 //------------------------------------------------------------------------------
-// existence -- whether the schema has an index of that name, those the
+// existence - whether the schema has an index of that name, those the
 // server made for a primary key or a UNIQUE constraint ("t_pkey") included.
 // As for tables, the _s form reports a failure.
 bool d_postgres_has_index(
@@ -442,8 +442,8 @@ int d_postgres_drop_index(
 // 4.3    Listing
 //------------------------------------------------------------------------------
 // lists a schema's indexes, or one table's when _table is not NULL, sorted by
-// name, those a constraint owns -- a primary key's, a UNIQUE or EXCLUDE
-// constraint's -- left out, as they are the constraint's to make and drop. 0,
+// name, those a constraint owns - a primary key's, a UNIQUE or EXCLUDE
+// constraint's - left out, as they are the constraint's to make and drop. 0,
 // the SQLSTATE of a failure, 53200, or D_DB_INVALID_ARGUMENT; the caller
 // releases the list with d_db_name_list_free.
 int d_postgres_list_indexes(
@@ -461,7 +461,7 @@ int d_postgres_list_indexes(
 
 // 5.1    Existence
 //------------------------------------------------------------------------------
-// existence -- whether the schema has a view of that name (a materialized
+// existence - whether the schema has a view of that name (a materialized
 // view is not one). As for tables, the _s form reports a failure.
 bool d_postgres_has_view(
     struct pg_conn* _db,
@@ -477,7 +477,7 @@ int d_postgres_has_view_s(
 
 // 5.2    Creating and dropping
 //------------------------------------------------------------------------------
-// creating -- CREATE VIEW name AS _select. D_DB_IF_NOT_EXISTS makes a name
+// creating - CREATE VIEW name AS _select. D_DB_IF_NOT_EXISTS makes a name
 // already taken by any relation a success, whatever it is; D_POSTGRES_REPLACE
 // replaces a view of the name, as CREATE OR REPLACE VIEW does, which the
 // server allows only when the new query keeps the old columns, adding any
@@ -516,7 +516,7 @@ int d_postgres_list_views(
 
 // 6.1    Existence
 //------------------------------------------------------------------------------
-// existence -- whether a table in the schema has a trigger of that name; the
+// existence - whether a table in the schema has a trigger of that name; the
 // triggers PostgreSQL makes itself, for foreign keys, are not counted. As for
 // tables, the _s form reports a failure.
 bool d_postgres_has_trigger(
@@ -539,7 +539,7 @@ int d_postgres_has_trigger_s(
  * @brief Creates a trigger.
  *
  * It takes no schema: PostgreSQL puts a trigger in its table's schema, and
- * the definition names the table -- qualified where it is not found along
+ * the definition names the table - qualified where it is not found along
  * the search path.
  *
  * @param[in] _db          the connection.
@@ -597,7 +597,7 @@ int d_postgres_list_triggers(
 
 // 7.1    Existence
 //------------------------------------------------------------------------------
-// existence -- whether the schema has a sequence of that name, those behind
+// existence - whether the schema has a sequence of that name, those behind
 // identity and serial columns included. As for tables, the _s form reports a
 // failure.
 bool d_postgres_has_sequence(
@@ -614,7 +614,7 @@ int d_postgres_has_sequence_s(
 
 // 7.2    Creating and dropping
 //------------------------------------------------------------------------------
-// creating -- CREATE SEQUENCE without options: a bigint counting up by 1 from
+// creating - CREATE SEQUENCE without options: a bigint counting up by 1 from
 // 1; other options are SQL's, through d_postgres_exec. D_DB_IF_NOT_EXISTS
 // makes a name already taken by any relation a success. Dropping --
 // D_DB_IF_EXISTS makes a missing one a success, and D_POSTGRES_CASCADE drops
@@ -647,7 +647,7 @@ int d_postgres_list_sequences(
 
 // 7.4    Values
 //------------------------------------------------------------------------------
-// values -- advances a sequence and writes the value it hands out, as
+// values - advances a sequence and writes the value it hands out, as
 // nextval() does, never handing it out again, even when the transaction rolls
 // back; written only on success. 0, D_DB_NOT_FOUND for a sequence that does
 // not exist, the SQLSTATE of a failure (2200H, the sequence has reached its
@@ -659,7 +659,7 @@ int d_postgres_next_value(
     int64_t*        _value
 ) D_NOTHROW;
 // the value nextval() last handed out in the session, from any sequence --
-// an identity or serial column's included -- as lastval() reads it; written
+// an identity or serial column's included - as lastval() reads it; written
 // only on success. 0; D_DB_NOT_FOUND before the session's first; the
 // SQLSTATE of a failure, 25P02 in a failed transaction; or
 // D_DB_INVALID_ARGUMENT. Inside a transaction it is asked under a savepoint,

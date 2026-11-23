@@ -209,28 +209,28 @@ struct DKeyedNoSize
 // Test-function declarations (defined in the section .cpp files)
 // ===========================================================================
 
-// -- I.   Structural signals --
+// - I.   Structural signals --
 bool tests_is_countable_container();
 bool tests_has_interval_bounds_signal();
 bool tests_has_unique_insert();
 bool tests_has_multiplicity_bound();
 
-// -- II.  Verdict (kind + numeric bound) --
+// - II.  Verdict (kind + numeric bound) --
 bool tests_multiplicity_kind_of();
 bool tests_multiplicity_kind_companions();
 bool tests_multiplicity_bound_of();
 
-// -- III. Classification predicates --
+// - III. Classification predicates --
 bool tests_is_sequence_container();
 bool tests_is_unique_container();
 bool tests_is_multiset_container();
 
-// -- IV.  Aggregate snapshot + variable-template companions --
+// - IV.  Aggregate snapshot + variable-template companions --
 bool tests_multiplicity_container_class();
 bool tests_multiplicity_variable_templates();
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // container_multiplicity_traits_spec
 //   function: the suite as DTest's module spec, one block per section.

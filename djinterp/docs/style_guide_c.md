@@ -971,7 +971,7 @@ This is wrong because:
 For non-unit-test functions, use a compact structured block immediately above
 the definition:
 
-In the header, on the declaration -- the contract:
+In the header, on the declaration - the contract:
 
 ```c
 /**
@@ -994,7 +994,7 @@ d_some_boolean_fn(
 );
 ```
 
-In the source, on the definition -- the mechanism:
+In the source, on the definition - the mechanism:
 
 ```c
 /*
@@ -1133,7 +1133,7 @@ d_some_struct_free(
 );
 ```
 
-Definition, in the source -- no `@return` for a `void` function:
+Definition, in the source - no `@return` for a `void` function:
 
 ```c
 /*

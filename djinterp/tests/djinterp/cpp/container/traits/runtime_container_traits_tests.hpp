@@ -503,7 +503,7 @@ bool tests_runtime_container_class_agreement();
 bool tests_runtime_container_class_cv_ref();
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // runtime_container_traits_spec
 //   function: the suite as DTest's module spec, one block per section.

@@ -4,8 +4,8 @@
 * The modules the plugin suite loads: one source, built once for each kind
 * D_TESTS_CLI_PROBE names, each into a module `prog-KIND` beside the others.
 *   PROBE belongs to `prog 1.2`, made with D_CLI_PLUGIN: its run writes what
-* the host gave it -- the host's record, the module's and the program's file
-* names, and every argument -- to the file its first argument names, and
+* the host gave it - the host's record, the module's and the program's file
+* names, and every argument - to the file its first argument names, and
 * returns the number its second argument holds. OTHER belongs to another
 * program, OLD to another version, ABI to another interface, SHORT has a
 * record too short for its interface, IDLE has no work, NULL's entry point
@@ -63,8 +63,8 @@
 #include "../../../../../../inc/djinterp/tools/cli/c/cli_program.h"  // the program
 
 /**
- * @brief KIT's work: says hello to the name given -- in capitals after
- *        `--shout` -- and notes that it did at `-v`.
+ * @brief KIT's work: says hello to the name given - in capitals after
+ *        `--shout` - and notes that it did at `-v`.
  *
  * @param[in] _program  the module's program.
  * @param[in] _command  its root.

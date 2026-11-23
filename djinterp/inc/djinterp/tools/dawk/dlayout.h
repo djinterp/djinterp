@@ -7,7 +7,7 @@
 * supplies `display` for this row?  The second is table layout, which lines up
 * a column across a run of independent lines.
 *   Table layout is the vertical alignment the guide keeps asking for under
-* different names -- trailing include comments, function names after their
+* different names - trailing include comments, function names after their
 * return types, parameter names, variable names in a run of declarations.
 * Each is a table: rows are lines, cells are runs within them, and a column
 * starts where its widest predecessor plus its gap puts it.  One mechanism,

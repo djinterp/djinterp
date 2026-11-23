@@ -4,7 +4,7 @@
 *   The C++ face of the execution substrate declared in machine.h.
 *   `machine` derives from dj_parse_machine and `op_set` from dj_parse_op_set,
 * neither adds a data member, and both are asserted layout-identical to their
-* base -- so a C++ driver hands its machine to a C operator, or a C driver
+* base - so a C++ driver hands its machine to a C operator, or a C driver
 * dispatches into a C++ handler, with nothing in between.
 *
 *   The registration surface is where the C++ side earns its place.  A
@@ -13,15 +13,15 @@
 * hand means spelling out the C signature and casting the context back.  The
 * def() overloads below take an ordinary callable instead and generate that
 * trampoline as a template, so a stateless handler registers as an empty
-* functor over `machine&` -- from C++20, where a lambda first has a default
-* constructor, as a captureless lambda -- and still costs exactly one indirect
+* functor over `machine&` - from C++20, where a lambda first has a default
+* constructor, as a captureless lambda - and still costs exactly one indirect
 * call to a function that inlines its body.  No std::function, no allocation,
 * no type erasure beyond the function pointer the C ABI already required.
 *
 *   ONE CAST, DOCUMENTED.  The trampolines receive dj_parse_machine* and hand
 * the handler a machine&.  That is valid because machine is standard-layout
 * and adds no member, making it pointer-interconvertible with its base
-* subobject -- but only for an object that really is a `machine`.  Every
+* subobject - but only for an object that really is a `machine`.  Every
 * machine the C++ layer creates is one; a machine created in C is not, so
 * def_raw() exists for handlers that must serve those.  as_machine() is the
 * single place the conversion happens.
@@ -98,7 +98,7 @@ NS_PARSE
 // 1.1.1
 // machine
 //   struct: the shared run-state.  Public-payload layout inherited from the C
-// struct -- the substrate IS the protocol the operators manipulate -- so
+// struct - the substrate IS the protocol the operators manipulate - so
 // handlers read and write `ext`, `halted`, and `ok` directly.
 struct machine : dj_parse_machine
 {
@@ -221,14 +221,14 @@ machine& as_machine(
 //------------------------------------------------------------------------------
 // 2.1.1
 // voperator
-//   type: the C-ABI operator signature -- an effect on the machine, taking its
+//   type: the C-ABI operator signature - an effect on the machine, taking its
 // context pointer.  Registered handlers are always this; the def() overloads
 // below produce one from friendlier shapes.
 using DVoperator = ::dj_parse_voperator;
 
 // 2.1.2
 // op
-//   type: one registered operator -- what to call, what to pass it, and what
+//   type: one registered operator - what to call, what to pass it, and what
 // to call it in a trace.
 using op = ::dj_parse_op;
 
@@ -240,7 +240,7 @@ using op = ::dj_parse_op;
 
     // 2.2.1
     // Voperator
-    //   concept: names the operator protocol -- anything invocable as
+    //   concept: names the operator protocol - anything invocable as
     // `void(machine&)`.  PascalCase per the project's concept convention.
     template<typename Op>
     concept Voperator = requires(Op _op, machine& _machine)
@@ -250,7 +250,7 @@ using op = ::dj_parse_op;
 
     // 2.2.2
     // StatelessVoperator
-    //   concept: a Voperator that carries nothing -- a captureless lambda or
+    //   concept: a Voperator that carries nothing - a captureless lambda or
     // an empty functor.  These register with no context pointer at all, which
     // is the case that reduces to a direct call after inlining.
     template<typename Op>
@@ -486,7 +486,7 @@ public:
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER  // a template<auto> parameter
     // def
-    //   function: registers a free function taking only the machine -- the
+    //   function: registers a free function taking only the machine - the
     // shape most handlers written in C++ take.  The function is a template
     // argument, so the dispatch is one indirect call to a direct call.
     template<auto Fn>
@@ -575,7 +575,7 @@ public:
     // covers
     //   accessor: whether this registry implements every opcode another one
     // defines.  The gate that keeps a second reading of one opcode space
-    // honest -- an interpreter and a compiler over the same program, say.
+    // honest - an interpreter and a compiler over the same program, say.
     bool covers(
         const dj_parse_op_set& _reference,
         int*                   _missing = nullptr
@@ -607,7 +607,7 @@ public:
 // 3.2.1
 // DFixedOpSet
 //   class: a registry carrying its own table, for a family whose opcode space
-// is known at compile time -- which is every family, since an opcode space is
+// is known at compile time - which is every family, since an opcode space is
 // an enum.  Allocates nothing.
 template<re_std::uint32_t Capacity>
 class DFixedOpSet : public op_set

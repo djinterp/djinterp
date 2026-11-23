@@ -118,8 +118,8 @@ enum dj_repair_kind
 // 1.3.1
 // dj_repair_edit
 //   struct: one repair, noted against the file as it was read. For a
-// shift, the lines `open_line` to `close_line` move by `delta` -- the
-// item's, with the comments beside it that are its -- and `group` is the
+// shift, the lines `open_line` to `close_line` move by `delta` - the
+// item's, with the comments beside it that are its - and `group` is the
 // node the item is a child of, which its siblings share. For a
 // layout, `line` and `column` are the list's `(`, `close_line` and
 // `close_column` its `)`, and `indent` the spaces before the function; each
@@ -205,8 +205,8 @@ bool d_repair_plan_note(
  * @brief Reports whether a rule says how its findings are repaired.
  *
  * @note A rule that does is repaired that way or not at all: where its own
- *       repair leaves a node -- it would have to move part of something, or
- *       move it somewhere it was not meant to go -- no other repair is to
+ *       repair leaves a node - it would have to move part of something, or
+ *       move it somewhere it was not meant to go - no other repair is to
  *       take the node up in its place.
  *
  * @param[in] _sheet  the sheet the rule is of.

@@ -3,8 +3,8 @@
 *
 * The values given to an option, declared in arg_option.h (6.2.2, 6.3.1 and
 * 6.3.2) and arg_internal.h (7.2.3 to 7.2.7).
-*   How a value is added -- CLI11's escape for a literal bracketed value, its
-* bracketed lists, its delimiter -- how an option's validators judge its
+*   How a value is added - CLI11's escape for a literal bracketed value, its
+* bracketed lists, its delimiter - how an option's validators judge its
 * values, and how its multi-option policy reduces them, completing the
 * indicator CLI11 writes for an empty container.
 *
@@ -386,7 +386,7 @@ int d_arg_internal_option_add_one(
  *
  * CLI11's _add_result: an escape is one value; a bracketed list is split as
  * d_arg_internal_split_up splits it at commas, and each nonempty piece is
- * added as a value of its own -- itself a list, perhaps -- from a copy, since
+ * added as a value of its own - itself a list, perhaps - from a copy, since
  * the pieces are freed here; anything else is one value, or its pieces.
  */
 D_STATIC
@@ -487,7 +487,7 @@ int d_arg_internal_option_add(
 d_arg_internal_option_add_built
   The buffer's storage adopted into the option's `owned` before the value is
 added, so that d_arg_internal_option_add, told the value is stable, keeps
-it as its span -- it ends at its terminator -- and copies only the pieces of
+it as its span - it ends at its terminator - and copies only the pieces of
 one it splits. Nothing built is the empty literal, which needs no storage;
 a buffer that failed adds nothing.
 */
@@ -649,7 +649,7 @@ void d_arg_option_clear(
  *
  * The validators that apply to `_index`, in order, each on what the one
  * before made of the value, until one rejects it or stops; a validation error
- * is the rejection CLI11 catches, its message the verdict -- with none, a
+ * is the rejection CLI11 catches, its message the verdict - with none, a
  * pass.
  */
 D_STATIC
@@ -694,8 +694,8 @@ int d_arg_internal_option_run_all(
 /*
 d_arg_internal_option_judge
   CLI11's _validate on a validation of the value: an empty value passes when
-nothing is expected; otherwise the validators run, and the verdict -- the
-rejection, or what they made of the value -- is written.
+nothing is expected; otherwise the validators run, and the verdict - the
+rejection, or what they made of the value - is written.
 */
 int d_arg_internal_option_judge(
     const struct dj_arg_option* _option,
@@ -772,8 +772,8 @@ struct dj_arg_internal_option_pass
  * @return 0; or, when the policy keeps the last of more values than the option
  *         takes, minus the number of values it will drop.
  *
- * Where CLI11's _validate_results starts counting: 0, or -- when the policy
- * keeps the last of more values than the option takes -- minus the number of
+ * Where CLI11's _validate_results starts counting: 0, or - when the policy
+ * keeps the last of more values than the option takes - minus the number of
  * values the policy will drop, so the values it keeps count from 0. The limit
  * is the item count for a multi-value type, the expected count otherwise.
  */
@@ -1078,7 +1078,7 @@ void d_arg_internal_option_reverse(
  * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
  *
  * CLI11's TakeLast, Reverse and TakeFirst: of more values than the option
- * takes -- at least one -- the last or the first ones; Reverse also takes the
+ * takes - at least one - the last or the first ones; Reverse also takes the
  * last ones, all of them, when it keeps several, and turns them around.
  */
 D_STATIC
@@ -1135,8 +1135,8 @@ int d_arg_internal_option_trim_to(
  * @param[in,out] _out        the buffer that gains them, its failure kept in
  *                            it.
  *
- * CLI11's join: the values with the delimiter between them, then -- CLI11's
- * own rule -- a delimiter that ends the text dropped, as when the last value
+ * CLI11's join: the values with the delimiter between them, then - CLI11's
+ * own rule - a delimiter that ends the text dropped, as when the last value
  * is empty or ends with one.
  */
 D_STATIC
@@ -1300,7 +1300,7 @@ int d_arg_internal_option_mismatch(
  *         many; or D_ARG_ERROR_OUT_OF_MEMORY.
  *
  * CLI11's Throw: too few values or too many is a mismatch, each bound at
- * least 1 -- but for `{}` followed by `%%`, an empty container, which passes
+ * least 1 - but for `{}` followed by `%%`, an empty container, which passes
  * as the one value it stands for, as CLI11 lets it.
  */
 D_STATIC

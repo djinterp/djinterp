@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  monoid_tests_instances.cpp
-//   Section III -- INSTANCES (each type's combine + identity + monoid laws).
+//   Section III - INSTANCES (each type's combine + identity + monoid laws).
 
 // std
 #include <limits>

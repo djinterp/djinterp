@@ -2,8 +2,8 @@
 * djinterp [c][db]                                               sqlite_schema.h
 *
 * Tables, columns, indexes, views and triggers in an SQLite database.
-*   Every function takes the schema to act in -- "main", "temp", or the name a
-* database was attached as -- and NULL means "main". Names are quoted, and
+*   Every function takes the schema to act in - "main", "temp", or the name a
+* database was attached as - and NULL means "main". Names are quoted, and
 * match as SQLite matches them, ignoring ASCII case. The lists leave out the
 * objects SQLite makes for itself, whose names begin with "sqlite_".
 *   Each kind of object has the same verbs: has, create, drop, list. A create
@@ -74,7 +74,7 @@ TABLE OF CONTENTS
                                                  // floor; int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -134,7 +134,7 @@ D_EXTERN_C_BEGIN
 
 // 2.1    Existence
 //------------------------------------------------------------------------------
-// existence -- whether the schema has a table of that name, virtual tables
+// existence - whether the schema has a table of that name, virtual tables
 // included. The plain form answers false for any failure; the _s form returns
 // SQLITE_OK and writes the answer, or the result code of the failure, among
 // them SQLITE_ERROR for a schema that is not attached.
@@ -305,7 +305,7 @@ int d_sqlite_list_tables(
 
 // 3.1    Existence
 //------------------------------------------------------------------------------
-// existence -- whether the table has a column of that name; false, not an
+// existence - whether the table has a column of that name; false, not an
 // error, when the table itself is missing. As has_table for the two forms.
 bool d_sqlite_has_column(
     struct sqlite3* _db,
@@ -431,7 +431,7 @@ int d_sqlite_list_columns(
 
 // 4.1    Existence
 //------------------------------------------------------------------------------
-// existence -- whether the schema has an index of that name. As has_table for
+// existence - whether the schema has an index of that name. As has_table for
 // the two forms.
 bool d_sqlite_has_index(
     struct sqlite3* _db,
@@ -524,7 +524,7 @@ int d_sqlite_list_indexes(
 
 // 5.1    Existence
 //------------------------------------------------------------------------------
-// existence -- whether the schema has a view of that name. As has_table for
+// existence - whether the schema has a view of that name. As has_table for
 // the two forms.
 bool d_sqlite_has_view(
     struct sqlite3* _db,
@@ -601,7 +601,7 @@ int d_sqlite_list_views(
 
 // 6.1    Existence
 //------------------------------------------------------------------------------
-// existence -- whether the schema has a trigger of that name. As has_table
+// existence - whether the schema has a trigger of that name. As has_table
 // for the two forms.
 bool d_sqlite_has_trigger(
     struct sqlite3* _db,

@@ -124,7 +124,7 @@ struct has_entry_owns_constant<Type,
 // ===========================================================================
 // II.  Entry Point Detection
 // ===========================================================================
-//   Detects what kind of entry reference(s) -- the roots rho -- a node
+//   Detects what kind of entry reference(s) - the roots rho - a node
 // container exposes.  A container may have root() (trees), head()/tail()
 // (lists), an entries() SET (graphs), or the generic entry_point() from
 // DNodeContainer.  The set-valued entries()/entry_count() form is the
@@ -172,13 +172,13 @@ D_TYPE_TRAIT_TRUE(has_tail_method,
     decltype(std::declval<const Type&>().tail()))
 
 // has_entries_method
-//   trait: true if Type has an entries() method -- the entry SET rho of a
+//   trait: true if Type has an entries() method - the entry SET rho of a
 // graph-shaped container (the graph_container interface).
 D_TYPE_TRAIT_TRUE(has_entries_method,
     decltype(std::declval<const Type&>().entries()))
 
 // has_entry_count_method
-//   trait: true if Type has an entry_count() method -- the cardinality of the
+//   trait: true if Type has an entry_count() method - the cardinality of the
 // entry set rho.
 D_TYPE_TRAIT_TRUE(has_entry_count_method,
     decltype(std::declval<const Type&>().entry_count()))
@@ -205,7 +205,7 @@ D_TYPE_TRAIT_TRUE(has_release_entry_method,
 
 // has_is_root_method
 //   trait: has_is_root_method<Type, Args...> is true if `is_root(Args...)` can
-// be called on an lvalue Type -- has_is_root_method<const Tree, node_id> for
+// be called on an lvalue Type - has_is_root_method<const Tree, node_id> for
 // an arena tree, has_is_root_method<const Tree> for an n-ary one.
 D_TYPE_TRAIT_HAS_METHOD_WITH(has_is_root_method, is_root)
 
@@ -221,7 +221,7 @@ D_TYPE_TRAIT_HAS_METHOD_WITH(has_remove_subtree_method, remove_subtree)
 //   in node_probes.hpp, from C++11.
 
 // has_any_entry_point
-//   trait: true if Type exposes any kind of entry reference -- a single
+//   trait: true if Type exposes any kind of entry reference - a single
 // distinguished entry (entry_point/root/head) or an entry set (entries).
 template<typename Type>
 struct has_any_entry_point
@@ -441,7 +441,7 @@ struct is_node_container
 // is_tree_shaped_container
 //   trait: true if Type is a node container with a single root entry.
 // Structural proxy for the monograph's tree (single root, acyclic, unique walk
-// -- hence unshared).
+// - hence unshared).
 template<typename Type>
 struct is_tree_shaped_container
 {
@@ -527,7 +527,7 @@ NS_INTERNAL
 
     // shape_impl
     //   helper: resolves a node container's shape by asking the three shape
-    // predicates in order -- tree, then list, then graph -- and reporting the
+    // predicates in order - tree, then list, then graph - and reporting the
     // first that answers. The order matters: a tree satisfies the weaker graph
     // predicate too, so the most specific shape has to be tested first.
     template<typename Type>

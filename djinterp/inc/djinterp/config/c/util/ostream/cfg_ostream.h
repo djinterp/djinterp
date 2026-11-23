@@ -13,8 +13,8 @@
 * config/c/text/cfg_ostream_template.h.
 *
 *   THE CONSOLE FOLLOWS c/filesys UNLESS TOLD OTHERWISE. AUTO takes the backend
-* c/filesys resolved -- NATIVE on Windows, POSIX on a POSIX system, STDC on
-* anything else -- so a build that pins D_CFG_FILE_BACKEND pins the console
+* c/filesys resolved - NATIVE on Windows, POSIX on a POSIX system, STDC on
+* anything else - so a build that pins D_CFG_FILE_BACKEND pins the console
 * with it, and the two cannot disagree by accident. A freestanding
 * implementation (__STDC_HOSTED__ == 0) has no stdout to follow and resolves to
 * NONE: no default console, and d_ostream_init_console reports
@@ -107,8 +107,8 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 1.2.1
 // D_CFG_OSTREAM_BUFFER_SIZE
-//   knob: the bytes of a buffer djinterp provides a transport itself -- the C++
-// DBufferedOutputStream's default -- where the caller does not choose. 4096,
+//   knob: the bytes of a buffer djinterp provides a transport itself - the C++
+// DBufferedOutputStream's default - where the caller does not choose. 4096,
 // a page: large enough that a drain costs little per byte, small enough to
 // live on a stack. At least 64.
 #ifndef D_CFG_OSTREAM_BUFFER_SIZE
@@ -160,7 +160,7 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 3.1.1
 // D_INTERNAL_OSTREAM_CONSOLE
-//   resolved: the backend in effect -- a D_CFG_OSTREAM_CONSOLE_* selector,
+//   resolved: the backend in effect - a D_CFG_OSTREAM_CONSOLE_* selector,
 // never AUTO. Do not override it; set D_CFG_OSTREAM_CONSOLE_BACKEND instead.
 #if (D_CFG_NORM(D_CFG_OSTREAM_CONSOLE_BACKEND) != D_CFG_OSTREAM_CONSOLE_AUTO)
     #define D_INTERNAL_OSTREAM_CONSOLE                                         \

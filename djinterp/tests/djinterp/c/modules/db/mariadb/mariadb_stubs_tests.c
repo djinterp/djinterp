@@ -2,8 +2,8 @@
 * djinterp [c][db]                                         mariadb_stubs_tests.c
 *
 *   The MariaDB layer built without a client library (D_CFG_MARIADB 0): every
-* function answers as such a build must -- D_DB_UNSUPPORTED, or false, 0 or
-* NULL where it cannot fail -- writes the answers it promises even on
+* function answers as such a build must - D_DB_UNSUPPORTED, or false, 0 or
+* NULL where it cannot fail - writes the answers it promises even on
 * failure, and leaves every other output alone. Building and linking it at
 * all proves the stubs need neither mysql.h nor a library.
 *

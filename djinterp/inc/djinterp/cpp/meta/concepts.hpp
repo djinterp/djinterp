@@ -54,7 +54,7 @@
 //       template<typename Type> concept CONCEPT_NAME = TRAIT_V<Type>;
 // so that a concept is the PascalCase face of its trait. Defined at every
 // level: below C++20, or where the compiler lacks concepts, it expands to
-// nothing, so the concept is absent there and the trait remains -- a module
+// nothing, so the concept is absent there and the trait remains - a module
 // may write it unconditionally.
 #if ( (D_ENV_LANG_IS_CPP20_OR_HIGHER) &&                                      \
       (D_ENV_CPP_FEATURE_LANG_CONCEPTS) )

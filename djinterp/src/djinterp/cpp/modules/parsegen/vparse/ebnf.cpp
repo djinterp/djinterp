@@ -4,7 +4,7 @@
 *   Definitions for ebnf.hpp: the tokenizer, the recursive-descent parser, and
 * the compiler from syntax tree to PEG program.
 *   Consolidated from the standalone prototype. The parser still reports errors
-* by throwing internally -- it is the natural shape for recursive descent -- but
+* by throwing internally - it is the natural shape for recursive descent - but
 * both public functions catch at the boundary and report through `_ok`, so no
 * exception escapes. Two latent faults were fixed on the way: a class range
 * ending at the top of `char` looped forever, and a duplicated rule name was
@@ -117,7 +117,7 @@ struct labels
 
 // emit
 //   function: appends the instructions for one subtree. The choice encodings are
-// the standard PEG ones -- CHOICE/COMMIT cascades, with `!p` as CHOICE past p,
+// the standard PEG ones - CHOICE/COMMIT cascades, with `!p` as CHOICE past p,
 // then a COMMIT into an unconditional FAIL.
 void emit(
     const node_ptr&                   _n,
@@ -740,7 +740,7 @@ std::pair<rules, std::string> parse(
 /*
 compile
   Compiles rules to a whole-input PEG program: CALL start, then `!.`, then
-MATCH, followed by each rule's body and a RETURN -- the same shape
+MATCH, followed by each rule's body and a RETURN - the same shape
 gen::compile produces, so the result runs under the same driver.
 
 Parameter(s):

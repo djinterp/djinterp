@@ -71,8 +71,8 @@ D_EXTERN_C_BEGIN
 
 // 1.1.3
 // D_FTP_EPRT_ARGUMENT_SIZE
-//   constant: bytes for the longest EPRT argument -- a 45-character IPv6
-// address, a five-digit port, the protocol digit, and four delimiters -- and
+//   constant: bytes for the longest EPRT argument - a 45-character IPv6
+// address, a five-digit port, the protocol digit, and four delimiters - and
 // its terminator.
 #define D_FTP_EPRT_ARGUMENT_SIZE 56
 

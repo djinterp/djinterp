@@ -9,15 +9,15 @@
 * written back in the shape it came in. A changed sheet goes back where it
 * came from, whole or not at all; `-o FILE` sends it elsewhere, standard
 * input's goes to standard output, and an example, which has nowhere to go
-* back to, must be given `-o` -- the kit's rule A (cli_edit.hpp), whose
+* back to, must be given `-o` - the kit's rule A (cli_edit.hpp), whose
 * operand and options every changing command takes.
-*   A change that would give the sheet an error it does not have -- an
-* expression naming a row that is gone, a value with no range -- is refused,
+*   A change that would give the sheet an error it does not have - an
+* expression naming a row that is gone, a value with no range - is refused,
 * and nothing written, unless `-f` says to write it anyway: the window can
 * undo a change, and a command line cannot.
-*   Every diagnostic about a sheet is placed at it -- `uart.json: error:
-* UART_CR_EN: ...` -- and one about a place in its text at that place --
-* `uart.json:3:7: error: ...` -- as compilers place theirs.
+*   Every diagnostic about a sheet is placed at it - `uart.json: error:
+* UART_CR_EN: ...` - and one about a place in its text at that place --
+* `uart.json:3:7: error: ...` - as compilers place theirs.
 *
 *
 * path:      /src/djinterp/tools/bitwisedom/cli/cli_internal.hpp
@@ -195,7 +195,7 @@ D_NODISCARD std::string sheet_text(
 // 1.3.2
 // new_errors
 //   function: how many errors a change gave a sheet: for each row, those it
-// has beyond what it had -- so an error reworded, its bits moved, is not
+// has beyond what it had - so an error reworded, its bits moved, is not
 // one, and one a removed row took with it is not counted against another.
 D_NODISCARD int new_errors(
     const resolution& _before,
@@ -209,7 +209,7 @@ D_NODISCARD int new_errors(
  *
  * @note The issues the change brought are said, always. A change that gave
  *       the sheet errors (new_errors) is refused, nothing written, unless
- *       `-f` was given -- in a dry run too, which says what a real run would.
+ *       `-f` was given - in a dry run too, which says what a real run would.
  *       The change is said as a note at `-v`, or, with `-n`, always, the
  *       file left as it was.
  *
@@ -249,7 +249,7 @@ D_NODISCARD int store(
  * @param[in] _command     the command, for the usage error.
  * @param[in] _resolution  the sheet's resolution.
  * @param[in] _name        the name.
- * @param[in] _option      what gave the name -- `--in`, `ROW` -- for the
+ * @param[in] _option      what gave the name - `--in`, `ROW` - for the
  *                         error.
  * @return the row's id; 0, the error said, when none or several have it.
  */
@@ -274,8 +274,8 @@ D_NODISCARD std::string shown_name(
 // 2.2.1
 // read_value / read_number
 //   functions: an integer as the grammar writes one (GRAMMAR.md, section 4)
-// -- decimal unless 0x, 0o or 0b says otherwise, a leading zero not octal,
-// `_` between digits, `-` before a negative one -- of any width, a negative
+// - decimal unless 0x, 0o or 0b says otherwise, a leading zero not octal,
+// `_` between digits, `-` before a negative one - of any width, a negative
 // one as its 64-bit two's complement; or held in 64 bits, signed. False,
 // with why for read_value, for anything else.
 D_NODISCARD bool read_value(
@@ -311,7 +311,7 @@ D_NODISCARD std::string nearest(
 // 2.3.2
 // bad_word
 //   diagnostic: the usage error of an option given a word it does not take
-// -- the words it does, and the one meant, where one is near enough -- and
+// - the words it does, and the one meant, where one is near enough - and
 // D_CLI_EXIT_TROUBLE, for the work to return.
 D_NODISCARD int bad_word(
     kit::program&                   _program,
@@ -380,7 +380,7 @@ D_NODISCARD std::string plural(
 // 3.2.1
 // add_format / json_wanted
 //   definition: `--format=text|json`, the text a person reads or the JSON
-// a script reads; and whether it asked for JSON -- false, the usage error
+// a script reads; and whether it asked for JSON - false, the usage error
 // said and `_ok` false, for a word it does not take.
 void add_format(
     kit::command _command,
@@ -407,8 +407,8 @@ int report_issues(
 
 // 3.3.2
 // report_new_issues
-//   diagnostics: the issues a change brought -- those the sheet has after it
-// and did not before, as report_issues says them -- so that a row removed
+//   diagnostics: the issues a change brought - those the sheet has after it
+// and did not before, as report_issues says them - so that a row removed
 // that an expression named is heard of when it happens.
 void report_new_issues(
     kit::program&      _program,
@@ -419,7 +419,7 @@ void report_new_issues(
 
 // 3.3.3
 // report_lines
-//   diagnostics: lines of the model's -- a read's notes, an import's -- each
+//   diagnostics: lines of the model's - a read's notes, an import's - each
 // placed where it says it is: `line 3: ...` at line 3 of the file, `line 3,
 // column 7: ...` there.
 void report_lines(
@@ -504,9 +504,9 @@ D_NODISCARD int run_gen(
 // 4.3.1
 // add_read_commands / add_edit_commands / add_row_commands
 //   definitions: the commands that read a sheet; those that make one or a
-// row -- new, import, add, change; and those that rearrange its rows or
-// change the rest of it -- duplicate, remove, rename, move, sort, set, get
-// and op -- each with its work, in that order.
+// row - new, import, add, change; and those that rearrange its rows or
+// change the rest of it - duplicate, remove, rename, move, sort, set, get
+// and op - each with its work, in that order.
 void add_read_commands(
     kit::program& _program
 );

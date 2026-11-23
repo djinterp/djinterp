@@ -29,7 +29,7 @@ model.
   from the grammar itself, and run two grammars over the same inputs to find
   where they differ; and have a program call its rules through a memo. It
   needs nothing but djinterp: no uxoxo, no Dear ImGui, no display.
-- **`vparse gui`**, the window, the workbench on uxoxo and Dear ImGui -- a
+- **`vparse gui`**, the window, the workbench on uxoxo and Dear ImGui - a
   module the command line loads only when `gui` is run, built outside
   djinterp (`build/ui/vparse`, ruling 0.3 and the kit's GRAMMAR, section
   7): write a grammar (in vparse's notation or in EBNF) and an input, press
@@ -127,8 +127,8 @@ command line made.
   here.
 - **uxoxo** is needed for the window alone, and only the window's build,
   `build/ui/vparse`, looks for it: the tree of 2026.10.16 or later, two
-  directories above djinterp's root -- as `uxoxo/uxoxo-project` or `uxoxo`
-  -- or at `UXOXO_ROOT`, with its Dear ImGui under `inc/imgui` (uxoxo
+  directories above djinterp's root - as `uxoxo/uxoxo-project` or `uxoxo`
+  - or at `UXOXO_ROOT`, with its Dear ImGui under `inc/imgui` (uxoxo
   carries 1.92.8 there, laid out as Dear ImGui's repository is). uxoxo
   builds itself, from its `build/cmake/CMakeLists.txt`; the window's build
   adds that as a subproject. Configure checks for the build, the fifteen
@@ -166,7 +166,7 @@ cmake --build --preset clang-strict
 ctest --preset clang-strict
 ```
 
-The window too, from its own build -- the same presets, uxoxo found two
+The window too, from its own build - the same presets, uxoxo found two
 directories above djinterp's root or named:
 
 ```sh
@@ -311,16 +311,16 @@ the window's build runs vparse's with its own.
 | `vparse_runs` | `vparse run` over the window's example grammar | exits 0 |
 | `vparse_workbench_tests` | the window's build: the window's model and face, as values: the opening run, events, the face | `passed: 3` |
 | `vparse_workbench_imgui_tests` | the window's build: the face drawn on uxoxo's Dear ImGui platform in frames with no window: no Dear ImGui error and no ID conflict anywhere the pointer goes, and clicks that post the right events | `passed: 3` |
-| `vparse_gui_help`, `vparse_gui_version`, `vparse_gui_unread` | the window's build: `vparse gui --help`, `--version -v` and a grammar it cannot read -- the module found beside the program, loaded and run, with no display | its usage, and 0; its build, `window:` and `imgui:` among it, and 0; `cannot read`, and 2 -- the status and the words held together, by the kit's `d_cli_add_test` |
+| `vparse_gui_help`, `vparse_gui_version`, `vparse_gui_unread` | the window's build: `vparse gui --help`, `--version -v` and a grammar it cannot read - the module found beside the program, loaded and run, with no display | its usage, and 0; its build, `window:` and `imgui:` among it, and 0; `cannot read`, and 2 - the status and the words held together, by the kit's `d_cli_add_test` |
 | `djinterp_foundation_tests_cxx11` ... `_cxx23` | djinterp's parse/parsegen foundation, C++ | `passed: 56` at C++11 and 14, `57` at 17, `58` at 20 and 23 |
 | `djinterp_foundation_c_tests_c99` ... `_c23` | the same foundation, from C | `passed: 12` |
 | `vparse_tests_cxx11` ... `_cxx23` | djinterp's vparse: the machine, the generator, both frontends, the session, the memo and the profile, the corpus | `passed: 32` |
 | `djinterp_arg_parser_c_tests_c99` ... `_c23` | djinterp's argument parser, from its own leaf | the counts its `expected_sections.txt` gives |
 
 That is 30 tests under GCC or Clang in djinterp's build, and 35 in the
-window's -- 34 where Dear ImGui has no null backend
+window's - 34 where Dear ImGui has no null backend
 (`backends/imgui_impl_null.cpp`), which the ImGui suite needs. `cl`, whose
-lowest C++ level is C++14 and which has no C23, gets 21 and 26 -- the
+lowest C++ level is C++14 and which has no C23, gets 21 and 26 - the
 argument parser's sweep left out, its linker having no `--wrap`; `clang-cl`
 leaves C++11 out the same way, and C23 where CMake has no level for it.
 Each suite must print exactly its count, so a section that silently stopped
@@ -370,7 +370,7 @@ theirs out, and each command's help ends with what its exit status answers.
 | `-t`, `--text` | the same | each input argument is the input itself, not a file name |
 | `-p, --part=PART` | `run`, `replay` | the parts to print, in order, the option given again or the parts separated by commas: `summary` (the default), `grammar`, `reading`, `reading_trace`, `rules`, `plan`, `program`, `matches`, `heat`, `profile`, `trace`, or `all` |
 | `--step-limit=STEPS` | `check`, `match`, `run`, `bench`, `compare` | stop the machine's run over an input after N steps (default 100000); the grammar is read under a limit of its own, which grows with it |
-| `--memoize=RULES` | `match`, `run`, `bench`, and `compare`'s second program | the rules the program calls through the memo: `none` (the default), `all`, `auto` -- the rules a run without the memo says it pays for, over the whole corpus for `bench` and `compare` -- or rule names, the option given again or the names separated by commas: `--memoize=Sum --memoize=Prod` is `--memoize=Sum,Prod`. A name after names is added to them, and anything else replaces what came before it, so that `--memoize=none` at the end turns the memo off |
+| `--memoize=RULES` | `match`, `run`, `bench`, and `compare`'s second program | the rules the program calls through the memo: `none` (the default), `all`, `auto` - the rules a run without the memo says it pays for, over the whole corpus for `bench` and `compare` - or rule names, the option given again or the names separated by commas: `--memoize=Sum --memoize=Prod` is `--memoize=Sum,Prod`. A name after names is added to them, and anything else replaces what came before it, so that `--memoize=none` at the end turns the memo off |
 | `--walks=N`, `--depth=N`, `--length=N`, `--repeats=N`, `--misses=N`, `--seed=N` | `bench`, `corpus`, `compare` | how a corpus is made: walks (default 50), each going N rules deep (8) or N bytes long (256) before it takes each rule's shortest way out, a `*` or `+` repeated at most N times (3), N near-misses a walk (1), from a seed (1): one seed is one corpus, on every system |
 | `--times=N` | `bench` | runs of each input timed, the fastest kept (default 3); steps are counted once, since they repeat exactly |
 | `-o FILE` | `compile` | write the program to the file, whole or not at all: into a new file beside it, renamed over it; `-` is standard output |
@@ -392,7 +392,7 @@ Try 'vparse match --help' for more information.
 ```
 
 A file that cannot be read or written says which and why --
-`vparse: error: cannot read 'expr.txt': No such file or directory` -- and an
+`vparse: error: cannot read 'expr.txt': No such file or directory` - and an
 output that takes nothing says so: `cannot write standard output: No space
 left on device`. A grammar the session refuses is said after its name, in
 the words of the run's headline:
@@ -402,7 +402,7 @@ vparse: error: expr.txt: the program could not be built: rule not defined: Atom
 ```
 
 and, where its reader stopped at a place, after the place, as a compiler
-says one and an editor turns into a link -- the place taken out of the
+says one and an editor turns into a link - the place taken out of the
 words, which the JSON's `error` and the run's `result` still hold whole:
 
 ```
@@ -436,9 +436,9 @@ vparse completion bash > vparse.bash
 ```
 
 A run is counted as it runs, traced or not: its `profile` part has a row a
-rule -- its calls, the calls that repeated one at the same position and the
+rule - its calls, the calls that repeated one at the same position and the
 steps those ran, the memo's answers, and its steps, arrivals and revisits, the
-heat map's counts -- and the summary says how deep each stack went and what
+heat map's counts - and the summary says how deep each stack went and what
 the memo did. A corpus input that ends in `-walk.txt` was derived from the
 grammar's rules, and one that ends in `-miss.txt` is a walk with a character
 deleted, inserted or replaced; derived is not accepted, since ordered choice
@@ -470,7 +470,7 @@ command line's own word.
 | `frontend` | `notation` or `ebnf`, the frontend that read it |
 | `read` | whether the grammar was read |
 | `accepted` | whether the session accepted it, and its program was built |
-| `error` | the run's headline when it was refused -- "The grammar could not be read: ..." -- and `""` when it was not |
+| `error` | the run's headline when it was refused - "The grammar could not be read: ..." - and `""` when it was not |
 | `rules` | the rules' names, in order: those read, refused or not |
 | `instructions` | the program's size, 0 when none was built |
 | `stops_at_step_limit` | whether the grammar, accepted, runs to the step limit over an empty input, as a left-recursive one does |
@@ -693,7 +693,7 @@ own documents, `accepted` or `built` false.
 
 | key | value |
 |---|---|
-| `grammar` | the refused grammar's name -- for `compare`, the first refused |
+| `grammar` | the refused grammar's name - for `compare`, the first refused |
 | `frontend` | the frontend that read it |
 | `accepted` | `false` |
 | `error` | the headline of the run that found it refused |
@@ -726,8 +726,8 @@ as the commands refuse one, before the window opens.
 | `--help` | the list |
 
 `vparse_gui`, the window's program of its own until 2026.10.26, is retired,
-and with it its `-g` and `-i`, its `--completion` -- the program's
-`completion` command covers the program -- and the `--print` and `--part`
+and with it its `-g` and `-i`, its `--completion` - the program's
+`completion` command covers the program - and the `--print` and `--part`
 it kept only to say where they went.
 
 ## The screen
@@ -898,8 +898,8 @@ lane's drop of 2026.10.26e:
 | the window's build, GCC under a virtual display; MinGW-w64 under Wine | 35 of 35; 8 of 8 |
 | three faults planted in a copy of the command line: `run`'s last two members left out; `corpus`'s `repeats` and `misses` swapped; the README's `argument` row dropped | each caught by the command line's suite |
 
-On 2026.10.26, again, the window out of djinterp's tree -- the module
-`vparse gui` loads, built by `build/ui/vparse` -- over the owner's djinterp
+On 2026.10.26, again, the window out of djinterp's tree - the module
+`vparse gui` loads, built by `build/ui/vparse` - over the owner's djinterp
 of 2026.10.23 with the cli lane's drop of 2026.10.26c, and uxoxo of
 2026.10.25:
 

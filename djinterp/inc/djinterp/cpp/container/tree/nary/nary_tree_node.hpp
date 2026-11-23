@@ -77,7 +77,7 @@ NS_DJINTERP
     class DNaryTreeNode;
 
     // forward declaration of nary_tree to friend it for slot access; the
-    // template parameters mirror nary_tree.hpp's signature -- THREE POSITIONAL
+    // template parameters mirror nary_tree.hpp's signature - THREE POSITIONAL
     // POLICIES AND A TRAILING OPTION PACK. The pack is what carries the
     // framework's per-axis options (container_options.hpp) into the container,
     // and it

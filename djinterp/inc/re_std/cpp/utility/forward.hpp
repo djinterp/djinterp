@@ -55,7 +55,7 @@ Type&& forward(typename remove_reference<Type>::type& _value) noexcept
 
 // forward (rvalue overload)
 //   function: forwards an rvalue. static_asserts that Type is not an
-//   lvalue reference -- forwarding an rvalue as an lvalue would yield
+//   lvalue reference - forwarding an rvalue as an lvalue would yield
 //   a dangling reference.
 template<typename Type>
 RE_STD_CONSTEXPR

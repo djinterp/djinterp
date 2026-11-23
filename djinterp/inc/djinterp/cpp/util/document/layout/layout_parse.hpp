@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][utility]                                       layout_parse.hpp
 *
-*   The TEXTUAL construction surface -- a block-form DSL parsed into a DLayoutDoc.
+*   The TEXTUAL construction surface - a block-form DSL parsed into a DLayoutDoc.
 * A construct is a keyword, an optional quoted argument, optional key="value"
 * attributes, and an optional { ... } child block:
 *
@@ -20,7 +20,7 @@
 * the table, exactly as the interpreter is driven by the signature.
 *
 *   ON THE PARSE SUBFRAMEWORK.  This is a recursive descent over
-* parse::parse_state<char>, returning parse::parse_result<...> -- the
+* parse::parse_state<char>, returning parse::parse_result<...> - the
 * subframework's carrier and result.  Each sub-parser has the shape
 * (parse_state& -> parse_result), which IS the signature parser<R, E> erases, so
 * lifting these onto the CRTP combinators (parser/combinators.hpp) is mechanical.
@@ -87,7 +87,7 @@ NS_DJINTERP
 ///////////////////////////////////////////////////////////////////////////////
 
 // DLayoutGrammar
-//   struct: the dialect's parse configuration -- everything the generic parser
+//   struct: the dialect's parse configuration - everything the generic parser
 // needs to turn keywords into constructs, and nothing construct-specific baked
 // in.  block_ops maps a keyword to its operator; leaf_words maps a keyword to
 // the atom kind of the content leaf it builds; root_op wraps the top level; and
@@ -412,7 +412,7 @@ NS_INTERNAL
     }
 
     // parse_block (definition)
-    //   helper: one construct -- keyword, optional quoted argument, optional
+    //   helper: one construct - keyword, optional quoted argument, optional
     // attributes, and (for a block construct) an optional child block.  Resolves
     // the keyword against the grammar: a leaf keyword builds a content leaf; a
     // block keyword builds an application, its argument landing in bag[arg_key].
@@ -513,7 +513,7 @@ NS_END  // internal
 ///////////////////////////////////////////////////////////////////////////////
 
 // parse_document
-//   function: parse a whole document from _state -- a top-level sequence of
+//   function: parse a whole document from _state - a top-level sequence of
 // blocks wrapped in the grammar's root construct.  Fails on any malformed block
 // and on trailing input the grammar did not consume.  The core entry; it takes
 // the subframework's state so a caller may position or reuse it.

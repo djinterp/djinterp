@@ -58,11 +58,11 @@ NS_INTERNAL
     // pass them through unchanged.
     //   The call operator is const, so the wrapper models is_comparator like
     // the comparator it wraps; the comparator it holds is mutable, so a
-    // Comparator whose call operator is not const -- one that tallies its
-    // calls, say -- works too. The two operands may differ in type, so a
-    // comparator that orders across types -- a key against an element, as a
-    // search does -- keeps working when wrapped.
-    //   Every copy of the held comparator is made from a const lvalue -- the
+    // Comparator whose call operator is not const - one that tallies its
+    // calls, say - works too. The two operands may differ in type, so a
+    // comparator that orders across types - a key against an element, as a
+    // search does - keeps working when wrapped.
+    //   Every copy of the held comparator is made from a const lvalue - the
     // constructor takes it by const reference, and the copy operations are
     // written out because the implicit ones would copy the mutable member as
     // a non-const lvalue. A comparator with an unconstrained forwarding

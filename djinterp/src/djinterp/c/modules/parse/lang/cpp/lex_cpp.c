@@ -9,7 +9,7 @@
 * list on its own.
 *   Trigraphs are the one feature C++ removed.  C++17's mask is therefore
 * not a superset of C++14's, which is why the masks are written out and not
-* derived from the level before them -- a derivation would keep trigraphs
+* derived from the level before them - a derivation would keep trigraphs
 * alive in C++17 and nothing would notice until a `??/` turned up in a
 * string.
 *

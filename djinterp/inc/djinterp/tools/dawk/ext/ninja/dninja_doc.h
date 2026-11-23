@@ -4,16 +4,16 @@
 * A Ninja file held for change.
 *   A document is a file's text and its records, read by dninja. A change is
 * made at once: the text is spliced, the result read again, and the change
-* kept only if everything outside the splice reads as it did -- every
+* kept only if everything outside the splice reads as it did - every
 * statement before it where it was, its name, its paths in their sections
 * and its bindings, every one after it the same but moved by the splice,
-* every comment likewise -- and the change itself reads back as asked: a
+* every comment likewise - and the change itself reads back as asked: a
 * value holds the text it was given, a path the text and the section, a
 * statement inserted the statements it was written as. A change that would
 * do more is refused, and the file left as it was. Every byte a change does
 * not touch is the file's own; text a change writes takes the file's line
 * endings.
-*   The changes a file takes: a variable's value set; a name set -- a
+*   The changes a file takes: a variable's value set; a name set - a
 * variable's, a rule's, a pool's, the rule a build uses; a binding set,
 * added or removed; a path set, inserted into its section, the section's
 * pipe written when it has none, or removed, its pipe with it when it was

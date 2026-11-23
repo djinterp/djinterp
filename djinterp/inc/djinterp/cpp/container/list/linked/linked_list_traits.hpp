@@ -516,8 +516,8 @@ struct is_head_tail_list
 
 NS_INTERNAL
     // is_circular_list_helper
-    //   trait: the value of a static `is_circular` constant -- a bool, or a
-    // constexpr object such as a std::true_type -- or false. (A member alias
+    //   trait: the value of a static `is_circular` constant - a bool, or a
+    // constexpr object such as a std::true_type - or false. (A member alias
     // `using is_circular = std::true_type;` is a type, not a constant, and
     // never read as one.)
     D_TYPE_TRAIT_OPT_IN(is_circular_list_helper, is_circular)
@@ -959,7 +959,7 @@ struct enable_if_linked_list
 };
 
 // enable_if_linked_list_t
-//   type: the carrier of enable_if_linked_list -- its `::type`, for use where
+//   type: the carrier of enable_if_linked_list - its `::type`, for use where
 // a type rather than a value is wanted.
 template<typename Type>
 using enable_if_linked_list_t = typename enable_if_linked_list<Type>::type;
@@ -973,7 +973,7 @@ struct enable_if_singly_linked_list
 };
 
 // enable_if_singly_linked_list_t
-//   type: the carrier of enable_if_singly_linked_list -- its `::type`, for use
+//   type: the carrier of enable_if_singly_linked_list - its `::type`, for use
 // where a type rather than a value is wanted.
 template<typename Type>
 using enable_if_singly_linked_list_t =
@@ -987,7 +987,7 @@ struct enable_if_doubly_linked_list
 };
 
 // enable_if_doubly_linked_list_t
-//   type: the carrier of enable_if_doubly_linked_list -- its `::type`, for use
+//   type: the carrier of enable_if_doubly_linked_list - its `::type`, for use
 // where a type rather than a value is wanted.
 template<typename Type>
 using enable_if_doubly_linked_list_t =
@@ -1001,7 +1001,7 @@ struct enable_if_linked_list_node
 };
 
 // enable_if_linked_list_node_t
-//   type: the carrier of enable_if_linked_list_node -- its `::type`, for use
+//   type: the carrier of enable_if_linked_list_node - its `::type`, for use
 // where a type rather than a value is wanted.
 template<typename Type>
 using enable_if_linked_list_node_t =

@@ -4,17 +4,17 @@
 * Running a MongoDB command, written as a document, without handling the
 * driver's replies by hand.
 *   MongoDB has no query language: everything a server does, it does as a
-* command, a document whose first field names it -- {"find": "orders",
+* command, a document whose first field names it - {"find": "orders",
 * "filter": {...}}, {"createIndexes": ...}, {"serverStatus": 1}. Here a
-* command is Extended JSON, run on a database -- the handle's current one
-* for a NULL database -- as written: the layer adds the session of an open
+* command is Extended JSON, run on a database - the handle's current one
+* for a NULL database - as written: the layer adds the session of an open
 * transaction (mongodb_transaction.h) and nothing else, and sends it to the
 * primary, as the driver sends a command it is given no read preference
 * for. d_mongodb_exec runs a command and discards its reply;
 * d_mongodb_exec_changes reports how many documents it wrote;
 * d_mongodb_command hands the reply back; d_mongodb_query_rows reads the
-* documents a command's cursor returns -- a find's, an aggregate's, a
-* listCollections' -- every batch, as db_common.h's dj_db_rows, and the reply
+* documents a command's cursor returns - a find's, an aggregate's, a
+* listCollections' - every batch, as db_common.h's dj_db_rows, and the reply
 * itself as the one row of a command that returns no cursor.
 *   Each comes in a plain form, which takes the command as written, and an
 * `f` form, which takes a printf-like format: %Q writes a string as a JSON
@@ -27,8 +27,8 @@
 * and documents apart, as JSON of their own.
 *   ROWS. Every document is a row of one column, "document", typed
 * D_DB_TYPE_JSON, its type_name "document", its value TEXT holding the
-* document as the handle's document format writes it -- canonical Extended
-* JSON unless the program asked for relaxed -- or, with D_MONGODB_BSON, a
+* document as the handle's document format writes it - canonical Extended
+* JSON unless the program asked for relaxed - or, with D_MONGODB_BSON, a
 * BLOB holding its BSON.
 *
 *
@@ -60,7 +60,7 @@ TABLE OF CONTENTS
                                                  // floor; int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -77,7 +77,7 @@ D_EXTERN_C_BEGIN
 
 // 1.1    Running commands
 //------------------------------------------------------------------------------
-// running commands -- each returns 0; the server's code for a command that
+// running commands - each returns 0; the server's code for a command that
 // failed ("no such command" is 59), which d_mongodb_error_message then
 // describes and d_mongodb_error_reply details; libbson's, packed, for text
 // that is not a document, and the driver's for a failure of its own;
@@ -101,7 +101,7 @@ int d_mongodb_execf(
 
 // 1.2    Documents written
 //------------------------------------------------------------------------------
-// documents written -- as d_mongodb_exec, and on success writes how many
+// documents written - as d_mongodb_exec, and on success writes how many
 // documents the command wrote, as its reply counts them: an update's
 // documents modified with those it upserted, an insert's or a delete's n, a
 // findAndModify's one document, and 0 for any other command, which writes

@@ -4,7 +4,7 @@
 *   The environment printer's C++ harness (env/env_printer.hpp), at every level
 * from C++98: the C++ unit's report and its two C++ sections, the `features`
 * filter, DEnvPrinter configured every way, filters and field hooks from
-* functors and -- from C++11 -- lambdas, every destination, the dump's round
+* functors and - from C++11 - lambdas, every destination, the dump's round
 * trip, a printer made in the djin and let go of when it goes. A standalone
 * program, as the other tests not yet in DTest are: every section as JSON goes
 * to the file its first argument names and as CSV to the one its second names
@@ -197,7 +197,7 @@ void features()
     D_TESTS_ENV_PRINTER_CHECK(lines(yes) == supported);
     D_TESTS_ENV_PRINTER_CHECK(lines(no) == section->feature_count - supported);
 
-    // the text style's feature line: sign, standard, name, value -- the
+    // the text style's feature line: sign, standard, name, value - the
     // value this unit's compiler gives, 0 below C++11
     long lambdas = 0L;
 
@@ -322,7 +322,7 @@ void destinations()
 }
 
 // hooks
-//   test: a functor filter, a functor field hook, and -- from C++11 -- the
+//   test: a functor filter, a functor field hook, and - from C++11 - the
 // same from lambdas; the printer's errors and status.
 void hooks()
 {

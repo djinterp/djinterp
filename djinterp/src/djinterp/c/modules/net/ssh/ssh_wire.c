@@ -48,8 +48,8 @@ bool d_ssh_internal_fits32(
 
 /*
 d_ssh_internal_take
-  File-local: consumes `_count` bytes and returns where they start -- the
-empty view for zero bytes of an empty buffer -- or returns NULL, marking the
+  File-local: consumes `_count` bytes and returns where they start - the
+empty view for zero bytes of an empty buffer - or returns NULL, marking the
 reader failed, if it had already failed or fewer bytes remain.
 */
 D_STATIC

@@ -1,5 +1,5 @@
 #!/bin/sh
-# roots.sh -- a sheet says the same of a file whichever directory it was
+# roots.sh - a sheet says the same of a file whichever directory it was
 # read under.
 #
 # The gates run every sheet over inc/djinterp and src/djinterp, but a person

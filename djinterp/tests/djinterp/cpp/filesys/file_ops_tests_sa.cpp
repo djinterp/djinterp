@@ -2,13 +2,13 @@
 * djinterp [cpp][filesys]                                  file_ops_tests_sa.cpp
 *
 *   Unit tests for the whole-file operations in inc/djinterp/cpp/filesys/file_ops.hpp
-* -- remove, remove_file, rename, copy_file. One file for the module, sibling to
+* - remove, remove_file, rename, copy_file. One file for the module, sibling to
 * the path/file/status/directory suites, same harness and same three rules.
 *
 *   These are free functions with no handle, so the tier ladder is flat: the
 * same source builds identically C++98 -> C++23 with the same count, because
 * there is no move to add. As with the status suite, that flat ladder is itself
-* the claim -- an operation over paths carries none of the ceremony a handle
+* the claim - an operation over paths carries none of the ceremony a handle
 * does.
 *
 * FIXTURES
@@ -16,7 +16,7 @@
 *   Files are made and inspected with fopen/fread/remove (ISO C); an
 * empty-directory fixture is made with djinterp's own create_directory (tested
 * on its own in the directory suite, used here only as a tool). The test calls
-* no unlink/rename/mkdir directly -- it drives the real syscalls only through
+* no unlink/rename/mkdir directly - it drives the real syscalls only through
 * the API under test, keeping the siblings' no-platform-call discipline.
 *
 *
@@ -262,7 +262,7 @@ void d_tests_ops_print(
 
 // d_tests_ops_name
 //   function: a distinct scratch filename per call. Rotates a small set of
-// static buffers so two names held at once -- a rename's from and to, say --
+// static buffers so two names held at once - a rename's from and to, say --
 // do not alias the same storage (which would rename a file onto itself).
 static
 const char* d_tests_ops_name(void)
@@ -295,7 +295,7 @@ void d_tests_ops_write(
 }
 
 // d_tests_ops_exists
-//   function: whether a file can be opened for reading -- our existence probe,
+//   function: whether a file can be opened for reading - our existence probe,
 // kept in ISO C so the test does not lean on another module to check the one
 // under test.
 static
@@ -397,7 +397,7 @@ struct dj_test_object* d_tests_ops_remove(void)
 
 /*
 d_tests_ops_remove_file
-  remove_file() deletes a file, and refuses a directory -- the narrower promise
+  remove_file() deletes a file, and refuses a directory - the narrower promise
 that it cannot delete a directory by surprise.
 */
 static
@@ -501,8 +501,8 @@ struct dj_test_object* d_tests_ops_rename(void)
 
 /*
 d_tests_ops_copy_file
-  copy_file() duplicates content -- both files exist afterward and the copy
-matches the source -- and reports a missing source as ENOENT.
+  copy_file() duplicates content - both files exist afterward and the copy
+matches the source - and reports a missing source as ENOENT.
 */
 static
 struct dj_test_object* d_tests_ops_copy_file(void)

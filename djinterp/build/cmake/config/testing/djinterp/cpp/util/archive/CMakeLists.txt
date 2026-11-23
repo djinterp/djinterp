@@ -5,7 +5,7 @@
 # (src/).  djinterp_add_test_executable links djinterp_c_runtime, defines
 # D_TESTING=1, sets the per-config output dir, and registers the exe with CTest
 # (run it with `ctest -R archive_tests`).  Any ancestor
-# djinterp_add_test_subtree picks this leaf up automatically -- no extra wiring
+# djinterp_add_test_subtree picks this leaf up automatically - no extra wiring
 # here.
 #
 # path: /build/cmake/config/testing/djinterp/cpp/util/archive/CMakeLists.txt
@@ -21,7 +21,7 @@ list(FILTER _sources EXCLUDE REGEX "_main\\.cpp$")
 
 # Production sources compiled into this exe (recipe R2, approach A).  Within
 # util/, archive.cpp's only production dependency is compress.cpp, so the two
-# are named explicitly rather than globbing "${_src_dir}/*.cpp" -- util/ also
+# are named explicitly rather than globbing "${_src_dir}/*.cpp" - util/ also
 # holds other components' facades that this suite must not drag in.  The C env
 # sources (env_archive.c / env_compress.c) and the configured codec backend link
 # arrive via djinterp_c_runtime, which the helper links automatically.

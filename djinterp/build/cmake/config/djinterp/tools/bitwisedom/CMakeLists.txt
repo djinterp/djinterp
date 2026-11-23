@@ -1,7 +1,7 @@
 #*******************************************************************************
 # bitwisedom [bitwisedom]                                         CMakeLists.txt
 #
-# bitwisedom: a bitfield manager on djinterp -- the model and the command
+# bitwisedom: a bitfield manager on djinterp - the model and the command
 # line. The window is not built here: it lives outside the djinterp tree, in
 # build/cmake/config/ui/bitwisedom, whose build includes this one and brings
 # what the window is built on.
@@ -13,10 +13,10 @@
 # since the last one to compile again, whatever their times say
 # (cmake/Freshness.cmake). Targets:
 #
-#     bitwisedom::core   the model -- sheets, resolution, operations, the C/C++
+#     bitwisedom::core   the model - sheets, resolution, operations, the C/C++
 #                       generator and its self-tests, the C environment and
 #                       importer, the settings and the edits, and the file
-#                       format -- with no window in it
+#                       format - with no window in it
 #     bitwisedom::cli    the command line's commands, on djinterp's kit
 #     bitwisedom         the command line (GRAMMAR.md, section 10); `gui`
 #                       loads the window's module, built in build/cmake/config/ui
@@ -42,8 +42,8 @@ project(bitwisedom
 option(BITWISEDOM_BUILD_TESTS        "Build the tests"                  ON)
 option(BITWISEDOM_WARNINGS_AS_ERRORS "Treat warnings as errors"         OFF)
 
-# the version every part is built at -- the command line's, and the one the
-# window's module must match -- for build/cmake/config/ui, which includes this
+# the version every part is built at - the command line's, and the one the
+# window's module must match - for build/cmake/config/ui, which includes this
 # build
 set(BITWISEDOM_VERSION "${PROJECT_VERSION}" CACHE INTERNAL
     "bitwisedom's version, as the command line and its modules are built")
@@ -58,9 +58,9 @@ set(BITWISEDOM_TESTS_DIR
 set(BITWISEDOM_EXAMPLES_DIR
     "${BITWISEDOM_ROOT}/res/djinterp/tools/bitwisedom/examples")
 
-# the sources that changed since this build tree last configured -- an
+# the sources that changed since this build tree last configured - an
 # overlay unzipped over the trees keeps its archive's times, which can be
-# older than the last build's objects -- marked to compile again
+# older than the last build's objects - marked to compile again
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/Freshness.cmake")
 bitwisedom_freshen("${CMAKE_BINARY_DIR}/bitwisedom_sources.sha1"
                    "${BITWISEDOM_SOURCE_DIR}"

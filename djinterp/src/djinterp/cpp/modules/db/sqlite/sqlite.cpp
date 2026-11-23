@@ -194,8 +194,8 @@ void check_opening(
 sqlite_layer::raise
   SQLite's message for the connection is about the latest call only when that
 call failed in SQLite itself: a negative result is the layer's own, and
-SQLITE_MISUSE may be, so for those -- and when there is no connection, or no
-message -- the result's own description stands in.
+SQLITE_MISUSE may be, so for those - and when there is no connection, or no
+message - the result's own description stands in.
 */
 void sqlite_layer::raise(
     handle_type  _db,

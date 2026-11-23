@@ -1,11 +1,11 @@
 /*******************************************************************************
 * djinterp [cpp][filesys]                                          file_path.hpp
 *
-* djinterp::path -- a lexical path.
+* djinterp::path - a lexical path.
 *   Header-only, C++98 through C++26, and a value type: copyable, comparable,
 * and movable where the language has moves. It owns a dj_string and calls
 * c/filesys/file_path for every decision, so C and C++ cannot disagree about
-* what a path means -- there is one parser and it is the C one.
+* what a path means - there is one parser and it is the C one.
 *   LEXICAL, like the module beneath it. parent() of "/nowhere/x" is
 * "/nowhere" whether or not that exists, and normalized() does not resolve
 * symlinks because it cannot see them. Nothing here touches a filesystem, so
@@ -13,10 +13,10 @@
 * directory. To ask the filesystem, use d_path_resolve (file_dir).
 *   NO OS ANYWHERE IN THIS FILE. Not one #if defined(_WIN32). Which grammar a
 * path is in was decided by D_CFG_FILE_PATH_SYNTAX, and asking the platform
-* again here would be a second answer to a settled question -- exactly the
+* again here would be a second answer to a settled question - exactly the
 * duplicate that made djinterp_qual_cfg.h and cfg_qualifiers.h a coin-flip.
 *   FAILURE. A path owns a buffer, so construction can fail. With exceptions
-* off -- C++98, -fno-exceptions -- a constructor cannot report that, so a
+* off - C++98, -fno-exceptions - a constructor cannot report that, so a
 * failed one yields an INVALID path and every operation on an invalid path
 * yields another invalid path. A failure propagates to wherever the caller
 * actually looks, instead of being lost where it happened. Check valid(), or
@@ -87,7 +87,7 @@ TABLE OF CONTENTS
 // D_NOEXCEPT, D_EXPLICIT_BOOL), shared by every C++ module. path was one of
 // the three headers that carried a private copy of that kit (D_PATH_*), and
 // the promoted, single-source version keeps the tier rule it encoded: moves
-// are ADDED on C++11, never substituted -- a C++98 caller writes copies, and
+// are ADDED on C++11, never substituted - a C++98 caller writes copies, and
 // that same source compiles on every later tier. (A destructive copy on C++98
 // that became a real move on C++11 would compile in both and MEAN different
 // things in each; that is what the rule avoids.)
@@ -100,7 +100,7 @@ TABLE OF CONTENTS
 //   macro: the namespace layer, from the root (djinterp.hpp, through
 // file_common.hpp); this header kept a private copy until the root defined
 // the kit (4.2). Everything public is FLAT in djinterp --
-// djinterp::path, not djinterp::filesys::path -- because the filesys grouping
+// djinterp::path, not djinterp::filesys::path - because the filesys grouping
 // is a property of the C modules' link granularity, and a C++ caller has no
 // use for it. Implementation details go in djinterp::internal, which is the
 // only nesting there is.
@@ -122,7 +122,7 @@ NS_INTERNAL
     // DPathScratch
     //   class: a lexical operation's output buffer. The C module writes into a
     // caller-supplied buffer, so every lexical call needs one. This borrows the
-    // stack until that is not enough, then allocates -- so the common case
+    // stack until that is not enough, then allocates - so the common case
     // costs nothing and the long-path case still works rather than failing.
     class DPathScratch
     {
@@ -186,7 +186,7 @@ NS_INTERNAL
             return true;
         }
 
-        // observers -- the current buffer and its capacity; neither can fail
+        // observers - the current buffer and its capacity; neither can fail
         char* data(void)
         {
             return m_buf;
@@ -231,8 +231,8 @@ private:
     //   type: selects the constructor that makes an invalid path without
     // asking whether this build wants to throw about it. It exists because the
     // two failure models collide otherwise: with D_CFG_PATH_THROW on,
-    // `path((const char*)0)` -- which is how the lexical helpers below
-    // reported failure -- would THROW bad_alloc out of a function that never
+    // `path((const char*)0)` - which is how the lexical helpers below
+    // reported failure - would THROW bad_alloc out of a function that never
     // allocated, from a d_path_dirname that merely did not fit. The first
     // build with throwing enabled aborted on exactly that. A failed lexical
     // operation is not an allocation failure, so it must not be reported as
@@ -262,7 +262,7 @@ public:
     /**
      * @brief Constructs a path from a C string.
      *
-     * @note A `NULL` argument yields an INVALID path -- a NULL path is not an
+     * @note A `NULL` argument yields an INVALID path - a NULL path is not an
      *       empty path, and conflating them is how a caller ends up operating
      *       on "" believing it has something. It never throws, even with
      *       D_CFG_PATH_THROW on: it is not a resource failure, so bad_alloc
@@ -290,7 +290,7 @@ public:
      * @brief Copies a path. Deep: two paths never share a buffer.
      *
      * @note Copying an INVALID path yields an invalid path and never throws,
-     *       even with D_CFG_PATH_THROW on -- an already-invalid source is not
+     *       even with D_CFG_PATH_THROW on - an already-invalid source is not
      *       a resource this operation ran out of.
      *
      * @param[in] _other  the path to copy.
@@ -304,8 +304,8 @@ public:
     {
         // The check guards on whether there was anything to copy, exactly as
         // the const char* constructor guards on whether there was anything to
-        // parse. Without it, every operator/ onto an invalid path -- which
-        // copies its left operand -- would abort a throwing build.
+        // parse. Without it, every operator/ onto an invalid path - which
+        // copies its left operand - would abort a throwing build.
         if (_other.m_str)
         {
             d_internal_check();
@@ -408,7 +408,7 @@ public:
      * @brief Reports whether construction succeeded.
      *
      * @note This is the failure channel that works on every tier. An invalid
-     *       path is contagious -- every operation on one yields another -- so
+     *       path is contagious - every operation on one yields another - so
      *       a failure arrives wherever the caller checks rather than being
      *       dropped where it happened.
      *
@@ -539,8 +539,8 @@ public:
      *        (d_path_join).
      *
      * @note An `_other` with a root decides how much of this path survives
-     *       -- an absolute one REPLACES it, and under Windows syntax "\\x"
-     *       keeps only its volume -- which is what
+     *       - an absolute one REPLACES it, and under Windows syntax "\\x"
+     *       keeps only its volume - which is what
      *       D_CFG_FILE_PATH_JOIN_ABSOLUTE_WINS decided in c/filesys and is not
      *       re-decided here.
      *
@@ -611,8 +611,8 @@ public:
     /**
      * @brief Reports whether this path names a fixed starting point.
      *
-     * @note d_path_is_absolute knows that "C:x" is drive-RELATIVE -- Win32
-     *       keeps a per-drive cursor, and only "C:\\x" is anchored -- and
+     * @note d_path_is_absolute knows that "C:x" is drive-RELATIVE - Win32
+     *       keeps a per-drive cursor, and only "C:\\x" is anchored - and
      *       that "\\x" is relative too, to whichever drive is current.
      *
      * @return true for an absolute path; false otherwise and when invalid.
@@ -634,7 +634,7 @@ public:
     }
 
     /**
-     * @brief Reports the length of the leading root -- what ".." may never
+     * @brief Reports the length of the leading root - what ".." may never
      *        climb above.
      *
      * @return the root's length in bytes; 0 when there is none or the path is
@@ -656,7 +656,7 @@ public:
      *          /y/z, this says "/x/link/.." is "/x" because that is what the
      *          TEXT means, while the kernel says "/y". When the path names
      *          something that exists and the difference matters, ask the
-     *          filesystem -- d_path_resolve, in file_dir.
+     *          filesystem - d_path_resolve, in file_dir.
      *
      * @return the normalized path, or an invalid path on failure.
      */
@@ -672,7 +672,7 @@ public:
      *
      * @note TEXTUAL, deliberately. "a/b", "a//b" and "./a/b" name the same
      *       file and compare UNEQUAL, because deciding otherwise would mean
-     *       normalizing on every comparison -- and normalizing is lexical, so
+     *       normalizing on every comparison - and normalizing is lexical, so
      *       it would still be wrong across a symlink. Compare normalized() if
      *       that is what you meant; the call site should say so.
      *
@@ -768,7 +768,7 @@ private:
      * @brief The throwing half, when a build has asked for one.
      *
      * @note With exceptions off this is nothing at all, and valid() carries
-     *       the news instead -- which is why valid() is the primary channel and
+     *       the news instead - which is why valid() is the primary channel and
      *       this is the addition.
      *
      * @throws std::bad_alloc when D_CFG_PATH_THROW is 1 and the path is
@@ -816,7 +816,7 @@ private:
         return;
     }
 
-    // trampolines -- the c/filesys lexical operations, in fn_lex's shape
+    // trampolines - the c/filesys lexical operations, in fn_lex's shape
     static
     char* d_internal_dirname(
         const char* _path,
@@ -871,7 +871,7 @@ private:
      *
      * @note The four decompositions differ only by which C function they
      *       call, so they share this rather than repeating the
-     *       scratch-grow-check dance four times -- exactly the kind of
+     *       scratch-grow-check dance four times - exactly the kind of
      *       repetition that lets one of them drift.
      *
      * @param[in] _fn  the operation to run.
@@ -890,7 +890,7 @@ private:
             return d_internal_invalid();
         }
 
-        // +2: the terminator, and the one result longer than its input -- ""
+        // +2: the terminator, and the one result longer than its input - ""
         // gives "." as a parent and as a normal form. Every other result here
         // removes text or rewrites it in place.
         if (!scratch.grow(size() + 2))

@@ -247,8 +247,8 @@ public:
     //   adds `_other`'s movement since its start (its value less its
     // initial value) to this counter, clamping as increment and decrement
     // do; returns false when clamped. a movement too large for the value
-    // type is held at the type's range first -- a rise at max(), a fall at
-    // lowest() -- and that is reported too, as the C counter's
+    // type is held at the type's range first - a rise at max(), a fall at
+    // lowest() - and that is reported too, as the C counter's
     // d_counter_merge reports it. children are not merged. merging a counter
     // into itself adds its own movement once.
     //

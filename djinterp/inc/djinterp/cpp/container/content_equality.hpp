@@ -82,7 +82,7 @@ NS_INTERNAL
     template<typename Elem, typename = void>
     struct content_has_c_str_helper : std::false_type {};
     // content_has_c_str_helper specialization
-    //   helper: the detected case -- selected when the type exposes the member
+    //   helper: the detected case - selected when the type exposes the member
     // function `c_str()`.
     template<typename Elem>
     struct content_has_c_str_helper<Elem,

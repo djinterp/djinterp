@@ -3,7 +3,7 @@
 *
 * Reads the CMake language into records: see dcmake.h.
 *   One pass over the text, by hand, in the order cmake-language(7) gives:
-* the file is elements -- a command, or comments and space -- each ending its
+* the file is elements - a command, or comments and space - each ending its
 * line, and a command is a name, `(`, arguments and `)`, with comments and
 * newlines free among the arguments. A second pass over the commands pairs
 * each block's opener with its closer.

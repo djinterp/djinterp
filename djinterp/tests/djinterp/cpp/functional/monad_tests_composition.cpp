@@ -3,7 +3,7 @@
 *
 *   Tests for monad.hpp Section II sequencing/composition operations:
 * monad_then (sequence, discard the first value), kleisli_compose
-* (>=> -- compose two monadic arrows), and lift_m2 (binary applicative
+* (>=> - compose two monadic arrows), and lift_m2 (binary applicative
 * lift).  Covers success and short-circuit paths, value-discarding
 * semantics, Kleisli associativity, type-changing lifts, and the
 * left-bias of lift_m2.

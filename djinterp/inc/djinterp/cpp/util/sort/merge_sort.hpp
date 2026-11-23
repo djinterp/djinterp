@@ -2,7 +2,7 @@
 * djinterp [cpp][utility]                                         merge_sort.hpp
 *
 *   Merge sort: the sequential driver.
-* Stable, comparison-based, O(n log n) in every case -- no input defeats it,
+* Stable, comparison-based, O(n log n) in every case - no input defeats it,
 * which is what separates it from quicksort.  The only algorithm in the
 * subsystem that is not in place, and so the only one whose C++ entry point
 * acquires storage.
@@ -22,15 +22,15 @@
 * so no pass ever assigns over an uninitialised one.
 *
 *   complexity:
-*     best:       O(n)      comparisons (ordered input -- an ordered run pair
+*     best:       O(n)      comparisons (ordered input - an ordered run pair
 *                           is detected in one comparison and copied)
 *     average:    O(n log n)
 *     worst:      O(n log n)   (guaranteed)
 *     space:      O(n)      auxiliary
 *     stable:     yes
 *
-*   WHEN TO REACH FOR IT.  When the worst case matters -- it has no bad input,
-* where quicksort does -- or when stability is required at O(n log n), which no
+*   WHEN TO REACH FOR IT.  When the worst case matters - it has no bad input,
+* where quicksort does - or when stability is required at O(n log n), which no
 * other algorithm here offers.  The price is the buffer.
 *
 *   REQUIREMENTS.  RandomIterator must be a random-access iterator; the
@@ -77,7 +77,7 @@ NS_INTERNAL
     //
     //   THE PING-PONG.  A merge cannot write into what it reads, so each pass
     // reads one buffer and writes the other and the two exchange roles.  The
-    // alternative -- merge into scratch, copy back, repeat -- is correct and
+    // alternative - merge into scratch, copy back, repeat - is correct and
     // copies every element twice per pass instead of once.
     //
     //   The two buffers are different types, so the alternation is a branch

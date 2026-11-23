@@ -5,11 +5,11 @@
 * DTest authoring guide a runner is thin: it selects the spec face of the
 * suite header, chooses a handful of options, and hands the spec to
 * run_module, whose exit code is the whole of main.  It carries no per-test
-* logic, no report formatting, and no templating -- run_module inside
+* logic, no report formatting, and no templating - run_module inside
 * test_defaults.hpp owns all of that.
 *
 *   The suite exposes its spec through parse_spec() (the shortname is the
-* component with no test_ prefix to strip -- the module is `parse`, so the
+* component with no test_ prefix to strip - the module is `parse`, so the
 * provider is parse_spec()).  Defining DTEST_SPEC_MODE before the include
 * selects that face; the section translation units, which define the tests_*
 * bodies, include the same header WITHOUT the macro.

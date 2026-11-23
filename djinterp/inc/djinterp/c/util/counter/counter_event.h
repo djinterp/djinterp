@@ -5,7 +5,7 @@
 * event fires. It couples an event core handler (c/event's struct
 * dj_event_step) to any counter (counter.h's struct dj_counter_ref), and that
 * is all it does: the caller binds the handler wherever handlers are bound.
-*   A binding is a struct dj_counter_event -- which counter, which operation,
+*   A binding is a struct dj_counter_event - which counter, which operation,
 * by how much. d_counter_event_step hands it off as the event core's
 * (function, state) step, as shown below.
 *

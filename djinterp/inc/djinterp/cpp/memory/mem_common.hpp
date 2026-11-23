@@ -83,7 +83,7 @@ NS_DJINTERP
 
 // DMemSize
 //   type: the counter every allocator in this subframework counts in. Whose
-// width is D_CFG_MEM_SIZE_BITS -- the SAME type the C core uses, not a
+// width is D_CFG_MEM_SIZE_BITS - the SAME type the C core uses, not a
 // std::size_t that happens to agree, because a C++ face that quietly widened
 // the counter would produce a different layout from the C one and break the
 // parity law at the first struct that held it.
@@ -269,7 +269,7 @@ struct has_reset<
 {};
 
 // is_memory_resource
-//   trait: detects the minimum resource protocol -- something that can vend
+//   trait: detects the minimum resource protocol - something that can vend
 // bytes at an alignment.
 template<typename Type>
 struct is_memory_resource

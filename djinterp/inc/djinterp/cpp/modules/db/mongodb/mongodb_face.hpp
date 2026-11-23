@@ -18,8 +18,8 @@
 *     }
 * Results are the layer's: 0, the server's code as it sent it, a failure of
 * the driver's or libbson's packed above every code a server uses, or a
-* negative D_DB_*. Functions that need no handle -- results, the driver's
-* versions, its log -- are static. db_face.hpp describes what the face adds,
+* negative D_DB_*. Functions that need no handle - results, the driver's
+* versions, its log - are static. db_face.hpp describes what the face adds,
 * how strings, lists and text cross it, and what each language level adds
 * beside the exact forms: from C++17 std::optional text, from C++20 formats
 * checked at compile time, in JSON's dialect, from C++23 std::expected
@@ -29,8 +29,8 @@
 * the reason in the text, where one is given. A member called on a face with
 * no handle passes NULL to the layer, which answers D_DB_INVALID_ARGUMENT, or
 * false, 0 or NULL. A transaction's mode, for face::transaction, is its
-* options as JSON -- readConcern, writeConcern, readPreference,
-* maxCommitTimeMS -- or NULL for the handle's own; the server has no
+* options as JSON - readConcern, writeConcern, readPreference,
+* maxCommitTimeMS - or NULL for the handle's own; the server has no
 * savepoints, so face::savepoint guards none.
 *   face::mongodb_cursor owns a cursor, the layer's struct dj_mongodb_cursor,
 * and closes it when it goes; find_cursor, aggregate_cursor and
@@ -49,11 +49,11 @@
 *     }
 * face::mongodb_change_stream owns a change stream likewise, which the
 * watch_ members fill, its members fetch and resume_token. Close every
-* cursor and stream -- let it go -- before the handle it reads through.
+* cursor and stream - let it go - before the handle it reads through.
 *   The members that forward are generated, by scripts/gen_db_face.py from the
 * layer's prototypes and scripts/db_face/mongodb_face.hpp.in, and keep the C
 * functions' contracts, in the headers each part names; those written by
-* hand in the template -- the ones that connect, adopt, close or hand over
+* hand in the template - the ones that connect, adopt, close or hand over
 * the handle, a cursor or a stream, and the transaction mode's beginning --
 * carry their own. Edit the template, not this file.
 *
@@ -148,8 +148,8 @@ namespace face
 //------------------------------------------------------------------------------
 // 1.1.1
 // mongodb_cursor
-//   class: a cursor -- the layer's struct dj_mongodb_cursor, over a query the
-// server has begun -- owned: closed when the object goes, which tells the
+//   class: a cursor - the layer's struct dj_mongodb_cursor, over a query the
+// server has begun - owned: closed when the object goes, which tells the
 // server too, if the documents are not done. Made empty, and filled by
 // face::mongodb's find_cursor, aggregate_cursor and command_cursor; every
 // function of mongodb_cursor.h that takes a cursor is a member, the
@@ -188,7 +188,7 @@ public:
     }
 
 #if D_MOVE_ENABLED
-    // moving -- the cursor passes to the object moved to, which closes what
+    // moving - the cursor passes to the object moved to, which closes what
     // it held; the object moved from holds none
     mongodb_cursor(
         mongodb_cursor&& _other
@@ -207,7 +207,7 @@ public:
     }
 #endif  // D_MOVE_ENABLED
 
-    // the handle -- the cursor, for the layer's own calls, NULL when there
+    // the handle - the cursor, for the layer's own calls, NULL when there
     // is none; and whether there is one
     D_NODISCARD struct dj_mongodb_cursor*
     handle() const D_NOEXCEPT
@@ -301,7 +301,7 @@ public:
         return &m_cursor;
     }
 
-    // swap -- the two objects trade cursors
+    // swap - the two objects trade cursors
     void
     swap(
         mongodb_cursor& _other
@@ -365,7 +365,7 @@ private:
 //------------------------------------------------------------------------------
 // 1.2.1
 // mongodb_change_stream
-//   class: a change stream -- the layer's struct dj_mongodb_change_stream --
+//   class: a change stream - the layer's struct dj_mongodb_change_stream --
 // owned: closed when the object goes. Made empty, and filled by
 // face::mongodb's watch_collection, watch_database and watch_deployment;
 // every function of mongodb_cursor.h that takes a stream is a member, the
@@ -404,7 +404,7 @@ public:
     }
 
 #if D_MOVE_ENABLED
-    // moving -- the stream passes to the object moved to, which closes what
+    // moving - the stream passes to the object moved to, which closes what
     // it held; the object moved from holds none
     mongodb_change_stream(
         mongodb_change_stream&& _other
@@ -423,7 +423,7 @@ public:
     }
 #endif  // D_MOVE_ENABLED
 
-    // the handle -- the stream, for the layer's own calls, NULL when there
+    // the handle - the stream, for the layer's own calls, NULL when there
     // is none; and whether there is one
     D_NODISCARD struct dj_mongodb_change_stream*
     handle() const D_NOEXCEPT
@@ -517,7 +517,7 @@ public:
         return &m_stream;
     }
 
-    // swap -- the two objects trade streams
+    // swap - the two objects trade streams
     void
     swap(
         mongodb_change_stream& _other
@@ -696,7 +696,7 @@ public:
     }
 
 #if D_MOVE_ENABLED
-    // moving -- the handle passes to the face moved to, which closes what
+    // moving - the handle passes to the face moved to, which closes what
     // it held; the face moved from holds none
     mongodb(
         mongodb&& _other
@@ -715,7 +715,7 @@ public:
     }
 #endif  // D_MOVE_ENABLED
 
-    // the handle -- the layer's, for its own calls, NULL when there is none;
+    // the handle - the layer's, for its own calls, NULL when there is none;
     // and whether there is one
     D_NODISCARD struct dj_mongodb*
     handle() const D_NOEXCEPT
@@ -781,7 +781,7 @@ public:
         return;
     }
 
-    // swap -- the two faces trade handles
+    // swap - the two faces trade handles
     void
     swap(
         mongodb& _other
@@ -795,7 +795,7 @@ public:
         return;
     }
 
-    // default_transaction_mode -- how face::transaction begins when told
+    // default_transaction_mode - how face::transaction begins when told
     // nothing: with no options, the handle's concerns and preference
     D_NODISCARD static D_CONSTEXPR transaction_mode
     default_transaction_mode() D_NOEXCEPT
@@ -1128,7 +1128,7 @@ public:
         return m_take(result, made);
     }
 
-    // connect_with -- the settings as an array, its size the count; from
+    // connect_with - the settings as an array, its size the count; from
     // C++20 as a std::span; each with the reason too
     template<std::size_t Count>
     int
@@ -4366,7 +4366,7 @@ private:
     D_DELETED_FN_MSG(mongodb& operator=(const mongodb&),
                      "a face owns its handle; move it")
 
-    // m_take -- a connection's result; the handle made replaces the face's
+    // m_take - a connection's result; the handle made replaces the face's
     // when it succeeded
     int
     m_take(
@@ -4388,7 +4388,7 @@ private:
 
 // 1.4    Swapping
 //------------------------------------------------------------------------------
-// swapping -- the two handles, cursors or streams trade places, as std::swap
+// swapping - the two handles, cursors or streams trade places, as std::swap
 // would have them, for code that swaps unqualified
 inline void
 swap(

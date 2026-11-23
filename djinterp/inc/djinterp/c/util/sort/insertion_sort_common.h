@@ -70,16 +70,16 @@ D_EXTERN_C_BEGIN
 // I.     properties
 
 // D_INSERTION_SORT_IS_STABLE
-//   macro: 1 -- placement stops at the first element the candidate does not
+//   macro: 1 - placement stops at the first element the candidate does not
 // strictly precede, so equivalent elements keep their input order.
 #define D_INSERTION_SORT_IS_STABLE     1
 
 // D_INSERTION_SORT_IS_IN_PLACE
-//   macro: 1 -- O(1) auxiliary storage, none of it allocated.
+//   macro: 1 - O(1) auxiliary storage, none of it allocated.
 #define D_INSERTION_SORT_IS_IN_PLACE   1
 
 // D_INSERTION_SORT_IS_ADAPTIVE
-//   macro: 1 -- an element already in order relative to its predecessor is
+//   macro: 1 - an element already in order relative to its predecessor is
 // left alone, so ordered input costs one comparison per element and no writes.
 #define D_INSERTION_SORT_IS_ADAPTIVE   1
 

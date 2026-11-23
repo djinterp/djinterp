@@ -1,8 +1,8 @@
 /*******************************************************************************
 * djinterp [cpp][text]                                             xml_tests.hpp
 *
-*   text's XML headers -- xml/xml.hpp, xml/xml_dialect.hpp and
-* xml/xml_template.hpp -- in DTest's C face (c/modules/test/test_suite.h).
+*   text's XML headers - xml/xml.hpp, xml/xml_dialect.hpp and
+* xml/xml_template.hpp - in DTest's C face (c/modules/test/test_suite.h).
 *   One entry point builds the module "xml" imperatively: a block per header
 * and a test per group of checks. A group runs at its header's floor and
 * up, and below it is skipped, saying why: xml.hpp is C++11, xml_dialect.hpp

@@ -76,7 +76,7 @@ TABLE OF CONTENTS
 // 1.  THE KERNELS (long double)
 //==============================================================================
 // Every family's tangent and arc-tangent are computed here, in long double,
-// as exact pairs -- elementary.h's (its section 1.1) -- and rounded once by
+// as exact pairs - elementary.h's (its section 1.1) - and rounded once by
 // the family: a float or double result is the kernel's value rounded once
 // more, a long double result is the kernel's value. Nothing depends on long
 // double's format beyond <float.h>.
@@ -85,8 +85,8 @@ TABLE OF CONTENTS
 // 1.1    The tangent's core
 //------------------------------------------------------------------------------
 // tan x = sin r / cos r where x's quadrant is even and -cos r / sin r where
-// it is odd, r + r_lo being x reduced by pi/2 -- exactly, however large x is
-// -- and the sine and cosine its pairs (elementary.h, sections 1.3 and 1.4).
+// it is odd, r + r_lo being x reduced by pi/2 - exactly, however large x is
+// - and the sine and cosine its pairs (elementary.h, sections 1.3 and 1.4).
 // The quotient is taken with its residual, num - q den, whose first product
 // is exact by Dekker's method, so that it keeps the pairs' precision.
 
@@ -174,7 +174,7 @@ d_internal_math_ld_atan_of(
 //------------------------------------------------------------------------------
 // atan2(y, x) for y and x finite and nonzero: the smaller magnitude divided
 // into the larger as a pair (elementary.h's ratio), then the quadrant from
-// the signs -- atan u, pi - atan u, or pi/2 -+ atan u past the diagonal -- by
+// the signs - atan u, pi - atan u, or pi/2 -+ atan u past the diagonal - by
 // elementary.h's arc-tangent of the unit interval, and y's sign last,
 // atan2(-y, x) being -atan2(y, x). No quotient past 1 is formed, so none can
 // overflow, for any two finite values.
@@ -303,7 +303,7 @@ d_math_f_atan(
 //------------------------------------------------------------------------------
 // atan2_c is the angle of (_x, _y) in pure arithmetic, a constant expression
 // from C++14: the kernel's pair (section 1.3) rounded once to the family, and
-// the zeros and infinities as C99's Annex F has them -- atan2(+-0, x) is +-0
+// the zeros and infinities as C99's Annex F has them - atan2(+-0, x) is +-0
 // for x +0 or positive and +-pi for x -0 or negative; a zero x, or an
 // infinite y against a finite x, gives +-pi/2; an infinite y against an
 // infinite x +-pi/4, or +-3pi/4 for -inf; a finite y against an infinite x
@@ -335,7 +335,7 @@ d_internal_math_f_negative(
 // d_internal_math_f_turns
 //   _quarters pi/2 + atan(_u), or less it when _minus is true, rounded once
 // to the family and negated when _negative is true: atan2's values at the
-// zeros and infinities -- pi/2, pi, pi/4, 3pi/4 -- by the kernel of the rest.
+// zeros and infinities - pi/2, pi, pi/4, 3pi/4 - by the kernel of the rest.
 D_MATH_FN float
 d_internal_math_f_turns(
     long double _u,
@@ -529,7 +529,7 @@ d_math_d_atan(
 //------------------------------------------------------------------------------
 // atan2_c is the angle of (_x, _y) in pure arithmetic, a constant expression
 // from C++14: the kernel's pair (section 1.3) rounded once to the family, and
-// the zeros and infinities as C99's Annex F has them -- atan2(+-0, x) is +-0
+// the zeros and infinities as C99's Annex F has them - atan2(+-0, x) is +-0
 // for x +0 or positive and +-pi for x -0 or negative; a zero x, or an
 // infinite y against a finite x, gives +-pi/2; an infinite y against an
 // infinite x +-pi/4, or +-3pi/4 for -inf; a finite y against an infinite x
@@ -561,7 +561,7 @@ d_internal_math_d_negative(
 // d_internal_math_d_turns
 //   _quarters pi/2 + atan(_u), or less it when _minus is true, rounded once
 // to the family and negated when _negative is true: atan2's values at the
-// zeros and infinities -- pi/2, pi, pi/4, 3pi/4 -- by the kernel of the rest.
+// zeros and infinities - pi/2, pi, pi/4, 3pi/4 - by the kernel of the rest.
 D_MATH_FN double
 d_internal_math_d_turns(
     long double _u,
@@ -755,7 +755,7 @@ d_math_ld_atan(
 //------------------------------------------------------------------------------
 // atan2_c is the angle of (_x, _y) in pure arithmetic, a constant expression
 // from C++14: the kernel's pair (section 1.3) rounded once to the family, and
-// the zeros and infinities as C99's Annex F has them -- atan2(+-0, x) is +-0
+// the zeros and infinities as C99's Annex F has them - atan2(+-0, x) is +-0
 // for x +0 or positive and +-pi for x -0 or negative; a zero x, or an
 // infinite y against a finite x, gives +-pi/2; an infinite y against an
 // infinite x +-pi/4, or +-3pi/4 for -inf; a finite y against an infinite x
@@ -787,7 +787,7 @@ d_internal_math_ld_negative(
 // d_internal_math_ld_turns
 //   _quarters pi/2 + atan(_u), or less it when _minus is true, rounded once
 // to the family and negated when _negative is true: atan2's values at the
-// zeros and infinities -- pi/2, pi, pi/4, 3pi/4 -- by the kernel of the rest.
+// zeros and infinities - pi/2, pi, pi/4, 3pi/4 - by the kernel of the rest.
 D_MATH_FN long double
 d_internal_math_ld_turns(
     long double _u,

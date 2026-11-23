@@ -4,13 +4,13 @@
 *   Unit-test declarations for core/functional/recursion.hpp.  One declaration
 * group per section of the module under test:
 *
-*     recursion_tests_mu.cpp        -- I.        mu<F>, the least fixed point
-*     recursion_tests_traits.cpp    -- II-IV.    recursive_traits /
+*     recursion_tests_mu.cpp        - I.        mu<F>, the least fixed point
+*     recursion_tests_traits.cpp    - II-IV.    recursive_traits /
 *                                                corecursive_traits, detection,
 *                                                the mu<F> instances
-*     recursion_tests_cata.cpp      -- V.        cata[phi], the universal fold
-*     recursion_tests_ana.cpp       -- VI.       ana[psi], the universal unfold
-*     recursion_tests_hylo.cpp      -- VII.      hylo, the deforested refold
+*     recursion_tests_cata.cpp      - V.        cata[phi], the universal fold
+*     recursion_tests_ana.cpp       - VI.       ana[psi], the universal unfold
+*     recursion_tests_hylo.cpp      - VII.      hylo, the deforested refold
 *
 *   FIXTURES.  recursion.hpp folds any Functor, so the suite supplies three
 * base functors as single-argument template-template citizens, each with a
@@ -23,13 +23,13 @@
 * nat_f exercises the single-hole path, list_f the payload-vs-hole distinction
 * (Cons threads its Int but recurses on its tail), and tree_f the multi-child
 * fold (Branch maps BOTH holes).  std::vector<int> is additionally registered
-* as a native recursive carrier over list_f -- the "a native carrier
+* as a native recursive carrier over list_f - the "a native carrier
 * participates without being rewritten as a fixed point" story from the header
-* -- so cata / ana run over a plain vector, not only over mu.
+* - so cata / ana run over a plain vector, not only over mu.
 *
 *   Builders (make_*) assemble fixed points directly through In, and verifiers
 * (nat_to_unsigned, list_to_vector, ...) read them back by walking out(),
-* neither using a recursion scheme -- so cata is checked against hand-built
+* neither using a recursion scheme - so cata is checked against hand-built
 * values, and ana / hylo against hand-written walks, without circularity.
 *
 *   All tests are flat in djinterp::testing.
@@ -112,7 +112,7 @@ struct DNotRecursive
 };
 
 
-// -- base functor: nat_f<X> = 1 + X ---------------------------------------
+// - base functor: nat_f<X> = 1 + X ---------------------------------------
 
 // nat_f
 //   fixture functor: the Peano base functor.  is_zero marks the Zero arm;
@@ -153,7 +153,7 @@ nat_f<_X> nat_succ(
 }
 
 
-// -- base functor: list_f<X> = 1 + Int * X --------------------------------
+// - base functor: list_f<X> = 1 + Int * X --------------------------------
 
 // list_f
 //   fixture functor: the list base functor.  head is an Int PAYLOAD (not a
@@ -198,7 +198,7 @@ list_f<_X> list_cons(
 }
 
 
-// -- base functor: tree_f<X> = Int | X * X --------------------------------
+// - base functor: tree_f<X> = Int | X * X --------------------------------
 
 // tree_f
 //   fixture functor: a binary-tree base functor.  A Leaf carries an Int
@@ -249,7 +249,7 @@ tree_f<_X> tree_branch(
 }
 
 
-// -- named algebra / coalgebra forms (for the callable-shape tests) -------
+// - named algebra / coalgebra forms (for the callable-shape tests) -------
 //   cata / ana / hylo accept any callable; these let the tests confirm a free
 // function and a function object work, not only a lambda.
 
@@ -292,7 +292,7 @@ struct DNatSuccCo
 };
 
 
-// -- manual builders (direct In-nesting; no recursion scheme) -------------
+// - manual builders (direct In-nesting; no recursion scheme) -------------
 
 // make_nat: Succ^n Zero.
 inline
@@ -356,7 +356,7 @@ DMu<tree_f> make_balanced_tree(
 }
 
 
-// -- manual verifiers (walk out() directly; no recursion scheme) ----------
+// - manual verifiers (walk out() directly; no recursion scheme) ----------
 
 // nat_to_unsigned: the depth of a Peano value.
 inline
@@ -492,7 +492,7 @@ bool tests_hylo_base_case();
 bool tests_hylo_forms();
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // recursion_spec
 //   function: the suite as DTest's module spec, one block per section.

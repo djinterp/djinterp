@@ -5,9 +5,9 @@
 * trait_detect.hpp (re-exported through Section 0.3 of type_traits.hpp,
 * which was where they lived before the SFINAE toolkit was factored out):
 *     - D_TYPE_TRAIT_EXPR_METHOD              (covered indirectly via HAS_METHOD)
-*     - D_TYPE_TRAIT_EXPR_METHOD_ARGS         (single-arg form only -- see below)
+*     - D_TYPE_TRAIT_EXPR_METHOD_ARGS         (single-arg form only - see below)
 *     - D_TYPE_TRAIT_HAS_METHOD
-*     - D_TYPE_TRAIT_HAS_METHOD_ARGS            (single-arg form only -- see below)
+*     - D_TYPE_TRAIT_HAS_METHOD_ARGS            (single-arg form only - see below)
 *     - D_TYPE_TRAIT_HAS_TYPE
 *     - D_TYPE_TRAIT_HAS_STATIC_MEMBER
 *     - D_TYPE_TRAIT_MEMBER_TYPE_OR            (extract-or-fall-back; newly covered)
@@ -19,7 +19,7 @@
 * (D_TRAIT_DETECT_METHOD -> D_TYPE_TRAIT_EXPR_METHOD, etc.), and the old
 * D_TRAIT_IS_DETECTED engine is now D_TYPE_TRAIT_TRUE.
 *
-*   KNOWN BROKEN MACROS (not exercised here -- bugs filed):
+*   KNOWN BROKEN MACROS (not exercised here - bugs filed):
 *
 *   1. D_TYPE_TRAIT_EXPR_METHOD_ARGS for multi-arg cases:
 *      The macro expands to `std::declval<__VA_ARGS__>()`, which packs
@@ -157,7 +157,7 @@ static_assert(has_erase_int<DBareClass>::value == false,
 static_assert(has_erase_int<int>::value == false,
               "D_TYPE_TRAIT_HAS_METHOD_ARGS: builtin int -> false");
 
-// genuinely-incompatible arg type -- no implicit conversion path
+// genuinely-incompatible arg type - no implicit conversion path
 D_TYPE_TRAIT_HAS_METHOD_ARGS(has_erase_unrelated, erase, unrelated_t)
 
 static_assert(has_erase_unrelated<DContainerLike>::value == false,
@@ -193,7 +193,7 @@ static_assert(has_size_type_alias<DContainerLike>::value == true,
 static_assert(has_size_type_alias<has_value_type_no_methods>::value == false,
               "D_TYPE_TRAIT_HAS_TYPE: size_type absent (other typedefs present) -> false");
 
-// alternate-name probe -- catches a typedef whose name differs from value_type
+// alternate-name probe - catches a typedef whose name differs from value_type
 D_TYPE_TRAIT_HAS_TYPE(has_element_t_alias, element_t)
 
 static_assert(has_element_t_alias<DContainerLike>::value == true,
@@ -213,7 +213,7 @@ static_assert(has_element_t_alias<has_value_type_no_methods>::value == false,
 // IV.  D_TYPE_TRAIT_HAS_STATIC_MEMBER  (compile-time)
 // =========================================================================
 //   Detection via `decltype(_Type::MEMBER_NAME)`. Per the macro comments,
-// only validates that the name resolves at class scope -- does not
+// only validates that the name resolves at class scope - does not
 // constrain the member type.
 
 D_TYPE_TRAIT_HAS_STATIC_MEMBER(has_magic_static, magic)

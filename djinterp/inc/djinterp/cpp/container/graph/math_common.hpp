@@ -16,7 +16,7 @@
 * expressions and morphisms.
 *
 * DESIGN PRINCIPLES:
-*   1. No tag types are required for end users -- detection is structural.
+*   1. No tag types are required for end users - detection is structural.
 *      The tags below are *available* for users who want explicit opt-in,
 *      but every property is also detectable purely structurally.
 *   2. Every enum has a `none` / `unknown` member at value 0 to allow

@@ -9,7 +9,7 @@
 * is only correct because ratio normalises at definition: num and den
 * are always the reduced form with a positive denominator, so equal
 * rationals are the same type. ratio_equal<ratio<1,2>, ratio<2,4>> is
-* true because ratio<2,4>::num is 1 and ::den is 2 -- there is nothing
+* true because ratio<2,4>::num is 1 and ::den is 2 - there is nothing
 * left to reduce.
 *
 *   It costs no multiplication, so it cannot overflow.

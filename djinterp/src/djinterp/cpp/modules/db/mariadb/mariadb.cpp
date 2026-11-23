@@ -105,8 +105,8 @@ void mariadb_connection::set_mariadb_config(
 /*
 mariadb_connection::add_settings_impl
   Galera's causal reads and the session's default storage engine, as init
-commands: the client runs them within the connect -- so that connect_async
-never waits for them -- after the configuration's own init command, a server
+commands: the client runs them within the connect - so that connect_async
+never waits for them - after the configuration's own init command, a server
 that refuses either failing the connect; a reset runs them again. An
 engine's name is an identifier, refused otherwise, since no connection is
 there yet to quote it.

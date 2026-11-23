@@ -4,7 +4,7 @@
 * A runtime option record: string keys, scalar values, and a cascade.
 *   option_set (option_set.hpp) is the compile-time face of options: a typed
 * schema whose keys and value types are fixed when it is instantiated. Some
-* consumers need the dynamic face instead -- a record assembled at run time
+* consumers need the dynamic face instead - a record assembled at run time
 * from several modules that do not know each other's keys, as a user
 * interface's element attributes and element state are.
 *   A record maps keys to a small closed set of scalar values: bool, long,

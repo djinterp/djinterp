@@ -2,12 +2,12 @@
 * djinterp [cpp][filesys]                                 file_link_tests_sa.cpp
 *
 *   Unit tests for the symlink operations in inc/djinterp/cpp/filesys/file_link.hpp --
-* create_symlink, read_symlink, is_symlink -- and, because this suite can
+* create_symlink, read_symlink, is_symlink - and, because this suite can
 * finally create a symlink, the follow-vs-no-follow difference that
 * status_tests_sa.cpp had to defer: status() follows a link, symlink_status()
 * does not. That deferral is closed here, on a real symlink, not faked there.
 *
-*   These are free functions with no handle -- flat tier ladder, same count on
+*   These are free functions with no handle - flat tier ladder, same count on
 * every standard. Fixtures create real symlinks through create_symlink (the API
 * under test) and remove them with remove() (ISO C, which removes the link, not
 * its target); no symlink()/readlink() is called directly.
@@ -254,7 +254,7 @@ void d_tests_link_print(
 // --- fixtures (ISO C for files; the API under test for the links) ---
 
 // d_tests_link_names
-//   function: fill two distinct scratch names -- a target and a link -- from a
+//   function: fill two distinct scratch names - a target and a link - from a
 // rotating buffer set (so the two held at once do not alias).
 static
 const char* d_tests_link_name(void)
@@ -434,7 +434,7 @@ struct dj_test_object* d_tests_link_follow(void)
 d_tests_link_textual
   A symlink is stored text, not a resolved reference: a link to a target that
 does not exist is still a valid link, and read_symlink returns its text without
-error -- reading a link cannot fail merely because the target is absent.
+error - reading a link cannot fail merely because the target is absent.
 */
 static
 struct dj_test_object* d_tests_link_textual(void)
@@ -505,7 +505,7 @@ struct dj_test_object* d_tests_link_failure(void)
         djinterp::error ec;
 
         d_tests_link_touch(target);
-        // reading a plain file as a symlink fails -- it is not a link
+        // reading a plain file as a symlink fails - it is not a link
         (void)djinterp::read_symlink(djinterp::path(target), ec);
         read_notlink = ec.failed();
 

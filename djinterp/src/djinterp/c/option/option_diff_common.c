@@ -32,7 +32,7 @@
 /*
 dj_internal_option_diff_sink
   Where an enumeration writes: keys or verdict entries, the capacity, and
-how many have been produced so far -- counted past the capacity, so one walk
+how many have been produced so far - counted past the capacity, so one walk
 both measures and produces.
 */
 struct dj_internal_option_diff_sink
@@ -219,7 +219,7 @@ d_internal_option_diff_walk
 its order: a key the delta lacks is REMOVED, a shared key is CHANGED or
 UNCHANGED by d_option_eq. Then over the delta, in its order: a key the base
 lacks is ADDED. A verdict reaches the sink only if `_report` holds it and
-`_exempt` (when given) does not omit the key -- so exemption filters the
+`_exempt` (when given) does not omit the key - so exemption filters the
 result and never touches the comparison.
 */
 static

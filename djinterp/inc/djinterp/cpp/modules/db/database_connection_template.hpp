@@ -9,11 +9,11 @@
 * resolved at compile time, its default configuration, and its native handle,
 * which the vendor's connection lends with get_native_handle(). A vendor's
 * connection derives from it through database_connection.
-*   The handles are the C layers' own -- an SQLite connection is SQLite's
+*   The handles are the C layers' own - an SQLite connection is SQLite's
 * struct sqlite3, a MariaDB or MySQL one the layer's struct dj_mariadb, whose
 * MYSQL* d_mariadb_native lends, a PostgreSQL one libpq's struct pg_conn, a
 * MongoDB one the layer's struct dj_mongodb, whose mongoc_client_t*
-* d_mongodb_native lends -- declared here without the clients' headers,
+* d_mongodb_native lends - declared here without the clients' headers,
 * which this header does not include. A vendor no layer stands behind yet
 * keeps a void*.
 *
@@ -412,7 +412,7 @@ public:
     //   constant: the vendor this connection serves.
     static constexpr database_type db_type = DbType;
 
-    // vendor metadata -- resolved at compile time
+    // vendor metadata - resolved at compile time
     database_type get_database_type() const noexcept
     {
         return db_type;

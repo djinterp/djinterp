@@ -14,9 +14,9 @@ test_face_laws.cpp
   This is not a behaviour test: it asserts that the face DERIVES from the core
 rather than paralleling it. Three claims, each from framework_goals.md §10:
 
-    Layout  -- one declaration; sizeof/offsetof identical in both dialects.
-    Cost    -- a wrapper's sizeof equals the wrapped type's.
-    Parity  -- canon(lower(A (*)_cpp B)) == canon(lower(A) (*)_c B).
+    Layout  - one declaration; sizeof/offsetof identical in both dialects.
+    Cost    - a wrapper's sizeof equals the wrapped type's.
+    Parity  - canon(lower(A (*)_cpp B)) == canon(lower(A) (*)_c B).
 
   The Parity checks here are unusual in that they cannot fail: every face method
 forwards to the C function of the same name, so there is no second algorithm to

@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  semigroup_tests_protocol.cpp
-//   Section I -- semigroup_traits, is_semigroup, the Semigroup concept.
+//   Section I - semigroup_traits, is_semigroup, the Semigroup concept.
 
 // std
 #include <type_traits>
@@ -87,8 +87,8 @@ bool tests_is_semigroup_cvref()
 
 /*
 tests_is_semigroup_family_sfinae
-  A family instance -- one specialisation keyed on the trait's _Enable SFINAE
-  hook -- makes every tagged type a semigroup at once, without over-matching.
+  A family instance - one specialisation keyed on the trait's _Enable SFINAE
+  hook - makes every tagged type a semigroup at once, without over-matching.
   Tests the following:
   - both members of the modular family are recognised
   - the family trait itself tags only its members

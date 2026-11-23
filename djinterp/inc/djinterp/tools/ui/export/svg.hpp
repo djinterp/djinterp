@@ -2,8 +2,8 @@
 * djinterp [cpp][tools]                                                  svg.hpp
 *
 * SVG export.
-*   Writes a draw_list as a standalone SVG document -- rectangles, then faces,
-* segments and labels, in the order a live frontend paints them -- so any view
+*   Writes a draw_list as a standalone SVG document - rectangles, then faces,
+* segments and labels, in the order a live frontend paints them - so any view
 * the draw layer produces can be saved to a file without a window. field_svg
 * lays a field panel out with layout_field and writes it in one step, measuring
 * text as the monospace font the document asks for.

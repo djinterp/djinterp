@@ -14,9 +14,9 @@
 * injects auto-keys (_index, _number, _count, _is_first, _is_last),
 * invokes the callback to bind domain-specific keys, renders the sub-
 * template, and appends the result. An optional separator string is
-* inserted between items. Nested list bindings compose naturally -- the
+* inserted between items. Nested list bindings compose naturally - the
 * callback for an outer list can itself bind an inner list on the sub-
-* template -- with all nesting counted against the configurable depth
+* template - with all nesting counted against the configurable depth
 * limit.
 *
 *   No hardcoded limits on binding count, marker length, or key length.
@@ -173,7 +173,7 @@ struct dj_text_template;
 //   The callback must not free or reallocate `_item_template`. The callback
 //   may bind string, template, function, or list bindings (for nested
 //   iteration) onto `_item_template`. Bound values must remain valid until
-//   the callback returns -- the renderer will render the sub-template
+//   the callback returns - the renderer will render the sub-template
 //   immediately after the callback.
 typedef bool (*dj_text_template_list_fn)(size_t                  _index,
                                         size_t                  _count,
@@ -295,7 +295,7 @@ struct dj_text_template_binding
         struct
         {
             // the item template rendered once per iteration; not owned
-            // by the binding -- caller must keep it alive until after
+            // by the binding - caller must keep it alive until after
             // the parent template is rendered
             struct dj_text_template* item_template;
 

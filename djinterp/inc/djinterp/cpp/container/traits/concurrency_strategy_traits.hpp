@@ -137,7 +137,7 @@ enum class DConcurrencyStrategy
 
 // concurrency_strategy_name
 //   function: a stable spelling, for diagnostics and agent-facing summaries.
-// ADDED. Every other axis enum in the framework carries one -- capacity_bound,
+// ADDED. Every other axis enum in the framework carries one - capacity_bound,
 // storage_duration, memory_discipline, ordering_kind, sortedness,
 // multiplicity_kind, DStructureKind, iteration_mode, mutability, merge_kind,
 // DFilterStage, DConversionTier. Concurrency was the only axis a summary could

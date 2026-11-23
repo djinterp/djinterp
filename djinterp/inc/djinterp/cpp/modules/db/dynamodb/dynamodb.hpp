@@ -658,13 +658,13 @@ struct dynamodb_connect_config
 //   conn.put_item("users", item);
 //   auto got = conn.get_item("users", {{"id", value{std::string{"42"}}}});
 // dynamodb_item
-//   type: one DynamoDB item, its attributes by name -- the row of the
+//   type: one DynamoDB item, its attributes by name - the row of the
 // key-value model, as the usage above builds it.
 using dynamodb_item = row;
 
 // dynamodb_key
-//   type: an item's primary key -- its partition key attribute and, for a
-// composite key, its sort key attribute -- by name.
+//   type: an item's primary key - its partition key attribute and, for a
+// composite key, its sort key attribute - by name.
 using dynamodb_key = row;
 
 class dynamodb_connection

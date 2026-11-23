@@ -40,7 +40,7 @@ NS_TESTING
 namespace
 {
 
-// free_fn_int_to_int -- declared (definition is unused; SFINAE only)
+// free_fn_int_to_int - declared (definition is unused; SFINAE only)
 int free_fn_int_to_int(
     int
 );
@@ -82,13 +82,13 @@ struct DCallableTwoIntsToInt
     }
 };
 
-// non_callable_t -- no operator(), used as the negative case.
+// non_callable_t - no operator(), used as the negative case.
 struct non_callable_t
 {
     int data;
 };
 
-// to_double_t -- a class implicitly convertible from int (used by
+// to_double_t - a class implicitly convertible from int (used by
 // is_invocable_r to demonstrate "return is convertible to _Ret").
 struct to_double_t
 {
@@ -97,7 +97,7 @@ struct to_double_t
     to_double_t(int _x) : value(_x) { return; }
 };
 
-// from_int_unrelated_t -- callable returning an opaque type NOT
+// from_int_unrelated_t - callable returning an opaque type NOT
 // convertible to int. Used to verify is_invocable_r negative path.
 struct opaque_return_t {};
 

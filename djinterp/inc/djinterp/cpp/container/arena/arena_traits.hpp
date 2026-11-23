@@ -117,7 +117,7 @@ struct is_link_policy : std::false_type
 {};
 
 // is_link_policy specialization
-//   helper: the detected case -- selected when the type declares the static
+//   helper: the detected case - selected when the type declares the static
 // members `num_links` and `flags`.
 template<typename Type>
 struct is_link_policy<Type,
@@ -290,7 +290,7 @@ struct arena_node_payload_type
 {};
 
 // arena_node_payload_type_t
-//   type: the carrier of arena_node_payload_type -- its `::type`, for use
+//   type: the carrier of arena_node_payload_type - its `::type`, for use
 // where a type rather than a value is wanted.
 template<typename Type>
 using arena_node_payload_type_t =
@@ -322,7 +322,7 @@ struct arena_node_link_policy
 {};
 
 // arena_node_link_policy_t
-//   type: the carrier of arena_node_link_policy -- its `::type`, for use where
+//   type: the carrier of arena_node_link_policy - its `::type`, for use where
 // a type rather than a value is wanted.
 template<typename Type>
 using arena_node_link_policy_t =
@@ -385,7 +385,7 @@ struct arena_payload_type
 {};
 
 // arena_payload_type_t
-//   type: the carrier of arena_payload_type -- its `::type`, for use where a
+//   type: the carrier of arena_payload_type - its `::type`, for use where a
 // type rather than a value is wanted.
 template<typename Type>
 using arena_payload_type_t =
@@ -417,7 +417,7 @@ struct arena_link_policy_type
 {};
 
 // arena_link_policy_type_t
-//   type: the carrier of arena_link_policy_type -- its `::type`, for use where
+//   type: the carrier of arena_link_policy_type - its `::type`, for use where
 // a type rather than a value is wanted.
 template<typename Type>
 using arena_link_policy_type_t =

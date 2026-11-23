@@ -2,7 +2,7 @@
 * bitwisedom [tests]                                              attachment.inc
 *
 * The code attached to the request of 2026.10.09, as it was attached --
-* tabs, trailing blanks and all -- for the import and environment
+* tabs, trailing blanks and all - for the import and environment
 * sections of the model's suite: a define environment of function-like
 * macros built on one another, interval predicates over several lines,
 * and error codes, some of whose definitions use names nothing defines.

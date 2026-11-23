@@ -86,7 +86,7 @@ NS_DJINTERP
 NS_TESTING
 
 
-// -- shared helpers -----------------------------------------------------------
+// - shared helpers -----------------------------------------------------------
 //   Small compile-time-property probes used across the section suites.  They
 // are function templates (implicitly inline), so every translation unit that
 // includes this header may instantiate them without an ODR conflict.
@@ -121,7 +121,7 @@ bool plain_enum()
 }
 
 
-// -- compress_options_tests_enums.cpp -----------------------------------------
+// - compress_options_tests_enums.cpp -----------------------------------------
 bool tests_compress_options_enum_deflate_strategy();
 bool tests_compress_options_enum_lzma_check();
 bool tests_compress_options_enum_lzma_mode();
@@ -133,44 +133,44 @@ bool tests_compress_options_enum_brotli_mode();
 bool tests_compress_options_enum_neutral_defaults_are_zero();
 bool tests_compress_options_enum_are_plain();
 
-// -- compress_options_tests_deflate.cpp ---------------------------------------
+// - compress_options_tests_deflate.cpp ---------------------------------------
 bool tests_compress_options_deflate_defaults();
 bool tests_compress_options_deflate_fields();
 bool tests_compress_options_deflate_layout();
 
-// -- compress_options_tests_bzip2.cpp -----------------------------------------
+// - compress_options_tests_bzip2.cpp -----------------------------------------
 bool tests_compress_options_bzip2_defaults();
 bool tests_compress_options_bzip2_fields();
 bool tests_compress_options_bzip2_layout();
 
-// -- compress_options_tests_lzma.cpp ------------------------------------------
+// - compress_options_tests_lzma.cpp ------------------------------------------
 bool tests_compress_options_lzma_defaults();
 bool tests_compress_options_lzma_sentinels();
 bool tests_compress_options_lzma_fields();
 bool tests_compress_options_lzma_layout();
 
-// -- compress_options_tests_zstd.cpp ------------------------------------------
+// - compress_options_tests_zstd.cpp ------------------------------------------
 bool tests_compress_options_zstd_defaults();
 bool tests_compress_options_zstd_flag_defaults();
 bool tests_compress_options_zstd_fields();
 bool tests_compress_options_zstd_layout();
 
-// -- compress_options_tests_lz4.cpp -------------------------------------------
+// - compress_options_tests_lz4.cpp -------------------------------------------
 bool tests_compress_options_lz4_defaults();
 bool tests_compress_options_lz4_fields();
 bool tests_compress_options_lz4_layout();
 
-// -- compress_options_tests_brotli.cpp ----------------------------------------
+// - compress_options_tests_brotli.cpp ----------------------------------------
 bool tests_compress_options_brotli_defaults();
 bool tests_compress_options_brotli_fields();
 bool tests_compress_options_brotli_layout();
 
-// -- compress_options_tests_gzip.cpp ------------------------------------------
+// - compress_options_tests_gzip.cpp ------------------------------------------
 bool tests_compress_options_gzip_defaults();
 bool tests_compress_options_gzip_fields();
 bool tests_compress_options_gzip_layout();
 
-// -- compress_options_tests_aggregate.cpp -------------------------------------
+// - compress_options_tests_aggregate.cpp -------------------------------------
 bool tests_compress_options_aggregate_level_default();
 bool tests_compress_options_aggregate_subobjects_defaulted();
 bool tests_compress_options_aggregate_independence();

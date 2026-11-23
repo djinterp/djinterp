@@ -6,7 +6,7 @@
 # Its window, the workbench on uxoxo and Dear ImGui, is outside djinterp --
 # its sources in inc/ui, src/ui and tests/ui, its build in build/cmake/config/ui/vparse,
 # which builds this one within it and makes the module `vparse gui` loads
-# (GRAMMAR.md, section 7) -- so nothing here needs uxoxo.
+# (GRAMMAR.md, section 7) - so nothing here needs uxoxo.
 #   vparse lives in djinterp's tree. The library is inc/, src/ and
 # tests/djinterp/cpp/modules/parsegen/vparse: the PEG machine, the generator,
 # both frontends and the session. The tool is tools/vparse: its model's headers
@@ -34,7 +34,7 @@
 #
 # and, under VPARSE_BUILD_TESTS, the suites of the model and the command
 # line, the program run over an example, and djinterp's own suites for what
-# the tool stands on -- the foundation, the argument parser and vparse -- at
+# the tool stands on - the foundation, the argument parser and vparse - at
 # every level from their floors (tests/CMakeLists.txt).
 #   djinterp's root is the one this file sits five directories below. The
 # binaries go to <djinterp>/bin/tools/vparse/, with a platform suffix
@@ -73,8 +73,8 @@ option(VPARSE_BUILD_TESTS        "Build the test suites"                  ON)
 option(VPARSE_WARNINGS_AS_ERRORS "Treat warnings as errors"               OFF)
 
 # VPARSE_BUILD_DJINTERP_TESTS
-#   djinterp's own suites for the code this build takes from it -- the
-# parse/parsegen foundation, the argument parser and vparse -- run from the
+#   djinterp's own suites for the code this build takes from it - the
+# parse/parsegen foundation, the argument parser and vparse - run from the
 # leaves in djinterp's tree, at every language level. ON by default, so one
 # ctest covers everything the tool stands on; needs VPARSE_BUILD_TESTS.
 option(VPARSE_BUILD_DJINTERP_TESTS

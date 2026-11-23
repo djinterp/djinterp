@@ -6,8 +6,8 @@
 *   Four mechanisms carry it. A write callback is always installed, because
 * libcurl without one writes the body to stdout; a sink without a body
 * callback discards instead. The header callback parses each field as the
-* C++ layer always has -- split at the first colon, the value's blanks
-* trimmed -- and skips status lines by their "HTTP/" prefix, which no field
+* C++ layer always has - split at the first colon, the value's blanks
+* trimmed - and skips status lines by their "HTTP/" prefix, which no field
 * name can begin with. Request header fields are checked for colons and line
 * breaks before libcurl sees them, so no field can smuggle in another. And
 * CURLOPT_NOSIGNAL is always set, so libcurl never installs a SIGALRM
@@ -426,7 +426,7 @@ d_internal_curl_split
   Splits one header line into a field's name and value: the name is
 everything before the first colon, as sent; the value is everything after,
 without its line ending or surrounding blanks. False for a line without a
-colon -- the blank line ending a block -- and for a status line, which begins
+colon - the blank line ending a block - and for a status line, which begins
 "HTTP/" as no field name can, since "/" is not a token character.
 */
 static

@@ -80,7 +80,7 @@ static_assert(conjunction<std::true_type, std::false_type, std::true_type>::valu
 static_assert(conjunction<std::false_type, std::true_type>::value == false,
               "conjunction<false, true> -> false");
 
-// nested in another type-list -- using is_integral, is_pointer
+// nested in another type-list - using is_integral, is_pointer
 static_assert(conjunction<std::is_integral<int>,
                           std::is_integral<char>>::value == true,
               "conjunction<is_integral<int>, is_integral<char>> -> true");

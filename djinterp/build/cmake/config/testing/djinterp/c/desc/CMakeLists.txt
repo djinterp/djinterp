@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/desc/CMakeLists.txt
+# djinterp [test]  -  build/cmake/config/testing/djinterp/c/desc/CMakeLists.txt
 #
 #   Test leaf for c/desc's suite, in DTest's C face
 # (c/modules/test/test_suite.h), a CTest test with its runner in this

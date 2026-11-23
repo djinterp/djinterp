@@ -14,14 +14,14 @@
 *   RECURSE SMALL, LOOP LARGE.  Each step recurses into the smaller side of the
 * partition and narrows the loop to the larger one.  The smaller side holds at
 * most half the range, so the recursion is at most log2(n) deep however
-* unbalanced the partitions are -- the quadratic worst case can cost time, but
+* unbalanced the partitions are - the quadratic worst case can cost time, but
 * never the stack.
 *
 *   NO C TWIN.  The C sort module has no quicksort.  If one is added, the
 * parity case selection_sort.hpp makes applies here too: quicksort is not
 * stable, and where it leaves equivalent elements depends on every choice in
-* quick_sort_common.hpp -- the pivot, the stop-on-equals scan and the
-* threshold -- so two implementations agree only by making the same ones.
+* quick_sort_common.hpp - the pivot, the stop-on-equals scan and the
+* threshold - so two implementations agree only by making the same ones.
 *
 *   complexity:
 *     best:     O(n log n)
@@ -34,7 +34,7 @@
 *   REQUIREMENTS.  RandomIterator must be a random-access iterator; the
 * element type must be copy-constructible, copy-assignable and swappable
 * through std::iter_swap.  Comparator must be a std::sort-convention binary
-* predicate -- which every model of is_comparator is, so the composed
+* predicate - which every model of is_comparator is, so the composed
 * comparators from the functional layer drop in unchanged:
 *
 *       quick_sort(v.begin(), v.end(),
@@ -76,8 +76,8 @@ NS_INTERNAL
     //
     //   While the range is longer than the threshold it is partitioned; the
     // smaller side is sorted by a recursive call and the loop continues on
-    // the larger.  What remains when the loop ends -- the whole range, if it
-    // was short to begin with -- goes to insertion sort.
+    // the larger.  What remains when the loop ends - the whole range, if it
+    // was short to begin with - goes to insertion sort.
     //
     //   An empty range never reaches the partitioner: the loop requires more
     // than insertion_threshold elements, and the threshold is never negative.

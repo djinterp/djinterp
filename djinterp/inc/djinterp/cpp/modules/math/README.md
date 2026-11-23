@@ -852,9 +852,9 @@ test's output is the same, byte for byte.
 core's dot products, sums, cross products, matrix products and traces
 were the formulas as written, each product rounded and summed in order,
 their error unbounded where the terms cancel. Now each is a sum rounded
-once from Ogita, Rump and Oishi's Dot2 or Sum2 -- each product exact as a
+once from Ogita, Rump and Oishi's Dot2 or Sum2 - each product exact as a
 pair by Dekker's product, the terms summed by two-sums, the errors summed
-apart and added last -- as accurate as the sum computed in twice the
+apart and added last - as accurate as the sum computed in twice the
 precision and rounded once, in pairs of double for the float and double
 families where double is evaluated in its own type and of long double
 otherwise; operands outside the range where the products are exact are
@@ -877,7 +877,7 @@ dense kernels follow (S408, flagged).
 (S409 to S413). `cmat.h`'s product of complex matrices, new as
 `d_cmat_multiply`, rounds each part of each entry once from Dot2's pair --
 the real part's products re re and -im im, the imaginary part's re im and
-im re, each exact as a pair -- through an accumulator `vec.h` now keeps for
+im re, each exact as a pair - through an accumulator `vec.h` now keeps for
 callers whose terms are not arrays of one family; `d_cmat_solve` refines
 its solution as `d_mat_solve` does, part by part, and takes the factors'
 room, `(x, scratch, pivots, a, b, n, m)`; their formulas are
@@ -930,7 +930,7 @@ rounded on every platform in double arithmetic alone, as `exp_c` is: x = m
 logarithms, so that log(x) = e ln2 + L + log1p(r), r exact as a pair and
 below 2^-8; phase 1 in doubles, which decides 99.93% of arguments; phase 2
 in pairs; phase 3 in `exp_c`'s fixed point, within 2^-165.8. Each phase's
-bound is proven with Sollya and Gappa in each of three cases -- e not 0;
+bound is proven with Sollya and Gappa in each of three cases - e not 0;
 e = 0 with L and log1p(r) partly cancelling; x near 1, where r = x - 1 --
 and each phase's test checked sound (S424). It costs 18.2 ns a call, against
 the C library's 3.9 and the long double kernel's 157 to 175, and is a
@@ -1245,8 +1245,8 @@ consists of:
    from chunk 16, so that it applies over the owner's tree of 2026.10.23 as
    over any lane tree from chunk 15. From chunk 37, at his word of
    2026.10.28 ("One ZIP"), it carries every file of the lane's tree his tree
-   has not or holds otherwise -- every record, and the repository's own
-   directories -- so that it alone, over his tree, gives the lane's. From
+   has not or holds otherwise - every record, and the repository's own
+   directories - so that it alone, over his tree, gives the lane's. From
    chunk 16 to 27 it was cumulative since chunk 15; through chunk 15, a git
    bundle of the new commits.
 

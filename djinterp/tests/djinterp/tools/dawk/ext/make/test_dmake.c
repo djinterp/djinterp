@@ -4,9 +4,9 @@
 * Exercises the Makefile extension's reader as it stands: `dmake.h`'s logical
 * lines, joined by each make's rule for a backslash that ends a line, with
 * LF and CR LF endings; the guess of a file's make from the first line only
-* one make reads; and each make's statements -- GNU make's, POSIX make's as
+* one make reads; and each make's statements - GNU make's, POSIX make's as
 * pdpmake reads them, BSD make's as bmake does, NMake's as Microsoft's
-* documentation describes them -- each part in its place, and what each
+* documentation describes them - each part in its place, and what each
 * make refuses of a file whatever its variables hold, in its words.
 * Then `dmake_doc.h`: every change a file takes, the layout each takes from
 * the file, what each refuses, and saving.
@@ -16,7 +16,7 @@
 * order; every line a statement's or blank or a comment.
 *   With --fuzz, it makes changes at random to each file named instead --
 * parts and words set, inserted and removed, commands added and removed,
-* statements inserted, replaced and removed, and raw splices -- and proves
+* statements inserted, replaced and removed, and raw splices - and proves
 * of each, apart from the document's own check, that a change kept left
 * the file readable, every byte and every statement and comment outside it
 * as it was, and that a change refused left the file as it was.

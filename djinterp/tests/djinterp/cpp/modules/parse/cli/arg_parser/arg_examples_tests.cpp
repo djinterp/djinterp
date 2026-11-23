@@ -4,8 +4,8 @@
 * The argument parser's C++ examples suite's sections.
 *   Each section runs one of CLI11 2.7.2's examples (CLI11's examples/
 * directory), ported to the face in the CASES section: its definitions made
-* on the run's parser -- the program CLI11 calls `prog` here, its
-* description the example's -- its main's parse run once, as CLI11_PARSE
+* on the run's parser - the program CLI11 calls `prog` here, its
+* description the example's - its main's parse run once, as CLI11_PARSE
 * runs it (run::parse_as_main writes the code main returns, -1 when the
 * parse goes on, and what the ending printed), then what the example
 * prints, a line for each it writes to std::cout. Each runs with the

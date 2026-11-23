@@ -5,8 +5,8 @@
 *   The reader is recursive descent with a depth limit, so a hostile file
 * cannot exhaust the stack. The writer indents by four spaces and puts an
 * array of scalars on one line, and any other array or object on one line
-* where its line has room -- a bitfield's row is `{ "name": "EN", "bit": 0 }`
-* -- which keeps a sheet's settings readable, and a bitfield of a thousand
+* where its line has room - a bitfield's row is `{ "name": "EN", "bit": 0 }`
+* - which keeps a sheet's settings readable, and a bitfield of a thousand
 * rows a thousand lines long.
 *
 *
@@ -512,7 +512,7 @@ bool flat_array(
 
 // one_line
 //   appends a value, written on one line, to _out; false, and _out left
-// part-written, once _out is longer than _room -- which stops it early in
+// part-written, once _out is longer than _room - which stops it early in
 // a value a thousand lines long.
 bool one_line(
     const json_value& _value,

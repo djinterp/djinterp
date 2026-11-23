@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][memory]                                                    pool.h
 *
-* Fixed-slot pool -- the shared C core (tier 0):
+* Fixed-slot pool - the shared C core (tier 0):
 *   An allocator that vends one size. Because every slot is the same, there is
 * no size class to search, no header to store, and no fragmentation to manage:
 * acquiring a slot is a pop, releasing one is a push, and both are O(1) with
@@ -11,7 +11,7 @@
 * the deliberate difference from a template, and it is what makes this the C
 * core: one compiled implementation serves every element type in the program.
 * The C++ face supplies the size and alignment as compile-time constants and
-* is a wrapper of exactly zero bytes over this struct -- it computes the same
+* is a wrapper of exactly zero bytes over this struct - it computes the same
 * geometry earlier, not differently.
 *
 * THREE RELEASE POLICIES, chosen per instance at init:
@@ -39,7 +39,7 @@
 *
 * WHAT THE POOL DOES NOT DO:
 *   It does not construct or destroy anything. Slots are raw aligned storage,
-* and object lifetime is the caller's -- or, in C++, the wrapper's. It is not
+* and object lifetime is the caller's - or, in C++, the wrapper's. It is not
 * thread-safe, for the same reason the arena is not: a lock on the acquire
 * path would cost every single-threaded caller an atomic.
 *
@@ -106,7 +106,7 @@ D_EXTERN_C_BEGIN
 
 // dj_pool_index
 //   type: names one slot of one pool. Its width is D_CFG_POOL_INDEX_BITS,
-// and it is also the free-list link stored inside a free slot -- so it is
+// and it is also the free-list link stored inside a free slot - so it is
 // simultaneously the pool's addressing range and its minimum slot size.
 #if (D_INTERNAL_POOL_INDEX_BITS == 16)
     typedef uint16_t dj_pool_index;
@@ -128,7 +128,7 @@ D_EXTERN_C_BEGIN
 // dj_pool_generation
 //   type: the reuse counter stored beside a generational pool's slot. Its
 // width is D_CFG_POOL_GENERATION_BITS, and it is paid on every slot of such a
-// pool -- see the note in cfg_pool.h about why 16 bits is usually right.
+// pool - see the note in cfg_pool.h about why 16 bits is usually right.
 #if (D_INTERNAL_POOL_GENERATION_BITS == 8)
     typedef uint8_t  dj_pool_generation;
 #elif (D_INTERNAL_POOL_GENERATION_BITS == 32)
@@ -142,13 +142,13 @@ D_EXTERN_C_BEGIN
 // dj_pool_policy
 //   enum: what release() does with a slot. Declared whatever the build
 // compiles, so code naming a policy still compiles where that policy is
-// absent -- d_pool_init reports D_MEM_ERR_INVALID rather than failing to
+// absent - d_pool_init reports D_MEM_ERR_INVALID rather than failing to
 // build. Degrade, never error.
 //
 //   NAMED `policy` RATHER THAN `release` DELIBERATELY, and the reason is a
 // parity hazard worth recording. C keeps enum TAGS in a separate namespace
 // from ordinary identifiers, so `enum d_pool_release` and a function
-// `d_pool_release()` coexist happily -- the header compiles clean as C. C++
+// `d_pool_release()` coexist happily - the header compiles clean as C. C++
 // has no such separation: the function name hides the type, `::d_pool_release`
 // names the function, and every declaration using the type fails. One
 // declaration would then have meant two different things in the two
@@ -171,7 +171,7 @@ enum dj_pool_policy
 
 // dj_pool_handle
 //   struct: a generation-checked reference to a slot. Two integers, copied by
-// value, and -- unlike a pointer -- SAFE TO STORE ACROSS A RELEASE, because
+// value, and - unlike a pointer - SAFE TO STORE ACROSS A RELEASE, because
 // resolving it after the slot has been reused reports D_MEM_ERR_STALE instead
 // of returning the new occupant.
 //   A handle is also relocatable: it names a slot by index, so a pool that
@@ -242,7 +242,7 @@ struct dj_pool
 
 // dj_pool_config
 //   struct: how one pool differs from the configured defaults. The two size
-// fields are MANDATORY -- a pool with no slot size is not a pool -- and
+// fields are MANDATORY - a pool with no slot size is not a pool - and
 // everything else may be zero.
 struct dj_pool_config
 {
@@ -251,7 +251,7 @@ struct dj_pool_config
 
     // the alignment each slot must satisfy; 0 means the configured default.
     // Raised where the free list needs more, which is the one place the pool
-    // may hand back a stricter alignment than was asked for -- never a weaker
+    // may hand back a stricter alignment than was asked for - never a weaker
     // one
     dj_mem_size          slot_align;
 

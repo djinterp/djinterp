@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  structural_traits_tests_members.cpp
-//   Section I -- has_match_result_type and has_find_method: the pattern
+//   Section I - has_match_result_type and has_find_method: the pattern
 //   protocol's structural shapes, made machine-checkable.
 
 // std
@@ -47,7 +47,7 @@ bool tests_has_match_result_type_positive()
 
 /*
 tests_has_match_result_type_negative
-  The detector requires a nested TYPE -- a data member of the same name is not
+  The detector requires a nested TYPE - a data member of the same name is not
   one.
   Tests the following:
   - a type without the member is rejected
@@ -90,7 +90,7 @@ bool tests_has_match_result_type_cvref()
 
 /*
 tests_has_find_method_positive
-  The searchable-pattern shape -- find(const In&, size_t&, Result&) -> bool -- is
+  The searchable-pattern shape - find(const In&, size_t&, Result&) -> bool - is
   detected, so pattern_scanner can static_assert the requirement instead of
   failing deep inside an instantiation.
   Tests the following:
@@ -175,7 +175,7 @@ bool tests_has_find_method_negative()
 
 /*
 tests_has_find_method_return_conversion
-  The result is taken through static_cast<bool> -- an EXPLICIT conversion. So the
+  The result is taken through static_cast<bool> - an EXPLICIT conversion. So the
   bar is explicit convertibility, not implicit: a find returning a type with an
   explicit operator bool passes, where an implicit-convertibility check (as
   is_predicate uses) would refuse it.
@@ -205,7 +205,7 @@ bool tests_has_find_method_return_conversion()
 
 /*
 tests_has_find_method_const_lvalue
-  has_find_method probes `declval<const _Type&>().find(...)` -- a CONST lvalue --
+  has_find_method probes `declval<const _Type&>().find(...)` - a CONST lvalue --
   so a non-const find is not detected. Worth pinning: it is the opposite of the
   arity trilogy in this same header, which probes a mutable lvalue.
   Tests the following:
@@ -220,7 +220,7 @@ bool tests_has_find_method_const_lvalue()
     ok = ok && (!has_find_method<DPatNonconst, std::string, int>::value);
     ok = ok && (has_find_method<DPatScan, std::string, int>::value);
 
-    // it is callable -- only not on a const lvalue.
+    // it is callable - only not on a const lvalue.
     DPatNonconst p;
     std::size_t  pos = 0;
     int          res = 0;
@@ -236,7 +236,7 @@ bool tests_has_find_method_const_lvalue()
 
 /*
 tests_has_find_method_parameter_binding
-  The probe passes lvalues -- a const Input&, a size_t&, and a Result& -- so any
+  The probe passes lvalues - a const Input&, a size_t&, and a Result& - so any
   find whose parameters bind to those lvalues qualifies.
   Tests the following:
   - a find taking size_t by value and the result by const ref still binds

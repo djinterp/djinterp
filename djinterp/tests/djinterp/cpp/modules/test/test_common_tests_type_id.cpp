@@ -23,10 +23,10 @@ using namespace ::djinterp::test;
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///   compile-time invariants -- I. TEST TYPE IDENTIFICATION                  ///
+///   compile-time invariants - I. TEST TYPE IDENTIFICATION                  ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// -- DTestTypeId : exactly std::int32_t --------------------------------------
+// - DTestTypeId : exactly std::int32_t --------------------------------------
 static_assert(std::is_same<DTestTypeId, std::int32_t>::value,
               "test_type_id must be std::int32_t");
 static_assert(std::is_integral<DTestTypeId>::value,
@@ -46,7 +46,7 @@ static_assert(std::numeric_limits<DTestTypeId>::min() == INT32_MIN,
 static_assert(std::numeric_limits<DTestTypeId>::max() == INT32_MAX,
               "test_type_id max must equal INT32_MAX");
 
-// -- DTestCallableId : exactly std::uint32_t ---------------------------------
+// - DTestCallableId : exactly std::uint32_t ---------------------------------
 static_assert(std::is_same<DTestCallableId, std::uint32_t>::value,
               "test_callable_id must be std::uint32_t");
 static_assert(std::is_integral<DTestCallableId>::value,
@@ -62,7 +62,7 @@ static_assert(std::numeric_limits<DTestCallableId>::digits == 32,
 static_assert(std::numeric_limits<DTestCallableId>::max() == UINT32_MAX,
               "test_callable_id max must equal UINT32_MAX");
 
-// -- k_no_callable : constexpr zero sentinel of type DTestCallableId ---------
+// - k_no_callable : constexpr zero sentinel of type DTestCallableId ---------
 static_assert(k_no_callable == 0,
               "k_no_callable must equal 0");
 static_assert(std::is_same<std::remove_cv<decltype(k_no_callable)>::type,
@@ -75,7 +75,7 @@ static_assert(std::integral_constant<DTestCallableId, k_no_callable>::value
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///   runtime tests -- I. TEST TYPE IDENTIFICATION                            ///
+///   runtime tests - I. TEST TYPE IDENTIFICATION                            ///
 ///////////////////////////////////////////////////////////////////////////////
 
 /*

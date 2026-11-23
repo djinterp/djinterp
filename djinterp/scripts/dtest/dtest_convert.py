@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =============================================================================
-# djinterp [test]  --  scripts/dtest/dtest_convert.py
+# djinterp [test]  -  scripts/dtest/dtest_convert.py
 #
 #   Converts C test sources in DTest's old forms to its frozen C face,
 # c/modules/test/test_suite.h (docs/djinterp_testing.md, the migration

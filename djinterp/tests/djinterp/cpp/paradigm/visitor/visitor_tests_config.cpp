@@ -12,7 +12,7 @@
 //
 //   The gates are the module's contract with the dialect: each one claims a
 // language feature is available, and the sections below them are compiled or not
-// on that basis.  A gate that lies does not fail loudly -- it silently compiles
+// on that basis.  A gate that lies does not fail loudly - it silently compiles
 // out a whole dispatch strategy, or admits one the compiler cannot support.  So
 // each gate is checked against the dialect DIRECTLY, from __cplusplus, rather than
 // against the D_ENV_* macros it is defined in terms of, which would only prove the
@@ -21,7 +21,7 @@
 //   D_VISITOR_DEFAULT_RETURN_TYPE is checked the same way: not merely that the
 // macro is void, but that every default-parameterized root in the header actually
 // PICKS IT UP.  void is the return type most visitors use and the one most likely
-// to break a return-type-generic implementation -- acyclic_visitable's ill-formed
+// to break a return-type-generic implementation - acyclic_visitable's ill-formed
 // non-type parameter (bug C) was precisely a void-only failure, and it lived in a
 // default argument, where nobody would look.
 
@@ -76,7 +76,7 @@ tests_feature_gate_variadic_templates
 bool tests_feature_gate_variadic_templates()
 {
 #ifndef D_VISITOR_HAS_VARIADIC_TEMPLATES
-    return false;   // not merely off -- absent
+    return false;   // not merely off - absent
 #else
     D_CONSTEXPR bool gate = (D_VISITOR_HAS_VARIADIC_TEMPLATES != 0);
 
@@ -125,7 +125,7 @@ tests_feature_gate_fold_expressions
   Verifies D_VISITOR_HAS_FOLD_EXPRESSIONS tracks C++17.  overloaded's
   `using _Fns::operator()...;` is a pack-expanded using-declaration rather than a
   fold, and visitor_for's `(... && ...)` is a fold but sits behind the CONCEPTS
-  gate -- so this gate currently guards nothing.  It is still part of the module's
+  gate - so this gate currently guards nothing.  It is still part of the module's
   advertised interface, and a consumer may branch on it, so it must not lie.
   Tests the following:
   - the gate is 1 exactly when the dialect is C++17 or higher
@@ -144,7 +144,7 @@ bool tests_feature_gate_fold_expressions()
 /*
 tests_feature_gate_deduction_guides
   Verifies D_VISITOR_HAS_DEDUCTION_GUIDES tracks C++17.  This one DOES guard
-  something observable -- the overloaded deduction guide -- and the variant
+  something observable - the overloaded deduction guide - and the variant
   section's CTAD spelling depends on it.
   Tests the following:
   - the gate is 1 exactly when the dialect is C++17 or higher
@@ -164,7 +164,7 @@ bool tests_feature_gate_deduction_guides()
 tests_feature_gates_agree_with_each_other
   Verifies the three C++17 gates cannot disagree.  They are defined from the same
   predicate, so a divergence would mean one of them had been edited independently
-  -- which is exactly how a gate drifts from the feature it names.
+  - which is exactly how a gate drifts from the feature it names.
   Tests the following:
   - VARIANT, FOLD_EXPRESSIONS and DEDUCTION_GUIDES are all equal
   - the gates are MONOTONE: concepts implies variant implies variadic templates.
@@ -215,7 +215,7 @@ bool tests_default_return_type_is_void()
 
 /*
 tests_default_return_type_propagates_to_every_root
-  Verifies every default-parameterized root actually PICKS UP the default -- which
+  Verifies every default-parameterized root actually PICKS UP the default - which
   is a different claim from the macro being void, and the one that matters.  Each
   root spells the default independently, so one of them can drift (or, as with
   acyclic_visitable's non-type parameter, be ill-formed for exactly this value)

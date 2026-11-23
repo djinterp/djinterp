@@ -1,11 +1,11 @@
 # =============================================================================
-# djinterp [test] -- build/cmake/config/testing/djinterp/cpp/filesys/CMakeLists.txt
+# djinterp [test] - build/cmake/config/testing/djinterp/cpp/filesys/CMakeLists.txt
 #
 #   Test leaf for the C++ filesystem layer (core/filesys/file_*.hpp), driven through
 # the DTest framework's native C++ builder.
 #
-#   RECIPE R1 (header-only module). The C++ layer is entirely inline -- there
-# is no src/djinterp/core/filesys to compile -- so the executable is the runner plus
+#   RECIPE R1 (header-only module). The C++ layer is entirely inline - there
+# is no src/djinterp/core/filesys to compile - so the executable is the runner plus
 # the section translation units. The C modules the layer forwards to, and the
 # d_string it builds paths on, come from djinterp_c_runtime, which
 # djinterp_add_test_executable links automatically.
@@ -14,7 +14,7 @@
 #   `file`, and CMake target names are global, so the two suites cannot both
 #   be `file_tests`. The C++ layer keeps the plain name; the C suite is the
 #   qualified one. This leaf therefore builds `file_tests`, and the c/filesys leaf
-#   must be changed to `c_file_tests` to match -- a one-word edit in its own
+#   must be changed to `c_file_tests` to match - a one-word edit in its own
 #   djinterp_add_test_executable call. The CTest name follows the target name
 #   in both cases. <<<
 #

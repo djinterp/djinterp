@@ -50,7 +50,7 @@ const std::string RULE_EQUALS = "//" + std::string(78, '=');
 const std::string RULE_DASHES = "//" + std::string(78, '-');
 
 // heading
-//   struct: one numbered group -- its number, its depth and its title.
+//   struct: one numbered group - its number, its depth and its title.
 struct heading
 {
     int         id    = 0;
@@ -465,8 +465,8 @@ private:
     }
 
     // macro_head
-    //   "#define NAME(a, b)" on one line, or -- when that and its backslash
-    // would pass the 80th column -- its parameters one to a line, aligned
+    //   "#define NAME(a, b)" on one line, or - when that and its backslash
+    // would pass the 80th column - its parameters one to a line, aligned
     // after the parenthesis, as the style guide spreads them.
     static
     std::vector<std::string> macro_head(
@@ -526,7 +526,7 @@ private:
     }
 
     // padded
-    //   _head, then spaces to _column -- or one space when it is past it.
+    //   _head, then spaces to _column - or one space when it is past it.
     std::string padded(
         const std::string& _head,
         std::size_t        _column
@@ -1130,7 +1130,7 @@ private:
 
     // applies
     //   whether a template is written beside a symbol: one that is on, made
-    // for the symbol's kind, and for the sheet's -- a wide sheet's for a
+    // for the symbol's kind, and for the sheet's - a wide sheet's for a
     // sheet wider than an integer, the others for the rest.
     bool applies(
         const macro_template& _made,
@@ -1164,7 +1164,7 @@ private:
         std::string mask = _row.full;
 
         // a value's mask is its field's name, or its bits when it has none
-        // -- in a wide sheet, its bits in the word it begins in
+        // - in a wide sheet, its bits in the word it begins in
         if (_source.def == def_kind::field_value)
         {
             const resolved_row* field = m_res.find(_row.field);
@@ -1278,7 +1278,7 @@ private:
 
     // type_of
     //   the C++ type of a constant _bits wide: the fixed-width type that
-    // holds it -- or, in C++98, which has no long long, a long, as wide as
+    // holds it - or, in C++98, which has no long long, a long, as wide as
     // it gets.
     std::string type_of(
         int  _bits,
@@ -1355,7 +1355,7 @@ private:
 
     // define
     //   one object-like definition: a macro, or in the C++ constants form a
-    // constant of _type -- an array of the sheet's words when _array says
+    // constant of _type - an array of the sheet's words when _array says
     // so.
     void define(
         const std::string& _name,

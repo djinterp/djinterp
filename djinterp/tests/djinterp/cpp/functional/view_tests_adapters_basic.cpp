@@ -4,12 +4,12 @@
 * Basic adapter view tests (section IV, part 1): the element-wise and prefix
 * adapters.
 *
-*   test_transform  -- maps each element, including a type-changing map.
-*   test_filter     -- keeps only elements satisfying a predicate.
-*   test_take       -- prefix of n, with n == 0 and n > size edge cases.
-*   test_drop       -- skips n, with n == 0 and n > size edge cases.
-*   test_take_while -- prefix while predicate holds (all / none / partial).
-*   test_drop_while -- drops the leading run satisfying the predicate.
+*   test_transform  - maps each element, including a type-changing map.
+*   test_filter     - keeps only elements satisfying a predicate.
+*   test_take       - prefix of n, with n == 0 and n > size edge cases.
+*   test_drop       - skips n, with n == 0 and n > size edge cases.
+*   test_take_while - prefix while predicate holds (all / none / partial).
+*   test_drop_while - drops the leading run satisfying the predicate.
 *
 *
 * path:      /tests/djinterp/cpp/functional/view_tests_adapters_basic.cpp

@@ -154,8 +154,8 @@ NS_END  // internal
 
 // DStaticExtentStrategy
 //   type: a descriptive strategy for a container with a static extent and no
-// declared strategy. It states what the strategy layer's traits read -- the
-// storage kind, pointer stability, the extent -- and holds nothing. The
+// declared strategy. It states what the strategy layer's traits read - the
+// storage kind, pointer stability, the extent - and holds nothing. The
 // C-backed DBufferMemoryStrategy cannot stand in for it: it owns its
 // storage, and the resolver does not know the extent, so the tag form
 // (Count 0) would declare a zero-size array. It moved here, to its only
@@ -266,7 +266,7 @@ public:
 };
 
 // container_memory_strategy_t
-//   type: the carrier of DContainerMemoryStrategy -- its `::type`, for use
+//   type: the carrier of DContainerMemoryStrategy - its `::type`, for use
 // where a type rather than a value is wanted.
 template<typename Container>
 using container_memory_strategy_t =

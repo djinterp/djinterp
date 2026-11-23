@@ -9,15 +9,15 @@
 *     - is_single_tuple_arg / is_single_tuple_arg_v
 *
 *   Every compile-time predicate is enforced via a file-scope
-* `static_assert` -- the test_handler / sink calls at runtime simply
+* `static_assert` - the test_handler / sink calls at runtime simply
 * mirror those assertions for reporting.  Edge cases under scrutiny
 * include:
 *     - empty parameter packs (where first_arg is intentionally
-*       undefined -- only is_tuple_single_arg is exercised here)
+*       undefined - only is_tuple_single_arg is exercised here)
 *     - cv- and reference-qualified tuple types (the `is_tuple`
 *       partial specialization deliberately matches only the bare
 *       `std::tuple<...>` shape, so `is_tuple<const std::tuple<int>>`
-*       resolves to false_type -- exercised below)
+*       resolves to false_type - exercised below)
 *     - single-tuple-arg detection for empty tuples and nested tuples
 *
 *
@@ -49,13 +49,13 @@ static_assert(std::is_same<typename first_arg<alpha>::type, alpha>::value,
 static_assert(std::is_same<typename first_arg<void>::type, void>::value,
               "first_arg<void>::type should be void");
 
-// two arguments -- only the first is taken
+// two arguments - only the first is taken
 static_assert(std::is_same<typename first_arg<int, char>::type, int>::value,
               "first_arg<int, char>::type should be int");
 static_assert(std::is_same<typename first_arg<alpha, bravo>::type, alpha>::value,
               "first_arg<alpha, bravo>::type should be alpha");
 
-// many arguments -- only the first is taken
+// many arguments - only the first is taken
 static_assert(std::is_same<typename first_arg<int, char, float, double>::type, int>::value,
               "first_arg<int, char, float, double>::type should be int");
 static_assert(std::is_same<typename first_arg<alpha, bravo, charlie, delta>::type, alpha>::value,
@@ -93,11 +93,11 @@ static_assert(std::is_same<first_arg_t<int, char, float>,
 // II.  IS_TUPLE_SINGLE_ARG (compile-time)
 // =========================================================================
 
-// empty pack -- primary template, false
+// empty pack - primary template, false
 static_assert(is_tuple_single_arg<>::value == false,
               "is_tuple_single_arg<>::value should be false (empty pack)");
 
-// exactly one element -- partial specialization, true
+// exactly one element - partial specialization, true
 static_assert(is_tuple_single_arg<int>::value == true,
               "is_tuple_single_arg<int>::value should be true");
 static_assert(is_tuple_single_arg<void>::value == true,
@@ -109,7 +109,7 @@ static_assert(is_tuple_single_arg<std::tuple<int, char>>::value == true,
 static_assert(is_tuple_single_arg<alpha>::value == true,
               "is_tuple_single_arg<alpha>::value should be true");
 
-// two or more elements -- primary template, false
+// two or more elements - primary template, false
 static_assert(is_tuple_single_arg<int, char>::value == false,
               "is_tuple_single_arg<int, char>::value should be false");
 static_assert(is_tuple_single_arg<int, char, float>::value == false,
@@ -132,7 +132,7 @@ static_assert(is_tuple_single_arg<std::tuple<int>, std::tuple<char>>::value == f
 // III. IS_TUPLE (compile-time)
 // =========================================================================
 
-// positive cases -- the bare std::tuple<...> shape
+// positive cases - the bare std::tuple<...> shape
 static_assert(is_tuple<std::tuple<>>::value             == true,
               "is_tuple<std::tuple<>>::value should be true (empty tuple)");
 static_assert(is_tuple<std::tuple<int>>::value          == true,
@@ -146,7 +146,7 @@ static_assert(is_tuple<std::tuple<alpha, bravo>>::value == true,
 static_assert(is_tuple<std::tuple<std::tuple<int>>>::value == true,
               "is_tuple<std::tuple<std::tuple<int>>>::value should be true (nested tuple is still a tuple)");
 
-// negative cases -- non-tuple types
+// negative cases - non-tuple types
 static_assert(is_tuple<int>::value      == false,
               "is_tuple<int>::value should be false");
 static_assert(is_tuple<void>::value     == false,
@@ -158,7 +158,7 @@ static_assert(is_tuple<int*>::value     == false,
 static_assert(is_tuple<std::pair<int, int>>::value == false,
               "is_tuple<std::pair<int, int>>::value should be false");
 
-// the partial specialization matches the EXACT std::tuple<...> shape -- cv
+// the partial specialization matches the EXACT std::tuple<...> shape - cv
 // or ref qualifiers on the outer type fall through to the primary template
 static_assert(is_tuple<const std::tuple<int>>::value     == false,
               "is_tuple<const std::tuple<int>>::value should be false (cv-qualified, outside the partial spec)");
@@ -183,11 +183,11 @@ static_assert(is_tuple<const volatile std::tuple<int>>::value == false,
 // IV.  IS_SINGLE_TUPLE_ARG (compile-time)
 // =========================================================================
 
-// empty pack -- not a single arg, hence false_type
+// empty pack - not a single arg, hence false_type
 static_assert(is_single_tuple_arg<>::value == false,
               "is_single_tuple_arg<> should be false (zero args)");
 
-// single tuple arg -- positive case
+// single tuple arg - positive case
 static_assert(is_single_tuple_arg<std::tuple<>>::value          == true,
               "is_single_tuple_arg<std::tuple<>> should be true (empty tuple is still a tuple)");
 static_assert(is_single_tuple_arg<std::tuple<int>>::value       == true,
@@ -197,7 +197,7 @@ static_assert(is_single_tuple_arg<std::tuple<int, char>>::value == true,
 static_assert(is_single_tuple_arg<std::tuple<alpha, bravo>>::value == true,
               "is_single_tuple_arg<std::tuple<alpha, bravo>> should be true");
 
-// single non-tuple arg -- the count is 1 but the type is not a tuple
+// single non-tuple arg - the count is 1 but the type is not a tuple
 static_assert(is_single_tuple_arg<int>::value   == false,
               "is_single_tuple_arg<int> should be false (single but not tuple)");
 static_assert(is_single_tuple_arg<alpha>::value == false,
@@ -215,7 +215,7 @@ static_assert(is_single_tuple_arg<int, std::tuple<int>>::value == false,
 static_assert(is_single_tuple_arg<int, char, float>::value == false,
               "is_single_tuple_arg<int, char, float> should be false (three args)");
 
-// outer cv- / ref-qualified single arg -- mirrors is_tuple behavior, since
+// outer cv- / ref-qualified single arg - mirrors is_tuple behavior, since
 // is_single_tuple_arg defers to is_tuple on the lone element
 static_assert(is_single_tuple_arg<const std::tuple<int>>::value == false,
               "is_single_tuple_arg<const std::tuple<int>> should be false (is_tuple sees cv-qualified)");

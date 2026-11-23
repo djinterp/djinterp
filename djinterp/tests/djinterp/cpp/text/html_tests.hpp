@@ -1,8 +1,8 @@
 /*******************************************************************************
 * djinterp [cpp][text]                                            html_tests.hpp
 *
-*   text's HTML headers -- html/html.hpp, html/html_dialect.hpp,
-* html/html_printer.hpp and html/html_template.hpp -- in DTest's C face
+*   text's HTML headers - html/html.hpp, html/html_dialect.hpp,
+* html/html_printer.hpp and html/html_template.hpp - in DTest's C face
 * (c/modules/test/test_suite.h).
 *   One entry point builds the module "html" imperatively: a block per header
 * and a test per group of checks. A group runs at its header's floor and up,

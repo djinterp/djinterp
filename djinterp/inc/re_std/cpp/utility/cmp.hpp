@@ -2,7 +2,7 @@
 * djinterp [re_std]                                                      cmp.hpp
 *
 * forwarding header:
-*   The sign-safe integer comparisons -- cmp_equal, cmp_not_equal,
+*   The sign-safe integer comparisons - cmp_equal, cmp_not_equal,
 * cmp_less, cmp_greater, cmp_less_equal, cmp_greater_equal and in_range --
 * are defined once, in re_std/cpp/utility/intcmp.hpp, which utility.hpp
 * includes. This file held a second implementation of the same seven

@@ -15,7 +15,7 @@
 *
 *   WHY FOUR SPECIALISATIONS AND NOT ONE EXPRESSION:
 *   Because in the overwhelmingly common cases CF::num or CF::den is 1,
-* and multiplying or dividing by a literal 1 is not free -- not at
+* and multiplying or dividing by a literal 1 is not free - not at
 * run time on a rep whose operator* is a real function, and not at
 * compile time either, where each operation is one more step against the
 * constexpr evaluation limit. More importantly, the identity operations
@@ -33,7 +33,7 @@
 *   CF::num and CF::den are intmax_t, so the arithmetic type is
 * common_type<ToRep, Rep, intmax_t>. Without intmax_t in that set, a
 * conversion between two narrow integral reps would do its multiplication
-* in a narrow type and overflow -- microseconds from a
+* in a narrow type and overflow - microseconds from a
 * duration<short, ratio<3600>> being the easy example.
 *
 *   WHAT IS STILL NOT PROTECTED:
@@ -96,7 +96,7 @@ namespace internal
     };
 
     // duration_cast_helper<..., true, true>
-    //   struct: periods are identical -- only the representation changes,
+    //   struct: periods are identical - only the representation changes,
     // so no arithmetic runs at all.
     template<typename ToDur,
              typename CF,
@@ -112,7 +112,7 @@ namespace internal
     };
 
     // duration_cast_helper<..., true, false>
-    //   struct: numerator is 1 -- divide only. This is the coarsening
+    //   struct: numerator is 1 - divide only. This is the coarsening
     // direction (milliseconds to seconds), where integral reps truncate
     // toward zero.
     template<typename ToDur,
@@ -130,7 +130,7 @@ namespace internal
     };
 
     // duration_cast_helper<..., false, true>
-    //   struct: denominator is 1 -- multiply only. The refining direction
+    //   struct: denominator is 1 - multiply only. The refining direction
     // (seconds to milliseconds), which is exact and therefore the case
     // duration's converting constructor allows implicitly.
     template<typename ToDur,

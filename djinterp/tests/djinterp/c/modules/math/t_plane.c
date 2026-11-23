@@ -4,14 +4,14 @@
 *   Conformance harness for c/math/plane.h, all three families: each kernel
 * against the 2D shape header's former formulas, written out here in the
 * same order with every step stored, on 100,000 random polygons and points
-* per family -- the same answers, bit for bit -- and the geometry: a square
+* per family - the same answers, bit for bit - and the geometry: a square
 * contains its interior and not its outside, a rectangle's area and a
 * triangle's centroid are what they are, a polygon's area does not depend on
 * where its vertex list starts, and a degenerate polygon has no centroid.
 *
-*   Where the build fuses a multiply and an add written apart -- gcc in its GNU
+*   Where the build fuses a multiply and an add written apart - gcc in its GNU
 * modes on a target with the instruction, clang under -ffp-contract=fast
-* (self_test.h's d_math_formulas_fuse) -- the plain formulas' bits follow the
+* (self_test.h's d_math_formulas_fuse) - the plain formulas' bits follow the
 * build (S415), and the checks against the former formulas written out are left
 * out; the harness says so.
 *

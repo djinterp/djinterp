@@ -702,9 +702,9 @@ void d_awk_lexer_free(
 d_awk_lexer_next
   Produces the next token.
 NOTE:
-  A newline is suppressed after any token that cannot end a statement -- an
+  A newline is suppressed after any token that cannot end a statement - an
   opening brace, a comma, `&&`, `||`, `do`, `else`, a semicolon and the
-  statement-introducing keywords -- so the parser never sees a terminator
+  statement-introducing keywords - so the parser never sees a terminator
   where the grammar does not allow one.
 
 Parameter(s):

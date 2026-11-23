@@ -2,7 +2,7 @@
 * djinterp [c][db]                                           postgres_internal.h
 *
 * Private to the PostgreSQL layer's sources: libpq-fe.h, the client floor,
-* and the plumbing every module repeats -- when the layer is built over
+* and the plumbing every module repeats - when the layer is built over
 * libpq. Built as stubs (D_INTERNAL_POSTGRES 0), it declares nothing, and env
 * includes no libpq-fe.h.
 *   libpq-fe.h arrives through env_postgres.h, which honours
@@ -118,9 +118,9 @@ TABLE OF CONTENTS
 
 // 2.1    Reading results
 //------------------------------------------------------------------------------
-// reading results -- the layer's result for what libpq handed back: 0 for a
-// command, rows -- whole, one row (single-row mode) or a chunk of them
-// (libpq 17) -- or an empty query; for a failure, its SQLSTATE, packed; for
+// reading results - the layer's result for what libpq handed back: 0 for a
+// command, rows - whole, one row (single-row mode) or a chunk of them
+// (libpq 17) - or an empty query; for a failure, its SQLSTATE, packed; for
 // one libpq reports without an SQLSTATE, 08006 when the connection is lost
 // and 08000 when it is not; for no result at all, 08006 when the connection
 // is lost, 08000 in pipeline mode, where libpq refuses every call that waits
@@ -152,7 +152,7 @@ int d_internal_postgres_take(
 int d_internal_postgres_format_result(
     enum dj_internal_db_format_status _state
 );
-// COPY -- _copying says whether a result's status starts a COPY with the
+// COPY - _copying says whether a result's status starts a COPY with the
 // client; _end_copy abandons that COPY, and every one the SQL starts after
 // it, reading every result to the last, so that the connection takes a
 // statement again
@@ -163,7 +163,7 @@ void d_internal_postgres_end_copy(
     PGconn*        _db,
     ExecStatusType _status
 );
-// pipelined -- whether the connection is in pipeline mode, a failure having
+// pipelined - whether the connection is in pipeline mode, a failure having
 // aborted it or not; false wherever the libpq compiled against or loaded has
 // no pipelines (d_postgres_client_supports)
 bool d_internal_postgres_pipelined(
@@ -172,7 +172,7 @@ bool d_internal_postgres_pipelined(
 
 // 2.2    Answers of the layer's own
 //------------------------------------------------------------------------------
-// answers of the layer's own -- _answer marks `_result` as given by the
+// answers of the layer's own - _answer marks `_result` as given by the
 // layer on `_db`, on this thread, before anything was sent, and returns it;
 // _heard forgets the mark for `_db` once libpq has answered on it, as
 // d_internal_postgres_result does for every result; _answered says whether
@@ -205,7 +205,7 @@ bool d_internal_postgres_answered(
  *         asynchronously that have not been read (postgres_protocol.h).
  *
  * libpq would otherwise read every pending result away, unseen, before the
- * call -- the cursor's rows among them. Pipeline mode is libpq's to refuse,
+ * call - the cursor's rows among them. Pipeline mode is libpq's to refuse,
  * which it does for every call that waits (08000 as well), so a connection
  * in it is reported ready.
  */
@@ -215,16 +215,16 @@ int d_internal_postgres_ready(
 
 // 2.4    Waiting
 //------------------------------------------------------------------------------
-// waiting -- the plumbing of the calls that do not block (db_common.h 1.3).
+// waiting - the plumbing of the calls that do not block (db_common.h 1.3).
 // _now is the clock libpq's blocking connect keeps connect_timeout by:
 // PQgetCurrentTimeUSec's microseconds from libpq 17, and time()'s whole
-// seconds before it. _pend fills a pending call -- the socket, what to wait
+// seconds before it. _pend fills a pending call - the socket, what to wait
 // for, and, where it has a deadline, D_DB_WAIT_TIMEOUT and the milliseconds
-// left, rounded up, so that a program that wakes then finds it passed -- and
+// left, rounded up, so that a program that wakes then finds it passed - and
 // returns D_DB_WAIT; _settled leaves one as a finished call leaves it. A send
 // runs in libpq's non-blocking mode, which _nonblocking_on turns on where it
 // is off, answering whether it did, so that the send turns it off again once
-// everything is written: the layer's other calls -- COPY's among them -- need
+// everything is written: the layer's other calls - COPY's among them - need
 // it off, and turning it off then clears no failure's message, as libpq 15
 // and later would once every result is read.
 double d_internal_postgres_now(void);
@@ -284,7 +284,7 @@ int d_internal_postgres_arrived(
 
 // 3.1    Checks
 //------------------------------------------------------------------------------
-// checks -- neither allocates nor fails. _name_ok is false for a NULL or empty
+// checks - neither allocates nor fails. _name_ok is false for a NULL or empty
 // name; _schema_ok for an empty one, NULL meaning the current schema
 bool d_internal_postgres_name_ok(
     const char* _name
@@ -295,7 +295,7 @@ bool d_internal_postgres_schema_ok(
 
 // 3.2    Quoting
 //------------------------------------------------------------------------------
-// quoting -- dj_internal_db_quote_fn's for the server: _quote_name writes a
+// quoting - dj_internal_db_quote_fn's for the server: _quote_name writes a
 // name in double quotes, any double quote doubled, and needs no connection;
 // _quote_value writes a value as libpq's PQescapeLiteral does, for the
 // connection `_context` points to, and fails for want of memory or for text
@@ -339,7 +339,7 @@ int d_internal_postgres_target(
 
 // 3.4    Clauses
 //------------------------------------------------------------------------------
-// clauses -- the words a flag adds to a statement when it is set in _flags
+// clauses - the words a flag adds to a statement when it is set in _flags
 // ("IF EXISTS ", " CASCADE"), or "" when it is not
 const char* d_internal_postgres_clause(
     unsigned    _flags,
@@ -403,7 +403,7 @@ int d_internal_postgres_run(
 
 // 4.2    Single values
 //------------------------------------------------------------------------------
-// single values -- each runs SQL and reads the first column of the first row
+// single values - each runs SQL and reads the first column of the first row
 // of its last statement. A row yields 0 and the value, written only then; no
 // row, or no rows at all, is D_DB_NOT_FOUND; a failure is as section 4 says.
 // A NULL reads as a NULL string, 0 or false. _vquery's string is the
@@ -465,7 +465,7 @@ int d_internal_postgres_vchanges(
 //------------------------------------------------------------------------------
 // 4.3.1
 // Whole results
-// rows -- a column's type, and its type's name, from the type's OID, as
+// rows - a column's type, and its type's name, from the type's OID, as
 // postgres_query.h tabulates them; "" names a type not tabulated
 enum dj_db_type d_internal_postgres_oid_type(
     Oid _oid
@@ -476,7 +476,7 @@ const char* d_internal_postgres_oid_name(
 /**
  * @brief Reads every row of a result into rows, and frees the result.
  *
- * @param[in]  _result  the result: rows -- all of them, one, or a chunk --
+ * @param[in]  _result  the result: rows - all of them, one, or a chunk --
  *                      or a command's, which gives empty rows.
  * @param[out] _rows    receives the rows; written only on success.
  * @return 0, or 53200 when memory ran out.
@@ -490,7 +490,7 @@ int d_internal_postgres_collect_rows(
 
 // 4.3.2
 // Rows a few at a time
-// rows a few at a time -- the halves of _collect_rows, for a cursor that
+// rows a few at a time - the halves of _collect_rows, for a cursor that
 // builds its pages from one result at a time: _describe_columns describes a
 // result's columns into a builder that has none yet; _keep_rows adds every
 // row of a result. Each returns false when memory ran out, the builder then

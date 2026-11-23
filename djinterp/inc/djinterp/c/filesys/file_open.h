@@ -3,9 +3,9 @@
 *
 * Opening, reopening and closing FILE* streams.
 *   Every path this subframework opens as a stream goes through here, so the
-* decisions that have to be made uniformly -- how a mode string is
+* decisions that have to be made uniformly - how a mode string is
 * interpreted, whether a stream is inherited across exec, what other
-* processes may do to the file meanwhile -- are made once and inherited by
+* processes may do to the file meanwhile - are made once and inherited by
 * file_io and anything else that needs a stream.
 *   This module owns streams only. Raw descriptors are file_desc.h.
 *
@@ -43,7 +43,7 @@ D_EXTERN_C_BEGIN
 //==============================================================================
 // Each open applies the build's policy to the mode: a 'b' when
 // D_CFG_FILE_OPEN_BINARY_DEFAULT is set and the caller named neither 'b' nor
-// 't' -- nor an encoding (",ccs=UTF-8"), which only a text stream may have --
+// 't' - nor an encoding (",ccs=UTF-8"), which only a text stream may have --
 // and the platform's close-on-exec flag when D_CFG_FILE_OPEN_CLOEXEC is set,
 // both placed before any encoding. An explicit choice in the caller's mode is
 // never overruled. With D_CFG_FILE_WIDE_PATHS a path is UTF-8 on Windows as
@@ -91,7 +91,7 @@ int d_file_open_stream_s(
  *          the caller must not use it again.
  * @note Without a file, only what the platform can change in place changes.
  *       On Windows that is the translation alone: the stream is made binary
- *       when the mode names 'b' -- the build's default included -- and text
+ *       when the mode names 'b' - the build's default included - and text
  *       otherwise.
  *
  * @param[in]     _filename  the path to open, or `NULL` to change the mode of

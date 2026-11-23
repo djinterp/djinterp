@@ -8,12 +8,12 @@
 *   Edge cases under scrutiny include:
 *     - the empty-pack `to_tuple<>` specialization that fixes the original
 *       eager-`std::conditional` instantiation hazard.  This test
-*       explicitly instantiates `to_tuple<>::type` -- if the fix were
+*       explicitly instantiates `to_tuple<>::type` - if the fix were
 *       absent the file would not compile.
 *     - the single-tuple-arg path that unwraps `to_tuple<std::tuple<...>>`
 *       to the tuple itself (as opposed to wrapping it again).
 *     - the cv-qualified-tuple single-arg path, where the inner type is a
-*       `const std::tuple<...>` -- since `is_tuple` matches only the bare
+*       `const std::tuple<...>` - since `is_tuple` matches only the bare
 *       shape, this falls through to the wrapping branch.
 *     - make_tuple_of at sizes 0, 1, and >= 2 (each specialization is
 *       distinct), and with a tuple as the element type (so the result
@@ -40,7 +40,7 @@ using namespace dtuple_test_types;
 // I.   TO_TUPLE  (compile-time)
 // =========================================================================
 
-// empty-pack specialization -- the regression target.
+// empty-pack specialization - the regression target.
 //   The very act of naming `to_tuple<>::type` below forces the
 // specialization to be instantiated; if the empty-pack specialization
 // were absent this translation unit would fail to compile.
@@ -49,7 +49,7 @@ static_assert(std::is_same<typename to_tuple<>::type, std::tuple<>>::value,
 static_assert(std::is_same<to_tuple_t<>, std::tuple<>>::value,
               "to_tuple_t<> should be std::tuple<>");
 
-// single non-tuple type -- the partial specialization wraps in std::tuple
+// single non-tuple type - the partial specialization wraps in std::tuple
 static_assert(std::is_same<typename to_tuple<int>::type, std::tuple<int>>::value,
               "to_tuple<int>::type should be std::tuple<int>");
 static_assert(std::is_same<typename to_tuple<void>::type, std::tuple<void>>::value,
@@ -59,7 +59,7 @@ static_assert(std::is_same<typename to_tuple<alpha>::type, std::tuple<alpha>>::v
 static_assert(std::is_same<typename to_tuple<int*>::type, std::tuple<int*>>::value,
               "to_tuple<int*>::type should preserve pointer qualifier");
 
-// single tuple type -- the partial specialization unwraps to the tuple
+// single tuple type - the partial specialization unwraps to the tuple
 // itself, NOT a tuple-of-tuple
 static_assert(std::is_same<typename to_tuple<std::tuple<>>::type, std::tuple<>>::value,
               "to_tuple<std::tuple<>>::type should be std::tuple<>");
@@ -72,13 +72,13 @@ static_assert(std::is_same<typename to_tuple<std::tuple<alpha, bravo, charlie>>:
                            std::tuple<alpha, bravo, charlie>>::value,
               "to_tuple<std::tuple<alpha, bravo, charlie>>::type should be std::tuple<alpha, bravo, charlie>");
 
-// cv-/ref-qualified single tuple -- is_tuple sees the bare shape only,
+// cv-/ref-qualified single tuple - is_tuple sees the bare shape only,
 // so the qualified-tuple single-arg goes through the WRAPPING branch
 static_assert(std::is_same<typename to_tuple<const std::tuple<int>>::type,
                            std::tuple<const std::tuple<int>>>::value,
               "to_tuple<const std::tuple<int>>::type should wrap (is_tuple sees bare shape only)");
 
-// multiple non-tuple types -- general template, just builds the tuple
+// multiple non-tuple types - general template, just builds the tuple
 static_assert(std::is_same<typename to_tuple<int, char>::type,
                            std::tuple<int, char>>::value,
               "to_tuple<int, char>::type should be std::tuple<int, char>");
@@ -89,7 +89,7 @@ static_assert(std::is_same<typename to_tuple<alpha, bravo, charlie, delta>::type
                            std::tuple<alpha, bravo, charlie, delta>>::value,
               "to_tuple<alpha, bravo, charlie, delta>::type should be the matching std::tuple");
 
-// multiple args including tuples -- nested tuples remain nested
+// multiple args including tuples - nested tuples remain nested
 static_assert(std::is_same<typename to_tuple<std::tuple<int>, char>::type,
                            std::tuple<std::tuple<int>, char>>::value,
               "to_tuple<std::tuple<int>, char>::type should keep nested tuple as one element");
@@ -113,7 +113,7 @@ static_assert(std::is_same<to_tuple_t<std::tuple<int, char>>, std::tuple<int, ch
 // II.  MAKE_TUPLE_OF  (compile-time)
 // =========================================================================
 
-// count == 0 -- explicit specialization yielding std::tuple<>
+// count == 0 - explicit specialization yielding std::tuple<>
 static_assert(std::is_same<typename make_tuple_of<int,  0>::type, std::tuple<>>::value,
               "make_tuple_of<int,  0>::type should be std::tuple<>");
 static_assert(std::is_same<typename make_tuple_of<alpha, 0>::type, std::tuple<>>::value,
@@ -124,7 +124,7 @@ static_assert(std::is_same<typename make_tuple_of<std::tuple<int>, 0>::type,
 static_assert(std::is_same<typename make_tuple_of<void, 0>::type, std::tuple<>>::value,
               "make_tuple_of<void, 0>::type should be std::tuple<>");
 
-// count == 1 -- explicit specialization yielding to_tuple_t<_Type>;
+// count == 1 - explicit specialization yielding to_tuple_t<_Type>;
 // for non-tuple types this is std::tuple<_Type>; for tuple types it
 // is the tuple itself (since to_tuple unwraps).
 static_assert(std::is_same<typename make_tuple_of<int,  1>::type, std::tuple<int>>::value,
@@ -135,7 +135,7 @@ static_assert(std::is_same<typename make_tuple_of<std::tuple<int, char>, 1>::typ
                            std::tuple<int, char>>::value,
               "make_tuple_of<std::tuple<int, char>, 1>::type should unwrap to std::tuple<int, char> (to_tuple semantics)");
 
-// count >= 2 -- general template delegating to repeat_t
+// count >= 2 - general template delegating to repeat_t
 static_assert(std::is_same<typename make_tuple_of<int, 2>::type,
                            std::tuple<int, int>>::value,
               "make_tuple_of<int, 2>::type should be std::tuple<int, int>");
@@ -152,7 +152,7 @@ static_assert(std::is_same<typename make_tuple_of<alpha, 3>::type,
                            std::tuple<alpha, alpha, alpha>>::value,
               "make_tuple_of<alpha, 3>::type should be std::tuple<alpha * 3>");
 
-// make_tuple_of with a tuple element type -- general path keeps each
+// make_tuple_of with a tuple element type - general path keeps each
 // row as the SAME nested tuple type (no unwrapping at this layer)
 static_assert(std::is_same<typename make_tuple_of<std::tuple<int>, 2>::type,
                            std::tuple<std::tuple<int>, std::tuple<int>>>::value,

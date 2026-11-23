@@ -49,7 +49,7 @@
 #include <functional>
 #include <vector>
 // djinterp
-// djinterp  -- framework header FIRST (event_table.hpp requires it), then the
+// djinterp  - framework header FIRST (event_table.hpp requires it), then the
 // header under test.
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
@@ -92,7 +92,7 @@ bool event_table_check(
 
 
 // =========================================================================
-//  shared fixtures -- bucket keys and erased handlers
+//  shared fixtures - bucket keys and erased handlers
 // =========================================================================
 
 // DTableKey
@@ -128,7 +128,7 @@ verdict ret_consume(
 
 
 // =========================================================================
-//  shared fixtures -- types for the erasure key (kappa)
+//  shared fixtures - types for the erasure key (kappa)
 // =========================================================================
 
 // DTkA / DTkB
@@ -144,7 +144,7 @@ struct DTkB
 
 
 // =========================================================================
-//  shared fixtures -- iteration visitors
+//  shared fixtures - iteration visitors
 // =========================================================================
 
 // DVisitCounter
@@ -202,7 +202,7 @@ struct DBucketVisitCounter
 
 
 // =========================================================================
-//  shared fixtures -- structural fakes for detection / concepts
+//  shared fixtures - structural fakes for detection / concepts
 // =========================================================================
 
 // DNotATable
@@ -288,7 +288,7 @@ struct DWrongInsertTable
 bool tests_type_key_stable_unique();
 bool tests_handler_entry_fields();
 
-// III. EVENT TABLE -- core: insert / remove / mask / lookup
+// III. EVENT TABLE - core: insert / remove / mask / lookup
 bool tests_table_default_empty();
 bool tests_insert_ids_increasing();
 bool tests_insert_counts_enabled_contains();
@@ -300,7 +300,7 @@ bool tests_enable_disable_idempotent_and_missing();
 bool tests_is_enabled_states();
 bool tests_contains_states();
 
-// III. EVENT TABLE -- bucket access + iteration
+// III. EVENT TABLE - bucket access + iteration
 bool tests_entries_for_missing_null();
 bool tests_entries_for_present_contents();
 bool tests_has_entries_for();
@@ -309,7 +309,7 @@ bool tests_type_key_count();
 bool tests_for_each_entry();
 bool tests_for_each_entry_for();
 
-// III. EVENT TABLE -- merge + clear + clear_for
+// III. EVENT TABLE - merge + clear + clear_for
 bool tests_merge_into_empty();
 bool tests_merge_order_and_fresh_ids();
 bool tests_merge_preserves_enabled();

@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  semigroup_tests_mappend.cpp
-//   Section II -- mappend, the associative combine.
+//   Section II - mappend, the associative combine.
 
 // std
 #include <string>
@@ -44,7 +44,7 @@ bool tests_mappend_dispatch()
 /*
 tests_mappend_associativity
   The defining law: mappend(a, mappend(b, c)) == mappend(mappend(a, b), c),
-  checked across instances -- including the non-commutative ones, where the law
+  checked across instances - including the non-commutative ones, where the law
   is the substantive claim.
   Tests the following:
   - associativity holds for concatenation, addition, max, projection, modular
@@ -85,7 +85,7 @@ bool tests_mappend_associativity()
 
 /*
 tests_mappend_order_preserved
-  mappend passes its operands to combine in order -- so on a non-commutative
+  mappend passes its operands to combine in order - so on a non-commutative
   instance the two orderings differ, and the left-to-right result is the one
   produced.
   Tests the following:
@@ -130,7 +130,7 @@ bool tests_mappend_idempotent_max()
 /*
 tests_mappend_constexpr
   mappend folds inside a constant expression whenever the instance's combine is
-  constexpr over a literal type -- the header's conditional-constexpr contract.
+  constexpr over a literal type - the header's conditional-constexpr contract.
   Tests the following:
   - each constexpr instance combines within static_assert
 */
@@ -266,7 +266,7 @@ bool tests_mappend_requires_same_type()
 
 /*
 tests_mappend_runtime_domain
-  mappend also runs at runtime -- the other half of the dual domain -- over
+  mappend also runs at runtime - the other half of the dual domain - over
   operands whose values are not known at compile time.
   Tests the following:
   - a sum built from runtime ints combines correctly

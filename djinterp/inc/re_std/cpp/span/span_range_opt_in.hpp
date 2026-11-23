@@ -9,7 +9,7 @@
 *     enable_view<span<T, E>>            -> true
 *
 *   WHY THIS IS A SEPARATE HEADER:
-*   span.hpp must not include <ranges> -- span is a C++11-tier vocabulary
+*   span.hpp must not include <ranges> - span is a C++11-tier vocabulary
 * type and <ranges> sits far above it, so a dependency in that direction
 * would drag the whole ranges tower into every span translation unit.
 * Putting the opt-in in its own header inverts the dependency: whoever
@@ -18,11 +18,11 @@
 * template, which needs C++14 variable templates re_std cannot assume.
 *
 *   WHAT EACH ONE MEANS:
-*   borrowed -- a span does not own its elements, so iterators taken from
+*   borrowed - a span does not own its elements, so iterators taken from
 * an EXPIRING span stay valid; that is exactly the borrowed_range
 * contract, and it is what lets ranges algorithms return iterators into
 * a span rvalue instead of dangling.
-*   view -- a span is O(1) to copy and destroy, so it satisfies the view
+*   view - a span is O(1) to copy and destroy, so it satisfies the view
 * semantic requirement and can be piped through view adaptors by value.
 *
 *   PORTABILITY:
@@ -79,7 +79,7 @@ struct enable_borrowed_range<span<Type, Extent> >
 
 // enable_view<span<Type, Extent>>
 //   trait: span is a pointer plus (at most) a size, so copy and destroy
-// are both O(1) -- the semantic requirement view imposes and which no
+// are both O(1) - the semantic requirement view imposes and which no
 // syntactic check can verify.
 template<typename    Type,
          std::size_t Extent>

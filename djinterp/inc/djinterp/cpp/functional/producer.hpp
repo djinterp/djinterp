@@ -1557,7 +1557,7 @@ using unfold_ct_t = typename internal::unfold_ct_helper<
 // teaches the generic functor_map (functor.hpp) to drive a producer through
 // the one canonical name, so the same call that maps a maybe / result / view
 // also maps a producer. A producer's mapped type is
-// internal::DTransformHelper<P, F> -- it depends on the mapping function F, so
+// internal::DTransformHelper<P, F> - it depends on the mapping function F, so
 // there is no single F<U> to rebind; the result type follows from the existing
 // transform and is deduced. Keyed on is_producer, mutually exclusive with the
 // monad bridge in functor.hpp (a producer is not a monad) and the view
@@ -1595,8 +1595,8 @@ struct functor_traits<
 ///////////////////////////////////////////////////////////////////////////////
 //   A producer is a Foldable: its elements are collapsed by pulling the source
 // to exhaustion and threading the reducer through them. This teaches the
-// generic fold_left (foldable.hpp) -- and therefore fold_to_vector,
-// fold_length, fold_any, fold_all, fold_right, ... -- to drive a producer
+// generic fold_left (foldable.hpp) - and therefore fold_to_vector,
+// fold_length, fold_any, fold_all, fold_right, ... - to drive a producer
 // through the one canonical name. Keyed on is_producer so the single instance
 // covers every producer; mutually exclusive with the maybe / result / view
 // instances. The fold is non-destructive (a copy is pulled, leaving the
@@ -1614,7 +1614,7 @@ struct foldable_traits<
     // fold_left
     //   strict left fold by pulling a copy of the producer to exhaustion; the
     // accumulator is threaded by move so collecting folds stay O(n).
-    //   D_CONSTEXPR -- a producer is not a literal type before C++20, and
+    //   D_CONSTEXPR - a producer is not a literal type before C++20, and
     // the pull loop needs relaxed constexpr.
     template<typename Acc,
              typename Function>

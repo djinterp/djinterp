@@ -2,7 +2,7 @@
 * djinterp [cpp][db]                                         t_postgres_core.cpp
 *
 *   core/db's PostgreSQL connection, pg_connection, over the PostgreSQL
-* layer, against a live server -- PostgreSQL from 10, through whichever libpq
+* layer, against a live server - PostgreSQL from 10, through whichever libpq
 * the layer is built with. It runs the operations every vendor shares
 * (t_db_core.hpp), database_table among them, in a schema of its own, and
 * then what pg_connection adds: how a configuration and a connection string
@@ -40,8 +40,8 @@
 #endif  // _WIN32
 // WIN32_LEAN_AND_MEAN, NOMINMAX
 //   knobs (Windows'): <windows.h>, which <winsock2.h> and the clients' own
-// headers include, without its rarer headers -- rpcndr.h among them, which
-// makes `small` a macro -- and without its min and max macros.
+// headers include, without its rarer headers - rpcndr.h among them, which
+// makes `small` a macro - and without its min and max macros.
 #if defined(_WIN32)
     #if !defined(WIN32_LEAN_AND_MEAN)
         #define WIN32_LEAN_AND_MEAN 1
@@ -90,7 +90,7 @@ namespace core     = d_tests_db_core;
 static_assert(db::has_async_operations<postgres::pg_connection>::value);
 static_assert(!db::has_async_operations<int>::value);
 
-// the concepts (C++20) -- postgres::concepts' own, the class's among them,
+// the concepts (C++20) - postgres::concepts' own, the class's among them,
 // and a former name, which forwards to its concept for one release
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 static_assert(db::concepts::async_connection<postgres::pg_connection>);
@@ -729,8 +729,8 @@ d_tests_postgres_core_pipelines
     for with nothing sent, 08000; fewer than one row refused; more than one
     by libpq's release (17)
   - where libpq has pipelines (14): statements queued and synchronized,
-    their results in order -- rows; a failure, its SQLSTATE and its message;
-    25P02 for one skipped -- nullptr at each synchronization point, the mode
+    their results in order - rows; a failure, its SQLSTATE and its message;
+    25P02 for one skipped - nullptr at each synchronization point, the mode
     aborted until it; an operation that waits for its result, 08000; rows a
     row a result for the statement asked for; a statement after the last
     point, read once waited for, or polled for once asked for; leaving, and
@@ -1087,7 +1087,7 @@ void d_tests_postgres_core_tables(
                                             "AND flag IS NULL AND n IS "
                                             "NULL") == 1);
 
-    // a row the server refuses -- its key taken behind the table's back --
+    // a row the server refuses - its key taken behind the table's back --
     // fails the whole COPY
     _db.execute("INSERT INTO " + table + " (id) VALUES (5)");
     events.insert_row({ core::big_value(3), core::text_value("ok"),

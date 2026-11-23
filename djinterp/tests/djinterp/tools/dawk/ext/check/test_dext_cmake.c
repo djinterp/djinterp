@@ -2,8 +2,8 @@
 * djinterp [c][tools]                                          test_dext_cmake.c
 *
 * Exercises `dext_cmake.h` and what the checker reads of a CMake file beside
-* it: the tree a sheet selects -- commands, arguments, comments, blocks, a
-* refusal -- by the selectors a sheet would write, the geometry a layout
+* it: the tree a sheet selects - commands, arguments, comments, blocks, a
+* refusal - by the selectors a sheet would write, the geometry a layout
 * property compares, the banner and the delimiters in `#` comments, and the
 * facts a file under build/cmake carries.  A node that gains an attribute
 * after another node has one keeps every attribute it had, which the file

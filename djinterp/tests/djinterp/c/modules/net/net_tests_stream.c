@@ -358,7 +358,7 @@ bool d_tests_net_endpoint_emptied(
 /*
 d_tests_net_endpoints_unknown
   The unknown half of d_tests_net_lifetime's endpoints: whatever the
-output held, an address that is not known leaves it empty -- one a backend
+output held, an address that is not known leaves it empty - one a backend
 refuses, one it has no query for, and one an incomplete connection asks.
 */
 static

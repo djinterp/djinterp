@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][meta]                                         bsearch_tests.hpp
 *
-* Unit test suite for bsearch.hpp -- the compile-time binary-search engine.
+* Unit test suite for bsearch.hpp - the compile-time binary-search engine.
 *   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.md S3):
 *
 *     - normal mode (the section TUs): pulls in the header under test and
@@ -12,7 +12,7 @@
 *   WHAT IS UNDER TEST.  bsearch.hpp is a pure compile-time header: a
 * bounds-guarded indexed accessor (pack_element_or) and one engine
 * (DBsearchBy) that binary-searches a typename pack.  The engine is needle-
-* AGNOSTIC -- the search target lives entirely inside two caller-supplied
+* AGNOSTIC - the search target lives entirely inside two caller-supplied
 * template-template predicates, _Below<E> and _Above<E>, so ONE engine serves
 * an NTTP needle, a type needle, a reversed order, or a custom projection with
 * no change.  Every assertion in this suite is therefore a compile-time fact;
@@ -45,7 +45,7 @@
 *     search<N, Es...>       = DBsearchBy<DAscPreds<N>::below,  ...::above, Es...>
 *     DSearchDesc<N, Es...>  the descending counterpart
 *     DSearchSize<N, Es...>  the sizeof counterpart
-*   -- convenience aliases so a body reads `search<5, e1, e5, e9>::index` rather
+*   - convenience aliases so a body reads `search<5, e1, e5, e9>::index` rather
 *   than restating the predicate plumbing every line.
 *
 *   MODULE NOTES (behaviour this suite pins, not defects)
@@ -68,7 +68,7 @@
 *        lookup.hpp.
 *     4. COMPLEXITY.  The engine bounds recursion DEPTH at O(log N); the
 *        instantiation COUNT is not log N (each probe is an O(index) pack walk).
-*        The suite does not measure timing -- it pins correctness at a size large
+*        The suite does not measure timing - it pins correctness at a size large
 *        enough to exercise several levels of bisection.
 *
 *   BUILD PREREQUISITE: none.  bsearch.hpp compiles as shipped, given its
@@ -97,7 +97,7 @@
 #include <cstdio>
 #include <type_traits>
 // djinterp
-// -- (part 1) mode-gated includes --------------------------------------------
+// - (part 1) mode-gated includes --------------------------------------------
 // djinterp core is ALWAYS first and unconditional (NS_*, D_* qualifiers,
 // language gates), so both faces have it.
 #include <djinterp/cpp/djinterp.hpp>
@@ -158,14 +158,14 @@ bool bsearch_check(
     while (0)
 
 
-#ifndef DTEST_SPEC_MODE  // (part 1 cont.) fixtures -- normal mode only
+#ifndef DTEST_SPEC_MODE  // (part 1 cont.) fixtures - normal mode only
 
 ///////////////////////////////////////////////////////////////////////////////
 ///             F.1   VALUE-KEYED ENTRIES AND PREDICATES                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // ikey
-//   struct: the canonical value-keyed entry -- an ::key NTTP ordered by `<`.
+//   struct: the canonical value-keyed entry - an ::key NTTP ordered by `<`.
 template<int _Key>
 struct DIkey
 {
@@ -184,7 +184,7 @@ struct DTagKey
 };
 
 // DAscPreds
-//   struct: the ascending needle predicates for an int needle -- exactly the
+//   struct: the ascending needle predicates for an int needle - exactly the
 // shape lookup.hpp's DNttpKeyPreds forms.  below(E) sorts E before the needle;
 // above(E) sorts E after it; a hit is neither.
 template<int _Needle>
@@ -202,7 +202,7 @@ struct DAscPreds
 };
 
 // DDescPreds
-//   struct: the descending predicates -- arrows flipped, for a pack sorted
+//   struct: the descending predicates - arrows flipped, for a pack sorted
 // high-to-low.  below(E) is true when E::key > needle (E is earlier in a
 // descending pack); above(E) when needle > E::key.
 template<int _Needle>
@@ -234,7 +234,7 @@ struct scaled
 ///////////////////////////////////////////////////////////////////////////////
 
 // sized
-//   struct: a type of a chosen size and NO ::key, ordered by sizeof -- the
+//   struct: a type of a chosen size and NO ::key, ordered by sizeof - the
 // material for a TYPE needle, proving the engine never touches ::key.
 template<std::size_t _Size>
 struct sized
@@ -327,7 +327,7 @@ using DSearchSize =
 ///////////////////////////////////////////////////////////////////////////////
 
 // index_is_constexpr
-//   trait: instantiable ONLY if _Index is a genuine constant expression -- the
+//   trait: instantiable ONLY if _Index is a genuine constant expression - the
 // std::size_t template parameter forces constant evaluation, so its mere
 // formation is the proof.  A body forms index_is_constexpr<search<...>::index>
 // to show ::index is usable as a template argument.
@@ -337,7 +337,7 @@ struct index_is_constexpr
 {};
 
 // consumes_bool
-//   trait: instantiable only for a constant bool -- the analogue for ::found.
+//   trait: instantiable only for a constant bool - the analogue for ::found.
 template<bool _Value>
 struct consumes_bool
     : std::integral_constant<bool, _Value>
@@ -346,7 +346,7 @@ struct consumes_bool
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- (part 2) declarations -- visible in BOTH modes --------------------------
+// - (part 2) declarations - visible in BOTH modes --------------------------
 
 // I.   GUARD   (bsearch_tests_guard.cpp)
 bool tests_guard_true_branch_indexes();
@@ -392,11 +392,11 @@ bool tests_robustness_repeated_instantiation_is_stable();
 bool tests_robustness_distinct_needles_distinct_results();
 
 
-// -- (part 3) the spec provider -- spec mode only ----------------------------
+// - (part 3) the spec provider - spec mode only ----------------------------
 #ifdef DTEST_SPEC_MODE
 
 // bsearch_spec
-//   function: the authoritative description of this suite -- one block per
+//   function: the authoritative description of this suite - one block per
 // section TU, one row per tests_* body, every node named and described.
 inline
 dt::module_spec bsearch_spec()

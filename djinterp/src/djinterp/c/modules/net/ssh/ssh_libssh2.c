@@ -182,8 +182,8 @@ d_ssh_internal_libssh2_map(
 
 /*
 d_ssh_internal_libssh2_fail
-  File-local: keeps libssh2's description of a failure -- which it frees at
-its next error -- and translates the code.
+  File-local: keeps libssh2's description of a failure - which it frees at
+its next error - and translates the code.
 */
 D_STATIC enum dj_ssh_error
 d_ssh_internal_libssh2_fail(
@@ -285,7 +285,7 @@ D_STATIC const char* const d_ssh_internal_libssh2_markers[2] =
 /*
 d_ssh_internal_libssh2_prefer_kex
   File-local: sets a KEX preference with libssh2's markers kept. Builds with
-strict key exchange -- 1.11.1, and distributions' patched 1.11.0 -- enable it
+strict key exchange - 1.11.1, and distributions' patched 1.11.0 - enable it
 whenever the server offers it, so a list without the client's marker leaves
 the two sides numbering packets differently after the first key exchange,
 which surfaces as a corrupted MAC under any non-AEAD cipher. Without
@@ -766,8 +766,8 @@ d_ssh_internal_libssh2_auth_agent(
 d_ssh_internal_libssh2_answer
   File-local: answers one keyboard-interactive prompt. The prompt is copied
 into a terminated string for the engine's prompt function, and the answer
-is handed to libssh2 in a malloc'd copy -- which libssh2 frees with the
-session's allocator, malloc's partner -- before the local copy is wiped.
+is handed to libssh2 in a malloc'd copy - which libssh2 frees with the
+session's allocator, malloc's partner - before the local copy is wiped.
 Returns false if the prompt went unanswered.
 */
 D_STATIC

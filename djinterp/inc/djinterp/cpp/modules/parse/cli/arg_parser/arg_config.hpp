@@ -2,7 +2,7 @@
 * djinterp [cpp][parse]                                           arg_config.hpp
 *
 * The argument parser's C++ face: configuration formats.
-*   `cli::config_format` is CLI11's ConfigBase -- its ConfigTOML -- and
+*   `cli::config_format` is CLI11's ConfigBase - its ConfigTOML - and
 * `cli::DConfigIni` its ConfigINI: a struct dj_arg_config_format (the
 * characters, section and index of arg_config.h) whose three operations are
 * CLI11's virtual Config functions: reading text into items (from_config),
@@ -101,9 +101,9 @@ namespace cli
 //------------------------------------------------------------------------------
 // 1.1.1
 // DConfigEntry
-//   class: CLI11's ConfigItem, read: a view of an item a format read -- its
+//   class: CLI11's ConfigItem, read: a view of an item a format read - its
 // sections, outermost first, its name and its values, as views valid while
-// the item is -- or of none, which reads as an item with nothing in it.
+// the item is - or of none, which reads as an item with nothing in it.
 class DConfigEntry
 {
 public:
@@ -132,7 +132,7 @@ private:
 //------------------------------------------------------------------------------
 // 1.2.1
 // DConfigItem
-//   class: an item a format builds as it reads -- CLI11's ConfigItem, made --
+//   class: an item a format builds as it reads - CLI11's ConfigItem, made --
 // owning its copies until a list adopts it (DConfigItems::adopt), which
 // leaves it empty. Each setting copies its text and returns
 // status_code::ok, or out_of_memory with the item as it was. Not copied.
@@ -199,8 +199,8 @@ private:
 
 // 1.3.2
 // DConfigItemList
-//   class: a list of items owned by the caller -- CLI11's
-// std::vector<ConfigItem> -- for reading text or a file directly
+//   class: a list of items owned by the caller - CLI11's
+// std::vector<ConfigItem> - for reading text or a file directly
 // (config_format::from_text and from_file); released with it. Not copied.
 class DConfigItemList : public ::dj_arg_config_item_list
 {
@@ -299,7 +299,7 @@ public:
 
     // the section and index read: CLI11's section(name) and index(n); a
     // section that cannot be copied is not set, and std::bad_alloc is
-    // thrown, as by CLI11's std::string; none -- or "" -- reads them all,
+    // thrown, as by CLI11's std::string; none - or "" - reads them all,
     // and an index of -1 every occurrence
     config_format& section(
         DCString _section
@@ -314,8 +314,8 @@ public:
     bool get_allow_duplicate_fields() const D_NOEXCEPT;
 
     // the operations: CLI11's virtual from_config, to_config and to_flag,
-    // each appending -- items to `_out`, text to `_out`, a failure's
-    // description to `_error` -- and returning status_code::ok or the status
+    // each appending - items to `_out`, text to `_out`, a failure's
+    // description to `_error` - and returning status_code::ok or the status
     // that stopped it. The defaults are the C library's (arg_config.h).
     virtual
     cli::status from_config(
@@ -368,7 +368,7 @@ typedef config_format DConfigToml;
 //------------------------------------------------------------------------------
 // 2.2.1
 // DConfigIni
-//   class: CLI11's ConfigINI: config_format with INI's characters -- `;`
+//   class: CLI11's ConfigINI: config_format with INI's characters - `;`
 // comments, no array brackets, values separated by spaces.
 class DConfigIni : public config_format
 {
@@ -1159,8 +1159,8 @@ DConfigIni::DConfigIni() D_NOEXCEPT
 // 4.7    Internals
 //------------------------------------------------------------------------------
 // internal::DFromConfigCall / DToConfigCall / DToFlagCall
-//   The arguments kept as given -- references to the operation function's
-// locals -- and the virtual function called.
+//   The arguments kept as given - references to the operation function's
+// locals - and the virtual function called.
 inline
 internal::DFromConfigCall::DFromConfigCall(
     const config_format& _self,

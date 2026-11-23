@@ -416,8 +416,8 @@ const short* d_pdf_width_table_for(
 
 /*
 d_internal_pdf_advance
-  One byte's advance: the table's entry, or Courier's rule -- nothing for the
-control range below 0x20, D_PDF_COURIER_ADVANCE otherwise -- for Courier and
+  One byte's advance: the table's entry, or Courier's rule - nothing for the
+control range below 0x20, D_PDF_COURIER_ADVANCE otherwise - for Courier and
 any face without a table.
 */
 static

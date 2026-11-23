@@ -2,8 +2,8 @@
 * djinterp [cpp][parse]                                        arg_formatter.hpp
 *
 * The argument parser's C++ face: help's formatter.
-*   `cli::formatter` is CLI11's Formatter: a struct dj_arg_formatter -- the
-* widths, switches and labels of arg_formatter.h -- whose steps are CLI11's
+*   `cli::formatter` is CLI11's Formatter: a struct dj_arg_formatter - the
+* widths, switches and labels of arg_formatter.h - whose steps are CLI11's
 * virtual make_* functions. It derives from the C struct, so that it is
 * given to a command (DCommandInterface::formatter) as the C formatter it
 * is, and its table of steps calls the virtual functions, so that a class
@@ -12,7 +12,7 @@
 * others through the table, as CLI11's call through the virtual functions.
 *   A step appends its piece of help to a cli::buffer and returns a
 * cli::status, where CLI11's returns a std::string: the text is built in
-* place, a function that fails -- a usage function, a type name -- ends
+* place, a function that fails - a usage function, a type name - ends
 * help with its status, and nothing is thrown. What a step throws ends help
 * as a conversion error, or as out_of_memory for std::bad_alloc.
 *   DFormatterLambda is CLI11's FormatterLambda: a formatter whose whole
@@ -281,7 +281,7 @@ private:
 // 1.2.1
 // DFormatterLambda
 //   class: CLI11's FormatterLambda: a formatter whose help is what a function
-// returns, given the command -- `const cli::command&` -- the name help
+// returns, given the command - `const cli::command&` - the name help
 // shows, as a `const cli::text&`, and the mode, a help_mode::value, and
 // returning the help as a std::string, a C string or a text. The function
 // is copied, and called as the caller's own copy would be, const or not;
@@ -1056,8 +1056,8 @@ cli::status DFormatterLambda<Function>::make_help(
 // 3.3    Internals
 //------------------------------------------------------------------------------
 // internal::DStepCall2 / DStepCall3 / DStepCall4
-//   The arguments kept as given -- references to the step function's locals
-// -- and the virtual function called through its member pointer.
+//   The arguments kept as given - references to the step function's locals
+// - and the virtual function called through its member pointer.
 template<typename First>
 inline
 internal::DStepCall2<First>::DStepCall2(

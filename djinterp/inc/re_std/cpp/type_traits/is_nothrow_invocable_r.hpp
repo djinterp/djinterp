@@ -3,8 +3,8 @@
 *
 * is_nothrow_invocable_r trait:
 *   true_type if is_invocable_r<R, F, Args...> is true_type AND the entire
-* INVOKE<R> expression -- the call AND, when R is non-void, the implicit
-* conversion of the result to R -- is noexcept; false_type otherwise.
+* INVOKE<R> expression - the call AND, when R is non-void, the implicit
+* conversion of the result to R - is noexcept; false_type otherwise.
 *
 *   IMPLEMENTATION:
 *   Three-piece check:
@@ -64,7 +64,7 @@ namespace re_std
         // is_nothrow_invocable_r_conv
         //   trait: bypass shim for the convertibility check. When R is
         //          cv void, yields true_type without ever instantiating
-        //          is_nothrow_convertible -- avoiding the corner case
+        //          is_nothrow_convertible - avoiding the corner case
         //          where is_nothrow_convertible<X, void> would substitute
         //          void into a function-parameter position (a per-
         //          [temp.deduct]/8 substitution failure that is only

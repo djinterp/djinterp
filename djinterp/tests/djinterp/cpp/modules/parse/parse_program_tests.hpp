@@ -5,7 +5,7 @@
 * the instruction stream they serve.
 *   The suite is a table of sections, defined in parse_program_tests.cpp beside
 * the sections themselves. A section whose subject a configuration knob removes
-* -- a container that owns its storage, the transport format -- is absent from
+* - a container that owns its storage, the transport format - is absent from
 * a build without it, so the table's length is the number of sections this
 * build has.
 *

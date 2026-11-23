@@ -4,14 +4,14 @@
 * Lifetime, value/error access tests for result<T, E> (section I: the
 * primitive itself).
 *
-*   test_construction -- ok/err copy & move constructors, plus copy/move of
+*   test_construction - ok/err copy & move constructors, plus copy/move of
 *                        each branch.
-*   test_assignment   -- copy & move assignment across same-branch and
+*   test_assignment   - copy & move assignment across same-branch and
 *                        branch-changing transitions, plus self-assignment.
-*   test_observers    -- is_ok / is_err / operator bool, value() and error()
+*   test_observers    - is_ok / is_err / operator bool, value() and error()
 *                        in their const / mutable / rvalue overloads, value_or,
 *                        unwrap (incl. the throwing path).
-*   test_lifetime     -- balanced construction / destruction of the active
+*   test_lifetime     - balanced construction / destruction of the active
 *                        branch (value side and error side) via an
 *                        instance-counting payload.
 *

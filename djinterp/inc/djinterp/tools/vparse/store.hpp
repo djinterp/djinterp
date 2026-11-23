@@ -15,8 +15,8 @@
 *   The part files are for reading and for diffing between runs outside the
 * workbench. Loading reads only run.txt, grammar.txt and input.txt and runs
 * them again: a run is deterministic, so every other part comes back as it was.
-*   Both programs also read the files a command line names -- a grammar, an
-* input -- and name them in UTF-8 whatever the system, as the command line
+*   Both programs also read the files a command line names - a grammar, an
+* input - and name them in UTF-8 whatever the system, as the command line
 * and a Dear ImGui text field both give them; section 2.4 turns such a name
 * into a path, and reads the file whole.
 *
@@ -140,7 +140,7 @@ bool load_request(
 //------------------------------------------------------------------------------
 // 2.3.1
 // listing_text
-//   function: a listing as a text table -- a header, a rule, one line per row,
+//   function: a listing as a text table - a header, a rule, one line per row,
 // columns aligned, no trailing spaces. An empty listing is its note.
 std::string listing_text(
     const listing& _listing
@@ -169,9 +169,9 @@ std::string utf8_from_path(
  *
  * @param[in]  _path   the file.
  * @param[out] _bytes  receives the file's contents; unchanged on failure.
- * @param[out] _error  receives why the file could not be read -- the
+ * @param[out] _error  receives why the file could not be read - the
  *                     system's words, such as "No such file or directory"
- *                     -- on failure; may be NULL.
+ *                     - on failure; may be NULL.
  * @return whether the file was read: `false` for a path that names nothing,
  *         a directory, or a file that cannot be opened or read.
  */

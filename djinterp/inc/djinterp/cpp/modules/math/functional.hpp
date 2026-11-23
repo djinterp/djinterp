@@ -40,12 +40,12 @@
 #include <type_traits>
 #include <utility>
 // djinterp
-// djinterp -- math
+// djinterp - math
 #include "../../djinterp.hpp"
 #include "./expression.hpp"
 #include "function/function.hpp"
 
-// djinterp -- functional subframework (see LAYOUT NOTE)
+// djinterp - functional subframework (see LAYOUT NOTE)
 #ifndef DJINTERP_MATH_FUNCTIONAL_NO_DEPS
 #  include "../../functional/compose.hpp"             // compose / pipe / pipe_all
 #  include "../../functional/curry.hpp"               // curry / flip / uncurry

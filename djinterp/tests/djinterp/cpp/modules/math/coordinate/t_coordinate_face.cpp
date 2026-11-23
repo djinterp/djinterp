@@ -1,8 +1,8 @@
 /*******************************************************************************
 * djinterp [cpp][math]                                     t_coordinate_face.cpp
 *
-*   Tests for the coordinate headers -- cartesian, polar, cylindrical,
-* spherical, coordinate -- at every level from C++98: each system's
+*   Tests for the coordinate headers - cartesian, polar, cylindrical,
+* spherical, coordinate - at every level from C++98: each system's
 * conversions as the C core's, round trips through Cartesian, distances
 * against Cartesian distances, canonical forms in their ranges, the scale
 * factors and Jacobians, coord_point and coord_cast (through Cartesian and

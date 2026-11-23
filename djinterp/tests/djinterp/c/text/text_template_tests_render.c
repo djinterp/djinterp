@@ -344,7 +344,7 @@ bool d_tests_text_template_render(struct dj_test_suite* _suite)
                                      sizeof(buf));
         /* the auto-format concatenates all bound keys;
            each item binds _index,_number,_count,_is_first,
-           _is_last, and "item" -- the exact output depends
+           _is_last, and "item" - the exact output depends
            on key ordering; verify call succeeds and output
            contains the domain values */
         test_list_binding =

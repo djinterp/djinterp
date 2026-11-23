@@ -28,7 +28,7 @@
 *
 *   re_std::pair cannot hold reference members before C++11. Its
 * constructor takes `const _T1&`, and with _T1 = const T& that is a
-* reference to a reference -- ill-formed under the C++98 text, and
+* reference to a reference - ill-formed under the C++98 text, and
 * rejected in practice (GCC 13 -std=c++98: "forming reference to
 * reference type"). Reference collapsing only became guaranteed in
 * C++11.
@@ -40,7 +40,7 @@
 * no C++98 contract to deviate from.
 *
 *   Code that must compile on both tiers should receive the result by
-* value -- `pair<T, T> p = minmax(a, b);` -- which is well-formed on
+* value - `pair<T, T> p = minmax(a, b);` - which is well-formed on
 * C++11+ too via the converting constructor.
 *
 *
@@ -71,7 +71,7 @@ namespace re_std
 
 
 // ===========================================================================
-// 0b.  MINMAX_RESULT  (tiered return type -- see the header note)
+// 0b.  MINMAX_RESULT  (tiered return type - see the header note)
 // ===========================================================================
 
 #if RE_STD_LANG_IS_CPP11_OR_HIGHER

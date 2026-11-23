@@ -2,8 +2,8 @@
 * djinterp [cpp][functional]                       fn_builder_tests_terminal.cpp
 *
 * Terminal-operation tests (section iii):
-*   test_fold      -- materialize the chain, then left-fold from an init.
-*   test_count_any -- count() (size after the chain) and any() (non-empty
+*   test_fold      - materialize the chain, then left-fold from an init.
+*   test_count_any - count() (size after the chain) and any() (non-empty
 *                     after the chain).
 *
 *

@@ -92,7 +92,7 @@ TABLE OF CONTENTS
 #include "../../../../../re_std/c/cstdint/dstdint.h"  // uint16_t, uint32_t
 
 // 64-bit floor: this header needs a 64-bit integer type, and compiles to
-// nothing where the build has none -- ISO strict C++98 wherever int64_t is
+// nothing where the build has none - ISO strict C++98 wherever int64_t is
 // `long long`: a 32-bit target, 64-bit Windows or macOS (the owner's ruling of
 // 2026.10.03 on round 3's question 1, (a)). The answer is net_common.h's, taken
 // once per translation unit, so that net's gated headers agree.
@@ -114,7 +114,7 @@ D_EXTERN_C_BEGIN
 // 1.1.1
 // D_FTP_CLIENT_REPLY_SIZE
 //   constant: bytes kept of a reply's text, its terminator included. A longer
-// reply -- FEAT, HELP, and STAT run long -- is truncated but fully parsed.
+// reply - FEAT, HELP, and STAT run long - is truncated but fully parsed.
 // Set by D_CFG_FTP_REPLY_SIZE.
 #define D_FTP_CLIENT_REPLY_SIZE D_INTERNAL_FTP_REPLY_SIZE
 
@@ -306,7 +306,7 @@ enum dj_ftp_error d_ftp_client_login(
 /**
  * @brief Sends one command and reads its final reply.
  *
- * For commands without a data connection -- CWD, PWD, MKD, DELE, SIZE, MDTM,
+ * For commands without a data connection - CWD, PWD, MKD, DELE, SIZE, MDTM,
  * SITE, and the like. The commands whose state the client keeps (USER, PASS,
  * ACCT, AUTH, PBSZ, PROT, CCC, TYPE, PORT, EPRT, PASV, EPSV, REIN, and QUIT)
  * are refused; the functions of this header send them. Preliminary (1yz)

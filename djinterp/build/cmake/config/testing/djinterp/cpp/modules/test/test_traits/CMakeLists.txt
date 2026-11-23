@@ -1,4 +1,4 @@
-# djinterp -- test_traits test leaf
+# djinterp - test_traits test leaf
 #
 #   Recipe R1: a header-only module with no production sources.  The header under
 # test is inc/djinterp/cpp/modules/test/test_traits.hpp, so the slug is
@@ -11,13 +11,13 @@
 #
 #     bin/<arch>-<Config>/testing/djinterp/test/
 #
-# because that is where THIS CMakeLists sits relative to the config root -- the
+# because that is where THIS CMakeLists sits relative to the config root - the
 # output directory is computed, never written by hand.
 #
 #   NOTE ON MERGING.  `djinterp/test` is a populated slug: test_kind, test_pack
 # and the rest of the test framework live in the same inc/ directory, so a
 # CMakeLists probably already exists here with leaves of its own.  If so, do NOT
-# replace it -- lift the `test_suite()` helper below into it (or reuse the one it
+# replace it - lift the `test_suite()` helper below into it (or reuse the one it
 # already has) and add the single call.  That is recipe R5, the single-folder
 # cluster, and the helper is written to make the merge a one-liner.
 
@@ -28,7 +28,7 @@ set(_inc_dir   "${DJINTERP_INC_ROOT}/djinterp/cpp/modules/test")
 #   function: defines one header-only test leaf named <component>_tests.  Globs
 # tests/<component>_tests_*.cpp for the sections, pairs them with the runner of
 # the same stem from this directory, and adds the two include roots a test leaf
-# always needs -- inc/<slug>, so the bare `#include "<component>.hpp"` the
+# always needs - inc/<slug>, so the bare `#include "<component>.hpp"` the
 # framework's headers use resolves, and tests/<slug> for the test header.
 function(test_suite _component)
     file(GLOB _sections CONFIGURE_DEPENDS
@@ -51,7 +51,7 @@ test_suite(test_traits)
 # is_nothrow_probe handed a probe that is not one, a D_TEST_STATIC that fires,
 # and a completeness-requiring trait run over the list that contains the
 # incomplete fixture.  They are off by default, so the suite always builds.  To
-# reproduce all four -- the build failing IS the finding -- configure with:
+# reproduce all four - the build failing IS the finding - configure with:
 #
 #     -DDJINTERP_TT_HAZARD_TESTS=ON
 #

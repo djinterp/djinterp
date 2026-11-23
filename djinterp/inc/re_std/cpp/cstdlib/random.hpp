@@ -13,7 +13,7 @@
 * the common `rand() % n` idiom is biased whenever n does not divide
 * RAND_MAX + 1. RAND_MAX itself is only guaranteed to reach 32767.
 *
-*   None of that is fixable from here -- a better generator would be a
+*   None of that is fixable from here - a better generator would be a
 * different generator, and providing one under this name would break the
 * interoperation that is the reason for re-exporting. The right answer is
 * <random>'s engines and distributions, catalogued at priority 40 and not

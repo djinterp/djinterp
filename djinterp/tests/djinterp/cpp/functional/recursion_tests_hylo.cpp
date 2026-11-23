@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  recursion_tests_hylo.cpp
-//   Section VII -- hylo, the deforested refold (cata . ana, no mu built).
+//   Section VII - hylo, the deforested refold (cata . ana, no mu built).
 
 // std
 #include <type_traits>
@@ -132,7 +132,7 @@ bool tests_hylo_tree()
 
 /*
 tests_hylo_equals_cata_ana
-  hylo[phi, psi] agrees with cata[phi] . ana[psi] -- the deforested refold and
+  hylo[phi, psi] agrees with cata[phi] . ana[psi] - the deforested refold and
   the materialised one compute the same value.
   Tests the following:
   - equality for the Peano depth refold

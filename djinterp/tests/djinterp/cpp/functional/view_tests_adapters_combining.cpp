@@ -4,12 +4,12 @@
 * Combining adapter view tests (section IV, part 2): adapters that pair,
 * join, reorder, or regroup elements.
 *
-*   test_enumerate -- pairs each element with its zero-based index.
-*   test_zip       -- pairs two views in lockstep, stopping at the shorter.
-*   test_concat    -- yields all of one view then all of another.
-*   test_reverse   -- reverses a bidirectional view.
-*   test_chunk     -- groups into fixed-size vectors (last may be short).
-*   test_stride    -- yields every n-th element starting from the first.
+*   test_enumerate - pairs each element with its zero-based index.
+*   test_zip       - pairs two views in lockstep, stopping at the shorter.
+*   test_concat    - yields all of one view then all of another.
+*   test_reverse   - reverses a bidirectional view.
+*   test_chunk     - groups into fixed-size vectors (last may be short).
+*   test_stride    - yields every n-th element starting from the first.
 *
 *
 * path:      /tests/djinterp/cpp/functional/view_tests_adapters_combining.cpp

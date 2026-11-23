@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][meta]                               value_list_tests_growth.cpp
 *
-*   Section IV -- growth: append, prepend, and the four concat overloads.
+*   Section IV - growth: append, prepend, and the four concat overloads.
 *
 *
 * path:      /tests/djinterp/cpp/meta/value_list_tests_growth.cpp
@@ -49,7 +49,7 @@ bool tests_append()
                   "length + 1");
 
     // NB: `constexpr auto g = append(...)` would make decltype(g) CONST, which
-    // value_list_at does not accept -- see tests_traits_require_an_unqualified_list.
+    // value_list_at does not accept - see tests_traits_require_an_unqualified_list.
     using grown = decltype(append(DValueList<1, 2>{}, val<3>));
     static_assert(value_list_at_v<2, grown> == 3, "the new tail");
 
@@ -62,7 +62,7 @@ bool tests_append()
 
 /*
 tests_append_to_empty
-  Appending to the empty list yields a singleton -- the base of the collect step.
+  Appending to the empty list yields a singleton - the base of the collect step.
   Tests the following:
   - the empty list grows to exactly one element
 */
@@ -85,7 +85,7 @@ bool tests_append_to_empty()
 
 /*
 tests_prepend
-  prepend puts the new element at the FRONT -- the mirror of append, and the
+  prepend puts the new element at the FRONT - the mirror of append, and the
   reason fold with it reverses a list.
   Tests the following:
   - the result type carries the element first

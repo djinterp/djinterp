@@ -2,7 +2,7 @@
 * djinterp [c][interp]                                          djin_tests_set.c
 *
 *   The set's tests: making one, registering a djin and its settings, every
-* record the set refuses -- with nothing changed by a refusal -- and finding
+* record the set refuses - with nothing changed by a refusal - and finding
 * a djin and a command by name.
 *
 *
@@ -188,8 +188,8 @@ d_tests_djin_refused(
 /*
 d_tests_djin_register_refused
   Tests the following:
-  - a null djin, another ABI -- 1, whose describe slot took `void*`,
-    among them -- a short record, and names, versions and summaries out of
+  - a null djin, another ABI - 1, whose describe slot took `void*`,
+    among them - a short record, and names, versions and summaries out of
     shape are INVALID
   - commands out of shape, or a name twice, are INVALID
   - a settings frame named otherwise than the djin is INVALID

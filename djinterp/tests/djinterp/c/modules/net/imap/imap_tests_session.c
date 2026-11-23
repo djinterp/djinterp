@@ -7,9 +7,9 @@
 * octets with what RFC 9051 has a client send. The second runs a client over
 * a memory stream that plays a server's whole side of a conversation, seven
 * octets at a time: the client frames each response, parses it and follows
-* the server -- capabilities, the selected mailbox's counts and flags, a
+* the server - capabilities, the selected mailbox's counts and flags, a
 * fetched body, listed names, STATUS and SEARCH results, APPEND's
-* go-ahead, LOGOUT's BYE -- and the stream keeps what the client sent.
+* go-ahead, LOGOUT's BYE - and the stream keeps what the client sent.
 *
 *
 * path:      /tests/djinterp/c/modules/net/imap/imap_tests_session.c
@@ -441,7 +441,7 @@ struct dj_pack_sink d_tests_imap_wire(
 
 /*
 d_tests_imap_announced
-  Whether a line -- `_length` octets ending with its LF -- announces a
+  Whether a line - `_length` octets ending with its LF - announces a
 literal, "{n}" or "{n+}" just before its line break; `_count` then
 receives n.
 */

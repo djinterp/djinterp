@@ -19,7 +19,7 @@
 *
 *   CONSTEXPR IS NOT ACHIEVABLE WITHOUT THE COMPILER:
 *   The fallback is std::memcpy, which is not constexpr before C++20
-* and cannot be made so from library code -- reading one object's bytes
+* and cannot be made so from library code - reading one object's bytes
 * as another's is precisely what the constant evaluator forbids. So
 * bit_cast is constexpr exactly when __builtin_bit_cast exists, and
 * RE_STD_HAS_BUILTIN_BIT_CAST reports which. This is unusual for
@@ -28,9 +28,9 @@
 *
 *   THE TRIVIALLY-COPYABLE CONSTRAINT IS A STOPGAP:
 *   [bit.cast] requires both types to be trivially copyable.
-* re_std::is_trivially_copyable is catalogued but NOT IMPLEMENTED -- it
+* re_std::is_trivially_copyable is catalogued but NOT IMPLEMENTED - it
 * is one of the eight type_traits whose includes are commented out in
-* type_traits.hpp -- so this header calls __is_trivially_copyable
+* type_traits.hpp - so this header calls __is_trivially_copyable
 * directly, behind its own detection macro. When that trait ships, this
 * should switch to it and the local detection should be deleted. Where
 * the intrinsic is unavailable the constraint is not enforced at all
@@ -129,7 +129,7 @@ bit_cast(
 #else
 
 // bit_cast
-//   function: memcpy fallback. Correct, but NOT constexpr -- see the
+//   function: memcpy fallback. Correct, but NOT constexpr - see the
 // header note; this is not a limitation library code can lift.
 template<typename To,
          typename From>

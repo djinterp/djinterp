@@ -134,7 +134,7 @@ struct dj_tests_net_peer
 
 // 1.3    Functions
 //------------------------------------------------------------------------------
-// the scripted peer -- made with nothing scripted, every limit off, and no
+// the scripted peer - made with nothing scripted, every limit off, and no
 // hang-up; connection gives its connection, with or without available; say
 // adds a turn, sealed if the toy engine will read it; `sent` compares
 // everything the session has sent with `_expected`
@@ -204,7 +204,7 @@ bool d_tests_net_peer_sent(
 //   struct: the toy engine's record: what it is told to do, and what was
 // asked of it. Its client sends D_TESTS_NET_TOY_HELLO and expects
 // D_TESTS_NET_TOY_REPLY; its server the reverse. A client's peer presents a
-// certificate for `cert_name` -- D_TESTS_NET_TOY_SERVER_NAME when NULL --
+// certificate for `cert_name` - D_TESTS_NET_TOY_SERVER_NAME when NULL --
 // whose chain the toy reports as `verdict`, D_SSL_VERIFY_FLAG_NONE for a
 // sound one; a server's peer presents none. With `alerts` set, its sessions
 // report the two alerts it names, D_SSL_ALERT_NONE for either one not sent.
@@ -229,7 +229,7 @@ struct dj_tests_net_toy
 
 // 2.3    Functions
 //------------------------------------------------------------------------------
-// the toy engine -- a context over `_toy` in `_role`, which the caller
+// the toy engine - a context over `_toy` in `_role`, which the caller
 // destroys with d_ssl_context_destroy, verifying as asked: a client checks
 // its peer, and a server asks for a client certificate it will do without;
 // and the toy's cipher, which is its own inverse

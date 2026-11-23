@@ -3,14 +3,14 @@
 *
 *   The platform-agnostic DOCUMENT-STRUCTURE term, and nothing that names a
 * specific construct.  A document has content and structure; this module is
-* the structure -- how a document is organised (title pages, sections, page
+* the structure - how a document is organised (title pages, sections, page
 * breaks, tables of contents, numbering) with no commitment to text vs PDF vs
 * HTML, and no commitment to WHICH constructs exist.  The specific constructs
 * derive separately (a dialect header registers them); the foundation stays
 * closed to none of them.
 *
 *   A LAYOUT IS AN ANNOTATED EXPRESSION.  The structure of a document is a tree
-* of structural operators over content-reference leaves -- exactly an
+* of structural operators over content-reference leaves - exactly an
 * expression (expression.hpp).  Every node also carries a DDocAttributes bag:
 * its PARAMETERS (a section's title, a cover's author) and, after the
 * interpret passes, its COMPUTED data (assigned number, cross-reference
@@ -32,10 +32,10 @@
 * the runtime operator_signature) for a dynamic layout, or by a type (resolved
 * through the type-keyed lookup family) for a fully compile-time one.  The
 * foundation imposes neither; it only asks OpId be default-constructible,
-* copyable, and equality-comparable -- the same shape the expression term asks.
+* copyable, and equality-comparable - the same shape the expression term asks.
 *
 *   THE ATOM IS THE CONTENT BOUNDARY.  A leaf carries a DLayoutAtom: a body_ref
-* or meta_ref (a NAME resolved externally -- structure pointing at content it
+* or meta_ref (a NAME resolved externally - structure pointing at content it
 * does not embed) or a literal (inline text).  The term is generic in the atom
 * too (as expression is); DLayoutAtom is the batteries-included default.
 *
@@ -110,7 +110,7 @@ NS_DJINTERP
 ///////////////////////////////////////////////////////////////////////////////
 
 // DLayoutAtom
-//   struct: what a structure leaf carries -- the boundary between structure
+//   struct: what a structure leaf carries - the boundary between structure
 // (this module) and content (resolved elsewhere).  A body_ref / meta_ref names
 // content by KEY, resolved at render time so the tree never embeds it; a
 // literal carries inline text directly.  Default-constructible and copyable, as
@@ -137,7 +137,7 @@ struct DLayoutAtom
     std::string value;   // literal: the text
 
     // DLayoutAtom (default)
-    //   an empty literal -- the default a boxed expr_layer leaf needs.
+    //   an empty literal - the default a boxed expr_layer leaf needs.
     DLayoutAtom()
         : kind (kind_literal),
           key  (),
@@ -192,14 +192,14 @@ struct DLayoutAtom
 
 // DLayout
 //   alias: the BARE document-structure term over operator ids OpId and atoms
-// Atom -- a plain expression, with no per-node annotation.  The form
+// Atom - a plain expression, with no per-node annotation.  The form
 // expression_ops.hpp's algebraic transforms act on (see forget / annotate).
 template<typename OpId,
          typename Atom = DLayoutAtom>
 using DLayout = expression<OpId, Atom>;
 
 // DLayoutDoc
-//   alias: the ANNOTATED document-structure term -- every node additionally
+//   alias: the ANNOTATED document-structure term - every node additionally
 // carries a DDocAttributes bag (its parameters, then its computed number /
 // anchor).  This is the canonical form the builders produce and the interpret
 // passes fold; cofree.hpp makes it cata-foldable.
@@ -218,7 +218,7 @@ using DLayoutDoc = annotated_expression<OpId, Atom, DDocAttributes>;
 // surfaces all bottom out here.
 
 // apply_node
-//   function: an annotated application -- operator _op applied to _children
+//   function: an annotated application - operator _op applied to _children
 // (which may be empty), carrying the parameter bag _bag.  The children are
 // boxed into the shared_ptr holes cofree stores.
 template<typename OpId,
@@ -344,7 +344,7 @@ const std::vector<std::shared_ptr<DLayoutDoc<OpId, Atom> > >& children_of(
 // the bare term, and re-annotate.  Both directions are one fold.
 
 // forget
-//   function: drop every annotation, yielding the bare layout term -- an
+//   function: drop every annotation, yielding the bare layout term - an
 // annotated_cata that rebuilds each node with expr_leaf / expr_apply.  After
 // this the expression_ops transforms apply unchanged.
 template<typename OpId,
@@ -388,12 +388,12 @@ DLayoutDoc<OpId, Atom> annotate(
 {
     return evaluate<DLayoutDoc<OpId, Atom> >(
         _term,
-        // on_leaf -- tag the atom, wrap as a leaf node
+        // on_leaf - tag the atom, wrap as a leaf node
         [_tag](const Atom& _atom) -> DLayoutDoc<OpId, Atom>
         {
             return make_leaf_node<OpId, Atom>(_tag(_atom), _atom);
         },
-        // on_apply -- tag the op, wrap the (already-annotated) children
+        // on_apply - tag the op, wrap the (already-annotated) children
         [_tag](const OpId&                                       _op,
                const std::vector<DLayoutDoc<OpId, Atom> >&        _children)
             -> DLayoutDoc<OpId, Atom>

@@ -2,7 +2,7 @@
 * djinterp [cpp][utility]                             document_format_policy.hpp
 *
 *   The runtime bridge from a `DDocumentFormat` selector to a boxed print
-* policy -- the piece that was split out of document_format.hpp so that header
+* policy - the piece that was split out of document_format.hpp so that header
 * could stay a dependency-free C++11 value module.  Everything here needs the
 * `DDocument<>` façade and `std::optional`, so everything here is C++17 and
 * pulls in document.hpp; a translation unit that only SELECTS a format never
@@ -19,14 +19,14 @@
 *   THE OTHER ROUTE TO THE SAME FORMATS:
 *   A print policy serialises a document TREE (the DDocumentWriter arena).  The
 * semantic-renderer stack reaches text / markdown / xml / html by a different
-* road -- `make_document_dialect` (document_dialect.hpp) hands back a
+* road - `make_document_dialect` (document_dialect.hpp) hands back a
 * DDocumentRenderer a template streams into.  The two are complementary, not
 * rivals: use a policy when you already hold a node tree, a renderer when you
 * are emitting a template or a layout term.  Both are selected by the same
 * `DDocumentFormat`.
 *
 *   PDF IS DIFFERENT (read this):
-*   `pdf` is a first-class built-in, but it is NOT a print policy -- it renders
+*   `pdf` is a first-class built-in, but it is NOT a print policy - it renders
 * through the separate `DPdfDocument` drawing pipeline (pdf.hpp), which has a
 * page/canvas build model, not a node tree.  `make_print_policy(DDocumentFormat
 * ::pdf)` therefore returns `std::nullopt` on purpose; a pipeline that supports
@@ -97,11 +97,11 @@ D_NODISCARD inline std::optional<DBoxedPrintPolicy> make_print_policy(
             return DBoxedPrintPolicy(DXmlPrintPolicy{});
         }
 
-        // html -- wire here once an `DHtmlPrintPolicy` exists:
+        // html - wire here once an `DHtmlPrintPolicy` exists:
         //     return boxed_print_policy(DHtmlPrintPolicy{});
         case DDocumentFormat::html:
 
-        // markdown / tex / wiki / text -- not angle-bracket markup; they need
+        // markdown / tex / wiki / text - not angle-bracket markup; they need
         // their own serialiser, not a print policy.  For these the renderer
         // road (make_document_dialect) is the one that answers.
         case DDocumentFormat::markdown:
@@ -109,7 +109,7 @@ D_NODISCARD inline std::optional<DBoxedPrintPolicy> make_print_policy(
         case DDocumentFormat::wiki:
         case DDocumentFormat::text:
 
-        // pdf -- supported, but through DPdfDocument, not a policy (branch on
+        // pdf - supported, but through DPdfDocument, not a policy (branch on
         // `format_is_binary` upstream of this factory).
         case DDocumentFormat::pdf:
         {
@@ -124,7 +124,7 @@ D_NODISCARD inline std::optional<DBoxedPrintPolicy> make_print_policy(
 // make_boxed_document
 //   function: build a runtime-policy façade for `_format`, ready to build a
 // tree into and serialise.  `std::nullopt` when the format has no print policy
-// (see make_print_policy) -- notably `pdf`, which uses DPdfDocument instead.
+// (see make_print_policy) - notably `pdf`, which uses DPdfDocument instead.
 D_NODISCARD inline std::optional<DDocument<DBoxedPrintPolicy>> make_boxed_document(
     DDocumentFormat _format
 )

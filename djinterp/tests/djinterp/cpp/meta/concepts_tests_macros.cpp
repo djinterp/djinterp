@@ -73,41 +73,41 @@ bool concepts_tests_macros()
     using fixtures::method_haver;
     using fixtures::method_lacker;
 
-    // -- D_CONCEPT_HAS_METHOD ------------------------------------------------
+    // - D_CONCEPT_HAS_METHOD ------------------------------------------------
     DT_CONCEPT    (has_foo<method_haver>);
     DT_NOT_CONCEPT(has_foo<method_lacker>);
     //   negative case: a type that has bar but not foo also fails has_foo,
     // because foo() specifically is what's being detected
     DT_NOT_CONCEPT(has_foo<int>);
 
-    // -- D_CONCEPT_HAS_METHOD_ARGS -------------------------------------------
+    // - D_CONCEPT_HAS_METHOD_ARGS -------------------------------------------
     DT_CONCEPT    (has_bar_int<method_haver>);
     DT_NOT_CONCEPT(has_bar_int<method_lacker>);
     //   negative: method exists but with a different signature - e.g. on
     // a type that has foo() (no args) but not bar(int)
     DT_NOT_CONCEPT(has_bar_int<int>);
 
-    // -- D_CONCEPT_HAS_METHOD_TYPED ------------------------------------------
+    // - D_CONCEPT_HAS_METHOD_TYPED ------------------------------------------
     DT_CONCEPT    (has_baz_returns_int<method_haver>);
     DT_NOT_CONCEPT(has_baz_returns_int<method_lacker>);
     //   the method exists but returns int, not double - the typed
     // form must reject it
     DT_NOT_CONCEPT(has_baz_returns_double<method_haver>);
 
-    // -- D_CONCEPT_HAS_METHOD_ARGS_TYPED -------------------------------------
+    // - D_CONCEPT_HAS_METHOD_ARGS_TYPED -------------------------------------
     DT_CONCEPT    (has_qux_int_returns_int<method_haver>);
     DT_NOT_CONCEPT(has_qux_int_returns_int<method_lacker>);
     //   right arg type, wrong return type
     DT_NOT_CONCEPT(has_qux_int_returns_void<method_haver>);
 
-    // -- D_CONCEPT_HAS_TYPE --------------------------------------------------
+    // - D_CONCEPT_HAS_TYPE --------------------------------------------------
     DT_CONCEPT    (has_nested_type<method_haver>);
     DT_NOT_CONCEPT(has_nested_type<method_lacker>);
     DT_NOT_CONCEPT(has_missing_type<method_haver>);
     //   primitive types have no nested types
     DT_NOT_CONCEPT(has_nested_type<int>);
 
-    // -- D_CONCEPT_HAS_STATIC_MEMBER -----------------------------------------
+    // - D_CONCEPT_HAS_STATIC_MEMBER -----------------------------------------
     DT_CONCEPT    (has_kStatic<method_haver>);
     DT_NOT_CONCEPT(has_kStatic<method_lacker>);
     DT_NOT_CONCEPT(has_missing_static<method_haver>);

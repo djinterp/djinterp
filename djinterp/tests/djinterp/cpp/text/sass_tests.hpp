@@ -1,8 +1,8 @@
 /*******************************************************************************
 * djinterp [cpp][text]                                            sass_tests.hpp
 *
-*   The suite for text's Sass headers -- css/sass/sass.hpp,
-* css/sass/sass_template.hpp and css/sass/sass_printer.hpp -- in DTest's C
+*   The suite for text's Sass headers - css/sass/sass.hpp,
+* css/sass/sass_template.hpp and css/sass/sass_printer.hpp - in DTest's C
 * face (c/modules/test/test_suite.h).
 *   One entry point builds the module "sass" imperatively: a block per header
 * and a test per group of checks. The headers' floor is C++17, and below it a

@@ -5,8 +5,8 @@
 # its command line and this build, and uxoxo's, which holds the window's
 # elements and the Dear ImGui under them, and lives outside djinterp.
 #   DJINTERP_ROOT defaults to the tree this file is in. UXOXO_ROOT, unless
-# it is given, is looked for two directories above djinterp's root -- where
-# a directory of projects keeps djinterp and uxoxo side by side -- first as
+# it is given, is looked for two directories above djinterp's root - where
+# a directory of projects keeps djinterp and uxoxo side by side - first as
 # uxoxo/uxoxo-project, then as uxoxo: the first that holds
 # inc/uxoxo/element.hpp. Each is checked here, and one missing or wrong is
 # one message naming the variable to set.

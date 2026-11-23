@@ -11,8 +11,8 @@
 * strings or view-like descriptors.  No OS calls, no allocations beyond
 * the returned strings.
 *
-* THE SPEC (Addressability).  A path string is a RENDERING of an ADDRESS -- the
-* word of labels along a path -- into a character alphabet, with a separator as
+* THE SPEC (Addressability).  A path string is a RENDERING of an ADDRESS - the
+* word of labels along a path - into a character alphabet, with a separator as
 * the framing.  Everything here is that one idea:
 *
 *     path_split           parse   : text  -> word of labels
@@ -38,7 +38,7 @@
 *     exists: Lambda* under the prefix order is a meet-semilattice, and two
 *     absolute paths that share no component meet AT THE ROOT.  The answer is
 *     "/", and "" now means only "no meet exists".
-*   - path_join_components(path_split_strings("/a/b")) was "a/b" -- absoluteness
+*   - path_join_components(path_split_strings("/a/b")) was "a/b" - absoluteness
 *     was dropped, so render o parse was not the identity.  path_from_components
 *     takes the anchor and restores the round trip.
 *   - path_normalize("/../a") was "/../a".  An address cannot ascend above its
@@ -339,7 +339,7 @@ std::string path_join_components(
 //   renders a word of labels back into a path string.  This is the FAITHFUL
 // INVERSE of path_split_strings, and the reason it needs _absolute is that a
 // word of labels cannot say where it is anchored: path_split drops the leading
-// separator (correctly -- the root contributes no label), so something must
+// separator (correctly - the root contributes no label), so something must
 // carry that one bit back.
 //
 //   path_from_components(path_split_strings(p), path_has_root_separator(p)) ==
@@ -350,9 +350,9 @@ std::string path_join_components(
 // kept
 // for callers building relative fragments.
 //
-//   An EMPTY word renders to "/" when absolute -- the root, whose address is
+//   An EMPTY word renders to "/" when absolute - the root, whose address is
 // the
-// empty word -- and to "" when relative.
+// empty word - and to "" when relative.
 inline
 std::string path_from_components(
     const std::vector<std::string>& _components,
@@ -397,7 +397,7 @@ std::string path_from_components(
 // case the rendering is LOSSY and path_split(path_from_components(...)) is not
 // the identity.  Where a label may contain the separator, the format must
 // escape
-// it -- exactly as a text format escapes its own delimiters.
+// it - exactly as a text format escapes its own delimiters.
 inline
 bool path_label_is_renderable(
     const std::string& _label,
@@ -429,7 +429,7 @@ bool path_label_is_renderable(
 }
 
 // path_labels_are_renderable
-//   returns true if every label of _components is renderable -- the condition
+//   returns true if every label of _components is renderable - the condition
 // under which path_from_components and path_split are mutually inverse.
 inline
 bool path_labels_are_renderable(
@@ -766,14 +766,14 @@ bool path_is_relative(
 // ================================================================
 
 // path_has_root_separator
-//   returns true if _path opens with a separator -- the only ROOT the component
+//   returns true if _path opens with a separator - the only ROOT the component
 // algebra of this header models.
 //
 //   A Windows drive letter or a UNC share is also "absolute" to
 // path_is_absolute, but it carries a ROOT NAME, which path_split has no notion
 // of: it drops "C:" into an ordinary component like any other.  So wherever the
-// question is "are these two paths ANCHORED ALIKE" -- which is the question the
-// meet, the relative address, and the prefix order all rest on -- ask this, not
+// question is "are these two paths ANCHORED ALIKE" - which is the question the
+// meet, the relative address, and the prefix order all rest on - ask this, not
 // path_is_absolute.
 inline
 bool path_has_root_separator(
@@ -806,7 +806,7 @@ bool path_have_common_anchor(
 // the length of its address and the number of descents it makes from its
 // anchor.
 //
-//   It is NOT the spec's depth, which is a node's HEIGHT -- measured downward,
+//   It is NOT the spec's depth, which is a node's HEIGHT - measured downward,
 // to
 // its deepest leaf.  Level counts labels; height counts levels BELOW a node.
 // The
@@ -842,7 +842,7 @@ std::size_t path_depth(
 //   THE MEET ALWAYS EXISTS when the two are anchored alike.  Lambda* under the
 // prefix order is a MEET-SEMILATTICE, and the worst case is the empty word.  So
 // two ABSOLUTE paths sharing no component meet AT THE ROOT, and the answer is
-// "/" -- the rendering of the empty address at an absolute anchor -- not "".
+// "/" - the rendering of the empty address at an absolute anchor - not "".
 // The old path_common_prefix returned "" there, conflating "they meet at the
 // root" with "they do not meet", which for two absolute paths are never the
 // same
@@ -910,13 +910,13 @@ std::string path_common_prefix(
 // ================================================================
 
 // path_relative_to
-//   computes the relative path from _base to _target -- the (k, v) pair of the
+//   computes the relative path from _base to _target - the (k, v) pair of the
 // spec, rendered: k copies of ".." for the ascents to the meet, then the labels
 // descending from the meet to the target.
 //
 //   Both paths should be normalized first for best results.
 //
-//   Returns "." for the same path -- the (0, <>) address -- and the EMPTY
+//   Returns "." for the same path - the (0, <>) address - and the EMPTY
 // string
 // when the two are NOT ANCHORED ALIKE, since an absolute base and a relative
 // target are not addresses in one space and no (k, v) relates them.  The old
@@ -978,7 +978,7 @@ std::string path_relative_to(
 //   returns true if _path starts with _prefix, compared component-wise (not
 // character-wise).
 //
-//   This is the PREFIX ORDER, and so -- by the spec -- it is the ANCESTOR
+//   This is the PREFIX ORDER, and so - by the spec - it is the ANCESTOR
 // relation: _prefix names an ancestor of what _path names exactly when it is a
 // prefix of it.  The order relates addresses in ONE space, so two paths
 // anchored

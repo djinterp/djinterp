@@ -115,8 +115,8 @@ struct comparison
 /**
  * @brief Makes a corpus from a grammar EBNF's frontend read.
  *
- * @note A rule with no way out -- every alternative reaches it again before
- *       any text -- cannot be walked, and is left out of each walk's choices;
+ * @note A rule with no way out - every alternative reaches it again before
+ *       any text - cannot be walked, and is left out of each walk's choices;
  *       a start rule with none gives no walks at all.
  *
  * @param[in] _rules     the grammar's rules, the first the start rule.

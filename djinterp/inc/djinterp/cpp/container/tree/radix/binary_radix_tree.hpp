@@ -3,8 +3,8 @@
 *
 * Compressed binary trie (PATRICIA):
 *   Maps an integral or pointer Key onto Value, descending BIT BY BIT from
-* the most significant.  Each node records bit_index -- how many bits of the
-* address it stands for -- so the edge from a parent to a child covers the bit
+* the most significant.  Each node records bit_index - how many bits of the
+* address it stands for - so the edge from a parent to a child covers the bit
 * range [parent.bit_index, child.bit_index), and a run of bits with nothing to
 * choose between is SKIPPED rather than walked.  That skip is the compression.
 *
@@ -16,14 +16,14 @@
 * ============================================================================
 *   1. IT HAD NO IMPLEMENTATION.  Every method was declared, none defined.
 *
-*   2. THE NODE FAILED ITS OWN NODE TRAIT -- same as the text node. It carried
+*   2. THE NODE FAILED ITS OWN NODE TRAIT - same as the text node. It carried
 *      `using children = node_type*[2];` (a TYPE ALIAS) while
 *    has_radix_children
 *      probes for a DATA MEMBER named children; the member was child_ptrs. The
 *      array is now the member.
 *
 *   3. mask_for_prefix COULD NOT COMPILE FOR A POINTER KEY.  It wrote
-*      `~static_cast<Key>(0)` -- and you cannot complement a pointer, any
+*      `~static_cast<Key>(0)` - and you cannot complement a pointer, any
 *    more
 *      than you could shift one in bit_at.  Exactly the bug the trait/utility
 *      mismatch produced before, in a second place.  All bit work now goes
@@ -32,7 +32,7 @@
 * ============================================================================
 * THE INVARIANTS  (the same two)
 * ============================================================================
-*   ADDRESS.  A node's address is the first bit_index bits of its key -- which
+*   ADDRESS.  A node's address is the first bit_index bits of its key - which
 * is the concatenation of the edge labels from the root, each edge being a bit
 * RANGE.  The root has bit_index 0: THE ROOT CONTRIBUTES NO LABEL, and its
 * address is the empty word.  keys() recovers every stored address from the
@@ -40,14 +40,14 @@
 *
 *   COMPRESSION.  Every node is the root, or a full key (bit_index == the key
 * width), or has BOTH children. A node with exactly one child stands for a run
-* of bits that had nothing to choose between -- and should have been skipped.
+* of bits that had nothing to choose between - and should have been skipped.
 * is_compressed() checks it.
 *
 *   And, as before, they are the same invariant.  Merging a chain concatenates
 * two bit RANGES into one: [a,b) + [b,c) == [a,c).  The address is the
 * concatenation, so the merge cannot move it.  The split is that theorem read
-* backwards: you split at bit m == binary_prefix_length(key, node.key) -- THE
-* MEET -- which is the one bit where re-bracketing costs nothing.
+* backwards: you split at bit m == binary_prefix_length(key, node.key) - THE
+* MEET - which is the one bit where re-bracketing costs nothing.
 *
 *
 * path:      /inc/djinterp/cpp/container/tree/radix/binary_radix_tree.hpp
@@ -274,7 +274,7 @@ public:
     }
 
     // shared_prefix_bits
-    //   THE MEET.  |lcp(a, b)| in bits -- the greatest lower bound of the two
+    //   THE MEET.  |lcp(a, b)| in bits - the greatest lower bound of the two
     // addresses in the prefix order, and the place an edge splits.
     static std::size_t
     shared_prefix_bits(key_type _a, key_type _b) D_NOEXCEPT
@@ -286,7 +286,7 @@ public:
     //   the mask keeping the top _prefix_len bits.
     //
     //   IT USED TO WRITE `~static_cast<Key>(0)`, which does not compile for a
-    // POINTER key -- you cannot complement a pointer. Exactly the bug bit_at
+    // POINTER key - you cannot complement a pointer. Exactly the bug bit_at
     // had. The mask is computed on key_bits_t, the key's unsigned image.
     static key_bits_t<Key>
     mask_for_prefix(std::size_t _prefix_len) D_NOEXCEPT
@@ -384,7 +384,7 @@ public:
     size_type size()  const D_NOEXCEPT { return m_count; }
     bool      empty() const D_NOEXCEPT { return (m_count == 0u); }
 
-    // capacity -- FIXED TREES ONLY (see radix_storage_signals): a dynamic tree
+    // capacity - FIXED TREES ONLY (see radix_storage_signals): a dynamic tree
     // that answers capacity() is read as BOUNDED by bounded_container_traits.
     template<bool F = k_fixed,
              typename std::enable_if<F, int>::type = 0>
@@ -459,7 +459,7 @@ public:
 
 
     // ------------------------------------------------------------------
-    //  insertion  --  SPLIT AT THE MEET
+    //  insertion  -  SPLIT AT THE MEET
     // ------------------------------------------------------------------
 
     template<bool W = k_writable,
@@ -488,13 +488,13 @@ public:
 
 
     // ------------------------------------------------------------------
-    //  erasure  --  MERGE BACK
+    //  erasure  -  MERGE BACK
     // ------------------------------------------------------------------
 
     // erase
     //   removes the key, then restores compression: the parent of a dropped
     // leaf is left with one child, which means it stands for a run of bits
-    // with nothing to choose between -- so it goes, and its child's edge
+    // with nothing to choose between - so it goes, and its child's edge
     // absorbs the range. [a,b) + [b,c) == [a,c): the address does not move.
     template<bool W = k_writable,
              typename std::enable_if<W, int>::type = 0>
@@ -542,46 +542,46 @@ public:
 
 
     // ------------------------------------------------------------------
-    //  AXIS DECLARATIONS  --  what the structural probes cannot see
+    //  AXIS DECLARATIONS  -  what the structural probes cannot see
     // ------------------------------------------------------------------
     //   Three axes read this container WRONG, and on each the framework already
     // supplies the opt-in.  Measured against std::map (the reference ordered
     // associative), the tree agreed on capacity, storage, memory, order,
-    // iteration and mutability -- and disagreed on exactly these three.
+    // iteration and mutability - and disagreed on exactly these three.
 
-    // SORTEDNESS. sortedness_of said `unordered` -- "no comparator, sortedness
+    // SORTEDNESS. sortedness_of said `unordered` - "no comparator, sortedness
     // not applicable". But sorted enumeration is the DEFINING PROPERTY of a
     // radix tree: rank is monotone in the label, so the packed children are in
     // label order, so a preorder walk emits the keys sorted. Nothing sorts
     // them. std::map declares key_compare and reads `monotone`; so must this.
-    // Without it, admits_sorted_enumeration was FALSE -- the one thing the
+    // Without it, admits_sorted_enumeration was FALSE - the one thing the
     // structure is for was invisible.
     using key_compare = std::less<key_type>;
 
     // MULTIPLICITY. multiplicity_kind_of fell through to `unbounded_multiset`:
     // it probes insert(value_type) for a pair<iterator,bool>, and a radix
-    // tree's insert takes (key, value) -- two arguments -- so the probe cannot
+    // tree's insert takes (key, value) - two arguments - so the probe cannot
     // fire. The container was therefore claiming it admits DUPLICATE KEYS. It
     // cannot: the key IS the address, one node per address, and insert
     // OVERWRITES. m = 1. The static `DMultiplicity` constant is the documented
-    // authoritative override for exactly this -- a bound with no structural
+    // authoritative override for exactly this - a bound with no structural
     // tell.
     static D_CONSTEXPR std::size_t multiplicity = 1u;
 
     // STRUCTURE. structure_kind_of said `DFlat`. has_node_summand wants a
     // node_type that is ITSELF container-shaped, and container_depth walks the
-    // value_type chain -- which here is just Value, so depth 1. Neither probe
+    // value_type chain - which here is just Value, so depth 1. Neither probe
     // can see that a TRIE NESTS. This is precisely what the hierarchical tag
     // is documented for: "asserts nesting the chain cannot expose".
     using structure_category = DHierarchical;
 
     // ------------------------------------------------------------------
-    //  ITERATION  --  address order is numeric order
+    //  ITERATION  -  address order is numeric order
     // ------------------------------------------------------------------
     // Same gap, same fix as the text tree: without begin()/end() the container
     // is invisible to is_copyable_container, the filter traits, the conversion
     // traits, and everything else that walks elements. DFS preorder over
-    // children[0] then children[1] -- bit 0 before bit 1 -- which for MSB-first
+    // children[0] then children[1] - bit 0 before bit 1 - which for MSB-first
     // keys IS unsigned numeric order. Nothing is sorted.
     class const_iterator
     {
@@ -604,7 +604,7 @@ public:
         operator->() const D_NOEXCEPT
         { return &m_cur->terminal.value; }
 
-        // key -- the address. A binary node carries its own key, so unlike the
+        // key - the address. A binary node carries its own key, so unlike the
         // text tree there is nothing to reassemble: bit_index == k_key_bits
         // says every bit of it is meaningful.
         key_type key() const D_NOEXCEPT { return m_cur->key; }
@@ -1030,7 +1030,7 @@ private:
     // m_find_node
     //   resolve: fold the descent step along the key's bits. At each node the
     // next bit picks the only child that could match; then the child's EDGE --
-    // the bit range it skips -- must agree with the key, or the key is not
+    // the bit range it skips - must agree with the key, or the key is not
     // here.
     node_type*
     m_find_node(key_type _key) const D_NOEXCEPT
@@ -1137,7 +1137,7 @@ private:
                 continue;
             }
 
-            // THE EDGE DIVERGES at bit m -- THE MEET. Split there.
+            // THE EDGE DIVERGES at bit m - THE MEET. Split there.
             //
             //   before: n --[ .. child.bit )--> child(subtree)
             //   after: n --[ .. m )--> mid --[ m .. child.bit )--> child
@@ -1178,7 +1178,7 @@ private:
     //   _node has just lost a child. If it is now a one-child waypoint, it
     // stands for a bit range with nothing to choose between: drop it, and let
     // its child hang from its parent. The child's bit_index and key do not
-    // change, so its address does not change -- the two ranges simply become
+    // change, so its address does not change - the two ranges simply become
     // one.
     void
     m_recompress(node_type* _node) D_NOEXCEPT

@@ -24,11 +24,11 @@
 *     translation(t) / translation_2d / translation_3d
 *   homogeneous coordinates
 *     to_homogeneous(v) / from_homogeneous(h)
-*     transform_point(M, p)                         -- affine/projective point
-*     transform_direction(M, d)                     -- linear part only
+*     transform_point(M, p)                         - affine/projective point
+*     transform_direction(M, d)                     - linear part only
 *   geometry bridge (C++11, where std::array exists)
-*     to_array(v)    -- linalg vector  -> std::array (a geometry point_type)
-*     to_vector(a)   -- std::array     -> linalg vector
+*     to_array(v)    - linalg vector  -> std::array (a geometry point_type)
+*     to_vector(a)   - std::array     -> linalg vector
 *
 * DESIGN NOTES:
 *   - A face over the C core: the rotations are c/math/mat.h's kernels, from
@@ -498,7 +498,7 @@ NS_INTERNAL
 NS_END  // internal
 
 // to_array
-//   function: a linalg vector as a std::array -- the geometry
+//   function: a linalg vector as a std::array - the geometry
 // subframework's point_type (cartesian::point_type, point_2d, point_3d).
 template<typename    Type,
          std::size_t N>

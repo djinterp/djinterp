@@ -6,8 +6,8 @@
 *   Built on net/net_common.h rather than beside it. The C header supplies the
 * error taxonomy, the transport vocabulary, endpoint parsing and formatting,
 * and the framing codec; this header gives them C++ spellings that convert to
-* and from their C originals at no cost -- the enumerations share values, and
-* every conversion is a cast or a field copy -- and adds what C cannot
+* and from their C originals at no cost - the enumerations share values, and
+* every conversion is a cast or a field copy - and adds what C cannot
 * express:
 *     - an owning std::string endpoint                                      [3]
 *     - the runtime-polymorphic connection, with open_result, and bridges
@@ -22,7 +22,7 @@
 * algorithm serves both.
 *   C++98 or later. Later standards only add: C++11 brings moves (of
 * open_result and c_connection) and is_byte_stream, which needs expression
-* SFINAE -- below it the algorithms take any byte stream unchecked -- C++17
+* SFINAE - below it the algorithms take any byte stream unchecked - C++17
 * the byte_buffer aliases, C++20 the byte_stream concept. The enumerations
 * are scoped in structs at every level (decision 3.4), so the type of an
 * io_error is io_error::value. Errors are returned, never thrown. Link
@@ -244,13 +244,13 @@ struct io_result
           error(_error)
     {}
 
-    // ok -- whether no error occurred; the end of the stream is not one
+    // ok - whether no error occurred; the end of the stream is not one
     D_NODISCARD bool ok() const
     {
         return (error == io_error::none);
     }
 
-    // eof -- whether this is a clean end of stream: no bytes, no error
+    // eof - whether this is a clean end of stream: no bytes, no error
     D_NODISCARD bool eof() const
     {
         return ( (count == 0) &&
@@ -386,7 +386,7 @@ struct endpoint
           proto(_proto)
     {}
 
-    // local -- a unix-domain endpoint at a path; so named because `unix` is
+    // local - a unix-domain endpoint at a path; so named because `unix` is
     // a predefined macro on some platforms
     D_NODISCARD static endpoint local(
         const std::string& _path
@@ -397,7 +397,7 @@ struct endpoint
                         protocol::unix_socket);
     }
 
-    // is_unix -- whether this is a unix-domain endpoint
+    // is_unix - whether this is a unix-domain endpoint
     D_NODISCARD bool is_unix() const
     {
         return (proto == protocol::unix_socket);
@@ -433,7 +433,7 @@ struct endpoint
         return out;
     }
 
-    // equality -- all three fields
+    // equality - all three fields
     D_NODISCARD bool operator==(
         const endpoint& _other
     ) const
@@ -460,7 +460,7 @@ struct endpoint
      * @param[in]  _text   the text.
      * @param[out] _out    receives the endpoint; unchanged on failure.
      * @param[in]  _proto  the protocol to record; not unix_socket, which has
-     *                     no text form -- use local().
+     *                     no text form - use local().
      * @return true if the text parsed.
      */
     D_NODISCARD static bool parse(
@@ -589,10 +589,10 @@ public:
         std::size_t _size
     ) = 0;
 
-    // is_open -- whether the connection is still usable
+    // is_open - whether the connection is still usable
     D_NODISCARD virtual bool is_open() const = 0;
 
-    // close -- releases the underlying resource; idempotent
+    // close - releases the underlying resource; idempotent
     virtual
     void close() = 0;
 
@@ -613,7 +613,7 @@ public:
         return io_error::none;
     }
 
-    // remote_endpoint, local_endpoint -- the peer's and the local address;
+    // remote_endpoint, local_endpoint - the peer's and the local address;
     // the defaults, for backends that cannot tell, are empty endpoints
     D_NODISCARD virtual endpoint remote_endpoint() const
     {
@@ -654,7 +654,7 @@ public:
           m_conn(D_NULLPTR)
     {}
 
-    // open_result(connection*) -- adopts _conn, which new allocated
+    // open_result(connection*) - adopts _conn, which new allocated
     explicit open_result(
         connection* _conn
     )
@@ -697,20 +697,20 @@ public:
         delete m_conn;
     }
 
-    // ok -- whether a connection was produced, with no error
+    // ok - whether a connection was produced, with no error
     D_NODISCARD bool ok() const
     {
         return ( (m_conn != D_NULLPTR) &&
                  (error == io_error::none) );
     }
 
-    // get -- the connection, still owned here, or null
+    // get - the connection, still owned here, or null
     D_NODISCARD connection* get() const
     {
         return m_conn;
     }
 
-    // release -- hands ownership of the connection to the caller
+    // release - hands ownership of the connection to the caller
     D_NODISCARD connection* release()
     {
         connection* const released = m_conn;
@@ -720,7 +720,7 @@ public:
         return released;
     }
 
-    // reset -- adopts _conn (or nothing) with no error, deleting the
+    // reset - adopts _conn (or nothing) with no error, deleting the
     // connection held before; what a producer calls on success
     void reset(
         connection* _conn = D_NULLPTR
@@ -738,7 +738,7 @@ public:
         return;
     }
 
-    // fail -- records _error and deletes any connection held; what a
+    // fail - records _error and deletes any connection held; what a
     // producer calls on failure
     void fail(
         io_error::value _error
@@ -751,7 +751,7 @@ public:
         return;
     }
 
-    // swap -- exchanges the connections and the errors
+    // swap - exchanges the connections and the errors
     void swap(
         open_result& _other
     )
@@ -767,7 +767,7 @@ public:
         return;
     }
 
-    // access -- the owned connection; undefined when there is none
+    // access - the owned connection; undefined when there is none
     D_NODISCARD connection& operator*() const
     {
         return *m_conn;
@@ -858,13 +858,13 @@ public:
 
     D_NODISCARD endpoint local_endpoint() const D_OVERRIDE;
 
-    // native -- the C connection, still owned here
+    // native - the C connection, still owned here
     D_NODISCARD dj_net_connection* native() const D_NOEXCEPT
     {
         return m_connection;
     }
 
-    // release -- hands the C connection back, owned by the caller again
+    // release - hands the C connection back, owned by the caller again
     D_NODISCARD dj_net_connection* release() D_NOEXCEPT
     {
         dj_net_connection* const released = m_connection;
@@ -884,8 +884,8 @@ private:
 // 4.2.2
 // c_connection_adapter
 //   class: a C connection over a C++ one, which it borrows. get() returns a
-// dj_net_connection* that C code -- net.h's algorithms, or a C protocol
-// kernel -- drives exactly as it drives a C backend. The adapter must outlive
+// dj_net_connection* that C code - net.h's algorithms, or a C protocol
+// kernel - drives exactly as it drives a C backend. The adapter must outlive
 // every use of that pointer, so it neither copies nor moves. From C++11 its
 // operations are noexcept: should the connection throw, the program
 // terminates rather than unwinding through C frames, which cannot be
@@ -903,14 +903,14 @@ public:
         m_base.vtable = &m_vtable();
     }
 
-    // get -- the C connection, valid while the adapter lives
+    // get - the C connection, valid while the adapter lives
     D_NODISCARD dj_net_connection* get() D_NOEXCEPT
     {
         return &m_base;
     }
 
 private:
-    // m_of -- the adapter whose first member a C connection is
+    // m_of - the adapter whose first member a C connection is
     static
     c_connection_adapter& m_of(
         dj_net_connection* _connection
@@ -927,7 +927,7 @@ private:
         return *reinterpret_cast<const c_connection_adapter*>(_connection);
     }
 
-    // m_export -- stores a known address; an empty host means unknown
+    // m_export - stores a known address; an empty host means unknown
     static
     bool m_export(
         const endpoint&  _address,
@@ -977,7 +977,7 @@ private:
         dj_net_endpoint*         _out
     ) D_NOEXCEPT;
 
-    // m_vtable -- the one table every adapter points at; no destroy, since
+    // m_vtable - the one table every adapter points at; no destroy, since
     // the adapter's storage belongs to its owner, and no available, since a
     // C++ connection cannot say how much is waiting
     static
@@ -1108,7 +1108,7 @@ NS_INTERNAL
     // append_bytes
     //   function: appends bytes to a result buffer. The algorithms accept a
     // std::vector<byte>, a std::string, or any buffer with a member
-    // append(const byte*, std::size_t) -- djinterp::byte_buffer among them.
+    // append(const byte*, std::size_t) - djinterp::byte_buffer among them.
     // The two library buffers have exact overloads, which a call prefers to
     // the template; any other buffer takes the template, and one with no
     // such member fails to compile there.
@@ -1287,7 +1287,7 @@ D_NODISCARD io_error::value write_all(
     return io_error::none;
 }
 
-// write_all -- the string form: the string's bytes, without a terminator
+// write_all - the string form: the string's bytes, without a terminator
 template<typename Stream>
 D_NODISCARD io_error::value write_all(
     Stream&            _stream,
@@ -1526,7 +1526,7 @@ D_NODISCARD io_error::value write_frame(
                      _size);
 }
 
-// write_frame -- the string form: the string's bytes as the payload
+// write_frame - the string form: the string's bytes as the payload
 template<typename Stream>
 D_NODISCARD io_error::value write_frame(
     Stream&            _stream,

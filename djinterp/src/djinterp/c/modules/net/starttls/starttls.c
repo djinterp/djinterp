@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][net]                                                   starttls.c
 *
-*   Definitions for starttls.h: the STARTTLS session -- its buffered plaintext
+*   Definitions for starttls.h: the STARTTLS session - its buffered plaintext
 * and TLS I/O over a net.h connection, the policy-driven negotiation, and the
 * upgrade with its check for leftover plaintext, which hands the connection
 * to a session of the SSL kernel.
@@ -58,7 +58,7 @@ d_starttls_internal_fail
   File-local, so its contract lives here: moves the session to
 D_STARTTLS_STATE_FAILED and returns `_status`, so each fatal path is a single
 return at its call site. Errors that leave the stream where it was --
-INVALID_ARGUMENT, STATE, an orderly CLOSED, a refused send -- never come
+INVALID_ARGUMENT, STATE, an orderly CLOSED, a refused send - never come
 through here.
 */
 D_STATIC enum dj_starttls_error
@@ -74,8 +74,8 @@ d_starttls_internal_fail(
 
 /*
 d_starttls_internal_require_open
-  File-local: D_STARTTLS_OK if the session can carry I/O -- it is plaintext
-or secure -- and D_STARTTLS_ERROR_STATE otherwise.
+  File-local: D_STARTTLS_OK if the session can carry I/O - it is plaintext
+or secure - and D_STARTTLS_ERROR_STATE otherwise.
 */
 D_STATIC enum dj_starttls_error
 d_starttls_internal_require_open(
@@ -94,7 +94,7 @@ d_starttls_internal_require_open(
 /*
 d_starttls_internal_decline
   File-local: the outcome when TLS will not happen in this session: `_status`,
-fatally, under REQUIRED, and D_STARTTLS_OK -- staying in plaintext -- under
+fatally, under REQUIRED, and D_STARTTLS_OK - staying in plaintext - under
 OPPORTUNISTIC.
 */
 D_STATIC enum dj_starttls_error
@@ -313,8 +313,8 @@ d_starttls_internal_read_plain(
 /*
 d_starttls_internal_read
   File-local: one read straight into `_buffer`, from the connection before
-the upgrade and through TLS after it. The end of the stream -- or the peer's
-close_notify -- is returned as an orderly CLOSED, for the caller to judge;
+the upgrade and through TLS after it. The end of the stream - or the peer's
+close_notify - is returned as an orderly CLOSED, for the caller to judge;
 any other failure is fatal.
 */
 D_STATIC enum dj_starttls_error
@@ -497,7 +497,7 @@ d_starttls_internal_take_line(
 d_starttls_internal_send_text_line
   File-local: sends `_text` and a CRLF as one write, so the line is never
 split across TLS records. It refuses, sending nothing, a line that holds CR,
-LF, or NUL, and one longer than the session's own line limit -- the limit
+LF, or NUL, and one longer than the session's own line limit - the limit
 the peer's lines are held to. A line that fits the stack scratch is
 assembled there; a longer one borrows the heap for the length of the call.
 */
@@ -628,8 +628,8 @@ char* d_starttls_internal_copy_string(
 /*
 d_starttls_internal_check_context
   File-local: validates the context of a session that may upgrade. It must be
-initialized, made for the session's own role, and -- for a client whose
-context checks host names -- come with a name to check against. That name
+initialized, made for the session's own role, and - for a client whose
+context checks host names - come with a name to check against. That name
 comes from the caller, because the peer can never be trusted to supply it.
 */
 D_STATIC enum dj_starttls_error
@@ -984,8 +984,8 @@ d_starttls_close(
 d_starttls_destroy
   The TLS session goes first, then an owned connection, whose destroy closes
 it again harmlessly if d_starttls_close already did. The session is zeroed
-and then marked closed, so a second destroy -- or a stray call through a
-stale pointer -- finds nothing to release and nothing to use.
+and then marked closed, so a second destroy - or a stray call through a
+stale pointer - finds nothing to release and nothing to use.
 */
 void d_starttls_destroy(
     struct dj_starttls_session* _session
@@ -1057,7 +1057,7 @@ d_starttls_send(
 /*
 d_starttls_recv
   Bytes the line reader already pulled in are delivered first and in order,
-so byte and line reads can be mixed freely -- as an IMAP literal requires.
+so byte and line reads can be mixed freely - as an IMAP literal requires.
 */
 enum dj_starttls_error
 d_starttls_recv(
@@ -1336,8 +1336,8 @@ d_starttls_recv_line(
 // upgrade
 /*
 d_starttls_negotiate
-  The policy is applied at the two points where TLS can be lost -- an offer
-that never arrived, and a request the peer refused -- and nowhere else. A
+  The policy is applied at the two points where TLS can be lost - an offer
+that never arrived, and a request the peer refused - and nowhere else. A
 failure inside either callback is fatal whatever the policy: the peer may
 have seen part of the request, or sent part of an answer.
 */
@@ -1417,7 +1417,7 @@ d_starttls_upgrade
   The leftover check runs before any TLS session exists, so injected
 plaintext is refused while it is still plaintext rather than surfacing as an
 opaque handshake error. The epoch advances, and on_upgrade runs, only after
-the handshake -- the kernel's checks of the peer included -- has succeeded.
+the handshake - the kernel's checks of the peer included - has succeeded.
 */
 enum dj_starttls_error
 d_starttls_upgrade(

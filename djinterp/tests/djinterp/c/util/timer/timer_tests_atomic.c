@@ -2,7 +2,7 @@
 * djinterp [c][utility]                                     timer_tests_atomic.c
 *
 * The timer suite, block "atomic": timer_atomic.h's lock-free timer, with the
-* two costs its folded state word brings -- the ceiling at
+* two costs its folded state word brings - the ceiling at
 * D_TIMER_ATOMIC_MAX, and a decrement that takes from an open interval.
 *
 *

@@ -125,7 +125,7 @@ tests_construction_make_kv_deduces_decayed_types
   make_kv deduces decayed key and value types.
   Tests the following:
   - a string literal argument decays to std::string via std::decay in the test's
-    own call (passing a std::string) -- key_type is std::string
+    own call (passing a std::string) - key_type is std::string
   - a plain int value gives value_type int
   - the built pair holds the given key and value
   - passing a const lvalue still decays (no const/ref in the deduced types)

@@ -935,8 +935,8 @@ bool d_internal_wiki_problems(
 
 /*
 d_internal_record
-  The page and the index of one of its records, from 1 -- from 0 for a
-section -- or NULL, wiki_error() saying why.
+  The page and the index of one of its records, from 1 - from 0 for a
+section - or NULL, wiki_error() saying why.
 */
 static const struct dj_wiki_doc*
 d_internal_record(
@@ -2083,8 +2083,8 @@ bool d_internal_wiki_find_region(
 
 /*
 d_internal_changing
-  The page a change is made to, and an index of it -- from 1, or from 0 for
-a section -- checked; NULL when there is none.
+  The page a change is made to, and an index of it - from 1, or from 0 for
+a section - checked; NULL when there is none.
 */
 static struct dj_wiki_doc*
 d_internal_changing(

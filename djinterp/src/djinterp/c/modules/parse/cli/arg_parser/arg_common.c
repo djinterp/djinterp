@@ -121,7 +121,7 @@ D_STATIC_ASSERT( (sizeof(STATUS_EXIT_CODES) /
 
 // STATUS_MESSAGES
 //   constant: d_arg_status_message's text for each status, in the same
-// order -- what d_arg_error_message reads for a status recorded without a
+// order - what d_arg_error_message reads for a status recorded without a
 // message: CLI11's default messages where CLI11 has one.
 static const char* const STATUS_MESSAGES[] =
 {
@@ -205,7 +205,7 @@ int d_arg_internal_status_index(
  *
  * Grows a buffer's storage to hold `_needed` bytes, doubling so that a run of
  * appends costs amortized constant time. A buffer whose `data` is not its own
- * -- d_arg_internal_empty, or NULL in a zeroed buffer -- has capacity 0 and so
+ * - d_arg_internal_empty, or NULL in a zeroed buffer - has capacity 0 and so
  * allocates afresh; `realloc(NULL, ...)` covers both.
  */
 D_STATIC
@@ -273,7 +273,7 @@ int d_arg_internal_buffer_grow(
  * @return `_size` when they were appended; 0 once an append fails.
  *
  * The write function of d_arg_buffer_sink: appends, and reports a short write
- * -- zero bytes taken -- once the append fails, which d_sink_emit and every
+ * - zero bytes taken - once the append fails, which d_sink_emit and every
  * caller turn into a refused write.
  */
 D_STATIC
@@ -453,7 +453,7 @@ void d_arg_buffer_init(
 
 /*
 d_arg_buffer_release
-  Only storage the buffer allocated -- capacity above 0 -- is freed.
+  Only storage the buffer allocated - capacity above 0 - is freed.
 */
 void d_arg_buffer_release(
     struct dj_arg_buffer* _buffer
@@ -536,7 +536,7 @@ void d_arg_buffer_truncate(
  *         that cannot fit.
  *
  * The checks an append passes before it grows anything: the arguments, a
- * buffer that already failed -- which reports its failure again -- and a
+ * buffer that already failed - which reports its failure again - and a
  * length that, with the text and its terminator, must fit a size_t; the last
  * failure marks the buffer failed.
  */
@@ -574,8 +574,8 @@ int d_arg_internal_buffer_admit(
 
 /*
 d_arg_buffer_append
-  `_data` may point into the buffer itself -- appending a part of the text to
-the text -- so its offset is taken before growth can move the storage, and
+  `_data` may point into the buffer itself - appending a part of the text to
+the text - so its offset is taken before growth can move the storage, and
 the bytes are copied from the moved storage afterward. The test compares
 addresses as integers, since ordering pointers into different objects is
 undefined.
@@ -929,7 +929,7 @@ void d_arg_error_release(
 /*
 d_arg_error_set
   The new message is copied before the old one is freed, so a message taken
-from the error itself -- d_arg_error_message's -- survives being recorded
+from the error itself - d_arg_error_message's - survives being recorded
 again.
 */
 int d_arg_error_set(

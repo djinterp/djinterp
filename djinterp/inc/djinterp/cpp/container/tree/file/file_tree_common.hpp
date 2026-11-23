@@ -20,8 +20,8 @@
 * ============================================================================
 *   1. IT DID NOT COMPILE.  full_path(), visit_depth_first(), and
 *      visit_breadth_first() reached arena_node's links as though they were
-*      accessor FUNCTIONS -- id->parent(), .last_child(),
-*      .prev_sibling(), .next_sibling() -- but arena_node exposes them as
+*      accessor FUNCTIONS - id->parent(), .last_child(),
+*      .prev_sibling(), .next_sibling() - but arena_node exposes them as
 *    public
 *      MEMBERS, which is how file_tree_path.hpp and file_tree_filter.hpp read
 * them, and how this file itself read .data and (in one place) .first_child.
@@ -33,7 +33,7 @@
 * INCLUDED THE ROOT'S OWN NAME; resolve(p) starts AT the root and descends.
 * They
 * disagreed by exactly one component, so resolve(full_path(n)) == null_file_node,
-* never n. The round trip -- the one contract an addressable container owes --
+* never n. The round trip - the one contract an addressable container owes --
 * was broken for every node in the tree, and it took every path predicate down
 * with it: by_path_prefix("src") could never match, because every full_path
 * began "project/...". THE ROOT CONTRIBUTES NO LABEL. address() now names a
@@ -43,7 +43,7 @@
 * NOT A PATH. scan("/home/me/project") kept only the LEAF of the scanned path
 * as
 * the root's name and discarded "/home/me", so full_path() returned
-* "project/src/main.cpp" -- not an address in this tree, and not a path you
+* "project/src/main.cpp" - not an address in this tree, and not a path you
 * could open either. The scan root is now retained, so full_path() is once
 * again
 * an openable filesystem path and address() is the tree-relative name. They
@@ -51,7 +51,7 @@
 * different things and this file no longer conflates them. 4. SEPARATION WAS
 * ASSUMED, NEVER ENFORCED, AND SILENTLY BREAKABLE. The lookup is a map from
 * (parent, name) to ONE id, written with `m_lookup[key] = id`. Two children of
-* one parent bearing one name therefore did not collide loudly -- the second
+* one parent bearing one name therefore did not collide loudly - the second
 * QUIETLY OVERWROTE the first, leaving a node that exists in the arena, hangs
 * in
 * the sibling chain, is walked by every traversal, and CANNOT BE ADDRESSED. A
@@ -85,14 +85,14 @@
 * addresses of everything beneath it cease to resolve. So a selection
 * preserves
 * the survivors' addresses IF AND ONLY IF the retained set is PREFIX-CLOSED
-* (ancestor-closed) -- and "*.cpp" is not ancestor-closed, since no directory
+* (ancestor-closed) - and "*.cpp" is not ancestor-closed, since no directory
 * is
 * named *.cpp.  Keeping only the matching nodes would therefore return a tree
 * with no directories and no paths.  filter() keeps the ANCESTOR-CLOSURE: the
 * matches AND the directories that lead to them. That is `tree -P '*.cpp'`,
 * and
 * it is the only total, addressability-preserving reading.  file_tree_query
-* (file_tree_filter.hpp) is the OTHER reading -- a flat gather that builds no
+* (file_tree_filter.hpp) is the OTHER reading - a flat gather that builds no
 * tree and so raises no structural question. Both are wanted; they are not the
 * same operation.
 *
@@ -106,7 +106,7 @@
 * CASE FOLDING (a known, deliberate divergence):
 *   The index compares names BYTE-EXACTLY.  NTFS and APFS (in its default
 * configuration) fold case, so on those hosts "README" and "readme" name ONE
-* file -- the filesystem's labelling is COARSER than ours.  A scan can never
+* file - the filesystem's labelling is COARSER than ours.  A scan can never
 * hand us both, so the tree stays separating; but resolve("readme") will not
 * find "README".  The labelling function is the filesystem's, not the byte
 * string's, and where the two differ this index follows the bytes.
@@ -238,7 +238,7 @@ using file_type = DFileType;
 // pool, referenced by offset + length, keeping the node fixed-size and
 // cache-dense. NOTE. A file_entry does NOT carry its name; it carries a
 // REFERENCE into the pool. So a predicate over a bare file_entry can test type
-// and size but cannot see the name -- which is why the useful predicate shape
+// and size but cannot see the name - which is why the useful predicate shape
 // here is bool(file_node_id), taking the tree along. filter() accepts both (see
 // section 6).
 struct DFileEntry
@@ -287,7 +287,7 @@ using file_entry = DFileEntry;
 //
 //   file_node_id therefore changes meaning: it is still the opaque handle every
 // caller passes around, resolve() returns, and every bool(file_node_id) predicate
-// takes -- so the public surface survives -- but it no longer indexes anything.
+// takes - so the public surface survives - but it no longer indexes anything.
 // The two places that cared:
 //     - lookup_key() seeded the hash with the parent's INDEX; it now seeds with
 //       the parent's ADDRESS (uintptr_t).
@@ -465,15 +465,15 @@ public:
     // ------------------------------------------------------------------
     //   THE GUARD.  Read this one.
     // ------------------------------------------------------------------
-    //   Every link in this tree -- parent, first_child, last_child, and both
-    // sibling pointers -- is a RAW POINTER into the pool, and so is every
+    //   Every link in this tree - parent, first_child, last_child, and both
+    // sibling pointers - is a RAW POINTER into the pool, and so is every
     // file_node_id the caller is holding. So the pool must never move a slot.
     //
     //   The djinterp pool (memory/pool.hpp, over the C kernel dj_pool) grows
     // by taking another block from its source and never moves a slot: every
     // block holds the same number of slots, and only the table of blocks is
     // ever reallocated. So any djinterp pool will do, and the guard checks
-    // that the Pool IS one -- a pool of some other kind that grew by moving
+    // that the Pool IS one - a pool of some other kind that grew by moving
     // its storage would turn every link, every file_node_id you are holding
     // and the root itself into dangling pointers, and would usually appear to
     // work while it did.
@@ -590,7 +590,7 @@ public:
     // null_file_node on failure.
     //
     //   The SCANNED PATH IS RETAINED (m_root_path). It used to be thrown away
-    // -- only the leaf survived, as the root's name -- which left full_path()
+    // - only the leaf survived, as the root's name - which left full_path()
     // unable to name a file on disk.
     DFileNodeId
     scan(
@@ -863,7 +863,7 @@ public:
     }
 
     // round_trips
-    //   true if resolve(address(_id)) == _id -- the addressability contract,
+    //   true if resolve(address(_id)) == _id - the addressability contract,
     // made executable. It holds for every node of a separating tree, and
     // insertion keeps this tree separating, so it holds always. Provided
     // because a contract you cannot check is a hope.
@@ -1120,7 +1120,7 @@ public:
     // pool
     //   the backing store. Replaces nodes(): there is no indexable arena to
     // hand out any more, and a caller who wants to walk every node should walk
-    // the TREE (visit_depth_first) rather than the storage -- the pool may
+    // the TREE (visit_depth_first) rather than the storage - the pool may
     // hold freed slots that are not nodes.
     const pool_type& pool() const { return m_pool; }
     pool_type&       pool()       { return m_pool; }
@@ -1214,7 +1214,7 @@ public:
     //   READ THIS BEFORE USING IT.  Dropping a DIRECTORY severs every descent
     // through it, and the addresses of everything beneath it cease to resolve.
     // A selection preserves the survivors' addresses IF AND ONLY IF the
-    // retained set is PREFIX-CLOSED (ancestor-closed) -- and "*.cpp" is not
+    // retained set is PREFIX-CLOSED (ancestor-closed) - and "*.cpp" is not
     // ancestor closed, because no directory is named *.cpp. Keeping only the
     // nodes that match would hand you a tree with no directories and no paths.
     // So the naive reading is not offered. Two are: filter(p) const. A NEW TREE
@@ -1225,25 +1225,25 @@ public:
     // no tree, so it raises no structural question. This is `find -name`, and
     // it is what file_tree_query (file_tree_filter.hpp) does at greater length.
     // Both are wanted. They are not the same operation, and the difference is
-    // not a matter of taste -- one of them preserves addressability and the
+    // not a matter of taste - one of them preserves addressability and the
     // other does not build a tree to preserve it in. TWO PREDICATE SHAPES. A
     // file_entry carries a name OFFSET, not a name, so a predicate over a bare
     // payload can test type and size but CANNOT SEE THE NAME. The useful shape
-    // is therefore bool(file_node_id) -- it takes the tree along. Both are accepted,
+    // is therefore bool(file_node_id) - it takes the tree along. Both are accepted,
     // disjointly: bool(file_node_id) the useful one; sees names, paths, levels
-    // bool(const file_entry&) the payload one -- and the shape the framework's
+    // bool(const file_entry&) the payload one - and the shape the framework's
     // native_filter_helper probes for, which is what makes this container's
     // filter strategy NATIVE
 
     // filter (node-predicate form)
-    //   const: a NEW TREE holding the ANCESTOR-CLOSURE of {n : _pred(n)} -- a
+    //   const: a NEW TREE holding the ANCESTOR-CLOSURE of {n : _pred(n)} - a
     // node is kept if it, or anything beneath it, matches. This tree is not
     // touched; the result carries the same root_path, so its full_path() still
     // names files on disk.
     //
     //   PREFIX-CLOSED, and therefore ADDRESSABILITY-PRESERVING: if a node is
-    // kept then so is every one of its ancestors -- an ancestor of a match is
-    // itself an ancestor of a match -- so every survivor's path is intact in
+    // kept then so is every one of its ancestors - an ancestor of a match is
+    // itself an ancestor of a match - so every survivor's path is intact in
     // the result and its address still resolves there. When nothing matches,
     // the closure is empty and so is the result.
     template<typename Pred,
@@ -1384,12 +1384,12 @@ public:
 
     // rename_preserves_separation
     //   true if applying _fn to every name would leave the children of every
-    // directory bearing DISTINCT names -- that is, if the rename would NOT
+    // directory bearing DISTINCT names - that is, if the rename would NOT
     // cost this tree its addressability.
     //
     //   THIS IS THE ONE TO READ. A map keeps every position and so keeps every
     // path, but only while the labels stay APART. A rename that is not
-    // injective ON SIBLINGS collides two entries onto one name -- and here
+    // injective ON SIBLINGS collides two entries onto one name - and here
     // that is not an abstraction being violated, it is TWO FILES BECOMING ONE.
     // The spec records this as the loss of mu_1 under transformation; on a
     // filesystem it is a data-loss bug. Ask BEFORE renaming, not after. O(n *
@@ -1704,8 +1704,8 @@ private:
     // make_entry
     //   creates a file_entry for the LEAF component of _name (the scan root's
     // own name: "project" out of "/home/me/project") and pools that leaf. The
-    // rest of the scanned path is not a label -- it is where the tree begins
-    // -- and is kept in m_root_path.
+    // rest of the scanned path is not a label - it is where the tree begins
+    // - and is kept in m_root_path.
     DFileEntry
     make_entry(
         const char*      _name,
@@ -1760,7 +1760,7 @@ private:
 
     // collect_labels
     //   fills _out with the chain from _id UP TO BUT NOT INCLUDING the root,
-    // so it holds exactly level(_id) entries -- the components of the ADDRESS,
+    // so it holds exactly level(_id) entries - the components of the ADDRESS,
     // leaf first. Empty for the root, whose address is the empty word. THE
     // ROOT IS EXCLUDED. Including it is the bug this file carried: it made the
     // word one component longer than resolve() reads, so nothing round
@@ -1866,7 +1866,7 @@ private:
     // copy_renamed
     //   clones _src's children into _out under _dst, mapping every name
     // through _fn. Where _fn collides two siblings, intern_child returns the
-    // first and the second is not created -- the collision is a separation
+    // first and the second is not created - the collision is a separation
     // failure and is not represented.
     template<typename Fn>
     void

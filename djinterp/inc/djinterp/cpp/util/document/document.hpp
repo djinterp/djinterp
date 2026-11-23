@@ -4,24 +4,24 @@
 *   A fluent facade over the build side (`DDocumentWriter`) and the print
 * side (`DDocumentPrinter`): one object you build a tree into and then
 * serialise, with the format carried as a policy. The façade adds ergonomics
-* only -- it runs once, before the serialisation loop -- so it costs nothing
+* only - it runs once, before the serialisation loop - so it costs nothing
 * per element.
 *   ONE FAÇADE, BOTH EXPRESSIBILITIES:
 *   `DDocument<Policy>` is generic over the policy, so the SAME façade serves
 * both selection modes:
 *     compile-time   using DXmlDocument  = DDocument<DXmlPrintPolicy>;
 *                    using DHtmlDocument = DDocument<DHtmlPrintPolicy>;
-*       -- the policy is a type, fully inlined, zero cost.
+*       - the policy is a type, fully inlined, zero cost.
 *     runtime        DDocument<DBoxedPrintPolicy> doc( html_policy() );
-*       -- the policy is a value chosen at runtime (XML vs HTML from a config
+*       - the policy is a value chosen at runtime (XML vs HTML from a config
 *          string, say), dispatched through `DBoxedPrintPolicy`.
 * Building the tree is identical either way; the format lives entirely in the
 * policy at serialisation time.
 *
 *   EVERY DESTINATION SAYS WHETHER THE DOCUMENT ARRIVED. to_stream and
 * to_file write through an output stream (cpp/util/output), which keeps the
-* first failure -- a file that would not open, a std::ostream gone bad, a
-* full disk -- and each returns true only when every byte reached its
+* first failure - a file that would not open, a std::ostream gone bad, a
+* full disk - and each returns true only when every byte reached its
 * destination; to_file also counts the final flush and close, as fclose
 * does. to_stream takes a std::ostream or any DOutputStream.
 *
@@ -92,7 +92,7 @@ class DDocument
 {
 public:
     // document ()
-    //   constructor: default -- available when `Policy` is default-
+    //   constructor: default - available when `Policy` is default-
     // constructible (the compile-time / concrete-policy case).
     DDocument() = default;
 
@@ -105,9 +105,9 @@ public:
         : m_policy(static_cast<Policy&&>(_policy))
     {}
 
-    // -- build ---------------------------------------------------------------
+    // - build ---------------------------------------------------------------
 
-    // root -- create the root element and return a cursor at it (once).
+    // root - create the root element and return a cursor at it (once).
     DCursor
     root(
         DXmlString _name
@@ -116,7 +116,7 @@ public:
         return m_writer.root(static_cast<DXmlString&&>(_name));
     }
 
-    // at -- a cursor at a previously saved stable index.
+    // at - a cursor at a previously saved stable index.
     D_NODISCARD DCursor
     at(
         dj_index _index
@@ -125,7 +125,7 @@ public:
         return m_writer.at(_index);
     }
 
-    // -- configure (fluent) --------------------------------------------------
+    // - configure (fluent) --------------------------------------------------
 
     DDocument&
     pretty(
@@ -157,16 +157,16 @@ public:
         return *this;
     }
 
-    // -- serialise -----------------------------------------------------------
+    // - serialise -----------------------------------------------------------
 
-    // to_string -- render the document to a fresh string.
+    // to_string - render the document to a fresh string.
     D_NODISCARD DXmlString
     to_string() const
     {
         return render(m_writer.document(), m_policy, m_options);
     }
 
-    // to_stream -- render the document into a std::ostream; true when every
+    // to_stream - render the document into a std::ostream; true when every
     // byte reached it (a stream gone bad, or one that throws, is false).
     bool
     to_stream(
@@ -180,7 +180,7 @@ public:
         return _printer.sink().ok();
     }
 
-    // to_stream -- render the document into any output stream: the console,
+    // to_stream - render the document into any output stream: the console,
     // a file, a dj_string, a caller's array, several at once; true while the
     // stream is healthy, which keeps the reason when it is not.
     bool
@@ -195,7 +195,7 @@ public:
         return _stream.is_valid();
     }
 
-    // to_file -- render the document into a file (binary mode, verbatim);
+    // to_file - render the document into a file (binary mode, verbatim);
     // true only when the file opened, every byte was written, and it closed.
     bool
     to_file(
@@ -211,7 +211,7 @@ public:
         return _file.close() && written;
     }
 
-    // -- access --------------------------------------------------------------
+    // - access --------------------------------------------------------------
 
     D_NODISCARD const DDocumentWriter&
     writer() const

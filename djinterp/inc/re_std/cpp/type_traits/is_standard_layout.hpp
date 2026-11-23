@@ -3,7 +3,7 @@
 *
 * is_standard_layout trait header:
 *   is_standard_layout<T>::value is true iff T has a layout a C compiler
-* would produce for the equivalent struct -- no virtual functions, no
+* would produce for the equivalent struct - no virtual functions, no
 * virtual bases, all non-static data members in one class and with the
 * same access control.
 *
@@ -11,7 +11,7 @@
 * the first member as a pointer to the object, and for passing a type
 * across a C ABI boundary at all.
 *
-*   NO LIBRARY-LEVEL IMPLEMENTATION EXISTS -- intrinsic or nothing.
+*   NO LIBRARY-LEVEL IMPLEMENTATION EXISTS - intrinsic or nothing.
 *
 *   PORTABILITY:
 *   C++11 baseline. The _v spelling is C++14+, as elsewhere.
@@ -66,7 +66,7 @@ namespace re_std
 #if RE_STD_HAS_IS_STANDARD_LAYOUT
 
 // is_standard_layout
-//   trait: intrinsic-backed -- layout is compatible with the equivalent C struct.
+//   trait: intrinsic-backed - layout is compatible with the equivalent C struct.
 template<typename Type>
 struct is_standard_layout : integral_constant<bool, __is_standard_layout(Type)>
 {};

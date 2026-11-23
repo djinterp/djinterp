@@ -13,7 +13,7 @@
 #
 # both static by default, position-independent so that a module can link
 # them, with `inc/` on their consumers' include path as a system directory
-# -- a dependency's headers are not judged by its consumers' warnings -- and,
+# - a dependency's headers are not judged by its consumers' warnings - and,
 # under cl, /Zc:preprocessor for them and for every unit that includes the
 # kit's headers: djinterp's variadic macros need a conforming preprocessor,
 # which Visual Studio 2022, the version djinterp requires, has (ruling cli
@@ -21,7 +21,7 @@
 # cli-taken 13): SELF_CONTAINED, the default, links the libraries into the
 # program and, a copy of its own, into each module, the two meeting only at
 # the plugin interface; SHARED_CORE makes the two one shared library, the
-# core, which the program and its modules both link -- one copy, and a
+# core, which the program and its modules both link - one copy, and a
 # program that is no longer one file. There is no run-time choice: linking
 # is fixed when the program is built. And the
 # function
@@ -43,12 +43,12 @@
 #
 # which makes a test of a run: it passes when the program ends with the
 # status given (GRAMMAR.md, section 8) and, with MATCHES, says something the
-# expression matches, on its output or its errors -- both held at once,
+# expression matches, on its output or its errors - both held at once,
 # where a PASS_REGULAR_EXPRESSION of ctest's passes whatever the status.
 # DjinterpCliTest.cmake, beside this file, runs the program for it.
-#   DJINTERP_ROOT, the repository root -- the directory with inc/ and src/ --
+#   DJINTERP_ROOT, the repository root - the directory with inc/ and src/ --
 # defaults to the tree this file is in. A project that has made the two
-# libraries its own way -- the kit's tests build them in testing mode --
+# libraries its own way - the kit's tests build them in testing mode --
 # defines djinterp::arg_parser and djinterp::cli first, from the lists
 # DjinterpCliSources.cmake gives, and this file then makes neither and
 # gives d_cli_add_plugin alone.
@@ -93,7 +93,7 @@ elseif( (CMAKE_C_COMPILER_ID STREQUAL "MSVC") AND
 endif()
 
 # DJINTERP_CLI_LINKAGE
-#   cache: what a program's modules hold of the kit -- SELF_CONTAINED, a
+#   cache: what a program's modules hold of the kit - SELF_CONTAINED, a
 # copy each, or SHARED_CORE, the one shared library the program links too.
 set(DJINTERP_CLI_LINKAGE "SELF_CONTAINED" CACHE STRING
     "What a program built with djinterp's kit and its modules link: \
@@ -130,7 +130,7 @@ set_property(GLOBAL PROPERTY D_CLI_TEST_SCRIPT
 #   function: a library of djinterp's C at its floor: C99 with no
 # extensions, position-independent, with the POSIX names a strict ISO mode
 # hides where the platform hides them, and cl reading the sources as the
-# UTF-8 they are, with its conforming preprocessor -- which every unit that
+# UTF-8 they are, with its conforming preprocessor - which every unit that
 # includes the library's headers is given too (ruling cli b).
 function(djinterp_cli_c_target _target)
     set_target_properties(${_target} PROPERTIES
@@ -165,7 +165,7 @@ if( (DJINTERP_CLI_LINKAGE STREQUAL "SHARED_CORE") AND
     # D_ARG_PARSER_API and D_CLI_API, exported where the core is built and
     # imported where it is linked. The core also holds the option core,
     # filesys and the sinks, which carry no marks yet, so every function
-    # stays exported -- on Windows by CMake's list of them -- until each
+    # stays exported - on Windows by CMake's list of them - until each
     # library in the core has its own
     add_library(djinterp_cli SHARED
         ${DJINTERP_ARG_PARSER_SOURCES}
@@ -251,8 +251,8 @@ endfunction()
 # expression matches, on its output or its errors. A program that is a
 # target is run as add_test runs one: its file, through the emulator a cross
 # build names. An argument cannot hold a semicolon. With OUTPUT_FILE the
-# program's output goes to that file -- /dev/full, say, to test a full
-# disk -- and MATCHES reads its errors alone.
+# program's output goes to that file - /dev/full, say, to test a full
+# disk - and MATCHES reads its errors alone.
 function(d_cli_add_test _name)
     cmake_parse_arguments(PARSE_ARGV 1 _arg ""
         "STATUS;MATCHES;WORKING_DIRECTORY;OUTPUT_FILE" "COMMAND")

@@ -16,15 +16,15 @@
 * event_handler_concepts.hpp.
 *
 * FORMAL CORRESPONDENCE ("Definition of an Event"):
-*   immediate fire        delta_rho at once   -- fire<Event>(...)
-*   queue       q in Sigma-hat*               -- DEventQueue
-*   enqueue     q . (e,a)  (right concat)      -- queue<Event>(...)
-*   process     fold of delta_rho over q,      -- process / process_all
+*   immediate fire        delta_rho at once   - fire<Event>(...)
+*   queue       q in Sigma-hat*               - DEventQueue
+*   enqueue     q . (e,a)  (right concat)      - queue<Event>(...)
+*   process     fold of delta_rho over q,      - process / process_all
 *               rho read at processing time
 *               (deferral coherence: fire == enqueue-then-process)
-*   merge       rho (+) rho'                    -- merge(other)
-*   fused drive hat-h over a trace             -- drive(step, first, last)
-*   coherence   fused == erased (static rho)    -- see drive's COHERENCE LAW
+*   merge       rho (+) rho'                    - merge(other)
+*   fused drive hat-h over a trace             - drive(step, first, last)
+*   coherence   fused == erased (static rho)    - see drive's COHERENCE LAW
 *
 * PORTABLE ACROSS:
 *   C++11, C++14, C++17, C++20, C++23, C++26
@@ -515,7 +515,7 @@ struct DDriveResult
 
 // drive
 //   runs a homogeneous trace through a precompiled DFusedStep as a single
-// loop -- the fused path's outer fold. Each element of [_first, _last) must
+// loop - the fused path's outer fold. Each element of [_first, _last) must
 // be (convertible to) the event's payload tuple; it is copied per occurrence.
 //
 // COHERENCE LAW: for a registry rho held fixed (no bind/unbind/enable/disable

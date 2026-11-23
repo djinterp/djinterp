@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][jit]                                                  jit_riscv.c
 *
-* djinterp RISC-V (RV32I / RV64I) JIT encoder -- implementation (jit_riscv.h).
+* djinterp RISC-V (RV32I / RV64I) JIT encoder - implementation (jit_riscv.h).
 *   Emitters assemble each instruction from its opcode and funct fields via the
 * six format encoders, then emit one 32-bit little-endian word. Branch and jump
 * displacements are patched by the two relocations at the top (the RISC-V B-

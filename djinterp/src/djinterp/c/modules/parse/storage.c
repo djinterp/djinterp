@@ -29,8 +29,8 @@
 d_parse_grow
   Ensures an array can hold a given number of elements, reallocating if it must.
 NOTE:
-  The new tail is zeroed. The operator registry depends on that -- an undefined
-opcode must read as a hole, not as whatever the allocator handed back -- and
+  The new tail is zeroed. The operator registry depends on that - an undefined
+opcode must read as a hole, not as whatever the allocator handed back - and
 making it part of the contract rather than one caller's afterthought removes a
 class of bug from every container that grows.
 CAUTION:
@@ -49,8 +49,8 @@ Pre-condition(s):
   - _capacity is not NULL and _needed is not 0, so NULL unambiguously means
     failure rather than "nothing to do".
 Return:
-  The storage to use -- the same pointer when it was already large enough, a
-new one when it grew -- or NULL when the storage is not growable, the
+  The storage to use - the same pointer when it was already large enough, a
+new one when it grew - or NULL when the storage is not growable, the
 requirement overflows, or the allocator refused.
 */
 void* d_parse_grow(

@@ -10,7 +10,7 @@
 * levels of the model answer that differently and nobody wrote it down:
 *
 *       report_module::failed_units()    excludes empty units   (verdict != empty)
-*       test_report::failed_modules()    counts  !passed()       -- no such guard
+*       test_report::failed_modules()    counts  !passed()       - no such guard
 *
 *   `empty` is not a pass, so an empty module lands in failed_modules() while an
 * empty unit lands in neither of its module's counts.  The unit counts therefore do
@@ -260,13 +260,13 @@ bool tests_report_report_module_counts_partition_but_unit_counts_do_not()
         dt::report_unit("empty_unit")                              // empty UNIT
     }));
 
-    // -- modules: a strict partition ------------------------------------------
+    // - modules: a strict partition ------------------------------------------
     D_RT_CHECK(_r.total_modules()  == 2u);
     D_RT_CHECK(_r.passed_modules() == 1u);
     D_RT_CHECK(_r.failed_modules() == 1u);       // the stub
     D_RT_CHECK(_r.passed_modules() + _r.failed_modules() == _r.total_modules());
 
-    // -- units: NOT a partition ------------------------------------------------
+    // - units: NOT a partition ------------------------------------------------
     D_RT_CHECK(_r.total_units()  == 2u);         // the real one + the empty one
     D_RT_CHECK(_r.passed_units() == 1u);
     D_RT_CHECK(_r.failed_units() == 0u);         // the empty unit is in neither

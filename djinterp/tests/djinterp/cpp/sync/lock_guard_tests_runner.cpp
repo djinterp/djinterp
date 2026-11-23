@@ -65,7 +65,7 @@ int main()
 
     rb.use_pdf("lock_guard_tests_report.pdf");
 
-    // -- 0. the header contract --------------------------------------------
+    // - 0. the header contract --------------------------------------------
     rb.module("0. the header contract",
               "the guard, self-sufficiency despite commented-out env guards, per-standard gating");
     rb.run("the include guard is defined, and is 1",       &tests_header_include_guard);
@@ -78,7 +78,7 @@ int main()
     rb.run("no stray macros",                              &tests_header_defines_no_stray_macros);
     rb.run("the guards are gated by standard",             &tests_the_guards_are_gated_by_standard);
 
-    // -- I. DScopedReadLock -----------------------------------------------
+    // - I. DScopedReadLock -----------------------------------------------
     rb.module("I. scoped_read_lock",
               "a read lock for one scope; shared under a shared policy");
     rb.run("it republishes the policy's lock aliases",     &tests_read_exposes_its_policy_aliases);
@@ -90,7 +90,7 @@ int main()
     rb.run("under the null policy it is a no-op",          &tests_read_lock_under_the_null_policy_is_a_no_op);
     rb.run("under a shared policy the read lock is shared", &tests_read_lock_is_shared_under_the_shared_policy);
 
-    // -- II. DScopedWriteLock ---------------------------------------------
+    // - II. DScopedWriteLock ---------------------------------------------
     rb.module("II. scoped_write_lock",
               "an exclusive lock for one scope; exclusive under every policy");
     rb.run("it republishes the policy's lock aliases",     &tests_write_exposes_its_policy_aliases);
@@ -102,7 +102,7 @@ int main()
     rb.run("it excludes readers even under a shared policy", &tests_write_lock_is_exclusive_even_under_the_shared_policy);
     rb.run("under the null policy it is a no-op",          &tests_write_lock_under_the_null_policy_is_a_no_op);
 
-    // -- III. DScopedTryLock ----------------------------------------------
+    // - III. DScopedTryLock ----------------------------------------------
     rb.module("III. scoped_try_lock",
               "a non-blocking attempt; move-ctor-only, idempotent release");
     rb.run("it republishes the policy's mutex alias",      &tests_try_exposes_its_mutex_alias);
@@ -116,7 +116,7 @@ int main()
     rb.run("a move transfers ownership",                   &tests_try_move_transfers_ownership);
     rb.run("under the null policy it ALWAYS succeeds",     &tests_try_under_the_null_policy_always_succeeds);
 
-    // -- IV. DScopedTimedLock ---------------------------------------------
+    // - IV. DScopedTimedLock ---------------------------------------------
     rb.module("IV. scoped_timed_lock",
               "an exclusive lock with a deadline (C++11+)");
     rb.run("it republishes the policy's mutex alias",      &tests_timed_exposes_its_mutex_alias);
@@ -128,7 +128,7 @@ int main()
     rb.run("it is move-constructible only",                &tests_timed_is_move_constructible_only);
     rb.run("a move transfers ownership",                   &tests_timed_move_transfers_ownership);
 
-    // -- V. DUpgradeLock ---------------------------------------------------
+    // - V. DUpgradeLock ---------------------------------------------------
     rb.module("V. upgrade_lock",
               "read-to-write promotion, non-atomic by design (C++17+)");
     rb.run("it republishes the policy's aliases",          &tests_upgrade_exposes_its_aliases);
@@ -139,7 +139,7 @@ int main()
     rb.run("an upgrade guard is not copyable",             &tests_upgrade_is_not_copyable);
     rb.run("it is move-constructible",                     &tests_upgrade_is_move_constructible);
 
-    // -- Concurrency -------------------------------------------------------
+    // - Concurrency -------------------------------------------------------
     rb.module("Concurrency",
               "what the locks are for -- exclusion, timeout, shared overlap, exclusive upgrade");
     rb.run("write guard serializes writers (exact total)", &tests_write_lock_serializes_writers);

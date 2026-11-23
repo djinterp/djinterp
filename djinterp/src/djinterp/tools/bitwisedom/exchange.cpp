@@ -3,8 +3,8 @@
 *
 * A bitfield as JSON for other programs, and from them.
 *   Reading a bitfield is two passes. The first makes every row, in order,
-* as the file gives them -- a group's rows inside it, a range's values after
-* it -- and keeps, for each value that names its range, the name. The
+* as the file gives them - a group's rows inside it, a range's values after
+* it - and keeps, for each value that names its range, the name. The
 * second resolves the sheet, so that every row has its macro name, and
 * finds each such name as the expressions find theirs.
 *   Writing one leaves out what the defaults say, so a file written is a
@@ -435,7 +435,7 @@ private:
     }
 
     // span
-    //   "bits": "4..6", "4", or [4, 6] -- either way round -- as a lowest
+    //   "bits": "4..6", "4", or [4, 6] - either way round - as a lowest
     // bit and a width.
     bool span(
         const json_value&  _value,

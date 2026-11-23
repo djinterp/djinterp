@@ -25,8 +25,8 @@
 *   EMPTY INTERVALS. An open or half-open interval can hold no integer: (2, 3)
 * and [4, 4) are empty. count() is then 0 and contains() false. first(),
 * last(), clamp() and at() still return a value, defined as if the inclusive
-* bounds were taken as signed numbers -- (2, 3) clamps every value to 3 or 2
-* -- so a caller that cares tests is_empty() first.
+* bounds were taken as signed numbers - (2, 3) clamps every value to 3 or 2
+* - so a caller that cares tests is_empty() first.
 *
 *
 * path:      /inc/djinterp/c/modules/math/interval.h
@@ -417,8 +417,8 @@ d_interval_imax_is_discrete(
 
 // 2.3    Inclusive bounds and size
 //------------------------------------------------------------------------------
-// inclusive_lower and inclusive_upper are the bounds as closed ones -- an
-// open bound moved one integer inward -- and saturate rather than overflow.
+// inclusive_lower and inclusive_upper are the bounds as closed ones - an
+// open bound moved one integer inward - and saturate rather than overflow.
 // first is the smallest member and last the largest, which for a discrete
 // interval is the last whole step at or below inclusive_upper. count
 // saturates at D_MATH_UMAX_MAX.
@@ -899,7 +899,7 @@ d_interval_imax_normalize_discrete(
 // 3.  THE UNSIGNED FAMILY
 //==============================================================================
 // The same kernels over dj_math_umax. A difference that would be negative --
-// only in an empty interval, or for a value below one -- is taken as the
+// only in an empty interval, or for a value below one - is taken as the
 // signed family takes it, so the two families agree wherever both can hold
 // the interval.
 
@@ -1454,8 +1454,8 @@ d_interval_umax_normalize_discrete(
 //==============================================================================
 // 4.  FORMATTING
 //==============================================================================
-// An interval as text: its brackets -- `[` or `(` on the left, `]` or `)` on
-// the right -- around "lower, upper", or "lower:step:upper" for a discrete
+// An interval as text: its brackets - `[` or `(` on the left, `]` or `)` on
+// the right - around "lower, upper", or "lower:step:upper" for a discrete
 // interval. Numbers are written in decimal, as printf's %jd and %ju would
 // write them, without the C library.
 

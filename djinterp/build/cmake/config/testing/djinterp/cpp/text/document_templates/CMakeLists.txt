@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/cpp/text/
+# djinterp [test]  -  build/cmake/config/testing/djinterp/cpp/text/
 #                      document_templates/CMakeLists.txt
 #
 #   Test leaf for the document-template suite (cpp/util/document/templates and

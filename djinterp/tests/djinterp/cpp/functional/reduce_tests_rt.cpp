@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  reduce_tests_rt.cpp
-//   I. reduce_rt -- the runtime driver: a left fold over an iterator range, and
+//   I. reduce_rt - the runtime driver: a left fold over an iterator range, and
 //   the iterable convenience form over anything with begin()/end().
 
 // std
@@ -123,7 +123,7 @@ bool tests_rt_both_forms_agree()
 
 /*
 tests_rt_empty_returns_the_seed
-  An empty range folds to the accumulator, untouched -- the reducer is never
+  An empty range folds to the accumulator, untouched - the reducer is never
   invoked.
   Tests the following:
   - an empty vector, an empty range, and an empty C-array sub-range
@@ -156,7 +156,7 @@ bool tests_rt_empty_returns_the_seed()
 /*
 tests_rt_is_a_left_fold
   The driver walks left-to-right, folding each element into the accumulator in
-  turn. A non-commutative reducer -- (acc * 10) + x -- pins that order: 1, 2, 3
+  turn. A non-commutative reducer - (acc * 10) + x - pins that order: 1, 2, 3
   from a seed of 0 gives 123 under a left fold and could not under any other.
   Tests the following:
   - the digits reducer yields 123 and 1234
@@ -252,7 +252,7 @@ bool tests_rt_constexpr_over_a_constexpr_range()
 /*
 tests_rt_accumulator_type_is_fixed
   reduce_rt assigns the reducer's result back into its accumulator and returns
-  _Acc, so the accumulator TYPE IS FIXED across the fold -- it is the seed's type,
+  _Acc, so the accumulator TYPE IS FIXED across the fold - it is the seed's type,
   whatever the reducer returns. (This is the sharp difference from reduce_ct,
   which recomputes the accumulator type at every step.)
   Tests the following:
@@ -273,7 +273,7 @@ bool tests_rt_accumulator_type_is_fixed()
     static_assert(std::is_same<decltype(reduce_rt(count_all(), 0, carr)),
                                int>::value, "int seed -> int result");
 
-    // widen returns a LONG at every step -- and the fold still yields an int.
+    // widen returns a LONG at every step - and the fold still yields an int.
     static_assert(std::is_same<decltype(widen()(0, 0)), long>::value,
                   "the reducer really does return long");
     static_assert(std::is_same<decltype(reduce_rt(widen(), 0, carr)), int>::value,
@@ -290,7 +290,7 @@ bool tests_rt_accumulator_type_is_fixed()
 /*
 tests_rt_pulls_a_lazy_generated_source
   "Lazy/large/infinite sources are fine: it pulls until the range ends." The
-  driver needs nothing of a source but *, ++ and != -- there need not be a
+  driver needs nothing of a source but *, ++ and != - there need not be a
   container behind it at all.
   Tests the following:
   - a GENERATED range (values computed on dereference, no storage) folds correctly
@@ -331,7 +331,7 @@ bool tests_rt_pulls_a_lazy_generated_source()
 /*
 tests_rt_finds_begin_end_by_adl
   The iterable form says `using std::begin; using std::end;` and then calls them
-  unqualified, so a range that exposes only FREE begin/end -- no members at all --
+  unqualified, so a range that exposes only FREE begin/end - no members at all --
   is still admitted, found by argument-dependent lookup.
   Tests the following:
   - a range with no member begin()/end() folds correctly
@@ -349,7 +349,7 @@ bool tests_rt_finds_begin_end_by_adl()
     ok = ok && (reduce_rt(DDigitsRt(), 0, range) == 123);
     ok = ok && (reduce_rt(count_all(), 0, range) == 3);
 
-    // it really has no members -- only the free functions could have been found.
+    // it really has no members - only the free functions could have been found.
     static_assert(std::is_same<decltype(begin(range)), const int*>::value,
                   "found by ADL");
 
@@ -364,7 +364,7 @@ bool tests_rt_finds_begin_end_by_adl()
 
 /*
 tests_rt_visits_each_element_once
-  The loop pulls each element exactly once, in order -- no element is skipped and
+  The loop pulls each element exactly once, in order - no element is skipped and
   none is folded twice.
   Tests the following:
   - the reducer is called exactly as many times as there are elements

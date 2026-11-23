@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                                         registry.hpp
 *
-*   registry -- a key-lookup-optimised map/multimap over a contiguous record
+*   registry - a key-lookup-optimised map/multimap over a contiguous record
 * store, the runtime, dynamic generalisation of the value-carrying option_set.
 * It wears the `map` overlay (Overlays: containers as restriction bundles):
 *
@@ -17,23 +17,23 @@
 *   THE KEY COLUMN IS IMMUTABLE (the Mutability axis's KEY-CONST restriction).
 * Rows and value columns may be erased and value cells overwritten in place,
 * but
-* a stored key is never rewritten -- so varsigma and mu hold BY CONSTRUCTION,
+* a stored key is never rewritten - so varsigma and mu hold BY CONSTRUCTION,
 * checked only at insert and never re-validated after a value write. A
 * registry
 * is therefore structure-mutable at the whole-record grade (no wholesale
 * element
 * overwrite, the key being frozen) with a key-const value coordinate that
 * stays
-* writable -- exactly std::map's placement.
+* writable - exactly std::map's placement.
 *
 *   THE TRICHOTOMY.  A record's key and value regions are named by two OPEN
 * projections, so one class serves every entry shape:
-*     (A) DKvPair rows            -- key = .key, value = .value (see
+*     (A) DKvPair rows            - key = .key, value = .value (see
 *                                    kv_registry / kv_key / kv_value below).
-*     (B) projected-key records   -- key at any tuple index / any accessor,
+*     (B) projected-key records   - key at any tuple index / any accessor,
 *                                    value a disjoint sub-region
 *                                  (tuple_at<J>).
-*     (C) whole-record value -- value IS the record (whole_record); here a
+*     (C) whole-record value - value IS the record (whole_record); here a
 *                                    value edit can move the key, so it is
 *                                  gated
 *                                    behind the guarded update() family.
@@ -42,7 +42,7 @@
 * skip the re-key check entirely. When it is not ((C)), KeyDisjoint is false:
 * those raw setters are withdrawn and every edit routes through update(),
 * whose
-* rekey strategy (reject / reposition) decides a key move -- both built from
+* rekey strategy (reject / reposition) decides a key move - both built from
 * the
 * one common fold in registry_update.hpp.
 *
@@ -204,7 +204,7 @@ public:
     using key_compare      = KeyCompare;
     using rekey_policy      = RekeyPolicy;
 
-    // key_type / mapped_type -- the projected key and value, deduced by
+    // key_type / mapped_type - the projected key and value, deduced by
     // applying the projections to a record (std::invoke resolves functors AND
     // pointer-to-member projections).
     using key_type = clean_t<
@@ -215,7 +215,7 @@ public:
         decltype(std::invoke(std::declval<const ValueProj&>(),
                              std::declval<Record&>()))>;
 
-    // npos -- "no such entry" sentinel for the positional key queries.
+    // npos - "no such entry" sentinel for the positional key queries.
     static constexpr size_type npos = static_cast<size_type>(-1);
 
     // overlay markers (the restriction bundle this container wears).
@@ -300,7 +300,7 @@ public:
         return m_records.empty();
     }
 
-    // record_at -- the record at a position in key order (checked). Named
+    // record_at - the record at a position in key order (checked). Named
     // apart from at() so a size_type-keyed registry has no key/position
     // ambiguity.
     D_NODISCARD const Record& record_at(size_type _i) const
@@ -308,7 +308,7 @@ public:
         return m_records.at(static_cast<std::size_t>(_i));
     }
 
-    // key_of -- the key a record projects.
+    // key_of - the key a record projects.
     D_NODISCARD key_type key_of(const Record& _rec) const
     {
         return std::invoke(m_kproj, _rec);
@@ -337,7 +337,7 @@ public:
 
     // --- 4. key queries (binary search over the sorted key order) ---
 
-    // index_of -- position of the first record equivalent to _k, or npos.
+    // index_of - position of the first record equivalent to _k, or npos.
     D_NODISCARD size_type index_of(const key_type& _k) const
     {
         const std::size_t pos =
@@ -347,7 +347,7 @@ public:
                                         : npos;
     }
 
-    // find -- pointer to the first record whose key is equivalent to _k, or
+    // find - pointer to the first record whose key is equivalent to _k, or
     // nullptr (records are const: the key must not be rewritten in place).
     D_NODISCARD const Record* find(const key_type& _k) const
     {
@@ -359,13 +359,13 @@ public:
                    : nullptr;
     }
 
-    // contains -- whether any record carries a key equivalent to _k.
+    // contains - whether any record carries a key equivalent to _k.
     D_NODISCARD bool contains(const key_type& _k) const
     {
         return (find(_k) != nullptr);
     }
 
-    // count -- how many records carry a key equivalent to _k (0 or 1 when keys
+    // count - how many records carry a key equivalent to _k (0 or 1 when keys
     // are unique).
     D_NODISCARD size_type count(const key_type& _k) const
     {
@@ -379,13 +379,13 @@ public:
 
     // --- 5. value surface (key-const) ---
     //   Reads are always available. Direct value WRITES (at/operator[]/set)
-    // are offered only when KeyDisjoint -- there the value region provably
+    // are offered only when KeyDisjoint - there the value region provably
     // cannot reach the key, so an in-place write is safe. When it is not
     // (whole-record value), these are withdrawn and edits must go through
     // update() (Section 7), whose fold guards the key. For a multimap, all
     // target the FIRST equivalent record.
 
-    // at (value, read) -- always available.
+    // at (value, read) - always available.
     D_NODISCARD const mapped_type& at(const key_type& _k) const
     {
         const size_type pos = index_of(_k);
@@ -400,7 +400,7 @@ public:
                            m_records[static_cast<std::size_t>(pos)]);
     }
 
-    // try_get (value, read) -- pointer to the value, or nullptr; always
+    // try_get (value, read) - pointer to the value, or nullptr; always
     // available.
     D_NODISCARD const mapped_type* try_get(const key_type& _k) const
     {
@@ -412,7 +412,7 @@ public:
                    : nullptr;
     }
 
-    // at (value, write) -- models A/B only (value disjoint from key).
+    // at (value, write) - models A/B only (value disjoint from key).
     template<bool KD = KeyDisjoint,
              typename std::enable_if<KD, int>::type = 0>
     D_NODISCARD mapped_type& at(const key_type& _k)
@@ -429,7 +429,7 @@ public:
                            m_records[static_cast<std::size_t>(pos)]);
     }
 
-    // operator[] -- writable value at an existing key (models A/B). Unlike
+    // operator[] - writable value at an existing key (models A/B). Unlike
     // std::map it does NOT insert a missing key (there is no record factory in
     // the general core); it throws, as at() does.
     template<bool KD = KeyDisjoint,
@@ -439,7 +439,7 @@ public:
         return at(_k);
     }
 
-    // try_get (value, write) -- pointer to the writable value, or nullptr
+    // try_get (value, write) - pointer to the writable value, or nullptr
     // (models A/B).
     template<bool KD = KeyDisjoint,
              typename std::enable_if<KD, int>::type = 0>
@@ -453,7 +453,7 @@ public:
                    : nullptr;
     }
 
-    // set -- overwrite the value at an existing key in place (key-const value
+    // set - overwrite the value at an existing key in place (key-const value
     // write); returns whether the key was present (models A/B).
     template<bool KD = KeyDisjoint,
              typename std::enable_if<KD, int>::type = 0>
@@ -477,7 +477,7 @@ public:
 
     // --- 6. structural mutation (invariant-preserving) ---
 
-    // insert -- place _rec at its sorted key position. Map (unique keys): a
+    // insert - place _rec at its sorted key position. Map (unique keys): a
     // record of an equivalent key is replaced (the key stays equivalent, so
     // this is a value overwrite, not a re-key); multimap: added after any
     // equal keys. Returns the position it occupies.
@@ -490,7 +490,7 @@ public:
         return static_cast<size_type>(pos);
     }
 
-    // insert (key, value) -- convenience for records constructible from a
+    // insert (key, value) - convenience for records constructible from a
     // key/value pair (DKvPair and the like); absent otherwise.
     template<typename K = key_type,
              typename V = mapped_type,
@@ -505,7 +505,7 @@ public:
                               static_cast<V&&>(_v)));
     }
 
-    // erase -- remove every record whose key is equivalent to _k; returns the
+    // erase - remove every record whose key is equivalent to _k; returns the
     // number removed (0 or 1 when keys are unique).
     size_type erase(const key_type& _k)
     {
@@ -521,7 +521,7 @@ public:
         return static_cast<size_type>(hi - lo);
     }
 
-    // erase_at -- remove the record at position _i (in key order).
+    // erase_at - remove the record at position _i (in key order).
     void erase_at(size_type _i)
     {
         internal::reg_erase_at(m_records, static_cast<std::size_t>(_i));
@@ -529,7 +529,7 @@ public:
         return;
     }
 
-    // clear -- drop all records.
+    // clear - drop all records.
     void clear() noexcept
     {
         m_records.clear();
@@ -544,7 +544,7 @@ public:
     // Available for every flavour: for A/B it takes the in-place fast path;
     // for C it is the ONLY value-write path, and guards the key.
 
-    // update -- edit the value at _k under the given (or type-default) rekey
+    // update - edit the value at _k under the given (or type-default) rekey
     // policy. Returns the fold's outcome; a missing key yields {rejected,
     // npos}.
     template<typename Policy = RekeyPolicy,
@@ -557,7 +557,7 @@ public:
         const std::size_t pos =
             internal::reg_find(m_records, _k, m_kproj, m_cmp);
 
-        // no such key -- nothing to edit
+        // no such key - nothing to edit
         if (pos >= m_records.size())
         {
             return DUpdateResult{ DUpdateStatus::rejected,
@@ -568,7 +568,7 @@ public:
             m_records, pos, m_vproj, m_kproj, m_cmp, UniqueKeys, _mutate);
     }
 
-    // try_update -- update guarded: a key move is refused, the entry untouched.
+    // try_update - update guarded: a key move is refused, the entry untouched.
     template<typename Mutate>
     DUpdateResult try_update(
         const key_type& _k,
@@ -579,7 +579,7 @@ public:
             _k, static_cast<Mutate&&>(_mutate));
     }
 
-    // update_or_move -- update relaxed: a key move relocates the entry to its
+    // update_or_move - update relaxed: a key move relocates the entry to its
     // new sorted position.
     template<typename Mutate>
     DUpdateResult update_or_move(
@@ -651,7 +651,7 @@ struct DKvValue
 using kv_value = DKvValue;
 
 // DKvRegistry
-//   alias: the common registry -- a map/multimap of DKvPair<Key, Value> keyed
+//   alias: the common registry - a map/multimap of DKvPair<Key, Value> keyed
 // on the pair's key, its value region disjoint from the key (KeyDisjoint =
 // true, so the direct value setters are available and edits skip the re-key
 // check).

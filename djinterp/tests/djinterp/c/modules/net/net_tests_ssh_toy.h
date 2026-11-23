@@ -124,7 +124,7 @@ struct dj_tests_ssh_toy
 
 // 1.3    Functions
 //------------------------------------------------------------------------------
-// the toy -- init makes a toy with no channel opened, every channel
+// the toy - init makes a toy with no channel opened, every channel
 // scripted and empty, and nothing set to fail; engine is its table;
 // connect starts `_session` over the toy on a socket of its own, owned by
 // the session, accepting any host key, and reports whether the session

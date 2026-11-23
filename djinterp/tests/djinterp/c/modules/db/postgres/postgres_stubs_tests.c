@@ -2,8 +2,8 @@
 * djinterp [c][db]                                        postgres_stubs_tests.c
 *
 *   The PostgreSQL layer built without libpq (D_CFG_POSTGRES 0): every function
-* answers as such a build must -- D_DB_UNSUPPORTED, or false, 0 or NULL where
-* it cannot fail -- writes the answers it promises even on failure, and
+* answers as such a build must - D_DB_UNSUPPORTED, or false, 0 or NULL where
+* it cannot fail - writes the answers it promises even on failure, and
 * leaves every other output alone. The three functions that read results
 * need no library and work as they always do. Building and linking it at all
 * proves the stubs need neither libpq-fe.h nor a library.

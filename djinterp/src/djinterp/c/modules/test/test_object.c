@@ -40,7 +40,7 @@ d_test_object_init(
     _object->callable_id = (dj_test_callable_id)0;
 
     /*   THE CUT.  This line used to read
-       `return d_test_metadata_init(&_object->metadata);` -- the single call
+       `return d_test_metadata_init(&_object->metadata);` - the single call
        site through which the node reached into metadata.  With a borrowed
        pointer there is nothing to initialise: a fresh node simply has no
        container, and a caller that wants one points at it afterwards. */
@@ -115,7 +115,7 @@ d_test_object_set_status(
        having a verdict and inventing one are different things, and the member
        it protected held a STALE verdict rather than an independent one.  The
        status now carries the outcome alone, and a test that never ran reports
-       pending, skipped or error -- none of which read as passed. */
+       pending, skipped or error - none of which read as passed. */
     return D_TEST_OBJECT_OK;
 }
 
@@ -160,7 +160,7 @@ bool d_test_object_result_of(
 {
     /*   DERIVED, NOT STORED.  `passed` is the only status that asserts a true
        verdict: failed is false by definition, and pending, skipped and error
-       are all states in which no verdict was reached -- which this returns as
+       are all states in which no verdict was reached - which this returns as
        false because the function's contract is "did this test pass", not "is
        this test's outcome known".  A caller that needs to tell "ran and
        disagreed" from "never ran" reads the status, which is why the status is
@@ -245,7 +245,7 @@ struct dj_test_object d_test_make_interior(
 
     /*   Interior nodes stay PENDING.  Their status is a fold over their
        children, computed by the walk, and stamping one here would be the node
-       claiming a fact of position -- the thing this module does not do. */
+       claiming a fact of position - the thing this module does not do. */
     return o;
 }
 

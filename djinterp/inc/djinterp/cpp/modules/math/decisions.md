@@ -293,8 +293,8 @@ consolidation record's section 5; S1 to S3 in slice 3's) stand.
 - **S4. The sine past 2^20: exact everywhere.** Taken: Payne and Hanek's
   reduction in pure arithmetic, so sin_c, cos_c and tan_c are right and
   constant expressions at every finite argument, as the library's functions
-  are. The alternative was a stated bound -- NaN, or a documented loss of
-  digits, past 2^20 quarter turns -- which would leave `_c` and the library
+  are. The alternative was a stated bound - NaN, or a documented loss of
+  digits, past 2^20 quarter turns - which would leave `_c` and the library
   disagreeing there and the C++ faces unable to promise one answer (N3).
   The cost is 2,112 bytes of literal and about a microsecond an argument
   past the bound.
@@ -342,9 +342,9 @@ consolidation record's section 5; S1 to S3 in slice 3's) stand.
 - **N3, sharpened again.** sin_c, cos_c, tan_c and atan_c are now correctly
   rounded for float and nearly so for double; glibc's double sin, cos and
   tan differ from them by an ulp at about 1 argument in 650, 780 and 400,
-  atan at 1 in 4,300 -- and where they differ the `_c` result is the
+  atan at 1 in 4,300 - and where they differ the `_c` result is the
   correctly rounded one, but at the few counted above. `linalg_elementary`'s
-  rule -- the library at run time, `_c` in constant evaluation -- gives two
+  rule - the library at run time, `_c` in constant evaluation - gives two
   answers at those points.
 
 > **Review.** Taken: for, no new header; against, `elementary.h` grows into
@@ -364,8 +364,8 @@ consolidation record's section 5; S1 to S3 in slice 3's; S4 to S7 in slice
 - **S8. acos_c onto the arc-tangent kernel.** Taken, so that asin_c and
   acos_c are one computation, each rounded once, and acos_c is correctly
   rounded for float and double like the slice's other functions. It changes
-  267 double results in a million on the x87 -- every one to the correctly
-  rounded value -- and 23.8% of long double ones (237,788 to it, 88 from
+  267 double results in a million on the x87 - every one to the correctly
+  rounded value - and 23.8% of long double ones (237,788 to it, 88 from
   it); where long double is double, a quarter of double ones (section 4).
   The alternative keeps the old acos_c, within 2 ulps, beside an asin_c on
   the kernel, the two then computed two ways and rounded differently.
@@ -376,8 +376,8 @@ consolidation record's section 5; S1 to S3 in slice 3's; S4 to S7 in slice
 
 - **S9. A zero's sign by a compiler builtin.** atan2 is the one function
   here whose result depends on the sign of a zero, which no comparison sees.
-  Taken: `__builtin_copysign` (and `f`, `l`) on GCC and Clang -- a constant
-  expression in both, where `__builtin_signbit` is not in Clang 18 -- and
+  Taken: `__builtin_copysign` (and `f`, `l`) on GCC and Clang - a constant
+  expression in both, where `__builtin_signbit` is not in Clang 18 - and
   1 / x elsewhere, which is right at run time but not a constant expression,
   so that atan2_c of a zero is not one there. The alternatives: `bit_cast`
   from C++20, which the C text cannot use; or treating -0 as +0 in constant
@@ -399,13 +399,13 @@ consolidation record's section 5; S1 to S3 in slice 3's; S4 to S7 in slice
   for float and nearly so for double; glibc's atan2f differs from them at
   one float pair in six, asinf and acosf at about one float in 400 in
   [-1, 1], and the double atan2, asin and acos at 380, 740 and 380
-  arguments in a million -- where the `_c` result is the correctly rounded
+  arguments in a million - where the `_c` result is the correctly rounded
   one. `linalg_elementary`'s rule gives two answers at those points.
 - **N6. The arc-sine's cost.** asin_c and acos_c take about 1.1 to 1.2 us,
   three times the old acos_c; a third of it is the long double square root,
   `sqrt_c` in pure arithmetic (370 ns). Where it is not constant-evaluated, a
-  call could take the library's `sqrtl` instead -- correctly rounded too, so
-  with the same bits -- through `__builtin_is_constant_evaluated`, which GCC
+  call could take the library's `sqrtl` instead - correctly rounded too, so
+  with the same bits - through `__builtin_is_constant_evaluated`, which GCC
   and Clang (9 and up) offer in C++ at every level, or
   `std::is_constant_evaluated` from C++20; a C build, which evaluates
   nothing at compile time, would always call it. The same would serve every
@@ -443,7 +443,7 @@ S10, in the consolidation record and slices 3 to 5) stand.
 - **N6, again.** sinh_c and cosh_c cost about 500 ns, tanh_c up to a
   microsecond, where glibc's take 7 to 17 ns. The series divides at each
   nested term, which a table of reciprocals would avoid. Slice 5's way out
-  -- the library at run time, where a call is not constant-evaluated -- is
+  - the library at run time, where a call is not constant-evaluated - is
   no way out here: it keeps the bits only where the library's are correctly
   rounded, as sqrtl is and glibc's hyperbolic functions are not.
 
@@ -468,8 +468,8 @@ S12, in the consolidation record and slices 3 to 6) stand.
 > **Review.** Taken: for, C's grouping and shared kernels; against, a larger
 > header. Recommended: as taken. Taken.
 
-- **S14. cbrt in a new `power.h`**, where `pow` and `hypot` -- which
-  geometry and the calculus headers call -- can go when they come. The
+- **S14. cbrt in a new `power.h`**, where `pow` and `hypot` - which
+  geometry and the calculus headers call - can go when they come. The
   alternative is `elementary.h`, beside `sqrt_c`, which every linear-algebra
   face includes.
 
@@ -718,7 +718,7 @@ S28) stand.
 - **S30. The quotient is |n| mod 8, 0 to 7, with x / y's sign; 0 where the
   result is NaN or y is infinite.** C promises three bits and lets the
   library keep more. glibc on x86-64 gives 8 or -8 for some quotients
-  whose last three bits are 0 -- where its count carries to 8 -- and on
+  whose last three bits are 0 - where its count carries to 8 - and on
   32-bit x86 never, so only the last three bits agree anywhere, and those
   are what `remquo_c` gives. 0 to 7 indexes a table of eight.
 
@@ -764,7 +764,7 @@ New with this chunk; the earlier ones (M0 to M3, C1 to C5, N1 to N6, S1 to
 S33) stand.
 
 - **S34. Where two `d_math_umax` limbs cannot hold (2^(P+1))^2 and P is
-  below 64 -- a double where `d_math_umax` has 32 bits -- `sqrt_c` settles
+  below 64 - a double where `d_math_umax` has 32 bits - `sqrt_c` settles
   its last bit in integers too, in digits of 16 bits; Dekker's product is
   left to long doubles of 64 bits or more.** Integers give the same bits
   under every evaluation method and in constant evaluation. The other
@@ -809,7 +809,7 @@ S35) stand.
   the library's float and double kernels then give values that are not
   float or double arithmetic's: `t_vec`, `t_quat` and `t_interval_float`
   record them. The library cannot round a value to its type inside a
-  constant expression -- a volatile read is not one -- and rounding every
+  constant expression - a volatile read is not one - and rounding every
   step of every kernel through memory would cost every target. clang's
   x87 builds stay out of the matrix (S35); with clang, a 32-bit x86 build
   should use SSE (`-msse2 -mfpmath=sse`), as the matrix's do.
@@ -832,8 +832,8 @@ S37) stand.
   family is evaluated wider than its type** (FLT_EVAL_METHOD, through
   `math_common.h`'s `D_MATH_*_EVAL_WIDE`). Everywhere else the root is
   returned as it comes, and costs what it did. Storing always would cost a
-  store and a load on every target, for builds -- every one on SSE or
-  x86-64 -- whose roots were right: GCC and clang compute them there with
+  store and a load on every target, for builds - every one on SSE or
+  x86-64 - whose roots were right: GCC and clang compute them there with
   `sqrtss` and `sqrtsd`.
 
 > **Review.** Taken: for, the store only where wide evaluation makes it
@@ -861,7 +861,7 @@ New with this chunk; the earlier ones (M0 to M3, C1 to C5, N1 to N6, S1 to
 S39) stand.
 
 - **S40. `sqrt_settle_digits` decides the last bit by the residual
-  G = S M - R^2 + R - 1, taken in the low digits -- P + 9 bits or more --
+  G = S M - R^2 + R - 1, taken in the low digits - P + 9 bits or more --
   modulo a power of 2.** Its sign survives there because the loops keep R
   within four steps of the root, and `t_elementary` checks the settle over
   all of that reach. The other way, the two midpoints' squares at full width
@@ -874,8 +874,8 @@ S39) stand.
 
 The record: `_handoffs/math98_chunk11_2026.10.13/README.md`.
 
-**S41. The arc-tangent and the remainder are this side's** -- `tangent.h`'s
-`atan2` and `atan2_c`, `remainder.h`'s `fmod` and `fmod_c` -- not the
+**S41. The arc-tangent and the remainder are this side's** - `tangent.h`'s
+`atan2` and `atan2_c`, `remainder.h`'s `fmod` and `fmod_c` - not the
 package's section of `elementary.h`. They are the later and the more measured
 (slices 5 and 9; 51,859,520 and 15,300,041 checks a build, the 184-build
 matrix). The package's harness passes on them in all 12 builds and its
@@ -891,8 +891,8 @@ functions measured less.
 **S42. `infinity` stays in `exponential.h`**, where this side defines it, and
 `isect.h` includes `exponential.h` for it; the package's `abs` helper goes
 into `elementary.h`'s internal helpers, where the package had it.
-Alternative: `infinity` moved into `elementary.h` beside `abs` -- the base
-header, a tidier home -- at the cost of changing a second measured header and
+Alternative: `infinity` moved into `elementary.h` beside `abs` - the base
+header, a tidier home - at the cost of changing a second measured header and
 the include comments of `hyperbolic.h` and `power.h`.
 
 > **Review.** Taken: for, no measured header touched; against, `infinity`
@@ -4795,8 +4795,8 @@ rounded one; at every reference point, double's and long double's at their
 full width among them, each is the correctly rounded one (section 4), and
 a float or double part within half an ulp of the exact value and 2^-8
 more, as rounding once gives it, which t_cplx.c measures. Without the
-residual's step -- the quotient over n's high part corrected by its low
-part, as the first version of this chunk's was -- a double part is
+residual's step - the quotient over n's high part corrected by its low
+part, as the first version of this chunk's was - a double part is
 1.3745 ulps from the exact value at a reference point, and a long double
 part two steps off at a point of long double's full width.
 - Alternative: S268's as it reads, fma where the target has it and Dekker's
@@ -5065,8 +5065,8 @@ beside its other factorizations, and complex matrices in a header of their
 own, `c/math/cmat.h`, its functions `d_cmat_<S>_<fn>` and, where a root is
 taken, `d_cmat_<S>_<fn>_c`, as `decomp.h`'s are; C++'s one names for every
 family, `d_cmat_<fn>`, as `cplx.h` has them.** `cmat.h` includes
-`decomp.h` for the real helpers it shares -- the scaled norms, hypot, the
-scaling by powers of two -- and `cplx.h` for the arithmetic, so that a
+`decomp.h` for the real helpers it shares - the scaled norms, hypot, the
+scaling by powers of two - and `cplx.h` for the arithmetic, so that a
 program wanting real matrices alone includes neither complex header's
 kernels.
 - Alternative: the complex functions in `decomp.h`, `d_decomp_<S>_c...`: one
@@ -5299,8 +5299,8 @@ elimination of [A | B] with partial pivoting and back-substitution, as
 `_lu_solve`, false and the zero matrix for a singular A. The generic
 kernels' `solve` is the same elimination in the number type's own
 arithmetic, and `linear_algebra`'s `solve(A, b)` and `solve(A, B)` take the
-kernels' for every number type but an integer type -- the C families'
-LU's bits, an exact type's exact solution -- where they took LU and required
+kernels' for every number type but an integer type - the C families'
+LU's bits, an exact type's exact solution - where they took LU and required
 a floating-point type. A singular A gives the zero solution, as `inverse`
 gives the zero matrix.** S257's recommendation: an exact solve no longer
 inv(A) B, at about a third of the products, and the C++ face's `solve` open
@@ -5346,9 +5346,9 @@ modulus and whose products do not commute.
 > results of long computations compared with no tolerance, where a caller
 > must give one. Recommended: as taken. Taken.
 
-**S304. The C++ face's comparisons given no tolerance -- `equals`,
+**S304. The C++ face's comparisons given no tolerance - `equals`,
 `approx_equal`, `is_symmetric`, `is_identity`, `is_unit`,
-`is_orthogonal` -- take `internal::linalg_tolerance`: the type's
+`is_orthogonal` - take `internal::linalg_tolerance`: the type's
 `tolerance(x, y)` of x, the entry of largest magnitude among both operands'
 (1 among them where the comparison is with the identity or a unit's norm),
 and y, the entry that carries the largest epsilon; a comparison given a
@@ -5365,9 +5365,9 @@ one.
 > against, two meanings, relative by default and absolute when given.
 > Recommended: as taken, a relative form by name when a caller asks. Taken.
 
-**S305. The generic kernels keep each product in its order -- a row
+**S305. The generic kernels keep each product in its order - a row
 operation a product on the left, a quotient on the left as 1 / d times x
-and on the right as x times 1 / d where products do not commute -- and
+and on the right as x times 1 / d where products do not commute - and
 pivot by `magnitude`, so that a quaternion matrix's inverse and solution are
 right, and an inexact type's elimination pivots by size.** The face's tests
 plant a quaternion type of exact rationals: A A^-1 and A^-1 A the identity,
@@ -5380,8 +5380,8 @@ A X = B, exactly; with either quotient's side wrong, each misses.
 > commute is two operations, 1 / d and a product. Recommended: as taken.
 > Taken.
 
-**S306. The Jacobi rotations' tangent -- `d_decomp_<S>_sym_eigen`'s, the
-one-sided Jacobi SVD's and `d_cmat_<S>_hermitian_eigen`'s -- is 1 / (2
+**S306. The Jacobi rotations' tangent - `d_decomp_<S>_sym_eigen`'s, the
+one-sided Jacobi SVD's and `d_cmat_<S>_hermitian_eigen`'s - is 1 / (2
 theta), the off-diagonal entry over the diagonal's difference, where theta
 passes 2^(EMAX / 2) and theta^2 would overflow; below, as before, bit for
 bit.** This chunk's constant expressions found it: at a threshold of 0 a
@@ -5443,8 +5443,8 @@ the face has a complex type to give it in.
 sections of Hermitian and general matrices, gcc's `-Warray-bounds` is set
 aside, `#pragma GCC diagnostic push` and `ignored`, and restored after each
 section by `pop`; clang and other compilers are untouched.** gcc 13 at -O2,
-compiling a caller whose matrix is a constant it can fold -- a 2-by-2
-rotation in `main`, the record's example -- takes the kernels' loops for
+compiling a caller whose matrix is a constant it can fold - a 2-by-2
+rotation in `main`, the record's example - takes the kernels' loops for
 n of 3 and more for reachable and warns of indices past the array: eight
 false warnings, each an error under `-Werror`. Every index in these
 sections lies within the caller's n by n, as the harnesses and the
@@ -5574,8 +5574,8 @@ inexact and unordered: its magnitude, a T, is |re| + |im|, LAPACK's
 epsilon T's, its tolerance four of them, and a pair's that times the
 larger magnitude. It has no `abs` of its own type, no root and no
 conversion through `double`, so that generic code that would order its
-numbers, take their root or pass them through `double` -- a vector's norm,
-its length, an angle -- is refused at compile time rather than computing a
+numbers, take their root or pass them through `double` - a vector's norm,
+its length, an angle - is refused at compile time rather than computing a
 sum of squares that is no norm.** It is no `number`, the C++20 concept,
 which asks for `<`. `common_number` of it and T, either way round, or of
 two, is the complex type at every level.
@@ -5623,9 +5623,9 @@ keeps Bareiss's determinant, exact where the type is.
 > taken; the parity checks are the guard, and the fault trial plants what
 > would break them. Taken.
 
-**S316. A tolerance given to the faces' comparisons -- `matrix::equals`,
+**S316. A tolerance given to the faces' comparisons - `matrix::equals`,
 `is_identity` and `is_symmetric`, `vector::equals` and `is_unit`,
-`approx_equal`, `is_invertible`, `is_singular` and `is_orthogonal` -- is
+`approx_equal`, `is_invertible`, `is_singular` and `is_orthogonal` - is
 of the traits' `magnitude_type`, as the kernels already take it, which for
 every type that had one is the element type itself; `is_invertible` asks
 that the determinant's magnitude pass it, |det| for a real type.** The
@@ -6325,7 +6325,7 @@ at every reference point.
 > bit; or a second set of algorithms per family. Recommended: as taken, a
 > `_fast` form where a use asks for one (S266). Taken.
 
-**S343. On the real axis, where the value is real -- every x for `exp2`
+**S343. On the real axis, where the value is real - every x for `exp2`
 and `expm1`, x positive for `log2` and `log10`, x past -1 for `log1p` --
 each of the five, in both forms and every family, is that family's real
 function in the same form, the `_c` form's `_c` and the plain form's
@@ -6348,7 +6348,7 @@ and the language alike.
 **S344. `exp2`'s angle, y ln 2, is reduced by pi/2 exactly for every y:
 below 1 in magnitude as a pair, ln 2 held as the exponential holds it, the
 angle then within pi/4; past it by Payne and Hanek's method, as
-`elementary.h` reduces x, with 2 ln 2 / pi's digits in 2/pi's place -- a
+`elementary.h` reduces x, with 2 ln 2 / pi's digits in 2/pi's place - a
 table of 704 digits of 24 bits, 16,896 bits, which the generator computes
 from Machin's formula for pi and 2 atanh(1/3) for ln 2, both ends of their
 errors agreeing at the cut.** So that `exp2(x + iy)` is within a step of its
@@ -6436,7 +6436,7 @@ text below is `decisions_c43.md`, which `decisions_c43.py` reads.
 **S348. A matrix keeps a complex element as it is, as S239 keeps a real
 one: where every element is a float, a double, a long double or a complex
 number of such parts, densely, in the widest one's type, as complex numbers
--- math::complex<T>, the C core's struct, row by row -- where any element
+-- math::complex<T>, the C core's struct, row by row - where any element
 is complex, a real element x then held as x + 0i, as S273 rules; where any
 element is exact or boxed, an exact complex number among them, as values,
 each of its own kind. `[1, 2im]` is a matrix of values, exact; a matrix of
@@ -6510,8 +6510,8 @@ false)`; `expr_transpose(A)` stays `A'`.
 **S351. Linear algebra's functions take matrices of complex numbers: in
 the type of S257, the widest of the elements', of complex numbers where any
 element is one, an exact matrix exactly. Dense, `det`, `inv` and `solve`
-are cmat.h's -- LU with partial pivoting by |re| + |im|, Gauss-Jordan and
-the elimination of [A | B], as LAPACK's zgetrf, zgetri and zgesv -- bit for
+are cmat.h's - LU with partial pivoting by |re| + |im|, Gauss-Jordan and
+the elimination of [A | B], as LAPACK's zgetrf, zgetri and zgesv - bit for
 bit, a real operand of `solve` taken as x + 0i, cmat.h's arrays being
 complex; `trace` the kernels' sum from 0. `norm` is of the moduli: dense,
 the C core's scaled norm of the 2n parts, re and im in turn, which never
@@ -6685,7 +6685,7 @@ text below is `decisions_c44.md`, which `decisions_c44.py` reads.
 step 23: chunk 44, the C core's quaternions grown as S276 rules, and both
 C++ faces taking each; chunk 45, the kind in the language as S275 rules --
 `jm`, `km`, `quat(w, x, y, z)`, `parts` and the functions, dense as the C
-core's array and exact as values -- with S277's order of factors and its
+core's array and exact as values - with S277's order of factors and its
 right quotient; chunk 46, matrices of quaternions with S277's `A'`, `inv`,
 `solve` and Zhang's eigenvalues, and `dynamic_matrix` of every element type
 the fixed-size matrix takes (S354's recommendation).** Each chunk delivered
@@ -6809,8 +6809,8 @@ family's type and unscaled.** Measured 0 steps in every family.
 > caller's norm, of the caller's accuracy. Recommended: as taken. Taken.
 
 **S362. Construction: `from_matrix3` and `from_matrix4` by Shepperd's
-method, the largest of 4w^2, 4x^2, 4y^2 and 4z^2 -- w first among equals,
-then x, y, z -- giving its part, the others the off-diagonal sums and
+method, the largest of 4w^2, 4x^2, 4y^2 and 4z^2 - w first among equals,
+then x, y, z - giving its part, the others the off-diagonal sums and
 differences over 4 times it, then q or -q, whichever has w >= 0; a NaN or
 infinite entry gives NaNs; the result not normalized after, so that an
 orthogonal matrix's quaternion is within a step and a nearly orthogonal one's
@@ -6976,7 +6976,7 @@ measured (`timing_c44.c`).**
 **S368. `cplx.h`'s whole powers, z^n for n from -2^30 to 2^30 by repeated
 squaring as chunk 42 made them, each product rounded to the family, or to
 long double in the `_c` kernel, stay as they are in this chunk: within their
-bounds of the larger part, but not of each part where one cancels -- a cube
+bounds of the larger part, but not of each part where one cancels - a cube
 of w + r i, its imaginary part some 2^-10 of its modulus, comes back
 hundreds of steps of that part off in long double, as the quaternions'
 references found at random points, `cplx.h`'s own having none such. The
@@ -7022,9 +7022,9 @@ language, as S275 and S277 rule, and leaves matrices of them to its third,
 chunk 46, as S357 planned. Until then a literal holding a quaternion, a
 product or a quotient of a matrix and a quaternion, and linear algebra's
 functions of a quaternion but `inv`, which S275 names, answer
-`expr_status::not_yet`, each with its message -- "a matrix of quaternions:
+`expr_status::not_yet`, each with its message - "a matrix of quaternions:
 not yet (step 24, 3f, its third part)", "det of a quaternion: not yet (step
-24, 3f, its third part)" -- after an operand's error, as S331 had chunk
+24, 3f, its third part)" - after an operand's error, as S331 had chunk
 40's nodes answer; below the fold, `expr_matrix` answers an element that is
 a quaternion `not_yet` too, and the matrix kind's arithmetic, a literal's
 blocks and linear algebra's operands refuse one, a domain error. A sum of a
@@ -7202,10 +7202,10 @@ of a real r exact by repeated squaring for a whole r, a negative one the
 inverse's, and for a rational p/s where q's principal s-th root is a
 quaternion of rationals, the Gaussian root in q's plane (S337) where |v| is
 rational, and otherwise `quat.h`'s `pow_c`. Every other function of a
-quaternion is a domain error -- `imag` and `arg`, whose parts `parts`
+quaternion is a domain error - `imag` and `arg`, whose parts `parts`
 gives, `complex(x, y)`, the functions of the real line's order, the
 trigonometric and hyperbolic functions and their inverses, `exp2`, `log2`,
-`log10`, `log1p` and `expm1` -- and so is a quaternion exponent of any
+`log10`, `log1p` and `expm1` - and so is a quaternion exponent of any
 base, and a complex one of a quaternion, whose two orders give two
 values.**
 - Alternative: `imag(q)` the vector part [x, y, z] and `arg(q)` its angle,
@@ -7336,10 +7336,10 @@ and more in the lane's others, are left for a sweep of their own (section
 **S379. The owner's rulings of 2026.11.03 and 2026.11.04 on the flagged
 decisions (lane A's message of 11-04), each at the step the lane schedules,
 are scheduled so: S336's and S340's, which take the alternatives their
-reviews set aside -- the plain forms in a complex type and the `_c` forms as
+reviews set aside - the plain forms in a complex type and the `_c` forms as
 values, the docs saying where a value and `math::complex<T>` may differ;
 and real_results an option each function's evaluator takes with the
-context, every evaluator's signature changed -- in chunk 46, before
+context, every evaluator's signature changed - in chunk 46, before
 matrices of quaternions, so that its evaluators are written once to S340's
 signature; S338's and S341's docs in chunk 45, `function.hpp` saying how
 `min` and `max` differ from C's `fmin` and `fmax` and where MATLAB takes
@@ -8287,12 +8287,12 @@ The record: `_handoffs/math98_chunk49_2026.11.14/README.md`.
 **S404. The C core's sums of products and of terms are compensated by
 default: vec.h's `dot`, `cross` and `sum`, and mat.h's `multiply`,
 `multiply_vector`, `trace` and `power` (by `multiply`), each a sum rounded
-once from Ogita, Rump and Oishi's Dot2 or Sum2 -- each product exact as a
+once from Ogita, Rump and Oishi's Dot2 or Sum2 - each product exact as a
 pair by Dekker's product, the terms summed by two-sums, the errors summed
-apart and added last -- as accurate as the sum computed in twice the
+apart and added last - as accurate as the sum computed in twice the
 precision and rounded once.** The pairs are double's where double is
-evaluated in its own type, for the float and double families -- a float's
-products exact in one multiplication -- and long double's otherwise and
+evaluated in its own type, for the float and double families - a float's
+products exact in one multiplication - and long double's otherwise and
 for the long double family, as quat.h's products took them (S276). Where an
 entry leaves the range where Dekker's products are exact, its operand is
 scaled by a power of two and the sum scaled back, rounded once, a subnormal
@@ -8317,11 +8317,11 @@ with no test of its own where both operands lie in it.
 
 > **Review.** Taken: for, every dot, sum, cross product, matrix product and
 > trace of the C core as accurate as computed in twice the precision and
-> rounded once -- in this chunk's checks every float result and every sum
+> rounded once - in this chunk's checks every float result and every sum
 > and cross part correctly rounded, and every double and long double dot the
 > rounding of a value within Dot2's bound, 86 in 100 of them correctly
 > rounded where the formula as written rounds 14 or 15 in 100 so
-> (`raw/compensated.txt`) -- the same bits on every target where the family
+> (`raw/compensated.txt`) - the same bits on every target where the family
 > is evaluated in its own type, and a constant expression from C++14 as
 > before. Against: the cost, measured for double at 6 times the formula's
 > for a dot of 3 terms, 22 for 16 and 13 for 256, 11 for a 4 x 4 product and
@@ -8401,10 +8401,10 @@ they were.
   is double.
 
 > **Review.** Taken: for, the solution of a system well away from singular
-> correctly rounded entry by entry -- every entry of the 65 reference
+> correctly rounded entry by entry - every entry of the 65 reference
 > systems in this chunk's checks, 281, the 64 well conditioned and the one
 > that is not, where the elimination alone gave 41 (`raw/compensated.txt`)
-> -- by the algorithm LAPACK and its analysis stand behind, its old bits
+> - by the algorithm LAPACK and its analysis stand behind, its old bits
 > under `solve_fast`, and no old call compiling into an overrun. Against: a
 > C caller of `d_mat_<S>_solve` must change its call; and the cost, measured
 > for double at 10 times the elimination's for order 3 and 7 for order 8
@@ -8457,9 +8457,9 @@ projection his ruling of 2026.11.04 asked for. Chunk 49's, S404 to S408,
 stand: his "continue" of 2026.11.15 followed its delivery.
 
 **S409. `project` and `reject` scale their operands at the range's ends,
-as S301 was ruled on 2026.11.04: in range -- the squared norm d of the
+as S301 was ruled on 2026.11.04: in range - the squared norm d of the
 vector projected onto from MIN/EPS to MAX, the compensated dot p 0 or its
-ratio to d from MIN/EPS to MAX -- each component p/d times the other's, as
+ratio to d from MIN/EPS to MAX - each component p/d times the other's, as
 before, every bit kept; for the zero vector, or an operand with a NaN or an
 infinity, the formula as written; elsewhere each operand scaled by a power
 of two, its largest entry to [1, 2), the scaled dot by Dot2 over the scaled
@@ -8491,8 +8491,8 @@ or 0.
 
 **S410. cmat.h's complex dense kernels are compensated and refined:
 `d_cmat_<S>_multiply`, new, rounds each part of each entry once from Dot2's
-pair -- the real part's products re re and -im im, the imaginary part's re
-im and im re, each exact as a pair -- and `d_cmat_<S>_solve` refines its
+pair - the real part's products re re and -im im, the imaginary part's re
+im and im re, each exact as a pair - and `d_cmat_<S>_solve` refines its
 solution as mat.h's does (S406), the residual's parts by Dot2 with the
 solution carried as a pair, part by part, until every part's correction
 lies below half its unit in the last place, neither the largest correction
@@ -8521,7 +8521,7 @@ elimination, its signature and bits.
   no room for the factors, the pair and the correction.
 
 > **Review.** Taken: for, every part of a complex dot within Dot2's bound of
-> the exact sum -- 120,000 parts checked exactly, in six builds -- and the
+> the exact sum - 120,000 parts checked exactly, in six builds - and the
 > refined complex solve exact on all 562 parts of 65 reference systems, 64
 > well conditioned, where the elimination gave 72 (`raw/compensated.txt`);
 > the old bits under `_fast` names; and, cplx.h's products being themselves
@@ -8565,8 +8565,8 @@ formula under its `_fast` name, `power_fast` now by `multiply_fast`.
 > with zero pivots and ties, and the refined solution, a product and a trace
 > as constant expressions to the run time's (`raw/smoke.txt`); the scratch
 > the faces already give. Against: some 650 lines of C++ mirroring cmat.h's
-> kernels, which must stay in step with them -- the parity checks hold them
-> so -- and the cost, the face's double 4 x 4 product 1,319.0 ns against
+> kernels, which must stay in step with them - the parity checks hold them
+> so - and the cost, the face's double 4 x 4 product 1,319.0 ns against
 > `times_fast`'s 904.6 and its solve of order 3 2,936.5 against 1,059.0
 > (`raw/timing.txt`). The alternatives: the generic path calling cmat.h; its
 > sums as written; every floating type compensated. Recommended: as taken.
@@ -8624,7 +8624,7 @@ The record: `_handoffs/math98_chunk51_2026.11.16/README.md`.
 
 Chunk 51's decisions, S414 to S423: the first of the double family's
 rewrite, under the owner's rulings of 2026.11.16 at 09:26 on the
-decisions of 2026.11.15 -- the double family on pairs of doubles, exp and
+decisions of 2026.11.15 - the double family on pairs of doubles, exp and
 log first, each in three phases with proven bounds (1, B); the eight rules
 (2, A); exp and log now, then 0.8's items, core v2 in December, then the
 rest of the family (3, B); the x87 refused for the family's functions
@@ -8651,12 +8651,12 @@ modes wherever the target has the instruction, every ARM64 and x86 with a
 built with `gcc -std=gnu11 -O2 -march=x86-64-v3`, chunk 50's compensated
 double dot was correctly rounded on 2,403 of 20,000 cancelling dots, its
 worst error 6.4e13 ulps. `math_common.h`'s new section 5 says when the
-builtin may be called -- `D_MATH_{FLT,DBL,LDBL}_FMA` and `_FMA_OF`, from
+builtin may be called - `D_MATH_{FLT,DBL,LDBL}_FMA` and `_FMA_OF`, from
 gcc's `__FP_FAST_FMA` macros and x86's and ARM's own; in C, in C++ before
 C++14, where no kernel is a constant expression, and from C++14 where
-`D_MATH_CONSTANT_EVALUATED` keeps it out of a constant evaluation -- and
+`D_MATH_CONSTANT_EVALUATED` keeps it out of a constant evaluation - and
 `D_MATH_RUN_TIME()` guards each call. The four exact products the
-generator writes take it -- `vec.h`'s, `cplx.h`'s for each family,
+generator writes take it - `vec.h`'s, `cplx.h`'s for each family,
 `elementary.h`'s long double product and float square, and `dd.h`'s (S417)
 -- and no error-free transform anywhere takes a product that is not exact.
 Every generated header opens with clang's `#pragma float_control(push)` and
@@ -8677,8 +8677,8 @@ the faces, with the host's fused multiply-add (`-march=x86-64-v3`).
   is silently wrong, and the flag stops harmless fusing in the user's own
   code.
 - Alternative: Dekker's product everywhere, the build refused where it
-  fuses: no macro says that gcc fuses -- `__FP_FAST_FMA` says that the
-  target can, which an ISO build with the instruction does not use -- so
+  fuses: no macro says that gcc fuses - `__FP_FAST_FMA` says that the
+  target can, which an ISO build with the instruction does not use - so
   the refusal would take every ARM64 build with the ones it must.
 
 > **Review.** Taken: for, every compensated kernel's exact products exact in
@@ -8686,9 +8686,9 @@ the faces, with the host's fused multiply-add (`-march=x86-64-v3`).
 > target has the instruction, an exact product two operations instead of
 > some seventeen; clang told not to fuse in the headers, so that its plain
 > formulas keep their ISO bits but under -ffp-contract=fast. Against: two
-> forms of every exact product, both to be tested -- the fused tier tests
+> forms of every exact product, both to be tested - the fused tier tests
 > the explicit one, every other tier and every constant evaluation Dekker's
-> -- and, where gcc fuses, the plain formulas' and the `_fast` forms' last
+> - and, where gcc fuses, the plain formulas' and the `_fast` forms' last
 > bits following the build (S415). The alternatives: fusing forbidden in the
 > headers, which gcc does not honour in a header without losing inlining;
 > `-ffp-contract=off` asked of every user, silently wrong where missed;
@@ -8706,8 +8706,8 @@ and C's standard answers outside the domain. The roadmap's principle 4 and
 gate G6 say so.** It holds for each of the family's functions as its
 rewrite lands, `exp_c` in this chunk (S416), and for `dd.h`'s exact sums and
 products, exact in every build, its other results within their proven
-bounds, fused or not (S417). The plain formulas -- every kernel written
-as its formula, the `_fast` forms among them -- follow the build: where it
+bounds, fused or not (S417). The plain formulas - every kernel written
+as its formula, the `_fast` forms among them - follow the build: where it
 fuses, their last bits may differ from an ISO build's, as ruling 7 has it,
 and `d_math_formulas_fuse()` says whether the translation unit's build
 fuses (S419). The float and long double families keep their contract until
@@ -8837,8 +8837,8 @@ operation, edges and normalization: the largest errors, in u^2, `add_d`
 > exact sums and product exact in every build, constant expressions from
 > C++14; `t_dd.c`'s exact checks found every error within its bound.
 > Against: names frozen once 0.8 ships them; the quotients' bounds, 12 and
-> 38 u^2, and the root's, 32, proven but loose -- the worst errors found are
-> 2.3, 6.1 and 2.8 u^2 -- which a function that leans on them must budget
+> 38 u^2, and the root's, 32, proven but loose - the worst errors found are
+> 2.3, 6.1 and 2.8 u^2 - which a function that leans on them must budget
 > for; `sqrt` 72 ns, its first step `d_math_d_sqrt_c`, the correctly rounded
 > root in pure arithmetic. The alternatives: the pairs internal; every
 > operation correctly rounded to the pair; the paper's quotients.
@@ -8928,8 +8928,8 @@ static; each entry an exact literal, an odd integer over a power of two, as
 every level from C99 and C++98 reads it.** gcc copies a local constexpr
 array onto the stack at each call; a template's static member has one
 definition however many translation units include the header, at every
-level from C++98 -- constexpr from C++11, a const defined after the class
-before it -- without C++17's inline variables.
+level from C++98 - constexpr from C++11, a const defined after the class
+before it - without C++17's inline variables.
 - Alternative: hexadecimal literals: C99's and C++17's, not C++98's to
   C++14's.
 - Alternative: a namespace-scope constexpr array: one copy per translation
@@ -8943,9 +8943,9 @@ before it -- without C++17's inline variables.
 > translation unit before C++17. Recommended: as taken. Taken.
 
 **S421. Where a build fuses, the harnesses leave out the checks that a
-function's bits are another computation's -- a kernel against its formula
+function's bits are another computation's - a kernel against its formula
 written out, the same formula in two orders, a constant evaluation against
-the run time for an operation that is not exact -- and say so, by
+the run time for an operation that is not exact - and say so, by
 `d_math_formulas_fuse()`: the fusing switch of `t_mat.c`, `t_plane.c`,
 `t_decomp.c`, `t_vec.c`, `t_cmat.c` and `t_compensated.c`, and `t_dd.c`'s
 parity of its non-exact operations; every check against exact arithmetic,
@@ -8965,7 +8965,7 @@ not reached.
   tier: the tier would then not test fusing in them at all.
 
 > **Review.** Taken: for, the fused tier tests what a fusing build must keep
-> -- every exact result, and every result against exact arithmetic -- and
+> - every exact result, and every result against exact arithmetic - and
 > leaves out only what ruling 7 says follows the build, each harness saying
 > so in its output. Against: a fusing build's plain formulas held to no
 > bits, only to the checks against exact arithmetic where a harness has
@@ -8974,12 +8974,12 @@ not reached.
 
 **S422. `exp_c` is checked against references made by mpmath at 400 bits,
 `math_tests_exp_refs.h`, made by `tools/refs_exp_c51.py` with its
-`--check`: 2,398 arguments in four groups -- 2,048 random over the range;
+`--check`: 2,398 arguments in four groups - 2,048 random over the range;
 256 within 2^-66 of a midpoint; 37 within 2^-102 of one, found by
 `tools/hard_exp_c51.c`'s window search in five binades, 2^-27, 2^-30,
 2^-33, 2^-36 and 2^-39, of 49 it screened, and checked at 400 bits, the
 known 0x1.9e9cbbfd6080bp-31 first; 57 at the
-edges -- each phase checked alone at every argument where it is defined,
+edges - each phase checked alone at every argument where it is defined,
 its result within its bound of the reference, and phases 2 and 3 each
 required to be reached.** On the references phase 1 decides 1,887 of the
 1,888 random arguments it reduces, phase 2 252 of the 256 near a midpoint,
@@ -9035,7 +9035,7 @@ other lanes' work, are his.
 The record: `_handoffs/math98_chunk52_2026.11.20/README.md`.
 
 Chunk 52's decisions, S424 to S427: the second of the double family's
-rewrite, under the owner's rulings of 2026.11.16 -- exp and log first,
+rewrite, under the owner's rulings of 2026.11.16 - exp and log first,
 each in three phases with proven bounds, by the lane's own algorithms
 (1, B; 3, B; 5, B), the x87 refused (4, B), kernels immune to fusing
 (7, B). Chunk 51's decisions, S414 to S423, stand: the owner's "continue
@@ -9065,9 +9065,9 @@ relatively, then rounded at 53 bits. Each phase gives its result where the
 interval its bound allows rounds one way, as Ziv's method has it.** The
 bounds are proven in the record's `proofs/`: Sollya's `supnorm` for the
 polynomials, against their Taylor polynomials of degree 40; Gappa for
-phases 1 and 2 in each of three cases -- e not 0; e = 0 and i neither 0 nor
+phases 1 and 2 in each of three cases - e not 0; e = 0 and i neither 0 nor
 128, where L and log1p(r) may partly cancel; e = 0 and i 0 or 128, where r
-= x - 1 -- every value divided by |log(x)|, the magnitudes each case allows
+= x - 1 - every value divided by |log(x)|, the magnitudes each case allows
 proven by `log_consts.py` against mpmath at 600 bits, every product a
 compiler may fuse modelled both ways; exact rational arithmetic for phase
 3. `log_gappa.py` checks in exact arithmetic that each phase's test is
@@ -9123,7 +9123,7 @@ rest, phase 3 none. The plain `d_math_d_log` stays the C library's
 
 **S425. `log_c` is checked against references made by mpmath at 400 bits, as
 `exp_c` is (S422): `math_tests_log_refs.h`, made by `tools/refs_log_c52.py`,
-holds 2,048 random arguments of eight classes -- every binade, the
+holds 2,048 random arguments of eight classes - every binade, the
 subnormals among them, [1/2, 2], 1 +- tiny, 1 + k 2^-52 and 1 - k 2^-53,
 random patterns, powers of 2 and their neighbours, the table's turns, [1,
 1e6] --, 256 whose logarithm lies within 2^-66 of a rounding midpoint and
@@ -9167,8 +9167,8 @@ and the tests that call the double `log_c` leave it out where double is
 evaluated wider, saying so: `t_exponential.c`'s random, edge, special,
 overload and constant-evaluation checks of it, and `t_constants_face.cpp`'s
 ln2 and ln10 against it.** Nothing else in the tree calls the double
-`log_c`; the faces that use the `_c` forms -- the expression language's,
-the complex and quaternion faces, the constants -- build and pass at
+`log_c`; the faces that use the `_c` forms - the expression language's,
+the complex and quaternion faces, the constants - build and pass at
 `-m32` on the x87, as they did. `tools/refusal_c52.sh` checks both ways: a
 program that calls the double `exp_c` and `log_c`, a pair's sum and the
 self-test is refused on the x87 with the message, by gcc, clang, g++ and

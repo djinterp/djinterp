@@ -5,8 +5,8 @@
 *   The 32-bit ARM half of the djinterp JIT, targeting the A32 instruction set
 * (ARMv7). Every instruction is one 32-bit little-endian word; each emitter
 * packs fields into a base opcode and emits it with d_jit_emit_u32. It is
-* wholly separate from the AArch64 encoder (jit_arm64.h) -- A32 and A64 share
-* neither encodings nor a register model -- exactly as x86 and x86-64 are
+* wholly separate from the AArch64 encoder (jit_arm64.h) - A32 and A64 share
+* neither encodings nor a register model - exactly as x86 and x86-64 are
 * separate modules.
 *
 *   Every A32 instruction carries a 4-bit condition in bits [31:28]; these
@@ -42,7 +42,7 @@
 #include "../../../../re_std/c/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -284,7 +284,7 @@ D_NODISCARD int d_jit_arm_emit_mov_imm(
 );
 
 // d_jit_arm_emit_mov_imm32
-//   function: load any 32-bit constant into Rd -- movw the low halfword, then
+//   function: load any 32-bit constant into Rd - movw the low halfword, then
 // movt the high halfword when it is non-zero (1-2 instructions).
 D_NODISCARD int d_jit_arm_emit_mov_imm32(
     dj_jit_buffer* _buf,
@@ -431,14 +431,14 @@ D_NODISCARD int d_jit_arm_emit_str(
 // ---------------------------------------------------------------------------
 
 // d_jit_arm_emit_push
-//   function: push {list} -- _reglist is a 16-bit mask (bit r selects Rr).
+//   function: push {list} - _reglist is a 16-bit mask (bit r selects Rr).
 D_NODISCARD int d_jit_arm_emit_push(
     dj_jit_buffer* _buf,
     unsigned       _reglist
 );
 
 // d_jit_arm_emit_pop
-//   function: pop {list} -- _reglist is a 16-bit mask (bit r selects Rr).
+//   function: pop {list} - _reglist is a 16-bit mask (bit r selects Rr).
 D_NODISCARD int d_jit_arm_emit_pop(
     dj_jit_buffer* _buf,
     unsigned       _reglist
@@ -449,14 +449,14 @@ D_NODISCARD int d_jit_arm_emit_pop(
 // ---------------------------------------------------------------------------
 
 // d_jit_arm_emit_b
-//   function: b _target -- unconditional branch (+/-32 MB).
+//   function: b _target - unconditional branch (+/-32 MB).
 D_NODISCARD int d_jit_arm_emit_b(
     dj_jit_buffer* _buf,
     dj_jit_label*  _target
 );
 
 // d_jit_arm_emit_bl
-//   function: bl _target -- branch with link (call).
+//   function: bl _target - branch with link (call).
 D_NODISCARD int d_jit_arm_emit_bl(
     dj_jit_buffer* _buf,
     dj_jit_label*  _target
@@ -471,7 +471,7 @@ D_NODISCARD int d_jit_arm_emit_b_cond(
 );
 
 // d_jit_arm_emit_bx
-//   function: bx Rm -- branch/exchange; bx LR is the standard return.
+//   function: bx Rm - branch/exchange; bx LR is the standard return.
 D_NODISCARD int d_jit_arm_emit_bx(
     dj_jit_buffer* _buf,
     int            _rm

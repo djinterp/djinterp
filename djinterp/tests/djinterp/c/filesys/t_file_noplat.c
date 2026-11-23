@@ -3,7 +3,7 @@
 *
 *   Runtime harness for c/filesys built with neither POSIX nor Windows --
 * D_CFG_FILE_HAS_POSIX=0 on a POSIX host, or a target env counts as neither,
-* as WASI is -- which puts every module on the ISO C backend. It checks that
+* as WASI is - which puts every module on the ISO C backend. It checks that
 * every call needing the platform fails with ENOSYS, the allocating ones
 * without allocating; that the calls that are only text still work; that the
 * predicates answer no rather than fail; and that streams still do what ISO C

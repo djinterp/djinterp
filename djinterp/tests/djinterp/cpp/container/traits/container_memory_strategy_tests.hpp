@@ -40,7 +40,7 @@
 #include <cstdio>
 #include <memory>
 // djinterp
-// -- mode-gated includes ----------------------------------------------------
+// - mode-gated includes ----------------------------------------------------
 // djinterp core is always first and unconditional (NS_*, D_* qualifiers), so
 // both faces have it.
 #include <djinterp/cpp/djinterp.hpp>

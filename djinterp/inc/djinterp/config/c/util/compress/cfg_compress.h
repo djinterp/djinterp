@@ -18,7 +18,7 @@
 * configuration is a choice, and conflating them is how a build ends up unable
 * to exclude a library that happens to be on the include path.  Every codec
 * knob here therefore defaults FROM the detection and can be turned off
-* independently of it -- never the reverse, because configuration cannot
+* independently of it - never the reverse, because configuration cannot
 * conjure a library that is not there.
 *
 *
@@ -62,7 +62,7 @@ TABLE OF CONTENTS
 
 // D_CFG_COMPRESS_ALL
 //   brief: aggregate fallback for every per-codec enable in 0.2. Set 0 to
-// compile out every third-party codec at once, leaving `store` -- which is
+// compile out every third-party codec at once, leaving `store` - which is
 // implemented in the kernel and is not gated, because a build with no codec
 // must still be a WORKING build rather than a broken one. Individual knobs
 // override this; the cascade is individual > aggregate > detection.
@@ -78,7 +78,7 @@ TABLE OF CONTENTS
 // direction, and is how a build drops a dependency it does not want linked.
 
 // D_CFG_COMPRESS_CODEC_DEFLATE
-//   brief: raw DEFLATE, and with it the zlib and gzip wrappers -- one provider
+//   brief: raw DEFLATE, and with it the zlib and gzip wrappers - one provider
 // serves all three framings, so they cannot be enabled separately.
 #ifndef D_CFG_COMPRESS_CODEC_DEFLATE
 #   define D_CFG_COMPRESS_CODEC_DEFLATE D_CFG_COMPRESS_ALL
@@ -127,7 +127,7 @@ TABLE OF CONTENTS
 // or let the backend choose (0).
 //   ON is required for goals §2. A multi-threaded encoder partitions its input
 // by worker count, so the same bytes compressed on a 4-core and a 64-core
-// machine produce DIFFERENT output -- a parity divergence with no bug behind
+// machine produce DIFFERENT output - a parity divergence with no bug behind
 // it, and one that only appears when the two forks run on different hardware.
 //   Turn it OFF only for a build where throughput matters and byte-identical
 // output does not. A parity suite run against such a build is meaningless, so
@@ -157,7 +157,7 @@ TABLE OF CONTENTS
 //   It is a STACK buffer, so raising it raises every codec leaf's frame size;
 // lower it on a constrained target rather than raising it for throughput, which
 // it does not meaningfully affect. It must exceed a single codec block for the
-// multi-chunk path to be exercised at all -- the standard test corpus is sized
+// multi-chunk path to be exercised at all - the standard test corpus is sized
 // against the default, so a build that lowers this should re-check that its
 // large-payload tests still cross the boundary.
 #ifndef D_CFG_COMPRESS_CHUNK
@@ -193,7 +193,7 @@ TABLE OF CONTENTS
 // trust the caller (0).
 //   The check is a walk over a fifteen-entry table, so it costs nothing
 // measurable next to an encode. OFF exists for a build that has already
-// validated upstream and wants the leaf to be a pure dispatch -- but note that
+// validated upstream and wants the leaf to be a pure dispatch - but note that
 // an out-of-range knob then reaches the backend, where the failure is a
 // backend error rather than a named offending knob.
 #ifndef D_CFG_COMPRESS_VALIDATE
@@ -331,7 +331,7 @@ TABLE OF CONTENTS
 
 // D_INTERNAL_COMPRESS_ZLIB_WRAP / _GZIP_WRAP
 //   brief: the two DEFLATE framings, which ride on the same provider and the
-// same enable -- there is no configuration in which a build has raw DEFLATE and
+// same enable - there is no configuration in which a build has raw DEFLATE and
 // wants the zlib wrapper excluded.
 #define D_INTERNAL_COMPRESS_ZLIB_WRAP                                          \
     ( D_ENV_COMPRESSION_HAVE_ZLIB_WRAP &&                                      \

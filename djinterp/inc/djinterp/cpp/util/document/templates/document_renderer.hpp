@@ -6,7 +6,7 @@
 * CONTENT model; it names blocks and hints and knows nothing of text vs PDF vs
 * HTML.  A DDocumentRenderer is the other half: a per-dialect back end that
 * turns those semantic calls into bytes.  Templates drive a renderer; a renderer
-* realises them.  Swap the renderer, change the dialect -- the template is
+* realises them.  Swap the renderer, change the dialect - the template is
 * untouched.
 *
 *   A SEMANTIC SINK, NOT A TREE.  The protocol is imperative (begin_table /
@@ -14,8 +14,8 @@
 * rule, ...), exactly as pdf_template's flow surface and DDocumentWriter's tree
 * surface are imperative.  No intermediate document object is materialised: a
 * template streams events, the renderer places them.  This is a COLD assembly
-* path (a whole document is built once, then serialised), so -- like DPdfBackend
-* -- the renderer is a genuine runtime plug-in and a virtual base is the right
+* path (a whole document is built once, then serialised), so - like DPdfBackend
+* - the renderer is a genuine runtime plug-in and a virtual base is the right
 * tool, not compile-time dispatch.
 *
 *   HINTS ARE ADVISORY.  Every call carries a DDocAttributes bag; a renderer
@@ -96,7 +96,7 @@ public:
     virtual
     ~DDocumentRenderer() = default;
 
-    // -- document frame ------------------------------------------------------
+    // - document frame ------------------------------------------------------
 
     // begin_document / end_document
     //   open and close the whole document.  A streaming dialect writes a
@@ -105,7 +105,7 @@ public:
     virtual void begin_document(const DDocAttributes&) {}
     virtual void end_document() {}
 
-    // -- blocks --------------------------------------------------------------
+    // - blocks --------------------------------------------------------------
 
     // heading
     //   a section title at _level (1 = outermost).  Default: the text as one
@@ -163,7 +163,7 @@ public:
     // continuous dialect has no pages).
     virtual void page_break() {}
 
-    // -- lists ---------------------------------------------------------------
+    // - lists ---------------------------------------------------------------
 
     // begin_list / list_item / end_list
     //   an (optionally ordered) list; nest by opening another list inside an
@@ -183,7 +183,7 @@ public:
 
     virtual void end_list() {}
 
-    // -- tables --------------------------------------------------------------
+    // - tables --------------------------------------------------------------
     //   A table is streamed: begin_table, then one table_column per column
     // (its header text and per-column hints such as `align` / `width`), then a
     // begin_row / cell.../ end_row for each data row, then end_table.  Headers
@@ -215,23 +215,23 @@ protected:
 // ===========================================================================
 
 // DPlainDocumentRenderer
-//   class: the plain-text / console realisation of DDocumentRenderer -- the
+//   class: the plain-text / console realisation of DDocumentRenderer - the
 // reference dialect, and the one that makes a DDocumentTable renderable with
 // no other back end present.  It accumulates a byte buffer: headings gain an
 // underline, lists indent by depth, a rule is a run of dashes, a page break is
 // a form feed, and tables are laid out as aligned monospace columns (widths
 // computed from headers, cells, and any `width` hint; each column padded to
-// its `align`).  Presentation hints with no plain-text meaning -- `font`,
-// `color`, `style` -- are ignored, as the design intends.
+// its `align`).  Presentation hints with no plain-text meaning - `font`,
+// `color`, `style` - are ignored, as the design intends.
 class DPlainDocumentRenderer
     : public DDocumentRenderer
 {
 public:
-    // -- public type aliases -------------------------------------------------
+    // - public type aliases -------------------------------------------------
 
     using size_type = std::size_t;
 
-    // -- construction --------------------------------------------------------
+    // - construction --------------------------------------------------------
 
     DPlainDocumentRenderer()
         : m_out(),
@@ -244,7 +244,7 @@ public:
           m_row()
     {}
 
-    // -- result --------------------------------------------------------------
+    // - result --------------------------------------------------------------
 
     // str
     //   the accumulated document.
@@ -254,7 +254,7 @@ public:
     }
 
     // write_to
-    //   writes the accumulated document to an output stream -- the console,
+    //   writes the accumulated document to an output stream - the console,
     // a file, a dj_string, a caller's array, several at once. True only when
     // every byte arrived; the stream keeps why it did not.
     bool write_to(
@@ -276,7 +276,7 @@ public:
         return;
     }
 
-    // -- overrides -----------------------------------------------------------
+    // - overrides -----------------------------------------------------------
 
     void
     heading(
@@ -515,7 +515,7 @@ protected:
     }
 
 private:
-    // -- table layout helpers ------------------------------------------------
+    // - table layout helpers ------------------------------------------------
 
     // column_count
     //   the table width: the number of declared columns, widened to the widest
@@ -628,7 +628,7 @@ private:
         return;
     }
 
-    // -- small static helpers ------------------------------------------------
+    // - small static helpers ------------------------------------------------
 
     // display_width
     //   the print width of a string.  Bytes, not glyphs: exact for ASCII
@@ -698,11 +698,11 @@ private:
         return _v;
     }
 
-    // -- layout constants ----------------------------------------------------
+    // - layout constants ----------------------------------------------------
 
     // k_col_sep / k_rule_join
     //   the inter-column separator and its matching run in the header rule.
-    // constexpr pointers to string literals -- initialised in class, so no
+    // constexpr pointers to string literals - initialised in class, so no
     // out-of-class definition and no inline-variable dependency.
     static constexpr const char* k_col_sep   = " | ";
     static constexpr const char* k_rule_join = "-+-";
@@ -715,7 +715,7 @@ private:
     //   the width of a rule that carries no `width` hint.
     static constexpr size_type k_default_rule_cells = size_type(64);
 
-    // -- storage -------------------------------------------------------------
+    // - storage -------------------------------------------------------------
 
     std::string                           m_out;       // the document so far
 

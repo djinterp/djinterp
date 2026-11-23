@@ -364,8 +364,8 @@ bool buffered_result_set::last() noexcept
 
 /*
 buffered_result_set::absolute
-  A row past either end leaves the cursor at that end's place -- before the
-first, after the last -- as next and previous would.
+  A row past either end leaves the cursor at that end's place - before the
+first, after the last - as next and previous would.
 */
 bool buffered_result_set::absolute(
     re_std::int64_t _row

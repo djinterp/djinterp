@@ -12,7 +12,7 @@
 *                       child of another frame, which it lets go of when it
 *                       goes;
 *     DOptionEnvOverride  a variable forced from the OVERRIDE source for the
-*                       override's life -- a test's, a scope's -- and given
+*                       override's life - a test's, a scope's - and given
 *                       back, the OVERRIDE binding the frame had before
 *                       restored, when it ends.
 *   Usage:
@@ -85,7 +85,7 @@ NS_DJINTERP
 // 1.1    DOptionEnvView
 //------------------------------------------------------------------------------
 // DOptionEnvView
-//   class: a frame the caller keeps -- C's, a registry's, a printer's -- as a
+//   class: a frame the caller keeps - C's, a registry's, a printer's - as a
 // C++ object. Copied freely: it is the frame's address and the status of the
 // last binding made through it. A variable is named by its id, from find(),
 // and read in a scope, the global one unless one is given.
@@ -599,9 +599,9 @@ private:
 // 2.1    DOptionEnv
 //------------------------------------------------------------------------------
 // DOptionEnv
-//   class template: a frame and its storage -- room for Bindings bindings,
+//   class template: a frame and its storage - room for Bindings bindings,
 // Vars declarations and Text bytes of arena, as D_OPTION_ENV_DECLARE sizes
-// them -- made at construction, a root or a child of another frame, and let
+// them - made at construction, a root or a child of another frame, and let
 // go of as a child when it goes. Not copied: the frame points into the
 // storage. status() says whether construction succeeded.
 template<std::size_t Bindings,
@@ -757,8 +757,8 @@ private:
 //------------------------------------------------------------------------------
 // DOptionEnvOverride
 //   class: a variable forced from the OVERRIDE source, by name and from text,
-// for the object's life -- nothing a file, the environment or the command
-// line says outranks it -- and given back when it ends: the OVERRIDE binding
+// for the object's life - nothing a file, the environment or the command
+// line says outranks it - and given back when it ends: the OVERRIDE binding
 // the frame had in that scope before, restored as text, or none. Overrides of
 // one variable end in the reverse order they began, as scopes do. ok() says
 // whether the override holds; one that failed changes nothing.

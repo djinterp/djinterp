@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][container]                                        table_overlay.h
 *
-*   The restriction bundle a table wears -- the finite vocabulary
+*   The restriction bundle a table wears - the finite vocabulary
 * containers.tex fixes (mu, gamma, delta, sigma, eta) and its composition
 * law, in one struct rather than one container type per combination.
 *
@@ -37,7 +37,7 @@ D_EXTERN_C_BEGIN
 //
 //   Overlays compose by UNION of their restrictions, the extension being the
 // intersection: O1 /\ O2 = R1 u R2.  The empty overlay is worn by everything,
-// and adding a restriction can only shrink the extension -- which is why
+// and adding a restriction can only shrink the extension - which is why
 // d_table_overlay_meet is a bitwise-or of the present sets and nothing more
 // clever.
 //
@@ -49,10 +49,10 @@ D_EXTERN_C_BEGIN
 //   TYPE ERASURE NEEDS COMPARATORS.  The carrier is bytes, so delta_I, sigma
 // and mu_m cannot compare cells themselves; the bundle carries comp_tau and,
 // under eta, the key projection.  A restriction whose comparator is absent
-// simply is not checked -- the same discipline header_extent uses.
+// simply is not checked - the same discipline header_extent uses.
 //
 //   WHY NOT fn_comparator.  djinterp.h's fn_comparator is
-// `int (*)(const void*, const void*)` -- no context pointer, so it cannot carry
+// `int (*)(const void*, const void*)` - no context pointer, so it cannot carry
 // a locale, an epsilon, or a key table without global mutable state.  The hooks
 // below take a context and are otherwise the same idea.
 
@@ -92,7 +92,7 @@ struct dj_table_overlay
 };
 
 // d_table_overlay_none
-//   function: the empty overlay -- the top of the strength order, worn by
+//   function: the empty overlay - the top of the strength order, worn by
 // every table. A zeroed bundle, so a caller may also just memset one.
 D_NODISCARD D_INLINE struct dj_table_overlay d_table_overlay_none(void)
 {
@@ -119,13 +119,13 @@ int d_table_overlay_wears(
 
 // d_table_overlay_capacity_of
 //   function: kappa, or the largest representable extent when the bundle
-// declares no capacity -- an undeclared ceiling does not bind.
+// declares no capacity - an undeclared ceiling does not bind.
 size_t d_table_overlay_capacity_of(
     const struct dj_table_overlay* _overlay
 );
 
 // d_table_overlay_in_domain
-//   function: whether a cell lies in <I> -- delta_I applied to one value.
+//   function: whether a cell lies in <I> - delta_I applied to one value.
 // Vacuously true when the restriction is absent, and also when the bundle
 // carries no comparator, since an unreadable restriction is not a failed one.
 int d_table_overlay_in_domain(
@@ -135,7 +135,7 @@ int d_table_overlay_in_domain(
 
 // d_table_overlay_key
 //   function: eta's projection of a cell, or the cell itself when the bundle
-// is not keyed -- an unkeyed duplicate-equivalence is over whole values.
+// is not keyed - an unkeyed duplicate-equivalence is over whole values.
 const void* d_table_overlay_key(
     const struct dj_table_overlay* _overlay,
     const void*                    _cell

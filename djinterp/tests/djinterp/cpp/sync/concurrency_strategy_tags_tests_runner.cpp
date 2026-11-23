@@ -55,7 +55,7 @@ int main()
 
     rb.use_pdf("concurrency_strategy_tags_tests_report.pdf");
 
-    // -- 0. the header contract --------------------------------------------
+    // - 0. the header contract --------------------------------------------
     rb.module("0. the header contract",
               "the guard, the single dependency, the namespace, the C++11 gate");
     rb.run("the include guard is defined, and is 1",  &tests_header_include_guard);
@@ -67,7 +67,7 @@ int main()
     rb.run("everything sits FLAT in djinterp",        &tests_entities_live_in_the_djinterp_namespace);
     rb.run("section II is gated to C++11",            &tests_vocabulary_is_gated_to_cpp11);
 
-    // -- I. the seven strategy tags ----------------------------------------
+    // - I. the seven strategy tags ----------------------------------------
     rb.module("I. the seven strategy tags",
               "empty, trivial, standard-layout, one byte -- a name that costs nothing");
     rb.run("all seven are complete class types",      &tests_tag_types_are_complete);
@@ -83,7 +83,7 @@ int main()
     rb.run("survive a by-value round trip",           &tests_tag_types_pass_by_value);
     rb.run("C++98 PODs, as the banner claims",        &tests_tag_types_are_cpp98_pods);
 
-    // -- I. tag identity + composition -------------------------------------
+    // - I. tag identity + composition -------------------------------------
     rb.module("I. tag identity + composition",
               "emptiness is what a tag costs; DISTINCTNESS is what it buys");
     rb.run("all 21 pairs are distinct types",         &tests_tags_are_pairwise_distinct);
@@ -99,7 +99,7 @@ int main()
     rb.run("hybrid is a PEER, not a composite",       &tests_hybrid_is_a_peer_not_a_composite);
     rb.run("the tag predicate rejects everything else", &tests_the_tag_predicate_rejects_non_tags);
 
-    // -- I. the self-tagging protocol --------------------------------------
+    // - I. the self-tagging protocol --------------------------------------
     rb.module("I. the self-tagging fast path",
               "using concurrency_strategy_tag = <tag>; -- read directly, no probing");
     rb.run("a type that names the alias is seen",     &tests_self_tagging_is_detected);
@@ -115,7 +115,7 @@ int main()
     rb.run("the alias need not name a KNOWN tag",     &tests_the_alias_need_not_name_a_known_tag);
     rb.run("decay first: a reference is not a class", &tests_detection_after_decay);
 
-    // -- II. concurrency_progress ------------------------------------------
+    // - II. concurrency_progress ------------------------------------------
     rb.module("II. concurrency_progress",
               "the progress grade: sequential < blocking < lock_free < wait_free");
     rb.run("the four grades are 0, 1, 2, 3",          &tests_progress_enumerator_values);
@@ -131,7 +131,7 @@ int main()
     rb.run("exactly four grades",                     &tests_progress_has_exactly_four_grades);
     rb.run("an out-of-range cast falls through",      &tests_progress_out_of_range_value_falls_through);
 
-    // -- II. concurrency_arity ---------------------------------------------
+    // - II. concurrency_arity ---------------------------------------------
     rb.module("II. concurrency_arity",
               "how many agents may act at once: swmr < mwmr");
     rb.run("swmr is 0, mwmr is 1",                    &tests_arity_enumerator_values);
@@ -146,7 +146,7 @@ int main()
     rb.run("exactly two arities",                     &tests_arity_has_exactly_two_arities);
     rb.run("an out-of-range cast falls through",      &tests_arity_out_of_range_value_falls_through);
 
-    // -- II. iteration_consistency -----------------------------------------
+    // - II. iteration_consistency -----------------------------------------
     rb.module("II. iteration_consistency",
               "overlap-semantics: inconsistent < weakly_consistent < snapshot");
     rb.run("the three semantics are 0, 1, 2",         &tests_iteration_enumerator_values);
@@ -160,7 +160,7 @@ int main()
     rb.run("exactly three semantics",                 &tests_iteration_has_exactly_three_semantics);
     rb.run("an out-of-range cast falls through",      &tests_iteration_out_of_range_value_falls_through);
 
-    // -- II. reclamation_obligation ----------------------------------------
+    // - II. reclamation_obligation ----------------------------------------
     rb.module("II. reclamation_obligation",
               "what a container owes when a cell is freed while agents run");
     rb.run("the six obligations are 0 through 5",     &tests_reclamation_enumerator_values);
@@ -175,7 +175,7 @@ int main()
     rb.run("an out-of-range cast falls through",      &tests_reclamation_out_of_range_value_falls_through);
     rb.run("scoping keeps `hazard` out of djinterp",  &tests_reclamation_enumerators_do_not_collide_with_the_tags);
 
-    // -- II. the signature vocabulary --------------------------------------
+    // - II. the signature vocabulary --------------------------------------
     rb.module("II. the vocabulary as a whole",
               "four coordinates, one signature -- and no trait header in sight");
     rb.run("four coordinates, four distinct types",   &tests_the_four_enums_are_distinct_types);

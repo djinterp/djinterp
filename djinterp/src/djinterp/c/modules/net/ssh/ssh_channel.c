@@ -586,8 +586,8 @@ d_ssh_internal_view_error
   File-local: what a read, write or shutdown through the view that failed
 with `_status` reports, in net.h's terms. A failed channel answers with the
 status that failed it, which d_ssh_internal_channel_settle kept; any other
-keeps `_status`, and one the channel can no longer carry -- closed, past
-EOF, in a session gone -- is a closed connection.
+keeps `_status`, and one the channel can no longer carry - closed, past
+EOF, in a session gone - is a closed connection.
 */
 D_STATIC enum dj_net_error
 d_ssh_internal_view_error(

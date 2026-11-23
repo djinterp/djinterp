@@ -15,18 +15,18 @@
 * the C core, not an independent reimplementation. Every operation below
 * forwards to the C function of the same name. There is no second algorithm
 * anywhere in this file, which is what makes the parity law hold by
-* construction rather than by testing -- the differential tests then confirm it
+* construction rather than by testing - the differential tests then confirm it
 * rather than being the only thing standing between the two.
 *
 * TWO WRAPPING PATTERNS, FOR TWO KINDS OF C TYPE.
 *
-*   1. A C type that is not parameterised -- `dj_reducer`, `dj_producer`,
-*      `dj_semigroup`, `dj_monoid`, `dj_free` -- is HELD BY VALUE as the wrapper's
+*   1. A C type that is not parameterised - `dj_reducer`, `dj_producer`,
+*      `dj_semigroup`, `dj_monoid`, `dj_free` - is HELD BY VALUE as the wrapper's
 *      single member. Nothing is restated; the C declaration is the only one.
 *      `sizeof(wrapper) == sizeof(the C struct)` is asserted for each.
 *
-*   2. A C type whose layout depends on an element type -- the `DMaybe` and
-*      `DResult` cells -- cannot be held that way, because C spells it with a
+*   2. A C type whose layout depends on an element type - the `DMaybe` and
+*      `DResult` cells - cannot be held that way, because C spells it with a
 *      macro that names the struct. So the FIELDS were factored out in maybe.h
 *      and result.h, and the C++ template below expands THE SAME MACRO. One
 *      declaration of the layout, two languages consuming it. `D_MAYBE_FIELDS`
@@ -84,7 +84,7 @@ namespace face
 {
 
 // ---------------------------------------------------------------------------
-// I.   Pattern 1 -- hold the C struct, restate nothing
+// I.   Pattern 1 - hold the C struct, restate nothing
 // ---------------------------------------------------------------------------
 
 // DReducer
@@ -146,7 +146,7 @@ using reducer = DReducer;
 
 // DSemigroup
 //   Wraps `dj_semigroup`. `mappend` forwards to `d_mappend`, so associativity is
-// whatever the C instance says it is -- there is no second combine here to
+// whatever the C instance says it is - there is no second combine here to
 // disagree with it.
 class DSemigroup
 {
@@ -290,7 +290,7 @@ private:
 using producer = DProducer;
 
 // ---------------------------------------------------------------------------
-// II.  Pattern 2 -- expand the SHARED layout macro, restate nothing
+// II.  Pattern 2 - expand the SHARED layout macro, restate nothing
 // ---------------------------------------------------------------------------
 
 // DMaybe<T>
@@ -474,13 +474,13 @@ template<typename T,
 using result = DResult<T, E>;
 
 // ---------------------------------------------------------------------------
-// III. Cost law -- a wrapper adds no members and no indirection
+// III. Cost law - a wrapper adds no members and no indirection
 // ---------------------------------------------------------------------------
 //   Goal 10: "A wrapper's sizeof equals the wrapped type's; abstraction adds no
 // members and no indirection." Pattern-1 wrappers hold exactly one C struct, so
 // the equality is exact and is asserted here. Pattern-2 classes hold a cell AND
 // a view, which is two objects rather than a decorated one, so the cell's own
-// size is what must match -- and it does, because it IS the C layout.
+// size is what must match - and it does, because it IS the C layout.
 
 D_STATIC_ASSERT(sizeof(DReducer)   == sizeof(dj_reducer),   "reducer wrapper cost");
 D_STATIC_ASSERT(sizeof(DSemigroup) == sizeof(dj_semigroup), "semigroup wrapper cost");

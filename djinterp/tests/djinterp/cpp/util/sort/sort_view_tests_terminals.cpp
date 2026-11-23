@@ -33,7 +33,7 @@ bool tests_sort_view_default_terminal_applies()
     std::stable_sort(expected.begin(), expected.end(), std::less<int>());
 
     //   The terminal drains the upstream view into a vector and orders it
-    // with the element type's DEFAULT comparator -- ascending.  Driving
+    // with the element type's DEFAULT comparator - ascending.  Driving
     // apply() directly, rather than through operator|, isolates the terminal
     // from the pipe machinery.
     result.check(ranges_equal(
@@ -46,7 +46,7 @@ bool tests_sort_view_default_terminal_applies()
 
     //   The element type of the result follows the view's value_type, not
     // the source container's.  A transform that changes the values must be
-    // sorted AFTER the transform, not before -- negating reverses the
+    // sorted AFTER the transform, not before - negating reverses the
     // ordering, so this is the check that would catch a terminal that sorted
     // its input rather than its output.
     expected = view_sample();
@@ -174,7 +174,7 @@ bool tests_sort_view_terminal_empty_pipeline()
         std::greater<int>(), DSortAlgorithm::heap);
 
     //   A pipeline that yields nothing produces an empty vector, and the
-    // DSorter is handed an empty range -- the case that would fault if
+    // DSorter is handed an empty range - the case that would fault if
     // quicksort's short-range guard were missing.
     result.check(
         terminal.apply(empty | ::djinterp::transform(identity_int())).empty());
@@ -209,8 +209,8 @@ bool tests_sort_view_terminal_is_recognised()
     // apply(const View&) whose result is a non-view value.  Both sort
     // terminals must satisfy that probe, because it is what the (view |
     // terminal) and (container | terminal) operator| overloads dispatch on.
-    // A trailing-return-type body is used precisely so the probe -- which
-    // instantiates only the signature -- never touches the body.
+    // A trailing-return-type body is used precisely so the probe - which
+    // instantiates only the signature - never touches the body.
     result.check(
         is_terminal<::djinterp::internal::DSortDefaultTerminal>::value);
     result.check(

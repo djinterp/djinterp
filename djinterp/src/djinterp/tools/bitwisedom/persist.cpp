@@ -130,7 +130,7 @@ json_value hex_value(
 
 /*
 read_hex
-  A value of any width, as 0x-prefixed text -- or any base parse_wide
+  A value of any width, as 0x-prefixed text - or any base parse_wide
 reads. A negative number is its 64-bit two's complement, as a literal's
 bits were always written.
 */
@@ -173,7 +173,7 @@ rgba read_colour(
     return colour;
 }
 
-// field readers -- each takes a member of an object, with a fallback
+// field readers - each takes a member of an object, with a fallback
 bool get_bool(
     const json_value&  _object,
     const std::string& _key,
@@ -703,8 +703,8 @@ json_value save_colours(
 
 /*
 forget_old_defaults
-  A sheet saved before themes and schemes were the window's -- one whose
-colours name a "theme" -- wrote every colour out, the defaults with the
+  A sheet saved before themes and schemes were the window's - one whose
+colours name a "theme" - wrote every colour out, the defaults with the
 rest. A colour that is one of those defaults, any old theme's, was never
 chosen: it becomes automatic, so the sheet follows the window's theme and
 scheme. So do the palette, saturation and brightness the old themes gave.
@@ -929,7 +929,7 @@ void load_gen(
 /*
 file_path
   A file's name as the system means it. Names travel through the program
-as UTF-8 -- typed into ImGui, or dropped on the window -- and a stream
+as UTF-8 - typed into ImGui, or dropped on the window - and a stream
 opened by a narrow string would read one in the system's code page on
 Windows; a path made from UTF-8 says which.
 */

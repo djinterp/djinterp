@@ -11,8 +11,8 @@
 * option; and failure messages in the GNU shape, one line and a pointer to
 * help, on standard error. The program then adds its own commands, each with
 * the function that does its work, and its own options, through the parser.
-*   RUNNING. d_cli_program_run parses main's arguments -- the true command
-* line on Windows, whatever the code page -- ends a parse that asked for
+*   RUNNING. d_cli_program_run parses main's arguments - the true command
+* line on Windows, whatever the code page - ends a parse that asked for
 * help, a version or a completion script, or that failed, with what it asked
 * for and the right exit status, and otherwise calls the function of the
 * command the arguments reached, whose status the program exits with. A
@@ -23,7 +23,7 @@
 * the parser reports, whatever CLI11's code for it, is 2.
 *   THE VERSION. `--version` prints `PROGRAM VERSION`; with `-v`, before it
 * or after, the build follows, a `KEY: VALUE` line each (GRAMMAR.md, section
-* 6): the program's file -- and, in a module's program, the module's --
+* 6): the program's file - and, in a module's program, the module's --
 * and where each command that is a module would load it from; how the
 * program was built, as d_cli_program_set_build was told (D_CLI_BUILD_INIT);
 * lines of the program's own (d_cli_program_add_build); and how the kit
@@ -165,20 +165,20 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 1.1.1
 // D_CLI_EXIT_OK
-//   constant: done -- it did what was asked, and the answer, if one was
+//   constant: done - it did what was asked, and the answer, if one was
 // asked, is yes.
 #define D_CLI_EXIT_OK      0
 
 // 1.1.2
 // D_CLI_EXIT_NO
-//   constant: done, and the answer is no -- a sheet with errors, an input a
+//   constant: done, and the answer is no - a sheet with errors, an input a
 // grammar refuses, two runs that differ. A command that answers nothing
 // never returns it.
 #define D_CLI_EXIT_NO      1
 
 // 1.1.3
 // D_CLI_EXIT_TROUBLE
-//   constant: it could not do what was asked -- the command line, a file, a
+//   constant: it could not do what was asked - the command line, a file, a
 // document that is not one, a missing plugin, the program itself.
 #define D_CLI_EXIT_TROUBLE 2
 
@@ -208,9 +208,9 @@ enum dj_cli_severity
 //   flag: the program reads response files, `@FILE` (R14), split as the
 // platform's tools split them, and every page of its help says so (ruling
 // cli-taken 84): in the kit's layout, `@FILE` among the program's own
-// options -- the root's Options, before help and version; a command's Global
+// options - the root's Options, before help and version; a command's Global
 // options, after them; the Options of a command that takes none from above
-// -- and a module's pages too, its host having read them; in the parser's
+// - and a module's pages too, its host having read them; in the parser's
 // own (D_CLI_PROGRAM_PARSER_HELP), last among a page's OPTIONS, laid out as
 // an option is. Off unless asked for.
 #define D_CLI_PROGRAM_RESPONSE_FILES  (1u << 1)
@@ -226,7 +226,7 @@ enum dj_cli_severity
 // 1.3.4
 // D_CLI_PROGRAM_PLAIN_ERRORS
 //   flag: an error said without its word, as the GNU coding standards write
-// one -- `PROGRAM: MESSAGE`, `FILE:LINE:COLUMN: MESSAGE` -- a warning and a
+// one - `PROGRAM: MESSAGE`, `FILE:LINE:COLUMN: MESSAGE` - a warning and a
 // note keeping theirs, as coreutils writes `warning:` (GRAMMAR.md, section
 // 8). djinterp's own programs leave it off (ruling 10).
 #define D_CLI_PROGRAM_PLAIN_ERRORS    (1u << 3)
@@ -234,7 +234,7 @@ enum dj_cli_severity
 // 1.3.5
 // D_CLI_PROGRAM_ABBREVIATIONS
 //   flag: a unique prefix of a long option's name stands for the name, as
-// getopt_long takes one -- `--verb` for `--verbose` -- and one that several
+// getopt_long takes one - `--verb` for `--verbose` - and one that several
 // names begin is a usage error naming them (d_arg_parser_set_abbreviations).
 // djinterp's own programs leave it off (ruling 6; GRAMMAR.md R5): with it,
 // a script's abbreviation can stop working when an option is added.
@@ -254,8 +254,8 @@ enum dj_cli_severity
 // dj_cli_command_fn
 //   type: a command's work, called once the parse has reached the command:
 // the program, the command, and the context the command was added with. It
-// returns the status the program exits with -- D_CLI_EXIT_OK, D_CLI_EXIT_NO
-// or D_CLI_EXIT_TROUBLE -- having said what went wrong, if anything, through
+// returns the status the program exits with - D_CLI_EXIT_OK, D_CLI_EXIT_NO
+// or D_CLI_EXIT_TROUBLE - having said what went wrong, if anything, through
 // the reports of section 7.
 struct dj_cli_program;
 
@@ -301,7 +301,7 @@ struct dj_cli_handler
 // dj_cli_build
 //   struct: how a unit was built, as `--version --verbose` says it: the
 // compiler's name and its version, the language level, the system and the
-// machine it was built for, and the build type -- `Debug` or `Release`.
+// machine it was built for, and the build type - `Debug` or `Release`.
 // Every string is a literal of the unit's, never copied, or NULL where
 // unknown; a version is -1 where unknown.
 struct dj_cli_build
@@ -423,7 +423,7 @@ struct dj_cli_build
 // rewritten where `/?` stood. `status` is D_ARG_OK while the program is
 // made whole, and otherwise why it is not: what d_cli_program_init failed
 // with, kept past the release that failure makes, or the want of memory
-// for a command's work -- so that a run of the program ends in trouble and
+// for a command's work - so that a run of the program ends in trouble and
 // says why, rather than run a program short of a command. `build` is how
 // the program was built, its `compiler` NULL until d_cli_program_set_build;
 // `build_lines` the lines of its own d_cli_program_add_build kept, each
@@ -479,7 +479,7 @@ struct dj_cli_program
 // dj_cli_watch
 //   struct: the program's output, watched (d_cli_program_watched): the sink
 // written through, and `errnum`, errno as the first write that took less
-// than it was given left it -- 0 when none did, or when the sink set none.
+// than it was given left it - 0 when none did, or when the sink set none.
 // d_cli_output_error says it.
 struct dj_cli_watch
 {
@@ -569,9 +569,9 @@ D_CLI_API void d_cli_program_release(
  *       before (fallthrough, R2), and a help flag of its own. One command
  *       runs (R1): a command takes at most one subcommand, as the root does,
  *       and the parser's subcommand fallthrough is off, so a word after the
- *       command that names another is the command's operand -- or a usage
- *       error -- never a second command. A command with no function -- one
- *       that only groups subcommands -- is a usage error when the parse
+ *       command that names another is the command's operand - or a usage
+ *       error - never a second command. A command with no function - one
+ *       that only groups subcommands - is a usage error when the parse
  *       stops at it.
  *
  * @param[in,out] _program      the program.
@@ -638,8 +638,8 @@ D_CLI_API int d_cli_program_set_main(
  *       `completion` (d_cli_program_init). Every parse makes each named
  *       option take one value each time it is given (R8), a list being the
  *       option given again: CLI11 lets one bound to a vector go on taking
- *       the arguments after it. On Windows main's own arguments -- as many
- *       as the C runtime gave main, each the same text -- are taken again
+ *       the arguments after it. On Windows main's own arguments - as many
+ *       as the C runtime gave main, each the same text - are taken again
  *       from the process's wide command line, as d_arg_parser_ensure_utf8
  *       recovers them; any others, a module's among them, are parsed as
  *       given, in UTF-8; and `/?` is read as `--help`. Help, a version and
@@ -676,8 +676,8 @@ D_CLI_API bool d_cli_program_parse(
 // d_cli_program_dispatch
 //   running: after a parse that succeeded, calls the work of the deepest
 // command the parse reached and returns its status. A command with no work,
-// and a program with commands given none, is a usage error -- its usage and
-// commands to the error output -- and D_CLI_EXIT_TROUBLE.
+// and a program with commands given none, is a usage error - its usage and
+// commands to the error output - and D_CLI_EXIT_TROUBLE.
 D_CLI_API int d_cli_program_dispatch(
     struct dj_cli_program* _program
 );
@@ -696,7 +696,7 @@ D_CLI_API int d_cli_program_run(
 //------------------------------------------------------------------------------
 // 5.3.1
 // d_cli_program_command
-//   query: the deepest command the last parse reached -- the root when it
+//   query: the deepest command the last parse reached - the root when it
 // reached no subcommand; NULL for a NULL program.
 D_CLI_API struct dj_arg_command* d_cli_program_command(
     const struct dj_cli_program* _program
@@ -778,7 +778,7 @@ D_CLI_API int d_cli_command_path(
 // 6.4.1
 // d_cli_program_set_build
 //   setting: how the program was built, as `--version --verbose` says it,
-// copied from `_build` -- whose strings are the caller's literals, kept, not
+// copied from `_build` - whose strings are the caller's literals, kept, not
 // copied: D_CLI_BUILD_INIT's. Set after d_cli_program_init, which clears it;
 // a program not given one says only how the kit was built. A NULL program or
 // build changes nothing; does not fail.
@@ -796,7 +796,7 @@ D_CLI_API void d_cli_program_set_build(
  * @note The lines are said in the order they were added; a module's window
  *       adds the libraries it draws with, say. The kit's own keys --
  *       `program`, `module`, `compiler`, `language`, `system`, `build` and
- *       `kit` -- are best left to it.
+ *       `kit` - are best left to it.
  *
  * @param[in,out] _program  the program.
  * @param[in]     _key      the key, copied: not empty, and with no line
@@ -816,7 +816,7 @@ D_CLI_API int d_cli_program_add_build(
 
 // 6.4.3
 // d_cli_kit_build
-//   query: how the kit itself was built -- the compiler and level its C was
+//   query: how the kit itself was built - the compiler and level its C was
 // compiled with, which a program's own build need not share.
 D_CLI_API const struct dj_cli_build* d_cli_kit_build(void);
 
@@ -884,8 +884,8 @@ D_CLI_API void d_cli_note(
 // 7.2.1
 // d_cli_usage_error
 //   report: a usage error found by a command's work, in the shape the parser's
-// take -- `PROGRAM: error: COMMAND: MESSAGE` and `Try 'PROGRAM COMMAND --help'
-// for more information.` -- the command NULL for the root. Returns
+// take - `PROGRAM: error: COMMAND: MESSAGE` and `Try 'PROGRAM COMMAND --help'
+// for more information.` - the command NULL for the root. Returns
 // D_CLI_EXIT_TROUBLE, so that the work may `return` it.
 D_CLI_API int d_cli_usage_error(
     const struct dj_cli_program* _program,
@@ -911,7 +911,7 @@ D_CLI_API int d_cli_file_error(
 // 7.2.3
 // d_cli_output_error
 //   report: the program's output refused what a command wrote through
-// `_watch` -- `PROGRAM: error: cannot write standard output: REASON`, the
+// `_watch` - `PROGRAM: error: cannot write standard output: REASON`, the
 // reason the watch kept, or, where it kept none, `PROGRAM: error: cannot
 // write standard output`. Returns D_CLI_EXIT_TROUBLE.
 D_CLI_API int d_cli_output_error(

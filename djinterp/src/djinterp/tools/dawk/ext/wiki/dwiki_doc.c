@@ -106,8 +106,8 @@ struct dj_internal_span
 // 1.1.5
 // dj_internal_link_change
 //   struct: a change to a link: the link as it was, whether it is a
-//   reference, the destination and the label asked for -- NULL for one
-//   left as it is -- what each is written as, and where the label goes.
+//   reference, the destination and the label asked for - NULL for one
+//   left as it is - what each is written as, and where the label goes.
 struct dj_internal_link_change
 {
     struct dj_wiki_link     link;
@@ -202,7 +202,7 @@ char* d_internal_read_file(
 
 /*
 d_internal_is_separator, d_internal_make_directory, d_internal_is_directory
-  Whether a byte separates a path's parts -- `/` and `\` -- a directory
+  Whether a byte separates a path's parts - `/` and `\` - a directory
 made, 0 when it is, and whether a path is a directory.
 */
 static
@@ -238,7 +238,7 @@ bool d_internal_is_directory(
 
 /*
 d_internal_is_separator, d_internal_make_directory, d_internal_is_directory
-  Whether a byte separates a path's parts -- `/` -- a directory made, 0
+  Whether a byte separates a path's parts - `/` - a directory made, 0
 when it is, and whether a path is a directory.
 */
 static

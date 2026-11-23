@@ -59,7 +59,7 @@ public:
         RE_STD_NOEXCEPT override
 #else
         // C++98's std::exception::what() is throw(), and an override may not
-        // have a looser exception specification -- a requirement of the
+        // have a looser exception specification - a requirement of the
         // base, not a choice of spelling, so not RE_STD_NOEXCEPT's (decision 3.1)
         throw()
 #endif
@@ -83,7 +83,7 @@ public:
         RE_STD_NOEXCEPT override
 #else
         // C++98's std::exception::what() is throw(), and an override may not
-        // have a looser exception specification -- a requirement of the
+        // have a looser exception specification - a requirement of the
         // base, not a choice of spelling, so not RE_STD_NOEXCEPT's (decision 3.1)
         throw()
 #endif

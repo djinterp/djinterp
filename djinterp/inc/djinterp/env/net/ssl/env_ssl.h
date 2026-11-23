@@ -84,7 +84,7 @@ TABLE OF CONTENTS
 //==============================================================================
 // 1.  TRANSPORT PREREQUISITES
 //==============================================================================
-// TLS runs over a reliable, ordered byte stream -- in practice TCP, which
+// TLS runs over a reliable, ordered byte stream - in practice TCP, which
 // env_net.h already answers for. It is restated under the D_ENV_SSL_* name so
 // an SSL module reads one family. The kernel itself runs over any net.h
 // connection, an in-memory pipe included, and needs none of this to build.
@@ -187,9 +187,9 @@ TABLE OF CONTENTS
 //   feature: 1 if the OpenSSL family is present at or above the engine's
 // floor. LibreSSL meets it from 2.9.1 (OpenBSD 6.5), which brought
 // SSL_CTX_add1_chain_cert, the newest call the engine makes ungated; the 1.1.0
-// calls it needs came before it -- TLS_client_method in OpenBSD 5.8, the
+// calls it needs came before it - TLS_client_method in OpenBSD 5.8, the
 // protocol-version setters in 6.2, ASN1_STRING_get0_data in 6.3. An unknown
-// version -- D_CFG_ENV_TLS_PROBE_VERSION set to 0 -- reads as unusable;
+// version - D_CFG_ENV_TLS_PROBE_VERSION set to 0 - reads as unusable;
 // pre-define this to 1 to vouch for the library instead.
 #ifndef D_ENV_SSL_OPENSSL_USABLE
     #if !D_ENV_TLS_HAS_OPENSSL

@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                   hierarchical_iterator_concepts.hpp
 *
-* C++20 concepts for the HIERARCHICAL / FLAT iterator shapes -- the
+* C++20 concepts for the HIERARCHICAL / FLAT iterator shapes - the
 * `requires`-facing view of iterator/hierarchical_iterator_traits.hpp.
 *
 *   THE CONCEPTS ADD NO POLICY.
@@ -12,7 +12,7 @@
 *   meta/concepts.hpp already owns the general type-level concepts (the `_c`
 * family), and constexpr_iterator_concepts.hpp the constexpr-iteration ones;
 * neither is duplicated here. Where an obvious name is otherwise taken, the
-* concept takes a form that cannot collide -- a concept and a class of one
+* concept takes a form that cannot collide - a concept and a class of one
 * name in one namespace is a hard redeclaration.
 *
 *   PORTABILITY:
@@ -57,21 +57,21 @@ NS_TRAITS
 
 
 // ChildNavigableIterator
-//   concept: reaches its children -- a first_child accessor. The vertical move
+//   concept: reaches its children - a first_child accessor. The vertical move
 // a flat iterator does not have.
 template<typename Type>
 concept ChildNavigableIterator = has_first_child_accessor_v<Type>;
 
 
 // NodeKeyedIterator
-//   concept: exposes the node's KEY -- position in the tree carries an
+//   concept: exposes the node's KEY - position in the tree carries an
 // address, not just a value.
 template<typename Type>
 concept NodeKeyedIterator = has_node_key_accessor_v<Type>;
 
 
 // NodeValuedIterator
-//   concept: exposes the node's VALUE -- the payload at this position.
+//   concept: exposes the node's VALUE - the payload at this position.
 template<typename Type>
 concept NodeValuedIterator = has_node_value_accessor_v<Type>;
 
@@ -82,13 +82,13 @@ concept NodeValuedIterator = has_node_value_accessor_v<Type>;
 
 
 // SiblingNavigableIterator
-//   concept: reaches its siblings -- the horizontal move across one level.
+//   concept: reaches its siblings - the horizontal move across one level.
 template<typename Type>
 concept SiblingNavigableIterator = has_sibling_accessor_v<Type>;
 
 
 // LeafTestableIterator
-//   concept: can say whether it sits at a leaf -- the base case a tree walk
+//   concept: can say whether it sits at a leaf - the base case a tree walk
 // stops on.
 template<typename Type>
 concept LeafTestableIterator = has_is_leaf_method_v<Type>;

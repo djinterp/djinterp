@@ -60,7 +60,7 @@ bool concepts_tests_templates()
     using fixtures::method_lacker;
 
     // -------------------------------------------------------------------
-    // is_template_c -- empty instantiation only (Foo<>)
+    // is_template_c - empty instantiation only (Foo<>)
     // -------------------------------------------------------------------
 
     DT_CONCEPT    (is_template_c<empty_template<>>);
@@ -72,7 +72,7 @@ bool concepts_tests_templates()
     DT_NOT_CONCEPT(is_template_c<trivial_class>);
 
     // -------------------------------------------------------------------
-    // is_template_with_args_c -- non-empty instantiation
+    // is_template_with_args_c - non-empty instantiation
     // -------------------------------------------------------------------
 
     DT_CONCEPT    (is_template_with_args_c<args_template<int>>);
@@ -94,7 +94,7 @@ bool concepts_tests_templates()
                    && is_template_with_args_c<args_template<int>>);
 
     // -------------------------------------------------------------------
-    // has_nested_template_type_c -- `typename T::template type<int>`
+    // has_nested_template_type_c - `typename T::template type<int>`
     // -------------------------------------------------------------------
 
     DT_CONCEPT    (has_nested_template_type_c<nested_template_holder>);
@@ -103,7 +103,7 @@ bool concepts_tests_templates()
     DT_NOT_CONCEPT(has_nested_template_type_c<int>);
 
     // -------------------------------------------------------------------
-    // has_variadic_constructor_c -- T(declval<T>()) is valid
+    // has_variadic_constructor_c - T(declval<T>()) is valid
     // -------------------------------------------------------------------
     //   The concept is named "variadic" but the actual check is "can
     // T be constructed from itself?", i.e. is the copy ctor or move
@@ -114,7 +114,7 @@ bool concepts_tests_templates()
     DT_CONCEPT    (has_variadic_constructor_c<method_haver>);
 
     // -------------------------------------------------------------------
-    // template_parameter_base_of -- T::value_type is a base of T
+    // template_parameter_base_of - T::value_type is a base of T
     // -------------------------------------------------------------------
 
     DT_CONCEPT    (template_parameter_base_of<template_with_base_value_type>);

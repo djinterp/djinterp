@@ -3,7 +3,7 @@
 *
 *   Shared, dependency-light verification helpers for the archive facade
 * (core/util/archive/archive.hpp).  It exists so that any test suite whose module
-* produces or consumes an archive -- not just archive.hpp's own tests -- can
+* produces or consumes an archive - not just archive.hpp's own tests - can
 * assert facts about the bytes without re-deriving container layouts each time:
 * build sample entries, round-trip a set through a format, confirm the payload
 * survived, and sniff a blob's shape (is this really a zip / gzip / ustar, how
@@ -22,7 +22,7 @@
 *
 * WHAT IT IS NOT
 * --------------
-*   Not an assertion framework and not a test itself -- it returns plain bool /
+*   Not an assertion framework and not a test itself - it returns plain bool /
 * status / counts that a suite feeds to its own D_xx_CHECK macros.  The sniffers
 * are intentionally lenient structural probes (front signature + trailing
 * end-of-central-directory for zip, magic bytes for gzip, the ustar magic for
@@ -31,7 +31,7 @@
 *
 * PORTABILITY
 * -----------
-*   Target floor C++98, effective floor C++11 -- djinterp.hpp gates below it,
+*   Target floor C++98, effective floor C++11 - djinterp.hpp gates below it,
 * so no includer compiles at C++98 today.  No third-party include.
 *   Availability-aware by
 * construction: the round-trip drivers report whatever status the facade

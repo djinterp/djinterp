@@ -16,7 +16,7 @@
 *   num and den are always the reduced form with a POSITIVE
 * denominator, and `type` names the already-reduced ratio. That is what
 * makes ratio_equal a plain member comparison rather than a
-* cross-multiplication -- two ratios are equal exactly when their
+* cross-multiplication - two ratios are equal exactly when their
 * reduced forms match.
 *
 *   WHY intmax_t AND NOT A TEMPLATE PARAMETER TYPE:
@@ -35,7 +35,7 @@
 * walk so it needs no type wider than intmax_t at all.
 *
 *   PORTABILITY:
-*   std added <ratio> in C++11 and re_std matches it exactly -- no
+*   std added <ratio> in C++11 and re_std matches it exactly - no
 * back-port, because intmax_t and the template machinery both arrive
 * with C++11 and there is nothing below it to reach.
 *
@@ -152,7 +152,7 @@ public:
 
 
 // Out-of-class definitions. Before C++17 a static const data member that
-// is odr-used -- bound to a reference, or address-taken -- still needs
+// is odr-used - bound to a reference, or address-taken - still needs
 // one, and duration/time_point in <chrono> will do exactly that. From
 // C++17 the in-class initialiser is itself the definition and repeating
 // it is deprecated, so the definitions are gated.

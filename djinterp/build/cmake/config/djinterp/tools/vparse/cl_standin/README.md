@@ -66,10 +66,10 @@ tests are the ones `cl` gets. vparse's build has 21: the tool's three (the
 model's suite, the command line's, and `vparse run` over the example
 grammar), djinterp's foundation suites at C++14, 17, 20 and 23 and its C
 suites at C99, C11 and C17, vparse's at C++14 to 23, and the argument
-parser's seven -- its C suites at C99, C11 and C17, and its C++ suites at
+parser's seven - its C suites at C99, C11 and C17, and its C++ suites at
 C++98, 14, 17 and 20; its allocation sweep is left out, as under `cl`,
 whose linker has no `--wrap`. The window's has those and its own five, 26: the window's suite, its Dear ImGui suite, and three runs of
-`vparse gui` -- its help, its version, and a grammar it cannot read --
+`vparse gui` - its help, its version, and a grammar it cannot read --
 which find the module, `vparse-gui-win64.dll`, and load it. `cl` has no
 C++11 to select, so the leaves leave that level out.
 

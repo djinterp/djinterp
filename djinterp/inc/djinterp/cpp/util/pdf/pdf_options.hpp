@@ -165,14 +165,14 @@ pdf_color color_of_preset(
 // `to_*` views are conveniences.  Strings left empty are "unset".
 struct pdf_options
 {
-    // -- page geometry -------------------------------------------------------
+    // - page geometry -------------------------------------------------------
     DPdfPageSize  page;            // page extent (default letter)
     DPdfUnit       margin_left;     // points (default 54; the canvas margin)
     DPdfUnit       margin_right;    // points
     DPdfUnit       margin_top;      // points
     DPdfUnit       margin_bottom;   // points
 
-    // -- default text presentation -------------------------------------------
+    // - default text presentation -------------------------------------------
     DPdfBaseFont  font_family;     // base-14 face (default courier)
     DPdfUnit       font_size;       // points (default 11; the canvas body size)
     pdf_color      text_color;      // device color (default black)
@@ -180,13 +180,13 @@ struct pdf_options
     DPdfUnit       leading;         // line leading, points (default LEADING)
     std::size_t    indent_cells;    // left indent in character-cells (default 0)
 
-    // -- document metadata (Info dictionary; empty = unset) ------------------
+    // - document metadata (Info dictionary; empty = unset) ------------------
     std::string    title;
     std::string    author;
     std::string    subject;
     std::string    creator;
 
-    // -- output --------------------------------------------------------------
+    // - output --------------------------------------------------------------
     DPdfCompression compression;   // streams: by_default (the build's knob,
                                    // D_CFG_PDF_COMPRESS), flate, or none
 
@@ -205,7 +205,7 @@ struct pdf_options
           compression(DPdfCompression::by_default)
     {}
 
-    // -- fluent setters (return *this so calls chain) ------------------------
+    // - fluent setters (return *this so calls chain) ------------------------
 
     // set_page
     //   choose the page extent from a preset.
@@ -285,7 +285,7 @@ struct pdf_options
         return *this;
     }
 
-    // -- projections (the views the targets consume) -------------------------
+    // - projections (the views the targets consume) -------------------------
 
     // font
     //   the default text run's pdf_font (family + size).

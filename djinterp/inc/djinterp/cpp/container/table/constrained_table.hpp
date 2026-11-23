@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                                constrained_table.hpp
 *
-*   constrained_table -- the BAG-LEVEL conjunction overlay over a table
+*   constrained_table - the BAG-LEVEL conjunction overlay over a table
 * backing
 * (Overlays: containers as restriction bundles).  It bundles the two bag-level
 * restrictions of the vocabulary, both blind to order and construction:
@@ -31,7 +31,7 @@
 * within
 * the cap AND (when a domain is set) every cell lies in the interval;
 * otherwise it
-* refuses -- throwing, or, in the try_ form, reporting failure.  Removal is
+* refuses - throwing, or, in the try_ form, reporting failure.  Removal is
 * unconstrained (dropping rows keeps both restrictions), and neither ceiling
 * nor
 * domain is ever silently broken. This is the shape of a BOUNDED source under
@@ -323,25 +323,25 @@ public:
 
     // --- 4. restriction queries (capacity / domain) ---
 
-    // max_rows -- the capacity ceiling kappa, in rows.
+    // max_rows - the capacity ceiling kappa, in rows.
     D_NODISCARD static constexpr size_type max_rows() noexcept
     {
         return max_row_capacity;
     }
 
-    // full -- true when the row cap is reached (no further row is admissible).
+    // full - true when the row cap is reached (no further row is admissible).
     D_NODISCARD bool full() const noexcept
     {
         return (m_base.rows() >= max_row_capacity);
     }
 
-    // capacity -- the ceiling as a cell count (kappa rows times the width).
+    // capacity - the ceiling as a cell count (kappa rows times the width).
     D_NODISCARD size_type capacity() const noexcept
     {
         return (max_row_capacity * m_base.cols());
     }
 
-    // has_domain -- whether the delta_I restriction is active.
+    // has_domain - whether the delta_I restriction is active.
     D_NODISCARD bool has_domain() const noexcept
     {
         return m_has_domain;
@@ -357,7 +357,7 @@ public:
         return m_hi;
     }
 
-    // in_domain -- whether _value lies in the closed interval [lo, hi] (always
+    // in_domain - whether _value lies in the closed interval [lo, hi] (always
     // true when no domain is set).
     D_NODISCARD bool in_domain(const Type& _value) const
     {
@@ -374,7 +374,7 @@ public:
 
     // --- 5. structural mutation (restriction-preserving) ---
 
-    // try_push_row -- append _row iff it keeps the bundle: the cap is not yet
+    // try_push_row - append _row iff it keeps the bundle: the cap is not yet
     // reached AND (when a domain is set) every cell lies in the interval.
     // Returns whether the row was admitted; never breaks a restriction.
     D_NODISCARD bool try_push_row(std::initializer_list<Type> _row)
@@ -402,7 +402,7 @@ public:
         return true;
     }
 
-    // push_row -- append _row, throwing when a restriction would be broken
+    // push_row - append _row, throwing when a restriction would be broken
     // (std::length_error past the cap, std::out_of_range outside the domain).
     void push_row(std::initializer_list<Type> _row)
     {
@@ -431,7 +431,7 @@ public:
         return;
     }
 
-    // erase_row -- remove the row at index _r (removal keeps both
+    // erase_row - remove the row at index _r (removal keeps both
     // restrictions).
     void erase_row(size_type _r)
     {
@@ -440,7 +440,7 @@ public:
         return;
     }
 
-    // pop_row -- remove the last row.
+    // pop_row - remove the last row.
     void pop_row()
     {
         m_base.pop_row();
@@ -448,7 +448,7 @@ public:
         return;
     }
 
-    // clear -- drop all rows.
+    // clear - drop all rows.
     void clear() noexcept
     {
         m_base.clear();
@@ -499,7 +499,7 @@ D_NODISCARD DConstrainedTable<Type, MaxRows> make_domain_table(
 
 
 // ---------------------------------------------------------------------------
-// axis / overlay conformance -- a fixed cap with no growth accessor must read
+// axis / overlay conformance - a fixed cap with no growth accessor must read
 // as
 // BOUNDED (representative instantiation).
 // ---------------------------------------------------------------------------

@@ -16,7 +16,7 @@
 * `kind = DCssRuleKind::*` and may hold child nodes; declarations
 * live as child nodes whose own kind tags them as declarations.
 * Real backends (libcss, katana-parser, stylo) are free to use
-* distinct types -- the trait layer detects them structurally.
+* distinct types - the trait layer detects them structurally.
 *
 *   FACADES:
 *   - `DCssDeclaration<Backend>` wraps `Backend::declaration_type`
@@ -237,7 +237,7 @@ public:
 
     // value
     //   function: returns this declaration's value (as a single
-    // joined string -- the default backend does not split
+    // joined string - the default backend does not split
     // tokens).
     const DCssString& value() const
     {
@@ -612,7 +612,7 @@ public:
     }
 
     // set_property
-    //   function: convenience -- finds the named declaration
+    //   function: convenience - finds the named declaration
     // and updates its value, or adds it if absent.
     void set_property(
         const DCssString& _name,
@@ -763,8 +763,8 @@ public:
 
     // add_keyframe
     //   function: appends a keyframe to a @keyframes rule (a vendor's
-    // prefixed one included), with its selector -- "from", "to", "50%", or
-    // several, "0%, 100%" -- and returns its facade, for its declarations.
+    // prefixed one included), with its selector - "from", "to", "50%", or
+    // several, "0%, 100%" - and returns its facade, for its declarations.
     DCssRule<Backend> add_keyframe(
         const DCssString& _selector
     )
@@ -857,8 +857,8 @@ NS_INTERNAL
 
 
     // css_unquoted_helper
-    //   function: the string quoted at `_at` in `_text` -- by ' or "
-    // -- with its backslash escapes undone, as css_quoted_helper
+    //   function: the string quoted at `_at` in `_text` - by ' or "
+    // - with its backslash escapes undone, as css_quoted_helper
     // writes them; the rest of the text when the quote isn't closed.
     inline
     std::string css_unquoted_helper(
@@ -1021,8 +1021,8 @@ NS_INTERNAL
     //   function: one rule at a depth: a comment (dropped when
     // minified); a style rule or a keyframe, as its selector and its
     // body; an at-rule as its keyword and prelude, then its body when
-    // its kind holds one or it has children -- an unknown at-rule's
-    // block included -- or ';' when it is a statement, as an empty
+    // its kind holds one or it has children - an unknown at-rule's
+    // block included - or ';' when it is a statement, as an empty
     // @layer is.
     inline
     void css_emit_rule_helper(
@@ -1047,7 +1047,7 @@ NS_INTERNAL
         }
         if ( (_node.rule_kind != K::comment) && (!styled) && (!at) )
         {
-            // unknown / unsupported -- emit nothing
+            // unknown / unsupported - emit nothing
             return;
         }
         if (!_minified)
@@ -1547,7 +1547,7 @@ DCssDetached<Backend> make_keyframes_rule(
 
 // make_keyframe
 //   function: returns a new freestanding keyframe, with its selector --
-// "from", "to", "50%", or several -- for a @keyframes rule to adopt.
+// "from", "to", "50%", or several - for a @keyframes rule to adopt.
 template<typename Backend>
 inline
 DCssDetached<Backend> make_keyframe(

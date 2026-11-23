@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                         file_tests_ops.c
 *
-*   XI. Operations (file_ops) -- removing, moving, and duplicating whole files.
+*   XI. Operations (file_ops) - removing, moving, and duplicating whole files.
 * d_file_rename's overwrite flag is pinned in both directions: with it clear an
 * existing destination is refused (EEXIST); with it set the destination is
 * replaced. d_file_copy is descriptor-based (ENOSYS on the ISO C backend), and
@@ -287,7 +287,7 @@ void d_fs_tests_ops(
  *****************************************************************************/
 
 /******************************************************************************
- * XI.  file_ops  --  REMOVE / RENAME / COPY
+ * XI.  file_ops  -  REMOVE / RENAME / COPY
  *****************************************************************************/
 
 /*

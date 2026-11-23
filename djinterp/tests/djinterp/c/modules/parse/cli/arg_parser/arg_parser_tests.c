@@ -4,10 +4,10 @@
 * The suite of the argument parser itself, declared in arg_parser_tests.h.
 *   Each section but the nulls' is a table of steps (arg_tests_support.h):
 * each case makes its options and commands as CLI11's App("d", "prog")
-* would, on a run's parser of its own -- App("d") naming the root as the
-* names' cases need -- and writes what it does as the parser suite's CLI11
+* would, on a run's parser of its own - App("d") naming the root as the
+* names' cases need - and writes what it does as the parser suite's CLI11
 * reference writes it: a line naming what it parses, then what the parse
-* came to -- the line an exit came to, or the report a run gives -- the
+* came to - the line an exit came to, or the report a run gives - the
 * section's cases compared whole. Main's arguments are built in storage the
 * run keeps, so that what a parse borrows outlives it. The cases of the exit
 * probe keep their tags (E01-E11), as do the parse probe's parses of a
@@ -583,8 +583,8 @@ static const char STATUSES[] =
 
 /**
  * @brief Adds the line an exit came to, as the reference's `ended` writes
- *        it -- `<tag> code=<exit code> out=[<output>] err=[<error output>]`,
- *        or the same without the tag for an empty one -- each control
+ *        it - `<tag> code=<exit code> out=[<output>] err=[<error output>]`,
+ *        or the same without the tag for an empty one - each control
  *        character written as its escape; then empties the run's output and
  *        error output for the next.
  *
@@ -992,7 +992,7 @@ int d_tests_arg_parser_final(
  *
  * @param[in,out] _run    the run.
  * @param[in]     _tag    the case's tag.
- * @param[in]     _word   what the step parses -- "argv", "args" -- or empty
+ * @param[in]     _word   what the step parses - "argv", "args" - or empty
  *                        for nothing.
  * @param[in]     _first  the first word, the program's name; NULL for none.
  * @param[in]     _words  the words after it, separated by spaces.
@@ -1223,14 +1223,14 @@ void d_tests_arg_parser_named_ending(
 
 /**
  * @brief Parses a command line held in one string, as the lines' and the
- *        names' cases do: the line naming it -- `<tag> [<line>]`, or `<tag>
- *        <word> [<line>]`, the line escaped -- the parse's ERR line when it
+ *        names' cases do: the line naming it - `<tag> [<line>]`, or `<tag>
+ *        <word> [<line>]`, the line escaped - the parse's ERR line when it
  *        fails, and the root's name.
  *
  * @param[in,out] _run     the run.
  * @param[in]     _tag     the case's tag.
- * @param[in]     _word    what the naming line calls the parse -- "named",
- *                         "named line" -- for a line starting with the
+ * @param[in]     _word    what the naming line calls the parse - "named",
+ *                         "named line" - for a line starting with the
  *                         program's name, parsed as one; empty for a line
  *                         without it.
  * @param[in]     _line    the command line.
@@ -1449,7 +1449,7 @@ void d_tests_arg_parser_step(
 // dj_tests_arg_parser_alias
 //   struct: what a visit of a vector parse's extras gathers: the arguments
 // the parse was given, how many, and how many extras are those arguments
-// themselves -- starting where one does -- and how many are not.
+// themselves - starting where one does - and how many are not.
 struct dj_tests_arg_parser_alias
 {
     char* const* argv;
@@ -1492,7 +1492,7 @@ int d_tests_arg_parser_alias_visit(
 /**
  * @brief Holds a vector parse to what its flags asked of its arguments: the
  *        run failed unless its extras are the arguments themselves,
- *        borrowed, or, under D_ARG_ARGS_COPY, copies of them -- which no
+ *        borrowed, or, under D_ARG_ARGS_COPY, copies of them - which no
  *        transcript shows, a copy reading as its argument does; and, copied,
  *        the storage the arguments were built in overwritten, which the
  *        report then shows the parse did not borrow.
@@ -4304,7 +4304,7 @@ bool d_tests_arg_parser_statuses(void)
 /**
  * @brief The endings given nothing to end: d_arg_parser_exit and
  *        d_arg_parser_exit_to without a parser, d_arg_command_exit and
- *        d_arg_command_exit_to without a command or an error -- each
+ *        d_arg_command_exit_to without a command or an error - each
  *        returning CLI11's BaseClass code and writing nothing.
  *
  * @return whether each came to that.
@@ -4555,8 +4555,8 @@ bool d_tests_arg_parser_nulls_empty(
  * @brief The parses given nothing to parse: each refusal made before the
  *        parser is touched, the program's name of the parse before kept;
  *        then no arguments, and a line that is not there with no length,
- *        parsed as nothing there -- no argument, which an extra would fail
- *        -- and an argument that is not there with no length as the empty
+ *        parsed as nothing there - no argument, which an extra would fail
+ *        - and an argument that is not there with no length as the empty
  *        argument, captured as an extra of no bytes.
  *
  * @return whether each came to that.

@@ -8,8 +8,8 @@
 * 2026.10.02), so wherever a unit reaches the facade it gets the double, and
 * never both. This header keeps its own path-derived include guard.
 *
-*   It reproduces exactly the surface test_pack.hpp consumes -- byte_blob,
-* status, the codecs:: tags, try_compress<>, and codec_is_available<> -- but
+*   It reproduces exactly the surface test_pack.hpp consumes - byte_blob,
+* status, the codecs:: tags, try_compress<>, and codec_is_available<> - but
 * records rather than compresses: try_compress<Tag> writes the observable line
 *
 *       C|<tag>|<opt.level>|<payload>
@@ -60,7 +60,7 @@
 #include <sstream>
 #include <string>
 // djinterp
-// djinterp  -- angle-bracket paths so the double is location-independent (a
+// djinterp  - angle-bracket paths so the double is location-independent (a
 // relative include would resolve against this file's own directory, not the
 // real tree).
 #include <djinterp/cpp/djinterp.hpp>               // NS_*, D_INLINE

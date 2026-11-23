@@ -9,8 +9,8 @@
 * items CMake passes for it; and its comments. A change is kept only if the
 * file outside it reads as it did and the change reads back as asked: an
 * argument set, inserted or removed, a command renamed or replaced, commands
-* inserted or removed. Every byte a change does not touch -- comments,
-* spacing, line endings -- is written back as it was. A change refused gives
+* inserted or removed. Every byte a change does not touch - comments,
+* spacing, line endings - is written back as it was. A change refused gives
 * -1, and cmake_error() says why. Indices are into the file as it is now: a
 * change that adds or removes commands or arguments moves those after it.
 *   The writers make the text a file holds: a value as an argument, quoted,
@@ -81,10 +81,10 @@ struct dj_host_cmake;
 // commands
 //   cmake_commands(f)              how many
 //   cmake_command(f, n, field)     name, line, column, end_line, depth,
-//                                  block -- if ... block, or "" -- role --
-//                                  open, branch, close, or "" -- partner --
+//                                  block - if ... block, or "" - role --
+//                                  open, branch, close, or "" - partner --
 //                                  an opener's closer, a branch's or a
-//                                  closer's opener, 0 for none -- unpaired,
+//                                  closer's opener, 0 for none - unpaired,
 //                                  args, text, indent
 //   cmake_name(f, n), cmake_args(f, n)
 //                                  its name and how many arguments it has
@@ -94,7 +94,7 @@ struct dj_host_cmake;
 //   cmake_arg(f, n, k[, field])    text, as written, by default; value, as
 //                                  CMake reads it; items, the arguments
 //                                  CMake passes for it, a line each; kind --
-//                                  unquoted, quoted, bracket -- line,
+//                                  unquoted, quoted, bracket - line,
 //                                  column, end_line, legacy, paren
 //   cmake_value(f, n, k)           its value
 //   cmake_find_arg(f, n, value[, after])
@@ -102,8 +102,8 @@ struct dj_host_cmake;
 //                                  value; 0 for none
 // comments
 //   cmake_comments(f); cmake_comment(f, i, field)
-//                                  text, body -- what it says, past its `#`
-//                                  or within its brackets -- line, column,
+//                                  text, body - what it says, past its `#`
+//                                  or within its brackets - line, column,
 //                                  end_line, bracket, trailing, command --
 //                                  the one whose arguments hold it, or 0
 // changes, each 1 kept, or -1

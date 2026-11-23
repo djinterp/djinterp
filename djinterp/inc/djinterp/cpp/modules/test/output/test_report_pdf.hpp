@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][test]                                       test_report_pdf.hpp
 *
-*   The PDF entry points for a finished report -- the drop-in replacement for
+*   The PDF entry points for a finished report - the drop-in replacement for
 * test_render_pdf_table.hpp's `render_report_pdf_bytes_table`, and the reason
 * that file could be deleted.
 *
@@ -28,8 +28,8 @@
 * -------------------------------------------
 *   The painter hard-coded the design reference's margins and card metrics; the
 * template delegates geometry to the renderer.  Output is recognisably the same
-* report -- banded suites, ruled and shaded assertion tables, coloured verdicts,
-* repeating headers across page breaks -- but it will not diff byte-for-byte
+* report - banded suites, ruled and shaded assertion tables, coloured verdicts,
+* repeating headers across page breaks - but it will not diff byte-for-byte
 * against the old painter, and the status chips fill their cell rather than
 * sitting inset within it.
 *
@@ -138,7 +138,7 @@ void apply_report_pdf_palette(
 ///////////////////////////////////////////////////////////////////////////////
 
 // render_report_pdf_bytes_table
-//   function: the serialized PDF for _report -- banded suites, a card per
+//   function: the serialized PDF for _report - banded suites, a card per
 // test, and a ruled, shaded, paginating assertion table per card.  Signature
 // preserved from the header it replaces, so the runner's call sites are
 // unchanged.
@@ -162,7 +162,7 @@ D_NODISCARD inline std::string render_report_pdf_bytes_table(
 
 
 // render_report_pdf_bytes
-//   function: the same document with page-per-suite pagination -- what the old
+//   function: the same document with page-per-suite pagination - what the old
 // test_render_pdf.hpp entry point produced, expressed as an option rather than
 // as a second renderer and a second traversal.
 D_NODISCARD inline std::string render_report_pdf_bytes(

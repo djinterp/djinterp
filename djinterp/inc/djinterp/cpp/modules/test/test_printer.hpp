@@ -789,7 +789,7 @@ public:
               m_bindings()
         {}
 
-        // set_format -- (re)parse a new format string.
+        // set_format - (re)parse a new format string.
         void set_format(
             std::string _format
         )
@@ -799,19 +799,19 @@ public:
             return;
         }
 
-        // format -- the current (owned) format string.
+        // format - the current (owned) format string.
         D_NODISCARD const std::string& format() const D_NOEXCEPT
         {
             return m_tmpl.format();
         }
 
-        // empty -- true iff the format string is empty.
+        // empty - true iff the format string is empty.
         D_NODISCARD bool empty() const
         {
             return m_tmpl.empty();
         }
 
-        // clear_bindings -- drop all bindings (call before a fresh set).
+        // clear_bindings - drop all bindings (call before a fresh set).
         void clear_bindings() D_NOEXCEPT
         {
             m_bindings.clear();
@@ -819,7 +819,7 @@ public:
             return;
         }
 
-        // bind -- record a key -> value pair.  Both are copied into
+        // bind - record a key -> value pair.  Both are copied into
         // owned storage, so a temporary passed as either is safe.  An
         // existing key is overwritten, so re-binding across renders
         // (e.g. per-section counter refresh) yields the current value.
@@ -843,7 +843,7 @@ public:
             return;
         }
 
-        // render -- interpolate the accumulated bindings through the
+        // render - interpolate the accumulated bindings through the
         // template.  Missing keys resolve to the empty view, exactly as
         // the template's built-in inline lookup does.
         D_NODISCARD std::string render() const
@@ -864,7 +864,7 @@ public:
                 });
         }
 
-        // tmpl -- the underlying parsed template (keys / inspection).
+        // tmpl - the underlying parsed template (keys / inspection).
         D_NODISCARD DTextTemplate<>& tmpl() D_NOEXCEPT
         {
             return m_tmpl;

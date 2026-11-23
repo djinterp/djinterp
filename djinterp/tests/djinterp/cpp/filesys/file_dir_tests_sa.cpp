@@ -8,7 +8,7 @@
 *
 * FIXTURES
 * --------
-*   A directory test needs directories, and ISO C cannot make one -- so the
+*   A directory test needs directories, and ISO C cannot make one - so the
 * fixtures go through djinterp's own create_directory (also tested on its own,
 * in group VI) and fill them with fopen, which is ISO C. The test itself calls
 * no mkdir/opendir/readdir directly; it keeps the no-platform-call discipline of
@@ -18,7 +18,7 @@
 *
 * WHAT IS NOT ASSERTED HERE
 * -------------------------
-*   Directory is non-copyable (deleted copy ops) -- a compile-time guarantee
+*   Directory is non-copyable (deleted copy ops) - a compile-time guarantee
 * with no run-time behaviour, verified by a negative- compile check outside this
 * file, exactly as in the file suite. The move group is C++11+ and additive; on
 * C++98 it is absent, not a green skip.
@@ -309,7 +309,7 @@ void d_tests_dir_touch(
 
 // d_tests_dir_make
 //   function: build a fresh directory holding three files and one subdirectory
-// -- four real entries once "." and ".." are skipped -- and return its name.
+// - four real entries once "." and ".." are skipped - and return its name.
 // The directory is made with the API under test; the files with fopen.
 static
 const char* d_tests_dir_make(void)
@@ -550,7 +550,7 @@ d_tests_dir_entry
   A file entry reports as a regular file and the subdirectory as a directory --
 WHEN the filesystem reported the type in the readdir (type_known()). If it did
 not, those two checks are skipped rather than failed, because the type is then
-genuinely unavailable without a stat -- omit, do not fake.
+genuinely unavailable without a stat - omit, do not fake.
 */
 static
 struct dj_test_object* d_tests_dir_entry(void)
@@ -747,7 +747,7 @@ struct dj_test_object* d_tests_dir_failure(void)
 
 /*
 d_tests_dir_ownership
-  The move handoff -- C++11+, ADDITIVE. Non-copyability is compile-time (deleted
+  The move handoff - C++11+, ADDITIVE. Non-copyability is compile-time (deleted
 copy ops; verified by a negative-compile check elsewhere) and is not asserted
 here.
 */

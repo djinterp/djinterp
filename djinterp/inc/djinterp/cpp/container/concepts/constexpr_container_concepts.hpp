@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                     constexpr_container_concepts.hpp
 *
-* C++20 concepts for the LIFETIME (compile-time end) axis -- the
+* C++20 concepts for the LIFETIME (compile-time end) axis - the
 * `requires`-facing view of constexpr_container_traits.hpp.
 *
 *   THE CONCEPTS ADD NO POLICY.
@@ -13,7 +13,7 @@
 *
 *   PORTABILITY:
 *   Gated on C++20 + concepts. Below that the header is empty and callers use
-* the `::value` / `_v` forms directly -- which is why
+* the `::value` / `_v` forms directly - which is why
 *
 *
 * path:      /inc/djinterp/cpp/container/concepts/constexpr_container_concepts.hpp
@@ -47,7 +47,7 @@ NS_DJINTERP
 
 
 // constexpr_container
-//   concept: usable in constant evaluation -- BOTH the size and every
+//   concept: usable in constant evaluation - BOTH the size and every
 // component value are fixed by the program text. That conjunction is the
 // lattice MEET of the two lifetimes, not a coincidence of two checks.
 template<typename Type>
@@ -56,7 +56,7 @@ concept constexpr_container =
 
 
 // runtime_container
-//   concept: the explicit negation -- a DYNAMIC lifetime. Spelled out so a
+//   concept: the explicit negation - a DYNAMIC lifetime. Spelled out so a
 // pair of requires-clauses can be disjoint rather than one being `!`.
 template<typename Type>
 concept runtime_container =
@@ -69,7 +69,7 @@ concept runtime_container =
 
 
 // constexpr_tagged_container
-//   concept: carries the opt-in `is_constexpr_container` alias -- an explicit
+//   concept: carries the opt-in `is_constexpr_container` alias - an explicit
 // claim of static-lifetime capability, which outranks the structural probes.
 template<typename Type>
 concept constexpr_tagged_container =
@@ -78,7 +78,7 @@ concept constexpr_tagged_container =
 
 // compile_time_sized_container
 //   concept: its SIZE is compile-time-expressible, whether or not its CONTENTS
-// are. array<std::string, N> is this and is not constexpr_container -- which
+// are. array<std::string, N> is this and is not constexpr_container - which
 // is exactly why the two are separate concepts.
 template<typename Type>
 concept compile_time_sized_container =

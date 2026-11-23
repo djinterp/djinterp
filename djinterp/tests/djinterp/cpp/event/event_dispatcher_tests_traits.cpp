@@ -1,13 +1,13 @@
 /*******************************************************************************
 * djinterp [cpp][event]                        event_dispatcher_tests_traits.cpp
 *
-*   Sections V-VI -- STRUCTURAL DETECTION HELPERS and EVENT DISPATCHER TRAITS.
+*   Sections V-VI - STRUCTURAL DETECTION HELPERS and EVENT DISPATCHER TRAITS.
 * event_dispatcher_traits performs compile-time structural detection of the
 * facade interface.  Covers the real DEventDispatcher (every has_* flag and the
 * composite is_event_dispatcher hold); a negative type (none hold); a
 * duck-typed struct exposing the ten non-template operations with the detected
 * signatures (is_event_dispatcher holds even though it is unrelated to
-* DEventDispatcher -- the check is structural, not nominal); clean_t
+* DEventDispatcher - the check is structural, not nominal); clean_t
 * normalization (cv/ref-qualified spellings detect identically); and the typed
 * detection traits event_dispatcher_has_bind / _has_fire / _has_queue, which
 * hold for the real dispatcher and fail for a non-dispatcher.

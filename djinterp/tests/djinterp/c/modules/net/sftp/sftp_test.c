@@ -606,7 +606,7 @@ void fs_attrs(
 
 /*
 fs_handle
-  The file a handle names -- "F" and a slot below 16 that is in use -- or
+  The file a handle names - "F" and a slot below 16 that is in use - or
 NULL.
 */
 static
@@ -642,7 +642,7 @@ int input_pending(
 fs_main
   The in-process server, on its own thread: the version exchange, then one
 request after another until the client goes, each answered as the
-configuration says -- out of order, short, or broken on purpose.
+configuration says - out of order, short, or broken on purpose.
   It runs past 75 lines because it dispatches every kind of request the
 client sends, one branch each, as the guides allow a dispatch; the
 requests that read and write a file nest past four levels there.

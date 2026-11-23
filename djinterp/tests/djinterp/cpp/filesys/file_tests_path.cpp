@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][filesys]                                    file_tests_path.cpp
 *
-*   II. Path (file_path.hpp) -- the lexical path value. Purely textual, no
+*   II. Path (file_path.hpp) - the lexical path value. Purely textual, no
 * syscalls, so every case here is deterministic.
 *
 * WHAT THIS SECTION IS FOR
@@ -51,7 +51,7 @@ namespace
 
 // sep_path
 //   function: build a path from a '/'-separated template, rewriting each '/'
-// to the platform's output separator -- so a single expectation is correct
+// to the platform's output separator - so a single expectation is correct
 // wherever the suite runs.
 path sep_path(
     const char* _tmpl

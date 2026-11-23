@@ -404,7 +404,7 @@ bool tests_select_cursor_policy();
 bool tests_default_policy_aliases();
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // buffer_spec
 //   function: the suite as DTest's module spec, one block per section.

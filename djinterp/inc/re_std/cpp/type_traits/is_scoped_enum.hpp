@@ -10,11 +10,11 @@
 * not convert implicitly to its underlying type and an unscoped one does,
 * so is_enum combined with is_convertible answers the question exactly.
 * The intrinsic is used where available because it is cheaper for the
-* compiler, but the fallback below is EXACT rather than degraded -- unlike
+* compiler, but the fallback below is EXACT rather than degraded - unlike
 * the other seven, where a missing intrinsic means a missing answer.
 *
 *   BACK-PORT: std added this in C++23; re_std provides it from C++11, on
-* every compiler, with or without the intrinsic -- a twelve-year lead.
+* every compiler, with or without the intrinsic - a twelve-year lead.
 *
 *   PORTABILITY:
 *   C++11 baseline. The _v spelling is C++14+, as elsewhere.
@@ -77,7 +77,7 @@ namespace re_std
 #if RE_STD_HAS_IS_SCOPED_ENUM
 
 // is_scoped_enum
-//   trait: intrinsic-backed -- an enumeration declared with enum class or enum struct.
+//   trait: intrinsic-backed - an enumeration declared with enum class or enum struct.
 template<typename Type>
 struct is_scoped_enum : integral_constant<bool, __is_scoped_enum(Type)>
 {};
@@ -89,7 +89,7 @@ namespace internal
 
 // is_scoped_enum_impl
 //   trait: library-level implementation, selected when the intrinsic is
-// absent. Primary template -- Type is not an enumeration.
+// absent. Primary template - Type is not an enumeration.
 template<typename Type,
          bool = is_enum<Type>::value>
 struct is_scoped_enum_impl : false_type
@@ -99,7 +99,7 @@ struct is_scoped_enum_impl : false_type
 //   trait: Type IS an enumeration, so the question reduces to whether it
 // converts implicitly to its own underlying type. An unscoped enum does;
 // a scoped one does not. That difference is the definition of scoped, and
-// it is observable through is_convertible -- which is why this trait,
+// it is observable through is_convertible - which is why this trait,
 // alone among the eight, needs no intrinsic.
 //
 //   underlying_type is only well-formed for an enumeration, which is
@@ -114,7 +114,7 @@ struct is_scoped_enum_impl<Type, true>
 }  // internal
 
 // is_scoped_enum
-//   trait: library-level implementation. NOT a degradation -- it is exact,
+//   trait: library-level implementation. NOT a degradation - it is exact,
 // and it is the reason this header does not need the intrinsic to be
 // correct on any compiler.
 template<typename Type>

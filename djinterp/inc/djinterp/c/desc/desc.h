@@ -2,8 +2,8 @@
 * djinterp [c][desc]                                                      desc.h
 *
 *   Describing anything, facts first and text last. A describer never writes a
-* sentence: it emits facts -- a key, a label for prose, a value, the layer the
-* fact is on, how important it is, and what kind of truth it is -- into a
+* sentence: it emits facts - a key, a label for prose, a value, the layer the
+* fact is on, how important it is, and what kind of truth it is - into a
 * sink, and the sink's machine turns them into text, JSON, markdown or
 * key=value lines. One source then serves a log line, --help and a debugger's
 * view (docs/djinterp/desc/desc_design.md).
@@ -14,7 +14,7 @@
 * program that never describes anything pays for nothing.
 *
 *   The work is a machine's (struct dj_desc_machine): a table of operations
-* -- begin, fact, enter, leave, text, end -- each of which may be null. desc's
+* - begin, fact, enter, leave, text, end - each of which may be null. desc's
 * own text, JSON and collecting machines are built on it, and a program
 * writes any other. A sink filters before a fact is built: d_desc_wants lets
 * a describer skip the work of a fact nobody asked for, by layer and
@@ -22,7 +22,7 @@
 *
 *   A type describes itself in either form: a fact describer emits facts, a
 * text describer writes words, and d_desc_run_text gives those words to any
-* machine -- to its text operation, or as one fact. Nesting is the
+* machine - to its text operation, or as one fact. Nesting is the
 * describer's, one level per call, as Common Lisp's describe-object has it:
 * d_desc_enter names the level and d_desc_leave closes it, and the sink
 * refuses past its limit, so a cycle ends.

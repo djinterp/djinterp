@@ -4,14 +4,14 @@
 * Implementation of the lexical path operations declared in file_path.h.
 *   File-local helpers carry every rule: which characters separate, how long a
 * root is and what kind it is, where a path's meaningful text ends, and how a
-* result is copied out -- where a result that does not fit is an ERANGE
+* result is copied out - where a result that does not fit is an ERANGE
 * failure, never a truncated path. The public functions compose them and make
 * no system call.
 *   Roots come in three kinds, and the rules hang on the difference. One that
 * ends in a separator ("/", "C:\\") is a root directory: nothing follows it
 * but a component. A share ("\\\\server\\share") names a volume and needs a
 * separator before its first component. A bare drive ("C:") names a volume
-* and no directory on it -- "C:x" is x in drive C's current directory, so a
+* and no directory on it - "C:x" is x in drive C's current directory, so a
 * component follows it directly, and ".." may climb out of it.
 *
 *
@@ -35,8 +35,8 @@
 //==============================================================================
 
 // d_internal_path_span
-//   struct: a run of a path's bytes -- a whole path, its root, a run of
-// separators -- that need not end in a NUL, so the helpers below can be
+//   struct: a run of a path's bytes - a whole path, its root, a run of
+// separators - that need not end in a NUL, so the helpers below can be
 // handed part of a path without a copy. A span holding a root has the whole
 // path as its text and the root's length as its length.
 struct dj_internal_path_span
@@ -47,7 +47,7 @@ struct dj_internal_path_span
 
 /*
 d_internal_path_is_sep
-  On POSIX only '/' separates -- '\\' is an ordinary byte in a filename there,
+  On POSIX only '/' separates - '\\' is an ordinary byte in a filename there,
 and treating it as a separator would silently corrupt legitimate names. Under
 Windows syntax '\\' always separates, being Windows' own, and '/' does as well
 unless D_CFG_FILE_PATH_ACCEPT_ALT_SEP turns it away.
@@ -175,7 +175,7 @@ size_t d_internal_path_long_root_len(
     const char* _rest
 )
 {
-    // "C:\\" or "C:" -- a drive, as one is without the prefix
+    // "C:\\" or "C:" - a drive, as one is without the prefix
     if ( (d_internal_path_is_letter(_rest[0])) &&
          (_rest[1] == ':') )
     {
@@ -184,7 +184,7 @@ size_t d_internal_path_long_root_len(
 
     size_t idx = 0;
 
-    // "UNC\\server\\share" -- the server, then the share
+    // "UNC\\server\\share" - the server, then the share
     if ( ( (_rest[0] == 'U') || (_rest[0] == 'u') ) &&
          ( (_rest[1] == 'N') || (_rest[1] == 'n') ) &&
          ( (_rest[2] == 'C') || (_rest[2] == 'c') ) &&
@@ -213,7 +213,7 @@ size_t d_internal_path_long_root_len(
         return idx;
     }
 
-    // a volume name -- "Volume{...}" -- and the separator after it
+    // a volume name - "Volume{...}" - and the separator after it
     while ( (_rest[idx] != '\0') &&
             (!d_internal_path_is_sep(_rest[idx])) )
     {
@@ -225,7 +225,7 @@ size_t d_internal_path_long_root_len(
 
 /*
 d_internal_path_root_len
-  Measures the root prefix of a path -- the leading run that names a starting
+  Measures the root prefix of a path - the leading run that names a starting
 point rather than a component, and that ".." may never climb above. The forms
 recognised depend on configuration, not on the host, so a POSIX build can be
 told to parse Windows paths (a cross-compiler, an archiver) and a Windows
@@ -246,7 +246,7 @@ size_t d_internal_path_root_len(
     const char* _path
 )
 {
-    // "C:" -- a drive letter and a colon, where drives are parsed
+    // "C:" - a drive letter and a colon, where drives are parsed
     if ( (D_INTERNAL_FILE_PATH_HAS_DRIVE == 1) &&
          (d_internal_path_is_letter(_path[0])) &&
          (_path[1] == ':') )
@@ -261,7 +261,7 @@ size_t d_internal_path_root_len(
         return 2;
     }
 
-    // "\\\\?\\" -- the long-path prefix, where shares are parsed: the root
+    // "\\\\?\\" - the long-path prefix, where shares are parsed: the root
     // it opens is a drive, a share or a volume, and the prefix belongs to it
     // (d_internal_path_long_root_len). Windows reads the prefix only as it is
     // written, in backslashes.
@@ -274,7 +274,7 @@ size_t d_internal_path_root_len(
         return 4 + d_internal_path_long_root_len(_path + 4);
     }
 
-    // "\\\\server\\share" -- two separators, then a name, where shares are
+    // "\\\\server\\share" - two separators, then a name, where shares are
     // parsed
     if ( (D_INTERNAL_FILE_PATH_HAS_UNC == 1) &&
          (d_internal_path_is_sep(_path[0]))  &&
@@ -306,7 +306,7 @@ size_t d_internal_path_root_len(
 /*
 d_internal_path_is_bare_drive
   "C:" with nothing after the colon that separates: the drive alone, naming
-no directory on it. It anchors nothing -- ".." may climb out of "C:x" -- and
+no directory on it. It anchors nothing - ".." may climb out of "C:x" - and
 a component follows it directly, since "C:\\x" means something else.
 */
 static
@@ -340,8 +340,8 @@ int d_internal_path_root_needs_sep(
 
 /*
 d_internal_path_root_name_len
-  The part of a root that names a volume -- "C:" of "C:\\", the whole of
-"\\\\server\\share" -- as against a root directory, which names none. POSIX
+  The part of a root that names a volume - "C:" of "C:\\", the whole of
+"\\\\server\\share" - as against a root directory, which names none. POSIX
 roots have no name. A join keeps the first path's name when the second brings
 only a root directory ("\\x"), and lets the second's replace it unless the two
 name the same volume.
@@ -434,7 +434,7 @@ int d_internal_path_same_name(
 /*
 d_internal_path_end
   "a/b/" and "a/b" have the same final component; trimming trailing
-separators is what makes them agree. A root is never trimmed away -- "/" would
+separators is what makes them agree. A root is never trimmed away - "/" would
 otherwise become "". The result is the index one past the last meaningful
 byte.
 */
@@ -459,7 +459,7 @@ size_t d_internal_path_end(
 
 /*
 d_internal_path_concat
-  Writes _head, a separator if _sep says so, and _tail into _buf -- or refuses
+  Writes _head, a separator if _sep says so, and _tail into _buf - or refuses
 with ERANGE when they do not fit. _head may begin at _buf itself, as when a
 caller joins onto its own buffer; _tail may not overlap it.
 */
@@ -513,8 +513,8 @@ char* d_internal_path_concat(
 
 /*
 d_internal_path_join_relative
-  The textual join: the first path without its trailing separators -- never
-cut into its root, so "//" and "C:" survive whole -- one separator unless the
+  The textual join: the first path without its trailing separators - never
+cut into its root, so "//" and "C:" survive whole - one separator unless the
 first path is a root that needs none, then the second path without its leading
 separators. "/" and "b" give "/b", "C:" and "b" give "C:b", and a share and
 "b" give "\\\\server\\share\\b". The first path is a whole path, ending in its
@@ -634,8 +634,8 @@ char* d_internal_path_join_rooted(
 
 /*
 d_internal_path_ends_in_dotdot
-  Whether the last component written is a ".." that had to be kept -- one
-with nothing left to climb over -- which a later ".." must keep company with
+  Whether the last component written is a ".." that had to be kept - one
+with nothing left to climb over - which a later ".." must keep company with
 rather than climb over.
 */
 static
@@ -657,7 +657,7 @@ d_internal_path_climb
   Backs the written output over its last component and the separators before
 it, never into the root, and reports where the output now ends. A "./" left at
 the front can only be the one written ahead of a drive-like component
-(d_internal_path_looks_like_drive) -- a "." of the input is never written --
+(d_internal_path_looks_like_drive) - a "." of the input is never written --
 so it goes with that component.
 */
 static
@@ -717,8 +717,8 @@ size_t d_internal_path_put_seps(
 
 /*
 d_internal_path_separate
-  Writes the separators that go before a component -- _run, the input's run
-of them -- and reports where the output now ends. After another component
+  Writes the separators that go before a component - _run, the input's run
+of them - and reports where the output now ends. After another component
 they are the run, collapsed to one under D_CFG_FILE_PATH_COLLAPSE_SEPARATORS
 and kept whole without it. Directly after the root, a run that follows the
 root in the input is kept whole without collapsing ("///a" stays "///a");
@@ -764,7 +764,7 @@ size_t d_internal_path_separate(
 
 /*
 d_internal_path_trailing
-  The separators that end a path -- _run, the input's last run of them --
+  The separators that end a path - _run, the input's last run of them --
 dropped under D_CFG_FILE_PATH_STRIP_TRAILING_SEP, and otherwise kept: one, or
 the whole run where runs are kept, after the last component, or after a
 share, whose root directory they are. A root that ends in a separator already
@@ -1001,8 +1001,8 @@ char* d_path_basename(
 /*
 d_path_extension
   Two passes over the input and no copy: the first finds where the final
-component starts, past the root -- a root is no component, so "C:.txt" names
-".txt", whose dot hides it -- and the second finds its last dot. A dot that
+component starts, past the root - a root is no component, so "C:.txt" names
+".txt", whose dot hides it - and the second finds its last dot. A dot that
 opens the name is hiding the file, not typing it, so it starts no extension.
 A path that ends in a separator has an empty final name here, and so no
 extension: the result is a suffix of _path, which would carry the separator.
@@ -1117,7 +1117,7 @@ char* d_path_stem(
 d_path_join
   An absent component leaves the other standing alone. With
 D_CFG_FILE_PATH_JOIN_ABSOLUTE_WINS a second component with a root decides how
-much of the first survives (d_internal_path_join_rooted) -- the alternative
+much of the first survives (d_internal_path_join_rooted) - the alternative
 silently builds "/base/etc/passwd" for code that meant to be handed an
 absolute override. Otherwise the two are joined as text, with exactly one
 separator between them where the first is not a root that needs none.
@@ -1190,7 +1190,7 @@ d_path_is_absolute
   Absolute means anchored: a root directory on a named volume, or a share.
 Under Windows syntax neither a bare drive ("C:x", x in drive C's current
 directory) nor a root directory alone ("\\x", x at the root of the current
-drive) is anchored -- each leaves the volume or the directory to the process,
+drive) is anchored - each leaves the volume or the directory to the process,
 as std::filesystem and Python's ntpath both hold. Under POSIX syntax every
 root is absolute.
 */
@@ -1247,7 +1247,7 @@ punctuation, and normalizing "//" or a "\\?\" prefix would change their
 meaning. "." means "stay here", and goes with the separators before it. ".."
 removes the last written component unless there is nothing to climb over or
 that component is itself a ".." that had to be kept; directly above a root
-that anchors -- any but a bare drive -- it is dropped, as POSIX says "/.." is
+that anchors - any but a bare drive - it is dropped, as POSIX says "/.." is
 "/". A result with nothing left is ".", because "" is not a path, and a
 relative result that would begin with a drive begins with "./" instead
 (d_internal_path_looks_like_drive). Output is never longer than input, so the

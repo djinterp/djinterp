@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp [test] : visitor_tests_variant.cpp
 //   Section V: the variant visitor.  The closed set again, but declared as a type
-// rather than as a class hierarchy -- and with the exhaustiveness check moved into
+// rather than as a class hierarchy - and with the exhaustiveness check moved into
 // the compiler.
 //
 //   There is no accept(), no visitor root, and no element root.  A std::variant IS
@@ -17,12 +17,12 @@
 // that makes a pile of lambdas behave as one visitor by inheriting all of them and
 // pulling every operator() into a single overload set.  The result is the only one
 // of the four strategies where forgetting an alternative is caught by the compiler
-// with no boilerplate at all -- no pure virtuals to satisfy, nothing to derive
+// with no boilerplate at all - no pure virtuals to satisfy, nothing to derive
 // from.
 //
 //   This is also the section the shipped header could not reach.  Bug A --
 // `static constexpr dispatch_fn table[]` inside a D_CONSTEXPR_INLINE function, which
-// is ill-formed before C++23 -- meant the header did not compile AT ALL at C++17 or
+// is ill-formed before C++23 - meant the header did not compile AT ALL at C++17 or
 // C++20, with nothing instantiated.  The two dialects the variant visitor exists for
 // were the two it broke.
 //
@@ -86,7 +86,7 @@ bool tests_overloaded_combines_callables()
 
 /*
 tests_overloaded_deduction_guide
-  Verifies CTAD deduces overloaded from its initializers -- which is what makes the
+  Verifies CTAD deduces overloaded from its initializers - which is what makes the
   brace-initialized spelling above possible at all.  Without the guide, aggregate
   deduction of a variadic base-class pack does not happen and every use would have
   to name the closure types, which are unnameable.
@@ -131,7 +131,7 @@ bool tests_overloaded_deduction_guide()
 tests_overloaded_generic_fallback
   Verifies a generic callable catches the alternatives the specific ones miss.  This
   is how the variant form expresses a partial visitor: the closed set still has to
-  be covered exhaustively, so the catch-all is what covers the remainder -- and
+  be covered exhaustively, so the catch-all is what covers the remainder - and
   overload resolution must prefer the exact match over it, or the specific handlers
   would never fire.
   Tests the following:
@@ -284,7 +284,7 @@ bool tests_variant_visit_dispatches_on_the_active_alternative()
 
 /*
 tests_variant_visit_returns_the_visitors_value
-  Verifies the visitor's value comes back out of variant_visit unchanged -- the
+  Verifies the visitor's value comes back out of variant_visit unchanged - the
   wrapper is a thin one and must not swallow or default anything.
   Tests the following:
   - the returned value is exactly what the handler produced
@@ -329,7 +329,7 @@ bool tests_variant_visit_returns_the_visitors_value()
 tests_variant_visit_multi_variant
   Verifies multi-dispatch: one visitor applied to several variants at once, resolved
   over the CROSS PRODUCT of their alternatives.  This is the thing none of the other
-  three strategies can express -- classic and acyclic double dispatch is dispatch on
+  three strategies can express - classic and acyclic double dispatch is dispatch on
   ONE dynamic type, and adding a second would need a second accept().
   Tests the following:
   - each of the four (int|double) x (int|double) combinations reaches its own handler
@@ -368,7 +368,7 @@ bool tests_variant_visit_multi_variant()
 
     ok = ok && (variant_visit(pair_vis, a, b) == 2);
 
-    // and the single-variant overload still resolves for a single argument -- the
+    // and the single-variant overload still resolves for a single argument - the
     // two variant_visit overloads are partially ordered, not ambiguous
     auto single = DOverloaded{
         [](int)    { return 10; },
@@ -389,7 +389,7 @@ bool tests_variant_visit_multi_variant()
 tests_variant_visit_is_constexpr
   Verifies variant_visit folds in a constant expression.  It carries
   D_CONSTEXPR_INLINE, so a variant known at compile time must dispatch at compile
-  time -- and this is what bug A destroyed for the whole header: a variable of
+  time - and this is what bug A destroyed for the whole header: a variable of
   static storage duration is not permitted in a constexpr function before C++23, so
   the mere PRESENCE of that declaration made every dialect below C++23 reject the
   file outright.
@@ -429,7 +429,7 @@ tests_variant_visit_with_index_supplies_the_index
   Verifies the visitor receives the ACTIVE alternative's index alongside its value.
   Tests the following:
   - each alternative reports its own index
-  - the value is passed too, and is the right one -- an index-only dispatch that
+  - the value is passed too, and is the right one - an index-only dispatch that
     dropped the payload would still satisfy an index check
 */
 bool tests_variant_visit_with_index_supplies_the_index()
@@ -484,7 +484,7 @@ tests_variant_visit_with_index_is_a_compile_time_constant
   Verifies the index arrives as a std::integral_constant, not a runtime size_t.
   That is the entire reason this helper exists rather than just calling
   _variant.index(): a compile-time index can be used to index a tuple, select a
-  type, or drive a static_assert -- none of which a runtime value can do.
+  type, or drive a static_assert - none of which a runtime value can do.
   Tests the following:
   - the index's type is std::integral_constant<std::size_t, I> for the active I
   - the value is usable in a CONSTANT EXPRESSION inside the visitor, which a runtime
@@ -496,7 +496,7 @@ bool tests_variant_visit_with_index_is_a_compile_time_constant()
 #if D_VISITOR_HAS_VARIANT
     cell v = 1.5;   // alternative 1
 
-    // the index is an integral_constant -- so it can be used where only a constant
+    // the index is an integral_constant - so it can be used where only a constant
     // expression is allowed.  A runtime std::size_t would not compile here at all.
     const bool is_constant = variant_visit_with_index(
         [](auto _index, auto&) -> bool

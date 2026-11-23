@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/text/text_edit/CMakeLists.txt
+# djinterp [test]  -  build/cmake/config/testing/djinterp/c/text/text_edit/CMakeLists.txt
 #
 #   Test leaf for c/text/text_edit.h, changes to a text, kept apart until
 # applied, in the C spec form: the runner in this directory, the section

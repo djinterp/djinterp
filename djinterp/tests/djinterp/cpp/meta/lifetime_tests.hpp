@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][meta]                                        lifetime_tests.hpp
 *
-* Unit test suite for lifetime.hpp -- the compile-time / runtime lifetime
+* Unit test suite for lifetime.hpp - the compile-time / runtime lifetime
 * vocabulary, its lattice algebra, and the type classifier built on it.
 *   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.md S3):
 *
@@ -30,8 +30,8 @@
 *        over the two stage bits, so the four values obey the lattice laws:
 *        commutativity, idempotence, `both` as meet-identity / join-absorbing,
 *        `none` as meet-absorbing / join-identity.  meet is the canonical
-*        COMPOSITION operator -- a composite is constexpr-capable iff every part
-*        is -- and the suite pins it across the full 4x4 table.
+*        COMPOSITION operator - a composite is constexpr-capable iff every part
+*        is - and the suite pins it across the full 4x4 table.
 *     2. THE CLASSIFIER PRIORITY.  lifetime_of consults, in order: an opt-in
 *        `lifetime_category` member (highest), then is_literal_type (-> both),
 *        then a conservative runtime fallback.  The decisive test is a type that
@@ -78,7 +78,7 @@
 #include <string>
 #include <type_traits>
 // djinterp
-// -- (part 1) mode-gated includes --------------------------------------------
+// - (part 1) mode-gated includes --------------------------------------------
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
 #include "../../../../inc/djinterp/cpp/meta/lifetime.hpp"                         // the header under test (normal)
@@ -135,7 +135,7 @@ bool lifetime_check(
     while (0)
 
 
-#ifndef DTEST_SPEC_MODE  // (part 1 cont.) fixtures -- normal mode only
+#ifndef DTEST_SPEC_MODE  // (part 1 cont.) fixtures - normal mode only
 
 ///////////////////////////////////////////////////////////////////////////////
 ///             F.1   OPT-IN TYPES                                          ///
@@ -180,7 +180,7 @@ struct opt_none
 ///////////////////////////////////////////////////////////////////////////////
 
 // DLiteralNoopt
-//   struct: a literal type with NO opt-in -- classifies as both via
+//   struct: a literal type with NO opt-in - classifies as both via
 // is_literal_type.
 struct DLiteralNoopt
 {
@@ -223,7 +223,7 @@ const DLifetime::value* all_lifetimes(
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- (part 2) declarations -- visible in BOTH modes --------------------------
+// - (part 2) declarations - visible in BOTH modes --------------------------
 
 // I.   ALGEBRA   (lifetime_tests_algebra.cpp)
 bool tests_algebra_enum_bit_values();
@@ -266,11 +266,11 @@ bool tests_derived_predicates_agree_with_classifier();
 bool tests_derived_trait_shape_and_companions();
 
 
-// -- (part 3) the spec provider -- spec mode only ----------------------------
+// - (part 3) the spec provider - spec mode only ----------------------------
 #ifdef DTEST_SPEC_MODE
 
 // lifetime_spec
-//   function: the authoritative description of this suite -- one block per
+//   function: the authoritative description of this suite - one block per
 // section TU, one row per tests_* body, every node named and described.
 inline
 dt::module_spec lifetime_spec()

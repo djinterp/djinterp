@@ -72,8 +72,8 @@ namespace internal
 {
 
     // strong_ordering_values
-    //   struct: the values of strong_ordering -- less, equal, equivalent and
-    // greater -- for C++11 and C++14, as static data members of a class
+    //   struct: the values of strong_ordering - less, equal, equivalent and
+    // greater - for C++11 and C++14, as static data members of a class
     // template that strong_ordering inherits from. strong_ordering's own static
     // members need out-of-class definitions, which a header can only give as
     // inline variables, a C++17 feature; a class template's static members may

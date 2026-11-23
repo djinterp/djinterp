@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][functional]                        interpolate_tests_replay.cpp
 *
-* Section II.iii -- DReplayScanner: replays a pre-scanned piece cache instead of
+* Section II.iii - DReplayScanner: replays a pre-scanned piece cache instead of
 * re-deriving it from the text.  Verifies it reproduces a scan exactly, handles
 * an empty cache, and exposes the scanner typedefs.
 *

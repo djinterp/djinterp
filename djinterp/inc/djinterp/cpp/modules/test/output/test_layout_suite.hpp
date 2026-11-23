@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][test]                                     test_layout_suite.hpp
 *
-*   The layout subframework's own test module -- and the new home of the two
+*   The layout subframework's own test module - and the new home of the two
 * demos that used to ship inside the library headers.
 *
 * WHY THEY MOVED
@@ -12,7 +12,7 @@
 * never run, so a regression in the interpreter would have shipped silently.
 * Here the same code is a module the runner executes, and a failure is reported
 * rather than merely compiled.  Sections I-III of report_surfaces.hpp stayed put
-* -- the surfaces themselves are library; only the assertions about them were
+* - the surfaces themselves are library; only the assertions about them were
 * tests.
 *
 *   What it covers.
@@ -294,7 +294,7 @@ D_NODISCARD inline bool surfaces_equivalent()
 // of the whole pipeline (build -> number -> outline -> emit -> run).
 D_NODISCARD inline std::string demo_render()
 {
-    // structure (combinator surface) -- nests by value
+    // structure (combinator surface) - nests by value
     DLayoutDoc<DReportOp> _doc = body({
         cover({ std::pair<std::string, std::string>("subtitle", "nightly build"),
                 std::pair<std::string, std::string>("author",   "teer") }),
@@ -310,7 +310,7 @@ D_NODISCARD inline std::string demo_render()
 
     DLayoutSignature<DReportOp> _sig = make_report_signature();
 
-    // content -- resolved late, by name (a map / file / live computation lives
+    // content - resolved late, by name (a map / file / live computation lives
     // wherever this closure closes over; here, inline)
     DContentResolver _body =
         [](const DLayoutAtom& _ref) -> maybe<DRenderAction>
@@ -358,7 +358,7 @@ D_NODISCARD inline std::string demo_render()
             return nothing<DRenderAction>();
         };
 
-    // metadata -- answers meta_ref leaves and seeds constructs (the cover title)
+    // metadata - answers meta_ref leaves and seeds constructs (the cover title)
     DDocAttributes _meta;
     _meta.set(std::string("title"), std::string("djinterp"));
 
@@ -389,7 +389,7 @@ void register_layout_tests(
 {
     _rb.module("layout");
 
-    // -- the central claim ---------------------------------------------------
+    // - the central claim ---------------------------------------------------
 
     _rb.open_unit("surfaces",
                   "the four declaration front ends build one term");
@@ -398,7 +398,7 @@ void register_layout_tests(
 
     _rb.close_unit();
 
-    // -- the interpreter's four passes ---------------------------------------
+    // - the interpreter's four passes ---------------------------------------
 
     _rb.open_unit("interpreter",
                   "number -> outline -> emit -> run, end to end");

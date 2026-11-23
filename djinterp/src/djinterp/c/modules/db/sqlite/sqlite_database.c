@@ -5,7 +5,7 @@
 *   Whether a database is attached is sqlite3_db_readonly's question: it is -1
 * exactly when the name is not attached, which needs no statement at all.
 * Files are created by opening them, recognised by reading their catalogue,
-* and deleted through the default VFS -- the same calls SQLite itself makes,
+* and deleted through the default VFS - the same calls SQLite itself makes,
 * so a path means what it means to SQLite on every platform. A database's
 * bytes come back in the C runtime's memory, which d_db_free releases, and go
 * in through SQLite's, which SQLite releases when the database closes.
@@ -78,8 +78,8 @@ int d_internal_sqlite_delete_file(
 }
 
 /**
- * @brief Deletes the files SQLite keeps beside a database -- its rollback
- *        journal, write-ahead log and shared-memory index -- where they exist.
+ * @brief Deletes the files SQLite keeps beside a database - its rollback
+ *        journal, write-ahead log and shared-memory index - where they exist.
  *
  * @param[in]     _vfs   the VFS.
  * @param[in,out] _path  the database's full path, in a buffer with room for
@@ -312,8 +312,8 @@ int d_sqlite_create_database_file(
 d_sqlite_delete_database_file
   xFullPathname turns the path into the absolute form SQLite would use, in a
 buffer with room for the companions' suffixes after it. The main file goes
-first, so an error deleting it leaves its companions -- which may hold its
-only copy of committed changes -- untouched.
+first, so an error deleting it leaves its companions - which may hold its
+only copy of committed changes - untouched.
 */
 int d_sqlite_delete_database_file(
     const char* _path,
@@ -419,8 +419,8 @@ bool d_sqlite_is_database_file(
 d_sqlite_serialize
   The database's page count is read first, through the layer: that opens a
 temporary database not yet opened, which sqlite3_serialize would answer for
-with nothing, and reports a database that cannot be read -- locked, or
-damaged -- with the connection's own message, which sqlite3_serialize leaves
+with nothing, and reports a database that cannot be read - locked, or
+damaged - with the connection's own message, which sqlite3_serialize leaves
 no trace of. SQLite's block is asked for without copying where SQLite holds
 the database in one (one deserialized), and made otherwise; either is copied
 into the C runtime's memory, which d_db_free releases.

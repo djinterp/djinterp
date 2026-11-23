@@ -52,7 +52,7 @@ bool test_result_success()
 /*
 test_result_empty_status
   Verifies that the success constructor downgrades status to `empty` when the
-  element vector is empty -- so an empty filter is reported as empty, not ok.
+  element vector is empty - so an empty filter is reported as empty, not ok.
   Tests the following:
   - an empty element vector yields status empty and ok() false
   - empty() is true and count() is zero

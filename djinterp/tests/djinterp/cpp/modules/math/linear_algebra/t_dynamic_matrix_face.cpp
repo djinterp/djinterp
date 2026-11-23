@@ -2,13 +2,13 @@
 * djinterp [cpp][math]                                 t_dynamic_matrix_face.cpp
 *
 *   Tests for linear_algebra/dynamic_matrix.hpp, at every level from C++98,
-* per family and for int: shapes chosen at run time -- construction,
+* per family and for int: shapes chosen at run time - construction,
 * element access, rows and columns; the arithmetic and products against
 * the fixed-size matrix's, element for element; the trace, norms and
 * powers; the round trip through the fixed-size type; the operators,
 * scalar products of either order included. And of every other element
 * type the fixed-size matrix takes (S354): math::complex<T> of float and
-* double, math::value and math::inline_value -- the arithmetic, products,
+* double, math::value and math::inline_value - the arithmetic, products,
 * trace, norms, a complex matrix's Frobenius norm a T, identity, powers,
 * zeros and equality with a tolerance of the traits' magnitude type, each
 * the fixed-size matrix's.

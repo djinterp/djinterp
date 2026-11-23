@@ -16,13 +16,13 @@
 *
 *   The shared header (type_traits_tests.hpp) provides three reference
 * classes:
-*     - trivial_t            -- all defaulted (rule of zero)
-*     - full_special_member_t -- all user-defined (rule of five)
-*     - copy_only_t          -- copy + dtor only (rule of three but
+*     - trivial_t            - all defaulted (rule of zero)
+*     - full_special_member_t - all user-defined (rule of five)
+*     - copy_only_t          - copy + dtor only (rule of three but
 *                                NOT rule of five because move is
 *                                implicitly deleted by user-declared
 *                                copy operations)
-*     - noncopyable_t        -- copy deleted -> follows neither rule_of_*
+*     - noncopyable_t        - copy deleted -> follows neither rule_of_*
 *                                (the probe expressions for copy are
 *                                ill-formed)
 *
@@ -54,24 +54,24 @@ using nc = type_traits_test_types::noncopyable_t;
 static_assert(follows_rule_of_five<fs>::value == true,
               "follows_rule_of_five<full_special_member_t> -> true");
 
-// positive: trivial_t -- all special members default-generated, which is
+// positive: trivial_t - all special members default-generated, which is
 // equally well-formed.  The trait doesn't distinguish user-defined from
 // compiler-generated.
 static_assert(follows_rule_of_five<tt>::value == true,
               "follows_rule_of_five<trivial_t> -> true (defaults are OK)");
 
-// negative: noncopyable -- copy ctor deleted -> probe fails
+// negative: noncopyable - copy ctor deleted -> probe fails
 static_assert(follows_rule_of_five<nc>::value == false,
               "follows_rule_of_five<noncopyable_t> -> false (copy deleted)");
 
-// negative: builtin int -- the probe `_Type& = _Type&&` should succeed for
+// negative: builtin int - the probe `_Type& = _Type&&` should succeed for
 // int.  In fact, follows_rule_of_five<int> probably IS true under the
 // current spec (the probes succeed for built-in arithmetic).  Test what
 // the implementation actually does:
 static_assert(follows_rule_of_five<int>::value == true,
               "follows_rule_of_five<int> -> true (all int operations well-formed)");
 
-// negative: void -- probes are ill-formed
+// negative: void - probes are ill-formed
 static_assert(follows_rule_of_five<void>::value == false,
               "follows_rule_of_five<void> -> false");
 
@@ -87,18 +87,18 @@ static_assert(follows_rule_of_five<void>::value == false,
 // II.  follows_rule_of_three  (compile-time)
 // =========================================================================
 //   Requires: copy ctor, copy assign (returns Type&).  No move-related
-// probes -- so a copy-only class (where move is implicitly deleted)
+// probes - so a copy-only class (where move is implicitly deleted)
 // still passes.
 
-// positive: copy-only class -- declares copy ctor + copy assign
+// positive: copy-only class - declares copy ctor + copy assign
 static_assert(follows_rule_of_three<co>::value == true,
               "follows_rule_of_three<copy_only_t> -> true");
 
-// positive: full Rule-of-Five class -- has copy ctor + copy assign too
+// positive: full Rule-of-Five class - has copy ctor + copy assign too
 static_assert(follows_rule_of_three<fs>::value == true,
               "follows_rule_of_three<full_special_member_t> -> true");
 
-// positive: trivial_t -- compiler-generated copy is well-formed
+// positive: trivial_t - compiler-generated copy is well-formed
 static_assert(follows_rule_of_three<tt>::value == true,
               "follows_rule_of_three<trivial_t> -> true");
 
@@ -129,23 +129,23 @@ static_assert(follows_rule_of_three<int>::value == true,
 // assignable / destructible.  Distinct from rule_of_five: rule_of_zero
 // requires triviality, rule_of_five just requires well-formedness.
 
-// positive: trivial_t -- all defaulted, hence trivial
+// positive: trivial_t - all defaulted, hence trivial
 static_assert(follows_rule_of_zero<tt>::value == true,
               "follows_rule_of_zero<trivial_t> -> true");
 
-// positive: builtin int -- all operations trivial
+// positive: builtin int - all operations trivial
 static_assert(follows_rule_of_zero<int>::value == true,
               "follows_rule_of_zero<int> -> true");
 
-// negative: full_special_member_t -- user-defined operations are NOT trivial
+// negative: full_special_member_t - user-defined operations are NOT trivial
 static_assert(follows_rule_of_zero<fs>::value == false,
               "follows_rule_of_zero<full_special_member_t> -> false (user-defined ops not trivial)");
 
-// negative: copy_only_t -- user-defined ops not trivial
+// negative: copy_only_t - user-defined ops not trivial
 static_assert(follows_rule_of_zero<co>::value == false,
               "follows_rule_of_zero<copy_only_t> -> false");
 
-// negative: noncopyable_t -- copy operations deleted -> not trivially-copyable
+// negative: noncopyable_t - copy operations deleted -> not trivially-copyable
 static_assert(follows_rule_of_zero<nc>::value == false,
               "follows_rule_of_zero<noncopyable_t> -> false");
 

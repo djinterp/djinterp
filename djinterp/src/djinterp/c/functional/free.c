@@ -836,7 +836,7 @@ bool d_internal_free_bind(
 /*
 d_free_bind
   The Monad instance: replaces every hole with a subtree. This is substitution,
-and it is why templates and open documents reduce to this carrier -- a template
+and it is why templates and open documents reduce to this carrier - a template
 is a tree with holes, and filling it is exactly `bind`.
 
 Parameter(s):
@@ -884,7 +884,7 @@ struct dj_free* d_free_bind(
 /*
 d_free_traverse
   The narrow slice of Traversable the parity assessment scopes: `T` is `free`,
-and the applicative is a failure-shaped one -- `maybe` or `result`. Visits every
+and the applicative is a failure-shaped one - `maybe` or `result`. Visits every
 hole in order, rebuilding the tree, and reports failure if any visit declines.
   This is deliberately NOT the general `traverse`. A general applicative would
 have to hold the rebuilt tree inside the carrier, which is the (T, F) matrix the
@@ -1043,7 +1043,7 @@ struct dj_cofree* d_cofree_node(
 /*
 d_cofree_extract
   The comonad counit: the annotation at the root. Total, because a cofree tree
-always has at least one node -- which is the structural difference from `maybe`,
+always has at least one node - which is the structural difference from `maybe`,
 where extraction can fail.
 
 Parameter(s):

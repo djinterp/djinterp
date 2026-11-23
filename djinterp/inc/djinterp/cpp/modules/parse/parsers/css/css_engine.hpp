@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][parse]                                           css_engine.hpp
 *
-* CSS engine -- top-level facade:
+* CSS engine - top-level facade:
 *   This header bundles parsing, rule indexing, and cascade resolution
 * into a single class that hosts can drive without knowing the internal
 * layout of the AST.
@@ -11,7 +11,7 @@
 * discriminating component of its rightmost compound.  At resolution
 * time the engine evaluates only the buckets relevant to the target --
 * its id bucket, its class buckets, its type bucket, and the universal
-* bucket -- avoiding a linear scan of every rule per target.
+* bucket - avoiding a linear scan of every rule per target.
 *
 *   The cascade is resolved by sorting matched declarations by:
 *     1. !important flag (important wins),
@@ -151,7 +151,7 @@ public:
     // matched_rules
     //   member: appends one matched_declaration to _out for each
     // (rule, selector, declaration) triple that applies to the
-    // target.  No cascade resolution is performed -- the caller
+    // target.  No cascade resolution is performed - the caller
     // sees raw matches.
     void matched_rules(
         const style_target_view&          _target,
@@ -218,7 +218,7 @@ private:
 
 
 // ================================================================
-//  css_engine -- inline definitions
+//  css_engine - inline definitions
 // ================================================================
 
 inline
@@ -299,7 +299,7 @@ void css_engine::m_classify_and_index(
     }
 
     // no discriminating component (universal-only, or attribute-
-    // / pseudo-class-only) -- catch-all bucket.
+    // / pseudo-class-only) - catch-all bucket.
     m_universal_bucket.push_back(rec);
 
     return;
@@ -362,7 +362,7 @@ void css_engine::m_evaluate_records(
             continue;
         }
 
-        // selector matched -- emit one matched_declaration per
+        // selector matched - emit one matched_declaration per
         // declaration in the rule.
         std::size_t d;
 
@@ -526,7 +526,7 @@ void css_engine::resolve(
 
 
 // ================================================================
-//  parse_stylesheet  --  free-function convenience
+//  parse_stylesheet  -  free-function convenience
 // ================================================================
 
 // parse_stylesheet

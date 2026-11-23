@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][utility]                                    archive_options.hpp
 *
-*   Container tuning knobs for the C++ facade -- RE-BASED onto the shared
+*   Container tuning knobs for the C++ facade - RE-BASED onto the shared
 * kernel, but NOT the same way compress_options was, and the difference is
 * worth understanding before editing either.
 *
@@ -9,14 +9,14 @@
 *   -------------
 *   compress_options DERIVES from dj_compress_options at zero cost, because
 * every one of its fifty knobs is numeric.  archive_options cannot: five of its
-* knobs are text -- the archive comment, three passwords, and the gzip original
-* filename -- and the C++ vocabulary for text is std::string while the kernel's
+* knobs are text - the archive comment, three passwords, and the gzip original
+* filename - and the C++ vocabulary for text is std::string while the kernel's
 * is a borrowed span (pointer plus length, owning nothing).  A type holding
 * std::string cannot also be a type holding dj_pack_text.
 *
 *   So this one is a PARALLEL SHAPE with an explicit lowering.  That is a real
-* cost -- a second field list that can drift from the kernel's, and a copy at
-* every dispatch -- and it is accepted because the alternative is worse: making
+* cost - a second field list that can drift from the kernel's, and a copy at
+* every dispatch - and it is accepted because the alternative is worse: making
 * the C++ facade speak borrowed spans would push lifetime management onto every
 * caller of a convenience API, to save one struct copy per archive.  Goals §4
 * permits a cost demanded by another goal; it forbids an unnecessary one.  This
@@ -27,7 +27,7 @@
 *   lower() returns a dj_archive_options whose text spans POINT INTO this
 * object.  It is valid for exactly as long as this object lives unmodified.
 * Every use in archive.cpp takes the lowering as a local, uses it within one
-* call, and discards it -- which is the only pattern that is obviously
+* call, and discards it - which is the only pattern that is obviously
 * correct, and the only one this header endorses.
 *
 *   WHAT IS SHARED ANYWAY
@@ -38,7 +38,7 @@
 *
 *   PORTABILITY:
 *   Target floor is C++98.  The EFFECTIVE floor today is C++11, and not because
-* of anything in this header -- djinterp.hpp gates below it outright ("djinterp
+* of anything in this header - djinterp.hpp gates below it outright ("djinterp
 * requires C++11 or later"), so no header that includes it can compile at C++98
 * regardless of what it uses.  Nothing here needs C++11 in its own right, so
 * this returns to the target floor the day the gate moves.  Verified building
@@ -216,7 +216,7 @@ struct DRarOptions
 // =============================================================================
 
 // archive_options
-//   struct: the whole container surface -- the archive-level knobs, the
+//   struct: the whole container surface - the archive-level knobs, the
 // embedded codec tuning, and one block per format.
 //
 //   `level` and `codec.level` are deliberately distinct: the first is the
@@ -246,7 +246,7 @@ struct archive_options
 
     // lower
     //   function: the kernel's view of this option set.  Text spans BORROW
-    // from this object and are valid only while it lives unmodified -- see the
+    // from this object and are valid only while it lives unmodified - see the
     // header banner.  Use the result within a single call and discard it.
     dj_archive_options lower() const
     {
@@ -297,7 +297,7 @@ private:
     // span
     //   function: a borrowed view of _s.  An empty string yields the null span
     // rather than a pointer to a terminator, so "unset" and "set to empty" are
-    // the same answer -- which is what the kernel's knob comparison expects.
+    // the same answer - which is what the kernel's knob comparison expects.
     static
     dj_pack_text span(
         const std::string& _s
@@ -360,7 +360,7 @@ bool operator!=(
 // enumerator, so any knob-to-format map has to put the six archive-level knobs
 // (level, store_only, preserve_permissions, preserve_mtime, comment, codec)
 // somewhere untrue.  d_archive_knob_format used to answer ZIP for them and was
-// deleted for that reason -- it had no callers, and its one plausible use was
+// deleted for that reason - it had no callers, and its one plausible use was
 // the wrong one.  Embedding sidesteps the question entirely.
 
 // zip_options_equal / tar_options_equal / ...
@@ -485,8 +485,8 @@ archive_options default_archive_options()
 }
 
 // options_are_default
-//   function: whether nothing anywhere -- archive level, embedded codec, or
-// any format block -- has been touched.
+//   function: whether nothing anywhere - archive level, embedded codec, or
+// any format block - has been touched.
 inline
 bool options_are_default(
     const archive_options& _opt
@@ -523,7 +523,7 @@ bool codec_is_default(
 //   THE CODEC IS REPORTED COARSELY, ON PURPOSE.  Archive-level and per-format
 // knobs are named individually, because those are the knobs call sites
 // actually set.  The embedded codec is reported at BLOCK granularity
-// ("codec.zstd") with codec.level called out by name -- naming all fifty codec
+// ("codec.zstd") with codec.level called out by name - naming all fifty codec
 // fields would bury the signal for a caller tuning a container.  When the
 // individual knob matters, call describe_compress_option_diff on the .codec
 // member, which names every field.
@@ -637,7 +637,7 @@ std::string describe_option_diff(
 }
 
 // describe_diff_from_default
-//   function: the same list taken against a freshly constructed set -- "what
+//   function: the same list taken against a freshly constructed set - "what
 // has this option set changed from pristine?".
 inline
 std::string describe_diff_from_default(

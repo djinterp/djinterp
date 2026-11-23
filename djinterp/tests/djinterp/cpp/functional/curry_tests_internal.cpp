@@ -11,7 +11,7 @@
 #include <tuple>
 #include <type_traits>
 // djinterp
-// djinterp [test] -- curry.hpp Section I (internal machinery)
+// djinterp [test] - curry.hpp Section I (internal machinery)
 #include "./curry_tests.hpp"
 
 

@@ -2,7 +2,7 @@
 * djinterp [c][net]                                                       curl.h
 *
 * The libcurl binding: HTTP and the other URL schemes libcurl speaks, from C.
-*   A request -- method, URL, header fields, body -- and a set of options go
+*   A request - method, URL, header fields, body - and a set of options go
 * in; the response's status comes back, and its body and header fields flow
 * to callbacks as they arrive. One call performs one transfer on its own easy
 * handle, blocking until it ends:
@@ -166,7 +166,7 @@ enum dj_net_error d_curl_error_to_net(
 //==============================================================================
 // What the libcurl this program runs with can do. Whether the build has an
 // API is fixed at compile time (env_curl.h); whether the library supports a
-// feature -- HTTP/2, a TLS backend -- is a property of the library found at
+// feature - HTTP/2, a TLS backend - is a property of the library found at
 // run time, which these report.
 
 
@@ -236,7 +236,7 @@ void d_curl_global_cleanup(void);
 // A request and its options are plain records the caller fills and owns,
 // borrowed only for the duration of d_curl_perform; libcurl copies what it
 // keeps. Options start from d_curl_options_init, which states libcurl's
-// defaults explicitly, so weakening one -- verify_tls, say -- is a visible
+// defaults explicitly, so weakening one - verify_tls, say - is a visible
 // assignment.
 
 
@@ -336,7 +336,7 @@ typedef bool (*dj_curl_body_fn)(void*       _context,
 // dj_curl_header_fn
 //   function pointer: receives one response header field, its name as sent
 // and its value without surrounding blanks, both borrowed for the call.
-// Status lines -- those beginning "HTTP/" -- and the blank line ending a
+// Status lines - those beginning "HTTP/" - and the blank line ending a
 // header block are not delivered.
 // Returns true to continue the transfer, false to end it.
 typedef bool (*dj_curl_header_fn)(void*              _context,

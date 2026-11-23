@@ -4,17 +4,17 @@
 *   Section II of byte_size.hpp: the internal storage-shape signal detectors
 * that decide a container's dynamic footprint.  They are implementation detail
 * (djinterp::internal), but each is a small SFINAE trait with a true and a
-* false specialization, so pinning both branches of each -- and both operands
-* of the two composite helpers -- is the most direct route to full coverage.
+* false specialization, so pinning both branches of each - and both operands
+* of the two composite helpers - is the most direct route to full coverage.
 *
 *   Detectors (true on a matching shape, false on has_nothing and on a library
 * container that lacks the signal):
 *     byte_has_capacity_helper / _size_helper / _allocator_helper /
 *     _reserve_helper / _c_str_helper.
 *   Composites:
-*     byte_is_dynamically_sited_helper  -- the allocator OR reserve disjunction
+*     byte_is_dynamically_sited_helper  - the allocator OR reserve disjunction
 *       (alloc-only, reserve-only, both, neither);
-*     byte_recurse_into_element_helper  -- is_iterable_container AND NOT c_str
+*     byte_recurse_into_element_helper  - is_iterable_container AND NOT c_str
 *       (nested container -> true; scalar / c_str leaf / non-iterable -> false).
 *   Also: the detectors strip cv / ref via clean_t, so qualified inputs agree.
 *

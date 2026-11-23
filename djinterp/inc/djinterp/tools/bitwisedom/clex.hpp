@@ -2,7 +2,7 @@
 * djinterp [cpp][tools]                                                 clex.hpp
 *
 * C and C++ text as tokens, read by djinterp's scanners.
-*   bitwisedom reads C in three places -- a macro row's body, a header it is
+*   bitwisedom reads C in three places - a macro row's body, a header it is
 * asked to import, and the environment of #defines a sheet is evaluated in --
 * and reads it as a compiler would: djinterp's lexer, at the sheet's
 * language and level, does the scanning. This is the bridge. djinterp's
@@ -108,7 +108,7 @@ const unsigned C_COMMENT_DOC    = 0x2000u;
 //------------------------------------------------------------------------------
 // 1.3.1
 // c_token
-//   struct: one token. `text` is its spelling with splices removed -- a
+//   struct: one token. `text` is its spelling with splices removed - a
 // punctuator's primary spelling, whichever way it was written. `offset` and
 // `length` are the bytes it covers in the text it was read from, splices
 // included; `line` and `column` (one-based, columns counting code points)
@@ -190,7 +190,7 @@ D_NODISCARD c_lexed lex_c(
 
 // spelled
 //   tokens written back as text: one space where the source had whitespace
-// before a token, none elsewhere -- the spelling `#` gives an argument.
+// before a token, none elsewhere - the spelling `#` gives an argument.
 D_NODISCARD std::string spelled(
     const std::vector<c_token>& _tokens
 );
@@ -243,7 +243,7 @@ D_NODISCARD c_literal decode_literal(
     data_model     _model
 );
 
-// levels -- a standard's djinterp level (its year), and whether it is C++
+// levels - a standard's djinterp level (its year), and whether it is C++
 D_NODISCARD unsigned lex_level(
     standard _level
 );

@@ -39,8 +39,8 @@
 #                          CSV too
 # Every compile is -pedantic-errors -Wall -Wextra -Wconversion -Wshadow
 # -Werror -Werror=undef, and defines _XOPEN_SOURCE=700, as the ladders do. A
-# C++ standard a compiler does not have -- C++26 before GCC 14 and Clang 17
-# -- is skipped, and said to be. Each run happens in a fresh directory.
+# C++ standard a compiler does not have - C++26 before GCC 14 and Clang 17
+# - is skipped, and said to be. Each run happens in a fresh directory.
 #
 #   usage:   scripts/ci/check_ostream.sh   (lane E's harnesses run when they
 #            are in the tree; ONLY=stream runs the stream's three alone)

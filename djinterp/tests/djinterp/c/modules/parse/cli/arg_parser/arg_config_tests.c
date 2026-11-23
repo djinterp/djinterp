@@ -1963,7 +1963,7 @@ static const char MERGES[] =
 // the module's own (ISSUES 14): a value that is not there is the empty
 // value, and no `%%` goes between a side with no values and the other.
 // CLI11 takes the first or last element of an empty list on each of these
-// texts -- undefined behaviour, which in the probes is a crash.
+// texts - undefined behaviour, which in the probes is a crash.
 static const char DEPARTED_READS[] =
     "T05 [e = \"\"\\nf = ''\\ng =\\nh = \\n]\n"
     "toml comment = OK 4\n"
@@ -4887,7 +4887,7 @@ static const char WRITE_LAYOUT[] =
 // DEPARTED_MOVED
 //   constant: what the cases of d_tests_arg_config_departed_moved come to,
 // the module's own (ISSUES 6): an option moved into an option group is the
-// group's, and each group writes its own -- `moved=1`, then `moved2=2` --
+// group's, and each group writes its own - `moved=1`, then `moved2=2` --
 // with its description, here empty, heading what it writes when
 // descriptions are. CLI11 writes, for each command, the options whose
 // parent is that command, and a moved option keeps its old parent: --moved,
@@ -5338,7 +5338,7 @@ bool d_tests_arg_config_held(
 }
 
 /**
- * @brief Appends one part of an item -- a section, its name or a value --
+ * @brief Appends one part of an item - a section, its name or a value --
  *        escaped as d_tests_arg_escape escapes it, and `|`, which separates
  *        the parts of a list, as the escape of its code, 7c.
  *
@@ -5541,7 +5541,7 @@ bool d_tests_arg_config_read_with(
 
 /**
  * @brief Reads a text under one settings from storage of exactly its length
- *        -- none, for no text -- so that a read past either end of it is
+ *        - none, for no text - so that a read past either end of it is
  *        AddressSanitizer's to see, and appends what came of it as
  *        d_tests_arg_config_read_with appends it.
  *
@@ -5589,8 +5589,8 @@ bool d_tests_arg_config_read_exact(
 }
 
 /**
- * @brief Reads a text that ends in one newline again without it -- the
- *        same lines to getline, the last now ending the storage -- and
+ * @brief Reads a text that ends in one newline again without it - the
+ *        same lines to getline, the last now ending the storage - and
  *        checks that it came to what the text came to.
  *
  * @param[in] _read      the read; its tag names a mismatch.
@@ -5847,8 +5847,8 @@ void d_tests_arg_config_parenthesized(
 }
 
 /**
- * @brief The decimal number a value holds -- an optional `-`, then digits
- *        -- as the reference's std::stol reads the values it is given.
+ * @brief The decimal number a value holds - an optional `-`, then digits
+ *        - as the reference's std::stol reads the values it is given.
  *
  * @param[in] _value  the value.
  * @return the number; what the digits make before anything else.
@@ -6096,8 +6096,8 @@ void d_tests_arg_config_line(
 }
 
 /**
- * @brief Parses arguments as a case of a table would -- its line, then its
- *        report -- for a step that parses configuration text after.
+ * @brief Parses arguments as a case of a table would - its line, then its
+ *        report - for a step that parses configuration text after.
  *
  * @param[in,out] _run    the run.
  * @param[in]     _tag    the case's tag.
@@ -6190,8 +6190,8 @@ void d_tests_arg_config_put(
 }
 
 /**
- * @brief Appends the parser's report as one line -- its status, exit code
- *        and place, then its message -- so that two reports compare as
+ * @brief Appends the parser's report as one line - its status, exit code
+ *        and place, then its message - so that two reports compare as
  *        text.
  *
  * @param[in]     _run  the run.
@@ -6219,8 +6219,8 @@ void d_tests_arg_config_report_text(
 
 /**
  * @brief Writes the root's configuration in one mode as the reference
- *        writes CLI11's to_config -- `--- m<mode> d<descriptions>`, then the
- *        text, or the ERR line of the failure the writing recorded -- and
+ *        writes CLI11's to_config - `--- m<mode> d<descriptions>`, then the
+ *        text, or the ERR line of the failure the writing recorded - and
  *        checks that writing that succeeded left the parser's report as it
  *        was, as CLI11's catching of a flag's refusal leaves it.
  *
@@ -6318,7 +6318,7 @@ void d_tests_arg_config_write_all(
 
 /**
  * @brief The start of a writing case: its line, then the parse of its
- *        arguments -- the ERR line of a failure, but no report.
+ *        arguments - the ERR line of a failure, but no report.
  *
  * @param[in,out] _run    the run.
  * @param[in]     _tag    the case's tag.
@@ -8007,7 +8007,7 @@ bool d_tests_arg_config_make(
 
 /**
  * @brief Appends a made item's line, its full name, and the text a flag
- *        takes from it through CLI11's to_flag -- or the status that
+ *        takes from it through CLI11's to_flag - or the status that
  *        refused it, as `flag ERR <status> <exit code>`.
  *
  * @param[in,out] _out     the transcript.
@@ -18967,7 +18967,7 @@ bool d_tests_arg_config_tables_parse(
 
 /**
  * @brief The reading call refusing what the caller's table would be given
- *        -- no items or buffer, a text of a length but no data -- before
+ *        - no items or buffer, a text of a length but no data - before
  *        calling it.
  *
  * @param[in] _format  a format whose table counts its calls.
@@ -19010,8 +19010,8 @@ bool d_tests_arg_config_tables_unread(
 
 /**
  * @brief The writing calls and the flag's refusing what the caller's table
- *        would be given -- no command, item or buffer, a prefix of a length
- *        but no data -- before calling it.
+ *        would be given - no command, item or buffer, a prefix of a length
+ *        but no data - before calling it.
  *
  * @param[in] _format   a format whose table counts its calls.
  * @param[in] _command  a command to write.
@@ -20010,7 +20010,7 @@ which no CLI11 call can be given.
     is not there though it has a length, before the parser is touched: the
     error of the call before kept
   - text that is not there, of no length, parsed as empty text, which gives
-    no item -- an unknown one would be an error here
+    no item - an unknown one would be an error here
 */
 bool d_tests_arg_config_stream_nulls(void)
 {

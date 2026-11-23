@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp
-// test_interval_traits.cpp -- verifies the discreteness traits discriminate
+// test_interval_traits.cpp - verifies the discreteness traits discriminate
 // correctly. All checks are static_asserts: if this compiles, it passes.
 #include "djinterp/cpp/modules/math/interval/closed_interval.hpp"
 #include "djinterp/cpp/modules/math/interval/open_interval.hpp"

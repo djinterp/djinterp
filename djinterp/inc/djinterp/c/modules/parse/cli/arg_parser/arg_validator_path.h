@@ -9,8 +9,8 @@
 * with one status query, which follows symbolic links as
 * std::filesystem::status does: stat where the system has it, and on
 * Windows the Microsoft runtime's status of the path read as UTF-8, as
-* CLI11 reads it -- so the arguments d_arg_parser_ensure_utf8 recovers name
-* their files -- or in the ANSI code page when it is not valid UTF-8. Every
+* CLI11 reads it - so the arguments d_arg_parser_ensure_utf8 recovers name
+* their files - or in the ANSI code page when it is not valid UTF-8. Every
 * validator here reads a path so, the permission and size checks too, which
 * CLI11 hands the narrow path to std::filesystem. A path is what the value
 * holds up to a NUL, as CLI11's c_str() gives it. Anything that exists and
@@ -152,8 +152,8 @@ D_ARG_PARSER_API struct dj_arg_validator d_arg_validator_file_on_default_path(
 //   constructors: CLI11's ReadPermissions, WritePermissions and
 // ExecPermissions, described as "Path with read permission" and so on:
 // each rejects a path that does not exist with "Path does not exist:
-// <path>", and one whose permission bits grant the access to no one -- not
-// the owner, the group or others -- with "Path does not have required
+// <path>", and one whose permission bits grant the access to no one - not
+// the owner, the group or others - with "Path does not have required
 // permissions: <path>". The bits are the file's, not the caller's effective
 // access, as in CLI11; on Windows read and execute are always granted and
 // write unless the file is read-only, as Microsoft's std::filesystem

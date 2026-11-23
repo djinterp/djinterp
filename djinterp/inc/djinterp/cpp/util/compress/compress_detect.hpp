@@ -7,9 +7,9 @@
 *
 *   WHY IT IS NOT PART OF compress.hpp:
 *   Detection reads bytes against a constant table.  It calls no backend, so a
-* caller that only wants to IDENTIFY a blob -- a bundler picking an extension,
+* caller that only wants to IDENTIFY a blob - a bundler picking an extension,
 * a report writer sniffing an input, a suite asserting that another module
-* emitted the framing it claimed -- should not have to link the codec
+* emitted the framing it claimed - should not have to link the codec
 * dispatcher it never invokes.  This is the same split compress_options.hpp
 * already makes for the option vocabulary, for the same reason.
 *
@@ -21,7 +21,7 @@
 *
 *   NO TAGS HERE:
 *   The surface is expressed in DCodecId, the kernel enum, not in the codecs::
-*   tag types -- those are declared in compress.hpp, and including it would
+*   tag types - those are declared in compress.hpp, and including it would
 * reintroduce exactly the dependency this header exists to avoid.  The
 * tag-dispatched spellings (signature_of, has_expected_signature<Codec>) stay
 * in the test layer, one thin hop above these.
@@ -31,7 +31,7 @@
 *
 *   PORTABILITY:
 *   Target floor is C++98.  The EFFECTIVE floor today is C++11, and not because
-* of anything in this header -- djinterp.hpp gates below it outright ("djinterp
+* of anything in this header - djinterp.hpp gates below it outright ("djinterp
 * requires C++11 or later"), so no header that includes it can compile at C++98
 * regardless of what it uses.  Nothing here needs C++11 in its own right, so
 * this returns to the target floor the day the gate moves.  Verified building
@@ -148,7 +148,7 @@ codec_signature_length(
 
 // detect_codec
 //   function: identify the codec that framed _blob.  Returns false and leaves
-// _out_codec untouched when nothing matches -- which includes every stored,
+// _out_codec untouched when nothing matches - which includes every stored,
 // raw-DEFLATE and brotli stream, since those carry no magic to detect.  A
 // negative answer is therefore "no framing found", never "not a stream".
 inline bool

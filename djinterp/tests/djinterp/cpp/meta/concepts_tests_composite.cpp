@@ -35,7 +35,7 @@ bool concepts_tests_composite()
     using fixtures::unscoped_enum_t;
 
     // -------------------------------------------------------------------
-    // is_arithmetic_c -- integers + floating point + (cv-qualified, ref-stripped)
+    // is_arithmetic_c - integers + floating point + (cv-qualified, ref-stripped)
     // -------------------------------------------------------------------
 
     DT_CONCEPT    (is_arithmetic_c<int>);
@@ -51,7 +51,7 @@ bool concepts_tests_composite()
     DT_NOT_CONCEPT(is_arithmetic_c<trivial_class>);
 
     // -------------------------------------------------------------------
-    // is_fundamental_c -- arithmetic + void + nullptr_t
+    // is_fundamental_c - arithmetic + void + nullptr_t
     // -------------------------------------------------------------------
 
     DT_CONCEPT    (is_fundamental_c<int>);
@@ -64,7 +64,7 @@ bool concepts_tests_composite()
     DT_NOT_CONCEPT(is_fundamental_c<unscoped_enum_t>);
 
     // -------------------------------------------------------------------
-    // is_scalar_c -- arithmetic + enum + pointer + member-pointer + nullptr_t
+    // is_scalar_c - arithmetic + enum + pointer + member-pointer + nullptr_t
     // -------------------------------------------------------------------
 
     DT_CONCEPT    (is_scalar_c<int>);
@@ -77,7 +77,7 @@ bool concepts_tests_composite()
     DT_NOT_CONCEPT(is_scalar_c<int&>);                   // reference is NOT scalar
 
     // -------------------------------------------------------------------
-    // is_object_c -- scalar + array + union + class
+    // is_object_c - scalar + array + union + class
     // -------------------------------------------------------------------
 
     DT_CONCEPT    (is_object_c<int>);
@@ -88,7 +88,7 @@ bool concepts_tests_composite()
     DT_NOT_CONCEPT(is_object_c<int()>);                  // function is NOT object
 
     // -------------------------------------------------------------------
-    // is_compound_c -- everything except fundamental
+    // is_compound_c - everything except fundamental
     // -------------------------------------------------------------------
 
     DT_CONCEPT    (is_compound_c<int*>);

@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                      file_tests_common.c
 *
-*   I. Foundation (file_common) -- the naming helpers and the notification
+*   I. Foundation (file_common) - the naming helpers and the notification
 * system that the rest of the subframework reports through. d_backend_name and
 * d_file_notify_level_name are pure and checked against their whole documented
 * range, including the out-of-range "unknown". The handler machinery is
@@ -39,7 +39,7 @@ d_fs_name_is
   NUL-safe name comparison. These accessors are documented never to return
 NULL, but a check records its result and CONTINUES rather than aborting, so an
 unguarded strcmp would turn a regression into a crash that takes the whole run
--- and every later section's result -- with it. Failing loudly beats that.
+-- and every later section's result - with it. Failing loudly beats that.
 
 Parameter(s):
   _got:  the returned name, possibly NULL.
@@ -167,7 +167,7 @@ void d_fs_tests_common_notify(
 
     //   Asserted only where there is a handler slot to store into. Compiled
     // out, set_handler is documented to be ACCEPTED and do nothing, and
-    // get_handler to yield NULL and clear the context -- so asserting the round
+    // get_handler to yield NULL and clear the context - so asserting the round
     // trip in the default build asserted behaviour this build openly declines
     // to have. The #else asserts the contract it DOES have rather than skipping
     // the case: "accepted and inert" is a promise too, and an inert setter that
@@ -195,7 +195,7 @@ void d_fs_tests_common_notify(
     d_test_suite_test(_suite, "a provoked error notice reaches the handler");
     g_notify_count = 0;
     // a NULL argument is a validation failure, which is exactly the path that
-    // raises an ERROR notice -- and ERROR is compiled in whenever notices are
+    // raises an ERROR notice - and ERROR is compiled in whenever notices are
     {
         FILE* file;
 
@@ -309,7 +309,7 @@ void d_fs_tests_common(
  *****************************************************************************/
 
 /******************************************************************************
- * I.  file_common  --  NOTIFICATIONS, INTROSPECTION
+ * I.  file_common  -  NOTIFICATIONS, INTROSPECTION
  *
  *   The suite's own preamble: it reports how the build was configured, which
  * is what every other group's assertions are conditioned on. If this group is
@@ -323,7 +323,7 @@ static int d_tests_file_notice_count = 0;
 /*
 d_tests_file_notice_handler
   Counts notices. The suite installs it to prove the hook actually fires when
-D_CFG_FILE_NOTIFY is on -- and, more usefully, that it fires NEVER when the
+D_CFG_FILE_NOTIFY is on - and, more usefully, that it fires NEVER when the
 knob is off, because a notification layer that survives being switched off is
 not switched off.
 */
@@ -362,13 +362,13 @@ bool d_tests_file_notify(struct dj_test_suite* _suite)
 #if D_FILE_NOTIFY_IS_ACTIVE
     //   Declared inside the gate, with the assertions that use it. Outside,
     // the hook does not exist to be queried, so the variable was set and never
-    // read -- which is a warning in exactly the build where the notification
+    // read - which is a warning in exactly the build where the notification
     // code is compiled out, i.e. the default one.
     void*                 ctx = NULL;
 #endif
 
     //   A non-NULL context on purpose. Installing NULL and reading NULL back
-    // would pass whether or not the context is stored at all -- it would be
+    // would pass whether or not the context is stored at all - it would be
     // testing a lucky value, not the contract. A marker address can only come
     // back if it was kept.
     d_test_suite_test(_suite, "notifications");
@@ -400,7 +400,7 @@ bool d_tests_file_notify(struct dj_test_suite* _suite)
                      (d_tests_file_notice_count) == (0),
                      "a NULL handler silences the hook");
 #else
-    // the knob is off, so the hook must be GONE -- not merely quiet. This is
+    // the knob is off, so the hook must be GONE - not merely quiet. This is
     // the assertion that catches a notification layer which was compiled in
     // and then filtered at runtime, which is what the knob exists to avoid.
     d_tests_file_notice_count = 0;
@@ -429,7 +429,7 @@ bool d_tests_file_notify(struct dj_test_suite* _suite)
 /*
 d_tests_file_introspection
   Reports the resolved build configuration.
-  These are not really tests -- they are the preamble every other group's
+  These are not really tests - they are the preamble every other group's
 assertions are conditioned on. Asserting them makes the configuration visible
 in the output, so a surprising result elsewhere can be read against the build
 that produced it rather than guessed at.
@@ -470,7 +470,7 @@ bool d_tests_file_introspection(struct dj_test_suite* _suite)
                      D_FILE_NAME_MAX > 0,
                      "D_FILE_NAME_MAX is set");
 
-    // the struct must be laid out, not merely declared -- this catches the
+    // the struct must be laid out, not merely declared - this catches the
     // st_mtime macro collision at its cheapest possible point
     D_TEST_CHECK_MSG(_suite,
                      "stat_layout",

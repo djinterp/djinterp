@@ -10,7 +10,7 @@
 * same value and an 8-bit integer in decimal, where CLI11 writes the one to
 * every digit max_digits10 allows and the other as a character. Sets and
 * mappings are given as text, which the validator copies, and are compared
-* as text or -- given a type descriptor -- as values of that type, the way
+* as text or - given a type descriptor - as values of that type, the way
 * CLI11 compares them as values of the container's element type.
 *   For shell completion, the sets and mappings list their members or keys,
 * and the bounds, the IPv4 check, the units and the type checks of
@@ -117,8 +117,8 @@ D_EXTERN_C_BEGIN
  *
  * @note Rejects with "Failed parsing <value> as a <TYPE>", and is described
  *       as the type's name. The value is converted as CLI11's lexical_cast
- *       converts it -- as an option of the type would, but for the empty
- *       text, which no arithmetic type takes -- into a temporary object, so
+ *       converts it - as an option of the type would, but for the empty
+ *       text, which no arithmetic type takes - into a temporary object, so
  *       the type's objects must be plain data that a conversion writes
  *       without construction and leaves without cleanup, as every built-in
  *       type's are.
@@ -218,9 +218,9 @@ D_EXTERN_C_END
 // 2.1.1
 // dj_arg_filter_fn
 //   type: writes the filtered form of `_value` into the empty buffer `_out`
-// -- CLI11's filter function, applied to a value and to every member before
-// they are compared. Returns D_ARG_OK, or an error status -- the buffer's,
-// or one of the function's own -- which stops the validation with it, as
+// - CLI11's filter function, applied to a value and to every member before
+// they are compared. Returns D_ARG_OK, or an error status - the buffer's,
+// or one of the function's own - which stops the validation with it, as
 // CLI11's filter throwing does; a set or mapping never reads it as a value
 // that does not convert to its type.
 typedef int (*dj_arg_filter_fn)(struct dj_pack_text   _value,
@@ -286,7 +286,7 @@ D_EXTERN_C_BEGIN
 /**
  * @brief Makes CLI11's IsMember: a value must be one of a set.
  *
- * @note Compares as text -- given no type, or a text type -- or as values
+ * @note Compares as text - given no type, or a text type - or as values
  *       of the type, so that `08` is a member of {8} for an integer type:
  *       as numbers for an arithmetic type, so that -0 is a member of {0}
  *       and a NaN of nothing, and for any other type as the text it writes
@@ -421,14 +421,14 @@ D_EXTERN_C_BEGIN
  * @brief Makes CLI11's AsNumberWithUnit, a transformation from a number
  *        with a unit to the number the unit stands for.
  *
- * @note A value is a number of the type followed by an optional unit -- the
- *       trailing ASCII letters, with spaces allowed between -- and becomes
+ * @note A value is a number of the type followed by an optional unit - the
+ *       trailing ASCII letters, with spaces allowed between - and becomes
  *       the number multiplied by the unit's factor in the type's own
  *       arithmetic, written as the type writes values; a unit alone stands
  *       for its factor, and a number without a unit is kept as written,
  *       trimmed. Overflow is refused where CLI11's checked_multiply refuses
  *       it. The units are kept in the order CLI11's std::map keeps them --
- *       by name, by lowercase name when they match without case -- and of
+ *       by name, by lowercase name when they match without case - and of
  *       units given twice the first is kept, as a std::map made from them
  *       keeps it; the factors are converted under the configured integer
  *       rule. Every refusal stops validation with CLI11's message, as CLI11
@@ -449,7 +449,7 @@ D_EXTERN_C_BEGIN
  *                        default.
  * @param[in] _name       the name help gives the unit; NULL for "UNIT".
  * @return the validator; on failure, a failed validator holding CLI11's
- *         construction error -- D_ARG_ERROR_VALIDATION with "Unit must not
+ *         construction error - D_ARG_ERROR_VALIDATION with "Unit must not
  *         be empty.", "Unit must contain only letters." or "Several
  *         matching lowercase unit representations are found: <unit>" --
  *         or D_ARG_ERROR_BAD_ARGUMENT for a NULL argument, a type that is

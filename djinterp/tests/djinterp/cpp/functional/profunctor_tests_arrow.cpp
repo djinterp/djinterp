@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  profunctor_tests_arrow.cpp
-//   Section I -- profn<F>, the arrow wrapper, and make_profn.
+//   Section I - profn<F>, the arrow wrapper, and make_profn.
 
 // std
 #include <string>

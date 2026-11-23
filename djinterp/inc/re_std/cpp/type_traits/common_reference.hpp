@@ -9,10 +9,10 @@
 * with both inputs."
 *
 *   Defined recursively just like common_type:
-*     common_reference<>           -- no `type` member
-*     common_reference<T>          -- type = T (no decay)
-*     common_reference<T1, T2>     -- the 4-bullet chain (see below)
-*     common_reference<T1, T2, R...> -- recursive on common_reference<...,R>
+*     common_reference<>           - no `type` member
+*     common_reference<T>          - type = T (no decay)
+*     common_reference<T1, T2>     - the 4-bullet chain (see below)
+*     common_reference<T1, T2, R...> - recursive on common_reference<...,R>
 *
 *   THE 4-BULLET CHAIN (binary case):
 *     1. If both T1 and T2 are reference types and COMMON-REF(T1, T2) is
@@ -34,7 +34,7 @@
 * <Y-returning-call>()`, where the call expressions use function-reference
 * indirection to preserve the precise value category of X and Y. This is
 * not the same as a naive `decltype(false ? declval<X>() : declval<Y>())`
-* -- declval always returns rvalue references, which would distort the
+* - declval always returns rvalue references, which would distort the
 * conditional-expression result.
 *
 *   PORTABILITY:
@@ -83,7 +83,7 @@ namespace re_std
 
 
     // common_reference
-    //   trait: primary template -- has no `type` member. Defined with
+    //   trait: primary template - has no `type` member. Defined with
     //          empty body for reliable SFINAE (see common_type.hpp for
     //          the same reasoning).
     template<typename... Ts>
@@ -301,7 +301,7 @@ namespace re_std
         // ----- 4-bullet fallback chain -------------------------------
 
         // common_reference_sub1
-        //   trait: bullet 1 -- COMMON-REF if well-formed.
+        //   trait: bullet 1 - COMMON-REF if well-formed.
         template<typename T1, typename T2, typename = void>
         struct common_reference_sub1
         {};
@@ -315,7 +315,7 @@ namespace re_std
         };
 
         // common_reference_sub2
-        //   trait: bullet 2 -- basic_common_reference query.
+        //   trait: bullet 2 - basic_common_reference query.
         template<typename T1, typename T2, typename = void>
         struct common_reference_sub2
         {};
@@ -337,7 +337,7 @@ namespace re_std
         };
 
         // common_reference_sub3
-        //   trait: bullet 3 -- common_type fallback.
+        //   trait: bullet 3 - common_type fallback.
         template<typename T1, typename T2, typename = void>
         struct common_reference_sub3
         {};
@@ -351,7 +351,7 @@ namespace re_std
         };
 
         // common_reference_sub4
-        //   trait: bullet 4 -- COND-RES.
+        //   trait: bullet 4 - COND-RES.
         template<typename T1, typename T2, typename = void>
         struct common_reference_sub4
         {};

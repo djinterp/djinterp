@@ -212,7 +212,7 @@ uint32_t d_option_value_size(
 
 
 // ===========================================================================
-// III. ORDERING -- KEY ONLY
+// III. ORDERING - KEY ONLY
 // ===========================================================================
 
 int d_option_key_less(
@@ -330,7 +330,7 @@ bool d_option_carrier_eq(
 
 
 // ===========================================================================
-// V.   IDENTITY -- KEY AND VALUE
+// V.   IDENTITY - KEY AND VALUE
 // ===========================================================================
 
 bool d_option_value_eq(
@@ -348,7 +348,7 @@ bool d_option_value_eq(
     struct dj_option_carrier rhs_carrier;
 
     //   NULL selects pi = id, which is a documented default rather than a
-    // silent one -- see option_common.h section V.
+    // silent one - see option_common.h section V.
     project = ( (_project != NULL) ? _project : &d_option_project_value );
 
     lhs_carrier = project(_lhs, _lhs_values, _context);

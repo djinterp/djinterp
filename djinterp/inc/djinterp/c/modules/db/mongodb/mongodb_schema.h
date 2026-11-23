@@ -3,16 +3,16 @@
 *
 * A database's collections, views and indexes.
 *   COLLECTIONS. A collection is created by its first write, or explicitly,
-* with options -- a validator, a capped size, time series, clustering, a
-* collation, change stream pre- and post-images -- as the create command
+* with options - a validator, a capped size, time series, clustering, a
+* collation, change stream pre- and post-images - as the create command
 * takes them, given as JSON. A view is a pipeline over a collection or
 * another view, read as a collection is and written to never. Each list
 * names what listCollections lists, in its order, the system collections
 * among them; time series collections are collections.
 *   INDEXES. An index is named and defined by its keys, a JSON document of
-* fields and their kinds -- {"n": 1} ascending, {"s": -1} descending,
+* fields and their kinds - {"n": 1} ascending, {"s": -1} descending,
 * {"t": "text"}, {"g": "2dsphere"}, {"h": "hashed"}, {"$**": 1} a wildcard
-* -- and options as createIndexes takes them: unique (or D_DB_UNIQUE),
+* - and options as createIndexes takes them: unique (or D_DB_UNIQUE),
 * sparse, partialFilterExpression, expireAfterSeconds, collation, hidden,
 * wildcardProjection. Every collection has the index "_id_", which cannot be
 * dropped.
@@ -24,7 +24,7 @@
 * create of a collection or a view that is there is 48, a drop of one that
 * is not 26, and of an index 27, unless the flags say otherwise; a create of
 * an index of a name already there is D_DB_EXISTS, which no server reports
-* -- each succeeds silently for the same keys and options -- unless
+* - each succeeds silently for the same keys and options - unless
 * D_DB_IF_NOT_EXISTS. A failure is the server's code, the driver's, or
 * D_DB_INVALID_ARGUMENT for a NULL argument, a document of the wrong shape,
 * or no current database where the database is NULL.
@@ -106,7 +106,7 @@ D_EXTERN_C_BEGIN
 
 // 2.1    Existence
 //------------------------------------------------------------------------------
-// existence -- whether the database has a collection of the name, a view
+// existence - whether the database has a collection of the name, a view
 // not counting; has_x_s reports a failure and writes false on one
 bool d_mongodb_has_collection(
     struct dj_mongodb* _db,
@@ -122,7 +122,7 @@ int d_mongodb_has_collection_s(
 
 // 2.2    Creating and dropping
 //------------------------------------------------------------------------------
-// creating and dropping -- create_collection makes a collection with the
+// creating and dropping - create_collection makes a collection with the
 // create command's options as JSON (NULL for none): {"capped": true,
 // "size": 4096}, {"timeseries": {"timeField": "t"}}, {"validator":
 // {"$jsonSchema": ...}}, {"clusteredIndex": {"key": {"_id": 1}, "unique":
@@ -145,7 +145,7 @@ int d_mongodb_drop_collection(
 
 // 2.3    Renaming
 //------------------------------------------------------------------------------
-// renaming -- renames a collection, within its database or into another
+// renaming - renames a collection, within its database or into another
 // (_to_database NULL keeps it in its own), its indexes with it; one onto a
 // collection that is there is 48 unless _flags has D_MONGODB_DROP_TARGET; a
 // collection that is not there is 26
@@ -208,7 +208,7 @@ int d_mongodb_collection_info(
 
 // 3.1    Existence
 //------------------------------------------------------------------------------
-// existence -- whether the database has a view of the name; has_x_s reports
+// existence - whether the database has a view of the name; has_x_s reports
 // a failure and writes false on one
 bool d_mongodb_has_view(
     struct dj_mongodb* _db,
@@ -224,7 +224,7 @@ int d_mongodb_has_view_s(
 
 // 3.2    Creating and dropping
 //------------------------------------------------------------------------------
-// creating and dropping -- create_view makes a view of a collection or of
+// creating and dropping - create_view makes a view of a collection or of
 // another view of the same database, the pipeline a JSON array of stages,
 // and options as create takes them, a collation, or NULL;
 // D_DB_IF_NOT_EXISTS leaves a view, or a collection, of the name as it is.
@@ -272,7 +272,7 @@ int d_mongodb_list_views(
 
 // 4.1    Existence
 //------------------------------------------------------------------------------
-// existence -- whether the collection has an index of the name; has_x_s
+// existence - whether the collection has an index of the name; has_x_s
 // reports a failure, and writes false on one: a collection that is not
 // there has no indexes, and answers false without failing
 bool d_mongodb_has_index(
@@ -291,7 +291,7 @@ int d_mongodb_has_index_s(
 
 // 4.2    Creating and dropping
 //------------------------------------------------------------------------------
-// creating and dropping -- create_index builds an index of the name over
+// creating and dropping - create_index builds an index of the name over
 // the keys, a JSON document, with createIndexes' options as JSON or NULL;
 // D_DB_UNIQUE adds "unique": true; the collection is created if it is not
 // there; D_DB_IF_NOT_EXISTS leaves an index of the name as it is, whatever

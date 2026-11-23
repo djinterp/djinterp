@@ -89,7 +89,7 @@ uint32_t d_internal_field(
 
 /*
 d_internal_find_label
-  Finds a field label -- `created:`, `date:`, `revised:` -- only where it
+  Finds a field label - `created:`, `date:`, `revised:` - only where it
 begins a word.  A plain substring search finds `date:` inside `update:`, and
 the label repair then rewrites prose: `read-copy-update:` became
 `read-copy-upcreated:` in a run over this tree.  A label is a whole word or
@@ -118,8 +118,8 @@ const char* d_internal_find_label(
 
 /*
 d_internal_label
-  Attaches the literal label a field was written with -- `created`, `date`,
-`link(s)` -- as a child node, measured where it sits on the line.  The field's
+  Attaches the literal label a field was written with - `created`, `date`,
+`link(s)` - as a child node, measured where it sits on the line.  The field's
 `name` attribute is the canonical meaning; this node is the spelling.  Keeping
 them apart is what lets a sheet say "this means created but is spelled date".
 */
@@ -198,7 +198,7 @@ d_internal_repository_part
 at the repository: /inc/djinterp/..., /src/djinterp/..., /tests/...,
 /build/cmake/...  So the part begins at the root's last `inc`, `src`, `tests`
 or `build` directory, however far below it the root reaches and whatever
-stands above it -- a checkout's own directory, a copy made elsewhere.  A root
+stands above it - a checkout's own directory, a copy made elsewhere.  A root
 that names none of them is taken by its last two directories, which is what
 every root was taken by before, and was right only for a root exactly two
 deep.
@@ -289,7 +289,7 @@ uint32_t d_banner_file(
     // src/djinterp, and a file's path is its way down from there: the
     // subsystem a banner names, the guard a header carries and the path a
     // banner states are each derived from the two.  A run may name a root
-    // further down -- one subsystem, one directory -- and what the root
+    // further down - one subsystem, one directory - and what the root
     // reaches below those two directories is then part of the file's path,
     // so that a sheet says the same of a file whichever root it was read
     // under.
@@ -390,7 +390,7 @@ uint32_t d_banner_file(
 /*
 d_banner_build
   Reads a header's banner block and builds the node tree for it.  Returns the
-banner node, or D_DSS_NO_INDEX when the file has no banner at all -- which is
+banner node, or D_DSS_NO_INDEX when the file has no banner at all - which is
 itself a finding, and is counted by the caller rather than reported here.
 */
 uint32_t d_banner_build(
@@ -625,7 +625,7 @@ uint32_t d_banner_build(
 
         // created: and revised: sit inside other lines, not at their start
         // `date:` is an old holdover for `created:`.  It is recognised as a
-        // created field -- that is what it means -- and its label child keeps
+        // created field - that is what it means - and its label child keeps
         // the spelling it was written with, so the sheet can correct it.  A
         // line carrying both is read as created, and the stray `date:` is
         // left inside the value for the format rule to reject.

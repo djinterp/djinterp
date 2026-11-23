@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/text/
+# djinterp [test]  -  build/cmake/config/testing/djinterp/c/text/
 #                      text_template/CMakeLists.txt
 #
 #   Test leaf for text_template.h's suite, in DTest's C face (converted from

@@ -4,7 +4,7 @@
 *   The shared test node: type identity, status, a deferred-callable handle,
 * and a metadata container.  The verdict is read out of the status, not stored
 * beside it.  Compiled by both C and C++.  Step E of
-* the relay -- the last leaf before the tree.
+* the relay - the last leaf before the tree.
 *
 *
 * WHAT A NODE IS, AND WHAT IT DELIBERATELY IS NOT
@@ -15,7 +15,7 @@
 *
 *     No unique ID and no depth.  Both are facts of a node's position in the
 *     owning tree, not properties of the node.  Structural identity is the
-*     node's address -- its path from the root -- and depth is that path's
+*     node's address - its path from the root - and depth is that path's
 *     length; the handler computes and tracks them during the walk.  A node is
 *     anonymous.  This is why the parity body for a tree can record a node's
 *     path without the node having ever carried one.
@@ -23,8 +23,8 @@
 *     No classification.  Leaf-vs-interior is resolved through a test_kind set
 *     held by the tree.  In isolation the type_id acts as the rank.
 *
-*     No inline closure.  A node carries a callable ID -- a 1-based index into
-*     an out-of-line table -- and never the thunk.  That is what keeps the node
+*     No inline closure.  A node carries a callable ID - a 1-based index into
+*     an out-of-line table - and never the thunk.  That is what keeps the node
 *     flat, trivially copyable and memcpy-able, and it is the same reason the
 *     framework's payload bytes use offsets rather than pointers.
 *
@@ -34,16 +34,16 @@
 *   This is the one real decision in the step, and it is the substrate wall
 * arriving three steps early.
 *
-*   The C++ default container is DBasicMetadata<> -- a std::string-keyed,
+*   The C++ default container is DBasicMetadata<> - a std::string-keyed,
 * std::vector-backed key/value store.  Its own header specifies the contract:
 * a back-insertable sequence of DKvPair rows, lookup by linear scan, keys
 * compared with operator==, and get() returning a value-initialised mapped
 * type on a miss.  Nothing in that contract requires ownership, ordering, or
 * an allocator; it requires a sequence and a scan.
 *
-*   So the kernel takes the rows as caller-provided storage -- the pattern
+*   So the kernel takes the rows as caller-provided storage - the pattern
 * step C fixed for the child arrays, and which dj_pack_sink, d_archive_extract
-* and dj_counter already use -- with borrowed const char* keys and values.  A
+* and dj_counter already use - with borrowed const char* keys and values.  A
 * miss returns the empty string rather than null, which is what a
 * value-initialised std::string is, so the two languages agree about the miss
 * case without either one special-casing it.
@@ -52,7 +52,7 @@
 * ----------------------------------------------------
 *   A node cannot own a name it computed at runtime until dj_string exists at
 * step J.  Every name in a suite is a literal in the source, because a suite is
-* a spec and a spec is written down -- so the bound is knowable, exactly as the
+* a spec and a spec is written down - so the bound is knowable, exactly as the
 * child-array bound is.  When dj_string lands, an owning container becomes one
 * more way to supply the rows and nothing in this header changes.
 *
@@ -63,8 +63,8 @@
 *
 * STATUS IS CLAIMED TWICE, AGAIN
 * ==============================
-*   test_object.hpp declares its own status constants -- status_passed = 0
-* through status_error = 4 -- as static members of the template, independent
+*   test_object.hpp declares its own status constants - status_passed = 0
+* through status_error = 4 - as static members of the template, independent
 * of test_common's D_TEST_STATUS_* macros.  They agree today.  Nothing made
 * them agree, and nothing would have reported it if they stopped: the node's
 * constants are read at the node's call sites and the macros at everyone
@@ -133,11 +133,11 @@
 // D_EXTERN_C and leave D_EXTERN_C_END unchanged.  That pairing does not
 // compile: djinterp.h defines D_EXTERN_C as a linkage specification on ONE
 // declaration and D_EXTERN_C_BEGIN/_END as the block form, and flags the
-// asymmetry itself -- "`extern "C" { ... }` is a linkage block, `extern "C"
+// asymmetry itself - "`extern "C" { ... }` is a linkage block, `extern "C"
 // decl;` is a linkage specification on one declaration."  Swapping only the
 // opener leaves `extern "C"` applied to the next declaration and an unmatched
-// `}` at the end of the file.  The guard removal -- which is what §8 is
-// actually for -- is done; the token swap is not.  See the log.
+// `}` at the end of the file.  The guard removal - which is what §8 is
+// actually for - is done; the token swap is not.  See the log.
 
 D_EXTERN_C_BEGIN
 
@@ -192,7 +192,7 @@ enum dj_test_object_result
 // C++ `skip()` cleared the verdict as it set the status; C had no skip at all,
 // so the same operation was set_status(SKIPPED), which preserved it.  One
 // operation, two answers about what the node then held, and nothing compared
-// them -- roadmap §3's corollary again, in the same struct that already
+// them - roadmap §3's corollary again, in the same struct that already
 // supplied three instances of it.  d_test_object_result_of now READS the
 // status, so there is one stored fact and one answer.
 //
@@ -203,14 +203,14 @@ enum dj_test_object_result
 //   METADATA IS NOT HERE AND THIS HEADER KNOWS NOTHING ABOUT IT.  It was an
 // embedded member, then a borrowed pointer (revision.md 6, so the layout would
 // stop depending on the container's), and it is now an ASSOCIATION the owning
-// tree keeps -- beside the unique id and the depth this node already declines
+// tree keeps - beside the unique id and the depth this node already declines
 // to carry, for the same reason: those are facts of position, not properties
 // of the node.
 //
 //   THE TWO FORKS HAD DRIFTED PAST REPAIR, which is what settled it.  C stored
 // uint32 -> void*, borrowed and never freed. C++ stored std::string ->
 // std::string, owning and allocating. Same field name, different data
-// structure, opposite ownership -- and no parity relation left between them
+// structure, opposite ownership - and no parity relation left between them
 // once the C key became an interned id. Decoupling is what lets the C++ tree
 // use RAII properly instead of mirroring a borrowed pointer it gains nothing
 // from.
@@ -239,7 +239,7 @@ struct dj_test_object
 
 //   THE NODE NO LONGER STORES A VERDICT, AND THAT REMOVED AN ASSERTION.  A
 // `bool result` member sat at offset 0 until the verdict became derived, and it
-// forced `D_STATIC_ASSERT(sizeof(bool) == 1)` -- because C's _Bool and C++'s
+// forced `D_STATIC_ASSERT(sizeof(bool) == 1)` - because C's _Bool and C++'s
 // bool are distinct types with IMPLEMENTATION-DEFINED size, and this struct is
 // the one thing the two forks must agree on byte for byte.  It was the node's
 // only member whose width the standard did not fix.  With it gone the three
@@ -247,14 +247,14 @@ struct dj_test_object
 // nothing left to defend, so it is deleted rather than kept as decoration.
 
 //   The offsets were written as multiples of sizeof(int32_t) when every field
-// in the block was one, and they are again -- the one-byte member plus three
+// in the block was one, and they are again - the one-byte member plus three
 // bytes of padding that made that arithmetic an accident is gone.  They stay
 // stated outright regardless: an accident that comes out right is the kind that
 // survives until it does not.
 //
 //   THESE FOUR PIN THE DEFAULT WIDTHS, AND THAT IS A REAL LIMIT ON THREE KNOBS.
 // dj_test_status, dj_test_type_id and dj_test_callable_id each name a type, and
-// each asserts a width of 1, 2, 4 or 8 bytes -- but any choice other than the
+// each asserts a width of 1, 2, 4 or 8 bytes - but any choice other than the
 // four-byte default fails HERE, in the block below, because the offsets are
 // literals.  The knobs therefore buy a named type and one place to change it,
 // NOT a working width dial.  This is not new with the status knob: setting
@@ -291,7 +291,7 @@ D_STATIC_ASSERT(D_TEST_STATUS_ERROR   == 4, "test_object: error must be 4");
 //   THE SEVEN d_test_metadata_* OPERATIONS ARE DECLARED IN
 // test_metadata.h, not here.  A caller that wants both includes both.
 
-//   THE NODE.  evaluate() turns a boolean verdict into a status -- passed or
+//   THE NODE.  evaluate() turns a boolean verdict into a status - passed or
 // failed, never skipped or pending, because those two are states a verdict
 // cannot express and are set explicitly.  It stores the status and nothing
 // else; d_test_object_result_of reads the verdict back out of it.

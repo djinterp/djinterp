@@ -631,8 +631,8 @@ public:
 };
 
 // char_predicate_is_whitespace
-//   predicate: whether a character is ASCII whitespace -- space, tab,
-// line feed, carriage return, vertical tab or form feed -- in the form
+//   predicate: whether a character is ASCII whitespace - space, tab,
+// line feed, carriage return, vertical tab or form feed - in the form
 // the text parsers take predicates: a type with a static test().
 struct char_predicate_is_whitespace
 {

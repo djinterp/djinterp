@@ -25,7 +25,7 @@ bool tests_quick_sort_traits_values()
 
     //   The three properties every algorithm publishes.  Quicksort gives up
     // stability to stay in place, and partitions ordered input like any other
-    // -- the median-of-three pivot keeps that O(n log n), not O(n).
+    // - the median-of-three pivot keeps that O(n log n), not O(n).
     result.check(!quick_sort_traits::is_stable);
     result.check(quick_sort_traits::is_in_place);
     result.check(!quick_sort_traits::is_adaptive);

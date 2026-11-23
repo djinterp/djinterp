@@ -6,21 +6,21 @@
 * the wrappers keep a ledger while a run's measured part runs: how many
 * allocations were asked for, which one to refuse, and every block made and
 * not yet freed, by address, with the allocation that made it. A block the
-* C library made for itself -- realpath's answer, freed by its caller -- is
+* C library made for itself - realpath's answer, freed by its caller - is
 * not the ledger's, and freeing it changes nothing; a block a run made and
 * left live is named by the allocation that made it.
 *   A case is run once as it is, counting; then once for each allocation it
 * asked for, that one refused. Each run is held to the clean run's result
 * (cli_sweep_tests.h): the same status with the same output, the same
-* result -- a module's report, a file's bytes, a path -- and diagnostics no
+* result - a module's report, a file's bytes, a path - and diagnostics no
 * more than the clean run's; or trouble, with no output the clean run would
 * not have begun. A case also checks what only it can see: a file left
 * neither old nor new, a module left loaded after its load failed, a
-* command's context not as it was given, a warning at `-v` lost -- where the
+* command's context not as it was given, a warning at `-v` lost - where the
 * rule above would let a whole line go.
-*   Every program here is made as a program's main makes one -- the parser,
+*   Every program here is made as a program's main makes one - the parser,
 * then the fixture's program, a definition refused ending the run in
-* trouble -- and writes into the run's own buffers, which never allocate.
+* trouble - and writes into the run's own buffers, which never allocate.
 * Each command's work is given a context of its own, made with the wrapped
 * malloc and freed with the program, so that a context lost is a block left
 * live.
@@ -105,7 +105,7 @@ static char d_tests_cli_sweep_beside[D_TESTS_CLI_SWEEP_PATH_MAX + 8u];
 
 // D_TESTS_CLI_SWEEP_LOST
 //   constant: the status of a command's work that found its context not as
-// it was given -- a status no clean run gives.
+// it was given - a status no clean run gives.
 #define D_TESTS_CLI_SWEEP_LOST      99
 
 // D_TESTS_CLI_SWEEP_WARNINGS
@@ -145,8 +145,8 @@ static struct dj_tests_cli_sweep_block
               d_tests_cli_sweep_blocks[D_TESTS_CLI_SWEEP_SLOTS];
 
 // --wrap names a symbol's wrapper __wrap_<symbol> and the symbol itself
-// __real_<symbol>, names C reserves to the implementation -- the linker, here
-// -- and no other spelling reaches them; so clang's -Wreserved-identifier,
+// __real_<symbol>, names C reserves to the implementation - the linker, here
+// - and no other spelling reaches them; so clang's -Wreserved-identifier,
 // where it has it, is off for these eight declarations and nothing else
 #if defined(D_ENV_COMPILER_CLANG)
     #if __has_warning("-Wreserved-identifier")
@@ -423,7 +423,7 @@ void* __wrap_calloc(
  *
  * A held block, moved or not, stays held under the allocation that first
  * made it; a new block is held while armed; a block the ledger never held
- * -- the C library's own -- stays unheld wherever it moves.
+ * - the C library's own - stays unheld wherever it moves.
  */
 void* __wrap_realloc(
     void*  _memory,
@@ -487,7 +487,7 @@ void __wrap_free(
 /**
  * @brief Starts a run: the ledger emptied, and the allocation it refuses
  *        set. Blocks an earlier run left live, already reported, are let
- *        go -- not freed, as nothing knows what is in them.
+ *        go - not freed, as nothing knows what is in them.
  *
  * @param[in] _refuse_at  the allocation the run refuses, counted from 1; 0
  *                        for none.
@@ -708,9 +708,9 @@ bool d_tests_cli_sweep_lines_kept(
 }
 
 // dj_tests_cli_sweep_result
-//   struct: what a run came to: its status -- the program's, or a call's
+//   struct: what a run came to: its status - the program's, or a call's
 // mapped to the program's statuses; its output and error output; its
-// other result -- a module's report, a file's bytes, a path; and what the
+// other result - a module's report, a file's bytes, a path; and what the
 // run itself found broken, or NULL.
 struct dj_tests_cli_sweep_result
 {
@@ -798,7 +798,7 @@ void d_tests_cli_sweep_keep(
 
 // dj_tests_cli_sweep_make_fn
 //   type: a fixture: makes a program over a parser d_arg_parser_init made --
-// d_cli_program_init, then the program's own definitions -- and returns
+// d_cli_program_init, then the program's own definitions - and returns
 // whether everything was made.
 typedef bool (*dj_tests_cli_sweep_make_fn)(struct dj_cli_program* _program,
                                           struct dj_arg_parser*  _parser);
@@ -828,7 +828,7 @@ struct dj_tests_cli_sweep_case
 /**
  * @brief Judges how a program's run that ended in trouble said so. Where
  *        the clean run did not end in trouble, the refusal is the one thing
- *        that changed, and the run must say it: the want of memory -- never
+ *        that changed, and the run must say it: the want of memory - never
  *        another failure, such as a command not there or a module not
  *        installed, that the refusal would be passed off as, and with no
  *        pointer to help, which does not mend it. Where the clean run
@@ -1365,7 +1365,7 @@ int d_tests_cli_sweep_work_check(
 
 /**
  * @brief The work of `group`'s subcommands: the command's path, which takes
- *        memory to make -- and, without it, trouble, said.
+ *        memory to make - and, without it, trouble, said.
  *
  * @param[in] _program  the program.
  * @param[in] _command  the command.
@@ -2223,7 +2223,7 @@ bool d_tests_cli_sweep_make_host(
 /**
  * @brief What a program's main does with a fixture, as the kit means a
  *        main to: the parser, named as the line's first word; the program,
- *        whatever of it could be made; its run on the line -- which, where
+ *        whatever of it could be made; its run on the line - which, where
  *        the making failed, ends in trouble and says why; and both
  *        released.
  *
@@ -2365,7 +2365,7 @@ void d_tests_cli_sweep_run_line(
 
 /**
  * @brief A case's run that runs its line, and holds every run that does not
- *        end in trouble -- the clean run among them -- to all of the
+ *        end in trouble - the clean run among them - to all of the
  *        warnings the line calls for at -v, one for each option given twice
  *        and more with values that differ: the want of memory shortens such
  *        a warning, and never loses it. The sweep's own rule lets a run
@@ -2444,8 +2444,8 @@ bool d_tests_cli_sweep_making(void)
       d_tests_cli_sweep_run_line, (_status) }
 
 // ENDINGS
-//   constant: the lines a parse ends: help, a version -- with the build, a
-// program's and a module's -- a completion script, and the failures the kit
+//   constant: the lines a parse ends: help, a version - with the build, a
+// program's and a module's - a completion script, and the failures the kit
 // words; the failures of a program that says them without their word, and
 // the help of one that keeps the parser's, the usage line of a command
 // with no work among it; a prefix several long names begin, and one that
@@ -2707,8 +2707,8 @@ bool d_tests_cli_sweep_leftover(void)
 }
 
 /**
- * @brief Holds a file to what it should hold -- or, for NULL, to not being
- *        there -- and nothing beside it.
+ * @brief Holds a file to what it should hold - or, for NULL, to not being
+ *        there - and nothing beside it.
  *
  * @param[in]     _name    the file.
  * @param[in]     _want    what it should hold; NULL for no file.
@@ -2744,8 +2744,8 @@ void d_tests_cli_sweep_holds(
 
 /**
  * @brief Holds what a write left: the file there, holding the new bytes if
- *        the write said so and the old ones if it did not -- or, for a file
- *        that was not there before, nothing -- and nothing beside it.
+ *        the write said so and the old ones if it did not - or, for a file
+ *        that was not there before, nothing - and nothing beside it.
  *
  * @param[in]     _name     the file written.
  * @param[in]     _written  whether the write said it was written.
@@ -3004,7 +3004,7 @@ void d_tests_cli_sweep_run_kept(
 /**
  * @brief F11: a named operand that is a file's name too, `example:x`; every
  *        run that does not end in trouble, the clean run among them, held
- *        to the warning that says so -- which the sweep's own rule would
+ *        to the warning that says so - which the sweep's own rule would
  *        let go as a whole line of diagnostics.
  *
  * @param[in]  _case    the case.
@@ -3168,8 +3168,8 @@ void d_tests_cli_sweep_modules(
 }
 
 /**
- * @brief A case's run of HOST on its line, `report.txt` -- what PROBE
- *        writes -- removed before it and kept, as the result, after it.
+ * @brief A case's run of HOST on its line, `report.txt` - what PROBE
+ *        writes - removed before it and kept, as the result, after it.
  *
  * @param[in]  _case    the case.
  * @param[out] _result  what the run came to.

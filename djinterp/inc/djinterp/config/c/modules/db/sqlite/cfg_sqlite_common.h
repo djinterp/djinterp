@@ -10,8 +10,8 @@
 *   Built over SQLite, the layer's sources need sqlite3.h, which reaches them
 * through env_sqlite.h, and env_sqlite.h includes it only when
 * D_CFG_ENV_USING_SQLITE is 1. This file therefore sets that knob for the
-* layer's own sources -- each defines D_INTERNAL_SQLITE_SOURCE before its
-* first include -- unless the build already has, and only then includes
+* layer's own sources - each defines D_INTERNAL_SQLITE_SOURCE before its
+* first include - unless the build already has, and only then includes
 * cfg_env_sqlite.h, so that env's cascade honours the value (the config
 * README, 6.2). A build that asks for SQLite but sets that knob to 0, or
 * includes dconfig.h first (which resolves env's config before this one),
@@ -84,8 +84,8 @@ TABLE OF CONTENTS
 // 1.1.1
 // D_CFG_SQLITE
 //   knob: build the layer over SQLite (1) or as stubs (0). Defaults to 1
-// where sqlite3.h can be found -- at D_CFG_ENV_SQLITE_C_PATH when the build
-// names one, else as <sqlite3.h> -- and to 0 where it cannot; to 1 where the
+// where sqlite3.h can be found - at D_CFG_ENV_SQLITE_C_PATH when the build
+// names one, else as <sqlite3.h> - and to 0 where it cannot; to 1 where the
 // preprocessor has no __has_include to look with. Define it as 1 to require
 // SQLite, which stops a build that lacks it with an #error, or as 0 to build
 // the stubs whatever is installed.
@@ -112,7 +112,7 @@ TABLE OF CONTENTS
 // 1.2.1
 // D_CFG_SQLITE_LOAD_EXTENSION
 //   knob: whether the layer calls SQLite's extension loading --
-// sqlite3_load_extension and sqlite3_enable_load_extension -- (1), or answers
+// sqlite3_load_extension and sqlite3_enable_load_extension - (1), or answers
 // D_DB_UNSUPPORTED for it (0). Defaults to 0 on Apple's platforms, whose
 // system SQLite has neither function, in its library or its header, and to 1
 // elsewhere; define it as 1 there for an SQLite of the program's own. A

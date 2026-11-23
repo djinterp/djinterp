@@ -4,8 +4,8 @@
 * The generic timer, safe to share between threads without a lock: timer.h's
 * operations over a timer whose whole state is one atomic word, changed by
 * compare-and-swap.
-*   A timer's state is two things -- the time so far, and whether an interval
-* is open -- and timer.h keeps them in separate fields. Here both are folded
+*   A timer's state is two things - the time so far, and whether an interval
+* is open - and timer.h keeps them in separate fields. Here both are folded
 * into one int64_t, so a start, a stop or a step is one CAS:
 *
 *     state = 2 * v + running
@@ -20,7 +20,7 @@
 * nanoseconds (about 146 years) rather than INT64_MAX, and the clock's readings
 * must stay within that range of zero, as the monotonic clock's do. And because
 * a running timer no longer keeps its closed intervals apart from its open one,
-* decrement takes time from the whole -- open interval included -- where timer.h
+* decrement takes time from the whole - open interval included - where timer.h
 * takes it from the closed intervals only, and a clock wound back below an
 * interval's start takes time off where timer.h counts none; both stop at zero.
 *
@@ -80,7 +80,7 @@ TABLE OF CONTENTS
 #define DJINTERP_C_UTIL_TIMER_ATOMIC_H 1
 
 // FLOOR: the state is a dj_atomic_llong, which exists only where long long
-// does. Without it -- ISO strict C++98 -- this file is empty, rather than an
+// does. Without it - ISO strict C++98 - this file is empty, rather than an
 // error (round 2's rule), and timer_mutex.h is the shared timer.
 #include "../../../env/c/env_long_long.h"  // D_ENV_HAS_LONG_LONG
 #if D_ENV_HAS_LONG_LONG

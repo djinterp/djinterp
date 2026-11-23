@@ -22,7 +22,7 @@
 NS_DJINTERP
 NS_TESTING
 
-// net/server.hpp tests -- each returns true when every check held
+// net/server.hpp tests - each returns true when every check held
 bool tests_server_requests();
 bool tests_server_refusals();
 bool tests_server_concurrency();

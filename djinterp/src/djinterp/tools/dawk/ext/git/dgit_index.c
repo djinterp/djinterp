@@ -3,16 +3,16 @@
 *
 * Definitions for the index and the work tree of dgit_repo.h.
 *   The index is read whole, as git's read_index reads it: its header, each
-* entry -- the stat data, the name, the flags, version 3's extended flags,
+* entry - the stat data, the name, the flags, version 3's extended flags,
 * and the path, padded in versions 2 and 3, and in version 4 the path the
-* one before it gave, cut and continued -- then its extensions, of which
+* one before it gave, cut and continued - then its extensions, of which
 * only the split index's is one this does not read, and its checksum.
 *   The work tree's rules are read as git reads them for a path: the ignore
 * files of every directory above it and the repository's own, and the
 * attribute files likewise, each kept once read. Status is git's: the index
-* against HEAD's tree, then the work tree against the index -- the stat
+* against HEAD's tree, then the work tree against the index - the stat
 * data first, the content, made clean as git would add it, when the stat
-* data cannot say -- then the files the index does not hold, a directory of
+* data cannot say - then the files the index does not hold, a directory of
 * them shown as the directory.
 *
 *
@@ -94,8 +94,8 @@ void d_git_index_release(
 
 // d_internal_index
 //   struct: an index being read: its bytes, its version, where the next
-//   entry begins, the path the last gave -- version 4 cuts it for the
-//   next -- and the paths kept, end to end.
+//   entry begins, the path the last gave - version 4 cuts it for the
+//   next - and the paths kept, end to end.
 struct dj_internal_index
 {
     const uint8_t*      bytes;
@@ -151,7 +151,7 @@ bool d_internal_v4_strip(
 /*
 d_internal_entry_path
   An entry's path: version 4's, the last cut and continued; the others',
-to its NUL -- a length below 0xFFF is the flags' -- and padded with NULs
+to its NUL - a length below 0xFFF is the flags' - and padded with NULs
 to a multiple of eight past the entry's start.
 */
 static
@@ -297,7 +297,7 @@ bool d_internal_read_entry(
 /*
 d_internal_index_extensions
   The extensions after the entries, each a signature and a length: an
-optional one -- its signature's first letter a capital -- passed over; a
+optional one - its signature's first letter a capital - passed over; a
 sparse index's directories read as entries; and any other, the split
 index's among them, refused, as git refuses one it does not know.
 */
@@ -379,7 +379,7 @@ bool d_internal_index_checksum(
 
 /*
 d_internal_index_header
-  The index's header -- "DIRC", a version from 2 to 4, a count -- and its
+  The index's header - "DIRC", a version from 2 to 4, a count - and its
 checksum.
 */
 static
@@ -681,8 +681,8 @@ void d_git_rules_release(
 
 // dj_internal_from
 //   enum: where a rules file's text comes from: a file outside the work
-//   tree, links followed; one in it, not a link, or else -- as git falls
-//   back -- an ignore file's skip-worktree entry in the index, or an
+//   tree, links followed; one in it, not a link, or else - as git falls
+//   back - an ignore file's skip-worktree entry in the index, or an
 //   attribute file's entry at stage 0 or 2; or the attribute source's
 //   tree.
 enum dj_internal_from
@@ -837,7 +837,7 @@ char* d_internal_rules_text(
                : NULL;
     }
 
-    // a file there -- in the work tree, not a link
+    // a file there - in the work tree, not a link
     if ( (_source->path) &&
          ( (_source->from == D_INTERNAL_FROM_FILE) ||
            ( (d_git_file_info(_source->path, &info)) &&
@@ -946,7 +946,7 @@ const char* d_internal_home(void)
 /*
 d_internal_user_file
   A user's file of rules: what a setting names, `~/` expanded, or git's
-own under XDG_CONFIG_HOME, or ~/.config -- git/ignore, git/attributes.
+own under XDG_CONFIG_HOME, or ~/.config - git/ignore, git/attributes.
 */
 static
 char* d_internal_user_file(
@@ -984,7 +984,7 @@ char* d_internal_user_file(
 /*
 d_internal_under_work_tree
   A path of the repository's directory as git names it from the top of the
-work tree -- .git/info/exclude -- or whole when it is elsewhere.
+work tree - .git/info/exclude - or whole when it is elsewhere.
 */
 static
 char* d_internal_under_work_tree(
@@ -1290,7 +1290,7 @@ bool d_git_repo_ignored(
 d_internal_attribute_source
   The tree attributes are read from in place of the work tree, as git's
 compute_default_attr_source picks it: GIT_ATTR_SOURCE's, attr.tree's or --
-for a bare repository -- HEAD's, the last two passed over when they name
+for a bare repository - HEAD's, the last two passed over when they name
 no tree; picked once. False, said, for a GIT_ATTR_SOURCE that names none.
 */
 static
@@ -1338,7 +1338,7 @@ bool d_internal_attribute_source(
 /*
 d_internal_attribute_scopes
   The scopes of an attribute lookup, lowest first: the system's file --
-unless GIT_ATTR_NOSYSTEM -- the user's, each directory's down to the
+unless GIT_ATTR_NOSYSTEM - the user's, each directory's down to the
 path's, and info/attributes.
 */
 static
@@ -1466,8 +1466,8 @@ struct dj_internal_stats
 /*
 d_internal_gather
   The counts git's gather_stats makes: `\r\n` pairs, a `\r` or `\n` alone,
-NULs, and bytes printable or not -- backspace, tab, escape and form feed
-printable -- a last ^Z not counted.
+NULs, and bytes printable or not - backspace, tab, escape and form feed
+printable - a last ^Z not counted.
 */
 static
 void d_internal_gather(
@@ -1871,7 +1871,7 @@ void d_internal_ident_to_git(
 /*
 d_internal_filtered
   Whether a path's filter attribute names a driver with a command git
-would clean it with -- filter.<name>.clean or .process -- or a
+would clean it with - filter.<name>.clean or .process - or a
 working-tree-encoding is set: content git would change by a program, or
 re-encode, which is not done here.
 */
@@ -2371,10 +2371,10 @@ enum dj_internal_stat
 /*
 d_internal_stat_compare
   A file's stat data against the index's, as git's match_stat_data compares
-them -- the times in seconds, the size, and, unless core.checkStat is
+them - the times in seconds, the size, and, unless core.checkStat is
 minimal, the inode and owner; the change time unless core.trustctime is
 false. An entry that matches still needs its content asked when it is
-racily clean -- changed in the second the index was written, or after --
+racily clean - changed in the second the index was written, or after --
 or smudged: of no size, but not of the empty blob.
 */
 static enum dj_internal_stat
@@ -2574,8 +2574,8 @@ d_internal_module_ignore(
 
 /*
 d_internal_gitmodules_ignore
-  What .gitmodules says a submodule at a path ignores -- the work tree's
-.gitmodules, or the index's -- and the configuration's
+  What .gitmodules says a submodule at a path ignores - the work tree's
+.gitmodules, or the index's - and the configuration's
 submodule.<name>.ignore before it; D_INTERNAL_IGNORE_UNKNOWN for neither,
 or a value git passes over.
 */
@@ -2637,8 +2637,8 @@ d_internal_gitmodules_ignore(
 /*
 d_internal_submodule_changed
   Whether a submodule's work tree has another commit checked out than the
-entry records, or changes of its own -- its tracked files modified, or
-files it does not track -- as git status reports a submodule; one not
+entry records, or changes of its own - its tracked files modified, or
+files it does not track - as git status reports a submodule; one not
 checked out has none. What counts is as git's match_stat_with_submodule
 has it: diff.ignoreSubmodules, untracked files passed over when status
 shows none, and then submodule.<name>.ignore, of the configuration or
@@ -2954,7 +2954,7 @@ bool d_internal_status_append(
 
 // dj_internal_untracked
 //   struct: the walk for untracked files: the repository, how they are
-//   shown, and the lines found -- untracked, and ignored.
+//   shown, and the lines found - untracked, and ignored.
 struct dj_internal_untracked
 {
     struct dj_git_repo*                 repo;
@@ -2965,7 +2965,7 @@ struct dj_internal_untracked
 
 // d_internal_name
 //   struct: one name of a directory being walked: its path from the top,
-//   as status shows it -- a directory's with its `/` -- and what it is.
+//   as status shows it - a directory's with its `/` - and what it is.
 struct dj_internal_name
 {
     struct dj_git_buffer shown;
@@ -3078,7 +3078,7 @@ bool d_internal_scan_all(
 /*
 d_internal_scan_all_name
   One name of a directory shown file by file, as -uall shows one: a
-repository of its own shown whole; a directory walked -- an ignored one's
+repository of its own shown whole; a directory walked - an ignored one's
 files all ignored, walked only when the ignored are shown; a file shown
 untracked or ignored.
 */
@@ -3192,7 +3192,7 @@ bool d_internal_scan_collapsed(
 d_internal_scan_collapsed_name
   One name of an untracked directory status shows whole: an ignored one
 noted, an untracked file or repository found, a directory scanned the
-same way -- what it holds untracked found with its ignored noted, what it
+same way - what it holds untracked found with its ignored noted, what it
 holds only ignored noted as the directory.
 */
 static
@@ -3248,7 +3248,7 @@ bool d_internal_scan_collapsed_name(
 /*
 d_internal_scan_collapsed
   An untracked directory status shows whole: whether it holds anything
-untracked, and its ignored -- collapsed as git collapses them -- noted;
+untracked, and its ignored - collapsed as git collapses them - noted;
 with no ignored to show, the first untracked found is enough.
 */
 static
@@ -3385,7 +3385,7 @@ bool d_internal_untracked_dir(
 
 /*
 d_internal_walk_tracked
-  A directory that holds tracked paths -- the top among them -- name by
+  A directory that holds tracked paths - the top among them - name by
 name: tracked files passed, directories with tracked paths walked the same
 way, untracked directories as d_internal_untracked_dir shows them, and
 untracked files shown, as untracked or ignored.
@@ -3459,8 +3459,8 @@ bool d_internal_walk_tracked(
 /*
 d_internal_status_tracked
   The tracked lines: each path of the index, or of HEAD alone, with its
-letters -- a conflict's from its stages; else the index's against HEAD
-and the work tree's against the index -- if either is not a space.
+letters - a conflict's from its stages; else the index's against HEAD
+and the work tree's against the index - if either is not a space.
   Long as the index and HEAD are merged by path here, every stage of a path
 gathered.
 */

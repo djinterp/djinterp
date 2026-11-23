@@ -2,19 +2,19 @@
 * djinterp [cpp][filesys]                                 file_stat_tests_sa.cpp
 *
 *   Unit tests for djinterp::file_status (inc/djinterp/cpp/filesys/file_stat.hpp) and the
-* free queries over it -- status, symlink_status, exists, is_regular_file,
+* free queries over it - status, symlink_status, exists, is_regular_file,
 * is_directory, file_size. One file for the class, sibling to path_tests_sa.cpp
 * and file_tests_sa.cpp, same harness and same three rules.
 *
-*   file_status is a value, not a resource -- a captured snapshot with no
+*   file_status is a value, not a resource - a captured snapshot with no
 * handle. So its tier ladder is flat: nothing is added on a higher standard,
 * because there is no move to add. The suite still builds it on every standard
-* (rule 3), and the count is the same every time -- which is exactly the claim
+* (rule 3), and the count is the same every time - which is exactly the claim
 * being demonstrated, that a snapshot needs none of the ceremony `file` does.
 *
 *   What this file cannot run, and says so.
 *      The difference between status() and symlink_status() shows only on an
-*   actual symlink -- one follows the final link, the other does not. Creating a
+*   actual symlink - one follows the final link, the other does not. Creating a
 *   symlink is not something ISO C can do, and this file keeps the no-platform-
 *   call discipline of its siblings (fixtures are a regular file via fopen, an
 *   always-present directory ".", and an absent path). So the symlink_status
@@ -397,7 +397,7 @@ struct dj_test_object* d_tests_status_regular(void)
 
 /*
 d_tests_status_directory
-  status of "." -- always present, no fixture to build -- reports a directory.
+  status of "." - always present, no fixture to build - reports a directory.
 */
 static
 struct dj_test_object* d_tests_status_directory(void)
@@ -435,7 +435,7 @@ struct dj_test_object* d_tests_status_directory(void)
 /*
 d_tests_status_not_found
   The behaviour that separates a status query from a bare stat: an absent file
-is type_not_found and reports NO error -- successfully learning that nothing is
+is type_not_found and reports NO error - successfully learning that nothing is
 there is not a failure. This is what lets exists() be a clean false.
 */
 static
@@ -474,7 +474,7 @@ struct dj_test_object* d_tests_status_not_found(void)
 /*
 d_tests_status_symlink
   symlink_status runs the no-follow stat (d_file_stat_nofollow). On a NON-symlink it must
-agree with status -- a regular file is regular either way. The follow-vs-no-
+agree with status - a regular file is regular either way. The follow-vs-no-
 follow DIFFERENCE needs a real symlink, which ISO C cannot create; it is
 verified in the full tree, not asserted here (see the file banner).
 */
@@ -521,7 +521,7 @@ struct dj_test_object* d_tests_status_symlink(void)
 d_tests_status_helpers
   The free predicates for the single-question case, and the one with teeth:
 file_size returns the byte count of a regular file, EINVAL for a directory
-(whose st_size is not a byte count), and ENOENT for an absent path -- so a 0
+(whose st_size is not a byte count), and ENOENT for an absent path - so a 0
 return always came from a real, empty file with a cleared error.
 */
 static
@@ -593,7 +593,7 @@ struct dj_test_object* d_tests_status_helpers(void)
 
 /*
 d_tests_status_failure
-  An invalid path is rejected as EINVAL and yields type_none -- it is neither a
+  An invalid path is rejected as EINVAL and yields type_none - it is neither a
 file that exists nor one confirmed absent, because no query was made.
 */
 static

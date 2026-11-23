@@ -1,14 +1,14 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                        file_tests_stat.c
 *
-*   VIII. Metadata (file_stat) -- interrogating a path or descriptor. The whole
+*   VIII. Metadata (file_stat) - interrogating a path or descriptor. The whole
 * dj_stat_t is checked for the fields that matter: st_size against the fixture's
 * exact length, st_mode through the portable S_ISREG / S_ISDIR macros, and the
 * deliberately-renamed st_modified (not st_mtime, which glibc and macOS both
 * macro-hijack) for a plausible timestamp. d_file_stat_fd and d_file_size_stream are
 * descriptor-based and report ENOSYS on the ISO C backend. The boolean queries
-* (exists / is_file / is_dir) are checked in all three states -- present file,
-* present directory, and absent -- and for their NULL tolerance.
+* (exists / is_file / is_dir) are checked in all three states - present file,
+* present directory, and absent - and for their NULL tolerance.
 *
 *
 * path:      /tests/djinterp/c/filesys/file_tests_stat.c
@@ -423,7 +423,7 @@ void d_fs_tests_stat(
  *****************************************************************************/
 
 /******************************************************************************
- * VIII.  file_stat  --  METADATA
+ * VIII.  file_stat  -  METADATA
  *
  *   The interesting group here is the timestamp one, and what it asserts is
  * that THE QUERY MACROS DO NOT LIE. D_FILE_STAT_HAS_BIRTHTIME reported 1 on
@@ -431,7 +431,7 @@ void d_fs_tests_stat(
  * platform (which has btime) rather than the module (which called plain
  * stat() and could not reach it). A caller can branch on a macro that says
  * no; it cannot defend against one that says yes and lies.
- *   So the assertion runs in BOTH directions -- the earlier version of this
+ *   So the assertion runs in BOTH directions - the earlier version of this
  * test skipped when the macro claimed yes, which is exactly how the bug
  * survived.
  *****************************************************************************/
@@ -545,7 +545,7 @@ bool d_tests_file_stat_times(struct dj_test_suite* _suite)
                      "st_accessed carries a real timestamp");
 
     // THE assertion. Both directions, because a macro that says yes and lies
-    // is the failure mode a one-directional test cannot see -- the earlier
+    // is the failure mode a one-directional test cannot see - the earlier
     // version of this skipped whenever the macro claimed yes, which is
     // precisely how the bug survived.
 #if D_FILE_STAT_HAS_BIRTHTIME
@@ -561,8 +561,8 @@ bool d_tests_file_stat_times(struct dj_test_suite* _suite)
 #endif
 
 #if D_FILE_STAT_HAS_NSEC
-    // a nanosecond field is allowed to be zero -- a file really can be
-    // created on a second boundary -- so the only honest assertion is that it
+    // a nanosecond field is allowed to be zero - a file really can be
+    // created on a second boundary - so the only honest assertion is that it
     // is in range, not that it is nonzero
     D_TEST_CHECK_MSG(_suite,
                      "nsec_in_range",

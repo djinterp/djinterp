@@ -1,9 +1,9 @@
 /*******************************************************************************
 * djinterp [c][utility]                                                   nest.h
 *
-* Describing the shape of an n-ary node -- where its payload sits, where its
-* links sit, and what a link means -- so that one walker serves every node
-* type. Tier 0 -- compiled by BOTH faces.
+* Describing the shape of an n-ary node - where its payload sits, where its
+* links sit, and what a link means - so that one walker serves every node
+* type. Tier 0 - compiled by BOTH faces.
 *
 *
 * WHAT THIS IS, BY ANALOGY
@@ -25,18 +25,18 @@
 *
 * THE THREE AXES
 * ==============
-*   PAYLOAD -- inline or indirect. An inline payload is the bytes at the
+*   PAYLOAD - inline or indirect. An inline payload is the bytes at the
 * field; an indirect one is the bytes the pointer at the field leads to. A
 * node may also have no payload at all, which is a pure-topology node and is
 * spelled with a zero-width field.
 *
-*   LINK REPRESENTATION -- five kinds, in D_NEST_KIND_*. A pointer link is a
+*   LINK REPRESENTATION - five kinds, in D_NEST_KIND_*. A pointer link is a
 * node address. An index link is a subscript into an arena. An offset link is
 * a byte displacement from the arena base; a self-offset link is a
 * displacement from the node itself, which is the one form that survives being
 * relocated without the arena. A resolver link is computed by a function.
 *
-*   LINK POSITION -- every link carries its own offset, so the payload and the
+*   LINK POSITION - every link carries its own offset, so the payload and the
 * links may sit anywhere in the node and in any order. Nothing here assumes a
 * member leads, which is the assumption `D_REGISTRY_ROW_KEY` made about keys
 * and the reason it could not be reused.
@@ -46,10 +46,10 @@
 * ========================================
 *   A POINTER link is absent when NULL. An OFFSET or SELF_OFFSET link is
 * absent when ZERO, because a node cannot be its own neighbour and zero is
-* therefore free -- WITHOUT THAT CONVENTION A ZEROED NODE POINTS AT ITSELF and
+* therefore free - WITHOUT THAT CONVENTION A ZEROED NODE POINTS AT ITSELF and
 * the first walk never terminates. An INDEX link is absent when zero by
 * default, matching D_TEST_NO_CALLABLE and D_TEST_NO_KEY, or when all-ones if
-* the descriptor sets D_NEST_FLAG_INDEX_SENTINEL_MAX -- the two conventions
+* the descriptor sets D_NEST_FLAG_INDEX_SENTINEL_MAX - the two conventions
 * both exist in the wild and neither can be inferred from a width.
 *
 *   THIS IS THE FOURTH RESERVED-ZERO CONVENTION in the tree, after
@@ -65,7 +65,7 @@
 * that loops walks forever, exactly as a hand-written walker would, so the
 * view carries `walk_limit` and every chain walk honours it. Zero means
 * unbounded and is the right setting only for a structure whose acyclicity is
-* an invariant maintained elsewhere -- which is the same standing this module
+* an invariant maintained elsewhere - which is the same standing this module
 * gives D_LOOKUP_FLAG_SORTED, a claim the module trusts and cannot verify.
 *
 *
@@ -100,7 +100,7 @@
                                               // uint64_t, UINT32_MAX
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -124,7 +124,7 @@ D_EXTERN_C_BEGIN
 
 // D_NEST_KIND_INDEX
 //   constant: the field holds an unsigned subscript into the view's arena.
-// Absent at the sentinel -- zero, or all-ones under
+// Absent at the sentinel - zero, or all-ones under
 // D_NEST_FLAG_INDEX_SENTINEL_MAX.
 #define D_NEST_KIND_INDEX               ((uint16_t)2u)
 
@@ -185,7 +185,7 @@ D_EXTERN_C_BEGIN
 
 // D_NEST_FLAG_PAYLOAD_INDIRECT
 //   constant: the payload field holds a POINTER TO the payload rather than
-// the payload itself -- `void* user_data`, not `char data[32]`.
+// the payload itself - `void* user_data`, not `char data[32]`.
 #define D_NEST_FLAG_PAYLOAD_INDIRECT    ((uint16_t)(1u << 0))
 
 // D_NEST_FLAG_INDEX_SENTINEL_MAX
@@ -196,7 +196,7 @@ D_EXTERN_C_BEGIN
 
 // D_NEST_FLAG_ARRAY_INDIRECT
 //   constant: the child array field holds a POINTER TO the array rather than
-// the array itself -- `struct node** children`, not `struct node* kids[8]`.
+// the array itself - `struct node** children`, not `struct node* kids[8]`.
 #define D_NEST_FLAG_ARRAY_INDIRECT      ((uint16_t)(1u << 2))
 
 // D_NEST_FLAG_MASK
@@ -222,7 +222,7 @@ typedef const void* (*fn_nest_resolve)(
 // II.    the link descriptor
 
 // dj_nest_link
-//   struct: one neighbour slot -- where it sits, how wide it is, and what the
+//   struct: one neighbour slot - where it sits, how wide it is, and what the
 // bytes mean.
 struct dj_nest_link
 {
@@ -310,7 +310,7 @@ D_NODISCARD D_INLINE bool d_nest_link_is_present(
 // III.   the node descriptor
 
 // dj_nest_children
-//   struct: the child-array shape -- an array of links and a count beside it.
+//   struct: the child-array shape - an array of links and a count beside it.
 // This is `dj_file_tree_node`'s { children, count } pair described rather than
 // walked by hand.
 //   ZERO-WIDTH `array` MEANS THE NODE HAS NO CHILD ARRAY, which is how the
@@ -333,7 +333,7 @@ struct dj_nest_children
 }
 
 // dj_nest_desc
-//   struct: the complete shape of one node type. PURE LAYOUT -- it holds no
+//   struct: the complete shape of one node type. PURE LAYOUT - it holds no
 // pointer, no arena and no runtime state, so it is a static const per node
 // type and the compiler folds every walk through it.
 //   `node_size` is the node's sizeof and doubles as the per-node capacity
@@ -350,7 +350,7 @@ struct dj_nest_desc
 };
 
 // D_NEST_DESC_INIT
-//   macro: a node with a size and nothing else -- no payload, no links, no
+//   macro: a node with a size and nothing else - no payload, no links, no
 // children. Every accessor against it answers cleanly.
 #define D_NEST_DESC_INIT(record)                                               \
 {                                                                              \
@@ -361,7 +361,7 @@ struct dj_nest_desc
 }
 
 // D_NEST_DESC_CHILD_SIBLING
-//   macro: the classic n-ary shape -- one first-child link and one
+//   macro: the classic n-ary shape - one first-child link and one
 // next-sibling link, arbitrary arity at two links a node.
 #define D_NEST_DESC_CHILD_SIBLING(record, payload_member, payload_info,        \
                                   parent_member, first_child_member,           \
@@ -379,7 +379,7 @@ struct dj_nest_desc
 }
 
 // D_NEST_DESC_CHILD_ARRAY
-//   macro: the array shape -- a contiguous run of child links and a count.
+//   macro: the array shape - a contiguous run of child links and a count.
 // This is `dj_file_tree_node`; `array_member` is the `struct node** children`
 // and `count_member` is the `size_t count` beside it, so `node_flags` will
 // normally carry D_NEST_FLAG_ARRAY_INDIRECT.
@@ -911,7 +911,7 @@ D_NODISCARD D_INLINE size_t d_nest_child_count(
 // d_nest_child_at
 //   function: the child at `_index`. Constant time in the array shape and
 // linear in the sibling shape, which is the cost of the shape rather than of
-// this function -- a caller iterating every child uses D_NEST_FOR_EACH_CHILD
+// this function - a caller iterating every child uses D_NEST_FOR_EACH_CHILD
 // and pays it once.
 D_NODISCARD D_INLINE const void* d_nest_child_at(
     const struct dj_nest_view* _view,
@@ -1054,7 +1054,7 @@ D_NODISCARD D_INLINE bool d_nest_is_leaf(
 
 // D_NEST_FOR_EACH_SIBLING_CHILD
 //   macro: walk the sibling chain in linear total time. VALID ONLY ON THE
-// SIBLING SHAPE -- on an array node the first-child link is absent and the
+// SIBLING SHAPE - on an array node the first-child link is absent and the
 // loop body never runs, which is a silent no-op rather than a diagnostic, and
 // is why the general form above is the default.
 #define D_NEST_FOR_EACH_SIBLING_CHILD(view, node, var)                         \
@@ -1075,7 +1075,7 @@ D_NODISCARD D_INLINE bool d_nest_is_leaf(
 // size and offsets are the same on every target and are asserted literally.
 // dj_nest_view holds four pointers and two size_t, so its offsets are not, and
 // what is asserted there is member ordering and the absence of interior
-// padding -- a literal there would assert the host rather than the layout.
+// padding - a literal there would assert the host rather than the layout.
 
 D_STATIC_ASSERT(sizeof(struct dj_nest_link) == 16,
                 "dj_nest_link layout drift: expected 16 bytes");

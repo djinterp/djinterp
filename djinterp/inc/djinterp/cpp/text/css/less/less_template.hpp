@@ -165,7 +165,7 @@ public:
         }
 
         // Style rule whose selector looks like a mixin
-        // callable -- `.name` or `#name`.
+        // callable - `.name` or `#name`.
         if ( (this->rule_kind() ==
                 ::djinterp::css::DCssRuleKind::style_rule) &&
              is_less_mixin_selector(this->selector().c_str()) )
@@ -175,14 +175,14 @@ public:
             // default backend uses children-count as the proxy).
             if (this->declaration_count() + this->rule_count() > 0)
             {
-                // body present -- definition
+                // body present - definition
                 if (this->selector().find('(') != DLessString::npos)
                 {
                     return DLessRuleKind::parametric_mixin;
                 }
                 return DLessRuleKind::mixin_definition;
             }
-            // no body -- mixin call statement (rarely useful
+            // no body - mixin call statement (rarely useful
             // when stored as a style_rule; included for
             // completeness)
             return DLessRuleKind::mixin_call;

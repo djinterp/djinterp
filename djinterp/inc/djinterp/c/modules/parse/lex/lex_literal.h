@@ -12,7 +12,7 @@
 * scanner uses, D_PARSE_DIAG_DOMAIN_LEX.
 *   Some facts are not the language's but the target's: how wide `char`,
 * `wchar_t` and `long long` are.  A dj_lex_target carries them, beside the
-* dialect, so a wide literal is checked as the target will store it -- 16-bit
+* dialect, so a wide literal is checked as the target will store it - 16-bit
 * UTF-16 on Windows, 32-bit UTF-32 elsewhere.  The execution character set is
 * taken to be UTF-8, the one both major compilers default to.
 *
@@ -59,7 +59,7 @@ TABLE OF CONTENTS
 #include "../../../../../re_std/c/cstdint/dstdint.h"  // uint32_t, uint64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -113,7 +113,7 @@ TABLE OF CONTENTS
 // 1.1.4
 // Literal flags
 //   constant: facts about how a literal was written, for rules that care
-// about spelling rather than value -- an octal literal, a separator, an escape.
+// about spelling rather than value - an octal literal, a separator, an escape.
 #define D_LEX_LITERAL_FLAG_NONE       0x0000u
 #define D_LEX_LITERAL_FLAG_SEPARATOR  0x0001u  // contains a digit separator
 #define D_LEX_LITERAL_FLAG_OVERFLOW   0x0002u  // integer exceeds 64 bits
@@ -139,8 +139,8 @@ TABLE OF CONTENTS
 // dj_lex_target
 //   struct: what the target stores a literal in.  Widths are in bits: a code
 //   unit of an ordinary or `u8` literal is `char_bits` wide, of an `L`
-//   literal `wchar_bits` wide -- 16 means UTF-16, with surrogate pairs, and
-//   32 means UTF-32 -- and "too large for any signed type" is measured
+//   literal `wchar_bits` wide - 16 means UTF-16, with surrogate pairs, and
+//   32 means UTF-32 - and "too large for any signed type" is measured
 //   against `long_long_bits`.
 struct dj_lex_target
 {

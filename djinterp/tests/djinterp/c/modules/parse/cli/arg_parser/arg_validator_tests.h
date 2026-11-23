@@ -5,8 +5,8 @@
 *   A value under validation; the validator record, its copies and its
 * settings; running one, describing one and listing what it accepts; the
 * composites CLI11 writes with `&`, `|` and `!`; validators of the caller's
-* own; and CLI11's default validators -- ranges, the number signs, escaped
-* strings -- run over the values CLI11's were run over, with CLI11's
+* own; and CLI11's default validators - ranges, the number signs, escaped
+* strings - run over the values CLI11's were run over, with CLI11's
 * verdicts, messages and descriptions.
 *   The suite is a table of sections, defined in arg_validator_tests.c beside
 * the sections themselves, so its length is the number of sections this

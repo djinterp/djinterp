@@ -6,15 +6,15 @@
 *   By default (A), a command writes the file back where it read it, whole
 * or not at all (R20); `-o FILE` writes it elsewhere and leaves the one
 * read as it was; `-n` writes nothing; a file read from standard input is
-* written to standard output -- as `git config`, `cargo add` and `npm pkg
+* written to standard output - as `git config`, `cargo add` and `npm pkg
 * set` treat the files they edit. A program made with
 * D_CLI_PROGRAM_EDITS_TO_OUTPUT (B) writes standard output, as sed does,
 * unless `-i` writes the file back where it was read, or `-o FILE` writes
 * it elsewhere; `-i` and `-o` exclude each other.
 *   A command declares its operand and its options in two calls, each where
-* its other definitions put it -- the operand among its operands, so that
+* its other definitions put it - the operand among its operands, so that
 * the order they are read in is the command's; the options among its
-* options -- and, once parsed, asks where the result goes and writes it
+* options - and, once parsed, asks where the result goes and writes it
 * there. The words of the operand's and the options' help name what the
 * command changes, as the command gives it: "the sheet".
 *
@@ -112,7 +112,7 @@ struct dj_cli_edit
 // 1.2.1
 // dj_cli_edit_place
 //   enum: where a command that changes a file writes its result: back over
-// the file read; to the file `-o` names; or to standard output -- `-o -`,
+// the file read; to the file `-o` names; or to standard output - `-o -`,
 // a file read from standard input, or, for B, the default.
 enum dj_cli_edit_place
 {
@@ -168,11 +168,11 @@ D_CLI_API struct dj_arg_option* d_cli_edit_add_operand(
  * @brief Adds a command's options for where its result goes, and keeps them
  *        in the record.
  *
- * @note A: `-o, --out=FILE` -- "write WHAT to FILE, - for standard output,
- *       and leave the one read as it was" -- and `-n, --dry-run` -- "write
- *       nothing; say what would change". B: `-i, --in-place` -- "write WHAT
- *       back where it was read" -- then `-o, --out=FILE` -- "write WHAT to
- *       FILE, and leave the one read as it was" -- excluding each other, and
+ * @note A: `-o, --out=FILE` - "write WHAT to FILE, - for standard output,
+ *       and leave the one read as it was" - and `-n, --dry-run` - "write
+ *       nothing; say what would change". B: `-i, --in-place` - "write WHAT
+ *       back where it was read" - then `-o, --out=FILE` - "write WHAT to
+ *       FILE, and leave the one read as it was" - excluding each other, and
  *       `-n, --dry-run`. Call it where the command's other options are
  *       added.
  *
@@ -202,7 +202,7 @@ D_CLI_API int d_cli_edit_add_options(
 //------------------------------------------------------------------------------
 // 3.1.1
 // d_cli_edit_target
-//   lookup: after a parse, where the result is written, `-n` aside -- so a
+//   lookup: after a parse, where the result is written, `-n` aside - so a
 // command can refuse a place it has nothing to write back to, a dry run or
 // not: `-o`'s file, or standard output for `-o -`; else, for B without
 // `-i`, standard output; else back where it was read, or standard output
@@ -233,7 +233,7 @@ D_CLI_API bool d_cli_edit_dry_run(
  * @param[in] _data     the bytes; may be NULL when `_length` is 0.
  * @param[in] _length   how many bytes.
  * @return D_CLI_EXIT_OK when written, or nothing was to be; else
- *         D_CLI_EXIT_TROUBLE, said as d_cli_file_error says it -- `cannot
+ *         D_CLI_EXIT_TROUBLE, said as d_cli_file_error says it - `cannot
  *         write 'FILE': REASON`, `cannot write standard output: REASON` --
  *         or as `out of memory`, the file as it was; D_CLI_EXIT_TROUBLE,
  *         unsaid, for a NULL program or record, or NULL data with a length.

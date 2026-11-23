@@ -44,7 +44,7 @@
 #include <string>
 #include <vector>
 // djinterp
-// djinterp  -- framework header first, then the header under test.  test_defaults.hpp
+// djinterp  - framework header first, then the header under test.  test_defaults.hpp
 // is BOTH the header under test (normal mode) AND the authoring surface that
 // supplies module_spec / run_module (spec mode), so it is included in both modes.
 #include <djinterp/cpp/djinterp.hpp>

@@ -2,7 +2,7 @@
 * djinterp [cpp][functional]                         maybe_tests_combinators.cpp
 *
 * Combinator-factory / pipeline tests for maybe.hpp section IV:
-*   test_combinators -- or_else_with, unwrap_or_with, filter_with, expect_with,
+*   test_combinators - or_else_with, unwrap_or_with, filter_with, expect_with,
 *                       all driven through operator| against a maybe.
 *
 *

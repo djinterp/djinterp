@@ -49,7 +49,7 @@ int main()
 {
     std::printf("compress_options.hpp unit tests\n");
 
-    // -- enums ----------------------------------------------------------------
+    // - enums ----------------------------------------------------------------
     D_CO_RUN(tests_compress_options_enum_deflate_strategy);
     D_CO_RUN(tests_compress_options_enum_lzma_check);
     D_CO_RUN(tests_compress_options_enum_lzma_mode);
@@ -61,44 +61,44 @@ int main()
     D_CO_RUN(tests_compress_options_enum_neutral_defaults_are_zero);
     D_CO_RUN(tests_compress_options_enum_are_plain);
 
-    // -- DDeflateOptions ------------------------------------------------------
+    // - DDeflateOptions ------------------------------------------------------
     D_CO_RUN(tests_compress_options_deflate_defaults);
     D_CO_RUN(tests_compress_options_deflate_fields);
     D_CO_RUN(tests_compress_options_deflate_layout);
 
-    // -- DBzip2Options --------------------------------------------------------
+    // - DBzip2Options --------------------------------------------------------
     D_CO_RUN(tests_compress_options_bzip2_defaults);
     D_CO_RUN(tests_compress_options_bzip2_fields);
     D_CO_RUN(tests_compress_options_bzip2_layout);
 
-    // -- DLzmaOptions ---------------------------------------------------------
+    // - DLzmaOptions ---------------------------------------------------------
     D_CO_RUN(tests_compress_options_lzma_defaults);
     D_CO_RUN(tests_compress_options_lzma_sentinels);
     D_CO_RUN(tests_compress_options_lzma_fields);
     D_CO_RUN(tests_compress_options_lzma_layout);
 
-    // -- DZstdOptions ---------------------------------------------------------
+    // - DZstdOptions ---------------------------------------------------------
     D_CO_RUN(tests_compress_options_zstd_defaults);
     D_CO_RUN(tests_compress_options_zstd_flag_defaults);
     D_CO_RUN(tests_compress_options_zstd_fields);
     D_CO_RUN(tests_compress_options_zstd_layout);
 
-    // -- DLz4Options ----------------------------------------------------------
+    // - DLz4Options ----------------------------------------------------------
     D_CO_RUN(tests_compress_options_lz4_defaults);
     D_CO_RUN(tests_compress_options_lz4_fields);
     D_CO_RUN(tests_compress_options_lz4_layout);
 
-    // -- DBrotliOptions -------------------------------------------------------
+    // - DBrotliOptions -------------------------------------------------------
     D_CO_RUN(tests_compress_options_brotli_defaults);
     D_CO_RUN(tests_compress_options_brotli_fields);
     D_CO_RUN(tests_compress_options_brotli_layout);
 
-    // -- DGzipOptions ---------------------------------------------------------
+    // - DGzipOptions ---------------------------------------------------------
     D_CO_RUN(tests_compress_options_gzip_defaults);
     D_CO_RUN(tests_compress_options_gzip_fields);
     D_CO_RUN(tests_compress_options_gzip_layout);
 
-    // -- compress_options (aggregate) -----------------------------------------
+    // - compress_options (aggregate) -----------------------------------------
     D_CO_RUN(tests_compress_options_aggregate_level_default);
     D_CO_RUN(tests_compress_options_aggregate_subobjects_defaulted);
     D_CO_RUN(tests_compress_options_aggregate_independence);

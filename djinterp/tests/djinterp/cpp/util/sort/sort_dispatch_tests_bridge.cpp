@@ -23,7 +23,7 @@ bool tests_sort_dispatch_algorithm_traits()
 
     //   sort_algorithm_traits lifts an enumerator to its tag and republishes
     // the tag's properties.  Every specialization must agree with the tag it
-    // names -- the traits block is a view onto the tag, not a second copy of
+    // names - the traits block is a view onto the tag, not a second copy of
     // the answer.
     result.check((std::is_same<
         sort_algorithm_traits<DSortAlgorithm::bubble>::tag,

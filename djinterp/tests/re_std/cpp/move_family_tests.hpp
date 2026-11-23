@@ -210,7 +210,7 @@ struct proxy_iter
 ///                TEST DECLARATIONS                                         ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// -- section: utility move (move_family_tests_utility_move.cpp)
+// - section: utility move (move_family_tests_utility_move.cpp)
 bool tests_move_type();
 
 bool tests_move_noexcept();
@@ -219,7 +219,7 @@ bool tests_move_semantics();
 
 bool tests_move_constexpr();
 
-// -- section: move_if_noexcept (move_family_tests_move_if_noexcept.cpp)
+// - section: move_if_noexcept (move_family_tests_move_if_noexcept.cpp)
 bool tests_move_if_noexcept_nothrow_type();
 
 bool tests_move_if_noexcept_throwing_copyable();
@@ -228,7 +228,7 @@ bool tests_move_if_noexcept_move_only();
 
 bool tests_move_if_noexcept_semantics();
 
-// -- section: move algorithm (move_family_tests_algorithm_move.cpp)
+// - section: move algorithm (move_family_tests_algorithm_move.cpp)
 bool tests_algorithm_move_basic();
 
 bool tests_algorithm_move_semantics();
@@ -237,7 +237,7 @@ bool tests_algorithm_move_empty();
 
 bool tests_algorithm_move_overload_coexist();
 
-// -- section: move_backward (move_family_tests_move_backward.cpp)
+// - section: move_backward (move_family_tests_move_backward.cpp)
 bool tests_move_backward_basic();
 
 bool tests_move_backward_overlap();
@@ -246,21 +246,21 @@ bool tests_move_backward_semantics();
 
 bool tests_move_backward_empty();
 
-// -- section: uninitialized_move (move_family_tests_uninitialized_move.cpp)
+// - section: uninitialized_move (move_family_tests_uninitialized_move.cpp)
 bool tests_uninitialized_move_basic();
 
 bool tests_uninitialized_move_semantics();
 
 bool tests_uninitialized_move_exception_safety();
 
-// -- section: uninitialized_move_n (move_family_tests_uninitialized_move_n.cpp)
+// - section: uninitialized_move_n (move_family_tests_uninitialized_move_n.cpp)
 bool tests_uninitialized_move_n_basic();
 
 bool tests_uninitialized_move_n_semantics();
 
 bool tests_uninitialized_move_n_exception_safety();
 
-// -- section: move_iterator (move_family_tests_move_iterator.cpp)
+// - section: move_iterator (move_family_tests_move_iterator.cpp)
 bool tests_move_iterator_reference_ref();
 
 bool tests_move_iterator_reference_proxy();
@@ -283,7 +283,7 @@ bool tests_move_iterator_make();
 
 bool tests_move_iterator_category();
 
-// -- section: iter_move (move_family_tests_iter_move.cpp)
+// - section: iter_move (move_family_tests_iter_move.cpp)
 bool tests_iter_move_default_type();
 
 bool tests_iter_move_rvalue_reference_alias();
@@ -294,7 +294,7 @@ bool tests_iter_move_adl_customization();
 
 bool tests_iter_move_moves();
 
-// -- section: move traits (move_family_tests_traits.cpp)
+// - section: move traits (move_family_tests_traits.cpp)
 bool tests_is_move_constructible();
 
 bool tests_is_move_assignable();

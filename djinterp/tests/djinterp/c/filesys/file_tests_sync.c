@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                        file_tests_sync.c
 *
-*   VI. Durability (file_sync) -- flushing to the operating system and to the
+*   VI. Durability (file_sync) - flushing to the operating system and to the
 * device. The two descriptor-flushing forms report ENOSYS on the ISO C backend
 * and are checked directly there; elsewhere a written file is flushed to
 * success. d_file_flush_stream runs on every backend and, following C, treats a NULL
@@ -180,7 +180,7 @@ void d_fs_tests_sync(
  *****************************************************************************/
 
 /******************************************************************************
- * VI.  file_sync  --  DURABILITY
+ * VI.  file_sync  -  DURABILITY
  *
  *   These tests can verify that the calls SUCCEED. They cannot verify that
  * the data survives a power cut, which is what the module is actually for --
@@ -275,8 +275,8 @@ bool d_tests_file_fflush(struct dj_test_suite* _suite)
         (void)d_file_close_stream(file);
     }
 
-    // NULL is a documented, meaningful argument here -- flush every output
-    // stream -- rather than a mistake to reject
+    // NULL is a documented, meaningful argument here - flush every output
+    // stream - rather than a mistake to reject
     #if D_FILE_VALIDATE_IS_ACTIVE
     D_TEST_CHECK_MSG(_suite,
                      "null_flushes_all",

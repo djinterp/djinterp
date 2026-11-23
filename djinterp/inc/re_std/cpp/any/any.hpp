@@ -103,7 +103,7 @@ RE_STD_LONG_LONG_DIAG_PUSH
     #include <utility>
 #endif
 
-// re_std -- re_std's own traits, never std's: the names below are declared
+// re_std - re_std's own traits, never std's: the names below are declared
 // in namespace re_std, so importing std's would collide with them the moment
 // a translation unit also includes re_std's type_traits.
 #include "../type_traits/enable_if.hpp"          // enable_if
@@ -1252,7 +1252,7 @@ public:
     // OBSERVERS
     // =================================================================
     //   constexpr from C++14 (RE_STD_CONSTEXPR_CPP14). any is not a literal type
-    // -- it has a user-provided destructor -- and C++11 requires the class
+    // - it has a user-provided destructor - and C++11 requires the class
     // of a constexpr member function to be one; C++14 dropped that rule.
 
     // has_value

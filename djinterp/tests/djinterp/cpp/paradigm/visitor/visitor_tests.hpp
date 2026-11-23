@@ -20,7 +20,7 @@
 *                      ignores the rest.  An unhandled element returns a default.
 *
 *     static    (IV)   COMPILE TIME, via CRTP.  No vtable at all.  An unhandled
-*                      element is not a runtime outcome -- the call does not
+*                      element is not a runtime outcome - the call does not
 *                      compile.
 *
 *     variant   (V)    compile time, via std::visit over a closed alternative
@@ -40,8 +40,8 @@
 *     A.  variant_visit_with_index_impl declares `static constexpr dispatch_fn
 *         table[]` inside a D_CONSTEXPR_INLINE function.  A variable of static
 *         storage duration is not permitted in a constexpr function before C++23,
-*         so the ENTIRE HEADER fails to compile at C++17 and C++20 -- the two
-*         dialects the variant visitor exists for -- with nothing instantiated.
+*         so the ENTIRE HEADER fails to compile at C++17 and C++20 - the two
+*         dialects the variant visitor exists for - with nothing instantiated.
 *
 *     B.  internal::visitor_of_base's recursive case writes
 *         `using visitor_of_base<R, Tail...>::visit;`, but the terminal
@@ -53,8 +53,8 @@
 *     C.  acyclic_visitable's second template parameter,
 *         `_ReturnType _DefaultReturn = _ReturnType()`, is a NON-TYPE parameter of
 *         type _ReturnType.  void is not a permitted type for one, so
-*         acyclic_visitable<void> -- both the default AND the spelling the
-*         header's own usage example gives -- is ill-formed.  The parameter was
+*         acyclic_visitable<void> - both the default AND the spelling the
+*         header's own usage example gives - is ill-formed.  The parameter was
 *         never referenced.
 *
 *     D.  D_VISITABLE static_casts visitor_base<R>& to visitor_of_impl<R,This>&.
@@ -108,7 +108,7 @@ NS_TESTING
 // is visible from where it is declared.
 
 // ---------------------------------------------------------------------------
-// II. classic visitor -- a CLOSED shape hierarchy over a std::string sink
+// II. classic visitor - a CLOSED shape hierarchy over a std::string sink
 // ---------------------------------------------------------------------------
 
 class classic_circle;
@@ -117,7 +117,7 @@ class classic_tri;
 
 // classic_shape
 //   fixture: the element root.  accept() is pure virtual and takes the visitor
-// type-erased as visitor_base<std::string>& -- which is the whole difficulty the
+// type-erased as visitor_base<std::string>& - which is the whole difficulty the
 // classic form has to solve, since that type declares no visit() at all.
 class classic_shape : public DVisitableBase<std::string>
 {
@@ -163,7 +163,7 @@ public:
 };
 
 // shape_namer
-//   fixture: a TOTAL visitor -- it handles every element in the closed set, which
+//   fixture: a TOTAL visitor - it handles every element in the closed set, which
 // is what concrete_visitor's pure-virtual visit()s require of it.
 class shape_namer : public concrete_visitor<std::string,
                                             classic_circle,
@@ -239,7 +239,7 @@ public:
 };
 
 // circle_only_visitor
-//   fixture: a PARTIAL visitor -- a well-formed visitor over a SMALLER closed set
+//   fixture: a PARTIAL visitor - a well-formed visitor over a SMALLER closed set
 // {classic_circle}.  Handing it an element outside that set violates the classic
 // form's closed-set contract, and the suite requires that to be reported rather
 // than silently absorbed.
@@ -255,7 +255,7 @@ public:
 };
 
 // ---------------------------------------------------------------------------
-// II. classic visitor -- the void-return case
+// II. classic visitor - the void-return case
 // ---------------------------------------------------------------------------
 
 class dot;
@@ -304,7 +304,7 @@ public:
 };
 
 // ---------------------------------------------------------------------------
-// III. acyclic visitor -- an OPEN element set
+// III. acyclic visitor - an OPEN element set
 // ---------------------------------------------------------------------------
 
 class acyclic_circle;
@@ -354,7 +354,7 @@ public:
 
 // round_visitor
 //   fixture: handles circle and rect, and knows NOTHING of triangle.  Under the
-// acyclic form this is legitimate, not an error -- which is exactly the contract
+// acyclic form this is legitimate, not an error - which is exactly the contract
 // the suite has to pin, since under the classic form the same shape of visitor is
 // a bug.
 class round_visitor : public acyclic_visitor,
@@ -420,12 +420,12 @@ public:
 };
 
 // ---------------------------------------------------------------------------
-// IV. static visitor -- CRTP, no vtable
+// IV. static visitor - CRTP, no vtable
 // ---------------------------------------------------------------------------
 
 // static_circle / static_rect / static_tri
 //   fixture: elements that accept static visitors.  static_tri is handled by no
-// visitor here -- under this strategy that is a COMPILE-time fact, so the suite
+// visitor here - under this strategy that is a COMPILE-time fact, so the suite
 // observes it through visit_result rather than by calling anything.
 class static_circle : public DStaticVisitable<static_circle>
 {
@@ -496,7 +496,7 @@ public:
 
 // const_tag_visitor
 //   fixture: only const-callable.  Selects static_visitor::apply's third overload
-// -- the one taking `this` by const -- and nothing else can.
+// - the one taking `this` by const - and nothing else can.
 class const_tag_visitor : public DStaticVisitor<const_tag_visitor>
 {
 public:
@@ -559,7 +559,7 @@ using number = std::variant<int, double>;
 ///                        TEST DECLARATIONS                                 ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// -- I. configuration & feature gates ---------------------------------------
+// - I. configuration & feature gates ---------------------------------------
 bool tests_feature_gate_variadic_templates();
 bool tests_feature_gate_variant();
 bool tests_feature_gate_concepts();
@@ -569,7 +569,7 @@ bool tests_feature_gates_agree_with_each_other();
 bool tests_default_return_type_is_void();
 bool tests_default_return_type_propagates_to_every_root();
 
-// -- II. classic visitor ----------------------------------------------------
+// - II. classic visitor ----------------------------------------------------
 bool tests_visitor_base_return_type_typedef();
 bool tests_visitor_base_is_polymorphic();
 bool tests_visitable_base_return_type_typedef();
@@ -590,7 +590,7 @@ bool tests_d_visitable_void_return();
 bool tests_d_visitable_unhandled_element_throws();
 bool tests_classic_visitor_accumulates_across_a_traversal();
 
-// -- III. acyclic visitor ---------------------------------------------------
+// - III. acyclic visitor ---------------------------------------------------
 bool tests_acyclic_visitor_is_polymorphic();
 bool tests_visitor_of_is_abstract();
 bool tests_visitor_of_return_type_typedef();
@@ -606,7 +606,7 @@ bool tests_d_acyclic_visitable_non_void_return();
 bool tests_acyclic_visitor_is_decoupled_from_the_element_set();
 bool tests_acyclic_visitor_accumulates_across_a_traversal();
 
-// -- IV. static visitor -----------------------------------------------------
+// - IV. static visitor -----------------------------------------------------
 bool tests_visit_result_deduces_the_return_type();
 bool tests_visit_result_is_sfinae_friendly();
 bool tests_visit_result_t_alias_agrees();
@@ -621,7 +621,7 @@ bool tests_static_visitable_accept_const();
 bool tests_static_visitable_accept_return_type();
 bool tests_static_visitor_dispatch_is_compile_time();
 
-// -- V. variant visitor (C++17+) --------------------------------------------
+// - V. variant visitor (C++17+) --------------------------------------------
 bool tests_overloaded_combines_callables();
 bool tests_overloaded_deduction_guide();
 bool tests_overloaded_generic_fallback();
@@ -635,7 +635,7 @@ bool tests_variant_visit_with_index_supplies_the_index();
 bool tests_variant_visit_with_index_is_a_compile_time_constant();
 bool tests_variant_visit_with_index_covers_every_alternative();
 
-// -- VI. concepts (C++20+) --------------------------------------------------
+// - VI. concepts (C++20+) --------------------------------------------------
 bool tests_concept_visitable_type();
 bool tests_concept_visitable_type_rejects_non_visitable();
 bool tests_concept_visitor_for();
@@ -658,7 +658,7 @@ bool tests_constrained_accept_is_gated_by_the_concept();
 //
 //   The variant and concept blocks are NOT conditionally omitted.  Their
 // predicates stand down and report success on a dialect that lacks the feature,
-// so the spec -- and therefore the test count -- is identical across every
+// so the spec - and therefore the test count - is identical across every
 // dialect, and the runner needs no conditional wiring.
 inline
 ::djinterp::test::module_spec visitor_spec()
@@ -670,7 +670,7 @@ inline
     spec.name       = "visitor";
     spec.descriptor = "visitor pattern: classic, acyclic, static and variant dispatch";
 
-    // -- I. configuration & feature gates -----------------------------------
+    // - I. configuration & feature gates -----------------------------------
     {
         dt::block_spec block;
 
@@ -705,7 +705,7 @@ inline
         spec.blocks.push_back(block);
     }
 
-    // -- II. classic visitor ------------------------------------------------
+    // - II. classic visitor ------------------------------------------------
     {
         dt::block_spec block;
 
@@ -773,7 +773,7 @@ inline
         spec.blocks.push_back(block);
     }
 
-    // -- III. acyclic visitor -----------------------------------------------
+    // - III. acyclic visitor -----------------------------------------------
     {
         dt::block_spec block;
 
@@ -826,7 +826,7 @@ inline
         spec.blocks.push_back(block);
     }
 
-    // -- IV. static visitor -------------------------------------------------
+    // - IV. static visitor -------------------------------------------------
     {
         dt::block_spec block;
 
@@ -876,7 +876,7 @@ inline
         spec.blocks.push_back(block);
     }
 
-    // -- V. variant visitor -------------------------------------------------
+    // - V. variant visitor -------------------------------------------------
     {
         dt::block_spec block;
 
@@ -923,7 +923,7 @@ inline
         spec.blocks.push_back(block);
     }
 
-    // -- VI. concepts -------------------------------------------------------
+    // - VI. concepts -------------------------------------------------------
     {
         dt::block_spec block;
 

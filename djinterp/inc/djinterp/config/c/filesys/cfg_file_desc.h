@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                          cfg_file_desc.h
 *
-* Build-time configuration for c/filesys/file_desc.h -- descriptor lifecycle
+* Build-time configuration for c/filesys/file_desc.h - descriptor lifecycle
 * (open, close, dup, dup2, fileno).
 *
 *   This module owns descriptors, not the bytes that move through them; that
@@ -95,7 +95,7 @@ TABLE OF CONTENTS
 //   knob: the permission bits used when a caller passes O_CREAT, or Linux's
 // O_TMPFILE, and no mode (value model), from 1 to 0777. Default 0644.
 //   POSIX says the mode argument is required with O_CREAT and that omitting
-// it is undefined -- in practice it reads whatever garbage is on the stack
+// it is undefined - in practice it reads whatever garbage is on the stack
 // and creates a file with those permissions, which is a security bug that
 // looks like a typo. This module substitutes a defined value instead.
 #ifndef D_CFG_FILE_DESC_CREATE_MODE
@@ -173,7 +173,7 @@ TABLE OF CONTENTS
 // 3.1.3
 // D_INTERNAL_FILE_DESC_DUP_CLOEXEC
 //   resolved: 1 when d_file_dup_fd keeps its copy from a child process, which
-// dup() -- and Windows' _dup -- would hand on. Requires descriptors.
+// dup() - and Windows' _dup - would hand on. Requires descriptors.
 #if ( (D_CFG_IS_ON(D_CFG_FILE_DESC_DUP_CLOEXEC)) &&                            \
       (D_INTERNAL_FILE_BACKEND != D_CFG_FILE_BACKEND_STDC) )
     #define D_INTERNAL_FILE_DESC_DUP_CLOEXEC 1

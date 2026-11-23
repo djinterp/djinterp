@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][filesys]                                    file_tests_temp.cpp
 *
-*   VIII. Temporaries (file_temp.hpp) -- the one temp query that returns a path
+*   VIII. Temporaries (file_temp.hpp) - the one temp query that returns a path
 * rather than a handle.
 *
 * WHAT IS DELIBERATELY ABSENT
@@ -9,7 +9,7 @@
 *   file_temp.h offers d_file_temp_name and labels it racy; this layer does not
 * surface it, because a name handed back is not a file and another process can
 * win it before you open it. The safe spelling is tested in the file section. So
-* this section is small on purpose -- the missing surface is the design, not a
+* this section is small on purpose - the missing surface is the design, not a
 * gap.
 *
 *

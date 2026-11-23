@@ -19,7 +19,7 @@ namespace bitwisedom
 namespace fonts
 {
 
-// the data -- for ImFontAtlas::AddFontFromMemoryCompressedTTF
+// the data - for ImFontAtlas::AddFontFromMemoryCompressedTTF
 const void* interface_data();
 int interface_size();
 const void* mono_data();

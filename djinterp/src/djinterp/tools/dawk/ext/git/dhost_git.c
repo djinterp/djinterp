@@ -8,8 +8,8 @@
 * holds is read from the document's records as they are now, each field by
 * its name; what a repository holds is read as it is asked for.
 *   A list is made a line to each item. A path in one is written as it is,
-* unless it holds a byte that would break the line or its reading -- a
-* control byte, a quote, a backslash -- when it is quoted as git quotes
+* unless it holds a byte that would break the line or its reading - a
+* control byte, a quote, a backslash - when it is quoted as git quotes
 * one.
 *
 *
@@ -40,7 +40,7 @@
 //------------------------------------------------------------------------------
 // 1.1.1
 // d_internal_slot
-//   struct: what a handle names: a file, a repository, or -- closed --
+//   struct: what a handle names: a file, a repository, or - closed --
 //   neither.
 struct dj_internal_slot
 {
@@ -67,7 +67,7 @@ typedef size_t (*dj_internal_fn_count)(const struct dj_git_text* _text);
 
 // 1.1.4
 // dj_internal_values
-//   struct: the values a key has, lowest first, each borrowed -- NULL for
+//   struct: the values a key has, lowest first, each borrowed - NULL for
 //   a name alone.
 struct dj_internal_values
 {
@@ -179,7 +179,7 @@ bool d_internal_fail(
 d_internal_set_text, d_internal_set_bytes, d_internal_set_number,
 d_internal_set_flag, d_internal_set_index
   Gives text, bytes of a length, a number, 1 or 0, or an index from 0 as
-one from 1 -- 0 for none.
+one from 1 - 0 for none.
 */
 static
 bool d_internal_set_text(
@@ -588,7 +588,7 @@ bool d_internal_changed(
 /*
 d_internal_record
   The file a handle names and the index, from 0, of one of its records --
-`_count` of them -- an argument names from 1; NULL, git_error() saying
+`_count` of them - an argument names from 1; NULL, git_error() saying
 why, for no file or no such record.
 */
 static
@@ -814,7 +814,7 @@ bool d_internal_git_new(
     (void)_problem;
     (void)_capacity;
 
-    // a kind named that none is -- "" for the path's
+    // a kind named that none is - "" for the path's
     if ( (named) &&
          (kind == D_GIT_TEXT_OTHER) )
     {
@@ -848,7 +848,7 @@ bool d_internal_git_new(
 
 /*
 git_save(f[, path])
-  1 written, 0 unchanged -- the file there holds the text already -- or
+  1 written, 0 unchanged - the file there holds the text already - or
 -1.
 */
 static
@@ -1207,8 +1207,8 @@ d_internal_line_kind_name(
 
 /*
 git_lines(f), git_line(f, i, field)
-  A file's lines: kind, text -- the first's past a byte-order mark, as a
-line is set -- pattern, section, entry.
+  A file's lines: kind, text - the first's past a byte-order mark, as a
+line is set - pattern, section, entry.
 */
 static
 bool d_internal_git_lines(
@@ -1292,7 +1292,7 @@ enum dj_internal_line_change
 /*
 d_internal_change_line
   Inserts, adds, sets or removes a line: the index, from 1, of the line
-made -- 1 for one removed -- or -1, the file saying why.
+made - 1 for one removed - or -1, the file saying why.
 */
 static bool
 d_internal_change_line(
@@ -1313,7 +1313,7 @@ d_internal_change_line(
                                     ? (lines + 1u)
                                     : lines;
 
-    // a file, and a line of it -- or, to insert, the place past its last
+    // a file, and a line of it - or, to insert, the place past its last
     if ( (!doc) ||
          (index == 0u) ||
          (index > most) )
@@ -1597,7 +1597,7 @@ bool d_internal_git_state(
 
 /*
 git_set_state(f, i, state), git_remove_state(f, i, name)
-  A state, as written -- text, -text, !text, eol=lf -- put on a pattern's
+  A state, as written - text, -text, !text, eol=lf - put on a pattern's
 line, or every state of a name taken off it.
 */
 static
@@ -1988,7 +1988,7 @@ bool d_internal_git_entry(
 
 /*
 d_internal_canonical
-  A key as git compares keys, or -- `_section` -- a section's name,
+  A key as git compares keys, or - `_section` - a section's name,
 "section" or "section.subsection", its section in lower case; allocated,
 NULL for one git refuses.
 */
@@ -2282,7 +2282,7 @@ bool d_internal_git_remove_section(
 
 /*
 git_set_entry(f, i[, value]), git_remove_entry(f, i)
-  One entry given a value -- its name alone without one -- or taken away.
+  One entry given a value - its name alone without one - or taken away.
 */
 static
 bool d_internal_change_entry(
@@ -2395,8 +2395,8 @@ void d_internal_values_add(
 
 /*
 d_internal_values_of
-  The values a key has, lowest first, in a file a handle names -- before
-any line git cannot read -- or in a repository's configuration; false,
+  The values a key has, lowest first, in a file a handle names - before
+any line git cannot read - or in a repository's configuration; false,
 git_error() saying why, for no such handle, a key git refuses, or memory
 that ran out.
   Long as a file's entries and a repository's settings are each gathered
@@ -2489,7 +2489,7 @@ enum dj_internal_config_read
 /*
 d_internal_read_typed
   Gives the last value of a key as git reads a boolean, or a number; the
-default -- 0 unless given -- for a key with none; -1 for a value git would
+default - 0 unless given - for a key with none; -1 for a value git would
 refuse, a name alone among them for a number.
 */
 static
@@ -2923,7 +2923,7 @@ bool d_internal_git_unquote(
 
 /*
 git_repo([path])
-  The repository a path -- the working directory's, without one -- is in.
+  The repository a path - the working directory's, without one - is in.
 */
 static
 bool d_internal_git_repo(
@@ -2977,8 +2977,8 @@ enum dj_internal_place
 
 /*
 d_internal_place_of
-  Gives a repository's directory, common directory, work tree -- "" for a
-bare one -- or its hash's name.
+  Gives a repository's directory, common directory, work tree - "" for a
+bare one - or its hash's name.
 */
 static bool
 d_internal_place_of(
@@ -3114,8 +3114,8 @@ bool d_internal_readable(
 /*
 d_internal_global_file
   The file git config --global writes: GIT_CONFIG_GLOBAL's; else
-~/.gitconfig, unless only git/config under XDG_CONFIG_HOME -- or
-~/.config -- can be read; allocated.
+~/.gitconfig, unless only git/config under XDG_CONFIG_HOME - or
+~/.config - can be read; allocated.
 */
 static
 char* d_internal_global_file(void)
@@ -3201,7 +3201,7 @@ char* d_internal_config_path(
 
 /*
 git_config_file(r[, scope])
-  The file git config --scope writes -- local, worktree, global, system --
+  The file git config --scope writes - local, worktree, global, system --
 to open and change.
 */
 static
@@ -3931,8 +3931,8 @@ bool d_internal_git_tag(
 
 /*
 d_internal_list_tree
-  A tree's entries added to a list as git ls-tree writes them -- mode,
-type, name, a tab, path -- each path below `_prefix`; with `_deep`, a
+  A tree's entries added to a list as git ls-tree writes them - mode,
+type, name, a tab, path - each path below `_prefix`; with `_deep`, a
 subtree's entries in place of its own, as ls-tree -r has it. False when a
 tree cannot be read.
 */
@@ -3995,7 +3995,7 @@ bool d_internal_list_tree(
 
 /*
 git_tree(r, name[, deep])
-  A tree's entries -- a commit's or tag's tree -- as git ls-tree, or
+  A tree's entries - a commit's or tag's tree - as git ls-tree, or
 ls-tree -r, writes them.
 */
 static
@@ -4054,7 +4054,7 @@ bool d_internal_git_tree(
 
 /*
 git_hash_object(r, content[, type])
-  The name git gives content of a type -- a blob's, without one -- as git
+  The name git gives content of a type - a blob's, without one - as git
 hash-object does, writing nothing.
 */
 static
@@ -4102,7 +4102,7 @@ bool d_internal_git_hash_object(
 
 /*
 git_refs(r[, prefix])
-  Every ref whose name begins with a prefix -- all under refs/ without one
+  Every ref whose name begins with a prefix - all under refs/ without one
 -- by full name, sorted.
 */
 static
@@ -4589,7 +4589,7 @@ bool d_internal_git_index_entry(
 
 /*
 git_index_find(r, path[, stage])
-  The index's entry of a path, at a stage -- 0 without one -- from 1; 0
+  The index's entry of a path, at a stage - 0 without one - from 1; 0
 for none.
 */
 static
@@ -4634,7 +4634,7 @@ bool d_internal_git_index_find(
 /*
 d_internal_ignore_of
   What decides whether a path is ignored, by a repository's rules or one
-ignore file's: whether it is, and the rule -- file:line:pattern -- into a
+ignore file's: whether it is, and the rule - file:line:pattern - into a
 buffer. False, git_error() saying why, for no such handle, or a file that
 is not an ignore file.
 */
@@ -4867,7 +4867,7 @@ void d_internal_add_state(
 
 /*
 git_attr(h, path[, name])
-  An attribute's state for a path -- set, unset, unspecified, or its value
+  An attribute's state for a path - set, unset, unspecified, or its value
 -- or every attribute's, "name: state" a line, as git check-attr -a.
 */
 static
@@ -4910,7 +4910,7 @@ bool d_internal_git_attr(
     const struct dj_git_text_value* const one =
         (name) ? d_git_text_value_of(&values, name) : NULL;
 
-    // one, by name -- unspecified when none says it
+    // one, by name - unspecified when none says it
     if (one)
     {
         d_internal_add_state(&text, one);

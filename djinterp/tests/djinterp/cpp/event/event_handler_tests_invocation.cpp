@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][event]                       event_handler_tests_invocation.cpp
 *
-*   Section II -- VERDICT NORMALIZATION + tuple-apply.  Covers the internal
+*   Section II - VERDICT NORMALIZATION + tuple-apply.  Covers the internal
 * invocation helpers: invoke_normalized (a void-returning handler is run and
 * normalized to the unit verdict pass; a verdict-returning handler's verdict
 * is forwarded unchanged) and apply_handler (unpacks a payload tuple and

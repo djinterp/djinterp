@@ -8,8 +8,8 @@
 * query runs them. d_postgres_exec_changes does the same and reports how
 * many rows the last statement changed. The d_postgres_query_* functions run
 * SQL and return the first column of its first row, which covers the common
-* single-value case -- a count, an EXISTS, a setting, an INSERT's RETURNING
-* id -- in one call; d_postgres_query_rows runs one statement and returns all
+* single-value case - a count, an EXISTS, a setting, an INSERT's RETURNING
+* id - in one call; d_postgres_query_rows runs one statement and returns all
 * of its rows, as db_common.h's dj_db_rows, and d_postgres_query_rows_params
 * does so with values for the statement's parameters, apart from its SQL.
 *   Each comes in a plain form, which takes SQL as written, and an `f` form,
@@ -27,7 +27,7 @@
 * extra_float_digits to 3, unless options of the caller's set it, so that a
 * server before 12 writes every digit, and from 12 the shortest exact; bytea
 * as a BLOB, decoded from the text, hex or escaped; and every other value --
-* numeric among them, which a double cannot hold exactly -- as TEXT. A
+* numeric among them, which a double cannot hold exactly - as TEXT. A
 * column's type is read from its type's OID, and type_name is the type's
 * name as format_type writes it, "" for one not listed here:
 *     boolean                                       D_DB_TYPE_BOOLEAN
@@ -80,7 +80,7 @@ TABLE OF CONTENTS
                                                  // floor; int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -97,7 +97,7 @@ D_EXTERN_C_BEGIN
 
 // 1.1    Running statements
 //------------------------------------------------------------------------------
-// running statements -- each returns 0; the SQLSTATE of the statement that
+// running statements - each returns 0; the SQLSTATE of the statement that
 // failed, which d_postgres_error_message then describes, the ones before it
 // rolled back with it unless the SQL committed them itself; 53200 when the
 // text could not be built; D_DB_UNSUPPORTED for COPY to or from the client,
@@ -116,7 +116,7 @@ int d_postgres_execf(
 
 // 1.2    Rows changed
 //------------------------------------------------------------------------------
-// rows changed -- as d_postgres_exec, and on success writes how many rows the
+// rows changed - as d_postgres_exec, and on success writes how many rows the
 // last statement inserted, updated, deleted or merged, or returned, for a
 // SELECT; 0 for a statement that counts none, such as CREATE TABLE. Written
 // only on success.
@@ -134,7 +134,7 @@ int d_postgres_execf_changes(
 
 // 1.3    Single values
 //------------------------------------------------------------------------------
-// single values -- each runs SQL and reads the first column of the first row
+// single values - each runs SQL and reads the first column of the first row
 // of its last statement. A row yields 0 and the value, written only then; no
 // row is D_DB_NOT_FOUND; a failure is as for the statements above. A NULL
 // reads as 0, false, or a NULL string. The text is the caller's, released
@@ -204,8 +204,8 @@ int d_postgres_query_boolf(
  *         which the layer ends at once; D_DB_INVALID_ARGUMENT for a `NULL`
  *         argument.
  * @post On success the caller releases `_rows` with d_db_rows_free. A
- *       statement that returns no rows -- an INSERT without RETURNING, say
- *       -- gives rows with no columns.
+ *       statement that returns no rows - an INSERT without RETURNING, say
+ *       - gives rows with no columns.
  */
 int d_postgres_query_rows(
     struct pg_conn*    _db,

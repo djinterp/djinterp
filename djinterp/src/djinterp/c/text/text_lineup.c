@@ -3,8 +3,8 @@
 *
 *   String arrays, and tokens laid out in aligned, wrapped columns.
 *
-*   d_text_lineup measures once -- each token's length, the slot width, the
-* first line's padding and room -- then writes the first line and each line
+*   d_text_lineup measures once - each token's length, the slot width, the
+* first line's padding and room - then writes the first line and each line
 * after it with the same three steps: the tokens that fit (one, at least),
 * each padded to its slot, then the line's end. The 2025.12.17 original wrote
 * the first line and the others with two copies of that loop; they are one
@@ -215,7 +215,7 @@ d_internal_digits_u(
 
 /*
 d_internal_series_entry
-  Writes one series entry -- _prefix, the number, _suffix -- into a new
+  Writes one series entry - _prefix, the number, _suffix - into a new
 string of _size bytes, the widest any entry needs. The number is formatted
 in place, where the padding has room; the original went through a 64-byte
 array, which cut a padding past 63 short.
@@ -690,9 +690,9 @@ d_internal_lineup_less(
 
 /*
 d_internal_lineup_first_line
-  Writes the first line's opening -- the line prefix where it is indented,
+  Writes the first line's opening - the line prefix where it is indented,
 the prefix, the padding that lines its slots up with the lines below, and a
-leading separator -- then its tokens and its end. The room left for tokens
+leading separator - then its tokens and its end. The room left for tokens
 follows the original's arithmetic exactly, including a line prefix as wide
 as the line, which it leaves in the room.
 */

@@ -4,8 +4,8 @@
 * Implementation of the advisory locks declared in file_lock.h.
 *   Three backends, chosen at build time, one helper each
 * (d_internal_lock_raw): flock where the build selects it and the platform has
-* it, LockFileEx on Windows -- made to behave as flock does where Windows
-* differs -- and whole-file fcntl record locks everywhere else. djinterp's
+* it, LockFileEx on Windows - made to behave as flock does where Windows
+* differs - and whole-file fcntl record locks everywhere else. djinterp's
 * D_LOCK_* operations are translated to each backend's own constants rather
 * than assumed to match them.
 *
@@ -37,7 +37,7 @@ d_internal_lock_check_op
   Exactly one of SH / EX / UN must be present. Two is not a richer request but
 a contradiction, and a platform handed the OR of two flags does something
 arbitrary rather than complain. Defined only where D_INTERNAL_FILE_REQUIRE
-expands to a check and d_file_lock_fd is not the ISO C stub -- the only
+expands to a check and d_file_lock_fd is not the ISO C stub - the only
 builds that call it; anywhere else it would be an unused static function.
 */
 static
@@ -78,8 +78,8 @@ d_internal_lock_errno
   A Win32 reason, as the errno flock would have set: a range another handle
 holds is EWOULDBLOCK, the answer a non-blocking request expects, where every
 other call reads it as EACCES; a filesystem that cannot lock is ENOLCK, where
-the table says ENOTSUP; anything else -- a handle that is not one, EBADF,
-among them -- reads as it does everywhere in c/filesys.
+the table says ENOTSUP; anything else - a handle that is not one, EBADF,
+among them - reads as it does everywhere in c/filesys.
 */
 static
 int d_internal_lock_errno(
@@ -120,7 +120,7 @@ int d_internal_lock_refuse(void)
 d_internal_lock_release
   Releases the whole-file range the handle holds. Holding none is not an
 error: POSIX unlocks an unlocked file without complaint, and ERROR_NOT_LOCKED
--- ERROR_LOCK_VIOLATION under Wine, for the same case -- says only that there
+-- ERROR_LOCK_VIOLATION under Wine, for the same case - says only that there
 was nothing to do.
 */
 static
@@ -152,7 +152,7 @@ int d_internal_lock_release(
 
 /*
 d_internal_lock_raw
-  LockFileEx over the whole file -- offset 0, the largest length -- with
+  LockFileEx over the whole file - offset 0, the largest length - with
 flock's rule that a request replaces the lock the descriptor holds. Windows
 ranges neither merge nor convert: a second lock from the same handle stacks,
 needing two unlocks, or, exclusive over the handle's own, waits for itself
@@ -294,8 +294,8 @@ int d_internal_lock_raw(
 
 /*
 d_internal_lock_held
-  Whether an errno says the lock is held elsewhere: EWOULDBLOCK -- here one
-number with EAGAIN -- or EACCES, which fcntl may use instead.
+  Whether an errno says the lock is held elsewhere: EWOULDBLOCK - here one
+number with EAGAIN - or EACCES, which fcntl may use instead.
 */
 static
 int d_internal_lock_held(
@@ -410,7 +410,7 @@ int d_file_lock_stream(
 /*
 d_file_lock_fd
   Every backend locks the whole file (d_internal_lock_raw), and a request
-replaces the lock the descriptor holds -- which flock and fcntl do natively
+replaces the lock the descriptor holds - which flock and fcntl do natively
 and Windows is made to.
 */
 int d_file_lock_fd(

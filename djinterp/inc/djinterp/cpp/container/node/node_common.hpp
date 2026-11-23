@@ -16,12 +16,12 @@
 * hybrid).  The container-level counterparts (ownership, entry points, graph
 * shape) live in node_container_traits.hpp.
 *
-* PART A -- NODE TYPES
+* PART A - NODE TYPES
 *   DLeafNode<T>                     terminal, zero-link vertex (payload only)
 *   DDynamicNode<T, Alloc, Cont> n-ary vertex, edges in a dynamic container
 *   DTupleNode<T, Edges...> heterogeneous fixed vertex, edges in a tuple
 *
-* PART B -- NODE STRUCTURAL TRAITS (merged from node_traits.hpp)
+* PART B - NODE STRUCTURAL TRAITS (merged from node_traits.hpp)
 *   Purely structural, SFINAE-based detection.  Every trait takes the NODE
 * type as its primary parameter (never the container), and answers a
 * concrete, falsifiable question about a node's interface.  No taxonomy or
@@ -37,7 +37,7 @@
 *   ...
 *     link utilities ........................... is_null_link, node_link_count
 *
-* PART C -- VERTEX CLASSIFICATION (monograph "Vertices")
+* PART C - VERTEX CLASSIFICATION (monograph "Vertices")
 *   DVertexArity + vertex_arity_of edgeless / fixed / n-ary / hybrid
 *   payload classification                      is_payloaded_vertex, ...
 *
@@ -57,7 +57,7 @@
 TABLE OF CONTENTS
 =================
 
-      PART A -- NODE TYPES
+      PART A - NODE TYPES
 
 I.    DLeafNode
       ---------
@@ -68,7 +68,7 @@ II.   DDynamicNode
 III.  DTupleNode
       ----------
 
-      PART B -- NODE STRUCTURAL TRAITS
+      PART B - NODE STRUCTURAL TRAITS
 
 IV.   Node Member Detection (field access)
       ------------------------------------
@@ -97,7 +97,7 @@ XI.   Topology Detection
 XII.  Link Utilities
       --------------
 
-      PART C -- VERTEX CLASSIFICATION
+      PART C - VERTEX CLASSIFICATION
 
 XIII. Vertex Arity Regimes and Payload
       --------------------------------
@@ -136,7 +136,7 @@ XIII. Vertex Arity Regimes and Payload
 NS_DJINTERP
 
 // ###########################################################################
-// #  PART A -- NODE TYPES
+// #  PART A - NODE TYPES
 // ###########################################################################
 //   A node is a VERTEX (the site carrying the payload) paired with an EDGE
 // COLLECTION (its links to other nodes).  The three concrete types below
@@ -374,7 +374,7 @@ private:
 
 
 // ###########################################################################
-// #  PART B -- NODE STRUCTURAL TRAITS  (merged from node_traits.hpp)
+// #  PART B - NODE STRUCTURAL TRAITS  (merged from node_traits.hpp)
 // ###########################################################################
 
 
@@ -807,7 +807,7 @@ struct has_prev_access
 //
 // The handle may be a raw pointer, smart pointer, integral index,
 // or a user-defined handle class (e.g. a slot-map key).  It is the
-// realisation of Ref(N) -- the reference type through which the node
+// realisation of Ref(N) - the reference type through which the node
 // recursion runs (monograph "Nodes").
 
 NS_INTERNAL
@@ -1266,7 +1266,7 @@ struct has_edges<N,
 //   trait: evaluates to true if N exposes an `edges()` accessor over its edge
 // collection. This is the signal the traversal policies use to decide a node's
 // edges are iterable; note it does NOT by itself distinguish a dynamic
-// (unbounded) edge container from a fixed-capacity one -- both expose edges().
+// (unbounded) edge container from a fixed-capacity one - both expose edges().
 // The arity distinction is drawn in Part C by combining this with the
 // compile-time link count.
 template<typename N>
@@ -1481,15 +1481,15 @@ bool is_null_link(
 
 
 // ###########################################################################
-// #  PART C -- VERTEX CLASSIFICATION  (monograph "Vertices")
+// #  PART C - VERTEX CLASSIFICATION  (monograph "Vertices")
 // ###########################################################################
 
 
 // ===========================================================================
 // XIII. VERTEX ARITY REGIMES AND PAYLOAD
 // ===========================================================================
-//   The monograph classifies a vertex by the ARITY of its node -- the
-// capacity of the edge collection K_N -- into four regimes:
+//   The monograph classifies a vertex by the ARITY of its node - the
+// capacity of the edge collection K_N - into four regimes:
 //
 //     edgeless  arity 0                 : a leaf (leaf node)
 //     fixed     arity exactly k >= 1    : compile-time k (k=2 is binary)
@@ -1537,7 +1537,7 @@ NS_INTERNAL
 
     // has_unbounded_edges
     //   helper: true iff N carries an edge collection with no compile-time
-    // bound -- an edges() container that is not a fixed-count array, or an
+    // bound - an edges() container that is not a fixed-count array, or an
     // n-ary / graph adjacency alias. This is the "overflow / n-ary" signal.
     template<typename N>
     struct has_unbounded_edges

@@ -55,7 +55,7 @@ TABLE OF CONTENTS
 // evaluated, in the order the call gave them; `_out` receives the result and
 // arrives uninitialised.  Returns true, or false with a diagnostic of at most
 // `_capacity` bytes in `_problem`, which stops the run as a runtime error.
-// Failure is for a program error -- a call that cannot mean anything -- and
+// Failure is for a program error - a call that cannot mean anything - and
 // an operation that can fail in the world, such as opening a file, reports
 // its failure through `_out` instead, as getline does.
 typedef bool

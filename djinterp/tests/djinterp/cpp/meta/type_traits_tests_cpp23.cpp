@@ -67,7 +67,7 @@ enum unscoped_int_t : int
     explicit_underlying_b
 };
 
-// not an enum at all -- defined for the negative case
+// not an enum at all - defined for the negative case
 struct enum_negative_class_t
 {
     int x;
@@ -155,7 +155,7 @@ bool type_traits_tests_cpp23()
         is_scoped_enum<type_traits_test_types::scoped_enum_t>::value == true,
         "is_scoped_enum<shared scoped helper>");
 
-    // negative -- enum-but-unscoped
+    // negative - enum-but-unscoped
     record_assertion(verdict,
         is_scoped_enum<unscoped_default_t>::value == false,
         "is_scoped_enum<unscoped enum>");
@@ -166,7 +166,7 @@ bool type_traits_tests_cpp23()
         is_scoped_enum<type_traits_test_types::unscoped_enum_t>::value == false,
         "is_scoped_enum<shared unscoped helper>");
 
-    // negative -- non-enum
+    // negative - non-enum
     record_assertion(verdict,
         ( is_scoped_enum<int>::value                  == false &&
           is_scoped_enum<enum_negative_class_t>::value == false &&

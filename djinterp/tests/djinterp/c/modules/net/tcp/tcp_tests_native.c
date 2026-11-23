@@ -1,9 +1,9 @@
 /*******************************************************************************
 * djinterp [c][net]                                           tcp_tests_native.c
 *
-* The tcp suite's platform layer: what its tests ask of the system -- a
+* The tcp suite's platform layer: what its tests ask of the system - a
 * pause, a clock, a watchdog, a socket's flags, options and limits, native
-* error codes, the machine's name, files -- written once for BSD sockets
+* error codes, the machine's name, files - written once for BSD sockets
 * and once for Winsock.
 *   The tests call only tcp.h and these, so the suite runs wherever tcp.c
 * has a backend: Windows builds it with MinGW-w64, and Wine runs it where no

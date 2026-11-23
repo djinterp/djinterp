@@ -7,8 +7,8 @@
 # CMake leaf beside it.
 #   The parser's C sources are compiled as C, at the C floor, into one
 # archive, and the C suites link against it at each level from the floor
-# (C99) up; then the C++ suites -- the C++ face, called from C++ across a
-# real language boundary -- at each C++ level from the face's floor (C++98,
+# (C99) up; then the C++ suites - the C++ face, called from C++ across a
+# real language boundary - at each C++ level from the face's floor (C++98,
 # in the framework's strict ISO mode) up, and again without exceptions at
 # the lowest and the highest C++ level. Where the linker wraps symbols
 # (--wrap), an allocation sweep runs the C API's scenarios with every
@@ -16,7 +16,7 @@
 # select is left out, and said so; so are the C++ suites when there is no
 # C++ compiler, and the sweep when the linker cannot wrap.
 #   A suite is a table of sections, and a section is what a knob removes --
-# or a language level, or exceptions turned off -- so the number run
+# or a language level, or exceptions turned off - so the number run
 # differs by configuration, by design. Each run in the default
 # configuration must print the count expected_sections.txt gives its build:
 # a section that silently stopped being compiled is a failure, not a
@@ -131,7 +131,7 @@ if ! command -v "${CXX}" >/dev/null 2>&1; then
     cxx_found=0
 fi
 
-# a Windows C++ suite is linked whole -- libstdc++, libgcc, winpthreads --
+# a Windows C++ suite is linked whole - libstdc++, libgcc, winpthreads --
 # so that it runs where those DLLs are not, as under Wine they are not
 CXX_STATIC=()
 
@@ -231,8 +231,8 @@ std_flag()
 }
 
 # expected <build>
-#   Prints the section count expected_sections.txt gives a build -- a level,
-# and `-noexc` after a C++ one without exceptions -- or nothing. A line's
+#   Prints the section count expected_sections.txt gives a build - a level,
+# and `-noexc` after a C++ one without exceptions - or nothing. A line's
 # carriage return is dropped, so that a CRLF checkout reads alike.
 expected()
 {
@@ -341,7 +341,7 @@ run_suites()
 
 # run_cxx_suites <level> <out directory> [flags...]
 #   Builds the C++ suites at one C++ level against the library in <out> --
-# the C++98 floor in strict ISO -- and runs them, leaving `totals` and
+# the C++98 floor in strict ISO - and runs them, leaving `totals` and
 # `details` as run_suites does. The flags are the knob's, or the switch
 # that turns exceptions off. Returns as run_suites does.
 run_cxx_suites()
@@ -486,8 +486,8 @@ check_level()
 }
 
 # check_cxx <build> <level> <out directory> [flags...]
-#   One C++ build of the default configuration -- a level, or a level
-# without exceptions -- held as check_level holds a C level, to the count
+#   One C++ build of the default configuration - a level, or a level
+# without exceptions - held as check_level holds a C level, to the count
 # expected_sections.txt gives the build.
 check_cxx()
 {

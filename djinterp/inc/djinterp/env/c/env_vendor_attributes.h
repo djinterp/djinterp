@@ -5,8 +5,8 @@
 *   D_* macros for compiler attributes and builtins that have no standard
 * [[...]] form, or whose standard form arrived too recently to rely on
 * everywhere. Each expands to the spelling the detected compiler and language
-* standard accept -- the __attribute__ family GCC and Clang share, MSVC's
-* __declspec, or a language keyword -- and otherwise to a fallback that is safe
+* standard accept - the __attribute__ family GCC and Clang share, MSVC's
+* __declspec, or a language keyword - and otherwise to a fallback that is safe
 * to use.
 *   It does not redefine macros that live in other headers: D_INLINE,
 * D_NOINLINE, and D_RESTRICT belong to djinterp.h, which takes their vendor
@@ -162,9 +162,9 @@ TABLE OF CONTENTS
 // 1.2.1
 // D_INTERNAL_ENV_MINGW_C99_STDIO
 //   macro (internal): defined, to 1, for GCC on MinGW when the printf and
-// scanf families the C headers declare are C99's -- MinGW's own, which
+// scanf families the C headers declare are C99's - MinGW's own, which
 // _mingw.h chooses for any C99 or C++11 build and any asking for POSIX, or
-// the UCRT's -- rather than the Microsoft runtime's, which knows no %zu,
+// the UCRT's - rather than the Microsoft runtime's, which knows no %zu,
 // %lld or %hhd. GCC reads the `printf` archetype on MinGW as the latter's
 // whatever the headers chose, which made every %zu in a djinterp format a
 // false warning; section 5 names the C99 archetype where this is defined,
@@ -651,7 +651,7 @@ TABLE OF CONTENTS
 //     2. No-op fallback, MSVC included.
 //
 //   note: MSVC has no weak linkage. Its nearest spelling, selectany, compiles
-// only on data with external linkage -- D_WEAK on a function failed there --
+// only on data with external linkage - D_WEAK on a function failed there --
 // and means "any one of several identical definitions", not "a strong one
 // wins". So on MSVC D_WEAK is empty, as for an unknown compiler, and a
 // replaced default shows up, if at all, as a duplicate symbol at link time

@@ -68,7 +68,7 @@ TABLE OF CONTENTS
 
 // d_math_formulas_fuse
 //   whether this translation unit's build fuses a multiply and an add written
-// as two statements, as the math headers' plain formulas are -- the _fast
+// as two statements, as the math headers' plain formulas are - the _fast
 // forms among them: then their bits follow the build, and may differ from an
 // ISO build's, while the correctly rounded functions' and the exact sums' and
 // products' do not. gcc fuses so in its GNU modes where the target has the

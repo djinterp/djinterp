@@ -38,7 +38,7 @@ tests_classification_opt_in_overrides_literal
   The decisive priority case: opt-in beats the literal-type default.
   Tests the following:
   - opt_rt IS structurally a literal type (confirmed via is_literal_type)
-  - yet lifetime_of<opt_rt> is runtime, NOT both -- the opt-in overrides
+  - yet lifetime_of<opt_rt> is runtime, NOT both - the opt-in overrides
   - opt_none is likewise structurally literal but classifies as none
   - a literal type WITHOUT opt-in, by contrast, does classify as both
 */

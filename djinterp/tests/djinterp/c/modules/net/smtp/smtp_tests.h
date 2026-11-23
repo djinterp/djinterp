@@ -88,7 +88,7 @@ struct dj_tests_smtp_inbox
 
 // 1.2    Helpers
 //------------------------------------------------------------------------------
-// peers -- a scripted peer that says `_script` at once and hangs up after
+// peers - a scripted peer that says `_script` at once and hangs up after
 // it; and whether a peer's output is exactly `_expected`'s text
 struct dj_tests_net_peer* d_tests_smtp_peer(
     const char* _script
@@ -98,7 +98,7 @@ bool d_tests_smtp_sent(
     const struct dj_smtp_buffer*    _expected
 );
 
-// expectations -- appends `_text` to `_out`, through the toy cipher when
+// expectations - appends `_text` to `_out`, through the toy cipher when
 // `_sealed`, as the toy engine would put it on the wire
 void d_tests_smtp_expect(
     struct dj_smtp_buffer* _out,
@@ -106,7 +106,7 @@ void d_tests_smtp_expect(
     bool                   _sealed
 );
 
-// contexts -- a toy context for each role in `_contexts`, the server's
+// contexts - a toy context for each role in `_contexts`, the server's
 // first, which never verifies; the client's verifies when `_verify`. False,
 // with neither left to destroy, when either cannot be made
 bool d_tests_smtp_toy_pair(
@@ -115,7 +115,7 @@ bool d_tests_smtp_toy_pair(
     bool                     _verify
 );
 
-// clients -- a fresh client attached to `_connection`, greeted, and past
+// clients - a fresh client attached to `_connection`, greeted, and past
 // EHLO as "c.example"
 enum dj_smtp_error d_tests_smtp_open(
     struct dj_smtp_client*    _client,
@@ -123,7 +123,7 @@ enum dj_smtp_error d_tests_smtp_open(
     bool                      _secure
 );
 
-// servers -- a handler that refuses recipients whose local part starts
+// servers - a handler that refuses recipients whose local part starts
 // with "reject", records messages in `_inbox`, and, when `_with_auth`,
 // accepts alice with s3cret; and one session over `_connection` with it
 void d_tests_smtp_handler(

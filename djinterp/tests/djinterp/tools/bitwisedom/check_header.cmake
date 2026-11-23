@@ -13,7 +13,7 @@
 #
 #     GEN EXAMPLE (or SHEET, a sheet file) LEVEL FORM LANGUAGE (c|cxx)
 #     COMPILER FLAG STYLE (gnu|msvc) WORK, and EMULATOR: what runs GEN, and
-#     a self-test, where this machine cannot -- in a cross build,
+#     a self-test, where this machine cannot - in a cross build,
 #     CMAKE_CROSSCOMPILING_EMULATOR; empty otherwise. RUN (ON|OFF), and WORD:
 #     a wide sheet's array words, in bits, when not its own
 #

@@ -3,7 +3,7 @@
 *
 * Monoid protocol, its identity-aware operations, and the standard instances.
 *   A monoid is a semigroup (an associative combine, semigroup.hpp) that also
-* has an identity element -- a value mempty such that combine(mempty, x) ==
+* has an identity element - a value mempty such that combine(mempty, x) ==
 * combine(x, mempty) == x. From the pair (combine, mempty) a whole collection
 * of values can be reduced to one: mconcat folds a Foldable of monoid values,
 * and fold_monoid maps each element of any Foldable into a monoid and folds.
@@ -15,7 +15,7 @@
 * since it cannot be deduced); mconcat / fold_monoid then collapse a Foldable.
 *
 *   The standard instances live here, each defining a type's full algebra --
-* its semigroup combine and its monoid identity -- in one place:
+* its semigroup combine and its monoid identity - in one place:
 *     - std::string            : concatenation,           identity "".
 *     - std::vector<T>          : concatenation,           identity {}.
 *     - sum<T>         : addition,                identity 0.
@@ -108,7 +108,7 @@ NS_DJINTERP
 // the namespace keeps them clear of the flat accumulator factories.
 
 // DSum
-//   struct: the additive monoid over Type -- combine is +, identity 0.
+//   struct: the additive monoid over Type - combine is +, identity 0.
 template<typename Type>
 struct DSum
 {
@@ -132,7 +132,7 @@ template<typename Type>
 using sum = DSum<Type>;
 
 // DProduct
-//   struct: the multiplicative monoid over Type -- combine is *,
+//   struct: the multiplicative monoid over Type - combine is *,
 // identity 1.
 template<typename Type>
 struct DProduct
@@ -157,7 +157,7 @@ template<typename Type>
 using product = DProduct<Type>;
 
 // DAll
-//   struct: the conjunctive monoid over bool -- combine is &&,
+//   struct: the conjunctive monoid over bool - combine is &&,
 // identity true.
 struct DAll
 {
@@ -180,7 +180,7 @@ struct DAll
 using all = DAll;
 
 // DAny
-//   struct: the disjunctive monoid over bool -- combine is ||,
+//   struct: the disjunctive monoid over bool - combine is ||,
 // identity false.
 struct DAny
 {
@@ -203,7 +203,7 @@ struct DAny
 using any = DAny;
 
 // DMin
-//   struct: the minimum monoid over Type -- combine keeps the smaller,
+//   struct: the minimum monoid over Type - combine keeps the smaller,
 // identity is the largest representable Type. Intended for numeric
 // Type (the identity is std::numeric_limits<Type>::max()).
 template<typename Type>
@@ -224,7 +224,7 @@ template<typename Type>
 using min = DMin<Type>;
 
 // DMax
-//   struct: the maximum monoid over Type -- combine keeps the larger,
+//   struct: the maximum monoid over Type - combine keeps the larger,
 // identity is the smallest representable Type. Intended for numeric
 // Type (the identity is std::numeric_limits<Type>::lowest()).
 template<typename Type>
@@ -252,7 +252,7 @@ using max = DMax<Type>;
 //   trait: primary template, undefined by default. Each concrete monoid
 // specializes monoid_traits<T> to expose:
 //
-//     - empty()        : static T empty() -- the identity element
+//     - empty()        : static T empty() - the identity element
 //     - is_specialized = true_type (marker)
 //
 //   A monoid is also a semigroup: its combine comes from semigroup_traits<T>
@@ -329,7 +329,7 @@ static constexpr bool is_monoid_v = is_monoid<Type>::value;
 // monoid_traits (identity). All are written in the explicit two-argument
 // `<T, void>` specialization form against the SFINAE-hooked primaries.
 
-// -- std::string : concatenation --------------------------------------------
+// - std::string : concatenation --------------------------------------------
 
 // semigroup_traits<std::string>
 //   instance: string concatenation is associative.
@@ -363,7 +363,7 @@ struct monoid_traits<std::string, void>
 };
 
 
-// -- std::vector<T> : concatenation -----------------------------------------
+// - std::vector<T> : concatenation -----------------------------------------
 
 // semigroup_traits<std::vector<Type>>
 //   instance: vector concatenation is associative.
@@ -403,7 +403,7 @@ struct monoid_traits<std::vector<Type>, void>
 };
 
 
-// -- sum<T> : addition ---------------------------------------------
+// - sum<T> : addition ---------------------------------------------
 
 template<typename Type>
 struct semigroup_traits<DSum<Type>, void>
@@ -433,7 +433,7 @@ struct monoid_traits<DSum<Type>, void>
 };
 
 
-// -- product<T> : multiplication -----------------------------------
+// - product<T> : multiplication -----------------------------------
 
 template<typename Type>
 struct semigroup_traits<DProduct<Type>, void>
@@ -463,7 +463,7 @@ struct monoid_traits<DProduct<Type>, void>
 };
 
 
-// -- all : logical AND ---------------------------------------------
+// - all : logical AND ---------------------------------------------
 
 template<>
 struct semigroup_traits<DAll, void>
@@ -493,7 +493,7 @@ struct monoid_traits<DAll, void>
 };
 
 
-// -- any : logical OR ----------------------------------------------
+// - any : logical OR ----------------------------------------------
 
 template<>
 struct semigroup_traits<DAny, void>
@@ -523,7 +523,7 @@ struct monoid_traits<DAny, void>
 };
 
 
-// -- min<T> : minimum ----------------------------------------------
+// - min<T> : minimum ----------------------------------------------
 
 template<typename Type>
 struct semigroup_traits<DMin<Type>, void>
@@ -553,7 +553,7 @@ struct monoid_traits<DMin<Type>, void>
 };
 
 
-// -- max<T> : maximum ----------------------------------------------
+// - max<T> : maximum ----------------------------------------------
 
 template<typename Type>
 struct semigroup_traits<DMax<Type>, void>
@@ -610,7 +610,7 @@ Monoid mempty()
 NS_INTERNAL
 
     // DMonoidMappendHelper
-    //   helper: the reducer behind mconcat / fold_monoid -- combines the
+    //   helper: the reducer behind mconcat / fold_monoid - combines the
     // running accumulator with the next monoid value via mappend, threading
     // the accumulator by value. A named functor keeps it usable on every
     // floor and lets the trailing return types name it.
@@ -632,7 +632,7 @@ NS_END  // internal
 
 // mconcat
 //   function: combines every element of a Foldable whose elements are
-// themselves a monoid, into a single value -- folding from mempty with
+// themselves a monoid, into a single value - folding from mempty with
 // mappend. The empty foldable yields mempty.
 //
 //   Example: mconcat(vector<sum<int>>{1,2,3}).value -> 6
@@ -655,7 +655,7 @@ foldable_value_type_t<Foldable> mconcat(
 // fold_monoid
 //   function: maps each element of a Foldable into a monoid via _function,
 // then combines them (mconcat after a map). The monoid is deduced from the
-// result of _function, so -- unlike fold_map -- no identity or combine need be
+// result of _function, so - unlike fold_map - no identity or combine need be
 // supplied: they come from the monoid protocol.
 //
 //   Example: fold_monoid(just(5), [](int x){ return sum<int>(x); })

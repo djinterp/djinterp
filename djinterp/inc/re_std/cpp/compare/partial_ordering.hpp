@@ -70,8 +70,8 @@ namespace internal
 {
 
     // partial_ordering_values
-    //   struct: the values of partial_ordering -- less, equivalent, greater and
-    // unordered -- for C++11 and C++14, as static data members of a class
+    //   struct: the values of partial_ordering - less, equivalent, greater and
+    // unordered - for C++11 and C++14, as static data members of a class
     // template that partial_ordering inherits from. partial_ordering's own
     // static members need out-of-class definitions, which a header can only
     // give as inline variables, a C++17 feature; a class template's static

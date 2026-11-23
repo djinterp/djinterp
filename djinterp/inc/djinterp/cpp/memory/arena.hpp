@@ -4,8 +4,8 @@
 * C++ face of the monotonic bump arena.
 *   `DArena` DERIVES from dj_arena and adds no data members, so it IS one: it
 * may be passed to any C entry point, its layout is the C layout, and its size
-* is asserted equal below. What it adds is lifetime -- construction initializes,
-* destruction releases -- and the two ergonomics that a C caller has to write
+* is asserted equal below. What it adds is lifetime - construction initializes,
+* destruction releases - and the two ergonomics that a C caller has to write
 * by hand every time: a scope guard over mark/rewind, and typed allocation.
 *
 *   NOTHING HERE REIMPLEMENTS THE ALGORITHM. Every member forwards to arena.c.
@@ -78,7 +78,7 @@ NS_DJINTERP
 // DArena
 //   class: a monotonic bump allocator. Derives from dj_arena and adds no
 // state; every operation forwards to the C kernel.
-//   NOT THREAD-SAFE, exactly as the kernel is not -- the wrapper does not
+//   NOT THREAD-SAFE, exactly as the kernel is not - the wrapper does not
 // silently add a lock, because a caller who needs one should be able to see
 // where it is.
 class DArena : public ::dj_arena
@@ -89,7 +89,7 @@ public:
 
     // arena (default)
     //   constructor: an arena over the configured default source. Obtains no
-    // memory -- the first region is taken on the first allocation.
+    // memory - the first region is taken on the first allocation.
     D_INLINE
     DArena()
     {
@@ -141,7 +141,7 @@ public:
 
     // ~arena
     //   destructor: returns every region to the source. Runs NO destructors
-    // on anything allocated from the arena -- the kernel deals in raw
+    // on anything allocated from the arena - the kernel deals in raw
     // storage, and so does this.
     D_INLINE
     ~DArena()
@@ -159,7 +159,7 @@ public:
     // arena (move)
     //   constructor: takes over another arena's regions, leaving it empty but
     // usable. A byte-wise steal, which is correct because the kernel struct
-    // holds no self-pointers -- its regions point at each other, never back
+    // holds no self-pointers - its regions point at each other, never back
     // at the arena.
     D_INLINE
     DArena(
@@ -215,7 +215,7 @@ public:
 
     // allocate_object
     //   operation: raw storage for one Type, correctly sized and aligned.
-    // NO CONSTRUCTOR RUNS -- use create for that.
+    // NO CONSTRUCTOR RUNS - use create for that.
     template<typename Type>
     D_INLINE
     Type* allocate_object()
@@ -391,7 +391,7 @@ public:
 
 #if (D_INTERNAL_ARENA_OWNS == 1)
     // owns
-    //   query: whether a pointer came from this arena. O(regions) -- a
+    //   query: whether a pointer came from this arena. O(regions) - a
     // diagnostic, not something a hot path should call.
     D_INLINE
     bool owns(

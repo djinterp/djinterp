@@ -177,7 +177,7 @@ NS_INTERNAL
     {};
 
     // decode_has_push_back specialization
-    //   helper: the detected case -- selected when the type exposes the member
+    //   helper: the detected case - selected when the type exposes the member
     // function `push_back()`.
     template<typename Container>
     struct decode_has_push_back<Container,
@@ -196,7 +196,7 @@ NS_INTERNAL
     {};
 
     // decode_has_reserve specialization
-    //   helper: the detected case -- selected when the type exposes the member
+    //   helper: the detected case - selected when the type exposes the member
     // function `reserve()`.
     template<typename Container>
     struct decode_has_reserve<Container,

@@ -3,16 +3,16 @@
 *
 * A program's commands that live in modules of their own, declared in
 * cli_plugin.h.
-*   Finding a module is string work over three kinds of directory -- those a
+*   Finding a module is string work over three kinds of directory - those a
 * run names, those the program's `plugin_path` setting lists (read from
 * PROGRAM_PLUGIN_PATH), and `cli.plugin_search`'s, the build's by default,
 * written out from their `$ORIGIN` and `$PROGRAM` (cli_settings.h); loading
 * one is cli_system.c's, and checking it is reading its record, against the
 * version the program takes, its own unless it was told to take any with a
 * warning, by its code or by `cli.plugin_strict_version`. The host's
-* command takes everything after its name as the parser leaves it -- a prefix
+* command takes everything after its name as the parser leaves it - a prefix
 * command with no options of its own, its help flag removed and the root's
-* options not falling through -- so the module reads every argument itself,
+* options not falling through - so the module reads every argument itself,
 * `--help` among them. `--version --verbose` says where each would be loaded
 * from, found as a run finds it, and a module's program names the host's file
 * and its own.
@@ -74,7 +74,7 @@ int d_cli_executable_path(
 //==============================================================================
 
 /**
- * @brief Where the directory part of a path ends: its last `/` -- or, on
+ * @brief Where the directory part of a path ends: its last `/` - or, on
  *        Windows, its last `\\`, whichever is later.
  *
  * @param[in] _path  the path.
@@ -103,8 +103,8 @@ const char* d_cli_internal_directory_end(
 
 /**
  * @brief How much of a path names its directory: up to its last separator,
- *        and through it where the directory is a root -- `/`, or `C:\\` on
- *        Windows -- which without it would be another directory or none.
+ *        and through it where the directory is a root - `/`, or `C:\\` on
+ *        Windows - which without it would be another directory or none.
  *
  * @param[in] _path  the path.
  * @return the directory's length; 0 when the path names none.
@@ -133,7 +133,7 @@ size_t d_cli_internal_directory_length(
 
 /**
  * @brief Appends a name in a directory to a path: the directory, the
- *        platform's separator -- `\\` on Windows, `/` elsewhere -- unless it
+ *        platform's separator - `\\` on Windows, `/` elsewhere - unless it
  *        ends in a separator already, and the name.
  *
  * @param[in,out] _path       the path.
@@ -184,7 +184,7 @@ int d_cli_internal_join(
  * @param[in,out] _found      receives the path when the file is there.
  * @return D_ARG_OK when found; D_ARG_ERROR_FILE when not;
  *         D_ARG_ERROR_OUT_OF_MEMORY when there was no memory to look, or
- *         for the buffers to grow -- never a module not installed for want
+ *         for the buffers to grow - never a module not installed for want
  *         of memory (GRAMMAR.md, section 8).
  */
 static
@@ -235,7 +235,7 @@ int d_cli_internal_try_file(
 
 /**
  * @brief Tries one directory: appends it to the searched list, and the
- *        module's path to `_found` when the directory holds it -- by the
+ *        module's path to `_found` when the directory holds it - by the
  *        tagged name first, where there is one, then the plain name.
  *
  * @param[in]     _directory  the directory.
@@ -298,7 +298,7 @@ int d_cli_internal_try_directory(
  * @brief The module's file names: `PROGRAM-NAME` with the program's tag and
  *        the platform's suffix, and without the tag.
  *
- * @note A program's file may carry a tag after the program's name -- a
+ * @note A program's file may carry a tag after the program's name - a
  *       build's bin/ directory names bitwisedom `bitwisedom-linux64` and
  *       `bitwisedom-win64.exe`, so every platform's builds can share it --
  *       and its modules carry the same tag: `bitwisedom-gui-linux64.so`. The
@@ -530,8 +530,8 @@ bool d_cli_internal_is_separator(
  * @brief Writes one directory of the build's list out: `$ORIGIN` as the
  *        directory of the program's file, `$PROGRAM` as the program's name,
  *        and on Windows each `/` as `\\`, the separator its loader asks
- *        for. A separator after `$ORIGIN` that names a root -- `/`, `C:\\`
- *        -- is the root's own.
+ *        for. A separator after `$ORIGIN` that names a root - `/`, `C:\\`
+ *        - is the root's own.
  *
  * @param[in]     _entry       the directory as the list writes it.
  * @param[in]     _length      its length.
@@ -613,8 +613,8 @@ int d_cli_internal_expand(
 }
 
 /**
- * @brief Tries each directory of `cli.plugin_search` -- the build's list,
- *        D_CFG_CLI_PLUGIN_SEARCH, unless the run set another -- written
+ * @brief Tries each directory of `cli.plugin_search` - the build's list,
+ *        D_CFG_CLI_PLUGIN_SEARCH, unless the run set another - written
  *        out, until one holds the module; one that needs the program's
  *        directory, unknown, is passed over.
  *
@@ -686,7 +686,7 @@ int d_cli_internal_try_search(
  * @param[in,out] _found     receives the path when found.
  * @param[in,out] _searched  the directories searched; may be NULL.
  * @return as d_cli_internal_try_list; D_ARG_ERROR_OUT_OF_MEMORY when there
- *         was no room to name or read the variable -- never a variable
+ *         was no room to name or read the variable - never a variable
  *         unset.
  */
 static
@@ -1716,7 +1716,7 @@ int d_cli_internal_plugin_command(
 /*
 d_cli_program_add_plugin
   A command whose arguments are all the module's: no options of its own --
-its help flag removed -- none falling through from the root, and parsing
+its help flag removed - none falling through from the root, and parsing
 stopping at the first argument, which is kept with the rest.
 */
 struct dj_arg_command* d_cli_program_add_plugin(

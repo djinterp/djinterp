@@ -22,7 +22,7 @@
 NS_DJINTERP
 NS_TESTING
 
-// net/client.hpp tests -- each returns true when every check held
+// net/client.hpp tests - each returns true when every check held
 bool tests_client_retryable();
 bool tests_client_retry();
 bool tests_client_facade();

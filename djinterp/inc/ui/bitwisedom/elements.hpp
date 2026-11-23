@@ -5,7 +5,7 @@
 * code view, the docking, and three small controls.
 *   Each is an element type of its own, with an archetype no backend knows,
 * so its look comes from the renderer register_renderers() installs with
-* set_renderer<imgui_platform> -- uxoxo's way of letting an application
+* set_renderer<imgui_platform> - uxoxo's way of letting an application
 * draw what the framework has no vocabulary for. The renderers find the
 * document they draw by its id, as each frame is drawn, and post events
 * like any element: they never change a sheet themselves.
@@ -17,14 +17,14 @@
 *   The controls: the "+" that adds, with its faded "Add new..." beside it;
 * the "Add child..." field at the end of a group's or a range's rows in the
 * tree, whose text is its own until Enter posts it; and the rest of the menu
-* bar after its menus -- the items that follow them, after an indent, and
+* bar after its menus - the items that follow them, after an indent, and
 * the menus that sit at the bar's right end, which the items before them
 * are cut short of.
 *
 * HOW TO USE
 * ----------
-*   Each function gives an element template -- bit_grid(), flow_view(),
-* code_view(), definition_view(), dock_space() and the small controls -- to
+*   Each function gives an element template - bit_grid(), flow_view(),
+* code_view(), definition_view(), dock_space() and the small controls - to
 * place in a view, its attributes as an option set (attrs.hpp); the ImGui
 * renderers registered for their archetypes draw them.
 *
@@ -64,7 +64,7 @@ namespace gui
 {
 
 // ADD_NEW_LABEL / ADD_NEW_GAP / ADD_NEW_FADE
-//   constants: what the add buttons -- the tree's, and the grid's add row --
+//   constants: what the add buttons - the tree's, and the grid's add row --
 // say beside their "+"; the gap between the two, at a scale of one; and how
 // opaque the words are until the mouse is on them: slightly faded.
 const char* const ADD_NEW_LABEL = "Add new...";
@@ -83,7 +83,7 @@ using element_list = std::vector<uxoxo::element_template>;
 //   type: a container's children, realized, as its renderer receives them.
 using blueprint_list = std::vector<uxoxo::platform::imgui_blueprint>;
 
-// the elements -- templates whose look the registered renderers supply;
+// the elements - templates whose look the registered renderers supply;
 // each draws the document its "document" attribute names by id, or the
 // one in front for none
 uxoxo::element_template  bit_grid(uxoxo::option_set _attrs = {});
@@ -91,13 +91,13 @@ uxoxo::element_template  flow_view(uxoxo::option_set _attrs = {});
 uxoxo::element_template  code_view(uxoxo::option_set _attrs = {});
 uxoxo::element_template  definition_view(uxoxo::option_set _attrs = {});
 
-// the docking -- a workspace's dock space: its "id", its default "layout"
+// the docking - a workspace's dock space: its "id", its default "layout"
 // (a line per window, "name<TAB>place"), a "reset" of it, and an "arrange"
 // of its "documents" (a line per window's name), for one frame each; and a
 // window that docks in it, by its "key", with its "title", over _items:
 // "dockspace", "dock_with", "place", "focus", "zoom", "zoom_action",
 // "close_action", "focus_action" and "value", "document", "unsaved",
-// "scroll", "flush", and -- for a window of its own, which does not dock --
+// "scroll", "flush", and - for a window of its own, which does not dock --
 // "dockable" false, "width" and "height"
 uxoxo::element_template  dock_space(uxoxo::option_set _attrs = {});
 uxoxo::element_template  dock_window(const std::string& _key,
@@ -105,7 +105,7 @@ uxoxo::element_template  dock_window(const std::string& _key,
                                      element_list       _items,
                                      uxoxo::option_set  _attrs = {});
 
-// the controls -- an add button, posting "action" (by default
+// the controls - an add button, posting "action" (by default
 // "context.add") from its "+" or its label; a field that adds a child to
 // the row _parent names, posting "tree.add_child" with the text typed;
 // and the menu bar's rest: _leading after an "indent", cut short of
@@ -117,18 +117,18 @@ uxoxo::element_template  menu_bar_rest(element_list      _leading,
                                        element_list      _trailing,
                                        uxoxo::option_set _attrs = {});
 
-// the status bar -- along the window's foot: "left", what the sheet in
+// the status bar - along the window's foot: "left", what the sheet in
 // front is, and at the right end "right", what the window last said --
-// "error" when it went wrong -- after a "*" while the sheet has changes
+// "error" when it went wrong - after a "*" while the sheet has changes
 // ("dirty"); a click on it posts "action" with "value"
 uxoxo::element_template  status_bar(uxoxo::option_set _attrs = {});
 
-// the console's list -- every action so far, the latest first, read as
+// the console's list - every action so far, the latest first, read as
 // each frame is drawn: a table that draws only the lines in view, however
 // many there are
 uxoxo::element_template  action_list(uxoxo::option_set _attrs = {});
 
-// the add control -- the one way a panel offers to add a row, as the user
+// the add control - the one way a panel offers to add a row, as the user
 // prefers it: a "+ Add" button opening the menu of what to add ("style"
 // "menu"), or a split button whose face adds the kind it shows and whose
 // arrow chooses another ("split", with "kind" the place among ADD_KINDS).
@@ -138,8 +138,8 @@ uxoxo::element_template  action_list(uxoxo::option_set _attrs = {});
 uxoxo::element_template  add_control(uxoxo::option_set _attrs = {});
 
 // document_source
-//   type: how a renderer finds the document it draws, by its id -- 0 for
-// the one in front -- as each frame is drawn: nullptr for a document closed
+//   type: how a renderer finds the document it draws, by its id - 0 for
+// the one in front - as each frame is drawn: nullptr for a document closed
 // since its interface was built.
 using document_source = std::function<model*(int)>;
 
@@ -163,7 +163,7 @@ void register_renderers(
 
 /**
  * @brief Whether a dock window drew its content in this frame or the last:
- *        whether it is in view -- a window docked behind another's tab is
+ *        whether it is in view - a window docked behind another's tab is
  *        not.
  *
  * @param[in] _key  the dock window's key.
@@ -176,15 +176,15 @@ bool window_seen(
 /**
  * @brief Whether a sheet's grid has the keyboard this frame.
  *
- * While it does, the grid takes the keys of a spreadsheet's cursor -- the
- * arrows, Page Up and Down, Home and End, Enter, Tab, F2 -- and the
+ * While it does, the grid takes the keys of a spreadsheet's cursor - the
+ * arrows, Page Up and Down, Home and End, Enter, Tab, F2 - and the
  * window's own shortcuts leave them to it.
  *
  * @return true if a grid drawn this frame had the keyboard.
  */
 bool grid_keyboard();
 
-// the drawings -- called by the renderers inside a frame
+// the drawings - called by the renderers inside a frame
 void draw_grid(
     model&                        _model,
     uxoxo::platform::imgui_frame& _frame
@@ -236,16 +236,16 @@ struct grid_point
  * @brief Where the last frame drew a part of the grid, on the screen: for
  *        a test that drives the grid with the mouse.
  *
- * @param[in] _part  "name" or "cell" -- a row's name, or its cell for a
- *                   bit; "band" or "boundary" -- the heading's band over
+ * @param[in] _part  "name" or "cell" - a row's name, or its cell for a
+ *                   bit; "band" or "boundary" - the heading's band over
  *                   a bit, or the ruler's boundary right of it;
- *                   "edge.name" or "edge.value" -- a pinned column's edge;
- *                   "end" or "room" -- where the columns end, and the
+ *                   "edge.name" or "edge.value" - a pinned column's edge;
+ *                   "end" or "room" - where the columns end, and the
  *                   right edge of the width they were laid out to fill;
- *                   "add" -- the add row's "Add new..."; "heading" --
+ *                   "add" - the add row's "Add new..."; "heading" --
  *                   the name column's heading, under its buttons; or
  *                   "names_by.symbol", "names_by.name" or
- *                   "names_by.value" -- a button over the symbols column,
+ *                   "names_by.value" - a button over the symbols column,
  *                   found only while the column has room for them.
  * @param[in] _row   the row's id, for "name" and "cell".
  * @param[in] _bit   the bit, for "cell", "band" and "boundary".
@@ -258,7 +258,7 @@ grid_point grid_spot(
 );
 
 // grid_spot
-//   the same, in the grid of the document named by its id -- for a test
+//   the same, in the grid of the document named by its id - for a test
 // with more than one grid in view; the one above reads the grid drawn
 // last.
 grid_point grid_spot(
@@ -272,7 +272,7 @@ grid_point grid_spot(
  * @brief Where the last frame drew a part of a control, on the screen: for
  *        a test that drives it with the mouse.
  *
- * @param[in] _key  an add control's key: its button -- "+ Add", or a split
+ * @param[in] _key  an add control's key: its button - "+ Add", or a split
  *                  button's face; with ".more", a split button's arrow;
  *                  with ".kind.N", the Nth kind its menu lists, among
  *                  ADD_KINDS; with ".colours", its menu's New rows' colour,
@@ -284,7 +284,7 @@ grid_point control_spot(
     const std::string& _key
 );
 
-// ... and an "Add child..." row's, by where it is -- "tree" or "grid":
+// ... and an "Add child..." row's, by where it is - "tree" or "grid":
 // "add_child.WHERE.plus", its +; ".field", its field; ".end", where the
 // field ends
 
@@ -307,8 +307,8 @@ struct grid_text
  *        that reads the grid as a user would.
  *
  * @param[in] _row  the row's id.
- * @return the name column's text -- a name, or a value in the form the
- *         sheet lists values in -- where it ended, and what a row with no
+ * @return the name column's text - a name, or a value in the form the
+ *         sheet lists values in - where it ended, and what a row with no
  *         bits wrote over its cells; not found for a row not drawn.
  */
 grid_text grid_written(
@@ -323,8 +323,8 @@ grid_text grid_written(
  * @brief What the last frame wrote for a probe or usage row.
  *
  * @param[in] _special  its id among the special rows.
- * @return its name, in label -- "probe", "allocated", or "allocated in"
- *         its group -- and its value, in note: the probe's, or "N of W",
+ * @return its name, in label - "probe", "allocated", or "allocated in"
+ *         its group - and its value, in note: the probe's, or "N of W",
  *         the bits it counts allocated; not found for a row not drawn.
  */
 grid_text grid_special(
@@ -334,7 +334,7 @@ grid_text grid_special(
 // grid_columns_seen
 //   struct: where a document's grid put its columns across the screen in
 // the last frame it was drawn: the symbols column, the value column and
-// the bits' cells -- as far as the grid shows them -- each from and to; a
+// the bits' cells - as far as the grid shows them - each from and to; a
 // column hidden is as wide as nothing.
 struct grid_columns_seen
 {

@@ -5,7 +5,7 @@
 * function in c/modules/db/sqlite/sqlite_*.h and c/modules/db/db_common.h, its
 * success paths, its documented failures and its argument checks, against
 * whatever SQLite it is linked with. Where the answer depends on the library --
-* a feature 3.25.0 added, a refusal before 3.15.0 -- the check asks the
+* a feature 3.25.0 added, a refusal before 3.15.0 - the check asks the
 * library's version and expects the matching answer, so one suite passes on
 * every release from the floor, 3.7.17, onward.
 *   Each d_sqlite_supports answer is also checked against the library itself,
@@ -801,7 +801,7 @@ d_tests_sqlite_real_conversions
   d_db_value_double, on values made by hand.
   Tests the following:
   - a REAL, NaN and the infinities included
-  - an INTEGER a double holds exactly -- 2^53, -2^63 -- and not one it does
+  - an INTEGER a double holds exactly - 2^53, -2^63 - and not one it does
     not: 2^53 + 1, 2^63 - 1
   - text that is a number, with a fraction, an exponent or neither; text
     of any other shape, a NUL inside included, is not

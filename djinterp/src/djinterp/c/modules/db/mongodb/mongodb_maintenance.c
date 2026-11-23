@@ -7,8 +7,8 @@
 * answer with zeros or with a code that differs by release; and each runs
 * outside any transaction, which holds none of them.
 *   A collection's size is its documents' storage and its indexes', summed
-* over what $collStats returns -- one document for each shard of a sharded
-* collection -- which is 4.4's totalSize, on servers before it too. Every
+* over what $collStats returns - one document for each shard of a sharded
+* collection - which is 4.4's totalSize, on servers before it too. Every
 * release's compact refuses a replica set's primary without force (17
 * before 7.0, 20 from it), which the layer sends to every server, as the
 * call asks for the compaction and a standalone or a secondary takes it

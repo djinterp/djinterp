@@ -47,7 +47,7 @@
 #include <string>
 #include <type_traits>
 // djinterp
-// -- (part 1) mode-gated includes ------------------------------------------
+// - (part 1) mode-gated includes ------------------------------------------
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
 #include "../../../../../../inc/djinterp/cpp/modules/test/sync/test_threadsafe.hpp"                    // THE UMBRELLA - and nothing else
@@ -106,7 +106,7 @@ struct DHuPlain
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- (part 2) declarations - visible in BOTH modes -------------------------
+// - (part 2) declarations - visible in BOTH modes -------------------------
 
 // I.   REACHABILITY                    (test_threadsafe_tests_reachability.cpp)
 bool tests_ureach_thread_module();
@@ -158,7 +158,7 @@ bool tests_uintegration_stress_over_concurrent();
 bool tests_uintegration_race_over_concurrent();
 
 
-// -- (part 3) the spec provider - spec mode only ---------------------------
+// - (part 3) the spec provider - spec mode only ---------------------------
 #ifdef DTEST_SPEC_MODE
 inline
 dt::module_spec threadsafe_spec()

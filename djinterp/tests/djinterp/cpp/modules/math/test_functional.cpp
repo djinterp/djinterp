@@ -7,7 +7,7 @@
 * author(s): TBA                                                    created: TBA
 *                                                            revised: 2026.09.21
 *******************************************************************************/
-// test_functional.cpp -- verifies the math <-> functional wiring.
+// test_functional.cpp - verifies the math <-> functional wiring.
 //
 // The real djinterp functional subframework can't be compiled here (it assumes
 // a nested include tree and the full env). So we take ONLY the std-only adapter
@@ -28,7 +28,7 @@ using namespace djinterp::math;
 namespace mf = djinterp::math::functional;
 
 // ---------------------------------------------------------------------------
-// Local stand-ins for djinterp::functional (sandbox only) -- documented behaviour
+// Local stand-ins for djinterp::functional (sandbox only) - documented behaviour
 // ---------------------------------------------------------------------------
 template<typename _F, typename _G>
 struct composed                       // compose(f, g): math order f(g(x))
@@ -79,7 +79,7 @@ int main()
 
     // ---- 3. adapters expose CONCRETE (introspectable) signatures -----------
     // Taking a member-function pointer of a fixed type only compiles when the
-    // adapter's operator() is non-template -- which is the whole point, since
+    // adapter's operator() is non-template - which is the whole point, since
     // the raw expression's operator() is a template and is NOT introspectable.
     using au_t = mf::unary_adapter<decltype(sq)>;
     using ab_t = mf::binary_adapter<decltype(plane)>;

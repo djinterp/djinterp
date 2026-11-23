@@ -1,11 +1,11 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                          cfg_file_pipe.h
 *
-* Build-time configuration for c/filesys/file_pipe.h -- process pipes.
+* Build-time configuration for c/filesys/file_pipe.h - process pipes.
 *
 *   d_pipe_open runs a command through a SHELL. Every use of it with a string
 * that contains anything a user influenced is a command-injection bug. There is
-* no knob here that fixes that, because the fix is not to call it -- it is to
+* no knob here that fixes that, because the fix is not to call it - it is to
 * use posix_spawn / CreateProcess with an argument vector, which this module
 * does not offer and which is a different module's job.
 *
@@ -64,7 +64,7 @@ TABLE OF CONTENTS
 // deliberate. A pipe usually carries a child process's TEXT output, and on
 // Windows that output has "\r\n" line endings; text mode turns them back into
 // "\n" so fgets and friends behave as they do on POSIX. Turn it on when the
-// child emits binary -- a compressed stream, an image -- where translating
+// child emits binary - a compressed stream, an image - where translating
 // 0x0D 0x0A into 0x0A is data corruption. A 'b' or a 't' in the mode the
 // caller passes is that call's choice, and wins.
 //   No effect on POSIX.

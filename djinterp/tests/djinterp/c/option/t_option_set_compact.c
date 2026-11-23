@@ -273,7 +273,7 @@ d_tests_option_set_compaction
   - compaction gives back exactly the bytes removal left, keeps every value
     and the cells' order, and reports how many bytes it gave back
   - a full value block takes a new cell after compaction
-  - offsets out of order -- after canon -- compact as well, and so does a
+  - offsets out of order - after canon - compact as well, and so does a
     set with nothing to give back, or nothing in it, and a unary cell
 */
 static void

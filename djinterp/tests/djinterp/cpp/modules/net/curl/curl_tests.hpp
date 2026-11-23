@@ -22,7 +22,7 @@
 NS_DJINTERP
 NS_TESTING
 
-// net/curl/curl.hpp tests -- each returns true when every check held
+// net/curl/curl.hpp tests - each returns true when every check held
 bool tests_curl_library();
 bool tests_curl_perform();
 bool tests_curl_stream();

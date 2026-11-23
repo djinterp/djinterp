@@ -2,8 +2,8 @@
 * djinterp [re_std]                                             system_clock.hpp
 *
 * the system_clock class:
-*   The wall clock. Its epoch is the Unix epoch -- 1970-01-01 00:00:00
-* UTC -- which C++20 finally made a requirement and which every known
+*   The wall clock. Its epoch is the Unix epoch - 1970-01-01 00:00:00
+* UTC - which C++20 finally made a requirement and which every known
 * implementation had already adopted. re_std guarantees it at every tier,
 * so to_time_t and from_time_t are exact on both sides.
 *
@@ -11,7 +11,7 @@
 *   NTP corrections, manual clock changes and daylight-saving transitions
 * all move it, backwards included. Two successive now() calls can
 * therefore return a DECREASING pair, which makes this the wrong clock
-* for measuring how long something took -- a negative elapsed time is a
+* for measuring how long something took - a negative elapsed time is a
 * real outcome, not a hypothetical one. Use steady_clock for intervals
 * and this clock only for time of day.
 *
@@ -20,19 +20,19 @@
 * current time exists outside the program. Three tiers are tried, best
 * first, and each is a compile-time choice with no run-time dispatch:
 *
-*     1. POSIX clock_gettime(CLOCK_REALTIME)  -- nanosecond source
-*     2. C++17 std::timespec_get(TIME_UTC)    -- standard, nanosecond API
-*     3. std::time()                          -- ONE SECOND resolution
+*     1. POSIX clock_gettime(CLOCK_REALTIME)  - nanosecond source
+*     2. C++17 std::timespec_get(TIME_UTC)    - standard, nanosecond API
+*     3. std::time()                          - ONE SECOND resolution
 *
 *   Tier 3 is the honest floor. On a pre-C++17 non-POSIX platform there
 * is no portable sub-second source, so now() returns whole seconds. It is
-* still a correct system_clock -- just a coarse one. RE_STD_CLOCK_SOURCE
+* still a correct system_clock - just a coarse one. RE_STD_CLOCK_SOURCE
 * reports which tier compiled in, so a program that needs better can
 * detect the situation rather than discover it in its measurements.
 *
 *   Windows is where tier 3 bites: QueryPerformanceCounter and
 * GetSystemTimeAsFileTime would both do better, and neither can be
-* reached without including <windows.h> -- a header re_std will not pull
+* reached without including <windows.h> - a header re_std will not pull
 * into every translation unit that wants a duration. On C++17 and later
 * MSVC reaches tier 2, which is fine.
 *
@@ -106,7 +106,7 @@
 #endif
 
 // The macro above is user-overridable, which means it can be set to a
-// tier the translation unit cannot actually support -- forcing 2 on
+// tier the translation unit cannot actually support - forcing 2 on
 // C++11, where std::timespec and std::timespec_get do not exist, or
 // forcing 3 where clock_gettime is not declared. Rather than let that
 // become a compile error inside now(), an unsupportable choice is
@@ -134,7 +134,7 @@ namespace chrono
 
     // system_clock
     //   class: the wall clock, counting microseconds from the Unix epoch.
-    // Not steady -- see the header comment.
+    // Not steady - see the header comment.
     class system_clock
     {
     public:
@@ -152,7 +152,7 @@ namespace chrono
 
         // now
         //   function: the current wall-clock time. Resolution depends on
-        // which source compiled in -- see RE_STD_CLOCK_SOURCE.
+        // which source compiled in - see RE_STD_CLOCK_SOURCE.
         static time_point now() RE_STD_NOEXCEPT
         {
 #if RE_STD_CLOCK_SOURCE == 3

@@ -2,7 +2,7 @@
 * djinterp [c][utility]                                                ostream.h
 *
 *   An output stream: one destination protocol for everything in the framework
-* that produces bytes -- a string, a file, the console, a place in a document,
+* that produces bytes - a string, a file, the console, a place in a document,
 * or several of those at once.
 * Compiled by BOTH C and C++.
 *
@@ -28,16 +28,16 @@
 * back to a sink (d_ostream_as_sink) for the producers that take only that.
 *
 *   THE TABLE ANSWERS d_pdf_backend's THREE QUESTIONS, THE SAME WAY.
-*     WHO OWNS THE CONTEXT -- the caller, unless the stream was initialised
+*     WHO OWNS THE CONTEXT - the caller, unless the stream was initialised
 *   with D_OSTREAM_OWNS_CONTEXT; then d_ostream_close asks the close slot to
 *   release it. A stream told to own a context it has no slot to release is
 *   refused, and a refused stream owns nothing.
-*     WHAT A NULL SLOT MEANS -- the operation does not apply, never a crash.
+*     WHAT A NULL SLOT MEANS - the operation does not apply, never a crash.
 *   For flush and close that is not a failure: a destination without them
 *   holds nothing back and has nothing to finish. For query it is reported,
 *   with every capability read as 0, the safe answer. A null grow makes the
 *   destination a transport.
-*     WHETHER THE TABLE IS VERSIONED -- yes, by a leading `size`, checked and
+*     WHETHER THE TABLE IS VERSIONED - yes, by a leading `size`, checked and
 *   never trusted: a table smaller than its first version is refused, and a
 *   slot added later is read only from a table large enough to hold it.
 *   Unlike d_pdf_backend, the table carries no context: one static const
@@ -173,7 +173,7 @@ enum dj_ostream_status
 // 1.1.4
 // D_OSTREAM_BINARY
 //   constant: flag: the bytes are binary. A destination that could translate
-// them -- a console in text mode -- delivers them unaltered or refuses.
+// them - a console in text mode - delivers them unaltered or refuses.
 #define D_OSTREAM_BINARY         0x0004
 
 // 1.2    The destination's operations
@@ -273,7 +273,7 @@ struct dj_ostream_cursor
 
 // 1.4.2
 // dj_ostream_fixed
-//   struct: the state of a stream over a caller's array -- snprintf's
+//   struct: the state of a stream over a caller's array - snprintf's
 // contract: what fits is stored, the rest is counted, and d_ostream_written
 // gives the length the whole output needs. With no array it only counts,
 // which is the measure pass. The caller owns it; it must outlive the stream.
@@ -411,10 +411,10 @@ int32_t d_ostream_close(struct dj_ostream* _os);
 //   Called by the inline functions when the window cannot take a write, and
 // directly by anyone who wants a write that skips the window test. A
 // zero-length write touches nothing and returns whether the stream can be
-// written -- the readiness check; a write to a closed stream records
+// written - the readiness check; a write to a closed stream records
 // D_OSTREAM_CLOSED. The one-character forms take the character by value, so
 // the inline path never has to store it to memory for the slow path's sake
-// -- a store that, in a loop, costs as much as the write itself.
+// - a store that, in a loop, costs as much as the write itself.
 /**
  * @brief Writes bytes the window could not take.
  *
@@ -594,7 +594,7 @@ int32_t d_ostream_fill(struct dj_ostream* _os,
 
 // 3.3    Writing in place
 //------------------------------------------------------------------------------
-//   A producer that formats -- digits, a date, an escape -- asks for room,
+//   A producer that formats - digits, a date, an escape - asks for room,
 // writes into it, and commits what it used, so its bytes are written once,
 // in place: .NET's GetSpan and Advance, Go's AvailableBuffer.
 /**
@@ -657,8 +657,8 @@ d_ostream_commit(
 // all the compiler knows, be a byte of the stream itself; a cursor's two
 // pointers are a local value whose address is never taken, so they stay in
 // registers and the run costs what writing to a char array costs. The
-// cursor is passed and returned by value -- two pointers, returned in
-// registers on the common ABIs -- for the same reason.
+// cursor is passed and returned by value - two pointers, returned in
+// registers on the common ABIs - for the same reason.
 //
 //   Take it, write through it, give it back; touch the stream through nothing
 // else in between. A line-buffered stream lends its whole buffer to a cursor
@@ -834,8 +834,8 @@ int32_t d_ostream_write_hex(struct dj_ostream* _os,
                             int32_t            _digits);
 
 // 64-bit floor: these two need a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
-// on a 32-bit target -- they are absent (the owner's ruling of 2026.10.03 on
+// declares only where the build can spell one. Below it - ISO strict C++98
+// on a 32-bit target - they are absent (the owner's ruling of 2026.10.03 on
 // round 3's question 1, (a)); every C build has them.
 #if defined(INT64_MAX)
 /**
@@ -887,7 +887,7 @@ int32_t d_ostream_fail(struct dj_ostream* _os,
 //   None of these touches the destination; all take a null stream: the first
 // failure (an enum dj_ostream_status; INVALID for null), the errno recorded
 // with it (0 when the destination did not say), and whether the stream can
-// be written -- made, healthy and open -- as 1 or 0.
+// be written - made, healthy and open - as 1 or 0.
 int32_t d_ostream_status(const struct dj_ostream* _os);
 int32_t d_ostream_last_errno(const struct dj_ostream* _os);
 int32_t d_ostream_is_ok(const struct dj_ostream* _os);
@@ -1007,7 +1007,7 @@ int32_t d_ostream_init_fanout(struct dj_ostream*        _os,
 //------------------------------------------------------------------------------
 //   A storage destination's grow slot is called with the window holding
 // [base, cur), bytes the stream has already counted. It commits them to its
-// storage, then -- when _need is not 0 -- makes room, and points the window
+// storage, then - when _need is not 0 - makes room, and points the window
 // at the free storage with d_ostream_window_set (or empties it with
 // d_ostream_window_clear). A grow that gives less room than _need is not a
 // failure: the stream writes what fits and calls grow again, and a grow that

@@ -6,18 +6,18 @@
 * them, and nothing runs git. A repository is found as git finds one: from a
 * directory up, a .git directory or a .git file's `gitdir:`, a bare
 * repository, GIT_DIR and GIT_WORK_TREE, a linked work tree's commondir. Its
-* format is checked: SHA-1 or SHA-256 names, and refs in files -- a
+* format is checked: SHA-1 or SHA-256 names, and refs in files - a
 * repository whose refs are in a reftable is refused.
-*   What is read: the configuration, every scope git reads -- the system's,
+*   What is read: the configuration, every scope git reads - the system's,
 * the user's, the repository's, the work tree's, the command's from the
-* environment -- each file's includes followed, by path and by condition;
+* environment - each file's includes followed, by path and by condition;
 * refs, loose and packed, symbolic ones followed; objects, loose and packed,
 * deltas applied, alternates searched; commits, trees and tags parsed;
 * revisions as rev-parse names them; history as rev-list walks it, by
 * commit date, first parents only if asked, limited to a path as git limits
 * it; the index, of every version; and status as git status --porcelain
 * reports it, with the ignore and attribute files of the work tree.
-*   What is not: a write of any kind -- the repository is only read -- and
+*   What is not: a write of any kind - the repository is only read - and
 * what git would ask another program for: a filter's clean command, a
 * textconv, a hook. A file a filter cleans is compared by its stat alone.
 *   Independent of dgit.h, which reads history for dcheck's sheets.
@@ -176,7 +176,7 @@ struct dj_git_object
 //   struct: an author, committer or tagger, as a commit or tag writes one:
 //   the name and the address, each borrowed from the object's content,
 //   the time in seconds since 1970, and the zone, `offset` minutes from
-//   UTC, as written -- "+0100" -- in `zone`.
+//   UTC, as written - "+0100" - in `zone`.
 struct dj_git_person
 {
     const char* name;
@@ -191,8 +191,8 @@ struct dj_git_person
 // 1.3.5
 // dj_git_commit
 //   struct: a commit, parsed: its tree, its parents in order, allocated,
-//   its author and committer, the encoding a header names -- NULL for
-//   none -- and its message, after the headers' blank line, each borrowed
+//   its author and committer, the encoding a header names - NULL for
+//   none - and its message, after the headers' blank line, each borrowed
 //   from the object's content.
 struct dj_git_commit
 {
@@ -226,7 +226,7 @@ struct dj_git_tag
 // 1.3.7
 // dj_git_tree_entry
 //   struct: one entry of a tree: its mode, octal as git writes it --
-//   100644, 100755, 120000, 040000, 160000 -- its name, borrowed, and
+//   100644, 100755, 120000, 040000, 160000 - its name, borrowed, and
 //   its object.
 struct dj_git_tree_entry
 {
@@ -247,7 +247,7 @@ struct dj_git_repo;
 // 1.4.2
 // dj_git_setting
 //   struct: one setting, as git config --list --show-origin gives it: its
-//   canonical key, its value -- NULL for a name alone -- the file it is
+//   canonical key, its value - NULL for a name alone - the file it is
 //   in, its line from 1, its scope, and whether it was included.
 struct dj_git_setting
 {
@@ -261,8 +261,8 @@ struct dj_git_setting
 
 // 1.4.3
 // dj_git_ref
-//   struct: one ref: its full name, the object it names -- `resolved`
-//   false for a symbolic ref that leads nowhere -- the ref a symbolic one
+//   struct: one ref: its full name, the object it names - `resolved`
+//   false for a symbolic ref that leads nowhere - the ref a symbolic one
 //   names, NULL for another, and, for one that names a tag, what peeling
 //   the tag gives.
 struct dj_git_ref
@@ -288,7 +288,7 @@ struct dj_git_refs
 // 1.4.5
 // dj_git_index_entry
 //   struct: one entry of the index: its path, its mode and object, its
-//   stage -- 0, or 1 to 3 for a conflict -- its flags, and the stat data
+//   stage - 0, or 1 to 3 for a conflict - its flags, and the stat data
 //   git keeps of its file.
 struct dj_git_index_entry
 {
@@ -313,8 +313,8 @@ struct dj_git_index_entry
 
 // 1.4.6
 // dj_git_log_options
-//   struct: what to walk: revisions to start from -- one written ^rev
-//   excluding all it reaches -- the most commits to give, 0 for all,
+//   struct: what to walk: revisions to start from - one written ^rev
+//   excluding all it reaches - the most commits to give, 0 for all,
 //   whether to follow first parents only, and a path that limits the walk
 //   to commits that change it, NULL for none.
 struct dj_git_log_options
@@ -338,7 +338,7 @@ struct dj_git_status_options
 // 1.4.8
 // dj_git_status_entry
 //   struct: one line of git status --porcelain: the index's state and
-//   the work tree's -- ' ', 'M', 'A', 'D', 'T', 'U', '?', '!' -- and the
+//   the work tree's - ' ', 'M', 'A', 'D', 'T', 'U', '?', '!' - and the
 //   path, allocated, a directory's with its trailing `/`.
 struct dj_git_status_entry
 {
@@ -384,8 +384,8 @@ struct dj_git_ignore_match
 /**
  * @brief Opens the repository a path is in, as git finds it.
  *
- * @note From the path up, the first directory with a .git -- a directory,
- *       or a file naming one -- or that is itself a repository's; GIT_DIR,
+ * @note From the path up, the first directory with a .git - a directory,
+ *       or a file naming one - or that is itself a repository's; GIT_DIR,
  *       when it is set, names the repository instead, and GIT_WORK_TREE
  *       or core.worktree its work tree. GIT_CEILING_DIRECTORIES stops the
  *       search.
@@ -406,8 +406,8 @@ struct dj_git_repo* d_git_repo_open(
 void d_git_repo_free(
     struct dj_git_repo* _repo
 );
-// the repository's directory, its common directory -- a linked work
-// tree's main repository's, else the same -- its work tree, NULL for a
+// the repository's directory, its common directory - a linked work
+// tree's main repository's, else the same - its work tree, NULL for a
 // bare one, the length of its names in bytes, and why the last thing
 // asked of it failed, "" when nothing has.
 const char* d_git_repo_git_dir(
@@ -432,8 +432,8 @@ const char* d_git_repo_problem(
 // holds, d_git_repo_setting one of them, from 0, in git's order: the
 // lowest scope first, each file's in its order, an included file's in
 // place of its include; NULL past the last.
-// d_git_repo_find_setting is the first setting after `_after` -- from the
-// first for D_GIT_REPO_NONE -- of a key, in any case git takes;
+// d_git_repo_find_setting is the first setting after `_after` - from the
+// first for D_GIT_REPO_NONE - of a key, in any case git takes;
 // d_git_repo_config the value git config key gives, the last setting's,
 // and whether there is one: a name alone has the value NULL, and is set.
 size_t d_git_repo_settings(
@@ -475,7 +475,7 @@ bool d_git_repo_same_oid(
     const struct dj_git_oid*  _right
 );
 // d_git_repo_abbreviate writes the shortest prefix of a name, of at least
-// `_least` hex digits -- core.abbrev's, 7, for 0 -- that names no other
+// `_least` hex digits - core.abbrev's, 7, for 0 - that names no other
 // object, as git rev-parse --short does.
 bool d_git_repo_abbreviate(
     struct dj_git_repo*      _repo,
@@ -568,11 +568,11 @@ bool d_git_repo_tree_next(
 // 2.5    Refs
 //------------------------------------------------------------------------------
 // d_git_repo_resolve gives what a ref of a full name names, symbolic refs
-// followed -- HEAD, refs/heads/main -- and, when `_out_target` is not
+// followed - HEAD, refs/heads/main - and, when `_out_target` is not
 // NULL, the ref a symbolic one named first, allocated, NULL for another;
 // false for a ref that is not there or leads nowhere.
-// d_git_repo_refs gives every ref whose name begins with a prefix -- ""
-// for all under refs/ -- loose and packed, ordered by name; release it
+// d_git_repo_refs gives every ref whose name begins with a prefix - ""
+// for all under refs/ - loose and packed, ordered by name; release it
 // with d_git_refs_release, whatever is returned.
 bool d_git_repo_resolve(
     struct dj_git_repo* _repo,
@@ -589,7 +589,7 @@ void d_git_refs_release(
     struct dj_git_refs* _refs
 );
 // d_git_repo_symbolic gives the ref a symbolic ref names, not followed --
-// HEAD's branch, even one with no commit yet -- allocated; NULL for a ref
+// HEAD's branch, even one with no commit yet - allocated; NULL for a ref
 // that is not symbolic.
 char* d_git_repo_symbolic(
     struct dj_git_repo* _repo,
@@ -659,8 +659,8 @@ bool d_git_repo_merge_base(
 
 // 2.8    Index
 //------------------------------------------------------------------------------
-// d_git_repo_index_count is how many entries the index holds -- read the
-// first time it is asked, D_GIT_REPO_NONE when it cannot be -- and
+// d_git_repo_index_count is how many entries the index holds - read the
+// first time it is asked, D_GIT_REPO_NONE when it cannot be - and
 // d_git_repo_index_entry one of them, from 0, ordered by path then stage.
 // d_git_repo_index_find is the entry of a path at a stage.
 size_t d_git_repo_index_count(
@@ -687,8 +687,8 @@ size_t d_git_repo_index_find(
 // d_git_repo_attributes gives a path's attributes as git check-attr -a
 // does, ordered by name, borrowed from the repository; release it with
 // d_git_text_values_release, whatever is returned. Each directory's
-// .gitattributes is the work tree's -- the index's when it is missing
-// there, or is a link -- or, for GIT_ATTR_SOURCE, attr.tree or a bare
+// .gitattributes is the work tree's - the index's when it is missing
+// there, or is a link - or, for GIT_ATTR_SOURCE, attr.tree or a bare
 // repository's HEAD, that tree's, as git 2.43 reads them.
 bool d_git_repo_ignored(
     struct dj_git_repo*         _repo,

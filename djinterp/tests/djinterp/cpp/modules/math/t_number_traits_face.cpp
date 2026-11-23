@@ -1484,7 +1484,7 @@ namespace
                                          "the Hilbert matrix of values");
 
         // inexact values on the generic path: each pivot the entry of
-        // largest magnitude -- with none, [1e-20 1; 1 1] x = (1, 2) loses
+        // largest magnitude - with none, [1e-20 1; 1 1] x = (1, 2) loses
         // x's first entry, 0 for 1, and the inverse its corner; with it,
         // both are right to rounding
         {
@@ -1632,8 +1632,8 @@ namespace
 
     // d_tests_quaternion_algebra
     //   matrices of t_quat, whose products do not commute: the generic
-    // inverse and solution keep each product in its order (S269) -- with
-    // the order wrong, A A^-1, A^-1 A and A X all miss -- the first pivot
+    // inverse and solution keep each product in its order (S269) - with
+    // the order wrong, A A^-1, A^-1 A and A X all miss - the first pivot
     // a row swap, by the squared norm.
     void
     d_tests_quaternion_algebra()

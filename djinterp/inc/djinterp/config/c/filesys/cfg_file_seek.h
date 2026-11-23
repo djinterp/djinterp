@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                          cfg_file_seek.h
 *
-* Build-time configuration for c/filesys/file_seek.h -- 64-bit positioning and
+* Build-time configuration for c/filesys/file_seek.h - 64-bit positioning and
 * truncation.
 *
 *   targets:  c/filesys/file_seek.h, c/filesys/file_seek.c ->
@@ -58,7 +58,7 @@ TABLE OF CONTENTS
 //   ON, and you almost certainly want it on. d_file_truncate_stream works
 // through the descriptor inside the stream, and the descriptor knows nothing
 // about bytes still sitting in stdio's buffer. Truncate to 10 with 200
-// unflushed bytes pending, and stdio writes them out afterwards -- the file
+// unflushed bytes pending, and stdio writes them out afterwards - the file
 // ends up 200 bytes long, not 10, and the truncation appears to have silently
 // done nothing.
 //   The only reason this is a knob at all is that the flush is a write, and a
@@ -105,7 +105,7 @@ TABLE OF CONTENTS
 // D_INTERNAL_FILE_SEEK_64
 //   resolved: 1 when a stream position past 2 GiB can be reached: through
 // _fseeki64 on Windows, whatever the backend; through fseeko where POSIX has
-// it; or through ISO C's fseek where a long has 64 bits -- which the compiler
+// it; or through ISO C's fseek where a long has 64 bits - which the compiler
 // says with __LP64__ or _LP64, since a configuration header cannot include
 // <limits.h>.
 #if ( (D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)) ||                                   \

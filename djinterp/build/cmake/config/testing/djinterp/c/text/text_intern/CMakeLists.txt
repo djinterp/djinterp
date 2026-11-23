@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/text/text_intern/CMakeLists.txt
+# djinterp [test]  -  build/cmake/config/testing/djinterp/c/text/text_intern/CMakeLists.txt
 #
 #   Test leaf for c/text/text_intern.h, names stood for by small integers, in
 # the C spec form: the runner in this directory, the section translation units

@@ -3,7 +3,7 @@
 *
 * Compressed string trie (text radix tree):
 *   Maps re_std::string_view keys onto Value.  Each node carries a COMPRESSED
-* EDGE LABEL -- the run of bytes between it and its parent -- and a 256-slot
+* EDGE LABEL - the run of bytes between it and its parent - and a 256-slot
 * child array indexed by the first byte of the remaining key.  On insertion an
 * edge SPLITS at the point of first divergence; on erasure a chain of
 * single-child nodes MERGES back.
@@ -12,7 +12,7 @@
 * WHAT CHANGED
 * ============================================================================
 *   1. IT HAD NO IMPLEMENTATION.  Thirty-three methods were DECLARED and none
-*      defined -- no out-of-class definitions anywhere, the only bodies in the
+*      defined - no out-of-class definitions anywhere, the only bodies in the
 *      file being the node's own constructors.  It compiled (declarations do)
 *      and could not link.  Implemented, in-class.
 *
@@ -21,7 +21,7 @@
 *          using children = node_type*[D_RADIX_ALPHA_SIZE];   // a TYPE ALIAS
 *
 *      under a comment reading "Member type aliases required by is_radix_node
-*      detection" -- but has_radix_children probes for a DATA MEMBER named
+*      detection" - but has_radix_children probes for a DATA MEMBER named
 *      children, and the node's data member was called child_ptrs.  So
 *      is_radix_node<text_radix_node<V>> was FALSE, and the comment had it
 *      exactly backwards.  The array is now the member named `children`; the
@@ -33,7 +33,7 @@
 * THE TWO INVARIANTS
 * ============================================================================
 *   ADDRESS. A node's address is the CONCATENATION of the edge labels from the
-* root down to it. The root's edge is empty -- THE ROOT CONTRIBUTES NO LABEL
+* root down to it. The root's edge is empty - THE ROOT CONTRIBUTES NO LABEL
 * --
 * so the root's address is the EMPTY KEY, and find("") is the root. That is
 * the
@@ -51,9 +51,9 @@
 *
 *   And the two invariants are the same invariant. Merging a chain
 * concatenates
-* two edge labels into one -- it RE-BRACKETS the concatenation without
+* two edge labels into one - it RE-BRACKETS the concatenation without
 * changing
-* it -- and the address IS the concatenation.  So compression cannot move an
+* it - and the address IS the concatenation.  So compression cannot move an
 * address, which is exactly why it is allowed.  Splitting is the same theorem
 * backwards: you split an edge at THE MEET, |lcp(key, edge)|, which is the one
 * place where re-bracketing costs nothing.
@@ -97,7 +97,7 @@ NS_DJINTERP
 
 
 // ==========================================================================
-//  radix_child_map  --  SEPARATION, AS A CHARACTERISTIC FUNCTION
+//  radix_child_map  -  SEPARATION, AS A CHARACTERISTIC FUNCTION
 // ==========================================================================
 
 NS_INTERNAL
@@ -129,14 +129,14 @@ NS_END  // internal
 
 
 // DRadixChildMap
-//   struct: the child slots of a text node -- 256 possible labels, stored as a
+//   struct: the child slots of a text node - 256 possible labels, stored as a
 // 256-BIT CHARACTERISTIC FUNCTION plus a densely packed array of only the
 // children that exist.
 //
 //   THE SEPARATION STRUCTURE IS UNCHANGED.  It used to be 256 pointer slots,
 // one per byte; it is now 256 BITS, one per byte.  Either way there is exactly
 // one place for each label, so two children of one node cannot share a first
-// byte -- mu_1 is still unrepresentable to violate, not merely unenforced.  The
+// byte - mu_1 is still unrepresentable to violate, not merely unenforced.  The
 // table became its own characteristic function, and that is the whole change.
 //
 //   RANK IS THE BRIDGE.  A byte's position in the packed array is the number of
@@ -149,7 +149,7 @@ NS_END  // internal
 //     - every walk is O(fanout), not O(256).  child_count() and sole_child()
 //       were 256-iteration scans; they are now O(1).
 //
-//   And a compressed trie's nodes are NARROW -- the compression invariant says
+//   And a compressed trie's nodes are NARROW - the compression invariant says
 // an internal node has at least two children, and in practice it has about two.
 // So the first k_inline of them live in the object and the vast majority of
 // nodes never allocate a slot array at all.
@@ -337,7 +337,7 @@ struct DRadixChildMap
     }
 
     // clear
-    //   drop every label. Does not free the spill array -- the node may be
+    //   drop every label. Does not free the spill array - the node may be
     // about to be refilled from a pool slot.
     void clear() D_NOEXCEPT
     {
@@ -453,7 +453,7 @@ using radix_child_map = DRadixChildMap<Node>;
 // the remaining key.
 //
 //   THE CHILD ARRAY IS THE SEPARATION STRUCTURE. One slot per byte means two
-// children of one node cannot begin with the same byte -- mu_1 is not enforced
+// children of one node cannot begin with the same byte - mu_1 is not enforced
 // here, it is unrepresentable to violate. That is why a descent never
 // backtracks: the next byte of the key picks the only child that could match.
 template<typename Value>
@@ -464,16 +464,16 @@ struct DTextRadixNode
     using node_type  = DTextRadixNode<Value>;
 
     // the compressed edge label from the parent to this node. The root's is
-    // EMPTY -- the root contributes no label.
+    // EMPTY - the root contributes no label.
     std::string edge;
 
     // the mapped value.  present == false at a waypoint.
     DRadixTerminal<Value> terminal;
 
     // THE MEMBER has_radix_children PROBES FOR. It used to be called
-    // child_ptrs, with a *type alias* named `children` beside it -- so the
+    // child_ptrs, with a *type alias* named `children` beside it - so the
     // trait never fired and is_radix_node<text_radix_node<V>> was false.
-    //   It used to be 256 POINTER SLOTS -- 2048 bytes, 97% of the node,
+    //   It used to be 256 POINTER SLOTS - 2048 bytes, 97% of the node,
     // whether the node had two children or none. It is now 256 BITS plus only
     // the children that exist. Same separation, same one-place-per-label: the
     // lookup table simply became its own characteristic function.
@@ -521,7 +521,7 @@ using text_radix_node = DTextRadixNode<Value>;
 
 
 // ==========================================================================
-//  radix_storage_signals  --  SPEAKING THE TRAIT SYSTEM'S LANGUAGE
+//  radix_storage_signals  -  SPEAKING THE TRAIT SYSTEM'S LANGUAGE
 // ==========================================================================
 
 // radix_storage_signals
@@ -531,8 +531,8 @@ using text_radix_node = DTextRadixNode<Value>;
 //     bounded_container_traits: bounded <=> extent | tuple_size |
 //                               static_bounds | (capacity() && !reserve())
 //
-// We exposed capacity() and no reserve(), so a DYNAMIC tree -- which has no
-// capacity at all -- was classified BOUNDED.  A false positive on the axis that
+// We exposed capacity() and no reserve(), so a DYNAMIC tree - which has no
+// capacity at all - was classified BOUNDED.  A false positive on the axis that
 // says whether kappa < infinity.
 //
 //     container_storage_traits: static  <=> extent | tuple_size
@@ -614,7 +614,7 @@ private:
 
     // fixed_node_pool
     //   a slab of Capacity nodes. Slot 0 is ALWAYS the root, so the root
-    // exists from construction and its address -- the empty key -- is always
+    // exists from construction and its address - the empty key - is always
     // resolvable.
     struct fixed_node_pool
     {
@@ -747,7 +747,7 @@ public:
     // capacity
     //   FIXED TREES ONLY. It used to exist unconditionally, and
     // bounded_container_traits reads "capacity() and no reserve()" as
-    // "compile-time fixed capacity" -- so a dynamic tree, whose capacity()
+    // "compile-time fixed capacity" - so a dynamic tree, whose capacity()
     // only ever returned 0, was reported BOUNDED. A dynamic radix tree has no
     // capacity; the honest thing is not to answer.
     template<bool F = k_fixed,
@@ -760,13 +760,13 @@ public:
 
 
     // ------------------------------------------------------------------
-    //  lookup  --  resolve(address)
+    //  lookup  -  resolve(address)
     // ------------------------------------------------------------------
 
     // find
     //   THE RESOLVE. Descend from the root, consuming the key one edge at a
     // time; the node you land on is the one the key names. Returns null when
-    // the key names no stored value -- including when it names a WAYPOINT (a
+    // the key names no stored value - including when it names a WAYPOINT (a
     // node that exists only because something below it does).
     const_pointer
     find(
@@ -842,7 +842,7 @@ public:
 
 
     // ------------------------------------------------------------------
-    //  insertion  --  SPLIT AT THE MEET
+    //  insertion  -  SPLIT AT THE MEET
     // ------------------------------------------------------------------
 
     // insert
@@ -885,14 +885,14 @@ public:
 
 
     // ------------------------------------------------------------------
-    //  erasure  --  MERGE BACK
+    //  erasure  -  MERGE BACK
     // ------------------------------------------------------------------
 
     // erase
     //   removes the key. Then RESTORES COMPRESSION: a node left with no
     // children and no value is dropped, and a node left with exactly one child
     // and no value is merged into it. The merge concatenates two edge labels
-    // into one, which re-brackets the address without changing it -- so no
+    // into one, which re-brackets the address without changing it - so no
     // surviving key moves. Returns true when a key was removed.
     template<bool W = k_writable,
              typename std::enable_if<W, int>::type = 0>
@@ -936,7 +936,7 @@ public:
 
 
     // ------------------------------------------------------------------
-    //  prefix queries  --  the reason a trie exists
+    //  prefix queries  -  the reason a trie exists
     // ------------------------------------------------------------------
 
     // has_prefix
@@ -952,7 +952,7 @@ public:
     }
 
     // count_with_prefix
-    //   how many stored keys begin with _prefix -- the size of the subtree the
+    //   how many stored keys begin with _prefix - the size of the subtree the
     // prefix names.
     size_type
     count_with_prefix(
@@ -966,7 +966,7 @@ public:
 
     // longest_match
     //   the length of the longest stored key that is a PREFIX OF _key. The
-    // deepest terminal on the descent path -- which is a meet, again: the
+    // deepest terminal on the descent path - which is a meet, again: the
     // greatest stored address below-or-equal _key in the prefix order.
     size_type
     longest_match(
@@ -1026,41 +1026,41 @@ public:
 
 
     // ------------------------------------------------------------------
-    //  AXIS DECLARATIONS  --  what the structural probes cannot see
+    //  AXIS DECLARATIONS  -  what the structural probes cannot see
     // ------------------------------------------------------------------
     //   Three axes read this container WRONG, and on each the framework already
     // supplies the opt-in.  Measured against std::map (the reference ordered
     // associative), the tree agreed on capacity, storage, memory, order,
-    // iteration and mutability -- and disagreed on exactly these three.
+    // iteration and mutability - and disagreed on exactly these three.
 
-    // SORTEDNESS. sortedness_of said `unordered` -- "no comparator, sortedness
+    // SORTEDNESS. sortedness_of said `unordered` - "no comparator, sortedness
     // not applicable". But sorted enumeration is the DEFINING PROPERTY of a
     // radix tree: rank is monotone in the label, so the packed children are in
     // label order, so a preorder walk emits the keys sorted. Nothing sorts
     // them. std::map declares key_compare and reads `monotone`; so must this.
-    // Without it, admits_sorted_enumeration was FALSE -- the one thing the
+    // Without it, admits_sorted_enumeration was FALSE - the one thing the
     // structure is for was invisible.
     using key_compare = std::less<key_type>;
 
     // MULTIPLICITY. multiplicity_kind_of fell through to `unbounded_multiset`:
     // it probes insert(value_type) for a pair<iterator,bool>, and a radix
-    // tree's insert takes (key, value) -- two arguments -- so the probe cannot
+    // tree's insert takes (key, value) - two arguments - so the probe cannot
     // fire. The container was therefore claiming it admits DUPLICATE KEYS. It
     // cannot: the key IS the address, one node per address, and insert
     // OVERWRITES. m = 1. The static `DMultiplicity` constant is the documented
-    // authoritative override for exactly this -- a bound with no structural
+    // authoritative override for exactly this - a bound with no structural
     // tell.
     static D_CONSTEXPR std::size_t multiplicity = 1u;
 
     // STRUCTURE. structure_kind_of said `DFlat`. has_node_summand wants a
     // node_type that is ITSELF container-shaped, and container_depth walks the
-    // value_type chain -- which here is just Value, so depth 1. Neither probe
+    // value_type chain - which here is just Value, so depth 1. Neither probe
     // can see that a TRIE NESTS. This is precisely what the hierarchical tag
     // is documented for: "asserts nesting the chain cannot expose".
     using structure_category = DHierarchical;
 
     // ------------------------------------------------------------------
-    //  ITERATION  --  walking the addresses, in order
+    //  ITERATION  -  walking the addresses, in order
     // ------------------------------------------------------------------
     //   THE TREES HAD NO begin()/end(), AND THAT WAS NOT A COSMETIC GAP.  Two
     // thirds of the trait system keys on iterability:
@@ -1070,7 +1070,7 @@ public:
     //     is_range_insertable, the transform and merge traits ...
     //
     // all of it goes through begin()/end().  A container without them is not
-    // "slightly less convenient"; it is INVISIBLE to the framework -- every one
+    // "slightly less convenient"; it is INVISIBLE to the framework - every one
     // of those traits reported false, and none of them was wrong to.
     //
     //   The walk is DFS PREORDER over the children in byte order, which is
@@ -1080,7 +1080,7 @@ public:
     //
     //   And the successor needs NO STACK.  Parent pointers plus rank() give it
     // in two moves: descend to the first child, or climb until a next sibling
-    // exists -- and rank(edge[0]) IS my index among my parent's children, so
+    // exists - and rank(edge[0]) IS my index among my parent's children, so
     // "the next sibling" is one array step.
 
     class const_iterator
@@ -1107,7 +1107,7 @@ public:
         // key
         //   the ADDRESS of the node we are sitting on, recovered by walking to
         // the root and concatenating the edge labels in reverse. The iterator
-        // stores no key -- it does not need to. The address is in the tree.
+        // stores no key - it does not need to. The address is in the tree.
         std::string
         key() const
         {
@@ -1522,7 +1522,7 @@ private:
         std::size_t       n    = _src->children.size();
 
         // the packed array is already in byte order, so every set() below
-        // lands at the end -- an append, not an insertion.
+        // lands at the end - an append, not an insertion.
         for (std::size_t i = 0u; i < n; ++i)
         {
             unsigned char c =
@@ -1551,7 +1551,7 @@ private:
 
     // m_move_from steals _other's children. A fixed pool cannot be stolen from
     // (the nodes live inside the object), so that case deep-copies and clears
-    // the source -- which is what a move must do when the storage is
+    // the source - which is what a move must do when the storage is
     // in-object.
     void
     m_move_from(DTextRadixTree&& _other)
@@ -1670,7 +1670,7 @@ private:
             DTextPrefixMatchResult r = text_prefix_compare(rest, edge);
 
             // The edge must be FULLY consumed to step past it. If it is not,
-            // the key either diverges from it or ends inside it -- and a key
+            // the key either diverges from it or ends inside it - and a key
             // that ends inside an edge names no node at all, because the edge
             // is one label, not a run of them.
             if (!r.edge_consumed)
@@ -1687,7 +1687,7 @@ private:
 
     // m_find_prefix_root
     //   the node whose subtree holds exactly the keys extended by _prefix.
-    // Unlike m_find_node, the prefix MAY end inside an edge -- a prefix names
+    // Unlike m_find_node, the prefix MAY end inside an edge - a prefix names
     // a
     // set of addresses, not one address, and the set is the subtree hanging
     // below the edge it ends inside.
@@ -1733,12 +1733,12 @@ private:
     }
 
     // ------------------------------------------------------------------
-    //  THE SPLIT  --  at the meet
+    //  THE SPLIT  -  at the meet
     // ------------------------------------------------------------------
 
     // m_split_edge
-    //   splits _node's edge at _split_pos -- which the caller has computed as
-    // |lcp(key, edge)|, THE MEET -- and returns the node at which a key with
+    //   splits _node's edge at _split_pos - which the caller has computed as
+    // |lcp(key, edge)|, THE MEET - and returns the node at which a key with
     // remainder _remaining_key should terminate.
     //
     //   Before:      parent --[abcdef]--> node(subtree)
@@ -1927,7 +1927,7 @@ private:
     }
 
     // ------------------------------------------------------------------
-    //  THE MERGE  --  restore compression
+    //  THE MERGE  -  restore compression
     // ------------------------------------------------------------------
 
     // m_recompress
@@ -1976,7 +1976,7 @@ private:
                 // one child, no value: a chain.  MERGE.
                 node_type* kid = n->sole_child();
 
-                // the concatenation -- this is the whole of the theorem
+                // the concatenation - this is the whole of the theorem
                 std::string merged = n->edge + kid->edge;
 
                 unsigned char c =

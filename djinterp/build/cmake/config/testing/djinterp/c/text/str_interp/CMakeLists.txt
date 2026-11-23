@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/text/
+# djinterp [test]  -  build/cmake/config/testing/djinterp/c/text/
 #                      str_interp/CMakeLists.txt
 #
 #   Test leaf for str_interp.h's suite, in DTest's C face (converted from the

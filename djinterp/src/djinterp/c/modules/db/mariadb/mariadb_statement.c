@@ -8,8 +8,8 @@
 * asked for as text, one buffer per column sized by the column's longest
 * value (STMT_ATTR_UPDATE_MAX_LENGTH, read once the result is stored), and
 * read by mariadb_internal.c exactly as a query's rows are. A value longer
-* than its buffer -- which the stored result's lengths rule out, but which a
-* client is free to report -- is fetched again whole.
+* than its buffer - which the stored result's lengths rule out, but which a
+* client is free to report - is fetched again whole.
 *   A run read a few rows at a time leaves the result unstored, so the client
 * reads each row off the connection as it is fetched. Its buffers start small,
 * since no longest value is known, and each grows as a value needs, for the
@@ -29,7 +29,7 @@
 * the handle's record (mariadb_internal.h 2.7): the record names the
 * statement whose call it is, keeps the rows read so far between waits, and
 * each stage begins the next client call. A statement whose call is under way
-* cannot be closed -- the client's suspended call still uses it -- so one
+* cannot be closed - the client's suspended call still uses it - so one
 * finalized meanwhile is retired, its call abandoned, and closed with the
 * connection.
 *
@@ -2701,7 +2701,7 @@ d_mariadb_open_cursor
   The result is left unstored, so the client reads each row as it is fetched.
 A statement without rows has run to its end already, but its run stays open
 for its first fetch to end, as every run's last fetch does. A run that cannot
-begin -- its fields or buffers wanting -- ends at once, read to its end.
+begin - its fields or buffers wanting - ends at once, read to its end.
 */
 int d_mariadb_open_cursor(
     struct dj_mariadb_statement* _statement

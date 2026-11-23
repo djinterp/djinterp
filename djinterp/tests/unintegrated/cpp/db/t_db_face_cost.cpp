@@ -3,12 +3,12 @@
 *
 *   What a C++ face costs over the C layer it wraps: nothing. Each pair of
 * functions here makes one call twice, once through a layer and once through
-* its face -- a question, of each kind of server; a value written through a
+* its face - a question, of each kind of server; a value written through a
 * parameter; a column array; text owned and released; rows read, converted
 * and released; a statement prepared, bound, run and finalized; a cursor
 * opened, read and closed; a connection closed; from C++11 an f form, in
 * each dialect, its literal format checked at compile time from C++20; from
-* C++23 a std::expected result -- and
+* C++23 a std::expected result - and
 * scripts/check_db_face_cost.py compiles this file at -O2 with each compiler,
 * at each level, and checks that the two halves of every pair compile to the
 * same instructions. A connection reaches each half as a pointer to it: a

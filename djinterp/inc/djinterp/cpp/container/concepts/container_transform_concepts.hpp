@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                     container_transform_concepts.hpp
 *
-* C++20 concepts for the TRANSFORM axis -- the `requires`-facing view of
+* C++20 concepts for the TRANSFORM axis - the `requires`-facing view of
 * container_transform_traits.hpp.
 *
 *   THE CONCEPTS ADD NO POLICY.
@@ -49,7 +49,7 @@ NS_DJINTERP
 
 
 // TransformableContainer
-//   concept: can be transformed into a container of its own kind -- walked AND
+//   concept: can be transformed into a container of its own kind - walked AND
 // rebuilt.
 template<typename Type>
 concept TransformableContainer = is_container_transformable_v<Type>;
@@ -57,7 +57,7 @@ concept TransformableContainer = is_container_transformable_v<Type>;
 
 // NativelyTransformableContainer
 //   concept: carries its OWN transform, so it need not go through the generic
-// walk- and-rebuild -- and can keep structure the generic path would have to
+// walk- and-rebuild - and can keep structure the generic path would have to
 // discard.
 template<typename Type>
 concept NativelyTransformableContainer = has_native_transform_v<Type>;

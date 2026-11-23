@@ -4,12 +4,12 @@
 * A command-line program as the kit runs it, declared in cli_program.h, and
 * the text helpers of cli_internal.h's section 2.
 *   The kit adds its standard options to the root unbound, and reads them after
-* every parse -- a failed one included, so that the message a failure writes
+* every parse - a failed one included, so that the message a failure writes
 * is coloured as `--color` asked when it was given before the mistake. The
 * parse's own work is the argument parser's; the kit's is what comes before it
-* -- the true command line on Windows, `/?` as `--help`, the run's settings
+* - the true command line on Windows, `/?` as `--help`, the run's settings
 * started and the kit's setting hook set, which the parse offers the command
-* line's settings (cli_settings.h) -- and after: a setting the hook refused,
+* line's settings (cli_settings.h) - and after: a setting the hook refused,
 * said as the kit says it; the exit status the grammar gives each ending,
 * and the failure message in the GNU shape, written by a failure function
 * of the kit's that the parser calls. After a parse that went well, at `-v`,
@@ -23,7 +23,7 @@
 * composed whole before any of it is written: the program's file and a
 * module's, where each command that is a module would load it from, which
 * cli_plugin.c says, how the program was built as it was told, its own
-* lines, and how the kit was built -- this unit describes itself.
+* lines, and how the kit was built - this unit describes itself.
 *
 *
 * path:      /src/djinterp/tools/cli/c/cli_program.c
@@ -226,7 +226,7 @@ int d_cli_internal_append_lowered(
  *                        says an error without its word.
  * @param[in]  _severity  a dj_cli_severity value.
  * @param[out] _shade     receives the shade.
- * @return `warning`, `note`, or, for any other value, `error` -- or NULL,
+ * @return `warning`, `note`, or, for any other value, `error` - or NULL,
  *         for an error said without its word.
  */
 static
@@ -392,10 +392,10 @@ void d_cli_internal_emit(
 
 // dj_cli_internal_shape
 //   struct: a diagnostic composed in a room of its own: its severity; its
-// place in a file -- `file` NULL for the program's name; the command whose
+// place in a file - `file` NULL for the program's name; the command whose
 // place it names, NULL for none; whether the message's first letter is
 // lowered, as the parser's messages are; and whether the pointer to the
-// command's help follows -- never after a want of memory, which no help
+// command's help follows - never after a want of memory, which no help
 // mends.
 struct dj_cli_internal_shape
 {
@@ -503,8 +503,8 @@ void d_cli_internal_room_path(
 }
 
 /**
- * @brief Appends a command's place to a room -- its full name less the
- *        program's own, and a colon -- as d_cli_internal_place appends it,
+ * @brief Appends a command's place to a room - its full name less the
+ *        program's own, and a colon - as d_cli_internal_place appends it,
  *        asking for no memory.
  *
  * @param[in]     _program  the program.
@@ -666,9 +666,9 @@ void d_cli_internal_room_try(
 
 /**
  * @brief Writes a diagnostic composed in a room of its own, asking for no
- *        memory: in the GNU shape and colour -- the locus, the severity,
+ *        memory: in the GNU shape and colour - the locus, the severity,
  *        the command's place and the message; then, for a command, the
- *        pointer to its help -- cut at the room's end, a newline kept last.
+ *        pointer to its help - cut at the room's end, a newline kept last.
  *        What a report falls back on when the whole one could not be
  *        composed, so that the want of memory shortens a diagnostic, never
  *        loses it.
@@ -787,7 +787,7 @@ int d_cli_internal_spare_say(
 
 /*
 d_cli_vreport
-  The locus, the message, a newline; composed whole, written once -- or,
+  The locus, the message, a newline; composed whole, written once - or,
 where there was no memory to compose it, composed in a room of
 its own.
 */
@@ -954,7 +954,7 @@ void d_cli_note(
 /*
 d_cli_command_path
   The names from the root down, collected upward then written in order.
-Option groups -- nameless subcommands -- add nothing.
+Option groups - nameless subcommands - add nothing.
 */
 int d_cli_command_path(
     const struct dj_arg_command* _command,
@@ -1031,8 +1031,8 @@ int d_cli_internal_try(
 }
 
 /**
- * @brief Appends a command's place -- its full name less the program's own,
- *        which the locus gives -- and a colon: `gen: `, `example list: `, and
+ * @brief Appends a command's place - its full name less the program's own,
+ *        which the locus gives - and a colon: `gen: `, `example list: `, and
  *        `gui: ` for a module's root, whose parser is named `bitwisedom gui`;
  *        nothing for the program's root.
  *
@@ -1287,7 +1287,7 @@ int d_cli_output_error(
 
 // D_INTERNAL_CLI_NOT_EXPECTED_ONE / _MANY
 //   constants: how the parser begins a message about arguments no command
-// took -- CLI11's ExtrasError words.
+// took - CLI11's ExtrasError words.
 #define D_INTERNAL_CLI_NOT_EXPECTED_ONE                                        \
     "The following argument was not expected: "
 #define D_INTERNAL_CLI_NOT_EXPECTED_MANY                                       \
@@ -1296,7 +1296,7 @@ int d_cli_output_error(
 /**
  * @brief The command a parse reached: from the root of a command's tree, down
  *        the subcommands each parsed, the last of each, to one that parsed
- *        none -- where a user's mistake is, whichever command the parser
+ *        none - where a user's mistake is, whichever command the parser
  *        reports it from: with fallthrough, an option a subcommand did not
  *        know is reported from the root.
  *
@@ -1572,7 +1572,7 @@ int d_cli_internal_first_line(
 
 /**
  * @brief Appends one line of a parser's message as a diagnostic: the first
- *        an error, in the GNU shape; each further one -- a suggestion -- a
+ *        an error, in the GNU shape; each further one - a suggestion - a
  *        note.
  *
  * @param[in]     _program  the program.
@@ -1644,7 +1644,7 @@ int d_cli_internal_to_sink(
 /**
  * @brief The kit's failure message where there was no memory to compose it:
  *        the parser's first line as the error, its first letter lowered,
- *        then -- unless the error is itself a want of memory -- the pointer
+ *        then - unless the error is itself a want of memory - the pointer
  *        to the command's help, composed in a room of its own.
  *
  * @param[in] _program  the program.
@@ -1687,7 +1687,7 @@ int d_cli_internal_spare_failure(
 
 /**
  * @brief The kit's failure message: the parser's message, its first line an
- *        error and every further line -- a suggestion -- a note, then the
+ *        error and every further line - a suggestion - a note, then the
  *        pointer to the command's help, but after a want of memory, which
  *        no help mends. A dj_arg_failure_fn.
  *
@@ -1829,8 +1829,8 @@ struct dj_pack_sink d_cli_program_watched(
 
 /**
  * @brief Says why what a program was to write to its output was not
- *        written: the output's refusal -- with the system's reason when it
- *        gave one -- or, for anything else that stopped it, the want of
+ *        written: the output's refusal - with the system's reason when it
+ *        gave one - or, for anything else that stopped it, the want of
  *        memory.
  *
  * @param[in] _program  the program.
@@ -1860,8 +1860,8 @@ int d_cli_internal_unwritten(
 }
 
 /**
- * @brief Writes a command's help -- its own, never that of a subcommand the
- *        last parse used -- to a sink.
+ * @brief Writes a command's help - its own, never that of a subcommand the
+ *        last parse used - to a sink.
  *
  * @param[in] _command  the command.
  * @param[in] _sink     where it goes.
@@ -2184,7 +2184,7 @@ int d_cli_internal_standard_commands(
 
 /**
  * @brief Why a definition of the kit's own came back NULL: what the parser
- *        recorded -- a name the program had already used, say -- or, with
+ *        recorded - a name the program had already used, say - or, with
  *        nothing recorded, the want of memory.
  *
  * @param[in] _program  the program.
@@ -2725,9 +2725,9 @@ int d_cli_program_set_main(
 //==============================================================================
 
 /**
- * @brief The colour option the last parse took last -- `--color` or the
+ * @brief The colour option the last parse took last - `--color` or the
  *        `--colour` help does not show, whichever came later in the root's
- *        parse order -- and the value it took.
+ *        parse order - and the value it took.
  *
  * @param[in]  _program  the program, its parse done.
  * @param[out] _value    receives the value, when one was given.
@@ -2883,8 +2883,8 @@ const struct dj_cli_handler* d_cli_internal_handler(
 
 /**
  * @brief How many times the last parse gave an option: its entries in the
- *        parse order of the command that holds it -- an option group, for an
- *        option of one -- which lists an option once for each argument it
+ *        parse order of the command that holds it - an option group, for an
+ *        option of one - which lists an option once for each argument it
  *        takes, its delimiter's splits not counted.
  *
  * @param[in] _option  the option, or NULL.
@@ -3320,7 +3320,7 @@ const char* const* d_cli_internal_arguments(
  * @brief The command a parse took after `--`, where the program's command
  *        was due: the parser, finding no operand of the root's to take the
  *        word, parses the subcommand it names without listing it among those
- *        the root used -- a command line the grammar has no reading for,
+ *        the root used - a command line the grammar has no reading for,
  *        since a command comes before `--` (R3).
  *
  * @param[in] _program  the program, its parse done.
@@ -3446,7 +3446,7 @@ bool d_cli_internal_asked(
 /**
  * @brief Whether a parse took a command after `--`, which the grammar has no
  *        reading for (R3) and so ends the run with a usage error, said here,
- *        whatever else the parse found -- unless it found help, a version
+ *        whatever else the parse found - unless it found help, a version
  *        or a script asked for.
  *
  * @param[in] _program  the program, its parse done.
@@ -3509,7 +3509,7 @@ void d_cli_internal_compiler_said(
 
 /**
  * @brief Appends how a program was built, a line for each part known:
- *        `compiler`, `language`, `system` -- the system and the machine --
+ *        `compiler`, `language`, `system` - the system and the machine --
  *        and `build`; nothing for a program never told.
  *
  * @param[in]     _build  the program's build.
@@ -3607,7 +3607,7 @@ void d_cli_internal_kit_said(
 
 /**
  * @brief Appends the program's file and, in a module's program, the
- *        module's: `program` and `module`, each where it is known -- a
+ *        module's: `program` and `module`, each where it is known - a
  *        module's as its host gave them, a program's as the system names
  *        its file.
  *
@@ -3671,9 +3671,9 @@ int d_cli_internal_files_said(
 
 /**
  * @brief Composes what `--version --verbose` says after the version's line
- *        (GRAMMAR.md, section 6): the files first -- the program's, a
+ *        (GRAMMAR.md, section 6): the files first - the program's, a
  *        module's own, and where each command that is a module would load
- *        it from -- then how the program was built, its own lines, and how
+ *        it from - then how the program was built, its own lines, and how
  *        the kit was built.
  *
  * @param[in]     _program  the program, its parse done.
@@ -3771,9 +3771,9 @@ int d_cli_internal_version(
 
 /**
  * @brief Writes what a parse was asked for to the program's output, as the
- *        parser's exit writes it -- the help of the last command the parse
+ *        parser's exit writes it - the help of the last command the parse
  *        used, plain or expanded; a version and a newline; a completion
- *        script -- and says whether it was written whole.
+ *        script - and says whether it was written whole.
  *
  * @param[in]  _program  the program, its parse ended by the request.
  * @param[in]  _status   the parse's status, one d_cli_internal_asked holds.
@@ -3918,8 +3918,8 @@ const char* d_cli_internal_unmade_name(
 }
 
 /**
- * @brief Says why a program could not be made -- the want of memory, or the
- *        definition its making stopped at -- to the error output it was
+ * @brief Says why a program could not be made - the want of memory, or the
+ *        definition its making stopped at - to the error output it was
  *        given, or to standard error; composed without asking for memory,
  *        as there may be none.
  *
@@ -3999,7 +3999,7 @@ void d_cli_internal_unmade(
 
 /**
  * @brief Whether a program cannot be run at all: none, nowhere to say how
- *        its run ends, or one whose making failed -- which is said.
+ *        its run ends, or one whose making failed - which is said.
  *
  * @param[in]  _program  the program.
  * @param[in]  _argc     the argument count.
@@ -4084,8 +4084,8 @@ const char* const* d_cli_internal_prepare(
 
 /**
  * @brief The run's settings: started at a program's first parse, the run
- *        then being its program's -- a module's program is told its run's
- *        settings by the program that loaded it -- and the command line's
+ *        then being its program's - a module's program is told its run's
+ *        settings by the program that loaded it - and the command line's
  *        offered by the parser to the kit's hook as it reads them, unless
  *        the program set a hook of its own.
  *
@@ -4116,9 +4116,9 @@ int d_cli_internal_settings(
 /*
 d_cli_program_parse
   The program readied, the arguments, the parse, the standard options'
-values; then the ending the status calls for -- help, a version and a
+values; then the ending the status calls for - help, a version and a
 script to the output, whole or the want of it said; a failure through the
-kit's failure message to the error output -- and the grammar's exit status
+kit's failure message to the error output - and the grammar's exit status
 for it. A parse that went well ends nothing; at -v, where the run goes on
 to work, it says first each option that kept the last of values that differ.
 */
@@ -4423,7 +4423,7 @@ int d_cli_internal_no_work_text(
 
 /**
  * @brief The usage error of a command reached with no work: its usage line
- *        and the commands it has, then the pointer to its help -- or, where
+ *        and the commands it has, then the pointer to its help - or, where
  *        there was no memory to compose it, the error and the pointer alone,
  *        composed in a room of their own.
  *

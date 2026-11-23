@@ -2,29 +2,29 @@
 * djinterp [cpp][tools]                                             controls.cpp
 *
 * The controls the interface has no uxoxo element for: the "+" that adds,
-* with a faded "Add new..." beside it; the add control -- "+ Add" and the
+* with a faded "Add new..." beside it; the add control - "+ Add" and the
 * menu of what to add, or a split button whose face adds the kind it shows
-* -- with the colour new rows take on its menu; the "Add child..." field at
+* - with the colour new rows take on its menu; the "Add child..." field at
 * the end of a group's or a range's rows in the tree; the rest of the menu
 * bar, which puts the Help menu at the bar's right end; and the docking --
 * the dock space a workspace's windows dock in, and the windows themselves.
-*   The field's text is its own while it is typed -- kept here, by the
-* field's ImGui ID, between frames, as uxoxo keeps an edit's draft -- and
+*   The field's text is its own while it is typed - kept here, by the
+* field's ImGui ID, between frames, as uxoxo keeps an edit's draft - and
 * is posted only by Enter, so a click elsewhere never adds a row half
 * named. The window answers by asking, for one frame, that the field take
 * the keyboard again: empty, for the next name, or with the name it
 * refused, to be put right.
 *   The menu bar's rest measures the menus it puts at the right end as
-* ImGui lays a menu out in a bar -- its title, and half a spacing either
-* side widened to a spacing -- so the last one's title ends as far from the
+* ImGui lays a menu out in a bar - its title, and half a spacing either
+* side widened to a spacing - so the last one's title ends as far from the
 * bar's right edge as the first menu's begins from its left. What comes
 * before them is cut short of them: a long status line ends in an ellipsis
 * rather than running under Help.
 *   THE DOCK SPACE is ImGui's, one per workspace. The first time a
 * workspace is shown, and whenever its layout is reset, it is laid out as a
 * new workspace is: the inspector down the right, the tool windows below
-* the documents, the symbols tree on the left, and the documents -- the
-* macros and the templates among them -- in the middle, the dock space's
+* the documents, the symbols tree on the left, and the documents - the
+* macros and the templates among them - in the middle, the dock space's
 * central node. Every window of the workspace is docked in its place, open
 * or not, so one opened later opens there; a place with no open window
 * takes no room. An arrangement lays the documents out afresh in that
@@ -34,7 +34,7 @@
 * its own. Its x posts its close action. A window shown for the first time
 * docks beside the window it is told to, or in the middle; it never takes
 * the keyboard by appearing, only when it is asked to come to the front or
-* the user clicks in it -- and then it says so, once. What its content
+* the user clicks in it - and then it says so, once. What its content
 * posts it passes on, with its document's id, so the event acts on the
 * document whose window it came from. Each draws its content at its own
 * zoom: its text larger or smaller, and its spacings with it, as a
@@ -293,8 +293,8 @@ void refresh_root(
 }
 
 // repoint
-//   every window docked by reference to a node -- not in it this frame, or
-// never shown at all -- docked by reference to another: a node split has
+//   every window docked by reference to a node - not in it this frame, or
+// never shown at all - docked by reference to another: a node split has
 // none of its own, and a window that points at one would float.
 void repoint(
     ImGuiID _from,
@@ -330,8 +330,8 @@ lay_out
   A dock space laid out as a new workspace's: the inspector down the right
 the whole height, the tool windows below the rest, the symbols tree on the
 left above them, and the documents in the middle, the central node. Each
-line of the layout names a window and its place -- "left", "right", "top"
-or "bottom"; "top" is the middle -- and every window named is docked there,
+line of the layout names a window and its place - "left", "right", "top"
+or "bottom"; "top" is the middle - and every window named is docked there,
 open or not, so one opened later opens in its place.
 */
 void lay_out(
@@ -377,8 +377,8 @@ void lay_out(
 /*
 arrange
   The documents laid out afresh in the dock space's middle: each taken from
-wherever it is docked and pointed at the middle, then -- for columns, rows
-or a grid -- the middle split into a cell for each, the grid's rows as even
+wherever it is docked and pointed at the middle, then - for columns, rows
+or a grid - the middle split into a cell for each, the grid's rows as even
 as their number allows and its last row the shortest. The windows that
 shared the middle with them, the macros and the templates, stay in its
 first cell. It waits until every document has been shown once, and says
@@ -417,8 +417,8 @@ bool arrange(
         return true;
     }
 
-    // every document to the middle: out of its node first -- which may
-    // merge nodes, the middle among them -- then the middle found afresh
+    // every document to the middle: out of its node first - which may
+    // merge nodes, the middle among them - then the middle found afresh
     for (ImGuiWindow* each : windows)
     {
         ImGuiDockNode* middle = central(root);
@@ -573,7 +573,7 @@ std::unordered_map<ImGuiID, space_times>& spaces()
 
 // SETTLING
 //   constant: how many frames a dock space is shown, after it appears or
-// is laid out afresh, before its nodes' sizes are its windows' -- the first
+// is laid out afresh, before its nodes' sizes are its windows' - the first
 // frames size its nodes before the windows docked in them are drawn.
 const int SETTLING = 2;
 
@@ -744,11 +744,11 @@ void draw_add_new(
 draw_add_control
   A small button as the add buttons always were. As a menu: "+ Add", and
 its press opens the menu. Split: "+" and the kind it adds, and beside it,
-flush, an arrow that opens the menu -- where a kind chosen is added, and is
+flush, an arrow that opens the menu - where a kind chosen is added, and is
 what the face adds from then on. The menu lists every kind, a group last,
 and then the colour new rows take: none, the palette's, or one colour for
 every new row, which a swatch there chooses.
-  Each part is kept where it was drawn, under the control's key -- for a
+  Each part is kept where it was drawn, under the control's key - for a
 test that drives it.
 */
 void draw_add_control(
@@ -924,11 +924,11 @@ void draw_add_control(
 /*
 draw_add_child
   One line, about as tall as a tree row, where the rows above it put their
-names: a + that opens the Add node window for the group or range -- what
-"node_action" posts, with its id -- and the field, as wide as what it holds
-or, with "fill", to the panel's edge -- or "width", the room the caller
+names: a + that opens the Add node window for the group or range - what
+"node_action" posts, with its id - and the field, as wide as what it holds
+or, with "fill", to the panel's edge - or "width", the room the caller
 gives it, + and all. "plus" and "field" say which of the two are drawn.
-Enter posts what was typed -- unless it is blank -- and lets the text go;
+Enter posts what was typed - unless it is blank - and lets the text go;
 the window asks for the keyboard back, through "focus", with "text" to
 start from. Escape clears what was typed, and leaves the field when there
 is nothing to clear.
@@ -958,7 +958,7 @@ void draw_add_child(
     }
 
     // in line with the rows above it: where their swatches and names begin
-    // -- in the tree; the grid places the field itself
+    // - in the tree; the grid places the field itself
     if (_attrs.as_bool("indent", true))
     {
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() +
@@ -1010,8 +1010,8 @@ void draw_add_child(
         return;
     }
 
-    // as wide as what it holds -- the hint, or the text and a letter more
-    // -- unless it fills the room
+    // as wide as what it holds - the hint, or the text and a letter more
+    // - unless it fills the room
     const float fitted = std::max(ImGui::CalcTextSize(ADD_CHILD_HINT).x,
                                   ImGui::CalcTextSize(text.c_str()).x +
                                       ImGui::CalcTextSize("M").x) +
@@ -1071,7 +1071,7 @@ void draw_add_child(
 /*
 draw_action_list
   The console's actions: how many so far, then a table that fills what is
-left of its window and scrolls, the latest first -- its heading kept in
+left of its window and scrolls, the latest first - its heading kept in
 view, and only the lines in view drawn, so two thousand cost what thirty
 do. The time, the sheet and the times over are faded; the action and what
 it carried are not.
@@ -1161,7 +1161,7 @@ void draw_action_list(
 
 /*
 draw_status_bar
-  A bar along the window's foot, below the dock space -- ImGui's side bar of
+  A bar along the window's foot, below the dock space - ImGui's side bar of
 the viewport, which takes its height from the room the windows are laid
 out in. What the sheet in front is on the left, faded; what the window
 last said at the right end, after a "*" while the sheet has changes: a
@@ -1277,7 +1277,7 @@ draw_menu_bar_rest
 their titles: a menu in a bar takes its title's width and two spacings,
 the title half a spacing in, and its highlight the whole of it, centred on
 the title. Their span stops half a spacing past the last title, so that
-title ends a margin and half a spacing from the bar's right edge -- as the
+title ends a margin and half a spacing from the bar's right edge - as the
 first menu's begins from its left. The leading items are drawn after the
 indent, clipped a spacing short of the first trailing menu; the trailing
 menus, where the room begins. The cursor is moved only when something is
@@ -1400,7 +1400,7 @@ std::map<std::string, std::string>& tab_drafts()
 
 // tab_place
 //   struct: where a dock node's tab bar is to be, from the node's left
-// edge: from `from` to `to` -- 0 for the node's own right edge -- its tabs
+// edge: from `from` to `to` - 0 for the node's own right edge - its tabs
 // at its left end or, `right`, its right; and whether the document asking
 // was the node's window in view, whose say wins.
 struct tab_place
@@ -1572,11 +1572,11 @@ void draw_pin(
 /*
 draw_dock_space
   The workspace's dock space, laid out first when it is new or its layout
-was reset, and its documents arranged when asked -- "window.arranged"
+was reset, and its documents arranged when asked - "window.arranged"
 posted once they are: both before the dock space is drawn, as ImGui asks
 of its dock builder. Each node's tabs are over the columns its documents
-asked for the frame before, and its pinned tabs -- "pinned", their keys a
-line each -- before the rest. It fills what is left of the window.
+asked for the frame before, and its pinned tabs - "pinned", their keys a
+line each - before the rest. It fills what is left of the window.
 */
 void draw_dock_space(
     const option_set& _attrs,
@@ -1643,9 +1643,9 @@ draw_dock_window
   The window's docking is asked for before it begins: beside the window it
 is told to dock with, or in the middle, the first time it is shown; at
 once, when it has just been moved to this workspace. A document's window
-is drawn flush, its grid scrolling itself, and marked unsaved -- a dot on
-its tab -- while its sheet has changes. Its content is drawn at its zoom,
-into a frame of its own whose events -- and the window's own -- are passed
+is drawn flush, its grid scrolling itself, and marked unsaved - a dot on
+its tab - while its sheet has changes. Its content is drawn at its zoom,
+into a frame of its own whose events - and the window's own - are passed
 on with its document's id.
 */
 void draw_dock_window(
@@ -1719,7 +1719,7 @@ void draw_dock_window(
     }
 
     // brought to the front: the keyboard given it, and its tab chosen in
-    // its dock -- ImGui chooses a docked window's tab by the keyboard only
+    // its dock - ImGui chooses a docked window's tab by the keyboard only
     // while nothing else takes it in the same frame
     const bool raised = _attrs.as_bool("focus", false);
 
@@ -1779,7 +1779,7 @@ void draw_dock_window(
 
     // its tab, docked, as its dock node laid it out this frame. A
     // double-click on it asks to rename what the window shows; a
-    // right-click, for the tab's menu -- with every tab of the node, in
+    // right-click, for the tab's menu - with every tab of the node, in
     // order
     ImGuiWindow*      window  = ImGui::GetCurrentWindow();
     const bool        docked  = ( (window->DockIsActive) &&
@@ -1869,8 +1869,8 @@ void draw_dock_window(
     }
 
     // a document's tab row: its node's tabs over the grid's columns the
-    // preferences name -- every one, the bits, the symbols column or the
-    // value column -- at their left or their right, from the next frame;
+    // preferences name - every one, the bits, the symbols column or the
+    // value column - at their left or their right, from the next frame;
     // the grid's ground up through the row either side of them. The
     // document in view has the say, where a node holds several. Where the
     // tab bar can only begin inset, it runs on to the node's right edge,
@@ -2066,8 +2066,8 @@ void draw_dock_window(
             inner.post(zooms, std::move(payload));
         }
 
-        // the keyboard taken -- by a click in it, or by its coming to the
-        // front -- said once
+        // the keyboard taken - by a click in it, or by its coming to the
+        // front - said once
         if ( (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) &&
              (in_front() != key) )
         {

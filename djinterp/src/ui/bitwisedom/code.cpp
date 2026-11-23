@@ -4,8 +4,8 @@
 * The code view, and the registration of the application's elements.
 *   The code view shows the generated header in the monospace font, lightly
 * coloured: comments muted, directives in the accent, numbers warm, and
-* every macro name in the colour of its row -- so the header reads with the
-* grid's colours -- as far as that colour reads on the view: one too near
+* every macro name in the colour of its row - so the header reads with the
+* grid's colours - as far as that colour reads on the view: one too near
 * the view's own is moved toward the text's, and a row with no fill has its
 * names in the text's colour. Only the lines in view are laid out, through
 * ImGui's list clipper; whether each line starts inside a block comment is
@@ -13,8 +13,8 @@
 *   The elements are registered with the uxoxo ImGui platform: the grid,
 * the flow and code views, the add controls, and the dock space and its
 * windows. Each renderer finds the document it draws by the "document" its
-* element carries, as each frame is drawn -- several sheets are open at
-* once -- and skips one closed since its interface was built.
+* element carries, as each frame is drawn - several sheets are open at
+* once - and skips one closed since its interface was built.
 *
 *
 * path:      /src/ui/bitwisedom/code.cpp
@@ -61,7 +61,7 @@ using uxoxo::platform::imgui_platform;
 
 // descriptor
 //   an application element's type: its archetype no backend knows, and how
-// many children it takes -- none, or any number (-1).
+// many children it takes - none, or any number (-1).
 const element_type* descriptor(
     const char* _name,
     int         _most = 0
@@ -407,7 +407,7 @@ namespace
 
 // line_note
 //   struct: what the preprocessor said of one line of a definition file:
-// that it could not read it -- the line does nothing -- or only assumed
+// that it could not read it - the line does nothing - or only assumed
 // something of it.
 struct line_note
 {
@@ -416,7 +416,7 @@ struct line_note
 };
 
 // line_notes
-//   a definition file's notes, by the line each names -- "line N: ..." --
+//   a definition file's notes, by the line each names - "line N: ..." --
 // counting from 1; a note that names no line is left out.
 std::map<int, std::vector<line_note>> line_notes(
     const model& _model,
@@ -516,7 +516,7 @@ void noted_tip(
 /*
 draw_definitions
   An imported definition file: its directives in the text's own ink, and
-the rest -- code, comments -- behind a small expander, faded when shown.
+the rest - code, comments - behind a small expander, faded when shown.
 What the preprocessor could not read is underlined in red, and does
 nothing; what it only assumed, in amber; the mouse on one says what. Edit
 turns the view into an editor of the whole text, each change a step to
@@ -926,7 +926,7 @@ uxoxo::element_template menu_bar_rest(
 /*
 register_renderers
   Each renderer finds the document it draws when the frame runs, by the id
-its element carries -- the one in front, for none -- so the blueprint it
+its element carries - the one in front, for none - so the blueprint it
 returns, rebuilt with the rest of the interface, always draws a document
 as it is now, and nothing for one closed since.
 */

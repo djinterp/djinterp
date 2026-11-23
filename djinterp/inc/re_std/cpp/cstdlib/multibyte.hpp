@@ -18,7 +18,7 @@
 *   Not UTF-8 unless the active locale says so. In the default "C" locale
 * the encoding is typically single-byte, so a UTF-8 string passed through
 * these functions is mangled rather than converted. Setting the locale is
-* the caller's job -- and setlocale lives in <clocale>, priority 117.
+* the caller's job - and setlocale lives in <clocale>, priority 117.
 *
 *   MB_CUR_MAX is a macro (and on most runtimes not even a constant --
 * it expands to a function call reading the current locale), so it has no

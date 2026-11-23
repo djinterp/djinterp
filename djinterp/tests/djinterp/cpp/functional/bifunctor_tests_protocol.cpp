@@ -4,7 +4,7 @@
 *   Section 0 + I of the bifunctor.hpp suite: the protocol and its detection
 * vocabulary.  Covers is_bifunctor (and its _v shorthand), bifunctor_first_type
 * / bifunctor_second_type (and the _t aliases, well-formed and SFINAE-safe
-* absent arms), and the C++20 Bifunctor concept -- across the two shipped
+* absent arms), and the C++20 Bifunctor concept - across the two shipped
 * instances (std::pair, DKvPair), the custom two<A,B> fixture, and several
 * non-bifunctors (a scalar, a standard class type, and a one-parameter
 * container, which is not a bifunctor).

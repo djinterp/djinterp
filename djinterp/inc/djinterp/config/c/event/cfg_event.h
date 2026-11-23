@@ -47,7 +47,7 @@
 //   Only knobs that change a STRUCT contribute. D_CFG_EVENT_QUEUE is
 // currently the only one: at 0 the dispatcher loses its queue member. Knobs
 // that add or remove functions do not change any layout and are deliberately
-// absent from this computation -- an id that moved when a statistics function
+// absent from this computation - an id that moved when a statistics function
 // was compiled out would make every build look incompatible with every other,
 // and an incompatibility signal that always fires is one nobody reads.
 //
@@ -72,14 +72,14 @@
 // ===========================================================================
 // These are the checks a single layer's config cannot make, because it cannot
 // see the layer above it. They are warnings about coherence, not about
-// syntax -- each names a combination that compiles and then disappoints.
+// syntax - each names a combination that compiles and then disappoints.
 
 // staging without a table is not a smaller build, it is an empty one.
 #if D_CFG_IS_ON(D_CFG_EVENT_REGISTRY_STAGING) &&                              \
     D_CFG_IS_OFF(D_CFG_EVENT_TABLE_ORDERED_ITERATION)
     // permitted, but worth knowing: a fused word snapshots the enabled
     // letters in WORD order, which is unaffected by iteration order. No
-    // conflict -- this block documents the non-interaction so nobody has to
+    // conflict - this block documents the non-interaction so nobody has to
     // re-derive it.
 #endif
 

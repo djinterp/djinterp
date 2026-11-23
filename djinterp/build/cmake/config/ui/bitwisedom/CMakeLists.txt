@@ -2,22 +2,22 @@
 # bitwisedom [ui]                                                 CMakeLists.txt
 #
 # bitwisedom's window: the module `bitwisedom gui` loads (GRAMMAR.md, section
-# 7), made on uxoxo and Dear ImGui outside the djinterp tree -- its sources
+# 7), made on uxoxo and Dear ImGui outside the djinterp tree - its sources
 # in inc/ui, src/ui and tests/ui.
 #   A top-level build: it builds djinterp's bitwisedom
-# (build/cmake/config/djinterp/tools/bitwisedom) -- the model, the command line
-# and their tests -- into its own binary directory, then uxoxo, which
+# (build/cmake/config/djinterp/tools/bitwisedom) - the model, the command line
+# and their tests - into its own binary directory, then uxoxo, which
 # cmake/UiRoots.cmake finds and cmake/Uxoxo.cmake checks and adds, and
 # makes:
 #
 #     bitwisedom-gui   the module, with the command line in bin/, named as
-#                     the command line looks for it -- bitwisedom-gui-
+#                     the command line looks for it - bitwisedom-gui-
 #                     linux64.so beside bitwisedom-linux64: the window on
 #                     Win32 + Direct3D 11 on Windows, GLFW + OpenGL 3
 #                     elsewhere (BITWISEDOM_HOST chooses)
 #
-# and, under BITWISEDOM_BUILD_TESTS, ui_smoke -- the window headless, through
-# ImGui's null backend -- and three runs of the command line that find, load
+# and, under BITWISEDOM_BUILD_TESTS, ui_smoke - the window headless, through
+# ImGui's null backend - and three runs of the command line that find, load
 # and run the module as a user's would, with no window opened: its help, its
 # version, and an example it does not know, each held to its status and its
 # words.
@@ -188,7 +188,7 @@ if(BITWISEDOM_BUILD_TESTS)
     # the module found beside the command line, loaded and run, with no
     # window opened: its help; its version; a SHEET it refuses, by
     # --sheets=refuse, as the commands refuse one (reporting, the default,
-    # would open the window); and a --sheets it does not know -- each held
+    # would open the window); and a --sheets it does not know - each held
     # to its status and its words by the kit's d_cli_add_test
     d_cli_add_test(gui_help
         COMMAND bitwisedom gui --help

@@ -2,7 +2,7 @@
 * djinterp [cpp][filesys]                                         file_tests.hpp
 *
 *   Unit tests for the djinterp C++ filesystem layer (core/filesys/file_*.hpp),
-* authored against the DTest framework's native C++ surface -- test_builder --
+* authored against the DTest framework's native C++ surface - test_builder --
 * rather than the C ABI bridge the c/filesys suite uses. Same framework underneath;
 * this side simply speaks to it directly, which is what makes deferred
 * predicates and RAII-aware cases possible.
@@ -11,7 +11,7 @@
 * ------------------
 *   The C++ layer only: djinterp::path, file_status, file, directory, process,
 * space_info, error, and the free functions over them. The C modules beneath are
-* exercised by the c/filesys suite and are assumed working here -- when a case
+* exercised by the c/filesys suite and are assumed working here - when a case
 * fails in both suites, the C one names the real fault.
 *
 * AUTHORING MODEL
@@ -20,7 +20,7 @@
 * module, then a block per type or function, then a leaf per behaviour,
 * conjoining clauses onto the leaf with assert_. Clauses are deferred: assert_
 * stores the predicate and the forest is evaluated later, in one pass, by run().
-* That is the whole reason to prefer the native surface -- construction and
+* That is the whole reason to prefer the native surface - construction and
 * evaluation are separate phases, so a case is a self-contained scenario rather
 * than a sequence of side effects on shared state.
 *
@@ -53,9 +53,9 @@
 // std
 #include <cstddef>
 // djinterp
-// djinterp -- the layer under test (bare: the leaf adds inc/djinterp/core/fs)
+// djinterp - the layer under test (bare: the leaf adds inc/djinterp/core/fs)
 #include "../../../../inc/djinterp/cpp/filesys/dfile.hpp"
-// djinterp -- the test framework's native C++ builder (full-from-inc)
+// djinterp - the test framework's native C++ builder (full-from-inc)
 #include "djinterp/cpp/modules/test/test_builder.hpp"
 
 // T_PRINT, T_SINK, T_COPY_TO, T_FALSE, T_MISSING_STATUS_OK
@@ -156,21 +156,21 @@ bool fs_test_contents_are(
 
 // fs_test_exists
 //   function: true iff _p names something on disk, answered with a raw stat
-// rather than djinterp::exists -- so a case that VERIFIES a removal does not
+// rather than djinterp::exists - so a case that VERIFIES a removal does not
 // depend on the query it is trying to corroborate.
 bool fs_test_exists(
     const path& _p
 );
 
 // fs_test_invalid_path
-//   function: a path in the invalid state -- valid() false -- produced by
+//   function: a path in the invalid state - valid() false - produced by
 // moving one away. This is the portable way to reach the EINVAL branch every
 // free function guards with, which allocation failure alone could not reach in
 // a test.
 path fs_test_invalid_path(void);
 
 // fs_test_symlinks_creatable
-//   function: cached probe -- can this process actually CREATE a symlink here?
+//   function: cached probe - can this process actually CREATE a symlink here?
 // The API being compiled in does not imply the privilege to use it (notably on
 // Windows). Always false where links are not available at all.
 bool fs_test_symlinks_creatable(void);
@@ -180,64 +180,64 @@ bool fs_test_symlinks_creatable(void);
  * SECTION BUILDERS  (one per module; each populates one test module)
  *****************************************************************************/
 
-// I.     error          -- the errno carrier the whole layer reports through
+// I.     error          - the errno carrier the whole layer reports through
 void tests_fs_error(
     suite_type& _suite
 );
 
-// II.    path           -- the lexical path value type
+// II.    path           - the lexical path value type
 void tests_fs_path(
     suite_type& _suite
 );
 
-// III.   file_status    -- one stat, many questions (+ the free queries)
+// III.   file_status    - one stat, many questions (+ the free queries)
 void tests_fs_status(
     suite_type& _suite
 );
 
-// IV.    file           -- the RAII FILE* handle
+// IV.    file           - the RAII FILE* handle
 void tests_fs_stream(
     suite_type& _suite
 );
 
-// V.     directory      -- the RAII directory handle and its range-for
+// V.     directory      - the RAII directory handle and its range-for
 void tests_fs_dir(
     suite_type& _suite
 );
 
-// VI.    operations     -- remove / remove_file / rename / copy_file
+// VI.    operations     - remove / remove_file / rename / copy_file
 void tests_fs_ops(
     suite_type& _suite
 );
 
-// VII.   links          -- create_symlink / read_symlink / is_symlink
+// VII.   links          - create_symlink / read_symlink / is_symlink
 void tests_fs_link(
     suite_type& _suite
 );
 
-// VIII.  temporaries    -- temp_directory_path
+// VIII.  temporaries    - temp_directory_path
 void tests_fs_temp(
     suite_type& _suite
 );
 
-// IX.    capacity       -- space_info / space
+// IX.    capacity       - space_info / space
 void tests_fs_space(
     suite_type& _suite
 );
 
-// X.     recursion      -- walk / remove_all
+// X.     recursion      - walk / remove_all
 void tests_fs_recursive(
     suite_type& _suite
 );
 
-// XI.    process        -- the RAII command pipe.
+// XI.    process        - the RAII command pipe.
 //   Always declared; the definition is compiled out where the platform has no
 // pipes, and the runner splices it in only when it is there.
 void tests_fs_pipe(
     suite_type& _suite
 );
 
-// XII.   expected       -- the re_std::expected return surface (C++11).
+// XII.   expected       - the re_std::expected return surface (C++11).
 //   As above, but gated on the library feature rather than the platform.
 void tests_fs_expected(
     suite_type& _suite

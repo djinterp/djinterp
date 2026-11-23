@@ -1,12 +1,12 @@
 #!/bin/sh
-# regress.sh -- the interpreter against outputs fixed in advance.
+# regress.sh - the interpreter against outputs fixed in advance.
 #
 # diff_awk.sh asks whether dawk agrees with the awk installed; that is evidence
 # and not authority, and it says nothing where the two are wrong together.
 # Each case here is a defect the one-true-awk T.* suite found, with the output
 # POSIX gives, worked out by hand, so each stays fixed whatever awk is on the
-# system. A case is a name, the output wanted -- its last line the exit
-# status -- and dawk's arguments; standard input is $INPUT, through printf %b.
+# system. A case is a name, the output wanted - its last line the exit
+# status - and dawk's arguments; standard input is $INPUT, through printf %b.
 #
 #   sh tests/djinterp/tools/dawk/regress.sh [build/dawk]
 DAWK=${1:-build/dawk}
@@ -35,7 +35,7 @@ nl='
 '
 tab=$(printf '\t')
 
-# -- the empty statement is a body, not a terminator before one -------------
+# - the empty statement is a body, not a terminator before one -------------
 check 'while (...) ;' "4${nl}status 0" \
       'BEGIN { i = 0; while (i++ < 3) ; print i }'
 check 'for (...) ;' "3${nl}status 0" \
@@ -45,7 +45,7 @@ check 'if (...) ; else' "else${nl}end${nl}status 0" \
 check 'for (...) on one line, ; on the next' "8${nl}status 0" \
       "$(printf 'BEGIN {\n    for (k = 10; k > 8; --k)\n        ;\n    print k\n}')"
 
-# -- sub and gsub ------------------------------------------------------------
+# - sub and gsub ------------------------------------------------------------
 check 'gsub on a string constant is a syntax error' \
       "-:1:9: syntax error: gsub's third argument must be a variable, field or array element${nl}status 2" \
       'BEGIN { gsub(/ana/, "anda", "banana") }'
@@ -56,11 +56,11 @@ check 'gsub: no empty match where a match ended' "-a-c- X 1${nl}status 0" \
 check 'sub evaluates its target subscript once' "2 xbx yay${nl}status 0" \
       'BEGIN { i = 1; a[1] = "xax"; a[2] = "yay"; sub(/a/, "b", a[i++]); print i, a[1], a[2] }'
 
-# -- an lvalue's subscript is evaluated once ---------------------------------
+# - an lvalue's subscript is evaluated once ---------------------------------
 check 'x[++n] += 1 and a[i++]++' "1 2 2 1${nl}status 0" \
       'BEGIN { n = 0; x[++n] += 2; i = 1; a[i++]++; print n, x[1], i, a[1] }'
 
-# -- RS="" paragraph mode ----------------------------------------------------
+# - RS="" paragraph mode ----------------------------------------------------
 INPUT='a b\nc d\n\ne f\n'
 check 'RS="": the last record keeps no newline' \
       "1: [a b${nl}c d]${nl}2: [e f]${nl}status 0" \
@@ -70,17 +70,17 @@ check 'RS="": a newline separates fields whatever FS is' "4 c${nl}status 0" \
       'BEGIN { RS = ""; FS = ":" } { print NF, $3 }'
 INPUT=''
 
-# -- $0 is rebuilt with the OFS of the last field assignment -----------------
+# - $0 is rebuilt with the OFS of the last field assignment -----------------
 check 'OFS changed after a field assignment' \
       "a:b:3333:d${nl}a<>b<>3333<>x${nl}status 0" \
       'BEGIN { OFS = ":"; $0 = "a b c d"; $3 = "3333"; OFS = "<>"; print; $4 = "x"; print }'
 
-# -- number to text is not cut short ------------------------------------------
+# - number to text is not cut short ------------------------------------------
 check 'CONVFMT and OFMT wider than 63 characters' \
       "202${nl}$(printf '1.25%068d' 0)${nl}status 0" \
       'BEGIN { CONVFMT = "%.200f"; s = 1.25 ""; print length(s); OFMT = "%.70f"; print 1.25 }'
 
-# -- printf and sprintf ------------------------------------------------------
+# - printf and sprintf ------------------------------------------------------
 check 'sprintf: a wide field is not cut at 511 bytes' "600${nl}status 0" \
       'BEGIN { print length(sprintf("%600s", "x")) }'
 check 'sprintf: a long %s is not cut at 511 bytes' "702${nl}status 0" \
@@ -95,7 +95,7 @@ check 'printf %d and %x past 2^64' \
       "18446744073709551616 18446744073709551616${nl}status 0" \
       'BEGIN { printf "%d %x\n", 2^64, 2^64 }'
 
-# -- string literals and command-line assignments ----------------------------
+# - string literals and command-line assignments ----------------------------
 check 'a backslash-newline continues a string literal' "AB${nl}status 0" \
       "$(printf 'BEGIN { print "A\\\nB" }')"
 check '-v decodes escapes' "a${tab}b${nl}status 0" \
@@ -111,7 +111,7 @@ check '-v without = is a usage error' \
       "dawk: invalid -v option argument: x${nl}status 2" \
       -v x 'BEGIN { print x }'
 
-# -- program files -----------------------------------------------------------
+# - program files -----------------------------------------------------------
 printf 'BEGIN { print "begin" }\n' > "$work/one.awk"
 printf 'END { print "end" }\n' > "$work/two.awk"
 printf 'BEGIN {\n  x = 1\n' > "$work/open.awk"
@@ -127,11 +127,11 @@ check '-f - reads the program from standard input' \
       "from stdin${nl}status 0" -f -
 INPUT=''
 
-# -- split -------------------------------------------------------------------
+# - split -------------------------------------------------------------------
 check 'split with a one-byte pattern splits as a pattern' "3 4${nl}status 0" \
       'BEGIN { print split("a  b", x, / /), split("a.b", y, /./) }'
 
-# -- builtin arity, and diagnostics that name what they are about ------------
+# - builtin arity, and diagnostics that name what they are about ------------
 check 'a builtin called with too few arguments' \
       "-:1:9: syntax error: atan2 called with too few arguments${nl}status 2" \
       'BEGIN { atan2(1) }'
@@ -150,7 +150,7 @@ check 'a field numbered by NaN is refused' \
       '{ print $(log(-1)) }'
 INPUT=''
 
-# -- a statement ends at a newline, a ;, or a brace -------------------------
+# - a statement ends at a newline, a ;, or a brace -------------------------
 check 'two statements with nothing between' \
       "-:1:17: syntax error: expected a newline or ; before print${nl}status 2" \
       'BEGIN { print 1 print 2 }'
@@ -159,7 +159,7 @@ check 'return and exit take a signed value' "-1 2${nl}status 254" \
 check 'a statement may follow a block on its line' "3${nl}status 0" \
       'BEGIN { while (i++ < 2) { } print i }'
 
-# -- fflush, as POSIX.1-2024 has it ----------------------------------------
+# - fflush, as POSIX.1-2024 has it ----------------------------------------
 check 'fflush: 0 for all or standard output, -1 for a name not open' \
       "a${nl}0 -1 0${nl}status 0" \
       'BEGIN { print "a"; print fflush(), fflush("nothere"), fflush("/dev/stdout") }'
@@ -167,7 +167,7 @@ check 'fflush takes one argument at most' \
       "-:1:9: syntax error: fflush called with too many arguments${nl}status 2" \
       'BEGIN { fflush(1, 2) }'
 
-# -- an exit in a function ends the statement that called it ----------------
+# - an exit in a function ends the statement that called it ----------------
 check 'exit f(): the status the exit within f set' "status 1" \
       'function f() { exit 1 } BEGIN { exit f() }'
 check 'print f(): nothing printed once f exits' "in${nl}end${nl}status 3" \
@@ -179,7 +179,7 @@ check 'an exit in a pattern ends the input, and runs END' "end 1${nl}status 9" \
       'function f() { exit 9 } f() { print "no" } END { print "end", NR }'
 INPUT=''
 
-# -- host functions: an extension's, behind -x --------------------------------
+# - host functions: an extension's, behind -x --------------------------------
 check 'without -x, an extension function is undefined' \
       "dawk: call to an undefined function: story_slides${nl}status 2" \
       'BEGIN { story_slides() }'
@@ -205,7 +205,7 @@ check 'a host function that refuses returns, and says why' \
       "-1 no driver reads this kind of file: x.txt${nl}status 0" \
       -x story 'BEGIN { print story_open("x.txt"), story_error() }'
 
-# -- output that cannot be written is an error -------------------------------
+# - output that cannot be written is an error -------------------------------
 (trap '' PIPE; "$DAWK" 'BEGIN { print "hi" }' 2>/dev/null
  echo $? > "$work/status") | :
 status=$(cat "$work/status")

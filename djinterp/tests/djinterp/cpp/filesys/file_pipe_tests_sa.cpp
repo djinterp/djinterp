@@ -6,7 +6,7 @@
 * to the other suites, same harness and same three rules.
 *
 *   Unlike the ISO-C-pure suites, this one necessarily runs real shell commands
-* (echo, exit, cat, false) -- that is the facility under test. Every command
+* (echo, exit, cat, false) - that is the facility under test. Every command
 * here is a fixed literal, which is also the only safe way to call the class
 * (see the security note in file_pipe.hpp); nothing is built from input.
 *
@@ -335,7 +335,7 @@ struct dj_test_object* d_tests_proc_write(void)
 /*
 d_tests_proc_failure
   A command that runs and fails, or one that cannot be found, is reported as an
-EXIT STATUS -- not as a close error. `false` exits 1; a missing command is the
+EXIT STATUS - not as a close error. `false` exits 1; a missing command is the
 shell's 127.
 */
 static
@@ -414,7 +414,7 @@ struct dj_test_object* d_tests_proc_lifecycle(void)
 
 /*
 d_tests_proc_ownership
-  The move handoff -- C++11+, ADDITIVE. Non-copyability is compile-time (deleted
+  The move handoff - C++11+, ADDITIVE. Non-copyability is compile-time (deleted
 copy ops) and is verified by a negative-compile check outside this file.
 */
 static

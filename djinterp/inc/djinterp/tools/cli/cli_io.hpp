@@ -4,7 +4,7 @@
 * The command-line kit's C++ face: streams, terminals and files.
 *   The C calls of cli_io.h for C++: the standard streams as sinks, whether a
 * stream is a terminal and how wide, whether it takes colour, and a file read
-* whole or written whole -- `-` the standard stream either way -- with
+* whole or written whole - `-` the standard stream either way - with
 * std::string for the bytes. A file call returns 0 or an errno value, as the
 * C call does, for d_cli_file_error or program::file_error to report.
 *

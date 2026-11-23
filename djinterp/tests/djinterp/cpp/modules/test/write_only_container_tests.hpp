@@ -82,7 +82,7 @@
 #include <cstdio>
 #include <type_traits>
 // djinterp
-// -- (part 1) mode-gated includes ------------------------------------------
+// - (part 1) mode-gated includes ------------------------------------------
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
 #include <array>
@@ -190,11 +190,11 @@ struct wo_void_help
     template<typename _T>                                                     \
     struct _name<_T, D_WO_VOID(decltype(_expr))> : std::true_type {}
 
-// -- value-free metadata, which must be PRESENT ----------------------------
+// - value-free metadata, which must be PRESENT ----------------------------
 D_WO_DETECT(wo_has_size,   std::declval<const _T&>().size());
 D_WO_DETECT(wo_has_empty,  std::declval<const _T&>().empty());
 
-// -- the reading surface, which must be ABSENT -----------------------------
+// - the reading surface, which must be ABSENT -----------------------------
 D_WO_DETECT(wo_has_sub,    std::declval<_T&>()[0]);
 D_WO_DETECT(wo_has_front,  std::declval<_T&>().front());
 D_WO_DETECT(wo_has_back,   std::declval<_T&>().back());
@@ -204,14 +204,14 @@ D_WO_DETECT(wo_has_end,    std::declval<_T&>().end());
 D_WO_DETECT(wo_has_cbegin, std::declval<const _T&>().cbegin());
 D_WO_DETECT(wo_has_cend,   std::declval<const _T&>().cend());
 
-// -- the append surface, which must be PRESENT where the container has it --
+// - the append surface, which must be PRESENT where the container has it --
 D_WO_DETECT(wo_has_push_back,
     std::declval<_T&>().push_back(std::declval<typename _T::value_type>()));
 D_WO_DETECT(wo_has_emplace_back,
     std::declval<_T&>().emplace_back(std::declval<typename _T::value_type>()));
 D_WO_DETECT(wo_has_clear,     std::declval<_T&>().clear());
 
-// -- position-dependent edits, which must be ABSENT ------------------------
+// - position-dependent edits, which must be ABSENT ------------------------
 D_WO_DETECT(wo_has_push_front,
     std::declval<_T&>().push_front(std::declval<typename _T::value_type>()));
 D_WO_DETECT(wo_has_pop_back,  std::declval<_T&>().pop_back());
@@ -381,7 +381,7 @@ struct wo_probe_type
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- (part 2) declarations - visible in BOTH modes -------------------------
+// - (part 2) declarations - visible in BOTH modes -------------------------
 
 // I.   CONSTRUCTION   (write_only_container_tests_construction.cpp)
 bool tests_write_only_default_construction();
@@ -451,7 +451,7 @@ bool tests_write_only_is_disjoint_from_read_only();
 bool tests_write_only_detection_battery_is_sound();
 
 
-// -- (part 3) the spec provider - spec mode only ---------------------------
+// - (part 3) the spec provider - spec mode only ---------------------------
 #ifdef DTEST_SPEC_MODE
 
 // write_only_container_spec

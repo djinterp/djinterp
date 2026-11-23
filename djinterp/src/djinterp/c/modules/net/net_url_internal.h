@@ -445,7 +445,7 @@ void d_net_url_put_tail(
 
 // 4.1    Web schemes
 //------------------------------------------------------------------------------
-// d_net_url_internal_is_web_scheme -- whether a scheme's empty path is "/"
+// d_net_url_internal_is_web_scheme - whether a scheme's empty path is "/"
 // (RFC 3986, 6.2.3; RFC 9110, 4.2): http, https, ws, and wss
 bool d_net_url_internal_is_web_scheme(
     struct dj_pack_text _scheme

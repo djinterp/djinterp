@@ -43,7 +43,7 @@ bool concepts_tests_tuple()
     using fixtures::trivial_class;
 
     // -------------------------------------------------------------------
-    // is_tuple_c -- std::tuple specializations only, cv-stripped
+    // is_tuple_c - std::tuple specializations only, cv-stripped
     // -------------------------------------------------------------------
 
     DT_CONCEPT    (is_tuple_c<empty_tuple_t>);
@@ -68,7 +68,7 @@ bool concepts_tests_tuple()
     DT_NOT_CONCEPT((is_tuple_c<std::array<int, 3>>));
 
     // -------------------------------------------------------------------
-    // tuple_like -- broader: anything with tuple_size / tuple_element
+    // tuple_like - broader: anything with tuple_size / tuple_element
     // -------------------------------------------------------------------
 
     DT_CONCEPT    (tuple_like<empty_tuple_t>);
@@ -87,7 +87,7 @@ bool concepts_tests_tuple()
     DT_CONCEPT(!is_tuple_c<empty_tuple_t>         || tuple_like<empty_tuple_t>);
 
     // -------------------------------------------------------------------
-    // homogeneous_tuple -- all elements same type
+    // homogeneous_tuple - all elements same type
     // -------------------------------------------------------------------
 
     DT_CONCEPT    (homogeneous_tuple<homogeneous_tuple_t>);
@@ -104,7 +104,7 @@ bool concepts_tests_tuple()
     DT_NOT_CONCEPT(homogeneous_tuple<int>);                      // not a tuple
 
     // -------------------------------------------------------------------
-    // empty_tuple -- size 0
+    // empty_tuple - size 0
     // -------------------------------------------------------------------
 
     DT_CONCEPT    (empty_tuple<empty_tuple_t>);
@@ -114,7 +114,7 @@ bool concepts_tests_tuple()
     DT_NOT_CONCEPT(empty_tuple<int>);
 
     // -------------------------------------------------------------------
-    // nonempty_tuple -- size > 0
+    // nonempty_tuple - size > 0
     // -------------------------------------------------------------------
 
     DT_CONCEPT    (nonempty_tuple<single_element_tuple_t>);
@@ -130,7 +130,7 @@ bool concepts_tests_tuple()
               || (empty_tuple<heterogeneous_tuple_t> != nonempty_tuple<heterogeneous_tuple_t>));
 
     // -------------------------------------------------------------------
-    // single_element_tuple -- size 1
+    // single_element_tuple - size 1
     // -------------------------------------------------------------------
 
     DT_CONCEPT    (single_element_tuple<single_element_tuple_t>);

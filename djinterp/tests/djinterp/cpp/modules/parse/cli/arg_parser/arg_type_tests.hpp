@@ -4,13 +4,13 @@
 * The argument parser's C++ type suite: C++ types as option values, through
 * the C++ face's type_traits.
 *   The C type suite holds the C library's descriptors and conversions to
-* CLI11 value by value; this one holds the face's choice of them -- every
+* CLI11 value by value; this one holds the face's choice of them - every
 * kind of type CLI11 binds, each converted from what a parse gives and
 * written as help and defaults show it: the built-in numbers, truth values
 * and characters, text, the standard containers and maps, pairs, tuples,
 * arrays and complex numbers, enumerations, types made from text or
 * numbers, streamed types, optional values, string views, paths and wide
-* text -- their sections CLI11's own transcripts of the same definitions
+* text - their sections CLI11's own transcripts of the same definitions
 * (the suite's CASES section, compiled against CLI11 by
 * tools/cppref/cppref.py). Then the face's own: its descriptors, convert and
 * to_text called directly, traits of the caller's own, and where the face

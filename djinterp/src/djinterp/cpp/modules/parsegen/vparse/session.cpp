@@ -383,7 +383,7 @@ std::size_t session::size() const
 
 /*
 session::source
-  The text of the grammar that is loaded -- of the last load that succeeded,
+  The text of the grammar that is loaded - of the last load that succeeded,
 not of the last one attempted.
 */
 const std::string& session::source() const

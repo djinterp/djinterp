@@ -47,10 +47,10 @@
 *                            map_is_<identity>
 *
 * DEPENDENCIES:
-*   djinterp.hpp               -- namespace macros, clean_t
-*   type_traits.hpp            -- detection idiom, conjunction, void_t
-*   container_traits.hpp       -- has_key_type, has_mapped_type, etc.
-*   map.hpp                    -- DMapOverlayStrategy, vocabulary types
+*   djinterp.hpp               - namespace macros, clean_t
+*   type_traits.hpp            - detection idiom, conjunction, void_t
+*   container_traits.hpp       - has_key_type, has_mapped_type, etc.
+*   map.hpp                    - DMapOverlayStrategy, vocabulary types
 *
 *
 * path:      /inc/djinterp/cpp/container/map/map_traits.hpp

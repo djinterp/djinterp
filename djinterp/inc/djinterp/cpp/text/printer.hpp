@@ -6,10 +6,10 @@
 * `xml.hpp` (a name accessor plus an iterable child accessor) and emits a
 * serialised, optionally indented form to a caller-supplied sink. It is
 * "common" in the sense the previous design notes intended: the parts
-* that do not vary by format -- tree traversal, indentation, the output
-* destination, and the rendering options -- live here once, while the
-* parts that DO vary by format -- escaping rules and the empty-element
-* convention -- are supplied by a `Policy` (default `DXmlPrintPolicy`).
+* that do not vary by format - tree traversal, indentation, the output
+* destination, and the rendering options - live here once, while the
+* parts that DO vary by format - escaping rules and the empty-element
+* convention - are supplied by a `Policy` (default `DXmlPrintPolicy`).
 *
 *   GENERIC OVER THE NODE PROTOCOL:
 *   The printer never names a concrete node class. Every read goes through
@@ -24,9 +24,9 @@
 *   DESTINATION:
 *   The sink is a template parameter whose only requirement is to be
 * callable as `sink(const char*, std::size_t)`. writer.hpp provides three
-* -- `DStringSink` (append into an `DXmlString`), `DStreamSink` (write
+* - `DStringSink` (append into an `DXmlString`), `DStreamSink` (write
 * into a `std::ostream`) and `DOutputStreamSink` (write into any output
-* stream) -- so file, console, string, and in-memory buffer destinations are
+* stream) - so file, console, string, and in-memory buffer destinations are
 * all just different sinks, not different printers. Any callable with that
 * signature (including a functional-style consumer) works directly.
 *   Those three write through an output stream (cpp/util/output), which
@@ -133,7 +133,7 @@ NS_DJINTERP
 // DPrintOptions
 //   struct: the format-agnostic rendering knobs. `indent` is the string
 // emitted once per nesting level, `newline` is the line terminator, and
-// `pretty` gates both -- when false the document is emitted compactly on a
+// `pretty` gates both - when false the document is emitted compactly on a
 // single line and `indent` / `newline` are ignored.
 struct DPrintOptions
 {
@@ -156,7 +156,7 @@ struct DPrintOptions
 ///////////////////////////////////////////////////////////////////////////////
 
 //   The output sinks (`DStringSink`, `DStreamSink`, `DOutputStreamSink`) live
-// in `writer.hpp` -- the generic IO foundation this header includes -- because
+// in `writer.hpp` - the generic IO foundation this header includes - because
 // a sink is an IO concept, not a printing-a-document concept. They remain in
 // the `djinterp` namespace, so existing references (e.g. in `node_to_string`
 // below) are unchanged. Any callable `(const char*, std::size_t)` is equally
@@ -332,7 +332,7 @@ NS_END  // internal
 ///////////////////////////////////////////////////////////////////////////////
 
 // DElementForm
-//   enum: how an element is closed -- the one place markup dialects diverge.
+//   enum: how an element is closed - the one place markup dialects diverge.
 //     paired       <name>...</name>   (or <name></name> when empty)
 //     self_closing <name/>            (XML empty elements)
 //     voidlike     <name>             (HTML void elements: no content, no
@@ -351,12 +351,12 @@ enum class DElementForm
 // `form_of(name, is_empty) -> DElementForm`. Methods may be static or
 // instance (they are called on an instance). A policy can be a TYPE chosen at
 // compile time (zero cost, inlined) or, via `DBoxedPrintPolicy` below, a
-// VALUE chosen at runtime -- both satisfy the same contract and plug into the
+// VALUE chosen at runtime - both satisfy the same contract and plug into the
 // same `DDocumentPrinter`.
 
 
 // DXmlPrintPolicy
-//   struct: the default format policy -- XML serialisation rules. Supplies
+//   struct: the default format policy - XML serialisation rules. Supplies
 // text and attribute escaping and the empty-element convention. Methods
 // are stateless and callable on an instance, so a custom policy may use
 // either static or non-static members. Swap this parameter to retarget the
@@ -433,12 +433,12 @@ struct DXmlPrintPolicy
 
 
 // DBoxedPrintPolicy
-//   class: a type-erased print policy -- the RUNTIME face of the contract.
+//   class: a type-erased print policy - the RUNTIME face of the contract.
 // It holds any concrete policy behind a small interface and forwards
 // `escape_text` / `escape_attribute` / `form_of` through it, so the format
 // can be chosen as a value at runtime. Because it satisfies the same contract
 // as a concrete policy, `DDocumentPrinter<Sink, DBoxedPrintPolicy>` and
-// `render` accept it unchanged -- the only difference from a compile-time
+// `render` accept it unchanged - the only difference from a compile-time
 // policy is one indirection per call. Uses the same shared concept/model
 // erasure as `DBoxedConsumer` / `DBoxedAccumulator`.
 class DBoxedPrintPolicy
@@ -477,7 +477,7 @@ public:
     }
 
 private:
-    // concept_t -- the erased policy interface.
+    // concept_t - the erased policy interface.
     struct concept_t
     {
         virtual
@@ -498,7 +498,7 @@ private:
         ) const = 0;
     };
 
-    // model_t -- a concrete policy wearing the interface.
+    // model_t - a concrete policy wearing the interface.
     template<typename Policy>
     struct model_t final : concept_t
     {
@@ -783,7 +783,7 @@ private:
     }
 
     // m_print_element
-    //   function: serialise an element node -- open tag, attributes, and
+    //   function: serialise an element node - open tag, attributes, and
     // either a self-close, inline text, or an indented child block.
     template<typename Node>
     void
@@ -823,7 +823,7 @@ private:
 
         if (_form == DElementForm::voidlike)
         {
-            // void element (HTML <br>, <img>, ...): open tag only -- no
+            // void element (HTML <br>, <img>, ...): open tag only - no
             // content and no closing tag. Any stray children/text are dropped.
             m_put(">");
             m_newline();
@@ -1010,7 +1010,7 @@ D_NODISCARD inline DXmlString node_to_string(
 // render
 //   function: serialise `_node` to a string with an explicit policy. The
 // policy may be a concrete type (compile-time, zero cost) or a
-// `DBoxedPrintPolicy` (runtime-chosen) -- the same call covers both. This is
+// `DBoxedPrintPolicy` (runtime-chosen) - the same call covers both. This is
 // the seam where compile-time and runtime format selection meet.
 template<typename Node,
          typename Policy>
@@ -1037,12 +1037,12 @@ D_NODISCARD inline DXmlString render(
 
 // DFilePrinter
 //   class: a byte sink targeting a file, with a convenience to print a whole
-// document into it. As a sink it is text-agnostic -- `operator()(const char*,
-// std::size_t)` writes raw bytes -- so it composes with anything that writes
+// document into it. As a sink it is text-agnostic - `operator()(const char*,
+// std::size_t)` writes raw bytes - so it composes with anything that writes
 // to a sink. `print(node)` serialises a document to the file via
 // `DDocumentPrinter`. The file is opened in binary mode through an output
-// stream (c/filesys underneath), which keeps the first failure -- a file that
-// would not open, a write that did not land -- so good(), print() and close()
+// stream (c/filesys underneath), which keeps the first failure - a file that
+// would not open, a write that did not land - so good(), print() and close()
 // all report it; close() also reports the last flush, as fclose does.
 class DFilePrinter
 {
@@ -1055,7 +1055,7 @@ public:
         (void)m_stream.open_file(_path.c_str());
     }
 
-    // operator() -- the sink face: write raw bytes to the file.
+    // operator() - the sink face: write raw bytes to the file.
     void operator()(
         const char* _data,
         std::size_t _size
@@ -1066,7 +1066,7 @@ public:
         return;
     }
 
-    // print -- serialise a document (any node-protocol type) into the file;
+    // print - serialise a document (any node-protocol type) into the file;
     // true while every byte so far has reached it.
     template<typename Node>
     bool print(
@@ -1082,20 +1082,20 @@ public:
         return m_stream.is_valid();
     }
 
-    // good -- whether the file opened and every write so far reached it.
+    // good - whether the file opened and every write so far reached it.
     D_NODISCARD bool good() const D_NOEXCEPT
     {
         return m_stream.is_valid();
     }
 
-    // close -- flushes and closes the file; true only when nothing failed,
+    // close - flushes and closes the file; true only when nothing failed,
     // the final flush included. The destructor closes too, unreported.
     bool close() D_NOEXCEPT
     {
         return m_stream.close();
     }
 
-    // stream -- the stream the printer writes through, for its status.
+    // stream - the stream the printer writes through, for its status.
     D_NODISCARD const DOutputStream& stream() const D_NOEXCEPT
     {
         return m_stream;

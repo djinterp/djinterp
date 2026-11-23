@@ -183,32 +183,32 @@ XIV.  LOGICAL OPERATORS
 #include "./conjunction.hpp"
 #include "./disjunction.hpp"
 #include "./negation.hpp"
-// -- swappable --------------------------------------------------------------
+// - swappable --------------------------------------------------------------
 #include "./is_swappable.hpp"
 #include "./is_swappable_with.hpp"
 #include "./is_nothrow_swappable.hpp"
 #include "./is_nothrow_swappable_with.hpp"
-// -- invocable --------------------------------------------------------------
+// - invocable --------------------------------------------------------------
 #include "./invoke_result.hpp"
 #include "./is_invocable.hpp"
 #include "./is_invocable_r.hpp"
 #include "./is_nothrow_invocable.hpp"
 #include "./is_nothrow_invocable_r.hpp"
 #include "./result_of.hpp"
-// -- conversion -------------------------------------------------------------
+// - conversion -------------------------------------------------------------
 #include "./is_nothrow_convertible.hpp"
-// -- common reference -------------------------------------------------------
+// - common reference -------------------------------------------------------
 #include "./basic_common_reference.hpp"
 #include "./common_reference.hpp"
-// -- layout and interconvertibility -----------------------------------------
+// - layout and interconvertibility -----------------------------------------
 #include "./is_layout_compatible.hpp"
 #include "./is_corresponding_member.hpp"
 #include "./is_pointer_interconvertible_base_of.hpp"
 #include "./is_pointer_interconvertible_with_class.hpp"
-// -- reference binding ------------------------------------------------------
+// - reference binding ------------------------------------------------------
 #include "./reference_constructs_from_temporary.hpp"
 #include "./reference_converts_from_temporary.hpp"
-// -- storage (both deprecated in C++23; surfaced for existing callers) -------
+// - storage (both deprecated in C++23; surfaced for existing callers) -------
 #include "./aligned_storage.hpp"
 #include "./aligned_union.hpp"
 

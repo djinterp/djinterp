@@ -6,7 +6,7 @@
 #   run_rules.cmake reads a fixture through the harness, which builds the
 # tokens of one file and nothing more. The gates read the tree through
 # dcheck, which hangs every builder's node under the file beside the tokens
-# -- banner, guard, include-block, delimiter, text -- and runs the cascade.
+# - banner, guard, include-block, delimiter, text - and runs the cascade.
 # A selector can tell the two trees apart, and one that does passes its
 # fixture and fails in the gate. So dcheck is run over each sheet's fixtures
 # as the gate runs it over the tree, and what it lists, with the severity

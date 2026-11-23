@@ -6,7 +6,7 @@
 * the nonexistent-path check, the file found on a default path, the
 * permission and size checks, the names whose answer is the system's own --
 * symbolic links, FIFOs and modes on POSIX, separators and case on Windows
-* -- a name that is UTF-8, what cannot be made, what each completes as, and
+* - a name that is UTF-8, what cannot be made, what each completes as, and
 * the checks on options inside a parse.
 *   Each section makes the files it asks about in a scratch directory
 * (arg_tests_files.h), which it removes when it is done.

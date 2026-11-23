@@ -79,7 +79,7 @@ IV.   VERIFICATION  (test_compress_tests_verification.cpp)
 #include <string>
 #include <vector>
 // djinterp
-// -- (part 1) mode-gated includes ------------------------------------------
+// - (part 1) mode-gated includes ------------------------------------------
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
 #include "../../../../../../inc/djinterp/cpp/modules/test/compress/test_compress.hpp"
@@ -372,7 +372,7 @@ bool tc_facade_contract_holds(
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- (part 2) declarations - visible in BOTH modes -------------------------
+// - (part 2) declarations - visible in BOTH modes -------------------------
 
 // I.   PAYLOADS   (test_compress_tests_payloads.cpp)
 bool tests_compress_make_repeated_size_and_content();
@@ -459,7 +459,7 @@ bool tests_compress_is_available_agrees_with_report();
 bool tests_compress_verification_helpers_agree();
 
 
-// -- (part 3) the spec provider - spec mode only ---------------------------
+// - (part 3) the spec provider - spec mode only ---------------------------
 #ifdef DTEST_SPEC_MODE
 
 // compress_spec

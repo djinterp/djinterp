@@ -35,7 +35,7 @@
 * built of templates, such as the environment printer, compiles each once and
 * runs it in every place it prints: a value that differs from place to place
 * is a field, never a second template. To vary a part of the output, a
-* template tests a field -- {?compact}...{:}...{/} -- and the caller binds that
+* template tests a field - {?compact}...{:}...{/} - and the caller binds that
 * field where it wants the change (stream 7, ruled 11-04). Nesting depth is
 * the one compile-time limit: D_CFG_OSTREAM_TEMPLATE_DEPTH, in
 * config/c/text/cfg_ostream_template.h.
@@ -43,8 +43,8 @@
 *   A VALUE WRITTEN FOR JSON IS ONE JSON VALUE. Text is a string, integers
 * are decimal, true and false are themselves, and NONE and a real that is not
 * finite (NaN, an infinity) are null. A real with no precision has the fewest
-* significant digits that read back as the same double -- 0.1, not
-* 0.10000000000000001 -- in every locale, written out in full or with an
+* significant digits that read back as the same double - 0.1, not
+* 0.10000000000000001 - in every locale, written out in full or with an
 * exponent, whichever is shorter: 36028797018963970, not
 * 3.602879701896397e+16, but 1e+16. A precision the specification gives is
 * kept. Padding is outside the value, and is the template's. This is the

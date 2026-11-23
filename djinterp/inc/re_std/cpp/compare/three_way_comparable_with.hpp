@@ -14,7 +14,7 @@
 * T and U share a common reference type, and that THAT type is itself
 * three_way_comparable at the same category. Without it, a mixed
 * comparison could be well-formed while meaning something inconsistent
-* with either operand's own ordering -- the classic failure being a pair
+* with either operand's own ordering - the classic failure being a pair
 * of types whose cross-comparison silently converts through a third type
 * with a different notion of equivalence.
 *
@@ -24,10 +24,10 @@
 * common_reference, which was itself one of the twenty-one type_traits
 * headers that existed but were never included by the module umbrella.
 *
-*   C++20 ONLY -- no back-port. Both `concept` and `operator<=>` are
+*   C++20 ONLY - no back-port. Both `concept` and `operator<=>` are
 * language features. See three_way_comparable.hpp.
 *
-*   THE CATEGORY ARGUMENT IS A std:: TYPE, not an re_std:: one -- the
+*   THE CATEGORY ARGUMENT IS A std:: TYPE, not an re_std:: one - the
 * builtin operator<=> yields std's categories and the language will never
 * produce re_std's. three_way_comparable.hpp documents the reasoning.
 *

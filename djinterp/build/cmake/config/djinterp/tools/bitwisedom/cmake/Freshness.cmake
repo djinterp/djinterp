@@ -6,17 +6,17 @@
 #   An overlay unzipped over the trees keeps the times its archive holds,
 # and those can be older than the last build's objects: a build would then
 # take the objects of the files the overlay replaced for the files it
-# brought, and the tests would run the code of the overlay before -- and
+# brought, and the tests would run the code of the overlay before - and
 # fail on the section counts it changed. So each configure keeps a hash of
-# every source it watches -- bitwisedom's own and the kit's here, and in
-# build/cmake/config/ui the window's and what it is built on -- in the build
+# every source it watches - bitwisedom's own and the kit's here, and in
+# build/cmake/config/ui the window's and what it is built on - in the build
 # tree, and touches each whose content differs
 # from the hash the last configure kept: the build then sees it as new, and
 # compiles it, and what includes it, again. A build tree configured before
 # it kept any hashes, but configured all the same, has every source touched
 # once; a new build tree compiles everything anyway, and has none touched.
 #   Only the time of a changed file is changed, never its content. A file
-# that cannot be touched -- one read-only -- is named, and the configure
+# that cannot be touched - one read-only - is named, and the configure
 # goes on.
 #
 #     bitwisedom_freshen(<stamp> <root>...)
@@ -31,8 +31,8 @@ include_guard(GLOBAL)
 
 # bitwisedom_freshen(<stamp> <root>...)
 #   Touches the sources under the roots whose content changed since the
-# hashes in <stamp> were kept -- every one, in a build tree configured
-# before any were kept -- and keeps their hashes there for the next
+# hashes in <stamp> were kept - every one, in a build tree configured
+# before any were kept - and keeps their hashes there for the next
 # configure. A root that does not exist is passed over.
 function(bitwisedom_freshen _stamp)
     set(_files "")

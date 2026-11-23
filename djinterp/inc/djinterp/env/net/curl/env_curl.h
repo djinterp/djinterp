@@ -248,7 +248,7 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 4.1.1
 // D_ENV_CURL_AVAILABLE
-//   feature: 1 when libcurl can actually be used here -- its header is present
+//   feature: 1 when libcurl can actually be used here - its header is present
 // AND the platform has a TCP transport with name resolution
 // (D_ENV_NET_CAN_TCP). This is the gate the libcurl foundational module
 // (net/curl/curl.hpp) keys on.

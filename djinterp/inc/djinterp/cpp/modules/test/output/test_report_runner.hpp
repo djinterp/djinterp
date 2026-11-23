@@ -139,14 +139,14 @@ II.   FREE-FUNCTION CONVENIENCE
 #include "../../../container/buffer/byte_buffer.hpp"
 #include "../../../util/document/document_bundle.hpp"
                                         // DDocumentBundle, output_config,
-                                        //   write_to_disk -- the packaging
+                                        //   write_to_disk - the packaging
                                         //   engine this runner defers to
 #include "./test_packaging.hpp"          // to_output_config
 #include "../test_common.hpp"      // test_status
 #include "../test_options.hpp"     // test_option_set + accessors + defaults
 #include "./test_report.hpp"       // test_report model + tallies +
                                    //   expand_report_file_name
-#include "./test_report_pdf.hpp"      // render_report_pdf_bytes_table -- the
+#include "./test_report_pdf.hpp"      // render_report_pdf_bytes_table - the
                                        //   banded/ruled PDF face, now composed
                                        //   via test_report_document + the
                                        //   canvas-backed DDocumentRenderer
@@ -956,7 +956,7 @@ private:
         _cfg.naming = &kept_name;
 
         // An explicit output_file still wins; otherwise the container keeps the
-        // name the config gives it -- "report" plus the format's extension,
+        // name the config gives it - "report" plus the format's extension,
         // which is exactly the fallback this method used to apply by hand.
         const std::string _explicit = output_path(m_opts);
         std::string       _final;

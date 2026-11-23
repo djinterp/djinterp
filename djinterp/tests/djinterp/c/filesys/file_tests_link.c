@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                        file_tests_link.c
 *
-*   XIII. Links (file_link) -- symbolic links. The whole section is compiled
+*   XIII. Links (file_link) - symbolic links. The whole section is compiled
 * out where the platform has no symbolic links at all (D_FILE_LINK_IS_AVAILABLE
 * is 0), and the runner splices it in only then. Even where the API exists,
 * actually creating a link can fail for want of privilege (notably on Windows),
@@ -152,7 +152,7 @@ void d_fs_tests_link(
  *****************************************************************************/
 
 /******************************************************************************
- * XIII.  file_link  --  SYMBOLIC LINKS
+ * XIII.  file_link  -  SYMBOLIC LINKS
  *
  *   THIS IS THE SUITE THAT WAS LYING.
  *
@@ -168,7 +168,7 @@ void d_fs_tests_link(
  *   like "d_file_symlink creates symbolic link (skipped: no privilege)". A reader
  *   scanning the output sees PASS. CI sees PASS. The claim is false.
  *
- *   The framework has no third state -- dj_test_object carries a bool -- so
+ *   The framework has no third state - dj_test_object carries a bool - so
  *   there is no honest way to say "skipped" inside an assertion. The honest
  *   way is not to make the assertion. This suite therefore OMITS what it
  *   cannot run: nothing green, nothing red, nothing claimed, and the group
@@ -194,8 +194,8 @@ d_tests_file_link_permitted
 caching the answer.
   Note what this is not: it is not a test of whether symlinks exist. That is
 D_FILE_LINK_IS_AVAILABLE and it was answered at compile time. This asks the
-one question a macro cannot -- whether the account running the suite holds
-SeCreateSymbolicLinkPrivilege -- and it exists only so the tests that need the
+one question a macro cannot - whether the account running the suite holds
+SeCreateSymbolicLinkPrivilege - and it exists only so the tests that need the
 privilege can be omitted rather than failed.
 
 Parameter(s):
@@ -262,7 +262,7 @@ bool d_tests_file_symlink(struct dj_test_suite* _suite)
     d_tests_file_path(link, sizeof(link), "symlink_test.lnk");
 
     // the privileged half. Where the process cannot create a link, these
-    // assertions are ABSENT -- not green. The group simply has fewer.
+    // assertions are ABSENT - not green. The group simply has fewer.
     if (d_tests_file_link_permitted())
     {
         (void)d_file_unlink(link);

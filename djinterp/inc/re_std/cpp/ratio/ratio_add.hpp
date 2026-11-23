@@ -13,9 +13,9 @@
 *     n  = num1 * (den2 / g) + num2 * (den1 / g)
 *     d  = den1 * (den2 / g)                     [ = lcm(den1, den2) ]
 *
-*   For ratios that already share a denominator -- overwhelmingly the
+*   For ratios that already share a denominator - overwhelmingly the
 * common case in <chrono>, where everything is some power of ten apart
-* -- g is that denominator and the multipliers collapse to 1.
+* - g is that denominator and the multipliers collapse to 1.
 *
 *   The result is handed to ratio, which reduces it; ratio_add itself
 * does not attempt to reduce n and d.

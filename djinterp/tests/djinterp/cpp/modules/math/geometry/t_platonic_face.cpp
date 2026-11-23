@@ -2,9 +2,9 @@
 * djinterp [cpp][math]                                       t_platonic_face.cpp
 *
 *   Tests for geometry/platonic.hpp, at every level from C++98, per family:
-* the five solids of unit circumradius -- their known volumes, every vertex
+* the five solids of unit circumradius - their known volumes, every vertex
 * on the unit sphere, the centroid at the origin, the origin inside and a
-* point beyond the sphere outside -- and the plain double overloads below
+* point beyond the sphere outside - and the plain double overloads below
 * C++11's default template arguments.
 *
 *   Build (from the repo root), at any level from C++98:

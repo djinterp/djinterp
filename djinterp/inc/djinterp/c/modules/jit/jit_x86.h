@@ -10,7 +10,7 @@
 * so the module stands alone. Every literal was verified against `as --32`.
 *
 *   HOST-INDEPENDENT constants; the emitter FUNCTIONS produce 32-bit code and
-* are meaningful on a 32-bit target -- consult D_ENV_JIT_TARGET_X86.
+* are meaningful on a 32-bit target - consult D_ENV_JIT_TARGET_X86.
 *
 *   NAMING CONVENTION:
 *     D_JIT_X86_OP_[MNEMONIC] / _PFX_[NAME] / _MOD_* / _SIB_* / _REG_[NAME]
@@ -36,7 +36,7 @@
 #include "../../../../re_std/c/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -69,7 +69,7 @@
 #define D_JIT_X86_PFX_ADDRESS_SIZE  0x67
 
 // D_JIT_X86_PFX_LOCK
-//   constant: LOCK -- atomic read-modify-write on the following memory op.
+//   constant: LOCK - atomic read-modify-write on the following memory op.
 #define D_JIT_X86_PFX_LOCK          0xF0
 
 // D_JIT_X86_PFX_REPNE
@@ -117,19 +117,19 @@
 // ---------------------------------------------------------------------------
 
 // D_JIT_X86_MOD_INDIRECT
-//   constant: ModR/M.mod = [rm] -- indirect, no displacement.
+//   constant: ModR/M.mod = [rm] - indirect, no displacement.
 #define D_JIT_X86_MOD_INDIRECT  0x00
 
 // D_JIT_X86_MOD_DISP8
-//   constant: ModR/M.mod = [rm + disp8] -- 8-bit displacement follows.
+//   constant: ModR/M.mod = [rm + disp8] - 8-bit displacement follows.
 #define D_JIT_X86_MOD_DISP8     0x01
 
 // D_JIT_X86_MOD_DISP32
-//   constant: ModR/M.mod = [rm + disp32] -- 32-bit displacement follows.
+//   constant: ModR/M.mod = [rm + disp32] - 32-bit displacement follows.
 #define D_JIT_X86_MOD_DISP32    0x02
 
 // D_JIT_X86_MOD_REG
-//   constant: ModR/M.mod = rm -- operand is the register itself.
+//   constant: ModR/M.mod = rm - operand is the register itself.
 #define D_JIT_X86_MOD_REG       0x03
 
 // ---------------------------------------------------------------------------
@@ -453,7 +453,7 @@
 #define D_JIT_X86_GRP5_PUSH_RM    6
 
 // ---------------------------------------------------------------------------
-// condition codes (tttn) -- add to 0x70 (Jcc rel8) or 0x0F80 (Jcc rel32)
+// condition codes (tttn) - add to 0x70 (Jcc rel8) or 0x0F80 (Jcc rel32)
 // ---------------------------------------------------------------------------
 
 // D_JIT_X86_CC_O: overflow
@@ -721,7 +721,7 @@ D_NODISCARD int d_jit_x86_emit_lea(
 );
 
 // d_jit_x86_emit_movzx8
-//   function: movzx _reg, r/m8 (0F B6 /r) -- zero-extend a byte.
+//   function: movzx _reg, r/m8 (0F B6 /r) - zero-extend a byte.
 D_NODISCARD int d_jit_x86_emit_movzx8(
     dj_jit_buffer*     _buf,
     int                _reg,
@@ -729,7 +729,7 @@ D_NODISCARD int d_jit_x86_emit_movzx8(
 );
 
 // d_jit_x86_emit_movzx16
-//   function: movzx _reg, r/m16 (0F B7 /r) -- zero-extend a word.
+//   function: movzx _reg, r/m16 (0F B7 /r) - zero-extend a word.
 D_NODISCARD int d_jit_x86_emit_movzx16(
     dj_jit_buffer*     _buf,
     int                _reg,
@@ -737,7 +737,7 @@ D_NODISCARD int d_jit_x86_emit_movzx16(
 );
 
 // d_jit_x86_emit_movsx8
-//   function: movsx _reg, r/m8 (0F BE /r) -- sign-extend a byte.
+//   function: movsx _reg, r/m8 (0F BE /r) - sign-extend a byte.
 D_NODISCARD int d_jit_x86_emit_movsx8(
     dj_jit_buffer*     _buf,
     int                _reg,
@@ -745,7 +745,7 @@ D_NODISCARD int d_jit_x86_emit_movsx8(
 );
 
 // d_jit_x86_emit_movsx16
-//   function: movsx _reg, r/m16 (0F BF /r) -- sign-extend a word.
+//   function: movsx _reg, r/m16 (0F BF /r) - sign-extend a word.
 D_NODISCARD int d_jit_x86_emit_movsx16(
     dj_jit_buffer*     _buf,
     int                _reg,
@@ -831,7 +831,7 @@ D_NODISCARD int d_jit_x86_emit_dec(
 );
 
 // d_jit_x86_emit_imul
-//   function: imul _reg, _rm -- two-operand signed multiply (0F AF /r).
+//   function: imul _reg, _rm - two-operand signed multiply (0F AF /r).
 D_NODISCARD int d_jit_x86_emit_imul(
     dj_jit_buffer*     _buf,
     int                _reg,
@@ -874,14 +874,14 @@ D_NODISCARD int d_jit_x86_emit_pop_reg(
 );
 
 // d_jit_x86_emit_push
-//   function: push r/m32 (0xFF /6) -- register or memory.
+//   function: push r/m32 (0xFF /6) - register or memory.
 D_NODISCARD int d_jit_x86_emit_push(
     dj_jit_buffer*     _buf,
     dj_jit_x86_operand _rm
 );
 
 // d_jit_x86_emit_pop
-//   function: pop r/m32 (0x8F /0) -- register or memory.
+//   function: pop r/m32 (0x8F /0) - register or memory.
 D_NODISCARD int d_jit_x86_emit_pop(
     dj_jit_buffer*     _buf,
     dj_jit_x86_operand _rm
@@ -921,14 +921,14 @@ D_NODISCARD int d_jit_x86_emit_call(
 );
 
 // d_jit_x86_emit_jmp_rm
-//   function: jmp r/m32 -- indirect (0xFF /4).
+//   function: jmp r/m32 - indirect (0xFF /4).
 D_NODISCARD int d_jit_x86_emit_jmp_rm(
     dj_jit_buffer*     _buf,
     dj_jit_x86_operand _rm
 );
 
 // d_jit_x86_emit_call_rm
-//   function: call r/m32 -- indirect (0xFF /2).
+//   function: call r/m32 - indirect (0xFF /2).
 D_NODISCARD int d_jit_x86_emit_call_rm(
     dj_jit_buffer*     _buf,
     dj_jit_x86_operand _rm
@@ -950,7 +950,7 @@ D_NODISCARD int d_jit_x86_emit_setcc(
 );
 
 // d_jit_x86_emit_cdq
-//   function: cdq -- sign-extend EAX into EDX:EAX (0x99), for idiv.
+//   function: cdq - sign-extend EAX into EDX:EAX (0x99), for idiv.
 D_NODISCARD int d_jit_x86_emit_cdq(
     dj_jit_buffer* _buf
 );
@@ -1009,7 +1009,7 @@ D_NODISCARD int d_jit_x86_emit_add_reg_imm32(
 );
 
 // d_jit_x86_emit_load_arg
-//   function: mov _reg, [ebp + 8 + 4*_index] -- load the _index-th cdecl
+//   function: mov _reg, [ebp + 8 + 4*_index] - load the _index-th cdecl
 // integer argument (0-based), given a standard EBP frame.
 D_NODISCARD int d_jit_x86_emit_load_arg(
     dj_jit_buffer* _buf,

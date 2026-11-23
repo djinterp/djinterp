@@ -2,7 +2,7 @@
 * djinterp [re_std]                                                 is_clock.hpp
 *
 * the is_clock trait:
-*   True if Type meets the Cpp17Clock requirements -- that is, if it has
+*   True if Type meets the Cpp17Clock requirements - that is, if it has
 * the five members every clock must have: rep, period, duration,
 * time_point and a static now().
 *
@@ -11,7 +11,7 @@
 * that now() is callable; it cannot confirm that the epoch is sensible,
 * that is_steady is truthful, or that duration is duration<rep, period>
 * as the requirements demand. The standard's own wording has the same
-* shape -- a trait cannot verify semantics -- so a type that satisfies
+* shape - a trait cannot verify semantics - so a type that satisfies
 * is_clock is a plausible clock, not a proven one.
 *
 *   The check deliberately does NOT require is_steady. It is a Cpp17Clock
@@ -25,7 +25,7 @@
 * a nine-year lead. The _v spelling follows variable templates and so
 * appears from C++14.
 *
-*   void_t IS AN ALIAS TEMPLATE AND HAS NO ::type -- it is written bare
+*   void_t IS AN ALIAS TEMPLATE AND HAS NO ::type - it is written bare
 * below. Spelling it `typename void_t<...>::type` is ill-formed, and is
 * recorded as hard-won rule 9.
 *
@@ -59,7 +59,7 @@ namespace chrono
 
     // is_clock
     //   trait: true if Type has the five members a clock must have.
-    // Primary template -- selected when the specialisation's
+    // Primary template - selected when the specialisation's
     // substitution fails.
     template<typename Type,
              typename = void>

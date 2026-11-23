@@ -46,7 +46,7 @@ bool tests_sort_dispatch_sorter_static_surface()
     result.check(names_equal(DSorter<DHeapSortTag>::name(), "heap_sort"));
 
     //   DSorter<DDefaultSortTag> is the compile-time form of the default.
-    // Note that DSorter<> is NOT this type -- the template parameter defaults
+    // Note that DSorter<> is NOT this type - the template parameter defaults
     // to the DDynamicAlgorithm sentinel, so DSorter<> is the run-time
     // specialization and has no static `algorithm` member at all.
     result.check(DSorter<DDefaultSortTag>::algorithm ==
@@ -113,7 +113,7 @@ bool tests_sort_dispatch_sorter_dynamic_construction()
     DSorter<DDynamicAlgorithm> explicit_bubble(DSortAlgorithm::bubble);
     DSorter<>                  shorthand;
 
-    //   The default constructor binds to DDefaultSortTag -- quicksort --
+    //   The default constructor binds to DDefaultSortTag - quicksort --
     // matching the compile-time default.
     result.check(defaulted.algorithm() == DDefaultSortTag::value);
     result.check(defaulted.algorithm() == DSortAlgorithm::quick);
@@ -176,7 +176,7 @@ bool tests_sort_dispatch_sorter_dynamic_rebinding()
     }
 
     //   Rebinding to an unrecognised enumerator makes the DSorter a no-op
-    // rather than a fault -- it inherits dispatch_runtime's fall-through.
+    // rather than a fault - it inherits dispatch_runtime's fall-through.
     dispatcher.set_algorithm(unrecognised_algorithm());
 
     data     = shape_random(64);

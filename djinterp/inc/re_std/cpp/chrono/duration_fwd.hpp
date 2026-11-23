@@ -7,7 +7,7 @@
 *
 *   THE CYCLE:
 *   duration's converting constructor is specified in terms of
-* duration_cast -- constructing a milliseconds from a seconds performs
+* duration_cast - constructing a milliseconds from a seconds performs
 * exactly that conversion. But duration_cast is constrained on its target
 * being a duration, and is written against duration's own rep and period
 * members. Each therefore needs the other, and neither can be first.
@@ -52,8 +52,8 @@
 namespace re_std
 {
 
-// std places the whole facility in a NESTED namespace -- they are
-// std::chrono::duration, not std::duration -- so re_std mirrors it as
+// std places the whole facility in a NESTED namespace - they are
+// std::chrono::duration, not std::duration - so re_std mirrors it as
 // re_std::chrono::duration. There is no NS_ macro for a nested
 // project namespace, so it is opened literally, as numbers.hpp does.
 namespace chrono

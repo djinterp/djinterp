@@ -2,7 +2,7 @@
 * djinterp [c][container]                                         table_common.h
 *
 *   The table module's PREAMBLE: what every part needs before any structure is
-* declared -- the configuration knobs, D_INLINE_DEF, and the outcome
+* declared - the configuration knobs, D_INLINE_DEF, and the outcome
 * vocabulary.
 *
 *   It is a preamble and NOT an aggregate, and that separation is
@@ -14,7 +14,7 @@
 * this, and the FACES aggregate: table.h for C, table.hpp for C++.
 *
 *   THE PARTS, in dependency order:
-*     table_domain.h the index space -- the multi-index, I_T, the order they
+*     table_domain.h the index space - the multi-index, I_T, the order they
 *                       share, and the refinement an atomic split needs.
 *     table_carrier.h   the CELL-HOMOGENEOUS table: cells, storage strategy,
 *                       cell access, and structural mutation.
@@ -56,13 +56,13 @@
 // and C11 6.7.4p7 makes the definition EXTERNAL precisely because a file-scope
 // declaration without `inline` is visible. One symbol, linkable from both
 // languages, free to be inlined within its own translation unit. THE C SOURCES
-// MUST BE COMPILED AS C. Handed to a C++ compiler -- which is what `g++ foo.c`
-// does -- `inline` takes its C++ meaning, no external
+// MUST BE COMPILED AS C. Handed to a C++ compiler - which is what `g++ foo.c`
+// does - `inline` takes its C++ meaning, no external
 // definition is emitted, and the link fails on every function that moved out
 // of a header.
 // The trade this buys and costs: the header stays a pure declaration, and the
 // body cannot be inlined into another TU without LTO. It is therefore applied
-// only where that costs nothing -- a swept read through an out-of-lined cell
+// only where that costs nothing - a swept read through an out-of-lined cell
 // accessor measured 4.2x slower, so the cell arithmetic keeps its body in the
 // header and everything colder moves to a source. Belongs in the prelude
 // beside D_INLINE; defined here, #ifndef-guarded, until it does.
@@ -79,8 +79,8 @@
 
 D_EXTERN_C_BEGIN
 
-// The table knobs -- D_CFG_TABLE_EXTENT_64, D_CFG_TABLE_MAX_RANK,
-// D_CFG_TABLE_STDLIB_ALLOC -- and the stored-extent type they resolve to,
+// The table knobs - D_CFG_TABLE_EXTENT_64, D_CFG_TABLE_MAX_RANK,
+// D_CFG_TABLE_STDLIB_ALLOC - and the stored-extent type they resolve to,
 // D_INTERNAL_TABLE_EXTENT, live in config/c/container/table/cfg_table.h,
 // included above: a module reads its configuration, it does not derive it
 // (the config README's localization rule, which container.h follows too).
@@ -109,7 +109,7 @@ D_EXTERN_C_BEGIN
 // "the buffer is full" is a fact about a machine. Reporting them identically
 // is a conformance bug that reads as correct behaviour. THE SPLIT IS A NUMERIC
 // RANGE, not a comment, so that non-conflation is CHECKABLE. AGENT_README
-// states the anti-pattern directly -- "these sets are in conflict" (the tex
+// states the anti-pattern directly - "these sets are in conflict" (the tex
 // says the operation is undefined) and "the output buffer is full" are
 // different things, and reporting them identically is a conformance bug that
 // reads as correct behaviour. A range makes the difference a predicate a
@@ -119,17 +119,17 @@ D_EXTERN_C_BEGIN
 // deferred, not declined.
 enum dj_table_status
 {
-    // -- success ------------------------------------------------------------
+    // - success ------------------------------------------------------------
     D_TABLE_STATUS_OK                = 0,
 
-    // -- formal: the operation is not defined --------------------------------
+    // - formal: the operation is not defined --------------------------------
     D_TABLE_STATUS_DOMAIN            = 0x001,  // index outside I_T
     D_TABLE_STATUS_SHAPE             = 0x002,  // would break rectangularity
     D_TABLE_STATUS_RANK              = 0x003,  // ranks disagree, or exceed the
                                                // build's cap
     D_TABLE_STATUS_COVER             = 0x004,  // the cells do not partition I_T
 
-    // -- mechanical: the operation is defined, the machinery ran short -------
+    // - mechanical: the operation is defined, the machinery ran short -------
     // A null pointer is MECHANICAL, not formal: containers.tex models a table
     // as (T_, I_T, Gamma) and has no notion of a pointer at all, so "you
     // passed me nothing" is a fact about a machine and never a claim the tex
@@ -148,14 +148,14 @@ enum dj_table_status
 #define D_TABLE_STATUS_MECHANICAL_FLOOR 0x100
 
 // D_TABLE_STATUS_IS_FORMAL
-//   macro: whether the status says the request itself was not defined -- a
+//   macro: whether the status says the request itself was not defined - a
 // claim containers.tex makes, which no amount of memory would change.
 #define D_TABLE_STATUS_IS_FORMAL(_s)      \
     ( ((int)(_s) != D_TABLE_STATUS_OK) && \
       ((int)(_s) <  D_TABLE_STATUS_MECHANICAL_FLOOR) )
 
 // D_TABLE_STATUS_IS_MECHANICAL
-//   macro: whether the status says the machine ran short -- the same request
+//   macro: whether the status says the machine ran short - the same request
 // may succeed later, or with more room.
 #define D_TABLE_STATUS_IS_MECHANICAL(_s) \
     ( (int)(_s) >= D_TABLE_STATUS_MECHANICAL_FLOOR )

@@ -4,8 +4,8 @@
 * Definitions for postgres.hpp: pg_connection's hooks and members, and the
 * PostgreSQL layer's failures, over the layer's face.
 *   Every operation is one call of the face, whose result decides: 0 returns,
-* anything else throws, through postgres_layer::raise, with the result -- the
-* SQLSTATE packed, or a negative D_DB_* -- as the exception's error_code(),
+* anything else throws, through postgres_layer::raise, with the result - the
+* SQLSTATE packed, or a negative D_DB_* - as the exception's error_code(),
 * and the server's or libpq's own message where the connection holds one
 * about the failure. Connecting connects a face of its own, with libpq's
 * keywords for the configuration and the connection string after them, and
@@ -478,8 +478,8 @@ void fill_keywords(
     std::string hosts;
     std::string ports;
 
-    // where -- a list of hosts with their ports, as a URI writes one, split
-    // into libpq's two lists -- and as whom
+    // where - a list of hosts with their ports, as a URI writes one, split
+    // into libpq's two lists - and as whom
     if (split_hosts(config.host, hosts, ports))
     {
         _keywords.add("host", hosts);
@@ -569,8 +569,8 @@ postgres_layer::describe
 reported; a result the layer gave on its own (d_postgres_result_is_own)
 leaves an older message in place, so for those the result's own description
 stands in, and for the same codes from the server, its message. The
-server's message comes as several lines -- the message, then any DETAIL,
-HINT or the statement's position -- which the description keeps, the
+server's message comes as several lines - the message, then any DETAIL,
+HINT or the statement's position - which the description keeps, the
 SQLSTATE after the first. libpq adds its refusal of a call, 08000 ("no COPY
 in progress"), to the end of what the message held, which may be an older
 failure's, so for 08000 its last line alone is the failure.
@@ -1667,7 +1667,7 @@ int pg_connection::m_setup_step(
 /*
 pg_connection::m_finish_connect
   The search path: PostgreSQL's own; else base.schema, one schema's name,
-quoted -- or, holding a comma, a list as SQL writes it, as
+quoted - or, holding a comma, a list as SQL writes it, as
 parse_connection_string reads search_path into it. Then the statement
 timeout; then the object takes the connection.
 */
@@ -1678,7 +1678,7 @@ void pg_connection::m_finish_connect(
     const connection_config& config = this->m_config;
 
     // the search path: PostgreSQL's own; else base.schema, one schema's
-    // name, quoted -- or, holding a comma, a list as SQL writes it, as
+    // name, quoted - or, holding a comma, a list as SQL writes it, as
     // parse_connection_string reads search_path into it
     const std::string search_path =
         (!m_pg_config.search_path.empty())

@@ -2,13 +2,13 @@
 * djinterp [cpp][utility]                                          sort_view.hpp
 *
 *   The dataflow bridge: sort as a terminal of the lazy view pipeline.
-* view.hpp builds lazy pipelines with operator| -- adapters (transform,
+* view.hpp builds lazy pipelines with operator| - adapters (transform,
 * filter, take, ...) compose without evaluating, and a terminal (to_vector,
 * count, fold) drains the pipeline into a concrete value.  Sorting cannot be a
 * lazy adapter: it must see every element before it can yield the first.  It
 * belongs exactly where the laziness ends, as a TERMINAL.  This header adds
-* sort terminals that drain a view -- or a container, which view.hpp lifts to
-* a view -- into a std::vector ordered by the chosen comparator and algorithm:
+* sort terminals that drain a view - or a container, which view.hpp lifts to
+* a view - into a std::vector ordered by the chosen comparator and algorithm:
 *
 *     std::vector<person> by_age =
 *         people
@@ -16,13 +16,13 @@
 *         | sorted_by(by_key(&person::age) | then(by_member(&person::name)));
 *
 *   The terminals join view.hpp's operator| by shape alone.  view.hpp
-* recognises a terminal structurally -- a type with an apply(view) returning a
-* value that is not a view -- so nothing in view.hpp changes: these types
+* recognises a terminal structurally - a type with an apply(view) returning a
+* value that is not a view - so nothing in view.hpp changes: these types
 * satisfy is_terminal, and the existing (view | terminal) and
 * (container | terminal) overloads take them.  As for every view.hpp
 * terminal, a pipe with a standard container on the left finds those
-* overloads only where djinterp's operator| is in scope -- inside namespace
-* djinterp, or after `using djinterp::operator|;` -- since neither operand's
+* overloads only where djinterp's operator| is in scope - inside namespace
+* djinterp, or after `using djinterp::operator|;` - since neither operand's
 * namespace holds them.
 *
 *   OPT-IN.  sort.hpp does not include this header, so a caller who only sorts
@@ -122,8 +122,8 @@ NS_INTERNAL
 
     // DSortWithTerminal
     //   class: drains a view into a std::vector ordered by the comparator it
-    // holds -- any model of is_comparator, a composed one from the algebra
-    // included -- sorted with the algorithm it holds.
+    // holds - any model of is_comparator, a composed one from the algebra
+    // included - sorted with the algorithm it holds.
     template<typename Compare>
     class DSortWithTerminal
     {
@@ -198,7 +198,7 @@ internal::DSortDefaultTerminal sorted(
 
 // sorted_by
 //   function: a terminal that drains the pipeline into a std::vector ordered
-// by _compare -- typically a comparator built from the algebra.
+// by _compare - typically a comparator built from the algebra.
 //
 //     auto v = some_view | sorted_by(by_member(&person::age));
 template<typename Compare>

@@ -83,7 +83,7 @@ bool tests_bubble_sort_pass_reports_last_exchange()
     result.check(bubble_pass_ints(data, 1, 3) == 2);
     result.check((data[0] == 1) && (data[1] == 2) && (data[2] == 3));
 
-    //   Ordered now, so a second pass exchanges nothing and returns 0 -- the
+    //   Ordered now, so a second pass exchanges nothing and returns 0 - the
     // value that ends a driver's loop without a separate flag.
     result.check(bubble_pass_ints(data, 1, 3) == 0);
 

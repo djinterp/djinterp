@@ -8,7 +8,7 @@
 * on it.
 *
 *   ORDER MATTERS. Each check is evaluated the moment a section builder makes
-* it -- that is when the file functions are actually called -- not later when
+* it - that is when the file functions are actually called - not later when
 * d_test_suite_run reports. So the scratch environment is stood up before any
 * builder runs and torn down after. The link and pipe builders exist only where
 * those capabilities are compiled in, so their calls are guarded to match.

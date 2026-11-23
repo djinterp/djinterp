@@ -14,7 +14,7 @@
 NS_DJINTERP
 NS_TESTING
 
-// -- a shared sixteen-element ascending pack (odd keys 1,3,...,31) ------------
+// - a shared sixteen-element ascending pack (odd keys 1,3,...,31) ------------
 //   Sixteen entries exercise four levels of bisection.  Named once here so the
 // two large-pack tests below read cleanly.  Using `scaled` (distinct from ikey)
 // keeps these entries visibly separate from the small-pack fixtures.
@@ -119,7 +119,7 @@ tests_robustness_members_usable_as_template_arguments
   Tests the following:
   - a hit's index instantiates a std::size_t-parameterised template
   - a hit's found instantiates a bool-parameterised template
-  - a miss's index (lookup_npos) does the same -- npos is still a constant
+  - a miss's index (lookup_npos) does the same - npos is still a constant
   - the instantiated constants equal the members
 */
 bool tests_robustness_members_usable_as_template_arguments()

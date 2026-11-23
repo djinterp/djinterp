@@ -3,8 +3,8 @@
 *
 * Tests of the in-memory connections of net/net_memory.h.
 *   The pipe's two ends talk to each other in one thread, so each test drives
-* both: what one end writes, the other reads, through every limit -- an empty
-* ring, a full one, a chunk limit, a ring that wraps -- and through every way
+* both: what one end writes, the other reads, through every limit - an empty
+* ring, a full one, a chunk limit, a ring that wraps - and through every way
 * an end stops. The memory stream reads a fixed script and writes into a
 * sink of the test's choosing.
 *

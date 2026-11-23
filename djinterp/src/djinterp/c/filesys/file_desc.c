@@ -3,8 +3,8 @@
 *
 * Implementation of the descriptor lifecycle declared in file_desc.h.
 *   One policy function, d_internal_desc_flags, keeps every descriptor
-* d_file_open makes from a child process -- O_CLOEXEC on POSIX, the CRT's
-* _O_NOINHERIT on Windows -- and on Windows makes it binary, so no call site
+* d_file_open makes from a child process - O_CLOEXEC on POSIX, the CRT's
+* _O_NOINHERIT on Windows - and on Windows makes it binary, so no call site
 * has to remember either; d_file_dup_fd keeps its copy from a child the same
 * way. Each call is one platform call behind a per-platform helper; on Windows
 * the path goes in the build's text, UTF-16 where it reads paths as UTF-8
@@ -114,7 +114,7 @@ int d_internal_desc_mode(
 #if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
 
 // D_INTERNAL_DESC_TEXT_MODES
-//   constant: every flag that asks the CRT for a text mode -- _O_TEXT and the
+//   constant: every flag that asks the CRT for a text mode - _O_TEXT and the
 // wide and UTF-8 ones. A caller who names any of them keeps it, rather than
 // having _O_BINARY added beside it.
 #define D_INTERNAL_DESC_TEXT_MODES                                             \
@@ -134,7 +134,7 @@ d_internal_desc_flags
   Applies this build's open policy to a caller's flags. Two additions, each
 closing a hole the caller would otherwise have to remember at every call site:
     _O_NOINHERIT  the descriptor's handle is not inherited by a child process
-                  -- Windows' close-on-exec. Without it, any process spawned
+                  - Windows' close-on-exec. Without it, any process spawned
                   with handles inherited holds the file open, and on Windows
                   an open file cannot be deleted or renamed.
     _O_BINARY     a text-mode descriptor translates line endings, so
@@ -194,8 +194,8 @@ int d_internal_desc_open(
 
 /*
 d_internal_desc_fileno
-  The CRT's _fileno, whose answer for a stream with no descriptor -- -2, when a
-program without a console asks about stdout -- is not -1 and sets no errno;
+  The CRT's _fileno, whose answer for a stream with no descriptor - -2, when a
+program without a console asks about stdout - is not -1 and sets no errno;
 both are put right here.
 */
 static
@@ -221,7 +221,7 @@ d_internal_desc_noinherit
   Keeps a duplicate's handle from a child process, as _O_NOINHERIT keeps an
 opened one: the CRT's _dup makes the copy inheritable, as POSIX dup clears
 FD_CLOEXEC. A console's handle is left as it is, since Windows before 8
-cannot change one -- as Python leaves it. A copy that cannot be kept back is
+cannot change one - as Python leaves it. A copy that cannot be kept back is
 closed, and the dup fails with the reason.
 */
 static
@@ -529,7 +529,7 @@ int d_file_close_fd(
 /*
 d_file_open
   POSIX leaves O_CREAT without a mode undefined, and in practice the call reads
-whatever is on the stack and creates a file with those permissions -- a
+whatever is on the stack and creates a file with those permissions - a
 security bug wearing the costume of a typo. So the mode is always read when
 the flags may create (d_internal_desc_takes_mode: O_TMPFILE as well as
 O_CREAT), and a mode of 0 is taken for a forgotten argument and replaced
@@ -689,7 +689,7 @@ int d_file_dup2_fd(
 d_file_close_fd
   Note what is NOT here: an EINTR retry. On Linux a close that returns EINTR
 has already closed the descriptor, so retrying closes whatever a racing thread
-just opened onto the same number -- a use-after-free with a file handle. POSIX
+just opened onto the same number - a use-after-free with a file handle. POSIX
 2008 made the state unspecified precisely because implementations disagreed.
 Closing once and reporting the error is the only defensible behaviour.
 */
@@ -705,7 +705,7 @@ int d_file_close_fd(
                             "descriptor is negative",
                             -1);
 
-    // deliberately not wrapped in D_INTERNAL_FILE_RETRY_EINTR -- see above
+    // deliberately not wrapped in D_INTERNAL_FILE_RETRY_EINTR - see above
     const int result = d_internal_desc_close(_fd);
 
     // report the failure; the descriptor is released either way

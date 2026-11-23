@@ -2,7 +2,7 @@
 * djinterp [c][parse]                                               diagnostic.h
 *
 * The parse subframework's diagnostic channel.
-*   A stage reports what it found -- where, how badly, and why -- into a sink
+*   A stage reports what it found - where, how badly, and why - into a sink
 * the caller supplies. Every stage of a parsing or generation pipeline shares
 * one sink, so a run produces one ordered report rather than a bool per stage
 * and a message the caller cannot see.
@@ -176,8 +176,8 @@ enum dj_parse_diag_code
 // dj_parse_span
 //   struct: a half-open byte range within one source, optionally carrying the
 // line and column that range begins at. `source` identifies which text, so a
-// pipeline reading several inputs -- an included grammar, a chained stage's
-// output -- reports against the right one. Line and column are optional
+// pipeline reading several inputs - an included grammar, a chained stage's
+// output - reports against the right one. Line and column are optional
 // because computing them costs a scan the emitter may not want to pay;
 // zero means "not computed", which is unambiguous as both are 1-based.
 struct dj_parse_span
@@ -217,8 +217,8 @@ struct dj_parse_diagnostic
 
 // 2.2.2
 // D_PARSE_DIAG_FLAG_CONTINUATION
-//   constant: this diagnostic elaborates the one before it -- the "note:
-// declared here" that follows an error -- rather than standing alone. A
+//   constant: this diagnostic elaborates the one before it - the "note:
+// declared here" that follows an error - rather than standing alone. A
 // renderer indents it; a caller counting problems skips it.
 #define D_PARSE_DIAG_FLAG_CONTINUATION  0x01u
 
@@ -251,7 +251,7 @@ typedef void (*dj_parse_diag_hook)(void*                            _ctx,
 // the `text` arena, both of which may be caller-supplied, heap-allocated, or
 // absent. `tally` counts every ACCEPTED diagnostic whether or not it was
 // stored, so d_parse_diag_failed answers correctly even for a sink with no
-// storage at all -- which is the cheapest useful configuration: a pure
+// storage at all - which is the cheapest useful configuration: a pure
 // pass/fail counter that allocates nothing and stores nothing.
 //   Public-payload layout: the sink IS the protocol the stages share, so its
 // members are unprefixed and directly readable.

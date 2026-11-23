@@ -23,7 +23,7 @@
 NS_DJINTERP
 NS_TESTING
 
-// net/http/http.hpp tests -- each returns true when every check held
+// net/http/http.hpp tests - each returns true when every check held
 bool tests_http_vocabulary();
 bool tests_http_methods();
 bool tests_http_versions();

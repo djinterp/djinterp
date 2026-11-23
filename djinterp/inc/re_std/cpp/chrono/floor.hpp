@@ -3,7 +3,7 @@
 *
 * chrono::floor for durations and time_points:
 *   Converts to a coarser precision, always rounding TOWARD NEGATIVE
-* INFINITY -- earlier in time, smaller in value, without exception.
+* INFINITY - earlier in time, smaller in value, without exception.
 *
 *   THIS IS THE FUNCTION duration_cast SHOULD HAVE BEEN FOR MOST USES:
 *   duration_cast truncates toward zero, so it rounds negative values UP:
@@ -21,7 +21,7 @@
 * is needed only for negative values, and never more than one tick.
 *
 *   BACK-PORT: std added floor / ceil / round in C++17. re_std provides
-* them from C++11 and constexpr from C++11 -- a six-year lead. The C++11
+* them from C++11 and constexpr from C++11 - a six-year lead. The C++11
 * form is expressed through internal helpers rather than a local
 * variable, since relaxed constexpr bodies are C++14.
 *

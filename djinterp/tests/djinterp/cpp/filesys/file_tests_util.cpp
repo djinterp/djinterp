@@ -7,7 +7,7 @@
 *
 * WHAT THESE HELPERS ARE BUILT ON, AND WHY
 * ----------------------------------------
-*   Every helper here reaches for the C layer (c/filesys) or raw stdio -- never
+*   Every helper here reaches for the C layer (c/filesys) or raw stdio - never
 * for djinterp::file, djinterp::directory or the free functions this suite
 * exists to test. The C layer sits beneath the code under test and has its own
 * suite, so a helper built on it is independent evidence. Were teardown written
@@ -20,7 +20,7 @@
 * --------------
 *   The scratch directory is resolved through d_dir_get_current at setup.
 * Deferred clauses run long after the section functions returned, and one of
-* them changes nothing about the working directory -- but the C suite's chdir
+* them changes nothing about the working directory - but the C suite's chdir
 * case proves how cheap it is to be wrong about that, so the paths do not depend
 * on it.
 *
@@ -61,7 +61,7 @@ path g_root;
 bool g_ready = false;
 
 // g_symlink_probe
-//   variable: -1 unknown, 0 no, 1 yes -- cached answer to "can this process
+//   variable: -1 unknown, 0 no, 1 yes - cached answer to "can this process
 // create a symbolic link here?".
 int g_symlink_probe = -1;
 
@@ -229,7 +229,7 @@ bool fs_test_exists(
         return false;
     }
 
-    // the C layer's own query -- a different implementation from the C++
+    // the C layer's own query - a different implementation from the C++
     // exists() a case may be trying to corroborate
     return (d_file_exists(_p.c_str()) != 0);
 }
@@ -241,7 +241,7 @@ path fs_test_invalid_path(void)
     path sink(static_cast<path&&>(source));
 
     // `source` handed its representation to `sink`, so it is now the invalid
-    // path -- valid() false -- which is exactly what every free function's
+    // path - valid() false - which is exactly what every free function's
     // EINVAL guard is written for.
     return source;
 }

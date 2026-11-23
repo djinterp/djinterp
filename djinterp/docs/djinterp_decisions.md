@@ -166,7 +166,7 @@ never run.
 
 ## Part A. The approved programme: items 1.1 to 5.2
 
-The owner's answers of 2026.09.30 (`DECISIONS.md`, titled "Decisions -- the owner's answers, 2026.09.30"), whole. The status column of section 4 is brought to 2026.10.04; section 7 is new. Section numbers are this part's own; numbering inside is that of `cpp98_open_issues.md`.
+The owner's answers of 2026.09.30 (`DECISIONS.md`, titled "Decisions - the owner's answers, 2026.09.30"), whole. The status column of section 4 is brought to 2026.10.04; section 7 is new. Section numbers are this part's own; numbering inside is that of `cpp98_open_issues.md`.
 
 Every decision the owner has given for the work this handoff carries, with
 the action it approves. Numbering is that of `cpp98_open_issues.md`, beside
@@ -343,7 +343,7 @@ The owner's rulings since this register was written, in order:
 | When | Ruling | Applied |
 |---|---|---|
 | 09.30 | "break the c++98 portion into multiple other agents (4)"; the C lane stays here | `_handoffs/cpp98_2026.09.30/`, four briefs |
-| 09.30 | the C function bodies: "do the other functions body" | functional, pdf, option_diff; option_diff's two-call protocol is option (a) -- a NULL buffer measures, a short one fails alone |
+| 09.30 | the C function bodies: "do the other functions body" | functional, pdf, option_diff; option_diff's two-call protocol is option (a) - a NULL buffer measures, a short one fails alone |
 | 09.30 | "ignore the test files for now" | no harness files added; checks run throwaway |
 | 09.30 | "lets do test headers. comment out where you can" | 95 undefined declarations and the 8 macros calling them commented out; `d_assert_standalone` and `d_test_counter_reset` kept for the net suites |
 | 10.01 | lane 1: compile now, port to C++98 later | a unit above its level compiles to nothing below it, never `#error` |
@@ -366,8 +366,8 @@ header (each defines the shared kit for its own language), and the generated
 `c/util/macro/` families (configuration picks one variant).
 
 The docs (4.9): the C++ guide's "targets C++20" is now a C++98 floor with
-levels -- decision 3.6's module floors, the empty-below-floor rule, the level
-tests, and the root's kit in one table -- and its "static_assert is available
+levels - decision 3.6's module floors, the empty-below-floor rule, the level
+tests, and the root's kit in one table - and its "static_assert is available
 unconditionally" is now `D_STATIC_ASSERT`. The C guide's "targets C11" is now
 the C99 floor this register already ruled (section 5), with the same
 `D_STATIC_ASSERT`. Both were delivered as replacement copies of the project's
@@ -375,7 +375,7 @@ the C99 floor this register already ruled (section 5), with the same
 the owner's to swap.
 
 Still open from lane 1, and why: the ladder's known-failures baseline (4.1)
-needs one full CI run on master -- about 31,000 compiles, not feasible on the
+needs one full CI run on master - about 31,000 compiles, not feasible on the
 merge session's single processor; `-Werror=undef` in the C++ ladder waits for
 lanes 2-4's sites (`results_root.md`); 4.5's second step waits for a family
 that needs it. `results_root.md` lists five choices lane 1 made that the owner
@@ -3145,7 +3145,7 @@ a third-party UI value in a preview tool.
   the same core library and kit the program links; the program and the
   module meet only at a C interface of two structures and one exported
   function (`d_cli_plugin_entry`). For: works with every toolchain and
-  runtime -- MSVC's static runtime, MinGW, a renamed executable -- with
+  runtime - MSVC's static runtime, MinGW, a renamed executable - with
   nothing exported from the program; the module is built with hidden
   symbols, so its copy never binds to the program's. Against: the core's
   code is in both files (on the order of a megabyte), though only one copy
@@ -3153,8 +3153,8 @@ a third-party UI value in a preview tool.
 - **B. The program exports its core and the module links against it**
   (CMake's `ENABLE_EXPORTS`). For: no second copy. Against: on Windows
   every core function needs `__declspec(dllexport)`, the module imports
-  from the executable by its file name -- so a renamed `bitwisedom.exe`
-  cannot load it without a delay-load hook, which MinGW lacks -- and an
+  from the executable by its file name - so a renamed `bitwisedom.exe`
+  cannot load it without a delay-load hook, which MinGW lacks - and an
   executable exports at most 65,535 symbols; on Linux the program is linked
   with `-rdynamic`.
 - **C. The core as a shared library** for both. For: conventional.
@@ -3200,13 +3200,13 @@ a warning instead; a module built to another ABI is always refused.
 
 #### cli-taken 16. Settings out of the window
 
-The window's settings registry -- every sheet setting by path, its label,
-kind, bounds and choices, and how to read and write it -- is the window's
+The window's settings registry - every sheet setting by path, its label,
+kind, bounds and choices, and how to read and write it - is the window's
 own today (`app/settings.cpp`), written against uxoxo's payloads.
 
 - **A. Move the sheet's half into the core**, values as a small variant of
-  the core's own, and give each choice a stable word -- the word the sheet
-  files already use where there is one (`lsb0`, `little`, `hex`) -- beside
+  the core's own, and give each choice a stable word - the word the sheet
+  files already use where there is one (`lsb0`, `little`, `hex`) - beside
   its label. The window keeps its own half (`environment.*`) and converts
   a payload to a value in one function. For: one vocabulary for the
   window's Options, the CLI's `set`/`get` and the settings files.
@@ -3227,8 +3227,8 @@ overrides it per run.
 #### cli-taken 17. The window's model helpers
 
 `unique_name`, `range_choices`, `container_choices`, and the checks the
-Add child field makes -- a name that is not an identifier, or another
-symbol's -- are declared in `app/app.hpp` but touch only a sheet.
+Add child field makes - a name that is not an identifier, or another
+symbol's - are declared in `app/app.hpp` but touch only a sheet.
 
 - **A. Move them into the core** (`edit.hpp`), where `add`, `rename` and
   the window call them alike. For: one rule, one place.
@@ -3252,8 +3252,8 @@ bitwisedom gen.
 - **A. `build/ui/bitwisedom` is a top-level build that includes djinterp's
   bitwisedom build** (`add_subdirectory` into its own binary directory),
   then uxoxo, then makes `bitwisedom-gui` with `d_cli_add_plugin`, named by
-  `bitwisedom_output` -- `bitwisedom-gui-linux64.so` beside
-  `bitwisedom-linux64` -- everything compiled position-independent. For:
+  `bitwisedom_output` - `bitwisedom-gui-linux64.so` beside
+  `bitwisedom-linux64` - everything compiled position-independent. For:
   one configure builds the program, the module and every test; djinterp's
   build names uxoxo nowhere. Against: two builds' presets to keep alike.
 - **B. The window's build consumes an installed bitwisedom** (a package
@@ -3287,7 +3287,7 @@ Not a copy inside djinterp (cli e).
 - **A. Relative paths**, as the style guide writes every include of the
   project's own: `"./model.hpp"` between headers,
   `"../../../inc/ui/bitwisedom/app.hpp"` from `src/` and `tests/`. For: the
-  window's headers stay the project's to warn about -- djinterp's `inc/` is
+  window's headers stay the project's to warn about - djinterp's `inc/` is
   a SYSTEM include directory to these targets, and `<ui/bitwisedom/...>`
   found through it would silence every warning in them. Against: long
   lines; three include runs wrap their comments.
@@ -3300,7 +3300,7 @@ Not a copy inside djinterp (cli e).
 - **A. `run_window(program, window_options)`**, defined by each host
   (`inc/ui/bitwisedom/host.hpp`): the module's run function reads the
   command line and the host reads none, and says what it must through the
-  program -- a window that cannot open as an error and trouble, a
+  program - a window that cannot open as an error and trouble, a
   screenshot written as a `-v` note, one not written as the kit's file
   error. `window_features()` says which testing options the host acts on,
   so `--screenshot` and `--frames` are offered only by GLFW's host and
@@ -3338,7 +3338,7 @@ operand failed; a knob and an option choose A. 'The best of both worlds.'
 #### cli-taken 26. A console behind the window
 
 - **A. On Windows, a console this run alone holds is let go**
-  (`GetConsoleProcessList` says 1 -- a shortcut started the console
+  (`GetConsoleProcessList` says 1 - a shortcut started the console
   program) before the window opens; one shared with a terminal is kept.
   For: no empty console stands behind the window. Against: what the window
   says after that, from a shortcut, goes nowhere.
@@ -3350,8 +3350,8 @@ this run alone holds is let go.
 
 #### cli-taken 27. The screenshot
 
-- **A. Written as the kit writes a file** -- whole or not at all, `-`
-  standard output -- and said only with `-v`. For: R20, and a pipe into a
+- **A. Written as the kit writes a file** - whole or not at all, `-`
+  standard output - and said only with `-v`. For: R20, and a pipe into a
   converter. Against: the host used to say it every time.
 - **B. As before: `fopen`, and always said.**
 
@@ -3361,7 +3361,7 @@ writes a file.
 #### cli-taken 28. Arguments taken again on Windows
 
 - **A. Only main's own** (R15): arguments that are the C runtime's
-  `__argc`/`__argv` -- as many, each the same text -- are taken again from
+  `__argc`/`__argv` - as many, each the same text - are taken again from
   `GetCommandLineW()` in UTF-8; a module's, a test's, a list a program
   made are parsed as given. For: a module is given the program's UTF-8
   arguments, and the process's command line would be the program's.
@@ -3373,7 +3373,7 @@ writes a file.
 #### cli-taken 29. Running out of memory
 
 - **A. The want of memory ends the run in trouble and says
-  `PROGRAM: error: out of memory`** -- never a different failure it made
+  `PROGRAM: error: out of memory`** - never a different failure it made
   look true (a module not found, a file that cannot be read); help,
   version and a script that cannot be composed whole are not written in
   part; a diagnostic that cannot be composed on the heap is composed in a
@@ -3402,7 +3402,7 @@ script the output refuses is trouble.
 
 - **A. The file the link names is written**, whole or not at all; a
   dangling link is replaced by a file; any other failure to follow it --
-  no room, no permission, a loop -- is said, and the link left as it was.
+  no room, no permission, a loop - is said, and the link left as it was.
   A device, a pipe or a socket is written to, never renamed over. For: a
   dotfile repository's links survive a write.
 - **B. The link replaced by a file.**
@@ -3412,9 +3412,9 @@ is written.
 
 #### cli-taken 32. A program not made whole
 
-- **A. `struct d_cli_program` keeps a status** -- `D_ARG_OK` while it is
+- **A. `struct d_cli_program` keeps a status** - `D_ARG_OK` while it is
   whole, else init's failure or the want of memory keeping a command's
-  work -- and every run of a program not made whole ends in trouble and
+  work - and every run of a program not made whole ends in trouble and
   says why (`prog: error: cannot add '-v,--verbose': short name '-v'
   already used by '-v'`). So `main` makes everything, runs, and releases,
   with no checks between; `kit::program::made()` says the same. For: a
@@ -3440,13 +3440,13 @@ keeps a status.
 
 - **A. The version's line, then a `KEY: VALUE` line for each thing known,
   on standard output**, as `git version --build-options` gives them: the
-  files -- `program`, a module's own `module`, and `NAME module` for each
-  command that is a module -- then `compiler`, `language`, `system` and
+  files - `program`, a module's own `module`, and `NAME module` for each
+  command that is a module - then `compiler`, `language`, `system` and
   `build`, the program's own lines, and `kit`. `-v` anywhere, `-q`
   anywhere silencing it; composed whole before a byte is written, so a
   want of memory is `out of memory` and 2 (29), and a refused output is
   trouble (30). `build` is the environment layer's: `Debug` where `DEBUG`
-  or `_DEBUG` is defined or `NDEBUG` is not, else `Release` -- so CMake's
+  or `_DEBUG` is defined or `NDEBUG` is not, else `Release` - so CMake's
   RelWithDebInfo says `Release`. For: the line a script reads is
   unchanged, and the rest is what a bug report needs, pasted whole.
   Against: it prints the program's path.
@@ -3485,7 +3485,7 @@ expanded in the program's own unit.
   would open, `not installed`, or `built without plugins`; the module's
   own version is `PROGRAM NAME --version -v`, which names the program's
   file and its own (the host the module's program keeps). For:
-  `--version` runs no module's code -- a window's GLFW, a GPU driver --
+  `--version` runs no module's code - a window's GLFW, a GPU driver --
   and a broken module cannot break it. Against: a module that would be
   refused, another program's or version's, is named as found.
 - **B. Each module loaded, its record read.** Against: the above.
@@ -3495,7 +3495,7 @@ expanded in the program's own unit.
 #### cli-taken 41. Where the warning of 5 is said
 
 A parse can go well and the run still end in a usage error: a command
-reached that has no work of its own -- `prog` alone, `prog group` -- is
+reached that has no work of its own - `prog` alone, `prog group` - is
 `a command is required`, said by the dispatch.
 
 - **A. Only where the run goes on to a command's work**: the warnings come
@@ -3578,7 +3578,7 @@ failure.
 
 #### cli-taken 45. A hidden option and a prefix
 
-An option help does not show -- the kit's `--colour`, beside `--color` --
+An option help does not show - the kit's `--colour`, beside `--color` --
 is an option a prefix could begin, though no reader of the help would
 mean it: `--col` begins `--color` and `--colour` both.
 
@@ -3586,7 +3586,7 @@ mean it: `--col` begins `--color` and `--colour` both.
   `--color`; `--colou`, which begins no shown option's name, is `--colour`.
   For: an abbreviation of what help shows means what help shows, and a
   hidden option added later never makes one ambiguous. Against: a rule
-  getopt_long does not have -- it counts entries that are one option
+  getopt_long does not have - it counts entries that are one option
   (`--color`, `--colour` in grep) as one, which the parser cannot know of
   two options.
 - **B. Every option counted alike.** Against: `--col` ambiguous in every
@@ -3602,9 +3602,9 @@ change that brings errors, and a note for a dry run that names the change.
 
 - **A. The kit takes where the result goes, and no more**: the operand and
   `-o`, `-n` and `-i`, their help, the place, and the write. The command
-  keeps its refusals -- bitwisedom's of a change that brings the sheet
+  keeps its refusals - bitwisedom's of a change that brings the sheet
   errors, and of an example with nowhere to go back to, which it asks
-  `d_cli_edit_target` about -- and its words: what a dry run would have
+  `d_cli_edit_target` about - and its words: what a dry run would have
   changed is the command's to say. For: what makes a change refused, and
   what it changed, are the command's knowledge; the kit's part is the same
   in every program. Against: a command that wants `-f` defines it itself.
@@ -3620,7 +3620,7 @@ result goes, and no more.
 - **A. Two calls**, `d_cli_edit_add_operand` and `d_cli_edit_add_options`,
   each made where the command's other definitions of its kind are. For: an
   operand's place among the operands is the order they are read in --
-  bitwisedom's `add SHEET NAME` -- and the options' place is the order help
+  bitwisedom's `add SHEET NAME` - and the options' place is the order help
   lists them, `-o` and `-n` before bitwisedom's `-f`, as its transcripts
   have them. Against: two calls where one might do.
 - **B. One call for both.** Against: the operand would be added before or
@@ -3645,7 +3645,7 @@ other.
 #### cli-taken 49. A file error for want of memory
 
 The sweep's F06 to F10 found that a command's read refused for memory --
-`d_cli_read_file` giving `ENOMEM` -- was said as `cannot read
+`d_cli_read_file` giving `ENOMEM` - was said as `cannot read
 'target.txt': Cannot allocate memory`, which 29 forbids: the want of
 memory is said as `out of memory`, whatever was asked.
 
@@ -3695,7 +3695,7 @@ bitwisedom's own `-o` was a `std::string`, empty for not given, and its
   its colon matched, the name given, and the warning of a file with the
   operand's name in the kit's words. For: R13 is the grammar's, and every
   program that names something other than a file reads it alike and says
-  the same warning -- vparse's, when it has such operands. Against: a
+  the same warning - vparse's, when it has such operands. Against: a
   module of one call; bitwisedom keeps the prefix and what it names.
 - **B. bitwisedom alone**, in `read_source`. Against: the next program
   writes it again, in other words.
@@ -3709,7 +3709,7 @@ byte or more. bitwisedom had read `example:` alone as an example with no
 name, and said `'' is not a built-in example`.
 
 - **A. As the grammar writes it**: `example:` alone is a file's name, read
-  as one -- `bitwisedom: error: cannot read 'example:': No such file or
+  as one - `bitwisedom: error: cannot read 'example:': No such file or
   directory` where there is none. For: one rule, the grammar's, which a
   file named `example:` can rely on. Against: a slip of the name is told
   less pointedly.
@@ -3747,8 +3747,8 @@ program's own options never reuse its names (GRAMMAR section 6). vparse's
 status saying it all, as `grep -q` does; `run` and `replay` one that left
 out the run's headline.
 
-- **A. One `-q`, the kit's, which does both**: given anywhere -- before
-  the command or after it -- it keeps only errors on standard error, and
+- **A. One `-q`, the kit's, which does both**: given anywhere - before
+  the command or after it - it keeps only errors on standard error, and
   leaves out of what a command prints what its exit status says: all of
   `check`'s, `match`'s and `compare`'s, and `run`'s and `replay`'s
   headline. `match -q` still runs no input again to say where it stopped.
@@ -3767,13 +3767,13 @@ which does both.
 
 #### cli-taken 56. A grammar refused
 
-The bundle said a refusal on standard output -- `check`'s verdict,
-`match`'s `NAME: SENTENCE`, the measures' -- or, for `compile`, on standard
+The bundle said a refusal on standard output - `check`'s verdict,
+`match`'s `NAME: SENTENCE`, the measures' - or, for `compile`, on standard
 error without a program's name, and ended with 2 either way.
 
 - **A. Said as an error**, on standard error, in the kit's shape:
-  `vparse: error: NAME: SENTENCE`, the sentence the run's headline -- the
-  window's words -- its first letter in lower case and its full stop gone.
+  `vparse: error: NAME: SENTENCE`, the sentence the run's headline - the
+  window's words - its first letter in lower case and its full stop gone.
   `check`, `compile`, `match` and the measures print nothing more but,
   with `--format json`, their JSON, whose `error` member keeps the
   headline as it was; `run` and `replay` print the run all the same, since
@@ -3802,7 +3802,7 @@ root help ends with the three statuses; a command's ends with its footer,
 where it has one.
 
 - **A. What each command's status answers, in its footer**, with what its
-  `-q` leaves out (55); and on the root, that `@FILE` is read -- R14 has a
+  `-q` leaves out (55); and on the root, that `@FILE` is read - R14 has a
   program that reads response files say so in its help, and the kit does
   not say it for a program that sets the flag. For: GRAMMAR section 8, "a
   command documents what it answers". Against: none found; the kit saying
@@ -3819,7 +3819,7 @@ status answers, in its footer.
 - **A. Through the kit**: `compile -o FILE` and each of `corpus -o DIR`'s
   files written whole or not at all (R20), `compile -o -` standard output;
   their failures, and a file that cannot be read, said in the kit's words
-  -- `cannot write 'FILE': REASON`, `cannot read 'NAME': REASON` -- without
+  - `cannot write 'FILE': REASON`, `cannot read 'NAME': REASON` - without
   the bundle's `grammar: `, `input: `, `second: ` or `--output: ` before
   them. A folder `corpus -o` cannot make is `cannot make 'DIR': REASON`.
   For: R20 and section 8. Against: a corpus written in part, where a file
@@ -3833,8 +3833,8 @@ status answers, in its footer.
 
 - **A. `cli::run` makes a `kit::program` over its parser, and its
   context points to it**: the context a caller gives keeps `in`, `out` and
-  `err`, loses `main_arguments` -- the kit knows main's own arguments from
-  any others -- and gains `program`, which `run` sets in the copy its
+  `err`, loses `main_arguments` - the kit knows main's own arguments from
+  any others - and gains `program`, which `run` sets in the copy its
   commands are handed and through which they report and read `-q`. The
   commands' work runs behind the kit's guard: a want of memory in it is
   `vparse: error: out of memory`, 2. `main` catches what escapes before a
@@ -3874,7 +3874,7 @@ grammar.
 
 - **A. `-g, --grammar` and `-i, --input` dropped**: a grammar and an input
   are operands, as bitwisedom's `SHEET` is, and a usage error names them
-  by the names the usage line gives -- `match: GRAMMAR is required`, as
+  by the names the usage line gives - `match: GRAMMAR is required`, as
   section 8's example has it. For: the help says everything the command
   takes, and the error says it in the help's words. Against: a script that
   named the grammar with `-g` breaks: `the following argument was not
@@ -3898,10 +3898,10 @@ named only as `Sum,Prod`.
 - **A. It collects its values**, one each time it is given, commas
   accepted: `--memoize=Sum --memoize=Prod` is `--memoize=Sum,Prod`. The
   values are folded in order: a name after names is added to them, and
-  anything else -- `none`, `all`, `auto`, or a name after one of those --
+  anything else - `none`, `all`, `auto`, or a name after one of those --
   replaces what came before it, so that a word appended to a command line
   still overrides (R8's reason). For: section 4 and R8 both kept. Against:
-  `--memoize=all --memoize=Sum` is `Sum`, not all of them -- the help says
+  `--memoize=all --memoize=Sum` is `Sum`, not all of them - the help says
   so.
 - **B. One value, its list its own**, section 4 amended for an option
   whose one value is a list. Against: the grammar bent for one option.
@@ -3928,15 +3928,15 @@ says both.
 R1 had a command be "a lowercase verb"; section 10 itself lists
 `examples`, `new` and `op`, and vparse has `saved`, `bench` and `corpus`.
 
-- **A. R1 reads "a lowercase word -- a verb where one says what the
+- **A. R1 reads "a lowercase word - a verb where one says what the
   command does, and otherwise what it gives"**, and vparse's names stay.
   For: the rule as both programs already keep it. Against: a looser rule.
-- **B. The rule kept, and the names changed** -- `saved` to `list`, say.
+- **B. The rule kept, and the names changed** - `saved` to `list`, say.
   Against: names its lane chose and its README teaches, changed for a word
   in a rule two programs already depart from.
 
 **Ruled** (lane F, G; done): agreed: Confirm A, as taken: R1 reads "a
-lowercase word -- a verb where one says what the command does, and otherwise
+lowercase word - a verb where one says what the command does, and otherwise
 what it gives".
 
 #### cli-taken 67. `-q` in the grammar
@@ -3955,14 +3955,14 @@ what it gives".
 #### cli-taken 68. The sketch's commands and options
 
 - **A. Section 11 as vparse is**: its nine commands in three tables --
-  judging, running and measuring a grammar -- each with what it answers;
+  judging, running and measuring a grammar - each with what it answers;
   the options a run takes; and the window, `vparse_gui` until it is
   `vparse gui`. The sketch's `show`, `diff` and `runs`, and its
   `--family`, `--table`, `--lookahead`, `--tokens`, `--skip`, `--peg`,
   `--text=TEXT`, `--show`, `--steps` and `--save=DIR`, are gone: none
   exists, in the command line or in the library it runs. For: a section
   that describes the program. Against: the sketch's plan lost from the
-  grammar -- it is in this register's history, and the window's
+  grammar - it is in this register's history, and the window's
   `--family`-like choices are the library's to grow first.
 - **B. The sketch kept beside vparse as it is.** Against: a grammar that
   documents options no program takes.
@@ -3978,13 +3978,13 @@ is.
 
 - **A. A table an object in vparse's README, which the suite reads**:
   under "JSON", a `#### ID` heading and a table of keys for each document
-  and each object within one -- `check`, `match`, `match.inputs[]`, ...,
+  and each object within one - `check`, `match`, `match.inputs[]`, ...,
   `compare.differences[].first`, and the refusal the measures write --
   nineteen in all. `tests_cli_json` reads the README (its path the build's
   `VPARSE_README`), runs each command, and holds the object at each
   table's path to its keys, in order and no more; every table must be
   held to a run. For: R19's "documented with the command, and only grows"
-  made a test -- a key the code adds or renames, or the README drops or
+  made a test - a key the code adds or renames, or the README drops or
   reorders, fails, as four planted faults showed. Against: the suite reads
   a document beside the code, and a table's prose is not tested, only its
   keys.
@@ -3994,8 +3994,8 @@ is.
 - **C. The README's tables alone, untested.** Against: they drift.
 
 Two things the tables now say plainly, as the code has them, which a later
-change may want to settle: `run`'s `input` is the input's *name* -- a text
-input quoted and clipped, `'12+3'` -- where `match.inputs[]`'s `input` is
+change may want to settle: `run`'s `input` is the input's *name* - a text
+input quoted and clipped, `'12+3'` - where `match.inputs[]`'s `input` is
 its argument, the text itself; and `corpus` writes `walks`, `depth` and
 `seed` but not `length`, `repeats` or `misses`.
 
@@ -4006,7 +4006,7 @@ vparse's README, which the suite reads.
 
 - **A. As bitwisedom's**: its headers in `inc/ui/vparse/`, its sources in
   `src/ui/vparse/`, its suites in `tests/ui/vparse/`, and its build in
-  `build/ui/vparse/` -- a top-level build that adds djinterp's vparse
+  `build/ui/vparse/` - a top-level build that adds djinterp's vparse
   build within it, finds uxoxo two directories above djinterp's root or at
   `UXOXO_ROOT`, and makes the module `vparse-gui`, named with the
   program's tag beside it, `vparse-gui-linux64.so`; `vparse gui` is the
@@ -4032,7 +4032,7 @@ vparse's README, which the suite reads.
   `--font-size=PX`, `--size=WIDTHxHEIGHT`, and, under "Testing",
   `--frames=N` and `--screenshot=FILE`. Gone: `--completion`, which the
   program's `completion` command covers, and `--print` and `--part`, kept
-  since 2026.10.16 only to say where they went -- a retired program's
+  since 2026.10.16 only to say where they went - a retired program's
   pointers. A grammar or an input that cannot be read is refused before
   the window opens, `vparse: error: cannot read 'x': REASON` and 2, as
   bitwisedom's window refuses a sheet (section 10); `vparse_gui` said so
@@ -4049,7 +4049,7 @@ commands spell it.
 - **A. `VPARSE_UI_HOST`, `VPARSE_UI_BUILD_TESTS`,
   `VPARSE_UI_BUILD_UXOXO_TESTS`**, the window's build's own, beside
   djinterp's build's `VPARSE_BUILD_TESTS` and the rest, which it sets for
-  the build it adds -- its tests on when the window's are, so that its one
+  the build it adds - its tests on when the window's are, so that its one
   `ctest` covers the program and what it stands on as before (35 tests).
   djinterp's vparse build now adds its tests whenever `VPARSE_BUILD_TESTS`
   is on, not only at the top level. For: no name means two things. Against:
@@ -4078,8 +4078,8 @@ it had no rule for one.
 
 #### cli-taken 76. How the window's build reads djinterp under `cl`
 
-djinterp's vparse build kept its `VPARSE_CL_READS` lists -- `/utf-8`,
-`/Zc:preprocessor`, `/Zc:__cplusplus`, `/permissive-`, `/EHsc` -- as
+djinterp's vparse build kept its `VPARSE_CL_READS` lists - `/utf-8`,
+`/Zc:preprocessor`, `/Zc:__cplusplus`, `/permissive-`, `/EHsc` - as
 variables of its own directory. The window's build adds it within its own,
 and applies vparse's functions to the window's targets and uxoxo's there,
 where the lists were empty: under the stand-in, the window's seven units
@@ -4103,8 +4103,8 @@ A pattern ctest holds passes whatever the status, and the three runs of
 `vparse gui` were written so, as bitwisedom's window build's two are.
 
 - **A. The status and the words, both**, through `cmake/UiRun.cmake`,
-  which runs the command line -- through the emulator a cross build names
-  -- and fails unless both are as given: `--help` and `--version -v` 0, a
+  which runs the command line - through the emulator a cross build names
+  - and fails unless both are as given: `--help` and `--version -v` 0, a
   grammar that cannot be read 2. For: section 8's statuses are what a
   script reads; a refusal planted to end 0, its error still said, matches
   the pattern and fails the run. Against: a script of its own.
@@ -4137,8 +4137,8 @@ module.
 
 #### cli-taken 79. What `run` and `corpus` add
 
-- **A. New keys, last**: `run` ends with `argument` -- the argument, as
-  `match.inputs[]`'s `input` is -- and `as_text`, after `parts`; `corpus`
+- **A. New keys, last**: `run` ends with `argument` - the argument, as
+  `match.inputs[]`'s `input` is - and `as_text`, after `parts`; `corpus`
   ends with `length`, `repeats` and `misses`, after `inputs`. `input`
   keeps its meaning (R19), and a new key comes after the ones there, as
   the README's JSON section says. `replay` has neither of `run`'s: what it
@@ -4147,7 +4147,7 @@ module.
   `run`'s two sit after its parts, far from `input`.
 - **B. `run`'s `input` made the argument.** Against: R19, a key keeps its
   meaning.
-- **C. Each beside its kin** -- `argument` after `input`, the three after
+- **C. Each beside its kin** - `argument` after `input`, the three after
   `seed`. For: read together. Against: the README's rule that a new key
   comes after the ones there, which a reader of a document in order may
   lean on.
@@ -4159,10 +4159,10 @@ module.
 - **A. The model gives it**: `refusal_of(run)` (`run.hpp`, 3.2.6) gives the
   line and column where the notation reader stopped, and the headline's
   sentence with the place taken out; the command line says it through the
-  kit's `d_cli_report_at` -- `g.vp:2:12: error: the grammar could not be
-  read: the reader stopped, inside ...`. Where there is no place -- the
+  kit's `d_cli_report_at` - `g.vp:2:12: error: the grammar could not be
+  read: the reader stopped, inside ...`. Where there is no place - the
   EBNF reader, which says what it expected and not where; the reader's
-  step limit; a program that was not built -- it stays `vparse: error:
+  step limit; a program that was not built - it stays `vparse: error:
   NAME: SENTENCE`. The headline, the run's `result` and the JSON's `error`
   keep the place in their words (R19). For: the code that words a refusal
   decides its place too; an editor links it. Against: a refusal has two
@@ -4178,12 +4178,12 @@ module.
 
 #### cli-taken 81. What a module's path is joined with
 
-- **A. The platform's separator**: `\` on Windows -- `env_cli.h`'s
-  `D_ENV_CLI_PATH_SEPARATOR` -- between a directory and a module's name,
+- **A. The platform's separator**: `\` on Windows - `env_cli.h`'s
+  `D_ENV_CLI_PATH_SEPARATOR` - between a directory and a module's name,
   and in `..\lib\` from the program's own directory; `/` elsewhere.
   `LoadLibraryExW`'s page asks that a path given it use backslashes, not
-  forward slashes. A directory as given -- in `PROGRAM_PLUGIN_PATH`, or
-  the program's own -- keeps its separators. For: the loader's contract.
+  forward slashes. A directory as given - in `PROGRAM_PLUGIN_PATH`, or
+  the program's own - keeps its separators. For: the loader's contract.
   Against: none.
 - **B. `/` kept**, as it loads under Wine. Against: the contract; a module
   with DLLs of its own beside it was never tried on Windows itself.
@@ -4195,7 +4195,7 @@ separator.
 
 filesys' predicates answer 0 "for any failure" by their contract. The kit
 asked `d_file_is_regular` whether a module was there, and
-`d_file_is_symlink` whether a name it writes is a link -- so a want of
+`d_file_is_symlink` whether a name it writes is a link - so a want of
 memory read as "no": a module not installed, which section 8 forbids
 saying for it, and a link replaced by a file, which `d_cli_write_file`
 promises never happens.
@@ -4214,13 +4214,13 @@ why.
 #### cli-taken 83. The pointer to help after a want of memory
 
 The kit's failure message ended every failure of a parse with `Try
-'PROGRAM --help' for more information.` -- a want of memory too: on
+'PROGRAM --help' for more information.` - a want of memory too: on
 Windows, the arguments' UTF-8 copies refused, which the parser records as
 its definition error, so that the parse ends before it starts.
 
 - **A. No pointer after a want of memory**, in the message composed whole
   and in the one composed in a room of its own; the allocation sweep holds
-  it -- where the clean run had no trouble, a refused run says `out of
+  it - where the clean run had no trouble, a refused run says `out of
   memory` and points at no help. For: help does not mend it. Against:
   none.
 - **B. Kept.** Against: it points a user at help that cannot help.
@@ -4948,9 +4948,9 @@ Where: `cfg_file_common.h` 1.7.3.
 variant exists". The recommendation was: Confirm, and list the knob as
 reserved (no effect) in the 1.0 configuration docs, as #5.
 
-#### fs-taken 11. `D_CFG_FILE_LONG_PATHS` is documented as what it does today -- 32767-character buffers, no `\\?\` prefix -- un…
+#### fs-taken 11. `D_CFG_FILE_LONG_PATHS` is documented as what it does today - 32767-character buffers, no `\\?\` prefix - un…
 
-`D_CFG_FILE_LONG_PATHS` is documented as what it does today -- 32767-character buffers, no `\\?\` prefix -- until part 4 (4.1)
+`D_CFG_FILE_LONG_PATHS` is documented as what it does today - 32767-character buffers, no `\\?\` prefix - until part 4 (4.1)
 
 Where: `cfg_file_common.h` 1.5.3.
 

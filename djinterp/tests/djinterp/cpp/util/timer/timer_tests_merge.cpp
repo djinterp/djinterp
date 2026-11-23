@@ -2,7 +2,7 @@
 * djinterp [cpp][utility]                                  timer_tests_merge.cpp
 *
 * The timer suite's tests for the four operations a timer shares with the
-* counters -- increment, decrement, compare and merge -- for timer and
+* counters - increment, decrement, compare and merge - for timer and
 * mutex_timer, on the hand-advanced test clock.
 *
 *

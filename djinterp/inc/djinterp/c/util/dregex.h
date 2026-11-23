@@ -14,8 +14,8 @@
 * backtracking pass then chooses among the parses of that one window.  The fast
 * path is unchanged and pays nothing for the feature.
 *     The file is named dregex.h rather than regex.h because a translation
-* unit that includes both this header and the POSIX <regex.h> -- the
-* differential test does -- would otherwise resolve the angle-bracket form to
+* unit that includes both this header and the POSIX <regex.h> - the
+* differential test does - would otherwise resolve the angle-bracket form to
 * this file whenever the include directory is on the search path.
 *   Every function is C, with C linkage from C++. A compiled pattern carries
 * its own scratch buffers, so one pattern serves one thread at a time; two

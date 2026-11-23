@@ -4,7 +4,7 @@
 * Executing a run and describing what it did.
 *   Reading notation is done the way notation::parse_grammar does it --
 * compile the meta-grammar, run it over the text under notation::read_limit,
-* fold the captures -- but on a traced machine, so the grammar's own reading
+* fold the captures - but on a traced machine, so the grammar's own reading
 * can be inspected like any other run. A request's step limit is for the run
 * over its input, as a match's is. Two hazards are caught before the program
 * runs rather than left to the machine: a reference to an undefined rule (the
@@ -150,7 +150,7 @@ std::string compress_set(
 }
 
 // render_term
-//   one ruleset term in notation style: 'c', [0-9], Ref, . -- with * for a
+//   one ruleset term in notation style: 'c', [0-9], Ref, . - with * for a
 // starred term and #N for a capture tag.
 std::string render_term(
     const vp::term& _term
@@ -570,7 +570,7 @@ void analyse(
             expect("the end of the input");
         }
 
-        // the analysis's own reading of the instruction -- not a dispatch
+        // the analysis's own reading of the instruction - not a dispatch
         if ( (ins.op == vp::peg::CALL) ||
              (entered) )
         {
@@ -1568,9 +1568,9 @@ std::string trimmed(
  * @brief Lays out what the recognition pass counted, rule by rule.
  *
  * @param[in] _run  the run.
- * @return a row a rule, in program order -- its calls, the calls that
+ * @return a row a rule, in program order - its calls, the calls that
  *         repeated one at the same position, the steps those ran, the calls
- *         the memo answered, and its steps, arrivals and revisits -- then a
+ *         the memo answered, and its steps, arrivals and revisits - then a
  *         row for the gate and one for the whole run; a rule with a repeat
  *         is marked, since a repeat is work a memo would not do again.
  */
@@ -1845,7 +1845,7 @@ run_record execute(
 /*
 memo_rules
   A name is matched to the rules' labels, so in a program the labels do not
-fit -- its calls named by address -- no name names a rule, and "all" alone
+fit - its calls named by address - no name names a rule, and "all" alone
 reaches them. A name given twice is one rule, and an empty name between two
 commas is no name.
 */

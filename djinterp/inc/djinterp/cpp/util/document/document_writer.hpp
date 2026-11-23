@@ -3,12 +3,12 @@
 *
 *   Builds a document tree incrementally through stable, position-holding
 * cursors. The tree is stored in a flat, append-only arena
-* (`std::vector<DDocNode>`); a cursor is `{arena, dj_index}` -- a comonadic
+* (`std::vector<DDocNode>`); a cursor is `{arena, dj_index}` - a comonadic
 * focus into that arena. Because the arena only ever grows, an index never
 * invalidates: appending elsewhere may reallocate the vector's memory, but
 * a node at index `i` is still at index `i`, so a cursor stays anchored to
 * its node for the writer's whole life. That is what lets several cursors
-* be held at once and written to in any interleaving -- the canonical
+* be held at once and written to in any interleaving - the canonical
 * "X inline AND in a List-of-X section" case.
 *
 *   DOCUMENT ORDER vs WRITE ORDER:
@@ -20,7 +20,7 @@
 * decoupled.
 *
 *   PROTOCOL BRIDGE:
-*   `document()` returns a `DDocView` -- a lightweight, read-only view over
+*   `document()` returns a `DDocView` - a lightweight, read-only view over
 * the arena that satisfies the XML node protocol (name / kind / text /
 * attributes / children). So the generic `DDocumentPrinter` (and any
 * protocol-generic consumer) serialises an arena-built document through the
@@ -28,7 +28,7 @@
 * building; the node protocol is the meeting point with reading/printing.
 *
 *   This header depends only on `xml.hpp` (for `DXmlString` /
-* `DXmlNodeKind`); it does NOT depend on the printer -- serialisation is a
+* `DXmlNodeKind`); it does NOT depend on the printer - serialisation is a
 * separate concern applied to `document()`.
 *
 *   Requires C++17 (fold expressions in the fan-out helpers); self-
@@ -295,7 +295,7 @@ private:
 
 // DDocView
 //   class: a read-only view of one arena node that satisfies the XML node
-// protocol -- name / kind / text / attributes / children. This is the
+// protocol - name / kind / text / attributes / children. This is the
 // bridge that lets `DDocumentPrinter` serialise an arena-built document.
 class DDocView
 {
@@ -344,7 +344,7 @@ private:
 };
 
 
-// DChildRange::iterator::operator* -- now that DDocView is complete.
+// DChildRange::iterator::operator* - now that DDocView is complete.
 inline
 DDocView DChildRange::iterator::operator*() const
 {
@@ -357,7 +357,7 @@ DDocView DChildRange::iterator::operator*() const
 ///////////////////////////////////////////////////////////////////////////////
 
 // DCursor
-//   class: a position-holding handle into a document arena -- `{arena,
+//   class: a position-holding handle into a document arena - `{arena,
 // dj_index}`, ~16 bytes, trivially copyable. A cursor names a node and stays
 // valid for the arena's life, so many cursors can be held at once and
 // written to in any order. Building operations mutate the arena (through the
@@ -379,7 +379,7 @@ public:
         , m_node(_node)
     {}
 
-    // append_child -- add a child element; return this focus (sibling chain).
+    // append_child - add a child element; return this focus (sibling chain).
     DCursor& append_child(
         DXmlString _name
     )
@@ -391,7 +391,7 @@ public:
         return *this;
     }
 
-    // open_child -- add a child element; return the child's cursor (descend).
+    // open_child - add a child element; return the child's cursor (descend).
     D_NODISCARD DCursor open_child(
         DXmlString _name
     )
@@ -403,7 +403,7 @@ public:
         return DCursor(m_arena, _child);
     }
 
-    // append -- add a sibling immediately after the focus; return its cursor.
+    // append - add a sibling immediately after the focus; return its cursor.
     D_NODISCARD DCursor append(
         DXmlString _name
     )
@@ -429,7 +429,7 @@ public:
         return DCursor(m_arena, _sibling);
     }
 
-    // text -- set the focus's text content; return the focus.
+    // text - set the focus's text content; return the focus.
     DCursor& text(
         DXmlString _text
     )
@@ -438,7 +438,7 @@ public:
         return *this;
     }
 
-    // attr -- append an attribute to the focus; return the focus.
+    // attr - append an attribute to the focus; return the focus.
     DCursor& attr(
         DXmlString _name,
         DXmlString _value
@@ -450,7 +450,7 @@ public:
         return *this;
     }
 
-    // kind -- set the focus's node kind; return the focus.
+    // kind - set the focus's node kind; return the focus.
     DCursor& kind(
         DXmlNodeKind _kind
     )
@@ -459,13 +459,13 @@ public:
         return *this;
     }
 
-    // view -- a read-only protocol view of the focused node.
+    // view - a read-only protocol view of the focused node.
     D_NODISCARD DDocView view() const
     {
         return DDocView(m_arena, m_node);
     }
 
-    // index -- the focus's arena index (its stable identity).
+    // index - the focus's arena index (its stable identity).
     D_NODISCARD dj_index index() const
     {
         return m_node;
@@ -479,7 +479,7 @@ private:
         return (*m_arena)[static_cast<std::size_t>(_node)];
     }
 
-    // m_add -- append a fresh element node; return its index. May reallocate
+    // m_add - append a fresh element node; return its index. May reallocate
     // the arena, so callers must re-fetch any references afterwards.
     dj_index m_add(
         DXmlString   _name,
@@ -495,7 +495,7 @@ private:
         return _index;
     }
 
-    // m_link_child -- attach `_child` as the last child of `_parent`, O(1).
+    // m_link_child - attach `_child` as the last child of `_parent`, O(1).
     void m_link_child(
         dj_index _parent,
         dj_index _child
@@ -528,7 +528,7 @@ private:
 // DDocumentWriter
 //   class: owns the document arena and hands out cursors. The arena lives
 // behind a `unique_ptr` so the writer stays movable WITHOUT moving the arena
-// storage -- a cursor borrows `arena()` and remains valid as long as the
+// storage - a cursor borrows `arena()` and remains valid as long as the
 // writer lives (iterator-like). Call `root(name)` once to create the root and
 // obtain the first cursor; `document()` returns a protocol view of the root
 // for serialisation.
@@ -539,7 +539,7 @@ public:
         : m_arena(new DDocArena())
     {}
 
-    // root -- create the root element and return a cursor at it. Call once,
+    // root - create the root element and return a cursor at it. Call once,
     // before any other building.
     DCursor root(
         DXmlString _name
@@ -554,13 +554,13 @@ public:
         return DCursor(m_arena.get(), _index);
     }
 
-    // document -- a read-only protocol view of the root node, for printing.
+    // document - a read-only protocol view of the root node, for printing.
     D_NODISCARD DDocView document() const
     {
         return DDocView(m_arena.get(), 0);
     }
 
-    // at -- a cursor at an arbitrary stable index (e.g. one saved earlier).
+    // at - a cursor at an arbitrary stable index (e.g. one saved earlier).
     D_NODISCARD DCursor at(
         dj_index _index
     )
@@ -568,13 +568,13 @@ public:
         return DCursor(m_arena.get(), _index);
     }
 
-    // node_count -- number of nodes built so far.
+    // node_count - number of nodes built so far.
     D_NODISCARD std::size_t node_count() const
     {
         return m_arena->size();
     }
 
-    // arena -- the underlying store (advanced/interop use).
+    // arena - the underlying store (advanced/interop use).
     D_NODISCARD const DDocArena& arena() const
     {
         return *m_arena;
@@ -592,7 +592,7 @@ private:
 // to_head
 //   function: adapt a cursor + a renderer into an event consumer. Each call
 // appends `render(event)` as the text of a fresh `element` child under the
-// head -- turning a positional cursor into a `void(const Event&)` sink. The
+// head - turning a positional cursor into a `void(const Event&)` sink. The
 // head is captured by value (it is a cheap, stable handle) and keeps
 // appending under the same node.
 template<typename Render>
@@ -611,7 +611,7 @@ D_NODISCARD auto to_head(
 
 // broadcast
 //   function: fan one input out to several sinks (the `tee` pattern). Returns
-// a sink that invokes every `_sink(input)` in order -- e.g. feed one event to
+// a sink that invokes every `_sink(input)` in order - e.g. feed one event to
 // both an inline head and a List-of-X head. Equivalent in spirit to
 // `consumers::tee`; provided here so the document-building side is
 // self-contained.

@@ -162,7 +162,7 @@ inline
     "byte orders, the proof that the big-endian instance reproduces encode.hpp, "
     "and the encode_leaf<E> convenience.",
     {
-        // -- I. the serial parameter enums --------------------------------------
+        // - I. the serial parameter enums --------------------------------------
         dt::block_spec{
             "enums",
             "The serial parameter enums (serial_endian / serial_length / "
@@ -179,7 +179,7 @@ inline
             }
         },
 
-        // -- II. the parameterised byte writers ---------------------------------
+        // - II. the parameterised byte writers ---------------------------------
         dt::block_spec{
             "writers",
             "The internal parameterised writers, reached by direct call because the "
@@ -201,7 +201,7 @@ inline
             }
         },
 
-        // -- III. the leaf families under both orders ---------------------------
+        // - III. the leaf families under both orders ---------------------------
         dt::block_spec{
             "leaves",
             "The five enc_tau<E> leaf families under both byte orders: bool, "
@@ -233,7 +233,7 @@ inline
             }
         },
 
-        // -- IV. the convenience wrapper ----------------------------------------
+        // - IV. the convenience wrapper ----------------------------------------
         dt::block_spec{
             "convenience",
             "encode_leaf<E>(value): the wrapper that runs enc_tau<E> into a fresh "

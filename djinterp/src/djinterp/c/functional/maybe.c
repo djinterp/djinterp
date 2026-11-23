@@ -150,7 +150,7 @@ bool d_maybe_is_just(
 /*
 d_maybe_is_nothing
   Reports whether the cell is empty. An unusable view reads as empty, so this
-is not simply the negation of `d_maybe_is_just` for a NULL argument -- both
+is not simply the negation of `d_maybe_is_just` for a NULL argument - both
 answer in the direction that avoids reading an absent value.
 
 Parameter(s):

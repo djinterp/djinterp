@@ -4,7 +4,7 @@
 * Implementation of the SFTP vocabulary and codec declared in sftp_common.h.
 *   Every reader goes through dj_ssh_reader, whose failure is sticky, so each
 * parser reads a whole reply and judges it once. Where a record carries
-* fields of unknown size -- attribute flags version 3 does not define -- the
+* fields of unknown size - attribute flags version 3 does not define - the
 * record is refused rather than guessed at.
 *
 *
@@ -639,8 +639,8 @@ d_sftp_packet_frame(
 
 /*
 d_sftp_packet_parse
-  Every packet this client reads has an id after its type -- VERSION's is
-the version -- so the header is read the same way for all of them.
+  Every packet this client reads has an id after its type - VERSION's is
+the version - so the header is read the same way for all of them.
 */
 enum dj_sftp_error
 d_sftp_packet_parse(

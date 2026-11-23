@@ -14,8 +14,8 @@
 *       families of c/math/interval_float.h, through the overloads that name
 *       each kernel once for all three: an interval's members are the values
 *       its type represents within its bounds, as for the integers;
-*     - for anything else -- an enumeration, a structural class type
-*       (C++20), an extended integer wider than the C families -- the generic
+*     - for anything else - an enumeration, a structural class type
+*       (C++20), an extended integer wider than the C families - the generic
 *       path below: the same operations written in the value type's own
 *       arithmetic, as the templates computed them before the C core existed.
 *       It is the one second implementation in the module, kept by the
@@ -24,8 +24,8 @@
 *
 *   ITERATION is by index: the member under an iterator is the interval's
 * at(index), and end() is index size(). Stepping a value instead, as the
-* templates once did, cannot represent one past the type's maximum -- a
-* closed_interval<uint8_t, 0, 255> iterated nothing -- and ++ on a bool is
+* templates once did, cannot represent one past the type's maximum - a
+* closed_interval<uint8_t, 0, 255> iterated nothing - and ++ on a bool is
 * ill-formed from C++17.
 *
 *   EVERY LEVEL. Nothing here needs more than C++98. The kernels are

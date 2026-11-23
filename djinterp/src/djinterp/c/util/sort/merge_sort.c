@@ -63,7 +63,7 @@ doubling width until one run covers it.
 
   THE PING-PONG. A merge cannot write into what it is reading, so each pass
 reads one buffer and writes the other, and the two exchange roles between
-passes. The alternative -- merge into scratch, copy back, repeat -- is correct
+passes. The alternative - merge into scratch, copy back, repeat - is correct
 and copies every element twice per pass instead of once. After the loop the
 sorted elements are wherever the last pass wrote them, so the range gets one
 final copy only when that was the scratch.

@@ -4,16 +4,16 @@
 * Prepared statements on a PostgreSQL connection: SQL the server parses and
 * plans once, values bound to its parameters, and run as often as needed.
 *   d_postgres_prepare has the server prepare one statement under a name of
-* the layer's -- d_stmt_ and hexadecimal digits, which other code should not
-* give its own statements -- and asks it what type each parameter is.
+* the layer's - d_stmt_ and hexadecimal digits, which other code should not
+* give its own statements - and asks it what type each parameter is.
 * Parameters are written $1, $2 and so on, as PostgreSQL writes them, and a
 * type the statement leaves open is the one the server infers. The bind
 * functions give them values, which the statement keeps until it runs, and a
 * parameter never bound is NULL. A value goes to the server as text, as its
-* own input functions read text -- an integer in decimal, a real number to
+* own input functions read text - an integer in decimal, a real number to
 * the seventeen digits that read back as the same double, NaN and the
 * infinities as PostgreSQL spells them, a boolean as 1 or 0, which boolean
-* and integer parameters alike accept -- and bytes go as bytes.
+* and integer parameters alike accept - and bytes go as bytes.
 * d_postgres_execute_update runs the statement and counts the rows it
 * changed; d_postgres_execute_query runs it and returns its rows, typed as
 * postgres_query.h describes. d_postgres_open_cursor runs it with its rows
@@ -21,12 +21,12 @@
 * a number, until a short page ends the run, and d_postgres_close_cursor
 * ends it sooner. The server sends every row; libpq hands them over one at a
 * time, so a run holds the connection until it ends: every other call that
-* waits on the connection meanwhile -- another statement's run, prepare or
-* release among them -- is 08000, as the layer's own answer
+* waits on the connection meanwhile - another statement's run, prepare or
+* release among them - is 08000, as the layer's own answer
 * (d_postgres_result_is_own). A statement released then cannot reach the
 * server, whose copy stays until the session ends. d_postgres_finalize
 * releases the statement, and the server's copy; d_postgres_close_prepared
-* closes, by its name, one the session prepared another way -- with PREPARE,
+* closes, by its name, one the session prepared another way - with PREPARE,
 * say.
 *   RESULTS. As every module's (postgres_common.h): 0, or a failure's
 * SQLSTATE, packed, which d_postgres_error_message on the statement's
@@ -84,7 +84,7 @@ TABLE OF CONTENTS
                                                  // floor; int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -183,7 +183,7 @@ int d_postgres_close_prepared(
 
 // 1.3    Describing
 //------------------------------------------------------------------------------
-// describing -- _parameter_count is the number of the highest parameter the
+// describing - _parameter_count is the number of the highest parameter the
 // statement uses, 0 for NULL; _statement_connection is the connection it
 // belongs to, NULL for NULL
 size_t d_postgres_parameter_count(
@@ -196,9 +196,9 @@ struct pg_conn* d_postgres_statement_connection(
 
 // 1.4    Preparing without blocking
 //------------------------------------------------------------------------------
-// d_postgres_prepare_start begins what d_postgres_prepare does -- a stale name
+// d_postgres_prepare_start begins what d_postgres_prepare does - a stale name
 // looked for where it must be and dropped, the prepare, tried once more after
-// a stale name the server still held, the parameters described -- as
+// a stale name the server still held, the parameters described - as
 // exchanges that never wait, each continued by d_postgres_prepare_continue as
 // the socket allows, until one answers anything but D_DB_WAIT. The statement
 // exists from the start, and is the caller's to finalize whatever the
@@ -254,7 +254,7 @@ int d_postgres_prepare_continue(
 
 // 2.1    Binding
 //------------------------------------------------------------------------------
-// binding -- each gives the parameter numbered `_index`, from 1, a value
+// binding - each gives the parameter numbered `_index`, from 1, a value
 // until another is bound or the values are cleared: NULL; a boolean, as 1 or
 // 0; an integer; a real number; text, copied, NULL binding NULL; bytes,
 // `_size` of them copied and sent as bytes, NULL binding NULL and a pointer
@@ -295,7 +295,7 @@ int d_postgres_bind_blob(
 
 // 2.2    Clearing
 //------------------------------------------------------------------------------
-// clearing -- every parameter NULL again: 0, or D_DB_INVALID_ARGUMENT for a
+// clearing - every parameter NULL again: 0, or D_DB_INVALID_ARGUMENT for a
 // NULL statement
 int d_postgres_clear_bindings(
     struct dj_postgres_statement* _statement
@@ -369,12 +369,12 @@ int d_postgres_open_cursor(
  * @param[in]  _statement  the statement.
  * @param[in]  _max        the most rows to read; 1 or more.
  * @param[out] _rows       receives the columns and up to `_max` rows, typed
- *                         as postgres_query.h describes; fewer -- none
- *                         among them -- once the run has none left, which
+ *                         as postgres_query.h describes; fewer - none
+ *                         among them - once the run has none left, which
  *                         ends it. A statement that returns no rows has no
  *                         columns either, and its first fetch ends its
  *                         run. Written only on success.
- * @return 0; the SQLSTATE of a failure, packed, which ends the run -- the
+ * @return 0; the SQLSTATE of a failure, packed, which ends the run - the
  *         server's failure part-way through the rows among them;
  *         D_DB_UNSUPPORTED for COPY, ended at once; 53200 when the rows
  *         could not be built, which ends the run too, read to its end;
@@ -387,7 +387,7 @@ int d_postgres_fetch_rows(
     size_t                        _max,
     struct dj_db_rows*            _rows
 ) D_NOTHROW;
-// ending a run -- _close_cursor ends the run d_postgres_open_cursor began,
+// ending a run - _close_cursor ends the run d_postgres_open_cursor began,
 // reading away whatever rows it had left, so that the connection is free
 // again: 0, or the SQLSTATE, packed, of a failure the server reported among
 // them, the run ended all the same; 0 for a statement with no run open;
@@ -407,10 +407,10 @@ int d_postgres_close_cursor(
 // d_postgres_open_cursor does, d_postgres_open_cursor_continue writing what
 // the socket could not take; d_postgres_fetch_rows_start reads a page as
 // d_postgres_fetch_rows does, from whatever has arrived, giving it once it is
-// whole -- the statement keeping it between continuations -- and
+// whole - the statement keeping it between continuations - and
 // d_postgres_fetch_rows_continue reads more. Each start refuses, 08000, while
 // a run or a call of the statement's own is under way, rather than wait for
-// it -- a page's start excepted, which is the run's -- and in pipeline mode.
+// it - a page's start excepted, which is the run's - and in pipeline mode.
 /**
  * @brief Sends a statement to run, with its values, without waiting for its
  *        result.

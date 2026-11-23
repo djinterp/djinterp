@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][filesys]                                   file_tests_space.cpp
 *
-*   IX. Capacity (file_space.hpp) -- three byte counts, one of which is a trap.
+*   IX. Capacity (file_space.hpp) - three byte counts, one of which is a trap.
 *
 * FREE IS NOT AVAILABLE
 * ---------------------
@@ -9,8 +9,8 @@
 * `available` counts what this user may actually claim. On a typical volume they
 * differ by gigabytes, and deciding "will this write fit" from `free` is how an
 * unprivileged program talks itself into space it cannot touch. The relationship
-* case below asserts the ordering that makes that difference real -- available
-* <= free <= capacity -- rather than exact figures, which depend entirely on the
+* case below asserts the ordering that makes that difference real - available
+* <= free <= capacity - rather than exact figures, which depend entirely on the
 * host and would make this suite a measurement of the CI runner's disk.
 *
 *

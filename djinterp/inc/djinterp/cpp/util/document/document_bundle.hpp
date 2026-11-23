@@ -156,7 +156,7 @@ struct DBundleItem
 class DDocumentBundle
 {
 public:
-    // -- public type aliases -------------------------------------------------
+    // - public type aliases -------------------------------------------------
 
     // item_type
     //   type: one collected document.

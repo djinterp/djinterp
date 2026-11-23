@@ -35,8 +35,8 @@
 
 /*
 d_ftp_internal_parse_ipv4
-  File-local: parses exactly a dotted quad -- four fields of one to three
-digits, each at most 255 -- with nothing before or after it.
+  File-local: parses exactly a dotted quad - four fields of one to three
+digits, each at most 255 - with nothing before or after it.
 */
 D_STATIC
 bool d_ftp_internal_parse_ipv4(
@@ -222,8 +222,8 @@ bool d_ftp_internal_endpoint_octets(
 
 /*
 d_ftp_internal_write_tuple
-  File-local: writes the six comma-separated bytes PORT and PASV share -- the
-address bytes, then the port's high and low bytes -- into scratch storage
+  File-local: writes the six comma-separated bytes PORT and PASV share - the
+address bytes, then the port's high and low bytes - into scratch storage
 sized for them.
 */
 D_STATIC

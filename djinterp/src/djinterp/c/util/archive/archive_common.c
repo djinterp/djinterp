@@ -6,7 +6,7 @@
 *   THIS FILE CLOSES THE `BUILTIN` DEFECT:
 *   env_archive.h has always advertised D_ENV_ARCHIVE_HAVE_BUILTIN_TAR and
 * _BUILTIN_ZIP as 1, and D_ENV_ARCHIVE_BACKEND_BUILTIN has always been
-* enumerated -- but no built-in writer existed, so tar and zip support in
+* enumerated - but no built-in writer existed, so tar and zip support in
 * practice depended on which third-party headers happened to be installed.
 * That is parity failing for ENVIRONMENTAL reasons, which is the one way it is
 * not allowed to fail.  Sections VIII and IX are dependency-free ustar and ZIP
@@ -25,7 +25,7 @@
 * FOLLOWS it, so a streaming writer must either know them in advance or emit a
 * trailing data descriptor.  Data descriptors are handled poorly by several
 * readers, so this writer knows them in advance.  With no memory of its own,
-* it runs the codec three times per entry -- into a counting sink to learn the
+* it runs the codec three times per entry - into a counting sink to learn the
 * size, into the real sink, and into a counting sink again for the central
 * directory.  Given a STAGE (d_archive_create_staged), it runs the codec once,
 * into the stage, and keeps each entry's plan there for the directory.
@@ -40,7 +40,7 @@
 *   Nothing here reads the clock, the umask, the environment, or the locale.
 * An entry with mtime 0 is written with D_ARCHIVE_EPOCH_DEFAULT, not "now", and
 * mode 0 becomes a pinned constant, not the process umask.  Two runs over
-* identical entries produce identical bytes on every machine -- which is the
+* identical entries produce identical bytes on every machine - which is the
 * precondition for the differential test comparing archives at all.
 *
 *
@@ -248,7 +248,7 @@ d_format_id_from_suffix
 
   The compound suffixes are tested BEFORE the simple ones, because ".tar.gz"
 also ends in ".gz" and a shortest-match walk would classify every tarball as a
-bare gzip stream -- silently producing a single-member container where a
+bare gzip stream - silently producing a single-member container where a
 multi-member one was meant.
 
 Parameter(s):
@@ -313,7 +313,7 @@ d_format_default_codec
 Parameter(s):
   _format: the format to query.
 Return:
-  The codec.  tar is STORE because tar itself does not compress -- compression
+  The codec.  tar is STORE because tar itself does not compress - compression
 is the outer layer, which is precisely what distinguishes tar from tar_gz.
 */
 enum dj_codec_id
@@ -384,8 +384,8 @@ d_archive_knob_name(
 d_archive_knob_is_text
   Whether a knob carries a text span rather than a number.
 
-  Callers need this because the two kinds compare differently -- a numeric knob
-by value, a text knob by d_pack_text_equal -- and a generic walk over the knob
+  Callers need this because the two kinds compare differently - a numeric knob
+by value, a text knob by d_pack_text_equal - and a generic walk over the knob
 set has to branch somewhere.  Branching here keeps that decision in one place.
 
 Parameter(s):
@@ -426,7 +426,7 @@ d_internal_archive_knob_value
   Read a numeric container knob by index.
 
   A switch rather than an offset table, because dj_archive_options is NOT
-densely packed -- it mixes int32_t knobs with pointer-bearing spans, so the
+densely packed - it mixes int32_t knobs with pointer-bearing spans, so the
 index-to-offset arithmetic that works for dj_compress_options does not apply
 here.  The switch is the honest form; the header's assertions say why.
 
@@ -898,8 +898,8 @@ backend, so that C and C++ hand any backend byte-identical parameters and two
 builds with different libraries produce the same container.  Only knobs
 belonging to _format are resolved; the rest pass through untouched.
 
-  The entry-compression defaults -- store_only, level, and the ZIP and 7z
-methods -- come from cfg_archive.h's knobs (D_CFG_ARCHIVE_STORE_ONLY and its
+  The entry-compression defaults - store_only, level, and the ZIP and 7z
+methods - come from cfg_archive.h's knobs (D_CFG_ARCHIVE_STORE_ONLY and its
 kin), so a build chooses what an unset knob means; a knob the caller set is
 never replaced.  store_only, once resolved, overrides the method of both ZIP
 and 7z, so "store" means stored in either container.
@@ -1168,11 +1168,11 @@ d_archive_options_validate(
 d_format_is_readable
   Whether this build can read a format.
 
-  Answers from cfg_archive.h's D_INTERNAL_ARCHIVE_CAN_* -- env_archive.h's
-roll-ups, ANDed with the format knobs -- rather than from its own knowledge of
+  Answers from cfg_archive.h's D_INTERNAL_ARCHIVE_CAN_* - env_archive.h's
+roll-ups, ANDed with the format knobs - rather than from its own knowledge of
 which writers exist here.  That matters: the roll-ups already fold in
 D_ENV_ARCHIVE_HAVE_BUILTIN_TAR / _ZIP, so they are 1 by default now that the
-built-in writers are real -- and a project that sets those knobs to 0 is saying
+built-in writers are real - and a project that sets those knobs to 0 is saying
 "do not use the builtin", which this function must honour.  Reading the macro
 also keeps the runtime answer and format_traits<>'s compile-time answer to one
 source, instead of two that agree until they do not.
@@ -1336,7 +1336,7 @@ d_format_supports_codec(
 d_format_supports_encryption
   Whether a format defines member or header encryption at all.
 
-  A format-level fact, independent of whether this build can perform it -- the
+  A format-level fact, independent of whether this build can perform it - the
 built-in writer encrypts nothing, and d_archive_options_validate is what
 reports that.
 
@@ -1458,7 +1458,7 @@ d_archive_entry_name_is_valid
 
   Three rules, and all three are security properties rather than style ones.  A
 name may not be empty, may not be absolute, and may not contain a `..`
-component -- the last being the path-traversal hole that lets a crafted archive
+component - the last being the path-traversal hole that lets a crafted archive
 write outside the directory it is extracted into.  Backslashes are treated as
 separators too, because a name written on Windows and extracted on POSIX would
 otherwise smuggle `..\` past a check that only looked for `../`.
@@ -1674,7 +1674,7 @@ d_format_detect
   gz is tested before tar_gz and both after the unambiguous magics.  A gzip
 stream that turns out to contain a tar cannot be told apart from one that does
 not without decompressing it, so this reports GZ and a caller that cares
-decompresses and asks again -- which is honest, where guessing would not be.
+decompresses and asks again - which is honest, where guessing would not be.
 
 Parameter(s):
   _data:       the buffer to inspect.
@@ -1889,7 +1889,7 @@ d_internal_dos_datetime
 
   The ZIP format's epoch is 1980 and its resolution is two seconds, so a
 timestamp before 1980 cannot be represented and is clamped rather than
-wrapped -- wrapping would put a 1970 file in 2050-something and no reader would
+wrapped - wrapping would put a 1970 file in 2050-something and no reader would
 flag it.
 
   The calendar arithmetic is the standard days-to-civil algorithm, done here
@@ -1998,7 +1998,7 @@ Parameter(s):
   _options: a resolved option set.
 Return:
   The mode.  A pinned default when the entry carries none or when the caller
-asked not to preserve permissions -- never the process umask.
+asked not to preserve permissions - never the process umask.
 */
 static
 uint32_t d_internal_entry_mode(
@@ -2037,8 +2037,8 @@ uint32_t d_internal_entry_mode(
 //   The 100-byte name field is the format's one real limit.  ustar extends it
 // with a 155-byte `prefix` that is logically joined with a '/', so a path up to
 // 255 bytes is representable provided it can be SPLIT at a separator.  What
-// ustar cannot hold -- a name that does not split, a size of 8 GiB, a
-// timestamp before 1970 -- goes in a pax extended header before the member,
+// ustar cannot hold - a name that does not split, a size of 8 GiB, a
+// timestamp before 1970 - goes in a pax extended header before the member,
 // under the default format (pax); strict ustar refuses it.  A member that fits
 // gets no extended header, so a pax archive of short names is a ustar archive.
 //
@@ -2201,7 +2201,7 @@ size_t d_internal_field_len(
 d_internal_tar_split_name
   Split an entry name across ustar's `name` and `prefix` fields.
 
-  The split must fall on a '/' -- the reader rejoins the two with one -- so a
+  The split must fall on a '/' - the reader rejoins the two with one - so a
 name that fits in neither field alone and has no separator in the right window
 cannot be represented in the header.  The caller decides what that means: a
 pax record under D_TAR_FORMAT_PAX, D_PACK_STATUS_UNSUPPORTED under strict
@@ -2425,8 +2425,8 @@ struct dj_internal_tar_plan
 d_internal_tar_plan_member
   Decide how one member is written.
 
-  A value the ustar header cannot hold -- a name that does not split, a size
-of 8 GiB or more, a timestamp before 1970 or after 2242 -- goes in a pax
+  A value the ustar header cannot hold - a name that does not split, a size
+of 8 GiB or more, a timestamp before 1970 or after 2242 - goes in a pax
 record when the format is pax, the default.  Strict ustar refuses the member
 with D_PACK_STATUS_UNSUPPORTED instead.  A member that needs no record is
 written exactly as strict ustar writes it, so a pax archive with short names
@@ -2818,8 +2818,8 @@ d_internal_tar_size(
 
 // dj_internal_tar_state
 //   enum: where the tar reader is in its input.  The reader is pushed bytes
-// in pieces of any size -- the whole archive at once for a tar, the inflater's
-// output a window at a time for a tar.gz -- so its position is a state and a
+// in pieces of any size - the whole archive at once for a tar, the inflater's
+// output a window at a time for a tar.gz - so its position is a state and a
 // count, never an offset into one buffer.
 enum dj_internal_tar_state
 {
@@ -2835,7 +2835,7 @@ enum dj_internal_tar_state
 // dj_internal_pax_parse
 //   struct: the pax record parser's state.  Records are "LEN KEY=VALUE\n"
 // and may be split anywhere, so the parser is fed a byte at a time.  Only
-// three keys matter here -- path, size and mtime -- so a key longer than the
+// three keys matter here - path, size and mtime - so a key longer than the
 // buffer is simply some other key.
 struct dj_internal_pax_parse
 {
@@ -3059,7 +3059,7 @@ void d_internal_tar_name_start(
 
 /*
 d_internal_tar_header_name
-  The member's name from its header -- prefix, '/', name -- placed in the
+  The member's name from its header - prefix, '/', name - placed in the
 arena when extracting and compared with the target when finding.
 
 Parameter(s):
@@ -3922,8 +3922,8 @@ d_internal_tar_find(
 // there is nowhere to stage the compressed bytes, so a compressed entry is
 // encoded twice: once into a counting sink to learn its size, once into the
 // real sink.  A stored entry is encoded zero extra times, because its
-// compressed size is its input size.  The alternative -- a trailing data
-// descriptor -- avoids the second pass but is mishandled by enough readers
+// compressed size is its input size.  The alternative - a trailing data
+// descriptor - avoids the second pass but is mishandled by enough readers
 // that it is not worth the compatibility.
 
 /*
@@ -4041,7 +4041,7 @@ struct dj_internal_zip_plan
 /*
 d_internal_zip_slash
   Whether a '/' must follow a member's name: a directory whose name lacks it.
-The separator is how a ZIP reader -- this one included -- knows a directory;
+The separator is how a ZIP reader - this one included - knows a directory;
 there is no type flag in the record.
 
 Parameter(s):
@@ -4628,7 +4628,7 @@ d_internal_zip_find_eocd
   Locate the end-of-central-directory record.
 
   Scanned BACKWARDS from the end, because the record is last and its trailing
-comment is variable-length -- there is no forward path to it.  The scan is
+comment is variable-length - there is no forward path to it.  The scan is
 bounded by the maximum comment length (65535) plus the record itself, which is
 what stops a corrupt file turning the search into a walk of the whole archive.
 
@@ -4808,8 +4808,8 @@ d_internal_zip_record_read(
 d_internal_zip_unpack
   Decode one member's data into _dst, and check it against the record: the
 size it declares and the CRC of the uncompressed bytes.  A mismatch is
-CORRUPT_INPUT, so damage the codec cannot see -- a stored member's bytes, a
-flipped bit a codec decodes without complaint -- is still reported.
+CORRUPT_INPUT, so damage the codec cannot see - a stored member's bytes, a
+flipped bit a codec decodes without complaint - is still reported.
 
 Parameter(s):
   _p:   the archive bytes.
@@ -5111,7 +5111,7 @@ d_internal_tee_write
   A sink write that counts the bytes and forwards them to an inner sink.
 
   This is how a writer reports the size it produced without requiring the
-caller's sink to be countable -- a file, a socket and a growable buffer are all
+caller's sink to be countable - a file, a socket and a growable buffer are all
 legitimate destinations and none of them is obliged to keep a total.
 
 Parameter(s):
@@ -5322,9 +5322,9 @@ d_internal_tar_gz_create
   Write a tarball through a stage: the tar into the stage, then gzip from the
 stage into the sink.
 
-  The two transforms cannot be fused in one pass -- that needs a streaming
+  The two transforms cannot be fused in one pass - that needs a streaming
 tar feeding a streaming codec input, and the codec leaves consume a whole
-buffer -- so the tar has to live somewhere between them.  The stage is that
+buffer - so the tar has to live somewhere between them.  The stage is that
 place, and the caller names it, which is what lets the C face write tar.gz
 with no allocator.
 
@@ -5663,8 +5663,8 @@ d_archive_stage_size
   How big a stage the staged create calls need for these members.
 
   tar.gz needs one the size of its tar: the tar is written there and
-compressed from there.  ZIP can use one -- a kept plan per member and room
-for the largest member's compressed bytes -- and then compresses each member
+compressed from there.  ZIP can use one - a kept plan per member and room
+for the largest member's compressed bytes - and then compresses each member
 once instead of three times.  Every other format needs none, and reports 0.
 Sizing runs no codec.
 
@@ -5711,7 +5711,7 @@ d_archive_create_to_sink
   Write a container to a sink.
 
   An empty entry list is legal for every multi-member format and produces a
-valid empty container -- document_bundle already relies on that, passing a
+valid empty container - document_bundle already relies on that, passing a
 null base rather than indexing an empty vector.  It is a formal error only
 for gz, which has no directory to be empty.  tar.gz needs a stage, and so
 d_archive_create_staged_to_sink; here it is D_PACK_STATUS_UNSUPPORTED.
@@ -5893,7 +5893,7 @@ d_archive_bound
   An upper bound on the size of a container built from these entries.
 
   Cheap and always safe.  Every format's per-entry overhead is a constant plus
-the name, and the payload's worst case is the codec's compress bound -- which
+the name, and the payload's worst case is the codec's compress bound - which
 exceeds the input for incompressible data, the case a caller sizing from the
 payload total alone gets wrong.  A tar.gz is bounded as the codec's bound on
 the tar's bound: the tar's headers and padding are inside the stream.
@@ -6191,7 +6191,7 @@ d_archive_extract(
 d_archive_extract_entry
   Pull one member out by name without materialising the rest.
 
-  The common case -- reading a single file from a container -- and the one
+  The common case - reading a single file from a container - and the one
 that needs no arena.  Implemented by walking to the named member and decoding
 only it, so the cost is the directory walk plus that member, not the whole
 archive (a tar.gz is inflated in full, to its trailer, so its CRC is

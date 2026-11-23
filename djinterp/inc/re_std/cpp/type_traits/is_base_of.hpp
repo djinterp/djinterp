@@ -8,7 +8,7 @@
 * operand yields false.
 *
 *   IMPLEMENTATION:
-*   Compiler intrinsic (__is_base_of) where available -- it is the only way to
+*   Compiler intrinsic (__is_base_of) where available - it is the only way to
 * see private and ambiguous bases, which the standard requires to count.  The
 * portable fallback is the classic conversion probe: a host type convertible to
 * both `Base*` and `Derived*` is passed to an overload pair, and only a

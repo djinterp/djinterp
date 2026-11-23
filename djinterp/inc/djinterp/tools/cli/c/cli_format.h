@@ -18,13 +18,13 @@
 *     Global options:
 *       -q, --quiet          say nothing but errors
 *
-* -- the usage line first, built from the command's path, its options, its
+* - the usage line first, built from the command's path, its options, its
 * subcommands and its positionals, or the command's own usage where it has
 * one; the description as a sentence; then the positionals, the
 * subcommands, each option group under its own heading, and, for a
 * subcommand, the root's options the subcommand also takes; and the footer
 * last. An option is its short names, then its long names, the value it
-* takes after `=` -- its type name, or VALUE -- in brackets when the value may
+* takes after `=` - its type name, or VALUE - in brackets when the value may
 * be left out (R7), and its description, with its default and the words a
 * value may be appended. Descriptions start where the widest left column
 * needs, never past D_INTERNAL_CLI_HELP_COLUMN_MAX, and every line is wrapped
@@ -105,8 +105,8 @@ extern const struct dj_arg_formatter_vtable d_cli_formatter_steps;
 //------------------------------------------------------------------------------
 // 1.2.1
 // d_cli_formatter_use
-//   setting: makes a formatter lay help out as the kit does -- its steps,
-// d_cli_formatter_steps -- or, without D_INTERNAL_CLI_FORMATTER, leaves it the
+//   setting: makes a formatter lay help out as the kit does - its steps,
+// d_cli_formatter_steps - or, without D_INTERNAL_CLI_FORMATTER, leaves it the
 // parser's own. The formatter's labels and widths are kept. Ignores NULL;
 // does not fail.
 D_CLI_API void d_cli_formatter_use(

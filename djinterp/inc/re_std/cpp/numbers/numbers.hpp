@@ -27,7 +27,7 @@
 *   Every literal is written with an L suffix and ~37 significant
 * digits, which is enough to fill an 80-bit or 128-bit long double
 * exactly. Writing them as double literals and converting up would lose
-* the tail, and the loss would be invisible -- pi_v<long double> would
+* the tail, and the loss would be invisible - pi_v<long double> would
 * silently carry only double precision.
 *
 *   PORTABILITY:
@@ -57,8 +57,8 @@
 namespace re_std
 {
 
-// std places every one of these in a NESTED namespace -- they are
-// std::numbers::pi, not std::pi -- so re_std mirrors it as
+// std places every one of these in a NESTED namespace - they are
+// std::numbers::pi, not std::pi - so re_std mirrors it as
 // re_std::numbers::pi. There is no NS_ macro for a project-specific
 // nested namespace, so it is opened literally.
 namespace numbers

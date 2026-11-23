@@ -2,10 +2,10 @@
 * djinterp [c][parse]                                       arg_command_option.c
 *
 * A command's options, declared in arg_command.h (3.1, 3.2 and 3.4.2).
-*   Adding an option as CLI11's add_option adds one -- its names checked
+*   Adding an option as CLI11's add_option adds one - its names checked
 * against the command's options, then against the top-level command's for a
 * positional or an option group's option, and for non-standard short names
-* -- with the command's option defaults applied; adding flags as
+* - with the command's option defaults applied; adding flags as
 * _add_flag_internal does, their `{value}` and `!` names split off first;
 * and removing an option and every reference to it.
 *
@@ -70,7 +70,7 @@ const char* d_arg_internal_command_display(
  *         definition error.
  *
  * CLI11's first check: an option of the command that shares a name with the
- * new one, the shared name described by its kind -- "short name '-x'", "long
+ * new one, the shared name described by its kind - "short name '-x'", "long
  * name '--x'" or "name 'x'".
  */
 D_STATIC
@@ -204,7 +204,7 @@ int d_arg_internal_command_lookup(
  *         D_ARG_ERROR_OUT_OF_MEMORY, recorded as a definition error.
  *
  * One of CLI11's top-level lookups: an option found under the name that is
- * configurable -- or, when `_any`, any option at all -- is the conflict
+ * configurable - or, when `_any`, any option at all - is the conflict
  * "<message><prefix><name> is already added".
  */
 D_STATIC
@@ -311,8 +311,8 @@ int d_arg_internal_command_clash_positional(
  *         D_ARG_ERROR_OUT_OF_MEMORY, recorded as a definition error.
  *
  * CLI11's checks of one long name of an option group's option against the
- * top-level command: as a positional name, as a long name, and -- for one
- * character, or where the top-level command takes non-standard names -- as a
+ * top-level command: as a positional name, as a long name, and - for one
+ * character, or where the top-level command takes non-standard names - as a
  * short name.
  */
 D_STATIC
@@ -609,7 +609,7 @@ int d_arg_internal_command_clash_non_standard(
 // dj_arg_internal_command_new
 //   struct: what an option is made with besides its names: a callback, its
 // context and the function that frees it, and a variable attached before the
-// defaults are applied -- each optional.
+// defaults are applied - each optional.
 struct dj_arg_internal_command_new
 {
     dj_arg_results_fn         callback;
@@ -678,7 +678,7 @@ int d_arg_internal_command_check_names(
  *         definition error.
  *
  * CLI11's add_option up to storing the option: it is made from the names --
- * a bad name recorded -- its names checked, and stored last; a refused option
+ * a bad name recorded - its names checked, and stored last; a refused option
  * is not kept.
  */
 D_STATIC
@@ -737,7 +737,7 @@ struct dj_arg_option* d_arg_internal_command_new_option(
  *         definition error, when a switch makes names clash.
  *
  * The switches of CLI11's copy_to, in its order: required, ignore case and
- * ignore underscore -- each refused when it makes names clash -- then
+ * ignore underscore - each refused when it makes names clash - then
  * configurable, flag overrides and default capture.
  */
 D_STATIC
@@ -1081,8 +1081,8 @@ void d_arg_internal_command_drop_bangs(
  *                        is.
  *
  * CLI11's remove_default_flag_values on a copy: each `{...}` that closes
- * before a comma is cut -- the search for the next `{` resuming one past where
- * the cut one began, as CLI11's does -- then every `!` is dropped.
+ * before a comma is cut - the search for the next `{` resuming one past where
+ * the cut one began, as CLI11's does - then every `!` is dropped.
  */
 D_STATIC
 void d_arg_internal_command_strip_values(
@@ -1176,7 +1176,7 @@ int d_arg_internal_command_keep_value(
  * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
  *
  * One name in CLI11's get_default_flag_values: a name ending in `{value}`,
- * or starting with `!`, is kept with its value -- "false" for `!` -- and the
+ * or starting with `!`, is kept with its value - "false" for `!` - and the
  * dashes and bangs at its front taken off; any other is passed over.
  */
 D_STATIC
@@ -1236,8 +1236,8 @@ int d_arg_internal_command_flag_value(
  *                        and the names without values.
  * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
  *
- * CLI11's get_default_flag_values over split_names -- each name between
- * commas, trimmed -- and remove_default_flag_values on a copy.
+ * CLI11's get_default_flag_values over split_names - each name between
+ * commas, trimmed - and remove_default_flag_values on a copy.
  */
 D_STATIC
 int d_arg_internal_command_split_flag(
@@ -1374,16 +1374,16 @@ struct dj_arg_option* d_arg_internal_command_finish_flag(
  * @param[in]     _names        the names.
  * @param[in]     _description  the help text, copied; NULL for none.
  * @param[in]     _new          what the option is given; NULL for nothing.
- * @param[out]    _option       receives the option -- NULL when it was refused,
+ * @param[out]    _option       receives the option - NULL when it was refused,
  *                              the refusal recorded; untouched when the names
  *                              could not be split.
  * @return D_ARG_OK, also for an option refused; D_ARG_ERROR_OUT_OF_MEMORY,
- *         unrecorded, when the names could not be split -- `_new`'s context
- *         then freed -- or the values could not be given.
+ *         unrecorded, when the names could not be split - `_new`'s context
+ *         then freed - or the values could not be given.
  *
  * The option for a flag with names carrying values: added under the names
  * without them, then given the values. Returns the status, with the option --
- * NULL when it was refused -- in `*_option`.
+ * NULL when it was refused - in `*_option`.
  */
 D_STATIC
 int d_arg_internal_command_add_valued(
@@ -1522,7 +1522,7 @@ struct dj_arg_option* d_arg_command_add_flag(
  * CLI11's default_flag_modifiers and its container overload: a container
  * takes every value and is set from a default; an integer wider than a byte
  * sums the values, defaults to "0" and always calls back; anything else is
- * marked to capture its default -- which, as in CLI11, a flag made here
+ * marked to capture its default - which, as in CLI11, a flag made here
  * never does, its variable not being its default function.
  */
 D_STATIC
@@ -1564,8 +1564,8 @@ int d_arg_internal_command_flag_modifiers(
 /*
 d_arg_command_add_flag_bound
   CLI11's add_flag(name, variable): a flag whose first value converts into
-the variable -- attached without becoming the default function, and with no
-type name, as CLI11's flag has neither -- then the type's modifiers; a flag
+the variable - attached without becoming the default function, and with no
+type name, as CLI11's flag has neither - then the type's modifiers; a flag
 that cannot be given them is refused whole.
 */
 struct dj_arg_option* d_arg_command_add_flag_bound(
@@ -1630,8 +1630,8 @@ struct dj_arg_option* d_arg_command_add_flag_bound(
 
 // dj_arg_internal_command_flag_call
 //   struct: what a flag made by add_flag_callback or add_flag_function keeps:
-// the caller's function -- `function`, or `wide` for one given the sum as
-// an intmax_t, the other NULL -- its context, and the function that frees
+// the caller's function - `function`, or `wide` for one given the sum as
+// an intmax_t, the other NULL - its context, and the function that frees
 // it.
 struct dj_arg_internal_command_flag_call
 {
@@ -1707,7 +1707,7 @@ struct dj_pack_text d_arg_internal_command_flag_first(
  *         that is no truth value; otherwise the function's status.
  *
  * CLI11's add_flag_callback lambda: the first value read as a truth value --
- * one that is none refuses the values -- and the function called with 1 when
+ * one that is none refuses the values - and the function called with 1 when
  * it is true.
  */
 D_STATIC
@@ -1748,7 +1748,7 @@ int d_arg_internal_command_flag_trigger(
  * @param[in] _context  the dj_arg_internal_command_flag_call.
  * @return the function's status.
  *
- * CLI11's add_flag_function lambda: the first value -- the sum -- read as an
+ * CLI11's add_flag_function lambda: the first value - the sum - read as an
  * integer, 0 when it is none, and the function called with it.
  */
 D_STATIC
@@ -1929,11 +1929,11 @@ struct dj_arg_option* d_arg_command_add_flag_callback(
  * @param[in]     _call         the caller's function and context.
  * @param[in]     _wrap         the wrapper.
  * @return the flag; NULL for a NULL command, names or function, or for a flag
- *         refused -- the refusal recorded as a definition error -- the caller's
+ *         refused - the refusal recorded as a definition error - the caller's
  *         context freed either way.
  *
  * A flag summing its values, the sum reaching the caller's function through
- * `_wrap`: the parameters checked -- the context freed when they fail -- and
+ * `_wrap`: the parameters checked - the context freed when they fail - and
  * the sum policy set.
  */
 D_STATIC
@@ -2064,7 +2064,7 @@ void d_arg_internal_command_sweep_option(
     (void)d_arg_internal_option_remove(&_command->need_options,
                                        _option);
 
-    // the special options -- a version flag may live in an option group
+    // the special options - a version flag may live in an option group
     _command->help     = (_command->help == _option) ? NULL : _command->help;
     _command->help_all = (_command->help_all == _option)
                          ? NULL
@@ -2126,7 +2126,7 @@ void d_arg_internal_command_forget_option(
 /*
 d_arg_command_remove_option
   CLI11's remove_option, made safe: every reference to the option in the
-whole tree is dropped -- CLI11 drops only its own command's options' -- and
+whole tree is dropped - CLI11 drops only its own command's options' - and
 it is released.
 */
 bool d_arg_command_remove_option(
@@ -2154,8 +2154,8 @@ bool d_arg_command_remove_option(
 
 /*
 d_arg_internal_command_refuse_option
-  The failure recorded first -- d_arg_internal_fail_definition keeps the one
-the failing step recorded, when it recorded one -- then the option removed
+  The failure recorded first - d_arg_internal_fail_definition keeps the one
+the failing step recorded, when it recorded one - then the option removed
 as d_arg_command_remove_option removes one, with every reference to it.
 */
 struct dj_arg_option* d_arg_internal_command_refuse_option(

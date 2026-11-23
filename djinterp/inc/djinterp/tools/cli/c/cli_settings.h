@@ -10,14 +10,14 @@
 * (option_env_registry.h): `cli.plugin_strict_version`, `cli.plugin_search`
 * and the program's `plugin_path` on the registry's root. Where
 * D_CFG_CLI_PLUGIN_VARIABLE is 0, the caller is not to choose what code a
-* program loads, so those two refuse every source the caller controls -- the
-* user's file, the environment, the command line -- and only the program
+* program loads, so those two refuse every source the caller controls - the
+* user's file, the environment, the command line - and only the program
 * and an override bind them (D_OPTION_ENV_REFUSES_CALLER).
 *   At a program's first parse the kit:
 *     - registers its djin, after every djin a module registered before the
 *       program ran;
 *     - binds the environment's settings under `DJINTERP_`, then under the
-*       program's own name -- upper-cased, each `-` an `_` -- so that
+*       program's own name - upper-cased, each `-` an `_` - so that
 *       `BITWISEDOM_CLI_PLUGIN_SEARCH` wins over
 *       `DJINTERP_CLI_PLUGIN_SEARCH`;
 *     - reads the user's settings file, a statement a line, as
@@ -157,16 +157,16 @@ D_CLI_API int d_cli_settings_start(
 // d_cli_settings_hook
 /**
  * @brief The kit's setting hook (dj_arg_setting_fn): takes a setting the
- *        parse offers it -- `--NAME=VALUE`, `--NAME`, `--no-NAME`, or
- *        `--set` and the NAME=VALUE after it -- into the registry, from
+ *        parse offers it - `--NAME=VALUE`, `--NAME`, `--no-NAME`, or
+ *        `--set` and the NAME=VALUE after it - into the registry, from
  *        COMMAND_LINE.
  *
  * @note d_cli_program_parse sets it on a program's parser before each
  *       parse (d_arg_parser_set_setting_hook), unless the program has set
  *       a hook of its own, which can call this one.
  * @note Of the long options the parse does not know, only one shaped as a
- *       setting -- `--set`, or a name holding a '.' after `no-` and before
- *       `=` -- is the kit's; for any other it returns 0, so that the parse
+ *       setting - `--set`, or a name holding a '.' after `no-` and before
+ *       `=` - is the kit's; for any other it returns 0, so that the parse
  *       goes on to its abbreviations and suggestions, `--out` becoming
  *       `--output`. No option of a program's holds a '.' (R5).
  * @note A setting it refuses ends the parse (D_ARG_ERROR_SETTING), its
@@ -263,8 +263,8 @@ D_CLI_API void d_cli_settings_why(
  *        and each value of the environment a setting could not take, once
  *        the parse has ended, so that -q, -v and the command line's own
  *        settings govern them. `cli.unknown_settings` decides what is said
- *        of a name no setting here has -- nothing for a djin the program
- *        does not register, by default -- and `cli.shared_refusals` of a
+ *        of a name no setting here has - nothing for a djin the program
+ *        does not register, by default - and `cli.shared_refusals` of a
  *        setting that refuses the user's file or `DJINTERP_`; a refusal
  *        under the program's own prefix, and a value a setting does not
  *        take, are warnings; an environment variable set empty is taken as
@@ -318,8 +318,8 @@ D_CLI_API bool d_cli_settings_plugin_strict_version(
 
 // 1.4.1
 // d_cli_settings_reset
-//   testing: lets go of the run's settings -- the kit's djin taken out of
-// the program's registry, its bindings and the root's gone -- so that the
+//   testing: lets go of the run's settings - the kit's djin taken out of
+// the program's registry, its bindings and the root's gone - so that the
 // next d_cli_settings_start starts them again, as a new run would.
 D_CLI_API void d_cli_settings_reset(void);
 

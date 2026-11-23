@@ -23,7 +23,7 @@ bool tests_sort_dispatch_tag_values()
 
     //   Every tag names the enumerator it stands for.  This is the join
     // between the compile-time and run-time surfaces, so it has to hold in
-    // both directions -- see tests_sort_dispatch_algorithm_tag_alias for the
+    // both directions - see tests_sort_dispatch_algorithm_tag_alias for the
     // trip back.
     result.check(DBubbleSortTag::value == DSortAlgorithm::bubble);
     result.check(DSelectionSortTag::value == DSortAlgorithm::selection);
@@ -137,7 +137,7 @@ bool tests_sort_dispatch_tag_apply()
 
     //   Each tag's uniform apply() must actually reach its own algorithm.
     // Driving all six over the whole corpus is what proves the forwarding
-    // table has no copy-paste error in it -- a tag wired to the wrong entry
+    // table has no copy-paste error in it - a tag wired to the wrong entry
     // point would still sort correctly, so ordering alone cannot catch it;
     // the property and name checks above are what pin the identity.
     verify_battery_reference(&tag_apply_ints<DBubbleSortTag>,
@@ -181,12 +181,12 @@ bool tests_sort_dispatch_is_sort_tag()
     result.check(!is_sort_tag<DSortAlgorithm>::value);
     result.check(!is_sort_tag<std::less<int> >::value);
 
-    //   NOTE: DDynamicAlgorithm is NOT a sort tag -- it does not derive from
+    //   NOTE: DDynamicAlgorithm is NOT a sort tag - it does not derive from
     // DSortTagBase.  DSorter's static_assert message says the parameter must
     // be "a sort tag type ... or the DDynamicAlgorithm sentinel", which
     // reads as though this were true.  It is harmless, because
     // DSorter<DDynamicAlgorithm> is an explicit specialization and so never
-    // instantiates the primary template's assertion -- but the message is
+    // instantiates the primary template's assertion - but the message is
     // misleading and is pinned here so the discrepancy stays visible.
     result.check(!is_sort_tag<DDynamicAlgorithm>::value);
 

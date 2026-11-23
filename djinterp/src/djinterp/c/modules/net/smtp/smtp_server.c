@@ -1,11 +1,11 @@
 /*******************************************************************************
 * djinterp [c][net]                                                smtp_server.c
 *
-* djinterp SMTP server -- implementation.
+* djinterp SMTP server - implementation.
 *   The session engine: a loop that reads one command, dispatches it on its
 * verb, and answers with an RFC 3463 enhanced status on every reply that may
-* carry one. Session state lives on the heap -- a session is long-lived and
-* may run on a thread with a small stack -- and message data grows by
+* carry one. Session state lives on the heap - a session is long-lived and
+* may run on a thread with a small stack - and message data grows by
 * doubling up to the configured limit, so memory tracks the largest message
 * actually received rather than the largest allowed. STARTTLS makes a TLS
 * session of the SSL kernel over the connection, held in that state.
@@ -404,8 +404,8 @@ d_internal_smtp_ehlo(
 
 /*
 d_internal_smtp_on_hello
-  EHLO and HELO. The argument is taken as one token -- a domain, an address
-literal, or whatever a misconfigured client calls itself -- as long as it is
+  EHLO and HELO. The argument is taken as one token - a domain, an address
+literal, or whatever a misconfigured client calls itself - as long as it is
 safe to echo. A greeting ends any transaction (RFC 5321 section 4.1.4).
 */
 static enum dj_smtp_error
@@ -647,8 +647,8 @@ d_internal_smtp_sasl_read(
 /*
 d_internal_smtp_sasl_failure
   A cancelled or undecodable response ends the exchange, not the session;
-a connection that failed ends it, whatever it reported -- a TLS record that
-broke TLS reads as PROTOCOL too -- which the cause the reader kept tells.
+a connection that failed ends it, whatever it reported - a TLS record that
+broke TLS reads as PROTOCOL too - which the cause the reader kept tells.
 */
 static enum dj_smtp_error
 d_internal_smtp_sasl_failure(
@@ -1606,7 +1606,7 @@ d_internal_smtp_on_data(
 
 /*
 d_internal_smtp_dispatch
-  One command, by verb. VRFY answers 252 -- "cannot verify, but will try" --
+  One command, by verb. VRFY answers 252 - "cannot verify, but will try" --
 as RFC 5321 section 3.5.3 recommends for a server that does not disclose its
 users.
 */

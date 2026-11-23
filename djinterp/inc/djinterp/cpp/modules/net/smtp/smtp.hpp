@@ -1,15 +1,15 @@
 /*******************************************************************************
 * djinterp [cpp][net]                                                   smtp.hpp
 *
-* djinterp SMTP -- C++ facade.
+* djinterp SMTP - C++ facade.
 *   The C++ face of the SMTP kernel in net/smtp. It derives from the kernel
 * rather than re-implementing it: statuses and capabilities are the kernel's
 * own structs extended with C++ accessors, the enumerations carry the
 * kernel's values, and the client and server hold the kernel's session
 * state, lowering std::string arguments into it and lifting replies back out
-* as owning values. What the facade adds is ownership -- RAII over the
+* as owning values. What the facade adds is ownership - RAII over the
 * kernel's sessions, the connections it is given, and the TLS contexts it
-* makes -- failure by value through re_std::expected, a server that runs
+* makes - failure by value through re_std::expected, a server that runs
 * each session on a thread of its own behind a tcp.h listener, and sessions
 * over any net::connection, through net.hpp's adapter, which STARTTLS can
 * secure like any other.
@@ -112,7 +112,7 @@ TABLE OF CONTENTS
 #include "../../../../../re_std/cpp/string_view/string_view_typedefs.hpp"  // string_view
 
 // 64-bit floor: this header needs a 64-bit integer type, and compiles to
-// nothing where the build has none -- ISO strict C++98 wherever int64_t is
+// nothing where the build has none - ISO strict C++98 wherever int64_t is
 // `long long`: a 32-bit target, 64-bit Windows or macOS (the owner's ruling of
 // 2026.10.03 on round 3's question 1, (a)). The answer is net_common.h's, taken
 // once per translation unit, so that net's gated headers agree.
@@ -219,7 +219,7 @@ struct extension
     };
 };
 
-// to_string -- a short label for an error; O(1), never null. to_net -- the
+// to_string - a short label for an error; O(1), never null. to_net - the
 // io_error an error maps to, by the rules net.h gives with dj_net_error
 D_NODISCARD const char* to_string(
     error::value _error
@@ -232,7 +232,7 @@ D_NODISCARD io_error::value to_net(
 //------------------------------------------------------------------------------
 // 1.2.1
 // status
-//   struct: an RFC 3463 enhanced status -- the kernel's dj_smtp_status.
+//   struct: an RFC 3463 enhanced status - the kernel's dj_smtp_status.
 struct status : public ::dj_smtp_status
 {
     status() D_NOEXCEPT;
@@ -241,7 +241,7 @@ struct status : public ::dj_smtp_status
         const ::dj_smtp_status& _status
     ) D_NOEXCEPT;
 
-    // present -- whether the reply carried a status; to_string -- "5.1.1",
+    // present - whether the reply carried a status; to_string - "5.1.1",
     // or "" when absent
     D_NODISCARD bool present() const D_NOEXCEPT;
     D_NODISCARD std::string to_string() const;
@@ -249,7 +249,7 @@ struct status : public ::dj_smtp_status
 
 // 1.2.2
 // capabilities
-//   struct: what a server offered in EHLO -- the kernel's
+//   struct: what a server offered in EHLO - the kernel's
 // dj_smtp_capabilities.
 struct capabilities : public ::dj_smtp_capabilities
 {
@@ -259,7 +259,7 @@ struct capabilities : public ::dj_smtp_capabilities
         const ::dj_smtp_capabilities& _capabilities
     ) D_NOEXCEPT;
 
-    // queries -- O(1), never fail
+    // queries - O(1), never fail
     D_NODISCARD bool supports(
         extension::value _extension
     ) const D_NOEXCEPT;
@@ -281,7 +281,7 @@ struct reply
         const ::dj_smtp_reply& _reply
     );
 
-    // text -- the lines joined by '\n'; classification by first digit
+    // text - the lines joined by '\n'; classification by first digit
     D_NODISCARD std::string text() const;
     D_NODISCARD bool positive() const D_NOEXCEPT;
     D_NODISCARD bool transient() const D_NOEXCEPT;
@@ -330,7 +330,7 @@ using result = ::re_std::expected<Type, failure>;
 // 2.  CLIENT
 //==============================================================================
 // A client session in owning C++ form. open() runs the kernel's whole
-// opening -- greeting, EHLO and the STARTTLS policy -- or runs a session
+// opening - greeting, EHLO and the STARTTLS policy - or runs a session
 // over any net::connection, which starttls() can secure too.
 
 
@@ -339,7 +339,7 @@ using result = ::re_std::expected<Type, failure>;
 // 2.1.1
 // tls_options
 //   struct: how TLS is made. By default the facade makes a context of the
-// SSL kernel from these fields with the OpenSSL-family engine -- a client
+// SSL kernel from these fields with the OpenSSL-family engine - a client
 // checks the server against `ca_file`, or the system's trust store when it
 // is empty, unless `verify_peer` is false; a server presents its
 // certificate and key. `context` opts out of all that: a context of the
@@ -587,14 +587,14 @@ public:
     );
 #endif  // D_MOVE_ENABLED
 
-    // session state -- O(1), never fail; a closed client reports closed
+    // session state - O(1), never fail; a closed client reports closed
     D_NODISCARD bool is_open() const D_NOEXCEPT;
     D_NODISCARD bool is_secure() const D_NOEXCEPT;
     D_NODISCARD bool is_authenticated() const D_NOEXCEPT;
     D_NODISCARD smtp::capabilities features() const D_NOEXCEPT;
     D_NODISCARD smtp::reply last_reply() const;
 
-    // commands -- each returns the server's reply, or the failure; errors
+    // commands - each returns the server's reply, or the failure; errors
     // are those of the d_smtp_client_* function of the same name. starttls
     // also fails with error::unsupported when it must make a context and
     // the build has no engine to make it with, and error::tls when the
@@ -614,7 +614,7 @@ public:
     D_NODISCARD reply_result noop();
     D_NODISCARD reply_result quit();
 
-    // close -- releases the connection without QUIT; idempotent
+    // close - releases the connection without QUIT; idempotent
     void close() D_NOEXCEPT;
 
 private:
@@ -771,7 +771,7 @@ public:
      */
     D_NODISCARD void_result run();
 
-    // control and state -- stop() is safe from any thread, including a
+    // control and state - stop() is safe from any thread, including a
     // handler; the queries are O(1)
     void stop() D_NOEXCEPT;
     D_NODISCARD unsigned int port() const D_NOEXCEPT;

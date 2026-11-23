@@ -2,8 +2,8 @@
 * djinterp [cpp][interp]                                      skeleton_tests.hpp
 *
 * The suite of the interpreter's skeleton, its first step (language.hpp,
-* evaluate.hpp): a line and a command line read into their terms -- words,
-* quotes, comments, separators, brackets -- and what each refuses; the
+* evaluate.hpp): a line and a command line read into their terms - words,
+* quotes, comments, separators, brackets - and what each refuses; the
 * value's stand-in; and sequences and pipelines run, a pipeline ended by its
 * first stage in trouble, its later stages not run.
 *

@@ -12,8 +12,8 @@
 *
 * This header is enc_T's half for a database_table, and for every vendor's
 * table, each of which derives from it: relational_table_view presents one
-* to Theta, as the read surface the table already has -- rows(), cols(),
-* cell(), get_schema(), key_columns() -- without copying it. [[.]]_D, the
+* to Theta, as the read surface the table already has - rows(), cols(),
+* cell(), get_schema(), key_columns() - without copying it. [[.]]_D, the
 * store's half, is the table's own write path: the vendor's layer spells
 * each column's type and every change to the table (d_<vendor>_create_table
 * and the rest, through the faces), quote_identifier (database.hpp) quotes
@@ -26,8 +26,8 @@
 * column-typed projection of the general container table, blind to the
 * order of its rows, and enters the fold through the tabular template
 * rather than the contiguous one.
-*   A container that is not a database_table -- one table-shaped, to be
-* written into a new table -- needs the container serial layer's encoder,
+*   A container that is not a database_table - one table-shaped, to be
+* written into a new table - needs the container serial layer's encoder,
 * which this header does not yet see: store_table and load_table refuse one at
 * compile time, and the fold's binding, table_traits, is compiled only when
 * that layer defines DJINTERP_HAVE_CONTAINER_TABLE_RENDER.
@@ -99,7 +99,7 @@ NS_DB
 
 NS_INTERNAL
 
-    // database_table_base_test -- std::true_type for a pointer to any
+    // database_table_base_test - std::true_type for a pointer to any
     // database_table<Connection, ValueType, Config>, a vendor's table
     // converting to its base; std::false_type for anything else
     template<typename Connection,
@@ -126,7 +126,7 @@ NS_END  // internal
 // 1.1.1
 // is_database_table
 //   trait: whether Type, its references and qualifiers aside, is a
-// database_table, or derives from one publicly -- every vendor's table,
+// database_table, or derives from one publicly - every vendor's table,
 // mysql_common_table among them, with no trait of its own.
 template<typename Type>
 struct is_database_table
@@ -189,7 +189,7 @@ public:
     using schema_type = table_schema;
     using column_type = column_info;
 
-    // foreign_ref -- a foreign-ref node: the table and column a column
+    // foreign_ref - a foreign-ref node: the table and column a column
     // refers to, engaged only where it refers to one
     struct foreign_ref
     {
@@ -204,13 +204,13 @@ public:
         : m_table(std::addressof(_table))
     {}
 
-    // table_name -- the table node's name, without its schema
+    // table_name - the table node's name, without its schema
     const std::string& table_name() const noexcept
     {
         return m_table->get_schema().table_name;
     }
 
-    // rows, cols -- the extent: the rows the cache holds, and the columns
+    // rows, cols - the extent: the rows the cache holds, and the columns
     // the schema describes
     size_type rows() const noexcept
     {
@@ -222,7 +222,7 @@ public:
         return m_table->cols();
     }
 
-    // cell -- a cell node, unchecked, as the table's const cell(): the value
+    // cell - a cell node, unchecked, as the table's const cell(): the value
     // the cache holds, read from the database (a value of the column's type,
     // or NULL) or set by the program (what it was set to, which the database
     // converts or refuses when it is committed)
@@ -234,7 +234,7 @@ public:
         return m_table->cell(_row, _col);
     }
 
-    // column_name, column_field_type -- a column's name, and its type as
+    // column_name, column_field_type - a column's name, and its type as
     // field_type names it; the vendor's layer spells the type for its
     // database (each connection's sql_type_name names it), so the view
     // speaks no vendor's dialect
@@ -287,7 +287,7 @@ public:
         return false;
     }
 
-    // primary_key_columns -- the key's columns by name, in the key's order;
+    // primary_key_columns - the key's columns by name, in the key's order;
     // throws as the table's key_columns(), with D_DB_MISMATCH for a key
     // that names a column the table lacks
     std::vector<std::string> primary_key_columns() const
@@ -302,7 +302,7 @@ public:
         return names;
     }
 
-    // has_primary_key -- whether the table has a key, which makes its
+    // has_primary_key - whether the table has a key, which makes its
     // commit() differential, rather than the replacing of the rows read
     bool has_primary_key() const noexcept
     {
@@ -324,7 +324,7 @@ public:
         return false;
     }
 
-    // foreign_ref_of -- a column's foreign-ref node, from the reference its
+    // foreign_ref_of - a column's foreign-ref node, from the reference its
     // column_info notes (a program's note, which fetch_schema() leaves as
     // it was)
     foreign_ref foreign_ref_of(
@@ -345,7 +345,7 @@ public:
         return reference;
     }
 
-    // table -- the table viewed
+    // table - the table viewed
     const Table& table() const noexcept
     {
         return *m_table;
@@ -380,7 +380,7 @@ relational_table_view<Table> make_relational_table_view(
 
 NS_INTERNAL
 
-    // refuse_other_store -- query_exception, with D_DB_INVALID_ARGUMENT, for
+    // refuse_other_store - query_exception, with D_DB_INVALID_ARGUMENT, for
     // a table bound to a connection other than the one given; a connection
     // of a kind the table cannot bind to does not compile
     template<typename Connection,
@@ -515,7 +515,7 @@ void load_table(
 
 // 4.1
 // table_traits
-//   struct template: a database_table's binding to the fold -- renderable,
+//   struct template: a database_table's binding to the fold - renderable,
 // through relational_table_view.
 template<typename Table>
 struct table_traits<Table,
@@ -525,7 +525,7 @@ struct table_traits<Table,
 
     using view_type = relational_table_view<Table>;
 
-    // view -- the table, seen as the tabular template
+    // view - the table, seen as the tabular template
     static
     view_type view(
         const Table& _table

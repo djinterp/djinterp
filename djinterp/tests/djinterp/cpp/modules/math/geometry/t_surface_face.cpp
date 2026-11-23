@@ -4,7 +4,7 @@
 *   Tests for geometry/surface.hpp, at every level from C++98: a triangle's
 * corners at (0,0), (1,0), (0,1) and its area and normal; a unit square's
 * area as a triangle pair and as a planar polygon; a bilinear patch's
-* corners and centre; a parametric surface's points; the traits -- 3D
+* corners and centre; a parametric surface's points; the traits - 3D
 * surfaces have a closed-form area, a 4D one has none, as before; from C++11
 * a polygon from a std::array of points and implicit_surface.
 *

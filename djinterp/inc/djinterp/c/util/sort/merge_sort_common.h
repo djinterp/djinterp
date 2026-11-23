@@ -7,8 +7,8 @@
 * width.  What distinguishes one merge sort from another is only how the runs
 * are chosen and by how many threads.
 *
-*   BOTTOM-UP, NOT RECURSIVE.  Runs start at width 1 -- every single element is
-* trivially ordered -- and each pass doubles the width until one run covers the
+*   BOTTOM-UP, NOT RECURSIVE.  Runs start at width 1 - every single element is
+* trivially ordered - and each pass doubles the width until one run covers the
 * range.  This costs the same comparisons as the recursive formulation and
 * buys two things: no call stack at all, which matters where stack depth is
 * budgeted, and a shape that partitions.  Within a pass the run pairs are
@@ -42,7 +42,7 @@
 *   complexity:
 *     best:       O(n)      comparisons (ordered input; see above)
 *     average:    O(n log n)
-*     worst:      O(n log n)   (guaranteed -- no input defeats it)
+*     worst:      O(n log n)   (guaranteed - no input defeats it)
 *     copies:     O(n log n)
 *     space:      O(n)      auxiliary, supplied by the caller
 *     stable:     yes
@@ -70,17 +70,17 @@ D_EXTERN_C_BEGIN
 // I.     properties
 
 // D_MERGE_SORT_IS_STABLE
-//   macro: 1 -- the merge takes from the right run only on a strict
+//   macro: 1 - the merge takes from the right run only on a strict
 // precedence, so equal elements keep their input order.
 #define D_MERGE_SORT_IS_STABLE     1
 
 // D_MERGE_SORT_IS_IN_PLACE
-//   macro: 0 -- the only algorithm in the subsystem that needs auxiliary
+//   macro: 0 - the only algorithm in the subsystem that needs auxiliary
 // storage, one element per element of the range.
 #define D_MERGE_SORT_IS_IN_PLACE   0
 
 // D_MERGE_SORT_IS_ADAPTIVE
-//   macro: 1 -- in comparisons only. An ordered run pair is detected in one
+//   macro: 1 - in comparisons only. An ordered run pair is detected in one
 // comparison and copied rather than merged, so ordered input costs O(n)
 // comparisons instead of O(n log n). The copies are unaffected.
 #define D_MERGE_SORT_IS_ADAPTIVE   1

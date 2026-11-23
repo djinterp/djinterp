@@ -2,7 +2,7 @@
 * djinterp [c][net]                                                    cfg_ssh.h
 *
 *   Configuration for the SSH common module. It selects which built-in engines
-* are compiled -- today, the libssh2 engine -- and the defaults that
+* are compiled - today, the libssh2 engine - and the defaults that
 * d_ssh_options_default and d_ssh_credentials_default hand out: the host-key
 * policy, how new hosts are recorded, whether the system-wide known_hosts file
 * is consulted, the algorithm restriction, agent use, and the deadline for

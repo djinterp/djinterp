@@ -421,7 +421,7 @@ template<typename Type>
 using leaf_element_type = DLeafElementType<Type>;
 
 // leaf_element_type_t
-//   type: the carrier of leaf_element_type -- its `::type`, for use where a
+//   type: the carrier of leaf_element_type - its `::type`, for use where a
 // type rather than a value is wanted.
 template<typename Type>
 using leaf_element_type_t =

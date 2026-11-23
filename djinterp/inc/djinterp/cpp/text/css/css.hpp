@@ -6,7 +6,7 @@
 * lists and declaration blocks; at-rules carry an at-keyword, an
 * optional prelude, and either a declaration block or nested rules.
 * The structure is deliberately distinct from `xml.hpp` / `html.hpp`
-* / `markdown.hpp` -- CSS is not a tagged-element format and not a
+* / `markdown.hpp` - CSS is not a tagged-element format and not a
 * bipartite block/inline AST.
 *
 *   ZERO OVERHEAD:
@@ -15,7 +15,7 @@
 *     fold to compile-time constants when the kind is known
 *     statically.
 *   - Property name constants live as `D_STATIC_CONSTEXPR
-*     const char*` literal pointers in `props::` -- zero allocation,
+*     const char*` literal pointers in `props::` - zero allocation,
 *     zero dynamic init.
 *   - The bundled default backend stores rules in a single node type
 *     with optional fields; adapter backends (libcss, katana-parser,
@@ -158,7 +158,7 @@ using DCssSize    = std::size_t;
 
 // DCssLevel
 //   enum: identifies the document's target CSS level. CSS3 is
-// modular -- "level 3" really means a particular module set --
+// modular - "level 3" really means a particular module set --
 // but the coarse level tag is still useful for runtime
 // classification. CSS4 has no integrated spec; the value is
 // used for "currently-in-draft" features.
@@ -1657,7 +1657,7 @@ struct is_css_declaration
 
 
 // is_css_declaration_loose
-//   trait: looser variant -- property-name accessor alone.
+//   trait: looser variant - property-name accessor alone.
 template<typename Type>
 struct is_css_declaration_loose
 {
@@ -1683,7 +1683,7 @@ struct is_css_rule
 
 
 // is_css_rule_loose
-//   trait: looser variant -- rule-kind accessor alone.
+//   trait: looser variant - rule-kind accessor alone.
 template<typename Type>
 struct is_css_rule_loose
 {
@@ -1717,7 +1717,7 @@ struct is_css_at_rule
 
 // is_css_stylesheet
 //   trait: true if `Type` satisfies the stylesheet protocol
-// -- level / syntax accessor plus rule traversal.
+// - level / syntax accessor plus rule traversal.
 template<typename Type>
 struct is_css_stylesheet
 {
@@ -1729,7 +1729,7 @@ struct is_css_stylesheet
 
 
 // is_css_stylesheet_loose
-//   trait: looser variant -- rules access alone.
+//   trait: looser variant - rules access alone.
 template<typename Type>
 struct is_css_stylesheet_loose
 {
@@ -1868,7 +1868,7 @@ struct has_make_stylesheet_method<Type, void_t<
 
 // is_css_backend_complete
 //   trait: true if `Type` exposes the full CSS backend
-// protocol -- every nested type alias.
+// protocol - every nested type alias.
 template<typename Type>
 struct is_css_backend_complete
 {
@@ -1984,7 +1984,7 @@ concept css_declaration_type =
 
 
 // css_declaration_loose_type
-//   concept: looser variant -- property accessor alone.
+//   concept: looser variant - property accessor alone.
 template<typename Type>
 concept css_declaration_loose_type =
     is_css_declaration_loose<Type>::value;
@@ -2020,7 +2020,7 @@ concept css_rule_type =
 
 
 // css_rule_loose_type
-//   concept: looser variant -- rule-kind accessor alone.
+//   concept: looser variant - rule-kind accessor alone.
 template<typename Type>
 concept css_rule_loose_type =
     is_css_rule_loose<Type>::value;
@@ -2080,7 +2080,7 @@ concept css_stylesheet_type =
 
 
 // css_stylesheet_loose_type
-//   concept: looser variant -- rules access alone.
+//   concept: looser variant - rules access alone.
 template<typename Type>
 concept css_stylesheet_loose_type =
     is_css_stylesheet_loose<Type>::value;

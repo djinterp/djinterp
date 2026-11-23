@@ -7,8 +7,8 @@
 * would make them with CLI11's Option*. tools/cppref/cppref.py compiles
 * that section against CLI11 2.7.2, through the face's names for CLI11's
 * (cli11_shim.hpp), and the transcripts below are what CLI11 wrote; so the
-* CASES section is written in the part of the face CLI11 shares -- `->` on
-* every handle, no status taken from a call -- and C++98 unless a guard
+* CASES section is written in the part of the face CLI11 shares - `->` on
+* every handle, no status taken from a call - and C++98 unless a guard
 * says otherwise. The sections that are the module's own are written apart,
 * after it, each saying why CLI11 cannot write its transcript.
 *
@@ -547,8 +547,8 @@ const char HANDLE[] =
 
 // CALLBACKS
 //   constant: what the steps of d_tests_arg_cpp_option_callbacks write: the
-// module's own, as CLI11's Option has no callback() -- its callback_t is
-// set only by the low-level add_option ISSUES 51 leaves out -- and its
+// module's own, as CLI11's Option has no callback() - its callback_t is
+// set only by the low-level add_option ISSUES 51 leaves out - and its
 // callbacks return nothing but a bool. The messages are CLI11's: a callback
 // returning false is its "Could not convert".
 const char CALLBACKS[] =
@@ -582,7 +582,7 @@ const char CALLBACKS[] =
 // CLI11's operator bool, under a name every level has; a variable is bound
 // after the option is made; and a bound variable keeps its value when the
 // value given it does not convert, where CLI11's leaves what its
-// conversion wrote before it failed -- 0 for `x7` into an int.
+// conversion wrote before it failed - 0 for `x7` into an int.
 const char DEPARTED[] =
     "as<int>: 0\n"
     "results(int&): ConversionError kept=7 message=Could not convert: --word = "
@@ -792,8 +792,8 @@ void write_names(
 }
 
 /**
- * @brief Writes an option's values -- as given, and as its policy keeps
- *        them -- with its count and whether its callback ran, on one line.
+ * @brief Writes an option's values - as given, and as its policy keeps
+ *        them - with its count and whether its callback ran, on one line.
  *
  * @param[in,out] _run     the run.
  * @param[in]     _label   what the line names the option by.
@@ -1281,7 +1281,7 @@ void write_matches(
 }
 
 /**
- * @brief NAMES 3: names matched -- check_name and its kin, for an option
+ * @brief NAMES 3: names matched - check_name and its kin, for an option
  *        and for a flag, under each setting that changes how names
  *        compare.
  *
@@ -1418,9 +1418,9 @@ void defaults_given(
 }
 
 /**
- * @brief DEFAULTS 2: defaults captured from bound variables -- by
+ * @brief DEFAULTS 2: defaults captured from bound variables - by
  *        capture_default_str, and for every option a command makes once
- *        its option defaults always capture -- and from a function.
+ *        its option defaults always capture - and from a function.
  *
  * @param[in,out] _run  the step's run.
  */
@@ -2007,8 +2007,8 @@ void results_policies(
 }
 
 /**
- * @brief RESULTS 2: values added by hand -- one, one split at its
- *        delimiter with the count added, several -- converted into
+ * @brief RESULTS 2: values added by hand - one, one split at its
+ *        delimiter with the count added, several - converted into
  *        variables, then cleared.
  *
  * @param[in,out] _run  the step's run.
@@ -2809,7 +2809,7 @@ bool d_tests_arg_cpp_option_results()
 
 /*
 d_tests_arg_cpp_option_callbacks
-  An option's callback over its values -- the face's callback() -- in each
+  An option's callback over its values - the face's callback() - in each
 of its result kinds.
   Tests the following:
   - a callback returning nothing over a DTextList; one returning a status

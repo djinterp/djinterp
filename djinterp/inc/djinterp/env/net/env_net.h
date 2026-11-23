@@ -434,7 +434,7 @@ TABLE OF CONTENTS
 // Which readiness mechanism a future non-blocking / reactor backend can use.
 // Probed by header presence; the summary identifier prefers the most scalable
 // available (epoll on Linux, kqueue on the BSDs/macOS, then poll, then
-// select). The blocking foundation does not require any of these -- they are
+// select). The blocking foundation does not require any of these - they are
 // detected for the layers built above it.
 
 
@@ -581,7 +581,7 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 5.1.1
 // D_ENV_NET_HAS_IPV6
-//   feature: 1 if IPv6 address structures are expected to be available -- the
+//   feature: 1 if IPv6 address structures are expected to be available - the
 // BSD path requires <netinet/in.h>; the Winsock path requires <ws2tcpip.h>.
 #ifndef D_ENV_NET_HAS_IPV6
     #if ( (D_ENV_NET_HAS_BSD_SOCKETS) &&                                       \
@@ -686,7 +686,7 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 7.1.1
 // D_ENV_NET_CAN_SOCKET
-//   feature: 1 if the platform can do socket I/O at all -- a socket backend
+//   feature: 1 if the platform can do socket I/O at all - a socket backend
 // plus the core address structures. The baseline gate for the net backends.
 #ifndef D_ENV_NET_CAN_SOCKET
     #if D_ENV_NET_HAS_BSD_SOCKETS

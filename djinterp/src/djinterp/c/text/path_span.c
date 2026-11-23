@@ -3,8 +3,8 @@
 *
 * A generic path, read from its rendering (path_span.h).
 *   Every operation walks the text with a cursor, so nothing is copied or
-* allocated. Rendering decides each label as it reaches it -- a ".." after
-* it, read as a closing bracket, can fold it away -- which is what lets it
+* allocated. Rendering decides each label as it reaches it - a ".." after
+* it, read as a closing bracket, can fold it away - which is what lets it
 * write as snprintf does, into whatever room it has.
 *
 *
@@ -27,7 +27,7 @@
 
 // dj_internal_path_chain
 //   struct: one or two paths read as one, the second's labels after the
-// first's -- what a join renders.
+// first's - what a join renders.
 struct dj_internal_path_chain
 {
     const struct dj_path_span* part[2];
@@ -484,8 +484,8 @@ int d_internal_path_kind(
  * @param[in] _chain  the chain.
  * @param[in] _after  the place just past the label.
  * @param[in] _dots   whether the grammar reads dot labels.
- * @return true when the labels after it, read as brackets -- a label opens,
- *         a ".." closes -- close the one it opens.
+ * @return true when the labels after it, read as brackets - a label opens,
+ *         a ".." closes - close the one it opens.
  */
 static
 bool d_internal_path_folded(

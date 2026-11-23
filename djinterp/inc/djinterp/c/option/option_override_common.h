@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][option]                                  option_override_common.h
 *
-* The merge engine: two sets in, one set out, under a policy. Tier 0 -- the
+* The merge engine: two sets in, one set out, under a policy. Tier 0 - the
 * shared core both faces compile.
 *
 * THE WALK IS THE SAME WALK IN BOTH LANGUAGES.
@@ -16,20 +16,20 @@
 *
 *   That is a fold over two flat sequences with a policy parameter. C++ runs it
 * at translation time over types; C runs it at run time over cells. Phase is
-* not semantics -- the answer is the same set either way, and the differential
+* not semantics - the answer is the same set either way, and the differential
 * test is over the answer.
 *
 * A POLICY IS A DICTIONARY.
 *   The C++ policy is a type with three nested template aliases. Its C image is
 * the standard dictionary encoding: a struct of function pointers plus a
 * context. This is exactly what functional_types.tex prescribes for a protocol
-* at kind `*`, and it is mechanical rather than clever -- there is no higher-
+* at kind `*`, and it is mechanical rather than clever - there is no higher-
 * kinded structure here to lose.
 *
 * THE LAZINESS IS FREE IN C, AND THAT IS THE POINT.
 *   The C++ engine carries a `lazy_delta_only` SFINAE wrapper whose only job is
 * to stop `on_delta_only` being INSTANTIATED for keys that are not actually
-* delta-only -- otherwise `strict`'s static_assert fires for every key, and the
+* delta-only - otherwise `strict`'s static_assert fires for every key, and the
 * policy concept probe fires it again. None of that machinery has a C analogue,
 * because a C loop calls a function pointer only when it reaches the branch
 * that calls it. The elaborate half of the C++ header is notation for an
@@ -39,7 +39,7 @@
 * the missing laziness and conclude the C side is incomplete.
 *
 * WHAT HAS NO C FORM, AND CORRECTLY SO.
-*   `DArgUnionDelta` merges two options' ARG PACKS -- it concatenates types.
+*   `DArgUnionDelta` merges two options' ARG PACKS - it concatenates types.
 * Args are opaque types that carry no runtime bytes, so they do not survive
 * lowering and there is nothing in C for the policy to concatenate. Per goal
 * 11 this is declared C++-only rather than approximated: an approximation would
@@ -76,7 +76,7 @@
 #include "../../../re_std/c/cstdint/dstdint.h"  // int32_t, uint32_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -100,7 +100,7 @@ D_EXTERN_C_BEGIN
 #define D_OPTION_DROP       ((int32_t)1)
 
 //   Any NEGATIVE return is a status from option_common.h section I, negated.
-// A policy that refuses an input -- `strict` meeting an extension -- returns
+// A policy that refuses an input - `strict` meeting an extension - returns
 // `-D_OPTION_STATUS_POLICY_REJECTED`, and the engine stops and reports it. Keeping
 // verdicts non-negative and errors negative means one comparison distinguishes
 // them, and no verdict can ever collide with a status.
@@ -149,7 +149,7 @@ typedef int32_t (*fn_option_on_base_only)(const struct dj_option* _base,
                                           void*                  _context);
 
 // fn_option_on_delta_only
-//   function pointer: the key is in the delta and not in the base -- an
+//   function pointer: the key is in the delta and not in the base - an
 // EXTENSION. Called only for keys that genuinely are one, which is where the
 // C++ side needs its SFINAE wrapper and C needs nothing.
 // Note: `_context` may be NULL.
@@ -160,7 +160,7 @@ typedef int32_t (*fn_option_on_delta_only)(const struct dj_option* _delta,
                                            void*                  _context);
 
 // dj_option_policy
-//   struct: the three hooks plus their shared context -- the C image of a C++
+//   struct: the three hooks plus their shared context - the C image of a C++
 // override policy. A NULL hook means "drop", so a policy that only cares about
 // one branch is three words and two zeroes rather than three stubs.
 struct dj_option_policy
@@ -207,12 +207,12 @@ struct dj_option_policy d_option_policy_subset(void);
 // d_option_policy_strict
 //   policy: the delta wins at shared keys; an extension is an ERROR.
 // C++ `DOverrideStrict` (= DStrictSubset), where it is a static_assert. Here
-// it is D_OPTION_STATUS_POLICY_REJECTED, which is formal -- so a caller inspecting
+// it is D_OPTION_STATUS_POLICY_REJECTED, which is formal - so a caller inspecting
 // the range learns the merge was ill-formed rather than under-provisioned.
 struct dj_option_policy d_option_policy_strict(void);
 
 // d_option_policy_filter
-//   policy: keep only keys the delta also has -- base-only positions dropped,
+//   policy: keep only keys the delta also has - base-only positions dropped,
 // extensions added. C++ `DOverrideFilter` (= DDropUnmatchedBase).
 struct dj_option_policy d_option_policy_filter(void);
 
@@ -232,7 +232,7 @@ struct dj_option_policy d_option_policy_filter(void);
 
 // d_option_merge_mode_policy
 //   function: the policy a merge mode names. OVERWRITE selects replace;
-// ADD_NEW_ONLY and KEEP_EXISTING both select keep -- they are one mode with
+// ADD_NEW_ONLY and KEEP_EXISTING both select keep - they are one mode with
 // two spellings, and share a value here so the two halves cannot disagree
 // about whether they are the same thing. In every mode extensions are added,
 // matching the runtime merge, which always inserts new keys.
@@ -251,13 +251,13 @@ struct dj_option_policy d_option_merge_mode_policy(
 // is stated here with the test it owes.
 //
 //   1. MONOID. "(+) is associative with identity {}, so (option sets, (+), {})
-//      form a monoid -- non-commutative in general."
+//      form a monoid - non-commutative in general."
 //
 //          (A (+) B) (+) C  ==  A (+) (B (+) C)
 //          {} (+) A  ==  A  ==  A (+) {}
 //
-//      This is not decoration. `d_option_set_compose` -- and the C++ face's
-//      `compose_options_t` -- is a LEFT FOLD, and a left fold over a binary
+//      This is not decoration. `d_option_set_compose` - and the C++ face's
+//      `compose_options_t` - is a LEFT FOLD, and a left fold over a binary
 //      operator is only well defined because the operator is associative. The
 //      property is being leaned on at every call site and was written down
 //      nowhere.
@@ -270,7 +270,7 @@ struct dj_option_policy d_option_merge_mode_policy(
 //      agree for every shared k exactly when A ~ B.
 //
 //      The practical reading is that `(+)` only ever "elects a winner" on
-//      keys where the sets conflict -- which is the same sentence as
+//      keys where the sets conflict - which is the same sentence as
 //      "`u` is the agreement-restricted total of `(+)`" from
 //      option_set_common.h section VI, seen from the other side.
 //
@@ -285,7 +285,7 @@ struct dj_option_policy d_option_merge_mode_policy(
 // function instead of open-coding the property and drifting from it.
 
 // d_option_set_is_identity
-//   function: whether a set is the monoid identity -- the empty set. Trivial,
+//   function: whether a set is the monoid identity - the empty set. Trivial,
 // and named so the identity law can be asserted against the document's notion
 // rather than against `count == 0`, which is an implementation fact that
 // happens to coincide today.
@@ -294,7 +294,7 @@ bool d_option_set_is_identity(
 );
 
 // d_option_set_commutes
-//   function: whether `(+)` commutes on this pair -- which, by the .tex's
+//   function: whether `(+)` commutes on this pair - which, by the .tex's
 // proposition, is exactly whether they agree. Implemented AS the agreement
 // test rather than by computing both folds and comparing: the proposition says
 // the two questions are the same question, so answering it twice would create
@@ -321,7 +321,7 @@ bool d_option_set_commutes(
 //       (A (+) B)[k] = B[k] if k in K(B), else A[k]
 //
 //   The other policies are not `(+)`. They are engine configurations that
-// answer a different question -- keep the base, drop extensions, reject them --
+// answer a different question - keep the base, drop extensions, reject them --
 // and none of them is claimed to satisfy the laws in section V, which are
 // stated for `(+)` alone. A conformance test must therefore instantiate the
 // monoid laws against `d_option_policy_replace` and not against the engine in
@@ -329,7 +329,7 @@ bool d_option_set_commutes(
 //
 //   ORDER IS REPRODUCIBLE, NOT SEMANTIC. The result preserves the base's order
 // for keys the base has, with policy-permitted extensions appended in the
-// delta's order -- so two runs over the same inputs produce the same
+// delta's order - so two runs over the same inputs produce the same
 // representation, which is what a line-by-line diff needs.
 //   It is NOT part of the answer. An option set is a set; a permutation of
 // this result denotes the same object and the .tex's equality says so. Where a
@@ -337,7 +337,7 @@ bool d_option_set_commutes(
 // `d_option_set_canon` is the parity law's `canon` and exists for exactly
 // this.
 //
-//   `_out` must be distinct from both inputs -- merging in place would have
+//   `_out` must be distinct from both inputs - merging in place would have
 // the walk reading cells it has already rewritten. Aliasing is rejected with
 // D_OPTION_STATUS_INVALID_ARGUMENT rather than diagnosed by the caller later.
 //

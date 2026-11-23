@@ -65,7 +65,7 @@ TABLE OF CONTENTS
 #define DJINTERP_C_UTIL_COUNTER_ATOMIC_H 1
 
 // FLOOR: the value is a dj_atomic_llong, which exists only where long long
-// does. Without it -- ISO strict C++98 -- this file is empty, rather than an
+// does. Without it - ISO strict C++98 - this file is empty, rather than an
 // error (round 2's rule), and counter_mutex.h is the shared counter.
 #include "../../../env/c/env_long_long.h"  // D_ENV_HAS_LONG_LONG
 #if D_ENV_HAS_LONG_LONG

@@ -2,7 +2,7 @@
 * djinterp [c][meta]                                                    lookup.h
 *
 * Finding a record in a contiguous array of records, by a key whose position
-* and width the record itself declares. Tier 0 -- compiled by BOTH faces.
+* and width the record itself declares. Tier 0 - compiled by BOTH faces.
 *
 *
 * WHY THIS IS A MODULE AND NOT FOUR SCANS
@@ -24,7 +24,7 @@
 *
 *   THE KEY IS TWO MEMBERS, NOT A DESCRIPTOR. kv.h carried a field
 * descriptor and this view embedded one; both are gone. The view is
-* unchanged at 40 bytes -- its padding absorbed the difference -- so it is
+* unchanged at 40 bytes - its padding absorbed the difference - so it is
 * the one consumer that neither gained nor lost by the removal.
 *
 *
@@ -37,12 +37,12 @@
 *
 *   CASE FOLDING IS NOT tolower(). tolower() is locale-dependent, so a
 * registry keyed case-insensitively answers differently under a Turkish locale
-* than under C -- and goal 4 wants one answer. It also takes an int that must
+* than under C - and goal 4 wants one answer. It also takes an int that must
 * be representable as unsigned char, so handing it a plain `char` that went
 * negative is undefined. d_lookup_fold_ascii is locale-free and takes the
 * character as unsigned, and it is deliberately ASCII-only: a fold that
 * claimed to handle more would be claiming a Unicode table this framework does
-* not have. strcasecmp is not an option regardless -- it is POSIX, not C.
+* not have. strcasecmp is not an option regardless - it is POSIX, not C.
 *
 *   A BINARY SEARCH MIDPOINT OVERFLOWS. `(low + high) / 2` is wrong for large
 * counts; `low + (high - low) / 2` is not. The form is used below even though
@@ -94,7 +94,7 @@
                                               // uint64_t, UINT32_MAX
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -148,7 +148,7 @@ struct dj_lookup_result
 
 // D_LOOKUP_FLAG_KEY_IS_POINTER
 //   constant: the key field holds a POINTER TO the key rather than the key
-// itself -- a `const char*` member, not a `char[32]` member. This is what
+// itself - a `const char*` member, not a `char[32]` member. This is what
 // dj_registry's key macro encoded by casting a row to `const char* const*`, and
 // it is a property of the record rather than of the search, so it lives on the
 // view.
@@ -167,8 +167,8 @@ struct dj_lookup_result
 
 // D_LOOKUP_FLAG_KEY_SIGNED
 //   constant: the key holds a SIGNED integer, so a search driven by the view
-// alone sign-extends it. The named forms -- d_lookup_find_signed and
-// d_lookup_find_unsigned -- say it at the call site and ignore this flag; it
+// alone sign-extends it. The named forms - d_lookup_find_signed and
+// d_lookup_find_unsigned - say it at the call site and ignore this flag; it
 // exists for d_lookup_find_field, which has only the view to go on.
 //   THIS IS WHERE THE DESCRIPTOR'S SIGNED BIT WENT. It was a flag on an
 // embedded field descriptor; with that type gone it belongs where the view's
@@ -176,7 +176,7 @@ struct dj_lookup_result
 #define D_LOOKUP_FLAG_KEY_SIGNED            ((uint16_t)(1u << 3))
 
 // D_LOOKUP_VIEW_INIT
-//   macro: the empty view -- no records, no count, no key. Every search
+//   macro: the empty view - no records, no count, no key. Every search
 // against it misses at insertion point zero.
 #define D_LOOKUP_VIEW_INIT                                                     \
 {                                                                              \
@@ -311,7 +311,7 @@ D_NODISCARD D_INLINE const void* d_lookup_at(
 //   function: order two unsigned keys.
 //   THE THREE-BRANCH FORM IS NOT AN INDULGENCE. `(int)(_lhs - _rhs)` wraps for
 // keys far apart and truncates for keys more than INT_MAX apart, and both
-// failures produce a comparator that is not a strict weak ordering -- which a
+// failures produce a comparator that is not a strict weak ordering - which a
 // binary search reads as a permanently missing key.
 D_NODISCARD D_INLINE int d_lookup_compare_unsigned(
     uint64_t _lhs,
@@ -359,7 +359,7 @@ D_NODISCARD D_INLINE int d_lookup_compare_signed(
 //   function: lower-case an ASCII letter, and pass every other byte through.
 //   LOCALE-FREE AND DELIBERATELY ASCII-ONLY. tolower() answers differently
 // under different locales, so a case-insensitive registry built on it is not
-// deterministic across builds -- and it takes an int that must be
+// deterministic across builds - and it takes an int that must be
 // representable as unsigned char, so a plain `char` that went negative is
 // undefined behaviour rather than a wrong answer. Folding beyond ASCII would
 // require a Unicode table this framework does not have and must not pretend
@@ -435,7 +435,7 @@ D_NODISCARD D_INLINE int d_lookup_compare_string(
 // d_lookup_compare_bytes
 //   function: order two opaque keys of the same width. memcmp's sign is
 // unspecified beyond its direction, so the result is normalised to -1, 0 or 1
-// -- a caller storing a comparison result should get the same value from every
+// - a caller storing a comparison result should get the same value from every
 // implementation.
 D_NODISCARD D_INLINE int d_lookup_compare_bytes(
     const void* _lhs,
@@ -710,7 +710,7 @@ D_INTERNAL_LOOKUP_DEFINE_FIND(
 // caller holding only a descriptor need not branch on signedness itself.
 //   INTEGRAL KEYS ONLY. A string or opaque key has no widened value to pass,
 // and silently treating a pointer-valued key as an integer is the class of
-// mistake this module exists to remove -- so those go through the named entry
+// mistake this module exists to remove - so those go through the named entry
 // points above.
 D_NODISCARD D_INLINE struct dj_lookup_result
 d_lookup_find_field(

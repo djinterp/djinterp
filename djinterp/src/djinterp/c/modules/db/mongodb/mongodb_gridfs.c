@@ -6,8 +6,8 @@
 * database and the bucket's name, and following the client's concerns. The
 * bytes in memory go through the bucket's upload and download streams, a
 * piece at a time; a local file through the driver's file stream, opened
-* for its bytes as they are -- O_BINARY where the C library has one, so that
-* Windows translates no line ending -- and a file it makes with the mode the
+* for its bytes as they are - O_BINARY where the C library has one, so that
+* Windows translates no line ending - and a file it makes with the mode the
 * C library takes. A download into memory reads the file's length from its
 * document first, so that it is allocated once.
 *   The driver reports a file of no such id with its own code, which the
@@ -61,7 +61,7 @@ static const int BINARY_FLAG = 0;
 // FILE_MODE
 //   constant: the permissions of a local file a download makes: 0644 where
 // they are POSIX's; on Windows, read and write, the only bits its C library
-// takes -- the driver opens the file with _sopen_s, which refuses any other
+// takes - the driver opens the file with _sopen_s, which refuses any other
 // with EINVAL.
 #if defined(_WIN32)
 static const int FILE_MODE = _S_IREAD | _S_IWRITE;

@@ -55,8 +55,8 @@ namespace re_std
 // ===========================================================================
 //   any keeps heap-stored types as objects and scalars (bool, integers,
 // floating point, enums, pointers) converted into a wider small-buffer
-// member. So any_cast can return a VALUE of any stored type -- get<Type>()
-// reads every category -- but a reference or a pointer only to a
+// member. So any_cast can return a VALUE of any stored type - get<Type>()
+// reads every category - but a reference or a pointer only to a
 // heap-stored object: for a scalar there is no Type object to point at.
 // Asking for one is a compile error, never an address read through the
 // null heap pointer. (These forms read the heap pointer for every type,
@@ -66,7 +66,7 @@ namespace internal
 {
 
     // any_cast_value
-    //   type: Type with references and cv-qualifiers removed -- the type
+    //   type: Type with references and cv-qualifiers removed - the type
     // the any must hold.
     template<typename Type>
     struct any_cast_value
@@ -217,8 +217,8 @@ RE_STD_NOEXCEPT
 // ===========================================================================
 // 2.   VALUE AND REFERENCE OVERLOADS (checked or unchecked)
 // ===========================================================================
-//   As std's: any_cast<Type> returns Type, a value or -- when Type is a
-// reference -- the stored object. The any must hold Type with references
+//   As std's: any_cast<Type> returns Type, a value or - when Type is a
+// reference - the stored object. The any must hold Type with references
 // and cv-qualifiers removed. With exceptions on, a mismatch throws
 // bad_any_cast; without them it is undefined, as documented below.
 //   The checked overloads throw, so they need exceptions; RTTI decides only

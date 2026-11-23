@@ -83,19 +83,19 @@ NS_DJINTERP
 NS_TESTING
 
 
-// -- compress_tests_status.cpp ------------------------------------------------
+// - compress_tests_status.cpp ------------------------------------------------
 bool tests_compress_status_messages();
 bool tests_compress_status_unknown();
 bool tests_compress_status_enum_values();
 
-// -- compress_tests_traits.cpp ------------------------------------------------
+// - compress_tests_traits.cpp ------------------------------------------------
 bool tests_compress_traits_ids();
 bool tests_compress_traits_names();
 bool tests_compress_traits_store_always_available();
 bool tests_compress_traits_runtime_matches_dispatch();
 bool tests_compress_traits_out_of_range_unavailable();
 
-// -- compress_tests_store.cpp -------------------------------------------------
+// - compress_tests_store.cpp -------------------------------------------------
 bool tests_compress_store_roundtrip();
 bool tests_compress_store_verbatim();
 bool tests_compress_store_empty();
@@ -105,7 +105,7 @@ bool tests_compress_store_large();
 bool tests_compress_store_invalid_argument();
 bool tests_compress_store_null_zero_ok();
 
-// -- compress_tests_roundtrip.cpp ---------------------------------------------
+// - compress_tests_roundtrip.cpp ---------------------------------------------
 bool tests_compress_roundtrip_deflate();
 bool tests_compress_roundtrip_zlib();
 bool tests_compress_roundtrip_gzip();
@@ -116,7 +116,7 @@ bool tests_compress_roundtrip_lz4();
 bool tests_compress_roundtrip_brotli();
 bool tests_compress_roundtrip_signatures();
 
-// -- compress_tests_api.cpp ---------------------------------------------------
+// - compress_tests_api.cpp ---------------------------------------------------
 bool tests_compress_api_template_dispatch();
 bool tests_compress_api_invalid_argument_compress();
 bool tests_compress_api_invalid_argument_decompress();
@@ -126,7 +126,7 @@ bool tests_compress_api_decompress_garbage_brotli();
 bool tests_compress_api_bad_level_invalid();
 bool tests_compress_api_zlib_truncated();
 
-// -- compress_tests_options.cpp -----------------------------------------------
+// - compress_tests_options.cpp -----------------------------------------------
 bool tests_compress_options_defaults();
 bool tests_compress_options_deflate_levels();
 bool tests_compress_options_bzip2_block_sizes();
@@ -135,7 +135,7 @@ bool tests_compress_options_zstd_levels();
 bool tests_compress_options_brotli_levels();
 bool tests_compress_options_store_ignores_level();
 
-// -- compress_tests_throwing.cpp ----------------------------------------------
+// - compress_tests_throwing.cpp ----------------------------------------------
 bool tests_compress_throwing_success_matches_try();
 bool tests_compress_throwing_roundtrip();
 bool tests_compress_throwing_throws_on_failure();
@@ -143,7 +143,7 @@ bool tests_compress_throwing_what_message();
 bool tests_compress_throwing_error_type();
 bool tests_compress_throwing_decompress_throws();
 
-// -- gzip's header (compress_tests_gzip.cpp) ---------------------------------
+// - gzip's header (compress_tests_gzip.cpp) ---------------------------------
 bool tests_compress_gzip_default_header();
 bool tests_compress_gzip_header_round_trip();
 bool tests_compress_gzip_names();

@@ -3,8 +3,8 @@
 *
 *   Sections IV-VI of the cofree.hpp suite: the RECURSION face of cofree, merged
 * into the header so a translation unit that sees cofree.hpp sees the fold too.
-* Section IV is DEnvLayer<B, F, X> -- the environment pairing B x F<X> that is
-* cofree's base functor -- and its Functor instance, which maps the recursive
+* Section IV is DEnvLayer<B, F, X> - the environment pairing B x F<X> that is
+* cofree's base functor - and its Functor instance, which maps the recursive
 * holes while leaving the annotation alone.  Section V registers
 * recursive_traits<cofree<F, B>> over that base, so the universal cata peels a
 * cofree.  Section VI is annotated_cata, the binary-algebra face that hands an
@@ -13,14 +13,14 @@
 *   THE REGISTRATION TEST IS A REGRESSION TEST.  is_recursive<cofree<opt,int>>
 * must be true from cofree.hpp ALONE.  While the registration lived in a
 * separate header a TU that included only cofree.hpp saw it as false and one
-* that included the extra header saw true -- the same specialisation answering
+* that included the extra header saw true - the same specialisation answering
 * differently per TU, which is an ODR violation with no diagnostic.  The first
 * test below pins that down: this file includes nothing but cofree_tests.hpp
 * (hence cofree.hpp), so if the registration is ever split out again, it fails.
 *
 *   Fixtures are the suite's existing ones: opt<T> as F, so a cofree<opt, A> is
 * a non-empty descending chain, and the named algebras (DSumAlg / DLenAlg /
-* DMaxAlg / DJoinAlg) declared in cofree_tests.hpp -- named rather than lambdas
+* DMaxAlg / DJoinAlg) declared in cofree_tests.hpp - named rather than lambdas
 * so they may appear in trailing return types on every language floor.
 *
 *
@@ -191,7 +191,7 @@ bool tests_recursive_traits_markers()
 /*
 tests_recursive_base_is_env_layer
   Tests the following:
-  - the base functor of cofree<F, B> is DEnvLayer<B, F, X> -- the annotated
+  - the base functor of cofree<F, B> is DEnvLayer<B, F, X> - the annotated
     layer, NOT the bare F<X> that mu's instance uses.
 */
 static
@@ -238,7 +238,7 @@ bool tests_project_reads_head_and_children()
 tests_project_derefs_children
   Tests the following:
   - project dereferences the stored shared_ptr children, so the recursive holes
-    are BARE cofree values -- the positions cata folds.
+    are BARE cofree values - the positions cata folds.
 */
 static
 bool tests_project_derefs_children()
@@ -453,7 +453,7 @@ dt::block_spec cofree_recursion_block()
     block.descriptor =
         "annotated base functor; recursive_traits registration; annotated fold";
 
-    // -- IV. DEnvLayer and its Functor --
+    // - IV. DEnvLayer and its Functor --
 
     block.tests.push_back(dt::test_spec{
         "is_functor: env_layer",
@@ -485,7 +485,7 @@ dt::block_spec cofree_recursion_block()
         "env_layer<B, F, mapped hole>",
         &tests_env_layer_map_result_type });
 
-    // -- V. recursion registration --
+    // - V. recursion registration --
 
     block.tests.push_back(dt::test_spec{
         "is_recursive: cofree (from cofree.hpp alone)",
@@ -517,7 +517,7 @@ dt::block_spec cofree_recursion_block()
         "annotation plus an empty layer",
         &tests_project_leaf });
 
-    // -- VI. annotated fold --
+    // - VI. annotated fold --
 
     block.tests.push_back(dt::test_spec{
         "annotated_cata: sum of heads",

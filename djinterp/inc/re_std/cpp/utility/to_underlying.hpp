@@ -14,7 +14,7 @@
 *   GATING:
 *   When RE_STD_HAS_UNDERLYING_TYPE is 0 (no compiler intrinsic), the
 * function is not defined at all. Callers should gate their use on
-* the same macro -- this matches the policy used by underlying_type
+* the same macro - this matches the policy used by underlying_type
 * itself.
 *
 *

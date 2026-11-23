@@ -171,7 +171,7 @@ D_STATIC_CONSTEXPR std::size_t cx_primary_count = 9;
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- declarations - visible in BOTH modes ------------------------------------
+// - declarations - visible in BOTH modes ------------------------------------
 
 // I.   KERNEL DISPATCH                (color_convert_tests_dispatch.cpp)
 bool tests_color_convert_to_rgb_overload_per_model();
@@ -231,7 +231,7 @@ bool tests_color_cast_accepts_const_and_reference_sources();
 bool tests_color_convert_concepts_agree_with_the_traits();
 
 
-// -- the spec provider - spec mode only --------------------------------------
+// - the spec provider - spec mode only --------------------------------------
 #ifdef DTEST_SPEC_MODE
 
 // color_convert_spec

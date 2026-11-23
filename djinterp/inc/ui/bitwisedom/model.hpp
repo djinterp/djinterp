@@ -5,17 +5,17 @@
 * it is being looked at.
 *   The application is a loop of the uxoxo kind: the state is drawn, the
 * drawing posts events, and after the frame the events are applied to the
-* state -- never during it. Everything a renderer needs to read is here; the
-* one thing renderers write directly is what this frame found -- what the
-* mouse is over, and whether the operation's preview is in view -- which
+* state - never during it. Everything a renderer needs to read is here; the
+* one thing renderers write directly is what this frame found - what the
+* mouse is over, and whether the operation's preview is in view - which
 * is not state the user can undo but a fact about this frame.
-*   The caches -- the generated header, the operation preview -- are
+*   The caches - the generated header, the operation preview - are
 * computed when first wanted after a change, and dropped by the next one.
 * The order the rows are shown in is worked out with every resolution: the
 * sheet's own, or each group's rows sorted.
-*   The grid's CURSOR is a spreadsheet's active cell: a row -- of the
-* sheet's, or a probe or usage row -- and a column -- the names', the
-* values', or a bit's -- with the range selected from it, as Excel keeps
+*   The grid's CURSOR is a spreadsheet's active cell: a row - of the
+* sheet's, or a probe or usage row - and a column - the names', the
+* values', or a bit's - with the range selected from it, as Excel keeps
 * them. The rows the range covers are the selection, the cursor's row
 * first, and the bits it covers the block of cells selected; a selection
 * made elsewhere, in the tree, say, takes the cursor with it.
@@ -25,8 +25,8 @@
 * the names of a sheet just imported. The frame they are drawn in clears
 * them.
 *   The theme and the colour scheme are the window's (shell.hpp), copied
-* into every document so its look -- the sheet's colours with what it
-* leaves automatic filled in from them -- is what every renderer draws with.
+* into every document so its look - the sheet's colours with what it
+* leaves automatic filled in from them - is what every renderer draws with.
 *
 * HOW TO USE
 * ----------
@@ -71,13 +71,13 @@ namespace gui
 
 // CURSOR_NAME / CURSOR_VALUE / CURSOR_NONE
 //   constants: the grid cursor's column on the name column, on the value
-// column -- a column of bits is its lowest bit -- and no column at all.
+// column - a column of bits is its lowest bit - and no column at all.
 const int CURSOR_NAME  = -1;
 const int CURSOR_VALUE = -2;
 const int CURSOR_NONE  = -9;
 
 // special_cursor / cursor_special
-//   a probe or usage row as the cursor names its row -- by its id among the
+//   a probe or usage row as the cursor names its row - by its id among the
 // special rows, below zero, where a row of the sheet's is its id, above --
 // and back again: -1 for a row of the sheet's, or none.
 inline
@@ -98,7 +98,7 @@ int cursor_special(
 
 // node_draft
 //   struct: the row the Add node window is making, in one document: the
-// row itself -- a group, or a symbol of any definition -- the group or
+// row itself - a group, or a symbol of any definition - the group or
 // range it goes into, 0 for the sheet's own rows, and whether it goes
 // first there or last. What it comes to is worked out on a copy of the
 // sheet as it changes: its name and value, what the header would write,
@@ -119,7 +119,7 @@ struct node_draft
 };
 
 // ui_state
-//   struct: how a document is being used -- not part of its sheet, and not
+//   struct: how a document is being used - not part of its sheet, and not
 // undone with it.
 struct ui_state
 {
@@ -153,9 +153,9 @@ struct ui_state
     std::vector<int> grid_rect_rows;
     int              grid_rect_low  = -1;
     int              grid_rect_high = -1;
-    // the grid's cursor, as Excel's active cell: its row -- a row of the
+    // the grid's cursor, as Excel's active cell: its row - a row of the
     // sheet's by its id, a probe or usage row as special_cursor names it,
-    // 0 for none -- and its column, CURSOR_NAME, CURSOR_VALUE or a bit; the
+    // 0 for none - and its column, CURSOR_NAME, CURSOR_VALUE or a bit; the
     // range selected from it, the corner that stays and the one Shift
     // moves; the column a run of Tabs began in, which Enter goes back to;
     // and End mode and Extend mode, which the status bar shows
@@ -205,7 +205,7 @@ struct ui_state
 
     // a child just named in a tree's "Add child..." field: the group or
     // range it went to, and a request, for one frame, that the field take
-    // the keyboard again -- empty for the next name, or with a name it
+    // the keyboard again - empty for the next name, or with a name it
     // refused, to be put right
     int              adding_to        = -1;
     std::string      adding_text;
@@ -218,8 +218,8 @@ struct ui_state
     bool             file_rename_focus = false;
 
     // the Add node window's row in the making; and, as the preferences
-    // have it, what ends a group's rows to add one more -- 0 the field and
-    // a +, 1 the field, 2 the + -- and whether the field fills its column
+    // have it, what ends a group's rows to add one more - 0 the field and
+    // a +, 1 the field, 2 the + - and whether the field fills its column
     node_draft       node;
     int              child_offer      = 0;
     bool             child_fill       = false;
@@ -278,7 +278,7 @@ void sort_rows(
 }
 
 // shown_rows
-//   a model's rows, in the order the grid and the tree show them -- the
+//   a model's rows, in the order the grid and the tree show them - the
 // sheet's own, while the order is out of step with the resolution.
 inline
 std::vector<const resolved_row*> shown_rows(
@@ -365,7 +365,7 @@ bool is_selected(
 
 // active_row
 //   the row the grid's cursor is on: its own, while the selection holds it
-// -- a probe or usage row, while the selection is the one it chose -- and
+// - a probe or usage row, while the selection is the one it chose - and
 // otherwise the selection's first, so the cursor follows a selection made
 // elsewhere; 0 for none. While it is the cursor's own, the range selected from it holds.
 inline
@@ -376,7 +376,7 @@ int active_row(
     const ui_state& ui = _model.ui;
 
     // a probe or usage row: the cursor's, while the selection is the one
-    // it chose -- none, or the rows of its range
+    // it chose - none, or the rows of its range
     if (ui.cursor_row < 0)
     {
         return ( (ui.selection.empty()) ||

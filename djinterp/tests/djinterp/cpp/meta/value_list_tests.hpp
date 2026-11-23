@@ -1,27 +1,27 @@
 /*******************************************************************************
 * djinterp [cpp][meta]                                      value_list_tests.hpp
 *
-*   Unit-test declarations for core/meta/value_list.hpp -- the NTTP sequence, the
+*   Unit-test declarations for core/meta/value_list.hpp - the NTTP sequence, the
 * value-domain counterpart of dtuple's std::tuple type sequence.  One declaration
 * group per section of the module under test:
 *
-*     value_list_tests_list.cpp       -- I.   DValueList<auto...> + size()
-*     value_list_tests_detection.cpp  -- II.  is_value_list (+ the ValueList face)
-*     value_list_tests_access.cpp     -- III. value_list_size, value_list_at, at
-*     value_list_tests_growth.cpp     -- IV.  append / prepend / concat
-*     value_list_tests_transform.cpp  -- V.   transform
-*     value_list_tests_fold.cpp       -- VI.  fold
+*     value_list_tests_list.cpp       - I.   DValueList<auto...> + size()
+*     value_list_tests_detection.cpp  - II.  is_value_list (+ the ValueList face)
+*     value_list_tests_access.cpp     - III. value_list_size, value_list_at, at
+*     value_list_tests_growth.cpp     - IV.  append / prepend / concat
+*     value_list_tests_transform.cpp  - V.   transform
+*     value_list_tests_fold.cpp       - VI.  fold
 *
 *   TIER.  DValueList is an auto-NTTP facility, so the whole module is gated to
 * C++17; below that the header declares NOTHING.  Every fixture and every test
 * body here is gated to match, which means this suite still COMPILES under C++11
-* and C++14 -- and that it does, having included the header, is precisely the
+* and C++14 - and that it does, having included the header, is precisely the
 * check that the header is inert at those floors.  The concept face is gated
 * further to C++20.
 *
 *   FIXTURES.  The growth / transform / fold ops all take value carriers (val_t)
-* and are carrier-callable leaves -- val_t<V> -> val_t<f(V)> for the unary ones,
-* (acc, val_t<V>) -> acc for the binary ones -- exactly the leaf shape compose and
+* and are carrier-callable leaves - val_t<V> -> val_t<f(V)> for the unary ones,
+* (acc, val_t<V>) -> acc for the binary ones - exactly the leaf shape compose and
 * the transducer spine use.  Two of them are chosen to expose contracts the module
 * only states in prose:
 *
@@ -34,8 +34,8 @@
 *                    seed 0 yields 123 only if the fold is LEFT-associative.
 *
 *   DPrependOp and DAppendOp take a DValueList as the accumulator rather than a
-* carrier -- the header says the seed may be "any object, typically a carrier or
-* another DValueList" -- which makes fold+append a copy and fold+prepend a
+* carrier - the header says the seed may be "any object, typically a carrier or
+* another DValueList" - which makes fold+append a copy and fold+prepend a
 * REVERSE, pinning the traversal order a second way.
 *
 *   All tests are flat in djinterp::testing.
@@ -113,7 +113,7 @@ namespace dt = ::djinterp::test;
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 
-// -- a non-integral NTTP kind, for heterogeneity --------------------------
+// - a non-integral NTTP kind, for heterogeneity --------------------------
 
 enum class color
 {
@@ -122,7 +122,7 @@ enum class color
 };
 
 
-// -- unary carrier-callable leaves:  val_t<V> -> val_t<f(V)> --------------
+// - unary carrier-callable leaves:  val_t<V> -> val_t<f(V)> --------------
 
 // DDoubleOp: V -> V * 2.
 struct DDoubleOp
@@ -156,7 +156,7 @@ struct DIdentOp
     operator()(val_t<_Value>) const { return {}; }
 };
 
-// DGt1Op: V -> (V > 1)  -- an int list becomes a bool list.
+// DGt1Op: V -> (V > 1)  - an int list becomes a bool list.
 struct DGt1Op
 {
     template<auto _Value>
@@ -164,7 +164,7 @@ struct DGt1Op
     operator()(val_t<_Value>) const { return {}; }
 };
 
-// DTruthyOp: V -> bool(V)  -- works across a heterogeneous list.
+// DTruthyOp: V -> bool(V)  - works across a heterogeneous list.
 struct DTruthyOp
 {
     template<auto _Value>
@@ -173,7 +173,7 @@ struct DTruthyOp
 };
 
 // DDeclOnlyOp
-//   fixture leaf: DECLARED, never DEFINED -- and its operator() is neither const
+//   fixture leaf: DECLARED, never DEFINED - and its operator() is neither const
 // nor constexpr. transform nevertheless works with it, because transform probes
 // the op in an UNEVALUATED context and needs only its result type. A leaf like
 // this could not drive fold, which really invokes its op.
@@ -186,7 +186,7 @@ struct DDeclOnlyOp
 };
 
 
-// -- binary carrier-callable leaves:  (acc, val_t<V>) -> acc --------------
+// - binary carrier-callable leaves:  (acc, val_t<V>) -> acc --------------
 
 // DSumOp: a carrier accumulator.
 struct DSumOp
@@ -198,7 +198,7 @@ struct DSumOp
 };
 
 // DDigitsOp
-//   fixture reducer: NON-COMMUTATIVE -- (acc * 10) + v. Folding 1, 2, 3 from a
+//   fixture reducer: NON-COMMUTATIVE - (acc * 10) + v. Folding 1, 2, 3 from a
 // seed of 0 yields 123 under a LEFT fold and something else under any other
 // order, so it pins the traversal.
 struct DDigitsOp
@@ -209,7 +209,7 @@ struct DDigitsOp
     operator()(val_t<_Acc>, val_t<_Value>) const { return {}; }
 };
 
-// DAppendOp: a DValueList accumulator -- fold with it copies the list.
+// DAppendOp: a DValueList accumulator - fold with it copies the list.
 struct DAppendOp
 {
     template<auto... _Acc,
@@ -224,7 +224,7 @@ struct DAppendOp
     }
 };
 
-// DPrependOp: a DValueList accumulator -- fold with it REVERSES the list.
+// DPrependOp: a DValueList accumulator - fold with it REVERSES the list.
 struct DPrependOp
 {
     template<auto... _Acc,
@@ -241,7 +241,7 @@ struct DPrependOp
 
 // DIntSumOp
 //   fixture reducer: a PLAIN-VALUE accumulator. val_t and DValueList are empty
-// types -- their value lives in the type -- so a fold over them cannot tell an
+// types - their value lives in the type - so a fold over them cannot tell an
 // accumulator that is passed through from one that is default-constructed afresh.
 // An int accumulator can, and the header does permit "any object" as the seed.
 struct DIntSumOp
@@ -257,7 +257,7 @@ struct DIntSumOp
     }
 };
 
-// DCountOp: an accumulator that ignores the element -- fold as a counter.
+// DCountOp: an accumulator that ignores the element - fold as a counter.
 struct DCountOp
 {
     template<auto _Acc,
@@ -267,7 +267,7 @@ struct DCountOp
 };
 
 
-// -- negatives / look-alikes ----------------------------------------------
+// - negatives / look-alikes ----------------------------------------------
 
 // DFakeList: mimics the interface but is NOT a DValueList specialization --
 // detection is specialization-based, so this must be refused.
@@ -277,7 +277,7 @@ struct DFakeList
     size() noexcept { return 3; }
 };
 
-// DDerivedList: DERIVES from a DValueList -- still not a specialization of one.
+// DDerivedList: DERIVES from a DValueList - still not a specialization of one.
 struct DDerivedList : DValueList<1, 2>
 {
 };
@@ -289,14 +289,14 @@ struct DNotAList
 };
 
 
-// -- completeness probe ---------------------------------------------------
+// - completeness probe ---------------------------------------------------
 
 // is_complete
 //   fixture trait: true when _Type is a COMPLETE type. value_list_size and
 // value_list_at leave their primary template declared-but-undefined, so a query
 // they do not have a specialization for is an INCOMPLETE type rather than a
 // false answer. This probe reads that SFINAE-safely, which lets the suite pin
-// which spellings they accept -- notably that, unlike is_value_list, they do NOT
+// which spellings they accept - notably that, unlike is_value_list, they do NOT
 // apply clean_t.
 template<typename _Type,
          typename = void>
@@ -316,7 +316,7 @@ struct is_complete<_Type, decltype(void(sizeof(_Type)))> : std::true_type
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
-// list_size_of: constrained on ValueList -- takes any list, refuses anything else.
+// list_size_of: constrained on ValueList - takes any list, refuses anything else.
 template<ValueList _List>
 constexpr
 std::size_t list_size_of(
@@ -430,7 +430,7 @@ bool tests_fold_seed_may_be_a_plain_value();
 bool tests_fold_and_transform_compose();
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // value_list_spec
 //   function: the suite as DTest's module spec, one block per section.

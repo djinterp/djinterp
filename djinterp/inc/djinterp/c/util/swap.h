@@ -5,7 +5,7 @@
 * The operation memcpy leaves out: a swap is neither a copy nor a move, and
 * every generic container operation that reorders elements needs one.  It lives
 * here rather than in the sort subsystem because sorting is not the only caller
-* -- partitioning, rotation, reversal, shuffling and heap sift-down all
+* - partitioning, rotation, reversal, shuffling and heap sift-down all
 * exchange without copying.
 *
 *   The common widths are exchanged whole, since a caller reordering an array

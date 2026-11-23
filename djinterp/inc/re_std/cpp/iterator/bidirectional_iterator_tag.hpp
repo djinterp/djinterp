@@ -3,7 +3,7 @@
 *
 * bidirectional_iterator_tag class header:
 * tag for bidirectional iterators — multi-pass, both-direction
-* iteration via -- as well as ++. Derives from forward_iterator_tag.
+* iteration via - as well as ++. Derives from forward_iterator_tag.
 *
 *
 * path:      /inc/re_std/cpp/iterator/bidirectional_iterator_tag.hpp

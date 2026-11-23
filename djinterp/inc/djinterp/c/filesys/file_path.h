@@ -1,14 +1,14 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                              file_path.h
 *
-* Lexical path manipulation -- what a path SAYS, never what is on disk.
+* Lexical path manipulation - what a path SAYS, never what is on disk.
 *   Nothing in this module issues a system call. d_path_dirname("/nowhere/x")
 * is "/nowhere" whether or not that directory exists, and d_path_normalize
 * does not resolve symlinks because it cannot see them. That is a feature: it
 * makes the whole module testable on any machine with no filesystem, no
 * permissions and no temp directory, and it makes it the natural bottom for a
 * C++ path type whose lexical operations are specified the same way.
-*   The counterpart -- the operations that must ask the filesystem -- are
+*   The counterpart - the operations that must ask the filesystem - are
 * d_dir_get_current / d_dir_set_current / d_path_resolve in file_dir.h.
 *
 *
@@ -47,7 +47,7 @@ D_EXTERN_C_BEGIN
 //==============================================================================
 // Every function writing into a caller's buffer returns that buffer, or NULL
 // with errno set: EINVAL for a bad argument, ERANGE when the result does not
-// fit. A path is never truncated to fit -- a prefix of a path is how a program
+// fit. A path is never truncated to fit - a prefix of a path is how a program
 // deletes the wrong directory.
 
 
@@ -95,7 +95,7 @@ char* d_path_basename(
  *       dot in a parent directory does not count ("/a.d/file" has none).
  *       "archive.tar.gz" gives ".gz", and "file." gives ".".
  * @note A path that ends in a separator has an empty final name, and so no
- *       extension: "a/b.txt/" has none, as in std::filesystem -- a pointer
+ *       extension: "a/b.txt/" has none, as in std::filesystem - a pointer
  *       into `_path` would carry the separator. And a root is no name, so
  *       under Windows syntax "C:.txt" names the hidden ".txt" and has none.
  *
@@ -109,8 +109,8 @@ const char* d_path_extension(
 /**
  * @brief Extracts the final component of a path with its extension removed.
  *
- * @note It agrees with d_path_extension by construction -- stem plus
- *       extension is the basename for every input -- so ".bashrc" is its own
+ * @note It agrees with d_path_extension by construction - stem plus
+ *       extension is the basename for every input - so ".bashrc" is its own
  *       stem, "archive.tar.gz" gives "archive.tar", and "a/b.txt/", with no
  *       extension, gives "b.txt".
  *
@@ -133,7 +133,7 @@ char* d_path_stem(
  * @note A `NULL` or empty component is skipped, so an optional base
  *       directory can be passed straight through. Otherwise the first loses
  *       its trailing separators, the second its leading ones, and
- *       D_FILE_PATH_OUT_SEP goes between -- unless the first is a root that
+ *       D_FILE_PATH_OUT_SEP goes between - unless the first is a root that
  *       needs none: "/" and "b" give "/b", and under Windows syntax "C:" and
  *       "b" give the drive-relative "C:b". A root is never split, so under
  *       POSIX syntax "//" and "b" give "//b". Only the junction changes; a
@@ -164,7 +164,7 @@ char* d_path_join(
 
 // 1.3    Inspection
 //------------------------------------------------------------------------------
-// inspection -- NULL is a relative path with no root, not an error. Absolute
+// inspection - NULL is a relative path with no root, not an error. Absolute
 // means anchored, and under Windows syntax two roots are not: "C:x" is x in
 // drive C's current directory, and "\\x" is x at the root of whichever drive
 // is current. Only "C:\\x" and a share are absolute there; under POSIX syntax
@@ -189,7 +189,7 @@ size_t d_path_root_length(
  *
  * @note The root stays as it is, with only its separators respelled, and
  *       ".." never climbs above it: "/.." is "/", as POSIX says. A ".." with
- *       nothing to climb over stays, so "../a" is already clean -- as does
+ *       nothing to climb over stays, so "../a" is already clean - as does
  *       one after a bare drive, since "C:.." is the parent of drive C's
  *       current directory.
  * @note Under Windows syntax a relative result that would begin with a drive
@@ -207,7 +207,7 @@ size_t d_path_root_length(
  * @param[out] _buf      receives the normalized path; "" normalizes to ".".
  *                       It may be `_path` itself, to normalize in place.
  * @param[in]  _bufsize  size of `_buf`, in bytes; at least 2, and enough for
- *                       `_path` and its terminator -- the result is never
+ *                       `_path` and its terminator - the result is never
  *                       longer, and a buffer that cannot hold the input is
  *                       refused with ERANGE.
  * @return `_buf`, or `NULL` on failure with errno set.

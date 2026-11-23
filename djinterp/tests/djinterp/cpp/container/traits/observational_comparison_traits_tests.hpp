@@ -750,7 +750,7 @@ bool tests_stage_cv_ref();
 bool tests_stage_companions();
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // observational_comparison_traits_spec
 //   function: the suite as DTest's module spec, one block per section.

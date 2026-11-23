@@ -6,7 +6,7 @@
 *   The family's state is the run's, reached through machine::ext; the
 * operators read and write it, and nothing else does. A profile is counted
 * in the driver before each dispatch, as the trace is written, and where the
-* call stack changes -- CALL and MEMO, RETURN, and a backtrack -- so each
+* call stack changes - CALL and MEMO, RETURN, and a backtrack - so each
 * call's steps are known when it closes. The memo is the state's too: a MEMO
 * that enters its rule leaves a pending result at its call's depth, a RETURN
 * at that depth keeps the success, and a backtrack below it the failure.
@@ -40,8 +40,8 @@ namespace {
 
 // counter
 //   struct: a profile while it is counted: the profile, whose code each
-// address is, which cells and which calls the run has come to -- a bit for
-// each position, in each rule, made when the rule first needs them -- and
+// address is, which cells and which calls the run has come to - a bit for
+// each position, in each rule, made when the rule first needs them - and
 // the calls open now, one for each return address on the call stack.
 struct counter
 {
@@ -83,7 +83,7 @@ const std::size_t MEMO_PAGE = 256u;
 
 // kept
 //   struct: a rule's result at a position, as the memo keeps it: where it
-// ended -- FAILED where it failed, UNKNOWN where nothing is kept -- and the
+// ended - FAILED where it failed, UNKNOWN where nothing is kept - and the
 // captures it made, as a range of the memo's pool.
 struct kept
 {
@@ -122,12 +122,12 @@ struct pending
 // state
 //   struct: this family's per-run state, reached through machine::ext.  The
 // cursor (data / len / off) is seeded from the parse_state; the rest is the
-// PEG machinery -- call/return stack, backtrack stack, and the mark/capture
-// stacks -- with the memo, and the profile when one is counted.  TU-local.
+// PEG machinery - call/return stack, backtrack stack, and the mark/capture
+// stacks - with the memo, and the profile when one is counted.  TU-local.
 struct state
 {
     // bt
-    //   struct: a backtrack point -- resume ip, cursor, and the call / mark /
+    //   struct: a backtrack point - resume ip, cursor, and the call / mark /
     // capture depths to unwind to.
     struct bt
     {
@@ -482,7 +482,7 @@ void raise(
 }
 
 // fail
-//   the PEG failure convention -- backtrack (restoring cursor, call depth, and
+//   the PEG failure convention - backtrack (restoring cursor, call depth, and
 // the mark/capture stacks), or halt unsuccessfully. A backtrack that unwinds
 // the call a MEMO made is that rule failing where the MEMO was made, and is
 // kept; one that unwinds a counted call closes it.
@@ -693,7 +693,7 @@ void op_fail(
 }
 
 // op_match
-//   voperator: accept -- halt the machine successfully.
+//   voperator: accept - halt the machine successfully.
 void op_match(
     machine& _m
 )
@@ -775,8 +775,8 @@ void op_cap(
 
 // op_memo
 //   voperator: a CALL through the memo. A result kept for the rule at this
-// position is replayed -- its captures appended and the cursor moved to its
-// end, or its failure taken -- and the rule does not run; otherwise the rule
+// position is replayed - its captures appended and the cursor moved to its
+// end, or its failure taken - and the rule does not run; otherwise the rule
 // is entered as CALL enters it, its result pending until it returns or a
 // backtrack unwinds it.
 void op_memo(
@@ -1250,8 +1250,8 @@ bool run(
             break;
         }
 
-        // an ip with no instruction -- the first of an empty program, which
-        // ebnf::compile returns for a grammar it cannot parse -- is an
+        // an ip with no instruction - the first of an empty program, which
+        // ebnf::compile returns for a grammar it cannot parse - is an
         // ordinary failure, not a read past the end of the program
         if ( (s.ip < 0) ||
              (static_cast<std::size_t>(s.ip) >= _prog.size()) )
@@ -1331,8 +1331,8 @@ bool run(
 /*
 layout_of
   The same reading of a program the workbench labels its rules by: after the
-gate, a rule ends at each RETURN. A program it does not fit -- one whose call
-lands inside such a span -- is read by where its calls land instead, which is
+gate, a rule ends at each RETURN. A program it does not fit - one whose call
+lands inside such a span - is read by where its calls land instead, which is
 every rule a run can enter.
 */
 layout layout_of(

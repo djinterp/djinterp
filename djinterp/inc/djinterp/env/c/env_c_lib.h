@@ -8,9 +8,9 @@
 * runtime that both C and C++ translation units rely on. A library feature
 * reads 0 in a freestanding build (__STDC_HOSTED__ 0); the freestanding
 * headers, the SIMD intrinsics and VLAs do not depend on it. In C++, a flag
-* for a C library feature follows the C++ standard that adopted it -- C++11
+* for a C library feature follows the C++ standard that adopted it - C++11
 * for C99's and for <stdalign.h> and <uchar.h>, C++17 for aligned_alloc and
-* timespec_get -- since the C-standard macros read as C90 there; the C-only
+* timespec_get - since the C-standard macros read as C90 there; the C-only
 * language facilities (VLAs, <complex.h>, <tgmath.h>, C11 threads) read 0
 * (decision 69 of the register). <stdbool.h> and <stdalign.h> are C++'s
 * compatibility headers there: present, defining nothing a C++ file needs.

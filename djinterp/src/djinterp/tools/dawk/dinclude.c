@@ -183,8 +183,8 @@ uint32_t d_include_build(
 
         if (strncmp(buffer, "#include", 8u) != 0)
         {
-            // a comment line inside a run of includes -- a category such as
-            // `// std` -- ends the group but continues the block
+            // a comment line inside a run of includes - a category such as
+            // `// std` - ends the group but continues the block
             group = D_DSS_NO_INDEX;
 
             if ((block != D_DSS_NO_INDEX) &&

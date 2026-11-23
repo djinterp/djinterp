@@ -25,7 +25,7 @@
 * `push_back()` or `insert()` may serve as the per-vertex adjacency
 * list.  The framework auto-detects ordering (sorted vs. ordered vs.
 * unordered), iteration level, and uniqueness from the container the
-* user passes -- a `std::vector` gives an ordered multigraph view, a
+* user passes - a `std::vector` gives an ordered multigraph view, a
 * `std::set` gives a sorted simple-graph view, an `std::unordered_set`
 * gives a hashed simple-graph view, all with no further user
 * configuration.
@@ -282,20 +282,20 @@ NS_CONTAINER
     // =========================================================================
     //
     // Template parameter pack rationale:
-    //   VertexProperty        -- payload at each vertex
-    //   EdgeProperty          -- payload at each edge (typically a weight)
-    //   GraphProperty         -- payload at the graph itself
-    //   VertexId              -- type used to index vertices
-    //   Direction             -- graph_direction enum
-    //   Multiplicity          -- edge_multiplicity enum
-    //   LoopPolicy            -- self-loop policy
-    //   AdjacencyContainer    -- container template
+    //   VertexProperty        - payload at each vertex
+    //   EdgeProperty          - payload at each edge (typically a weight)
+    //   GraphProperty         - payload at the graph itself
+    //   VertexId              - type used to index vertices
+    //   Direction             - graph_direction enum
+    //   Multiplicity          - edge_multiplicity enum
+    //   LoopPolicy            - self-loop policy
+    //   AdjacencyContainer    - container template
     //                            instantiated per-vertex
     //                            (default std::vector); user controls
     //                            ordering / uniqueness here
-    //   VertexContainer       -- top-level vertex container template
-    //   LockPolicy            -- thread-safety lock policy
-    //   Allocator             -- allocator used for backing storage
+    //   VertexContainer       - top-level vertex container template
+    //   LockPolicy            - thread-safety lock policy
+    //   Allocator             - allocator used for backing storage
     //
     // The choice to keep AdjacencyContainer as a *template template*
     // parameter (rather than a fully-instantiated type) is deliberate:
@@ -318,7 +318,7 @@ NS_CONTAINER
     {
     public:
         // ---------------------------------------------------------------------
-        // type aliases (the structural protocol -- what the trait system
+        // type aliases (the structural protocol - what the trait system
         // probes)
         // ---------------------------------------------------------------------
 

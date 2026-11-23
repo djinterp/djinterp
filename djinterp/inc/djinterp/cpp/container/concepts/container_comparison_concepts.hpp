@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                    container_comparison_concepts.hpp
 *
-* C++20 concepts for the CROSS-CONTAINER COMPARISON axis -- the
+* C++20 concepts for the CROSS-CONTAINER COMPARISON axis - the
 * `requires`-facing view of container_comparison_traits.hpp.
 *
 *   THE CONCEPTS ADD NO POLICY.
@@ -13,7 +13,7 @@
 *
 *   PORTABILITY:
 *   Gated on C++20 + concepts. Below that the header is empty and callers use
-* the `::value` / `_v` forms directly -- which is why
+* the `::value` / `_v` forms directly - which is why
 *
 *
 * path:      /inc/djinterp/cpp/container/concepts/container_comparison_concepts.hpp
@@ -47,7 +47,7 @@ NS_DJINTERP
 
 
 // realization_comparable_with
-//   concept: the two containers sit on axes that CAN be compared at all -- the
+//   concept: the two containers sit on axes that CAN be compared at all - the
 // precondition for every other concept here.
 template<typename From, typename To>
 concept realization_comparable_with =

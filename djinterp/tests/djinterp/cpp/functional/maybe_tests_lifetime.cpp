@@ -4,14 +4,14 @@
 * Lifetime, value access, and mutation tests for maybe<T> (section I of
 * maybe.hpp: the primitive itself).
 *
-*   test_construction  -- empty / nothing-tag / value copy / value move /
+*   test_construction  - empty / nothing-tag / value copy / value move /
 *                         copy / move constructors, including moved-from state.
-*   test_assignment    -- copy, move, nothing, and value assignment, plus
+*   test_assignment    - copy, move, nothing, and value assignment, plus
 *                         self-assignment and empty <-> non-empty transitions.
-*   test_observers     -- has_value, is_nothing, operator bool, value() in its
+*   test_observers     - has_value, is_nothing, operator bool, value() in its
 *                         const / mutable / rvalue overloads, value_or, expect.
-*   test_modifiers     -- reset and emplace.
-*   test_lifetime      -- balanced construction / destruction of the contained
+*   test_modifiers     - reset and emplace.
+*   test_lifetime      - balanced construction / destruction of the contained
 *                         value via an instance-counting payload type.
 *
 *

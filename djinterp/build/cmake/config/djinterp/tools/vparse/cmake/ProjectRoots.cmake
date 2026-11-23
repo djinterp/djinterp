@@ -1,8 +1,8 @@
 #*******************************************************************************
 # vparse [cmake]                                              ProjectRoots.cmake
 #
-# Where djinterp lives. vparse is djinterp's -- the library in
-# parsegen/vparse, the tool in tools/vparse -- so djinterp's root is the one
+# Where djinterp lives. vparse is djinterp's - the library in
+# parsegen/vparse, the tool in tools/vparse - so djinterp's root is the one
 # this file sits six directories below, and needs no setting. uxoxo, which
 # only the window needs, is build/cmake/config/ui/vparse's to find: the window
 # is outside djinterp, and this build names no uxoxo.

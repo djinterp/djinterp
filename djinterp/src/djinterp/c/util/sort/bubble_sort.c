@@ -18,7 +18,7 @@ d_bubble_sort
   `end` is the exclusive bound of the unsorted region. Each pass sweeps it and
 returns the index of its last exchange, which becomes the next bound: nothing
 at or after it moved, so everything from there on is in final position. A pass
-that exchanges nothing returns 0, which ends the loop -- so the O(n) best case
+that exchanges nothing returns 0, which ends the loop - so the O(n) best case
 on ordered input needs no separate test for it.
   Nothing is allocated. A malformed request leaves the range untouched, so a
 caller may correct it and retry against unmodified input.

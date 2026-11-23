@@ -10,7 +10,7 @@
 * substitution into those gaps.
 *   `cofree<F,A>` is the dual: every node carries an annotation, there are no
 * holes, and there is always at least one node. Where free is "a shape with gaps
-* to fill", cofree is "a shape with a value attached everywhere" -- which is what
+* to fill", cofree is "a shape with a value attached everywhere" - which is what
 * an annotated syntax tree is.
 *
 * F IS A POLYNOMIAL FUNCTOR, SPELLED AS A LABEL PLUS CHILDREN. C cannot take a
@@ -33,7 +33,7 @@
 * TRAVERSE IS THE NARROW SLICE, AND ONLY THAT. The assessment asks for exactly
 * this: "C needs `traverse` for one `T` (the document/parse shape) against two
 * applicatives. That is two instances, not a matrix." `d_free_traverse` is that
-* -- `T` is `free`, and the applicative arrives as a `dj_applicative` dictionary,
+* - `T` is `free`, and the applicative arrives as a `dj_applicative` dictionary,
 * so `maybe` and `result` both work with no further instances. The general
 * `Traversable` protocol is NOT here, and the .tex has still not scoped the
 * narrow slice, so this implements what the assessment describes rather than
@@ -61,7 +61,7 @@
 #include "../../../re_std/c/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -69,7 +69,7 @@
 
 
 // dj_free
-//   struct: one node of a free tree -- a hole carrying a value, or a node
+//   struct: one node of a free tree - a hole carrying a value, or a node
 // carrying a label and its children.
 // `value`, `label` and `children` are all borrowed; the arena owns the nodes and
 // the caller owns everything they point at.
@@ -113,7 +113,7 @@ typedef struct dj_free* (*fn_free_graft)(const void*          _value,
                                         void*                _context);
 
 // dj_cofree
-//   struct: one node of a cofree tree -- an annotation and its children.
+//   struct: one node of a cofree tree - an annotation and its children.
 // There is no hole arm: a cofree tree always has at least this node, which is
 // what makes `extract` total.
 struct dj_cofree
@@ -232,8 +232,8 @@ struct dj_free* d_free_bind(
 );
 
 // VI.    free: traverse, the narrow tier 4 slice
-//   The applicative is fixed to the failure-shaped ones -- `maybe` and
-// `result`, the two the assessment scopes -- because for those, collecting the
+//   The applicative is fixed to the failure-shaped ones - `maybe` and
+// `result`, the two the assessment scopes - because for those, collecting the
 // effects is exactly "every visit must succeed". A general applicative would
 // need the rebuilt tree to live inside the carrier, which is the (T, F) matrix
 // the assessment says C should avoid.

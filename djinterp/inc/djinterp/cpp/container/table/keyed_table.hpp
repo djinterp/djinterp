@@ -1,11 +1,11 @@
 /*******************************************************************************
 * djinterp [cpp][container]                                      keyed_table.hpp
 *
-*   keyed_table -- the KEYED relational overlay (Overlays: containers as
+*   keyed_table - the KEYED relational overlay (Overlays: containers as
 * restriction bundles), the axis-typed table realised as an array of records.
 * Where the cell-homogeneous tables carry one element type at every cell, a
-* relational row is a heterogeneous RECORD -- the value type is a product
-* tau = Key x Val -- and the overlay keys it through a projection key: tau ->
+* relational row is a heterogeneous RECORD - the value type is a product
+* tau = Key x Val - and the overlay keys it through a projection key: tau ->
 * Key.
 * This is the RowType form the cell-homogeneous modules deferred.
 *
@@ -29,9 +29,9 @@
 *                                         mu_m>1 (keys may repeat) the
 *                                       MULTIMAP.
 *
-*   Thus keyed_table<..., true> = {eta, mu_1^{E_key}, varsigma} -- a sorted
+*   Thus keyed_table<..., true> = {eta, mu_1^{E_key}, varsigma} - a sorted
 * map,
-*        keyed_table<..., false> = {eta, mu_m^{E_key}, varsigma}  -- a sorted
+*        keyed_table<..., false> = {eta, mu_m^{E_key}, varsigma}  - a sorted
 *   multimap.  The horizontal strengthening of the overlay lattice (map <=
 *   multimap) is exactly the UniqueKeys flag.
 *
@@ -40,7 +40,7 @@
 * the order of the rest. Records are exposed read-only (rewriting a stored key
 * would break eta and varsigma), so the surface is keyed lookup +
 * order-preserving
-* structural change -- the discipline an overlay demands.
+* structural change - the discipline an overlay demands.
 *
 *   BACKING INDEPENDENCE.  The overlay names no backing beyond a contiguous
 * record store; its identity is the restriction set. It exposes key_type, so
@@ -185,14 +185,14 @@ public:
     using key_projection   = KeyProj;
     using key_compare      = KeyCompare;
 
-    // key_type -- the projected key, deduced from applying KeyProj to a
+    // key_type - the projected key, deduced from applying KeyProj to a
     // record (std::invoke resolves both functors and pointer-to-member
     // projections).
     using key_type = clean_t<
         decltype(std::invoke(std::declval<const KeyProj&>(),
                              std::declval<const RowType&>()))>;
 
-    // npos -- "no such record" sentinel for the positional key queries.
+    // npos - "no such record" sentinel for the positional key queries.
     static constexpr size_type npos = static_cast<size_type>(-1);
 
     // overlay markers (the restriction bundle this container wears).
@@ -279,7 +279,7 @@ public:
         return m_rows.at(static_cast<std::size_t>(_i));
     }
 
-    // key_of -- the key a record projects.
+    // key_of - the key a record projects.
     D_NODISCARD key_type key_of(const RowType& _rec) const
     {
         return std::invoke(m_proj, _rec);
@@ -308,7 +308,7 @@ public:
 
     // --- 4. key queries (binary search over the sorted key order) ---
 
-    // lower_bound -- position of the first record whose key is not less than
+    // lower_bound - position of the first record whose key is not less than
     // _k.
     D_NODISCARD size_type lower_bound(const key_type& _k) const
     {
@@ -332,7 +332,7 @@ public:
         return lo;
     }
 
-    // upper_bound -- position of the first record whose key is greater than _k.
+    // upper_bound - position of the first record whose key is greater than _k.
     D_NODISCARD size_type upper_bound(const key_type& _k) const
     {
         size_type lo = 0;
@@ -355,7 +355,7 @@ public:
         return lo;
     }
 
-    // find -- pointer to a record whose key is equivalent to _k, or nullptr.
+    // find - pointer to a record whose key is equivalent to _k, or nullptr.
     D_NODISCARD const RowType* find(const key_type& _k) const
     {
         const size_type pos = lower_bound(_k);
@@ -370,7 +370,7 @@ public:
         return nullptr;
     }
 
-    // index_of -- position of a record equivalent to _k in key order, or npos.
+    // index_of - position of a record equivalent to _k in key order, or npos.
     D_NODISCARD size_type index_of(const key_type& _k) const
     {
         const size_type pos = lower_bound(_k);
@@ -384,13 +384,13 @@ public:
         return npos;
     }
 
-    // contains_key -- whether any record carries a key equivalent to _k.
+    // contains_key - whether any record carries a key equivalent to _k.
     D_NODISCARD bool contains_key(const key_type& _k) const
     {
         return (find(_k) != nullptr);
     }
 
-    // count_key -- how many records carry a key equivalent to _k (0 or 1 when
+    // count_key - how many records carry a key equivalent to _k (0 or 1 when
     // keys are unique).
     D_NODISCARD size_type count_key(const key_type& _k) const
     {
@@ -399,7 +399,7 @@ public:
 
     // --- 5. structural mutation (invariant-preserving) ---
 
-    // insert -- place _rec at its sorted key position. For a map (unique keys)
+    // insert - place _rec at its sorted key position. For a map (unique keys)
     // a record of an equivalent key is replaced; for a multimap the new record
     // is added after any equal keys. Returns the position it occupies.
     size_type insert(RowType _rec)
@@ -437,7 +437,7 @@ public:
         return pos;
     }
 
-    // erase_at -- remove the record at position _i (in key order).
+    // erase_at - remove the record at position _i (in key order).
     void erase_at(size_type _i)
     {
         m_rows.erase(m_rows.begin() + static_cast<std::ptrdiff_t>(_i));
@@ -445,7 +445,7 @@ public:
         return;
     }
 
-    // erase_key -- remove every record whose key is equivalent to _k; returns
+    // erase_key - remove every record whose key is equivalent to _k; returns
     // the number removed (0 or 1 when keys are unique).
     size_type erase_key(const key_type& _k)
     {
@@ -459,7 +459,7 @@ public:
         return (hi - lo);
     }
 
-    // clear -- drop all records.
+    // clear - drop all records.
     void clear() noexcept
     {
         m_rows.clear();

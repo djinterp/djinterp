@@ -50,7 +50,7 @@ using namespace dtuple_test_types;
 // I.   TUPLE_COUNT_TYPE  (compile-time)
 // =========================================================================
 
-// empty input -- helper's base case
+// empty input - helper's base case
 static_assert(tuple_count_type<int, std::tuple<>>::value == 0,
               "tuple_count_type<int, std::tuple<>>::value should be 0");
 
@@ -62,7 +62,7 @@ static_assert(tuple_count_type<int, std::tuple<int>>::value == 1,
 static_assert(tuple_count_type<char, std::tuple<int>>::value == 0,
               "tuple_count_type<char, std::tuple<int>>::value should be 0");
 
-// multi-element pack-shape -- exercises the recursive case
+// multi-element pack-shape - exercises the recursive case
 static_assert(tuple_count_type<int, int, char, int>::value == 2,
               "tuple_count_type<int, int, char, int>::value should be 2");
 static_assert(tuple_count_type<int, int, int, int>::value == 3,
@@ -96,7 +96,7 @@ static_assert(tuple_count_type<const int, std::tuple<int, const int, int>>::valu
 // II.  TUPLE_COUNT_AND_REMOVE  (compile-time)
 // =========================================================================
 
-// empty input -- count 0, filtered tuple empty
+// empty input - count 0, filtered tuple empty
 static_assert(DTupleCountAndRemove<int, std::tuple<>>::value == 0,
               "tuple_count_and_remove<int, std::tuple<>>::value should be 0");
 static_assert(std::is_same<typename DTupleCountAndRemove<int, std::tuple<>>::type,
@@ -117,7 +117,7 @@ static_assert(std::is_same<typename DTupleCountAndRemove<int, int, int, int>::ty
                            std::tuple<>>::value,
               "tuple_count_and_remove<int, int, int, int>::type should be empty");
 
-// mixed -- counted matches, kept the rest IN ORDER
+// mixed - counted matches, kept the rest IN ORDER
 static_assert(DTupleCountAndRemove<int, int, char, int>::value == 2,
               "tuple_count_and_remove<int, int, char, int>::value should be 2");
 static_assert(std::is_same<typename DTupleCountAndRemove<int, int, char, int>::type,
@@ -137,7 +137,7 @@ static_assert(std::is_same<typename DTupleCountAndRemove<int, std::tuple<int, ch
                            std::tuple<char>>::value,
               "tuple_count_and_remove tuple-shape type");
 
-// strict type-identity matching -- cv- and ref-qualified variants are
+// strict type-identity matching - cv- and ref-qualified variants are
 // NOT the same as the bare type
 static_assert(DTupleCountAndRemove<int, int, const int, int&>::value == 1,
               "tuple_count_and_remove<int, ...>: cv/ref variants not counted");
@@ -160,14 +160,14 @@ static_assert(std::is_same<tuple_count_and_remove_t<int, std::tuple<int, char, i
 // III. TUPLE_CONSOLIDATE_TYPES  (compile-time)
 // =========================================================================
 
-// empty input -- helper's empty case
+// empty input - helper's empty case
 static_assert(std::is_same<typename tuple_consolidate_types<>::type, std::tuple<>>::value,
               "tuple_consolidate_types<>::type should be std::tuple<>");
 static_assert(std::is_same<typename tuple_consolidate_types<std::tuple<>>::type,
                            std::tuple<>>::value,
               "tuple_consolidate_types<std::tuple<>>::type should be std::tuple<>");
 
-// all-unique input -- everything stays as its own element
+// all-unique input - everything stays as its own element
 static_assert(std::is_same<typename tuple_consolidate_types<int, char, float>::type,
                            std::tuple<int, char, float>>::value,
               "tuple_consolidate_types<int, char, float>::type should be std::tuple<int, char, float>");
@@ -175,7 +175,7 @@ static_assert(std::is_same<typename tuple_consolidate_types<std::tuple<int, char
                            std::tuple<int, char, float>>::value,
               "tuple_consolidate_types<tuple<int, char, float>>::type should be std::tuple<int, char, float>");
 
-// single duplicate group -- becomes std::array<T, N>
+// single duplicate group - becomes std::array<T, N>
 static_assert(std::is_same<typename tuple_consolidate_types<int, int>::type,
                            std::tuple<std::array<int, 2>>>::value,
               "tuple_consolidate_types<int, int>::type should be std::tuple<std::array<int, 2>>");
@@ -191,7 +191,7 @@ static_assert(std::is_same<typename tuple_consolidate_types<int, char, int, char
                            std::tuple<std::array<int, 3>, std::array<char, 2>>>::value,
               "tuple_consolidate_types<int, char, int, char, int>::type should yield std::array<int, 3>, std::array<char, 2>");
 
-// mixed unique + duplicate -- order based on first appearance
+// mixed unique + duplicate - order based on first appearance
 static_assert(std::is_same<typename tuple_consolidate_types<int, char, int, float>::type,
                            std::tuple<std::array<int, 2>, char, float>>::value,
               "tuple_consolidate_types<int, char, int, float>::type should be std::tuple<std::array<int, 2>, char, float>");

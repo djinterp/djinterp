@@ -2,8 +2,8 @@
 * djinterp [cpp][db]                                               db_common.hpp
 *
 * The namespace of djinterp's database layers: db, inside djinterp, with one
-* namespace per vendor inside it -- db::sqlite, db::postgres, db::mariadb and
-* the rest -- and the faces in db::face.
+* namespace per vendor inside it - db::sqlite, db::postgres, db::mariadb and
+* the rest - and the faces in db::face.
 *   The C++17 layer reaches the two macros below through database.hpp and
 * database_async.hpp; the faces, which gen_db_face.py writes, spell their
 * namespaces out. C++98 or later; it declares nothing else.

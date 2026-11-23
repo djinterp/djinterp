@@ -976,7 +976,7 @@ bool d_internal_cmake_args(
 
 /*
 cmake_find(f, name[, after])
-  The first command after `after` -- 0, the start, by default -- whose name
+  The first command after `after` - 0, the start, by default - whose name
 is `name`, as CMake compares names.
 */
 static

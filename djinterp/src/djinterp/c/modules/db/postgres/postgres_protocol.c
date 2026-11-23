@@ -11,7 +11,7 @@
 * and reports a synchronization point and a statement skipped by results of
 * their own, which the layer turns into D_DB_NOT_FOUND and 25P02; the server
 * sends what it has only at a synchronization point or when asked, and the
-* layer asks -- a flush request -- before any wait for a result. libpq's
+* layer asks - a flush request - before any wait for a result. libpq's
 * pipeline calls are 14's and its chunked rows 17's, made only where both the
 * header compiled against and the library loaded have them
 * (d_postgres_client_supports).
@@ -145,7 +145,7 @@ int d_internal_postgres_await(
 
 /*
 d_internal_postgres_count
-  How many rows a result's command tag counts -- INSERT 0 3, COPY 5 -- or 0
+  How many rows a result's command tag counts - INSERT 0 3, COPY 5 - or 0
 for one that counts none.
 */
 static
@@ -522,7 +522,7 @@ d_internal_postgres_give
 is D_DB_NOT_FOUND. In pipeline mode a synchronization point is
 D_DB_NOT_FOUND too, a statement a failure skipped is the layer's own 25P02,
 and libpq ends each statement's results with no result, read at once after
-the statement's last success -- libpq answers it without waiting -- so that
+the statement's last success - libpq answers it without waiting - so that
 the next statement's rows can be asked for a few at a time. A result's count
 is read before its rows are built, which frees it.
 */
@@ -680,7 +680,7 @@ d_postgres_set_chunked_rows
   One row is libpq's single-row mode, the same in every libpq; more is
 PQsetChunkedRowsMode. Either refuses, answering 0, unless a statement's
 results are still to come and libpq has read none of them: straight after a
-send, or after a statement's last result -- in a pipeline, once the end of
+send, or after a statement's last result - in a pipeline, once the end of
 its results is read too, which d_postgres_next_result reads at once after a
 success.
 */
@@ -969,7 +969,7 @@ d_postgres_enter_pipeline
   PQenterPipelineMode answers 0 only for a connection that is not idle, its
 message saying so; one in pipeline mode already enters it again, harmlessly.
   Rows a few at a time asked for outside the mode stay asked for, in libpq,
-until the next send outside it resets them -- which no send inside it does
+until the next send outside it resets them - which no send inside it does
 (libpq 14 to 19 alike), so the pipeline's first statement would have them
 too. They are reset first, by a send libpq refuses before anything is sent:
 a NULL statement, whose refusal is the connection's message until the

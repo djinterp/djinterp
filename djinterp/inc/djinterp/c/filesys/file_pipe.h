@@ -2,13 +2,13 @@
 * djinterp [c][filesys]                                              file_pipe.h
 *
 * Process pipes.
-*   d_pipe_open runs its argument through a SHELL -- /bin/sh -c on POSIX,
+*   d_pipe_open runs its argument through a SHELL - /bin/sh -c on POSIX,
 * cmd.exe /c on Windows. That means every shell metacharacter in the string is
 * interpreted, so building the command from anything a user influenced is a
 * command-injection vulnerability. No configuration here prevents that; the
 * only fix is not to call it. Use posix_spawn / CreateProcess with an argument
 * vector when the command is not a literal.
-*   The whole API is compiled out when D_INTERNAL_FILE_HAS_PIPES is 0 -- guard
+*   The whole API is compiled out when D_INTERNAL_FILE_HAS_PIPES is 0 - guard
 * with D_FILE_PIPE_IS_AVAILABLE.
 *
 *
@@ -45,8 +45,8 @@ D_EXTERN_C_BEGIN
 // 1.  PIPES
 //==============================================================================
 // POSIX pclose returns a wait status, not an exit code: `exit 3` yields 768.
-// d_pipe_exit_code decodes it -- N for a normal exit, 128+N for death by
-// signal N, -1 for a failed reap -- so callers never see the raw encoding. On
+// d_pipe_exit_code decodes it - N for a normal exit, 128+N for death by
+// signal N, -1 for a failed reap - so callers never see the raw encoding. On
 // Windows _pclose already returns the code, so the call is the identity there,
 // for every value: a crashed command's NTSTATUS, negative as an int, is not
 // the -1 of a failed wait.
@@ -65,7 +65,7 @@ D_EXTERN_C_BEGIN
  *          command-injection vulnerability, and no quoting survives both
  *          shells.
  * @note With D_CFG_FILE_CLOEXEC_DEFAULT on, the parent's end of the pipe is
- *       close-on-exec, so a child started later cannot hold it open -- for a
+ *       close-on-exec, so a child started later cannot hold it open - for a
  *       "w" pipe, keep the command from ever seeing the end of its input.
  *       Windows' CRT does this itself.
  *
@@ -74,7 +74,7 @@ D_EXTERN_C_BEGIN
  *                      stdin; on Windows a 'b' or 't' may follow, and wins
  *                      over D_CFG_FILE_PIPE_BINARY.
  * @return an open stream, or `NULL` on failure with errno set.
- * @post Close the stream with d_pipe_close -- never fclose, which does not
+ * @post Close the stream with d_pipe_close - never fclose, which does not
  *       reap the child.
  */
 FILE* d_pipe_open(
@@ -89,8 +89,8 @@ FILE* d_pipe_open(
  *          only -1 means the wait itself failed. d_pipe_exit_code decodes it.
  *
  * @param[in] _stream  a stream from d_pipe_open.
- * @return the platform's status -- a wait(2) status on POSIX, the exit code
- *         on Windows -- or -1 if the wait failed.
+ * @return the platform's status - a wait(2) status on POSIX, the exit code
+ *         on Windows - or -1 if the wait failed.
  * @post `_stream` is closed and must not be used again.
  */
 int d_pipe_close(

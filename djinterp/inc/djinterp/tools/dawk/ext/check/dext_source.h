@@ -69,8 +69,8 @@ bool d_ext_source_generated(
  * @note The language is the extension's: `.hpp`, `.cpp` and their kin are
  *       C++, anything else accepted is C.  The file node gains `lang`
  *       (`c` or `c++`) first, since that is what the C and C++ sheets key
- *       on.  A generated file -- one whose first 4 KiB carry the tree's
- *       marker `Auto-generated. Do not edit by hand.` -- gets `lang` and no
+ *       on.  A generated file - one whose first 4 KiB carry the tree's
+ *       marker `Auto-generated. Do not edit by hand.` - gets `lang` and no
  *       tree: the guide exempts generated files from layout, and the tree's
  *       largest are over 10 MB of macro tables.
  *

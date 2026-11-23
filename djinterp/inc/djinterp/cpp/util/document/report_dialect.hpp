@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][utility]                                     report_dialect.hpp
 *
-*   A worked DIALECT over the layout foundation -- the template the rest follow.
+*   A worked DIALECT over the layout foundation - the template the rest follow.
 * It shows the whole "constructs derive separately, nothing hardcoded in the
 * foundation" pattern end to end: a construct is an operator id, a signature
 * entry (its structural flags + spelling), a builder, and a lowering to the
@@ -9,13 +9,13 @@
 * these; this header defines them and registers them into a DLayoutSignature.
 *
 *   FIVE CONSTRUCTS.
-*     body       -- the document container (no lowering: emit its children)
-*     cover      -- a title page (lowers by DRIVING the existing DTitlePage
-*                   content model -- an existing construct becomes a lowering)
-*     clearpage  -- a page break (lowers to the renderer's page_break verb)
-*     toc        -- a table of contents (lowers by rendering the computed outline)
-*     section    -- a numbered, outlined heading + its children
-*   plus two content leaves (content / table -- body_ref names the resolver
+*     body       - the document container (no lowering: emit its children)
+*     cover      - a title page (lowers by DRIVING the existing DTitlePage
+*                   content model - an existing construct becomes a lowering)
+*     clearpage  - a page break (lowers to the renderer's page_break verb)
+*     toc        - a table of contents (lowers by rendering the computed outline)
+*     section    - a numbered, outlined heading + its children
+*   plus two content leaves (content / table - body_ref names the resolver
 * answers).  The op-id here is an enum (a value key); a fixed_string or a
 * type-tag dialect is the same shape with a different OpId.
 *
@@ -98,7 +98,7 @@ enum class DReportOp
     clearpage,   // a page break
     toc,         // a table of contents
     section      // a numbered heading + children
-    // (content / table are LEAVES -- DLayoutAtom::body_ref -- not ops)
+    // (content / table are LEAVES - DLayoutAtom::body_ref - not ops)
 };
 
 
@@ -106,7 +106,7 @@ enum class DReportOp
 ///             II.   LOWERINGS                                             ///
 ///////////////////////////////////////////////////////////////////////////////
 //   Each construct lowers to the renderer's EXISTING semantic verbs; the
-// renderer realises them per dialect.  The construct set stays open -- none of
+// renderer realises them per dialect.  The construct set stays open - none of
 // this touches the renderer interface.
 
 // section_lower
@@ -152,7 +152,7 @@ section_lower(
 }
 
 // clearpage_lower
-//   a page boundary -- the renderer's own verb; a continuous dialect ignores it.
+//   a page boundary - the renderer's own verb; a continuous dialect ignores it.
 inline void
 clearpage_lower(
     const DDocAttributes&             /*_bag*/,
@@ -211,7 +211,7 @@ toc_lower(
 }
 
 // cover_lower
-//   drives the EXISTING DTitlePage content model -- an existing construct
+//   drives the EXISTING DTitlePage content model - an existing construct
 // serving as a layout op's lowering.  Pulls title / subtitle / author / date
 // from the cover's own bag, falling back to the document metadata; and turns
 // OFF DTitlePage's own page break, because pagination is the layout's to own
@@ -260,7 +260,7 @@ cover_lower(
 // produces an annotated node through apply_node / make_leaf_node (layout.hpp).
 
 // body
-//   the document container -- the root a document is assembled under.
+//   the document container - the root a document is assembled under.
 D_NODISCARD inline DLayoutDoc<DReportOp> body(
     std::vector<DLayoutDoc<DReportOp> > _children
 )
@@ -272,7 +272,7 @@ D_NODISCARD inline DLayoutDoc<DReportOp> body(
 }
 
 // cover
-//   a title page -- _fields are cover metadata (subtitle / author / date /
+//   a title page - _fields are cover metadata (subtitle / author / date /
 // title), stored in the node's bag for cover_lower to read.
 D_NODISCARD inline DLayoutDoc<DReportOp> cover(
     std::initializer_list<std::pair<std::string, std::string> > _fields
@@ -302,7 +302,7 @@ D_NODISCARD inline DLayoutDoc<DReportOp> clearpage()
 }
 
 // toc
-//   a table of contents -- rendered from the outline computed at render time.
+//   a table of contents - rendered from the outline computed at render time.
 D_NODISCARD inline DLayoutDoc<DReportOp> toc()
 {
     return apply_node<DReportOp, DLayoutAtom>(
@@ -328,7 +328,7 @@ D_NODISCARD inline DLayoutDoc<DReportOp> section(
 }
 
 // content
-//   a body-content leaf named _name -- the resolver answers it at render time.
+//   a body-content leaf named _name - the resolver answers it at render time.
 D_NODISCARD inline DLayoutDoc<DReportOp> content(
     std::string _name
 )
@@ -339,7 +339,7 @@ D_NODISCARD inline DLayoutDoc<DReportOp> content(
 }
 
 // table
-//   a table-content leaf named _name -- like content, resolved by name (the
+//   a table-content leaf named _name - like content, resolved by name (the
 // resolver decides it renders a table).
 D_NODISCARD inline DLayoutDoc<DReportOp> table(
     std::string _name
@@ -384,8 +384,8 @@ D_NODISCARD inline DLayoutSignature<DReportOp> make_report_signature()
 ///////////////////////////////////////////////////////////////////////////////
 ///             V.    DEMO  (moved)                                         ///
 ///////////////////////////////////////////////////////////////////////////////
-//   demo_render() -- assemble a document with the combinators above and render
-// it to plain text -- moved to /inc/djinterp/cpp/modules/test/output/test_layout_suite.hpp.
+//   demo_render() - assemble a document with the combinators above and render
+// it to plain text - moved to /inc/djinterp/cpp/modules/test/output/test_layout_suite.hpp.
 // It is a worked example AND an end-to-end check of the four interpreter
 // passes; as a test it is run, as a header function it was only compiled.
 

@@ -60,8 +60,8 @@ bool d_arg_internal_command_names_given(
  *                          configuration option.
  *
  * The first half of CLI11's set_help_flag and its kin: the option a slot
- * points at removed -- when the command still owns it, for a version flag
- * moved into an option group stays there, as in CLI11 -- and the slot
+ * points at removed - when the command still owns it, for a version flag
+ * moved into an option group stays there, as in CLI11 - and the slot
  * emptied.
  */
 D_STATIC
@@ -477,7 +477,7 @@ struct dj_arg_option* d_arg_command_set_config(
  *
  * CLI11's checks in add_subcommand: a name that is not valid is refused for
  * its first character when that cannot start a name, and otherwise for the
- * first character -- the first itself included -- that cannot follow in one.
+ * first character - the first itself included - that cannot follow in one.
  */
 D_STATIC
 int d_arg_internal_command_check_subcommand_name(
@@ -600,8 +600,8 @@ struct dj_arg_command* d_arg_internal_command_make(
  *         definition error and the subcommand discarded.
  *
  * CLI11's add_subcommand(App_p): the new subcommand's names checked against
- * the subcommands of the command -- or, for an option group, of its
- * fallthrough parent -- then the subcommand kept; refused, it is discarded.
+ * the subcommands of the command - or, for an option group, of its
+ * fallthrough parent - then the subcommand kept; refused, it is discarded.
  */
 D_STATIC
 struct dj_arg_command* d_arg_internal_command_adopt(
@@ -1009,8 +1009,8 @@ bool d_arg_internal_command_within(
  *                             them too.
  *
  * CLI11's first loop in remove_subcommand: each subcommand of the command
- * drops its exclusion of `_subcommand` -- both halves, as CLI11's
- * remove_excludes drops them -- and its need of it.
+ * drops its exclusion of `_subcommand` - both halves, as CLI11's
+ * remove_excludes drops them - and its need of it.
  */
 D_STATIC
 void d_arg_internal_command_unlink(
@@ -1253,8 +1253,8 @@ void d_arg_internal_command_forget_tree(
 
 /*
 d_arg_command_remove_subcommand
-  CLI11's remove_subcommand -- its subcommands' links to the subcommand
-dropped first, owned or not -- made safe: an owned subcommand leaves the
+  CLI11's remove_subcommand - its subcommands' links to the subcommand
+dropped first, owned or not - made safe: an owned subcommand leaves the
 tree, every reference into its subtree goes, and it is released.
 */
 bool d_arg_command_remove_subcommand(

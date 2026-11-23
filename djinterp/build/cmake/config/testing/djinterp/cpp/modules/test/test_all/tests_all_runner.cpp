@@ -31,7 +31,7 @@
 #include <string>
 #include <vector>
 
-// -- suite headers (spec-provider face) ------------------------------------
+// - suite headers (spec-provider face) ------------------------------------
 //    INCLUDES gives both tests roots, so every header is included bare.
 #include "test_common_tests.hpp"
 #ifdef D_TC_CHECK

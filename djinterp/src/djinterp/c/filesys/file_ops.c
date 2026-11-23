@@ -10,7 +10,7 @@
 * destination on any failure.
 *   MORE THAN POSIX. On Linux the engine is copy_file_range(2), which glibc
 * declares from 2.27 and only under _GNU_SOURCE. Build this file with
-* -D_GNU_SOURCE on Linux to have it -- a feature-test macro comes from the
+* -D_GNU_SOURCE on Linux to have it - a feature-test macro comes from the
 * build, never from a source (the C guide's rule); without it
 * D_CFG_FILE_HAS_COPY_FILE_RANGE is 0 and the copy takes the buffered loop,
 * which is slower and just as correct.
@@ -125,10 +125,10 @@ int d_internal_ops_copy_portable(
 /*
 d_internal_ops_copy_native
   Linux copy_file_range(2): the bytes never leave the kernel, and the
-filesystem may service the request directly -- on btrfs or XFS as a reflink,
+filesystem may service the request directly - on btrfs or XFS as a reflink,
 instant and consuming no space until one side is written. EXDEV (across
 filesystems), EINVAL, ENOSYS, EOPNOTSUPP and EPERM mean "use the other path",
-not "the copy failed", and return 1 so the caller falls back -- as does a
+not "the copy failed", and return 1 so the caller falls back - as does a
 first call that moves nothing, since a file whose size the kernel cannot see
 reads as empty here and not to read(). The fallback resumes where the kernel
 stopped, from the descriptors' shared offsets. EINTR is retried.
@@ -171,7 +171,7 @@ int d_internal_ops_copy_native(
             continue;
         }
 
-        // the kernel or the filesystem cannot do this pairing -- not an
+        // the kernel or the filesystem cannot do this pairing - not an
         // error, just a decline. Anything else is real.
         if ( (errno == EXDEV)      ||
              (errno == EINVAL)     ||
@@ -199,7 +199,7 @@ int d_internal_ops_copy_native(
 /*
 d_internal_ops_copy_native
   macOS fcopyfile(3) with COPYFILE_ALL, which brings extended attributes and
-resource forks along -- metadata the portable path silently drops. It never
+resource forks along - metadata the portable path silently drops. It never
 declines; any failure is a real one.
 */
 static
@@ -224,8 +224,8 @@ int d_internal_ops_copy_native(
 
 /*
 d_internal_ops_copy_native
-  No engine in this build -- D_CFG_FILE_OPS_COPY_NATIVE is off, or the
-platform has none here, as Windows has not -- so this always declines and the
+  No engine in this build - D_CFG_FILE_OPS_COPY_NATIVE is off, or the
+platform has none here, as Windows has not - so this always declines and the
 portable loop does the copy.
 */
 static
@@ -288,8 +288,8 @@ int d_internal_ops_same_file(
 /*
 d_internal_ops_restrict
   The bits a destination takes before any data reaches it: none on Windows.
-Its one bit is read-only, which keeps nothing private -- who may read the file
-is its ACL's business -- and set early it would keep a failed copy from
+Its one bit is read-only, which keeps nothing private - who may read the file
+is its ACL's business - and set early it would keep a failed copy from
 removing what it wrote. d_internal_ops_finish sets it once the data is in.
 */
 static
@@ -418,9 +418,9 @@ d_internal_ops_open_dst
 created with the source's bits where it is new (and writable on Windows,
 D_INTERNAL_OPS_CREATE_BITS), and refused when it exists and _overwrite is 0
 (O_EXCL, the atomic form of "fail if it exists"). It is opened without
-O_TRUNC and compared with the source first -- the same file under another
+O_TRUNC and compared with the source first - the same file under another
 name, a hard link or a symlink, would otherwise be emptied before a byte of
-it was read -- and only then given the source's bits and truncated. Nothing
+it was read - and only then given the source's bits and truncated. Nothing
 on any failure path here has touched an existing file's data, so none of
 them removes the destination.
 */
@@ -482,9 +482,9 @@ int d_internal_ops_open_dst(
 
 /*
 d_internal_ops_check_src
-  Describes the source through its open descriptor, not its path -- the file
+  Describes the source through its open descriptor, not its path - the file
 is already open, so this cannot describe something other than what is about
-to be copied -- and refuses anything but a regular file, whose contents are
+to be copied - and refuses anything but a regular file, whose contents are
 all a copy can carry.
 */
 static
@@ -521,8 +521,8 @@ int d_internal_ops_check_src(
 d_internal_ops_finish
   The end of a copy, whichever way it went: the source's bits where the
 platform sets them only after the data (d_internal_ops_restore), then both
-descriptors closed -- a failed close of the destination fails the copy, since
-buffered data never reached the file -- and on failure the partial
+descriptors closed - a failed close of the destination fails the copy, since
+buffered data never reached the file - and on failure the partial
 destination removed, keeping the errno that caused it.
 */
 static
@@ -698,8 +698,8 @@ int d_internal_ops_copy(
 /*
 d_internal_ops_move
   MoveFileEx, for both answers to _overwrite. Asked not to replace, it
-refuses an existing destination by itself -- atomically, which POSIX cannot
-do -- and with no MOVEFILE_COPY_ALLOWED it refuses another volume with EXDEV,
+refuses an existing destination by itself - atomically, which POSIX cannot
+do - and with no MOVEFILE_COPY_ALLOWED it refuses another volume with EXDEV,
 where the CRT's rename would copy behind the caller's back. Its error is
 GetLastError's, translated.
 */
@@ -819,7 +819,7 @@ int d_internal_ops_names_dir(
 /*
 d_internal_ops_remove
   remove() for Windows, whose C runtime's remove takes files only: a
-directory -- or a link to one, which goes without its target -- is removed as
+directory - or a link to one, which goes without its target - is removed as
 rmdir removes one, as POSIX remove() would.
 */
 static
@@ -853,7 +853,7 @@ int d_internal_ops_remove(
 
 /*
 d_internal_ops_unlink
-  The CRT's _unlink, which refuses a directory as unlink(2) does -- except a
+  The CRT's _unlink, which refuses a directory as unlink(2) does - except a
 symbolic link or a junction to one, which _unlink refuses too but unlink(2)
 would remove as it removes any link: the link goes, and its target stays.
 */
@@ -893,7 +893,7 @@ int d_internal_ops_unlink(
 /*
 d_internal_ops_move
   rename, which replaces silently, so refusing is done here: a name that
-exists -- a dangling symlink included, which a following stat would miss --
+exists - a dangling symlink included, which a following stat would miss --
 is refused. lstat is called directly, as a missing destination is the normal
 case and no failure worth a notice. The check is NOT atomic with the rename:
 another process can create _new in between, and there is no portable
@@ -955,7 +955,7 @@ int d_internal_ops_unlink(
 /*
 d_internal_ops_move
   ISO C rename, which leaves an existing destination to the implementation, so
-refusing is done here with the only existence test ISO C has -- not atomic
+refusing is done here with the only existence test ISO C has - not atomic
 with the rename, as on POSIX.
 */
 static
@@ -995,7 +995,7 @@ int d_internal_ops_remove(
 
 /*
 d_internal_ops_unlink
-  ISO C has only remove(), which also takes directories -- so on this backend
+  ISO C has only remove(), which also takes directories - so on this backend
 d_file_unlink cannot keep its promise to refuse them.
 */
 static
@@ -1016,7 +1016,7 @@ int d_internal_ops_unlink(
 /*
 d_internal_ops_is_plain
   Whether a path names a regular file in itself: not a directory, and not a
-reparse point -- the CRT's stat follows those, so the attribute is asked.
+reparse point - the CRT's stat follows those, so the attribute is asked.
 */
 static
 int d_internal_ops_is_plain(
@@ -1068,8 +1068,8 @@ d_internal_ops_move_across
   d_file_rename's fallback across filesystems, which the build has accepted
 for what it is: a copy, then a delete, neither atomic nor instant. Only a
 regular file is moved this way (d_internal_ops_is_plain). A copy of anything
-else is not the same thing -- a symlink's copy would be its target's data,
-and a directory has no copy here at all -- so those keep the EXDEV that
+else is not the same thing - a symlink's copy would be its target's data,
+and a directory has no copy here at all - so those keep the EXDEV that
 brought them here, and everything stays where it was. The copy honours the
 caller's _overwrite, and goes first, so a failure leaves the original in
 place.
@@ -1105,7 +1105,7 @@ int d_internal_ops_move_across(
     }
 
     // the copy landed but the original will not go away, so both names now
-    // exist -- report it rather than claim success
+    // exist - report it rather than claim success
     return d_file_unlink(_old);
 }
 
@@ -1114,8 +1114,8 @@ int d_internal_ops_move_across(
 /*
 d_internal_ops_move_across
   d_file_rename's fallback across filesystems where the build has accepted
-none -- D_CFG_FILE_OPS_RENAME_CROSS_DEVICE is off, or the ISO C backend has no
-copy to fall back on -- so the EXDEV that brought the call here stands.
+none - D_CFG_FILE_OPS_RENAME_CROSS_DEVICE is off, or the ISO C backend has no
+copy to fall back on - so the EXDEV that brought the call here stands.
 */
 static
 int d_internal_ops_move_across(
@@ -1174,7 +1174,7 @@ int d_file_remove(
 
 /*
 d_file_unlink
-  Removes the NAME, not necessarily the file -- which is why unlinking an open
+  Removes the NAME, not necessarily the file - which is why unlinking an open
 file is a legitimate way to make a temporary that disappears on exit even if
 the process is killed. The ISO C fallback is remove(), which cannot refuse a
 directory.

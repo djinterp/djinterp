@@ -468,7 +468,7 @@ bool tests_pack_element_guarded_access();
 bool tests_pack_element_depth();
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // pack_element_spec
 //   function: the suite as DTest's module spec, one block per section.

@@ -5,7 +5,7 @@
 *   Brackets go where reading the text back would group otherwise, and
 * nowhere else: the renderer asks, for each child, the parser's own rule --
 * would the operator after the child, or the child's own operator, group
-* otherwise than the term says -- so that what it writes reads back as the
+* otherwise than the term says - so that what it writes reads back as the
 * same term. A chain is written as the chain, `a < b <= c`; a flattened run
 * with its operator between each operand; a juxtaposed node with its
 * operator's spelling, which for an operator spelled "" is a space.

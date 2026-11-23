@@ -14,7 +14,7 @@
 *     unreachable, forward_like, in_place_type / in_place_index.
 *
 * not yet implemented:
-*   - move_if_noexcept   -- needs is_copy_constructible (not yet
+*   - move_if_noexcept   - needs is_copy_constructible (not yet
 *                            in re_std's type_traits foundation).
 *
 * design notes:

@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                                     table_parser.hpp
 *
-*   The TEXT DSL -- the front end that reads a table written as a grid, and
+*   The TEXT DSL - the front end that reads a table written as a grid, and
 * the
 * PARSE leg of the prism (ch-parsing.tex). Its opposite leg, render, lives on
 * the
@@ -36,10 +36,10 @@
 * is
 * atomic; one that covers k of them is a merge of k+1 columns, registered in
 * the
-* model's cover Gamma at its anchor -- the lex-least position it covers.
+* model's cover Gamma at its anchor - the lex-least position it covers.
 *
 *   THE SEPARATOR names the header block: the rows above it are header levels
-* (which stack, outermost first, and may group -- an outer label spanning the
+* (which stack, outermost first, and may group - an outer label spanning the
 * finer ones beneath), the rows below are the body. With no separator the
 * whole
 * grid is body.
@@ -119,7 +119,7 @@ NS_DJINTERP
 // ===========================================================================
 
 // DParseGridOptions
-//   struct: the text dialect's knobs -- the runtime face of the policy
+//   struct: the text dialect's knobs - the runtime face of the policy
 // surface. The option pack fixes these at compile time (table_options.hpp);
 // this carries the same grades for text whose strictness is only known when it
 // is read.
@@ -152,7 +152,7 @@ using parse_grid_options = DParseGridOptions;
 // ===========================================================================
 
 // DGridLine
-//   struct: one scanned line of the grid -- where its delimiters fell and what
+//   struct: one scanned line of the grid - where its delimiters fell and what
 // lay between them. The delimiter OFFSETS are the load-bearing part: they are
 // what the spans are read from.
 struct DGridLine
@@ -169,7 +169,7 @@ struct DGridLine
           is_separator(false)
     {}
 
-    // cell_count -- the cells the line carries (one fewer than its delimiters).
+    // cell_count - the cells the line carries (one fewer than its delimiters).
     D_NODISCARD std::size_t cell_count() const
     {
         return cells.size();
@@ -221,7 +221,7 @@ NS_INTERNAL
     }
 
     // looks_like_separator
-    //   function: whether a line is a RULE -- delimiters and fill only, with
+    //   function: whether a line is a RULE - delimiters and fill only, with
     // at least one fill character. This is what marks the rows above it as
     // headers.
     inline
@@ -256,7 +256,7 @@ NS_INTERNAL
 NS_END  // internal
 
 // scan_line
-//   function: one line of the grid -- its delimiter offsets and the text
+//   function: one line of the grid - its delimiter offsets and the text
 // between them. The offsets are recorded RELATIVE TO THE LINE, which is the
 // coordinate the spans are read in.
 D_NODISCARD inline DGridLine scan_line(
@@ -358,7 +358,7 @@ D_NODISCARD inline std::vector<DGridLine> scan_grid(
 // ===========================================================================
 
 // column_boundaries
-//   function: the grid's column boundaries -- the delimiter offsets of its
+//   function: the grid's column boundaries - the delimiter offsets of its
 // FINEST line, the one that resolves the most columns. Every other line's
 // cells are
 // read
@@ -367,7 +367,7 @@ D_NODISCARD inline std::vector<DGridLine> scan_grid(
 //
 //   The finest line is the right reference because a merge can only ever be
 // COARSER than the atomic grid; no line can resolve more columns than the
-// atomic table has. Separator lines are ignored -- a rule resolves nothing.
+// atomic table has. Separator lines are ignored - a rule resolves nothing.
 D_NODISCARD inline std::vector<std::size_t> column_boundaries(
     const std::vector<DGridLine>& _lines
 )
@@ -392,7 +392,7 @@ D_NODISCARD inline std::vector<std::size_t> column_boundaries(
 
 // span_of
 //   function: how many columns a cell running from delimiter offset _begin to
-// _end covers -- one, plus every INTERIOR boundary it swallows. This is the
+// _end covers - one, plus every INTERIOR boundary it swallows. This is the
 // whole span inference: an atomic cell covers no interior boundary; a cell
 // covering k of them merges k+1 columns.
 D_NODISCARD inline std::size_t span_of(
@@ -433,7 +433,7 @@ NS_INTERNAL
 
     // row_span_ok
     //   function: whether a row covering _covered of _required columns is
-    // admissible under _s -- the runtime twin of table_builder's row_width_ok,
+    // admissible under _s - the runtime twin of table_builder's row_width_ok,
     // so the two front ends enforce one rule.
     inline
     bool row_span_ok(
@@ -501,7 +501,7 @@ NS_INTERNAL
     }
 
     // header_level_of
-    //   function: one scanned line as a header LEVEL -- each cell a labelled,
+    //   function: one scanned line as a header LEVEL - each cell a labelled,
     // spannable header_cell, its span read off the boundaries exactly as a
     // body cell's is. This is what makes a grouped header ("coordinate" over
     // x, y, z) survive the round trip.
@@ -544,7 +544,7 @@ NS_END  // internal
 // parse_table
 //   function: text -> the model. The PARSE leg: scan the grid, take the finest
 // line's delimiters as the column boundaries, read every other line's spans
-// against them, and fill a table_model_value -- the same carrier table_builder
+// against them, and fill a table_model_value - the same carrier table_builder
 // folds a type declaration into.
 //
 //   The rows above a separator become the column-header stack (outermost
@@ -657,7 +657,7 @@ parse_table(
 }
 
 // parse_table_text
-//   function: parse_table over a std::string -- the convenience face, for when
+//   function: parse_table over a std::string - the convenience face, for when
 // there is no residual to thread.
 template<typename Cell      = std::string,
          typename Metadata = DTableMetadata<>>
@@ -680,7 +680,7 @@ parse_table_text(
 // agree.
 
 // renders_to_same_text
-//   function: render . parse = id, at _text -- the law that says the text
+//   function: render . parse = id, at _text - the law that says the text
 // surface loses nothing. True when _text is canonical (as render writes it); a
 // grid that is merely EQUIVALENT (differently padded) parses to the same model
 // but renders to the canonical spelling, which is the point of a canonical
@@ -701,7 +701,7 @@ D_NODISCARD inline bool renders_to_same_text(
 }
 
 // models_equal
-//   function: whether two runtime models agree -- same domain, same cover, and
+//   function: whether two runtime models agree - same domain, same cover, and
 // the same value at every position READ THROUGH the overlay (so two models
 // that
 // differ only in the dead storage under a merge still agree, as they should: a
@@ -749,7 +749,7 @@ D_NODISCARD bool models_equal(
 }
 
 // survives_round_trip
-//   function: parse . render = id, at _model -- the law that says a model can
+//   function: parse . render = id, at _model - the law that says a model can
 // be written down and read back unchanged. The direction that matters for the
 // two
 // front ends: a model table_builder folds from types renders to text that

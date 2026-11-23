@@ -3,7 +3,7 @@
 *
 * The CPU-type example against mach/machine.h: the ABI bits, every
 * type and the subtypes, compared with the platform's own at compile
-* time -- CPU_TYPE_ANY as the negative number it is. Built where the
+* time - CPU_TYPE_ANY as the negative number it is. Built where the
 * build targets macOS.
 *
 *

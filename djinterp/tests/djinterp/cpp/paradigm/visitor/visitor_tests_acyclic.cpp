@@ -13,7 +13,7 @@
 //   The classic form couples the two hierarchies: a visitor must name every
 // element type it can be handed, so adding an element forces every visitor to
 // change.  The acyclic form breaks that cycle by type-erasing the visitor root
-// down to `acyclic_visitor` -- which names NO element type at all -- and having
+// down to `acyclic_visitor` - which names NO element type at all - and having
 // the element recover the interface it needs by dynamic_cast at the point of
 // dispatch.  The element set is therefore OPEN: a visitor handles what it cares
 // about, and an element it does not handle is not an error.
@@ -22,7 +22,7 @@
 // tests_d_acyclic_visitable_ignores_unhandled exists to pin.  It runs the SAME
 // scenario as the classic section's tests_d_visitable_unhandled_element_throws --
 // a visitor that covers only part of the element set, handed an element outside
-// it -- and requires the OPPOSITE outcome: silently skipped, default returned.
+// it - and requires the OPPOSITE outcome: silently skipped, default returned.
 // The two tests are the contracts, stated from both sides.  A header that swapped
 // them, or that made both throw, or both absorb, would still pass every "does
 // dispatch work" test in either section, which is exactly why neither section's
@@ -31,7 +31,7 @@
 //   acyclic_visitable<> is also where bug C lived: the class carried a second
 // template parameter, `_ReturnType _DefaultReturn = _ReturnType()`, which is a
 // NON-TYPE parameter of type _ReturnType.  void is not a permitted type for one,
-// so the default spelling -- and the one the header's own usage example gives --
+// so the default spelling - and the one the header's own usage example gives --
 // was ill-formed.  Every fixture in this section uses acyclic_visitable<>, so the
 // section as a whole would not compile against the shipped header.
 
@@ -49,7 +49,7 @@ NS_TESTING
 namespace
 {
     // late_element
-    //   fixture: an element type introduced AFTER round_visitor was written -- it
+    //   fixture: an element type introduced AFTER round_visitor was written - it
     // appears nowhere in that visitor's declaration, and the visitor was compiled
     // without knowing it exists.  Under the classic form this could not be
     // written at all without editing the visitor's element list; that it can be
@@ -150,7 +150,7 @@ tests_visitor_of_return_type_typedef
   Tests the following:
   - visitor_of<E, R>::return_type is R
   - a different R gives a DIFFERENT interface type, so return type is part of the
-    interface's identity -- which is why D_ACYCLIC_VISITABLE must name it when it
+    interface's identity - which is why D_ACYCLIC_VISITABLE must name it when it
     casts
 */
 bool tests_visitor_of_return_type_typedef()
@@ -197,7 +197,7 @@ tests_acyclic_visitable_default_is_void
   Verifies acyclic_visitable is USABLE in its default form.  This is the shape of
   bug C: the class carried a second template parameter of the form
   `_ReturnType _DefaultReturn = _ReturnType()`, which is a NON-TYPE parameter whose
-  type is _ReturnType -- and void is not a permitted type for one.  So
+  type is _ReturnType - and void is not a permitted type for one.  So
   acyclic_visitable<void>, both the default and the spelling the header's own usage
   comment gives, was ill-formed.  The parameter was never referenced by anything.
   Tests the following:
@@ -297,7 +297,7 @@ bool tests_d_acyclic_visitable_dispatches_to_the_matching_interface()
     ok = ok && (v.circles == 1);
     ok = ok && (v.rects   == 1);
 
-    // the element itself was mutated -- so visit() got *this, not a copy
+    // the element itself was mutated - so visit() got *this, not a copy
     ok = ok && (c.seen == 1);
     ok = ok && (r.seen == 1);
 
@@ -315,7 +315,7 @@ bool tests_d_acyclic_visitable_dispatches_to_the_matching_interface()
 
 /*
 tests_d_acyclic_visitable_ignores_unhandled
-  Verifies the OPEN-SET CONTRACT -- the property that distinguishes this strategy
+  Verifies the OPEN-SET CONTRACT - the property that distinguishes this strategy
   from the classic one.  round_visitor handles circles and rects and knows nothing
   of triangles.  Handing it a triangle is NOT an error: the element is silently
   skipped and accept() returns.
@@ -326,7 +326,7 @@ tests_d_acyclic_visitable_ignores_unhandled
   satisfied by a header that had them backwards.
   Tests the following:
   - accept() on an unhandled element does NOT throw
-  - it leaves the element untouched -- nothing ran
+  - it leaves the element untouched - nothing ran
   - it leaves the VISITOR untouched, so no other overload fired by mistake (a
     dynamic_cast that matched the wrong interface would show up here and nowhere
     else)
@@ -399,7 +399,7 @@ bool tests_d_acyclic_visitable_ignores_everything_for_a_blind_visitor()
 tests_d_acyclic_visitable_returns_default_when_unhandled
   Verifies the no-match path produces a VALUE-INITIALIZED return, not garbage.  For
   a void element "returns a default" is vacuous, so it is only observable on a
-  non-void one -- and this is a different line of the macro from the dispatching
+  non-void one - and this is a different line of the macro from the dispatching
   path, reached only when the dynamic_cast yields null.
   Tests the following:
   - a non-void element accepted by a visitor that does not handle it returns
@@ -458,7 +458,7 @@ bool tests_d_acyclic_visitable_non_void_return()
 
 /*
 tests_acyclic_visitor_is_decoupled_from_the_element_set
-  Verifies the acyclicity itself -- the property the strategy is NAMED for.  The
+  Verifies the acyclicity itself - the property the strategy is NAMED for.  The
   visitor root names no element type, so a new element type (and a visitor for it)
   can be introduced without touching, recompiling the declaration of, or even
   knowing about, anything that already exists.
@@ -528,7 +528,7 @@ tests_acyclic_visitor_accumulates_across_a_traversal
   - the visitor tallies each handled element type independently and correctly
   - the unhandled elements contribute nothing to any tally
   - the handled tallies sum to the number of handled elements, not to the length of
-    the traversal -- so the skipped ones were skipped, not miscounted as something
+    the traversal - so the skipped ones were skipped, not miscounted as something
 */
 bool tests_acyclic_visitor_accumulates_across_a_traversal()
 {

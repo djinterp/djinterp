@@ -41,7 +41,7 @@ using namespace dtuple_test_types;
 // I.   IS_TUPLE_HOMOGENEOUS  (compile-time)
 // =========================================================================
 
-// non-tuple types -- primary template, false
+// non-tuple types - primary template, false
 static_assert(is_tuple_homogeneous<int>::value == false,
               "is_tuple_homogeneous<int>::value should be false (not a tuple)");
 static_assert(is_tuple_homogeneous<alpha>::value == false,
@@ -51,12 +51,12 @@ static_assert(is_tuple_homogeneous<void>::value == false,
 static_assert(is_tuple_homogeneous<std::pair<int, int>>::value == false,
               "is_tuple_homogeneous<std::pair<int, int>>::value should be false (not a tuple)");
 
-// empty tuple -- intentionally false because the partial specializations
+// empty tuple - intentionally false because the partial specializations
 // require at least one element
 static_assert(is_tuple_homogeneous<std::tuple<>>::value == false,
               "is_tuple_homogeneous<std::tuple<>>::value should be false (no element-shape spec covers empty)");
 
-// single-element tuples -- trivially true
+// single-element tuples - trivially true
 static_assert(is_tuple_homogeneous<std::tuple<int>>::value == true,
               "is_tuple_homogeneous<std::tuple<int>>::value should be true");
 static_assert(is_tuple_homogeneous<std::tuple<alpha>>::value == true,
@@ -86,7 +86,7 @@ static_assert(is_tuple_homogeneous<std::tuple<char, int, int, int>>::value == fa
 static_assert(is_tuple_homogeneous<std::tuple<int, char, int>>::value == false,
               "is_tuple_homogeneous<std::tuple<int, char, int>>::value should be false (middle differs)");
 
-// strict type identity -- cv- and ref-qualified variants count as
+// strict type identity - cv- and ref-qualified variants count as
 // different types
 static_assert(is_tuple_homogeneous<std::tuple<int, const int>>::value == false,
               "is_tuple_homogeneous<int, const int> should be false (cv qualifies distinct)");
@@ -187,7 +187,7 @@ bool dtuple_tests_homogeneity_all()
             is_homogeneous(empty) == false,
             "is_homogeneous: empty tuple -> false (matches the trait)");
     }
-    // const-qualified tuple input -- the function takes `const tuple&`,
+    // const-qualified tuple input - the function takes `const tuple&`,
     // so this just hits the same trait via the same path
     {
         const std::tuple<int, int> const_t{1, 2};

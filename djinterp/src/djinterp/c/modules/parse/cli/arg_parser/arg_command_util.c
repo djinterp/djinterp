@@ -32,8 +32,8 @@
 //==============================================================================
 
 // dj_arg_internal_command_trigger
-//   struct: what a trigger's pre-parse callback keeps: its targets -- a list
-// in the same allocation, after the record -- how many remain, and whether
+//   struct: what a trigger's pre-parse callback keeps: its targets - a list
+// in the same allocation, after the record - how many remain, and whether
 // it enables them or disables them.
 struct dj_arg_internal_command_trigger
 {
@@ -140,8 +140,8 @@ int d_arg_internal_command_check_targets(
  *         changed on failure.
  *
  * CLI11's TriggerOn and TriggerOff: the targets checked and copied first,
- * so that a refusal changes nothing; then each target's startup -- disabled
- * for TriggerOn, enabled for TriggerOff -- and the trigger's pre-parse
+ * so that a refusal changes nothing; then each target's startup - disabled
+ * for TriggerOn, enabled for TriggerOff - and the trigger's pre-parse
  * callback, replacing any it had.
  */
 D_STATIC
@@ -573,7 +573,7 @@ int d_arg_internal_command_retired(
  *
  * The temporary App CLI11's retire_option adds the names to first: a root
  * of the same parser with CLI11's help flag, refusing what CLI11's would --
- * a flag's `{value}`, a non-standard short name, `-h` -- and recording it.
+ * a flag's `{value}`, a non-standard short name, `-h` - and recording it.
  */
 D_STATIC
 bool d_arg_internal_command_try_names(
@@ -676,7 +676,7 @@ int d_arg_internal_command_retire_shape(
  * @param[in]     _shape    the old option's item sizes, count and
  *                          extra-argument switch.
  * @return the retired option; NULL, the failure recorded, when it cannot be
- *         made or given its shape -- none is then left in its place.
+ *         made or given its shape - none is then left in its place.
  *
  * A retired option that cannot be given its shape is refused whole, as any
  * refused definition is, leaving nothing behind.
@@ -716,7 +716,7 @@ struct dj_arg_option* d_arg_internal_command_retire_in_place(
 /*
 d_arg_command_retire_option
   CLI11's retire_option(app, opt): the names tried on a temporary command,
-the shape kept, the option removed -- when the command owns it -- and one
+the shape kept, the option removed - when the command owns it - and one
 taking the same values, doing nothing, added in its place; a retired option
 that cannot be given its shape is refused whole.
 */

@@ -416,8 +416,8 @@ bool d_tests_sa_starttls_negotiate_refusals(
 
 /*
 d_tests_starttls_upgraded_client
-  Scripts a whole client conversation -- greeting, go-ahead, toy handshake,
-a sealed farewell, and the toy close_notify -- then opens `_session` with
+  Scripts a whole client conversation - greeting, go-ahead, toy handshake,
+a sealed farewell, and the toy close_notify - then opens `_session` with
 on_upgrade recording into `_forget`, reads the greeting, and negotiates.
 True if the negotiation succeeded.
 */
@@ -463,7 +463,7 @@ bool d_tests_starttls_upgraded_client(
 /*
 d_tests_starttls_made_for
   Whether `_fixture`'s toy made one TLS session, which checked `_name` as its
-host and sent it as SNI -- "(null)" for neither -- and `_session` holds it.
+host and sent it as SNI - "(null)" for neither - and `_session` holds it.
 */
 static
 bool d_tests_starttls_made_for(
@@ -1047,8 +1047,8 @@ d_tests_starttls_server_upgrade_after(
 /*
 d_tests_sa_starttls_injection_server
   Tests the following:
-  - a server refuses what it buffered past the request -- the injection of
-    CVE-2011-0411 -- before any TLS session exists
+  - a server refuses what it buffered past the request - the injection of
+    CVE-2011-0411 - before any TLS session exists
   - it does not look into the connection, where a client's first handshake
     bytes may already be waiting
 */

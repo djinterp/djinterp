@@ -39,7 +39,7 @@
 #define D_INTERNAL_DESC_QUOTED   0x2u
 
 // D_INTERNAL_DESC_WRITERS
-//   constant: 1 when a machine that writes -- text or JSON -- is built.
+//   constant: 1 when a machine that writes - text or JSON - is built.
 #define D_INTERNAL_DESC_WRITERS                                                \
     ( D_DESC_MACHINE_BUILT(D_DESC_FORMAT_TEXT) ||                              \
       D_DESC_MACHINE_BUILT(D_DESC_FORMAT_JSON) )

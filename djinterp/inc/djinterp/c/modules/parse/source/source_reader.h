@@ -7,7 +7,7 @@
 * gets them here; the scanner wants a character stream with splices already
 * invisible, and gets that here too.  Keeping the two apart is why the banner
 * checker need not link a lexer.
-*   A splice -- a backslash immediately followed by a newline -- is removed
+*   A splice - a backslash immediately followed by a newline - is removed
 * by the reader rather than by a pass over a copy of the file.  A copy would
 * have to carry a position map to put a diagnostic back on a physical line,
 * and the map would be consulted far more often than splices actually occur.
@@ -102,7 +102,7 @@ struct dj_source
 //   lookahead is implemented: save, read ahead, restore.  There is no hidden
 //   state and nothing to release.
 //     `spliced` accumulates rather than reporting the last read, and is
-//   cleared by its consumer -- the scanner clears it once per token -- so that
+//   cleared by its consumer - the scanner clears it once per token - so that
 //   the question "did a splice lie anywhere in this token" is answerable
 //   without inspecting every character of it.  `malformed` and
 //   `malformed_offset` accumulate the same way under D_READER_OPT_UTF8: the
@@ -225,8 +225,8 @@ void d_reader_seek(
 );
 
 // The physical pair ignores phase 1 and 2 entirely.  A raw string literal's
-// contents are physical text -- a backslash-newline inside one is two
-// characters, not a splice -- so a scanner reading a raw body must both peek
+// contents are physical text - a backslash-newline inside one is two
+// characters, not a splice - so a scanner reading a raw body must both peek
 // and advance through these, never mixing a physical peek with a logical
 // advance, which would consume the splice the peek had just reported.
 int d_reader_peek_physical(

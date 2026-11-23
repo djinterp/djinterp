@@ -4,11 +4,11 @@
 * the integer limit macros:
 *   CHAR_BIT, the SCHAR / UCHAR / CHAR / SHRT / INT / LONG / LLONG limits
 * and MB_LEN_MAX. Every one is a MACRO, so none of them can live in
-* re_std:: -- macros have no namespace. This header therefore does two
+* re_std:: - macros have no namespace. This header therefore does two
 * things a bare `#include <climits>` does not:
 *
 *     1. It states, in one place, that the typed alternative exists and is
-*        usually better -- see below.
+*        usually better - see below.
 *     2. It fills in the C++11 long long limits when the platform's own
 *        <climits> predates them.
 *
@@ -22,7 +22,7 @@
 * ULLONG_MAX are C++11 additions, and compilers that support long long as
 * an extension on an older library ship the type without the macros. The
 * values are recovered from the compiler's own __LONG_LONG_MAX__ builtin
-* -- the compiler is the authority on its own type's width, so this is a
+* - the compiler is the authority on its own type's width, so this is a
 * re-derivation, not a guess. Where even that builtin is absent, nothing
 * is defined and the macros stay missing: an omission the user can test
 * for with #ifdef, rather than a wrong value they cannot.
@@ -59,7 +59,7 @@
 
 
 // ===========================================================================
-// I.   C++11 LONG LONG LIMITS -- FILLED ONLY IF ABSENT
+// I.   C++11 LONG LONG LIMITS - FILLED ONLY IF ABSENT
 // ===========================================================================
 
 #if !defined(LLONG_MAX) && defined(__LONG_LONG_MAX__)
@@ -71,7 +71,7 @@
 #if !defined(LLONG_MIN) && defined(LLONG_MAX)
     // LLONG_MIN
     //   constant: most-negative long long. Derived rather than written as
-    // a literal -- see the header comment.
+    // a literal - see the header comment.
     #define LLONG_MIN   (-LLONG_MAX - 1)
 #endif
 
@@ -85,7 +85,7 @@
 
 
 // ===========================================================================
-// II.  MB_LEN_MAX -- FILLED ONLY IF ABSENT
+// II.  MB_LEN_MAX - FILLED ONLY IF ABSENT
 // ===========================================================================
 
 #ifndef MB_LEN_MAX

@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  recursion_tests_traits.cpp
-//   Sections II-IV -- recursive_traits / corecursive_traits, the detection
+//   Sections II-IV - recursive_traits / corecursive_traits, the detection
 //   traits and concepts, and the canonical mu<F> instances.
 
 // std
@@ -221,7 +221,7 @@ bool tests_is_corecursive()
 /*
 tests_custom_carrier_registration
   A native carrier (std::vector<int>) is made foldable and buildable purely by
-  specialising the traits -- no rewrite as a fixed point.
+  specialising the traits - no rewrite as a fixed point.
   Tests the following:
   - is_recursive / is_corecursive hold for the registered vector
   - base<A> is the list functor

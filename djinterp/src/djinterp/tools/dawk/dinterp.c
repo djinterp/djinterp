@@ -279,8 +279,8 @@ bool d_internal_fail(
 
 /*
 d_internal_fail_about
-  Records a runtime diagnostic that names what it is about -- the file that
-would not open, the function that does not exist -- since a message that
+  Records a runtime diagnostic that names what it is about - the file that
+would not open, the function that does not exist - since a message that
 names neither leaves the reader to guess which of several it was.
 */
 static
@@ -5051,8 +5051,8 @@ d_internal_next_record
   Yields the next record from the host source when one is installed, and from
 RS splitting otherwise.  The source hands back a borrowed buffer, so its bytes
 are copied into the interpreter's read buffer before the loop sees them; that
-keeps the lifetime rule for a source as weak as possible -- valid until the
-next call -- and leaves every downstream invariant identical in both modes.
+keeps the lifetime rule for a source as weak as possible - valid until the
+next call - and leaves every downstream invariant identical in both modes.
 */
 static
 bool d_internal_next_record(

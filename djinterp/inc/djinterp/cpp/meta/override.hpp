@@ -69,7 +69,7 @@ V.    misc helpers (identity_t, always_drop, always_keep_left, ...)
 // cannot express). env is included first, as the floor reads it; the
 // standard header below is C++11 and the body needs C++14.
 //
-//   C++14, for is_dropped_v below -- a variable template. It previously read
+//   C++14, for is_dropped_v below - a variable template. It previously read
 // `inline constexpr`, which would have made this a C++17 header by accident:
 // the inline was redundant on a variable template (whose instantiations
 // already merge under vague linkage) and bought a two-tier floor increase for
@@ -117,7 +117,7 @@ D_CONSTEXPR bool is_dropped_v = is_dropped<Type>::value;
 //
 //   Section I's traits and section III's primitives need nothing above C++14.
 // The contract below was previously expressed ONLY as a bare C++20 concept,
-// with no trait behind it -- the one concept in this framework that is not the
+// with no trait behind it - the one concept in this framework that is not the
 // PascalCase face of a trait (is_passthrough / Passthrough, is_functor /
 // Functor, is_callable / Callable, is_predicate / Predicate). That asymmetry
 // is why it could not be gated: below C++20 there was simply nothing left to
@@ -166,7 +166,7 @@ struct is_override_policy
     // OverridePolicy
     //   concept: the C++20 face of is_override_policy. Consumers spell it
     // through D_CONCEPT_PARAM so the constraint is checked here and elides to
-    // `typename` below 20 -- additive per D1, since no overload in this
+    // `typename` below 20 - additive per D1, since no overload in this
     // framework is distinguished by it.
     template<typename Policy>
     concept OverridePolicy = is_override_policy<Policy>::value;

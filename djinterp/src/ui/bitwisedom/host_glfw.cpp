@@ -7,14 +7,14 @@
 * backends; each frame it runs the app between NewFrame and Render. It reads
 * no command line: `bitwisedom gui` reads that (plugin.cpp), and gives it the
 * events to post before the first frame, the window's size, the display's
-* scale, and a screenshot -- for building and testing rather than for users:
+* scale, and a screenshot - for building and testing rather than for users:
 * the frames asked for drawn, the last written as a binary PPM, whole or not
 * at all as the kit writes a file, and the window closed. So a script can
 * open an example, select a row, bring a tab to the front and photograph the
 * result.
-*   The window keeps the user's settings file, at preferences_path() -- the
+*   The window keeps the user's settings file, at preferences_path() - the
 * layout of its windows, the tables' column widths and the user's own
-* preferences last from one run to the next -- and its session, at
+* preferences last from one run to the next - and its session, at
 * session_path(): its workspaces and every sheet in them, unsaved changes
 * too, so it opens where it was left. A screenshot neither reads nor writes
 * either, so it shows the window as built. A file dropped on the window is
@@ -57,8 +57,8 @@ using bitwisedom::gui::app;
 using bitwisedom::gui::window_options;
 
 // CONTEXT_MAJOR / CONTEXT_MINOR / SHADER_VERSION / CONTEXT_NAME
-//   constants: the GL context the window asks for -- 3.2 core where the
-// platform insists (macOS), 3.0 elsewhere -- the shaders' version to match,
+//   constants: the GL context the window asks for - 3.2 core where the
+// platform insists (macOS), 3.0 elsewhere - the shaders' version to match,
 // and the context as the window's version names it.
 #if defined(__APPLE__)
 const int         CONTEXT_MAJOR  = 3;
@@ -73,8 +73,8 @@ const char* const CONTEXT_NAME   = "OpenGL 3.0";
 #endif
 
 // glfw_voice
-//   struct: what GLFW said last -- the reason a window that could not be
-// opened gives -- and, once the window is open, the program that says the
+//   struct: what GLFW said last - the reason a window that could not be
+// opened gives - and, once the window is open, the program that says the
 // rest as warnings.
 struct glfw_voice
 {
@@ -133,7 +133,7 @@ int cannot_open(
 /*
 write_ppm
   The framebuffer as a binary PPM, top row first, written as the kit writes
-a file -- whole or not at all, `-` standard output: 0, or the errno value
+a file - whole or not at all, `-` standard output: 0, or the errno value
 the write failed with.
 */
 int write_ppm(
@@ -197,7 +197,7 @@ void take_drop(
 /*
 open_window
   GLFW, then the window and its GL context, CONTEXT_MAJOR.CONTEXT_MINOR --
-core and forward-compatible on macOS -- `_glsl` the shaders' version to
+core and forward-compatible on macOS - `_glsl` the shaders' version to
 match; hidden for a screenshot. NULL, GLFW let go, when either fails.
 */
 GLFWwindow* open_window(
@@ -244,7 +244,7 @@ GLFWwindow* open_window(
 
 /*
 start_imgui
-  The display's scale -- the one asked for, else the window's content scale
+  The display's scale - the one asked for, else the window's content scale
 -- then ImGui's context and backends, and the fonts at that scale. The
 window keeps its own settings file, so ImGui keeps none.
 */
@@ -426,8 +426,8 @@ int bitwisedom::gui::window_features()
 
 /*
 window_host
-  GLFW as the window runs it -- glfwGetVersion may be asked before
-glfwInit -- the headers' too where they differ, and the context asked for.
+  GLFW as the window runs it - glfwGetVersion may be asked before
+glfwInit - the headers' too where they differ, and the context asked for.
 */
 std::string bitwisedom::gui::window_host()
 {

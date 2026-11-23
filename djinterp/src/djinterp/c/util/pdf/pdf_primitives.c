@@ -422,7 +422,7 @@ double d_pdf_font_estimated_width(
 
 /*
 d_pdf_paint_init
-  Black stroke and fill, width 1, stroking on and filling off -- the C++
+  Black stroke and fill, width 1, stroking on and filling off - the C++
 defaults.
 */
 struct dj_pdf_paint d_pdf_paint_init(void)

@@ -8,7 +8,7 @@
 * scanner's former hand-rolled "find every occurrence" loop
 * (pattern_scanner::run_secondary), which was welded into the scanner's
 * private section and copied the entire remaining input on every iteration
-* (src.substr(base)) -- making it O(n^2) in the number of matches.  Here the
+* (src.substr(base)) - making it O(n^2) in the number of matches.  Here the
 * same logic is a producer that scans in place without copying, and that any
 * code (not just the scanner) can drain, fold, or pipe.
 *

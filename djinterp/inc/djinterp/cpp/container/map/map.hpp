@@ -28,34 +28,34 @@
 * for reuse by bidirectional map overlays.
 *
 * OVERLAY STRATEGIES:
-*   identity        -- backing already provides full map semantics.
-*   sorted_flat     -- backing is contiguous + random-access;
+*   identity        - backing already provides full map semantics.
+*   sorted_flat     - backing is contiguous + random-access;
 *                      binary-search maintenance (flat_map style).
-*   sorted_node     -- backing is sorted + node-based (tree/skip-list);
+*   sorted_node     - backing is sorted + node-based (tree/skip-list);
 *                      logarithmic lookup via native ordering.
-*   hashed          -- backing provides bucket_count()/hash_function();
+*   hashed          - backing provides bucket_count()/hash_function();
 *                      O(1) amortized lookup via native hashing.
-*   linear_scan     -- fallback: O(n) key search on every operation.
+*   linear_scan     - fallback: O(n) key search on every operation.
 *
 * ZERO-OVERHEAD GUARANTEE:
-*   When the overlay strategy is `identity` -- i.e. the backing
-* container natively satisfies every map invariant -- the overlay
+*   When the overlay strategy is `identity` - i.e. the backing
+* container natively satisfies every map invariant - the overlay
 * is a zero-cost abstraction.  is_zero_cost_map_overlay_v<M>
 * provides a compile-time certificate of this property.
 *
 * NAMESPACE LAYOUT:
-*   djinterp::container::map       -- vocabulary types, CRTP base,
+*   djinterp::container::map       - vocabulary types, CRTP base,
 *                                     iterators, factory functions.
-*   djinterp::container::traits    -- backing requirement traits,
+*   djinterp::container::traits    - backing requirement traits,
 *                                     strategy deduction, classification
 *                                     structs, C++20 concepts.
 *
 * DEPENDENCIES:
-*   djinterp.hpp                       -- namespace macros, clean_t
-*   type_traits.hpp                    -- D_TYPE_TRAIT_TRUE, conjunction
-*   container_traits.hpp               -- container classification
-*   container_compare_traits.hpp       -- element compatibility
-*   container_conversion_traits.hpp    -- conversion tier
+*   djinterp.hpp                       - namespace macros, clean_t
+*   type_traits.hpp                    - D_TYPE_TRAIT_TRUE, conjunction
+*   container_traits.hpp               - container classification
+*   container_compare_traits.hpp       - element compatibility
+*   container_conversion_traits.hpp    - conversion tier
 *
 *
 * path:      /inc/djinterp/cpp/container/map/map.hpp
@@ -304,7 +304,7 @@ struct pair_key_type_of
 };
 
 // pair_key_type_of_t
-//   type: the carrier of pair_key_type_of -- its `::type`, for use where a
+//   type: the carrier of pair_key_type_of - its `::type`, for use where a
 // type rather than a value is wanted.
 template<typename Container>
 using pair_key_type_of_t =
@@ -342,7 +342,7 @@ struct pair_mapped_type_of
 };
 
 // pair_mapped_type_of_t
-//   type: the carrier of pair_mapped_type_of -- its `::type`, for use where a
+//   type: the carrier of pair_mapped_type_of - its `::type`, for use where a
 // type rather than a value is wanted.
 template<typename Container>
 using pair_mapped_type_of_t =
@@ -590,7 +590,7 @@ inline constexpr bool has_sorted_contiguous_layout_v =
     has_sorted_contiguous_layout<Container>::value;
 
 // has_sorted_node_layout
-//   trait: true if the container is sorted but not contiguous -- tree-like or
+//   trait: true if the container is sorted but not contiguous - tree-like or
 // skip-list-like.
 template<typename Container>
 struct has_sorted_node_layout
@@ -713,7 +713,7 @@ using map_overlay_class = DMapOverlayClass<Container, Key, Value>;
 
 // is_zero_cost_map_overlay
 //   trait: true if the map overlay adds no runtime cost over the backing
-// container -- i.e. the strategy is identity.
+// container - i.e. the strategy is identity.
 template<typename Container>
 struct is_zero_cost_map_overlay
 {
@@ -789,11 +789,11 @@ NS_END  // traits
 // via the CRTP hook backing().
 //
 // Template parameters:
-//   Derived     -- the concrete map type (CRTP).
-//   Key         -- the key type.
-//   Value       -- the mapped value type.
-//   Backing     -- the backing container type.
-//   Compare     -- the key comparison function object type.
+//   Derived     - the concrete map type (CRTP).
+//   Key         - the key type.
+//   Value       - the mapped value type.
+//   Backing     - the backing container type.
+//   Compare     - the key comparison function object type.
 //                   defaults to std::less<Key>.
 //
 // The Derived type must provide:

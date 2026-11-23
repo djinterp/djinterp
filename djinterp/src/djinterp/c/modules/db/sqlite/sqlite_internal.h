@@ -2,7 +2,7 @@
 * djinterp [c][db]                                             sqlite_internal.h
 *
 * Private to the SQLite layer's sources: sqlite3.h, the version floor, and the
-* statement plumbing every module repeats -- when the layer is built over
+* statement plumbing every module repeats - when the layer is built over
 * SQLite. Built as stubs (D_INTERNAL_SQLITE 0), it declares nothing, and env
 * includes no sqlite3.h.
 *   sqlite3.h arrives through env_sqlite.h, which honours
@@ -112,7 +112,7 @@ TABLE OF CONTENTS
 // 1.2.3
 // D_INTERNAL_SQLITE_BIND64
 //   macro: 1 where text and bytes are bound by a 64-bit length --
-// sqlite3_bind_text64 and sqlite3_bind_blob64, from 3.8.7 -- and 0 where
+// sqlite3_bind_text64 and sqlite3_bind_blob64, from 3.8.7 - and 0 where
 // sqlite3_bind_text and sqlite3_bind_blob take an int, past which the layer
 // answers SQLITE_TOOBIG itself.
 #if D_ENV_SQLITE_VERSION_AT_LEAST(3, 8, 7)
@@ -124,9 +124,9 @@ TABLE OF CONTENTS
 // 1.2.4
 // D_INTERNAL_SQLITE_SERIALIZE
 //   macro: 1 where the header declares sqlite3_serialize and
-// sqlite3_deserialize -- from 3.36.0 unless the build defines
+// sqlite3_deserialize - from 3.36.0 unless the build defines
 // SQLITE_OMIT_DESERIALIZE, and from 3.23.0 where it defines
-// SQLITE_ENABLE_DESERIALIZE -- and 0 where the layer answers
+// SQLITE_ENABLE_DESERIALIZE - and 0 where the layer answers
 // D_DB_UNSUPPORTED for them.
 #if ( ( (D_ENV_SQLITE_VERSION_AT_LEAST(3, 36, 0)) &&                           \
         (!defined(SQLITE_OMIT_DESERIALIZE)) ) ||                               \
@@ -139,9 +139,9 @@ TABLE OF CONTENTS
 
 // 1.2.5
 // D_INTERNAL_SQLITE_LOAD_EXTENSION
-//   macro: 1 where the layer calls SQLite's extension loading -- the build
+//   macro: 1 where the layer calls SQLite's extension loading - the build
 // asks for it (D_CFG_SQLITE_LOAD_EXTENSION, cfg_sqlite_common.h) and does
-// not leave it out (SQLITE_OMIT_LOAD_EXTENSION) -- and 0 where the layer
+// not leave it out (SQLITE_OMIT_LOAD_EXTENSION) - and 0 where the layer
 // answers D_DB_UNSUPPORTED for it.
 #if ( (D_CFG_IS_ON(D_CFG_SQLITE_LOAD_EXTENSION)) &&                            \
       (!defined(SQLITE_OMIT_LOAD_EXTENSION)) )
@@ -158,7 +158,7 @@ TABLE OF CONTENTS
 
 // 2.1    Schemas and names
 //------------------------------------------------------------------------------
-// names -- none of these allocate or fail
+// names - none of these allocate or fail
 //   _schema resolves NULL to "main"; _schema_table names the table a schema
 // lists its objects in, which for "temp" is sqlite_temp_master on every
 // version (temp.sqlite_master resolves only from 3.33.0); _is_main matches
@@ -314,7 +314,7 @@ int d_internal_sqlite_finish(
 
 // 3.2    Single-value results
 //------------------------------------------------------------------------------
-// single values -- each steps a prepared statement once, reads its first
+// single values - each steps a prepared statement once, reads its first
 // column, and finalizes it, so the statement is gone whatever happens. A row
 // yields SQLITE_OK and the value, written only then; no row is D_DB_NOT_FOUND;
 // a failure is its SQLite result code. A NULL reads as 0, or as a NULL string.
@@ -353,7 +353,7 @@ int d_internal_sqlite_collect_names(
 
 // 3.4    Rows
 //------------------------------------------------------------------------------
-// building rows -- _describe_columns describes a statement's columns into rows
+// building rows - _describe_columns describes a statement's columns into rows
 // under construction, from the statement alone, which needs no step;
 // _keep_row copies the row a step has just produced, every value as SQLite
 // gives it. Each returns SQLITE_OK, or SQLITE_NOMEM, the builder then left

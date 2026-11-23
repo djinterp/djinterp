@@ -389,7 +389,7 @@ uint32_t d_node_add(
 
     // link as the parent's last child so children stay in document order;
     // the parent remembers its last child, since walking the sibling list to
-    // find it made building a wide node quadratic -- a file whose top level
+    // find it made building a wide node quadratic - a file whose top level
     // holds every token of a large header took minutes
     if (_parent != D_DSS_NO_INDEX)
     {
@@ -481,7 +481,7 @@ bool d_node_set_attribute(
 
     // A node's attributes are one contiguous run, so an attribute added to a
     // node that is no longer the last to have one would land beyond its
-    // range -- unreachable, and its range would run into another node's.
+    // range - unreachable, and its range would run into another node's.
     // Relocating the run to the end keeps the invariant, and lets any
     // extension add a fact to any node at any time.
     if ( (node->attribute_count > 0) &&

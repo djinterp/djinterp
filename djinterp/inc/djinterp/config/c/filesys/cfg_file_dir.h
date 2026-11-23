@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                           cfg_file_dir.h
 *
-* Build-time configuration for c/filesys/file_dir.h -- directory creation,
+* Build-time configuration for c/filesys/file_dir.h - directory creation,
 * removal, traversal, and the path operations that must ask the filesystem
 * (getcwd, chdir, realpath).
 *
@@ -72,7 +72,7 @@ TABLE OF CONTENTS
 // model). Default 0755.
 //   It is separate from the caller's mode on purpose. Passing 0700 to
 // d_dir_create_parents("/a/b/c") means "c should be private" far more often
-// than it means "and make /a and /a/b private too" -- and a caller who wanted
+// than it means "and make /a and /a/b private too" - and a caller who wanted
 // the latter can pass this. The process umask still applies.
 #ifndef D_CFG_FILE_DIR_CREATE_MODE
     #define D_CFG_FILE_DIR_CREATE_MODE 0755
@@ -102,7 +102,7 @@ TABLE OF CONTENTS
 //   Linux, Android, Apple's systems and the BSDs do; Solaris and some
 // embedded libcs do not. struct dirent is <dirent.h>'s, so a build without
 // the POSIX API has none (cfg_file_common.h, 1.9's invariant).
-// Even where the field exists it may read DT_UNKNOWN -- XFS without ftype,
+// Even where the field exists it may read DT_UNKNOWN - XFS without ftype,
 // and most network filesystems, genuinely do not know without a stat.
 #ifndef D_CFG_FILE_HAS_DIRENT_TYPE
     #if ( (D_CFG_IS_ON(D_CFG_FILE_HAS_POSIX)) &&                               \
@@ -139,8 +139,8 @@ TABLE OF CONTENTS
 // D_CFG_FILE_DIR_SKIP_DOTS
 //   knob: have d_dir_read hide "." and "..".
 //   OFF, matching readdir(3), because hiding them is a policy and readdir is
-// a mechanism. Nearly every caller does skip them -- and a recursive walk that
-// forgets to is an infinite loop -- but a caller that wants an exact directory
+// a mechanism. Nearly every caller does skip them - and a recursive walk that
+// forgets to is an infinite loop - but a caller that wants an exact directory
 // listing is entitled to one. Turn it on to make the common case harder to
 // get wrong.
 #ifndef D_CFG_FILE_DIR_SKIP_DOTS
@@ -153,8 +153,8 @@ TABLE OF CONTENTS
 // D_CFG_FILE_DIR_REALPATH_ALLOC
 //   knob: let d_path_resolve(_path, NULL, 0) allocate its result, as POSIX
 // realpath does, in a block sized to fit it.
-//   ON. The alternative -- guessing a buffer size before knowing the answer,
-// and retrying on ERANGE -- is the awkward half of every getcwd loop. Set 0
+//   ON. The alternative - guessing a buffer size before knowing the answer,
+// and retrying on ERANGE - is the awkward half of every getcwd loop. Set 0
 // for a build with no allocator, where the NULL form then fails with EINVAL
 // rather than silently doing something else.
 #ifndef D_CFG_FILE_DIR_REALPATH_ALLOC

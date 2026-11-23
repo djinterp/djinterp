@@ -20,13 +20,13 @@
 *     predicates  a yes-or-no question comes in two forms: `has_x` answers
 *                 it, reading any failure as `false`; `has_x_s` returns 0 or
 *                 the failure's code, and writes the answer through its last
-*                 argument -- `false` whenever the call fails
+*                 argument - `false` whenever the call fails
 *     throwing    no function of a layer throws, nor runs code of its
 *                 caller's that could, and each is declared D_NOTHROW, so
 *                 that C++ keeps no unwinding around a call
 *   Nothing here touches a database, so this header and its source build
 * without any vendor's client library. Rows need a 64-bit integer type: below
-* the 64-bit floor -- ISO strict C++98 wherever `long` is 32 bits -- section
+* the 64-bit floor - ISO strict C++98 wherever `long` is 32 bits - section
 * 5 compiles to nothing, as the vendor layers do.
 *
 *
@@ -111,8 +111,8 @@ D_EXTERN_C_BEGIN
 // 1.  RESULT CODES
 //==============================================================================
 // A database layer returns 0 on success. When the database itself reports a
-// failure, the layer returns the vendor's own code unchanged -- an SQLite
-// result code, a MariaDB error number -- so that the vendor's error functions
+// failure, the layer returns the vendor's own code unchanged - an SQLite
+// result code, a MariaDB error number - so that the vendor's error functions
 // still describe it. The values below cover what a vendor has no code for, and
 // are negative so that they can never collide with one.
 
@@ -143,7 +143,7 @@ enum dj_db_status
 
 // 1.2    Status messages
 //------------------------------------------------------------------------------
-// status messages -- an English description of a dj_db_status value, or NULL
+// status messages - an English description of a dj_db_status value, or NULL
 // for any other value, which a vendor layer then describes itself; never to
 // be freed
 const char* d_db_status_message(
@@ -425,7 +425,7 @@ struct dj_db_column
 
 // 3.2    Type names
 //------------------------------------------------------------------------------
-// type names -- never NULL, never allocate; "unknown" for a value outside
+// type names - never NULL, never allocate; "unknown" for a value outside
 // enum dj_db_type
 const char* d_db_type_name(
     enum dj_db_type _type
@@ -437,7 +437,7 @@ const char* d_db_type_name(
 //==============================================================================
 // A list a layer returns is one allocation: the array, and the strings it
 // points into, together. Release it with the matching function below and with
-// nothing else -- on Windows the caller's free() may belong to another C
+// nothing else - on Windows the caller's free() may belong to another C
 // runtime than the layer's.
 
 
@@ -485,7 +485,7 @@ struct dj_db_column_list
  * @brief Releases a name list a database layer filled in.
  *
  * @param[in,out] _list  the list; may be `NULL`, or empty.
- * @post `_list` is empty -- `count` 0 and `names` `NULL` -- and every string
+ * @post `_list` is empty - `count` 0 and `names` `NULL` - and every string
  *       it held is invalid.
  */
 void d_db_name_list_free(
@@ -518,14 +518,14 @@ void d_db_free(
 // The rows a query returned come back as one allocation, as the lists do:
 // the descriptions of the columns, the values, and the text and bytes they
 // hold, released together by d_db_rows_free. A value keeps the type the
-// database gave it -- an integer, a real number, text, bytes or NULL -- and a
+// database gave it - an integer, a real number, text, bytes or NULL - and a
 // column the type its definition gave, named in the vocabulary of section 3
 // where the vendor's type maps to one. Each vendor layer documents how its
 // types arrive. The conversions convert only where nothing is lost.
 
 // 64-bit floor: a value holds a 64-bit integer, which dstdint.h declares only
-// where the build can spell one. Below it -- ISO strict C++98 wherever int64_t
-// is `long long`: a 32-bit target, 64-bit Windows or macOS -- this section
+// where the build can spell one. Below it - ISO strict C++98 wherever int64_t
+// is `long long`: a 32-bit target, 64-bit Windows or macOS - this section
 // compiles to nothing.
 #if defined(INT64_MAX)
 
@@ -627,10 +627,10 @@ int d_db_rows_column_index(
 
 // 5.4    Conversions
 //------------------------------------------------------------------------------
-// conversions -- each writes a value as one type, and returns 0, where the
+// conversions - each writes a value as one type, and returns 0, where the
 // value is of that type or converts to it exactly:
 //     _int64   an INTEGER; a REAL with no fraction that int64_t holds; text
-//              that is an integer -- an optional sign and digits -- that
+//              that is an integer - an optional sign and digits - that
 //              int64_t holds
 //     _double  a REAL; an INTEGER that a double holds exactly; text that is
 //              a number, rounded to the nearest double, its point a `.`
@@ -638,7 +638,7 @@ int d_db_rows_column_index(
 //     _bool    an INTEGER, 0 false and any other true; text PostgreSQL reads
 //              as a boolean, in any ASCII case: t, true, y, yes, on and 1,
 //              or f, false, n, no, off and 0
-// Anything else -- NULL among it -- is D_DB_MISMATCH, and writes nothing. A
+// Anything else - NULL among it - is D_DB_MISMATCH, and writes nothing. A
 // `NULL` argument is D_DB_INVALID_ARGUMENT.
 int d_db_value_int64(
     const struct dj_db_value* _value,
@@ -659,7 +659,7 @@ int d_db_value_bool(
  * @brief Releases the rows a database layer filled in.
  *
  * @param[in,out] _rows  the rows; may be `NULL`, or empty.
- * @post `_rows` is empty -- all zero -- and every value, name and string it
+ * @post `_rows` is empty - all zero - and every value, name and string it
  *       held is invalid.
  */
 void d_db_rows_free(

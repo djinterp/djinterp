@@ -17,7 +17,7 @@
 * d_mariadb_close_cursor ends the run. d_mariadb_finalize releases the
 * statement.
 *   RESULTS. As every module's (mariadb_common.h): 0, or the client's error
-* number for a failure -- a server error, such as 1062 (a duplicate key),
+* number for a failure - a server error, such as 1062 (a duplicate key),
 * which d_mariadb_error_message on the statement's connection then
 * describes; CR_INVALID_PARAMETER_NO (2034) for a parameter the statement
 * does not have; CR_OUT_OF_MEMORY (2008); CR_COMMANDS_OUT_OF_SYNC (2014)
@@ -27,22 +27,22 @@
 * each value as text, the protocol's text, and reads it as a query's.
 *   A RUN A FEW ROWS AT A TIME holds its connection until it ends, the server
 * still sending its rows: every function on the connection that would send it
-* anything -- another statement's prepare or run, a query, a ping -- is
+* anything - another statement's prepare or run, a query, a ping - is
 * CR_COMMANDS_OUT_OF_SYNC (2014) meanwhile, having sent nothing. Running the
 * statement again, or finalizing it, ends its run first, reading the rest of
 * its rows away. Another statement finalized meanwhile is released at once;
 * the server is told when the connection is next free.
 *   A statement belongs to its connection. Closing the connection leaves its
-* statements unable to run -- each run is then D_DB_INVALID_ARGUMENT -- and
+* statements unable to run - each run is then D_DB_INVALID_ARGUMENT - and
 * only to be finalized; a run still open ends with it. A prepare that did not
 * block and failed leaves its statement so too (1.4).
-*   WITHOUT BLOCKING (1.4, 3.4), with MariaDB's client alone -- libmysqlclient
+*   WITHOUT BLOCKING (1.4, 3.4), with MariaDB's client alone - libmysqlclient
 * has no statement calls that do not block (D_DB_UNSUPPORTED), nor has
 * MariaDB's over TLS it cannot carry so (mariadb_connection.h 1.8): each starts,
 * answers D_DB_WAIT with what to wait for, and is continued with what came,
 * as mariadb_connection.h 1.8 describes, until it answers as the blocking
-* form would. Meanwhile the connection is held -- every other command on it
-* is 2014, the statement's own blocking calls and binds among them -- and a
+* form would. Meanwhile the connection is held - every other command on it
+* is 2014, the statement's own blocking calls and binds among them - and a
 * statement finalized meanwhile abandons its own call: the client's statement
 * stays with the connection, which nothing can use again but d_mariadb_close.
 *
@@ -87,7 +87,7 @@ TABLE OF CONTENTS
                                                  // floor; int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -168,7 +168,7 @@ int d_mariadb_finalize(
 
 // 1.3    Describing
 //------------------------------------------------------------------------------
-// describing -- _parameter_count is the number of `?` the statement has, 0
+// describing - _parameter_count is the number of `?` the statement has, 0
 // for NULL; _statement_connection is the connection it belongs to, NULL for
 // NULL or once that connection is closed
 size_t d_mariadb_parameter_count(
@@ -180,12 +180,12 @@ struct dj_mariadb* d_mariadb_statement_connection(
 
 // 1.4    Preparing without blocking
 //------------------------------------------------------------------------------
-// d_mariadb_prepare_start begins what d_mariadb_prepare does -- the
+// d_mariadb_prepare_start begins what d_mariadb_prepare does - the
 // multi-statement mode a failed script left on turned off, then the prepare
-// -- as steps that never wait, each continued by d_mariadb_prepare_continue
+// - as steps that never wait, each continued by d_mariadb_prepare_continue
 // as the socket allows. The statement exists from the start, and is the
 // caller's to finalize whatever the continuation answers: a prepare that
-// fails leaves it unprepared, good only for finalizing -- each run of it is
+// fails leaves it unprepared, good only for finalizing - each run of it is
 // D_DB_INVALID_ARGUMENT, and it has no parameters.
 /**
  * @brief Begins having the server compile one SQL statement, without
@@ -237,7 +237,7 @@ int d_mariadb_prepare_continue(
 
 // 2.1    Binding
 //------------------------------------------------------------------------------
-// binding -- each gives the parameter numbered `_index`, from 1, a value
+// binding - each gives the parameter numbered `_index`, from 1, a value
 // until another is bound or the values are cleared: NULL; a boolean, as 1 or
 // 0; an integer; a real number; text, copied, NULL binding NULL; bytes,
 // `_size` of them copied, NULL binding NULL and a pointer to none the empty
@@ -279,7 +279,7 @@ int d_mariadb_bind_blob(
 
 // 2.2    Clearing
 //------------------------------------------------------------------------------
-// clearing -- every parameter NULL again: 0, or D_DB_INVALID_ARGUMENT for a
+// clearing - every parameter NULL again: 0, or D_DB_INVALID_ARGUMENT for a
 // NULL statement
 int d_mariadb_clear_bindings(
     struct dj_mariadb_statement* _statement
@@ -362,8 +362,8 @@ int d_mariadb_open_cursor(
  * @param[in]  _statement  the statement.
  * @param[in]  _max        the most rows to read; 1 or more.
  * @param[out] _rows       receives the columns and up to `_max` rows, typed
- *                         as mariadb_query.h describes; fewer -- none among
- *                         them -- once the run has none left, which ends it,
+ *                         as mariadb_query.h describes; fewer - none among
+ *                         them - once the run has none left, which ends it,
  *                         every result after the first read and discarded,
  *                         as d_mariadb_execute_query reads them. A statement
  *                         that returns no rows has no columns either, and
@@ -380,7 +380,7 @@ int d_mariadb_fetch_rows(
     size_t                       _max,
     struct dj_db_rows*           _rows
 ) D_NOTHROW;
-// ending a run -- _close_cursor ends the run d_mariadb_open_cursor began,
+// ending a run - _close_cursor ends the run d_mariadb_open_cursor began,
 // reading away whatever rows and results it had left, so that the
 // connection is free again: 0, or the client's error number for a result
 // after the first that failed, the run ended all the same; 0 for a statement
@@ -394,15 +394,15 @@ int d_mariadb_close_cursor(
 // d_mariadb_execute_start sends the statement with its values; its results
 // are read by d_mariadb_execute_update_continue, which gives them as
 // d_mariadb_execute_update does, or by d_mariadb_execute_query_continue, as
-// d_mariadb_execute_query does -- whichever is called first, the other then
-// refused -- each answering D_DB_WAIT until every result has arrived. The
+// d_mariadb_execute_query does - whichever is called first, the other then
+// refused - each answering D_DB_WAIT until every result has arrived. The
 // start answers D_DB_WAIT even where the statement ran at once, its answer
 // still to be read: what it says to wait for, the socket writable, is
 // ready at once. d_mariadb_open_cursor_start opens a run as
 // d_mariadb_open_cursor does, continued by d_mariadb_open_cursor_continue;
 // d_mariadb_fetch_rows_start reads the next page as d_mariadb_fetch_rows
-// does, a row at a time as each arrives, giving it once it is whole -- the
-// connection keeping it between continuations -- continued by
+// does, a row at a time as each arrives, giving it once it is whole - the
+// connection keeping it between continuations - continued by
 // d_mariadb_fetch_rows_continue. Each start refuses, 2014, while a run, a
 // page's start excepted, or a call that does not block holds the
 // connection, rather than end or wait for it.

@@ -3,8 +3,8 @@
 *
 * The output stream's suite in DTest's C face (c/modules/test/test_suite.h).
 *   One entry point builds the module "ostream" imperatively: a block per
-* header -- ostream.h, ostream_file.h, ostream_console.h and ostream_format.h
-* -- then the differential test, with a test per group of checks.
+* header - ostream.h, ostream_file.h, ostream_console.h and ostream_format.h
+* - then the differential test, with a test per group of checks.
 *
 *
 * TABLE OF CONTENTS

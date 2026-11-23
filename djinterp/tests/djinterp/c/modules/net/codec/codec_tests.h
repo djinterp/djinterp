@@ -5,9 +5,9 @@
 * wiping that go with them; base64 in each of its variants; hex; ASCII's
 * classes, folding, comparison and trimming; line framing; and the errors'
 * mapping onto net.h's.
-*   Known answers come from the documents that define each function -- RFC
+*   Known answers come from the documents that define each function - RFC
 * 1321's test suite for MD5, FIPS 180's examples for SHA-1 and SHA-256, RFC 2202
-* and RFC 4231 for HMAC, RFC 4648 for base64 -- and digests are compared as hex
+* and RFC 4231 for HMAC, RFC 4648 for base64 - and digests are compared as hex
 * text, which the suite renders itself, so no codec checks its own output. Where
 * no document gives an answer, the tests check properties that must hold
 * instead: data given in pieces digests as it does whole, and a key longer than
@@ -123,7 +123,7 @@ struct dj_tests_codec_mac
 
 // 1.3    Helpers
 //------------------------------------------------------------------------------
-// helpers -- defined in codec_tests_digest.c.
+// helpers - defined in codec_tests_digest.c.
 //   d_tests_codec_hex renders octets as lowercase hex, independently of the
 // codec; d_tests_codec_span_fill writes a span's octets to `_out` and returns
 // how many there are.

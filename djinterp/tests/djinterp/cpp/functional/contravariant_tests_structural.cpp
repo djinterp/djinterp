@@ -177,7 +177,7 @@ bool tests_contravariant_value_type_helper_soft_failure()
     D_CV_CHECK(has_inner_value_type<DRefConsumer>::value);
     D_CV_CHECK(has_inner_value_type<value_only>::value);
 
-    // resolves nothing for everything unregistered -- softly
+    // resolves nothing for everything unregistered - softly
     D_CV_CHECK(!has_inner_value_type<int>::value);
     D_CV_CHECK(!has_inner_value_type<void>::value);
     D_CV_CHECK(!has_inner_value_type<std::string>::value);

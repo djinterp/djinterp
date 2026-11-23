@@ -1,16 +1,16 @@
 /*******************************************************************************
 * djinterp [cpp][container]                                     static_table.hpp
 *
-*   static_table -- the compile-time-constant member of the table trio.  A
+*   static_table - the compile-time-constant member of the table trio.  A
 * rank-2, rectangular, cell-homogeneous table whose two extents R and C are
 * fixed by the type and whose whole value is a static constant: the cells are
 * determined at c (compile time), so the object is denotable as a constexpr
 * value and every cell read is a constant expression.
 *
 *   ITS PLACE ON THE FIRST FEW AXES (Part I, in order):
-*   - Lifetime  : constexpr_storage -- the value is fixed at compile time.
-*   - Storage   : static_storage    -- an inline std::array, no allocation.
-*   - Mutability: immutable         -- only const observation; no cell may be
+*   - Lifetime  : constexpr_storage - the value is fixed at compile time.
+*   - Storage   : static_storage    - an inline std::array, no allocation.
+*   - Mutability: immutable         - only const observation; no cell may be
 *                                      overwritten and no row or column added,
 *                                      so I_T and every v_i are frozen.
 *   It is ordered (row-major = lexicographic on multi-indices), bounded (|T| =
@@ -24,7 +24,7 @@
 * surface from table_base.
 *
 *   NOTE ON CELL TYPES:
-*   The primary template is cell-homogeneous -- one Type for every cell, the
+*   The primary template is cell-homogeneous - one Type for every cell, the
 * leading case (a grid of numbers, a matrix over a ring).  The axis-typed
 * (column-typed relational) table, whose rows are heterogeneous records, is
 * the
@@ -211,7 +211,7 @@ public:
         DContainerStructure::hierarchical;  // uniformly nested; depth = rank = 2
 
     // Iterability stage sub-axis: structure AND contents are compile-time-
-    // expressible, so the whole traversal -- cursor and values alike -- is
+    // expressible, so the whole traversal - cursor and values alike - is
     // static (the "fixed array of constants" row of the Iterability table).
     static constexpr bool compile_time_iterable = true;
     static constexpr bool compile_time_values   = true;
@@ -292,19 +292,19 @@ public:
 
     // --- boundedness accessors (fixed capacity kappa = R*C) ---
 
-    // capacity -- the fixed cap on |T|; equal to size for a fixed-shape table.
+    // capacity - the fixed cap on |T|; equal to size for a fixed-shape table.
     D_NODISCARD static constexpr size_type capacity() noexcept
     {
         return extent;
     }
 
-    // max_size -- the largest |T| the type can ever hold (also R*C).
+    // max_size - the largest |T| the type can ever hold (also R*C).
     D_NODISCARD static constexpr size_type max_size() noexcept
     {
         return extent;
     }
 
-    // full -- a fixed-shape table is always exactly full (size == capacity).
+    // full - a fixed-shape table is always exactly full (size == capacity).
     D_NODISCARD constexpr bool full() const noexcept
     {
         return true;
@@ -317,8 +317,8 @@ public:
     // same-shape static_table over the image type sigma = f(tau).  Size and
     // arrangement are preserved exactly (|mu_f| = |T|, positions unmoved); a
     // non-monotone or non-injective _fn may break sortedness or uniqueness, per
-    // the axis.  static_table is a transform SOURCE -- its fixed inline store
-    // cannot receive a re-typed image in place -- so the result is built fresh;
+    // the axis.  static_table is a transform SOURCE - its fixed inline store
+    // cannot receive a re-typed image in place - so the result is built fresh;
     // being compile-time iterable, a constexpr _fn makes this a functional
     // transformation at stage c (a new constant).
     template<typename Fn>
@@ -345,8 +345,8 @@ public:
     // options) ---
 
     // encode_into_e
-    //   the parameterised member enc_tau: writes the SHAPE -- rows then cols,
-    // each a length field per <L, E> (put_length) -- then the cells in
+    //   the parameterised member enc_tau: writes the SHAPE - rows then cols,
+    // each a length field per <L, E> (put_length) - then the cells in
     // row-major order, each a leaf under enc_tau<E> (encode_leaf_into). This
     // is where the container-serial options (byte order E, count width L)
     // actually reach a table's own bytes; the non-parameterised member below
@@ -376,7 +376,7 @@ public:
     // decode_e
     //   the parameterised member dec_tau: reads the shape (per <L,E>),
     // checks it matches this fixed R x C type, then reads R*C cells (per
-    // enc_tau<E>) and rebuilds -- a fresh object equal at the serialised
+    // enc_tau<E>) and rebuilds - a fresh object equal at the serialised
     // level.
     template<DSerialEndian E,
              DSerialLength  L>
@@ -417,7 +417,7 @@ public:
     // encode_into / decode
     //   the foundational member surface: the default encoding (big-endian
     // scalars, an 8-byte count), delegating to the parameterised pair. This is
-    // what the leaf member surface and the option front ends observe -- a
+    // what the leaf member surface and the option front ends observe - a
     // member encoder owns its byte layout and so is endian-agnostic to the
     // generic recursion, so encode_using<E,L,F>(t) yields THIS default; call
     // encode_into_e<E,L> directly for another (endian, length).
@@ -452,7 +452,7 @@ using static_table = DStaticTable<Type, Rows, Cols, DifferenceType, SizeType, It
 
 
 // ---------------------------------------------------------------------------
-// axis conformance -- the framework's own structural classifiers must agree
+// axis conformance - the framework's own structural classifiers must agree
 // with the axis positions declared above (checked on a representative
 // instantiation, since a self-detecting static_assert needs a complete type).
 // ---------------------------------------------------------------------------
@@ -489,7 +489,7 @@ namespace table_axis_conformance
                       == DSortedness::order_dependent,
                   "static_table must classify as order-dependent (unsorted).");
 
-    // Structure: uniformly nested (rank-2), so hierarchical -- the opt-in tag
+    // Structure: uniformly nested (rank-2), so hierarchical - the opt-in tag
     // overrides the flat-storage depth heuristic.
     static_assert(is_hierarchical_container_v<DStaticTableProbe>,
                   "static_table must classify as hierarchical (uniformly nested).");
@@ -573,7 +573,7 @@ NS_END  // djinterp
 
 
 // ---------------------------------------------------------------------------
-// RowType (axis-typed / column-typed relational) extension -- NOT built here.
+// RowType (axis-typed / column-typed relational) extension - NOT built here.
 //
 //   The column-typed relational table of the formal definition (k = 2, S = {2},
 // cell type tau_{r,c} = tau_c fixed by the column) is the heterogeneous-row

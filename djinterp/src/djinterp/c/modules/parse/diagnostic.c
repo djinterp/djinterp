@@ -601,7 +601,7 @@ Parameter(s):
   _size: the size of _out in bytes, including the terminator.
 Return:
   The number of characters the full line would occupy, excluding the
-terminator, as snprintf reports it -- so a return of _size or more means the
+terminator, as snprintf reports it - so a return of _size or more means the
 output was truncated.
 */
 size_t d_parse_diag_format(

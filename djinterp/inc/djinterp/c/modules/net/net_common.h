@@ -250,8 +250,8 @@ typedef uint16_t dj_net_port;
 // 2.2.1
 // dj_net_error
 //   enum: the library-neutral classification of transport failures. Every
-// backend maps its native codes -- errno, WSAGetLastError, a TLS library's
-// errors -- onto it, so the layers above reason about failure portably.
+// backend maps its native codes - errno, WSAGetLastError, a TLS library's
+// errors - onto it, so the layers above reason about failure portably.
 // D_NET_OK is success, and D_NET_ERROR_WOULD_BLOCK serves non-blocking
 // backends. Values are pinned, so a new one comes last.
 //   Every net module with errors of its own maps them onto this enum with
@@ -260,24 +260,24 @@ typedef uint16_t dj_net_port;
 // rules:
 //     - OK is D_NET_OK, and nothing else is; a condition this enum has too
 //       is its namesake.
-//     - The caller's misuse -- a call out of order, a buffer too small, a
-//       configuration, key or file that cannot be used -- is
+//     - The caller's misuse - a call out of order, a buffer too small, a
+//       configuration, key or file that cannot be used - is
 //       INVALID_ARGUMENT.
 //     - Data that breaks the protocol, sent or received, and two ends that
 //       cannot agree on it, are PROTOCOL; a line or message over its limit
 //       is MESSAGE_TOO_LARGE; input that stops short of a whole item, more
 //       being due, is WOULD_BLOCK; text that does not parse as an address
-//       -- a host, a port, a path too long -- is ADDRESS_INVALID.
+//       - a host, a port, a path too long - is ADDRESS_INVALID.
 //     - A name that does not resolve is HOST_NOT_FOUND, and a well-formed
 //       address this host does not have ADDRESS_UNAVAILABLE, as d_tcp maps
 //       them; a connection that cannot be made is CONNECTION_REFUSED, and
 //       one the peer lost CONNECTION_RESET; a stream or connection that has
 //       ended, early or by the peer's goodbye, is CLOSED.
-//     - A refusal on security grounds -- credentials, a certificate, a host
-//       key, a policy -- is ACCESS_DENIED.
-//     - A facility this build or platform does not have -- no socket
+//     - A refusal on security grounds - credentials, a certificate, a host
+//       key, a policy - is ACCESS_DENIED.
+//     - A facility this build or platform does not have - no socket
 //       backend, so the stubs answer; an address family, local sockets
-//       under Winsock -- is UNSUPPORTED: no retry can help.
+//       under Winsock - is UNSUPPORTED: no retry can help.
 //     - Everything else is UNKNOWN: a negative reply, a request the peer
 //       does not support, a transfer the caller ended, a failure beneath the
 //       module whose cause it no longer holds.
@@ -286,8 +286,8 @@ typedef uint16_t dj_net_port;
 // d_<module>_error_from_net, again by the same rules in every module:
 //     - D_NET_OK is the module's OK, and a condition the module has too is
 //       its namesake.
-//     - A stream that ended or a connection that was lost -- CLOSED,
-//       CONNECTION_RESET, CONNECTION_ABORTED -- is the module's closed
+//     - A stream that ended or a connection that was lost - CLOSED,
+//       CONNECTION_RESET, CONNECTION_ABORTED - is the module's closed
 //       connection: its CLOSED, or its own word for one.
 //     - Everything else, a value outside this enum included, is the
 //       module's transport failure. A module object that reads or writes
@@ -487,7 +487,7 @@ typedef void (*dj_net_connection_close_fn)(
 // 3.1.5
 // dj_net_connection_shutdown_fn
 //   function pointer: closes one or both directions while leaving the
-// resource open -- a half-close.
+// resource open - a half-close.
 typedef enum dj_net_error (*dj_net_connection_shutdown_fn)(
                              struct dj_net_connection* _connection,
                              enum dj_net_shutdown      _mode);
@@ -622,7 +622,7 @@ bool d_net_io_result_eof(
 /**
  * @brief Parses a decimal port number.
  *
- * Only ASCII digits are accepted -- no sign, space, or prefix -- and leading
+ * Only ASCII digits are accepted - no sign, space, or prefix - and leading
  * zeros are allowed. The value may be 0, which asks a backend for an
  * ephemeral port; d_net_endpoint_parse_parts, which needs a port to reach,
  * refuses it.
@@ -716,7 +716,7 @@ enum dj_net_error d_net_endpoint_set_local(
 /**
  * @brief Splits "host:port" or "[host]:port" into its parts, without copying.
  *
- * A host containing a colon -- an IPv6 literal -- must be bracketed, and the
+ * A host containing a colon - an IPv6 literal - must be bracketed, and the
  * port must follow the closing bracket directly. An unbracketed host splits
  * at its only colon. Neither form may leave the host empty or give port 0.
  * Unix-domain endpoints have no text form; build them with
@@ -817,7 +817,7 @@ bool d_net_connection_init(
     const struct dj_net_connection_vtable* _vtable
 );
 
-// d_net_connection_is_complete -- whether a connection's table supplies the
+// d_net_connection_is_complete - whether a connection's table supplies the
 // four required operations, as d_net_connection_init insists; false for
 // NULL. A module handed a connection checks it with this before keeping it.
 bool d_net_connection_is_complete(
@@ -830,7 +830,7 @@ bool d_net_connection_is_complete(
  * @brief Reads up to `_size` bytes from a connection.
  *
  * A request for zero bytes returns a count of 0 and D_NET_OK without
- * reaching the backend -- the shape of an end of stream -- so ask for at
+ * reaching the backend - the shape of an end of stream - so ask for at
  * least one byte whenever the end of the stream matters.
  *
  * @param[in,out] _connection  the connection.
@@ -1058,7 +1058,7 @@ d_net_frame_check(
 {
     // the header is 32 bits wide, whatever the ceiling allows: a size above
     // 2^32 - 1 has a bit set past the 32nd, which two shifts of 16 find
-    // without a 64-bit type -- one shift of 32 is undefined where size_t is
+    // without a 64-bit type - one shift of 32 is undefined where size_t is
     // 32 bits wide, and a 32-bit size never exceeds the header's range
     if ( (((_size >> 16) >> 16) != 0u) ||
          (_size > _max) )
@@ -1356,7 +1356,7 @@ char d_net_hex_digit(
 
 // 9.1    Comparison
 //------------------------------------------------------------------------------
-// comparison, ignoring ASCII case -- defined in codec_ascii.c; none fails.
+// comparison, ignoring ASCII case - defined in codec_ascii.c; none fails.
 //   d_net_ascii_ieq tells whether two spans are equal; d_net_ascii_ieq_cstr
 // whether a span equals a NUL-terminated string, as protocol keywords are
 // written; d_net_ascii_istarts whether a span begins with one. A span that
@@ -1377,7 +1377,7 @@ D_NODISCARD bool d_net_ascii_istarts(
 
 // 9.2    Trimming
 //------------------------------------------------------------------------------
-// trimming -- defined in codec_ascii.c; the span narrows, and its characters
+// trimming - defined in codec_ascii.c; the span narrows, and its characters
 // are not touched.
 //   d_net_ascii_trim drops blanks (d_net_ascii_is_blank) from both ends, as
 // HTTP trims a field value; d_net_ascii_trim_space drops spaces

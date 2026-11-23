@@ -1,5 +1,5 @@
 #!/bin/sh
-# moved_lines.sh -- `dcheck --moved-lines`, which reads where a fixer put
+# moved_lines.sh - `dcheck --moved-lines`, which reads where a fixer put
 # what it moved, against pairs it must pass and pairs it must not.
 #
 #   tests/dawk/moved_lines/right/   <name>.before.* and <name>.after.*: each
@@ -9,8 +9,8 @@
 #                                   check must say of it, line and all
 #
 # A check that cannot fail checks nothing, so the second directory is the
-# test. Every pair in it holds the same tokens before and after -- that is
-# checked here too, by `dcheck --same-tokens` -- and three of them are what
+# test. Every pair in it holds the same tokens before and after - that is
+# checked here too, by `dcheck --same-tokens` - and three of them are what
 # `dcheck --fix` once wrote into the tree's own files:
 # bases_laid_out_as_parameters, comment_left_behind and
 # statement_left_behind.

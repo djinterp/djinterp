@@ -538,8 +538,8 @@ d_internal_render_closes_right(
  * @return true where it would.
  *
  * Every operator on the child's right edge is open on the parser's stack
- * when the arriving one comes -- `+not sin` leaves `not` open as well as
- * `+` -- so the walk asks each, innermost last, down to a closed node or a
+ * when the arriving one comes - `+not sin` leaves `not` open as well as
+ * `+` - so the walk asks each, innermost last, down to a closed node or a
  * bracketed one.
  */
 static bool

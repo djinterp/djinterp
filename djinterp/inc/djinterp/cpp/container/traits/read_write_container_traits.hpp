@@ -155,7 +155,7 @@ NS_INTERNAL
     struct has_const_front_helper : std::false_type
     {};
     // has_const_front_helper specialization
-    //   helper: the detected case -- selected when the type exposes the member
+    //   helper: the detected case - selected when the type exposes the member
     // function `front()`.
     template<typename Type>
     struct has_const_front_helper<Type,
@@ -169,7 +169,7 @@ NS_INTERNAL
     struct has_const_data_helper : std::false_type
     {};
     // has_const_data_helper specialization
-    //   helper: the detected case -- selected when the type exposes the member
+    //   helper: the detected case - selected when the type exposes the member
     // function `data()`.
     template<typename Type>
     struct has_const_data_helper<Type,
@@ -268,7 +268,7 @@ NS_INTERNAL
     struct has_clear_helper : std::false_type
     {};
     // has_clear_helper specialization
-    //   helper: the detected case -- selected when the type exposes the member
+    //   helper: the detected case - selected when the type exposes the member
     // function `clear()`.
     template<typename Type>
     struct has_clear_helper<Type,
@@ -480,7 +480,7 @@ struct access_tag_of
 };
 
 // access_tag_of_t
-//   type: the carrier of access_tag_of -- its `::type`, for use where a type
+//   type: the carrier of access_tag_of - its `::type`, for use where a type
 // rather than a value is wanted.
 template<typename Type>
 using access_tag_of_t = typename access_tag_of<Type>::type;

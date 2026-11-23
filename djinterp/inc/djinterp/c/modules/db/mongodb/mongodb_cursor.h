@@ -3,8 +3,8 @@
 *
 * Reading a query's documents a page at a time, and watching changes as they
 * happen.
-*   A cursor holds a query the server has begun -- a find, an aggregation, or
-* any command whose reply holds a cursor -- and hands its documents back in
+*   A cursor holds a query the server has begun - a find, an aggregation, or
+* any command whose reply holds a cursor - and hands its documents back in
 * pages, as rows in the handle's document format: d_mongodb_cursor_fetch
 * reads up to the number asked for, each batch the server sends as it is
 * reached, and a page shorter than that, none possibly, says the documents
@@ -14,16 +14,16 @@
 * the server reads it in no other: the transaction's commit or rollback ends
 * it, killing it on the server, and a read of it after answers
 * D_MONGODB_ERROR_TRANSACTION_CURSOR, as the server would outside any
-* transaction, without asking the server -- a request for it in a later
+* transaction, without asking the server - a request for it in a later
 * transaction would fail that one. A cursor opened outside any transaction
 * reads in or out of one alike.
 *   A change stream follows the writes made to a collection, a database or a
-* whole deployment -- inserts, updates, replacements, deletes, drops,
-* renames -- each an event, a document, which the server sends as it
+* whole deployment - inserts, updates, replacements, deletes, drops,
+* renames - each an event, a document, which the server sends as it
 * happens; a stream needs a replica set or a sharded cluster
 * (D_MONGODB_FEATURE_CHANGE_STREAMS). d_mongodb_change_stream_fetch waits
-* for an event as long as the options' maxAwaitTimeMS -- the server's own
-* wait, a second, without one -- and hands back the events that arrived, none
+* for an event as long as the options' maxAwaitTimeMS - the server's own
+* wait, a second, without one - and hands back the events that arrived, none
 * when none did. A stream resumes after a failure the driver can resume
 * from, and its resume token says where it is, for a stream opened later to
 * start after: give it as "resumeAfter" or "startAfter" among the options.
@@ -66,7 +66,7 @@ TABLE OF CONTENTS
                                                  // floor
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -83,7 +83,7 @@ D_EXTERN_C_BEGIN
 
 // 1.1    Opening
 //------------------------------------------------------------------------------
-// opening -- each runs its query and opens a cursor over its documents: a
+// opening - each runs its query and opens a cursor over its documents: a
 // find, its filter and options as d_mongodb_find's (mongodb_document.h); an
 // aggregation, as d_mongodb_aggregate's; a command whose reply holds a
 // cursor, as d_mongodb_query_rows takes one (mongodb_query.h). Each returns 0
@@ -122,7 +122,7 @@ int d_mongodb_command_cursor(
  * @param[in,out] _cursor  the cursor.
  * @param[in]     _max     the most to read, at least 1.
  * @param[out]    _rows    receives the documents, as d_mongodb_query_rows
- *                         returns them -- fewer than `_max`, none possibly,
+ *                         returns them - fewer than `_max`, none possibly,
  *                         when the documents are done; written only on
  *                         success.
  * @return 0; the server's code for a batch it could not send, which ends
@@ -139,8 +139,8 @@ int d_mongodb_cursor_fetch(
     size_t                    _max,
     struct dj_db_rows*        _rows
 ) D_NOTHROW;
-// whether the cursor's documents are done -- the server has sent its last
-// batch and every document of it has been read -- or it failed, or its
+// whether the cursor's documents are done - the server has sent its last
+// batch and every document of it has been read - or it failed, or its
 // transaction ended it; true for a NULL cursor
 bool d_mongodb_cursor_is_done(
     const struct dj_mongodb_cursor* _cursor
@@ -162,13 +162,13 @@ int d_mongodb_cursor_close(
 
 // 2.1    Opening
 //------------------------------------------------------------------------------
-// opening -- each opens a stream of the changes to a collection, to every
+// opening - each opens a stream of the changes to a collection, to every
 // collection of a database, or to every database of the deployment, as the
-// pipeline -- a JSON array of stages that filter or reshape the events, or
-// NULL -- leaves them. The options are a stream's: fullDocument
+// pipeline - a JSON array of stages that filter or reshape the events, or
+// NULL - leaves them. The options are a stream's: fullDocument
 // ("updateLookup", or from 6.0 "whenAvailable" or "required"),
 // fullDocumentBeforeChange, resumeAfter, startAfter, startAtOperationTime,
-// maxAwaitTimeMS, batchSize, collation, comment, showExpandedEvents -- the
+// maxAwaitTimeMS, batchSize, collation, comment, showExpandedEvents - the
 // driver takes comment and fullDocumentBeforeChange from its 1.22, and
 // showExpandedEvents later (1.26 does, 1.21 does not), and sends what it
 // does not take to the aggregate command, where the server refuses it.

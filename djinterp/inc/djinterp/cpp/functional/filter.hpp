@@ -1359,7 +1359,7 @@ DTypedFilter<Type, internal::DTypedIdentity<Type> > make_typed_filter()
 // header keeps its C++11 floor and pulls in no container header for them.
 // (changed 2026-11-09)
 //
-//   The detection idiom underneath -- is_detected, detected_or_t, nonesuch --
+//   The detection idiom underneath - is_detected, detected_or_t, nonesuch --
 // is core/meta/type_traits.hpp's. (This header used to keep its own copy in
 // djinterp::internal, as accumulator.hpp did, on the belief that identical
 // definitions do not conflict; within one translation unit they do, so no
@@ -1509,7 +1509,7 @@ NS_END  // internal
 
 // is_filter_operation
 //   trait: true when Fn is callable as (const std::vector<Elem>&) and the
-// result is convertible to std::vector<std::size_t> -- the DFilterOpFn
+// result is convertible to std::vector<std::size_t> - the DFilterOpFn
 // protocol. Satisfied by DFilterOpFn<Elem>, the internal typed chains, the
 // make_*_op results, and any user lambda of the same shape.
 template<typename Fn,
@@ -1530,7 +1530,7 @@ public:
 
 
 // is_filter_applicable
-//   trait: true when Type exposes .apply(const std::vector<Elem>&) -- the
+//   trait: true when Type exposes .apply(const std::vector<Elem>&) - the
 // shape shared by DFilterChain, DFilterBuilder, and DTypedFilter. The lifted
 // "can I run this over a vector<Elem>?" question.
 template<typename Type,
@@ -1612,7 +1612,7 @@ concept filterable_c = is_filterable<Type>::value;
 
 // filter_operation_c
 //   concept: satisfied when Fn models the DFilterOpFn protocol over
-// Elem -- callable on a const vector<Elem>& with a result convertible to
+// Elem - callable on a const vector<Elem>& with a result convertible to
 // vector<size_t>. Delegates to the trait so it needs no <concepts> include.
 template<typename Fn,
          typename Elem>

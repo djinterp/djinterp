@@ -135,7 +135,7 @@ bool tests_contramap_adapts_predicate_domain()
 
 /*
 tests_contramap_pre_composes_rather_than_post_composes
-  The adapter runs BEFORE the context -- the defining difference from a map.
+  The adapter runs BEFORE the context - the defining difference from a map.
   Tests the following:
   - running the adapted context marks the adapter first and the body second
   - the body receives the value the adapter produced, not the original input

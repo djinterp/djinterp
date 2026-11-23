@@ -168,8 +168,8 @@ TABLE OF CONTENTS
 // D_ENV_MARIADB_HEADER_INCLUDED
 //   detection: 1 once the MariaDB C client header is included, and 0 when
 // D_CFG_ENV_USING_MARIADB is off. D_CFG_ENV_MARIADB_C_PATH, <mysql.h> unless
-// the build names another, is tried first -- the header in the directory the
-// linked client's own flags name -- then <mariadb/mysql.h>, <mysql/mysql.h>
+// the build names another, is tried first - the header in the directory the
+// linked client's own flags name - then <mariadb/mysql.h>, <mysql/mysql.h>
 // and <mysql.h>; without __has_include, the configured path is included as
 // is, and with none found, #error.
 // D_ENV_DB_HAS_MARIADB_CONNECTOR_C follows it unless pre-defined.
@@ -924,7 +924,7 @@ TABLE OF CONTENTS
 
 
 #else  // !D_ENV_MYSQL_COMMON_HAS_CLIENT_LIB
-    // no MySQL-compatible client library detected -- zero everything
+    // no MySQL-compatible client library detected - zero everything
 
     // C API
     #define D_ENV_MYSQL_COMMON_HAS_REAL_CONNECT        0

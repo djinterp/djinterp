@@ -3,8 +3,8 @@
 *
 * What the command line's sources share: sheets read and written back, rows
 * and values as a command line names them, and output.
-*   A file is read and written through the kit -- `-` the standard stream,
-* a write whole or not at all -- and its text read and written by the
+*   A file is read and written through the kit - `-` the standard stream,
+* a write whole or not at all - and its text read and written by the
 * model, so the command line holds no format of its own. An integer is read
 * as the grammar writes one, then handed to the model's reader in the form
 * that reader takes, so a leading zero is never octal here as it is in C.
@@ -13,7 +13,7 @@
 * every issue it brought is said either way.
 *   The window's SHEET operands are taken here too, by read_source's rules,
 * so that `bitwisedom gui` refuses what the commands refuse, in their words
-* -- or, reporting, says so of each and hands the window every one, as
+* - or, reporting, says so of each and hands the window every one, as
 * ruling 25 has it by default (window_sheet_opens). An example is a named
 * operand, `example:NAME`, read through the kit, which says so when a file
 * has the operand's name too (ruling 11).
@@ -103,7 +103,7 @@ void write_to(
 }
 
 // distance
-//   the edits -- a letter put in, taken out or changed -- from one word to
+//   the edits - a letter put in, taken out or changed - from one word to
 // another, as the parser's suggestions count them.
 std::size_t distance(
     const std::string& _from,
@@ -141,8 +141,8 @@ std::size_t distance(
 
 /*
 place_of
-  A line of the model's that begins with where it is -- "line 3: ...",
-"line 3, column 7: ..." -- split into the place and the rest; a line that
+  A line of the model's that begins with where it is - "line 3: ...",
+"line 3, column 7: ..." - split into the place and the rest; a line that
 does not keeps its whole text, at no place.
 */
 std::string place_of(
@@ -321,8 +321,8 @@ std::string which_rows(
 example_place
   An example's place in the list, by name, checked against it, since
 make_example gives the first for a name it does not know: one it does not
-know said, with the nearest, and where the examples are listed -- by
-bitwisedom-gen's own option, for its users -- and -1.
+know said, with the nearest, and where the examples are listed - by
+bitwisedom-gen's own option, for its users - and -1.
 */
 int example_place(
     kit::program&      _program,
@@ -384,7 +384,7 @@ bool read_example(
 
 /*
 read_source
-  An example by name, read as the kit reads a named operand -- a file of
+  An example by name, read as the kit reads a named operand - a file of
 its name said; otherwise the file, read whole, then any of the three
 shapes, its notes and its error placed in it.
 */
@@ -557,8 +557,8 @@ int new_errors(
 
 /*
 store
-  Where the kit's edit sends it -- back where it came from unless told
-otherwise, which an example has no such place for -- written whole by the
+  Where the kit's edit sends it - back where it came from unless told
+otherwise, which an example has no such place for - written whole by the
 kit; refused when it gives the sheet errors and was not forced; the change
 said once it is done, or, in a dry run, instead.
 */
@@ -631,7 +631,7 @@ int store(
 /*
 row_named
   A macro name first, as the model's lookup takes one; then a row's own
-name, which must be one row's -- a command line refuses to guess, where a
+name, which must be one row's - a command line refuses to guess, where a
 row's expression would take the nearest sibling's.
 */
 int row_named(
@@ -712,8 +712,8 @@ std::string shown_name(
 
 /*
 read_value
-  The grammar's integer checked here -- its sign, its base's prefix, its
-digits, its separators -- then given to the model's reader in a form it
+  The grammar's integer checked here - its sign, its base's prefix, its
+digits, its separators - then given to the model's reader in a form it
 reads the same way: hexadecimal, octal and binary with their prefixes, and
 decimal with its leading zeros gone, which C would read as octal.
 */
@@ -1075,8 +1075,8 @@ bool json_wanted(
 
 /*
 report_issues
-  Each issue at the sheet, named for its row -- a symbol by its macro name,
-a group by its own -- with the kit's severity for the model's.
+  Each issue at the sheet, named for its row - a symbol by its macro name,
+a group by its own - with the kit's severity for the model's.
 */
 int report_issues(
     kit::program&      _program,
@@ -1277,8 +1277,8 @@ bool window_sheet_of(
 
 /*
 window_sheet_opens
-  Every operand handed over -- an example the window knows by its place,
-anything else as a file to open -- and what the window will not open said:
+  Every operand handed over - an example the window knows by its place,
+anything else as a file to open - and what the window will not open said:
 read as File > Open reads it, a sheet's JSON by read_json_sheet, anything
 else imported as code.
 */

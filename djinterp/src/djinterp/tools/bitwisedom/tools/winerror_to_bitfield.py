@@ -7,8 +7,8 @@
 # the winerror.h a Windows build has.
 #   The codes are grouped by facility, in the facility's order, each group's
 # codes in order of value, and each group closed, to be opened as it is
-# wanted; the HRESULT's own fields -- severity, the
-# reserved, customer, NTSTATUS and X bits, the facility and the code -- come
+# wanted; the HRESULT's own fields - severity, the
+# reserved, customer, NTSTATUS and X bits, the facility and the code - come
 # first, with every facility the header names as a value of the facility
 # field. A facility whose codes the header has but whose FACILITY_ name it
 # does not is named as the Windows SDK names it, and noted so.
@@ -31,7 +31,7 @@ import sys
 import bitfield_json
 
 # the facilities whose codes MinGW-w64's winerror.h has, under the names the
-# Windows SDK gives them, which that header does not define -- with the
+# Windows SDK gives them, which that header does not define - with the
 # whole facility number the SDK spells, where it reaches the X bit
 SDK_FACILITIES = {
     39:  ("NAP", 0x27),

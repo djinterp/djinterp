@@ -113,7 +113,7 @@ int d_internal_ascii_isspace(
 // safe copy and concatenation
 /*
 d_strcpy_s
-  Validates in C11's order -- destination, then size, then source -- so a NULL
+  Validates in C11's order - destination, then size, then source - so a NULL
 source still empties a usable destination. Measures the source once and copies
 text and terminator together; on overflow the destination is emptied rather
 than truncated.

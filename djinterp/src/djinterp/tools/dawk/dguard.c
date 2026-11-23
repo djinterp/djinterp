@@ -65,7 +65,7 @@ size_t d_internal_symbol(
 
 /*
 d_internal_part
-  Adds one guard part -- ifndef, define or endif -- with the symbol it names
+  Adds one guard part - ifndef, define or endif - with the symbol it names
 as its text and the geometry a layout rule would need.
 */
 static
@@ -105,7 +105,7 @@ void d_internal_part(
 /*
 d_guard_build
   Scans for the guard and emits its three parts.  The `#endif` comment is
-matched loosely -- the symbol may follow `//` or be absent entirely -- because
+matched loosely - the symbol may follow `//` or be absent entirely - because
 the rule that governs its spelling is the sheet's business, not the scanner's.
 */
 uint32_t d_guard_build(
@@ -203,7 +203,7 @@ uint32_t d_guard_build(
 
                 // A block comment holding one identifier and nothing else is
                 // a guard name in the older style.  It is replaced by the
-                // line-comment form rather than kept alongside it -- keeping
+                // line-comment form rather than kept alongside it - keeping
                 // both leaves two names for one guard, one of them stale.
                 const char* const open  = strstr(buffer, "/*");
                 const char* const close = open ? strstr(open + 2, "*/")
@@ -273,7 +273,7 @@ uint32_t d_guard_build(
                     endif_line, endif_column);
 
     // An #endif with no comment is an absent part with a known place to put
-    // one.  The extension owns the syntax -- it knows what a guard comment
+    // one.  The extension owns the syntax - it knows what a guard comment
     // looks like, two spaces and `//` by this tree's measured convention --
     // and the sheet's derivation owns the value.
     if ((endif_line != 0) && (endif_symbol[0] == '\0'))

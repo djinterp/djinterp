@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][text]                                   markup_string_tests.hpp
 *
-*   text's markup string templates -- markup_string_template.hpp and its two
+*   text's markup string templates - markup_string_template.hpp and its two
 * facades, html/html_string_template.hpp and xml/xml_string_template.hpp --
 * in DTest's C face (c/modules/test/test_suite.h).
 *   One entry point builds the module "markup_string" imperatively: a block

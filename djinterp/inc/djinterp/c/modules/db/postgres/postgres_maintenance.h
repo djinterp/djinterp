@@ -4,7 +4,7 @@
 * Upkeep of a PostgreSQL database: vacuum, analyze, reindex, checkpoint, and
 * the sizes the server's storage reaches.
 *   The server vacuums and analyzes on its own (autovacuum); these are for a
-* moment that cannot wait -- after a bulk load, say. VACUUM cannot run inside
+* moment that cannot wait - after a bulk load, say. VACUUM cannot run inside
 * a transaction, and the server refuses it there
 * (D_POSTGRES_SQLSTATE_ACTIVE_SQL_TRANSACTION, 25001); ANALYZE and REINDEX
 * can, save REINDEX CONCURRENTLY.
@@ -37,7 +37,7 @@ TABLE OF CONTENTS
                                                  // floor; int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -75,7 +75,7 @@ int d_postgres_vacuum(
     const char*     _table,
     unsigned        _flags
 ) D_NOTHROW;
-// analyze -- updates the planner's statistics for a table, or, with _table
+// analyze - updates the planner's statistics for a table, or, with _table
 // NULL (and _schema then NULL too), for every table of the database. 0, the
 // SQLSTATE of a failure (42P01, no such table), or D_DB_INVALID_ARGUMENT.
 int d_postgres_analyze(
@@ -86,7 +86,7 @@ int d_postgres_analyze(
 
 // 1.2    Indexes and checkpoints
 //------------------------------------------------------------------------------
-// reindex -- rebuilds every index of a table, as REINDEX TABLE does;
+// reindex - rebuilds every index of a table, as REINDEX TABLE does;
 // D_POSTGRES_CONCURRENTLY, from PostgreSQL 12, without blocking writes to it,
 // and outside a transaction. 0, the SQLSTATE of a failure (42P01, no such
 // table), D_DB_UNSUPPORTED for D_POSTGRES_CONCURRENTLY before PostgreSQL 12,
@@ -98,7 +98,7 @@ int d_postgres_reindex(
     const char*     _table,
     unsigned        _flags
 ) D_NOTHROW;
-// checkpoint -- writes every changed page to disk at once, as CHECKPOINT
+// checkpoint - writes every changed page to disk at once, as CHECKPOINT
 // does, which needs a superuser, or from PostgreSQL 15 the pg_checkpoint
 // role. 0, the SQLSTATE of a failure (42501, no privilege), or
 // D_DB_INVALID_ARGUMENT for NULL.
@@ -108,7 +108,7 @@ int d_postgres_checkpoint(
 
 // 1.3    Sizes
 //------------------------------------------------------------------------------
-// sizes, in bytes, written only on success -- _table_size, a table's whole
+// sizes, in bytes, written only on success - _table_size, a table's whole
 // footprint, its indexes and TOAST storage included, as
 // pg_total_relation_size() reckons it; _database_size, a database's, as
 // pg_database_size() does, NULL meaning the current one. 0, D_DB_NOT_FOUND

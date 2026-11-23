@@ -3,7 +3,7 @@
 *
 * Equality-operator tests for maybe<T>.
 *
-*   test_equality -- maybe == / != maybe across present/absent combinations,
+*   test_equality - maybe == / != maybe across present/absent combinations,
 *                    plus the two maybe/nothing_t overloads.
 *
 *   NOTE on the maybe/nothing_t overloads: as implemented in maybe.hpp these

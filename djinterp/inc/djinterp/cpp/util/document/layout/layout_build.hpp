@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][utility]                                       layout_build.hpp
 *
-*   The PROCEDURAL construction surface -- a stateful cursor that assembles a
+*   The PROCEDURAL construction surface - a stateful cursor that assembles a
 * DLayoutDoc through imperative open / close / leaf calls, the counterpart to
 * the functional combinator surface.  The framework strives for a functional
 * AND a procedural idiom throughout; this is the procedural half for documents,
@@ -10,7 +10,7 @@
 *   A TREE FROM A STACK.  The cursor holds a stack of open frames; the bottom is
 * the root container.  `open` pushes a frame, `close` pops it and attaches the
 * finished subtree to its parent, `leaf` / `child` append to the current frame.
-* `build` closes any still-open frames and returns the root -- so a forgotten
+* `build` closes any still-open frames and returns the root - so a forgotten
 * close is completed rather than lost.  Every method returns *this, so calls
 * chain.  The result is the SAME annotated term the other surfaces produce; the
 * interpreter never learns which surface built it.
@@ -139,7 +139,7 @@ public:
 
     // child
     //   append an already-built subtree (from another surface, say) to the
-    // current construct -- the surfaces compose.
+    // current construct - the surfaces compose.
     DLayoutCursor&
     child(
         node_type _node
@@ -172,7 +172,7 @@ public:
     }
 
     // depth
-    //   the number of currently-open constructs (root included) -- handy for
+    //   the number of currently-open constructs (root included) - handy for
     // asserting balance in a builder loop.
     D_NODISCARD
     std::size_t
@@ -183,7 +183,7 @@ public:
 
 private:
     // frame
-    //   struct: one open construct -- its op, its params bag, and the children
+    //   struct: one open construct - its op, its params bag, and the children
     // accrued so far.
     struct frame
     {

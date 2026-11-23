@@ -884,7 +884,7 @@ static D_CONSTEXPR bool is_comparator_v = is_comparator<Cmp, T>::value;
 
 // is_binary_predicate_c
 //   concept: satisfied when a const Fn is callable on a const A and a const B
-// (both lvalues) with a result usable as a bool, explicitly or not -- the
+// (both lvalues) with a result usable as a bool, explicitly or not - the
 // comparator-side shape, named with the _c used in concepts.hpp. Looser than
 // functional_common.hpp's Predicate<Fn, const A&, const B&>, which wants the
 // result implicitly convertible.

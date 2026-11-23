@@ -494,7 +494,7 @@ enum class sqlite_transaction_mode : re_std::uint8_t
 // 5.  CLIENT CAPABILITIES
 //==============================================================================
 // What env_sqlite.h found SQLite's header and build to have, by version, at
-// compile time -- the client's capabilities, which the library loaded at run
+// compile time - the client's capabilities, which the library loaded at run
 // time may lack, or exceed: every flag is false unless a program asks for
 // env's detection (D_CFG_ENV_USING_SQLITE) or supplies its results. What the
 // library loaded can do, sqlite_connection's supports_* members ask it.
@@ -978,7 +978,7 @@ struct sqlite_connect_config
 
     std::map<std::string, std::string> pragmas;
 
-    // construction -- SQLite's defaults, for no file yet or for a path
+    // construction - SQLite's defaults, for no file yet or for a path
     sqlite_connect_config()
         : open_flags(sqlite_open_flag::read_write),
           journal_mode(sqlite_journal_mode::mode_delete),
@@ -1074,11 +1074,11 @@ struct sqlite_layer
 
     static constexpr const char* utc_offset = "";
 
-    // holds_connection -- false: SQLite steps a statement while the
+    // holds_connection - false: SQLite steps a statement while the
     // connection runs others, so a stream's run leaves the connection free
     static constexpr bool holds_connection = false;
 
-    // connection_lost -- whether a result means the connection was lost:
+    // connection_lost - whether a result means the connection was lost:
     // never, for an embedded database
     static constexpr
     bool connection_lost(
@@ -1131,7 +1131,7 @@ namespace sqlite {
 // sqlite_connection
 //   class: a connection to an SQLite database, over the SQLite layer's face,
 // which it holds and which closes the connection when it goes. Opening it
-// opens the file database() names -- open(path) names one and opens it --
+// opens the file database() names - open(path) names one and opens it --
 // with the open flags, VFS and settings sqlite_connect_config gives.
 // Parameters are written as SQLite writes them (`?`, `?NNN`, `:name`,
 // `@name`, `$name`), and a prepared statement binds by name too. Every
@@ -1139,8 +1139,8 @@ namespace sqlite {
 // for; set_isolation_level(read_uncommitted) sets PRAGMA read_uncommitted,
 // which lets a connection in shared-cache mode read the rows other
 // connections sharing its cache have not committed. Each member the
-// connection adds -- PRAGMAs, the journal, attached databases, the schema,
-// backups, databases as bytes, extensions -- throws as the operations do
+// connection adds - PRAGMAs, the journal, attached databases, the schema,
+// backups, databases as bytes, extensions - throws as the operations do
 // (database_connection.hpp): connection_exception when the connection is
 // not open, and otherwise the exception its contract names, with SQLite's
 // result or a negative D_DB_* as its error_code(). Not copyable; movable.
@@ -1160,12 +1160,12 @@ public:
     using client_capabilities = sqlite_client_capabilities;
     using version_info        = sqlite_version_info;
 
-    // type_support -- client_capabilities, by its former name (2026.10.21),
+    // type_support - client_capabilities, by its former name (2026.10.21),
     // for one release
     using type_support [[deprecated("client_capabilities")]] =
         sqlite_client_capabilities;
 
-    // construction -- with SQLite's defaults; with a generic configuration,
+    // construction - with SQLite's defaults; with a generic configuration,
     // whose `database` is the file; with an SQLite one; or with a path.
     // Nothing opens before connect() or open()
     sqlite_connection();
@@ -1228,7 +1228,7 @@ public:
         sqlite_open_flag   _flags
     );
 
-    // close -- disconnect()'s name for a file
+    // close - disconnect()'s name for a file
     void close() noexcept;
 
     /**
@@ -1314,8 +1314,8 @@ public:
      *
      * @param[in] _enabled  whether to enforce.
      * @throws query_exception with D_DB_UNSUPPORTED when the setting did not
-     *         take -- inside a transaction, or in a library built without
-     *         foreign keys -- and with SQLite's result for another failure.
+     *         take - inside a transaction, or in a library built without
+     *         foreign keys - and with SQLite's result for another failure.
      * @post On success the configuration's enable_foreign_keys is `_enabled`.
      */
     void set_foreign_keys(
@@ -1390,7 +1390,7 @@ public:
      */
     std::vector<std::string> list_tables() const;
 
-    // transaction modes -- begin a transaction that takes its write lock at
+    // transaction modes - begin a transaction that takes its write lock at
     // its first write, at once, or at once keeping readers out. Each throws
     // transaction_exception with SQLite's result: SQLITE_BUSY when another
     // connection holds the lock an immediate or exclusive begin needs,
@@ -1424,7 +1424,7 @@ public:
         const std::string& _source_path
     );
 
-    // feature queries -- what the SQLite library loaded can do, asked of it
+    // feature queries - what the SQLite library loaded can do, asked of it
     // at run time (d_sqlite_supports): its release, and the options it was
     // built with; client_capabilities answers for the header at compile
     // time. supports_modern_sql is CTEs, window functions, upsert, RETURNING
@@ -1507,7 +1507,7 @@ public:
         return face::sqlite::supports(D_SQLITE_FEATURE_ENCRYPTION);
     }
 
-    // supports_serialization, supports_extension_loading -- whether serialize
+    // supports_serialization, supports_extension_loading - whether serialize
     // and deserialize, and load_extension and enable_load_extension, can
     // work: the library loaded has them, and the layer's build calls them
     // (sqlite_database.h, sqlite_connection.h)
@@ -1523,7 +1523,7 @@ public:
         return face::sqlite::supports(D_SQLITE_FEATURE_LOAD_EXTENSION);
     }
 
-    // type mapping -- SQLite's types as field_type, and a field_type as the
+    // type mapping - SQLite's types as field_type, and a field_type as the
     // type a column is declared with, as section 2 maps them
     static
     field_type map_affinity(
@@ -1558,7 +1558,7 @@ public:
         return field_type_to_sqlite_sql(_type);
     }
 
-    // configuration -- the SQLite settings, the file among them as the
+    // configuration - the SQLite settings, the file among them as the
     // generic configuration's `database` now names it (connect(config) and
     // open change it); setting them names the file too, and both apply at
     // the next open
@@ -1567,7 +1567,7 @@ public:
         const sqlite_connect_config& _config
     );
 
-    // is_in_memory -- whether the connection's database is in memory:
+    // is_in_memory - whether the connection's database is in memory:
     // ":memory:"; a path opened with the memory flag; or, with the uri flag,
     // a URI naming ":memory:" or with mode=memory ("file::memory:",
     // "file:name?mode=memory"), as SQLite reads them; or "main" since
@@ -1575,13 +1575,13 @@ public:
     // SQLite opens it as a private temporary database on disk
     bool is_in_memory() const noexcept;
 
-    // get_face -- the SQLite layer's face, for the layer's other calls;
+    // get_face - the SQLite layer's face, for the layer's other calls;
     // closing or replacing the connection through it is the connection's to
     // do, not the face's
     face::sqlite& get_face() noexcept;
     const face::sqlite& get_face() const noexcept;
 
-    // hooks (sqlite.cpp) -- database_connection calls these, programs the
+    // hooks (sqlite.cpp) - database_connection calls these, programs the
     // operations they implement, whose contracts they keep
     void connect_impl();
     void disconnect_impl() noexcept;

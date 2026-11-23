@@ -4,8 +4,8 @@
 * Reads a makefile's statements as Microsoft's NMake reads one, as its
 * documentation describes it: see dmake.h.
 *   A line with `!` in its first column is a preprocessing directive, its
-* keyword in any case after blanks: the conditionals -- IF, IFDEF, IFNDEF,
-* ELSE and its ELSEIF forms, ENDIF -- counted as they nest, INCLUDE, and
+* keyword in any case after blanks: the conditionals - IF, IFDEF, IFNDEF,
+* ELSE and its ELSEIF forms, ENDIF - counted as they nest, INCLUDE, and
 * MESSAGE, ERROR, UNDEF and CMDSWITCHES. A line with `#` in its first column
 * is a comment. After a dependency or an inference rule, a line led by a
 * space or a tab is a command, its modifiers `@`, `-` and a number, `!`
@@ -14,8 +14,8 @@
 * after a rule ends it, as no blank line may stand between a rule and its
 * commands; one among the commands does not. Any other line is a macro when
 * an `=` comes before any `:`, its comment after it; a rule when a `:` or
-* `::` does -- a single letter at a word's start and its colon are a
-* drive -- its first `;` after the colon beginning a command that keeps any
+* `::` does - a single letter at a word's start and its colon are a
+* drive - its first `;` after the colon beginning a command that keeps any
 * `#`, and a `#` before that a comment. `^` escapes the byte after it.
 *   Refused here, in NMake's words, is what NMake refuses whatever its
 * macros hold: an `!ELSE`, an `!ELSEIF` or an `!ENDIF` with no `!IF` open
@@ -345,8 +345,8 @@ bool d_internal_conditional(
  * the documentation allows it; a keyword NMake has not is left to
  * dmake_eval as an expansion's line.
  *
- * Long as the keyword's three tables -- the conditionals, INCLUDE, the
- * others -- each a short loop.
+ * Long as the keyword's three tables - the conditionals, INCLUDE, the
+ * others - each a short loop.
  */
 static
 bool d_internal_directive(
@@ -479,8 +479,8 @@ size_t d_internal_inline_files(
  * @param[in,out] _index  the line's index; receives the last line taken.
  * @return `true`; `false` when memory runs out.
  *
- * Its word is the blanks that lead it and its modifiers -- `@`, `-` with
- * the number after it, `!` -- and the blanks among them; the rest, to a
+ * Its word is the blanks that lead it and its modifiers - `@`, `-` with
+ * the number after it, `!` - and the blanks among them; the rest, to a
  * `#`, is the command. Each `<<` takes the lines after it to one that
  * begins `<<`, which closes the file; they are the statement's body.
  *

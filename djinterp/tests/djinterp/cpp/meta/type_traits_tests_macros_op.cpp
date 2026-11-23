@@ -263,38 +263,38 @@ long probe_returns_int_with_args(
 }  // namespace
 
 
-// HAS_METHOD_OF_TYPE -- DSizedBox::count returns std::size_t (positive)
+// HAS_METHOD_OF_TYPE - DSizedBox::count returns std::size_t (positive)
 static_assert(std::is_same<decltype(probe_returns_size_t<DSizedBox>(0)),
                            int>::value,
               "HAS_METHOD_OF_TYPE: sized_box::count() returns std::size_t -> selects constrained");
 
-// HAS_METHOD_OF_TYPE -- DBareBox has no count() (negative)
+// HAS_METHOD_OF_TYPE - DBareBox has no count() (negative)
 static_assert(std::is_same<decltype(probe_returns_size_t<DBareBox>(0)),
                            long>::value,
               "HAS_METHOD_OF_TYPE: bare_box has no count() -> falls to variadic");
 
-// HAS_METHOD_OF_TYPE -- builtin int has no count() (negative)
+// HAS_METHOD_OF_TYPE - builtin int has no count() (negative)
 static_assert(std::is_same<decltype(probe_returns_size_t<int>(0)),
                            long>::value,
               "HAS_METHOD_OF_TYPE: int has no count() -> falls to variadic");
 
-// HAS_METHOD_OF_TYPE_ARGS -- DSizedBox::width(int) returns int (positive)
+// HAS_METHOD_OF_TYPE_ARGS - DSizedBox::width(int) returns int (positive)
 static_assert(std::is_same<decltype(probe_returns_int_with_args<DSizedBox>(0)),
                            int>::value,
               "HAS_METHOD_OF_TYPE_ARGS: sized_box::width(int) returns int -> selects constrained");
 
-// HAS_METHOD_OF_TYPE_ARGS -- DBareBox has no width (negative)
+// HAS_METHOD_OF_TYPE_ARGS - DBareBox has no width (negative)
 static_assert(std::is_same<decltype(probe_returns_int_with_args<DBareBox>(0)),
                            long>::value,
               "HAS_METHOD_OF_TYPE_ARGS: bare_box has no width() -> falls to variadic");
 
-// HAS_METHOD_OF_TYPE_V -- bool-valued variant
+// HAS_METHOD_OF_TYPE_V - bool-valued variant
 static_assert(HAS_METHOD_OF_TYPE_V(DSizedBox, count, std::size_t) == true,
               "HAS_METHOD_OF_TYPE_V: sized_box::count() returns size_t -> true");
 static_assert(HAS_METHOD_OF_TYPE_V(DSizedBox, count, int) == false,
               "HAS_METHOD_OF_TYPE_V: sized_box::count() does NOT return int -> false");
 
-// HAS_METHOD_OF_TYPE_ARGS_V -- bool-valued variant for argful methods
+// HAS_METHOD_OF_TYPE_ARGS_V - bool-valued variant for argful methods
 static_assert(HAS_METHOD_OF_TYPE_ARGS_V(DSizedBox, width, int,
                                          std::declval<int>()) == true,
               "HAS_METHOD_OF_TYPE_ARGS_V: width(int) returns int -> true");

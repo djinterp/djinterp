@@ -12,7 +12,7 @@
 *     - a resumable, pipelining-safe input reader                      [8]
 *     - the APOP digest, over net's own MD5                            [9]
 *   NOTHING HERE OPENS A SOCKET OR ALLOCATES. A derived module supplies a
-* net.h connection -- a socket, a TLS session, a pipe in memory -- and owns
+* net.h connection - a socket, a TLS session, a pipe in memory - and owns
 * its storage; this file never learns which. That is what lets a client and
 * a server be tested against each other over net_memory.h's pipe and ship
 * over a socket unchanged.
@@ -138,7 +138,7 @@ TABLE OF CONTENTS
                                               // uint64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, and compiles to
-// nothing where the build has none -- ISO strict C++98 wherever int64_t is
+// nothing where the build has none - ISO strict C++98 wherever int64_t is
 // `long long`: a 32-bit target, 64-bit Windows or macOS (the owner's ruling of
 // 2026.10.03 on round 3's question 1, (a)). The answer is net_common.h's, taken
 // once per translation unit, so that net's gated headers agree.
@@ -254,9 +254,9 @@ D_EXTERN_C_BEGIN
 // 2.  ERRORS
 //==============================================================================
 // Two kinds of failure, kept apart as in compress_common.h. A FORMAL failure
-// says the exchange is not valid POP3 -- a malformed line, a command outside
+// says the exchange is not valid POP3 - a malformed line, a command outside
 // its state. A MECHANICAL failure says the exchange may be fine and the
-// machinery ran short -- a small buffer, a connection that would block or
+// machinery ran short - a small buffer, a connection that would block or
 // closed. They occupy disjoint ranges, so a caller that only wants to know
 // "may I retry?" tests the range rather than the enumerator.
 //   A server's -ERR is NOT a failure here. It is a well-formed response and
@@ -297,13 +297,13 @@ enum dj_pop_error
 
 // 2.2    Error queries
 //------------------------------------------------------------------------------
-// error queries -- total over every value, never fail, never allocate.
+// error queries - total over every value, never fail, never allocate.
 // d_pop_error_to_net gives the dj_net_error an error maps to, by the rules
 // net.h gives with it; an unknown value is D_NET_ERROR_UNKNOWN.
 // d_pop_error_from_net gives the error a connection's dj_net_error is here,
 // by net.h's rules the other way: D_NET_OK is D_POP_OK; WOULD_BLOCK and
 // INVALID_ARGUMENT are their namesakes; a stream that ended or was lost --
-// CLOSED, CONNECTION_RESET, CONNECTION_ABORTED -- is CLOSED; anything else,
+// CLOSED, CONNECTION_RESET, CONNECTION_ABORTED - is CLOSED; anything else,
 // an unknown value included, is TRANSPORT.
 const char* d_pop_error_string(
     enum dj_pop_error _error
@@ -435,7 +435,7 @@ struct dj_pop_command_info
 
 // 3.4    Command metadata and transitions
 //------------------------------------------------------------------------------
-// command metadata -- total over every value, never fail, never allocate.
+// command metadata - total over every value, never fail, never allocate.
 // d_pop_command_info_of returns NULL only for D_POP_COMMAND_UNKNOWN and values
 // outside the enumeration; d_pop_command_from_keyword matches case-
 // insensitively and returns D_POP_COMMAND_UNKNOWN when nothing matches.
@@ -533,7 +533,7 @@ enum dj_pop_capability
 
 // 4.2.2
 // D_POP_VALUE_ABSENT / D_POP_EXPIRE_NEVER
-//   constant: sentinels for dj_pop_capabilities' numeric fields -- the
+//   constant: sentinels for dj_pop_capabilities' numeric fields - the
 // capability was not advertised, and EXPIRE NEVER, respectively.
 #define D_POP_VALUE_ABSENT (-1)
 #define D_POP_EXPIRE_NEVER (-2)
@@ -558,7 +558,7 @@ struct dj_pop_capabilities
 
 // 4.3    Capability operations
 //------------------------------------------------------------------------------
-// capability queries -- never fail, never allocate. d_pop_capability_keyword
+// capability queries - never fail, never allocate. d_pop_capability_keyword
 // returns NULL for a value that is not exactly one dj_pop_capability bit.
 void d_pop_capabilities_init(
     struct dj_pop_capabilities* _caps
@@ -606,7 +606,7 @@ enum dj_pop_feature
     D_POP_FEATURE_APOP = 0x10
 };
 
-// build query -- a constant mask of dj_pop_feature bits
+// build query - a constant mask of dj_pop_feature bits
 uint32_t d_pop_build_features(void);
 
 
@@ -655,7 +655,7 @@ struct dj_pop_response
 //------------------------------------------------------------------------------
 // 5.2.1
 // dj_pop_maildrop
-//   struct: the reply to STAT -- message count and total size in octets.
+//   struct: the reply to STAT - message count and total size in octets.
 struct dj_pop_maildrop
 {
     uint32_t count;
@@ -664,7 +664,7 @@ struct dj_pop_maildrop
 
 // 5.2.2
 // dj_pop_scan_listing
-//   struct: one LIST entry -- a message number and its size in octets.
+//   struct: one LIST entry - a message number and its size in octets.
 struct dj_pop_scan_listing
 {
     uint32_t number;
@@ -757,7 +757,7 @@ enum dj_pop_error d_pop_response_format(
     size_t*                       _out_size
 );
 
-// response-code names -- total, never fail. _name returns NULL for NONE and
+// response-code names - total, never fail. _name returns NULL for NONE and
 // UNKNOWN; _from_text matches case-insensitively and yields UNKNOWN for an
 // unrecognized non-empty code and NONE for empty text.
 const char* d_pop_resp_code_name(
@@ -785,7 +785,7 @@ enum dj_pop_error d_pop_parse_decimal(
     uint64_t*           _out
 );
 
-// listing parsers -- each takes the text after "+OK " (or one body line) and
+// listing parsers - each takes the text after "+OK " (or one body line) and
 // returns D_POP_OK, D_POP_ERROR_MALFORMED, or
 // D_POP_ERROR_INVALID_ARGUMENT for a NULL `_out`. A message number must be at
 // least 1. Trailing text after the required fields is permitted and ignored,
@@ -803,7 +803,7 @@ enum dj_pop_error d_pop_uid_listing_parse(
     struct dj_pop_uid_listing* _out
 );
 
-// listing formatters -- write the fields without CRLF, for use as +OK text or
+// listing formatters - write the fields without CRLF, for use as +OK text or
 // as a body line, under the two-call protocol. They fail with
 // D_POP_ERROR_MALFORMED for a message number of 0 or an invalid uid,
 // D_POP_ERROR_BUFFER_TOO_SMALL, or D_POP_ERROR_INVALID_ARGUMENT.
@@ -826,7 +826,7 @@ enum dj_pop_error d_pop_uid_listing_format(
     size_t*                          _out_size
 );
 
-// uid validation -- 1 to D_POP_UID_MAX characters, each 0x21 to 0x7E
+// uid validation - 1 to D_POP_UID_MAX characters, each 0x21 to 0x7E
 bool d_pop_uid_is_valid(
     struct dj_pack_text _uid
 );
@@ -847,7 +847,7 @@ bool d_pop_uid_is_valid(
 
 // 6.1    Sending
 //------------------------------------------------------------------------------
-// send helpers -- format into a stack buffer, then write it all with
+// send helpers - format into a stack buffer, then write it all with
 // d_net_write_all. They return any error of the corresponding formatter, or
 // the connection's, through d_pop_error_from_net: INVALID_ARGUMENT for a
 // NULL connection, CLOSED for one that takes nothing. On WOULD_BLOCK the line
@@ -907,7 +907,7 @@ struct dj_pop_body_encoder
 
 // 7.3    Body operations
 //------------------------------------------------------------------------------
-// initialization -- never fail
+// initialization - never fail
 void d_pop_body_decoder_init(
     struct dj_pop_body_decoder* _decoder
 );
@@ -1007,7 +1007,7 @@ struct dj_pop_reader
 
 // 8.2    Reader operations
 //------------------------------------------------------------------------------
-// initialization and inspection -- never fail
+// initialization and inspection - never fail
 void d_pop_reader_init(
     struct dj_pop_reader* _reader
 );
@@ -1069,8 +1069,8 @@ enum dj_pop_error d_pop_reader_read_body(
 //==============================================================================
 // RFC 1939 section 7: the server greets with a timestamp, and the client
 // proves knowledge of a shared secret by sending MD5(timestamp || secret) in
-// hex. APOP is shared by both sides -- a client computes the digest, a server
-// computes it again to compare -- so it lives here. MD5 comes from net's
+// hex. APOP is shared by both sides - a client computes the digest, a server
+// computes it again to compare - so it lives here. MD5 comes from net's
 // codec (codec_digest.h); no crypto library is needed. It is also broken:
 // APOP resists passive replay and nothing more, and should run inside TLS
 // where possible.

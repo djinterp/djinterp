@@ -161,13 +161,13 @@ struct has_arg_count_member<_T, std::void_t<decltype(_T::arg_count)>> : std::tru
 //   Every test is a nullary predicate returning true iff its facet holds.
 // Grouped by the section of option.hpp it covers; all flat in this namespace.
 
-// -- I.  DArgNotFound / arg_npos sentinels --
+// - I.  DArgNotFound / arg_npos sentinels --
 bool sentinel_arg_not_found_shape();
 bool sentinel_arg_not_found_distinct();
 bool sentinel_arg_npos_value();
 bool sentinel_arg_npos_type();
 
-// -- II.  option<> core type --
+// - II.  option<> core type --
 bool core_unary_members();
 bool core_unary_member_surface();
 bool core_args_single_members();
@@ -185,7 +185,7 @@ bool core_args_ref_cv_ptr();
 bool core_type_identity_same();
 bool core_type_identity_distinct();
 
-// -- III.  is_option / is_option_v --
+// - III.  is_option / is_option_v --
 bool isopt_true_forms();
 bool isopt_false_nonoptions();
 bool isopt_struct_does_not_clean();
@@ -193,7 +193,7 @@ bool isopt_v_cleans_cvref();
 bool isopt_decoy_rejected();
 bool isopt_trait_shape();
 
-// -- IV.  Option / UnaryOption / ArgsOption (C++20 concepts) --
+// - IV.  Option / UnaryOption / ArgsOption (C++20 concepts) --
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER && D_ENV_CPP_FEATURE_LANG_CONCEPTS
 bool concept_option_tracks_trait();
 bool concept_unary_positive_negative();

@@ -24,7 +24,7 @@
 * quaternion drops straight into the same transform pipeline as
 * linalg::transform's rotation builders. CONVENTION: matching
 * linalg::matrix and linalg::transform_point, the matrices are row-major
-* for column vectors -- a point is rotated as M * p; a rotation is active
+* for column vectors - a point is rotated as M * p; a rotation is active
 * and right-handed, q v q^-1, as glTF's, Eigen's and GLM's (S276).
 *
 * THE C CORE:

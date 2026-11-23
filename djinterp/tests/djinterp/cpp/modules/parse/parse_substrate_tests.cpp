@@ -32,7 +32,7 @@ namespace
 
 using namespace djinterp::parse;
 
-// test opcodes -- a throwaway family's private space, dense from zero, which
+// test opcodes - a throwaway family's private space, dense from zero, which
 // is what every real family's opcode enum looks like
 enum
 {
@@ -49,7 +49,7 @@ enum
 };
 
 // PROGRAM
-//   constant: two ticks, an add and a stop -- every opcode of the family once
+//   constant: two ticks, an add and a stop - every opcode of the family once
 // at least, ending on the one that halts.
 const int PROGRAM[] = { OP_TICK, OP_TICK, OP_ADD, OP_STOP };
 
@@ -62,7 +62,7 @@ struct counter
 };
 
 // DTickOp
-//   struct: a stateless operator -- an empty functor, the callable def() takes
+//   struct: a stateless operator - an empty functor, the callable def() takes
 // at every level. It reaches its family's state the way every family does,
 // through ext.
 struct DTickOp
@@ -124,7 +124,7 @@ void stop_raw(
 }
 
 // drive
-//   function: the whole of a driver's inner loop -- fetch, dispatch, repeat --
+//   function: the whole of a driver's inner loop - fetch, dispatch, repeat --
 // over PROGRAM, and whether the run ended as it must: halted successfully, two
 // ticks counted, seven added, and nothing reported.
 bool drive(
@@ -154,7 +154,7 @@ bool drive(
 
 // fill
 //   function: a warning, a note under it, and an error the two-slot sink has
-// no room to store -- the state the storage and identity sections both read.
+// no room to store - the state the storage and identity sections both read.
 void fill(
     fixed_diagnostics<2u, 128u>& _sink
 )
@@ -486,7 +486,7 @@ bool d_tests_parse_interop(void)
     fixed_diagnostics<4u, 128u> diag;
     machine                     vm(diag);
 
-    // the C entry points take the C++ objects directly -- this compiling at
+    // the C entry points take the C++ objects directly - this compiling at
     // all is most of what the section asserts
     d_parse_machine_init(&vm, &diag);
     d_parse_machine_fail(&vm,
@@ -504,7 +504,7 @@ bool d_tests_parse_interop(void)
 }  // namespace
 
 // d_tests_parse_substrate
-//   constant: the suite -- every section this build has, the most fundamental
+//   constant: the suite - every section this build has, the most fundamental
 // first, so that the first failure reported is the one to look at.
 const dj_tests_section d_tests_parse_substrate[] =
 {

@@ -91,7 +91,7 @@ D_NODISCARD struct dj_ssh_credentials d_ssh_credentials_default(void);
  *        server's offered methods have in common.
  *
  * @note a failed attempt that is not fatal leaves the session
- *       D_SSH_STATE_VERIFIED, so other credentials can be tried -- within the
+ *       D_SSH_STATE_VERIFIED, so other credentials can be tried - within the
  *       server's limit on attempts, past which it disconnects.
  *
  * @param[in,out] _session      a D_SSH_STATE_VERIFIED session.

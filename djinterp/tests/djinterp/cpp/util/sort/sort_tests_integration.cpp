@@ -119,7 +119,7 @@ bool tests_sort_facade_every_algorithm_agrees()
     //   The subsystem's central promise: the choice of algorithm is a
     // performance decision and never a semantic one.  Six algorithms, sizes
     // spanning quicksort's insertion threshold and several of merge sort's
-    // pass counts, all reached through the facade -- and every form must
+    // pass counts, all reached through the facade - and every form must
     // agree, element for element, with std::sort.
     //
     //   This test carries its own generator rather than the shared corpus,
@@ -214,7 +214,7 @@ bool tests_sort_facade_comparator_algebra_end_to_end()
 
     //   sort_common.hpp pulls in the functional comparator algebra, so a
     // composed comparator must reach every layer the facade exports --
-    // the algorithms, the dispatch surface and the monoid -- with no glue.
+    // the algorithms, the dispatch surface and the monoid - with no glue.
     data.push_back(5);
     data.push_back(1);
     data.push_back(4);

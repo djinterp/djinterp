@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                                table_tests_table.cpp
 *
-* table.hpp: the dynamic rank-2 table -- construction, the axis constants,
+* table.hpp: the dynamic rank-2 table - construction, the axis constants,
 * writable access, row and column structure, sizing, the algorithms, equality,
 * the serial pair and detection.
 *
@@ -240,7 +240,7 @@ tests_table_column_operations
   Tests the following:
   - insert_column at the front, the middle and the end rebuilds each row
   - a column whose height is not the row count throws
-    std::invalid_argument -- on a table with no rows too, where an empty
+    std::invalid_argument - on a table with no rows too, where an empty
     column widens the table and a non-empty one is refused, never dropped
   - insert_column past the end and erase_column past the end throw
   - erase_column and pop_column; pop_column with no columns does nothing

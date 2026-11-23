@@ -11,7 +11,7 @@
 * `static_assert`s inside the test bodies: a violation fails the build. The
 * runtime checks re-confirm, at run time, the facts that collapse to ordinary
 * values (recovered NTTPs, the `_v` trait booleans, concept-driven dispatch),
-* which is the carrier contract -- a carrier is itself a value.
+* which is the carrier contract - a carrier is itself a value.
 *
 *   PORTABILITY (mirrors carrier.hpp's own tiers):
 *   - type carrier + detection traits compile at the C++14 floor;
@@ -152,7 +152,7 @@ bool tests_carrier_concept_carrier();
 bool tests_carrier_concept_constrains();
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // carrier_spec
 //   function: the suite as DTest's module spec, one block per section.

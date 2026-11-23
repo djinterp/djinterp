@@ -1,4 +1,4 @@
-# wiki_oracle.py -- the wiki reader's records, compared with other readers'.
+# wiki_oracle.py - the wiki reader's records, compared with other readers'.
 #
 # Reads each page named, or found beneath a directory named, with
 # test_dwiki --dump and with another reader, and compares what both make of
@@ -24,10 +24,10 @@
 #   pandoc-mediawiki
 #                 MediaWiki's, against pandoc's mediawiki reader: headings,
 #                 and the links and images, in any order. Pandoc departs
-#                 from MediaWiki in places -- a template it leaves out, a
-#                 link's trail -- so a difference here is a case to look at,
+#                 from MediaWiki in places - a template it leaves out, a
+#                 link's trail - so a difference here is a case to look at,
 #                 not a failure by itself.
-#   mediawiki     MediaWiki's, against MediaWiki itself -- 1.43, installed
+#   mediawiki     MediaWiki's, against MediaWiki itself - 1.43, installed
 #                 at MW_INSTALL_PATH, run with php through
 #                 wiki_mw_records.php, beside this script, whose comment
 #                 says how the wiki is set up: the sections, by level,
@@ -83,7 +83,7 @@ def dump(reader, path, dialect):
     return [json.loads(line) for line in out.stdout.splitlines()]
 
 
-# -- markdown-it ---------------------------------------------------------------
+# - markdown-it ---------------------------------------------------------------
 
 def markdown_it_reader():
     """markdown-it-py set as GitHub's wiki reads, and the emoji it shows."""
@@ -184,7 +184,7 @@ def compare_markdown_it(reader, paths, show):
     return summary(counts)
 
 
-# -- pandoc --------------------------------------------------------------------
+# - pandoc --------------------------------------------------------------------
 
 def pandoc(path, reader):
     """Pandoc's JSON of a page; None when pandoc fails, and an error when it
@@ -320,7 +320,7 @@ def ours_for_pandoc(records, gfm):
     return heads, links
 
 
-# -- MediaWiki -----------------------------------------------------------------
+# - MediaWiki -----------------------------------------------------------------
 
 RECORDS = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                        'wiki_mw_records.php')
@@ -593,7 +593,7 @@ def mediawiki_pages(reader, found, show):
     return summary(counts)
 
 
-# -- reporting -----------------------------------------------------------------
+# - reporting -----------------------------------------------------------------
 
 def report(path, ours, theirs, kinds, counts, show):
     """A page counted the same, or shown with its first differences."""

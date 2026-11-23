@@ -106,7 +106,7 @@ struct can_sorted_range<_C,
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- declarations - visible in BOTH modes ----------------------------------
+// - declarations - visible in BOTH modes ----------------------------------
 
 // I.   range   (sorted_container_tests_range.cpp)
 bool tests_sorted_default_basic();
@@ -120,7 +120,7 @@ bool tests_sorted_gating_associative_disabled();
 bool tests_sorted_gating_non_container_disabled();
 
 
-// -- spec provider - spec mode only ----------------------------------------
+// - spec provider - spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 inline
 dt::module_spec sorted_container_spec()

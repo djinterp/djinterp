@@ -158,8 +158,8 @@ TABLE OF CONTENTS
 //==============================================================================
 // 2.  COMPILE-TIME DETECTION
 //==============================================================================
-// Reads the macros a curses header defines -- NCURSES_VERSION for ncurses,
-// PDC_VER_MAJOR or __PDCURSES__ for PDCurses -- so a curses header must be
+// Reads the macros a curses header defines - NCURSES_VERSION for ncurses,
+// PDC_VER_MAJOR or __PDCURSES__ for PDCurses - so a curses header must be
 // included before this one; otherwise curses reads as not detected.
 
 

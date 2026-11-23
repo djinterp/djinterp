@@ -14,9 +14,9 @@
 * Each concrete monad supplies its own specialization in its own header.
 *
 *   The predicate SFINAE structural traits and C++20 concepts in
-* Section 0 describe the protocol vocabulary -- monad-ness, the value
+* Section 0 describe the protocol vocabulary - monad-ness, the value
 * and rebind types, Kleisli-arrow shape, bindability / mappability, and
-* combinator shape -- so generic code can constrain and introspect on
+* combinator shape - so generic code can constrain and introspect on
 * it without first naming a concrete monad.
 *
 *   Operator| is overloaded for (M<T>) | bind_with(f) and similar
@@ -62,8 +62,8 @@ II.   GENERIC MONADIC OPERATIONS
       2.    monad_bind                              (>>= in Haskell)
       3.    monad_map                               (fmap, functorial)
       4.    monad_join                              (flatten one layer)
-      5.    monad_then                              (>> -- sequence, discard)
-      6.    kleisli_compose                         (>=> -- f then g)
+      5.    monad_then                              (>> - sequence, discard)
+      6.    kleisli_compose                         (>=> - f then g)
       7.    lift_m2                                 (binary applicative lift)
 
 III.  PIPELINE COMBINATORS
@@ -110,7 +110,7 @@ NS_DJINTERP
 //
 //     - value_type    : the inner type T
 //     - rebind<U>     : M<U> (for changing the inner type)
-//     - unit(x)       : static M<T> unit(T) -- lift a value
+//     - unit(x)       : static M<T> unit(T) - lift a value
 //     - bind(m, f)    : static M<U> bind(M<T>, f) where f : T -> M<U>
 //     - is_specialized = true_type (marker)
 //
@@ -277,7 +277,7 @@ NS_INTERNAL
     {};
 
     // is_monadic_function_helper
-    //   helper: detection sink for the Kleisli-arrow shape -- true
+    //   helper: detection sink for the Kleisli-arrow shape - true
     // when Function is callable on ValueType and the (decayed)
     // result is itself a monad.  Primary: false.  All ill-formed
     // sub-expressions are confined to the specialization's match,
@@ -356,7 +356,7 @@ struct is_mappable
 
 // is_monad_combinator
 //   trait: true when Combinator exposes an apply(Monad) member that
-// is callable -- the structural shape every pipeline combinator
+// is callable - the structural shape every pipeline combinator
 // (DBindCombinator, DMapCombinator, DThenCombinator) satisfies.
 template<typename Combinator,
          typename Monad>
@@ -517,7 +517,7 @@ auto monad_map(
 //   function: flattens a monad of monads. join(M<M<T>>) -> M<T>.
 // Implemented in terms of bind with identity.
 //
-//   The return type is the outer monad's value_type -- which, for a
+//   The return type is the outer monad's value_type - which, for a
 // monad of monads, IS the inner monad M<T>.  (The previous spelling
 // passed a value_type *value* as bind's function argument inside the
 // trailing return type, which is ill-formed for any monad whose bind

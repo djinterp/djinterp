@@ -52,7 +52,7 @@
 #include <cstddef>
 #include <cstdio>
 // djinterp
-// djinterp  -- framework header first, then the header under test (which pulls
+// djinterp  - framework header first, then the header under test (which pulls
 // in test_report.hpp for the four focus-part node types).
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
@@ -99,7 +99,7 @@ bool test_context_check(
 
 
 // =========================================================================
-//  shared fixture -- one of each report node, for distinct focus addresses
+//  shared fixture - one of each report node, for distinct focus addresses
 // =========================================================================
 
 // DReportFixture

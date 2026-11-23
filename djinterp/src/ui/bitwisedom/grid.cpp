@@ -5,15 +5,15 @@
 *   The grid scrolls both ways inside its own child window, with the column
 * headings pinned to the top and the name and value columns pinned to the
 * left, as a spreadsheet's are. Everything is drawn with the window's draw
-* list from one layout, computed each frame: the columns -- a bit each, or
-* one for a collapsed segment or an abbreviated run of unused bits -- and
-* the rows -- the probe and usage rows pinned at the top, every visible row
+* list from one layout, computed each frame: the columns - a bit each, or
+* one for a collapsed segment or an abbreviated run of unused bits - and
+* the rows - the probe and usage rows pinned at the top, every visible row
 * of the tree in the order the sheet's sort shows them, with those placed
 * among them, then the add row and those pinned at the bottom, at the
 * grid's foot while the rows leave room.
 *   GRID LINES are drawn over the cells, each kind under its own switch,
 * thickness, colour and style: between bits, every n bits, between rows,
-* above groups, at segment edges, and around the whole -- stopping where the
+* above groups, at segment edges, and around the whole - stopping where the
 * rows do, unless the sheet runs them down the room below.
 *   INTERACTION posts events and changes nothing itself. A click on a name
 * selects its row; on a group's arrow, opens or closes it; on a segment's
@@ -31,7 +31,7 @@
 * window is in front: the arrows, with Shift extending the range and Ctrl
 * going to an edge; Home, End and End mode, Page Up and Page Down, Enter and
 * Tab round a range, the selections of Shift+Space, Ctrl+Space and Ctrl+A,
-* F8's Extend mode -- the name and value columns standing for the frozen
+* F8's Extend mode - the name and value columns standing for the frozen
 * panes. ImGui's own navigation is kept off those keys. Each key is one
 * event: the cell the cursor goes to, the range from corner to corner, and
 * the rows and bits it covers; the cell is scrolled into view once the
@@ -42,19 +42,19 @@
 * any boundary in the ruler, which a double-click puts back to the default.
 * The grid fills its panel: the room it has beyond what its columns need
 * goes to the bits' cells, widened alike, or to the name column, as the
-* sheet says -- or to nothing, and then the rows end where the columns do.
+* sheet says - or to nothing, and then the rows end where the columns do.
 * PROPORTIONAL CELLS, the default, make every row as tall as the sheet's
-* share of a bit's cell's width -- four fifths, or 1 for square: the cells
+* share of a bit's cell's width - four fifths, or 1 for square: the cells
 * still widen to fill the room, until they are as wide as the cell settings
 * allow; and a cell width set by hand is the width they take. What a column or a heading cannot show for want
-* of room -- a name or a value cut short, a run of bits shown as one column,
-* a band's name -- the mouse shows in full.
-*   WHAT A CELL SHOWS -- its digit, a range's name across it, its row's
-* colour -- is the grid's settings, as the display rules over its row and
+* of room - a name or a value cut short, a run of bits shown as one column,
+* a band's name - the mouse shows in full.
+*   WHAT A CELL SHOWS - its digit, a range's name across it, its row's
+* colour - is the grid's settings, as the display rules over its row and
 * its bits change them. A row with no fill, or a cell whose colour is
 * hidden, draws its set bits plain: the theme's text, faintly.
-*   TEXT is drawn in the ink that reads on what lies beneath it -- a cell's
-* fill, a range's label chip, a selected row, a band -- whatever colour the
+*   TEXT is drawn in the ink that reads on what lies beneath it - a cell's
+* fill, a range's label chip, a selected row, a band - whatever colour the
 * sheet gave it; a row with no fill puts its name on its own ground.
 *   The ADD ROW after the symbols is a "+", and a faded "Add new..." beside
 * it; a press on either opens the menu of what to add.
@@ -100,7 +100,7 @@ using uxoxo::option_set;
 using uxoxo::platform::imgui_frame;
 
 // column
-//   struct: one displayed column -- a bit, or a run of bits shown as one.
+//   struct: one displayed column - a bit, or a run of bits shown as one.
 struct column
 {
     int   lsb       = 0;
@@ -126,7 +126,7 @@ struct band
 
 // row_kind_shown
 //   enum: what a grid row is: the probe, a row of the sheet's, the usage
-// row, the add row -- and the "Add child..." field under the rows of the
+// row, the add row - and the "Add child..." field under the rows of the
 // group or range a name typed there goes into.
 enum class shown
 {
@@ -139,7 +139,7 @@ enum class shown
 
 // grid_row
 //   struct: one displayed row. A probe or usage row has the special row it
-// shows; among the rows, how deep it is indented, and -- a usage row -- the
+// shows; among the rows, how deep it is indented, and - a usage row - the
 // group or range whose rows it counts, 0 for the sheet's.
 struct grid_row
 {
@@ -191,7 +191,7 @@ header_drag& the_header_drag();
 // widening
 //   struct: a drag of a boundary in the ruler, which sizes every bit's cell
 // at once: the boundary, the cells' width when the drag began, where the
-// mouse was then, and how many cells lie left of the boundary -- the ones
+// mouse was then, and how many cells lie left of the boundary - the ones
 // the mouse's movement is shared between.
 struct widening
 {
@@ -271,15 +271,15 @@ const float SQUARE_MOST = 56.0f;
 const float LABEL_CHIP = 0.85f;
 
 // PLAIN_SET
-//   constant: how opaque a set bit is drawn with no colour -- a row with no
+//   constant: how opaque a set bit is drawn with no colour - a row with no
 // fill, or a cell whose colour the display rules hide: the theme's text,
 // faintly, so a set bit always shows.
 const float PLAIN_SET = 0.30f;
 
 // NAMES_BY / NAMES_BY_TIPS
 //   constants: the labels of the buttons over the symbols column, which
-// choose what it lists each row by -- its symbol name, its own name, or its
-// value -- longest first, a column too narrow for one set taking the next;
+// choose what it lists each row by - its symbol name, its own name, or its
+// value - longest first, a column too narrow for one set taking the next;
 // and what the first two buttons' tooltips say. The value button says, in
 // the two longer sets, how values are written while the column lists them.
 const char* const NAMES_BY[3][3] = {
@@ -298,8 +298,8 @@ const char* const SORT_WORDS[SORT_KEY_COUNT] = {
     "the sheet", "symbol name", "name", "short name", "value", "lowest bit",
     "width", "kind", "note" };
 
-// values in each form, as value_form numbers them -- "value" for the way
-// the header writes them -- and how its tooltip names each form.
+// values in each form, as value_form numbers them - "value" for the way
+// the header writes them - and how its tooltip names each form.
 const char* const FORM_LABELS[VALUE_FORM_COUNT] = {
     "value", "hex", "dec", "bin", "shift", "bits" };
 const char* const FORM_WAYS[VALUE_FORM_COUNT] = {
@@ -317,7 +317,7 @@ const int RUNS_MOST = 4;
 
 // BUTTON_TEXT / BUTTON_PAD / BUTTON_RISE / BUTTON_FADE
 //   constants: the size the symbols column's buttons write at, against the
-// interface's font -- the ruler's size; the room either side of a label,
+// interface's font - the ruler's size; the room either side of a label,
 // and above and below it, at a scale of one; and how opaque the words of a
 // button not chosen are until the mouse is on it.
 const float BUTTON_TEXT = 0.82f;
@@ -587,8 +587,8 @@ int& keyboard_frame()
 
 // nav_column
 //   struct: a column the cursor stops in, as the grid shows them left to
-// right: the name column, the value column, or a column of bits -- a bit's,
-// a collapsed segment's or a run nothing uses -- by its lowest bit, with
+// right: the name column, the value column, or a column of bits - a bit's,
+// a collapsed segment's or a run nothing uses - by its lowest bit, with
 // its place among the layout's columns.
 struct nav_column
 {
@@ -675,7 +675,7 @@ int edge_along(
 /*
 count_within
   What a usage row in a group counts: the bit and range symbols with a value
-among the group's rows, at any depth -- the rows after it in the
+among the group's rows, at any depth - the rows after it in the
 resolution's depth-first order, until one no deeper than it.
 */
 tally count_within(
@@ -1011,7 +1011,7 @@ std::string shown_value(
 
 // shown_wide
 //   a value as the value column writes it in a sheet of any width: as the
-// narrow form where it fits an integer, else as its runs -- a wide sheet's
+// narrow form where it fits an integer, else as its runs - a wide sheet's
 // hex is mostly zeros, and says less than where its bits are.
 std::string shown_wide(
     const wide& _value,
@@ -1029,7 +1029,7 @@ std::string shown_wide(
 
 // form_fits
 //   whether a sheet _width bits wide writes values in _form: decimal and
-// binary only within an integer's width -- a wider sheet writes them in
+// binary only within an integer's width - a wider sheet writes them in
 // hex.
 bool form_fits(
     value_form _form,
@@ -1261,7 +1261,7 @@ int band_for(
 adding_into
   The group or range a name typed into the grid's "Add child..." field goes
 into: the row selected first, when it holds rows and is open; else the
-group or range it is in -- not the sheet's root, whose rows the add row
+group or range it is in - not the sheet's root, whose rows the add row
 adds to. 0 when nothing is selected.
 */
 int adding_into(
@@ -1309,7 +1309,7 @@ layout lay_out(
                            (grid.show_bits) );
 
     // a bit's cell before the room to spare is shared: as wide as the sheet
-    // says, whatever the rows -- proportional rows stop at the shortest a
+    // says, whatever the rows - proportional rows stop at the shortest a
     // line of digits fits in, and no narrower cell makes them shorter
     const float ratio  = std::clamp(grid.cell_ratio, 0.4f, 1.5f);
     const float plain  = grid.cell_width * scale;
@@ -1322,7 +1322,7 @@ layout lay_out(
 
     // The symbol tree is followed by an add row, then optional utilities
     // anchored to the bottom of the grid (not above the symbols).
-    // the bits something shown uses -- worked out only when unused runs
+    // the bits something shown uses - worked out only when unused runs
     // are abbreviated, which is all it is for
     wide            used = grid.show_probe ? doc.probe : wide();
     const row_index rows(doc);
@@ -1366,7 +1366,7 @@ layout lay_out(
         }
     }
 
-    // the special rows shown -- of the kinds shown -- in their order; those
+    // the special rows shown - of the kinds shown - in their order; those
     // among the rows by where they go: before a row, or at the end of a
     // group's or range's rows, or of the sheet's, 0
     std::vector<const special_row*>      pinned_top;
@@ -1445,7 +1445,7 @@ layout lay_out(
 
     // the rows whose rows are being listed, innermost last: a group's or a
     // range's rows end at the next row no deeper than it, and the special
-    // rows at their end -- in an open one -- follow them
+    // rows at their end - in an open one - follow them
     struct listing
     {
         int  id    = 0;
@@ -1692,7 +1692,7 @@ layout lay_out(
     }
 
     // the room to spare: the cells take it in proportion, to whole pixels,
-    // the last ending at the grid's edge -- square cells, until they are as
+    // the last ending at the grid's edge - square cells, until they are as
     // wide as one may be; or the name column takes it all
     float natural = 0.0f;
 
@@ -1750,7 +1750,7 @@ layout lay_out(
     out.cells_w  = x;
 
     // proportional cells: every row as tall as a bit's cell is wide, times
-    // the sheet's share -- 1 for square -- the cell height aside
+    // the sheet's share - 1 for square - the cell height aside
     if ( (square) &&
          (!columns.empty()) )
     {
@@ -1762,8 +1762,8 @@ layout lay_out(
         if (out.name_w > 0.0f) out.name_w = _room - out.value_w;
         else if (out.value_w > 0.0f) out.value_w = _room;
     }
-    // the heading: the band strip -- kept with no bands while the name
-    // column is shown, for the buttons over it -- the ruler, and the
+    // the heading: the band strip - kept with no bands while the name
+    // column is shown, for the buttons over it - the ruler, and the
     // columns' labels on their own line, below the buttons, ruler or none
     const bool has_buttons = (out.name_w > 0.0f);
 
@@ -1921,7 +1921,7 @@ private:
 
     // the buttons over the name column, as this frame lays them out: none
     // when the column is too narrow, or hidden; and, for grid_written, what
-    // the column wrote for each row it drew -- before fitting -- and where
+    // the column wrote for each row it drew - before fitting - and where
     // that ended, and what a row with no bits wrote over its cells
     std::vector<name_button> buttons;
     std::vector<std::string> written;
@@ -2447,8 +2447,8 @@ painter::listed_value
 writes it, it is the value column's own text; otherwise every row alike --
 in hex, to the sheet's width; in decimal; in binary, from the nibble that
 holds its highest set bit; as a run shifted into place, from its lowest
-set bit -- or, for a value in a field, the number the field holds shifted
-to the field's lowest bit -- the way the header writes masks; or as the
+set bit - or, for a value in a field, the number the field holds shifted
+to the field's lowest bit - the way the header writes masks; or as the
 bits it sets.
 */
 std::string painter::listed_value(
@@ -2641,7 +2641,7 @@ std::string painter::probe_text() const
 /*
 painter::fit_names
   The name column's width for its longest name, as the rows are now: indent,
-arrow and chip included -- or, by value, for its longest value.
+arrow and chip included - or, by value, for its longest value.
 */
 float painter::fit_names() const
 {
@@ -2722,7 +2722,7 @@ float painter::fit_values() const
 }
 
 // painter::cells_before
-//   how many cells -- whole bits, not runs -- lie left of a boundary.
+//   how many cells - whole bits, not runs - lie left of a boundary.
 int painter::cells_before(
     int _boundary
 ) const
@@ -2887,7 +2887,7 @@ void painter::rows_background()
 
 /*
 painter::rules_for
-  The display rules over a row of the sheet's, in order -- those over its
+  The display rules over a row of the sheet's, in order - those over its
 groups too: what its cells are each asked of. None for any other row.
 */
 std::vector<const display_rule*> painter::rules_for(
@@ -2916,7 +2916,7 @@ std::vector<const display_rule*> painter::rules_for(
 painter::row_cells
   A cell's fill says whether its bit is set; a range's or a value's field is
 tinted underneath, so a value's zeros still show where it lives. A row with
-no fill draws its set bits plain -- in the theme's text, faintly -- but for
+no fill draws its set bits plain - in the theme's text, faintly - but for
 a range, whose bits are all set and say nothing its name does not. Each
 cell of a sheet's row shows its digit and its colour as the grid's display
 rules over it say: a cell with its colour hidden is drawn as a row with no
@@ -2988,8 +2988,8 @@ void painter::row_cells(
                                            : -1;
             ghost     = preview_after(m, r.id, after);
 
-            // a row with no bits -- a macro that takes arguments, one with
-            // no value, a row in error -- has its cells drawn empty, and
+            // a row with no bits - a macro that takes arguments, one with
+            // no value, a row in error - has its cells drawn empty, and
             // what it is written over them once the lines are drawn
             break;
         }
@@ -2997,8 +2997,8 @@ void painter::row_cells(
 
     const bool  transparent = (colour == 0);
 
-    // what its cells show: the grid's own settings -- a utility row keeps
-    // its colour -- and, in a row of the sheet's, the rules over it
+    // what its cells show: the grid's own settings - a utility row keeps
+    // its colour - and, in a row of the sheet's, the rules over it
     const std::vector<const display_rule*> ruled = rules_for(_row);
     cell_shows                             plain;
 
@@ -3021,8 +3021,8 @@ void painter::row_cells(
     const bool  blank  = text_row(_row);
 
     // whether a range's name, or a value's number, is written across its
-    // span -- where the display rules show names over at least half of it
-    // -- and on a chip of its colour, where they show that over at least
+    // span - where the display rules show names over at least half of it
+    // - and on a chip of its colour, where they show that over at least
     // half; a range so named draws no plain fill, which would say nothing
     // more
     bool labelled   = false;
@@ -3147,7 +3147,7 @@ void painter::row_cells(
         }
 
         // An explicitly selected rectangular block is highlighted even
-        // when its cells are empty or the row has no fill -- but for the
+        // when its cells are empty or the row has no fill - but for the
         // cursor's cell, left plain inside it, as Excel leaves its active
         // cell
         const bool cursor_here = ( (_row.kind == shown::sheet)              &&
@@ -3248,7 +3248,7 @@ void painter::row_cells(
             const ImVec2 at(std::floor((left + right - size.x) * 0.5f),
                             std::floor(top + (l.row_h - size.y) * 0.5f));
 
-            // the chip: the row's colour over its cells -- or, with no fill,
+            // the chip: the row's colour over its cells - or, with no fill,
             // the row's own ground, which hides the cells' digits beneath the
             // name without giving the row a colour it does not have
             const ImU32 cells = composite(fill, composite(under, boxed));
@@ -3272,8 +3272,8 @@ void painter::row_cells(
 /*
 painter::row_note
   What a row with no bits writes over its empty cells: a macro, its
-definition as the header writes it -- name, parameters and body, each
-placeholder a macro name -- in the monospace font; a row in error, why.
+definition as the header writes it - name, parameters and body, each
+placeholder a macro name - in the monospace font; a row in error, why.
 It is centred in the cells in view, on a chip of the row's own ground that
 covers the lines beneath it, in the ink that reads there.
 */
@@ -3486,7 +3486,7 @@ void painter::row_label(
             2.0f);
     }
 
-    // the name, unless a rename is being typed over it -- or, by value, the
+    // the name, unless a rename is being typed over it - or, by value, the
     // row's value, in the monospace font and the ink the value column
     // writes it in: as the header writes it, where the name would be; every
     // row's alike, lined up at the column's right, its low digits kept. A
@@ -3557,12 +3557,12 @@ void painter::row_label(
 /*
 painter::lines
   Vertical lines first, at each boundary between two columns: a segment
-edge, else a major line, else a minor one -- one line per boundary, the most
+edge, else a major line, else a minor one - one line per boundary, the most
 important kind that is switched on. They run through every row: a row with
 no bits has its cells like any other, and what it writes over them is
 drawn after. They stop where the rows of the tree do, above the add row,
 and start again at the first of the rows pinned at the bottom, wherever
-those stand -- unless the sheet has its lines run down the room between,
+those stand - unless the sheet has its lines run down the room between,
 the add row's and the room's below. Then the horizontal lines between
 rows, heavier above groups, and the border last, around each run of rows.
 */
@@ -3920,7 +3920,7 @@ void painter::header()
         const float rtop = top + l.band_h;
         int         every = std::max(1, grid.index_every);
 
-        // numbers wider than a cell -- a wide sheet's -- are thinned to
+        // numbers wider than a cell - a wide sheet's - are thinned to
         // every second, fourth, ... bit, so they never run together
         ImGui::PushFont(nullptr, font_base() * 0.82f);
 
@@ -4402,8 +4402,8 @@ void painter::pinned_tooltip(
 /*
 painter::heading_tooltip
   A band's tooltip says which bits it holds and what a click does to it; a
-place in the ruler, the bit or the run of bits below it -- whose number
-the ruler may have had no room to write -- and how the cells are sized; a
+place in the ruler, the bit or the run of bits below it - whose number
+the ruler may have had no room to write - and how the cells are sized; a
 button over the name column, what it lists the rows by.
 */
 void painter::heading_tooltip(
@@ -4414,7 +4414,7 @@ void painter::heading_tooltip(
     const int at = (_under.names) ? -1
                                   : column_at(l, _mouse.x - cells_x(0.0f));
 
-    // a button over the name column: what it lists the rows by -- and, the
+    // a button over the name column: what it lists the rows by - and, the
     // value button, how it writes values
     if (_under.by >= 0)
     {
@@ -4530,7 +4530,7 @@ void painter::heading_tooltip(
 painter::interact
   One invisible button covers the content, and the view where the content
 is smaller, so ImGui's own idea of hovered, pressed and dragged applies to
-the grid as to any widget -- and a press beside the content, after a band
+the grid as to any widget - and a press beside the content, after a band
 collapsed from under the mouse, still lands on the grid. What the button
 reports is read once, before anything else is drawn. While a rename is
 typed in the grid, the button lets the field drawn after it lie over it.
@@ -4541,8 +4541,8 @@ void painter::interact()
 
     const ImVec2 room = ImGui::GetContentRegionAvail();
 
-    // a field drawn after the button -- a rename's, or the "Add child..."
-    // row's -- lies over it
+    // a field drawn after the button - a rename's, or the "Add child..."
+    // row's - lies over it
     const bool child = std::any_of(l.rows.begin(),
                                    l.rows.end(),
                                    [](const grid_row& _row)
@@ -4590,7 +4590,7 @@ void painter::interact()
 
 /*
 painter::row_drag
-  A row dragged by its name -- not by its arrow -- carries its id, as the
+  A row dragged by its name - not by its arrow - carries its id, as the
 tree's rows do, so it drops here or in the tree. Dropped on a group's or a
 range's name it goes into it, at the end; on a symbol's, just before it,
 in its group: the row the drop would land on is lit as the mouse moves
@@ -4598,7 +4598,7 @@ over it. Only the sheet in front takes a drop: a row is no other sheet's.
 The drag is the grid's button's, read straight after it; the drop, the
 pinned columns'.
   A probe or usage row dragged by its name carries its id among the
-special rows, and drops among the rows as a row does -- into a group or
+special rows, and drops among the rows as a row does - into a group or
 range, or before a row; on another special row, just before it, placed as
 it is; on the add row, after the sheet's rows; on the "Add child..." row,
 at the end of its group's; and in the room below the rows, pinned at the
@@ -4761,10 +4761,10 @@ void painter::row_drag()
 
 /*
 painter::drop_special
-  Where a special row dragged over the pinned columns would go, lit -- a
+  Where a special row dragged over the pinned columns would go, lit - a
 row's name outlined for into it, a line above a row for before it, a line
-at the foot of the rows for at their end -- and, dropped, put there: one
-"special.place", with where -- "top", "bottom" or "tree" -- the group it is
+at the foot of the rows for at their end - and, dropped, put there: one
+"special.place", with where - "top", "bottom" or "tree" - the group it is
 in and the row it comes before, and the special row it is put ahead of in
 their order.
 */
@@ -4814,7 +4814,7 @@ void painter::drop_special(
         {
             case shown::sheet:
             {
-                // into a group or range -- but its top quarter is before it
+                // into a group or range - but its top quarter is before it
                 const bool into = ( (each.source != nullptr)          &&
                                     (can_contain(*each.source))       &&
                                     (ImGui::GetMousePos().y >=
@@ -4895,7 +4895,7 @@ void painter::drop_special(
 /*
 painter::child_field
   The "Add child..." row's field, where the names of the rows one level
-deeper begin, to the name column's edge -- drawn only while the whole row
+deeper begin, to the name column's edge - drawn only while the whole row
 is in view. Enter adds a bit of the name typed to the group or range; the
 window gives the field the keyboard back, for the next.
 */
@@ -5201,7 +5201,7 @@ void painter::respond()
     }
 
     // the second press of a double-click on a band puts back what the
-    // first did, and renames the band -- found by the first press, since
+    // first did, and renames the band - found by the first press, since
     // the band it collapsed or expanded has moved the columns under the
     // mouse since
     band_click& last = the_band_click();
@@ -5510,8 +5510,8 @@ painter::open_menu
 lists rows by; elsewhere on the pinned columns' heading, about the order
 they show the rows in and what they show; on a band, about its segment; on
 a probe or usage row, about where it is and how many there are; on a row
-of the sheet's, about the row; anywhere else -- the add row, the empty
-space below -- about the sheet.
+of the sheet's, about the row; anywhere else - the add row, the empty
+space below - about the sheet.
 */
 void painter::open_menu(
     const spot& _under
@@ -5823,9 +5823,9 @@ void painter::rename_field()
 
 /*
 painter::nav_rows / nav_columns
-  The rows the cursor stops on, in the order the grid shows them -- the
+  The rows the cursor stops on, in the order the grid shows them - the
 sheet's, and the probe and usage rows wherever they are; not the add row,
-nor the "Add child..." field -- by their places among the layout's rows;
+nor the "Add child..." field - by their places among the layout's rows;
 and the columns, left to right: the name and value columns, as they are
 shown, then the bits'.
 */
@@ -5880,8 +5880,8 @@ std::vector<nav_column> painter::nav_columns() const
 }
 
 // painter::row_key / row_index / column_index
-//   a row as the cursor names it -- a row of the sheet's by its id, a probe
-// or usage row by special_cursor, 0 for any other -- and back to its place
+//   a row as the cursor names it - a row of the sheet's by its id, a probe
+// or usage row by special_cursor, 0 for any other - and back to its place
 // among the layout's rows; and the layout's column a bit is shown in: -1
 // for none, or for the name and value columns.
 int painter::row_key(
@@ -5948,7 +5948,7 @@ int painter::column_index(
 painter::filled
   Whether a cell has something in it, as Ctrl and an arrow look for: a bit
 of a row's value, of the probe's, or one a usage row counts any symbol
-using -- any of a column's bits, for a column of several. A row's name and
+using - any of a column's bits, for a column of several. A row's name and
 value always say something.
 */
 bool painter::filled(
@@ -6015,12 +6015,12 @@ bool painter::has_keyboard() const
 /*
 painter::keys
   The keys a spreadsheet takes, as Excel takes them, while the grid has the
-keyboard -- ImGui's own navigation kept off them. The ARROWS move the
+keyboard - ImGui's own navigation kept off them. The ARROWS move the
 cursor a cell; with Shift they move the range's rightmost corner instead, the
 cursor staying where it is; with Ctrl, to the edge of what the cursor's row
 or column holds: the end of a run of set bits, the next set bit, or the
-row's or column's end. HOME goes to the row's first bit -- the name and
-value columns are the grid's frozen panes, as Excel's are -- Ctrl+Home to
+row's or column's end. HOME goes to the row's first bit - the name and
+value columns are the grid's frozen panes, as Excel's are - Ctrl+Home to
 the first row's, and Ctrl+End to the last row's cell under the last column
 anything is in. END is End mode, the status bar says so: then an arrow
 goes as with Ctrl, Home as Ctrl+End, and Enter to the row's last cell with
@@ -6048,7 +6048,7 @@ void painter::keys()
     keyboard_frame() = ImGui::GetFrameCount();
 
     // the keys ImGui's navigation would take are the grid's while it has
-    // the keyboard -- Tab only without Ctrl, which switches windows
+    // the keyboard - Tab only without Ctrl, which switches windows
     const ImGuiIO& io    = ImGui::GetIO();
     const ImGuiID  owner = ImGui::GetID("##grid.keys");
 
@@ -6147,7 +6147,7 @@ void painter::keys()
 
     // place_of_row / place_of_column
     //   a row, as the cursor names it, among those it stops on; a column,
-    // by the cursor's name for it -- a bit, any of a column's -- among the
+    // by the cursor's name for it - a bit, any of a column's - among the
     // columns; -1 for neither.
     auto place_of_row = [this, &rows](int _key)
     {
@@ -6184,8 +6184,8 @@ void painter::keys()
         return -1;
     };
 
-    // the cursor, where it is -- the first row's first column, for a grid
-    // that has none yet -- and the range selected from it, while it holds
+    // the cursor, where it is - the first row's first column, for a grid
+    // that has none yet - and the range selected from it, while it holds
     const int  active = active_row(m);
     const bool placed = (place_of_row(active) >= 0);
     nav_cell   cursor;
@@ -6228,7 +6228,7 @@ void painter::keys()
 
     // moved
     //   a cell moved a cell one way, or to an edge as Ctrl goes, looking
-    // along the cursor's own column -- moving up or down -- or row.
+    // along the cursor's own column - moving up or down - or row.
     auto moved = [&](nav_cell _at,
                      int      _down,
                      int      _right,
@@ -6425,7 +6425,7 @@ void painter::keys()
 
     // within
     //   the cursor moved inside a range of more than one cell, by rows --
-    // Enter -- or by columns -- Tab -- on to the next column or row at the
+    // Enter - or by columns - Tab - on to the next column or row at the
     // range's edge, and from its last cell back to its first.
     auto within = [&](bool _by_rows,
                       int  _step)
@@ -6598,7 +6598,7 @@ void painter::keys()
         return;
     }
 
-    // Ctrl+.: the cursor to the range's next corner, clockwise -- the
+    // Ctrl+.: the cursor to the range's next corner, clockwise - the
     // range kept, from the corner across from it
     if ( (ctrl) &&
          (!alt) &&
@@ -6632,7 +6632,7 @@ void painter::keys()
         return;
     }
 
-    // F2: the cursor's row renamed, in place -- the one text a row has;
+    // F2: the cursor's row renamed, in place - the one text a row has;
     // Space: the cursor's bit flipped, as a click flips it
     const bool renames = ( (!ctrl) && (!alt) && (!shift) &&
                            (ImGui::IsKeyPressed(ImGuiKey_F2, false)) );
@@ -6694,7 +6694,7 @@ void painter::keys()
 /*
 painter::next_sheet
   Ctrl+Page Down and Ctrl+Page Up: the sheet after this one, or before, in
-its tab row -- no further than its ends, as Excel's sheets go -- or, for a
+its tab row - no further than its ends, as Excel's sheets go - or, for a
 sheet alone in its row, in its workspace.
 */
 void painter::next_sheet(
@@ -6781,8 +6781,8 @@ painter::go
 another, as one event: the cells by the cursor's names for them; the rows
 of the sheet's the range covers, in the order shown, and the bits it
 covers, so the window selects them as the grid shows them; and the column a
-run of Tabs began in. The cell the key moved -- the rightmost corner, when Shift
-moved it -- is scrolled into view once the event has been applied.
+run of Tabs began in. The cell the key moved - the rightmost corner, when Shift
+moved it - is scrolled into view once the event has been applied.
 */
 void painter::go(
     const std::vector<std::size_t>& _rows,
@@ -6892,7 +6892,7 @@ void painter::go(
 /*
 painter::scroll_to
   A cell scrolled into view, as little as it takes: below the heading, and
-right of the name and value columns -- which are always in view.
+right of the name and value columns - which are always in view.
 */
 void painter::scroll_to(
     int _row,
@@ -7390,8 +7390,8 @@ bool grid_keyboard()
 /*
 grid_spot
   The last frame's geometry, asked about by part: a row's name or a bit's
-cell by the row's id -- a special row's, "special" and "special.cell", by
-its id among the special rows -- a band or a ruler boundary by a bit it
+cell by the row's id - a special row's, "special" and "special.cell", by
+its id among the special rows - a band or a ruler boundary by a bit it
 holds, the pinned columns' edges and the buttons over the name column by
 name; and "below", the room below the rows of the tree, where there is
 any.
@@ -7618,7 +7618,7 @@ grid_columns_seen grid_columns(
 /*
 grid_special
   What the last frame wrote for a special row, found by its id among the
-special rows: its name -- "probe", "allocated", "allocated in" a group --
+special rows: its name - "probe", "allocated", "allocated in" a group --
 and its value: the probe's, or how many bits it counts allocated, "N of
 W".
 */

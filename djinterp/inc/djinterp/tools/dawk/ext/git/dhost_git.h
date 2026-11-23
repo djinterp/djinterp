@@ -3,7 +3,7 @@
 *
 * The git extension: git's own files read and changed from awk, and a
 * repository read.
-*   A file -- .gitignore, .gitattributes, a configuration, .gitmodules -- is
+*   A file - .gitignore, .gitattributes, a configuration, .gitmodules - is
 * opened, or made from text, and named by a handle, a number from 1. What it
 * holds is counted and read by index, from 1: its lines, its patterns and
 * their attributes' states, its sections and entries, and what git refuses
@@ -74,8 +74,8 @@ struct dj_host_git;
 // git_error() says why.
 //
 // files
-//   git_open(path[, kind])         a file: f, or -1; its kind -- ignore,
-//                                  attributes, config -- its name's, unless
+//   git_open(path[, kind])         a file: f, or -1; its kind - ignore,
+//                                  attributes, config - its name's, unless
 //                                  named
 //   git_new(path[, kind[, text]])  a file not yet on disk, of the text
 //   git_save(f[, path])            1 written, 0 unchanged, -1 failed
@@ -87,8 +87,8 @@ struct dj_host_git;
 //                                  line, what
 // lines
 //   git_lines(f); git_line(f, i, field)
-//                                  kind -- blank, comment, pattern, macro,
-//                                  section, entry, refused -- text,
+//                                  kind - blank, comment, pattern, macro,
+//                                  section, entry, refused - text,
 //                                  pattern, section, entry; 0 for none
 //   git_insert_line(f, before, text)
 //                                  before a line, or after the last: the
@@ -97,12 +97,12 @@ struct dj_host_git;
 //   git_set_line(f, i, text); git_remove_line(f, i)
 // patterns, of ignore and attribute files
 //   git_patterns(f); git_pattern(f, i, field)
-//                                  line, text -- as written -- pattern --
-//                                  as git matches it -- negated, directory,
+//                                  line, text - as written - pattern --
+//                                  as git matches it - negated, directory,
 //                                  anywhere, quoted, macro, states
 //   git_state(f, i, n, field)      the nth state of a pattern's line: name,
-//                                  state -- set, unset, unspecified,
-//                                  value -- value, text
+//                                  state - set, unset, unspecified,
+//                                  value - value, text
 //   git_set_state(f, i, state)     a state as written: text, -text, !text,
 //                                  eol=lf
 //   git_remove_state(f, i, name)
@@ -129,7 +129,7 @@ struct dj_host_git;
 //   git_config_all(h, key)         every value, a line each
 //   git_config_count(h, key)       how many entries the key has
 //   git_config_bool(h, key[, default]); git_config_int(h, key[, default])
-//                                  as git reads a boolean -- 1 or 0 -- or
+//                                  as git reads a boolean - 1 or 0 - or
 //                                  a number
 // text
 //   git_wildmatch(pattern, text[, flags])
@@ -140,7 +140,7 @@ struct dj_host_git;
 //   git_quote_path(path); git_unquote(text)
 // repositories
 //   git_repo([path])               the repository a path is in: r, or -1
-//   git_dir(r), git_common_dir(r), git_work_tree(r) -- "" when bare --
+//   git_dir(r), git_common_dir(r), git_work_tree(r) - "" when bare --
 //   git_hash(r)                    sha1 or sha256
 //   git_config_file(r[, scope])    the file git config --scope writes:
 //                                  local, worktree, global, system

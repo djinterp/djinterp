@@ -13,7 +13,7 @@
 * kind, default, knob, choices and range, and the environment variables it
 * is read from; the variables the kit reads besides; the prefixes those
 * variables begin with; and what each exit status means. A program adds
-* members of its own -- its djins, the names it keeps, a page's sections --
+* members of its own - its djins, the names it keeps, a page's sections --
 * through a hook, after the kit's.
 *   The JSON is written through a small writer of the kit's, which a hook
 * writes its members with: pretty, two spaces an indent, each member and
@@ -125,7 +125,7 @@ struct dj_cli_json
 // 1.2    Writing
 //------------------------------------------------------------------------------
 //   Every call takes a writer that has failed, or NULL, and does nothing. A
-// value is a member's -- after d_cli_json_member, in an object -- or an
+// value is a member's - after d_cli_json_member, in an object - or an
 // element of an array, or the whole text, at depth 0.
 
 // 1.2.1

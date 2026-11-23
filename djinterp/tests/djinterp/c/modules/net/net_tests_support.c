@@ -2,8 +2,8 @@
 * djinterp [c][net]                                          net_tests_support.c
 *
 * The doubles the net foundation tests run against.
-*   A scripted connection with two tables -- one supplying every optional
-* operation, one only the required four -- and a sink over fixed storage.
+*   A scripted connection with two tables - one supplying every optional
+* operation, one only the required four - and a sink over fixed storage.
 *
 *
 * path:      /tests/djinterp/c/modules/net/net_tests_support.c

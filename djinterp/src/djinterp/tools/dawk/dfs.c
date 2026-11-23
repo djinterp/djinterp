@@ -4,7 +4,7 @@
 * What the tools ask of a file system that ISO C cannot answer.
 *   Each question is answered twice, once for Windows and once for POSIX, and
 * the system chooses between whole functions: no body here is split by a
-* conditional. What the two share -- the list of names, and its release -- is
+* conditional. What the two share - the list of names, and its release - is
 * written once, above them; making a directory's parents, once, below.
 *   The Windows half asks the system itself (kernel32's narrow interface) and
 * not its C library, whose answers differ between the libraries a Windows

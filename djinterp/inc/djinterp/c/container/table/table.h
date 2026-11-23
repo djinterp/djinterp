@@ -1,10 +1,10 @@
 /*******************************************************************************
 * djinterp [c][container]                                                table.h
 *
-*   TIER 1a -- the C FACE of the table.  Ergonomics only: macros and generated
+*   TIER 1a - the C FACE of the table.  Ergonomics only: macros and generated
 * typed wrappers over the tier-0 kernel in table_common.h.  Not one line of
 * table semantics lives here, and nothing in this file is required to use the
-* table -- a caller content to write d_table_set(&t, r, c, &v) never includes
+* table - a caller content to write d_table_set(&t, r, c, &v) never includes
 * it.  If a change to this header would change a cell, the change belongs in
 * the core instead.
 *
@@ -15,10 +15,10 @@
 *
 *     table_common.h / .c   the kernel.  The only place a table result is
 *                           computed.
-*     table.h       (this)  the C face -- what C code includes.
-*     table.hpp             the C++ face -- what C++ code includes.
+*     table.h       (this)  the C face - what C code includes.
+*     table.hpp             the C++ face - what C++ code includes.
 *
-*   `_common` MARKS COMMONALITY OF ANY KIND -- across several modules, across
+*   `_common` MARKS COMMONALITY OF ANY KIND - across several modules, across
 * the two languages, or both.  table_common.h is common in both ways at once:
 * it is compiled by C and by C++, and it serves table, fixed_table and the
 * overlay siblings from one declaration.  vector_common.h is common the other
@@ -27,7 +27,7 @@
 *   C++ DOES NOT INCLUDE THIS FILE.  D_TABLE_PUSH_ROW below is a C99 compound
 * literal, which ISO C++ has no equivalent for: including this header from C++
 * is quiet (the macro is unexpanded), but USING that macro is an error under
-* -pedantic-errors and a non-portable GNU extension without it -- measured,
+* -pedantic-errors and a non-portable GNU extension without it - measured,
 * not
 * assumed.  The C++ face wraps table_common.h directly and needs none of this.
 *
@@ -208,7 +208,7 @@ D_NODISCARD D_INLINE struct dj_table_alloc d_table_alloc_stdlib(void)
 
 // D_TABLE_AT
 //   macro: a _type* to the cell at (_r, _c), or NULL when the index is outside
-// I_T -- the checked access, typed.
+// I_T - the checked access, typed.
 #define D_TABLE_AT(_table, _type, _r, _c) \
     ((_type*)d_table_at((_table), (size_t)(_r), (size_t)(_c)))
 
@@ -253,7 +253,7 @@ D_NODISCARD D_INLINE struct dj_table_alloc d_table_alloc_stdlib(void)
 //     struct dj_table t = d_int_table_empty(3);
 //     d_int_table_push(&t, row, 3, &alloc);
 //     int v = d_int_table_get(&t, 1, 2); The table is still a struct dj_table
-// -- the family adds no type, so a typed
+// - the family adds no type, so a typed
 // call site and an untyped one interoperate, and the lowered form stays the
 // one the interpreter and the wire format already know.
 #define D_TABLE_DECLARE_TYPED(_prefix, _type)                              \
@@ -348,7 +348,7 @@ D_NODISCARD D_INLINE struct dj_table_alloc d_table_alloc_stdlib(void)
     for ((_c) = 0; (_c) < (size_t)(_table)->cols; ++(_c))
 
 // D_TABLE_FOR_EACH_CELL
-//   macro: sweep every atomic position in the table's own order -- row-major,
+//   macro: sweep every atomic position in the table's own order - row-major,
 // which is the lexicographic order on multi-indices. Binds _r and _c.
 #define D_TABLE_FOR_EACH_CELL(_table, _r, _c) \
     D_TABLE_FOR_EACH_ROW((_table), (_r))      \

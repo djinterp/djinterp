@@ -1,11 +1,11 @@
 /*******************************************************************************
 * djinterp [cpp][event]                      event_registry_tests_fused_step.cpp
 *
-*   Section II -- FUSED STEP.  Drives DFusedStep directly with hand-built words
+*   Section II - FUSED STEP.  Drives DFusedStep directly with hand-built words
 * of erased verdict(void*) letters.  Covers the empty step (size zero, folds to
 * pass); a multi-letter step folded in order with size reported; the consume
 * left-zero that cuts off the remainder of the word; and the equivalence of
-* the two entry points -- operator()(args...) which builds the payload from
+* the two entry points - operator()(args...) which builds the payload from
 * arguments and run_one(payload) which folds over an already-built payload.
 *
 *

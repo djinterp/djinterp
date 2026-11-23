@@ -2,12 +2,12 @@
 * djinterp [c][parse]                                           arg_argv_tests.h
 *
 * The suite of arguments from text (arg_argv.c, arg_argv_source.c): lines
-* split by each set of rules -- a POSIX shell's, the C runtime's, CLI11's,
-* GCC's -- under each switch; words quoted to survive a split; program names
+* split by each set of rules - a POSIX shell's, the C runtime's, CLI11's,
+* GCC's - under each switch; words quoted to survive a split; program names
 * found on disk; response files read, and expanded in a parse; and wide
 * text converted both ways, and parsed.
-*   Every expected transcript is a reference's -- dash and bash, the
-* Universal C Runtime's rules and LLVM's, CLI11's, libiberty's -- from the
+*   Every expected transcript is a reference's - dash and bash, the
+* Universal C Runtime's rules and LLVM's, CLI11's, libiberty's - from the
 * argv suite's reference program, but the module's own: the lines no
 * reference reads so, the quoted words, which the references split back,
 * and the wide text, which Python's codecs convert.

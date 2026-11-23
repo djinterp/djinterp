@@ -5,8 +5,8 @@
 * to its parameters, and run as often as needed.
 *   A statement is SQLite's own sqlite3_stmt, so these functions and SQLite's
 * mix freely. d_sqlite_prepare compiles one statement. The bind functions give
-* its parameters values -- written `?`, `?NNN`, `:name`, `@name` or `$name`,
-* as SQLite reads them, and numbered from 1 as SQLite numbers them -- and a
+* its parameters values - written `?`, `?NNN`, `:name`, `@name` or `$name`,
+* as SQLite reads them, and numbered from 1 as SQLite numbers them - and a
 * parameter never bound is NULL. d_sqlite_execute_update runs the statement
 * and counts the rows it changed; d_sqlite_execute_query runs it and returns
 * its rows, typed as sqlite_query.h describes. Each run starts from the
@@ -61,7 +61,7 @@ TABLE OF CONTENTS
                                                  // floor; int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -131,7 +131,7 @@ int d_sqlite_finalize(
 
 // 1.3    Describing
 //------------------------------------------------------------------------------
-// describing -- _parameter_count is the number of the highest parameter, 0
+// describing - _parameter_count is the number of the highest parameter, 0
 // for none or NULL; _parameter_index finds a named parameter by its name as
 // written, its `:`, `@` or `$` included: SQLITE_OK and its number, written
 // only then, D_DB_NOT_FOUND, or SQLITE_MISUSE for a NULL argument;
@@ -157,7 +157,7 @@ struct sqlite3* d_sqlite_statement_connection(
 
 // 2.1    Binding
 //------------------------------------------------------------------------------
-// binding -- each gives the parameter numbered `_index`, from 1, a value
+// binding - each gives the parameter numbered `_index`, from 1, a value
 // until another is bound or the values are cleared: NULL; a boolean, as 1 or
 // 0; an integer; a real number, SQLite storing a NaN as NULL; text, copied,
 // NULL binding NULL; bytes, `_size` of them copied, NULL binding NULL and a
@@ -199,7 +199,7 @@ int d_sqlite_bind_blob(
 
 // 2.2    Clearing
 //------------------------------------------------------------------------------
-// clearing -- every parameter NULL again: SQLITE_OK, or SQLITE_MISUSE for a
+// clearing - every parameter NULL again: SQLITE_OK, or SQLITE_MISUSE for a
 // NULL statement, or for one part-way through a run, as binding
 int d_sqlite_clear_bindings(
     struct sqlite3_stmt* _statement
@@ -275,8 +275,8 @@ int d_sqlite_open_cursor(
  * @param[in]  _statement  the statement.
  * @param[in]  _max        the most rows to read; 1 or more.
  * @param[out] _rows       receives the columns and up to `_max` rows, typed
- *                         as sqlite_query.h describes; fewer -- none among
- *                         them -- once the run has none left, which ends it:
+ *                         as sqlite_query.h describes; fewer - none among
+ *                         them - once the run has none left, which ends it:
  *                         the statement is then reset, and a further fetch
  *                         begins another run. Written only on success.
  * @return SQLITE_OK; SQLITE_NOMEM when the rows could not be built; the
@@ -289,7 +289,7 @@ int d_sqlite_fetch_rows(
     size_t               _max,
     struct dj_db_rows*   _rows
 ) D_NOTHROW;
-// ending a run -- _close_cursor ends the run d_sqlite_open_cursor began,
+// ending a run - _close_cursor ends the run d_sqlite_open_cursor began,
 // whatever rows it had left, and resets the statement, its values kept:
 // SQLITE_OK, or SQLITE_MISUSE for NULL
 int d_sqlite_close_cursor(

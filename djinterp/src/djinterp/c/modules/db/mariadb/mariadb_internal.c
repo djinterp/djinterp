@@ -5,8 +5,8 @@
 * layer's modules: server facts, name checks and quoting, statements run and
 * read, and catalogue lookups.
 *   Every statement goes through d_internal_mariadb_send, which reads every
-* result the statement produces -- the protocol takes no new statement until
-* the last one's results are read -- and returns the first failure's error
+* result the statement produces - the protocol takes no new statement until
+* the last one's results are read - and returns the first failure's error
 * number with nothing run after it.
 *
 *
@@ -166,8 +166,8 @@ bool d_internal_mariadb_ascii_letter(
  *
  * mysql_store_result answers NULL both for a statement with no rows and for a
  * failure to read them; the field count tells which, and the error number
- * too, since a failure that closes the connection -- a row past the largest
- * packet the client takes -- leaves the field count 0. mysql_next_result
+ * too, since a failure that closes the connection - a row past the largest
+ * packet the client takes - leaves the field count 0. mysql_next_result
  * answers 0 for a further result and more for a failure; it is called only
  * while mysql_more_results says one follows, since both clients reset the
  * affected-row count on every call, even one past the last result.
@@ -971,8 +971,8 @@ bool d_internal_mariadb_tls_blocks(
 d_internal_mariadb_tls_blocks_connect
   Connector/C decides as it answers the server's greeting, from what it was
 told (my_auth.c's send_client_reply_packet), so the same is read back here:
-the switch, whether to check the certificate -- which from 3.4 it does unless
-told not to -- and every text that brings TLS with it. The server's own
+the switch, whether to check the certificate - which from 3.4 it does unless
+told not to - and every text that brings TLS with it. The server's own
 offer cannot be known before the connect: a server without TLS would have
 done, but the start cannot tell.
 */
@@ -1120,8 +1120,8 @@ void d_internal_mariadb_socket_off(
 /*
 d_internal_mariadb_pend
   MariaDB's client says what it waits for: the socket readable, writable,
-or with an exception -- read as readable, where the program looks for what
-came -- and a deadline of its own, in milliseconds from now.
+or with an exception - read as readable, where the program looks for what
+came - and a deadline of its own, in milliseconds from now.
 */
 static
 int d_internal_mariadb_pend(
@@ -1161,7 +1161,7 @@ int d_internal_mariadb_pend(
 
 /*
 d_internal_mariadb_answer
-  A step's status: 0 for done -- the step then none -- or what it waits
+  A step's status: 0 for done - the step then none - or what it waits
 for, kept for its continuation.
 */
 static
@@ -1667,8 +1667,8 @@ int d_internal_mariadb_step_continue(
 /*
 d_internal_mariadb_drive
   The step under way continued until it finishes or must wait, then the
-operation advanced -- which may begin another step, finished at once or
-waiting -- until it must wait or is done. Done, the record holds no
+operation advanced - which may begin another step, finished at once or
+waiting - until it must wait or is done. Done, the record holds no
 operation and nothing is pending; its copies go.
 */
 int d_internal_mariadb_drive(
@@ -2035,7 +2035,7 @@ struct dj_internal_db_quoting d_internal_mariadb_quoting(
 /*
 d_internal_mariadb_format_result
   Memory has the client's number; anything else the formatter would not
-write -- a format it cannot read, a NaN, a NUL character -- is the caller's
+write - a format it cannot read, a NaN, a NUL character - is the caller's
 argument.
 */
 int
@@ -2457,9 +2457,9 @@ d_internal_mariadb_field_type_name
   Names as DDL writes them. A CHAR's ENUM and SET flags say which of the
 three it is; a BLOB's character set whether it is a BLOB or a TEXT. The
 protocol sends every BLOB and TEXT as MYSQL_TYPE_BLOB, its length the most
-bytes the column holds -- 255, 65535, 16777215 or 4294967295, times the
+bytes the column holds - 255, 65535, 16777215 or 4294967295, times the
 character set's longest character, at most four bytes, for a TEXT, and
-capped at 4294967295 -- so the bounds four times the smaller sizes tell the
+capped at 4294967295 - so the bounds four times the smaller sizes tell the
 four apart whatever the character set.
 */
 const char* d_internal_mariadb_field_type_name(

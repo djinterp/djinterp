@@ -4,8 +4,8 @@
 * Building a run's heat space from its trace, and reading it back.
 *   One pass over the trace does everything: each step is counted at its cell,
 * an arrival is counted whenever the cell differs from the previous step's, and
-* the call stack is replayed -- CALL pushes a frame, RETURN pops one, and a
-* backtrack pops frames until the depth matches the next step's -- recording at
+* the call stack is replayed - CALL pushes a frame, RETURN pops one, and a
+* backtrack pops frames until the depth matches the next step's - recording at
 * every step the innermost frame open as it runs. The end-of-input gate belongs
 * to no rule, so its steps are not counted and it ends any stay in a cell.
 *
@@ -463,8 +463,8 @@ ui::field_overlay heat_overlay(
 heat_svg
   Sized for the map, not the screen: columns get between 8 and 28 pixels,
 rows a line and a half, so a picture of a short run is not mostly margin. A
-picture of the whole run has no machine position to show -- where the last
-step left the stack is not a summary of anything -- so only the frontier is
+picture of the whole run has no machine position to show - where the last
+step left the stack is not a summary of anything - so only the frontier is
 marked.
 */
 std::string heat_svg(

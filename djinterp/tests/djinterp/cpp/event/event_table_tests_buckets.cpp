@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][event]                            event_table_tests_buckets.cpp
 *
-*   Section III (bucket access + iteration) -- the per-key views over the
+*   Section III (bucket access + iteration) - the per-key views over the
 * store.  Covers entries_for on a missing key (nullptr) and a present key
 * (both const and mutable overloads, with insertion order, ids, mask bits, and
 * the stored callable verified); has_entries_for and count_for, including the
@@ -49,7 +49,7 @@ bool tests_entries_for_present_contents()
     bool ok = true;
 
     // a present bucket exposes its entries in insertion order, with the ids,
-    // mask bits, and stored callables intact -- through both overloads.
+    // mask bits, and stored callables intact - through both overloads.
     DEventTable t;
     DHandlerId a = t.insert(KEY_A, &ret_pass);
     DHandlerId b = t.insert(KEY_A, &ret_consume);

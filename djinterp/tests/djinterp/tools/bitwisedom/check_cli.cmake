@@ -4,7 +4,7 @@
 # One transcript of the command line, run and compared: each command it holds
 # is run in a work directory of its own, with what it reads on standard
 # input, and what it writes on standard output and on standard error, and
-# the status it exits with, must be what the transcript says -- every line,
+# the status it exits with, must be what the transcript says - every line,
 # in order, and nothing more. Run by CTest with cmake -P; prints
 # "transcript passed" when every command did. A failure never says so: CTest
 # passes a test by its output alone.
@@ -25,7 +25,7 @@
 # transcript has it, whatever runs the test.
 #
 #     BITWISEDOM BITWISEDOM_GEN TRANSCRIPT WORK, and EMULATOR: what runs the
-#     programs where this machine cannot -- in a cross build,
+#     programs where this machine cannot - in a cross build,
 #     CMAKE_CROSSCOMPILING_EMULATOR; empty otherwise
 #
 # path:      /tests/djinterp/tools/bitwisedom/check_cli.cmake

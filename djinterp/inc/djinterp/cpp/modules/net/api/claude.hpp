@@ -44,7 +44,7 @@
 #include <cstdio>   // std::sprintf
 #include <string>   // std::string
 #include <vector>   // std::vector
-// djinterp -- libcurl transport (pulls http.hpp: neutral vocabulary and types)
+// djinterp - libcurl transport (pulls http.hpp: neutral vocabulary and types)
 #include "../../../../c/modules/net/net_common.h"  // d_net_ascii_is_space
 #include "../../../../c/modules/net/codec/codec_hex.h"    // d_net_hex_digit, d_net_hex_value
 #include "../../../../c/modules/net/codec/codec_line.h"   // d_net_line_find
@@ -249,7 +249,7 @@ NS_INTERNAL
         // value_int
         //   function: an integer, in decimal (std::to_string is C++11's).
         // long, which every level has, holds what the API counts --
-        // max_tokens, top_k -- so the writer needs no 64-bit type, which
+        // max_tokens, top_k - so the writer needs no 64-bit type, which
         // ISO strict C++98 wherever int64_t is `long long`: a 32-bit target,
         // 64-bit Windows or macOS lacks.
         void value_int(
@@ -562,7 +562,7 @@ NS_INTERNAL
     }
 
     // json_string
-    //   function: convenience -- the first string value for `_key`, or "".
+    //   function: convenience - the first string value for `_key`, or "".
     inline
     std::string json_string(
         const std::string& _s,
@@ -710,7 +710,7 @@ D_NODISCARD inline const char* to_string(
 }
 
 // message
-//   struct: one conversational turn -- a role plus its text content. Content is
+//   struct: one conversational turn - a role plus its text content. Content is
 // serialized as a JSON string (the API's shorthand for a single text block).
 struct message
 {
@@ -1034,7 +1034,7 @@ class sse_parser
 {
 public:
     // event_fn
-    //   type: the per-event callback -- (event_name, data) -> keep_going.
+    //   type: the per-event callback - (event_name, data) -> keep_going.
     typedef re_std::function<bool(const std::string&,
                                   const std::string&)> event_fn;
 
@@ -1407,7 +1407,7 @@ private:
 };
 
 // quick_message
-//   function: one-shot convenience -- send a single user prompt with a default
+//   function: one-shot convenience - send a single user prompt with a default
 // client and return the response. `_model` defaults to default_model.
 D_NODISCARD inline message_response quick_message(
     const std::string& _api_key,

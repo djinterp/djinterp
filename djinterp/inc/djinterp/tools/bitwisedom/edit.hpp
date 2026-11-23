@@ -2,22 +2,22 @@
 * djinterp [cpp][tools]                                                 edit.hpp
 *
 * Edits as the window and the command line make them alike.
-*   What a user does to a sheet -- adds a row, duplicates, removes or moves
-* rows -- was the window's to know; it is the model's, so that `bitwisedom
+*   What a user does to a sheet - adds a row, duplicates, removes or moves
+* rows - was the window's to know; it is the model's, so that `bitwisedom
 * add` refuses what the Add node window refuses, in the same words, and a
 * row added either way takes the same name and the same bits.
 *   A NEW ROW. A row is named, when it is given no name, for its kind --
-* FLAG, FIELD, VALUE, COMBINED, MACRO, Group -- made unique with _2, _3 and
+* FLAG, FIELD, VALUE, COMBINED, MACRO, Group - made unique with _2, _3 and
 * on; a bit or a range starts at the lowest bit its group leaves free, or,
 * in a range with none free, at the range's own lowest bit, where the
 * collision shows.
 *   TRYING ONE. A row is tried in a copy of the sheet before it is added,
 * or before a row's new fields replace its own: the copy is resolved, and a
-* symbol whose macro name -- its own with the affixes around it -- is not a
+* symbol whose macro name - its own with the affixes around it - is not a
 * C identifier, or is another symbol's, is refused, with why. The copy is
 * the sheet to keep when it is not.
 *   SORTING. The order the window shows each group's rows in, by a key, is
-* made the sheet's own -- the order its header follows.
+* made the sheet's own - the order its header follows.
 *
 *
 * path:      /inc/djinterp/tools/bitwisedom/edit.hpp
@@ -136,8 +136,8 @@ D_NODISCARD int place_bit(
 // 2.1.1
 // trial
 //   struct: a row tried in a copy of a sheet: the copy with the row in it,
-// the row's id there -- 0 when it could not be put there; a changed row's
-// own -- what the copy resolves to, the issues the copy finds with the
+// the row's id there - 0 when it could not be put there; a changed row's
+// own - what the copy resolves to, the issues the copy finds with the
 // row, and why the row is refused, empty when it is not.
 struct trial
 {
@@ -154,10 +154,10 @@ struct trial
  * @brief Tries a row in a copy of a sheet.
  *
  * @note The row goes where insert_row puts it. It is refused when there is
- *       nowhere to put it -- `_parent` names no row, or a row that holds
- *       none -- and, a symbol, when its macro name is not a C identifier or
- *       is another symbol's. Its issues -- an overlap, a value outside its
- *       range -- are reported, not refused: the window and the command line
+ *       nowhere to put it - `_parent` names no row, or a row that holds
+ *       none - and, a symbol, when its macro name is not a C identifier or
+ *       is another symbol's. Its issues - an overlap, a value outside its
+ *       range - are reported, not refused: the window and the command line
  *       add it, and say so.
  *
  * @param[in] _sheet   the sheet, which is not changed.
@@ -210,8 +210,8 @@ D_NODISCARD trial try_insert(
  * @param[in] _sheet  the sheet, which is not changed.
  * @param[in] _id     the row.
  * @param[in] _row    its new fields; its id and its rows are not read.
- * @return the copy, `_id` as the row's id there -- 0 when the sheet has no
- *         such row -- the copy's resolution and the row's issues, and why
+ * @return the copy, `_id` as the row's id there - 0 when the sheet has no
+ *         such row - the copy's resolution and the row's issues, and why
  *         the change is refused.
  */
 D_NODISCARD trial try_change(

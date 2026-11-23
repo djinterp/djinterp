@@ -1,4 +1,4 @@
-# lifetime.hpp unit test suite -- leaf recipe (header-only module, no src/).
+# lifetime.hpp unit test suite - leaf recipe (header-only module, no src/).
 #
 #   Delivery form (djinterp_testing.md S7.2): ships in its OWN leaf directory
 # .../meta/lifetime/.  Fold into a shared cluster by merging the call below into

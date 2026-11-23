@@ -3,7 +3,7 @@
 *
 * The workbench: its state, the view of that state, and how events change it.
 *   The shape is model-view-update. workbench holds everything the screen shows
-* -- the editors, the runs so far, which run is selected and which it is
+* - the editors, the runs so far, which run is selected and which it is
 * compared with, the trace step on each tape, what the heat map measures, and
 * where runs are saved. view turns that state into a uxoxo template; the host
 * realizes and draws it, and feeds the events the drawing posted back through

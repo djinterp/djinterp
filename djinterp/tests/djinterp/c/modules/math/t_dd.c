@@ -8,8 +8,8 @@
 * sum or product, high its rounding, the pair normalized (high the rounding
 * of high + low). The sums, differences and products of pairs at 200,000
 * random normalized pairs each, cancelling sums among them: within their
-* proven bounds of the exact result -- add_d 2u^2 / (1 - 2u), add 3u^2 / (1 -
-* 4u), mul_d 3u^2, mul 7u^2, u = 2^-53 -- and normalized. The quotients and
+* proven bounds of the exact result - add_d 2u^2 / (1 - 2u), add 3u^2 / (1 -
+* 4u), mul_d 3u^2, mul 7u^2, u = 2^-53 - and normalized. The quotients and
 * the square root within their bounds, Gappa's (12u^2, 38u^2, 32u^2), by the
 * residual, exact: |q y - x| against |x|, and |s^2 - x| against 2x, which
 * bounds |s - sqrt(x)| against sqrt(x). The largest error each shows is

@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][utility]                                         sort_tests.hpp
 *
-*   unit-test suite for sort.hpp -- the integrated sort surface.
+*   unit-test suite for sort.hpp - the integrated sort surface.
 * Declares every tests_sort_facade_* predicate.
 *
 *   sections (one .cpp each):
@@ -11,7 +11,7 @@
 *                                 to end
 *
 *   sort.hpp deliberately omits sort_view.hpp.  That omission is a documented
-* property of the facade, so it is asserted rather than assumed -- which is
+* property of the facade, so it is asserted rather than assumed - which is
 * why sort_tests_surface.cpp includes THIS header and nothing else: any
 * other include would pull sort_view.hpp into the translation unit and make
 * the guard check meaningless.  For the same reason this header does not
@@ -32,7 +32,7 @@
 #include <cstddef>
 #include <vector>
 // djinterp
-//   core is ALWAYS first and unconditional -- NS_* / D_* qualifiers and the
+//   core is ALWAYS first and unconditional - NS_* / D_* qualifiers and the
 // language gates are needed by both faces of this header.
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
@@ -56,7 +56,7 @@ NS_TESTING
 // UNCONDITIONALLY: the spec provider below needs dt::module_spec too.
 namespace dt = ::djinterp::test;
 
-#ifndef DTEST_SPEC_MODE   // fixtures -- normal mode only
+#ifndef DTEST_SPEC_MODE   // fixtures - normal mode only
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -66,12 +66,12 @@ namespace dt = ::djinterp::test;
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// surface -- what sort.hpp includes
+// surface - what sort.hpp includes
 bool tests_sort_facade_include_guards();
 bool tests_sort_facade_view_is_not_included();
 bool tests_sort_facade_core_symbols_visible();
 
-// integration -- the three headers used together
+// integration - the three headers used together
 bool tests_sort_facade_every_algorithm_agrees();
 bool tests_sort_facade_dispatch_and_monoid_agree();
 bool tests_sort_facade_comparator_algebra_end_to_end();

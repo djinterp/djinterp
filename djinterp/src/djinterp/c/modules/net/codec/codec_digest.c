@@ -533,7 +533,7 @@ void d_internal_net_digest_compress(
 d_internal_net_digest_pad
   The padding the three functions share (RFC 1321 section 3.1, FIPS 180-4
 section 5.1.1): a 1 bit, zeros until eight octets of a block remain, then
-the message's length in bits -- little-endian for MD5, big-endian for SHA.
+the message's length in bits - little-endian for MD5, big-endian for SHA.
 When the 1 bit leaves fewer than eight octets, the zeros fill this block and
 the length ends another. The length is read before the 1 bit is added, which
 is not part of the message.
@@ -823,8 +823,8 @@ d_internal_net_hmac_pass(
 
 /*
 d_net_hmac
-  The key is copied into a zeroed block first -- or, longer than a block, its
-digest is -- so `_out` may overlap it; the inner MAC goes to a buffer of its
+  The key is copied into a zeroed block first - or, longer than a block, its
+digest is - so `_out` may overlap it; the inner MAC goes to a buffer of its
 own, so `_out` may overlap the data too. Both are secrets derived from the
 key, and are wiped before returning.
 */

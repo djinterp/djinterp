@@ -62,7 +62,7 @@ IV.   Option / UnaryOption / ArgsOption   (C++20 concept analogs)
 // preference. option<> is declared `template<auto Key, typename... Args>`
 // (below, four times) and a deduced non-type template parameter is a C++17
 // feature. There is no C++11 or C++14 spelling of this type to fall back to,
-// so the floor is stated rather than worked around -- per D1, a fallback here
+// so the floor is stated rather than worked around - per D1, a fallback here
 // would be a second implementation nobody compiles. Below C++17 the header
 // degrades rather than errors (the owner's ruling of 2026.09.30): it
 // compiles to nothing, like every header of the family, each of which
@@ -72,7 +72,7 @@ IV.   Option / UnaryOption / ArgsOption   (C++20 concept analogs)
 // floor, gated on D_ENV_LANG_IS_CPP20_OR_HIGHER, which is D1 working as
 // intended: a higher tier adds capability, it does not change behaviour.
 //
-//   This is the option subframework's root -- option_set, option_diff,
+//   This is the option subframework's root - option_set, option_diff,
 // option_compose, option_factory, DOptionGenerator, option_override,
 // option_set_compare, option_builder and optionator all reach it before any
 // C++17 construct of their own, so stating it here covers the family.

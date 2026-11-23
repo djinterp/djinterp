@@ -9,8 +9,8 @@
 *     - a line buffer that does no I/O of its own                       [3]
 *   A line ends at LF, and a CR just before the LF belongs to the
 * terminator. What else a line may hold, and whether a bare LF may end one,
-* is each protocol's rule: the framing reports what it found -- the line,
-* and whether CR LF ended it -- and the caller judges. The buffer reads
+* is each protocol's rule: the framing reports what it found - the line,
+* and whether CR LF ended it - and the caller judges. The buffer reads
 * nothing itself: a module asks it for a line, and when none is whole, asks
 * where to read the next bytes to and reads them through its own transport.
 *
@@ -129,15 +129,15 @@ struct dj_pack_text d_net_line_chomp(
 //==============================================================================
 // 2.  LINE SAFETY
 //==============================================================================
-// Text that is to become part of a line -- a command's argument, a reply's
-// text -- must hold no byte that ends one, or a peer reads the rest as a
+// Text that is to become part of a line - a command's argument, a reply's
+// text - must hold no byte that ends one, or a peer reads the rest as a
 // line of its own: the command injection every line protocol has to refuse.
 // A NUL cuts the text short wherever it meets a C string.
 
 
 // 2.1    Checks
 //------------------------------------------------------------------------------
-// predicates -- never fail; a span that is NULL but claims characters holds
+// predicates - never fail; a span that is NULL but claims characters holds
 // a break and is not clean:
 //   has_break  whether the text holds a CR or an LF
 //   is_clean   whether it holds no CR, no LF, and no NUL
@@ -154,7 +154,7 @@ bool d_net_line_is_clean(
 //==============================================================================
 // The bytes a module has read from a stream and not yet consumed, kept in
 // storage the module owns, and the lines among them. The buffer holds offsets
-// only -- the storage is passed to every call that reads or writes it -- so a
+// only - the storage is passed to every call that reads or writes it - so a
 // structure holding both may be copied or moved.
 //   A module asks for a line; when none is whole it asks for the room to read
 // into, reads through its own transport, and commits the count read. What a
@@ -250,7 +250,7 @@ char* d_net_line_buffer_room(
     char*                      _storage,
     size_t*                    _room
 );
-// the bytes held -- O(1), never fail. `commit` adds the `_count` bytes a read
+// the bytes held - O(1), never fail. `commit` adds the `_count` bytes a read
 // put in the room, no more than it gave; `held` is the bytes not consumed,
 // borrowing the storage, and `pending` their count; `consume` drops the
 // first `_count` of them, no more than are held; `clear` drops them all.

@@ -6,8 +6,8 @@
 *   Each section makes, in a scratch directory it then works in, the tree
 * CLI11's validators were run over (probes/xval/setup.sh): files empty and
 * not, a directory and a file in it, an executable, a read-only file, a
-* file whose name is UTF-8, and, on POSIX, symbolic links -- to a file, to
-* the directory, to nothing -- a FIFO and a file of mode 000. The names are
+* file whose name is UTF-8, and, on POSIX, symbolic links - to a file, to
+* the directory, to nothing - a FIFO and a file of mode 000. The names are
 * relative, so every transcript is the same text in every run.
 *   The transcripts are CLI11 2.7.2's: on POSIX, built with libstdc++ on
 * Linux; on Windows, built with llvm-mingw's libc++ and run under Wine. The
@@ -62,8 +62,8 @@ static const char* const PORTABLE[] =
 static const size_t PORTABLE_COUNT = sizeof(PORTABLE) / sizeof(PORTABLE[0]);
 
 // POSIX_NAMES
-//   constant: the names only POSIX has -- the links, the FIFO, the file of
-// mode 000, the null device -- as CLI11's validators were run over them,
+//   constant: the names only POSIX has - the links, the FIFO, the file of
+// mode 000, the null device - as CLI11's validators were run over them,
 // then names with a backslash, which POSIX reads as part of the name.
 static const char* const POSIX_NAMES[] =
 {

@@ -5,13 +5,13 @@
 *   CLI11's App is one class for the root, its subcommands and its option
 * groups. Here the root is the parser itself (arg_parser.hpp), which owns
 * its struct dj_arg_parser, and a subcommand or an option group is a handle
-* -- one pointer, the cost of CLI11's App* -- on a struct dj_arg_command its
+* - one pointer, the cost of CLI11's App* - on a struct dj_arg_command its
 * parent owns. All three have CLI11's App interface as members, written
 * once in DCommandInterface, a base each derives from, which reads its
 * command record from what it derives from and returns, from a setting,
 * what its derived class chains on: the parser itself, or the handle.
 *   As with options, a handle does not own its command, and a handle on no
-* command -- what a definition that failed returns -- is ignored by every
+* command - what a definition that failed returns - is ignored by every
 * call; the failure is the parser's definition error. Handles do not carry
 * constness: a handle read from a const parser reaches the command as any
 * other does, as the C records are reached through their parser.
@@ -146,7 +146,7 @@ namespace cli
 // 1.1.1
 // name_match
 //   enum: CLI11's NameMatch, the dj_arg_name_match values: how a name matched a
-// command's -- not at all, exactly, or as a prefix.
+// command's - not at all, exactly, or as a prefix.
 struct name_match
 {
     enum value
@@ -161,8 +161,8 @@ struct name_match
 //------------------------------------------------------------------------------
 // 1.2.1
 // failure_message::simple / failure_message::help
-//   constants: CLI11's FailureMessage::simple, the default -- the error's
-// message, then "Run with --help for more information." -- and
+//   constants: CLI11's FailureMessage::simple, the default - the error's
+// message, then "Run with --help for more information." - and
 // FailureMessage::help, the error and the command's help: the C library's
 // d_arg_failure_simple and d_arg_failure_help, for
 // DCommandInterface::failure_message.
@@ -186,8 +186,8 @@ NS_INTERNAL
 
     // 2.1.1
     // is_string / unless_string
-    //   traits: whether an argument given by value is text -- a C string, a
-    //   std::string, a text or a DCString -- as `value`, which the settings
+    //   traits: whether an argument given by value is text - a C string, a
+    //   std::string, a text or a DCString - as `value`, which the settings
     //   taking text or a function tell apart by; and enable_if on its
     //   absence, `type` being Result.
     template<typename Type>
@@ -293,7 +293,7 @@ NS_INTERNAL
     // 2.2.3
     // command_result
     //   trait: what a setting of DCommandInterface returns for the class
-    //   deriving it, as `type`: a reference to the object -- the parser --
+    //   deriving it, as `type`: a reference to the object - the parser --
     //   by default, and a handle by value, as CLI11's App* is.
     template<typename Derived>
     struct command_result
@@ -322,7 +322,7 @@ NS_END  // internal
 //   class: CLI11's OptionDefaults*, as a handle on a command's
 // dj_arg_option_defaults: what the command's new options start from. Settings
 // return the handle; a NULL handle reads as the defaults of a command made
-// bare -- group "OPTIONS", configurable, the rest off -- and ignores every
+// bare - group "OPTIONS", configurable, the rest off - and ignores every
 // setting. Its group is copied; a copy that could not be made leaves the
 // group as it was.
 class option_defaults
@@ -416,14 +416,14 @@ private:
 //------------------------------------------------------------------------------
 // 3.2.1
 // DCommandInterface
-//   class: CLI11's App interface, over the command record of Base -- a
-// dj_arg_parser's root, or a DCommandHandle's command -- for the class
+//   class: CLI11's App interface, over the command record of Base - a
+// dj_arg_parser's root, or a DCommandHandle's command - for the class
 // Derived that derives from it. A setting returns `chain_type`: Derived& for
 // the parser, a handle by value for a command, so that calls chain with `.`
 // and, as CLI11's do, with `->`. Readers read the record through the C
 // calls, which read a NULL command as one with nothing set. It adds no
 // member to Base. Every type of the face is named here with `cli::`, so that
-// a field of Base -- a parser's `command`, `error` and `formatter` -- never
+// a field of Base - a parser's `command`, `error` and `formatter` - never
 // stands for it.
 template<typename Derived,
          typename Base>
@@ -478,8 +478,8 @@ public:
      *
      * @note As add_option(name, variable, description), but the option's
      *       default function gives the empty string, as CLI11's does: a
-     *       default captured -- by capture_default_str(), or because the
-     *       command's options always capture theirs -- is empty.
+     *       default captured - by capture_default_str(), or because the
+     *       command's options always capture theirs - is empty.
      *
      * @param[in] _names        the names, CLI11's way.
      * @param[in] _variable     the variable, which must outlive the option's
@@ -532,7 +532,7 @@ public:
      *
      * @note A const second argument is a description, as for add_option. A
      *       `bool` takes the flag's truth, an integer the count of its uses
-     *       -- its values summed -- and a container one value per use.
+     *       - its values summed - and a container one value per use.
      *
      * @param[in] _names        the names, with `{value}` and `!`.
      * @param[in] _variable     the variable, which must outlive the flag's
@@ -569,8 +569,8 @@ public:
      * @brief Adds a flag that calls a function with the sum of its values;
      *        CLI11's add_flag_function.
      *
-     * @note The function takes the count as an `re_std::intmax_t` -- CLI11's
-     *       std::int64_t -- where the platform has one, else as a `long`,
+     * @note The function takes the count as an `re_std::intmax_t` - CLI11's
+     *       std::int64_t - where the platform has one, else as a `long`,
      *       and returns nothing or a cli::status.
      *
      * @param[in] _names        the names.
@@ -884,8 +884,8 @@ public:
      *        failure_message.
      *
      * @note failure_message::simple and failure_message::help are CLI11's
-     *       two; a function object takes the command -- `const
-     *       cli::command&` -- and the error -- `const cli::error&` -- and
+     *       two; a function object takes the command - `const
+     *       cli::command&` - and the error - `const cli::error&` - and
      *       returns the message as a std::string, a C string or a text.
      *       One that throws is followed by CLI11's simple message, so that
      *       no failed parse goes unreported, where CLI11's exit() lets the
@@ -930,8 +930,8 @@ public:
         const cli::command& _other
     ) D_NOEXCEPT;
 
-    // formatting: CLI11's formatter and config_formatter, borrowed -- each
-    // must outlive the command -- and the ones in effect, the command's or
+    // formatting: CLI11's formatter and config_formatter, borrowed - each
+    // must outlive the command - and the ones in effect, the command's or
     // its nearest ancestor's, else the parser's
     chain_type formatter(
         ::dj_arg_formatter& _formatter
@@ -1013,8 +1013,8 @@ public:
         bool _recurse = false
     ) const D_NOEXCEPT;
 
-    // lists made: CLI11's get_options() -- the command's own options, then
-    // its option groups' -- get_subcommands(filter), over all the
+    // lists made: CLI11's get_options() - the command's own options, then
+    // its option groups' - get_subcommands(filter), over all the
     // subcommands, get_groups(), remaining() and
     // remaining_for_passthrough(); a filter takes the handle and returns
     // whether to keep it, and what it throws propagates
@@ -1086,11 +1086,11 @@ public:
 //------------------------------------------------------------------------------
 // 3.3.1
 // command
-//   class: CLI11's App*, for a subcommand -- or any command, the root
-// included, since a parser converts to the handle on its root -- with
+//   class: CLI11's App*, for a subcommand - or any command, the root
+// included, since a parser converts to the handle on its root - with
 // CLI11's App interface (DCommandInterface). Its `explicit operator bool`,
-// from C++11, is CLI11's App's: the command was parsed -- `if (*sub)` reads
-// as CLI11's does -- beside parsed(); valid() is whether the handle refers
+// from C++11, is CLI11's App's: the command was parsed - `if (*sub)` reads
+// as CLI11's does - beside parsed(); valid() is whether the handle refers
 // to a command.
 class command
     : public DCommandInterface<command, internal::DCommandHandle>
@@ -1116,8 +1116,8 @@ public:
 
 // 3.3.2
 // DCommandList
-//   type: a view of commands a record refers to -- the subcommands a parse
-// used -- whose elements are handles.
+//   type: a view of commands a record refers to - the subcommands a parse
+// used - whose elements are handles.
 typedef DBasicHandleList<command, ::dj_arg_command> DCommandList;
 
 // 3.3.3
@@ -1202,7 +1202,7 @@ D_STATIC_ASSERT( (sizeof(DOptionGroup) == sizeof(::dj_arg_command*)),
 // 4.1.1
 // trigger_on / trigger_off
 //   functions: CLI11's TriggerOn and TriggerOff: a command that, when met,
-// enables -- or disables -- one command or several, which start each parse
+// enables - or disables - one command or several, which start each parse
 // the other way. A failure is the definition error; the status is
 // d_arg_command_trigger_on's.
 cli::status trigger_on(
@@ -1242,7 +1242,7 @@ cli::status deprecate_option(
 // 4.2.2
 // retire_option
 //   functions: CLI11's retire_option: the option, or the one a command finds
-// by name -- or a new one taking at most one value when there is none --
+// by name - or a new one taking at most one value when there is none --
 // replaced with one that takes the same values, warns, and does nothing. The
 // retired option, or a NULL handle when the definition failed.
 option retire_option(
@@ -1345,8 +1345,8 @@ NS_INTERNAL
 
     // 5.1.4
     // command_text_function
-    //   function: a function writing a command's text -- its usage, footer or
-    //   version -- as dj_arg_command_text_fn: DTextCall's work.
+    //   function: a function writing a command's text - its usage, footer or
+    //   version - as dj_arg_command_text_fn: DTextCall's work.
     template<typename Function>
     int command_text_function(
         const ::dj_arg_command* _command,
@@ -1427,8 +1427,8 @@ NS_INTERNAL
 
     // 5.2.2
     // flag_count / count_call / count_function
-    //   type, class, function: add_flag_function's count -- intmax_t where
-    //   the platform has it, as CLI11's std::int64_t, else long -- and its
+    //   type, class, function: add_flag_function's count - intmax_t where
+    //   the platform has it, as CLI11's std::int64_t, else long - and its
     //   work, as dj_arg_flag_intmax_fn or dj_arg_flag_fn: the function called
     //   with the count.
 #if defined(INTMAX_MAX)
@@ -1516,8 +1516,8 @@ NS_INTERNAL
     // 5.3.1
     // raise_out_of_memory
     //   function: answers the status of building a list or a std::string
-    //   through the C library -- out of memory, or a std::string sink that
-    //   refused bytes, which only memory makes it do -- with std::bad_alloc,
+    //   through the C library - out of memory, or a std::string sink that
+    //   refused bytes, which only memory makes it do - with std::bad_alloc,
     //   as the standard containers do; with C++ exceptions off, nothing, the
     //   standard containers having then ended the program already.
     void raise_out_of_memory(
@@ -1926,8 +1926,8 @@ bool option_defaults::has_flag(
 // 6.2    DCommandInterface
 //------------------------------------------------------------------------------
 // DCommandInterface::DCommandInterface / record
-//   Base default-made -- a parser's plain data left for its own
-// constructor to make, rather than zeroed first -- or copied; the record
+//   Base default-made - a parser's plain data left for its own
+// constructor to make, rather than zeroed first - or copied; the record
 // through record_of.
 template<typename Derived,
          typename Base>
@@ -4349,7 +4349,7 @@ int internal::DCommandFailure::operator()(
 }
 
 // internal::DCommandCall / command_function
-//   The function called with nothing; its result -- nothing or a status --
+//   The function called with nothing; its result - nothing or a status --
 // the callback's status.
 template<typename Function>
 inline
@@ -4589,8 +4589,8 @@ int internal::count_function(
 
 // internal::DTypedCall / typed_function
 //   The values converted by the type's descriptor under the option's
-// integer rule, without a reason -- the parser then writes CLI11's "Could
-// not convert" -- then the function called with the value.
+// integer rule, without a reason - the parser then writes CLI11's "Could
+// not convert" - then the function called with the value.
 template<typename Type,
          typename Function>
 inline

@@ -6,12 +6,12 @@
 * operator_signature.  Parsing an operator grammar is precedence climbing (a
 * Pratt parse), and precedence climbing cannot be a fixed combinator tree --
 * its levels are *runtime* data read from the signature, not structure known
-* at compile time -- so it is written directly over parser.hpp's cursor and
+* at compile time - so it is written directly over parser.hpp's cursor and
 * result (parse_state / parse_result), the one cluster file that draws on the
 * parse subframework.
 *
 *   THE CLIMB.  parse_expr(min) reads one operand (a leaf, a prefix
-* application, or a parenthesized sub-expression -- the "start" forms), then
+* application, or a parenthesized sub-expression - the "start" forms), then
 * folds in each following operator whose precedence is at least min: an infix
 * operator parses its right operand at a climbed precedence (one past its own
 * when left-associative, so equal operators group left; its own when right-
@@ -20,7 +20,7 @@
 * returns control to the caller.  It is exactly the shape the renderer
 * parenthesizes for, run backwards.
 *
-*   WHAT THE LANGUAGE SUPPLIES.  Tokenization is the caller's -- this parser
+*   WHAT THE LANGUAGE SUPPLIES.  Tokenization is the caller's - this parser
 * consumes a token sequence and asks four questions about a token, given as
 * an expression_grammar: atom_of (is it an atom? then its value), op_of (does
 * it name an operator? then its id, whose metadata the signature holds),
@@ -167,7 +167,7 @@ NS_INTERNAL
     }
 
 
-    // -- forward declarations -----------------------------------------------
+    // - forward declarations -----------------------------------------------
 
     template<typename Token,
              typename Grammar>
@@ -186,10 +186,10 @@ NS_INTERNAL
                 int                         _min_precedence);
 
 
-    // -- parse_nud (start of an expression) ---------------------------------
+    // - parse_nud (start of an expression) ---------------------------------
 
     // parse_nud
-    //   function: parses a form that begins an expression -- an atom (a
+    //   function: parses a form that begins an expression - an atom (a
     // leaf), a prefix operator applied to an operand, or a parenthesized
     // sub-expression.
     template<typename Token,
@@ -218,7 +218,7 @@ NS_INTERNAL
 
         const Token& _token = *_state.current();
 
-        // an atom -- a leaf
+        // an atom - a leaf
         maybe<atom_t> _atom = _grammar.atom_of(_token);
 
         if (_atom.has_value())
@@ -228,7 +228,7 @@ NS_INTERNAL
             return result_t(expr_leaf<op_id_t, atom_t>(_atom.value()));
         }
 
-        // a bracketed group -- parse a full sub-expression, expect the close
+        // a bracketed group - parse a full sub-expression, expect the close
         if (_grammar.is_open(_token))
         {
             _state.advance();
@@ -253,7 +253,7 @@ NS_INTERNAL
             return _inner;
         }
 
-        // a prefix operator -- applied to the operand that follows
+        // a prefix operator - applied to the operand that follows
         maybe<op_id_t> _op = _grammar.op_of(_token);
 
         if (_op.has_value())
@@ -285,11 +285,11 @@ NS_INTERNAL
     }
 
 
-    // -- parse_climb (operand, then trailing operators) ---------------------
+    // - parse_climb (operand, then trailing operators) ---------------------
 
     // parse_climb
     //   function: parses one operand, then folds in each following operator
-    // whose precedence is at least _min_precedence -- infix operators taking
+    // whose precedence is at least _min_precedence - infix operators taking
     // a right operand, postfix operators wrapping the accumulated left.
     template<typename Token,
              typename Grammar>
@@ -341,7 +341,7 @@ NS_INTERNAL
                 break;
             }
 
-            // infix -- take a right operand at the climbed precedence
+            // infix - take a right operand at the climbed precedence
             if (_descriptor->fix == DFixInfix)
             {
                 if (_descriptor->precedence < _min_precedence)
@@ -370,7 +370,7 @@ NS_INTERNAL
                 continue;
             }
 
-            // postfix -- wrap the accumulated left
+            // postfix - wrap the accumulated left
             if (_descriptor->fix == DFixPostfix)
             {
                 if (_descriptor->precedence < _min_precedence)
@@ -439,7 +439,7 @@ parse_expression
 }
 
 // parse_expression (over a token sequence)
-//   function: parses a whole expression from a token vector -- seeds a
+//   function: parses a whole expression from a token vector - seeds a
 // cursor over it and defers to the cursor form.
 template<typename Token,
          typename Grammar>

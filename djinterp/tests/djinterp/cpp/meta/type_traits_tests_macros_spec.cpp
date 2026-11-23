@@ -79,7 +79,7 @@ static_assert(macro_is_tuple<std::pair<std::tuple<int>, std::tuple<char>>>::valu
 // =========================================================================
 // II.  D_TYPE_TRAIT_IS_SPECIALIZATION_OF_AS  (compile-time)
 // =========================================================================
-//   The base macro -- success-case inherits a caller-supplied base.
+//   The base macro - success-case inherits a caller-supplied base.
 // Distinguishable base = integral_constant<int, 13>.  As with
 // D_TYPE_TRAIT_TRUE_AS, the comma inside the base's template-arg list
 // would confuse the preprocessor, so we typedef-alias it first.
@@ -105,7 +105,7 @@ static_assert(std::is_base_of<std::false_type,
                               macro_is_vector_count_13<int>>::value,
               "D_TYPE_TRAIT_IS_SPECIALIZATION_OF_AS: non-match base is std::false_type");
 
-// vector of a different element type still matches -- the macro detects
+// vector of a different element type still matches - the macro detects
 // "any specialization of vector"
 static_assert(macro_is_vector_count_13<std::vector<double>>::value == 13,
               "D_TYPE_TRAIT_IS_SPECIALIZATION_OF_AS: vector<double> also matches");
@@ -114,7 +114,7 @@ static_assert(macro_is_vector_count_13<std::vector<double>>::value == 13,
 // =========================================================================
 // III. Cross-template hygiene  (compile-time)
 // =========================================================================
-//   A specialization-of trait for X must NOT fire for Y -- even if Y has
+//   A specialization-of trait for X must NOT fire for Y - even if Y has
 // the same arity or shape.
 
 D_TYPE_TRAIT_IS_SPECIALIZATION_OF(macro_is_pair, std::pair)

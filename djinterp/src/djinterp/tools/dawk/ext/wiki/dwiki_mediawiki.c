@@ -4,9 +4,9 @@
 * The MediaWiki driver: wikitext.
 *   Read as MediaWiki 1.43 reads it, in its order, and checked against it,
 * over its own parser tests. First its preprocessor: a comment is dropped,
-* an extension tag's content kept apart -- literal, as <nowiki> and <pre>
+* an extension tag's content kept apart - literal, as <nowiki> and <pre>
 * are, or read on its own, as <ref> is, and <includeonly>'s, which a page
-* does not show -- and braces, brackets, the language converter's -{ }-,
+* does not show - and braces, brackets, the language converter's -{ }-,
 * pipes and line-start `=`s kept on a stack, so {{...}} and {{{...}}} close
 * as MediaWiki closes them, each with its arguments, and a heading is a
 * line between `=` runs: the page's own unless a template or a heading
@@ -17,8 +17,8 @@
 * <syntaxhighlight>, a comment alone; the rest paragraphs. A table's rows
 * are split into cells, which no URL crosses. Links are found as MediaWiki
 * finds them: the text is split at each [[, and each piece that begins
-* with a title and ends with ]] is a link -- an image's caption, which
-* holds links of its own, looked ahead for -- and the trail of letters
+* with a title and ends with ]] is a link - an image's caption, which
+* holds links of its own, looked ahead for - and the trail of letters
 * after it shows as part of it; then [url text], in the page and within
 * each image; then bare URLs, ended as MediaWiki's sanitizer, emphasis and
 * references have left the text. An image's link= is a link, and so is
@@ -174,7 +174,7 @@ struct dj_internal_magic
 //   `start` to `end`, how many parts the template has, and whether it is
 //   a parameter's, {{{...}}}, whose name is only cleaned.  Found: its
 //   name, the comments and dropped tags within it gone, past the prefixes
-//   MediaWiki takes off it -- `safesubst:`, `msgnw:`, `msg:`, `raw:` --
+//   MediaWiki takes off it - `safesubst:`, `msgnw:`, `msg:`, `raw:` --
 //   and trimmed; where that name stands on the page, `name_start` to
 //   `name_end`; and a function's `:`, D_WIKI_NONE for none.
 struct dj_internal_named
@@ -215,7 +215,7 @@ struct dj_internal_piece_map
 // dj_internal_cover
 //   enum: what holds a byte of a stream, of the links found so far, for
 //   the links found after: MediaWiki finds [[...]] first, then [url text]
-//   -- in the page, and within each image -- then bare URLs.
+//   - in the page, and within each image - then bare URLs.
 enum dj_internal_cover
 {
     D_INTERNAL_FREE = 0,   // nothing: any link may be here
@@ -247,7 +247,7 @@ struct dj_internal_stream
 // 1.2.4
 // d_internal_opens
 //   struct: the `[[`s of a stream, in order, `count` of them, and the one
-//   whose piece -- to the next, or the stream's end -- is being read.
+//   whose piece - to the next, or the stream's end - is being read.
 struct dj_internal_opens
 {
     const size_t* at;
@@ -575,7 +575,7 @@ bool d_internal_is_magic(
 /*
 d_internal_zs_width
   The length of a space of Unicode's own, \p{Zs}, at `_at` but the ASCII
-space -- U+00A0, U+1680, U+2000 to U+200A, U+202F, U+205F, U+3000 -- 0 for
+space - U+00A0, U+1680, U+2000 to U+200A, U+202F, U+205F, U+3000 - 0 for
 another character.
 */
 static
@@ -610,7 +610,7 @@ size_t d_internal_zs_width(
 d_internal_url_char
   The length of a character a URL may hold at `_at`, as MediaWiki's
 EXT_LINK_URL_CLASS has it: not a bracket, `<`, `>`, `"`, a control, a
-space -- Unicode's spaces among them -- nor U+FFFD; 0 for one it may not.
+space - Unicode's spaces among them - nor U+FFFD; 0 for one it may not.
 */
 static
 size_t d_internal_url_char(
@@ -770,7 +770,7 @@ bool d_internal_ends_reference(
 /*
 d_internal_html_tag
   The length of an HTML tag at `_at` that MediaWiki's sanitizer keeps --
-open, closing or empty, its name one of its elements' -- to its `>`, with
+open, closing or empty, its name one of its elements' - to its `>`, with
 no `<` before that; 0 for none, the `<` then text.
   Long as the sanitizer's list of elements is, held here.
 */
@@ -851,7 +851,7 @@ size_t d_internal_html_tag(
 /*
 d_internal_double_word
   The length of a magic word of MediaWiki's between double underscores at
-`_at` -- __TOC__, __NOTOC__ -- which a page does not show; 0 for none.
+`_at` - __TOC__, __NOTOC__ - which a page does not show; 0 for none.
 */
 static
 size_t d_internal_double_word(
@@ -2987,7 +2987,7 @@ int d_internal_namespace(
 
 /*
 d_internal_listed
-  Whether a part, in its own case, is one of a list's words -- or, with
+  Whether a part, in its own case, is one of a list's words - or, with
 `_prefix`, begins with one.
 */
 static
@@ -3019,7 +3019,7 @@ bool d_internal_listed(
 /*
 d_internal_image_part
   Reads one part of an image's link, trimmed, as MediaWiki's makeImage
-reads its options, in their own case: a format -- the first only,
+reads its options, in their own case: a format - the first only,
 `*_seen` set, and framed unless frameless; alt= and link=, where their
 values are; another option; or, the last of what is none, its caption.
   Long as makeImage's option words are, listed here.
@@ -3322,7 +3322,7 @@ bool d_internal_page_and_anchor(
 /*
 d_internal_link_title
   The start of a piece after `[[` at `_open`, to `_next`: a title, then
-]] or a label and ]] -- or, with no ]] in the piece, an image whose caption
+]] or a label and ]] - or, with no ]] in the piece, an image whose caption
 holds links.  Gives whether it begins a link, and what it holds.
   Long as a title's end is read four ways: ]], `|`, {{!}}, or no ]] at
 all for an image whose caption holds links.
@@ -3598,7 +3598,7 @@ bool d_internal_valid_page(
 /*
 d_internal_whole_url
   Whether a text is a URL, whole, its protocol `_scheme` bytes: an
-address -- IPv6's in brackets -- then the characters a URL may hold, to
+address - IPv6's in brackets - then the characters a URL may hold, to
 its end.
 */
 static
@@ -3894,7 +3894,7 @@ d_internal_internal_record
   The link a piece read makes, kept: where it is, its trail with it for a
 link to a page; where it leads, its title percent-decoded and its
 references read, none for a title MediaWiki would not have; and what it
-holds, which no other link may be within -- but for an image's.
+holds, which no other link may be within - but for an image's.
   Long as a link's record is filled in turn: its places, its title
 decoded, its trail, its page and anchor, then what it covers.
 */
@@ -4021,7 +4021,7 @@ void d_internal_internal_link(
 /*
 d_internal_may_begin
   Whether a link may begin over a byte a cover holds: in the page, where
-nothing does; within an image, where it does alone -- its caption shown
+nothing does; within an image, where it does alone - its caption shown
 or not; and, for a bare URL, in a caption shown besides.
 */
 static
@@ -4044,7 +4044,7 @@ bool d_internal_may_begin(
 /*
 d_internal_url_end
   Where a URL whose protocol ends at `_from` ends in a stream: an address
-first -- IPv6's in brackets -- then the characters a URL may hold, to two
+first - IPv6's in brackets - then the characters a URL may hold, to two
 apostrophes or more, emphasis by then, but for those left over; a magic
 word; a reference that ends one; or, for a bare URL, what covers it or a
 template's boundary.
@@ -4193,7 +4193,7 @@ void d_internal_external_link(
 d_internal_label_end
   Where an external link's label, from `_label`, ends in a stream: at its
 `]`, a line ending or a control but a tab, what is not the link's own --
-another link, or in the page an image -- passed whole.
+another link, or in the page an image - passed whole.
 */
 static
 size_t d_internal_label_end(
@@ -4557,8 +4557,8 @@ void d_internal_find_opens(
 
 /*
 d_internal_stream_links
-  Every link of a stream: [[...]] first, then [url label] -- in the page,
-and within each image -- then bare.
+  Every link of a stream: [[...]] first, then [url label] - in the page,
+and within each image - then bare.
 */
 static
 void d_internal_stream_links(
@@ -4865,8 +4865,8 @@ int d_internal_compare_spans(
 
 /*
 d_internal_find_reach
-  For each line, how far what began before its start -- a comment, an
-element, a template -- reaches past it: the line's start for nothing.
+  For each line, how far what began before its start - a comment, an
+element, a template - reaches past it: the line's start for nothing.
 */
 static
 void d_internal_find_reach(
@@ -5488,7 +5488,7 @@ d_internal_classify_line(
 /*
 d_internal_read_blocks
   The page's blocks, a line at a time: a line within what began on an
-earlier line -- a comment, an element, a template -- goes with it.
+earlier line - a comment, an element, a template - goes with it.
   Long as a dispatch on what each line begins is.
 */
 static
@@ -5720,7 +5720,7 @@ void d_internal_cell_attributes(
 /*
 d_internal_row_cells
   A table's line of cells, as MediaWiki's handleTables splits one: after
-its `|` or `!`, at `||` -- and `!!` in a row of headers -- that is no
+its `|` or `!`, at `||` - and `!!` in a row of headers - that is no
 template's, each a boundary in `_out`; then each cell's attributes.
 */
 static
@@ -5850,8 +5850,8 @@ void d_internal_table_cells(
 /*
 d_internal_gallery_file
   The file a line of a <gallery> names, `_start` to `_end`, as MediaWiki's
-renderImageGallery reads it -- percent-decoded when the line holds `%`,
-in File: when it names no namespace -- kept as a link to an image, its
+renderImageGallery reads it - percent-decoded when the line holds `%`,
+in File: when it names no namespace - kept as a link to an image, its
 caption after `|` to `_line_end`; none for a page no title can name or a
 page not a file.
   Long as renderImageGallery's reading of a name is followed: its
@@ -5937,7 +5937,7 @@ void d_internal_gallery_file(
 d_internal_gallery_line
   One line of a <gallery>, `_start` to `_end`: the file it names, to its
 first `|`, and what follows, wikitext read on its own, as MediaWiki reads
-it -- its caption, alt= and link= among it.
+it - its caption, alt= and link= among it.
 */
 static
 void d_internal_gallery_line(
@@ -6323,7 +6323,7 @@ void d_internal_labels(
 
 /*
 d_internal_titles
-  The headings no block has kept -- within templates, elements, tables --
+  The headings no block has kept - within templates, elements, tables --
 kept as headings not at the top; then each heading's title as plain text.
 */
 static
@@ -6467,8 +6467,8 @@ int d_internal_compare_headings(
 /*
 d_internal_read
   Reads a page as MediaWiki does: its preprocessor, then its blocks, its
-tables' cells, its links -- of the page, of each element, of each
-gallery -- the labels, the titles and a redirect.
+tables' cells, its links - of the page, of each element, of each
+gallery - the labels, the titles and a redirect.
   Long as the passes run in MediaWiki's order, each after the last has
 succeeded.
 */
@@ -6562,7 +6562,7 @@ bool d_internal_read(
 /*
 d_internal_space_width
   The length of a character MediaWiki's titles count as white space at
-`_at` -- space, `_`, and Unicode's spaces -- 0 for another.
+`_at` - space, `_`, and Unicode's spaces - 0 for another.
 */
 static
 size_t d_internal_space_width(
@@ -6605,7 +6605,7 @@ size_t d_internal_space_width(
 /*
 d_internal_mark_width
   The length of a mark that sets a direction at `_at`, which MediaWiki's
-titles drop -- U+200E, U+200F, U+202A to U+202E -- 0 for another.
+titles drop - U+200E, U+200F, U+202A to U+202E - 0 for another.
 */
 static
 size_t d_internal_mark_width(
@@ -6670,7 +6670,7 @@ d_internal_fragment
   Writes a title, its runs of space and `_` one space already, as
 MediaWiki makes it a fragment, then an id: the marks that set a direction
 gone, each run of white space one `_` but for one at its end, 1024
-characters at most -- unless it holds U+FFFD, which it leaves as it is --
+characters at most - unless it holds U+FFFD, which it leaves as it is --
 then escaped, HTML5's way or the legacy way.
 */
 static
@@ -7086,7 +7086,7 @@ bool d_internal_write_heading(
 /*
 d_internal_write_page_link
   Writes [[Page#anchor|label]]: refused for a title MediaWiki's cannot hold
--- one with `#`, `|`, a bracket or a brace, `<` or `>` -- an anchor with
+-- one with `#`, `|`, a bracket or a brace, `<` or `>` - an anchor with
 what would end the link, or a label with a link's brackets.
 */
 static
@@ -7558,7 +7558,7 @@ bool d_internal_ends_protocol(
 /*
 d_internal_write_escape
   Writes text so it reads as itself: each byte that would begin markup, as
-a reference -- `&`, `<`, `>`, brackets, braces, `|`; two apostrophes,
+a reference - `&`, `<`, `>`, brackets, braces, `|`; two apostrophes,
 `~~~` and `__`; `:` at a line's start, before `//` or ending a protocol's
 name, as mailto: does; what begins a line's markup there; and a `=` that
 ends a line.

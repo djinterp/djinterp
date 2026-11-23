@@ -1,16 +1,16 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                               file_dir.h
 *
-* Directories -- creating, removing, walking -- and the path operations that
+* Directories - creating, removing, walking - and the path operations that
 * must ask the filesystem.
 *   The split from file_path is by cost, not by name: d_path_dirname is
 * lexical and free, d_path_resolve is a syscall that resolves symlinks and can
 * fail. Both are "path" work; only one of them needs a disk.
 *   struct dj_dir_t is opaque and owns the entry d_dir_read returns, so that
-* pointer stays valid until the next read on the same handle -- and dies with
+* pointer stays valid until the next read on the same handle - and dies with
 * d_dir_close.
-*   A build with neither POSIX nor Windows has no directory API -- ISO C has
-* none -- so there every call that needs one fails with ENOSYS; only
+*   A build with neither POSIX nor Windows has no directory API - ISO C has
+* none - so there every call that needs one fails with ENOSYS; only
 * d_dir_entry_path, which is text, still works.
 *   One handle reads at either width: d_dir_read64 returns a dj_dirent64_t,
 * d_dir_read32 a dj_dirent32_t, and the unsuffixed d_dir_read follows
@@ -20,7 +20,7 @@
 * EOVERFLOW, and the next read continues past it.
 *   d_dir_read_name has no width at all. It hands back the name and the type
 * and no inode number, so it reads every entry d_dir_read64 would, at either
-* width and below the 64-bit floor too -- the reader for a walk that does not
+* width and below the 64-bit floor too - the reader for a walk that does not
 * need the inode number, which is most of them.
 *   d_dir_entry_path builds the path of an entry a walk has read, for the
 * running platform to open. A walk descends with it rather than d_path_join,
@@ -303,7 +303,7 @@ char* d_path_resolve(
 
 // D_DIR_REMOVE_DIRECTORY
 //   constant: d_dir_remove_at's flag for an empty directory; without it the
-// entry must be no directory -- a file, or a link of either kind.
+// entry must be no directory - a file, or a link of either kind.
 #define D_DIR_REMOVE_DIRECTORY 0x1
 
 /**
@@ -324,8 +324,8 @@ struct dj_dir_t* d_dir_open_at(
 );
 /**
  * @brief Removes an entry of an open directory: an empty directory with
- *        D_DIR_REMOVE_DIRECTORY, anything else -- a link to a directory
- *        included, which goes as itself -- without it.
+ *        D_DIR_REMOVE_DIRECTORY, anything else - a link to a directory
+ *        included, which goes as itself - without it.
  *
  * @param[in] _dir    an open handle.
  * @param[in] _name   the entry's name: one component, neither "." nor "..".
@@ -343,7 +343,7 @@ int d_dir_remove_at(
  *        is removed as itself, wherever in the tree it is.
  *
  * @note Proof against a process that swaps a directory in the tree for a
- *       link while this runs -- the race std::filesystem's own remove_all had
+ *       link while this runs - the race std::filesystem's own remove_all had
  *       (CVE-2022-21658): every entry is opened and removed relative to the
  *       directory it was read from. One handle is open for each level of
  *       depth, so a tree deeper than the process may open fails with EMFILE.

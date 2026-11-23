@@ -11,7 +11,7 @@
 *
 *   STANDARD STATUS:
 *   Added in C++14. Made constexpr in C++20 (P1132R7). re_std provides
-* on C++11+ (without constexpr), C++14+ (with constexpr -- the body is
+* on C++11+ (without constexpr), C++14+ (with constexpr - the body is
 * multi-statement, which requires C++14 relaxed constexpr).
 *
 *   Requires rvalue references; gated accordingly.
@@ -56,7 +56,7 @@ namespace re_std
 
 #else  // C++11
 
-    // exchange (C++11: not constexpr -- multi-statement body)
+    // exchange (C++11: not constexpr - multi-statement body)
     template<typename Type, typename Other>
     Type exchange(Type& _obj, Other&& _new_value)
     {

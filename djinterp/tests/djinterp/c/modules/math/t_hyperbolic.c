@@ -2,8 +2,8 @@
 * djinterp [c][math]                                              t_hyperbolic.c
 *
 *   Conformance harness for c/math/hyperbolic.h. For float, sinh_c, cosh_c
-* and tanh_c must be the correctly rounded result -- the long double
-* library's, rounded to float -- at one float pattern in 1009 across the
+* and tanh_c must be the correctly rounded result - the long double
+* library's, rounded to float - at one float pattern in 1009 across the
 * whole range, and at every float in [7/16, 9/16), where the kernel passes
 * from its series to the exponential, and about the overflow; and within two
 * ulps of sinhf, coshf and tanhf (glibc's are not always within one).
@@ -26,8 +26,8 @@
 * family, and the plain forms, the C library's, within three; the long double
 * _c forms within 0.53 of an ulp of the exact value at its points of long
 * double's full width, the kernels' bound; within an ulp of the long double
-* library's value rounded to double at 300,000 random doubles each -- near the
-* functions' edges down to 2^-50, across their middles, far out -- and rounded
+* library's value rounded to double at 300,000 random doubles each - near the
+* functions' edges down to 2^-50, across their middles, far out - and rounded
 * to float at one float pattern in 4099; within four ulps of asinhl, acoshl and
 * atanhl at 100,000 random long doubles each (glibc's own are more than two
 * off); Annex F's values; the plain forms the C library's, bit for bit, and
@@ -38,7 +38,7 @@
 * from C++14, that all six functions are constant expressions, for every
 * family, with the bits they have at run time. It needs no 64-bit integer --
 * its random numbers come from math_tests_random.h, the same in every build
-* -- so that ISO-strict C++98 on a 32-bit target, where dj_math_umax has 32
+* - so that ISO-strict C++98 on a 32-bit target, where dj_math_umax has 32
 * bits, builds it too.
 *
 *   Build (from the repo root), at any language level from C99:
@@ -659,8 +659,8 @@ d_tests_inverse_one(
 
 // d_tests_inverse_refs
 //   each reference, each family: the _c form within an ulp of the correctly
-// rounded value -- the long double kernel's error, below 0.52 ulp of long
-// double, rounded once more -- and the plain form, the C library's (before
+// rounded value - the long double kernel's error, below 0.52 ulp of long
+// double, rounded once more - and the plain form, the C library's (before
 // C++11, _c), within 3; the largest distances printed.
 static void
 d_tests_inverse_refs(void)
@@ -751,9 +751,9 @@ d_tests_wide_point(
 
 // d_tests_inverse_wide
 //   each full-width reference: asinh_c, acosh_c and atanh_c in long double
-// within D_TESTS_KERNEL_BOUND of an ulp of the exact value -- their distance
+// within D_TESTS_KERNEL_BOUND of an ulp of the exact value - their distance
 // from the nearest long double, exact, less the exact value's offset from it
-// -- and the plain forms, the C library's, within 3 of the nearest; the
+// - and the plain forms, the C library's, within 3 of the nearest; the
 // largest distances printed. A long double narrower than 64 bits takes no
 // such point exactly, and is left out.
 static void
@@ -819,7 +819,7 @@ d_tests_inverse_wide(void)
 
 // d_tests_inverse_argument
 //   a random argument of the function _k, as a long double: a third near its
-// edge -- 0 for asinh and atanh, 1 for acosh -- down to 2^-(_depth), a third
+// edge - 0 for asinh and atanh, 1 for acosh - down to 2^-(_depth), a third
 // across its middle, a third far out (asinh and acosh to 2^(_far), atanh
 // within 2^-(_depth) of +-1); _u in [0, 1).
 static long double

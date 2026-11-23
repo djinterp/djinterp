@@ -333,7 +333,7 @@ bool consumer_tests_erasure();
 // runner engine in document order.
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // consumer_spec
 //   function: the suite as DTest's module spec, one block per section.

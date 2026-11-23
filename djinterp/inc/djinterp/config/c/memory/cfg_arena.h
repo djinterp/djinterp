@@ -13,7 +13,7 @@
 * That removes five fields from the arena and one from every region header,
 * and it is the shape an embedded caller with one fixed pool of memory
 * actually wants. On, the arena grows by chaining, and every pointer it ever
-* handed out stays valid across the growth -- which is the shape a compiler,
+* handed out stays valid across the growth - which is the shape a compiler,
 * a parser, or any tree builder wants.
 *
 *   Neither shape is a subset of the other in behaviour, only in cost, which
@@ -100,8 +100,8 @@
 #define D_CFG_ARENA_GROWTH_EXPONENTIAL  2
 
 // D_CFG_ARENA_GROWTH
-//   brief: the default growth policy, and -- when
-// D_CFG_ARENA_GROWTH_RUNTIME is 0 -- the only one. EXPONENTIAL by default,
+//   brief: the default growth policy, and - when
+// D_CFG_ARENA_GROWTH_RUNTIME is 0 - the only one. EXPONENTIAL by default,
 // because the number of upstream calls is the cost an arena exists to avoid.
 #ifndef D_CFG_ARENA_GROWTH
 #   define D_CFG_ARENA_GROWTH D_CFG_ARENA_GROWTH_EXPONENTIAL
@@ -129,7 +129,7 @@
 
 // D_CFG_ARENA_GROWTH_NUM / D_CFG_ARENA_GROWTH_DEN
 //   brief: the exponential ratio, as an exact integer fraction rather than a
-// float -- so that two builds, two languages, and two architectures compute
+// float - so that two builds, two languages, and two architectures compute
 // the same region sizes, which a float ratio does not guarantee and which the
 // parity law requires.
 //   Defaults to 2/1. The often-cited 1.5 is chosen so that freed blocks can be
@@ -157,7 +157,7 @@
 
 // D_CFG_ARENA_REGION_BYTES
 //   brief: the payload size of an arena's first region when its configuration
-// names none, in bytes. 65536 by default -- large enough that the upstream
+// names none, in bytes. 65536 by default - large enough that the upstream
 // call is amortised over thousands of small allocations, small enough that an
 // arena which is created and never used costs one page-ish block rather than
 // a megabyte.
@@ -171,7 +171,7 @@
 // without it, the twentieth region of a doubling arena is 32 GiB. Defaults to
 // 16 MiB, which is roughly where a single upstream request stops being cheap
 // on every allocator this is likely to sit on.
-//   A request LARGER than the ceiling is still satisfied -- the region is
+//   A request LARGER than the ceiling is still satisfied - the region is
 // sized to the request. The ceiling bounds speculative growth, not need.
 #ifndef D_CFG_ARENA_MAX_REGION_BYTES
 #   define D_CFG_ARENA_MAX_REGION_BYTES (16 * 1024 * 1024)
@@ -180,7 +180,7 @@
 // D_CFG_ARENA_REGION_ALIGN
 //   brief: the alignment an arena requests its regions at; 0 means the
 // configured default. Raising it to a page or a cache line is how a caller
-// buys an arena whose every region is page-aligned -- for a mapping-backed
+// buys an arena whose every region is page-aligned - for a mapping-backed
 // source, or to keep two arenas off each other's cache lines.
 #ifndef D_CFG_ARENA_REGION_ALIGN
 #   define D_CFG_ARENA_REGION_ALIGN 0
@@ -195,7 +195,7 @@
 //   brief: 1 compiles mark and rewind, which turn the arena into a stack
 // allocator: take a mark, allocate freely, rewind, and every byte since the
 // mark is available again with no per-allocation bookkeeping at all.
-//   A BRANCH knob -- a mark is a value the CALLER holds, so the arena carries
+//   A BRANCH knob - a mark is a value the CALLER holds, so the arena carries
 // no field for it and this costs only the two functions. Defaults ON.
 #ifndef D_CFG_ARENA_MARKS
 #   ifdef D_CFG_MEM_ALL
@@ -207,7 +207,7 @@
 
 // D_CFG_ARENA_VALIDATE_MARKS
 //   brief: 1 checks, on rewind, that a mark names a region this arena
-// actually owns -- which costs a walk of the region chain and catches the
+// actually owns - which costs a walk of the region chain and catches the
 // mistake that otherwise corrupts silently: rewinding one arena with another
 // arena's mark. Follows D_CFG_TESTING.
 #ifndef D_CFG_ARENA_VALIDATE_MARKS
@@ -341,7 +341,7 @@
 #endif
 
 // D_INTERNAL_ARENA_GROWTH
-//   brief: the compile-time growth policy -- the default when the policy is a
+//   brief: the compile-time growth policy - the default when the policy is a
 // field, the only value when it is not.
 #define D_INTERNAL_ARENA_GROWTH       D_CFG_NORM(D_CFG_ARENA_GROWTH)
 

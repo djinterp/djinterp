@@ -8,7 +8,7 @@
 *                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp [test]  functional_traits_tests_predicate.cpp
-//   Section II -- is_predicate.
+//   Section II - is_predicate.
 
 // std
 #include <string>
@@ -64,7 +64,7 @@ bool tests_is_predicate_negative()
     ok = ok && (!is_predicate<not_callable, int>::value);  // not callable
     ok = ok && (!is_predicate<int, int>::value);           // not callable
 
-    // but pred_str IS callable -- it fails only the bool-convertibility half.
+    // but pred_str IS callable - it fails only the bool-convertibility half.
     ok = ok && (is_callable<pred_str, int>::value);
     ok = ok && (is_callable<void_fn, int>::value);
 
@@ -74,7 +74,7 @@ bool tests_is_predicate_negative()
 
 /*
 tests_is_predicate_convertible_results
-  The requirement is convertibility to bool, not a bool result -- so the ordinary
+  The requirement is convertibility to bool, not a bool result - so the ordinary
   standard conversions qualify.
   Tests the following:
   - int, pointer, and a class with an implicit operator bool all qualify
@@ -150,7 +150,7 @@ bool tests_is_predicate_const_lvalue()
 
 /*
 tests_is_predicate_arg_type
-  A predicate is a predicate OVER an argument type -- the same callable can be a
+  A predicate is a predicate OVER an argument type - the same callable can be a
   predicate for one _Arg and not for another.
   Tests the following:
   - a string predicate is one over std::string, not over int
@@ -203,7 +203,7 @@ bool tests_is_predicate_templated_operator()
 
 /*
 tests_is_predicate_single_argument
-  is_predicate takes exactly one _Arg -- it is the one-argument, bool-convertible
+  is_predicate takes exactly one _Arg - it is the one-argument, bool-convertible
   case, not a variadic trait.
   Tests the following:
   - a two-argument callable is not a predicate over one argument
@@ -216,7 +216,7 @@ bool tests_is_predicate_single_argument()
     ok = ok && (!is_predicate<DTwoArgFn, int>::value);
     ok = ok && (!is_predicate<DNiladicFn, int>::value);
 
-    // they are callable at their own arity -- is_callable takes the pack.
+    // they are callable at their own arity - is_callable takes the pack.
     ok = ok && (is_callable<DTwoArgFn, int, double>::value);
     ok = ok && (is_callable<DNiladicFn>::value);
 
@@ -227,7 +227,7 @@ bool tests_is_predicate_single_argument()
 /*
 tests_is_predicate_reuses_invocable_r_with
   is_predicate is defined as the bool case of function_traits.hpp's
-  is_invocable_r_with -- a thin reuse, not a reimplementation.
+  is_invocable_r_with - a thin reuse, not a reimplementation.
   Tests the following:
   - is_predicate derives from is_invocable_r_with<bool, ...>
   - the two agree on the fixtures, including the explicit-bool edge

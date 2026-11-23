@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/text/
+# djinterp [test]  -  build/cmake/config/testing/djinterp/c/text/
 #                      ostream_template/CMakeLists.txt
 #
 #   Test leaf for the template engine's suite, in DTest's C face: the runner in

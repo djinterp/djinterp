@@ -3,7 +3,7 @@
 *
 * Parsegen's C suite: its C API, called from C.
 *   Building a grammar, rendering it, analysing it, and routing it through the
-* registry -- the pipeline the C++ suites cover, from a C translation unit.
+* registry - the pipeline the C++ suites cover, from a C translation unit.
 *   The suite is a table of sections, defined in parsegen_c_tests.c beside the
 * sections themselves, so its length is the number of sections this build has.
 *

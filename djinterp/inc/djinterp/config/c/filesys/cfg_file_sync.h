@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                          cfg_file_sync.h
 *
-* Build-time configuration for c/filesys/file_sync.h -- forcing data to durable
+* Build-time configuration for c/filesys/file_sync.h - forcing data to durable
 * storage.
 *
 *   Every knob here trades speed for a promise about what survives a power
@@ -62,7 +62,7 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 1.1.1
 // D_CFG_FILE_SYNC_DATA_ONLY
-//   knob: use fdatasync(2) rather than fsync(2) -- flush the file's DATA but
+//   knob: use fdatasync(2) rather than fsync(2) - flush the file's DATA but
 // not the metadata that is not needed to read it back.
 //   OFF by default, which is the conservative choice. fdatasync is genuinely
 // faster (it can skip a second write to the inode for a timestamp nobody
@@ -73,7 +73,7 @@ TABLE OF CONTENTS
 //   Turn it on for a log or a database journal, where the data is the point
 // and the timestamp is not. Linux only: elsewhere fsync is used whatever this
 // says. A directory gets fsync too, since fdatasync need not wait for a new
-// entry -- the thing a directory is synced for -- to reach the device.
+// entry - the thing a directory is synced for - to reach the device.
 #ifndef D_CFG_FILE_SYNC_DATA_ONLY
     #define D_CFG_FILE_SYNC_DATA_ONLY 0
 #endif  // D_CFG_FILE_SYNC_DATA_ONLY
@@ -82,15 +82,15 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 1.2.1
 // D_CFG_FILE_SYNC_FULL
-//   knob: on Apple's systems -- macOS, and iOS with its relatives -- use
+//   knob: on Apple's systems - macOS, and iOS with its relatives - use
 // fcntl(F_FULLFSYNC) instead of fsync(2).
-//   ON, and this is not a tuning knob -- it is a correctness one. Apple's
+//   ON, and this is not a tuning knob - it is a correctness one. Apple's
 // fsync() is documented to push data to the DRIVE, and then to stop: it does
 // not ask the drive to flush its own write cache. So fsync() returns, the
 // power fails, and the data is gone from a call whose entire purpose was to
 // prevent that. F_FULLFSYNC is Apple's answer and is what SQLite and every
-// serious database there use. A filesystem that refuses it -- most network
-// ones do -- gets plain fsync, with a warning; an I/O error, or a full disk
+// serious database there use. A filesystem that refuses it - most network
+// ones do - gets plain fsync, with a warning; an I/O error, or a full disk
 // or quota, is reported instead, since fsync, asked afterwards, could report
 // success for data the device has just lost.
 //   It holds at any POSIX level the build asks for: Darwin hides the name
@@ -178,7 +178,7 @@ TABLE OF CONTENTS
 // physical device; 0 when it only means the device has been handed them and may
 // still be holding them in a volatile cache, and on the ISO C backend, which
 // cannot sync at all. Safe in #if.
-//   On Apple's systems this is D_CFG_FILE_SYNC_FULL -- for a filesystem that
+//   On Apple's systems this is D_CFG_FILE_SYNC_FULL - for a filesystem that
 // accepts F_FULLFSYNC; one that refuses it gets plain fsync, with a warning.
 // Elsewhere the platform's own sync, fsync or FlushFileBuffers, already asks
 // the device to empty its cache, so it is 1.

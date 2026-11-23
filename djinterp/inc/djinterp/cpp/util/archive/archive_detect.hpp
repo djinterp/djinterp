@@ -6,9 +6,9 @@
 *
 *   WHY IT IS NOT PART OF archive.hpp:
 *   Recognition reads bytes.  It calls no backend, so a caller that only wants
-* to IDENTIFY or COUNT -- a bundler choosing an extension, a report writer
+* to IDENTIFY or COUNT - a bundler choosing an extension, a report writer
 * checking what it just wrote, a suite asserting another module emitted the
-* container it claimed -- should not link the format dispatcher it never
+* container it claimed - should not link the format dispatcher it never
 * invokes.  Same split, same reason, as compress_options.hpp and
 * compress_detect.hpp.
 *
@@ -20,18 +20,18 @@
 *   The format predicates forward to the kernel, so the framing rule stays with
 * the format.  The ZIP directory probes do not: scanning back for an
 * end-of-central-directory record and reading its member count is structural
-* inspection with no kernel equivalent that avoids a backend -- d_archive_measure
+* inspection with no kernel equivalent that avoids a backend - d_archive_measure
 * dispatches.  Those stay here, deliberately lenient.  They answer "this looks
 * like format X and claims N members", not byte-for-byte exactness, which
 * belongs to a suite that knows what it wrote.
 *
-*   tar has no magic at offset 0 -- `ustar` sits at byte 257 -- so recognising
+*   tar has no magic at offset 0 - `ustar` sits at byte 257 - so recognising
 * a tar needs a full 512-byte record.  d_format_signature_length reports that
 * rather than a nominal small number.
 *
 *   PORTABILITY:
 *   Target floor is C++98.  The EFFECTIVE floor today is C++11, and not because
-* of anything in this header -- djinterp.hpp gates below it outright ("djinterp
+* of anything in this header - djinterp.hpp gates below it outright ("djinterp
 * requires C++11 or later"), so no header that includes it can compile at C++98
 * regardless of what it uses.  Nothing here needs C++11 in its own right, so
 * this returns to the target floor the day the gate moves.  Verified building
@@ -156,7 +156,7 @@ format_magic_at(
 }
 
 // looks_like_gzip
-//   function: the gzip framing.  A pure forward -- the kernel checks the same
+//   function: the gzip framing.  A pure forward - the kernel checks the same
 // three bytes (1F 8B 08) the hand-written probe did, at the same minimum size.
 inline bool looks_like_gzip(const std::string& _b)
 { return format_magic_at(D_FORMAT_ID_GZ, _b.data(), _b.size()); }
@@ -165,7 +165,7 @@ inline bool looks_like_gzip(const std::string& _b)
 //   function: front signature AND a findable end-of-central-directory.
 //
 //   NOT a pure forward, deliberately.  d_format_signature_matches answers on
-// the leading four bytes alone, so it says yes to a TRUNCATED zip -- one that
+// the leading four bytes alone, so it says yes to a TRUNCATED zip - one that
 // begins PK\003\004 and was cut before its directory.  The question this name
 // asks is whether the blob is a plausible container, and a truncated one is
 // not.  The composite is what callers have been asserting against, so it is

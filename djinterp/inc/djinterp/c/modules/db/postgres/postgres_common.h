@@ -2,8 +2,8 @@
 * djinterp [c][db]                                             postgres_common.h
 *
 * Shared foundation of djinterp's PostgreSQL convenience layer.
-*   The layer works directly on libpq's connection, PGconn -- which libpq
-* defines as struct pg_conn, the name the public headers use -- so a program
+*   The layer works directly on libpq's connection, PGconn - which libpq
+* defines as struct pg_conn, the name the public headers use - so a program
 * passes the connection it already has to any function here, mixes them
 * freely with libpq's own calls, and closes it with PQfinish or
 * d_postgres_close alike. Nothing is kept beside the connection: every
@@ -22,8 +22,8 @@
 *                           time zone, any parameter
 *     postgres_maintenance  vacuum, analyze, reindex, checkpoint, sizes
 *   RESULTS. A function that can fail returns 0 or, when the server or libpq
-* reports a failure, its SQLSTATE -- the five-character code PostgreSQL gives
-* every error -- packed into an int the way the server itself packs it
+* reports a failure, its SQLSTATE - the five-character code PostgreSQL gives
+* every error - packed into an int the way the server itself packs it
 * (D_POSTGRES_SQLSTATE below), so that switch statements can name it and
 * d_postgres_result_sqlstate can spell it out again: 42P01 is a missing
 * table, 23505 a duplicate key. libpq gives no SQLSTATE for failures of its
@@ -34,13 +34,13 @@
 * server too old for the request, or a build without libpq; D_DB_NOT_FOUND
 * is as db_common.h describes. Predicates come in pairs, as there: `has_x`
 * folds a failure into `false`, `has_x_s` reports it.
-*   NAMES. Every name -- schema, table, column -- is quoted by the layer, so
+*   NAMES. Every name - schema, table, column - is quoted by the layer, so
 * any name the server accepts is safe to pass, and it is matched exactly, case
 * included: a table created as CREATE TABLE Users, unquoted, is named users.
 * A NULL schema means the current schema, the first schema of the search path
 * that exists, as current_schema() names it; "pg_temp" means the session's
-* own temporary schema, as it does in SQL. Text that is SQL -- a definition,
-* a SELECT, a DEFAULT -- is the caller's SQL and is used as written.
+* own temporary schema, as it does in SQL. Text that is SQL - a definition,
+* a SELECT, a DEFAULT - is the caller's SQL and is used as written.
 *   TRANSACTIONS. A statement that fails inside a transaction leaves it
 * failed, as in any PostgreSQL client, until the caller rolls it back. The
 * layer's own lookups never fail on a missing object, and an IF [NOT] EXISTS
@@ -206,8 +206,8 @@ enum dj_postgres_client_feature
 //------------------------------------------------------------------------------
 // 2.1.1
 // D_POSTGRES_CASCADE
-//   constant: a drop takes what depends on the object with it -- a view on a
-// table, a schema's contents -- where without it the server refuses
+//   constant: a drop takes what depends on the object with it - a view on a
+// table, a schema's contents - where without it the server refuses
 // (D_POSTGRES_SQLSTATE_DEPENDENT_OBJECTS_STILL_EXIST); creating an extension
 // installs the extensions it needs.
 #define D_POSTGRES_CASCADE       (D_DB_VENDOR_FLAGS << 0)
@@ -227,19 +227,19 @@ enum dj_postgres_client_feature
 
 // 2.1.4
 // D_POSTGRES_REPLACE
-//   constant: CREATE OR REPLACE -- a view or trigger of the name is replaced;
+//   constant: CREATE OR REPLACE - a view or trigger of the name is replaced;
 // triggers from PostgreSQL 14.
 #define D_POSTGRES_REPLACE       (D_DB_VENDOR_FLAGS << 3)
 
 // 2.1.5
 // D_POSTGRES_FULL
-//   constant: VACUUM FULL -- the table is rewritten under an exclusive lock,
+//   constant: VACUUM FULL - the table is rewritten under an exclusive lock,
 // and its free space returned to the operating system.
 #define D_POSTGRES_FULL          (D_DB_VENDOR_FLAGS << 4)
 
 // 2.1.6
 // D_POSTGRES_ANALYZE
-//   constant: VACUUM ANALYZE -- the planner's statistics are updated as well.
+//   constant: VACUUM ANALYZE - the planner's statistics are updated as well.
 #define D_POSTGRES_ANALYZE       (D_DB_VENDOR_FLAGS << 5)
 
 
@@ -275,7 +275,7 @@ enum dj_postgres_client_feature
 // its constant. The functions return int, so that every code fits.
 enum dj_postgres_sqlstate
 {
-    // class 08: connection exception -- three of the five codes the layer
+    // class 08: connection exception - three of the five codes the layer
     // gives itself (53200, out of memory, and 58030, a client's file, are
     // the others), and the server's 08P01
     D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION =
@@ -359,9 +359,9 @@ enum dj_postgres_sqlstate
     D_POSTGRES_SQLSTATE_DUPLICATE_SCHEMA =
         D_POSTGRES_SQLSTATE('4', '2', 'P', '0', '6'),
     D_POSTGRES_SQLSTATE_DUPLICATE_TABLE =
-        D_POSTGRES_SQLSTATE('4', '2', 'P', '0', '7'),  // a relation -- table,
+        D_POSTGRES_SQLSTATE('4', '2', 'P', '0', '7'),  // a relation - table,
                                                        // view, index,
-                                                       // sequence -- of that
+                                                       // sequence - of that
                                                        // name
     // class 53, 55, 57, 58, XX: resources, state, intervention, the system,
     // the server itself
@@ -383,7 +383,7 @@ enum dj_postgres_sqlstate
 
 // 3.3    Reading results
 //------------------------------------------------------------------------------
-// reading results -- _result_sqlstate spells a result's SQLSTATE into
+// reading results - _result_sqlstate spells a result's SQLSTATE into
 // `_sqlstate`, five characters and a terminator, and returns true; for 0 it
 // writes "00000", and for a negative result or one no SQLSTATE packs to it
 // writes "" and returns false. _result_from_sqlstate packs a five-character
@@ -396,7 +396,7 @@ bool d_postgres_result_sqlstate(
 int d_postgres_result_from_sqlstate(
     const char* _sqlstate
 ) D_NOTHROW;
-// result messages -- an English description of a result the layer returns:
+// result messages - an English description of a result the layer returns:
 // db_common.h's own words for its values; the layer's own for the five
 // SQLSTATEs it gives itself; the PostgreSQL manual's for the conditions
 // section 3.2 names ("undefined table" for 42P01); and for any other
@@ -409,13 +409,13 @@ const char* d_postgres_result_message(
 
 // 3.4    Kinds
 //------------------------------------------------------------------------------
-// kinds -- what a result was, as db_common.h's kinds name it (1.4):
+// kinds - what a result was, as db_common.h's kinds name it (1.4):
 // d_postgres_kind spells the result's SQLSTATE and sorts it by the function
 // the program set with d_postgres_kind_set, or by d_postgres_kind_default
 // where it set none (NULL sets none again). The default reads the SQLSTATE's
 // class, its first two characters: 08 is a connection, 28 auth, 23 and 44 a
 // constraint, 22 data, 40 busy, 0A unsupported, and 42, syntax or an access
-// rule, by its condition -- 42501 auth, an undefined object not found, a
+// rule, by its condition - 42501 auth, an undefined object not found, a
 // duplicate object a constraint, a datatype mismatch data, the rest syntax.
 // A class it does not sort, XX among them, is internal. Success and the
 // layer's own negative results are of no kind, and d_postgres_kind answers
@@ -442,7 +442,7 @@ enum dj_db_vendor_kind d_postgres_kind_default(
 
 // 4.1    Client
 //------------------------------------------------------------------------------
-// client -- the loaded libpq's version, as PQlibVersion gives it (160004 for
+// client - the loaded libpq's version, as PQlibVersion gives it (160004 for
 // 16.4), and whether the layer can do what libpq added after 10: the header
 // the layer was compiled against declares it, and the library loaded is of
 // its release or later; 0 and false in a build without libpq, and false for a
@@ -463,7 +463,7 @@ bool d_postgres_client_supports(
 
 // 5.1    Versions
 //------------------------------------------------------------------------------
-// versions -- the server's version string, as it reported it ("16.4",
+// versions - the server's version string, as it reported it ("16.4",
 // "17.2 (Debian 17.2-1.pgdg120+1)"), libpq's copy, valid while the connection
 // is; its number, as PQserverVersion gives it (160004 for 16.4); and whether
 // it is MAJOR.MINOR or later, PostgreSQL's numbering since 10 having only the
@@ -482,7 +482,7 @@ bool d_postgres_server_at_least(
 
 // 5.2    Features
 //------------------------------------------------------------------------------
-// features -- whether the server can do it, by its major version; `false` for
+// features - whether the server can do it, by its major version; `false` for
 // a value outside enum dj_postgres_feature
 bool d_postgres_supports(
     const struct pg_conn*    _db,
@@ -491,7 +491,7 @@ bool d_postgres_supports(
 
 // 5.3    Reported parameters
 //------------------------------------------------------------------------------
-// reported parameters -- a setting the server reports to the client, as it
+// reported parameters - a setting the server reports to the client, as it
 // did when the connection was made and does whenever the setting changes,
 // as PQparameterStatus reads it: server_version, server_encoding,
 // client_encoding, DateStyle, IntervalStyle, TimeZone, integer_datetimes,
@@ -512,7 +512,7 @@ const char* d_postgres_parameter_status(
 
 // 6.1    Errors
 //------------------------------------------------------------------------------
-// errors -- libpq's message for the last failure on the connection, as
+// errors - libpq's message for the last failure on the connection, as
 // PQerrorMessage gives it ("ERROR:  relation \"t\" does not exist\n...");
 // "" for none, or for NULL. A result of the layer's own, negative, leaves it
 // as it was. libpq's buffer, valid until the next call on the connection.

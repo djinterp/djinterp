@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  traversable_tests_protocol.cpp
-//   Section I -- traversable_traits (primary, undefined) and is_traversable.
+//   Section I - traversable_traits (primary, undefined) and is_traversable.
 
 // std
 #include <string>
@@ -47,7 +47,7 @@ bool tests_is_traversable_positive()
 
 /*
 tests_is_traversable_negative
-  Everything else is refused -- including the effect-producing function, which is
+  Everything else is refused - including the effect-producing function, which is
   a mapping function and not a structure to walk.
   Tests the following:
   - an unrelated struct, scalars, and a function object are not traversables
@@ -72,7 +72,7 @@ bool tests_is_traversable_negative()
 /*
 tests_is_traversable_is_a_separate_obligation
   The sharpest negative in the suite. Traversal needs a structure that is both a
-  Functor and a Foldable, and an Applicative to thread -- but being those things
+  Functor and a Foldable, and an Applicative to thread - but being those things
   does NOT make a type traversable. tbox is a Functor AND an Applicative (both by
   the monad bridge) and is still not a Traversable, because nothing supplied the
   one obligation: a traversable_traits with a traverse.
@@ -190,7 +190,7 @@ bool tests_traversable_traits_primary_is_undefined()
 /*
 tests_traversable_traits_surface
   A specialization exposes exactly the protocol surface: the marker, the inner
-  value type, and traverse -- traverse being the whole obligation.
+  value type, and traverse - traverse being the whole obligation.
   Tests the following:
   - is_specialized is std::true_type on both instances
   - value_type names the inner type A of T<A>

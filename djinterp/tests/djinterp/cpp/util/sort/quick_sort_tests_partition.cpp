@@ -39,7 +39,7 @@ bool tests_quick_sort_partition_postcondition()
     //   Ranges of length zero are excluded deliberately: the routine forms
     // _last - 1 before it tests anything, so an empty range would build an
     // iterator before the start of the sequence.  That is a genuine
-    // precondition of the function, not an oversight of this test -- see
+    // precondition of the function, not an oversight of this test - see
     // tests_quick_sort_partition_minimal_ranges.
     for (size_index = 0; size_index < battery_size_count; ++size_index)
     {
@@ -97,7 +97,7 @@ bool tests_quick_sort_partition_all_equal()
 
     //   All-equal input is the classic quicksort trap: a partitioner that
     // sends every equivalent element to one side degrades to O(n^2).  This
-    // one does not -- neither inner scan advances at all (no element is
+    // one does not - neither inner scan advances at all (no element is
     // STRICTLY on the wrong side), so the two cursors close on each other
     // one step at a time from both ends and meet in the middle.
     //
@@ -152,7 +152,7 @@ bool tests_quick_sort_partition_extreme_pivots()
     result.check(data[0] == 0);
 
     //   Pivot is the strict MAXIMUM: now it is the left-hand scan that runs
-    // the length of the range -- and it stops on the `lo <= hi` guard, not
+    // the length of the range - and it stops on the `lo <= hi` guard, not
     // on the comparator, which is the check that keeps it from stepping off
     // the end.
     data.clear();

@@ -2,8 +2,8 @@
 * djinterp [c][tools]                                              test_dvalue.c
 *
 *   Unit tests for the value model in dvalue.h.
-*     The comparison matrix is written out in full -- every tag against every
-* tag, both orders -- because that table is the step where reimplementations
+*     The comparison matrix is written out in full - every tag against every
+* tag, both orders - because that table is the step where reimplementations
 * of awk fail, and they fail silently. A case omitted here is a case nobody
 * will notice is wrong.
 *
@@ -246,7 +246,7 @@ void d_tests_comparison_matrix(void)
     // BELOW ("10" < "9" byte by byte) while 9 against "10" orders ABOVE; both
     // invert once the right operand is a field, because that pair is numeric.
     // Four cells of this table were transcribed backwards on the first pass
-    // and the implementation was right -- which is the argument for writing
+    // and the implementation was right - which is the argument for writing
     // the matrix out rather than spot-checking it.
     static const int expected[9][9] =
     {

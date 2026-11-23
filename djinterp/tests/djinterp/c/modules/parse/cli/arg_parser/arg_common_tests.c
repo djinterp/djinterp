@@ -400,7 +400,7 @@ d_tests_arg_common_buffer_append
   Tests the following:
   - bytes, a string, a span and a character, in order, NUL-terminated
   - text longer than the first allocation, appended in pieces
-  - nothing to append -- a NULL string, zero bytes -- appends nothing
+  - nothing to append - a NULL string, zero bytes - appends nothing
 */
 bool d_tests_arg_common_buffer_append(void)
 {
@@ -968,8 +968,8 @@ bool d_tests_arg_common_string_list(void)
 d_tests_arg_common_lists_zeroed
   Lists that were never filled.
   Tests the following:
-  - a zeroed list of either kind is an empty one, and releasing it -- or
-    NULL -- is harmless
+  - a zeroed list of either kind is an empty one, and releasing it - or
+    NULL - is harmless
 */
 bool d_tests_arg_common_lists_zeroed(void)
 {

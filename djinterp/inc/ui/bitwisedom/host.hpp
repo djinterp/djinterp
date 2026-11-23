@@ -2,12 +2,12 @@
 * djinterp [cpp][tools]                                                 host.hpp
 *
 * The window's host: what opens the window, runs its frames and closes it.
-*   Each platform's host defines run_window -- Win32 and Direct3D 11 on
+*   Each platform's host defines run_window - Win32 and Direct3D 11 on
 * Windows (host_win32.cpp), GLFW and OpenGL 3 elsewhere (host_glfw.cpp) --
 * and the build links one. The module's run function (plugin.cpp) reads
 * `bitwisedom gui`'s arguments into window_options and calls it, so a host
-* reads no command line of its own; and it says what it has to say -- a
-* window that could not be opened, a screenshot written -- through the
+* reads no command line of its own; and it says what it has to say - a
+* window that could not be opened, a screenshot written - through the
 * program the module made, so it says it as every djinterp program does.
 * window_host() names the host for `bitwisedom gui --version --verbose`.
 *
@@ -85,7 +85,7 @@ namespace gui
 // 1.1.1
 // window_options
 //   struct: what `bitwisedom gui` asked of the window: the events to post
-// before the first frame -- the sheets named, then each --do -- and the
+// before the first frame - the sheets named, then each --do - and the
 // testing options, each left as it is here unless asked for.
 struct window_options
 {
@@ -133,8 +133,8 @@ int window_features();
 // window_host
 /**
  * @brief The linked host as `bitwisedom gui --version --verbose` names it:
- *        its window system and the graphics it draws with -- `GLFW 3.4.0,
- *        OpenGL 3.0`, `Win32, Direct3D 11` -- a window system's version the
+ *        its window system and the graphics it draws with - `GLFW 3.4.0,
+ *        OpenGL 3.0`, `Win32, Direct3D 11` - a window system's version the
  *        one the window runs with, and the one it was built with too where
  *        they differ.
  *

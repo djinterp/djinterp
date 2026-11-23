@@ -2,8 +2,8 @@
 * djinterp [c][net]                                                 ssh_engine.h
 *
 * The SSH engine interface: the operations an SSH library provides.
-*   An engine owns the SSH transport -- key exchange, encryption, framing
-* -- and nothing more; host-key trust, the order of authentication
+*   An engine owns the SSH transport - key exchange, encryption, framing
+* - and nothing more; host-key trust, the order of authentication
 * methods, and when a session has failed are decided by the session, the
 * same for every engine. The library-wide lifetime calls and the default
 * engine are here; each built-in engine has its own header.
@@ -104,7 +104,7 @@ struct dj_ssh_algorithms
 // 1.2.3
 // dj_ssh_engine_vtable
 //   struct: the operations an SSH library provides. An engine owns the SSH
-// transport -- key exchange, encryption, framing -- and nothing more: whether
+// transport - key exchange, encryption, framing - and nothing more: whether
 // the host key is trusted, which methods are tried, and when a session has
 // failed are decided here, the same for every engine. `_handle` is one engine
 // session and `_channel` one engine channel. Each operation returns
@@ -119,8 +119,8 @@ struct dj_ssh_engine_vtable
     // a short name, such as "libssh2", for diagnostics
     const char* name;
 
-    // makes a session that applies `_algorithms` -- a NULL member keeps the
-    // library's default -- and the deadline (0 for none) to every operation
+    // makes a session that applies `_algorithms` - a NULL member keeps the
+    // library's default - and the deadline (0 for none) to every operation
     enum dj_ssh_error (*create)(const struct dj_ssh_algorithms* _algorithms,
                                unsigned int                   _timeout_ms,
                                void**                         _handle);
@@ -260,7 +260,7 @@ struct dj_ssh_engine_vtable
 /**
  * @brief Initializes the built-in engines' libraries.
  *
- * @note optional -- engines initialize on first use -- but that first use is
+ * @note optional - engines initialize on first use - but that first use is
  *       not thread-safe, so a program that starts sessions on several threads
  *       calls this once first.
  *

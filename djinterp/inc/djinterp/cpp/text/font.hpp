@@ -400,7 +400,7 @@ struct DFontFamilyInfo
 
 namespace font_mixin {
 
-    // -- decorations --------------------------------------------------
+    // - decorations --------------------------------------------------
 
     template <bool Enable>
     struct DUnderlineData
@@ -432,7 +432,7 @@ namespace font_mixin {
         bool overline = false;
     };
 
-    // -- casing -------------------------------------------------------
+    // - casing -------------------------------------------------------
 
     template <bool Enable>
     struct DSmallCapsData
@@ -474,7 +474,7 @@ namespace font_mixin {
         bool superscript = false;
     };
 
-    // -- metrics overrides --------------------------------------------
+    // - metrics overrides --------------------------------------------
 
     template <bool Enable>
     struct DLetterSpacingData
@@ -496,7 +496,7 @@ namespace font_mixin {
         float line_height = 0.0f;       // multiplier; 0 => adapter default
     };
 
-    // -- axes ---------------------------------------------------------
+    // - axes ---------------------------------------------------------
 
     template <bool Enable>
     struct DStretchData
@@ -518,7 +518,7 @@ namespace font_mixin {
         DFontSpacing spacing = DFontSpacing::any;
     };
 
-    // -- color --------------------------------------------------------
+    // - color --------------------------------------------------------
 
     template <bool Enable, typename ColorType>
     struct DColorData
@@ -541,7 +541,7 @@ namespace font_mixin {
         bool       background_enabled = false;
     };
 
-    // -- opentype features --------------------------------------------
+    // - opentype features --------------------------------------------
 
     template <bool Enable>
     struct DOpentypeFeaturesData
@@ -553,7 +553,7 @@ namespace font_mixin {
         std::vector<DOpentypeFeature> opentype_features;
     };
 
-    // -- variable-font axes -------------------------------------------
+    // - variable-font axes -------------------------------------------
 
     template <bool Enable>
     struct DVariableAxesData
@@ -565,7 +565,7 @@ namespace font_mixin {
         std::vector<DVariableAxis> variable_axes;
     };
 
-    // -- script hint --------------------------------------------------
+    // - script hint --------------------------------------------------
 
     template <bool Enable>
     struct DScriptHintData
@@ -578,7 +578,7 @@ namespace font_mixin {
         std::string  language_tag;       // BCP-47: "en", "zh-Hans", ...
     };
 
-    // -- backend handles ----------------------------------------------
+    // - backend handles ----------------------------------------------
 
     template <bool Enable>
     struct DBackendHandlesData
@@ -667,7 +667,7 @@ struct DFont
     static constexpr bool has_script_hint         = has_ff(Feat, ff_script_hint);
     static constexpr bool has_backend_handles     = has_ff(Feat, ff_backend_handles);
 
-    // -- core (always present) ----------------------------------------
+    // - core (always present) ----------------------------------------
     std::string       family;
     std::string       style_name;
     float             size            = 10.0f;
@@ -676,14 +676,14 @@ struct DFont
     re_std::uint16_t  weight_numeric  = 0;
     DFontSlant        slant           = DFontSlant::upright;
 
-    // -- introspection ------------------------------------------------
+    // - introspection ------------------------------------------------
     [[nodiscard]] bool
     empty() const noexcept
     {
         return family.empty();
     }
 
-    // -- construction -------------------------------------------------
+    // - construction -------------------------------------------------
     DFont() = default;
 
     explicit DFont(
@@ -1351,7 +1351,7 @@ float fn_convert_size(
 // ill-formed one silently falls out.  The detection idiom from
 // djinterp::type_traits (is_detected<>) then classifies the result.
 
-// -- core identity --------------------------------------------------
+// - core identity --------------------------------------------------
 
 // font_family_t
 //   detector: `.family` member (expected: std::string or string-like).
@@ -1394,7 +1394,7 @@ template<typename Type>
 using font_empty_t = decltype(std::declval<const Type&>().empty());
 
 
-// -- decorations ----------------------------------------------------
+// - decorations ----------------------------------------------------
 
 template<typename Type>
 using font_underline_t =
@@ -1409,7 +1409,7 @@ using font_overline_t =
     decltype(std::declval<Type&>().overline);
 
 
-// -- casing ---------------------------------------------------------
+// - casing ---------------------------------------------------------
 
 template<typename Type>
 using font_small_caps_t =
@@ -1428,7 +1428,7 @@ using font_superscript_t =
     decltype(std::declval<Type&>().superscript);
 
 
-// -- metrics overrides ----------------------------------------------
+// - metrics overrides ----------------------------------------------
 
 template<typename Type>
 using font_letter_spacing_t =
@@ -1439,7 +1439,7 @@ using font_line_height_t =
     decltype(std::declval<Type&>().line_height);
 
 
-// -- axes -----------------------------------------------------------
+// - axes -----------------------------------------------------------
 
 template<typename Type>
 using font_stretch_t =
@@ -1450,7 +1450,7 @@ using font_spacing_t =
     decltype(std::declval<Type&>().spacing);
 
 
-// -- color / background --------------------------------------------
+// - color / background --------------------------------------------
 
 template<typename Type>
 using font_foreground_t =
@@ -1465,21 +1465,21 @@ using font_background_enabled_t =
     decltype(std::declval<Type&>().background_enabled);
 
 
-// -- opentype features ---------------------------------------------
+// - opentype features ---------------------------------------------
 
 template<typename Type>
 using font_opentype_features_t =
     decltype(std::declval<Type&>().opentype_features);
 
 
-// -- variable-font axes --------------------------------------------
+// - variable-font axes --------------------------------------------
 
 template<typename Type>
 using font_variable_axes_t =
     decltype(std::declval<Type&>().variable_axes);
 
 
-// -- script hint ---------------------------------------------------
+// - script hint ---------------------------------------------------
 
 template<typename Type>
 using font_script_tag_t =
@@ -1490,7 +1490,7 @@ using font_language_tag_t =
     decltype(std::declval<Type&>().language_tag);
 
 
-// -- backend handles -----------------------------------------------
+// - backend handles -----------------------------------------------
 
 template<typename Type>
 using font_postscript_name_t =
@@ -1513,7 +1513,7 @@ using font_native_handle_t =
     decltype(std::declval<Type&>().native_handle);
 
 
-// -- color-type alias ----------------------------------------------
+// - color-type alias ----------------------------------------------
 
 template<typename Type>
 using font_color_type_t =
@@ -1524,7 +1524,7 @@ using font_color_type_t =
 // II.  INDIVIDUAL CAPABILITY TRAITS
 // ===========================================================================
 
-// -- core identity --------------------------------------------------
+// - core identity --------------------------------------------------
 
 // has_font_family
 //   trait: checks for a `.family` member.
@@ -1598,7 +1598,7 @@ constexpr bool has_font_slant_v =
     has_font_slant<Type>::value;
 
 
-// -- decorations ----------------------------------------------------
+// - decorations ----------------------------------------------------
 
 // has_font_underline
 template<typename Type>
@@ -1646,7 +1646,7 @@ constexpr bool has_font_decorations_v =
     has_font_decorations<Type>::value;
 
 
-// -- casing ---------------------------------------------------------
+// - casing ---------------------------------------------------------
 
 // has_font_small_caps
 template<typename Type>
@@ -1703,7 +1703,7 @@ constexpr bool has_font_casing_v =
     has_font_casing<Type>::value;
 
 
-// -- metrics overrides ----------------------------------------------
+// - metrics overrides ----------------------------------------------
 
 // has_font_letter_spacing
 template<typename Type>
@@ -1738,7 +1738,7 @@ constexpr bool has_font_metrics_overrides_v =
     has_font_metrics_overrides<Type>::value;
 
 
-// -- axes -----------------------------------------------------------
+// - axes -----------------------------------------------------------
 
 // has_font_stretch
 template<typename Type>
@@ -1761,7 +1761,7 @@ constexpr bool has_font_spacing_v =
     has_font_spacing<Type>::value;
 
 
-// -- color / background --------------------------------------------
+// - color / background --------------------------------------------
 
 // has_font_color
 //   trait: true if the type exposes a `foreground` member.
@@ -1789,7 +1789,7 @@ constexpr bool has_font_background_v =
     has_font_background<Type>::value;
 
 
-// -- opentype features ---------------------------------------------
+// - opentype features ---------------------------------------------
 
 // has_font_opentype_features
 template<typename Type>
@@ -1802,7 +1802,7 @@ constexpr bool has_font_opentype_features_v =
     has_font_opentype_features<Type>::value;
 
 
-// -- variable-font axes --------------------------------------------
+// - variable-font axes --------------------------------------------
 
 // has_font_variable_axes
 template<typename Type>
@@ -1815,7 +1815,7 @@ constexpr bool has_font_variable_axes_v =
     has_font_variable_axes<Type>::value;
 
 
-// -- script hint ---------------------------------------------------
+// - script hint ---------------------------------------------------
 
 // has_font_script_hint
 //   trait: true when both script_tag and language_tag are exposed.
@@ -1830,7 +1830,7 @@ constexpr bool has_font_script_hint_v =
     has_font_script_hint<Type>::value;
 
 
-// -- backend handles -----------------------------------------------
+// - backend handles -----------------------------------------------
 
 // has_font_file_path
 template<typename Type>
@@ -1878,7 +1878,7 @@ constexpr bool has_font_backend_handles_v =
     has_font_backend_handles<Type>::value;
 
 
-// -- color type alias ----------------------------------------------
+// - color type alias ----------------------------------------------
 
 // has_font_color_type_alias
 //   trait: true if the type exposes a `color_type` nested alias.

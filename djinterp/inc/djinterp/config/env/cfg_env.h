@@ -160,9 +160,9 @@ TABLE OF CONTENTS
 // 3.1.1
 // D_CFG_ENV_JIT_WARN
 //   configuration: 1 (default) has env_jit.h say, when a unit that includes it
-// is built for a target whose App Store refuses JIT to general apps -- iOS,
+// is built for a target whose App Store refuses JIT to general apps - iOS,
 // iPadOS, tvOS, watchOS and visionOS, not Mac Catalyst, whose apps are macOS
-// apps -- that the build has not decided: D_ENV_JIT_PROHIBITED set to 1 is a
+// apps - that the build has not decided: D_ENV_JIT_PROHIBITED set to 1 is a
 // store build's decision, and quiets it too. 0 keeps it quiet, for a build
 // that holds the platform's JIT entitlement or ships outside the store
 // (decision 63 of the register, ruled 2026.11.04). Set it with

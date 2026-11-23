@@ -5,7 +5,7 @@ TABLE OF CONTENTS
 =================
 1.  STATUS
     ------
-2.  ORDERING -- KEY ONLY
+2.  ORDERING - KEY ONLY
     --------------------
     1.  construction
 */
@@ -17,7 +17,7 @@ TABLE OF CONTENTS
 int d_status(void);
 
 //==============================================================================
-// 2.  ORDERING -- KEY ONLY
+// 2.  ORDERING - KEY ONLY
 //==============================================================================
 
 // 2.1    construction

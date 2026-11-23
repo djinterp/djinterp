@@ -9,7 +9,7 @@
 # it did.
 #
 #     GEN EXAMPLE CHECK (the .c) COMPILER STYLE (gnu|msvc) WORK, and EMULATOR:
-#     what runs GEN where this machine cannot -- in a cross build,
+#     what runs GEN where this machine cannot - in a cross build,
 #     CMAKE_CROSSCOMPILING_EMULATOR; empty otherwise
 #
 # The platform's headers are not this project's, so the check is compiled

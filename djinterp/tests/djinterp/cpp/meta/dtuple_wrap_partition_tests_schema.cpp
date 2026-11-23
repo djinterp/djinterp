@@ -2,16 +2,16 @@
 * djinterp [cpp][meta]                    dtuple_wrap_partition_tests_schema.cpp
 *
 *   Section IV of dtuple_wrap_partition.hpp: the two partition_wrap_except
-* specializations and their precedence -- the schema may be a bare typename
+* specializations and their precedence - the schema may be a bare typename
 * pack (primary) OR a single std::tuple<...> (more-specialized, unwrapped to
 * the pack form).  Coverage:
 *     - the bare-pack primary and the single-tuple specialization produce the
 *       SAME result for the same logical schema (incl. embedded passthroughs);
 *     - a pack that CONTAINS a tuple routes to the PRIMARY: the inner tuple is
-*       an ordinary non-passthrough slot and gets wrapped -- it is NOT the
+*       an ordinary non-passthrough slot and gets wrapped - it is NOT the
 *       single-tuple unwrapping case;
 *     - a lone std::tuple<> routes to the specialization and yields
-*       std::tuple<> -- NOT the hard error the primary would raise if it treated
+*       std::tuple<> - NOT the hard error the primary would raise if it treated
 *       the empty tuple as one slot (proving the specialization is preferred);
 *     - the empty pack yields std::tuple<>.
 *
@@ -75,7 +75,7 @@ static_assert(std::is_same<DPartitionGrouped<2, std::tuple<slot<9>>, slot<0>>,
               "pack-with-tuple: inner tuple is a wrapped slot, not unwrapped");
 
 // a single tuple that CONTAINS a tuple: the outer unwraps one level, leaving
-// the inner tuple as a slot -- same result as the two-arg pack above.
+// the inner tuple as a slot - same result as the two-arg pack above.
 static_assert(std::is_same<DPartitionGrouped<2, std::tuple<std::tuple<slot<9>>, slot<0>>>,
                            std::tuple<group<std::tuple<slot<9>>, slot<0>>>>::value,
               "single tuple-of-tuple: outer unwrapped once, inner stays a slot");

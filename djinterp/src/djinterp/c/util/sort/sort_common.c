@@ -49,7 +49,7 @@ of them report the same status for the same mistake.
 non-zero; the range is present unless it is empty; and the range is addressable
 end to end. The overflow test is last because it is the only one that can cost
 a division, and it is reached only when a count or a width is large enough that
-their product might not fit -- which is to say, only when the caller has
+their product might not fit - which is to say, only when the caller has
 already misdescribed one of them.
 
 Parameter(s):

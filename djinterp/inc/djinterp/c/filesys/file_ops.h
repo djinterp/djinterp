@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                               file_ops.h
 *
-* Whole-file operations -- removing, renaming, copying.
+* Whole-file operations - removing, renaming, copying.
 *   d_file_rename is atomic; d_file_copy is not, and cannot be. That asymmetry
 * is the module's main hazard and is documented per function rather than
 * assumed.
@@ -46,7 +46,7 @@ D_EXTERN_C_BEGIN
  *
  * @note A symbolic link is removed itself, never its target. On Windows,
  *       whose C runtime's remove takes files only, a directory is removed as
- *       POSIX removes one -- and a symbolic link or junction to a directory
+ *       POSIX removes one - and a symbolic link or junction to a directory
  *       goes as a link.
  *
  * @param[in] _path  the path to remove.
@@ -61,7 +61,7 @@ int d_file_remove(
  * @note    It removes the NAME, not necessarily the file: the data survives
  *          while another hard link or an open descriptor still refers to it.
  * @note    A symbolic link is a name like any other, removed without its
- *          target -- on Windows a link or junction to a directory too, which
+ *          target - on Windows a link or junction to a directory too, which
  *          the C runtime's _unlink would refuse.
  * @warning The ISO C backend has only remove(), so there a directory is not
  *          refused.
@@ -78,11 +78,11 @@ int d_file_unlink(
 /**
  * @brief Renames or moves a file, atomically within one filesystem.
  *
- * @note    An observer sees the old name or the new one -- never neither,
+ * @note    An observer sees the old name or the new one - never neither,
  *          never both, and never a partial file. Across filesystems this
  *          fails with EXDEV rather than copying behind the caller's back,
  *          unless D_CFG_FILE_OPS_RENAME_CROSS_DEVICE accepts a NON-ATOMIC
- *          copy and delete instead -- and that only for a regular file: a
+ *          copy and delete instead - and that only for a regular file: a
  *          symlink or a directory still fails with EXDEV.
  * @warning With `_overwrite` 0 on POSIX the existence check is not atomic
  *          with the rename: another process can create `_new` in between.
@@ -105,7 +105,7 @@ int d_file_rename(
 // 1.3    Duplication
 //------------------------------------------------------------------------------
 /**
- * @brief Copies a file's contents -- and by default its permission bits -- to
+ * @brief Copies a file's contents - and by default its permission bits - to
  *        a new path.
  *
  * @note    Where configured, the platform's engine does the work:

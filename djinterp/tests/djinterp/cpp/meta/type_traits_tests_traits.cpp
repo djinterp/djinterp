@@ -47,7 +47,7 @@ struct has_max_size_subject_t
 // has_max_size_wrong_type_t
 //   subject: size_type and max_size exist, but max_size is `const int`
 // (not the type's own size_type).  The trait demands type-identity via
-// std::is_same -- this should be rejected.
+// std::is_same - this should be rejected.
 struct has_max_size_wrong_type_t
 {
     using size_type = std::size_t;
@@ -76,7 +76,7 @@ struct has_nested_template_type_subject_t
 // a template.
 struct has_nested_template_type_negative_t
 {
-    using type = int;  // non-template -- can't be instantiated with <int>
+    using type = int;  // non-template - can't be instantiated with <int>
 };
 
 // has_variadic_constructor_subject_t
@@ -314,7 +314,7 @@ static_assert(is_sized<int>::value == false,
 // =========================================================================
 //   is_valid_size_type<T> := is_unsigned<T> AND is_arithmetic<T>.
 
-// positive cases -- unsigned arithmetic
+// positive cases - unsigned arithmetic
 static_assert(is_valid_size_type<std::size_t>::value == true,
               "is_valid_size_type<size_t> -> true");
 static_assert(is_valid_size_type<unsigned int>::value == true,
@@ -324,13 +324,13 @@ static_assert(is_valid_size_type<unsigned char>::value == true,
 static_assert(is_valid_size_type<unsigned long long>::value == true,
               "is_valid_size_type<unsigned long long> -> true");
 
-// negative cases -- signed arithmetic
+// negative cases - signed arithmetic
 static_assert(is_valid_size_type<int>::value == false,
               "is_valid_size_type<int> -> false (signed)");
 static_assert(is_valid_size_type<long>::value == false,
               "is_valid_size_type<long> -> false (signed)");
 
-// negative cases -- non-arithmetic
+// negative cases - non-arithmetic
 static_assert(is_valid_size_type<void>::value == false,
               "is_valid_size_type<void> -> false");
 static_assert(is_valid_size_type<int*>::value == false,
@@ -338,7 +338,7 @@ static_assert(is_valid_size_type<int*>::value == false,
 static_assert(is_valid_size_type<std::vector<int>>::value == false,
               "is_valid_size_type<vector<int>> -> false");
 
-// negative case -- floating point (arithmetic but signed)
+// negative case - floating point (arithmetic but signed)
 static_assert(is_valid_size_type<float>::value == false,
               "is_valid_size_type<float> -> false");
 static_assert(is_valid_size_type<double>::value == false,

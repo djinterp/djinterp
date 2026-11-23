@@ -4,7 +4,7 @@
 * The command line's suite: `vparse`, run in-process, its every subcommand
 * and its every way of refusing, the measures over many inputs among them.
 *   cli::run() takes its streams, so each case runs the whole command line --
-* the kit, the argument parser, the subcommand, the model -- over arguments
+* the kit, the argument parser, the subcommand, the model - over arguments
 * made here, with a file standing in for the standard input, and reads back
 * what it wrote and how it ended. Nothing runs a process, and nothing needs a
 * display or uxoxo.
@@ -330,8 +330,8 @@ std::string error_line(
 
 /**
  * @brief Gives the error a refused grammar is said in: the model's headline
- *        for the run that refused it, written as a diagnostic -- its first
- *        letter in lower case, and without its full stop -- after the
+ *        for the run that refused it, written as a diagnostic - its first
+ *        letter in lower case, and without its full stop - after the
  *        grammar's name; and where the headline names the place the reader
  *        stopped, that place first, as `NAME:LINE:COLUMN: error: `, and
  *        not again in the sentence.
@@ -650,8 +650,8 @@ without a subcommand.
   Tests the following:
   - --help lists every subcommand, says @FILE is read, and gives the exit
     statuses, and ends with 0
-  - a subcommand's help lists what it takes -- run's, every part by name and
-    all; check's, its operand by its name -- and ends with what its exit
+  - a subcommand's help lists what it takes - run's, every part by name and
+    all; check's, its operand by its name - and ends with what its exit
     status answers
   - --version prints the version and ends with 0
   - no subcommand is the kit's usage error, and trouble
@@ -722,8 +722,8 @@ tests_cli_check
     its name, and not when told otherwise
   - every fault the session refuses is refused, in its words, in either
     notation, said as an error, and ends with NOT_ACCEPTED, check's answer;
-    so does a grammar the reader cannot read -- in a file, from standard
-    input, or EBNF read as the notation -- the place it stopped first, as
+    so does a grammar the reader cannot read - in a file, from standard
+    input, or EBNF read as the notation - the place it stopped first, as
     `NAME:LINE:COLUMN: error: `
   - a grammar that loops on an empty input is accepted, and said to loop
   - a grammar whose reading takes more steps than --step-limit gives is read
@@ -1007,8 +1007,8 @@ tests_cli_run
     request
   - several parts are printed in the order asked, each under its title, and
     all prints every part
-  - the status says how the run went: PASSED, NO_MATCH, REFUSED -- the run
-    printed all the same, and the refusal said as an error -- and NO_MATCH
+  - the status says how the run went: PASSED, NO_MATCH, REFUSED - the run
+    printed all the same, and the refusal said as an error - and NO_MATCH
     where left recursion runs to the step limit given
   - --format json carries the outcome and the parts asked for
 */
@@ -1387,7 +1387,7 @@ run, and timed apart.
     the same settings
   - --memoize auto memoizes Sum, Prod and Atom of NESTED over its corpus,
     and not Expr, which no input calls twice; it says the steps the corpus
-    took without the memo -- the plain bench's -- and takes fewer
+    took without the memo - the plain bench's - and takes fewer
   - a memo name no rule has, and a grammar the session refuses, are REFUSED,
     said as errors
 */
@@ -2445,8 +2445,8 @@ tests_cli_json_given
   run's and corpus's JSON say what they were given, in the keys 2026.10.26
 added after the ones that were there (R19).
   Tests the following:
-  - run's `argument` is the input's argument -- under --text the text
-    itself, where `input` is its name, quoted -- and `as_text` says which;
+  - run's `argument` is the input's argument - under --text the text
+    itself, where `input` is its name, quoted - and `as_text` says which;
     over a file, the file's name; over nothing, ""
   - the two come last, after `parts`
   - corpus's `length`, `repeats` and `misses` are the values given, and come

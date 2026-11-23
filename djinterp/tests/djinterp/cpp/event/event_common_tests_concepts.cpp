@@ -1,12 +1,12 @@
 /*******************************************************************************
 * djinterp [cpp][event]                          event_common_tests_concepts.cpp
 *
-*   Section VI -- CONCEPT CONSTRAINTS (C++20+).  Covers the concept layer that
+*   Section VI - CONCEPT CONSTRAINTS (C++20+).  Covers the concept layer that
 * classifies event tags: is_event, event_type / non_event_type, the
 * empty/argument split, the named/unnamed split, event_of_arity and its
 * nullary..ternary aliases, and variadic_event_type.  Each concept is checked
 * as a boolean value over positive, negative, and cv/reference-qualified
-* operands, and -- crucially -- over a non-event operand to confirm the
+* operands, and - crucially - over a non-event operand to confirm the
 * derived concepts short-circuit on event_type and never instantiate
 * event_traits for a non-event (which would fire its static_assert).
 *
@@ -234,7 +234,7 @@ NS_END  // testing
 NS_END  // djinterp
 
 
-#else   // !D_ENV_CPP_FEATURE_LANG_CONCEPTS -- concept layer absent
+#else   // !D_ENV_CPP_FEATURE_LANG_CONCEPTS - concept layer absent
 
 
 NS_DJINTERP

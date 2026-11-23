@@ -88,7 +88,7 @@ bool concepts_tests_properties()
     DT_CONCEPT    (is_standard_layout_c<aggregate_class>);
     DT_NOT_CONCEPT(is_standard_layout_c<polymorphic_class>);
 
-    // pod_type -- trivial AND standard_layout
+    // pod_type - trivial AND standard_layout
     DT_CONCEPT    (pod_type<int>);
     DT_CONCEPT    (pod_type<trivial_class>);
     DT_CONCEPT    (pod_type<empty_class>);

@@ -6,26 +6,26 @@
 * interpolation is a single left-to-right fold of *scan events* into a *sink*,
 * with the three independent axes of variation made into three policies:
 *
-*     scanner   -- WHERE the placeholders are (owns the syntax: braces vs
+*     scanner   - WHERE the placeholders are (owns the syntax: braces vs
 *                  sigils; owns runtime-scan vs pre-parsed).  Drives a pull
 *                  cursor that yields one `DPiece` (a literal run or a key) per
 *                  step, so output is written segment-by-segment with no
 *                  intermediate structure.  Speaks the framework scanner/token
 *                  vocabulary (input_type / item_type / result_type; a piece is
 *                  the token, with kind_type + value_type).
-*     resolver  -- WHAT a key becomes: (key) -> resolution<value>.  A miss
+*     resolver  - WHAT a key becomes: (key) -> resolution<value>.  A miss
 *                  leaves the placeholder untouched, which is what makes PARTIAL
 *                  interpolation well-defined.  Resolvers compose: a chain tries
-*                  each frame in order via the resolution's lazy `or_else` -- a
+*                  each frame in order via the resolution's lazy `or_else` - a
 *                  later frame's lookup runs only when the earlier frame MISSES
-*                  -- and composition is associative, so N chained frames
+*                  - and composition is associative, so N chained frames
 *                  collapse into ONE pass.  A predicate-gated frame composes its
 *                  conditions with predicate.hpp (`all_of` / `predicate_and` /
 *                  ...) when there is more than one.  A resolved value that is
 *                  itself a template is expanded in turn by DRecursiveResolver
 *                  (VALUE-level nesting, distinct from the scanner's flat
 *                  no-nested-braces syntax; see VI).
-*     sink      -- HOW output is assembled: literal(run) + value(resolved).
+*     sink      - HOW output is assembled: literal(run) + value(resolved).
 *                  DInterpStringSink appends into a buffer; a byte sink encodes; a
 *                  consumer/accumulator can stand in.  Runtime vs constexpr is a
 *                  sink choice (a fixed-capacity / caller-provided buffer for
@@ -35,7 +35,7 @@
 * `interpolate(t)` is F-hat(t) = F_t (the source-transformer a template names);
 * the resolver is the source, the produced output is the sink.  Where
 * template.hpp curries the TEMPLATE, the lazy `interpolation` builder additionally
-* curries the SOURCE -- consecutive `.interpolate(...)` calls extend a resolver
+* curries the SOURCE - consecutive `.interpolate(...)` calls extend a resolver
 * chain held in the type and do no work until a terminal forces the single pass.
 *
 *   This is deliberately NOT a parser/grammar: interpolation is a flat
@@ -60,49 +60,49 @@ TABLE OF CONTENTS
 I.    SCAN-EVENT VOCABULARY
       ---------------------
       i.    DPieceKind
-      ii.   piece                     -- the uniform scan event (token)
+      ii.   piece                     - the uniform scan event (token)
 
 II.   SCANNERS
       --------
-      i.    DBraceScanner             -- {key}, { key } trimmed, {{ }} escaped
-      ii.   DSigilScanner             -- $name style (configurable sigil)
-      iii.  DReplayScanner            -- replay a pre-scanned piece cache
+      i.    DBraceScanner             - {key}, { key } trimmed, {{ }} escaped
+      ii.   DSigilScanner             - $name style (configurable sigil)
+      iii.  DReplayScanner            - replay a pre-scanned piece cache
 
 III.  RESOLUTION & RESOLVERS
       ----------------------
-      i.    resolution                -- found/value + lazy or_else (a min. maybe)
-      ii.   DEmptyResolver            -- identity (everything passes through)
-      iii.  DMapResolver              -- inline {key,value} bindings
-      iv.   DLookupResolver           -- adapt a callable (always-found)
-      v.    DChainResolver            -- try a, else b (via or_else; associative)
-      vi.   DWhenResolver             -- gate on a key predicate
+      i.    resolution                - found/value + lazy or_else (a min. maybe)
+      ii.   DEmptyResolver            - identity (everything passes through)
+      iii.  DMapResolver              - inline {key,value} bindings
+      iv.   DLookupResolver           - adapt a callable (always-found)
+      v.    DChainResolver            - try a, else b (via or_else; associative)
+      vi.   DWhenResolver             - gate on a key predicate
       vii.  factories: bindings / lookup / chain / when
 
 IV.   SINKS
       -----
-      i.    DInterpStringSink               -- append into a basic_string buffer
+      i.    DInterpStringSink               - append into a basic_string buffer
 
 V.    THE ENGINE
       ----------
-      i.    interpolate_into          -- the fold: scanner -> resolver -> sink
+      i.    interpolate_into          - the fold: scanner -> resolver -> sink
 
 VI.   RECURSIVE EXPANSION
       -------------------
-      i.    DRecursiveResolver        -- re-scan a hit's value (nested templates)
-      ii.   recursive                 -- factory
+      i.    DRecursiveResolver        - re-scan a hit's value (nested templates)
+      ii.   recursive                 - factory
 
 VII.  THE LAZY FUNCTOR
       ----------------
-      i.    interpolation             -- template + resolver chain, in the type
+      i.    interpolation             - template + resolver chain, in the type
       ii.   interpolate / make_interpolation
-      iii.  .recursive()              -- nested-template terminal option
-      iv.   .prepare()                -- pre-parse for repeated rendering
+      iii.  .recursive()              - nested-template terminal option
+      iv.   .prepare()                - pre-parse for repeated rendering
 
 VIII. PREPARED TEMPLATES  (pre-parse once, render many)
       -------------------------------------------------
-      i.    DPreparedInterpolation    -- template + resolver over a piece cache
-      ii.   prepare / make_prepared   -- factories (shared cache)
-      iii.  prepare_into              -- fill a caller-owned cache container
+      i.    DPreparedInterpolation    - template + resolver over a piece cache
+      ii.   prepare / make_prepared   - factories (shared cache)
+      iii.  prepare_into              - fill a caller-owned cache container
 
 IX.   CONCEPTS  (C++20)
       -----------------
@@ -154,7 +154,7 @@ enum class DPieceKind
 };
 
 // DPiece
-//   struct: one scan event -- the framework token specialized to interpolation.
+//   struct: one scan event - the framework token specialized to interpolation.
 // A `literal` carries the (escape-collapsed, contiguous) span to emit verbatim;
 // a `key` carries the trimmed name to resolve plus the full delimited slice, so
 // an unresolved key can be re-emitted untouched for a later resolver frame.
@@ -189,11 +189,11 @@ using piece = DPiece<Type>;
 //   A scanner is a pull cursor over a format: `next(piece&)` yields the next
 // event and returns false at end.  It exposes the framework scanner typedefs
 // (input_type, item_type, result_type) and models `has_find_method`-style
-// repeated search.  Two are shipped; users may write their own -- the engine
+// repeated search.  Two are shipped; users may write their own - the engine
 // neither knows nor cares about the placeholder syntax.
 
 // DBraceScanner
-//   class: scans `{key}` placeholders -- `{ key }` is trimmed, `{{`/`}}` are
+//   class: scans `{key}` placeholders - `{ key }` is trimmed, `{{`/`}}` are
 // escaped literal braces, an unmatched `{` (or lone `}`) is kept literally, and
 // the first `}` closes (no nesting).  Literal pieces are always contiguous
 // source slices: an escaped brace is emitted as a one-char literal pointing at
@@ -207,16 +207,16 @@ public:
     using size_type   = std::size_t;
 
     // input_type
-    //   type: scanner contract -- the element type of the scanned input.
+    //   type: scanner contract - the element type of the scanned input.
     using input_type  = char_type;
 
     // item_type
-    //   type: scanner contract -- a discovered element (one scan event).
+    //   type: scanner contract - a discovered element (one scan event).
     using item_type   = DPiece<Type>;
     using piece_type  = DPiece<Type>;
 
     // result_type
-    //   type: scanner contract -- what a successful scan step yields.
+    //   type: scanner contract - what a successful scan step yields.
     using result_type = DPiece<Type>;
 
     D_CONSTEXPR explicit DBraceScanner(
@@ -225,7 +225,7 @@ public:
         : m_source(_source)
     {}
 
-    // next -- yield the next piece; false once the format is exhausted
+    // next - yield the next piece; false once the format is exhausted
     D_CONSTEXPR_CPP14 bool
     next(
         piece_type& _out
@@ -262,7 +262,7 @@ public:
                     ++close;
                 }
 
-                // unmatched '{' -- keep it literally and keep scanning
+                // unmatched '{' - keep it literally and keep scanning
                 if (close >= n)
                 {
                     ++m_i;
@@ -296,7 +296,7 @@ public:
     }
 
 private:
-    // m_literal -- a literal piece over [_offset, _offset + _length)
+    // m_literal - a literal piece over [_offset, _offset + _length)
     D_CONSTEXPR_CPP14 piece_type
     m_literal(
         size_type _offset,
@@ -310,7 +310,7 @@ private:
         return _p;
     }
 
-    // m_emit -- emit a brace piece, flushing any preceding literal first (the
+    // m_emit - emit a brace piece, flushing any preceding literal first (the
     // brace piece is then queued), and advance past `_consumed` source chars.
     D_CONSTEXPR_CPP14 bool
     m_emit(
@@ -336,7 +336,7 @@ private:
         return true;
     }
 
-    // m_emit_key -- form the key piece at [m_i, _close], flushing any preceding
+    // m_emit_key - form the key piece at [m_i, _close], flushing any preceding
     // literal first; the trimmed name is the lookup key, the full slice the raw.
     D_CONSTEXPR_CPP14 bool
     m_emit_key(
@@ -366,7 +366,7 @@ private:
         return m_emit(_key, ((_close + 1) - m_i), _out);
     }
 
-    // m_is_space -- ASCII-whitespace test for key trimming
+    // m_is_space - ASCII-whitespace test for key trimming
     static D_CONSTEXPR bool
     m_is_space(
         Type _c
@@ -388,7 +388,7 @@ private:
 //   class: scans `<sigil>name` placeholders (e.g. `$name`), where a name is a
 // maximal run of name-characters.  The sigil and the name-character set are
 // configurable; a doubled sigil escapes a literal one.  Demonstrates that the
-// placeholder syntax is entirely the scanner's business -- the engine is
+// placeholder syntax is entirely the scanner's business - the engine is
 // unchanged.  (Name predicate defaults to alnum-or-underscore.)
 template<typename Type = char>
 class DSigilScanner
@@ -443,7 +443,7 @@ public:
                     ++name_end;
                 }
 
-                // a bare sigil with no name -- keep it literally
+                // a bare sigil with no name - keep it literally
                 if (name_end == name_begin)
                 {
                     ++m_i;
@@ -534,7 +534,7 @@ private:
 // re-deriving it from the template text.  A template's scan is independent of
 // the resolver and yields the same pieces every render, so a template rendered
 // repeatedly can be scanned ONCE (see prepare / .prepare, section VIII) and
-// its pieces replayed -- turning per-render cost into lookups + emits with no
+// its pieces replayed - turning per-render cost into lookups + emits with no
 // re-scan.  The pieces hold views into the original template, so that template
 // must outlive the cache.  Cache is any forward-iterable sequence of
 // piece<Type> (std::vector by default).
@@ -557,7 +557,7 @@ public:
           m_end(_cache.end())
     {}
 
-    // next -- yield the next cached piece; false once the cache is exhausted
+    // next - yield the next cached piece; false once the cache is exhausted
     D_NODISCARD bool
     next(
         piece_type& _out
@@ -589,10 +589,10 @@ private:
 // leaves the placeholder.  This is the upgrade over a bare (key) -> value
 // lookup (which cannot distinguish "absent" from "empty"); the explicit miss is
 // what lets a key survive one frame to be filled by the next.  resolution is a
-// minimal maybe -- swap in djinterp::maybe<Value> wherever richer is wanted.
+// minimal maybe - swap in djinterp::maybe<Value> wherever richer is wanted.
 
 // DResolution
-//   struct: a resolver's answer -- a found flag and (when found) a value.  As
+//   struct: a resolver's answer - a found flag and (when found) a value.  As
 // the minimal maybe it carries the lazy `or_else` combinator that chaining is
 // expressed in terms of (see DChainResolver).
 template<typename Value>
@@ -616,7 +616,7 @@ struct DResolution
     // or_else
     //   method: if this is a hit, returns it unchanged; otherwise invokes
     // `_alt` (a nullary factory returning a resolution of the same value type)
-    // and returns its result.  Lazy -- `_alt` runs ONLY on a miss, so a chain
+    // and returns its result.  Lazy - `_alt` runs ONLY on a miss, so a chain
     // pays for a fallback frame's lookup solely when the earlier frame does not
     // hit.  This is the "try this, else that" step DChainResolver routes through.
     template<typename Alt>
@@ -655,7 +655,7 @@ D_NODISCARD D_CONSTEXPR DResolution<Value> unresolved()
 
 
 // DEmptyResolver
-//   class: resolves nothing -- the identity source.  Every key passes through
+//   class: resolves nothing - the identity source.  Every key passes through
 // untouched, so `interpolate(t)` with no bindings reproduces t (modulo escapes).
 template<typename Type = char>
 struct DEmptyResolver
@@ -674,7 +674,7 @@ struct DEmptyResolver
 
 // DMapResolver
 //   class: a linear-scan lookup over inline {key, value} bindings; a missing
-// key is a MISS (left as a placeholder).  Values are views -- zero-copy over
+// key is a MISS (left as a placeholder).  Values are views - zero-copy over
 // the bindings' backing storage, which must outlive any deferred render (place
 // literals or owned strings in the list, not per-call temporaries).
 template<typename Type = char>
@@ -718,7 +718,7 @@ private:
 // a resolver that ALWAYS hits (the classic DTextTemplate policy: a missing key
 // becomes an empty replacement).  It OWNS the produced value, because the
 // resolver/sink split consumes the value slightly later than a hand-written
-// render loop did -- a view over a returned temporary would dangle.
+// render loop did - a view over a returned temporary would dangle.
 template<typename Type,
          typename Fn>
 class DLookupResolver
@@ -747,7 +747,7 @@ private:
 };
 
 // DChainResolver
-//   class: try A, then B -- the first hit wins, a miss falls through.  The
+//   class: try A, then B - the first hit wins, a miss falls through.  The
 // fall-through is the resolution's lazy `or_else`: B's lookup is evaluated
 // ONLY when A misses.  Chain composition is associative, so an N-deep chain is
 // one pass with at most N lookups.  Every frame in a chain must agree on the
@@ -771,7 +771,7 @@ public:
     ) const
     {
         // try A; on a miss, fall through to B via the resolution's lazy
-        // or_else -- B(_key) runs only when A did not hit
+        // or_else - B(_key) runs only when A did not hit
         return m_a(_key).or_else(
             [this, _key]()
             {
@@ -790,7 +790,7 @@ private:
 // later frame.  This is how predicates are "sprinkled into the flow".  When the
 // gate has more than one condition, compose the leaf predicates with
 // predicate.hpp (`all_of(p1, p2, ...)`, `predicate_and`, `any_of`, ...) and
-// pass the single composed predicate -- the gate stays predicate-agnostic.
+// pass the single composed predicate - the gate stays predicate-agnostic.
 template<typename Pred,
          typename R>
 class DWhenResolver
@@ -825,7 +825,7 @@ private:
 };
 
 
-// bindings -- a DMapResolver from an inline {key, value} list
+// bindings - a DMapResolver from an inline {key, value} list
 template<typename Type = char>
 D_NODISCARD DMapResolver<Type>
 bindings(
@@ -836,7 +836,7 @@ bindings(
     return DMapResolver<Type>(_list);
 }
 
-// lookup -- a DLookupResolver from a callable (always-hit)
+// lookup - a DLookupResolver from a callable (always-hit)
 template<typename Type = char,
          typename Fn>
 D_NODISCARD D_CONSTEXPR DLookupResolver<Type, clean_t<Fn>>
@@ -847,7 +847,7 @@ lookup(
     return DLookupResolver<Type, clean_t<Fn>>(static_cast<Fn&&>(_fn));
 }
 
-// chain -- compose two resolvers (first hit wins, second tried lazily)
+// chain - compose two resolvers (first hit wins, second tried lazily)
 template<typename A,
          typename B>
 D_NODISCARD D_CONSTEXPR DChainResolver<clean_t<A>, clean_t<B>> chain(
@@ -860,7 +860,7 @@ D_NODISCARD D_CONSTEXPR DChainResolver<clean_t<A>, clean_t<B>> chain(
         static_cast<B&&>(_b));
 }
 
-// when -- gate a resolver on a key predicate (compose multi-condition gates
+// when - gate a resolver on a key predicate (compose multi-condition gates
 // with predicate.hpp before passing them here)
 template<typename Pred,
          typename R>
@@ -878,13 +878,13 @@ D_NODISCARD D_CONSTEXPR DWhenResolver<clean_t<Pred>, clean_t<R>> when(
 // ===========================================================================
 // IV.  SINKS
 // ===========================================================================
-//   A sink exposes literal(run) and value(resolved).  These are the two -- and
-// only two -- operations the scanner/resolver pair hand off, so any output
+//   A sink exposes literal(run) and value(resolved).  These are the two - and
+// only two - operations the scanner/resolver pair hand off, so any output
 // shape is uniform here: a growable buffer, a fixed-capacity constexpr buffer,
 // a byte encoder (for binary), or a wrapped consumer/accumulator.
 
 // DInterpStringSink
-//   class: appends each emitted span into a caller-owned basic_string -- no
+//   class: appends each emitted span into a caller-owned basic_string - no
 // result allocation of its own (the buffer is the caller's to size and reuse).
 template<typename Type = char>
 class DInterpStringSink
@@ -934,7 +934,7 @@ private:
 // interpolate_into
 //   function: the fold.  Drives `_scanner` (already bound to its template) one
 // piece at a time: a literal is emitted verbatim; a key is resolved and its
-// value emitted, or -- on a miss -- the raw placeholder is emitted untouched.
+// value emitted, or - on a miss - the raw placeholder is emitted untouched.
 // The resolution is held in a local so its value outlives the sink call.  This
 // is the single point where scanner, resolver, and sink meet; it knows nothing
 // of syntax, value types, or buffering.
@@ -978,11 +978,11 @@ void interpolate_into(
 // ===========================================================================
 // VI.  RECURSIVE EXPANSION
 // ===========================================================================
-//   The engine emits a hit's value verbatim -- it does not look inside it.
+//   The engine emits a hit's value verbatim - it does not look inside it.
 // "Nested templates" means lifting exactly that: when a resolved value is
 // ITSELF a template (it contains placeholders), feed it back through the engine
 // so those placeholders resolve too.  This is nesting at the VALUE level and is
-// orthogonal to the scanner's flat, no-nested-braces SYNTAX -- the recursive
+// orthogonal to the scanner's flat, no-nested-braces SYNTAX - the recursive
 // resolver is a plain decorator; the scanner, the fold, and every other
 // resolver stay untouched.
 
@@ -992,7 +992,7 @@ void interpolate_into(
 // the placeholders found there, one level at a time, to a depth bound.  The
 // bound is what guarantees termination: a self- or mutually-referential binding
 // (a -> "{b}", b -> "{a}") expands until the budget is spent, then the deepest
-// still-unresolved placeholder is left intact -- a passthrough, never a loop.
+// still-unresolved placeholder is left intact - a passthrough, never a loop.
 // The expanded value is freshly built, so value_type is the owning string type
 // (it sits beside DLookupResolver among the owning-value frames, not the view
 // frames).  Re-scanning resolves against this same wrapped resolver, so a
@@ -1025,7 +1025,7 @@ public:
     }
 
 private:
-    // m_expand -- resolve _key through the inner resolver; on a hit, re-scan
+    // m_expand - resolve _key through the inner resolver; on a hit, re-scan
     // the value with one less budget so a nested key expands in turn.  A miss
     // stays a miss; a spent budget emits the value without expanding further.
     D_NODISCARD DResolution<string_type>
@@ -1067,12 +1067,12 @@ private:
 };
 
 
-// recursive -- wrap a resolver so its hits are themselves interpolated (nested
+// recursive - wrap a resolver so its hits are themselves interpolated (nested
 // templates), bounded by _max_depth.  The scanner defaults to DBraceScanner;
 // pass the scanner the outer template uses so a nested placeholder shares its
 // syntax.  Because the result carries an owning string value, a recursive frame
 // composes with other owning-value frames (lookup, recursive) but not with the
-// view-valued bindings / empty frames -- apply it as the last resolver step.
+// view-valued bindings / empty frames - apply it as the last resolver step.
 template<typename Type     = char,
          typename Scanner = DBraceScanner<Type>,
          typename Inner>
@@ -1107,7 +1107,7 @@ class DPreparedInterpolation;
 // interpolation whose type appends a frame and does no work; a terminal
 // (`str`, `into`, or the string conversion) forces ONE pass over the whole
 // chain.  Consecutive `.interpolate(...)` calls therefore collapse into a
-// single pass with no intermediate buffer -- at compile time too, since the
+// single pass with no intermediate buffer - at compile time too, since the
 // chain is a type.  This is F_t with its source curried: template.hpp curries
 // the template, this curries the source.
 template<typename Type      = char,
@@ -1130,7 +1130,7 @@ public:
           m_resolver(_resolver)
     {}
 
-    // interpolate -- append a resolver frame (the collapsed chain is a new type)
+    // interpolate - append a resolver frame (the collapsed chain is a new type)
     template<typename R2>
     D_NODISCARD D_CONSTEXPR
     DInterpolation<Type, DChainResolver<Resolver, clean_t<R2>>, Scanner>
@@ -1145,7 +1145,7 @@ public:
             chained(m_resolver, static_cast<R2&&>(_r2)));
     }
 
-    // interpolate -- inline-bindings convenience over the resolver form
+    // interpolate - inline-bindings convenience over the resolver form
     D_NODISCARD
     DInterpolation<Type, DChainResolver<Resolver, DMapResolver<Type>>, Scanner>
     interpolate(
@@ -1155,7 +1155,7 @@ public:
         return interpolate(DMapResolver<Type>(_list));
     }
 
-    // interpolate_if -- append a predicate-gated resolver frame.  For more than
+    // interpolate_if - append a predicate-gated resolver frame.  For more than
     // one condition, compose the leaf predicates with predicate.hpp (e.g.
     // `all_of(p1, p2, ...)`) and pass the single combined predicate.
     template<typename Pred,
@@ -1170,7 +1170,7 @@ public:
                                 static_cast<R2&&>(_r2)));
     }
 
-    // recursive -- wrap the whole resolver chain so resolved VALUES are
+    // recursive - wrap the whole resolver chain so resolved VALUES are
     // themselves interpolated (nested templates), to a depth bound.  A nested
     // key resolves against the entire chain built so far; the result's value
     // type becomes the string type, so call this as the last resolver step
@@ -1188,7 +1188,7 @@ public:
             recursive_t(m_resolver, _max_depth));
     }
 
-    // str -- force the single pass, returning a freshly allocated string
+    // str - force the single pass, returning a freshly allocated string
     D_NODISCARD string_type
     str() const
     {
@@ -1200,7 +1200,7 @@ public:
         return _out;
     }
 
-    // into -- force the single pass into a caller-supplied sink (no allocation)
+    // into - force the single pass into a caller-supplied sink (no allocation)
     template<typename Sink>
     void
     into(
@@ -1212,7 +1212,7 @@ public:
         return;
     }
 
-    // prepare -- pre-parse the template ONCE and hand back a prepared
+    // prepare - pre-parse the template ONCE and hand back a prepared
     // interpolation that replays the cached pieces, so repeated renders skip
     // the scan (section VIII).  Carries the current resolver chain across; the
     // shared cache makes the result cheap to copy.  The cache holds views into
@@ -1240,14 +1240,14 @@ public:
         return str();
     }
 
-    // template_view -- the bound format
+    // template_view - the bound format
     D_NODISCARD D_CONSTEXPR view_type
     template_view() const
     {
         return m_template;
     }
 
-    // resolver -- the bound resolver chain
+    // resolver - the bound resolver chain
     D_NODISCARD D_CONSTEXPR const Resolver&
     resolver() const
     {
@@ -1260,7 +1260,7 @@ private:
 };
 
 
-// interpolate -- seed an interpolation over a template with no bindings yet
+// interpolate - seed an interpolation over a template with no bindings yet
 // (the identity; chain frames onto it with `.interpolate(...)`).  The scanner
 // defaults to DBraceScanner; pass another for a different placeholder syntax.
 template<typename Type     = char,
@@ -1275,7 +1275,7 @@ interpolate(
         _template, DEmptyResolver<Type>{});
 }
 
-// make_interpolation -- seed an interpolation with an initial resolver bound
+// make_interpolation - seed an interpolation with an initial resolver bound
 template<typename Type,
          typename Resolver,
          typename Scanner = DBraceScanner<Type>>
@@ -1295,13 +1295,13 @@ make_interpolation(
 // VIII. PREPARED TEMPLATES
 // ===========================================================================
 //   `interpolation` re-scans the template on every render.  When the SAME
-// template is rendered many times -- the common templating workload -- that
+// template is rendered many times - the common templating workload - that
 // scan is repeated work, because the piece sequence depends only on the
 // template and the scanner, never on the data.  `DPreparedInterpolation` scans
 // ONCE into a shared piece cache and replays it (DReplayScanner, section II) on
 // each render: same fold, same resolvers, no re-scan.  It mirrors the live
 // builder's surface (`.interpolate`, `.interpolate_if`, `.recursive`, `.str`,
-// `.into`), and adds resolver-argument terminals for the hot path -- hand the
+// `.into`), and adds resolver-argument terminals for the hot path - hand the
 // per-render bindings straight to a terminal and the prepared object stays put,
 // the shared cache reused in place with nothing re-parsed.
 //
@@ -1314,7 +1314,7 @@ make_interpolation(
 
 // DPreparedInterpolation
 //   class: a template + resolver pair backed by a pre-scanned, shared piece
-// cache -- the pre-parsed counterpart of interpolation.  Built by prepare,
+// cache - the pre-parsed counterpart of interpolation.  Built by prepare,
 // make_prepared, or interpolation::prepare.
 template<typename Type,
          typename Resolver,
@@ -1341,10 +1341,10 @@ public:
           m_template(_template)
     {}
 
-    // -- resolver building: each returns a prepared interpolation SHARING the
+    // - resolver building: each returns a prepared interpolation SHARING the
     //    cache (a refcount bump, never a piece copy) --
 
-    // interpolate -- append a resolver frame (lazy; folds in on a terminal)
+    // interpolate - append a resolver frame (lazy; folds in on a terminal)
     template<typename R2>
     D_NODISCARD
     DPreparedInterpolation<Type, DChainResolver<Resolver, clean_t<R2>>, Scanner, Cache> interpolate(
@@ -1359,7 +1359,7 @@ public:
             m_template);
     }
 
-    // interpolate -- inline-bindings convenience over the resolver form
+    // interpolate - inline-bindings convenience over the resolver form
     D_NODISCARD
     DPreparedInterpolation<Type, DChainResolver<Resolver, DMapResolver<Type>>, Scanner, Cache> interpolate(
         std::initializer_list<std::pair<view_type, view_type>> _list
@@ -1368,7 +1368,7 @@ public:
         return interpolate(DMapResolver<Type>(_list));
     }
 
-    // interpolate_if -- append a predicate-gated frame.  For more than one
+    // interpolate_if - append a predicate-gated frame.  For more than one
     // condition compose the leaves with predicate.hpp and pass one predicate.
     template<typename Pred,
              typename R2>
@@ -1381,7 +1381,7 @@ public:
                                 static_cast<R2&&>(_r2)));
     }
 
-    // recursive -- expand resolved VALUES as templates (nested templates).  The
+    // recursive - expand resolved VALUES as templates (nested templates).  The
     // cached pieces are the OUTER scan; nested value scans still run live (they
     // are data, not cacheable) using Scanner.
     D_NODISCARD
@@ -1397,9 +1397,9 @@ public:
             m_template);
     }
 
-    // -- terminals: replay the cache, never re-scan --
+    // - terminals: replay the cache, never re-scan --
 
-    // str -- render with the bound resolver chain
+    // str - render with the bound resolver chain
     D_NODISCARD string_type str() const
     {
         string_type _out;
@@ -1410,7 +1410,7 @@ public:
         return _out;
     }
 
-    // into -- render with the bound resolver chain into a caller sink
+    // into - render with the bound resolver chain into a caller sink
     template<typename Sink>
     void into(
         Sink& _sink
@@ -1421,12 +1421,12 @@ public:
         return;
     }
 
-    // -- hot-path terminals: supply the resolver per render.  The cache is
+    // - hot-path terminals: supply the resolver per render.  The cache is
     //    reused in place and the bound resolver is bypassed (it is the identity
     //    for a freshly prepared template), so reach for these when each render
     //    carries its own complete bindings --
 
-    // str -- render with a supplied resolver
+    // str - render with a supplied resolver
     template<typename R2>
     D_NODISCARD string_type str(
         const R2& _resolver
@@ -1440,7 +1440,7 @@ public:
         return _out;
     }
 
-    // into -- render with a supplied resolver into a caller sink
+    // into - render with a supplied resolver into a caller sink
     template<typename Sink,
              typename R2>
     void into(
@@ -1459,19 +1459,19 @@ public:
         return str();
     }
 
-    // template_view -- the bound format
+    // template_view - the bound format
     D_NODISCARD D_CONSTEXPR view_type template_view() const
     {
         return m_template;
     }
 
-    // resolver -- the bound resolver chain
+    // resolver - the bound resolver chain
     D_NODISCARD D_CONSTEXPR const Resolver& resolver() const
     {
         return m_resolver;
     }
 
-    // pieces -- the cached scan (one entry per literal run or placeholder)
+    // pieces - the cached scan (one entry per literal run or placeholder)
     D_NODISCARD const Cache& pieces() const
     {
         return *m_cache;
@@ -1484,7 +1484,7 @@ private:
 };
 
 
-// prepare -- scan a template ONCE with Scanner and hand back a prepared
+// prepare - scan a template ONCE with Scanner and hand back a prepared
 // interpolation (resolver still empty; chain frames with `.interpolate(...)` or
 // supply them per render at a terminal).  The cache is shared, so the result is
 // cheap to copy.  Cache defaults to std::vector<piece<Type>>.  The cache holds
@@ -1508,7 +1508,7 @@ DPreparedInterpolation<Type, DEmptyResolver<Type>, Scanner, Cache> prepare(
         _template);
 }
 
-// make_prepared -- prepare a template with an initial resolver already bound
+// make_prepared - prepare a template with an initial resolver already bound
 template<typename Type,
          typename Resolver,
          typename Scanner = DBraceScanner<Type>,
@@ -1530,7 +1530,7 @@ DPreparedInterpolation<Type, clean_t<Resolver>, Scanner, Cache> make_prepared(
         _template);
 }
 
-// prepare_into -- fill a CALLER-OWNED container with the scanned pieces, for
+// prepare_into - fill a CALLER-OWNED container with the scanned pieces, for
 // full control of storage and lifetime.  Render it through a DReplayScanner over
 // the same container, e.g.
 //   interpolate_into(sink, DReplayScanner<char>(cache), resolver);
@@ -1568,7 +1568,7 @@ NS_END  // djinterp
 NS_DJINTERP
 
 // scanner_for
-//   concept: Scanner is a pull cursor over Type -- it exposes piece_type and
+//   concept: Scanner is a pull cursor over Type - it exposes piece_type and
 // `next(piece_type&) -> bool`.
 template<typename Scanner,
          typename Type = char>

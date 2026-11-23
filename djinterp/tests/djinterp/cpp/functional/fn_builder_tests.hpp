@@ -313,7 +313,7 @@ bool test_parity_c_kernel();
 ///////////////////////////////////////////////////////////////////////////////
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // fn_builder_spec
 //   function: the suite as DTest's module spec, one block per section.

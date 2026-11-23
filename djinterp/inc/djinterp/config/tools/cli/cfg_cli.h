@@ -2,8 +2,8 @@
 * djinterp [c][tools]                                                  cfg_cli.h
 *
 * Configuration of the command-line kit.
-*   Which optional parts of the kit are compiled -- the plugin loader, colour,
-* its own layout of help, and wide writes to a Windows console -- the widths
+*   Which optional parts of the kit are compiled - the plugin loader, colour,
+* its own layout of help, and wide writes to a Windows console - the widths
 * help is laid out to, and where a program looks for its modules and which it
 * takes, resolved into D_INTERNAL_CLI_*.
 *   Every feature knob is a BRANCH knob: it removes code, never a struct
@@ -16,14 +16,14 @@
 *   The plugin knobs of 1.4 are DEFAULTS: each sets what a program does
 * when nothing at run time says otherwise, and the program's own setting --
 * d_cli_program_set_plugin_path and d_cli_program_set_plugin_versions,
-* which the run-time options are read into -- overrides it per run.
+* which the run-time options are read into - overrides it per run.
 *   targets:  the C headers in tools/cli/c/, their sources, and the C++ faces
 *             beside them -> D_INTERNAL_CLI_*
 *   requires: cfg_common.h; env_cli.h, for what the platform can do
 *
 * HOW TO USE
 * ----------
-*   Define a knob before the kit's headers are included -- on the compiler's
+*   Define a knob before the kit's headers are included - on the compiler's
 * command line, as -DD_CFG_CLI_PLUGINS=0, so every unit sees the same --
 * and the kit reads the D_INTERNAL_CLI_* it resolves to. The kit's headers
 * include it; a program on the kit reads its D_INTERNAL_CLI_* through them.
@@ -31,9 +31,9 @@
 * OPTIONS
 * -------
 *   None: this header holds build-time knobs alone. The run-time settings
-* whose defaults they are -- `cli.plugin_strict_version`,
+* whose defaults they are - `cli.plugin_strict_version`,
 * `cli.plugin_search`, `plugin_path`, `cli.unknown_settings` and
-* `cli.shared_refusals` -- are cli_settings.h's.
+* `cli.shared_refusals` - are cli_settings.h's.
 *
 * CONFIGURATION
 * -------------
@@ -111,8 +111,8 @@ TABLE OF CONTENTS
 //==============================================================================
 // 1.  KNOBS
 //==============================================================================
-// Each is #ifndef-guarded, so a value defined earlier -- by -D, a prefix
-// header, or cfg_custom.h -- wins. Feature knobs fall back to the aggregate
+// Each is #ifndef-guarded, so a value defined earlier - by -D, a prefix
+// header, or cfg_custom.h - wins. Feature knobs fall back to the aggregate
 // before their own default.
 
 
@@ -120,7 +120,7 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 1.1.1
 // D_CFG_CLI_ALL
-//   knob: optional aggregate for the feature knobs of 1.2. NOT defaulted -- its
+//   knob: optional aggregate for the feature knobs of 1.2. NOT defaulted - its
 // absence is meaningful. Define it to 0 or 1, and every feature knob with no
 // value of its own falls back to it: 0 builds the smallest kit, the grammar's
 // conventions over the argument parser and nothing more.
@@ -129,8 +129,8 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 1.2.1
 // D_CFG_CLI_PLUGINS
-//   knob: 1 compiles the plugin loader -- finding a program's module, loading
-// it, checking it belongs to the program, and running it -- where the
+//   knob: 1 compiles the plugin loader - finding a program's module, loading
+// it, checking it belongs to the program, and running it - where the
 // platform has loadable modules (D_ENV_CLI_MODULES); 0 removes it, and a
 // plugin command then says the program was built without plugins. Default 1.
 #ifndef D_CFG_CLI_PLUGINS
@@ -155,9 +155,9 @@ TABLE OF CONTENTS
 
 // 1.2.3
 // D_CFG_CLI_FORMATTER
-//   knob: 1 lays help out as GNU programs do -- `Usage:` first, then the
+//   knob: 1 lays help out as GNU programs do - `Usage:` first, then the
 // description, `Arguments:`, `Commands:` and `Options:`, each option as
-// `-o, --out=FILE` -- through a formatter of the kit's; 0 leaves the argument
+// `-o, --out=FILE` - through a formatter of the kit's; 0 leaves the argument
 // parser's own layout, CLI11's. Default 1.
 #ifndef D_CFG_CLI_FORMATTER
     #if defined(D_CFG_CLI_ALL)
@@ -215,13 +215,13 @@ TABLE OF CONTENTS
 //   knob: the directories a program looks for a command's module in after
 // the ones it is told of at run time (d_cli_program_set_plugin_path) and
 // PROGRAM_PLUGIN_PATH (1.4.2): a string literal, its directories separated
-// as PATH separates them -- ':', or ';' on Windows -- each searched in turn,
+// as PATH separates them - ':', or ';' on Windows - each searched in turn,
 // the first that holds the module winning. In a directory, `$ORIGIN` (or
 // `${ORIGIN}`) stands for the directory of the program's own file, as an ELF
 // run path writes it, and `$PROGRAM` (or `${PROGRAM}`) for the program's
 // name; a directory that uses `$ORIGIN` is passed over where the program's
 // file cannot be found, and on Windows each `/` is written `\`. Default:
-// the program's directory, then `../lib/PROGRAM` from it -- a build tree, a
+// the program's directory, then `../lib/PROGRAM` from it - a build tree, a
 // Windows folder and a POSIX installation, with nothing to configure
 // (ruling cli-taken 14). `"$ORIGIN"` alone looks beside the program only;
 // an installation whose modules live elsewhere names that directory, as
@@ -240,8 +240,8 @@ TABLE OF CONTENTS
 
 // 1.4.2
 // D_CFG_CLI_PLUGIN_VARIABLE
-//   knob: 1 reads PROGRAM_PLUGIN_PATH -- the program's name upper-cased,
-// each `-` an `_` -- and looks in its directories before the build's
+//   knob: 1 reads PROGRAM_PLUGIN_PATH - the program's name upper-cased,
+// each `-` an `_` - and looks in its directories before the build's
 // (1.4.1); 0 never reads it, for a program whose caller is not to be trusted
 // with what code it loads, as one run with privileges it does not share
 // with its caller: `plugin_path` and `cli.plugin_search` then refuse the
@@ -269,7 +269,7 @@ TABLE OF CONTENTS
 // 1.5.1
 // D_CLI_UNKNOWN_SETTINGS_*, D_CFG_CLI_UNKNOWN_SETTINGS
 //   knob: the default of `cli.unknown_settings`, what a program says of a
-// line in the user's settings file -- which every program shares -- that
+// line in the user's settings file - which every program shares - that
 // names no setting it has:
 //     D_CLI_UNKNOWN_SETTINGS_NONE   nothing;
 //     D_CLI_UNKNOWN_SETTINGS_TYPOS  a warning for a near miss ("did you
@@ -293,8 +293,8 @@ TABLE OF CONTENTS
 // 1.5.2
 // D_CLI_SHARED_REFUSALS_*, D_CFG_CLI_SHARED_REFUSALS
 //   knob: the default of `cli.shared_refusals`, what a program says when a
-// shared source -- the user's settings file, or the environment under
-// `DJINTERP_` -- sets one of its settings that refuses that source (a row's
+// shared source - the user's settings file, or the environment under
+// `DJINTERP_` - sets one of its settings that refuses that source (a row's
 // refused sources):
 //     D_CLI_SHARED_REFUSALS_NONE     nothing;
 //     D_CLI_SHARED_REFUSALS_VERBOSE  a note, only at -v;
@@ -433,7 +433,7 @@ D_CFG_CLI_HELP_WIDTH - 20]"
 // 2.3.1
 // D_INTERNAL_CLI_PLUGIN_SEARCH / _SEARCH_DEFAULT
 //   resolved: the build's directories for a module, as D_CFG_CLI_PLUGIN_SEARCH
-// writes them; and 1 when that is the default, the knob not given -- which
+// writes them; and 1 when that is the default, the knob not given - which
 // the kit's suites read, the places they expect a module looked for being
 // the default's. Defined with the knob, in 1.4.1.
 #define D_INTERNAL_CLI_PLUGIN_SEARCH                                           \
@@ -470,8 +470,8 @@ D_CFG_CLI_HELP_WIDTH - 20]"
 // D_CLI_API
 //   resolved: the kit's export mark, on every function its headers declare
 // (env_vendor_attributes.h, 6.1.4). Empty in a static build; where the kit
-// is built into a shared library -- the shared core of DJINTERP_CLI_LINKAGE
-// SHARED_CORE -- D_CLI_SHARED is defined for the library and everything
+// is built into a shared library - the shared core of DJINTERP_CLI_LINKAGE
+// SHARED_CORE - D_CLI_SHARED is defined for the library and everything
 // that links it, and D_CLI_BUILDING for the library's own sources.
 #if defined(D_CLI_SHARED)
     #if defined(D_CLI_BUILDING)

@@ -4,9 +4,9 @@
 * The define environment: macros, as the preprocessor expands them, and
 * integer constant expressions, as C and C++ evaluate them.
 *   A macro row's value is whatever its name comes to in C. Macros are
-* written in terms of other macros -- D_CODE_ARRAY_INDEX_HI is
+* written in terms of other macros - D_CODE_ARRAY_INDEX_HI is
 * D_CODE_BLOCK_ARRAY | D_BYTE_BIT_R(4, 1), and D_BYTE_BIT_R is built on
-* D_UINT_CAST -- so the value comes from an environment of definitions:
+* D_UINT_CAST - so the value comes from an environment of definitions:
 * the standard headers' (stdint.h, limits.h, stdbool.h), the sheet's own
 * environment text, every macro row of the sheet, and the sheet's other
 * symbols, which the environment asks for by name.
@@ -20,8 +20,8 @@
 *   EVALUATION is typed. Literals take the types C gives them, casts and the
 * fixed-width typedefs convert, and every operator applies the integer
 * promotions and the usual arithmetic conversions of the sheet's language,
-* level and data model. Undefined behaviour -- a negative or too-wide shift,
-* signed overflow, division by zero -- is found and reported, and leaves no
+* level and data model. Undefined behaviour - a negative or too-wide shift,
+* signed overflow, division by zero - is found and reported, and leaves no
 * value; implementation-defined behaviour is noted, with the value every
 * mainstream compiler gives. Unevaluated operands (the branch of ?: not
 * taken, the right of a decided && or ||, sizeof's) are typed but not
@@ -93,8 +93,8 @@ namespace bitwisedom
 //------------------------------------------------------------------------------
 // 1.1.1
 // c_type
-//   struct: an integer type. `rank` orders the standard types -- 0 bool, 1
-// char, 2 short, 3 int, 4 long, 5 long long -- and with the signedness and
+//   struct: an integer type. `rank` orders the standard types - 0 bool, 1
+// char, 2 short, 3 int, 4 long, 5 long long - and with the signedness and
 // the width (the data model's) is all arithmetic needs. `name` is how the
 // type was spelled, kept for messages: a uint64_t says uint64_t, not
 // unsigned long long.
@@ -143,7 +143,7 @@ struct c_value
 //------------------------------------------------------------------------------
 // 1.3.1
 // c_level
-//   enum: how much a diagnostic matters. A note is information -- an
+//   enum: how much a diagnostic matters. A note is information - an
 // implementation-defined conversion, say; a warning is a problem the C
 // itself has, undefined behaviour above all; an error stops evaluation.
 enum class c_level : int
@@ -241,7 +241,7 @@ struct c_macro
     std::vector<c_token>     tokens;
 };
 
-// parameters -- a parameter list's text ("_bits, _value", "fmt, ...") read
+// parameters - a parameter list's text ("_bits, _value", "fmt, ...") read
 // into a macro; false and why when it is not one
 D_NODISCARD bool read_params(
     const std::string& _text,
@@ -366,7 +366,7 @@ public:
         std::string_view _text
     ) const;
 
-    // expansion alone -- the text with every macro replaced, for display
+    // expansion alone - the text with every macro replaced, for display
     D_NODISCARD std::string expand(
         std::string_view _text
     ) const;
@@ -401,8 +401,8 @@ private:
 // c_branches
 //   class: the conditionals a walk over a text is inside, and whether the
 // branch it is in is taken. A condition that rests on a name nothing
-// defines -- one not reserved to the implementation, which would be a
-// compiler's own -- is taken as true, and a note says so: an environment
+// defines - one not reserved to the implementation, which would be a
+// compiler's own - is taken as true, and a note says so: an environment
 // is for evaluating, and the other headers a compiler would have read are
 // not here.
 class c_branches
@@ -450,7 +450,7 @@ private:
     ) const;
 };
 
-// directives -- a text's directive lines (the line, and the tokens after
+// directives - a text's directive lines (the line, and the tokens after
 // the `#`), and a #define's read into a macro, with where its body begins
 D_NODISCARD std::vector<std::pair<int, std::vector<c_token>>> directive_lines(
     const std::vector<c_token>& _tokens
@@ -469,7 +469,7 @@ D_NODISCARD bool read_define(
  *       way a compiler would, but a condition that depends on a name
  *       nothing defines is taken as true and noted: the environment is
  *       for evaluating, and a compiler's other headers are not here. The
- *       rest of the text -- declarations, code -- is ignored.
+ *       rest of the text - declarations, code - is ignored.
  *
  * @param[in,out] _env    the environment.
  * @param[in]     _text   the text.
@@ -508,7 +508,7 @@ D_NODISCARD std::vector<std::string> suggest(
     const std::vector<std::string>& _candidates
 );
 
-// type names -- a C type as written, and the standard types' names
+// type names - a C type as written, and the standard types' names
 D_NODISCARD std::string type_text(
     const c_type& _type
 );

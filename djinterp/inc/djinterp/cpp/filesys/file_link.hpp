@@ -1,12 +1,12 @@
 /*******************************************************************************
 * djinterp [cpp][filesys]                                          file_link.hpp
 *
-* Symbolic links (roadmap Phase 8) -- create one, read where it points, ask
+* Symbolic links (roadmap Phase 8) - create one, read where it points, ask
 * whether a path is one.
 *   Free functions over paths, no handle, so no D_*_ portability kit and a FLAT
 * tier ladder.
 *   A SYMLINK IS TEXT. read_symlink returns the link's TARGET exactly as stored
-* -- it does NOT resolve it. The target may be relative, may point at nothing,
+* - it does NOT resolve it. The target may be relative, may point at nothing,
 * may point at another link; reading the link tells you what it SAYS, not what
 * it reaches. Resolving (following the chain to a real file) is
 * d_path_resolve's job in file_dir, a different and fallible operation.
@@ -14,7 +14,7 @@
 * fail for "the target does not exist", because a dangling link is a perfectly
 * valid link.
 *   is_symlink vs status. is_symlink(p) is the direct one-question form. It is
-* also exactly symlink_status(p).is_symlink() -- the difference is only whether
+* also exactly symlink_status(p).is_symlink() - the difference is only whether
 * you want the single bit or the whole snapshot. Neither follows the link (a
 * symlink reports as a symlink), which is the only way to see the link itself
 * rather than its target. On Windows a junction is a link too, as c/filesys
@@ -120,7 +120,7 @@ NS_INTERNAL
      * @note d_file_readlink truncates without saying so, as readlink(2)
      *       does, so a text that fills the buffer may have been cut short; it
      *       is read again into twice the room. A link's text may well be
-     *       longer than D_FILE_PATH_MAX -- Windows keeps up to 16 KiB of it --
+     *       longer than D_FILE_PATH_MAX - Windows keeps up to 16 KiB of it --
      *       but past 64 KiB only a filesystem that fills every buffer it is
      *       given remains, and that is ENAMETOOLONG.
      *
@@ -180,7 +180,7 @@ NS_END  // internal
  *
  * @param[in]  _path  the symbolic link to read.
  * @param[out] _ec    cleared on success; EINVAL for an invalid path,
- *                    otherwise the platform's code -- EINVAL again when
+ *                    otherwise the platform's code - EINVAL again when
  *                    `_path` is not a symbolic link.
  * @return the target, or an invalid path on failure.
  */

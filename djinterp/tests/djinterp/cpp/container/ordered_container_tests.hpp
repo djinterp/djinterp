@@ -275,7 +275,7 @@ struct can_contains_subsequence<_C, _S,
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- declarations - visible in BOTH modes ----------------------------------
+// - declarations - visible in BOTH modes ----------------------------------
 
 // I.   classifiers   (ordered_container_tests_classifiers.cpp)
 bool tests_ordered_sequences_are_ordered();
@@ -304,7 +304,7 @@ bool tests_ordered_algorithms_on_string();
 bool tests_ordered_algorithms_gating();
 
 
-// -- spec provider - spec mode only ----------------------------------------
+// - spec provider - spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 inline
 dt::module_spec ordered_container_spec()

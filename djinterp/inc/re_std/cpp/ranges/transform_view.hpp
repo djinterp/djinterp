@@ -175,7 +175,7 @@ public:
         }
 
 
-        // operator-- (pre / post) -- only well-formed when
+        // operator-- (pre / post) - only well-formed when
         // underlying is bidirectional. SFINAE'd via lazy
         // instantiation.
         RE_STD_CONSTEXPR_CPP14 RE_STD_INLINE iterator&
@@ -194,7 +194,7 @@ public:
         }
 
 
-        // random-access ops -- well-formed when underlying is RA.
+        // random-access ops - well-formed when underlying is RA.
         RE_STD_CONSTEXPR_CPP14 RE_STD_INLINE iterator&
         operator+=(
             difference_type _n

@@ -201,7 +201,7 @@ NS_INTERNAL
     {};
 
     // has_unique_insert_helper specialization
-    //   helper: the detected case -- selected when the type exposes the member
+    //   helper: the detected case - selected when the type exposes the member
     // function `insert()`.
     template<typename Type>
     struct has_unique_insert_helper<Type,
@@ -486,7 +486,7 @@ struct merge_result_type
 };
 
 // merge_result_type_t
-//   type: the carrier of merge_result_type -- its `::type`, for use where a
+//   type: the carrier of merge_result_type - its `::type`, for use where a
 // type rather than a value is wanted.
 template<typename Left,
          typename Right>

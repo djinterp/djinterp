@@ -5,8 +5,8 @@
 *   A page is opened from its file, or made from text, and named by a handle,
 * a number from 1; its dialect is its file's, Markdown as a GitHub wiki
 * writes it or MediaWiki's, or one a program names. What a page holds is
-* counted and read by index, from 1: its blocks, its sections -- the lead is
-* section 0 -- its headings, its links, its templates, its regions, and the
+* counted and read by index, from 1: its blocks, its sections - the lead is
+* section 0 - its headings, its links, its templates, its regions, and the
 * problems reading found. A change is kept only if the page outside it
 * reads as it did and the change reads back as asked; a change refused gives
 * -1, and wiki_error() says why. Indices are into the page as it is now: a
@@ -69,7 +69,7 @@ struct dj_host_wiki;
 // 2.1    The extension
 //------------------------------------------------------------------------------
 // d_host_wiki_install adds these, as a program calls them; p is a page's
-// handle, d a dialect's name -- markdown, mediawiki -- or a page's handle:
+// handle, d a dialect's name - markdown, mediawiki - or a page's handle:
 //
 // pages
 //   wiki_open(path[, dialect])     a page from its file: p, or -1
@@ -93,7 +93,7 @@ struct dj_host_wiki;
 //                                  heading
 //   wiki_find_section(p, name[, after])
 //                                  the first after `after` whose title,
-//                                  anchor or path -- titles apart by `/` --
+//                                  anchor or path - titles apart by `/` --
 //                                  is the name; 0 for none
 //   wiki_set_body(p, i, text)      its own text, past its heading
 //   wiki_set_section(p, i, text)   all of it, heading and subsections
@@ -155,8 +155,8 @@ struct dj_host_wiki;
 //   wiki_pages(directory[, deep])  the pages a directory holds, sorted, one
 //                                  to a line; deep walks within it
 //   wiki_files(directory, patterns[, deep])
-//                                  the files whose names a pattern -- `*`,
-//                                  `?`, [...] -- among the space-separated
+//                                  the files whose names a pattern - `*`,
+//                                  `?`, [...] - among the space-separated
 //                                  matches
 //   wiki_exists(path)              1 for a file, 2 for a directory
 //   wiki_move(path, to)            a file renamed; never over another

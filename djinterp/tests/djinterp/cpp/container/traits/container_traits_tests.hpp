@@ -115,7 +115,7 @@ namespace dt = ::djinterp::test;
 // Helper types
 // ===========================================================================
 
-// -- composed-trait control types (explicit constexpr members -> deterministic) --
+// - composed-trait control types (explicit constexpr members -> deterministic) --
 
 // empty + constexpr size(), no allocator -> is_compile_time_container
 struct DEmptyCt
@@ -169,7 +169,7 @@ struct DAdaptor
     std::size_t size() const noexcept { return 0; }
 };
 
-// -- detection-only fixtures --
+// - detection-only fixtures --
 
 // interval-protocol aliases that are NOT valid math intervals (int is no interval)
 struct DIntervalsBogus
@@ -214,7 +214,7 @@ struct pusher
 // Test-function declarations (defined in the section .cpp files)
 // ===========================================================================
 
-// -- I.   Method detection --
+// - I.   Method detection --
 bool tests_size_capacity_detection();
 bool tests_type_member_detection();
 bool tests_hierarchical_detection();
@@ -222,43 +222,43 @@ bool tests_mutation_detection();
 bool tests_iteration_detection();
 bool tests_invariant_detection();
 
-// -- III. Public constexpr traits --
+// - III. Public constexpr traits --
 bool tests_constexpr_size_traits();
 bool tests_size_shape_traits();
 bool tests_interval_validity();
 
-// -- IV.  Array detection --
+// - IV.  Array detection --
 bool tests_array_detection();
 
-// -- V.   Lifetime classification --
+// - V.   Lifetime classification --
 bool tests_lifetime_classification();
 
-// -- VI.  Bounds classification --
+// - VI.  Bounds classification --
 bool tests_is_lower_bounded();
 bool tests_is_upper_bounded();
 bool tests_is_unbounded_and_interval_bounded();
 
-// -- VII. Storage classification --
+// - VII. Storage classification --
 bool tests_is_static_storage();
 bool tests_is_dynamic_storage();
 
-// -- XII. Uniqueness and multiplicity --
+// - XII. Uniqueness and multiplicity --
 bool tests_enforces_uniqueness();
 bool tests_allows_duplicates();
 bool tests_has_bounded_multiplicity();
 
-// -- XIII-XV. Underlying + extraction --
+// - XIII-XV. Underlying + extraction --
 bool tests_is_underlying_container();
 bool tests_is_fundamental_container();
 bool tests_underlying_container_type_of();
 bool tests_interval_extraction();
 
-// -- XVI. Combined classification + variable-template companions --
+// - XVI. Combined classification + variable-template companions --
 bool tests_container_class();
 bool tests_container_variable_templates();
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // container_traits_spec
 //   function: the suite as DTest's module spec, one block per section.

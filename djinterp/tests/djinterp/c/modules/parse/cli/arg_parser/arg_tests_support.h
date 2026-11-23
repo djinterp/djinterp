@@ -6,8 +6,8 @@
 *   A section begins a run, defines options and subcommands on the run's
 * parser, names the commands and options it wants reported, parses, and
 * compares the run's transcript with the one expected. The transcript is the
-* form in which this module was checked against CLI11 -- the same
-* definitions and arguments given to both, and their states printed -- so an
+* form in which this module was checked against CLI11 - the same
+* definitions and arguments given to both, and their states printed - so an
 * expected transcript is CLI11's own, but where a section says it departs
 * from CLI11:
 *
@@ -247,7 +247,7 @@ struct dj_tests_arg_case
  * @brief Begins a run: a parser as the module was checked against CLI11.
  *
  * @note The parser is made as CLI11's App("d", "prog"), with suggestions off
- *       -- CLI11 has none -- and its output and error output going to the
+ *       - CLI11 has none - and its output and error output going to the
  *       run's buffers. Its root is reported first, labelled "app".
  *
  * @param[out] _run  the run; whatever it held is ignored.
@@ -275,7 +275,7 @@ void d_tests_arg_end(
 // d_tests_arg_keep
 /**
  * @brief Storage the run keeps until it ends, after its parser: for what
- *        the parser borrows -- main's arguments, a variable an option is
+ *        the parser borrows - main's arguments, a variable an option is
  *        bound to, a formatter a command uses.
  *
  * @param[in,out] _run   the run.
@@ -295,7 +295,7 @@ void* d_tests_arg_keep(
 // d_tests_arg_watch_command / d_tests_arg_watch_option
 //   registration: names a command, or an option, for the report, under a
 // label; each returns what it was given, so a definition can be wrapped in
-// it. A NULL command or option -- a definition that failed -- fails the run.
+// it. A NULL command or option - a definition that failed - fails the run.
 struct dj_arg_command* d_tests_arg_watch_command(
     struct dj_tests_arg_run* _run,
     const char*              _label,
@@ -310,7 +310,7 @@ struct dj_arg_option* d_tests_arg_watch_option(
 // 2.2.2
 // d_tests_arg_watch_all
 //   registration: d_tests_arg_watch_option for an option that is also made
-// to keep every value it is given -- CLI11's MultiOptionPolicy::TakeAll --
+// to keep every value it is given - CLI11's MultiOptionPolicy::TakeAll --
 // as the checks against CLI11 made the options they gave several values,
 // so that none of them is an error.
 struct dj_arg_option* d_tests_arg_watch_all(
@@ -335,7 +335,7 @@ void d_tests_arg_note(
 // watches it under a label: an option of the names given (make_option), the
 // same keeping every value it is given (make_all, as d_tests_arg_watch_all
 // does), or a flag (make_flag). Each returns the option, or NULL, which
-// fails the run, when it could not be made -- also on a NULL command.
+// fails the run, when it could not be made - also on a NULL command.
 struct dj_arg_option* d_tests_arg_make_option(
     struct dj_tests_arg_run* _run,
     const char*              _label,
@@ -359,7 +359,7 @@ struct dj_arg_option* d_tests_arg_make_flag(
 // d_tests_arg_make_subcommand / d_tests_arg_make_group
 //   registration: makes a subcommand, or an option group, of a command, with
 // no description, and watches it under its name. Each returns the command,
-// or NULL, which fails the run, when it could not be made -- also on a NULL
+// or NULL, which fails the run, when it could not be made - also on a NULL
 // parent.
 struct dj_arg_command* d_tests_arg_make_subcommand(
     struct dj_tests_arg_run* _run,
@@ -374,7 +374,7 @@ struct dj_arg_command* d_tests_arg_make_group(
 
 // 2.2.6
 // d_tests_arg_command_label / d_tests_arg_option_label
-//   query: the label a run reports a command, or an option, under -- what a
+//   query: the label a run reports a command, or an option, under - what a
 // callback's note names it by, as the reference programs' callbacks name
 // theirs; "?" for one the run does not report.
 const char* d_tests_arg_command_label(
@@ -451,8 +451,8 @@ char* const* d_tests_arg_argv(
 
 // 2.3.3
 // d_tests_arg_record and kin
-//   transcript: adds the report of a parse the section made itself -- of
-// main's `argv`, a line, configuration text -- that came to `_status`: its
+//   transcript: adds the report of a parse the section made itself - of
+// main's `argv`, a line, configuration text - that came to `_status`: its
 // ERR line, when it did not come to D_ARG_OK, then the `cmd` and `opt`
 // lines. record_error adds the ERR line alone and report the lines after
 // it, for a section that writes more between the two, as the parser
@@ -525,8 +525,8 @@ bool d_tests_arg_expect(
  * @param[in] _cases     the cases; may be NULL when `_count` is 0.
  * @param[in] _count     how many.
  * @param[in] _expected  the transcript expected.
- * @return whether every case ran -- its definitions made, its watches,
- *         notes, variables and files kept -- and the transcript was as
+ * @return whether every case ran - its definitions made, its watches,
+ *         notes, variables and files kept - and the transcript was as
  *         expected.
  */
 bool d_tests_arg_cases(
@@ -539,7 +539,7 @@ bool d_tests_arg_cases(
 // 2.4.2
 // d_tests_arg_steps
 /**
- * @brief Runs a table of steps -- cases that each write their own lines --
+ * @brief Runs a table of steps - cases that each write their own lines --
  *        and compares what they wrote with the transcript expected.
  *
  * @note Each case is given a run of its own and the run's root, and writes
@@ -549,8 +549,8 @@ bool d_tests_arg_cases(
  * @param[in] _steps     the cases; may be NULL when `_count` is 0.
  * @param[in] _count     how many.
  * @param[in] _expected  the transcript expected.
- * @return whether every case ran -- its run made, its watches, notes and
- *         storage kept -- and the transcript was as expected.
+ * @return whether every case ran - its run made, its watches, notes and
+ *         storage kept - and the transcript was as expected.
  */
 bool d_tests_arg_steps(
     const char*                   _name,
@@ -605,7 +605,7 @@ bool d_tests_arg_same(
 // 3.2.1
 // d_tests_arg_render
 //   transcript: appends text with each control character written as its
-// escape -- `\t`, `\n`, or `\x` and two hexadecimal digits -- so that a
+// escape - `\t`, `\n`, or `\x` and two hexadecimal digits - so that a
 // transcript line stays one line.
 void d_tests_arg_render(
     struct dj_arg_buffer* _out,
@@ -639,8 +639,8 @@ void d_tests_arg_escape(
 //------------------------------------------------------------------------------
 // 4.1.1
 // d_tests_arg_transcribe
-//   transcript: appends a validator's transcript over values -- its
-// description's line, then a line for each value -- to a buffer, without
+//   transcript: appends a validator's transcript over values - its
+// description's line, then a line for each value - to a buffer, without
 // releasing the validator; for a section that compares several
 // validators' transcripts as one.
 void d_tests_arg_transcribe(
@@ -678,7 +678,7 @@ bool d_tests_arg_holds(
 //   struct: an option a validator judges in a parse, as CLI11's
 // `add_option(name, variable)` followed by check() or transform(): its name,
 // the built-in type of its variable (a dj_arg_builtin value), and whether the
-// validator transforms -- its results replacing the values -- rather than
+// validator transforms - its results replacing the values - rather than
 // only checks.
 struct dj_tests_arg_checked
 {
@@ -714,8 +714,8 @@ bool d_tests_arg_validates(
 //------------------------------------------------------------------------------
 // 4.3.1
 // d_tests_arg_kind_of
-//   query: what a validator completes as -- its D_ARG_VALIDATOR_PATH,
-// _DIRECTORY and _NUMBER flags -- after which it is released.
+//   query: what a validator completes as - its D_ARG_VALIDATOR_PATH,
+// _DIRECTORY and _NUMBER flags - after which it is released.
 unsigned int d_tests_arg_kind_of(
     struct dj_arg_validator _validator
 );

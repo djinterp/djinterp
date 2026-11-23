@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][math]                                     t_quaternion_face.cpp
 *
-*   Tests for the one quaternion, math::quaternion, by both its names -- its
+*   Tests for the one quaternion, math::quaternion, by both its names - its
 * header, math/quaternion.hpp, and math/linear_algebra/quaternion.hpp, whose
 * linalg::quaternion and functions are its by using-declarations (S398) --
 * at every level from C++98: from an axis and angle, the C library's sine

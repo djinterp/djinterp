@@ -5,10 +5,10 @@
 * directories a section makes, by name, in a fresh directory that is the
 * working directory while the section runs, and that is removed with
 * everything in it when the section is done. It is C, and its calls have C
-* linkage in C++, so that the C++ suites -- and the CLI11 programs their
-* transcripts come from -- make their files with it too.
-*   The suites that ask the file system -- the path validators, and the
-* configuration and response files read from disk -- name what they made by
+* linkage in C++, so that the C++ suites - and the CLI11 programs their
+* transcripts come from - make their files with it too.
+*   The suites that ask the file system - the path validators, and the
+* configuration and response files read from disk - name what they made by
 * relative paths, so that their transcripts are the same text on every
 * system and in every run. Names are UTF-8 everywhere: on Windows they are
 * widened for the system, as the parser's own system layer widens a path.

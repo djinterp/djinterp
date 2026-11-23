@@ -154,7 +154,7 @@ wchar_t* d_cli_internal_widen(
  *        D_INTERNAL_CLI_FREE.
  *
  * @param[in] _text  the NUL-terminated text.
- * @return the text, NUL-terminated, or NULL when there is no room -- or
+ * @return the text, NUL-terminated, or NULL when there is no room - or
  *         when it does not convert, which UTF-16 always does, a unit that
  *         pairs with nothing becoming U+FFFD.
  */
@@ -268,7 +268,7 @@ bool d_cli_internal_is_terminal(
 d_cli_internal_take_sequences
   A POSIX terminal takes ANSI sequences as it is. A Windows console takes
 them once ENABLE_VIRTUAL_TERMINAL_PROCESSING is on, which Windows 10 from
-1511 accepts and an older console refuses -- the refusal is the answer.
+1511 accepts and an older console refuses - the refusal is the answer.
 */
 bool d_cli_internal_take_sequences(
     int _stream
@@ -628,7 +628,7 @@ size_t d_cli_internal_write_console(
 d_cli_internal_write_stream
   A Windows console takes UTF-16, so UTF-8 bound for one is converted, a
 sequence split across two writes held back until the rest arrives. Anything
-else -- a file, a pipe, a POSIX terminal -- takes the bytes, flushed at
+else - a file, a pipe, a POSIX terminal - takes the bytes, flushed at
 once, so that a diagnostic and a result written in turn reach a terminal in
 that order.
 */

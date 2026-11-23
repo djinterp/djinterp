@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                        container_memory_concepts.hpp
 *
-* C++20 concepts for the MEMORY DISCIPLINE axis -- the `requires`-facing view
+* C++20 concepts for the MEMORY DISCIPLINE axis - the `requires`-facing view
 * of container_memory_traits.hpp.
 *
 *   THE CONCEPTS ADD NO POLICY.
@@ -47,7 +47,7 @@ NS_DJINTERP
 
 
 // inline_storage_container
-//   concept: allocates nothing -- its cells are embedded in its own footprint
+//   concept: allocates nothing - its cells are embedded in its own footprint
 // (the NONE discipline).
 template<typename Type>
 concept inline_storage_container =
@@ -65,14 +65,14 @@ concept heap_container =
 
 // pooled_container
 //   concept: draws on a POINTER-STABLE, individually-releasing pool. Stability
-// is what tells a pool from a heap -- not the name of any concrete type.
+// is what tells a pool from a heap - not the name of any concrete type.
 template<typename Type>
 concept pooled_container =
     container_uses_pool_v<clean_t<Type>>;
 
 
 // arena_container
-//   concept: draws on an arena / region -- a bump that may run over inline or
+//   concept: draws on an arena / region - a bump that may run over inline or
 // heap, and so constrains the siting not at all.
 template<typename Type>
 concept arena_container =
@@ -85,7 +85,7 @@ concept arena_container =
 
 
 // allocating_container
-//   concept: acquires storage at runtime at all -- individual, pooled, OR
+//   concept: acquires storage at runtime at all - individual, pooled, OR
 // arena.
 template<typename Type>
 concept allocating_container =

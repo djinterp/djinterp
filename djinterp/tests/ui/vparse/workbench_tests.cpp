@@ -345,8 +345,8 @@ shows what the model holds.
   - with no runs, with a match, with a failure, with an unread grammar and
     with two runs compared, the face instantiates: it has no hole
   - with no runs it shows no listing, tape or heat element
-  - with a notation run it has two tapes -- the input's, and the grammar's
-    on the Reading tab -- and a heat element naming the run, and the tab
+  - with a notation run it has two tapes - the input's, and the grammar's
+    on the Reading tab - and a heat element naming the run, and the tab
     list includes Heat
   - comparing names the other run in the heat element
 */

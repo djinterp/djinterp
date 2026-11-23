@@ -3,7 +3,7 @@
 *
 *   Definitions for ssh_known_hosts.h: matching lines against a host --
 * glob patterns, negation, [host]:port names, hashed entries, and
-* markers -- and recording new ones.
+* markers - and recording new ones.
 *
 *
 * path:      /src/djinterp/c/modules/net/ssh/ssh_known_hosts.c

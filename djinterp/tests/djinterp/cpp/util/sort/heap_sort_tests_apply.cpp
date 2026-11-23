@@ -85,7 +85,7 @@ bool tests_heap_sort_apply_heap_invariant()
 
     //   heap_sort_apply's two phases are not observable from outside, so
     // they are replicated here from the same primitives and checked
-    // separately.  Phase 1 must leave a genuine max-heap -- an ordering
+    // separately.  Phase 1 must leave a genuine max-heap - an ordering
     // check on the final output would pass even if heapify were subtly
     // wrong, because phase 2 would paper over it.
     for (size_index = 0; size_index < battery_size_count; ++size_index)
@@ -109,7 +109,7 @@ bool tests_heap_sort_apply_heap_invariant()
                              expected.end(),
                              std::less<int>());
 
-            // phase 1 -- heapify, bottom-up from the last parent
+            // phase 1 - heapify, bottom-up from the last parent
             i = ::djinterp::internal::heap_parent(size - 1);
 
             for (;;)
@@ -131,7 +131,7 @@ bool tests_heap_sort_apply_heap_invariant()
             // the maximum has to be at the root once phase 1 is done
             result.check(data[0] == expected[length - 1]);
 
-            // phase 2 -- extract, shrinking the heap by one each time
+            // phase 2 - extract, shrinking the heap by one each time
             i = (size - 1);
 
             while (i > 0)

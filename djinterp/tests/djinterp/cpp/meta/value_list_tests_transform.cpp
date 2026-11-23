@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][meta]                            value_list_tests_transform.cpp
 *
-*   Section V -- transform: a unary carrier-callable leaf mapped over the list.
+*   Section V - transform: a unary carrier-callable leaf mapped over the list.
 *
 *
 * path:      /tests/djinterp/cpp/meta/value_list_tests_transform.cpp
@@ -22,7 +22,7 @@ NS_TESTING
 
 /*
 tests_transform_maps_every_element
-  transform applies the leaf to each element and returns a new list -- the
+  transform applies the leaf to each element and returns a new list - the
   value-domain analog of dtuple's tuple_apply_all.
   Tests the following:
   - every element is mapped, none skipped, order preserved
@@ -54,7 +54,7 @@ bool tests_transform_maps_every_element()
 
 /*
 tests_transform_empty
-  Mapping over the empty list yields the empty list -- the pack expansion has
+  Mapping over the empty list yields the empty list - the pack expansion has
   nothing to expand, so the leaf is never even probed.
   Tests the following:
   - the empty list maps to the empty list
@@ -158,7 +158,7 @@ bool tests_transform_law_composition()
 
 /*
 tests_transform_changes_value_type
-  The leaf may change the value's TYPE, not merely its value -- an int list can
+  The leaf may change the value's TYPE, not merely its value - an int list can
   come back a bool list.
   Tests the following:
   - int -> bool through a predicate leaf
@@ -189,7 +189,7 @@ bool tests_transform_changes_value_type()
 tests_transform_unevaluated_probe
   transform needs only the leaf's RESULT TYPE, so it probes it in an UNEVALUATED
   context: decltype(declval<_Op&>()(val<V>))::value. A leaf that is merely
-  DECLARED -- never defined, not const, not constexpr -- therefore drives it
+  DECLARED - never defined, not const, not constexpr - therefore drives it
   perfectly well. (fold, which really invokes its op, could not.)
   Tests the following:
   - a declared-but-never-defined leaf maps the list correctly
@@ -202,7 +202,7 @@ bool tests_transform_unevaluated_probe()
     bool ok = true;
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
-    // DDeclOnlyOp has no definition anywhere -- and this links.
+    // DDeclOnlyOp has no definition anywhere - and this links.
     static_assert(std::is_same<decltype(transform(DValueList<5>{},
                                                   DDeclOnlyOp{})),
                                DValueList<15> >::value, "V -> V * 3");

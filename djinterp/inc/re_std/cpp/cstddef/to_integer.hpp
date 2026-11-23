@@ -8,7 +8,7 @@
 *       int n = re_std::to_integer<int>(b);      // 42
 *
 *   The integer type is explicit and never deduced, which is the whole
-* point -- widening or narrowing a raw byte is a decision the caller
+* point - widening or narrowing a raw byte is a decision the caller
 * states rather than something that happens on the way to an overload.
 *
 *   THE CONSTRAINT IS SFINAE, NOT static_assert:

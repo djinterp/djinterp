@@ -3,8 +3,8 @@
 *
 * Lock-free thread-safe timer.
 *   timer.hpp's operations over a timer whose whole state is one atomic
-* word, changed by compare-and-swap. A timer's state is two things -- the
-* time so far, and whether an interval is open -- and timer keeps them in
+* word, changed by compare-and-swap. A timer's state is two things - the
+* time so far, and whether an interval is open - and timer keeps them in
 * separate members; here both are folded into one integer of the duration's
 * rep, so a start, a stop or a step is one CAS:
 *

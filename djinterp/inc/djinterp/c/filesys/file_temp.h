@@ -8,7 +8,7 @@
 *         these.
 *     d_file_temp_name
 *         hands you a name to open later. Between the two, anyone with write
-*         access to that directory can create it first -- classically as a
+*         access to that directory can create it first - classically as a
 *         symlink to something you have permission to destroy.
 *   d_file_temp_name exists for compatibility and is gated behind
 * D_CFG_FILE_TEMP_ALLOW_TMPNAM so a codebase can prove it has no uses left.
@@ -69,7 +69,7 @@ FILE* d_file_temp_stream(void);
  *
  * @param[out] _stream  receives the stream, or `NULL` on failure; cleared
  *                      before anything else happens.
- * @return 0, or a non-zero error code -- EINVAL for a `NULL` out-parameter.
+ * @return 0, or a non-zero error code - EINVAL for a `NULL` out-parameter.
  */
 int d_file_temp_stream_s(
     FILE** _stream
@@ -88,7 +88,7 @@ int d_file_temp_stream_s(
  *
  * @param[in,out] _template  a writable path ending in exactly six 'X'
  *                           characters, which are replaced in place with the
- *                           chosen suffix -- and left as they were on
+ *                           chosen suffix - and left as they were on
  *                           failure; a string literal will crash.
  * @return an open descriptor, or -1 on failure with errno set: EINVAL for a
  *         bad template, EEXIST when every name it tried was taken, the

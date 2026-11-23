@@ -339,7 +339,7 @@ size_t d_pdf_creation_date(
 
 /*
 d_pdf_begin_object
-  Records the object's byte offset -- `_out_length`, where its marker starts
+  Records the object's byte offset - `_out_length`, where its marker starts
 -- in `_offsets[_object_number]` when that slot exists, and writes
 "N 0 obj\n" at `_out + _out_length` under the snprintf rule for the room
 left there. Returns the marker's length; a negative object number is no

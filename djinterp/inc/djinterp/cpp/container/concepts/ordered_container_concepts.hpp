@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                       ordered_container_concepts.hpp
 *
-* C++20 concepts for the ORDER axis -- the `requires`-facing view of
+* C++20 concepts for the ORDER axis - the `requires`-facing view of
 * ordered_container_traits.hpp.
 *
 *   THE CONCEPTS ADD NO POLICY.
@@ -50,7 +50,7 @@ NS_DJINTERP
 
 
 // OrderedContainer
-//   concept: iterable and carrying no key_type -- a positional sequence, where
+//   concept: iterable and carrying no key_type - a positional sequence, where
 // position MEANS something. Named in PascalCase; every concept is, so a
 // concept and a same-named snake_case class cannot collide and the natural
 // name is safe.
@@ -59,7 +59,7 @@ concept OrderedContainer = is_ordered_container_v<Type>;
 
 
 // UnorderedContainer
-//   concept: iterable and keyed -- identity is the BAG, not any order. An
+//   concept: iterable and keyed - identity is the BAG, not any order. An
 // associative container is this, and so is a radix tree, even though its
 // enumeration happens to come out sorted (that is sortedness, a different
 // axis).

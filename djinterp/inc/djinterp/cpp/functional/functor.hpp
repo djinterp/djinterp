@@ -2,8 +2,8 @@
 * djinterp [cpp][functional]                                         functor.hpp
 *
 * Functor protocol and the generic functorial map (C++).
-*   A functor here is a type constructor F<T> -- a context holding values of
-* type T -- together with one operation, map : (T -> U) -> F<T> -> F<U>, that
+*   A functor here is a type constructor F<T> - a context holding values of
+* type T - together with one operation, map : (T -> U) -> F<T> -> F<U>, that
 * applies a plain function to the contained value(s) without disturbing the
 * surrounding context. maybe<T>, result<T, E>, lazy views, and producers are
 * all functors; this header gives that shared shape a single name so generic
@@ -19,14 +19,14 @@
 *
 *   Every monad is a functor. Rather than make each monad re-state that, this
 * header carries a single blanket specialization (keyed on is_monad) that
-* derives map from monad_map -- so maybe, result, and any future monad are
+* derives map from monad_map - so maybe, result, and any future monad are
 * functors automatically, with no per-type wiring. functor.hpp therefore
 * references monad.hpp for that bridge; the two are sibling protocol headers
 * in the monadic layer.
 *
 *   The structural traits and the C++20 Functor concept in Section 0 describe
-* the protocol vocabulary -- functor-ness, the inner value type, and whether a
-* given (functor, function) pair is mappable -- so generic code can constrain
+* the protocol vocabulary - functor-ness, the inner value type, and whether a
+* given (functor, function) pair is mappable - so generic code can constrain
 * and introspect without first naming a concrete functor.
 *
 * USAGE:
@@ -104,7 +104,7 @@ NS_DJINTERP
 //   rebind<U> (= F<U>) is supplied as well by contexts for which it is
 // well-defined (maybe, result); it is intentionally NOT part of the core
 // protocol, because a context whose mapped type depends on the mapping
-// function -- a view, a producer -- has no single F<U> to name. For those,
+// function - a view, a producer - has no single F<U> to name. For those,
 // map's return type follows from the call alone. The primary is left
 // undefined so a use on a non-functor produces a clean resolution error.
 template<typename Functor,
@@ -270,9 +270,9 @@ using functor_value_type_t = typename functor_value_type<Functor>::type;
 // functor_map
 //   function: functorial map (fmap). Applies _function : T -> U to the
 // value(s) inside the functor, yielding the same context over U. The exact
-// result type is whatever the instance's map produces -- F<U> for a concrete
+// result type is whatever the instance's map produces - F<U> for a concrete
 // context (maybe<U>, result<U, E>), or the instance's transformed view /
-// producer otherwise -- so it is deduced rather than named.
+// producer otherwise - so it is deduced rather than named.
 template<typename Functor,
          typename Function>
 D_NODISCARD

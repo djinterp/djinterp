@@ -230,8 +230,8 @@ d_ftp_internal_client_failure(
 /*
 d_ftp_internal_client_dial_error
   File-local: the FTP error for a failed connection attempt. A host the
-resolver rejects -- a malformed address, a name that does not resolve
-(HOST_NOT_FOUND), an address this host does not have -- is
+resolver rejects - a malformed address, a name that does not resolve
+(HOST_NOT_FOUND), an address this host does not have - is
 D_FTP_ERROR_RESOLVE; a host no route reaches stays `_lost`, with the exact
 cause left in `net_error`.
 */
@@ -1180,7 +1180,7 @@ d_ftp_client_login(
 d_ftp_internal_client_reserved
   File-local: reports whether a command changes state the client keeps --
 the login, TLS, data protection, the representation type, the data
-connection -- or opens a data connection, and so must go through this
+connection - or opens a data connection, and so must go through this
 header's own functions.
 */
 D_STATIC bool
@@ -1255,8 +1255,8 @@ d_ftp_client_command(
 
 /*
 d_ftp_client_quit
-  The connections close in order -- close_notify on the control connection
-before its transport goes -- even when QUIT itself fails.
+  The connections close in order - close_notify on the control connection
+before its transport goes - even when QUIT itself fails.
 */
 enum dj_ftp_error
 d_ftp_client_quit(

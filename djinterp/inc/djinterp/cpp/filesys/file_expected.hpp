@@ -3,14 +3,14 @@
 *
 * The C++ return surface by value (roadmap Phase 10).
 *   re_re_std::expected<T, error> carries either a value or the error that
-* stopped it, in the return type -- no out-parameter, and it composes
+* stopped it, in the return type - no out-parameter, and it composes
 * (.and_then / .transform / .value_or) the way an error& out-parameter
 * cannot. It is re_std's, as the C++ guide has every fallible C++ function
 * report: one type at every level from C++11, where the standard's is C++23's
 * alone, and a symbol's type may not change between levels.
 *   This is ADDITIVE, and that is the whole point. Every query still has its
-* error-code form -- status(p, ec), space(p, ec), file_size(p, ec),
-* read_symlink(p, ec) -- unchanged, on every tier. This header ADDS a second,
+* error-code form - status(p, ec), space(p, ec), file_size(p, ec),
+* read_symlink(p, ec) - unchanged, on every tier. This header ADDS a second,
 * one-argument overload of each that RETURNS the expected. The two forms
 * differ by arity, so they never collide, and code written against the
 * error-code core keeps compiling exactly as before.
@@ -140,7 +140,7 @@ re_std::expected<space_info, error> space(
  *        one-argument overload of file_size(path, error&).
  *
  * @param[in] _p  the file to measure.
- * @return the size, or re_std::unexpected with the error -- EINVAL for a
+ * @return the size, or re_std::unexpected with the error - EINVAL for a
  *         non-regular path, ENOENT for an absent one, as the error-code form
  *         reports them.
  */

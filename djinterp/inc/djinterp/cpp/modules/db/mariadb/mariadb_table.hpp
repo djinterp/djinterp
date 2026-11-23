@@ -3,9 +3,9 @@
 *
 * A table of a MariaDB database held in memory: mysql_common_table over a
 * mariadb_connection, with what MariaDB adds.
-*   mariadb_table is mysql_common_table<mariadb_connection> -- database_
+*   mariadb_table is mysql_common_table<mariadb_connection> - database_
 * table's cache, refresh, commit and table operations, the engine, MODIFY
-* COLUMN and SHOW CREATE TABLE -- and adds: system-versioned tables (MariaDB
+* COLUMN and SHOW CREATE TABLE - and adds: system-versioned tables (MariaDB
 * 10.3.4), read as they stood at a point in time, between two, or in every
 * version; INSERT and DELETE that return the rows they wrote or removed
 * (10.5.0); a Galera cluster's causal reads after a commit; and what the
@@ -94,14 +94,14 @@ public:
     using client_capabilities = mariadb_client_capabilities;
     using version_info        = mariadb_version_info;
 
-    // type_support, feature_support -- client_capabilities, by their former
+    // type_support, feature_support - client_capabilities, by their former
     // names (2026.10.21), for one release
     using type_support [[deprecated("client_capabilities")]] =
         mariadb_client_capabilities;
     using feature_support [[deprecated("client_capabilities")]] =
         mariadb_client_capabilities;
 
-    // construction -- as database_table's
+    // construction - as database_table's
     mariadb_table()
         : base_type(),
           m_system_versioned(),
@@ -162,7 +162,7 @@ public:
         return;
     }
 
-    // is_system_versioned -- whether the table keeps its rows' history, as
+    // is_system_versioned - whether the table keeps its rows' history, as
     // the server answered when fetch_schema or a refresh from the history
     // last asked; false before either
     bool
@@ -193,7 +193,7 @@ public:
         return;
     }
 
-    // refresh_as_of -- as above, the point given as SQL: a TIMESTAMP literal,
+    // refresh_as_of - as above, the point given as SQL: a TIMESTAMP literal,
     // an expression, or TRANSACTION and a transaction's id, as written
     void
     refresh_as_of(
@@ -230,7 +230,7 @@ public:
         return;
     }
 
-    // refresh_between -- as above, the points given as SQL, as written
+    // refresh_between - as above, the points given as SQL, as written
     void
     refresh_between(
         const std::string& _from_sql,
@@ -244,7 +244,7 @@ public:
         return;
     }
 
-    // refresh_all_versions -- every version of the rows the query selects,
+    // refresh_all_versions - every version of the rows the query selects,
     // current and past; as refresh_as_of
     void
     refresh_all_versions()
@@ -398,7 +398,7 @@ public:
         return deleted;
     }
 
-    // Galera -- whether a commit then makes the session's reads wait until
+    // Galera - whether a commit then makes the session's reads wait until
     // the cluster has applied what came before them (wsrep_sync_wait = 1), so
     // that a refresh on any node sees the commit; a server without Galera
     // has no such setting, and the commit is as any other
@@ -449,7 +449,7 @@ public:
         return;
     }
 
-    // support -- what the connected server can do, as its version says:
+    // support - what the connected server can do, as its version says:
     // RETURNING (10.5.0), system versioning (10.3.4), sequences (10.3.0),
     // the INET6 type (10.5.0) and the UUID type (10.7.0); false while the
     // table has no open connection
@@ -488,7 +488,7 @@ protected:
     bool                m_galera_sync_on_commit;
 
 private:
-    // m_supports -- the layer's answer for the connected server
+    // m_supports - the layer's answer for the connected server
     bool
     m_supports(
         dj_mariadb_feature _feature
@@ -498,7 +498,7 @@ private:
                  (this->m_connection->get_face().supports(_feature)) );
     }
 
-    // m_require_returning -- query_exception with D_DB_UNSUPPORTED before
+    // m_require_returning - query_exception with D_DB_UNSUPPORTED before
     // MariaDB 10.5.0
     void
     m_require_returning(
@@ -516,7 +516,7 @@ private:
         return;
     }
 
-    // m_detect_system_versioning -- whether the table keeps its rows'
+    // m_detect_system_versioning - whether the table keeps its rows'
     // history, by asking for it: a table that keeps none, or a server too old
     // for the clause, refuses
     void
@@ -537,7 +537,7 @@ private:
         return;
     }
 
-    // m_refresh_history -- a refresh from the table's history, through the
+    // m_refresh_history - a refresh from the table's history, through the
     // clause after its name
     void
     m_refresh_history(
@@ -578,7 +578,7 @@ private:
         return;
     }
 
-    // m_point_sql -- a point in time as the session reads one: the moment
+    // m_point_sql - a point in time as the session reads one: the moment
     // from the Unix epoch, which FROM_UNIXTIME gives in the session's time
     // zone, to the microsecond
     static std::string
@@ -603,7 +603,7 @@ private:
                ")";
     }
 
-    // m_column_list -- the schema's columns, by name, for RETURNING
+    // m_column_list - the schema's columns, by name, for RETURNING
     std::string
     m_column_list() const
     {
@@ -619,7 +619,7 @@ private:
         return columns;
     }
 
-    // m_after_write -- the cache after a row was written at once: changed by
+    // m_after_write - the cache after a row was written at once: changed by
     // the key where the cache stands for the table's rows, read again
     // without one, and left as it is where it was never read
     template<typename Function>
@@ -647,7 +647,7 @@ private:
         return;
     }
 
-    // m_forget_keys -- the cache's rows of the keys given, and the rows read
+    // m_forget_keys - the cache's rows of the keys given, and the rows read
     // of them, removed
     void
     m_forget_keys(

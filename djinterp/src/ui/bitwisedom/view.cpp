@@ -2,25 +2,25 @@
 * djinterp [cpp][tools]                                                 view.cpp
 *
 * The interface, as uxoxo templates built from the window's state.
-*   build_ui() is a pure function of what it is given -- the window around
+*   build_ui() is a pure function of what it is given - the window around
 * the documents, the document in front, and the documents of the workspace
 * in front: it reads, never writes. The window is a menu bar over the
 * workspace's dock space. The menu bar has File, Edit, View, Window and
-* Tools -- the theme and colour scheme a submenu of View -- then the list of
+* Tools - the theme and colour scheme a submenu of View - then the list of
 * workspaces, the sheet file's name and the status line, and Help at its
 * right end.
 *   In the dock space: each document in a window of its own, its grid flush
 * in it, and beside it a window for each definition file it imported; then
-* each tool window the workspace has open -- the inspector, the macros and
+* each tool window the workspace has open - the inspector, the macros and
 * the templates, the operations, the issues, the settings pages, the
 * display rules, and the symbols tree when the user wants it apart from the
 * grid's symbols column. A tool window shows the document in front. The
-* Options -- every setting, the window's own and the sheet's, and the
-* settings files -- are a window that floats over the rest.
+* Options - every setting, the window's own and the sheet's, and the
+* settings files - are a window that floats over the rest.
 *   One control adds a row, as the user prefers it: a button and the menu
 * of what to add, or a split button. The context menu is one popup, built
 * from what the model says it is about: a row, a segment's band, the
-* symbols column's heading or its buttons, or the sheet -- the sort and the
+* symbols column's heading or its buttons, or the sheet - the sort and the
 * display rules among them. The tree shows each group's rows in the order
 * the grid does: the sheet's own, or sorted.
 *   Every input that sits below something that can appear or vanish carries
@@ -180,7 +180,7 @@ element_template muted(
 
 // coloured
 //   text in a colour, on a panel: the colour as far as it reads there, and
-// the theme's text for no colour -- a row with no fill. The panel and the
+// the theme's text for no colour - a row with no fill. The panel and the
 // text are the scheme's, as the window is drawn with them.
 element_template coloured(
     const model&       _model,
@@ -440,7 +440,7 @@ names_by_items
   The menu of what the symbols column lists each row by, as the buttons
 over the column choose it: its symbol name, its own name, or its value as
 the header writes it; then the forms that write every row's value alike,
-lined up -- the two that need an integer's width greyed in a wider sheet,
+lined up - the two that need an integer's width greyed in a wider sheet,
 and the two least plain with an example. The one chosen is checked; each
 is one "set" of "grid.names_by", one step to undo.
 */
@@ -667,7 +667,7 @@ std::vector<int> lineage_in(
 
 // scope_shows
 //   whether a region of the grid shows a part: 0 nowhere, 1 in places, 2
-// everywhere -- read over its rows, at every bit where a rule begins or
+// everywhere - read over its rows, at every bit where a rule begins or
 // ends, between which nothing changes.
 int scope_shows(
     const model&            _model,
@@ -734,7 +734,7 @@ int scope_shows(
 display_items
   The menu of what a region of the grid shows: its digits, the names across
 its ranges and its colours, each checked where the region shows it all --
-"in part" where it shows it in places -- and a press shows or hides it
+"in part" where it shows it in places - and a press shows or hides it
 there; then each shown there and nowhere else; and the region as the rest
 of the grid shows it, its own rules taken back. Each is one
 "display.set", one step to undo.
@@ -825,7 +825,7 @@ templates display_items(
 
 // openness
 //   struct: whether any of a sheet's groups is closed, and whether any is
-// open -- what Expand all and Collapse all would change.
+// open - what Expand all and Collapse all would change.
 struct openness
 {
     bool closed = false;
@@ -973,7 +973,7 @@ templates example_items()
 
 /*
 menus
-  The menu bar: File, Edit, View, Window and Tools, then -- after an indent
+  The menu bar: File, Edit, View, Window and Tools, then - after an indent
 -- the workspace in front, chosen from the workspaces, the sheet in front's
 file and what the window last said; and Help at its right end. View lists
 every tool window, each checked while it is open in this workspace;
@@ -1313,9 +1313,9 @@ std::string kind_tag(
 const double NO_SWATCH = 1.0e-3;
 
 // child_attrs
-//   an "Add child..." field's attributes: its key, its tip, and -- when the
+//   an "Add child..." field's attributes: its key, its tip, and - when the
 // window gives it the keyboard, after a child was added or a name refused
-// -- that request, and the text to start from.
+// - that request, and the text to start from.
 option_set child_attrs(
     const model& _model,
     int          _parent
@@ -1447,7 +1447,7 @@ element_template tree_row(
                                            static_cast<u64>(_row.id)) } });
 
     // renamed here: the node's text is an input. Only the row being renamed
-    // carries the input's attributes -- the rest of a thousand rows are
+    // carries the input's attributes - the rest of a thousand rows are
     // built faster without them, and their absence is the same as false
     if ( (_model.ui.renaming == _row.id) &&
          (_model.ui.rename_where == "tree") )
@@ -2706,8 +2706,8 @@ element_template columns_tab(
 
 /*
 display_tab
-  What the grid shows, and where: its own settings -- digits, the names
-across its ranges, its colours -- then each display rule that shows or
+  What the grid shows, and where: its own settings - digits, the names
+across its ranges, its colours - then each display rule that shows or
 hides them in a part of it: its rows, its bits, and each part as the grid
 has it, shown or hidden; the last rule over a cell wins. A rule is made
 from the grid's menus, on a row, a segment's heading or a block selected.
@@ -3010,7 +3010,7 @@ templates tab_places_menu(
 /*
 tab_items
   A tab's menu: close it, every other tab of its row, or those to its left
-or its right -- pinned tabs staying -- pin or unpin it, rename a sheet's
+or its right - pinned tabs staying - pin or unpin it, rename a sheet's
 file, and where the sheets' tabs run and which end they keep to.
 */
 templates tab_items(
@@ -3173,8 +3173,8 @@ element_template context_menu(
                                           attrs({ { "value", 3L } })));
             }
 
-            // what it shows -- it, the rows selected with it, or the block
-            // selected around it -- and the order rows are shown in
+            // what it shows - it, the rows selected with it, or the block
+            // selected around it - and the order rows are shown in
             const bool many = ( (is_selected(front, ui.menu_row)) &&
                                 (ui.selection.size() > 1) );
             const std::string name =
@@ -3453,7 +3453,7 @@ std::string definition_key(
 document_window
   A document's window: its bit grid, flush, under a tab with its file's
 name and a dot while it has changes. It docks beside the document before
-it the first time it is shown -- or in the middle -- and among this
+it the first time it is shown - or in the middle - and among this
 workspace's documents at once when it has just come from another.
 */
 element_template document_window(
@@ -3923,10 +3923,10 @@ templates files_page(
 
 /*
 node_content
-  The Add node window's form: what kind of row, where it goes -- in which
-group or range, first or last -- its name, and everything else a row has,
+  The Add node window's form: what kind of row, where it goes - in which
+group or range, first or last - its name, and everything else a row has,
 as the inspector shows it; then what it comes to, tried on a copy of the
-sheet -- its name and value, and the issues it would have -- and the
+sheet - its name and value, and the issues it would have - and the
 buttons that add it.
 */
 templates node_content(
@@ -4054,9 +4054,9 @@ templates node_content(
 /*
 console_tab
   The console: every action the user has taken, as the window heard it --
-its name and what it carried, the sheet it was done in, and when -- the
-latest first. An action done many times in a row -- a drag, a slider, a
-name typed -- is one line, with how many times. The list reads the actions
+its name and what it carried, the sheet it was done in, and when - the
+latest first. An action done many times in a row - a drag, a slider, a
+name typed - is one line, with how many times. The list reads the actions
 as each frame is drawn: an action taken is listed without the window being
 built again.
 */
@@ -4142,7 +4142,7 @@ std::string status_text(
 /*
 add_node_window
   The Add node window: a tab among the sheets, or a window of its own over
-them, as the preferences say -- each its own window to ImGui, so either
+them, as the preferences say - each its own window to ImGui, so either
 keeps where it was put. It shows the document in front's row in the
 making.
 */

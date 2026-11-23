@@ -80,7 +80,7 @@ IV.   TEST DECLARATIONS
 #include <type_traits>
 #include <utility>
 // djinterp
-// djinterp  -- framework header first, then mode-gated (same shape as
+// djinterp  - framework header first, then mode-gated (same shape as
 // test_common_tests.hpp): the section-file face pulls the subject under test;
 // the spec-provider face (DTEST_SPEC_MODE) drops it and pulls the spec
 // machinery instead, so the umbrella TU that includes every suite header at

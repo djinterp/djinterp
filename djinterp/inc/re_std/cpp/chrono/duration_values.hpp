@@ -2,7 +2,7 @@
 * djinterp [re_std]                                          duration_values.hpp
 *
 * the duration_values trait:
-*   Supplies the three special values -- zero, min and max -- for a
+*   Supplies the three special values - zero, min and max - for a
 * representation type. duration::zero(), duration::min() and
 * duration::max() are thin wrappers over these.
 *
@@ -14,7 +14,7 @@
 * duration's min() must be the most negative representable duration, so
 * this trait routes through numeric_limits<Rep>::lowest() instead. Using
 * min() would silently make every floating-point duration's lower bound
-* positive -- a bug that survives every integral test.
+* positive - a bug that survives every integral test.
 *
 *   Second, a representation need not be a fundamental type at all.
 * duration_values is the customisation point for a user-defined rep:
@@ -65,7 +65,7 @@ namespace chrono
         }
 
         // min
-        //   function: the LOWEST representable value -- lowest(), not
+        //   function: the LOWEST representable value - lowest(), not
         // min(). See the header comment.
         static RE_STD_CONSTEXPR Rep min() RE_STD_NOEXCEPT
         {

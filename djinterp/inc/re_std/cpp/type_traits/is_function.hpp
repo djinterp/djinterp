@@ -84,7 +84,7 @@ struct is_function : false_type
     // types that appear as `_F` when a pointer-to-member-function is
     // decomposed (`_F _Class::*`), so INVOKE's member-function bullets depend
     // on them.  Omitting these makes is_function false for every const member
-    // function -- and therefore makes re_std::invoke reject it.
+    // function - and therefore makes re_std::invoke reject it.
 
     template<typename    R,
              typename... Args>

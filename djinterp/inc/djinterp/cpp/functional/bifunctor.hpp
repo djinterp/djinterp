@@ -6,7 +6,7 @@
 * each parameter independently: bimap(fab, f, g) applies f : A -> C to the first
 * and g : B -> D to the second, yielding F<C, D>. Where Functor unified the
 * per-type map of a one-parameter context, Bifunctor unifies the per-type "map
-* both sides" of a two-parameter one -- most visibly result, which already has
+* both sides" of a two-parameter one - most visibly result, which already has
 * map (success side) and map_err (error side): bimap is exactly the two run
 * together, and the one-sided map_first / map_second recover each.
 *
@@ -16,8 +16,8 @@
 * generically, as bimap with identity on the other side.
 *
 *   The standard instances ship here, each over a two-parameter type: std::pair
-* and DKvPair (which have no functor-aware header of their own). result -- whose
-* bimap unifies its own map / map_err -- carries its instance in result.hpp.
+* and DKvPair (which have no functor-aware header of their own). result - whose
+* bimap unifies its own map / map_err - carries its instance in result.hpp.
 *
 * USAGE:
 *   using namespace djinterp;
@@ -94,7 +94,7 @@ NS_DJINTERP
 //
 //     - first_type      : the first parameter A of F<A, B>
 //     - second_type     : the second parameter B of F<A, B>
-//     - bimap(fab, f, g) : static -- F<C, D> from F<A, B> and f : A -> C,
+//     - bimap(fab, f, g) : static - F<C, D> from F<A, B> and f : A -> C,
 //                         g : B -> D
 //     - is_specialized   = true_type (marker)
 //
@@ -255,8 +255,8 @@ using bifunctor_second_type_t = typename bifunctor_second_type<Bifunctor>::type;
 // compile time wherever the instance's bimap does.
 
 // bimap
-//   function: maps both parameters at once -- f : A -> C over the first, g :
-//   B -> D over the second -- yielding F<C, D>. The result type is whatever the
+//   function: maps both parameters at once - f : A -> C over the first, g :
+//   B -> D over the second - yielding F<C, D>. The result type is whatever the
 // instance produces, so it is deduced.
 template<typename Bifunctor,
          typename First,
@@ -278,7 +278,7 @@ auto bimap(
 
 // map_first
 //   function: maps only the first parameter (f : A -> C), leaving the second
-// untouched -- bimap with identity on the right. For result this is its map.
+// untouched - bimap with identity on the right. For result this is its map.
 template<typename Bifunctor,
          typename Function>
 D_NODISCARD
@@ -297,7 +297,7 @@ auto map_first(
 
 // map_second
 //   function: maps only the second parameter (g : B -> D), leaving the first
-// untouched -- bimap with identity on the left. For result this is its map_err.
+// untouched - bimap with identity on the left. For result this is its map_err.
 template<typename Bifunctor,
          typename Function>
 D_NODISCARD
@@ -355,7 +355,7 @@ struct bifunctor_traits<std::pair<A, B>, void>
 // bifunctor_traits<DKvPair<Key, Value>>
 //   instance: maps the key and the value. Note DKvPair's equality / ordering
 // compare keys only, so mapping the value preserves identity while mapping the
-// key may change it -- expected, and the caller's concern.
+// key may change it - expected, and the caller's concern.
 template<typename Key,
          typename Value>
 struct bifunctor_traits<DKvPair<Key, Value>, void>

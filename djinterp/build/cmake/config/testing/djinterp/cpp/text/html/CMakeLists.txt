@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/cpp/text/
+# djinterp [test]  -  build/cmake/config/testing/djinterp/cpp/text/
 #                      html/CMakeLists.txt
 #
 #   Test leaf for text's HTML headers (html/html.hpp, html/html_dialect.hpp,

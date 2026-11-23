@@ -29,8 +29,8 @@ struct dj_tests_imap_prefix_case
 };
 
 // dj_tests_imap_options_case
-//   struct: an option block -- `security` and `port` and so on set over a
-// zeroed block, NULL leaving a text empty -- and what validating it gives.
+//   struct: an option block - `security` and `port` and so on set over a
+// zeroed block, NULL leaving a text empty - and what validating it gives.
 struct dj_tests_imap_options_case
 {
     int32_t           security;
@@ -49,7 +49,7 @@ struct dj_tests_imap_options_case
 //   struct: one choice of mechanism: the server's capabilities, what the
 // options permit (0: the default set) and the backend supports, the option
 // flags and credentials, whether TLS protects the connection, and what
-// d_imap_auth_select gives -- a mechanism, or -1 when it fails.
+// d_imap_auth_select gives - a mechanism, or -1 when it fails.
 struct dj_tests_imap_auth_case
 {
     const char*       capabilities;
@@ -162,7 +162,7 @@ static const struct dj_tests_imap_options_case OPTIONS[] =
 
 /*
 CHOICES
-  imap.h's ranking -- SCRAM-SHA-256-PLUS down to ANONYMOUS -- over the
+  imap.h's ranking - SCRAM-SHA-256-PLUS down to ANONYMOUS - over the
 mechanisms permitted, supported, advertised and served by the credentials
 held, channel binding and exposed secrets needing TLS.
 */

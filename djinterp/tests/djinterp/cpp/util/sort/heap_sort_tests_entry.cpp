@@ -129,7 +129,7 @@ bool tests_heap_sort_entry_instability()
     // The claim has a concrete witness:
     //
     //     input   (2,0) (2,1) (1,2)
-    //     heapify leaves the range untouched -- the root already dominates
+    //     heapify leaves the range untouched - the root already dominates
     //     extract swaps the root to the back, which throws (2,0) BEHIND
     //             (2,1)
     //     result  (1,2) (2,1) (2,0)

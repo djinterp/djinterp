@@ -16,7 +16,7 @@ NS_TESTING
 
 /*
 tests_contravariant_law_identity_serializer
-  Identity law -- contramap(id) == id -- on the serializer.
+  Identity law - contramap(id) == id - on the serializer.
   Tests the following:
   - contramapping the identity arrow preserves the context's type
   - it renders identically to the original over a battery of inputs
@@ -137,7 +137,7 @@ bool tests_contravariant_law_identity_hook_instance()
 
 /*
 tests_contravariant_law_composition_serializer
-  Composition law -- contramap(g) . contramap(f) == contramap(f . g) -- on the
+  Composition law - contramap(g) . contramap(f) == contramap(f . g) - on the
   serializer.
   Tests the following:
   - the two-step and the fused form render identically

@@ -224,7 +224,7 @@ struct clean
 // clean_t
 //   type: convenience alias for clean<Type>::type; an alias template, so
 // C++11 and up.
-//   The `typename` is required below C++20 -- P0634 made it optional in this
+//   The `typename` is required below C++20 - P0634 made it optional in this
 // position, so omitting it silently pins the header to C++20.
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     template<typename Type>
@@ -410,13 +410,13 @@ struct self
 //   value: convenience alias for is_self<Type>::value.
 //
 //   C++14 AND ABOVE. This is a variable TEMPLATE, and variable templates are a
-// C++14 feature -- there is no C++11 spelling to fall back to, so the gate is
+// C++14 feature - there is no C++11 spelling to fall back to, so the gate is
 // D1 working as intended rather than a portability workaround: a higher tier
 // ADDS the convenience and the floor keeps the trait it is a convenience for.
 // Below 14, write is_self<T>::value, which is what this expands to anyway.
 //
 //   D_CONSTEXPR, not D_CONSTEXPR_INLINE. A variable template's instantiations
-// already merge under vague linkage, so `inline` buys nothing -- and D_INLINE's
+// already merge under vague linkage, so `inline` buys nothing - and D_INLINE's
 // always_inline is a FUNCTION attribute the compiler discards on a variable,
 // warning on every TU that includes this header.
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
@@ -436,7 +436,7 @@ struct resolve_self
 };
 
 // resolve_self<self, ResolveTo>
-//   trait: base case -- self resolves to ResolveTo.
+//   trait: base case - self resolves to ResolveTo.
 template<typename ResolveTo>
 struct resolve_self<self, ResolveTo>
 {

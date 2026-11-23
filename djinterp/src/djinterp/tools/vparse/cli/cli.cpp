@@ -8,13 +8,13 @@
 * `gui`, whose work is the window's module, built outside djinterp
 * (build/cmake/config/ui/vparse); a command line names exactly one of them. The
 * options a subcommand takes are made by the few functions that make each group
-* of them, so that a group -- the grammar and how it is read, say -- is the
+* of them, so that a group - the grammar and how it is read, say - is the
 * same option, spelled and described the same, on every subcommand that has
 * it; and each subcommand's help ends with what its exit status answers.
 *   Once a parse succeeds, the kit runs the work of the subcommand that was
 * used, which hands the handler its record (commands.hpp), behind the kit's
-* guard; any other outcome of the parse -- help, a version, a completion
-* script, a refusal -- is ended as the kit ends it, in its words, with its
+* guard; any other outcome of the parse - help, a version, a completion
+* script, a refusal - is ended as the kit ends it, in its words, with its
 * exit status.
 *   `@file` stands for the arguments a file holds, as GCC's does, so that a
 * match over thousands of inputs is not held to a command line's length; an

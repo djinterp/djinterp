@@ -79,7 +79,7 @@ TABLE OF CONTENTS
 // D_CFG_TEST_PARITY
 //   brief: compile the parity oracle at all. Defaults to D_CFG_TESTING, so a
 // release build carries none of it and a test build carries all of it.
-//   Set 1 explicitly to ship the oracle in a release build -- which is
+//   Set 1 explicitly to ship the oracle in a release build - which is
 // reasonable, since the record is also a diagnostic: a bug report that includes
 // a parity dump says what the reporter's build actually computed.
 #ifndef D_CFG_TEST_PARITY
@@ -89,7 +89,7 @@ TABLE OF CONTENTS
 
 // --- 0.2  What may be recorded ---
 //   Each of these gates one observation KIND. Turning one off does not remove
-// the rows -- it replaces them with `absent`, so both forks still emit the same
+// the rows - it replaces them with `absent`, so both forks still emit the same
 // row set and only the values differ. That distinction is what keeps a
 // narrowed suite comparable to a full one.
 
@@ -100,7 +100,7 @@ TABLE OF CONTENTS
 // bit-identical floats, and until it does, a suite that records them is
 // asserting an answer nobody has agreed to. The oracle writes floats in
 // hexadecimal (`%a`) so that a failure means the ARITHMETIC differed and never
-// that the printing did -- which makes the question answerable, not answered.
+// that the printing did - which makes the question answerable, not answered.
 //   With this off, float observations become `absent` rows carrying the reason,
 // so the suite stays green and the gap stays visible.
 #ifndef D_CFG_TEST_PARITY_RECORD_FLOAT
@@ -111,7 +111,7 @@ TABLE OF CONTENTS
 //   brief: record the WIDTH of size_t alongside each size value (1, default).
 //   ON is what lets one record be compared across data models: without the
 // width, an LP64 and an ILP32 run differ at every large number for a reason
-// that is not a bug, or -- worse -- agree at every small one while the type
+// that is not a bug, or - worse - agree at every small one while the type
 // underneath silently differs. Turn it off only when both forks are known to
 // share a data model and the extra column is noise.
 #ifndef D_CFG_TEST_PARITY_RECORD_SIZE_WIDTH
@@ -131,7 +131,7 @@ TABLE OF CONTENTS
 
 // D_CFG_TEST_PARITY_RECORD_BYTES
 //   brief: record byte-buffer observations as hex (1, the default).
-//   These are the largest rows in a record by a wide margin -- a 4 KiB buffer
+//   These are the largest rows in a record by a wide margin - a 4 KiB buffer
 // becomes an 8 KiB line. Turn it off for a smoke suite that wants shapes and
 // statuses rather than payloads; the byte rows become `absent` and the row set
 // is unchanged.
@@ -145,7 +145,7 @@ TABLE OF CONTENTS
 // D_CFG_TEST_PARITY_PATH_MAX
 //   brief: the longest fully-qualified observation path a recorder will build,
 // in bytes. Default 256.
-//   Fixed rather than grown, because the oracle allocates nothing -- see the
+//   Fixed rather than grown, because the oracle allocates nothing - see the
 // kernel's banner. A path that overflows is truncated AND MARKED rather than
 // silently shortened, so raising this is a response to seeing the mark, not a
 // precaution against it.
@@ -157,12 +157,12 @@ TABLE OF CONTENTS
 // --- 0.4  The wire grammar ---
 //   Two streams compared by `diff` must agree about all three of these. They
 // are configurable because a project embedding the record in another format
-// may need a different delimiter -- not because they are a matter of taste.
+// may need a different delimiter - not because they are a matter of taste.
 
 // D_CFG_TEST_PARITY_DELIM
 //   brief: the field delimiter, as a character literal. Default '|'.
 //   It must be a byte the escape rule can quote, and it must not be a decimal
-// digit, a hex digit, or '-' -- all of which appear unescaped inside encoded
+// digit, a hex digit, or '-' - all of which appear unescaped inside encoded
 // values.
 #ifndef D_CFG_TEST_PARITY_DELIM
 #   define D_CFG_TEST_PARITY_DELIM '|'
@@ -170,8 +170,8 @@ TABLE OF CONTENTS
 
 // D_CFG_TEST_PARITY_ESCAPE
 //   brief: the escape byte, as a character literal. Default '\\'.
-//   Exactly three sequences exist -- the delimiter, a newline, and the escape
-// itself -- so the encoding is total and its inverse is obvious even though
+//   Exactly three sequences exist - the delimiter, a newline, and the escape
+// itself - so the encoding is total and its inverse is obvious even though
 // nothing in the framework computes it.
 #ifndef D_CFG_TEST_PARITY_ESCAPE
 #   define D_CFG_TEST_PARITY_ESCAPE '\\'

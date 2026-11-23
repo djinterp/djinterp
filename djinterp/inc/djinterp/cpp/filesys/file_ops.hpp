@@ -1,12 +1,12 @@
 /*******************************************************************************
 * djinterp [cpp][filesys]                                           file_ops.hpp
 *
-* Whole-file operations -- remove, rename, copy (roadmap Phase 7).
+* Whole-file operations - remove, rename, copy (roadmap Phase 7).
 *   These are free functions over paths, not a new handle type, so there is no
 * ownership to manage and none of the D_*_ portability kit here: the tier
 * ladder for this header is FLAT, the same source on every standard.
 *   THE ATOMICITY ASYMMETRY, carried up from file_ops.h. rename() is atomic
-* within a filesystem -- the destination is either the old file or the new
+* within a filesystem - the destination is either the old file or the new
 * one, never a half-written thing, and never briefly absent. copy_file() is
 * NOT atomic and cannot be: it reads and writes bytes, so a reader watching the
 * destination can see it partially written, and a crash mid-copy leaves it
@@ -14,15 +14,15 @@
 * onto it; copy_file is for duplication, not safe replacement. This is the
 * module's main hazard, and it is stated here rather than assumed.
 *   THE REMOVAL FAMILY. Three names, by what each will remove:
-*     remove()           -- a file OR an empty directory (the general one)
-*     remove_file()      -- a file only; refuses a directory
-*     remove_directory() -- an empty directory only (in file_dir.hpp)
+*     remove()           - a file OR an empty directory (the general one)
+*     remove_file()      - a file only; refuses a directory
+*     remove_directory() - an empty directory only (in file_dir.hpp)
 *   None of them recurse. Emptying a directory tree is remove_all, in
-* file_recursive.hpp -- never a surprise inside remove(). And none of them
+* file_recursive.hpp - never a surprise inside remove(). And none of them
 * follows a symbolic link: a link is removed itself, its target never, on
 * Windows a link or junction to a directory included.
 *   NO OS. Every decision was made in c/filesys; these are three-line
-* wrappers -- validate the path, call the C function, translate errno.
+* wrappers - validate the path, call the C function, translate errno.
 *
 *
 * path:      /inc/djinterp/cpp/filesys/file_ops.hpp
@@ -151,7 +151,7 @@ bool remove_file(
  *        the destination if it exists (POSIX rename semantics).
  *
  * @note Atomic means `_to` is always either its old contents or `_from`'s --
- *       never a partial state, never momentarily missing -- which is exactly
+ *       never a partial state, never momentarily missing - which is exactly
  *       what makes rename the tool for replacing a file safely. Across
  *       filesystems the platform may refuse (EXDEV) because it cannot promise
  *       atomicity there; that is reported, not papered over with a

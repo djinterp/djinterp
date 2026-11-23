@@ -2,7 +2,7 @@
 * djinterp [c][math]                                         math_tests_random.h
 *
 * The math harnesses' random numbers.
-*   Marsaglia's xorshift on 64 bits -- shifts of 13, 7 and 17 -- kept as two
+*   Marsaglia's xorshift on 64 bits - shifts of 13, 7 and 17 - kept as two
 * 32-bit halves, which every target has. ISO-strict C++98 on a 32-bit target
 * has no 64-bit integer at all (dstdint.h declares none, and dj_math_umax has
 * 32 bits there), and the generator still draws the very numbers a 64-bit
@@ -54,7 +54,7 @@ d_tests_seed(
 }
 
 // d_tests_step
-//   one step -- w ^= w << 13, w ^= w >> 7, w ^= w << 17 -- each shift
+//   one step - w ^= w << 13, w ^= w >> 7, w ^= w << 17 - each shift
 // carrying bits from one half to the other; returns the new word.
 static inline struct dj_tests_random_word
 d_tests_step(void)

@@ -3,7 +3,7 @@
 *
 * is_trivially_copyable trait header:
 *   is_trivially_copyable<T>::value is true iff T may be copied by copying
-* its object representation -- that is, iff memcpy is a valid substitute
+* its object representation - that is, iff memcpy is a valid substitute
 * for assignment. It is the precondition for bit_cast, for memcpy-based
 * container relocation, and for treating a type as raw bytes at all.
 *
@@ -13,7 +13,7 @@
 * is_trivially_copyable, which is why <optional> did not compile. Both
 * should now route through here.
 *
-*   NO LIBRARY-LEVEL IMPLEMENTATION EXISTS -- intrinsic or nothing.
+*   NO LIBRARY-LEVEL IMPLEMENTATION EXISTS - intrinsic or nothing.
 *
 *   PORTABILITY:
 *   C++11 baseline. The _v spelling is C++14+, as elsewhere.
@@ -68,7 +68,7 @@ namespace re_std
 #if RE_STD_HAS_IS_TRIVIALLY_COPYABLE
 
 // is_trivially_copyable
-//   trait: intrinsic-backed -- the object representation may be copied with memcpy.
+//   trait: intrinsic-backed - the object representation may be copied with memcpy.
 template<typename Type>
 struct is_trivially_copyable : integral_constant<bool, __is_trivially_copyable(Type)>
 {};

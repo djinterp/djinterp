@@ -148,7 +148,7 @@ d_table_overlay_admits_row
 
 /*
 d_table_overlay_holds
-  Asks whether a table already wears a bundle -- the membership question, over a
+  Asks whether a table already wears a bundle - the membership question, over a
 container that exists. Where admits_row looks at one seam, this walks the whole
 container, so it is the predicate a test asserts and not one an append calls.
 
@@ -261,7 +261,7 @@ d_table_overlay_holds
 d_table_overlay_meet
   Composes two bundles: O1 /\ O2 = R1 u R2, the union of their restrictions.
 Where both declare the same restriction the STRONGER parameter wins, since the
-extension of a meet is the intersection and a meet may only shrink it -- the
+extension of a meet is the intersection and a meet may only shrink it - the
 smaller capacity, the smaller multiplicity, and the tighter interval.
 
   The comparator and the projection are taken from whichever bundle supplies
@@ -482,13 +482,13 @@ D_NODISCARD D_INLINE_DEF int d_table_overlay_wears(
 /*
 d_table_overlay_capacity_of
   kappa, or the largest representable extent when the bundle declares no
-  capacity -- an undeclared ceiling does not bind.
+  capacity - an undeclared ceiling does not bind.
 
 Parameter(s):
   _overlay: the restriction bundle to interrogate.
 Return:
   The declared capacity, or the largest representable extent when the bundle
-  declares none -- an undeclared ceiling does not bind.
+  declares none - an undeclared ceiling does not bind.
 */
 D_NODISCARD D_INLINE_DEF size_t d_table_overlay_capacity_of(
     const struct dj_table_overlay* _overlay
@@ -504,7 +504,7 @@ D_NODISCARD D_INLINE_DEF size_t d_table_overlay_capacity_of(
 
 /*
 d_table_overlay_in_domain
-  whether a cell lies in <I> -- delta_I applied to one value. Vacuously true
+  whether a cell lies in <I> - delta_I applied to one value. Vacuously true
   when the restriction is absent, and also when the bundle carries no
   comparator, since an unreadable restriction is not a failed one.
 

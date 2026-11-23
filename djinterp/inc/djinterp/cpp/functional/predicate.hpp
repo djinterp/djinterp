@@ -1063,8 +1063,8 @@ struct is_predicate_combinator
 //  II.  BEHAVIORAL DETECTION  (is a type usable as a predicate over Args...)
 // -----------------------------------------------------------------------------
 // Structural detection above only recognizes the combinators this header
-// builds. The behavioral question -- can an arbitrary callable be invoked with
-// Args... and answer true or false -- is the functional module's is_predicate,
+// builds. The behavioral question - can an arbitrary callable be invoked with
+// Args... and answer true or false - is the functional module's is_predicate,
 // with its is_predicate_v shorthand and its Predicate concept, all defined
 // once in functional_common.hpp and included above. Every factory here relies
 // on that contract; this header used to define its own is_predicate, which no

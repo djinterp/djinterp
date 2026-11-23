@@ -2,8 +2,8 @@
 * djinterp [cpp][math]                                          t_solid_face.cpp
 *
 *   Tests for geometry/solid.hpp, at every level from C++98: a unit cube as
-* a triangle mesh -- its surface area 6, volume 1, centroid its centre,
-* containment inside and out -- in float, double and long double; the same
+* a triangle mesh - its surface area 6, volume 1, centroid its centre,
+* containment inside and out - in float, double and long double; the same
 * cube in spherical coordinates; a parametric volume's containment; the
 * traits; from C++11 a mesh from std::arrays, an implicit unit ball and a
 * solid from two surfaces.

@@ -3,8 +3,8 @@
 *
 * Dear ImGui's look, by theme and scheme.
 *   Each theme starts from one of ImGui's own and replaces the surfaces --
-* the scheme's -- and the accent; the metrics -- rounding, padding, spacing
-* -- are the same in every theme.
+* the scheme's - and the accent; the metrics - rounding, padding, spacing
+* - are the same in every theme.
 *   Readable text is measured as WCAG measures it: a colour's relative
 * luminance, from its channels taken back to linear light, and the ratio of
 * two luminances, each lifted by 0.05 for the glare a screen adds.
@@ -46,7 +46,7 @@ const float READABLE = 4.5f;
 
 // MIN_CONTRAST
 //   constant: the least contrast text in a row's colour keeps with what it
-// is drawn on -- WCAG's least for large text, and for the parts of a
+// is drawn on - WCAG's least for large text, and for the parts of a
 // picture that must be seen.
 const float MIN_CONTRAST = 3.0f;
 
@@ -171,8 +171,8 @@ bool is_light(
 /*
 composite
   Each channel is the top's, weighed by its alpha, and the ground's for the
-rest. The ground is taken as opaque -- what text is drawn on is the window
-at the bottom of every stack of fills -- and so is the result.
+rest. The ground is taken as opaque - what text is drawn on is the window
+at the bottom of every stack of fills - and so is the result.
 */
 ImU32 composite(
     ImU32 _top,
@@ -211,7 +211,7 @@ float contrast(
 
 /*
 ink_on
-  The theme's text, wherever it reads -- on the window's own panels it
+  The theme's text, wherever it reads - on the window's own panels it
 always does; else black or white, whichever contrasts more with the
 ground. Black and white contrast alike with a ground of luminance 0.179,
 and there each manages 4.58:1, so whatever the ground the ink reads at
@@ -238,8 +238,8 @@ ImU32 ink_on(
 
 /*
 legible
-  The colour as it would be seen -- composited on the ground, where it is
-not opaque -- if that reads; else the colour moved a tenth at a time toward
+  The colour as it would be seen - composited on the ground, where it is
+not opaque - if that reads; else the colour moved a tenth at a time toward
 the ink the ground takes, which keeps its hue as long as it can. No colour,
 as a row with no fill has, is the theme's text.
 */
@@ -365,7 +365,7 @@ void apply_style(
     style.FrameBorderSize   = light ? 1.0f : 0.0f;
     style.TabBorderSize     = 0.0f;
 
-    // the metrics follow the display's scale -- a window's zoom scales its
+    // the metrics follow the display's scale - a window's zoom scales its
     // own, as it is drawn; the borders stay hairlines
     style.ScaleAllSizes(dpi_scale());
     style.ChildBorderSize   = 1.0f;

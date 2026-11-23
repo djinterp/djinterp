@@ -22,7 +22,7 @@ using namespace ::djinterp::test;
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///   compile-time invariants -- DTestMetadata                                ///
+///   compile-time invariants - DTestMetadata                                ///
 ///////////////////////////////////////////////////////////////////////////////
 
 static_assert(std::is_same<DTestMetadata::value_type,
@@ -37,7 +37,7 @@ static_assert(noexcept(std::declval<const DTestMetadata&>().size()),
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///   runtime tests -- DTestMetadata                                          ///
+///   runtime tests - DTestMetadata                                          ///
 ///////////////////////////////////////////////////////////////////////////////
 
 /*

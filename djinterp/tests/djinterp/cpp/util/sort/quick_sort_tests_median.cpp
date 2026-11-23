@@ -25,7 +25,7 @@ bool tests_quick_sort_median_all_permutations()
     std::size_t      p;
 
     //   All six permutations of three distinct values.  Whatever the input
-    // order, the routine must leave the MEDIAN at _first -- and, because it
+    // order, the routine must leave the MEDIAN at _first - and, because it
     // ends by swapping _first with _mid, the remaining two must land as
     // (minimum, maximum).  The answer is therefore [2, 1, 3] in every case.
     //

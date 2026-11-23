@@ -12,7 +12,7 @@
 * actually is: cfg_test.h had grown to serve four modules at once, which made it
 * the thing the rule forbids at a larger scale than the sibling it was written
 * to prevent.  There is deliberately no copy under config/test/ for the C++ fork
-* -- a knob's value must be identical in both forks (dconfig 6.2), and two
+* - a knob's value must be identical in both forks (dconfig 6.2), and two
 * files, one per fork, would be that rule broken by directory structure rather
 * than by anyone's decision.
 *
@@ -74,7 +74,7 @@
 // rev14 replaced the slots with an opaque context, so there is no shape left to
 // disagree with and the branch it guarded no longer exists.  A knob normalised
 // into an internal symbol that nothing reads compiles clean in every setting
-// and reads as supported -- which is what rev08 found for
+// and reads as supported - which is what rev08 found for
 // D_CFG_EVENT_TABLE_ORDERED_ITERATION and rev11 for
 // D_CFG_TEST_EVENT_STABLE_ORDER.  Two deletions on that argument make it the
 // convention rather than a one-off, so this one went with the branch instead of
@@ -87,7 +87,7 @@
 // recorded so that two forks configured differently are visibly different
 // rather than silently so.
 //   ADVISORY, LIKE D_CFG_TEST_METADATA_MAX, so the kernel reading it nowhere
-// is the design rather than a defect -- it is a number for CALLERS.  That is
+// is the design rather than a defect - it is a number for CALLERS.  That is
 // the one distinction inert_knobs.py cannot draw on its own, and it is why the
 // knob below went and this one stayed.
 #ifndef D_CFG_TEST_EVENT_MAX_LISTENERS
@@ -96,7 +96,7 @@
 
 //   D_CFG_TEST_EVENT_STABLE_ORDER IS GONE, AND WAS DELETED RATHER THAN WIRED.
 // It promised that listeners for one kind fire in bind order, was validated,
-// and normalised into D_INTERNAL_TEST_EVENT_STABLE_ORDER -- which the kernel
+// and normalised into D_INTERNAL_TEST_EVENT_STABLE_ORDER - which the kernel
 // never read.  So the off path compiled clean under -Werror, produced
 // byte-identical object code, and reported as supported.
 //   The operation it offered to switch off is unconditional and load-bearing:

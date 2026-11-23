@@ -1,13 +1,13 @@
 /*******************************************************************************
 * djinterp [cpp][event]                           event_table_tests_concepts.cpp
 *
-*   Section VI (concept constraints, C++20+) -- the ten concepts layered over
+*   Section VI (concept constraints, C++20+) - the ten concepts layered over
 * event_table_traits, each exercised as a boolean.  The core concept
 * (is_event_table_type and its readable alias event_table_type, plus the
 * negation non_event_table_type) is checked on the real table, a structurally
 * conforming type, and a non-table.  The feature concepts (clearable, counting,
 * type_key_counting, stats, selectively_clearable, mergeable, extended) are
-* checked true on the real table and -- crucially -- false on the core-only
+* checked true on the real table and - crucially - false on the core-only
 * type, which is an event table yet exposes none of the optional features; and
 * all derived concepts are confirmed to short-circuit to false on a non-table.
 *

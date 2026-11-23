@@ -103,7 +103,7 @@ dj_off32_t d_file_tell_stream32(
     FILE* _stream
 );
 /**
- * @brief Returns a stream to its start and clears its error flag -- unlike
+ * @brief Returns a stream to its start and clears its error flag - unlike
  *        ISO C's rewind, reporting whether it could.
  *
  * @param[in] _stream  an open stream.

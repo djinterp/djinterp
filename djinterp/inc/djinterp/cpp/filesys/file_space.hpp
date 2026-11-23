@@ -2,16 +2,16 @@
 * djinterp [cpp][filesys]                                         file_space.hpp
 *
 * Filesystem capacity (roadmap Phase 9).
-*   Three byte counts for the filesystem that holds a path -- and, exactly as
+*   Three byte counts for the filesystem that holds a path - and, exactly as
 * file_space.h warns, the middle one is a trap:
-*     capacity   -- total bytes on the filesystem.
-*     free       -- unallocated bytes, INCLUDING the reserve only root may use.
-*     available  -- bytes THIS user may actually claim. This is the one to use.
+*     capacity   - total bytes on the filesystem.
+*     free       - unallocated bytes, INCLUDING the reserve only root may use.
+*     available  - bytes THIS user may actually claim. This is the one to use.
 *   On a typical machine `free` and `available` differ by the root reserve --
 * often gigabytes. Deciding "will this write fit" from `free` is how an
 * unprivileged program convinces itself it has room it cannot touch, then
 * fails at write time. Unless you are root, read `available`.
-*   A VALUE, not a resource, and a free query over it -- so no ownership, no
+*   A VALUE, not a resource, and a free query over it - so no ownership, no
 * D_*_ kit, and a FLAT tier ladder.
 *   WIDTH. space_info follows the C layer's D_FILE_WIDTH, as dj_space_t does:
 * at 64 it counts bytes under std::filesystem's names; at 32 it counts KiB,
@@ -69,9 +69,9 @@ NS_DJINTERP
 //------------------------------------------------------------------------------
 // 1.1.1
 // space_info
-//   struct: a filesystem capacity snapshot -- in bytes at D_FILE_WIDTH 64, in
+//   struct: a filesystem capacity snapshot - in bytes at D_FILE_WIDTH 64, in
 // KiB at 32 (see the banner). Public members, mirroring
-// std::filesystem::space_info -- a plain value with nothing to hide. See the
+// std::filesystem::space_info - a plain value with nothing to hide. See the
 // banner on why `available`, not `free`, is the number to size a write
 // against.
 #if (D_FILE_WIDTH == 64)
@@ -79,7 +79,7 @@ struct space_info
 {
     uint64_t capacity;    // total bytes on the filesystem
     uint64_t free;        // unallocated, INCLUDING the root-only reserve
-    uint64_t available;   // bytes this user may actually claim -- use this one
+    uint64_t available;   // bytes this user may actually claim - use this one
 
     /**
      * @brief Constructs an all-zero snapshot.
@@ -108,7 +108,7 @@ struct space_info
 {
     uint32_t capacity_kib;    // total KiB on the filesystem
     uint32_t free_kib;        // unallocated, INCLUDING the root-only reserve
-    uint32_t available_kib;   // KiB this user may actually claim -- use this
+    uint32_t available_kib;   // KiB this user may actually claim - use this
 
     /**
      * @brief Constructs an all-zero snapshot.
@@ -139,7 +139,7 @@ struct space_info
 /**
  * @brief Reports the capacity of the filesystem holding a path.
  *
- * @note Any path ON the filesystem works -- a file, a directory, the mount
+ * @note Any path ON the filesystem works - a file, a directory, the mount
  *       point; the numbers describe the whole filesystem, not the path.
  *
  * @param[in]  _p   a path on the filesystem of interest.

@@ -4,15 +4,15 @@
 * Build-time configuration shared by every module of djinterp's MariaDB/MySQL
 * layer (c/modules/db/mariadb/mariadb_*.h).
 *   One knob decides what the layer is built over: a MySQL-protocol client
-* library -- MariaDB Connector/C or Oracle's libmysqlclient, which share the
-* C API -- or stubs that report D_DB_UNSUPPORTED, so that code using the
+* library - MariaDB Connector/C or Oracle's libmysqlclient, which share the
+* C API - or stubs that report D_DB_UNSUPPORTED, so that code using the
 * layer compiles and links where neither is installed and decides at run
 * time, as the SQLite layer and the libcurl binding do. It defaults to
 * whether the client's mysql.h can be found.
 *   Built over a client, the layer's sources reach mysql.h through
 * env_mysql_common.h, which includes it only when D_CFG_ENV_USING_MARIADB is
-* 1. This file therefore sets that knob for the layer's own sources -- each
-* defines D_INTERNAL_MARIADB_SOURCE before its first include -- unless the
+* 1. This file therefore sets that knob for the layer's own sources - each
+* defines D_INTERNAL_MARIADB_SOURCE before its first include - unless the
 * build already has, and only then includes env's configuration, so that
 * env's cascade honours it (the config README, 6.2). A build that asks for
 * the client but sets that knob to 0, or includes dconfig.h first, stops at
@@ -96,7 +96,7 @@ TABLE OF CONTENTS
 //   knob: build the layer over a client library (1) or as stubs (0).
 // Defaults to 1 where the client's mysql.h can be found where env looks --
 // at D_CFG_ENV_MARIADB_C_PATH when the build names one, else as <mysql.h>,
-// <mariadb/mysql.h> or <mysql/mysql.h> -- and to 0 where it cannot; to 1
+// <mariadb/mysql.h> or <mysql/mysql.h> - and to 0 where it cannot; to 1
 // where the preprocessor has no __has_include to look with. A path the build
 // names but cannot be found leaves the stubs, rather than another client's
 // header. Define it as 1 to require a client, which stops a build that lacks
@@ -133,8 +133,8 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 2.1.1
 // D_CFG_MARIADB_CHARSET
-//   knob: the character set the layer asks for -- for every connection it
-// makes, every database it creates, and every table it creates -- as a string
+//   knob: the character set the layer asks for - for every connection it
+// makes, every database it creates, and every table it creates - as a string
 // the server knows. The default, "utf8mb4", is the whole of Unicode, where
 // both servers long defaulted to latin1 (MySQL until 8.0); "" leaves all
 // three to the server's defaults.

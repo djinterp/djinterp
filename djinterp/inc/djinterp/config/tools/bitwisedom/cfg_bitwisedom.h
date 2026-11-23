@@ -52,8 +52,8 @@ TABLE OF CONTENTS
 //==============================================================================
 // 1.  KNOBS
 //==============================================================================
-// Each is #ifndef-guarded, so a value defined earlier -- by -D, a prefix
-// header, or cfg_custom.h -- wins.
+// Each is #ifndef-guarded, so a value defined earlier - by -D, a prefix
+// header, or cfg_custom.h - wins.
 
 
 // 1.1    Settings' keys
@@ -85,8 +85,8 @@ TABLE OF CONTENTS
 // D_CFG_BITWISEDOM_KEYS
 //   knob: what `bitwisedom set` and `get` take as a KEY when `--keys` does
 // not say, one of D_CFG_BITWISEDOM_KEYS_*. Default BOTH: one vocabulary, the
-// window's, for everything it lists, and the file's for the rest -- a sheet's
-// probe, a row's fields -- so that nothing a file holds is out of a script's
+// window's, for everything it lists, and the file's for the rest - a sheet's
+// probe, a row's fields - so that nothing a file holds is out of a script's
 // reach.
 #ifndef D_CFG_BITWISEDOM_KEYS
     #define D_CFG_BITWISEDOM_KEYS D_CFG_BITWISEDOM_KEYS_BOTH

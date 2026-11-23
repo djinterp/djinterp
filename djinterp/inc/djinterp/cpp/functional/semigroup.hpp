@@ -8,7 +8,7 @@
 * Monoid refinement, monoid.hpp). Where Functor unified the per-type map and
 * Foldable the per-type fold, Semigroup unifies the per-type combine: a view's
 * concat, a result's combine, string and vector concatenation, numeric
-* addition -- all are the one associative operation under different names.
+* addition - all are the one associative operation under different names.
 *
 *   Because C++ has no native type classes, a semigroup is recognized by
 * specializing semigroup_traits<T> with a single static combine. The free
@@ -18,8 +18,8 @@
 * mconcat is used throughout this layer to stay collision-free on the umbrella.
 *
 *   Concrete instances (string, vector, and the numeric / boolean newtypes in
-* namespace monoids) live in monoid.hpp, where each type's full algebra -- its
-* semigroup combine together with its monoid identity -- is defined in one
+* namespace monoids) live in monoid.hpp, where each type's full algebra - its
+* semigroup combine together with its monoid identity - is defined in one
 * place. This header is the protocol and the associative operation alone.
 *
 * USAGE:
@@ -78,7 +78,7 @@ NS_DJINTERP
 //   trait: primary template, undefined by default. Each concrete
 // semigroup specializes semigroup_traits<T> to expose:
 //
-//     - combine(a, b)  : static T combine(const T&, const T&) -- the
+//     - combine(a, b)  : static T combine(const T&, const T&) - the
 //                        associative binary operation
 //     - is_specialized = true_type (marker)
 //
@@ -155,7 +155,7 @@ static constexpr bool is_semigroup_v = is_semigroup<Type>::value;
 //   DUAL DOMAIN. mappend is D_CONSTEXPR and delegates to
 // semigroup_traits<T>::combine; it folds at compile time under C++20 (and
 // earlier, wherever the instance's combine is itself constexpr over a literal
-// type) and runs at runtime otherwise -- the same conditional-constexpr
+// type) and runs at runtime otherwise - the same conditional-constexpr
 // behaviour as the rest of the layer.
 
 // mappend

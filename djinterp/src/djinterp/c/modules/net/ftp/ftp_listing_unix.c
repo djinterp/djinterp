@@ -47,7 +47,7 @@ struct dj_ftp_internal_date
 
 // dj_ftp_internal_columns
 //   struct: the fields between a Unix line's permissions and its date --
-// links, owner, group, and a device's two numbers, six at most -- and
+// links, owner, group, and a device's two numbers, six at most - and
 // where the date ended.
 struct dj_ftp_internal_columns
 {
@@ -138,7 +138,7 @@ d_ftp_internal_unix_bits
   File-local: reads the nine permission characters, three per class, into
 mode bits. Each position has its own alphabet: r, w, x, s, and t grant the
 permission itself, and s, S, t, and T set their class's special bit --
-setuid, setgid, or sticky -- as does l, setgid as mandatory locking.
+setuid, setgid, or sticky - as does l, setgid as mandatory locking.
 */
 D_STATIC
 bool d_ftp_internal_unix_bits(
@@ -196,9 +196,9 @@ bool d_ftp_internal_unix_bits(
 
 /*
 d_ftp_internal_unix_mode
-  Reads an "ls -l" permission field -- "drwxr-sr-x" and kin, with an
+  Reads an "ls -l" permission field - "drwxr-sr-x" and kin, with an
 optional eleventh '+', '.', or '@' for ACLs, security contexts, or extended
-attributes -- into an entry type and mode bits.
+attributes - into an entry type and mode bits.
 */
 bool
 d_ftp_internal_unix_mode(
@@ -596,7 +596,7 @@ bool d_ftp_internal_unix_columns(
 /*
 d_ftp_internal_parse_unix
   Reads an "ls -l" line: the permission field, the columns up to and through
-the date, and then the name -- everything after the date, spaces and all.
+the date, and then the name - everything after the date, spaces and all.
 */
 enum dj_ftp_line_result
 d_ftp_internal_parse_unix(

@@ -30,7 +30,7 @@ bool tests_sort_view_sorted_default_algorithm()
 
     //   sorted() with no argument builds a terminal bound to the subsystem's
     // default algorithm.  The header states that default matches
-    // DDefaultSortTag, which is quicksort -- so the two must agree.
+    // DDefaultSortTag, which is quicksort - so the two must agree.
     result.check(ranges_equal(source | sorted(), expected));
     result.check(ranges_equal(source | sorted(),
                               source | sorted(DDefaultSortTag::value)));
@@ -70,7 +70,7 @@ bool tests_sort_view_sorted_explicit_algorithm()
     std::stable_sort(expected.begin(), expected.end(), std::less<int>());
 
     //   The one-argument overload lets a caller pin the algorithm.  All six
-    // must produce the same ordered result -- the choice is a performance
+    // must produce the same ordered result - the choice is a performance
     // decision, never a semantic one.
     for (i = 0; i < 6; ++i)
     {
@@ -180,7 +180,7 @@ bool tests_sort_view_pipe_from_container()
     result.check(ranges_equal(source | sorted(), expected));
     result.check(ranges_equal(source | sorted_by(std::less<int>()), expected));
 
-    //   The source is left alone -- the terminal returns a new vector.
+    //   The source is left alone - the terminal returns a new vector.
     result.check(ranges_equal(source, view_sample()));
 
     //   Degenerate containers.

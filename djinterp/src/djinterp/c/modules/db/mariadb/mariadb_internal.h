@@ -2,7 +2,7 @@
 * djinterp [c][db]                                            mariadb_internal.h
 *
 * Private to the MariaDB layer's sources: mysql.h, the client floor, the
-* handle's definition, and the plumbing every module repeats -- when the layer
+* handle's definition, and the plumbing every module repeats - when the layer
 * is built over a client. Built as stubs (D_INTERNAL_MARIADB 0), it declares
 * nothing, and env includes no mysql.h.
 *   mysql.h arrives through env_mariadb.h, which honours
@@ -144,7 +144,7 @@ TABLE OF CONTENTS
 // D_INTERNAL_MARIADB_ESCAPE_QUOTE
 //   brief: 1 where values are escaped with mysql_real_escape_string_quote --
 // libmysqlclient from 5.7.6, whose plain mysql_real_escape_string fails
-// outright under the NO_BACKSLASH_ESCAPES SQL mode -- and 0 where they are
+// outright under the NO_BACKSLASH_ESCAPES SQL mode - and 0 where they are
 // escaped with the plain call, which MariaDB's clients adapt to that mode
 // themselves. Chosen here, so that no function body needs a conditional.
 #if ( (D_ENV_MYSQL_COMMON_IS_ORACLE_MYSQL) &&                                  \
@@ -239,7 +239,7 @@ TABLE OF CONTENTS
 // 1.2.8
 // D_INTERNAL_MARIADB_READS_SIMPLE_OK
 //   brief: 1 where the client reads the OK packet that answers a command
-// without a statement -- a ping, a change of database, a reset -- for the
+// without a statement - a ping, a change of database, a reset - for the
 // server's status and the session's changes, as libmysqlclient does; 0 for
 // Connector/C, which only checks it is no error, so that both stay as an
 // earlier reply left them.
@@ -253,7 +253,7 @@ TABLE OF CONTENTS
 // D_INTERNAL_MARIADB_MAX_PACKET
 //   brief: how the client is told the largest packet it takes, its
 // MYSQL_OPT_MAX_ALLOWED_PACKET: 1 for libmysqlclient, which reads an unsigned
-// long; 2 for Connector/C from 3.0, which reads a size_t -- the two differ
+// long; 2 for Connector/C from 3.0, which reads a size_t - the two differ
 // where unsigned long is 32 bits, as on 64-bit Windows; 0 for an older
 // MariaDB client, which has no such option.
 #if (D_ENV_MYSQL_COMMON_IS_MARIADB)
@@ -360,7 +360,7 @@ TABLE OF CONTENTS
 //   constant: how long a libmysqlclient call that does not block waits on its
 // socket for reading before it is called again regardless, in milliseconds.
 // The client never says it waits to write, and waiting for the socket to be
-// writable -- which it nearly always is -- would spin; the server answers
+// writable - which it nearly always is - would spin; the server answers
 // what it is sent, so a call waits to read, and a write the socket could not
 // take at once goes on at least this often.
 #define D_INTERNAL_MARIADB_ASYNC_POLL_MS 10u
@@ -386,8 +386,8 @@ TABLE OF CONTENTS
 //   constant: the first Connector/C, as mysql_get_client_version numbers it,
 // whose calls that do not block go through Schannel: 3.4.10. Before it,
 // ma_pvio_read and ma_pvio_write pass a connection's TLS by when a call does
-// not block, where the library is Schannel (HAVE_SCHANNEL) -- 3.3 throughout,
-// to 3.3.21 -- and the first packet read under TLS, the server's answer to
+// not block, where the library is Schannel (HAVE_SCHANNEL) - 3.3 throughout,
+// to 3.3.21 - and the first packet read under TLS, the server's answer to
 // the login, fails with 2013.
 #define D_INTERNAL_MARIADB_ASYNC_TLS_SINCE 30410ul
 
@@ -557,10 +557,10 @@ struct dj_mariadb
                                              // when the client named none,
                                              // or one too long to keep
     bool                  charset_named;     // a character set named for the
-                                             // connect -- the layer's, or one
+                                             // connect - the layer's, or one
                                              // a native setting of
                                              // MYSQL_SET_CHARSET_NAME gave in
-                                             // its place -- which the session
+                                             // its place - which the session
                                              // is given where the handshake
                                              // loses it
     char*                 init_commands;     // the init commands the layer's
@@ -637,7 +637,7 @@ struct dj_mariadb
 
 // 2.3    Server facts
 //------------------------------------------------------------------------------
-// server facts -- _at_least answers whether the server is of the flavor
+// server facts - _at_least answers whether the server is of the flavor
 // named, at the version given (MAJOR*10000 + MINOR*100 + PATCH) or later;
 // _case_rule reads the server's lower_case_table_names once, and the copy the
 // handle keeps after that: 0 and the rule, or the client's error number for
@@ -654,10 +654,10 @@ int d_internal_mariadb_case_rule(
 
 // 2.4    Replies
 //------------------------------------------------------------------------------
-// replies -- the server reports what a command changed in the session with
+// replies - the server reports what a command changed in the session with
 // the OK packet that ends its reply (SERVER_SESSION_STATE_CHANGED), and the
 // client keeps the latest it read, until it reads another: Connector/C even
-// past replies that carry none -- an error, rows ended by EOF, a ping -- so
+// past replies that carry none - an error, rows ended by EOF, a ping - so
 // that its record would describe an earlier command. Every command the layer
 // sends records whether its reply carried the changes: _replied with `_ok`
 // for a reply that ended in an OK packet, which carried them where the
@@ -674,7 +674,7 @@ bool d_internal_mariadb_rows_end_ok(
 
 // 2.5    Query attributes
 //------------------------------------------------------------------------------
-// query attributes -- _sent follows a query the layer sent, whatever became
+// query attributes - _sent follows a query the layer sent, whatever became
 // of it: the client dropped the attributes it bound (and is told to, so that
 // a query that never left drops them too), and the layer frees its copies;
 // _release frees the copies alone, for a reset, a change of user and a
@@ -688,16 +688,16 @@ void d_internal_mariadb_attributes_release(
 
 // 2.6    Statements
 //------------------------------------------------------------------------------
-// statements -- a statement's run that d_mariadb_open_cursor began holds the
+// statements - a statement's run that d_mariadb_open_cursor began holds the
 // connection until it ends, the server still sending its rows, and nothing
 // else may be sent meanwhile: a client sending a command then either refuses
 // it or reads the run's rows away as it goes, so the layer refuses it first.
 // _idle answers 0, or D_INTERNAL_MARIADB_OUT_OF_SYNC while a run holds the
 // connection, for every function that sends a command; _close_retired closes
 // the statements finalized while one did, on a connection free again;
-// _detach, for a close, ends a run still open -- reading the rest of it only
+// _detach, for a close, ends a run still open - reading the rest of it only
 // where `_read_rest` says, since a connection about to close needs nothing
-// read -- and leaves every statement prepared on the connection without it,
+// read - and leaves every statement prepared on the connection without it,
 // only to be finalized (mariadb_statement.c)
 int d_internal_mariadb_idle(
     const struct dj_mariadb* _db
@@ -712,8 +712,8 @@ void d_internal_mariadb_detach(
 
 // 2.7    Calls that do not block
 //------------------------------------------------------------------------------
-// A call that does not block is an operation -- a connect, SQL sent, its
-// results read, a statement prepared or run -- made of client calls that do
+// A call that does not block is an operation - a connect, SQL sent, its
+// results read, a statement prepared or run - made of client calls that do
 // not block, steps, one after another. The operation keeps its place in the
 // handle's record (2.1.4), and its advance function, given the last step's
 // answers, begins the next step or ends the operation; d_internal_mariadb_
@@ -721,9 +721,9 @@ void d_internal_mariadb_detach(
 // until a step must wait or the operation is done. While one is under way
 // the connection is held: _idle and _ready answer D_INTERNAL_MARIADB_OUT_OF_
 // SYNC for every other command, as for a statement's run.
-//   _async_get gives the record, made on first use -- with MariaDB's client
+//   _async_get gives the record, made on first use - with MariaDB's client
 // its non-blocking context too, which a connection the layer connected
-// without one gains then -- or NULL when memory ran out; _async_free
+// without one gains then - or NULL when memory ran out; _async_free
 // releases it, for a close. _busy answers whether an operation is under
 // way, or SQL sent has results still to read. _begin starts an operation,
 // given its advance function, and drives it;
@@ -766,7 +766,7 @@ bool d_internal_mariadb_keep_text(
     const char* _text
 );
 // TLS a client cannot carry without blocking (d_mariadb_client_
-// nonblocking_tls false) -- _tls_blocks answers whether the connection uses
+// nonblocking_tls false) - _tls_blocks answers whether the connection uses
 // TLS so, which every start but a connect's refuses with D_DB_UNSUPPORTED;
 // _tls_blocks_connect whether a connection set up, not yet made, would ask
 // the server for TLS so, which a connect's start refuses: Connector/C asks
@@ -780,7 +780,7 @@ bool d_internal_mariadb_tls_blocks(
 bool d_internal_mariadb_tls_blocks_connect(
     MYSQL* _native
 );
-// before an operation (mariadb_connection.c) -- _tidy does what
+// before an operation (mariadb_connection.c) - _tidy does what
 // d_internal_mariadb_ready does before a command, without blocking: 2014
 // while a run or an operation holds the connection, else 0, the statement
 // whose prepare failed and those retired closed, and with libmysqlclient
@@ -824,7 +824,7 @@ int d_internal_mariadb_run_async(
 
 // 3.1    Checks
 //------------------------------------------------------------------------------
-// checks -- none of these allocate or fail. _name_ok is false for a NULL or
+// checks - none of these allocate or fail. _name_ok is false for a NULL or
 // empty name; _schema_ok for an empty one, NULL meaning the current database;
 // _variable_ok for anything but a letter or underscore followed by letters,
 // digits and underscores, the shape of every system variable's name
@@ -840,7 +840,7 @@ bool d_internal_mariadb_variable_ok(
 
 // 3.2    Quoting
 //------------------------------------------------------------------------------
-// quoting -- dj_internal_db_quote_fn's for the servers: _quote_name writes a
+// quoting - dj_internal_db_quote_fn's for the servers: _quote_name writes a
 // name in backquotes, any backquote doubled, and needs no connection;
 // _quote_value writes a value in single quotes, escaped by the client for the
 // connection `_context` points to. Each fails only for want of memory,
@@ -941,7 +941,7 @@ int d_internal_mariadb_run(
 
 // 4.2    Single values
 //------------------------------------------------------------------------------
-// single values -- each runs one statement and reads the first column of its
+// single values - each runs one statement and reads the first column of its
 // first row. A row yields 0 and the value, written only then; no row, or no
 // result at all, is D_DB_NOT_FOUND; a failure is as section 4 says. A NULL
 // reads as a NULL string, or as 0. _vquery's string is the caller's, released
@@ -982,7 +982,7 @@ int d_internal_mariadb_vquery_double(
 
 // 4.3    Rows
 //------------------------------------------------------------------------------
-// rows -- a column's type and its type's name, as mariadb_query.h tabulates
+// rows - a column's type and its type's name, as mariadb_query.h tabulates
 // them; _rows_columns describes each field of a result to rows under
 // construction; _rows_value adds one value, as the protocol sent it in text,
 // read as its field's type says: `_text` NULL for SQL NULL, and `_length` its
@@ -1025,9 +1025,9 @@ int d_internal_mariadb_collect_rows(
 // 5.  CATALOGUE
 //==============================================================================
 // What a database holds, read from information_schema. A server matches some
-// names by case and others not -- databases, tables and views as its
+// names by case and others not - databases, tables and views as its
 // lower_case_table_names says, triggers so too on MariaDB and MySQL 5.7 but
-// never on MySQL 8, columns and indexes never -- while information_schema
+// never on MySQL 8, columns and indexes never - while information_schema
 // compares them all without case on MariaDB. Where the server matches by
 // case, the lookup compares the names' bytes too, beside the comparison an
 // information_schema lookup is optimized for.

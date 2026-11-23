@@ -1,12 +1,12 @@
 /*******************************************************************************
 * djinterp [cpp][test]                                            test_event.hpp
 *
-*   The DTest event alphabet -- the set of event tags the test framework
+*   The DTest event alphabet - the set of event tags the test framework
 * dispatches over, declared against the formal event subsystem (event.hpp).
 * In that subsystem an event is not a class instance but a type: a tag with a
 * nested `payload_type` (a std::tuple of value domains) and a `name()`.  The
 * type is the registration, so there is no enrolment step and the alphabet is
-* open -- new summands are added simply by declaring new tags.
+* open - new summands are added simply by declaring new tags.
 *
 *   This header supplies two things:
 *     1. the built-in lifecycle tags, in the `djinterp::test::events`
@@ -14,7 +14,7 @@
 *        they walk a tree (session, module, test, status, and diagnostic
 *        events); and
 *     2. the D_TEST_EVENT family of macros, so a user can declare a custom
-*        test event -- one carrying the same node payload as the built-ins --
+*        test event - one carrying the same node payload as the built-ins --
 *        in a single line, and bind / fire it through exactly the same
 *        handler API.
 *
@@ -27,7 +27,7 @@
 *
 * PAYLOAD CONVENTION
 * ------------------
-*   Every node-scoped tag carries a single `const basic_test*` -- the visited
+*   Every node-scoped tag carries a single `const basic_test*` - the visited
 * node, from which a handler reads status, type id, and metadata (name /
 * message).  A pointer payload is why this header only forward-declares
 * basic_test rather than including test_object.hpp: it deliberately sits below
@@ -40,9 +40,9 @@
 *   In the refactored event subsystem a handler is any callable accepting the
 * payload and returning `void` (always-pass) or a `verdict`; it does not
 * mutate a context.  Compatibility is checked at bind time.  These tags carry
-* no opinion about that -- a tag is only an identity and a payload shape.
+* no opinion about that - a tag is only an identity and a payload shape.
 *
-*   Usage -- binding a built-in lifecycle listener:
+*   Usage - binding a built-in lifecycle listener:
 *     handler.on<DOnTestFailed>(
 *         [](const basic_test* _n) D_NOEXCEPT
 *         {
@@ -50,7 +50,7 @@
 *                          _n->metadata().get("name"));
 *         });
 *
-*   Usage -- declaring and firing a custom test event:
+*   Usage - declaring and firing a custom test event:
 *     namespace myproj { D_TEST_EVENT(DOnFlakyRetry); }   // node payload
 *     handler.on<myproj::DOnFlakyRetry>(
 *         [](const basic_test*) { ... });
@@ -256,8 +256,8 @@ NS_END  // djinterp
 // directly).  The type IS the registration: no enrolment call is needed, and
 // the new tag binds and fires through the same handler API as the built-ins.
 //
-//   These macros are namespace-agnostic -- they declare a tag in the current
-// scope and refer to the node type by its fully-qualified name -- so a custom
+//   These macros are namespace-agnostic - they declare a tag in the current
+// scope and refer to the node type by its fully-qualified name - so a custom
 // event may live in the user's own namespace, or in djinterp::test::events
 // alongside the built-ins.  Each expands to a struct, so a trailing semicolon
 // is supplied by the caller.

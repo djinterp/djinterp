@@ -6,8 +6,8 @@
 * a few at a time, and pipelines.
 *   COPY. d_postgres_copy_in_start runs a COPY ... FROM STDIN, after which the
 * server takes the rows the caller sends with d_postgres_copy_in_data, in the
-* COPY's format -- text by default, a line a row, its columns separated by
-* tabs -- in chunks of any size, until d_postgres_copy_in_end ends it, or
+* COPY's format - text by default, a line a row, its columns separated by
+* tabs - in chunks of any size, until d_postgres_copy_in_end ends it, or
 * abandons it with a message. Until then the connection runs nothing else.
 *   NOTIFICATIONS. d_postgres_listen subscribes the connection to a channel,
 * d_postgres_notify sends on one, and d_postgres_next_notification reads
@@ -15,8 +15,8 @@
 * connection's socket (libpq's PQsocket) or calls again later. A
 * notification sent inside a transaction arrives when it commits; one that
 * rolls back sends none. Channels are names, case kept as given.
-*   STATEMENTS SENT. d_postgres_send_query sends SQL -- one statement or
-* several -- and returns at once; d_postgres_next_result reads its results,
+*   STATEMENTS SENT. d_postgres_send_query sends SQL - one statement or
+* several - and returns at once; d_postgres_next_result reads its results,
 * one a call, waiting for each, until it answers D_DB_NOT_FOUND. A program
 * that must not block calls d_postgres_consume_input when the socket is
 * readable and d_postgres_next_result only when d_postgres_is_busy says a
@@ -25,13 +25,13 @@
 * libpq would wait for them and discard them unseen, as it would a
 * statement's rows read a few at a time (postgres_statement.h 3.3), which
 * hold the connection the same way. d_postgres_set_chunked_rows has the rows
-* of the statements still to come arrive a few at a time -- one a result, as
-* every libpq can, or more, from libpq 17 -- rather than all at once.
+* of the statements still to come arrive a few at a time - one a result, as
+* every libpq can, or more, from libpq 17 - rather than all at once.
 * d_postgres_send_query_start and d_postgres_next_result_start are the forms
 * that never wait (db_common.h 1.3): the send writes what the socket takes,
 * and the read gives a result once it has arrived, each answering D_DB_WAIT
 * until then and continued when the socket is ready. Every statement sent
-* this way -- one or several, rows whole or a few at a time -- is read this
+* this way - one or several, rows whole or a few at a time - is read this
 * way too; d_postgres_exec and the layer's other calls are its blocking
 * compositions.
 *   PIPELINES. In pipeline mode (libpq 14) d_postgres_send_query queues
@@ -41,12 +41,12 @@
 * synchronization points as one transaction, unless they begin their own; a
 * statement that fails has the server skip every statement after it, to the
 * next synchronization point. d_postgres_next_result reads the results in
-* the order sent -- each statement's rows, or its failure's SQLSTATE, or
-* 25P02 for each statement skipped -- and answers D_DB_NOT_FOUND for each
+* the order sent - each statement's rows, or its failure's SQLSTATE, or
+* 25P02 for each statement skipped - and answers D_DB_NOT_FOUND for each
 * synchronization point, after which the next batch's results follow, and
 * once nothing is left to read. The server holds a result until a
-* synchronization point or until asked for it -- d_postgres_next_result asks
-* before it waits, and d_postgres_pipeline_flush asks -- so a statement
+* synchronization point or until asked for it - d_postgres_next_result asks
+* before it waits, and d_postgres_pipeline_flush asks - so a statement
 * queued after the last synchronization point has its results read all the
 * same, though the transaction it is part of ends only at the next one. Rows
 * a few at a time are asked for statement by statement. In pipeline mode
@@ -105,7 +105,7 @@ TABLE OF CONTENTS
                                                  // floor; int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -186,7 +186,7 @@ int d_postgres_copy_in_end(
 
 // 2.1    Channels
 //------------------------------------------------------------------------------
-// channels -- _listen subscribes the connection to a channel, as LISTEN
+// channels - _listen subscribes the connection to a channel, as LISTEN
 // does, and _unlisten ends that, or every subscription for `NULL`, as
 // UNLISTEN does; inside a transaction either takes effect when it commits.
 // _notify sends a notification on a channel, with a payload of up to 7999
@@ -282,9 +282,9 @@ int d_postgres_send_query(
  *                       inserted, updated, deleted or returned, 0 for one
  *                       that counts none; may be `NULL`.
  * @return 0; D_DB_NOT_FOUND when every result has been read, the
- *         connection then ready -- in pipeline mode, at each synchronization
+ *         connection then ready - in pipeline mode, at each synchronization
  *         point too; the SQLSTATE of the statement that failed, after which
- *         only D_DB_NOT_FOUND follows -- in pipeline mode, 25P02 for each
+ *         only D_DB_NOT_FOUND follows - in pipeline mode, 25P02 for each
  *         statement skipped after it, up to the synchronization point;
  *         D_DB_UNSUPPORTED for a COPY, which the layer ends, with every
  *         result after it; 53200 when the rows could not be built;
@@ -296,7 +296,7 @@ int d_postgres_next_result(
     struct dj_db_rows* _rows,
     int64_t*           _changes
 ) D_NOTHROW;
-// waiting -- _consume_input reads what the server has sent, without waiting:
+// waiting - _consume_input reads what the server has sent, without waiting:
 // 0, 08006 when the connection is lost, or D_DB_INVALID_ARGUMENT for NULL.
 // _is_busy says whether the next result has yet to arrive, d_postgres_
 // next_result then waiting for it; false for NULL, and when nothing was
@@ -304,7 +304,7 @@ int d_postgres_next_result(
 // synchronization point arrives only once asked for
 // (d_postgres_pipeline_flush); and straight after a statement there fails,
 // _is_busy is false even while the next synchronization point's own result
-// -- the next result, when no statement was skipped -- is still on its way,
+// - the next result, when no statement was skipped - is still on its way,
 // which d_postgres_next_result then waits for
 bool d_postgres_is_busy(
     struct pg_conn* _db
@@ -349,8 +349,8 @@ int d_postgres_set_chunked_rows(
 // SQL is left, the socket full, and d_postgres_send_query_continue writes more
 // each time the socket takes it, reading what the server sends meanwhile.
 // d_postgres_next_result_start reads what the server has sent and gives the
-// next result as d_postgres_next_result does -- D_DB_NOT_FOUND once every
-// result is read -- or D_DB_WAIT while it has yet to arrive, after which
+// next result as d_postgres_next_result does - D_DB_NOT_FOUND once every
+// result is read - or D_DB_WAIT while it has yet to arrive, after which
 // d_postgres_next_result_continue reads more each time the socket is
 // readable. Rows a few at a time arrive the same way, a result a page; and
 // between continuations the connection is held, every call that waits on it
@@ -371,7 +371,7 @@ int d_postgres_set_chunked_rows(
  *         connection is lost; or D_DB_INVALID_ARGUMENT for a `NULL`
  *         argument.
  * @post On 0 and while D_DB_WAIT the results are read as 3.2 or this
- *       subsection reads them -- once everything is written, for the
+ *       subsection reads them - once everything is written, for the
  *       latter.
  */
 int d_postgres_send_query_start(
@@ -469,8 +469,8 @@ enum dj_postgres_pipeline d_postgres_pipeline_status(
 
 // 4.2    Entering and leaving
 //------------------------------------------------------------------------------
-// entering and leaving -- _enter_pipeline puts the connection in pipeline
-// mode, which needs it idle -- no results to read, no COPY -- and succeeds
+// entering and leaving - _enter_pipeline puts the connection in pipeline
+// mode, which needs it idle - no results to read, no COPY - and succeeds
 // at once where it is in the mode already; rows a few at a time asked for
 // before hold no further. _exit_pipeline takes it out, which needs every
 // result read, up to the last synchronization point, and succeeds at once
@@ -528,12 +528,12 @@ int d_postgres_pipeline_flush(
 //==============================================================================
 // A large object is a file the server keeps, by OID, outside any table.
 // These copy one between it and a file of the client's, as libpq's lo_import
-// and lo_export do, but over SQL -- lo_create, lo_put and lo_get, from
-// PostgreSQL 9.4 -- 64 KiB a statement, so that every failure the server
+// and lo_export do, but over SQL - lo_create, lo_put and lo_get, from
+// PostgreSQL 9.4 - 64 KiB a statement, so that every failure the server
 // reports keeps its SQLSTATE, which libpq's own calls drop. A copy is one
 // transaction's: inside the caller's it is part of it, and a failure fails
 // it, as any statement's does; outside one the layer begins one of its own,
-// committed when the copy is whole and rolled back otherwise -- after which
+// committed when the copy is whole and rolled back otherwise - after which
 // the connection no longer describes the server's failure, though the
 // SQLSTATE is still its own. A file the client cannot open, read or write is
 // the layer's own answer: D_DB_NOT_FOUND for one that is not there, 58030

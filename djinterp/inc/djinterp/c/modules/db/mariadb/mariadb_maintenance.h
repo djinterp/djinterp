@@ -6,7 +6,7 @@
 * ANALYZE, OPTIMIZE and CHECK TABLE answer with a status row, and CHECKSUM
 * TABLE with a NULL for a table it cannot find. The layer reads those rows
 * and returns what they mean: 0 for a table the operation succeeded on,
-* D_DB_NOT_FOUND for a table that is not there -- a view is not one -- and
+* D_DB_NOT_FOUND for a table that is not there - a view is not one - and
 * D_DB_UNSUPPORTED for an engine that cannot do it. A failure the rows report
 * has no number, and is CR_UNKNOWN_ERROR (2000); the client's error number
 * still reports a failure to run the statement at all.
@@ -40,7 +40,7 @@ TABLE OF CONTENTS
                                                  // floor; uint64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -60,7 +60,7 @@ D_EXTERN_C_BEGIN
 
 // 1.1    Statistics and storage
 //------------------------------------------------------------------------------
-// statistics and storage -- ANALYZE TABLE refreshes the key distribution the
+// statistics and storage - ANALYZE TABLE refreshes the key distribution the
 // optimizer plans by; OPTIMIZE TABLE rebuilds the table to reclaim space,
 // which InnoDB does as a recreate and analyze
 int d_mariadb_analyze_table(
@@ -76,7 +76,7 @@ int d_mariadb_optimize_table(
 
 // 1.2    Checks
 //------------------------------------------------------------------------------
-// checks -- CHECK TABLE writes to _ok whether the table is sound; CHECKSUM
+// checks - CHECK TABLE writes to _ok whether the table is sound; CHECKSUM
 // TABLE writes a checksum of its contents, which two tables share only when
 // they hold the same rows. Each answer is written only on success.
 int d_mariadb_check_table(

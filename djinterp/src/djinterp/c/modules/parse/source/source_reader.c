@@ -320,7 +320,7 @@ size_t d_source_utf8_decode(
  *       physical reader count lines, columns and encoding identically.  A lead
  *       byte is validated with its whole sequence at once, from the physical
  *       bytes; its continuation bytes are then expected, and one that arrives
- *       unexpected -- or a sequence broken by a splice -- is ill-formed.
+ *       unexpected - or a sequence broken by a splice - is ill-formed.
  *
  * @param[in,out] _reader     the reader, already moved past the character.
  * @param[in]     _character  the character consumed.

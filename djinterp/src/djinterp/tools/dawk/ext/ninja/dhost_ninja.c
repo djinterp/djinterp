@@ -7,7 +7,7 @@
 * keeps its place, empty, so a handle to it names nothing rather than
 * another. What a file or a build holds is read from its records as they
 * are now, each field by its name; a change is the document's, which keeps
-* it or says why not. A list -- of paths, of edges -- is given a line to an
+* it or says why not. A list - of paths, of edges - is given a line to an
 * item.
 *
 *

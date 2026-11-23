@@ -21,7 +21,7 @@
 // std
 #include <cctype>  // std::isdigit, std::isxdigit
 #include <vector>  // std::vector
-// djinterp -- C headers, without guards of their own
+// djinterp - C headers, without guards of their own
 extern "C"
 {
 #include "djinterp/c/modules/parse/lang/c/lex_c.h"      // d_lex_c_create

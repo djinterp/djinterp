@@ -246,35 +246,35 @@ struct DIterableNoValue
 // Test-function declarations (defined in the section .cpp files)
 // ===========================================================================
 
-// -- I.   Capability detection --
+// - I.   Capability detection --
 bool tests_is_filter_source();
 bool tests_is_container_filterable();
 bool tests_is_filter_input_only();
 bool tests_has_native_filter();
 
-// -- II.  Strategy (the realization) --
+// - II.  Strategy (the realization) --
 bool tests_filter_strategy_name();
 bool tests_container_filter_strategy();
 
-// -- III. Stage (when a selection may run) --
+// - III. Stage (when a selection may run) --
 bool tests_filter_stage_name();
 bool tests_filter_stage_of();
 
-// -- IV.  Preservation --
+// - IV.  Preservation --
 bool tests_filter_preserves_order();
 bool tests_filter_preserves_sortedness();
 bool tests_filter_preserves_uniqueness();
 bool tests_filter_preserves_capacity_bounds();
 
-// -- V.   Result type --
+// - V.   Result type --
 bool tests_filter_result_type();
 
-// -- VI.  Combined classification + variable-template companions --
+// - VI.  Combined classification + variable-template companions --
 bool tests_container_filter_class();
 bool tests_filter_variable_templates();
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // container_filter_traits_spec
 //   function: the suite as DTest's module spec, one block per section.

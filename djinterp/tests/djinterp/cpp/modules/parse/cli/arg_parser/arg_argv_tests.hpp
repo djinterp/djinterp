@@ -7,7 +7,7 @@
 * files and conversions to their references rule by rule; this one holds
 * the face's way to them: lines split by CLI11's rules, a program's name
 * found at the start of a line, and wide text made UTF-8 and UTF-8 made
-* wide -- their sections CLI11's own transcripts of the same calls (the
+* wide - their sections CLI11's own transcripts of the same calls (the
 * suite's CASES section, compiled against CLI11 by tools/cppref/cppref.py).
 * Then the face's own: the other rules and the switches, words quoted so
 * that they split back whole, response files, the status form of widen(),

@@ -2,7 +2,7 @@
 * djinterp [c][tools]                                              dhost_story.h
 *
 * Storyline: the host extension for e-learning stories.
-*   A story is slides in order, each holding media -- audio, video, images --
+*   A story is slides in order, each holding media - audio, video, images --
 * that a package stores apart from the slides. This unit is that model and no
 * format: a driver reads one format into it and writes changes back, and the
 * Articulate driver is one such. A program sees the model through host
@@ -165,7 +165,7 @@ size_t d_story_add_media(
     const char*      _media
 );
 // d_story_note records something a reader of the result should know that is
-// not a failure -- an order inferred, a checksum not found -- for
+// not a failure - an order inferred, a checksum not found - for
 // story_notes() to give the program; notes accumulate, one per line.
 bool d_story_note(
     struct dj_story* _story,

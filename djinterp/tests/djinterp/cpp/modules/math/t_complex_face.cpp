@@ -6,8 +6,8 @@
 * parts, a real number, a std::complex<T>, the C core's struct and another
 * part type, and the parts, c_value() and to_std() out; every operator, a
 * real operand on either side, and its assignment, cplx.h's bit for bit on a
-* grid of special parts -- zeros of both signs, ones, the smallest normal,
-* the largest finite, the infinities and a NaN -- and on random points, a
+* grid of special parts - zeros of both signs, ones, the smallest normal,
+* the largest finite, the infinities and a NaN - and on random points, a
 * real operand taken as itself (a zero's sign kept); == and != part by
 * part; real, imag, conj and proj; abs, arg and the 21 functions, exp2, log2,
 * log10, log1p and expm1 among them, each by its name cplx.h's plain form at

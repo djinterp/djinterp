@@ -171,7 +171,7 @@ NS_INTERNAL
     //   It reads `sorted_invariant` as sorted_container_traits.hpp's
     // sorted_invariant_helper does, with the same shape (D_TYPE_TRAIT_OPT_IN),
     // so the two read one declaration alike: the constant's value where it is
-    // usable as a bool template argument, and false otherwise -- a static
+    // usable as a bool template argument, and false otherwise - a static
     // member function or a non-static data member asserts nothing. (A
     // function used to assert, decaying to a never-null pointer.)
     D_TYPE_TRAIT_OPT_IN(overlay_sorted_invariant_helper, sorted_invariant)

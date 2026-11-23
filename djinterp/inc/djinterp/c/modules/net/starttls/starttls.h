@@ -5,8 +5,8 @@
 * shares.
 *   A STARTTLS protocol opens in plaintext, asks the peer to switch, and on the
 * peer's go-ahead runs a TLS handshake over the same connection. The wire
-* syntax differs per protocol -- SMTP's STARTTLS and 220, POP3's STLS, FTP's
-* AUTH TLS, XMPP's <starttls/> and <proceed/>, PostgreSQL's SSLRequest -- but
+* syntax differs per protocol - SMTP's STARTTLS and 220, POP3's STLS, FTP's
+* AUTH TLS, XMPP's <starttls/> and <proceed/>, PostgreSQL's SSLRequest - but
 * the part that decides whether the result is secure does not, and it lives
 * here once:
 *     - the upgrade policy, so a stripped or refused offer fails closed
@@ -20,8 +20,8 @@
 *   The stream is any net.h connection: a TCP connection from tcp.h, or
 * net_memory.h's pipe in a test. TLS is the SSL kernel's: the upgrade makes a
 * dj_ssl_session over that same connection from the dj_ssl_context the caller
-* configured, so every engine the kernel has -- the OpenSSL family's among
-* them -- serves here, and the kernel's checks of names, pins, and versions
+* configured, so every engine the kernel has - the OpenSSL family's among
+* them - serves here, and the kernel's checks of names, pins, and versions
 * hold for every upgrade.                                                 [1]
 *   A protocol module derives from this one by embedding a dj_starttls_session
 * as its first member and supplying a dj_starttls_negotiator: two callbacks
@@ -107,8 +107,8 @@ D_EXTERN_C_BEGIN
 // 1.1.1
 // dj_starttls_error
 //   enum: the outcome of every fallible call in this module. An error marked
-// FATAL moves the session to D_STARTTLS_STATE_FAILED -- the call that reports
-// it has already done so -- after which only d_starttls_close and
+// FATAL moves the session to D_STARTTLS_STATE_FAILED - the call that reports
+// it has already done so - after which only d_starttls_close and
 // d_starttls_destroy are accepted. The others leave the session as it was.
 enum dj_starttls_error
 {
@@ -152,7 +152,7 @@ enum dj_starttls_error
     // classify. FATAL
     D_STARTTLS_ERROR_PROTOCOL         = 9,
 
-    // TLS is required and the peer did not offer it -- what a STARTTLS
+    // TLS is required and the peer did not offer it - what a STARTTLS
     // stripping attack produces. FATAL
     D_STARTTLS_ERROR_NOT_OFFERED      = 10,
 
@@ -253,8 +253,8 @@ enum dj_starttls_reply
 // fn_starttls_on_upgrade
 //   typedef: called once, after a successful upgrade and before the upgrade
 // returns. Its job is to forget: every STARTTLS specification requires that
-// what was learned from the peer before the handshake -- its greeting, its
-// capability or extension list -- be discarded, because an attacker could
+// what was learned from the peer before the handshake - its greeting, its
+// capability or extension list - be discarded, because an attacker could
 // have written it.
 struct dj_starttls_session;
 
@@ -267,7 +267,7 @@ typedef void (*fn_starttls_on_upgrade)(struct dj_starttls_session* _session,
 // and change what differs; d_starttls_init reads every field once and keeps
 // only `tls`, which must outlive the session.
 //   `tls` is the SSL kernel context the upgrade makes its TLS session from --
-// its engine, trust, identity, and version floor -- for the session's own
+// its engine, trust, identity, and version floor - for the session's own
 // role. `server_name` is the name a client sends as SNI and requires the
 // server's certificate to carry; it comes from the caller's configuration,
 // never from the peer, and a server ignores it. `buffer_bytes` sizes the
@@ -292,7 +292,7 @@ struct dj_starttls_options
 // 1.2.3
 // dj_starttls_session
 //   struct: one connection's STARTTLS state. The caller owns the storage --
-// usually as the first member of a protocol module's own session -- and
+// usually as the first member of a protocol module's own session - and
 // treats every field as read-only: the functions below keep the buffer
 // indices and the state consistent with each other.
 //   `connection` carries the plaintext exchange and then the ciphertext:
@@ -300,7 +300,7 @@ struct dj_starttls_options
 // passes through. `net_error` is what the connection reported with the last
 // failure it caused, D_NET_OK until one did: the cause behind
 // D_STARTTLS_ERROR_TRANSPORT, and behind a timeout, an end, or a truncation
-// that the connection's own error brought about -- a reset, say. `epoch`
+// that the connection's own error brought about - a reset, say. `epoch`
 // counts completed upgrades, so a protocol module can tell whether what it
 // cached came from before the handshake. `detail` is a static description
 // of the TLS failure that ended the session, or NULL.
@@ -330,8 +330,8 @@ struct dj_starttls_session
 //------------------------------------------------------------------------------
 // 1.3.1
 // fn_starttls_request
-//   typedef: sends a protocol's upgrade request -- SMTP's STARTTLS, POP3's
-// STLS, FTP's AUTH TLS, XMPP's <starttls/> -- usually with a single
+//   typedef: sends a protocol's upgrade request - SMTP's STARTTLS, POP3's
+// STLS, FTP's AUTH TLS, XMPP's <starttls/> - usually with a single
 // d_starttls_send_line or d_starttls_send.
 typedef enum dj_starttls_error  (*fn_starttls_request)(
     struct dj_starttls_session* _session,
@@ -590,7 +590,7 @@ D_NODISCARD enum dj_starttls_error d_starttls_recv_line(
  *        policy.
  *
  * @note `_offered` must reflect what the peer advertised in this session --
- *       its EHLO keywords, its CAPABILITY list -- and an attacker controls
+ *       its EHLO keywords, its CAPABILITY list - and an attacker controls
  *       that list; the policy is what makes a missing offer safe.
  *
  * @param[in,out] _session     a plaintext client session.
@@ -765,7 +765,7 @@ enum dj_net_error d_starttls_error_to_net(
  *
  * @note D_NET_OK is D_STARTTLS_OK; INVALID_ARGUMENT, OUT_OF_MEMORY,
  *       TIMED_OUT, and PROTOCOL are their namesakes; a stream that ended or
- *       a connection lost -- CLOSED, CONNECTION_RESET, CONNECTION_ABORTED --
+ *       a connection lost - CLOSED, CONNECTION_RESET, CONNECTION_ABORTED --
  *       is CLOSED; anything else is TRANSPORT. It is how the plaintext
  *       connection's errors are judged. Under TLS the SSL kernel judges
  *       them, and a connection that ends without close_notify is TRUNCATED.

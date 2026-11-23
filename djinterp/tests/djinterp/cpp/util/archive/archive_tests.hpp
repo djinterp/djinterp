@@ -20,7 +20,7 @@
 * test declares  bool _ok = true;  runs D_AR_CHECK / D_AR_CHECK_STATUS (which
 * report a failing check with its source location and clear _ok, but keep
 * going so every check in the body is exercised) and D_AR_REQUIRE (which bails
-* out immediately when continuing would be unsafe -- e.g. an extract that must
+* out immediately when continuing would be unsafe - e.g. an extract that must
 * succeed before its entries are inspected), and ends with  return _ok;.
 *
 *
@@ -53,7 +53,7 @@ NS_TESTING
 // =============================================================================
 
 // repeat_bytes
-//   function: a buffer of _n copies of _c -- a highly compressible payload for
+//   function: a buffer of _n copies of _c - a highly compressible payload for
 // exercising the DEFLATE path.
 //
 // Parameter(s):
@@ -172,7 +172,7 @@ NS_END  // djinterp
 
 // D_AR_REQUIRE
 //   macro: a hard precondition.  On failure it prints and returns false at
-// once -- for cases where continuing would be unsafe (an operation that must
+// once - for cases where continuing would be unsafe (an operation that must
 // succeed before its result is inspected).
 #define D_AR_REQUIRE(_cond)                                                    \
     do                                                                         \

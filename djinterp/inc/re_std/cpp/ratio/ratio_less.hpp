@@ -17,8 +17,8 @@
 *     n1/d1 = q1 + r1/d1        n2/d2 = q2 + r2/d2
 *
 *   If the integer parts differ, they settle it. If they match, the
-* question reduces to r1/d1 < r2/d2, which -- inverting both sides,
-* which reverses the comparison -- is d2/r2 < d1/r1. That is the same
+* question reduces to r1/d1 < r2/d2, which - inverting both sides,
+* which reverses the comparison - is d2/r2 < d1/r1. That is the same
 * problem on strictly smaller numbers, so the recursion is Euclid's
 * algorithm and terminates in O(log n) steps.
 *
@@ -99,7 +99,7 @@ namespace internal
     };
 
     // recursive step: integer parts agree and both remainders are
-    // non-zero, so compare the inverted fractional parts -- which swaps
+    // non-zero, so compare the inverted fractional parts - which swaps
     // the operand order, because inverting reverses the comparison.
     template<intmax_t N1, intmax_t D1,
              intmax_t N2, intmax_t D2>

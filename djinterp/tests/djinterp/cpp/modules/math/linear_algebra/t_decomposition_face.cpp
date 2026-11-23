@@ -2,10 +2,10 @@
 * djinterp [cpp][math]                                  t_decomposition_face.cpp
 *
 *   Tests for linear_algebra/decomposition.hpp, at every level from C++98,
-* per family: LU of a known matrix -- its factors, P A = L U, determinant,
-* solve and inverse -- and of a singular one; QR of a tall matrix -- Q
-* orthogonal, R upper, Q R = A; Cholesky of a known SPD matrix -- its
-* factor, determinant, solve -- and of an indefinite one; from C++14 an LU
+* per family: LU of a known matrix - its factors, P A = L U, determinant,
+* solve and inverse - and of a singular one; QR of a tall matrix - Q
+* orthogonal, R upper, Q R = A; Cholesky of a known SPD matrix - its
+* factor, determinant, solve - and of an indefinite one; from C++14 an LU
 * determinant as a constant expression.
 *
 *   Build (from the repo root), at any level from C++98:

@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][net]                                                   smtp.cpp
 *
-* djinterp SMTP -- C++ facade implementation.
+* djinterp SMTP - C++ facade implementation.
 *   Lowering and lifting between the facade's owning types and the kernel's
 * borrowed ones, the TLS contexts the facade makes and keeps for as long as
 * the sessions made from them, and the server's accept loop over a tcp.h
@@ -85,8 +85,8 @@ NS_INTERNAL
 
     // server_state
     //   struct: everything the accept loop and its sessions share: the
-    // TLS context the server's sessions make TLS with -- the caller's, or
-    // `made`, which the state owns -- among it. The server holds one count
+    // TLS context the server's sessions make TLS with - the caller's, or
+    // `made`, which the state owns - among it. The server holds one count
     // and each running session one; whoever lets the last go deletes it, so
     // a session finishing after the server is gone still has its lock and
     // condition to signal, and its context.
@@ -462,8 +462,8 @@ NS_INTERNAL
     // keep_context
     //   function: what a kernel call that may make TLS leaves of the
     // context the facade made for it: kept, for as long as the state, when
-    // the call made the kernel's TLS session from it -- the client had none
-    // before, and has one now -- and released otherwise. An earlier context
+    // the call made the kernel's TLS session from it - the client had none
+    // before, and has one now - and released otherwise. An earlier context
     // goes then, as no session can use it any more.
     void keep_context(
         client_state*     _state,
@@ -1627,8 +1627,8 @@ server::server(
 
 /*
 server::~server
-  A running accept loop is stopped and allowed to finish -- it waits for
-its sessions -- before the listener is closed beneath it; the server's
+  A running accept loop is stopped and allowed to finish - it waits for
+its sessions - before the listener is closed beneath it; the server's
 count goes last, so a session still unwinding keeps the state alive.
 */
 server::~server()

@@ -86,7 +86,7 @@ enum dj_git_file_kind
 // d_git_file_info
 //   struct: what git's index keeps of a file, as lstat gives it: its
 //   kind, whether its owner may run it, its size, the seconds of its
-//   change times, its device and inode, its owner and group -- each cut
+//   change times, its device and inode, its owner and group - each cut
 //   to 32 bits, as the index cuts them. What a system does not give is 0.
 struct dj_git_file_info
 {
@@ -153,8 +153,8 @@ struct dj_git_inflated
 
 // 1.4.2
 // dj_git_pack
-//   struct: one pack: its index, whole, read -- version 1 or 2, `count`
-//   names in order, and where each object is -- and the pack itself, open,
+//   struct: one pack: its index, whole, read - version 1 or 2, `count`
+//   names in order, and where each object is - and the pack itself, open,
 //   with every object's place in order, made when an object's end is first
 //   wanted.
 struct dj_git_pack
@@ -175,8 +175,8 @@ struct dj_git_pack
 
 // 1.4.3
 // dj_git_store
-//   struct: a directory of objects -- the repository's, or an alternate's
-//   -- and its packs, read when first wanted.
+//   struct: a directory of objects - the repository's, or an alternate's
+//   - and its packs, read when first wanted.
 struct dj_git_store
 {
     char*              path;
@@ -213,7 +213,7 @@ struct dj_git_packed_ref
 // dj_git_rules
 //   struct: an ignore or attribute file the work tree's rules read, kept:
 //   its path as git names it, the base its patterns are relative to, its
-//   text and records -- `present` false for one not there.
+//   text and records - `present` false for one not there.
 struct dj_git_rules
 {
     char*             name;
@@ -360,7 +360,7 @@ void d_git_hash_end(
  *                        known, as a pack's header says; 0 when it is not.
  * @param[out] _out       receives the bytes and how many were used; free
  *                        its bytes, whatever is returned.
- * @return `true` if the stream inflated whole and sound -- to `_expected`
+ * @return `true` if the stream inflated whole and sound - to `_expected`
  *         bytes when that was given; `false` otherwise.
  */
 bool d_git_inflate(
@@ -373,7 +373,7 @@ bool d_git_inflate(
 // 2.4    Repository
 //------------------------------------------------------------------------------
 // d_git_repo_fail says why something asked of a repository failed --
-// `_what`, then `_detail` after a colon when it is not NULL -- and is
+// `_what`, then `_detail` after a colon when it is not NULL - and is
 // false.
 // d_git_repo_keep keeps a string the repository's settings hold, copied,
 // and gives the copy; NULL when memory runs out.

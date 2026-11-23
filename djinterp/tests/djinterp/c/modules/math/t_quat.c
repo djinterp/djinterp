@@ -6,7 +6,7 @@
 *   The accurate functions against math_tests_quat_refs.h's references,
 * computed by mpmath: each part's distance in steps (float_order.h) from the
 * correctly rounded one, its largest for each function, family and form
-* printed and held to the bound quat.h states -- for slerp, whose parts are
+* printed and held to the bound quat.h states - for slerp, whose parts are
 * sums that may cancel, the distance in steps of the largest part. The _c
 * and plain forms of what takes a root alone give the same bits.
 *

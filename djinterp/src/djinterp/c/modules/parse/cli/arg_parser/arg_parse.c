@@ -6,8 +6,8 @@
 *   CLI11's parse of a vector of arguments, one C function for each of its
 * member functions or for a step of one: the arguments wait on the parser's
 * stack, the next one last, shared by every command as CLI11's commands
-* share one vector; each is recognized -- the `--` mark, a subcommand, a
-* long, short or Windows-style option, a positional -- and handed to its
+* share one vector; each is recognized - the `--` mark, a subcommand, a
+* long, short or Windows-style option, a positional - and handed to its
 * step, a subcommand parsing what follows until something belongs
 * elsewhere, anything unclaimed kept as an unused argument. Every step
 * returns D_ARG_OK where CLI11's returns, after recording its error where
@@ -58,7 +58,7 @@ static const char MANY_NOT_EXPECTED[] =
 
 /*
 d_arg_internal_parse_stored
-  A status from storage -- a list that grew, or could not -- recorded
+  A status from storage - a list that grew, or could not - recorded
 against the command when it is a refusal.
 */
 int d_arg_internal_parse_stored(
@@ -149,7 +149,7 @@ size_t d_arg_internal_parse_left(
 
 /*
 d_arg_internal_parse_push_built
-  An argument CLI11 builds and pushes back -- "-" with what followed a
+  An argument CLI11 builds and pushes back - "-" with what followed a
 short name, or "--" with a name and, when there is a value, "=" with it --
 written once into storage the pool then keeps, and its span pushed.
 */
@@ -234,7 +234,7 @@ int d_arg_internal_parse_resume(
 /*
 d_arg_internal_parse_begin
   What every parse starts with: CLI11's clear() of a root parsed before --
-so values added before the first parse stay, as CLI11 keeps them -- then
+so values added before the first parse stay, as CLI11 keeps them - then
 the last parse's storage and program name, the values borrowing from the
 storage being gone first; then the start every call that parses makes.
 */
@@ -502,7 +502,7 @@ int d_arg_internal_parse_stack_args(
 /*
 d_arg_internal_parse_words
   Words whose bytes the parser's pool keeps onto the stack, the last first,
-as CLI11 reverses its vector -- from `_first` on, which no caller gives past
+as CLI11 reverses its vector - from `_first` on, which no caller gives past
 the words: a line stacks all of its, wmain's arguments all but the name --
 then the response files.
 */
@@ -592,7 +592,7 @@ int d_arg_parser_parse_args(
  * @return the count.
  *
  * How many of a command's options taking values without end are positional
- * only -- all of them, or only those not required.
+ * only - all of them, or only those not required.
  */
 D_STATIC
 size_t d_arg_internal_parse_unlimited(
@@ -760,7 +760,7 @@ void d_arg_internal_configure(
  * @param[in,out] _parser  the parser.
  * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY, recorded.
  *
- * The program's name -- "" for a parse given none -- then the stack from its
+ * The program's name - "" for a parse given none - then the stack from its
  * top down, response files expanded: the list the hook reads, which the
  * stack stays a tail of while the parse goes.
  */
@@ -806,8 +806,8 @@ int d_arg_internal_parse_keep_args(
 d_arg_internal_parse_run
   CLI11's _parse_setup, _parse and run_callback, once the parser is
 cleared: the arguments kept for a setting hook; the root counts a use while
-the checks run -- so a failed check still clears at the next parse, as
-CLI11's does -- and none once configured; then the root parses the stack,
+the checks run - so a failed check still clears at the next parse, as
+CLI11's does - and none once configured; then the root parses the stack,
 processing what it parsed, and the callbacks run.
 */
 int d_arg_internal_parse_run(
@@ -849,7 +849,7 @@ int d_arg_internal_parse_run(
 /*
 d_arg_internal_parse_at
   What follows an option's dashes or slash, cut at its first `_separator`:
-the name before it, and the value after it -- empty, at the end of the
+the name before it, and the value after it - empty, at the end of the
 text, when there is none.
 */
 void d_arg_internal_parse_at(
@@ -1017,7 +1017,7 @@ bool d_arg_internal_parse_valid_subcommand(
  * @return `true` for a number no option answers to; `false` otherwise.
  *
  * CLI11's test in _recognize of a short argument that reads as a number --
- * a digit after the dash, or a dot and then a digit -- which is a positional
+ * a digit after the dash, or a dot and then a digit - which is a positional
  * unless an option answers to the dash and that first character.
  */
 D_STATIC
@@ -1242,8 +1242,8 @@ bool d_arg_internal_parse_capture(
  * @param[in]     _count   how many.
  *
  * The arguments of CLI11's ExtrasError, each after a space, joined as
- * CLI11's join joins them -- a space that ends what it joined dropped. The
- * arguments are a stack's, read from its top -- its last -- down, or the
+ * CLI11's join joins them - a space that ends what it joined dropped. The
+ * arguments are a stack's, read from its top - its last - down, or the
  * texts of unused arguments, in order.
  */
 D_STATIC
@@ -1363,7 +1363,7 @@ d_arg_internal_parse_to_missing
   CLI11's _move_to_missing: an immediate error; or the command's unused
 arguments, where it captures them, has no subcommands or is a prefix
 command; or those of its first option group that captures them; or the
-command's -- each place but the error passed over when extras are ignored.
+command's - each place but the error passed over when extras are ignored.
 */
 int d_arg_internal_parse_to_missing(
     struct dj_arg_command* _command,
@@ -1454,7 +1454,7 @@ int d_arg_internal_parse_rest_to_missing(
 /*
 d_arg_internal_parse_remaining
   CLI11's _count_remaining_positionals: the values the command's
-positionals -- the required ones only, when asked -- still need to reach
+positionals - the required ones only, when asked - still need to reach
 their minimums.
 */
 size_t d_arg_internal_parse_remaining(
@@ -1561,7 +1561,7 @@ int d_arg_internal_parse_judge(
 /*
 d_arg_internal_parse_restart
   CLI11's clear() of an option that triggers on parse, met again after its
-callback ran: no values and PARSING -- the values first set aside in
+callback ran: no values and PARSING - the values first set aside in
 `_set_aside`, when asked. The copies values lie in stay with the option
 until it is next cleared, so a value set aside, or a variable bound to one,
 outlives the restart.
@@ -1593,7 +1593,7 @@ void d_arg_internal_parse_restart(
 /*
 d_arg_internal_parse_add
   CLI11's add_result(value): a value from the stack, which outlives the
-option's values, added as given -- split, perhaps -- and the option
+option's values, added as given - split, perhaps - and the option
 PARSING.
 */
 int d_arg_internal_parse_add(
@@ -1717,8 +1717,8 @@ int d_arg_internal_parse_list(
  *         names none.
  *
  * The subcommand an argument names, the name taken off the stack: CLI11's
- * lookup in _parse_subcommand by the whole argument, else -- the main way to
- * get here -- by the part before its first dot, the rest then left on the
+ * lookup in _parse_subcommand by the whole argument, else - the main way to
+ * get here - by the part before its first dot, the rest then left on the
  * stack in its place for the subcommand to parse. NULL, the stack as it was,
  * when neither names one.
  */
@@ -1783,7 +1783,7 @@ struct dj_arg_command* d_arg_internal_parse_take_name(
  *
  * CLI11's parse of a subcommand named in _parse_subcommand: listed among
  * the command's parsed subcommands unless silent, then parsed; then each
- * option group between the two -- when it was found in one -- has its
+ * option group between the two - when it was found in one - has its
  * pre-parse step and lists it too.
  */
 D_STATIC
@@ -1832,7 +1832,7 @@ int d_arg_internal_parse_enter(
  * CLI11's _parse_subcommand: while a required positional still waits for
  * values, a subcommand's name is a positional; otherwise the subcommand it
  * names is parsed. A name only a parent's subcommand answers to, through
- * subcommand fallthrough, ends the command -- and at the root, where none
+ * subcommand fallthrough, ends the command - and at the root, where none
  * can, is CLI11's HorribleError. Where CLI11 goes on after a positional
  * nothing took, meeting it again for ever, the command ends instead, leaving
  * it to its parent.
@@ -2093,8 +2093,8 @@ int d_arg_internal_parse_lone(
  * @param[out]    _go_on            receives whether the command goes on.
  * @return D_ARG_OK, or the error a step raised, recorded.
  *
- * CLI11's _parse_single: the next argument recognized -- or, once the
- * positionals stand alone, taken as one -- and handed to its step, a long
+ * CLI11's _parse_single: the next argument recognized - or, once the
+ * positionals stand alone, taken as one - and handed to its step, a long
  * option offered to the setting hook first; the `++` that ends a named
  * subcommand is taken off the stack and ends it.
  */

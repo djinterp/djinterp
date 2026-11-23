@@ -62,7 +62,7 @@
 #include <thread>
 #include <vector>
 // djinterp
-// -- (part 1) mode-gated includes ------------------------------------------
+// - (part 1) mode-gated includes ------------------------------------------
 // djinterp core is ALWAYS first and unconditional (NS_*, D_* qualifiers,
 // language gates), so both faces have it.
 #include "../../../../inc/djinterp/cpp/djinterp.hpp"  // framework root
@@ -109,14 +109,14 @@ namespace dt = ::djinterp::test;
 
 #ifndef DTEST_SPEC_MODE  // (part 1 cont.) fixtures - normal mode only
 
-// -- policy shorthands ------------------------------------------------------
+// - policy shorthands ------------------------------------------------------
 using DTcNull = null_lock_policy;        // no-op mutex (single agent)
 using DTcExcl = exclusive_lock_policy;   // std::mutex
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 using DTcShared = shared_lock_policy;    // std::shared_mutex (reader/writer)
 #endif
 
-// -- DTcVec ----------------------------------------------------------------
+// - DTcVec ----------------------------------------------------------------
 // a minimal threadsafe container over a std::vector<int>.  Derives from the
 // CRTP base so it carries the mutex + policy machinery, and exposes the UNSAFE
 // payload operations (to be called under a lock in the tests) plus the const
@@ -144,7 +144,7 @@ private:
     std::vector<int> m_data;
 };
 
-// -- DTcCounter ------------------------------------------------------------
+// - DTcCounter ------------------------------------------------------------
 // a threadsafe container holding a PLAIN (non-atomic) counter, mutated only
 // under the write lock.  Used to witness mutual exclusion: under a real policy
 // the write lock serialises the increments, so the total is exact.
@@ -165,7 +165,7 @@ private:
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- (part 2) declarations - visible in BOTH modes -------------------------
+// - (part 2) declarations - visible in BOTH modes -------------------------
 // One flat list, grouped by section; each banner names the .cpp that defines
 // the group.
 
@@ -217,7 +217,7 @@ bool tests_concurrent_cas_loop();
 bool tests_concurrent_write_lock();
 
 
-// -- (part 3) the spec provider - spec mode only ---------------------------
+// - (part 3) the spec provider - spec mode only ---------------------------
 #ifdef DTEST_SPEC_MODE
 inline
 dt::module_spec threadsafe_container_spec()

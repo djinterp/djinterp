@@ -64,7 +64,7 @@ D_STATIC_ASSERT(READ_STEPS_PER_BYTE > 0,
 }  // anonymous namespace
 
 // meta_grammar
-//   function: the grammar of grammars -- the notation's syntax as a ruleset,
+//   function: the grammar of grammars - the notation's syntax as a ruleset,
 // so the generator compiles the parser that reads grammar text.  The captured
 // spans (NAME / SETBODY / REF / STAR / PLUS / LITCH / BAR) drive the reader.
 ruleset meta_grammar()

@@ -2,7 +2,7 @@
 * djinterp [cpp][db]                                                database.cpp
 *
 * Definitions for database.hpp: its exceptions and configurations, and the
-* utilities -- connection strings, quoting and escaping, values as text, and
+* utilities - connection strings, quoting and escaping, values as text, and
 * names.
 *   Text is read and written without the C locale: numbers go through the C
 * layers' readers (db_common.h's conversions), which read `.` as the point
@@ -522,7 +522,7 @@ struct DTimeReader
     const std::string& text;
     std::size_t        at;
 
-    // number -- exactly `_count` digits, as an unsigned number, or false
+    // number - exactly `_count` digits, as an unsigned number, or false
     bool number(
         std::size_t _count,
         unsigned&   _value
@@ -553,7 +553,7 @@ struct DTimeReader
         return true;
     }
 
-    // skip -- one given character, or false
+    // skip - one given character, or false
     bool skip(
         char _c
     ) noexcept
@@ -570,7 +570,7 @@ struct DTimeReader
         return true;
     }
 
-    // done -- whether every character was read
+    // done - whether every character was read
     bool done() const noexcept
     {
         return (at == text.size());
@@ -1356,7 +1356,7 @@ void read_uri(
             authority = authority.substr(at + 1u);
         }
 
-        // the host -- an IPv6 address in brackets -- and the port
+        // the host - an IPv6 address in brackets - and the port
         if ( (!authority.empty()) &&
              (authority[0] == '[') )
         {
@@ -1890,7 +1890,7 @@ std::string escape_string(
 /*
 quote_identifier
   The closing quote is the one doubled inside: a backtick for backticks, a
-double quote for double quotes, and `]` -- not `[` -- for brackets.
+double quote for double quotes, and `]` - not `[` - for brackets.
 */
 std::string quote_identifier(
     const std::string& _identifier,

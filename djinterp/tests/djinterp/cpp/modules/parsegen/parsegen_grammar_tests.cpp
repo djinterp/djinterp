@@ -7,7 +7,7 @@
 *   Every section builds into `scratch`, which is a grammar that owns its
 * storage where the build has an allocator and one that carries its own where
 * it has none. The type is selected once, at namespace scope, and every
-* assertion below holds either way -- which is itself a thing the suite checks,
+* assertion below holds either way - which is itself a thing the suite checks,
 * by passing under both.
 *
 *
@@ -145,7 +145,7 @@ bool d_tests_parsegen_grammar_nesting(void)
 
     g.from("test");
 
-    // a (b / c)* d -- the shape that motivated the model
+    // a (b / c)* d - the shape that motivated the model
     const re_std::int32_t a     = g.literal("a");
     const re_std::int32_t inner = g.ordered({ g.literal("b"), g.literal("c") });
     const re_std::int32_t many  = g.star(inner);
@@ -226,7 +226,7 @@ d_tests_parsegen_grammar_bounds
   Tests the following:
   - the three classic forms are bounds, and do not set BOUNDED_REPEAT
   - an explicit range does set it, so a family can ask whether it was handed
-    a count -- ABNF's 3*5DIGIT, which the old model could not express
+    a count - ABNF's 3*5DIGIT, which the old model could not express
   - a reversed range is refused rather than normalised
 */
 bool d_tests_parsegen_grammar_bounds(void)
@@ -413,7 +413,7 @@ d_tests_parsegen_grammar_derived
   Tests the following:
   - a rule that references itself leftmost is left-recursive, but that is a
     derived property: building it declares nothing, and neither does
-    resolution -- analysis is what fills it in
+    resolution - analysis is what fills it in
   - resolution does bind the reference to the rule it names
 */
 bool d_tests_parsegen_grammar_derived(void)
@@ -567,7 +567,7 @@ bool d_tests_parsegen_grammar_unresolved(void)
 }  // namespace
 
 // d_tests_parsegen_grammar
-//   constant: the suite -- every section this build has, the tree's shape
+//   constant: the suite - every section this build has, the tree's shape
 // before what is derived from it.
 const dj_tests_section d_tests_parsegen_grammar[] =
 {

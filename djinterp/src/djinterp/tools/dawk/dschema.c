@@ -4,7 +4,7 @@
 * Definitions for the non-inline declarations in dschema.h.
 *   A binding is an array indexed by symbol, sized to the table when bound:
 * dispatch is one bounds check and one load.  A symbol interned after the
-* binding has no entry, which is right -- no registered property has it.
+* binding has no entry, which is right - no registered property has it.
 *
 *
 * path:      /src/djinterp/tools/dawk/dschema.c
@@ -48,7 +48,7 @@ const struct dj_schema_property* d_schema_find(
 
 /*
 d_schema_validate
-  Walks rule declarations only.  At-rule blocks -- @table rows, @set -- are
+  Walks rule declarations only.  At-rule blocks - @table rows, @set - are
 host syntax whose "properties" are keys, not properties.
 */
 bool d_schema_validate(

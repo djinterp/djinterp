@@ -191,7 +191,7 @@ public:
 
     // intersects
     //   query: whether this interval shares a member with another
-    // open_interval -- an interior value both hold, which bounds that only
+    // open_interval - an interior value both hold, which bounds that only
     // just overlap on the real line may not give.
     template<Type OtherLower,
              Type OtherUpper>

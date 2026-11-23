@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][event]           event_dispatcher_tests_dispatcher_dispatch.cpp
 *
-*   Section III (immediate surface) -- the DEventDispatcher facade's
+*   Section III (immediate surface) - the DEventDispatcher facade's
 * synchronous half.  bind and the management operations (unbind / enable /
 * disable / is_enabled / contains) delegate to the registry and are reflected
 * in the aggregate counts; fire dispatches an occurrence immediately and

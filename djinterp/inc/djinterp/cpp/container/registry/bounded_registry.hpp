@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                                 bounded_registry.hpp
 *
-*   bounded_registry -- a registry carrying a CAPACITY (the Boundedness axis).
+*   bounded_registry - a registry carrying a CAPACITY (the Boundedness axis).
 * The Boundedness section fixes a capacity
 *
 *       kappa in |N u {inf},      c valid  <=>  |c| <= kappa,
@@ -9,9 +9,9 @@
 * the type being BOUNDED exactly when kappa < inf.  bounded_registry pins a
 * compile-time kappa = Capacity and enforces |c| <= kappa at the one place
 * size
-* can grow: insertion. Everything else -- the keyed/sorted/multiplicity
+* can grow: insertion. Everything else - the keyed/sorted/multiplicity
 * overlay,
-* the key-const value surface, the guarded update fold -- is the base registry
+* the key-const value surface, the guarded update fold - is the base registry
 * unchanged, so this is the base container with one added invariant, not a new
 * one.
 *
@@ -32,8 +32,8 @@
 *
 *   ORTHOGONALITY.  Capacity caps the WHOLE container; multiplicity caps each
 * key-class; the realised per-class count obeys #_E(c,x) <= min(m, kappa) (the
-* Boundedness/Multiplicity interplay).  Domain-boundedness -- restricting the
-* VALUES to a closed interval -- is the other, independent Boundedness axis
+* Boundedness/Multiplicity interplay).  Domain-boundedness - restricting the
+* VALUES to a closed interval - is the other, independent Boundedness axis
 * and
 * is not imposed here (a bounded_registry is size-bounded, domain-free).
 *
@@ -201,7 +201,7 @@ public:
     using base::contains;
     using base::count;
 
-    // value surface (read always; write when KeyDisjoint) -- growth-free,
+    // value surface (read always; write when KeyDisjoint) - growth-free,
     // hence never capacity-limited
     using base::at;
     using base::try_get;
@@ -281,13 +281,13 @@ public:
 
     // --- 4. capacity queries ---
 
-    // full -- whether the container is at capacity (no NEW key may be added).
+    // full - whether the container is at capacity (no NEW key may be added).
     D_NODISCARD bool full() const noexcept
     {
         return this->size() >= static_cast<size_type>(Capacity);
     }
 
-    // remaining -- capacity headroom, kappa - |c|.
+    // remaining - capacity headroom, kappa - |c|.
     D_NODISCARD size_type remaining() const noexcept
     {
         const size_type n = this->size();
@@ -301,13 +301,13 @@ public:
     //   base::insert is deliberately NOT re-exported; these shadow it with a
     // pre-growth capacity check. A refused insert throws and mutates nothing.
 
-    // would_grow -- whether inserting a record of key _k adds a position.
+    // would_grow - whether inserting a record of key _k adds a position.
     D_NODISCARD bool would_grow(const key_type& _k) const
     {
         return (!UniqueKeys) || (!this->contains(_k));
     }
 
-    // insert (record) -- place _rec at its sorted key position, refusing a
+    // insert (record) - place _rec at its sorted key position, refusing a
     // capacity-exceeding growth.
     size_type insert(Record _rec)
     {
@@ -321,7 +321,7 @@ public:
         return base::insert(static_cast<Record&&>(_rec));
     }
 
-    // insert (key, value) -- convenience for (key, value)-constructible
+    // insert (key, value) - convenience for (key, value)-constructible
     // records; same capacity guard.
     template<typename K = key_type,
              typename V = mapped_type,
@@ -342,7 +342,7 @@ public:
         return base::insert(static_cast<K&&>(_k), static_cast<V&&>(_v));
     }
 
-    // try_insert -- non-throwing insert: returns npos (adding nothing) when a
+    // try_insert - non-throwing insert: returns npos (adding nothing) when a
     // growth would exceed capacity, else the inserted position.
     size_type try_insert(Record _rec)
     {
@@ -376,7 +376,7 @@ using bounded_registry = DBoundedRegistry<Record, KeyProj, ValueProj, Capacity, 
 // ===========================================================================
 
 // DBoundedKvRegistry
-//   alias: a capacity-capped kv map/multimap -- kv_registry with kappa. Value
+//   alias: a capacity-capped kv map/multimap - kv_registry with kappa. Value
 // region disjoint from the key (the direct setters are available; edits skip
 // the re-key check).
 template<typename    Key,

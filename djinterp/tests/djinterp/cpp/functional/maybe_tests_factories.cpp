@@ -2,7 +2,7 @@
 * djinterp [cpp][functional]                           maybe_tests_factories.cpp
 *
 * Factory-function tests for maybe.hpp section III:
-*   test_factories -- just, nothing<T>, from_pointer (null / non-null),
+*   test_factories - just, nothing<T>, from_pointer (null / non-null),
 *                     from_predicate (satisfied / not satisfied).
 *
 *

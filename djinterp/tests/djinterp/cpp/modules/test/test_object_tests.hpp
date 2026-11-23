@@ -24,7 +24,7 @@
 *   - test_object_check : reports a failing check, forwards the boolean.
 *   - litmeta           : a *literal* metadata container, so DTestObject's
 *                         constexpr ctors / accessors / (C++14+) mutators can
-*                         be exercised in constant expressions -- which the
+*                         be exercised in constant expressions - which the
 *                         default DTestMetadata (it owns a std::vector) cannot.
 *   - throwmeta         : a metadata container whose special members are all
 *                         potentially-throwing, used to confirm that
@@ -50,7 +50,7 @@
 #include <cstdint>
 #include <cstdio>
 // djinterp
-// djinterp  -- framework header first, then mode-gated.
+// djinterp  - framework header first, then mode-gated.
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
 #include <djinterp/cpp/modules/test/test_object.hpp>
@@ -137,7 +137,7 @@ using DThrowObject = ::djinterp::test::DTestObject<std::uint8_t, throwmeta>;
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- DTestMetadata (helper class) --------------------------------------------
+// - DTestMetadata (helper class) --------------------------------------------
 bool tests_test_metadata_types();
 
 bool tests_test_metadata_set();
@@ -146,7 +146,7 @@ bool tests_test_metadata_get();
 
 bool tests_test_metadata_contains();
 
-// -- aliases, status constants, storage, traits ------------------------------
+// - aliases, status constants, storage, traits ------------------------------
 bool tests_object_aliases();
 
 bool tests_object_status_constants();
@@ -155,7 +155,7 @@ bool tests_object_storage();
 
 bool tests_object_traits();
 
-// -- construction ------------------------------------------------------------
+// - construction ------------------------------------------------------------
 bool tests_object_ctor_default();
 
 bool tests_object_ctor_type_id();
@@ -166,7 +166,7 @@ bool tests_object_ctor_metadata();
 
 bool tests_object_ctor_noexcept();
 
-// -- read-only query surface -------------------------------------------------
+// - read-only query surface -------------------------------------------------
 bool tests_object_bool_conversion();
 
 bool tests_object_status_result();
@@ -177,7 +177,7 @@ bool tests_object_type_id();
 
 bool tests_object_callable_query();
 
-// -- mutation ----------------------------------------------------------------
+// - mutation ----------------------------------------------------------------
 bool tests_object_evaluate();
 
 bool tests_object_skip();
@@ -190,7 +190,7 @@ bool tests_object_set_callable_id();
 
 bool tests_object_mutation_sequence();
 
-// -- metadata access ---------------------------------------------------------
+// - metadata access ---------------------------------------------------------
 bool tests_object_metadata_accessor();
 
 bool tests_object_set_metadata_copy();
@@ -199,12 +199,12 @@ bool tests_object_set_metadata_move();
 
 bool tests_object_metadata_noexcept();
 
-// -- convenience aliases -----------------------------------------------------
+// - convenience aliases -----------------------------------------------------
 bool tests_basic_test();
 
 bool tests_tagged_test();
 
-// -- factory functions -------------------------------------------------------
+// - factory functions -------------------------------------------------------
 bool tests_make_test();
 
 bool tests_make_interior();

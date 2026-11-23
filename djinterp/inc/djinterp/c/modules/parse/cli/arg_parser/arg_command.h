@@ -8,7 +8,7 @@
 * dropped, whether a subcommand may fall through to its parent, how many
 * subcommands and options are required, which commands and options it needs
 * or excludes, and the callbacks that run before, during and after parsing.
-* An option group -- CLI11's Option_group -- is a command without a name:
+* An option group - CLI11's Option_group - is a command without a name:
 * its options are matched as if they were its parent's, and it counts as one
 * option toward its parent's requirements.
 *   Every command belongs to one parser (arg_parser.h), whose root command
@@ -376,8 +376,8 @@ typedef int (*dj_arg_group_visit_fn)(struct dj_pack_text _group,
 // `options` and `subcommands` are owned;
 // `help`, `help_all`, `version` and `config` point into `options`. The
 // lists after `subcommands` refer to records owned elsewhere, and the
-// parse state -- `missing`, `parse_order`, `parsed_subcommands`, `parsed`
-// -- belongs to the last parse. `formatter` and `config_format` are
+// parse state - `missing`, `parse_order`, `parsed_subcommands`, `parsed`
+// - belongs to the last parse. `formatter` and `config_format` are
 // borrowed, NULL meaning the parent's (and the parser's at the root).
 //   Public-payload layout: read any field; change one only through the calls
 // below.
@@ -572,7 +572,7 @@ D_ARG_PARSER_API struct dj_arg_option* d_arg_command_add_flag(
  * @note The flag converts its value into the variable and has no type name,
  *       as CLI11's has none. As CLI11's default_flag_modifiers arrange, a
  *       container takes every value and is set even from a default; an
- *       integer wider than a byte counts the flag's uses -- the flag sums
+ *       integer wider than a byte counts the flag's uses - the flag sums
  *       its values, defaults to "0" and always calls back; and any other
  *       type is marked to capture its default, which, as in CLI11, it never
  *       does, the variable not being its default function.
@@ -599,9 +599,9 @@ D_ARG_PARSER_API struct dj_arg_option* d_arg_command_add_flag_bound(
  *        add_flag_callback.
  *
  * @note add_flag_function is CLI11's add_flag_function: the flag sums its
- *       values and the function is called with the sum -- 0 when the sum is
+ *       values and the function is called with the sum - 0 when the sum is
  *       not an integer a `long` holds, where CLI11 reads 64 bits, as
- *       d_arg_command_add_flag_function_intmax does -- whenever the flag is
+ *       d_arg_command_add_flag_function_intmax does - whenever the flag is
  *       given.
  *
  * @param[in,out] _command      the command.
@@ -783,9 +783,9 @@ D_ARG_PARSER_API struct dj_arg_option* d_arg_command_option(
  * @brief Removes and releases an option; CLI11's remove_option.
  *
  * @note Every reference to the option anywhere in the parser's tree is
- *       dropped -- other options' needs and excludes, the commands' own, the
+ *       dropped - other options' needs and excludes, the commands' own, the
  *       help, version and configuration pointers, the parse order, the error
- *       reports -- where CLI11 drops only the links from its own command's
+ *       reports - where CLI11 drops only the links from its own command's
  *       options. Not to be called from a callback while a parse runs, as
  *       CLI11's is not.
  *
@@ -823,8 +823,8 @@ D_ARG_PARSER_API bool d_arg_command_remove_option(
  *       invalid character ('<c>'), all characters are allowed
  *       except'=',':','{','}', ' ', and control characters", as CLI11 words
  *       it, though it allows `}`. A name or alias matching one of the
- *       parent's other subcommands -- or, under an option group, one of the
- *       group's command's -- is its OptionAlreadyAdded, "subcommand name or
+ *       parent's other subcommands - or, under an option group, one of the
+ *       group's command's - is its OptionAlreadyAdded, "subcommand name or
  *       alias matches existing subcommand: <name> is already added".
  *
  * @param[in,out] _command      the parent.
@@ -1158,7 +1158,7 @@ D_ARG_PARSER_API void d_arg_command_set_subcommand_fallthrough(
 // d_arg_command_set_ignore_case / d_arg_command_set_ignore_underscore
 //   settings: CLI11's ignore_case() and ignore_underscore(), which refuse to
 // turn on when the command's name or an alias would then match another of
-// its fallthrough parent's subcommands -- or, at the root, one of its own --
+// its fallthrough parent's subcommands - or, at the root, one of its own --
 // (D_ARG_ERROR_OPTION_ALREADY_ADDED, "ignore case would cause subcommand
 // name conflicts: <name> is already added", or "ignore underscore ..."),
 // keeping the setting off.
@@ -1199,8 +1199,8 @@ D_ARG_PARSER_API void d_arg_command_set_enabled_by_default(
 //------------------------------------------------------------------------------
 // 5.4.1
 // d_arg_command_require_subcommand and kin
-//   settings: CLI11's require_subcommand(min, max) -- a maximum of 0 is
-// unlimited -- and require_subcommand(int): `n` requires exactly `n`, `-n`
+//   settings: CLI11's require_subcommand(min, max) - a maximum of 0 is
+// unlimited - and require_subcommand(int): `n` requires exactly `n`, `-n`
 // allows at most `n`; CLI11's require_subcommand() is (1, 0). None fails.
 D_ARG_PARSER_API void d_arg_command_require_subcommand(
     struct dj_arg_command* _command,
@@ -1291,11 +1291,11 @@ D_ARG_PARSER_API void d_arg_command_set_pre_callback(
 //   setting: CLI11's failure_message(): what d_arg_command_exit writes for
 // an error reported from the command, and d_arg_parser_exit from the root;
 // d_arg_failure_simple or d_arg_failure_help (arg_parser.h), or a function
-// of the caller's. NULL -- what every command starts with -- uses the
+// of the caller's. NULL - what every command starts with - uses the
 // parent's, and at the root d_arg_failure_simple, CLI11's default; so a
 // subcommand follows its parent's later changes, where CLI11's keeps a copy
 // of the message its parent had when it was made. A function that fails --
-// returns anything but D_ARG_OK -- is followed by d_arg_failure_simple's
+// returns anything but D_ARG_OK - is followed by d_arg_failure_simple's
 // message, so that no failed parse goes unreported.
 D_ARG_PARSER_API void d_arg_command_set_failure_message(
     struct dj_arg_command* _command,
@@ -1475,8 +1475,8 @@ D_ARG_PARSER_API const char* d_arg_command_group(
 
 // 6.1.3
 // d_arg_command_is_option_group
-//   predicate: whether the command is a nameless subcommand -- an option group
-// -- rather than the root or a named subcommand.
+//   predicate: whether the command is a nameless subcommand - an option group
+// - rather than the root or a named subcommand.
 D_ARG_PARSER_API bool d_arg_command_is_option_group(
     const struct dj_arg_command* _command
 );
@@ -1499,7 +1499,7 @@ D_ARG_PARSER_API size_t d_arg_command_count_all(
 // 6.2.2
 // d_arg_command_parsed_subcommand_count and kin
 //   lookups: CLI11's get_subcommands(): the subcommands the last parse used,
-// in order -- its count, and the one at an index, NULL past the end.
+// in order - its count, and the one at an index, NULL past the end.
 D_ARG_PARSER_API size_t d_arg_command_parsed_subcommand_count(
     const struct dj_arg_command* _command
 );
@@ -1567,7 +1567,7 @@ D_ARG_PARSER_API int d_arg_command_check_name_detail(
  * @note The command's own options, then those of every nameless
  *       subcommand and of every subcommand whose group starts with `+`,
  *       then, with fallthrough, its parent's that answer to none of the
- *       display names already listed -- the list configuration files and
+ *       display names already listed - the list configuration files and
  *       requirements see. Help lists a narrower set; see arg_formatter.h.
  *
  * @param[in] _command  the command.
@@ -1601,8 +1601,8 @@ D_ARG_PARSER_API int d_arg_command_each_group(
 /**
  * @brief Visits the arguments a command did not use; CLI11's remaining().
  *
- * @note With `_recurse`, also those of its option groups -- when its extras
- *       are errors or ignored -- and of each subcommand it parsed, in the
+ * @note With `_recurse`, also those of its option groups - when its extras
+ *       are errors or ignored - and of each subcommand it parsed, in the
  *       order met.
  *
  * @param[in] _command  the command.
@@ -1723,8 +1723,8 @@ D_ARG_PARSER_API int d_arg_command_deprecate_option(
  * @brief Marks deprecated the option a command finds by name; CLI11's
  *        deprecate_option(app, name, replacement).
  *
- * @note The option is found as d_arg_command_option finds it -- CLI11's
- *       get_option -- and deprecated as d_arg_command_deprecate_option
+ * @note The option is found as d_arg_command_option finds it - CLI11's
+ *       get_option - and deprecated as d_arg_command_deprecate_option
  *       deprecates it.
  *
  * @param[in,out] _command      the command.
@@ -1732,7 +1732,7 @@ D_ARG_PARSER_API int d_arg_command_deprecate_option(
  * @param[in]     _replacement  what to use instead, copied; NULL or "" for
  *                              nothing named.
  * @return D_ARG_OK; D_ARG_ERROR_OPTION_NOT_FOUND, recorded as CLI11's
- *         OptionNotFound -- "<name> not found" -- for a name no option has;
+ *         OptionNotFound - "<name> not found" - for a name no option has;
  *         D_ARG_ERROR_OUT_OF_MEMORY, recorded; D_ARG_ERROR_BAD_ARGUMENT,
  *         nothing recorded, for a NULL command or name.
  */

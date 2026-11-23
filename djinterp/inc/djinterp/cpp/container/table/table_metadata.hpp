@@ -4,7 +4,7 @@
 *   The table's metadata, derived from DContainerMetadata. A table carries the
 * same open key-value metadata any container may (title, name, description,
 * date,
-* provenance -- inherited wholesale from DContainerMetadata), and, in
+* provenance - inherited wholesale from DContainerMetadata), and, in
 * addition,
 * two things a flat collection has no notion of: COLUMN HEADERS and ROW
 * HEADERS.
@@ -17,8 +17,8 @@
 *
 *   MULTIPLE, POSSIBLY GROUPED, HEADERS. A table may carry more than one level
 * of
-* header on a dimension -- a stack of header rows above the columns, or header
-* columns beside the rows -- and a level may GROUP finer ones:
+* header on a dimension - a stack of header rows above the columns, or header
+* columns beside the rows - and a level may GROUP finer ones:
 *
 *         ... |    coordinate    | ...        (an outer level: one label,
 *         --------------------------              spanning three columns)
@@ -30,7 +30,7 @@
 * way,
 * so table_metadata takes the column-header and row-header types as OPEN
 * template
-* parameters -- it never inspects their internals. Conformance is a
+* parameters - it never inspects their internals. Conformance is a
 * CUSTOMIZATION
 * POINT: a header type opts in by providing header_extent(h) (how many table
 * positions it spans); table_metadata then verifies that against the table's
@@ -40,7 +40,7 @@
 * each a
 * run of labelled, spannable cells) is provided as a convenience and models
 * the
-* grouped example above -- but it is only a default; any type serves.
+* grouped example above - but it is only a default; any type serves.
 *
 *   PORTABILITY:
 *   C++11 baseline, as DContainerMetadata.
@@ -94,7 +94,7 @@ NS_DJINTERP
 // ===========================================================================
 // I.   Default header representation
 // ===========================================================================
-//   A convenient, versatile default a caller MAY use for header sets -- not a
+//   A convenient, versatile default a caller MAY use for header sets - not a
 // requirement. A header is a STACK of LEVELS (outermost first); a level is a
 // run
 // of CELLS; a cell is a label plus a SPAN, the number of finer positions it
@@ -127,7 +127,7 @@ template<typename Label>
 using header_cell = DHeaderCell<Label>;
 
 // DHeaderLevel
-//   type: one level of a header -- a run of cells covering the dimension once.
+//   type: one level of a header - a run of cells covering the dimension once.
 template<typename Label>
 using DHeaderLevel = std::vector<DHeaderCell<Label>>;
 
@@ -148,7 +148,7 @@ template<typename Label>
 using header_stack = DHeaderStack<Label>;
 
 // make_header_level
-//   function: a single level of unit-span cells from a list of labels -- the
+//   function: a single level of unit-span cells from a list of labels - the
 // common simple (ungrouped) header.
 template<typename Label>
 D_NODISCARD DHeaderLevel<Label> make_header_level(
@@ -172,7 +172,7 @@ D_NODISCARD DHeaderLevel<Label> make_header_level(
 // ===========================================================================
 //   header_extent(h) reports how many table positions a header set h spans, so
 // table_metadata can check it against the table's dimension. A header type opts
-// into conformance checking by making header_extent(h) well-formed -- either
+// into conformance checking by making header_extent(h) well-formed - either
 // through one of the default overloads below (for the default representation)
 // or
 // through its own overload found by ADL. A type that provides none is treated
@@ -216,7 +216,7 @@ D_NODISCARD std::size_t header_extent(
 NS_INTERNAL
 
     // has_header_extent
-    //   trait: whether header_extent(h) is well-formed for Headers -- i.e.
+    //   trait: whether header_extent(h) is well-formed for Headers - i.e.
     // whether the header type opts into conformance checking.
     template<typename Headers,
              typename = void>
@@ -241,7 +241,7 @@ NS_END  // internal
 // ===========================================================================
 
 // DTableMetadata
-//   class: a table's metadata -- DContainerMetadata's open key-value entries
+//   class: a table's metadata - DContainerMetadata's open key-value entries
 // plus a column-header set and a row-header set of OPEN types. It exposes,
 // sets, and checks the conformance of the headers without inspecting their
 // internals.
@@ -285,7 +285,7 @@ public:
         return m_column_headers;
     }
 
-    // set_column_headers -- adopt a column-header set (of any type).
+    // set_column_headers - adopt a column-header set (of any type).
     void set_column_headers(ColumnHeaders _headers)
     {
         m_column_headers     = static_cast<ColumnHeaders&&>(_headers);
@@ -319,7 +319,7 @@ public:
         return m_row_headers;
     }
 
-    // set_row_headers -- adopt a row-header set (of any type).
+    // set_row_headers - adopt a row-header set (of any type).
     void set_row_headers(RowHeaders _headers)
     {
         m_row_headers     = static_cast<RowHeaders&&>(_headers);
@@ -373,7 +373,7 @@ public:
     }
 
 private:
-    // conforms_dimension -- dispatch on whether the header type opts into the
+    // conforms_dimension - dispatch on whether the header type opts into the
     // header_extent customization point.
     template<typename Headers>
     static bool conforms_dimension(
@@ -391,7 +391,7 @@ private:
             _headers, _dimension, internal::has_header_extent<Headers>{});
     }
 
-    // conforms_extent (checkable) -- the spanned extent must equal the
+    // conforms_extent (checkable) - the spanned extent must equal the
     // dimension.
     template<typename Headers>
     static bool conforms_extent(
@@ -402,7 +402,7 @@ private:
         return (header_extent(_headers) == _dimension);
     }
 
-    // conforms_extent (opaque) -- no extent to read, so conformance is not
+    // conforms_extent (opaque) - no extent to read, so conformance is not
     // checked here; it is the header type's own contract.
     template<typename Headers>
     static bool conforms_extent(

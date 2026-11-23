@@ -10,7 +10,7 @@
 *   ONE FOLD, MANY ALGEBRAS.  evaluate is cata in its most-used shape: a leaf
 * handler A -> R and an application handler (OpId, [R]) -> R, the second
 * seeing children already folded to R.  Evaluate a math expression, test a
-* predicate, render, cost, type-check -- each is one call with a different
+* predicate, render, cost, type-check - each is one call with a different
 * pair of handlers.  The structural queries and the shape-preserving
 * transforms below are themselves evaluate instances; only the binary
 * structural_equal and the iterated rewrite_to_fixpoint step outside it.
@@ -85,7 +85,7 @@ NS_DJINTERP
 ///////////////////////////////////////////////////////////////////////////////
 
 // evaluate
-//   function: folds an expression to a Result -- the catamorphism in its
+//   function: folds an expression to a Result - the catamorphism in its
 // most-used shape.  _on_leaf : Atom -> R interprets a leaf; _on_apply :
 // (OpId, const vector<R>&) -> R collapses an application from its already-
 // folded children.  Every interpretation is one of these; the structural
@@ -128,7 +128,7 @@ evaluate
 // =================================================================
 
 // size
-//   function: the total number of nodes -- leaves and applications alike.
+//   function: the total number of nodes - leaves and applications alike.
 template<typename OpId,
          typename Atom>
 D_NODISCARD
@@ -159,7 +159,7 @@ size
 }
 
 // depth
-//   function: the height of the term -- 1 for a leaf or a nullary
+//   function: the height of the term - 1 for a leaf or a nullary
 // application, else 1 plus the deepest child.
 template<typename OpId,
          typename Atom>
@@ -195,7 +195,7 @@ depth
 // =================================================================
 
 // atoms
-//   function: every atom in the term, in left-to-right leaf order -- the
+//   function: every atom in the term, in left-to-right leaf order - the
 // free variables when the atom type is a variable.  Child atom-lists are
 // concatenated through the vector monoid (mconcat).
 template<typename OpId,
@@ -257,7 +257,7 @@ operators
 // =================================================================
 
 // structural_equal
-//   function: whether two terms have the same shape -- identical leaf atoms,
+//   function: whether two terms have the same shape - identical leaf atoms,
 // identical operators, identical child sequences, recursively.  A binary
 // recursion (cata folds one term), so it is written directly.  Requires
 // operator== on Atom and OpId.
@@ -296,7 +296,7 @@ structural_equal
         return false;
     }
 
-    // shapes agree at this node -- compare sub-terms pairwise
+    // shapes agree at this node - compare sub-terms pairwise
     for (std::size_t _i = 0; _i < _l.children().size(); ++_i)
     {
         if (!structural_equal<OpId, Atom>(_l.children()[_i],
@@ -461,7 +461,7 @@ map_operators
 
 // transform_bottom_up
 //   function: rewrites the term by applying _rule to every node after its
-// children have been rewritten -- a single bottom-up pass.  _rule is any
+// children have been rewritten - a single bottom-up pass.  _rule is any
 // expression -> expression (a simplification step, a normalization, a
 // constant fold); returning its argument unchanged is a no-op at that node.
 template<typename OpId,
@@ -496,7 +496,7 @@ transform_bottom_up
 
 // rewrite_to_fixpoint
 //   function: applies transform_bottom_up repeatedly until a pass changes
-// nothing (the fixed point) or _max_passes is reached -- the standard driver
+// nothing (the fixed point) or _max_passes is reached - the standard driver
 // for a set of simplification rules.  Convergence is the caller's
 // responsibility; the pass cap guards a non-terminating (non-confluent) rule
 // set.  Requires operator== on Atom and OpId (via structural_equal).
@@ -519,7 +519,7 @@ rewrite_to_fixpoint
         expression<OpId, Atom> _next =
             transform_bottom_up<OpId, Atom>(_current, _rule);
 
-        // a fixed point -- the rule left every node unchanged this pass
+        // a fixed point - the rule left every node unchanged this pass
         if (structural_equal<OpId, Atom>(_current, _next))
         {
             return _current;
@@ -538,7 +538,7 @@ rewrite_to_fixpoint
 
 // substitute
 //   function: rebuilds the term with every leaf atom replaced by the term
-// _binding(atom) -- variable substitution, the cata form of a free-monad
+// _binding(atom) - variable substitution, the cata form of a free-monad
 // bind.  _binding is total: it returns expr_leaf(atom) for an atom it does
 // not rebind (leaving it in place).  Operators and application shape are
 // preserved around the substituted leaves.

@@ -3,12 +3,12 @@
 *
 * re_std's own configuration: everything it needs to know about the language,
 * the compiler and the runtime, and the qualifier kit it spells its code with.
-*   re_std stands on its own -- nothing under inc/re_std/ includes anything
-* outside it -- so this header replaces what it used to take from djinterp's
+*   re_std stands on its own - nothing under inc/re_std/ includes anything
+* outside it - so this header replaces what it used to take from djinterp's
 * root and env layer. Every macro is spelled RE_STD_, never D_, so this kit and
 * djinterp's can never collide, and each answers exactly as its djinterp
 * counterpart did, so a build that included both before sees no difference.
-*   The language-neutral half -- the level tests, the compiler, the
+*   The language-neutral half - the level tests, the compiler, the
 * fixed-width-integer headers, the long long gate, and the ISO strict knob --
 * is config.h, which C reads too (dstdint.h does); this header includes it
 * and adds what only C++ needs. Every value is pre-definable: #define it

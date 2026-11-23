@@ -2,8 +2,8 @@
 * djinterp [cpp][tools]                                             elements.cpp
 *
 * The workbench's own elements: their types, and the builders that make them.
-*   Each is a leaf whose attributes name what to show -- a part of a run, a
-* run's text, a run's heat -- and nothing else: the run itself is found when
+*   Each is a leaf whose attributes name what to show - a part of a run, a
+* run's text, a run's heat - and nothing else: the run itself is found when
 * the element is drawn, through the finder the drawing platform was given. So
 * a template stays small whatever the runs hold, and a platform that has not
 * heard of these elements draws nothing for them rather than failing. Their

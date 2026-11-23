@@ -2,7 +2,7 @@
 * djinterp [re_std]                                                nullptr_t.hpp
 *
 * nullptr_t typedef (identity-preserving re-export):
-*   nullptr_t is `decltype(nullptr)` -- a type the compiler synthesises,
+*   nullptr_t is `decltype(nullptr)` - a type the compiler synthesises,
 * with conversion rules built into the language rather than the library.
 * It cannot be reimplemented: a hand-rolled empty struct would not be the
 * type a bare `nullptr` has, so overloads taking re_std::nullptr_t would
@@ -13,8 +13,8 @@
 * same overload.
 *
 *   C++11 FLOOR:
-*   The type has no C++98 meaning -- the language cannot form it before
-* C++11 -- so the header gates itself out below that tier rather than
+*   The type has no C++98 meaning - the language cannot form it before
+* C++11 - so the header gates itself out below that tier rather than
 * substituting a NULL-shaped stand-in with different conversion rules.
 *
 *

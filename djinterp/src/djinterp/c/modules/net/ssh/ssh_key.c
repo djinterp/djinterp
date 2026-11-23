@@ -5,7 +5,7 @@
 * secure random source that salts hashed known_hosts entries.
 *   The digests come from net's codec rather than from an engine's crypto
 * library, so fingerprints and known_hosts behave the same whichever engine
-* -- or none -- is compiled.
+* - or none - is compiled.
 *
 *
 * path:      /src/djinterp/c/modules/net/ssh/ssh_key.c

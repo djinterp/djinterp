@@ -5,7 +5,7 @@
 *   Real sockets over loopback: every test listens on an ephemeral port or a
 * unix-domain path of its own, so the suite needs no network and no fixed
 * port. The support helpers open and close connected pairs; the tests that
-* need a second party -- a blocked accept, bulk transfers -- run it on a
+* need a second party - a blocked accept, bulk transfers - run it on a
 * POSIX thread. Needs the BSD sockets backend. Each test returns true when
 * every assertion held.
 *
@@ -91,7 +91,7 @@ struct dj_tests_tcp_codes
 
 // 1.2    Helpers
 //------------------------------------------------------------------------------
-// endpoints and pairs -- a pair listens on 127.0.0.1 port 0, connects, and
+// endpoints and pairs - a pair listens on 127.0.0.1 port 0, connects, and
 // accepts; opening reports false, leaving everything closed, on any failure
 bool d_tests_tcp_endpoint(
     struct dj_net_endpoint* _out,
@@ -116,7 +116,7 @@ bool d_tests_tcp_exchange(
 //------------------------------------------------------------------------------
 // what the tests ask of the system, written once for BSD sockets and once
 // for Winsock (tcp_tests_native.c); the tests call only tcp.h and these
-// time -- a pause of at least the time given, a monotonic clock in
+// time - a pause of at least the time given, a monotonic clock in
 // milliseconds, and a watchdog that ends the process when time runs out
 void d_tests_tcp_pause_ms(
     long _milliseconds
@@ -126,7 +126,7 @@ void d_tests_tcp_watchdog(
     unsigned _seconds
 );
 
-// sockets -- whether one is closed; an inheritable copy of one (a dup() of
+// sockets - whether one is closed; an inheritable copy of one (a dup() of
 // a BSD socket, a Winsock socket itself marked inheritable), whether one is
 // inherited, and the copy dropped; TCP_NODELAY as read back; non-blocking
 // mode set; and a SO_RCVTIMEO or SO_SNDTIMEO limit as read back, in
@@ -155,7 +155,7 @@ long d_tests_tcp_timeout_ms(
     bool          _receive
 );
 
-// the system -- its native error codes, its name for the machine, a
+// the system - its native error codes, its name for the machine, a
 // unix-domain path for this process and tag, and whether a path exists
 struct dj_tests_tcp_codes d_tests_tcp_native_codes(void);
 bool d_tests_tcp_system_name(

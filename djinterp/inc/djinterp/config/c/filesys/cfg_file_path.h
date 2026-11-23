@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][filesys]                                          cfg_file_path.h
 *
-* Build-time configuration for c/filesys/file_path.h -- lexical path
+* Build-time configuration for c/filesys/file_path.h - lexical path
 * manipulation.
 *
 *   file_path is the one filesys module that issues no system calls at all. It
@@ -9,8 +9,8 @@
 * d_path_dirname("/nonexistent/x") is "/nonexistent" whether or not that
 * directory exists. Anything that has to look at the filesystem (getcwd,
 * chdir, realpath) lives in file_dir instead.
-*   That is why the knobs here are about SYNTAX -- which separators count,
-* whether a drive letter is a root -- and not about platform capability.
+*   That is why the knobs here are about SYNTAX - which separators count,
+* whether a drive letter is a root - and not about platform capability.
 *
 *   targets:  c/filesys/file_path.h, c/filesys/file_path.c ->
 *             D_INTERNAL_FILE_PATH_*
@@ -80,7 +80,7 @@ TABLE OF CONTENTS
 // into states that do not exist in reality: drive letters recognised while
 // '\\' was not a separator, so "C:\\x" parsed as the drive-relative "C:"
 // followed by a filename called "\\x". Those three are not independent
-// aspects of a path -- they are consequences of WHICH SYNTAX you are reading.
+// aspects of a path - they are consequences of WHICH SYNTAX you are reading.
 // So there is one knob, and the rest derive from it.
 
 // 1.1.1
@@ -98,7 +98,7 @@ TABLE OF CONTENTS
 // 1.1.3
 // D_CFG_FILE_PATH_SYNTAX
 //   knob: which path grammar this build parses. Defaults to the host's own.
-//   Override it to read the OTHER platform's paths -- a cross-compiler
+//   Override it to read the OTHER platform's paths - a cross-compiler
 // resolving a Windows manifest, an archiver writing a ZIP, a build system
 // consuming paths it did not create. That is a real use case and it is why
 // this is a knob rather than a platform check: the question "what syntax is
@@ -122,8 +122,8 @@ TABLE OF CONTENTS
 //   knob: under WINDOWS syntax, accept '/' as a separator as well as '\\'.
 //   On by default, because Win32 itself accepts both and every makefile,
 // config file and URL a program is handed uses '/'. Meaningless under POSIX
-// syntax, where '\\' is a filename byte -- accepting it as a separator would
-// corrupt legitimate names -- so it is ignored there rather than obeyed.
+// syntax, where '\\' is a filename byte - accepting it as a separator would
+// corrupt legitimate names - so it is ignored there rather than obeyed.
 #ifndef D_CFG_FILE_PATH_ACCEPT_ALT_SEP
     #ifdef D_CFG_FILE_ALL
         #define D_CFG_FILE_PATH_ACCEPT_ALT_SEP D_CFG_FILE_ALL
@@ -135,8 +135,8 @@ TABLE OF CONTENTS
 // 1.1.5
 // D_CFG_FILE_PATH_OUT_SEP
 //   knob: the character this module EMITS when it builds a path (value
-// model). Defaults to the separator of the selected syntax -- not of the host
-// -- so a Linux build reading and writing Windows paths round-trips them
+// model). Defaults to the separator of the selected syntax - not of the host
+// - so a Linux build reading and writing Windows paths round-trips them
 // instead of quietly converting them to '/'.
 //   Set it to '/' explicitly on Windows if you want output that is
 // byte-identical across platforms: Win32 accepts '/' everywhere, and paths
@@ -160,7 +160,7 @@ TABLE OF CONTENTS
 //   On by default, with a caveat that is the whole reason this is a knob:
 // collapsing ".." is only equivalent to what the OS does when no component is a
 // symlink. "/x/link/.." resolves to "/x" lexically, but to the parent of link's
-// TARGET on disk. If that distinction matters, do not normalize -- call
+// TARGET on disk. If that distinction matters, do not normalize - call
 // d_path_resolve (file_dir), which asks the filesystem instead of guessing.
 #ifndef D_CFG_FILE_PATH_NORMALIZE_DOTDOT
     #ifdef D_CFG_FILE_ALL
@@ -172,7 +172,7 @@ TABLE OF CONTENTS
 
 // 1.2.2
 // D_CFG_FILE_PATH_COLLAPSE_SEPARATORS
-//   knob: collapse runs of separators -- "a//b" becomes "a/b". On by
+//   knob: collapse runs of separators - "a//b" becomes "a/b". On by
 // default; POSIX says a leading "//" is implementation-defined, and this
 // module preserves exactly two leading slashes for that reason.
 #ifndef D_CFG_FILE_PATH_COLLAPSE_SEPARATORS
@@ -185,7 +185,7 @@ TABLE OF CONTENTS
 
 // 1.2.3
 // D_CFG_FILE_PATH_STRIP_TRAILING_SEP
-//   knob: drop a trailing separator -- "a/b/" becomes "a/b". On by default.
+//   knob: drop a trailing separator - "a/b/" becomes "a/b". On by default.
 // A root is never stripped: "/" stays "/", and "C:\\" stays "C:\\", because
 // the separator there is the path rather than punctuation on it.
 #ifndef D_CFG_FILE_PATH_STRIP_TRAILING_SEP
@@ -201,7 +201,7 @@ TABLE OF CONTENTS
 // 1.3.1
 // D_CFG_FILE_PATH_JOIN_ABSOLUTE_WINS
 //   knob: when the second component of a join is absolute, discard the
-// first -- join("/a", "/b") is "/b", not "/a/b".
+// first - join("/a", "/b") is "/b", not "/a/b".
 //   On by default: it is what every path library does (POSIX shells,
 // Python's os.path.join, std::filesystem's operator/=), and the alternative
 // silently produces "/a/b" for code that meant to override a base directory
@@ -246,7 +246,7 @@ TABLE OF CONTENTS
 
 // the separator this module writes must be one it reads: '\\' is a filename
 // byte under POSIX syntax, and '/' a separator under Windows syntax only when
-// it is accepted -- otherwise d_path_normalize's own output would not parse
+// it is accepted - otherwise d_path_normalize's own output would not parse
 #if ( (D_CFG_FILE_PATH_OUT_SEP != '/') &&                                      \
       (D_CFG_FILE_PATH_OUT_SEP != '\\') )
     #error "D_CFG_FILE_PATH_OUT_SEP must be '/' or '\\'"
@@ -341,7 +341,7 @@ TABLE OF CONTENTS
 // kernel to open. This one is what d_path_join and d_path_normalize write.
 // The two agree on a native build left at its defaults, and disagree the
 // moment D_CFG_FILE_PATH_SYNTAX selects the other grammar or the knob picks
-// '/' on Windows -- so a caller predicting this module's output needs this
+// '/' on Windows - so a caller predicting this module's output needs this
 // one.
 #if (D_INTERNAL_FILE_PATH_OUT_SEP == '\\')
     #define D_FILE_PATH_OUT_SEP          '\\'

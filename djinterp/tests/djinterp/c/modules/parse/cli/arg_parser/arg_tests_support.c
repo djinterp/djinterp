@@ -260,8 +260,8 @@ void d_tests_arg_show(
 
 /*
 d_tests_arg_begin
-  The parser is made first, so that a failure to make it -- which leaves it
-releasable -- can fail the run; the root is reported as "app".
+  The parser is made first, so that a failure to make it - which leaves it
+releasable - can fail the run; the root is reported as "app".
 */
 struct dj_arg_command* d_tests_arg_begin(
     struct dj_tests_arg_run* _run
@@ -1387,8 +1387,8 @@ bool d_tests_arg_same(
 }
 
 /**
- * @brief Appends text with each control character as its escape -- `\\t`,
- *        `\\n`, or `\\x` and two hexadecimal digits -- and, when asked, each
+ * @brief Appends text with each control character as its escape - `\\t`,
+ *        `\\n`, or `\\x` and two hexadecimal digits - and, when asked, each
  *        backslash as two.
  *
  * @param[in,out] _out        the transcript.
@@ -1486,7 +1486,7 @@ void d_tests_arg_escape(
  * @param[in]     _input      the value.
  * @param[in,out] _out        the buffer that gains the line.
  *
- * One value's line: the value, then what came of it -- `pass` and the value
+ * One value's line: the value, then what came of it - `pass` and the value
  * it became, `fail` and the reason, or `status` and whatever the validator
  * wrote before it stopped with an error.
  */
@@ -1612,8 +1612,8 @@ bool d_tests_arg_holds(
  *
  * Defines the option a d_tests_arg_validates parse validates on the run's
  * root, bound to the variable, and hands it the validator, which is consumed
- * whether or not the option could be defined; the option, or NULL -- also for
- * a root that could not be made -- which fails the run.
+ * whether or not the option could be defined; the option, or NULL - also for
+ * a root that could not be made - which fails the run.
  */
 static
 struct dj_arg_option* d_tests_arg_define_checked(
@@ -1653,7 +1653,7 @@ struct dj_arg_option* d_tests_arg_define_checked(
 
 /*
 d_tests_arg_validates
-  The variable starts as its type's zero -- the conversion of no value -- and
+  The variable starts as its type's zero - the conversion of no value - and
 is read before the run ends, which frees the text a string variable points
 at.
 */

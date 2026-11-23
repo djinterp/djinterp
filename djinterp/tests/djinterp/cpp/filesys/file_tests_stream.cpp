@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][filesys]                                  file_tests_stream.cpp
 *
-*   IV. File (file_stream.hpp) -- the RAII core of the layer, and the section
+*   IV. File (file_stream.hpp) - the RAII core of the layer, and the section
 * with the most to say that the c/filesys suite could not.
 *
 * WHAT OWNERSHIP MEANS, TESTED
@@ -13,15 +13,15 @@
 *     - a move transfers the stream and leaves the source closed, so the
 *       destructor of the husk cannot double-close
 *     - self-move does not destroy the stream it is about to adopt
-*     - the destructor closes, and closing flushes -- verified by reading the
+*     - the destructor closes, and closing flushes - verified by reading the
 *       bytes back with raw stdio after the file has gone out of scope, which
 *       is the only way to see a flush that never happened
 *
 * THE CLOSED HANDLE
 * -----------------
 *   Every operation on a closed file reports EBADF and changes nothing; close()
-* itself is the exception, being idempotent success so that closing twice -- or
-* closing a default-constructed file -- is not an error. Both spellings are
+* itself is the exception, being idempotent success so that closing twice - or
+* closing a default-constructed file - is not an error. Both spellings are
 * asserted, since "EBADF everywhere except close" is easy to get half right.
 *
 * CONSTRUCTORS CANNOT REPORT
@@ -242,7 +242,7 @@ void tests_fs_stream(
                   // flush stdio's buffer on the way out
               }
 
-              // read with raw stdio -- an unflushed buffer would show up here
+              // read with raw stdio - an unflushed buffer would show up here
               // as a short or empty file
               ok = fs_test_contents_are(p, "flushed by the destructor");
 
@@ -301,7 +301,7 @@ void tests_fs_stream(
                   target = static_cast<file&&>(source);
 
                   // the stream target used to own must have been closed, not
-                  // leaked -- it now holds source's
+                  // leaked - it now holds source's
                   ok = target.is_open() && (!source.is_open());
               }
 
@@ -333,7 +333,7 @@ void tests_fs_stream(
               file  source(fs_test_path(D_CF_TEST_FILE), "rb");
               file  sink(static_cast<file&&>(source));
 
-              // moved-from is a valid, closed object -- not a poisoned one
+              // moved-from is a valid, closed object - not a poisoned one
               return ( (source.open(fs_test_path(D_CF_TEST_FILE), "rb", ec)) &&
                        (source.is_open()) );
           });

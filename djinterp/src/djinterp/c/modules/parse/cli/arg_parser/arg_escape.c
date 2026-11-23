@@ -52,8 +52,8 @@ static const char HEX_DIGITS[] = "0123456789abcdef";
  * @return D_ARG_ERROR_VALIDATION, or the buffer's status when the message could
  *         not be written.
  *
- * Records CLI11's message for a malformed escape -- a prefix and the whole
- * text -- and returns the validation status the caller passes up.
+ * Records CLI11's message for a malformed escape - a prefix and the whole
+ * text - and returns the validation status the caller passes up.
  */
 D_STATIC
 int d_arg_internal_escape_fail(
@@ -403,7 +403,7 @@ bool d_arg_internal_binary_bounds(
  *         recognize, or a malformed Unicode escape; or a buffer's status.
  *
  * The escape at `_index`, a backslash with a byte after it: a code letter,
- * a NUL, a Unicode escape -- delegated -- or CLI11's "unrecognized escape
+ * a NUL, a Unicode escape - delegated - or CLI11's "unrecognized escape
  * sequence". `*_consumed` receives how many bytes it spans.
  */
 D_STATIC
@@ -583,8 +583,8 @@ bool d_arg_internal_is_binary_string(
 /*
 d_arg_internal_extract_binary
   extract_binary_string: between the delimiters, `\x` or `\X` and two
-hexadecimal digits are a byte, and every other byte -- a backslash not
-followed so included -- is itself.
+hexadecimal digits are a byte, and every other byte - a backslash not
+followed so included - is itself.
 */
 int d_arg_internal_extract_binary(
     struct dj_pack_text   _text,

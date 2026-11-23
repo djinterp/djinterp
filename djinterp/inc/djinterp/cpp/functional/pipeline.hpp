@@ -1028,7 +1028,7 @@ using pipeline_value_type_t = typename pipeline_value_type<Pipeline>::type;
 
 
 // is_pipeline_mapper
-//   trait: true if Fn is callable as Fn(const Type&) -- the value-side
+//   trait: true if Fn is callable as Fn(const Type&) - the value-side
 // shape accepted by pipeline::map, flat_map, group_by, and for_each. The
 // return type is unconstrained.
 template<typename Fn,
@@ -1041,7 +1041,7 @@ struct is_pipeline_mapper
 
 // is_pipeline_predicate
 //   trait: true if Pred is callable as Pred(const Type&) with a
-// bool-convertible result -- the shape accepted by pipeline::filter,
+// bool-convertible result - the shape accepted by pipeline::filter,
 // take_while, skip_while, any, all, none, count, and partition_pipe.
 template<typename Pred,
          typename Type>

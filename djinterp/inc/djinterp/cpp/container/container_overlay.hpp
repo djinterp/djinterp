@@ -43,8 +43,8 @@
 // djinterp
 #include "../djinterp.hpp"  // framework root, D_ENV_LANG_*
 
-// the overlay baseline is C++17. Below it this header is empty -- a
-// facility above its tier is absent, never an #error -- so it includes its
+// the overlay baseline is C++17. Below it this header is empty - a
+// facility above its tier is absent, never an #error - so it includes its
 // C++17 dependencies only above the gate.
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
@@ -74,7 +74,7 @@ struct overlay_tag
 // II.  CONDITIONAL ALIAS FORWARDING
 // =============================================================================
 // The structural heart of an overlay. Each mixin forwards one nested type
-// alias from the underlying container -- but only if the underlying actually
+// alias from the underlying container - but only if the underlying actually
 // provides it. An overlay then inherits exactly the groups of aliases it
 // wishes to preserve; the axis it changes is the group it omits.
 
@@ -311,7 +311,7 @@ public:
 
     // underlying
     //   accessor: the wrapped container. none of the overlay's behaviour is
-    // hidden -- callers may always recover the original.
+    // hidden - callers may always recover the original.
     D_NODISCARD D_CONSTEXPR_INLINE
     const underlying_container_type& underlying() const noexcept
     {
@@ -520,7 +520,7 @@ public:
 // VI.  FACTORY FUNCTIONS
 // =============================================================================
 // Call-site ergonomics: deduce the underlying type and build the overlay by
-// value (cheap -- it holds a reference). The overlay is bound to the lifetime
+// value (cheap - it holds a reference). The overlay is bound to the lifetime
 // of the argument, exactly as the framework's other views are.
 
 // as_immutable

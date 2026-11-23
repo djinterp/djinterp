@@ -48,19 +48,19 @@ int main()
 {
     std::printf("compress.hpp / compress.cpp unit tests\n");
 
-    // -- status ---------------------------------------------------------------
+    // - status ---------------------------------------------------------------
     D_CP_RUN(tests_compress_status_messages);
     D_CP_RUN(tests_compress_status_unknown);
     D_CP_RUN(tests_compress_status_enum_values);
 
-    // -- traits ---------------------------------------------------------------
+    // - traits ---------------------------------------------------------------
     D_CP_RUN(tests_compress_traits_ids);
     D_CP_RUN(tests_compress_traits_names);
     D_CP_RUN(tests_compress_traits_store_always_available);
     D_CP_RUN(tests_compress_traits_runtime_matches_dispatch);
     D_CP_RUN(tests_compress_traits_out_of_range_unavailable);
 
-    // -- store ----------------------------------------------------------------
+    // - store ----------------------------------------------------------------
     D_CP_RUN(tests_compress_store_roundtrip);
     D_CP_RUN(tests_compress_store_verbatim);
     D_CP_RUN(tests_compress_store_empty);
@@ -70,7 +70,7 @@ int main()
     D_CP_RUN(tests_compress_store_invalid_argument);
     D_CP_RUN(tests_compress_store_null_zero_ok);
 
-    // -- roundtrip ------------------------------------------------------------
+    // - roundtrip ------------------------------------------------------------
     D_CP_RUN(tests_compress_roundtrip_deflate);
     D_CP_RUN(tests_compress_roundtrip_zlib);
     D_CP_RUN(tests_compress_roundtrip_gzip);
@@ -81,7 +81,7 @@ int main()
     D_CP_RUN(tests_compress_roundtrip_brotli);
     D_CP_RUN(tests_compress_roundtrip_signatures);
 
-    // -- api / dispatch -------------------------------------------------------
+    // - api / dispatch -------------------------------------------------------
     D_CP_RUN(tests_compress_api_template_dispatch);
     D_CP_RUN(tests_compress_api_invalid_argument_compress);
     D_CP_RUN(tests_compress_api_invalid_argument_decompress);
@@ -91,7 +91,7 @@ int main()
     D_CP_RUN(tests_compress_api_bad_level_invalid);
     D_CP_RUN(tests_compress_api_zlib_truncated);
 
-    // -- options --------------------------------------------------------------
+    // - options --------------------------------------------------------------
     D_CP_RUN(tests_compress_options_defaults);
     D_CP_RUN(tests_compress_options_deflate_levels);
     D_CP_RUN(tests_compress_options_bzip2_block_sizes);
@@ -100,7 +100,7 @@ int main()
     D_CP_RUN(tests_compress_options_brotli_levels);
     D_CP_RUN(tests_compress_options_store_ignores_level);
 
-    // -- throwing -------------------------------------------------------------
+    // - throwing -------------------------------------------------------------
     D_CP_RUN(tests_compress_throwing_success_matches_try);
     D_CP_RUN(tests_compress_throwing_roundtrip);
     D_CP_RUN(tests_compress_throwing_throws_on_failure);
@@ -108,7 +108,7 @@ int main()
     D_CP_RUN(tests_compress_throwing_error_type);
     D_CP_RUN(tests_compress_throwing_decompress_throws);
 
-    // -- gzip's header --------------------------------------------------------
+    // - gzip's header --------------------------------------------------------
     D_CP_RUN(tests_compress_gzip_default_header);
     D_CP_RUN(tests_compress_gzip_header_round_trip);
     D_CP_RUN(tests_compress_gzip_names);

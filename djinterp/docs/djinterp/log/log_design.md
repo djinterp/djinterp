@@ -256,7 +256,7 @@ keys for tools that want flat attributes.
   their callers log them, finding each by its number with
   `d_log_code_find`, and adding the facts only the caller knows. The
   module's table still sits beside its enum, as inert text. A module may
-  log from inside -- a broken invariant where it happens -- only under a
+  log from inside - a broken invariant where it happens - only under a
   knob of its own, `D_CFG_<MODULE>_LOG`, 0 by default, and a run then
   chooses its records with `log.<module>.level`. Parse, above the log,
   logs through a subscriber unit of its own.

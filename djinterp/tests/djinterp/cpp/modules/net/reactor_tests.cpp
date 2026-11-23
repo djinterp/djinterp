@@ -83,7 +83,7 @@ NS_INTERNAL
 
     // remover
     //   struct: a reactor callback that counts its calls, records the mask,
-    // and removes its own descriptor -- a removal the reactor must defer.
+    // and removes its own descriptor - a removal the reactor must defer.
     struct remover
     {
         remover(

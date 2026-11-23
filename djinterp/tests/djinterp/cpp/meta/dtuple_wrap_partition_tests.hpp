@@ -41,7 +41,7 @@
 *   NOT COVERABLE IN A PASSING SUITE:
 *   The two malformed-schema conditions (a passthrough inside a chunk; a
 *   trailing run not a whole multiple of _N) are `static_assert` HARD errors by
-*   design -- they cannot be instantiated without breaking the build, and being
+*   design - they cannot be instantiated without breaking the build, and being
 *   hard (not SFINAE) errors they cannot be probed either.  Exercised here only
 *   by their absence: every well-formed schema below sits on the passing side.
 *
@@ -98,7 +98,7 @@ template<int _Id>
 struct slot {};
 
 // DPassA / DPassB / DPassC
-//   passthrough types -- they survive UNWRAPPED at their positions.
+//   passthrough types - they survive UNWRAPPED at their positions.
 struct DPassA {};
 struct DPassB {};
 struct DPassC {};
@@ -168,7 +168,7 @@ bool tests_pwp_integration_wrapper_arbitrary();
 bool tests_pwp_integration_complex();
 
 
-// -- the spec provider: spec mode only ----------------------------------------
+// - the spec provider: spec mode only ----------------------------------------
 #ifdef DTEST_SPEC_MODE
 // dtuple_wrap_partition_spec
 //   function: the suite as DTest's module spec, one block per section.

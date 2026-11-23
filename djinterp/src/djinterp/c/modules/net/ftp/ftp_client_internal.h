@@ -2,8 +2,8 @@
 * djinterp [c][net]                                        ftp_client_internal.h
 *
 * Private helpers shared by the two halves of the FTP client.
-*   ftp_client.c holds the session -- connecting, securing, logging in, and
-* the control connection's replies -- and ftp_client_data.c the data
+*   ftp_client.c holds the session - connecting, securing, logging in, and
+* the control connection's replies - and ftp_client_data.c the data
 * connections and transfers. Both read and write connections, and exchange
 * commands, through the helpers declared here, which ftp_client.c defines.
 * Not installed, and not part of the public interface.
@@ -64,7 +64,7 @@ D_EXTERN_C_BEGIN
 // from the session called directly, into an FTP error, taking the
 // transport's error into `failure` and `net_error` first: a timeout, `_lost`
 // for a stream that ended or broke, or D_FTP_ERROR_TLS with the status kept
-// -- a TLS stream ending without close_notify counts as lost, not as TLS,
+// - a TLS stream ending without close_notify counts as lost, not as TLS,
 // on the control connection alone, whose replies frame themselves.
 enum dj_ssl_error d_ftp_internal_client_read(
     struct dj_ftp_connection* _connection,
@@ -130,7 +130,7 @@ void d_ftp_internal_client_drop(
 // d_ftp_internal_client_reply() reads the next whole reply into `reply`;
 // d_ftp_internal_client_send() writes one command line;
 // d_ftp_internal_client_exchange() does both, reading past preliminary
-// replies, and leaves the final reply for the caller to judge -- only a
+// replies, and leaves the final reply for the caller to judge - only a
 // failure to send or read is an error there. d_ftp_internal_client_positive()
 // reports whether the last reply was 2yz, and
 // d_ftp_internal_client_refusal() the error for a reply that did not give

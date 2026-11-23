@@ -4,15 +4,15 @@
 * The window around the documents: its workspaces, its tool windows, the
 * zoom of each window, and the user's own preferences.
 *   A document is one sheet, open in a window of its own; the window shows
-* its bit grid. A tool window -- the inspector, the operations, the macros,
-* a settings page -- shows the document in front of its workspace, and is
+* its bit grid. A tool window - the inspector, the operations, the macros,
+* a settings page - shows the document in front of its workspace, and is
 * docked anywhere, floated, closed with its x, and opened again from View.
 *   A workspace is one of the window's desktops, as a Linux desktop has
 * several: its own documents, its own tool windows and its own layout of
 * them, all kept while another is in front. The Window menu adds them,
 * switches between them, moves a document from one to another, and lays a
 * workspace's documents out tabbed, in columns, in rows or in a grid.
-*   Each window -- a document's or a tool's -- has a zoom of its own, as a
+*   Each window - a document's or a tool's - has a zoom of its own, as a
 * browser's page has: Ctrl and the wheel over it, or Ctrl+= , Ctrl+- and
 * Ctrl+0 for the window in front.
 *   The preferences are the user's, not any sheet's: whether the symbols
@@ -130,7 +130,7 @@ D_NODISCARD bool tool_open(
 );
 
 // tool_for_page
-//   the tool window an old page number names -- the bottom panel's, as
+//   the tool window an old page number names - the bottom panel's, as
 // "tab.show" has always numbered them: 0 operations, 1 macros, 2
 // templates, 3 issues, 4 grid lines, 5 colours, 6 columns, 7 naming, 8
 // the sheet.
@@ -142,7 +142,7 @@ D_NODISCARD tool tool_for_page(
 //   struct: one of the window's desktops. Its documents, by id, in the
 // order they were opened; the one in front; its tool windows, open or not,
 // and those Ctrl+J put away; and the requests its next frame carries out
-// once -- a window to bring to the front, documents to dock among the
+// once - a window to bring to the front, documents to dock among the
 // others afresh (one just moved here), an arrangement of its documents,
 // and a layout built again.
 struct workspace
@@ -172,8 +172,8 @@ enum class add_style : int
 };
 
 // new_colour
-//   enum: what colour a row the user adds takes: none of its own -- set
-// bits drawn plain, in the theme's neutral ink -- one of the palette's,
+//   enum: what colour a row the user adds takes: none of its own - set
+// bits drawn plain, in the theme's neutral ink - one of the palette's,
 // each row its own, as a sheet's rows always took; or the one colour the
 // preferences name, every new row alike.
 enum class new_colour : int
@@ -196,8 +196,8 @@ enum class child_offer : int
 
 // tab_row
 //   enum: what the sheets' tab rows run over: every column, as Dear ImGui's
-// own do; or one of a sheet's -- its bits, as Visual Studio's code tabs
-// run over the code, its symbols column or its value column -- the rest of
+// own do; or one of a sheet's - its bits, as Visual Studio's code tabs
+// run over the code, its symbols column or its value column - the rest of
 // the row the grid's, up to the window's top.
 enum class tab_row : int
 {
@@ -221,7 +221,7 @@ enum class node_window : int
 // symbols tree is the grid's symbol column, how a row is added and what
 // kind the split button adds, the colour a new row takes, whether the
 // window opens where it was left, what ends a group's rows to add one
-// more -- and whether the field there fills its column -- how the Add node
+// more - and whether the field there fills its column - how the Add node
 // window opens, what the sheets' tabs run over and which end they keep
 // to, and the settings files the user keeps, by path.
 struct preferences
@@ -243,7 +243,7 @@ struct preferences
 // action_entry
 //   struct: one thing the user did, as the window heard it: when, by the
 // clock; the action's name and what it carried; the sheet it was done in;
-// and how many times in a row it came -- a drag or a field typed in is one
+// and how many times in a row it came - a drag or a field typed in is one
 // action, many times over.
 struct action_entry
 {
@@ -293,8 +293,8 @@ const float ZOOM_MOST  = 3.0f;
 const float ZOOM_STEP  = 0.1f;
 
 // document_key / tool_window_key
-//   the key a document's window carries -- its zoom's, and the name ImGui
-// knows it by -- and a tool window's, within its workspace.
+//   the key a document's window carries - its zoom's, and the name ImGui
+// knows it by - and a tool window's, within its workspace.
 D_NODISCARD std::string document_key(
     int _document
 );

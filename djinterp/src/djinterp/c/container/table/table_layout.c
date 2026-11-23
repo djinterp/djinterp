@@ -18,7 +18,7 @@
 
 /*
 d_table_index_fibre
-  Enumerates pi^-1(_coarse) -- the refined positions lying over one coarse
+  Enumerates pi^-1(_coarse) - the refined positions lying over one coarse
 position under the subdivision _factors. This is the set an ATOMIC SPLIT's
 subcells are supported on, and its size is the product of the factors.
 
@@ -80,7 +80,7 @@ size_t d_table_index_fibre(
 }
 /*
 d_table_layout_merge
-  Adds _region to the cover as a merged cell -- the move a split inverts. The
+  Adds _region to the cover as a merged cell - the move a split inverts. The
 region must lie in I_T and must not meet any cell already declared, since the
 cells of a cover partition the atomic domain.
 
@@ -206,7 +206,7 @@ d_table_layout_split
 
     target = _merges[_which];
 
-    // formal: a singleton cannot be partitioned -- that gesture refines I_T
+    // formal: a singleton cannot be partitioned - that gesture refines I_T
     if (!d_table_region_is_merge(target))
     {
         return D_TABLE_STATUS_SHAPE;
@@ -488,13 +488,13 @@ D_NODISCARD D_INLINE_DEF struct dj_table_region d_table_region_make2(
 
 /*
 d_table_region_singleton
-  the singleton region at _index -- the layout cell the trivial cover Gamma_0
+  the singleton region at _index - the layout cell the trivial cover Gamma_0
   gives every atomic position.
 
 Parameter(s):
   _index: the position the region covers.
 Return:
-  The region covering exactly that one position -- every span 1.
+  The region covering exactly that one position - every span 1.
 */
 D_NODISCARD D_INLINE_DEF struct dj_table_region d_table_region_singleton(
     struct dj_table_index _index
@@ -656,7 +656,7 @@ D_NODISCARD D_INLINE_DEF struct dj_table_layout d_table_layout_over(
 
 /*
 d_table_layout_wears_no_merges
-  whether every region is a singleton -- the Gamma_0 case.
+  whether every region is a singleton - the Gamma_0 case.
 
 Parameter(s):
   _layout: the layout to interrogate.
@@ -672,7 +672,7 @@ D_NODISCARD D_INLINE_DEF int d_table_layout_wears_no_merges(
 
 /*
 d_table_layout_is_anchor
-  whether the position names its own cell -- i in A_T. A covered non-anchor
+  whether the position names its own cell - i in A_T. A covered non-anchor
   position remains a valid index and defers to the cell anchored elsewhere.
 
 Parameter(s):

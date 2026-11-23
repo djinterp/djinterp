@@ -38,7 +38,7 @@
 #include <string>
 #include <type_traits>
 // djinterp
-// -- (part 1) mode-gated includes ------------------------------------------
+// - (part 1) mode-gated includes ------------------------------------------
 // djinterp core is ALWAYS first and unconditional (NS_*, D_* qualifiers,
 // language gates), so both faces have it.
 #include <djinterp/cpp/djinterp.hpp>
@@ -219,7 +219,7 @@ struct DRichProbe
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- (part 2) declarations - visible in BOTH modes -------------------------
+// - (part 2) declarations - visible in BOTH modes -------------------------
 
 // I.   TEST THREAD + STATE ENUM        (test_thread_tests_thread.cpp)
 bool tests_thread_state_enum_values();
@@ -388,7 +388,7 @@ bool tests_concepts_fully_described();
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
-// -- (part 3) the spec provider - spec mode only ---------------------------
+// - (part 3) the spec provider - spec mode only ---------------------------
 #ifdef DTEST_SPEC_MODE
 inline
 dt::module_spec thread_spec()

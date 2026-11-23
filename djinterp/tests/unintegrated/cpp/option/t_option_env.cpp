@@ -2,9 +2,9 @@
 * djinterp [cpp][option]                                        t_option_env.cpp
 *
 *   option_env's C++ face's harness (cpp/option/option_env.hpp), at every
-* level from C++98: DOptionEnvView over a frame C made -- finding, typed
+* level from C++98: DOptionEnvView over a frame C made - finding, typed
 * reads, the value as text, binding from text and from sources by standing,
-* did you mean, the status of a failure -- DOptionEnv as a root and as a
+* did you mean, the status of a failure - DOptionEnv as a root and as a
 * child, which lets go of its parent when it goes, and DOptionEnvOverride:
 * forced over every other source, given back in order, the frame's own
 * OVERRIDE binding restored, a scoped one, one that fails changing nothing.

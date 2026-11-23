@@ -8,7 +8,7 @@
 * offered each long option the parse does not know, where the parse reads
 * it, so that a setting is only ever taken where an option could stand --
 * in a response file, after an abbreviated option's value, never in a
-* prefix command's arguments -- by the parser's own rules.
+* prefix command's arguments - by the parser's own rules.
 *
 *
 * path:      /src/djinterp/tools/cli/c/cli_settings.c
@@ -58,8 +58,8 @@ D_OPTION_ENV_DECLARE(dj_internal_cli_settings_storage, 16u, 4u, 2048u);
 // D_INTERNAL_CLI_PLUGIN_REFUSED
 //   constant: the sources the plugin rows refuse. None where the caller may
 // choose where modules come from (D_CFG_CLI_PLUGIN_VARIABLE 1); where it may
-// not, every source the caller controls -- the user's file, the environment
-// and the command line -- so that only the program and an override bind
+// not, every source the caller controls - the user's file, the environment
+// and the command line - so that only the program and an override bind
 // them (D_OPTION_ENV_REFUSES_CALLER, option_env's decision 69). A builder
 // who trusts one of those defines D_OPTION_ENV_REFUSES_CALLER as its own set.
 #if (D_INTERNAL_CLI_PLUGIN_VARIABLE == 1)
@@ -814,7 +814,7 @@ int d_cli_settings_start(
 /*
 d_internal_cli_settings_shaped
   Whether an argument is shaped as a setting: `--set`, or a long option
-whose name -- after `no-`, before `=` -- holds a '.'. No option of the
+whose name - after `no-`, before `=` - holds a '.'. No option of the
 kit's is either (R5).
 */
 static bool
@@ -966,8 +966,8 @@ int d_cli_settings_hook(
 
 /*
 d_cli_settings_refused
-  The refusal the parse ended with, if the kit's hook made it -- the
-parser's message is the argument as typed -- said as a usage error from
+  The refusal the parse ended with, if the kit's hook made it - the
+parser's message is the argument as typed - said as a usage error from
 the command the parse failed in, and let go of.
 */
 int d_cli_settings_refused(
@@ -1167,8 +1167,8 @@ d_internal_cli_settings_severity(
 
 /*
 d_cli_settings_report
-  Each held note, as the two settings now say -- the command line's among
-them -- once; an error among them makes the run's trouble.
+  Each held note, as the two settings now say - the command line's among
+them - once; an error among them makes the run's trouble.
 */
 int d_cli_settings_report(
     const struct dj_cli_program* _program

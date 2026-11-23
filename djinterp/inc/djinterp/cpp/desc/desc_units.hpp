@@ -2,8 +2,8 @@
 * djinterp [cpp][desc]                                            desc_units.hpp
 *
 *   desc's C++ face: the C units engine, with a type's description chosen by
-* the type. A type T gives its description as units<T> -- a specialization
-* whose type() returns its struct dj_desc_type -- and its name in prose as
+* the type. A type T gives its description as units<T> - a specialization
+* whose type() returns its struct dj_desc_type - and its name in prose as
 * type_name<T>, which a container's units name its parameters by: "mapping
 * uint32_t to string". Describing a type that gives none fails to compile.
 *

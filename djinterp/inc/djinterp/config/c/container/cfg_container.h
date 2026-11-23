@@ -72,12 +72,12 @@
 
 // D_CFG_CONTAINER_ALL
 //   configuration: optional aggregate for the container subframework's
-// boolean gates. NOT defaulted -- its absence is meaningful. Define it to 0 or
+// boolean gates. NOT defaulted - its absence is meaningful. Define it to 0 or
 // 1 and every gate with no explicit value of its own falls back to it;
 // individual knobs still win. Mirrors D_CFG_FILE_ALL.
 
 // D_CFG_FILTER
-//   configuration: optional aggregate one level higher again -- filter support
+//   configuration: optional aggregate one level higher again - filter support
 // across every subframework that has it. Also not defaulted.
 
 // D_CFG_CONTAINER_FILTER

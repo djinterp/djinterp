@@ -5,7 +5,7 @@
 *   A POSIX thread plays the peer: blocked in accept while the listener
 * closes, or writing and reading amounts well beyond a socket buffer while
 * the test thread does the other half. net.h's algorithms run over the
-* sockets unchanged -- exact and bulk transfers, framing, and pumping.
+* sockets unchanged - exact and bulk transfers, framing, and pumping.
 *
 *
 * path:      /tests/djinterp/c/modules/net/tcp/tcp_tests_threads.c

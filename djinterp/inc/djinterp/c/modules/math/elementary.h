@@ -12,10 +12,10 @@
 * library (std:: in C++, which has the float and long double overloads from
 * C++98), fast at run time. sqrt_c is correctly rounded, so the two square
 * roots agree bit for bit. asin_c, acos_c, sin_c and cos_c are computed
-* once, in long double, as exact pairs -- the sine's argument reduced by
-* pi/2 exactly, however large -- and rounded once to the family, within an
-* ulp of the library's. A face picks one by level -- from C++20 by
-* std::is_constant_evaluated -- and, for the square root, cannot be seen to
+* once, in long double, as exact pairs - the sine's argument reduced by
+* pi/2 exactly, however large - and rounded once to the family, within an
+* ulp of the library's. A face picks one by level - from C++20 by
+* std::is_constant_evaluated - and, for the square root, cannot be seen to
 * have picked.
 *
 *
@@ -91,14 +91,14 @@ d_math_ld_sqrt_c(
 //==============================================================================
 // 1.  THE KERNELS (long double)
 //==============================================================================
-// What every family's sine, cosine, arc-sine and arc-cosine -- and
-// tangent.h's tangent and arc-tangents -- are computed with, once, in long
+// What every family's sine, cosine, arc-sine and arc-cosine - and
+// tangent.h's tangent and arc-tangents - are computed with, once, in long
 // double: exact sums and products (which exponential.h's kernels use too),
 // 2/pi to as many bits as the widest long double reaches, the reduction of an
 // argument by its nearest multiple of pi/2, the sine and cosine of what
 // remains, the arc-tangent of the unit interval, and the arc-sine and
-// arc-cosine on it; each result kept as an exact pair -- a value and the
-// rounding error below it -- so that a family rounds it once. Nothing depends
+// arc-cosine on it; each result kept as an exact pair - a value and the
+// rounding error below it - so that a family rounds it once. Nothing depends
 // on long double's format beyond <float.h>: the text is the same for an x87's
 // 64 bits, for a long double that is double, and for a quad's 113 bits.
 
@@ -360,8 +360,8 @@ d_internal_math_ld_two_over_pi_digit(
 // within 2^-53 of a multiple of pi/2, where those pieces would not reach,
 // Payne and Hanek's: x's digits, base 2^24, times as many of 2/pi's as x's
 // exponent reaches, in exact columns of 48-bit products; the integer part kept
-// only mod 4, the fraction from its first nonzero digit -- the digits before
-// it are what x's nearness to a multiple of pi/2 cancelled -- to past twice
+// only mod 4, the fraction from its first nonzero digit - the digits before
+// it are what x's nearness to a multiple of pi/2 cancelled - to past twice
 // long double's precision, and then multiplied by pi/2. Either way r is
 // within 2^-(P+30) of itself, P long double's precision, at every finite x.
 
@@ -598,7 +598,7 @@ d_internal_math_ld_reduce(
 
         // the pieces hold pi/2 to 2^-(103+P), so n pi/2 to 2^-(83+P), which
         // is 2^-(P+30) of r while |r| is 2^-53 or more; nearer a multiple of
-        // pi/2 -- in a quad, where the cancellation can pass 100 bits -- x
+        // pi/2 - in a quad, where the cancellation can pass 100 bits - x
         // takes the exact way
         if ( (n != 0.0L) &&
              (result.r < tiny) &&
@@ -720,7 +720,7 @@ d_internal_math_ld_trig(
 // atan t = t - t^3/3 + t^5/5 - ..., to its 24th term, past a quad's
 // precision; atan c and pi/2 are each held as a head of at most 32 bits,
 // exact as written, and the rest; and the heads and t are summed exactly --
-// q pi/2 + atan c is exact for each q -- so that only the last addition
+// q pi/2 + atan c is exact for each q - so that only the last addition
 // rounds, and what it rounds off is kept.
 
 // d_internal_math_ld_ratio
@@ -1008,9 +1008,9 @@ d_internal_math_f_nan(void)
 // d_internal_math_f_round_pair
 //   a kernel's _hi + _lo rounded once to the family's type: _hi is the sum
 // rounded to long double, and converting it rounds again, which is the same
-// rounding but where _hi lies exactly between two values of the type -- the
+// rounding but where _hi lies exactly between two values of the type - the
 // first rounding having landed on the midpoint, as it does for log(1 - 2^-52)
-// and exp(2^-53) -- and then _lo's sign decides. A finite _hi past the
+// and exp(2^-53) - and then _lo's sign decides. A finite _hi past the
 // type's range is an infinity, but for the midpoint above the largest finite
 // value with the sum below it, which rounds there. A long double is _hi.
 D_MATH_FN float
@@ -1200,8 +1200,8 @@ d_internal_math_f_wide_less(
 // 2^(P-1), the root is R / S for an integer R, the midpoint above it is
 // (2R + 1) / 2S, and sqrt(m) passes it exactly when 4 S M > (2R + 1)^2, M =
 // m S being an integer too. Integer arithmetic is the same under every
-// floating-point evaluation method -- an x87's excess precision, which
-// breaks Dekker's product, included -- and in constant evaluation.
+// floating-point evaluation method - an x87's excess precision, which
+// breaks Dekker's product, included - and in constant evaluation.
 D_MATH_FN float
 d_internal_math_f_sqrt_settle(
     float _m,
@@ -1486,8 +1486,8 @@ d_internal_math_f_digits_less(
 }
 
 // d_internal_math_f_sqrt_settle_digits
-//   sqrt_settle where two limbs do not hold (2^(P+1))^2 -- a double where
-// dj_math_umax has 32 bits -- in digits of 16 bits instead, exact in
+//   sqrt_settle where two limbs do not hold (2^(P+1))^2 - a double where
+// dj_math_umax has 32 bits - in digits of 16 bits instead, exact in
 // integers, so that nothing depends on how the build evaluates floating
 // point. R / S is the rounded root when (2R - 1)^2 < 4 S M < (2R + 1)^2,
 // that is when the residual G = S M - R^2 + R - 1 lies in [0, 2R): R is
@@ -1564,14 +1564,14 @@ d_internal_math_f_sqrt_settle_digits(
 
 // d_internal_math_f_sqrt_unit
 //   the correctly rounded square root of _m in [1, 4): Newton's iteration
-// from a line within 6% of it -- six steps pass any precision to a quad's --
-// then the last bit settled. Where two limbs hold (2^(P+1))^2 -- float, and
-// double with a 64-bit dj_math_umax -- it is settled in integers
+// from a line within 6% of it - six steps pass any precision to a quad's --
+// then the last bit settled. Where two limbs hold (2^(P+1))^2 - float, and
+// double with a 64-bit dj_math_umax - it is settled in integers
 // (sqrt_settle), exact however the build evaluates floating point. Where
-// they do not and P is below 64 -- a double where dj_math_umax has 32 bits,
-// which an x87 holds in registers wider than a double -- in integers too, in
-// digits of 16 bits (sqrt_settle_digits). Otherwise -- a long double of 64
-// bits or more -- by the residual m - root^2, taken exactly by Dekker's
+// they do not and P is below 64 - a double where dj_math_umax has 32 bits,
+// which an x87 holds in registers wider than a double - in integers too, in
+// digits of 16 bits (sqrt_settle_digits). Otherwise - a long double of 64
+// bits or more - by the residual m - root^2, taken exactly by Dekker's
 // product, against the midpoints with the root's neighbours: arithmetic
 // that is its own evaluation format, so that no excess precision intervenes.
 D_MATH_FN float
@@ -1596,7 +1596,7 @@ d_internal_math_f_sqrt_unit(
     }
 
     // in digits where they do not, for a precision below 64: Dekker's
-    // product, below, might be evaluated wider than the family -- on the
+    // product, below, might be evaluated wider than the family - on the
     // x87, by clang even where long double is a double
     if (FLT_MANT_DIG < 64)
     {
@@ -1637,7 +1637,7 @@ d_internal_math_f_sqrt_unit(
 // text is a constant expression from C++14, and it agrees with sqrt, the C
 // library's (correctly rounded too, by IEEE 754), bit for bit: a face may use
 // either and not know which ran. Where the target evaluates the family wider
-// than its type -- float and double on a 32-bit x87 -- the library's root can
+// than its type - float and double on a 32-bit x87 - the library's root can
 // come back wider too (glibc's sqrtf leaves the x87's 64 bits), and sqrt
 // stores it, so that it is the family's, as sqrt_c's is. -0 stays -0, a
 // negative or NaN gives NaN, +inf stays +inf.
@@ -1705,7 +1705,7 @@ d_math_f_sqrt(
 // 2.3    Arc-sine and arc-cosine
 //------------------------------------------------------------------------------
 // asin_c and acos_c are pure arithmetic, constant expressions from C++14: the
-// kernels' pairs (section 1.6) rounded once to the family -- the correctly
+// kernels' pairs (section 1.6) rounded once to the family - the correctly
 // rounded value but where the exact one lies within the kernels' error of a
 // midpoint, and so within an ulp of asin and acos, which are the C library's.
 // A value outside [-1, 1], or NaN, gives NaN, as the library's do; asin keeps
@@ -1785,8 +1785,8 @@ d_math_f_acos(
 // 2.4    Sine and cosine
 //------------------------------------------------------------------------------
 // sin_c and cos_c are pure arithmetic, constant expressions from C++14, at
-// every finite argument: the kernel's pair (section 1.4) -- the argument
-// reduced exactly, however large -- rounded once to the family: the correctly
+// every finite argument: the kernel's pair (section 1.4) - the argument
+// reduced exactly, however large - rounded once to the family: the correctly
 // rounded value but where the exact one lies within the kernel's error of a
 // midpoint, and so within an ulp of sin and cos, which are the C library's.
 // NaN and an infinity give NaN; -0 stays -0 for sin.
@@ -1893,9 +1893,9 @@ d_internal_math_d_nan(void)
 // d_internal_math_d_round_pair
 //   a kernel's _hi + _lo rounded once to the family's type: _hi is the sum
 // rounded to long double, and converting it rounds again, which is the same
-// rounding but where _hi lies exactly between two values of the type -- the
+// rounding but where _hi lies exactly between two values of the type - the
 // first rounding having landed on the midpoint, as it does for log(1 - 2^-52)
-// and exp(2^-53) -- and then _lo's sign decides. A finite _hi past the
+// and exp(2^-53) - and then _lo's sign decides. A finite _hi past the
 // type's range is an infinity, but for the midpoint above the largest finite
 // value with the sum below it, which rounds there. A long double is _hi.
 D_MATH_FN double
@@ -2085,8 +2085,8 @@ d_internal_math_d_wide_less(
 // 2^(P-1), the root is R / S for an integer R, the midpoint above it is
 // (2R + 1) / 2S, and sqrt(m) passes it exactly when 4 S M > (2R + 1)^2, M =
 // m S being an integer too. Integer arithmetic is the same under every
-// floating-point evaluation method -- an x87's excess precision, which
-// breaks Dekker's product, included -- and in constant evaluation.
+// floating-point evaluation method - an x87's excess precision, which
+// breaks Dekker's product, included - and in constant evaluation.
 D_MATH_FN double
 d_internal_math_d_sqrt_settle(
     double _m,
@@ -2371,8 +2371,8 @@ d_internal_math_d_digits_less(
 }
 
 // d_internal_math_d_sqrt_settle_digits
-//   sqrt_settle where two limbs do not hold (2^(P+1))^2 -- a double where
-// dj_math_umax has 32 bits -- in digits of 16 bits instead, exact in
+//   sqrt_settle where two limbs do not hold (2^(P+1))^2 - a double where
+// dj_math_umax has 32 bits - in digits of 16 bits instead, exact in
 // integers, so that nothing depends on how the build evaluates floating
 // point. R / S is the rounded root when (2R - 1)^2 < 4 S M < (2R + 1)^2,
 // that is when the residual G = S M - R^2 + R - 1 lies in [0, 2R): R is
@@ -2449,14 +2449,14 @@ d_internal_math_d_sqrt_settle_digits(
 
 // d_internal_math_d_sqrt_unit
 //   the correctly rounded square root of _m in [1, 4): Newton's iteration
-// from a line within 6% of it -- six steps pass any precision to a quad's --
-// then the last bit settled. Where two limbs hold (2^(P+1))^2 -- float, and
-// double with a 64-bit dj_math_umax -- it is settled in integers
+// from a line within 6% of it - six steps pass any precision to a quad's --
+// then the last bit settled. Where two limbs hold (2^(P+1))^2 - float, and
+// double with a 64-bit dj_math_umax - it is settled in integers
 // (sqrt_settle), exact however the build evaluates floating point. Where
-// they do not and P is below 64 -- a double where dj_math_umax has 32 bits,
-// which an x87 holds in registers wider than a double -- in integers too, in
-// digits of 16 bits (sqrt_settle_digits). Otherwise -- a long double of 64
-// bits or more -- by the residual m - root^2, taken exactly by Dekker's
+// they do not and P is below 64 - a double where dj_math_umax has 32 bits,
+// which an x87 holds in registers wider than a double - in integers too, in
+// digits of 16 bits (sqrt_settle_digits). Otherwise - a long double of 64
+// bits or more - by the residual m - root^2, taken exactly by Dekker's
 // product, against the midpoints with the root's neighbours: arithmetic
 // that is its own evaluation format, so that no excess precision intervenes.
 D_MATH_FN double
@@ -2481,7 +2481,7 @@ d_internal_math_d_sqrt_unit(
     }
 
     // in digits where they do not, for a precision below 64: Dekker's
-    // product, below, might be evaluated wider than the family -- on the
+    // product, below, might be evaluated wider than the family - on the
     // x87, by clang even where long double is a double
     if (DBL_MANT_DIG < 64)
     {
@@ -2522,7 +2522,7 @@ d_internal_math_d_sqrt_unit(
 // text is a constant expression from C++14, and it agrees with sqrt, the C
 // library's (correctly rounded too, by IEEE 754), bit for bit: a face may use
 // either and not know which ran. Where the target evaluates the family wider
-// than its type -- float and double on a 32-bit x87 -- the library's root can
+// than its type - float and double on a 32-bit x87 - the library's root can
 // come back wider too (glibc's sqrtf leaves the x87's 64 bits), and sqrt
 // stores it, so that it is the family's, as sqrt_c's is. -0 stays -0, a
 // negative or NaN gives NaN, +inf stays +inf.
@@ -2590,7 +2590,7 @@ d_math_d_sqrt(
 // 3.3    Arc-sine and arc-cosine
 //------------------------------------------------------------------------------
 // asin_c and acos_c are pure arithmetic, constant expressions from C++14: the
-// kernels' pairs (section 1.6) rounded once to the family -- the correctly
+// kernels' pairs (section 1.6) rounded once to the family - the correctly
 // rounded value but where the exact one lies within the kernels' error of a
 // midpoint, and so within an ulp of asin and acos, which are the C library's.
 // A value outside [-1, 1], or NaN, gives NaN, as the library's do; asin keeps
@@ -2670,8 +2670,8 @@ d_math_d_acos(
 // 3.4    Sine and cosine
 //------------------------------------------------------------------------------
 // sin_c and cos_c are pure arithmetic, constant expressions from C++14, at
-// every finite argument: the kernel's pair (section 1.4) -- the argument
-// reduced exactly, however large -- rounded once to the family: the correctly
+// every finite argument: the kernel's pair (section 1.4) - the argument
+// reduced exactly, however large - rounded once to the family: the correctly
 // rounded value but where the exact one lies within the kernel's error of a
 // midpoint, and so within an ulp of sin and cos, which are the C library's.
 // NaN and an infinity give NaN; -0 stays -0 for sin.
@@ -2771,9 +2771,9 @@ d_internal_math_ld_nan(void)
 // d_internal_math_ld_round_pair
 //   a kernel's _hi + _lo rounded once to the family's type: _hi is the sum
 // rounded to long double, and converting it rounds again, which is the same
-// rounding but where _hi lies exactly between two values of the type -- the
+// rounding but where _hi lies exactly between two values of the type - the
 // first rounding having landed on the midpoint, as it does for log(1 - 2^-52)
-// and exp(2^-53) -- and then _lo's sign decides. A finite _hi past the
+// and exp(2^-53) - and then _lo's sign decides. A finite _hi past the
 // type's range is an infinity, but for the midpoint above the largest finite
 // value with the sum below it, which rounds there. A long double is _hi.
 D_MATH_FN long double
@@ -2941,8 +2941,8 @@ d_internal_math_ld_wide_less(
 // 2^(P-1), the root is R / S for an integer R, the midpoint above it is
 // (2R + 1) / 2S, and sqrt(m) passes it exactly when 4 S M > (2R + 1)^2, M =
 // m S being an integer too. Integer arithmetic is the same under every
-// floating-point evaluation method -- an x87's excess precision, which
-// breaks Dekker's product, included -- and in constant evaluation.
+// floating-point evaluation method - an x87's excess precision, which
+// breaks Dekker's product, included - and in constant evaluation.
 D_MATH_FN long double
 d_internal_math_ld_sqrt_settle(
     long double _m,
@@ -3227,8 +3227,8 @@ d_internal_math_ld_digits_less(
 }
 
 // d_internal_math_ld_sqrt_settle_digits
-//   sqrt_settle where two limbs do not hold (2^(P+1))^2 -- a double where
-// dj_math_umax has 32 bits -- in digits of 16 bits instead, exact in
+//   sqrt_settle where two limbs do not hold (2^(P+1))^2 - a double where
+// dj_math_umax has 32 bits - in digits of 16 bits instead, exact in
 // integers, so that nothing depends on how the build evaluates floating
 // point. R / S is the rounded root when (2R - 1)^2 < 4 S M < (2R + 1)^2,
 // that is when the residual G = S M - R^2 + R - 1 lies in [0, 2R): R is
@@ -3305,14 +3305,14 @@ d_internal_math_ld_sqrt_settle_digits(
 
 // d_internal_math_ld_sqrt_unit
 //   the correctly rounded square root of _m in [1, 4): Newton's iteration
-// from a line within 6% of it -- six steps pass any precision to a quad's --
-// then the last bit settled. Where two limbs hold (2^(P+1))^2 -- float, and
-// double with a 64-bit dj_math_umax -- it is settled in integers
+// from a line within 6% of it - six steps pass any precision to a quad's --
+// then the last bit settled. Where two limbs hold (2^(P+1))^2 - float, and
+// double with a 64-bit dj_math_umax - it is settled in integers
 // (sqrt_settle), exact however the build evaluates floating point. Where
-// they do not and P is below 64 -- a double where dj_math_umax has 32 bits,
-// which an x87 holds in registers wider than a double -- in integers too, in
-// digits of 16 bits (sqrt_settle_digits). Otherwise -- a long double of 64
-// bits or more -- by the residual m - root^2, taken exactly by Dekker's
+// they do not and P is below 64 - a double where dj_math_umax has 32 bits,
+// which an x87 holds in registers wider than a double - in integers too, in
+// digits of 16 bits (sqrt_settle_digits). Otherwise - a long double of 64
+// bits or more - by the residual m - root^2, taken exactly by Dekker's
 // product, against the midpoints with the root's neighbours: arithmetic
 // that is its own evaluation format, so that no excess precision intervenes.
 D_MATH_FN long double
@@ -3337,7 +3337,7 @@ d_internal_math_ld_sqrt_unit(
     }
 
     // in digits where they do not, for a precision below 64: Dekker's
-    // product, below, might be evaluated wider than the family -- on the
+    // product, below, might be evaluated wider than the family - on the
     // x87, by clang even where long double is a double
     if (LDBL_MANT_DIG < 64)
     {
@@ -3378,7 +3378,7 @@ d_internal_math_ld_sqrt_unit(
 // text is a constant expression from C++14, and it agrees with sqrt, the C
 // library's (correctly rounded too, by IEEE 754), bit for bit: a face may use
 // either and not know which ran. Where the target evaluates the family wider
-// than its type -- float and double on a 32-bit x87 -- the library's root can
+// than its type - float and double on a 32-bit x87 - the library's root can
 // come back wider too (glibc's sqrtf leaves the x87's 64 bits), and sqrt
 // stores it, so that it is the family's, as sqrt_c's is. -0 stays -0, a
 // negative or NaN gives NaN, +inf stays +inf.
@@ -3446,7 +3446,7 @@ d_math_ld_sqrt(
 // 4.3    Arc-sine and arc-cosine
 //------------------------------------------------------------------------------
 // asin_c and acos_c are pure arithmetic, constant expressions from C++14: the
-// kernels' pairs (section 1.6) rounded once to the family -- the correctly
+// kernels' pairs (section 1.6) rounded once to the family - the correctly
 // rounded value but where the exact one lies within the kernels' error of a
 // midpoint, and so within an ulp of asin and acos, which are the C library's.
 // A value outside [-1, 1], or NaN, gives NaN, as the library's do; asin keeps
@@ -3526,8 +3526,8 @@ d_math_ld_acos(
 // 4.4    Sine and cosine
 //------------------------------------------------------------------------------
 // sin_c and cos_c are pure arithmetic, constant expressions from C++14, at
-// every finite argument: the kernel's pair (section 1.4) -- the argument
-// reduced exactly, however large -- rounded once to the family: the correctly
+// every finite argument: the kernel's pair (section 1.4) - the argument
+// reduced exactly, however large - rounded once to the family: the correctly
 // rounded value but where the exact one lies within the kernel's error of a
 // midpoint, and so within an ulp of sin and cos, which are the C library's.
 // NaN and an infinity give NaN; -0 stays -0 for sin.

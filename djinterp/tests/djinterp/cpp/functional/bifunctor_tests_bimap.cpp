@@ -6,7 +6,7 @@
 * yielding F<C, D>.  Covers the both-sides mapping, the f-to-first / g-to-second
 * routing (shown with asymmetric functions), independent type changes on each
 * side, the identity edge case, argument forwarding (lvalue / rvalue), and the
-* result types -- over std::pair, DKvPair, and the custom two<A,B> fixture.
+* result types - over std::pair, DKvPair, and the custom two<A,B> fixture.
 *
 *   DKvPair equality is key-only, so kv checks read the key / value fields.
 *

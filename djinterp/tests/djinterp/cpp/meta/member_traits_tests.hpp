@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][meta]                                   member_traits_tests.hpp
 *
-* Unit test suite for member_traits.hpp -- the DEPRECATED transitional shim.
+* Unit test suite for member_traits.hpp - the DEPRECATED transitional shim.
 *   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.md S3):
 *
 *     - normal mode (the section TUs): pulls in the header under test and
@@ -19,7 +19,7 @@
 * plus the transitive guarantee that including the shim makes the new headers'
 * concrete detectors (has_value_type, ...) and the pick_member_type helper
 * visible, since the shim includes member_types.hpp.  There is no runtime code
-* and no data structure here -- the only observable behaviour is what the two
+* and no data structure here - the only observable behaviour is what the two
 * forwarded macros EXPAND TO.  So the suite's job is to INVOKE each forwarded
 * spelling and prove the emitted trait behaves exactly like the canonical macro
 * it forwards to.
@@ -44,7 +44,7 @@
 *   THE NAME-DERIVATION GUARANTEE.  The old D_DEFINE_HAS_MEMBER_TYPE(NAME)
 * auto-derived its trait name as `has_<NAME>`; the shim preserves that.  So the
 * invocation D_DEFINE_HAS_MEMBER_TYPE(flavor_type) must produce a trait spelled
-* exactly `has_flavor_type` -- the test names that identifier directly, which
+* exactly `has_flavor_type` - the test names that identifier directly, which
 * only compiles if the derivation is right.
 *
 *   BUILD PREREQUISITE: none.  member_traits.hpp compiles as shipped (it is
@@ -67,7 +67,7 @@
 #include <cstdio>
 #include <type_traits>
 // djinterp
-// -- (part 1) mode-gated includes --------------------------------------------
+// - (part 1) mode-gated includes --------------------------------------------
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
 #include "../../../../inc/djinterp/cpp/meta/member_traits.hpp"                    // the deprecated shim under test
@@ -124,7 +124,7 @@ bool member_traits_check(
     while (0)
 
 
-#ifndef DTEST_SPEC_MODE  // (part 1 cont.) fixtures -- normal mode only
+#ifndef DTEST_SPEC_MODE  // (part 1 cont.) fixtures - normal mode only
 
 ///////////////////////////////////////////////////////////////////////////////
 ///             F.1   PROBE TYPES                                           ///
@@ -144,7 +144,7 @@ struct DNoFlavor
 {};
 
 // DFlavorValueShaped
-//   struct: a static DATA member named flavor_type -- a value, not a type, so
+//   struct: a static DATA member named flavor_type - a value, not a type, so
 // the (typedef) detector must reject it.
 struct DFlavorValueShaped
 {
@@ -189,7 +189,7 @@ D_TYPE_TRAIT_MEMBER_TYPE_OR(canon_extract_flavor, flavor_type, void)
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- (part 2) declarations -- visible in BOTH modes --------------------------
+// - (part 2) declarations - visible in BOTH modes --------------------------
 
 // I.   FORWARDING   (member_traits_tests_forwarding.cpp)
 bool tests_forwarding_has_member_type_detects();
@@ -201,11 +201,11 @@ bool tests_forwarding_member_type_or_matches_canonical();
 bool tests_forwarding_shim_reexports_new_detectors();
 
 
-// -- (part 3) the spec provider -- spec mode only ----------------------------
+// - (part 3) the spec provider - spec mode only ----------------------------
 #ifdef DTEST_SPEC_MODE
 
 // member_traits_spec
-//   function: the authoritative description of this suite -- one block, one row
+//   function: the authoritative description of this suite - one block, one row
 // per tests_* body, every node named and described.
 inline
 dt::module_spec member_traits_spec()

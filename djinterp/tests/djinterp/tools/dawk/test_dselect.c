@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][tools]                                             test_dselect.c
 *
-* Test_dselect.c -- selector engine: the Selectors Level 4 pseudo-classes.
+* Test_dselect.c - selector engine: the Selectors Level 4 pseudo-classes.
 *
 *
 * path:      /tests/djinterp/tools/dawk/test_dselect.c
@@ -9,7 +9,7 @@
 * author(s): TBA                                                    created: TBA
 *                                                            revised: 2026.09.22
 *******************************************************************************/
-// test_dselect.c -- selector engine: the Selectors Level 4 pseudo-classes
+// test_dselect.c - selector engine: the Selectors Level 4 pseudo-classes
 // (:not :is :has :first-child :last-child :only-child :nth-child
 // :nth-last-child), relative selectors inside :has, contiguity of nested
 // selector lists, and the parser's `a[x] [y]` warning.

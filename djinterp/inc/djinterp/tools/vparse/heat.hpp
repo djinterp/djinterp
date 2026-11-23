@@ -5,13 +5,13 @@
 *   Each trace step happens at an input position, inside some rule's code. The
 * heat space counts those steps per (position, rule) cell over time, in a
 * ui::visit_source the heatmap lens draws; a second source counts arrivals --
-* the times the parser came to a cell from somewhere else -- which is the
+* the times the parser came to a cell from somewhere else - which is the
 * direct measure of re-parsing. Cells visited over and over are work a packrat
 * memo table would save.
 *   Columns are input positions, grouped into ranges when the input is long so
 * a run of any length fits; rows are rules, the start rule on top. The call
 * stack at any step is kept as parent links, so the derivation in progress --
-* the trail drawn over the map -- costs its depth to recover, not a replay.
+* the trail drawn over the map - costs its depth to recover, not a replay.
 *
 *
 * path:      /inc/djinterp/tools/vparse/heat.hpp
@@ -82,7 +82,7 @@ namespace ui = ::djinterp::ui;
 struct heat_space
 {
     // frame
-    //   struct: one call on the stack -- the called rule's row, the column it
+    //   struct: one call on the stack - the called rule's row, the column it
     // started at, and the frame below it (-1 at the bottom).
     struct frame
     {
@@ -143,7 +143,7 @@ heat_space build_heat(
 //------------------------------------------------------------------------------
 // 2.2.1
 // heat_colors
-//   function: the heat ramp on the workbench's paper -- faint, then
+//   function: the heat ramp on the workbench's paper - faint, then
 // highlighter yellow, then orange, then the ribbon's red.
 ui::colormap heat_colors();
 
@@ -160,7 +160,7 @@ ui::scene heat_scene(
 // 2.2.3
 // heat_overlay
 //   function: what to draw over the map at _step: the call stack as a trail,
-// the machine's cell, and -- for a failed run -- where it got furthest.
+// the machine's cell, and - for a failed run - where it got furthest.
 ui::field_overlay heat_overlay(
     const heat_space& _space,
     const run_record& _run,

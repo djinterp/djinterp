@@ -13,7 +13,7 @@
 #     runner            : ${CMAKE_CURRENT_SOURCE_DIR}/visitor_tests_runner.cpp
 #
 #   NOTE ON THE SLUG.  The header's banner gives its path as /inc/patterns/
-# visitor.hpp, but it includes "../../djinterp.hpp" -- two levels up -- which that
+# visitor.hpp, but it includes "../../djinterp.hpp" - two levels up - which that
 # path cannot satisfy.  The slug below is the reading that makes the include
 # resolve while keeping the banner's "patterns" grouping.  If the tree says
 # otherwise, this is the one line to change.

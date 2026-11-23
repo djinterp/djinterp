@@ -6,7 +6,7 @@
 * under the lock, so the two forms cannot drift.
 *   counter_atomic.h is the lock-free form, and the one to reach for first. A
 * mutex costs a lock per step but needs no 64-bit atomic, so this form exists
-* wherever dmutex.h does -- ISO strict C++98 included -- and a caller that
+* wherever dmutex.h does - ISO strict C++98 included - and a caller that
 * must hold a counter still across several steps can do so with snapshot.
 *
 *   Set up, then share; stop sharing, then destroy. init creates the mutex and

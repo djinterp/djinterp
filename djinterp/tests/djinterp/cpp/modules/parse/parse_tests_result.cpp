@@ -160,7 +160,7 @@ tests_parse_result_type_surface
   - parse_result derives publicly from result<T, parse_error>,
   - PINNED: is_result<parse_result<T>> is FALSE, because is_result matches
     the result specialisation exactly and does not see through a derived
-    class -- expected to invert if is_result ever decays through bases,
+    class - expected to invert if is_result ever decays through bases,
   - the deleted default constructor of the base is inherited in effect, so
     every parse_result is explicitly a success or a failure.
 */
@@ -547,7 +547,7 @@ tests_parse_result_inherited_map
   - map leaves a failure untouched and does not invoke the function,
   - the error survives the transformation unchanged,
   - PINNED: map returns the BASE result<U, parse_error>, not
-    parse_result<U> -- expected to invert if parse_result ever overrides
+    parse_result<U> - expected to invert if parse_result ever overrides
     the combinators to preserve the refinement.
 */
 bool tests_parse_result_inherited_map()
@@ -587,7 +587,7 @@ bool tests_parse_result_inherited_map()
     D_PA_CHECK(rendered.is_ok());
     D_PA_CHECK(rendered.value() == std::string("xxxxxx"));
 
-    // PINNED: the refinement is lost across map -- the static type of the
+    // PINNED: the refinement is lost across map - the static type of the
     // expression is the base, not parse_result
     D_PA_CHECK((std::is_same<
         decltype(success.map(std::declval<int (*)(const int&)>())),

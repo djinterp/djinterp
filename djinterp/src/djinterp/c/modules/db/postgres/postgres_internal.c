@@ -5,9 +5,9 @@
 * PostgreSQL layer's modules: results read, name checks and quoting,
 * statements run and read, IF NOT EXISTS settled, and catalogue lookups.
 *   Every statement goes through d_internal_postgres_execute, which runs it
-* with PQexec -- the simple query protocol, which takes several statements in
+* with PQexec - the simple query protocol, which takes several statements in
 * one string and needs no parameters, since every value is quoted into the
-* text -- and turns what libpq hands back into the layer's result. A COPY to
+* text - and turns what libpq hands back into the layer's result. A COPY to
 * or from the client, which only the caller's own SQL can start, is ended
 * there and then, so that a connection never leaves the layer mid-COPY.
 *
@@ -731,8 +731,8 @@ int d_internal_postgres_take(
 /*
 d_internal_postgres_format_result
   Memory has the server's code for it; anything else the formatter would not
-write -- a format it cannot read, a NaN, a NUL character, text not valid in
-the connection's encoding -- is the caller's argument.
+write - a format it cannot read, a NaN, a NUL character, text not valid in
+the connection's encoding - is the caller's argument.
 */
 int
 d_internal_postgres_format_result(
@@ -759,8 +759,8 @@ d_internal_postgres_format_result(
 #if D_THREAD_LOCAL_AVAILABLE
 
 // d_internal_postgres_own_db, d_internal_postgres_own_result
-//   variables: the layer's latest answer of its own on this thread -- the
-// connection, and the result -- until libpq answers on that connection.
+//   variables: the layer's latest answer of its own on this thread - the
+// connection, and the result - until libpq answers on that connection.
 static D_THREAD_LOCAL const PGconn* d_internal_postgres_own_db     = NULL;
 static D_THREAD_LOCAL int           d_internal_postgres_own_result = 0;
 
@@ -1030,7 +1030,7 @@ int d_internal_postgres_flush(
 d_internal_postgres_arrived
   PQconsumeInput reads whatever the socket holds and never waits; PQisBusy
 then says whether PQgetResult would. libpq reads the end of the results too
--- its ReadyForQuery -- before it answers NULL, so the end can be waited for
+-- its ReadyForQuery - before it answers NULL, so the end can be waited for
 as a result is.
 */
 int d_internal_postgres_arrived(
@@ -1552,7 +1552,7 @@ int d_internal_postgres_query_bool(
 
 /*
 d_internal_postgres_vchanges
-  The statement's command tag carries its count -- INSERT 0 3, UPDATE 2 --
+  The statement's command tag carries its count - INSERT 0 3, UPDATE 2 --
 which PQcmdTuples isolates; a statement that counts nothing has "".
 */
 int d_internal_postgres_vchanges(
@@ -1841,7 +1841,7 @@ bool d_internal_postgres_rows_value(
 d_internal_postgres_collect_rows
   The whole result is in memory already, so each value is read straight from
 it, and the result freed once every value is copied. Rows a few at a time
-come as results of their own -- one row's, or a chunk's (libpq 17) -- each
+come as results of their own - one row's, or a chunk's (libpq 17) - each
 described as the whole result would be.
 */
 int d_internal_postgres_collect_rows(
@@ -1875,7 +1875,7 @@ int d_internal_postgres_collect_rows(
 
 /*
 d_internal_postgres_holds_rows
-  Whether a result's status is one of rows -- all of them, one, or a chunk --
+  Whether a result's status is one of rows - all of them, one, or a chunk --
 rather than a command's, which has no columns.
 */
 static
@@ -2110,7 +2110,7 @@ d_internal_postgres_match_schema
   NULL is current_schema(), which is itself NULL, matching nothing, when no
 schema of the search path exists; "pg_temp" is the session's temporary
 schema, whose real name is pg_temp_ and a number, and whose oid
-pg_my_temp_schema() gives -- 0, matching nothing, before the session makes
+pg_my_temp_schema() gives - 0, matching nothing, before the session makes
 one.
 */
 enum dj_internal_db_format_status

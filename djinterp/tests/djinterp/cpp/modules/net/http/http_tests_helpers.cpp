@@ -4,7 +4,7 @@
 * Checks the string helpers http.hpp and net_url.hpp keep for HTTP and URLs:
 * to_string's names, "" for an extension method, method_from_string ignoring
 * case, every method and scheme token found by method_from_string and
-* scheme_from_string, the status classes -- none, below 100 -- and reason
+* scheme_from_string, the status classes - none, below 100 - and reason
 * phrases, and the constant namespaces: every check web.hpp's test made, now
 * that web.hpp is gone (net's decision 32). Header names match without
 * regard to case, and split_url reads URLs as RFC 3986 does (register

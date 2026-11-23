@@ -1624,7 +1624,7 @@ void d_internal_place(
 /*
 d_internal_name_anchors
   Gives every heading its anchor: its title's, and, for one that another
-heading before it has, that anchor told apart by a number -- or as its
+heading before it has, that anchor told apart by a number - or as its
 dialect tells them apart, for one that has its own way.
 */
 static
@@ -2463,7 +2463,7 @@ d_wiki_page_file(
 /*
 d_wiki_page_key
   A page's name as names compare: trimmed, its runs of space, `_` and `-`
--- a file names a page with dashes for its spaces -- one space, and in
+-- a file names a page with dashes for its spaces - one space, and in
 lower case, all of it or its first letter.
 */
 bool

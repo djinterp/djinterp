@@ -2,7 +2,7 @@
 * djinterp [c][option]                                       option_set_common.h
 *
 * The option set: a flat, key-unique, declaration-ordered sequence of option
-* cells over one value block. Tier 0 -- the shared core both faces compile.
+* cells over one value block. Tier 0 - the shared core both faces compile.
 *
 * WHAT containers.tex SAYS IT IS. `option_set` is placed on the container axes
 * as: flat structure, unordered, comparator, multiplicity 1. Each of those is a
@@ -22,15 +22,15 @@
 *     it would have made a permutation a parity failure when the .tex says the
 *     two sets are EQUAL. Order is a property of the REPRESENTATION, not of the
 *     set. The oracle's need for a stable line sequence is what `canon` is for
-*     -- and `canon` is already named in the parity law,
+*     - and `canon` is already named in the parity law,
 *     `canon(lower(A (x) B))`, precisely so that representation choices cannot
 *     leak into semantic ones. `d_option_set_canon` (section VII) sorts by key;
 *     every relation below is order-insensitive.
 *   - COMPARATOR means the ordering is available but not imposed;
 *     `d_option_key_less` is it.
 *
-*   The C++ face currently participates in NO container axis -- no
-* structure_category, no multiplicity_category, no comparator -- which is a
+*   The C++ face currently participates in NO container axis - no
+* structure_category, no multiplicity_category, no comparator - which is a
 * recorded conformance defect. Placing the axes on the core rather than on the
 * face fixes it for both languages at once, and is the reason this header
 * names them at all.
@@ -54,7 +54,7 @@
 *     struct my_storage        raw = D_OPTION_SET_STORAGE_INIT;
 *     struct dj_option_set      set = D_OPTION_SET_VIEW(raw);
 *   The widths travel with the storage, so a view can never disagree with what
-* it describes -- the same guarantee D_MAYBE_VIEW and D_RESULT_VIEW give, for
+* it describes - the same guarantee D_MAYBE_VIEW and D_RESULT_VIEW give, for
 * the same reason.
 *
 * THE VALUE BLOCK IS PACKED BY THE SET, NOT BY THE CALLER.
@@ -66,7 +66,7 @@
 * WHAT IS NOT HERE, AND WHY.
 *   No expansion, no `::expanded_t`, no flattening, no uniqueness STATIC
 * assert, no key_type uniformity assert. Those are the C++ face's
-* construction-time machinery -- notation, in the framework's sense -- and
+* construction-time machinery - notation, in the framework's sense - and
 * what they enforce at translation time this header enforces at run time
 * through `d_option_set_add` and `d_option_set_is_valid`. Same invariant,
 * different enforcement tier, which goal 2 permits explicitly: enforcement may
@@ -92,7 +92,7 @@
 #include "../../../re_std/c/cstdint/dstdint.h"  // uint32_t, uint64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -107,7 +107,7 @@ D_EXTERN_C_BEGIN
 
 // dj_option_set
 //   struct: a borrowed view onto a flat option set.
-//   `options` is the schema -- `count` cells, key-unique, in declaration
+//   `options` is the schema - `count` cells, key-unique, in declaration
 // order. `values` is the block those cells address by offset. The view owns
 // neither; both must outlive it.
 struct dj_option_set
@@ -167,7 +167,7 @@ void d_option_set_clear(
 );
 
 // d_option_set_is_valid
-//   function: the set's invariants, checked rather than trusted -- widths
+//   function: the set's invariants, checked rather than trusted - widths
 // consistent, offsets in range, and (the one that matters) keys UNIQUE and of
 // one key type. This is multiplicity 1 as a predicate.
 bool d_option_set_is_valid(
@@ -196,7 +196,7 @@ struct dj_option_result d_option_set_add(
 );
 
 // d_option_set_add_unary
-//   function: append a presence-only key -- the `unit` slot of the C++ face.
+//   function: append a presence-only key - the `unit` slot of the C++ face.
 // Consumes no value bytes.
 struct dj_option_result d_option_set_add_unary(
     struct dj_option_set* _set,
@@ -254,7 +254,7 @@ struct dj_option_result d_option_set_remove_at(
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///             III.  QUERIES -- THE LOOKUP HALF                            ///
+///             III.  QUERIES - THE LOOKUP HALF                            ///
 ///////////////////////////////////////////////////////////////////////////////
 //
 //   "An option is shorthand for (lookup by key) + (set value in its column)."
@@ -314,14 +314,14 @@ dj_type_info16 d_option_set_key_type(
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///             IV.   ACCESS -- THE COLUMN HALF                             ///
+///             IV.   ACCESS - THE COLUMN HALF                             ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // d_option_set_get
 //   function: copy the value at `_key` out. D_OPTION_STATUS_KEY_ABSENT when
 // there is no such key, D_OPTION_STATUS_NO_VALUE when the key is unary, and
 // D_OPTION_STATUS_VALUE_TYPE_MISMATCH when `_out_size` disagrees with the slot
-// -- three distinct formal failures, because collapsing them is what makes a
+// - three distinct formal failures, because collapsing them is what makes a
 // misconfigured set look like an empty one.
 struct dj_option_result d_option_set_get(
     const struct dj_option_set* _set,
@@ -341,7 +341,7 @@ struct dj_option_result d_option_set_set(
 
 // d_option_set_is_assigned
 //   function: whether the key's slot has been written since initialisation.
-// "Is this set pristine?" is a fold of this over the set -- one loop over a
+// "Is this set pristine?" is a fold of this over the set - one loop over a
 // flat table, not a comparison against a second set.
 bool d_option_set_is_assigned(
     const struct dj_option_set* _set,
@@ -372,7 +372,7 @@ bool d_option_set_is_assigned(
 // carrier. Pass NULL for pi = id.
 
 // d_option_set_equal
-//   function: O1 = O2 -- same key set, and identical options at every key.
+//   function: O1 = O2 - same key set, and identical options at every key.
 bool d_option_set_equal(
     const struct dj_option_set* _lhs,
     const struct dj_option_set* _rhs,
@@ -383,7 +383,7 @@ bool d_option_set_equal(
 
 // d_option_set_key_equal
 //   function: K(O1) = K(O2), order-insensitive, values not consulted.
-//   NOT one of the .tex's named relations -- it is the key-set half of
+//   NOT one of the .tex's named relations - it is the key-set half of
 // equality, useful on its own and cheap. Named for what it compares so that it
 // cannot be mistaken for equality or for agreement.
 bool d_option_set_key_equal(
@@ -392,7 +392,7 @@ bool d_option_set_key_equal(
 );
 
 // d_option_set_agrees
-//   function: O1 ~ O2 -- for every key occurring in BOTH, the options are
+//   function: O1 ~ O2 - for every key occurring in BOTH, the options are
 // identical. Disjoint sets agree vacuously.
 //
 //   AGREEMENT IS A TOLERANCE, NOT AN EQUIVALENCE. Reflexive and symmetric, and
@@ -408,8 +408,8 @@ bool d_option_set_key_equal(
 //       O2 = { (bar, 2) }
 //       O3 = { (foo, 99) }
 //
-//       O1 ~ O2   (no shared key -- vacuous)
-//       O2 ~ O3   (no shared key -- vacuous)
+//       O1 ~ O2   (no shared key - vacuous)
+//       O2 ~ O3   (no shared key - vacuous)
 //       O1 !~ O3  (shared key foo, values differ)
 //
 //   Framework goal 1 requires a test for every stated non-property, so that a
@@ -426,7 +426,7 @@ bool d_option_set_agrees(
 );
 
 // d_option_set_conflicts
-//   function: O1 !~ O2 -- there is at least one shared key whose options are
+//   function: O1 !~ O2 - there is at least one shared key whose options are
 // not identical. Exactly the negation of agreement, so the two are
 // complementary and one is implemented as the other.
 //
@@ -471,7 +471,7 @@ struct dj_option_result d_option_set_intersection(
 );
 
 // d_option_set_key_intersection
-//   function: K(O1) ^ K(O2) -- the shared KEYS, values not consulted.
+//   function: K(O1) ^ K(O2) - the shared KEYS, values not consulted.
 //   Weaker than the operation above and named so. It is what the definitions
 // quantify over ("for every key occurring in both"), so it is genuinely
 // wanted; it is simply not the .tex's `^`.
@@ -483,11 +483,11 @@ struct dj_option_result d_option_set_key_intersection(
 );
 
 // d_option_set_union
-//   function: O1 u O2 -- the plain union. PARTIAL.
+//   function: O1 u O2 - the plain union. PARTIAL.
 //
 //   "is a valid option set if, and only if, O1 ~ O2; otherwise a shared key
 // would carry two distinct options, violating uniqueness." So this operation is
-// UNDEFINED on conflicting sets, and returns D_OPTION_STATUS_CONFLICT -- a
+// UNDEFINED on conflicting sets, and returns D_OPTION_STATUS_CONFLICT - a
 // FORMAL status, because no amount of extra buffer makes a conflicting union
 // exist. Conflating that with a mechanical failure is precisely the
 // anti-pattern the agent guide names: reporting "these sets are in conflict"
@@ -515,8 +515,8 @@ struct dj_option_result d_option_set_union(
 ///////////////////////////////////////////////////////////////////////////////
 //
 //   A set is a flat sequence, so its Foldable instance is the tier 1 spine and
-// not new machinery. Every projection in the framework -- printing a set,
-// encoding it, diffing it, emitting the parity oracle's parseable row -- is
+// not new machinery. Every projection in the framework - printing a set,
+// encoding it, diffing it, emitting the parity oracle's parseable row - is
 // this fold at a different algebra.
 
 // fn_option_visit
@@ -550,7 +550,7 @@ bool d_option_set_fold(
 );
 
 // d_option_set_canon
-//   function: reorder the set into CANONICAL form -- ascending by key. The
+//   function: reorder the set into CANONICAL form - ascending by key. The
 // cells are permuted and the value block is not touched: each cell carries
 // its own offset, so no byte of value moves.
 //
@@ -580,7 +580,7 @@ bool d_option_set_is_canon(
 );
 
 // d_option_set_byte_size
-//   function: the set's size on disk -- cells plus value block, no traversal.
+//   function: the set's size on disk - cells plus value block, no traversal.
 // Goal 4 requires every type to report this; for a flat set it is arithmetic,
 // which is the whole benefit of offsets over pointers.
 size_t d_option_set_byte_size(

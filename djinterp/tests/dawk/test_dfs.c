@@ -5,8 +5,8 @@
 *   Run from the repository's root, over the small tree kept beside this file
 * for it: tests/dawk/fs/root. What is checked is what the header promises on
 * every system, so the same file is the test on POSIX and on Windows; where
-* the two differ by design -- what `\` is, whether a full name is looked up
-* -- each answer the header allows is accepted, and none it does not.
+* the two differ by design - what `\` is, whether a full name is looked up
+* - each answer the header allows is accepted, and none it does not.
 *
 *
 * path:      /tests/dawk/test_dfs.c

@@ -3,7 +3,7 @@
 *
 * The TCP transport: stream sockets behind net.h's connection.
 *   A dj_tcp_connection embeds dj_net_connection as its first member, so all of
-* net.h -- exact and bulk transfers, pumping, framing -- runs over TCP
+* net.h - exact and bulk transfers, pumping, framing - runs over TCP
 * unchanged. Connections and listeners live in caller storage; nothing here
 * allocates. TCP and unix-domain stream sockets are both served, the protocol
 * taken from the endpoint.
@@ -171,7 +171,7 @@ struct dj_tcp_listener
 
 // 3.1    Availability
 //------------------------------------------------------------------------------
-// d_tcp_available -- whether a socket backend is compiled in and, under
+// d_tcp_available - whether a socket backend is compiled in and, under
 // Winsock, started; false for the stubs
 bool d_tcp_available(void);
 
@@ -193,7 +193,7 @@ enum dj_net_error d_tcp_error_from_native(
     int _code
 );
 
-// socket preparation -- close-on-exec (not inherited, under Winsock), and
+// socket preparation - close-on-exec (not inherited, under Winsock), and
 // no SIGPIPE where the socket itself can say so (SO_NOSIGPIPE); each does
 // nothing for D_TCP_SOCKET_INVALID, where it does not apply, and in the stubs
 void d_tcp_socket_cloexec(
@@ -234,7 +234,7 @@ enum dj_net_error d_tcp_host_name(
 
 // 4.1    Defaults
 //------------------------------------------------------------------------------
-// d_tcp_options_init -- no connect or I/O timeout, cfg_tcp.h's backlog,
+// d_tcp_options_init - no connect or I/O timeout, cfg_tcp.h's backlog,
 // Nagle left on, SO_REUSEADDR on, SO_REUSEPORT off; a NULL argument is
 // ignored. reuse_address does nothing under Winsock: Windows rebinds an
 // address its last listener left in TIME_WAIT without it, and Winsock's
@@ -253,7 +253,7 @@ void d_tcp_options_init(
 
 // 5.1    Opening
 //------------------------------------------------------------------------------
-// d_tcp_connection_init -- a closed connection: no socket, no endpoints, its
+// d_tcp_connection_init - a closed connection: no socket, no endpoints, its
 // net.h view ready; a NULL argument is ignored
 void d_tcp_connection_init(
     struct dj_tcp_connection* _connection
@@ -345,7 +345,7 @@ struct dj_net_io_result d_tcp_connection_write(
 
 // 5.3    State and lifetime
 //------------------------------------------------------------------------------
-// queries -- O(1), no system call; the endpoints were recorded at opening,
+// queries - O(1), no system call; the endpoints were recorded at opening,
 // and a query reports false, leaving _out alone, when one is unknown
 bool d_tcp_connection_is_open(
     const struct dj_tcp_connection* _connection
@@ -442,7 +442,7 @@ dj_tcp_socket d_tcp_connection_release(
 
 // 6.1    Opening
 //------------------------------------------------------------------------------
-// d_tcp_listener_init -- a closed listener; a NULL argument is ignored
+// d_tcp_listener_init - a closed listener; a NULL argument is ignored
 void d_tcp_listener_init(
     struct dj_tcp_listener* _listener
 );
@@ -519,7 +519,7 @@ enum dj_net_error d_tcp_accept_wait(
 
 // 6.3    State and lifetime
 //------------------------------------------------------------------------------
-// queries -- O(1), no system call; the local endpoint was recorded when the
+// queries - O(1), no system call; the local endpoint was recorded when the
 // listener bound
 bool d_tcp_listener_is_open(
     const struct dj_tcp_listener* _listener

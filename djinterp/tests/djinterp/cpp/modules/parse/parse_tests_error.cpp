@@ -203,7 +203,7 @@ bool tests_parse_error_cstring_null_message()
 /*
 tests_parse_error_message_is_owning
   Verifies the message is an owning std::string, which is the property that
-lets a parse_error be copied without lifetime caveats -- the module's stated
+lets a parse_error be copied without lifetime caveats - the module's stated
 reason for not storing a const char*.
   Tests the following:
   - overwriting the source buffer does not change the stored message,

@@ -3,8 +3,8 @@
 *
 * The sln extension: Visual Studio's solutions, read, changed and made from
 * awk.
-*   A solution in either form -- a .slnx, which is XML, or a .sln, Visual
-* Studio's older text -- is read the same: the projects it lists, each with
+*   A solution in either form - a .slnx, which is XML, or a .sln, Visual
+* Studio's older text - is read the same: the projects it lists, each with
 * the solution folder holding it and the projects it builds after; its
 * folders; and the configurations it builds, each "Debug|x64". A program
 * opens one, or makes one new, and is given its number, which every other
@@ -91,7 +91,7 @@ struct dj_host_sln;
 //   reading
 //     sln_projects(s)              how many projects it lists
 //     sln_project(s, i, field)     project i's name, path, type, id, folder
-//                                  -- "/tools/dawk/", or "" at the top -- or
+//                                  - "/tools/dawk/", or "" at the top - or
 //                                  line
 //     sln_find(s, path)            the project with that path; 0 for none
 //     sln_dependencies(s, i)       how many projects project i builds after

@@ -2,12 +2,12 @@
 * djinterp [c][filesys]                                              file_temp.c
 *
 * Implementation of the temporary-file calls declared in file_temp.h.
-*   Anonymous files come from tmpfile, where the C library has it -- WASI's does
+*   Anonymous files come from tmpfile, where the C library has it - WASI's does
 * not. Named ones are made here on every platform: a name of this module's
 * choosing, created exclusively through d_file_open, and retried when another
 * process holds that name already. mkstemp would do the same, but its descriptor
 * is not close-on-exec, its mode could only be set by moving the umask every
-* thread shares, and the Windows CRT has none -- _mktemp_s runs out after 26
+* thread shares, and the Windows CRT has none - _mktemp_s runs out after 26
 * names per template. The search takes its mode from its caller, so
 * d_file_write_all makes its replacement with it too
 * (d_internal_file_temp_create).
@@ -185,9 +185,9 @@ void d_internal_temp_fill(
 
 /*
 d_internal_temp_suffix
-  Checks a template here rather than leaving it to the platform -- an
+  Checks a template here rather than leaving it to the platform - an
 implementation handed a bad one may fail with EINVAL or may quietly do
-something else, and the caller cannot tell which -- and finds the
+something else, and the caller cannot tell which - and finds the
 placeholder the names are written into. The result is NULL, reported, for a
 template that is not one.
 */
@@ -286,8 +286,8 @@ size_t d_internal_temp_root_len(
 
 /*
 d_internal_temp_trim
-  Drops a temporary directory's trailing separators -- the kernel's, both of
-them on Windows -- but never into its root, and never to nothing, and reports
+  Drops a temporary directory's trailing separators - the kernel's, both of
+them on Windows - but never into its root, and never to nothing, and reports
 the length left.
 */
 static
@@ -388,7 +388,7 @@ d_file_temp_name
 returns, and nothing inside it can change that: the flaw is the interface,
 which separates naming from opening. Names are d_file_temp_create's, in the
 temporary directory (d_dir_entry_path), and each is tested for existence --
-the answer already stale -- for a bounded number of tries. No state is shared
+the answer already stale - for a bounded number of tries. No state is shared
 between calls, so concurrent callers race only for names, never in memory.
 */
 static
@@ -504,7 +504,7 @@ int d_file_temp_name(
  *         fails.
  *
  * Read through getenv, the variables would arrive in the code page, which a
- * user's own name -- the usual temp directory sits in the profile -- need not
+ * user's own name - the usual temp directory sits in the profile - need not
  * fit, and which this build no longer reads as text.
  */
 static
@@ -712,8 +712,8 @@ char* d_internal_temp_dir_find(
 /*
 d_dir_temp
   TMPDIR is the POSIX spelling; TMP and TEMP are what Windows sets. With the
-environment ignored or silent, Windows is asked through GetTempPath -- there
-is no /tmp there, and the real answer is per-user -- and elsewhere the
+environment ignored or silent, Windows is asked through GetTempPath - there
+is no /tmp there, and the real answer is per-user - and elsewhere the
 configured fallback is used. Every answer loses its trailing separators but
 never its root's (d_internal_temp_trim), so a name joins it with
 d_dir_entry_path and exactly one separator. Where the build hands Windows
@@ -773,7 +773,7 @@ int d_internal_file_temp_create(
 /*
 d_internal_file_temp_create
   Names are tried in the template's placeholder (d_internal_temp_fill), each
-created exclusively through d_file_open -- so the descriptor gets this build's
+created exclusively through d_file_open - so the descriptor gets this build's
 close-on-exec and binary-mode policy like every other, atomically, and the
 mode is _mode under the umask, which is never moved. A name another process
 holds already is passed over; any other failure ends the search. A template

@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                        sorted_container_concepts.hpp
 *
-* C++20 concepts for the SORTEDNESS axis -- the `requires`-facing view of
+* C++20 concepts for the SORTEDNESS axis - the `requires`-facing view of
 * sorted_container_traits.hpp.
 *
 *   THE CONCEPTS ADD NO POLICY.
@@ -68,7 +68,7 @@ concept MonotoneContainer = is_monotone_container_v<Type>;
 
 // SortedContainer
 //   concept: positional, and the positions are held in comparator order by
-// invariant. Named for the guarantee -- `sorted_container` is a header and a
+// invariant. Named for the guarantee - `sorted_container` is a header and a
 // mixin here.
 template<typename Type>
 concept SortedContainer = is_sorted_container_v<Type>;
@@ -77,7 +77,7 @@ concept SortedContainer = is_sorted_container_v<Type>;
 // UnsortedContainer
 //   concept: a container whose positions are NOT guaranteed in comparator
 // order. Gated on being a container, so a non-container reports false rather
-// than a vacuous true -- which is what separates this from a bare negation.
+// than a vacuous true - which is what separates this from a bare negation.
 template<typename Type>
 concept UnsortedContainer = is_unsorted_container_v<Type>;
 

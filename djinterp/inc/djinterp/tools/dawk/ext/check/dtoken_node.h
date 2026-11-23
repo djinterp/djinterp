@@ -14,7 +14,7 @@
 * it ends.
 *   Every attribute is a fact about the source, present when it holds:
 * an identifier's `case`, a `#define` that is `guarded`.  A naming rule is a
-* negation -- a macro *not* spelled `D_` -- and is written as one, with
+* negation - a macro *not* spelled `D_` - and is written as one, with
 * `:not([text^="D_"])`, so no attribute exists only to make a negation
 * expressible; the judgement stays in the sheet.
 *
@@ -62,7 +62,7 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 1.1.1
 // dj_token_node_input
-//   struct: what a build reads and where it reports -- everything but the
+//   struct: what a build reads and where it reports - everything but the
 //   language, which each entry point takes in its own terms.  `source` is
 //   borrowed for the call and required; `sink` receives the scanner's
 //   diagnostics and may be NULL.  Grouped so that the next input (a target
@@ -100,8 +100,8 @@ struct dj_token_node_stats
 //------------------------------------------------------------------------------
 // d_token_node_build lexes, groups and emits a source beneath `_parent`.
 // When `_parent` is D_DSS_NO_INDEX a `file` node is created to hold the tree,
-// carrying `path`, `lang` -- the language, `c` or `c++`, as the element model
-// uses the word -- and `std`, the standard it was read as, so a host with no
+// carrying `path`, `lang` - the language, `c` or `c++`, as the element model
+// uses the word - and `std`, the standard it was read as, so a host with no
 // file node of its own still gets the element model's shape.  Returns the
 // node the tree hangs from, or D_DSS_NO_INDEX when the tree could not be
 // built.

@@ -50,8 +50,8 @@ namespace ebnf
 {
 
 // node kinds
-//   enum: what a syntax-tree node is. N_NOT has no surface syntax -- the parser
-// never produces it -- and exists for the end-of-input gate compile() adds.
+//   enum: what a syntax-tree node is. N_NOT has no surface syntax - the parser
+// never produces it - and exists for the end-of-input gate compile() adds.
 enum
 {
     N_LIT = 0,

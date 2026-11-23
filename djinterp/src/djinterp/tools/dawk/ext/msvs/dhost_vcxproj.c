@@ -1482,7 +1482,7 @@ bool d_internal_vcxproj_item(
 /*
 d_internal_group_for
   The item group an item of a type joins: the last holding items of that
-type, or a new one -- in a project, before the import of the C++ targets,
+type, or a new one - in a project, before the import of the C++ targets,
 where Visual Studio keeps its items; elsewhere, after the last child.
 D_MSVS_NONE when one cannot be made.
 */
@@ -1865,7 +1865,7 @@ bool d_internal_vcxproj_remove_item(
 /*
 d_internal_add_element
   vcxproj_add and vcxproj_insert: an element made of the arguments after
-the handle -- its name, its text, and attributes in pairs -- beneath a
+the handle - its name, its text, and attributes in pairs - beneath a
 parent, before a sibling or last.
 */
 static

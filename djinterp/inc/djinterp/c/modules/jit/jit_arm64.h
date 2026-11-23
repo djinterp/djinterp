@@ -6,8 +6,8 @@
 * 32-bit little-endian word, so there is no ModR/M layer: each emitter packs
 * register and immediate fields into a base opcode and emits the word with
 * d_jit_emit_u32. This module is entirely separate from the 32-bit ARM encoder
-* (jit_arm.h) -- the A64 and A32 instruction sets share neither encodings nor a
-* register model -- exactly as x86 and x86-64 are separate modules.
+* (jit_arm.h) - the A64 and A32 instruction sets share neither encodings nor a
+* register model - exactly as x86 and x86-64 are separate modules.
 *
 *   Operations are 64-bit (X registers). The 32-bit (W) variants differ only
 * only by clearing the sf bit (31), and are not exposed here. Each opcode
@@ -42,7 +42,7 @@
 #include "../../../../re_std/c/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -193,15 +193,15 @@
 #define D_JIT_ARM64_OP_NOP      0xD503201F
 
 // D_JIT_ARM64_OP_MOVZ
-//   constant: movz Xd, #imm16, lsl #(hw*16)  -- zero other bits.
+//   constant: movz Xd, #imm16, lsl #(hw*16)  - zero other bits.
 #define D_JIT_ARM64_OP_MOVZ     0xD2800000
 
 // D_JIT_ARM64_OP_MOVK
-//   constant: movk Xd, #imm16, lsl #(hw*16)  -- keep other bits.
+//   constant: movk Xd, #imm16, lsl #(hw*16)  - keep other bits.
 #define D_JIT_ARM64_OP_MOVK     0xF2800000
 
 // D_JIT_ARM64_OP_MOVN
-//   constant: movn Xd, #imm16, lsl #(hw*16)  -- move NOT.
+//   constant: movn Xd, #imm16, lsl #(hw*16)  - move NOT.
 #define D_JIT_ARM64_OP_MOVN     0x92800000
 
 // D_JIT_ARM64_OP_ADD_REG
@@ -486,14 +486,14 @@ D_NODISCARD int d_jit_arm64_emit_str(
 // ---------------------------------------------------------------------------
 
 // d_jit_arm64_emit_b
-//   function: b _target -- unconditional branch (+/-128 MB).
+//   function: b _target - unconditional branch (+/-128 MB).
 D_NODISCARD int d_jit_arm64_emit_b(
     dj_jit_buffer* _buf,
     dj_jit_label*  _target
 );
 
 // d_jit_arm64_emit_bl
-//   function: bl _target -- branch with link (call).
+//   function: bl _target - branch with link (call).
 D_NODISCARD int d_jit_arm64_emit_bl(
     dj_jit_buffer* _buf,
     dj_jit_label*  _target
@@ -508,7 +508,7 @@ D_NODISCARD int d_jit_arm64_emit_b_cond(
 );
 
 // d_jit_arm64_emit_cbz
-//   function: cbz Xt, _target -- branch if Xt == 0 (+/-1 MB).
+//   function: cbz Xt, _target - branch if Xt == 0 (+/-1 MB).
 D_NODISCARD int d_jit_arm64_emit_cbz(
     dj_jit_buffer* _buf,
     int            _xt,
@@ -516,7 +516,7 @@ D_NODISCARD int d_jit_arm64_emit_cbz(
 );
 
 // d_jit_arm64_emit_cbnz
-//   function: cbnz Xt, _target -- branch if Xt != 0 (+/-1 MB).
+//   function: cbnz Xt, _target - branch if Xt != 0 (+/-1 MB).
 D_NODISCARD int d_jit_arm64_emit_cbnz(
     dj_jit_buffer* _buf,
     int            _xt,
@@ -541,14 +541,14 @@ D_NODISCARD int d_jit_arm64_emit_ret_reg(
 );
 
 // d_jit_arm64_emit_br
-//   function: br Xn -- indirect branch.
+//   function: br Xn - indirect branch.
 D_NODISCARD int d_jit_arm64_emit_br(
     dj_jit_buffer* _buf,
     int            _xn
 );
 
 // d_jit_arm64_emit_blr
-//   function: blr Xn -- indirect call.
+//   function: blr Xn - indirect call.
 D_NODISCARD int d_jit_arm64_emit_blr(
     dj_jit_buffer* _buf,
     int            _xn

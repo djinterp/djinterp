@@ -5,12 +5,12 @@
 * camera and flattens the 3D content into a depth-ordered list of 2D line
 * segments in screen space: each cell becomes a wireframe cube, and the optimum
 * path becomes a heat-coloured polyline drawn on top.  No windowing or drawing
-* backend is involved -- any 2D backend (an immediate-mode GUI, an SVG writer,
+* backend is involved - any 2D backend (an immediate-mode GUI, an SVG writer,
 * a raster canvas) renders the same draw_list.  Cells are depth-sorted back to
 * front so translucency composites correctly under a painter's algorithm.
 *   For a scene's scalar field, project_field() lays out the coloured grid,
-* and layout_field() the whole labelled panel -- captions, tick labels thinned
-* to fit, and an overlay of marked cells and a trail through them -- given the
+* and layout_field() the whole labelled panel - captions, tick labels thinned
+* to fit, and an overlay of marked cells and a trail through them - given the
 * backend's text metrics. pick_field() and field_cell_rect() map between panel
 * points and field cells, so every backend hit-tests the same way.
 *
@@ -93,7 +93,7 @@ struct draw_quad
 
 // draw_label
 //   struct: one screen-space text label with a colour.  The agnostic layer
-// only positions it -- `position` is the top-left of the text -- and the
+// only positions it - `position` is the top-left of the text - and the
 // frontend renders the glyphs.
 struct draw_label
 {
@@ -144,7 +144,7 @@ NS_INTERNAL
     }
 
     // append_axes
-    //   helper: appends the scene's axis decorations -- a line along each
+    //   helper: appends the scene's axis decorations - a line along each
     // decorated axis at the minimum of the others, tick marks with scale
     // labels, and the axis name just past the far end.  Straight axes assume
     // the cartesian layout; under a non-cartesian mapper the cells curve but
@@ -560,7 +560,7 @@ D_NODISCARD inline std::size_t pick_cell(
 }
 
 // field_scale
-//   struct: how a scalar field's values become colours -- the colormap, and
+//   struct: how a scalar field's values become colours - the colormap, and
 // the value range [low, high] it spans. Values outside the range take the
 // colormap's end colours. Two fields drawn with one scale compare directly.
 struct field_scale
@@ -727,7 +727,7 @@ D_NODISCARD inline draw_rect field_cell_rect(
 }
 
 // text_metrics
-//   struct: what a layout needs to know about the backend's text -- the
+//   struct: what a layout needs to know about the backend's text - the
 // height of a line and the width of a string. Without a width function, text
 // is measured as a monospace font half as wide as a line is tall.
 struct text_metrics
@@ -762,7 +762,7 @@ struct field_style
 };
 
 // field_mark
-//   struct: a cell to call out -- outlined, or filled when `filled` is set.
+//   struct: a cell to call out - outlined, or filled when `filled` is set.
 struct field_mark
 {
     field_cell cell;
@@ -772,7 +772,7 @@ struct field_mark
 };
 
 // field_overlay
-//   struct: what is drawn over a field -- marked cells, and a trail: a
+//   struct: what is drawn over a field - marked cells, and a trail: a
 // polyline through the centres of its cells, in order.
 struct field_overlay
 {
@@ -868,8 +868,8 @@ NS_INTERNAL
     }
 
     // append_captions
-    //   helper: a field panel's captions along its top -- the value range,
-    // then the axis names -- as _style asks for them; returns the height they
+    //   helper: a field panel's captions along its top - the value range,
+    // then the axis names - as _style asks for them; returns the height they
     // take, with the padding below them, or 0 when there are none.
     D_NODISCARD inline scalar append_captions(
         draw_list&             _out,

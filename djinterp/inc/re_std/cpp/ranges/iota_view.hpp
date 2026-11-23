@@ -198,7 +198,7 @@ public:
             return iterator(static_cast<W>(m_value - static_cast<W>(_n)));
         }
 
-        // operator- (iter, iter)  --  distance
+        // operator- (iter, iter)  -  distance
         RE_STD_CONSTEXPR_INLINE difference_type
         operator-(
             iterator const& _rhs

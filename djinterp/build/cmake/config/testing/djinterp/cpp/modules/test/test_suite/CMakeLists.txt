@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/cpp/modules/test/test_suite/CMakeLists.txt
+# djinterp [test]  -  build/cmake/config/testing/djinterp/cpp/modules/test/test_suite/CMakeLists.txt
 #
 #   Test leaf for DTest's C face, c/modules/test/test_suite.h, as C++ suites
 # use it: the runner in this directory, which hands the suite's spec to C++'s

@@ -3,9 +3,9 @@
 *
 * What the argument parser's C++ suites share: the run, its report, the
 * section runners and the text they write.
-*   Everything a run reports is read through the C++ face -- a command's
+*   Everything a run reports is read through the C++ face - a command's
 * uses, the arguments it left, the subcommands it parsed and the options in
-* the order met; an option's values -- so that the transcripts the suites
+* the order met; an option's values - so that the transcripts the suites
 * compare check the face's readers as they check the parse.
 *
 *
@@ -332,7 +332,7 @@ cli::command run::root() D_NOEXCEPT
 
 /*
 run::watch
-  A handle on nothing -- a definition that failed -- fails the run, and is
+  A handle on nothing - a definition that failed - fails the run, and is
 not reported.
 */
 cli::option run::watch(
@@ -689,7 +689,7 @@ int run::parse_as_main(
 
 /**
  * @brief Parses the arguments set through D_ARG_PARSE, whose ending --
- *        help, a version, a failure message -- goes to the run's strings,
+ *        help, a version, a failure message - goes to the run's strings,
  *        and writes the code and what the parse added to them.
  *
  * @param[in] _count  how many arguments follow the program's name.
@@ -1136,8 +1136,8 @@ std::string number(
 /*
 transcribe
   The description, then each value: the run goes through the C call, which
-gives the run's status beside the reason -- what tells a value refused from
-a validator stopped by an error of its own, where CLI11's throws -- and lets
+gives the run's status beside the reason - what tells a value refused from
+a validator stopped by an error of its own, where CLI11's throws - and lets
 the value be read under CLI11's rule for leading zeros, as the C suites'
 transcripts are; operator() is held to its own contract in the validator
 suite.

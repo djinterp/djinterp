@@ -4,7 +4,7 @@
 * Radix tree shared core  (the traits module is FOLDED IN):
 *   Everything text_radix_tree and binary_radix_tree share: key traits, node
 * shape traits, the option surface, the prefix utilities, the node bases, and
-* the traversal frame.  radix_tree_traits.hpp is GONE -- its contents are
+* the traversal frame.  radix_tree_traits.hpp is GONE - its contents are
 * sections I-IV below.
 *
 * ============================================================================
@@ -25,7 +25,7 @@
 *
 *   2. A SECOND, PARALLEL, FRAMEWORK-WIDE OPTION SYSTEM.  DContainerOption
 *      described itself as "the shared bitmask controlling mutability,
-*      ordering, and storage strategy for EVERY djinterp container" -- but
+*      ordering, and storage strategy for EVERY djinterp container" - but
 *      container_options.hpp already holds that office, with nine type-level
 *      axes.  The three DContainerOption axes are not merely similar to three
 *      of them, they are the SAME THREE, re-encoded as bits:
@@ -41,7 +41,7 @@
 *                                                       dynamic_storage}
 *
 *      And it is not just duplication.  A bitmask over three axes CANNOT SAY
-*      THE ONE THING A RADIX TREE MOST NEEDS TO SAY -- that a key maps to at
+*      THE ONE THING A RADIX TREE MOST NEEDS TO SAY - that a key maps to at
 *      most one value.  That is the MULTIPLICITY axis, DContainerOption has no
 *      such axis, and multiplicity is exactly the condition under which this
 *      container is addressable at all (see THE SPEC).  The framework's axes
@@ -53,7 +53,7 @@
 *
 *          ( is_integral<T> || is_pointer<T> ) && is_trivially_copyable<T>
 *
-*      -- and enable_if_binary_key therefore ENABLED bit_at<T*> and
+*      - and enable_if_binary_key therefore ENABLED bit_at<T*> and
 *      binary_prefix_length<T*>, whose bodies do `_key >> n`. You cannot shift
 *      a pointer:
 *
@@ -61,7 +61,7 @@
 *                 to type 'int*'
 *
 *      The trait's contract and the utilities' contract disagreed, and the
-*      disagreement was a hard error at the first pointer key -- which is a
+*      disagreement was a hard error at the first pointer key - which is a
 *      shame, because interning pointers is one of the things a binary radix
 *      tree is FOR.  Bit work now goes through key_bits_t (section I), which
 *      carries a key's bit pattern as an unsigned integer: integral keys keep
@@ -71,7 +71,7 @@
 *      inline variables (27) are C++17; re_std::bool_constant is C++11+ and the
 *      framework already gates inline variables.  The binary half of this
 * module now builds at C++14. The TEXT half still needs re_std::string_view,
-* which is genuinely C++17 -- see the note at section VI. 5. HOUSE STYLE.
+* which is genuinely C++17 - see the note at section VI. 5. HOUSE STYLE.
 * #pragma once -> include guards; raw `namespace djinterp {` -> NS_DJINTERP;
 * PascalCase DContainerOption / DRadixKeyCategory -> snake_case (the old
 * spellings are kept as aliases); the two D_RADIX_* object-like macros ->
@@ -81,7 +81,7 @@
 * ============================================================================
 *   Every other container has to be ASKED what a node's address is.  Here you
 * do not ask, because THE KEY IS THE ADDRESS.  Not "maps to" it, not "encodes"
-* it -- a node's address is the concatenation of the edge labels from the
+* it - a node's address is the concatenation of the edge labels from the
 * root,
 * and that concatenation IS the key you looked it up with.  find() is resolve.
 * The round trip, find(key_of(n)) == n, is not a property this container has;
@@ -89,7 +89,7 @@
 *
 *   SEPARATION IS STRUCTURAL.  Children are indexed BY FIRST BYTE (text) or BY
 * NEXT BIT (binary).  Two children of one node therefore CANNOT share a first
-* byte -- not "must not", cannot: there is one slot per byte and a second
+* byte - not "must not", cannot: there is one slot per byte and a second
 * child
 * would have to occupy the same one.  The multiplicity restriction mu_1 is not
 * enforced here, it is UNREPRESENTABLE to violate.  That is the strongest form
@@ -98,18 +98,18 @@
 * the one child that can possibly match.
 *
 *   common_prefix_length IS THE MEET. The longest common prefix of two keys is
-* their greatest lower bound in the prefix order -- their lca.  It is not a
+* their greatest lower bound in the prefix order - their lca.  It is not a
 * string-comparison helper that happens to be useful; it is the meet,
 * computed.
 * text_prefix_compare's four flags (key_consumed / edge_consumed / exact /
 * neither) are the four possible positions of that meet relative to the two
 * words, and they are exactly the four cases a descent must distinguish.
 *
-*   PATH COMPRESSION PRESERVES ADDRESSES -- WHICH IS WHY IT IS ALLOWED.
+*   PATH COMPRESSION PRESERVES ADDRESSES - WHICH IS WHY IT IS ALLOWED.
 * Collapsing a chain of single-child nodes into one edge with a longer label
 * re-BRACKETS the concatenation of labels; it does not change the
 * concatenation.  The address is the concatenation.  So compression is an
-* address-preserving transformation, and that -- not the memory saving -- is
+* address-preserving transformation, and that - not the memory saving - is
 * what makes it sound.  Edge SPLITTING is its inverse, and the place you split
 * is THE MEET: exactly where the shared prefix ends, which is exactly what
 * common_prefix_length returns.  The two operations are the same theorem read
@@ -121,8 +121,8 @@
 *   III.  node shape traits
 *   IV.   container interface traits
 *   V.    options              (the framework's axes; DContainerOption bridge)
-*   VI.   text prefix utilities   -- THE MEET
-*   VII.  binary prefix utilities -- THE MEET, bitwise
+*   VI.   text prefix utilities   - THE MEET
+*   VII.  binary prefix utilities - THE MEET, bitwise
 *   VIII. node types
 *   IX.   traversal frame
 *   X.    constants
@@ -157,7 +157,7 @@
 #include "../../../../../re_std/cpp/cstdint/cstdint.hpp"  // re_std::uintptr_t
 #include "../../../../../re_std/cpp/type_traits/bool_constant.hpp"  // portable,
                                                                 // C++11+
-// re_std::string_view -- basic_string_view<char>, available from C++11. This
+// re_std::string_view - basic_string_view<char>, available from C++11. This
 // used to be re_std::string_view, which is C++17, and the TEXT half of this
 // module was gated away below that. THE GATE IS GONE: re_std back-ports the
 // view, so text keys now work everywhere binary keys do, and nothing here has
@@ -208,7 +208,7 @@ NS_INTERNAL
 NS_END  // internal
 
 // is_text_key
-//   trait: a key the TEXT tree can descend -- one convertible to a
+//   trait: a key the TEXT tree can descend - one convertible to a
 // re_std::string_view (std::string, const char*, a literal). The label alphabet
 // is then the byte, and the child slot is the byte's value.
 template<typename Type>
@@ -220,7 +220,7 @@ struct is_text_key
 
 
 // is_binary_key
-//   trait: a key the BINARY tree can descend -- an integral or pointer scalar,
+//   trait: a key the BINARY tree can descend - an integral or pointer scalar,
 // whose bit pattern is the label word and whose next bit is the child slot.
 //
 //   POINTERS ARE ADMITTED, AND NOW ACTUALLY WORK. They always passed this
@@ -254,7 +254,7 @@ using enable_if_binary_key =
 
 
 // ---------------------------------------------------------------------------
-//  key_bits_t  -- the bit carrier
+//  key_bits_t  - the bit carrier
 // ---------------------------------------------------------------------------
 
 NS_INTERNAL
@@ -302,7 +302,7 @@ NS_INTERNAL
     // key_bits_impl
     //   TAG DISPATCH, not if-constexpr: reinterpret_cast is only well-formed
     // on a pointer, and an integral key must never see it. An overload that is
-    // not selected is never instantiated, so it is never checked -- C++11.
+    // not selected is never instantiated, so it is never checked - C++11.
     template<typename Key>
     D_CONSTEXPR_INLINE key_bits_t<Key>
     key_bits_impl(Key _key, std::true_type /*pointer*/) D_NOEXCEPT
@@ -361,7 +361,7 @@ NS_INTERNAL
 NS_END  // internal
 
 // key_bit_width
-//   trait: the number of labels in a binary key's address -- its bit width.
+//   trait: the number of labels in a binary key's address - its bit width.
 // Zero for a type that is not a binary key.
 template<typename Type>
 struct key_bit_width
@@ -486,7 +486,7 @@ struct has_radix_value
 {};
 
 // has_radix_children
-//   trait: the node exposes the CHILD SLOT ARRAY -- which is the separation
+//   trait: the node exposes the CHILD SLOT ARRAY - which is the separation
 // structure itself (one slot per label, so two children cannot collide).
 template<typename Type>
 struct has_radix_children
@@ -619,7 +619,7 @@ struct is_radix_tree_base
 //
 //       MULTIPLICITY.  Whether a key may map to more than one value.
 //
-// A radix tree is addressable exactly when it may not -- that is mu_1, that is
+// A radix tree is addressable exactly when it may not - that is mu_1, that is
 // separation, that is why find(key) returns AT MOST ONE thing.  The bitmask has
 // no bit for it and no room to grow one without renumbering every axis.  The
 // framework's axis surface has said it all along.
@@ -632,14 +632,14 @@ D_STATIC_CONSTEXPR DContainerStructure radix_axis_structure =
 // radix_axis_multiplicity
 //   THE axis. A key names at most one value; that is what makes the key an
 // ADDRESS rather than a query, and it is the thing DContainerOption could not
-// express. Not configurable either -- a radix tree that allowed duplicate keys
+// express. Not configurable either - a radix tree that allowed duplicate keys
 // would not resolve, and would not be a radix tree.
 D_STATIC_CONSTEXPR DContainerMultiplicity radix_axis_multiplicity =
     DContainerMultiplicity::unique;
 
 
 // ---------------------------------------------------------------------------
-//  DContainerOption  (bridge -- retained, deprecated)
+//  DContainerOption  (bridge - retained, deprecated)
 // ---------------------------------------------------------------------------
 
 // DContainerOption
@@ -910,7 +910,7 @@ DContainerStorageKind radix_storage_kind_of(
 
 
 // ===========================================================================
-// VI.  TEXT PREFIX UTILITIES  --  THE MEET
+// VI.  TEXT PREFIX UTILITIES  -  THE MEET
 // ===========================================================================
 
 #if D_RADIX_HAVE_TEXT_KEYS
@@ -918,7 +918,7 @@ DContainerStorageKind radix_storage_kind_of(
 // DTextPrefixMatchResult
 //   struct: WHERE THE MEET FALLS. The longest common prefix of a key and an
 // edge label is their greatest lower bound in the prefix order, and it can sit
-// in exactly four places relative to the two words -- which is why a descent
+// in exactly four places relative to the two words - which is why a descent
 // has exactly four cases:
 //
 //     exact key == edge the meet is BOTH words: found it
@@ -936,7 +936,7 @@ DContainerStorageKind radix_storage_kind_of(
 //   The split point is the meet. Always. That is the whole of edge splitting.
 struct DTextPrefixMatchResult
 {
-    // |meet| -- how many leading bytes the two words share
+    // |meet| - how many leading bytes the two words share
     std::size_t common_len;
 
     // the meet is the whole key  (key is a prefix of, or equal to, edge)
@@ -953,7 +953,7 @@ struct DTextPrefixMatchResult
 using text_prefix_match_result = DTextPrefixMatchResult;
 
 // common_prefix_length
-//   THE MEET, as a length.  |lcp(a, b)| -- the greatest lower bound of the two
+//   THE MEET, as a length.  |lcp(a, b)| - the greatest lower bound of the two
 // keys in the prefix order.  Everything else in a radix tree is bookkeeping
 // around this number: it is where you descend to, where you split, and what
 // the lca of two stored keys is.
@@ -997,16 +997,16 @@ DTextPrefixMatchResult text_prefix_compare(
 
 
 // ===========================================================================
-// VII. BINARY PREFIX UTILITIES  --  THE MEET, BITWISE
+// VII. BINARY PREFIX UTILITIES  -  THE MEET, BITWISE
 // ===========================================================================
 
 // bit_at
 //   the label at position _pos of _key's address. Position 0 is the MOST
-// significant bit, so the word reads root-first -- the order a descent
+// significant bit, so the word reads root-first - the order a descent
 // consumes it in.
 //
 //   POINTER KEYS WORK NOW. The old body shifted _key directly, so a pointer --
-// which is_binary_key has always admitted -- was a hard compile error at the
+// which is_binary_key has always admitted - was a hard compile error at the
 // first instantiation ("invalid static_cast from 'long unsigned int' to
 // 'int*'"). The shift happens on key_bits(), so a pointer is shifted as its
 // uintptr_t image. One name, both key kinds; the trees' call sites are
@@ -1025,7 +1025,7 @@ bit_at(
 }
 
 // binary_prefix_length
-// THE MEET, in bits. |lcp(a, b)| -- how many leading labels the two addresses
+// THE MEET, in bits. |lcp(a, b)| - how many leading labels the two addresses
 // share, scanning at most _max_bits from the MSB. Same number, same meaning,
 // same job as common_prefix_length: it is where you descend to, and where you
 // split.
@@ -1060,7 +1060,7 @@ binary_prefix_length(
 //
 //   present == true is what makes a node a STORED KEY rather than a waypoint
 // on the way to one. A radix tree's internal nodes are addresses that exist
-// because something below them exists -- which is the ancestor-closure again,
+// because something below them exists - which is the ancestor-closure again,
 // arrived at from the other side.
 template<typename Value>
 struct DRadixTerminal
@@ -1100,8 +1100,8 @@ using radix_terminal = DRadixTerminal<Value>;
 // concrete node, which gives a typed parent pointer without a vtable.
 //
 //   The parent chain is how you recover a node's ADDRESS: walk to the root
-// concatenating edge labels. THE ROOT CONTRIBUTES NO LABEL -- it is where the
-// key begins, not a byte of it -- so the address of the root is the EMPTY key,
+// concatenating edge labels. THE ROOT CONTRIBUTES NO LABEL - it is where the
+// key begins, not a byte of it - so the address of the root is the EMPTY key,
 // and find("") is the root. That is the base of the induction, not a special
 // case.
 template<typename Derived>
@@ -1130,7 +1130,7 @@ using radix_node_base = DRadixNodeBase<Derived>;
 
 // DRadixTraversalFrame
 //   struct: one frame of an explicit descent stack. Iterative, so a deep trie
-// cannot overflow the machine stack -- and a trie over long keys IS deep.
+// cannot overflow the machine stack - and a trie over long keys IS deep.
 template<typename NodePtr>
 struct DRadixTraversalFrame
 {
@@ -1160,7 +1160,7 @@ using radix_traversal_frame = DRadixTraversalFrame<NodePtr>;
 // radix_alpha_size
 //   the number of child slots in a text node: one per byte value. THIS ARRAY
 // IS THE SEPARATION STRUCTURE. One slot per label means two children of one
-// node cannot share a first byte -- mu_1 is not enforced, it is
+// node cannot share a first byte - mu_1 is not enforced, it is
 // unrepresentable to violate.
 D_STATIC_CONSTEXPR std::size_t radix_alpha_size = 256u;
 

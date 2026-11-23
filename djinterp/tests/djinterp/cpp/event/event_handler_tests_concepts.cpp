@@ -1,11 +1,11 @@
 /*******************************************************************************
 * djinterp [cpp][event]                         event_handler_tests_concepts.cpp
 *
-*   Section VI -- CONCEPT CONSTRAINTS (C++20+).  Covers the handler concept
+*   Section VI - CONCEPT CONSTRAINTS (C++20+).  Covers the handler concept
 * layer: is_handler / handler_for, the void vs verdict return split, the
 * nothrow / throwing split, handler_for_event_of_arity and its
 * nullary..ternary aliases plus variadic_handler_for.  Each concept is checked
-* as a boolean over positive and negative operands, and -- crucially -- over a
+* as a boolean over positive and negative operands, and - crucially - over a
 * non-event operand to confirm every derived concept short-circuits on event
 * identity and never instantiates handler_traits for a non-event (which would
 * fire event_traits' static_assert at compile time).
@@ -182,7 +182,7 @@ NS_END  // testing
 NS_END  // djinterp
 
 
-#else   // !D_ENV_CPP_FEATURE_LANG_CONCEPTS -- concept layer absent
+#else   // !D_ENV_CPP_FEATURE_LANG_CONCEPTS - concept layer absent
 
 
 NS_DJINTERP

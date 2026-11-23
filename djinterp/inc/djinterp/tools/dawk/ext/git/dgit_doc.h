@@ -5,17 +5,17 @@
 *   A document is the text of an ignore file, an attribute file or a file of
 * git's configuration syntax, and its records, read by dgit_text. A change is
 * made at once: the text is spliced, the result read again, and the change
-* kept only if everything outside the splice reads as it did -- every
+* kept only if everything outside the splice reads as it did - every
 * pattern, state, section and entry before it where it was, every one after
 * it where it was but moved by the splice, each read as before: an entry
-* after a new section header still in its own section -- and the change
+* after a new section header still in its own section - and the change
 * itself reads back as asked: a key has the value it was given, a pattern
 * the text, a section the name. A change that would do more is refused, and
 * the file left as it was. A change of several splices is kept whole or not
 * at all. Every byte a change does not touch is the file's own, its line
 * endings and byte-order mark among them; text a change writes takes the
 * file's line endings.
-*   The changes a file takes: a line inserted, removed or replaced -- a
+*   The changes a file takes: a line inserted, removed or replaced - a
 * pattern, a comment; an attribute's state set on a pattern's line, or
 * taken off; and in a configuration what git config does: a key set or
 * added, a value given to one entry, a key unset, a section renamed or
@@ -192,8 +192,8 @@ bool d_git_doc_splice(
 // Each is kept as d_git_doc_splice keeps a change; each invalidates the
 // records on success. A line's text is one line, with no ending: the
 // document's is added.
-// d_git_doc_insert_line puts a line before line `_before` -- or after the
-// last for the line count -- and d_git_doc_set_line replaces a line's text,
+// d_git_doc_insert_line puts a line before line `_before` - or after the
+// last for the line count - and d_git_doc_set_line replaces a line's text,
 // each giving the index of the line it made, D_GIT_TEXT_NONE when refused;
 // d_git_doc_remove_line takes a line and its ending away.
 size_t d_git_doc_insert_line(
@@ -215,7 +215,7 @@ bool d_git_doc_remove_line(
 //------------------------------------------------------------------------------
 // d_git_doc_set_state writes an attribute's state on a pattern's line --
 // replacing the state of that name the line ends with, or after the line's
-// last -- for a name git allows and a value with no blank;
+// last - for a name git allows and a value with no blank;
 // d_git_doc_remove_state takes every state of the name off the line, the
 // blank before each with it. Each is kept as d_git_doc_splice keeps a
 // change, and invalidates the records on success.
@@ -238,11 +238,11 @@ bool d_git_doc_remove_state(
 // written new are written as given. Each is kept whole or not at all, as
 // d_git_doc_splice keeps a change, and invalidates the records on success.
 // d_git_doc_set gives a key a value: the one entry it has, or a new entry,
-// as git config key value -- refused for a key of several entries;
+// as git config key value - refused for a key of several entries;
 // d_git_doc_add adds an entry whatever the key has, as git config --add;
 // d_git_doc_set_entry gives one entry a value, NULL for its name alone;
-// d_git_doc_unset takes a key's entry away -- every one with `_all`, else
-// refused for several -- as git config --unset and --unset-all; and
+// d_git_doc_unset takes a key's entry away - every one with `_all`, else
+// refused for several - as git config --unset and --unset-all; and
 // d_git_doc_remove_entry takes one entry away.
 bool d_git_doc_set(
     struct dj_git_doc* _doc,
@@ -268,8 +268,8 @@ bool d_git_doc_remove_entry(
     struct dj_git_doc* _doc,
     size_t             _entry
 );
-// d_git_doc_rename_section gives every section of a name -- "section" or
-// "section.subsection" -- another, as git config --rename-section, and
+// d_git_doc_rename_section gives every section of a name - "section" or
+// "section.subsection" - another, as git config --rename-section, and
 // d_git_doc_remove_section takes every one away, its entries and comments
 // to the next section with it, as git config --remove-section; each is
 // refused when there is no such section.

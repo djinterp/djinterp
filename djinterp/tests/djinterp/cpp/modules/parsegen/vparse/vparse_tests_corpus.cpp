@@ -2,7 +2,7 @@
 * djinterp [cpp][parsegen]                               vparse_tests_corpus.cpp
 *
 * vparse tests: a corpus made from a grammar, and two programs compared over
-* one -- the same corpus from the same seed, walks that end however the rules
+* one - the same corpus from the same seed, walks that end however the rules
 * recurse, near-misses one character from a walk, two grammars of one
 * language agreeing, and a grammar with an alternative dropped found out by
 * the inputs it is named for.

@@ -2,10 +2,10 @@
 * djinterp [c][parse]                                           cfg_arg_parser.h
 *
 * Configuration of the command-line argument parser.
-*   Which optional parts of the parser are compiled -- configuration files,
+*   Which optional parts of the parser are compiled - configuration files,
 * environment variables, the extra and the path validators, response files,
 * suggestions, terminal-width help, completion scripts, UTF-8 argument
-* recovery -- the defaults of two run-time settings, and the sizes help and
+* recovery - the defaults of two run-time settings, and the sizes help and
 * suggestions start from, resolved into D_INTERNAL_ARG_PARSER_*.
 *   Every feature knob is a BRANCH knob: it removes code, never a struct
 * member, so a structure has one layout whatever the knobs say and C and C++
@@ -88,8 +88,8 @@ TABLE OF CONTENTS
 //==============================================================================
 // 1.  KNOBS
 //==============================================================================
-// Each is #ifndef-guarded, so a value defined earlier -- by -D, a prefix
-// header, or cfg_custom.h -- wins. Feature knobs fall back to the aggregate
+// Each is #ifndef-guarded, so a value defined earlier - by -D, a prefix
+// header, or cfg_custom.h - wins. Feature knobs fall back to the aggregate
 // before their own default.
 
 
@@ -97,7 +97,7 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 1.1.1
 // D_CFG_ARG_PARSER_ALL
-//   knob: optional aggregate for the feature knobs of 1.2. NOT defaulted -- its
+//   knob: optional aggregate for the feature knobs of 1.2. NOT defaulted - its
 // absence is meaningful. Define it to 0 or 1, and every feature knob with no
 // value of its own falls back to it: 0 builds the smallest parser, CLI11's
 // core with none of its optional parts.
@@ -106,7 +106,7 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 1.2.1
 // D_CFG_ARG_PARSER_CONFIG_FILES
-//   knob: 1 compiles configuration files -- TOML and INI read through a
+//   knob: 1 compiles configuration files - TOML and INI read through a
 // command's config option and written by d_arg_command_config_to_sink; 0
 // removes them, and a config option then reports a configuration error.
 // Default 1.
@@ -134,7 +134,7 @@ TABLE OF CONTENTS
 // 1.2.3
 // D_CFG_ARG_PARSER_EXTRA_VALIDATORS
 //   knob: 1 compiles the validators CLI11 compiles unless
-// CLI11_DISABLE_EXTRA_VALIDATORS is set -- membership, the transformers,
+// CLI11_DISABLE_EXTRA_VALIDATORS is set - membership, the transformers,
 // numbers with units, sizes, IPv4 addresses, type checks, bounds; 0 keeps
 // CLI11's default ones (ranges, number signs, escaped strings) and the path
 // validators of 1.2.4. Default 1.
@@ -148,9 +148,9 @@ TABLE OF CONTENTS
 
 // 1.2.4
 // D_CFG_ARG_PARSER_PATH_VALIDATORS
-//   knob: 1 compiles the validators that ask the file system -- existing file,
+//   knob: 1 compiles the validators that ask the file system - existing file,
 // directory and path, nonexistent path, file on a default path, permissions,
-// file size -- through the module's own system layer; 0 removes them.
+// file size - through the module's own system layer; 0 removes them.
 // Default 1.
 #ifndef D_CFG_ARG_PARSER_PATH_VALIDATORS
     #if defined(D_CFG_ARG_PARSER_ALL)
@@ -216,7 +216,7 @@ TABLE OF CONTENTS
 // D_CFG_ARG_PARSER_WIDE_ARGV
 //   knob: 1 compiles the UTF-8 recovery of `argv` from the platform's wide
 // command line (CLI11's ensure_utf8), parsing a wide `argv` (`wmain`'s), and
-// wide text converted both ways -- CLI11's narrow() and widen(), and, in the
+// wide text converted both ways - CLI11's narrow() and widen(), and, in the
 // C++ face, values of the types made from a std::wstring; 0 removes them.
 // Default 1.
 #ifndef D_CFG_ARG_PARSER_WIDE_ARGV
@@ -278,8 +278,8 @@ TABLE OF CONTENTS
 
 // 1.4.4
 // D_CFG_ARG_PARSER_SUGGESTION_DISTANCE
-//   knob: the most edits -- insertions, deletions, substitutions and adjacent
-// transpositions -- by which a known name may differ from an unexpected
+//   knob: the most edits - insertions, deletions, substitutions and adjacent
+// transpositions - by which a known name may differ from an unexpected
 // argument and still be suggested for it. From 1 to 8; default 2.
 #ifndef D_CFG_ARG_PARSER_SUGGESTION_DISTANCE
     #define D_CFG_ARG_PARSER_SUGGESTION_DISTANCE   2
@@ -491,8 +491,8 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 2.4.1
 // D_INTERNAL_ARG_PARSER_CPP_CATCH
-//   resolved: 1 when the C++ face's thunks -- every function the C core calls
-// back into C++ through -- must catch whatever the user's code throws and
+//   resolved: 1 when the C++ face's thunks - every function the C core calls
+// back into C++ through - must catch whatever the user's code throws and
 // return it as a status. Not a knob: the guides require it wherever
 // exceptions exist, so it follows D_ENV_ARG_PARSER_CPP_EXCEPTIONS.
 #define D_INTERNAL_ARG_PARSER_CPP_CATCH  D_ENV_ARG_PARSER_CPP_EXCEPTIONS

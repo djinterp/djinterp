@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/text/text_source/CMakeLists.txt
+# djinterp [test]  -  build/cmake/config/testing/djinterp/c/text/text_source/CMakeLists.txt
 #
 #   Test leaf for c/text/text_source.h, a text as read, by offset and by line,
 # and whole files, in the C spec form: the runner in this directory, the

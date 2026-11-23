@@ -5,7 +5,7 @@
 * --------------
 *   The comparison, pristine and diff surfaces this header used to define now
 * live on the vocabulary they describe --
-* core/util/compress/compress_options.hpp -- implemented over the kernel's knob
+* core/util/compress/compress_options.hpp - implemented over the kernel's knob
 * table rather than as a hand-written fifty-field walk.  What remains here is a
 * set of using-declarations, so that every existing `dt::` call site keeps
 * compiling unchanged.
@@ -15,7 +15,7 @@
 *   compress_options grew d_compress_options_equal, _are_default and _diff in
 * the C kernel, backed by a dense knob table that carries each knob's name and
 * owning codec.  This header's field-by-field chain was a second
-* implementation of that table -- one that had to be edited by hand every time
+* implementation of that table - one that had to be edited by hand every time
 * a knob was added, and would silently stop covering the new knob if it was
 * not.  compress_common.h is the single walk now.
 *
@@ -35,7 +35,7 @@
 *
 * PORTABILITY
 * -----------
-*   Target floor C++98, effective floor C++11 -- djinterp.hpp gates below it,
+*   Target floor C++98, effective floor C++11 - djinterp.hpp gates below it,
 * so no includer compiles at C++98 today.  Verified at C++11/17/20.  Note
 * that the surface is no longer link-free: the kernel walk lives in
 * compress_common.c, so a TU using these comparators links it.  It already did
@@ -88,7 +88,7 @@ NS_TEST
 // to be a member of djinterp::test.  These declarations make it one without
 // making it a second definition.
 
-// -- per-codec block comparison ----------------------------------------------
+// - per-codec block comparison ----------------------------------------------
 using ::djinterp::deflate_options_equal;
 using ::djinterp::bzip2_options_equal;
 using ::djinterp::lzma_options_equal;
@@ -96,18 +96,18 @@ using ::djinterp::zstd_options_equal;
 using ::djinterp::lz4_options_equal;
 using ::djinterp::brotli_options_equal;
 
-// -- aggregate comparison ----------------------------------------------------
+// - aggregate comparison ----------------------------------------------------
 using ::djinterp::compress_options_equal;
 
-// -- pristine-default predicates ---------------------------------------------
+// - pristine-default predicates ---------------------------------------------
 using ::djinterp::default_compress_options;
 using ::djinterp::compress_options_are_default;
 
-// -- diff description --------------------------------------------------------
+// - diff description --------------------------------------------------------
 using ::djinterp::describe_compress_option_diff;
 using ::djinterp::describe_compress_diff_from_default;
 
-// -- option builders ---------------------------------------------------------
+// - option builders ---------------------------------------------------------
 using ::djinterp::compress_level_options;
 using ::djinterp::deflate_tuned_options;
 using ::djinterp::zstd_level_options;

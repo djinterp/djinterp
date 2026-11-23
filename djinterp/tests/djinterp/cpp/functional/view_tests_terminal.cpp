@@ -3,12 +3,12 @@
 *
 * Terminal operator tests (section VII): the drains that force a pipeline.
 *
-*   test_to_vector    -- collect into a std::vector<value_type>.
-*   test_to_container -- collect into an explicitly-typed container.
-*   test_count        -- element count of a (possibly bounded) view.
-*   test_fold         -- left fold with an explicit init.
-*   test_for_each     -- visit every element for side effects.
-*   test_any_all_none -- short-circuiting predicate drains, incl. empty views.
+*   test_to_vector    - collect into a std::vector<value_type>.
+*   test_to_container - collect into an explicitly-typed container.
+*   test_count        - element count of a (possibly bounded) view.
+*   test_fold         - left fold with an explicit init.
+*   test_for_each     - visit every element for side effects.
+*   test_any_all_none - short-circuiting predicate drains, incl. empty views.
 *
 *   NOTE: the table of contents also lists reduce / find_if / min_element /
 * max_element, but those terminals are not implemented in view.hpp, so there

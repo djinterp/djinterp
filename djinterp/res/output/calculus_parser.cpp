@@ -574,28 +574,28 @@ union yyalloc
 # endif
 #endif /* !YYCOPY_NEEDED */
 
-/* YYFINAL -- State number of the termination state.  */
+/* YYFINAL - State number of the termination state.  */
 #define YYFINAL  271
-/* YYLAST -- Last index in YYTABLE.  */
+/* YYLAST - Last index in YYTABLE.  */
 #define YYLAST   2724
 
-/* YYNTOKENS -- Number of terminals.  */
+/* YYNTOKENS - Number of terminals.  */
 #define YYNTOKENS  227
-/* YYNNTS -- Number of nonterminals.  */
+/* YYNNTS - Number of nonterminals.  */
 #define YYNNTS  59
-/* YYNRULES -- Number of rules.  */
+/* YYNRULES - Number of rules.  */
 #define YYNRULES  305
-/* YYNRULES -- Number of states.  */
+/* YYNRULES - Number of states.  */
 #define YYNSTATES  500
 
-/* YYTRANSLATE(YYLEX) -- Bison symbol number corresponding to YYLEX.  */
+/* YYTRANSLATE(YYLEX) - Bison symbol number corresponding to YYLEX.  */
 #define YYUNDEFTOK  2
 #define YYMAXUTOK   459
 
 #define YYTRANSLATE(YYX)						\
   ((unsigned int) (YYX) <= YYMAXUTOK ? yytranslate[YYX] : YYUNDEFTOK)
 
-/* YYTRANSLATE[YYLEX] -- Bison symbol number corresponding to YYLEX.  */
+/* YYTRANSLATE[YYLEX] - Bison symbol number corresponding to YYLEX.  */
 static const yytype_uint8 yytranslate[] =
 {
        0,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -647,7 +647,7 @@ static const yytype_uint8 yytranslate[] =
 };
 
 #if YYDEBUG
-/* YYPRHS[YYN] -- Index of the first RHS symbol of rule number YYN in
+/* YYPRHS[YYN] - Index of the first RHS symbol of rule number YYN in
    YYRHS.  */
 static const yytype_uint16 yyprhs[] =
 {
@@ -684,7 +684,7 @@ static const yytype_uint16 yyprhs[] =
      852,   859,   868,   872,   876,   880
 };
 
-/* YYRHS -- A `-1'-separated list of the rules' RHS.  */
+/* YYRHS - A `-1'-separated list of the rules' RHS.  */
 static const yytype_int16 yyrhs[] =
 {
      228,     0,    -1,   229,    -1,   230,    -1,   281,    -1,   283,
@@ -778,7 +778,7 @@ static const yytype_int16 yyrhs[] =
        5,   217,   230,   218,    -1
 };
 
-/* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
+/* YYRLINE[YYN] - source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
        0,   146,   146,   150,   151,   152,   153,   163,   164,   168,
@@ -816,7 +816,7 @@ static const yytype_uint16 yyrline[] =
 #endif
 
 #if YYDEBUG || YYERROR_VERBOSE || 0
-/* YYTNAME[SYMBOL-NUM] -- String name of the symbol SYMBOL-NUM.
+/* YYTNAME[SYMBOL-NUM] - String name of the symbol SYMBOL-NUM.
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
@@ -874,7 +874,7 @@ static const char *const yytname[] =
 #endif
 
 # ifdef YYPRINT
-/* YYTOKNUM[YYLEX-NUM] -- Internal token number corresponding to
+/* YYTOKNUM[YYLEX-NUM] - Internal token number corresponding to
    token YYLEX-NUM.  */
 static const yytype_uint16 yytoknum[] =
 {
@@ -904,7 +904,7 @@ static const yytype_uint16 yytoknum[] =
 };
 # endif
 
-/* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
+/* YYR1[YYN] - Symbol number of symbol that rule YYN derives.  */
 static const yytype_uint16 yyr1[] =
 {
        0,   227,   228,   229,   229,   229,   229,   230,   230,   231,
@@ -940,7 +940,7 @@ static const yytype_uint16 yyr1[] =
      283,   283,   284,   285,   285,   285
 };
 
-/* YYR2[YYN] -- Number of symbols composing right hand side of rule YYN.  */
+/* YYR2[YYN] - Number of symbols composing right hand side of rule YYN.  */
 static const yytype_uint8 yyr2[] =
 {
        0,     2,     1,     1,     1,     1,     1,     1,     1,     3,
@@ -976,7 +976,7 @@ static const yytype_uint8 yyr2[] =
        6,     8,     3,     3,     3,     4
 };
 
-/* YYDEFACT[STATE-NAME] -- Default reduction number in state STATE-NUM.
+/* YYDEFACT[STATE-NAME] - Default reduction number in state STATE-NUM.
    Performed when YYTABLE doesn't specify something else to do.  Zero
    means the default is an error.  */
 static const yytype_uint16 yydefact[] =
@@ -1044,7 +1044,7 @@ static const yytype_int16 yydefgoto[] =
      206,   207,   208,   209,   421,   422,   211,   212,   213
 };
 
-/* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
+/* YYPACT[STATE-NUM] - Index in YYTABLE of the portion describing
    STATE-NUM.  */
 #define YYPACT_NINF -331
 static const yytype_int16 yypact[] =
@@ -1676,7 +1676,7 @@ static const yytype_int16 yycheck[] =
      217,    -1,   219,    -1,   221
 };
 
-/* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
+/* YYSTOS[STATE-NUM] - The (internal number of the) accessing
    symbol of state STATE-NUM.  */
 static const yytype_uint16 yystos[] =
 {
@@ -1787,7 +1787,7 @@ while (YYID (0))
 #endif
 
 
-/* YYLEX -- calling `yylex' with the right arguments.  */
+/* YYLEX - calling `yylex' with the right arguments.  */
 #ifdef YYLEX_PARAM
 # define YYLEX yylex (YYLEX_PARAM)
 #else
@@ -1881,7 +1881,7 @@ yy_symbol_print (yyoutput, yytype, yyvaluep)
 }
 
 /*------------------------------------------------------------------.
-| yy_stack_print -- Print the state stack from its BOTTOM up to its |
+| yy_stack_print - Print the state stack from its BOTTOM up to its |
 | TOP (included).                                                   |
 `------------------------------------------------------------------*/
 
@@ -1960,12 +1960,12 @@ int yydebug;
 #endif /* !YYDEBUG */
 
 
-/* YYINITDEPTH -- initial size of the parser's stacks.  */
+/* YYINITDEPTH - initial size of the parser's stacks.  */
 #ifndef	YYINITDEPTH
 # define YYINITDEPTH 200
 #endif
 
-/* YYMAXDEPTH -- maximum size the stacks can grow to (effective only
+/* YYMAXDEPTH - maximum size the stacks can grow to (effective only
    if the built-in stack extension method is used).
 
    Do not make this value too large; the results are undefined if
@@ -2354,7 +2354,7 @@ yyparse ()
   goto yysetstate;
 
 /*------------------------------------------------------------.
-| yynewstate -- Push a new state, which is found in yystate.  |
+| yynewstate - Push a new state, which is found in yystate.  |
 `------------------------------------------------------------*/
  yynewstate:
   /* In all cases, when you get here, the value and location stacks
@@ -2499,7 +2499,7 @@ yybackup:
 
 
 /*-----------------------------------------------------------.
-| yydefault -- do the default action for the current state.  |
+| yydefault - do the default action for the current state.  |
 `-----------------------------------------------------------*/
 yydefault:
   yyn = yydefact[yystate];
@@ -2509,7 +2509,7 @@ yydefault:
 
 
 /*-----------------------------.
-| yyreduce -- Do a reduction.  |
+| yyreduce - Do a reduction.  |
 `-----------------------------*/
 yyreduce:
   /* yyn is the number of a rule to reduce with.  */
@@ -2575,7 +2575,7 @@ yyreduce:
 
 
 /*------------------------------------.
-| yyerrlab -- here on detecting error |
+| yyerrlab - here on detecting error |
 `------------------------------------*/
 yyerrlab:
   /* Make sure we have latest lookahead translation.  See comments at
@@ -2649,7 +2649,7 @@ yyerrlab:
 
 
 /*---------------------------------------------------.
-| yyerrorlab -- error raised explicitly by YYERROR.  |
+| yyerrorlab - error raised explicitly by YYERROR.  |
 `---------------------------------------------------*/
 yyerrorlab:
 
@@ -2669,7 +2669,7 @@ yyerrorlab:
 
 
 /*-------------------------------------------------------------.
-| yyerrlab1 -- common code for both syntax error and YYERROR.  |
+| yyerrlab1 - common code for both syntax error and YYERROR.  |
 `-------------------------------------------------------------*/
 yyerrlab1:
   yyerrstatus = 3;	/* Each real token shifted decrements this.  */
@@ -2713,14 +2713,14 @@ yyerrlab1:
 
 
 /*-------------------------------------.
-| yyacceptlab -- YYACCEPT comes here.  |
+| yyacceptlab - YYACCEPT comes here.  |
 `-------------------------------------*/
 yyacceptlab:
   yyresult = 0;
   goto yyreturn;
 
 /*-----------------------------------.
-| yyabortlab -- YYABORT comes here.  |
+| yyabortlab - YYABORT comes here.  |
 `-----------------------------------*/
 yyabortlab:
   yyresult = 1;
@@ -2728,7 +2728,7 @@ yyabortlab:
 
 #if !defined yyoverflow || YYERROR_VERBOSE
 /*-------------------------------------------------.
-| yyexhaustedlab -- memory exhaustion comes here.  |
+| yyexhaustedlab - memory exhaustion comes here.  |
 `-------------------------------------------------*/
 yyexhaustedlab:
   yyerror (YY_("memory exhausted"));

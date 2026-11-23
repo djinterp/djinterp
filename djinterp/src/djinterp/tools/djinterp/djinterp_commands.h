@@ -18,7 +18,7 @@
 *
 *   The djins are the program's own, registered before its first parse;
 * the 0.8 preview has none yet, so `list` names the settings the registry
-* holds -- the kit's `cli` among them -- as "settings only".
+* holds - the kit's `cli` among them - as "settings only".
 *
 *
 * path:      /src/djinterp/tools/djinterp/djinterp_commands.h

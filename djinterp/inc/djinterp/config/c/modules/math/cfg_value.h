@@ -20,8 +20,8 @@
 * then says; a program that shares values between threads there must
 * retain and release them under a lock of its own.
 *   The knob is a flag: each #ifndef-guarded, so a definition made before
-* value.h is first included -- with -D, in cfg_custom.h, or in the including
-* file -- wins over the default here.
+* value.h is first included - with -D, in cfg_custom.h, or in the including
+* file - wins over the default here.
 *
 *   targets:  c/math/value.h -> D_INTERNAL_MATH_VALUE_HOLDERS
 *   requires: cfg_common.h (user overrides, the testing preset, the flag

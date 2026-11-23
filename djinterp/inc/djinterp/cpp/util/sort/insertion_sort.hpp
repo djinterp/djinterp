@@ -5,8 +5,8 @@
 * In-place, iterative, stable, comparison-based.  Each element is placed into
 * the ordered run growing behind it, so the sorted prefix extends by exactly
 * one element per step until it is the whole range.  The driver is a single
-* call into insertion_sort_common.hpp, so a concurrent driver -- or quicksort's
-* small-range fallback -- shares the primitives rather than restating them.
+* call into insertion_sort_common.hpp, so a concurrent driver - or quicksort's
+* small-range fallback - shares the primitives rather than restating them.
 *
 *   ONE SWEEP, NOT MANY.  Insertion and bubble move elements the same way, one
 * place at a time between adjacent neighbours, and differ in when they stop.
@@ -17,7 +17,7 @@
 * class.
 *
 *   WHY THIS IS NOT THE C MODULE WITH A TEMPLATE ON TOP.  Calling
-* d_insertion_sort would cost what the erased interface costs -- an indirect
+* d_insertion_sort would cost what the erased interface costs - an indirect
 * call per comparison and a width-driven shift, neither visible to the
 * optimiser.  The duplication is safe because insertion sort is STABLE, and
 * sortedness plus stability leaves exactly one possible arrangement of any
@@ -25,7 +25,7 @@
 * Their agreement follows from the algorithm's contract, not from shared code.
 *
 *   complexity:
-*     best:     O(n)        (already sorted -- one comparison per element,
+*     best:     O(n)        (already sorted - one comparison per element,
 *                            and no writes at all)
 *     average:  O(n^2)
 *     worst:    O(n^2)
@@ -34,7 +34,7 @@
 *
 *   REQUIREMENTS.  RandomIterator must be a random-access iterator; the
 * element type must be copy-constructible and copy-assignable.  Comparator
-* must be a std::sort-convention binary predicate -- which every model of
+* must be a std::sort-convention binary predicate - which every model of
 * is_comparator is, so the composed comparators from the functional layer drop
 * in unchanged:
 *

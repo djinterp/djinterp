@@ -8,7 +8,7 @@
 * that changes a shared struct: at 0, struct dj_event_dispatcher loses its
 * queue member and shrinks from 152 bytes to 80. Goals section 4 sanctions
 * this ("representation is a policy, not a type"), and both languages read the
-* same knob so parity is unaffected -- but two differently-configured builds
+* same knob so parity is unaffected - but two differently-configured builds
 * then disagree on the wire. D_INTERNAL_EVENT_LAYOUT_ID in cfg_event.h exists
 * to be stamped into anything serialized, so that disagreement is detected
 * rather than silently decoded.
@@ -41,7 +41,7 @@
 // ===========================================================================
 
 // D_CFG_EVENT_QUEUE
-//   brief: 1 compiles the deferred-delivery path -- struct dj_event_queue, the
+//   brief: 1 compiles the deferred-delivery path - struct dj_event_queue, the
 // dispatcher's queue member, enqueue, and process. 0 leaves immediate
 // dispatch only, and the facade becomes a registry with a facade's names.
 //   See the LAYOUT WARNING in this file's header before setting it to 0.
@@ -55,7 +55,7 @@
 
 // D_CFG_EVENT_QUEUE_DEFAULT_CAPACITY
 //   brief: slot capacity chosen when an allocating queue is created with
-// capacity 0 -- the number of occurrences that may be pending at once.
+// capacity 0 - the number of occurrences that may be pending at once.
 #ifndef D_CFG_EVENT_QUEUE_DEFAULT_CAPACITY
 #   define D_CFG_EVENT_QUEUE_DEFAULT_CAPACITY 64
 #endif
@@ -85,7 +85,7 @@
 // the new one fits, which keeps the newest input flowing in a real-time loop
 // at the cost of silently losing older occurrences.
 //   This changes WHAT IS COMPUTED, not merely how fast. Both languages read
-// the same knob, so C and C++ still agree -- but two builds under different
+// the same knob, so C and C++ still agree - but two builds under different
 // policies will not, and only REJECT is loss-free.
 #ifndef D_CFG_EVENT_QUEUE_OVERFLOW
 #   define D_CFG_EVENT_QUEUE_OVERFLOW D_CFG_EVENT_QUEUE_REJECT

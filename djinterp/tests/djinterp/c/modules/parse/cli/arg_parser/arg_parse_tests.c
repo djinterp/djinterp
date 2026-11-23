@@ -5,8 +5,8 @@
 *   Each section is a case table (arg_tests_support.h): each case makes its
 * options and commands as CLI11's App("d", "prog") would, on a run's parser
 * of its own, parses its arguments, and is written as the parse suite's
-* CLI11 reference writes it -- a line of its tag and arguments, what its
-* callbacks noted, and the parse as the runs report one -- the section's
+* CLI11 reference writes it - a line of its tag and arguments, what its
+* callbacks noted, and the parse as the runs report one - the section's
 * cases compared whole. The cases of the parse probes keep their tags
 * (P01-P38, Q01-Q18, V01-V06); those after them begin at P39. Q13 and Q14,
 * the probes' parses of a vector, are the parser suite's.
@@ -541,8 +541,8 @@ static const char CALLBACKS[] =
     "cmd t n=1 miss=[x] subs=[] order=[]\n";
 
 // MANY
-//   constant: the fewest values CLI11 takes as many -- a sixteenth of
-// the unlimited count -- at which an option that takes no extra
+//   constant: the fewest values CLI11 takes as many - a sixteenth of
+// the unlimited count - at which an option that takes no extra
 // arguments takes only one item's values at each use.
 enum
 {

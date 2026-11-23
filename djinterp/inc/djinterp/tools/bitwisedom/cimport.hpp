@@ -2,7 +2,7 @@
 * djinterp [cpp][tools]                                              cimport.hpp
 *
 * C and C++ code read into a sheet: its #defines become rows.
-*   A header -- or any text with #defines in it, a snippet pasted from one --
+*   A header - or any text with #defines in it, a snippet pasted from one --
 * is read as a preprocessor reads it, by djinterp's lexer at the sheet's
 * language and level, its conditionals followed the way the define
 * environment follows them (cenv.hpp). Each #define in a branch taken
@@ -14,7 +14,7 @@
 *     anything else  D_A | D_BIT(3), F(x)    a macro row, verbatim
 *
 * but a definition becomes a literal, bit or range row only when the
-* generator writes it back exactly as it was written -- digits, case,
+* generator writes it back exactly as it was written - digits, case,
 * suffix and all; otherwise it is kept as a macro, and is written as it
 * was. A body over several lines keeps its lines and their indentation.
 *   The comment directly above a definition becomes its note, a djinterp
@@ -90,8 +90,8 @@ struct import_options
 // 1.2.1
 // imported
 //   struct: the sheet the code became, and what became of the code: how
-// many definitions were read, as what, and the notes -- each with its line
-// -- on what was assumed, skipped or wrong. `ok` is false only when the
+// many definitions were read, as what, and the notes - each with its line
+// - on what was assumed, skipped or wrong. `ok` is false only when the
 // text has no definition at all.
 struct imported
 {
@@ -113,7 +113,7 @@ struct imported
  *
  * @param[in] _text     the code: a header, or any part of one.
  * @param[in] _options  the language to read it at, and the sheet's names.
- * @return the sheet -- 32 bits wide, or 64 when a value needs more -- and
+ * @return the sheet - 32 bits wide, or 64 when a value needs more - and
  *         the report.
  */
 D_NODISCARD imported import_code(
@@ -121,7 +121,7 @@ D_NODISCARD imported import_code(
     const import_options& _options
 );
 
-// sheets or code -- whether a file's text is a saved sheet (JSON) rather
+// sheets or code - whether a file's text is a saved sheet (JSON) rather
 // than code to import
 D_NODISCARD bool looks_like_sheet(
     std::string_view _text
@@ -155,7 +155,7 @@ struct merged
  * @note A symbol whose macro name the sheet already has replaces that
  *       symbol's definition, in place; the rest are added under _parent,
  *       their groups with them. A name is made local to where it lands --
- *       the prefixes and suffixes around it taken off -- so its macro name
+ *       the prefixes and suffixes around it taken off - so its macro name
  *       stays what it was.
  *
  * @param[in,out] _into    the sheet.

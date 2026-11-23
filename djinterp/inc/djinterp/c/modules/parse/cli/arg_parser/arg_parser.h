@@ -3,7 +3,7 @@
 *
 * The argument parser: the root of a command tree, and the parse itself.
 *   A `struct dj_arg_parser` is what a program makes first: CLI11's top-level
-* App -- the root command every option and subcommand hangs from -- with what
+* App - the root command every option and subcommand hangs from - with what
 * belongs to a parse rather than to any one command: the error reports, the
 * formatter and configuration format every command without its own uses,
 * the sinks help and failures are written to, and the storage for the
@@ -12,7 +12,7 @@
 * face derives from it without adding to it.
 *   A parse returns a dj_arg_status. D_ARG_OK means the program goes on; any
 * other status goes to d_arg_parser_exit, which writes what it calls for --
-* help, a version, a completion script, a failure message -- and returns the
+* help, a version, a completion script, a failure message - and returns the
 * code to end the process with. D_ARG_PARSE does both for main, as
 * CLI11_PARSE does.
 *   This is also the C face's umbrella header: including it includes every
@@ -34,9 +34,9 @@
 *
 * CONFIGURATION
 * -------------
-*   The features of cfg_arg_parser.h -- configuration files, the environment,
+*   The features of cfg_arg_parser.h - configuration files, the environment,
 * validators, response files, suggestions, the terminal's width, completion and
-* wide arguments -- each removed at 0; D_CFG_ARG_PARSER_WINDOWS_STYLE decides
+* wide arguments - each removed at 0; D_CFG_ARG_PARSER_WINDOWS_STYLE decides
 * whether a new parser takes `/name`, and D_CFG_ARG_PARSER_SUGGESTION_DISTANCE
 * how near a suggestion must be.
 *
@@ -209,19 +209,19 @@ TABLE OF CONTENTS
 // of its own; `out` receives help, versions, completion scripts and
 // deprecation warnings, and `err` failure messages. The rest is storage:
 // `pending` holds the arguments still to parse, the next one last, each
-// with every byte it holds; `pool` the strings the last parse made -- a
-// split line's words, a response file's, converted wide arguments -- of
+// with every byte it holds; `pool` the strings the last parse made - a
+// split line's words, a response file's, converted wide arguments - of
 // which one holding a NUL byte reads, as a C string, as ending there, where
 // its span in `pending` goes on; `program` a copy of the program's name
-// as the last parse was given it -- `argv[0]`, or the first word of a line
-// parsed with the program's name -- NULL when it was given none;
+// as the last parse was given it - `argv[0]`, or the first word of a line
+// parsed with the program's name - NULL when it was given none;
 // `utf8_argv` the arguments d_arg_parser_ensure_utf8 recovered,
 // NULL-terminated. `completion` is the option that asks for a completion
 // script, if any; `response_quoting` a dj_arg_quoting value; `flags` the
 // D_ARG_PARSER_* switches. `setting_hook` is the hook offered the long
 // options the parse does not know, NULL for none, and `setting_context` its
 // context; `setting_args` the arguments the last parse began with, response
-// files expanded, the program's name first -- kept only while a hook is
+// files expanded, the program's name first - kept only while a hook is
 // set, for the hook to read; `setting_status` the reason the hook gave with
 // the refusal that ended the last parse, 0 otherwise.
 //   Public-payload layout: read any field; change one only through the calls
@@ -332,12 +332,12 @@ D_ARG_PARSER_API void d_arg_parser_clear(
 // configuration files, environment variables, the callbacks in priority
 // order with the help flags among them, the requirements, the arguments
 // left over. D_ARG_OK means every callback ran and the program goes on.
-// Any other status -- a completed request (D_ARG_CALL_FOR_HELP,
+// Any other status - a completed request (D_ARG_CALL_FOR_HELP,
 // D_ARG_CALL_FOR_ALL_HELP, D_ARG_CALL_FOR_VERSION,
-// D_ARG_CALL_FOR_COMPLETION, D_ARG_SUCCESS) or an error -- is described by
+// D_ARG_CALL_FOR_COMPLETION, D_ARG_SUCCESS) or an error - is described by
 // d_arg_parser_error and ended by d_arg_parser_exit. A call refused with
-// D_ARG_ERROR_BAD_ARGUMENT -- its parser, or what it is to parse, not there
-// -- is refused before any of this, and leaves the last parse as it was.
+// D_ARG_ERROR_BAD_ARGUMENT - its parser, or what it is to parse, not there
+// - is refused before any of this, and leaves the last parse as it was.
 
 
 // 4.1    Arguments
@@ -347,7 +347,7 @@ D_ARG_PARSER_API void d_arg_parser_clear(
 /**
  * @brief Parses main's arguments; CLI11's parse(argc, argv).
  *
- * @note A root without a name -- or named from `argv[0]` before -- takes
+ * @note A root without a name - or named from `argv[0]` before - takes
  *       `argv[0]` as its name, and the parser keeps a copy of `argv[0]` as
  *       `program` in any case. A value that is a whole argument, or its
  *       tail after `=` or a short name, borrows `argv`'s storage.
@@ -399,13 +399,13 @@ D_ARG_PARSER_API int d_arg_parser_parse_args(
  *        program_name_included).
  *
  * @note The line is split as d_arg_split_line splits it with
- *       D_ARG_QUOTING_CLI11 -- reading `:` as `=` when the root takes
- *       Windows-style options -- into words the parser keeps, each whole: a
+ *       D_ARG_QUOTING_CLI11 - reading `:` as `=` when the root takes
+ *       Windows-style options - into words the parser keeps, each whole: a
  *       NUL byte a word holds, as it is or from an escape such as `\0`,
  *       reaches the option with the bytes after it, as in CLI11, where
  *       d_arg_split_line's list reads the word as ending there. With a
  *       program name, the name is what d_arg_split_program_name finds, and
- *       it names a root without one -- up to a NUL it holds, as every name
+ *       it names a root without one - up to a NUL it holds, as every name
  *       is a C string.
  *
  * @param[in,out] _parser             the parser.
@@ -458,7 +458,7 @@ D_ARG_PARSER_API int d_arg_parser_parse_wide(
  *        program_name_included).
  *
  * @note The line is converted to UTF-8, as d_arg_utf8_from_wide converts --
- *       U+0000 a NUL byte -- then parsed as d_arg_parser_parse_line parses
+ *       U+0000 a NUL byte - then parsed as d_arg_parser_parse_line parses
  *       it.
  *
  * @param[in,out] _parser             the parser.
@@ -485,7 +485,7 @@ D_ARG_PARSER_API int d_arg_parser_parse_line_wide(
  * @note On Windows `argv` holds the arguments in the ANSI code page, which
  *       cannot hold every character. This splits the process's wide command
  *       line by the C runtime's rules into UTF-8 copies the parser keeps,
- *       and returns them when they are as many as `argv` holds -- they are
+ *       and returns them when they are as many as `argv` holds - they are
  *       not when the runtime expanded wildcards, and `argv` is returned.
  *       Elsewhere `argv` is UTF-8 already and is returned as it is.
  *
@@ -516,8 +516,8 @@ D_ARG_PARSER_API char** d_arg_parser_ensure_utf8(
  *        CLI11's parse_from_stream.
  *
  * @note The text is read with the root's configuration format. Its items
- *       give values to the options they name that have none -- so it adds
- *       to a parse of the command line rather than replacing it -- and the
+ *       give values to the options they name that have none - so it adds
+ *       to a parse of the command line rather than replacing it - and the
  *       processing that ends a parse follows. Without a parse before it,
  *       the definitions are checked first, as a parse checks them.
  *
@@ -553,10 +553,10 @@ D_ARG_PARSER_API int d_arg_parser_parse_config(
  * @note D_ARG_CALL_FOR_HELP and D_ARG_CALL_FOR_ALL_HELP write the help of
  *       the last subcommand the parse used; D_ARG_CALL_FOR_VERSION the
  *       version the parse read from the command whose version flag was
- *       given -- the error's message -- and a newline; and
+ *       given - the error's message - and a newline; and
  *       D_ARG_CALL_FOR_COMPLETION the completion script the parse made, the
  *       message too; each to the parser's output. An error writes the root's
- *       failure message -- its own, or d_arg_failure_simple -- to the
+ *       failure message - its own, or d_arg_failure_simple - to the
  *       parser's error output. D_ARG_OK, D_ARG_SUCCESS and
  *       D_ARG_RUNTIME_ERROR write nothing. When `_status` is the status of
  *       the parser's error, that error's message and exit code are used; any
@@ -593,8 +593,8 @@ D_ARG_PARSER_API int d_arg_parser_exit_to(
  *
  * @note What is written is what d_arg_parser_exit writes, for the command:
  *       help is the command's, or that of the last subcommand the parse used
- *       under it; a failure message is the nearest one -- the command's own,
- *       else its nearest parent's, else d_arg_failure_simple -- looked up
+ *       under it; a failure message is the nearest one - the command's own,
+ *       else its nearest parent's, else d_arg_failure_simple - looked up
  *       when the error is reported, and called with the command. Help, a
  *       version and a completion script go to the parser's output, a
  *       failure message to its error output.
@@ -726,7 +726,7 @@ bool d_arg_parser_parse_or_exit(
 // d_arg_failure_simple
 //   failure message: CLI11's FailureMessage::simple, the default: the error's
 // message and a newline, then "Run with <help> for more information." when
-// the command has a help flag -- "<help> or <help-all>" when it has both. A
+// the command has a help flag - "<help> or <help-all>" when it has both. A
 // setting the hook refused (D_ARG_ERROR_SETTING), whose message is the
 // argument alone, reads "Setting refused: <argument>".
 D_ARG_PARSER_API int d_arg_failure_simple(
@@ -818,8 +818,8 @@ D_ARG_PARSER_API void d_arg_parser_set_output(
  * @brief Makes an `\@file` argument stand for the arguments its file
  *        holds, as GCC's and MSVC's do.
  *
- * @note Before parsing, an argument starting with `@` -- unless it follows
- *       `--` -- is replaced by the words of its file, split as
+ * @note Before parsing, an argument starting with `@` - unless it follows
+ *       `--` - is replaced by the words of its file, split as
  *       d_arg_read_response_file splits them; those starting with `@` are
  *       replaced in turn, up to D_INTERNAL_ARG_PARSER_RESPONSE_DEPTH files
  *       deep, below which the parse fails with D_ARG_ERROR_TOO_DEEP. A file
@@ -848,13 +848,13 @@ D_ARG_PARSER_API void d_arg_parser_set_response_files(
 // d_arg_parser_set_suggestions
 //   setting: whether the message for arguments the parse did not expect
 // adds a line for each one with the option or subcommand name it most
-// likely meant -- "Did you mean '--verbose'?", or, among several, "Did you
-// mean '--verbose' for '--verbse'?" -- the one name nearest by optimal string
+// likely meant - "Did you mean '--verbose'?", or, among several, "Did you
+// mean '--verbose' for '--verbse'?" - the one name nearest by optimal string
 // alignment distance (Damerau-Levenshtein's, a swap of neighbours one edit),
 // within D_INTERNAL_ARG_PARSER_SUGGESTION_DISTANCE edits and no more than
 // half the longer name, among those the command and its option groups --
 // and, for a subcommand's name, the parents its subcommands fall through
-// to -- and the subcommands the parse used would have taken; hidden and
+// to - and the subcommands the parse used would have taken; hidden and
 // disabled ones are never named, nor is anything for an argument that is
 // empty, or starts with a dash and is no option's. On at first; off, the
 // message is CLI11's. Does not fail.
@@ -893,9 +893,9 @@ D_ARG_PARSER_API void d_arg_parser_set_empty_values(
  * @brief Makes a unique prefix of a long name stand for the name, as
  *        getopt_long and GNU programs take one: `--verb` for `--verbose`.
  *
- * @note A `--word` that is no long name the search for it reaches -- the
+ * @note A `--word` that is no long name the search for it reaches - the
  *       command's own options, its option groups', and, as it falls
- *       through, its parents' -- and that begins the long names of those
+ *       through, its parents' - and that begins the long names of those
  *       options, is read as `--NAME`, its `=VALUE` kept, where it begins
  *       one option's; where it begins several, the parse fails as an
  *       argument nothing takes (D_ARG_ERROR_EXTRAS), naming them. A name
@@ -921,13 +921,13 @@ D_ARG_PARSER_API void d_arg_parser_set_abbreviations(
 // d_arg_parser_set_setting_hook
 /**
  * @brief Offers each long option the parse does not know to a hook, so that
- *        a program can take settings -- `--name.key=value`, `--set
- *        NAME=VALUE` -- where the parser reads an option, by the parser's
+ *        a program can take settings - `--name.key=value`, `--set
+ *        NAME=VALUE` - where the parser reads an option, by the parser's
  *        own rules.
  *
  * @note An argument is offered where the parse reads it as a long option
  *       (`--name` or `--name=value`) that no option the search for it
- *       reaches has by name -- the command's own, its option groups', and,
+ *       reaches has by name - the command's own, its option groups', and,
  *       as it falls through, its parents', each by its own name rules --
  *       and that CLI11's dot notation gives no subcommand's option. It is
  *       offered before abbreviations (d_arg_parser_set_abbreviations), so a
@@ -935,10 +935,10 @@ D_ARG_PARSER_API void d_arg_parser_set_abbreviations(
  *       argument nothing takes is reported, kept, or suggested for. Those
  *       steps follow as before when the hook returns 0.
  * @note It is never offered an argument the parse reads as a positional --
- *       anything after the `--` that ends a command's options -- nor a
+ *       anything after the `--` that ends a command's options - nor a
  *       value an option takes, nor one a prefix command keeps: where the
- *       search for it would end -- in the command, or in the parent it falls
- *       through to -- in a command that stops at anything unrecognized
+ *       search for it would end - in the command, or in the parent it falls
+ *       through to - in a command that stops at anything unrecognized
  *       (D_ARG_PREFIX_ON), the argument and those after it stay that
  *       command's. A `--` that ends a subcommand whose positionals are full
  *       is, as in CLI11, that subcommand's end, and the parent goes on
@@ -975,8 +975,8 @@ D_ARG_PARSER_API void d_arg_parser_set_setting_hook(
 //------------------------------------------------------------------------------
 // 7.1.1
 // d_arg_parser_error
-//   lookup: what the last parse ended with -- D_ARG_OK for one that did not
-// fail -- valid until the next parse, clear or release; NULL for a NULL
+//   lookup: what the last parse ended with - D_ARG_OK for one that did not
+// fail - valid until the next parse, clear or release; NULL for a NULL
 // parser.
 D_ARG_PARSER_API const struct dj_arg_error* d_arg_parser_error(
     const struct dj_arg_parser* _parser
@@ -984,8 +984,8 @@ D_ARG_PARSER_API const struct dj_arg_error* d_arg_parser_error(
 
 // 7.2    Definitions
 //------------------------------------------------------------------------------
-//   A definition that fails -- a bad name, a name taken, a copy that could not
-// be made -- returns its failure and records it as the parser's definition
+//   A definition that fails - a bad name, a name taken, a copy that could not
+// be made - returns its failure and records it as the parser's definition
 // error, unless one is recorded already: the first is kept. Every parse
 // reports it, without parsing, until it is cleared, as CLI11 throws it where
 // the definition is made.
@@ -1001,7 +1001,7 @@ D_ARG_PARSER_API const struct dj_arg_error* d_arg_parser_definition_error(
 // 7.2.2
 // d_arg_parser_clear_definition_error
 //   operation: forgets the definition error, for a caller that has dealt with
-// the failed definition -- as catching CLI11's exception there does -- so
+// the failed definition - as catching CLI11's exception there does - so
 // that parsing goes ahead. Ignores NULL.
 D_ARG_PARSER_API void d_arg_parser_clear_definition_error(
     struct dj_arg_parser* _parser

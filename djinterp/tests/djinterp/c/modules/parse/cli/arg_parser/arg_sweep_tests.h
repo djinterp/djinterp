@@ -2,7 +2,7 @@
 * djinterp [c][parse]                                          arg_sweep_tests.h
 *
 * The argument parser's allocation sweep: every allocation refused in turn.
-*   Each section runs one scenario -- a program written with the C API, from
+*   Each section runs one scenario - a program written with the C API, from
 * its definitions through a parse to the text it writes, then released --
 * once as it is, counting its allocations, then once for each of them with
 * that one refused. Each run must come to an end, with no memory left live

@@ -2,7 +2,7 @@
 * djinterp [cpp][functional]                         fn_builder_tests_parity.cpp
 *
 * Parity tests (section viii): the C++ face against the C kernel.
-*   test_parity_c_kernel -- the same chains, built with DFnBuilder and with
+*   test_parity_c_kernel - the same chains, built with DFnBuilder and with
 *                           c/functional/fn_builder.h, over the same inputs,
 *                           give the same elements in the same order. The C
 *                           kernel runs its steps in call order (since

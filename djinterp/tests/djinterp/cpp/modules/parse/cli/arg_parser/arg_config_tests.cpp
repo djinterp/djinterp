@@ -11,7 +11,7 @@
 * ConfigBase shared with the Apps it is given to, its operations the
 * format's virtual functions), and the transcripts below are what CLI11
 * wrote; so the CASES section is written in the part of the face CLI11
-* shares -- each setting a statement of its own, as CLI11's return a
+* shares - each setting a statement of its own, as CLI11's return a
 * pointer rather than the format, each format given to a command a static
 * object, which a command here borrows, and given to it before its
 * subcommands are made, which CLI11's copy when they are made. The
@@ -491,7 +491,7 @@ const char SETTINGS[] =
 //   constant: what the steps of d_tests_arg_cpp_config_items write: the
 // module's own, as CLI11's ConfigItem is a struct of strings, filled in
 // place, where an item here is built through calls that copy its text --
-// NUL bytes kept -- and is adopted by the list that keeps it (ISSUES 16).
+// NUL bytes kept - and is adopted by the list that keeps it (ISSUES 16).
 const char ITEMS[] =
     "none: valid=0 parents=[] name=[] inputs=[] multiline=0 full=[]\n"
     "made: valid=1 parents=[] name=[] inputs=[] multiline=0 full=[]\n"
@@ -545,14 +545,14 @@ const char FAILED[] =
 //   constant: what the steps of d_tests_arg_cpp_config_departures write:
 // the module's own, where the face departs from CLI11. CLI11's maxLayers
 // takes a std::uint8_t and its index a std::int16_t, so that a count of 257
-// layers is 1 there -- the item three sections deep left out -- -1 is 255
-// -- the item kept -- and an index of 65537 is 1, the second occurrence
+// layers is 1 there - the item three sections deep left out - -1 is 255
+// - the item kept - and an index of 65537 is 1, the second occurrence
 // read, where here layers are held at 0 to 255 and an index is kept as
 // given, which no occurrence matches (ISSUES 61); and CLI11 copies a
 // command's format into a subcommand when the subcommand is made, so that
 // one made before the root is given a format keeps the one it was made
-// with, and reads `oui` as no flag's value -- `ConversionError 104: Could
-// not convert: --loud = oui` -- where here a subcommand without a format
+// with, and reads `oui` as no flag's value - `ConversionError 104: Could
+// not convert: --loud = oui` - where here a subcommand without a format
 // of its own follows its parent's whenever it is used (ISSUES 18).
 const char DEPARTED[] =
     "257 layers: comment=[#] array=[[]] separator=[,] delimiter=[=] "
@@ -662,7 +662,7 @@ std::string joined(
 }
 
 /**
- * @brief Writes a list of items: how many, then a line for each -- its
+ * @brief Writes a list of items: how many, then a line for each - its
  *        sections, its name, its values, whether it ran over lines, and
  *        its full name.
  *
@@ -1624,7 +1624,7 @@ const std::size_t PARSED_COUNT =
 //------------------------------------------------------------------------------
 
 // framed
-//   class: a format whose writing frames each command it writes -- the root,
+//   class: a format whose writing frames each command it writes - the root,
 // and each subcommand, which the writing writes through the same format --
 // between comment lines naming the command and the prefix it is written
 // under.
@@ -2158,8 +2158,8 @@ void write_entry(
 }
 
 /**
- * @brief ITEMS 1: an item built by its calls -- NUL bytes in its text
- *        kept -- viewed, adopted by a list, which leaves it empty, and the
+ * @brief ITEMS 1: an item built by its calls - NUL bytes in its text
+ *        kept - viewed, adopted by a list, which leaves it empty, and the
  *        list cleared; a view of none.
  *
  * @param[in,out] _run  the step's run.

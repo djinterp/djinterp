@@ -38,7 +38,7 @@ struct dj_internal_entry
 };
 
 // d_internal_key
-//   struct: one lookup row -- a name or an alias, and its entry.
+//   struct: one lookup row - a name or an alias, and its entry.
 struct dj_internal_key
 {
     const char*  key;
@@ -655,8 +655,8 @@ d_settings_source_name(enum dj_setting_source _source)
 d_settings_take_option
   Consumes one command-line setting: `--set name=value`, `--name=value`,
 `--name` for true or `--no-name` for false.  Returns 1 when it consumed one,
-0 when the argument is not a setting option -- a positional, `--`, or
-`--settings`, which the caller handles -- and -1 when it named a setting
+0 when the argument is not a setting option - a positional, `--`, or
+`--settings`, which the caller handles - and -1 when it named a setting
 badly, with the reason in `_error`.  Both dawk and dcheck parse settings
 through this, so the two commands cannot drift apart.
 */

@@ -174,8 +174,8 @@ enum dj_smtp_error
     D_SMTP_ERROR_INSECURE           // credentials would cross in the clear
 };
 
-// d_smtp_error_string -- a short label for an error; O(1), never NULL.
-// d_smtp_error_to_net -- the dj_net_error an error maps to, by the rules
+// d_smtp_error_string - a short label for an error; O(1), never NULL.
+// d_smtp_error_to_net - the dj_net_error an error maps to, by the rules
 // net.h gives with it; D_NET_ERROR_UNKNOWN for a value outside the enum
 const char* d_smtp_error_string(
     enum dj_smtp_error _error
@@ -190,7 +190,7 @@ enum dj_net_error d_smtp_error_to_net(
  *
  * @note D_NET_OK is D_SMTP_OK; INVALID_ARGUMENT, OUT_OF_MEMORY, TIMED_OUT,
  *       and PROTOCOL are their namesakes; a stream that ended or a
- *       connection lost -- CLOSED, CONNECTION_RESET, CONNECTION_ABORTED --
+ *       connection lost - CLOSED, CONNECTION_RESET, CONNECTION_ABORTED --
  *       is CLOSED; anything else is TRANSPORT. It is how what a session
  *       reads and writes is judged; opening a connection is judged apart,
  *       by d_smtp_client_connect.
@@ -205,20 +205,20 @@ enum dj_smtp_error d_smtp_error_from_net(
 
 // the SSL kernel's own types: the two judgments below exist where the
 // kernel does, which needs a 64-bit integer type, and are absent where the
-// build has none -- ISO strict C++98 wherever int64_t is `long long`: a 32-bit
+// build has none - ISO strict C++98 wherever int64_t is `long long`: a 32-bit
 // target, 64-bit Windows or macOS (the owner's ruling of 2026.10.03 on round
-// 3's question 1, (a)) -- as ssl.h is
+// 3's question 1, (a)) - as ssl.h is
 #if (D_INTERNAL_NET_HAS_INT64 == 1)
 
 /**
  * @brief Gives the error a failed TLS session of the SSL kernel is here.
  *
- * @note A connection that failed beneath TLS by its own error -- a
- *       timeout, a reset -- is that error, by d_smtp_error_from_net; a
+ * @note A connection that failed beneath TLS by its own error - a
+ *       timeout, a reset - is that error, by d_smtp_error_from_net; a
  *       peer that hung up, with close_notify or without, is CLOSED; a lack
- *       of memory is OUT_OF_MEMORY; and anything else -- a certificate
+ *       of memory is OUT_OF_MEMORY; and anything else - a certificate
  *       refused, a negotiation failed, a peer not speaking TLS, an engine
- *       that failed -- is TLS.
+ *       that failed - is TLS.
  *
  * @param[in] _status  the session's status.
  * @param[in] _cause   what its connection last reported, as
@@ -233,8 +233,8 @@ enum dj_smtp_error d_smtp_error_from_ssl(
 /**
  * @brief Gives the error a failed read or write is when a TLS session of
  *        the SSL kernel carries the stream: the session's own failure, by
- *        d_smtp_error_from_ssl, once it has failed -- so a TLS failure after
- *        the handshake is TLS, as one during it is -- and otherwise
+ *        d_smtp_error_from_ssl, once it has failed - so a TLS failure after
+ *        the handshake is TLS, as one during it is - and otherwise
  *        `_result`, the stream's own judgment.
  *
  * @param[in]     _tls     the TLS session beneath the stream, or NULL.
@@ -270,7 +270,7 @@ struct dj_smtp_buffer
     size_t length;    // bytes in use, excluding the NUL
 };
 
-// d_smtp_buffer_init -- points a buffer at `_capacity` bytes of `_data` and
+// d_smtp_buffer_init - points a buffer at `_capacity` bytes of `_data` and
 // empties it; a NULL buffer is ignored and NULL data gives a 0-byte buffer
 void d_smtp_buffer_init(
     struct dj_smtp_buffer* _buffer,
@@ -343,7 +343,7 @@ struct dj_smtp_status
 // 3.1.2
 // dj_smtp_reply
 //   struct: one reply, assembled a line at a time. `text` holds each line's
-// text -- what follows the code and its separator -- joined by '\n' and
+// text - what follows the code and its separator - joined by '\n' and
 // NUL-terminated.
 struct dj_smtp_reply
 {
@@ -358,7 +358,7 @@ struct dj_smtp_reply
 
 // 3.2    Reply parsing
 //------------------------------------------------------------------------------
-// d_smtp_reply_clear -- empties a reply for reuse; a NULL reply is ignored
+// d_smtp_reply_clear - empties a reply for reuse; a NULL reply is ignored
 void d_smtp_reply_clear(
     struct dj_smtp_reply* _reply
 );
@@ -381,7 +381,7 @@ enum dj_smtp_error d_smtp_reply_feed(
     size_t                _length
 );
 
-// d_smtp_reply_line -- line `_index` of the stored text (not NUL-terminated)
+// d_smtp_reply_line - line `_index` of the stored text (not NUL-terminated)
 // and its length; NULL past the last line kept. O(text), never fails.
 const char* d_smtp_reply_line(
     const struct dj_smtp_reply* _reply,
@@ -391,7 +391,7 @@ const char* d_smtp_reply_line(
 
 // 3.3    Reply codes
 //------------------------------------------------------------------------------
-// classification by first digit -- all O(1), none fail
+// classification by first digit - all O(1), none fail
 bool d_smtp_code_is_positive(
     unsigned int _code
 );
@@ -478,7 +478,7 @@ struct dj_smtp_capabilities
 
 // 4.2    Capability discovery
 //------------------------------------------------------------------------------
-// d_smtp_capabilities_clear -- forgets every capability; NULL is ignored
+// d_smtp_capabilities_clear - forgets every capability; NULL is ignored
 void d_smtp_capabilities_clear(
     struct dj_smtp_capabilities* _capabilities
 );
@@ -496,7 +496,7 @@ enum dj_smtp_error d_smtp_capabilities_parse(
     const struct dj_smtp_reply*  _reply
 );
 
-// name lookups for SASL mechanisms -- O(1), none fail; an unknown mechanism
+// name lookups for SASL mechanisms - O(1), none fail; an unknown mechanism
 // has no name (NULL) and an unknown name maps to D_SMTP_AUTH_NONE
 const char* d_smtp_auth_name(
     enum dj_smtp_auth _mechanism
@@ -517,12 +517,12 @@ enum dj_smtp_auth d_smtp_auth_from_name(
 
 // 5.1    Validation
 //------------------------------------------------------------------------------
-// predicates -- none fail, a NULL argument is simply invalid:
+// predicates - none fail, a NULL argument is simply invalid:
 //   address  a Mailbox (RFC 5321 section 4.1.2): dot-string or quoted
 //            local-part, "@", and a domain or address literal
 //   domain   a domain name or address literal, as EHLO takes
 // `_allow_utf8` admits UTF-8 in local-parts and domain labels (RFC 6531).
-// Whether free text may join a command line -- no CR, LF or NUL -- is
+// Whether free text may join a command line - no CR, LF or NUL - is
 // codec_line.h's d_net_line_is_clean.
 bool d_smtp_address_is_valid(
     const char* _address,
@@ -630,7 +630,7 @@ enum dj_smtp_error d_smtp_path_parse(
     struct dj_smtp_path* _path
 );
 
-// d_smtp_parameter_next -- reads the parameter at *_cursor and advances past
+// d_smtp_parameter_next - reads the parameter at *_cursor and advances past
 // it; false once [*_cursor, _end) holds no further parameter. Never fails.
 bool d_smtp_parameter_next(
     const char**              _cursor,
@@ -699,12 +699,12 @@ struct dj_smtp_data_encoder
     bool after_cr;    // the last byte was a CR already sent as CRLF
 };
 
-// d_smtp_data_encoder_init -- resets an encoder to the start of a message
+// d_smtp_data_encoder_init - resets an encoder to the start of a message
 void d_smtp_data_encoder_init(
     struct dj_smtp_data_encoder* _encoder
 );
 
-// d_smtp_data_encode -- encodes as much of the input as fits in the buffer
+// d_smtp_data_encode - encodes as much of the input as fits in the buffer
 // (every input byte needs at most two output bytes) and returns how many
 // input bytes it consumed; 0 for a NULL argument
 size_t d_smtp_data_encode(
@@ -727,7 +727,7 @@ enum dj_smtp_error d_smtp_data_finish(
     struct dj_smtp_buffer*       _buffer
 );
 
-// d_smtp_data_unstuff -- for a server reading DATA: true when the line is the
+// d_smtp_data_unstuff - for a server reading DATA: true when the line is the
 // end-of-data marker; otherwise the line's payload, a leading transparency
 // dot removed. Every pointer is required.
 bool d_smtp_data_unstuff(

@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][event]                            event_common_tests_macros.cpp
 *
-*   Section V -- DECLARATION MACROS.  Covers D_EVENT and D_EVENT_EMPTY: the
+*   Section V - DECLARATION MACROS.  Covers D_EVENT and D_EVENT_EMPTY: the
 * payload_type tuple they synthesize, the static name() member they emit (the
 * declared name, checked with std::strcmp), the empty-payload variant, the
 * arity range produced across zero through four payload domains, and the fact

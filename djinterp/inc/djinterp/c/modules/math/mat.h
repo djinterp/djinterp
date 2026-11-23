@@ -8,7 +8,7 @@
 *
 *   A matrix here is a caller's row-major array of rows * cols entries, as
 * BLAS takes them; the C++ face's storage is that array. What is entry-wise
-* -- sums, scaling, norms, comparison -- is vec.h's over the entries; this
+* - sums, scaling, norms, comparison - is vec.h's over the entries; this
 * header has what knows the shape. Every kernel is a constant expression
 * from C++14. The products and the trace are compensated, and solve
 * refines its solution with extra precision; their _fast forms are the
@@ -749,9 +749,9 @@ d_mat_f_inverse(
 // d_mat_f_solve_fast
 //   _x = the solution X of A X = B, A n by n and B n by _m, true; or, for a
 // singular A, the zero matrix and false. Gaussian elimination of [A | B]
-// with partial pivoting -- the pivot the first entry of largest magnitude
+// with partial pivoting - the pivot the first entry of largest magnitude
 // at or below the diagonal, the rows below less their multiples of it, B's
-// rows along -- then back-substitution, as LAPACK's dgesv (S257): for each
+// rows along - then back-substitution, as LAPACK's dgesv (S257): for each
 // column of B the same bits as decomp.h's d_decomp_f_lu and
 // d_decomp_f_lu_solve give. _scratch holds n * n entries; neither it nor
 // _x may be _a or _b.
@@ -971,7 +971,7 @@ d_internal_mat_f_lu(
 //   _y (_n entries, _stride apart) = the solution of A y = _y by A's factors
 // (d_internal_mat_f_lu): the interchanges in order, then L's forward
 // substitution and U's back-substitution, each product rounded before it is
-// combined -- d_mat_f_solve_fast's arithmetic on one column of B, its
+// combined - d_mat_f_solve_fast's arithmetic on one column of B, its
 // interchanges carried through the eliminations the same: bit for bit where
 // the family is evaluated in its own type.
 D_MATH_FN void
@@ -1035,7 +1035,7 @@ d_internal_mat_f_lu_solve(
 // of A x = b, b's entries _sb apart: the residual b - A (x + tail), each row
 // by Dot2 rounded once (vec.h's d_internal_vec_f_dot2), solved by A's
 // factors. *_largest is its largest magnitude, *_relative its largest
-// relative to its entry of x, at most 1 -- 1 also where that entry is 0.
+// relative to its entry of x, at most 1 - 1 also where that entry is 0.
 D_MATH_FN void
 d_internal_mat_f_correction(
     float*          _fix,
@@ -1158,8 +1158,8 @@ d_internal_mat_f_refine(
 // d_mat_f_solve
 //   _x = the solution X of A X = B, A n by n and B n by _m, true; or, for a
 // singular A, the zero matrix and false. Each column first as
-// d_mat_f_solve_fast takes it, A's factors kept -- the first n * n of
-// _scratch's entries and the interchanges in _pivots -- then refined as
+// d_mat_f_solve_fast takes it, A's factors kept - the first n * n of
+// _scratch's entries and the interchanges in _pivots - then refined as
 // LAPACK's dgerfsx refines with extra precision (S406; Demmel, Hida, Kahan,
 // Li, Mukherjee and Riedy, 2006): the residual b - A x by Dot2, x carried as
 // a pair, x and its tail, the correction solved by the factors and added,
@@ -1167,8 +1167,8 @@ d_internal_mat_f_refine(
 // (converged), neither the largest correction nor the largest relative to
 // its entry halves (no progress, the last not added), or
 // D_CFG_MATH_MAT_REFINE_STEPS steps have run. Each entry is then x and its
-// tail rounded once: for an A far enough from singular -- cond(A) times the
-// family's epsilon well below 1 -- the solution correctly rounded but where
+// tail rounded once: for an A far enough from singular - cond(A) times the
+// family's epsilon well below 1 - the solution correctly rounded but where
 // it lies within some cond(A) eps^2 of a midpoint. Where A or the column of
 // B has a NaN or an infinity, or the first solution does, the column is
 // solve_fast's. _scratch holds n * n + 2 n entries and _pivots n; neither
@@ -2085,9 +2085,9 @@ d_mat_d_inverse(
 // d_mat_d_solve_fast
 //   _x = the solution X of A X = B, A n by n and B n by _m, true; or, for a
 // singular A, the zero matrix and false. Gaussian elimination of [A | B]
-// with partial pivoting -- the pivot the first entry of largest magnitude
+// with partial pivoting - the pivot the first entry of largest magnitude
 // at or below the diagonal, the rows below less their multiples of it, B's
-// rows along -- then back-substitution, as LAPACK's dgesv (S257): for each
+// rows along - then back-substitution, as LAPACK's dgesv (S257): for each
 // column of B the same bits as decomp.h's d_decomp_d_lu and
 // d_decomp_d_lu_solve give. _scratch holds n * n entries; neither it nor
 // _x may be _a or _b.
@@ -2307,7 +2307,7 @@ d_internal_mat_d_lu(
 //   _y (_n entries, _stride apart) = the solution of A y = _y by A's factors
 // (d_internal_mat_d_lu): the interchanges in order, then L's forward
 // substitution and U's back-substitution, each product rounded before it is
-// combined -- d_mat_d_solve_fast's arithmetic on one column of B, its
+// combined - d_mat_d_solve_fast's arithmetic on one column of B, its
 // interchanges carried through the eliminations the same: bit for bit where
 // the family is evaluated in its own type.
 D_MATH_FN void
@@ -2371,7 +2371,7 @@ d_internal_mat_d_lu_solve(
 // of A x = b, b's entries _sb apart: the residual b - A (x + tail), each row
 // by Dot2 rounded once (vec.h's d_internal_vec_d_dot2), solved by A's
 // factors. *_largest is its largest magnitude, *_relative its largest
-// relative to its entry of x, at most 1 -- 1 also where that entry is 0.
+// relative to its entry of x, at most 1 - 1 also where that entry is 0.
 D_MATH_FN void
 d_internal_mat_d_correction(
     double*          _fix,
@@ -2494,8 +2494,8 @@ d_internal_mat_d_refine(
 // d_mat_d_solve
 //   _x = the solution X of A X = B, A n by n and B n by _m, true; or, for a
 // singular A, the zero matrix and false. Each column first as
-// d_mat_d_solve_fast takes it, A's factors kept -- the first n * n of
-// _scratch's entries and the interchanges in _pivots -- then refined as
+// d_mat_d_solve_fast takes it, A's factors kept - the first n * n of
+// _scratch's entries and the interchanges in _pivots - then refined as
 // LAPACK's dgerfsx refines with extra precision (S406; Demmel, Hida, Kahan,
 // Li, Mukherjee and Riedy, 2006): the residual b - A x by Dot2, x carried as
 // a pair, x and its tail, the correction solved by the factors and added,
@@ -2503,8 +2503,8 @@ d_internal_mat_d_refine(
 // (converged), neither the largest correction nor the largest relative to
 // its entry halves (no progress, the last not added), or
 // D_CFG_MATH_MAT_REFINE_STEPS steps have run. Each entry is then x and its
-// tail rounded once: for an A far enough from singular -- cond(A) times the
-// family's epsilon well below 1 -- the solution correctly rounded but where
+// tail rounded once: for an A far enough from singular - cond(A) times the
+// family's epsilon well below 1 - the solution correctly rounded but where
 // it lies within some cond(A) eps^2 of a midpoint. Where A or the column of
 // B has a NaN or an infinity, or the first solution does, the column is
 // solve_fast's. _scratch holds n * n + 2 n entries and _pivots n; neither
@@ -3421,9 +3421,9 @@ d_mat_ld_inverse(
 // d_mat_ld_solve_fast
 //   _x = the solution X of A X = B, A n by n and B n by _m, true; or, for a
 // singular A, the zero matrix and false. Gaussian elimination of [A | B]
-// with partial pivoting -- the pivot the first entry of largest magnitude
+// with partial pivoting - the pivot the first entry of largest magnitude
 // at or below the diagonal, the rows below less their multiples of it, B's
-// rows along -- then back-substitution, as LAPACK's dgesv (S257): for each
+// rows along - then back-substitution, as LAPACK's dgesv (S257): for each
 // column of B the same bits as decomp.h's d_decomp_ld_lu and
 // d_decomp_ld_lu_solve give. _scratch holds n * n entries; neither it nor
 // _x may be _a or _b.
@@ -3643,7 +3643,7 @@ d_internal_mat_ld_lu(
 //   _y (_n entries, _stride apart) = the solution of A y = _y by A's factors
 // (d_internal_mat_ld_lu): the interchanges in order, then L's forward
 // substitution and U's back-substitution, each product rounded before it is
-// combined -- d_mat_ld_solve_fast's arithmetic on one column of B, its
+// combined - d_mat_ld_solve_fast's arithmetic on one column of B, its
 // interchanges carried through the eliminations the same: bit for bit where
 // the family is evaluated in its own type.
 D_MATH_FN void
@@ -3707,7 +3707,7 @@ d_internal_mat_ld_lu_solve(
 // of A x = b, b's entries _sb apart: the residual b - A (x + tail), each row
 // by Dot2 rounded once (vec.h's d_internal_vec_ld_dot2), solved by A's
 // factors. *_largest is its largest magnitude, *_relative its largest
-// relative to its entry of x, at most 1 -- 1 also where that entry is 0.
+// relative to its entry of x, at most 1 - 1 also where that entry is 0.
 D_MATH_FN void
 d_internal_mat_ld_correction(
     long double*          _fix,
@@ -3830,8 +3830,8 @@ d_internal_mat_ld_refine(
 // d_mat_ld_solve
 //   _x = the solution X of A X = B, A n by n and B n by _m, true; or, for a
 // singular A, the zero matrix and false. Each column first as
-// d_mat_ld_solve_fast takes it, A's factors kept -- the first n * n of
-// _scratch's entries and the interchanges in _pivots -- then refined as
+// d_mat_ld_solve_fast takes it, A's factors kept - the first n * n of
+// _scratch's entries and the interchanges in _pivots - then refined as
 // LAPACK's dgerfsx refines with extra precision (S406; Demmel, Hida, Kahan,
 // Li, Mukherjee and Riedy, 2006): the residual b - A x by Dot2, x carried as
 // a pair, x and its tail, the correction solved by the factors and added,
@@ -3839,8 +3839,8 @@ d_internal_mat_ld_refine(
 // (converged), neither the largest correction nor the largest relative to
 // its entry halves (no progress, the last not added), or
 // D_CFG_MATH_MAT_REFINE_STEPS steps have run. Each entry is then x and its
-// tail rounded once: for an A far enough from singular -- cond(A) times the
-// family's epsilon well below 1 -- the solution correctly rounded but where
+// tail rounded once: for an A far enough from singular - cond(A) times the
+// family's epsilon well below 1 - the solution correctly rounded but where
 // it lies within some cond(A) eps^2 of a midpoint. Where A or the column of
 // B has a NaN or an infinity, or the first solution does, the column is
 // solve_fast's. _scratch holds n * n + 2 n entries and _pivots n; neither

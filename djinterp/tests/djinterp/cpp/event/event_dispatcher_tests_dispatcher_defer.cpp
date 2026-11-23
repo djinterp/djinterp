@@ -1,13 +1,13 @@
 /*******************************************************************************
 * djinterp [cpp][event]              event_dispatcher_tests_dispatcher_defer.cpp
 *
-*   Section III (deferred surface) -- the DEventDispatcher facade's
+*   Section III (deferred surface) - the DEventDispatcher facade's
 * asynchronous half and its integration with the registry.  queue enqueues an
 * occurrence (reflected in pending_events and the events() sub-queue); process
 * and process_all drain the queue against the dispatcher's own registry,
 * returning the count processed; a max bounds a partial drain.  The defining
 * integration test pairs the two halves: queue an occurrence, bind a handler
-* afterward, then process -- the handler fires, because the queue is processed
+* afterward, then process - the handler fires, because the queue is processed
 * against the registry as it stands at process() time.  Finally, fire and queue
 * are contrasted: fire delivers immediately, queue defers until processed.
 *
@@ -71,7 +71,7 @@ bool tests_dispatcher_queue_then_bind_then_process()
     bool ok = true;
 
     // delivery-time binding through the facade: queue first, bind second,
-    // process third -- the late-bound handler still fires.
+    // process third - the late-bound handler still fires.
     DEventDispatcher d;
     d.queue<DEvInt>(8);
 

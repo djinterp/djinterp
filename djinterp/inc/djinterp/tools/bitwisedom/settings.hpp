@@ -2,15 +2,15 @@
 * djinterp [cpp][tools]                                             settings.hpp
 *
 * A sheet's settings, by path.
-*   A setting is a path -- "grid.minor.thickness", "gen.level" -- with a
+*   A setting is a path - "grid.minor.thickness", "gen.level" - with a
 * label, a kind, its bounds or its choices, and how it is read from a sheet
 * and written to one. The window draws its settings panels from this table
 * and applies what they post through it; the command line's `get` and `set`
 * read and write the same paths, so a setting is declared once, and is then
 * drawn, editable, and scriptable, with nothing to keep in step.
 *   A CHOICE has two names for each of its values: the label the window
-* lists -- "LSB 0", "byte 0 highest" -- and the word a file and a command
-* line write -- lsb0, big -- which is the word the sheet file uses where it
+* lists - "LSB 0", "byte 0 highest" - and the word a file and a command
+* line write - lsb0, big - which is the word the sheet file uses where it
 * holds the same value.
 *   AS TEXT, a setting's value is what `bitwisedom get` prints and `bitwisedom
 * set` reads: a flag as true or false, an integer and a real as numbers, a
@@ -21,8 +21,8 @@
 * in the file, `generator.level`, `rows.0.name`: the members of the object
 * the file holds, an array's elements by their index from 0, as this build
 * writes a sheet (sheet_object). It is read as the file has it, and written
-* as the member there is -- a text as it is, a number, true or false, and
-* an array or object as JSON -- then the sheet is read back from the file's
+* as the member there is - a text as it is, a number, true or false, and
+* an array or object as JSON - then the sheet is read back from the file's
 * object, and must keep the value, or nothing changes: a value the sheet
 * does not keep is refused, never dropped in silence (ruling cli-taken 16).
 *
@@ -107,7 +107,7 @@ enum class setting_kind
 // 1.2.1
 // NAMES_BY_VALUE
 //   constant: the first choice of "grid.names_by" that lists the symbols
-// column's rows by value -- one choice for each value_form, in its order.
+// column's rows by value - one choice for each value_form, in its order.
 // The two before it list them by symbol name and by name.
 const int NAMES_BY_VALUE = 2;
 
@@ -126,8 +126,8 @@ const int NAMES_BY_VALUE = 2;
 // `write_text` instead. `choices` are the labels the window lists, and
 // `words` the words for the same values, one each. `automatic` is true for
 // a setting the theme and scheme choose while the sheet holds none of its
-// own -- a colour while it is 0, a real while it is below its bounds, which
-// `write` takes as -1 -- whose text is then `auto`.
+// own - a colour while it is 0, a real while it is below its bounds, which
+// `write` takes as -1 - whose text is then `auto`.
 struct sheet_setting
 {
     std::string                                       path;
@@ -156,8 +156,8 @@ D_NODISCARD const sheet_setting* find_sheet_setting(
 
 // 2.1.3
 // is_preference
-//   predicate: whether a setting is a preference -- how a sheet is drawn and
-// written, which a settings file carries from sheet to sheet -- rather than
+//   predicate: whether a setting is a preference - how a sheet is drawn and
+// written, which a settings file carries from sheet to sheet - rather than
 // its content: its title, width, affixes and names are its own.
 D_NODISCARD bool is_preference(
     const std::string& _path

@@ -6,7 +6,7 @@
 * the sheet gives it, and every range's GET and SET templates agree with
 * its named values. A sheet wider than an integer keeps its bits in arrays,
 * which no compile-time check reads: its self-test checks them as it runs,
-* and returns 0 only if each holds -- every bit set, tested and cleared
+* and returns 0 only if each holds - every bit set, tested and cleared
 * through the array macros, every field written and read back. The build's
 * tests compile one at every language level, and run a wide sheet's, which
 * is how the generator is proved rather than merely run.

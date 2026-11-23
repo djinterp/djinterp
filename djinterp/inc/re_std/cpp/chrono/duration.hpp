@@ -9,14 +9,14 @@
 *
 *   The period is a re_std::ratio and lives entirely in the type system,
 * so no duration carries a scale factor at run time. A duration is exactly
-* as large as its representation -- the abstraction is free.
+* as large as its representation - the abstraction is free.
 *
 *   THE IMPLICIT CONVERSION RULE IS THE HEART OF THE TYPE:
 *   A duration converts implicitly to another only when the conversion is
 * EXACT. seconds to milliseconds multiplies by 1000 and is implicit;
 * milliseconds to seconds divides and would truncate, so it is refused
 * and duration_cast must be written by hand. The test is
-* ratio_divide<Period2, period>::den == 1 -- the conversion factor being
+* ratio_divide<Period2, period>::den == 1 - the conversion factor being
 * a whole number is precisely the condition for losing nothing.
 *
 *   Floating-point representations opt out of the rule via
@@ -30,13 +30,13 @@
 *   CONSTEXPR REACHES FURTHER THAN std's:
 *   std made duration's mutating members constexpr in C++17 (P0505R0).
 * re_std makes them constexpr from C++14, the first tier whose relaxed
-* rules permit mutation in a constant expression -- a three-year lead.
+* rules permit mutation in a constant expression - a three-year lead.
 * The const observers are constexpr from C++11, matching std.
 *
 *   The mutators use RE_STD_CONSTEXPR_CPP14 rather than RE_STD_CONSTEXPR for a
 * second reason beyond the tier: on C++11, constexpr on a member function
 * implies const, which would make every one of these a const member
-* returning a reference to a modified object -- ill-formed at best and a
+* returning a reference to a modified object - ill-formed at best and a
 * silent duplicate-signature collision at worst.
 *
 *   C++11 FLOOR: no back-port win here, since std::chrono is itself
@@ -117,7 +117,7 @@ namespace chrono
 
         // duration
         //   function: default constructor. The tick count is left
-        // UNINITIALISED, exactly as std specifies -- `duration<int> d;`
+        // UNINITIALISED, exactly as std specifies - `duration<int> d;`
         // holds garbage, and `duration<int> d{};` holds zero. Defaulting
         // rather than zero-initialising is what keeps duration trivially
         // default constructible and therefore free to place in an
@@ -131,7 +131,7 @@ namespace chrono
         duration(const duration&) = default;
 
         // duration
-        //   function: construct from a tick count. Explicit -- a bare
+        //   function: construct from a tick count. Explicit - a bare
         // integer is not a duration, and allowing the implicit conversion
         // would let a raw 5 pass where a timeout was expected without
         // stating its units.
@@ -151,7 +151,7 @@ namespace chrono
         // duration
         //   function: converting constructor. Participates only when the
         // conversion is exact, or when the target rep is floating point.
-        // See the header comment -- this constraint is the type's whole
+        // See the header comment - this constraint is the type's whole
         // reason for existing.
         template<typename Rep2,
                  typename Period2,
@@ -207,7 +207,7 @@ namespace chrono
         }
 
         // operator++ / operator--
-        //   function: step the tick count by one tick -- which is one
+        //   function: step the tick count by one tick - which is one
         // PERIOD, not one second. ++ on a duration<int, milli> advances
         // by a millisecond.
         RE_STD_CONSTEXPR_CPP14 duration& operator++()
@@ -235,7 +235,7 @@ namespace chrono
         // operator+= / operator-=
         //   function: add or subtract a duration of the SAME type. Mixed
         // periods go through the free operators, which compute a common
-        // type -- there is no common type to assign back into here.
+        // type - there is no common type to assign back into here.
         RE_STD_CONSTEXPR_CPP14 duration& operator+=(const duration& _d)
         {
             m_rep += _d.count();
@@ -289,7 +289,7 @@ namespace chrono
         }
 
         // min
-        //   function: the most negative representable duration -- not the
+        //   function: the most negative representable duration - not the
         // shortest positive one. See duration_values.hpp.
         static RE_STD_CONSTEXPR duration min() RE_STD_NOEXCEPT
         {

@@ -7,13 +7,13 @@
 * the terminal is asked to take ANSI sequences only when it would be
 * coloured. Files go through djinterp's filesys, whose calls take UTF-8 names
 * on every system; a file is replaced as filesys's own atomic write replaces
-* one -- a sibling made exclusively with the mode it is to have, the old
+* one - a sibling made exclusively with the mode it is to have, the old
 * file's permission bits or a new file's, filled, synced and renamed over it
-* -- so the replacement does not depend on the build's
+* - so the replacement does not depend on the build's
 * D_CFG_FILE_WRITE_ATOMIC. The sibling is made by the call filesys makes its
 * own with (d_internal_file_temp_create), which alone creates one with a
-* mode under the umask, as a new file must be. A path that is no file -- a
-* device, a pipe, a socket -- is written to, since renaming over one would
+* mode under the umask, as a new file must be. A path that is no file - a
+* device, a pipe, a socket - is written to, since renaming over one would
 * put a file where the device was.
 *
 *
@@ -484,8 +484,8 @@ int d_cli_internal_write_through(
 
 /**
  * @brief Replaces a file: a sibling made exclusively with the mode it is to
- *        have -- owner-only until the old file's bits are given it, or a new
- *        file's under the umask -- filled, synced, and renamed over it.
+ *        have - owner-only until the old file's bits are given it, or a new
+ *        file's under the umask - filled, synced, and renamed over it.
  *
  * @param[in] _path  the file, which need not exist; a regular file, never a
  *                   link.
@@ -580,7 +580,7 @@ int d_cli_internal_write_output(
 
 /**
  * @brief Where a write to a name goes: the file a symbolic link leads to,
- *        or the name itself -- one that is no link, or a link that leads
+ *        or the name itself - one that is no link, or a link that leads
  *        nowhere, which is replaced as a file would be.
  *
  * @param[in]  _path    the name.
@@ -589,7 +589,7 @@ int d_cli_internal_write_output(
  *                      written.
  * @return 0; or the reason the name could not be asked what it is, or a
  *         link could not be followed, for any reason but that there is
- *         nothing there or it leads nowhere -- memory, permission, a loop --
+ *         nothing there or it leads nowhere - memory, permission, a loop --
  *         so that a link is never replaced by a file for want of a few
  *         bytes.
  */
@@ -646,11 +646,11 @@ int d_cli_internal_link_target(
 d_cli_write_file
   Standard output through the kit's sink. Otherwise the path is asked what it
 is, through any link: a directory is refused; what is no file is written
-to; a file -- or nothing yet -- is replaced, through a link to where it
+to; a file - or nothing yet - is replaced, through a link to where it
 points: d_path_resolve follows every link on the way, and the file there
 must exist, which it does when the link is one to follow. A link it cannot
-follow for any other reason than that it leads nowhere -- memory,
-permission, a loop -- fails the write with that reason, so that the link is
+follow for any other reason than that it leads nowhere - memory,
+permission, a loop - fails the write with that reason, so that the link is
 never replaced by a file for want of a few bytes.
 */
 int d_cli_write_file(

@@ -8,7 +8,7 @@
 * a program that only runs a hand-authored instruction stream should not pay for
 * parser combinators. So the substrate reads NS_PARSE from here instead. The
 * definitions are guarded and token-identical to parse.hpp's, which is what lets
-* the two headers be included in either order -- an identical redefinition is
+* the two headers be included in either order - an identical redefinition is
 * well-formed, and a divergent one would not be, so keep them in step.
 *   This mirrors parsegen.hpp: an umbrella's C++ face holds the namespace macro
 * and nothing else.
@@ -28,7 +28,7 @@
 
 
 // D_KEYWORD_PARSE
-//   keyword: resolves to `parse`. Guarded rather than owned -- parse.hpp is its
+//   keyword: resolves to `parse`. Guarded rather than owned - parse.hpp is its
 // canonical home, and this spelling must stay token-identical to it.
 #ifndef D_KEYWORD_PARSE
     #define D_KEYWORD_PARSE             parse

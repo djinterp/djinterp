@@ -4,16 +4,16 @@
 * Multi-document transactions.
 *   A transaction runs in a session, which the handle starts at its first
 * transaction and keeps until it closes; while one is open, every operation
-* the layer sends on the handle -- commands, documents, cursors, schema --
+* the layer sends on the handle - commands, documents, cursors, schema --
 * carries the session, so that each is part of it. A transaction needs a
 * replica set (MongoDB 4.0 and later), a sharded cluster (4.2 and later) or a
 * load balancer (D_MONGODB_FEATURE_TRANSACTIONS): a standalone server has
 * none, and d_mongodb_begin_transaction says so at once, with
 * D_DB_UNSUPPORTED, rather than at the first operation. GridFS's operations
 * run outside it, as the driver runs them.
-*   Any failure the server reports inside a transaction ends it there -- a
+*   Any failure the server reports inside a transaction ends it there - a
 * duplicate key, a write conflict, an exceeded time, a bad operator, a
-* command of no such name -- as does a lost connection, which the driver
+* command of no such name - as does a lost connection, which the driver
 * labels TransientTransactionError; the layer then reports the transaction
 * failed (d_mongodb_in_failed_transaction) until it is rolled back, as the
 * server refuses anything else in it. A refusal of the layer's own or the
@@ -62,7 +62,7 @@ D_EXTERN_C_BEGIN
 
 // 1.1    Beginning
 //------------------------------------------------------------------------------
-// beginning -- begins a transaction, reading and writing with the handle's
+// beginning - begins a transaction, reading and writing with the handle's
 // read and write concerns and read preference (mongodb_settings.h), or with
 // the options given as JSON: readConcern ({"level": "snapshot"}),
 // writeConcern, readPreference (a transaction reads from the primary), and
@@ -80,7 +80,7 @@ int d_mongodb_begin_transaction_with(
 
 // 1.2    Ending
 //------------------------------------------------------------------------------
-// ending -- commit makes the transaction's writes durable as its write
+// ending - commit makes the transaction's writes durable as its write
 // concern asks; rollback aborts it, its writes undone, and rolls back a
 // failed one without a failure of its own. Each returns 0; the server's
 // code or the driver's (a commit's labels say whether to retry it); the
@@ -97,7 +97,7 @@ int d_mongodb_rollback(
 
 // 1.3    State
 //------------------------------------------------------------------------------
-// state -- whether a transaction is open, and whether one is open that an
+// state - whether a transaction is open, and whether one is open that an
 // operation in it failed, which only a rollback ends; false for a NULL
 // handle
 bool d_mongodb_in_transaction(

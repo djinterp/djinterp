@@ -3,8 +3,8 @@
 *
 * Implementation of sqlite_settings.h.
 *   A typed set writes the PRAGMA and reads it back; a get reads it. Both go
-* through one reader, so a PRAGMA that reports nothing -- a library built
-* without the feature -- is told apart from one reporting 0.
+* through one reader, so a PRAGMA that reports nothing - a library built
+* without the feature - is told apart from one reporting 0.
 *
 *
 * path:      /src/djinterp/c/modules/db/sqlite/sqlite_settings.c

@@ -178,7 +178,7 @@ static_assert(std::is_base_of<std::integral_constant<int, 7>,
                               DMacroTraitCount7<with_value_type_int>>::value,
               "D_TYPE_TRAIT_TRUE_AS success: base is the supplied INHERIT_EXPR");
 
-// failure path -- primary template inherits from std::false_type
+// failure path - primary template inherits from std::false_type
 static_assert(DMacroTraitCount7<without_value_type>::value == false,
               "D_TYPE_TRAIT_TRUE_AS failure: ::value is false");
 static_assert(std::is_base_of<std::false_type,
@@ -201,7 +201,7 @@ D_TYPE_TRAIT_TRUE_FROM(macro_trait_has_vt_and_integral,
     typename Type::value_type,
     std::is_integral)
 
-// integer type WITH value_type -- delegated trait is_integral is true
+// integer type WITH value_type - delegated trait is_integral is true
 //   (note: int doesn't actually have value_type — this exercises the
 //   FAILURE path: probe fails so the answer is the primary `false`)
 static_assert(macro_trait_has_vt_and_integral<int>::value == false,

@@ -787,7 +787,7 @@ template<typename _T = double> using mvar_v = variable_node<1, _T>;
 // ============================================================================
 
 // Per-system axis placeholders with the indices each system actually uses.
-// Bringing the right set into scope keeps axis names unambiguous -- in
+// Bringing the right set into scope keeps axis names unambiguous - in
 // particular phi is argument 1 in cylindrical but argument 2 in spherical.
 namespace cartesian_axes
 {
@@ -826,7 +826,7 @@ namespace spherical_axes
 //   the callable top-level wrapper: an expression bound to a coordinate
 // system and a declared arity. Evaluable from a scalar pack, a std::array, or
 // a std::tuple (the latter two explode into the pack), so a coordinate point
-// -- which is just the system's point_type, a std::array -- evaluates directly.
+// - which is just the system's point_type, a std::array - evaluates directly.
 template<typename _System, typename _Expr, std::size_t _Arity>
 struct math_function
 {
@@ -844,7 +844,7 @@ struct math_function
     D_CONSTEXPR math_function(_System _s, _Expr _e) noexcept
         : system(_s), expr(_e) {}
 
-    // scalar pack -- excluded for a single array/tuple argument so the
+    // scalar pack - excluded for a single array/tuple argument so the
     // dedicated overloads below win unambiguously.
     template<typename... _Args,
              typename std::enable_if<
@@ -903,7 +903,7 @@ struct function_builder
 
     D_CONSTEXPR explicit function_builder(_System _s) noexcept : system(_s) {}
 
-    // .of(vars...) -- declares the parameter list. The count must match the
+    // .of(vars...) - declares the parameter list. The count must match the
     // system dimension when the system has one.
     template<typename... _Vars>
     D_CONSTEXPR function_of<_System, sizeof...(_Vars)>
@@ -915,7 +915,7 @@ struct function_builder
         return function_of<_System, sizeof...(_Vars)>(system);
     }
 
-    // .returns(expr) directly -- arity is taken from the system dimension.
+    // .returns(expr) directly - arity is taken from the system dimension.
     template<typename _Expr>
     D_CONSTEXPR
     math_function<_System, _Expr, internal::system_dimension<_System>::value> returns(

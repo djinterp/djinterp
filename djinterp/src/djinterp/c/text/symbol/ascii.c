@@ -3,8 +3,8 @@
 *
 * ASCII classification and case conversion.
 *   Defines the functions ascii.h declares. Each answers for 7-bit ASCII only,
-* whatever the locale: a byte outside 0x00-0x7F -- including every negative
-* `char` where char is signed -- belongs to no class and converts to itself.
+* whatever the locale: a byte outside 0x00-0x7F - including every negative
+* `char` where char is signed - belongs to no class and converts to itself.
 * The classes are those of <ctype.h> in the "C" locale.
 *
 *
@@ -20,8 +20,8 @@
 
 /*
 d_internal_ascii_code
-  The character as an unsigned code, so that a negative char -- a high byte
-on a signed-char platform -- lands at 0x80 or above, outside every ASCII
+  The character as an unsigned code, so that a negative char - a high byte
+on a signed-char platform - lands at 0x80 or above, outside every ASCII
 range, rather than below them.
 */
 static

@@ -4,15 +4,15 @@
 * The table of stages a pipeline can be built from, and how one is chosen.
 *   A frontend reads a notation. A pass rewrites a grammar. A family plans a
 * program. A backend turns one into something runnable. All four are the same
-* kind of thing from the outside -- something with a name, a declared
-* capability profile, and a function table -- so they live in one registry and
+* kind of thing from the outside - something with a name, a declared
+* capability profile, and a function table - so they live in one registry and
 * differ by a kind field.
 *
 *   SELECTION IS SET ARITHMETIC, NOT A DECISION TREE. A stage declares three
 * masks: what it needs present, what it cannot cope with, and what it can
 * produce or handle. A stage accepts a grammar when the grammar uses nothing
 * the stage rejects and supplies everything the stage needs. That is two
-* instructions, and -- the point -- adding the LR family later is a row of
+* instructions, and - the point - adding the LR family later is a row of
 * declarations, not an edit to whatever was choosing between the families that
 * already existed. This is the op_set idea one level up: behaviour is
 * registered, never branched on.
@@ -24,7 +24,7 @@
 * right amount.
 *
 *   DIAGNOSTICS ARE THE PRODUCT. When no stage fits, the useful output is not
-* NULL -- it is "no family accepts this grammar: peg rejects LEFT_RECURSION;
+* NULL - it is "no family accepts this grammar: peg rejects LEFT_RECURSION;
 * lr needs TOKEN_STREAM". Every query here takes a sink and says exactly that.
 *
 *   Requires: parsegen/c/parsegen.h, parsegen/c/feature.h, parse/c/diagnostic.h.
@@ -80,7 +80,7 @@ TABLE OF CONTENTS
 #include "../../../../re_std/c/cstdint/dstdint.h"  // uint32_t, uint16_t, uint8_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -98,7 +98,7 @@ TABLE OF CONTENTS
 // dj_parsegen_stage_kind
 //   enum: what part of the pipeline a stage occupies. The kind also decides
 // how to read the stage's function table, since this level stores it as an
-// opaque pointer -- a registry that knew every stage's signature would have to
+// opaque pointer - a registry that knew every stage's signature would have to
 // be edited to admit a new kind, which is the thing being avoided.
 enum dj_parsegen_stage_kind
 {
@@ -116,7 +116,7 @@ enum dj_parsegen_stage_kind
 // 1.2.1
 // dj_parsegen_stage
 //   struct: one registrable stage. Everything except `table` and `ctx` is
-// declaration -- the profile a query matches against -- so a registry can be
+// declaration - the profile a query matches against - so a registry can be
 // searched, filtered, and explained without any stage being invoked.
 //   `provides` means different things per kind and the same thing in each
 // case: what this stage can put into the pipeline. A frontend provides the
@@ -142,7 +142,7 @@ struct dj_parsegen_stage
 // D_PARSEGEN_STAGE_DEFAULT
 //   constant: prefer this stage when several of its kind accept. Selection is
 // otherwise registration order, which makes a build's choice depend on link
-// order -- this is how a build says which one it meant.
+// order - this is how a build says which one it meant.
 #define D_PARSEGEN_STAGE_DEFAULT        0x0001u
 // D_PARSEGEN_STAGE_EXPERIMENTAL
 //   constant: never selected automatically; usable only when named. A stage
@@ -195,7 +195,7 @@ int d_parsegen_stage_accepts(
 // 2.1.1
 // dj_parsegen_registry
 //   struct: the stages available to build a pipeline from. Storage may be
-// caller-supplied or owned, as everywhere else here -- and a static array is
+// caller-supplied or owned, as everywhere else here - and a static array is
 // the common case, since a build usually links in exactly the stages it wants
 // and registers them once.
 struct dj_parsegen_registry
@@ -219,7 +219,7 @@ struct dj_parsegen_registry
 // 2.2.1
 // dj_parsegen_registry_diag
 //   enum: the conditions a registry query reports, under
-// D_PARSEGEN_DIAG_DOMAIN_REGISTRY -- the registry's own domain, since a failed
+// D_PARSEGEN_DIAG_DOMAIN_REGISTRY - the registry's own domain, since a failed
 // query is about the registry whichever kind of stage was asked for. REJECTED
 // is the continuation note under NONE_ACCEPTS, one per candidate. Append-only.
 enum dj_parsegen_registry_diag

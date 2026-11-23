@@ -1,12 +1,12 @@
 /*******************************************************************************
 * djinterp [cpp][functional]                                         comonad.hpp
 *
-* Comonad protocol: extract, extend, duplicate -- the dual of Monad (C++).
+* Comonad protocol: extract, extend, duplicate - the dual of Monad (C++).
 *   Where a monad lets you put a value into a context (unit) and sequence
 * context-producing steps (bind), a comonad lets you take a value *out* of a
 * context (extract) and extend a context-consuming step across the whole
 * structure (extend). A comonad is a context W<A> from which a focus value can
-* always be read -- so, unlike maybe or result, it is never empty. The three
+* always be read - so, unlike maybe or result, it is never empty. The three
 * operations mirror the monad's three with the arrows reversed:
 *
 *     monad:    unit   : A -> M<A>        bind   : M<A> -> (A -> M<B>) -> M<B>
@@ -21,7 +21,7 @@
 * pair types: std::pair<E, A> and DKvPair<K, V>. The focus is the second
 * component (the value); the first (the environment / key) rides along
 * untouched. extract reads the focus; extend recomputes the focus from the
-* whole pair, keeping the environment. These reuse existing types -- no empty
+* whole pair, keeping the environment. These reuse existing types - no empty
 * case to worry about, since a pair always has a focus.
 *
 * USAGE:
@@ -95,8 +95,8 @@ NS_DJINTERP
 // specializes comonad_traits<W> to expose:
 //
 //     - value_type      : the focus type A of W<A>
-//     - extract(w)       : static -- read the focus, W<A> -> A
-//     - extend(w, f)      : static -- W<B> from W<A> and f : W<A> -> B
+//     - extract(w)       : static - read the focus, W<A> -> A
+//     - extend(w, f)      : static - W<B> from W<A> and f : W<A> -> B
 //                         (the co-bind: f sees the whole context)
 //     - is_specialized   = true_type (marker)
 //
@@ -266,7 +266,7 @@ auto extend(
 
 
 // duplicate
-//   function: nests a comonad one level, W<A> -> W<W<A>> -- extend with the
+//   function: nests a comonad one level, W<A> -> W<W<A>> - extend with the
 // identity. The dual of the monad's join.
 template<typename Comonad>
 D_NODISCARD

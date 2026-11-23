@@ -22,11 +22,11 @@
 # is the wiki's reader, which dawk's wiki extension reads and writes pages
 # with: in a library of its own, as it uses no other extension's units, and
 # tested alone, over every page the repository holds, and with random
-# changes to each -- and, where a MediaWiki is named, against MediaWiki. And
+# changes to each - and, where a MediaWiki is named, against MediaWiki. And
 # so are git's units, which dawk's git extension reads git's files and
 # repositories with: a library of their own, tested alone, over every file
 # of git's and every repository under the tree, with random changes to the
-# files -- and, where git and a shell are found, against git.
+# files - and, where git and a shell are found, against git.
 #   Every unit reaches its headers by a path relative to itself, so no target
 # here has an include directory at all.
 #   NOT BUILT HERE: dawk itself, the interpreter (main.c, dinterp.c and the
@@ -106,9 +106,9 @@ set(_unit  "${DJINTERP_DAWK_ROOT}/tests/djinterp/tools/dawk")
 #   function: gives a target the level its units are written at, and what
 # they need of a compiler.
 #   The level is C11 with no extensions, as tools/build.sh has it. Under a
-# cl-style driver (MSVC, clang-cl) the rest is /utf-8 -- the sources are
+# cl-style driver (MSVC, clang-cl) the rest is /utf-8 - the sources are
 # UTF-8 with no byte-order mark, which cl reads in the system code page
-# unless told -- and _CRT_SECURE_NO_WARNINGS, without which every fopen and
+# unless told - and _CRT_SECURE_NO_WARNINGS, without which every fopen and
 # getenv is a C4996 and the warnings worth reading are lost among them.
 # Under GCC and Clang it is the script's warnings, unless
 # DJINTERP_DAWK_WARNINGS is off. On a POSIX system whose C library hides
@@ -190,7 +190,7 @@ endfunction()
 
 
 #------------------------------------------------------------------------------
-# the checker's units -- C, at C11, in one library
+# the checker's units - C, at C11, in one library
 #------------------------------------------------------------------------------
 
 # the extensions and the lexer they read with, as tools/build.sh takes them:
@@ -250,7 +250,7 @@ djinterp_dawk_flags(djinterp_dawk_checker)
 
 
 #------------------------------------------------------------------------------
-# the wiki's units -- C, at C11, in a library of their own
+# the wiki's units - C, at C11, in a library of their own
 #------------------------------------------------------------------------------
 
 # the reader, its two dialects, and the documents over it: no unit of the
@@ -265,7 +265,7 @@ djinterp_dawk_flags(djinterp_dawk_wiki)
 
 
 #------------------------------------------------------------------------------
-# Ninja's units -- C, at C11, in a library of their own
+# Ninja's units - C, at C11, in a library of their own
 #------------------------------------------------------------------------------
 
 # the reader, the loader that makes a build of a manifest as ninja does, and
@@ -284,7 +284,7 @@ djinterp_dawk_flags(djinterp_dawk_ninja)
 
 
 #------------------------------------------------------------------------------
-# git's units -- C, at C11, in a library of their own
+# git's units - C, at C11, in a library of their own
 #------------------------------------------------------------------------------
 
 # git's files read and changed, and a repository read: its own file access,

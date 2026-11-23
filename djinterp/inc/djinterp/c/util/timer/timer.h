@@ -3,7 +3,7 @@
 *
 * The generic timer: elapsed nanoseconds accumulated over start/stop intervals,
 * an optional limit, and the five operations every counter and timer in
-* djinterp shares -- increment, decrement, compare, merge and reset.
+* djinterp shares - increment, decrement, compare, merge and reset.
 *   A timer knows nothing about what it times, nor about events: every timer
 * is used by calling its functions. Its thread-safe forms are timer_atomic.h
 * (lock-free) and timer_mutex.h (locked). DTest's test_timer.h wraps it.
@@ -13,8 +13,8 @@
 *   A struct dj_timer_ref is any of the three kinds: a table of the kind's
 * operations and a pointer to the timer. d_timer_ref, d_timer_atomic_ref and
 * d_timer_mutex_ref make one, and the d_timer_ref_* functions work on it
-* whatever the kind, so code written once -- the handler of timer_event.h, which
-* acts on a timer when an event fires, for one -- serves every timer.
+* whatever the kind, so code written once - the handler of timer_event.h, which
+* acts on a timer when an event fires, for one - serves every timer.
 *
 * THE CLOCK IS AN ARGUMENT
 * ------------------------
@@ -148,8 +148,8 @@ struct dj_timer
 //------------------------------------------------------------------------------
 // 1.3.1
 // dj_timer_vtable
-//   struct: the operations of one kind of timer -- plain, atomic or guarded
-// -- over an untyped pointer to it. Each kind keeps one constant table, shared
+//   struct: the operations of one kind of timer - plain, atomic or guarded
+// - over an untyped pointer to it. Each kind keeps one constant table, shared
 // by every timer of that kind; every slot is set. A slot does what the kind's
 // function of the same name does.
 struct dj_timer_vtable

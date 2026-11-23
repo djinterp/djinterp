@@ -31,7 +31,7 @@
 #include <thread>
 #include <vector>
 // djinterp
-// -- (part 1) mode-gated includes ------------------------------------------
+// - (part 1) mode-gated includes ------------------------------------------
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
 #include "../../../../../../inc/djinterp/cpp/modules/test/sync/test_sync.hpp"                          // the header under test (normal)
@@ -81,7 +81,7 @@ inline std::chrono::seconds      hy_settle() { return std::chrono::seconds(2); }
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- (part 2) declarations - visible in BOTH modes -------------------------
+// - (part 2) declarations - visible in BOTH modes -------------------------
 
 // I.   TEST LATCH                      (test_sync_tests_latch.cpp)
 bool tests_latch_construct();
@@ -181,7 +181,7 @@ bool tests_simultaneous_full_cycle_mt();
 bool tests_simultaneous_wait_then_signal_mt();
 
 
-// -- (part 3) the spec provider - spec mode only ---------------------------
+// - (part 3) the spec provider - spec mode only ---------------------------
 #ifdef DTEST_SPEC_MODE
 inline
 dt::module_spec sync_spec()

@@ -22,7 +22,7 @@ using namespace ::djinterp::test;
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///   compile-time invariants -- factory functions                           ///
+///   compile-time invariants - factory functions                           ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // make_test and the unnamed make_interior are noexcept; the named overload is
@@ -45,7 +45,7 @@ static_assert(std::is_same<
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///   runtime tests -- factory functions                                      ///
+///   runtime tests - factory functions                                      ///
 ///////////////////////////////////////////////////////////////////////////////
 
 /*

@@ -18,10 +18,10 @@
 * in a dependency that does not exist or inventing a substitute API.
 * Neither is acceptable, so they are ABSENT rather than approximated:
 *
-*     bitset(const char*)      -- PROVIDED (needs no string type)
-*     bitset(const string&)    -- absent until <string> ships
-*     to_string()              -- absent until <string> ships
-*     operator<< / >>          -- absent until <ostream> ships
+*     bitset(const char*)      - PROVIDED (needs no string type)
+*     bitset(const string&)    - absent until <string> ships
+*     to_string()              - absent until <string> ships
+*     operator<< / >>          - absent until <ostream> ships
 *
 *   The char-pointer constructor covers the common case, so a caller
 * can still build a bitset from a literal. Everything else waits.
@@ -124,7 +124,7 @@ private:
 
     // trim_
     //   function: clears the bits above position N-1 in the top word.
-    // Every mutator ends with this -- count(), any() and operator==
+    // Every mutator ends with this - count(), any() and operator==
     // read whole words, so a stray high bit corrupts all three.
     RE_STD_CONSTEXPR_CPP14 void trim_()
     {
@@ -224,7 +224,7 @@ public:
     // bitset(const char*)
     //   function: parses '0'/'1', leftmost character is the HIGHEST index,
     // matching std's string constructor. Throws invalid_argument on any
-    // other character. The std::string overload is absent -- see the
+    // other character. The std::string overload is absent - see the
     // header note.
     RE_STD_CONSTEXPR_CPP14 explicit bitset(const char* _s)
         : m_w()
@@ -353,7 +353,7 @@ public:
 
     // to_ullong
     //   function: throws overflow_error if any bit at or above 64 is set,
-    // per [bitset.members]. to_string is absent -- see the header note.
+    // per [bitset.members]. to_string is absent - see the header note.
     RE_STD_CONSTEXPR_CPP14 unsigned long long to_ullong() const
     {
         for (std::size_t _i = 1; _i < s_words; ++_i)

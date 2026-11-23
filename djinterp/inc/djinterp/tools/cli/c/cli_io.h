@@ -6,7 +6,7 @@
 * to standard error (GRAMMAR.md, R17), and both through the sinks here: on a
 * Windows console, text is written through the console's wide interface so
 * that it reads correctly whatever the code page; elsewhere, and redirected,
-* it is UTF-8 bytes, its lines ended by LF on every system (R18) -- the
+* it is UTF-8 bytes, its lines ended by LF on every system (R18) - the
 * standard streams are put in binary mode where the C runtime would
 * translate them.
 *   A stream is asked whether it is a terminal, how wide it is, and whether
@@ -18,7 +18,7 @@
 * written whole or not at all (R20): into a new file beside it, flushed to
 * the disk, then renamed over it, keeping the old file's permissions and
 * writing through a symbolic link to where it points. What no file can stand
-* in for -- a device such as /dev/null, a pipe, a socket -- is written to.
+* in for - a device such as /dev/null, a pipe, a socket - is written to.
 *
 * HOW TO USE
 * ----------
@@ -120,8 +120,8 @@ D_EXTERN_C_BEGIN
 //------------------------------------------------------------------------------
 // 1.3.1
 // d_cli_sink_output / d_cli_sink_error
-//   sinks: standard output and standard error, as the kit writes them -- a
-// Windows console through WriteConsoleW, anything else as bytes -- each
+//   sinks: standard output and standard error, as the kit writes them - a
+// Windows console through WriteConsoleW, anything else as bytes - each
 // accepting every byte or reporting the short write a refusal is. The first
 // use puts the stream in binary mode where the C runtime translates line
 // ends. Neither fails to be made.
@@ -153,7 +153,7 @@ D_CLI_API size_t d_cli_terminal_columns(void);
  * @note `D_CLI_COLOUR_ALWAYS` is yes and `D_CLI_COLOUR_NEVER` no, whatever
  *       else holds. `D_CLI_COLOUR_AUTO` is yes only when the stream is a
  *       terminal, TERM is not `dumb`, and NO_COLOR is unset or empty
- *       (no-color.org) -- and, on Windows, the console takes ANSI sequences
+ *       (no-color.org) - and, on Windows, the console takes ANSI sequences
  *       once asked to, which this call asks. Without D_INTERNAL_CLI_COLOUR
  *       the answer is always no.
  *
@@ -225,7 +225,7 @@ D_CLI_API int d_cli_read_file(
  *       symbolic link is written where the link points, and the link stays;
  *       a link that leads nowhere is replaced by the file, and one that
  *       cannot be followed for another reason fails the write with it.
- *       A device, a pipe or a socket -- `-o /dev/null`, `-o /dev/stdout` --
+ *       A device, a pipe or a socket - `-o /dev/null`, `-o /dev/stdout` --
  *       is opened and written to, as nothing can be renamed over it; that
  *       write is not whole-or-nothing, as none can be.
  *
@@ -236,7 +236,7 @@ D_CLI_API int d_cli_read_file(
  * @return 0 when written, or an errno value: EINVAL for a NULL path or NULL
  *         data with a length, EISDIR for a directory, EIO when standard
  *         output refused the bytes, and whatever following a link, opening,
- *         creating, writing, flushing or renaming the file set -- ENOMEM
+ *         creating, writing, flushing or renaming the file set - ENOMEM
  *         among them.
  */
 D_CLI_API int d_cli_write_file(
@@ -250,7 +250,7 @@ D_CLI_API int d_cli_write_file(
 // 2.4.1
 // d_cli_free
 //   lifetime: frees what d_cli_read_file and d_cli_executable_path return,
-// with the allocator that made it -- which, across a plugin's boundary on
+// with the allocator that made it - which, across a plugin's boundary on
 // Windows, is not necessarily the caller's. Ignores NULL.
 D_CLI_API void d_cli_free(
     void* _memory

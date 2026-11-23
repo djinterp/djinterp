@@ -20,7 +20,7 @@
 
 // dj_tests_starttls_breakage
 //   struct: a secure client session broken one way, the call that meets the
-// breakage -- 'r' receives a line, 's' sends one, 'c' closes -- and what
+// breakage - 'r' receives a line, 's' sends one, 'c' closes - and what
 // that call must report: its status, the connection's error it keeps as the
 // cause, and the session's detail.
 struct dj_tests_starttls_breakage
@@ -93,7 +93,7 @@ d_tests_starttls_meets(
 d_tests_starttls_breaks
   Opens a secure client, breaks it as `_case` says, and makes the call the
 case names. True if the call reported what the case expects, kept its cause
-and detail, and left the session failed -- or closed, after a close.
+and detail, and left the session failed - or closed, after a close.
 */
 static
 bool d_tests_starttls_breaks(

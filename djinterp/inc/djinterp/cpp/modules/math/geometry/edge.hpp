@@ -88,8 +88,8 @@ NS_MATH
 // 1.1.1
 // line_segment
 //   struct: a straight segment between two points in any coordinate
-// system. Linearity is taken in Cartesian space -- at(t) converts the
-// endpoints to Cartesian, lerps, and converts back -- the straight line
+// system. Linearity is taken in Cartesian space - at(t) converts the
+// endpoints to Cartesian, lerps, and converts back - the straight line
 // through the two points however they happen to be expressed.
 template<typename System>
 struct line_segment
@@ -622,8 +622,8 @@ D_CONSTEXPR_VAR bool cubic_bezier<System>::is_closed;
 //------------------------------------------------------------------------------
 // 3.1.1
 // parametric_edge
-//   struct: wraps a parametric curve type -- a static evaluate(t) returning
-// an indexable point, and a static output_dimension -- over [t_min, t_max].
+//   struct: wraps a parametric curve type - a static evaluate(t) returning
+// an indexable point, and a static output_dimension - over [t_min, t_max].
 template<typename ParametricCurve,
          typename System = cartesian<ParametricCurve::output_dimension,
                                      double> >
@@ -696,7 +696,7 @@ struct parametric_edge
 
 private:
     // from_raw
-    //   the evaluated point, its components converted -- a template, so the
+    //   the evaluated point, its components converted - a template, so the
     // result's type is deduced at every level.
     template<typename Raw>
     static point_type

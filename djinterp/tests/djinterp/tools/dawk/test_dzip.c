@@ -4,8 +4,8 @@
 * Exercises `dzip.h`.
 *   The archive below was written by Python's zipfile over zlib, so reading it
 * is reading what another implementation wrote: a stored entry, and DEFLATE
-* streams of all three block types -- fixed codes, dynamic codes, and stored
-* blocks -- with an empty entry besides. Saving is checked by reading back
+* streams of all three block types - fixed codes, dynamic codes, and stored
+* blocks - with an empty entry besides. Saving is checked by reading back
 * what was saved, and by keeping every entry not replaced byte for byte.
 *
 *   test_dzip [directory]    the directory holds the files the test writes

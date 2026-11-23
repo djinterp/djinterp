@@ -4,7 +4,7 @@
 *   Conformance tests for djinterp's PostgreSQL convenience layer: every
 * function in c/modules/db/postgres/postgres_*.h, its success paths, its
 * documented failures and its argument checks, against a live server --
-* PostgreSQL from 10 -- through whichever libpq it is linked with. Where the
+* PostgreSQL from 10 - through whichever libpq it is linked with. Where the
 * answer depends on the server, the check asks the server's version and expects
 * the matching answer, so one suite passes on every server the layer supports.
 *   Each d_postgres_supports answer is also checked against the server itself,
@@ -46,8 +46,8 @@
 #endif  // _WIN32
 // WIN32_LEAN_AND_MEAN, NOMINMAX
 //   knobs (Windows'): <windows.h>, which <winsock2.h> and the clients' own
-// headers include, without its rarer headers -- rpcndr.h among them, which
-// makes `small` a macro -- and without its min and max macros.
+// headers include, without its rarer headers - rpcndr.h among them, which
+// makes `small` a macro - and without its min and max macros.
 #if defined(_WIN32)
     #if !defined(WIN32_LEAN_AND_MEAN)
         #define WIN32_LEAN_AND_MEAN 1
@@ -2258,8 +2258,8 @@ void d_tests_postgres_lost_connections(void)
 
 /*
 d_tests_postgres_wait
-  Waits as a pending call says, as a program's loop would -- poll(2), or
-WSAPoll on Windows -- and answers what came, as dj_db_wait: D_DB_WAIT_TIMEOUT
+  Waits as a pending call says, as a program's loop would - poll(2), or
+WSAPoll on Windows - and answers what came, as dj_db_wait: D_DB_WAIT_TIMEOUT
 when the deadline passed first. An error or a hang-up on the socket reads as
 ready for whatever was asked, so that the call finds out for itself.
 */
@@ -2365,7 +2365,7 @@ bool d_tests_postgres_settled(
 /*
 d_tests_postgres_digits_from_startup
   Whether extra_float_digits is 3 and came in the startup packet, which the
-server records as the client's -- not a session's SET.
+server records as the client's - not a session's SET.
 */
 static
 bool d_tests_postgres_digits_from_startup(
@@ -4886,10 +4886,10 @@ d_tests_postgres_cursors
     reads it
   - a short page ends the run; a fetch after is D_DB_INVALID_ARGUMENT, and
     the connection runs its next statement
-  - while a run is open, everything that would wait on the connection -- a
+  - while a run is open, everything that would wait on the connection - a
     statement, a query with or without values, a formatted one, a
     notification, a COPY, a prepare, another statement's run, a close by
-    name -- is 08000, the layer's own answer, having read none of the run's
+    name - is 08000, the layer's own answer, having read none of the run's
     rows; a send is libpq's own 08000; values bound meanwhile serve the next
     run
   - rows that fill their last page exactly end with an empty page, which
@@ -9067,8 +9067,8 @@ void d_tests_postgres_notifications(void)
 d_tests_postgres_sent_statements
   Statements sent without waiting.
   Tests the following:
-  - several statements sent at once give their results in turn -- rows, a
-    count, rows -- then D_DB_NOT_FOUND, again and again
+  - several statements sent at once give their results in turn - rows, a
+    count, rows - then D_DB_NOT_FOUND, again and again
   - while a statement runs the connection is busy and refuses to send
     more; ready once its results are read; a statement run before then is
     08000, the layer's own answer, and the results are still there to read
@@ -9376,9 +9376,9 @@ d_tests_postgres_pipelines
   Tests the following:
   - where libpq has them (14): entered, and entered again, rows a few at a
     time asked for just before holding no further; statements queued
-    and synchronized give their results in order -- rows, a count, a
+    and synchronized give their results in order - rows, a count, a
     failure, which the connection's message still describes, 25P02 for the
-    statement it skipped, the layer's own answer -- then D_DB_NOT_FOUND at
+    statement it skipped, the layer's own answer - then D_DB_NOT_FOUND at
     the synchronization point, then the next batch's, then D_DB_NOT_FOUND
     again and again; the failed batch rolled back; the mode aborted until
     the point, and on after it
@@ -9738,8 +9738,8 @@ d_tests_postgres_sent_without_blocking
 _continue.
   Tests the following:
   - SQL the socket takes at once is sent, nothing pending; its results,
-    read through a poll loop, are d_postgres_next_result's -- rows, a count,
-    rows -- then D_DB_NOT_FOUND, again
+    read through a poll loop, are d_postgres_next_result's - rows, a count,
+    rows - then D_DB_NOT_FOUND, again
   - a result still to come is D_DB_WAIT, the socket to read; meanwhile a
     statement on the connection is 08000, the layer's own answer
   - SQL too large for the socket at once is written as it takes it, and
@@ -10272,7 +10272,7 @@ _execute_update_continue and _execute_query_continue; d_postgres_open_cursor_
 start and _continue; d_postgres_fetch_rows_start and _continue.
   Tests the following:
   - a prepare is D_DB_WAIT, the statement in hand, then 0, its parameters
-    described -- or 0 at once, where the answer had already come; inside a
+    described - or 0 at once, where the answer had already come; inside a
     transaction too
   - a stale name the server holds where the layer's next statement is named
     is dropped, and the prepare tried again

@@ -1,15 +1,15 @@
 /*******************************************************************************
 * djinterp [cpp][event]                             event_table_tests_traits.cpp
 *
-*   Sections IV + V (structural detection) -- the fifteen internal detection
+*   Sections IV + V (structural detection) - the fifteen internal detection
 * traits and the event_table_traits facade built on them.  For every trait the
 * true branch is exercised on the real DEventTable and the false branch on a
 * type lacking the operation; the insert trait is additionally checked against
 * a type whose insert returns the wrong type, confirming the is_same
 * return-type gate (not mere name lookup).  The facade is verified four ways:
 * on the real table (all detections true); on a distinct type providing exactly
-* the eleven core operations (is_event_table true -- detection is structural,
-* not nominal -- while every optional detection is false); on negative types
+* the eleven core operations (is_event_table true - detection is structural,
+* not nominal - while every optional detection is false); on negative types
 * (a bare struct: all false; a core-minus-clear struct: is_event_table false,
 * proving the composite needs every core op); and through a cv/ref-qualified
 * spelling, confirming clean_t is applied.

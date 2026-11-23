@@ -3,7 +3,7 @@
 *
 *   The join between the format SELECTOR and the dialect set: given a
 * `DDocumentFormat`, hand back the DDocumentRenderer that realises it, together
-* with the one thing the abstract interface cannot expose -- how to get the
+* with the one thing the abstract interface cannot expose - how to get the
 * bytes back out.  This is what turns "the configuration asked for html" into a
 * renderer a template can stream into, without every call site growing its own
 * switch over the format enum.
@@ -12,7 +12,7 @@
 * semantic sink: it has no `str()`, deliberately, because a PDF back end has no
 * string to give and a streaming back end may have written its bytes away
 * already.  The concrete string dialects all DO have one, so DDocumentDialect
-* carries the accessor alongside the renderer -- bound at construction, when the
+* carries the accessor alongside the renderer - bound at construction, when the
 * concrete type is still known.  A caller gets one movable value that answers
 * both "where do I render?" and "what came out?".
 *
@@ -21,7 +21,7 @@
 * invalid dialect on purpose: pdf_document_renderer pulls in the whole pdf.hpp
 * tree, and this header is included by text-only builds that must not pay for
 * it.  A PDF-capable caller checks `format_is_binary(fmt)` first and constructs
-* pdf_document_renderer itself -- the same opt-in split document_renderer.hpp
+* pdf_document_renderer itself - the same opt-in split document_renderer.hpp
 * and pdf_document_renderer.hpp already keep.  `tex` and `wiki` are unserved
 * until a renderer for them exists.
 *
@@ -87,7 +87,7 @@ NS_DJINTERP
 
 // DDocumentDialect
 //   class: an owned DDocumentRenderer plus the accessors its concrete type
-// provides -- the value make_document_dialect hands back.  Move-only; the
+// provides - the value make_document_dialect hands back.  Move-only; the
 // renderer lives on the heap, so the bound accessors stay valid across a move.
 //
 // Usage:
@@ -102,16 +102,16 @@ NS_DJINTERP
 class DDocumentDialect
 {
 public:
-    // -- public type aliases -------------------------------------------------
+    // - public type aliases -------------------------------------------------
 
     using renderer_type = DDocumentRenderer;
     using str_fn        = std::function<const std::string&()>;
     using clear_fn      = std::function<void()>;
 
-    // -- construction --------------------------------------------------------
+    // - construction --------------------------------------------------------
 
     // DDocumentDialect (default)
-    //   the INVALID dialect -- what an unserved format yields.
+    //   the INVALID dialect - what an unserved format yields.
     DDocumentDialect()
         : m_renderer(),
           m_str(),
@@ -134,7 +134,7 @@ public:
           m_format(_format)
     {}
 
-    // -- queries -------------------------------------------------------------
+    // - queries -------------------------------------------------------------
 
     // valid
     //   whether a renderer was produced.  False for an unserved format; the
@@ -151,7 +151,7 @@ public:
         return m_format;
     }
 
-    // -- access --------------------------------------------------------------
+    // - access --------------------------------------------------------------
 
     // renderer
     //   the owned renderer, to stream a template into.  Precondition: valid().
@@ -224,7 +224,7 @@ NS_END  // internal
 
 // make_document_dialect
 //   function: the renderer that realises _format, or an invalid dialect when
-// the format is not served here (pdf -- opt-in, see the header note -- and the
+// the format is not served here (pdf - opt-in, see the header note - and the
 // not-yet-written tex / wiki).  Check valid() before using the result.
 D_NODISCARD inline DDocumentDialect make_document_dialect(
     DDocumentFormat _format
@@ -250,8 +250,8 @@ D_NODISCARD inline DDocumentDialect make_document_dialect(
                        DHtmlDocumentRenderer>(_format);
         }
 
-        // pdf -- served by pdf_document_renderer, which this header must not
-        // pull in; tex / wiki -- no renderer written yet.
+        // pdf - served by pdf_document_renderer, which this header must not
+        // pull in; tex / wiki - no renderer written yet.
         case DDocumentFormat::pdf:
         case DDocumentFormat::tex:
         case DDocumentFormat::wiki:
@@ -277,7 +277,7 @@ D_NODISCARD inline DDocumentDialect make_document_dialect(
 
 // render_to_string
 //   function: render any document template in any served dialect, as a
-// COMPLETE document -- the generalisation of each template's own to_string(),
+// COMPLETE document - the generalisation of each template's own to_string(),
 // which is hard-wired to the plain renderer.  Template is anything with
 // `render(DDocumentRenderer&) const` (DTitlePage, DDocumentTable, a caller's
 // own).  Yields an empty string for an unserved format, so a caller that does

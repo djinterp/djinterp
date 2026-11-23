@@ -8,7 +8,7 @@
 *                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
-// djinterp [test] -- curry.hpp Section IV (uncurrying)
+// djinterp [test] - curry.hpp Section IV (uncurrying)
 #include "./curry_tests.hpp"
 
 

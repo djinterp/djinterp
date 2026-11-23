@@ -2685,8 +2685,8 @@ struct dj_tests_change
 
 /*
 d_tests_same_record
-  Whether the `_a`-th record of a kind, 0 to 3 -- blocks, headings, links,
-templates -- of the old page is the `_b`-th of the new, moved by `_shift`.
+  Whether the `_a`-th record of a kind, 0 to 3 - blocks, headings, links,
+templates - of the old page is the `_b`-th of the new, moved by `_shift`.
 */
 static
 bool d_tests_same_record(
@@ -2790,7 +2790,7 @@ size_t d_tests_span_of(
 d_tests_next_outside
   The next record of a kind, from `*_at`, that lies wholly before `_start`
 -- or, when `_end` is not D_WIKI_NONE, wholly from `_end` on, past
-`_start` -- and moves `*_at` past it.  A record that ends where the change
+`_start` - and moves `*_at` past it.  A record that ends where the change
 begins is before it.  Gives D_WIKI_NONE when there is no more.
 */
 static

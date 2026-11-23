@@ -866,8 +866,8 @@ TABLE OF CONTENTS
 //   feature: the OpenSSL family initializes itself on first use, so explicit
 // SSL_library_init / OpenSSL_add_all_algorithms is unnecessary: OpenSSL from
 // 1.1.0, LibreSSL from 2.7.2 (OpenBSD 6.3), and BoringSSL. The question has
-// no counterpart elsewhere -- wolfSSL, for one, still requires wolfSSL_Init
-// -- so there is no roll-up. It was D_ENV_TLS_HAS_IMPLICIT_INIT.
+// no counterpart elsewhere - wolfSSL, for one, still requires wolfSSL_Init
+// - so there is no roll-up. It was D_ENV_TLS_HAS_IMPLICIT_INIT.
 #ifndef D_ENV_TLS_OPENSSL_HAS_IMPLICIT_INIT
     #if !D_ENV_TLS_HAS_OPENSSL
         #define D_ENV_TLS_OPENSSL_HAS_IMPLICIT_INIT 0
@@ -905,7 +905,7 @@ TABLE OF CONTENTS
 
 // 4.1.2
 // D_ENV_TLS_AVAILABLE
-//   feature: 1 if TLS can actually run here -- a TLS backend plus a TCP
+//   feature: 1 if TLS can actually run here - a TLS backend plus a TCP
 // transport to carry it. The gate a TLS backend header should #error on.
 #ifndef D_ENV_TLS_AVAILABLE
     #if ( (D_ENV_TLS_HAS_TLS) &&                                               \

@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/re_std/c/CMakeLists.txt
+# djinterp [test]  -  build/cmake/config/testing/re_std/c/CMakeLists.txt
 #
 #   Aggregate over re_std's C suites: every leaf below this directory.
 #

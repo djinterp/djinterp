@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][meta]               dtuple_wrap_partition_tests_passthrough.cpp
 *
-*   Section III of dtuple_wrap_partition.hpp: passthrough survival -- types
+*   Section III of dtuple_wrap_partition.hpp: passthrough survival - types
 * satisfying _IsPassthrough are emitted UNWRAPPED at their positions, which sit
 * at chunk boundaries.  This drives dispatch specialization (1) (head is a
 * passthrough, chunk empty).  Coverage:

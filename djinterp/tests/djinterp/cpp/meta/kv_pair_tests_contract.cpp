@@ -3,8 +3,8 @@
 *
 *   Section III of the kv_pair suite: DKvPair against the key/value
 * structural contract meta/kv.hpp detects. The members are named key and
-* value so that the contract's readers -- is_kv_pair, kv_key_t, kv_value_t,
-* and option/'s entry readers -- see a DKvPair as a pair; from 2026.10.04 to
+* value so that the contract's readers - is_kv_pair, kv_key_t, kv_value_t,
+* and option/'s entry readers - see a DKvPair as a pair; from 2026.10.04 to
 * 2026.11.11 they were m_key and m_value, and is_kv_pair<DKvPair<...>> was
 * false.
 *

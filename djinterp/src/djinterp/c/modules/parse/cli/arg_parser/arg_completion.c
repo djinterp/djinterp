@@ -3,13 +3,13 @@
 *
 * Shell completion, declared in arg_completion.h and arg_internal.h (11.1 and
 * 11.2.1 to 11.2.3).
-*   The shells' names; the model -- the command tree as completion sees it,
+*   The shells' names; the model - the command tree as completion sees it,
 * from which every shell's script is written: the commands help shows, in
 * breadth-first order, each with its subcommands' names, its options and
 * their names, in the order the parse searches them, and how each option's
 * values complete; the text the writers share; d_arg_completion_script,
-* which hands the model to the shell's writer -- arg_completion_sh.c for
-* bash and zsh, arg_completion_fish.c, arg_completion_pwsh.c -- and the
+* which hands the model to the shell's writer - arg_completion_sh.c for
+* bash and zsh, arg_completion_fish.c, arg_completion_pwsh.c - and the
 * option that asks for a script.
 *
 *
@@ -204,8 +204,8 @@ void* d_arg_internal_complete_room(
  *
  * A command's switches as the scripts spell them: `s` for subcommand
  * fallthrough, `f` for fallthrough, `w` for Windows-style options, `e` for
- * extra arguments kept -- by an extras mode that keeps them, or as a prefix
- * command keeps them -- and `-` alone for none.
+ * extra arguments kept - by an extras mode that keeps them, or as a prefix
+ * command keeps them - and `-` alone for none.
  */
 D_STATIC
 void d_arg_internal_complete_flags(
@@ -582,9 +582,9 @@ int d_arg_internal_complete_count(
  * @return D_ARG_OK, or the failure of listing the choices.
  *
  * An option record's counts and kind: the values a name of it takes --
- * CLI11's min_num and max_num -- and as a positional; then, for one that
+ * CLI11's min_num and max_num - and as a positional; then, for one that
  * takes values, how they complete: as its choices, if its validators list
- * any, or as d_arg_internal_complete_value_kind says -- or, for one help
+ * any, or as d_arg_internal_complete_value_kind says - or, for one help
  * hides, as nothing.
  */
 D_STATIC
@@ -769,7 +769,7 @@ int d_arg_internal_complete_names(
  *         choices.
  *
  * An option of the command at `_command`, if completion knows it: a
- * positional always -- one help hides completing as nothing -- and a named
+ * positional always - one help hides completing as nothing - and a named
  * option help shows, with its names.
  */
 D_STATIC
@@ -853,7 +853,7 @@ bool d_arg_internal_complete_shown(
  * @return D_ARG_OK, or the failure of an option's addition.
  *
  * A command's options, then those of each option group it holds that help
- * shows, in turn -- the order the parse searches them in -- recorded under
+ * shows, in turn - the order the parse searches them in - recorded under
  * the command at `_index`.
  */
 D_STATIC
@@ -955,7 +955,7 @@ int d_arg_internal_complete_subcommand(
  * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
  *
  * The subcommands help shows of a command, and of each option group it
- * holds that help shows -- where the parse finds them too -- added under the
+ * holds that help shows - where the parse finds them too - added under the
  * command at `_index`.
  */
 D_STATIC
@@ -1237,7 +1237,7 @@ struct dj_pack_text d_arg_internal_complete_base(
  *         built.
  *
  * The script for a shell, appended to a buffer: the model built, then
- * written by the shell's writer, for the program given -- or named by the
+ * written by the shell's writer, for the program given - or named by the
  * command's name, as d_arg_internal_complete_base reads it.
  */
 D_STATIC
@@ -1394,12 +1394,12 @@ int d_arg_internal_complete_shell_choices(
  * @param[in] _context  unused.
  * @return D_ARG_CALL_FOR_COMPLETION, recorded with the script as its message;
  *         D_ARG_OK when there is no parser or no value; otherwise the failure,
- *         recorded -- D_ARG_ERROR_OUT_OF_MEMORY when the script could not be
+ *         recorded - D_ARG_ERROR_OUT_OF_MEMORY when the script could not be
  *         kept.
  *
  * The completion option's callback: the script for the shell named last,
- * for the program as the parse was given its name -- `argv[0]`, as
- * d_arg_internal_complete_base reads it -- or else as the root is named,
+ * for the program as the parse was given its name - `argv[0]`, as
+ * d_arg_internal_complete_base reads it - or else as the root is named,
  * becomes the parse's report, its storage handed over, which ends the parse
  * with D_ARG_CALL_FOR_COMPLETION.
  */

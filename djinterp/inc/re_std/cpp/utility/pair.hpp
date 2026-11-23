@@ -12,7 +12,7 @@
 *     C++11+   adds the perfect-forwarding ctor, move ctor, and
 *              their templated converting variants. Constructors and
 *              comparison operators are constexpr-qualified (single
-*              return / member-init-list bodies -- C++11 constexpr-
+*              return / member-init-list bodies - C++11 constexpr-
 *              compliant). Move ctor / move assignment carry the
 *              standard's conditional-noexcept clauses where the
 *              required is_nothrow_* traits are available.
@@ -106,7 +106,7 @@ struct pair
           second(_other.second)
     {}
 
-    // copy ctor -- left implicit (compiler-generated, member-wise).
+    // copy ctor - left implicit (compiler-generated, member-wise).
 
 #if RE_STD_LANG_HAS_RVALUE_REFERENCES
 
@@ -126,8 +126,8 @@ struct pair
     //
     //   Members are forwarded as T1&& / T2&& rather than passed through
     // re_std::move. For an ordinary object type the two are identical, but
-    // when T1 is a REFERENCE type -- pair<int&, int>, which make_pair
-    // produces from a reference_wrapper argument -- move() yields int&&,
+    // when T1 is a REFERENCE type - pair<int&, int>, which make_pair
+    // produces from a reference_wrapper argument - move() yields int&&,
     // and an int&& cannot initialise the int& member. Reference collapsing
     // makes T1&& collapse back to int&, so this spelling handles both
     // cases. (C++17 hid the bug behind guaranteed copy elision; C++11 and
@@ -149,10 +149,10 @@ struct pair
           second(re_std::move(_other.second))
     {}
 
-  #else  // rvalue refs without variadic templates -- no nothrow-ctor trait
+  #else  // rvalue refs without variadic templates - no nothrow-ctor trait
 
     // pair(pair&&)
-    //   function: move ctor (no noexcept -- is_nothrow_move_constructible
+    //   function: move ctor (no noexcept - is_nothrow_move_constructible
     //   unavailable without variadic templates).
     RE_STD_CONSTEXPR pair(pair&& _other)
         : first(re_std::move(_other.first)),

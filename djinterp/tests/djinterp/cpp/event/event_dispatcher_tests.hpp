@@ -18,7 +18,7 @@
 * boolean.  The D_ED_CHECK macro is the intended call site.
 *
 *   IMPORTANT (include order): event_dispatcher.hpp enforces that the djinterp
-* framework header is included first (it #errors otherwise -- the guard fires
+* framework header is included first (it #errors otherwise - the guard fires
 * in preprocessing before its own #include of the framework header can help),
 * so this test header includes djinterp/core/djinterp.hpp before it.  The
 * section TUs include only this header and inherit that ordering.
@@ -52,7 +52,7 @@
 #include <tuple>
 #include <vector>
 // djinterp
-// djinterp  -- framework header FIRST (event_dispatcher.hpp requires it), then
+// djinterp  - framework header FIRST (event_dispatcher.hpp requires it), then
 // the header under test.
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
@@ -95,7 +95,7 @@ bool event_dispatcher_check(
 
 
 // =========================================================================
-//  shared fixtures -- event tags (payload arities 1, 2, 0)
+//  shared fixtures - event tags (payload arities 1, 2, 0)
 // =========================================================================
 
 D_EVENT(DEvInt, "t.event.dispatcher.int", int);  // std::tuple<int>
@@ -104,7 +104,7 @@ D_EVENT_EMPTY(DEvNone, "t.event.dispatcher.none");  // std::tuple<>
 
 
 // =========================================================================
-//  shared fixtures -- handlers (compatible: by value)
+//  shared fixtures - handlers (compatible: by value)
 // =========================================================================
 
 // summing
@@ -209,7 +209,7 @@ struct DReenqueue
 
 
 // =========================================================================
-//  shared fixtures -- structural dispatcher stand-ins (for traits/concepts)
+//  shared fixtures - structural dispatcher stand-ins (for traits/concepts)
 // =========================================================================
 
 // duck
@@ -254,7 +254,7 @@ bool tests_queue_payload_captured_by_value();
 bool tests_queue_reentrant_enqueue_deferred();
 bool tests_queue_heterogeneous();
 
-// III. DEventDispatcher facade -- immediate surface
+// III. DEventDispatcher facade - immediate surface
 bool tests_dispatcher_bind_and_management();
 bool tests_dispatcher_fire_immediate();
 bool tests_dispatcher_run();
@@ -263,7 +263,7 @@ bool tests_dispatcher_merge();
 bool tests_dispatcher_typed_and_aggregate_queries();
 bool tests_dispatcher_component_access();
 
-// III. DEventDispatcher facade -- deferred surface + queue/registry integration
+// III. DEventDispatcher facade - deferred surface + queue/registry integration
 bool tests_dispatcher_queue_pending();
 bool tests_dispatcher_process_dispatches();
 bool tests_dispatcher_queue_then_bind_then_process();

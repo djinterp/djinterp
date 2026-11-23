@@ -1,7 +1,7 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/util/color/CMakeLists.txt
+# djinterp [test]  -  build/cmake/config/testing/djinterp/c/util/color/CMakeLists.txt
 #
-#   Test leaf for c/util/color -- color.h's CIEDE2000 difference -- in the C
+#   Test leaf for c/util/color - color.h's CIEDE2000 difference - in the C
 # spec form: the runner in this directory, the section translation units
 # globbed from the tests tree, every color model's source (color.h includes
 # them all, and each .c emits its model's out-of-line definitions), and DTest's

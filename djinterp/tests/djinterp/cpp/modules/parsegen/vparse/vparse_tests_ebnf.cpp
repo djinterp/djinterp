@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][parsegen]                                 vparse_tests_ebnf.cpp
 *
-* vparse tests: the EBNF frontend -- the standalone prototype's arithmetic
+* vparse tests: the EBNF frontend - the standalone prototype's arithmetic
 * demo, the constructs the metacircular notation cannot express, and how a
 * malformed grammar is reported, down to the character it stopped at.
 *

@@ -1,17 +1,17 @@
 /*******************************************************************************
 * djinterp [cpp][utility]                       pdf_canvas_document_renderer.hpp
 *
-*   The SECOND PDF realisation of DDocumentRenderer -- the one backed by
+*   The SECOND PDF realisation of DDocumentRenderer - the one backed by
 * DPdfCanvas rather than pdf_template.  It exists because the two PDF flow
 * engines are not interchangeable in the one place it matters most:
 *
 *     pdf_template   flow layout, a named-style registry, and DTextTemplate
-*                    token substitution -- but NO grid primitive, and its
+*                    token substitution - but NO grid primitive, and its
 *                    horizontal metrics are fixed character cells.
 *     DPdfCanvas     flow layout measured with pdf_metrics (true Adobe Core-14
 *                    advances, so wrapping / centring / justification are exact
 *                    for proportional faces) and a real gridded, paginating
-*                    TABLE -- but no token layer.
+*                    TABLE - but no token layer.
 *
 *   pdf_document_renderer drives the first, so a document template's table falls
 * back to a Courier monospace block laid on a flow.  This renderer drives the
@@ -31,7 +31,7 @@
 * because it resolves column widths and paginates over it; the renderer protocol
 * streams.  So the table calls accumulate rows and the grid is handed over at
 * end_table.  That is the one place this renderer holds state a streaming
-* dialect would not -- the cost of getting a real grid rather than a text block.
+* dialect would not - the cost of getting a real grid rather than a text block.
 *
 *   HINTS -> canvas_style.  A `style` hint names a registered canvas_style
 * (register_style); `align` / `color` / `size` / `font` / `bold` / `italic`
@@ -111,7 +111,7 @@ class DPdfCanvasDocumentRenderer
     : public DDocumentRenderer
 {
 public:
-    // -- public type aliases -------------------------------------------------
+    // - public type aliases -------------------------------------------------
 
     using size_type  = std::size_t;
     using style_map  = std::map<std::string, canvas_style>;
@@ -148,7 +148,7 @@ public:
     }
 
     // DPdfCanvasDocumentRenderer (borrowing)
-    //   writes into a caller-owned canvas -- so a caller may lay out its own
+    //   writes into a caller-owned canvas - so a caller may lay out its own
     // preamble, hand the canvas over for the document body, and take it back.
     explicit DPdfCanvasDocumentRenderer(
         DPdfCanvas& _canvas
@@ -520,7 +520,7 @@ private:
     // flow_block
     //   emit one block of text: a banded strip when it carries a `background`
     // hint, an ordinary paragraph otherwise.  Every block override funnels
-    // through here so the band is available uniformly -- a section header, a
+    // through here so the band is available uniformly - a section header, a
     // suite band and a callout are all "a paragraph with a ground".
     void flow_block(
         const std::string&    _text,
@@ -548,7 +548,7 @@ private:
         return;
     }
 
-    // -- hint resolution -----------------------------------------------------
+    // - hint resolution -----------------------------------------------------
 
     // resolve
     //   the body style, or a registered style the `style` hint names, refined
@@ -679,7 +679,7 @@ private:
     }
 
     // parse_hex_color
-    //   "#RRGGBB" into _out, leaving it untouched on any other spelling -- a
+    //   "#RRGGBB" into _out, leaving it untouched on any other spelling - a
     // colour name this layer does not know is simply not honoured.
     static
     void parse_hex_color(
@@ -839,7 +839,7 @@ private:
         return;
     }
 
-    // -- state ---------------------------------------------------------------
+    // - state ---------------------------------------------------------------
     //   Declared in initialiser-list order.
 
     std::unique_ptr<DPdfCanvas> m_owned;        // when this renderer owns one

@@ -5,7 +5,7 @@
 # the runs that test it (docs/djinterp/interp/DESIGN.md, 6.4).
 #   The program is its two sources under src/djinterp/tools/djinterp/ and
 # the djin records (c/modules/interp/djin.c), linked to the kit as
-# DjinterpCli.cmake makes it -- the argument parser, the kit, filesys and
+# DjinterpCli.cmake makes it - the argument parser, the kit, filesys and
 # the option core the run's settings are kept in. Each test runs the program
 # as a user would, through d_cli_add_test, with a home of its own, so that
 # no user's settings file is read or written: the `set` runs write theirs
@@ -55,7 +55,7 @@ add_executable(djinterp
     "${_djinterp_sources}/c/modules/interp/djin_desc.c"
     # every core djin, by path, until each is a library of its own: parse's,
     # desc's, the environment printer's and the log's, and what they write
-    # through -- the option core's describer, desc's machines, the streams
+    # through - the option core's describer, desc's machines, the streams
     "${_djinterp_sources}/c/modules/parse/settings.c"
     "${_djinterp_sources}/c/desc/desc_machines.c"
     "${_djinterp_sources}/c/desc/desc_options.c"

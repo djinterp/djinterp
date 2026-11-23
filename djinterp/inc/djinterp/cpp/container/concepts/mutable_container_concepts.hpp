@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                       mutable_container_concepts.hpp
 *
-* C++20 concepts for the MUTABILITY axis -- the `requires`-facing view of
+* C++20 concepts for the MUTABILITY axis - the `requires`-facing view of
 * mutable_container_traits.hpp.
 *
 *   THE CONCEPTS ADD NO POLICY.
@@ -49,7 +49,7 @@ NS_DJINTERP
 
 
 // MutableContainerType
-//   concept: something may change -- values, structure, or both.
+//   concept: something may change - values, structure, or both.
 template<typename Type>
 concept MutableContainerType = is_mutable_container_v<Type>;
 
@@ -63,14 +63,14 @@ concept ImmutableContainerType = is_immutable_container_v<Type>;
 // ElementMutableContainerType
 //   concept: an EXISTING element may be overwritten in place. The probe is
 // sequence- shaped (a settable operator[] or data()), so an associative
-// container -- std::map included -- does not read as this. Not a bug: it is
+// container - std::map included - does not read as this. Not a bug: it is
 // what the structural probe can see.
 template<typename Type>
 concept ElementMutableContainerType = is_element_mutable_container_v<Type>;
 
 
 // StructurallyMutableContainerType
-//   concept: the SET of elements may change -- insert, erase, clear, resize.
+//   concept: the SET of elements may change - insert, erase, clear, resize.
 template<typename Type>
 concept StructurallyMutableContainerType =
     is_structurally_mutable_container_v<Type>;

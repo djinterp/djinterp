@@ -7,7 +7,7 @@
 * matching argument, for both the bridge and the direct applicative) and the
 * false primary via several distinct ill-formed cases: a non-applicative on
 * either side, a wrapped value that is not callable, and a cross-kind pairing (a
-* box-wrapped function with an ident argument -- ap requires the SAME
+* box-wrapped function with an ident argument - ap requires the SAME
 * applicative on both sides).
 *
 *

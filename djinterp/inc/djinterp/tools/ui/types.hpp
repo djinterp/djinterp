@@ -6,7 +6,7 @@
 * (re-exported from the djinterp colour module), and the small enumerations
 * describing coordinate systems, shape primitives, line styles, and lens modes.
 *   The geometry types are aliases onto the math and render3d subframeworks --
-* `vec`, `aabb3`, `camera`, `viewport` and `ray` -- so the module has no vector
+* `vec`, `aabb3`, `camera`, `viewport` and `ray` - so the module has no vector
 * or camera code of its own.
 *
 *

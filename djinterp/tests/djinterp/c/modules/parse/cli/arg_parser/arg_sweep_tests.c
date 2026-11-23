@@ -6,9 +6,9 @@
 * the wrappers keep a ledger: how many allocations were asked for, which
 * one to refuse, and how many blocks are live. A scenario is run once as it
 * is, then once for each allocation it asked for, that one refused; every
-* run must end with no block live once the parser is released -- every
+* run must end with no block live once the parser is released - every
 * context the scenario gave away freed with what kept it, or at once by the
-* call that refused it -- and with every definition that came back NULL
+* call that refused it - and with every definition that came back NULL
 * absent from its command, as a refused definition leaves nothing, and
 * recorded as the parser's definition error, as a refused definition is
 * never silent. Output is discarded: what a refused allocation changes in
@@ -48,7 +48,7 @@
 
 // dj_tests_arg_sweep_ledger
 //   struct: what the wrappers keep: the allocation to refuse, counted from
-// 1 -- 0 refuses none -- how many have been asked for, how many blocks are
+// 1 - 0 refuses none - how many have been asked for, how many blocks are
 // live; and what the scenarios find: refused definitions left behind,
 // refused definitions the parser did not record, and texts reported written
 // that were not written whole.
@@ -84,8 +84,8 @@ struct dj_tests_arg_sweep_digest
 };
 
 // --wrap names a symbol's wrapper __wrap_<symbol> and the symbol itself
-// __real_<symbol>, names C reserves to the implementation -- the linker, here
-// -- and no other spelling reaches them; so clang's -Wreserved-identifier,
+// __real_<symbol>, names C reserves to the implementation - the linker, here
+// - and no other spelling reaches them; so clang's -Wreserved-identifier,
 // where it has it, is off for these eight declarations and nothing else
 #if defined(D_ENV_COMPILER_CLANG)
     #if __has_warning("-Wreserved-identifier")
@@ -324,7 +324,7 @@ struct dj_pack_sink d_tests_arg_sweep_digest_sink(
 
 /**
  * @brief Holds two writings of the same text to "reported written, written
- *        whole": when both succeed, they wrote the same bytes -- so a
+ *        whole": when both succeed, they wrote the same bytes - so a
  *        writing the refused allocation cut short cannot pass for whole.
  *
  * @param[in] _first        the first writing's status.
@@ -462,7 +462,7 @@ void d_tests_arg_sweep_option_held(
 
 /**
  * @brief Holds a call that sets something on a definition to the rule its
- *        header states -- a setter that can fail records the failure as a
+ *        header states - a setter that can fail records the failure as a
  *        definition error: a refused allocation it reports is recorded.
  *
  * @param[in] _command  a command of the parser.
@@ -514,8 +514,8 @@ void d_tests_arg_sweep_command_held(
 }
 
 /**
- * @brief Holds a call that replaces a special option -- the help flags,
- *        the version flag, the configuration option -- to the same rule:
+ * @brief Holds a call that replaces a special option - the help flags,
+ *        the version flag, the configuration option - to the same rule:
  *        the old one gone, and the new one there only when it was made.
  *
  * @param[in] _command  the command.
@@ -939,7 +939,7 @@ int d_tests_arg_sweep_on_preparse(
 }
 
 /**
- * @brief Writes a command's text -- a usage line, a footer, a version.
+ * @brief Writes a command's text - a usage line, a footer, a version.
  *
  * @param[in] _command  unused.
  * @param[in] _sink     where the text goes.
@@ -961,7 +961,7 @@ int d_tests_arg_sweep_command_text(
 }
 
 /**
- * @brief Writes an option's text -- a type name, a default.
+ * @brief Writes an option's text - a type name, a default.
  *
  * @param[in] _option   unused.
  * @param[in] _sink     where the text goes.
@@ -2048,8 +2048,8 @@ void d_tests_arg_sweep_extra_sets(
 }
 
 /**
- * @brief Gives the validators scenario the extra checks -- bounds, a
- *        number's, a type's, sizes -- CLI11's sets and mappings, each
+ * @brief Gives the validators scenario the extra checks - bounds, a
+ *        number's, a type's, sizes - CLI11's sets and mappings, each
  *        through built-in filters and a function of the caller's whose
  *        context each copies, and a number with units.
  *

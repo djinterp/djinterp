@@ -89,7 +89,7 @@ bool tests_sort_monoid_run_adopting_construction()
 
     //   The three-argument constructor adopts a vector that the CALLER
     // guarantees is already ordered.  It performs no sort, which is the
-    // whole point -- it is the zero-cost path.
+    // whole point - it is the zero-cost path.
     result.check(adopted.size() == 5);
     result.check(ranges_equal(adopted.data(), ints_of(ordered, 5)));
     result.check(!adopted.empty());
@@ -98,7 +98,7 @@ bool tests_sort_monoid_run_adopting_construction()
     // sorting factory; its value is never read.  Passing unsorted data is a
     // precondition violation, and the run keeps it verbatim.  That is
     // asserted rather than avoided, because it is the behaviour a caller who
-    // reaches for this constructor by mistake will actually observe -- and
+    // reaches for this constructor by mistake will actually observe - and
     // because it is the sharpest available statement that no sort happens
     // here.
     result.check(ranges_equal(misused.data(), ints_of(unordered, 3)));
@@ -164,7 +164,7 @@ bool tests_sort_monoid_run_value_semantics()
     DIntRun  assigned;
     DIntRun* self;
 
-    //   DSortedRun is a value type -- the header calls it a newtype over a
+    //   DSortedRun is a value type - the header calls it a newtype over a
     // vector.  A copy is independent of its source, which is what makes the
     // algebra safe: combine() takes both operands by const reference and
     // returns a new run, so a caller's runs are never mutated underneath

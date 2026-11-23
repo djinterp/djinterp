@@ -151,7 +151,7 @@ struct cc_tag_member
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// -- declarations - visible in BOTH modes ------------------------------------
+// - declarations - visible in BOTH modes ------------------------------------
 
 // I.   CHANNEL SCALAR          (color_common_tests_channel.cpp)
 bool tests_color_common_channel_is_floating_point();
@@ -199,7 +199,7 @@ bool tests_color_common_has_model_tag_helper_direct();
 bool tests_color_common_detail_void_maps_to_void();
 
 
-// -- the spec provider - spec mode only --------------------------------------
+// - the spec provider - spec mode only --------------------------------------
 #ifdef DTEST_SPEC_MODE
 
 // color_common_spec

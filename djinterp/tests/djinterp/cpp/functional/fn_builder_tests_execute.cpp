@@ -2,7 +2,7 @@
 * djinterp [cpp][functional]                        fn_builder_tests_execute.cpp
 *
 * Execution-overload tests (section iii):
-*   test_execute -- execute(vector), execute(generic container),
+*   test_execute - execute(vector), execute(generic container),
 *                   execute(pointer, count), and operator() shorthand.
 *
 *
@@ -35,7 +35,7 @@ bool test_execute()
         doubler.execute(vin) == std::vector<int>({ 2, 4, 6 }),
         "execute: drains a std::vector input");
 
-    // execute(generic container) -- std::list is converted to the input vector
+    // execute(generic container) - std::list is converted to the input vector
     std::list<int> lin = { 4, 5 };
     record_assertion(verdict,
         doubler.execute(lin) == std::vector<int>({ 8, 10 }),

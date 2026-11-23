@@ -81,7 +81,7 @@ int d_sqlite_begin_transaction(
  *
  * @param[in] _db  the connection.
  * @return SQLITE_OK; SQLITE_BUSY when readers keep the commit from finishing
- *         -- the transaction is still open, and the commit can be retried;
+ *         - the transaction is still open, and the commit can be retried;
  *         SQLITE_ERROR outside a transaction; or SQLITE_MISUSE.
  */
 int d_sqlite_commit(
@@ -100,7 +100,7 @@ int d_sqlite_rollback(
 
 // 1.3    State
 //------------------------------------------------------------------------------
-// state -- true while a transaction is open: one begun here, or natively, or
+// state - true while a transaction is open: one begun here, or natively, or
 // by a savepoint; false for a NULL connection
 bool d_sqlite_in_transaction(
     struct sqlite3* _db
@@ -114,7 +114,7 @@ bool d_sqlite_in_transaction(
 
 // 2.1    Savepoints
 //------------------------------------------------------------------------------
-// savepoints -- each takes the savepoint's name, which is quoted, and returns
+// savepoints - each takes the savepoint's name, which is quoted, and returns
 // SQLITE_OK or the SQLite result code of the failure (SQLITE_ERROR for a
 // release or rollback naming no open savepoint), or SQLITE_MISUSE for a NULL
 // argument or an empty name. Releasing the outermost savepoint commits, when

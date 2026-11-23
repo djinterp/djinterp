@@ -3,10 +3,10 @@
 *
 * has_virtual_destructor trait header:
 *   has_virtual_destructor<T>::value is true iff T has a virtual
-* destructor -- the precondition for deleting a derived object through a
+* destructor - the precondition for deleting a derived object through a
 * base pointer without undefined behaviour.
 *
-*   NO LIBRARY-LEVEL IMPLEMENTATION EXISTS -- virtualness of a member is
+*   NO LIBRARY-LEVEL IMPLEMENTATION EXISTS - virtualness of a member is
 * not observable through the type system.
 *
 *   PORTABILITY:
@@ -62,7 +62,7 @@ namespace re_std
 #if RE_STD_HAS_HAS_VIRTUAL_DESTRUCTOR
 
 // has_virtual_destructor
-//   trait: intrinsic-backed -- the destructor is declared virtual.
+//   trait: intrinsic-backed - the destructor is declared virtual.
 template<typename Type>
 struct has_virtual_destructor : integral_constant<bool, __has_virtual_destructor(Type)>
 {};

@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/cpp/text/
+# djinterp [test]  -  build/cmake/config/testing/djinterp/cpp/text/
 #                      writer_stream/CMakeLists.txt
 #
 #   Test leaf for text's writers on the output stream, in DTest's C face: the

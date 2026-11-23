@@ -20,9 +20,9 @@
 * products; an exact number and a floating-point one by the latter's exact
 * mantissa and exponent, from the C library's frexp; two floating-point ones
 * as long doubles. eq must be cmp's EQUAL, and cmp(b, a) cmp(a, b) turned.
-*   The operands: 37 exact numbers -- small ones, the family's ends, the
+*   The operands: 37 exact numbers - small ones, the family's ends, the
 * values around 2^(w/2) and 2^(w-1) where sums and products overflow, and
-* around 2^(w/2 - 1), below which two integers are multiplied at once -- 54
+* around 2^(w/2 - 1), below which two integers are multiplied at once - 54
 * floating-point ones, 18 of each type, zeros, infinities and a NaN among
 * them; the nearest float, double and long double of -1/3 and of MAX/3, which
 * a comparison must tell from the rationals themselves; none, both booleans

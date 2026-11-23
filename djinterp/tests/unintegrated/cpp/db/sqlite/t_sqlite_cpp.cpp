@@ -14,7 +14,7 @@
 * and no statement prepares.
 *
 *   Build: compile the layer's C sources and SQLite as C, this file as C++, and
-* link them -- scripts/ci/check_db_sqlite.sh does, at every level.
+* link them - scripts/ci/check_db_sqlite.sh does, at every level.
 *
 *
 * path:      /tests/unintegrated/cpp/db/sqlite/t_sqlite_cpp.cpp
@@ -261,7 +261,7 @@ void d_tests_sqlite_cpp_stubs(void)
 /*
 main
   Drives a database through the layer, or, when the layer was built without
-SQLite -- whose version is then 0 -- checks that it says so.
+SQLite - whose version is then 0 - checks that it says so.
 */
 int main(void)
 {

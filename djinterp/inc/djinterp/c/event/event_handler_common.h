@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][event]                                     event_handler_common.h
 *
-* The handler step -- the shared C core (tier 0):
+* The handler step - the shared C core (tier 0):
 *   A handler is the single primitive of the event layer: given the ambient
 * state S and an occurrence's payload A_e, it yields a verdict in
 * P = {pass, consume}. C has no closures, so the state that C++ captures is
@@ -15,10 +15,10 @@
 * floor and before the container substrate exists.
 *
 * FORMAL CORRESPONDENCE ("Definition of an Event"):
-*   handler    h : S x A_e -> S x P  -- struct dj_event_step (fn + state)
-*   sequencing h1 ; h2               -- d_event_step_seq
-*   unit       skip(s,a) = (s,pass)  -- d_event_step_skip
-*   left zero  consume               -- a step returning D_VERDICT_CONSUME
+*   handler    h : S x A_e -> S x P  - struct dj_event_step (fn + state)
+*   sequencing h1 ; h2               - d_event_step_seq
+*   unit       skip(s,a) = (s,pass)  - d_event_step_skip
+*   left zero  consume               - a step returning D_VERDICT_CONSUME
 *                                       short-circuits the remainder
 *
 * MONOID LAWS (each has a conformance test; see the note in section V):
@@ -50,7 +50,7 @@
 #include "../../../re_std/c/cstdint/dstdint.h"  // int32_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -77,7 +77,7 @@ typedef int32_t (*fn_event_step)(void* _payload,
                                  void* _state);
 
 // dj_event_step
-//   struct: one handler -- the pair (function, ambient state). A step with a
+//   struct: one handler - the pair (function, ambient state). A step with a
 // NULL `fn` is the unit and always yields pass, which makes a zeroed step
 // valid rather than a trap.
 struct dj_event_step
@@ -104,7 +104,7 @@ struct dj_event_step d_event_step_make(
 
 // d_event_step_skip
 //   function: the monoid unit. Ignores the payload and always yields pass.
-// Folding a word is invariant under inserting or removing skip -- which is
+// Folding a word is invariant under inserting or removing skip - which is
 // the algebraic reason masking a handler is well defined.
 D_STATIC_INLINE
 struct dj_event_step d_event_step_skip(void)
@@ -148,7 +148,7 @@ int32_t d_event_step_invoke(
 ///////////////////////////////////////////////////////////////////////////////
 // The C++ face accepts a void-returning callable as an always-pass handler,
 // because the monoid unit yields pass. The C equivalent is an adapter over
-// fn_callback -- which is also the migration path for every handler written
+// fn_callback - which is also the migration path for every handler written
 // against the pre-core `struct dj_event_listener`, whose callback was exactly
 // `void (*)(void*)` with no verdict.
 
@@ -167,7 +167,7 @@ struct dj_event_callback_state
 
 // d_event_callback_step_fn
 //   function: the fn_event_step that drives a dj_event_callback_state. Invokes
-// the callback with the state's own context -- NOT with the payload -- which
+// the callback with the state's own context - NOT with the payload - which
 // reproduces the pre-core dispatch exactly: `listener->fn(event->context)`.
 //   The payload is therefore ignored by this adapter. A handler that needs
 // the payload must be written against fn_event_step directly.
@@ -222,7 +222,7 @@ struct dj_event_step d_event_step_from_callback(
 // seq runs the first step; if it consumes, the second is NOT invoked and
 // consume is returned; otherwise the second runs and its verdict is the
 // result. Both stages see the same payload block, so a handler that mutates
-// the payload is visible to its successors -- deliberately, since that is how
+// the payload is visible to its successors - deliberately, since that is how
 // the state S threads through a word.
 
 #if (D_INTERNAL_EVENT_HANDLER_SEQ == 1)
@@ -285,7 +285,7 @@ struct dj_event_step d_event_step_seq(
 //   function: folds seq over a contiguous array of steps against one payload
 // block, stopping at the first consume (the left zero).
 //   `_invoked_out` may be NULL; when supplied it receives the number of steps
-// actually invoked -- the (N, +) component of the enriched dispatch.
+// actually invoked - the (N, +) component of the enriched dispatch.
 // returns: the pinned verdict code of the folded word.
 int32_t d_event_step_fold(
     const struct dj_event_step* _steps,
@@ -298,7 +298,7 @@ int32_t d_event_step_fold(
 ///////////////////////////////////////////////////////////////////////////////
 ///        V.    LAYOUT ASSERTIONS                                          ///
 ///////////////////////////////////////////////////////////////////////////////
-// The monoid laws are not asserted here -- they are universally quantified and
+// The monoid laws are not asserted here - they are universally quantified and
 // therefore sampled, not checked. They belong in the conformance suite
 // (property-based, over a shared generator, per AGENT_README.md section 6
 // step 7), including the stated NON-property: seq(consume, a) must leave `a`

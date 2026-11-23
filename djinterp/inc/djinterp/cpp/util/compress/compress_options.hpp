@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][utility]                                   compress_options.hpp
 *
-*   Codec tuning knobs for the C++ facade -- RE-BASED onto the shared kernel.
+*   Codec tuning knobs for the C++ facade - RE-BASED onto the shared kernel.
 *
 *   WHAT CHANGED, AND WHY IT HAD TO:
 *   This header used to define the knob set itself, in parallel
@@ -12,7 +12,7 @@
 * notation over it.
 *
 *   THE DERIVATION COSTS NOTHING, AND THAT IS ASSERTED BELOW.
-*   compress_options adds no data member -- only a constructor and comparison
+*   compress_options adds no data member - only a constructor and comparison
 * operators, neither of which occupies storage.  sizeof(compress_options) ==
 * sizeof(dj_compress_options) is checked at compile time rather than assumed,
 * because "the wrapper is free" is exactly the kind of claim that quietly stops
@@ -21,7 +21,7 @@
 *   This works only because every knob in the core is an int32_t.  Had the core
 * declared its enum-valued members with enum types, or its flags with bool,
 * their sizes would be implementation-defined and C and C++ would be free to
-* disagree about the layout of one declaration -- so the derivation would have
+* disagree about the layout of one declaration - so the derivation would have
 * been a gamble rather than a guarantee.
 *
 *   EVERY EXISTING CALL SITE STILL COMPILES.  `opt.level = 9`,
@@ -32,21 +32,21 @@
 *
 *   ONE BEHAVIOURAL CHANGE, DELIBERATE.  A default-constructed set is PRISTINE
 * (every knob D_COMPRESS_KNOB_UNSET), not zero.  It has to be: 0 is a
-* meaningful value for most of these knobs -- level 0 means "no compression" --
+* meaningful value for most of these knobs - level 0 means "no compression" --
 * so a zero-filled set is a fully-specified request masquerading as an untouched
 * one.  The core resolves UNSET knobs to its own pinned defaults at dispatch,
 * which is what keeps C and C++ sending a backend identical parameters.
 *
 *   PORTABILITY:
 *   Target floor is C++98.  The EFFECTIVE floor today is C++11, and not because
-* of anything in this header -- djinterp.hpp gates below it outright ("djinterp
+* of anything in this header - djinterp.hpp gates below it outright ("djinterp
 * requires C++11 or later"), so no header that includes it can compile at C++98
 * regardless of what it uses.  Nothing here needs C++11 in its own right, so
 * this returns to the target floor the day the gate moves.  Verified building
 * at C++11, C++17 and C++20.
 *
-*   The C++98-era style constraints are kept for now -- D_STATIC_ASSERT with its
-* fallback, no constexpr, no nullptr -- so that returning to the target floor
+*   The C++98-era style constraints are kept for now - D_STATIC_ASSERT with its
+* fallback, no constexpr, no nullptr - so that returning to the target floor
 * stays a gate change rather than a rewrite.
 *
 *
@@ -162,7 +162,7 @@ typedef struct dj_gzip_options    DGzipOptions;
 // compress_options
 //   struct: the whole codec-tuning surface.  Derives from the core struct and
 // adds no data member, so it IS the core struct with C++ notation attached.
-// A default-constructed set is pristine -- see the header banner.
+// A default-constructed set is pristine - see the header banner.
 struct compress_options : dj_compress_options
 {
     compress_options()
@@ -170,7 +170,7 @@ struct compress_options : dj_compress_options
         d_compress_options_init(this);
     }
 
-    // is_default -- whether nothing anywhere has been touched.
+    // is_default - whether nothing anywhere has been touched.
     bool is_default() const
     {
         return (d_compress_options_are_default(this) != 0);

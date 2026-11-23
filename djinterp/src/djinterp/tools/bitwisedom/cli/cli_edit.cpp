@@ -4,15 +4,15 @@
 * The commands that make a sheet or a row: new, import, add and change.
 *   A changing command reads its sheet, changes it in memory, and writes it
 * back where it came from, in the shape it came in, whole or not at all
-* (GRAMMAR.md, R20): the change is made by the model's own edits -- those
-* the window makes -- so a row the window would refuse is refused here in
+* (GRAMMAR.md, R20): the change is made by the model's own edits - those
+* the window makes - so a row the window would refuse is refused here in
 * the same words. Every operand is checked before anything is written, so
 * a command that fails leaves the file as it was.
 *   A row is defined as a bitfield's row is, by options: one definition --
 * a bit, a range, a value in a range, a literal, an expression, a macro, or
-* for add a group -- and anything else a row may say. add takes exactly
+* for add a group - and anything else a row may say. add takes exactly
 * one definition; change takes one to replace the row's, or only the parts
-* of its own -- a range's width, a value's number, a macro's parameters --
+* of its own - a range's width, a value's number, a macro's parameters --
 * and keeps whatever it is not given. An option counts as given when it is
 * on the command line at all, so `--note=` clears a note.
 *
@@ -80,8 +80,8 @@ const int KIND_COUNT = 7;
 const int GROUP      = 6;
 
 // part
-//   struct: an option that gives a part of one definition -- the width of a
-// range, the number of a value -- and the definition it is a part of.
+//   struct: an option that gives a part of one definition - the width of a
+// range, the number of a value - and the definition it is a part of.
 struct part
 {
     const char* option;
@@ -185,7 +185,7 @@ struct new_request
 
 /*
 run_new
-  File > New's sheet -- a full-width range named root, and in it one bit --
+  File > New's sheet - a full-width range named root, and in it one bit --
 under the title, width and affixes given.
 */
 int run_new(
@@ -422,7 +422,7 @@ struct definition_options
 
 // row_options
 //   struct: what any row may say besides its definition: its texts, its
-// colour, how its literal is written, and its switches -- each read only
+// colour, how its literal is written, and its switches - each read only
 // when it was given.
 struct row_options
 {
@@ -468,7 +468,7 @@ int chosen_kind(
 /*
 parts_fit
   Every part given belongs to the definition the row will have; a usage
-error for the first that does not, which says where it goes -- or, when no
+error for the first that does not, which says where it goes - or, when no
 definition was given, what the row is.
 */
 int parts_fit(
@@ -516,7 +516,7 @@ int parts_fit(
 
 /*
 text_or_file
-  An option's text, or a file's, read whole -- `-` standard input -- so
+  An option's text, or a file's, read whole - `-` standard input - so
 that text the shells would take apart need never be quoted.
 */
 bool text_or_file(
@@ -677,7 +677,7 @@ int range_width(
 
 /*
 define_range
-  --bits, or --lsb -- alone the next bit free -- and its width: --width's,
+  --bits, or --lsb - alone the next bit free - and its width: --width's,
 or the row's own where it was a range already, or one bit.
 */
 int define_range(
@@ -843,9 +843,9 @@ void macro_parts(
 
 /*
 define_text
-  A literal, an expression or a macro: what each is written as -- the
+  A literal, an expression or a macro: what each is written as - the
 literal read as the grammar writes an integer, the text from the option or
-its file -- and a macro's parts, a new macro's starting with none.
+its file - and a macro's parts, a new macro's starting with none.
 */
 int define_text(
     kit::program&             _program,
@@ -894,7 +894,7 @@ int define_text(
 
 /*
 define
-  The definition the options chose, with its parts; -- none chosen -- the
+  The definition the options chose, with its parts; - none chosen - the
 parts alone, of the definition the row has.
 */
 int define(
@@ -1370,7 +1370,7 @@ int change_definition(
 /*
 run_change
   The row found, its fields changed in a copy of it, and the copy tried in
-place of the row -- refused as the window refuses a name it cannot take.
+place of the row - refused as the window refuses a name it cannot take.
 */
 int run_change(
     kit::program&         _program,

@@ -2,7 +2,7 @@
 * djinterp [c][utility]                                        ostream_console.c
 *
 *   The console destination's backends. Each defines the same file-local
-* functions -- open, write, flush, close, query and vt -- and everything after
+* functions - open, write, flush, close, query and vt - and everything after
 * them is written once against those names, so no #if splits a function body.
 *
 *   NATIVE IS COMPILED ONLY BY A WINDOWS BUILD. Its UTF-8 carrying and
@@ -196,7 +196,7 @@ d_internal_console_vt(
 
 
 //==============================================================================
-// BACKENDS: STDC AND POSIX -- the bytes go through stdio
+// BACKENDS: STDC AND POSIX - the bytes go through stdio
 //==============================================================================
 
 #if ( (D_INTERNAL_OSTREAM_CONSOLE == D_CFG_OSTREAM_CONSOLE_STDC) ||            \
@@ -463,7 +463,7 @@ d_internal_console_errno(
  * @param[in] _lead  the first byte.
  * @return 1 to 4.
  *
- * A continuation byte or an invalid lead counts as one byte -- one replacement
+ * A continuation byte or an invalid lead counts as one byte - one replacement
  * character.
  */
 static size_t
@@ -584,7 +584,7 @@ d_internal_console_emit(
 
 /**
  * @brief Completes the sequence carried over from the last write with the bytes
- *        that begin this one, and writes it once it is complete -- or once a
+ *        that begin this one, and writes it once it is complete - or once a
  *        byte that cannot continue it shows that it never will be, which writes
  *        it as it is, for the converter to replace.
  *
@@ -792,7 +792,7 @@ d_internal_console_open(
 /**
  * @brief Chooses the path: redirected text through the C library, as printf's
  *        would go; anything else directly, after flushing the C library's
- *        buffer so that an earlier printf is not overtaken -- binary through
+ *        buffer so that an earlier printf is not overtaken - binary through
  *        WriteFile, console text through WriteConsoleW.
  *
  * @param[in] _context  the state.
@@ -856,7 +856,7 @@ d_internal_console_flush(
 
 /**
  * @brief A console, whether it interprets escape sequences now, and whether
- *        bytes arrive unaltered -- only in binary mode.
+ *        bytes arrive unaltered - only in binary mode.
  *
  * @param[in]  _context  the state.
  * @param[out] _out      the description; arrives zeroed.
@@ -956,7 +956,7 @@ d_internal_console_finish(
  * @param[in] _release  ignored.
  * @return 1 or 0.
  *
- * Nothing is released -- a stream never closes stdout.
+ * Nothing is released - a stream never closes stdout.
  */
 static int32_t
 d_internal_console_close(

@@ -4,7 +4,7 @@
 * Implementation of the symbolic-link calls declared in file_link.h.
 *   symlink and readlink on POSIX. On Windows, CreateSymbolicLinkA with the
 * file-or-directory kind decided up front, from where the link will resolve
-* its target, and readlink read from the link's own reparse data -- the text
+* its target, and readlink read from the link's own reparse data - the text
 * it holds, not the path it reaches. Windows counts a junction as a link
 * (file_common.h, 6.5). The whole file compiles to nothing when this build has
 * no symbolic links.
@@ -39,7 +39,7 @@
 #if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
 
 // D_INTERNAL_LINK_SYMLINK_NAMES
-//   constant: where a symbolic link's names begin in its reparse data -- after
+//   constant: where a symbolic link's names begin in its reparse data - after
 // the tag, the data length, the four name offsets and lengths, and the flags.
 #define D_INTERNAL_LINK_SYMLINK_NAMES 20
 
@@ -79,8 +79,8 @@ DWORD d_internal_link_tag(
 
 /*
 d_internal_link_name
-  The text a link's reparse data holds: its print name -- the target as its
-creator wrote it -- or, where that is empty (a volume mount point leaves it
+  The text a link's reparse data holds: its print name - the target as its
+creator wrote it - or, where that is empty (a volume mount point leaves it
 so), its substitute name, the kernel's \??\ path, respelled as the Win32
 verbatim path \\?\ it is. Every offset is checked against the bytes there
 are, so damaged data is refused rather than read past. Returns 0 with the
@@ -306,8 +306,8 @@ ssize_t d_internal_link_narrow(
 
 /*
 d_internal_link_fetch
-  A link's reparse data, from the link itself -- opened without following it,
-so a dangling link reads as well as any -- into _data, which holds
+  A link's reparse data, from the link itself - opened without following it,
+so a dangling link reads as well as any - into _data, which holds
 MAXIMUM_REPARSE_DATA_BUFFER_SIZE bytes. Returns the bytes read, or 0 with
 errno set: a path that is no reparse point at all is EINVAL, as readlink(2)
 reports a file that is no link.
@@ -462,7 +462,7 @@ int d_internal_link_target(
 /*
 d_internal_link_is_dir
   Whether a target is a directory, as Windows must know when it makes the
-link -- judged where the link will resolve it: a relative target from the
+link - judged where the link will resolve it: a relative target from the
 link's own directory, not from the working directory. A target that cannot be
 judged is no directory, as a dangling one is not.
 */
@@ -540,7 +540,7 @@ int d_internal_link_is_dir(
 d_internal_link_make
   CreateSymbolicLink, given the platform's text, with the unprivileged-create
 flag where the build asks
-for it -- and again without it when the system rejects the flag itself, as
+for it - and again without it when the system rejects the flag itself, as
 Windows 10 before 1703 rejects the whole call rather than ignore it. Returns
 the call's answer; GetLastError says why it failed.
 */
@@ -592,7 +592,7 @@ d_internal_link_create
   symlink for Windows. Win32 bakes file-versus-directory into the link at
 creation and cannot revise it, so the target is examined first, where the
 link will resolve it (d_internal_link_is_dir); a dangling target makes a file
-link. A failure is the reason Win32 gives -- EPERM for the missing privilege,
+link. A failure is the reason Win32 gives - EPERM for the missing privilege,
 EEXIST for a name already taken, and so on.
 */
 static
@@ -657,7 +657,7 @@ int d_internal_link_create_in(
 
     const DWORD error = GetLastError();
 
-    // a filesystem that holds no links -- FAT, most shares -- is EPERM, as
+    // a filesystem that holds no links - FAT, most shares - is EPERM, as
     // symlink(2) names it, not the table's general ENOTSUP
     const int code = ( (error == ERROR_INVALID_FUNCTION) ||
                        (error == ERROR_NOT_SUPPORTED) )
@@ -833,7 +833,7 @@ ssize_t d_file_readlink(
 d_file_is_symlink
   d_file_mode_nofollow, necessarily: a following query describes the target,
 so it could never report a link at all. It describes a link as one on every
-platform -- on Windows a junction too -- needs no width, and raises no notice
+platform - on Windows a junction too - needs no width, and raises no notice
 for a path that is not there.
 */
 int d_file_is_symlink(

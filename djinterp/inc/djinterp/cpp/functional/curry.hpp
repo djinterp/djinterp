@@ -224,7 +224,7 @@ NS_INTERNAL
         {}
 
         // Return-type metafunctions for operator(). std::conditional is
-        // eager -- it requires BOTH branch types to be well-formed -- so a
+        // eager - it requires BOTH branch types to be well-formed - so a
         // direct conditional on apply_tuple(...) fails when the callable is
         // not yet invocable with the given args (the invoke branch is still
         // instantiated). These wrappers defer each branch behind ::type so
@@ -415,7 +415,7 @@ NS_INTERNAL
                     std::make_tuple(std::forward<Arg>(_arg))));
         }
 
-        // operator() (two or more arguments) -- implements the documented
+        // operator() (two or more arguments) - implements the documented
         // c(1, 2)(3) / c(1, 2, 3) forms the single-arg overload omitted.
         // (added 2026-05-30)
         template<typename Arg0,
@@ -635,8 +635,8 @@ NS_END  // internal
 ///             II.   PREDICATE CONCEPTS                                    ///
 ///////////////////////////////////////////////////////////////////////////////
 // A predicate is any callable whose result is convertible to bool. The traits
-// that classify one -- is_predicate and its arity forms is_nullary_predicate,
-// is_unary_predicate and is_binary_predicate, with their _v shorthands -- are
+// that classify one - is_predicate and its arity forms is_nullary_predicate,
+// is_unary_predicate and is_binary_predicate, with their _v shorthands - are
 // the functional module's, defined once in functional_common.hpp, which this
 // header includes; the general concept is its Predicate. This header used to
 // define the traits itself, and a predicate_for concept the same as Predicate,

@@ -5,7 +5,7 @@
 *   Every section is the module's own, as CLI11 writes no completion script:
 * the shells by name; a program's script for each shell, written by the
 * face as a std::string and to a sink and by the C library, which the three
-* write alike to the byte -- a line for each giving its length in lines,
+* write alike to the byte - a line for each giving its length in lines,
 * its first line and which of the program's names it holds, as the C
 * completion suite holds the scripts' text; and the failures, a sink that
 * refuses the script and a command with no name to complete.

@@ -2,8 +2,8 @@
 * djinterp [c][net]                                                        ssh.h
 *
 * SSH common module: the part of SSH every SSH module shares.
-*   SSH runs each service -- a remote command, a shell, SFTP, SCP, a
-* forwarded port -- as a channel inside one encrypted, authenticated
+*   SSH runs each service - a remote command, a shell, SFTP, SCP, a
+* forwarded port - as a channel inside one encrypted, authenticated
 * session. The services differ; the path to a trustworthy session does not,
 * and neither does the byte format their packets are written in. That
 * shared part lives here once, one concern to a header:

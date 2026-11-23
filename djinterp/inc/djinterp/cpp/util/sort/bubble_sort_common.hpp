@@ -13,13 +13,13 @@
 *       calls bubble_pass on it, then reconciles the boundaries.
 *     - An odd-even transposition driver alternates the phases (0,1),(2,3),...
 *       and (1,2),(3,4),...  Within a phase every pair is disjoint, so the
-*       pairs may be exchanged in any order or all at once -- which is what
+*       pairs may be exchanged in any order or all at once - which is what
 *       makes that algorithm parallel.  It uses bubble_compare_exchange
 *       directly and never needs a sweep.
 *
 *   THE CARRIED ELEMENT.  bubble_pass keeps the element it is carrying in a
 * local rather than re-reading it from the range on every comparison.  Same
-* comparisons, same order, same result -- but it halves the loads, and it keeps
+* comparisons, same order, same result - but it halves the loads, and it keeps
 * the exchange from being a read-modify-write of two ADJACENT slots, which
 * GCC's SLP vectoriser folds into a paired load and shuffle whose overlapping
 * store-to-load forwarding then stalls.  Measured at ~46 ms against ~54 ms for
@@ -27,7 +27,7 @@
 *
 *   The C module cannot do this: with the element width known only at run time
 * there is nowhere to put the carried element, so it re-reads it from the range
-* -- which is exactly where the carried element already sits.  This is why the
+* - which is exactly where the carried element already sits.  This is why the
 * two languages have separate implementations rather than one shared text; see
 * the note in bubble_sort.hpp.
 *
@@ -111,7 +111,7 @@ NS_INTERNAL
     // bubble_pass
     //   function: sweeps the adjacent pairs (i-1, i) for i in [_begin, _end),
     // exchanging each pair that is out of order, and returns the index of the
-    // last exchange -- or 0 when the sweep exchanged nothing.
+    // last exchange - or 0 when the sweep exchanged nothing.
     //
     //   That return is what makes the family adaptive.  Nothing at or after
     // the last exchange moved, so a driver may take it as the next bound

@@ -5,7 +5,7 @@
 * a file (GRAMMAR.md, R13).
 *   The C call of cli_operand.h for C++, the name given in a std::string: a
 * command reads an operand through it, and is told the name after the
-* prefix -- `uart_cr` for `example:uart_cr` -- or that the operand is a
+* prefix - `uart_cr` for `example:uart_cr` - or that the operand is a
 * file's name; where a file has the operand's name too, the run says so,
 * once, and how to reach it.
 *

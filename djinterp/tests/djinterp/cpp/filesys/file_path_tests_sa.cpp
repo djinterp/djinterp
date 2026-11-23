@@ -2,7 +2,7 @@
 * djinterp [cpp][filesys]                                 file_path_tests_sa.cpp
 *
 *   Unit tests for djinterp::path (inc/djinterp/cpp/filesys/file_path.hpp). One
-* file for one class, so the test mirrors the thing it tests -- exactly as the
+* file for one class, so the test mirrors the thing it tests - exactly as the
 * c/filesys suite is one source per module.
 *
 *   Three rules, the first two inherited from the file_tests_sa suite and the
@@ -11,7 +11,7 @@
 *   1. A test that cannot run is omitted, never passed.
 *      djinterp::path is portable C++98 -> C++26, and a move constructor is a
 *      C++11 addition. On C++98 the move assertions are absent, not a green
-*      "skipped" -- the group simply has fewer, and the group name says why.
+*      "skipped" - the group simply has fewer, and the group name says why.
 *      The old dfile suite reported pass for symlink code that never executed;
 *      this suite says nothing about what it did not run.
 *
@@ -24,7 +24,7 @@
 *
 *   3. The tier rule is demonstrated, not asserted in prose.
 *      This is one source. It is meant to be built on every standard from
-*      C++98 to C++23 -- and the higher tiers only add assertions (the move
+*      C++98 to C++23 - and the higher tiers only add assertions (the move
 *      group), they never change one. If a tier needs different source, the
 *      additive-never-divergent contract has already broken, and no assertion
 *      inside the file can catch that; building the same file everywhere can.
@@ -113,13 +113,13 @@ VIII. FAILURE MODEL              contagious invalid, the throw carve-out
 // D_TEST_PATH_SEP
 //   macro: the canonical output separator for the grammar this build parses.
 // The c/filesys path module CANONICALIZES the separator on any operation that
-// REBUILDS a path -- d_path_join and d_path_normalize -- so their output is
+// REBUILDS a path - d_path_join and d_path_normalize - so their output is
 // "/" under POSIX syntax and "\" under Windows syntax, even for "/"-form
 // input. Decomposition (d_path_dirname etc.) merely TRUNCATES and so preserves the
 // input's bytes; those assertions need no separator awareness. Expected values
 // for the rebuilding operations concatenate this at compile time (adjacent
 // string literals), so one source is correct under both grammars rather than
-// silently failing under one -- which is the whole reason to build the config
+// silently failing under one - which is the whole reason to build the config
 // matrix at all.
 #if D_FILE_PATH_UNDERSTANDS_WINDOWS
 #  define D_TEST_PATH_SEP "\\"
@@ -131,7 +131,7 @@ VIII. FAILURE MODEL              contagious invalid, the throw carve-out
 // --- 0.1  dj_test_object ---
 
 // dj_test_object
-//   struct: a node in the result tree -- a leaf (assertion) or an interior
+//   struct: a node in the result tree - a leaf (assertion) or an interior
 // group. The layout matches the C harness's, so the bodies below are
 // source-compatible with the real framework once it is C++-consumable.
 struct dj_test_object
@@ -217,7 +217,7 @@ struct dj_test_object* d_test_object_new_interior(
 
 // d_test_object_free
 //   function: release a tree. Present so the whole run is leak-clean under a
-// sanitizer -- the same standard the c/filesys suite is held to.
+// sanitizer - the same standard the c/filesys suite is held to.
 static
 void d_test_object_free(
     struct dj_test_object* _obj
@@ -282,7 +282,7 @@ bool d_tests_path_streq(
 // d_tests_path_group
 //   function: build an interior node from assertions the caller already
 // created, taking the count from what the caller actually filled.
-//   The count is DERIVED, not asserted -- so a conditionally-omitted assertion
+//   The count is DERIVED, not asserted - so a conditionally-omitted assertion
 // simply makes the group smaller, and there is no second number to drift out
 // of sync. This is the mechanism the file_tests_sa suite introduced to delete
 // a whole bug class; it is reproduced here for the same reason.
@@ -386,7 +386,7 @@ d_tests_path_construct
   Tests the following:
   - an empty path is valid, and empty
   - a path from a C string carries its text
-  - a NULL argument yields an INVALID path -- not an empty one
+  - a NULL argument yields an INVALID path - not an empty one
   - an invalid path reads as "", never NULL
   - operator bool tracks valid()
 */
@@ -501,7 +501,7 @@ struct dj_test_object* d_tests_path_decompose(void)
                                          ".gz",
                                          "only the last extension is returned");
 
-    // path maps d_path_extension's NULL to "" -- a caller comparing to ".txt"
+    // path maps d_path_extension's NULL to "" - a caller comparing to ".txt"
     // should not have to null-check first
     items[idx++] = D_TEST_PATH_STR_EQUAL("ext_none",
                                          djinterp::path("filename").extension(),
@@ -512,7 +512,7 @@ struct dj_test_object* d_tests_path_decompose(void)
                                          "",
                                          "a leading dot hides a file, it does not type it");
 
-    // every decomposition of an invalid path is invalid -- the failure
+    // every decomposition of an invalid path is invalid - the failure
     // propagates rather than being dropped
     {
         djinterp::path bad((const char*)0);
@@ -566,7 +566,7 @@ struct dj_test_object* d_tests_path_compose(void)
                                      "operator/= appends in place");
     }
 
-    // an absolute second component -- the fate is D_CFG_FILE_PATH_JOIN_-
+    // an absolute second component - the fate is D_CFG_FILE_PATH_JOIN_-
     // ABSOLUTE_WINS's, resolved in the C layer, and NOT re-decided here
 #if D_CFG_IS_ON(D_CFG_FILE_PATH_JOIN_ABSOLUTE_WINS)
     items[idx++] = D_ASSERT_TRUE("absolute_wins",
@@ -661,7 +661,7 @@ struct dj_test_object* d_tests_path_inspect(void)
                                   "under POSIX syntax, C:\\path is one relative name");
 #endif
 
-    // an invalid path is not absolute -- true on either grammar
+    // an invalid path is not absolute - true on either grammar
     items[idx++] = D_ASSERT_FALSE("invalid_not_absolute",
                                   djinterp::path((const char*)0).is_absolute(),
                                   "an invalid path is not absolute");
@@ -775,7 +775,7 @@ d_tests_path_compare
   Tests operator== / operator!=.
   Comparison is TEXTUAL by design: "a/b" and "a//b" name the same file and
 compare UNEQUAL, because deciding otherwise means normalizing on every
-comparison -- and normalizing is lexical, so it would still be wrong across a
+comparison - and normalizing is lexical, so it would still be wrong across a
 symlink. Compare normalized() when that is what you meant.
 */
 static
@@ -824,7 +824,7 @@ struct dj_test_object* d_tests_path_compare(void)
 
 /*
 d_tests_path_value
-  Tests copy independence, swap, self-assignment, and -- on C++11 and later --
+  Tests copy independence, swap, self-assignment, and - on C++11 and later --
 move.
   The move assertions are the tier rule made concrete: they are ADDED here,
 under #if D_MOVE_ENABLED, and they are ABSENT on C++98. The group is smaller
@@ -885,7 +885,7 @@ struct dj_test_object* d_tests_path_value(void)
 #if D_MOVE_ENABLED
     // ADDITIVE: present only where the language has moves. The moved-to path
     // takes the value; the moved-from is left INVALID (its buffer was handed
-    // over), not dangling -- which is the only safe post-move state.
+    // over), not dangling - which is the only safe post-move state.
     {
         djinterp::path a("moveme");
         djinterp::path b(static_cast<djinterp::path&&>(a));
@@ -926,7 +926,7 @@ struct dj_test_object* d_tests_path_value(void)
 
 /*
 d_tests_path_failure
-  Tests that an invalid path is contagious, and -- where the build throws --
+  Tests that an invalid path is contagious, and - where the build throws --
 that the throw is reserved for resource failures only.
   The throwing assertion is present only under #if D_INTERNAL_PATH_THROW. In a
 build with throwing off it is OMITTED, not faked: the group is smaller and the
@@ -977,7 +977,7 @@ struct dj_test_object* d_tests_path_failure(void)
     // the sibling of the carve-out above, and the one this suite's throwing
     // build actually caught: COPYING an invalid path must not throw either. An
     // already-invalid source is not a resource this ran out of, and operator/
-    // copies its left operand -- so a throw here aborts `invalid / anything`.
+    // copies its left operand - so a throw here aborts `invalid / anything`.
     {
         bool threw = false;
 
@@ -1016,7 +1016,7 @@ struct dj_test_object* d_tests_path_failure(void)
 /*
 d_tests_path_ordering
   operator<=> (C++20) supplies relational ordering, consistent with ==. Present
-only where the language has three-way comparison -- the C++20 rung of the
+only where the language has three-way comparison - the C++20 rung of the
 ladder, ADDING what the lower tiers neither have nor need. This is the tier rule
 at the top of the range, exactly as the move group is at C++11.
 */
@@ -1058,8 +1058,8 @@ struct dj_test_object* d_tests_path_ordering(void)
 /*
 d_tests_path_all
   Builds the whole result tree. The count is derived from what actually ran, so
-a group omitted by configuration contributes nothing -- not an empty group, not
-a green "skipped" -- exactly as the c/filesys master runner does.
+a group omitted by configuration contributes nothing - not an empty group, not
+a green "skipped" - exactly as the c/filesys master runner does.
 */
 static
 struct dj_test_object* d_tests_path_all(void)

@@ -91,7 +91,7 @@ bool sized(
 #endif  // D_INTERNAL_PARSEGEN_GRAMMAR_HEAP
 
 // settle
-//   function: resolves a grammar and sizes facts for it -- everything analysis
+//   function: resolves a grammar and sizes facts for it - everything analysis
 // needs before it runs.
 bool settle(
     scratch&       _grammar,
@@ -317,7 +317,7 @@ d_tests_parsegen_analysis_left_indirect
   - both rules are found to be left-recursive
   - each has a way to finish, so the cycle is all there is to say: analysis
     succeeds and nothing is reported above a note
-  - the witness -- the rule the cycle runs through -- is data in the facts
+  - the witness - the rule the cycle runs through - is data in the facts
   - the note names it too, since naming it is the point of the note
 */
 bool d_tests_parsegen_analysis_left_indirect(void)
@@ -496,7 +496,7 @@ d_tests_parsegen_analysis_disjoint
     lowered or dispatched
   - one with an overlapping alternative is not, and the offender is named
   - one with a NULLABLE alternative is not, however tidy its first sets look
-    -- the half a caller working from first sets alone would miss
+    - the half a caller working from first sets alone would miss
 */
 bool d_tests_parsegen_analysis_disjoint(void)
 {
@@ -595,7 +595,7 @@ bool d_tests_parsegen_analysis_routing(void)
 }  // namespace
 
 // d_tests_parsegen_analysis
-//   constant: the suite -- every section this build has, the facts about a
+//   constant: the suite - every section this build has, the facts about a
 // node before the facts about a rule, and those before what is routed on them.
 const dj_tests_section d_tests_parsegen_analysis[] =
 {

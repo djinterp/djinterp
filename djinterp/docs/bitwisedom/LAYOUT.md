@@ -5,8 +5,8 @@ Extract it there while preserving the directory structure. It does not
 include the rest of djinterp or any Dear ImGui or uxoxo sources.
 
 The window is made with uxoxo, which the djinterp tree does not hold, so it
-lives beside djinterp's directories rather than in them -- `ui/` where
-djinterp's are `djinterp/` -- and has a build of its own (2026.10.23).
+lives beside djinterp's directories rather than in them - `ui/` where
+djinterp's are `djinterp/` - and has a build of its own (2026.10.23).
 `bitwisedom gui` loads it as a module; the command line carries none of it.
 
 | Repository-relative path | Purpose |
@@ -27,7 +27,7 @@ djinterp's are `djinterp/` -- and has a build of its own (2026.10.23).
 Use `cmake --preset msvc` from `build/ui/bitwisedom/` for everything, or
 from `build/cmake/djinterp/tools/bitwisedom/` for the command line alone
 (on Windows, in a Developer Command Prompt). The window's build finds uxoxo
-where `UXOXO_ROOT` names it -- `-DUXOXO_ROOT=<path>`, or the environment's --
+where `UXOXO_ROOT` names it - `-DUXOXO_ROOT=<path>`, or the environment's --
 and otherwise at the sibling checkout: `uxoxo` beside djinterp's checkout,
 or `uxoxo/uxoxo-project` there, then the same a level up, as a directory of
 projects with a folder for each keeps them. It is found when the window is

@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][tools]                                                     dgit.h
 *
-* SCRATCH STUB -- not part of the delivered tree.
+* SCRATCH STUB - not part of the delivered tree.
 *   dcheck.c includes this header and calls three functions from it, but
 * neither djinterp.zip nor djinterp_7_.zip carries dgit.h or dgit.c (R-26,
 * "ext_git as a local hook", is NOT STARTED in the dawk decision register).

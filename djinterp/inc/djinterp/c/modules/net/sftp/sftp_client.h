@@ -71,7 +71,7 @@ TABLE OF CONTENTS
 #include "../../../../../re_std/c/cstdint/dstdint.h"  // uint32_t, uint64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, and compiles to
-// nothing where the build has none -- ISO strict C++98 wherever int64_t is
+// nothing where the build has none - ISO strict C++98 wherever int64_t is
 // `long long`: a 32-bit target, 64-bit Windows or macOS (the owner's ruling of
 // 2026.10.03 on round 3's question 1, (a)). The answer is net_common.h's, taken
 // once per translation unit, so that net's gated headers agree.
@@ -143,13 +143,13 @@ typedef enum dj_sftp_error (*dj_sftp_entry_fn)(void*                     _contex
 // 2.2.1
 // dj_sftp_client
 //   struct: one SFTP session. `extensions`, `read_size`, `write_size`, and
-// the four diagnostics -- `net_error` behind D_SFTP_ERROR_TRANSPORT and
+// the four diagnostics - `net_error` behind D_SFTP_ERROR_TRANSPORT and
 // D_SFTP_ERROR_CONNECTION_LOST, `ssh_status` behind it over the client's own
 // channel, and the code and message of the last status the server sent --
 // may be read freely; the other fields are the client's own. A failed
 // stream is d_sftp_error_from_net of `net_error`. A stream that ends before
-// a reply does has ended too soon -- D_NET_ERROR_CLOSED, as net.h has it,
-// over D_SSH_ERROR_CLOSED on a channel -- and so is CONNECTION_LOST. Do not
+// a reply does has ended too soon - D_NET_ERROR_CLOSED, as net.h has it,
+// over D_SSH_ERROR_CLOSED on a channel - and so is CONNECTION_LOST. Do not
 // copy a client once it is open: its connection may be its own channel's.
 struct dj_sftp_client
 {
@@ -253,7 +253,7 @@ enum dj_sftp_error d_sftp_client_open_connection(
 // target atomically through posix-rename@openssh.com, and returns
 // D_SFTP_ERROR_UNSUPPORTED where the server lacks it; without, version 3's
 // RENAME refuses to replace. d_sftp_client_symlink() sends its paths in the
-// order OpenSSH's server reads them -- target, then link -- which is the
+// order OpenSSH's server reads them - target, then link - which is the
 // reverse of draft 02's and what every deployed server expects.
 enum dj_sftp_error d_sftp_client_realpath(
     struct dj_sftp_client* _client,

@@ -26,8 +26,8 @@ bool tests_sort_conformance_ordered_surface_is_uniform()
 
     //   A caller swapping one algorithm for another depends on the six
     // *_sort_ordered entry points having the SAME shape: (It, It, Cmp,
-    // sort_order::value).  They did not -- bubble, selection and insertion
-    // once took a bool, which no sort_order converts to -- and the per-module
+    // sort_order::value).  They did not - bubble, selection and insertion
+    // once took a bool, which no sort_order converts to - and the per-module
     // *_entry sections each report their own algorithm's half of this.  The
     // claim HERE is the cross-cutting one: the surface is uniform.
     result.check(conf_bubble_ordered_probe<iterator_type,
@@ -99,7 +99,7 @@ bool tests_sort_conformance_ordered_means_the_same()
     // folded into the comparator, the C++ counterpart of the C module's
     // _order parameter.  So for every algorithm, descending under a
     // comparator must give what the three-argument form gives under the
-    // reversed comparator, and none must give what ascending gives -- on
+    // reversed comparator, and none must give what ascending gives - on
     // every input of the battery.
     for (algorithm = 0; algorithm < 6; ++algorithm)
     {

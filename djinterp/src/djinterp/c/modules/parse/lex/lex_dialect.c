@@ -6,8 +6,8 @@
 * lookup rejects a row on its availability year before looking at its text,
 * so one table serves every level of a language and an older level costs
 * nothing extra to scan.
-*   Where two rows carry the same spelling at different years -- `u8`,
-* which prefixes a string from C11 and a character only from C23 -- the
+*   Where two rows carry the same spelling at different years - `u8`,
+* which prefixes a string from C11 and a character only from C23 - the
 * latest row at or below the level wins, which is what makes a spelling
 * acquire a role without losing the one it had.
 *

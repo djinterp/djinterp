@@ -113,7 +113,7 @@
                                               // uint32_t, uint64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict C++98
+// declares only where the build can spell one. Below it - ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
@@ -752,7 +752,7 @@ D_KV_DEFINE_UNSIGNED(uint64_t, d_kv_uint64_at, d_kv_uint64_narrow)
 //   struct: where a datum sits and what its bytes mean. The offset is
 // relative to a base the CALLER supplies; this struct never holds one, which
 // is what lets one descriptor address a cell, a value block, or a mapped
-// file. Re-added in relay 92 when `c/util/kv.h` was retired -- the note
+// file. Re-added in relay 92 when `c/util/kv.h` was retired - the note
 // further up about the descriptor being gone dates from its removal.
 struct dj_kv_field
 {
@@ -829,7 +829,7 @@ D_NODISCARD D_INLINE struct dj_kv_field d_kv_field_make(
 
 // d_kv_field_is_empty
 //   function: a zero-width descriptor, which is the same answer as "this
-// record has no such datum" -- what a unary option's value column is.
+// record has no such datum" - what a unary option's value column is.
 D_NODISCARD D_INLINE bool d_kv_field_is_empty(
     const struct dj_kv_field* _field
 )

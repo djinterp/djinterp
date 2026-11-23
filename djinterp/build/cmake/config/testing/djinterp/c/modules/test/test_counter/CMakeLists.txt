@@ -1,5 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/modules/test/test_counter/CMakeLists.txt
+# djinterp [test]  -  build/cmake/config/testing/djinterp/c/modules/test/test_counter/CMakeLists.txt
 #
 #   Test leaf for DTest's C counters, c/modules/test/test_counter.h and its
 # tie-in test_counter_event.h, in the C spec form: the runner in this

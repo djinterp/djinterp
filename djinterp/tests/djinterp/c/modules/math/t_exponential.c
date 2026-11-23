@@ -2,8 +2,8 @@
 * djinterp [c][math]                                             t_exponential.c
 *
 *   Conformance harness for c/math/exponential.h. For float, exp_c and log_c
-* must be the correctly rounded result -- the long double library's, rounded
-* to float -- at one float pattern in 211 across the whole range, at every
+* must be the correctly rounded result - the long double library's, rounded
+* to float - at one float pattern in 211 across the whole range, at every
 * float in [1/2, 2) for log_c, where 1 + f is most structured, and at every
 * float within one of the exponential's overflow and underflow thresholds;
 * exp2_c, log2_c and log10_c at one pattern in 1009, at every float within
@@ -11,21 +11,21 @@
 * the powers of 2 and 10, which must be exact.
 *
 *   For double, exp_c is correctly rounded (S416): exactly e^x at 400 bits,
-* rounded, at the 2398 arguments of math_tests_exp_refs.h -- random ones over
+* rounded, at the 2398 arguments of math_tests_exp_refs.h - random ones over
 * the whole range, ones within 2^-66 and 2^-102 of a rounding midpoint, the
-* thresholds -- and its three phases checked alone at each: a value the first
+* thresholds - and its three phases checked alone at each: a value the first
 * or the second decides is the reference, and the third's is at every point.
 * How many each decides is printed; the second and the third must each be
 * reached. log_c likewise (S424), at the 2,354 arguments of
-* math_tests_log_refs.h -- random ones over the whole range, subnormals and
+* math_tests_log_refs.h - random ones over the whole range, subnormals and
 * arguments near 1 among them, ones within 2^-66 and 2^-99 of a midpoint,
-* the edges -- its phases each checked alone. The family's self-test must
+* the edges - its phases each checked alone. The family's self-test must
 * give 0 (self_test.h). Ten million
 * random arguments each: exp_c over its whole finite range and past both
 * ends, log_c over random positive patterns (the subnormals included) and
 * over 1 + d, d down to 2^-53. Both must be within an ulp of exp and log, the
-* library's; how many differ at all is printed. The edges -- the last finite
-* exponential, the last nonzero one, eight thousand doubles about each -- and
+* library's; how many differ at all is printed. The edges - the last finite
+* exponential, the last nonzero one, eight thousand doubles about each - and
 * the specials must be exact, and so must the values a long double's double
 * rounding would get wrong, such as exp(2^-53) and log(1 - 2^-53). Where
 * double is evaluated wider than double, a 32-bit x87, the double family's
@@ -33,9 +33,9 @@
 * harness says so. exp2_c, log2_c and log10_c, three million
 * arguments each, must be within three ulps of exp2, log2 and log10 (glibc's
 * log10 is up to two from the correctly rounded value); exact against values
-* from a 400-bit computation -- the ends of exp2's range and the tie at half
+* from a 400-bit computation - the ends of exp2's range and the tie at half
 * the least subnormal, the logarithms' ends, and six arguments each whose
-* long double result lies on a double's midpoint -- and at every power of 2,
+* long double result lies on a double's midpoint - and at every power of 2,
 * and every power of 10 a double holds. For long double, two million random
 * arguments each for exp_c and log_c, within an ulp of expl and logl; a
 * million each for the others, within three ulps of exp2l, log2l and log10l,
@@ -57,8 +57,8 @@
 * that all seven functions are constant expressions, for every family, with
 * the bits they have at run time, double exp_c and log_c through each of
 * their phases.
-* It needs no 64-bit integer -- its random
-* numbers come from math_tests_random.h, the same in every build -- so that
+* It needs no 64-bit integer - its random
+* numbers come from math_tests_random.h, the same in every build - so that
 * ISO-strict C++98 on a 32-bit target, where dj_math_umax has 32 bits, builds
 * it too.
 *
@@ -613,7 +613,7 @@ d_tests_exp_value(
 
 // d_tests_exp_group
 //   one group of math_tests_exp_refs.h: exp_c exactly the reference at each
-// point; and, where exp_c reduces -- |x| at least 2^-53 -- its phases one by
+// point; and, where exp_c reduces - |x| at least 2^-53 - its phases one by
 // one: a value the first or the second decides is the reference, and the
 // third's is at every point, whether the first two decide or not. Counts in
 // _phases[0 .. 2] the points each phase decides, as exp_c takes them, and
@@ -1126,8 +1126,8 @@ d_tests_long_double_bases(void)
                         "ld exp2_c and log2_c at the powers of 2", n);
     }
 
-    // every power of 10 the long double holds -- while 5^n has at most its
-    // precision -- exactly
+    // every power of 10 the long double holds - while 5^n has at most its
+    // precision - exactly
     for (n = 0; five < ldexpl(1.0L, LDBL_MANT_DIG); ++n)
     {
         D_TESTS_EXPECT(d_tests_same_ld(d_math_ld_log10_c(p), (long double)n),
@@ -1305,8 +1305,8 @@ d_tests_ref_point(
 
 // d_tests_log1p_expm1_refs
 //   each reference, each family: the _c form within an ulp of the correctly
-// rounded value -- the long double kernel's error, below 0.53 ulp of long
-// double (d_tests_kernels_wide), rounded once more -- and the plain
+// rounded value - the long double kernel's error, below 0.53 ulp of long
+// double (d_tests_kernels_wide), rounded once more - and the plain
 // form, the C library's (before C++11, _c), within 3; the largest distances
 // printed.
 static void
@@ -1423,9 +1423,9 @@ d_tests_wide_point(
 
 // d_tests_kernels_wide
 //   each full-width reference: log1p_c, expm1_c and exp_c in long double
-// within D_TESTS_KERNEL_BOUND of an ulp of the exact value -- their distance
+// within D_TESTS_KERNEL_BOUND of an ulp of the exact value - their distance
 // from the nearest long double, exact, less the exact value's offset from it
-// -- and the plain forms, the C library's, within 3 of the nearest; the
+// - and the plain forms, the C library's, within 3 of the nearest; the
 // largest distances printed. exp's core takes expm1's series, and is held to
 // the same bound. A long double narrower than 64 bits takes no such point
 // exactly, and is left out.

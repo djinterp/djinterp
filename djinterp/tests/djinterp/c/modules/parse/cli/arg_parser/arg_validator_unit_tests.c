@@ -858,8 +858,8 @@ bool d_tests_arg_unit_runs_as(
  *
  * @param[in] _validator  the validator, consumed.
  * @param[in] _status     the failure expected.
- * @param[in] _reason     the reason the validator keeps -- CLI11's message
- *                        for a failure CLI11 throws -- or NULL for none.
+ * @param[in] _reason     the reason the validator keeps - CLI11's message
+ *                        for a failure CLI11 throws - or NULL for none.
  * @return whether the validator holds the failure and the reason, and runs
  *         as the failure.
  */
@@ -1184,7 +1184,7 @@ d_tests_arg_unit_others
   Tests the following:
   - a floating-point product, and a factor that is a fraction or negative
   - the product refused where CLI11's checked_multiply refuses it --
-    beyond `short`, beyond 64 bits, infinite -- with "<number> multiplied
+    beyond `short`, beyond 64 bits, infinite - with "<number> multiplied
     by <unit> factor would cause number overflow. Use smaller value."
 */
 bool d_tests_arg_unit_others(void)
@@ -1407,8 +1407,8 @@ d_tests_arg_unit_construction
   Tests the following:
   - those CLI11 refuses, refused with its message, as a failed validator
     holding D_ARG_ERROR_VALIDATION and the message: an empty unit, one of
-    more than letters -- in the map's order, so an empty one is found
-    first -- and two that match without case
+    more than letters - in the map's order, so an empty one is found
+    first - and two that match without case
   - those C can pass and CLI11's types cannot express, refused as
     D_ARG_ERROR_BAD_ARGUMENT: no type, a type that is no number, units
     promised and not given, a unit or factor missing, and a factor that

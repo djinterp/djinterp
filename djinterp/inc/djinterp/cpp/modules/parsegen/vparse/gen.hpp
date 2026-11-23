@@ -4,7 +4,7 @@
 *   The virtual parser GENERATOR: an operator family whose voperators emit and
 * back-patch instructions of an OUTPUT program instead of consuming input.  A
 * generation program (gen::program) runs on the same machine via a PC-driven
-* driver and halts with a peg::program -- generator and generated are the same
+* driver and halts with a peg::program - generator and generated are the same
 * kind of object.  Understands the full ruleset formalism: alternatives (an
 * ordered-choice cascade), repetition (a CHOICE/COMMIT loop), and captures
 * (MARK/CAP).  plan() linearises a ruleset into directives; emission and address
@@ -43,7 +43,7 @@ NS_VPARSE
 namespace gen {
 
 // directives
-//   enum: this family's private opcode space -- the generation directives.
+//   enum: this family's private opcode space - the generation directives.
 enum
 {
     G_PREAMBLE = 0, G_RULE_BEGIN, G_RULE_END, G_ALT_CHOICE, G_ALT_COMMIT,

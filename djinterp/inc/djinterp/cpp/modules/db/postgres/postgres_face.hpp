@@ -17,8 +17,8 @@
 *         work.commit();
 *     }
 * Results are the layer's: 0, the server's SQLSTATE packed, or a negative
-* D_DB_*. Functions that need no connection -- results, libpq's version,
-* quoting a name -- are static. db_face.hpp describes what the face adds,
+* D_DB_*. Functions that need no connection - results, libpq's version,
+* quoting a name - are static. db_face.hpp describes what the face adds,
 * how strings, lists and text cross it, and what each language level adds
 * beside the exact forms: from C++17 std::optional text, from C++20 formats
 * checked at compile time and std::span columns, from C++23 std::expected
@@ -26,7 +26,7 @@
 *   connect, connect_string and connect_with replace the connection only when
 * they succeed; a failure leaves the face as it was, and puts libpq's reason
 * in the text, where one is given. Their forms that do not block --
-* connect_start and its kin -- replace it with the connection being made
+* connect_start and its kin - replace it with the connection being made
 * when they answer D_DB_WAIT, and connect_continue goes on with the
 * connection held, which the face holds no more once it fails. A member
 * called on a face with no connection passes NULL to the layer, which
@@ -49,8 +49,8 @@
 *   The members that forward are generated, by scripts/gen_db_face.py from the
 * layer's prototypes and scripts/db_face/postgres_face.hpp.in, and keep the C
 * functions' contracts, in the headers each part names; those written by
-* hand in the template -- the ones that connect, close or hand over the
-* connection or the statement, and result_sqlstate -- carry their own. Edit
+* hand in the template - the ones that connect, close or hand over the
+* connection or the statement, and result_sqlstate - carry their own. Edit
 * the template, not this file.
 *
 *
@@ -139,8 +139,8 @@ namespace face
 //------------------------------------------------------------------------------
 // 1.1.1
 // postgres_statement
-//   class: a prepared statement -- the layer's struct dj_postgres_statement,
-// whose copy the server holds -- owned: finalized when the object goes.
+//   class: a prepared statement - the layer's struct dj_postgres_statement,
+// whose copy the server holds - owned: finalized when the object goes.
 // Made empty, and filled by face::postgres's prepare and preparef; every
 // function of postgres_statement.h that takes a statement is a member of
 // the same name, whose contract it keeps. Finalize it before closing its
@@ -178,7 +178,7 @@ public:
     }
 
 #if D_MOVE_ENABLED
-    // moving -- the statement passes to the object moved to, which
+    // moving - the statement passes to the object moved to, which
     // finalizes what it held; the object moved from holds none
     postgres_statement(
         postgres_statement&& _other
@@ -197,7 +197,7 @@ public:
     }
 #endif  // D_MOVE_ENABLED
 
-    // the handle -- the statement, for the layer's own calls, NULL when
+    // the handle - the statement, for the layer's own calls, NULL when
     // there is none; and whether there is one
     D_NODISCARD struct dj_postgres_statement*
     handle() const D_NOEXCEPT
@@ -292,7 +292,7 @@ public:
         return &m_statement;
     }
 
-    // swap -- the two objects trade statements
+    // swap - the two objects trade statements
     void
     swap(
         postgres_statement& _other
@@ -622,7 +622,7 @@ public:
     }
 
 #if D_MOVE_ENABLED
-    // moving -- the connection passes to the face moved to, which closes
+    // moving - the connection passes to the face moved to, which closes
     // what it held; the face moved from holds none
     postgres(
         postgres&& _other
@@ -641,7 +641,7 @@ public:
     }
 #endif  // D_MOVE_ENABLED
 
-    // the handle -- the connection, for the layer's or libpq's own calls,
+    // the handle - the connection, for the layer's or libpq's own calls,
     // NULL when there is none; and whether there is one
     D_NODISCARD struct pg_conn*
     handle() const D_NOEXCEPT
@@ -707,7 +707,7 @@ public:
         return;
     }
 
-    // swap -- the two faces trade connections
+    // swap - the two faces trade connections
     void
     swap(
         postgres& _other
@@ -721,7 +721,7 @@ public:
         return;
     }
 
-    // default_transaction_mode -- how face::transaction begins when told
+    // default_transaction_mode - how face::transaction begins when told
     // nothing: as BEGIN does, in the session's isolation level and access
     // mode
     D_NODISCARD static D_CONSTEXPR transaction_mode
@@ -1026,7 +1026,7 @@ public:
         return m_take(result, made);
     }
 
-    // connect_with -- the keywords and values as arrays of one size, the
+    // connect_with - the keywords and values as arrays of one size, the
     // count; from C++20 as std::spans, which must be the same size, or the
     // layer answers D_DB_INVALID_ARGUMENT; each with the reason too
     template<std::size_t Count>
@@ -1355,7 +1355,7 @@ public:
         return result;
     }
 
-    // cancel_finish -- abandons a cancel request under way, as
+    // cancel_finish - abandons a cancel request under way, as
     // d_postgres_cancel_finish does; NULL is accepted. Returns 0
     static int
     cancel_finish(
@@ -4467,7 +4467,7 @@ private:
     D_DELETED_FN_MSG(postgres& operator=(const postgres&),
                      "a face owns its connection; move it")
 
-    // m_take -- a connect's result; the connection it made replaces the
+    // m_take - a connect's result; the connection it made replaces the
     // face's when it succeeded. Each connect calls the layer first, in a
     // statement of its own, since the order a call's arguments are
     // evaluated in is the compiler's.
@@ -4486,7 +4486,7 @@ private:
         return _result;
     }
 
-    // m_take_started -- a start's result; the connection being made replaces
+    // m_take_started - a start's result; the connection being made replaces
     // the face's when it answered D_DB_WAIT
     int
     m_take_started(
@@ -4508,7 +4508,7 @@ private:
 
 // 1.3    Swapping
 //------------------------------------------------------------------------------
-// swapping -- the two connections, or statements, trade places, as std::swap
+// swapping - the two connections, or statements, trade places, as std::swap
 // would have them, for code that swaps unqualified
 inline void
 swap(

@@ -416,7 +416,7 @@ enter(
 /*
 leave
   A node left: a sequence's or a pipeline's frame taken off, what its last
-child came to given to its parent -- a broken pipeline's, the stage in
+child came to given to its parent - a broken pipeline's, the stage in
 trouble's.
 */
 static int

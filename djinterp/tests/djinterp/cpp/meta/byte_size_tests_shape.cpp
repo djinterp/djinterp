@@ -3,7 +3,7 @@
 *
 *   Section III of byte_size.hpp: byte_shape_of, byte_own_dynamic (its three
 * overloads) and byte_node_count (its two).  Exercised at ONE container level
-* (no nesting -- that is section IV).
+* (no nesting - that is section IV).
 *
 *   byte_shape_of is constexpr, so its classification is pinned with
 * static_assert across all three shapes AND every way the contiguous
@@ -117,7 +117,7 @@ bool tests_byte_size_own_contiguous()
     _ok = _ok && (dynamic_byte_size(one) == one.capacity() * sizeof(int));
 
     // capacity() > size(): a contiguous store is sized by its ALLOCATION
-    // (capacity), NOT its element count -- pin that distinction explicitly.
+    // (capacity), NOT its element count - pin that distinction explicitly.
     std::vector<int> reserved;
     reserved.reserve(64);
     reserved.push_back(1);

@@ -89,7 +89,7 @@ bool tests_sort_monoid_make_sorted_run_default()
 
     std::stable_sort(expected.begin(), expected.end(), std::less<int>());
 
-    //   The one-argument overload supplies std::less<T> -- ascending.  Its
+    //   The one-argument overload supplies std::less<T> - ascending.  Its
     // return type is the run parameterised on that comparator, so it
     // interoperates with DIntRun without a cast.
     defaulted = make_sorted_run(source);
@@ -121,7 +121,7 @@ bool tests_sort_monoid_adopt_sorted_run()
 
     //   adopt_sorted_run is the ZERO-COST path: it wraps without sorting.
     // Distinguishing it from make_sorted_run requires an input where the two
-    // would disagree -- so the test feeds it data that violates its
+    // would disagree - so the test feeds it data that violates its
     // precondition and asserts the data comes back verbatim.  A factory that
     // quietly sorted would fail here, and that is exactly the regression
     // worth catching, because the two factories are one keyword apart at the
@@ -163,7 +163,7 @@ bool tests_sort_monoid_singleton_run()
     DKeyedRun                      keyed_one;
 
     //   A one-element run is trivially sorted, so the factory needs no
-    // comparison at all -- it is the atom the bottom-up merge sort is built
+    // comparison at all - it is the atom the bottom-up merge sort is built
     // from.
     defaulted_one = singleton_run(7);
 
@@ -187,7 +187,7 @@ bool tests_sort_monoid_singleton_run()
     result.check(mappend(singleton_run(1), singleton_run(2)).data()[0] == 1);
 
     //   And under a descending comparator the same pair comes out the other
-    // way round -- the comparator travels with the LEFT operand.
+    // way round - the comparator travels with the LEFT operand.
     result.check(mappend(singleton_run(1, std::greater<int>()),
                          singleton_run(2, std::greater<int>())).data()[0] == 2);
 
@@ -218,7 +218,7 @@ bool tests_sort_monoid_to_singleton_runs()
     static const int values[] = { 5, 1, 4 };
 
     //   to_singleton_runs lifts a sequence into a Foldable of atoms.  Every
-    // run holds exactly one element, in input order -- the lift itself sorts
+    // run holds exactly one element, in input order - the lift itself sorts
     // nothing.
     source = ints_of(values, 3);
     runs   = to_singleton_runs(source, std::less<int>());

@@ -5,8 +5,8 @@
 *   Each logical line is taken in the order make's eval takes it. Within a
 * `define`, a line is the body's unless it opens another `define` or closes
 * one, nested ones counted. A line led by the recipe prefix while a rule is
-* above it is a recipe's. Any other line loses its comment -- a `#` no
-* backslash escapes, outside every reference -- and is tried as an
+* above it is a recipe's. Any other line loses its comment - a `#` no
+* backslash escapes, outside every reference - and is tried as an
 * assignment, its modifiers before it and its operator found as
 * parse_variable_definition finds one; then as a conditional; then as one
 * of the other directives; then as a rule, its first `;` or `#` ending what
@@ -48,7 +48,7 @@ struct dj_internal_open
 // 1.1.2
 // dj_internal_gnu
 //   struct: where make's eval stands: the recipe prefix, whether a rule is
-//   above, the conditionals open, and the `define` being read -- its
+//   above, the conditionals open, and the `define` being read - its
 //   statement, how many defines deep its body is, where its body starts.
 struct dj_internal_gnu
 {

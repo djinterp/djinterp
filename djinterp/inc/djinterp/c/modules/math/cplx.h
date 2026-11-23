@@ -155,8 +155,8 @@ TABLE OF CONTENTS
 // 1.  THE TYPES
 //==============================================================================
 // One struct per family, of one member: the two parts, real first, as an
-// array, so that the struct has the layout of T[2] -- no padding lies between
-// an array's elements, as it may between a struct's members -- which C99's
+// array, so that the struct has the layout of T[2] - no padding lies between
+// an array's elements, as it may between a struct's members - which C99's
 // _Complex T (6.2.5) and C++'s std::complex<T> ([complex.numbers]) both
 // promise. A value of either converts to one of these by a copy of its bytes.
 // No typedef hides the struct (the C guide's rule): it is spelled struct
@@ -212,8 +212,8 @@ D_STATIC_ASSERT( (sizeof(struct dj_cplx_ld) == (2 * sizeof(long double))),
 
 // 2.1    The float family (_f)
 //------------------------------------------------------------------------------
-// The helpers first -- an exact product and sum, a power-of-2 scaling that
-// never overflows on its way, the sign of a zero -- then the operations. A
+// The helpers first - an exact product and sum, a power-of-2 scaling that
+// never overflows on its way, the sign of a zero - then the operations. A
 // product's parts are each an exact product less or plus another, by
 // Dekker's product and two-sum, rounded once (Kahan's way, its error within
 // 2 ulps of each part); a quotient multiplies by the conjugate over the
@@ -345,8 +345,8 @@ d_internal_cplx_f_product(
 //   _a _b + _c _d as a long double pair, high the sum rounded to long double,
 // where the target evaluates float wider than its type, as a 32-bit x87 does:
 // there Dekker's split and the two-sum, which need each operation rounded to
-// float, cannot be made to have it in pure arithmetic -- a value may keep the
-// register's bits or lose them as the compiler spills it -- so the products
+// float, cannot be made to have it in pure arithmetic - a value may keep the
+// register's bits or lose them as the compiler spills it - so the products
 // are taken exactly in long double, whose operations the target rounds in
 // their own type, and their sum as one more pair.
 D_MATH_FN struct dj_internal_math_ld_pair
@@ -683,7 +683,7 @@ d_internal_cplx_f_zero_if_nan(
 
 // d_cplx_f_make
 //   function: _x + _y i, each part as given, a signed zero, an infinity or a
-// NaN among them -- what C11's CMPLX makes and the sum _x + _y i, for a NaN
+// NaN among them - what C11's CMPLX makes and the sum _x + _y i, for a NaN
 // or an infinite _y, cannot.
 D_MATH_FN struct dj_cplx_f
 d_cplx_f_make(
@@ -1093,8 +1093,8 @@ d_internal_cplx_f_swapped(
 
 // 2.2    The double family (_d)
 //------------------------------------------------------------------------------
-// The helpers first -- an exact product and sum, a power-of-2 scaling that
-// never overflows on its way, the sign of a zero -- then the operations. A
+// The helpers first - an exact product and sum, a power-of-2 scaling that
+// never overflows on its way, the sign of a zero - then the operations. A
 // product's parts are each an exact product less or plus another, by
 // Dekker's product and two-sum, rounded once (Kahan's way, its error within
 // 2 ulps of each part); a quotient multiplies by the conjugate over the
@@ -1226,8 +1226,8 @@ d_internal_cplx_d_product(
 //   _a _b + _c _d as a long double pair, high the sum rounded to long double,
 // where the target evaluates double wider than its type, as a 32-bit x87 does:
 // there Dekker's split and the two-sum, which need each operation rounded to
-// double, cannot be made to have it in pure arithmetic -- a value may keep the
-// register's bits or lose them as the compiler spills it -- so the products
+// double, cannot be made to have it in pure arithmetic - a value may keep the
+// register's bits or lose them as the compiler spills it - so the products
 // are taken exactly in long double, whose operations the target rounds in
 // their own type, and their sum as one more pair.
 D_MATH_FN struct dj_internal_math_ld_pair
@@ -1564,7 +1564,7 @@ d_internal_cplx_d_zero_if_nan(
 
 // d_cplx_d_make
 //   function: _x + _y i, each part as given, a signed zero, an infinity or a
-// NaN among them -- what C11's CMPLX makes and the sum _x + _y i, for a NaN
+// NaN among them - what C11's CMPLX makes and the sum _x + _y i, for a NaN
 // or an infinite _y, cannot.
 D_MATH_FN struct dj_cplx_d
 d_cplx_d_make(
@@ -1974,8 +1974,8 @@ d_internal_cplx_d_swapped(
 
 // 2.3    The long double family (_ld)
 //------------------------------------------------------------------------------
-// The helpers first -- an exact product and sum, a power-of-2 scaling that
-// never overflows on its way, the sign of a zero -- then the operations. A
+// The helpers first - an exact product and sum, a power-of-2 scaling that
+// never overflows on its way, the sign of a zero - then the operations. A
 // product's parts are each an exact product less or plus another, by
 // Dekker's product and two-sum, rounded once (Kahan's way, its error within
 // 2 ulps of each part); a quotient multiplies by the conjugate over the
@@ -2363,7 +2363,7 @@ d_internal_cplx_ld_zero_if_nan(
 
 // d_cplx_ld_make
 //   function: _x + _y i, each part as given, a signed zero, an infinity or a
-// NaN among them -- what C11's CMPLX makes and the sum _x + _y i, for a NaN
+// NaN among them - what C11's CMPLX makes and the sum _x + _y i, for a NaN
 // or an infinite _y, cannot.
 D_MATH_FN struct dj_cplx_ld
 d_cplx_ld_make(
@@ -3112,7 +3112,7 @@ d_internal_cplx_ld_log_modulus_c(
 
 // d_internal_cplx_ld_log_c
 //   log _z: log |z| + i arg z, the angle atan2's, so that Annex G's values
-// (G.6.3.2) follow from hypot's and atan2's own -- log(+-0 + i0) is -inf + i0
+// (G.6.3.2) follow from hypot's and atan2's own - log(+-0 + i0) is -inf + i0
 // or i pi, an infinite part gives +inf, a NaN with a finite part NaNs.
 D_MATH_FN_KERNEL struct dj_cplx_ld
 d_internal_cplx_ld_log_c(
@@ -4536,9 +4536,9 @@ d_internal_cplx_ld_one_less_squares_c(
 }
 
 // d_internal_cplx_ld_atanh_c
-//   atanh _z: as FreeBSD's catrig.c has it, Kahan's formulas -- Re =
+//   atanh _z: as FreeBSD's catrig.c has it, Kahan's formulas - Re =
 // log1p(4|x| / ((|x| - 1)^2 + y^2)) / 4, Im = atan2(2|y|, 1 - x^2 - y^2) / 2
-// -- the second's 1 - x^2 - y^2 here taken exactly; far from 0, Re (1/z) +
+// - the second's 1 - x^2 - y^2 here taken exactly; far from 0, Re (1/z) +
 // i(+-pi/2), by the quotient; near 0, z itself; and Annex G's values
 // (G.6.2.3) at the infinities and NaNs.
 D_MATH_FN_KERNEL struct dj_cplx_ld
@@ -4782,8 +4782,8 @@ d_internal_cplx_ld_arg_pair_c(
 
 // d_internal_cplx_ld_log_in_c
 //   log _z / ln 2 for _ten false, log _z / ln 10 for _ten true: log |z| and
-// arg z as pairs, each times 1/ln b as a pair -- a head of 32 bits, exact as
-// written, and the rest, as exponential.h's section 1.4 holds them -- and
+// arg z as pairs, each times 1/ln b as a pair - a head of 32 bits, exact as
+// written, and the rest, as exponential.h's section 1.4 holds them - and
 // rounded once; on an axis, where |z| is |x| or |y|, the real part the real
 // function's, so that a power of b gives its exponent exactly. At 0 and an
 // infinite part, clog's real part, -inf or +inf, and atan2's angle over ln
@@ -4869,8 +4869,8 @@ d_internal_cplx_ld_log10_c(
 // its arc-tangent with y the pair's to first order in its low part. log |1 +
 // z| is half the logarithm of |1 + z|^2 = 1 + w, w = 2x + x^2 + y^2 summed
 // exactly as an expansion (power.h's section 1.1) and rounded to a pair,
-// where 1 + w lies in [1/2, 2] -- so that the logarithm of a value near 1
-// keeps w's own precision, however near w is to 0 -- and elsewhere of the
+// where 1 + w lies in [1/2, 2] - so that the logarithm of a value near 1
+// keeps w's own precision, however near w is to 0 - and elsewhere of the
 // squares of 1 + x's pair and y, as clog's power takes |z|^2 (above); past
 // 2^30 in a part, of 1 + x rounded, which then moves log |1 + z|, past 20,
 // by under 2^-(P+1) of it. At an infinite or NaN part, clog's value at 1 +
@@ -5008,10 +5008,10 @@ d_internal_cplx_ld_log1p_c(
 // d_internal_cplx_ld_sin_cos_series_c
 //   sin _r and cos _r as pairs, |_r| <= pi/4 (a last place past it does no
 // harm), in the struct's sine and cosine, its quadrant 0: their Taylor series
-// in pairs, z = r^2 -- sin r = r (1 + z (-1/6 + z (1/120 + ... + z (1/11! + z
+// in pairs, z = r^2 - sin r = r (1 + z (-1/6 + z (1/120 + ... + z (1/11! + z
 // q)))) and cos r = 1 + z (-1/2 + z (1/24 + ... + z (1/12! + z q'))), each
 // coefficient's head cut to 32 bits, exact as written, and the rest, q and q'
-// the series' remainders in long double -- so that each value is good to
+// the series' remainders in long double - so that each value is good to
 // some 2^-(P+28) of itself, past elementary.h's own, whose terms round in
 // long double: where two such values are subtracted, as e^z - 1 subtracts
 // them, the difference keeps that precision.
@@ -5185,8 +5185,8 @@ d_internal_cplx_ld_angle_c(
 
 // d_internal_cplx_ld_ln2_turns_digit
 //   2 ln 2 / pi's digit _index, base 2^24, from the binary point, as
-// elementary.h's section 1.2 holds 2/pi's -- 704 digits, 16,896 bits, as a
-// string literal, three bytes a digit, computed by the generator -- so that y
+// elementary.h's section 1.2 holds 2/pi's - 704 digits, 16,896 bits, as a
+// string literal, three bytes a digit, computed by the generator - so that y
 // ln 2 = (y 2 ln 2 / pi) pi/2 is reduced as elementary.h reduces x = (x 2 /
 // pi) pi/2. 0 for a negative _index, 2 ln 2 / pi having no integer part.
 D_MATH_FN_KERNEL long double
@@ -5343,7 +5343,7 @@ d_internal_cplx_ld_ln2_turns_digit(
 // d_internal_cplx_ld_ln2_reduced_c
 //   _y ln 2 = n pi/2 + (r + r_lo), |r| <= pi/4, for |_y| >= 1 and finite:
 // elementary.h's reduction by Payne and Hanek's method (its section 1.3),
-// with 2 ln 2 / pi's digits in 2/pi's place -- y's digits, base 2^24, times
+// with 2 ln 2 / pi's digits in 2/pi's place - y's digits, base 2^24, times
 // as many of them as y's exponent reaches, in exact columns of 48-bit
 // products; the integer part kept only mod 4, the fraction from its first
 // nonzero digit to past twice long double's precision, then times pi/2 --
@@ -5629,9 +5629,9 @@ d_internal_cplx_ld_exp2_c(
 // d_internal_cplx_ld_expm1_pair_c
 //   e^_r - 1 as a pair, |_r| <= ln 2 / 2 (a last place past it does no
 // harm): the exponential's series in pairs, as power.h's section 1.6 has it
-// but to r^8 -- r + r^2 (1/2 + r (1/3! + r (1/4! + ... + r (1/8! + r g)))),
+// but to r^8 - r + r^2 (1/2 + r (1/3! + r (1/4! + ... + r (1/8! + r g)))),
 // the coefficients' heads of 32 bits, exact as written, and g = (1/9!)(1 +
-// r/10 (1 + r/11 (...))) in long double -- without its leading 1, so that the
+// r/10 (1 + r/11 (...))) in long double - without its leading 1, so that the
 // pair keeps its precision relative to e^r - 1 itself, some 2^-(P+28) of it.
 D_MATH_FN_KERNEL struct dj_internal_math_ld_pair
 d_internal_cplx_ld_expm1_pair_c(
@@ -5691,7 +5691,7 @@ d_internal_cplx_ld_expm1_pair_c(
 //   e^_x as (y + y_lo) 2^k, for |_x| below 2^14, to some 2^-(P+28) of it:
 // k the integer nearest x / ln 2, r = x - k ln 2 with ln 2 in three parts --
 // two heads of 32 bits and the rest, so that k times either head is exact
-// and r a pair to 2^-(2P - 15) of 1 -- and e^r = 1 + (e^r_hi - 1)(1 + r_lo) +
+// and r a pair to 2^-(2P - 15) of 1 - and e^r = 1 + (e^r_hi - 1)(1 + r_lo) +
 // r_lo by the series above: power.h's exponential of a pair, whose ln 2 has
 // two parts and whose series rounds from r^6 on in long double, is good to
 // some 2^-(P+18), which a difference near e^x cos y = 1 would lose.
@@ -6045,7 +6045,7 @@ d_internal_cplx_f_log_modulus(
 
 // d_internal_cplx_f_log
 //   log _z: log |z| + i arg z, the angle atan2's, so that Annex G's values
-// (G.6.3.2) follow from hypot's and atan2's own -- log(+-0 + i0) is -inf + i0
+// (G.6.3.2) follow from hypot's and atan2's own - log(+-0 + i0) is -inf + i0
 // or i pi, an infinite part gives +inf, a NaN with a finite part NaNs.
 D_MATH_FN_RT struct dj_cplx_f
 d_internal_cplx_f_log(
@@ -6228,8 +6228,8 @@ d_internal_cplx_f_turn(
 // d_internal_cplx_f_pow_general
 //   _z^_w = exp(w log z) by the _c kernel's general case (section 3.1),
 // rounded once to the family. C99's formula in the family's own type would
-// carry the error exp magnifies, |w log z| times log's -- hundreds of steps
-// at |w log z| near 16 -- and no C library function forms w log z any
+// carry the error exp magnifies, |w log z| times log's - hundreds of steps
+// at |w log z| near 16 - and no C library function forms w log z any
 // closer; each operation is as accurate as the best algorithm for it
 // (S266), so the plain pow is fast only where section 3's pow takes a case
 // of its own first, on the family's real functions.
@@ -7030,9 +7030,9 @@ d_internal_cplx_f_one_less_squares(
 }
 
 // d_internal_cplx_f_atanh
-//   atanh _z: as FreeBSD's catrig.c has it, Kahan's formulas -- Re =
+//   atanh _z: as FreeBSD's catrig.c has it, Kahan's formulas - Re =
 // log1p(4|x| / ((|x| - 1)^2 + y^2)) / 4, Im = atan2(2|y|, 1 - x^2 - y^2) / 2
-// -- the second's 1 - x^2 - y^2 here taken exactly; far from 0, Re (1/z) +
+// - the second's 1 - x^2 - y^2 here taken exactly; far from 0, Re (1/z) +
 // i(+-pi/2), by the quotient; near 0, z itself; and Annex G's values
 // (G.6.2.3) at the infinities and NaNs.
 D_MATH_FN_RT struct dj_cplx_f
@@ -7373,7 +7373,7 @@ d_internal_cplx_d_log_modulus(
 
 // d_internal_cplx_d_log
 //   log _z: log |z| + i arg z, the angle atan2's, so that Annex G's values
-// (G.6.3.2) follow from hypot's and atan2's own -- log(+-0 + i0) is -inf + i0
+// (G.6.3.2) follow from hypot's and atan2's own - log(+-0 + i0) is -inf + i0
 // or i pi, an infinite part gives +inf, a NaN with a finite part NaNs.
 D_MATH_FN_RT struct dj_cplx_d
 d_internal_cplx_d_log(
@@ -7556,8 +7556,8 @@ d_internal_cplx_d_turn(
 // d_internal_cplx_d_pow_general
 //   _z^_w = exp(w log z) by the _c kernel's general case (section 3.1),
 // rounded once to the family. C99's formula in the family's own type would
-// carry the error exp magnifies, |w log z| times log's -- hundreds of steps
-// at |w log z| near 16 -- and no C library function forms w log z any
+// carry the error exp magnifies, |w log z| times log's - hundreds of steps
+// at |w log z| near 16 - and no C library function forms w log z any
 // closer; each operation is as accurate as the best algorithm for it
 // (S266), so the plain pow is fast only where section 3's pow takes a case
 // of its own first, on the family's real functions.
@@ -8358,9 +8358,9 @@ d_internal_cplx_d_one_less_squares(
 }
 
 // d_internal_cplx_d_atanh
-//   atanh _z: as FreeBSD's catrig.c has it, Kahan's formulas -- Re =
+//   atanh _z: as FreeBSD's catrig.c has it, Kahan's formulas - Re =
 // log1p(4|x| / ((|x| - 1)^2 + y^2)) / 4, Im = atan2(2|y|, 1 - x^2 - y^2) / 2
-// -- the second's 1 - x^2 - y^2 here taken exactly; far from 0, Re (1/z) +
+// - the second's 1 - x^2 - y^2 here taken exactly; far from 0, Re (1/z) +
 // i(+-pi/2), by the quotient; near 0, z itself; and Annex G's values
 // (G.6.2.3) at the infinities and NaNs.
 D_MATH_FN_RT struct dj_cplx_d
@@ -8672,7 +8672,7 @@ d_internal_cplx_ld_log_modulus(
 
 // d_internal_cplx_ld_log
 //   log _z: log |z| + i arg z, the angle atan2's, so that Annex G's values
-// (G.6.3.2) follow from hypot's and atan2's own -- log(+-0 + i0) is -inf + i0
+// (G.6.3.2) follow from hypot's and atan2's own - log(+-0 + i0) is -inf + i0
 // or i pi, an infinite part gives +inf, a NaN with a finite part NaNs.
 D_MATH_FN_RT struct dj_cplx_ld
 d_internal_cplx_ld_log(
@@ -8855,8 +8855,8 @@ d_internal_cplx_ld_turn(
 // d_internal_cplx_ld_pow_general
 //   _z^_w = exp(w log z) by the _c kernel's general case (section 3.1),
 // rounded once to the family. C99's formula in the family's own type would
-// carry the error exp magnifies, |w log z| times log's -- hundreds of steps
-// at |w log z| near 16 -- and no C library function forms w log z any
+// carry the error exp magnifies, |w log z| times log's - hundreds of steps
+// at |w log z| near 16 - and no C library function forms w log z any
 // closer; each operation is as accurate as the best algorithm for it
 // (S266), so the plain pow is fast only where section 3's pow takes a case
 // of its own first, on the family's real functions.
@@ -9639,9 +9639,9 @@ d_internal_cplx_ld_one_less_squares(
 }
 
 // d_internal_cplx_ld_atanh
-//   atanh _z: as FreeBSD's catrig.c has it, Kahan's formulas -- Re =
+//   atanh _z: as FreeBSD's catrig.c has it, Kahan's formulas - Re =
 // log1p(4|x| / ((|x| - 1)^2 + y^2)) / 4, Im = atan2(2|y|, 1 - x^2 - y^2) / 2
-// -- the second's 1 - x^2 - y^2 here taken exactly; far from 0, Re (1/z) +
+// - the second's 1 - x^2 - y^2 here taken exactly; far from 0, Re (1/z) +
 // i(+-pi/2), by the quotient; near 0, z itself; and Annex G's values
 // (G.6.2.3) at the infinities and NaNs.
 D_MATH_FN_RT struct dj_cplx_ld
@@ -9815,9 +9815,9 @@ d_internal_cplx_ld_atan(
 //------------------------------------------------------------------------------
 // Each function twice, as every real function in the core: the _c form a
 // constant expression from C++14, the long double kernel of pure arithmetic
-// (section 3.1) rounded once to the family -- a float or double part within
+// (section 3.1) rounded once to the family - a float or double part within
 // half an ulp but where the kernel's error reaches a midpoint, a long double
-// part within the kernel's few ulps -- and the plain form the family's own
+// part within the kernel's few ulps - and the plain form the family's own
 // kernel on the C library's real functions (sections 3.2 to 3.4), within a
 // few ulps of each part and fast. abs and arg are hypot and atan2 of the
 // family themselves.
@@ -10396,9 +10396,9 @@ d_cplx_f_expm1(
 //------------------------------------------------------------------------------
 // Each function twice, as every real function in the core: the _c form a
 // constant expression from C++14, the long double kernel of pure arithmetic
-// (section 3.1) rounded once to the family -- a float or double part within
+// (section 3.1) rounded once to the family - a float or double part within
 // half an ulp but where the kernel's error reaches a midpoint, a long double
-// part within the kernel's few ulps -- and the plain form the family's own
+// part within the kernel's few ulps - and the plain form the family's own
 // kernel on the C library's real functions (sections 3.2 to 3.4), within a
 // few ulps of each part and fast. abs and arg are hypot and atan2 of the
 // family themselves.
@@ -10977,9 +10977,9 @@ d_cplx_d_expm1(
 //------------------------------------------------------------------------------
 // Each function twice, as every real function in the core: the _c form a
 // constant expression from C++14, the long double kernel of pure arithmetic
-// (section 3.1) rounded once to the family -- a float or double part within
+// (section 3.1) rounded once to the family - a float or double part within
 // half an ulp but where the kernel's error reaches a midpoint, a long double
-// part within the kernel's few ulps -- and the plain form the family's own
+// part within the kernel's few ulps - and the plain form the family's own
 // kernel on the C library's real functions (sections 3.2 to 3.4), within a
 // few ulps of each part and fast. abs and arg are hypot and atan2 of the
 // family themselves.
@@ -11558,8 +11558,8 @@ d_cplx_ld_expm1(
 //==============================================================================
 // 5.  C99'S _Complex (C ONLY)
 //==============================================================================
-// Where the C compiler has C99's complex types -- C, from C99, but for
-// __STDC_NO_COMPLEX__ and MSVC -- each family's converts to and from its
+// Where the C compiler has C99's complex types - C, from C99, but for
+// __STDC_NO_COMPLEX__ and MSVC - each family's converts to and from its
 // struct by a copy. <complex.h> is not included: its I and complex are
 // the user's to take, and _Complex is a keyword.
 

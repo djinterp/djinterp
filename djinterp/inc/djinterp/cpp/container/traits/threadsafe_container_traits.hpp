@@ -325,7 +325,7 @@ NS_INTERNAL
 
     // policy_shared_value
     //   trait: a policy's supports_shared, read only where the policy has
-    // one -- a && does not keep the compiler from naming the member of a
+    // one - a && does not keep the compiler from naming the member of a
     // policy that lacks it.
     template<typename Policy,
              bool     Has = policy_has_supports_shared<Policy>::value>
@@ -666,7 +666,7 @@ struct container_mutex_type
 };
 
 // container_mutex_type_t
-//   type: the carrier of container_mutex_type -- its `::type`, for use where a
+//   type: the carrier of container_mutex_type - its `::type`, for use where a
 // type rather than a value is wanted.
 template<typename Type>
 using container_mutex_type_t =
@@ -683,7 +683,7 @@ struct lock_policy_of
 };
 
 // lock_policy_of_t
-//   type: the carrier of lock_policy_of -- its `::type`, for use where a type
+//   type: the carrier of lock_policy_of - its `::type`, for use where a type
 // rather than a value is wanted.
 template<typename Type>
 using lock_policy_of_t =

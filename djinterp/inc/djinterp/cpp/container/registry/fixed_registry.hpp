@@ -1,10 +1,10 @@
 /*******************************************************************************
 * djinterp [cpp][container]                                   fixed_registry.hpp
 *
-*   fixed_registry -- a registry whose KEY SET is settled at construction and
+*   fixed_registry - a registry whose KEY SET is settled at construction and
 * never grows or shrinks thereafter: STRUCTURALLY FIXED.  On the Mutability
 * axis it is the value-mutable grade with the map's key-const access
-* restriction -- element mutation (overwrite a value in place) WITHOUT
+* restriction - element mutation (overwrite a value in place) WITHOUT
 * structural mutation (no insert / erase / clear).  This is the runtime,
 * value-carrying analogue of option_set: fixed keys addressing settable value
 * slots, established once and then only read or re-valued.
@@ -17,7 +17,7 @@
 * an edit that moves a key: reject (leave the entry) or reposition (erase the
 * stale slot and reinsert at the new key). Reposition IS structural mutation
 * --
-* it changes the set of positions -- so it is unavailable here: a
+* it changes the set of positions - so it is unavailable here: a
 * fixed_registry
 * pins the rekey policy to reject_rekey and exposes update() (reject-only) and
 * try_update(), but not update_or_move().  A key move is therefore always
@@ -27,7 +27,7 @@
 * const surface (size / lookup / iteration), the key-const value surface (read
 * always; the direct writes at / operator[] / set when the value region is
 * disjoint from the key), and the reject-only update path.  WITHHELD: insert,
-* erase, erase_at, clear -- the structural operations. The container is thus a
+* erase, erase_at, clear - the structural operations. The container is thus a
 * container by the Mutability section's own test (it answers a const size()
 * and
 * admits element mutation), distinguished from a plain value, yet fixed in
@@ -192,7 +192,7 @@ public:
     using base::count;
 
     // value surface: read always; direct writes (at / operator[] / set /
-    // try_get) when the value region is disjoint from the key -- element
+    // try_get) when the value region is disjoint from the key - element
     // mutation, permitted for a fixed (value-mutable) registry
     using base::at;
     using base::try_get;
@@ -274,7 +274,7 @@ public:
     // container does not admit). For a whole-record (non-disjoint) registry
     // this is the only value-write path, and it guards the key.
 
-    // update -- edit the value at _k; a mutation that moves the key is
+    // update - edit the value at _k; a mutation that moves the key is
     // rejected and the entry left untouched. No policy parameter is offered
     // (reject is the only lawful answer for a fixed container).
     template<typename Mutate>
@@ -306,7 +306,7 @@ using fixed_registry = DFixedRegistry<Record, KeyProj, ValueProj, KeyCompare, Un
 // ===========================================================================
 
 // DFixedKvRegistry
-//   alias: a structurally-frozen kv map/multimap -- fixed keys, settable
+//   alias: a structurally-frozen kv map/multimap - fixed keys, settable
 // values. The direct value setters are available (the value region is disjoint
 // from the key); the shape is fixed at construction. The runtime
 // value-carrying option_set, as a registry.

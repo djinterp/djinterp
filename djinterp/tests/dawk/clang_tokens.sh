@@ -1,11 +1,11 @@
 #!/bin/sh
-# clang_tokens.sh -- parse's lexer, which the fixer and its two safety checks
+# clang_tokens.sh - parse's lexer, which the fixer and its two safety checks
 # read with, against Clang's raw lexer, over every C and C++ file under inc,
 # src and tests, the checks' own pairs among them (dawk's decision 45a).
 #
-# Each file is lexed both ways -- `clang -Xclang -dump-raw-tokens`, and
+# Each file is lexed both ways - `clang -Xclang -dump-raw-tokens`, and
 # `dcheck --clang-tokens=<that dump>`, which lexes it again with parse's
-# lexer -- and the two must agree token for token: name, spelling, line and
+# lexer - and the two must agree token for token: name, spelling, line and
 # column. A file on tests/dawk/clang_tokens_known.txt may disagree, and one
 # there that agrees must come off it. A generated file is left out, as dcheck
 # leaves it out: the fixer never reads one. Without Clang there is nothing to

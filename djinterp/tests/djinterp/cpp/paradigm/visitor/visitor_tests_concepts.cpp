@@ -12,8 +12,8 @@
 //
 //   None of the four strategies below them needs a concept to work.  What the
 // concepts buy is the DIAGNOSTIC: without them, handing a visitor an element it
-// cannot handle fails somewhere inside the dispatch machinery -- inside a
-// static_cast in a CRTP base, or as a substitution failure with no ::type -- and
+// cannot handle fails somewhere inside the dispatch machinery - inside a
+// static_cast in a CRTP base, or as a substitution failure with no ::type - and
 // the error names the header's internals rather than the caller's mistake.  With
 // them, the caller is turned away AT THE CONSTRAINT.
 //
@@ -21,7 +21,7 @@
 // it gates must actually work for it.  A constraint that accepts what the
 // constrained code then rejects is worse than no constraint at all, because it
 // moves the error later while claiming to have moved it earlier.  So each concept
-// is checked in both directions -- what it admits, and what it turns away -- and
+// is checked in both directions - what it admits, and what it turns away - and
 // tests_constrained_accept_is_gated_by_the_concept goes further, verifying that the
 // rejection is a DETECTABLE constraint failure rather than a hard error inside the
 // function body.
@@ -54,8 +54,8 @@ namespace
 {
     // total_visitor / partial_visitor
     //   fixture: two plain (non-derived) visitors over the same element pair.  The
-    // concepts under test are structural -- they ask what a type CAN DO, not what
-    // it derives from -- so the fixtures deliberately inherit nothing.
+    // concepts under test are structural - they ask what a type CAN DO, not what
+    // it derives from - so the fixtures deliberately inherit nothing.
     struct total_visitor
     {
         std::string visit(
@@ -91,7 +91,7 @@ namespace
 
     // acceptor
     //   fixture: an element exposing accept(), which is all visitable_type asks
-    // for.  It derives from no visitor root -- the concept is structural.
+    // for.  It derives from no visitor root - the concept is structural.
     struct acceptor
     {
         template<typename _Visitor>
@@ -105,7 +105,7 @@ namespace
     {};
 
     // plain_acyclic
-    //   fixture: a well-formed acyclic visitor -- derives from the root AND from a
+    //   fixture: a well-formed acyclic visitor - derives from the root AND from a
     // visitor_of<E> for each element it handles.
     struct plain_acyclic : acyclic_visitor,
                            DVisitorOf<acyclic_circle>,
@@ -120,7 +120,7 @@ namespace
 
     // rootless_acyclic
     //   fixture: has the per-type interfaces but NOT the acyclic_visitor root, so it
-    // can never be passed to accept() -- the dynamic_cast has nothing to start from.
+    // can never be passed to accept() - the dynamic_cast has nothing to start from.
     // It is the case the concept's first conjunct exists to catch.
     struct rootless_acyclic : DVisitorOf<acyclic_circle>
     {
@@ -130,7 +130,7 @@ namespace
 
     // try_constrained_accept
     //   trait: is constrained_accept(e, v) a valid call?  Detected rather than
-    // asserted, so a rejection is an ANSWER instead of a compile error -- which is
+    // asserted, so a rejection is an ANSWER instead of a compile error - which is
     // the property under test.
     template<typename _Element,
              typename _Visitor,
@@ -159,7 +159,7 @@ tests_concept_visitable_type
   Tests the following:
   - a structural acceptor satisfies it, deriving from nothing
   - so do the real element roots from the classic and acyclic sections, each with
-    the visitor type it actually accepts -- which is what makes the concept useful
+    the visitor type it actually accepts - which is what makes the concept useful
     rather than merely true of a toy
 */
 bool tests_concept_visitable_type()
@@ -188,7 +188,7 @@ tests_concept_visitable_type_rejects_non_visitable
   Tests the following:
   - a type with no accept() at all is rejected
   - an element is rejected for a VISITOR it cannot accept, even though it does have
-    an accept() -- the concept is about the pair, not the element alone
+    an accept() - the concept is about the pair, not the element alone
 */
 bool tests_concept_visitable_type_rejects_non_visitable()
 {
@@ -230,7 +230,7 @@ bool tests_concept_visitor_for()
     static_assert(visitor_for<total_visitor, static_rect>,
                   "for both");
 
-    // the real composed visitor from the classic section also qualifies -- the
+    // the real composed visitor from the classic section also qualifies - the
     // concept asks what the type can DO, not what it derives from
     static_assert(visitor_for<shape_namer,
                               classic_circle, classic_rect, classic_tri>,
@@ -244,7 +244,7 @@ bool tests_concept_visitor_for()
 
 /*
 tests_concept_visitor_for_rejects_partial_visitor
-  Verifies the fold is over ALL the elements -- a visitor missing even one overload
+  Verifies the fold is over ALL the elements - a visitor missing even one overload
   is rejected.  This is the one property that makes the concept worth having: it is
   a conjunction, and a conjunction that quietly behaved as a disjunction would still
   admit every total visitor and pass every positive test above.
@@ -282,7 +282,7 @@ bool tests_concept_visitor_for_rejects_partial_visitor()
 
 /*
 tests_concept_acyclic_visitor_for
-  Verifies acyclic_visitor_for admits a proper acyclic visitor -- one that derives
+  Verifies acyclic_visitor_for admits a proper acyclic visitor - one that derives
   from the type-erased root AND from visitor_of<E> for every element listed.  Unlike
   the two concepts above, this one is about INHERITANCE, because the acyclic dispatch
   is a dynamic_cast and only a real base subobject can be found by one.
@@ -320,11 +320,11 @@ tests_concept_acyclic_visitor_for_rejects_plain_visitor
   one would let the other through.
   Tests the following:
   - a visitor with the interfaces but NOT the root is rejected (the dynamic_cast has
-    nothing to start from -- it could never be passed to accept() at all)
+    nothing to start from - it could never be passed to accept() at all)
   - a visitor with the root but MISSING an interface is rejected for the element it
     lacks, while still being admitted for the one it has
-  - a structurally-correct but unrelated visitor -- one that has visit() overloads
-    yet derives from nothing -- is rejected, which is what distinguishes this concept
+  - a structurally-correct but unrelated visitor - one that has visit() overloads
+    yet derives from nothing - is rejected, which is what distinguishes this concept
     from visitor_for
 */
 bool tests_concept_acyclic_visitor_for_rejects_plain_visitor()
@@ -344,7 +344,7 @@ bool tests_concept_acyclic_visitor_for_rejects_plain_visitor()
                   "and one missing element fails the whole conjunction");
 
     // the distinction from visitor_for: total_visitor CAN visit its elements
-    // structurally, but derives from nothing -- so it is not an acyclic visitor
+    // structurally, but derives from nothing - so it is not an acyclic visitor
     static_assert(visitor_for<total_visitor, static_circle>,
                   "structurally it can visit...");
     static_assert(!acyclic_visitor_for<total_visitor, static_circle>,
@@ -401,12 +401,12 @@ bool tests_constrained_accept_dispatches()
 
 /*
 tests_constrained_accept_is_gated_by_the_concept
-  Verifies the rejection happens AT THE CONSTRAINT -- which is the entire reason the
+  Verifies the rejection happens AT THE CONSTRAINT - which is the entire reason the
   function exists.  Without it, a visitor missing an overload fails inside the
   dispatch machinery with an error naming the header's internals; with it, the call
   is simply not viable, and the compiler says so at the call site.
 
-  The rejection must also be DETECTABLE -- a substitution failure, not a hard error --
+  The rejection must also be DETECTABLE - a substitution failure, not a hard error --
   or the function could not be used in any SFINAE context and would take the enclosing
   overload set down with it.  That is what the trait below measures: a hard error
   inside constrained_accept's body would fail to compile this test rather than report
@@ -414,7 +414,7 @@ tests_constrained_accept_is_gated_by_the_concept
   Tests the following:
   - the call is viable for a visitor that handles the element
   - it is NOT viable for one that does not, and asking is not an error
-  - the gate tracks visitor_for exactly, positive and negative -- so the constraint
+  - the gate tracks visitor_for exactly, positive and negative - so the constraint
     is the concept, with no drift
 */
 bool tests_constrained_accept_is_gated_by_the_concept()
@@ -426,7 +426,7 @@ bool tests_constrained_accept_is_gated_by_the_concept()
     static_assert(try_constrained_accept<static_rect, total_visitor>::value,
                   "for each element it handles");
 
-    // NOT viable where it does not -- and asking is a detectable non-answer
+    // NOT viable where it does not - and asking is a detectable non-answer
     static_assert(!try_constrained_accept<static_rect, partial_visitor>::value,
                   "a visitor missing the overload is turned away AT THE CONSTRAINT");
     static_assert(!try_constrained_accept<static_circle, not_a_visitor>::value,

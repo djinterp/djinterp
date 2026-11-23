@@ -671,8 +671,8 @@ sheet x86_64_pte()
 pci_config_header
   Sixty-four bytes: the configuration header every PCI function has, read
 as sixteen 32-bit registers. At 512 bits it is wider than any integer, so
-its header keeps it in an array of those registers -- word n the one at
-byte 4n -- and names each field and bit by its place: its byte offset times
+its header keeps it in an array of those registers - word n the one at
+byte 4n - and names each field and bit by its place: its byte offset times
 eight, and its bit within. Those are linux/pci_regs.h's offsets and masks,
 which the build compares with that header where it has it.
 */
@@ -1022,7 +1022,7 @@ sheet rgb565()
 /*
 win32_hresult
   Windows' HRESULT: a severity bit that is the sign bit of a signed LONG,
-four flags, an 11-bit facility and a 16-bit code -- with the codes built
+four flags, an 11-bit facility and a 16-bit code - with the codes built
 from those parts, as winerror.h builds them.
 */
 sheet win32_hresult()
@@ -1313,7 +1313,7 @@ sheet macos_cpu_type()
 /*
 linux_ioctl
   An ioctl number: a direction, the argument's size, the driver's letter
-and the command's number, packed by the _IOC macros -- here as fields,
+and the command's number, packed by the _IOC macros - here as fields,
 macros that pack them, and commands both old and new.
 */
 sheet linux_ioctl()
@@ -1665,8 +1665,8 @@ sheet from_json(
 }
 
 // win32_hresults
-//   every HRESULT MinGW-w64's winerror.h defines -- 1,376 codes, each a
-// literal, in a group for its facility -- under the fields that make them:
+//   every HRESULT MinGW-w64's winerror.h defines - 1,376 codes, each a
+// literal, in a group for its facility - under the fields that make them:
 // a thousand rows and more (tools/winerror_to_bitfield.py).
 sheet win32_hresults()
 {

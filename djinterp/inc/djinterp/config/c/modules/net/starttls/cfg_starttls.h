@@ -2,7 +2,7 @@
 * djinterp [c][net]                                               cfg_starttls.h
 *
 *   Configuration for the STARTTLS common module: the defaults that
-* d_starttls_options_default hands out -- the upgrade policy, the treatment
+* d_starttls_options_default hands out - the upgrade policy, the treatment
 * of plaintext still buffered at the upgrade point, line-ending strictness,
 * and the receive buffer's size. TLS itself is configured where every TLS
 * session is, in the dj_ssl_context a caller makes (cfg_ssl.h).
@@ -114,8 +114,8 @@ TABLE OF CONTENTS
 // D_CFG_STARTTLS_STRICT_CRLF
 //   knob: 1 to reject a line ended by a bare LF (D_STARTTLS_ERROR_PROTOCOL); 0
 // to accept one. A CR or NUL inside a line is rejected either way. Strictness
-// closes the gap in which two parsers disagree about where a line ends -- the
-// mechanism behind SMTP smuggling -- at the cost of refusing peers that end
+// closes the gap in which two parsers disagree about where a line ends - the
+// mechanism behind SMTP smuggling - at the cost of refusing peers that end
 // lines with LF alone.
 #ifndef D_CFG_STARTTLS_STRICT_CRLF
     #define D_CFG_STARTTLS_STRICT_CRLF 1

@@ -333,7 +333,7 @@ D_TYPE_TRAIT_VALUE_BOOL(is_const_iterable_container)
 
 // is_mutable_iterable_container
 //   trait: true when traversal yields a handle through which an element may be
-// written -- the iteration mode grants mutation. This is a property of
+// written - the iteration mode grants mutation. This is a property of
 // the traversal, not of the container: a const handle to a mutable container
 // iterates const and reports false here.
 template<typename Type>

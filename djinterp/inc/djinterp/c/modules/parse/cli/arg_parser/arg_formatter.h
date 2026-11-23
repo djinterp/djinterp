@@ -5,12 +5,12 @@
 *   A `struct dj_arg_formatter` is CLI11's Formatter in C: the column widths,
 * the paragraph widths, the switches for what an option's line shows, the
 * labels that translate help's fixed words, and a table of the steps help
-* is built from -- CLI11's virtual make_* functions. A NULL entry in the
+* is built from - CLI11's virtual make_* functions. A NULL entry in the
 * table runs the default step, which is also callable by name, so a
 * replacement can do its own work around CLI11's.
 *   Help is built in a dj_arg_buffer and written to a sink; the layout is
 * CLI11's to the character, so a program ported from CLI11 prints the same
-* help. Beyond CLI11, a formatter can keep its lines within a width -- one
+* help. Beyond CLI11, a formatter can keep its lines within a width - one
 * it is given, or, with D_INTERNAL_ARG_PARSER_TERMINAL_WIDTH, the terminal's,
 * measured each time help is made.
 *   Every command uses its own formatter, if set, else its parent's, and
@@ -150,7 +150,7 @@ TABLE OF CONTENTS
 // D_ARG_FORMAT_TERMINAL_WIDTH
 //   constant: help keeps within the terminal standard output is shown on,
 // measured each time help is made: the formatter's `line_width` is taken as
-// one less than the terminal's width -- its last column left free -- when
+// one less than the terminal's width - its last column left free - when
 // that is narrower. Off by default; where the width cannot be measured, or
 // without D_INTERNAL_ARG_PARSER_TERMINAL_WIDTH, it does nothing.
 #define D_ARG_FORMAT_TERMINAL_WIDTH         0x0020u
@@ -245,8 +245,8 @@ struct dj_arg_formatter_vtable
 // at the configured D_INTERNAL_ARG_PARSER_* sizes and the ratio at 1/3.
 //   `line_width`, beyond CLI11, is the longest line help is to write: the
 // right column and the paragraphs are narrowed so that the lines they make
-// keep within it -- an option group's, indented, within what the indent
-// leaves -- though a word longer than the room, or an option's names, still
+// keep within it - an option group's, indented, within what the indent
+// leaves - though a word longer than the room, or an option's names, still
 // pass it. 0, the default, sets no such limit: CLI11's layout.
 //   Public-payload layout: read any field; change the labels only through
 // d_arg_formatter_set_label.
@@ -611,7 +611,7 @@ D_ARG_PARSER_API int d_arg_format_groups(
  * @brief Writes a command's help; CLI11's help(prev, mode).
  *
  * @note The help of the last subcommand the last parse used, when there is
- *       one -- so `prog sub --help` shows the subcommand's help -- built by
+ *       one - so `prog sub --help` shows the subcommand's help - built by
  *       that command's formatter, the name preceded by `_prefix` and the
  *       names of the commands between. A formatter with
  *       D_ARG_FORMAT_TERMINAL_WIDTH measures the terminal first. The text

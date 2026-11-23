@@ -53,7 +53,7 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 1.1.1
 // D_ENV_STARTTLS_AVAILABLE
-//   feature: 1 if an upgrade can actually run here -- an SSL engine that can
+//   feature: 1 if an upgrade can actually run here - an SSL engine that can
 // be built, and a TCP transport to carry the plaintext phase: exactly
 // D_ENV_SSL_AVAILABLE. The gate a STARTTLS protocol module should #error on
 // when it cannot work without one.

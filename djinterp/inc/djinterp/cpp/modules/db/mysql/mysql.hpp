@@ -4,9 +4,9 @@
 * djinterp Oracle MySQL connection module:
 *   The MySQL connection, mysql_connection, over the MariaDB layer's C++ face
 * through mysql_common_connection, which holds the face and implements what
-* MySQL and MariaDB share; this leaf adds MySQL's configuration -- its TLS
+* MySQL and MariaDB share; this leaf adds MySQL's configuration - its TLS
 * modes and versions, connect attributes, its authentication, and session
-* tracking -- query attributes, and what the server connected has, asked
+* tracking - query attributes, and what the server connected has, asked
 * at run time (JSON, the X Protocol, Group Replication, roles, atomic DDL,
 * query attributes, the SQL of each release), beside what the client's
 * header has, at compile time from env_mysql.h: the client's capabilities.
@@ -121,7 +121,7 @@ namespace mysql {
 // 1.  CLIENT CAPABILITIES
 //==============================================================================
 // What env_mysql.h found MySQL's client header to have, by version, at
-// compile time -- the client's capabilities: the data types and the features
+// compile time - the client's capabilities: the data types and the features
 // a server of the header's release has, which the server connected may lack,
 // or exceed. Every flag is false unless a program asks for env's detection
 // (D_CFG_ENV_USING_MYSQL) or supplies its results. What the server connected
@@ -602,7 +602,7 @@ struct oracle_mysql_connect_config
 
     std::map<std::string, std::string> connect_attributes;
 
-    // construction -- MySQL's defaults (localhost, 3306), over a generic
+    // construction - MySQL's defaults (localhost, 3306), over a generic
     // configuration's
     oracle_mysql_connect_config()
         : ssl_mode(mysql_ssl_mode::preferred),
@@ -658,14 +658,14 @@ public:
     using client_capabilities = mysql_client_capabilities;
     using version_info        = mysql_version_info;
 
-    // type_support, feature_support -- client_capabilities, by their former
+    // type_support, feature_support - client_capabilities, by their former
     // names (2026.10.21), for one release
     using type_support [[deprecated("client_capabilities")]] =
         mysql_client_capabilities;
     using feature_support [[deprecated("client_capabilities")]] =
         mysql_client_capabilities;
 
-    // construction -- with MySQL's defaults, or a generic, a family or a
+    // construction - with MySQL's defaults, or a generic, a family or a
     // MySQL configuration, whose `common` the family keeps
     mysql_connection();
     explicit
@@ -697,11 +697,11 @@ public:
         mysql_connection&&
     ) noexcept = default;
 
-    // feature queries -- what the server connected has, by its flavor and
+    // feature queries - what the server connected has, by its flavor and
     // release, asked of the layer at run time (d_mariadb_supports); false
     // while the connection is not open. client_capabilities answers for the
-    // client's header at compile time. What a plugin or a setting adds -- the
-    // X Plugin, Group Replication, on which InnoDB Cluster is built -- is
+    // client's header at compile time. What a plugin or a setting adds - the
+    // X Plugin, Group Replication, on which InnoDB Cluster is built - is
     // whether the server's release has it; whether this server runs it is
     // its configuration. supports_modern_sql is window functions, CTEs and
     // LATERAL together (on a MariaDB server, its own set: window functions,
@@ -753,7 +753,7 @@ public:
         return this->m_supports_modern_sql();
     }
 
-    // supports_query_attributes -- the server from 8.0.23, and a client
+    // supports_query_attributes - the server from 8.0.23, and a client
     // with them: libmysqlclient from 8.0.23, never Connector/C
     bool supports_query_attributes() const noexcept
     {
@@ -769,7 +769,7 @@ public:
      *        name again replaces its value.
      *
      * @note The next statement is whatever the connection sends next, its
-     *       own among them -- has_table's query, set_charset's SET NAMES --
+     *       own among them - has_table's query, set_charset's SET NAMES --
      *       which drops every attribute set, whether it succeeds or not. A
      *       prepared statement's execution neither carries nor drops them;
      *       a reset and a change of user drop them.
@@ -787,11 +787,11 @@ public:
         const std::string& _value
     );
 
-    // clear_query_attributes -- drops those set and not yet sent; throws
+    // clear_query_attributes - drops those set and not yet sent; throws
     // only as every operation does, when the connection is not open
     void clear_query_attributes();
 
-    // configuration -- MySQL's settings; setting them replaces the
+    // configuration - MySQL's settings; setting them replaces the
     // family's and the generic configuration with theirs, for the next
     // connect
     oracle_mysql_connect_config get_oracle_config() const;

@@ -7,8 +7,8 @@
 * anything about a file, and nothing else in the tool knows what a banner is.
 *   An extension supplies three things and no more.  Node types, which the
 * sheet names with type selectors.  Attributes, which the sheet tests with
-* `[name=value]` and which derivations read by name.  Source geometry -- line,
-* start column, end column, width -- which the layout properties compare
+* `[name=value]` and which derivations read by name.  Source geometry - line,
+* start column, end column, width - which the layout properties compare
 * against.  Everything the sheet can say is a consequence of those three.
 *   Fields the guide requires but the banner does not carry are emitted as
 * nodes with `present` false, because a rule cannot match a node that does not

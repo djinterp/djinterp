@@ -22,7 +22,7 @@ using namespace ::djinterp::test;
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///   compile-time invariants -- V. STRUCTURAL DETECTION                      ///
+///   compile-time invariants - V. STRUCTURAL DETECTION                      ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // positive: any instantiation of the wrapper
@@ -55,7 +55,7 @@ static_assert(is_test_kind_set_v<const DTestKindSet<DIdSet>& >, "");
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///   runtime tests -- V. STRUCTURAL DETECTION                                ///
+///   runtime tests - V. STRUCTURAL DETECTION                                ///
 ///////////////////////////////////////////////////////////////////////////////
 
 /*

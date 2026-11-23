@@ -35,7 +35,7 @@
 
 // HOST_KEY
 //   constant: the host key every toy session presents: an ed25519 key's
-// shape -- its type, then 32 bytes -- holding no real key.
+// shape - its type, then 32 bytes - holding no real key.
 static const unsigned char HOST_KEY[] =
 {
     0, 0, 0, 11, 's', 's', 'h', '-', 'e', 'd', '2', '5', '5', '1', '9',
@@ -642,7 +642,7 @@ void d_tests_ssh_toy_channel_free(
 // the toy
 /*
 d_tests_ssh_toy_init
-  Zeroed -- D_SSH_OK is 0 -- with every channel scripted.
+  Zeroed - D_SSH_OK is 0 - with every channel scripted.
 */
 void d_tests_ssh_toy_init(
     struct dj_tests_ssh_toy* _toy
@@ -696,7 +696,7 @@ const struct dj_ssh_engine_vtable* d_tests_ssh_toy_engine(void)
 
 /*
 d_tests_ssh_toy_connect
-  Runs the session's own course -- init, connect, authenticate -- over the
+  Runs the session's own course - init, connect, authenticate - over the
 toy. A socket refused by d_ssh_init is still the caller's, and closed here.
 */
 bool d_tests_ssh_toy_connect(

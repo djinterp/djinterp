@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][meta]                                 value_list_tests_fold.cpp
 *
-*   Section VI -- fold: the left fold, and the value-domain driver reduce_ct
+*   Section VI - fold: the left fold, and the value-domain driver reduce_ct
 * builds on.
 *
 *
@@ -59,7 +59,7 @@ bool tests_fold_reduces()
 
 /*
 tests_fold_empty_returns_seed
-  The base case: an empty list folds to the accumulator, untouched -- the reducer
+  The base case: an empty list folds to the accumulator, untouched - the reducer
   is never invoked.
   Tests the following:
   - the seed comes back unchanged, by value and by type
@@ -92,7 +92,7 @@ bool tests_fold_empty_returns_seed()
 tests_fold_is_left_associative
   fold is a LEFT fold: it folds the head into the accumulator and recurses on the
   tail, so the elements arrive first-to-last. A non-commutative reducer --
-  (acc * 10) + v -- pins that order: 1, 2, 3 from a seed of 0 gives 123 under a
+  (acc * 10) + v - pins that order: 1, 2, 3 from a seed of 0 gives 123 under a
   left fold and could not under any other.
   Tests the following:
   - the digits reducer yields 123, 1234, and a single digit
@@ -151,7 +151,7 @@ bool tests_fold_single_element()
 
 /*
 tests_fold_accumulator_may_be_a_list
-  The seed is "any object" -- typically a carrier, but a DValueList serves just as
+  The seed is "any object" - typically a carrier, but a DValueList serves just as
   well. Folding with append rebuilds the list element by element, so fold + append
   is the identity.
   Tests the following:
@@ -194,7 +194,7 @@ bool tests_fold_accumulator_may_be_a_list()
 
 /*
 tests_fold_reverses_with_prepend
-  The same fold with prepend instead of append REVERSES the list -- each element
+  The same fold with prepend instead of append REVERSES the list - each element
   arrives at the front, so the last one processed ends up first. This pins the
   traversal order a second, independent way (the first being DDigitsOp).
   Tests the following:
@@ -293,7 +293,7 @@ bool tests_fold_and_transform_compose()
     static_assert(fold(transform(list{}, DAdd3Op{}), val<0>, DSumOp{}).value
                   == 15, "another leaf");
 
-    // rebuild a list, then reduce it -- the round trip is transparent.
+    // rebuild a list, then reduce it - the round trip is transparent.
     static_assert(fold(fold(list{}, DValueList<>{}, DAppendOp{}), val<0>,
                        DSumOp{}).value == 6, "rebuild then reduce");
 
@@ -314,13 +314,13 @@ bool tests_fold_and_transform_compose()
 
 /*
 tests_fold_seed_may_be_a_plain_value
-  The seed is "any object" -- not only a carrier or a list. That distinction has
+  The seed is "any object" - not only a carrier or a list. That distinction has
   teeth: val_t and DValueList are EMPTY types (their value lives in the type), so
   a fold over them cannot tell an accumulator that is threaded through from one
   that is default-constructed afresh at the base case. A plain int accumulator can.
   Tests the following:
   - a plain-value fold reduces correctly, and yields a plain value, not a carrier
-  - the empty list returns the SEED -- 42, not a fresh int{} -- which only a
+  - the empty list returns the SEED - 42, not a fresh int{} - which only a
     non-empty accumulator can witness
   - it folds left, and runs at runtime as well as in a constant expression
 */
@@ -334,7 +334,7 @@ bool tests_fold_seed_may_be_a_plain_value()
     static_assert(fold(DValueList<1, 2, 3>{}, 10, DIntSumOp{}) == 16,
                   "the seed participates");
 
-    // the result is a plain int -- no carrier in sight.
+    // the result is a plain int - no carrier in sight.
     static_assert(std::is_same<decltype(fold(DValueList<1, 2, 3>{}, 0,
                                              DIntSumOp{})), int>::value,
                   "yields int");
@@ -350,7 +350,7 @@ bool tests_fold_seed_may_be_a_plain_value()
     static_assert(fold(DValueList<1, '\x02', true>{}, 0, DIntSumOp{}) == 4,
                   "1 + 2 + 1");
 
-    // and it runs at runtime, too -- the same driver, the other domain.
+    // and it runs at runtime, too - the same driver, the other domain.
     int seed = 42;
     ok = ok && (fold(DValueList<1, 2, 3>{}, seed, DIntSumOp{}) == 48);
     ok = ok && (fold(DValueList<>{}, seed, DIntSumOp{}) == 42);

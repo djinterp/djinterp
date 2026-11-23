@@ -188,8 +188,8 @@ void d_ftp_internal_mlsx_type(
 
 /*
 d_ftp_internal_mlsx_text_fact
-  File-local: records a fact whose value is kept as text -- "unique",
-"perm", "unix.owner", or "unix.group" -- and reports whether `_name` was
+  File-local: records a fact whose value is kept as text - "unique",
+"perm", "unix.owner", or "unix.group" - and reports whether `_name` was
 one of them.
 */
 D_STATIC

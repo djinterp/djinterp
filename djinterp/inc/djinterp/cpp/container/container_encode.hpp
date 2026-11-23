@@ -185,7 +185,7 @@ NS_INTERNAL
     {};
 
     // encode_has_size_method specialization
-    //   helper: the detected case -- selected when the type exposes the member
+    //   helper: the detected case - selected when the type exposes the member
     // function `size()`.
     template<typename Type>
     struct encode_has_size_method<Type,
