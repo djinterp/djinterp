@@ -53,7 +53,7 @@
 * path:      /inc/djinterp/cpp/container/table/table.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.04
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.16
 *******************************************************************************/
 
 /*
@@ -92,12 +92,13 @@ III.  equality / swap
 #include <cstddef>
 #include <initializer_list>
 #include <iterator>
+#include <limits>            // std::numeric_limits
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../djinterp.hpp"                     // NS_*, D_CONSTEXPR, clean_t
+#include "../../djinterp.hpp"                     // framework root
 #include "./table_base.hpp"                        // table_base, row/column views
 #include "../container_options.hpp"                // axis enums, options base
 #include "../traits/mutable_container_traits.hpp"  // mutability grade
@@ -251,7 +252,7 @@ public:
         size_type _rows,
         size_type _cols
     )
-        : m_cells(static_cast<std::size_t>(_rows) * static_cast<std::size_t>(_cols)),
+        : m_cells(checked_cell_count(_rows, _cols)),
           m_rows(_rows),
           m_cols(_cols)
     {}
@@ -263,7 +264,7 @@ public:
         size_type     _cols,
         const Type&  _value
     )
-        : m_cells(static_cast<std::size_t>(_rows) * static_cast<std::size_t>(_cols),
+        : m_cells(checked_cell_count(_rows, _cols),
                   _value),
           m_rows(_rows),
           m_cols(_cols)
@@ -311,9 +312,9 @@ public:
         size_type    _cols
     )
     {
-        // the buffer must exactly fill the requested shape
-        if (_flat.size() != (static_cast<std::size_t>(_rows) *
-                             static_cast<std::size_t>(_cols)))
+        // the buffer must exactly fill the requested shape, and the shape
+        // must have a cell count std::size_t can hold
+        if (_flat.size() != checked_cell_count(_rows, _cols))
         {
             throw std::invalid_argument(
                 "table::from_flat: buffer size must equal _rows * _cols.");
@@ -567,9 +568,11 @@ public:
             throw std::out_of_range("table::insert_column");
         }
 
-        // one new cell per row is required (except for a 0-row table)
-        if ( (m_rows != 0) &&
-             (static_cast<size_type>(_column.size()) != m_rows) )
+        // one new cell per row is required, a 0-row table included: there a
+        // column must be empty, since its cells would have no row to go in.
+        // (Rows adopt a width on an empty table; columns never adopt a
+        // height -- the same rule as the C carrier's d_table_insert_column.)
+        if (static_cast<size_type>(_column.size()) != m_rows)
         {
             throw std::invalid_argument(
                 "table::insert_column: column height must equal rows.");
@@ -706,8 +709,7 @@ public:
             return;
         }
 
-        storage_type rebuilt(static_cast<std::size_t>(_rows) *
-                             static_cast<std::size_t>(_cols),
+        storage_type rebuilt(checked_cell_count(_rows, _cols),
                              _value);
 
         const std::size_t copy_rows =
@@ -761,8 +763,7 @@ public:
             return;
         }
 
-        m_cells.reserve(static_cast<std::size_t>(_row_capacity) *
-                        static_cast<std::size_t>(m_cols));
+        m_cells.reserve(checked_cell_count(_row_capacity, m_cols));
 
         return;
     }
@@ -920,13 +921,14 @@ public:
     // order.
     // Row selection preserves rectangularity (a sub-table is a table), so it is
     // closed; |result| <= |this|, and the constant-false predicate yields the
-    // empty (0-row) table -- the one bound selection may break.
+    // empty (0-row) table -- the one bound selection may break.  The result
+    // keeps this table's width even with no rows, as filter_rows_inplace does.
     template<typename Pred>
     D_NODISCARD DTable filter_rows(Pred _pred) const
     {
-        DTable out;
+        DTable out(0, m_cols);
 
-        // gather the surviving rows into a fresh table (width adopted on first)
+        // gather the surviving rows into a fresh table of this width
         for (size_type r = 0; r < m_rows; ++r)
         {
             const_row_type row_r = this->row(r);
@@ -1022,6 +1024,20 @@ public:
             return decode_failure<DTable>();
         }
 
+        // a shape whose cell count std::size_t cannot hold is corrupt: a
+        // wrapped product would read too few cells and pass from_flat
+        const re_std::uint64_t _max =
+            static_cast<re_std::uint64_t>(
+                (std::numeric_limits<std::size_t>::max)());
+
+        if ( (_rr > _max) ||
+             (_cc > _max) ||
+             ( (_cc != 0) &&
+               (_rr > (_max / _cc)) ) )
+        {
+            return decode_failure<DTable>();
+        }
+
         const std::size_t _rows  = static_cast<std::size_t>(_rr);
         const std::size_t _cols  = static_cast<std::size_t>(_cc);
         const std::size_t _count = _rows * _cols;
@@ -1066,6 +1082,29 @@ public:
     }
 
 private:
+    // checked_cell_count
+    //   the cell count of a _rows x _cols box, throwing std::length_error
+    // when the product does not fit std::size_t.  A wrapped product would
+    // pass every later size check and leave extents claiming cells the
+    // buffer does not hold.
+    static std::size_t checked_cell_count(
+        size_type _rows,
+        size_type _cols
+    )
+    {
+        const std::size_t r = static_cast<std::size_t>(_rows);
+        const std::size_t c = static_cast<std::size_t>(_cols);
+
+        if ( (c != 0) &&
+             (r > ((std::numeric_limits<std::size_t>::max)() / c)) )
+        {
+            throw std::length_error(
+                "table: rows * cols does not fit std::size_t.");
+        }
+
+        return (r * c);
+    }
+
     // adopt_or_check_width
     //   on a width-less (0-column) table, adopts _width as the column count;
     // otherwise requires _width to match, holding the rectangular invariant.
@@ -1222,7 +1261,8 @@ void swap(
 // how a filter SOURCE (static_table, fixed_table -- fixed-shape, so unable to
 // receive an arbitrary sub-selection in place) feeds a selection: the
 // survivors are gathered into the filterable table type. Arrangement and
-// per-row cells are preserved; the row order carries over unchanged.
+// per-row cells are preserved; the row order carries over unchanged, and the
+// source's width carries over even when no row survives.
 template<typename Src,
          typename Pred>
 D_NODISCARD DTable<typename Src::element_type> select_rows(
@@ -1230,7 +1270,9 @@ D_NODISCARD DTable<typename Src::element_type> select_rows(
     Pred       _pred
 )
 {
-    DTable<typename Src::element_type> out;
+    DTable<typename Src::element_type> out(
+        0,
+        static_cast<std::size_t>(_src.column_count()));
 
     using src_size = typename Src::size_type;
 

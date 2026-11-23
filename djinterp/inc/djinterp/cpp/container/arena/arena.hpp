@@ -39,7 +39,7 @@
 * path:      /inc/djinterp/cpp/container/arena/arena.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.03.18
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.16
 *******************************************************************************/
 
 /*
@@ -80,6 +80,7 @@ VII.  Convenience Aliases
 #include <cassert>
 #include <cstddef>
 #include <type_traits>
+#include <utility>  // std::pair
 #include <vector>
 // djinterp
 #include "../../djinterp.hpp"
@@ -194,7 +195,7 @@ struct DTreeLinkPolicy
           (has_right        ? 1u : 0u) );
 
     // --- index assignments --- Each enabled link receives a sequential index.
-    // Disabled links map to null_node.
+    // Disabled links map to std::size_t(-1).
 
 private:
     static D_CONSTEXPR_CPP14
@@ -517,6 +518,47 @@ struct DArenaNode
         }
 
         return;
+    }
+
+    // operator==
+    //   function: two nodes are equal when their observable state is.  Two
+    // live nodes compare their links, identity (stable_id, version) and
+    // payload; two dead slots compare their free-list link only, since a dead
+    // slot's payload can't be observed.  A live node never equals a dead one.
+    friend bool
+    operator==(const DArenaNode& _a,
+               const DArenaNode& _b)
+    {
+        if (_a.alive != _b.alive)
+        {
+            return false;
+        }
+
+        if (!_a.alive)
+        {
+            return (_a.free_next == _b.free_next);
+        }
+
+        for (std::size_t i = 0; i < num_links; ++i)
+        {
+            if (_a.links[i] != _b.links[i])
+            {
+                return false;
+            }
+        }
+
+        return ( (_a.stable_id == _b.stable_id) &&
+                 (_a.version   == _b.version)   &&
+                 (_a.data      == _b.data) );
+    }
+
+    // operator!=
+    //   function: the negation of operator==.
+    friend bool
+    operator!=(const DArenaNode& _a,
+               const DArenaNode& _b)
+    {
+        return !(_a == _b);
     }
 };
 
@@ -1029,7 +1071,13 @@ public:
             parent_id = n.parent();
         }
 
-        if constexpr (link_policy::has_prev_sibling)
+        if constexpr (!link_policy::has_parent)
+        {
+            // O(n) detach: with no parent link, nothing on _id says who
+            // links to it, so find its parent and previous sibling by scan
+            detach_unparented(_id);
+        }
+        else if constexpr (link_policy::has_prev_sibling)
         {
             // O(1) detach with prev_sibling
             node_id prev = n.prev_sibling();
@@ -1430,19 +1478,230 @@ public:
     //  comparison
     // =================================================================
 
+    // operator==
+    //   function: two arenas are equal when everything a caller can observe
+    // is: the nodes (see arena_node's operator==), the live count, and what
+    // the next allocate does (the free-list head and the next stable_id).
+    // equivalent(), below, asks only whether they hold the same forest.
     friend bool
     operator==(const DNodeArena& _a,
-               const DNodeArena& _b) noexcept
+               const DNodeArena& _b)
     {
-        return ( _a.m_live_count == _b.m_live_count &&
-                 _a.m_nodes     == _b.m_nodes );
+        return ( (_a.m_live_count     == _b.m_live_count)     &&
+                 (_a.m_free_head      == _b.m_free_head)      &&
+                 (_a.m_next_stable_id == _b.m_next_stable_id) &&
+                 (_a.m_nodes          == _b.m_nodes) );
     }
 
     friend bool
     operator!=(const DNodeArena& _a,
-               const DNodeArena& _b) noexcept
+               const DNodeArena& _b)
     {
         return !(_a == _b);
+    }
+
+    // equivalent
+    //   function: whether _a and _b hold the same forest: the same trees, each
+    // with equal payloads node for node and its children in the same order
+    // (for a binary policy, on the same sides), wherever the nodes sit.
+    // Slots, stable ids, versions and the free list are ignored; operator==
+    // compares those (both kinds of equality). Trees match one to one in any
+    // order. O(n) when each arena holds one tree; r trees cost at most r
+    // tree comparisons each.
+    friend bool
+    equivalent(const DNodeArena& _a,
+               const DNodeArena& _b)
+    {
+        if (_a.size() != _b.size())
+        {
+            return false;
+        }
+
+        const std::vector<node_id> roots_a = _a.forest_roots();
+        const std::vector<node_id> roots_b = _b.forest_roots();
+
+        if (roots_a.size() != roots_b.size())
+        {
+            return false;
+        }
+
+        // equal trees form classes, so a greedy one-to-one match is exact
+        std::vector<bool> taken(roots_b.size(), false);
+
+        for (node_id root_a : roots_a)
+        {
+            bool found = false;
+
+            for (std::size_t j = 0; j < roots_b.size(); ++j)
+            {
+                if ( (!taken[j]) &&
+                     same_tree(_a, root_a, _b, roots_b[j]) )
+                {
+                    taken[j] = true;
+                    found    = true;
+
+                    break;
+                }
+            }
+
+            if (!found)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+protected:
+    // forest_roots
+    //   method: the live nodes no live node links to through a forward link
+    // (first child, next sibling, left, right), in slot order: the heads of
+    // the forest's trees, a chain of top-level siblings counting as one.
+    std::vector<node_id>
+    forest_roots() const
+    {
+        const std::size_t n = m_nodes.size();
+        std::vector<bool> linked(n, false);
+
+        for (std::size_t i = 0; i < n; ++i)
+        {
+            if (!m_nodes[i].alive)
+            {
+                continue;
+            }
+
+            if constexpr (link_policy::has_first_child)
+            {
+                mark_linked(linked, m_nodes[i].first_child());
+            }
+
+            if constexpr (link_policy::has_next_sibling)
+            {
+                mark_linked(linked, m_nodes[i].next_sibling());
+            }
+
+            if constexpr (link_policy::has_left)
+            {
+                mark_linked(linked, m_nodes[i].left());
+            }
+
+            if constexpr (link_policy::has_right)
+            {
+                mark_linked(linked, m_nodes[i].right());
+            }
+        }
+
+        std::vector<node_id> roots;
+
+        for (std::size_t i = 0; i < n; ++i)
+        {
+            if ( m_nodes[i].alive &&
+                 (!linked[i]) )
+            {
+                roots.push_back(static_cast<node_id>(i));
+            }
+        }
+
+        return roots;
+    }
+
+    // same_tree
+    //   function: whether the tree at _x in _a and the tree at _y in _b have
+    // equal payloads node for node, with every forward link present in both
+    // or absent in both. Iterative, so a deep tree costs no stack.
+    static bool
+    same_tree(const DNodeArena& _a,
+              node_id           _x,
+              const DNodeArena& _b,
+              node_id           _y)
+    {
+        std::vector<std::pair<node_id, node_id>> work;
+        work.emplace_back(_x, _y);
+
+        while (!work.empty())
+        {
+            const std::pair<node_id, node_id> pair = work.back();
+            work.pop_back();
+
+            const node_type& na = _a.m_nodes[pair.first];
+            const node_type& nb = _b.m_nodes[pair.second];
+
+            if (!(na.data == nb.data))
+            {
+                return false;
+            }
+
+            if constexpr (link_policy::has_first_child)
+            {
+                if (!follow(work, na.first_child(), nb.first_child()))
+                {
+                    return false;
+                }
+            }
+
+            if constexpr (link_policy::has_next_sibling)
+            {
+                if (!follow(work, na.next_sibling(), nb.next_sibling()))
+                {
+                    return false;
+                }
+            }
+
+            if constexpr (link_policy::has_left)
+            {
+                if (!follow(work, na.left(), nb.left()))
+                {
+                    return false;
+                }
+            }
+
+            if constexpr (link_policy::has_right)
+            {
+                if (!follow(work, na.right(), nb.right()))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+private:
+    // mark_linked
+    //   function: marks _id as the target of a forward link, if it is a node.
+    static void
+    mark_linked(std::vector<bool>& _linked,
+                node_id            _id)
+    {
+        if (_id != null_node)
+        {
+            _linked[static_cast<std::size_t>(_id)] = true;
+        }
+
+        return;
+    }
+
+    // follow
+    //   function: one forward link of a node pair: both absent is a match,
+    // one absent is not, and both present queues the pair to compare.
+    static bool
+    follow(std::vector<std::pair<node_id, node_id>>& _work,
+           node_id                                    _x,
+           node_id                                    _y)
+    {
+        if ( (_x == null_node) != (_y == null_node) )
+        {
+            return false;
+        }
+
+        if (_x != null_node)
+        {
+            _work.emplace_back(_x, _y);
+        }
+
+        return true;
     }
 
 
@@ -1617,6 +1876,71 @@ private:
 
                 set_last_child_if(pn, last);
             }
+        }
+
+        return;
+    }
+
+    // --- detach_unparented --- O(n) detach for a policy without a parent
+    // link: one pass finds the node whose next_sibling is _child_id (its
+    // previous sibling), the node whose first_child is _child_id, and, with
+    // a last_child link, the node whose last_child is _child_id.
+
+    void
+    detach_unparented(node_id _child_id) noexcept
+    {
+        node_id next       = m_nodes[_child_id].next_sibling();
+        node_id prev       = null_node;
+        node_id head_owner = null_node;
+        node_id tail_owner = null_node;
+
+        for (std::size_t i = 0; i < m_nodes.size(); ++i)
+        {
+            const node_type& m  = m_nodes[i];
+            node_id          id = static_cast<node_id>(i);
+
+            if ( (!m.alive) ||
+                 (id == _child_id) )
+            {
+                continue;
+            }
+
+            if (m.next_sibling() == _child_id)
+            {
+                prev = id;
+            }
+
+            if (m.first_child() == _child_id)
+            {
+                head_owner = id;
+            }
+
+            if constexpr (link_policy::has_last_child)
+            {
+                if (m.last_child() == _child_id)
+                {
+                    tail_owner = id;
+                }
+            }
+        }
+
+        if (prev != null_node)
+        {
+            set_next_sibling(m_nodes[prev], next);
+        }
+        else if (head_owner != null_node)
+        {
+            set_first_child(m_nodes[head_owner], next);
+        }
+
+        if (next != null_node)
+        {
+            set_prev_sibling_if(m_nodes[next], prev);
+        }
+
+        if (tail_owner != null_node)
+        {
+            set_last_child_if(m_nodes[tail_owner], prev);
         }
 
         return;

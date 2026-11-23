@@ -54,7 +54,7 @@
 * path:      /inc/djinterp/cpp/container/table/sorted_table.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.05
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.16
 *******************************************************************************/
 
 /*
@@ -85,12 +85,14 @@ III.  make_sorted_table
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
 
 // std
+#include <algorithm>         // std::copy
 #include <cstddef>
 #include <functional>
 #include <initializer_list>
+#include <stdexcept>         // std::invalid_argument
 #include <type_traits>
 // djinterp
-#include "../../djinterp.hpp"                     // NS_*, D_CONSTEXPR, clean_t
+#include "../../djinterp.hpp"                     // framework root
 #include "./table.hpp"                             // table backing (+ hierarchical tag)
 #include "../container_options.hpp"                // axis enums, options base
 
@@ -435,22 +437,45 @@ public:
 
     // insert -- place _row at its sorted position. When keys are unique and an
     // equivalent key is present, the existing row is replaced (map
-    // assignment). Returns the index the row occupies. varsigma (and, if set,
+    // assignment); when keys may repeat, the row goes after any equal keys, so
+    // equal keys keep their insertion order (as keyed_table and std::multiset
+    // do). Returns the index the row occupies. varsigma (and, if set,
     // mu_1^{E_key}) is preserved.
+    // A row is checked before anything moves, so a refused row leaves the
+    // table as it was: it must reach the key column, and it must match the
+    // width (which an empty table adopts from its first row).
     size_type insert(std::initializer_list<Type> _row)
     {
+        // a row without the key column has no key to place it by
+        if (static_cast<size_type>(_row.size()) <= key_column)
+        {
+            throw std::invalid_argument(
+                "sorted_table::insert: the row has no key column.");
+        }
+
+        if ( ( (m_base.rows() != 0) ||
+               (m_base.cols() != 0) ) &&
+             (static_cast<size_type>(_row.size()) != m_base.cols()) )
+        {
+            throw std::invalid_argument(
+                "sorted_table::insert: row width must equal the table width.");
+        }
+
         // the key value governs placement; copy it before the buffer moves
         const Type key = *(_row.begin() + static_cast<std::ptrdiff_t>(KeyCol));
 
-        const size_type pos = lower_bound(key);
+        // unique keys look for an equivalent row at the lower bound; repeated
+        // keys go to the upper bound, after their equals
+        const size_type pos = UniqueKeys ? lower_bound(key)
+                                         : upper_bound(key);
 
         // unique-key overlay: an equivalent key already present is overwritten
+        // in place (no allocation, and the row keeps its sorted position)
         if ( UniqueKeys &&
              (pos < m_base.rows()) &&
              (!m_cmp(key, key_at(pos))) )
         {
-            m_base.erase_row(pos);
-            m_base.insert_row(pos, _row);
+            std::copy(_row.begin(), _row.end(), m_base.row(pos).begin());
 
             return pos;
         }

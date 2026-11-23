@@ -21,7 +21,7 @@
 * path:      /inc/djinterp/cpp/container/arena/tree/arena_tree.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.07
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.16
 *******************************************************************************/
 
 /*
@@ -287,10 +287,16 @@ public:
 
     // remove
     //   method: detaches and deallocates a single node. Does NOT remove
-    // children - they become orphaned.
+    // children - they become orphaned: each is detached first and becomes a
+    // root of its own, so no live node keeps a link to the freed slot.
     void
     remove(node_id _id)
     {
+        while (base_type::node_at(_id).first_child() != null_node)
+        {
+            base_type::detach(base_type::node_at(_id).first_child());
+        }
+
         base_type::detach(_id);
         base_type::deallocate(_id);
 
@@ -375,9 +381,11 @@ public:
     //  comparison
     // =================================================================
 
+    // operator==
+    //   function: the same root, and equal arenas (see arena's operator==).
     friend bool
     operator==(const DArenaTree& _a,
-               const DArenaTree& _b) noexcept
+               const DArenaTree& _b)
     {
         return ( _a.m_root == _b.m_root &&
                  static_cast<const base_type&>(_a) ==
@@ -386,9 +394,32 @@ public:
 
     friend bool
     operator!=(const DArenaTree& _a,
-               const DArenaTree& _b) noexcept
+               const DArenaTree& _b)
     {
         return !(_a == _b);
+    }
+
+    // equivalent
+    //   function: equivalent arenas (see DNodeArena's equivalent) whose roots
+    // hold equal trees, or that both have no root. The root counts; its slot
+    // doesn't (both kinds of equality).
+    friend bool
+    equivalent(const DArenaTree& _a,
+               const DArenaTree& _b)
+    {
+        if ( (_a.m_root == null_node) != (_b.m_root == null_node) )
+        {
+            return false;
+        }
+
+        if ( (_a.m_root != null_node) &&
+             (!base_type::same_tree(_a, _a.m_root, _b, _b.m_root)) )
+        {
+            return false;
+        }
+
+        return equivalent(static_cast<const base_type&>(_a),
+                          static_cast<const base_type&>(_b));
     }
 
 
