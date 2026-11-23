@@ -20,8 +20,10 @@
 #       ruling, ruled, item, ask, per, see, under), in parentheses alone or
 #       in a list ("(C66)", "(E81, E82)"), with a possessive ("W7's floor"),
 #       and as an alias marker's tag ("// O2: old name"). The C standards
-#       (C89 to C23, C2x, C2y) are never ids, and F1 to F24 are keys in the
-#       last two forms.
+#       (C89 to C23, C2x, C2y) are never ids, nor are Arm's instruction sets
+#       (A32, A64) on a line that names Arm; F1 to F24 are keys in the last
+#       two forms; and parentheses straight after a name hold an argument,
+#       not a citation ("K(O1)").
 #
 #   usage:   python3 scripts/ci/check_lane_names.py [options]
 #   options: --base REV        the lines the work tree adds to REV
@@ -41,7 +43,7 @@
 # path:      /scripts/ci/check_lane_names.py
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.20
-#                                                            revised: 2026.11.20
+#                                                            revised: 2026.11.23
 #*******************************************************************************
 import argparse
 import difflib
@@ -60,10 +62,13 @@ CITE = re.compile(
     r"(?i:\b(?:decisions?|rulings?|ruled|item|ask|per|see|under))\s+"
     r"(" + ID + r")\b")
 SEP = r"(?:\s*[,/;&]\s*(?:and\s+|or\s+)?|\s+(?:and|or)\s+)"
-PAREN = re.compile(r"\(\s*(" + ID + r"(?:" + SEP + ID + r")*)\s*\)")
+PAREN = re.compile(r"(?<![A-Za-z0-9_])\(\s*(" + ID + r"(?:" + SEP + ID +
+                   r")*)\s*\)")
 POSS = re.compile(r"\b(" + ID + r")['\u2019]s\b")
 MARK = re.compile(r"(?://|/\*|#)\s*(" + ID + r"):")
 STANDARD = re.compile(r"^C(?:89|90|95|99|11|17|18|23|2x|2y)$")
+ARM_SET = re.compile(r"^A(?:32|64)$")
+ARM_LINE = re.compile(r"\b(?:ARM|Arm|AArch32|AArch64)\b")
 KEY = re.compile(r"^F(?:[1-9]|1[0-9]|2[0-4])$")
 TEXT = ('.c', '.h', '.cpp', '.hpp', '.cc', '.hh', '.inl', '.ipp', '.txt',
         '.md', '.html', '.htm', '.cmake', '.py', '.sh', '.ps1', '.awk',
@@ -75,19 +80,24 @@ SKIP = ('scripts/ci/check_lane_names.py',)
 SUBJECT = re.compile(r"^\s*[A-H]\s*:")
 
 
-def ids_in(text):
+def never_id(text, line):
+    return bool(STANDARD.match(text) or
+                (ARM_SET.match(text) and ARM_LINE.search(line)))
+
+
+def ids_in(text, line=''):
     return [i for i in re.split(SEP, text)
-            if i and not STANDARD.match(i)]
+            if i and not never_id(i, line)]
 
 
 def findings(line):
     found = [m.group(0) for m in LANE.finditer(line)]
     for pattern in (CITE, POSS, MARK):
         found += [m.group(0) for m in pattern.finditer(line)
-                  if not STANDARD.match(m.group(1)) and
+                  if not never_id(m.group(1), line) and
                   not (pattern is not CITE and KEY.match(m.group(1)))]
     for m in PAREN.finditer(line):
-        if ids_in(m.group(1)):
+        if ids_in(m.group(1), line):
             found.append(m.group(0))
     return found
 

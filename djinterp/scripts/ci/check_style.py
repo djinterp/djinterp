@@ -55,8 +55,8 @@
 #        order (ruled 2026.11.17: every header carries them). The punch
 #        list tracks it: a count above its line is shown, and does not
 #        fail a run
-#   Generated files (a banner or first lines that say so) are left out, as
-# the guides exempt them.
+#   Generated files (a banner or first lines that say so, Bison's "made by
+# GNU Bison" among them) are left out, as the guides exempt them.
 #   Most files met the rules when the guides were written, and some do not
 # yet. --known holds a run to a punch list of counts, one per file and error
 # code: an error count above its line fails the run, and a count below it is
@@ -75,8 +75,10 @@
 #                                 the totals
 #            --tree DIR           the tree to check (default: the one this
 #                                 script is in)
-#   paths:   files or folders under the tree's root; default inc/, src/ and
-#            tests/
+#   paths:   files or folders under the tree's root; default every folder
+#            that holds C or C++: build/, inc/, res/, scripts/, src/ and
+#            tests/, so that a whole run reads every file --changed can
+#            (and the punch list holds every file a change can bring)
 #   exit:    0 when no error count rose (or, without --known, there is no
 #            error); 1 otherwise; 2 when the run could not start
 #
@@ -84,7 +86,7 @@
 # path:      /scripts/ci/check_style.py
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-#                                                            revised: 2026.11.18
+#                                                            revised: 2026.11.23
 #*******************************************************************************
 import argparse
 import collections
@@ -97,13 +99,15 @@ import unicodedata
 TREE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
     __file__))))
 EXTENSIONS = ('.h', '.c', '.hpp', '.cpp')
+# the folders a whole run reads: every one of the tree's that holds C or C++
+ROOTS = ('build', 'inc', 'res', 'scripts', 'src', 'tests')
 ERRORS = 'TSUXBGRV'
 WARNINGS = 'WCFMH'
 # warnings the punch list tracks: one above its line is shown, not failed
 TRACKED = 'H'
 SECTIONS = ('HOW TO USE', 'OPTIONS', 'CONFIGURATION')
 GENERATED = re.compile(r'(auto-?generated|generated (by|from|with)\b|'
-                       r'do not (edit|modify))', re.I)
+                       r'do not (edit|modify)|made by GNU Bison)', re.I)
 RULE_OPEN = '/' + '*' * 79
 RULE_CLOSE = '*' * 79 + '/'
 TITLE = re.compile(r'^\* djinterp (\[[^\]]*\](?:\[[^\]]*\])?) +(\S+)$')
@@ -614,7 +618,7 @@ def collect(paths, changed):
                           not is_test_data(name) and
                           os.path.isfile(os.path.join(TREE, name))))
     files = []
-    for item in paths or ['inc', 'src', 'tests']:
+    for item in paths or ROOTS:
         full = os.path.join(TREE, item)
         if os.path.isfile(full):
             if full.endswith(EXTENSIONS):
