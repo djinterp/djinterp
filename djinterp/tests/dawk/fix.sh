@@ -10,12 +10,10 @@
 # must reach.  Three more things are checked, since a fixer that reaches
 # the right text is not thereby safe: no repair was refused; each repaired
 # file is the same to the compiler as its original, by
-# tools/same_tokens.py -- every repair here changes white space or adds a
+# `dcheck --same-tokens` -- every repair here changes white space or adds a
 # comment; and what was moved in it stands where its brackets put it, by
-# tools/moved_lines.py, which so agrees with after/ and not only with its
-# own pairs.  The comparison is by tokens where there is a Clang to lex
-# with and by characters where there is not, and the last line says which;
-# without one the third check is not made.
+# `dcheck --moved-lines`, which so agrees with after/ and not only with its
+# own pairs.
 #
 #   sh tests/dawk/fix.sh [build/dcheck]
 DCHECK=${1:-build/dcheck}
@@ -65,18 +63,17 @@ if [ $n -ne 0 ]; then
     fail=1
 fi
 
-# each repaired file against its original, as the compiler reads them
-how=$(python3 tools/same_tokens.py --mode)
+# each repaired file against its original, as the compiler reads them, and
+# what was moved in it against where its brackets put it
 for before in "$dir"/before/*; do
     name=$(basename "$before")
-    if ! python3 tools/same_tokens.py "$before" "$work/tree/$name" \
+    if ! "$DCHECK" --same-tokens "$before" "$work/tree/$name" \
             2> "$work/why"; then
         echo "FAIL fix: $name is not what it was to the compiler"
         sed 's/^/    /' "$work/why"
         fail=1
     fi
-    if [ "$how" = "tokens" ] && \
-       ! python3 tools/moved_lines.py "$before" "$work/tree/$name" \
+    if ! "$DCHECK" --moved-lines "$before" "$work/tree/$name" \
             2> "$work/why"; then
         echo "FAIL fix: something in $name was moved to where it does not" \
              "belong"
@@ -86,6 +83,6 @@ for before in "$dir"/before/*; do
 done
 
 [ $fail -eq 0 ] && echo "fix: $total repairs as expected in $((runs - 1))" \
-    "run(s), none refused, the last run found nothing, $how unchanged," \
-    "everything moved in its place"
+    "run(s), none refused, the last run found nothing, the tokens" \
+    "unchanged, everything moved in its place"
 exit $fail

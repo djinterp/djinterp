@@ -7,11 +7,10 @@
 # repair, and tests/dawk/fix/after the same files, repaired. The fixer is run
 # over a copy of before/ until a run repairs nothing, which it must reach,
 # and the copy is then compared with after/, byte for byte and name for name.
-# No repair may have been refused.
-#   NOT DONE HERE: fix.sh's two checks more, that each repaired file is the
-# same to the compiler as its original and that what was moved in it stands
-# where its brackets put it. Those are tools/same_tokens.py and
-# tools/moved_lines.py, and are the shell script's alone.
+# No repair may have been refused. Then each repaired file is held to its
+# original by the fixer's two safety checks: the same to the compiler
+# (dcheck --same-tokens), and what was moved in it where its brackets put it
+# (dcheck --moved-lines), as fix.sh holds it.
 #
 #   usage:  cmake -DDCHECK=<the checker> -DROOT=<repository root>
 #                 -DWORK=<a directory to make the copy in>
@@ -24,7 +23,7 @@
 # path:      /build/cmake/config/testing/djinterp/tools/dawk/run_fix.cmake
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-#                                                            revised: 2026.10.10
+#                                                            revised: 2026.11.19
 #*******************************************************************************
 cmake_minimum_required(VERSION 3.16)
 
@@ -145,6 +144,31 @@ foreach(_name IN LISTS _wanted)
     endif()
 endforeach()
 
+# each repaired file against its original: the same tokens, and what was
+# moved standing in its place
+foreach(_name IN LISTS _wanted)
+    if(NOT EXISTS "${_tree}/${_name}")
+        continue()
+    endif()
+
+    foreach(_check IN ITEMS same-tokens moved-lines)
+        execute_process(
+            COMMAND ${_run} "--${_check}" "${_before}/${_name}"
+                    "${_tree}/${_name}"
+            WORKING_DIRECTORY "${ROOT}"
+            OUTPUT_VARIABLE   _printed
+            ERROR_VARIABLE    _errors
+            RESULT_VARIABLE   _status)
+
+        if(NOT _status EQUAL 0)
+            message("FAIL fix: ${_name} fails dcheck --${_check}")
+            message("${_printed}${_errors}")
+
+            math(EXPR _failed "${_failed} + 1")
+        endif()
+    endforeach()
+endforeach()
+
 if(NOT _failed EQUAL 0)
     message(FATAL_ERROR "fix: ${_failed} check(s) did not pass")
 endif()
@@ -152,4 +176,5 @@ endif()
 math(EXPR _needed "${_runs} - 1")
 
 message("fix: ${_total} repairs as expected in ${_needed} run(s), none "
-        "refused, the last run found nothing")
+        "refused, the last run found nothing, the tokens unchanged, "
+        "everything moved in its place")

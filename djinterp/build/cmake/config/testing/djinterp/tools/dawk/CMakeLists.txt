@@ -6,12 +6,13 @@
 #   The CMake twin of tools/build.sh. Builds the checker's units as C, at
 # C11, into one static library, links dcheck and the test programs against
 # it, and gives CTest the suites: the unit tests, every rule fixture against
-# its golden, the fixer against the files it should leave, the gate that
-# proves the fixer's repair audit is load-bearing, the driver's resolution of
-# a sheet's claims, and the driver over the fixtures against the harness's
-# goldens. The five that are scripts in tests/dawk are CMake scripts here,
-# beside this file, so that a suite needs CMake and the compiler and nothing
-# else: no shell, on any system.
+# its golden, the fixer against the files it should leave, the fixer's two
+# safety checks against their pairs, the gate that proves the fixer's repair
+# audit is load-bearing, the driver's resolution of a sheet's claims, the
+# driver over the fixtures against the harness's goldens, and, where Clang is
+# found, parse's lexer against Clang's over the tree. Those that are scripts
+# in tests/dawk are CMake scripts here, beside this file, so that a suite
+# needs CMake and the compiler and nothing else: no shell, on any system.
 #   The checker reads CMake files too, with dawk's CMake reader, so the leaf
 # also tests the reader: alone, over every CMake file under build/cmake, and
 # against the CMake running the tests, on every form an argument takes. The
@@ -50,7 +51,7 @@
 # path:      /build/cmake/config/testing/djinterp/tools/dawk/CMakeLists.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-#                                                            revised: 2026.11.17
+#                                                            revised: 2026.11.19
 #*******************************************************************************
 cmake_minimum_required(VERSION 3.16)
 
@@ -232,6 +233,8 @@ add_library(djinterp_dawk_checker STATIC
     "${_tool}/dsection.c"
     "${_tool}/dsettings.c"
     "${_tool}/dss.c"
+    # the fixer's two safety checks, over parse's lexer (dawk's decision 45)
+    "${_tool}/dtokens.c"
     "${_tool}/dtree.c"
     "${_tool}/dxml.c"
     # the library's text: interning, edits, and the text as read
@@ -587,6 +590,26 @@ djinterp_dawk_script(djinterp_dawk_rules run_rules.cmake
 djinterp_dawk_script(djinterp_dawk_fix run_fix.cmake
     "-DDCHECK=$<TARGET_FILE:djinterp_dawk_dcheck>"
     "-DWORK=${CMAKE_CURRENT_BINARY_DIR}/djinterp_dawk_fix")
+
+# the fixer's two safety checks against their pairs (dawk's decision 45)
+djinterp_dawk_script(djinterp_dawk_same_tokens run_same_tokens.cmake
+    "-DDCHECK=$<TARGET_FILE:djinterp_dawk_dcheck>")
+djinterp_dawk_script(djinterp_dawk_moved_lines run_moved_lines.cmake
+    "-DDCHECK=$<TARGET_FILE:djinterp_dawk_dcheck>")
+
+# parse's lexer against Clang's, over the tree, where Clang is found
+# (dawk's decision 45a)
+find_program(DJINTERP_DAWK_CLANG
+             NAMES clang clang-19 clang-18 clang-17 clang-16 clang-15
+             DOC   "the Clang parse's lexer is held to")
+
+if(DJINTERP_DAWK_CLANG)
+    djinterp_dawk_script(djinterp_dawk_clang_tokens run_clang_tokens.cmake
+        "-DDCHECK=$<TARGET_FILE:djinterp_dawk_dcheck>"
+        "-DCLANG=${DJINTERP_DAWK_CLANG}"
+        "-DWORK=${CMAKE_CURRENT_BINARY_DIR}/djinterp_dawk_clang_tokens")
+    set_tests_properties(djinterp_dawk_clang_tokens PROPERTIES TIMEOUT 3600)
+endif()
 
 # the repair audit is load-bearing: the planted fault damages files without
 # it, and none with it

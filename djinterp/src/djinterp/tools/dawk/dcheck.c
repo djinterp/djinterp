@@ -14,12 +14,16 @@
 * in the same pass would splice at offsets the first has already moved.  The
 * next pass measures what is actually on disk, and the run repeats until no
 * repair is produced.
+*   The fixer's two safety checks run here too, over a file before and after
+* a repair: --same-tokens and --moved-lines, with --tokens and
+* --clang-tokens=DUMP for the test that holds parse's lexer to Clang's
+* (dtokens.h; dawk's decision 45).
 *
 *
 * path:      /src/djinterp/tools/dawk/dcheck.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.20
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dmatch.h"  // corresponding header
 // std
@@ -50,6 +54,7 @@
 #include "../../../../inc/djinterp/tools/dawk/dsource.h"                // dj_awk_source
 #include "../../../../inc/djinterp/tools/dawk/dss.h"                    // dj_dss_sheet
 #include "../../../../inc/djinterp/tools/dawk/dtree.h"                  // d_awk_source_tree_init
+#include "../../../../inc/djinterp/tools/dawk/dtokens.h"                // d_tokens_same
 
 
 // dj_check_tally
@@ -1353,6 +1358,56 @@ void d_internal_assign_layers(
 
 
 /*
+d_internal_tokens_command
+  The commands over tokens, which take paths and no sheet: the result to
+exit with, or -1 when the command line is the checker's.
+*/
+static
+int d_internal_tokens_command(
+    int    argc,
+    char** argv
+)
+{
+    const char* const command = argv[1];
+
+    if ( (strcmp(command, "--tokens") == 0) && (argc == 3) )
+    {
+        return d_tokens_dump(argv[2], stdout, stderr);
+    }
+
+    if ( (strcmp(command, "--same-tokens") == 0) && (argc == 4) )
+    {
+        return d_tokens_same(argv[2], argv[3], stderr);
+    }
+
+    if ( (strcmp(command, "--moved-lines") == 0) && (argc == 4) )
+    {
+        return d_tokens_moved(argv[2], argv[3], stderr);
+    }
+
+    if ( (strncmp(command, "--clang-tokens=", 15u) == 0) && (argc == 3) )
+    {
+        return d_tokens_agree(argv[2], command + 15, stderr);
+    }
+
+    if ( (strcmp(command, "--tokens") == 0)      ||
+         (strcmp(command, "--same-tokens") == 0) ||
+         (strcmp(command, "--moved-lines") == 0) ||
+         (strncmp(command, "--clang-tokens=", 15u) == 0) )
+    {
+        (void)fprintf(stderr, "usage: dcheck --tokens <file>\n"
+                      "       dcheck --same-tokens <before> <after>\n"
+                      "       dcheck --moved-lines <before> <after>\n"
+                      "       dcheck --clang-tokens=<dump> <file>\n");
+
+        return 2;
+    }
+
+    return -1;
+}
+
+
+/*
 main
   Walks a tree, builds a banner per header, runs the sheet, and prints one
 row per declaration.  First match wins is not yet exercised because no two
@@ -1364,6 +1419,15 @@ int main(
     char** argv
 )
 {
+    // the fixer's checks over tokens, which need no settings
+    const int tokens = (argc >= 2) ? d_internal_tokens_command(argc, argv)
+                                   : -1;
+
+    if (tokens >= 0)
+    {
+        return tokens;
+    }
+
     struct dj_settings* const settings = d_settings_new();
 
     if ( (!settings) ||

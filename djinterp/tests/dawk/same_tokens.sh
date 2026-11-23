@@ -1,6 +1,6 @@
 #!/bin/sh
-# same_tokens.sh -- tools/same_tokens.py, the check every fixer's work is put
-# through, against pairs it must pass and pairs it must not.
+# same_tokens.sh -- `dcheck --same-tokens`, the check every fixer's work is
+# put through, against pairs it must pass and pairs it must not.
 #
 #   tests/dawk/same_tokens/same/     <name>.before.* and <name>.after.*: what
 #                                    a fixer of layout and comments may do
@@ -9,26 +9,27 @@
 #
 # A check that cannot fail checks nothing, so the second directory is the
 # test. Most of its pairs hold, before and after, the same characters that
-# are not white space in the same order: the comparison this tool replaced
-# passes those, and the last line says how many it passes here. Without
-# Clang there is only that comparison, and the test says so and fails, since
-# it would then be vouching for a check that is not being made.
+# are not white space in the same order: a comparison of those characters
+# passes them, and the last line says how many it passes here, which is what
+# comparing tokens adds.
 #
-#   sh tests/dawk/same_tokens.sh
-TOOL=tools/same_tokens.py
+#   sh tests/dawk/same_tokens.sh [build/dcheck]
+DCHECK=${1:-build/dcheck}
 dir=tests/dawk/same_tokens
+work=$(mktemp -d)
+trap 'rm -rf "$work"' EXIT
 fail=0
 
-if [ "$(python3 "$TOOL" --mode)" != "tokens" ]; then
-    echo "FAIL same_tokens: no clang to lex with; only characters compared"
-    exit 1
-fi
+# the characters that are not white space, in order
+squeeze() {
+    tr -d ' \t\r\n\f\v' < "$1"
+}
 
 for before in "$dir"/same/*.before.*; do
     after=$(printf '%s' "$before" | sed 's/\.before\./.after./')
-    if ! python3 "$TOOL" "$before" "$after" 2>/dev/null; then
+    if ! "$DCHECK" --same-tokens "$before" "$after" 2> "$work/why"; then
         echo "FAIL same_tokens: $(basename "$before") and its after differ"
-        python3 "$TOOL" "$before" "$after" 2>&1 | sed 's/^/    /'
+        sed 's/^/    /' "$work/why"
         fail=1
     fi
 done
@@ -37,15 +38,19 @@ caught=0
 weak=0
 for before in "$dir"/differ/*.before.*; do
     after=$(printf '%s' "$before" | sed 's/\.before\./.after./')
-    if python3 "$TOOL" "$before" "$after" 2>/dev/null; then
-        echo "FAIL same_tokens: $(basename "$before") and its after pass"
-        fail=1
-    else
-        caught=$((caught + 1))
-    fi
-    # the comparison by characters, which is the fallback: is it fooled?
-    CLANG=/nonexistent python3 "$TOOL" "$before" "$after" 2>/dev/null \
-        && weak=$((weak + 1))
+    "$DCHECK" --same-tokens "$before" "$after" 2> "$work/why"
+    case $? in
+        0)  echo "FAIL same_tokens: $(basename "$before") and its after pass"
+            fail=1 ;;
+        1)  caught=$((caught + 1)) ;;
+        *)  echo "FAIL same_tokens: $(basename "$before") could not be read"
+            sed 's/^/    /' "$work/why"
+            fail=1 ;;
+    esac
+    # the comparison of characters: is it fooled?
+    squeeze "$before" > "$work/a"
+    squeeze "$after" > "$work/b"
+    cmp -s "$work/a" "$work/b" && weak=$((weak + 1))
 done
 
 [ $fail -eq 0 ] && echo "same_tokens: the layout pair passes; $caught of" \
