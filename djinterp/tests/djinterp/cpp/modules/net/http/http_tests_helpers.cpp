@@ -4,15 +4,17 @@
 * Checks the string helpers http.hpp and net_url.hpp keep for HTTP and URLs:
 * to_string's names, "" for an extension method, method_from_string ignoring
 * case, every method and scheme token found by method_from_string and
-* scheme_from_string, the status classes and reason phrases, and the constant
-* namespaces. Header names match without regard to case, and split_url reads
-* URLs as RFC 3986 does (register item 100). C++98 and later.
+* scheme_from_string, the status classes -- none, below 100 -- and reason
+* phrases, and the constant namespaces: every check web.hpp's test made, now
+* that web.hpp is gone (net's decision 32). Header names match without
+* regard to case, and split_url reads URLs as RFC 3986 does (register
+* item 100). C++98 and later.
 *
 *
 * path:      /tests/djinterp/cpp/modules/net/http/http_tests_helpers.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/cpp/modules/net/http/http.hpp"  // HTTP helpers
 #include "../../../../../../inc/djinterp/cpp/modules/net/net_url.hpp"    // URL helpers
@@ -259,6 +261,8 @@ int main()
                              net::http_status_class::client_error) &&
                             (net::classify(200) ==
                              net::http_status_class::successful)   &&
+                            (net::classify(99) ==
+                             net::http_status_class::none)         &&
                             (same(net::reason_phrase(net::http_status::ok),
                                   "OK"))                           &&
                             (same(net::reason_phrase(404),
