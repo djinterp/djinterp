@@ -50,11 +50,26 @@
 *       separate find-style expression module, where dispatch is by
 *       pattern rather than by exact name.
 *
+* HOW TO USE
+* ----------
+*   Read a line or an argv into tokens, parse them into a command term, and fold
+* the term against a table of verbs into an effect, as the spine's three stages
+* give them; a program supplies the verbs.
+*
+* OPTIONS
+* -------
+*   None yet: the grammar is the `|` subset of djinterp.peg, and the verbs are
+* the program's.
+*
+* CONFIGURATION
+* -------------
+*   Nothing at build time; the spine is header-only C++ and needs no library.
+*
 *
 * path:      /inc/djinterp/cpp/modules/interp/spine.hpp
 * link(s):   ch-command.tex, ch-behavior.tex, ch-synthesis.tex
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*

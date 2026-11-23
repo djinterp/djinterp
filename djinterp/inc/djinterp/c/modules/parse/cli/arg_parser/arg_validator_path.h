@@ -22,11 +22,26 @@
 * D_INTERNAL_ARG_PARSER_PATH_VALIDATORS; without it the header declares
 * nothing.
 *
+* HOW TO USE
+* ----------
+*   Make one by its CLI11 name and give it to an option, as with any validator
+* (arg_validator.h).
+*
+* OPTIONS
+* -------
+*   The default paths a file is looked for on; the permissions asked for; a
+* file's size limits.
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_ARG_PARSER_PATH_VALIDATORS 0 removes them, and this header declares
+* nothing (cfg_arg_parser.h).
+*
 *
 * path:      /inc/djinterp/c/modules/parse/cli/arg_parser/arg_validator_path.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*
@@ -78,7 +93,7 @@ D_EXTERN_C_BEGIN
 // value with "File name is missing.", a path that does not exist with "File
 // does not exist: <path>", and a directory with "File is actually a
 // directory: <path>". Does not fail.
-struct dj_arg_validator d_arg_validator_existing_file(void);
+D_ARG_PARSER_API struct dj_arg_validator d_arg_validator_existing_file(void);
 
 // 1.1.2
 // d_arg_validator_existing_directory
@@ -86,6 +101,7 @@ struct dj_arg_validator d_arg_validator_existing_file(void);
 // path that does not exist with "Directory does not exist: <path>" and one
 // that is not a directory with "Directory is actually a file: <path>". Does
 // not fail.
+D_ARG_PARSER_API
 struct dj_arg_validator d_arg_validator_existing_directory(void);
 
 // 1.1.3
@@ -93,14 +109,14 @@ struct dj_arg_validator d_arg_validator_existing_directory(void);
 //   constructor: CLI11's ExistingPath, described as "PATH(existing)": rejects
 // a path that does not exist with "Path does not exist: <path>". Does not
 // fail.
-struct dj_arg_validator d_arg_validator_existing_path(void);
+D_ARG_PARSER_API struct dj_arg_validator d_arg_validator_existing_path(void);
 
 // 1.1.4
 // d_arg_validator_nonexistent_path
 //   constructor: CLI11's NonexistentPath, described as "PATH(non-existing)":
 // rejects a path that exists with "Path already exists: <path>". Does not
 // fail.
-struct dj_arg_validator d_arg_validator_nonexistent_path(void);
+D_ARG_PARSER_API struct dj_arg_validator d_arg_validator_nonexistent_path(void);
 
 // 1.2    Search
 //------------------------------------------------------------------------------
@@ -124,7 +140,7 @@ struct dj_arg_validator d_arg_validator_nonexistent_path(void);
  *         D_ARG_ERROR_OUT_OF_MEMORY, or D_ARG_ERROR_BAD_ARGUMENT for a NULL
  *         path.
  */
-struct dj_arg_validator d_arg_validator_file_on_default_path(
+D_ARG_PARSER_API struct dj_arg_validator d_arg_validator_file_on_default_path(
     const char* _default_path,
     bool        _error_return
 );
@@ -142,9 +158,10 @@ struct dj_arg_validator d_arg_validator_file_on_default_path(
 // access, as in CLI11; on Windows read and execute are always granted and
 // write unless the file is read-only, as Microsoft's std::filesystem
 // reports them. None fails.
-struct dj_arg_validator d_arg_validator_read_permissions(void);
+D_ARG_PARSER_API struct dj_arg_validator d_arg_validator_read_permissions(void);
+D_ARG_PARSER_API
 struct dj_arg_validator d_arg_validator_write_permissions(void);
-struct dj_arg_validator d_arg_validator_exec_permissions(void);
+D_ARG_PARSER_API struct dj_arg_validator d_arg_validator_exec_permissions(void);
 
 // 1.4    Size
 //------------------------------------------------------------------------------
@@ -173,7 +190,7 @@ struct dj_arg_validator d_arg_validator_exec_permissions(void);
  * @param[in] _maximum  the greatest size in bytes; 0 for no maximum.
  * @return the validator. Does not fail.
  */
-struct dj_arg_validator d_arg_validator_file_size(
+D_ARG_PARSER_API struct dj_arg_validator d_arg_validator_file_size(
     uint64_t _minimum,
     uint64_t _maximum
 );
@@ -185,7 +202,7 @@ struct dj_arg_validator d_arg_validator_file_size(
 //   constructor: CLI11's NonEmptyFile, the file-size validator with a minimum
 // of one byte and no maximum, described as "File size at least 1 bytes".
 // Does not fail.
-struct dj_arg_validator d_arg_validator_non_empty_file(void);
+D_ARG_PARSER_API struct dj_arg_validator d_arg_validator_non_empty_file(void);
 
 D_EXTERN_C_END
 

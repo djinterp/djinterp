@@ -43,11 +43,32 @@
 * as every page of the program's does, and its parser does not read them
 * again.
 *
+* HOW TO USE
+* ----------
+*   A program declares a command that is a module with d_cli_program_add_plugin;
+* the run finds, loads, checks and runs it. A module defines its entry point
+* with D_CLI_PLUGIN, and makes its own program from the host with
+* d_cli_program_init_plugin.
+*
+* OPTIONS
+* -------
+*   `cli.plugin_search`, the root's `plugin_path` and
+* `cli.plugin_strict_version`, from the user's file, the environment and the
+* command line (cli_settings.h); a program's own path
+* (d_cli_program_set_plugin_path) and its say on versions.
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_CLI_PLUGINS 0 removes the loader; D_CFG_CLI_PLUGIN_SEARCH,
+* D_CFG_CLI_PLUGIN_VARIABLE and D_CFG_CLI_PLUGIN_STRICT_VERSION are the
+* settings' defaults and whether the caller may choose where modules come from
+* (cfg_cli.h).
+*
 *
 * path:      /inc/djinterp/tools/cli/c/cli_plugin.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*
@@ -252,7 +273,7 @@ D_EXTERN_C_BEGIN
  * @return 0 when found, or an errno value: EINVAL for a NULL `_path`,
  *         ENOENT when no way of asking found it, ENOMEM.
  */
-int d_cli_executable_path(
+D_CLI_API int d_cli_executable_path(
     const char* _argv0,
     char**      _path
 );
@@ -320,7 +341,7 @@ enum dj_cli_plugin_versions
  *         D_ARG_ERROR_OUT_OF_MEMORY; D_ARG_ERROR_BAD_ARGUMENT for a NULL
  *         name or buffer.
  */
-int d_cli_plugin_find(
+D_CLI_API int d_cli_plugin_find(
     const char*           _program,
     const char*           _name,
     const char*           _executable,
@@ -353,7 +374,7 @@ int d_cli_plugin_find(
  *                             line each; may be NULL.
  * @return as d_cli_plugin_find.
  */
-int d_cli_plugin_find_with(
+D_CLI_API int d_cli_plugin_find_with(
     const char*           _program,
     const char*           _name,
     const char*           _executable,
@@ -387,7 +408,7 @@ int d_cli_plugin_find_with(
  *         loader; D_ARG_ERROR_OUT_OF_MEMORY; D_ARG_ERROR_BAD_ARGUMENT for a
  *         NULL module, path or program.
  */
-int d_cli_module_load(
+D_CLI_API int d_cli_module_load(
     struct dj_cli_module* _module,
     const char*           _path,
     const char*           _program,
@@ -408,7 +429,7 @@ int d_cli_module_load(
  * @param[in,out] _module  the module; none, or NULL, is ignored.
  * @post   `_module` is none; the module's record and code are invalid.
  */
-void d_cli_module_unload(
+D_CLI_API void d_cli_module_unload(
     struct dj_cli_module* _module
 );
 
@@ -445,7 +466,7 @@ void d_cli_module_unload(
  * @param[in]     _description  what it does, as the command list shows it.
  * @return the command; NULL on failure, as d_cli_program_add_command.
  */
-struct dj_arg_command* d_cli_program_add_plugin(
+D_CLI_API struct dj_arg_command* d_cli_program_add_plugin(
     struct dj_cli_program* _program,
     struct dj_arg_command* _parent,
     const char*            _name,
@@ -466,7 +487,7 @@ struct dj_arg_command* d_cli_program_add_plugin(
  *         end in trouble and say why; D_ARG_ERROR_BAD_ARGUMENT for a NULL
  *         program.
  */
-int d_cli_program_set_plugin_path(
+D_CLI_API int d_cli_program_set_plugin_path(
     struct dj_cli_program* _program,
     const char*            _path
 );
@@ -481,7 +502,7 @@ int d_cli_program_set_plugin_path(
  * @param[in]     _versions  a dj_cli_plugin_versions; any other value is
  *                           D_CLI_PLUGIN_VERSIONS_DEFAULT, the build's.
  */
-void d_cli_program_set_plugin_versions(
+D_CLI_API void d_cli_program_set_plugin_versions(
     struct dj_cli_program* _program,
     int                    _versions
 );
@@ -515,7 +536,7 @@ void d_cli_program_set_plugin_versions(
  *         too, or one of another ABI or smaller than
  *         D_CLI_PLUGIN_HOST_FIRST_SIZE.
  */
-int d_cli_program_init_plugin(
+D_CLI_API int d_cli_program_init_plugin(
     struct dj_cli_program*           _program,
     struct dj_arg_parser*            _parser,
     const struct dj_cli_plugin_host* _host,

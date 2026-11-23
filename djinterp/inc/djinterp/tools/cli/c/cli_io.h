@@ -20,11 +20,29 @@
 * writing through a symbolic link to where it points. What no file can stand
 * in for -- a device such as /dev/null, a pipe, a socket -- is written to.
 *
+* HOW TO USE
+* ----------
+*   Write a result through d_cli_sink_output and a diagnostic through
+* d_cli_sink_error; ask d_cli_colour_wanted whether a stream is to be coloured.
+* Read and write a whole file with d_cli_read_file and d_cli_write_file, `-` for
+* the standard stream, and release what a read gave with d_cli_free.
+*
+* OPTIONS
+* -------
+*   `--color` (always, auto, never), and NO_COLOR and TERM=dumb from the
+* environment.
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_CLI_COLOUR 0 never colours; D_CFG_CLI_CONSOLE_WIDE 0 writes UTF-8
+* bytes to a Windows console (cfg_cli.h); D_CFG_FILE_WRITE_CREATE_MODE is the
+* mode a new file is made with.
+*
 *
 * path:      /inc/djinterp/tools/cli/c/cli_io.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.10.24
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*
@@ -107,8 +125,8 @@ D_EXTERN_C_BEGIN
 // accepting every byte or reporting the short write a refusal is. The first
 // use puts the stream in binary mode where the C runtime translates line
 // ends. Neither fails to be made.
-struct dj_pack_sink d_cli_sink_output(void);
-struct dj_pack_sink d_cli_sink_error(void);
+D_CLI_API struct dj_pack_sink d_cli_sink_output(void);
+D_CLI_API struct dj_pack_sink d_cli_sink_error(void);
 
 // 1.4    Terminals
 //------------------------------------------------------------------------------
@@ -117,7 +135,7 @@ struct dj_pack_sink d_cli_sink_error(void);
 //   query: whether a standard stream, a dj_cli_stream value, is a terminal --
 // a Windows console, or what isatty says elsewhere; false for any other
 // value, and everywhere D_ENV_CLI_CONSOLE is NONE. Does not fail.
-bool d_cli_is_terminal(
+D_CLI_API bool d_cli_is_terminal(
     int _stream
 );
 
@@ -126,7 +144,7 @@ bool d_cli_is_terminal(
 //   query: how many columns the terminal standard output is shown on has,
 // when standard output is one and it can be asked; COLUMNS, when it holds a
 // number from 1 to 10000, otherwise; and 0 when neither says. Does not fail.
-size_t d_cli_terminal_columns(void);
+D_CLI_API size_t d_cli_terminal_columns(void);
 
 /**
  * @brief Decides whether text written to a standard stream should carry
@@ -144,7 +162,7 @@ size_t d_cli_terminal_columns(void);
  *                     `D_CLI_COLOUR_AUTO`.
  * @return `true` if the stream should be coloured.
  */
-bool d_cli_colour_wanted(
+D_CLI_API bool d_cli_colour_wanted(
     int _stream,
     int _mode
 );
@@ -161,7 +179,7 @@ bool d_cli_colour_wanted(
 // d_cli_is_standard
 //   query: whether a name is `-`, a standard stream (GRAMMAR.md, R11); false
 // for NULL. Does not fail.
-bool d_cli_is_standard(
+D_CLI_API bool d_cli_is_standard(
     const char* _path
 );
 
@@ -184,7 +202,7 @@ bool d_cli_is_standard(
  *         when the bytes do not fit in memory, EISDIR for a directory, and
  *         whatever opening or reading the file set.
  */
-int d_cli_read_file(
+D_CLI_API int d_cli_read_file(
     const char* _path,
     char**      _data,
     size_t*     _length
@@ -221,7 +239,7 @@ int d_cli_read_file(
  *         creating, writing, flushing or renaming the file set -- ENOMEM
  *         among them.
  */
-int d_cli_write_file(
+D_CLI_API int d_cli_write_file(
     const char* _path,
     const void* _data,
     size_t      _length
@@ -234,7 +252,7 @@ int d_cli_write_file(
 //   lifetime: frees what d_cli_read_file and d_cli_executable_path return,
 // with the allocator that made it -- which, across a plugin's boundary on
 // Windows, is not necessarily the caller's. Ignores NULL.
-void d_cli_free(
+D_CLI_API void d_cli_free(
     void* _memory
 );
 

@@ -18,11 +18,33 @@
 *   This is also the C face's umbrella header: including it includes every
 * header of the parser.
 *
+* HOW TO USE
+* ----------
+*   Make a parser with d_arg_parser_init, define its root command's options and
+* subcommands, and parse with d_arg_parser_parse; a status other than D_ARG_OK
+* goes to d_arg_parser_exit, which writes help, a version, a completion script
+* or the failure, and gives the exit code. Release it with d_arg_parser_release.
+*
+* OPTIONS
+* -------
+*   The parser's own settings: its sinks, its formatter and configuration
+* format, response files and their quoting, abbreviations, empty values,
+* suggestions, the UTF-8 arguments on Windows, and a setting hook offered the
+* long options the parse does not know (d_arg_parser_set_setting_hook).
+*
+* CONFIGURATION
+* -------------
+*   The features of cfg_arg_parser.h -- configuration files, the environment,
+* validators, response files, suggestions, the terminal's width, completion and
+* wide arguments -- each removed at 0; D_CFG_ARG_PARSER_WINDOWS_STYLE decides
+* whether a new parser takes `/name`, and D_CFG_ARG_PARSER_SUGGESTION_DISTANCE
+* how near a suggestion must be.
+*
 *
 * path:      /inc/djinterp/c/modules/parse/cli/arg_parser/arg_parser.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.11.20
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*
@@ -261,7 +283,7 @@ D_EXTERN_C_BEGIN
  * @retval D_ARG_ERROR_OUT_OF_MEMORY  a copy could not be made.
  * @retval D_ARG_ERROR_BAD_ARGUMENT   `_parser` is NULL.
  */
-int d_arg_parser_init(
+D_ARG_PARSER_API int d_arg_parser_init(
     struct dj_arg_parser* _parser,
     const char*           _description,
     const char*           _name
@@ -277,7 +299,7 @@ int d_arg_parser_init(
  *         invalid, as are the arguments d_arg_parser_ensure_utf8 recovered;
  *         the parser can be made again with d_arg_parser_init.
  */
-void d_arg_parser_release(
+D_ARG_PARSER_API void d_arg_parser_release(
     struct dj_arg_parser* _parser
 );
 
@@ -296,7 +318,7 @@ void d_arg_parser_release(
  *         values, the remaining arguments, the program's name and the
  *         error the last parse gave are invalid.
  */
-void d_arg_parser_clear(
+D_ARG_PARSER_API void d_arg_parser_clear(
     struct dj_arg_parser* _parser
 );
 
@@ -340,7 +362,7 @@ void d_arg_parser_clear(
  *         D_ARG_ERROR_BAD_ARGUMENT for a NULL parser, a NULL `_argv` with a
  *         positive `_argc`, or a NULL argument before `_argv[_argc]`.
  */
-int d_arg_parser_parse(
+D_ARG_PARSER_API int d_arg_parser_parse(
     struct dj_arg_parser* _parser,
     int                   _argc,
     char* const*          _argv
@@ -363,7 +385,7 @@ int d_arg_parser_parse(
  * @return a status, as d_arg_parser_parse's; D_ARG_ERROR_OUT_OF_MEMORY when
  *         the arguments could not be copied or held.
  */
-int d_arg_parser_parse_args(
+D_ARG_PARSER_API int d_arg_parser_parse_args(
     struct dj_arg_parser*      _parser,
     const struct dj_pack_text* _args,
     size_t                     _count,
@@ -396,7 +418,7 @@ int d_arg_parser_parse_args(
  *         for a NULL parser, or a line whose data is NULL with a nonzero
  *         length.
  */
-int d_arg_parser_parse_line(
+D_ARG_PARSER_API int d_arg_parser_parse_line(
     struct dj_arg_parser* _parser,
     struct dj_pack_text   _line,
     bool                  _with_program_name
@@ -423,7 +445,7 @@ int d_arg_parser_parse_line(
  * @return a status, as d_arg_parser_parse's; D_ARG_ERROR_OUT_OF_MEMORY when
  *         the arguments could not be converted.
  */
-int d_arg_parser_parse_wide(
+D_ARG_PARSER_API int d_arg_parser_parse_wide(
     struct dj_arg_parser* _parser,
     int                   _argc,
     wchar_t* const*       _argv
@@ -448,7 +470,7 @@ int d_arg_parser_parse_wide(
  * @return a status, as d_arg_parser_parse_line's; D_ARG_ERROR_OUT_OF_MEMORY
  *         when the line could not be converted.
  */
-int d_arg_parser_parse_line_wide(
+D_ARG_PARSER_API int d_arg_parser_parse_line_wide(
     struct dj_arg_parser* _parser,
     const wchar_t*        _line,
     size_t                _length,
@@ -476,7 +498,7 @@ int d_arg_parser_parse_line_wide(
  *         copies could not be made, `_argv`, after recording
  *         D_ARG_ERROR_OUT_OF_MEMORY as the parser's definition error.
  */
-char** d_arg_parser_ensure_utf8(
+D_ARG_PARSER_API char** d_arg_parser_ensure_utf8(
     struct dj_arg_parser* _parser,
     char**                _argv
 );
@@ -508,7 +530,7 @@ char** d_arg_parser_ensure_utf8(
  *         configuration extras are errors; D_ARG_ERROR_BAD_ARGUMENT for a
  *         NULL parser, or text whose data is NULL with a nonzero length.
  */
-int d_arg_parser_parse_config(
+D_ARG_PARSER_API int d_arg_parser_parse_config(
     struct dj_arg_parser* _parser,
     struct dj_pack_text   _text
 );
@@ -547,7 +569,7 @@ int d_arg_parser_parse_config(
  *         one a runtime error chose; D_ARG_EXIT_BASE_CLASS for a NULL
  *         parser.
  */
-int d_arg_parser_exit(
+D_ARG_PARSER_API int d_arg_parser_exit(
     const struct dj_arg_parser* _parser,
     int                         _status
 );
@@ -556,7 +578,7 @@ int d_arg_parser_exit(
 // d_arg_parser_exit_to
 //   ending: d_arg_parser_exit writing to the sinks given rather than the
 // parser's, as CLI11's exit(error, out, err).
-int d_arg_parser_exit_to(
+D_ARG_PARSER_API int d_arg_parser_exit_to(
     const struct dj_arg_parser* _parser,
     int                         _status,
     struct dj_pack_sink         _out,
@@ -583,7 +605,7 @@ int d_arg_parser_exit_to(
  * @return the error's exit code; D_ARG_EXIT_BASE_CLASS when the command or
  *         the error is NULL.
  */
-int d_arg_command_exit(
+D_ARG_PARSER_API int d_arg_command_exit(
     const struct dj_arg_command* _command,
     const struct dj_arg_error*   _error
 );
@@ -592,7 +614,7 @@ int d_arg_command_exit(
 // d_arg_command_exit_to
 //   ending: d_arg_command_exit writing to the sinks given rather than the
 // parser's, as CLI11's exit(error, out, err).
-int d_arg_command_exit_to(
+D_ARG_PARSER_API int d_arg_command_exit_to(
     const struct dj_arg_command* _command,
     const struct dj_arg_error*   _error,
     struct dj_pack_sink          _out,
@@ -707,7 +729,7 @@ bool d_arg_parser_parse_or_exit(
 // the command has a help flag -- "<help> or <help-all>" when it has both. A
 // setting the hook refused (D_ARG_ERROR_SETTING), whose message is the
 // argument alone, reads "Setting refused: <argument>".
-int d_arg_failure_simple(
+D_ARG_PARSER_API int d_arg_failure_simple(
     const struct dj_arg_command* _command,
     const struct dj_arg_error*   _error,
     struct dj_pack_sink          _sink,
@@ -718,7 +740,7 @@ int d_arg_failure_simple(
 // d_arg_failure_help
 //   failure message: CLI11's FailureMessage::help: "ERROR: <name>: <message>"
 // and a newline, then the command's help.
-int d_arg_failure_help(
+D_ARG_PARSER_API int d_arg_failure_help(
     const struct dj_arg_command* _command,
     const struct dj_arg_error*   _error,
     struct dj_pack_sink          _sink,
@@ -743,13 +765,13 @@ int d_arg_failure_help(
  *                          status's own text.
  * @return `_status`; D_ARG_ERROR_BAD_ARGUMENT for a NULL command.
  */
-int d_arg_command_fail(
+D_ARG_PARSER_API int d_arg_command_fail(
     const struct dj_arg_command* _command,
     int                          _status,
     const char*                  _format,
     ...
 ) D_FORMAT_PRINTF(3, 4);
-int d_arg_option_fail(
+D_ARG_PARSER_API int d_arg_option_fail(
     const struct dj_arg_option* _option,
     int                         _status,
     const char*                 _format,
@@ -761,7 +783,7 @@ int d_arg_option_fail(
 //   failure: CLI11's RuntimeError(exit_code): records D_ARG_RUNTIME_ERROR,
 // with no message and the code the process is to end with, and returns
 // D_ARG_RUNTIME_ERROR; D_ARG_ERROR_BAD_ARGUMENT for a NULL command.
-int d_arg_command_fail_runtime(
+D_ARG_PARSER_API int d_arg_command_fail_runtime(
     const struct dj_arg_command* _command,
     int                          _exit_code
 );
@@ -780,7 +802,7 @@ int d_arg_command_fail_runtime(
 // warnings are written (`_out`, standard output at first) and where failure
 // messages are (`_err`, standard error at first), as CLI11's exit() takes
 // its streams. Each sink must outlive its use. Does not fail.
-void d_arg_parser_set_output(
+D_ARG_PARSER_API void d_arg_parser_set_output(
     struct dj_arg_parser* _parser,
     struct dj_pack_sink   _out,
     struct dj_pack_sink   _err
@@ -812,7 +834,7 @@ void d_arg_parser_set_output(
  *                          by; D_ARG_QUOTING_NATIVE_RESPONSE for the
  *                          platform's.
  */
-void d_arg_parser_set_response_files(
+D_ARG_PARSER_API void d_arg_parser_set_response_files(
     struct dj_arg_parser* _parser,
     bool                  _enabled,
     int                   _quoting
@@ -836,7 +858,7 @@ void d_arg_parser_set_response_files(
 // disabled ones are never named, nor is anything for an argument that is
 // empty, or starts with a dash and is no option's. On at first; off, the
 // message is CLI11's. Does not fail.
-void d_arg_parser_set_suggestions(
+D_ARG_PARSER_API void d_arg_parser_set_suggestions(
     struct dj_arg_parser* _parser,
     bool                  _enabled
 );
@@ -860,7 +882,7 @@ void d_arg_parser_set_suggestions(
  * @param[in,out] _parser   the parser.
  * @param[in]     _enabled  whether `--name=` is an empty value.
  */
-void d_arg_parser_set_empty_values(
+D_ARG_PARSER_API void d_arg_parser_set_empty_values(
     struct dj_arg_parser* _parser,
     bool                  _enabled
 );
@@ -888,7 +910,7 @@ void d_arg_parser_set_empty_values(
  * @param[in,out] _parser   the parser.
  * @param[in]     _enabled  whether a prefix stands for a long name.
  */
-void d_arg_parser_set_abbreviations(
+D_ARG_PARSER_API void d_arg_parser_set_abbreviations(
     struct dj_arg_parser* _parser,
     bool                  _enabled
 );
@@ -937,7 +959,7 @@ void d_arg_parser_set_abbreviations(
  * @param[in]     _ctx     the hook's context, given it first at each call;
  *                         the parser neither reads nor frees it.
  */
-void d_arg_parser_set_setting_hook(
+D_ARG_PARSER_API void d_arg_parser_set_setting_hook(
     struct dj_arg_parser* _parser,
     dj_arg_setting_fn     _hook,
     void*                 _ctx
@@ -956,7 +978,7 @@ void d_arg_parser_set_setting_hook(
 //   lookup: what the last parse ended with -- D_ARG_OK for one that did not
 // fail -- valid until the next parse, clear or release; NULL for a NULL
 // parser.
-const struct dj_arg_error* d_arg_parser_error(
+D_ARG_PARSER_API const struct dj_arg_error* d_arg_parser_error(
     const struct dj_arg_parser* _parser
 );
 
@@ -972,7 +994,7 @@ const struct dj_arg_error* d_arg_parser_error(
 // d_arg_parser_definition_error
 //   lookup: the definition error; D_ARG_OK when there is none. NULL for a
 // NULL parser.
-const struct dj_arg_error* d_arg_parser_definition_error(
+D_ARG_PARSER_API const struct dj_arg_error* d_arg_parser_definition_error(
     const struct dj_arg_parser* _parser
 );
 
@@ -981,7 +1003,7 @@ const struct dj_arg_error* d_arg_parser_definition_error(
 //   operation: forgets the definition error, for a caller that has dealt with
 // the failed definition -- as catching CLI11's exception there does -- so
 // that parsing goes ahead. Ignores NULL.
-void d_arg_parser_clear_definition_error(
+D_ARG_PARSER_API void d_arg_parser_clear_definition_error(
     struct dj_arg_parser* _parser
 );
 

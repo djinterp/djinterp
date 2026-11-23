@@ -24,11 +24,28 @@
 *   The set is written by one thread at a time: register before the program
 * starts its threads. On the option core's 64-bit floor, as option_env.h is.
 *
+* HOW TO USE
+* ----------
+*   Set up a set over a room of pointers and the program's registry with
+* d_djin_set_init, register each djin with d_djin_register before the program
+* starts its threads, and write the list or a djin's description to a sink.
+*
+* OPTIONS
+* -------
+*   A djin's own settings, in its frame: each is read from the user's file, the
+* environment and the command line by its full name. The names a program keeps
+* for its own commands are given at d_djin_set_init.
+*
+* CONFIGURATION
+* -------------
+*   D_DJIN_ABI is the record's interface, checked at registration; the option
+* core's 64-bit floor decides whether the set is built.
+*
 *
 * path:      /inc/djinterp/c/modules/interp/djin.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.11
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*

@@ -33,11 +33,28 @@
 *   What help hides stays hidden as the parser hides it: an option or a
 * subcommand in the group named "", and a disabled subcommand.
 *
+* HOW TO USE
+* ----------
+*   A program made by d_cli_program_init has this layout already; a program over
+* a bare parser asks for it with d_cli_formatter_use. d_cli_help_width is the
+* width help is wrapped to.
+*
+* OPTIONS
+* -------
+*   The program's D_CLI_PROGRAM_PARSER_HELP flag keeps the parser's own layout
+* instead (cli_program.h).
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_CLI_FORMATTER 0 leaves the parser's layout in every program;
+* D_CFG_CLI_HELP_WIDTH, D_CFG_CLI_HELP_WIDTH_MAX and D_CFG_CLI_HELP_COLUMN_MAX
+* size the layout (cfg_cli.h).
+*
 *
 * path:      /inc/djinterp/tools/cli/c/cli_format.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.10.24
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*
@@ -92,7 +109,7 @@ extern const struct dj_arg_formatter_vtable d_cli_formatter_steps;
 // d_cli_formatter_steps -- or, without D_INTERNAL_CLI_FORMATTER, leaves it the
 // parser's own. The formatter's labels and widths are kept. Ignores NULL;
 // does not fail.
-void d_cli_formatter_use(
+D_CLI_API void d_cli_formatter_use(
     struct dj_arg_formatter* _formatter
 );
 
@@ -103,7 +120,7 @@ void d_cli_formatter_use(
 //   query: the columns help is wrapped to now: standard output's terminal's,
 // at most D_INTERNAL_CLI_HELP_WIDTH_MAX and at least 40, when standard
 // output is a terminal; D_INTERNAL_CLI_HELP_WIDTH otherwise. Does not fail.
-size_t d_cli_help_width(void);
+D_CLI_API size_t d_cli_help_width(void);
 
 D_EXTERN_C_END
 

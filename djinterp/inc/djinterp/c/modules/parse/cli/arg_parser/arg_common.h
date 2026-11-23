@@ -17,11 +17,33 @@
 * `struct dj_pack_sink`, so help can be printed, captured in a buffer, or
 * appended to a C++ string by the same code.
 *
+* HOW TO USE
+* ----------
+*   Included by every header of the parser; a program includes arg_parser.h or
+* another of them rather than this one. Compare a call's result with D_ARG_OK,
+* and give a failed parse's status to d_arg_parser_exit, or read its exit code
+* from the parser's error report.
+*
+* OPTIONS
+* -------
+*   None of its own: the enumerations here -- quoting rules, multi-option
+* policies, prefix modes, the classes of extra arguments -- are the values the
+* other headers' settings take.
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_ARG_PARSER_RESPONSE_DEPTH sizes the response-file nesting the parser
+* follows; D_ENV_ARG_PARSER_QUOTING names the platform's native quoting
+* (env_arg_parser.h). D_ARG_PARSER_API marks the parser's functions for a shared
+* build: empty in a static one; D_ARG_PARSER_SHARED, with D_ARG_PARSER_BUILDING
+* for the library's own sources, makes it an export or an import (its
+* definition, before section 1).
+*
 *
 * path:      /inc/djinterp/c/modules/parse/cli/arg_parser/arg_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.11.20
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*
@@ -118,6 +140,24 @@ TABLE OF CONTENTS
 #include "../../../../../env/c/env_vendor_attributes.h"  // D_FORMAT_PRINTF
 // re_std
 #include "../../../../../../re_std/c/cstdint/dstdint.h"  // int32_t
+
+
+// D_ARG_PARSER_API
+//   macro: the argument parser's export mark, on every function its headers
+// declare (env_vendor_attributes.h, 6.1.4). Empty in a static build; where
+// the parser is built into a shared library, D_ARG_PARSER_SHARED is defined
+// for the library and everything that links it, and D_ARG_PARSER_BUILDING
+// for the library's own sources, so a symbol is exported where it is made
+// and imported where it is used.
+#if defined(D_ARG_PARSER_SHARED)
+    #if defined(D_ARG_PARSER_BUILDING)
+        #define D_ARG_PARSER_API D_EXPORT
+    #else
+        #define D_ARG_PARSER_API D_IMPORT
+    #endif
+#else
+    #define D_ARG_PARSER_API
+#endif
 
 
 //==============================================================================
@@ -237,13 +277,13 @@ bool d_arg_status_is_error(
 // carries when none was recorded -- CLI11's default where CLI11 has one --
 // as d_arg_error_message reads it. A status outside the enum is named and
 // described "Error" and exits with D_ARG_EXIT_BASE_CLASS.
-const char* d_arg_status_name(
+D_ARG_PARSER_API const char* d_arg_status_name(
     int _status
 );
-const char* d_arg_status_message(
+D_ARG_PARSER_API const char* d_arg_status_message(
     int _status
 );
-int d_arg_status_exit_code(
+D_ARG_PARSER_API int d_arg_status_exit_code(
     int _status
 );
 
@@ -729,13 +769,13 @@ D_EXTERN_C_BEGIN
 //   lifetime: init makes an empty buffer that owns nothing; release frees the
 // storage and leaves an empty buffer; clear empties it and keeps the storage.
 // None fails, and each accepts NULL.
-void d_arg_buffer_init(
+D_ARG_PARSER_API void d_arg_buffer_init(
     struct dj_arg_buffer* _buffer
 );
-void d_arg_buffer_release(
+D_ARG_PARSER_API void d_arg_buffer_release(
     struct dj_arg_buffer* _buffer
 );
-void d_arg_buffer_clear(
+D_ARG_PARSER_API void d_arg_buffer_clear(
     struct dj_arg_buffer* _buffer
 );
 
@@ -744,7 +784,7 @@ void d_arg_buffer_clear(
 //   shortening: cuts the content back to its first `_length` bytes, keeping
 // the storage and the terminator; a longer `_length` changes nothing. Does
 // not fail, and accepts NULL.
-void d_arg_buffer_truncate(
+D_ARG_PARSER_API void d_arg_buffer_truncate(
     struct dj_arg_buffer* _buffer,
     size_t                _length
 );
@@ -767,7 +807,7 @@ void d_arg_buffer_truncate(
  * @retval D_ARG_ERROR_BAD_ARGUMENT   `_buffer` is NULL, or `_data` is NULL
  *                                    with a nonzero `_length`.
  */
-int d_arg_buffer_append(
+D_ARG_PARSER_API int d_arg_buffer_append(
     struct dj_arg_buffer* _buffer,
     const char*           _data,
     size_t                _length
@@ -779,7 +819,7 @@ int d_arg_buffer_append(
  * @param[in]     _text    the string; NULL appends nothing.
  * @return a status, as d_arg_buffer_append's.
  */
-int d_arg_buffer_append_cstr(
+D_ARG_PARSER_API int d_arg_buffer_append_cstr(
     struct dj_arg_buffer* _buffer,
     const char*           _text
 );
@@ -790,7 +830,7 @@ int d_arg_buffer_append_cstr(
  * @param[in]     _text    the span.
  * @return a status, as d_arg_buffer_append's.
  */
-int d_arg_buffer_append_text(
+D_ARG_PARSER_API int d_arg_buffer_append_text(
     struct dj_arg_buffer* _buffer,
     struct dj_pack_text   _text
 );
@@ -801,7 +841,7 @@ int d_arg_buffer_append_text(
  * @param[in]     _character  the character.
  * @return a status, as d_arg_buffer_append's.
  */
-int d_arg_buffer_append_char(
+D_ARG_PARSER_API int d_arg_buffer_append_char(
     struct dj_arg_buffer* _buffer,
     char                  _character
 );
@@ -813,7 +853,7 @@ int d_arg_buffer_append_char(
  * @return a status, as d_arg_buffer_append's; D_ARG_ERROR_BAD_ARGUMENT also
  *         when the format cannot be expanded.
  */
-int d_arg_buffer_printf(
+D_ARG_PARSER_API int d_arg_buffer_printf(
     struct dj_arg_buffer* _buffer,
     const char*           _format,
     ...
@@ -829,7 +869,7 @@ int d_arg_buffer_printf(
  * @return the NUL-terminated content, which the caller frees with free();
  *         NULL when the buffer holds no storage or `_buffer` is NULL.
  */
-char* d_arg_buffer_detach(
+D_ARG_PARSER_API char* d_arg_buffer_detach(
     struct dj_arg_buffer* _buffer
 );
 
@@ -838,10 +878,10 @@ char* d_arg_buffer_detach(
 //   views: text spans the current content, valid until the next change; sink
 // appends whatever is written to it, reporting a short write once `failed`
 // is set. Neither allocates.
-struct dj_pack_text d_arg_buffer_text(
+D_ARG_PARSER_API struct dj_pack_text d_arg_buffer_text(
     const struct dj_arg_buffer* _buffer
 );
-struct dj_pack_sink d_arg_buffer_sink(
+D_ARG_PARSER_API struct dj_pack_sink d_arg_buffer_sink(
     struct dj_arg_buffer* _buffer
 );
 
@@ -851,11 +891,11 @@ struct dj_pack_sink d_arg_buffer_sink(
 // d_arg_sink_file / d_arg_sink_stdout / d_arg_sink_stderr
 //   sinks over a C stream, which they write with fwrite and neither open nor
 // close. A NULL stream gives a sink that refuses every write.
-struct dj_pack_sink d_arg_sink_file(
+D_ARG_PARSER_API struct dj_pack_sink d_arg_sink_file(
     FILE* _stream
 );
-struct dj_pack_sink d_arg_sink_stdout(void);
-struct dj_pack_sink d_arg_sink_stderr(void);
+D_ARG_PARSER_API struct dj_pack_sink d_arg_sink_stdout(void);
+D_ARG_PARSER_API struct dj_pack_sink d_arg_sink_stderr(void);
 
 // 4.2.2
 // d_arg_sink_write / d_arg_sink_cstr / d_arg_sink_printf
@@ -865,16 +905,16 @@ struct dj_pack_sink d_arg_sink_stderr(void);
 // also returns D_ARG_ERROR_OUT_OF_MEMORY when its text could not be
 // formatted, and D_ARG_ERROR_BAD_ARGUMENT when the format cannot be
 // expanded.
-int d_arg_sink_write(
+D_ARG_PARSER_API int d_arg_sink_write(
     struct dj_pack_sink _sink,
     const char*         _data,
     size_t              _length
 );
-int d_arg_sink_cstr(
+D_ARG_PARSER_API int d_arg_sink_cstr(
     struct dj_pack_sink _sink,
     const char*         _text
 );
-int d_arg_sink_printf(
+D_ARG_PARSER_API int d_arg_sink_printf(
     struct dj_pack_sink _sink,
     const char*         _format,
     ...
@@ -886,10 +926,10 @@ int d_arg_sink_printf(
 // d_arg_error_init / d_arg_error_release
 //   lifetime: init makes an error reporting D_ARG_OK; release frees its
 // message and makes it D_ARG_OK again. Neither fails.
-void d_arg_error_init(
+D_ARG_PARSER_API void d_arg_error_init(
     struct dj_arg_error* _error
 );
-void d_arg_error_release(
+D_ARG_PARSER_API void d_arg_error_release(
     struct dj_arg_error* _error
 );
 
@@ -907,7 +947,7 @@ void d_arg_error_release(
  *         cannot be copied, `_error->message` is NULL and the status stands.
  * @return `_status`, so a caller may `return d_arg_error_set(...)`.
  */
-int d_arg_error_set(
+D_ARG_PARSER_API int d_arg_error_set(
     struct dj_arg_error*         _error,
     int                          _status,
     const struct dj_arg_command* _command,
@@ -923,7 +963,7 @@ int d_arg_error_set(
  * @param[in]     _format  the message's format string; NULL for none.
  * @return `_status`.
  */
-int d_arg_error_setf(
+D_ARG_PARSER_API int d_arg_error_setf(
     struct dj_arg_error* _error,
     int                  _status,
     const char*          _format,
@@ -935,10 +975,10 @@ int d_arg_error_setf(
 //   reading: message is never NULL -- the recorded text, or the status's own,
 // d_arg_status_message's, when none was recorded -- and exit_code is the
 // code to end the process with. Both accept NULL, which reads as D_ARG_OK.
-const char* d_arg_error_message(
+D_ARG_PARSER_API const char* d_arg_error_message(
     const struct dj_arg_error* _error
 );
-int d_arg_error_exit_code(
+D_ARG_PARSER_API int d_arg_error_exit_code(
     const struct dj_arg_error* _error
 );
 
@@ -950,10 +990,10 @@ int d_arg_error_exit_code(
 // list, the array of a text list -- and leave it empty. A zeroed list is an
 // empty one, so a caller's list needs no initialization. Neither fails, and
 // each ignores NULL.
-void d_arg_string_list_release(
+D_ARG_PARSER_API void d_arg_string_list_release(
     struct dj_arg_string_list* _list
 );
-void d_arg_text_list_release(
+D_ARG_PARSER_API void d_arg_text_list_release(
     struct dj_arg_text_list* _list
 );
 
@@ -970,7 +1010,7 @@ void d_arg_text_list_release(
  *                                    the list is unchanged.
  * @retval D_ARG_ERROR_BAD_ARGUMENT   `_list` is NULL.
  */
-int d_arg_string_list_append(
+D_ARG_PARSER_API int d_arg_string_list_append(
     struct dj_arg_string_list* _list,
     struct dj_pack_text        _text
 );

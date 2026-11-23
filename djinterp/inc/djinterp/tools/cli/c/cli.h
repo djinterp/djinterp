@@ -6,11 +6,26 @@
 *   GRAMMAR.md, beside the C++ faces, is the grammar every program the kit
 * makes follows; README.md is how a program is made with it.
 *
+* HOW TO USE
+* ----------
+*   Include it once for the whole kit, in C: the program, its settings, its
+* streams and files, its operands, its commands that change a file, its help,
+* and its plugins, with the argument parser beneath them.
+*
+* OPTIONS
+* -------
+*   None of its own: each header it includes says its own.
+*
+* CONFIGURATION
+* -------------
+*   cfg_cli.h's knobs, read by the headers it includes; D_CFG_CLI_ALL 0 builds
+* the smallest kit.
+*
 *
 * path:      /inc/djinterp/tools/cli/c/cli.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 #ifndef DJINTERP_TOOLS_CLI_C_CLI_H
@@ -21,6 +36,7 @@
 #include "./cli_edit.h"                                  // commands that change
                                                          // a file
 #include "./cli_format.h"                                // help's layout
+#include "./cli_help.h"                                  // the description
 #include "./cli_io.h"                                    // streams, terminals,
                                                          // files
 #include "./cli_operand.h"                               // operands that name

@@ -18,11 +18,30 @@
 * which the parse asks of a positional expecting no values; reading and
 * writing text and files exist only with D_INTERNAL_ARG_PARSER_CONFIG_FILES.
 *
+* HOW TO USE
+* ----------
+*   Give a command a config option with d_arg_command_set_config: the parse
+* reads the files it names through the command's format, TOML by default.
+* d_arg_config_format_init_ini makes the INI format instead, and
+* d_arg_command_config_to_sink writes what a parse produced as a file would hold
+* it.
+*
+* OPTIONS
+* -------
+*   A format's characters -- comment, array, value, quote and section marks --
+* its section and index to read, and its operations table, each NULL entry
+* CLI11's own.
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_ARG_PARSER_CONFIG_FILES 0 removes reading and writing text and files;
+* the records stay, as does reading an item as a flag (cfg_arg_parser.h).
+*
 *
 * path:      /inc/djinterp/c/modules/parse/cli/arg_parser/arg_config.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*
@@ -228,10 +247,10 @@ D_EXTERN_C_BEGIN
 // between section names, 255 layers -- and init_ini its ConfigINI, which
 // comments with `;`, has no array brackets and separates values with
 // spaces. Neither fails, and each ignores NULL.
-void d_arg_config_format_init(
+D_ARG_PARSER_API void d_arg_config_format_init(
     struct dj_arg_config_format* _format
 );
-void d_arg_config_format_init_ini(
+D_ARG_PARSER_API void d_arg_config_format_init_ini(
     struct dj_arg_config_format* _format
 );
 
@@ -239,7 +258,7 @@ void d_arg_config_format_init_ini(
 // d_arg_config_format_release
 //   lifetime: frees the section name and leaves the format as init makes it.
 // Ignores NULL.
-void d_arg_config_format_release(
+D_ARG_PARSER_API void d_arg_config_format_release(
     struct dj_arg_config_format* _format
 );
 
@@ -259,7 +278,7 @@ void d_arg_config_format_release(
  *                                    is unchanged.
  * @retval D_ARG_ERROR_BAD_ARGUMENT   `_format` is NULL.
  */
-int d_arg_config_format_set_section(
+D_ARG_PARSER_API int d_arg_config_format_set_section(
     struct dj_arg_config_format* _format,
     const char*                  _section
 );
@@ -268,15 +287,15 @@ int d_arg_config_format_set_section(
 // d_arg_config_format_set_index and kin
 //   settings: CLI11's index(), maxLayers() (0 to 255), commentDefaults() and
 // allowDuplicateFields(). None fails.
-void d_arg_config_format_set_index(
+D_ARG_PARSER_API void d_arg_config_format_set_index(
     struct dj_arg_config_format* _format,
     int                          _index
 );
-void d_arg_config_format_set_max_layers(
+D_ARG_PARSER_API void d_arg_config_format_set_max_layers(
     struct dj_arg_config_format* _format,
     int                          _layers
 );
-void d_arg_config_format_set_flag(
+D_ARG_PARSER_API void d_arg_config_format_set_flag(
     struct dj_arg_config_format* _format,
     uint32_t                     _flag,
     bool                         _value
@@ -288,7 +307,7 @@ void d_arg_config_format_set_flag(
 // d_arg_command_config_format
 //   lookup: the format a command reads and writes with: its own, else the
 // nearest ancestor's, else its parser's; NULL for NULL.
-const struct dj_arg_config_format* d_arg_command_config_format(
+D_ARG_PARSER_API const struct dj_arg_config_format* d_arg_command_config_format(
     const struct dj_arg_command* _command
 );
 
@@ -305,10 +324,10 @@ const struct dj_arg_config_format* d_arg_command_config_format(
 //   lifetime: item_release frees an item's lists and copies, leaving it as
 // D_ARG_CONFIG_ITEM_INIT makes one; list_release frees every item and the
 // list's storage, leaving it empty. Each ignores NULL.
-void d_arg_config_item_release(
+D_ARG_PARSER_API void d_arg_config_item_release(
     struct dj_arg_config_item* _item
 );
-void d_arg_config_item_list_release(
+D_ARG_PARSER_API void d_arg_config_item_list_release(
     struct dj_arg_config_item_list* _items
 );
 
@@ -333,15 +352,15 @@ void d_arg_config_item_list_release(
  * @retval D_ARG_ERROR_BAD_ARGUMENT   `_item` is NULL, or `_text` has a length
  *                                    but no data.
  */
-int d_arg_config_item_set_name(
+D_ARG_PARSER_API int d_arg_config_item_set_name(
     struct dj_arg_config_item* _item,
     struct dj_pack_text        _text
 );
-int d_arg_config_item_add_parent(
+D_ARG_PARSER_API int d_arg_config_item_add_parent(
     struct dj_arg_config_item* _item,
     struct dj_pack_text        _text
 );
-int d_arg_config_item_add_input(
+D_ARG_PARSER_API int d_arg_config_item_add_input(
     struct dj_arg_config_item* _item,
     struct dj_pack_text        _text
 );
@@ -359,7 +378,7 @@ int d_arg_config_item_add_input(
  *                                    the item are unchanged.
  * @retval D_ARG_ERROR_BAD_ARGUMENT   an argument is NULL.
  */
-int d_arg_config_item_list_adopt(
+D_ARG_PARSER_API int d_arg_config_item_list_adopt(
     struct dj_arg_config_item_list* _items,
     struct dj_arg_config_item*      _item
 );
@@ -370,7 +389,7 @@ int d_arg_config_item_list_adopt(
 // d_arg_config_item_fullname
 //   writing: CLI11's fullname(): the parents and the name joined by `.`.
 // Returns D_ARG_OK or the buffer's status.
-int d_arg_config_item_fullname(
+D_ARG_PARSER_API int d_arg_config_item_fullname(
     const struct dj_arg_config_item* _item,
     struct dj_arg_buffer*            _out
 );
@@ -392,7 +411,7 @@ int d_arg_config_item_fullname(
  *         item with more than one value, "<name>: too many inputs for a
  *         flag"; D_ARG_ERROR_BAD_ARGUMENT for a NULL argument.
  */
-int d_arg_config_to_flag(
+D_ARG_PARSER_API int d_arg_config_to_flag(
     const struct dj_arg_config_format* _format,
     const struct dj_arg_config_item*   _item,
     struct dj_arg_buffer*              _out
@@ -406,7 +425,7 @@ int d_arg_config_to_flag(
  * @param[in,out] _out     receives the text, appended.
  * @return a status, as d_arg_config_to_flag's.
  */
-int d_arg_config_to_flag_default(
+D_ARG_PARSER_API int d_arg_config_to_flag_default(
     const struct dj_arg_config_format* _format,
     const struct dj_arg_config_item*   _item,
     struct dj_arg_buffer*              _out
@@ -438,7 +457,7 @@ int d_arg_config_to_flag_default(
  *                                    read before it stay.
  * @retval D_ARG_ERROR_BAD_ARGUMENT   an argument is NULL.
  */
-int d_arg_config_from_text(
+D_ARG_PARSER_API int d_arg_config_from_text(
     const struct dj_arg_config_format* _format,
     struct dj_pack_text                _input,
     struct dj_arg_config_item_list*    _out,
@@ -462,7 +481,7 @@ int d_arg_config_from_text(
  * @return a status, as d_arg_config_from_text's; D_ARG_ERROR_FILE for a file
  *         that cannot be read: "<path> was not readable (missing?)".
  */
-int d_arg_config_from_file(
+D_ARG_PARSER_API int d_arg_config_from_file(
     const struct dj_arg_config_format* _format,
     const char*                        _path,
     struct dj_arg_config_item_list*    _out,
@@ -495,7 +514,7 @@ int d_arg_config_from_file(
  *         it; D_ARG_ERROR_BAD_ARGUMENT for a NULL argument or a mode that is
  *         none of dj_arg_config_output_mode's.
  */
-int d_arg_config_to_text(
+D_ARG_PARSER_API int d_arg_config_to_text(
     const struct dj_arg_config_format* _format,
     const struct dj_arg_command*       _command,
     int                                _mode,
@@ -511,13 +530,13 @@ int d_arg_config_to_text(
 //   operations: CLI11's ConfigBase implementations of the reading and
 // writing table entries, for a replacement to call, with the same
 // parameters and statuses.
-int d_arg_config_from_text_default(
+D_ARG_PARSER_API int d_arg_config_from_text_default(
     const struct dj_arg_config_format* _format,
     struct dj_pack_text                _input,
     struct dj_arg_config_item_list*    _out,
     struct dj_arg_buffer*              _error
 );
-int d_arg_config_to_text_default(
+D_ARG_PARSER_API int d_arg_config_to_text_default(
     const struct dj_arg_config_format* _format,
     const struct dj_arg_command*       _command,
     int                                _mode,
@@ -541,7 +560,7 @@ int d_arg_config_to_text_default(
  * @return D_ARG_OK, D_ARG_ERROR_FILE when the sink refused the text, or a
  *         status of d_arg_config_to_text.
  */
-int d_arg_command_config_to_sink(
+D_ARG_PARSER_API int d_arg_command_config_to_sink(
     const struct dj_arg_command* _command,
     int                          _mode,
     bool                         _describe,

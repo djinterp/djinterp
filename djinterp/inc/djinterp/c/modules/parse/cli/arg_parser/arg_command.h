@@ -19,11 +19,33 @@
 *   As with options, every call accepts NULL for the command, and a failed
 * definition records its error in the parser for the next parse to report.
 *
+* HOW TO USE
+* ----------
+*   A parser's root is `&parser->command`; d_arg_command_add_subcommand and
+* d_arg_command_add_option_group make the rest, and d_arg_command_add_option and
+* its kin make each command's options. After a parse, a command's queries say
+* what it was given: whether it parsed, its subcommands, the arguments it did
+* not use (d_arg_command_each_remaining).
+*
+* OPTIONS
+* -------
+*   Every setting of section 5 is a command's own, CLI11's App setter for
+* setter: what is done with an unrecognized argument, fallthrough, prefix
+* commands, required counts of subcommands and options, the needs and excludes
+* between commands, ignore-case and ignore-underscore, and the callbacks before,
+* during and after the parse. A subcommand made after a setting inherits it, as
+* in CLI11.
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_ARG_PARSER_CONFIG_FILES 0 removes a command's configuration files, and
+* a config option then reports a configuration error (cfg_arg_parser.h).
+*
 *
 * path:      /inc/djinterp/c/modules/parse/cli/arg_parser/arg_command.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*
@@ -464,7 +486,7 @@ D_EXTERN_C_BEGIN
  *         D_ARG_ERROR_OPTION_ALREADY_ADDED or D_ARG_ERROR_OUT_OF_MEMORY, or,
  *         unrecorded, for a NULL argument.
  */
-struct dj_arg_option* d_arg_command_add_option(
+D_ARG_PARSER_API struct dj_arg_option* d_arg_command_add_option(
     struct dj_arg_command* _command,
     const char*            _names,
     const char*            _description
@@ -485,7 +507,7 @@ struct dj_arg_option* d_arg_command_add_option(
  * @param[in]     _description  the help text, copied; NULL for none.
  * @return the option, or NULL, as d_arg_command_add_option.
  */
-struct dj_arg_option* d_arg_command_add_option_bound(
+D_ARG_PARSER_API struct dj_arg_option* d_arg_command_add_option_bound(
     struct dj_arg_command*    _command,
     const char*               _names,
     void*                     _target,
@@ -508,7 +530,7 @@ struct dj_arg_option* d_arg_command_add_option_bound(
  * @param[in]     _description  the help text, copied; NULL for none.
  * @return the option, or NULL, as d_arg_command_add_option.
  */
-struct dj_arg_option* d_arg_command_add_option_callback(
+D_ARG_PARSER_API struct dj_arg_option* d_arg_command_add_option_callback(
     struct dj_arg_command* _command,
     const char*            _names,
     dj_arg_results_fn      _callback,
@@ -535,7 +557,7 @@ struct dj_arg_option* d_arg_command_add_option_callback(
  * @return the flag, or NULL, as d_arg_command_add_option; also
  *         D_ARG_ERROR_INCORRECT_CONSTRUCTION, recorded.
  */
-struct dj_arg_option* d_arg_command_add_flag(
+D_ARG_PARSER_API struct dj_arg_option* d_arg_command_add_flag(
     struct dj_arg_command* _command,
     const char*            _names,
     const char*            _description
@@ -562,7 +584,7 @@ struct dj_arg_option* d_arg_command_add_flag(
  * @param[in]     _description  the help text, copied; NULL for none.
  * @return the flag, or NULL, as d_arg_command_add_flag.
  */
-struct dj_arg_option* d_arg_command_add_flag_bound(
+D_ARG_PARSER_API struct dj_arg_option* d_arg_command_add_flag_bound(
     struct dj_arg_command*    _command,
     const char*               _names,
     void*                     _target,
@@ -591,7 +613,7 @@ struct dj_arg_option* d_arg_command_add_flag_bound(
  * @param[in]     _description  the help text, copied; NULL for none.
  * @return the flag, or NULL, as d_arg_command_add_flag.
  */
-struct dj_arg_option* d_arg_command_add_flag_callback(
+D_ARG_PARSER_API struct dj_arg_option* d_arg_command_add_flag_callback(
     struct dj_arg_command* _command,
     const char*            _names,
     dj_arg_flag_fn         _function,
@@ -599,7 +621,7 @@ struct dj_arg_option* d_arg_command_add_flag_callback(
     dj_arg_release_fn      _release,
     const char*            _description
 );
-struct dj_arg_option* d_arg_command_add_flag_function(
+D_ARG_PARSER_API struct dj_arg_option* d_arg_command_add_flag_function(
     struct dj_arg_command* _command,
     const char*            _names,
     dj_arg_flag_fn         _function,
@@ -630,7 +652,7 @@ struct dj_arg_option* d_arg_command_add_flag_function(
  * @param[in]     _description  the help text, copied; NULL for none.
  * @return the flag, or NULL, as d_arg_command_add_flag.
  */
-struct dj_arg_option* d_arg_command_add_flag_function_intmax(
+D_ARG_PARSER_API struct dj_arg_option* d_arg_command_add_flag_function_intmax(
     struct dj_arg_command* _command,
     const char*            _names,
     dj_arg_flag_intmax_fn  _function,
@@ -662,12 +684,12 @@ struct dj_arg_option* d_arg_command_add_flag_function_intmax(
  * @return the flag; NULL when removed, or on failure, as
  *         d_arg_command_add_flag.
  */
-struct dj_arg_option* d_arg_command_set_help_flag(
+D_ARG_PARSER_API struct dj_arg_option* d_arg_command_set_help_flag(
     struct dj_arg_command* _command,
     const char*            _names,
     const char*            _description
 );
-struct dj_arg_option* d_arg_command_set_help_all_flag(
+D_ARG_PARSER_API struct dj_arg_option* d_arg_command_set_help_all_flag(
     struct dj_arg_command* _command,
     const char*            _names,
     const char*            _description
@@ -695,13 +717,13 @@ struct dj_arg_option* d_arg_command_set_help_all_flag(
  * @return the flag; NULL when removed, or on failure, as
  *         d_arg_command_add_flag.
  */
-struct dj_arg_option* d_arg_command_set_version_flag(
+D_ARG_PARSER_API struct dj_arg_option* d_arg_command_set_version_flag(
     struct dj_arg_command* _command,
     const char*            _names,
     const char*            _version,
     const char*            _description
 );
-struct dj_arg_option* d_arg_command_set_version_fn(
+D_ARG_PARSER_API struct dj_arg_option* d_arg_command_set_version_fn(
     struct dj_arg_command* _command,
     const char*            _names,
     dj_arg_command_text_fn _write,
@@ -735,7 +757,7 @@ struct dj_arg_option* d_arg_command_set_version_fn(
  * @return the option; NULL when removed, or on failure, as
  *         d_arg_command_add_option.
  */
-struct dj_arg_option* d_arg_command_set_config(
+D_ARG_PARSER_API struct dj_arg_option* d_arg_command_set_config(
     struct dj_arg_command* _command,
     const char*            _names,
     const char*            _default_file,
@@ -750,7 +772,7 @@ struct dj_arg_option* d_arg_command_set_config(
 //   lookup: CLI11's get_option_no_throw(name): the option whose name matches
 // as d_arg_option_check_name matches, searching the command, its option
 // groups, and, with fallthrough, its parent; NULL when none does.
-struct dj_arg_option* d_arg_command_option(
+D_ARG_PARSER_API struct dj_arg_option* d_arg_command_option(
     const struct dj_arg_command* _command,
     const char*                  _name
 );
@@ -772,7 +794,7 @@ struct dj_arg_option* d_arg_command_option(
  * @post   on success the option, and every pointer to it, is invalid.
  * @return whether the command owned the option.
  */
-bool d_arg_command_remove_option(
+D_ARG_PARSER_API bool d_arg_command_remove_option(
     struct dj_arg_command* _command,
     struct dj_arg_option*  _option
 );
@@ -812,7 +834,7 @@ bool d_arg_command_remove_option(
  * @return the subcommand, owned by `_command`; NULL after recording the
  *         failure, or, unrecorded, for a NULL command.
  */
-struct dj_arg_command* d_arg_command_add_subcommand(
+D_ARG_PARSER_API struct dj_arg_command* d_arg_command_add_subcommand(
     struct dj_arg_command* _command,
     const char*            _name,
     const char*            _description
@@ -836,7 +858,7 @@ struct dj_arg_command* d_arg_command_add_subcommand(
  * @param[in]     _description  the help text, copied; NULL for none.
  * @return the group, or NULL, as d_arg_command_add_subcommand.
  */
-struct dj_arg_command* d_arg_command_add_option_group(
+D_ARG_PARSER_API struct dj_arg_command* d_arg_command_add_option_group(
     struct dj_arg_command* _command,
     const char*            _group_name,
     const char*            _description
@@ -875,7 +897,7 @@ struct dj_arg_command* d_arg_command_add_option_group(
  * @retval D_ARG_ERROR_OUT_OF_MEMORY         the group's list could not grow.
  * @retval D_ARG_ERROR_BAD_ARGUMENT          `_group` is not an option group.
  */
-int d_arg_command_group_add_option(
+D_ARG_PARSER_API int d_arg_command_group_add_option(
     struct dj_arg_command* _group,
     struct dj_arg_option*  _option
 );
@@ -907,7 +929,7 @@ int d_arg_command_group_add_option(
  *                                           would put a command inside
  *                                           itself.
  */
-int d_arg_command_group_add_subcommand(
+D_ARG_PARSER_API int d_arg_command_group_add_subcommand(
     struct dj_arg_command* _group,
     struct dj_arg_command* _subcommand
 );
@@ -920,11 +942,11 @@ int d_arg_command_group_add_subcommand(
 // groups and reads the command's own matching settings, and
 // get_subcommand(index), over the command's own list. NULL when there is no
 // such subcommand.
-struct dj_arg_command* d_arg_command_subcommand(
+D_ARG_PARSER_API struct dj_arg_command* d_arg_command_subcommand(
     const struct dj_arg_command* _command,
     const char*                  _name
 );
-struct dj_arg_command* d_arg_command_subcommand_at(
+D_ARG_PARSER_API struct dj_arg_command* d_arg_command_subcommand_at(
     const struct dj_arg_command* _command,
     size_t                       _index
 );
@@ -933,7 +955,7 @@ struct dj_arg_command* d_arg_command_subcommand_at(
 // d_arg_command_option_group
 //   lookup: CLI11's get_option_group(name): the nameless subcommand whose
 // group is `_group_name`; NULL when there is none.
-struct dj_arg_command* d_arg_command_option_group(
+D_ARG_PARSER_API struct dj_arg_command* d_arg_command_option_group(
     const struct dj_arg_command* _command,
     const char*                  _group_name
 );
@@ -957,7 +979,7 @@ struct dj_arg_command* d_arg_command_option_group(
  *         invalid.
  * @return whether the command owned the subcommand.
  */
-bool d_arg_command_remove_subcommand(
+D_ARG_PARSER_API bool d_arg_command_remove_subcommand(
     struct dj_arg_command* _command,
     struct dj_arg_command* _subcommand
 );
@@ -982,7 +1004,7 @@ bool d_arg_command_remove_subcommand(
 // parent's other subcommands (D_ARG_ERROR_OPTION_ALREADY_ADDED, "<name>
 // conflicts with existing subcommand names is already added"), and is not
 // otherwise checked, as in CLI11. Clears AUTOMATIC_NAME.
-int d_arg_command_set_name(
+D_ARG_PARSER_API int d_arg_command_set_name(
     struct dj_arg_command* _command,
     const char*            _name
 );
@@ -995,11 +1017,11 @@ int d_arg_command_set_name(
 // makes it match another of its fallthrough parent's subcommands
 // (D_ARG_ERROR_OPTION_ALREADY_ADDED, "alias already matches an existing
 // subcommand: <alias> is already added"); and clear_aliases().
-int d_arg_command_add_alias(
+D_ARG_PARSER_API int d_arg_command_add_alias(
     struct dj_arg_command* _command,
     const char*            _alias
 );
-void d_arg_command_clear_aliases(
+D_ARG_PARSER_API void d_arg_command_clear_aliases(
     struct dj_arg_command* _command
 );
 
@@ -1008,19 +1030,19 @@ void d_arg_command_clear_aliases(
 //   settings: CLI11's description(), usage(string), footer(string) and
 // group(). Each copies its text; NULL clears it, and for the group
 // restores "SUBCOMMANDS".
-int d_arg_command_set_description(
+D_ARG_PARSER_API int d_arg_command_set_description(
     struct dj_arg_command* _command,
     const char*            _description
 );
-int d_arg_command_set_usage(
+D_ARG_PARSER_API int d_arg_command_set_usage(
     struct dj_arg_command* _command,
     const char*            _usage
 );
-int d_arg_command_set_footer(
+D_ARG_PARSER_API int d_arg_command_set_footer(
     struct dj_arg_command* _command,
     const char*            _footer
 );
-int d_arg_command_set_group(
+D_ARG_PARSER_API int d_arg_command_set_group(
     struct dj_arg_command* _command,
     const char*            _group
 );
@@ -1030,13 +1052,13 @@ int d_arg_command_set_group(
 //   settings: CLI11's usage(function) and footer(function): text written on
 // demand, before a newline and the fixed text. NULL removes the function.
 // The release function frees the context as the callbacks' in 5.5 do.
-void d_arg_command_set_usage_fn(
+D_ARG_PARSER_API void d_arg_command_set_usage_fn(
     struct dj_arg_command* _command,
     dj_arg_command_text_fn _write,
     void*                  _context,
     dj_arg_release_fn      _release
 );
-void d_arg_command_set_footer_fn(
+D_ARG_PARSER_API void d_arg_command_set_footer_fn(
     struct dj_arg_command* _command,
     dj_arg_command_text_fn _write,
     void*                  _context,
@@ -1051,15 +1073,15 @@ void d_arg_command_set_footer_fn(
 // ExtrasMode) and prefix_command(PrefixCommandMode): a dj_arg_extras_mode,
 // dj_arg_config_extras_mode or dj_arg_prefix_mode value; one outside its
 // enum is ignored. None fails.
-void d_arg_command_set_allow_extras(
+D_ARG_PARSER_API void d_arg_command_set_allow_extras(
     struct dj_arg_command* _command,
     int                    _mode
 );
-void d_arg_command_set_allow_config_extras(
+D_ARG_PARSER_API void d_arg_command_set_allow_config_extras(
     struct dj_arg_command* _command,
     int                    _mode
 );
-void d_arg_command_set_prefix_command(
+D_ARG_PARSER_API void d_arg_command_set_prefix_command(
     struct dj_arg_command* _command,
     int                    _mode
 );
@@ -1069,7 +1091,7 @@ void d_arg_command_set_prefix_command(
 //   setting: CLI11's allow_config_extras(bool): true captures both
 // configuration extras and command-line extras, false makes configuration
 // extras errors.
-void d_arg_command_set_allow_config_extras_bool(
+D_ARG_PARSER_API void d_arg_command_set_allow_config_extras_bool(
     struct dj_arg_command* _command,
     bool                   _allow
 );
@@ -1083,51 +1105,51 @@ void d_arg_command_set_allow_config_extras_bool(
 // validate_positionals, validate_optional_arguments,
 // allow_non_standard_option_names, allow_subcommand_prefix_matching,
 // fallthrough and subcommand_fallthrough. None fails.
-void d_arg_command_set_required(
+D_ARG_PARSER_API void d_arg_command_set_required(
     struct dj_arg_command* _command,
     bool                   _value
 );
-void d_arg_command_set_disabled(
+D_ARG_PARSER_API void d_arg_command_set_disabled(
     struct dj_arg_command* _command,
     bool                   _value
 );
-void d_arg_command_set_silent(
+D_ARG_PARSER_API void d_arg_command_set_silent(
     struct dj_arg_command* _command,
     bool                   _value
 );
-void d_arg_command_set_windows_style(
+D_ARG_PARSER_API void d_arg_command_set_windows_style(
     struct dj_arg_command* _command,
     bool                   _value
 );
-void d_arg_command_set_positionals_at_end(
+D_ARG_PARSER_API void d_arg_command_set_positionals_at_end(
     struct dj_arg_command* _command,
     bool                   _value
 );
-void d_arg_command_set_configurable(
+D_ARG_PARSER_API void d_arg_command_set_configurable(
     struct dj_arg_command* _command,
     bool                   _value
 );
-void d_arg_command_set_validate_positionals(
+D_ARG_PARSER_API void d_arg_command_set_validate_positionals(
     struct dj_arg_command* _command,
     bool                   _value
 );
-void d_arg_command_set_validate_optional_arguments(
+D_ARG_PARSER_API void d_arg_command_set_validate_optional_arguments(
     struct dj_arg_command* _command,
     bool                   _value
 );
-void d_arg_command_set_non_standard_names(
+D_ARG_PARSER_API void d_arg_command_set_non_standard_names(
     struct dj_arg_command* _command,
     bool                   _value
 );
-void d_arg_command_set_prefix_matching(
+D_ARG_PARSER_API void d_arg_command_set_prefix_matching(
     struct dj_arg_command* _command,
     bool                   _value
 );
-void d_arg_command_set_fallthrough(
+D_ARG_PARSER_API void d_arg_command_set_fallthrough(
     struct dj_arg_command* _command,
     bool                   _value
 );
-void d_arg_command_set_subcommand_fallthrough(
+D_ARG_PARSER_API void d_arg_command_set_subcommand_fallthrough(
     struct dj_arg_command* _command,
     bool                   _value
 );
@@ -1140,11 +1162,11 @@ void d_arg_command_set_subcommand_fallthrough(
 // (D_ARG_ERROR_OPTION_ALREADY_ADDED, "ignore case would cause subcommand
 // name conflicts: <name> is already added", or "ignore underscore ..."),
 // keeping the setting off.
-int d_arg_command_set_ignore_case(
+D_ARG_PARSER_API int d_arg_command_set_ignore_case(
     struct dj_arg_command* _command,
     bool                   _value
 );
-int d_arg_command_set_ignore_underscore(
+D_ARG_PARSER_API int d_arg_command_set_ignore_underscore(
     struct dj_arg_command* _command,
     bool                   _value
 );
@@ -1154,7 +1176,7 @@ int d_arg_command_set_ignore_underscore(
 //   setting: CLI11's immediate_callback(): moves the command's callback
 // between running when the command is parsed and running after the whole
 // command line, when only one of the two is set.
-void d_arg_command_set_immediate_callback(
+D_ARG_PARSER_API void d_arg_command_set_immediate_callback(
     struct dj_arg_command* _command,
     bool                   _value
 );
@@ -1164,11 +1186,11 @@ void d_arg_command_set_immediate_callback(
 //   settings: CLI11's disabled_by_default() and enabled_by_default(): the
 // dj_arg_startup state each parse starts the command in. Turning one off
 // leaves the other as it was.
-void d_arg_command_set_disabled_by_default(
+D_ARG_PARSER_API void d_arg_command_set_disabled_by_default(
     struct dj_arg_command* _command,
     bool                   _value
 );
-void d_arg_command_set_enabled_by_default(
+D_ARG_PARSER_API void d_arg_command_set_enabled_by_default(
     struct dj_arg_command* _command,
     bool                   _value
 );
@@ -1180,12 +1202,12 @@ void d_arg_command_set_enabled_by_default(
 //   settings: CLI11's require_subcommand(min, max) -- a maximum of 0 is
 // unlimited -- and require_subcommand(int): `n` requires exactly `n`, `-n`
 // allows at most `n`; CLI11's require_subcommand() is (1, 0). None fails.
-void d_arg_command_require_subcommand(
+D_ARG_PARSER_API void d_arg_command_require_subcommand(
     struct dj_arg_command* _command,
     size_t                 _minimum,
     size_t                 _maximum
 );
-void d_arg_command_require_subcommand_count(
+D_ARG_PARSER_API void d_arg_command_require_subcommand_count(
     struct dj_arg_command* _command,
     int                    _value
 );
@@ -1194,12 +1216,12 @@ void d_arg_command_require_subcommand_count(
 // d_arg_command_require_option and kin
 //   settings: CLI11's require_option(min, max) and require_option(int), with
 // the same meanings, counting option groups used as one option each.
-void d_arg_command_require_option(
+D_ARG_PARSER_API void d_arg_command_require_option(
     struct dj_arg_command* _command,
     size_t                 _minimum,
     size_t                 _maximum
 );
-void d_arg_command_require_option_count(
+D_ARG_PARSER_API void d_arg_command_require_option_count(
     struct dj_arg_command* _command,
     int                    _value
 );
@@ -1215,7 +1237,7 @@ void d_arg_command_require_option_count(
 // d_arg_command_set_callback
 //   setting: CLI11's callback(): the parse-complete callback with
 // D_ARG_COMMAND_IMMEDIATE_CALLBACK, the final callback without.
-void d_arg_command_set_callback(
+D_ARG_PARSER_API void d_arg_command_set_callback(
     struct dj_arg_command* _command,
     dj_arg_command_fn      _callback,
     void*                  _context,
@@ -1227,13 +1249,13 @@ void d_arg_command_set_callback(
 //   settings: CLI11's final_callback(), which runs after the whole command
 // line is processed, and parse_complete_callback(), which runs as soon as
 // the command's own arguments are.
-void d_arg_command_set_final_callback(
+D_ARG_PARSER_API void d_arg_command_set_final_callback(
     struct dj_arg_command* _command,
     dj_arg_command_fn      _callback,
     void*                  _context,
     dj_arg_release_fn      _release
 );
-void d_arg_command_set_parse_complete_callback(
+D_ARG_PARSER_API void d_arg_command_set_parse_complete_callback(
     struct dj_arg_command* _command,
     dj_arg_command_fn      _callback,
     void*                  _context,
@@ -1244,7 +1266,7 @@ void d_arg_command_set_parse_complete_callback(
 // d_arg_command_set_preparse_callback
 //   setting: CLI11's preparse_callback(): runs once per parse, when the
 // command is first met, with the number of arguments left.
-void d_arg_command_set_preparse_callback(
+D_ARG_PARSER_API void d_arg_command_set_preparse_callback(
     struct dj_arg_command* _command,
     dj_arg_preparse_fn     _callback,
     void*                  _context,
@@ -1257,7 +1279,7 @@ void d_arg_command_set_preparse_callback(
 // run each time the command's callbacks are about to run, after its
 // arguments are parsed and before its parse-complete callback, its
 // subcommands' callbacks and its final callback.
-void d_arg_command_set_pre_callback(
+D_ARG_PARSER_API void d_arg_command_set_pre_callback(
     struct dj_arg_command* _command,
     dj_arg_command_fn      _callback,
     void*                  _context,
@@ -1275,7 +1297,7 @@ void d_arg_command_set_pre_callback(
 // of the message its parent had when it was made. A function that fails --
 // returns anything but D_ARG_OK -- is followed by d_arg_failure_simple's
 // message, so that no failed parse goes unreported.
-void d_arg_command_set_failure_message(
+D_ARG_PARSER_API void d_arg_command_set_failure_message(
     struct dj_arg_command* _command,
     dj_arg_failure_fn      _write,
     void*                  _context,
@@ -1310,19 +1332,19 @@ void d_arg_command_set_failure_message(
  * @retval D_ARG_ERROR_OUT_OF_MEMORY           the list could not grow.
  * @retval D_ARG_ERROR_BAD_ARGUMENT            `_command` is NULL.
  */
-int d_arg_command_excludes_option(
+D_ARG_PARSER_API int d_arg_command_excludes_option(
     struct dj_arg_command* _command,
     struct dj_arg_option*  _option
 );
-int d_arg_command_excludes_command(
+D_ARG_PARSER_API int d_arg_command_excludes_command(
     struct dj_arg_command* _command,
     struct dj_arg_command* _other
 );
-int d_arg_command_needs_option(
+D_ARG_PARSER_API int d_arg_command_needs_option(
     struct dj_arg_command* _command,
     struct dj_arg_option*  _option
 );
-int d_arg_command_needs_command(
+D_ARG_PARSER_API int d_arg_command_needs_command(
     struct dj_arg_command* _command,
     struct dj_arg_command* _other
 );
@@ -1331,19 +1353,19 @@ int d_arg_command_needs_command(
 // d_arg_command_remove_excludes_option and kin
 //   relations: CLI11's remove_excludes and remove_needs. Removing a command
 // exclusion removes both halves. Each returns whether there was one.
-bool d_arg_command_remove_excludes_option(
+D_ARG_PARSER_API bool d_arg_command_remove_excludes_option(
     struct dj_arg_command*      _command,
     const struct dj_arg_option* _option
 );
-bool d_arg_command_remove_excludes_command(
+D_ARG_PARSER_API bool d_arg_command_remove_excludes_command(
     struct dj_arg_command* _command,
     struct dj_arg_command* _other
 );
-bool d_arg_command_remove_needs_option(
+D_ARG_PARSER_API bool d_arg_command_remove_needs_option(
     struct dj_arg_command*      _command,
     const struct dj_arg_option* _option
 );
-bool d_arg_command_remove_needs_command(
+D_ARG_PARSER_API bool d_arg_command_remove_needs_command(
     struct dj_arg_command*       _command,
     const struct dj_arg_command* _other
 );
@@ -1356,11 +1378,11 @@ bool d_arg_command_remove_needs_command(
 // formatter or configuration format must outlive the command, and NULL
 // returns to the parent's. Subcommands made afterwards share it, as CLI11's
 // share their parent's.
-void d_arg_command_set_formatter(
+D_ARG_PARSER_API void d_arg_command_set_formatter(
     struct dj_arg_command*   _command,
     struct dj_arg_formatter* _formatter
 );
-void d_arg_command_set_config_format(
+D_ARG_PARSER_API void d_arg_command_set_config_format(
     struct dj_arg_command*       _command,
     struct dj_arg_config_format* _format
 );
@@ -1371,7 +1393,7 @@ void d_arg_command_set_config_format(
 // d_arg_command_option_defaults
 //   lookup: CLI11's option_defaults(): the defaults the command's new options
 // start from, owned by the command; NULL for a NULL command.
-struct dj_arg_option_defaults* d_arg_command_option_defaults(
+D_ARG_PARSER_API struct dj_arg_option_defaults* d_arg_command_option_defaults(
     struct dj_arg_command* _command
 );
 
@@ -1383,28 +1405,28 @@ struct dj_arg_option_defaults* d_arg_command_option_defaults(
 // _ALWAYS_CAPTURE_DEFAULT, and ignore any other flag; a value outside its
 // enum is ignored. Only the group can fail, with D_ARG_ERROR_OUT_OF_MEMORY,
 // which is not recorded, for the defaults do not know their command.
-int d_arg_option_defaults_set_group(
+D_ARG_PARSER_API int d_arg_option_defaults_set_group(
     struct dj_arg_option_defaults* _defaults,
     const char*                    _group
 );
-void d_arg_option_defaults_set_flag(
+D_ARG_PARSER_API void d_arg_option_defaults_set_flag(
     struct dj_arg_option_defaults* _defaults,
     uint32_t                       _flag,
     bool                           _value
 );
-void d_arg_option_defaults_set_multi_option_policy(
+D_ARG_PARSER_API void d_arg_option_defaults_set_multi_option_policy(
     struct dj_arg_option_defaults* _defaults,
     int                            _policy
 );
-void d_arg_option_defaults_set_callback_priority(
+D_ARG_PARSER_API void d_arg_option_defaults_set_callback_priority(
     struct dj_arg_option_defaults* _defaults,
     int                            _priority
 );
-void d_arg_option_defaults_set_integer_rule(
+D_ARG_PARSER_API void d_arg_option_defaults_set_integer_rule(
     struct dj_arg_option_defaults* _defaults,
     int                            _rule
 );
-void d_arg_option_defaults_set_delimiter(
+D_ARG_PARSER_API void d_arg_option_defaults_set_delimiter(
     struct dj_arg_option_defaults* _defaults,
     char                           _delimiter
 );
@@ -1441,13 +1463,13 @@ bool d_arg_command_has_flag(
 //   lookups: the command's name, description and group ("SUBCOMMANDS" when
 // unset), "" when unset and never NULL; NULL reads as a command with
 // nothing set.
-const char* d_arg_command_name(
+D_ARG_PARSER_API const char* d_arg_command_name(
     const struct dj_arg_command* _command
 );
-const char* d_arg_command_description(
+D_ARG_PARSER_API const char* d_arg_command_description(
     const struct dj_arg_command* _command
 );
-const char* d_arg_command_group(
+D_ARG_PARSER_API const char* d_arg_command_group(
     const struct dj_arg_command* _command
 );
 
@@ -1455,7 +1477,7 @@ const char* d_arg_command_group(
 // d_arg_command_is_option_group
 //   predicate: whether the command is a nameless subcommand -- an option group
 // -- rather than the root or a named subcommand.
-bool d_arg_command_is_option_group(
+D_ARG_PARSER_API bool d_arg_command_is_option_group(
     const struct dj_arg_command* _command
 );
 
@@ -1467,10 +1489,10 @@ bool d_arg_command_is_option_group(
 // the last parse; count_all is CLI11's count_all(), the values of its
 // options and those of its subcommands, plus its own uses when it has a
 // name. 0 for NULL.
-size_t d_arg_command_count(
+D_ARG_PARSER_API size_t d_arg_command_count(
     const struct dj_arg_command* _command
 );
-size_t d_arg_command_count_all(
+D_ARG_PARSER_API size_t d_arg_command_count_all(
     const struct dj_arg_command* _command
 );
 
@@ -1478,10 +1500,10 @@ size_t d_arg_command_count_all(
 // d_arg_command_parsed_subcommand_count and kin
 //   lookups: CLI11's get_subcommands(): the subcommands the last parse used,
 // in order -- its count, and the one at an index, NULL past the end.
-size_t d_arg_command_parsed_subcommand_count(
+D_ARG_PARSER_API size_t d_arg_command_parsed_subcommand_count(
     const struct dj_arg_command* _command
 );
-struct dj_arg_command* d_arg_command_parsed_subcommand_at(
+D_ARG_PARSER_API struct dj_arg_command* d_arg_command_parsed_subcommand_at(
     const struct dj_arg_command* _command,
     size_t                       _index
 );
@@ -1491,11 +1513,11 @@ struct dj_arg_command* d_arg_command_parsed_subcommand_at(
 //   predicates: CLI11's got_subcommand(App*) and got_subcommand(name): whether
 // the subcommand was used in the last parse. False for NULL or a
 // subcommand that is not this command's.
-bool d_arg_command_got_subcommand(
+D_ARG_PARSER_API bool d_arg_command_got_subcommand(
     const struct dj_arg_command* _command,
     const struct dj_arg_command* _subcommand
 );
-bool d_arg_command_got_subcommand_name(
+D_ARG_PARSER_API bool d_arg_command_got_subcommand_name(
     const struct dj_arg_command* _command,
     const char*                  _name
 );
@@ -1514,7 +1536,7 @@ bool d_arg_command_got_subcommand_name(
  * @return D_ARG_OK, or the buffer's status; D_ARG_ERROR_BAD_ARGUMENT for a
  *         NULL argument.
  */
-int d_arg_command_display_name(
+D_ARG_PARSER_API int d_arg_command_display_name(
     const struct dj_arg_command* _command,
     bool                         _with_aliases,
     struct dj_arg_buffer*        _out
@@ -1526,11 +1548,11 @@ int d_arg_command_display_name(
 // command's name or an alias, honouring its ignore-case and
 // ignore-underscore switches, and, with prefix matching, as a prefix; the
 // detail is a dj_arg_name_match value.
-bool d_arg_command_check_name(
+D_ARG_PARSER_API bool d_arg_command_check_name(
     const struct dj_arg_command* _command,
     struct dj_pack_text          _name
 );
-int d_arg_command_check_name_detail(
+D_ARG_PARSER_API int d_arg_command_check_name_detail(
     const struct dj_arg_command* _command,
     struct dj_pack_text          _name
 );
@@ -1554,7 +1576,7 @@ int d_arg_command_check_name_detail(
  * @return D_ARG_OK after every option, or the first other status `_visit`
  *         returned; D_ARG_ERROR_BAD_ARGUMENT for a NULL argument.
  */
-int d_arg_command_each_option(
+D_ARG_PARSER_API int d_arg_command_each_option(
     struct dj_arg_command* _command,
     dj_arg_option_visit_fn _visit,
     void*                  _context
@@ -1566,7 +1588,7 @@ int d_arg_command_each_option(
 // option group name among the command's own options, in the order first
 // met, with the group as a span; stops at the first other status, which it
 // returns.
-int d_arg_command_each_group(
+D_ARG_PARSER_API int d_arg_command_each_group(
     const struct dj_arg_command* _command,
     dj_arg_group_visit_fn        _visit,
     void*                        _context
@@ -1590,7 +1612,7 @@ int d_arg_command_each_group(
  * @return D_ARG_OK after every argument, or the first other status `_visit`
  *         returned; D_ARG_ERROR_BAD_ARGUMENT for a NULL argument.
  */
-int d_arg_command_each_remaining(
+D_ARG_PARSER_API int d_arg_command_each_remaining(
     const struct dj_arg_command* _command,
     bool                         _recurse,
     dj_arg_extra_visit_fn        _visit,
@@ -1601,7 +1623,7 @@ int d_arg_command_each_remaining(
 // d_arg_command_remaining_size
 //   lookup: CLI11's remaining_size(): the unused arguments that are not the
 // `--` that ends options, with `_recurse` those of every subcommand too.
-size_t d_arg_command_remaining_size(
+D_ARG_PARSER_API size_t d_arg_command_remaining_size(
     const struct dj_arg_command* _command,
     bool                         _recurse
 );
@@ -1614,15 +1636,15 @@ size_t d_arg_command_remaining_size(
 // text and a newline, if there is a function, then the fixed text; the
 // version flag's text or function, or nothing. Each returns D_ARG_OK or
 // the status of the sink or function that failed.
-int d_arg_command_usage(
+D_ARG_PARSER_API int d_arg_command_usage(
     const struct dj_arg_command* _command,
     struct dj_pack_sink          _sink
 );
-int d_arg_command_footer(
+D_ARG_PARSER_API int d_arg_command_footer(
     const struct dj_arg_command* _command,
     struct dj_pack_sink          _sink
 );
-int d_arg_command_version(
+D_ARG_PARSER_API int d_arg_command_version(
     const struct dj_arg_command* _command,
     struct dj_pack_sink          _sink
 );
@@ -1661,12 +1683,12 @@ int d_arg_command_version(
  *                                             or `_targets` is NULL with
  *                                             `_count` above 0.
  */
-int d_arg_command_trigger_on(
+D_ARG_PARSER_API int d_arg_command_trigger_on(
     struct dj_arg_command*        _trigger,
     struct dj_arg_command* const* _targets,
     size_t                        _count
 );
-int d_arg_command_trigger_off(
+D_ARG_PARSER_API int d_arg_command_trigger_off(
     struct dj_arg_command*        _trigger,
     struct dj_arg_command* const* _targets,
     size_t                        _count
@@ -1690,7 +1712,7 @@ int d_arg_command_trigger_off(
  * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY, recorded;
  *         D_ARG_ERROR_BAD_ARGUMENT for a NULL option.
  */
-int d_arg_command_deprecate_option(
+D_ARG_PARSER_API int d_arg_command_deprecate_option(
     struct dj_arg_option* _option,
     const char*           _replacement
 );
@@ -1714,7 +1736,7 @@ int d_arg_command_deprecate_option(
  *         D_ARG_ERROR_OUT_OF_MEMORY, recorded; D_ARG_ERROR_BAD_ARGUMENT,
  *         nothing recorded, for a NULL command or name.
  */
-int d_arg_command_deprecate_option_name(
+D_ARG_PARSER_API int d_arg_command_deprecate_option_name(
     struct dj_arg_command* _command,
     const char*            _name,
     const char*            _replacement
@@ -1736,11 +1758,11 @@ int d_arg_command_deprecate_option_name(
  * @return the retired option, owned by the command; NULL on failure, as
  *         d_arg_command_add_option.
  */
-struct dj_arg_option* d_arg_command_retire_option(
+D_ARG_PARSER_API struct dj_arg_option* d_arg_command_retire_option(
     struct dj_arg_command* _command,
     struct dj_arg_option*  _option
 );
-struct dj_arg_option* d_arg_command_retire_option_name(
+D_ARG_PARSER_API struct dj_arg_option* d_arg_command_retire_option_name(
     struct dj_arg_command* _command,
     const char*            _name
 );
@@ -1761,7 +1783,7 @@ struct dj_arg_option* d_arg_command_retire_option_name(
  *         no values, and the arguments they did not use are forgotten; every
  *         value and remaining argument read from them before is invalid.
  */
-void d_arg_command_clear(
+D_ARG_PARSER_API void d_arg_command_clear(
     struct dj_arg_command* _command
 );
 

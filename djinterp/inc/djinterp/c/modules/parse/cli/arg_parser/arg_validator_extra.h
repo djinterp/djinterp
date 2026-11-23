@@ -19,11 +19,27 @@
 * D_INTERNAL_ARG_PARSER_EXTRA_VALIDATORS, as CLI11 compiles its own unless
 * told not to; without it the header declares nothing.
 *
+* HOW TO USE
+* ----------
+*   Make one by its CLI11 name and give it to an option, as with any validator
+* (arg_validator.h); a set or a mapping is given as text, which the validator
+* copies.
+*
+* OPTIONS
+* -------
+*   A set's or a mapping's entries, compared as text or, given a type
+* descriptor, as values of that type; a bound's limits; a unit table's units.
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_ARG_PARSER_EXTRA_VALIDATORS 0 removes them, and this header declares
+* nothing (cfg_arg_parser.h).
+*
 *
 * path:      /inc/djinterp/c/modules/parse/cli/arg_parser/arg_validator_extra.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*
@@ -113,7 +129,7 @@ D_EXTERN_C_BEGIN
  *         D_ARG_ERROR_BAD_ARGUMENT for a NULL descriptor, one without a
  *         conversion, or a container's, whose objects are not plain data.
  */
-struct dj_arg_validator d_arg_validator_type(
+D_ARG_PARSER_API struct dj_arg_validator d_arg_validator_type(
     const struct dj_arg_type* _type
 );
 
@@ -122,7 +138,7 @@ struct dj_arg_validator d_arg_validator_type(
 //   constructor: CLI11's Number, the type validator of the built-in `double`
 // described as "NUMBER" (and so rejecting with "... as a FLOAT"). Does not
 // fail.
-struct dj_arg_validator d_arg_validator_number(void);
+D_ARG_PARSER_API struct dj_arg_validator d_arg_validator_number(void);
 
 // 1.2    Bounds
 //------------------------------------------------------------------------------
@@ -145,7 +161,7 @@ struct dj_arg_validator d_arg_validator_number(void);
  * @return the validator; on failure, a failed validator holding
  *         D_ARG_ERROR_BAD_ARGUMENT, as d_arg_validator_range's.
  */
-struct dj_arg_validator d_arg_validator_bound(
+D_ARG_PARSER_API struct dj_arg_validator d_arg_validator_bound(
     const struct dj_arg_type* _type,
     const void*               _low,
     const void*               _high
@@ -155,15 +171,15 @@ struct dj_arg_validator d_arg_validator_bound(
 // d_arg_validator_bound_long and kin
 //   constructors: d_arg_validator_bound over the built-in `long`, `unsigned
 // long` and `double` types. None fails.
-struct dj_arg_validator d_arg_validator_bound_long(
+D_ARG_PARSER_API struct dj_arg_validator d_arg_validator_bound_long(
     long _low,
     long _high
 );
-struct dj_arg_validator d_arg_validator_bound_ulong(
+D_ARG_PARSER_API struct dj_arg_validator d_arg_validator_bound_ulong(
     unsigned long _low,
     unsigned long _high
 );
-struct dj_arg_validator d_arg_validator_bound_double(
+D_ARG_PARSER_API struct dj_arg_validator d_arg_validator_bound_double(
     double _low,
     double _high
 );
@@ -185,7 +201,7 @@ struct dj_arg_validator d_arg_validator_bound_double(
  *
  * @return the validator. Does not fail.
  */
-struct dj_arg_validator d_arg_validator_valid_ipv4(void);
+D_ARG_PARSER_API struct dj_arg_validator d_arg_validator_valid_ipv4(void);
 
 D_EXTERN_C_END
 
@@ -298,7 +314,7 @@ D_EXTERN_C_BEGIN
  *         convert to the type, or a type it cannot compare as: a container,
  *         or one neither arithmetic nor writing its values.
  */
-struct dj_arg_validator d_arg_validator_is_member(
+D_ARG_PARSER_API struct dj_arg_validator d_arg_validator_is_member(
     const struct dj_arg_type*   _as,
     const char* const*          _values,
     size_t                      _count,
@@ -323,7 +339,7 @@ struct dj_arg_validator d_arg_validator_is_member(
  * @return the validator, or a failed validator, as
  *         d_arg_validator_is_member's.
  */
-struct dj_arg_validator d_arg_validator_transformer(
+D_ARG_PARSER_API struct dj_arg_validator d_arg_validator_transformer(
     const struct dj_arg_type*    _as,
     const struct dj_arg_mapping* _pairs,
     size_t                       _count,
@@ -349,7 +365,7 @@ struct dj_arg_validator d_arg_validator_transformer(
  * @return the validator, or a failed validator, as
  *         d_arg_validator_is_member's.
  */
-struct dj_arg_validator d_arg_validator_checked_transformer(
+D_ARG_PARSER_API struct dj_arg_validator d_arg_validator_checked_transformer(
     const struct dj_arg_type*    _as,
     const struct dj_arg_mapping* _pairs,
     size_t                       _count,
@@ -440,7 +456,7 @@ D_EXTERN_C_BEGIN
  *         not arithmetic, or a factor that does not convert;
  *         D_ARG_ERROR_OUT_OF_MEMORY when the units could not be copied.
  */
-struct dj_arg_validator d_arg_validator_as_number_with_unit(
+D_ARG_PARSER_API struct dj_arg_validator d_arg_validator_as_number_with_unit(
     const struct dj_arg_type*    _number,
     const struct dj_arg_mapping* _units,
     size_t                       _count,
@@ -464,7 +480,7 @@ struct dj_arg_validator d_arg_validator_as_number_with_unit(
  * @param[in] _kb_is_1000  whether `kb` is 1000 bytes rather than 1024.
  * @return the validator. Does not fail.
  */
-struct dj_arg_validator d_arg_validator_as_size_value(
+D_ARG_PARSER_API struct dj_arg_validator d_arg_validator_as_size_value(
     bool _kb_is_1000
 );
 

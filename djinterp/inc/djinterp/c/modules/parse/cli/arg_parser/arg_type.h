@@ -17,11 +17,29 @@
 * the decimal point whatever the locale, and they write the shortest text
 * that reads back as the same value.
 *
+* HOW TO USE
+* ----------
+*   Bind an option to a variable with the descriptor of its type --
+* d_arg_type_builtin, given a dj_arg_builtin value -- or make a descriptor of
+* your own for another type, with its help name, its item counts and its two
+* conversions; section 2's conversions read text as the built-in descriptors do.
+*
+* OPTIONS
+* -------
+*   A descriptor's help name, how many values make an item and how many items it
+* expects; for integers, the rule for leading zeros a parser or an option
+* chooses.
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_ARG_PARSER_INTEGER_RULE is the rule a new parser starts with: 0,
+* decimal, or 1, C's (cfg_arg_parser.h).
+*
 *
 * path:      /inc/djinterp/c/modules/parse/cli/arg_parser/arg_type.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*
@@ -258,7 +276,7 @@ D_EXTERN_C_BEGIN
  * @return the descriptor, which lives as long as the program; NULL for a
  *         value outside the enum.
  */
-const struct dj_arg_type* d_arg_type_builtin(
+D_ARG_PARSER_API const struct dj_arg_type* d_arg_type_builtin(
     int _builtin
 );
 
@@ -290,7 +308,7 @@ const struct dj_arg_type* d_arg_type_builtin(
  * @retval D_ARG_ERROR_CONVERSION    not an integer, or out of range.
  * @retval D_ARG_ERROR_BAD_ARGUMENT  `_out` is NULL.
  */
-int d_arg_parse_long(
+D_ARG_PARSER_API int d_arg_parse_long(
     struct dj_pack_text _text,
     int                 _rule,
     long*               _out
@@ -303,7 +321,7 @@ int d_arg_parse_long(
  * @param[out] _out   receives the value on success.
  * @return a status, as d_arg_parse_long's.
  */
-int d_arg_parse_ulong(
+D_ARG_PARSER_API int d_arg_parse_ulong(
     struct dj_pack_text _text,
     int                 _rule,
     unsigned long*      _out
@@ -324,7 +342,7 @@ int d_arg_parse_ulong(
  * @param[out] _out   receives the value on success.
  * @return a status, as d_arg_parse_long's.
  */
-int d_arg_parse_intmax(
+D_ARG_PARSER_API int d_arg_parse_intmax(
     struct dj_pack_text _text,
     int                 _rule,
     intmax_t*           _out
@@ -337,7 +355,7 @@ int d_arg_parse_intmax(
  * @param[out] _out   receives the value on success.
  * @return a status, as d_arg_parse_long's.
  */
-int d_arg_parse_uintmax(
+D_ARG_PARSER_API int d_arg_parse_uintmax(
     struct dj_pack_text _text,
     int                 _rule,
     uintmax_t*          _out
@@ -364,7 +382,7 @@ int d_arg_parse_uintmax(
  *                                    conversion.
  * @retval D_ARG_ERROR_BAD_ARGUMENT   `_out` is NULL.
  */
-int d_arg_parse_double(
+D_ARG_PARSER_API int d_arg_parse_double(
     struct dj_pack_text _text,
     double*             _out
 );
@@ -375,7 +393,7 @@ int d_arg_parse_double(
  * @param[out] _out   receives the value on success.
  * @return a status, as d_arg_parse_double's.
  */
-int d_arg_parse_long_double(
+D_ARG_PARSER_API int d_arg_parse_long_double(
     struct dj_pack_text _text,
     long double*        _out
 );
@@ -403,7 +421,7 @@ int d_arg_parse_long_double(
  * @retval D_ARG_ERROR_CONVERSION    not a truth value.
  * @retval D_ARG_ERROR_BAD_ARGUMENT  `_out` is NULL.
  */
-int d_arg_parse_bool(
+D_ARG_PARSER_API int d_arg_parse_bool(
     struct dj_pack_text _text,
     int                 _rule,
     bool*               _out
@@ -431,7 +449,7 @@ int d_arg_parse_bool(
  *                                   range.
  * @retval D_ARG_ERROR_BAD_ARGUMENT  `_out` is NULL.
  */
-int d_arg_flag_value(
+D_ARG_PARSER_API int d_arg_flag_value(
     struct dj_pack_text _text,
     int                 _rule,
     long*               _out
@@ -457,7 +475,7 @@ int d_arg_flag_value(
  *                                   long`'s range.
  * @retval D_ARG_ERROR_BAD_ARGUMENT  `_out` is NULL.
  */
-int d_arg_flag_value_intmax(
+D_ARG_PARSER_API int d_arg_flag_value_intmax(
     struct dj_pack_text _text,
     int                 _rule,
     intmax_t*           _out
@@ -482,7 +500,7 @@ int d_arg_flag_value_intmax(
  * @return the descriptor's status; D_ARG_ERROR_BAD_ARGUMENT for a NULL
  *         descriptor, converter or target.
  */
-int d_arg_convert(
+D_ARG_PARSER_API int d_arg_convert(
     const struct dj_arg_type*            _type,
     const struct dj_pack_text*           _values,
     size_t                               _count,
@@ -498,7 +516,7 @@ int d_arg_convert(
  * @return the descriptor's status; D_ARG_ERROR_UNSUPPORTED when the type has
  *         no format function; D_ARG_ERROR_BAD_ARGUMENT for a NULL argument.
  */
-int d_arg_format(
+D_ARG_PARSER_API int d_arg_format(
     const struct dj_arg_type* _type,
     const void*               _value,
     struct dj_pack_sink       _sink
@@ -525,7 +543,7 @@ int d_arg_format(
  *         D_ARG_ERROR_BAD_ARGUMENT for a NULL buffer, or NULL values with a
  *         nonzero count.
  */
-int d_arg_sum_values(
+D_ARG_PARSER_API int d_arg_sum_values(
     const struct dj_pack_text* _values,
     size_t                     _count,
     int                        _rule,

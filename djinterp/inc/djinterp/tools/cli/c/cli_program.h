@@ -32,11 +32,31 @@
 * MESSAGE`, coloured as GCC colours them where colour is wanted; `-q` keeps
 * only errors, and `-v` lets notes of a level at or below its count through.
 *
+* HOW TO USE
+* ----------
+*   Make a parser and a program over it with d_cli_program_init, add the
+* program's commands with d_cli_program_add_command, each with its work, and its
+* options through the parser; then return d_cli_program_run's status from main.
+* Release the program before the parser.
+*
+* OPTIONS
+* -------
+*   The program's flags at d_cli_program_init: D_CLI_PROGRAM_COMMANDS,
+* _RESPONSE_FILES, _ABBREVIATIONS, _PARSER_HELP, _PLAIN_ERRORS and
+* _EDITS_TO_OUTPUT. At run time, the standard options, `-h`, `--help`,
+* `--version`, `-q`, `-v` and `--color`, and the run's settings
+* (cli_settings.h).
+*
+* CONFIGURATION
+* -------------
+*   cfg_cli.h's knobs, D_CFG_CLI_ALL among them; how the program was built, for
+* `--version -v`, from D_CLI_BUILD_INIT and d_cli_program_set_build.
+*
 *
 * path:      /inc/djinterp/tools/cli/c/cli_program.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.22
 *******************************************************************************/
 
 /*
@@ -59,6 +79,7 @@ TABLE OF CONTENTS
          6.  D_CLI_PROGRAM_EDITS_TO_OUTPUT
     4.  Callbacks
          1.  dj_cli_command_fn
+         2.  dj_cli_help_json_fn
 2.  RECORDS
     -------
     1.  A command's work
@@ -242,6 +263,18 @@ typedef int (*dj_cli_command_fn)(struct dj_cli_program* _program,
                                 struct dj_arg_command* _command,
                                 void*                 _context);
 
+// 1.4.2
+// dj_cli_help_json_fn
+//   type: a program's hook into its description (cli_help.h): the context
+// it was set with, the program, and the writer, in the description's object,
+// where it writes members of the program's own after the kit's. It returns
+// D_ARG_OK, or a status that ends the description with it.
+struct dj_cli_json;
+
+typedef int (*dj_cli_help_json_fn)(void*                        _context,
+                                   const struct dj_cli_program* _program,
+                                   struct dj_cli_json*          _json);
+
 
 //==============================================================================
 // 2.  RECORDS
@@ -398,7 +431,10 @@ struct dj_cli_build
 // program was made from (d_cli_program_init_plugin), or NULL.
 // `plugin_path` holds the directories a run looks for modules in first,
 // owned, or NULL (d_cli_program_set_plugin_path); `plugin_versions` the
-// dj_cli_plugin_versions its runs follow, 0 for the build's.
+// dj_cli_plugin_versions its runs follow, 0 for the build's. `help_json` is
+// the hook that adds the program's own members to its description, NULL
+// for none, and `help_json_context` its context
+// (d_cli_program_set_help_json).
 //   Public-payload layout: read any field; change one only through the calls
 // below.
 struct dj_cli_plugin_host;
@@ -433,6 +469,8 @@ struct dj_cli_program
     const struct dj_cli_plugin_host* host;
     char*                           plugin_path;
     int                             plugin_versions;
+    dj_cli_help_json_fn              help_json;
+    void*                           help_json_context;
 };
 
 // 2.4    A watched output
@@ -491,7 +529,7 @@ D_EXTERN_C_BEGIN
  *         program, parser or name, the program untouched; or a
  *         definition's own status, kept as memory's is.
  */
-int d_cli_program_init(
+D_CLI_API int d_cli_program_init(
     struct dj_cli_program* _program,
     struct dj_arg_parser*  _parser,
     const char*            _name,
@@ -510,7 +548,7 @@ int d_cli_program_init(
  * @param[in,out] _program  the program; may be NULL.
  * @post   the program holds nothing; its handlers' contexts are freed.
  */
-void d_cli_program_release(
+D_CLI_API void d_cli_program_release(
     struct dj_cli_program* _program
 );
 
@@ -552,7 +590,7 @@ void d_cli_program_release(
  *         `status`, D_ARG_ERROR_OUT_OF_MEMORY: either way the program's run
  *         ends in trouble and says why.
  */
-struct dj_arg_command* d_cli_program_add_command(
+D_CLI_API struct dj_arg_command* d_cli_program_add_command(
     struct dj_cli_program* _program,
     struct dj_arg_command* _parent,
     const char*            _name,
@@ -576,7 +614,7 @@ struct dj_arg_command* d_cli_program_add_command(
  *         and the failure kept as the program's `status`, which its run
  *         says; or D_ARG_ERROR_BAD_ARGUMENT for a NULL program.
  */
-int d_cli_program_set_main(
+D_CLI_API int d_cli_program_set_main(
     struct dj_cli_program* _program,
     dj_cli_command_fn      _run,
     void*                  _context,
@@ -625,7 +663,7 @@ int d_cli_program_set_main(
  *         `prog: error: out of memory`. One never made, zeroed, says
  *         nothing.
  */
-bool d_cli_program_parse(
+D_CLI_API bool d_cli_program_parse(
     struct dj_cli_program* _program,
     int                    _argc,
     const char* const*     _argv,
@@ -640,7 +678,7 @@ bool d_cli_program_parse(
 // command the parse reached and returns its status. A command with no work,
 // and a program with commands given none, is a usage error -- its usage and
 // commands to the error output -- and D_CLI_EXIT_TROUBLE.
-int d_cli_program_dispatch(
+D_CLI_API int d_cli_program_dispatch(
     struct dj_cli_program* _program
 );
 
@@ -648,7 +686,7 @@ int d_cli_program_dispatch(
 // d_cli_program_run
 //   running: d_cli_program_parse, then d_cli_program_dispatch: the status
 // main returns. D_CLI_EXIT_TROUBLE for a NULL program.
-int d_cli_program_run(
+D_CLI_API int d_cli_program_run(
     struct dj_cli_program* _program,
     int                    _argc,
     const char* const*     _argv
@@ -660,7 +698,7 @@ int d_cli_program_run(
 // d_cli_program_command
 //   query: the deepest command the last parse reached -- the root when it
 // reached no subcommand; NULL for a NULL program.
-struct dj_arg_command* d_cli_program_command(
+D_CLI_API struct dj_arg_command* d_cli_program_command(
     const struct dj_cli_program* _program
 );
 
@@ -678,7 +716,7 @@ struct dj_arg_command* d_cli_program_command(
 // go, the parser's help and failure messages with them; each sink must
 // outlive its use. A test captures a program's output this way. Does not
 // fail.
-void d_cli_program_set_output(
+D_CLI_API void d_cli_program_set_output(
     struct dj_cli_program* _program,
     struct dj_pack_sink    _out,
     struct dj_pack_sink    _err
@@ -691,7 +729,7 @@ void d_cli_program_set_output(
 // command's results, written through it, are said as help is when the output
 // fails: `cannot write standard output: No space left on device`. `_watch`
 // is emptied, and must outlive the sink.
-struct dj_pack_sink d_cli_program_watched(
+D_CLI_API struct dj_pack_sink d_cli_program_watched(
     const struct dj_cli_program* _program,
     struct dj_cli_watch*         _watch
 );
@@ -703,7 +741,7 @@ struct dj_pack_sink d_cli_program_watched(
 //   query: -1 after `-q`; otherwise how many times `-v` was given, plus the
 // verbosity the program was started with (d_cli_program_init_plugin); 0 for
 // a NULL program.
-int d_cli_program_verbosity(
+D_CLI_API int d_cli_program_verbosity(
     const struct dj_cli_program* _program
 );
 
@@ -711,7 +749,7 @@ int d_cli_program_verbosity(
 // d_cli_program_colour
 //   query: whether a stream, D_CLI_STREAM_OUTPUT or D_CLI_STREAM_ERROR, takes
 // colour, as decided after the last parse; false for anything else.
-bool d_cli_program_colour(
+D_CLI_API bool d_cli_program_colour(
     const struct dj_cli_program* _program,
     int                          _stream
 );
@@ -730,7 +768,7 @@ bool d_cli_program_colour(
  * @return D_ARG_OK, the buffer's status when it could not grow, or
  *         D_ARG_ERROR_BAD_ARGUMENT for a NULL argument.
  */
-int d_cli_command_path(
+D_CLI_API int d_cli_command_path(
     const struct dj_arg_command* _command,
     struct dj_arg_buffer*        _out
 );
@@ -744,7 +782,7 @@ int d_cli_command_path(
 // copied: D_CLI_BUILD_INIT's. Set after d_cli_program_init, which clears it;
 // a program not given one says only how the kit was built. A NULL program or
 // build changes nothing; does not fail.
-void d_cli_program_set_build(
+D_CLI_API void d_cli_program_set_build(
     struct dj_cli_program*     _program,
     const struct dj_cli_build* _build
 );
@@ -770,7 +808,7 @@ void d_cli_program_set_build(
  *         trouble and say so; D_ARG_ERROR_BAD_ARGUMENT for a NULL argument
  *         or a key or value refused above, nothing kept.
  */
-int d_cli_program_add_build(
+D_CLI_API int d_cli_program_add_build(
     struct dj_cli_program* _program,
     const char*            _key,
     const char*            _value
@@ -780,7 +818,7 @@ int d_cli_program_add_build(
 // d_cli_kit_build
 //   query: how the kit itself was built -- the compiler and level its C was
 // compiled with, which a program's own build need not share.
-const struct dj_cli_build* d_cli_kit_build(void);
+D_CLI_API const struct dj_cli_build* d_cli_kit_build(void);
 
 
 //==============================================================================
@@ -800,13 +838,13 @@ const struct dj_cli_build* d_cli_kit_build(void);
 // `_column` is 0 or less and the line too when `_line` is. A NULL program
 // writes nothing. Neither fails: a diagnostic that cannot be written is
 // dropped.
-void d_cli_report(
+D_CLI_API void d_cli_report(
     const struct dj_cli_program* _program,
     int                          _severity,
     const char*                  _format,
     ...
 ) D_FORMAT_PRINTF(3, 4);
-void d_cli_report_at(
+D_CLI_API void d_cli_report_at(
     const struct dj_cli_program* _program,
     int                          _severity,
     const char*                  _file,
@@ -820,7 +858,7 @@ void d_cli_report_at(
 // d_cli_vreport
 //   report: d_cli_report_at with its arguments in a va_list; `_file` NULL
 // for none.
-void d_cli_vreport(
+D_CLI_API void d_cli_vreport(
     const struct dj_cli_program* _program,
     int                          _severity,
     const char*                  _file,
@@ -834,7 +872,7 @@ void d_cli_vreport(
 // d_cli_note
 //   report: a note, written only when the verbosity is at least `_level`
 // (1 for `-v`, 2 for `-vv`).
-void d_cli_note(
+D_CLI_API void d_cli_note(
     const struct dj_cli_program* _program,
     int                          _level,
     const char*                  _format,
@@ -849,7 +887,7 @@ void d_cli_note(
 // take -- `PROGRAM: error: COMMAND: MESSAGE` and `Try 'PROGRAM COMMAND --help'
 // for more information.` -- the command NULL for the root. Returns
 // D_CLI_EXIT_TROUBLE, so that the work may `return` it.
-int d_cli_usage_error(
+D_CLI_API int d_cli_usage_error(
     const struct dj_cli_program* _program,
     const struct dj_arg_command* _command,
     const char*                  _format,
@@ -863,7 +901,7 @@ int d_cli_usage_error(
 // for `-`, by whether `_doing` reads; ENOMEM, as every want of memory,
 // `PROGRAM: error: out of memory` (GRAMMAR.md, section 8). Returns
 // D_CLI_EXIT_TROUBLE.
-int d_cli_file_error(
+D_CLI_API int d_cli_file_error(
     const struct dj_cli_program* _program,
     const char*                  _doing,
     const char*                  _path,
@@ -876,7 +914,7 @@ int d_cli_file_error(
 // `_watch` -- `PROGRAM: error: cannot write standard output: REASON`, the
 // reason the watch kept, or, where it kept none, `PROGRAM: error: cannot
 // write standard output`. Returns D_CLI_EXIT_TROUBLE.
-int d_cli_output_error(
+D_CLI_API int d_cli_output_error(
     const struct dj_cli_program* _program,
     const struct dj_cli_watch*   _watch
 );

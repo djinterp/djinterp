@@ -37,11 +37,28 @@
 *   Everything here is compiled only with D_INTERNAL_ARG_PARSER_COMPLETION;
 * without it the header declares nothing.
 *
+* HOW TO USE
+* ----------
+*   Give a program a completion option with d_arg_parser_set_completion_flag,
+* and let d_arg_parser_exit write the script a parse ending in
+* D_ARG_CALL_FOR_COMPLETION asks for; or write one yourself with
+* d_arg_completion_script, naming the shell.
+*
+* OPTIONS
+* -------
+*   The shell: bash, zsh, fish or PowerShell (dj_arg_shell), by name through
+* d_arg_shell_from_name.
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_ARG_PARSER_COMPLETION 0 removes the scripts, and this header declares
+* nothing (cfg_arg_parser.h).
+*
 *
 * path:      /inc/djinterp/c/modules/parse/cli/arg_parser/arg_completion.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.17
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*
@@ -102,10 +119,10 @@ D_EXTERN_C_BEGIN
 // without regard to ASCII case, as a dj_arg_shell value, and anything else as
 // -1; name gives a shell's name as from_name reads it ("powershell" for
 // PowerShell), and "" for anything else. Neither allocates nor fails.
-int d_arg_shell_from_name(
+D_ARG_PARSER_API int d_arg_shell_from_name(
     struct dj_pack_text _name
 );
-const char* d_arg_shell_name(
+D_ARG_PARSER_API const char* d_arg_shell_name(
     int _shell
 );
 
@@ -142,7 +159,7 @@ const char* d_arg_shell_name(
  *         D_ARG_ERROR_BAD_ARGUMENT for a NULL command, an unknown shell, or
  *         no name to complete.
  */
-int d_arg_completion_script(
+D_ARG_PARSER_API int d_arg_completion_script(
     const struct dj_arg_command* _command,
     int                          _shell,
     struct dj_pack_text          _program,
@@ -181,7 +198,7 @@ int d_arg_completion_script(
  * @return the option, owned by the root; NULL when removed, or on failure,
  *         as d_arg_command_add_option.
  */
-struct dj_arg_option* d_arg_parser_set_completion_flag(
+D_ARG_PARSER_API struct dj_arg_option* d_arg_parser_set_completion_flag(
     struct dj_arg_parser* _parser,
     const char*           _names,
     const char*           _description

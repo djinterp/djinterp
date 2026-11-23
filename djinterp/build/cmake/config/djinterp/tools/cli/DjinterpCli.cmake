@@ -56,7 +56,7 @@
 # path:      /build/cmake/config/djinterp/tools/cli/DjinterpCli.cmake
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-#                                                            revised: 2026.11.17
+#                                                            revised: 2026.11.21
 #*******************************************************************************
 include_guard(GLOBAL)
 
@@ -160,9 +160,13 @@ endfunction()
 if( (DJINTERP_CLI_LINKAGE STREQUAL "SHARED_CORE") AND
     (NOT TARGET djinterp::arg_parser) AND
     (NOT TARGET djinterp::cli) )
-    # one shared library, the core, for the program and its modules: every
-    # function exported -- on Windows by CMake's list of them, until the
-    # core's own export macro is agreed (ruling cli-taken 13, lane A)
+    # one shared library, the core, for the program and its modules. The
+    # parser's and the kit's functions carry their export marks,
+    # D_ARG_PARSER_API and D_CLI_API, exported where the core is built and
+    # imported where it is linked. The core also holds the option core,
+    # filesys and the sinks, which carry no marks yet, so every function
+    # stays exported -- on Windows by CMake's list of them -- until each
+    # library in the core has its own
     add_library(djinterp_cli SHARED
         ${DJINTERP_ARG_PARSER_SOURCES}
         ${DJINTERP_CLI_SOURCES})
@@ -174,6 +178,9 @@ if( (DJINTERP_CLI_LINKAGE STREQUAL "SHARED_CORE") AND
         OUTPUT_NAME               "djinterp-cli"
         C_VISIBILITY_PRESET       default
         WINDOWS_EXPORT_ALL_SYMBOLS ON)
+    target_compile_definitions(djinterp_cli
+        PRIVATE D_ARG_PARSER_BUILDING D_CLI_BUILDING
+        PUBLIC  D_ARG_PARSER_SHARED   D_CLI_SHARED)
 
     target_link_libraries(djinterp_cli PUBLIC ${CMAKE_DL_LIBS})
 endif()

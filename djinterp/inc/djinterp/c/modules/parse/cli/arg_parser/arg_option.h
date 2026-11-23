@@ -20,11 +20,31 @@
 * copies a default value made outlive clearing, so that a variable bound to
 * text, which points at them, stays valid until the option is released.
 *
+* HOW TO USE
+* ----------
+*   Make an option on a command (arg_command.h) by its names -- `-o,--out`, or a
+* positional's `NAME` -- then chain its setters: how many values it takes, its
+* validators, its default, its environment variable, what it needs or excludes.
+* After a parse, read what it was given with d_arg_option_values and its count.
+*
+* OPTIONS
+* -------
+*   Each option's own: its value counts and grouping, its multi-option policy,
+* its validators and transforms, its default and environment variable, its group
+* in help, and the callback or variable it fills. A command's option defaults
+* (d_arg_command_option_defaults) are what a new option starts with.
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_ARG_PARSER_ENVIRONMENT 0 removes every read of the environment;
+* D_CFG_ARG_PARSER_INTEGER_RULE is how a new parser reads an integer's leading
+* zeros (cfg_arg_parser.h).
+*
 *
 * path:      /inc/djinterp/c/modules/parse/cli/arg_parser/arg_option.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.17
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*
@@ -365,7 +385,7 @@ D_EXTERN_C_BEGIN
  * @return D_ARG_OK, or the buffer's status; D_ARG_ERROR_BAD_ARGUMENT for a
  *         NULL argument.
  */
-int d_arg_option_name(
+D_ARG_PARSER_API int d_arg_option_name(
     const struct dj_arg_option* _option,
     uint32_t                    _form,
     struct dj_arg_buffer*       _out
@@ -376,7 +396,7 @@ int d_arg_option_name(
 //   lookup: CLI11's get_single_name -- the first long name, else the first
 // short name, else the positional name, else the environment variable's
 // name, all without dashes; "" when there is none or `_option` is NULL.
-const char* d_arg_option_single_name(
+D_ARG_PARSER_API const char* d_arg_option_single_name(
     const struct dj_arg_option* _option
 );
 
@@ -389,19 +409,19 @@ const char* d_arg_option_single_name(
 // environment variable's; and check_sname, check_lname and check_fname,
 // which take a name without dashes. Each honours the option's ignore-case
 // and ignore-underscore switches, and is false for NULL.
-bool d_arg_option_check_name(
+D_ARG_PARSER_API bool d_arg_option_check_name(
     const struct dj_arg_option* _option,
     struct dj_pack_text         _name
 );
-bool d_arg_option_check_short_name(
+D_ARG_PARSER_API bool d_arg_option_check_short_name(
     const struct dj_arg_option* _option,
     struct dj_pack_text         _name
 );
-bool d_arg_option_check_long_name(
+D_ARG_PARSER_API bool d_arg_option_check_long_name(
     const struct dj_arg_option* _option,
     struct dj_pack_text         _name
 );
-bool d_arg_option_check_flag_name(
+D_ARG_PARSER_API bool d_arg_option_check_flag_name(
     const struct dj_arg_option* _option,
     struct dj_pack_text         _name
 );
@@ -420,7 +440,7 @@ bool d_arg_option_check_flag_name(
  * @return the shared name, without dashes, owned by one of the options; NULL
  *         when they share none or an argument is NULL.
  */
-const char* d_arg_option_matching_name(
+D_ARG_PARSER_API const char* d_arg_option_matching_name(
     const struct dj_arg_option* _option,
     const struct dj_arg_option* _other
 );
@@ -445,23 +465,23 @@ const char* d_arg_option_matching_name(
 // option from help when empty and refuses a newline with
 // D_ARG_ERROR_INCORRECT_CONSTRUCTION, type_name(), and envname(). Each
 // copies its text; NULL clears it, and for the group restores "OPTIONS".
-int d_arg_option_set_description(
+D_ARG_PARSER_API int d_arg_option_set_description(
     struct dj_arg_option* _option,
     const char*           _description
 );
-int d_arg_option_set_option_text(
+D_ARG_PARSER_API int d_arg_option_set_option_text(
     struct dj_arg_option* _option,
     const char*           _text
 );
-int d_arg_option_set_group(
+D_ARG_PARSER_API int d_arg_option_set_group(
     struct dj_arg_option* _option,
     const char*           _group
 );
-int d_arg_option_set_type_name(
+D_ARG_PARSER_API int d_arg_option_set_type_name(
     struct dj_arg_option* _option,
     const char*           _type_name
 );
-int d_arg_option_set_env_name(
+D_ARG_PARSER_API int d_arg_option_set_env_name(
     struct dj_arg_option* _option,
     const char*           _env_name
 );
@@ -480,7 +500,7 @@ int d_arg_option_set_env_name(
  *                          the function replaced; NULL leaves it borrowed.
  * @post   a context the option held before is released.
  */
-void d_arg_option_set_type_name_fn(
+D_ARG_PARSER_API void d_arg_option_set_type_name_fn(
     struct dj_arg_option* _option,
     dj_arg_option_text_fn _write,
     void*                 _context,
@@ -503,7 +523,7 @@ void d_arg_option_set_type_name_fn(
  * @param[in,out] _option  the option.
  * @param[in]     _count   the count.
  */
-void d_arg_option_set_expected(
+D_ARG_PARSER_API void d_arg_option_set_expected(
     struct dj_arg_option* _option,
     int                   _count
 );
@@ -513,7 +533,7 @@ void d_arg_option_set_expected(
 //   setting: CLI11's expected(min, max): negative bounds count as their
 // magnitude for the minimum and as unlimited for the maximum, and reversed
 // bounds are swapped.
-void d_arg_option_set_expected_range(
+D_ARG_PARSER_API void d_arg_option_set_expected_range(
     struct dj_arg_option* _option,
     int                   _minimum,
     int                   _maximum
@@ -525,7 +545,7 @@ void d_arg_option_set_expected_range(
 // negative size `-n` sets `n` and unlimited items, as CLI11 kept for
 // compatibility; a size of D_ARG_EXPECTED_UNLIMITED or more makes items of
 // any size, separated by empty values; a size of 0 also clears required.
-void d_arg_option_set_type_size(
+D_ARG_PARSER_API void d_arg_option_set_type_size(
     struct dj_arg_option* _option,
     int                   _size
 );
@@ -535,7 +555,7 @@ void d_arg_option_set_type_size(
 //   setting: CLI11's type_size(min, max): items of between `_minimum` and
 // `_maximum` values, with negative sizes and reversed bounds treated as in
 // CLI11.
-void d_arg_option_set_type_size_range(
+D_ARG_PARSER_API void d_arg_option_set_type_size_range(
     struct dj_arg_option* _option,
     int                   _minimum,
     int                   _maximum
@@ -550,7 +570,7 @@ void d_arg_option_set_type_size_range(
 // value outside the enum is ignored. Leaving the default policy on an
 // option expecting at least two items and unlimited ones limits it to its
 // minimum, as CLI11 does for compatibility.
-void d_arg_option_set_multi_option_policy(
+D_ARG_PARSER_API void d_arg_option_set_multi_option_policy(
     struct dj_arg_option* _option,
     int                   _policy
 );
@@ -562,15 +582,15 @@ void d_arg_option_set_multi_option_policy(
 // a dj_arg_callback_priority value; and the integer rule the option's
 // values convert by, a dj_arg_integer_rule value. A value outside its enum
 // is ignored.
-void d_arg_option_set_delimiter(
+D_ARG_PARSER_API void d_arg_option_set_delimiter(
     struct dj_arg_option* _option,
     char                  _delimiter
 );
-void d_arg_option_set_callback_priority(
+D_ARG_PARSER_API void d_arg_option_set_callback_priority(
     struct dj_arg_option* _option,
     int                   _priority
 );
-void d_arg_option_set_integer_rule(
+D_ARG_PARSER_API void d_arg_option_set_integer_rule(
     struct dj_arg_option* _option,
     int                   _rule
 );
@@ -583,39 +603,39 @@ void d_arg_option_set_integer_rule(
 // required() and mandatory()), configurable, disable_flag_override,
 // always_capture_default, allow_extra_args, trigger_on_parse,
 // force_callback, run_callback_for_default, inject_separator. None fails.
-void d_arg_option_set_required(
+D_ARG_PARSER_API void d_arg_option_set_required(
     struct dj_arg_option* _option,
     bool                  _value
 );
-void d_arg_option_set_configurable(
+D_ARG_PARSER_API void d_arg_option_set_configurable(
     struct dj_arg_option* _option,
     bool                  _value
 );
-void d_arg_option_set_disable_flag_override(
+D_ARG_PARSER_API void d_arg_option_set_disable_flag_override(
     struct dj_arg_option* _option,
     bool                  _value
 );
-void d_arg_option_set_always_capture_default(
+D_ARG_PARSER_API void d_arg_option_set_always_capture_default(
     struct dj_arg_option* _option,
     bool                  _value
 );
-void d_arg_option_set_allow_extra_args(
+D_ARG_PARSER_API void d_arg_option_set_allow_extra_args(
     struct dj_arg_option* _option,
     bool                  _value
 );
-void d_arg_option_set_trigger_on_parse(
+D_ARG_PARSER_API void d_arg_option_set_trigger_on_parse(
     struct dj_arg_option* _option,
     bool                  _value
 );
-void d_arg_option_set_force_callback(
+D_ARG_PARSER_API void d_arg_option_set_force_callback(
     struct dj_arg_option* _option,
     bool                  _value
 );
-void d_arg_option_set_run_callback_for_default(
+D_ARG_PARSER_API void d_arg_option_set_run_callback_for_default(
     struct dj_arg_option* _option,
     bool                  _value
 );
-void d_arg_option_set_inject_separator(
+D_ARG_PARSER_API void d_arg_option_set_inject_separator(
     struct dj_arg_option* _option,
     bool                  _value
 );
@@ -640,11 +660,11 @@ void d_arg_option_set_inject_separator(
  *                                           off.
  * @retval D_ARG_ERROR_BAD_ARGUMENT          `_option` is NULL.
  */
-int d_arg_option_set_ignore_case(
+D_ARG_PARSER_API int d_arg_option_set_ignore_case(
     struct dj_arg_option* _option,
     bool                  _value
 );
-int d_arg_option_set_ignore_underscore(
+D_ARG_PARSER_API int d_arg_option_set_ignore_underscore(
     struct dj_arg_option* _option,
     bool                  _value
 );
@@ -656,7 +676,7 @@ int d_arg_option_set_ignore_underscore(
 //   setting: CLI11's default_str(): the text help shows as the default, and
 // the value the option takes when forced or asked for with no results.
 // Copied; NULL clears it. Neither validates nor converts it.
-int d_arg_option_set_default_text(
+D_ARG_PARSER_API int d_arg_option_set_default_text(
     struct dj_arg_option* _option,
     const char*           _text
 );
@@ -684,7 +704,7 @@ int d_arg_option_set_default_text(
  * @retval D_ARG_ERROR_OUT_OF_MEMORY  a copy could not be made.
  * @retval D_ARG_ERROR_BAD_ARGUMENT   an argument is NULL.
  */
-int d_arg_option_set_default_value(
+D_ARG_PARSER_API int d_arg_option_set_default_value(
     struct dj_arg_option* _option,
     const char*           _text
 );
@@ -710,7 +730,7 @@ int d_arg_option_set_default_value(
  *         of d_arg_option_set_default_value; D_ARG_ERROR_BAD_ARGUMENT for a
  *         NULL argument.
  */
-int d_arg_option_set_default_typed(
+D_ARG_PARSER_API int d_arg_option_set_default_typed(
     struct dj_arg_option*     _option,
     const struct dj_arg_type* _type,
     const void*               _value
@@ -729,7 +749,7 @@ int d_arg_option_set_default_typed(
  *                          borrowed.
  * @post   a context the option held before is released.
  */
-void d_arg_option_set_default_fn(
+D_ARG_PARSER_API void d_arg_option_set_default_fn(
     struct dj_arg_option* _option,
     dj_arg_option_text_fn _write,
     void*                 _context,
@@ -743,7 +763,7 @@ void d_arg_option_set_default_fn(
 // d_arg_option_bind, its current value as its type writes it. Does nothing
 // without a function. Returns D_ARG_OK, or the status of a write or copy
 // that failed.
-int d_arg_option_capture_default(
+D_ARG_PARSER_API int d_arg_option_capture_default(
     struct dj_arg_option* _option
 );
 
@@ -769,11 +789,11 @@ int d_arg_option_capture_default(
  * @retval D_ARG_ERROR_OUT_OF_MEMORY           the list could not grow.
  * @retval D_ARG_ERROR_BAD_ARGUMENT            an argument is NULL.
  */
-int d_arg_option_needs(
+D_ARG_PARSER_API int d_arg_option_needs(
     struct dj_arg_option* _option,
     struct dj_arg_option* _other
 );
-int d_arg_option_excludes(
+D_ARG_PARSER_API int d_arg_option_excludes(
     struct dj_arg_option* _option,
     struct dj_arg_option* _other
 );
@@ -785,11 +805,11 @@ int d_arg_option_excludes(
 // group, then from the command the group belongs to, where CLI11 finds one
 // moved into the group; a name nothing matches is
 // D_ARG_ERROR_INCORRECT_CONSTRUCTION, "Option <name> is not defined".
-int d_arg_option_needs_name(
+D_ARG_PARSER_API int d_arg_option_needs_name(
     struct dj_arg_option* _option,
     const char*           _name
 );
-int d_arg_option_excludes_name(
+D_ARG_PARSER_API int d_arg_option_excludes_name(
     struct dj_arg_option* _option,
     const char*           _name
 );
@@ -798,11 +818,11 @@ int d_arg_option_excludes_name(
 // d_arg_option_remove_needs / d_arg_option_remove_excludes
 //   relations: undo a needs or an excludes -- only this option's half of an
 // exclusion, as in CLI11. Each returns whether there was one to undo.
-bool d_arg_option_remove_needs(
+D_ARG_PARSER_API bool d_arg_option_remove_needs(
     struct dj_arg_option*       _option,
     const struct dj_arg_option* _other
 );
-bool d_arg_option_remove_excludes(
+D_ARG_PARSER_API bool d_arg_option_remove_excludes(
     struct dj_arg_option*       _option,
     const struct dj_arg_option* _other
 );
@@ -826,7 +846,7 @@ bool d_arg_option_remove_excludes(
  *         own status, recorded as a definition error; or
  *         D_ARG_ERROR_BAD_ARGUMENT for a NULL option.
  */
-int d_arg_option_check(
+D_ARG_PARSER_API int d_arg_option_check(
     struct dj_arg_option*   _option,
     struct dj_arg_validator _validator,
     const char*             _name
@@ -849,7 +869,7 @@ int d_arg_option_check(
  *                              its own.
  * @return a status, as d_arg_option_check's.
  */
-int d_arg_option_transform(
+D_ARG_PARSER_API int d_arg_option_transform(
     struct dj_arg_option*   _option,
     struct dj_arg_validator _validator,
     const char*             _name,
@@ -869,7 +889,7 @@ int d_arg_option_transform(
  *                          borrowed.
  * @return a status, as d_arg_option_check's.
  */
-int d_arg_option_each(
+D_ARG_PARSER_API int d_arg_option_each(
     struct dj_arg_option* _option,
     dj_arg_each_fn        _each,
     void*                 _context,
@@ -883,11 +903,11 @@ int d_arg_option_each(
 // name, the first validator -- and get_validator(index). NULL when there is
 // none, which CLI11 throws as OptionNotFound; the validator stays the
 // option's.
-struct dj_arg_validator* d_arg_option_validator(
+D_ARG_PARSER_API struct dj_arg_validator* d_arg_option_validator(
     struct dj_arg_option* _option,
     const char*           _name
 );
-struct dj_arg_validator* d_arg_option_validator_at(
+D_ARG_PARSER_API struct dj_arg_validator* d_arg_option_validator_at(
     struct dj_arg_option* _option,
     size_t                _index
 );
@@ -907,7 +927,7 @@ struct dj_arg_validator* d_arg_option_validator_at(
  *                           callback is replaced; NULL leaves it borrowed.
  * @post   a context the option held before is released.
  */
-void d_arg_option_set_callback(
+D_ARG_PARSER_API void d_arg_option_set_callback(
     struct dj_arg_option* _option,
     dj_arg_results_fn     _callback,
     void*                 _context,
@@ -936,7 +956,7 @@ void d_arg_option_set_callback(
  * @retval D_ARG_ERROR_BAD_ARGUMENT  `_option` is NULL, or `_target` is set
  *                                   and `_type` is NULL or cannot convert.
  */
-int d_arg_option_bind(
+D_ARG_PARSER_API int d_arg_option_bind(
     struct dj_arg_option*     _option,
     void*                     _target,
     const struct dj_arg_type* _type
@@ -954,22 +974,22 @@ int d_arg_option_bind(
 // d_arg_option_description and kin
 //   lookups: the option's text fields, "" when unset (and "OPTIONS" for an
 // unset group), never NULL; NULL reads as an option with nothing set.
-const char* d_arg_option_description(
+D_ARG_PARSER_API const char* d_arg_option_description(
     const struct dj_arg_option* _option
 );
-const char* d_arg_option_option_text(
+D_ARG_PARSER_API const char* d_arg_option_option_text(
     const struct dj_arg_option* _option
 );
-const char* d_arg_option_group(
+D_ARG_PARSER_API const char* d_arg_option_group(
     const struct dj_arg_option* _option
 );
-const char* d_arg_option_default_text(
+D_ARG_PARSER_API const char* d_arg_option_default_text(
     const struct dj_arg_option* _option
 );
-const char* d_arg_option_env_name(
+D_ARG_PARSER_API const char* d_arg_option_env_name(
     const struct dj_arg_option* _option
 );
-const char* d_arg_option_positional_name(
+D_ARG_PARSER_API const char* d_arg_option_positional_name(
     const struct dj_arg_option* _option
 );
 
@@ -997,10 +1017,10 @@ bool d_arg_option_has_flag(
 //   arithmetic: CLI11's get_items_expected_min and _max, the values -- not
 // items -- the option takes: the type size times the expected count, held
 // at D_ARG_EXPECTED_UNLIMITED where the product would overflow. 0 for NULL.
-int d_arg_option_items_expected_min(
+D_ARG_PARSER_API int d_arg_option_items_expected_min(
     const struct dj_arg_option* _option
 );
-int d_arg_option_items_expected_max(
+D_ARG_PARSER_API int d_arg_option_items_expected_max(
     const struct dj_arg_option* _option
 );
 
@@ -1008,10 +1028,10 @@ int d_arg_option_items_expected_max(
 // d_arg_option_is_positional / d_arg_option_is_nonpositional
 //   predicates: CLI11's get_positional (the option has a positional name)
 // and nonpositional (it has a short or long name); an option can be both.
-bool d_arg_option_is_positional(
+D_ARG_PARSER_API bool d_arg_option_is_positional(
     const struct dj_arg_option* _option
 );
-bool d_arg_option_is_nonpositional(
+D_ARG_PARSER_API bool d_arg_option_is_nonpositional(
     const struct dj_arg_option* _option
 );
 
@@ -1030,7 +1050,7 @@ bool d_arg_option_is_nonpositional(
  * @return D_ARG_OK, or the status of the buffer or of a function that
  *         failed; D_ARG_ERROR_BAD_ARGUMENT for a NULL argument.
  */
-int d_arg_option_type_name(
+D_ARG_PARSER_API int d_arg_option_type_name(
     const struct dj_arg_option* _option,
     struct dj_arg_buffer*       _out
 );
@@ -1048,10 +1068,10 @@ int d_arg_option_type_name(
 //   lookups: count is CLI11's count(), the number of values given, separators
 // included; is_given is CLI11's operator bool, true when there is a value or
 // the callback is forced. Both read NULL as an option not given.
-size_t d_arg_option_count(
+D_ARG_PARSER_API size_t d_arg_option_count(
     const struct dj_arg_option* _option
 );
-bool d_arg_option_is_given(
+D_ARG_PARSER_API bool d_arg_option_is_given(
     const struct dj_arg_option* _option
 );
 
@@ -1063,11 +1083,11 @@ bool d_arg_option_is_given(
 // what the multi-option policy kept, once reduced, else the values as
 // given (CLI11's send_results). Each writes the count to `*_count` and
 // returns the array, NULL when empty; valid until the option changes.
-const struct dj_pack_text* d_arg_option_results(
+D_ARG_PARSER_API const struct dj_pack_text* d_arg_option_results(
     const struct dj_arg_option* _option,
     size_t*                     _count
 );
-const struct dj_pack_text* d_arg_option_values(
+D_ARG_PARSER_API const struct dj_pack_text* d_arg_option_values(
     const struct dj_arg_option* _option,
     size_t*                     _count
 );
@@ -1089,7 +1109,7 @@ const struct dj_pack_text* d_arg_option_values(
  * @retval D_ARG_ERROR_OUT_OF_MEMORY      a value could not be stored.
  * @retval D_ARG_ERROR_BAD_ARGUMENT       `_option` is NULL.
  */
-int d_arg_option_reduce(
+D_ARG_PARSER_API int d_arg_option_reduce(
     struct dj_arg_option* _option
 );
 
@@ -1112,7 +1132,7 @@ int d_arg_option_reduce(
  * @return a status of d_arg_option_reduce; D_ARG_ERROR_BAD_ARGUMENT for a
  *         NULL argument.
  */
-int d_arg_option_as(
+D_ARG_PARSER_API int d_arg_option_as(
     struct dj_arg_option*     _option,
     const struct dj_arg_type* _type,
     void*                     _target
@@ -1122,7 +1142,7 @@ int d_arg_option_as(
 // d_arg_option_callback_run
 //   predicate: CLI11's get_callback_run, whether the option's values have
 // been given to its callback since they last changed.
-bool d_arg_option_callback_run(
+D_ARG_PARSER_API bool d_arg_option_callback_run(
     const struct dj_arg_option* _option
 );
 
@@ -1148,7 +1168,7 @@ bool d_arg_option_callback_run(
  *                                    added before it stay.
  * @retval D_ARG_ERROR_BAD_ARGUMENT   `_option` is NULL.
  */
-int d_arg_option_add_result(
+D_ARG_PARSER_API int d_arg_option_add_result(
     struct dj_arg_option* _option,
     struct dj_pack_text   _value,
     int*                  _added
@@ -1161,7 +1181,7 @@ int d_arg_option_add_result(
  * @param[in]     _count   how many.
  * @return a status, as d_arg_option_add_result's.
  */
-int d_arg_option_add_results(
+D_ARG_PARSER_API int d_arg_option_add_results(
     struct dj_arg_option*      _option,
     const struct dj_pack_text* _values,
     size_t                     _count
@@ -1172,7 +1192,7 @@ int d_arg_option_add_results(
 //   operation: CLI11's clear(): drops the values and their copies -- all but
 // those a default value made -- and returns the option to PARSING. Ignores
 // NULL.
-void d_arg_option_clear(
+D_ARG_PARSER_API void d_arg_option_clear(
     struct dj_arg_option* _option
 );
 
@@ -1196,7 +1216,7 @@ void d_arg_option_clear(
  * @return a status of d_arg_option_reduce, or whatever the callback
  *         returned; D_ARG_ERROR_BAD_ARGUMENT for NULL.
  */
-int d_arg_option_run_callback(
+D_ARG_PARSER_API int d_arg_option_run_callback(
     struct dj_arg_option* _option
 );
 
@@ -1226,7 +1246,7 @@ int d_arg_option_run_callback(
  * @return the buffer's status; D_ARG_ERROR_BAD_ARGUMENT for a NULL
  *         argument.
  */
-int d_arg_option_flag_value(
+D_ARG_PARSER_API int d_arg_option_flag_value(
     const struct dj_arg_option* _option,
     struct dj_pack_text         _name,
     struct dj_pack_text         _input,

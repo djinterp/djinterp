@@ -47,7 +47,7 @@
 * path:      /inc/djinterp/config/tools/cli/cfg_cli.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.11.19
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*
@@ -92,6 +92,8 @@ TABLE OF CONTENTS
     4.  Allocation
          1.  D_INTERNAL_CLI_MALLOC / D_INTERNAL_CLI_REALLOC /
              D_INTERNAL_CLI_FREE
+    5.  Linkage
+         1.  D_CLI_API
 */
 
 #ifndef DJINTERP_CONFIG_TOOLS_CLI_CFG_CLI_H
@@ -103,6 +105,7 @@ TABLE OF CONTENTS
                                               // D_CFG_FILE_REALLOC,
                                               // D_CFG_FILE_FREE
 #include "../../../env/tools/cli/env_cli.h"  // D_ENV_CLI_*
+#include "../../../env/c/env_vendor_attributes.h"  // D_EXPORT, D_IMPORT
 
 
 //==============================================================================
@@ -460,6 +463,25 @@ D_CFG_CLI_HELP_WIDTH - 20]"
 #define D_INTERNAL_CLI_MALLOC(_size)          D_CFG_FILE_MALLOC(_size)
 #define D_INTERNAL_CLI_REALLOC(_ptr, _size)   D_CFG_FILE_REALLOC(_ptr, _size)
 #define D_INTERNAL_CLI_FREE(_ptr)             D_CFG_FILE_FREE(_ptr)
+
+// 2.5    Linkage
+//------------------------------------------------------------------------------
+// 2.5.1
+// D_CLI_API
+//   resolved: the kit's export mark, on every function its headers declare
+// (env_vendor_attributes.h, 6.1.4). Empty in a static build; where the kit
+// is built into a shared library -- the shared core of DJINTERP_CLI_LINKAGE
+// SHARED_CORE -- D_CLI_SHARED is defined for the library and everything
+// that links it, and D_CLI_BUILDING for the library's own sources.
+#if defined(D_CLI_SHARED)
+    #if defined(D_CLI_BUILDING)
+        #define D_CLI_API D_EXPORT
+    #else
+        #define D_CLI_API D_IMPORT
+    #endif
+#else
+    #define D_CLI_API
+#endif
 
 
 #endif  // DJINTERP_CONFIG_TOOLS_CLI_CFG_CLI_H

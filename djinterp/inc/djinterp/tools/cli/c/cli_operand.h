@@ -19,11 +19,25 @@
 * -- so that the file is never passed over in silence, and the thing named
 * stays reachable by its name.
 *
+* HOW TO USE
+* ----------
+*   Read each operand through d_cli_named_operand, giving the prefixes the
+* command names things with; it gives the name after the prefix, or says the
+* operand is a file's name.
+*
+* OPTIONS
+* -------
+*   The prefixes, per call: two lowercase letters or more before a colon.
+*
+* CONFIGURATION
+* -------------
+*   Nothing at build time.
+*
 *
 * path:      /inc/djinterp/tools/cli/c/cli_operand.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.25
-*                                                            revised: 2026.10.25
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*
@@ -82,7 +96,7 @@ D_EXTERN_C_BEGIN
  *         argument or a prefix R13 does not allow, unsaid, `*_name` NULL
  *         where it can be written.
  */
-int d_cli_named_operand(
+D_CLI_API int d_cli_named_operand(
     const struct dj_cli_program* _program,
     const char*                  _word,
     const char*                  _prefix,

@@ -16,11 +16,31 @@
 *   Every command uses its own formatter, if set, else its parent's, and
 * the root the one its parser holds.
 *
+* HOW TO USE
+* ----------
+*   Every parser has a formatter, which every command without its own uses;
+* change its widths, switches and labels in place, or replace a step of its
+* table to build help another way around CLI11's own step. A command writes its
+* help through it to a sink.
+*
+* OPTIONS
+* -------
+*   The column, description and paragraph widths; what an option's line shows;
+* the labels help's fixed words are written with; a width to keep within, given
+* or the terminal's.
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_ARG_PARSER_COLUMN_WIDTH, D_CFG_ARG_PARSER_RIGHT_COLUMN_WIDTH and
+* D_CFG_ARG_PARSER_PARAGRAPH_WIDTH are a new formatter's widths;
+* D_CFG_ARG_PARSER_TERMINAL_WIDTH 0 removes the terminal's width
+* (cfg_arg_parser.h).
+*
 *
 * path:      /inc/djinterp/c/modules/parse/cli/arg_parser/arg_formatter.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*
@@ -260,10 +280,10 @@ D_EXTERN_C_BEGIN
 //   lifetime: init makes CLI11's default Formatter, with no step replaced and
 // no labels; release frees the labels and leaves it as init makes it.
 // Neither fails, and each ignores NULL.
-void d_arg_formatter_init(
+D_ARG_PARSER_API void d_arg_formatter_init(
     struct dj_arg_formatter* _formatter
 );
-void d_arg_formatter_release(
+D_ARG_PARSER_API void d_arg_formatter_release(
     struct dj_arg_formatter* _formatter
 );
 
@@ -281,7 +301,7 @@ void d_arg_formatter_release(
  *                                    no labels.
  * @retval D_ARG_ERROR_BAD_ARGUMENT   an argument is NULL.
  */
-int d_arg_formatter_copy(
+D_ARG_PARSER_API int d_arg_formatter_copy(
     struct dj_arg_formatter*       _destination,
     const struct dj_arg_formatter* _source
 );
@@ -305,7 +325,7 @@ int d_arg_formatter_copy(
  *                                    are as they were.
  * @retval D_ARG_ERROR_BAD_ARGUMENT   an argument is NULL.
  */
-int d_arg_formatter_set_label(
+D_ARG_PARSER_API int d_arg_formatter_set_label(
     struct dj_arg_formatter* _formatter,
     const char*              _key,
     const char*              _value
@@ -316,7 +336,7 @@ int d_arg_formatter_set_label(
 //   lookup: CLI11's get_label(): the word's label, or the word itself when it
 // has none or the formatter is NULL. The span is the formatter's or
 // `_key`'s, valid while both are.
-struct dj_pack_text d_arg_formatter_label(
+D_ARG_PARSER_API struct dj_pack_text d_arg_formatter_label(
     const struct dj_arg_formatter* _formatter,
     struct dj_pack_text            _key
 );
@@ -326,23 +346,23 @@ struct dj_pack_text d_arg_formatter_label(
 //   settings: CLI11's column_width(), right_column_width(),
 // description_paragraph_width() and footer_paragraph_width(), and the line
 // width, beyond CLI11 (0 for none). None fails, and each ignores NULL.
-void d_arg_formatter_set_column_width(
+D_ARG_PARSER_API void d_arg_formatter_set_column_width(
     struct dj_arg_formatter* _formatter,
     size_t                   _width
 );
-void d_arg_formatter_set_right_column_width(
+D_ARG_PARSER_API void d_arg_formatter_set_right_column_width(
     struct dj_arg_formatter* _formatter,
     size_t                   _width
 );
-void d_arg_formatter_set_description_paragraph_width(
+D_ARG_PARSER_API void d_arg_formatter_set_description_paragraph_width(
     struct dj_arg_formatter* _formatter,
     size_t                   _width
 );
-void d_arg_formatter_set_footer_paragraph_width(
+D_ARG_PARSER_API void d_arg_formatter_set_footer_paragraph_width(
     struct dj_arg_formatter* _formatter,
     size_t                   _width
 );
-void d_arg_formatter_set_line_width(
+D_ARG_PARSER_API void d_arg_formatter_set_line_width(
     struct dj_arg_formatter* _formatter,
     size_t                   _width
 );
@@ -354,7 +374,7 @@ void d_arg_formatter_set_line_width(
 // negative one taken by its magnitude, as CLI11 does, and one that is not a
 // number restores the default, 1/3. A ratio written to the field directly
 // is read as the setter would have stored it.
-void d_arg_formatter_set_long_option_alignment_ratio(
+D_ARG_PARSER_API void d_arg_formatter_set_long_option_alignment_ratio(
     struct dj_arg_formatter* _formatter,
     float                    _ratio
 );
@@ -362,7 +382,7 @@ void d_arg_formatter_set_long_option_alignment_ratio(
 // 3.2.5
 // d_arg_formatter_set_flag
 //   setting: sets or clears one D_ARG_FORMAT_* switch. Does not fail.
-void d_arg_formatter_set_flag(
+D_ARG_PARSER_API void d_arg_formatter_set_flag(
     struct dj_arg_formatter* _formatter,
     uint32_t                 _flag,
     bool                     _value
@@ -374,7 +394,7 @@ void d_arg_formatter_set_flag(
 // d_arg_command_formatter
 //   lookup: the formatter a command's help uses: its own, else the nearest
 // ancestor's, else its parser's; NULL for NULL.
-const struct dj_arg_formatter* d_arg_command_formatter(
+D_ARG_PARSER_API const struct dj_arg_formatter* d_arg_command_formatter(
     const struct dj_arg_command* _command
 );
 
@@ -396,81 +416,81 @@ const struct dj_arg_formatter* d_arg_command_formatter(
 //   steps: run the formatter's table entry for the step, or the default step
 // when the entry is NULL. Help is built only through these, so a replaced
 // step is used wherever CLI11 would call it.
-int d_arg_format_help(
+D_ARG_PARSER_API int d_arg_format_help(
     const struct dj_arg_formatter* _formatter,
     const struct dj_arg_command*   _command,
     struct dj_pack_text            _name,
     int                            _mode,
     struct dj_arg_buffer*          _out
 );
-int d_arg_format_group(
+D_ARG_PARSER_API int d_arg_format_group(
     const struct dj_arg_formatter*   _formatter,
     struct dj_pack_text              _group,
     bool                             _positional,
     const struct dj_arg_option_list* _options,
     struct dj_arg_buffer*            _out
 );
-int d_arg_format_positionals(
+D_ARG_PARSER_API int d_arg_format_positionals(
     const struct dj_arg_formatter* _formatter,
     const struct dj_arg_command*   _command,
     struct dj_arg_buffer*          _out
 );
-int d_arg_format_subcommands(
-    const struct dj_arg_formatter* _formatter,
-    const struct dj_arg_command*   _command,
-    int                            _mode,
-    struct dj_arg_buffer*          _out
-);
-int d_arg_format_subcommand(
-    const struct dj_arg_formatter* _formatter,
-    const struct dj_arg_command*   _command,
-    struct dj_arg_buffer*          _out
-);
-int d_arg_format_expanded(
+D_ARG_PARSER_API int d_arg_format_subcommands(
     const struct dj_arg_formatter* _formatter,
     const struct dj_arg_command*   _command,
     int                            _mode,
     struct dj_arg_buffer*          _out
 );
-int d_arg_format_footer(
+D_ARG_PARSER_API int d_arg_format_subcommand(
     const struct dj_arg_formatter* _formatter,
     const struct dj_arg_command*   _command,
     struct dj_arg_buffer*          _out
 );
-int d_arg_format_description(
+D_ARG_PARSER_API int d_arg_format_expanded(
+    const struct dj_arg_formatter* _formatter,
+    const struct dj_arg_command*   _command,
+    int                            _mode,
+    struct dj_arg_buffer*          _out
+);
+D_ARG_PARSER_API int d_arg_format_footer(
     const struct dj_arg_formatter* _formatter,
     const struct dj_arg_command*   _command,
     struct dj_arg_buffer*          _out
 );
-int d_arg_format_usage(
+D_ARG_PARSER_API int d_arg_format_description(
+    const struct dj_arg_formatter* _formatter,
+    const struct dj_arg_command*   _command,
+    struct dj_arg_buffer*          _out
+);
+D_ARG_PARSER_API int d_arg_format_usage(
     const struct dj_arg_formatter* _formatter,
     const struct dj_arg_command*   _command,
     struct dj_pack_text            _name,
     struct dj_arg_buffer*          _out
 );
-int d_arg_format_option(
+D_ARG_PARSER_API int d_arg_format_option(
     const struct dj_arg_formatter* _formatter,
     const struct dj_arg_option*    _option,
     bool                           _positional,
     struct dj_arg_buffer*          _out
 );
-int d_arg_format_option_name(
+D_ARG_PARSER_API int d_arg_format_option_name(
     const struct dj_arg_formatter* _formatter,
     const struct dj_arg_option*    _option,
     bool                           _positional,
     struct dj_arg_buffer*          _out
 );
-int d_arg_format_option_opts(
+D_ARG_PARSER_API int d_arg_format_option_opts(
     const struct dj_arg_formatter* _formatter,
     const struct dj_arg_option*    _option,
     struct dj_arg_buffer*          _out
 );
-int d_arg_format_option_desc(
+D_ARG_PARSER_API int d_arg_format_option_desc(
     const struct dj_arg_formatter* _formatter,
     const struct dj_arg_option*    _option,
     struct dj_arg_buffer*          _out
 );
-int d_arg_format_option_usage(
+D_ARG_PARSER_API int d_arg_format_option_usage(
     const struct dj_arg_formatter* _formatter,
     const struct dj_arg_option*    _option,
     struct dj_arg_buffer*          _out
@@ -483,81 +503,81 @@ int d_arg_format_option_usage(
 //   steps: CLI11's Formatter implementations, one for each table entry, with
 // the same parameters. They call the other steps through the dispatchers of
 // 4.1, as CLI11's virtual calls do.
-int d_arg_format_help_default(
+D_ARG_PARSER_API int d_arg_format_help_default(
     const struct dj_arg_formatter* _formatter,
     const struct dj_arg_command*   _command,
     struct dj_pack_text            _name,
     int                            _mode,
     struct dj_arg_buffer*          _out
 );
-int d_arg_format_group_default(
+D_ARG_PARSER_API int d_arg_format_group_default(
     const struct dj_arg_formatter*   _formatter,
     struct dj_pack_text              _group,
     bool                             _positional,
     const struct dj_arg_option_list* _options,
     struct dj_arg_buffer*            _out
 );
-int d_arg_format_positionals_default(
+D_ARG_PARSER_API int d_arg_format_positionals_default(
     const struct dj_arg_formatter* _formatter,
     const struct dj_arg_command*   _command,
     struct dj_arg_buffer*          _out
 );
-int d_arg_format_subcommands_default(
-    const struct dj_arg_formatter* _formatter,
-    const struct dj_arg_command*   _command,
-    int                            _mode,
-    struct dj_arg_buffer*          _out
-);
-int d_arg_format_subcommand_default(
-    const struct dj_arg_formatter* _formatter,
-    const struct dj_arg_command*   _command,
-    struct dj_arg_buffer*          _out
-);
-int d_arg_format_expanded_default(
+D_ARG_PARSER_API int d_arg_format_subcommands_default(
     const struct dj_arg_formatter* _formatter,
     const struct dj_arg_command*   _command,
     int                            _mode,
     struct dj_arg_buffer*          _out
 );
-int d_arg_format_footer_default(
+D_ARG_PARSER_API int d_arg_format_subcommand_default(
     const struct dj_arg_formatter* _formatter,
     const struct dj_arg_command*   _command,
     struct dj_arg_buffer*          _out
 );
-int d_arg_format_description_default(
+D_ARG_PARSER_API int d_arg_format_expanded_default(
+    const struct dj_arg_formatter* _formatter,
+    const struct dj_arg_command*   _command,
+    int                            _mode,
+    struct dj_arg_buffer*          _out
+);
+D_ARG_PARSER_API int d_arg_format_footer_default(
     const struct dj_arg_formatter* _formatter,
     const struct dj_arg_command*   _command,
     struct dj_arg_buffer*          _out
 );
-int d_arg_format_usage_default(
+D_ARG_PARSER_API int d_arg_format_description_default(
+    const struct dj_arg_formatter* _formatter,
+    const struct dj_arg_command*   _command,
+    struct dj_arg_buffer*          _out
+);
+D_ARG_PARSER_API int d_arg_format_usage_default(
     const struct dj_arg_formatter* _formatter,
     const struct dj_arg_command*   _command,
     struct dj_pack_text            _name,
     struct dj_arg_buffer*          _out
 );
-int d_arg_format_option_default(
+D_ARG_PARSER_API int d_arg_format_option_default(
     const struct dj_arg_formatter* _formatter,
     const struct dj_arg_option*    _option,
     bool                           _positional,
     struct dj_arg_buffer*          _out
 );
-int d_arg_format_option_name_default(
+D_ARG_PARSER_API int d_arg_format_option_name_default(
     const struct dj_arg_formatter* _formatter,
     const struct dj_arg_option*    _option,
     bool                           _positional,
     struct dj_arg_buffer*          _out
 );
-int d_arg_format_option_opts_default(
+D_ARG_PARSER_API int d_arg_format_option_opts_default(
     const struct dj_arg_formatter* _formatter,
     const struct dj_arg_option*    _option,
     struct dj_arg_buffer*          _out
 );
-int d_arg_format_option_desc_default(
+D_ARG_PARSER_API int d_arg_format_option_desc_default(
     const struct dj_arg_formatter* _formatter,
     const struct dj_arg_option*    _option,
     struct dj_arg_buffer*          _out
 );
-int d_arg_format_option_usage_default(
+D_ARG_PARSER_API int d_arg_format_option_usage_default(
     const struct dj_arg_formatter* _formatter,
     const struct dj_arg_option*    _option,
     struct dj_arg_buffer*          _out
@@ -570,7 +590,7 @@ int d_arg_format_option_usage_default(
 //   step: CLI11's make_groups, which is not replaceable: one group step for
 // each named group of the command's non-positional options, the help flags
 // left out in D_ARG_HELP_SUB mode.
-int d_arg_format_groups(
+D_ARG_PARSER_API int d_arg_format_groups(
     const struct dj_arg_formatter* _formatter,
     const struct dj_arg_command*   _command,
     int                            _mode,
@@ -608,7 +628,7 @@ int d_arg_format_groups(
  *         nothing written; or D_ARG_ERROR_BAD_ARGUMENT for a NULL command or
  *         a mode that is not a dj_arg_help_mode value.
  */
-int d_arg_help(
+D_ARG_PARSER_API int d_arg_help(
     const struct dj_arg_command* _command,
     struct dj_pack_text          _prefix,
     int                          _mode,
@@ -631,7 +651,7 @@ int d_arg_help(
  *
  * @return the width in columns; 0 when it cannot be known.
  */
-size_t d_arg_terminal_width(void);
+D_ARG_PARSER_API size_t d_arg_terminal_width(void);
 
 #endif  // D_INTERNAL_ARG_PARSER_TERMINAL_WIDTH
 

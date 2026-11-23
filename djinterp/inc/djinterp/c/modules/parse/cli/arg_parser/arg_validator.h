@@ -18,11 +18,29 @@
 * arg_validator_extra.h, and those that ask the file system in
 * arg_validator_path.h.
 *
+* HOW TO USE
+* ----------
+*   Build a validator, set its description, name or position, and give it to an
+* option, which takes it by value: d_arg_validator_copy keeps your own. Combine
+* them with d_arg_validator_and, d_arg_validator_or and d_arg_validator_not, as
+* CLI11's `&`, `|` and `!`.
+*
+* OPTIONS
+* -------
+*   Each validator's own: its description, its name, the value it applies to,
+* whether it is active, and whether its rewriting counts.
+*
+* CONFIGURATION
+* -------------
+*   The default validators here are always built; arg_validator_extra.h's and
+* arg_validator_path.h's follow D_CFG_ARG_PARSER_EXTRA_VALIDATORS and
+* D_CFG_ARG_PARSER_PATH_VALIDATORS (cfg_arg_parser.h).
+*
 *
 * path:      /inc/djinterp/c/modules/parse/cli/arg_parser/arg_validator.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*
@@ -142,11 +160,11 @@ D_EXTERN_C_BEGIN
 // frees what the validation came to own -- a replaced value, a message --
 // after which `value` must not be read. Neither fails, and release accepts
 // NULL.
-void d_arg_validation_init(
+D_ARG_PARSER_API void d_arg_validation_init(
     struct dj_arg_validation* _validation,
     struct dj_pack_text       _value
 );
-void d_arg_validation_release(
+D_ARG_PARSER_API void d_arg_validation_release(
     struct dj_arg_validation* _validation
 );
 
@@ -166,7 +184,7 @@ void d_arg_validation_release(
  * @retval D_ARG_ERROR_BAD_ARGUMENT   `_validation` is NULL, or `_value` is
  *                                    NULL with a nonzero length.
  */
-int d_arg_validation_replace(
+D_ARG_PARSER_API int d_arg_validation_replace(
     struct dj_arg_validation* _validation,
     struct dj_pack_text       _value
 );
@@ -190,7 +208,7 @@ int d_arg_validation_replace(
  * @retval D_ARG_ERROR_OUT_OF_MEMORY  the message could not be stored.
  * @retval D_ARG_ERROR_BAD_ARGUMENT   `_validation` is NULL.
  */
-int d_arg_validation_reject(
+D_ARG_PARSER_API int d_arg_validation_reject(
     struct dj_arg_validation* _validation,
     const char*               _message
 );
@@ -201,7 +219,7 @@ int d_arg_validation_reject(
  * @param[in]     _format      the reason's format string.
  * @return a status, as d_arg_validation_reject's.
  */
-int d_arg_validation_rejectf(
+D_ARG_PARSER_API int d_arg_validation_rejectf(
     struct dj_arg_validation* _validation,
     const char*               _format,
     ...
@@ -380,10 +398,10 @@ D_EXTERN_C_BEGIN
 // applying to every value, passing every value, describing nothing; release
 // frees whatever the validator owns and leaves it as init makes it. Neither
 // fails, and each accepts NULL.
-void d_arg_validator_init(
+D_ARG_PARSER_API void d_arg_validator_init(
     struct dj_arg_validator* _validator
 );
-void d_arg_validator_release(
+D_ARG_PARSER_API void d_arg_validator_release(
     struct dj_arg_validator* _validator
 );
 
@@ -399,7 +417,7 @@ void d_arg_validator_release(
  *         way to copy, D_ARG_ERROR_BAD_ARGUMENT for NULL, or `_source`'s
  *         own status when it had failed.
  */
-struct dj_arg_validator d_arg_validator_copy(
+D_ARG_PARSER_API struct dj_arg_validator d_arg_validator_copy(
     const struct dj_arg_validator* _source
 );
 
@@ -417,7 +435,7 @@ struct dj_arg_validator d_arg_validator_copy(
  * @retval D_ARG_ERROR_OUT_OF_MEMORY  the copy could not be made.
  * @retval D_ARG_ERROR_BAD_ARGUMENT   `_validator` is NULL.
  */
-int d_arg_validator_set_name(
+D_ARG_PARSER_API int d_arg_validator_set_name(
     struct dj_arg_validator* _validator,
     const char*              _name
 );
@@ -431,7 +449,7 @@ int d_arg_validator_set_name(
  * @post   on failure the validator's `status` is the failure's.
  * @return a status, as d_arg_validator_set_name's.
  */
-int d_arg_validator_set_description(
+D_ARG_PARSER_API int d_arg_validator_set_description(
     struct dj_arg_validator* _validator,
     const char*              _description
 );
@@ -441,15 +459,15 @@ int d_arg_validator_set_description(
 //   settings: CLI11's active(), non_modifying() -- with its sense reversed --
 // and application_index(), in which -1 means every value. None fails, and
 // each ignores NULL.
-void d_arg_validator_set_active(
+D_ARG_PARSER_API void d_arg_validator_set_active(
     struct dj_arg_validator* _validator,
     bool                     _active
 );
-void d_arg_validator_set_modifying(
+D_ARG_PARSER_API void d_arg_validator_set_modifying(
     struct dj_arg_validator* _validator,
     bool                     _modifying
 );
-void d_arg_validator_set_application_index(
+D_ARG_PARSER_API void d_arg_validator_set_application_index(
     struct dj_arg_validator* _validator,
     int                      _index
 );
@@ -473,7 +491,7 @@ void d_arg_validator_set_application_index(
  *         stopped with; a failed validator's own status;
  *         D_ARG_ERROR_BAD_ARGUMENT for a NULL argument.
  */
-int d_arg_validator_run(
+D_ARG_PARSER_API int d_arg_validator_run(
     const struct dj_arg_validator* _validator,
     struct dj_arg_validation*      _validation
 );
@@ -490,7 +508,7 @@ int d_arg_validator_run(
  * @return D_ARG_OK, or the buffer's status; D_ARG_ERROR_BAD_ARGUMENT for a
  *         NULL argument.
  */
-int d_arg_validator_describe(
+D_ARG_PARSER_API int d_arg_validator_describe(
     const struct dj_arg_validator* _validator,
     struct dj_arg_buffer*          _out
 );
@@ -510,7 +528,7 @@ int d_arg_validator_describe(
  * @return D_ARG_OK, or the first other status `_each` returned;
  *         D_ARG_ERROR_BAD_ARGUMENT for a NULL validator or function.
  */
-int d_arg_validator_each_choice(
+D_ARG_PARSER_API int d_arg_validator_each_choice(
     const struct dj_arg_validator* _validator,
     dj_arg_choice_fn               _each,
     void*                          _context
@@ -550,7 +568,7 @@ int d_arg_validator_each_choice(
  *         of the first operand that had failed or of the refused
  *         allocation, both operands released.
  */
-struct dj_arg_validator d_arg_validator_and(
+D_ARG_PARSER_API struct dj_arg_validator d_arg_validator_and(
     struct dj_arg_validator _first,
     struct dj_arg_validator _second
 );
@@ -572,7 +590,7 @@ struct dj_arg_validator d_arg_validator_and(
  * @param[in] _second  the second validator, which is consumed.
  * @return the combination, or a failed validator, as d_arg_validator_and.
  */
-struct dj_arg_validator d_arg_validator_or(
+D_ARG_PARSER_API struct dj_arg_validator d_arg_validator_or(
     struct dj_arg_validator _first,
     struct dj_arg_validator _second
 );
@@ -592,7 +610,7 @@ struct dj_arg_validator d_arg_validator_or(
  * @return the inversion; on failure, a failed validator, as
  *         d_arg_validator_and.
  */
-struct dj_arg_validator d_arg_validator_not(
+D_ARG_PARSER_API struct dj_arg_validator d_arg_validator_not(
     struct dj_arg_validator _operand
 );
 
@@ -618,7 +636,7 @@ struct dj_arg_validator d_arg_validator_not(
  * @return the validator; on failure, a failed validator holding
  *         D_ARG_ERROR_OUT_OF_MEMORY.
  */
-struct dj_arg_validator d_arg_validator_custom(
+D_ARG_PARSER_API struct dj_arg_validator d_arg_validator_custom(
     dj_arg_validate_fn _validate,
     void*              _context,
     const char*        _description
@@ -640,7 +658,7 @@ struct dj_arg_validator d_arg_validator_custom(
  * @param[in]     _release    frees the context with the validator; NULL
  *                            leaves the context borrowed.
  */
-void d_arg_validator_own_context(
+D_ARG_PARSER_API void d_arg_validator_own_context(
     struct dj_arg_validator* _validator,
     dj_arg_copy_fn           _copy,
     dj_arg_release_fn        _release
@@ -651,7 +669,7 @@ void d_arg_validator_own_context(
 //   setting: makes a validator work out its description with `_describe`
 // whenever no fixed description is set; NULL describes nothing. Does not
 // fail, and ignores a NULL validator.
-void d_arg_validator_set_describe(
+D_ARG_PARSER_API void d_arg_validator_set_describe(
     struct dj_arg_validator* _validator,
     dj_arg_describe_fn       _describe
 );
@@ -663,11 +681,11 @@ void d_arg_validator_set_describe(
 // D_ARG_VALIDATOR_PATH, D_ARG_VALIDATOR_DIRECTORY, which sets the path flag
 // too, or D_ARG_VALIDATOR_NUMBER. Neither fails, and each ignores a NULL
 // validator.
-void d_arg_validator_set_choices(
+D_ARG_PARSER_API void d_arg_validator_set_choices(
     struct dj_arg_validator* _validator,
     dj_arg_choices_fn        _choices
 );
-void d_arg_validator_set_value_kind(
+D_ARG_PARSER_API void d_arg_validator_set_value_kind(
     struct dj_arg_validator* _validator,
     uint32_t                 _kind
 );
@@ -706,7 +724,7 @@ void d_arg_validator_set_value_kind(
  *         D_ARG_ERROR_BAD_ARGUMENT for a NULL argument, a type that is not
  *         arithmetic or has no conversion, or a container's.
  */
-struct dj_arg_validator d_arg_validator_range(
+D_ARG_PARSER_API struct dj_arg_validator d_arg_validator_range(
     const struct dj_arg_type* _type,
     const void*               _low,
     const void*               _high
@@ -717,15 +735,15 @@ struct dj_arg_validator d_arg_validator_range(
 //   constructors: d_arg_validator_range over the built-in `long`, `unsigned
 // long` and `double` types, the ones CLI11's Range is most often given,
 // described as "INT", "UINT" and "FLOAT" ranges. None fails.
-struct dj_arg_validator d_arg_validator_range_long(
+D_ARG_PARSER_API struct dj_arg_validator d_arg_validator_range_long(
     long _low,
     long _high
 );
-struct dj_arg_validator d_arg_validator_range_ulong(
+D_ARG_PARSER_API struct dj_arg_validator d_arg_validator_range_ulong(
     unsigned long _low,
     unsigned long _high
 );
-struct dj_arg_validator d_arg_validator_range_double(
+D_ARG_PARSER_API struct dj_arg_validator d_arg_validator_range_double(
     double _low,
     double _high
 );
@@ -737,12 +755,13 @@ struct dj_arg_validator d_arg_validator_range_double(
 //   constructor: CLI11's PositiveNumber, a range over `double` from the
 // smallest positive value to the largest, described as "POSITIVE". Does not
 // fail.
-struct dj_arg_validator d_arg_validator_positive_number(void);
+D_ARG_PARSER_API struct dj_arg_validator d_arg_validator_positive_number(void);
 
 // 5.2.2
 // d_arg_validator_non_negative_number
 //   constructor: CLI11's NonNegativeNumber, a range over `double` from 0 to
 // the largest value, described as "NONNEGATIVE". Does not fail.
+D_ARG_PARSER_API
 struct dj_arg_validator d_arg_validator_non_negative_number(void);
 
 // 5.3    Strings
@@ -768,7 +787,7 @@ struct dj_arg_validator d_arg_validator_non_negative_number(void);
  *
  * @return the validator, described by nothing. Does not fail.
  */
-struct dj_arg_validator d_arg_validator_escaped_string(void);
+D_ARG_PARSER_API struct dj_arg_validator d_arg_validator_escaped_string(void);
 
 D_EXTERN_C_END
 

@@ -13,11 +13,32 @@
 * same way -- options held in an environment variable, say -- and
 * d_arg_quote_word, its inverse, can write words that split back unchanged.
 *
+* HOW TO USE
+* ----------
+*   Split a line with d_arg_split_line, giving the rules it follows (a
+* dj_arg_quoting value) and its D_ARG_SPLIT_* flags; d_arg_quote_word writes a
+* word that splits back unchanged under the same rules. d_arg_read_response_file
+* reads a response file's arguments, as the parser does for `@file` where
+* response files are on (d_arg_parser_set_response_files). d_arg_utf8_from_wide
+* and d_arg_wide_from_utf8 convert text either way.
+*
+* OPTIONS
+* -------
+*   The quoting rules -- a POSIX shell's, the Microsoft C runtime's, CLI11's,
+* GCC's for response files -- and the split flags, chosen at each call.
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_ARG_PARSER_RESPONSE_FILES 0 removes response files, and
+* D_CFG_ARG_PARSER_WIDE_ARGV 0 the wide conversions;
+* D_CFG_ARG_PARSER_RESPONSE_DEPTH bounds how deeply one response file may name
+* another (cfg_arg_parser.h).
+*
 *
 * path:      /inc/djinterp/c/modules/parse/cli/arg_parser/arg_argv.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.17
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*
@@ -153,7 +174,7 @@ D_EXTERN_C_BEGIN
  *                                    nonzero length, or `_quoting` is not a
  *                                    dj_arg_quoting value.
  */
-int d_arg_split_line(
+D_ARG_PARSER_API int d_arg_split_line(
     struct dj_pack_text        _line,
     int                        _quoting,
     uint32_t                   _flags,
@@ -186,7 +207,7 @@ int d_arg_split_line(
  *         NULL buffer, NULL word data with a nonzero length, or a
  *         `_quoting` that is not a dj_arg_quoting value.
  */
-int d_arg_quote_word(
+D_ARG_PARSER_API int d_arg_quote_word(
     struct dj_pack_text   _word,
     int                   _quoting,
     struct dj_arg_buffer* _out
@@ -216,7 +237,7 @@ int d_arg_quote_word(
  * @return D_ARG_OK, or the buffer's status; D_ARG_ERROR_BAD_ARGUMENT for a
  *         NULL argument, or NULL line data with a nonzero length.
  */
-int d_arg_split_program_name(
+D_ARG_PARSER_API int d_arg_split_program_name(
     struct dj_pack_text   _line,
     struct dj_arg_buffer* _name,
     struct dj_pack_text*  _rest
@@ -254,7 +275,7 @@ int d_arg_split_program_name(
  * @return D_ARG_OK; D_ARG_ERROR_FILE when the file could not be read, "<path>
  *         was not readable (missing?)"; or a status of d_arg_split_line.
  */
-int d_arg_read_response_file(
+D_ARG_PARSER_API int d_arg_read_response_file(
     const char*                _path,
     int                        _quoting,
     struct dj_arg_string_list* _out,
@@ -292,7 +313,7 @@ D_EXTERN_C_BEGIN
  * @return D_ARG_OK, or the buffer's status; D_ARG_ERROR_BAD_ARGUMENT for a
  *         NULL buffer, or NULL text with a nonzero length.
  */
-int d_arg_utf8_from_wide(
+D_ARG_PARSER_API int d_arg_utf8_from_wide(
     const wchar_t*        _text,
     size_t                _length,
     struct dj_arg_buffer* _out
@@ -324,7 +345,7 @@ int d_arg_utf8_from_wide(
  *         NULL text with a nonzero length, or a NULL `_out` with a nonzero
  *         capacity. A failure writes nothing.
  */
-int d_arg_wide_from_utf8(
+D_ARG_PARSER_API int d_arg_wide_from_utf8(
     const char* _text,
     size_t      _length,
     wchar_t*    _out,

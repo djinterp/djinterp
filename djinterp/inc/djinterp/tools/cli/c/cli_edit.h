@@ -18,11 +18,28 @@
 * there. The words of the operand's and the options' help name what the
 * command changes, as the command gives it: "the sheet".
 *
+* HOW TO USE
+* ----------
+*   Declare a command's operand with d_cli_edit_add_operand where its operands
+* are, and its options with d_cli_edit_add_options where its options are; in its
+* work, ask d_cli_edit_target and d_cli_edit_dry_run where the result goes, and
+* write it with d_cli_edit_write.
+*
+* OPTIONS
+* -------
+*   `-o FILE`, `-n`, and `-i` where the program writes standard output by
+* default, as the program's flags make it.
+*
+* CONFIGURATION
+* -------------
+*   D_CLI_PROGRAM_EDITS_TO_OUTPUT, a program's flag (cli_program.h), chooses
+* between the two defaults; nothing at build time.
+*
 *
 * path:      /inc/djinterp/tools/cli/c/cli_edit.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.25
-*                                                            revised: 2026.10.25
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*
@@ -137,7 +154,7 @@ D_EXTERN_C_BEGIN
  * @return the operand; NULL when it could not be added, the parser keeping
  *         why, or for a NULL argument.
  */
-struct dj_arg_option* d_cli_edit_add_operand(
+D_CLI_API struct dj_arg_option* d_cli_edit_add_operand(
     struct dj_cli_program* _program,
     struct dj_arg_command* _command,
     struct dj_cli_edit*    _edit,
@@ -168,7 +185,7 @@ struct dj_arg_option* d_cli_edit_add_operand(
  *         and the program the want of memory; D_ARG_ERROR_BAD_ARGUMENT for
  *         a NULL argument.
  */
-int d_cli_edit_add_options(
+D_CLI_API int d_cli_edit_add_options(
     struct dj_cli_program* _program,
     struct dj_arg_command* _command,
     struct dj_cli_edit*    _edit,
@@ -190,7 +207,7 @@ int d_cli_edit_add_options(
 // not: `-o`'s file, or standard output for `-o -`; else, for B without
 // `-i`, standard output; else back where it was read, or standard output
 // for a file read from standard input. D_CLI_EDIT_BACK for a NULL argument.
-int d_cli_edit_target(
+D_CLI_API int d_cli_edit_target(
     const struct dj_cli_program* _program,
     const struct dj_cli_edit*    _edit
 );
@@ -198,7 +215,7 @@ int d_cli_edit_target(
 // 3.1.2
 // d_cli_edit_dry_run
 //   lookup: after a parse, whether `-n` was given; `false` for NULL.
-bool d_cli_edit_dry_run(
+D_CLI_API bool d_cli_edit_dry_run(
     const struct dj_cli_edit* _edit
 );
 
@@ -221,7 +238,7 @@ bool d_cli_edit_dry_run(
  *         or as `out of memory`, the file as it was; D_CLI_EXIT_TROUBLE,
  *         unsaid, for a NULL program or record, or NULL data with a length.
  */
-int d_cli_edit_write(
+D_CLI_API int d_cli_edit_write(
     const struct dj_cli_program* _program,
     const struct dj_cli_edit*    _edit,
     const void*                  _data,
