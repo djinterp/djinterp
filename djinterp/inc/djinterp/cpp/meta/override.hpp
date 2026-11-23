@@ -166,8 +166,9 @@ struct is_override_policy
     // OverridePolicy
     //   concept: the C++20 face of is_override_policy. Consumers spell it
     // through D_CONCEPT_PARAM so the constraint is checked here and elides to
-    // `typename` below 20 - additive per D1, since no overload in this
-    // framework is distinguished by it.
+    // `typename` below 20 - additive, as the tiers' rule asks (a higher
+    // standard adds, never substitutes), since no overload in this framework
+    // is distinguished by it.
     template<typename Policy>
     concept OverridePolicy = is_override_policy<Policy>::value;
 

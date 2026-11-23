@@ -24,7 +24,7 @@
 *     mongodb_gridfs       files in a GridFS bucket
 *     mongodb_maintenance  sizes, compact, validate
 *   RESULTS. A function that can fail returns 0, or a code that keeps every
-* failure's own number (decision B9). A failure the server reports - a
+* failure's own number. A failure the server reports - a
 * command's or a write's, or a write concern's - is the server's own code,
 * unchanged and positive: 11000 a duplicate key, 26 a namespace not found,
 * 13 unauthorized, and any other the server sends, which d_mongodb_error_name

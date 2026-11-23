@@ -62,8 +62,8 @@ IV.   Option / UnaryOption / ArgsOption   (C++20 concept analogs)
 // preference. option<> is declared `template<auto Key, typename... Args>`
 // (below, four times) and a deduced non-type template parameter is a C++17
 // feature. There is no C++11 or C++14 spelling of this type to fall back to,
-// so the floor is stated rather than worked around - per D1, a fallback here
-// would be a second implementation nobody compiles. Below C++17 the header
+// so the floor is stated rather than worked around - by the tiers' rule, a
+// fallback here would be a second implementation nobody compiles. Below C++17 the header
 // degrades rather than errors (the owner's ruling of 2026.09.30): it
 // compiles to nothing, like every header of the family, each of which
 // gates itself the same way.

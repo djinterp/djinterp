@@ -132,7 +132,7 @@ NS_CONTAINER
     // invalid_id
     //   function (template): the canonical sentinel for an unsigned-integer
     // ID type: always (UInt)-1. (In djinterp::math, in math_common.hpp, until
-    // 2026.11.11: graph's alone - decision X2.)
+    // 2026.11.11, when it became graph's alone.)
     template<typename UInt>
     D_CONSTEXPR_INLINE
     UInt invalid_id() noexcept
@@ -163,7 +163,7 @@ NS_CONTAINER
     // unknown_depth
     //   constant: the depth reported for a vertex that root() does not reach.
     // (math::kUnknownDepth until 2026.11.11: the guide names constexpr values
-    // in snake_case - decision X2.)
+    // in snake_case.)
     static D_CONSTEXPR depth_t unknown_depth =
         static_cast<depth_t>(-1);
 
