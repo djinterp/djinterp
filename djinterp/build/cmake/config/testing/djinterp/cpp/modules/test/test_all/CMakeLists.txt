@@ -2,8 +2,9 @@
 #   Links the umbrella runner (this dir) + the 12 migrated suites' section TUs
 # (tests/djinterp/cpp/modules/test and .../output) + the two util TUs the
 # report's packaging needs at link (internal::compress_buffer /
-# archive_create).  Emits one combined PDF.  ctest -R djinterp_tests_all, or
-# build the target.
+# archive_create), with DTest's C library for C's event alphabet, which
+# test_event's parity section holds to C++'s.  Emits one combined PDF.
+# ctest -R djinterp_tests_all, or build the target.
 set(_tests_dir     "${DJINTERP_TESTS_ROOT}/djinterp/cpp/modules/test")
 set(_out_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/cpp/modules/test/output")
 set(_util_dir      "${DJINTERP_SRC_ROOT}/djinterp/cpp/util")
@@ -26,9 +27,8 @@ djinterp_add_test_executable(djinterp_tests_all
         ${_all_src}
         "${_util_dir}/compress/compress.cpp"  # internal::compress_buffer
         "${_util_dir}/archive/archive.cpp"    # internal::archive_create
-        "${DJINTERP_SRC_ROOT}/djinterp/c/modules/test/test_event.c"
-                                              # C's alphabet, for test_event's
-                                              # parity section
+    LIBRARIES
+        djinterp_c_test                       # C's event alphabet
     INCLUDES
         "${DJINTERP_INC_ROOT}/djinterp/cpp/modules/test"
         "${DJINTERP_INC_ROOT}/djinterp/cpp/modules/test/output"

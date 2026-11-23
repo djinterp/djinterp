@@ -1,8 +1,9 @@
 # djinterp/test/test_event — test leaf (recipe R1). Builds test_event_tests and registers CTest.
 #   runner (this dir) + section TUs (tests/djinterp/test).  Output dir is computed:
 #   bin/<arch>-<Config>/testing/djinterp/test/test_event/.
-#   It also compiles C's alphabet, test_event.c, which no library carries
-#   yet, for the parity section (test_event_tests_parity.cpp).
+#   It links DTest's C library, djinterp_c_test, for C's alphabet
+#   (test_event.c), which the parity section (test_event_tests_parity.cpp)
+#   holds to C++'s.
 set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/cpp/modules/test")
 
 file(GLOB _sources CONFIGURE_DEPENDS "${_tests_dir}/test_event_tests_*.cpp")
@@ -12,7 +13,8 @@ djinterp_add_test_executable(test_event_tests
     SOURCES
         "${CMAKE_CURRENT_SOURCE_DIR}/test_event_tests_runner.cpp"
         ${_sources}
-        "${DJINTERP_SRC_ROOT}/djinterp/c/modules/test/test_event.c"
+    LIBRARIES
+        djinterp_c_test
     INCLUDES
         "${DJINTERP_INC_ROOT}/djinterp/cpp/modules/test"
         "${DJINTERP_INC_ROOT}/djinterp/cpp/modules/test/output"
