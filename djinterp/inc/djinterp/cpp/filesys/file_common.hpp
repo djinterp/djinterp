@@ -107,16 +107,30 @@ public:
     /**
      * @brief Reports the human-readable text for the code.
      *
-     * @note The text is std::strerror's, in a buffer the C library may reuse:
-     *       a later message(), or strerror on any thread, can overwrite it, so
-     *       copy it to keep it.
+     * @note The text is std::strerror's (strerror_s's, in a buffer of the
+     *       thread's own, under the Microsoft runtime), in a buffer the C
+     *       library may reuse: a later message(), or strerror on any thread,
+     *       can overwrite it, so copy it to keep it.
      *
      * @return the platform's message; never `NULL`, since strerror answers
      *         unknown codes too.
      */
     const char* message(void) const
     {
+#if D_ENV_COMPILER_MSVC_FAMILY
+        // the Microsoft runtime deprecates strerror (an error under /sdl);
+        // MSVC builds C++14 and up, so the buffer can be thread_local
+        static thread_local char text[256];
+
+        if (::strerror_s(text, sizeof(text), m_code) != 0)
+        {
+            text[0] = '\0';
+        }
+
+        return text;
+#else
         return std::strerror(m_code);
+#endif
     }
 
     /**

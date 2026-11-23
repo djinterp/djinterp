@@ -3,15 +3,13 @@
 # a line comes down as its calls go, and goes at 0
 inc/djinterp/c/modules/math/interval_float.h	6
 inc/djinterp/cpp/container/tree/file/file_tree_apple.hpp	2
-inc/djinterp/cpp/filesys/file_common.hpp	1
 inc/djinterp/cpp/modules/math/interval/interval_common.hpp	2
 inc/djinterp/cpp/modules/net/api/claude.hpp	2
 inc/djinterp/cpp/modules/net/api/claude_api.hpp	1
 inc/djinterp/cpp/modules/net/reactor.hpp	9
 inc/djinterp/cpp/modules/net/server.hpp	1
 inc/djinterp/cpp/modules/net/tls/tls.hpp	1
-inc/djinterp/cpp/modules/test/output/test_report_runner.hpp	1
-inc/djinterp/cpp/util/pdf/pdf_builtin_backend.hpp	2
+inc/djinterp/cpp/util/pdf/pdf_builtin_backend.hpp	1
 src/djinterp/c/modules/db/postgres/postgres_connection.c	4
 src/djinterp/c/modules/db/postgres/postgres_protocol.c	2
 src/djinterp/c/modules/net/ssh/ssh_key.c	1

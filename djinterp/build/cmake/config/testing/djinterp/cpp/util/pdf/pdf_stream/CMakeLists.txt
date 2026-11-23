@@ -30,6 +30,7 @@ djinterp_add_test_executable(pdf_stream_tests
         "${DJINTERP_SRC_ROOT}/djinterp/c/filesys/file_common.c"
         "${DJINTERP_SRC_ROOT}/djinterp/c/filesys/file_desc.c"
         "${DJINTERP_SRC_ROOT}/djinterp/c/filesys/file_io.c"
+        "${DJINTERP_SRC_ROOT}/djinterp/c/filesys/file_path.c"
         "${DJINTERP_SRC_ROOT}/djinterp/c/filesys/file_seek.c"
         "${DJINTERP_SRC_ROOT}/djinterp/c/filesys/file_stat.c"
     LIBRARIES

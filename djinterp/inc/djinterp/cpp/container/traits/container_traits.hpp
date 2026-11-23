@@ -446,7 +446,7 @@ NS_INTERNAL
     struct has_bounded_capacity_helper<Type, true>
         : std::bool_constant<
               (Type{}.max_size() <
-               (std::numeric_limits<std::size_t>::max()
+               ((std::numeric_limits<std::size_t>::max)()
                 / 2))>
     {};
 

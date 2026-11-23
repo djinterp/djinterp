@@ -37,6 +37,7 @@ djinterp_add_test_executable(c_db_log_tests
         "${_c}/filesys/file_common.c"
         "${_c}/filesys/file_desc.c"
         "${_c}/filesys/file_io.c"
+        "${_c}/filesys/file_path.c"
         "${_c}/filesys/file_seek.c"
         "${_c}/filesys/file_stat.c"
         "${_c}/text/ostream_template.c"

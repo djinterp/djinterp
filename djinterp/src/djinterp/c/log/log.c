@@ -1039,7 +1039,9 @@ d_log_settings(
 /*
 d_internal_log_now
   The system's time now, in ns since 1970, UTC: clock_gettime where POSIX
-gives it, C11's timespec_get where that is all there is, else time().
+gives it, C11's timespec_get where that is all there is, else time(). Windows
+takes timespec_get: dtime.h names CLOCK_REALTIME there for its own
+d_clock_gettime, and the Microsoft runtime has no clock_gettime.
 */
 static uint64_t
 d_internal_log_now(
@@ -1048,7 +1050,7 @@ d_internal_log_now(
 {
     (void)_context;
 
-#if defined(CLOCK_REALTIME)
+#if defined(CLOCK_REALTIME) && !defined(_WIN32)
     {
         struct timespec now;
 

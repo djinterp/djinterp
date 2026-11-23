@@ -42,6 +42,7 @@ add_library(djinterp_bench_stream STATIC
     "${_c}/filesys/file_common.c"
     "${_c}/filesys/file_desc.c"
     "${_c}/filesys/file_io.c"
+    "${_c}/filesys/file_path.c"
     "${_c}/filesys/file_seek.c"
     "${_c}/filesys/file_stat.c"
 )

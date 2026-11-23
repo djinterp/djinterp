@@ -746,7 +746,17 @@ public:
             return false;
         }
 
+    #if D_ENV_COMPILER_MSVC_FAMILY
+        // the Microsoft runtime deprecates fopen (an error under /sdl)
+        std::FILE* fp = nullptr;
+
+        if (::fopen_s(&fp, _path, "wb") != 0)
+        {
+            fp = nullptr;
+        }
+    #else
         std::FILE* fp = std::fopen(_path, "wb");
+    #endif
 
         if (!fp)
         {
