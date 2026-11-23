@@ -23,12 +23,21 @@
 # base's version, the tree's, and the zip's, with git merge-file. A clean
 # merge keeps both changes; a conflict is reported and nothing is written
 # for that file until it is resolved.
+#   A zip cut on its own lane's earlier zips has for its base the lane's
+# base with those zips laid over it, in order (--base-of ZIP=REV+EARLIER):
+# each file as the earlier zips left it, and the revision's where none
+# carries it. Neither the revision alone, whose files the earlier zips
+# changed, nor HEAD, whose files other lanes changed, is that base.
 #
 #   usage:   python3 scripts/ci/merge_window.py [options] ZIP[=MESSAGE] ...
 #            (from anywhere in the repository; ZIPs in the order to apply,
 #            each optionally with the file holding its commit message)
 #   options: --base REV           the commit the lanes started from
 #            --base-of ZIP=REV    one zip's base, where it differs
+#            --base-of ZIP=REV+EARLIER[+EARLIER...]
+#                                 a zip cut on earlier zips of its lane:
+#                                 REV (or --base's, if left out) with
+#                                 each EARLIER zip laid over it
 #            --delete ZIP=PATH    a file the zip's handoff deletes (repeat)
 #            --delete ZIP=@FILE   every path FILE lists, one a line (a lane's
 #                                 deletions file; # starts a comment)
@@ -45,7 +54,7 @@
 # path:      /scripts/ci/merge_window.py
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-#                                                            revised: 2026.11.20
+#                                                            revised: 2026.11.22
 #*******************************************************************************
 import argparse
 import os
@@ -168,8 +177,26 @@ def main():
         zips.append((path, message))
     bases = {}
     for item in options.base_of:
-        name, _, revision = item.partition('=')
-        bases[os.path.basename(name)] = revision
+        name, _, spec = item.partition('=')
+        revision, *earlier = spec.split('+')
+        revision = revision or options.base
+        if not revision:
+            print('merge_window.py: the base of %s names no revision, '
+                  'and there is no --base' % name, file=sys.stderr)
+            return 2
+        layers = []
+        for each in earlier:
+            if not os.path.isfile(each):
+                print('merge_window.py: no zip %s, in the base of %s' % (
+                    each, name), file=sys.stderr)
+                return 2
+            files, problems = read_zip(each)
+            if problems:
+                print('merge_window.py: %s, in the base of %s: %s' % (
+                    each, name, problems[0]), file=sys.stderr)
+                return 2
+            layers.append((os.path.basename(each), files))
+        bases[os.path.basename(name)] = (revision, layers)
     deletions = {}
     for item in options.delete:
         name, _, path = item.partition('=')
@@ -199,6 +226,20 @@ def main():
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE)
         return result.stdout if result.returncode == 0 else None
+
+    def base_file(base, path):
+        """A file in a zip's base: the last earlier zip laid over the
+        revision that carries it, or else the revision's."""
+        revision, layers = base
+        for _, files in reversed(layers):
+            if path in files:
+                return files[path]
+        return base_blob(revision, path)
+
+    def base_name(base):
+        """A base as a run's report names it."""
+        revision, layers = base
+        return revision + ''.join(' + ' + name for name, _ in layers)
 
     def current(path, written):
         """A file as the window has it so far: an earlier zip's result, or
@@ -240,7 +281,7 @@ def main():
     for path, message in zips:
         name = os.path.basename(path)
         files, problems = read_zip(path)
-        base = bases.get(name, options.base)
+        base = bases.get(name, (options.base, []) if options.base else None)
         added = changed = same = merged = 0
         notes = []
         for problem in problems:
@@ -265,14 +306,15 @@ def main():
             else:
                 changed += 1
                 result = data
-                then = base_blob(base, rel) if base else None
+                then = base_file(base, rel) if base else None
                 earlier = carried.get(rel)
                 if earlier:
                     notes.append('OVERLAP %s: also in %s' % (rel, earlier))
                 if base and then is None:
                     notes.append('CONFLICT %s: new since %s, and made both by '
                                  '%s and by this zip; not written' % (
-                                     rel, base, earlier or 'the tree'))
+                                     rel, base_name(base),
+                                     earlier or 'the tree'))
                     failed = True
                     continue
                 if text and then is not None and lf(then) != lf(now):
@@ -289,7 +331,7 @@ def main():
                     merged += 1
                     result = to_rule(rel, body)
                     notes.append('MERGED %s: the tree changed it since %s; '
-                                 'both changes kept' % (rel, base))
+                                 'both changes kept' % (rel, base_name(base)))
                 elif earlier and not base:
                     notes.append('UNDOES? %s: no --base, so whether %s '
                                  'undoes %s cannot be told' % (
