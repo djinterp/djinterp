@@ -1,5 +1,4 @@
 # djinterp style punch list: file<TAB>code<TAB>count, written by scripts/ci/check_style.py --write-known
-build/cmake/config/testing/djinterp/cpp/modules/parsegen/vparse/vparse_tests_runner.cpp	B	1
 inc/djinterp/c/cli/cli_option.h	H	1
 inc/djinterp/c/container/array/array.h	H	1
 inc/djinterp/c/container/array/array.h	V	2
@@ -54,7 +53,6 @@ inc/djinterp/c/dtime.h	H	1
 inc/djinterp/c/dversion.h	H	1
 inc/djinterp/c/event/event.h	H	1
 inc/djinterp/c/event/event_common.h	H	1
-inc/djinterp/c/event/event_common.h	V	6
 inc/djinterp/c/event/event_dispatcher_common.h	H	1
 inc/djinterp/c/event/event_handler_common.h	H	1
 inc/djinterp/c/event/event_registry_common.h	H	1
@@ -618,11 +616,9 @@ inc/djinterp/cpp/container/table/fixed_table.hpp	R	1
 inc/djinterp/cpp/container/table/keyed_table.hpp	H	1
 inc/djinterp/cpp/container/table/keyed_table.hpp	R	1
 inc/djinterp/cpp/container/table/sorted_table.hpp	H	1
-inc/djinterp/cpp/container/table/sorted_table.hpp	R	1
 inc/djinterp/cpp/container/table/static_table.hpp	H	1
 inc/djinterp/cpp/container/table/static_table.hpp	R	1
 inc/djinterp/cpp/container/table/table.hpp	H	1
-inc/djinterp/cpp/container/table/table.hpp	R	1
 inc/djinterp/cpp/container/table/table_base.hpp	H	1
 inc/djinterp/cpp/container/table/table_builder.hpp	H	1
 inc/djinterp/cpp/container/table/table_layout.hpp	H	1
@@ -717,7 +713,6 @@ inc/djinterp/cpp/desc/desc_units.hpp	H	1
 inc/djinterp/cpp/djinterp.hpp	H	1
 inc/djinterp/cpp/event/event.hpp	H	1
 inc/djinterp/cpp/event/event_common.hpp	H	1
-inc/djinterp/cpp/event/event_common.hpp	V	1
 inc/djinterp/cpp/event/event_dispatcher.hpp	H	1
 inc/djinterp/cpp/event/event_handler.hpp	H	1
 inc/djinterp/cpp/event/event_registry.hpp	H	1
@@ -1074,7 +1069,6 @@ inc/djinterp/cpp/modules/test/sync/test_sync.hpp	R	1
 inc/djinterp/cpp/modules/test/sync/test_thread.hpp	R	1
 inc/djinterp/cpp/modules/test/test_context.hpp	R	1
 inc/djinterp/cpp/modules/test/test_event.hpp	R	1
-inc/djinterp/cpp/modules/test/test_event.hpp	V	1
 inc/djinterp/cpp/modules/test/test_handler.hpp	V	2
 inc/djinterp/cpp/modules/test/test_session.hpp	B	1
 inc/djinterp/cpp/modules/test/test_traits.hpp	V	10
@@ -2409,15 +2403,6 @@ tests/djinterp/cpp/container/sequential_container_tests_traits.cpp	B	1
 tests/djinterp/cpp/container/set/djinterp-set-tests.cpp	B	1
 tests/djinterp/cpp/container/sorted_container_tests_gating.cpp	B	1
 tests/djinterp/cpp/container/sorted_container_tests_range.cpp	B	1
-tests/djinterp/cpp/container/table/test_table_builder_options.cpp	B	1
-tests/djinterp/cpp/container/table/test_table_layout.cpp	B	1
-tests/djinterp/cpp/container/table/test_table_model.cpp	B	1
-tests/djinterp/cpp/container/table/test_table_option_partition.cpp	B	1
-tests/djinterp/cpp/container/table/test_table_options.cpp	B	1
-tests/djinterp/cpp/container/table/test_table_parser.cpp	B	1
-tests/djinterp/cpp/container/table/test_table_shape.cpp	B	1
-tests/djinterp/cpp/container/table/test_table_template.cpp	B	1
-tests/djinterp/cpp/container/table/test_table_transpose.cpp	B	1
 tests/djinterp/cpp/container/threadsafe_container_tests_base.cpp	B	1
 tests/djinterp/cpp/container/threadsafe_container_tests_batch_guard.cpp	B	1
 tests/djinterp/cpp/container/threadsafe_container_tests_concurrent.cpp	B	1
