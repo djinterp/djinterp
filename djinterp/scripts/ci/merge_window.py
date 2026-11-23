@@ -419,9 +419,9 @@ def gates(written, head, messages=()):
         # the checks beside this script, over the scratch tree, each held to
         # the punch list the window's result has (or, failing that, this
         # tree's): the ladder and the style over the changed files, the
-        # fixed-width includes, the C runtime's calls MSVC refuses, the roots'
-        # growth, the version, and the lines the window adds and its messages,
-        # which name no lane
+        # fixed-width includes, the C runtime's calls MSVC refuses, single
+        # hyphens in prose, the roots' growth, the version, and the lines the
+        # window adds and its messages, which name no lane
         here = os.path.dirname(os.path.abspath(__file__))
 
         def known(name):
@@ -455,6 +455,7 @@ def gates(written, head, messages=()):
             ('the C runtime\'s calls MSVC refuses',
              own('check_crt_calls.py') and
              own('check_crt_calls.py') + known('crt_known.txt')),
+            ('single hyphens in prose', own('check_hyphens.py')),
             ('the roots only grow',
              script('check_root_growth.py') + ['--base', 'HEAD']),
             ('the version', script('check_version.py')),
