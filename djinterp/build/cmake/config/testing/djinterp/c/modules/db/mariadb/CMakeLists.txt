@@ -11,7 +11,8 @@
 #       where pkg-config finds libmariadb, or else mysqlclient. The server is
 #       read from the environment (DJINTERP_TEST_MARIADB_HOST, _PORT, _USER,
 #       _PASSWORD, _SOCKET); without one to reach, its first test fails and
-#       says how to name one.
+#       says how to name one. It carries the label needs-server, which CI's
+#       run on a push leaves out (ctest --label-exclude needs-server).
 #     - c_mariadb_sizes_tests: the size mariadb_query.c computes for a
 #       query's attribute names, given a count too large, made beside
 #       c_mariadb_tests; skipped over a client without query attributes. It
@@ -63,6 +64,11 @@ djinterp_add_test_executable(c_mariadb_tests
         ${_layer} ${_common} "${_dtest}"
     INCLUDES  "${_tests_dir}"
     LIBRARIES PkgConfig::DJINTERP_MARIADB)
+
+# a server to test against: CI's run on a push leaves the suite out
+if (TEST c_mariadb_tests)
+    set_property(TEST c_mariadb_tests APPEND PROPERTY LABELS needs-server)
+endif()
 
 # the checked sizes, over the unit the suite includes
 set(_rest ${_layer})

@@ -15,7 +15,9 @@
 #       platform's threads, which the build links. The deployment is read from
 #       the environment (DJINTERP_TEST_MONGODB_URI, which carries the
 #       password, and DJINTERP_TEST_MONGODB_STANDALONE_URI); without one to
-#       reach, its first test fails and says how to name one.
+#       reach, its first test fails and says how to name one. It carries the
+#       label needs-server, which CI's run on a push leaves out (ctest
+#       --label-exclude needs-server).
 # The C layer is C99. core/db's harnesses over it stay in
 # cpp/modules/db/mongodb.
 #
@@ -70,3 +72,8 @@ djinterp_add_test_executable(c_mongodb_tests
         "${DJINTERP_SRC_ROOT}/djinterp/c/sync/dmutex.c"
     INCLUDES  "${_tests_dir}"
     LIBRARIES ${_client} Threads::Threads)
+
+# a server to test against: CI's run on a push leaves the suite out
+if (TEST c_mongodb_tests)
+    set_property(TEST c_mongodb_tests APPEND PROPERTY LABELS needs-server)
+endif()
