@@ -31,7 +31,7 @@
 * path:      /inc/djinterp/cpp/modules/net/curl/curl.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.16
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 
 /*
@@ -137,6 +137,9 @@ to_transport_error(
         case D_CURL_ERROR_UNSUPPORTED:
         case D_CURL_ERROR_UNSUPPORTED_PROTOCOL:
             return transport_error::unsupported_protocol;
+
+        case D_CURL_ERROR_URL_MALFORMED:
+            return transport_error::malformed_url;
 
         case D_CURL_ERROR_RESOLVE:
             return transport_error::could_not_resolve_host;

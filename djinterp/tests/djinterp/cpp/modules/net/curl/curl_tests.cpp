@@ -13,7 +13,7 @@
 * path:      /tests/djinterp/cpp/modules/net/curl/curl_tests.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 #include "./curl_tests.hpp"  // corresponding header
 // std
@@ -516,6 +516,8 @@ bool tests_curl_throwing_sink()
 tests_curl_errors
   Tests the following:
   - a port nothing listens on is could_not_connect, with no status
+  - a scheme libcurl doesn't speak is unsupported_protocol, and a URL that
+    doesn't parse is malformed_url; neither has a status
   - transport errors have names
 */
 bool tests_curl_errors()
@@ -542,9 +544,35 @@ bool tests_curl_errors()
                               (refused.status == 0),
                              "nothing listening is could_not_connect") &&
              result;
-    result = internal::check(net::to_string(
-                                 net::transport_error::could_not_connect)
-                                 [0] != '\0',
+
+    // two URLs wrong in two ways: a scheme no one speaks, an unclosed [
+    net::request odd_scheme;
+    net::request unparsed;
+
+    odd_scheme.url = "nosuch://127.0.0.1/hello";
+    unparsed.url   = "http://[::1/hello";
+
+    const net::response unspoken = curl::perform(odd_scheme,
+                                                 internal::quiet());
+    const net::response malformed = curl::perform(unparsed,
+                                                  internal::quiet());
+
+    result = internal::check( (unspoken.error ==
+                               net::transport_error::unsupported_protocol) &&
+                              (unspoken.status == 0),
+                             "an unknown scheme is unsupported_protocol") &&
+             result;
+    result = internal::check( (malformed.error ==
+                               net::transport_error::malformed_url) &&
+                              (malformed.status == 0),
+                             "a URL that doesn't parse is malformed_url") &&
+             result;
+    result = internal::check( (net::to_string(
+                                   net::transport_error::could_not_connect)
+                                   [0] != '\0') &&
+                              (net::to_string(
+                                   net::transport_error::malformed_url)
+                                   [0] != '\0'),
                              "transport errors have names") && result;
 
     return result;
@@ -579,7 +607,8 @@ bool tests_curl_errors_to_net()
         { D_CURL_ERROR_SOURCE,               D_NET_ERROR_UNKNOWN            },
         { D_CURL_ERROR_CANCELED,             D_NET_ERROR_UNKNOWN            },
         { D_CURL_ERROR_OUT_OF_MEMORY,        D_NET_ERROR_OUT_OF_MEMORY      },
-        { D_CURL_ERROR_UNKNOWN,              D_NET_ERROR_UNKNOWN            }
+        { D_CURL_ERROR_UNKNOWN,              D_NET_ERROR_UNKNOWN            },
+        { D_CURL_ERROR_URL_MALFORMED,        D_NET_ERROR_ADDRESS_INVALID    }
     };
     bool mapped = true;
     bool result = true;

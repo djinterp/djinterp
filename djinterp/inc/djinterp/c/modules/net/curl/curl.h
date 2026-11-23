@@ -24,7 +24,7 @@
 * path:      /inc/djinterp/c/modules/net/curl/curl.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.27
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 
 /*
@@ -115,8 +115,8 @@ D_EXTERN_C_BEGIN
 //   enum: the result of a transfer or a library call. Values are pinned. The
 // less obvious ones:
 //     UNSUPPORTED           the build has no libcurl.
-//     UNSUPPORTED_PROTOCOL  libcurl does not speak the URL's scheme, or the
-//                           URL is malformed.
+//     UNSUPPORTED_PROTOCOL  libcurl does not speak the URL's scheme.
+//     URL_MALFORMED         the URL does not parse.
 //     TLS                   the TLS handshake failed, or the peer failed
 //                           verification.
 //     SINK                  a sink refused data, or libcurl could not
@@ -138,7 +138,8 @@ enum dj_curl_error
     D_CURL_ERROR_SOURCE               = 0x00A,
     D_CURL_ERROR_CANCELED             = 0x00B,
     D_CURL_ERROR_OUT_OF_MEMORY        = 0x00C,
-    D_CURL_ERROR_UNKNOWN              = 0x00D
+    D_CURL_ERROR_UNKNOWN              = 0x00D,
+    D_CURL_ERROR_URL_MALFORMED        = 0x00E
 };
 
 // 2.2    Error queries

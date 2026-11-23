@@ -18,7 +18,7 @@
 * path:      /inc/djinterp/cpp/modules/net/http/http.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 
 /*
@@ -688,6 +688,7 @@ struct transport_error
     {
         none = 0,
         unsupported_protocol,
+        malformed_url,
         could_not_resolve_host,
         could_not_connect,
         timed_out,
@@ -714,6 +715,8 @@ D_NODISCARD inline D_CONSTEXPR_CPP14 const char* to_string(
             return "none";
         case transport_error::unsupported_protocol:
             return "unsupported protocol";
+        case transport_error::malformed_url:
+            return "malformed URL";
         case transport_error::could_not_resolve_host:
             return "could not resolve host";
         case transport_error::could_not_connect:

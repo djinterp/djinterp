@@ -20,7 +20,7 @@
 * path:      /src/djinterp/c/modules/net/curl/curl.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.27
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/c/modules/net/curl/curl.h"  // corresponding header
 // std
@@ -66,6 +66,9 @@ d_curl_error_string(
 
         case D_CURL_ERROR_UNSUPPORTED_PROTOCOL:
             return "unsupported protocol";
+
+        case D_CURL_ERROR_URL_MALFORMED:
+            return "malformed URL";
 
         case D_CURL_ERROR_RESOLVE:
             return "could not resolve host";
@@ -122,6 +125,8 @@ d_curl_error_to_net(
             return D_NET_ERROR_PROTOCOL;
         case D_CURL_ERROR_UNSUPPORTED_PROTOCOL:
             return D_NET_ERROR_UNSUPPORTED;
+        case D_CURL_ERROR_URL_MALFORMED:
+            return D_NET_ERROR_ADDRESS_INVALID;
         case D_CURL_ERROR_RESOLVE:
             return D_NET_ERROR_HOST_NOT_FOUND;
         case D_CURL_ERROR_CONNECT:
@@ -345,8 +350,10 @@ d_internal_curl_status(
             return D_CURL_OK;
 
         case CURLE_UNSUPPORTED_PROTOCOL:
-        case CURLE_URL_MALFORMAT:
             return D_CURL_ERROR_UNSUPPORTED_PROTOCOL;
+
+        case CURLE_URL_MALFORMAT:
+            return D_CURL_ERROR_URL_MALFORMED;
 
         case CURLE_COULDNT_RESOLVE_HOST:
         case CURLE_COULDNT_RESOLVE_PROXY:
