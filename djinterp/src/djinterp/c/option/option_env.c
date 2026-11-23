@@ -48,6 +48,13 @@
 #include "../../../../inc/re_std/c/cstdint/dstdint.h"  // int64_t, uint64_t,
                                                        // uintptr_t, INT64_MAX
 
+// the build's reader (cfg_option_env.h), declared whatever it names
+int32_t D_CFG_OPTION_ENV_GETENV(void*       _context,
+                                const char* _name,
+                                char*       _value,
+                                size_t      _size,
+                                size_t*     _length);
+
 
 #if RE_STD_HAS_INT64
 
@@ -127,6 +134,22 @@ d_internal_option_env_lower(
 {
     return ( (_c >= 'A') &&
              (_c <= 'Z') ) ? (char)(_c - 'A' + 'a') : _c;
+}
+
+/**
+ * @brief Folds an ASCII letter to upper case, whatever the locale: how an
+ *        environment variable's name is made from a setting's.
+ *
+ * @param[in] _c  the character.
+ * @return the upper-case letter, or _c itself.
+ */
+static char
+d_internal_option_env_upper(
+    char _c
+)
+{
+    return ( (_c >= 'a') &&
+             (_c <= 'z') ) ? (char)(_c - 'a' + 'A') : _c;
 }
 
 /**
@@ -685,8 +708,10 @@ d_option_env_init(
                               : _var_capacity;
     _env->scope_count   = 0u;
     _env->generation    = 0u;
-    _env->depth         = 0u;
-    _env->child_count   = 0u;
+    _env->depth          = 0u;
+    _env->child_count    = 0u;
+    _env->reader         = NULL;
+    _env->reader_context = NULL;
 
     return d_option_ok(0u);
 }
@@ -784,6 +809,297 @@ d_internal_option_env_well_formed(
 }
 
 /**
+ * @brief Whether a variable is the one its name finds from the frame: one an
+ *        inner declaration hides is not.
+ *
+ * @param[in] _env  the frame.
+ * @param[in] _var  the variable, as d_option_env_var_id gives it.
+ * @return 1 or 0.
+ */
+static int
+d_internal_option_env_visible(
+    const struct dj_option_env* _env,
+    uint32_t                    _var
+)
+{
+    const struct dj_option_env_var* const decl = d_option_env_var_at(_env,
+                                                                      _var);
+    const struct dj_option_result         seen =
+        (decl != NULL) ? d_option_env_find(_env, decl->name,
+                                           strlen(decl->name))
+                       : d_option_fail((int32_t)D_OPTION_STATUS_KEY_ABSENT);
+
+    return ( (seen.is_ok) &&
+             (seen.payload.value == _var) ) ? 1 : 0;
+}
+
+#if D_CFG_OPTION_ENV_SCOPED_IMPORT
+
+/**
+ * @brief The id of a scope a frame along the chain names, when the frame
+ *        sees it: a nearer scope of the same name hides it.
+ *
+ * @param[in] _env    the frame that looks.
+ * @param[in] _frame  the frame that names it: _env or an ancestor.
+ * @param[in] _index  its place among _frame's scopes.
+ * @return the id; D_OPTION_ENV_GLOBAL when hidden.
+ */
+static uint32_t
+d_internal_option_env_scope_seen(
+    const struct dj_option_env* _env,
+    const struct dj_option_env* _frame,
+    uint32_t                    _index
+)
+{
+    const char* const             name  = _frame->scopes[_index];
+    const uint32_t                id    =
+        D_INTERNAL_OPTION_ENV_MAKE_ID(_frame->depth, _index + 1u);
+    const struct dj_option_result found =
+        d_option_env_find_scope(_env, name, strlen(name));
+
+    return ( (found.is_ok) &&
+             (found.payload.value == id) ) ? id : D_OPTION_ENV_GLOBAL;
+}
+
+/**
+ * @brief The length of a prefix and the '_' after it, when a name begins
+ *        with both, ASCII case aside, as an environment name is made.
+ *
+ * @param[in] _name    the name.
+ * @param[in] _prefix  the prefix.
+ * @return the length; 0 when the name does not begin so.
+ */
+static size_t
+d_internal_option_env_lead(
+    const char* _name,
+    const char* _prefix
+)
+{
+    size_t at = 0u;
+
+    for (; _prefix[at] != '\0'; ++at)
+    {
+        if (d_internal_option_env_upper(_name[at]) !=
+            d_internal_option_env_upper(_prefix[at]))
+        {
+            return 0u;
+        }
+    }
+
+    return (_name[at] == '_') ? at + 1u : 0u;
+}
+
+/**
+ * @brief Whether two names make one environment name: alike, ASCII case
+ *        aside.
+ *
+ * @param[in] _a  a name; may be null.
+ * @param[in] _b  another; may be null.
+ * @return 1 or 0; 0 when either is null.
+ */
+static int
+d_internal_option_env_same(
+    const char* _a,
+    const char* _b
+)
+{
+    if ( (_a == NULL) ||
+         (_b == NULL) )
+    {
+        return 0;
+    }
+
+    for (; (*_a != '\0') &&
+           (d_internal_option_env_upper(*_a) ==
+            d_internal_option_env_upper(*_b)); ++_a, ++_b)
+    {
+    }
+
+    return (d_internal_option_env_upper(*_a) ==
+            d_internal_option_env_upper(*_b)) ? 1 : 0;
+}
+
+/**
+ * @brief Whether a variable the frame sees has a name or an alias that
+ *        makes the same environment name as a text.
+ *
+ * @param[in] _env   the frame.
+ * @param[in] _text  the text.
+ * @return 1 or 0.
+ */
+static int
+d_internal_option_env_names_any(
+    const struct dj_option_env* _env,
+    const char*                 _text
+)
+{
+    for (uint32_t k = 0u; k < d_option_env_var_count(_env); ++k)
+    {
+        const uint32_t                        var  = d_option_env_var_id(_env,
+                                                                         k);
+        const struct dj_option_env_var* const decl = d_option_env_var_at(_env,
+                                                                          var);
+
+        if ( (d_internal_option_env_visible(_env, var) != 0) &&
+             ( (d_internal_option_env_same(decl->name, _text) != 0) ||
+               (d_internal_option_env_same(decl->alias, _text) != 0) ) )
+        {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+/**
+ * @brief Whether a variable the frame sees is named a text, '_' and one of
+ *        another variable's names: scope_rest's VAR made again by scope's
+ *        REST_VAR.
+ *
+ * @param[in] _env   the frame.
+ * @param[in] _rest  the text: the longer scope's name past the shorter's.
+ * @param[in] _decl  the other variable.
+ * @return 1 or 0.
+ */
+static int
+d_internal_option_env_joined(
+    const struct dj_option_env*     _env,
+    const char*                     _rest,
+    const struct dj_option_env_var* _decl
+)
+{
+    for (uint32_t k = 0u; k < d_option_env_var_count(_env); ++k)
+    {
+        const uint32_t                        var  = d_option_env_var_id(_env,
+                                                                         k);
+        const struct dj_option_env_var* const decl = d_option_env_var_at(_env,
+                                                                          var);
+        const char* const names[2] = { decl->name, decl->alias };
+
+        for (uint32_t n = 0u;
+             (d_internal_option_env_visible(_env, var) != 0) && (n < 2u);
+             ++n)
+        {
+            const size_t lead = (names[n] != NULL)
+                ? d_internal_option_env_lead(names[n], _rest) : 0u;
+
+            if ( (lead != 0u) &&
+                 ( (d_internal_option_env_same(names[n] + lead,
+                                               _decl->name) != 0) ||
+                   (d_internal_option_env_same(names[n] + lead,
+                                               _decl->alias) != 0) ) )
+            {
+                return 1;
+            }
+        }
+    }
+
+    return 0;
+}
+
+/**
+ * @brief Whether a scope's name, '_' and a variable's would make another
+ *        variable's own name, or the name another scope and variable make:
+ *        one environment name for two settings (option_env's decision 47).
+ *
+ * @param[in] _env    the frame.
+ * @param[in] _scope  a scope the frame sees.
+ * @return 1 when the scope makes a name twice; 0 otherwise.
+ */
+static int
+d_internal_option_env_scope_clashes(
+    const struct dj_option_env* _env,
+    const char*                 _scope
+)
+{
+    for (uint32_t k = 0u; k < d_option_env_var_count(_env); ++k)
+    {
+        const uint32_t                        var  = d_option_env_var_id(_env,
+                                                                         k);
+        const struct dj_option_env_var* const decl = d_option_env_var_at(_env,
+                                                                          var);
+        const char* const names[2] = { decl->name, decl->alias };
+
+        for (uint32_t n = 0u;
+             (d_internal_option_env_visible(_env, var) != 0) && (n < 2u);
+             ++n)
+        {
+            const size_t lead = (names[n] != NULL)
+                ? d_internal_option_env_lead(names[n], _scope) : 0u;
+
+            // SCOPE_VAR against a variable named scope_var
+            if ( (lead != 0u) &&
+                 (d_internal_option_env_names_any(_env,
+                                                  names[n] + lead) != 0) )
+            {
+                return 1;
+            }
+        }
+    }
+
+    for (const struct dj_option_env* f = _env; f != NULL; f = f->parent)
+    {
+        for (uint32_t i = 0u; i < f->scope_count; ++i)
+        {
+            const size_t lead =
+                (d_internal_option_env_scope_seen(_env, f, i) !=
+                 D_OPTION_ENV_GLOBAL)
+                    ? d_internal_option_env_lead(f->scopes[i], _scope) : 0u;
+
+            // SCOPE_REST_VAR: scope_rest's VAR against scope's REST_VAR
+            for (uint32_t k = 0u;
+                 (lead != 0u) && (k < d_option_env_var_count(_env));
+                 ++k)
+            {
+                const uint32_t var = d_option_env_var_id(_env, k);
+                const struct dj_option_env_var* const decl =
+                    d_option_env_var_at(_env, var);
+
+                if ( (d_internal_option_env_visible(_env, var) != 0) &&
+                     (d_internal_option_env_joined(_env, f->scopes[i] + lead,
+                                                   decl) != 0) )
+                {
+                    return 1;
+                }
+            }
+        }
+    }
+
+    return 0;
+}
+
+/**
+ * @brief Whether any scope the frame sees makes an environment name twice,
+ *        so that an import could not tell two settings apart.
+ *
+ * @param[in] _env  the frame.
+ * @return 1 or 0.
+ */
+static int
+d_internal_option_env_import_clash(
+    const struct dj_option_env* _env
+)
+{
+    for (const struct dj_option_env* f = _env; f != NULL; f = f->parent)
+    {
+        for (uint32_t i = 0u; i < f->scope_count; ++i)
+        {
+            if ( (d_internal_option_env_scope_seen(_env, f, i) !=
+                  D_OPTION_ENV_GLOBAL) &&
+                 (d_internal_option_env_scope_clashes(_env, f->scopes[i]) !=
+                  0) )
+            {
+                return 1;
+            }
+        }
+    }
+
+    return 0;
+}
+
+#endif  // D_CFG_OPTION_ENV_SCOPED_IMPORT
+
+/**
  * @brief Whether a frame itself declares a name, as a name or an alias.
  *
  * @param[in] _env   the frame.
@@ -846,11 +1162,22 @@ d_option_env_declare(
         return d_option_fail((int32_t)D_OPTION_STATUS_CAPACITY);
     }
 
-    _env->vars[_env->var_count] = _var;
+    _env->vars[_env->var_count++] = _var;
+
+#if D_CFG_OPTION_ENV_SCOPED_IMPORT
+    // a name a scope already makes, made again, is refused (decision 47)
+    if (d_internal_option_env_import_clash(_env) != 0)
+    {
+        --_env->var_count;
+
+        return d_option_fail((int32_t)D_OPTION_STATUS_KEY_DUPLICATE);
+    }
+#endif  // D_CFG_OPTION_ENV_SCOPED_IMPORT
+
     ++_env->generation;
 
     return d_option_ok(D_INTERNAL_OPTION_ENV_MAKE_ID(_env->depth,
-                                                     _env->var_count++));
+                                                     _env->var_count - 1u));
 }
 
 /*
@@ -890,8 +1217,9 @@ d_option_env_declare_all(
 
 /*
 d_option_env_set_scopes
-  Borrowed, and checked only for the frame and the count: a scope's name is
-matched as it is written.
+  Borrowed, and checked for the frame and the count, and, with scoped
+imports, for a name two settings would make: then the scopes are as they
+were. A scope's name is matched as it is written.
 */
 struct dj_option_result
 d_option_env_set_scopes(
@@ -908,8 +1236,26 @@ d_option_env_set_scopes(
         return d_option_fail((int32_t)D_OPTION_STATUS_INVALID_ARGUMENT);
     }
 
+    const char* const* const before       = _env->scopes;
+    const uint32_t           before_count = _env->scope_count;
+
     _env->scopes      = _names;
     _env->scope_count = _count;
+
+#if D_CFG_OPTION_ENV_SCOPED_IMPORT
+    // one environment name for two settings is refused (decision 47)
+    if (d_internal_option_env_import_clash(_env) != 0)
+    {
+        _env->scopes      = before;
+        _env->scope_count = before_count;
+
+        return d_option_fail((int32_t)D_OPTION_STATUS_KEY_DUPLICATE);
+    }
+#else
+    (void)before;
+    (void)before_count;
+#endif  // D_CFG_OPTION_ENV_SCOPED_IMPORT
+
     ++_env->generation;
 
     return d_option_ok(D_INTERNAL_OPTION_ENV_MAKE_ID(_env->depth, 1u));
@@ -3844,41 +4190,161 @@ d_option_env_load(
 }
 
 /**
- * @brief An environment variable's text for a declared name: the prefix,
- *        then the name upper-cased.
+ * @brief An environment variable's name for a declared name, in a scope or
+ *        none: the prefix, then the scope's name upper-cased and '_', then
+ *        the name upper-cased (option_env's decision 47).
  *
  * @param[in]  _prefix  the prefix.
+ * @param[in]  _scope   the scope's name; null for none.
  * @param[in]  _name    the name; may be null.
  * @param[out] _key     where; D_INTERNAL_OPTION_ENV_SCRATCH bytes.
- * @return getenv's text, or null when unset or too long to ask for.
+ * @return 1 when made; 0 for no name, or one too long to ask for.
  */
-static const char*
-d_internal_option_env_getenv(
+static int
+d_internal_option_env_key(
     const char* _prefix,
+    const char* _scope,
     const char* _name,
     char*       _key
 )
 {
     const size_t length = strlen(_prefix);
+    const size_t scope  = (_scope != NULL) ? strlen(_scope) + 1u : 0u;
     const size_t size   = (_name != NULL) ? strlen(_name) : 0u;
+    size_t       at     = length;
 
     if ( (_name == NULL) ||
-         (length + size >= D_INTERNAL_OPTION_ENV_SCRATCH) )
+         (length + scope + size >= D_INTERNAL_OPTION_ENV_SCRATCH) )
     {
-        return NULL;
+        return 0;
     }
 
     memcpy(_key, _prefix, length);
 
-    for (size_t c = 0u; c <= size; ++c)
+    for (size_t c = 0u; c + 1u < scope; ++c)
     {
-        _key[length + c] = ( (_name[c] >= 'a') &&
-                             (_name[c] <= 'z') )
-                               ? (char)(_name[c] - 'a' + 'A')
-                               : _name[c];
+        _key[at++] = d_internal_option_env_upper(_scope[c]);
     }
 
-    return getenv(_key);
+    if (scope != 0u)
+    {
+        _key[at++] = '_';
+    }
+
+    for (size_t c = 0u; c <= size; ++c)
+    {
+        _key[at + c] = d_internal_option_env_upper(_name[c]);
+    }
+
+    return 1;
+}
+
+/**
+ * @brief Asks for one variable through the reader the frame's chain gives, or
+ *        the build's, D_CFG_OPTION_ENV_GETENV.
+ *
+ * @param[in]  _env     the frame.
+ * @param[in]  _key     the variable's name.
+ * @param[out] _value   where; D_CFG_OPTION_ENV_VALUE_MAX bytes.
+ * @param[out] _length  the value's length, or the length it needs.
+ * @return as fn_option_env_getenv: 1, 0 or -1; -1 too for a reader that
+ *         claims a value as long as the room it was given, or longer.
+ */
+static int32_t
+d_internal_option_env_ask(
+    const struct dj_option_env* _env,
+    const char*                 _key,
+    char*                       _value,
+    size_t*                     _length
+)
+{
+    fn_option_env_getenv reader  = D_CFG_OPTION_ENV_GETENV;
+    void*                context = NULL;
+    int32_t              read;
+
+    for (const struct dj_option_env* f = _env; f != NULL; f = f->parent)
+    {
+        if (f->reader != NULL)
+        {
+            reader  = f->reader;
+            context = f->reader_context;
+
+            break;
+        }
+    }
+
+    *_length = 0u;
+    read     = reader(context, _key, _value,
+                      (size_t)D_CFG_OPTION_ENV_VALUE_MAX, _length);
+
+    if ( (read == 1) &&
+         (*_length >= (size_t)D_CFG_OPTION_ENV_VALUE_MAX) )
+    {
+        return -1;
+    }
+
+    return (read == 1) ? 1 : ( (read == 0) ? 0 : -1 );
+}
+
+/*
+d_option_env_getenv_c
+  getenv's text copied out whole, or not at all.
+*/
+int32_t
+d_option_env_getenv_c(
+    void*       _context,
+    const char* _name,
+    char*       _value,
+    size_t      _size,
+    size_t*     _length
+)
+{
+    const char* const text = (_name != NULL) ? getenv(_name) : NULL;
+    const size_t      size = (text != NULL) ? strlen(text) : 0u;
+
+    (void)_context;
+
+    if (_length != NULL)
+    {
+        *_length = size;
+    }
+
+    if (text == NULL)
+    {
+        return 0;
+    }
+
+    if ( (_value == NULL) ||
+         (size >= _size) )
+    {
+        return -1;
+    }
+
+    memcpy(_value, text, size + 1u);
+
+    return 1;
+}
+
+/*
+d_option_env_set_getenv
+  Kept as given; a frame beneath sees it through its chain.
+*/
+struct dj_option_result
+d_option_env_set_getenv(
+    struct dj_option_env* _env,
+    fn_option_env_getenv  _reader,
+    void*                 _context
+)
+{
+    if (_env == NULL)
+    {
+        return d_option_fail((int32_t)D_OPTION_STATUS_INVALID_ARGUMENT);
+    }
+
+    _env->reader         = _reader;
+    _env->reader_context = (_reader != NULL) ? _context : NULL;
+
+    return d_option_ok(0u);
 }
 
 /*
@@ -4207,12 +4673,163 @@ d_internal_option_env_setting(
     return;
 }
 
+// dj_internal_option_env_import
+//   struct: an import's state from one variable to the next: where it binds,
+// whom it tells, what it has bound, and the room it reads a value into.
+struct dj_internal_option_env_import
+{
+    struct dj_option_env*   env;
+    const char*             prefix;
+    fn_option_env_report    report;
+    void*                   context;
+    uint32_t                count;
+    struct dj_option_result failure;
+    char                    key[D_INTERNAL_OPTION_ENV_SCRATCH];
+    char                    setting[D_INTERNAL_OPTION_ENV_SCRATCH];
+    char                    value[D_CFG_OPTION_ENV_VALUE_MAX];
+};
+
+/**
+ * @brief Keeps an import's first failure, and tells its report of a value
+ *        it could not bind, under the variable's name as read and the
+ *        setting's full name: "desc.shelf.ring" in a scope.
+ *
+ * @param[in,out] _import    the import; its key the name that was read.
+ * @param[in]     _scope     the scope's name; null for none.
+ * @param[in]     _scope_id  its id; D_OPTION_ENV_GLOBAL for none.
+ * @param[in]     _var       the variable.
+ * @param[in]     _value     the value as the report gives it.
+ * @param[in]     _size      its length.
+ * @param[in]     _result    the failure.
+ */
+static void
+d_internal_option_env_import_refused(
+    struct dj_internal_option_env_import* _import,
+    const char*                           _scope,
+    uint32_t                              _scope_id,
+    uint32_t                              _var,
+    const char*                           _value,
+    size_t                                _size,
+    struct dj_option_result               _result
+)
+{
+    const struct dj_option_env_var* const decl =
+        d_option_env_var_at(_import->env, _var);
+    char                        name[D_INTERNAL_OPTION_ENV_SCRATCH];
+    struct dj_option_env_report report;
+
+    if (_import->failure.is_ok)
+    {
+        _import->failure = _result;
+    }
+
+    if (_import->report == NULL)
+    {
+        return;
+    }
+
+    (void)snprintf(name, sizeof(name), (_scope != NULL) ? "%s.%s" : "%s%s",
+                   (_scope != NULL) ? _scope : "", decl->name);
+    d_internal_option_env_setting(_import->env, name, _import->setting,
+                                  sizeof(_import->setting));
+    report.size     = (uint32_t)sizeof(report);
+    report.source   = D_OPTION_ENV_SOURCE_ENVIRONMENT;
+    report.variable = _import->key;
+    report.value    = _value;
+    report.setting  = _import->setting;
+    report.frame    = _import->env;
+    report.scope    = _scope_id;
+    report.var      = _var;
+    report.result   = _result;
+    report.reason   = d_option_env_reason_of(_import->env, _scope_id, _var,
+                                             D_OPTION_ENV_SOURCE_ENVIRONMENT,
+                                             _value, _size,
+                                             _result.payload.error);
+    _import->report(_import->context, &report);
+
+    return;
+}
+
+/**
+ * @brief Reads one variable in one scope, by its name and then its alias,
+ *        and binds what it reads there, from the environment.
+ *
+ * @param[in,out] _import    the import.
+ * @param[in]     _scope     the scope's name; null for none.
+ * @param[in]     _scope_id  its id; D_OPTION_ENV_GLOBAL for none.
+ * @param[in]     _var       the variable.
+ */
+static void
+d_internal_option_env_import_one(
+    struct dj_internal_option_env_import* _import,
+    const char*                           _scope,
+    uint32_t                              _scope_id,
+    uint32_t                              _var
+)
+{
+    const struct dj_option_env_var* const decl =
+        d_option_env_var_at(_import->env, _var);
+    size_t  length = 0u;
+    int32_t read   = 0;
+    char    size[48];
+
+    if (d_internal_option_env_key(_import->prefix, _scope, decl->name,
+                                  _import->key) != 0)
+    {
+        read = d_internal_option_env_ask(_import->env, _import->key,
+                                         _import->value, &length);
+    }
+
+    if ( (read == 0) &&
+         (d_internal_option_env_key(_import->prefix, _scope, decl->alias,
+                                    _import->key) != 0) )
+    {
+        read = d_internal_option_env_ask(_import->env, _import->key,
+                                         _import->value, &length);
+    }
+
+    if (read == 0)
+    {
+        return;
+    }
+
+    // too long to hold: refused whole, and said by its length
+    if (read < 0)
+    {
+        (void)snprintf(size, sizeof(size), "(%lu bytes)",
+                       (unsigned long)length);
+        d_internal_option_env_import_refused(
+            _import, _scope, _scope_id, _var, size, strlen(size),
+            d_option_fail((int32_t)D_OPTION_STATUS_CAPACITY));
+
+        return;
+    }
+
+    const struct dj_option_result result =
+        d_internal_option_env_assign(_import->env, _scope_id, _var,
+                                     _import->value, length,
+                                     D_OPTION_ENV_SOURCE_ENVIRONMENT);
+
+    if (result.is_ok)
+    {
+        ++_import->count;
+
+        return;
+    }
+
+    d_internal_option_env_import_refused(_import, _scope, _scope_id, _var,
+                                         _import->value, length, result);
+
+    return;
+}
+
 /*
 d_option_env_import_each
-  One getenv per visible variable that its name reaches -- a name an inner
+  One read per visible variable that its name reaches -- a name an inner
 declaration hides is the inner one's -- and one for its alias when the name
-is unset. Every variable is tried; each refusal goes to the report, under the
-name that was read, and the first is the one returned.
+is unset; then, with D_CFG_OPTION_ENV_SCOPED_IMPORT, the same in each scope
+the frame sees. Every variable is tried; each refusal goes to the report,
+under the name that was read, and the first is the one returned.
 */
 struct dj_option_result
 d_option_env_import_each(
@@ -4222,86 +4839,58 @@ d_option_env_import_each(
     void*                 _context
 )
 {
-    struct dj_option_result     failure = d_option_ok(0u);
-    uint32_t                    count   = 0u;
-    const char* const           prefix  = (_prefix != NULL) ? _prefix : "";
-    char                        key[D_INTERNAL_OPTION_ENV_SCRATCH];
-    char                        setting[D_INTERNAL_OPTION_ENV_SCRATCH];
-    struct dj_option_env_report report;
+    struct dj_internal_option_env_import import;
+    uint32_t                             k;
 
     if (_env == NULL)
     {
         return d_option_fail((int32_t)D_OPTION_STATUS_INVALID_ARGUMENT);
     }
 
-    for (uint32_t k = 0u; k < d_option_env_var_count(_env); ++k)
+    import.env     = _env;
+    import.prefix  = (_prefix != NULL) ? _prefix : "";
+    import.report  = _report;
+    import.context = _context;
+    import.count   = 0u;
+    import.failure = d_option_ok(0u);
+
+    for (k = 0u; k < d_option_env_var_count(_env); ++k)
     {
-        const uint32_t                        var  = d_option_env_var_id(_env,
-                                                                         k);
-        const struct dj_option_env_var* const decl = d_option_env_var_at(_env,
-                                                                          var);
-        const struct dj_option_result         seen =
-            d_option_env_find(_env, decl->name, strlen(decl->name));
-        const char*                           value =
-            d_internal_option_env_getenv(prefix, decl->name, key);
+        const uint32_t var = d_option_env_var_id(_env, k);
 
-        if ( (!seen.is_ok) ||
-             (seen.payload.value != var) )
+        if (d_internal_option_env_visible(_env, var) != 0)
         {
-            continue;
-        }
-
-        if (value == NULL)
-        {
-            value = d_internal_option_env_getenv(prefix, decl->alias, key);
-        }
-
-        if (value != NULL)
-        {
-            const struct dj_option_result result =
-                d_internal_option_env_assign(_env,
-                                             D_OPTION_ENV_GLOBAL,
-                                             var,
-                                             value,
-                                             strlen(value),
-                                             D_OPTION_ENV_SOURCE_ENVIRONMENT);
-
-            if (result.is_ok)
-            {
-                ++count;
-
-                continue;
-            }
-
-            // key holds the name getenv was last asked: the one that was read
-            if (_report != NULL)
-            {
-                d_internal_option_env_setting(_env, decl->name, setting,
-                                              sizeof(setting));
-                report.size     = (uint32_t)sizeof(report);
-                report.source   = D_OPTION_ENV_SOURCE_ENVIRONMENT;
-                report.variable = key;
-                report.value    = value;
-                report.setting  = setting;
-                report.frame    = _env;
-                report.scope    = D_OPTION_ENV_GLOBAL;
-                report.var      = var;
-                report.result   = result;
-                report.reason   = d_option_env_reason_of(
-                                      _env, D_OPTION_ENV_GLOBAL, var,
-                                      D_OPTION_ENV_SOURCE_ENVIRONMENT, value,
-                                      strlen(value), result.payload.error);
-                _report(_context, &report);
-            }
-
-            if (failure.is_ok)
-            {
-                failure = result;
-            }
+            d_internal_option_env_import_one(&import, NULL,
+                                             D_OPTION_ENV_GLOBAL, var);
         }
     }
 
-    return failure.is_ok ? d_option_ok(count) : failure;
+#if D_CFG_OPTION_ENV_SCOPED_IMPORT
+    for (const struct dj_option_env* f = _env; f != NULL; f = f->parent)
+    {
+        for (uint32_t i = 0u; i < f->scope_count; ++i)
+        {
+            const uint32_t scope = d_internal_option_env_scope_seen(_env, f,
+                                                                    i);
+
+            for (k = 0u;
+                 (scope != D_OPTION_ENV_GLOBAL) &&
+                 (k < d_option_env_var_count(_env));
+                 ++k)
+            {
+                const uint32_t var = d_option_env_var_id(_env, k);
+
+                if (d_internal_option_env_visible(_env, var) != 0)
+                {
+                    d_internal_option_env_import_one(&import, f->scopes[i],
+                                                     scope, var);
+                }
+            }
+        }
+    }
+#endif  // D_CFG_OPTION_ENV_SCOPED_IMPORT
+
+    return import.failure.is_ok ? d_option_ok(import.count) : import.failure;
 }
 
 /*

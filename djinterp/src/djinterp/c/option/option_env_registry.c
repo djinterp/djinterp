@@ -663,6 +663,25 @@ d_option_env_registry_import_each(
 }
 
 /*
+d_option_env_registry_set_getenv
+  The root's reader, which each djin's frame finds along its chain.
+*/
+struct dj_option_result
+d_option_env_registry_set_getenv(
+    struct dj_option_env_registry* _registry,
+    fn_option_env_getenv           _reader,
+    void*                          _context
+)
+{
+    if (_registry == NULL)
+    {
+        return d_option_fail((int32_t)D_OPTION_STATUS_INVALID_ARGUMENT);
+    }
+
+    return d_option_env_set_getenv(&_registry->frame, _reader, _context);
+}
+
+/*
 d_option_env_registry_import
   Every failure but the first unreported, or each to the stock report, as
 D_CFG_OPTION_ENV_IMPORT_REPORT says.

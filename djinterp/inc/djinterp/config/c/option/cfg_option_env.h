@@ -22,7 +22,7 @@
 * path:      /inc/djinterp/config/c/option/cfg_option_env.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 
 /*
@@ -101,6 +101,39 @@ TABLE OF CONTENTS
     #define D_CFG_OPTION_ENV_IMPORT_REPORT 0
 #endif  // D_CFG_OPTION_ENV_IMPORT_REPORT
 
+// 1.2.2
+// D_CFG_OPTION_ENV_SCOPED_IMPORT
+//   configuration: whether an import reads a scope's settings too, one name
+// per scope and variable made as an unscoped name is: desc.shelf.ring from
+// DJINTERP_DESC_SHELF_RING. With it, two pairs that would make one name are
+// refused when the second is declared (option_env's decision 47). 1 by
+// default; 0 reads unscoped names alone, as before.
+#ifndef D_CFG_OPTION_ENV_SCOPED_IMPORT
+    #define D_CFG_OPTION_ENV_SCOPED_IMPORT 1
+#endif  // D_CFG_OPTION_ENV_SCOPED_IMPORT
+
+// 1.2.3
+// D_CFG_OPTION_ENV_GETENV
+//   configuration: the reader an import asks for each variable where no
+// frame along the chain has one of its own (d_option_env_set_getenv): a
+// function of fn_option_env_getenv's type, which this build declares.
+// d_option_env_getenv_c, which calls the C library's getenv, by default; a
+// build for a host with no environment of its own names the host's
+// (option_env's decision 83).
+#ifndef D_CFG_OPTION_ENV_GETENV
+    #define D_CFG_OPTION_ENV_GETENV d_option_env_getenv_c
+#endif  // D_CFG_OPTION_ENV_GETENV
+
+// 1.2.4
+// D_CFG_OPTION_ENV_VALUE_MAX
+//   configuration: the bytes an import reads a value into, its NUL among
+// them: a longer value is refused and reported, never cut short. 4096 by
+// default, the registry's text room, so no value the registry could bind is
+// refused for it.
+#ifndef D_CFG_OPTION_ENV_VALUE_MAX
+    #define D_CFG_OPTION_ENV_VALUE_MAX 4096
+#endif  // D_CFG_OPTION_ENV_VALUE_MAX
+
 
 //==============================================================================
 // 2.  VALIDATION
@@ -119,6 +152,15 @@ TABLE OF CONTENTS
 #if ( (D_CFG_OPTION_ENV_IMPORT_REPORT < 0) ||                                 \
       (D_CFG_OPTION_ENV_IMPORT_REPORT > 1) )
     #error "D_CFG_OPTION_ENV_IMPORT_REPORT must be 0 (none) or 1 (stderr)"
+#endif
+
+#if ( (D_CFG_OPTION_ENV_SCOPED_IMPORT < 0) ||                                 \
+      (D_CFG_OPTION_ENV_SCOPED_IMPORT > 1) )
+    #error "D_CFG_OPTION_ENV_SCOPED_IMPORT must be 0 or 1"
+#endif
+
+#if (D_CFG_NORM(D_CFG_OPTION_ENV_VALUE_MAX) < 2)
+    #error "D_CFG_OPTION_ENV_VALUE_MAX must be at least 2: a byte and its NUL"
 #endif
 
 

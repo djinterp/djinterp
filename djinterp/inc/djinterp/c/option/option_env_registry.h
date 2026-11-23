@@ -283,6 +283,22 @@ struct dj_option_result d_option_env_registry_import_each(
                             fn_option_env_report           _report,
                             void*                          _context);
 
+/**
+ * @brief Gives a registry the reader its imports ask: its root's, which
+ *        every djin's frame sees unless it has its own; null gives it back
+ *        to the build's, D_CFG_OPTION_ENV_GETENV (option_env's decision
+ *        83).
+ *
+ * @param[in,out] _registry  the registry.
+ * @param[in]     _reader    the reader; may be null.
+ * @param[in]     _context   passed to it.
+ * @return as d_option_env_set_getenv.
+ */
+struct dj_option_result d_option_env_registry_set_getenv(
+                            struct dj_option_env_registry* _registry,
+                            fn_option_env_getenv           _reader,
+                            void*                          _context);
+
 // 2.2    The command line
 //------------------------------------------------------------------------------
 /**

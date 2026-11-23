@@ -99,7 +99,17 @@ registry:
 - a file: `d_option_env_registry_load(reg, text, D_OPTION_ENV_SOURCE_FILE,
   &offset)`, lines of `net.timeout_ms = 5000`, `#` comments;
 - the environment: `d_option_env_registry_import(reg, "DJINTERP_")`, so
-  `DJINTERP_NET_TIMEOUT_MS=5000`;
+  `DJINTERP_NET_TIMEOUT_MS=5000`, and a scope's as its unscoped name is
+  made, `DJINTERP_DESC_SHELF_RING=4` for `desc.shelf.ring`
+  (`D_CFG_OPTION_ENV_SCOPED_IMPORT`, 1). Two settings that would make one
+  name are refused when the second is declared, scope or variable, so an
+  import never reads a name two ways (option_env's decision 47). Each name
+  is read through a reader a program may replace, per frame or per
+  registry (`d_option_env_set_getenv`, `d_option_env_registry_set_getenv`):
+  `getenv` by default, and a build for a host with no environment of its
+  own names the host's in `D_CFG_OPTION_ENV_GETENV`. A value is copied into
+  the import's own room, `D_CFG_OPTION_ENV_VALUE_MAX` bytes; a longer one is
+  refused and reported, never cut short (option_env's decision 83);
 - the command line: `d_option_env_registry_take_option(reg, argc, argv, &i,
   &result)` takes `--net.timeout_ms=5000`, `--set net.timeout_ms=5000`,
   `--net.verbose` and `--no-net.verbose`; a misspelling returns -1, and

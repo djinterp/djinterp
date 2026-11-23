@@ -11,7 +11,7 @@
 * path:      /src/djinterp/c/log/log.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 
 #include "../../../../inc/djinterp/c/log/log.h"  // corresponding header
@@ -913,9 +913,15 @@ d_log_module_add(
                                   _module->name);
         d_internal_log.scopes[index] = d_internal_log.scope_names[index];
 #if D_INTERNAL_LOG_OPTIONS
-        (void)d_option_env_set_scopes(&d_internal_log_djin.frame,
-                                      d_internal_log.scopes,
-                                      (uint32_t)(index + 1u));
+        // a scope that would make one of the log's settings' environment
+        // names twice is refused, and the module with it (option_env's
+        // decision 47); the scopes are as they were
+        if (!d_option_env_set_scopes(&d_internal_log_djin.frame,
+                                     d_internal_log.scopes,
+                                     (uint32_t)(index + 1u)).is_ok)
+        {
+            return -1;
+        }
 #endif
     }
 

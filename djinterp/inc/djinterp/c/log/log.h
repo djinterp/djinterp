@@ -362,7 +362,9 @@ struct dj_log_module
  *
  * @param[in] _module  the module's table; borrowed.
  * @return 0 when registered, or already; -1 for a null or bad table, a
- *         collision, or no room (D_CFG_LOG_MODULES_MAX, D_CFG_LOG_SCOPES).
+ *         collision, no room (D_CFG_LOG_MODULES_MAX, D_CFG_LOG_SCOPES), or
+ *         a module name whose scope would make two of the log's settings
+ *         one environment name (option_env's decision 47).
  */
 int d_log_module_add(const struct dj_log_module* _module);
 

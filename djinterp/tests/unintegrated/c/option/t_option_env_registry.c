@@ -767,6 +767,148 @@ d_tests_registry_import_each(void)
     return;
 }
 
+// dj_tests_registry_env
+//   struct: an environment of the test's own, in name and value pairs.
+struct dj_tests_registry_env
+{
+    const char* const* pairs;
+    unsigned           count;
+    unsigned           asked;
+};
+
+/*
+d_tests_registry_reader
+  A reader over the test's own environment, as fn_option_env_getenv reads.
+*/
+static int32_t
+d_tests_registry_reader(
+    void*       _context,
+    const char* _name,
+    char*       _value,
+    size_t      _size,
+    size_t*     _length
+)
+{
+    struct dj_tests_registry_env* const env =
+        (struct dj_tests_registry_env*)_context;
+
+    ++env->asked;
+
+    for (unsigned i = 0u; i < env->count; ++i)
+    {
+        if (strcmp(env->pairs[2u * i], _name) == 0)
+        {
+            const size_t size = strlen(env->pairs[2u * i + 1u]);
+
+            *_length = size;
+
+            if (size >= _size)
+            {
+                return -1;
+            }
+
+            memcpy(_value, env->pairs[2u * i + 1u], size + 1u);
+
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+/*
+d_tests_registry_scoped
+  Tests the following:
+  - the registry's reader is its root's, and every djin's import asks it
+    rather than getenv
+  - with D_CFG_OPTION_ENV_SCOPED_IMPORT, a djin's scope's settings come
+    from its prefix, the scope and the variable, and a failure is reported
+    by its full name, "printer.compiler.key_width"
+*/
+static void
+d_tests_registry_scoped(void)
+{
+    static const char* const PAIRS[] =
+    {
+        "DJSREG_PRINTER_STYLE",              "json",
+        "DJSREG_PRINTER_LANGUAGE_TITLE",     "le titre",
+        "DJSREG_PRINTER_COMPILER_KEY_WIDTH", "500",
+        "DJSREG_LOGGER_LEVEL",               "3"
+    };
+    static struct dj_option_env_registry registry;
+    struct dj_tests_djin_storage         printer_storage =
+                                             D_OPTION_ENV_STORAGE_INIT;
+    struct dj_tests_djin_storage         logger_storage =
+                                             D_OPTION_ENV_STORAGE_INIT;
+    struct dj_option_env                 printer;
+    struct dj_option_env                 logger;
+    struct dj_tests_heard                heard;
+    struct dj_tests_registry_env         env;
+    struct dj_option_result              imported;
+    uint32_t                             title;
+
+    printf("  a reader of its own, and scopes from the environment\n");
+
+    memset(&heard, 0, sizeof(heard));
+    env.pairs = PAIRS;
+    env.count = 4u;
+    env.asked = 0u;
+    d_tests_registry_make(&registry, &printer, &printer_storage, &logger,
+                          &logger_storage);
+    d_tests_registry_setenv("DJSREG_PRINTER_STYLE", "text");
+    D_TESTS_REGISTRY_CHECK(d_option_env_registry_set_getenv(&registry,
+                               d_tests_registry_reader, &env).is_ok);
+    D_TESTS_REGISTRY_CHECK(D_TESTS_REGISTRY_STATUS(
+                               d_option_env_registry_set_getenv(NULL, NULL,
+                                                                NULL)) ==
+                           (int32_t)D_OPTION_STATUS_INVALID_ARGUMENT);
+
+    imported = d_option_env_registry_import_each(&registry, "DJSREG_",
+                                                 d_tests_registry_heard,
+                                                 &heard);
+    title    = d_option_env_find(&printer, "title", 5u).payload.value;
+    D_TESTS_REGISTRY_CHECK(env.asked != 0u);
+    D_TESTS_REGISTRY_CHECK(strcmp(d_option_env_text(&printer, 0u,
+                                      d_option_env_find(&printer, "style",
+                                                        5u).payload.value),
+                                  "json") == 0);
+    D_TESTS_REGISTRY_CHECK(d_option_env_int(&logger, 0u,
+                                            d_option_env_find(&logger,
+                                                              "level", 5u)
+                                                .payload.value) == 3);
+
+#if D_CFG_OPTION_ENV_SCOPED_IMPORT
+    D_TESTS_REGISTRY_CHECK(!imported.is_ok);
+    D_TESTS_REGISTRY_CHECK(strcmp(d_option_env_text(&printer,
+                                      d_option_env_find_scope(&printer,
+                                          "language", 8u).payload.value,
+                                      title),
+                                  "le titre") == 0);
+    D_TESTS_REGISTRY_CHECK( (heard.count == 1u) &&
+                            (strcmp(heard.names,
+                                    "DJSREG_PRINTER_COMPILER_KEY_WIDTH;")
+                             == 0) &&
+                            (strcmp(heard.settings,
+                                    "printer.compiler.key_width;") == 0) );
+#else
+    D_TESTS_REGISTRY_CHECK( (imported.is_ok) &&
+                            (heard.count == 0u) );
+    D_TESTS_REGISTRY_CHECK(strcmp(d_option_env_text(&printer, 0u, title),
+                                  "report") == 0);
+#endif  // D_CFG_OPTION_ENV_SCOPED_IMPORT
+
+    // given back to getenv
+    D_TESTS_REGISTRY_CHECK(d_option_env_registry_set_getenv(&registry, NULL,
+                                                            NULL).is_ok);
+    (void)d_option_env_registry_import(&registry, "DJSREG_");
+    D_TESTS_REGISTRY_CHECK(strcmp(d_option_env_text(&printer, 0u,
+                                      d_option_env_find(&printer, "style",
+                                                        5u).payload.value),
+                                  "text") == 0);
+
+    return;
+}
+
 /*
 d_tests_registry_checking
   Tests the following:
@@ -939,6 +1081,7 @@ main(void)
     d_tests_registry_names();
     d_tests_registry_environment();
     d_tests_registry_import_each();
+    d_tests_registry_scoped();
     d_tests_registry_checking();
     d_tests_registry_command_line();
     d_tests_registry_suggestions();

@@ -92,13 +92,14 @@ TABLE OF CONTENTS
 2.  FRAMES
     ------
     1.  The frame
-         1.  dj_option_env
-         2.  D_OPTION_ENV_GLOBAL
-         3.  D_OPTION_ENV_NONE
-         4.  D_OPTION_ENV_DEPTH_MAX
-         5.  D_OPTION_ENV_ID
-         6.  D_OPTION_ENV_ID_DEPTH
-         7.  D_OPTION_ENV_ID_INDEX
+         1.  fn_option_env_getenv
+         2.  dj_option_env
+         3.  D_OPTION_ENV_GLOBAL
+         4.  D_OPTION_ENV_NONE
+         5.  D_OPTION_ENV_DEPTH_MAX
+         6.  D_OPTION_ENV_ID
+         7.  D_OPTION_ENV_ID_DEPTH
+         8.  D_OPTION_ENV_ID_INDEX
     2.  Where a value came from
          1.  dj_option_env_source
          2.  dj_option_env_value
@@ -422,6 +423,21 @@ struct dj_option_env_var
 // 2.1    The frame
 //------------------------------------------------------------------------------
 // 2.1.1
+// fn_option_env_getenv
+//   type: reads one environment variable for an import: writes its value
+// and a NUL into _value, and its length into *_length. Returns 1 when it is
+// set (empty is set), 0 when it is not, and -1 when _size is too small,
+// with the length it needs in *_length; it writes nothing then. An import
+// asks the frame's reader, else its parent's, else the build's
+// (D_CFG_OPTION_ENV_GETENV), so a module, a sandbox or a test supplies its
+// own environment (option_env's decision 83).
+typedef int32_t (*fn_option_env_getenv)(void*       _context,
+                                        const char* _name,
+                                        char*       _value,
+                                        size_t      _size,
+                                        size_t*     _length);
+
+// 2.1.2
 // dj_option_env
 //   struct: one frame: its bindings, its parent, its own declarations and
 // scopes, its text arena. Built over caller storage by D_OPTION_ENV_VIEW; it
@@ -449,25 +465,27 @@ struct dj_option_env
     uint32_t                          generation;     // bumped by each change
     uint32_t                          depth;          // ancestors: 0 at a root
     uint32_t                          child_count;    // frames it is parent of
+    fn_option_env_getenv              reader;         // or null: the parent's
+    void*                             reader_context; // passed to it
 };
 
-// 2.1.2
+// 2.1.3
 // D_OPTION_ENV_GLOBAL
 //   constant: the scope that is everywhere: a binding in it holds in every
 // scope that has none of its own.
 #define D_OPTION_ENV_GLOBAL     0u
 
-// 2.1.3
+// 2.1.4
 // D_OPTION_ENV_NONE
 //   constant: no variable: what d_option_env_var_id gives past the last.
 #define D_OPTION_ENV_NONE       0xFFFFFFFFu
 
-// 2.1.4
+// 2.1.5
 // D_OPTION_ENV_DEPTH_MAX
 //   constant: the deepest a frame may be: 255 ancestors.
 #define D_OPTION_ENV_DEPTH_MAX  255u
 
-// 2.1.5
+// 2.1.6
 // D_OPTION_ENV_ID
 //   macro: the id of a frame's own variable, or scope less 1, from the frame's
 // depth and its place there: what a machine that keeps a frame's ids needs
@@ -477,12 +495,12 @@ struct dj_option_env
     ( (((uint32_t)(depth) & 0xFFu) << 20) |                                    \
       ((uint32_t)(index) & 0x000FFFFFu) )
 
-// 2.1.6
+// 2.1.7
 // D_OPTION_ENV_ID_DEPTH
 //   macro: the depth of the frame an id's variable or scope belongs to.
 #define D_OPTION_ENV_ID_DEPTH(id)  ( ((uint32_t)(id) >> 20) & 0xFFu )
 
-// 2.1.7
+// 2.1.8
 // D_OPTION_ENV_ID_INDEX
 //   macro: an id's place among its frame's own variables, or scopes from 1.
 #define D_OPTION_ENV_ID_INDEX(id)  ( (uint32_t)(id) & 0x000FFFFFu )
@@ -1216,8 +1234,12 @@ struct dj_option_result d_option_env_load(struct dj_option_env* _env,
  *        its text, globally, from the environment; an alias is tried when the
  *        name is not set.
  *
- * @note Reads getenv, which is not safe against a thread calling setenv. A
- *       value a variable does not accept is skipped; the rest are still
+ * @note Reads each name through the frame's reader (d_option_env_set_getenv),
+ *       getenv by default, which is not safe against a thread calling
+ *       setenv. With D_CFG_OPTION_ENV_SCOPED_IMPORT 1 a scope's settings
+ *       are read too, "DJINTERP_DESC_SHELF_RING" for "shelf.ring", and bound
+ *       in that scope. A value a variable does not accept, or one longer
+ *       than D_CFG_OPTION_ENV_VALUE_MAX, is skipped; the rest are still
  *       read. Each refusal goes nowhere, or to d_option_env_report_print
  *       with D_CFG_OPTION_ENV_IMPORT_REPORT 1; import_each takes a report.
  *
@@ -1242,6 +1264,38 @@ struct dj_option_result d_option_env_import_each(
                             struct dj_option_env* _env,
                             const char*           _prefix,
                             fn_option_env_report  _report,
+                            void*                 _context);
+
+/**
+ * @brief The stock reader: the C library's getenv, the value copied out, so
+ *        nothing a later setenv does reaches a value being bound.
+ *
+ * @param[in]  _context  unused.
+ * @param[in]  _name     the variable's name.
+ * @param[out] _value    where its value and a NUL go.
+ * @param[in]  _size     its size.
+ * @param[out] _length   the value's length, or the length it needs.
+ * @return as fn_option_env_getenv: 1, 0 or -1.
+ */
+int32_t d_option_env_getenv_c(void*       _context,
+                              const char* _name,
+                              char*       _value,
+                              size_t      _size,
+                              size_t*     _length);
+
+/**
+ * @brief Gives a frame the reader its imports ask, and every frame beneath
+ *        it that has none of its own; null gives the frame back to its
+ *        parent's, or the build's.
+ *
+ * @param[in,out] _env      the frame.
+ * @param[in]     _reader   the reader; may be null.
+ * @param[in]     _context  passed to it.
+ * @return 0; or INVALID_ARGUMENT for a null frame.
+ */
+struct dj_option_result d_option_env_set_getenv(
+                            struct dj_option_env* _env,
+                            fn_option_env_getenv  _reader,
                             void*                 _context);
 
 // 3.5    Writing as text

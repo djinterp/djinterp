@@ -2546,6 +2546,348 @@ d_tests_option_env_checking_more(
 }
 
 /*
+d_tests_option_env_scoped_import
+  Tests the following:
+  - with D_CFG_OPTION_ENV_SCOPED_IMPORT, a scope's settings are read from
+    one name per scope and variable, made as an unscoped name is
+    (DJSCOPED_SHELF_DEPTH for shelf.depth), and bound in that scope; a
+    failure is reported under the setting's full name; without it, only
+    unscoped names are read
+  - two pairs that would make one name are refused when the second is
+    declared, as a scope or as a variable: a scope's name and a variable's
+    against another variable's name or alias, and two scopes against each
+    other; the frame is as it was
+*/
+static void
+d_tests_option_env_scoped_import(void)
+{
+    static const struct dj_option_env_var ROWS[] =
+    {
+        D_OPTION_ENV_INT_RANGE("depth", 5, 1, 9, "between 1 and 9"),
+        D_OPTION_ENV_TEXT("title", "plain", "the title")
+    };
+    static const struct dj_option_env_var CLASH[] =
+    {
+        D_OPTION_ENV_INT("ring", 1, "a ring"),
+        D_OPTION_ENV_INT("shelf_ring", 2, "the shelf's ring, unscoped"),
+        D_OPTION_ENV_INT("b_ring", 3, "a ring in b"),
+        D_OPTION_ENV_ROW(D_OPTION_ENV_KIND_INT, "other", NULL, 0u, NULL,
+                         0u, NULL, 0, 0, 9, 0.0, "shelf_level", NULL,
+                         "its alias a scoped name"),
+        D_OPTION_ENV_INT("level", 4, "a level")
+    };
+    static const char* const SCOPES[]  = { "shelf", "cart" };
+    static const char* const SHELF[]   = { "shelf" };
+    static const char* const NESTED[]  = { "a", "a_b" };
+    struct dj_tests_root_storage storage = D_OPTION_ENV_STORAGE_INIT;
+    struct dj_tests_root_storage other   = D_OPTION_ENV_STORAGE_INIT;
+    struct dj_option_env         env;
+    struct dj_option_env         clash;
+    struct dj_tests_reports      heard;
+    struct dj_option_result      result;
+    uint32_t                     shelf;
+    uint32_t                     cart;
+
+    printf("  a scope's settings from the environment\n");
+
+    memset(&heard, 0, sizeof(heard));
+    (void)D_OPTION_ENV_VIEW(&env, storage);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_declare_all(&env, ROWS, 2u).is_ok);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_set_scopes(&env, SCOPES, 2u).is_ok);
+    shelf = d_option_env_find_scope(&env, "shelf", 5u).payload.value;
+    cart  = d_option_env_find_scope(&env, "cart", 4u).payload.value;
+
+#if defined(_WIN32)
+    (void)_putenv_s("DJSCOPED_DEPTH", "3");
+    (void)_putenv_s("DJSCOPED_SHELF_DEPTH", "7");
+    (void)_putenv_s("DJSCOPED_CART_TITLE", "trolley");
+    (void)_putenv_s("DJSCOPED_CART_DEPTH", "12");
+#else
+    (void)setenv("DJSCOPED_DEPTH", "3", 1);
+    (void)setenv("DJSCOPED_SHELF_DEPTH", "7", 1);
+    (void)setenv("DJSCOPED_CART_TITLE", "trolley", 1);
+    (void)setenv("DJSCOPED_CART_DEPTH", "12", 1);
+#endif
+
+    result = d_option_env_import_each(&env, "DJSCOPED_",
+                                      d_tests_option_env_report, &heard);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_int(&env, D_OPTION_ENV_GLOBAL, 0u)
+                             == 3);
+
+#if D_CFG_OPTION_ENV_SCOPED_IMPORT
+    D_TESTS_OPTION_ENV_CHECK(D_TESTS_OPTION_ENV_STATUS(result)
+                             == (int32_t)D_OPTION_STATUS_INVALID_ARGUMENT);
+    D_TESTS_OPTION_ENV_CHECK( (d_option_env_int(&env, shelf, 0u) == 7) &&
+                              (d_option_env_source(&env, shelf, 0u) ==
+                               D_OPTION_ENV_SOURCE_ENVIRONMENT) );
+    D_TESTS_OPTION_ENV_CHECK(strcmp(d_option_env_text(&env, cart, 1u),
+                                    "trolley") == 0);
+    // cart.depth was refused: it reads the global value, and says why
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_int(&env, cart, 0u) == 3);
+    D_TESTS_OPTION_ENV_CHECK( (heard.count == 1u) &&
+                              (strcmp(heard.name, "DJSCOPED_CART_DEPTH")
+                               == 0) &&
+                              (strcmp(heard.setting, "cart.depth") == 0) &&
+                              (heard.reason ==
+                               (int32_t)D_OPTION_ENV_REASON_RANGE) );
+#else
+    D_TESTS_OPTION_ENV_CHECK( (result.is_ok) &&
+                              (result.payload.value == 1u) &&
+                              (heard.count == 0u) );
+    D_TESTS_OPTION_ENV_CHECK( (d_option_env_int(&env, shelf, 0u) == 3) &&
+                              (strcmp(d_option_env_text(&env, cart, 1u),
+                                      "plain") == 0) );
+#endif  // D_CFG_OPTION_ENV_SCOPED_IMPORT
+
+#if defined(_WIN32)
+    (void)_putenv_s("DJSCOPED_DEPTH", "");
+    (void)_putenv_s("DJSCOPED_SHELF_DEPTH", "");
+    (void)_putenv_s("DJSCOPED_CART_TITLE", "");
+    (void)_putenv_s("DJSCOPED_CART_DEPTH", "");
+#else
+    (void)unsetenv("DJSCOPED_DEPTH");
+    (void)unsetenv("DJSCOPED_SHELF_DEPTH");
+    (void)unsetenv("DJSCOPED_CART_TITLE");
+    (void)unsetenv("DJSCOPED_CART_DEPTH");
+#endif
+
+    // one name for two settings: refused, whichever is declared second
+    (void)D_OPTION_ENV_VIEW(&clash, other);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_declare_all(&clash, CLASH, 2u)
+                             .is_ok);
+
+#if D_CFG_OPTION_ENV_SCOPED_IMPORT
+    // shelf.ring and shelf_ring
+    D_TESTS_OPTION_ENV_CHECK( (D_TESTS_OPTION_ENV_STATUS(
+                                  d_option_env_set_scopes(&clash, SHELF, 1u))
+                               == (int32_t)D_OPTION_STATUS_KEY_DUPLICATE) &&
+                              (clash.scope_count == 0u) );
+
+    // the scope first: the variable is refused, and the frame keeps two
+    (void)D_OPTION_ENV_VIEW(&clash, other);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_declare(&clash, &CLASH[0]).is_ok);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_set_scopes(&clash, SHELF, 1u)
+                             .is_ok);
+    D_TESTS_OPTION_ENV_CHECK( (D_TESTS_OPTION_ENV_STATUS(
+                                  d_option_env_declare(&clash, &CLASH[1]))
+                               == (int32_t)D_OPTION_STATUS_KEY_DUPLICATE) &&
+                              (clash.var_count == 1u) );
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_declare(&clash, &CLASH[4]).is_ok);
+
+    // an alias: shelf.level and other's alias shelf_level
+    D_TESTS_OPTION_ENV_CHECK( (D_TESTS_OPTION_ENV_STATUS(
+                                  d_option_env_declare(&clash, &CLASH[3]))
+                               == (int32_t)D_OPTION_STATUS_KEY_DUPLICATE) &&
+                              (clash.var_count == 2u) );
+
+    // two scopes: a.b_ring and a_b.ring
+    (void)D_OPTION_ENV_VIEW(&clash, other);
+    D_TESTS_OPTION_ENV_CHECK( (d_option_env_declare(&clash, &CLASH[0])
+                               .is_ok) &&
+                              (d_option_env_declare(&clash, &CLASH[2])
+                               .is_ok) );
+    D_TESTS_OPTION_ENV_CHECK( (D_TESTS_OPTION_ENV_STATUS(
+                                  d_option_env_set_scopes(&clash, NESTED,
+                                                          2u))
+                               == (int32_t)D_OPTION_STATUS_KEY_DUPLICATE) &&
+                              (clash.scope_count == 0u) );
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_set_scopes(&clash, NESTED, 1u)
+                             .is_ok);
+#else
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_set_scopes(&clash, SHELF, 1u)
+                             .is_ok);
+    (void)NESTED;
+#endif  // D_CFG_OPTION_ENV_SCOPED_IMPORT
+
+    return;
+}
+
+// dj_tests_fake_env
+//   struct: an environment of the test's own: names and values in pairs,
+// and how many times it was asked.
+struct dj_tests_fake_env
+{
+    const char* const* pairs;
+    unsigned           count;
+    unsigned           asked;
+};
+
+/*
+d_tests_option_env_fake
+  A reader over the fake environment, keeping fn_option_env_getenv's
+contract.
+*/
+static int32_t
+d_tests_option_env_fake(
+    void*       _context,
+    const char* _name,
+    char*       _value,
+    size_t      _size,
+    size_t*     _length
+)
+{
+    struct dj_tests_fake_env* const fake =
+        (struct dj_tests_fake_env*)_context;
+
+    ++fake->asked;
+
+    for (unsigned i = 0u; i < fake->count; ++i)
+    {
+        if (strcmp(fake->pairs[2u * i], _name) == 0)
+        {
+            const size_t size = strlen(fake->pairs[2u * i + 1u]);
+
+            *_length = size;
+
+            if (size >= _size)
+            {
+                return -1;
+            }
+
+            memcpy(_value, fake->pairs[2u * i + 1u], size + 1u);
+
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+// a frame beneath, with room for a variable of its own
+D_OPTION_ENV_DECLARE(dj_tests_reader_child_storage, 16, 4, 96);
+
+/*
+d_tests_option_env_reader
+  Tests the following:
+  - an import asks the frame's reader, not getenv; a frame beneath asks
+    its parent's; null gives the frame back to the build's reader
+  - a set, empty value is bound as empty; an unset one is not bound
+  - a value as long as D_CFG_OPTION_ENV_VALUE_MAX, its NUL aside, is
+    refused whole, for room, and reported by its length
+  - the stock reader copies getenv's text, says unset, and gives the length
+    a value needs when the room is too small
+*/
+static void
+d_tests_option_env_reader(void)
+{
+    static const struct dj_option_env_var ROWS[] =
+    {
+        D_OPTION_ENV_INT("depth", 5, "a depth"),
+        D_OPTION_ENV_TEXT("title", "plain", "the title")
+    };
+    static const struct dj_option_env_var CHILD[] =
+    {
+        D_OPTION_ENV_INT("width", 1, "the child's own")
+    };
+    static char                  longest[D_CFG_OPTION_ENV_VALUE_MAX + 1u];
+    const char*                  pairs[8];
+    struct dj_tests_fake_env     fake;
+    struct dj_tests_root_storage         storage = D_OPTION_ENV_STORAGE_INIT;
+    struct dj_tests_reader_child_storage child_storage =
+                                             D_OPTION_ENV_STORAGE_INIT;
+    struct dj_option_env         env;
+    struct dj_option_env         child;
+    struct dj_tests_reports      heard;
+    struct dj_option_result      result;
+    char                         buffer[8];
+    char                         expected[48];
+    size_t                       length = 0u;
+
+    printf("  a reader of the program's own for the environment\n");
+
+    memset(longest, 'x', sizeof(longest) - 1u);
+    longest[sizeof(longest) - 1u] = '\0';
+    pairs[0] = "DJFAKE_DEPTH";  pairs[1] = "8";
+    pairs[2] = "DJFAKE_TITLE";  pairs[3] = "";
+    pairs[4] = "DJFAKE_WIDTH";  pairs[5] = "5";
+    pairs[6] = "DJLONG_TITLE";  pairs[7] = longest;
+    fake.pairs = pairs;
+    fake.count = 4u;
+    fake.asked = 0u;
+
+#if defined(_WIN32)
+    (void)_putenv_s("DJFAKE_DEPTH", "2");
+#else
+    (void)setenv("DJFAKE_DEPTH", "2", 1);
+#endif
+
+    (void)D_OPTION_ENV_VIEW(&env, storage);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_declare_all(&env, ROWS, 2u).is_ok);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_set_getenv(&env,
+                                                     d_tests_option_env_fake,
+                                                     &fake).is_ok);
+    result = d_option_env_import(&env, "DJFAKE_");
+    D_TESTS_OPTION_ENV_CHECK( (result.is_ok) &&
+                              (result.payload.value == 2u) &&
+                              (fake.asked != 0u) );
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_int(&env, 0u, 0u) == 8);
+    D_TESTS_OPTION_ENV_CHECK( (strcmp(d_option_env_text(&env, 0u, 1u), "")
+                               == 0) &&
+                              (d_option_env_source(&env, 0u, 1u) ==
+                               D_OPTION_ENV_SOURCE_ENVIRONMENT) );
+
+    // a frame beneath asks its parent's reader
+    (void)D_OPTION_ENV_VIEW(&child, child_storage);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_set_parent(&child, &env).is_ok);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_declare_all(&child, CHILD, 1u)
+                             .is_ok);
+    (void)d_option_env_import(&child, "DJFAKE_");
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_int(&child, 0u,
+                                 d_option_env_find(&child, "width", 5u)
+                                     .payload.value) == 5);
+
+    // too long to hold: refused whole, and said by its length
+    memset(&heard, 0, sizeof(heard));
+    result = d_option_env_import_each(&env, "DJLONG_",
+                                      d_tests_option_env_report, &heard);
+    (void)snprintf(expected, sizeof(expected), "(%lu bytes)",
+                   (unsigned long)(sizeof(longest) - 1u));
+    D_TESTS_OPTION_ENV_CHECK( (D_TESTS_OPTION_ENV_STATUS(result) ==
+                               (int32_t)D_OPTION_STATUS_CAPACITY) &&
+                              (heard.count == 1u) &&
+                              (strcmp(heard.value, expected) == 0) &&
+                              (strcmp(heard.setting, "title") == 0) &&
+                              (heard.reason ==
+                               (int32_t)D_OPTION_ENV_REASON_ROOM) );
+    D_TESTS_OPTION_ENV_CHECK(strcmp(d_option_env_text(&env, 0u, 1u), "")
+                             == 0);
+
+    // given back: the build's reader, getenv
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_set_getenv(&env, NULL, NULL)
+                             .is_ok);
+    (void)d_option_env_import(&env, "DJFAKE_");
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_int(&env, 0u, 0u) == 2);
+    D_TESTS_OPTION_ENV_CHECK(D_TESTS_OPTION_ENV_STATUS(
+        d_option_env_set_getenv(NULL, d_tests_option_env_fake, &fake))
+        == (int32_t)D_OPTION_STATUS_INVALID_ARGUMENT);
+
+    // the stock reader
+    D_TESTS_OPTION_ENV_CHECK( (d_option_env_getenv_c(NULL, "DJFAKE_DEPTH",
+                                                     buffer, sizeof(buffer),
+                                                     &length) == 1) &&
+                              (strcmp(buffer, "2") == 0) &&
+                              (length == 1u) );
+    D_TESTS_OPTION_ENV_CHECK( (d_option_env_getenv_c(NULL, "DJFAKE_DEPTH",
+                                                     buffer, 1u, &length)
+                               == -1) &&
+                              (length == 1u) );
+    D_TESTS_OPTION_ENV_CHECK( (d_option_env_getenv_c(NULL, "DJFAKE_NONE",
+                                                     buffer, sizeof(buffer),
+                                                     &length) == 0) &&
+                              (d_option_env_getenv_c(NULL, NULL, buffer,
+                                                     sizeof(buffer),
+                                                     &length) == 0) );
+
+#if defined(_WIN32)
+    (void)_putenv_s("DJFAKE_DEPTH", "");
+#else
+    (void)unsetenv("DJFAKE_DEPTH");
+#endif
+
+    return;
+}
+
+/*
 d_tests_option_env_checking
   Tests the following:
   - a value is checked as binding it would be -- range, choices, unbuilt
@@ -2875,6 +3217,8 @@ main(void)
     d_tests_option_env_refused();
     d_tests_option_env_default_layer();
     d_tests_option_env_import_each();
+    d_tests_option_env_scoped_import();
+    d_tests_option_env_reader();
     d_tests_option_env_checking();
     d_tests_option_env_reasons();
     d_tests_option_env_suggestions();
