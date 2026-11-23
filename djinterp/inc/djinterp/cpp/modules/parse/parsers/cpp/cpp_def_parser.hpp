@@ -23,23 +23,19 @@
 * path:      /inc/djinterp/cpp/modules/parse/parsers/cpp/cpp_def_parser.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.03.18
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 
 #ifndef DJINTERP_PARSE_PARSERS_CPP_DEF_PARSER_HPP
 #define DJINTERP_PARSE_PARSERS_CPP_DEF_PARSER_HPP 1
 
-// D_INTERNAL_PARSE_LIBCLANG
-//   detection: defined when libclang's C API, <clang-c/Index.h>, can be
-// included. The parser below is built on it; without it this header
-// compiles to nothing.
-#if defined(__has_include)
-    #if __has_include(<clang-c/Index.h>)
-        #define D_INTERNAL_PARSE_LIBCLANG 1
-    #endif
-#endif
+// D_INTERNAL_PARSE_LIBCLANG (cfg_parse.h)
+//   switch: 1 when D_CFG_PARSE_LIBCLANG is on and libclang's C API,
+// <clang-c/Index.h>, is found. Off by default, so this header compiles to
+// nothing until the LLVM adapter ports the parser to today's arena.
+#include "../../../../../config/c/modules/parse/cfg_parse.h"  // D_INTERNAL_PARSE_LIBCLANG
 
-#ifdef D_INTERNAL_PARSE_LIBCLANG
+#if (D_INTERNAL_PARSE_LIBCLANG == 1)
 
 // std
 #include <cstddef>

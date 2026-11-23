@@ -10,9 +10,12 @@
 * path:      /tests/djinterp/c/modules/parse/syntax/syntax_tests_pp.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 #include "./syntax_tests.h"  // corresponding header
+
+// the syntax items are built only where parse may allocate
+#if (D_INTERNAL_PARSE_HEAP == 1)
 
 
 /*
@@ -165,3 +168,47 @@ d_tests_syntax_pp_not_guards(void)
 
     return true;
 }
+
+#else
+
+/*
+d_tests_syntax_pp_guarded
+  The syntax items compiled out with parse's heap: skipped.
+*/
+bool
+d_tests_syntax_pp_guarded(void)
+{
+    D_TEST_SKIP(D_TESTS_SYNTAX_NO_HEAP);
+}
+
+/*
+d_tests_syntax_pp_unguarded
+  The syntax items compiled out with parse's heap: skipped.
+*/
+bool
+d_tests_syntax_pp_unguarded(void)
+{
+    D_TEST_SKIP(D_TESTS_SYNTAX_NO_HEAP);
+}
+
+/*
+d_tests_syntax_pp_directives
+  The syntax items compiled out with parse's heap: skipped.
+*/
+bool
+d_tests_syntax_pp_directives(void)
+{
+    D_TEST_SKIP(D_TESTS_SYNTAX_NO_HEAP);
+}
+
+/*
+d_tests_syntax_pp_not_guards
+  The syntax items compiled out with parse's heap: skipped.
+*/
+bool
+d_tests_syntax_pp_not_guards(void)
+{
+    D_TEST_SKIP(D_TESTS_SYNTAX_NO_HEAP);
+}
+
+#endif  // D_INTERNAL_PARSE_HEAP

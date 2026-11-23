@@ -13,9 +13,12 @@
 * path:      /tests/djinterp/c/modules/parse/syntax/syntax_tests_cpp.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.06
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 #include "./syntax_tests.h"  // corresponding header
+
+// the syntax items are built only where parse may allocate
+#if (D_INTERNAL_PARSE_HEAP == 1)
 
 
 /*
@@ -381,3 +384,77 @@ d_tests_syntax_cpp_c_unchanged(void)
 
     return true;
 }
+
+#else
+
+/*
+d_tests_syntax_cpp_template_args
+  The syntax items compiled out with parse's heap: skipped.
+*/
+bool
+d_tests_syntax_cpp_template_args(void)
+{
+    D_TEST_SKIP(D_TESTS_SYNTAX_NO_HEAP);
+}
+
+/*
+d_tests_syntax_cpp_template_heads
+  The syntax items compiled out with parse's heap: skipped.
+*/
+bool
+d_tests_syntax_cpp_template_heads(void)
+{
+    D_TEST_SKIP(D_TESTS_SYNTAX_NO_HEAP);
+}
+
+/*
+d_tests_syntax_cpp_class_heads
+  The syntax items compiled out with parse's heap: skipped.
+*/
+bool
+d_tests_syntax_cpp_class_heads(void)
+{
+    D_TEST_SKIP(D_TESTS_SYNTAX_NO_HEAP);
+}
+
+/*
+d_tests_syntax_cpp_initializers
+  The syntax items compiled out with parse's heap: skipped.
+*/
+bool
+d_tests_syntax_cpp_initializers(void)
+{
+    D_TEST_SKIP(D_TESTS_SYNTAX_NO_HEAP);
+}
+
+/*
+d_tests_syntax_cpp_head_macros
+  The syntax items compiled out with parse's heap: skipped.
+*/
+bool
+d_tests_syntax_cpp_head_macros(void)
+{
+    D_TEST_SKIP(D_TESTS_SYNTAX_NO_HEAP);
+}
+
+/*
+d_tests_syntax_cpp_namespaces
+  The syntax items compiled out with parse's heap: skipped.
+*/
+bool
+d_tests_syntax_cpp_namespaces(void)
+{
+    D_TEST_SKIP(D_TESTS_SYNTAX_NO_HEAP);
+}
+
+/*
+d_tests_syntax_cpp_c_unchanged
+  The syntax items compiled out with parse's heap: skipped.
+*/
+bool
+d_tests_syntax_cpp_c_unchanged(void)
+{
+    D_TEST_SKIP(D_TESTS_SYNTAX_NO_HEAP);
+}
+
+#endif  // D_INTERNAL_PARSE_HEAP

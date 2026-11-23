@@ -5,7 +5,7 @@
 #   Builds the suite in DTest 2.0's C face: the runner in this directory, the
 # section translation units of tests/djinterp/c/modules/parse/expr/
 # (expr_tests_*.c), the core's sources, the two parse units it stands on,
-# diagnostic.c and storage.c, and DTest's one source, test_suite.c, in testing
+# diagnostic.c and storage.c, and DTest's C face, in testing
 # mode, once per C level from the C floor (C99) up, and runs each as a test.
 # The runner returns 0 only when every test passed or was skipped, so a test
 # fails on its exit status. A level the compiler cannot select is left out,
@@ -16,6 +16,10 @@
 #         ctest --test-dir <out>
 #     add_subdirectory(<this directory> <binary directory>)
 #
+#   DTest's C face is the framework's library, djinterp_c_test, where the
+# enclosing project defines it; standing alone, the leaf compiles its one
+# source, test_suite.c, at each level itself.
+#
 #   cache:  DJINTERP_PARSE_EXPR_C_LEVELS  C levels to build the suite at
 #           DJINTERP_PARSE_EXPR_STRICT    the ladder's diagnostics, as errors,
 #                                         where the compiler has them
@@ -24,7 +28,7 @@
 # path:      /build/cmake/config/testing/djinterp/c/modules/parse/expr/CMakeLists.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-#                                                            revised: 2026.11.10
+#                                                            revised: 2026.11.23
 #*******************************************************************************
 cmake_minimum_required(VERSION 3.16)
 
@@ -63,13 +67,21 @@ set(_parse "${_root}/src/djinterp/c/modules/parse")
 set(_tests "${_root}/tests/djinterp/c/modules/parse/expr")
 file(GLOB _core CONFIGURE_DEPENDS "${_parse}/expr/*.c")
 file(GLOB _sections CONFIGURE_DEPENDS "${_tests}/expr_tests_*.c")
+# DTest's C face: the framework's library, linked below, where the enclosing
+# project defines it; standing alone, its one source
+if(TARGET djinterp_c_test)
+    set(_dtest "")
+else()
+    set(_dtest "${_root}/src/djinterp/c/modules/test/test_suite.c")
+endif()
+
 set(_sources
     "${CMAKE_CURRENT_LIST_DIR}/expr_tests_runner.c"
     ${_sections}
     ${_core}
     "${_parse}/diagnostic.c"
     "${_parse}/storage.c"
-    "${_root}/src/djinterp/c/modules/test/test_suite.c")
+    ${_dtest})
 
 foreach(_level IN LISTS DJINTERP_PARSE_EXPR_C_LEVELS)
     if(NOT "c_std_${_level}" IN_LIST CMAKE_C_COMPILE_FEATURES)
@@ -118,6 +130,11 @@ foreach(_level IN LISTS DJINTERP_PARSE_EXPR_C_LEVELS)
 
     if(UNIX)
         target_link_libraries(${_target} PRIVATE m)
+    endif()
+
+    # DTest's C face, from the framework's library where there is one
+    if(TARGET djinterp_c_test)
+        target_link_libraries(${_target} PRIVATE djinterp_c_test)
     endif()
 
     add_test(NAME ${_target} COMMAND ${_target})

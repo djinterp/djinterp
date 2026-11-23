@@ -30,13 +30,14 @@
 *                                 D_CFG_PARSE_EXPR_ERROR_ORDER
 *           parse/c/settings.h -> D_INTERNAL_PARSE_SETTINGS
 *           the parse sources  -> D_INTERNAL_PARSE_HEAP
+*           parse/cpp/parsers/ -> D_INTERNAL_PARSE_LIBCLANG
 * requires: cfg_common.h (helpers, and the testing preset it applies)
 *
 *
 * path:      /inc/djinterp/config/c/modules/parse/cfg_parse.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_C_PARSE_CFG_PARSE_H
@@ -214,6 +215,20 @@
 #endif
 
 
+// 1.3.7
+// D_CFG_PARSE_LIBCLANG
+//   brief: 1 compiles the libclang parsers -- parsers/c/c_parser.hpp,
+// parsers/cpp/cpp_parser.hpp, cpp_def_parser.hpp and clang_util.hpp -- where
+// <clang-c/Index.h> is found; 0 compiles them to nothing, wherever libclang
+// is installed. Default 0, and not set by D_CFG_PARSE_ALL: the parsers still
+// use the arena's API from before its rename, so they do not compile yet,
+// and an aggregate turning everything on must not turn on what cannot build.
+// The LLVM adapter ports them, and then decides the default.
+#ifndef D_CFG_PARSE_LIBCLANG
+#   define D_CFG_PARSE_LIBCLANG             0
+#endif
+
+
 // 1.4    Validation
 //------------------------------------------------------------------------------
 #if !D_CFG_IS_BOOL(D_CFG_PARSE_DIAG_HEAP)
@@ -248,6 +263,9 @@
 #endif
 #if !D_CFG_IS_BOOL(D_CFG_PARSE_SETTINGS)
 #   error "D_CFG_PARSE_SETTINGS must be 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_PARSE_LIBCLANG)
+#   error "D_CFG_PARSE_LIBCLANG must be 0 or 1"
 #endif
 
 
@@ -499,6 +517,21 @@
 #   define D_INTERNAL_PARSE_SETTINGS        1
 #else
 #   define D_INTERNAL_PARSE_SETTINGS        0
+#endif
+
+// 3.1.12
+// D_INTERNAL_PARSE_LIBCLANG
+//   brief: 1 when the libclang parsers are compiled: D_CFG_PARSE_LIBCLANG is
+// on and the compiler finds <clang-c/Index.h>. Read by the four parsers/
+// headers. Without __has_include the header cannot be looked for, and the
+// parsers are left out.
+#if D_CFG_IS_ON(D_CFG_PARSE_LIBCLANG) && defined(__has_include)
+#   if __has_include(<clang-c/Index.h>)
+#       define D_INTERNAL_PARSE_LIBCLANG    1
+#   endif
+#endif
+#ifndef D_INTERNAL_PARSE_LIBCLANG
+#   define D_INTERNAL_PARSE_LIBCLANG        0
 #endif
 
 // 3.2    Aggregate consequences

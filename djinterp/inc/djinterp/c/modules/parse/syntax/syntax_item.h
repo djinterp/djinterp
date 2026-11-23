@@ -24,12 +24,15 @@
 *   One fact tokens cannot give: which macros open and close a namespace,
 * `NS_DJINTERP` and `NS_END`.  A caller who knows names them in a
 * dj_syntax_options, and each becomes an item of its own.
+*   The recognizer grows its arrays, so it is declared only where parse may
+* allocate (D_INTERNAL_PARSE_HEAP, cfg_parse.h); the types and the naming
+* functions are always there.
 *
 *
 * path:      /inc/djinterp/c/modules/parse/syntax/syntax_item.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.21
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 
 /*
@@ -59,6 +62,7 @@ TABLE OF CONTENTS
 #include <stddef.h>   // size_t
 
 // djinterp
+#include "../../../../config/c/modules/parse/cfg_parse.h"  // D_INTERNAL_PARSE_HEAP
 #include "../lex/lex_token.h"   // dj_token
 #include "./syntax_group.h"     // dj_syntax_groups
 // re_std
@@ -230,6 +234,8 @@ struct dj_syntax_options
 
 // 2.1    Recognition
 //------------------------------------------------------------------------------
+#if (D_INTERNAL_PARSE_HEAP == 1)
+
 // d_syntax_items_build recognizes the items of a grouped token stream.
 // `_text` is the source the tokens index, read only to spell the names of
 // directives and of the macros an options names.  Returns false only when
@@ -295,6 +301,8 @@ bool d_syntax_items_build_with(
 void d_syntax_items_free(
     struct dj_syntax_items* _items
 );
+
+#endif  // D_INTERNAL_PARSE_HEAP
 
 // 2.2    Naming
 //------------------------------------------------------------------------------

@@ -9,9 +9,12 @@
 * path:      /tests/djinterp/c/modules/parse/syntax/syntax_tests_fixtures.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 #include "./syntax_tests.h"  // corresponding header
+
+// the syntax items are built only where parse may allocate
+#if (D_INTERNAL_PARSE_HEAP == 1)
 
 
 /*
@@ -303,3 +306,12 @@ d_tests_syntax_pp_text(
 
     return ok;
 }
+
+#else
+
+// d_tests_syntax_fixtures_unbuilt
+//   type: keeps the unit a declaration, as ISO C asks, where the fixtures
+// are compiled out with the syntax items.
+typedef int d_tests_syntax_fixtures_unbuilt;
+
+#endif  // D_INTERNAL_PARSE_HEAP

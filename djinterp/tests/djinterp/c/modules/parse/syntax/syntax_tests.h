@@ -34,7 +34,7 @@
 * path:      /tests/djinterp/c/modules/parse/syntax/syntax_tests.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_C_PARSE_SYNTAX_TESTS_H
@@ -87,6 +87,13 @@ D_EXTERN_C_BEGIN
 //   constant: the lexer's options for heads: comments kept and keywords
 // resolved, as dawk lexes.
 #define D_TESTS_SYNTAX_LEX      (D_LEX_OPT_EMIT_COMMENTS | D_LEX_OPT_KEYWORDS)
+
+// D_TESTS_SYNTAX_NO_HEAP
+//   constant: what a test says it skipped for where parse may not allocate,
+// so the recognizer, which grows its arrays, is compiled out.
+#define D_TESTS_SYNTAX_NO_HEAP                                                \
+    "the syntax items need parse's heap, which is compiled out "               \
+    "(D_INTERNAL_PARSE_HEAP is 0)"
 
 // 1.2    Records
 //------------------------------------------------------------------------------

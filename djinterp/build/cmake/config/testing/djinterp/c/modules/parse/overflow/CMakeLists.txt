@@ -6,8 +6,7 @@
 # directory, the section translation units of
 # tests/djinterp/c/modules/parse/overflow/ (overflow_tests_*.c), which drive a
 # count too large at each site that takes one from a caller, the parse and
-# parsegen units those sites are in, the units they stand on, and DTest's one
-# source, test_suite.c, in testing mode, once per C level from the C floor
+# parsegen units those sites are in, the units they stand on, and DTest's C face, in testing mode, once per C level from the C floor
 # (C99) up, and runs each as a test. The runner returns 0 only when every
 # test passed or was skipped, so a test fails on its exit status. A level the
 # compiler cannot select is left out, and the configure step says so. The
@@ -20,6 +19,10 @@
 #         ctest --test-dir <out>
 #     add_subdirectory(<this directory> <binary directory>)
 #
+#   DTest's C face is the framework's library, djinterp_c_test, where the
+# enclosing project defines it; standing alone, the leaf compiles its one
+# source, test_suite.c, at each level itself.
+#
 #   cache:  DJINTERP_PARSE_OVERFLOW_C_LEVELS  C levels to build the suite at
 #           DJINTERP_PARSE_OVERFLOW_STRICT    the ladder's diagnostics, as
 #                                             errors, where the compiler has
@@ -29,7 +32,7 @@
 # path:      /build/cmake/config/testing/djinterp/c/modules/parse/overflow/CMakeLists.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-#                                                            revised: 2026.11.10
+#                                                            revised: 2026.11.23
 #*******************************************************************************
 cmake_minimum_required(VERSION 3.16)
 
@@ -69,6 +72,14 @@ set(_parsegen "${_root}/src/djinterp/c/modules/parsegen")
 set(_tests    "${_root}/tests/djinterp/c/modules/parse/overflow")
 file(GLOB _arg_parser CONFIGURE_DEPENDS "${_parse}/cli/arg_parser/*.c")
 file(GLOB _sections CONFIGURE_DEPENDS "${_tests}/overflow_tests_*.c")
+# DTest's C face: the framework's library, linked below, where the enclosing
+# project defines it; standing alone, its one source
+if(TARGET djinterp_c_test)
+    set(_dtest "")
+else()
+    set(_dtest "${_root}/src/djinterp/c/modules/test/test_suite.c")
+endif()
+
 set(_sources
     "${CMAKE_CURRENT_LIST_DIR}/overflow_tests_runner.c"
     ${_sections}
@@ -85,7 +96,7 @@ set(_sources
     "${_parsegen}/grammar.c"
     "${_parsegen}/registry.c"
     "${_root}/src/djinterp/c/util/sink_common.c"
-    "${_root}/src/djinterp/c/modules/test/test_suite.c")
+    ${_dtest})
 
 foreach(_level IN LISTS DJINTERP_PARSE_OVERFLOW_C_LEVELS)
     if(NOT "c_std_${_level}" IN_LIST CMAKE_C_COMPILE_FEATURES)
@@ -134,6 +145,11 @@ foreach(_level IN LISTS DJINTERP_PARSE_OVERFLOW_C_LEVELS)
 
     if(UNIX)
         target_link_libraries(${_target} PRIVATE m)
+    endif()
+
+    # DTest's C face, from the framework's library where there is one
+    if(TARGET djinterp_c_test)
+        target_link_libraries(${_target} PRIVATE djinterp_c_test)
     endif()
 
     add_test(NAME ${_target} COMMAND ${_target})

@@ -7,8 +7,7 @@
 #   Builds the suite from the runner in this directory, the section
 # translation units of tests/djinterp/c/modules/parse/stress/, and the
 # expression core's suite fixtures (the languages and the term generator),
-# over expression core v2, the two parse units under it and DTest's one
-# source, test_suite.c, in testing mode, once per C level. Each level runs as
+# over expression core v2, the two parse units under it and DTest's C face, in testing mode, once per C level. Each level runs as
 # a test.
 #   Beside it, two programs from the harness, stress_fuzz.c: its corpus
 # replay, built on every compiler and run as a test over every file of
@@ -21,6 +20,10 @@
 #         ctest --test-dir <out>
 #     add_subdirectory(<this directory> <binary directory>)
 #
+#   DTest's C face is the framework's library, djinterp_c_test, where the
+# enclosing project defines it; standing alone, the leaf compiles its one
+# source, test_suite.c, at each level itself.
+#
 #   cache:  DJINTERP_PARSE_STRESS_C_LEVELS  C levels to build the suite at
 #           DJINTERP_PARSE_STRESS_STRICT    the ladder's diagnostics, as
 #                                           errors, where the compiler has
@@ -32,7 +35,7 @@
 # path:      /build/cmake/config/testing/djinterp/c/modules/parse/stress/CMakeLists.txt
 # link(s):   /docs/djinterp/parse/expression_core_v2.md
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.18
-#                                                            revised: 2026.11.18
+#                                                            revised: 2026.11.23
 #*******************************************************************************
 cmake_minimum_required(VERSION 3.16)
 
@@ -75,13 +78,21 @@ set(_expr  "${_root}/tests/djinterp/c/modules/parse/expr")
 file(GLOB _core CONFIGURE_DEPENDS "${_parse}/expr/*.c")
 file(GLOB _sections CONFIGURE_DEPENDS "${_tests}/stress_tests_*.c")
 file(GLOB _corpus CONFIGURE_DEPENDS "${_tests}/corpus/*")
+# DTest's C face: the framework's library, linked below, where the enclosing
+# project defines it; standing alone, its one source
+if(TARGET djinterp_c_test)
+    set(_dtest "")
+else()
+    set(_dtest "${_root}/src/djinterp/c/modules/test/test_suite.c")
+endif()
+
 set(_common
     ${_sections}
     "${_expr}/expr_tests_fixtures.c"
     ${_core}
     "${_parse}/diagnostic.c"
     "${_parse}/storage.c"
-    "${_root}/src/djinterp/c/modules/test/test_suite.c")
+    ${_dtest})
 
 # djinterp_parse_stress_target
 #   function: gives a target of this leaf the suite's level, include
@@ -115,6 +126,11 @@ function(djinterp_parse_stress_target _target _level)
 
     if(UNIX)
         target_link_libraries(${_target} PRIVATE m)
+    endif()
+
+    # DTest's C face, from the framework's library where there is one
+    if(TARGET djinterp_c_test)
+        target_link_libraries(${_target} PRIVATE djinterp_c_test)
     endif()
 
     # join the framework's aggregates (djinterp_add_test_subtree), which

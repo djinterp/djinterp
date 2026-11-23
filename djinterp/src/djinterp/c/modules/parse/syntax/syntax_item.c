@@ -25,7 +25,7 @@
 * path:      /src/djinterp/c/modules/parse/syntax/syntax_item.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.21
-*                                                            revised: 2026.11.18
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/c/modules/parse/syntax/syntax_item.h"  // corresponding header
 // std
@@ -40,10 +40,9 @@
 #include "../../../../../../inc/re_std/c/cstdint/dstdint.h"  // uint32_t, uint16_t,
                                                      // uint8_t, UINT32_MAX
 
-// the recognizer grows its arrays and has no fixed-storage mode
-#if (D_INTERNAL_PARSE_HEAP != 1)
-    #error "this file requires D_CFG_PARSE_HEAP, for d_parse_grow"
-#endif
+// the recognizer grows its arrays and has no fixed-storage mode, so it is
+// compiled only where parse may allocate; the naming functions always are
+#if (D_INTERNAL_PARSE_HEAP == 1)
 
 
 //==============================================================================
@@ -2986,6 +2985,8 @@ void d_syntax_items_free(
 
     return;
 }
+
+#endif  // D_INTERNAL_PARSE_HEAP
 
 
 /*

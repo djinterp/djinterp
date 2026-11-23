@@ -11,8 +11,8 @@
 *
 * path:      /build/cmake/config/testing/djinterp/cpp/modules/parsegen/vparse/vparse_tests_runner.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.10.17
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.08
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 // std
 #include <cstdio>  // std::printf
