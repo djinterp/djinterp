@@ -27,8 +27,8 @@
 *   djinterp::verdict                 - the two-point verdict set P
 *   djinterp::consumed                - true if a verdict halts propagation
 *   djinterp::event_traits<Event>    - payload_type, arity, has_name, has_args
-*   D_EVENT(_name, ...)               - declare an event tag with a payload
-*   D_EVENT_EMPTY(_name)              - declare an event tag with empty payload
+*   D_EVENT(_type, _name, ...)        - declare an event tag with a payload
+*   D_EVENT_EMPTY(_type, _name)       - declare an event tag with empty payload
 *   djinterp::is_event                (C++20 concept)
 *   djinterp::event_type, ...         (C++20 classification concepts)
 *
@@ -52,7 +52,7 @@
 * path:      /inc/djinterp/cpp/event/event_common.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.11
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 #ifndef DJINTERP_EVENT_COMMON_HPP
@@ -71,6 +71,7 @@
 #include <utility>
 // djinterp
 #include "../djinterp.hpp"
+#include "../../config/c/event/cfg_event_common.h"  // the names' knobs
 #include "../meta/type_utility.hpp"  // clean_t
 // re_std
 #include "../../../re_std/cpp/utility/make_integer_sequence.hpp"  // re_std::index_sequence,
@@ -368,31 +369,62 @@ struct event_traits
 // =========================================================================
 
 // D_EVENT
-//   macro: declares an event tag type with the given name and payload
-// value domains. Usage:
-//   D_EVENT(on_resize, int, int)
+//   macro: declares an event tag type, its name and its payload's value
+// domains. The name is the event's identity (the event core's decision 15): a
+// string literal, the same
+// one the C declaration gives, hashed into the event's key by
+// d_event_key_of_name, so C and C++ agree. The tag's spelling plays no part,
+// so a renamed type keeps its event. Names are dotted lower-case words by
+// convention ("ui.resize"), one key space with message codes (log.h). A name
+// that is not a string literal fails to compile. Usage:
+//   D_EVENT(DOnResize, "ui.resize", int, int)
 // expands to:
-//   struct on_resize {
+//   struct DOnResize {
 //       using payload_type = std::tuple<int, int>;
-//       static const char* name() { return "on_resize"; }
+//       static const char* name() { return "ui.resize"; }
 //   };
-#define D_EVENT(_name, ...)                                                \
-    struct _name                                                           \
+D_ENV_PP_VARIADIC_QUIET_BEGIN
+#define D_EVENT(_type, _name, ...)                                         \
+    struct _type                                                           \
     {                                                                      \
         using payload_type = std::tuple<__VA_ARGS__>;                      \
-        static const char* name() { return #_name; }                      \
+        static const char* name()                                          \
+        {                                                                  \
+            return "" D_EVENT_NAMESPACE _name "";                          \
+        }                                                                  \
     }
+D_ENV_PP_VARIADIC_QUIET_END
 
 // D_EVENT_EMPTY
-//   macro: declares an event tag type carrying an empty payload.
-// Usage:
-//   D_EVENT_EMPTY(on_close)
-#define D_EVENT_EMPTY(_name)                                               \
-    struct _name                                                           \
+//   macro: declares an event tag type carrying an empty payload, and its
+// name, as D_EVENT. Usage:
+//   D_EVENT_EMPTY(DOnClose, "ui.close")
+#define D_EVENT_EMPTY(_type, _name)                                        \
+    struct _type                                                           \
     {                                                                      \
         using payload_type = std::tuple<>;                                 \
-        static const char* name() { return #_name; }                      \
+        static const char* name()                                          \
+        {                                                                  \
+            return "" D_EVENT_NAMESPACE _name "";                          \
+        }                                                                  \
     }
+
+#if D_CFG_EVENT_NAME_FROM_TYPE
+// D_EVENT_BY_TYPE, D_EVENT_EMPTY_BY_TYPE
+//   macros: D_EVENT and D_EVENT_EMPTY, the event named by its type's
+// spelling, under D_EVENT_NAMESPACE; with D_CFG_EVENT_NAME_FROM_TYPE 1 only.
+// The forms that take a name stay in every build, so a header written with
+// them compiles whatever the knob says. A renamed type renames its event.
+// Usage:
+//   D_EVENT_BY_TYPE(DOnResize, int, int)               // "DOnResize"
+//   D_EVENT_EMPTY_BY_TYPE(DOnClose)                    // "DOnClose"
+    D_ENV_PP_VARIADIC_QUIET_BEGIN
+    #define D_EVENT_BY_TYPE(_type, ...)                                    \
+        D_EVENT(_type, #_type, __VA_ARGS__)
+    D_ENV_PP_VARIADIC_QUIET_END
+    #define D_EVENT_EMPTY_BY_TYPE(_type)                                   \
+        D_EVENT_EMPTY(_type, #_type)
+#endif
 
 
 // =========================================================================

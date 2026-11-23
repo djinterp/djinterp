@@ -41,7 +41,7 @@
 * path:      /inc/djinterp/c/event/event_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.30
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 #ifndef DJINTERP_C_EVENT_COMMON_H
@@ -347,6 +347,10 @@ size_t d_event_next_prime(
 // macros (ISO strict C++98) neither exists, and D_EVENT_DECLARE with them
 #if D_ENV_PP_HAS_VARIADIC_MACROS
 
+// the variadic definitions below are the header's own, so the warning a
+// strict build gives for each is quieted here, and only here
+D_ENV_PP_VARIADIC_QUIET_BEGIN
+
 #if (D_INTERNAL_EVENT_ITERATION_DMACRO == 1)
 
     // D_INTERNAL_EVENT_ARITY
@@ -437,6 +441,8 @@ size_t d_event_next_prime(
 
 #endif  // D_INTERNAL_EVENT_ITERATION_DMACRO
 
+D_ENV_PP_VARIADIC_QUIET_END
+
 #endif  // D_ENV_PP_HAS_VARIADIC_MACROS
 
 // D_EVENT_ARITY_MAX
@@ -461,11 +467,18 @@ size_t d_event_next_prime(
 // accompli in a header.
 #if (D_INTERNAL_EVENT_KEY_FROM_NAME == 1)
     #define D_INTERNAL_EVENT_KEY_EXPR(_name)                                  \
-        d_event_key_of_name(D_STRINGIFY(_name))
+        d_event_key_of_name(D_INTERNAL_EVENT_NAME_OF(_name))
 #else
     #define D_INTERNAL_EVENT_KEY_EXPR(_name)                                  \
-        d_event_key_of_name(D_STRINGIFY(_name))
+        d_event_key_of_name(D_INTERNAL_EVENT_NAME_OF(_name))
 #endif
+
+// D_INTERNAL_EVENT_NAME_OF
+//   macro: an event's full name: D_EVENT_NAMESPACE, as it stands where the
+// event is declared, then its own. Both must be string literals; anything
+// else fails to compile.
+#define D_INTERNAL_EVENT_NAME_OF(_name)                                       \
+    ("" D_EVENT_NAMESPACE _name "")
 
 // D_EVENT_PAYLOAD_TYPE
 //   macro: the packed payload block type of a declared summand. Spelled
@@ -476,70 +489,95 @@ size_t d_event_next_prime(
 #if D_ENV_PP_HAS_VARIADIC_MACROS
 // D_EVENT_DECLARE
 //   macro: declares one summand of the alphabet -- its packed block, its
-// arity, its name, its key, and a view constructor. Usage:
-//     D_EVENT_DECLARE(on_resize, int, int);
+// arity, its name, its key, and a view constructor. _id is the C handle the
+// generated names use; _name is the event's identity (the event core's
+// decision 15), a string literal, the same one the C++ tag gives, and the
+// source of its key. A name that is not a string literal fails to compile.
+// Usage:
+//     D_EVENT_DECLARE(on_resize, "ui.resize", int, int);
 //     D_EVENT_PAYLOAD_TYPE(on_resize) block = { 800, 600 };
 //     D_EVENT_FIRE(&dispatcher, on_resize, &block);
-#define D_EVENT_DECLARE(_name, ...)                                           \
-    D_EVENT_PAYLOAD_TYPE(_name)                                               \
+D_ENV_PP_VARIADIC_QUIET_BEGIN
+#define D_EVENT_DECLARE(_id, _name, ...)                                      \
+    D_EVENT_PAYLOAD_TYPE(_id)                                                 \
     {                                                                         \
         D_INTERNAL_EVENT_FIELDS(__VA_ARGS__)                                  \
     };                                                                        \
                                                                               \
     enum                                                                      \
     {                                                                         \
-        D_CONCAT(d_event_arity_, _name) =                                     \
+        D_CONCAT(d_event_arity_, _id) =                                       \
             (int)D_INTERNAL_EVENT_ARITY(__VA_ARGS__)                          \
     };                                                                        \
                                                                               \
     D_STATIC_INLINE const char*                                               \
-    D_CONCAT(d_event_name_, _name)(void)                                      \
+    D_CONCAT(d_event_name_, _id)(void)                                        \
     {                                                                         \
-        return D_STRINGIFY(_name);                                            \
+        return D_INTERNAL_EVENT_NAME_OF(_name);                               \
     }                                                                         \
                                                                               \
-    D_STATIC_INLINE dj_event_key                                               \
-    D_CONCAT(d_event_key_, _name)(void)                                       \
+    D_STATIC_INLINE dj_event_key                                              \
+    D_CONCAT(d_event_key_, _id)(void)                                         \
     {                                                                         \
         return D_INTERNAL_EVENT_KEY_EXPR(_name);                              \
     }                                                                         \
                                                                               \
-    D_STATIC_INLINE struct dj_event_payload                                    \
-    D_CONCAT(d_event_view_, _name)(D_EVENT_PAYLOAD_TYPE(_name)* _block)       \
+    D_STATIC_INLINE struct dj_event_payload                                   \
+    D_CONCAT(d_event_view_, _id)(D_EVENT_PAYLOAD_TYPE(_id)* _block)           \
     {                                                                         \
         return d_event_payload_make(                                          \
             (void*)_block,                                                    \
-            sizeof(D_EVENT_PAYLOAD_TYPE(_name)),                              \
-            (uint32_t)D_CONCAT(d_event_arity_, _name));                       \
+            sizeof(D_EVENT_PAYLOAD_TYPE(_id)),                                \
+            (uint32_t)D_CONCAT(d_event_arity_, _id));                         \
     }                                                                         \
                                                                               \
-    typedef int D_CONCAT(d_event_declared_, _name)
+    typedef int D_CONCAT(d_event_declared_, _id)
+D_ENV_PP_VARIADIC_QUIET_END
 #endif  // D_ENV_PP_HAS_VARIADIC_MACROS
 
 // D_EVENT_DECLARE_EMPTY
-//   macro: declares a summand carrying no payload. No block type is
-// generated: C has no zero-sized object, and a one-byte placeholder would
-// make an empty payload cost a byte on the wire. An empty occurrence is
-// spelled with a NULL data pointer and size 0.
-#define D_EVENT_DECLARE_EMPTY(_name)                                          \
+//   macro: declares a summand carrying no payload, and its name, as
+// D_EVENT_DECLARE. No block type is generated: C has no zero-sized object,
+// and a one-byte placeholder would make an empty payload cost a byte on the
+// wire. An empty occurrence is spelled with a NULL data pointer and size 0.
+// Usage:
+//     D_EVENT_DECLARE_EMPTY(on_close, "ui.close");
+#define D_EVENT_DECLARE_EMPTY(_id, _name)                                     \
     enum                                                                      \
     {                                                                         \
-        D_CONCAT(d_event_arity_, _name) = 0                                   \
+        D_CONCAT(d_event_arity_, _id) = 0                                     \
     };                                                                        \
                                                                               \
     D_STATIC_INLINE const char*                                               \
-    D_CONCAT(d_event_name_, _name)(void)                                      \
+    D_CONCAT(d_event_name_, _id)(void)                                        \
     {                                                                         \
-        return D_STRINGIFY(_name);                                            \
+        return D_INTERNAL_EVENT_NAME_OF(_name);                               \
     }                                                                         \
                                                                               \
-    D_STATIC_INLINE dj_event_key                                               \
-    D_CONCAT(d_event_key_, _name)(void)                                       \
+    D_STATIC_INLINE dj_event_key                                              \
+    D_CONCAT(d_event_key_, _id)(void)                                         \
     {                                                                         \
         return D_INTERNAL_EVENT_KEY_EXPR(_name);                              \
     }                                                                         \
                                                                               \
-    typedef int D_CONCAT(d_event_declared_, _name)
+    typedef int D_CONCAT(d_event_declared_, _id)
+
+#if D_CFG_EVENT_NAME_FROM_TYPE
+// D_EVENT_DECLARE_BY_ID, D_EVENT_DECLARE_EMPTY_BY_ID
+//   macros: D_EVENT_DECLARE and D_EVENT_DECLARE_EMPTY, the event named by its
+// handle's spelling, under D_EVENT_NAMESPACE; with
+// D_CFG_EVENT_NAME_FROM_TYPE 1 only. The C++ twin of an event named so is
+// D_EVENT_BY_TYPE with a type spelled the same. Usage:
+//     D_EVENT_DECLARE_BY_ID(on_resize, int, int);      // "on_resize"
+    #if D_ENV_PP_HAS_VARIADIC_MACROS
+        D_ENV_PP_VARIADIC_QUIET_BEGIN
+        #define D_EVENT_DECLARE_BY_ID(_id, ...)                               \
+            D_EVENT_DECLARE(_id, #_id, __VA_ARGS__)
+        D_ENV_PP_VARIADIC_QUIET_END
+    #endif
+    #define D_EVENT_DECLARE_EMPTY_BY_ID(_id)                                  \
+        D_EVENT_DECLARE_EMPTY(_id, #_id)
+#endif
 
 // D_EVENT_KEY / D_EVENT_NAME / D_EVENT_ARITY / D_EVENT_PAYLOAD
 //   macro: accessors for a declared summand.

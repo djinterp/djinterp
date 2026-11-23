@@ -28,7 +28,7 @@
 * path:      /tests/djinterp/cpp/event/event_common_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 #ifndef DJINTERP_EVENT_COMMON_TESTS_
@@ -88,23 +88,23 @@ bool event_common_check(
 
 // DEvEmpty
 //   fixture: a named event tag carrying an empty payload (arity 0).
-D_EVENT_EMPTY(DEvEmpty);
+D_EVENT_EMPTY(DEvEmpty, "t.event.common.empty");
 
 // DEvUnary
 //   fixture: a named event tag with a one-element payload.
-D_EVENT(DEvUnary, int);
+D_EVENT(DEvUnary, "t.event.common.unary", int);
 
 // DEvBinary
 //   fixture: a named event tag with a two-element payload.
-D_EVENT(DEvBinary, int, double);
+D_EVENT(DEvBinary, "t.event.common.binary", int, double);
 
 // DEvTernary
 //   fixture: a named event tag with a three-element payload.
-D_EVENT(DEvTernary, int, double, char);
+D_EVENT(DEvTernary, "t.event.common.ternary", int, double, char);
 
 // DEvQuaternary
 //   fixture: a named event tag with a four-element payload (variadic arity).
-D_EVENT(DEvQuaternary, int, int, int, int);
+D_EVENT(DEvQuaternary, "t.event.common.quaternary", int, int, int, int);
 
 // DEvLegacy
 //   fixture: an event tag declaring its payload under the legacy `args_type`
@@ -211,6 +211,8 @@ bool tests_d_event_name();
 bool tests_d_event_empty();
 bool tests_d_event_arity_range();
 bool tests_d_event_is_event();
+bool tests_d_event_name_agrees();
+bool tests_d_event_namespace();
 
 // VI.  CONCEPT CONSTRAINTS (C++20+; vacuous pass where concepts are absent)
 bool tests_concept_is_event();
@@ -343,7 +345,7 @@ dt::module_spec event_common_spec()
                       "D_EVENT declares a tag whose payload_type is the given tuple",
                       &tests_d_event_payload },
                     { "d_event_name",
-                      "D_EVENT gives the tag a name() returning its identifier",
+                      "D_EVENT gives the tag a name() returning its name",
                       &tests_d_event_name },
                     { "d_event_empty",
                       "D_EVENT_EMPTY declares a well-formed arity-zero tag",
@@ -354,6 +356,13 @@ dt::module_spec event_common_spec()
                     { "d_event_is_event",
                       "macro-declared tags satisfy the detection traits",
                       &tests_d_event_is_event },
+                    { "d_event_name_agrees",
+                      "C and C++ agree on a name's key, whatever the tag",
+                      &tests_d_event_name_agrees },
+                    { "d_event_namespace",
+                      "a header's prefix names its events, and the knob's "
+                      "type-named forms",
+                      &tests_d_event_namespace },
                 }
             },
             dt::block_spec{

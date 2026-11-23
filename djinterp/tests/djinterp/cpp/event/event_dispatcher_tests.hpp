@@ -40,7 +40,7 @@
 * path:      /tests/djinterp/cpp/event/event_dispatcher_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.30
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 #ifndef DJINTERP_EVENT_DISPATCHER_TESTS_
@@ -98,9 +98,9 @@ bool event_dispatcher_check(
 //  shared fixtures -- event tags (payload arities 1, 2, 0)
 // =========================================================================
 
-D_EVENT(DEvInt, int);          // payload_type std::tuple<int>
-D_EVENT(DEvTwo, int, int);     // payload_type std::tuple<int, int>
-D_EVENT_EMPTY(DEvNone);        // payload_type std::tuple<>
+D_EVENT(DEvInt, "t.event.dispatcher.int", int);  // std::tuple<int>
+D_EVENT(DEvTwo, "t.event.dispatcher.two", int, int);  // std::tuple<int, int>
+D_EVENT_EMPTY(DEvNone, "t.event.dispatcher.none");  // std::tuple<>
 
 
 // =========================================================================

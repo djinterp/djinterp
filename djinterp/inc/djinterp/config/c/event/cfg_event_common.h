@@ -24,14 +24,15 @@
 *             D_INTERNAL_EVENT_ARITY_MAX, D_INTERNAL_EVENT_ASSERT_LAYOUT,
 *             D_INTERNAL_EVENT_ASSERT_SIZES, D_INTERNAL_EVENT_USE_CONCEPTS,
 *             D_INTERNAL_EVENT_KEY_FROM_NAME, D_INTERNAL_EVENT_VALIDATE;
-*             c/log/log.h -> D_CFG_EVENT_KEY_CHECK
+*             c/log/log.h -> D_CFG_EVENT_KEY_CHECK;
+*             both faces -> D_CFG_EVENT_NAME_FROM_TYPE, D_EVENT_NAMESPACE
 *   requires: cfg_common.h (helpers, D_CFG_TESTING)
 *
 *
 * path:      /inc/djinterp/config/c/event/cfg_event_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.31
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_C_EVENT_CFG_EVENT_COMMON_H
@@ -164,15 +165,48 @@
 
 // D_CFG_EVENT_KEY_CHECK
 //   brief: when a name-hash key is checked for a collision as it registers
-// (E21 (c)): 0 never, 1 in debug builds (NDEBUG not defined), 2 always. The
-// log checks its codes' keys so; CI checks the tree's own names whatever
-// this says. 1 by default.
+// (the log's decision 21 (c)): 0 never, 1 in debug builds (NDEBUG not
+// defined), 2 always. The log checks its codes' keys so; CI checks the
+// tree's own names whatever this says. 1 by default.
 #ifndef D_CFG_EVENT_KEY_CHECK
 #   define D_CFG_EVENT_KEY_CHECK    1
 #endif
 
 #if ( (D_CFG_EVENT_KEY_CHECK < 0) || (D_CFG_EVENT_KEY_CHECK > 2) )
     #error "D_CFG_EVENT_KEY_CHECK must be 0 (never), 1 (debug) or 2 (always)"
+#endif
+
+// D_CFG_EVENT_NAME_FROM_TYPE
+//   brief: 1 adds the forms that name an event by its type's spelling, or its
+// C handle's: D_EVENT_BY_TYPE(DOnResize, int, int) is "DOnResize", and
+// D_EVENT_DECLARE_BY_ID(on_resize, int, int) "on_resize" (the event core's
+// decisions 15 and 79). The forms that take a name are in every build,
+// whatever this says, so a header compiles in each. A type-named event keeps
+// its name only while its type does. 0 by default.
+#ifndef D_CFG_EVENT_NAME_FROM_TYPE
+#   define D_CFG_EVENT_NAME_FROM_TYPE   0
+#endif
+
+#if ( (D_CFG_EVENT_NAME_FROM_TYPE < 0) || (D_CFG_EVENT_NAME_FROM_TYPE > 1) )
+    #error "D_CFG_EVENT_NAME_FROM_TYPE must be 0 or 1"
+#endif
+
+// D_EVENT_NAMESPACE
+//   brief: what the names of the events a header declares are prefixed
+// with: a string literal ending in its dot, "myapp.", so "on_save" is
+// "myapp.on_save", in both languages, key and all. A macro reads it where an
+// event is declared, so a header sets it after its own includes and restores
+// it at its end:
+//     #pragma push_macro("D_EVENT_NAMESPACE")
+//     #undef  D_EVENT_NAMESPACE
+//     #define D_EVENT_NAMESPACE "myapp."
+//     ... the header's events ...
+//     #pragma pop_macro("D_EVENT_NAMESPACE")
+// and so cannot reach the events of a header it includes. The codes manifest
+// would show a prefix that leaked as a renamed event (the log's decision 64).
+// "" by default: no prefix.
+#ifndef D_EVENT_NAMESPACE
+#   define D_EVENT_NAMESPACE   ""
 #endif
 
 

@@ -42,7 +42,7 @@
 * path:      /tests/djinterp/cpp/event/event_registry_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 #ifndef DJINTERP_EVENT_REGISTRY_TESTS_
@@ -101,9 +101,9 @@ bool event_registry_check(
 //  shared fixtures -- event tags (payload arities 1, 2, 0)
 // =========================================================================
 
-D_EVENT(DEvInt, int);          // payload_type std::tuple<int>
-D_EVENT(DEvTwo, int, int);     // payload_type std::tuple<int, int>
-D_EVENT_EMPTY(DEvNone);        // payload_type std::tuple<>
+D_EVENT(DEvInt, "t.event.registry.int", int);  // std::tuple<int>
+D_EVENT(DEvTwo, "t.event.registry.two", int, int);  // std::tuple<int, int>
+D_EVENT_EMPTY(DEvNone, "t.event.registry.none");  // std::tuple<>
 
 
 // =========================================================================

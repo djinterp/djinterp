@@ -30,7 +30,7 @@
 * path:      /tests/djinterp/cpp/event/event_handler_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 #ifndef DJINTERP_EVENT_HANDLER_TESTS_
@@ -89,23 +89,23 @@ bool event_handler_check(
 
 // DEvEmpty
 //   fixture: a named event tag carrying an empty payload (arity 0).
-D_EVENT_EMPTY(DEvEmpty);
+D_EVENT_EMPTY(DEvEmpty, "t.event.handler.empty");
 
 // DEvUnary
 //   fixture: a named event tag with a one-element payload.
-D_EVENT(DEvUnary, int);
+D_EVENT(DEvUnary, "t.event.handler.unary", int);
 
 // DEvBinary
 //   fixture: a named event tag with a two-element payload.
-D_EVENT(DEvBinary, int, double);
+D_EVENT(DEvBinary, "t.event.handler.binary", int, double);
 
 // DEvTernary
 //   fixture: a named event tag with a three-element payload.
-D_EVENT(DEvTernary, int, double, char);
+D_EVENT(DEvTernary, "t.event.handler.ternary", int, double, char);
 
 // DEvQuaternary
 //   fixture: a named event tag with a four-element payload (variadic arity).
-D_EVENT(DEvQuaternary, int, int, int, int);
+D_EVENT(DEvQuaternary, "t.event.handler.quaternary", int, int, int, int);
 
 // DEvPlain
 //   fixture: a type that is not an event tag, used to confirm the handler

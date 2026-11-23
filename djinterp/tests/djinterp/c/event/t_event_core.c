@@ -24,7 +24,7 @@
 * path:      /tests/djinterp/c/event/t_event_core.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.30
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 // std
 #include <stdbool.h>  // bool, true, false
@@ -439,6 +439,55 @@ bool d_tests_event_log_entry(
 ///////////////////////////////////////////////////////////////////////////////
 ///        I.    FOUNDATIONS AND THE HANDLER MONOID                         ///
 ///////////////////////////////////////////////////////////////////////////////
+
+#if D_ENV_PP_HAS_VARIADIC_MACROS
+// t_pair
+//   fixture: an event declared with its name and two payload domains (the
+// event core's decision 15).
+D_EVENT_DECLARE(t_pair, "t.event.core.pair", int, double);
+#endif
+
+// t_empty
+//   fixture: an event declared with its name and no payload (the event
+// core's decision 15).
+D_EVENT_DECLARE_EMPTY(t_empty, "t.event.core.empty");
+
+/*
+d_tests_event_declare
+  The declaration macros: the name is the one declared, not the handle; the
+key is that name's FNV-1a 64, the value C++ computes too (pinned here); the
+arity and the payload view follow the declared domains.
+*/
+static
+void d_tests_event_declare(void)
+{
+#if D_ENV_PP_HAS_VARIADIC_MACROS
+    D_EVENT_PAYLOAD_TYPE(t_pair) block;
+    struct dj_event_payload      view;
+
+    block._field_0 = 1;
+    block._field_1 = 2.0;
+    view = D_EVENT_PAYLOAD(t_pair, &block);
+
+    D_TESTS_EVENT_CHECK(strcmp(D_EVENT_NAME(t_pair),
+                               "t.event.core.pair") == 0);
+    D_TESTS_EVENT_CHECK(D_EVENT_KEY(t_pair) ==
+                        d_event_key_of_name("t.event.core.pair"));
+    D_TESTS_EVENT_CHECK(D_EVENT_KEY(t_pair) ==
+                        D_INTERNAL_EVENT_U64(0xb44c3f29UL, 0xd73bd510UL));
+    D_TESTS_EVENT_CHECK(D_EVENT_ARITY(t_pair) == 2u);
+    D_TESTS_EVENT_CHECK( (view.data == (void*)&block) &&
+                         (view.size == sizeof(block)) &&
+                         (view.arity == 2u) );
+#endif
+    D_TESTS_EVENT_CHECK(strcmp(D_EVENT_NAME(t_empty),
+                               "t.event.core.empty") == 0);
+    D_TESTS_EVENT_CHECK(D_EVENT_KEY(t_empty) ==
+                        d_event_key_of_name("t.event.core.empty"));
+    D_TESTS_EVENT_CHECK(D_EVENT_ARITY(t_empty) == 0u);
+
+    return;
+}
 
 static
 void d_tests_event_prime(void)
@@ -1966,6 +2015,7 @@ void d_tests_event_queue(void)
 
 int main(void)
 {
+    d_tests_event_declare();
     d_tests_event_prime();
     d_tests_event_monoid();
     d_tests_event_table_fixed();
