@@ -704,17 +704,18 @@ static const char HELP_HELP[] =
     "Display help for a command.\n"
     "\n"
     "Arguments:\n"
-    "  COMMAND...          the command, and its subcommand\n"
+    "  COMMAND...           the command, and its subcommand\n"
     "\n"
     "Options:\n"
-    "  -h, --help          display this help and exit\n"
+    "      --format=FORMAT  the format help is written in: text or json\n"
+    "  -h, --help           display this help and exit\n"
     "\n"
     "Global options:\n"
-    "  -q, --quiet         say nothing but errors\n"
-    "  -v, --verbose       say more; twice, more again\n"
-    "      --color[=WHEN]  colour diagnostics: auto (the default), always or never\n"
-    "  -D, --define=NAME   define NAME for every command\n"
-    "      --level=N       how far to go (default: 3)\n";
+    "  -q, --quiet          say nothing but errors\n"
+    "  -v, --verbose        say more; twice, more again\n"
+    "      --color[=WHEN]   colour diagnostics: auto (the default), always or never\n"
+    "  -D, --define=NAME    define NAME for every command\n"
+    "      --level=N        how far to go (default: 3)\n";
 
 // HELP_SINGLE
 //   constant: SINGLE's help.

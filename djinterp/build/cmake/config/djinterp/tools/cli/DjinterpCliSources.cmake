@@ -82,6 +82,7 @@ set(DJINTERP_ARG_PARSER_SOURCES
 set(DJINTERP_CLI_SOURCES
     "${_djinterp_cli_src}/tools/cli/c/cli_edit.c"
     "${_djinterp_cli_src}/tools/cli/c/cli_format.c"
+    "${_djinterp_cli_src}/tools/cli/c/cli_help.c"
     "${_djinterp_cli_src}/tools/cli/c/cli_io.c"
     "${_djinterp_cli_src}/tools/cli/c/cli_operand.c"
     "${_djinterp_cli_src}/tools/cli/c/cli_plugin.c"

@@ -28,7 +28,7 @@
 * path:      /src/djinterp/tools/cli/c/cli_format.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.22
 *******************************************************************************/
 #include "../../../../../inc/djinterp/tools/cli/c/cli_format.h"  // corresponding header
 // std
@@ -79,6 +79,17 @@ size_t d_cli_help_width(void)
              : columns;
 }
 
+
+// d_cli_internal_exit_meanings
+//   constant: what each exit status of a program the kit made means
+// (GRAMMAR.md, section 8), as its root's help says it and its description
+// gives it (cli_internal.h): in every build, the kit's layout or not.
+const char* const d_cli_internal_exit_meanings[D_CLI_INTERNAL_EXIT_MEANINGS] =
+{
+    "if it did what was asked, and the answer, if one was asked, is yes",
+    "if it did, and the answer is no",
+    "if there was trouble: the command line, a file, or the program"
+};
 
 #if (D_INTERNAL_CLI_FORMATTER == 1)
 
@@ -1761,16 +1772,6 @@ int d_cli_internal_sections(
     return status;
 }
 
-// D_INTERNAL_CLI_EXIT_STATUSES
-//   constant: what each exit status of a program the kit made means
-// (GRAMMAR.md, section 8), as its root's help says it.
-static const char* const D_INTERNAL_CLI_EXIT_STATUSES[] =
-{
-    "if it did what was asked, and the answer, if one was asked, is yes",
-    "if it did, and the answer is no",
-    "if there was trouble: the command line, a file, or the program"
-};
-
 /**
  * @brief Writes what the exit statuses mean, after a blank line and a
  *        heading: each status two columns in, and its meaning wrapped five
@@ -1786,8 +1787,7 @@ int d_cli_internal_exit_statuses(
     struct dj_arg_buffer* _out
 )
 {
-    const size_t count  = sizeof(D_INTERNAL_CLI_EXIT_STATUSES) /
-                          sizeof(D_INTERNAL_CLI_EXIT_STATUSES[0]);
+    const size_t count  = (size_t)D_CLI_INTERNAL_EXIT_MEANINGS;
     int          status = d_arg_buffer_append_cstr(_out,
                                                    "\nExit status:\n");
 
@@ -1795,7 +1795,7 @@ int d_cli_internal_exit_statuses(
          (status == D_ARG_OK) && (index < count);
          ++index)
     {
-        const char* const meaning = D_INTERNAL_CLI_EXIT_STATUSES[index];
+        const char* const meaning = d_cli_internal_exit_meanings[index];
 
         status = d_arg_buffer_printf(_out,
                                      "  %lu  ",

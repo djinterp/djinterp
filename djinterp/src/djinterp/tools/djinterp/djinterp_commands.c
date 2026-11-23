@@ -25,7 +25,7 @@
 * path:      /src/djinterp/tools/djinterp/djinterp_commands.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.19
+*                                                            revised: 2026.11.22
 *******************************************************************************/
 #include "./djinterp_commands.h"  // corresponding header
 // std
@@ -53,6 +53,7 @@
 #include "../../../../inc/djinterp/c/util/ostream/ostream.h"  // dj_ostream
 #include "../../../../inc/djinterp/config/tools/cli/cfg_cli.h"  // the kit's hooks
 #include "../../../../inc/djinterp/env/env_printer.h"  // the printer's djin
+#include "../../../../inc/djinterp/tools/cli/c/cli_help.h"  // the description
 #include "../../../../inc/djinterp/tools/cli/c/cli_io.h"  // files
 #include "../../../../inc/djinterp/tools/cli/c/cli_settings.h"  // the user's file
 
@@ -1182,8 +1183,94 @@ d_internal_djinterp_core(void)
 }
 
 /*
+d_internal_djinterp_help_json
+  The program's own members of its description (cli_help.h): `djins`, each
+record's name, version, summary and commands, then each frame no record
+names, its settings alone, in the order `list` gives them; and `reserved`,
+the names a djin's page may not take.
+*/
+static int
+d_internal_djinterp_help_json(
+    void*                        _context,
+    const struct dj_cli_program* _program,
+    struct dj_cli_json*          _json
+)
+{
+    struct dj_option_env_registry* const registry = d_option_env_registry();
+    const struct dj_djin_set* const      set      = &d_internal_djinterp_set;
+
+    (void)_context;
+    (void)_program;
+
+    d_cli_json_member(_json, "djins");
+    d_cli_json_array(_json);
+
+    for (uint32_t i = 0u; i < set->count; ++i)
+    {
+        const struct dj_djin* const djin = set->items[i];
+
+        d_cli_json_object(_json);
+        d_cli_json_member(_json, "name");
+        d_cli_json_string(_json, djin->name);
+        d_cli_json_member(_json, "version");
+        d_cli_json_string(_json, djin->version);
+        d_cli_json_member(_json, "summary");
+        d_cli_json_string(_json, djin->summary);
+        d_cli_json_member(_json, "commands");
+        d_cli_json_array(_json);
+
+        for (size_t c = 0u; c < djin->command_count; ++c)
+        {
+            d_cli_json_object(_json);
+            d_cli_json_member(_json, "name");
+            d_cli_json_string(_json, djin->commands[c].name);
+            d_cli_json_member(_json, "summary");
+            d_cli_json_string(_json, djin->commands[c].summary);
+            d_cli_json_end(_json);
+        }
+
+        d_cli_json_end(_json);
+        d_cli_json_member(_json, "settings_only");
+        d_cli_json_bool(_json, false);
+        d_cli_json_end(_json);
+    }
+
+    for (uint32_t i = 0u; i < d_option_env_registry_count(registry); ++i)
+    {
+        const struct dj_option_env* const frame =
+            d_option_env_registry_at(registry, i);
+
+        if ( (frame->name != NULL) &&
+             (d_djin_set_find(set, frame->name, strlen(frame->name)) ==
+              NULL) )
+        {
+            d_cli_json_object(_json);
+            d_cli_json_member(_json, "name");
+            d_cli_json_string(_json, frame->name);
+            d_cli_json_member(_json, "settings_only");
+            d_cli_json_bool(_json, true);
+            d_cli_json_end(_json);
+        }
+    }
+
+    d_cli_json_end(_json);
+    d_cli_json_member(_json, "reserved");
+    d_cli_json_array(_json);
+
+    for (size_t i = 0u; d_internal_djinterp_reserved[i] != NULL; ++i)
+    {
+        d_cli_json_string(_json, d_internal_djinterp_reserved[i]);
+    }
+
+    d_cli_json_end(_json);
+
+    return D_ARG_OK;
+}
+
+/*
 d_djinterp_program_make
-  The kit's program, the core djins, the djins' set, and the commands.
+  The kit's program, the core djins, the djins' set, the commands, and the
+program's members of its description.
 */
 bool d_djinterp_program_make(
     struct dj_cli_program* _program,
@@ -1201,6 +1288,8 @@ bool d_djinterp_program_make(
                           D_INTERNAL_DJINTERP_DJINS,
                           d_option_env_registry(),
                           d_internal_djinterp_reserved);
+    d_cli_program_set_help_json(_program, d_internal_djinterp_help_json,
+                                NULL);
 
     return ( (d_internal_djinterp_core()) &&
              (d_internal_djinterp_commands(_program)) );
