@@ -22,11 +22,28 @@
 *   LEVELS. The workbench's floor is uxoxo's, C++17; below it this file is
 * empty rather than an error.
 *
+* HOW TO USE
+* ----------
+*   Open a window with host_open, then, while host_begin_frame says the window
+* is open, build the frame and end it with host_end_frame; close it with
+* host_close. host_name says which host the build has, and host_scale the
+* display's scale.
+*
+* OPTIONS
+* -------
+*   window_options: the window's title and size, as host_open is asked for it.
+*
+* CONFIGURATION
+* -------------
+*   VPARSE_UI_HOST, at configuration -- auto, win32, glfw or none -- chooses the
+* one source that implements the host; C++17, uxoxo's floor: below it the header
+* is empty.
+*
 *
 * path:      /inc/ui/vparse/host.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.08
-*                                                            revised: 2026.10.26
+*                                                            revised: 2026.11.22
 *******************************************************************************/
 
 /*
@@ -42,8 +59,8 @@ TABLE OF CONTENTS
     3.  Frames
 */
 
-#ifndef VPARSE_UI_HOST_HPP
-#define VPARSE_UI_HOST_HPP 1
+#ifndef DJINTERP_UI_VPARSE_HOST_HPP
+#define DJINTERP_UI_VPARSE_HOST_HPP 1
 
 // FLOOR, FOR NOW: below C++17 this file is empty, rather than an error, as
 // the rest of the workbench is: its floor is uxoxo's.
@@ -164,4 +181,4 @@ bool host_end_frame(
 
 #endif  // floor, for now
 
-#endif  // VPARSE_UI_HOST_HPP
+#endif  // DJINTERP_UI_VPARSE_HOST_HPP

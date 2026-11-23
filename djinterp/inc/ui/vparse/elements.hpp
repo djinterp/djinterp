@@ -22,11 +22,28 @@
 * defined in one place: listing paper, green bars, ribbon ink, a highlighter
 * for the current step and red for what went wrong.
 *
+* HOW TO USE
+* ----------
+*   The host installs the renderers once, with install_renderers and a finder
+* for the runs, and styles the window with apply_theme; the view then builds
+* each element with listing_view, tape_view and heat_view, as any uxoxo element
+* is built.
+*
+* OPTIONS
+* -------
+*   What each view is given: the runs it shows, the one it is compared with, the
+* trace step, and what the heat map measures. No setting of its own.
+*
+* CONFIGURATION
+* -------------
+*   C++17, uxoxo's floor: below it the header is empty. Dear ImGui is the only
+* platform the elements draw on.
+*
 *
 * path:      /inc/ui/vparse/elements.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.22
-*                                                            revised: 2026.10.26
+*                                                            revised: 2026.11.22
 *******************************************************************************/
 
 /*
@@ -44,8 +61,8 @@ TABLE OF CONTENTS
     3.  apply_theme
 */
 
-#ifndef VPARSE_UI_ELEMENTS_HPP
-#define VPARSE_UI_ELEMENTS_HPP 1
+#ifndef DJINTERP_UI_VPARSE_ELEMENTS_HPP
+#define DJINTERP_UI_VPARSE_ELEMENTS_HPP 1
 
 // FLOOR, FOR NOW: below C++17 this file is empty, rather than an error, as the
 // uxoxo headers it stands on would not compile there.
@@ -171,4 +188,4 @@ void apply_theme();
 
 #endif  // floor, for now
 
-#endif  // VPARSE_UI_ELEMENTS_HPP
+#endif  // DJINTERP_UI_VPARSE_ELEMENTS_HPP
