@@ -15,8 +15,14 @@
 * path:      /tests/djinterp/c/modules/net/net_tests_pki.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.07
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.11.19
 *******************************************************************************/
+// POSIX.1-2008 (mkdtemp) under a strict C compiler; a feature-test macro
+// must precede every include, so it sits ahead of the corresponding header
+#ifndef _POSIX_C_SOURCE
+    #define _POSIX_C_SOURCE 200809L
+#endif  // _POSIX_C_SOURCE
+
 #include "./net_tests_pki.h"  // corresponding header
 // std
 #include <stdbool.h>  // bool

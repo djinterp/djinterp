@@ -3,7 +3,7 @@
 *
 * djinterp net foundation C++ tests.
 *   Every test runs over in-memory connections: a C++ one defined here, and
-* the scripted C connection of net_tests_sa_support.c, so each bridge is
+* the scripted C connection of net_tests_support.c, so each bridge is
 * driven from both of its sides. Checks are tallied here, as the SMTP facade
 * tests tally theirs.
 *
@@ -21,7 +21,7 @@
 #include <string>   // std::string
 #include <vector>   // std::vector
 // djinterp
-#include "../../../c/modules/net/net_tests_sa_support.h"  // the scripted C connection
+#include "../../../c/modules/net/net_tests_support.h"  // the scripted C connection
 
 
 NS_DJINTERP
