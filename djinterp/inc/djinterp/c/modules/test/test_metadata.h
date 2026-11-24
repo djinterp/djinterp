@@ -105,7 +105,7 @@
 // djinterp
 #include "../../djinterp.h"
 #include "../../../config/c/modules/test/cfg_test_metadata.h"  // D_CFG/D_INTERNAL_TEST_METADATA_*
-#include "test_object.h"           // enum dj_test_object_result
+#include "./test_object.h"           // enum dj_test_object_result
 
 
 //   THE INCLUDE ABOVE IS LOAD-BEARING, NOT CONVENTIONAL.  This header used to
