@@ -35,7 +35,7 @@
 * path:      /tests/djinterp/c/modules/db/postgres/postgres_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 // _WIN32_WINNT
 //   knob (Windows'): Vista's API at least, for WSAPoll, where nothing asked
@@ -69,7 +69,7 @@
 #include <limits.h>  // INT_MAX
 #include <locale.h>  // setlocale, LC_NUMERIC
 #include <math.h>    // INFINITY, NAN, isinf, isnan
-#include <stdio.h>   // snprintf
+#include <stdio.h>   // FILE, fclose, fgetc, fopen, fread, fwrite, snprintf
 #include <stdlib.h>  // getenv, setenv, strtoul
 #include <string.h>  // memcmp, memset, strcmp, strlen, strncmp, strstr
 #include <time.h>    // time
@@ -513,6 +513,26 @@ const char* d_tests_postgres_setting(
     const char* const value = getenv(_name);
 
     return ( (value) && (value[0] != '\0') ) ? value : _default;
+}
+
+/*
+d_tests_postgres_open
+  A file opened as fopen opens it: through fopen_s under MSVC's runtime,
+which refuses fopen under /sdl. NULL when it will not open.
+*/
+static
+FILE* d_tests_postgres_open(
+    const char* _path,
+    const char* _mode
+)
+{
+#if defined(_MSC_VER)
+    FILE* file = NULL;
+
+    return (fopen_s(&file, _path, _mode) == 0) ? file : NULL;
+#else
+    return fopen(_path, _mode);
+#endif  // _MSC_VER
 }
 
 /*
@@ -5250,7 +5270,7 @@ void d_tests_postgres_large_objects(void)
         bytes[i] = (unsigned char)((i * 7u) & 0xFFu);
     }
 
-    FILE* file = fopen(in, "wb");
+    FILE* file = d_tests_postgres_open(in, "wb");
 
     D_TESTS_POSTGRES_CHECK( (file != NULL) &&
                             (fwrite(bytes, 1u, size, file) == size) &&
@@ -5261,7 +5281,7 @@ void d_tests_postgres_large_objects(void)
     D_TESTS_POSTGRES_CHECK( (oid != 0u) &&
                             (PQtransactionStatus(db) == PQTRANS_IDLE) );
     D_TESTS_POSTGRES_OK(db, d_postgres_lo_export(db, oid, out));
-    file = fopen(out, "rb");
+    file = d_tests_postgres_open(out, "rb");
     D_TESTS_POSTGRES_CHECK( (file != NULL) &&
                             (fread(back, 1u, size, file) == size) &&
                             (fgetc(file) == EOF) &&
@@ -5273,11 +5293,11 @@ void d_tests_postgres_large_objects(void)
     }
 
     // an empty file
-    file = fopen(in, "wb");
+    file = d_tests_postgres_open(in, "wb");
     D_TESTS_POSTGRES_CHECK( (file != NULL) && (fclose(file) == 0) );
     D_TESTS_POSTGRES_OK(db, d_postgres_lo_import(db, in, &empty));
     D_TESTS_POSTGRES_OK(db, d_postgres_lo_export(db, empty, out));
-    file = fopen(out, "rb");
+    file = d_tests_postgres_open(out, "rb");
     D_TESTS_POSTGRES_CHECK( (file != NULL) && (fgetc(file) == EOF) );
 
     if (file)

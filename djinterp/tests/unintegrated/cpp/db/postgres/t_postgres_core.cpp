@@ -1236,17 +1236,25 @@ void d_tests_postgres_core_support(
     static_assert(std::is_same_v<postgres::pg_connection::client_capabilities,
                                  postgres::pg_client_capabilities>,
                   "client_capabilities is the compile-time struct");
-#if defined(__GNUC__)
+    // naming them is the test: each compiler's deprecation is quieted for
+    // it, MSVC's C4996 too, which /sdl makes an error (clang-cl defines
+    // _MSC_VER and takes the first branch)
+#if defined(__GNUC__) || defined(__clang__)
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#elif defined(_MSC_VER)
+    #pragma warning(push)
+    #pragma warning(disable : 4996)
 #endif
     static_assert( (std::is_same_v<postgres::pg_type_support,
                                    postgres::pg_client_capabilities>) &&
                    (std::is_same_v<postgres::pg_feature_support,
                                    postgres::pg_client_capabilities>),
                   "the former names are the struct's");
-#if defined(__GNUC__)
+#if defined(__GNUC__) || defined(__clang__)
     #pragma GCC diagnostic pop
+#elif defined(_MSC_VER)
+    #pragma warning(pop)
 #endif
 
     return;
