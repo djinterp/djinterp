@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][net]                                           http_tests_http1.c
 *
-* Standalone tests of http1.h: HTTP/1.1 message heads.
+* Tests of http1.h: HTTP/1.1 message heads.
 *   Every refusal the header names has a case, each expecting its own error.
 * Every case is also fed one byte at a time, and must reach the verdict and
 * the length its whole parse does: the resumable scan's promise.

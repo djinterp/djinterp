@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][net]                                           codec_tests_line.c
 *
-* Standalone tests of codec_line.h: lines found and split, CR LF and bare LF
+* Tests of codec_line.h: lines found and split, CR LF and bare LF
 * alike, the checks for line breaks, and the line buffer - each of its
 * operations, then streams of generated lines read through it in pieces of
 * every size, against the lines they were made of.

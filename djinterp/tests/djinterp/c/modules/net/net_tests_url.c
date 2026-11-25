@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][net]                                              net_tests_url.c
 *
-* Standalone tests of net.h's URLs (section 8).
+* Tests of net.h's URLs (section 8).
 *   Resolution is checked against every example in RFC 3986, section 5.4,
 * normal and abnormal, verbatim. The rest checks components, absent against
 * empty, refusals and where they point, every host form, recomposition,

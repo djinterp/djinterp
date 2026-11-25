@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][net]                                           tcp_tests_limits.c
 *
-* Standalone tests of the TCP transport's limits and counts.
+* Tests of the TCP transport's limits and counts.
 *   Each wait a caller can bound - a read, a write, an accept - is made to
 * run out over loopback, and then shown to work again, and each limit is
 * read back from the socket that holds it; the bytes a socket holds unread

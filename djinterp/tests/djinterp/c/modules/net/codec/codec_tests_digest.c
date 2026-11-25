@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][net]                                         codec_tests_digest.c
 *
-* Standalone tests of codec_digest.h: MD5, SHA-1 and SHA-256 against their
+* Tests of codec_digest.h: MD5, SHA-1 and SHA-256 against their
 * documents' known answers, HMAC against RFC 2202's and RFC 4231's, and what
 * no document states: data in pieces, keys around a block's length, outputs
 * that overlap inputs, refusals, comparison, and wiping.
@@ -307,9 +307,9 @@ under `_kind`.
 static bool
 d_tests_codec_known(
     enum dj_net_digest_kind _kind,
-    const char* const*     _expected,
-    const char*            _test,
-    struct dj_test_suite* _suite
+    const char* const*      _expected,
+    const char*             _test,
+    struct dj_test_suite*   _suite
 )
 {
     bool result = true;
@@ -679,9 +679,9 @@ static bool
 d_tests_codec_macs(
     enum dj_net_digest_kind          _kind,
     const struct dj_tests_codec_mac* _cases,
-    size_t                          _count,
-    const char*                     _test,
-    struct dj_test_suite* _suite
+    size_t                           _count,
+    const char*                      _test,
+    struct dj_test_suite*            _suite
 )
 {
     bool result = true;

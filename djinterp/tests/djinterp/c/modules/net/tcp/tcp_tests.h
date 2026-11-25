@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][net]                                                  tcp_tests.h
 *
-* Standalone tests of the TCP transport.
+* Tests of the TCP transport.
 *   Real sockets over loopback: every test listens on an ephemeral port or a
 * unix-domain path of its own, so the suite needs no network and no fixed
 * port. The support helpers open and close connected pairs; the tests that

@@ -2,7 +2,7 @@
 * djinterp [c][net]                                          smtp_tests_client.c
 *
 * djinterp SMTP kernel tests - client sessions.
-*   Standalone tests of smtp_client.c over net_tests_peer.h's scripted peer,
+*   Tests of smtp_client.c over net_tests_peer.h's scripted peer,
 * which checks the exact bytes on the wire: pipelining, SASL (CRAM-MD5
 * against RFC 2195's own example among it), the HELO fallback, recipient
 * refusal and reset, the refusal to authenticate in the clear,

@@ -1,19 +1,20 @@
 /*******************************************************************************
-* djinterp [c][net]                                   starttls_tests_sa_secure.c
+* djinterp [c][net]                                      starttls_tests_secure.c
 *
-* Standalone tests of a STARTTLS session once it is secure, against a
-* scripted peer and the SSL kernel's toy engine: how each way its connection
+* Tests of a STARTTLS session once it is secure, against a
+* scripted peer and the TLS kernel's toy engine: how each way its connection
 * or its TLS can fail is reported, with the connection's own error kept as
 * the cause and the failure described as itself; and a server that asks for
 * a client certificate without requiring one.
 *
 *
-* path:      /tests/djinterp/c/modules/net/starttls/starttls_tests_sa_secure.c
+* path:      /tests/djinterp/c/modules/net/starttls/starttls_tests_secure.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
 *                                                            revised: 2026.10.13
 *******************************************************************************/
-#include "./starttls_tests_sa.h"  // the suite
+#include "./starttls_tests.h"  // the suite
+#include "../../../../../../inc/djinterp/c/modules/test/test_suite.h"  // DTest
 // std
 #include <string.h>  // strcmp
 
@@ -29,7 +30,7 @@ struct dj_tests_starttls_breakage
     bool                  lies;     // the peer's reads claim too much
     bool                  refuses;  // its writes fail from now on
     bool                  resets;   // as a reset connection's would
-    enum dj_ssl_error      record;   // what the toy says of records
+    enum dj_tls_error      record;   // what the toy says of records
     char                  call;     // the call that meets it
     enum dj_starttls_error status;   // what the call reports
     enum dj_net_error      cause;    // the connection's error kept
@@ -143,7 +144,7 @@ bool d_tests_starttls_breaks(
 }
 
 /*
-d_tests_sa_starttls_secure_failures
+d_tests_starttls_secure_failures
   Tests the following:
   - a read through TLS that stalls is TIMED_OUT, and one the connection
     fails is TRANSPORT, each keeping the connection's error as the cause
@@ -152,34 +153,34 @@ d_tests_sa_starttls_secure_failures
     the connection reset is TRUNCATED, and so is a close_notify that does
   - each is fatal, but for the close, which closes; each is described
 */
-bool d_tests_sa_starttls_secure_failures(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_secure_failures(
+    struct dj_test_suite* _suite
 )
 {
     static const struct dj_tests_starttls_breakage CASES[] =
     {
         { "a stalled read times out",
-          false, false, false, D_SSL_OK,              'r',
+          false, false, false, D_TLS_OK,              'r',
           D_STARTTLS_ERROR_TIMED_OUT,  D_NET_ERROR_TIMED_OUT,
           "TRANSPORT" },
         { "a broken read is TRANSPORT, with its cause",
-          true,  false, false, D_SSL_OK,              'r',
+          true,  false, false, D_TLS_OK,              'r',
           D_STARTTLS_ERROR_TRANSPORT,  D_NET_ERROR_UNKNOWN,
           "TRANSPORT" },
         { "a refused record is PROTOCOL",
-          false, false, false, D_SSL_ERROR_PROTOCOL,  'r',
+          false, false, false, D_TLS_ERROR_PROTOCOL,  'r',
           D_STARTTLS_ERROR_PROTOCOL,   D_NET_OK,
           "PROTOCOL" },
         { "a broken write is TRANSPORT, with its cause",
-          false, true,  false, D_SSL_OK,              's',
+          false, true,  false, D_TLS_OK,              's',
           D_STARTTLS_ERROR_TRANSPORT,  D_NET_ERROR_UNKNOWN,
           "TRANSPORT" },
         { "a write into a reset is TRUNCATED",
-          false, true,  true,  D_SSL_OK,              's',
+          false, true,  true,  D_TLS_OK,              's',
           D_STARTTLS_ERROR_TRUNCATED,  D_NET_ERROR_CONNECTION_RESET,
           "TRUNCATED" },
         { "a close_notify into a reset is TRUNCATED",
-          false, true,  true,  D_SSL_OK,              'c',
+          false, true,  true,  D_TLS_OK,              'c',
           D_STARTTLS_ERROR_TRUNCATED,  D_NET_ERROR_CONNECTION_RESET,
           "TRUNCATED" }
     };
@@ -188,10 +189,10 @@ bool d_tests_sa_starttls_secure_failures(
     // each breakage on a session of its own
     for (size_t i = 0; i < (sizeof(CASES) / sizeof(CASES[0])); ++i)
     {
-        result = d_tests_net_assert(d_tests_starttls_breaks(&CASES[i]),
+        result = D_TESTS_NET_ASSERT(d_tests_starttls_breaks(&CASES[i]),
                                     "secure failures",
                                     CASES[i].name,
-                                    _counter) && result;
+                                    _suite) && result;
     }
 
     return result;
@@ -220,11 +221,11 @@ bool d_tests_starttls_optional_server(
         return false;
     }
 
-    d_ssl_context_destroy(&_fixture->tls);
+    d_tls_context_destroy(&_fixture->tls);
 
     return ( (d_tests_net_toy_context(&_fixture->tls,
                                       &_fixture->toy,
-                                      D_SSL_ROLE_SERVER,
+                                      D_TLS_ROLE_SERVER,
                                       true))                          &&
              (d_starttls_init(_session,
                               &_fixture->options,
@@ -233,27 +234,27 @@ bool d_tests_starttls_optional_server(
 }
 
 /*
-d_tests_sa_starttls_optional_client
+d_tests_starttls_optional_client
   Tests the following:
   - a server that asks for a client certificate without requiring one
     upgrades a client that presents none, which the kernel records
   - a later failure is described as itself, not as the certificate the
     client never presented
 */
-bool d_tests_sa_starttls_optional_client(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_optional_client(
+    struct dj_test_suite* _suite
 )
 {
     const char* const               TEST    = "optional client certificate";
     const uint32_t                  NONE    =
-        (uint32_t)(D_SSL_VERIFY_FLAG_NO_CERTIFICATE |
-                   D_SSL_VERIFY_FLAG_NOT_PERFORMED);
+        (uint32_t)(D_TLS_VERIFY_FLAG_NO_CERTIFICATE |
+                   D_TLS_VERIFY_FLAG_NOT_PERFORMED);
     struct dj_starttls_session       session =
     {
         .state = D_STARTTLS_STATE_CLOSED
     };
     struct dj_tests_starttls_fixture fixture = { .peer = NULL };
-    struct dj_ssl_info               info    = { .verify = 0u };
+    struct dj_tls_info               info    = { .verify = 0u };
     const char*                     line    = NULL;
     size_t                          length  = 0;
     bool                            result  = true;
@@ -261,7 +262,7 @@ bool d_tests_sa_starttls_optional_client(
     const bool upgraded =
         ( (d_tests_starttls_optional_server(&session,
                                             &fixture)) &&
-          (d_ssl_session_info(d_starttls_tls_session(&session),
+          (d_tls_session_info(d_starttls_tls_session(&session),
                               &info))                  &&
           (info.verify == NONE) );
 
@@ -283,14 +284,14 @@ bool d_tests_sa_starttls_optional_client(
 
     d_starttls_destroy(&session);
     d_tests_starttls_fixture_close(&fixture);
-    result = d_tests_net_assert(upgraded,
+    result = D_TESTS_NET_ASSERT(upgraded,
                                 TEST,
                                 "a client without one is upgraded",
-                                _counter) && result;
-    result = d_tests_net_assert(described,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(described,
                                 TEST,
                                 "a later failure is described as itself",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }

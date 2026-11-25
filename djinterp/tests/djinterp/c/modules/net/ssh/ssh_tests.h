@@ -1,7 +1,7 @@
 /*******************************************************************************
-* djinterp [c][net]                                               ssh_tests_sa.h
+* djinterp [c][net]                                                  ssh_tests.h
 *
-* Standalone tests of SSH channels, and of a channel as a net.h connection.
+* Tests of SSH channels, and of a channel as a net.h connection.
 *   Each test runs a real session - options, connect, authenticate - over
 * the toy SSH engine of net_tests_ssh_toy.h, which needs no SSH library and
 * no server: a channel reads what the test scripted and keeps what it is
@@ -12,7 +12,7 @@
 * assertion held.
 *
 *
-* path:      /tests/djinterp/c/modules/net/ssh/ssh_tests_sa.h
+* path:      /tests/djinterp/c/modules/net/ssh/ssh_tests.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
 *                                                            revised: 2026.10.14
@@ -31,11 +31,11 @@ TABLE OF CONTENTS
     -----
     1.  Channels
     2.  Channels as connections
-    3.  The runner
+    3.  The section
 */
 
-#ifndef DJINTERP_NET_SSH_SSH_TESTS_SA_H
-#define DJINTERP_NET_SSH_SSH_TESTS_SA_H 1
+#ifndef DJINTERP_NET_SSH_SSH_TESTS_H
+#define DJINTERP_NET_SSH_SSH_TESTS_H 1
 
 // std
 #include <stdbool.h>  // bool
@@ -44,8 +44,9 @@ TABLE OF CONTENTS
 #include "../../../../../../inc/djinterp/c/modules/net/net_common.h"       // dj_net_connection
 #include "../../../../../../inc/djinterp/c/modules/net/ssh/ssh_channel.h"  // dj_ssh_channel
 #include "../../../../../../inc/djinterp/c/modules/net/ssh/ssh_session.h"  // dj_ssh_session
-#include "../net_tests_sa_assert.h"                        // asserts
+#include "../net_tests_assert.h"                        // asserts
 #include "../net_tests_ssh_toy.h"                          // the toy engine
+#include "../../../../../../inc/djinterp/c/modules/test/test_suite.h"  // DTest
 
 
 D_EXTERN_C_BEGIN
@@ -60,11 +61,11 @@ D_EXTERN_C_BEGIN
 //------------------------------------------------------------------------------
 // 1.1.1
 // dj_tests_ssh_case
-//   struct: a named test, as the runner's table lists it.
+//   struct: a named test, as the section's table lists it.
 struct dj_tests_ssh_case
 {
     const char* name;
-    bool        (*run)(struct dj_test_counter* _counter);
+    bool        (*run)(struct dj_test_suite* _suite);
 };
 
 // 1.1.2
@@ -108,48 +109,48 @@ bool d_tests_ssh_is(
 
 // 2.1    Channels
 //------------------------------------------------------------------------------
-bool d_tests_sa_ssh_read_promise(
-    struct dj_test_counter* _counter
+bool d_tests_ssh_read_promise(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_ssh_failure_kept(
-    struct dj_test_counter* _counter
+bool d_tests_ssh_failure_kept(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_ssh_failure_mild(
-    struct dj_test_counter* _counter
+bool d_tests_ssh_failure_mild(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_ssh_read_arguments(
-    struct dj_test_counter* _counter
+bool d_tests_ssh_read_arguments(
+    struct dj_test_suite* _suite
 );
 
 // 2.2    Channels as connections
 //------------------------------------------------------------------------------
-bool d_tests_sa_ssh_view_transfers(
-    struct dj_test_counter* _counter
+bool d_tests_ssh_view_transfers(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_ssh_view_ends(
-    struct dj_test_counter* _counter
+bool d_tests_ssh_view_ends(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_ssh_view_closing(
-    struct dj_test_counter* _counter
+bool d_tests_ssh_view_closing(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_ssh_view_failures(
-    struct dj_test_counter* _counter
+bool d_tests_ssh_view_failures(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_ssh_view_elsewhere(
-    struct dj_test_counter* _counter
+bool d_tests_ssh_view_elsewhere(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_ssh_view_unopened(
-    struct dj_test_counter* _counter
+bool d_tests_ssh_view_unopened(
+    struct dj_test_suite* _suite
 );
 
-// 2.3    The runner
+// 2.3    The section
 //------------------------------------------------------------------------------
-bool d_tests_sa_ssh_run_all(
-    struct dj_test_counter* _counter
+bool d_tests_ssh(
+    struct dj_test_suite* _suite
 );
 
 
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_NET_SSH_SSH_TESTS_SA_H
+#endif  // DJINTERP_NET_SSH_SSH_TESTS_H

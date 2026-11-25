@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][net]                                                 imap_tests.h
 *
-* Standalone tests of the IMAP kernel: its vocabulary, its writers and
+* Tests of the IMAP kernel: its vocabulary, its writers and
 * parsers, and both sides of a session run through them.
 *   imap.h does no I/O: it names, writes and parses what an IMAP client and
 * server exchange. These tests hold it to its header's contracts and to the

@@ -1,14 +1,14 @@
 /*******************************************************************************
-* djinterp [c][net]                                  starttls_tests_sa_support.c
+* djinterp [c][net]                                     starttls_tests_support.c
 *
-* Support for the STARTTLS module's standalone tests.
+* Support for the STARTTLS module's tests.
 *   The SMTP-like negotiator, the on_upgrade recorder, option and fixture
 * helpers, and the socket pairs the tests over TCP adopt. The scripted peer
 * and the toy engine are net_tests_peer.c's, and the certificates
 * net_tests_pki.c's.
 *
 *
-* path:      /tests/djinterp/c/modules/net/starttls/starttls_tests_sa_support.c
+* path:      /tests/djinterp/c/modules/net/starttls/starttls_tests_support.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.07
 *                                                            revised: 2026.10.13
@@ -20,7 +20,7 @@
     #define _POSIX_C_SOURCE 200809L
 #endif  // _POSIX_C_SOURCE
 
-#include "./starttls_tests_sa.h"  // corresponding header
+#include "./starttls_tests.h"  // corresponding header
 // std
 #include <errno.h>   // errno, EBADF
 #include <stdio.h>   // snprintf
@@ -167,7 +167,7 @@ struct dj_starttls_options
 d_tests_starttls_options(
     enum dj_starttls_role        _role,
     enum dj_starttls_policy      _policy,
-    const struct dj_ssl_context* _tls
+    const struct dj_tls_context* _tls
 )
 {
     struct dj_starttls_options options = d_starttls_options_default(_role);
@@ -245,7 +245,7 @@ d_tests_starttls_fixture_open(
     enum dj_starttls_policy           _policy
 )
 {
-    const struct dj_tests_net_toy toy    = { .create_status = D_SSL_OK };
+    const struct dj_tests_net_toy toy    = { .create_status = D_TLS_OK };
     const bool                   client = (_role == D_STARTTLS_ROLE_CLIENT);
 
     _fixture->peer       = d_tests_net_peer_new();
@@ -268,8 +268,8 @@ d_tests_starttls_fixture_open(
     // a context that is not made leaves nothing to destroy
     if (!d_tests_net_toy_context(&_fixture->tls,
                                  &_fixture->toy,
-                                 (client) ? D_SSL_ROLE_CLIENT
-                                 : D_SSL_ROLE_SERVER,
+                                 (client) ? D_TLS_ROLE_CLIENT
+                                 : D_TLS_ROLE_SERVER,
                                  client))
     {
         d_tests_net_peer_free(_fixture->peer);
@@ -296,7 +296,7 @@ void d_tests_starttls_fixture_close(
         return;
     }
 
-    d_ssl_context_destroy(&_fixture->tls);
+    d_tls_context_destroy(&_fixture->tls);
     d_tests_net_peer_free(_fixture->peer);
     _fixture->peer = NULL;
 

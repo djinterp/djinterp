@@ -1,61 +1,61 @@
 /*******************************************************************************
-* djinterp [c][net]                                       ssl_tests_sa_support.c
+* djinterp [c][net]                                          tls_tests_support.c
 *
-* What the SSL kernel's tests share: the run's contexts, and a client and a
+* What the TLS kernel's tests share: the run's contexts, and a client and a
 * server session over the two ends of a pipe.
 *   One thread drives both sessions. A handshake or a transfer calls each
 * side in turn, and a side whose ring is full or empty answers WOULD_BLOCK
 * until the other has moved, so nothing here waits on anything.
 *
 *
-* path:      /tests/djinterp/c/modules/net/ssl/ssl_tests_sa_support.c
+* path:      /tests/djinterp/c/modules/net/tls/tls_tests_support.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
 *                                                            revised: 2026.10.13
 *******************************************************************************/
-#include "./ssl_tests_sa.h"  // corresponding header
+#include "./tls_tests.h"  // corresponding header
 // std
 #include <string.h>  // memset, strlen
 
 
-// D_TESTS_SSL_ROUNDS
+// D_TESTS_TLS_ROUNDS
 //   constant: how many turns a handshake or a transfer may take before a
 // test gives up on it; far more than any of them needs.
-#define D_TESTS_SSL_ROUNDS 100000u
+#define D_TESTS_TLS_ROUNDS 100000u
 
-// d_tests_ssl_the_world
+// d_tests_tls_the_world
 //   the run's world, and whether it is open.
-static struct dj_tests_ssl_world d_tests_ssl_the_world;
-static bool                     d_tests_ssl_world_ready = false;
+static struct dj_tests_tls_world d_tests_tls_the_world;
+static bool                     d_tests_tls_world_ready = false;
 
 /*
-d_tests_ssl_client_config
+d_tests_tls_client_config
   A client that trusts the run's CA alone and checks the server's name.
 */
-void d_tests_ssl_client_config(
-    struct dj_ssl_config* _config
+void d_tests_tls_client_config(
+    struct dj_tls_config* _config
 )
 {
-    d_ssl_config_init(_config,
-                      D_SSL_ROLE_CLIENT);
+    d_tls_config_init(_config,
+                      D_TLS_ROLE_CLIENT);
     _config->use_system_trust = false;
-    _config->ca_file          = d_tests_ssl_the_world.pki.ca;
+    _config->ca_file          = d_tests_tls_the_world.pki.ca;
 
     return;
 }
 
 /*
-d_tests_ssl_server_config
+d_tests_tls_server_config
   A server presenting `_certificate` and `_key`, asking nothing of clients.
 */
-void d_tests_ssl_server_config(
-    struct dj_ssl_config* _config,
+void d_tests_tls_server_config(
+    struct dj_tls_config* _config,
     const char*           _certificate,
     const char*           _key
 )
 {
-    d_ssl_config_init(_config,
-                      D_SSL_ROLE_SERVER);
+    d_tls_config_init(_config,
+                      D_TLS_ROLE_SERVER);
     _config->use_system_trust = false;
     _config->certificate_file = _certificate;
     _config->private_key_file = _key;
@@ -64,93 +64,93 @@ void d_tests_ssl_server_config(
 }
 
 /*
-d_tests_ssl_context
+d_tests_tls_context
   A context over the OpenSSL-family engine.
 */
-bool d_tests_ssl_context(
-    struct dj_ssl_context*      _out,
-    const struct dj_ssl_config* _config
+bool d_tests_tls_context(
+    struct dj_tls_context*      _out,
+    const struct dj_tls_config* _config
 )
 {
-    return (d_ssl_context_init(_out,
-                               d_ssl_engine_openssl(),
-                               _config) == D_SSL_OK);
+    return (d_tls_context_init(_out,
+                               d_tls_engine_openssl(),
+                               _config) == D_TLS_OK);
 }
 
 /*
-d_tests_ssl_world_open
+d_tests_tls_world_open
   The certificates first, then a context for each side; a failure leaves
 nothing open.
 */
-bool d_tests_ssl_world_open(void)
+bool d_tests_tls_world_open(void)
 {
-    struct dj_ssl_config client = { .verify_hostname = true };
-    struct dj_ssl_config server = { .verify_hostname = false };
+    struct dj_tls_config client = { .verify_hostname = true };
+    struct dj_tls_config server = { .verify_hostname = false };
 
-    memset(&d_tests_ssl_the_world,
+    memset(&d_tests_tls_the_world,
            0,
-           sizeof(d_tests_ssl_the_world));
+           sizeof(d_tests_tls_the_world));
 
     // without the engine, or the certificates, there is nothing to test
-    if ( (d_ssl_engine_openssl() == NULL) ||
-         (!d_tests_net_pki_make(&d_tests_ssl_the_world.pki)) )
+    if ( (d_tls_engine_openssl() == NULL) ||
+         (!d_tests_net_pki_make(&d_tests_tls_the_world.pki)) )
     {
         return false;
     }
 
-    d_tests_ssl_client_config(&client);
-    d_tests_ssl_server_config(&server,
-                              d_tests_ssl_the_world.pki.server_cert,
-                              d_tests_ssl_the_world.pki.server_key);
+    d_tests_tls_client_config(&client);
+    d_tests_tls_server_config(&server,
+                              d_tests_tls_the_world.pki.server_cert,
+                              d_tests_tls_the_world.pki.server_key);
 
-    d_tests_ssl_world_ready = ( (d_tests_ssl_context(
-                                     &d_tests_ssl_the_world.client,
+    d_tests_tls_world_ready = ( (d_tests_tls_context(
+                                     &d_tests_tls_the_world.client,
                                      &client)) &&
-                                (d_tests_ssl_context(
-                                     &d_tests_ssl_the_world.server,
+                                (d_tests_tls_context(
+                                     &d_tests_tls_the_world.server,
                                      &server)) );
 
     // half a world is no world
-    if (!d_tests_ssl_world_ready)
+    if (!d_tests_tls_world_ready)
     {
-        d_tests_ssl_world_close();
+        d_tests_tls_world_close();
     }
 
-    return d_tests_ssl_world_ready;
+    return d_tests_tls_world_ready;
 }
 
 /*
-d_tests_ssl_world_close
+d_tests_tls_world_close
   Each context's destroy accepts one never made.
 */
-void d_tests_ssl_world_close(void)
+void d_tests_tls_world_close(void)
 {
-    d_ssl_context_destroy(&d_tests_ssl_the_world.client);
-    d_ssl_context_destroy(&d_tests_ssl_the_world.server);
-    d_tests_net_pki_remove(&d_tests_ssl_the_world.pki);
-    d_tests_ssl_world_ready = false;
+    d_tls_context_destroy(&d_tests_tls_the_world.client);
+    d_tls_context_destroy(&d_tests_tls_the_world.server);
+    d_tests_net_pki_remove(&d_tests_tls_the_world.pki);
+    d_tests_tls_world_ready = false;
 
     return;
 }
 
 /*
-d_tests_ssl_world
+d_tests_tls_world
   NULL until the world is open.
 */
-struct dj_tests_ssl_world* d_tests_ssl_world(void)
+struct dj_tests_tls_world* d_tests_tls_world(void)
 {
-    return (d_tests_ssl_world_ready) ? &d_tests_ssl_the_world
+    return (d_tests_tls_world_ready) ? &d_tests_tls_the_world
                                      : NULL;
 }
 
 /*
-d_tests_ssl_pair_open
+d_tests_tls_pair_open
   The pipe, then the client over end A and the server over end B.
 */
-bool d_tests_ssl_pair_open(
-    struct dj_tests_ssl_pair*    _pair,
-    const struct dj_ssl_context* _client,
-    const struct dj_ssl_context* _server,
+bool d_tests_tls_pair_open(
+    struct dj_tests_tls_pair*    _pair,
+    const struct dj_tls_context* _client,
+    const struct dj_tls_context* _server,
     const char*                  _host
 )
 {
@@ -168,82 +168,82 @@ bool d_tests_ssl_pair_open(
                               sizeof(_pair->to_server),
                               _pair->to_client,
                               sizeof(_pair->to_client)) == D_NET_OK) &&
-             (d_ssl_session_init(&_pair->client,
+             (d_tls_session_init(&_pair->client,
                                  _client,
                                  d_net_pipe_connection(&_pair->pipe,
                                                        D_NET_PIPE_A),
-                                 host) == D_SSL_OK)                  &&
-             (d_ssl_session_init(&_pair->server,
+                                 host) == D_TLS_OK)                  &&
+             (d_tls_session_init(&_pair->server,
                                  _server,
                                  d_net_pipe_connection(&_pair->pipe,
                                                        D_NET_PIPE_B),
-                                 none) == D_SSL_OK) );
+                                 none) == D_TLS_OK) );
 }
 
 /*
-d_tests_ssl_pair_close
+d_tests_tls_pair_close
   Both sessions; the pipe holds nothing to release.
 */
-void d_tests_ssl_pair_close(
-    struct dj_tests_ssl_pair* _pair
+void d_tests_tls_pair_close(
+    struct dj_tests_tls_pair* _pair
 )
 {
-    d_ssl_session_destroy(&_pair->client);
-    d_ssl_session_destroy(&_pair->server);
+    d_tls_session_destroy(&_pair->client);
+    d_tls_session_destroy(&_pair->server);
 
     return;
 }
 
 /*
-d_tests_ssl_pair_handshake
+d_tests_tls_pair_handshake
   Each side handshakes in turn while it would block. A side that fails stops
 being called; the other then blocks for want of its peer until the rounds
 run out, and reports WOULD_BLOCK.
 */
 bool
-d_tests_ssl_pair_handshake(
-    struct dj_tests_ssl_pair* _pair,
-    enum dj_ssl_error*        _client_status,
-    enum dj_ssl_error*        _server_status
+d_tests_tls_pair_handshake(
+    struct dj_tests_tls_pair* _pair,
+    enum dj_tls_error*        _client_status,
+    enum dj_tls_error*        _server_status
 )
 {
-    enum dj_ssl_error client = D_SSL_ERROR_WOULD_BLOCK;
-    enum dj_ssl_error server = D_SSL_ERROR_WOULD_BLOCK;
+    enum dj_tls_error client = D_TLS_ERROR_WOULD_BLOCK;
+    enum dj_tls_error server = D_TLS_ERROR_WOULD_BLOCK;
 
     // turn by turn, until neither side would block
     for (unsigned int round = 0u;
-         ( (round < D_TESTS_SSL_ROUNDS) &&
-           ( (client == D_SSL_ERROR_WOULD_BLOCK) ||
-             (server == D_SSL_ERROR_WOULD_BLOCK) ) );
+         ( (round < D_TESTS_TLS_ROUNDS) &&
+           ( (client == D_TLS_ERROR_WOULD_BLOCK) ||
+             (server == D_TLS_ERROR_WOULD_BLOCK) ) );
          ++round)
     {
         // the client, while it waits
-        if (client == D_SSL_ERROR_WOULD_BLOCK)
+        if (client == D_TLS_ERROR_WOULD_BLOCK)
         {
-            client = d_ssl_session_handshake(&_pair->client);
+            client = d_tls_session_handshake(&_pair->client);
         }
 
         // the server, likewise
-        if (server == D_SSL_ERROR_WOULD_BLOCK)
+        if (server == D_TLS_ERROR_WOULD_BLOCK)
         {
-            server = d_ssl_session_handshake(&_pair->server);
+            server = d_tls_session_handshake(&_pair->server);
         }
     }
 
     *_client_status = client;
     *_server_status = server;
 
-    return ( (client == D_SSL_OK) &&
-             (server == D_SSL_OK) );
+    return ( (client == D_TLS_OK) &&
+             (server == D_TLS_OK) );
 }
 
 /*
-d_tests_ssl_byte
+d_tests_tls_byte
   The byte at offset `_at` of every transfer: a pattern no record boundary
 lines up with.
 */
 static
-unsigned char d_tests_ssl_byte(
+unsigned char d_tests_tls_byte(
     size_t _at
 )
 {
@@ -251,13 +251,13 @@ unsigned char d_tests_ssl_byte(
 }
 
 /*
-d_tests_ssl_pair_send
+d_tests_tls_pair_send
   One turn of a transfer's sending side: pending ciphertext first, then as
 much new data as one write takes. False on any failure.
 */
 static
-bool d_tests_ssl_pair_send(
-    struct dj_ssl_session* _from,
+bool d_tests_tls_pair_send(
+    struct dj_tls_session* _from,
     size_t*                _sent,
     size_t                 _size
 )
@@ -266,12 +266,12 @@ bool d_tests_ssl_pair_send(
     size_t        taken       = 0u;
 
     // ciphertext an earlier write left behind goes first
-    if (d_ssl_session_wants(_from) == D_SSL_WANT_WRITE)
+    if (d_tls_session_wants(_from) == D_TLS_WANT_WRITE)
     {
-        const enum dj_ssl_error flushed = d_ssl_session_flush(_from);
+        const enum dj_tls_error flushed = d_tls_session_flush(_from);
 
-        return ( (flushed == D_SSL_OK) ||
-                 (flushed == D_SSL_ERROR_WOULD_BLOCK) );
+        return ( (flushed == D_TLS_OK) ||
+                 (flushed == D_TLS_ERROR_WOULD_BLOCK) );
     }
 
     // nothing left to send
@@ -289,40 +289,40 @@ bool d_tests_ssl_pair_send(
          i < count;
          ++i)
     {
-        chunk[i] = d_tests_ssl_byte(*_sent + i);
+        chunk[i] = d_tests_tls_byte(*_sent + i);
     }
 
-    const enum dj_ssl_error status = d_ssl_session_write(_from,
+    const enum dj_tls_error status = d_tls_session_write(_from,
                                                         chunk,
                                                         count,
                                                         &taken);
 
     *_sent += taken;
 
-    return ( (status == D_SSL_OK) ||
-             (status == D_SSL_ERROR_WOULD_BLOCK) );
+    return ( (status == D_TLS_OK) ||
+             (status == D_TLS_ERROR_WOULD_BLOCK) );
 }
 
 /*
-d_tests_ssl_pair_receive
+d_tests_tls_pair_receive
   One turn of a transfer's receiving side: what one read gives, checked
 against the pattern. False on any failure or wrong byte.
 */
 static
-bool d_tests_ssl_pair_receive(
-    struct dj_ssl_session* _to,
+bool d_tests_tls_pair_receive(
+    struct dj_tls_session* _to,
     size_t*                _received
 )
 {
     unsigned char          chunk[1500] = { 0 };
     size_t                 count       = 0u;
-    const enum dj_ssl_error status      = d_ssl_session_read(_to,
+    const enum dj_tls_error status      = d_tls_session_read(_to,
                                                             chunk,
                                                             sizeof(chunk),
                                                             &count);
 
     // nothing yet is no failure
-    if (status == D_SSL_ERROR_WOULD_BLOCK)
+    if (status == D_TLS_ERROR_WOULD_BLOCK)
     {
         return true;
     }
@@ -333,7 +333,7 @@ bool d_tests_ssl_pair_receive(
          ++i)
     {
         // a wrong byte ends the transfer
-        if (chunk[i] != d_tests_ssl_byte(*_received + i))
+        if (chunk[i] != d_tests_tls_byte(*_received + i))
         {
             return false;
         }
@@ -341,17 +341,17 @@ bool d_tests_ssl_pair_receive(
 
     *_received += count;
 
-    return (status == D_SSL_OK);
+    return (status == D_TLS_OK);
 }
 
 /*
-d_tests_ssl_pair_move
+d_tests_tls_pair_move
   Sends and receives in turns until every byte has arrived, a side fails,
 or the rounds run out.
 */
-bool d_tests_ssl_pair_move(
-    struct dj_ssl_session* _from,
-    struct dj_ssl_session* _to,
+bool d_tests_tls_pair_move(
+    struct dj_tls_session* _from,
+    struct dj_tls_session* _to,
     size_t                 _size
 )
 {
@@ -363,13 +363,13 @@ bool d_tests_ssl_pair_move(
     for (unsigned int round = 0u;
          ( (going)            &&
            (received < _size) &&
-           (round < D_TESTS_SSL_ROUNDS) );
+           (round < D_TESTS_TLS_ROUNDS) );
          ++round)
     {
-        going = ( (d_tests_ssl_pair_send(_from,
+        going = ( (d_tests_tls_pair_send(_from,
                                          &sent,
                                          _size)) &&
-                  (d_tests_ssl_pair_receive(_to,
+                  (d_tests_tls_pair_receive(_to,
                                             &received)) );
     }
 

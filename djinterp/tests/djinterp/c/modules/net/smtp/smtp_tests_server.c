@@ -2,7 +2,7 @@
 * djinterp [c][net]                                          smtp_tests_server.c
 *
 * djinterp SMTP kernel tests - server sessions.
-*   Standalone tests of smtp_server.c over net_tests_peer.h's scripted peer:
+*   Tests of smtp_server.c over net_tests_peer.h's scripted peer:
 * dot removal, strict end-of-data framing, limits, policy, every reply,
 * AUTH and the ways an exchange ends, the session's arguments and contexts,
 * and the connection failing beneath it, in the middle of SASL among other

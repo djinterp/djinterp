@@ -1195,7 +1195,7 @@ d_tests_imap_session_learned
 static
 bool d_tests_imap_session_learned(
     const struct dj_tests_imap_session* _session,
-    struct dj_test_suite* _suite
+    struct dj_test_suite*               _suite
 )
 {
     const struct dj_imap_status_data* status = &_session->status;

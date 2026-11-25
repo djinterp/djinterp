@@ -523,7 +523,7 @@ and in lower case, and a value and a name outside it.
 static
 bool d_tests_imap_vocabulary_check(
     const struct dj_tests_imap_vocabulary* _vocabulary,
-    struct dj_test_suite* _suite
+    struct dj_test_suite*                  _suite
 )
 {
     char lower[64] = { 0 };

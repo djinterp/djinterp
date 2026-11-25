@@ -1,12 +1,12 @@
 /*******************************************************************************
-* djinterp [c][net]                                          starttls_tests_sa.h
+* djinterp [c][net]                                             starttls_tests.h
 *
-* Standalone tests of the STARTTLS common module.
+* Tests of the STARTTLS common module.
 *   Most tests run a session against net_tests_peer.h's scripted peer: a
 * net.h connection that releases each of its turns once the session has
 * sent the text the turn waits for, so a test reads as the exchange it
 * checks and needs no thread. Behind the peer, the same file's toy engine
-* of the SSL kernel stands in for a real one: it shakes hands with nine
+* of the TLS kernel stands in for a real one: it shakes hands with nine
 * bytes each way, shaped as TLS record headers so the kernel takes them for
 * TLS, and seals data by rotating letters and digits, so sealed text stays
 * readable. Sessions over TCP are tested over
@@ -16,7 +16,7 @@
 * assertion held.
 *
 *
-* path:      /tests/djinterp/c/modules/net/starttls/starttls_tests_sa.h
+* path:      /tests/djinterp/c/modules/net/starttls/starttls_tests.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.07
 *                                                            revised: 2026.10.13
@@ -43,21 +43,22 @@ TABLE OF CONTENTS
     4.  Once secure
     5.  Over TCP
     6.  OpenSSL-family engine
-    7.  The runner
+    7.  The section
 */
 
-#ifndef DJINTERP_NET_STARTTLS_STARTTLS_TESTS_SA_H
-#define DJINTERP_NET_STARTTLS_STARTTLS_TESTS_SA_H 1
+#ifndef DJINTERP_NET_STARTTLS_STARTTLS_TESTS_H
+#define DJINTERP_NET_STARTTLS_STARTTLS_TESTS_H 1
 
 // std
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t
 // djinterp
-#include "../../../../../../inc/djinterp/c/modules/net/ssl/ssl.h"            // the kernel
+#include "../../../../../../inc/djinterp/c/modules/net/tls/tls.h"            // the kernel
 #include "../../../../../../inc/djinterp/c/modules/net/starttls/starttls.h"  // the module
 #include "../../../../../../inc/djinterp/c/modules/net/tcp/tcp.h"            // TCP
 #include "../net_tests_peer.h"                               // peer, toy
-#include "../net_tests_sa_assert.h"                          // asserts
+#include "../net_tests_assert.h"                          // asserts
+#include "../../../../../../inc/djinterp/c/modules/test/test_suite.h"  // DTest
 
 
 D_EXTERN_C_BEGIN
@@ -79,11 +80,11 @@ D_EXTERN_C_BEGIN
 //------------------------------------------------------------------------------
 // 1.2.1
 // dj_tests_starttls_case
-//   struct: a named test, as the runner's table lists it.
+//   struct: a named test, as the section's table lists it.
 struct dj_tests_starttls_case
 {
     const char* name;
-    bool        (*run)(struct dj_test_counter* _counter);
+    bool        (*run)(struct dj_test_suite* _suite);
 };
 
 // 1.2.2
@@ -123,7 +124,7 @@ struct dj_tests_starttls_fixture
 {
     struct dj_tests_net_peer*  peer;        // the other party
     struct dj_tests_net_toy    toy;         // the engine's record
-    struct dj_ssl_context      tls;         // the context over `toy`
+    struct dj_tls_context      tls;         // the context over `toy`
     struct dj_net_connection*  connection;  // the peer's
     struct dj_starttls_options options;     // for the role, using `tls`
 };
@@ -145,7 +146,7 @@ void d_tests_starttls_forget(
 struct dj_starttls_options d_tests_starttls_options(
     enum dj_starttls_role        _role,
     enum dj_starttls_policy      _policy,
-    const struct dj_ssl_context* _tls
+    const struct dj_tls_context* _tls
 );
 bool d_tests_starttls_plain(
     struct dj_starttls_session* _session,
@@ -190,193 +191,193 @@ bool d_tests_starttls_adopt(
 
 // 2.1    Lifecycle and queries
 //------------------------------------------------------------------------------
-bool d_tests_sa_starttls_defaults(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_defaults(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_init_arguments(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_init_arguments(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_init_values(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_init_values(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_init_contexts(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_init_contexts(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_new_session(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_new_session(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_close(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_close(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_ownership(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_ownership(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_null_queries(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_null_queries(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_names(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_names(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_errors_to_net(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_errors_to_net(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_errors_from_net(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_errors_from_net(
+    struct dj_test_suite* _suite
 );
 
 // 2.2    Line and byte I/O
 //------------------------------------------------------------------------------
-bool d_tests_sa_starttls_lines(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_lines(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_lines_trickled(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_lines_trickled(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_line_endings(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_line_endings(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_failed_session(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_failed_session(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_line_limit(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_line_limit(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_literal(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_literal(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_byte_refusals(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_byte_refusals(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_stream_ends(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_stream_ends(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_send_line(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_send_line(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_send_limit(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_send_limit(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_send_long(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_send_long(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_broken_writes(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_broken_writes(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_broken_reads(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_broken_reads(
+    struct dj_test_suite* _suite
 );
 
 // 2.3    Negotiation and upgrade
 //------------------------------------------------------------------------------
-bool d_tests_sa_starttls_policy_offer(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_policy_offer(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_policy_reply(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_policy_reply(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_policy_callbacks(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_policy_callbacks(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_negotiate_refusals(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_negotiate_refusals(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_upgrade_client(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_upgrade_client(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_secure_traffic(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_secure_traffic(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_upgrade_server(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_upgrade_server(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_upgrade_implicit(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_upgrade_implicit(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_injection_client(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_injection_client(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_injection_server(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_injection_server(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_leftover_dropped(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_leftover_dropped(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_engine_failures(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_engine_failures(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_failure_details(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_failure_details(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_upgrade_disabled(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_upgrade_disabled(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_secure_end(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_secure_end(
+    struct dj_test_suite* _suite
 );
 
 // 2.4    Once secure
 //------------------------------------------------------------------------------
-bool d_tests_sa_starttls_secure_failures(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_secure_failures(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_optional_client(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_optional_client(
+    struct dj_test_suite* _suite
 );
 
 // 2.5    Over TCP
 //------------------------------------------------------------------------------
-bool d_tests_sa_starttls_tcp_exchange(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_tcp_exchange(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_tcp_ownership(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_tcp_ownership(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_tcp_deadline(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_tcp_deadline(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_tcp_vanished(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_tcp_vanished(
+    struct dj_test_suite* _suite
 );
 
 // 2.6    OpenSSL-family engine
 //------------------------------------------------------------------------------
 // setup makes the run's certificates and reports whether the engine and
 // they are there to test with; teardown removes them
-bool d_tests_sa_starttls_openssl_setup(void);
-void d_tests_sa_starttls_openssl_teardown(void);
-bool d_tests_sa_starttls_openssl_starttls(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_openssl_setup(void);
+void d_tests_starttls_openssl_teardown(void);
+bool d_tests_starttls_openssl_starttls(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_openssl_implicit(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_openssl_implicit(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_openssl_verify(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_openssl_verify(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_openssl_unverified(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_openssl_unverified(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_openssl_truncation(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_openssl_truncation(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_openssl_injection(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_openssl_injection(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_openssl_pipelined(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_openssl_pipelined(
+    struct dj_test_suite* _suite
 );
-bool d_tests_sa_starttls_openssl_client_cert(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_openssl_client_cert(
+    struct dj_test_suite* _suite
 );
 
-// 2.7    The runner
+// 2.7    The section
 //------------------------------------------------------------------------------
-bool d_tests_sa_starttls_run_all(
-    struct dj_test_counter* _counter
+bool d_tests_starttls(
+    struct dj_test_suite* _suite
 );
 
 
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_NET_STARTTLS_STARTTLS_TESTS_SA_H
+#endif  // DJINTERP_NET_STARTTLS_STARTTLS_TESTS_H

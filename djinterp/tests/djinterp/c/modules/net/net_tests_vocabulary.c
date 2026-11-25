@@ -309,7 +309,7 @@ makes the copy a different endpoint.
 */
 static
 bool d_tests_net_endpoint_equality(
-    struct dj_test_suite* _suite,
+    struct dj_test_suite*         _suite,
     const struct dj_net_endpoint* _endpoint
 )
 {

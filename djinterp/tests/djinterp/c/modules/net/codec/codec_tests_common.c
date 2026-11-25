@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][net]                                         codec_tests_common.c
 *
-* Standalone tests of codec_common.h: each of the codec's errors mapped
+* Tests of codec_common.h: each of the codec's errors mapped
 * onto net.h's dj_net_error.
 *
 *

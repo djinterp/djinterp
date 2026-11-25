@@ -1,14 +1,14 @@
 /*******************************************************************************
-* djinterp [c][net]                                      starttls_tests_sa_tcp.c
+* djinterp [c][net]                                         starttls_tests_tcp.c
 *
-* Standalone tests of a session over TCP: one end of an AF_UNIX stream pair
+* Tests of a session over TCP: one end of an AF_UNIX stream pair
 * is adopted by tcp.c and handed to the session, and the test plays the peer
 * on the other end with plain reads and writes. What tcp.c reports - a
 * deadline, a peer that has gone - reaches the session through
 * d_starttls_error_from_net, with its own error kept as the cause.
 *
 *
-* path:      /tests/djinterp/c/modules/net/starttls/starttls_tests_sa_tcp.c
+* path:      /tests/djinterp/c/modules/net/starttls/starttls_tests_tcp.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
 *                                                            revised: 2026.10.13
@@ -20,7 +20,8 @@
     #define _POSIX_C_SOURCE 200809L
 #endif  // _POSIX_C_SOURCE
 
-#include "./starttls_tests_sa.h"  // the suite
+#include "./starttls_tests.h"  // the suite
+#include "../../../../../../inc/djinterp/c/modules/test/test_suite.h"  // DTest
 // std
 #include <signal.h>  // sigaction, sigemptyset, SIGPIPE, sig_atomic_t
 #include <string.h>  // memcmp, strlen
@@ -29,7 +30,7 @@
 
 
 // g_sigpipes
-//   variable: SIGPIPEs delivered while d_tests_sa_starttls_tcp_vanished
+//   variable: SIGPIPEs delivered while d_tests_starttls_tcp_vanished
 // listened for them.
 static volatile sig_atomic_t g_sigpipes = 0;
 
@@ -184,15 +185,15 @@ bool d_tests_starttls_tcp_pair(
 }
 
 /*
-d_tests_sa_starttls_tcp_exchange
+d_tests_starttls_tcp_exchange
   Tests the following:
   - lines travel both ways over the connection
   - the connection counts bytes waiting without taking them
   - the peer's end of the stream is an orderly close
   - closing the session closes an owned connection, and its socket
 */
-bool d_tests_sa_starttls_tcp_exchange(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_tcp_exchange(
+    struct dj_test_suite* _suite
 )
 {
     const char* const         TEST       = "TCP exchange";
@@ -203,11 +204,11 @@ bool d_tests_sa_starttls_tcp_exchange(
     size_t                    length     = 0;
     bool                      result     = true;
 
-    if (!d_tests_net_assert(d_tests_starttls_tcp_pair(&connection,
+    if (!D_TESTS_NET_ASSERT(d_tests_starttls_tcp_pair(&connection,
                                                       sockets),
                             TEST,
                             "a TCP connection over a socket pair",
-                            _counter))
+                            _suite))
     {
         return false;
     }
@@ -243,31 +244,31 @@ bool d_tests_sa_starttls_tcp_exchange(
 
     d_starttls_destroy(&session);
     d_tcp_connection_close(&connection);
-    result = d_tests_net_assert(talked,
+    result = D_TESTS_NET_ASSERT(talked,
                                 TEST,
                                 "lines both ways",
-                                _counter) && result;
-    result = d_tests_net_assert(counted,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(counted,
                                 TEST,
                                 "waiting bytes are counted, not taken",
-                                _counter) && result;
-    result = d_tests_net_assert(ended,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(ended,
                                 TEST,
                                 "the peer's end; close closes the socket",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }
 
 /*
-d_tests_sa_starttls_tcp_ownership
+d_tests_starttls_tcp_ownership
   Tests the following:
   - a borrowed connection outlives the session, its socket open
   - an owned one is destroyed by destroy when close was never called, its
     socket closed
 */
-bool d_tests_sa_starttls_tcp_ownership(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_tcp_ownership(
+    struct dj_test_suite* _suite
 )
 {
     const char* const         TEST       = "TCP ownership";
@@ -276,11 +277,11 @@ bool d_tests_sa_starttls_tcp_ownership(
     int                       sockets[2] = { -1, -1 };
     bool                      result     = true;
 
-    if (!d_tests_net_assert(d_tests_starttls_tcp_pair(&connection,
+    if (!D_TESTS_NET_ASSERT(d_tests_starttls_tcp_pair(&connection,
                                                       sockets),
                             TEST,
                             "a TCP connection over a socket pair",
-                            _counter))
+                            _suite))
     {
         return false;
     }
@@ -306,27 +307,27 @@ bool d_tests_sa_starttls_tcp_ownership(
 
     d_tcp_connection_close(&connection);
     (void)close(sockets[1]);
-    result = d_tests_net_assert(kept,
+    result = D_TESTS_NET_ASSERT(kept,
                                 TEST,
                                 "a borrowed connection outlives the session",
-                                _counter) && result;
-    result = d_tests_net_assert(gone,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(gone,
                                 TEST,
                                 "destroy closes an owned connection",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }
 
 /*
-d_tests_sa_starttls_tcp_deadline
+d_tests_starttls_tcp_deadline
   Tests the following:
   - the connection's deadline ends a receive that waits too long with a
     fatal D_STARTTLS_ERROR_TIMED_OUT, the connection's TIMED_OUT kept as
     its cause
 */
-bool d_tests_sa_starttls_tcp_deadline(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_tcp_deadline(
+    struct dj_test_suite* _suite
 )
 {
     const char* const         TEST       = "TCP deadline";
@@ -337,11 +338,11 @@ bool d_tests_sa_starttls_tcp_deadline(
     size_t                    length     = 0;
     bool                      result     = true;
 
-    if (!d_tests_net_assert(d_tests_starttls_tcp_pair(&connection,
+    if (!D_TESTS_NET_ASSERT(d_tests_starttls_tcp_pair(&connection,
                                                       sockets),
                             TEST,
                             "a TCP connection over a socket pair",
-                            _counter))
+                            _suite))
     {
         return false;
     }
@@ -363,23 +364,23 @@ bool d_tests_sa_starttls_tcp_deadline(
     d_starttls_destroy(&session);
     d_tcp_connection_close(&connection);
     (void)close(sockets[1]);
-    result = d_tests_net_assert(expired,
+    result = D_TESTS_NET_ASSERT(expired,
                                 TEST,
                                 "an expired deadline is a fatal timeout",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }
 
 /*
-d_tests_sa_starttls_tcp_vanished
+d_tests_starttls_tcp_vanished
   Tests the following:
   - a send to a peer that has gone is fatal: the connection was lost, so
     D_STARTTLS_ERROR_CLOSED, with the reset kept as the cause
   - and raises no SIGPIPE
 */
-bool d_tests_sa_starttls_tcp_vanished(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_tcp_vanished(
+    struct dj_test_suite* _suite
 )
 {
     const char* const         TEST       = "TCP vanished";
@@ -390,11 +391,11 @@ bool d_tests_sa_starttls_tcp_vanished(
     int                       sockets[2] = { -1, -1 };
     bool                      result     = true;
 
-    if (!d_tests_net_assert(d_tests_starttls_tcp_pair(&connection,
+    if (!D_TESTS_NET_ASSERT(d_tests_starttls_tcp_pair(&connection,
                                                       sockets),
                             TEST,
                             "a TCP connection over a socket pair",
-                            _counter))
+                            _suite))
     {
         return false;
     }
@@ -430,14 +431,14 @@ bool d_tests_sa_starttls_tcp_vanished(
                         NULL);
     }
 
-    result = d_tests_net_assert(failed,
+    result = D_TESTS_NET_ASSERT(failed,
                                 TEST,
                                 "a vanished peer is a fatal lost connection",
-                                _counter) && result;
-    result = d_tests_net_assert(g_sigpipes == 0,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(g_sigpipes == 0,
                                 TEST,
                                 "and raises no SIGPIPE",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }

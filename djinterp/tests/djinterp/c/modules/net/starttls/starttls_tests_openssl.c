@@ -1,16 +1,16 @@
 /*******************************************************************************
-* djinterp [c][net]                                  starttls_tests_sa_openssl.c
+* djinterp [c][net]                                     starttls_tests_openssl.c
 *
-* Standalone tests of STARTTLS with the SSL kernel's OpenSSL-family engine.
+* Tests of STARTTLS with the TLS kernel's OpenSSL-family engine.
 *   A server thread and the test's own thread each hold one end of an
 * AF_UNIX stream pair, adopted by tcp.c and owned by each side's session,
 * and hold an SMTP-like conversation: a greeting, STARTTLS and its go-ahead,
 * then one line each way under TLS. The certificates are net_tests_pki.c's,
-* made once for the run by d_tests_sa_starttls_openssl_setup; without the
-* engine, or without them, the runner skips these tests.
+* made once for the run by d_tests_starttls_openssl_setup; without the
+* engine, or without them, the section skips these tests.
 *
 *
-* path:      /tests/djinterp/c/modules/net/starttls/starttls_tests_sa_openssl.c
+* path:      /tests/djinterp/c/modules/net/starttls/starttls_tests_openssl.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.07
 *                                                            revised: 2026.10.13
@@ -22,14 +22,15 @@
     #define _POSIX_C_SOURCE 200809L
 #endif  // _POSIX_C_SOURCE
 
-#include "./starttls_tests_sa.h"  // the suite
+#include "./starttls_tests.h"  // the suite
 // std
 #include <ctype.h>   // tolower
 #include <stdio.h>   // snprintf
 #include <string.h>  // strcmp, strlen
 // djinterp
-#include "../../../../../../inc/djinterp/c/modules/net/ssl/ssl_openssl.h"  // the engine
+#include "../../../../../../inc/djinterp/c/modules/net/tls/tls_openssl.h"  // the engine
 #include "../net_tests_pki.h"                              // certificates
+#include "../../../../../../inc/djinterp/c/modules/test/test_suite.h"  // DTest
 // posix
 #include <pthread.h>  // pthread_create, pthread_join, pthread_t
 #include <unistd.h>   // close, read, write
@@ -43,12 +44,12 @@ static bool                   g_pki_made = false;
 static bool                   g_ready    = false;
 
 /*
-d_tests_sa_starttls_openssl_setup
+d_tests_starttls_openssl_setup
   The engine first, then the certificates every test below uses.
 */
-bool d_tests_sa_starttls_openssl_setup(void)
+bool d_tests_starttls_openssl_setup(void)
 {
-    g_pki_made = ( (d_ssl_engine_openssl() != NULL) &&
+    g_pki_made = ( (d_tls_engine_openssl() != NULL) &&
                    (d_tests_net_pki_make(&g_pki)) );
     g_ready    = g_pki_made;
 
@@ -56,10 +57,10 @@ bool d_tests_sa_starttls_openssl_setup(void)
 }
 
 /*
-d_tests_sa_starttls_openssl_teardown
+d_tests_starttls_openssl_teardown
   Removes the certificates, if they were made.
 */
-void d_tests_sa_starttls_openssl_teardown(void)
+void d_tests_starttls_openssl_teardown(void)
 {
     if (g_pki_made)
     {
@@ -75,7 +76,7 @@ void d_tests_sa_starttls_openssl_teardown(void)
 // dj_tests_starttls_side
 //   struct: what one context is made from: its role, whether it verifies its
 // peer, the files it loads, each of which may be NULL, and its version
-// floor, D_SSL_VERSION_NONE for the default.
+// floor, D_TLS_VERSION_NONE for the default.
 struct dj_tests_starttls_side
 {
     enum dj_starttls_role role;
@@ -83,7 +84,7 @@ struct dj_tests_starttls_side
     const char*          ca_file;
     const char*          cert_file;
     const char*          key_file;
-    enum dj_ssl_version   min_version;
+    enum dj_tls_version   min_version;
 };
 
 /*
@@ -93,34 +94,34 @@ the system store is left out, so a certificate from anywhere else fails.
 */
 static
 bool d_tests_starttls_context(
-    struct dj_ssl_context*               _out,
+    struct dj_tls_context*               _out,
     const struct dj_tests_starttls_side* _side
 )
 {
     const bool          server = (_side->role == D_STARTTLS_ROLE_SERVER);
-    struct dj_ssl_config config = { .verify_hostname = false };
+    struct dj_tls_config config = { .verify_hostname = false };
 
-    d_ssl_config_init(&config,
-                      (server) ? D_SSL_ROLE_SERVER
-                      : D_SSL_ROLE_CLIENT);
+    d_tls_config_init(&config,
+                      (server) ? D_TLS_ROLE_SERVER
+                      : D_TLS_ROLE_CLIENT);
     config.use_system_trust = false;
     config.ca_file          = _side->ca_file;
     config.certificate_file = _side->cert_file;
     config.private_key_file = _side->key_file;
-    config.verify           = (_side->verify) ? D_SSL_VERIFY_REQUIRED
-                                              : D_SSL_VERIFY_NONE;
+    config.verify           = (_side->verify) ? D_TLS_VERIFY_REQUIRED
+                                              : D_TLS_VERIFY_NONE;
     config.verify_hostname  = ( (!server) &&
                                 (_side->verify) );
 
     // a floor of its own, or the configured default
-    if (_side->min_version != D_SSL_VERSION_NONE)
+    if (_side->min_version != D_TLS_VERSION_NONE)
     {
         config.min_version = _side->min_version;
     }
 
-    return (d_ssl_context_init(_out,
-                               d_ssl_engine_openssl(),
-                               &config) == D_SSL_OK);
+    return (d_tls_context_init(_out,
+                               d_tls_engine_openssl(),
+                               &config) == D_TLS_OK);
 }
 
 /*
@@ -137,7 +138,7 @@ struct dj_tests_starttls_side d_tests_starttls_verifier(void)
         .ca_file     = g_pki.ca,
         .cert_file   = NULL,
         .key_file    = NULL,
-        .min_version = D_SSL_VERSION_NONE
+        .min_version = D_TLS_VERSION_NONE
     };
 
     return side;
@@ -161,7 +162,7 @@ struct dj_tests_starttls_side d_tests_starttls_presenter(
         .ca_file     = NULL,
         .cert_file   = _cert_file,
         .key_file    = _key_file,
-        .min_version = D_SSL_VERSION_NONE
+        .min_version = D_TLS_VERSION_NONE
     };
 
     return side;
@@ -212,7 +213,7 @@ struct dj_tests_starttls_server
 {
     struct dj_tcp_connection     connection;  // its end; its session's
     int                         socket;      // that end's socket
-    const struct dj_ssl_context* tls;         // its context
+    const struct dj_tls_context* tls;         // its context
     bool                        implicit;    // TLS from the first byte
     const char*                 go_ahead;    // sent as is after STARTTLS
     bool                        truncate;    // end without close_notify
@@ -227,7 +228,7 @@ struct dj_tests_starttls_client
 {
     struct dj_tcp_connection     connection;       // its end; its session's
     int                         socket;           // that end's socket
-    const struct dj_ssl_context* tls;              // its context
+    const struct dj_tls_context* tls;              // its context
     const char*                 server_name;      // whom it expects
     bool                        implicit;         // TLS from the first byte
     bool                        reject_leftover;  // fail, not discard
@@ -505,8 +506,8 @@ static
 void d_tests_starttls_parties(
     struct dj_tests_starttls_client* _client,
     struct dj_tests_starttls_server* _server,
-    const struct dj_ssl_context*     _client_tls,
-    const struct dj_ssl_context*     _server_tls,
+    const struct dj_tls_context*     _client_tls,
+    const struct dj_tls_context*     _server_tls,
     const char*                      _server_name
 )
 {
@@ -559,15 +560,15 @@ bool d_tests_starttls_completed(
 d_tests_starttls_pair_of
   A client verifying against the run's CA, and a server presenting
 `_cert_file` and `_key_file` with the floor `_min_version`
-(D_SSL_VERSION_NONE for the default); both or neither are made.
+(D_TLS_VERSION_NONE for the default); both or neither are made.
 */
 static bool
 d_tests_starttls_pair_of(
-    struct dj_ssl_context* _client_tls,
-    struct dj_ssl_context* _server_tls,
+    struct dj_tls_context* _client_tls,
+    struct dj_tls_context* _server_tls,
     const char*           _cert_file,
     const char*           _key_file,
-    enum dj_ssl_version    _min_version
+    enum dj_tls_version    _min_version
 )
 {
     const struct dj_tests_starttls_side verifier = d_tests_starttls_verifier();
@@ -588,7 +589,7 @@ d_tests_starttls_pair_of(
     if (!d_tests_starttls_context(_server_tls,
                                   &server))
     {
-        d_ssl_context_destroy(_client_tls);
+        d_tls_context_destroy(_client_tls);
 
         return false;
     }
@@ -612,14 +613,14 @@ bool d_tests_starttls_conversation(
     const char*                      _server_name
 )
 {
-    struct dj_ssl_context client_tls = { .engine = NULL };
-    struct dj_ssl_context server_tls = { .engine = NULL };
+    struct dj_tls_context client_tls = { .engine = NULL };
+    struct dj_tls_context server_tls = { .engine = NULL };
 
     if (!d_tests_starttls_pair_of(&client_tls,
                                   &server_tls,
                                   _cert_file,
                                   _key_file,
-                                  D_SSL_VERSION_NONE))
+                                  D_TLS_VERSION_NONE))
     {
         return false;
     }
@@ -633,21 +634,21 @@ bool d_tests_starttls_conversation(
     const bool met = d_tests_starttls_meet(_client,
                                            _server);
 
-    d_ssl_context_destroy(&client_tls);
-    d_ssl_context_destroy(&server_tls);
+    d_tls_context_destroy(&client_tls);
+    d_tls_context_destroy(&server_tls);
 
     return met;
 }
 
 /*
-d_tests_sa_starttls_openssl_starttls
+d_tests_starttls_openssl_starttls
   Tests the following:
   - a greeting, STARTTLS, and the go-ahead in plaintext; then a verified
     handshake for localhost, and a line each way under TLS
   - the server's close_notify reaches the client as an orderly close
 */
-bool d_tests_sa_starttls_openssl_starttls(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_openssl_starttls(
+    struct dj_test_suite* _suite
 )
 {
     const char* const              TEST   = "OpenSSL STARTTLS";
@@ -660,28 +661,28 @@ bool d_tests_sa_starttls_openssl_starttls(
                                                    g_pki.server_key,
                                                    "localhost");
 
-    return d_tests_net_assert( (met) &&
+    return D_TESTS_NET_ASSERT( (met) &&
                                (d_tests_starttls_completed(&client,
                                                            &server)),
                                TEST,
                                "upgraded, verified, a line each way, closed",
-                               _counter);
+                               _suite);
 }
 
 /*
-d_tests_sa_starttls_openssl_implicit
+d_tests_starttls_openssl_implicit
   Tests the following:
   - implicit TLS: both sides upgrade first thing
   - an IP literal is verified against the certificate's addresses
   - a server whose floor is TLS 1.3 still meets a default client
 */
-bool d_tests_sa_starttls_openssl_implicit(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_openssl_implicit(
+    struct dj_test_suite* _suite
 )
 {
     const char* const              TEST       = "OpenSSL implicit TLS";
-    struct dj_ssl_context           client_tls = { .engine = NULL };
-    struct dj_ssl_context           server_tls = { .engine = NULL };
+    struct dj_tls_context           client_tls = { .engine = NULL };
+    struct dj_tls_context           server_tls = { .engine = NULL };
     struct dj_tests_starttls_client client     = { .socket = -1 };
     struct dj_tests_starttls_server server     = { .socket = -1 };
     bool                           met        = false;
@@ -690,7 +691,7 @@ bool d_tests_sa_starttls_openssl_implicit(
                                  &server_tls,
                                  g_pki.server_cert,
                                  g_pki.server_key,
-                                 D_SSL_VERSION_TLS1_3))
+                                 D_TLS_VERSION_TLS1_3))
     {
         d_tests_starttls_parties(&client,
                                  &server,
@@ -701,16 +702,16 @@ bool d_tests_sa_starttls_openssl_implicit(
         server.implicit = true;
         met             = d_tests_starttls_meet(&client,
                                                 &server);
-        d_ssl_context_destroy(&client_tls);
-        d_ssl_context_destroy(&server_tls);
+        d_tls_context_destroy(&client_tls);
+        d_tls_context_destroy(&server_tls);
     }
 
-    return d_tests_net_assert( (met) &&
+    return D_TESTS_NET_ASSERT( (met) &&
                                (d_tests_starttls_completed(&client,
                                                            &server)),
                                TEST,
                                "implicit TLS to 127.0.0.1 at a 1.3 floor",
-                               _counter);
+                               _suite);
 }
 
 /*
@@ -744,14 +745,14 @@ bool d_tests_starttls_refuses(
 }
 
 /*
-d_tests_sa_starttls_openssl_verify
+d_tests_starttls_openssl_verify
   Tests the following:
   - a certificate for another name, from an untrusted CA, or expired, is
     refused with D_STARTTLS_ERROR_VERIFY and the reason as its detail; so is
     an IP literal the certificate does not carry
 */
-bool d_tests_sa_starttls_openssl_verify(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_openssl_verify(
+    struct dj_test_suite* _suite
 )
 {
     const char* const TEST   = "OpenSSL verification";
@@ -774,34 +775,34 @@ bool d_tests_sa_starttls_openssl_verify(
                                                   "127.0.0.2",
                                                   "mismatch");
 
-    result = d_tests_net_assert(named,
+    result = D_TESTS_NET_ASSERT(named,
                                 TEST,
                                 "a certificate for another name",
-                                _counter) && result;
-    result = d_tests_net_assert(rogue,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(rogue,
                                 TEST,
                                 "a certificate from an untrusted CA",
-                                _counter) && result;
-    result = d_tests_net_assert(expired,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(expired,
                                 TEST,
                                 "an expired certificate",
-                                _counter) && result;
-    result = d_tests_net_assert(address,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(address,
                                 TEST,
                                 "an IP address the certificate lacks",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }
 
 /*
-d_tests_sa_starttls_openssl_unverified
+d_tests_starttls_openssl_unverified
   Tests the following:
   - a client that does not verify, and names no server, accepts a
     certificate from an untrusted CA
 */
-bool d_tests_sa_starttls_openssl_unverified(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_openssl_unverified(
+    struct dj_test_suite* _suite
 )
 {
     const char* const                  TEST       = "OpenSSL unverified";
@@ -812,13 +813,13 @@ bool d_tests_sa_starttls_openssl_unverified(
         .ca_file     = NULL,
         .cert_file   = NULL,
         .key_file    = NULL,
-        .min_version = D_SSL_VERSION_NONE
+        .min_version = D_TLS_VERSION_NONE
     };
     const struct dj_tests_starttls_side rogue      =
         d_tests_starttls_presenter(g_pki.rogue_cert,
                                    g_pki.rogue_key);
-    struct dj_ssl_context               client_tls = { .engine = NULL };
-    struct dj_ssl_context               server_tls = { .engine = NULL };
+    struct dj_tls_context               client_tls = { .engine = NULL };
+    struct dj_tls_context               server_tls = { .engine = NULL };
     struct dj_tests_starttls_client     client     = { .socket = -1 };
     struct dj_tests_starttls_server     server     = { .socket = -1 };
     bool                               accepted   = false;
@@ -840,28 +841,28 @@ bool d_tests_sa_starttls_openssl_unverified(
                                                  &server)) );
     }
 
-    d_ssl_context_destroy(&client_tls);
-    d_ssl_context_destroy(&server_tls);
+    d_tls_context_destroy(&client_tls);
+    d_tls_context_destroy(&server_tls);
 
-    return d_tests_net_assert(accepted,
+    return D_TESTS_NET_ASSERT(accepted,
                               TEST,
                               "a client that does not verify accepts it",
-                              _counter);
+                              _suite);
 }
 
 /*
-d_tests_sa_starttls_openssl_truncation
+d_tests_starttls_openssl_truncation
   Tests the following:
   - a server that ends without close_notify leaves the client with a fatal
     D_STARTTLS_ERROR_TRUNCATED, after the data that did arrive
 */
-bool d_tests_sa_starttls_openssl_truncation(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_openssl_truncation(
+    struct dj_test_suite* _suite
 )
 {
     const char* const              TEST       = "OpenSSL truncation";
-    struct dj_ssl_context           client_tls = { .engine = NULL };
-    struct dj_ssl_context           server_tls = { .engine = NULL };
+    struct dj_tls_context           client_tls = { .engine = NULL };
+    struct dj_tls_context           server_tls = { .engine = NULL };
     struct dj_tests_starttls_client client     = { .socket = -1 };
     struct dj_tests_starttls_server server     = { .socket = -1 };
     bool                           met        = false;
@@ -870,7 +871,7 @@ bool d_tests_sa_starttls_openssl_truncation(
                                  &server_tls,
                                  g_pki.server_cert,
                                  g_pki.server_key,
-                                 D_SSL_VERSION_NONE))
+                                 D_TLS_VERSION_NONE))
     {
         d_tests_starttls_parties(&client,
                                  &server,
@@ -880,18 +881,18 @@ bool d_tests_sa_starttls_openssl_truncation(
         server.truncate = true;
         met             = d_tests_starttls_meet(&client,
                                                 &server);
-        d_ssl_context_destroy(&client_tls);
-        d_ssl_context_destroy(&server_tls);
+        d_tls_context_destroy(&client_tls);
+        d_tls_context_destroy(&server_tls);
     }
 
-    return d_tests_net_assert( (met)                                      &&
+    return D_TESTS_NET_ASSERT( (met)                                      &&
                                (client.upgrade == D_STARTTLS_OK)          &&
                                (client.reply == D_STARTTLS_OK)            &&
                                (client.end == D_STARTTLS_ERROR_TRUNCATED) &&
                                (server.read == D_STARTTLS_OK),
                                TEST,
                                "an end without close_notify is truncation",
-                               _counter);
+                               _suite);
 }
 
 /*
@@ -908,15 +909,15 @@ bool d_tests_starttls_injected(
     bool                             _reject
 )
 {
-    struct dj_ssl_context client_tls = { .engine = NULL };
-    struct dj_ssl_context server_tls = { .engine = NULL };
+    struct dj_tls_context client_tls = { .engine = NULL };
+    struct dj_tls_context server_tls = { .engine = NULL };
     bool                 met        = false;
 
     if (d_tests_starttls_pair_of(&client_tls,
                                  &server_tls,
                                  g_pki.server_cert,
                                  g_pki.server_key,
-                                 D_SSL_VERSION_NONE))
+                                 D_TLS_VERSION_NONE))
     {
         d_tests_starttls_parties(_client,
                                  _server,
@@ -928,15 +929,15 @@ bool d_tests_starttls_injected(
         _client->reject_leftover = _reject;
         met                      = d_tests_starttls_meet(_client,
                                                          _server);
-        d_ssl_context_destroy(&client_tls);
-        d_ssl_context_destroy(&server_tls);
+        d_tls_context_destroy(&client_tls);
+        d_tls_context_destroy(&server_tls);
     }
 
     return met;
 }
 
 /*
-d_tests_sa_starttls_openssl_injection
+d_tests_starttls_openssl_injection
   Tests the following:
   - a server that appends plaintext to its go-ahead is refused with
     D_STARTTLS_ERROR_INJECTION, whether the client's reply read buffered it
@@ -944,8 +945,8 @@ d_tests_sa_starttls_openssl_injection
   - with reject_leftover off, the client drops it, counts it, and completes
     the handshake
 */
-bool d_tests_sa_starttls_openssl_injection(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_openssl_injection(
+    struct dj_test_suite* _suite
 )
 {
     const char* const              TEST   = "OpenSSL injection";
@@ -973,18 +974,18 @@ bool d_tests_sa_starttls_openssl_injection(
                                                         &server)) &&
                             (client.discarded == 14) );
 
-    result = d_tests_net_assert(buffered,
+    result = D_TESTS_NET_ASSERT(buffered,
                                 TEST,
                                 "appended plaintext, buffered, is refused",
-                                _counter) && result;
-    result = d_tests_net_assert(waiting,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(waiting,
                                 TEST,
                                 "appended plaintext in the socket too",
-                                _counter) && result;
-    result = d_tests_net_assert(dropped,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(dropped,
                                 TEST,
                                 "or dropped and counted when allowed",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }
@@ -1080,18 +1081,18 @@ bool d_tests_starttls_attack(
 }
 
 /*
-d_tests_sa_starttls_openssl_pipelined
+d_tests_starttls_openssl_pipelined
   Tests the following:
   - a server refuses a command pipelined after STARTTLS, the injection of
     CVE-2011-0411, after sending its go-ahead and nothing more
 */
-bool d_tests_sa_starttls_openssl_pipelined(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_openssl_pipelined(
+    struct dj_test_suite* _suite
 )
 {
     const char* const              TEST       = "OpenSSL pipelined command";
-    struct dj_ssl_context           client_tls = { .engine = NULL };
-    struct dj_ssl_context           server_tls = { .engine = NULL };
+    struct dj_tls_context           client_tls = { .engine = NULL };
+    struct dj_tls_context           server_tls = { .engine = NULL };
     struct dj_tests_starttls_client client     = { .socket = -1 };
     struct dj_tests_starttls_server server     = { .socket = -1 };
     char                           heard[256] = { 0 };
@@ -1101,7 +1102,7 @@ bool d_tests_sa_starttls_openssl_pipelined(
                                  &server_tls,
                                  g_pki.server_cert,
                                  g_pki.server_key,
-                                 D_SSL_VERSION_NONE))
+                                 D_TLS_VERSION_NONE))
     {
         d_tests_starttls_parties(&client,
                                  &server,
@@ -1116,14 +1117,14 @@ bool d_tests_sa_starttls_openssl_pipelined(
                                    "220 localhost ESMTP\r\n"
                                    "220 Go ahead\r\n") == 0)        &&
                            (server.upgrade == D_STARTTLS_ERROR_INJECTION) );
-        d_ssl_context_destroy(&client_tls);
-        d_ssl_context_destroy(&server_tls);
+        d_tls_context_destroy(&client_tls);
+        d_tls_context_destroy(&server_tls);
     }
 
-    return d_tests_net_assert(refused,
+    return D_TESTS_NET_ASSERT(refused,
                               TEST,
                               "a server refuses a pipelined command",
-                              _counter);
+                              _suite);
 }
 
 /*
@@ -1134,9 +1135,9 @@ or none are made.
 */
 static
 bool d_tests_starttls_demanding(
-    struct dj_ssl_context* _server_tls,
-    struct dj_ssl_context* _holder_tls,
-    struct dj_ssl_context* _stranger_tls
+    struct dj_tls_context* _server_tls,
+    struct dj_tls_context* _holder_tls,
+    struct dj_tls_context* _stranger_tls
 )
 {
     const struct dj_tests_starttls_side strict   =
@@ -1146,7 +1147,7 @@ bool d_tests_starttls_demanding(
         .ca_file     = g_pki.ca,
         .cert_file   = g_pki.server_cert,
         .key_file    = g_pki.server_key,
-        .min_version = D_SSL_VERSION_NONE
+        .min_version = D_TLS_VERSION_NONE
     };
     const struct dj_tests_starttls_side holder   =
     {
@@ -1155,7 +1156,7 @@ bool d_tests_starttls_demanding(
         .ca_file     = g_pki.ca,
         .cert_file   = g_pki.client_cert,
         .key_file    = g_pki.client_key,
-        .min_version = D_SSL_VERSION_NONE
+        .min_version = D_TLS_VERSION_NONE
     };
     const struct dj_tests_starttls_side stranger = d_tests_starttls_verifier();
 
@@ -1170,29 +1171,29 @@ bool d_tests_starttls_demanding(
     // a context made before one that failed is not left behind
     if (!made)
     {
-        d_ssl_context_destroy(_server_tls);
-        d_ssl_context_destroy(_holder_tls);
-        d_ssl_context_destroy(_stranger_tls);
+        d_tls_context_destroy(_server_tls);
+        d_tls_context_destroy(_holder_tls);
+        d_tls_context_destroy(_stranger_tls);
     }
 
     return made;
 }
 
 /*
-d_tests_sa_starttls_openssl_client_cert
+d_tests_starttls_openssl_client_cert
   Tests the following:
   - a verifying server accepts a client certificate from the run's CA
   - and fails a client that presents none, which then cannot use the
     connection either
 */
-bool d_tests_sa_starttls_openssl_client_cert(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_openssl_client_cert(
+    struct dj_test_suite* _suite
 )
 {
     const char* const              TEST         = "OpenSSL client certificates";
-    struct dj_ssl_context           strict_tls   = { .engine = NULL };
-    struct dj_ssl_context           holder_tls   = { .engine = NULL };
-    struct dj_ssl_context           stranger_tls = { .engine = NULL };
+    struct dj_tls_context           strict_tls   = { .engine = NULL };
+    struct dj_tls_context           holder_tls   = { .engine = NULL };
+    struct dj_tls_context           stranger_tls = { .engine = NULL };
     struct dj_tests_starttls_client client       = { .socket = -1 };
     struct dj_tests_starttls_server server       = { .socket = -1 };
     bool                           accepted     = false;
@@ -1224,19 +1225,19 @@ bool d_tests_sa_starttls_openssl_client_cert(
               (server.upgrade != D_TESTS_STARTTLS_UNREACHED) &&
               ( (client.upgrade != D_STARTTLS_OK) ||
                 (client.reply != D_STARTTLS_OK) ) );
-        d_ssl_context_destroy(&strict_tls);
-        d_ssl_context_destroy(&holder_tls);
-        d_ssl_context_destroy(&stranger_tls);
+        d_tls_context_destroy(&strict_tls);
+        d_tls_context_destroy(&holder_tls);
+        d_tls_context_destroy(&stranger_tls);
     }
 
-    result = d_tests_net_assert(accepted,
+    result = D_TESTS_NET_ASSERT(accepted,
                                 TEST,
                                 "a client certificate from the CA is taken",
-                                _counter) && result;
-    result = d_tests_net_assert(turned_away,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(turned_away,
                                 TEST,
                                 "a client without one is turned away",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }

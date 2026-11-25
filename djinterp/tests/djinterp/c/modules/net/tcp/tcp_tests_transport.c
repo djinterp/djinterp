@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][net]                                        tcp_tests_transport.c
 *
-* Standalone tests of TCP connections and listeners, one thread each.
+* Tests of TCP connections and listeners, one thread each.
 *   Everything here fits in one thread: a connect completes into the
 * listener's backlog before accept is called, and the texts exchanged are far
 * smaller than a socket buffer.
@@ -981,7 +981,7 @@ endpoint as ADDRESS_INVALID, as tcp.h says, leaving no path behind.
 static
 bool d_tests_tcp_unix_refused(
     const char*             _test,
-    struct dj_test_suite* _suite
+    struct dj_test_suite*   _suite
 )
 {
     struct dj_tcp_listener   listener   = { .socket = D_TCP_SOCKET_INVALID };

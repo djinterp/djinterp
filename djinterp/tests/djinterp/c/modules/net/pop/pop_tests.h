@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][net]                                                  pop_tests.h
 *
-* Standalone tests of the POP3 kernel where it meets net.h: the send
+* Tests of the POP3 kernel where it meets net.h: the send
 * helpers, the reader over a connection, and the errors a connection's
 * become here.
 *   The connections are net_memory.h's - a memory stream playing a scripted

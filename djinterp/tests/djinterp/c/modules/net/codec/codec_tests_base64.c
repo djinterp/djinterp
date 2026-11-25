@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][net]                                         codec_tests_base64.c
 *
-* Standalone tests of codec_base64.h: RFC 4648's vectors in every variant,
+* Tests of codec_base64.h: RFC 4648's vectors in every variant,
 * the refusals of strict, unpadded and canonical decoding, PEM's whitespace,
 * IMAP's alphabet one character at a time, lengths, measuring, buffers too
 * small, and a round trip of every length.

@@ -1,15 +1,15 @@
 /*******************************************************************************
-* djinterp [c][net]                                       ssh_tests_sa_support.c
+* djinterp [c][net]                                          ssh_tests_support.c
 *
 * The SSH suite's fixture: a session over the toy engine with one channel.
 *
 *
-* path:      /tests/djinterp/c/modules/net/ssh/ssh_tests_sa_support.c
+* path:      /tests/djinterp/c/modules/net/ssh/ssh_tests_support.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
 *                                                            revised: 2026.10.14
 *******************************************************************************/
-#include "./ssh_tests_sa.h"  // corresponding header
+#include "./ssh_tests.h"  // corresponding header
 // std
 #include <string.h>  // memset
 

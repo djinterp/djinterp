@@ -1,19 +1,20 @@
 /*******************************************************************************
-* djinterp [c][net]                                  starttls_tests_sa_upgrade.c
+* djinterp [c][net]                                     starttls_tests_upgrade.c
 *
-* Standalone tests of STARTTLS negotiation and the upgrade, against a
-* scripted peer and the SSL kernel's toy engine: the policies at the two
+* Tests of STARTTLS negotiation and the upgrade, against a
+* scripted peer and the TLS kernel's toy engine: the policies at the two
 * points where TLS can be lost, the upgrade on either side, the refusal of
 * plaintext left waiting at the switch, the failures of the TLS session, and
 * the end of a secure stream.
 *
 *
-* path:      /tests/djinterp/c/modules/net/starttls/starttls_tests_sa_upgrade.c
+* path:      /tests/djinterp/c/modules/net/starttls/starttls_tests_upgrade.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.07
 *                                                            revised: 2026.10.13
 *******************************************************************************/
-#include "./starttls_tests_sa.h"  // the suite
+#include "./starttls_tests.h"  // the suite
+#include "../../../../../../inc/djinterp/c/modules/test/test_suite.h"  // DTest
 // std
 #include <stdio.h>   // snprintf
 #include <string.h>  // memcpy, memset, strcmp
@@ -138,14 +139,14 @@ d_tests_starttls_ended(
 }
 
 /*
-d_tests_sa_starttls_policy_offer
+d_tests_starttls_policy_offer
   Tests the following:
   - REQUIRED without an offer fails, and sends nothing
   - OPPORTUNISTIC without an offer continues in plaintext
   - DISABLED does nothing, even when offered
 */
-bool d_tests_sa_starttls_policy_offer(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_policy_offer(
+    struct dj_test_suite* _suite
 )
 {
     const char* const TEST   = "policy and offer";
@@ -170,7 +171,7 @@ bool d_tests_sa_starttls_policy_offer(
                                      D_STARTTLS_OK,
                                      D_STARTTLS_OK);
 
-    result = d_tests_net_assert( (d_tests_starttls_ended(
+    result = D_TESTS_NET_ASSERT( (d_tests_starttls_ended(
                                       &stripped,
                                       D_STARTTLS_ERROR_NOT_OFFERED,
                                       D_STARTTLS_STATE_FAILED,
@@ -179,8 +180,8 @@ bool d_tests_sa_starttls_policy_offer(
                                  (stripped.requests == 0),
                                  TEST,
                                  "REQUIRED without an offer fails, silently",
-                                 _counter) && result;
-    result = d_tests_net_assert(d_tests_starttls_ended(
+                                 _suite) && result;
+    result = D_TESTS_NET_ASSERT(d_tests_starttls_ended(
                                     &missing,
                                     D_STARTTLS_OK,
                                     D_STARTTLS_STATE_PLAINTEXT,
@@ -188,8 +189,8 @@ bool d_tests_sa_starttls_policy_offer(
                                     ""),
                                 TEST,
                                 "OPPORTUNISTIC without an offer stays plain",
-                                _counter) && result;
-    result = d_tests_net_assert( (d_tests_starttls_ended(
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT( (d_tests_starttls_ended(
                                       &disabled,
                                       D_STARTTLS_OK,
                                       D_STARTTLS_STATE_PLAINTEXT,
@@ -198,19 +199,19 @@ bool d_tests_sa_starttls_policy_offer(
                                  (disabled.requests == 0),
                                  TEST,
                                  "DISABLED does nothing, even when offered",
-                                 _counter) && result;
+                                 _suite) && result;
 
     return result;
 }
 
 /*
-d_tests_sa_starttls_policy_reply
+d_tests_starttls_policy_reply
   Tests the following:
   - a refusal fails REQUIRED and leaves OPPORTUNISTIC in plaintext
   - a reply no negotiator can classify is fatal under every policy
 */
-bool d_tests_sa_starttls_policy_reply(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_policy_reply(
+    struct dj_test_suite* _suite
 )
 {
     const char* const TEST    = "policy and reply";
@@ -243,7 +244,7 @@ bool d_tests_sa_starttls_policy_reply(
                                      D_STARTTLS_OK,
                                      D_STARTTLS_OK);
 
-    result = d_tests_net_assert(d_tests_starttls_ended(
+    result = D_TESTS_NET_ASSERT(d_tests_starttls_ended(
                                     &refused,
                                     D_STARTTLS_ERROR_REJECTED,
                                     D_STARTTLS_STATE_FAILED,
@@ -251,8 +252,8 @@ bool d_tests_sa_starttls_policy_reply(
                                     "STARTTLS\r\n"),
                                 TEST,
                                 "REQUIRED and refused fails",
-                                _counter) && result;
-    result = d_tests_net_assert(d_tests_starttls_ended(
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(d_tests_starttls_ended(
                                     &declined,
                                     D_STARTTLS_OK,
                                     D_STARTTLS_STATE_PLAINTEXT,
@@ -260,8 +261,8 @@ bool d_tests_sa_starttls_policy_reply(
                                     "STARTTLS\r\n"),
                                 TEST,
                                 "OPPORTUNISTIC and refused stays plain",
-                                _counter) && result;
-    result = d_tests_net_assert( (d_tests_starttls_ended(
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT( (d_tests_starttls_ended(
                                       &garbled,
                                       D_STARTTLS_ERROR_PROTOCOL,
                                       D_STARTTLS_STATE_FAILED,
@@ -275,19 +276,19 @@ bool d_tests_sa_starttls_policy_reply(
                                       "STARTTLS\r\n")),
                                  TEST,
                                  "an unclassifiable reply is always fatal",
-                                 _counter) && result;
+                                 _suite) && result;
 
     return result;
 }
 
 /*
-d_tests_sa_starttls_policy_callbacks
+d_tests_starttls_policy_callbacks
   Tests the following:
   - a failure inside either callback is fatal whatever the policy
   - a reply to proceed upgrades at once
 */
-bool d_tests_sa_starttls_policy_callbacks(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_policy_callbacks(
+    struct dj_test_suite* _suite
 )
 {
     const char* const TEST     = "policy and callbacks";
@@ -313,7 +314,7 @@ bool d_tests_sa_starttls_policy_callbacks(
                                      D_STARTTLS_OK,
                                      D_STARTTLS_OK);
 
-    result = d_tests_net_assert( (d_tests_starttls_ended(
+    result = D_TESTS_NET_ASSERT( (d_tests_starttls_ended(
                                       &unsent,
                                       D_STARTTLS_ERROR_TRANSPORT,
                                       D_STARTTLS_STATE_FAILED,
@@ -327,8 +328,8 @@ bool d_tests_sa_starttls_policy_callbacks(
                                       "STARTTLS\r\n")),
                                  TEST,
                                  "a failing callback is fatal",
-                                 _counter) && result;
-    result = d_tests_net_assert(d_tests_starttls_ended(
+                                 _suite) && result;
+    result = D_TESTS_NET_ASSERT(d_tests_starttls_ended(
                                     &upgraded,
                                     D_STARTTLS_OK,
                                     D_STARTTLS_STATE_SECURE,
@@ -337,20 +338,20 @@ bool d_tests_sa_starttls_policy_callbacks(
                                     D_TESTS_NET_TOY_HELLO),
                                 TEST,
                                 "the go-ahead upgrades at once",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }
 
 /*
-d_tests_sa_starttls_negotiate_refusals
+d_tests_starttls_negotiate_refusals
   Tests the following:
   - NULL arguments and a negotiator without a request are refused
   - a server cannot negotiate: it grants with an upgrade instead
   - none of these sends anything or changes the session
 */
-bool d_tests_sa_starttls_negotiate_refusals(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_negotiate_refusals(
+    struct dj_test_suite* _suite
 )
 {
     const char* const                   TEST       = "negotiate refusals";
@@ -406,10 +407,10 @@ bool d_tests_sa_starttls_negotiate_refusals(
 
     d_starttls_destroy(&session);
     d_tests_starttls_fixture_close(&fixture);
-    result = d_tests_net_assert(refuses,
+    result = D_TESTS_NET_ASSERT(refuses,
                                 TEST,
                                 "NULLs, a partial negotiator, and a server",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }
@@ -481,7 +482,7 @@ bool d_tests_starttls_made_for(
 }
 
 /*
-d_tests_sa_starttls_upgrade_client
+d_tests_starttls_upgrade_client
   Tests the following:
   - a negotiation the peer accepts makes the session secure at epoch 1,
     satisfied, with no detail, after one request and one reply
@@ -491,8 +492,8 @@ d_tests_sa_starttls_upgrade_client
     sent as SNI
   - a second upgrade or negotiation is refused
 */
-bool d_tests_sa_starttls_upgrade_client(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_upgrade_client(
+    struct dj_test_suite* _suite
 )
 {
     const char* const               TEST    = "client upgrade";
@@ -545,22 +546,22 @@ bool d_tests_sa_starttls_upgrade_client(
 
     d_starttls_destroy(&session);
     d_tests_starttls_fixture_close(&fixture);
-    result = d_tests_net_assert(secure,
+    result = D_TESTS_NET_ASSERT(secure,
                                 TEST,
                                 "secure at epoch 1, satisfied, no detail",
-                                _counter) && result;
-    result = d_tests_net_assert(forgotten,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(forgotten,
                                 TEST,
                                 "on_upgrade runs once, after the switch",
-                                _counter) && result;
-    result = d_tests_net_assert(named,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(named,
                                 TEST,
                                 "TLS is made for the configured name",
-                                _counter) && result;
-    result = d_tests_net_assert(once,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(once,
                                 TEST,
                                 "a second upgrade or negotiation is refused",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }
@@ -588,15 +589,15 @@ bool d_tests_starttls_notifies(
 }
 
 /*
-d_tests_sa_starttls_secure_traffic
+d_tests_starttls_secure_traffic
   Tests the following:
   - after the upgrade, lines travel sealed both ways
   - the peer's close_notify is an orderly end that leaves the session secure
   - closing sends close_notify, then closes the connection; destroying
     frees the TLS session
 */
-bool d_tests_sa_starttls_secure_traffic(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_secure_traffic(
+    struct dj_test_suite* _suite
 )
 {
     const char* const               TEST         = "secure traffic";
@@ -651,33 +652,33 @@ bool d_tests_sa_starttls_secure_traffic(
 
     d_starttls_destroy(&session);
     d_tests_starttls_fixture_close(&fixture);
-    result = d_tests_net_assert(sealed,
+    result = D_TESTS_NET_ASSERT(sealed,
                                 TEST,
                                 "lines travel sealed both ways",
-                                _counter) && result;
-    result = d_tests_net_assert(ended,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(ended,
                                 TEST,
                                 "the peer's close_notify is an orderly end",
-                                _counter) && result;
-    result = d_tests_net_assert( (notified) &&
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT( (notified) &&
                                  (fixture.toy.destroys == 1),
                                  TEST,
                                  "close sends close_notify; destroy frees",
-                                 _counter) && result;
+                                 _suite) && result;
 
     return result;
 }
 
 /*
-d_tests_sa_starttls_upgrade_server
+d_tests_starttls_upgrade_server
   Tests the following:
   - a server reads the request, grants it, and upgrades: its TLS session
     names no server, even with a name in its options, and the session is
     secure at epoch 1
   - the client's next line arrives sealed and is read in the clear
 */
-bool d_tests_sa_starttls_upgrade_server(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_upgrade_server(
+    struct dj_test_suite* _suite
 )
 {
     const char* const               TEST    = "server upgrade";
@@ -732,26 +733,26 @@ bool d_tests_sa_starttls_upgrade_server(
 
     d_starttls_destroy(&session);
     d_tests_starttls_fixture_close(&fixture);
-    result = d_tests_net_assert(granted,
+    result = D_TESTS_NET_ASSERT(granted,
                                 TEST,
                                 "a server grants and upgrades, unnamed",
-                                _counter) && result;
-    result = d_tests_net_assert(heard,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(heard,
                                 TEST,
                                 "the client's next line arrives sealed",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }
 
 /*
-d_tests_sa_starttls_upgrade_implicit
+d_tests_starttls_upgrade_implicit
   Tests the following:
   - implicit TLS: a client upgrades as the first thing it does, sending
     only its handshake
 */
-bool d_tests_sa_starttls_upgrade_implicit(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_upgrade_implicit(
+    struct dj_test_suite* _suite
 )
 {
     const char* const               TEST    = "implicit upgrade";
@@ -779,10 +780,10 @@ bool d_tests_sa_starttls_upgrade_implicit(
 
     d_starttls_destroy(&session);
     d_tests_starttls_fixture_close(&fixture);
-    result = d_tests_net_assert(implicit,
+    result = D_TESTS_NET_ASSERT(implicit,
                                 TEST,
                                 "implicit TLS upgrades at once",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }
@@ -874,7 +875,7 @@ d_tests_starttls_leftover_case(
 }
 
 /*
-d_tests_sa_starttls_injection_client
+d_tests_starttls_injection_client
   Tests the following:
   - a client refuses plaintext the peer sent after its go-ahead, whether
     the reply's read already buffered it or it still waits in the
@@ -884,8 +885,8 @@ d_tests_sa_starttls_injection_client
     sniff then finds the stray bytes are not TLS
   - a connection whose count is refused is taken as unable to count
 */
-bool d_tests_sa_starttls_injection_client(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_injection_client(
+    struct dj_test_suite* _suite
 )
 {
     const char* const                      TEST     = "client injection";
@@ -910,42 +911,42 @@ bool d_tests_sa_starttls_injection_client(
                                                    &discarded);
     }
 
-    result = d_tests_net_assert( (status[0] == D_STARTTLS_ERROR_INJECTION) &&
+    result = D_TESTS_NET_ASSERT( (status[0] == D_STARTTLS_ERROR_INJECTION) &&
                                  (creates[0] == 0)                         &&
                                  (status[4] == D_STARTTLS_ERROR_INJECTION) &&
                                  (creates[4] == 0),
                                  TEST,
                                  "buffered plaintext is refused, unencrypted",
-                                 _counter) && result;
-    result = d_tests_net_assert( (status[1] == D_STARTTLS_ERROR_INJECTION) &&
+                                 _suite) && result;
+    result = D_TESTS_NET_ASSERT( (status[1] == D_STARTTLS_ERROR_INJECTION) &&
                                  (creates[1] == 0),
                                  TEST,
                                  "plaintext waiting in the connection too",
-                                 _counter) && result;
-    result = d_tests_net_assert( (status[2] == D_STARTTLS_ERROR_HANDSHAKE) &&
+                                 _suite) && result;
+    result = D_TESTS_NET_ASSERT( (status[2] == D_STARTTLS_ERROR_HANDSHAKE) &&
                                  (creates[2] == 1),
                                  TEST,
                                  "uncounted, the handshake trips on it",
-                                 _counter) && result;
-    result = d_tests_net_assert( (status[3] == D_STARTTLS_OK) &&
+                                 _suite) && result;
+    result = D_TESTS_NET_ASSERT( (status[3] == D_STARTTLS_OK) &&
                                  (creates[3] == 1),
                                  TEST,
                                  "a count that fails is no count",
-                                 _counter) && result;
+                                 _suite) && result;
 
     return result;
 }
 
 /*
-d_tests_sa_starttls_leftover_dropped
+d_tests_starttls_leftover_dropped
   Tests the following:
   - with reject_leftover off, plaintext buffered past the go-ahead is
     dropped and counted, and the upgrade completes
   - so is plaintext still waiting in the connection, a single byte of it,
     or more of it than the receive buffer holds
 */
-bool d_tests_sa_starttls_leftover_dropped(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_leftover_dropped(
+    struct dj_test_suite* _suite
 )
 {
     const char* const TEST      = "leftover dropped";
@@ -976,23 +977,23 @@ bool d_tests_sa_starttls_leftover_dropped(
                                                    &dropped[i]);
     }
 
-    result = d_tests_net_assert( (status[0] == D_STARTTLS_OK) &&
+    result = D_TESTS_NET_ASSERT( (status[0] == D_STARTTLS_OK) &&
                                  (dropped[0] == 14),
                                  TEST,
                                  "buffered plaintext is dropped and counted",
-                                 _counter) && result;
-    result = d_tests_net_assert( (status[1] == D_STARTTLS_OK) &&
+                                 _suite) && result;
+    result = D_TESTS_NET_ASSERT( (status[1] == D_STARTTLS_OK) &&
                                  (dropped[1] == 14)           &&
                                  (status[3] == D_STARTTLS_OK) &&
                                  (dropped[3] == 1),
                                  TEST,
                                  "waiting plaintext is drained and counted",
-                                 _counter) && result;
-    result = d_tests_net_assert( (status[2] == D_STARTTLS_OK) &&
+                                 _suite) && result;
+    result = D_TESTS_NET_ASSERT( (status[2] == D_STARTTLS_OK) &&
                                  (dropped[2] == 1000),
                                  TEST,
                                  "more than the buffer holds is drained too",
-                                 _counter) && result;
+                                 _suite) && result;
 
     return result;
 }
@@ -1045,15 +1046,15 @@ d_tests_starttls_server_upgrade_after(
 }
 
 /*
-d_tests_sa_starttls_injection_server
+d_tests_starttls_injection_server
   Tests the following:
   - a server refuses what it buffered past the request - the injection of
     CVE-2011-0411 - before any TLS session exists
   - it does not look into the connection, where a client's first handshake
     bytes may already be waiting
 */
-bool d_tests_sa_starttls_injection_server(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_injection_server(
+    struct dj_test_suite* _suite
 )
 {
     const char* const TEST       = "server injection";
@@ -1070,16 +1071,16 @@ bool d_tests_sa_starttls_injection_server(
                                               D_TESTS_NET_TOY_HELLO,
                                               &creates[1]);
 
-    result = d_tests_net_assert( (pipelined == D_STARTTLS_ERROR_INJECTION) &&
+    result = D_TESTS_NET_ASSERT( (pipelined == D_STARTTLS_ERROR_INJECTION) &&
                                  (creates[0] == 0),
                                  TEST,
                                  "a server refuses a pipelined command",
-                                 _counter) && result;
-    result = d_tests_net_assert( (prompt == D_STARTTLS_OK) &&
+                                 _suite) && result;
+    result = D_TESTS_NET_ASSERT( (prompt == D_STARTTLS_OK) &&
                                  (creates[1] == 1),
                                  TEST,
                                  "a server lets a waiting ClientHello be",
-                                 _counter) && result;
+                                 _suite) && result;
 
     return result;
 }
@@ -1122,7 +1123,7 @@ d_tests_starttls_failing(
                                  D_TESTS_NET_TOY_HELLO,
                                  D_TESTS_NET_TOY_REPLY)) ) )
     {
-        _toy->role                         = D_SSL_ROLE_CLIENT;
+        _toy->role                         = D_TLS_ROLE_CLIENT;
         fixture.toy                        = *_toy;
         fixture.peer->hangs_up             = true;
         fixture.options.on_upgrade         = d_tests_starttls_forget;
@@ -1156,7 +1157,7 @@ d_tests_starttls_failing(
 }
 
 /*
-d_tests_sa_starttls_engine_failures
+d_tests_starttls_engine_failures
   Tests the following:
   - a TLS session the engine will not make fails the upgrade before any
     handshake: CONFIG, whatever the engine called it, or OUT_OF_MEMORY when
@@ -1168,26 +1169,26 @@ d_tests_sa_starttls_engine_failures
   - every failure is fatal and leaves the epoch at 0; on_upgrade never runs,
     a failed session sends no close_notify, and its TLS session is freed
 */
-bool d_tests_sa_starttls_engine_failures(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_engine_failures(
+    struct dj_test_suite* _suite
 )
 {
     const char* const              TEST       = "engine failures";
     struct dj_tests_net_toy         toys[7]    =
     {
-        { .create_status = D_SSL_OK }
+        { .create_status = D_TLS_OK }
     };
     struct dj_tests_starttls_forget forget     = { .calls = 0 };
     const char*                    details[7] = { NULL };
     enum dj_starttls_error          status[7]  = { D_STARTTLS_OK };
     bool                           result     = true;
 
-    toys[0].create_status    = D_SSL_ERROR_CONFIG;
-    toys[1].create_status    = D_SSL_ERROR_OUT_OF_MEMORY;
-    toys[2].verdict          = (uint32_t)D_SSL_VERIFY_FLAG_EXPIRED;
+    toys[0].create_status    = D_TLS_ERROR_CONFIG;
+    toys[1].create_status    = D_TLS_ERROR_OUT_OF_MEMORY;
+    toys[2].verdict          = (uint32_t)D_TLS_VERIFY_FLAG_EXPIRED;
     toys[3].cert_name        = "other.example";
-    toys[5].create_status    = D_SSL_ERROR_INVALID_ARGUMENT;
-    toys[6].handshake_status = D_SSL_ERROR_OUT_OF_MEMORY;
+    toys[5].create_status    = D_TLS_ERROR_INVALID_ARGUMENT;
+    toys[6].handshake_status = D_TLS_ERROR_OUT_OF_MEMORY;
 
     // each case; the fifth one's peer never answers the hello
     for (size_t i = 0; i < 7; ++i)
@@ -1207,11 +1208,11 @@ bool d_tests_sa_starttls_engine_failures(
           (details[5] == NULL)                          &&
           (status[6] == D_STARTTLS_ERROR_OUT_OF_MEMORY) );
 
-    result = d_tests_net_assert(unmade,
+    result = D_TESTS_NET_ASSERT(unmade,
                                 TEST,
                                 "a session not made, or out of memory",
-                                _counter) && result;
-    result = d_tests_net_assert( (status[2] == D_STARTTLS_ERROR_VERIFY) &&
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT( (status[2] == D_STARTTLS_ERROR_VERIFY) &&
                                  (details[2] != NULL)                   &&
                                  (strcmp(details[2],
                                          "expired") == 0)               &&
@@ -1223,19 +1224,19 @@ bool d_tests_sa_starttls_engine_failures(
                                  (toys[2].destroys == 1),
                                  TEST,
                                  "a refused certificate, with its reason",
-                                 _counter) && result;
-    result = d_tests_net_assert( (status[4] == D_STARTTLS_ERROR_HANDSHAKE) &&
+                                 _suite) && result;
+    result = D_TESTS_NET_ASSERT( (status[4] == D_STARTTLS_ERROR_HANDSHAKE) &&
                                  (details[4] != NULL)                      &&
                                  (strcmp(details[4],
                                          "TRUNCATED") == 0)                &&
                                  (toys[4].destroys == 1),
                                  TEST,
                                  "a peer that hangs up mid-handshake",
-                                 _counter) && result;
-    result = d_tests_net_assert(forget.calls == 0,
+                                 _suite) && result;
+    result = D_TESTS_NET_ASSERT(forget.calls == 0,
                                 TEST,
                                 "on_upgrade never runs for a failure",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }
@@ -1248,7 +1249,7 @@ d_tests_starttls_alerting
 static void
 d_tests_starttls_alerting(
     struct dj_tests_net_toy* _toy,
-    enum dj_ssl_error        _status,
+    enum dj_tls_error        _status,
     int32_t                 _sent,
     int32_t                 _received
 )
@@ -1282,7 +1283,7 @@ d_tests_starttls_failed_as(
 
 /*
 d_tests_starttls_detail_cases
-  The six engine records of d_tests_sa_starttls_failure_details: two
+  The six engine records of d_tests_starttls_failure_details: two
 certificates refused for more than one reason, three handshakes failed with
 alerts, and one failed by the engine's configuration.
 */
@@ -1291,29 +1292,29 @@ void d_tests_starttls_detail_cases(
     struct dj_tests_net_toy* _toys
 )
 {
-    _toys[0].verdict          = (uint32_t)(D_SSL_VERIFY_FLAG_EXPIRED |
-                                           D_SSL_VERIFY_FLAG_UNTRUSTED);
-    _toys[1].verdict          = (uint32_t)(D_SSL_VERIFY_FLAG_NOT_PERFORMED |
-                                           D_SSL_VERIFY_FLAG_EXPIRED);
-    _toys[5].handshake_status = D_SSL_ERROR_CONFIG;
+    _toys[0].verdict          = (uint32_t)(D_TLS_VERIFY_FLAG_EXPIRED |
+                                           D_TLS_VERIFY_FLAG_UNTRUSTED);
+    _toys[1].verdict          = (uint32_t)(D_TLS_VERIFY_FLAG_NOT_PERFORMED |
+                                           D_TLS_VERIFY_FLAG_EXPIRED);
+    _toys[5].handshake_status = D_TLS_ERROR_CONFIG;
     d_tests_starttls_alerting(&_toys[2],
-                              D_SSL_ERROR_HANDSHAKE,
-                              D_SSL_ALERT_NONE,
-                              D_SSL_ALERT_HANDSHAKE_FAILURE);
+                              D_TLS_ERROR_HANDSHAKE,
+                              D_TLS_ALERT_NONE,
+                              D_TLS_ALERT_HANDSHAKE_FAILURE);
     d_tests_starttls_alerting(&_toys[3],
-                              D_SSL_ERROR_PROTOCOL,
-                              D_SSL_ALERT_DECODE_ERROR,
-                              D_SSL_ALERT_NONE);
+                              D_TLS_ERROR_PROTOCOL,
+                              D_TLS_ALERT_DECODE_ERROR,
+                              D_TLS_ALERT_NONE);
     d_tests_starttls_alerting(&_toys[4],
-                              D_SSL_ERROR_HANDSHAKE,
-                              D_SSL_ALERT_DECODE_ERROR,
-                              D_SSL_ALERT_PROTOCOL_VERSION);
+                              D_TLS_ERROR_HANDSHAKE,
+                              D_TLS_ALERT_DECODE_ERROR,
+                              D_TLS_ALERT_PROTOCOL_VERSION);
 
     return;
 }
 
 /*
-d_tests_sa_starttls_failure_details
+d_tests_starttls_failure_details
   Tests the following:
   - a certificate refused for several reasons is described by the lowest of
     them, and one the engine also reports unchecked by the reason it failed
@@ -1322,14 +1323,14 @@ d_tests_sa_starttls_failure_details
     it is a handshake failure
   - a handshake failure the engine puts down to its configuration is CONFIG
 */
-bool d_tests_sa_starttls_failure_details(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_failure_details(
+    struct dj_test_suite* _suite
 )
 {
     const char* const              TEST       = "failure details";
     struct dj_tests_net_toy         toys[6]    =
     {
-        { .create_status = D_SSL_OK }
+        { .create_status = D_TLS_OK }
     };
     struct dj_tests_starttls_forget forget     = { .calls = 0 };
     const char*                    details[6] = { NULL };
@@ -1346,7 +1347,7 @@ bool d_tests_sa_starttls_failure_details(
                                              &details[i]);
     }
 
-    result = d_tests_net_assert( (d_tests_starttls_failed_as(
+    result = D_TESTS_NET_ASSERT( (d_tests_starttls_failed_as(
                                       status[0],
                                       details[0],
                                       D_STARTTLS_ERROR_VERIFY,
@@ -1358,8 +1359,8 @@ bool d_tests_sa_starttls_failure_details(
                                       "expired")),
                                  TEST,
                                  "a refused certificate's first reason",
-                                 _counter) && result;
-    result = d_tests_net_assert( (d_tests_starttls_failed_as(
+                                 _suite) && result;
+    result = D_TESTS_NET_ASSERT( (d_tests_starttls_failed_as(
                                       status[2],
                                       details[2],
                                       D_STARTTLS_ERROR_HANDSHAKE,
@@ -1376,27 +1377,27 @@ bool d_tests_sa_starttls_failure_details(
                                       "protocol_version")),
                                  TEST,
                                  "a failed handshake's alerts",
-                                 _counter) && result;
-    result = d_tests_net_assert(d_tests_starttls_failed_as(
+                                 _suite) && result;
+    result = D_TESTS_NET_ASSERT(d_tests_starttls_failed_as(
                                     status[5],
                                     details[5],
                                     D_STARTTLS_ERROR_CONFIG,
                                     "CONFIG"),
                                 TEST,
                                 "an engine's configuration is CONFIG",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }
 
 /*
-d_tests_sa_starttls_upgrade_disabled
+d_tests_starttls_upgrade_disabled
   Tests the following:
   - a session whose policy is DISABLED refuses to upgrade, and stays
     plaintext
 */
-bool d_tests_sa_starttls_upgrade_disabled(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_upgrade_disabled(
+    struct dj_test_suite* _suite
 )
 {
     const char* const         TEST    = "upgrade disabled";
@@ -1421,10 +1422,10 @@ bool d_tests_sa_starttls_upgrade_disabled(
 
     d_starttls_destroy(&session);
     d_tests_net_peer_free(peer);
-    result = d_tests_net_assert(refused,
+    result = D_TESTS_NET_ASSERT(refused,
                                 TEST,
                                 "an upgrade under DISABLED is refused",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }
@@ -1476,7 +1477,7 @@ bool d_tests_starttls_sealed_session(
 }
 
 /*
-d_tests_sa_starttls_secure_end
+d_tests_starttls_secure_end
   Tests the following:
   - bytes and lines sent after the upgrade go out sealed
   - a connection that ends without close_notify is
@@ -1484,8 +1485,8 @@ d_tests_sa_starttls_secure_end
     detail
   - closing a session that failed sends no close_notify
 */
-bool d_tests_sa_starttls_secure_end(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_secure_end(
+    struct dj_test_suite* _suite
 )
 {
     const char* const               TEST    = "secure end";
@@ -1521,18 +1522,18 @@ bool d_tests_sa_starttls_secure_end(
 
     d_starttls_destroy(&session);
     d_tests_starttls_fixture_close(&fixture);
-    result = d_tests_net_assert(upgraded,
+    result = D_TESTS_NET_ASSERT(upgraded,
                                 TEST,
                                 "bytes and lines go out sealed",
-                                _counter) && result;
-    result = d_tests_net_assert(truncated,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(truncated,
                                 TEST,
                                 "an end without close_notify is truncation",
-                                _counter) && result;
-    result = d_tests_net_assert(silent,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(silent,
                                 TEST,
                                 "a failed session closes without notifying",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }

@@ -2,7 +2,7 @@
 * djinterp [c][net]                                          smtp_tests_common.c
 *
 * djinterp SMTP kernel tests - protocol vocabulary.
-*   Standalone tests of smtp_common: buffers, reply parsing and formatting,
+*   Tests of smtp_common: buffers, reply parsing and formatting,
 * capability discovery, mailbox and domain validation, command and path
 * parsing, base64 against the RFC 4648 vectors, the DATA transparency
 * encoder fed in chunks of every size, and the mappings between SMTP's

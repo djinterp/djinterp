@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][net]                                      http_tests_vocabulary.c
 *
-* Standalone tests of http.h: methods, versions, status codes, reason
+* Tests of http.h: methods, versions, status codes, reason
 * phrases, field syntax, common names, and errors.
 *   Every registered status code is looked up, so the enumeration and the
 * reason table cannot drift apart unnoticed. Parsing is driven by tables of

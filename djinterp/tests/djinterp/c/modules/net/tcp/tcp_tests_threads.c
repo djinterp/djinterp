@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][net]                                          tcp_tests_threads.c
 *
-* Standalone tests of the TCP transport that need a second party.
+* Tests of the TCP transport that need a second party.
 *   A POSIX thread plays the peer: blocked in accept while the listener
 * closes, or writing and reading amounts well beyond a socket buffer while
 * the test thread does the other half. net.h's algorithms run over the

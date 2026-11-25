@@ -1,21 +1,22 @@
 /*******************************************************************************
-* djinterp [c][net]                                  starttls_tests_sa_session.c
+* djinterp [c][net]                                     starttls_tests_session.c
 *
-* Standalone tests of a STARTTLS session before any upgrade: its defaults,
+* Tests of a STARTTLS session before any upgrade: its defaults,
 * its initialization, lifecycle and queries, the names of its values, and
 * its line and byte I/O, each against a scripted peer.
 *
 *
-* path:      /tests/djinterp/c/modules/net/starttls/starttls_tests_sa_session.c
+* path:      /tests/djinterp/c/modules/net/starttls/starttls_tests_session.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.07
 *                                                            revised: 2026.11.04
 *******************************************************************************/
-#include "./starttls_tests_sa.h"  // the suite
+#include "./starttls_tests.h"  // the suite
 // std
 #include <string.h>  // memcmp, memcpy, memset, strcmp, strlen
 // re_std
 #include "../../../../../../inc/re_std/c/cstdint/dstdint.h"  // SIZE_MAX
+#include "../../../../../../inc/djinterp/c/modules/test/test_suite.h"  // DTest
 
 
 /*
@@ -42,14 +43,14 @@ void d_tests_starttls_repeat(
 }
 
 /*
-d_tests_sa_starttls_defaults
+d_tests_starttls_defaults
   Tests the following:
   - d_starttls_options_default takes every default from cfg_starttls.h,
     leaves the context, the server name, and the callback unset, borrows
     the connection, and keeps the role it is given
 */
-bool d_tests_sa_starttls_defaults(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_defaults(
+    struct dj_test_suite* _suite
 )
 {
     const char* const               TEST   = "defaults";
@@ -75,10 +76,10 @@ bool d_tests_sa_starttls_defaults(
           (server.buffer_bytes == client.buffer_bytes)                   &&
           (!server.owns_connection) );
 
-    return d_tests_net_assert(options,
+    return D_TESTS_NET_ASSERT(options,
                               TEST,
                               "options from cfg_starttls.h; borrowed",
-                              _counter);
+                              _suite);
 }
 
 /*
@@ -171,14 +172,14 @@ d_tests_starttls_answers(
 }
 
 /*
-d_tests_sa_starttls_init_arguments
+d_tests_starttls_init_arguments
   Tests the following:
   - a NULL session, options, or connection is refused
   - a connection without operations, or without read or write, is refused,
     and the session is left untouched
 */
-bool d_tests_sa_starttls_init_arguments(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_init_arguments(
+    struct dj_test_suite* _suite
 )
 {
     const char* const               TEST    = "init arguments";
@@ -189,13 +190,13 @@ bool d_tests_sa_starttls_init_arguments(
     };
     bool                            result  = true;
 
-    if (!d_tests_net_assert(d_tests_starttls_fixture_open(
+    if (!D_TESTS_NET_ASSERT(d_tests_starttls_fixture_open(
                                 &fixture,
                                 D_STARTTLS_ROLE_CLIENT,
                                 D_STARTTLS_POLICY_REQUIRED),
                             TEST,
                             "a fixture",
-                            _counter))
+                            _suite))
     {
         return false;
     }
@@ -233,27 +234,27 @@ bool d_tests_sa_starttls_init_arguments(
                                          D_STARTTLS_ERROR_INVALID_ARGUMENT)) );
 
     d_tests_starttls_fixture_close(&fixture);
-    result = d_tests_net_assert(nulls,
+    result = D_TESTS_NET_ASSERT(nulls,
                                 TEST,
                                 "a NULL session, options, or connection",
-                                _counter) && result;
-    result = d_tests_net_assert(streams,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(streams,
                                 TEST,
                                 "a connection without operations, read, write",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }
 
 /*
-d_tests_sa_starttls_init_values
+d_tests_starttls_init_values
   Tests the following:
   - zero-initialized options, a role or policy out of range, and a buffer
     below D_STARTTLS_BUFFER_MIN are refused; the minimum itself is accepted
   - a policy that allows TLS needs a context; DISABLED needs none
 */
-bool d_tests_sa_starttls_init_values(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_init_values(
+    struct dj_test_suite* _suite
 )
 {
     const char* const               TEST      = "init values";
@@ -278,13 +279,13 @@ bool d_tests_sa_starttls_init_values(
     struct dj_tests_starttls_fixture fixture   = { .peer = NULL };
     bool                            result    = true;
 
-    if (!d_tests_net_assert(d_tests_starttls_fixture_open(
+    if (!D_TESTS_NET_ASSERT(d_tests_starttls_fixture_open(
                                 &fixture,
                                 D_STARTTLS_ROLE_CLIENT,
                                 D_STARTTLS_POLICY_REQUIRED),
                             TEST,
                             "a fixture",
-                            _counter))
+                            _suite))
     {
         return false;
     }
@@ -315,14 +316,14 @@ bool d_tests_sa_starttls_init_values(
                                                    fixture.connection);
 
     d_tests_starttls_fixture_close(&fixture);
-    result = d_tests_net_assert(ranges,
+    result = D_TESTS_NET_ASSERT(ranges,
                                 TEST,
                                 "zeroed options; bad roles, policies, buffers",
-                                _counter) && result;
-    result = d_tests_net_assert(contexts,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(contexts,
                                 TEST,
                                 "TLS needs a context; DISABLED needs none",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }
@@ -337,9 +338,9 @@ are the contexts the second and the last use.
 static
 void d_tests_starttls_unusable(
     struct dj_starttls_options*             _options,
-    const struct dj_ssl_context*            _empty,
-    const struct dj_ssl_context*            _server,
-    const struct dj_ssl_context*            _trusting,
+    const struct dj_tls_context*            _empty,
+    const struct dj_tls_context*            _server,
+    const struct dj_tls_context*            _trusting,
     const struct dj_tests_starttls_fixture* _fixture
 )
 {
@@ -360,15 +361,15 @@ void d_tests_starttls_unusable(
 }
 
 /*
-d_tests_sa_starttls_init_contexts
+d_tests_starttls_init_contexts
   Tests the following:
   - an empty context is no backend; a context for the other role is
     refused, and so is a client whose context checks names given no server,
     by an empty name or by none
   - a client whose context does not verify needs no name
 */
-bool d_tests_sa_starttls_init_contexts(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_init_contexts(
+    struct dj_test_suite* _suite
 )
 {
     const char* const               TEST     = "init contexts";
@@ -380,11 +381,11 @@ bool d_tests_sa_starttls_init_contexts(
         D_STARTTLS_ERROR_INVALID_ARGUMENT,
         D_STARTTLS_OK
     };
-    struct dj_tests_net_toy          host     = { .create_status = D_SSL_OK };
-    struct dj_tests_net_toy          plain    = { .create_status = D_SSL_OK };
-    struct dj_ssl_context            empty    = { .engine = NULL };
-    struct dj_ssl_context            server   = { .engine = NULL };
-    struct dj_ssl_context            trusting = { .engine = NULL };
+    struct dj_tests_net_toy          host     = { .create_status = D_TLS_OK };
+    struct dj_tests_net_toy          plain    = { .create_status = D_TLS_OK };
+    struct dj_tls_context            empty    = { .engine = NULL };
+    struct dj_tls_context            server   = { .engine = NULL };
+    struct dj_tls_context            trusting = { .engine = NULL };
     struct dj_starttls_options       o[5]     =
     {
         { .role = D_STARTTLS_ROLE_CLIENT }
@@ -392,25 +393,25 @@ bool d_tests_sa_starttls_init_contexts(
     struct dj_tests_starttls_fixture fixture  = { .peer = NULL };
     bool                            answered = false;
 
-    if (!d_tests_net_assert( (d_tests_starttls_fixture_open(
+    if (!D_TESTS_NET_ASSERT( (d_tests_starttls_fixture_open(
                                   &fixture,
                                   D_STARTTLS_ROLE_CLIENT,
                                   D_STARTTLS_POLICY_REQUIRED)) &&
                              (d_tests_net_toy_context(
                                   &server,
                                   &host,
-                                  D_SSL_ROLE_SERVER,
+                                  D_TLS_ROLE_SERVER,
                                   false))                      &&
                              (d_tests_net_toy_context(
                                   &trusting,
                                   &plain,
-                                  D_SSL_ROLE_CLIENT,
+                                  D_TLS_ROLE_CLIENT,
                                   false)),
                              TEST,
                              "a fixture and two contexts",
-                             _counter))
+                             _suite))
     {
-        d_ssl_context_destroy(&server);
+        d_tls_context_destroy(&server);
         d_tests_starttls_fixture_close(&fixture);
 
         return false;
@@ -426,26 +427,26 @@ bool d_tests_sa_starttls_init_contexts(
                                         5,
                                         fixture.connection);
 
-    d_ssl_context_destroy(&server);
-    d_ssl_context_destroy(&trusting);
+    d_tls_context_destroy(&server);
+    d_tls_context_destroy(&trusting);
     d_tests_starttls_fixture_close(&fixture);
 
-    return d_tests_net_assert(answered,
+    return D_TESTS_NET_ASSERT(answered,
                               TEST,
                               "unusable contexts; a verifier without a name",
-                              _counter);
+                              _suite);
 }
 
 /*
-d_tests_sa_starttls_new_session
+d_tests_starttls_new_session
   Tests the following:
   - a new session is plaintext, not secure, at epoch 0, with nothing
     buffered, no detail, no cause, and no TLS session; under REQUIRED it is
     not yet satisfied
   - the server name is the session's own copy
 */
-bool d_tests_sa_starttls_new_session(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_new_session(
+    struct dj_test_suite* _suite
 )
 {
     const char* const               TEST    = "new session";
@@ -457,13 +458,13 @@ bool d_tests_sa_starttls_new_session(
     struct dj_tests_starttls_fixture fixture = { .peer = NULL };
     bool                            result  = true;
 
-    if (!d_tests_net_assert(d_tests_starttls_fixture_open(
+    if (!D_TESTS_NET_ASSERT(d_tests_starttls_fixture_open(
                                 &fixture,
                                 D_STARTTLS_ROLE_CLIENT,
                                 D_STARTTLS_POLICY_REQUIRED),
                             TEST,
                             "a fixture",
-                            _counter))
+                            _suite))
     {
         return false;
     }
@@ -495,14 +496,14 @@ bool d_tests_sa_starttls_new_session(
 
     d_starttls_destroy(&session);
     d_tests_starttls_fixture_close(&fixture);
-    result = d_tests_net_assert(fresh,
+    result = D_TESTS_NET_ASSERT(fresh,
                                 TEST,
                                 "plaintext, epoch 0, unsatisfied, no TLS",
-                                _counter) && result;
-    result = d_tests_net_assert(copied,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(copied,
                                 TEST,
                                 "the server name is the session's copy",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }
@@ -542,15 +543,15 @@ bool d_tests_starttls_all_refused(
 }
 
 /*
-d_tests_sa_starttls_close
+d_tests_starttls_close
   Tests the following:
   - closing a plaintext session sends nothing, closes an owned connection
     once, is idempotent, and refuses every later I/O call
   - destroying after close destroys the connection, closing it again
     harmlessly, zeroes the session, and may repeat; NULL is accepted
 */
-bool d_tests_sa_starttls_close(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_close(
+    struct dj_test_suite* _suite
 )
 {
     const char* const               TEST    = "close";
@@ -561,7 +562,7 @@ bool d_tests_sa_starttls_close(
     struct dj_tests_starttls_fixture fixture = { .peer = NULL };
     bool                            result  = true;
 
-    if (!d_tests_net_assert( (d_tests_starttls_fixture_open(
+    if (!D_TESTS_NET_ASSERT( (d_tests_starttls_fixture_open(
                                   &fixture,
                                   D_STARTTLS_ROLE_CLIENT,
                                   D_STARTTLS_POLICY_REQUIRED)) &&
@@ -571,7 +572,7 @@ bool d_tests_sa_starttls_close(
                               D_STARTTLS_OK),
                              TEST,
                              "a session",
-                             _counter))
+                             _suite))
     {
         d_tests_starttls_fixture_close(&fixture);
 
@@ -601,14 +602,14 @@ bool d_tests_sa_starttls_close(
           (d_starttls_get_state(&session) == D_STARTTLS_STATE_CLOSED) );
 
     d_tests_starttls_fixture_close(&fixture);
-    result = d_tests_net_assert(final,
+    result = D_TESTS_NET_ASSERT(final,
                                 TEST,
                                 "close: once, idempotent, and final",
-                                _counter) && result;
-    result = d_tests_net_assert(released,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(released,
                                 TEST,
                                 "destroy after close; again; NULL",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }
@@ -640,14 +641,14 @@ bool d_tests_starttls_satisfied_by_plaintext(
 }
 
 /*
-d_tests_sa_starttls_ownership
+d_tests_starttls_ownership
   Tests the following:
   - destroying without close destroys an owned connection, closing it once
   - a borrowed connection is never closed or destroyed
   - OPPORTUNISTIC and DISABLED are satisfied by plaintext
 */
-bool d_tests_sa_starttls_ownership(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_ownership(
+    struct dj_test_suite* _suite
 )
 {
     const char* const               TEST    = "ownership";
@@ -658,13 +659,13 @@ bool d_tests_sa_starttls_ownership(
     struct dj_tests_starttls_fixture fixture = { .peer = NULL };
     bool                            result  = true;
 
-    if (!d_tests_net_assert(d_tests_starttls_fixture_open(
+    if (!D_TESTS_NET_ASSERT(d_tests_starttls_fixture_open(
                                 &fixture,
                                 D_STARTTLS_ROLE_CLIENT,
                                 D_STARTTLS_POLICY_REQUIRED),
                             TEST,
                             "a fixture",
-                            _counter))
+                            _suite))
     {
         return false;
     }
@@ -702,28 +703,28 @@ bool d_tests_sa_starttls_ownership(
     const int  destroys  = fixture.peer->destroys;
 
     d_tests_starttls_fixture_close(&fixture);
-    result = d_tests_net_assert( (owned)       &&
+    result = D_TESTS_NET_ASSERT( (owned)       &&
                                  (lent)        &&
                                  (closes == 3) &&
                                  (destroys == 3),
                                  TEST,
                                  "owned destroyed once each; borrowed never",
-                                 _counter) && result;
-    result = d_tests_net_assert(satisfied,
+                                 _suite) && result;
+    result = D_TESTS_NET_ASSERT(satisfied,
                                 TEST,
                                 "OPPORTUNISTIC and DISABLED accept plaintext",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }
 
 /*
-d_tests_sa_starttls_null_queries
+d_tests_starttls_null_queries
   Tests the following:
   - every query reads NULL as a closed session; close and upgrade refuse it
 */
-bool d_tests_sa_starttls_null_queries(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_null_queries(
+    struct dj_test_suite* _suite
 )
 {
     const char* const TEST   = "NULL queries";
@@ -741,10 +742,10 @@ bool d_tests_sa_starttls_null_queries(
           (d_starttls_close(NULL) == D_STARTTLS_ERROR_INVALID_ARGUMENT) &&
           (d_starttls_upgrade(NULL) == D_STARTTLS_ERROR_INVALID_ARGUMENT) );
 
-    result = d_tests_net_assert(nulls,
+    result = D_TESTS_NET_ASSERT(nulls,
                                 TEST,
                                 "the queries read NULL as closed",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }
@@ -782,14 +783,14 @@ bool d_tests_starttls_names_distinct(void)
 }
 
 /*
-d_tests_sa_starttls_names
+d_tests_starttls_names
   Tests the following:
   - every status has its own description, none of them the fallback
   - a status, state, or policy outside its enumeration reads as unknown
   - each state and policy has its name
 */
-bool d_tests_sa_starttls_names(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_names(
+    struct dj_test_suite* _suite
 )
 {
     const char* const TEST   = "names";
@@ -819,18 +820,18 @@ bool d_tests_sa_starttls_names(
           (strcmp(d_starttls_policy_string(D_STARTTLS_POLICY_REQUIRED),
                   "required") == 0) );
 
-    result = d_tests_net_assert(d_tests_starttls_names_distinct(),
+    result = D_TESTS_NET_ASSERT(d_tests_starttls_names_distinct(),
                                 TEST,
                                 "every status has a description of its own",
-                                _counter) && result;
-    result = d_tests_net_assert(unknown,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(unknown,
                                 TEST,
                                 "values outside the enumerations are unknown",
-                                _counter) && result;
-    result = d_tests_net_assert(named,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(named,
                                 TEST,
                                 "each state and policy by name",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }
@@ -844,13 +845,13 @@ struct dj_tests_starttls_mapping
 };
 
 /*
-d_tests_sa_starttls_errors_to_net
+d_tests_starttls_errors_to_net
   Tests the following:
   - each error maps onto the dj_net_error net.h's rules give it
   - a value outside the enum maps to D_NET_ERROR_UNKNOWN
 */
-bool d_tests_sa_starttls_errors_to_net(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_errors_to_net(
+    struct dj_test_suite* _suite
 )
 {
     const struct dj_tests_starttls_mapping MAP[] =
@@ -888,14 +889,14 @@ bool d_tests_sa_starttls_errors_to_net(
         (d_starttls_error_to_net((enum dj_starttls_error)99) ==
          D_NET_ERROR_UNKNOWN);
 
-    result = d_tests_net_assert(mapped,
+    result = D_TESTS_NET_ASSERT(mapped,
                                 "d_starttls_error_to_net",
                                 "each error maps by net.h's rules",
-                                _counter) && result;
-    result = d_tests_net_assert(outside,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(outside,
                                 "d_starttls_error_to_net",
                                 "a value outside the enum is unknown",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }
@@ -925,9 +926,7 @@ static const struct dj_tests_starttls_from_net FROM_NET[] =
     { D_NET_ERROR_CONNECTION_ABORTED,  D_STARTTLS_ERROR_CLOSED           },
     { D_NET_ERROR_ADDRESS_IN_USE,      D_STARTTLS_ERROR_TRANSPORT        },
     { D_NET_ERROR_ADDRESS_INVALID,     D_STARTTLS_ERROR_TRANSPORT        },
-    { D_NET_ERROR_ADDRESS_UNAVAILABLE, D_STARTTLS_ERROR_TRANSPORT        },
     { D_NET_ERROR_HOST_UNREACHABLE,    D_STARTTLS_ERROR_TRANSPORT        },
-    { D_NET_ERROR_HOST_NOT_FOUND,      D_STARTTLS_ERROR_TRANSPORT        },
     { D_NET_ERROR_NETWORK_DOWN,        D_STARTTLS_ERROR_TRANSPORT        },
     { D_NET_ERROR_ACCESS_DENIED,       D_STARTTLS_ERROR_TRANSPORT        },
     { D_NET_ERROR_INVALID_ARGUMENT,    D_STARTTLS_ERROR_INVALID_ARGUMENT },
@@ -936,22 +935,24 @@ static const struct dj_tests_starttls_from_net FROM_NET[] =
     { D_NET_ERROR_OUT_OF_MEMORY,       D_STARTTLS_ERROR_OUT_OF_MEMORY    },
     { D_NET_ERROR_UNKNOWN,             D_STARTTLS_ERROR_TRANSPORT        },
     { D_NET_ERROR_PROTOCOL,            D_STARTTLS_ERROR_PROTOCOL         },
-    { D_NET_ERROR_UNSUPPORTED,         D_STARTTLS_ERROR_TRANSPORT        }
+    { D_NET_ERROR_UNSUPPORTED,         D_STARTTLS_ERROR_TRANSPORT        },
+    { D_NET_ERROR_ADDRESS_UNAVAILABLE, D_STARTTLS_ERROR_TRANSPORT        },
+    { D_NET_ERROR_HOST_NOT_FOUND,      D_STARTTLS_ERROR_TRANSPORT        }
 };
 
 /*
-d_tests_sa_starttls_errors_from_net
+d_tests_starttls_errors_from_net
   Tests the following:
   - every dj_net_error becomes the error net.h's rules give it
   - a value outside the enum is TRANSPORT
   - the namesakes come back from d_starttls_error_to_net unchanged
 */
-bool d_tests_sa_starttls_errors_from_net(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_errors_from_net(
+    struct dj_test_suite* _suite
 )
 {
     const size_t count  = sizeof(FROM_NET) / sizeof(FROM_NET[0]);
-    bool         table  = (count == (size_t)D_NET_ERROR_UNSUPPORTED + 1u);
+    bool         table  = (count == (size_t)D_NET_ERROR_HOST_NOT_FOUND + 1u);
     bool         result = true;
 
     // each row, in the enum's order
@@ -980,24 +981,24 @@ bool d_tests_sa_starttls_errors_from_net(
                                          D_STARTTLS_ERROR_OUT_OF_MEMORY)) ==
            D_STARTTLS_ERROR_OUT_OF_MEMORY) );
 
-    result = d_tests_net_assert(table,
+    result = D_TESTS_NET_ASSERT(table,
                                 "d_starttls_error_from_net",
                                 "places every dj_net_error by net.h's rules",
-                                _counter) && result;
-    result = d_tests_net_assert(outside,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(outside,
                                 "d_starttls_error_from_net",
                                 "a value outside the enum is TRANSPORT",
-                                _counter) && result;
-    result = d_tests_net_assert(back,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(back,
                                 "d_starttls_error_from_net",
                                 "namesakes come back from to_net unchanged",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }
 
 /*
-d_tests_sa_starttls_lines
+d_tests_starttls_lines
   Tests the following:
   - several lines in one read come back one at a time, terminators removed,
     an empty line included
@@ -1005,8 +1006,8 @@ d_tests_sa_starttls_lines
   - the end of the stream between lines is an orderly D_STARTTLS_ERROR_CLOSED,
     which leaves the session plaintext, and no line or length behind
 */
-bool d_tests_sa_starttls_lines(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_lines(
+    struct dj_test_suite* _suite
 )
 {
     const char* const         TEST    = "lines";
@@ -1019,10 +1020,10 @@ bool d_tests_sa_starttls_lines(
     size_t                    length  = 0;
     bool                      result  = true;
 
-    if (!d_tests_net_assert(peer != NULL,
+    if (!D_TESTS_NET_ASSERT(peer != NULL,
                             TEST,
                             "a scripted peer",
-                            _counter))
+                            _suite))
     {
         return false;
     }
@@ -1065,25 +1066,25 @@ bool d_tests_sa_starttls_lines(
 
     d_starttls_destroy(&session);
     d_tests_net_peer_free(peer);
-    result = d_tests_net_assert(lines,
+    result = D_TESTS_NET_ASSERT(lines,
                                 TEST,
                                 "lines one at a time, empty and split ones",
-                                _counter) && result;
-    result = d_tests_net_assert(ended,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(ended,
                                 TEST,
                                 "the end between lines is orderly",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }
 
 /*
-d_tests_sa_starttls_lines_trickled
+d_tests_starttls_lines_trickled
   Tests the following:
   - lines that arrive a byte at a time are assembled
 */
-bool d_tests_sa_starttls_lines_trickled(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_lines_trickled(
+    struct dj_test_suite* _suite
 )
 {
     const char* const         TEST    = "lines trickled";
@@ -1094,10 +1095,10 @@ bool d_tests_sa_starttls_lines_trickled(
     };
     bool                      result  = true;
 
-    if (!d_tests_net_assert(peer != NULL,
+    if (!D_TESTS_NET_ASSERT(peer != NULL,
                             TEST,
                             "a scripted peer",
-                            _counter))
+                            _suite))
     {
         return false;
     }
@@ -1119,10 +1120,10 @@ bool d_tests_sa_starttls_lines_trickled(
 
     d_starttls_destroy(&session);
     d_tests_net_peer_free(peer);
-    result = d_tests_net_assert(trickled,
+    result = D_TESTS_NET_ASSERT(trickled,
                                 TEST,
                                 "lines that arrive a byte at a time",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }
@@ -1223,7 +1224,7 @@ bool d_tests_starttls_malformed(
 }
 
 /*
-d_tests_sa_starttls_line_endings
+d_tests_starttls_line_endings
   Tests the following:
   - under strict_crlf a bare LF is a fatal protocol violation; without it,
     a bare LF ends a line
@@ -1232,8 +1233,8 @@ d_tests_sa_starttls_line_endings
   - a stream that ends inside a line, even one byte into it, is a fatal
     protocol violation
 */
-bool d_tests_sa_starttls_line_endings(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_line_endings(
+    struct dj_test_suite* _suite
 )
 {
     const char* const TEST   = "line endings";
@@ -1269,32 +1270,32 @@ bool d_tests_sa_starttls_line_endings(
                                       1,
                                       false)) );
 
-    result = d_tests_net_assert(bare_lf,
+    result = D_TESTS_NET_ASSERT(bare_lf,
                                 TEST,
                                 "a bare LF: refused when strict, else an end",
-                                _counter) && result;
-    result = d_tests_net_assert(inside,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(inside,
                                 TEST,
                                 "a CR or NUL inside a line, either way",
-                                _counter) && result;
-    result = d_tests_net_assert(cut,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(cut,
                                 TEST,
                                 "a stream that ends inside a line",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }
 
 /*
-d_tests_sa_starttls_failed_session
+d_tests_starttls_failed_session
   Tests the following:
   - after a fatal error the session refuses every receive and send, and
     nothing more reaches the peer
   - a refused receive returns no line, no length, and no count; a NULL
     buffer is still refused as an argument first
 */
-bool d_tests_sa_starttls_failed_session(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_failed_session(
+    struct dj_test_suite* _suite
 )
 {
     const char* const         TEST    = "failed session";
@@ -1346,10 +1347,10 @@ bool d_tests_sa_starttls_failed_session(
 
     d_starttls_destroy(&session);
     d_tests_net_peer_free(peer);
-    result = d_tests_net_assert(stopped,
+    result = D_TESTS_NET_ASSERT(stopped,
                                 TEST,
                                 "a failed session refuses further I/O",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }
@@ -1422,7 +1423,7 @@ d_tests_starttls_long_line(
 }
 
 /*
-d_tests_sa_starttls_line_limit
+d_tests_starttls_line_limit
   Tests the following:
   - the buffer bounds a line, terminator included: with 512 bytes, a line
     of 510 characters is received and one of 511 is a fatal
@@ -1430,8 +1431,8 @@ d_tests_sa_starttls_line_limit
   - a line at the limit that arrives in pieces is received whole
   - a larger buffer takes a longer line
 */
-bool d_tests_sa_starttls_line_limit(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_line_limit(
+    struct dj_test_suite* _suite
 )
 {
     const char* const     TEST     = "line limit";
@@ -1458,23 +1459,23 @@ bool d_tests_sa_starttls_line_limit(
                                                   1024,
                                                   &larger);
 
-    result = d_tests_net_assert( (fits) &&
+    result = D_TESTS_NET_ASSERT( (fits) &&
                                  (at_limit == D_STARTTLS_OK),
                                  TEST,
                                  "510 characters and CRLF fill 512 bytes",
-                                 _counter) && result;
-    result = d_tests_net_assert( (!spill) &&
+                                 _suite) && result;
+    result = D_TESTS_NET_ASSERT( (!spill) &&
                                  (over == D_STARTTLS_ERROR_LINE_TOO_LONG),
                                  TEST,
                                  "511 characters are too long, fatally",
-                                 _counter) && result;
-    result = d_tests_net_assert( (built)                   &&
+                                 _suite) && result;
+    result = D_TESTS_NET_ASSERT( (built)                   &&
                                  (pieces == D_STARTTLS_OK) &&
                                  (wide)                    &&
                                  (larger == D_STARTTLS_OK),
                                  TEST,
                                  "a line in pieces; a longer one, more room",
-                                 _counter) && result;
+                                 _suite) && result;
 
     return result;
 }
@@ -1569,7 +1570,7 @@ bool d_tests_starttls_reads_literal(
 }
 
 /*
-d_tests_sa_starttls_literal
+d_tests_starttls_literal
   Tests the following:
   - an IMAP literal: a line, then exactly its counted bytes from what the
     line reader already buffered, then lines again
@@ -1578,8 +1579,8 @@ d_tests_sa_starttls_literal
   - an exact receive gathers across reads; one of a single byte reads it,
     and one of nothing succeeds
 */
-bool d_tests_sa_starttls_literal(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_literal(
+    struct dj_test_suite* _suite
 )
 {
     const char* const         TEST     = "literal";
@@ -1591,10 +1592,10 @@ bool d_tests_sa_starttls_literal(
     char                      bytes[8] = { 0 };
     bool                      result   = true;
 
-    if (!d_tests_net_assert(peer != NULL,
+    if (!D_TESTS_NET_ASSERT(peer != NULL,
                             TEST,
                             "a scripted peer",
-                            _counter))
+                            _suite))
     {
         return false;
     }
@@ -1628,18 +1629,18 @@ bool d_tests_sa_starttls_literal(
 
     d_starttls_destroy(&session);
     d_tests_net_peer_free(peer);
-    result = d_tests_net_assert(literal,
+    result = D_TESTS_NET_ASSERT(literal,
                                 TEST,
                                 "an IMAP literal between lines",
-                                _counter) && result;
-    result = d_tests_net_assert(first,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(first,
                                 TEST,
                                 "buffered bytes first, then the connection",
-                                _counter) && result;
-    result = d_tests_net_assert(gathered,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(gathered,
                                 TEST,
                                 "exact receives: across reads, of one, of none",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }
@@ -1702,14 +1703,14 @@ bool d_tests_starttls_refuses_bytes(
 }
 
 /*
-d_tests_sa_starttls_byte_refusals
+d_tests_starttls_byte_refusals
   Tests the following:
   - NULL buffers, a zero capacity, and NULL outputs are refused
   - a send of nothing succeeds without touching the connection, and bytes of
     every value are sent as they are, a single byte included
 */
-bool d_tests_sa_starttls_byte_refusals(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_byte_refusals(
+    struct dj_test_suite* _suite
 )
 {
     const char* const         TEST      = "byte refusals";
@@ -1746,14 +1747,14 @@ bool d_tests_sa_starttls_byte_refusals(
 
     d_starttls_destroy(&session);
     d_tests_net_peer_free(peer);
-    result = d_tests_net_assert(refused,
+    result = D_TESTS_NET_ASSERT(refused,
                                 TEST,
                                 "NULLs and a zero capacity; an empty send",
-                                _counter) && result;
-    result = d_tests_net_assert(raw,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(raw,
                                 TEST,
                                 "a send carries any byte",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }
@@ -1807,13 +1808,13 @@ d_tests_starttls_ends(
 }
 
 /*
-d_tests_sa_starttls_stream_ends
+d_tests_starttls_stream_ends
   Tests the following:
   - a stream that ends part-way through an exact receive is a fatal
     protocol violation; one that ends before it is an orderly end
 */
-bool d_tests_sa_starttls_stream_ends(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_stream_ends(
+    struct dj_test_suite* _suite
 )
 {
     const char* const TEST   = "stream ends";
@@ -1826,14 +1827,14 @@ bool d_tests_sa_starttls_stream_ends(
                                              D_STARTTLS_ERROR_CLOSED,
                                              D_STARTTLS_STATE_PLAINTEXT);
 
-    result = d_tests_net_assert(cut,
+    result = D_TESTS_NET_ASSERT(cut,
                                 TEST,
                                 "cut short inside a counted payload is fatal",
-                                _counter) && result;
-    result = d_tests_net_assert(clean,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(clean,
                                 TEST,
                                 "an end before it is orderly",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }
@@ -1897,15 +1898,15 @@ bool d_tests_starttls_refuses_lines(
 }
 
 /*
-d_tests_sa_starttls_send_line
+d_tests_starttls_send_line
   Tests the following:
   - a line goes out with CRLF appended, formatted or not
   - a CR, LF, or NUL inside a line is refused and nothing is sent, the
     injection through a formatted argument included; so is a NULL line, and
     a NULL session
 */
-bool d_tests_sa_starttls_send_line(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_send_line(
+    struct dj_test_suite* _suite
 )
 {
     const char* const         TEST    = "send line";
@@ -1946,27 +1947,27 @@ bool d_tests_sa_starttls_send_line(
 
     d_starttls_destroy(&session);
     d_tests_net_peer_free(peer);
-    result = d_tests_net_assert(plain,
+    result = D_TESTS_NET_ASSERT(plain,
                                 TEST,
                                 "a line and a formatted line, with CRLF",
-                                _counter) && result;
-    result = d_tests_net_assert( (refused) &&
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT( (refused) &&
                                  (unsent),
                                  TEST,
                                  "line breaks and NULs refused, nothing sent",
-                                 _counter) && result;
+                                 _suite) && result;
 
     return result;
 }
 
 /*
-d_tests_sa_starttls_send_limit
+d_tests_starttls_send_limit
   Tests the following:
   - a line and its CRLF must fit the session's buffer: 510 characters fit
     512 bytes and go out; 511 do not, and nothing is sent
 */
-bool d_tests_sa_starttls_send_limit(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_send_limit(
+    struct dj_test_suite* _suite
 )
 {
     const char* const         TEST     = "send limit";
@@ -2006,10 +2007,10 @@ bool d_tests_sa_starttls_send_limit(
 
     d_starttls_destroy(&session);
     d_tests_net_peer_free(peer);
-    result = d_tests_net_assert(limited,
+    result = D_TESTS_NET_ASSERT(limited,
                                 TEST,
                                 "511 characters are refused, unsent; 510 go",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }
@@ -2067,15 +2068,15 @@ bool d_tests_starttls_sends_edges(
 }
 
 /*
-d_tests_sa_starttls_send_long
+d_tests_starttls_send_long
   Tests the following:
   - lines longer than the stack scratch go out whole, formatted or not
   - a formatted line of exactly the scratch's size, and one of exactly the
     session's limit, go out whole
   - a formatted line over the session's limit is refused before it is sent
 */
-bool d_tests_sa_starttls_send_long(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_send_long(
+    struct dj_test_suite* _suite
 )
 {
     const char* const         TEST     = "send long";
@@ -2133,18 +2134,18 @@ bool d_tests_sa_starttls_send_long(
 
     d_starttls_destroy(&session);
     d_tests_net_peer_free(peer);
-    result = d_tests_net_assert(heap,
+    result = D_TESTS_NET_ASSERT(heap,
                                 TEST,
                                 "long lines go out whole",
-                                _counter) && result;
-    result = d_tests_net_assert(edges,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(edges,
                                 TEST,
                                 "lines of the scratch's size and the limit",
-                                _counter) && result;
-    result = d_tests_net_assert(limited,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(limited,
                                 TEST,
                                 "a formatted line too long is not sent",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }
@@ -2187,14 +2188,14 @@ d_tests_starttls_write_fails(
 }
 
 /*
-d_tests_sa_starttls_broken_writes
+d_tests_starttls_broken_writes
   Tests the following:
   - short writes are repeated until the whole line is out
   - a write the connection fails is a fatal TRANSPORT, its cause kept, and
     one that takes nothing is a fatal CLOSED, the stream being gone
 */
-bool d_tests_sa_starttls_broken_writes(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_broken_writes(
+    struct dj_test_suite* _suite
 )
 {
     const char* const        TEST    = "broken writes";
@@ -2229,15 +2230,15 @@ bool d_tests_sa_starttls_broken_writes(
     }
 
     d_tests_net_peer_free(peer);
-    result = d_tests_net_assert(trickle,
+    result = D_TESTS_NET_ASSERT(trickle,
                                 TEST,
                                 "short writes are repeated",
-                                _counter) && result;
-    result = d_tests_net_assert( (failed) &&
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT( (failed) &&
                                  (stalled),
                                  TEST,
                                  "a failed write, and an empty one, are fatal",
-                                 _counter) && result;
+                                 _suite) && result;
 
     return result;
 }
@@ -2279,14 +2280,14 @@ d_tests_starttls_read_fails(
 }
 
 /*
-d_tests_sa_starttls_broken_reads
+d_tests_starttls_broken_reads
   Tests the following:
   - a read that claims more bytes than it had room for is a fatal
     TRANSPORT, net_common.c having refused it as UNKNOWN
   - a read that times out is a fatal timeout, with its cause kept
 */
-bool d_tests_sa_starttls_broken_reads(
-    struct dj_test_counter* _counter
+bool d_tests_starttls_broken_reads(
+    struct dj_test_suite* _suite
 )
 {
     const char* const        TEST      = "broken reads";
@@ -2308,14 +2309,14 @@ bool d_tests_sa_starttls_broken_reads(
     }
 
     d_tests_net_peer_free(peer);
-    result = d_tests_net_assert(empty,
+    result = D_TESTS_NET_ASSERT(empty,
                                 TEST,
                                 "a read past its room is fatal",
-                                _counter) && result;
-    result = d_tests_net_assert(timed_out,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(timed_out,
                                 TEST,
                                 "a timeout is fatal",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }

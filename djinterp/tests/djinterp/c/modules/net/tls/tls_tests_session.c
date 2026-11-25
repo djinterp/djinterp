@@ -1,7 +1,7 @@
 /*******************************************************************************
-* djinterp [c][net]                                       ssl_tests_sa_session.c
+* djinterp [c][net]                                          tls_tests_session.c
 *
-* Tests of the SSL kernel's sessions over a net.h connection.
+* Tests of the TLS kernel's sessions over a net.h connection.
 *   Each test opens a client and a server session over a pipe and drives
 * them in turn: through a handshake, a transfer, the ways a stream ends, and
 * the ways a peer is refused. The transport is an ordinary connection
@@ -9,58 +9,59 @@
 * one.
 *
 *
-* path:      /tests/djinterp/c/modules/net/ssl/ssl_tests_sa_session.c
+* path:      /tests/djinterp/c/modules/net/tls/tls_tests_session.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
 *                                                            revised: 2026.10.14
 *******************************************************************************/
-#include "./ssl_tests_sa.h"  // corresponding header
+#include "./tls_tests.h"  // corresponding header
 // std
 #include <string.h>  // memcmp, memset, strcmp, strlen
 // djinterp
-#include "../net_tests_sa_support.h"  // d_tests_net_pattern
+#include "../net_tests_support.h"  // d_tests_net_pattern
+#include "../../../../../../inc/djinterp/c/modules/test/test_suite.h"  // DTest
 
 
 /*
-d_tests_ssl_ready_pair
+d_tests_tls_ready_pair
   Opens a pair over the run's contexts and handshakes it; false if either
 step failed.
 */
 static
-bool d_tests_ssl_ready_pair(
-    struct dj_tests_ssl_pair* _pair,
+bool d_tests_tls_ready_pair(
+    struct dj_tests_tls_pair* _pair,
     const char*               _host
 )
 {
-    struct dj_tests_ssl_world* const world  = d_tests_ssl_world();
-    enum dj_ssl_error                client = D_SSL_OK;
-    enum dj_ssl_error                server = D_SSL_OK;
+    struct dj_tests_tls_world* const world  = d_tests_tls_world();
+    enum dj_tls_error                client = D_TLS_OK;
+    enum dj_tls_error                server = D_TLS_OK;
 
     return ( (world)                        &&
-             (d_tests_ssl_pair_open(_pair,
+             (d_tests_tls_pair_open(_pair,
                                     &world->client,
                                     &world->server,
                                     _host)) &&
-             (d_tests_ssl_pair_handshake(_pair,
+             (d_tests_tls_pair_handshake(_pair,
                                          &client,
                                          &server)) );
 }
 
-// dj_tests_ssl_broken
+// dj_tests_tls_broken
 //   struct: a transport whose writes all succeed and whose reads fail with
 // `error`, for a session that meets a broken connection.
-struct dj_tests_ssl_broken
+struct dj_tests_tls_broken
 {
     struct dj_net_connection base;
     enum dj_net_error        error;
 };
 
 /*
-d_tests_ssl_broken_read
+d_tests_tls_broken_read
   Fails with the error it was given.
 */
 static
-struct dj_net_io_result d_tests_ssl_broken_read(
+struct dj_net_io_result d_tests_tls_broken_read(
     struct dj_net_connection* _connection,
     void*                     _buffer,
     size_t                    _size
@@ -70,16 +71,16 @@ struct dj_net_io_result d_tests_ssl_broken_read(
     (void)_size;
 
     return d_net_io_result_make(0u,
-                                ((struct dj_tests_ssl_broken*)_connection)
+                                ((struct dj_tests_tls_broken*)_connection)
                                 ->error);
 }
 
 /*
-d_tests_ssl_broken_write
+d_tests_tls_broken_write
   Takes everything.
 */
 static
-struct dj_net_io_result d_tests_ssl_broken_write(
+struct dj_net_io_result d_tests_tls_broken_write(
     struct dj_net_connection* _connection,
     const void*               _data,
     size_t                    _size
@@ -93,11 +94,11 @@ struct dj_net_io_result d_tests_ssl_broken_write(
 }
 
 /*
-d_tests_ssl_broken_is_open
+d_tests_tls_broken_is_open
   Always open: the failure is in its reads.
 */
 static
-bool d_tests_ssl_broken_is_open(
+bool d_tests_tls_broken_is_open(
     const struct dj_net_connection* _connection
 )
 {
@@ -107,11 +108,11 @@ bool d_tests_ssl_broken_is_open(
 }
 
 /*
-d_tests_ssl_broken_close
+d_tests_tls_broken_close
   Nothing to release.
 */
 static
-void d_tests_ssl_broken_close(
+void d_tests_tls_broken_close(
     struct dj_net_connection* _connection
 )
 {
@@ -126,10 +127,10 @@ BROKEN_OPERATIONS
 */
 static const struct dj_net_connection_vtable BROKEN_OPERATIONS =
 {
-    d_tests_ssl_broken_read,
-    d_tests_ssl_broken_write,
-    d_tests_ssl_broken_is_open,
-    d_tests_ssl_broken_close,
+    d_tests_tls_broken_read,
+    d_tests_tls_broken_write,
+    d_tests_tls_broken_is_open,
+    d_tests_tls_broken_close,
     NULL,
     NULL,
     NULL,
@@ -143,10 +144,10 @@ PARTIAL_OPERATIONS
 */
 static const struct dj_net_connection_vtable PARTIAL_OPERATIONS =
 {
-    d_tests_ssl_broken_read,
+    d_tests_tls_broken_read,
     NULL,
-    d_tests_ssl_broken_is_open,
-    d_tests_ssl_broken_close,
+    d_tests_tls_broken_is_open,
+    d_tests_tls_broken_close,
     NULL,
     NULL,
     NULL,
@@ -155,20 +156,20 @@ static const struct dj_net_connection_vtable PARTIAL_OPERATIONS =
 };
 
 /*
-d_tests_ssl_init_hosts
-  The host half of d_tests_sa_ssl_init: a server names none, a verifying
+d_tests_tls_init_hosts
+  The host half of d_tests_tls_init: a server names none, a verifying
 client must name one, and a name must be well formed.
 */
 static
-bool d_tests_ssl_init_hosts(
-    struct dj_tests_ssl_world* _world,
-    struct dj_test_counter*    _counter
+bool d_tests_tls_init_hosts(
+    struct dj_tests_tls_world* _world,
+    struct dj_test_suite*      _suite
 )
 {
     struct dj_net_pipe        pipe    = { .rings[0].size = 0u };
     unsigned char            a[64]   = { 0 };
     unsigned char            b[64]   = { 0 };
-    struct dj_ssl_session     session = { .owns_transport = false };
+    struct dj_tls_session     session = { .owns_transport = false };
     const struct dj_pack_text named   = { "localhost", 9u };
     const struct dj_pack_text none    = { "", 0u };
     const struct dj_pack_text bad     = { "bad..name", 9u };
@@ -183,45 +184,45 @@ bool d_tests_ssl_init_hosts(
                                                                D_NET_PIPE_A);
 
     const bool refused =
-        ( (d_ssl_session_init(&session,
+        ( (d_tls_session_init(&session,
                               &_world->server,
                               end,
-                              named) == D_SSL_ERROR_INVALID_ARGUMENT) &&
-          (d_ssl_session_init(&session,
+                              named) == D_TLS_ERROR_INVALID_ARGUMENT) &&
+          (d_tls_session_init(&session,
                               &_world->client,
                               end,
-                              none) == D_SSL_ERROR_INVALID_ARGUMENT)  &&
-          (d_ssl_session_init(&session,
+                              none) == D_TLS_ERROR_INVALID_ARGUMENT)  &&
+          (d_tls_session_init(&session,
                               &_world->client,
                               end,
-                              bad) == D_SSL_ERROR_MALFORMED) );
+                              bad) == D_TLS_ERROR_MALFORMED) );
 
-    d_ssl_session_destroy(&session);
+    d_tls_session_destroy(&session);
 
-    return d_tests_net_assert(refused,
-                              "d_ssl_session_init",
+    return D_TESTS_NET_ASSERT(refused,
+                              "d_tls_session_init",
                               "hosts: none for servers, valid for clients",
-                              _counter);
+                              _suite);
 }
 
 /*
-d_tests_sa_ssl_init
+d_tests_tls_init
   Tests the following:
   - NULL arguments, and a transport without a required operation, are
     refused
   - a refused session is still a connection, a closed one, whose reads
     report CLOSED
-  - hosts (d_tests_ssl_init_hosts)
+  - hosts (d_tests_tls_init_hosts)
 */
-bool d_tests_sa_ssl_init(
-    struct dj_test_counter* _counter
+bool d_tests_tls_init(
+    struct dj_test_suite* _suite
 )
 {
-    struct dj_tests_ssl_world* const world   = d_tests_ssl_world();
-    struct dj_tests_ssl_broken       broken  = { { NULL }, D_NET_OK };
-    struct dj_tests_ssl_broken       partial = { { &PARTIAL_OPERATIONS },
+    struct dj_tests_tls_world* const world   = d_tests_tls_world();
+    struct dj_tests_tls_broken       broken  = { { NULL }, D_NET_OK };
+    struct dj_tests_tls_broken       partial = { { &PARTIAL_OPERATIONS },
                                                 D_NET_OK };
-    struct dj_ssl_session            session = { .owns_transport = false };
+    struct dj_tls_session            session = { .owns_transport = false };
     const struct dj_pack_text        host    = { "localhost", 9u };
     unsigned char                   byte    = 0u;
     bool                            result  = true;
@@ -231,45 +232,45 @@ bool d_tests_sa_ssl_init(
 
     const bool refused =
         ( (world)                                                    &&
-          (d_ssl_session_init(NULL,
+          (d_tls_session_init(NULL,
                               &world->client,
                               &broken.base,
-                              host) == D_SSL_ERROR_INVALID_ARGUMENT) &&
-          (d_ssl_session_init(&session,
+                              host) == D_TLS_ERROR_INVALID_ARGUMENT) &&
+          (d_tls_session_init(&session,
                               NULL,
                               &broken.base,
-                              host) == D_SSL_ERROR_INVALID_ARGUMENT) &&
-          (d_ssl_session_init(&session,
+                              host) == D_TLS_ERROR_INVALID_ARGUMENT) &&
+          (d_tls_session_init(&session,
                               &world->client,
                               NULL,
-                              host) == D_SSL_ERROR_INVALID_ARGUMENT) &&
-          (d_ssl_session_init(&session,
+                              host) == D_TLS_ERROR_INVALID_ARGUMENT) &&
+          (d_tls_session_init(&session,
                               &world->client,
                               &partial.base,
-                              host) == D_SSL_ERROR_INVALID_ARGUMENT) );
+                              host) == D_TLS_ERROR_INVALID_ARGUMENT) );
     const bool closed =
         ( (!d_net_connection_is_open(&session.base)) &&
           (d_net_connection_read(&session.base,
                                  &byte,
                                  1u).error == D_NET_ERROR_CLOSED) );
 
-    result = d_tests_net_assert(refused,
-                                "d_ssl_session_init",
+    result = D_TESTS_NET_ASSERT(refused,
+                                "d_tls_session_init",
                                 "NULLs and incomplete transports are refused",
-                                _counter) && result;
-    result = d_tests_net_assert(closed,
-                                "d_ssl_session_init",
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(closed,
+                                "d_tls_session_init",
                                 "a refused session is a closed connection",
-                                _counter) && result;
+                                _suite) && result;
 
     return ( (world)                            &&
-             (d_tests_ssl_init_hosts(world,
-                                     _counter)) &&
+             (d_tests_tls_init_hosts(world,
+                                     _suite)) &&
              (result) );
 }
 
 /*
-d_tests_sa_ssl_handshake
+d_tests_tls_handshake
   Tests the following:
   - a handshake over a pipe cutting every read and write to 7 bytes, with
     both sides blocking on it in turn, completes
@@ -277,19 +278,19 @@ d_tests_sa_ssl_handshake
     the server checked nothing of the client
   - neither side waits on anything afterwards
 */
-bool d_tests_sa_ssl_handshake(
-    struct dj_test_counter* _counter
+bool d_tests_tls_handshake(
+    struct dj_test_suite* _suite
 )
 {
-    struct dj_tests_ssl_world* const world  = d_tests_ssl_world();
-    struct dj_tests_ssl_pair         pair   = { .pipe.rings[0].size = 0u };
-    struct dj_ssl_info               client = { .version = D_SSL_VERSION_NONE };
-    struct dj_ssl_info               server = { .version = D_SSL_VERSION_NONE };
-    enum dj_ssl_error                cs     = D_SSL_OK;
-    enum dj_ssl_error                ss     = D_SSL_OK;
+    struct dj_tests_tls_world* const world  = d_tests_tls_world();
+    struct dj_tests_tls_pair         pair   = { .pipe.rings[0].size = 0u };
+    struct dj_tls_info               client = { .version = D_TLS_VERSION_NONE };
+    struct dj_tls_info               server = { .version = D_TLS_VERSION_NONE };
+    enum dj_tls_error                cs     = D_TLS_OK;
+    enum dj_tls_error                ss     = D_TLS_OK;
 
     const bool opened = ( (world) &&
-                          (d_tests_ssl_pair_open(&pair,
+                          (d_tests_tls_pair_open(&pair,
                                                  &world->client,
                                                  &world->server,
                                                  "localhost")) );
@@ -303,68 +304,68 @@ bool d_tests_sa_ssl_handshake(
 
     const bool shaken =
         ( (opened)                                                  &&
-          (d_tests_ssl_pair_handshake(&pair,
+          (d_tests_tls_pair_handshake(&pair,
                                       &cs,
                                       &ss))                         &&
-          (d_ssl_session_state(&pair.client) ==
-           D_SSL_STATE_ESTABLISHED)                                 &&
-          (d_ssl_session_wants(&pair.client) == D_SSL_WANT_NOTHING) &&
-          (d_ssl_session_wants(&pair.server) == D_SSL_WANT_NOTHING) &&
-          (d_ssl_session_info(&pair.client,
+          (d_tls_session_state(&pair.client) ==
+           D_TLS_STATE_ESTABLISHED)                                 &&
+          (d_tls_session_wants(&pair.client) == D_TLS_WANT_NOTHING) &&
+          (d_tls_session_wants(&pair.server) == D_TLS_WANT_NOTHING) &&
+          (d_tls_session_info(&pair.client,
                               &client))                             &&
-          (d_ssl_session_info(&pair.server,
+          (d_tls_session_info(&pair.server,
                               &server)) );
     const bool learned =
         ( (shaken)                                  &&
-          (client.version >= D_SSL_VERSION_TLS1_2)  &&
+          (client.version >= D_TLS_VERSION_TLS1_2)  &&
           (client.cipher[0] != '\0')                &&
           (client.has_peer_certificate)             &&
-          (client.verify == D_SSL_VERIFY_FLAG_NONE) &&
-          (server.verify == D_SSL_VERIFY_FLAG_NOT_PERFORMED) );
+          (client.verify == D_TLS_VERIFY_FLAG_NONE) &&
+          (server.verify == D_TLS_VERIFY_FLAG_NOT_PERFORMED) );
 
-    d_tests_ssl_pair_close(&pair);
+    d_tests_tls_pair_close(&pair);
 
-    return d_tests_net_assert( (learned),
-                               "d_ssl_session_handshake",
+    return D_TESTS_NET_ASSERT( (learned),
+                               "d_tls_session_handshake",
                                "completes 7 bytes at a time, and learns",
-                               _counter);
+                               _suite);
 }
 
 /*
-d_tests_sa_ssl_exchange
+d_tests_tls_exchange
   Tests the following:
   - 100,000 bytes from the client and 50,000 from the server arrive whole
     and in order, through rings far smaller than either
   - each side counts ciphertext both ways
 */
-bool d_tests_sa_ssl_exchange(
-    struct dj_test_counter* _counter
+bool d_tests_tls_exchange(
+    struct dj_test_suite* _suite
 )
 {
-    struct dj_tests_ssl_pair pair = { .pipe.rings[0].size = 0u };
+    struct dj_tests_tls_pair pair = { .pipe.rings[0].size = 0u };
 
     const bool moved =
-        ( (d_tests_ssl_ready_pair(&pair,
+        ( (d_tests_tls_ready_pair(&pair,
                                   "localhost")) &&
-          (d_tests_ssl_pair_move(&pair.client,
+          (d_tests_tls_pair_move(&pair.client,
                                  &pair.server,
                                  100000u))      &&
-          (d_tests_ssl_pair_move(&pair.server,
+          (d_tests_tls_pair_move(&pair.server,
                                  &pair.client,
                                  50000u))       &&
           (pair.client.bytes_out > 100000u)     &&
           (pair.client.bytes_in > 50000u) );
 
-    d_tests_ssl_pair_close(&pair);
+    d_tests_tls_pair_close(&pair);
 
-    return d_tests_net_assert(moved,
-                              "d_ssl_session_read and write",
+    return D_TESTS_NET_ASSERT(moved,
+                              "d_tls_session_read and write",
                               "both ways, whole and in order",
-                              _counter);
+                              _suite);
 }
 
 /*
-d_tests_sa_ssl_resume
+d_tests_tls_resume
   Tests the following, over the OpenSSL engine:
   - a resumption offer is refused for a NULL argument, a server's session,
     a session that is not yet established to offer, sessions of different
@@ -375,128 +376,128 @@ d_tests_sa_ssl_resume
   It runs past 75 lines because both pairs, and a third context, serve every
   check.
 */
-bool d_tests_sa_ssl_resume(
-    struct dj_test_counter* _counter
+bool d_tests_tls_resume(
+    struct dj_test_suite* _suite
 )
 {
-    struct dj_tests_ssl_world* const world   = d_tests_ssl_world();
-    struct dj_tests_ssl_pair         first   = { .pipe.rings[0].size = 0u };
-    struct dj_tests_ssl_pair         second  = { .pipe.rings[0].size = 0u };
-    struct dj_ssl_context            other   = { .engine = NULL };
-    struct dj_ssl_config             config  = { .role = D_SSL_ROLE_CLIENT };
-    struct dj_ssl_info               info    = { .resumed = false };
-    enum dj_ssl_error                client  = D_SSL_OK;
-    enum dj_ssl_error                server  = D_SSL_OK;
+    struct dj_tests_tls_world* const world   = d_tests_tls_world();
+    struct dj_tests_tls_pair         first   = { .pipe.rings[0].size = 0u };
+    struct dj_tests_tls_pair         second  = { .pipe.rings[0].size = 0u };
+    struct dj_tls_context            other   = { .engine = NULL };
+    struct dj_tls_config             config  = { .role = D_TLS_ROLE_CLIENT };
+    struct dj_tls_info               info    = { .resumed = false };
+    enum dj_tls_error                client  = D_TLS_OK;
+    enum dj_tls_error                server  = D_TLS_OK;
     bool                            result  = true;
 
     // the world's contexts, and a second client context
-    if (!d_tests_net_assert(world != NULL,
-                            "d_ssl_session_resume",
+    if (!D_TESTS_NET_ASSERT(world != NULL,
+                            "d_tls_session_resume",
                             "the test world is open",
-                            _counter))
+                            _suite))
     {
         return false;
     }
 
-    d_tests_ssl_client_config(&config);
+    d_tests_tls_client_config(&config);
 
     const bool opened =
-        ( (d_tests_ssl_pair_open(&first,
+        ( (d_tests_tls_pair_open(&first,
                                  &world->client,
                                  &world->server,
                                  "localhost")) &&
-          (d_tests_ssl_pair_open(&second,
+          (d_tests_tls_pair_open(&second,
                                  &world->client,
                                  &world->server,
                                  "localhost")) &&
-          (d_tests_ssl_context(&other,
+          (d_tests_tls_context(&other,
                                &config)) );
 
-    result = d_tests_net_assert(
+    result = D_TESTS_NET_ASSERT(
                  ( (opened)                       &&
-                   (d_ssl_session_resume(NULL,
+                   (d_tls_session_resume(NULL,
                                          &first.client) ==
-                    D_SSL_ERROR_INVALID_ARGUMENT) &&
-                   (d_ssl_session_resume(&second.client,
+                    D_TLS_ERROR_INVALID_ARGUMENT) &&
+                   (d_tls_session_resume(&second.client,
                                          NULL) ==
-                    D_SSL_ERROR_INVALID_ARGUMENT) &&
-                   (d_ssl_session_resume(&second.server,
+                    D_TLS_ERROR_INVALID_ARGUMENT) &&
+                   (d_tls_session_resume(&second.server,
                                          &first.server) ==
-                    D_SSL_ERROR_INVALID_ARGUMENT) &&
-                   (d_ssl_session_resume(&second.client,
+                    D_TLS_ERROR_INVALID_ARGUMENT) &&
+                   (d_tls_session_resume(&second.client,
                                          &first.client) ==
-                    D_SSL_ERROR_INVALID_ARGUMENT) ),
-                 "d_ssl_session_resume",
+                    D_TLS_ERROR_INVALID_ARGUMENT) ),
+                 "d_tls_session_resume",
                  "refuses NULL, a server, and a session not established",
-                 _counter) && result;
+                 _suite) && result;
 
     const bool resumed =
-        ( (d_tests_ssl_pair_handshake(&first,
+        ( (d_tests_tls_pair_handshake(&first,
                                       &client,
                                       &server))             &&
-          (d_tests_ssl_pair_move(&first.server,
+          (d_tests_tls_pair_move(&first.server,
                                  &first.client,
                                  64u))                      &&
-          (d_ssl_session_resume(&second.client,
-                                &first.client) == D_SSL_OK) &&
-          (d_tests_ssl_pair_handshake(&second,
+          (d_tls_session_resume(&second.client,
+                                &first.client) == D_TLS_OK) &&
+          (d_tests_tls_pair_handshake(&second,
                                       &client,
                                       &server))             &&
-          (d_ssl_session_info(&second.client,
+          (d_tls_session_info(&second.client,
                               &info))                       &&
           (info.resumed) );
 
-    result = d_tests_net_assert(resumed,
-                                "d_ssl_session_resume",
+    result = D_TESTS_NET_ASSERT(resumed,
+                                "d_tls_session_resume",
                                 "a second session resumes the first",
-                                _counter) && result;
+                                _suite) && result;
 
-    const bool first_full = ( (d_ssl_session_info(&first.client,
+    const bool first_full = ( (d_tls_session_info(&first.client,
                                                   &info)) &&
                               (!info.resumed) );
 
-    result = d_tests_net_assert(
+    result = D_TESTS_NET_ASSERT(
                  ( (first_full)                                   &&
-                   (d_ssl_session_resume(&second.client,
+                   (d_tls_session_resume(&second.client,
                                          &first.client) ==
-                    D_SSL_ERROR_INVALID_ARGUMENT) ),
-                 "d_ssl_session_resume",
+                    D_TLS_ERROR_INVALID_ARGUMENT) ),
+                 "d_tls_session_resume",
                  "the first was full; an established session takes no offer",
-                 _counter) && result;
-    d_tests_ssl_pair_close(&second);
+                 _suite) && result;
+    d_tests_tls_pair_close(&second);
 
     // a session of another context is refused
-    struct dj_ssl_session stranger = { .context = NULL };
+    struct dj_tls_session stranger = { .context = NULL };
     const struct dj_pack_text host = { "localhost",
                                       9u };
 
-    result = d_tests_net_assert(
-                 ( (d_ssl_session_init(&stranger,
+    result = D_TESTS_NET_ASSERT(
+                 ( (d_tls_session_init(&stranger,
                                        &other,
                                        d_net_pipe_connection(&first.pipe,
                                                              D_NET_PIPE_A),
-                                       host) == D_SSL_OK)            &&
-                   (d_ssl_session_resume(&stranger,
+                                       host) == D_TLS_OK)            &&
+                   (d_tls_session_resume(&stranger,
                                          &first.client) ==
-                    D_SSL_ERROR_INVALID_ARGUMENT) ),
-                 "d_ssl_session_resume",
+                    D_TLS_ERROR_INVALID_ARGUMENT) ),
+                 "d_tls_session_resume",
                  "refuses a session of another context",
-                 _counter) && result;
-    d_ssl_session_destroy(&stranger);
-    d_tests_ssl_pair_close(&first);
-    d_ssl_context_destroy(&other);
+                 _suite) && result;
+    d_tls_session_destroy(&stranger);
+    d_tests_tls_pair_close(&first);
+    d_tls_context_destroy(&other);
 
     return result;
 }
 
 /*
-d_tests_ssl_collect
+d_tests_tls_collect
   Reads `_size` bytes at a pair's server into `_out`, flushing the client
 whenever it waits to write; false on any failure, or if the rounds run out.
 */
 static
-bool d_tests_ssl_collect(
-    struct dj_tests_ssl_pair* _pair,
+bool d_tests_tls_collect(
+    struct dj_tests_tls_pair* _pair,
     unsigned char*            _out,
     size_t                    _size
 )
@@ -512,8 +513,8 @@ bool d_tests_ssl_collect(
          ++round)
     {
         size_t                 count = 0u;
-        enum dj_ssl_error       flush = D_SSL_OK;
-        const enum dj_ssl_error read  = d_ssl_session_read(&_pair->server,
+        enum dj_tls_error       flush = D_TLS_OK;
+        const enum dj_tls_error read  = d_tls_session_read(&_pair->server,
                                                           _out + received,
                                                           _size - received,
                                                           &count);
@@ -521,30 +522,30 @@ bool d_tests_ssl_collect(
         received += count;
 
         // the client's ciphertext goes on once the pipe has room
-        if (d_ssl_session_wants(&_pair->client) == D_SSL_WANT_WRITE)
+        if (d_tls_session_wants(&_pair->client) == D_TLS_WANT_WRITE)
         {
-            flush = d_ssl_session_flush(&_pair->client);
+            flush = d_tls_session_flush(&_pair->client);
         }
 
-        going = ( ( (read == D_SSL_OK) ||
-                    (read == D_SSL_ERROR_WOULD_BLOCK) ) &&
-                  ( (flush == D_SSL_OK) ||
-                    (flush == D_SSL_ERROR_WOULD_BLOCK) ) );
+        going = ( ( (read == D_TLS_OK) ||
+                    (read == D_TLS_ERROR_WOULD_BLOCK) ) &&
+                  ( (flush == D_TLS_OK) ||
+                    (flush == D_TLS_ERROR_WOULD_BLOCK) ) );
     }
 
     return (received == _size);
 }
 
-// dj_tests_ssl_record
+// dj_tests_tls_record
 //   struct: a whole record's plaintext, as sent and as it arrived.
-struct dj_tests_ssl_record
+struct dj_tests_tls_record
 {
-    unsigned char sent[D_SSL_RECORD_PLAINTEXT_MAX];
-    unsigned char seen[D_SSL_RECORD_PLAINTEXT_MAX];
+    unsigned char sent[D_TLS_RECORD_PLAINTEXT_MAX];
+    unsigned char seen[D_TLS_RECORD_PLAINTEXT_MAX];
 };
 
 /*
-d_tests_sa_ssl_wants
+d_tests_tls_wants
   Tests the following:
   - an established session awaits nothing
   - a read with nothing to read would block, awaiting the transport's
@@ -554,12 +555,12 @@ d_tests_sa_ssl_wants
     room for the rest
   - the rest goes out as the peer reads, whole, and then nothing is awaited
 */
-bool d_tests_sa_ssl_wants(
-    struct dj_test_counter* _counter
+bool d_tests_tls_wants(
+    struct dj_test_suite* _suite
 )
 {
-    struct dj_tests_ssl_record record = { { 0 }, { 0 } };
-    struct dj_tests_ssl_pair   pair   = { .pipe.rings[0].size = 0u };
+    struct dj_tests_tls_record record = { { 0 }, { 0 } };
+    struct dj_tests_tls_pair   pair   = { .pipe.rings[0].size = 0u };
     unsigned char             byte   = 0u;
     size_t                    count  = 0u;
     size_t                    taken  = 0u;
@@ -569,110 +570,110 @@ bool d_tests_sa_ssl_wants(
                         sizeof(record.sent),
                         3u);
 
-    const bool ready   = d_tests_ssl_ready_pair(&pair,
+    const bool ready   = d_tests_tls_ready_pair(&pair,
                                                 "localhost");
     const bool waiting =
         ( (ready)                                                   &&
-          (d_ssl_session_wants(&pair.client) == D_SSL_WANT_NOTHING) &&
-          (d_ssl_session_read(&pair.server,
+          (d_tls_session_wants(&pair.client) == D_TLS_WANT_NOTHING) &&
+          (d_tls_session_read(&pair.server,
                               &byte,
                               1u,
-                              &count) == D_SSL_ERROR_WOULD_BLOCK)   &&
-          (d_ssl_session_wants(&pair.server) == D_SSL_WANT_READ)    &&
-          (d_ssl_session_write(&pair.client,
+                              &count) == D_TLS_ERROR_WOULD_BLOCK)   &&
+          (d_tls_session_wants(&pair.server) == D_TLS_WANT_READ)    &&
+          (d_tls_session_write(&pair.client,
                                record.sent,
                                sizeof(record.sent),
-                               &taken) == D_SSL_OK)                 &&
+                               &taken) == D_TLS_OK)                 &&
           (taken == sizeof(record.sent))                            &&
-          (d_ssl_session_wants(&pair.client) == D_SSL_WANT_WRITE) );
+          (d_tls_session_wants(&pair.client) == D_TLS_WANT_WRITE) );
     const bool arrived =
         ( (waiting)                                       &&
-          (d_tests_ssl_collect(&pair,
+          (d_tests_tls_collect(&pair,
                                record.seen,
                                sizeof(record.seen)))      &&
           (memcmp(record.seen,
                   record.sent,
                   sizeof(record.sent)) == 0)              &&
-          (d_ssl_session_flush(&pair.client) == D_SSL_OK) &&
-          (d_ssl_session_wants(&pair.client) == D_SSL_WANT_NOTHING) );
+          (d_tls_session_flush(&pair.client) == D_TLS_OK) &&
+          (d_tls_session_wants(&pair.client) == D_TLS_WANT_NOTHING) );
 
-    d_tests_ssl_pair_close(&pair);
+    d_tests_tls_pair_close(&pair);
 
-    result = d_tests_net_assert(waiting,
-                                "d_ssl_session_wants",
+    result = D_TESTS_NET_ASSERT(waiting,
+                                "d_tls_session_wants",
                                 "a blocked call says what it awaits",
-                                _counter) && result;
+                                _suite) && result;
 
-    return d_tests_net_assert(arrived,
-                              "d_ssl_session_wants",
+    return D_TESTS_NET_ASSERT(arrived,
+                              "d_tls_session_wants",
                               "a record past the stage goes out whole",
-                              _counter) && result;
+                              _suite) && result;
 }
 
 /*
-d_tests_sa_ssl_close_notify
+d_tests_tls_close_notify
   Tests the following:
   - the server's close_notify reaches the client as CLOSED, on every read
   - the client answers with its own, and both sessions are then CLOSED
   - a write after this end's close_notify is refused
 */
-bool d_tests_sa_ssl_close_notify(
-    struct dj_test_counter* _counter
+bool d_tests_tls_close_notify(
+    struct dj_test_suite* _suite
 )
 {
-    struct dj_tests_ssl_pair pair  = { .pipe.rings[0].size = 0u };
+    struct dj_tests_tls_pair pair  = { .pipe.rings[0].size = 0u };
     unsigned char           byte  = 0u;
     size_t                  count = 0u;
 
-    const bool ready = d_tests_ssl_ready_pair(&pair,
+    const bool ready = d_tests_tls_ready_pair(&pair,
                                               "localhost");
     const bool ended =
         ( (ready)                                                   &&
-          (d_ssl_session_shutdown(&pair.server) == D_SSL_OK)        &&
-          (d_ssl_session_read(&pair.client,
+          (d_tls_session_shutdown(&pair.server) == D_TLS_OK)        &&
+          (d_tls_session_read(&pair.client,
                               &byte,
                               1u,
-                              &count) == D_SSL_ERROR_CLOSED)        &&
-          (d_ssl_session_read(&pair.client,
+                              &count) == D_TLS_ERROR_CLOSED)        &&
+          (d_tls_session_read(&pair.client,
                               &byte,
                               1u,
-                              &count) == D_SSL_ERROR_CLOSED)        &&
-          (d_ssl_session_shutdown(&pair.client) == D_SSL_OK)        &&
-          (d_ssl_session_state(&pair.client) == D_SSL_STATE_CLOSED) &&
-          (d_ssl_session_read(&pair.server,
+                              &count) == D_TLS_ERROR_CLOSED)        &&
+          (d_tls_session_shutdown(&pair.client) == D_TLS_OK)        &&
+          (d_tls_session_state(&pair.client) == D_TLS_STATE_CLOSED) &&
+          (d_tls_session_read(&pair.server,
                               &byte,
                               1u,
-                              &count) == D_SSL_ERROR_CLOSED)        &&
-          (d_ssl_session_state(&pair.server) == D_SSL_STATE_CLOSED) &&
-          (d_ssl_session_write(&pair.client,
+                              &count) == D_TLS_ERROR_CLOSED)        &&
+          (d_tls_session_state(&pair.server) == D_TLS_STATE_CLOSED) &&
+          (d_tls_session_write(&pair.client,
                                "x",
                                1u,
-                               &count) == D_SSL_ERROR_STATE) );
+                               &count) == D_TLS_ERROR_STATE) );
 
-    d_tests_ssl_pair_close(&pair);
+    d_tests_tls_pair_close(&pair);
 
-    return d_tests_net_assert(ended,
+    return D_TESTS_NET_ASSERT(ended,
                               "close_notify",
                               "an orderly end, both ways",
-                              _counter);
+                              _suite);
 }
 
 /*
-d_tests_sa_ssl_truncation
+d_tests_tls_truncation
   Tests the following:
   - a transport that ends without close_notify is TRUNCATED, never CLOSED,
     and the failure sticks
   - the transport's last word was the end of its stream: D_NET_OK
 */
-bool d_tests_sa_ssl_truncation(
-    struct dj_test_counter* _counter
+bool d_tests_tls_truncation(
+    struct dj_test_suite* _suite
 )
 {
-    struct dj_tests_ssl_pair pair  = { .pipe.rings[0].size = 0u };
+    struct dj_tests_tls_pair pair  = { .pipe.rings[0].size = 0u };
     unsigned char           byte  = 0u;
     size_t                  count = 0u;
 
-    const bool ready = d_tests_ssl_ready_pair(&pair,
+    const bool ready = d_tests_tls_ready_pair(&pair,
                                               "localhost");
 
     // the server's end goes without a word
@@ -681,25 +682,25 @@ bool d_tests_sa_ssl_truncation(
 
     const bool truncated =
         ( (ready)                                                        &&
-          (d_ssl_session_read(&pair.client,
+          (d_tls_session_read(&pair.client,
                               &byte,
                               1u,
-                              &count) == D_SSL_ERROR_TRUNCATED)          &&
-          (d_ssl_session_state(&pair.client) == D_SSL_STATE_FAILED)      &&
-          (d_ssl_session_failure(&pair.client) == D_SSL_ERROR_TRUNCATED) &&
-          (d_ssl_session_flush(&pair.client) == D_SSL_ERROR_TRUNCATED)   &&
-          (d_ssl_session_transport_error(&pair.client) == D_NET_OK) );
+                              &count) == D_TLS_ERROR_TRUNCATED)          &&
+          (d_tls_session_state(&pair.client) == D_TLS_STATE_FAILED)      &&
+          (d_tls_session_failure(&pair.client) == D_TLS_ERROR_TRUNCATED) &&
+          (d_tls_session_flush(&pair.client) == D_TLS_ERROR_TRUNCATED)   &&
+          (d_tls_session_transport_error(&pair.client) == D_NET_OK) );
 
-    d_tests_ssl_pair_close(&pair);
+    d_tests_tls_pair_close(&pair);
 
-    return d_tests_net_assert(truncated,
+    return D_TESTS_NET_ASSERT(truncated,
                               "truncation",
                               "an end without close_notify is TRUNCATED",
-                              _counter);
+                              _suite);
 }
 
 /*
-d_tests_sa_ssl_transport_failure
+d_tests_tls_transport_failure
   Tests the following:
   - a transport whose reads fail makes the handshake fail with TRANSPORT,
     and the session keeps the transport's own error
@@ -707,323 +708,323 @@ d_tests_sa_ssl_transport_failure
   - no session at all reads as FAILED, with no failure, no transport
     error, and nothing awaited
 */
-bool d_tests_sa_ssl_transport_failure(
-    struct dj_test_counter* _counter
+bool d_tests_tls_transport_failure(
+    struct dj_test_suite* _suite
 )
 {
-    struct dj_tests_ssl_world* const world   = d_tests_ssl_world();
-    struct dj_tests_ssl_broken       broken  = { { NULL },
+    struct dj_tests_tls_world* const world   = d_tests_tls_world();
+    struct dj_tests_tls_broken       broken  = { { NULL },
                                                 D_NET_ERROR_TIMED_OUT };
-    struct dj_ssl_session            session = { .owns_transport = false };
+    struct dj_tls_session            session = { .owns_transport = false };
     const struct dj_pack_text        host    = { "localhost", 9u };
 
     const bool nothing =
-        ( (d_ssl_session_state(NULL) == D_SSL_STATE_FAILED) &&
-          (d_ssl_session_failure(NULL) == D_SSL_OK)         &&
-          (d_ssl_session_transport_error(NULL) == D_NET_OK) &&
-          (d_ssl_session_wants(NULL) == D_SSL_WANT_NOTHING) );
+        ( (d_tls_session_state(NULL) == D_TLS_STATE_FAILED) &&
+          (d_tls_session_failure(NULL) == D_TLS_OK)         &&
+          (d_tls_session_transport_error(NULL) == D_NET_OK) &&
+          (d_tls_session_wants(NULL) == D_TLS_WANT_NOTHING) );
 
     (void)d_net_connection_init(&broken.base,
                                 &BROKEN_OPERATIONS);
 
     const bool failed =
         ( (world)                                                      &&
-          (d_ssl_session_init(&session,
+          (d_tls_session_init(&session,
                               &world->client,
                               &broken.base,
-                              host) == D_SSL_OK)                       &&
-          (d_ssl_session_failure(&session) == D_SSL_OK)                &&
-          (d_ssl_session_handshake(&session) == D_SSL_ERROR_TRANSPORT) &&
-          (d_ssl_session_failure(&session) == D_SSL_ERROR_TRANSPORT)   &&
-          (d_ssl_session_transport_error(&session) ==
+                              host) == D_TLS_OK)                       &&
+          (d_tls_session_failure(&session) == D_TLS_OK)                &&
+          (d_tls_session_handshake(&session) == D_TLS_ERROR_TRANSPORT) &&
+          (d_tls_session_failure(&session) == D_TLS_ERROR_TRANSPORT)   &&
+          (d_tls_session_transport_error(&session) ==
            D_NET_ERROR_TIMED_OUT) );
 
-    d_ssl_session_destroy(&session);
+    d_tls_session_destroy(&session);
 
-    return ( (d_tests_net_assert(failed,
+    return ( (D_TESTS_NET_ASSERT(failed,
                                  "transport failures",
                                  "TRANSPORT, with the transport's own error",
-                                 _counter)) &&
-             (d_tests_net_assert(nothing,
+                                 _suite)) &&
+             (D_TESTS_NET_ASSERT(nothing,
                                  "transport failures",
                                  "no session has failed in name only",
-                                 _counter)) );
+                                 _suite)) );
 }
 
 /*
-d_tests_ssl_refused
+d_tests_tls_refused
   Handshakes a pair whose client names `_host`, expecting the client to
 refuse the server with VERIFY and the flag `_flag`.
 */
 static
-bool d_tests_ssl_refused(
-    const struct dj_ssl_context* _client,
-    const struct dj_ssl_context* _server,
+bool d_tests_tls_refused(
+    const struct dj_tls_context* _client,
+    const struct dj_tls_context* _server,
     const char*                  _host,
     uint32_t                     _flag
 )
 {
-    struct dj_tests_ssl_pair pair = { .pipe.rings[0].size = 0u };
-    struct dj_ssl_info       info = { .version = D_SSL_VERSION_NONE };
-    enum dj_ssl_error        cs   = D_SSL_OK;
-    enum dj_ssl_error        ss   = D_SSL_OK;
+    struct dj_tests_tls_pair pair = { .pipe.rings[0].size = 0u };
+    struct dj_tls_info       info = { .version = D_TLS_VERSION_NONE };
+    enum dj_tls_error        cs   = D_TLS_OK;
+    enum dj_tls_error        ss   = D_TLS_OK;
 
     const bool refused =
-        ( (d_tests_ssl_pair_open(&pair,
+        ( (d_tests_tls_pair_open(&pair,
                                  _client,
                                  _server,
                                  _host))     &&
-          (!d_tests_ssl_pair_handshake(&pair,
+          (!d_tests_tls_pair_handshake(&pair,
                                        &cs,
                                        &ss)) &&
-          (cs == D_SSL_ERROR_VERIFY)         &&
-          (d_ssl_session_info(&pair.client,
+          (cs == D_TLS_ERROR_VERIFY)         &&
+          (d_tls_session_info(&pair.client,
                               &info))        &&
           ((info.verify & _flag) != 0u) );
 
-    d_tests_ssl_pair_close(&pair);
+    d_tests_tls_pair_close(&pair);
 
     return refused;
 }
 
 /*
-d_tests_sa_ssl_names
+d_tests_tls_names
   Tests the following:
   - a server not named for the host the client meant is refused
   - an IP literal is checked against the certificate's addresses, and the
     server's 127.0.0.1 is accepted
   - one trailing dot on a name changes nothing
 */
-bool d_tests_sa_ssl_names(
-    struct dj_test_counter* _counter
+bool d_tests_tls_names(
+    struct dj_test_suite* _suite
 )
 {
-    struct dj_tests_ssl_world* const world  = d_tests_ssl_world();
-    struct dj_tests_ssl_pair         pair   = { .pipe.rings[0].size = 0u };
+    struct dj_tests_tls_world* const world  = d_tests_tls_world();
+    struct dj_tests_tls_pair         pair   = { .pipe.rings[0].size = 0u };
     bool                            result = true;
 
     const bool mismatch =
         ( (world)                                                    &&
-          (d_tests_ssl_refused(&world->client,
+          (d_tests_tls_refused(&world->client,
                                &world->server,
                                "other.example",
-                               D_SSL_VERIFY_FLAG_HOSTNAME_MISMATCH)) &&
-          (d_tests_ssl_refused(&world->client,
+                               D_TLS_VERIFY_FLAG_HOSTNAME_MISMATCH)) &&
+          (d_tests_tls_refused(&world->client,
                                &world->server,
                                "127.0.0.2",
-                               D_SSL_VERIFY_FLAG_HOSTNAME_MISMATCH)) );
-    const bool address = d_tests_ssl_ready_pair(&pair,
+                               D_TLS_VERIFY_FLAG_HOSTNAME_MISMATCH)) );
+    const bool address = d_tests_tls_ready_pair(&pair,
                                                 "127.0.0.1");
 
-    d_tests_ssl_pair_close(&pair);
+    d_tests_tls_pair_close(&pair);
 
-    const bool dotted = d_tests_ssl_ready_pair(&pair,
+    const bool dotted = d_tests_tls_ready_pair(&pair,
                                                "localhost.");
 
-    d_tests_ssl_pair_close(&pair);
+    d_tests_tls_pair_close(&pair);
 
-    result = d_tests_net_assert(mismatch,
+    result = D_TESTS_NET_ASSERT(mismatch,
                                 "host names",
                                 "a server named otherwise is refused",
-                                _counter) && result;
-    result = d_tests_net_assert( ( (address) &&
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT( ( (address) &&
                                    (dotted) ),
                                  "host names",
                                  "addresses and trailing dots match",
-                                 _counter) && result;
+                                 _suite) && result;
 
     return result;
 }
 
 /*
-d_tests_sa_ssl_trust
+d_tests_tls_trust
   Tests the following:
   - a certificate from an untrusted CA, and an expired one, are refused
   - verification is off only when asked, and then the untrusted server is
     accepted unauthenticated
 */
-bool d_tests_sa_ssl_trust(
-    struct dj_test_counter* _counter
+bool d_tests_tls_trust(
+    struct dj_test_suite* _suite
 )
 {
-    struct dj_tests_ssl_world* const world    = d_tests_ssl_world();
-    struct dj_ssl_config             config   = { .verify_hostname = false };
-    struct dj_ssl_context            rogue    = { .engine = NULL };
-    struct dj_ssl_context            expired  = { .engine = NULL };
-    struct dj_ssl_context            trusting = { .engine = NULL };
-    struct dj_tests_ssl_pair         pair     = { .pipe.rings[0].size = 0u };
-    struct dj_ssl_info               info     = { .resumed = false };
-    enum dj_ssl_error                cs       = D_SSL_OK;
-    enum dj_ssl_error                ss       = D_SSL_OK;
+    struct dj_tests_tls_world* const world    = d_tests_tls_world();
+    struct dj_tls_config             config   = { .verify_hostname = false };
+    struct dj_tls_context            rogue    = { .engine = NULL };
+    struct dj_tls_context            expired  = { .engine = NULL };
+    struct dj_tls_context            trusting = { .engine = NULL };
+    struct dj_tests_tls_pair         pair     = { .pipe.rings[0].size = 0u };
+    struct dj_tls_info               info     = { .resumed = false };
+    enum dj_tls_error                cs       = D_TLS_OK;
+    enum dj_tls_error                ss       = D_TLS_OK;
 
-    d_tests_ssl_server_config(&config,
+    d_tests_tls_server_config(&config,
                               (world) ? world->pki.rogue_cert : NULL,
                               (world) ? world->pki.rogue_key : NULL);
 
     const bool made = ( (world) &&
-                        (d_tests_ssl_context(&rogue,
+                        (d_tests_tls_context(&rogue,
                                              &config)) );
 
-    d_tests_ssl_server_config(&config,
+    d_tests_tls_server_config(&config,
                               (world) ? world->pki.expired_cert : NULL,
                               (world) ? world->pki.expired_key : NULL);
 
     const bool refused =
         ( (made)                                             &&
-          (d_tests_ssl_context(&expired,
+          (d_tests_tls_context(&expired,
                                &config))                     &&
-          (d_tests_ssl_refused(&world->client,
+          (d_tests_tls_refused(&world->client,
                                &rogue,
                                "localhost",
-                               D_SSL_VERIFY_FLAG_UNTRUSTED)) &&
-          (d_tests_ssl_refused(&world->client,
+                               D_TLS_VERIFY_FLAG_UNTRUSTED)) &&
+          (d_tests_tls_refused(&world->client,
                                &expired,
                                "localhost",
-                               D_SSL_VERIFY_FLAG_EXPIRED)) );
+                               D_TLS_VERIFY_FLAG_EXPIRED)) );
 
-    d_tests_ssl_client_config(&config);
-    config.verify          = D_SSL_VERIFY_NONE;
+    d_tests_tls_client_config(&config);
+    config.verify          = D_TLS_VERIFY_NONE;
     config.verify_hostname = false;
 
     const bool unverified =
         ( (made)                               &&
-          (d_tests_ssl_context(&trusting,
+          (d_tests_tls_context(&trusting,
                                &config))       &&
-          (d_tests_ssl_pair_open(&pair,
+          (d_tests_tls_pair_open(&pair,
                                  &trusting,
                                  &rogue,
                                  "localhost")) &&
-          (d_tests_ssl_pair_handshake(&pair,
+          (d_tests_tls_pair_handshake(&pair,
                                       &cs,
                                       &ss))    &&
-          (d_ssl_session_info(&pair.client,
+          (d_tls_session_info(&pair.client,
                               &info))          &&
-          (info.verify == D_SSL_VERIFY_FLAG_NOT_PERFORMED) );
+          (info.verify == D_TLS_VERIFY_FLAG_NOT_PERFORMED) );
 
-    d_tests_ssl_pair_close(&pair);
-    d_ssl_context_destroy(&trusting);
-    d_ssl_context_destroy(&expired);
-    d_ssl_context_destroy(&rogue);
+    d_tests_tls_pair_close(&pair);
+    d_tls_context_destroy(&trusting);
+    d_tls_context_destroy(&expired);
+    d_tls_context_destroy(&rogue);
 
-    return ( (d_tests_net_assert(refused,
+    return ( (D_TESTS_NET_ASSERT(refused,
                                  "trust",
                                  "untrusted and expired servers are refused",
-                                 _counter)) &&
-             (d_tests_net_assert(unverified,
+                                 _suite)) &&
+             (D_TESTS_NET_ASSERT(unverified,
                                  "trust",
                                  "verification is off only when asked",
-                                 _counter)) );
+                                 _suite)) );
 }
 
 /*
-d_tests_ssl_alpn_context
+d_tests_tls_alpn_context
   A context like the world's client or server, offering the ALPN wire list
 `_list`.
 */
 static
-bool d_tests_ssl_alpn_context(
-    struct dj_ssl_context* _out,
+bool d_tests_tls_alpn_context(
+    struct dj_tls_context* _out,
     bool                   _server,
     const char*            _list,
     size_t                 _length
 )
 {
-    struct dj_tests_ssl_world* const world  = d_tests_ssl_world();
-    struct dj_ssl_config             config = { .verify_hostname = false };
+    struct dj_tests_tls_world* const world  = d_tests_tls_world();
+    struct dj_tls_config             config = { .verify_hostname = false };
 
     // the world's settings for the side
     if (_server)
     {
-        d_tests_ssl_server_config(&config,
+        d_tests_tls_server_config(&config,
                                   world->pki.server_cert,
                                   world->pki.server_key);
     }
     else
     {
-        d_tests_ssl_client_config(&config);
+        d_tests_tls_client_config(&config);
     }
 
     config.alpn.data = (const unsigned char*)_list;
     config.alpn.size = _length;
 
-    return d_tests_ssl_context(_out,
+    return d_tests_tls_context(_out,
                                &config);
 }
 
 /*
-d_tests_sa_ssl_alpn
+d_tests_tls_alpn
   Tests the following:
   - a client offering h2 and http/1.1 and a server choosing from
     http/1.1 alone agree on http/1.1, and both sessions say so
 */
-bool d_tests_sa_ssl_alpn(
-    struct dj_test_counter* _counter
+bool d_tests_tls_alpn(
+    struct dj_test_suite* _suite
 )
 {
     static const char       CLIENT_LIST[] = "\x02h2\x08http/1.1";
     static const char       SERVER_LIST[] = "\x08http/1.1";
-    struct dj_ssl_context    client        = { .engine = NULL };
-    struct dj_ssl_context    server        = { .engine = NULL };
-    struct dj_tests_ssl_pair pair          = { .pipe.rings[0].size = 0u };
-    struct dj_ssl_info       seen          = { .version = D_SSL_VERSION_NONE };
-    struct dj_ssl_info       chosen        = { .version = D_SSL_VERSION_NONE };
-    enum dj_ssl_error        cs            = D_SSL_OK;
-    enum dj_ssl_error        ss            = D_SSL_OK;
+    struct dj_tls_context    client        = { .engine = NULL };
+    struct dj_tls_context    server        = { .engine = NULL };
+    struct dj_tests_tls_pair pair          = { .pipe.rings[0].size = 0u };
+    struct dj_tls_info       seen          = { .version = D_TLS_VERSION_NONE };
+    struct dj_tls_info       chosen        = { .version = D_TLS_VERSION_NONE };
+    enum dj_tls_error        cs            = D_TLS_OK;
+    enum dj_tls_error        ss            = D_TLS_OK;
 
     const bool agreed =
-        ( (d_tests_ssl_world())                                &&
-          (d_tests_ssl_alpn_context(&client,
+        ( (d_tests_tls_world())                                &&
+          (d_tests_tls_alpn_context(&client,
                                     false,
                                     CLIENT_LIST,
                                     sizeof(CLIENT_LIST) - 1u)) &&
-          (d_tests_ssl_alpn_context(&server,
+          (d_tests_tls_alpn_context(&server,
                                     true,
                                     SERVER_LIST,
                                     sizeof(SERVER_LIST) - 1u)) &&
-          (d_tests_ssl_pair_open(&pair,
+          (d_tests_tls_pair_open(&pair,
                                  &client,
                                  &server,
                                  "localhost"))                 &&
-          (d_tests_ssl_pair_handshake(&pair,
+          (d_tests_tls_pair_handshake(&pair,
                                       &cs,
                                       &ss))                    &&
-          (d_ssl_session_info(&pair.client,
+          (d_tls_session_info(&pair.client,
                               &seen))                          &&
-          (d_ssl_session_info(&pair.server,
+          (d_tls_session_info(&pair.server,
                               &chosen))                        &&
           (strcmp(seen.alpn,
                   "http/1.1") == 0)                            &&
           (strcmp(chosen.alpn,
                   "http/1.1") == 0) );
 
-    d_tests_ssl_pair_close(&pair);
-    d_ssl_context_destroy(&client);
-    d_ssl_context_destroy(&server);
+    d_tests_tls_pair_close(&pair);
+    d_tls_context_destroy(&client);
+    d_tls_context_destroy(&server);
 
-    return d_tests_net_assert(agreed,
+    return D_TESTS_NET_ASSERT(agreed,
                               "ALPN",
                               "negotiated, and read on both sides",
-                              _counter);
+                              _suite);
 }
 
 /*
-d_tests_sa_ssl_plaintext_first
+d_tests_tls_plaintext_first
   Tests the following:
   - a pipe that has carried plaintext both ways carries a handshake and
     data afterwards, as a STARTTLS upgrade needs
 */
-bool d_tests_sa_ssl_plaintext_first(
-    struct dj_test_counter* _counter
+bool d_tests_tls_plaintext_first(
+    struct dj_test_suite* _suite
 )
 {
-    struct dj_tests_ssl_world* const world    = d_tests_ssl_world();
-    struct dj_tests_ssl_pair         pair     = { .pipe.rings[0].size = 0u };
+    struct dj_tests_tls_world* const world    = d_tests_tls_world();
+    struct dj_tests_tls_pair         pair     = { .pipe.rings[0].size = 0u };
     char                            read[16] = { 0 };
-    enum dj_ssl_error                cs       = D_SSL_OK;
-    enum dj_ssl_error                ss       = D_SSL_OK;
+    enum dj_tls_error                cs       = D_TLS_OK;
+    enum dj_tls_error                ss       = D_TLS_OK;
 
     const bool opened = ( (world) &&
-                          (d_tests_ssl_pair_open(&pair,
+                          (d_tests_tls_pair_open(&pair,
                                                  &world->client,
                                                  &world->server,
                                                  "localhost")) );
@@ -1054,36 +1055,36 @@ bool d_tests_sa_ssl_plaintext_first(
           (memcmp(read,
                   "220 Go\r\n",
                   8u) == 0)                      &&
-          (d_tests_ssl_pair_handshake(&pair,
+          (d_tests_tls_pair_handshake(&pair,
                                       &cs,
                                       &ss))      &&
-          (d_tests_ssl_pair_move(&pair.client,
+          (d_tests_tls_pair_move(&pair.client,
                                  &pair.server,
                                  1000u)) );
 
-    d_tests_ssl_pair_close(&pair);
+    d_tests_tls_pair_close(&pair);
 
-    return d_tests_net_assert(upgraded,
+    return D_TESTS_NET_ASSERT(upgraded,
                               "upgrades",
                               "plaintext, then TLS, on one connection",
-                              _counter);
+                              _suite);
 }
 
 /*
-d_tests_sa_ssl_not_tls
+d_tests_tls_not_tls
   Tests the following:
   - a server whose peer speaks plaintext where the handshake should begin
     fails with NOT_TLS, its engine never having seen the bytes
 */
-bool d_tests_sa_ssl_not_tls(
-    struct dj_test_counter* _counter
+bool d_tests_tls_not_tls(
+    struct dj_test_suite* _suite
 )
 {
-    struct dj_tests_ssl_world* const world = d_tests_ssl_world();
-    struct dj_tests_ssl_pair         pair  = { .pipe.rings[0].size = 0u };
+    struct dj_tests_tls_world* const world = d_tests_tls_world();
+    struct dj_tests_tls_pair         pair  = { .pipe.rings[0].size = 0u };
 
     const bool opened = ( (world) &&
-                          (d_tests_ssl_pair_open(&pair,
+                          (d_tests_tls_pair_open(&pair,
                                                  &world->client,
                                                  &world->server,
                                                  "localhost")) );
@@ -1094,13 +1095,13 @@ bool d_tests_sa_ssl_not_tls(
                            "EHLO client.example\r\n",
                            21u,
                            NULL) == D_NET_OK)                            &&
-          (d_ssl_session_handshake(&pair.server) == D_SSL_ERROR_NOT_TLS) &&
-          (d_ssl_session_failure(&pair.server) == D_SSL_ERROR_NOT_TLS) );
+          (d_tls_session_handshake(&pair.server) == D_TLS_ERROR_NOT_TLS) &&
+          (d_tls_session_failure(&pair.server) == D_TLS_ERROR_NOT_TLS) );
 
-    d_tests_ssl_pair_close(&pair);
+    d_tests_tls_pair_close(&pair);
 
-    return d_tests_net_assert(sniffed,
+    return D_TESTS_NET_ASSERT(sniffed,
                               "sniffing",
                               "plaintext where TLS belongs is NOT_TLS",
-                              _counter);
+                              _suite);
 }

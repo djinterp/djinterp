@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c][net]                                          ssh_tests_sa_view.c
+* djinterp [c][net]                                             ssh_tests_view.c
 *
 * Tests of a channel as a net.h connection.
 *   Each test reaches the channel only through its base, as code written for
@@ -8,18 +8,19 @@
 * the engine or elsewhere in the session, and channels that never opened.
 *
 *
-* path:      /tests/djinterp/c/modules/net/ssh/ssh_tests_sa_view.c
+* path:      /tests/djinterp/c/modules/net/ssh/ssh_tests_view.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
 *                                                            revised: 2026.10.14
 *******************************************************************************/
-#include "./ssh_tests_sa.h"  // corresponding header
+#include "./ssh_tests.h"  // corresponding header
+#include "../../../../../../inc/djinterp/c/modules/test/test_suite.h"  // DTest
 // std
 #include <string.h>  // memcmp, memset
 
 
 /*
-d_tests_sa_ssh_view_transfers
+d_tests_ssh_view_transfers
   Tests the following:
   - write_all crosses a window three bytes wide whole and in order, the
     channel looping on the window beneath one write through the view
@@ -27,8 +28,8 @@ d_tests_sa_ssh_view_transfers
     read per read through the view
   - a frame written through the view, echoed, reads back whole
 */
-bool d_tests_sa_ssh_view_transfers(
-    struct dj_test_counter* _counter
+bool d_tests_ssh_view_transfers(
+    struct dj_test_suite* _suite
 )
 {
     struct dj_tests_ssh_fixture fixture    = { .channel.exit_status = 0 };
@@ -94,22 +95,22 @@ bool d_tests_sa_ssh_view_transfers(
 
     d_tests_ssh_fixture_close(&fixture);
 
-    return d_tests_net_assert(framed,
+    return D_TESTS_NET_ASSERT(framed,
                               "channel views",
                               "net.h's transfers and frames run over SSH",
-                              _counter);
+                              _suite);
 }
 
 /*
-d_tests_sa_ssh_view_ends
+d_tests_ssh_view_ends
   Tests the following:
   - the server's EOF is a read of nothing without an error, on every read,
     changing neither the channel, the session, nor `failure`
   - the view stays open past it
   - the view knows no endpoints and counts nothing available
 */
-bool d_tests_sa_ssh_view_ends(
-    struct dj_test_counter* _counter
+bool d_tests_ssh_view_ends(
+    struct dj_test_suite* _suite
 )
 {
     struct dj_tests_ssh_fixture fixture  = { .channel.exit_status = 0 };
@@ -156,19 +157,19 @@ bool d_tests_sa_ssh_view_ends(
 
     d_tests_ssh_fixture_close(&fixture);
 
-    return ( d_tests_net_assert(ended,
+    return ( D_TESTS_NET_ASSERT(ended,
                                 "channel views",
                                 "the server's EOF reads as the end, open",
-                                _counter) &&
-             d_tests_net_assert(unknown,
+                                _suite) &&
+             D_TESTS_NET_ASSERT(unknown,
                                 "channel views",
                                 "no endpoints, nothing counted",
-                                _counter) );
+                                _suite) );
 }
 
 /*
 d_tests_ssh_view_half_close
-  The first half of d_tests_sa_ssh_view_closing, over an open fixture whose
+  The first half of d_tests_ssh_view_closing, over an open fixture whose
 script holds "reply": the shutdowns, then a write and a read past EOF.
 */
 static
@@ -241,7 +242,7 @@ bool d_tests_ssh_view_closed(
 }
 
 /*
-d_tests_sa_ssh_view_closing
+d_tests_ssh_view_closing
   Tests the following:
   - shutdown(READ) asks nothing of the server; WRITE sends EOF, once, and
     BOTH after it nothing more
@@ -252,8 +253,8 @@ d_tests_sa_ssh_view_closing
   - destroy through the view closes the channel and leaves its storage to
     d_ssh_channel_free, after which the view is still a closed connection
 */
-bool d_tests_sa_ssh_view_closing(
-    struct dj_test_counter* _counter
+bool d_tests_ssh_view_closing(
+    struct dj_test_suite* _suite
 )
 {
     struct dj_tests_ssh_fixture fixture = { .channel.exit_status = 0 };
@@ -305,14 +306,14 @@ bool d_tests_sa_ssh_view_closing(
 
     d_tests_ssh_fixture_close(&fixture);
 
-    return ( d_tests_net_assert(again,
+    return ( D_TESTS_NET_ASSERT(again,
                                 "channel views",
                                 "half and full closes, each once",
-                                _counter) &&
-             d_tests_net_assert(freed,
+                                _suite) &&
+             D_TESTS_NET_ASSERT(freed,
                                 "channel views",
                                 "destroy closes and leaves the storage",
-                                _counter) );
+                                _suite) );
 }
 
 // dj_tests_ssh_failure
@@ -498,7 +499,7 @@ d_tests_ssh_view_write_fails(
 }
 
 /*
-d_tests_sa_ssh_view_failures
+d_tests_ssh_view_failures
   Tests the following:
   - a read failing with a fatal status reports its d_ssh_error_to_net and
     fails the channel and session, which then answer every read, write and
@@ -507,8 +508,8 @@ d_tests_sa_ssh_view_failures
     D_SSH_ERROR_STATE from the engine, a channel it has closed, is CLOSED
   - a write or an EOF failing does the same, kept as a read's is
 */
-bool d_tests_sa_ssh_view_failures(
-    struct dj_test_counter* _counter
+bool d_tests_ssh_view_failures(
+    struct dj_test_suite* _suite
 )
 {
     bool reads = true;
@@ -535,14 +536,14 @@ bool d_tests_sa_ssh_view_failures(
                                         true,
                                         true)) );
 
-    return ( d_tests_net_assert(reads,
+    return ( D_TESTS_NET_ASSERT(reads,
                                 "channel views",
                                 "reads fail as their statuses say",
-                                _counter) &&
-             d_tests_net_assert(writes,
+                                _suite) &&
+             D_TESTS_NET_ASSERT(writes,
                                 "channel views",
                                 "writes and EOFs fail likewise",
-                                _counter) );
+                                _suite) );
 }
 
 /*
@@ -589,7 +590,7 @@ bool d_tests_ssh_view_gone(void)
 }
 
 /*
-d_tests_sa_ssh_view_elsewhere
+d_tests_ssh_view_elsewhere
   Tests the following:
   - a channel failed outside its view answers through it with the status
     that failed it
@@ -598,8 +599,8 @@ d_tests_sa_ssh_view_elsewhere
   - so is a channel whose session was disconnected, which the engine
     released with the session
 */
-bool d_tests_sa_ssh_view_elsewhere(
-    struct dj_test_counter* _counter
+bool d_tests_ssh_view_elsewhere(
+    struct dj_test_suite* _suite
 )
 {
     struct dj_tests_ssh_fixture fixture  = { .channel.exit_status = 0 };
@@ -636,27 +637,27 @@ bool d_tests_sa_ssh_view_elsewhere(
     const bool released = ( (ended) &&
                             (!fixture.toy.channels[0].freed) );
 
-    return ( d_tests_net_assert(kept,
+    return ( D_TESTS_NET_ASSERT(kept,
                                 "channel views",
                                 "a channel failed elsewhere says why",
-                                _counter) &&
-             d_tests_net_assert( (d_tests_ssh_view_gone()) &&
+                                _suite) &&
+             D_TESTS_NET_ASSERT( (d_tests_ssh_view_gone()) &&
                                  (released),
                                  "channel views",
                                  "a session gone leaves a closed connection",
-                                 _counter) );
+                                 _suite) );
 }
 
 /*
-d_tests_sa_ssh_view_unopened
+d_tests_ssh_view_unopened
   Tests the following:
   - a channel whose open the engine refused is a complete connection, and
     a closed one, which closes asking the engine nothing
   - so is one refused for a session not authenticated
   - a zeroed channel is no connection until freed, and a closed one after
 */
-bool d_tests_sa_ssh_view_unopened(
-    struct dj_test_counter* _counter
+bool d_tests_ssh_view_unopened(
+    struct dj_test_suite* _suite
 )
 {
     struct dj_tests_ssh_toy toy     = { .opened = 0u };
@@ -702,17 +703,17 @@ bool d_tests_sa_ssh_view_unopened(
                          (d_net_connection_is_complete(&zeroed.base)) &&
                          (d_tests_ssh_view_closed(&zeroed.base)) );
 
-    return ( d_tests_net_assert( (refused) &&
+    return ( D_TESTS_NET_ASSERT( (refused) &&
                                  (asked_nothing),
                                  "channel views",
                                  "a refused channel is a closed connection",
-                                 _counter) &&
-             d_tests_net_assert(unauthenticated,
+                                 _suite) &&
+             D_TESTS_NET_ASSERT(unauthenticated,
                                 "channel views",
                                 "so is one refused for its session",
-                                _counter) &&
-             d_tests_net_assert(freed,
+                                _suite) &&
+             D_TESTS_NET_ASSERT(freed,
                                 "channel views",
                                 "a zeroed channel freed is one too",
-                                _counter) );
+                                _suite) );
 }

@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][net]                                            codec_tests_hex.c
 *
-* Standalone tests of codec_hex.h: every character's value and every value's
+* Tests of codec_hex.h: every character's value and every value's
 * digit in both cases, encoding and decoding of every octet, and the
 * refusals, measures and buffers too small.
 *

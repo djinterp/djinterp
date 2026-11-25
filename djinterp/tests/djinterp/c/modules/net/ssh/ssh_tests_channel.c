@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c][net]                                       ssh_tests_sa_channel.c
+* djinterp [c][net]                                          ssh_tests_channel.c
 *
 * Tests of what a channel asks of its engine, and keeps of its failures.
 *   A read must bring at least a byte and no more than fit, or a read of
@@ -8,12 +8,13 @@
 * make is refused before the engine is asked.
 *
 *
-* path:      /tests/djinterp/c/modules/net/ssh/ssh_tests_sa_channel.c
+* path:      /tests/djinterp/c/modules/net/ssh/ssh_tests_channel.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
 *                                                            revised: 2026.10.14
 *******************************************************************************/
-#include "./ssh_tests_sa.h"  // corresponding header
+#include "./ssh_tests.h"  // corresponding header
+#include "../../../../../../inc/djinterp/c/modules/test/test_suite.h"  // DTest
 
 
 /*
@@ -54,7 +55,7 @@ bool d_tests_ssh_lied_to(
 }
 
 /*
-d_tests_sa_ssh_read_promise
+d_tests_ssh_read_promise
   Tests the following:
   - an engine read that claims success with no byte is a stalled transport:
     it fails the channel, keeping the status, and the session
@@ -62,22 +63,22 @@ d_tests_sa_ssh_read_promise
     counted
   - through the view such a read is a failure, never the stream's end
 */
-bool d_tests_sa_ssh_read_promise(
-    struct dj_test_counter* _counter
+bool d_tests_ssh_read_promise(
+    struct dj_test_suite* _suite
 )
 {
     struct dj_tests_ssh_fixture fixture = { .channel.exit_status = 0 };
     unsigned char              read[8] = { 0 };
     bool                       result  = true;
 
-    result = d_tests_net_assert(d_tests_ssh_lied_to(0u),
+    result = D_TESTS_NET_ASSERT(d_tests_ssh_lied_to(0u),
                                 "read promise",
                                 "success with no byte is a stalled transport",
-                                _counter) && result;
-    result = d_tests_net_assert(d_tests_ssh_lied_to(sizeof(read) + 1u),
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(d_tests_ssh_lied_to(sizeof(read) + 1u),
                                 "read promise",
                                 "success with more than fits is one too",
-                                _counter) && result;
+                                _suite) && result;
 
     const bool open = d_tests_ssh_fixture_open(&fixture);
 
@@ -94,23 +95,23 @@ bool d_tests_sa_ssh_read_promise(
 
     d_tests_ssh_fixture_close(&fixture);
 
-    result = d_tests_net_assert(failed,
+    result = D_TESTS_NET_ASSERT(failed,
                                 "read promise",
                                 "through the view it is no end of stream",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }
 
 /*
-d_tests_sa_ssh_failure_kept
+d_tests_ssh_failure_kept
   Tests the following:
   - a fatal status fails the channel and is kept in `failure`, whichever
     call it came from: a request's, an EOF's
   - a channel freed starts again with nothing kept
 */
-bool d_tests_sa_ssh_failure_kept(
-    struct dj_test_counter* _counter
+bool d_tests_ssh_failure_kept(
+    struct dj_test_suite* _suite
 )
 {
     struct dj_tests_ssh_fixture fixture = { .channel.exit_status = 0 };
@@ -153,30 +154,30 @@ bool d_tests_sa_ssh_failure_kept(
 
     d_tests_ssh_fixture_close(&fixture);
 
-    result = d_tests_net_assert(fatal,
+    result = D_TESTS_NET_ASSERT(fatal,
                                 "failure kept",
                                 "a refused request fails its channel alone",
-                                _counter) && result;
-    result = d_tests_net_assert(freed,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(freed,
                                 "failure kept",
                                 "a freed channel keeps nothing",
-                                _counter) && result;
-    result = d_tests_net_assert(eof,
+                                _suite) && result;
+    result = D_TESTS_NET_ASSERT(eof,
                                 "failure kept",
                                 "a refused EOF fails the channel, kept",
-                                _counter) && result;
+                                _suite) && result;
 
     return result;
 }
 
 /*
-d_tests_sa_ssh_failure_mild
+d_tests_ssh_failure_mild
   Tests the following:
   - a status that is not fatal leaves the channel open, its session
     authenticated, and `failure` as it was, from a read or a request alike
 */
-bool d_tests_sa_ssh_failure_mild(
-    struct dj_test_counter* _counter
+bool d_tests_ssh_failure_mild(
+    struct dj_test_suite* _suite
 )
 {
     struct dj_tests_ssh_fixture fixture  = { .channel.exit_status = 0 };
@@ -209,10 +210,10 @@ bool d_tests_sa_ssh_failure_mild(
     d_ssh_channel_free(&second);
     d_tests_ssh_fixture_close(&fixture);
 
-    return d_tests_net_assert(mild,
+    return D_TESTS_NET_ASSERT(mild,
                               "failure kept",
                               "a status that is not fatal is not kept",
-                              _counter);
+                              _suite);
 }
 
 /*
@@ -241,7 +242,7 @@ d_tests_ssh_refused_read(
 }
 
 /*
-d_tests_sa_ssh_read_arguments
+d_tests_ssh_read_arguments
   Tests the following:
   - a read without a channel, a buffer, or room, or of a stream that is
     neither, is refused before the engine is asked, its count zeroed
@@ -249,8 +250,8 @@ d_tests_sa_ssh_read_arguments
   - a read of a channel that has closed is refused as a state, its count
     zeroed too
 */
-bool d_tests_sa_ssh_read_arguments(
-    struct dj_test_counter* _counter
+bool d_tests_ssh_read_arguments(
+    struct dj_test_suite* _suite
 )
 {
     struct dj_tests_ssh_fixture  fixture = { .channel.exit_status = 0 };
@@ -300,8 +301,8 @@ bool d_tests_sa_ssh_read_arguments(
 
     d_tests_ssh_fixture_close(&fixture);
 
-    return d_tests_net_assert(closed,
+    return D_TESTS_NET_ASSERT(closed,
                               "read arguments",
                               "reads are refused before the engine is asked",
-                              _counter);
+                              _suite);
 }

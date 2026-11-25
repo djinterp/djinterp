@@ -285,7 +285,7 @@ carries a frame whole.
 static
 bool d_tests_net_pipe_framing(
     struct dj_net_pipe*     _pipe,
-    struct dj_test_suite* _suite
+    struct dj_test_suite*   _suite
 )
 {
     unsigned char read[16] = { 0 };
@@ -414,7 +414,7 @@ stream, whatever is waiting.
 static
 bool d_tests_net_pipe_halves(
     struct dj_net_pipe*     _pipe,
-    struct dj_test_suite* _suite
+    struct dj_test_suite*   _suite
 )
 {
     struct dj_net_connection* const a       = d_net_pipe_connection(
@@ -493,7 +493,7 @@ reading its writes.
 static
 bool d_tests_net_pipe_closed(
     struct dj_net_pipe*     _pipe,
-    struct dj_test_suite* _suite
+    struct dj_test_suite*   _suite
 )
 {
     struct dj_net_connection* const a       = d_net_pipe_connection(

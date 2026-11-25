@@ -2,7 +2,7 @@
 * djinterp [c][net]                                          smtp_tests_reader.c
 *
 * djinterp SMTP kernel tests - the line reader.
-*   Standalone tests of smtp_reader.c over net_tests_peer.h's scripted peer:
+*   Tests of smtp_reader.c over net_tests_peer.h's scripted peer:
 * lines split over reads, CR LF and bare LF, the end of the stream, lines
 * longer than the caller's buffer or the reader's own, what a failing
 * connection leaves it holding and the cause it keeps, starting again, and
