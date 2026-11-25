@@ -4,7 +4,7 @@
 *   Definitions for starttls.h: the STARTTLS session - its buffered plaintext
 * and TLS I/O over a net.h connection, the policy-driven negotiation, and the
 * upgrade with its check for leftover plaintext, which hands the connection
-* to a session of the SSL kernel.
+* to a session of the TLS kernel.
 *
 *
 * path:      /src/djinterp/c/modules/net/starttls/starttls.c
@@ -25,7 +25,7 @@
 #include "../../../../../../inc/djinterp/config/c/modules/net/starttls/cfg_starttls.h"  // knobs
 #include "../../../../../../inc/djinterp/c/modules/net/codec/codec_line.h"  // d_net_line_*
 #include "../../../../../../inc/djinterp/c/modules/net/net_common.h"        // connections
-#include "../../../../../../inc/djinterp/c/modules/net/ssl/ssl.h"           // TLS sessions
+#include "../../../../../../inc/djinterp/c/modules/net/tls/tls.h"           // TLS sessions
 // re_std
 #include "../../../../../../inc/re_std/c/cstdint/dstdint.h"  // uint32_t
 
@@ -130,7 +130,7 @@ d_starttls_internal_from_connection(
 
 /*
 d_starttls_internal_tls_error
-  File-local: an SSL kernel status in this module's terms. During the
+  File-local: an TLS kernel status in this module's terms. During the
 handshake, whatever ends it but the peer's certificate is a handshake
 failure, a peer that hangs up included; after it, a connection that ends
 without close_notify is a truncation, and a record that breaks the protocol
@@ -140,48 +140,48 @@ every call here blocks. Engine failures are the handshake's, or TRANSPORT.
 */
 D_STATIC enum dj_starttls_error
 d_starttls_internal_tls_error(
-    enum dj_ssl_error _status,
+    enum dj_tls_error _status,
     bool             _handshake,
     enum dj_net_error _cause
 )
 {
     switch (_status)
     {
-        case D_SSL_OK:
+        case D_TLS_OK:
             return D_STARTTLS_OK;
-        case D_SSL_ERROR_CLOSED:
+        case D_TLS_ERROR_CLOSED:
             return D_STARTTLS_ERROR_CLOSED;
-        case D_SSL_ERROR_VERIFY:
+        case D_TLS_ERROR_VERIFY:
             return D_STARTTLS_ERROR_VERIFY;
-        case D_SSL_ERROR_TRUNCATED:
+        case D_TLS_ERROR_TRUNCATED:
             return (_handshake) ? D_STARTTLS_ERROR_HANDSHAKE
                                 : D_STARTTLS_ERROR_TRUNCATED;
-        case D_SSL_ERROR_PROTOCOL:
+        case D_TLS_ERROR_PROTOCOL:
             return (_handshake) ? D_STARTTLS_ERROR_HANDSHAKE
                                 : D_STARTTLS_ERROR_PROTOCOL;
-        case D_SSL_ERROR_NOT_TLS:
-        case D_SSL_ERROR_HANDSHAKE:
+        case D_TLS_ERROR_NOT_TLS:
+        case D_TLS_ERROR_HANDSHAKE:
             return D_STARTTLS_ERROR_HANDSHAKE;
-        case D_SSL_ERROR_TRANSPORT:
-        case D_SSL_ERROR_WOULD_BLOCK:
+        case D_TLS_ERROR_TRANSPORT:
+        case D_TLS_ERROR_WOULD_BLOCK:
             return (_cause == D_NET_ERROR_TIMED_OUT)
                        ? D_STARTTLS_ERROR_TIMED_OUT
                        : D_STARTTLS_ERROR_TRANSPORT;
-        case D_SSL_ERROR_OUT_OF_MEMORY:
+        case D_TLS_ERROR_OUT_OF_MEMORY:
             return D_STARTTLS_ERROR_OUT_OF_MEMORY;
-        case D_SSL_ERROR_INVALID_ARGUMENT:
+        case D_TLS_ERROR_INVALID_ARGUMENT:
             return D_STARTTLS_ERROR_INVALID_ARGUMENT;
-        case D_SSL_ERROR_STATE:
+        case D_TLS_ERROR_STATE:
             return D_STARTTLS_ERROR_STATE;
-        case D_SSL_ERROR_MALFORMED:
-        case D_SSL_ERROR_NOT_FOUND:
-        case D_SSL_ERROR_UNSUPPORTED:
-        case D_SSL_ERROR_INSECURE:
-        case D_SSL_ERROR_CONFIG:
+        case D_TLS_ERROR_MALFORMED:
+        case D_TLS_ERROR_NOT_FOUND:
+        case D_TLS_ERROR_UNSUPPORTED:
+        case D_TLS_ERROR_INSECURE:
+        case D_TLS_ERROR_CONFIG:
             return D_STARTTLS_ERROR_CONFIG;
-        case D_SSL_ERROR_BUFFER_TOO_SMALL:
-        case D_SSL_ERROR_WANT_READ:
-        case D_SSL_ERROR_BACKEND:
+        case D_TLS_ERROR_BUFFER_TOO_SMALL:
+        case D_TLS_ERROR_WANT_READ:
+        case D_TLS_ERROR_BACKEND:
             break;
     }
 
@@ -197,41 +197,41 @@ alert either end sent, or the kernel's name for the failure.
 */
 D_STATIC const char*
 d_starttls_internal_tls_detail(
-    const struct dj_ssl_session* _ssl,
-    enum dj_ssl_error            _status
+    const struct dj_tls_session* _ssl,
+    enum dj_tls_error            _status
 )
 {
-    struct dj_ssl_info info   = { .version = D_SSL_VERSION_NONE };
-    const uint32_t    benign = (uint32_t)D_SSL_VERIFY_FLAG_NOT_PERFORMED;
+    struct dj_tls_info info   = { .version = D_TLS_VERSION_NONE };
+    const uint32_t    benign = (uint32_t)D_TLS_VERIFY_FLAG_NOT_PERFORMED;
 
     // without the kernel's record, its name for the failure is all there is
-    if (!d_ssl_session_info(_ssl,
+    if (!d_tls_session_info(_ssl,
                             &info))
     {
-        return d_ssl_error_name(_status);
+        return d_tls_error_name(_status);
     }
 
     const uint32_t failed = info.verify & ~benign;
 
     // the lowest reason the certificate failed, by itself
-    if ( (_status == D_SSL_ERROR_VERIFY) &&
+    if ( (_status == D_TLS_ERROR_VERIFY) &&
          (failed != 0u) )
     {
-        return d_ssl_verify_flag_name(failed & (~failed + 1u));
+        return d_tls_verify_flag_name(failed & (~failed + 1u));
     }
 
     // what either end said in its alert
-    if (info.alert_received != D_SSL_ALERT_NONE)
+    if (info.alert_received != D_TLS_ALERT_NONE)
     {
-        return d_ssl_alert_name(info.alert_received);
+        return d_tls_alert_name(info.alert_received);
     }
 
-    if (info.alert_sent != D_SSL_ALERT_NONE)
+    if (info.alert_sent != D_TLS_ALERT_NONE)
     {
-        return d_ssl_alert_name(info.alert_sent);
+        return d_tls_alert_name(info.alert_sent);
     }
 
-    return d_ssl_error_name(_status);
+    return d_tls_error_name(_status);
 }
 
 /*
@@ -243,16 +243,16 @@ description as the session's detail.
 D_STATIC enum dj_starttls_error
 d_starttls_internal_tls_outcome(
     struct dj_starttls_session* _session,
-    enum dj_ssl_error           _status,
+    enum dj_tls_error           _status,
     bool                       _handshake
 )
 {
     const enum dj_net_error cause =
-        d_ssl_session_transport_error(_session->ssl);
+        d_tls_session_transport_error(_session->ssl);
 
     // success, and the peer's close_notify, describe nothing
-    if ( (_status == D_SSL_OK) ||
-         (_status == D_SSL_ERROR_CLOSED) )
+    if ( (_status == D_TLS_OK) ||
+         (_status == D_TLS_ERROR_CLOSED) )
     {
         return d_starttls_internal_tls_error(_status,
                                              _handshake,
@@ -334,7 +334,7 @@ d_starttls_internal_read(
     {
         status = d_starttls_internal_tls_outcome(
                      _session,
-                     d_ssl_session_read(_session->ssl,
+                     d_tls_session_read(_session->ssl,
                                         _buffer,
                                         _capacity,
                                         _received),
@@ -379,7 +379,7 @@ d_starttls_internal_write_all(
     {
         status = d_starttls_internal_tls_outcome(
                      _session,
-                     d_ssl_session_write_all(_session->ssl,
+                     d_tls_session_write_all(_session->ssl,
                                              _data,
                                              _size,
                                              NULL),
@@ -637,10 +637,10 @@ d_starttls_internal_check_context(
     const struct dj_starttls_options* _options
 )
 {
-    const struct dj_ssl_context* const tls  = _options->tls;
-    const enum dj_ssl_role             role =
-        (_options->role == D_STARTTLS_ROLE_SERVER) ? D_SSL_ROLE_SERVER
-                                                   : D_SSL_ROLE_CLIENT;
+    const struct dj_tls_context* const tls  = _options->tls;
+    const enum dj_tls_role             role =
+        (_options->role == D_STARTTLS_ROLE_SERVER) ? D_TLS_ROLE_SERVER
+                                                   : D_TLS_ROLE_CLIENT;
 
     // an empty context has no engine to upgrade with
     if ( (!tls) ||
@@ -802,7 +802,7 @@ d_starttls_internal_tls_start(
     struct dj_starttls_session* _session
 )
 {
-    struct dj_ssl_session* const ssl  = malloc(sizeof(*ssl));
+    struct dj_tls_session* const ssl  = malloc(sizeof(*ssl));
     const char* const           name =
         ( (_session->role == D_STARTTLS_ROLE_CLIENT) &&
           (_session->server_name) ) ? _session->server_name
@@ -815,17 +815,17 @@ d_starttls_internal_tls_start(
         return D_STARTTLS_ERROR_OUT_OF_MEMORY;
     }
 
-    const enum dj_ssl_error made = d_ssl_session_init(ssl,
+    const enum dj_tls_error made = d_tls_session_init(ssl,
                                                      _session->tls,
                                                      _session->connection,
                                                      host);
 
     // a session that was not made holds nothing
-    if (made != D_SSL_OK)
+    if (made != D_TLS_OK)
     {
         free(ssl);
 
-        return (made == D_SSL_ERROR_OUT_OF_MEMORY)
+        return (made == D_TLS_ERROR_OUT_OF_MEMORY)
                    ? D_STARTTLS_ERROR_OUT_OF_MEMORY
                    : D_STARTTLS_ERROR_CONFIG;
     }
@@ -965,7 +965,7 @@ d_starttls_close(
     {
         status = d_starttls_internal_tls_outcome(
                      _session,
-                     d_ssl_session_shutdown(_session->ssl),
+                     d_tls_session_shutdown(_session->ssl),
                      false);
     }
 
@@ -999,7 +999,7 @@ void d_starttls_destroy(
     // the TLS session, which sends nothing as it goes
     if (_session->ssl)
     {
-        d_ssl_session_destroy(_session->ssl);
+        d_tls_session_destroy(_session->ssl);
         free(_session->ssl);
     }
 
@@ -1456,7 +1456,7 @@ d_starttls_upgrade(
     {
         status = d_starttls_internal_tls_outcome(
                      _session,
-                     d_ssl_session_handshake(_session->ssl),
+                     d_tls_session_handshake(_session->ssl),
                      true);
     }
 
@@ -1562,7 +1562,7 @@ d_starttls_net_error(
 d_starttls_tls_session
   Read directly from the session.
 */
-const struct dj_ssl_session* d_starttls_tls_session(
+const struct dj_tls_session* d_starttls_tls_session(
     const struct dj_starttls_session* _session
 )
 {

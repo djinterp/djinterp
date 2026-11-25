@@ -67,7 +67,7 @@ TABLE OF CONTENTS
 // djinterp
 #include "../../../djinterp.hpp"  // framework root
 #include "../net_common.hpp"   // io_error; dj_net_error, through it
-#include "../../../../c/modules/net/ssl/ssl.h"        // dj_ssl_context, dj_ssl_error
+#include "../../../../c/modules/net/tls/tls.h"        // dj_tls_context, dj_tls_error
 #include "../../../../c/modules/net/ftp/ftp_client.h"      // the C client
 #include "../../../../c/modules/net/ftp/ftp_command.h"     // dj_ftp_command
 #include "../../../../c/modules/net/ftp/ftp_common.h"      // dj_ftp_error, d_ftp_error_string
@@ -658,7 +658,7 @@ public:
     explicit
     client(
         const ftp::options&           _options,
-        const ::dj_ssl_context* const _tls = NULL
+        const ::dj_tls_context* const _tls = NULL
     ) D_NOEXCEPT
     {
         ::d_ftp_client_init(&m_client,
@@ -675,7 +675,7 @@ public:
     static
     void tls_config(
         const ftp::options& _options,
-        ::dj_ssl_config&    _config
+        ::dj_tls_config&    _config
     ) D_NOEXCEPT
     {
         ::d_ftp_client_tls_config(&_options.c_options(),
@@ -908,7 +908,7 @@ public:
         return m_client.control.secured;
     }
 
-    ::dj_ssl_error tls_status() const D_NOEXCEPT
+    ::dj_tls_error tls_status() const D_NOEXCEPT
     {
         return m_client.tls_status;
     }

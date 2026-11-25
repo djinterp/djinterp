@@ -30,7 +30,7 @@
 #include <stdio.h>    // snprintf
 #include <string.h>   // memcpy, strchr, strcmp, strlen
 // djinterp
-#include "../../../../../../inc/djinterp/c/modules/net/ssl/ssl_openssl.h"  // the engine
+#include "../../../../../../inc/djinterp/c/modules/net/tls/tls_openssl.h"  // the engine
 #include "../../../../../../inc/djinterp/c/modules/net/tcp/tcp.h"          // TCP
 #include "../../../../../../inc/djinterp/c/modules/test/test_suite.h"  // DTest
 #include "../../../../../../inc/djinterp/c/sync/dmutex.h"  // threads
@@ -52,7 +52,7 @@ use.
 bool d_tests_smtp_loopback_setup(void)
 {
     g_pki_made = ( (d_tcp_available())              &&
-                   (d_ssl_engine_openssl() != NULL) &&
+                   (d_tls_engine_openssl() != NULL) &&
                    (d_tests_net_pki_make(&g_pki)) );
 
     return g_pki_made;
@@ -84,7 +84,7 @@ struct dj_tests_smtp_server
     struct dj_smtp_server_config  config;
     struct dj_smtp_server_handler handler;
     struct dj_tests_smtp_inbox    inbox;
-    const struct dj_ssl_context*  implicit;
+    const struct dj_tls_context*  implicit;
     const char*                  refusal;
     unsigned int                 port;
     enum dj_smtp_error            result;
@@ -104,28 +104,28 @@ d_tests_smtp_serve_implicit(
 {
     const struct dj_pack_text none   = { "",
                                         0u };
-    struct dj_ssl_session     tls    = { .base = { .vtable = NULL } };
+    struct dj_tls_session     tls    = { .base = { .vtable = NULL } };
     enum dj_smtp_error        result = D_SMTP_ERROR_TLS;
 
     // a session not made holds nothing to release
-    if (d_ssl_session_init(&tls,
+    if (d_tls_session_init(&tls,
                            _server->implicit,
                            &_connection->base,
-                           none) != D_SSL_OK)
+                           none) != D_TLS_OK)
     {
         return D_SMTP_ERROR_TLS;
     }
 
     // a session only once TLS is up
-    if (d_ssl_session_handshake(&tls) == D_SSL_OK)
+    if (d_tls_session_handshake(&tls) == D_TLS_OK)
     {
         result = d_smtp_server_session(&tls.base,
                                        &_server->config,
                                        &_server->handler);
     }
 
-    (void)d_ssl_session_shutdown(&tls);
-    d_ssl_session_destroy(&tls);
+    (void)d_tls_session_shutdown(&tls);
+    d_tls_session_destroy(&tls);
 
     return result;
 }
@@ -316,7 +316,7 @@ d_tests_smtp_options(
     struct dj_smtp_client_options* _options,
     unsigned int                  _port,
     enum dj_smtp_security          _security,
-    const struct dj_ssl_context*   _tls
+    const struct dj_tls_context*   _tls
 )
 {
     d_smtp_client_options_init(_options);
@@ -405,38 +405,38 @@ cannot be made.
 */
 static
 bool d_tests_smtp_contexts(
-    struct dj_ssl_context* _server,
-    struct dj_ssl_context* _client
+    struct dj_tls_context* _server,
+    struct dj_tls_context* _client
 )
 {
-    struct dj_ssl_config server = { .verify_hostname = false };
-    struct dj_ssl_config client = { .verify_hostname = false };
+    struct dj_tls_config server = { .verify_hostname = false };
+    struct dj_tls_config client = { .verify_hostname = false };
 
-    d_ssl_config_init(&server,
-                      D_SSL_ROLE_SERVER);
-    d_ssl_config_init(&client,
-                      D_SSL_ROLE_CLIENT);
+    d_tls_config_init(&server,
+                      D_TLS_ROLE_SERVER);
+    d_tls_config_init(&client,
+                      D_TLS_ROLE_CLIENT);
     server.certificate_file = g_pki.server_cert;
     server.private_key_file = g_pki.server_key;
-    server.verify           = D_SSL_VERIFY_NONE;
+    server.verify           = D_TLS_VERIFY_NONE;
     client.use_system_trust = false;
     client.ca_file          = g_pki.ca;
-    client.verify           = D_SSL_VERIFY_REQUIRED;
+    client.verify           = D_TLS_VERIFY_REQUIRED;
     client.verify_hostname  = true;
 
     // the server's first, and only with it the client's
-    if (d_ssl_context_init(_server,
-                           d_ssl_engine_openssl(),
-                           &server) != D_SSL_OK)
+    if (d_tls_context_init(_server,
+                           d_tls_engine_openssl(),
+                           &server) != D_TLS_OK)
     {
         return false;
     }
 
-    if (d_ssl_context_init(_client,
-                           d_ssl_engine_openssl(),
-                           &client) != D_SSL_OK)
+    if (d_tls_context_init(_client,
+                           d_tls_engine_openssl(),
+                           &client) != D_TLS_OK)
     {
-        d_ssl_context_destroy(_server);
+        d_tls_context_destroy(_server);
 
         return false;
     }
@@ -455,7 +455,7 @@ static enum dj_smtp_error
 d_tests_smtp_tls_round(
     struct dj_tests_smtp_server* _server,
     struct dj_smtp_client*       _client,
-    const struct dj_ssl_context* _contexts,
+    const struct dj_tls_context* _contexts,
     enum dj_smtp_security        _security,
     const char*                 _name
 )
@@ -512,7 +512,7 @@ bool d_tests_smtp_loopback_tls(
 {
     const char* const          TEST        = "loopback (TLS)";
     struct dj_tests_smtp_server server      = { .implicit = NULL };
-    struct dj_ssl_context       contexts[2] = { { .engine = NULL } };
+    struct dj_tls_context       contexts[2] = { { .engine = NULL } };
     struct dj_smtp_client       client      = { .utf8 = false };
     bool                       result      = true;
 
@@ -568,8 +568,8 @@ bool d_tests_smtp_loopback_tls(
                                  TEST,
                                  "implicit TLS checked against 127.0.0.1",
                                  _suite) && result;
-    d_ssl_context_destroy(&contexts[1]);
-    d_ssl_context_destroy(&contexts[0]);
+    d_tls_context_destroy(&contexts[1]);
+    d_tls_context_destroy(&contexts[0]);
 
     return result;
 }
@@ -588,7 +588,7 @@ bool d_tests_smtp_loopback_mismatch(
 {
     const char* const          TEST        = "loopback (wrong name)";
     struct dj_tests_smtp_server server      = { .implicit = NULL };
-    struct dj_ssl_context       contexts[2] = { { .engine = NULL } };
+    struct dj_tls_context       contexts[2] = { { .engine = NULL } };
     struct dj_smtp_client       client      = { .utf8 = false };
     bool                       refused     = true;
 
@@ -624,15 +624,15 @@ bool d_tests_smtp_loopback_mismatch(
                                            "wrong.example");
 
         refused = ( (sent == D_SMTP_ERROR_TLS)                &&
-                    (client.tls_status == D_SSL_ERROR_VERIFY) &&
+                    (client.tls_status == D_TLS_ERROR_VERIFY) &&
                     (client.state == D_SMTP_CLIENT_CLOSED)    &&
                     (server.result != D_SMTP_OK)              &&
                     (server.inbox.messages == 0u)             &&
                     (refused) );
     }
 
-    d_ssl_context_destroy(&contexts[1]);
-    d_ssl_context_destroy(&contexts[0]);
+    d_tls_context_destroy(&contexts[1]);
+    d_tls_context_destroy(&contexts[0]);
 
     return D_TESTS_NET_ASSERT(refused,
                               TEST,
@@ -655,7 +655,7 @@ bool d_tests_smtp_loopback_policy(
 {
     const char* const          TEST        = "loopback (TLS policy)";
     struct dj_tests_smtp_server server      = { .implicit = NULL };
-    struct dj_ssl_context       contexts[2] = { { .engine = NULL } };
+    struct dj_tls_context       contexts[2] = { { .engine = NULL } };
     struct dj_smtp_client       client      = { .utf8 = false };
     bool                       result      = true;
 
@@ -706,8 +706,8 @@ bool d_tests_smtp_loopback_policy(
                                  TEST,
                                  "plaintext never upgrades: INSECURE",
                                  _suite) && result;
-    d_ssl_context_destroy(&contexts[1]);
-    d_ssl_context_destroy(&contexts[0]);
+    d_tls_context_destroy(&contexts[1]);
+    d_tls_context_destroy(&contexts[0]);
 
     return result;
 }
@@ -740,7 +740,7 @@ struct dj_tests_smtp_bad_options
     const char*                 host;
     unsigned int                port;
     enum dj_smtp_security        security;
-    const struct dj_ssl_context* tls;
+    const struct dj_tls_context* tls;
 };
 
 /*
@@ -753,13 +753,13 @@ options.
 */
 static
 bool d_tests_smtp_refused_options(
-    const struct dj_ssl_context* _server,
-    const struct dj_ssl_context* _client
+    const struct dj_tls_context* _server,
+    const struct dj_tls_context* _client
 )
 {
     static char                           long_host[D_NET_HOST_MAX + 2u] =
         { 0 };
-    const struct dj_ssl_context            empty   = { .engine = NULL };
+    const struct dj_tls_context            empty   = { .engine = NULL };
     const struct dj_tests_smtp_bad_options BAD[]   =
     {
         { NULL,         25u,    D_SMTP_SECURITY_NONE,              NULL    },
@@ -818,7 +818,7 @@ bool d_tests_smtp_connect_arguments(
     const char* const            TEST        =
         "d_smtp_client_connect (arguments)";
     struct dj_tests_net_toy       toys[2]     = { { .alerts = false } };
-    struct dj_ssl_context         contexts[2] = { { .engine = NULL } };
+    struct dj_tls_context         contexts[2] = { { .engine = NULL } };
     struct dj_tests_net_peer*     peer        = d_tests_smtp_peer("220 x\r\n");
     struct dj_smtp_client_options options     = { .host = NULL };
     struct dj_smtp_client         client      = { .utf8 = false };
@@ -861,8 +861,8 @@ bool d_tests_smtp_connect_arguments(
                  "a client already attached is out of sequence",
                  _suite) && result;
     d_smtp_client_close(&client);
-    d_ssl_context_destroy(&contexts[1]);
-    d_ssl_context_destroy(&contexts[0]);
+    d_tls_context_destroy(&contexts[1]);
+    d_tls_context_destroy(&contexts[0]);
     d_tests_net_peer_free(peer);
 
     return result;
@@ -932,14 +932,14 @@ bool d_tests_smtp_refused_port(void)
          (d_smtp_client_greeting(&client) == D_SMTP_ERROR_REJECTED) )
     {
         d_smtp_client_close(&client);
-        client.tls_status = D_SSL_ERROR_VERIFY;
+        client.tls_status = D_TLS_ERROR_VERIFY;
         forgotten = ( (d_smtp_client_connect(&client,
                                              &options) ==
                        D_SMTP_ERROR_CONNECT)                 &&
                       (client.reader.net_error ==
                        D_NET_ERROR_CONNECTION_REFUSED)       &&
                       (client.reply.code == 0u)              &&
-                      (client.tls_status == D_SSL_OK)        &&
+                      (client.tls_status == D_TLS_OK)        &&
                       (client.state == D_SMTP_CLIENT_CLOSED) &&
                       (!client.owns_tcp) );
     }
@@ -958,7 +958,7 @@ optional goes on in plaintext and delivers.
 static bool
 d_tests_smtp_policy_round(
     enum dj_smtp_security        _security,
-    const struct dj_ssl_context* _tls,
+    const struct dj_tls_context* _tls,
     enum dj_smtp_error           _expected
 )
 {
@@ -1007,7 +1007,7 @@ closed, before anything is made of STARTTLS.
 */
 static
 bool d_tests_smtp_refused_greeting(
-    const struct dj_ssl_context* _tls
+    const struct dj_tls_context* _tls
 )
 {
     struct dj_tests_smtp_server   server  = { .implicit = NULL };
@@ -1059,8 +1059,8 @@ bool d_tests_smtp_connect_failures(
 )
 {
     const char* const      TEST   = "d_smtp_client_connect (failures)";
-    struct dj_tests_net_toy toy    = { .create_status = D_SSL_OK };
-    struct dj_ssl_context   tls    = { .engine = NULL };
+    struct dj_tests_net_toy toy    = { .create_status = D_TLS_OK };
+    struct dj_tls_context   tls    = { .engine = NULL };
     bool                   result = true;
 
     if (!d_tcp_available())
@@ -1073,7 +1073,7 @@ bool d_tests_smtp_connect_failures(
 
     if (!D_TESTS_NET_ASSERT(d_tests_net_toy_context(&tls,
                                                     &toy,
-                                                    D_SSL_ROLE_CLIENT,
+                                                    D_TLS_ROLE_CLIENT,
                                                     true),
                             TEST,
                             "a toy client context",
@@ -1108,7 +1108,7 @@ bool d_tests_smtp_connect_failures(
                                  TEST,
                                  "no TLS session made for either",
                                  _suite) && result;
-    d_ssl_context_destroy(&tls);
+    d_tls_context_destroy(&tls);
 
     return result;
 }
@@ -1146,7 +1146,7 @@ listens.
 static
 bool d_tests_smtp_lenient(
     unsigned int                 _port,
-    const struct dj_ssl_context* _server
+    const struct dj_tls_context* _server
 )
 {
     static char                  longest[D_NET_HOST_MAX + 1u] = { 0 };
@@ -1263,8 +1263,8 @@ bool d_tests_smtp_connect_options(
 )
 {
     const char* const            TEST     = "d_smtp_client_connect (options)";
-    struct dj_tests_net_toy       toy      = { .create_status = D_SSL_OK };
-    struct dj_ssl_context         server   = { .engine = NULL };
+    struct dj_tests_net_toy       toy      = { .create_status = D_TLS_OK };
+    struct dj_tls_context         server   = { .engine = NULL };
     struct dj_smtp_client_options defaults = { .host = "set" };
     const unsigned int           port     = d_tests_smtp_free_port();
 
@@ -1287,7 +1287,7 @@ bool d_tests_smtp_connect_options(
 
     if (!D_TESTS_NET_ASSERT(d_tests_net_toy_context(&server,
                                                     &toy,
-                                                    D_SSL_ROLE_SERVER,
+                                                    D_TLS_ROLE_SERVER,
                                                     false),
                             TEST,
                             "a toy server context",
@@ -1310,7 +1310,7 @@ bool d_tests_smtp_connect_options(
                  TEST,
                  "AUTH in the clear only when the options allow it",
                  _suite) && result;
-    d_ssl_context_destroy(&server);
+    d_tls_context_destroy(&server);
 
     return result;
 }

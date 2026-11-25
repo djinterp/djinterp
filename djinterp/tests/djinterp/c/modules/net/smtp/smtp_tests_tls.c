@@ -2,8 +2,8 @@
 * djinterp [c][net]                                             smtp_tests_tls.c
 *
 * djinterp SMTP kernel tests - STARTTLS.
-*   Standalone tests of STARTTLS on both sides, with net_tests_peer.h's
-* scripted peer as the other party and its toy engine as the SSL kernel's
+*   Tests of STARTTLS on both sides, with net_tests_peer.h's
+* scripted peer as the other party and its toy engine as the TLS kernel's
 * engine, so every byte on the wire - plaintext, handshake, and sealed --
 * is checked, and every way TLS fails can be had on cue: a session the
 * engine will not make, a handshake it fails, a certificate it doubts, a
@@ -34,7 +34,7 @@ struct dj_tests_smtp_world
 {
     struct dj_tests_net_peer*    peer;
     struct dj_tests_net_toy      toy;
-    struct dj_ssl_context        tls;
+    struct dj_tls_context        tls;
     struct dj_smtp_client        client;
     struct dj_smtp_server_config config;
     struct dj_tests_smtp_inbox   inbox;
@@ -50,11 +50,11 @@ be made.
 static bool
 d_tests_smtp_world_open(
     struct dj_tests_smtp_world* _world,
-    enum dj_ssl_role            _role,
+    enum dj_tls_role            _role,
     bool                       _verify
 )
 {
-    const struct dj_tests_net_toy toy = { .create_status = D_SSL_OK };
+    const struct dj_tests_net_toy toy = { .create_status = D_TLS_OK };
 
     memset(_world,
            0,
@@ -87,7 +87,7 @@ void d_tests_smtp_world_close(
     // a context not made holds nothing
     if (_world->made)
     {
-        d_ssl_context_destroy(&_world->tls);
+        d_tls_context_destroy(&_world->tls);
     }
 
     d_tests_net_peer_free(_world->peer);
@@ -184,7 +184,7 @@ d_tests_smtp_upgraded(
               D_SMTP_EXTENSION_AUTH)                             &&
              (client->capabilities.auth == D_SMTP_AUTH_PLAIN)    &&
              (client->capabilities.size_limit == 0u)             &&
-             (client->tls_status == D_SSL_OK)                    &&
+             (client->tls_status == D_TLS_OK)                    &&
              (d_smtp_client_tls_session(client) == &client->tls) &&
              (strcmp(_world->toy.last_host,
                      D_TESTS_NET_TOY_SERVER_NAME) == 0)          &&
@@ -203,7 +203,7 @@ bool d_tests_smtp_full_script(
 )
 {
     return ( (d_tests_smtp_world_open(_world,
-                                      D_SSL_ROLE_CLIENT,
+                                      D_TLS_ROLE_CLIENT,
                                       true))                    &&
              (d_tests_smtp_preface(_world->peer,
                                    "220 2.0.0 Ready\r\n"))      &&
@@ -313,7 +313,7 @@ bool d_tests_smtp_starttls_unnamed(
     struct dj_tests_smtp_world world    = { .peer = NULL };
     const bool                scripted =
         ( (d_tests_smtp_world_open(&world,
-                                   D_SSL_ROLE_CLIENT,
+                                   D_TLS_ROLE_CLIENT,
                                    false))              &&
           (d_tests_smtp_preface(world.peer,
                                 "220 2.0.0 Ready\r\n")) &&
@@ -345,11 +345,11 @@ malformed one when the context checks names.
 static
 bool d_tests_smtp_refusals_before(
     struct dj_tests_smtp_world*  _world,
-    const struct dj_ssl_context* _server
+    const struct dj_tls_context* _server
 )
 {
     const char* const           NAME   = D_TESTS_NET_TOY_SERVER_NAME;
-    const struct dj_ssl_context  empty  = { .engine = NULL };
+    const struct dj_tls_context  empty  = { .engine = NULL };
     struct dj_smtp_client* const client = &_world->client;
     const size_t                sent   = _world->peer->sent;
 
@@ -453,17 +453,17 @@ bool d_tests_smtp_starttls_refusals(
 )
 {
     const char* const         TEST   = "d_smtp_client_starttls (refusals)";
-    struct dj_tests_net_toy    toy    = { .create_status = D_SSL_OK };
-    struct dj_ssl_context      server = { .engine = NULL };
+    struct dj_tests_net_toy    toy    = { .create_status = D_TLS_OK };
+    struct dj_tls_context      server = { .engine = NULL };
     struct dj_tests_smtp_world world  = { .peer = NULL };
     bool                      result = true;
     const bool                ready  =
         ( (d_tests_smtp_world_open(&world,
-                                   D_SSL_ROLE_CLIENT,
+                                   D_TLS_ROLE_CLIENT,
                                    true))                 &&
           (d_tests_net_toy_context(&server,
                                    &toy,
-                                   D_SSL_ROLE_SERVER,
+                                   D_TLS_ROLE_SERVER,
                                    false))                &&
           (d_tests_smtp_preface(world.peer,
                                 "454 4.7.0 Not now\r\n")) &&
@@ -485,7 +485,7 @@ bool d_tests_smtp_starttls_refusals(
           (!world.client.secure)                      &&
           (world.toy.creates == 0) );
 
-    d_ssl_context_destroy(&server);
+    d_tls_context_destroy(&server);
     d_tests_smtp_world_close(&world);
     result = D_TESTS_NET_ASSERT(before,
                                 TEST,
@@ -496,7 +496,7 @@ bool d_tests_smtp_starttls_refusals(
                                 "a 454 leaves the client ready in plaintext",
                                 _suite) && result;
     result = D_TESTS_NET_ASSERT( (d_tests_smtp_world_open(&world,
-                                                          D_SSL_ROLE_CLIENT,
+                                                          D_TLS_ROLE_CLIENT,
                                                           true)) &&
                                  (d_tests_smtp_refused_states(&world)),
                                  TEST,
@@ -515,7 +515,7 @@ struct dj_tests_smtp_injection
     const char*       behind;      // a turn of its own after it, or NULL
     bool              uncounted;   // the connection cannot count what waits
     enum dj_smtp_error status;      // what STARTTLS reports
-    enum dj_ssl_error  tls_status;  // what the client keeps
+    enum dj_tls_error  tls_status;  // what the client keeps
     int               creates;     // TLS sessions asked of the engine
 };
 
@@ -535,7 +535,7 @@ bool d_tests_smtp_injected(
     bool                      refused = false;
 
     if ( (d_tests_smtp_world_open(&world,
-                                  D_SSL_ROLE_CLIENT,
+                                  D_TLS_ROLE_CLIENT,
                                   true))         &&
          (d_tests_smtp_preface(world.peer,
                                _case->go_ahead)) &&
@@ -576,15 +576,15 @@ bool d_tests_smtp_starttls_injection(
     static const struct dj_tests_smtp_injection CASES[] =
     {
         { "220 2.0.0 Ready\r\n250 2.0.0 Injected\r\n", NULL,
-          false, D_SMTP_ERROR_PROTOCOL, D_SSL_OK,            0 },
+          false, D_SMTP_ERROR_PROTOCOL, D_TLS_OK,            0 },
         { "220 2.0.0 Ready\r\n", "250 2.0.0 Injected\r\n",
-          false, D_SMTP_ERROR_PROTOCOL, D_SSL_OK,            0 },
+          false, D_SMTP_ERROR_PROTOCOL, D_TLS_OK,            0 },
         { "220 2.0.0 Ready\r\n", "250 2.0.0 Injected\r\n",
-          true,  D_SMTP_ERROR_TLS,      D_SSL_ERROR_NOT_TLS, 1 },
+          true,  D_SMTP_ERROR_TLS,      D_TLS_ERROR_NOT_TLS, 1 },
         { "220 2.0.0 Ready\r\nX", NULL,
-          false, D_SMTP_ERROR_PROTOCOL, D_SSL_OK,            0 },
+          false, D_SMTP_ERROR_PROTOCOL, D_TLS_OK,            0 },
         { "220 2.0.0 Ready\r\n", "X",
-          false, D_SMTP_ERROR_PROTOCOL, D_SSL_OK,            0 }
+          false, D_SMTP_ERROR_PROTOCOL, D_TLS_OK,            0 }
     };
     static const char* const WHAT[] =
     {
@@ -613,15 +613,15 @@ bool d_tests_smtp_starttls_injection(
 // make of it.
 struct dj_tests_smtp_breach
 {
-    enum dj_ssl_error  create_status;     // what session_create reports
-    enum dj_ssl_error  handshake_status;  // a failure the toy reports
+    enum dj_tls_error  create_status;     // what session_create reports
+    enum dj_tls_error  handshake_status;  // a failure the toy reports
     uint32_t          verdict;           // the chain, as the toy saw it
     const char*       cert_name;         // the certificate's name, or NULL
     bool              replies;           // the peer answers the hello
     bool              hangs_up;          // it hangs up, when it does not
     bool              resets;            // the hello's write is reset
     enum dj_smtp_error status;            // what STARTTLS reports
-    enum dj_ssl_error  tls_status;        // what the client keeps
+    enum dj_tls_error  tls_status;        // what the client keeps
     enum dj_net_error  cause;             // what the reader keeps
 };
 
@@ -640,14 +640,14 @@ bool d_tests_smtp_breached(
     bool                      failed = false;
 
     if ( (d_tests_smtp_world_open(&world,
-                                  D_SSL_ROLE_CLIENT,
+                                  D_TLS_ROLE_CLIENT,
                                   true))               &&
          (d_tests_smtp_preface(world.peer,
                                "220 2.0.0 Ready\r\n")) &&
          ( (!_case->replies) ||
            (d_tests_smtp_handshake(world.peer)) ) )
     {
-        const bool made = (_case->create_status == D_SSL_OK);
+        const bool made = (_case->create_status == D_TLS_OK);
 
         world.toy.create_status    = _case->create_status;
         world.toy.handshake_status = _case->handshake_status;
@@ -697,30 +697,30 @@ bool d_tests_smtp_starttls_failures(
 {
     static const struct dj_tests_smtp_breach CASES[] =
     {
-        { D_SSL_ERROR_OUT_OF_MEMORY, D_SSL_OK, 0u, NULL,
+        { D_TLS_ERROR_OUT_OF_MEMORY, D_TLS_OK, 0u, NULL,
           false, false, false, D_SMTP_ERROR_OUT_OF_MEMORY,
-          D_SSL_ERROR_OUT_OF_MEMORY, D_NET_OK },
-        { D_SSL_ERROR_BACKEND, D_SSL_OK, 0u, NULL,
+          D_TLS_ERROR_OUT_OF_MEMORY, D_NET_OK },
+        { D_TLS_ERROR_BACKEND, D_TLS_OK, 0u, NULL,
           false, false, false, D_SMTP_ERROR_TLS,
-          D_SSL_ERROR_BACKEND, D_NET_OK },
-        { D_SSL_OK, D_SSL_ERROR_HANDSHAKE, 0u, NULL,
+          D_TLS_ERROR_BACKEND, D_NET_OK },
+        { D_TLS_OK, D_TLS_ERROR_HANDSHAKE, 0u, NULL,
           false, false, false, D_SMTP_ERROR_TLS,
-          D_SSL_ERROR_HANDSHAKE, D_NET_OK },
-        { D_SSL_OK, D_SSL_OK, (uint32_t)D_SSL_VERIFY_FLAG_EXPIRED, NULL,
+          D_TLS_ERROR_HANDSHAKE, D_NET_OK },
+        { D_TLS_OK, D_TLS_OK, (uint32_t)D_TLS_VERIFY_FLAG_EXPIRED, NULL,
           true, false, false, D_SMTP_ERROR_TLS,
-          D_SSL_ERROR_VERIFY, D_NET_OK },
-        { D_SSL_OK, D_SSL_OK, 0u, "other.example",
+          D_TLS_ERROR_VERIFY, D_NET_OK },
+        { D_TLS_OK, D_TLS_OK, 0u, "other.example",
           true, false, false, D_SMTP_ERROR_TLS,
-          D_SSL_ERROR_VERIFY, D_NET_OK },
-        { D_SSL_OK, D_SSL_OK, 0u, NULL,
+          D_TLS_ERROR_VERIFY, D_NET_OK },
+        { D_TLS_OK, D_TLS_OK, 0u, NULL,
           false, true, false, D_SMTP_ERROR_CLOSED,
-          D_SSL_ERROR_TRUNCATED, D_NET_OK },
-        { D_SSL_OK, D_SSL_OK, 0u, NULL,
+          D_TLS_ERROR_TRUNCATED, D_NET_OK },
+        { D_TLS_OK, D_TLS_OK, 0u, NULL,
           false, false, false, D_SMTP_ERROR_TIMED_OUT,
-          D_SSL_ERROR_TRANSPORT, D_NET_ERROR_TIMED_OUT },
-        { D_SSL_OK, D_SSL_OK, 0u, NULL,
+          D_TLS_ERROR_TRANSPORT, D_NET_ERROR_TIMED_OUT },
+        { D_TLS_OK, D_TLS_OK, 0u, NULL,
           false, false, true, D_SMTP_ERROR_CLOSED,
-          D_SSL_ERROR_TRUNCATED, D_NET_ERROR_CONNECTION_RESET }
+          D_TLS_ERROR_TRUNCATED, D_NET_ERROR_CONNECTION_RESET }
     };
     static const char* const WHAT[] =
     {
@@ -758,7 +758,7 @@ struct dj_tests_smtp_aftermath
     bool              hangs_up;    // it hangs up, when it does not answer
     bool              resets;      // writes are reset from here on
     enum dj_smtp_error status;      // what NOOP reports
-    enum dj_ssl_error  tls_status;  // what the client keeps
+    enum dj_tls_error  tls_status;  // what the client keeps
     enum dj_net_error  cause;       // what the reader keeps
 };
 
@@ -776,7 +776,7 @@ bool d_tests_smtp_after_upgrade(
     bool                      failed = false;
 
     if ( (d_tests_smtp_world_open(&world,
-                                  D_SSL_ROLE_CLIENT,
+                                  D_TLS_ROLE_CLIENT,
                                   true))                             &&
          (d_tests_smtp_preface(world.peer,
                                "220 2.0.0 Ready\r\n"))               &&
@@ -790,8 +790,8 @@ bool d_tests_smtp_after_upgrade(
          (d_tests_smtp_upgrade(&world,
                                D_TESTS_NET_TOY_SERVER_NAME) == D_SMTP_OK) )
     {
-        world.toy.read_status  = (_case->corrupt) ? D_SSL_ERROR_PROTOCOL
-                                                  : D_SSL_OK;
+        world.toy.read_status  = (_case->corrupt) ? D_TLS_ERROR_PROTOCOL
+                                                  : D_TLS_OK;
         world.peer->hangs_up   = _case->hangs_up;
         world.peer->resets     = _case->resets;
         world.peer->fail_after = (_case->resets) ? world.peer->sent
@@ -820,13 +820,13 @@ bool d_tests_smtp_corrupt_hello(void)
     bool                      failed = false;
 
     if ( (d_tests_smtp_world_open(&world,
-                                  D_SSL_ROLE_CLIENT,
+                                  D_TLS_ROLE_CLIENT,
                                   true))               &&
          (d_tests_smtp_preface(world.peer,
                                "220 2.0.0 Ready\r\n")) &&
          (d_tests_smtp_handshake(world.peer)) )
     {
-        world.toy.read_status = D_SSL_ERROR_PROTOCOL;
+        world.toy.read_status = D_TLS_ERROR_PROTOCOL;
         failed = ( (d_tests_smtp_upgrade(&world,
                                          D_TESTS_NET_TOY_SERVER_NAME) ==
                     D_SMTP_ERROR_TLS)                                &&
@@ -834,7 +834,7 @@ bool d_tests_smtp_corrupt_hello(void)
                    (world.client.state == D_SMTP_CLIENT_HELLO)       &&
                    (world.client.capabilities.extensions == 0u)      &&
                    (world.client.capabilities.size_limit == 0u)      &&
-                   (world.client.tls_status == D_SSL_ERROR_PROTOCOL) &&
+                   (world.client.tls_status == D_TLS_ERROR_PROTOCOL) &&
                    (world.client.reader.net_error ==
                     D_NET_ERROR_PROTOCOL) );
     }
@@ -863,15 +863,15 @@ bool d_tests_smtp_starttls_after(
     static const struct dj_tests_smtp_aftermath CASES[] =
     {
         { true,  true,  false, false, false, D_SMTP_ERROR_TLS,
-          D_SSL_ERROR_PROTOCOL,  D_NET_ERROR_PROTOCOL },
+          D_TLS_ERROR_PROTOCOL,  D_NET_ERROR_PROTOCOL },
         { false, false, false, true,  false, D_SMTP_ERROR_CLOSED,
-          D_SSL_ERROR_TRUNCATED, D_NET_ERROR_CLOSED },
+          D_TLS_ERROR_TRUNCATED, D_NET_ERROR_CLOSED },
         { false, false, false, false, false, D_SMTP_ERROR_TIMED_OUT,
-          D_SSL_ERROR_TRANSPORT, D_NET_ERROR_TIMED_OUT },
+          D_TLS_ERROR_TRANSPORT, D_NET_ERROR_TIMED_OUT },
         { false, false, false, false, true,  D_SMTP_ERROR_CLOSED,
-          D_SSL_ERROR_TRUNCATED, D_NET_ERROR_CONNECTION_RESET },
+          D_TLS_ERROR_TRUNCATED, D_NET_ERROR_CONNECTION_RESET },
         { false, true,  true,  false, false, D_SMTP_ERROR_CLOSED,
-          D_SSL_OK,              D_NET_OK }
+          D_TLS_OK,              D_NET_OK }
     };
     static const char* const WHAT[] =
     {
@@ -908,7 +908,7 @@ handshake, or by a peer that stalls.
 static
 bool d_tests_smtp_failed_session(
     struct dj_tests_smtp_world* _world,
-    struct dj_ssl_session*      _session,
+    struct dj_tls_session*      _session,
     bool                        _by_engine
 )
 {
@@ -916,29 +916,29 @@ bool d_tests_smtp_failed_session(
                                       strlen(D_TESTS_NET_TOY_SERVER_NAME) };
 
     if (!d_tests_smtp_world_open(_world,
-                                 D_SSL_ROLE_CLIENT,
+                                 D_TLS_ROLE_CLIENT,
                                  true))
     {
         return false;
     }
 
-    _world->toy.handshake_status = (_by_engine) ? D_SSL_ERROR_HANDSHAKE
-                                                : D_SSL_OK;
+    _world->toy.handshake_status = (_by_engine) ? D_TLS_ERROR_HANDSHAKE
+                                                : D_TLS_OK;
 
     // a session not made leaves nothing to release
-    if (d_ssl_session_init(_session,
+    if (d_tls_session_init(_session,
                            &_world->tls,
                            d_tests_net_peer_connection(_world->peer,
                                                        true),
-                           host) != D_SSL_OK)
+                           host) != D_TLS_OK)
     {
         return false;
     }
 
     // one that did not fail is released here, its caller seeing none
-    if (d_ssl_session_handshake(_session) == D_SSL_OK)
+    if (d_tls_session_handshake(_session) == D_TLS_OK)
     {
-        d_ssl_session_destroy(_session);
+        d_tls_session_destroy(_session);
 
         return false;
     }
@@ -948,7 +948,7 @@ bool d_tests_smtp_failed_session(
 
 /*
 d_tests_smtp_judged
-  d_smtp_error_from_tls over a session failed as asked: `_result` must
+  d_smtp_error_from_tls_session over a session failed as asked: `_result` must
 become `_status`, writing `_tls_status` and `_cause` - `_cause` left alone
 when it is the sentinel D_NET_ERROR_ADDRESS_IN_USE - and the call must
 take NULL for both places too.
@@ -958,13 +958,13 @@ d_tests_smtp_judged(
     bool              _by_engine,
     enum dj_smtp_error _result,
     enum dj_smtp_error _status,
-    enum dj_ssl_error  _tls_status,
+    enum dj_tls_error  _tls_status,
     enum dj_net_error  _cause
 )
 {
     struct dj_tests_smtp_world world   = { .peer = NULL };
-    struct dj_ssl_session      session = { .base = { .vtable = NULL } };
-    enum dj_ssl_error          status  = D_SSL_OK;
+    struct dj_tls_session      session = { .base = { .vtable = NULL } };
+    enum dj_tls_error          status  = D_TLS_OK;
     enum dj_net_error          cause   = D_NET_ERROR_ADDRESS_IN_USE;
     bool                      judged  = false;
 
@@ -972,21 +972,21 @@ d_tests_smtp_judged(
                                     &session,
                                     _by_engine))
     {
-        judged = ( (d_smtp_error_from_tls(&session,
+        judged = ( (d_smtp_error_from_tls_session(&session,
                                           _result,
                                           &status,
                                           &cause) == _status) &&
                    (status == _tls_status)                    &&
                    (cause == _cause)                          &&
-                   (d_smtp_error_from_tls(&session,
+                   (d_smtp_error_from_tls_session(&session,
                                           _result,
                                           NULL,
                                           NULL) == _status)   &&
-                   (d_smtp_error_from_tls(&session,
+                   (d_smtp_error_from_tls_session(&session,
                                           D_SMTP_OK,
                                           &status,
                                           &cause) == D_SMTP_OK) );
-        d_ssl_session_destroy(&session);
+        d_tls_session_destroy(&session);
     }
 
     d_tests_smtp_world_close(&world);
@@ -996,7 +996,7 @@ d_tests_smtp_judged(
 
 /*
 d_tests_smtp_unjudged
-  d_smtp_error_from_tls where nothing is judged: no session, and a session
+  d_smtp_error_from_tls_session where nothing is judged: no session, and a session
 that has not failed, each leaving the result as given and writing nothing.
 */
 static
@@ -1005,31 +1005,31 @@ bool d_tests_smtp_unjudged(void)
     const struct dj_pack_text  host    = { D_TESTS_NET_TOY_SERVER_NAME,
                                          strlen(D_TESTS_NET_TOY_SERVER_NAME) };
     struct dj_tests_smtp_world world   = { .peer = NULL };
-    struct dj_ssl_session      session = { .base = { .vtable = NULL } };
-    enum dj_ssl_error          status  = D_SSL_ERROR_STATE;
+    struct dj_tls_session      session = { .base = { .vtable = NULL } };
+    enum dj_tls_error          status  = D_TLS_ERROR_STATE;
     enum dj_net_error          cause   = D_NET_ERROR_ADDRESS_IN_USE;
     bool                      left    = false;
 
     if ( (d_tests_smtp_world_open(&world,
-                                  D_SSL_ROLE_CLIENT,
+                                  D_TLS_ROLE_CLIENT,
                                   true)) &&
-         (d_ssl_session_init(&session,
+         (d_tls_session_init(&session,
                              &world.tls,
                              d_tests_net_peer_connection(world.peer,
                                                          true),
-                             host) == D_SSL_OK) )
+                             host) == D_TLS_OK) )
     {
-        left = ( (d_smtp_error_from_tls(NULL,
+        left = ( (d_smtp_error_from_tls_session(NULL,
                                         D_SMTP_ERROR_CLOSED,
                                         &status,
                                         &cause) == D_SMTP_ERROR_CLOSED)   &&
-                 (d_smtp_error_from_tls(&session,
+                 (d_smtp_error_from_tls_session(&session,
                                         D_SMTP_ERROR_PROTOCOL,
                                         &status,
                                         &cause) == D_SMTP_ERROR_PROTOCOL) &&
-                 (status == D_SSL_ERROR_STATE)                            &&
+                 (status == D_TLS_ERROR_STATE)                            &&
                  (cause == D_NET_ERROR_ADDRESS_IN_USE) );
-        d_ssl_session_destroy(&session);
+        d_tls_session_destroy(&session);
     }
 
     d_tests_smtp_world_close(&world);
@@ -1038,7 +1038,7 @@ bool d_tests_smtp_unjudged(void)
 }
 
 /*
-d_tests_smtp_errors_from_tls
+d_tests_smtp_errors_from_tls_session
   Tests the following:
   - no session, or one that has not failed, leaves the result as given,
     and writes nothing
@@ -1048,11 +1048,11 @@ d_tests_smtp_errors_from_tls
     TRANSPORT and the timeout written
   - a result of D_SMTP_OK stays one, and NULL places to write are allowed
 */
-bool d_tests_smtp_errors_from_tls(
+bool d_tests_smtp_errors_from_tls_session(
     struct dj_test_suite* _suite
 )
 {
-    const char* const TEST   = "d_smtp_error_from_tls";
+    const char* const TEST   = "d_smtp_error_from_tls_session";
     bool              result = true;
 
     result = D_TESTS_NET_ASSERT(d_tests_smtp_unjudged(),
@@ -1063,7 +1063,7 @@ bool d_tests_smtp_errors_from_tls(
                  d_tests_smtp_judged(true,
                                      D_SMTP_ERROR_PROTOCOL,
                                      D_SMTP_ERROR_TLS,
-                                     D_SSL_ERROR_HANDSHAKE,
+                                     D_TLS_ERROR_HANDSHAKE,
                                      D_NET_ERROR_ADDRESS_IN_USE),
                  TEST,
                  "a session its engine failed: TLS, no cause",
@@ -1072,7 +1072,7 @@ bool d_tests_smtp_errors_from_tls(
                  d_tests_smtp_judged(false,
                                      D_SMTP_ERROR_CLOSED,
                                      D_SMTP_ERROR_TIMED_OUT,
-                                     D_SSL_ERROR_TRANSPORT,
+                                     D_TLS_ERROR_TRANSPORT,
                                      D_NET_ERROR_TIMED_OUT),
                  TEST,
                  "a session its connection failed: that connection's error",
@@ -1113,7 +1113,7 @@ bool d_tests_smtp_server_world(
     }
 
     return ( (d_tests_smtp_world_open(_world,
-                                      D_SSL_ROLE_SERVER,
+                                      D_TLS_ROLE_SERVER,
                                       false))              &&
              (d_tests_net_peer_say(_world->peer,
                                    "",
@@ -1442,9 +1442,9 @@ bool d_tests_smtp_starttls_server_refusals(
 //   struct: one way a server's TLS fails, and how the session must end.
 struct dj_tests_smtp_server_breach
 {
-    enum dj_ssl_error  create_status;     // what session_create reports
-    enum dj_ssl_error  handshake_status;  // a failure the toy reports
-    enum dj_ssl_error  read_status;       // a failure reads report
+    enum dj_tls_error  create_status;     // what session_create reports
+    enum dj_tls_error  handshake_status;  // a failure the toy reports
+    enum dj_tls_error  read_status;       // a failure reads report
     bool              hello;             // the client says its hello
     bool              hangs_up;          // it hangs up after its script
     bool              replies;           // the toy's reply goes out
@@ -1475,7 +1475,7 @@ bool d_tests_smtp_server_breached(
     bool                      failed        = false;
     const bool                scripted      =
         ( (d_tests_smtp_world_open(&world,
-                                   D_SSL_ROLE_SERVER,
+                                   D_TLS_ROLE_SERVER,
                                    false))                         &&
           (d_tests_net_peer_say(world.peer,
                                 "",
@@ -1530,17 +1530,17 @@ bool d_tests_smtp_starttls_server_failures(
 {
     static const struct dj_tests_smtp_server_breach CASES[] =
     {
-        { D_SSL_ERROR_OUT_OF_MEMORY, D_SSL_OK,              D_SSL_OK,
+        { D_TLS_ERROR_OUT_OF_MEMORY, D_TLS_OK,              D_TLS_OK,
           true,  true,  false, D_SMTP_ERROR_OUT_OF_MEMORY, 0 },
-        { D_SSL_ERROR_BACKEND,       D_SSL_OK,              D_SSL_OK,
+        { D_TLS_ERROR_BACKEND,       D_TLS_OK,              D_TLS_OK,
           true,  true,  false, D_SMTP_ERROR_TLS,           0 },
-        { D_SSL_OK,                  D_SSL_ERROR_HANDSHAKE, D_SSL_OK,
+        { D_TLS_OK,                  D_TLS_ERROR_HANDSHAKE, D_TLS_OK,
           true,  true,  false, D_SMTP_ERROR_TLS,           1 },
-        { D_SSL_OK,                  D_SSL_OK,              D_SSL_OK,
+        { D_TLS_OK,                  D_TLS_OK,              D_TLS_OK,
           false, true,  false, D_SMTP_ERROR_CLOSED,        1 },
-        { D_SSL_OK,                  D_SSL_OK,  D_SSL_ERROR_PROTOCOL,
+        { D_TLS_OK,                  D_TLS_OK,  D_TLS_ERROR_PROTOCOL,
           true,  true,  true,  D_SMTP_ERROR_TLS,           1 },
-        { D_SSL_OK,                  D_SSL_OK,              D_SSL_OK,
+        { D_TLS_OK,                  D_TLS_OK,              D_TLS_OK,
           true,  false, true,  D_SMTP_ERROR_TIMED_OUT,     1 }
     };
     static const char* const WHAT[] =

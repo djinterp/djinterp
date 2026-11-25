@@ -8,7 +8,7 @@
 * may run on a thread with a small stack - and message data grows by
 * doubling up to the configured limit, so memory tracks the largest message
 * actually received rather than the largest allowed. STARTTLS makes a TLS
-* session of the SSL kernel over the connection, held in that state.
+* session of the TLS kernel over the connection, held in that state.
 *
 *
 * path:      /src/djinterp/c/modules/net/smtp/smtp_server.c
@@ -29,7 +29,7 @@
 #include "../../../../../../inc/djinterp/c/modules/net/net_common.h"          // connections
 #include "../../../../../../inc/djinterp/c/modules/net/smtp/smtp_common.h"    // replies
 #include "../../../../../../inc/djinterp/c/modules/net/smtp/smtp_reader.h"    // dj_smtp_reader
-#include "../../../../../../inc/djinterp/c/modules/net/ssl/ssl.h"             // TLS sessions
+#include "../../../../../../inc/djinterp/c/modules/net/tls/tls.h"             // TLS sessions
 // re_std
 #include "../../../../../../inc/re_std/c/cstdint/dstdint.h"  // SIZE_MAX
 
@@ -50,7 +50,7 @@ struct dj_internal_smtp_session
 {
     struct dj_smtp_reader                reader;
     struct dj_net_connection*            connection;
-    struct dj_ssl_session                tls;
+    struct dj_tls_session                tls;
     bool                                has_tls;
     const struct dj_smtp_server_config*  config;
     const struct dj_smtp_server_handler* handler;
@@ -476,28 +476,28 @@ d_internal_smtp_secure(
 {
     const struct dj_pack_text none   = { "",
                                         0u };
-    enum dj_ssl_error         status = d_ssl_session_init(&_session->tls,
+    enum dj_tls_error         status = d_tls_session_init(&_session->tls,
                                                          _session->config->tls,
                                                          _session->connection,
                                                          none);
 
-    if (status != D_SSL_OK)
+    if (status != D_TLS_OK)
     {
-        return (status == D_SSL_ERROR_OUT_OF_MEMORY)
+        return (status == D_TLS_ERROR_OUT_OF_MEMORY)
                    ? D_SMTP_ERROR_OUT_OF_MEMORY
                    : D_SMTP_ERROR_TLS;
     }
 
     _session->has_tls = true;
-    status            = d_ssl_session_handshake(&_session->tls);
+    status            = d_tls_session_handshake(&_session->tls);
 
     // a failed handshake ends the session, judged with what lay beneath it
-    if (status != D_SSL_OK)
+    if (status != D_TLS_OK)
     {
         const enum dj_net_error cause =
-            d_ssl_session_transport_error(&_session->tls);
+            d_tls_session_transport_error(&_session->tls);
 
-        return d_smtp_error_from_ssl(status,
+        return d_smtp_error_from_tls(status,
                                      cause);
     }
 
@@ -1793,7 +1793,7 @@ void d_internal_smtp_session_free(
     // the TLS session STARTTLS made, if it made one
     if (_session->has_tls)
     {
-        d_ssl_session_destroy(&_session->tls);
+        d_tls_session_destroy(&_session->tls);
     }
 
     free(_session->message);
@@ -1875,7 +1875,7 @@ bool d_internal_smtp_config_ok(
                                      false)) &&
              ( (!_config->tls) ||
                ( (_config->tls->engine) &&
-                 (_config->tls->plan.role == D_SSL_ROLE_SERVER) ) ) );
+                 (_config->tls->plan.role == D_TLS_ROLE_SERVER) ) ) );
 }
 
 /*
@@ -1935,7 +1935,7 @@ d_smtp_server_session(
     }
 
     // a stream TLS carries is judged by the TLS session, when it failed
-    result = d_smtp_error_from_tls((session->has_tls) ? &session->tls
+    result = d_smtp_error_from_tls_session((session->has_tls) ? &session->tls
                                                       : NULL,
                                    result,
                                    NULL,
@@ -1946,7 +1946,7 @@ d_smtp_server_session(
     // nothing more
     if (session->has_tls)
     {
-        (void)d_ssl_session_shutdown(&session->tls);
+        (void)d_tls_session_shutdown(&session->tls);
     }
 
     d_internal_smtp_session_free(session);

@@ -13,7 +13,7 @@
 * each session on a thread of its own behind a tcp.h listener, and sessions
 * over any net::connection, through net.hpp's adapter, which STARTTLS can
 * secure like any other.
-*   TLS is the SSL kernel's. By default the facade makes a context from
+*   TLS is the TLS kernel's. By default the facade makes a context from
 * tls_options with the OpenSSL-family engine, where the build has one; a
 * caller who wants another engine, pins, ALPN or a version floor makes a
 * context of their own and passes it instead.
@@ -27,7 +27,7 @@
 * re_std::function, message bodies re_std::string_view, and the server's
 * threads, lock and condition are dmutex.h's. Enumerations are scoped in
 * structs (decision 3.4): smtp::error::value. Link smtp's C sources,
-* net_common.c, tcp.c, the SSL kernel and its OpenSSL-family engine, net's
+* net_common.c, tcp.c, the TLS kernel and its OpenSSL-family engine, net's
 * codec, sink_common.c and dmutex.c, with the TLS library. The client holds
 * the kernel's TLS session, so the header needs a 64-bit integer type, and
 * compiles to nothing where the build has none, as smtp_client.h does.
@@ -100,7 +100,7 @@ TABLE OF CONTENTS
 // core/binary/decode.hpp (reached through net.hpp) if it is seen first
 #include "../../../../c/modules/net/smtp/smtp.h"              // the C SMTP kernel
 #include "../../../../c/modules/net/net_common.h"      // D_INTERNAL_NET_HAS_INT64
-#include "../../../../c/modules/net/ssl/ssl.h"        // dj_ssl_context
+#include "../../../../c/modules/net/tls/tls.h"        // dj_tls_context
 #include "../tls/tls.hpp"      // tls_lease
 #if (D_MOVE_ENABLED == 1)
     // std
@@ -339,7 +339,7 @@ using result = ::re_std::expected<Type, failure>;
 // 2.1.1
 // tls_options
 //   struct: how TLS is made. By default the facade makes a context of the
-// SSL kernel from these fields with the OpenSSL-family engine - a client
+// TLS kernel from these fields with the OpenSSL-family engine - a client
 // checks the server against `ca_file`, or the system's trust store when it
 // is empty, unless `verify_peer` is false; a server presents its
 // certificate and key. `context` opts out of all that: a context of the
@@ -365,7 +365,7 @@ struct tls_options
     std::string            certificate_file;  // server
     std::string            private_key_file;  // server
     bool                   verify_peer;       // client
-    const ::dj_ssl_context* context;           // the caller's own, or null
+    const ::dj_tls_context* context;           // the caller's own, or null
     tls_lease              lease;             // a tls_context's, or empty
 };
 

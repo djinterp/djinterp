@@ -37,8 +37,8 @@ djinterp_add_test_executable(c_net_smtp_tests
         "${_tests_dir}/net_tests_pki.c"
         "${_tests_dir}/net_tests_support.c"
         ${_smtp}
-        "${_net}/ssl/ssl.c"
-        "${_net}/ssl/ssl_openssl.c"
+        "${_net}/tls/tls.c"
+        "${_net}/tls/tls_openssl.c"
         "${_net}/tcp/tcp.c"
         ${_codec}
         "${DJINTERP_SRC_ROOT}/djinterp/c/util/sink_common.c"
@@ -50,7 +50,7 @@ if (OpenSSL_FOUND)
 else()
     # headers CMake didn't find aren't used either, so nothing goes unlinked
     target_compile_definitions(c_net_smtp_tests PRIVATE
-                               D_CFG_SSL_OPENSSL=0 D_ENV_TLS_HAS_OPENSSL=0)
+                               D_CFG_TLS_OPENSSL=0 D_ENV_TLS_HAS_OPENSSL=0)
     message(STATUS "djinterp c/modules/net/smtp: OpenSSL not found; the TLS "
                    "loopback skips")
 endif()

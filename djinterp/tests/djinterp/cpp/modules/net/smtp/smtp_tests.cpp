@@ -15,7 +15,7 @@
 *   The suite runs from C++98: clients open in place at every level, and the
 * static connect and attach, the result alias and the moves are checked from
 * C++11. Link the SMTP kernel's C sources, smtp.cpp, net_common.c, tcp.c,
-* the SSL kernel and its OpenSSL-family engine, dmutex.c, sink_common.c,
+* the TLS kernel and its OpenSSL-family engine, dmutex.c, sink_common.c,
 * net's codec, and tests/djinterp/c/modules/net/net_tests_pki.c; and -lssl
 * -lcrypto.
 *
@@ -38,7 +38,7 @@
 #include <vector>   // std::vector
 // djinterp
 #include "../../../../../../inc/djinterp/c/sync/dmutex.h"          // d_thread_create
-#include "../../../../../../inc/djinterp/c/modules/net/ssl/ssl_openssl.h"    // the engine
+#include "../../../../../../inc/djinterp/c/modules/net/tls/tls_openssl.h"    // the engine
 #include "../../../../../../inc/djinterp/cpp/modules/net/tcp/tcp.hpp"          // tcp_connector
 #include "../../../../c/modules/net/net_tests_pki.h"                                // certificates
 #if (D_MOVE_ENABLED == 1)
@@ -388,7 +388,7 @@ NS_INTERNAL
         // the first ask makes them, or finds they cannot be made
         if (run.state == 0)
         {
-            run.state = ( (::d_ssl_engine_openssl() != D_NULLPTR) &&
+            run.state = ( (::d_tls_engine_openssl() != D_NULLPTR) &&
                           (::d_tests_net_pki_make(&run.files)) ) ? 1 : 2;
         }
 
@@ -1029,7 +1029,7 @@ bool tests_smtp_listen()
                               "implicit TLS needs a certificate") && result;
     result = internal::check( (!broken.has_value()) &&
                               (broken.error().code ==
-                               ((::d_ssl_engine_openssl())
+                               ((::d_tls_engine_openssl())
                                 ? smtp::error::tls
                                 : smtp::error::unsupported)),
                               "a certificate that will not load") && result;
@@ -1212,18 +1212,18 @@ bool tests_smtp_own_context(
     const ::dj_tests_net_pki* _files
 )
 {
-    ::dj_ssl_config  config = ::dj_ssl_config();
-    ::dj_ssl_context context;
+    ::dj_tls_config  config = ::dj_tls_config();
+    ::dj_tls_context context;
 
-    ::d_ssl_config_init(&config,
-                        D_SSL_ROLE_CLIENT);
+    ::d_tls_config_init(&config,
+                        D_TLS_ROLE_CLIENT);
     config.use_system_trust = false;
     config.ca_file          = _files->ca;
 
     // a context of the test's own, or nothing to test
-    if (::d_ssl_context_init(&context,
-                             ::d_ssl_engine_openssl(),
-                             &config) != D_SSL_OK)
+    if (::d_tls_context_init(&context,
+                             ::d_tls_engine_openssl(),
+                             &config) != D_TLS_OK)
     {
         return false;
     }
@@ -1249,7 +1249,7 @@ bool tests_smtp_own_context(
                    (session.quit().has_value()) );
     }
 
-    ::d_ssl_context_destroy(&context);
+    ::d_tls_context_destroy(&context);
 
     return secure;
 }

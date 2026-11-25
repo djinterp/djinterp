@@ -5,13 +5,13 @@
 *   The client speaks the control protocol through the net/ftp/ vocabulary and
 * moves bytes through the TCP transport (net/tcp/tcp.h), reading and writing
 * every connection through net.h's dj_net_connection, so the client itself
-* holds no OS code. For FTPS it runs TLS through the SSL kernel
-* (net/ssl/ssl.h), carried over each connection: explicitly, upgrading the
+* holds no OS code. For FTPS it runs TLS through the TLS kernel
+* (net/tls/tls.h), carried over each connection: explicitly, upgrading the
 * control connection with AUTH TLS, or implicitly, from the first byte on
 * port 990; and, after PBSZ 0 and PROT P, on every data connection, where
 * the client is always the TLS client (RFC 4217 section 7) in passive and
 * active mode alike.
-*   The TLS library is whatever engine the caller's dj_ssl_context was made
+*   The TLS library is whatever engine the caller's dj_tls_context was made
 * with. Control and data sessions come from that one context and name the
 * same host, so an engine that caches client sessions by host resumes the
 * control session on each data connection, as servers such as vsftpd require
@@ -79,7 +79,7 @@ TABLE OF CONTENTS
 #include "../../../djinterp.h"                // framework root
 #include "../../../../config/c/modules/net/ftp/cfg_ftp.h"  // D_INTERNAL_FTP_*
 #include "../net_common.h"                   // dj_net_error
-#include "../ssl/ssl.h"                      // dj_ssl_context, dj_ssl_session
+#include "../tls/tls.h"                      // dj_tls_context, dj_tls_session
 #include "../tcp/tcp.h"                      // dj_tcp_connection
 #include "./ftp_command.h"                   // dj_ftp_command
 #include "./ftp_common.h"                    // dj_ftp_error
@@ -176,7 +176,7 @@ typedef enum dj_ftp_error (*dj_ftp_source_fn)(void*   _context,
 struct dj_ftp_connection
 {
     struct dj_tcp_connection tcp;      // the transport
-    struct dj_ssl_session    tls;      // valid while secured
+    struct dj_tls_session    tls;      // valid while secured
     bool                    secured;  // TLS in force
     enum dj_net_error        failure;  // the transport's last error
 };
@@ -189,8 +189,8 @@ struct dj_ftp_connection
 struct dj_ftp_client
 {
     struct dj_ftp_options        options;          // copied at init
-    const struct dj_ssl_context* tls;              // borrowed; NULL: plain only
-    char                        host[D_SSL_HOSTNAME_MAX + 2];
+    const struct dj_tls_context* tls;              // borrowed; NULL: plain only
+    char                        host[D_TLS_HOSTNAME_MAX + 2];
     struct dj_ftp_connection     control;          // the control connection
     struct dj_ftp_connection     data;             // the transfer's connection
     struct dj_ftp_reply_parser   parser;           // reads control replies
@@ -205,7 +205,7 @@ struct dj_ftp_client
     bool                        logged_in;        // login accepted
     bool                        type_sent;        // TYPE set this session
     bool                        extended_refused; // EPSV or EPRT refused
-    enum dj_ssl_error            tls_status;       // cause of ERROR_TLS
+    enum dj_tls_error            tls_status;       // cause of ERROR_TLS
     enum dj_net_error            net_error;        // cause of a lost link
 };
 
@@ -220,11 +220,11 @@ struct dj_ftp_client
 // d_ftp_client_tls_config() fills a kernel configuration for an FTPS client:
 // a client's, verifying the server's chain and its name as the options'
 // verify_peer and verify_host ask, against the system trust store. Set trust
-// anchors or pins on it before d_ssl_context_init(). NULL arguments are
+// anchors or pins on it before d_tls_context_init(). NULL arguments are
 // ignored.
 void d_ftp_client_tls_config(
     const struct dj_ftp_options* _options,
-    struct dj_ssl_config*        _config
+    struct dj_tls_config*        _config
 );
 /**
  * @brief Prepares a client: closed, with its options copied.
@@ -239,7 +239,7 @@ void d_ftp_client_tls_config(
 void d_ftp_client_init(
     struct dj_ftp_client*        _client,
     const struct dj_ftp_options* _options,
-    const struct dj_ssl_context* _tls
+    const struct dj_tls_context* _tls
 );
 
 

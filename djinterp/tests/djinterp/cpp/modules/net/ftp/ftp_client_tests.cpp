@@ -267,14 +267,14 @@ void t_secure(void)
         .protection(ftp::protection::private_)
         .require_security(true);
 
-    dj_ssl_config config;
+    dj_tls_config config;
     ftp::client::tls_config(o,
                             config);
-    dj_ssl_context context;
-    D_TESTS_FTP_CLIENT_CHECK(d_ssl_context_init(&context,
+    dj_tls_context context;
+    D_TESTS_FTP_CLIENT_CHECK(d_tls_context_init(&context,
                                                 &TOY,
                                                 &config) ==
-                             D_SSL_OK);
+                             D_TLS_OK);
 
     struct dj_tests_ftps_server s;
     D_TESTS_FTP_CLIENT_CHECK(start(s));
@@ -298,7 +298,7 @@ void t_secure(void)
     D_TESTS_FTP_CLIENT_CHECK( (s.data_tls >= 1)   &&
                               (s.data_plain == 0) &&
                               (!s.saw_user_in_clear) );
-    d_ssl_context_destroy(&context);
+    d_tls_context_destroy(&context);
 
     return;
 }

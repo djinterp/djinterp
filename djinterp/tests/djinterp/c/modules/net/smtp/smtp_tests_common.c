@@ -6,7 +6,7 @@
 * capability discovery, mailbox and domain validation, command and path
 * parsing, base64 against the RFC 4648 vectors, the DATA transparency
 * encoder fed in chunks of every size, and the mappings between SMTP's
-* errors and net.h's and the SSL kernel's.
+* errors and net.h's and the TLS kernel's.
 *
 *
 * path:      /tests/djinterp/c/modules/net/smtp/smtp_tests_common.c
@@ -1000,71 +1000,71 @@ bool d_tests_smtp_errors_from_net(
     return result;
 }
 
-// dj_tests_smtp_from_ssl
-//   struct: an SSL kernel status, what its connection last reported, and
+// dj_tests_smtp_from_tls
+//   struct: an TLS kernel status, what its connection last reported, and
 // the error the two are here.
-struct dj_tests_smtp_from_ssl
+struct dj_tests_smtp_from_tls
 {
-    enum dj_ssl_error  status;
+    enum dj_tls_error  status;
     enum dj_net_error  cause;
     enum dj_smtp_error error;
 };
 
 /*
-FROM_SSL
-  Every dj_ssl_error with no cause, then the transport failures with causes:
+FROM_TLS
+  Every dj_tls_error with no cause, then the transport failures with causes:
 a connection's own failure is its error; a peer gone, with close_notify or
 without, is CLOSED; a lack of memory is OUT_OF_MEMORY; the rest is TLS.
 */
-static const struct dj_tests_smtp_from_ssl FROM_SSL[] =
+static const struct dj_tests_smtp_from_tls FROM_TLS[] =
 {
-    { D_SSL_OK,                     D_NET_OK, D_SMTP_OK                  },
-    { D_SSL_ERROR_INVALID_ARGUMENT, D_NET_OK, D_SMTP_ERROR_TLS           },
-    { D_SSL_ERROR_MALFORMED,        D_NET_OK, D_SMTP_ERROR_TLS           },
-    { D_SSL_ERROR_NOT_FOUND,        D_NET_OK, D_SMTP_ERROR_TLS           },
-    { D_SSL_ERROR_UNSUPPORTED,      D_NET_OK, D_SMTP_ERROR_TLS           },
-    { D_SSL_ERROR_CONFIG,           D_NET_OK, D_SMTP_ERROR_TLS           },
-    { D_SSL_ERROR_STATE,            D_NET_OK, D_SMTP_ERROR_TLS           },
-    { D_SSL_ERROR_NOT_TLS,          D_NET_OK, D_SMTP_ERROR_TLS           },
-    { D_SSL_ERROR_HANDSHAKE,        D_NET_OK, D_SMTP_ERROR_TLS           },
-    { D_SSL_ERROR_VERIFY,           D_NET_OK, D_SMTP_ERROR_TLS           },
-    { D_SSL_ERROR_PROTOCOL,         D_NET_OK, D_SMTP_ERROR_TLS           },
-    { D_SSL_ERROR_TRUNCATED,        D_NET_OK, D_SMTP_ERROR_CLOSED        },
-    { D_SSL_ERROR_INSECURE,         D_NET_OK, D_SMTP_ERROR_TLS           },
-    { D_SSL_ERROR_BUFFER_TOO_SMALL, D_NET_OK, D_SMTP_ERROR_TLS           },
-    { D_SSL_ERROR_WOULD_BLOCK,      D_NET_OK, D_SMTP_ERROR_TRANSPORT     },
-    { D_SSL_ERROR_TRANSPORT,        D_NET_OK, D_SMTP_ERROR_TRANSPORT     },
-    { D_SSL_ERROR_CLOSED,           D_NET_OK, D_SMTP_ERROR_CLOSED        },
-    { D_SSL_ERROR_WANT_READ,        D_NET_OK, D_SMTP_ERROR_TLS           },
-    { D_SSL_ERROR_OUT_OF_MEMORY,    D_NET_OK, D_SMTP_ERROR_OUT_OF_MEMORY },
-    { D_SSL_ERROR_BACKEND,          D_NET_OK, D_SMTP_ERROR_TLS           },
-    { D_SSL_ERROR_TRANSPORT,        D_NET_ERROR_TIMED_OUT,
+    { D_TLS_OK,                     D_NET_OK, D_SMTP_OK                  },
+    { D_TLS_ERROR_INVALID_ARGUMENT, D_NET_OK, D_SMTP_ERROR_TLS           },
+    { D_TLS_ERROR_MALFORMED,        D_NET_OK, D_SMTP_ERROR_TLS           },
+    { D_TLS_ERROR_NOT_FOUND,        D_NET_OK, D_SMTP_ERROR_TLS           },
+    { D_TLS_ERROR_UNSUPPORTED,      D_NET_OK, D_SMTP_ERROR_TLS           },
+    { D_TLS_ERROR_CONFIG,           D_NET_OK, D_SMTP_ERROR_TLS           },
+    { D_TLS_ERROR_STATE,            D_NET_OK, D_SMTP_ERROR_TLS           },
+    { D_TLS_ERROR_NOT_TLS,          D_NET_OK, D_SMTP_ERROR_TLS           },
+    { D_TLS_ERROR_HANDSHAKE,        D_NET_OK, D_SMTP_ERROR_TLS           },
+    { D_TLS_ERROR_VERIFY,           D_NET_OK, D_SMTP_ERROR_TLS           },
+    { D_TLS_ERROR_PROTOCOL,         D_NET_OK, D_SMTP_ERROR_TLS           },
+    { D_TLS_ERROR_TRUNCATED,        D_NET_OK, D_SMTP_ERROR_CLOSED        },
+    { D_TLS_ERROR_INSECURE,         D_NET_OK, D_SMTP_ERROR_TLS           },
+    { D_TLS_ERROR_BUFFER_TOO_SMALL, D_NET_OK, D_SMTP_ERROR_TLS           },
+    { D_TLS_ERROR_WOULD_BLOCK,      D_NET_OK, D_SMTP_ERROR_TRANSPORT     },
+    { D_TLS_ERROR_TRANSPORT,        D_NET_OK, D_SMTP_ERROR_TRANSPORT     },
+    { D_TLS_ERROR_CLOSED,           D_NET_OK, D_SMTP_ERROR_CLOSED        },
+    { D_TLS_ERROR_WANT_READ,        D_NET_OK, D_SMTP_ERROR_TLS           },
+    { D_TLS_ERROR_OUT_OF_MEMORY,    D_NET_OK, D_SMTP_ERROR_OUT_OF_MEMORY },
+    { D_TLS_ERROR_BACKEND,          D_NET_OK, D_SMTP_ERROR_TLS           },
+    { D_TLS_ERROR_TRANSPORT,        D_NET_ERROR_TIMED_OUT,
       D_SMTP_ERROR_TIMED_OUT                                             },
-    { D_SSL_ERROR_TRANSPORT,        D_NET_ERROR_CONNECTION_RESET,
+    { D_TLS_ERROR_TRANSPORT,        D_NET_ERROR_CONNECTION_RESET,
       D_SMTP_ERROR_CLOSED                                                },
-    { D_SSL_ERROR_TRANSPORT,        D_NET_ERROR_UNKNOWN,
+    { D_TLS_ERROR_TRANSPORT,        D_NET_ERROR_UNKNOWN,
       D_SMTP_ERROR_TRANSPORT                                             },
-    { D_SSL_ERROR_WOULD_BLOCK,      D_NET_ERROR_WOULD_BLOCK,
+    { D_TLS_ERROR_WOULD_BLOCK,      D_NET_ERROR_WOULD_BLOCK,
       D_SMTP_ERROR_TRANSPORT                                             },
-    { D_SSL_ERROR_WOULD_BLOCK,      D_NET_ERROR_TIMED_OUT,
+    { D_TLS_ERROR_WOULD_BLOCK,      D_NET_ERROR_TIMED_OUT,
       D_SMTP_ERROR_TIMED_OUT                                             },
-    { D_SSL_ERROR_TRUNCATED,        D_NET_ERROR_CONNECTION_RESET,
+    { D_TLS_ERROR_TRUNCATED,        D_NET_ERROR_CONNECTION_RESET,
       D_SMTP_ERROR_CLOSED                                                },
-    { D_SSL_ERROR_HANDSHAKE,        D_NET_ERROR_TIMED_OUT,
+    { D_TLS_ERROR_HANDSHAKE,        D_NET_ERROR_TIMED_OUT,
       D_SMTP_ERROR_TLS                                                   }
 };
 
 /*
-d_tests_smtp_errors_from_ssl
+d_tests_smtp_errors_from_tls
   Tests the following:
-  - every dj_ssl_error with no cause: OK, CLOSED for a peer gone, either
+  - every dj_tls_error with no cause: OK, CLOSED for a peer gone, either
     way, OUT_OF_MEMORY, TRANSPORT for a transport failure that reported
     nothing, and TLS for the rest
   - a transport failure with a cause is that cause's error; a TLS failure
     is TLS whatever its connection last said
   - a value outside the enum is TLS
 */
-bool d_tests_smtp_errors_from_ssl(
+bool d_tests_smtp_errors_from_tls(
     struct dj_test_suite* _suite
 )
 {
@@ -1072,22 +1072,22 @@ bool d_tests_smtp_errors_from_ssl(
     bool result = true;
 
     // each row
-    for (size_t i = 0u; i < sizeof(FROM_SSL) / sizeof(FROM_SSL[0]); ++i)
+    for (size_t i = 0u; i < sizeof(FROM_TLS) / sizeof(FROM_TLS[0]); ++i)
     {
-        table = ( (d_smtp_error_from_ssl(FROM_SSL[i].status,
-                                         FROM_SSL[i].cause) ==
-                   FROM_SSL[i].error) &&
+        table = ( (d_smtp_error_from_tls(FROM_TLS[i].status,
+                                         FROM_TLS[i].cause) ==
+                   FROM_TLS[i].error) &&
                   (table) );
     }
 
     result = D_TESTS_NET_ASSERT(table,
-                                "d_smtp_error_from_ssl",
+                                "d_smtp_error_from_tls",
                                 "each status, with and without a cause",
                                 _suite) && result;
-    result = D_TESTS_NET_ASSERT( (d_smtp_error_from_ssl(
-                                      (enum dj_ssl_error)0x7FFF,
+    result = D_TESTS_NET_ASSERT( (d_smtp_error_from_tls(
+                                      (enum dj_tls_error)0x7FFF,
                                       D_NET_OK) == D_SMTP_ERROR_TLS),
-                                 "d_smtp_error_from_ssl",
+                                 "d_smtp_error_from_tls",
                                  "a value outside the enum is TLS",
                                  _suite) && result;
 

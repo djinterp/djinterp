@@ -5,7 +5,7 @@
 *   One codec serves every module that encodes or decodes base64: SASL's,
 * padded and strict (smtp); OpenSSH's, padded or not, and canonical, so each
 * byte string has one accepted encoding (ssh); PEM's, whose lines break the
-* text with whitespace (ssl); and IMAP's modified alphabet, which mailbox
+* text with whitespace (tls); and IMAP's modified alphabet, which mailbox
 * names use one character at a time (imap). It supplies
 *     - the flags that select a variant                                  [1]
 *     - lengths, encoding and decoding, and single characters            [2]

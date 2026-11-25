@@ -97,7 +97,7 @@ d_tests_smtp_toy_pair
   The server's first, and only with it the client's.
 */
 bool d_tests_smtp_toy_pair(
-    struct dj_ssl_context*   _contexts,
+    struct dj_tls_context*   _contexts,
     struct dj_tests_net_toy* _toys,
     bool                     _verify
 )
@@ -105,7 +105,7 @@ bool d_tests_smtp_toy_pair(
     // a server's context that never verifies its clients
     if (!d_tests_net_toy_context(&_contexts[0],
                                  &_toys[0],
-                                 D_SSL_ROLE_SERVER,
+                                 D_TLS_ROLE_SERVER,
                                  false))
     {
         return false;
@@ -114,10 +114,10 @@ bool d_tests_smtp_toy_pair(
     // a client's, without which the server's is not kept either
     if (!d_tests_net_toy_context(&_contexts[1],
                                  &_toys[1],
-                                 D_SSL_ROLE_CLIENT,
+                                 D_TLS_ROLE_CLIENT,
                                  _verify))
     {
-        d_ssl_context_destroy(&_contexts[0]);
+        d_tls_context_destroy(&_contexts[0]);
 
         return false;
     }

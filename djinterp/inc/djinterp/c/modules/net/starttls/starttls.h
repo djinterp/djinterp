@@ -18,8 +18,8 @@
 *     - bounded, CRLF-strict line I/O over plaintext and TLS alike, and a
 *       command writer that refuses embedded line breaks                  [3]
 *   The stream is any net.h connection: a TCP connection from tcp.h, or
-* net_memory.h's pipe in a test. TLS is the SSL kernel's: the upgrade makes a
-* dj_ssl_session over that same connection from the dj_ssl_context the caller
+* net_memory.h's pipe in a test. TLS is the TLS kernel's: the upgrade makes a
+* dj_tls_session over that same connection from the dj_tls_context the caller
 * configured, so every engine the kernel has - the OpenSSL family's among
 * them - serves here, and the kernel's checks of names, pins, and versions
 * hold for every upgrade.                                                 [1]
@@ -30,7 +30,7 @@
 *   Every call blocks, and a session belongs to one thread at a time.
 * Deadlines come from the connection: a TCP connection's I/O timeout turns a
 * stalled peer into D_STARTTLS_ERROR_TIMED_OUT.
-*   Requires cfg_starttls.h. Link net_common.c, ssl.c, the codec's line
+*   Requires cfg_starttls.h. Link net_common.c, tls.c, the codec's line
 * buffer, and the engine the caller's context is made with.
 *
 *
@@ -91,7 +91,7 @@ TABLE OF CONTENTS
 #include "../../../../env/c/env_vendor_attributes.h"       // D_FORMAT_PRINTF
 #include "../codec/codec_line.h"                     // dj_net_line_buffer
 #include "../net_common.h"                           // dj_net_connection
-#include "../ssl/ssl.h"                              // dj_ssl_context
+#include "../tls/tls.h"                              // dj_tls_context
 
 
 D_EXTERN_C_BEGIN
@@ -266,7 +266,7 @@ typedef void (*fn_starttls_on_upgrade)(struct dj_starttls_session* _session,
 //   struct: how a session behaves. Obtain one from d_starttls_options_default
 // and change what differs; d_starttls_init reads every field once and keeps
 // only `tls`, which must outlive the session.
-//   `tls` is the SSL kernel context the upgrade makes its TLS session from --
+//   `tls` is the TLS kernel context the upgrade makes its TLS session from --
 // its engine, trust, identity, and version floor - for the session's own
 // role. `server_name` is the name a client sends as SNI and requires the
 // server's certificate to carry; it comes from the caller's configuration,
@@ -279,7 +279,7 @@ struct dj_starttls_options
 {
     enum dj_starttls_role        role;                // the side to play
     enum dj_starttls_policy      policy;              // when TLS is mandatory
-    const struct dj_ssl_context* tls;                 // TLS context; not owned
+    const struct dj_tls_context* tls;                 // TLS context; not owned
     const char*                 server_name;         // client: expected peer
     size_t                      buffer_bytes;        // receive buffer size
     bool                        owns_connection;     // closed with the session
@@ -307,8 +307,8 @@ struct dj_starttls_options
 struct dj_starttls_session
 {
     struct dj_net_connection*    connection;          // the stream
-    const struct dj_ssl_context* tls;                 // TLS context; not owned
-    struct dj_ssl_session*       ssl;                 // TLS, once upgraded
+    const struct dj_tls_context* tls;                 // TLS context; not owned
+    struct dj_tls_session*       ssl;                 // TLS, once upgraded
     enum dj_net_error            net_error;           // the connection's cause
     enum dj_starttls_role        role;                // the side it plays
     enum dj_starttls_policy      policy;              // when TLS is mandatory
@@ -706,14 +706,14 @@ enum dj_net_error d_starttls_net_error(
 );
 /**
  * @brief Returns the session's TLS session, which tells what the upgrade
- *        negotiated and why TLS failed: d_ssl_session_info,
- *        d_ssl_session_failure, and d_ssl_session_transport_error.
+ *        negotiated and why TLS failed: d_tls_session_info,
+ *        d_tls_session_failure, and d_tls_session_transport_error.
  *
  * @param[in] _session  the session.
  * @return the TLS session from the upgrade on; `NULL` before it, or if
  *         `_session` is `NULL`.
  */
-const struct dj_ssl_session* d_starttls_tls_session(
+const struct dj_tls_session* d_starttls_tls_session(
     const struct dj_starttls_session* _session
 );
 
@@ -767,7 +767,7 @@ enum dj_net_error d_starttls_error_to_net(
  *       TIMED_OUT, and PROTOCOL are their namesakes; a stream that ended or
  *       a connection lost - CLOSED, CONNECTION_RESET, CONNECTION_ABORTED --
  *       is CLOSED; anything else is TRANSPORT. It is how the plaintext
- *       connection's errors are judged. Under TLS the SSL kernel judges
+ *       connection's errors are judged. Under TLS the TLS kernel judges
  *       them, and a connection that ends without close_notify is TRUNCATED.
  *
  * @param[in] _error  the connection's error.

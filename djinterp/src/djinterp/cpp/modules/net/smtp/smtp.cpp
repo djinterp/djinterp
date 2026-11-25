@@ -38,8 +38,8 @@
 #include "../../../../../../inc/djinterp/env/cpp/env_cpp98.h"      // exceptions
 #include "../../../../../../inc/djinterp/cpp/modules/net/net_common.hpp"       // connections
 #include "../../../../../../inc/djinterp/c/modules/net/smtp/smtp.h"          // the kernel
-#include "../../../../../../inc/djinterp/c/modules/net/ssl/ssl.h"            // TLS
-#include "../../../../../../inc/djinterp/c/modules/net/ssl/ssl_openssl.h"    // the engine
+#include "../../../../../../inc/djinterp/c/modules/net/tls/tls.h"            // TLS
+#include "../../../../../../inc/djinterp/c/modules/net/tls/tls_openssl.h"    // the engine
 #include "../../../../../../inc/djinterp/c/modules/net/tcp/tcp.h"            // TCP
 
 
@@ -75,7 +75,7 @@ NS_INTERNAL
         net::connection*           stream;   // owned; null unless attached
         net::c_connection_adapter* adapter;  // owned; over `stream`
         std::string                host;     // open()'s; empty if attached
-        ::dj_ssl_context*           context;  // owned; null unless made
+        ::dj_tls_context*           context;  // owned; null unless made
         tls_lease                  lease;    // held while TLS may use it
 
     private:
@@ -118,7 +118,7 @@ NS_INTERNAL
             // the context goes once no session can use it
             if (tls == &made)
             {
-                ::d_ssl_context_destroy(&made);
+                ::d_tls_context_destroy(&made);
             }
 
             (void)::d_cond_destroy(&changed);
@@ -129,8 +129,8 @@ NS_INTERNAL
         server_handler         handler;
         ::dj_smtp_server_config config;
         ::dj_tcp_listener       listener;
-        ::dj_ssl_context        made;      // the context made from options
-        const ::dj_ssl_context* tls;       // the context in use, or null
+        ::dj_tls_context        made;      // the context made from options
+        const ::dj_tls_context* tls;       // the context in use, or null
         unsigned int           port;      // bound by listen()
         bool                   stopping;  // under mutex
         std::size_t            active;    // under mutex
@@ -326,24 +326,24 @@ NS_INTERNAL
         // the context goes after the TLS session made from it
         if (context)
         {
-            ::d_ssl_context_destroy(context);
+            ::d_tls_context_destroy(context);
             delete context;
         }
     }
 
     // make_context
-    //   function: a context of the SSL kernel for `_role`, made in `_out`
+    //   function: a context of the TLS kernel for `_role`, made in `_out`
     // from `_options` with the OpenSSL-family engine: a client checks the
     // server, unless told not to, against the CA file or else the system's
     // trust store; a server presents its certificate and key.
     ::dj_smtp_error make_context(
-        ::dj_ssl_context*  _out,
+        ::dj_tls_context*  _out,
         const tls_options& _options,
-        ::dj_ssl_role      _role
+        ::dj_tls_role      _role
     ) D_NOEXCEPT
     {
-        const ::dj_ssl_engine* const engine = ::d_ssl_engine_openssl();
-        ::dj_ssl_config              config = ::dj_ssl_config();
+        const ::dj_tls_engine* const engine = ::d_tls_engine_openssl();
+        ::dj_tls_config              config = ::dj_tls_config();
 
         // a build without the engine has no TLS to make
         if (!engine)
@@ -351,14 +351,14 @@ NS_INTERNAL
             return D_SMTP_ERROR_UNSUPPORTED;
         }
 
-        ::d_ssl_config_init(&config,
+        ::d_tls_config_init(&config,
                             _role);
 
-        if (_role == D_SSL_ROLE_CLIENT)
+        if (_role == D_TLS_ROLE_CLIENT)
         {
             config.verify           = (_options.verify_peer)
-                                          ? D_SSL_VERIFY_REQUIRED
-                                          : D_SSL_VERIFY_NONE;
+                                          ? D_TLS_VERIFY_REQUIRED
+                                          : D_TLS_VERIFY_NONE;
             config.verify_hostname  = _options.verify_peer;
             config.use_system_trust = _options.ca_file.empty();
             config.ca_file          = optional(_options.ca_file);
@@ -369,7 +369,7 @@ NS_INTERNAL
             config.private_key_file = optional(_options.private_key_file);
         }
 
-        return ::d_smtp_error_from_ssl(::d_ssl_context_init(_out,
+        return ::d_smtp_error_from_tls(::d_tls_context_init(_out,
                                                             engine,
                                                             &config),
                                        D_NET_OK);
@@ -380,9 +380,9 @@ NS_INTERNAL
     // or one made now from `_options`, on the heap so it never moves, and
     // handed back in *_made for keep_context to decide its fate. Null, with
     // the reason in *_error, when none can be had.
-    const ::dj_ssl_context* client_context(
+    const ::dj_tls_context* client_context(
         const tls_options& _options,
-        ::dj_ssl_context** _made,
+        ::dj_tls_context** _made,
         ::dj_smtp_error*   _error
     ) D_NOEXCEPT
     {
@@ -401,11 +401,11 @@ NS_INTERNAL
             return _options.lease.get();
         }
 
-        ::dj_ssl_context* const made = new (std::nothrow) ::dj_ssl_context();
+        ::dj_tls_context* const made = new (std::nothrow) ::dj_tls_context();
 
         *_error = (made) ? make_context(made,
                                         _options,
-                                        D_SSL_ROLE_CLIENT)
+                                        D_TLS_ROLE_CLIENT)
                          : D_SMTP_ERROR_OUT_OF_MEMORY;
 
         // a context not made holds nothing to release
@@ -446,13 +446,13 @@ NS_INTERNAL
     // drop_context
     //   function: releases a context the facade made; null is ignored.
     void drop_context(
-        ::dj_ssl_context* _made
+        ::dj_tls_context* _made
     ) D_NOEXCEPT
     {
         // only a context made has anything to release
         if (_made)
         {
-            ::d_ssl_context_destroy(_made);
+            ::d_tls_context_destroy(_made);
             delete _made;
         }
 
@@ -467,7 +467,7 @@ NS_INTERNAL
     // goes then, as no session can use it any more.
     void keep_context(
         client_state*     _state,
-        ::dj_ssl_context* _made,
+        ::dj_tls_context* _made,
         bool              _had_tls
     ) D_NOEXCEPT
     {
@@ -673,7 +673,7 @@ NS_INTERNAL
         {
             code       = make_context(&_state.made,
                                       tls,
-                                      D_SSL_ROLE_SERVER);
+                                      D_TLS_ROLE_SERVER);
             _state.tls = (code == D_SMTP_OK) ? &_state.made : D_NULLPTR;
         }
 
@@ -737,19 +737,19 @@ NS_INTERNAL
     {
         const ::dj_pack_text none = { "",
                                      0u };
-        ::dj_ssl_session     tls  = ::dj_ssl_session();
+        ::dj_tls_session     tls  = ::dj_tls_session();
 
         // a session not made holds nothing to release
-        if (::d_ssl_session_init(&tls,
+        if (::d_tls_session_init(&tls,
                                  _state->tls,
                                  &_connection->base,
-                                 none) != D_SSL_OK)
+                                 none) != D_TLS_OK)
         {
             return;
         }
 
         // a session only once TLS is up
-        if (::d_ssl_session_handshake(&tls) == D_SSL_OK)
+        if (::d_tls_session_handshake(&tls) == D_TLS_OK)
         {
             (void)::d_smtp_server_session(&tls.base,
                                           _config,
@@ -758,8 +758,8 @@ NS_INTERNAL
 
         // an orderly end, where TLS can still say it: a failed session
         // cannot, and one the client closed owes nothing more
-        (void)::d_ssl_session_shutdown(&tls);
-        ::d_ssl_session_destroy(&tls);
+        (void)::d_tls_session_shutdown(&tls);
+        ::d_tls_session_destroy(&tls);
 
         return;
     }
@@ -1122,7 +1122,7 @@ void_result client::open(
 )
 {
     ::dj_smtp_client_options options = ::dj_smtp_client_options();
-    ::dj_ssl_context*        made    = D_NULLPTR;
+    ::dj_tls_context*        made    = D_NULLPTR;
     ::dj_smtp_error          code    = D_SMTP_OK;
 
     internal::kernel_options(&options,
@@ -1383,7 +1383,7 @@ reply_result client::starttls(
     const tls_options& _options
 )
 {
-    ::dj_ssl_context* made = D_NULLPTR;
+    ::dj_tls_context* made = D_NULLPTR;
     ::dj_smtp_error   code = D_SMTP_OK;
 
     // a closed client has no session to secure
@@ -1393,7 +1393,7 @@ reply_result client::starttls(
                               D_NULLPTR);
     }
 
-    const ::dj_ssl_context* const tls = internal::client_context(_options,
+    const ::dj_tls_context* const tls = internal::client_context(_options,
                                                                 &made,
                                                                 &code);
 

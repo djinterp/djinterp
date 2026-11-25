@@ -3,7 +3,7 @@
 *
 * Tests of the TLS layer, net/tls/tls.hpp.
 *   Each test runs a real handshake over loopback TCP, against a certificate
-* the suite carries, in the SSL kernel's OpenSSL-family engine; without the
+* the suite carries, in the TLS kernel's OpenSSL-family engine; without the
 * engine the suite says it skipped. It is empty without a 64-bit integer
 * type, as tls.hpp is.
 *

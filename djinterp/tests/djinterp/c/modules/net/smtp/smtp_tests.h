@@ -110,7 +110,7 @@ void d_tests_smtp_expect(
 // first, which never verifies; the client's verifies when `_verify`. False,
 // with neither left to destroy, when either cannot be made
 bool d_tests_smtp_toy_pair(
-    struct dj_ssl_context*   _contexts,
+    struct dj_tls_context*   _contexts,
     struct dj_tests_net_toy* _toys,
     bool                     _verify
 );
@@ -174,7 +174,7 @@ bool d_tests_smtp_errors_to_net(
 bool d_tests_smtp_errors_from_net(
     struct dj_test_suite* _suite
 );
-bool d_tests_smtp_errors_from_ssl(
+bool d_tests_smtp_errors_from_tls(
     struct dj_test_suite* _suite
 );
 
@@ -268,7 +268,7 @@ bool d_tests_smtp_starttls_failures(
 bool d_tests_smtp_starttls_after(
     struct dj_test_suite* _suite
 );
-bool d_tests_smtp_errors_from_tls(
+bool d_tests_smtp_errors_from_tls_session(
     struct dj_test_suite* _suite
 );
 bool d_tests_smtp_starttls_server(

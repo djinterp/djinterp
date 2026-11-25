@@ -293,9 +293,9 @@ typedef uint16_t dj_net_port;
 //       module's transport failure. A module object that reads or writes
 //       the connection keeps the connection's error beside it, so the cause
 //       is not lost.
-//   The SSL kernel is the exception: its CLOSED means the peer's
+//   The TLS kernel is the exception: its CLOSED means the peer's
 // close_notify, and how a transport's stream ended decides the rest, so
-// ssl.h states its own rules.
+// tls.h states its own rules.
 enum dj_net_error
 {
     D_NET_OK                        = 0,   // success

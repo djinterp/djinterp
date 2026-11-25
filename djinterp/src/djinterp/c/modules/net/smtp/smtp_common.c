@@ -239,44 +239,44 @@ d_smtp_error_from_net(
 }
 
 /*
-d_smtp_error_from_ssl
+d_smtp_error_from_tls
   One case per enumerator and no default, so the compiler reports a missing
 case. A transport failure that reported nothing - a write that took
 nothing - has no error of its own to give, and is TRANSPORT.
 */
 enum dj_smtp_error
-d_smtp_error_from_ssl(
-    enum dj_ssl_error _status,
+d_smtp_error_from_tls(
+    enum dj_tls_error _status,
     enum dj_net_error _cause
 )
 {
     switch (_status)
     {
-        case D_SSL_OK:
+        case D_TLS_OK:
             return D_SMTP_OK;
-        case D_SSL_ERROR_TRANSPORT:
-        case D_SSL_ERROR_WOULD_BLOCK:
+        case D_TLS_ERROR_TRANSPORT:
+        case D_TLS_ERROR_WOULD_BLOCK:
             return (_cause == D_NET_OK) ? D_SMTP_ERROR_TRANSPORT
                                         : d_smtp_error_from_net(_cause);
-        case D_SSL_ERROR_TRUNCATED:
-        case D_SSL_ERROR_CLOSED:
+        case D_TLS_ERROR_TRUNCATED:
+        case D_TLS_ERROR_CLOSED:
             return D_SMTP_ERROR_CLOSED;
-        case D_SSL_ERROR_OUT_OF_MEMORY:
+        case D_TLS_ERROR_OUT_OF_MEMORY:
             return D_SMTP_ERROR_OUT_OF_MEMORY;
-        case D_SSL_ERROR_INVALID_ARGUMENT:
-        case D_SSL_ERROR_MALFORMED:
-        case D_SSL_ERROR_NOT_FOUND:
-        case D_SSL_ERROR_UNSUPPORTED:
-        case D_SSL_ERROR_INSECURE:
-        case D_SSL_ERROR_CONFIG:
-        case D_SSL_ERROR_STATE:
-        case D_SSL_ERROR_NOT_TLS:
-        case D_SSL_ERROR_HANDSHAKE:
-        case D_SSL_ERROR_VERIFY:
-        case D_SSL_ERROR_PROTOCOL:
-        case D_SSL_ERROR_BUFFER_TOO_SMALL:
-        case D_SSL_ERROR_WANT_READ:
-        case D_SSL_ERROR_BACKEND:
+        case D_TLS_ERROR_INVALID_ARGUMENT:
+        case D_TLS_ERROR_MALFORMED:
+        case D_TLS_ERROR_NOT_FOUND:
+        case D_TLS_ERROR_UNSUPPORTED:
+        case D_TLS_ERROR_INSECURE:
+        case D_TLS_ERROR_CONFIG:
+        case D_TLS_ERROR_STATE:
+        case D_TLS_ERROR_NOT_TLS:
+        case D_TLS_ERROR_HANDSHAKE:
+        case D_TLS_ERROR_VERIFY:
+        case D_TLS_ERROR_PROTOCOL:
+        case D_TLS_ERROR_BUFFER_TOO_SMALL:
+        case D_TLS_ERROR_WANT_READ:
+        case D_TLS_ERROR_BACKEND:
             break;
     }
 
@@ -284,15 +284,15 @@ d_smtp_error_from_ssl(
 }
 
 /*
-d_smtp_error_from_tls
+d_smtp_error_from_tls_session
   Only a session that failed is judged by its status: one still sound, or
 ended by the peer's close_notify, leaves the stream's own judgment.
 */
 enum dj_smtp_error
-d_smtp_error_from_tls(
-    const struct dj_ssl_session* _tls,
+d_smtp_error_from_tls_session(
+    const struct dj_tls_session* _tls,
     enum dj_smtp_error           _result,
-    enum dj_ssl_error*           _status,
+    enum dj_tls_error*           _status,
     enum dj_net_error*           _cause
 )
 {
@@ -303,15 +303,15 @@ d_smtp_error_from_tls(
         return _result;
     }
 
-    const enum dj_ssl_error status = d_ssl_session_failure(_tls);
+    const enum dj_tls_error status = d_tls_session_failure(_tls);
 
     // a session that has not failed leaves the stream's judgment
-    if (status == D_SSL_OK)
+    if (status == D_TLS_OK)
     {
         return _result;
     }
 
-    const enum dj_net_error cause = d_ssl_session_transport_error(_tls);
+    const enum dj_net_error cause = d_tls_session_transport_error(_tls);
 
     if (_status)
     {
@@ -325,7 +325,7 @@ d_smtp_error_from_tls(
         *_cause = cause;
     }
 
-    return d_smtp_error_from_ssl(status,
+    return d_smtp_error_from_tls(status,
                                  cause);
 }
 

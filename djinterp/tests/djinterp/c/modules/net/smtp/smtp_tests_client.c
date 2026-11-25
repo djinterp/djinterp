@@ -538,14 +538,14 @@ bool d_tests_smtp_attached_afresh(
     struct dj_net_connection* _connection
 )
 {
-    _client->tls_status       = D_SSL_ERROR_VERIFY;
+    _client->tls_status       = D_TLS_ERROR_VERIFY;
     _client->reader.net_error = D_NET_ERROR_TIMED_OUT;
 
     return ( (d_smtp_client_attach(_client,
                                    _connection,
                                    true) == D_SMTP_OK) &&
              (_client->reply.code == 0u)               &&
-             (_client->tls_status == D_SSL_OK)         &&
+             (_client->tls_status == D_TLS_OK)         &&
              (_client->reader.net_error == D_NET_OK)   &&
              (_client->secure)                         &&
              (_client->state == D_SMTP_CLIENT_GREETING) );
@@ -681,7 +681,7 @@ bool d_tests_smtp_breaks(
                                         "c.example") ==
                     _case->status)                                &&
                    (client.reader.net_error == _case->cause)      &&
-                   (client.tls_status == D_SSL_OK)                &&
+                   (client.tls_status == D_TLS_OK)                &&
                    (client.state == D_SMTP_CLIENT_HELLO) );
     }
 

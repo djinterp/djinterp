@@ -73,7 +73,7 @@ TABLE OF CONTENTS
 // djinterp
 #include "../../../djinterp.h"  // framework root
 #include "../net_common.h"     // dj_net_error
-#include "../ssl/ssl.h"        // dj_ssl_error
+#include "../tls/tls.h"        // dj_tls_error
 
 
 D_EXTERN_C_BEGIN
@@ -203,15 +203,15 @@ enum dj_smtp_error d_smtp_error_from_net(
     enum dj_net_error _error
 );
 
-// the SSL kernel's own types: the two judgments below exist where the
+// the TLS kernel's own types: the two judgments below exist where the
 // kernel does, which needs a 64-bit integer type, and are absent where the
 // build has none - ISO strict C++98 wherever int64_t is `long long`: a 32-bit
 // target, 64-bit Windows or macOS (the owner's ruling of 2026.10.03 on round
-// 3's question 1, (a)) - as ssl.h is
+// 3's question 1, (a)) - as tls.h is
 #if (D_INTERNAL_NET_HAS_INT64 == 1)
 
 /**
- * @brief Gives the error a failed TLS session of the SSL kernel is here.
+ * @brief Gives the error a failed TLS session of the TLS kernel is here.
  *
  * @note A connection that failed beneath TLS by its own error - a
  *       timeout, a reset - is that error, by d_smtp_error_from_net; a
@@ -222,18 +222,18 @@ enum dj_smtp_error d_smtp_error_from_net(
  *
  * @param[in] _status  the session's status.
  * @param[in] _cause   what its connection last reported, as
- *                     d_ssl_session_transport_error gives it.
- * @return the SMTP error; D_SMTP_OK for D_SSL_OK.
+ *                     d_tls_session_transport_error gives it.
+ * @return the SMTP error; D_SMTP_OK for D_TLS_OK.
  */
-enum dj_smtp_error d_smtp_error_from_ssl(
-    enum dj_ssl_error _status,
+enum dj_smtp_error d_smtp_error_from_tls(
+    enum dj_tls_error _status,
     enum dj_net_error _cause
 );
 
 /**
  * @brief Gives the error a failed read or write is when a TLS session of
- *        the SSL kernel carries the stream: the session's own failure, by
- *        d_smtp_error_from_ssl, once it has failed - so a TLS failure after
+ *        the TLS kernel carries the stream: the session's own failure, by
+ *        d_smtp_error_from_tls, once it has failed - so a TLS failure after
  *        the handshake is TLS, as one during it is - and otherwise
  *        `_result`, the stream's own judgment.
  *
@@ -247,10 +247,10 @@ enum dj_smtp_error d_smtp_error_from_ssl(
  * @return the SMTP error; `_result` when it is D_SMTP_OK, or `_tls` is
  *         NULL or has not failed.
  */
-enum dj_smtp_error d_smtp_error_from_tls(
-    const struct dj_ssl_session* _tls,
+enum dj_smtp_error d_smtp_error_from_tls_session(
+    const struct dj_tls_session* _tls,
     enum dj_smtp_error           _result,
-    enum dj_ssl_error*           _status,
+    enum dj_tls_error*           _status,
     enum dj_net_error*           _cause
 );
 

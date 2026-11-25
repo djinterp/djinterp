@@ -1,7 +1,7 @@
 /*******************************************************************************
-* djinterp [c][net]                                                        ssl.h
+* djinterp [c][net]                                                        tls.h
 *
-* The shared SSL/TLS kernel: tier 0 of the SSL modules.
+* The shared TLS kernel: tier 0 of the TLS modules.
 *   Everything TLS clients, servers, and test doubles share that needs no
 * TLS library, plus the contract through which a library is plugged in:
 *     - error codes, and the protocol vocabulary as data            [2, 3]
@@ -26,7 +26,7 @@
 * commands themselves belong to the protocol modules that speak them.
 *   Text spans are dj_pack_text and byte spans dj_pack_bytes, from
 * sink_common.h. Every declaration has C linkage.
-*   Build configuration comes from cfg_ssl.h; environment detection for the
+*   Build configuration comes from cfg_tls.h; environment detection for the
 * engines from env_ssl.h.
 *
 *   Where D_INTERNAL_NET_HAS_INT64 is 0, with no 64-bit integer type, it
@@ -34,7 +34,7 @@
 * (decision 101 of the register).
 *
 *
-* path:      /inc/djinterp/c/modules/net/ssl/ssl.h
+* path:      /inc/djinterp/c/modules/net/tls/tls.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
 *                                                            revised: 2026.10.31
@@ -46,120 +46,120 @@ TABLE OF CONTENTS
 1.  PROTOCOL CONSTANTS
     ------------------
     1.  Record layer
-         1.  D_SSL_RECORD_HEADER_SIZE
-         2.  D_SSL_RECORD_PLAINTEXT_MAX
-         3.  D_SSL_RECORD_CIPHERTEXT_MAX
+         1.  D_TLS_RECORD_HEADER_SIZE
+         2.  D_TLS_RECORD_PLAINTEXT_MAX
+         3.  D_TLS_RECORD_CIPHERTEXT_MAX
     2.  Names and identities
-         1.  D_SSL_HOSTNAME_MAX
-         2.  D_SSL_LABEL_MAX
-         3.  D_SSL_IP_TEXT_MAX
-         4.  D_SSL_IP_MAX
-         5.  D_SSL_ALPN_PROTOCOL_MAX
-         6.  D_SSL_ALPN_LIST_MAX
+         1.  D_TLS_HOSTNAME_MAX
+         2.  D_TLS_LABEL_MAX
+         3.  D_TLS_IP_TEXT_MAX
+         4.  D_TLS_IP_MAX
+         5.  D_TLS_ALPN_PROTOCOL_MAX
+         6.  D_TLS_ALPN_LIST_MAX
     3.  Fingerprints and pins
-         1.  D_SSL_FINGERPRINT_LENGTH
-         2.  D_SSL_FINGERPRINT_TEXT_LENGTH
-         3.  D_SSL_PINS_MAX
+         1.  D_TLS_FINGERPRINT_LENGTH
+         2.  D_TLS_FINGERPRINT_TEXT_LENGTH
+         3.  D_TLS_PINS_MAX
     4.  Kernel buffers
-         1.  D_SSL_IO_CAPACITY
-         2.  D_SSL_CIPHER_NAME_MAX
+         1.  D_TLS_IO_CAPACITY
+         2.  D_TLS_CIPHER_NAME_MAX
 2.  ERRORS
     ------
     1.  Error codes
-         1.  dj_ssl_error
-         2.  D_SSL_ERROR_MECHANICAL_FLOOR
+         1.  dj_tls_error
+         2.  D_TLS_ERROR_MECHANICAL_FLOOR
     2.  Error queries
 3.  PROTOCOL VOCABULARY
     -------------------
     1.  Versions
-         1.  dj_ssl_version
-         2.  D_SSL_VERSION_NEWEST
-         3.  D_SSL_VERSION_FLOOR
+         1.  dj_tls_version
+         2.  D_TLS_VERSION_NEWEST
+         3.  D_TLS_VERSION_FLOOR
     2.  Roles and backends
-         1.  dj_ssl_role
-         2.  dj_ssl_backend
+         1.  dj_tls_role
+         2.  dj_tls_backend
     3.  Records and alerts
-         1.  dj_ssl_content_type
-         2.  dj_ssl_alert
-         3.  D_SSL_ALERT_NONE
+         1.  dj_tls_content_type
+         2.  dj_tls_alert
+         3.  D_TLS_ALERT_NONE
     4.  Vocabulary operations
 4.  PEER VERIFICATION
     -----------------
     1.  Policy and results
-         1.  dj_ssl_verify_mode
-         2.  dj_ssl_verify_flag
+         1.  dj_tls_verify_mode
+         2.  dj_tls_verify_flag
     2.  Verification operations
 5.  IDENTITIES
     ----------
     1.  Presented identifiers
-         1.  dj_ssl_name_kind
-         2.  dj_ssl_peer_name
+         1.  dj_tls_name_kind
+         2.  dj_tls_peer_name
     2.  Host names and addresses
     3.  Identity matching
 6.  WIRE HELPERS
     ------------
     1.  Application-layer protocol negotiation
     2.  Stream sniffing
-         1.  dj_ssl_sniff_result
-         2.  dj_ssl_record_header
+         1.  dj_tls_sniff_result
+         2.  dj_tls_record_header
     3.  Sniffing operations
 7.  CERTIFICATES AND TRUST
     ----------------------
     1.  PEM
-         1.  dj_ssl_pem_block
+         1.  dj_tls_pem_block
     2.  PEM operations
     3.  Fingerprints
     4.  Platform trust stores
 8.  CONFIGURATION
     -------------
     1.  Configuration records
-         1.  dj_ssl_keylog_fn
-         2.  dj_ssl_config
-         3.  dj_ssl_plan
+         1.  dj_tls_keylog_fn
+         2.  dj_tls_config
+         3.  dj_tls_plan
     2.  Configuration operations
 9.  ENGINES
     -------
     1.  Engine vocabulary
-         1.  dj_ssl_engine_feature
-         2.  dj_ssl_info
+         1.  dj_tls_engine_feature
+         2.  dj_tls_info
     2.  Engine operations
-         1.  dj_ssl_engine_context_create_fn
-         2.  dj_ssl_engine_context_destroy_fn
-         3.  dj_ssl_engine_session_create_fn
-         4.  dj_ssl_engine_session_destroy_fn
-         5.  dj_ssl_engine_feed_fn
-         6.  dj_ssl_engine_drain_fn
-         7.  dj_ssl_engine_step_fn
-         8.  dj_ssl_engine_read_fn
-         9.  dj_ssl_engine_write_fn
-         10. dj_ssl_engine_describe_fn
-         11. dj_ssl_engine_peer_name_fn
-         12. dj_ssl_engine_peer_certificate_fn
-         13. dj_ssl_engine_session_resume_fn
+         1.  dj_tls_engine_context_create_fn
+         2.  dj_tls_engine_context_destroy_fn
+         3.  dj_tls_engine_session_create_fn
+         4.  dj_tls_engine_session_destroy_fn
+         5.  dj_tls_engine_feed_fn
+         6.  dj_tls_engine_drain_fn
+         7.  dj_tls_engine_step_fn
+         8.  dj_tls_engine_read_fn
+         9.  dj_tls_engine_write_fn
+         10. dj_tls_engine_describe_fn
+         11. dj_tls_engine_peer_name_fn
+         12. dj_tls_engine_peer_certificate_fn
+         13. dj_tls_engine_session_resume_fn
     3.  The engine interface
-         1.  dj_ssl_engine
+         1.  dj_tls_engine
 10. CONTEXTS AND SESSIONS
     ---------------------
     1.  Contexts
-         1.  dj_ssl_context
+         1.  dj_tls_context
     2.  Context operations
     3.  Sessions
-         1.  dj_ssl_state
-         2.  dj_ssl_want
-         3.  dj_ssl_session
+         1.  dj_tls_state
+         2.  dj_tls_want
+         3.  dj_tls_session
     4.  Session operations
     5.  Sessions as connections
 */
 
-#ifndef DJINTERP_C_NET_SSL_SSL_H
-#define DJINTERP_C_NET_SSL_SSL_H 1
+#ifndef DJINTERP_C_NET_TLS_TLS_H
+#define DJINTERP_C_NET_TLS_TLS_H 1
 
 // std
 #include <stddef.h>                        // size_t
 // djinterp
 #include "../../../djinterp.h"              // framework root
 #include "../../../util/sink_common.h"      // dj_pack_text, dj_pack_bytes
-#include "../../../../config/c/modules/net/ssl/cfg_ssl.h"  // D_INTERNAL_SSL_*
+#include "../../../../config/c/modules/net/tls/cfg_tls.h"  // D_INTERNAL_TLS_*
 #include "../net_common.h"                 // dj_net_error
 #include "../../../../config/c/modules/net/cfg_net.h"      // D_INTERNAL_NET_REQUIRE_BACKENDS
 // re_std
@@ -174,7 +174,7 @@ TABLE OF CONTENTS
 #if (D_INTERNAL_NET_HAS_INT64 == 1)
 
 #if !defined(D_EXTERN_C_BEGIN) || !defined(D_EXTERN_C_END)
-    #error "ssl.h requires D_EXTERN_C_BEGIN/D_EXTERN_C_END from djinterp.h"
+    #error "tls.h requires D_EXTERN_C_BEGIN/D_EXTERN_C_END from djinterp.h"
 #endif
 
 D_EXTERN_C_BEGIN
@@ -184,96 +184,96 @@ D_EXTERN_C_BEGIN
 // 1.  PROTOCOL CONSTANTS
 //==============================================================================
 // Numbers the specifications fix - RFC 8446 (TLS 1.3), RFC 5246 (TLS 1.2),
-// RFC 1035 (host names), RFC 7301 (ALPN) - and the two sizes cfg_ssl.h
+// RFC 1035 (host names), RFC 7301 (ALPN) - and the two sizes cfg_tls.h
 // chooses. None depends on a TLS library.
 
 
 // 1.1    Record layer
 //------------------------------------------------------------------------------
 // 1.1.1
-// D_SSL_RECORD_HEADER_SIZE
+// D_TLS_RECORD_HEADER_SIZE
 //   constant: the size of a TLS record header: type, version, and length.
-#define D_SSL_RECORD_HEADER_SIZE      5
+#define D_TLS_RECORD_HEADER_SIZE      5
 
 // 1.1.2
-// D_SSL_RECORD_PLAINTEXT_MAX
+// D_TLS_RECORD_PLAINTEXT_MAX
 //   constant: the most plaintext one record carries, 2^14 (RFC 8446 section
 // 5.1).
-#define D_SSL_RECORD_PLAINTEXT_MAX    16384
+#define D_TLS_RECORD_PLAINTEXT_MAX    16384
 
 // 1.1.3
-// D_SSL_RECORD_CIPHERTEXT_MAX
+// D_TLS_RECORD_CIPHERTEXT_MAX
 //   constant: the longest record body any version permits, 2^14 + 2048 (RFC
 // 5246 section 6.2.3). TLS 1.3 narrows it to 2^14 + 256.
-#define D_SSL_RECORD_CIPHERTEXT_MAX   18432
+#define D_TLS_RECORD_CIPHERTEXT_MAX   18432
 
 // 1.2    Names and identities
 //------------------------------------------------------------------------------
 // 1.2.1
-// D_SSL_HOSTNAME_MAX
+// D_TLS_HOSTNAME_MAX
 //   constant: the longest host name in characters, excluding a trailing dot
 // (RFC 1035 section 2.3.4).
-#define D_SSL_HOSTNAME_MAX            253
+#define D_TLS_HOSTNAME_MAX            253
 
 // 1.2.2
-// D_SSL_LABEL_MAX
+// D_TLS_LABEL_MAX
 //   constant: the longest label of a host name.
-#define D_SSL_LABEL_MAX               63
+#define D_TLS_LABEL_MAX               63
 
 // 1.2.3
-// D_SSL_IP_TEXT_MAX
+// D_TLS_IP_TEXT_MAX
 //   constant: the longest IP address literal: an IPv6 address with an IPv4
 // tail, "ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255".
-#define D_SSL_IP_TEXT_MAX             45
+#define D_TLS_IP_TEXT_MAX             45
 
 // 1.2.4
-// D_SSL_IP_MAX
+// D_TLS_IP_MAX
 //   constant: the size of a binary IP address - 16 octets for IPv6; IPv4
 // uses 4.
-#define D_SSL_IP_MAX                  16
+#define D_TLS_IP_MAX                  16
 
 // 1.2.5
-// D_SSL_ALPN_PROTOCOL_MAX
+// D_TLS_ALPN_PROTOCOL_MAX
 //   constant: the longest ALPN protocol name, in octets (RFC 7301 section
 // 3.1).
-#define D_SSL_ALPN_PROTOCOL_MAX       255
+#define D_TLS_ALPN_PROTOCOL_MAX       255
 
 // 1.2.6
-// D_SSL_ALPN_LIST_MAX
+// D_TLS_ALPN_LIST_MAX
 //   constant: the longest encoded ALPN protocol list, in octets.
-#define D_SSL_ALPN_LIST_MAX           65535
+#define D_TLS_ALPN_LIST_MAX           65535
 
 // 1.3    Fingerprints and pins
 //------------------------------------------------------------------------------
 // 1.3.1
-// D_SSL_FINGERPRINT_LENGTH
+// D_TLS_FINGERPRINT_LENGTH
 //   constant: the size of a certificate fingerprint, a SHA-256 digest.
-#define D_SSL_FINGERPRINT_LENGTH      32
+#define D_TLS_FINGERPRINT_LENGTH      32
 
 // 1.3.2
-// D_SSL_FINGERPRINT_TEXT_LENGTH
+// D_TLS_FINGERPRINT_TEXT_LENGTH
 //   constant: the length of a formatted fingerprint, "AB:CD:...:EF",
 // excluding its NUL.
-#define D_SSL_FINGERPRINT_TEXT_LENGTH 95
+#define D_TLS_FINGERPRINT_TEXT_LENGTH 95
 
 // 1.3.3
-// D_SSL_PINS_MAX
-//   constant: how many fingerprints one configuration may pin (cfg_ssl.h).
-#define D_SSL_PINS_MAX                D_INTERNAL_SSL_PINS_MAX
+// D_TLS_PINS_MAX
+//   constant: how many fingerprints one configuration may pin (cfg_tls.h).
+#define D_TLS_PINS_MAX                D_INTERNAL_TLS_PINS_MAX
 
 // 1.4    Kernel buffers
 //------------------------------------------------------------------------------
 // 1.4.1
-// D_SSL_IO_CAPACITY
+// D_TLS_IO_CAPACITY
 //   constant: the size of a session's outbound staging buffer, and of the
-// stack buffer each transport read goes through (cfg_ssl.h).
-#define D_SSL_IO_CAPACITY             D_INTERNAL_SSL_IO_BUFFER
+// stack buffer each transport read goes through (cfg_tls.h).
+#define D_TLS_IO_CAPACITY             D_INTERNAL_TLS_IO_BUFFER
 
 // 1.4.2
-// D_SSL_CIPHER_NAME_MAX
-//   constant: the capacity of dj_ssl_info's cipher-suite name, NUL included.
+// D_TLS_CIPHER_NAME_MAX
+//   constant: the capacity of dj_tls_info's cipher-suite name, NUL included.
 // The longest registered suite name is well under it.
-#define D_SSL_CIPHER_NAME_MAX         64
+#define D_TLS_CIPHER_NAME_MAX         64
 
 
 //==============================================================================
@@ -290,7 +290,7 @@ D_EXTERN_C_BEGIN
 // 2.1    Error codes
 //------------------------------------------------------------------------------
 // 2.1.1
-// dj_ssl_error
+// dj_tls_error
 //   enum: the result of every fallible operation in this module. Values are
 // pinned. The less obvious ones:
 //     NOT_FOUND          a search came up empty: no further PEM block, no ALPN
@@ -302,61 +302,61 @@ D_EXTERN_C_BEGIN
 //     CLOSED             the orderly end: the peer sent close_notify.
 //     INSECURE           the configuration asks for a protocol version this
 //                        build refuses as insecure: SSL 3.0 always (RFC 7568),
-//                        TLS 1.0 and 1.1 unless D_CFG_SSL_ALLOW_LEGACY
+//                        TLS 1.0 and 1.1 unless D_CFG_TLS_ALLOW_LEGACY
 //                        (RFC 8996). Added 2026.10.31; it was UNSUPPORTED.
 //     WANT_READ          an engine needs more ciphertext. It passes only from
 //                        an engine to the kernel; no session call returns it.
-enum dj_ssl_error
+enum dj_tls_error
 {
-    D_SSL_OK                     = 0,
+    D_TLS_OK                     = 0,
 
     // formal: the exchange, the peer, or the configuration is at fault
-    D_SSL_ERROR_INVALID_ARGUMENT = 0x001,
-    D_SSL_ERROR_MALFORMED        = 0x002,
-    D_SSL_ERROR_NOT_FOUND        = 0x003,
-    D_SSL_ERROR_UNSUPPORTED      = 0x004,
-    D_SSL_ERROR_CONFIG           = 0x005,
-    D_SSL_ERROR_STATE            = 0x006,
-    D_SSL_ERROR_NOT_TLS          = 0x007,
-    D_SSL_ERROR_HANDSHAKE        = 0x008,
-    D_SSL_ERROR_VERIFY           = 0x009,
-    D_SSL_ERROR_PROTOCOL         = 0x00A,
-    D_SSL_ERROR_TRUNCATED        = 0x00B,
-    D_SSL_ERROR_INSECURE         = 0x00C,
+    D_TLS_ERROR_INVALID_ARGUMENT = 0x001,
+    D_TLS_ERROR_MALFORMED        = 0x002,
+    D_TLS_ERROR_NOT_FOUND        = 0x003,
+    D_TLS_ERROR_UNSUPPORTED      = 0x004,
+    D_TLS_ERROR_CONFIG           = 0x005,
+    D_TLS_ERROR_STATE            = 0x006,
+    D_TLS_ERROR_NOT_TLS          = 0x007,
+    D_TLS_ERROR_HANDSHAKE        = 0x008,
+    D_TLS_ERROR_VERIFY           = 0x009,
+    D_TLS_ERROR_PROTOCOL         = 0x00A,
+    D_TLS_ERROR_TRUNCATED        = 0x00B,
+    D_TLS_ERROR_INSECURE         = 0x00C,
 
     // mechanical: the machinery ran short
-    D_SSL_ERROR_BUFFER_TOO_SMALL = 0x100,
-    D_SSL_ERROR_WOULD_BLOCK      = 0x101,
-    D_SSL_ERROR_TRANSPORT        = 0x102,
-    D_SSL_ERROR_CLOSED           = 0x103,
-    D_SSL_ERROR_WANT_READ        = 0x104,
-    D_SSL_ERROR_OUT_OF_MEMORY    = 0x105,
-    D_SSL_ERROR_BACKEND          = 0x106
+    D_TLS_ERROR_BUFFER_TOO_SMALL = 0x100,
+    D_TLS_ERROR_WOULD_BLOCK      = 0x101,
+    D_TLS_ERROR_TRANSPORT        = 0x102,
+    D_TLS_ERROR_CLOSED           = 0x103,
+    D_TLS_ERROR_WANT_READ        = 0x104,
+    D_TLS_ERROR_OUT_OF_MEMORY    = 0x105,
+    D_TLS_ERROR_BACKEND          = 0x106
 };
 
 // 2.1.2
-// D_SSL_ERROR_MECHANICAL_FLOOR
+// D_TLS_ERROR_MECHANICAL_FLOOR
 //   constant: the lowest mechanical error value.
-#define D_SSL_ERROR_MECHANICAL_FLOOR 0x100
+#define D_TLS_ERROR_MECHANICAL_FLOOR 0x100
 
 // 2.2    Error queries
 //------------------------------------------------------------------------------
-// Pure lookups; they never fail. d_ssl_error_name returns the enumerator's
+// Pure lookups; they never fail. d_tls_error_name returns the enumerator's
 // name without its prefix ("VERIFY"), or NULL for a value outside the
 // enum. The two predicates classify a value by range; OK is neither.
-// d_ssl_error_to_net gives the dj_net_error an error maps to, by the rules
+// d_tls_error_to_net gives the dj_net_error an error maps to, by the rules
 // net.h gives with it; D_NET_ERROR_UNKNOWN for a value outside the enum.
-const char* d_ssl_error_name(
-    enum dj_ssl_error _error
+const char* d_tls_error_name(
+    enum dj_tls_error _error
 );
-bool d_ssl_error_is_formal(
-    enum dj_ssl_error _error
+bool d_tls_error_is_formal(
+    enum dj_tls_error _error
 );
-bool d_ssl_error_is_mechanical(
-    enum dj_ssl_error _error
+bool d_tls_error_is_mechanical(
+    enum dj_tls_error _error
 );
-enum dj_net_error d_ssl_error_to_net(
-    enum dj_ssl_error _error
+enum dj_net_error d_tls_error_to_net(
+    enum dj_tls_error _error
 );
 
 
@@ -372,160 +372,160 @@ enum dj_net_error d_ssl_error_to_net(
 // 3.1    Versions
 //------------------------------------------------------------------------------
 // 3.1.1
-// dj_ssl_version
+// dj_tls_version
 //   enum: a protocol version, valued by its wire code point. SSL 3.0 is named
 // so it can be reported and refused; it is never negotiated (RFC 7568), and
 // SSL 2.0 is not named at all.
-enum dj_ssl_version
+enum dj_tls_version
 {
-    D_SSL_VERSION_NONE   = 0,
-    D_SSL_VERSION_SSL3   = 0x0300,
-    D_SSL_VERSION_TLS1_0 = 0x0301,
-    D_SSL_VERSION_TLS1_1 = 0x0302,
-    D_SSL_VERSION_TLS1_2 = 0x0303,
-    D_SSL_VERSION_TLS1_3 = 0x0304
+    D_TLS_VERSION_NONE   = 0,
+    D_TLS_VERSION_SSL3   = 0x0300,
+    D_TLS_VERSION_TLS1_0 = 0x0301,
+    D_TLS_VERSION_TLS1_1 = 0x0302,
+    D_TLS_VERSION_TLS1_2 = 0x0303,
+    D_TLS_VERSION_TLS1_3 = 0x0304
 };
 
 // 3.1.2
-// D_SSL_VERSION_NEWEST
+// D_TLS_VERSION_NEWEST
 //   constant: the newest version the kernel knows. A configuration whose
-// maximum is D_SSL_VERSION_NONE resolves to it, and engines may lower it.
-#define D_SSL_VERSION_NEWEST D_SSL_VERSION_TLS1_3
+// maximum is D_TLS_VERSION_NONE resolves to it, and engines may lower it.
+#define D_TLS_VERSION_NEWEST D_TLS_VERSION_TLS1_3
 
 // 3.1.3
-// D_SSL_VERSION_FLOOR
+// D_TLS_VERSION_FLOOR
 //   constant: the default minimum version, TLS 1.2, per RFC 8996 and
 // RFC 9325.
-#define D_SSL_VERSION_FLOOR  D_SSL_VERSION_TLS1_2
+#define D_TLS_VERSION_FLOOR  D_TLS_VERSION_TLS1_2
 
 // 3.2    Roles and backends
 //------------------------------------------------------------------------------
 // 3.2.1
-// dj_ssl_role
+// dj_tls_role
 //   enum: which end of the handshake a context plays. Zero is not a role, so
 // a configuration left zeroed fails validation instead of guessing.
-enum dj_ssl_role
+enum dj_tls_role
 {
-    D_SSL_ROLE_CLIENT = 1,
-    D_SSL_ROLE_SERVER = 2
+    D_TLS_ROLE_CLIENT = 1,
+    D_TLS_ROLE_SERVER = 2
 };
 
 // 3.2.2
-// dj_ssl_backend
+// dj_tls_backend
 //   enum: the TLS library behind an engine. Values equal env_tls.h's
 // D_ENV_TLS_BACKEND_* identifiers, so a run-time answer compares with a
 // compile-time one; OTHER covers test doubles and out-of-tree engines.
-enum dj_ssl_backend
+enum dj_tls_backend
 {
-    D_SSL_BACKEND_NONE            = 0,
-    D_SSL_BACKEND_OPENSSL         = 1,
-    D_SSL_BACKEND_MBEDTLS         = 2,
-    D_SSL_BACKEND_GNUTLS          = 3,
-    D_SSL_BACKEND_WOLFSSL         = 4,
-    D_SSL_BACKEND_SCHANNEL        = 5,
-    D_SSL_BACKEND_SECURETRANSPORT = 6,
-    D_SSL_BACKEND_OTHER           = 0x7F
+    D_TLS_BACKEND_NONE            = 0,
+    D_TLS_BACKEND_OPENSSL         = 1,
+    D_TLS_BACKEND_MBEDTLS         = 2,
+    D_TLS_BACKEND_GNUTLS          = 3,
+    D_TLS_BACKEND_WOLFSSL         = 4,
+    D_TLS_BACKEND_SCHANNEL        = 5,
+    D_TLS_BACKEND_SECURETRANSPORT = 6,
+    D_TLS_BACKEND_OTHER           = 0x7F
 };
 
 // 3.3    Records and alerts
 //------------------------------------------------------------------------------
 // 3.3.1
-// dj_ssl_content_type
+// dj_tls_content_type
 //   enum: the content type in a record header (RFC 8446 section 5.1).
-enum dj_ssl_content_type
+enum dj_tls_content_type
 {
-    D_SSL_CONTENT_CHANGE_CIPHER_SPEC = 20,
-    D_SSL_CONTENT_ALERT              = 21,
-    D_SSL_CONTENT_HANDSHAKE          = 22,
-    D_SSL_CONTENT_APPLICATION_DATA   = 23,
-    D_SSL_CONTENT_HEARTBEAT          = 24
+    D_TLS_CONTENT_CHANGE_CIPHER_SPEC = 20,
+    D_TLS_CONTENT_ALERT              = 21,
+    D_TLS_CONTENT_HANDSHAKE          = 22,
+    D_TLS_CONTENT_APPLICATION_DATA   = 23,
+    D_TLS_CONTENT_HEARTBEAT          = 24
 };
 
 // 3.3.2
-// dj_ssl_alert
+// dj_tls_alert
 //   enum: alert descriptions (RFC 8446 section 6). Values retired by TLS 1.3
 // are kept, since a TLS 1.2 peer may still send them; they are marked below.
-enum dj_ssl_alert
+enum dj_tls_alert
 {
-    D_SSL_ALERT_CLOSE_NOTIFY                    = 0,
-    D_SSL_ALERT_UNEXPECTED_MESSAGE              = 10,
-    D_SSL_ALERT_BAD_RECORD_MAC                  = 20,
-    D_SSL_ALERT_DECRYPTION_FAILED               = 21,   // retired
-    D_SSL_ALERT_RECORD_OVERFLOW                 = 22,
-    D_SSL_ALERT_DECOMPRESSION_FAILURE           = 30,   // retired
-    D_SSL_ALERT_HANDSHAKE_FAILURE               = 40,
-    D_SSL_ALERT_NO_CERTIFICATE                  = 41,   // retired
-    D_SSL_ALERT_BAD_CERTIFICATE                 = 42,
-    D_SSL_ALERT_UNSUPPORTED_CERTIFICATE         = 43,
-    D_SSL_ALERT_CERTIFICATE_REVOKED             = 44,
-    D_SSL_ALERT_CERTIFICATE_EXPIRED             = 45,
-    D_SSL_ALERT_CERTIFICATE_UNKNOWN             = 46,
-    D_SSL_ALERT_ILLEGAL_PARAMETER               = 47,
-    D_SSL_ALERT_UNKNOWN_CA                      = 48,
-    D_SSL_ALERT_ACCESS_DENIED                   = 49,
-    D_SSL_ALERT_DECODE_ERROR                    = 50,
-    D_SSL_ALERT_DECRYPT_ERROR                   = 51,
-    D_SSL_ALERT_EXPORT_RESTRICTION              = 60,   // retired
-    D_SSL_ALERT_PROTOCOL_VERSION                = 70,
-    D_SSL_ALERT_INSUFFICIENT_SECURITY           = 71,
-    D_SSL_ALERT_INTERNAL_ERROR                  = 80,
-    D_SSL_ALERT_INAPPROPRIATE_FALLBACK          = 86,
-    D_SSL_ALERT_USER_CANCELED                   = 90,
-    D_SSL_ALERT_NO_RENEGOTIATION                = 100,  // retired
-    D_SSL_ALERT_MISSING_EXTENSION               = 109,
-    D_SSL_ALERT_UNSUPPORTED_EXTENSION           = 110,
-    D_SSL_ALERT_CERTIFICATE_UNOBTAINABLE        = 111,  // retired
-    D_SSL_ALERT_UNRECOGNIZED_NAME               = 112,
-    D_SSL_ALERT_BAD_CERTIFICATE_STATUS_RESPONSE = 113,
-    D_SSL_ALERT_BAD_CERTIFICATE_HASH_VALUE      = 114,  // retired
-    D_SSL_ALERT_UNKNOWN_PSK_IDENTITY            = 115,
-    D_SSL_ALERT_CERTIFICATE_REQUIRED            = 116,
-    D_SSL_ALERT_NO_APPLICATION_PROTOCOL         = 120
+    D_TLS_ALERT_CLOSE_NOTIFY                    = 0,
+    D_TLS_ALERT_UNEXPECTED_MESSAGE              = 10,
+    D_TLS_ALERT_BAD_RECORD_MAC                  = 20,
+    D_TLS_ALERT_DECRYPTION_FAILED               = 21,   // retired
+    D_TLS_ALERT_RECORD_OVERFLOW                 = 22,
+    D_TLS_ALERT_DECOMPRESSION_FAILURE           = 30,   // retired
+    D_TLS_ALERT_HANDSHAKE_FAILURE               = 40,
+    D_TLS_ALERT_NO_CERTIFICATE                  = 41,   // retired
+    D_TLS_ALERT_BAD_CERTIFICATE                 = 42,
+    D_TLS_ALERT_UNSUPPORTED_CERTIFICATE         = 43,
+    D_TLS_ALERT_CERTIFICATE_REVOKED             = 44,
+    D_TLS_ALERT_CERTIFICATE_EXPIRED             = 45,
+    D_TLS_ALERT_CERTIFICATE_UNKNOWN             = 46,
+    D_TLS_ALERT_ILLEGAL_PARAMETER               = 47,
+    D_TLS_ALERT_UNKNOWN_CA                      = 48,
+    D_TLS_ALERT_ACCESS_DENIED                   = 49,
+    D_TLS_ALERT_DECODE_ERROR                    = 50,
+    D_TLS_ALERT_DECRYPT_ERROR                   = 51,
+    D_TLS_ALERT_EXPORT_RESTRICTION              = 60,   // retired
+    D_TLS_ALERT_PROTOCOL_VERSION                = 70,
+    D_TLS_ALERT_INSUFFICIENT_SECURITY           = 71,
+    D_TLS_ALERT_INTERNAL_ERROR                  = 80,
+    D_TLS_ALERT_INAPPROPRIATE_FALLBACK          = 86,
+    D_TLS_ALERT_USER_CANCELED                   = 90,
+    D_TLS_ALERT_NO_RENEGOTIATION                = 100,  // retired
+    D_TLS_ALERT_MISSING_EXTENSION               = 109,
+    D_TLS_ALERT_UNSUPPORTED_EXTENSION           = 110,
+    D_TLS_ALERT_CERTIFICATE_UNOBTAINABLE        = 111,  // retired
+    D_TLS_ALERT_UNRECOGNIZED_NAME               = 112,
+    D_TLS_ALERT_BAD_CERTIFICATE_STATUS_RESPONSE = 113,
+    D_TLS_ALERT_BAD_CERTIFICATE_HASH_VALUE      = 114,  // retired
+    D_TLS_ALERT_UNKNOWN_PSK_IDENTITY            = 115,
+    D_TLS_ALERT_CERTIFICATE_REQUIRED            = 116,
+    D_TLS_ALERT_NO_APPLICATION_PROTOCOL         = 120
 };
 
 // 3.3.3
-// D_SSL_ALERT_NONE
-//   constant: "no alert", for the alert fields of dj_ssl_info. Alert values
+// D_TLS_ALERT_NONE
+//   constant: "no alert", for the alert fields of dj_tls_info. Alert values
 // are carried as int32_t there so this can sit outside the 0..255 range.
-#define D_SSL_ALERT_NONE (-1)
+#define D_TLS_ALERT_NONE (-1)
 
 // 3.4    Vocabulary operations
 //------------------------------------------------------------------------------
 // Pure lookups; they never fail.
-//   d_ssl_version_name gives the conventional log spelling - "TLSv1.3",
-// "SSLv3" - or NULL for NONE or an unknown value. d_ssl_version_is_known is
-// true for SSL3 through TLS1_3; d_ssl_version_is_deprecated is true for SSL3,
-// TLS1_0, and TLS1_1 (RFC 8996). d_ssl_version_from_name reads the spellings
+//   d_tls_version_name gives the conventional log spelling - "TLSv1.3",
+// "SSLv3" - or NULL for NONE or an unknown value. d_tls_version_is_known is
+// true for SSL3 through TLS1_3; d_tls_version_is_deprecated is true for SSL3,
+// TLS1_0, and TLS1_1 (RFC 8996). d_tls_version_from_name reads the spellings
 // found in configuration files, case-insensitively - "TLSv1.2", "TLS1.2",
 // "tls 1.2", "TLS_1_2", "1.2", "SSLv3" - and returns NONE for anything else.
-//   d_ssl_alert_name gives the RFC name ("close_notify"), or NULL for an
-// unassigned value or D_SSL_ALERT_NONE. d_ssl_alert_error says what an alert
+//   d_tls_alert_name gives the RFC name ("close_notify"), or NULL for an
+// unassigned value or D_TLS_ALERT_NONE. d_tls_alert_error says what an alert
 // means for a session: close_notify is CLOSED; certificate
 // complaints are VERIFY; failures to agree on parameters are
 // HANDSHAKE; internal_error is BACKEND; the rest, unknown values
-// included, are PROTOCOL. D_SSL_ALERT_NONE maps to OK.
-const char* d_ssl_version_name(
-    enum dj_ssl_version _version
+// included, are PROTOCOL. D_TLS_ALERT_NONE maps to OK.
+const char* d_tls_version_name(
+    enum dj_tls_version _version
 );
-bool d_ssl_version_is_known(
-    enum dj_ssl_version _version
+bool d_tls_version_is_known(
+    enum dj_tls_version _version
 );
-bool d_ssl_version_is_deprecated(
-    enum dj_ssl_version _version
+bool d_tls_version_is_deprecated(
+    enum dj_tls_version _version
 );
-enum dj_ssl_version d_ssl_version_from_name(
+enum dj_tls_version d_tls_version_from_name(
     struct dj_pack_text _name
 );
-const char* d_ssl_role_name(
-    enum dj_ssl_role _role
+const char* d_tls_role_name(
+    enum dj_tls_role _role
 );
-const char* d_ssl_backend_name(
-    enum dj_ssl_backend _backend
+const char* d_tls_backend_name(
+    enum dj_tls_backend _backend
 );
-const char* d_ssl_alert_name(
+const char* d_tls_alert_name(
     int32_t _alert
 );
-enum dj_ssl_error d_ssl_alert_error(
+enum dj_tls_error d_tls_alert_error(
     int32_t _alert
 );
 
@@ -544,7 +544,7 @@ enum dj_ssl_error d_ssl_alert_error(
 // 4.1    Policy and results
 //------------------------------------------------------------------------------
 // 4.1.1
-// dj_ssl_verify_mode
+// dj_tls_verify_mode
 //   enum: how hard to check the peer.
 //     NONE      accept any peer, unauthenticated. Servers default to this, as
 //               they seldom ask clients for certificates.
@@ -552,47 +552,47 @@ enum dj_ssl_error d_ssl_alert_error(
 //               one arrives, but proceed without one.
 //     REQUIRED  verify the peer, failing the handshake without a valid
 //               certificate. Clients default to this.
-enum dj_ssl_verify_mode
+enum dj_tls_verify_mode
 {
-    D_SSL_VERIFY_NONE     = 0,
-    D_SSL_VERIFY_OPTIONAL = 1,
-    D_SSL_VERIFY_REQUIRED = 2
+    D_TLS_VERIFY_NONE     = 0,
+    D_TLS_VERIFY_OPTIONAL = 1,
+    D_TLS_VERIFY_REQUIRED = 2
 };
 
 // 4.1.2
-// dj_ssl_verify_flag
-//   enum: bits of a verification result (dj_ssl_info.verify). A result of
-// D_SSL_VERIFY_FLAG_NONE means every check performed passed. NOT_PERFORMED
+// dj_tls_verify_flag
+//   enum: bits of a verification result (dj_tls_info.verify). A result of
+// D_TLS_VERIFY_FLAG_NONE means every check performed passed. NOT_PERFORMED
 // marks a peer that was never authenticated - verification off, or an
 // optional client certificate that did not arrive - and is not a failure by
 // itself. OTHER stands for any library reason without a flag of its own.
-enum dj_ssl_verify_flag
+enum dj_tls_verify_flag
 {
-    D_SSL_VERIFY_FLAG_NONE              = 0x0000,
-    D_SSL_VERIFY_FLAG_NOT_PERFORMED     = 0x0001,
-    D_SSL_VERIFY_FLAG_NO_CERTIFICATE    = 0x0002,
-    D_SSL_VERIFY_FLAG_UNTRUSTED         = 0x0004,
-    D_SSL_VERIFY_FLAG_SELF_SIGNED       = 0x0008,
-    D_SSL_VERIFY_FLAG_EXPIRED           = 0x0010,
-    D_SSL_VERIFY_FLAG_NOT_YET_VALID     = 0x0020,
-    D_SSL_VERIFY_FLAG_REVOKED           = 0x0040,
-    D_SSL_VERIFY_FLAG_BAD_SIGNATURE     = 0x0080,
-    D_SSL_VERIFY_FLAG_WRONG_PURPOSE     = 0x0100,
-    D_SSL_VERIFY_FLAG_HOSTNAME_MISMATCH = 0x0200,
-    D_SSL_VERIFY_FLAG_PIN_MISMATCH      = 0x0400,
-    D_SSL_VERIFY_FLAG_OTHER             = 0x8000
+    D_TLS_VERIFY_FLAG_NONE              = 0x0000,
+    D_TLS_VERIFY_FLAG_NOT_PERFORMED     = 0x0001,
+    D_TLS_VERIFY_FLAG_NO_CERTIFICATE    = 0x0002,
+    D_TLS_VERIFY_FLAG_UNTRUSTED         = 0x0004,
+    D_TLS_VERIFY_FLAG_SELF_SIGNED       = 0x0008,
+    D_TLS_VERIFY_FLAG_EXPIRED           = 0x0010,
+    D_TLS_VERIFY_FLAG_NOT_YET_VALID     = 0x0020,
+    D_TLS_VERIFY_FLAG_REVOKED           = 0x0040,
+    D_TLS_VERIFY_FLAG_BAD_SIGNATURE     = 0x0080,
+    D_TLS_VERIFY_FLAG_WRONG_PURPOSE     = 0x0100,
+    D_TLS_VERIFY_FLAG_HOSTNAME_MISMATCH = 0x0200,
+    D_TLS_VERIFY_FLAG_PIN_MISMATCH      = 0x0400,
+    D_TLS_VERIFY_FLAG_OTHER             = 0x8000
 };
 
 // 4.2    Verification operations
 //------------------------------------------------------------------------------
-// Pure lookups; they never fail. d_ssl_verify_mode_name gives "none",
-// "optional", or "required". d_ssl_verify_flag_name gives a short phrase for
+// Pure lookups; they never fail. d_tls_verify_mode_name gives "none",
+// "optional", or "required". d_tls_verify_flag_name gives a short phrase for
 // a single flag ("hostname mismatch"), or NULL for zero, several bits, or an
 // unassigned bit.
-const char* d_ssl_verify_mode_name(
-    enum dj_ssl_verify_mode _mode
+const char* d_tls_verify_mode_name(
+    enum dj_tls_verify_mode _mode
 );
-const char* d_ssl_verify_flag_name(
+const char* d_tls_verify_flag_name(
     uint32_t _flag
 );
 
@@ -605,17 +605,17 @@ const char* d_ssl_verify_flag_name(
  *       Two-call protocol: with `_out` NULL and `_capacity` 0, only the
  *       length is stored.
  *
- * @param[in]  _flags     the result, a set of dj_ssl_verify_flag bits.
+ * @param[in]  _flags     the result, a set of dj_tls_verify_flag bits.
  * @param[out] _out       the destination, or NULL to measure.
  * @param[in]  _capacity  the size of `_out` in bytes; it must exceed the
  *                        text length.
  * @param[out] _out_size  receives the text length, excluding the NUL.
- * @return D_SSL_OK; D_SSL_ERROR_BUFFER_TOO_SMALL, with `*_out_size`
+ * @return D_TLS_OK; D_TLS_ERROR_BUFFER_TOO_SMALL, with `*_out_size`
  *         set, if the text and its NUL do not fit; or
- *         D_SSL_ERROR_INVALID_ARGUMENT for a NULL `_out_size`, or a NULL
+ *         D_TLS_ERROR_INVALID_ARGUMENT for a NULL `_out_size`, or a NULL
  *         `_out` with a nonzero `_capacity`.
  */
-enum dj_ssl_error d_ssl_verify_describe(
+enum dj_tls_error d_tls_verify_describe(
     uint32_t _flags,
     char*    _out,
     size_t   _capacity,
@@ -638,44 +638,44 @@ enum dj_ssl_error d_ssl_verify_describe(
 //       octet, and never a DNS name.
 //     - The subject common name is not consulted.
 // Engines hand the kernel the peer certificate's subjectAltName entries as
-// dj_ssl_peer_name values, so every engine enforces the same rules. Host names
+// dj_tls_peer_name values, so every engine enforces the same rules. Host names
 // are ASCII: an internationalized name must be converted to A-labels first.
 
 
 // 5.1    Presented identifiers
 //------------------------------------------------------------------------------
 // 5.1.1
-// dj_ssl_name_kind
+// dj_tls_name_kind
 //   enum: the kind of a subjectAltName entry the kernel understands.
-enum dj_ssl_name_kind
+enum dj_tls_name_kind
 {
-    D_SSL_NAME_DNS = 1,
-    D_SSL_NAME_IP  = 2
+    D_TLS_NAME_DNS = 1,
+    D_TLS_NAME_IP  = 2
 };
 
 // 5.1.2
-// dj_ssl_peer_name
+// dj_tls_peer_name
 //   struct: one subjectAltName entry of a peer certificate, borrowed. For
-// D_SSL_NAME_DNS, value holds the dNSName's ASCII characters; for
-// D_SSL_NAME_IP, the 4 or 16 octets of the iPAddress.
-struct dj_ssl_peer_name
+// D_TLS_NAME_DNS, value holds the dNSName's ASCII characters; for
+// D_TLS_NAME_IP, the 4 or 16 octets of the iPAddress.
+struct dj_tls_peer_name
 {
-    enum dj_ssl_name_kind kind;
+    enum dj_tls_name_kind kind;
     struct dj_pack_bytes  value;
 };
 
 // 5.2    Host names and addresses
 //------------------------------------------------------------------------------
-// d_ssl_hostname_is_valid tests a reference host name: 1 to 253 characters
+// d_tls_hostname_is_valid tests a reference host name: 1 to 253 characters
 // in dot-separated labels of 1 to 63 letters, digits, hyphens, and
 // underscores, no label beginning or ending with a hyphen, and at most one
 // trailing dot. Underscores, invalid in host names proper, are accepted
-// because deployed names use them. d_ssl_host_is_ip is true when the text is
-// an IPv4 or IPv6 address literal as d_ssl_ip_parse reads it.
-bool d_ssl_hostname_is_valid(
+// because deployed names use them. d_tls_host_is_ip is true when the text is
+// an IPv4 or IPv6 address literal as d_tls_ip_parse reads it.
+bool d_tls_hostname_is_valid(
     struct dj_pack_text _host
 );
-bool d_ssl_host_is_ip(
+bool d_tls_host_is_ip(
     struct dj_pack_text _host
 );
 
@@ -693,13 +693,13 @@ bool d_ssl_host_is_ip(
  * @param[out] _out         receives the address, 4 octets for IPv4 and 16
  *                          for IPv6; untouched on failure.
  * @param[out] _out_length  receives 4 or 16.
- * @return D_SSL_OK; D_SSL_ERROR_MALFORMED if `_text` is not an
- *         address literal; or D_SSL_ERROR_INVALID_ARGUMENT for NULL
+ * @return D_TLS_OK; D_TLS_ERROR_MALFORMED if `_text` is not an
+ *         address literal; or D_TLS_ERROR_INVALID_ARGUMENT for NULL
  *         arguments.
  */
-enum dj_ssl_error d_ssl_ip_parse(
+enum dj_tls_error d_tls_ip_parse(
     struct dj_pack_text _text,
-    uint8_t             _out[D_SSL_IP_MAX],
+    uint8_t             _out[D_TLS_IP_MAX],
     size_t*             _out_length
 );
 
@@ -712,11 +712,11 @@ enum dj_ssl_error d_ssl_ip_parse(
  *
  * @param[in]  _host     the host the client is connecting to.
  * @param[out] _out_sni  receives the name to send, borrowed from `_host`.
- * @return D_SSL_OK; D_SSL_ERROR_NOT_FOUND if `_host` is an address
- *         literal (send no SNI); D_SSL_ERROR_MALFORMED if it is not a valid
- *         host name; or D_SSL_ERROR_INVALID_ARGUMENT for NULL arguments.
+ * @return D_TLS_OK; D_TLS_ERROR_NOT_FOUND if `_host` is an address
+ *         literal (send no SNI); D_TLS_ERROR_MALFORMED if it is not a valid
+ *         host name; or D_TLS_ERROR_INVALID_ARGUMENT for NULL arguments.
  */
-enum dj_ssl_error d_ssl_sni_from_host(
+enum dj_tls_error d_tls_sni_from_host(
     struct dj_pack_text  _host,
     struct dj_pack_text* _out_sni
 );
@@ -724,22 +724,22 @@ enum dj_ssl_error d_ssl_sni_from_host(
 // 5.3    Identity matching
 //------------------------------------------------------------------------------
 // Pure predicates, by the rules at the head of this section; a malformed
-// input on either side never matches. d_ssl_hostname_match compares one
+// input on either side never matches. d_tls_hostname_match compares one
 // presented DNS name (_pattern, possibly a wildcard) with the reference host.
-// d_ssl_ip_match compares one presented iPAddress (4 or 16 octets) with a
-// reference address literal. d_ssl_identity_match is true if any of _count
+// d_tls_ip_match compares one presented iPAddress (4 or 16 octets) with a
+// reference address literal. d_tls_identity_match is true if any of _count
 // presented names matches _host, choosing IP or DNS matching by what _host
 // is; _names may be NULL when _count is 0.
-bool d_ssl_hostname_match(
+bool d_tls_hostname_match(
     struct dj_pack_text _pattern,
     struct dj_pack_text _host
 );
-bool d_ssl_ip_match(
+bool d_tls_ip_match(
     struct dj_pack_bytes _presented,
     struct dj_pack_text  _host
 );
-bool d_ssl_identity_match(
-    const struct dj_ssl_peer_name* _names,
+bool d_tls_identity_match(
+    const struct dj_tls_peer_name* _names,
     size_t                         _count,
     struct dj_pack_text            _host
 );
@@ -753,7 +753,7 @@ bool d_ssl_identity_match(
 // servers, and one library's own selection routine has been the source of a
 // memory disclosure (CVE-2024-5535). Stream sniffing tells a TLS record from
 // anything else by its first bytes, which turns a plaintext peer on a TLS
-// port into D_SSL_ERROR_NOT_TLS instead of a library's "wrong version
+// port into D_TLS_ERROR_NOT_TLS instead of a library's "wrong version
 // number", and lets a server share one port between TLS and plaintext.
 
 
@@ -763,13 +763,13 @@ bool d_ssl_identity_match(
 // protocol name as one length octet and 1 to 255 octets, concatenated. It is
 // a dj_pack_bytes throughout; protocol names are dj_pack_text, since the
 // registered ones ("http/1.1", "h2", "imap", "pop3") are ASCII.
-//   d_ssl_alpn_is_valid is true for a non-empty list of well-formed entries
-// that exactly fills its span, at most D_SSL_ALPN_LIST_MAX octets.
-// d_ssl_alpn_contains is true if a valid list holds _protocol exactly.
-bool d_ssl_alpn_is_valid(
+//   d_tls_alpn_is_valid is true for a non-empty list of well-formed entries
+// that exactly fills its span, at most D_TLS_ALPN_LIST_MAX octets.
+// d_tls_alpn_contains is true if a valid list holds _protocol exactly.
+bool d_tls_alpn_is_valid(
     struct dj_pack_bytes _list
 );
-bool d_ssl_alpn_contains(
+bool d_tls_alpn_contains(
     struct dj_pack_bytes _list,
     struct dj_pack_text  _protocol
 );
@@ -785,13 +785,13 @@ bool d_ssl_alpn_contains(
  * @param[out] _out        the destination, or NULL to measure.
  * @param[in]  _capacity   the size of `_out` in bytes.
  * @param[out] _out_size   receives the encoded size.
- * @return D_SSL_OK; D_SSL_ERROR_BUFFER_TOO_SMALL, with `*_out_size`
- *         set; D_SSL_ERROR_MALFORMED if a name is empty or too long, or the
- *         list would exceed D_SSL_ALPN_LIST_MAX; or
- *         D_SSL_ERROR_INVALID_ARGUMENT for NULL arguments or a zero
+ * @return D_TLS_OK; D_TLS_ERROR_BUFFER_TOO_SMALL, with `*_out_size`
+ *         set; D_TLS_ERROR_MALFORMED if a name is empty or too long, or the
+ *         list would exceed D_TLS_ALPN_LIST_MAX; or
+ *         D_TLS_ERROR_INVALID_ARGUMENT for NULL arguments or a zero
  *         `_count`.
  */
-enum dj_ssl_error d_ssl_alpn_encode(
+enum dj_tls_error d_tls_alpn_encode(
     const struct dj_pack_text* _protocols,
     size_t                     _count,
     void*                      _out,
@@ -807,12 +807,12 @@ enum dj_ssl_error d_ssl_alpn_encode(
  *                               entry read.
  * @param[out]    _out_protocol  receives the next name, borrowed from
  *                               `_list`.
- * @return D_SSL_OK with a name; D_SSL_ERROR_NOT_FOUND at the end of
- *         the list; D_SSL_ERROR_MALFORMED if the entry at `*_offset` is
- *         empty or overruns the list; or D_SSL_ERROR_INVALID_ARGUMENT for
+ * @return D_TLS_OK with a name; D_TLS_ERROR_NOT_FOUND at the end of
+ *         the list; D_TLS_ERROR_MALFORMED if the entry at `*_offset` is
+ *         empty or overruns the list; or D_TLS_ERROR_INVALID_ARGUMENT for
  *         NULL arguments or an offset past the end.
  */
-enum dj_ssl_error d_ssl_alpn_next(
+enum dj_tls_error d_tls_alpn_next(
     struct dj_pack_bytes _list,
     size_t*              _offset,
     struct dj_pack_text* _out_protocol
@@ -828,12 +828,12 @@ enum dj_ssl_error d_ssl_alpn_next(
  * @param[in]  _preferred     the server's list, most preferred first.
  * @param[in]  _offered       the list from the client's ClientHello.
  * @param[out] _out_protocol  receives the choice, borrowed from `_offered`.
- * @return D_SSL_OK with a choice; D_SSL_ERROR_NOT_FOUND if the lists
+ * @return D_TLS_OK with a choice; D_TLS_ERROR_NOT_FOUND if the lists
  *         share nothing, which a server answers with no_application_protocol;
- *         D_SSL_ERROR_MALFORMED if either list is invalid; or
- *         D_SSL_ERROR_INVALID_ARGUMENT for a NULL `_out_protocol`.
+ *         D_TLS_ERROR_MALFORMED if either list is invalid; or
+ *         D_TLS_ERROR_INVALID_ARGUMENT for a NULL `_out_protocol`.
  */
-enum dj_ssl_error d_ssl_alpn_select(
+enum dj_tls_error d_tls_alpn_select(
     struct dj_pack_bytes _preferred,
     struct dj_pack_bytes _offered,
     struct dj_pack_text* _out_protocol
@@ -842,7 +842,7 @@ enum dj_ssl_error d_ssl_alpn_select(
 // 6.2    Stream sniffing
 //------------------------------------------------------------------------------
 // 6.2.1
-// dj_ssl_sniff_result
+// dj_tls_sniff_result
 //   enum: what the first bytes of a stream are.
 //     NEED_MORE  every byte so far fits a TLS stream, but there are too few
 //                to be sure; call again with more.
@@ -852,18 +852,18 @@ enum dj_ssl_error d_ssl_alpn_select(
 //                offer newer versions. Engines today refuse it; it is still
 //                a TLS peer rather than a plaintext one.
 //     NOT_TLS    the bytes cannot open a TLS stream.
-enum dj_ssl_sniff_result
+enum dj_tls_sniff_result
 {
-    D_SSL_SNIFF_NEED_MORE = 0,
-    D_SSL_SNIFF_TLS       = 1,
-    D_SSL_SNIFF_SSL2      = 2,
-    D_SSL_SNIFF_NOT_TLS   = 3
+    D_TLS_SNIFF_NEED_MORE = 0,
+    D_TLS_SNIFF_TLS       = 1,
+    D_TLS_SNIFF_SSL2      = 2,
+    D_TLS_SNIFF_NOT_TLS   = 3
 };
 
 // 6.2.2
-// dj_ssl_record_header
+// dj_tls_record_header
 //   struct: the decoded header of a TLS record.
-struct dj_ssl_record_header
+struct dj_tls_record_header
 {
     uint8_t  content_type;
     uint16_t version;
@@ -872,13 +872,13 @@ struct dj_ssl_record_header
 
 // 6.3    Sniffing operations
 //------------------------------------------------------------------------------
-// d_ssl_sniff judges the first bytes a peer sent, deciding NOT_TLS from as
+// d_tls_sniff judges the first bytes a peer sent, deciding NOT_TLS from as
 // little as one byte when that byte already rules TLS out. On TLS, and when
 // _out_header is non-NULL, it stores the header of the opening record.
 // Given an empty prefix it returns NEED_MORE; it never fails.
-enum dj_ssl_sniff_result d_ssl_sniff(
+enum dj_tls_sniff_result d_tls_sniff(
     struct dj_pack_bytes         _prefix,
-    struct dj_ssl_record_header* _out_header
+    struct dj_tls_record_header* _out_header
 );
 
 
@@ -898,10 +898,10 @@ enum dj_ssl_sniff_result d_ssl_sniff(
 // 7.1    PEM
 //------------------------------------------------------------------------------
 // 7.1.1
-// dj_ssl_pem_block
+// dj_tls_pem_block
 //   struct: one PEM block, borrowed from the text it was found in: its label
 // ("CERTIFICATE", "PRIVATE KEY") and its base64 body, line breaks included.
-struct dj_ssl_pem_block
+struct dj_tls_pem_block
 {
     struct dj_pack_text label;
     struct dj_pack_text body;
@@ -915,22 +915,22 @@ struct dj_ssl_pem_block
  * @note A block is a "-----BEGIN <label>-----" line and the matching
  *       "-----END <label>-----" line. Text between blocks, such as the
  *       explanatory lines some tools write, is skipped. Call until
- *       D_SSL_ERROR_NOT_FOUND.
+ *       D_TLS_ERROR_NOT_FOUND.
  *
  * @param[in]     _text    the PEM text, such as a whole CA bundle.
  * @param[in,out] _offset  the cursor, 0 to start; advanced past each block,
  *                         or to the end of `_text` on MALFORMED.
  * @param[out]    _out     receives the block, borrowed from `_text`.
- * @return D_SSL_OK with a block; D_SSL_ERROR_NOT_FOUND when no
- *         further BEGIN line exists; D_SSL_ERROR_MALFORMED for a BEGIN line
+ * @return D_TLS_OK with a block; D_TLS_ERROR_NOT_FOUND when no
+ *         further BEGIN line exists; D_TLS_ERROR_MALFORMED for a BEGIN line
  *         without its END, as in a truncated file; or
- *         D_SSL_ERROR_INVALID_ARGUMENT for NULL arguments or an offset past
+ *         D_TLS_ERROR_INVALID_ARGUMENT for NULL arguments or an offset past
  *         the end.
  */
-enum dj_ssl_error d_ssl_pem_next(
+enum dj_tls_error d_tls_pem_next(
     struct dj_pack_text      _text,
     size_t*                  _offset,
-    struct dj_ssl_pem_block* _out
+    struct dj_tls_pem_block* _out
 );
 
 /**
@@ -942,15 +942,15 @@ enum dj_ssl_error d_ssl_pem_next(
  *       misread. Padding must be complete. Two-call protocol: with `_out`
  *       NULL and `_capacity` 0, only the decoded size is stored.
  *
- * @param[in]  _body      the base64 text, from dj_ssl_pem_block.body.
+ * @param[in]  _body      the base64 text, from dj_tls_pem_block.body.
  * @param[out] _out       the destination, or NULL to measure.
  * @param[in]  _capacity  the size of `_out` in bytes.
  * @param[out] _out_size  receives the decoded size.
- * @return D_SSL_OK; D_SSL_ERROR_BUFFER_TOO_SMALL, with `*_out_size`
- *         set; D_SSL_ERROR_MALFORMED for invalid base64; or
- *         D_SSL_ERROR_INVALID_ARGUMENT for NULL arguments.
+ * @return D_TLS_OK; D_TLS_ERROR_BUFFER_TOO_SMALL, with `*_out_size`
+ *         set; D_TLS_ERROR_MALFORMED for invalid base64; or
+ *         D_TLS_ERROR_INVALID_ARGUMENT for NULL arguments.
  */
-enum dj_ssl_error d_ssl_pem_decode(
+enum dj_tls_error d_tls_pem_decode(
     struct dj_pack_text _body,
     void*               _out,
     size_t              _capacity,
@@ -959,11 +959,11 @@ enum dj_ssl_error d_ssl_pem_decode(
 
 // 7.3    Fingerprints
 //------------------------------------------------------------------------------
-// d_ssl_fingerprint_equal compares two fingerprints in constant time, so a
+// d_tls_fingerprint_equal compares two fingerprints in constant time, so a
 // pin check leaks nothing through timing.
-bool d_ssl_fingerprint_equal(
-    const uint8_t _a[D_SSL_FINGERPRINT_LENGTH],
-    const uint8_t _b[D_SSL_FINGERPRINT_LENGTH]
+bool d_tls_fingerprint_equal(
+    const uint8_t _a[D_TLS_FINGERPRINT_LENGTH],
+    const uint8_t _b[D_TLS_FINGERPRINT_LENGTH]
 );
 
 /**
@@ -971,12 +971,12 @@ bool d_ssl_fingerprint_equal(
  *
  * @param[in]  _der  the DER-encoded certificate.
  * @param[out] _out  receives the 32-octet digest.
- * @return D_SSL_OK, or D_SSL_ERROR_INVALID_ARGUMENT if `_out` is NULL
+ * @return D_TLS_OK, or D_TLS_ERROR_INVALID_ARGUMENT if `_out` is NULL
  *         or `_der` has a NULL pointer with a nonzero size.
  */
-enum dj_ssl_error d_ssl_fingerprint_compute(
+enum dj_tls_error d_tls_fingerprint_compute(
     struct dj_pack_bytes _der,
-    uint8_t              _out[D_SSL_FINGERPRINT_LENGTH]
+    uint8_t              _out[D_TLS_FINGERPRINT_LENGTH]
 );
 
 /**
@@ -984,12 +984,12 @@ enum dj_ssl_error d_ssl_fingerprint_compute(
  *
  * @param[in]  _fingerprint  the 32-octet digest.
  * @param[out] _out          receives the text and a NUL.
- * @return D_SSL_OK, or D_SSL_ERROR_INVALID_ARGUMENT for NULL
+ * @return D_TLS_OK, or D_TLS_ERROR_INVALID_ARGUMENT for NULL
  *         arguments.
  */
-enum dj_ssl_error d_ssl_fingerprint_format(
-    const uint8_t _fingerprint[D_SSL_FINGERPRINT_LENGTH],
-    char          _out[D_SSL_FINGERPRINT_TEXT_LENGTH + 1]
+enum dj_tls_error d_tls_fingerprint_format(
+    const uint8_t _fingerprint[D_TLS_FINGERPRINT_LENGTH],
+    char          _out[D_TLS_FINGERPRINT_TEXT_LENGTH + 1]
 );
 
 /**
@@ -1002,12 +1002,12 @@ enum dj_ssl_error d_ssl_fingerprint_format(
  *
  * @param[in]  _text  the fingerprint text.
  * @param[out] _out   receives the 32-octet digest; untouched on failure.
- * @return D_SSL_OK; D_SSL_ERROR_MALFORMED if `_text` is not a SHA-256
- *         fingerprint; or D_SSL_ERROR_INVALID_ARGUMENT for NULL arguments.
+ * @return D_TLS_OK; D_TLS_ERROR_MALFORMED if `_text` is not a SHA-256
+ *         fingerprint; or D_TLS_ERROR_INVALID_ARGUMENT for NULL arguments.
  */
-enum dj_ssl_error d_ssl_fingerprint_parse(
+enum dj_tls_error d_tls_fingerprint_parse(
     struct dj_pack_text _text,
-    uint8_t             _out[D_SSL_FINGERPRINT_LENGTH]
+    uint8_t             _out[D_TLS_FINGERPRINT_LENGTH]
 );
 
 // 7.4    Platform trust stores
@@ -1020,10 +1020,10 @@ enum dj_ssl_error d_ssl_fingerprint_parse(
 // in *_out_count when that is non-NULL; the array is empty on platforms with
 // an OS store. The conventional overrides are the environment variables
 // SSL_CERT_FILE and SSL_CERT_DIR, which an engine consults first.
-const char* const* d_ssl_ca_file_candidates(
+const char* const* d_tls_ca_file_candidates(
     size_t* _out_count
 );
-const char* const* d_ssl_ca_dir_candidates(
+const char* const* d_tls_ca_dir_candidates(
     size_t* _out_count
 );
 
@@ -1033,13 +1033,13 @@ const char* const* d_ssl_ca_dir_candidates(
 //==============================================================================
 // Everything a context needs to know, in one plain record the caller fills
 // and owns. Its pointers are borrowed only for the duration of
-// d_ssl_context_init - the engine loads files and copies text while creating
+// d_tls_context_init - the engine loads files and copies text while creating
 // its context - so a configuration may live on the stack.
-//   d_ssl_config_init gives the safe defaults: TLS 1.2 or newer, a client
+//   d_tls_config_init gives the safe defaults: TLS 1.2 or newer, a client
 // that verifies the server's chain and name against the system's trusted
 // authorities, a server that asks nothing of its clients. Weakening any of
-// that is an explicit assignment. d_ssl_config_validate enforces the rules
-// that hold whatever engine runs the configuration, and d_ssl_config_plan
+// that is an explicit assignment. d_tls_config_validate enforces the rules
+// that hold whatever engine runs the configuration, and d_tls_config_plan
 // reduces the record to the decisions a handshake acts on, so every engine
 // reads the same answers from the same inputs.
 
@@ -1047,16 +1047,16 @@ const char* const* d_ssl_ca_dir_candidates(
 // 8.1    Configuration records
 //------------------------------------------------------------------------------
 // 8.1.1
-// dj_ssl_keylog_fn
+// dj_tls_keylog_fn
 //   function pointer: receives one line of NSS key-log format per secret a
 // session derives, for a packet analyzer to decrypt a capture with. The line
-// is NUL-terminated and has no newline. Only builds with D_CFG_SSL_KEYLOG
+// is NUL-terminated and has no newline. Only builds with D_CFG_TLS_KEYLOG
 // honour it.
-typedef void (*dj_ssl_keylog_fn)(void*       _context,
+typedef void (*dj_tls_keylog_fn)(void*       _context,
                                 const char* _line);
 
 // 8.1.2
-// dj_ssl_config
+// dj_tls_config
 //   struct: a TLS configuration. By group:
 //     role, versions     the end this is, and the version window; a maximum
 //                        of NONE means the newest the engine supports.
@@ -1085,13 +1085,13 @@ typedef void (*dj_ssl_keylog_fn)(void*       _context,
 //                        replace it, which is how a self-signed server is
 //                        trusted.
 //     diagnostics        the key-log callback and its context.
-struct dj_ssl_config
+struct dj_tls_config
 {
-    enum dj_ssl_role        role;
-    enum dj_ssl_version     min_version;
-    enum dj_ssl_version     max_version;
+    enum dj_tls_role        role;
+    enum dj_tls_version     min_version;
+    enum dj_tls_version     max_version;
 
-    enum dj_ssl_verify_mode verify;
+    enum dj_tls_verify_mode verify;
     bool                   verify_hostname;
 
     bool                   use_system_trust;
@@ -1110,19 +1110,19 @@ struct dj_ssl_config
     bool                   alpn_required;
 
     size_t                 pin_count;
-    uint8_t                pins[D_SSL_PINS_MAX][D_SSL_FINGERPRINT_LENGTH];
+    uint8_t                pins[D_TLS_PINS_MAX][D_TLS_FINGERPRINT_LENGTH];
     bool                   pin_only;
 
-    dj_ssl_keylog_fn        keylog;
+    dj_tls_keylog_fn        keylog;
     void*                  keylog_context;
 };
 
 // 8.1.3
-// dj_ssl_plan
+// dj_tls_plan
 //   struct: the handshake decisions a configuration implies, resolved once.
 // Engines act on these rather than re-deriving them from the configuration:
-//     max_version          never NONE; D_SSL_VERSION_NEWEST unless capped,
-//                          and lowered by d_ssl_context_init to what the
+//     max_version          never NONE; D_TLS_VERSION_NEWEST unless capped,
+//                          and lowered by d_tls_context_init to what the
 //                          engine supports.
 //     verify_chain         validate the peer's chain against the trust
 //                          anchors, failing the handshake if it does not
@@ -1134,11 +1134,11 @@ struct dj_ssl_config
 //     offer_alpn           an ALPN list was configured: a client offers it, a
 //                          server selects from it.
 //     require_alpn         a handshake without an agreed protocol fails.
-struct dj_ssl_plan
+struct dj_tls_plan
 {
-    enum dj_ssl_role    role;
-    enum dj_ssl_version min_version;
-    enum dj_ssl_version max_version;
+    enum dj_tls_role    role;
+    enum dj_tls_version min_version;
+    enum dj_tls_version max_version;
     bool               verify_chain;
     bool               request_certificate;
     bool               require_certificate;
@@ -1150,13 +1150,13 @@ struct dj_ssl_plan
 
 // 8.2    Configuration operations
 //------------------------------------------------------------------------------
-// d_ssl_config_init fills _config with the defaults for _role, clearing
+// d_tls_config_init fills _config with the defaults for _role, clearing
 // everything else; a NULL _config is ignored. The defaults are: versions
-// D_SSL_VERSION_FLOOR through NONE (newest); for a client, verify REQUIRED
+// D_TLS_VERSION_FLOOR through NONE (newest); for a client, verify REQUIRED
 // with verify_hostname; for a server, verify NONE; use_system_trust true.
-void d_ssl_config_init(
-    struct dj_ssl_config* _config,
-    enum dj_ssl_role      _role
+void d_tls_config_init(
+    struct dj_tls_config* _config,
+    enum dj_tls_role      _role
 );
 
 /**
@@ -1164,13 +1164,13 @@ void d_ssl_config_init(
  *
  * @param[in,out] _config       the configuration.
  * @param[in]     _fingerprint  a 32-octet SHA-256 certificate fingerprint.
- * @return D_SSL_OK; D_SSL_ERROR_BUFFER_TOO_SMALL if D_SSL_PINS_MAX
- *         pins are already set; or D_SSL_ERROR_INVALID_ARGUMENT for NULL
+ * @return D_TLS_OK; D_TLS_ERROR_BUFFER_TOO_SMALL if D_TLS_PINS_MAX
+ *         pins are already set; or D_TLS_ERROR_INVALID_ARGUMENT for NULL
  *         arguments.
  */
-enum dj_ssl_error d_ssl_config_add_pin(
-    struct dj_ssl_config* _config,
-    const uint8_t         _fingerprint[D_SSL_FINGERPRINT_LENGTH]
+enum dj_tls_error d_tls_config_add_pin(
+    struct dj_tls_config* _config,
+    const uint8_t         _fingerprint[D_TLS_FINGERPRINT_LENGTH]
 );
 
 /**
@@ -1180,7 +1180,7 @@ enum dj_ssl_error d_ssl_config_add_pin(
  *       - the role is CLIENT or SERVER;
  *       - the minimum is TLS 1.0 through 1.3, and the maximum NONE or no
  *         lower; SSL 3.0 anywhere, or a minimum below TLS 1.2 in a build
- *         without D_CFG_SSL_ALLOW_LEGACY, is UNSUPPORTED;
+ *         without D_CFG_TLS_ALLOW_LEGACY, is UNSUPPORTED;
  *       - OPTIONAL verification is for servers only;
  *       - a configuration that verifies, other than by pins alone, names a
  *         trust anchor;
@@ -1189,32 +1189,32 @@ enum dj_ssl_error d_ssl_config_add_pin(
  *       - an ALPN list, if any, is valid, and alpn_required has one;
  *       - pins fit, pin_only has at least one, and pins are not set on a
  *         configuration that does not verify;
- *       - a key-log callback needs a D_CFG_SSL_KEYLOG build;
+ *       - a key-log callback needs a D_CFG_TLS_KEYLOG build;
  *       - paths are non-empty, and cipher strings are printable ASCII.
  *
  * @param[in] _config  the configuration.
- * @return D_SSL_OK if valid; D_SSL_ERROR_INSECURE for a protocol
- *         version this build refuses as insecure; D_SSL_ERROR_UNSUPPORTED
- *         for another request it refuses; D_SSL_ERROR_CONFIG for an
- *         inconsistent one; or D_SSL_ERROR_INVALID_ARGUMENT for a NULL
+ * @return D_TLS_OK if valid; D_TLS_ERROR_INSECURE for a protocol
+ *         version this build refuses as insecure; D_TLS_ERROR_UNSUPPORTED
+ *         for another request it refuses; D_TLS_ERROR_CONFIG for an
+ *         inconsistent one; or D_TLS_ERROR_INVALID_ARGUMENT for a NULL
  *         `_config`, or a span in it with a NULL pointer and a nonzero size.
  */
-enum dj_ssl_error d_ssl_config_validate(
-    const struct dj_ssl_config* _config
+enum dj_tls_error d_tls_config_validate(
+    const struct dj_tls_config* _config
 );
 
 /**
- * @brief Validates a configuration and resolves it into a dj_ssl_plan.
+ * @brief Validates a configuration and resolves it into a dj_tls_plan.
  *
  * @param[in]  _config    the configuration.
  * @param[out] _out_plan  receives the plan; untouched on failure.
- * @return D_SSL_OK; a status of d_ssl_config_validate if the
- *         configuration is invalid; or D_SSL_ERROR_INVALID_ARGUMENT for NULL
+ * @return D_TLS_OK; a status of d_tls_config_validate if the
+ *         configuration is invalid; or D_TLS_ERROR_INVALID_ARGUMENT for NULL
  *         arguments.
  */
-enum dj_ssl_error d_ssl_config_plan(
-    const struct dj_ssl_config* _config,
-    struct dj_ssl_plan*         _out_plan
+enum dj_tls_error d_tls_config_plan(
+    const struct dj_tls_config* _config,
+    struct dj_tls_plan*         _out_plan
 );
 
 
@@ -1222,10 +1222,10 @@ enum dj_ssl_error d_ssl_config_plan(
 // 9.  ENGINES
 //==============================================================================
 // An engine binds the kernel to one TLS library. It is a table of functions
-// - struct dj_ssl_engine - that a derived module fills in and exports, and
-// that an application hands to d_ssl_context_init. The kernel names no
+// - struct dj_tls_engine - that a derived module fills in and exports, and
+// that an application hands to d_tls_context_init. The kernel names no
 // engine and links against no library; which engines exist is a matter of
-// which derived modules a build compiles (cfg_ssl.h).
+// which derived modules a build compiles (cfg_tls.h).
 //   ENGINES ARE SANS-I/O. An engine never touches a transport: the kernel
 // feeds it the ciphertext it reads, drains the ciphertext it must send, and
 // drives it with handshake, read, write, and close steps. Every library can
@@ -1253,9 +1253,9 @@ enum dj_ssl_error d_ssl_config_plan(
 // 9.1    Engine vocabulary
 //------------------------------------------------------------------------------
 // 9.1.1
-// dj_ssl_engine_feature
-//   enum: bits of dj_ssl_engine.features, declaring what an engine can do.
-// d_ssl_context_init refuses, with UNSUPPORTED, a configuration needing a
+// dj_tls_engine_feature
+//   enum: bits of dj_tls_engine.features, declaring what an engine can do.
+// d_tls_context_init refuses, with UNSUPPORTED, a configuration needing a
 // feature its engine lacks.
 //     TLS1_3        can negotiate TLS 1.3; without it, maxima are capped at
 //                   TLS 1.2.
@@ -1268,20 +1268,20 @@ enum dj_ssl_error d_ssl_config_plan(
 //                   engine without peer_name must have it; one with both is
 //                   checked by the kernel as well.
 //     LEGACY        can negotiate TLS 1.0 and 1.1.
-enum dj_ssl_engine_feature
+enum dj_tls_engine_feature
 {
-    D_SSL_ENGINE_TLS1_3       = 0x0001,
-    D_SSL_ENGINE_ALPN         = 0x0002,
-    D_SSL_ENGINE_SYSTEM_TRUST = 0x0004,
-    D_SSL_ENGINE_MEMORY_PEM   = 0x0008,
-    D_SSL_ENGINE_CLIENT_AUTH  = 0x0010,
-    D_SSL_ENGINE_KEYLOG       = 0x0020,
-    D_SSL_ENGINE_HOSTNAME     = 0x0040,
-    D_SSL_ENGINE_LEGACY       = 0x0080
+    D_TLS_ENGINE_TLS1_3       = 0x0001,
+    D_TLS_ENGINE_ALPN         = 0x0002,
+    D_TLS_ENGINE_SYSTEM_TRUST = 0x0004,
+    D_TLS_ENGINE_MEMORY_PEM   = 0x0008,
+    D_TLS_ENGINE_CLIENT_AUTH  = 0x0010,
+    D_TLS_ENGINE_KEYLOG       = 0x0020,
+    D_TLS_ENGINE_HOSTNAME     = 0x0040,
+    D_TLS_ENGINE_LEGACY       = 0x0080
 };
 
 // 9.1.2
-// dj_ssl_info
+// dj_tls_info
 //   struct: what a session negotiated and learned, as far as it got:
 //     version         the negotiated version, NONE until known.
 //     cipher_id       the suite's IANA code point, 0 if unknown.
@@ -1289,33 +1289,33 @@ enum dj_ssl_engine_feature
 //                     it, NUL-terminated; empty if unknown.
 //     alpn            the agreed ALPN protocol, alpn_length octets, also
 //                     NUL-terminated; empty if none.
-//     verify          dj_ssl_verify_flag bits; see section 4.
-//     alert_sent      the last alert this end sent, or D_SSL_ALERT_NONE.
-//     alert_received  the last alert the peer sent, or D_SSL_ALERT_NONE.
+//     verify          dj_tls_verify_flag bits; see section 4.
+//     alert_sent      the last alert this end sent, or D_TLS_ALERT_NONE.
+//     alert_received  the last alert the peer sent, or D_TLS_ALERT_NONE.
 //     resumed         the handshake resumed an earlier session.
 //     fingerprint     the SHA-256 fingerprint of the peer's certificate,
 //                     valid when has_peer_certificate is true.
 // Engines fill everything but has_peer_certificate and fingerprint, which
 // the kernel computes, and the kernel's own verify bits, which it adds.
-struct dj_ssl_info
+struct dj_tls_info
 {
-    enum dj_ssl_version version;
+    enum dj_tls_version version;
     uint16_t           cipher_id;
-    char               cipher[D_SSL_CIPHER_NAME_MAX];
+    char               cipher[D_TLS_CIPHER_NAME_MAX];
     size_t             alpn_length;
-    char               alpn[D_SSL_ALPN_PROTOCOL_MAX + 1];
+    char               alpn[D_TLS_ALPN_PROTOCOL_MAX + 1];
     uint32_t           verify;
     int32_t            alert_sent;
     int32_t            alert_received;
     bool               resumed;
     bool               has_peer_certificate;
-    uint8_t            fingerprint[D_SSL_FINGERPRINT_LENGTH];
+    uint8_t            fingerprint[D_TLS_FINGERPRINT_LENGTH];
 };
 
 // 9.2    Engine operations
 //------------------------------------------------------------------------------
 // 9.2.1
-// dj_ssl_engine_context_create_fn
+// dj_tls_engine_context_create_fn
 //   function pointer: creates the engine's context from a validated
 // configuration and its plan, loading trust anchors, the local identity,
 // cipher settings, and the ALPN list. It must copy whatever it keeps, since
@@ -1323,155 +1323,155 @@ struct dj_ssl_info
 // returns OK, or returns UNSUPPORTED, CONFIG (a file that does not
 // load, a key that does not match its certificate, a cipher string the
 // library rejects), OUT_OF_MEMORY, or BACKEND.
-typedef enum dj_ssl_error (*dj_ssl_engine_context_create_fn)(
-    const struct dj_ssl_config* _config,
-    const struct dj_ssl_plan*   _plan,
+typedef enum dj_tls_error (*dj_tls_engine_context_create_fn)(
+    const struct dj_tls_config* _config,
+    const struct dj_tls_plan*   _plan,
     void**                     _out_context);
 
 // 9.2.2
-// dj_ssl_engine_context_destroy_fn
+// dj_tls_engine_context_destroy_fn
 //   function pointer: frees a context. Every session made from it has been
 // destroyed first.
-typedef void (*dj_ssl_engine_context_destroy_fn)(void* _context);
+typedef void (*dj_tls_engine_context_destroy_fn)(void* _context);
 
 // 9.2.3
-// dj_ssl_engine_session_create_fn
+// dj_tls_engine_session_create_fn
 //   function pointer: creates a session in a context. For a client, _host is
 // the reference identity to check the peer against, or NULL when the plan
 // does not verify host names, and _sni the server name to send, or NULL for
 // none; servers receive NULL for both. Both are NUL-terminated and must be
 // copied. Stores the session in *_out_session and returns OK, OUT_OF_MEMORY,
 // or BACKEND.
-typedef enum dj_ssl_error (*dj_ssl_engine_session_create_fn)(
+typedef enum dj_tls_error (*dj_tls_engine_session_create_fn)(
     void*       _context,
     const char* _host,
     const char* _sni,
     void**      _out_session);
 
 // 9.2.4
-// dj_ssl_engine_session_destroy_fn
+// dj_tls_engine_session_destroy_fn
 //   function pointer: frees a session, in whatever state it was left.
-typedef void (*dj_ssl_engine_session_destroy_fn)(void* _session);
+typedef void (*dj_tls_engine_session_destroy_fn)(void* _session);
 
 // 9.2.5
-// dj_ssl_engine_feed_fn
+// dj_tls_engine_feed_fn
 //   function pointer: hands the engine ciphertext read from the peer. It must
 // take all _size bytes (at least 1), buffering what its next step does not
 // consume. Returns OK, OUT_OF_MEMORY, or BACKEND.
-typedef enum dj_ssl_error (*dj_ssl_engine_feed_fn)(void*       _session,
+typedef enum dj_tls_error (*dj_tls_engine_feed_fn)(void*       _session,
                                                  const void* _data,
                                                  size_t      _size);
 
 // 9.2.6
-// dj_ssl_engine_drain_fn
+// dj_tls_engine_drain_fn
 //   function pointer: moves up to _capacity bytes of pending outbound
 // ciphertext into _buffer, removing them from the engine, and stores the
 // count in *_out_size - 0 when nothing is pending. Returns OK or
 // BACKEND.
-typedef enum dj_ssl_error (*dj_ssl_engine_drain_fn)(void*   _session,
+typedef enum dj_tls_error (*dj_tls_engine_drain_fn)(void*   _session,
                                                   void*   _buffer,
                                                   size_t  _capacity,
                                                   size_t* _out_size);
 
 // 9.2.7
-// dj_ssl_engine_step_fn
+// dj_tls_engine_step_fn
 //   function pointer: advances the handshake, or queues close_notify. As
 // handshake: returns OK once the handshake is complete (and on every call
 // after), WANT_READ while it awaits the peer, or a failure. As close: queues
 // close_notify and returns OK; calling it twice is harmless.
-typedef enum dj_ssl_error (*dj_ssl_engine_step_fn)(void* _session);
+typedef enum dj_tls_error (*dj_tls_engine_step_fn)(void* _session);
 
 // 9.2.8
-// dj_ssl_engine_read_fn
+// dj_tls_engine_read_fn
 //   function pointer: decrypts up to _capacity (at least 1) bytes of
 // application data into _buffer. Returns OK with *_out_read at least 1,
 // WANT_READ when no complete record is buffered, CLOSED once the
 // peer's close_notify arrives, or a failure. Handshake messages that arrive
 // after the handshake (session tickets, key updates) are absorbed here.
-typedef enum dj_ssl_error (*dj_ssl_engine_read_fn)(void*   _session,
+typedef enum dj_tls_error (*dj_tls_engine_read_fn)(void*   _session,
                                                  void*   _buffer,
                                                  size_t  _capacity,
                                                  size_t* _out_read);
 
 // 9.2.9
-// dj_ssl_engine_write_fn
+// dj_tls_engine_write_fn
 //   function pointer: encrypts application data. Returns OK having taken at
 // least 1 of _size (at least 1) bytes, storing the count in *_out_written;
 // WANT_READ if the engine must hear from the peer first; or a failure.
-typedef enum dj_ssl_error (*dj_ssl_engine_write_fn)(void*       _session,
+typedef enum dj_tls_error (*dj_tls_engine_write_fn)(void*       _session,
                                                   const void* _data,
                                                   size_t      _size,
                                                   size_t*     _out_written);
 
 // 9.2.10
-// dj_ssl_engine_describe_fn
-//   function pointer: fills the engine's part of a dj_ssl_info (see 9.1.2)
+// dj_tls_engine_describe_fn
+//   function pointer: fills the engine's part of a dj_tls_info (see 9.1.2)
 // with what the session knows so far. The kernel resets the record first --
 // version NONE, no alerts, verify NOT_PERFORMED - so fields the engine
 // cannot tell may be left alone. The verify bits are the chain result alone:
 // NONE if the chain validated, NOT_PERFORMED if it was not checked.
-typedef void (*dj_ssl_engine_describe_fn)(void*              _session,
-                                         struct dj_ssl_info* _out);
+typedef void (*dj_tls_engine_describe_fn)(void*              _session,
+                                         struct dj_tls_info* _out);
 
 // 9.2.11
-// dj_ssl_engine_peer_name_fn
+// dj_tls_engine_peer_name_fn
 //   function pointer: stores the _index-th DNS or IP subjectAltName entry of
 // the peer's certificate in *_out, borrowed until the next call into the
 // engine, and returns true; returns false past the last entry, or when no
 // certificate was presented. Entries of other kinds are skipped.
-typedef bool (*dj_ssl_engine_peer_name_fn)(void*                   _session,
+typedef bool (*dj_tls_engine_peer_name_fn)(void*                   _session,
                                           size_t                  _index,
-                                          struct dj_ssl_peer_name* _out);
+                                          struct dj_tls_peer_name* _out);
 
 // 9.2.12
-// dj_ssl_engine_peer_certificate_fn
+// dj_tls_engine_peer_certificate_fn
 //   function pointer: stores the DER encoding of the peer's certificate in
 // *_out_der, borrowed until the next call into the engine, and returns true;
 // returns false when the peer presented none.
-typedef bool (*dj_ssl_engine_peer_certificate_fn)(
+typedef bool (*dj_tls_engine_peer_certificate_fn)(
     void*                _session,
     struct dj_pack_bytes* _out_der);
 
 // 9.2.13
-// dj_ssl_engine_session_resume_fn
+// dj_tls_engine_session_resume_fn
 //   function pointer: offers a client session, before its handshake, the
 // session `_from` - another of the context's, established - to resume, and
 // returns OK whether or not the server will take it: the handshake decides,
-// and dj_ssl_info's resumed reports it. Returns BACKEND when the library
+// and dj_tls_info's resumed reports it. Returns BACKEND when the library
 // refuses the offer outright.
-typedef enum dj_ssl_error (*dj_ssl_engine_session_resume_fn)(
+typedef enum dj_tls_error (*dj_tls_engine_session_resume_fn)(
     void* _session,
     void* _from);
 
 // 9.3    The engine interface
 //------------------------------------------------------------------------------
 // 9.3.1
-// dj_ssl_engine
+// dj_tls_engine
 //   struct: an engine: its name, its library, its features, and its
 // operations. Engines are immutable static data. Every operation is required
-// except peer_name, which an engine with D_SSL_ENGINE_HOSTNAME may omit;
+// except peer_name, which an engine with D_TLS_ENGINE_HOSTNAME may omit;
 // peer_certificate, without which pins cannot be checked and fingerprints
-// stay unknown; and session_resume, without which d_ssl_session_resume offers
+// stay unknown; and session_resume, without which d_tls_session_resume offers
 // nothing and a session resumes only as the engine itself arranges.
-struct dj_ssl_engine
+struct dj_tls_engine
 {
     const char*                      name;
-    enum dj_ssl_backend               backend;
+    enum dj_tls_backend               backend;
     uint32_t                         features;
-    dj_ssl_engine_context_create_fn   context_create;
-    dj_ssl_engine_context_destroy_fn  context_destroy;
-    dj_ssl_engine_session_create_fn   session_create;
-    dj_ssl_engine_session_destroy_fn  session_destroy;
-    dj_ssl_engine_feed_fn             feed;
-    dj_ssl_engine_drain_fn            drain;
-    dj_ssl_engine_step_fn             handshake;
-    dj_ssl_engine_read_fn             read;
-    dj_ssl_engine_write_fn            write;
-    dj_ssl_engine_step_fn             close;
-    dj_ssl_engine_describe_fn         describe;
-    dj_ssl_engine_peer_name_fn        peer_name;
-    dj_ssl_engine_peer_certificate_fn peer_certificate;
-    dj_ssl_engine_session_resume_fn   session_resume;
+    dj_tls_engine_context_create_fn   context_create;
+    dj_tls_engine_context_destroy_fn  context_destroy;
+    dj_tls_engine_session_create_fn   session_create;
+    dj_tls_engine_session_destroy_fn  session_destroy;
+    dj_tls_engine_feed_fn             feed;
+    dj_tls_engine_drain_fn            drain;
+    dj_tls_engine_step_fn             handshake;
+    dj_tls_engine_read_fn             read;
+    dj_tls_engine_write_fn            write;
+    dj_tls_engine_step_fn             close;
+    dj_tls_engine_describe_fn         describe;
+    dj_tls_engine_peer_name_fn        peer_name;
+    dj_tls_engine_peer_certificate_fn peer_certificate;
+    dj_tls_engine_session_resume_fn   session_resume;
 };
 
 
@@ -1487,7 +1487,7 @@ struct dj_ssl_engine
 // same behaviour under every engine:
 //     - Operations on a blocking transport complete or fail. On a
 //       non-blocking one, any may return WOULD_BLOCK; retry the same call,
-//       with the same arguments, once d_ssl_session_wants says the transport
+//       with the same arguments, once d_tls_session_wants says the transport
 //       is ready.
 //     - A transport may already have carried plaintext: TLS can begin at
 //       any point in a stream, which is what STARTTLS-style upgrades need.
@@ -1507,7 +1507,7 @@ struct dj_ssl_engine
 //       its connection closed, reset, or aborted. Protocols that frame
 //       their own messages (POP3 after QUIT, say) may treat it as benign.
 //       Any other transport failure is TRANSPORT, and
-//       d_ssl_session_transport_error tells which.
+//       d_tls_session_transport_error tells which.
 //     - Failures are sticky: once a session fails, every later operation
 //       returns the same status.
 // Neither contexts nor sessions allocate in the kernel; engines allocate.
@@ -1517,16 +1517,16 @@ struct dj_ssl_engine
 // 10.1   Contexts
 //------------------------------------------------------------------------------
 // 10.1.1
-// dj_ssl_context
+// dj_tls_context
 //   struct: a live configuration: the engine, its context handle, the plan,
 // and the pins the kernel checks. Read-only once initialized.
-struct dj_ssl_context
+struct dj_tls_context
 {
-    const struct dj_ssl_engine* engine;
+    const struct dj_tls_engine* engine;
     void*                      handle;
-    struct dj_ssl_plan          plan;
+    struct dj_tls_plan          plan;
     size_t                     pin_count;
-    uint8_t                    pins[D_SSL_PINS_MAX][D_SSL_FINGERPRINT_LENGTH];
+    uint8_t                    pins[D_TLS_PINS_MAX][D_TLS_FINGERPRINT_LENGTH];
 };
 
 // 10.2   Context operations
@@ -1543,18 +1543,18 @@ struct dj_ssl_context
  * @param[in]  _engine   the engine, with every required operation.
  * @param[in]  _config   the configuration; borrowed for this call only.
  * @post   On success the context owns the engine's context; release it with
- *         d_ssl_context_destroy, after every session made from it. On
+ *         d_tls_context_destroy, after every session made from it. On
  *         failure the context is left empty and need not be destroyed.
- * @return D_SSL_OK; D_SSL_ERROR_UNSUPPORTED if the build or the
+ * @return D_TLS_OK; D_TLS_ERROR_UNSUPPORTED if the build or the
  *         engine cannot honour the configuration; a status of
- *         d_ssl_config_validate; the engine's failure from creating its
- *         context; or D_SSL_ERROR_INVALID_ARGUMENT for NULL arguments or an
+ *         d_tls_config_validate; the engine's failure from creating its
+ *         context; or D_TLS_ERROR_INVALID_ARGUMENT for NULL arguments or an
  *         engine missing a required operation.
  */
-enum dj_ssl_error d_ssl_context_init(
-    struct dj_ssl_context*      _context,
-    const struct dj_ssl_engine* _engine,
-    const struct dj_ssl_config* _config
+enum dj_tls_error d_tls_context_init(
+    struct dj_tls_context*      _context,
+    const struct dj_tls_engine* _engine,
+    const struct dj_tls_config* _config
 );
 
 /**
@@ -1564,14 +1564,14 @@ enum dj_ssl_error d_ssl_context_init(
  * @pre    Every session made from the context has been destroyed.
  * @post   The context is empty; destroying it again is harmless.
  */
-void d_ssl_context_destroy(
-    struct dj_ssl_context* _context
+void d_tls_context_destroy(
+    struct dj_tls_context* _context
 );
 
 // 10.3   Sessions
 //------------------------------------------------------------------------------
 // 10.3.1
-// dj_ssl_state
+// dj_tls_state
 //   enum: where a session is.
 //     IDLE         initialized; no bytes exchanged.
 //     HANDSHAKING  the handshake is under way.
@@ -1579,30 +1579,30 @@ void d_ssl_context_destroy(
 //                  close_notify received, is tracked alongside.
 //     CLOSED       both ends have said close_notify, or the session was
 //                  shut down before it was established.
-//     FAILED       a failure ended the session; see dj_ssl_session.failure.
-enum dj_ssl_state
+//     FAILED       a failure ended the session; see dj_tls_session.failure.
+enum dj_tls_state
 {
-    D_SSL_STATE_IDLE        = 0,
-    D_SSL_STATE_HANDSHAKING = 1,
-    D_SSL_STATE_ESTABLISHED = 2,
-    D_SSL_STATE_CLOSED      = 3,
-    D_SSL_STATE_FAILED      = 4
+    D_TLS_STATE_IDLE        = 0,
+    D_TLS_STATE_HANDSHAKING = 1,
+    D_TLS_STATE_ESTABLISHED = 2,
+    D_TLS_STATE_CLOSED      = 3,
+    D_TLS_STATE_FAILED      = 4
 };
 
 // 10.3.2
-// dj_ssl_want
+// dj_tls_want
 //   enum: what a session waits on after returning WOULD_BLOCK: the transport
 // becoming readable, or writable. WRITE also follows an OK write whose
-// ciphertext could not all be sent; see d_ssl_session_write.
-enum dj_ssl_want
+// ciphertext could not all be sent; see d_tls_session_write.
+enum dj_tls_want
 {
-    D_SSL_WANT_NOTHING = 0,
-    D_SSL_WANT_READ    = 1,
-    D_SSL_WANT_WRITE   = 2
+    D_TLS_WANT_NOTHING = 0,
+    D_TLS_WANT_READ    = 1,
+    D_TLS_WANT_WRITE   = 2
 };
 
 // 10.3.3
-// dj_ssl_session
+// dj_tls_session
 //   struct: one TLS connection. base comes first, so &session->base is a
 // dj_net_connection* over the session's plaintext that every net.h function
 // accepts (10.5); the other fields are the kernel's, read through the
@@ -1614,16 +1614,16 @@ enum dj_ssl_want
 // sniff collects the peer's first bytes until they are judged. bytes_in and
 // bytes_out count the ciphertext moved through the transport. view_closed
 // marks a session whose connection view was closed.
-struct dj_ssl_session
+struct dj_tls_session
 {
     struct dj_net_connection     base;
-    const struct dj_ssl_context* context;
+    const struct dj_tls_context* context;
     void*                       handle;
     struct dj_net_connection*    transport;
     enum dj_net_error            transport_error;
-    enum dj_ssl_state            state;
-    enum dj_ssl_error            failure;
-    enum dj_ssl_want             want;
+    enum dj_tls_state            state;
+    enum dj_tls_error            failure;
+    enum dj_tls_want             want;
     bool                        owns_transport;
     bool                        view_closed;
     bool                        engine_done;
@@ -1633,14 +1633,14 @@ struct dj_ssl_session
     bool                        received_close;
     bool                        host_is_ip;
     size_t                      sniff_length;
-    uint8_t                     sniff[D_SSL_RECORD_HEADER_SIZE];
-    char                        host[D_SSL_HOSTNAME_MAX + 2];
-    struct dj_ssl_info           info;
+    uint8_t                     sniff[D_TLS_RECORD_HEADER_SIZE];
+    char                        host[D_TLS_HOSTNAME_MAX + 2];
+    struct dj_tls_info           info;
     uint64_t                    bytes_in;
     uint64_t                    bytes_out;
     size_t                      stage_start;
     size_t                      stage_end;
-    unsigned char               stage[D_SSL_IO_CAPACITY];
+    unsigned char               stage[D_TLS_IO_CAPACITY];
 };
 
 // 10.4   Session operations
@@ -1659,23 +1659,23 @@ struct dj_ssl_session
  * @param[in]  _transport  the connection the ciphertext moves over, with
  *                         net.h's four required operations. The session
  *                         borrows it, and it must outlive the session; see
- *                         d_ssl_session_own_transport.
+ *                         d_tls_session_own_transport.
  * @param[in]  _host       client: the host, empty only if the plan does not
  *                         verify host names. Server: empty.
  * @post   On success the session owns the engine's session; release it with
- *         d_ssl_session_destroy. On failure it holds nothing, and destroying
+ *         d_tls_session_destroy. On failure it holds nothing, and destroying
  *         it is harmless. Either way its base is a connection, closed after
  *         a failure.
- * @return D_SSL_OK; D_SSL_ERROR_MALFORMED if `_host` is neither a
+ * @return D_TLS_OK; D_TLS_ERROR_MALFORMED if `_host` is neither a
  *         valid host name nor an address literal;
- *         D_SSL_ERROR_INVALID_ARGUMENT for NULL arguments, an empty
+ *         D_TLS_ERROR_INVALID_ARGUMENT for NULL arguments, an empty
  *         context, a transport without the four required operations, a
  *         client that verifies names given no host, or a server given one;
  *         or the engine's failure from creating its session.
  */
-enum dj_ssl_error d_ssl_session_init(
-    struct dj_ssl_session*       _session,
-    const struct dj_ssl_context* _context,
+enum dj_tls_error d_tls_session_init(
+    struct dj_tls_session*       _session,
+    const struct dj_tls_context* _context,
     struct dj_net_connection*    _transport,
     struct dj_pack_text          _host
 );
@@ -1687,19 +1687,19 @@ enum dj_ssl_error d_ssl_session_init(
  * @note  FTPS needs it: a server may require a data connection to resume the
  *        control connection's session, as vsftpd does by default. Whether
  *        the server takes the offer is the handshake's to say:
- *        d_ssl_session_info's resumed reports it.
+ *        d_tls_session_info's resumed reports it.
  *
  * @param[in,out] _session  a client session, initialized, not yet past
- *                          D_SSL_STATE_IDLE.
+ *                          D_TLS_STATE_IDLE.
  * @param[in]     _from     an established session of the same context.
- * @return D_SSL_OK, also when the engine has no session_resume and offers
- *         nothing; D_SSL_ERROR_INVALID_ARGUMENT for a NULL argument, a
+ * @return D_TLS_OK, also when the engine has no session_resume and offers
+ *         nothing; D_TLS_ERROR_INVALID_ARGUMENT for a NULL argument, a
  *         server's session, sessions of different contexts, `_session` past
  *         IDLE, or `_from` not established; or the engine's failure.
  */
-enum dj_ssl_error d_ssl_session_resume(
-    struct dj_ssl_session*       _session,
-    const struct dj_ssl_session* _from
+enum dj_tls_error d_tls_session_resume(
+    struct dj_tls_session*       _session,
+    const struct dj_tls_session* _from
 );
 
 /**
@@ -1712,8 +1712,8 @@ enum dj_ssl_error d_ssl_session_resume(
  *         destroying it again is harmless. Its transport is left as it was,
  *         owned or not: destroying is not closing.
  */
-void d_ssl_session_destroy(
-    struct dj_ssl_session* _session
+void d_tls_session_destroy(
+    struct dj_tls_session* _session
 );
 
 /**
@@ -1727,15 +1727,15 @@ void d_ssl_session_destroy(
  *       established session this only flushes.
  *
  * @param[in,out] _session  the session.
- * @return D_SSL_OK once established; D_SSL_ERROR_WOULD_BLOCK, to be
- *         retried; D_SSL_ERROR_NOT_TLS, _HANDSHAKE, _VERIFY
- *         (d_ssl_session_info gives the flags), _PROTOCOL, or _TRUNCATED for
+ * @return D_TLS_OK once established; D_TLS_ERROR_WOULD_BLOCK, to be
+ *         retried; D_TLS_ERROR_NOT_TLS, _HANDSHAKE, _VERIFY
+ *         (d_tls_session_info gives the flags), _PROTOCOL, or _TRUNCATED for
  *         a failed handshake; a transport or engine failure;
- *         D_SSL_ERROR_STATE on a closed session; or the sticky failure of a
+ *         D_TLS_ERROR_STATE on a closed session; or the sticky failure of a
  *         failed one.
  */
-enum dj_ssl_error d_ssl_session_handshake(
-    struct dj_ssl_session* _session
+enum dj_tls_error d_tls_session_handshake(
+    struct dj_tls_session* _session
 );
 
 /**
@@ -1746,15 +1746,15 @@ enum dj_ssl_error d_ssl_session_handshake(
  * @param[in]     _capacity  its size; at least 1.
  * @param[out]    _out_read  receives the count: at least 1 on success, 0
  *                           otherwise.
- * @return D_SSL_OK with data; D_SSL_ERROR_CLOSED once the
+ * @return D_TLS_OK with data; D_TLS_ERROR_CLOSED once the
  *         peer has sent close_notify, and on every read after;
- *         D_SSL_ERROR_WOULD_BLOCK; D_SSL_ERROR_TRUNCATED if the
+ *         D_TLS_ERROR_WOULD_BLOCK; D_TLS_ERROR_TRUNCATED if the
  *         transport ended first; a handshake, protocol, transport, or engine
- *         failure; or D_SSL_ERROR_INVALID_ARGUMENT for NULL arguments or a
+ *         failure; or D_TLS_ERROR_INVALID_ARGUMENT for NULL arguments or a
  *         zero `_capacity`.
  */
-enum dj_ssl_error d_ssl_session_read(
-    struct dj_ssl_session* _session,
+enum dj_tls_error d_tls_session_read(
+    struct dj_tls_session* _session,
     void*                  _buffer,
     size_t                 _capacity,
     size_t*                _out_read
@@ -1766,23 +1766,23 @@ enum dj_ssl_error d_ssl_session_read(
  * @note Ciphertext pending from earlier calls is flushed first, and new data
  *       is taken only once it has gone, which bounds what a session buffers.
  *       Data taken is committed: if the transport then blocks, the call
- *       still returns OK with the count, d_ssl_session_wants reports
- *       D_SSL_WANT_WRITE, and the rest leaves with the next operation or
- *       d_ssl_session_flush.
+ *       still returns OK with the count, d_tls_session_wants reports
+ *       D_TLS_WANT_WRITE, and the rest leaves with the next operation or
+ *       d_tls_session_flush.
  *
  * @param[in,out] _session      the session.
  * @param[in]     _data         the bytes.
  * @param[in]     _size         how many; at least 1.
  * @param[out]    _out_written  receives how many were taken: at least 1 on
  *                              success, 0 otherwise.
- * @return D_SSL_OK with a count; D_SSL_ERROR_WOULD_BLOCK before
- *         anything was taken; D_SSL_ERROR_STATE after this end's
+ * @return D_TLS_OK with a count; D_TLS_ERROR_WOULD_BLOCK before
+ *         anything was taken; D_TLS_ERROR_STATE after this end's
  *         close_notify; a handshake, transport, or engine failure; or
- *         D_SSL_ERROR_INVALID_ARGUMENT for NULL arguments or a zero
+ *         D_TLS_ERROR_INVALID_ARGUMENT for NULL arguments or a zero
  *         `_size`.
  */
-enum dj_ssl_error d_ssl_session_write(
-    struct dj_ssl_session* _session,
+enum dj_tls_error d_tls_session_write(
+    struct dj_tls_session* _session,
     const void*            _data,
     size_t                 _size,
     size_t*                _out_written
@@ -1791,20 +1791,20 @@ enum dj_ssl_error d_ssl_session_write(
 /**
  * @brief Writes all of `_data` and flushes it.
  *
- * @note d_ssl_session_write in a loop, then d_ssl_session_flush. On a
+ * @note d_tls_session_write in a loop, then d_tls_session_flush. On a
  *       blocking transport it returns with everything on the wire.
  *
  * @param[in,out] _session      the session.
  * @param[in]     _data         the bytes; may be NULL when `_size` is 0.
  * @param[in]     _size         how many.
  * @param[out]    _out_written  receives how many were taken; may be NULL.
- * @return D_SSL_OK once all are taken and sent;
- *         D_SSL_ERROR_WOULD_BLOCK, after which a caller resumes with the
- *         remainder, or with d_ssl_session_flush once `*_out_written`
- *         equals `_size`; or a failure of d_ssl_session_write.
+ * @return D_TLS_OK once all are taken and sent;
+ *         D_TLS_ERROR_WOULD_BLOCK, after which a caller resumes with the
+ *         remainder, or with d_tls_session_flush once `*_out_written`
+ *         equals `_size`; or a failure of d_tls_session_write.
  */
-enum dj_ssl_error d_ssl_session_write_all(
-    struct dj_ssl_session* _session,
+enum dj_tls_error d_tls_session_write_all(
+    struct dj_tls_session* _session,
     const void*            _data,
     size_t                 _size,
     size_t*                _out_written
@@ -1818,13 +1818,13 @@ enum dj_ssl_error d_ssl_session_write_all(
  *       session, that one is flushed separately.
  *
  * @param[in,out] _session  the session.
- * @return D_SSL_OK once nothing is pending; D_SSL_ERROR_WOULD_BLOCK
- *         if the transport stopped taking bytes; D_SSL_ERROR_TRUNCATED
+ * @return D_TLS_OK once nothing is pending; D_TLS_ERROR_WOULD_BLOCK
+ *         if the transport stopped taking bytes; D_TLS_ERROR_TRUNCATED
  *         if the peer stopped reading; a transport or engine failure; or the
  *         sticky failure of a failed session.
  */
-enum dj_ssl_error d_ssl_session_flush(
-    struct dj_ssl_session* _session
+enum dj_tls_error d_tls_session_flush(
+    struct dj_tls_session* _session
 );
 
 /**
@@ -1836,13 +1836,13 @@ enum dj_ssl_error d_ssl_session_flush(
  *       established is simply marked CLOSED, sending nothing.
  *
  * @param[in,out] _session  the session.
- * @return D_SSL_OK once close_notify is on the wire, or the session
- *         was already closed; D_SSL_ERROR_WOULD_BLOCK, to be retried; a
+ * @return D_TLS_OK once close_notify is on the wire, or the session
+ *         was already closed; D_TLS_ERROR_WOULD_BLOCK, to be retried; a
  *         transport or engine failure; or the sticky failure of a failed
  *         session.
  */
-enum dj_ssl_error d_ssl_session_shutdown(
-    struct dj_ssl_session* _session
+enum dj_tls_error d_tls_session_shutdown(
+    struct dj_tls_session* _session
 );
 
 /**
@@ -1858,52 +1858,52 @@ enum dj_ssl_error d_ssl_session_shutdown(
  * @param[in,out] _session  the session; NULL is ignored.
  * @param[in]     _owns     whether closing the view closes the transport.
  */
-void d_ssl_session_own_transport(
-    struct dj_ssl_session* _session,
+void d_tls_session_own_transport(
+    struct dj_tls_session* _session,
     bool                   _owns
 );
 
-// Session accessors; they never fail. d_ssl_session_state and
-// d_ssl_session_wants report where the session is and what it waits on (a
+// Session accessors; they never fail. d_tls_session_state and
+// d_tls_session_wants report where the session is and what it waits on (a
 // NULL or destroyed session reads as FAILED and NOTHING).
-// d_ssl_session_failure reports the sticky failure of a FAILED session, and
-// D_SSL_OK otherwise. d_ssl_session_transport_error reports what the
+// d_tls_session_failure reports the sticky failure of a FAILED session, and
+// D_TLS_OK otherwise. d_tls_session_transport_error reports what the
 // transport's last call returned: D_NET_OK when it succeeded or there was
 // none, and its dj_net_error behind a TRANSPORT failure.
-// d_ssl_session_info copies what the session negotiated and learned into
+// d_tls_session_info copies what the session negotiated and learned into
 // *_out, and returns false (leaving *_out alone) for NULL arguments or a
 // destroyed session.
-enum dj_ssl_state d_ssl_session_state(
-    const struct dj_ssl_session* _session
+enum dj_tls_state d_tls_session_state(
+    const struct dj_tls_session* _session
 );
-enum dj_ssl_want d_ssl_session_wants(
-    const struct dj_ssl_session* _session
+enum dj_tls_want d_tls_session_wants(
+    const struct dj_tls_session* _session
 );
-enum dj_ssl_error d_ssl_session_failure(
-    const struct dj_ssl_session* _session
+enum dj_tls_error d_tls_session_failure(
+    const struct dj_tls_session* _session
 );
-enum dj_net_error d_ssl_session_transport_error(
-    const struct dj_ssl_session* _session
+enum dj_net_error d_tls_session_transport_error(
+    const struct dj_tls_session* _session
 );
-bool d_ssl_session_info(
-    const struct dj_ssl_session* _session,
-    struct dj_ssl_info*          _out
+bool d_tls_session_info(
+    const struct dj_tls_session* _session,
+    struct dj_tls_info*          _out
 );
 
 // 10.5   Sessions as connections
 //------------------------------------------------------------------------------
 // A session's base is a net.h connection over its plaintext, ready from
-// d_ssl_session_init: HTTP's reader, net.h's framing, a protocol module, or
+// d_tls_session_init: HTTP's reader, net.h's framing, a protocol module, or
 // another session runs over it as over a socket. Each operation is the
 // session call of the same name, its outcome told in net.h's terms:
 //     - read: data; the peer's close_notify is the end of the stream, a
 //       count of 0 with D_NET_OK, and so is every read after it;
 //       WOULD_BLOCK stays WOULD_BLOCK; truncation is D_NET_ERROR_CLOSED;
 //       a transport failure is the transport's own dj_net_error; any other
-//       failure maps through d_ssl_error_to_net.
+//       failure maps through d_tls_error_to_net.
 //     - write: as read, and after this end's close_notify,
 //       D_NET_ERROR_CLOSED. Ciphertext a non-blocking transport would not
-//       take waits in the session, as d_ssl_session_write explains.
+//       take waits in the session, as d_tls_session_write explains.
 //     - is_open: until the session fails, ends with both close_notifies,
 //       or its view is closed.
 //     - close: close_notify when the session is established, unless the
@@ -1914,8 +1914,8 @@ bool d_ssl_session_info(
 //     - shutdown: WRITE and BOTH send close_notify first; then the
 //       transport is shut down the same way, as it is for READ alone.
 //     - remote_endpoint and local_endpoint: the transport's.
-// The detail behind a failure stays with the session: d_ssl_session_failure,
-// d_ssl_session_transport_error, and d_ssl_session_info say what net.h's
+// The detail behind a failure stays with the session: d_tls_session_failure,
+// d_tls_session_transport_error, and d_tls_session_info say what net.h's
 // error cannot.
 
 
@@ -1923,7 +1923,7 @@ D_EXTERN_C_END
 
 
 #elif (D_INTERNAL_NET_REQUIRE_BACKENDS == 1)
-    #error "ssl.h: no 64-bit integer type (D_INTERNAL_NET_HAS_INT64)"
+    #error "tls.h: no 64-bit integer type (D_INTERNAL_NET_HAS_INT64)"
 #endif  // D_INTERNAL_NET_HAS_INT64
 
-#endif  // DJINTERP_C_NET_SSL_SSL_H
+#endif  // DJINTERP_C_NET_TLS_TLS_H

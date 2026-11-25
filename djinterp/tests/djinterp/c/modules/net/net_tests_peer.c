@@ -4,7 +4,7 @@
 * The scripted peer and the toy engine net's protocol suites run against.
 *   Definitions for net_tests_peer.h: a net.h connection that plays the
 * other party one turn at a time, each released by what the session under
-* test has sent, and an engine of the SSL kernel whose handshake and cipher
+* test has sent, and an engine of the TLS kernel whose handshake and cipher
 * a test can write out by hand.
 *
 *
@@ -600,10 +600,10 @@ void d_tests_net_toy_consume(
 d_tests_net_toy_context_create
   The context is the record being made over, which learns its role here.
 */
-static enum dj_ssl_error
+static enum dj_tls_error
 d_tests_net_toy_context_create(
-    const struct dj_ssl_config* _config,
-    const struct dj_ssl_plan*   _plan,
+    const struct dj_tls_config* _config,
+    const struct dj_tls_plan*   _plan,
     void**                     _out_context
 )
 {
@@ -612,13 +612,13 @@ d_tests_net_toy_context_create(
     // only d_tests_net_toy_context makes toy contexts
     if (!d_tests_net_toy_making)
     {
-        return D_SSL_ERROR_BACKEND;
+        return D_TLS_ERROR_BACKEND;
     }
 
     d_tests_net_toy_making->role = _plan->role;
     *_out_context                = d_tests_net_toy_making;
 
-    return D_SSL_OK;
+    return D_TLS_OK;
 }
 
 /*
@@ -639,7 +639,7 @@ void d_tests_net_toy_context_destroy(
 d_tests_net_toy_session_create
   Records the names it was given, then makes a session unless told not to.
 */
-static enum dj_ssl_error
+static enum dj_tls_error
 d_tests_net_toy_session_create(
     void*       _context,
     const char* _host,
@@ -659,7 +659,7 @@ d_tests_net_toy_session_create(
                    "%s",
                    (_sni) ? _sni : "(null)");
 
-    if (toy->create_status != D_SSL_OK)
+    if (toy->create_status != D_TLS_OK)
     {
         return toy->create_status;
     }
@@ -670,13 +670,13 @@ d_tests_net_toy_session_create(
 
     if (!session)
     {
-        return D_SSL_ERROR_OUT_OF_MEMORY;
+        return D_TLS_ERROR_OUT_OF_MEMORY;
     }
 
     session->toy  = toy;
     *_out_session = session;
 
-    return D_SSL_OK;
+    return D_TLS_OK;
 }
 
 /*
@@ -700,7 +700,7 @@ void d_tests_net_toy_session_destroy(
 d_tests_net_toy_feed
   Keeps the ciphertext until a step consumes it.
 */
-static enum dj_ssl_error
+static enum dj_tls_error
 d_tests_net_toy_feed(
     void*       _session,
     const void* _data,
@@ -711,7 +711,7 @@ d_tests_net_toy_feed(
 
     if (_size > (sizeof(session->in) - session->in_size))
     {
-        return D_SSL_ERROR_OUT_OF_MEMORY;
+        return D_TLS_ERROR_OUT_OF_MEMORY;
     }
 
     memcpy(session->in + session->in_size,
@@ -719,14 +719,14 @@ d_tests_net_toy_feed(
            _size);
     session->in_size += _size;
 
-    return D_SSL_OK;
+    return D_TLS_OK;
 }
 
 /*
 d_tests_net_toy_drain
   Hands over what is queued, from the front.
 */
-static enum dj_ssl_error
+static enum dj_tls_error
 d_tests_net_toy_drain(
     void*   _session,
     void*   _buffer,
@@ -748,7 +748,7 @@ d_tests_net_toy_drain(
     session->out_size -= count;
     *_out_size         = count;
 
-    return D_SSL_OK;
+    return D_TLS_OK;
 }
 
 /*
@@ -757,16 +757,16 @@ d_tests_net_toy_handshake
 hello and replies. Anything else where the other's step belongs is a failed
 handshake.
 */
-static enum dj_ssl_error
+static enum dj_tls_error
 d_tests_net_toy_handshake(
     void* _session
 )
 {
     struct dj_tests_net_toy_session* const session = _session;
-    const bool client = (session->toy->role == D_SSL_ROLE_CLIENT);
+    const bool client = (session->toy->role == D_TLS_ROLE_CLIENT);
 
     // a failure the test asked for, or a handshake already done
-    if ( (session->toy->handshake_status != D_SSL_OK) ||
+    if ( (session->toy->handshake_status != D_TLS_OK) ||
          (session->state == 2) )
     {
         return session->toy->handshake_status;
@@ -781,13 +781,13 @@ d_tests_net_toy_handshake(
                                     D_TESTS_NET_TOY_STEP);
         session->state = 1;
 
-        return D_SSL_ERROR_WANT_READ;
+        return D_TLS_ERROR_WANT_READ;
     }
 
     // the other side's step, whole
     if (session->in_size < D_TESTS_NET_TOY_STEP)
     {
-        return D_SSL_ERROR_WANT_READ;
+        return D_TLS_ERROR_WANT_READ;
     }
 
     if (memcmp(session->in,
@@ -795,7 +795,7 @@ d_tests_net_toy_handshake(
                : D_TESTS_NET_TOY_HELLO,
                D_TESTS_NET_TOY_STEP) != 0)
     {
-        return D_SSL_ERROR_HANDSHAKE;
+        return D_TLS_ERROR_HANDSHAKE;
     }
 
     d_tests_net_toy_consume(session,
@@ -811,7 +811,7 @@ d_tests_net_toy_handshake(
 
     session->state = 2;
 
-    return D_SSL_OK;
+    return D_TLS_OK;
 }
 
 /*
@@ -819,7 +819,7 @@ d_tests_net_toy_read
   Unseals what was fed, up to the toy close_notify, which ends the data;
 or reports the failure the record asks for instead.
 */
-static enum dj_ssl_error
+static enum dj_tls_error
 d_tests_net_toy_read(
     void*   _session,
     void*   _buffer,
@@ -835,7 +835,7 @@ d_tests_net_toy_read(
     *_out_read = 0;
 
     // a record the test has the toy refuse
-    if (session->toy->read_status != D_SSL_OK)
+    if (session->toy->read_status != D_TLS_OK)
     {
         return session->toy->read_status;
     }
@@ -865,18 +865,18 @@ d_tests_net_toy_read(
     {
         *_out_read = count;
 
-        return D_SSL_OK;
+        return D_TLS_OK;
     }
 
-    return (session->closed) ? D_SSL_ERROR_CLOSED
-                             : D_SSL_ERROR_WANT_READ;
+    return (session->closed) ? D_TLS_ERROR_CLOSED
+                             : D_TLS_ERROR_WANT_READ;
 }
 
 /*
 d_tests_net_toy_write
   Seals and queues as much as fits.
 */
-static enum dj_ssl_error
+static enum dj_tls_error
 d_tests_net_toy_write(
     void*       _session,
     const void* _data,
@@ -895,7 +895,7 @@ d_tests_net_toy_write(
     // the queue has room, as the kernel drains before every step
     if (count == 0)
     {
-        return D_SSL_ERROR_BACKEND;
+        return D_TLS_ERROR_BACKEND;
     }
 
     for (size_t i = 0; i < count; ++i)
@@ -907,14 +907,14 @@ d_tests_net_toy_write(
     session->out_size += count;
     *_out_written      = count;
 
-    return D_SSL_OK;
+    return D_TLS_OK;
 }
 
 /*
 d_tests_net_toy_close
   Queues the toy close_notify, once, and counts it.
 */
-static enum dj_ssl_error
+static enum dj_tls_error
 d_tests_net_toy_close(
     void* _session
 )
@@ -925,8 +925,8 @@ d_tests_net_toy_close(
 
     return (d_tests_net_toy_queue(session,
                                   D_TESTS_NET_TOY_CLOSE,
-                                  1u)) ? D_SSL_OK
-                                            : D_SSL_ERROR_BACKEND;
+                                  1u)) ? D_TLS_OK
+                                            : D_TLS_ERROR_BACKEND;
 }
 
 /*
@@ -937,7 +937,7 @@ client's chain as the record says, and a server's as unchecked.
 static
 void d_tests_net_toy_describe(
     void*               _session,
-    struct dj_ssl_info* _out
+    struct dj_tls_info* _out
 )
 {
     const struct dj_tests_net_toy_session* const session = _session;
@@ -953,15 +953,15 @@ void d_tests_net_toy_describe(
         return;
     }
 
-    _out->version   = D_SSL_VERSION_TLS1_3;
+    _out->version   = D_TLS_VERSION_TLS1_3;
     _out->cipher_id = 0x1301u;
     (void)snprintf(_out->cipher,
                    sizeof(_out->cipher),
                    "%s",
                    "TOY");
-    _out->verify    = (session->toy->role == D_SSL_ROLE_CLIENT)
+    _out->verify    = (session->toy->role == D_TLS_ROLE_CLIENT)
                           ? session->toy->verdict
-                          : (uint32_t)D_SSL_VERIFY_FLAG_NOT_PERFORMED;
+                          : (uint32_t)D_TLS_VERIFY_FLAG_NOT_PERFORMED;
 
     return;
 }
@@ -974,7 +974,7 @@ static
 bool d_tests_net_toy_peer_name(
     void*                    _session,
     size_t                   _index,
-    struct dj_ssl_peer_name* _out
+    struct dj_tls_peer_name* _out
 )
 {
     const struct dj_tests_net_toy_session* const session = _session;
@@ -982,14 +982,14 @@ bool d_tests_net_toy_peer_name(
                                  ? session->toy->cert_name
                                  : D_TESTS_NET_TOY_SERVER_NAME;
 
-    if ( (session->toy->role != D_SSL_ROLE_CLIENT) ||
+    if ( (session->toy->role != D_TLS_ROLE_CLIENT) ||
          (session->state != 2)                     ||
          (_index > 0) )
     {
         return false;
     }
 
-    _out->kind       = D_SSL_NAME_DNS;
+    _out->kind       = D_TLS_NAME_DNS;
     _out->value.data = name;
     _out->value.size = strlen(name);
 
@@ -1009,7 +1009,7 @@ bool d_tests_net_toy_peer_certificate(
     static const unsigned char DER[] = { 0x30, 0x03, 0x02, 0x01, 0x01 };
     const struct dj_tests_net_toy_session* const session = _session;
 
-    if ( (session->toy->role != D_SSL_ROLE_CLIENT) ||
+    if ( (session->toy->role != D_TLS_ROLE_CLIENT) ||
          (session->state != 2) )
     {
         return false;
@@ -1026,14 +1026,14 @@ TOY_ENGINE
   The toy engine's table: every operation, and the features a context for
 either role needs.
 */
-static const struct dj_ssl_engine TOY_ENGINE =
+static const struct dj_tls_engine TOY_ENGINE =
 {
     "toy",
-    D_SSL_BACKEND_OTHER,
-    (uint32_t)(D_SSL_ENGINE_TLS1_3       |
-               D_SSL_ENGINE_SYSTEM_TRUST |
-               D_SSL_ENGINE_MEMORY_PEM   |
-               D_SSL_ENGINE_CLIENT_AUTH),
+    D_TLS_BACKEND_OTHER,
+    (uint32_t)(D_TLS_ENGINE_TLS1_3       |
+               D_TLS_ENGINE_SYSTEM_TRUST |
+               D_TLS_ENGINE_MEMORY_PEM   |
+               D_TLS_ENGINE_CLIENT_AUTH),
     d_tests_net_toy_context_create,
     d_tests_net_toy_context_destroy,
     d_tests_net_toy_session_create,
@@ -1059,9 +1059,9 @@ claims to have, and verifies or not as asked.
 */
 bool
 d_tests_net_toy_context(
-    struct dj_ssl_context*   _out,
+    struct dj_tls_context*   _out,
     struct dj_tests_net_toy* _toy,
-    enum dj_ssl_role         _role,
+    enum dj_tls_role         _role,
     bool                    _verify
 )
 {
@@ -1071,10 +1071,10 @@ d_tests_net_toy_context(
     static const char KEY_PEM[]  = "-----BEGIN PRIVATE KEY-----\n"
                                    "MAMCAQE=\n"
                                    "-----END PRIVATE KEY-----\n";
-    struct dj_ssl_config config   = { .verify_hostname = false };
-    const bool          server   = (_role == D_SSL_ROLE_SERVER);
+    struct dj_tls_config config   = { .verify_hostname = false };
+    const bool          server   = (_role == D_TLS_ROLE_SERVER);
 
-    d_ssl_config_init(&config,
+    d_tls_config_init(&config,
                       _role);
 
     // a server's identity, and what it asks of clients; a client's
@@ -1085,23 +1085,23 @@ d_tests_net_toy_context(
         config.certificate_pem.length = sizeof(CERT_PEM) - 1u;
         config.private_key_pem.data   = KEY_PEM;
         config.private_key_pem.length = sizeof(KEY_PEM) - 1u;
-        config.verify                 = (_verify) ? D_SSL_VERIFY_OPTIONAL
-                                                  : D_SSL_VERIFY_NONE;
+        config.verify                 = (_verify) ? D_TLS_VERIFY_OPTIONAL
+                                                  : D_TLS_VERIFY_NONE;
     }
     else
     {
-        config.verify          = (_verify) ? D_SSL_VERIFY_REQUIRED
-                                           : D_SSL_VERIFY_NONE;
+        config.verify          = (_verify) ? D_TLS_VERIFY_REQUIRED
+                                           : D_TLS_VERIFY_NONE;
         config.verify_hostname = _verify;
     }
 
     d_tests_net_toy_making = _toy;
 
-    const enum dj_ssl_error made = d_ssl_context_init(_out,
+    const enum dj_tls_error made = d_tls_context_init(_out,
                                                      &TOY_ENGINE,
                                                      &config);
 
     d_tests_net_toy_making = NULL;
 
-    return (made == D_SSL_OK);
+    return (made == D_TLS_OK);
 }

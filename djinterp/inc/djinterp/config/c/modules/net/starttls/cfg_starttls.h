@@ -5,7 +5,7 @@
 * d_starttls_options_default hands out - the upgrade policy, the treatment
 * of plaintext still buffered at the upgrade point, line-ending strictness,
 * and the receive buffer's size. TLS itself is configured where every TLS
-* session is, in the dj_ssl_context a caller makes (cfg_ssl.h).
+* session is, in the dj_tls_context a caller makes (cfg_tls.h).
 *   The defaults are the secure ones. Each knob that relaxes one says what it
 * gives up, and every default can still be changed per session at run time.
 *

@@ -12,14 +12,14 @@
 * the STARTTLS policy - while d_smtp_client_attach() adopts a caller's
 * connection and leaves those steps to the caller. Either way,
 * d_smtp_client_send() carries out a whole mail transaction. TLS, implicit
-* or by STARTTLS, is a session of the SSL kernel over the connection, made
-* from a client dj_ssl_context the caller configured: its engine, its trust,
+* or by STARTTLS, is a session of the TLS kernel over the connection, made
+* from a client dj_tls_context the caller configured: its engine, its trust,
 * and its version floor.
 *   Defaults are strict: STARTTLS is required unless the caller opts down,
 * certificates are verified, credentials never cross an unencrypted channel
 * without an explicit opt-in, and every address and argument is validated, so
 * CR, LF and NUL can never inject a command.
-*   The client holds its TLS session, so the header needs the SSL kernel's
+*   The client holds its TLS session, so the header needs the TLS kernel's
 * 64-bit integer type, and compiles to nothing where the build has none.
 *
 *   Where D_INTERNAL_NET_HAS_INT64 is 0, with no 64-bit integer type, it
@@ -71,7 +71,7 @@ TABLE OF CONTENTS
 // djinterp
 #include "../../../djinterp.h"  // framework root
 #include "../net_common.h"     // dj_net_connection
-#include "../ssl/ssl.h"        // dj_ssl_context, dj_ssl_session
+#include "../tls/tls.h"        // dj_tls_context, dj_tls_session
 #include "../tcp/tcp.h"        // dj_tcp_connection
 #include "./smtp_common.h"     // replies, capabilities, errors
 #include "./smtp_reader.h"     // dj_smtp_reader
@@ -138,7 +138,7 @@ struct dj_smtp_credentials
 // 1.3.1
 // dj_smtp_client_options
 //   struct: everything d_smtp_client_connect() needs. Strings are borrowed
-// for the duration of the call. `tls` is a client context of the SSL kernel,
+// for the duration of the call. `tls` is a client context of the TLS kernel,
 // borrowed for as long as the session lasts; the modes that require TLS
 // need one, and STARTTLS_OPTIONAL without one stays in plaintext.
 // `server_name` is the name the server's certificate must carry, and the
@@ -148,7 +148,7 @@ struct dj_smtp_client_options
     const char*                 host;
     unsigned int                port;                 // 0: by security mode
     enum dj_smtp_security        security;
-    const struct dj_ssl_context* tls;                  // NULL: plaintext only
+    const struct dj_tls_context* tls;                  // NULL: plaintext only
     const char*                 server_name;          // NULL: host
     const char*                 helo_domain;          // NULL: this machine
     long                        connect_timeout_ms;
@@ -247,18 +247,18 @@ enum dj_smtp_client_state
 // opened it, or the caller's, which is borrowed. Once this client has made
 // TLS over it, `tls` is that session and the reader reads its view. Why a
 // session failed is kept: `reader.net_error` holds what the connection
-// reported, and `tls_status` what the SSL kernel did when TLS failed,
-// D_SSL_OK otherwise.
+// reported, and `tls_status` what the TLS kernel did when TLS failed,
+// D_TLS_OK otherwise.
 struct dj_smtp_client
 {
     struct dj_smtp_reader       reader;               // reads the stream
     struct dj_net_connection*   connection;           // the plaintext stream
     struct dj_tcp_connection    tcp;                  // when connect() opened
-    struct dj_ssl_session       tls;                  // when this client made
+    struct dj_tls_session       tls;                  // when this client made
     struct dj_smtp_capabilities capabilities;
     struct dj_smtp_reply        reply;
     enum dj_smtp_client_state   state;
-    enum dj_ssl_error           tls_status;           // why TLS failed
+    enum dj_tls_error           tls_status;           // why TLS failed
     bool                       owns_tcp;             // connect() opened `tcp`
     bool                       has_tls;              // `tls` is live
     bool                       secure;               // channel encrypted
@@ -414,7 +414,7 @@ enum dj_smtp_error d_smtp_client_hello(
  */
 enum dj_smtp_error d_smtp_client_starttls(
     struct dj_smtp_client*       _client,
-    const struct dj_ssl_context* _tls,
+    const struct dj_tls_context* _tls,
     const char*                  _server_name
 );
 
@@ -535,7 +535,7 @@ void d_smtp_client_close(
 // d_smtp_client_tls_session - the TLS session this client made, which tells
 // what was negotiated and, after D_SMTP_ERROR_TLS, why it failed; NULL
 // before one was made, after close, or for NULL
-const struct dj_ssl_session* d_smtp_client_tls_session(
+const struct dj_tls_session* d_smtp_client_tls_session(
     const struct dj_smtp_client* _client
 );
 

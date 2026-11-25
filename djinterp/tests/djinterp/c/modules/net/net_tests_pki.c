@@ -8,7 +8,7 @@
 * certificate from a second CA that the tests never trust. Each valid one is
 * good from a day ago to a week ahead, so nothing in a suite expires, and
 * nothing private is kept in the tree. The files go to a fresh directory
-* under TMPDIR, or /tmp, and leave with it. The SSL, STARTTLS and SMTP
+* under TMPDIR, or /tmp, and leave with it. The TLS, STARTTLS and SMTP
 * suites share it; it began as STARTTLS's own.
 *
 *

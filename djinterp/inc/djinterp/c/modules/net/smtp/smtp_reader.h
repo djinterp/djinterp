@@ -6,7 +6,7 @@
 * this one reader: it buffers what a net.h connection delivers and hands out
 * one line at a time, framed by net's line buffer. The connection is any
 * dj_net_connection - a TCP connection from tcp.h, the view of a TLS session
-* of the SSL kernel over one, a caller's own, or net_memory.h's pipe in a
+* of the TLS kernel over one, a caller's own, or net_memory.h's pipe in a
 * test - so neither engine knows what carries its lines.
 *   Writing needs nothing of SMTP's own: the engines write through
 * d_net_write_all and judge what it reports with d_smtp_error_from_net.

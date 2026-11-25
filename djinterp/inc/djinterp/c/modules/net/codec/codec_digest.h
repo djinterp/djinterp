@@ -4,7 +4,7 @@
 * Message digests for net's protocols: MD5, SHA-1 and SHA-256, HMAC over each,
 * and the two operations a digest of a secret needs.
 *   One implementation serves every module that hashes: SHA-256 for
-* certificate and host-key fingerprints (ssl, ssh), HMAC-SHA1 for OpenSSH's
+* certificate and host-key fingerprints (tls, ssh), HMAC-SHA1 for OpenSSH's
 * hashed known_hosts entries (ssh), MD5 for APOP (pop) and HMAC-MD5 for
 * CRAM-MD5 (smtp). It is written here rather than taken from a crypto
 * library, so every module digests the same way whichever TLS or SSH engine

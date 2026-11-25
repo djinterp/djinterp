@@ -387,7 +387,7 @@ struct dj_tests_smtp_bad_config
     const char*                 domain;
     size_t                      max_message_size;
     size_t                      max_recipients;
-    const struct dj_ssl_context* tls;
+    const struct dj_tls_context* tls;
 };
 
 /*
@@ -555,11 +555,11 @@ bool d_tests_smtp_server_contexts(
     const char* const              TEST        =
         "d_smtp_server_session (contexts)";
     struct dj_tests_net_toy         toys[2]     = { { .alerts = false } };
-    struct dj_ssl_context           contexts[2] = { { .engine = NULL } };
-    struct dj_ssl_context           empty       =
+    struct dj_tls_context           contexts[2] = { { .engine = NULL } };
+    struct dj_tls_context           empty       =
     {
         .engine    = NULL,
-        .plan.role = D_SSL_ROLE_SERVER
+        .plan.role = D_TLS_ROLE_SERVER
     };
     struct dj_tests_net_peer* const peer        = d_tests_smtp_peer("QUIT\r\n");
     bool                           result      = true;
@@ -614,8 +614,8 @@ bool d_tests_smtp_server_contexts(
                                 TEST,
                                 "a server's context is taken",
                                 _suite) && result;
-    d_ssl_context_destroy(&contexts[1]);
-    d_ssl_context_destroy(&contexts[0]);
+    d_tls_context_destroy(&contexts[1]);
+    d_tls_context_destroy(&contexts[0]);
     d_tests_net_peer_free(peer);
 
     return result;

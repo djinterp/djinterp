@@ -11,8 +11,8 @@
 * sessions where a test asks it to; adopt's refusals are tested over a
 * connection that carries nothing. The suite runs from C++98: connect and
 * accept fill an open_result in place at every level, and the by-value forms
-* and the moves are checked from C++11. Link the SSL kernel (ssl.c,
-* ssl_openssl.c), tcp.c, net_common.c, dmutex.c, sink_common.c and the
+* and the moves are checked from C++11. Link the TLS kernel (tls.c,
+* tls_openssl.c), tcp.c, net_common.c, dmutex.c, sink_common.c and the
 * codec, and -lssl -lcrypto.
 *
 *
@@ -519,7 +519,7 @@ NS_INTERNAL
     // `refuses` makes it refuse sessions, as a backend might.
     struct watcher
     {
-        ::dj_ssl_engine engine;
+        ::dj_tls_engine engine;
         int            contexts;
         bool           refuses;
     };
@@ -539,16 +539,16 @@ NS_INTERNAL
     {
         // watch_context
         //   function: counts a context, then makes it as the engine would.
-        static enum dj_ssl_error
+        static enum dj_tls_error
         watch_context(
-            const struct dj_ssl_config* _config,
-            const struct dj_ssl_plan*   _plan,
+            const struct dj_tls_config* _config,
+            const struct dj_tls_plan*   _plan,
             void**                     _out_context
         )
         {
             watching().contexts += 1;
 
-            return ::d_ssl_engine_openssl()->context_create(_config,
+            return ::d_tls_engine_openssl()->context_create(_config,
                                                             _plan,
                                                             _out_context);
         }
@@ -556,7 +556,7 @@ NS_INTERNAL
         // watch_session
         //   function: refuses a session, as a backend might, when told to;
         // otherwise makes it as the engine would.
-        static enum dj_ssl_error
+        static enum dj_tls_error
         watch_session(
             void*       _context,
             const char* _host,
@@ -564,10 +564,10 @@ NS_INTERNAL
             void**      _out_session
         )
         {
-            const struct dj_ssl_engine* const engine = ::d_ssl_engine_openssl();
+            const struct dj_tls_engine* const engine = ::d_tls_engine_openssl();
 
             return (watching().refuses)
-                       ? D_SSL_ERROR_BACKEND
+                       ? D_TLS_ERROR_BACKEND
                        : engine->session_create(_context,
                                                 _host,
                                                 _sni,
@@ -578,11 +578,11 @@ NS_INTERNAL
     // watched_engine
     //   function: the watcher's engine, with its counts cleared.
     static
-    const ::dj_ssl_engine* watched_engine()
+    const ::dj_tls_engine* watched_engine()
     {
         watcher& watch = watching();
 
-        watch.engine                = *::d_ssl_engine_openssl();
+        watch.engine                = *::d_tls_engine_openssl();
         watch.engine.context_create = &watch_context;
         watch.engine.session_create = &watch_session;
         watch.contexts              = 0;
@@ -841,7 +841,7 @@ bool tests_tls_prepare()
 
     result = internal::check( (bare.prepare() ==
                                net::io_error::invalid_argument)      &&
-                              (bare.failure() == D_SSL_ERROR_CONFIG) &&
+                              (bare.failure() == D_TLS_ERROR_CONFIG) &&
                               (acceptor.accept(refused) ==
                                net::io_error::invalid_argument)      &&
                               (!refused.ok())                        &&
@@ -856,12 +856,12 @@ bool tests_tls_prepare()
                               (wrong.use_private_key_file(
                                    internal::pem().certificate) ==
                                net::io_error::invalid_argument) &&
-                              (wrong.failure() == D_SSL_ERROR_CONFIG),
+                              (wrong.failure() == D_TLS_ERROR_CONFIG),
                               "a key that is no key is refused") && result;
     result = internal::check( (!none.is_valid())                &&
                               (none.prepare() ==
                                net::io_error::invalid_argument) &&
-                              (none.failure() == D_SSL_ERROR_UNSUPPORTED),
+                              (none.failure() == D_TLS_ERROR_UNSUPPORTED),
                               "without an engine nothing is made live") &&
              result;
 
@@ -882,28 +882,28 @@ bool tests_tls_settings()
 {
     net::tls_context      client(net::tls_context::role::client);
     net::tls_context      server(net::tls_context::role::server);
-    const ::dj_ssl_config& mine   =
+    const ::dj_tls_config& mine   =
         static_cast<const net::tls_context&>(client).config();
-    const ::dj_ssl_config& theirs =
+    const ::dj_tls_config& theirs =
         static_cast<const net::tls_context&>(server).config();
     bool                  result = true;
 
-    const bool defaults = ( (mine.verify == D_SSL_VERIFY_REQUIRED) &&
+    const bool defaults = ( (mine.verify == D_TLS_VERIFY_REQUIRED) &&
                             (mine.verify_hostname)                 &&
-                            (theirs.verify == D_SSL_VERIFY_NONE) );
+                            (theirs.verify == D_TLS_VERIFY_NONE) );
 
     client.set_verify_peer(false);
 
-    const bool off = ( (mine.verify == D_SSL_VERIFY_NONE) &&
+    const bool off = ( (mine.verify == D_TLS_VERIFY_NONE) &&
                        (!mine.verify_hostname) );
 
     client.set_verify_peer(true);
     server.set_verify_peer(true);
     result = internal::check( (defaults)                               &&
                               (off)                                    &&
-                              (mine.verify == D_SSL_VERIFY_REQUIRED)   &&
+                              (mine.verify == D_TLS_VERIFY_REQUIRED)   &&
                               (mine.verify_hostname)                   &&
-                              (theirs.verify == D_SSL_VERIFY_OPTIONAL) &&
+                              (theirs.verify == D_TLS_VERIFY_OPTIONAL) &&
                               (!theirs.verify_hostname),
                               "set_verify_peer, in either role") && result;
     client.config().use_system_trust = false;
@@ -915,11 +915,11 @@ bool tests_tls_settings()
 
     const bool failed = ( (server.prepare() ==
                            net::io_error::invalid_argument) &&
-                          (server.failure() == D_SSL_ERROR_CONFIG) );
+                          (server.failure() == D_TLS_ERROR_CONFIG) );
 
     server.set_min_version(net::tls_context::version::tls1_2);
     result = internal::check( (failed) &&
-                              (server.failure() == D_SSL_OK),
+                              (server.failure() == D_TLS_OK),
                               "a change forgets the last failure") && result;
 
     const int  before = internal::free_descriptor();
@@ -958,7 +958,7 @@ bool tests_tls_naming()
     result = internal::check( (internal::pem().written)                &&
                               (client.use_verify_file(key) ==
                                net::io_error::invalid_argument)        &&
-                              (client.failure() == D_SSL_ERROR_CONFIG) &&
+                              (client.failure() == D_TLS_ERROR_CONFIG) &&
                               (client.prepare() ==
                                net::io_error::invalid_argument)        &&
                               (client.use_verify_file(certificate) ==
@@ -979,7 +979,7 @@ bool tests_tls_naming()
                               "a certificate waits for its key") && result;
     result = internal::check( (waiting.use_verify_file(key) ==
                                net::io_error::none) &&
-                              (waiting.failure() == D_SSL_OK),
+                              (waiting.failure() == D_TLS_OK),
                               "a server without its identity waits") &&
              result;
 
@@ -997,7 +997,7 @@ tests_tls_remaking
 */
 bool tests_tls_remaking()
 {
-    const ::dj_ssl_engine* const engine  = internal::watched_engine();
+    const ::dj_tls_engine* const engine  = internal::watched_engine();
     const int&                  made    = internal::watching().contexts;
     net::tls_context            client(net::tls_context::role::client,
                                        engine);
@@ -1061,7 +1061,7 @@ tests_tls_identity
 */
 bool tests_tls_identity()
 {
-    const ::dj_ssl_engine* const engine = internal::watched_engine();
+    const ::dj_tls_engine* const engine = internal::watched_engine();
     const int&                  made   = internal::watching().contexts;
     const std::string&          bundle = internal::pem().certificate;
     const ::dj_pack_text         chain  = { internal::CERTIFICATE,
@@ -1112,7 +1112,7 @@ bool tests_tls_identity()
              result;
     result = internal::check( (tiny.use_verify_file(bundle) ==
                                net::io_error::invalid_argument) &&
-                              (tiny.failure() == D_SSL_ERROR_CONFIG),
+                              (tiny.failure() == D_TLS_ERROR_CONFIG),
                               "a one-byte identity is complete, and refused") &&
              result;
 
@@ -1211,7 +1211,7 @@ bool tests_tls_loopback()
                               (server.received == "hello") &&
                               (server.outcome == net::io_error::none),
                               "bytes cross both ways") && result;
-    result = internal::check(version >= D_SSL_VERSION_TLS1_2,
+    result = internal::check(version >= D_TLS_VERSION_TLS1_2,
                              "the protocol is TLS 1.2 or later") && result;
 
     return result;
@@ -1370,8 +1370,8 @@ bool tests_tls_versions()
     net::open_result     refused;
     bool                 result = true;
 
-    older.acceptor.context().config().max_version  = D_SSL_VERSION_TLS1_2;
-    oldest.acceptor.context().config().max_version = D_SSL_VERSION_TLS1_2;
+    older.acceptor.context().config().max_version  = D_TLS_VERSION_TLS1_2;
+    oldest.acceptor.context().config().max_version = D_TLS_VERSION_TLS1_2;
     settling.set_verify(false);
     demanding.set_verify(false);
     demanding.context().set_min_version(net::tls_context::version::tls1_3);
@@ -1383,7 +1383,7 @@ bool tests_tls_versions()
           (settling.connect(older.acceptor.local_endpoint(),
                             client) == net::io_error::none) &&
           (static_cast<net::tls_connection*>(client.get())
-           ->info().version == D_SSL_VERSION_TLS1_2)    &&
+           ->info().version == D_TLS_VERSION_TLS1_2)    &&
           (internal::exchange(*client)) );
     const net::io_error::value demanded =
         (started) ? demanding.connect(oldest.acceptor.local_endpoint(),
@@ -1593,9 +1593,9 @@ bool tests_tls_alpn()
         ( (started) &&
           (connector.connect(server.acceptor.local_endpoint(),
                              client) == net::io_error::none) );
-    const ::dj_ssl_info info   =
+    const ::dj_tls_info info   =
         (opened) ? static_cast<net::tls_connection*>(client.get())->info()
-                 : ::dj_ssl_info();
+                 : ::dj_tls_info();
     const bool        crossed = ( (opened) &&
                                   (internal::exchange(*client)) );
 
@@ -1604,7 +1604,7 @@ bool tests_tls_alpn()
     result = internal::check( (crossed)                               &&
                               (std::string(info.alpn,
                                            info.alpn_length) == "h2") &&
-                              (info.version >= D_SSL_VERSION_TLS1_2)  &&
+                              (info.version >= D_TLS_VERSION_TLS1_2)  &&
                               (info.has_peer_certificate),
                               "ALPN set through config() is agreed") &&
              result;
@@ -1797,7 +1797,7 @@ bool tests_tls_moving()
           (from.shutdown(net::shutdown_mode::write) ==
            net::io_error::closed)                     &&
           (from.session() == D_NULLPTR)               &&
-          (from.info().version == D_SSL_VERSION_NONE) &&
+          (from.info().version == D_TLS_VERSION_NONE) &&
           (from.remote_endpoint().port == 0u)         &&
           (from.local_endpoint().port == 0u) );
     const bool           carried = internal::exchange(moved);

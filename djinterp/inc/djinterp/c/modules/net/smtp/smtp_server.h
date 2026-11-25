@@ -6,7 +6,7 @@
 * runs one connection, from greeting to QUIT, over any net.h connection, and
 * hands each accepted message to the caller's handler. It advertises and
 * implements PIPELINING, SIZE, 8BITMIME, ENHANCEDSTATUSCODES and SMTPUTF8,
-* plus STARTTLS when a server context of the SSL kernel is configured, and
+* plus STARTTLS when a server context of the TLS kernel is configured, and
 * AUTH PLAIN and LOGIN when the handler can check credentials.
 *   The engine owns no sockets and no threads. A caller accepts connections
 * (tcp.h's listeners serve) and decides how sessions run in parallel; the
@@ -55,7 +55,7 @@ TABLE OF CONTENTS
 // djinterp
 #include "../../../djinterp.h"  // framework root
 #include "../net_common.h"     // dj_net_connection
-#include "../ssl/ssl.h"        // dj_ssl_context
+#include "../tls/tls.h"        // dj_tls_context
 #include "./smtp_common.h"     // dj_smtp_error
 
 
@@ -90,14 +90,14 @@ D_EXTERN_C_BEGIN
 // dj_smtp_server_config
 //   struct: one server's settings. Strings, and `tls`, are borrowed and must
 // outlive every session that uses them. `tls` is a server context of the
-// SSL kernel - its certificate, its key, and what it asks of clients --
+// TLS kernel - its certificate, its key, and what it asks of clients --
 // and STARTTLS is offered only with one.
 struct dj_smtp_server_config
 {
     const char*                 domain;               // name in replies
     size_t                      max_message_size;     // bytes; SIZE
     size_t                      max_recipients;       // per message
-    const struct dj_ssl_context* tls;                  // NULL: no STARTTLS
+    const struct dj_tls_context* tls;                  // NULL: no STARTTLS
     unsigned int                auth_mechanisms;      // PLAIN and/or LOGIN
     bool                        require_tls;          // MAIL needs TLS first
     bool                        require_auth;         // MAIL needs AUTH first
@@ -203,7 +203,7 @@ void d_smtp_server_handler_init(
  * @brief Serves one connection, from the 220 greeting until QUIT or until
  *        the connection fails.
  *
- * @note STARTTLS makes a TLS session of the SSL kernel over the connection,
+ * @note STARTTLS makes a TLS session of the TLS kernel over the connection,
  *       from the configuration's context, and the session then runs over
  *       it. That TLS session is the session's own: as the session ends it
  *       sends close_notify, unless it failed or the client closed it

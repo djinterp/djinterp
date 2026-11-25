@@ -4,9 +4,9 @@
 * Implementation of the FTP and FTPS client declared in ftp_client.h: the
 * session, and the helpers ftp_client_data.c shares.
 *   Every connection is a TCP connection read and written through net.h. A
-* TLS session runs over it as the SSL kernel's transport, and a plain
+* TLS session runs over it as the TLS kernel's transport, and a plain
 * connection is read and written as the kernel reads and writes a
-* transport, its results mapped onto SSL statuses the same way, so the
+* transport, its results mapped onto TLS statuses the same way, so the
 * protocol code above them never asks which is in force. Control replies are
 * parsed from a read-ahead buffer; whatever the parser has not taken stays
 * there for the next reply, which is also how an AUTH TLS upgrade can tell
@@ -34,7 +34,7 @@
 #include "../../../../../../inc/djinterp/c/modules/net/ftp/ftp_reply.h"     // replies
 #include "../../../../../../inc/djinterp/c/modules/net/ftp/ftp_security.h"  // PROT levels
 #include "../../../../../../inc/djinterp/c/modules/net/net_common.h"        // dj_net_endpoint
-#include "../../../../../../inc/djinterp/c/modules/net/ssl/ssl.h"           // dj_ssl_session
+#include "../../../../../../inc/djinterp/c/modules/net/tls/tls.h"           // dj_tls_session
 #include "../../../../../../inc/djinterp/c/modules/net/tcp/tcp.h"           // d_tcp_connect
 #include "./ftp_client_internal.h"                          // shared helpers
 // re_std
@@ -47,12 +47,12 @@
 
 /*
 d_ftp_internal_client_plain_read
-  File-local: reads the TCP connection directly, its result mapped as the SSL
+  File-local: reads the TCP connection directly, its result mapped as the TLS
 kernel maps its transport's: the end of the stream, a count of 0 without an
 error, reads as CLOSED, and any error as TRANSPORT, kept in the connection's
 `failure`.
 */
-D_STATIC enum dj_ssl_error
+D_STATIC enum dj_tls_error
 d_ftp_internal_client_plain_read(
     struct dj_ftp_connection* _connection,
     void*                    _buffer,
@@ -71,11 +71,11 @@ d_ftp_internal_client_plain_read(
     // a failed read
     if (result.error != D_NET_OK)
     {
-        return D_SSL_ERROR_TRANSPORT;
+        return D_TLS_ERROR_TRANSPORT;
     }
 
-    return (result.count == 0u) ? D_SSL_ERROR_CLOSED
-                                : D_SSL_OK;
+    return (result.count == 0u) ? D_TLS_ERROR_CLOSED
+                                : D_TLS_OK;
 }
 
 /*
@@ -84,7 +84,7 @@ d_ftp_internal_client_plain_write
 that has gone reads as CLOSED, which the kernel defines as "no longer
 reads"; a write that took nothing, or failed otherwise, is TRANSPORT.
 */
-D_STATIC enum dj_ssl_error
+D_STATIC enum dj_tls_error
 d_ftp_internal_client_plain_write(
     struct dj_ftp_connection* _connection,
     const void*              _data,
@@ -110,20 +110,20 @@ d_ftp_internal_client_plain_write(
             return ( (result.error == D_NET_ERROR_CLOSED)             ||
                      (result.error == D_NET_ERROR_CONNECTION_RESET)   ||
                      (result.error == D_NET_ERROR_CONNECTION_ABORTED) )
-                   ? D_SSL_ERROR_CLOSED
-                   : D_SSL_ERROR_TRANSPORT;
+                   ? D_TLS_ERROR_CLOSED
+                   : D_TLS_ERROR_TRANSPORT;
         }
 
         // a write that took nothing would loop forever
         if (result.count == 0u)
         {
-            return D_SSL_ERROR_TRANSPORT;
+            return D_TLS_ERROR_TRANSPORT;
         }
 
         done += result.count;
     }
 
-    return D_SSL_OK;
+    return D_TLS_OK;
 }
 
 /*
@@ -131,7 +131,7 @@ d_ftp_internal_client_read
   Without TLS the connection is read directly, mapped as a TLS session maps
 its transport.
 */
-enum dj_ssl_error
+enum dj_tls_error
 d_ftp_internal_client_read(
     struct dj_ftp_connection* _connection,
     void*                    _buffer,
@@ -148,7 +148,7 @@ d_ftp_internal_client_read(
                                                 _out_read);
     }
 
-    return d_ssl_session_read(&_connection->tls,
+    return d_tls_session_read(&_connection->tls,
                               _buffer,
                               _capacity,
                               _out_read);
@@ -159,7 +159,7 @@ d_ftp_internal_client_write
   Without TLS the connection is written directly, mapped as a TLS session
 maps its transport.
 */
-enum dj_ssl_error
+enum dj_tls_error
 d_ftp_internal_client_write(
     struct dj_ftp_connection* _connection,
     const void*              _data,
@@ -174,7 +174,7 @@ d_ftp_internal_client_write(
                                                  _size);
     }
 
-    return d_ssl_session_write_all(&_connection->tls,
+    return d_tls_session_write_all(&_connection->tls,
                                    _data,
                                    _size,
                                    NULL);
@@ -192,7 +192,7 @@ enum dj_ftp_error
 d_ftp_internal_client_failure(
     struct dj_ftp_client*     _client,
     struct dj_ftp_connection* _connection,
-    enum dj_ssl_error         _status,
+    enum dj_tls_error         _status,
     enum dj_ftp_error         _lost
 )
 {
@@ -202,7 +202,7 @@ d_ftp_internal_client_failure(
     if (_connection->secured)
     {
         _connection->failure =
-            d_ssl_session_transport_error(&_connection->tls);
+            d_tls_session_transport_error(&_connection->tls);
     }
 
     _client->net_error = _connection->failure;
@@ -214,10 +214,10 @@ d_ftp_internal_client_failure(
     }
 
     // the stream ended or broke
-    if ( (_status == D_SSL_ERROR_CLOSED)    ||
-         (_status == D_SSL_ERROR_TRANSPORT) ||
+    if ( (_status == D_TLS_ERROR_CLOSED)    ||
+         (_status == D_TLS_ERROR_TRANSPORT) ||
          ( (framed) &&
-           (_status == D_SSL_ERROR_TRUNCATED) ) )
+           (_status == D_TLS_ERROR_TRUNCATED) ) )
     {
         return _lost;
     }
@@ -361,7 +361,7 @@ d_ftp_internal_client_secure
   The session names the server's host, which the kernel checks the
 certificate against and, for a name, sends as SNI. Every connection of a
 session uses the same context and host, and a data connection is offered the
-control connection's session to resume (d_ssl_session_resume): a server may
+control connection's session to resume (d_tls_session_resume): a server may
 require it, as vsftpd does by default. Whether the server took it is the
 handshake's to say.
 */
@@ -376,35 +376,35 @@ d_ftp_internal_client_secure(
         _client->host,
         strlen(_client->host)
     };
-    enum dj_ssl_error         status =
-        d_ssl_session_init(&_connection->tls,
+    enum dj_tls_error         status =
+        d_tls_session_init(&_connection->tls,
                            _client->tls,
                            &_connection->tcp.base,
                            host);
 
     // a data connection offers the control connection's session
-    if ( (status == D_SSL_OK)               &&
+    if ( (status == D_TLS_OK)               &&
          (_connection != &_client->control) &&
          (_client->control.secured) )
     {
-        status = d_ssl_session_resume(&_connection->tls,
+        status = d_tls_session_resume(&_connection->tls,
                                       &_client->control.tls);
     }
 
     // the handshake runs only on a session that could be made
-    if (status == D_SSL_OK)
+    if (status == D_TLS_OK)
     {
-        status = d_ssl_session_handshake(&_connection->tls);
+        status = d_tls_session_handshake(&_connection->tls);
     }
 
     // a failure leaves nothing behind
-    if (status != D_SSL_OK)
+    if (status != D_TLS_OK)
     {
         _connection->failure =
-            d_ssl_session_transport_error(&_connection->tls);
+            d_tls_session_transport_error(&_connection->tls);
         _client->tls_status  = status;
         _client->net_error   = _connection->failure;
-        d_ssl_session_destroy(&_connection->tls);
+        d_tls_session_destroy(&_connection->tls);
 
         return (_connection->failure == D_NET_ERROR_TIMED_OUT)
                ? D_FTP_ERROR_TIMED_OUT
@@ -432,10 +432,10 @@ void d_ftp_internal_client_drop(
         // close_notify, when the close is orderly
         if (_orderly)
         {
-            (void)d_ssl_session_shutdown(&_connection->tls);
+            (void)d_tls_session_shutdown(&_connection->tls);
         }
 
-        d_ssl_session_destroy(&_connection->tls);
+        d_tls_session_destroy(&_connection->tls);
         _connection->secured = false;
     }
 
@@ -507,14 +507,14 @@ d_ftp_internal_client_reply(
         }
 
         size_t                 received = 0u;
-        const enum dj_ssl_error status   =
+        const enum dj_tls_error status   =
             d_ftp_internal_client_read(&_client->control,
                                        _client->input,
                                        sizeof(_client->input),
                                        &received);
 
         // the control connection failed
-        if (status != D_SSL_OK)
+        if (status != D_TLS_OK)
         {
             return d_ftp_internal_client_failure(
                        _client,
@@ -555,13 +555,13 @@ d_ftp_internal_client_send(
         return D_FTP_ERROR_INVALID_ARGUMENT;
     }
 
-    const enum dj_ssl_error status =
+    const enum dj_tls_error status =
         d_ftp_internal_client_write(&_client->control,
                                     buffer.data,
                                     buffer.length);
 
     // the control connection failed
-    if (status != D_SSL_OK)
+    if (status != D_TLS_OK)
     {
         return d_ftp_internal_client_failure(_client,
                                              &_client->control,
@@ -652,9 +652,9 @@ bool d_ftp_internal_client_plan_ok(
         return false;
     }
 
-    const struct dj_ssl_plan* const plan = &_client->tls->plan;
+    const struct dj_tls_plan* const plan = &_client->tls->plan;
 
-    return ( (plan->role == D_SSL_ROLE_CLIENT) &&
+    return ( (plan->role == D_TLS_ROLE_CLIENT) &&
              ( (!options->verify_peer) ||
                (plan->verify_chain)    ||
                (plan->check_pins) )     &&
@@ -670,7 +670,7 @@ against the system trust store; only what the options turn off changes.
 */
 void d_ftp_client_tls_config(
     const struct dj_ftp_options* _options,
-    struct dj_ssl_config*        _config
+    struct dj_tls_config*        _config
 )
 {
     // parameter validation
@@ -680,11 +680,11 @@ void d_ftp_client_tls_config(
         return;
     }
 
-    d_ssl_config_init(_config,
-                      D_SSL_ROLE_CLIENT);
+    d_tls_config_init(_config,
+                      D_TLS_ROLE_CLIENT);
 
-    _config->verify          = (_options->verify_peer) ? D_SSL_VERIFY_REQUIRED
-                                                       : D_SSL_VERIFY_NONE;
+    _config->verify          = (_options->verify_peer) ? D_TLS_VERIFY_REQUIRED
+                                                       : D_TLS_VERIFY_NONE;
     _config->verify_hostname = ( (_options->verify_peer) &&
                                  (_options->verify_host) );
 
@@ -700,7 +700,7 @@ storage, and clear data protection.
 void d_ftp_client_init(
     struct dj_ftp_client*        _client,
     const struct dj_ftp_options* _options,
-    const struct dj_ssl_context* _tls
+    const struct dj_tls_context* _tls
 )
 {
     // parameter validation
@@ -725,7 +725,7 @@ void d_ftp_client_init(
 
     _client->tls        = _tls;
     _client->protection = D_FTP_PROTECTION_CLEAR;
-    _client->tls_status = D_SSL_OK;
+    _client->tls_status = D_TLS_OK;
     _client->net_error  = D_NET_OK;
 
     d_tcp_connection_init(&_client->control.tcp);
@@ -1087,26 +1087,26 @@ d_ftp_internal_client_clear(
 
     char             scratch[1] = { 0 };
     size_t           received   = 0u;
-    enum dj_ssl_error status     =
-        d_ssl_session_shutdown(&_client->control.tls);
+    enum dj_tls_error status     =
+        d_tls_session_shutdown(&_client->control.tls);
 
     // the server's close_notify is the only thing that may come next
-    if (status == D_SSL_OK)
+    if (status == D_TLS_OK)
     {
-        status = d_ssl_session_read(&_client->control.tls,
+        status = d_tls_session_read(&_client->control.tls,
                                     scratch,
                                     sizeof(scratch),
                                     &received);
 
         // data where close_notify belonged
-        if (status == D_SSL_OK)
+        if (status == D_TLS_OK)
         {
             return D_FTP_ERROR_SECURITY;
         }
     }
 
     // anything but the server's close_notify is a failure
-    if (status != D_SSL_ERROR_CLOSED)
+    if (status != D_TLS_ERROR_CLOSED)
     {
         return d_ftp_internal_client_failure(_client,
                                              &_client->control,
@@ -1114,7 +1114,7 @@ d_ftp_internal_client_clear(
                                              D_FTP_ERROR_CLOSED);
     }
 
-    d_ssl_session_destroy(&_client->control.tls);
+    d_tls_session_destroy(&_client->control.tls);
     _client->control.secured = false;
 
     return D_FTP_OK;

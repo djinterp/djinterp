@@ -20,7 +20,7 @@
 #include <pthread.h>  // pthread_t
 // djinterp
 #include "../../../../../../inc/djinterp/c/modules/net/ftp/ftp.h"  // d_ftp_*, dj_tcp_listener
-#include "../../../../../../inc/djinterp/c/modules/net/ssl/ssl.h"  // dj_ssl_context, engines
+#include "../../../../../../inc/djinterp/c/modules/net/tls/tls.h"  // dj_tls_context, engines
 // re_std
 #include "../../../../../../inc/re_std/c/cstdint/dstdint.h"  // uint16_t, uint32_t
 
@@ -39,7 +39,7 @@ struct dj_tests_ftps_toy_settings
 // g_toy, TOY
 //   variable: the toy engine's settings, and the engine itself.
 extern struct dj_tests_ftps_toy_settings g_toy;
-extern const struct dj_ssl_engine        TOY;
+extern const struct dj_tls_engine        TOY;
 
 // dj_tests_ftps_server_config
 //   struct: how the server behaves; each field is 0 or 1.
@@ -60,7 +60,7 @@ struct dj_tests_ftps_server_config
 struct dj_tests_ftps_server
 {
     struct dj_tests_ftps_server_config cfg;           // its behaviour
-    struct dj_ssl_context              tls;           // its toy context
+    struct dj_tls_context              tls;           // its toy context
     struct dj_tcp_listener             listener;      // on 127.0.0.1
     uint16_t                          port;          // the listener's port
     pthread_t                         thread;        // the session's thread

@@ -6,9 +6,9 @@
 * the tests speak HTTP/1.1 to it over plain TCP connections of tcp.hpp's,
 * byte for byte, so nothing between them hides what the server sends; one
 * test serves https through tls_acceptor, the TLS suite's certificate on its
-* context, where the SSL kernel has its OpenSSL-family engine. The suite runs
-* from C++98. Link net_common.c, tcp.c and dmutex.c, the kernel (ssl.c,
-* ssl_openssl.c), sink_common.c and the codec, and with OpenSSL -lssl
+* context, where the TLS kernel has its OpenSSL-family engine. The suite runs
+* from C++98. Link net_common.c, tcp.c and dmutex.c, the kernel (tls.c,
+* tls_openssl.c), sink_common.c and the codec, and with OpenSSL -lssl
 * -lcrypto.
 *
 *

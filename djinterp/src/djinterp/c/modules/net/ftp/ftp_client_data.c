@@ -33,7 +33,7 @@
 #include "../../../../../../inc/djinterp/c/modules/net/ftp/ftp_security.h"  // PROT levels
 #include "../../../../../../inc/djinterp/c/modules/net/ftp/ftp_transfer.h"  // TYPE, ASCII
 #include "../../../../../../inc/djinterp/c/modules/net/net_common.h"        // dj_net_endpoint
-#include "../../../../../../inc/djinterp/c/modules/net/ssl/ssl.h"           // dj_ssl_session
+#include "../../../../../../inc/djinterp/c/modules/net/tls/tls.h"           // dj_tls_session
 #include "../../../../../../inc/djinterp/c/modules/net/tcp/tcp.h"           // dj_tcp_listener
 #include "./ftp_client_internal.h"                          // shared helpers
 // re_std
@@ -761,20 +761,20 @@ d_ftp_internal_client_receive(
     for (;;)
     {
         size_t                 received = 0u;
-        const enum dj_ssl_error status   =
+        const enum dj_tls_error status   =
             d_ftp_internal_client_read(&_client->data,
                                        chunk,
                                        sizeof(chunk),
                                        &received);
 
         // close_notify, or a plain stream's end: the data is complete
-        if (status == D_SSL_ERROR_CLOSED)
+        if (status == D_TLS_ERROR_CLOSED)
         {
             break;
         }
 
         // anything else failed, TLS ending without close_notify included
-        if (status != D_SSL_OK)
+        if (status != D_TLS_OK)
         {
             return d_ftp_internal_client_failure(
                        _client,
@@ -818,12 +818,12 @@ d_ftp_internal_client_write_data(
         return D_FTP_OK;
     }
 
-    const enum dj_ssl_error status =
+    const enum dj_tls_error status =
         d_ftp_internal_client_write(&_client->data,
                                     _data,
                                     _size);
 
-    return (status == D_SSL_OK)
+    return (status == D_TLS_OK)
            ? D_FTP_OK
            : d_ftp_internal_client_failure(_client,
                                            &_client->data,
@@ -996,11 +996,11 @@ d_ftp_internal_client_close_upload(
 )
 {
     char             scratch[256] = { 0 };
-    enum dj_ssl_error status       =
-        d_ssl_session_shutdown(&_client->data.tls);
+    enum dj_tls_error status       =
+        d_tls_session_shutdown(&_client->data.tls);
 
     // without close_notify the server cannot tell the upload is complete
-    if (status != D_SSL_OK)
+    if (status != D_TLS_OK)
     {
         return d_ftp_internal_client_failure(_client,
                                              &_client->data,
@@ -1010,12 +1010,12 @@ d_ftp_internal_client_close_upload(
 
     // then the server's close_notify, or the end of the stream
     for (size_t discarded = 0u;
-         (status == D_SSL_OK) &&
+         (status == D_TLS_OK) &&
          (discarded <= D_FTP_CLIENT_CHUNK_SIZE); )
     {
         size_t received = 0u;
 
-        status     = d_ssl_session_read(&_client->data.tls,
+        status     = d_tls_session_read(&_client->data.tls,
                                         scratch,
                                         sizeof(scratch),
                                         &received);

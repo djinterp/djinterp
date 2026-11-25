@@ -37,7 +37,7 @@ TABLE OF CONTENTS
 #include "../../../../../../inc/djinterp/c/modules/net/ftp/ftp_client.h"     // dj_ftp_client
 #include "../../../../../../inc/djinterp/c/modules/net/ftp/ftp_command.h"    // dj_ftp_command
 #include "../../../../../../inc/djinterp/c/modules/net/ftp/ftp_common.h"     // dj_ftp_error
-#include "../../../../../../inc/djinterp/c/modules/net/ssl/ssl.h"            // dj_ssl_error
+#include "../../../../../../inc/djinterp/c/modules/net/tls/tls.h"            // dj_tls_error
 // re_std
 #include "../../../../../../inc/re_std/c/cstdint/dstdint.h"  // uint16_t
 
@@ -55,9 +55,9 @@ D_EXTERN_C_BEGIN
 // 1.1    Transfers
 //------------------------------------------------------------------------------
 // Reads and writes go through a connection's TLS session while one is in
-// force and through its transport otherwise, both reported as SSL statuses:
-// D_SSL_ERROR_CLOSED at the end of the stream, and
-// D_SSL_ERROR_TRANSPORT for a transport failure. A write sends everything
+// force and through its transport otherwise, both reported as TLS statuses:
+// D_TLS_ERROR_CLOSED at the end of the stream, and
+// D_TLS_ERROR_TRANSPORT for a transport failure. A write sends everything
 // and flushes it. The transport's last error is the connection's `failure`
 // without TLS, and the session's record of its transport with it.
 // d_ftp_internal_client_failure() turns a failed status, from these calls or
@@ -66,13 +66,13 @@ D_EXTERN_C_BEGIN
 // for a stream that ended or broke, or D_FTP_ERROR_TLS with the status kept
 // - a TLS stream ending without close_notify counts as lost, not as TLS,
 // on the control connection alone, whose replies frame themselves.
-enum dj_ssl_error d_ftp_internal_client_read(
+enum dj_tls_error d_ftp_internal_client_read(
     struct dj_ftp_connection* _connection,
     void*                     _buffer,
     size_t                    _capacity,
     size_t*                   _out_read
 );
-enum dj_ssl_error d_ftp_internal_client_write(
+enum dj_tls_error d_ftp_internal_client_write(
     struct dj_ftp_connection* _connection,
     const void*               _data,
     size_t                    _size
@@ -80,7 +80,7 @@ enum dj_ssl_error d_ftp_internal_client_write(
 enum dj_ftp_error d_ftp_internal_client_failure(
     struct dj_ftp_client*     _client,
     struct dj_ftp_connection* _connection,
-    enum dj_ssl_error         _status,
+    enum dj_tls_error         _status,
     enum dj_ftp_error         _lost
 );
 

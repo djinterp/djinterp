@@ -164,10 +164,10 @@ toy_context_create
   A context of the toy engine: its role, and the session cache a client
 context keeps.
 */
-static enum dj_ssl_error
+static enum dj_tls_error
 toy_context_create(
-    const struct dj_ssl_config* _c,
-    const struct dj_ssl_plan*   _plan,
+    const struct dj_tls_config* _c,
+    const struct dj_tls_plan*   _plan,
     void**                     _out
 )
 {
@@ -176,15 +176,15 @@ toy_context_create(
     (void)_c;
     if (!x)
     {
-        return D_SSL_ERROR_OUT_OF_MEMORY;
+        return D_TLS_ERROR_OUT_OF_MEMORY;
     }
 
-    x->server  = (_plan->role == D_SSL_ROLE_SERVER);
+    x->server  = (_plan->role == D_TLS_ROLE_SERVER);
     x->cache   = g_toy.client_cache;
     x->next_id = 1000;
     *_out       = x;
 
-    return D_SSL_OK;
+    return D_TLS_OK;
 }
 
 /*
@@ -205,7 +205,7 @@ void toy_context_destroy(
 toy_session_create
   A session over a context, at the start of its handshake.
 */
-static enum dj_ssl_error
+static enum dj_tls_error
 toy_session_create(
     void*       _ctx,
     const char* _host,
@@ -218,7 +218,7 @@ toy_session_create(
     (void)_sni;
     if (!s)
     {
-        return D_SSL_ERROR_OUT_OF_MEMORY;
+        return D_TLS_ERROR_OUT_OF_MEMORY;
     }
 
     s->ctx    = _ctx;
@@ -233,7 +233,7 @@ toy_session_create(
 
     *_out = s;
 
-    return D_SSL_OK;
+    return D_TLS_OK;
 }
 
 /*
@@ -255,7 +255,7 @@ toy_feed
   Takes octets the kernel read from the transport into the session's incoming
 buffer.
 */
-static enum dj_ssl_error
+static enum dj_tls_error
 toy_feed(
     void*       _v,
     const void* _d,
@@ -265,7 +265,7 @@ toy_feed(
     struct dj_tests_ftps_toy_session* s = _v;
     if (s->in_len + _n > sizeof s->in)
     {
-        return D_SSL_ERROR_OUT_OF_MEMORY;
+        return D_TLS_ERROR_OUT_OF_MEMORY;
     }
 
     memcpy(s->in + s->in_len,
@@ -273,14 +273,14 @@ toy_feed(
            _n);
     s->in_len += _n;
 
-    return D_SSL_OK;
+    return D_TLS_OK;
 }
 
 /*
 toy_drain
   Hands the kernel the octets the session has queued for the transport.
 */
-static enum dj_ssl_error
+static enum dj_tls_error
 toy_drain(
     void*   _v,
     void*   _b,
@@ -299,7 +299,7 @@ toy_drain(
     s->out_len -= n;
     *_out = n;
 
-    return D_SSL_OK;
+    return D_TLS_OK;
 }
 
 /*
@@ -309,7 +309,7 @@ offers the session it cached for the host, which is how resumption is seen.
 It runs past 75 lines because each state is a case of its own, as the guides
 allow a state machine.
 */
-static enum dj_ssl_error
+static enum dj_tls_error
 toy_handshake(
     void* _v
 )
@@ -320,7 +320,7 @@ toy_handshake(
     size_t                           n;
     if (s->state == 2)
     {
-        return D_SSL_OK;
+        return D_TLS_OK;
     }
 
     if (!s->server)
@@ -346,7 +346,7 @@ toy_handshake(
                       1);
             s->state = 1;
 
-            return D_SSL_ERROR_WANT_READ;
+            return D_TLS_ERROR_WANT_READ;
         }
 
         if (!toy_peek(s,
@@ -354,12 +354,12 @@ toy_handshake(
                       &p,
                       &n))
         {
-            return D_SSL_ERROR_WANT_READ;
+            return D_TLS_ERROR_WANT_READ;
         }
 
         if (t != 22 || n != 6 || p[0] != 'S' || p[1] != 'H')
         {
-            return D_SSL_ERROR_HANDSHAKE;
+            return D_TLS_ERROR_HANDSHAKE;
         }
 
         s->id      = be32(p + 2);
@@ -376,7 +376,7 @@ toy_handshake(
 
         s->state = 2;
 
-        return D_SSL_OK;
+        return D_TLS_OK;
     }
 
     if (!toy_peek(s,
@@ -384,12 +384,12 @@ toy_handshake(
                   &p,
                   &n))
     {
-        return D_SSL_ERROR_WANT_READ;
+        return D_TLS_ERROR_WANT_READ;
     }
 
     if (t != 22 || n != 6 || p[0] != 'C' || p[1] != 'H')
     {
-        return D_SSL_ERROR_HANDSHAKE;
+        return D_TLS_ERROR_HANDSHAKE;
     }
 
     uint32_t offered = be32(p + 2);
@@ -420,14 +420,14 @@ toy_handshake(
               3);
     s->state = 2;
 
-    return D_SSL_OK;
+    return D_TLS_OK;
 }
 
 /*
 toy_read
   Opens the next application record into the caller's buffer.
 */
-static enum dj_ssl_error
+static enum dj_tls_error
 toy_read(
     void*   _v,
     void*   _b,
@@ -444,7 +444,7 @@ toy_read(
     {
         if (s->peer_closed)
         {
-            return D_SSL_ERROR_CLOSED;
+            return D_TLS_ERROR_CLOSED;
         }
 
         if (!toy_peek(s,
@@ -452,7 +452,7 @@ toy_read(
                       &p,
                       &n))
         {
-            return D_SSL_ERROR_WANT_READ;
+            return D_TLS_ERROR_WANT_READ;
         }
 
         if (t == 23)
@@ -476,7 +476,7 @@ toy_read(
             {
                 *_out = k;
 
-                return D_SSL_OK;
+                return D_TLS_OK;
             }
 
             continue;
@@ -487,7 +487,7 @@ toy_read(
             toy_pop(s);
             s->peer_closed = 1;
 
-            return D_SSL_ERROR_CLOSED;
+            return D_TLS_ERROR_CLOSED;
         }
 
         if (t == 22)
@@ -496,7 +496,7 @@ toy_read(
             continue;
         }
 
-        return D_SSL_ERROR_PROTOCOL;
+        return D_TLS_ERROR_PROTOCOL;
     }
 }
 
@@ -504,7 +504,7 @@ toy_read(
 toy_write
   Queues up to 16384 octets as one application record.
 */
-static enum dj_ssl_error
+static enum dj_tls_error
 toy_write(
     void*       _v,
     const void* _d,
@@ -520,19 +520,19 @@ toy_write(
                    k,
                    3))
     {
-        return D_SSL_ERROR_WANT_READ;
+        return D_TLS_ERROR_WANT_READ;
     }
 
     *_out = k;
 
-    return D_SSL_OK;
+    return D_TLS_OK;
 }
 
 /*
 toy_close
   Queues a close notify, so the peer sees an orderly end.
 */
-static enum dj_ssl_error
+static enum dj_tls_error
 toy_close(
     void* _v
 )
@@ -549,7 +549,7 @@ toy_close(
         s->sent_close = 1;
     }
 
-    return D_SSL_OK;
+    return D_TLS_OK;
 }
 
 /*
@@ -559,7 +559,7 @@ toy_describe
 static
 void toy_describe(
     void*               _v,
-    struct dj_ssl_info* _i
+    struct dj_tls_info* _i
 )
 {
     struct dj_tests_ftps_toy_session* s = _v;
@@ -568,12 +568,12 @@ void toy_describe(
         return;
     }
 
-    _i->version   = D_SSL_VERSION_TLS1_3;
+    _i->version   = D_TLS_VERSION_TLS1_3;
     _i->cipher_id = 0x1301;
     snprintf(_i->cipher,
              sizeof _i->cipher,
              "TLS_AES_128_GCM_SHA256");
-    _i->verify  = s->server ? (uint32_t)D_SSL_VERIFY_FLAG_NOT_PERFORMED
+    _i->verify  = s->server ? (uint32_t)D_TLS_VERIFY_FLAG_NOT_PERFORMED
                            : g_toy.chain_verdict;
     _i->resumed = (s->resumed != 0);
 
@@ -589,7 +589,7 @@ static
 bool toy_peer_name(
     void*                    _v,
     size_t                   _index,
-    struct dj_ssl_peer_name* _out
+    struct dj_tls_peer_name* _out
 )
 {
     struct dj_tests_ftps_toy_session* s = _v;
@@ -598,7 +598,7 @@ bool toy_peer_name(
         return false;
     }
 
-    _out->kind       = D_SSL_NAME_DNS;
+    _out->kind       = D_TLS_NAME_DNS;
     _out->value.data = g_toy.cert_name;
     _out->value.size = strlen(g_toy.cert_name);
 
@@ -628,11 +628,11 @@ bool toy_peer_certificate(
 
     return true;
 }
-const struct dj_ssl_engine TOY = { "toy",
-                                  D_SSL_BACKEND_OTHER,
-                                  D_SSL_ENGINE_TLS1_3       |
-                                  D_SSL_ENGINE_SYSTEM_TRUST |
-                                  D_SSL_ENGINE_MEMORY_PEM,
+const struct dj_tls_engine TOY = { "toy",
+                                  D_TLS_BACKEND_OTHER,
+                                  D_TLS_ENGINE_TLS1_3       |
+                                  D_TLS_ENGINE_SYSTEM_TRUST |
+                                  D_TLS_ENGINE_MEMORY_PEM,
                                   toy_context_create,
                                   toy_context_destroy,
                                   toy_session_create,
@@ -656,7 +656,7 @@ static const char KEY_PEM[] =
 struct dj_tests_ftps_connection
 {
     struct dj_tcp_connection tcp;
-    struct dj_ssl_session    tls;
+    struct dj_tls_session    tls;
     int                     secured;
     char                    buf[4096];
     size_t                  start;
@@ -668,10 +668,10 @@ const char HELLO[] = "Hello, FTPS!\r\nLine two\r\n";
 
 /*
 sc_tread
-  The server's plain reads, over net.h, in the SSL statuses its TLS reads
+  The server's plain reads, over net.h, in the TLS statuses its TLS reads
 give; a TLS session reads and writes the same connection itself.
 */
-static enum dj_ssl_error
+static enum dj_tls_error
 sc_tread(
     struct dj_tests_ftps_connection* _c,
     void*                           _b,
@@ -685,10 +685,10 @@ sc_tread(
     *_n                       = r.count;
     if (r.error != D_NET_OK)
     {
-        return D_SSL_ERROR_TRANSPORT;
+        return D_TLS_ERROR_TRANSPORT;
     }
 
-    return r.count ? D_SSL_OK : D_SSL_ERROR_CLOSED;
+    return r.count ? D_TLS_OK : D_TLS_ERROR_CLOSED;
 }
 
 /*
@@ -696,7 +696,7 @@ sc_read
   A read on the server's connection: TLS's when it is secured, plain
 otherwise.
 */
-static enum dj_ssl_error
+static enum dj_tls_error
 sc_read(
     struct dj_tests_ftps_connection* _c,
     void*                           _b,
@@ -706,7 +706,7 @@ sc_read(
 {
     if (_c->secured)
     {
-        return d_ssl_session_read(&_c->tls,
+        return d_tls_session_read(&_c->tls,
                                   _b,
                                   _cap,
                                   _n);
@@ -732,10 +732,10 @@ int sc_write(
     size_t w = 0;
     if (_c->secured)
     {
-        return d_ssl_session_write_all(&_c->tls,
+        return d_tls_session_write_all(&_c->tls,
                                        _d,
                                        _n,
-                                       &w) == D_SSL_OK;
+                                       &w) == D_TLS_OK;
     }
 
     return d_net_write_all(&_c->tcp.base,
@@ -798,7 +798,7 @@ int sc_line(
         if (sc_read(_c,
                     _c->buf,
                     sizeof _c->buf,
-                    &n) != D_SSL_OK)
+                    &n) != D_TLS_OK)
         {
             return 0;
         }
@@ -819,17 +819,17 @@ int sc_secure(
 )
 {
     struct dj_pack_text none = { "", 0 };
-    if (d_ssl_session_init(&_c->tls,
+    if (d_tls_session_init(&_c->tls,
                            &_s->tls,
                            &_c->tcp.base,
-                           none) != D_SSL_OK)
+                           none) != D_TLS_OK)
     {
         return 0;
     }
 
-    if (d_ssl_session_handshake(&_c->tls) != D_SSL_OK)
+    if (d_tls_session_handshake(&_c->tls) != D_TLS_OK)
     {
-        d_ssl_session_destroy(&_c->tls);
+        d_tls_session_destroy(&_c->tls);
 
         return 0;
     }
@@ -854,10 +854,10 @@ void sc_close(
     {
         if (_orderly)
         {
-            (void)d_ssl_session_shutdown(&_c->tls);
+            (void)d_tls_session_shutdown(&_c->tls);
         }
 
-        d_ssl_session_destroy(&_c->tls);
+        d_tls_session_destroy(&_c->tls);
         _c->secured = 0;
     }
 
@@ -931,8 +931,8 @@ int srv_data(
         return 0;
     }
 
-    struct dj_ssl_info info = { 0 };
-    d_ssl_session_info(&_d->tls,
+    struct dj_tls_info info = { 0 };
+    d_tls_session_info(&_d->tls,
                        &info);
     if (info.resumed)
     {
@@ -1036,12 +1036,12 @@ void srv_receive_file(
 {
     char             b[1024];  // filled before it is read
     size_t           n  = 0;
-    enum dj_ssl_error st = D_SSL_OK;
+    enum dj_tls_error st = D_TLS_OK;
     _s->stored_len = 0;
     while ((st = sc_read(_d,
                          b,
                          sizeof b,
-                         &n)) == D_SSL_OK)
+                         &n)) == D_TLS_OK)
     {
         if (_s->stored_len + n <= sizeof _s->stored)
         {
@@ -1052,7 +1052,7 @@ void srv_receive_file(
         }
     }
 
-    _s->upload_clean = (st == D_SSL_ERROR_CLOSED);
+    _s->upload_clean = (st == D_TLS_ERROR_CLOSED);
     // like vsftpd, answer close_notify with close_notify - after a pause that
     // shows whether the client waited for it: one that closed at once has left
     // an end of stream to peek at by now
@@ -1344,13 +1344,13 @@ void* srv_main(
             // arrives, so no plaintext can be read ahead with it
             sc_say(&ctl,
                    "200 CCC ok\r\n");
-            s->ccc_done = (d_ssl_session_read(&ctl.tls,
+            s->ccc_done = (d_tls_session_read(&ctl.tls,
                                               b,
                                               sizeof b,
                                               &n) ==
-                           D_SSL_ERROR_CLOSED);
-            (void)d_ssl_session_shutdown(&ctl.tls);
-            d_ssl_session_destroy(&ctl.tls);
+                           D_TLS_ERROR_CLOSED);
+            (void)d_tls_session_shutdown(&ctl.tls);
+            d_tls_session_destroy(&ctl.tls);
             ctl.secured = 0;
         }
         else if (!strcmp(line,
@@ -1384,25 +1384,25 @@ int d_tests_ftps_server_start(
     struct dj_tests_ftps_server_config _cfg
 )
 {
-    struct dj_ssl_config   c = { 0 };
+    struct dj_tls_config   c = { 0 };
     struct dj_ftp_endpoint e = { .family = D_FTP_FAMILY_IPV4 };
     memset(_s,
            0,
            sizeof *_s);
     _s->cfg = _cfg;
-    d_ssl_config_init(&c,
-                      D_SSL_ROLE_SERVER);
+    d_tls_config_init(&c,
+                      D_TLS_ROLE_SERVER);
     c.certificate_pem.data   = CERT_PEM;
     c.certificate_pem.length = strlen(CERT_PEM);
     c.private_key_pem.data   = KEY_PEM;
     c.private_key_pem.length = strlen(KEY_PEM);
-    enum dj_ssl_error st      = d_ssl_context_init(&_s->tls,
+    enum dj_tls_error st      = d_tls_context_init(&_s->tls,
                                                   &TOY,
                                                   &c);
-    if (st != D_SSL_OK)
+    if (st != D_TLS_OK)
     {
         printf("server context: %s\n",
-               d_ssl_error_name(st));
+               d_tls_error_name(st));
 
         return 0;
     }
@@ -1446,7 +1446,7 @@ void d_tests_ftps_server_stop(
     pthread_join(_s->thread,
                  NULL);
     d_tcp_listener_close(&_s->listener);
-    d_ssl_context_destroy(&_s->tls);
+    d_tls_context_destroy(&_s->tls);
 
     return;
 }

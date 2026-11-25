@@ -2,7 +2,7 @@
 * djinterp [c][net]                                                smtp_client.c
 *
 * djinterp SMTP client - implementation.
-*   The client state machine over a net.h connection, with TLS from the SSL
+*   The client state machine over a net.h connection, with TLS from the TLS
 * kernel and connections from tcp.h. Command lines are assembled from
 * validated parts into fixed buffers, so nothing a caller passes can smuggle
 * CR or LF onto the wire; SASL buffers holding secrets are wiped through
@@ -27,7 +27,7 @@
 #include "../../../../../../inc/djinterp/c/modules/net/net_common.h"          // connections
 #include "../../../../../../inc/djinterp/c/modules/net/smtp/smtp_common.h"    // replies
 #include "../../../../../../inc/djinterp/c/modules/net/smtp/smtp_reader.h"    // dj_smtp_reader
-#include "../../../../../../inc/djinterp/c/modules/net/ssl/ssl.h"             // TLS sessions
+#include "../../../../../../inc/djinterp/c/modules/net/tls/tls.h"             // TLS sessions
 #include "../../../../../../inc/djinterp/c/modules/net/tcp/tcp.h"             // connecting
 // re_std
 #include "../../../../../../inc/re_std/c/cstdint/dstdint.h"  // uint8_t
@@ -69,7 +69,7 @@ d_internal_smtp_judge(
     enum dj_smtp_error     _result
 )
 {
-    return d_smtp_error_from_tls((_client->has_tls) ? &_client->tls
+    return d_smtp_error_from_tls_session((_client->has_tls) ? &_client->tls
                                                     : NULL,
                                  _result,
                                  &_client->tls_status,
@@ -269,7 +269,7 @@ void d_smtp_client_options_init(
 d_smtp_client_init
   Zeroes the whole client, then sets what zero does not mean: the
 reader with no connection, an unopened TCP connection, the closed state,
-and D_SSL_OK.
+and D_TLS_OK.
 */
 void d_smtp_client_init(
     struct dj_smtp_client* _client
@@ -288,7 +288,7 @@ void d_smtp_client_init(
                        NULL);
     d_tcp_connection_init(&_client->tcp);
     _client->state      = D_SMTP_CLIENT_CLOSED;
-    _client->tls_status = D_SSL_OK;
+    _client->tls_status = D_TLS_OK;
 
     return;
 }
@@ -410,7 +410,7 @@ d_smtp_client_attach_with(
     d_smtp_reply_clear(&_client->reply);
 
     _client->state               = D_SMTP_CLIENT_GREETING;
-    _client->tls_status          = D_SSL_OK;
+    _client->tls_status          = D_TLS_OK;
     _client->secure              = _options->secure;
     _client->allow_insecure_auth = _options->allow_insecure_auth;
     _client->authenticated       = false;
@@ -570,7 +570,7 @@ that a bad one is refused before anything is sent.
 */
 static
 bool d_internal_smtp_tls_usable(
-    const struct dj_ssl_context* _tls,
+    const struct dj_tls_context* _tls,
     const char*                  _server_name
 )
 {
@@ -583,7 +583,7 @@ bool d_internal_smtp_tls_usable(
     // a context, for a client
     if ( (!_tls)         ||
          (!_tls->engine) ||
-         (_tls->plan.role != D_SSL_ROLE_CLIENT) )
+         (_tls->plan.role != D_TLS_ROLE_CLIENT) )
     {
         return false;
     }
@@ -594,8 +594,8 @@ bool d_internal_smtp_tls_usable(
         return (!_tls->plan.verify_hostname);
     }
 
-    return ( (d_ssl_host_is_ip(name)) ||
-             (d_ssl_hostname_is_valid(name)) );
+    return ( (d_tls_host_is_ip(name)) ||
+             (d_tls_hostname_is_valid(name)) );
 }
 
 /*
@@ -624,10 +624,10 @@ anything else the engine refused, since the arguments were checked first.
 */
 static enum dj_smtp_error
 d_internal_smtp_unmade(
-    enum dj_ssl_error _status
+    enum dj_tls_error _status
 )
 {
-    return (_status == D_SSL_ERROR_OUT_OF_MEMORY) ? D_SMTP_ERROR_OUT_OF_MEMORY
+    return (_status == D_TLS_ERROR_OUT_OF_MEMORY) ? D_SMTP_ERROR_OUT_OF_MEMORY
                                                   : D_SMTP_ERROR_TLS;
 }
 
@@ -642,20 +642,20 @@ record of why, until close.
 static enum dj_smtp_error
 d_internal_smtp_secure(
     struct dj_smtp_client*       _client,
-    const struct dj_ssl_context* _tls,
+    const struct dj_tls_context* _tls,
     const char*                 _server_name
 )
 {
     const char* const        name   = (_server_name) ? _server_name : "";
     const struct dj_pack_text host   = { name,
                                         strlen(name) };
-    enum dj_ssl_error         status = d_ssl_session_init(&_client->tls,
+    enum dj_tls_error         status = d_tls_session_init(&_client->tls,
                                                          _tls,
                                                          _client->connection,
                                                          host);
 
     // a session not made holds nothing to release
-    if (status != D_SSL_OK)
+    if (status != D_TLS_OK)
     {
         _client->tls_status = status;
 
@@ -663,12 +663,12 @@ d_internal_smtp_secure(
     }
 
     _client->has_tls = true;
-    status           = d_ssl_session_handshake(&_client->tls);
+    status           = d_tls_session_handshake(&_client->tls);
 
-    if (status != D_SSL_OK)
+    if (status != D_TLS_OK)
     {
         const enum dj_net_error cause =
-            d_ssl_session_transport_error(&_client->tls);
+            d_tls_session_transport_error(&_client->tls);
 
         _client->tls_status = status;
 
@@ -678,7 +678,7 @@ d_internal_smtp_secure(
             _client->reader.net_error = cause;
         }
 
-        return d_smtp_error_from_ssl(status,
+        return d_smtp_error_from_tls(status,
                                      cause);
     }
 
@@ -698,7 +698,7 @@ in plaintext, and the client is left to be closed.
 enum dj_smtp_error
 d_smtp_client_starttls(
     struct dj_smtp_client*       _client,
-    const struct dj_ssl_context* _tls,
+    const struct dj_tls_context* _tls,
     const char*                 _server_name
 )
 {
@@ -2146,8 +2146,8 @@ void d_smtp_client_close(
     // the TLS session this client made, ended in an orderly way if it can be
     if (_client->has_tls)
     {
-        (void)d_ssl_session_shutdown(&_client->tls);
-        d_ssl_session_destroy(&_client->tls);
+        (void)d_tls_session_shutdown(&_client->tls);
+        d_tls_session_destroy(&_client->tls);
         _client->has_tls = false;
     }
 
@@ -2175,7 +2175,7 @@ void d_smtp_client_close(
 d_smtp_client_tls_session
   Only a live session is offered: close releases it.
 */
-const struct dj_ssl_session* d_smtp_client_tls_session(
+const struct dj_tls_session* d_smtp_client_tls_session(
     const struct dj_smtp_client* _client
 )
 {
@@ -2571,7 +2571,7 @@ d_smtp_client_connect(
     // new one starts, as attach forgets it
     d_smtp_reply_clear(&_client->reply);
     _client->reader.net_error = D_NET_OK;
-    _client->tls_status       = D_SSL_OK;
+    _client->tls_status       = D_TLS_OK;
 
     enum dj_smtp_error result = d_internal_smtp_open(_client,
                                                     _options);

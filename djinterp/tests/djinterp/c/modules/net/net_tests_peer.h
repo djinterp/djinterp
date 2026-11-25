@@ -5,7 +5,7 @@
 *   The peer is a net.h connection scripted as the other party: it releases
 * each of its turns once the session under test has sent the text the turn
 * waits for, so a test reads as the exchange it checks and needs no thread.
-* Behind it, the toy engine of the SSL kernel stands in for a real one: it
+* Behind it, the toy engine of the TLS kernel stands in for a real one: it
 * shakes hands with nine bytes each way, shaped as TLS record headers so the
 * kernel takes them for TLS, and seals data by rotating letters and digits,
 * so sealed text stays readable and a peer can script it. Neither needs a
@@ -52,7 +52,7 @@ TABLE OF CONTENTS
 // djinterp
 #include "../../../../../inc/djinterp/c/djinterp.h"   // framework root
 #include "../../../../../inc/djinterp/c/modules/net/net_common.h"  // dj_net_connection
-#include "../../../../../inc/djinterp/c/modules/net/ssl/ssl.h"  // the SSL kernel
+#include "../../../../../inc/djinterp/c/modules/net/tls/tls.h"  // the TLS kernel
 // re_std
 #include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // int32_t, uint32_t
 
@@ -205,15 +205,15 @@ bool d_tests_net_peer_sent(
 // asked of it. Its client sends D_TESTS_NET_TOY_HELLO and expects
 // D_TESTS_NET_TOY_REPLY; its server the reverse. A client's peer presents a
 // certificate for `cert_name` - D_TESTS_NET_TOY_SERVER_NAME when NULL --
-// whose chain the toy reports as `verdict`, D_SSL_VERIFY_FLAG_NONE for a
+// whose chain the toy reports as `verdict`, D_TLS_VERIFY_FLAG_NONE for a
 // sound one; a server's peer presents none. With `alerts` set, its sessions
-// report the two alerts it names, D_SSL_ALERT_NONE for either one not sent.
+// report the two alerts it names, D_TLS_ALERT_NONE for either one not sent.
 struct dj_tests_net_toy
 {
-    enum dj_ssl_role  role;              // set by its context
-    enum dj_ssl_error create_status;     // what session_create reports
-    enum dj_ssl_error handshake_status;  // a failure to report instead
-    enum dj_ssl_error read_status;       // a failure reads report instead
+    enum dj_tls_role  role;              // set by its context
+    enum dj_tls_error create_status;     // what session_create reports
+    enum dj_tls_error handshake_status;  // a failure to report instead
+    enum dj_tls_error read_status;       // a failure reads report instead
     const char*      cert_name;         // the peer certificate's name
     uint32_t         verdict;           // its chain, as the toy saw it
     bool             alerts;            // whether to report the two below
@@ -230,13 +230,13 @@ struct dj_tests_net_toy
 // 2.3    Functions
 //------------------------------------------------------------------------------
 // the toy engine - a context over `_toy` in `_role`, which the caller
-// destroys with d_ssl_context_destroy, verifying as asked: a client checks
+// destroys with d_tls_context_destroy, verifying as asked: a client checks
 // its peer, and a server asks for a client certificate it will do without;
 // and the toy's cipher, which is its own inverse
 bool d_tests_net_toy_context(
-    struct dj_ssl_context*   _out,
+    struct dj_tls_context*   _out,
     struct dj_tests_net_toy* _toy,
-    enum dj_ssl_role         _role,
+    enum dj_tls_role         _role,
     bool                     _verify
 );
 void d_tests_net_toy_seal(

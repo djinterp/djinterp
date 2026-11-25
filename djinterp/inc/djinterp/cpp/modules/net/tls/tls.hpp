@@ -1,8 +1,8 @@
 /*******************************************************************************
 * djinterp [cpp][net]                                                    tls.hpp
 *
-* TLS for net.hpp: the SSL kernel's contexts and sessions as C++ classes.
-*   tls_context is a configuration of ssl.h's kernel, made live in an engine
+* TLS for net.hpp: the TLS kernel's contexts and sessions as C++ classes.
+*   tls_context is a configuration of tls.h's kernel, made live in an engine
 * - the OpenSSL family's unless another is given - by prepare(), by the
 * first connection that needs it, or as soon as a use_* call completes it.
 * tls_connection is a net::connection running a kernel session over a
@@ -28,8 +28,8 @@
 * needs; elsewhere the header is empty. connect and accept fill an
 * open_result in place at every level, and from C++11 also return one; the
 * context and the connection move from C++11 and copy at no level.
-* Enumerations are scoped in structs (decision 3.4). Link ssl.c,
-* ssl_openssl.c, net_common.c, tcp.c, dmutex.c, sink_common.c and the codec's
+* Enumerations are scoped in structs (decision 3.4). Link tls.c,
+* tls_openssl.c, net_common.c, tcp.c, dmutex.c, sink_common.c and the codec's
 * sources, with the engine's libraries: -lssl -lcrypto for OpenSSL's.
 *
 *   Where D_INTERNAL_NET_HAS_INT64 is 0, with no 64-bit integer type, it
@@ -84,8 +84,8 @@ TABLE OF CONTENTS
 #include "../../../djinterp.hpp"     // framework root
 #include "../net_common.hpp"      // connection, open_result, io_error
 #include "../../../../c/modules/net/net_common.h"         // D_INTERNAL_NET_HAS_INT64
-#include "../../../../c/modules/net/ssl/ssl.h"           // dj_ssl_context, dj_ssl_session
-#include "../../../../c/modules/net/ssl/ssl_openssl.h"   // d_ssl_engine_openssl
+#include "../../../../c/modules/net/tls/tls.h"           // dj_tls_context, dj_tls_session
+#include "../../../../c/modules/net/tls/tls_openssl.h"   // d_tls_engine_openssl
 #include "../tcp/tcp.hpp"         // tcp_connector, tcp_acceptor
 #include "../../../../config/c/modules/net/cfg_net.h"  // D_INTERNAL_NET_REQUIRE_BACKENDS
 
@@ -116,7 +116,7 @@ NS_INTERNAL
     // connection made with it. The last to let go destroys it.
     struct tls_share
     {
-        ::dj_ssl_context kernel;
+        ::dj_tls_context kernel;
         dj_mutex_t       lock;
         long            holders;
     };
@@ -126,9 +126,9 @@ NS_INTERNAL
     //   function: a share of `_config` made live in `_engine`, held once;
     // null, with the kernel's reason in *_out_status, when it cannot be.
     D_NODISCARD inline tls_share* tls_share_make(
-        const ::dj_ssl_engine* _engine,
-        const ::dj_ssl_config& _config,
-        ::dj_ssl_error*        _out_status
+        const ::dj_tls_engine* _engine,
+        const ::dj_tls_config& _config,
+        ::dj_tls_error*        _out_status
     ) D_NOEXCEPT
     {
         tls_share* const share = new (std::nothrow) tls_share();
@@ -138,17 +138,17 @@ NS_INTERNAL
              (::d_mutex_init(&share->lock) != D_MUTEX_SUCCESS) )
         {
             delete share;
-            *_out_status = D_SSL_ERROR_OUT_OF_MEMORY;
+            *_out_status = D_TLS_ERROR_OUT_OF_MEMORY;
 
             return D_NULLPTR;
         }
 
-        *_out_status = ::d_ssl_context_init(&share->kernel,
+        *_out_status = ::d_tls_context_init(&share->kernel,
                                             _engine,
                                             &_config);
 
         // a configuration the kernel or the engine refuses
-        if (*_out_status != D_SSL_OK)
+        if (*_out_status != D_TLS_OK)
         {
             (void)::d_mutex_destroy(&share->lock);
             delete share;
@@ -201,7 +201,7 @@ NS_INTERNAL
         // the last holder takes the context with it
         if (left == 0)
         {
-            ::d_ssl_context_destroy(&_share->kernel);
+            ::d_tls_context_destroy(&_share->kernel);
             (void)::d_mutex_destroy(&_share->lock);
             delete _share;
         }
@@ -261,7 +261,7 @@ public:
 
     // get
     //   function: the lent kernel context, or null for an empty lease.
-    D_NODISCARD const ::dj_ssl_context* get() const D_NOEXCEPT
+    D_NODISCARD const ::dj_tls_context* get() const D_NOEXCEPT
     {
         return (m_share) ? &m_share->kernel : D_NULLPTR;
     }
@@ -319,8 +319,8 @@ public:
     {
         enum value
         {
-            tls1_2 = D_SSL_VERSION_TLS1_2,
-            tls1_3 = D_SSL_VERSION_TLS1_3
+            tls1_2 = D_TLS_VERSION_TLS1_2,
+            tls1_3 = D_TLS_VERSION_TLS1_3
         };
     };
 
@@ -343,7 +343,7 @@ public:
     // `_engine` when first needed
     explicit tls_context(
         role::value           _role,
-        const ::dj_ssl_engine* _engine = ::d_ssl_engine_openssl()
+        const ::dj_tls_engine* _engine = ::d_tls_engine_openssl()
     )
         : m_engine(_engine),
           m_config(),
@@ -351,11 +351,11 @@ public:
           m_certificate_file(),
           m_private_key_file(),
           m_share(D_NULLPTR),
-          m_failure(D_SSL_OK)
+          m_failure(D_TLS_OK)
     {
-        ::d_ssl_config_init(&m_config,
-                            (_role == role::client) ? D_SSL_ROLE_CLIENT
-                                                    : D_SSL_ROLE_SERVER);
+        ::d_tls_config_init(&m_config,
+                            (_role == role::client) ? D_TLS_ROLE_CLIENT
+                                                    : D_TLS_ROLE_SERVER);
     }
 
     ~tls_context()
@@ -417,7 +417,7 @@ public:
 
     // engine
     //   function: the engine connections are made in, or null.
-    D_NODISCARD const ::dj_ssl_engine* engine() const
+    D_NODISCARD const ::dj_tls_engine* engine() const
     {
         return m_engine;
     }
@@ -429,14 +429,14 @@ public:
     // next prepared; the files use_* name are kept here, and take the
     // place of any set through config(). Asking for the configuration to
     // change it lets go of the live context.
-    D_NODISCARD ::dj_ssl_config& config()
+    D_NODISCARD ::dj_tls_config& config()
     {
         m_drop();
 
         return m_config;
     }
 
-    D_NODISCARD const ::dj_ssl_config& config() const
+    D_NODISCARD const ::dj_tls_config& config() const
     {
         return m_config;
     }
@@ -448,7 +448,7 @@ public:
     )
     {
         m_drop();
-        m_config.min_version = static_cast<enum dj_ssl_version>(_version);
+        m_config.min_version = static_cast<enum dj_tls_version>(_version);
 
         return;
     }
@@ -462,14 +462,14 @@ public:
     )
     {
         const bool                  client = (m_config.role ==
-                                              D_SSL_ROLE_CLIENT);
-        const enum dj_ssl_verify_mode on     = (client)
-                                                  ? D_SSL_VERIFY_REQUIRED
-                                                  : D_SSL_VERIFY_OPTIONAL;
+                                              D_TLS_ROLE_CLIENT);
+        const enum dj_tls_verify_mode on     = (client)
+                                                  ? D_TLS_VERIFY_REQUIRED
+                                                  : D_TLS_VERIFY_OPTIONAL;
 
         m_drop();
         m_config.verify          = (_on) ? on
-                                         : D_SSL_VERIFY_NONE;
+                                         : D_TLS_VERIFY_NONE;
         m_config.verify_hostname = ( (_on) &&
                                      (client) );
 
@@ -549,12 +549,12 @@ public:
         // no engine to make it live in
         if (!m_engine)
         {
-            m_failure = D_SSL_ERROR_UNSUPPORTED;
+            m_failure = D_TLS_ERROR_UNSUPPORTED;
 
             return io_error::invalid_argument;
         }
 
-        ::dj_ssl_config config = m_config;
+        ::dj_tls_config config = m_config;
 
         config.ca_file          = m_file(m_ca_file,
                                          m_config.ca_file);
@@ -567,7 +567,7 @@ public:
                                                            &m_failure);
 
         return (m_share) ? io_error::none
-                         : from_c(::d_ssl_error_to_net(m_failure));
+                         : from_c(::d_tls_error_to_net(m_failure));
     }
 
     // lease
@@ -582,9 +582,9 @@ public:
     }
 
     // failure
-    //   function: the kernel's reason the last prepare failed, or D_SSL_OK;
+    //   function: the kernel's reason the last prepare failed, or D_TLS_OK;
     // a change forgets it.
-    D_NODISCARD ::dj_ssl_error failure() const
+    D_NODISCARD ::dj_tls_error failure() const
     {
         return m_failure;
     }
@@ -613,7 +613,7 @@ private:
     {
         internal::tls_share_release(m_share);
         m_share   = D_NULLPTR;
-        m_failure = D_SSL_OK;
+        m_failure = D_TLS_OK;
 
         return;
     }
@@ -663,7 +663,7 @@ private:
         // half an identity, or a server without one, waits for the rest
         if ( (certificate != key) ||
              ( (!certificate) &&
-               (m_config.role == D_SSL_ROLE_SERVER) ) )
+               (m_config.role == D_TLS_ROLE_SERVER) ) )
         {
             return io_error::none;
         }
@@ -686,13 +686,13 @@ private:
     D_DELETED_FN(tls_context(const tls_context&))
     D_DELETED_FN(tls_context& operator=(const tls_context&))
 
-    const ::dj_ssl_engine* m_engine;            // null: not valid
-    ::dj_ssl_config        m_config;            // all but the use_* files
+    const ::dj_tls_engine* m_engine;            // null: not valid
+    ::dj_tls_config        m_config;            // all but the use_* files
     std::string           m_ca_file;           // use_verify_file's
     std::string           m_certificate_file;  // use_certificate_file's
     std::string           m_private_key_file;  // use_private_key_file's
     internal::tls_share*  m_share;             // the live context, or null
-    ::dj_ssl_error         m_failure;           // the last prepare's reason
+    ::dj_tls_error         m_failure;           // the last prepare's reason
 };
 
 
@@ -708,16 +708,16 @@ NS_INTERNAL
     // 2.1.1
     // internal::tls_error
     //   function: a failed session call in net.hpp's terms: the transport's
-    // own error behind a transport failure, d_ssl_error_to_net's otherwise,
+    // own error behind a transport failure, d_tls_error_to_net's otherwise,
     // as a session's connection view reports them.
     D_NODISCARD inline io_error::value tls_error(
-        const ::dj_ssl_session* _session,
-        ::dj_ssl_error          _status
+        const ::dj_tls_session* _session,
+        ::dj_tls_error          _status
     ) D_NOEXCEPT
     {
-        return from_c( (_status == D_SSL_ERROR_TRANSPORT)
-                           ? ::d_ssl_session_transport_error(_session)
-                           : ::d_ssl_error_to_net(_status) );
+        return from_c( (_status == D_TLS_ERROR_TRANSPORT)
+                           ? ::d_tls_session_transport_error(_session)
+                           : ::d_tls_error_to_net(_status) );
     }
 
     // 2.1.2
@@ -727,15 +727,15 @@ NS_INTERNAL
     // literal, when a session that checks no names goes without one, and
     // without SNI, and one that does cannot be made: false.
     D_NODISCARD inline bool tls_host(
-        const ::dj_ssl_config& _config,
+        const ::dj_tls_config& _config,
         const std::string&     _host,
         std::string*           _out
     )
     {
         const ::dj_pack_text text   = { _host.c_str(),
                                        _host.size() };
-        const bool          usable = ( (::d_ssl_hostname_is_valid(text)) ||
-                                       (::d_ssl_host_is_ip(text)) );
+        const bool          usable = ( (::d_tls_hostname_is_valid(text)) ||
+                                       (::d_tls_host_is_ip(text)) );
 
         *_out = (usable) ? _host
                          : std::string();
@@ -793,7 +793,7 @@ public:
     {
         std::string                host;
         const bool                 named =
-            ( (_context.m_config.role == D_SSL_ROLE_SERVER) ||
+            ( (_context.m_config.role == D_TLS_ROLE_SERVER) ||
               (internal::tls_host(_context.m_config,
                                   _host,
                                   &host)) );
@@ -880,10 +880,10 @@ public:
             return io_error::closed;
         }
 
-        const ::dj_ssl_error status =
-            ::d_ssl_session_handshake(&m_state->session);
+        const ::dj_tls_error status =
+            ::d_tls_session_handshake(&m_state->session);
 
-        return (status == D_SSL_OK) ? io_error::none
+        return (status == D_TLS_OK) ? io_error::none
                                     : internal::tls_error(&m_state->session,
                                                           status);
     }
@@ -973,7 +973,7 @@ public:
     // session
     //   function: the kernel session, for what net.hpp's errors cannot
     // say: its failure, state, and transport error; null once moved from.
-    D_NODISCARD const ::dj_ssl_session* session() const
+    D_NODISCARD const ::dj_tls_session* session() const
     {
         return (m_state) ? &m_state->session
                          : D_NULLPTR;
@@ -983,14 +983,14 @@ public:
     //   function: what the session negotiated and learned - the version,
     // the cipher, ALPN's protocol, the verification flags, the peer's
     // certificate fingerprint - zeroed before the handshake.
-    D_NODISCARD ::dj_ssl_info info() const
+    D_NODISCARD ::dj_tls_info info() const
     {
-        ::dj_ssl_info out = ::dj_ssl_info();
+        ::dj_tls_info out = ::dj_tls_info();
 
         // only a session has anything to tell
         if (m_state)
         {
-            (void)::d_ssl_session_info(&m_state->session,
+            (void)::d_tls_session_info(&m_state->session,
                                        &out);
         }
 
@@ -1011,7 +1011,7 @@ private:
         {}
 
         c_connection_adapter adapter;
-        ::dj_ssl_session      session;
+        ::dj_tls_session      session;
     };
 
     tls_connection(
@@ -1041,14 +1041,14 @@ private:
         state* const          made   = new (std::nothrow) state(*_transport);
         const ::dj_pack_text   host   = { _host.c_str(),
                                          _host.size() };
-        const ::dj_ssl_error   status =
-            (made) ? ::d_ssl_session_init(&made->session,
+        const ::dj_tls_error   status =
+            (made) ? ::d_tls_session_init(&made->session,
                                           &_share->kernel,
                                           made->adapter.get(),
                                           host)
-                   : D_SSL_ERROR_OUT_OF_MEMORY;
+                   : D_TLS_ERROR_OUT_OF_MEMORY;
         tls_connection* const tls    =
-            (status == D_SSL_OK) ? new (std::nothrow) tls_connection(
+            (status == D_TLS_OK) ? new (std::nothrow) tls_connection(
                                        _transport,
                                        made,
                                        _share)
@@ -1057,14 +1057,14 @@ private:
         // the session, the share and the transport go with a failure
         if (!tls)
         {
-            *_out_error = (status == D_SSL_OK)
+            *_out_error = (status == D_TLS_OK)
                               ? io_error::out_of_memory
-                              : from_c(::d_ssl_error_to_net(status));
+                              : from_c(::d_tls_error_to_net(status));
 
             // a state made holds a session to release
             if (made)
             {
-                ::d_ssl_session_destroy(&made->session);
+                ::d_tls_session_destroy(&made->session);
                 delete made;
             }
 
@@ -1083,7 +1083,7 @@ private:
         // a session to end, and its adapter
         if (m_state)
         {
-            ::d_ssl_session_destroy(&m_state->session);
+            ::d_tls_session_destroy(&m_state->session);
             delete m_state;
             m_state = D_NULLPTR;
         }

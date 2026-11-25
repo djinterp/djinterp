@@ -23,8 +23,8 @@
 #include "./net_url.h"            // URLs, RFC 3986
 #include "./codec/codec.h"        // ASCII, hex, base64, lines, digests
 #include "./tcp/tcp.h"            // TCP connections and listeners
-#include "./ssl/ssl.h"            // the SSL kernel
-#include "./ssl/ssl_openssl.h"    // its OpenSSL-family engine
+#include "./tls/tls.h"            // the TLS kernel
+#include "./tls/tls_openssl.h"    // its OpenSSL-family engine
 #include "./starttls/starttls.h"  // STARTTLS
 #include "./http/http.h"          // HTTP's vocabulary
 #include "./http/http1.h"         // HTTP/1.1's message syntax
