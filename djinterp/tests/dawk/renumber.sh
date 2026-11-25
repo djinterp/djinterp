@@ -1,6 +1,6 @@
 #!/bin/sh
-# renumber.sh - tools/renumber_headings.py against the files it should
-# leave.
+# renumber.sh - `dcheck --renumber`, which makes headings decimal, against
+# the files it should leave.
 #
 #   tests/dawk/renumber/before/   headers with Roman headings, in each shape
 #   tests/dawk/renumber/after/    the same headers, as they should come out:
@@ -27,8 +27,8 @@ fail=0
 mkdir -p "$work/inc/djinterp" "$work/src/djinterp"
 cp "$dir"/before/* "$work/inc/djinterp/"
 
-first=$(python3 tools/renumber_headings.py --base "$work") || fail=1
-second=$(python3 tools/renumber_headings.py --base "$work") || fail=1
+first=$("$DCHECK" --renumber --base "$work") || fail=1
+second=$("$DCHECK" --renumber --base "$work") || fail=1
 
 if ! diff -r "$work/inc/djinterp" "$dir/after" > "$work/diff"; then
     echo "FAIL renumber: the converted files are not the expected ones"

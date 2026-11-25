@@ -6,7 +6,7 @@ TABLE OF CONTENTS
 1.  STATUS
     ------
 2.  ORDERING - KEY ONLY
-    --------------------
+    -------------------
     1.  construction
 */
 

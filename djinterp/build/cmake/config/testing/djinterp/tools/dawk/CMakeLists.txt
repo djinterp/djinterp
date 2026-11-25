@@ -7,7 +7,8 @@
 # C11, into one static library, links dcheck and the test programs against
 # it, and gives CTest the suites: the unit tests, every rule fixture against
 # its golden, the fixer against the files it should leave, the fixer's two
-# safety checks against their pairs, the gate that proves the fixer's repair
+# safety checks against their pairs, the renumbering of headings against the
+# files it should leave, the gate that proves the fixer's repair
 # audit is load-bearing, the driver's resolution of a sheet's claims, the
 # driver over the fixtures against the harness's goldens, and, where Clang is
 # found, parse's lexer against Clang's over the tree. Those that are scripts
@@ -51,7 +52,7 @@
 # path:      /build/cmake/config/testing/djinterp/tools/dawk/CMakeLists.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-#                                                            revised: 2026.11.19
+#                                                            revised: 2026.11.20
 #*******************************************************************************
 cmake_minimum_required(VERSION 3.16)
 
@@ -94,6 +95,7 @@ set(_tool  "${DJINTERP_DAWK_ROOT}/src/djinterp/tools/dawk")
 set(_ext   "${_tool}/ext")
 set(_parse "${DJINTERP_DAWK_ROOT}/src/djinterp/c/modules/parse")
 set(_text  "${DJINTERP_DAWK_ROOT}/src/djinterp/c/text")
+set(_files "${DJINTERP_DAWK_ROOT}/src/djinterp/c/filesys")
 set(_mine  "${DJINTERP_DAWK_ROOT}/tests/dawk")
 set(_unit  "${DJINTERP_DAWK_ROOT}/tests/djinterp/tools/dawk")
 
@@ -228,6 +230,8 @@ add_library(djinterp_dawk_checker STATIC
     "${_ext}/msvs/dmsvs_doc.c"
     "${_tool}/dnode.c"
     "${_tool}/dproperty.c"
+    # headings made decimal (dawk's decision 45)
+    "${_tool}/drenumber.c"
     "${_tool}/drepair.c"
     "${_tool}/dschema.c"
     "${_tool}/dsection.c"
@@ -237,6 +241,9 @@ add_library(djinterp_dawk_checker STATIC
     "${_tool}/dtokens.c"
     "${_tool}/dtree.c"
     "${_tool}/dxml.c"
+    # c/filesys's portable streams, which drenumber reads and writes through
+    "${_files}/file_common.c"
+    "${_files}/file_open.c"
     # the library's text: interning, edits, and the text as read
     "${_text}/text_edit.c"
     "${_text}/text_intern.c"
@@ -596,6 +603,11 @@ djinterp_dawk_script(djinterp_dawk_same_tokens run_same_tokens.cmake
     "-DDCHECK=$<TARGET_FILE:djinterp_dawk_dcheck>")
 djinterp_dawk_script(djinterp_dawk_moved_lines run_moved_lines.cmake
     "-DDCHECK=$<TARGET_FILE:djinterp_dawk_dcheck>")
+
+# headings made decimal, against the files it should leave (dawk's decision 45)
+djinterp_dawk_script(djinterp_dawk_renumber run_renumber.cmake
+    "-DDCHECK=$<TARGET_FILE:djinterp_dawk_dcheck>"
+    "-DWORK=${CMAKE_CURRENT_BINARY_DIR}/djinterp_dawk_renumber")
 
 # parse's lexer against Clang's, over the tree, where Clang is found
 # (dawk's decision 45a)

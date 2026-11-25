@@ -17,13 +17,14 @@
 *   The fixer's two safety checks run here too, over a file before and after
 * a repair: --same-tokens and --moved-lines, with --tokens and
 * --clang-tokens=DUMP for the test that holds parse's lexer to Clang's
-* (dtokens.h; dawk's decision 45).
+* (dtokens.h; dawk's decision 45); and --renumber --base DIR makes a
+* tree's headings decimal (drenumber.h).
 *
 *
 * path:      /src/djinterp/tools/dawk/dcheck.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.20
-*                                                            revised: 2026.11.19
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dmatch.h"  // corresponding header
 // std
@@ -55,6 +56,7 @@
 #include "../../../../inc/djinterp/tools/dawk/dss.h"                    // dj_dss_sheet
 #include "../../../../inc/djinterp/tools/dawk/dtree.h"                  // d_awk_source_tree_init
 #include "../../../../inc/djinterp/tools/dawk/dtokens.h"                // d_tokens_same
+#include "../../../../inc/djinterp/tools/dawk/drenumber.h"              // d_renumber_tree
 
 
 // dj_check_tally
@@ -1359,8 +1361,8 @@ void d_internal_assign_layers(
 
 /*
 d_internal_tokens_command
-  The commands over tokens, which take paths and no sheet: the result to
-exit with, or -1 when the command line is the checker's.
+  The commands over tokens and headings, which take paths and no sheet: the
+result to exit with, or -1 when the command line is the checker's.
 */
 static
 int d_internal_tokens_command(
@@ -1390,15 +1392,23 @@ int d_internal_tokens_command(
         return d_tokens_agree(argv[2], command + 15, stderr);
     }
 
+    if ( (strcmp(command, "--renumber") == 0) && (argc == 4) &&
+         (strcmp(argv[2], "--base") == 0) )
+    {
+        return d_renumber_tree(argv[3], stdout, stderr);
+    }
+
     if ( (strcmp(command, "--tokens") == 0)      ||
          (strcmp(command, "--same-tokens") == 0) ||
          (strcmp(command, "--moved-lines") == 0) ||
+         (strcmp(command, "--renumber") == 0)    ||
          (strncmp(command, "--clang-tokens=", 15u) == 0) )
     {
         (void)fprintf(stderr, "usage: dcheck --tokens <file>\n"
                       "       dcheck --same-tokens <before> <after>\n"
                       "       dcheck --moved-lines <before> <after>\n"
-                      "       dcheck --clang-tokens=<dump> <file>\n");
+                      "       dcheck --clang-tokens=<dump> <file>\n"
+                      "       dcheck --renumber --base <tree>\n");
 
         return 2;
     }
@@ -1419,7 +1429,7 @@ int main(
     char** argv
 )
 {
-    // the fixer's checks over tokens, which need no settings
+    // the fixer's checks over tokens, and renumbering: no settings needed
     const int tokens = (argc >= 2) ? d_internal_tokens_command(argc, argv)
                                    : -1;
 
