@@ -1,8 +1,8 @@
 /*******************************************************************************
-* djinterp [c][net]                                           ftp_interop_test.c
+* djinterp [c][net]                                          ftp_tests_interop.c
 *
 * FTP interop tests: the net/ftp/ client against a real FTP server, plain
-* and over TLS through the SSL kernel's OpenSSL engine.
+* and over TLS through the TLS kernel's OpenSSL engine.
 *   Opt-in, like the SFTP integration: without FTP_TEST_PORT the suite skips.
 *     FTP_TEST_PORT           plain FTP and explicit FTPS (AUTH TLS)
 *     FTP_TEST_USER           an account that may write in its directory
@@ -16,52 +16,66 @@
 *                             on data connections, as vsftpd does by default
 *   Every session uploads 300 KB, checks its SIZE, downloads and compares it,
 * finds it in a listing, and deletes it, in passive and in active mode.
+*   Block interop of the suite's module ftp: d_tests_ftp_interop runs each
+* kind of session as a test, its outcome a note; what the environment does
+* not name is a skipped test.
 *
 *
-* path:      /tests/djinterp/c/modules/net/ftp/ftp_interop_test.c
+* path:      /tests/djinterp/c/modules/net/ftp/ftp_tests_interop.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.29
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.11.20
 *******************************************************************************/
+#include "./ftp_tests.h"  // the suite
 // std
 #include <stdbool.h>  // bool, true, false
-#include <stdio.h>    // printf, snprintf
+#include <stddef.h>   // size_t
+#include <stdio.h>    // snprintf
 #include <stdlib.h>   // getenv, atoi, strtoul
 #include <string.h>   // memcpy, memcmp, strstr
 // djinterp
 #include "../../../../../../inc/djinterp/c/modules/net/ftp/ftp.h"          // d_ftp_client_*
-#include "../../../../../../inc/djinterp/c/modules/net/ssl/ssl.h"          // dj_ssl_context
-#include "../../../../../../inc/djinterp/c/modules/net/ssl/ssl_openssl.h"  // the OpenSSL engine
+#include "../../../../../../inc/djinterp/c/modules/net/tls/tls.h"          // dj_tls_context
+#include "../../../../../../inc/djinterp/c/modules/net/tls/tls_openssl.h"  // the OpenSSL engine
 
 
-static int g_fail   = 0;
-static int g_checks = 0;
+// g_suite
+//   variable: the suite d_tests_ftp_interop records into; the tests' checks reach it
+// through D_TESTS_FTP_INTEROP_CHECK.
+static struct dj_test_suite* g_suite = NULL;
+
+// g_failed
+//   variable: how many of this file's checks have failed, so its section can
+// say whether its tests passed.
+static size_t g_failed = 0u;
+
 /*
-d_tests_ftp_interop_check
-  Counts one check, and names it when it fails.
+d_tests_ftp_interop_held
+  Counts a check that failed, and gives back whether it held.
 */
 static
-void d_tests_ftp_interop_check(
-    bool        _ok,
-    const char* _text
+bool d_tests_ftp_interop_held(
+    bool _held
 )
 {
-    g_checks++;
-
-    // a failed check says which
-    if (!_ok)
+    // a failure counts toward the section's result
+    if (!_held)
     {
-        g_fail++;
-        printf("FAIL: %s\n",
-               _text);
+        ++g_failed;
     }
 
-    return;
+    return _held;
 }
 
 // D_TESTS_FTP_INTEROP_CHECK
-//   macro: one check, its condition's text naming it when it fails.
-#define D_TESTS_FTP_INTEROP_CHECK(c) d_tests_ftp_interop_check((c), #c)
+//   macro: one check of the open test, recorded with its condition's text,
+// file and line.
+#define D_TESTS_FTP_INTEROP_CHECK(c)                                           \
+    d_tests_ftp_interop_held(d_test_suite_check(g_suite,                       \
+                                                ((c) ? true : false),          \
+                                                #c,                            \
+                                                __FILE__,                      \
+                                                __LINE__))
 
 static char g_body[300000];
 static char g_back[400000];
@@ -148,12 +162,13 @@ report(
     enum dj_ftp_error           _e
 )
 {
-    printf("  %s: %s (reply %u, tls %s, net %s)\n",
-           _label,
-           d_ftp_error_string(_e),
-           _c->reply.code,
-           d_ssl_error_name(_c->tls_status),
-           d_net_error_string(_c->net_error));
+    (void)d_test_suite_note(g_suite,
+                            "%s: %s (reply %u, tls %s, net %s)",
+                            _label,
+                            d_ftp_error_string(_e),
+                            _c->reply.code,
+                            d_tls_error_name(_c->tls_status),
+                            d_net_error_string(_c->net_error));
 
     return;
 }
@@ -170,7 +185,7 @@ void session_file(
     struct dj_ftp_client* _c,
     const char*           _label,
     const char*           _name,
-    int                   _failures
+    size_t                _failures
 )
 {
     struct dj_tests_ftp_interop_source up      = { g_body, sizeof g_body, 0 };
@@ -231,12 +246,15 @@ void session_file(
     const bool control_tls = _c->control.secured;
     const bool data_tls    = (_c->protection == D_FTP_PROTECTION_PRIVATE);
     D_TESTS_FTP_INTEROP_CHECK(d_ftp_client_quit(_c) == D_FTP_OK);
-    printf("  %s: %s, listed as %s, control %s, data %s\n",
-           _label,
-           (g_fail == _failures) ? "300000 bytes up and back" : "FAILED",
-           (format == D_FTP_LISTING_MLSX) ? "MLSD" : "LIST",
-           control_tls ? "TLS" : "plain",
-           data_tls ? "TLS" : "plain");
+    (void)d_test_suite_note(g_suite,
+                            "%s: %s, listed as %s, control %s, data %s",
+                            _label,
+                            (g_failed == _failures)
+                                ? "300000 bytes up and back"
+                                : "FAILED",
+                            (format == D_FTP_LISTING_MLSX) ? "MLSD" : "LIST",
+                            control_tls ? "TLS" : "plain",
+                            data_tls ? "TLS" : "plain");
 
     return;
 }
@@ -245,7 +263,7 @@ static
 void session(
     const char*                  _label,
     const struct dj_ftp_options* _o,
-    const struct dj_ssl_context* _tls,
+    const struct dj_tls_context* _tls,
     const char*                  _host,
     uint16_t                     _port
 )
@@ -254,7 +272,7 @@ void session(
     char                       name[64];  // filled before it is read
     enum dj_ftp_error          e = D_FTP_OK;
 
-    const int failures = g_fail;
+    const size_t failures = g_failed;
 
     snprintf(name,
              sizeof name,
@@ -327,21 +345,21 @@ options(
 // a context trusting the test CA alone, or the system store alone
 static
 int context(
-    struct dj_ssl_context*       _ctx,
+    struct dj_tls_context*       _ctx,
     const struct dj_ftp_options* _o,
     const char*                  _ca
 )
 {
-    struct dj_ssl_config config = { 0 };
+    struct dj_tls_config config = { 0 };
     d_ftp_client_tls_config(_o,
                             &config);
     config.ca_file          = _ca;
     config.use_system_trust = (_ca == NULL);
 
-    return d_ssl_context_init(_ctx,
-                              d_ssl_engine_openssl(),
+    return d_tls_context_init(_ctx,
+                              d_tls_engine_openssl(),
                               &config) ==
-           D_SSL_OK;
+           D_TLS_OK;
 }
 
 /*
@@ -356,7 +374,7 @@ void run_plain(
 {
     struct dj_ftp_options o = { 0 };
 
-    printf("plain FTP:\n");
+    (void)d_test_suite_test(g_suite, "plain FTP");
     options(&o,
             D_FTP_SECURITY_NONE,
             D_FTP_DATA_PASSIVE_AUTO);
@@ -391,9 +409,12 @@ void run_ftps(
 )
 {
     struct dj_ftp_options o   = { 0 };
-    struct dj_ssl_context ctx = { 0 };
+    struct dj_tls_context ctx = { 0 };
 
-    printf("explicit FTPS (AUTH TLS, PROT P), OpenSSL engine:\n");
+    (void)d_test_suite_test(g_suite, "explicit FTPS");
+    (void)d_test_suite_describe(g_suite,
+                                "AUTH TLS and PROT P, over the OpenSSL "
+                                "engine");
     options(&o,
             D_FTP_SECURITY_EXPLICIT,
             D_FTP_DATA_PASSIVE_AUTO);
@@ -411,11 +432,18 @@ void run_ftps(
             &ctx,
             _tls_host,
             _port);
-    d_ssl_context_destroy(&ctx);
+    d_tls_context_destroy(&ctx);
 
-    if (_implicit)
+    (void)d_test_suite_test(g_suite, "implicit FTPS");
+
+    // no port for it: nothing to run against
+    if (!_implicit)
     {
-        printf("implicit FTPS:\n");
+        (void)d_test_suite_skip(g_suite,
+                                "FTP_TEST_IMPLICIT_PORT not set");
+    }
+    else
+    {
         options(&o,
                 D_FTP_SECURITY_IMPLICIT,
                 D_FTP_DATA_PASSIVE_AUTO);
@@ -427,7 +455,7 @@ void run_ftps(
                 &ctx,
                 _tls_host,
                 _implicit);
-        d_ssl_context_destroy(&ctx);
+        d_tls_context_destroy(&ctx);
     }
 
     return;
@@ -444,8 +472,9 @@ void run_untrusted(
 )
 {
     struct dj_ftp_options o   = { 0 };
-    struct dj_ssl_context ctx = { 0 };
+    struct dj_tls_context ctx = { 0 };
     static struct dj_ftp_client c = { 0 };
+    (void)d_test_suite_test(g_suite, "untrusted certificate");
     options(&o,
             D_FTP_SECURITY_EXPLICIT,
             D_FTP_DATA_PASSIVE_AUTO);
@@ -460,12 +489,11 @@ void run_untrusted(
                                                     _port);
     D_TESTS_FTP_INTEROP_CHECK( (e == D_FTP_ERROR_TLS) &&
                                (!c.connected) );
-    printf("untrusted certificate:\n");
     report("refused",
            &c,
            e);
     d_ftp_client_close(&c);
-    d_ssl_context_destroy(&ctx);
+    d_tls_context_destroy(&ctx);
 
     return;
 }
@@ -474,7 +502,7 @@ void run_untrusted(
 run_reuse
   A server requiring session reuse on data connections, as vsftpd does by
 default: the listing must succeed, which it can only by resuming the control
-connection's session (d_ssl_session_resume). A failure is still reported
+connection's session (d_tls_session_resume). A failure is still reported
 cleanly, and so is the next command after it, to say why.
 */
 static
@@ -485,9 +513,13 @@ void run_reuse(
 )
 {
     struct dj_ftp_options o   = { 0 };
-    struct dj_ssl_context ctx = { 0 };
+    struct dj_tls_context ctx = { 0 };
     static struct dj_ftp_client c = { 0 };
     struct dj_tests_ftp_interop_buffer back = { g_back, 0, sizeof g_back };
+    (void)d_test_suite_test(g_suite, "session reuse");
+    (void)d_test_suite_describe(g_suite,
+                                "a server requiring TLS session reuse on "
+                                "data connections");
     options(&o,
             D_FTP_SECURITY_EXPLICIT,
             D_FTP_DATA_PASSIVE_AUTO);
@@ -507,14 +539,14 @@ void run_reuse(
                           sink_mem,
                           &back,
                           NULL);
-    printf("server requiring session reuse:\n");
     // the server refuses a data connection that does not resume
     D_TESTS_FTP_INTEROP_CHECK(e == D_FTP_OK);
 
     if (e == D_FTP_OK)
     {
-        printf("  listing: resumed, %zu bytes\n",
-               back.length);
+        (void)d_test_suite_note(g_suite,
+                                "listing: resumed, %zu bytes",
+                                back.length);
     }
     else
     {
@@ -535,24 +567,39 @@ void run_reuse(
     }
 
     d_ftp_client_close(&c);
-    d_ssl_context_destroy(&ctx);
+    d_tls_context_destroy(&ctx);
 
     return;
 }
 
 /*
-main
-  Reads the server from the environment, skipping without one; runs plain
-FTP, then FTPS where a CA is named and the OpenSSL engine is built.
+d_tests_ftp_interop
+  Block interop: reads the server from the environment, a skipped test
+without one; runs plain FTP, then FTPS where a CA is named and the OpenSSL
+engine is built, each a skipped test where it is not. True if every check
+passed.
 */
-int main(void)
+bool d_tests_ftp_interop(
+    struct dj_test_suite* _suite
+)
 {
-    const char* port_text = getenv("FTP_TEST_PORT");
+    const char*  port_text = getenv("FTP_TEST_PORT");
+    const size_t before    = g_failed;
+
+    g_suite = _suite;
+    (void)d_test_suite_block(_suite, "interop");
+    (void)d_test_suite_describe(_suite,
+                                "the client against a real server, plain and "
+                                "over TLS, where FTP_TEST_PORT names one");
+
+    // no server named: nothing to run against
     if (!port_text)
     {
-        printf("interop: skipped (FTP_TEST_* not set)\n");
+        (void)d_test_suite_test(_suite, "a real server");
+        (void)d_test_suite_skip(_suite,
+                                "FTP_TEST_PORT not set");
 
-        return 0;
+        return true;
     }
 
     const uint16_t port = (uint16_t)atoi(port_text);
@@ -577,11 +624,15 @@ int main(void)
 
     if (!ca)
     {
-        printf("FTPS: skipped (FTP_TEST_CA not set)\n");
+        (void)d_test_suite_test(_suite, "FTPS");
+        (void)d_test_suite_skip(_suite,
+                                "FTP_TEST_CA not set");
     }
-    else if (!d_ssl_engine_openssl())
+    else if (!d_tls_engine_openssl())
     {
-        printf("FTPS: skipped (the OpenSSL engine is not built)\n");
+        (void)d_test_suite_test(_suite, "FTPS");
+        (void)d_test_suite_skip(_suite,
+                                "the OpenSSL engine is not built");
     }
     else
     {
@@ -599,11 +650,13 @@ int main(void)
                       tls_host,
                       reuse);
         }
+        else
+        {
+            (void)d_test_suite_test(_suite, "session reuse");
+            (void)d_test_suite_skip(_suite,
+                                    "FTP_TEST_REUSE_PORT not set");
+        }
     }
 
-    printf("%d checks, %d failures\n",
-           g_checks,
-           g_fail);
-
-    return g_fail != 0;
+    return (g_failed == before);
 }

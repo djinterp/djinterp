@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c][net]                                                  sftp_test.c
+* djinterp [c][net]                                                 sftp_tests.c
 *
 * SFTP tests: the codec on its own; the client against an in-process server,
 * which can answer out of order, read short, and break the protocol on
@@ -10,18 +10,23 @@
 *   Integration variables: SFTP_TEST_PORT (on 127.0.0.1), SFTP_TEST_USER,
 * SFTP_TEST_KEY (a private key file), SFTP_TEST_DIR (a scratch directory the
 * user may write), and SFTP_TEST_KNOWN_HOSTS (a file to record the host in).
+*   The suite's section, d_tests_sftp, opens module sftp and runs each
+* scenario as a test of its own; without the variables, the integration is
+* a skipped test.
 *
 *
-* path:      /tests/djinterp/c/modules/net/sftp/sftp_test.c
+* path:      /tests/djinterp/c/modules/net/sftp/sftp_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.29
-*                                                            revised: 2026.10.31
+*                                                            revised: 2026.11.20
 *******************************************************************************/
+#include "./sftp_tests.h"  // the suite
 // std
 #include <errno.h>    // errno, EINTR
 #include <signal.h>   // signal, SIGPIPE
 #include <stdbool.h>  // bool, true, false
-#include <stdio.h>    // printf
+#include <stddef.h>   // size_t
+#include <stdio.h>    // snprintf
 #include <stdlib.h>   // getenv, atoi, malloc, free
 #include <string.h>   // memcmp, memcpy, memset, strlen
 // POSIX
@@ -39,35 +44,43 @@
 #include "../net_tests_ssh_toy.h"                     // the toy SSH engine
 
 
-static int g_fail   = 0;
-static int g_checks = 0;
+// g_suite
+//   variable: the suite d_tests_sftp records into; the tests' checks reach it
+// through D_TESTS_SFTP_CHECK.
+static struct dj_test_suite* g_suite = NULL;
+
+// g_failed
+//   variable: how many of this file's checks have failed, so its section can
+// say whether its tests passed.
+static size_t g_failed = 0u;
 
 /*
-d_tests_sftp_check
-  Counts one check, and names it when it fails.
+d_tests_sftp_held
+  Counts a check that failed, and gives back whether it held.
 */
 static
-void d_tests_sftp_check(
-    bool        _ok,
-    const char* _text
+bool d_tests_sftp_held(
+    bool _held
 )
 {
-    g_checks++;
-
-    // a failed check says which
-    if (!_ok)
+    // a failure counts toward the section's result
+    if (!_held)
     {
-        g_fail++;
-        printf("FAIL: %s\n",
-               _text);
+        ++g_failed;
     }
 
-    return;
+    return _held;
 }
 
 // D_TESTS_SFTP_CHECK
-//   macro: one check, its condition's text naming it when it fails.
-#define D_TESTS_SFTP_CHECK(c) d_tests_sftp_check((c), #c)
+//   macro: one check of the open test, recorded with its condition's text,
+// file and line.
+#define D_TESTS_SFTP_CHECK(c)                                                  \
+    d_tests_sftp_held(d_test_suite_check(g_suite,                              \
+                                         ((c) ? true : false),                 \
+                                         #c,                                   \
+                                         __FILE__,                             \
+                                         __LINE__))
 
 /*
 t_codec
@@ -2621,7 +2634,9 @@ void t_real(void)
                *kh  = getenv("SFTP_TEST_KNOWN_HOSTS");
     if (!port || !user || !key || !dir || !kh)
     {
-        printf("integration: skipped (SFTP_TEST_* not set)\n");
+        (void)d_test_suite_skip(g_suite,
+                                "SFTP_TEST_PORT, _USER, _KEY, _DIR and "
+                                "_KNOWN_HOSTS not all set");
 
         return;
     }
@@ -2650,7 +2665,9 @@ void t_real(void)
                           (struct sockaddr*)&addr,
                           sizeof addr))
     {
-        printf("integration: cannot connect\n");
+        (void)d_test_suite_note(g_suite,
+                                "cannot connect to 127.0.0.1:%s",
+                                port);
         D_TESTS_SFTP_CHECK(0);
 
         return;
@@ -2679,11 +2696,12 @@ void t_real(void)
     D_TESTS_SFTP_CHECK( (d_sftp_client_open(&g_client,
                                             &s) == D_SFTP_OK) &&
                         (g_client.owns_channel) );
-    printf("integration: version %u, extensions 0x%x, read %u, write %u\n",
-           g_client.version,
-           g_client.extensions,
-           g_client.read_size,
-           g_client.write_size);
+    (void)d_test_suite_note(g_suite,
+                            "version %u, extensions 0x%x, read %u, write %u",
+                            g_client.version,
+                            g_client.extensions,
+                            g_client.read_size,
+                            g_client.write_size);
     snprintf(base,
              sizeof base,
              "%s/sftp_it_%d",
@@ -3016,34 +3034,78 @@ void t_ssh_errors_to_net(void)
     return;
 }
 
-/*
-main
-  Runs the codec, in-process and failing-connection tests, then the
-integration test when SFTP_TEST_PORT names a server; the exit status is
-whether any check failed.
-*/
-int main(void)
+// dj_tests_sftp_case
+//   struct: a row of D_TESTS_SFTP_CASES: a test's name, or NULL to go on in
+// the test above, and the function that makes its checks.
+struct dj_tests_sftp_case
 {
-    signal(SIGPIPE,
-           SIG_IGN);  // a peer that vanished is a failed check, not a dead test
-    t_codec();
-    t_sftp_errors_to_net();
-    t_sftp_errors_from_net();
-    t_ssh_errors_to_net();
-    t_fake();
-    t_fake_2();
-    t_fake_3();
-    t_failing();
-    t_failing_2();
-    t_over_ssh();
-    t_over_ssh_2();
-    t_ssh_refusals();
-    t_real();
-    t_real_2();
-    free(g_sink.data);
-    printf("%d checks, %d failures\n",
-           g_checks,
-           g_fail);
+    const char* name;
+    void        (*run)(void);
+};
 
-    return g_fail != 0;
+// D_TESTS_SFTP_CASES
+//   constant: the suite's tests, in the order run. A row with no name runs in
+// the test above it: it continues a scenario cut where it ran past 75 lines.
+static const struct dj_tests_sftp_case D_TESTS_SFTP_CASES[] =
+{
+    { "codec",                t_codec },
+    { "SFTP errors to net",   t_sftp_errors_to_net },
+    { "SFTP errors from net", t_sftp_errors_from_net },
+    { "SSH errors to net",    t_ssh_errors_to_net },
+    { "in-process server",    t_fake },
+    { NULL,                   t_fake_2 },
+    { NULL,                   t_fake_3 },
+    { "failing connections",  t_failing },
+    { NULL,                   t_failing_2 },
+    { "over SSH",             t_over_ssh },
+    { NULL,                   t_over_ssh_2 },
+    { "SSH refusals",         t_ssh_refusals },
+    { "a real server",        t_real },
+    { NULL,                   t_real_2 }
+};
+
+/*
+d_tests_sftp
+  The suite's section: opens module sftp, then a test per named row of
+D_TESTS_SFTP_CASES; the integration test is skipped where SFTP_TEST_* do not
+name a server. A peer that vanishes is a failed check, not a dead run, so
+SIGPIPE is ignored. True if every check passed.
+*/
+bool d_tests_sftp(
+    struct dj_test_suite* _suite
+)
+{
+    const size_t COUNT  = sizeof(D_TESTS_SFTP_CASES) /
+                          sizeof(D_TESTS_SFTP_CASES[0]);
+    const size_t before = g_failed;
+
+    g_suite = _suite;
+    signal(SIGPIPE,
+           SIG_IGN);
+    (void)d_test_suite_module(_suite, "sftp");
+    (void)d_test_suite_describe(_suite,
+                                "SFTP: the codec, the client against an "
+                                "in-process server, over the toy SSH engine "
+                                "and over failing connections, and a real "
+                                "server where one is named");
+
+    // each row in order, a named row opening a test of its own
+    for (size_t i = 0u; i < COUNT; ++i)
+    {
+        if (D_TESTS_SFTP_CASES[i].name)
+        {
+            (void)d_test_suite_test(_suite,
+                                    D_TESTS_SFTP_CASES[i].name);
+        }
+
+        D_TESTS_SFTP_CASES[i].run();
+    }
+
+    // the download buffer goes with the run, so another run starts empty
+    free(g_sink.data);
+    memset(&g_sink,
+           0,
+           sizeof g_sink);
+
+    return (g_failed == before);
 }

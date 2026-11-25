@@ -1,18 +1,28 @@
 /*******************************************************************************
-* djinterp [c][net]                                                   ftp_test.c
+* djinterp [c][net]                                                  ftp_tests.c
 *
 * Exercises `ftp.h`, and the client's connection helpers in its private
 * ftp_client_internal.h over a scripted transport.
+*   The suite's section, d_tests_ftp, opens module ftp and runs these as
+* block units, a test per scenario, then the blocks ftps and interop
+* (ftp_tests_ftps.c, ftp_tests_interop.c).
 *
 *
-* path:      /tests/djinterp/c/modules/net/ftp/ftp_test.c
+* path:      /tests/djinterp/c/modules/net/ftp/ftp_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.29
-*                                                            revised: 2026.10.31
+*                                                            revised: 2026.11.20
 *******************************************************************************/
+// enable POSIX.1-2008 (clock_gettime, CLOCK_MONOTONIC) under a strict C
+// compiler; a feature-test macro must precede every include
+#ifndef _POSIX_C_SOURCE
+    #define _POSIX_C_SOURCE 200809L
+#endif  // _POSIX_C_SOURCE
+
+#include "./ftp_tests.h"  // the suite
 // std
 #include <stdbool.h>  // bool, true, false
-#include <stdio.h>    // printf
+#include <stddef.h>   // size_t
 #include <string.h>   // memcmp, memcpy, memset, strcmp, strlen
 #include <time.h>     // clock_gettime, struct timespec
 // POSIX
@@ -22,40 +32,48 @@
 #include <unistd.h>      // close
 // djinterp
 #include "../../../../../../inc/djinterp/c/modules/net/ftp/ftp.h"          // d_ftp_*
-#include "../../../../../../inc/djinterp/c/modules/net/ssl/ssl_openssl.h"  // the OpenSSL engine
+#include "../../../../../../inc/djinterp/c/modules/net/tls/tls_openssl.h"  // the OpenSSL engine
 #include "../../../../../../src/djinterp/c/modules/net/ftp/ftp_client_internal.h"
                            // the client's private connection helpers
 
 
-static int g_fail   = 0;
-static int g_checks = 0;
+// g_suite
+//   variable: the suite d_tests_ftp records into; the tests' checks reach it
+// through D_TESTS_FTP_CHECK.
+static struct dj_test_suite* g_suite = NULL;
+
+// g_failed
+//   variable: how many of this file's checks have failed, so its section can
+// say whether its tests passed.
+static size_t g_failed = 0u;
 
 /*
-d_tests_ftp_check
-  Counts one check, and names it when it fails.
+d_tests_ftp_held
+  Counts a check that failed, and gives back whether it held.
 */
 static
-void d_tests_ftp_check(
-    bool        _ok,
-    const char* _text
+bool d_tests_ftp_held(
+    bool _held
 )
 {
-    g_checks++;
-
-    // a failed check says which
-    if (!_ok)
+    // a failure counts toward the section's result
+    if (!_held)
     {
-        g_fail++;
-        printf("FAIL: %s\n",
-               _text);
+        ++g_failed;
     }
 
-    return;
+    return _held;
 }
 
 // D_TESTS_FTP_CHECK
-//   macro: one check, its condition's text naming it when it fails.
-#define D_TESTS_FTP_CHECK(c) d_tests_ftp_check((c), #c)
+//   macro: one check of the open test, recorded with its condition's text,
+// file and line.
+#define D_TESTS_FTP_CHECK(c)                                                   \
+    d_tests_ftp_held(d_test_suite_check(g_suite,                               \
+                                        ((c) ? true : false),                  \
+                                        #c,                                    \
+                                        __FILE__,                              \
+                                        __LINE__))
 
 /*
 d_tests_ftp_span_is
@@ -1903,7 +1921,7 @@ void t_adapter_plain_2(void)
     D_TESTS_FTP_CHECK( (d_ftp_internal_client_read(k,
                                                    buf,
                                                    sizeof buf,
-                                                   &n) == D_SSL_OK) &&
+                                                   &n) == D_TLS_OK) &&
                        (n == 8)                                     &&
                        (!memcmp(buf,
                                 "220 hi\r\n",
@@ -1912,7 +1930,7 @@ void t_adapter_plain_2(void)
     D_TESTS_FTP_CHECK( (d_ftp_internal_client_read(k,
                                                    buf,
                                                    sizeof buf,
-                                                   &n) == D_SSL_ERROR_CLOSED) &&
+                                                   &n) == D_TLS_ERROR_CLOSED) &&
                        (n == 0) );
     fake_on(k,
             NULL,
@@ -1923,7 +1941,7 @@ void t_adapter_plain_2(void)
                                                    buf,
                                                    sizeof buf,
                                                    &n) ==
-                        D_SSL_ERROR_TRANSPORT) &&
+                        D_TLS_ERROR_TRANSPORT) &&
                        (k->failure == D_NET_ERROR_TIMED_OUT) );
     // writes: whole through short ones, a departed peer CLOSED, any other
     // failure TRANSPORT
@@ -1934,7 +1952,7 @@ void t_adapter_plain_2(void)
             D_NET_OK);
     D_TESTS_FTP_CHECK( (d_ftp_internal_client_write(k,
                                                     "NOOP\r\n",
-                                                    6) == D_SSL_OK) &&
+                                                    6) == D_TLS_OK) &&
                        (g_fake.out_len == 6)                        &&
                        (!memcmp(g_fake.out,
                                 "NOOP\r\n",
@@ -1950,7 +1968,7 @@ void t_adapter_plain_2(void)
         D_TESTS_FTP_CHECK( (d_ftp_internal_client_write(k,
                                                         "QUIT\r\n",
                                                         6) ==
-                            D_SSL_ERROR_CLOSED) &&
+                            D_TLS_ERROR_CLOSED) &&
                            (k->failure == GONE[i]) );
     }
 
@@ -1962,7 +1980,7 @@ void t_adapter_plain_2(void)
     D_TESTS_FTP_CHECK( (d_ftp_internal_client_write(k,
                                                     "QUIT\r\n",
                                                     6) ==
-                        D_SSL_ERROR_TRANSPORT) &&
+                        D_TLS_ERROR_TRANSPORT) &&
                        (k->failure == D_NET_ERROR_TIMED_OUT) );
     fake_on(k,
             NULL,
@@ -1973,7 +1991,7 @@ void t_adapter_plain_2(void)
     D_TESTS_FTP_CHECK( (d_ftp_internal_client_write(k,
                                                     "QUIT\r\n",
                                                     6) ==
-                        D_SSL_ERROR_TRANSPORT) &&
+                        D_TLS_ERROR_TRANSPORT) &&
                        (k->failure == D_NET_OK) );
     // judging: the transport's timeout first, then a stream that ended or
     // broke, then TLS's - truncation counting as lost on the control
@@ -1981,44 +1999,44 @@ void t_adapter_plain_2(void)
     k->failure = D_NET_ERROR_TIMED_OUT;
     D_TESTS_FTP_CHECK( (d_ftp_internal_client_failure(&g_cl,
                                                       k,
-                                                      D_SSL_ERROR_TRANSPORT,
+                                                      D_TLS_ERROR_TRANSPORT,
                                                       D_FTP_ERROR_CLOSED) ==
                         D_FTP_ERROR_TIMED_OUT) &&
                        (g_cl.net_error == D_NET_ERROR_TIMED_OUT) );
     k->failure = D_NET_ERROR_CONNECTION_RESET;
     D_TESTS_FTP_CHECK( (d_ftp_internal_client_failure(&g_cl,
                                                       k,
-                                                      D_SSL_ERROR_CLOSED,
+                                                      D_TLS_ERROR_CLOSED,
                                                       D_FTP_ERROR_CLOSED) ==
                         D_FTP_ERROR_CLOSED) &&
                        (g_cl.net_error == D_NET_ERROR_CONNECTION_RESET) );
     k->failure = D_NET_OK;
     D_TESTS_FTP_CHECK( (d_ftp_internal_client_failure(&g_cl,
                                                       k,
-                                                      D_SSL_ERROR_TRANSPORT,
+                                                      D_TLS_ERROR_TRANSPORT,
                                                       D_FTP_ERROR_CLOSED) ==
                         D_FTP_ERROR_CLOSED) &&
                        (g_cl.net_error == D_NET_OK) );
     D_TESTS_FTP_CHECK( (d_ftp_internal_client_failure(&g_cl,
                                                       k,
-                                                      D_SSL_ERROR_TRUNCATED,
+                                                      D_TLS_ERROR_TRUNCATED,
                                                       D_FTP_ERROR_CLOSED) ==
                         D_FTP_ERROR_CLOSED) &&
-                       (g_cl.tls_status == D_SSL_OK) );
+                       (g_cl.tls_status == D_TLS_OK) );
     const enum dj_ftp_error data_failure =
         d_ftp_internal_client_failure(&g_cl,
                                       &g_cl.data,
-                                      D_SSL_ERROR_TRUNCATED,
+                                      D_TLS_ERROR_TRUNCATED,
                                       D_FTP_ERROR_DATA_CONNECTION);
 
     D_TESTS_FTP_CHECK( (data_failure == D_FTP_ERROR_TLS) &&
-                       (g_cl.tls_status == D_SSL_ERROR_TRUNCATED) );
+                       (g_cl.tls_status == D_TLS_ERROR_TRUNCATED) );
     D_TESTS_FTP_CHECK( (d_ftp_internal_client_failure(&g_cl,
                                                       k,
-                                                      D_SSL_ERROR_VERIFY,
+                                                      D_TLS_ERROR_VERIFY,
                                                       D_FTP_ERROR_CLOSED) ==
                         D_FTP_ERROR_TLS) &&
-                       (g_cl.tls_status == D_SSL_ERROR_VERIFY) );
+                       (g_cl.tls_status == D_TLS_ERROR_VERIFY) );
 
     return;
 }
@@ -2027,15 +2045,15 @@ void t_adapter_plain_2(void)
 static
 int secured(
     struct dj_ftp_connection*    _k,
-    const struct dj_ssl_context* _ctx
+    const struct dj_tls_context* _ctx
 )
 {
     const struct dj_pack_text host = { "ftp.example", 11 };
     _k->secured =
-        d_ssl_session_init(&_k->tls,
+        d_tls_session_init(&_k->tls,
                            _ctx,
                            &_k->tcp.base,
-                           host) == D_SSL_OK;
+                           host) == D_TLS_OK;
 
     return _k->secured;
 }
@@ -2045,7 +2063,7 @@ void unsecured(
     struct dj_ftp_connection* _k
 )
 {
-    d_ssl_session_destroy(&_k->tls);
+    d_tls_session_destroy(&_k->tls);
     _k->secured = false;
 
     return;
@@ -2063,22 +2081,23 @@ static
 void t_adapter_tls(void)
 {
     struct dj_ftp_options o = { 0 };
-    struct dj_ssl_config  c = { 0 };
-    struct dj_ssl_context ctx = { 0 };
+    struct dj_tls_config  c = { 0 };
+    struct dj_tls_context ctx = { 0 };
     char                 buf[8];  // filled before it is read
     size_t               n = 0;
-    enum dj_ssl_error     st = D_SSL_OK;
+    enum dj_tls_error     st = D_TLS_OK;
     d_ftp_options_init(&o);
     o.verify_peer = false;
     o.verify_host = false;
     d_ftp_client_tls_config(&o,
                             &c);
-    if (!d_ssl_engine_openssl() ||
-        d_ssl_context_init(&ctx,
-                           d_ssl_engine_openssl(),
-                           &c) != D_SSL_OK)
+    if (!d_tls_engine_openssl() ||
+        d_tls_context_init(&ctx,
+                           d_tls_engine_openssl(),
+                           &c) != D_TLS_OK)
     {
-        printf("no TLS engine: the adapter's TLS half skipped\n");
+        (void)d_test_suite_skip(g_suite,
+                                "no TLS engine for the adapter's TLS half");
 
         return;
     }
@@ -2100,7 +2119,7 @@ void t_adapter_tls(void)
                         D_FTP_ERROR_TIMED_OUT) &&
                        (!g_cl.control.secured) &&
                        (g_fake.out_len > 0) );
-    D_TESTS_FTP_CHECK( (g_cl.tls_status == D_SSL_ERROR_TRANSPORT) &&
+    D_TESTS_FTP_CHECK( (g_cl.tls_status == D_TLS_ERROR_TRANSPORT) &&
                        (g_cl.net_error == D_NET_ERROR_TIMED_OUT)  &&
                        (g_cl.control.failure == D_NET_ERROR_TIMED_OUT) );
     fake_on(&g_cl.control,
@@ -2112,7 +2131,7 @@ void t_adapter_tls(void)
                                                      &g_cl.control) ==
                         D_FTP_ERROR_TLS)                          &&
                        (!g_cl.control.secured)                    &&
-                       (g_cl.tls_status == D_SSL_ERROR_TRUNCATED) &&
+                       (g_cl.tls_status == D_TLS_ERROR_TRUNCATED) &&
                        (g_cl.net_error == D_NET_OK) );
     // in force: a read's transport error, then a write's, reach the judgment
     fake_on(&g_cl.control,
@@ -2126,7 +2145,7 @@ void t_adapter_tls(void)
                                     buf,
                                     sizeof buf,
                                     &n);
-    D_TESTS_FTP_CHECK( (st == D_SSL_ERROR_TRANSPORT) &&
+    D_TESTS_FTP_CHECK( (st == D_TLS_ERROR_TRANSPORT) &&
                        (d_ftp_internal_client_failure(&g_cl,
                                                       &g_cl.control,
                                                       st,
@@ -2144,7 +2163,7 @@ void t_adapter_tls(void)
     st = d_ftp_internal_client_write(&g_cl.control,
                                      "NOOP\r\n",
                                      6);
-    D_TESTS_FTP_CHECK( (st == D_SSL_ERROR_TRUNCATED) &&
+    D_TESTS_FTP_CHECK( (st == D_TLS_ERROR_TRUNCATED) &&
                        (d_ftp_internal_client_failure(&g_cl,
                                                       &g_cl.control,
                                                       st,
@@ -2152,7 +2171,7 @@ void t_adapter_tls(void)
                         D_FTP_ERROR_CLOSED)          &&
                        (g_cl.net_error == D_NET_ERROR_CONNECTION_RESET) );
     unsecured(&g_cl.control);
-    d_ssl_context_destroy(&ctx);
+    d_tls_context_destroy(&ctx);
 
     return;
 }
@@ -2269,45 +2288,91 @@ void t_timeouts(void)
     return;
 }
 
-/*
-main
-  Runs every test, then prints the count; the exit status is whether any check
-failed.
-*/
-int main(void)
+// dj_tests_ftp_case
+//   struct: a row of D_TESTS_FTP_CASES: a test's name, or NULL to go on in the
+// test above, and the function that makes its checks.
+struct dj_tests_ftp_case
 {
+    const char* name;
+    void        (*run)(void);
+};
+
+// D_TESTS_FTP_CASES
+//   constant: block units' tests, in the order run. A row with no name runs
+// in the test above it: it continues a scenario cut where it ran past 75
+// lines.
+static const struct dj_tests_ftp_case D_TESTS_FTP_CASES[] =
+{
+    { "replies",         t_replies },
+    { NULL,              t_replies_2 },
+    { NULL,              t_replies_3 },
+    { "commands",        t_commands },
+    { NULL,              t_commands_2 },
+    { NULL,              t_commands_3 },
+    { "endpoints",       t_endpoints },
+    { NULL,              t_endpoints_2 },
+    { "paths and times", t_paths_time },
+    { NULL,              t_paths_time_2 },
+    { NULL,              t_paths_time_3 },
+    { NULL,              t_paths_time_4 },
+    { "listings",        t_listings },
+    { "URLs and ASCII",  t_urls_ascii },
+    { NULL,              t_urls_ascii_2 },
+    { NULL,              t_urls_ascii_3 },
+    { NULL,              t_urls_ascii_4 },
+    { NULL,              t_urls_ascii_5 },
+    { NULL,              t_urls_ascii_6 },
+    { NULL,              t_urls_ascii_7 },
+    { "errors to net",   t_errors_to_net },
+    { "plain adapter",   t_adapter_plain },
+    { NULL,              t_adapter_plain_2 },
+    { "TLS adapter",     t_adapter_tls },
+    { "errors from net", t_errors_from_net },
+    { "timeouts",        t_timeouts }
+};
+
+/*
+d_tests_ftp
+  The suite's section: opens module ftp, then block units, a test per named
+row of D_TESTS_FTP_CASES; then the blocks ftps and interop, which open their
+own. True if every check of the three passed.
+*/
+bool d_tests_ftp(
+    struct dj_test_suite* _suite
+)
+{
+    const size_t COUNT   = sizeof(D_TESTS_FTP_CASES) /
+                           sizeof(D_TESTS_FTP_CASES[0]);
+    const size_t before  = g_failed;
+    bool         ftps    = true;
+    bool         interop = true;
+
+    g_suite = _suite;
+    (void)d_test_suite_module(_suite, "ftp");
+    (void)d_test_suite_describe(_suite,
+                                "FTP: ftp.h's own functions, the client's "
+                                "helpers over a scripted transport, FTPS "
+                                "over loopback, and a real server where one "
+                                "is named");
+    (void)d_test_suite_block(_suite, "units");
     d_ftp_buffer_init(&B,
                       g_out,
                       sizeof g_out);
-    t_replies();
-    t_replies_2();
-    t_replies_3();
-    t_commands();
-    t_commands_2();
-    t_commands_3();
-    t_endpoints();
-    t_endpoints_2();
-    t_paths_time();
-    t_paths_time_2();
-    t_paths_time_3();
-    t_paths_time_4();
-    t_listings();
-    t_urls_ascii();
-    t_urls_ascii_2();
-    t_urls_ascii_3();
-    t_urls_ascii_4();
-    t_urls_ascii_5();
-    t_urls_ascii_6();
-    t_urls_ascii_7();
-    t_errors_to_net();
-    t_adapter_plain();
-    t_adapter_plain_2();
-    t_adapter_tls();
-    t_errors_from_net();
-    t_timeouts();
-    printf("%d checks, %d failures\n",
-           g_checks,
-           g_fail);
 
-    return g_fail != 0;
+    // each row in order, a named row opening a test of its own
+    for (size_t i = 0u; i < COUNT; ++i)
+    {
+        if (D_TESTS_FTP_CASES[i].name)
+        {
+            (void)d_test_suite_test(_suite,
+                                    D_TESTS_FTP_CASES[i].name);
+        }
+
+        D_TESTS_FTP_CASES[i].run();
+    }
+
+    ftps    = d_tests_ftp_ftps(_suite);
+    interop = d_tests_ftp_interop(_suite);
+
+    return (g_failed == before) && ftps && interop;
 }

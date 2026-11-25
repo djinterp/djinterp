@@ -1,8 +1,8 @@
 /*******************************************************************************
-* djinterp [c][net]                                                  ftps_test.c
+* djinterp [c][net]                                             ftp_tests_ftps.c
 *
 * FTPS tests: the net/ftp/ client over real loopback sockets, secured through
-* the SSL kernel with a deterministic test engine, against a threaded server
+* the TLS kernel with a deterministic test engine, against a threaded server
 * that the same kernel secures in the server role. Both live in
 * ftps_tests_support.c, which the C++ suite shares.
 *   The engine ("toy") frames every message as a TLS record, so the kernel's
@@ -10,52 +10,63 @@
 * is the identity. Its client contexts cache one session per host and offer
 * it again, which is how a real engine resumes the control session on FTPS
 * data connections.
+*   Block ftps of the suite's module ftp: d_tests_ftp_ftps runs each
+* scenario as a test of its own.
 *
 *
-* path:      /tests/djinterp/c/modules/net/ftp/ftps_test.c
+* path:      /tests/djinterp/c/modules/net/ftp/ftp_tests_ftps.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.29
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.11.20
 *******************************************************************************/
-#include "./ftps_tests_support.h"  // the suite: the server, the toy engine
+#include "./ftp_tests.h"           // the suite
+#include "./ftps_tests_support.h"  // the server, the toy engine
 // std
 #include <stdbool.h>  // bool, true, false
-#include <stdio.h>    // printf
+#include <stddef.h>   // size_t
 #include <string.h>   // memcpy, memcmp
 // djinterp
 #include "../../../../../../inc/djinterp/c/modules/net/ftp/ftp.h"  // d_ftp_client_*
-#include "../../../../../../inc/djinterp/c/modules/net/ssl/ssl.h"  // d_ssl_session_info
+#include "../../../../../../inc/djinterp/c/modules/net/tls/tls.h"  // d_tls_session_info
 
 
-static int g_fail   = 0;
-static int g_checks = 0;
+// g_suite
+//   variable: the suite d_tests_ftp_ftps records into; the tests' checks reach it
+// through D_TESTS_FTPS_CHECK.
+static struct dj_test_suite* g_suite = NULL;
+
+// g_failed
+//   variable: how many of this file's checks have failed, so its section can
+// say whether its tests passed.
+static size_t g_failed = 0u;
 
 /*
-d_tests_ftps_check
-  Counts one check, and names it when it fails.
+d_tests_ftps_held
+  Counts a check that failed, and gives back whether it held.
 */
 static
-void d_tests_ftps_check(
-    bool        _ok,
-    const char* _text
+bool d_tests_ftps_held(
+    bool _held
 )
 {
-    g_checks++;
-
-    // a failed check says which
-    if (!_ok)
+    // a failure counts toward the section's result
+    if (!_held)
     {
-        g_fail++;
-        printf("FAIL: %s\n",
-               _text);
+        ++g_failed;
     }
 
-    return;
+    return _held;
 }
 
 // D_TESTS_FTPS_CHECK
-//   macro: one check, its condition's text naming it when it fails.
-#define D_TESTS_FTPS_CHECK(c) d_tests_ftps_check((c), #c)
+//   macro: one check of the open test, recorded with its condition's text,
+// file and line.
+#define D_TESTS_FTPS_CHECK(c)                                                  \
+    d_tests_ftps_held(d_test_suite_check(g_suite,                              \
+                                         ((c) ? true : false),                 \
+                                         #c,                                   \
+                                         __FILE__,                             \
+                                         __LINE__))
 
 // ---------------------------------------------------------------------------
 // the scenarios
@@ -66,7 +77,7 @@ static struct
     size_t len;
 } g_sink;
 static struct dj_ftp_client  g_client;
-static struct dj_ssl_context g_ctx;
+static struct dj_tls_context g_ctx;
 
 static enum dj_ftp_error
 sink_mem(
@@ -145,16 +156,17 @@ int setup(
     const struct dj_ftp_options*       _o
 )
 {
-    struct dj_ssl_config c = { 0 };
+    struct dj_tls_config c = { 0 };
     d_ftp_client_tls_config(_o,
                             &c);
-    enum dj_ssl_error st = d_ssl_context_init(&g_ctx,
+    enum dj_tls_error st = d_tls_context_init(&g_ctx,
                                              &TOY,
                                              &c);
-    if (st != D_SSL_OK)
+    if (st != D_TLS_OK)
     {
-        printf("client context: %s\n",
-               d_ssl_error_name(st));
+        (void)d_test_suite_note(g_suite,
+                                "client context: %s",
+                                d_tls_error_name(st));
 
         return 0;
     }
@@ -162,7 +174,7 @@ int setup(
     if (!d_tests_ftps_server_start(_s,
                                    _cfg))
     {
-        d_ssl_context_destroy(&g_ctx);
+        d_tls_context_destroy(&g_ctx);
 
         return 0;
     }
@@ -181,7 +193,7 @@ void teardown(
 {
     d_ftp_client_close(&g_client);
     d_tests_ftps_server_stop(_s);
-    d_ssl_context_destroy(&g_ctx);
+    d_tls_context_destroy(&g_ctx);
 
     return;
 }
@@ -266,7 +278,7 @@ void t_explicit(void)
     struct dj_tests_ftps_server_config cfg  = { 0 };
     struct dj_ftp_options              o    = { 0 };
     struct dj_tests_ftps_source        up   = { "upload body\r\n", 13, 0 };
-    struct dj_ssl_info                 info = { 0 };
+    struct dj_tls_info                 info = { 0 };
     cfg.require_reuse               = 1;
     options(&o,
             D_FTP_SECURITY_EXPLICIT);
@@ -287,9 +299,9 @@ void t_explicit(void)
         (g_client.features &
          (D_FTP_FEATURE_EPSV | D_FTP_FEATURE_MLST | D_FTP_FEATURE_UTF8)) ==
         (D_FTP_FEATURE_EPSV | D_FTP_FEATURE_MLST | D_FTP_FEATURE_UTF8));
-    D_TESTS_FTPS_CHECK( (d_ssl_session_info(&g_client.control.tls,
+    D_TESTS_FTPS_CHECK( (d_tls_session_info(&g_client.control.tls,
                                             &info))            &&
-                        (info.version == D_SSL_VERSION_TLS1_3) &&
+                        (info.version == D_TLS_VERSION_TLS1_3) &&
                         (!info.resumed)                        &&
                         (info.has_peer_certificate) );
     D_TESTS_FTPS_CHECK( (d_ftp_client_login(&g_client) == D_FTP_OK) &&
@@ -441,7 +453,7 @@ void t_injection(void)
                                s.port);
     D_TESTS_FTPS_CHECK( (err == D_FTP_ERROR_SECURITY) ||
                         (err == D_FTP_ERROR_TLS && g_client.tls_status ==
-                         D_SSL_ERROR_NOT_TLS) );
+                         D_TLS_ERROR_NOT_TLS) );
     D_TESTS_FTPS_CHECK(!g_client.connected);
     teardown(&s);
     D_TESTS_FTPS_CHECK( (s.logins == 0) &&
@@ -522,7 +534,7 @@ void t_truncation(void)
                               sink_mem,
                               NULL) ==
         D_FTP_ERROR_TLS);
-    D_TESTS_FTPS_CHECK( (g_client.tls_status == D_SSL_ERROR_TRUNCATED) &&
+    D_TESTS_FTPS_CHECK( (g_client.tls_status == D_TLS_ERROR_TRUNCATED) &&
                         (g_client.reply.code == 226)                   &&
                         (g_sink.len == 24) );
     D_TESTS_FTPS_CHECK(d_ftp_client_quit(&g_client) == D_FTP_OK);
@@ -642,7 +654,7 @@ void t_verify(void)
     struct dj_tests_ftps_server        s   = { 0 };
     struct dj_tests_ftps_server_config cfg = { 0 };
     struct dj_ftp_options              o   = { 0 };
-    struct dj_ssl_config               c   = { 0 };
+    struct dj_tls_config               c   = { 0 };
     options(&o,
             D_FTP_SECURITY_EXPLICIT);
     g_toy.cert_name = "evil.example"; // a certificate for another host
@@ -659,14 +671,14 @@ void t_verify(void)
     D_TESTS_FTPS_CHECK( (d_ftp_client_connect(&g_client,
                                               "localhost",
                                               s.port) == D_FTP_ERROR_TLS) &&
-                        (g_client.tls_status == D_SSL_ERROR_VERIFY) );
+                        (g_client.tls_status == D_TLS_ERROR_VERIFY) );
     teardown(&s);
     g_toy.cert_name = "localhost";
     D_TESTS_FTPS_CHECK( (s.logins == 0) &&
                         (!s.saw_user_in_clear) );
 
     g_toy.chain_verdict =
-        D_SSL_VERIFY_FLAG_UNTRUSTED; // a chain that does not validate
+        D_TLS_VERIFY_FLAG_UNTRUSTED; // a chain that does not validate
     if (!setup(&s,
                cfg,
                &o))
@@ -680,16 +692,16 @@ void t_verify(void)
     D_TESTS_FTPS_CHECK( (d_ftp_client_connect(&g_client,
                                               "localhost",
                                               s.port) == D_FTP_ERROR_TLS) &&
-                        (g_client.tls_status == D_SSL_ERROR_VERIFY) );
+                        (g_client.tls_status == D_TLS_ERROR_VERIFY) );
     teardown(&s);
     g_toy.chain_verdict = 0;
 
-    d_ssl_config_init(&c,
-                      D_SSL_ROLE_CLIENT);
-    c.verify = D_SSL_VERIFY_NONE; // a context that checks less than asked
-    D_TESTS_FTPS_CHECK(d_ssl_context_init(&g_ctx,
+    d_tls_config_init(&c,
+                      D_TLS_ROLE_CLIENT);
+    c.verify = D_TLS_VERIFY_NONE; // a context that checks less than asked
+    D_TESTS_FTPS_CHECK(d_tls_context_init(&g_ctx,
                                           &TOY,
-                                          &c) == D_SSL_OK);
+                                          &c) == D_TLS_OK);
     d_ftp_client_init(&g_client,
                       &o,
                       &g_ctx);
@@ -704,7 +716,7 @@ void t_verify(void)
                                             "localhost",
                                             1) ==
                        D_FTP_ERROR_INVALID_ARGUMENT);
-    d_ssl_context_destroy(&g_ctx);
+    d_tls_context_destroy(&g_ctx);
 
     return;
 }
@@ -819,33 +831,64 @@ void t_plain_and_login(void)
     return;
 }
 
-/*
-main
-  Fills the big file's pattern, then runs each scenario in turn; the exit
-status is whether any check failed.
-*/
-int main(void)
+// dj_tests_ftps_case
+//   struct: a row of D_TESTS_FTPS_CASES: a test's name, and the function that
+// makes its checks.
+struct dj_tests_ftps_case
 {
+    const char* name;
+    void        (*run)(void);
+};
+
+// D_TESTS_FTPS_CASES
+//   constant: block ftps's tests, in the order run.
+static const struct dj_tests_ftps_case D_TESTS_FTPS_CASES[] =
+{
+    { "explicit FTPS",   t_explicit },
+    { "implicit FTPS",   t_implicit },
+    { "downgrade",       t_downgrade },
+    { "injection",       t_injection },
+    { "reuse required",  t_reuse_required },
+    { "truncation",      t_truncation },
+    { "PASV fallback",   t_pasv_fallback },
+    { "active mode",     t_active },
+    { "CCC",             t_ccc },
+    { "verification",    t_verify },
+    { "ASCII",           t_ascii },
+    { "plain and login", t_plain_and_login }
+};
+
+/*
+d_tests_ftp_ftps
+  Block ftps: fills the big file's pattern, then runs each scenario as a test
+of its own. True if every check passed.
+*/
+bool d_tests_ftp_ftps(
+    struct dj_test_suite* _suite
+)
+{
+    const size_t COUNT  = sizeof(D_TESTS_FTPS_CASES) /
+                          sizeof(D_TESTS_FTPS_CASES[0]);
+    const size_t before = g_failed;
+
+    g_suite = _suite;
+    (void)d_test_suite_block(_suite, "ftps");
+    (void)d_test_suite_describe(_suite,
+                                "the client over loopback, secured by the "
+                                "toy engine, against a threaded server");
+
     for (size_t i = 0; i < sizeof g_big; i++)
     {
         g_big[i] = (char)(i * 31u + 7u);
     }
 
-    t_explicit();
-    t_implicit();
-    t_downgrade();
-    t_injection();
-    t_reuse_required();
-    t_truncation();
-    t_pasv_fallback();
-    t_active();
-    t_ccc();
-    t_verify();
-    t_ascii();
-    t_plain_and_login();
-    printf("%d checks, %d failures\n",
-           g_checks,
-           g_fail);
+    // each scenario in order, a test of its own
+    for (size_t i = 0u; i < COUNT; ++i)
+    {
+        (void)d_test_suite_test(_suite,
+                                D_TESTS_FTPS_CASES[i].name);
+        D_TESTS_FTPS_CASES[i].run();
+    }
 
-    return g_fail != 0;
+    return (g_failed == before);
 }
