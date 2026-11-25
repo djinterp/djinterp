@@ -19,7 +19,6 @@ src/djinterp/c/modules/net/tcp/tcp.c	3
 src/djinterp/c/modules/net/tls/tls_openssl.c	2
 src/djinterp/c/modules/parse/cli/arg_parser/arg_parser.c	1
 src/djinterp/c/modules/parse/cli/arg_parser/arg_system.c	5
-src/djinterp/c/option/option_env.c	1
 src/djinterp/c/text/text_source.c	2
 src/djinterp/c/util/ostream/ostream_console.c	3
 src/djinterp/c/util/pdf/pdf_builtin_backend.c	2
@@ -65,7 +64,6 @@ tests/djinterp/c/dstring_tests_register.c	2
 tests/djinterp/c/filesys/file_tests_temp.c	1
 tests/djinterp/c/filesys/file_tests_util.c	1
 tests/djinterp/c/filesys/t_file_width.c	2
-tests/djinterp/c/log/log_tests.c	3
 tests/djinterp/c/modules/db/mariadb/mariadb_tests.c	2
 tests/djinterp/c/modules/db/mongodb/mongodb_tests.c	5
 tests/djinterp/c/modules/db/postgres/postgres_tests.c	5
@@ -144,9 +142,7 @@ tests/parse/dump_items.c	1
 tests/parse/dump_lex_cpp.c	1
 tests/parse/guide_gaps.c	1
 tests/ui/bitwisedom/ui_smoke.cpp	1
-tests/unintegrated/c/container/t_container_ckd.c	1
 tests/unintegrated/c/env/t_env_printer.c	2
-tests/unintegrated/c/option/t_option_env.c	1
 tests/unintegrated/cpp/db/mariadb/t_mariadb_cpp.cpp	1
 tests/unintegrated/cpp/db/mariadb/t_mariadb_face.cpp	1
 tests/unintegrated/cpp/db/mongodb/t_mongodb_core.cpp	1
