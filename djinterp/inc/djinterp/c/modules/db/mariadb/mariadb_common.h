@@ -300,19 +300,19 @@ const char* d_mariadb_sqlstate(
 //------------------------------------------------------------------------------
 // kinds - what a result was, as db_common.h's kinds name it (1.4):
 // d_mariadb_kind reads the handle's SQLSTATE - the result must be the
-// handle's last error for it to match; a NULL handle gives none - and
-// sorts the result by the function the program set with d_mariadb_kind_set,
-// or by d_mariadb_kind_default where it set none (NULL sets none again). The
-// default knows the error numbers MariaDB and MySQL report most: those for a
-// connection lost or refused (2002, 2003, 2006, 2013, 1040), for access
-// (1044, 1045, 1142), a duplicate or a foreign key (1062, 1451, 1452), a
-// syntax error (1064), what is not there (1049, 1054, 1146), a lock (1205,
-// 1213), a value out of range or wrong (1264, 1366, 1406), a feature
-// missing (1235); for any other it reads the SQLSTATE's class as
-// d_postgres_kind_default does, and failing that it is internal. Success and
-// the layer's own negative results are of no kind, and d_mariadb_kind
-// answers them without calling any function. Set the function once, before
-// the first connection: it is the process's.
+// handle's last error for it to match; a NULL handle gives none - and sorts
+// the result by the function the program set with d_mariadb_kind_set, or by
+// d_mariadb_kind_default where it set none (NULL sets none again). The default
+// knows the error numbers MariaDB and MySQL report most: those for a
+// connection lost or refused (2002, 2003, 2006, 2013, 1040), a login refused
+// (1045, 1698), a privilege missing (1044, 1142, 1227, 1370), a duplicate or a
+// foreign key (1062, 1451, 1452), a syntax error (1064), what is not there
+// (1049, 1054, 1146), a lock (1205, 1213), a value out of range or wrong
+// (1264, 1366, 1406), a feature missing (1235); for any other it reads the
+// SQLSTATE's class as d_postgres_kind_default does, and failing that it is
+// internal. Success and the layer's own negative results are of no kind, and
+// d_mariadb_kind answers them without calling any function. Set the function
+// once, before the first connection: it is the process's.
 enum dj_db_vendor_kind d_mariadb_kind(
     const struct dj_mariadb* _db,
     int32_t                  _result

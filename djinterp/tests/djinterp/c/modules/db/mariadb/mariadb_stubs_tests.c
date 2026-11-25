@@ -837,8 +837,10 @@ d_tests_mariadb_stubs_kinds
 needs no client.
   Tests the following:
   - success and the layer's own results are of no kind
-  - the numbers the header names sort as it says; another number sorts by
-    its SQLSTATE but for HY000, and is internal without one
+  - the numbers the header names sort as it says, a login refused auth and
+    a privilege missing denied; a number it knows sorts by itself, not its
+    SQLSTATE; another number sorts by its SQLSTATE but for HY000, and is
+    internal without one
   - a program's function is given no SQLSTATE for no handle, and is not
     called for success; NULL sets the default again
 */
@@ -863,7 +865,15 @@ void d_tests_mariadb_stubs_kinds(void)
     D_TESTS_MARIADB_STUBS_CHECK(
         d_mariadb_kind(NULL, 1045) == D_DB_VENDOR_KIND_AUTH);
     D_TESTS_MARIADB_STUBS_CHECK(
-        d_mariadb_kind(NULL, 1142) == D_DB_VENDOR_KIND_AUTH);
+        d_mariadb_kind(NULL, 1698) == D_DB_VENDOR_KIND_AUTH);
+    D_TESTS_MARIADB_STUBS_CHECK(
+        d_mariadb_kind(NULL, 1044) == D_DB_VENDOR_KIND_DENIED);
+    D_TESTS_MARIADB_STUBS_CHECK(
+        d_mariadb_kind(NULL, 1142) == D_DB_VENDOR_KIND_DENIED);
+    D_TESTS_MARIADB_STUBS_CHECK(
+        d_mariadb_kind(NULL, 1227) == D_DB_VENDOR_KIND_DENIED);
+    D_TESTS_MARIADB_STUBS_CHECK(
+        d_mariadb_kind(NULL, 1370) == D_DB_VENDOR_KIND_DENIED);
     D_TESTS_MARIADB_STUBS_CHECK(
         d_mariadb_kind(NULL, 1062) == D_DB_VENDOR_KIND_CONSTRAINT);
     D_TESTS_MARIADB_STUBS_CHECK(
@@ -893,6 +903,13 @@ void d_tests_mariadb_stubs_kinds(void)
     D_TESTS_MARIADB_STUBS_CHECK(
         d_mariadb_kind_default(9999, "HY000", NULL) ==
         D_DB_VENDOR_KIND_INTERNAL);
+    // a number it knows over its SQLSTATE: 1095 says HY000, 1211 42000
+    D_TESTS_MARIADB_STUBS_CHECK(
+        d_mariadb_kind_default(1095, "HY000", NULL) ==
+        D_DB_VENDOR_KIND_DENIED);
+    D_TESTS_MARIADB_STUBS_CHECK(
+        d_mariadb_kind_default(1211, "42000", NULL) ==
+        D_DB_VENDOR_KIND_DENIED);
 
     // a program's function, and the default again
     g_kind_calls = 0;

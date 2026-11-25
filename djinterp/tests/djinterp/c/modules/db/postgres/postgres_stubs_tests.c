@@ -909,7 +909,9 @@ d_tests_postgres_stubs_kinds
 libpq.
   Tests the following:
   - success, the layer's own results and a warning are of no kind
-  - each class sorts as the header says; class 42 by its condition
+  - each class sorts as the header says; class 42 by its condition; a
+    login refused (28) is auth, a privilege missing (42501), a grantor or
+    a role refused (0L, 0P) denied
   - the default reads an SQLSTATE it is given, MariaDB's 42S among them, or
     unpacks the result where it is given none; malformed text is internal
   - a program's function is given the result spelled out, and not success;
@@ -974,7 +976,13 @@ void d_tests_postgres_stubs_kinds(void)
         D_DB_VENDOR_KIND_SYNTAX);
     D_TESTS_POSTGRES_STUBS_CHECK(
         D_TESTS_POSTGRES_STUBS_KIND('4', '2', '5', '0', '1') ==
-        D_DB_VENDOR_KIND_AUTH);
+        D_DB_VENDOR_KIND_DENIED);
+    D_TESTS_POSTGRES_STUBS_CHECK(
+        D_TESTS_POSTGRES_STUBS_KIND('0', 'L', 'P', '0', '1') ==
+        D_DB_VENDOR_KIND_DENIED);
+    D_TESTS_POSTGRES_STUBS_CHECK(
+        D_TESTS_POSTGRES_STUBS_KIND('0', 'P', '0', '0', '0') ==
+        D_DB_VENDOR_KIND_DENIED);
     D_TESTS_POSTGRES_STUBS_CHECK(
         D_TESTS_POSTGRES_STUBS_KIND('4', '2', 'P', '0', '1') ==
         D_DB_VENDOR_KIND_NOT_FOUND);

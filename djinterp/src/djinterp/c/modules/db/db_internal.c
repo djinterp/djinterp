@@ -1935,7 +1935,7 @@ d_internal_db_kind_of_sqlstate(
         enum dj_db_vendor_kind kind;
     } conditions[] =
     {
-        { "42501", D_DB_VENDOR_KIND_AUTH },         // insufficient privilege
+        { "42501", D_DB_VENDOR_KIND_DENIED },       // insufficient privilege
         { "42P01", D_DB_VENDOR_KIND_NOT_FOUND },    // undefined table
         { "42P02", D_DB_VENDOR_KIND_NOT_FOUND },    // undefined parameter
         { "42703", D_DB_VENDOR_KIND_NOT_FOUND },    // undefined column
@@ -1976,8 +1976,8 @@ d_internal_db_kind_of_sqlstate(
         { "0A", D_DB_VENDOR_KIND_UNSUPPORTED },  // feature not supported
         { "0B", D_DB_VENDOR_KIND_UNSUPPORTED },  // transaction initiation
         { "0F", D_DB_VENDOR_KIND_DATA },         // locator
-        { "0L", D_DB_VENDOR_KIND_AUTH },         // invalid grantor
-        { "0P", D_DB_VENDOR_KIND_AUTH },         // invalid role
+        { "0L", D_DB_VENDOR_KIND_DENIED },       // invalid grantor
+        { "0P", D_DB_VENDOR_KIND_DENIED },       // invalid role
         { "0Z", D_DB_VENDOR_KIND_INTERNAL },     // diagnostics
         { "20", D_DB_VENDOR_KIND_DATA },         // case not found
         { "21", D_DB_VENDOR_KIND_DATA },         // cardinality

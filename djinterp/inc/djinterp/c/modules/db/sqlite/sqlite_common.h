@@ -184,19 +184,19 @@ const char* d_sqlite_result_message(
 //------------------------------------------------------------------------------
 // kinds - what a result of SQLite's was, as db_common.h's kinds name it
 // (1.4): d_sqlite_kind sorts a result by the function the program set with
-// d_sqlite_kind_set, or by d_sqlite_kind_default where it set none (NULL
-// sets none again). SQLite has no SQLSTATE, so the function is given NULL
-// for one. The default reads the primary result, and the extended where it
-// says more: SQLITE_CONSTRAINT is a constraint, SQLITE_BUSY and
-// SQLITE_LOCKED busy, SQLITE_ERROR syntax - SQLite's code for a statement it
-// could not prepare - SQLITE_CANTOPEN and SQLITE_NOTADB a connection,
-// SQLITE_PERM, SQLITE_AUTH and SQLITE_READONLY auth, SQLITE_MISMATCH,
-// SQLITE_TOOBIG and SQLITE_RANGE data, SQLITE_MISUSE and SQLITE_NOLFS
-// unsupported, and SQLITE_IOERR, SQLITE_CORRUPT, SQLITE_NOMEM and the rest of
-// SQLite's own failures internal. Success, SQLITE_ROW, SQLITE_DONE, a
-// notice, a warning and the layer's own negative results are of no kind,
-// and d_sqlite_kind answers them without calling any function. Set the
-// function once, before the first connection: it is the process's.
+// d_sqlite_kind_set, or by d_sqlite_kind_default where it set none (NULL sets
+// none again). SQLite has no SQLSTATE, so the function is given NULL for one.
+// The default reads the primary result, and the extended where it says more:
+// SQLITE_CONSTRAINT is a constraint, SQLITE_BUSY and SQLITE_LOCKED busy,
+// SQLITE_ERROR syntax - SQLite's code for a statement it could not prepare --
+// SQLITE_CANTOPEN and SQLITE_NOTADB a connection, SQLITE_PERM, SQLITE_AUTH and
+// SQLITE_READONLY denied - SQLite has no login, so nothing of its is auth --
+// SQLITE_MISMATCH, SQLITE_TOOBIG and SQLITE_RANGE data, SQLITE_MISUSE and
+// SQLITE_NOLFS unsupported, and SQLITE_IOERR, SQLITE_CORRUPT, SQLITE_NOMEM and
+// the rest of SQLite's own failures internal. Success, SQLITE_ROW,
+// SQLITE_DONE, a notice, a warning and the layer's own negative results are of
+// no kind, and d_sqlite_kind answers them without calling any function. Set
+// the function once, before the first connection: it is the process's.
 enum dj_db_vendor_kind d_sqlite_kind(
     int32_t _result
 ) D_NOTHROW;

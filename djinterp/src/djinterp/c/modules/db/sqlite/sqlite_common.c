@@ -582,8 +582,8 @@ d_sqlite_kind_default(
             return D_DB_VENDOR_KIND_SYNTAX;
         case 3:    // SQLITE_PERM
         case 8:    // SQLITE_READONLY
-        case 23:   // SQLITE_AUTH
-            return D_DB_VENDOR_KIND_AUTH;
+        case 23:   // SQLITE_AUTH: the program's authorizer refused it
+            return D_DB_VENDOR_KIND_DENIED;
         case 4:    // SQLITE_ABORT
         case 5:    // SQLITE_BUSY
         case 6:    // SQLITE_LOCKED

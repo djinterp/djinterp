@@ -708,19 +708,26 @@ d_mariadb_kind_default(
         { 2012, D_DB_VENDOR_KIND_CONNECTION },  // handshake failed
         { 2013, D_DB_VENDOR_KIND_CONNECTION },  // connection lost
         { 2026, D_DB_VENDOR_KIND_CONNECTION },  // TLS failed
-        // who the client is, or what it may do
-        { 1044, D_DB_VENDOR_KIND_AUTH },        // no access to the database
+        // who the client is
         { 1045, D_DB_VENDOR_KIND_AUTH },        // access denied
         { 1130, D_DB_VENDOR_KIND_AUTH },        // host not allowed
-        { 1142, D_DB_VENDOR_KIND_AUTH },        // command denied
-        { 1143, D_DB_VENDOR_KIND_AUTH },        // column denied
-        { 1227, D_DB_VENDOR_KIND_AUTH },        // privilege needed
         { 1251, D_DB_VENDOR_KIND_AUTH },        // auth protocol
         { 1698, D_DB_VENDOR_KIND_AUTH },        // access denied, no password
         { 1820, D_DB_VENDOR_KIND_AUTH },        // password must be reset
         { 1862, D_DB_VENDOR_KIND_AUTH },        // password expired
         { 2059, D_DB_VENDOR_KIND_AUTH },        // auth plugin not loaded
         { 2061, D_DB_VENDOR_KIND_AUTH },        // auth failed
+        // what the client, accepted, may not do: a privilege is missing
+        { 1044, D_DB_VENDOR_KIND_DENIED },      // no access to the database
+        { 1095, D_DB_VENDOR_KIND_DENIED },      // not the thread's owner
+        { 1131, D_DB_VENDOR_KIND_DENIED },      // anonymous: no passwords
+        { 1132, D_DB_VENDOR_KIND_DENIED },      // others' passwords
+        { 1142, D_DB_VENDOR_KIND_DENIED },      // command denied
+        { 1143, D_DB_VENDOR_KIND_DENIED },      // column denied
+        { 1211, D_DB_VENDOR_KIND_DENIED },      // may not create users
+        { 1227, D_DB_VENDOR_KIND_DENIED },      // privilege needed
+        { 1370, D_DB_VENDOR_KIND_DENIED },      // routine denied
+        { 1410, D_DB_VENDOR_KIND_DENIED },      // may not GRANT a new user
         // a key, a check, a NOT NULL, or what is already there
         { 1007, D_DB_VENDOR_KIND_CONSTRAINT },  // database exists
         { 1022, D_DB_VENDOR_KIND_CONSTRAINT },  // duplicate key

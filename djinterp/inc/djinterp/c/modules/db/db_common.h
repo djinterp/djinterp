@@ -210,6 +210,11 @@ struct dj_db_pending
 // replace, a vendor at a time, with a function of its own (d_<vendor>_kind_
 // set): its server may report a condition under a code the default reads
 // otherwise. A layer's own negative results, and success, are of no kind.
+//   Two kinds part what a log reader would act on differently: auth is a
+// client not accepted - its login, its password, its host - and sends an
+// operator to its credentials; denied is a client accepted that may not do
+// what it asked - a privilege, a grant or a file's mode is missing - and
+// sends one to its grants.
 
 // 1.4.1
 // dj_db_vendor_kind
@@ -220,8 +225,7 @@ enum dj_db_vendor_kind
     D_DB_VENDOR_KIND_NONE        = 0,  // not a vendor's failure: success, a
                                        // warning, or a negative D_DB_* value
     D_DB_VENDOR_KIND_CONNECTION  = 1,  // no connection, or one lost
-    D_DB_VENDOR_KIND_AUTH        = 2,  // who the client is was not accepted,
-                                       // or may not do this
+    D_DB_VENDOR_KIND_AUTH        = 2,  // who the client is was not accepted
     D_DB_VENDOR_KIND_CONSTRAINT  = 3,  // a key, a check or a NOT NULL refused
                                        // the change
     D_DB_VENDOR_KIND_SYNTAX      = 4,  // the statement does not parse
@@ -230,9 +234,11 @@ enum dj_db_vendor_kind
                                        // statement may succeed if retried
     D_DB_VENDOR_KIND_DATA        = 7,  // a value does not fit or convert
     D_DB_VENDOR_KIND_UNSUPPORTED = 8,  // the database cannot do this
-    D_DB_VENDOR_KIND_INTERNAL    = 9   // the database or its client failed in
+    D_DB_VENDOR_KIND_INTERNAL    = 9,  // the database or its client failed in
                                        // itself: I/O, memory, corruption, a
                                        // server's internal error
+    D_DB_VENDOR_KIND_DENIED      = 10  // the client was accepted, but may not
+                                       // do this: a privilege is missing
 };
 
 // 1.4.2
@@ -308,6 +314,9 @@ typedef enum dj_db_vendor_kind (*dj_db_kind_fn)(
       "{?message}: {message}{/}", (system, code, sqlstate, message))           \
     X(m, 9, internal, GENERIC_CALLEE, FAILED,                                  \
       "{?system}{system}: {/}the database failed in itself"                    \
+      "{?message}: {message}{/}", (system, code, sqlstate, message))           \
+    X(m, 10, denied, ACCESS_DENIED, FAILED,                                    \
+      "{?system}{system}: {/}the client may not do this"                       \
       "{?message}: {message}{/}", (system, code, sqlstate, message))
 
 //==============================================================================

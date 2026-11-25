@@ -636,7 +636,9 @@ d_tests_sqlite_stubs_kinds
   - success, SQLITE_ROW, SQLITE_DONE, a notice and the layer's own results
     are of no kind
   - each primary result sorts as the header says, an extended one as its
-    primary but where it says more
+    primary but where it says more; nothing of SQLite's is auth, which is
+    a login refused, and SQLITE_PERM, SQLITE_READONLY and SQLITE_AUTH are
+    denied
   - a program's function is called with the result, no SQLSTATE and its
     pointer, and not for success; NULL sets the default again
 */
@@ -668,9 +670,12 @@ void d_tests_sqlite_stubs_kinds(void)
         d_sqlite_kind(14) == D_DB_VENDOR_KIND_CONNECTION);
     D_TESTS_SQLITE_STUBS_CHECK(
         d_sqlite_kind(26) == D_DB_VENDOR_KIND_CONNECTION);
-    D_TESTS_SQLITE_STUBS_CHECK(d_sqlite_kind(3) == D_DB_VENDOR_KIND_AUTH);
-    D_TESTS_SQLITE_STUBS_CHECK(d_sqlite_kind(8) == D_DB_VENDOR_KIND_AUTH);
-    D_TESTS_SQLITE_STUBS_CHECK(d_sqlite_kind(23) == D_DB_VENDOR_KIND_AUTH);
+    D_TESTS_SQLITE_STUBS_CHECK(d_sqlite_kind(3) == D_DB_VENDOR_KIND_DENIED);
+    D_TESTS_SQLITE_STUBS_CHECK(d_sqlite_kind(8) == D_DB_VENDOR_KIND_DENIED);
+    D_TESTS_SQLITE_STUBS_CHECK(
+        d_sqlite_kind(1288) == D_DB_VENDOR_KIND_DENIED);
+    D_TESTS_SQLITE_STUBS_CHECK(
+        d_sqlite_kind(23) == D_DB_VENDOR_KIND_DENIED);
     D_TESTS_SQLITE_STUBS_CHECK(d_sqlite_kind(20) == D_DB_VENDOR_KIND_DATA);
     D_TESTS_SQLITE_STUBS_CHECK(d_sqlite_kind(18) == D_DB_VENDOR_KIND_DATA);
     D_TESTS_SQLITE_STUBS_CHECK(d_sqlite_kind(25) == D_DB_VENDOR_KIND_DATA);

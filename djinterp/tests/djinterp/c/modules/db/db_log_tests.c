@@ -146,7 +146,7 @@ void d_tests_db_log_own(void)
 d_tests_db_log_vendor
   The kinds' table.
   Tests the following:
-  - nine rows, one for each kind but none, numbered as dj_db_vendor_kind
+  - ten rows, one for each kind but none, numbered as dj_db_vendor_kind
     numbers them, in order, of the table "db.vendor"
   - each row's class and grade as ruled
   - every template compiles against its facts
@@ -173,7 +173,9 @@ void d_tests_db_log_vendor(void)
         { D_DB_VENDOR_KIND_UNSUPPORTED, &d_log_code_db_vendor_unsupported,
           D_LOG_CLASS_OPERATION_UNSUPPORTED, D_LOG_GRADE_REJECTED },
         { D_DB_VENDOR_KIND_INTERNAL, &d_log_code_db_vendor_internal,
-          D_LOG_CLASS_GENERIC_CALLEE, D_LOG_GRADE_FAILED }
+          D_LOG_CLASS_GENERIC_CALLEE, D_LOG_GRADE_FAILED },
+        { D_DB_VENDOR_KIND_DENIED, &d_log_code_db_vendor_denied,
+          D_LOG_CLASS_ACCESS_DENIED, D_LOG_GRADE_FAILED }
     };
 
     (void)d_test_suite_test(g_suite, "the kinds");
