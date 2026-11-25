@@ -290,7 +290,7 @@ bool type_traits_tests_cpp20()
         "type_identity_t<int>");
     record_assertion(verdict,
         std::is_same<type_identity_t<const int&>, const int&>::value,
-        "type_identity_t<const int&> -- preserves cv-ref");
+        "type_identity_t<const int&> - preserves cv-ref");
     record_assertion(verdict,
         std::is_same<type_identity_t<int[5]>, int[5]>::value,
         "type_identity_t<int[5]>");

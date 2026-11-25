@@ -21,7 +21,7 @@
 #include "table_tests.hpp"  // D_TBL_CHECK, the declarations
 #include <djinterp/cpp/container/table/table.hpp>  // under test
 // re_std
-#include "../../../../../inc/re_std/cpp/cstdint/cstdint.hpp"  // uint64_t
+#include "../../../../../inc/re_std/cpp/cstdint/cstdint.hpp"  // uint_least64_t
 
 
 NS_DJINTERP
@@ -448,7 +448,7 @@ bool tests_table_serial()
     DByteReader lreader(little);
     DDecodeResult<tb_int_table> lback =
         tb_int_table::decode_e<DSerialEndian::little,
-                                                                          DSerialLength::u32>(lreader);
+                               DSerialLength::u32>(lreader);
     D_TBL_CHECK(lback.ok);
     D_TBL_CHECK(lback.value == t);
 
@@ -458,7 +458,8 @@ bool tests_table_serial()
 
     // a big-endian u64 header claiming 2^32 x 2^32 and no cells
     DByteString hostile;
-    const re_std::uint64_t big = (static_cast<re_std::uint64_t>(1) << 32);
+    const re_std::uint_least64_t big =
+        (static_cast<re_std::uint_least64_t>(1) << 32);
     for (int k = 0; k < 2; ++k)
     {
         for (int s = 7; s >= 0; --s)

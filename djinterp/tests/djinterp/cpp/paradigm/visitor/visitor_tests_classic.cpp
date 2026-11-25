@@ -282,7 +282,7 @@ bool tests_concrete_visitor_inherits_every_per_type_interface()
                   "FIRST element's interface is a base");
     static_assert(std::is_base_of<visitor_of_impl<std::string, classic_rect>,
                                   visitor_t>::value,
-                  "MIDDLE element's interface is a base -- the case a tail-only "
+                  "MIDDLE element's interface is a base - the case a tail-only "
                   "chain would silently miss");
     static_assert(std::is_base_of<visitor_of_impl<std::string, classic_tri>,
                                   visitor_t>::value,
@@ -318,7 +318,7 @@ bool tests_concrete_visitor_is_abstract_until_all_visits_implemented()
                                                     classic_circle,
                                                     classic_rect,
                                                     classic_tri> >::value,
-                  "every visit() is pure -- the set is closed by construction");
+                  "every visit() is pure - the set is closed by construction");
 
     static_assert(!std::is_abstract<shape_namer>::value,
                   "a visitor implementing all three is concrete");

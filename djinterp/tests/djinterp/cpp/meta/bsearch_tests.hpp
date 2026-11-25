@@ -421,13 +421,13 @@ dt::module_spec bsearch_spec()
                 "guard",
                 "pack_element_or / pack_element_or_t: the bounds-guarded indexed "
                 "accessor that fronts the engine's miss path. What it returns on "
-                "each branch, and -- centrally -- that the false branch never "
+                "each branch, and - centrally - that the false branch never "
                 "instantiates pack_element_t, even at an index that would be "
                 "catastrophic if the guard leaked.",
                 {
                     { "tests_guard_true_branch_indexes",
                       "With _Ok true, pack_element_or_t is pack_element_t at the "
-                      "given index -- the head at 0, an interior element, and "
+                      "given index - the head at 0, an interior element, and "
                       "the last element.",
                       &tests_guard_true_branch_indexes },
                     { "tests_guard_false_branch_returns_fallback",
@@ -486,7 +486,7 @@ dt::module_spec bsearch_spec()
                       &tests_hits_type_alias_matches_entry },
                     { "tests_hits_two_element_pack",
                       "A two-element pack finds each key at its index and misses "
-                      "cleanly between and around them -- the smallest case with "
+                      "cleanly between and around them - the smallest case with "
                       "a left / right choice.",
                       &tests_hits_two_element_pack },
                     { "tests_hits_index_is_a_constant_expression",
@@ -541,7 +541,7 @@ dt::module_spec bsearch_spec()
             },
             dt::block_spec{
                 "ordering",
-                "The engine's needle-agnosticism -- the property that makes one "
+                "The engine's needle-agnosticism - the property that makes one "
                 "engine serve every order. A descending pack, a type needle "
                 "ordered by sizeof, deterministic duplicate-key landing, the two "
                 "branch directions in isolation, the vacuous first-probe hit, "
@@ -553,14 +553,14 @@ dt::module_spec bsearch_spec()
                       "descending positions and absent ones miss.",
                       &tests_ordering_descending_pack },
                     { "tests_ordering_type_needle_by_sizeof",
-                      "A TYPE needle with no ::key at all -- entries ordered by "
-                      "sizeof -- is found and missed correctly, proving the "
+                      "A TYPE needle with no ::key at all - entries ordered by "
+                      "sizeof - is found and missed correctly, proving the "
                       "engine never assumes ::key.",
                       &tests_ordering_type_needle_by_sizeof },
                     { "tests_ordering_duplicate_keys_land_deterministically",
                       "When several entries share the needle's key, the engine "
                       "reports the entry the bisection lands on (index 1 of "
-                      "three equal keys), deterministically -- a landing "
+                      "three equal keys), deterministically - a landing "
                       "position, not a lower_bound.",
                       &tests_ordering_duplicate_keys_land_deterministically },
                     { "tests_ordering_branch_directions_go_right",
@@ -607,7 +607,7 @@ dt::module_spec bsearch_spec()
                       &tests_robustness_members_usable_as_template_arguments },
                     { "tests_robustness_repeated_instantiation_is_stable",
                       "The same search named several times yields one identical "
-                      "type and one identical index -- the trait is a pure "
+                      "type and one identical index - the trait is a pure "
                       "function of its arguments.",
                       &tests_robustness_repeated_instantiation_is_stable },
                     { "tests_robustness_distinct_needles_distinct_results",

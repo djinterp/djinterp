@@ -138,7 +138,7 @@ bool tests_visitor_of_is_abstract()
 
     static_assert(!std::is_base_of<acyclic_visitor,
                                    DVisitorOf<acyclic_circle> >::value,
-                  "the per-type interface is INDEPENDENT of the root -- a visitor "
+                  "the per-type interface is INDEPENDENT of the root - a visitor "
                   "mixes in whichever subset it wants");
 
     return true;

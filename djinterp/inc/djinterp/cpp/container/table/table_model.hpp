@@ -191,7 +191,7 @@ struct DTableModel
         layout_valid<Layout, height, width>::value;
 
     static_assert(conforms,
-        "table_model: the layout is not a valid cover of the shape -- a merge "
+        "table_model: the layout is not a valid cover of the shape - a merge "
         "runs past the extents, or two merges overlap.");
 };
 

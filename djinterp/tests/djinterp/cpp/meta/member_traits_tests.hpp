@@ -214,9 +214,9 @@ dt::module_spec member_traits_spec()
         "member_traits",
         "The DEPRECATED transitional shim. Its entire content is two macro "
         "definitions forwarding the old spellings to the canonical macros in "
-        "trait_detect.hpp -- D_DEFINE_HAS_MEMBER_TYPE(NAME) to "
+        "trait_detect.hpp - D_DEFINE_HAS_MEMBER_TYPE(NAME) to "
         "D_TYPE_TRAIT_HAS_TYPE(has_##NAME, NAME), and D_DEFINE_MEMBER_TYPE_OR to "
-        "D_TYPE_TRAIT_MEMBER_TYPE_OR -- together with the transitive re-export of "
+        "D_TYPE_TRAIT_MEMBER_TYPE_OR - together with the transitive re-export of "
         "member_types.hpp's concrete detectors. There is no runtime code, so the "
         "suite invokes each forwarded spelling and proves the emitted trait "
         "behaves exactly like the canonical macro it forwards to, that the "
@@ -237,7 +237,7 @@ dt::module_spec member_traits_spec()
                       "one that does not.",
                       &tests_forwarding_has_member_type_detects },
                     { "tests_forwarding_has_member_type_name_is_derived",
-                      "The emitted trait is spelled exactly has_flavor_type -- "
+                      "The emitted trait is spelled exactly has_flavor_type - "
                       "the old macro's has_<NAME> derivation is preserved, which "
                       "the test proves by naming that identifier directly.",
                       &tests_forwarding_has_member_type_name_is_derived },

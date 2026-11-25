@@ -467,7 +467,7 @@ D_NODISCARD parse::parse_result<DTableModelValue<Cell, Metadata>> expand_multi_p
                 parse::DParseStatusMalformed, 0,
                 "expand_multi_placeholders: the run bound to '" + _bad_key +
                 "' does not fit the header cells it must fill.  Relax this with "
-                "a placeholder_fit policy -- truncate (drop a surplus), pad "
+                "a placeholder_fit policy - truncate (drop a surplus), pad "
                 "(fill a shortfall), or lenient (either).");
         }
     }
@@ -527,7 +527,7 @@ D_NODISCARD parse::parse_result<DTableModelValue<Cell, Metadata>> expand_multi_p
                     parse::DParseStatusMalformed, 0,
                     "expand_multi_placeholders: the run bound to '" + _key +
                     "' does not fit the cells it must fill.  Relax this with a "
-                    "placeholder_fit policy -- truncate (drop a surplus), pad "
+                    "placeholder_fit policy - truncate (drop a surplus), pad "
                     "(fill a shortfall), or lenient (either).");
             }
 

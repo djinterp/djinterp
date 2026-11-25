@@ -279,15 +279,15 @@ dt::module_spec lifetime_spec()
         "lifetime",
         "The compile-time / runtime lifetime vocabulary and the classifier built "
         "on it. A lifetime is a set of evaluation stages (compile-time precedes "
-        "runtime), encoded one bit per stage so the four values -- none, "
-        "compile_time, runtime, both -- form a lattice. The module supplies the "
+        "runtime), encoded one bit per stage so the four values - none, "
+        "compile_time, runtime, both - form a lattice. The module supplies the "
         "algebra (meet as bitwise AND, join as bitwise OR, make_lifetime, eight "
         "stage predicates, lifetime_name), type-level carriers, the portable "
         "is_literal_type probe, opt-in detection via a lifetime_category member, "
         "the priority-ordered lifetime_of classifier (opt-in > literal > runtime "
         "fallback), and three derived predicates. This suite pins the full 4x4 "
         "lattice and its laws, the literal-type probe, the opt-in detection, and "
-        "-- centrally -- the classifier priority, including the case where an "
+        "-- centrally - the classifier priority, including the case where an "
         "opt-in of runtime overrides a structurally-literal type.",
         {
             dt::block_spec{
@@ -347,7 +347,7 @@ dt::module_spec lifetime_spec()
                 "companion agrees.",
                 {
                     { "tests_literal_probe_scalars_are_literal",
-                      "Scalar types -- integers, floating point, pointers, enums "
+                      "Scalar types - integers, floating point, pointers, enums "
                       "-- are literal types.",
                       &tests_literal_probe_scalars_are_literal },
                     { "tests_literal_probe_trivial_class_is_literal",
@@ -395,8 +395,8 @@ dt::module_spec lifetime_spec()
             dt::block_spec{
                 "classification",
                 "lifetime_of, the priority-ordered classifier: opt-in first, then "
-                "is_literal_type (-> both), then the runtime fallback -- including "
-                "the decisive override case -- plus the ::type carrier, cv-ref "
+                "is_literal_type (-> both), then the runtime fallback - including "
+                "the decisive override case - plus the ::type carrier, cv-ref "
                 "stripping, and the lifetime_of_v companion.",
                 {
                     { "tests_classification_opt_in_takes_priority",
@@ -405,7 +405,7 @@ dt::module_spec lifetime_spec()
                       &tests_classification_opt_in_takes_priority },
                     { "tests_classification_opt_in_overrides_literal",
                       "The decisive case: a structurally-literal type whose "
-                      "opt-in says runtime classifies as runtime, not both -- and "
+                      "opt-in says runtime classifies as runtime, not both - and "
                       "an opt-in of none wins over literal too.",
                       &tests_classification_opt_in_overrides_literal },
                     { "tests_classification_literal_without_opt_in_is_both",

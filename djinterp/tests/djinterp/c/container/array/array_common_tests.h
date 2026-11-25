@@ -3,8 +3,8 @@
 *
 *   Comprehensive unit test suite header for `array_common.h`, on DTest's
 *   C face (struct dj_test_suite). It tests every array_common function.
-*   (It used the standalone harness, as one of DTest's dependencies; lane
-*   B's ruling B13 retired that tier.)
+*   (It used the standalone harness, as one of DTest's dependencies,
+*   until that tier was retired.)
 *
 * Test organization:
 *   - array_common_tests_init.c     : Initialization function tests (12 funcs)

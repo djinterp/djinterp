@@ -145,7 +145,7 @@ bool tests_the_drivers_differ_on_the_accumulator()
     static_assert(std::is_same<decltype(widen()(0, 0)), long>::value,
                   "the reducer returns long");
     static_assert(std::is_same<decltype(reduce_rt(widen(), 0, carr)),
-                               int>::value, "but the fold returns int -- FIXED");
+                               int>::value, "but the fold returns int - FIXED");
 
     // reduce_ct, value domain: EVOLVES. the accumulator is a growing DValueList.
     static_assert(std::is_same<

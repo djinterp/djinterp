@@ -436,7 +436,7 @@ functor_spec()
                       "specialization",
                       &tests_is_functor_positive },
                     { "tests_is_functor_negative",
-                      "Everything else is refused -- including a bare lambda, "
+                      "Everything else is refused - including a bare lambda, "
                       "which is a mapping FUNCTION, not a context to map over",
                       &tests_is_functor_negative },
                     { "tests_is_functor_decay",
@@ -474,7 +474,7 @@ functor_spec()
                       &tests_bridge_every_monad_is_a_functor },
                     { "tests_bridge_is_keyed_on_is_monad",
                       "The bridge is keyed on is_monad, so monad-ness IMPLIES "
-                      "functor-ness -- but not the reverse",
+                      "functor-ness - but not the reverse",
                       &tests_bridge_is_keyed_on_is_monad },
                     { "tests_bridge_derives_map_from_monad_map",
                       "The bridge derives the functor operation from the "
@@ -486,7 +486,7 @@ functor_spec()
                       &tests_bridge_value_type_from_monad },
                     { "tests_bridge_rebind_from_monad",
                       "Where the monad names an F<U>, the bridge passes it "
-                      "through as the functor's rebind -- even though rebind "
+                      "through as the functor's rebind - even though rebind "
                       "is not part of the core functor protocol",
                       &tests_bridge_rebind_from_monad },
                     { "tests_bridge_zero_wiring_for_a_new_monad",
@@ -514,7 +514,7 @@ functor_spec()
                 "Structural",
                 {
                     { "tests_functor_value_type",
-                      "The inner value type T of a functor F -- the first of "
+                      "The inner value type T of a functor F - the first of "
                       "the finer-grained questions generic code depends on",
                       &tests_functor_value_type },
                     { "tests_functor_value_type_t_alias",
@@ -522,7 +522,7 @@ functor_spec()
                       &tests_functor_value_type_t_alias },
                     { "tests_functor_value_type_helper_sfinae",
                       "The extraction is built on a SFINAE helper whose "
-                      "primary is a COMPLETE but MEMBERLESS struct -- a soft "
+                      "primary is a COMPLETE but MEMBERLESS struct - a soft "
                       "failure, yielding no ::type rather than an error",
                       &tests_functor_value_type_helper_sfinae },
                     { "tests_is_fmappable_positive",
@@ -566,14 +566,14 @@ functor_spec()
                       &tests_functor_map_over_a_monad },
                     { "tests_functor_map_preserves_context",
                       "map applies the function to the value(s) INSIDE the "
-                      "context and leaves the surrounding shape alone -- it "
+                      "context and leaves the surrounding shape alone - it "
                       "is not a fold, and it cannot create or destroy a "
                       "context",
                       &tests_functor_map_preserves_context },
                     { "tests_functor_map_over_a_view",
                       "For a context whose mapped type depends on the mapping "
                       "function, functor_map is simply the lazy transform "
-                      "that context already provides -- named uniformly",
+                      "that context already provides - named uniformly",
                       &tests_functor_map_over_a_view },
                     { "tests_functor_map_changes_inner_type",
                       "The mapping function is T -> U, so the context comes "
@@ -588,8 +588,8 @@ functor_spec()
                       &tests_functor_map_law_composition },
                     { "tests_functor_map_result_type",
                       "The result type is whatever the INSTANCE's map "
-                      "produces -- F<U> for a concrete context, the "
-                      "instance's transformed view otherwise -- so it is "
+                      "produces - F<U> for a concrete context, the "
+                      "instance's transformed view otherwise - so it is "
                       "deduced, never named by the protocol",
                       &tests_functor_map_result_type },
                     { "tests_functor_map_forwarding",
@@ -603,7 +603,7 @@ functor_spec()
                     { "tests_functor_map_generic_over_any_functor",
                       "The point of the protocol: one generic function, "
                       "written once against functor_map, works over EVERY "
-                      "functor -- a monad reached through the bridge, a "
+                      "functor - a monad reached through the bridge, a "
                       "second unrelated monad, and a view with its own "
                       "specialization",
                       &tests_functor_map_generic_over_any_functor },

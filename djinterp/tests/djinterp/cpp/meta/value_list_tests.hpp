@@ -451,16 +451,16 @@ value_list_spec()
                       &tests_value_list_size_member },
                     { "tests_value_list_is_empty_object",
                       "The values live in the TYPE, so the list carries no "
-                      "storage -- it is an empty struct, cheap to pass by "
+                      "storage - it is an empty struct, cheap to pass by "
                       "value into the constexpr free-function ops",
                       &tests_value_list_is_empty_object },
                     { "tests_value_list_heterogeneous",
                       "The pack is auto..., so the elements need not share a "
-                      "type -- this is the value-domain analog of a "
+                      "type - this is the value-domain analog of a "
                       "std::tuple's heterogeneity",
                       &tests_value_list_heterogeneous },
                     { "tests_value_list_size_noexcept",
-                      "size() is a static constexpr noexcept function -- "
+                      "size() is a static constexpr noexcept function - "
                       "usable anywhere a constant is needed, and never "
                       "throwing",
                       &tests_value_list_size_noexcept },
@@ -470,7 +470,7 @@ value_list_spec()
                       &tests_value_list_duplicates },
                     { "tests_value_list_type_identity",
                       "Two lists are the same type exactly when their packs "
-                      "match -- so ORDER matters, and so does the TYPE of "
+                      "match - so ORDER matters, and so does the TYPE of "
                       "each value, since an NTTP carries its type with it",
                       &tests_value_list_type_identity },
                     { "tests_value_list_tier_gate",
@@ -489,7 +489,7 @@ value_list_spec()
                       "Any DValueList specialization is recognised",
                       &tests_is_value_list_positive },
                     { "tests_is_value_list_negative",
-                      "Everything else is refused -- notably std::tuple, "
+                      "Everything else is refused - notably std::tuple, "
                       "which is the TYPE-domain sequence this module is the "
                       "value-domain counterpart of",
                       &tests_is_value_list_negative },
@@ -508,7 +508,7 @@ value_list_spec()
                       &tests_is_value_list_v_agrees },
                     { "tests_concept_value_list",
                       "ValueList is the concept face of is_value_list, and it "
-                      "really GATES resolution -- it is a constraint, not "
+                      "really GATES resolution - it is a constraint, not "
                       "merely a bool that happens to be true",
                       &tests_concept_value_list },
                     { "tests_concept_value_list_gating",
@@ -528,7 +528,7 @@ value_list_spec()
                       &tests_value_list_size_trait },
                     { "tests_value_list_size_integral_constant",
                       "It IS an integral_constant, so it carries that whole "
-                      "surface -- the same as std::tuple_size",
+                      "surface - the same as std::tuple_size",
                       &tests_value_list_size_integral_constant },
                     { "tests_value_list_size_v_agrees",
                       "The _v shorthand is exactly the trait's value",
@@ -538,7 +538,7 @@ value_list_spec()
                       &tests_value_list_at_positions },
                     { "tests_value_list_at_preserves_value_type",
                       "An NTTP carries its type with it, so the extracted "
-                      "value keeps that type -- an int stays an int, a char a "
+                      "value keeps that type - an int stays an int, a char a "
                       "char, an enum an enum",
                       &tests_value_list_at_preserves_value_type },
                     { "tests_value_list_at_deep",
@@ -572,11 +572,11 @@ value_list_spec()
                       "append puts the new element at the END",
                       &tests_append },
                     { "tests_append_to_empty",
-                      "Appending to the empty list yields a singleton -- the "
+                      "Appending to the empty list yields a singleton - the "
                       "base of the collect step",
                       &tests_append_to_empty },
                     { "tests_prepend",
-                      "prepend puts the new element at the FRONT -- the "
+                      "prepend puts the new element at the FRONT - the "
                       "mirror of append, and the reason fold with it reverses "
                       "a list",
                       &tests_prepend },
@@ -615,11 +615,11 @@ value_list_spec()
                 {
                     { "tests_transform_maps_every_element",
                       "transform applies the leaf to each element and returns "
-                      "a new list -- the value-domain analog of dtuple's "
+                      "a new list - the value-domain analog of dtuple's "
                       "tuple_apply_all",
                       &tests_transform_maps_every_element },
                     { "tests_transform_empty",
-                      "Mapping over the empty list yields the empty list -- "
+                      "Mapping over the empty list yields the empty list - "
                       "the pack expansion has nothing to expand, so the leaf "
                       "is never even probed",
                       &tests_transform_empty },
@@ -633,7 +633,7 @@ value_list_spec()
                       &tests_transform_law_composition },
                     { "tests_transform_changes_value_type",
                       "The leaf may change the value's TYPE, not merely its "
-                      "value -- an int list can come back a bool list",
+                      "value - an int list can come back a bool list",
                       &tests_transform_changes_value_type },
                     { "tests_transform_unevaluated_probe",
                       "transform needs only the leaf's RESULT TYPE, so it "
@@ -660,7 +660,7 @@ value_list_spec()
                       &tests_fold_reduces },
                     { "tests_fold_empty_returns_seed",
                       "The base case: an empty list folds to the accumulator, "
-                      "untouched -- the reducer is never invoked",
+                      "untouched - the reducer is never invoked",
                       &tests_fold_empty_returns_seed },
                     { "tests_fold_is_left_associative",
                       "fold is left associative",
@@ -670,19 +670,19 @@ value_list_spec()
                       "recursion before the base case",
                       &tests_fold_single_element },
                     { "tests_fold_accumulator_may_be_a_list",
-                      "The seed is \"any object\" -- typically a carrier, but "
+                      "The seed is \"any object\" - typically a carrier, but "
                       "a DValueList serves just as well",
                       &tests_fold_accumulator_may_be_a_list },
                     { "tests_fold_reverses_with_prepend",
                       "The same fold with prepend instead of append REVERSES "
-                      "the list -- each element arrives at the front, so the "
+                      "the list - each element arrives at the front, so the "
                       "last one processed ends up first",
                       &tests_fold_reverses_with_prepend },
                     { "tests_fold_deep",
                       "A long list exercises the recursion to depth",
                       &tests_fold_deep },
                     { "tests_fold_seed_may_be_a_plain_value",
-                      "The seed is \"any object\" -- not only a carrier or a "
+                      "The seed is \"any object\" - not only a carrier or a "
                       "list",
                       &tests_fold_seed_may_be_a_plain_value },
                     { "tests_fold_and_transform_compose",

@@ -224,7 +224,7 @@ monoid_spec()
                       &tests_is_monoid_positive },
                     { "tests_is_monoid_negative",
                       "Confirms is_monoid is false for types with no "
-                      "monoid_traits specialization, and -- critically -- "
+                      "monoid_traits specialization, and - critically - "
                       "that the detector resolves cleanly rather than hard- "
                       "erroring on the undefined primary template",
                       &tests_is_monoid_negative },

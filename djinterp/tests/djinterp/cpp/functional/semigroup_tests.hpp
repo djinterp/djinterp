@@ -320,8 +320,8 @@ semigroup_spec()
                       "testing",
                       &tests_is_semigroup_cvref },
                     { "tests_is_semigroup_family_sfinae",
-                      "A family instance -- one specialisation keyed on the "
-                      "trait's _Enable SFINAE hook -- makes every tagged type "
+                      "A family instance - one specialisation keyed on the "
+                      "trait's _Enable SFINAE hook - makes every tagged type "
                       "a semigroup at once, without over-matching",
                       &tests_is_semigroup_family_sfinae },
                     { "tests_is_semigroup_requires_marker",
@@ -345,12 +345,12 @@ semigroup_spec()
                       &tests_mappend_dispatch },
                     { "tests_mappend_associativity",
                       "The defining law: mappend(a, mappend(b, c)) == "
-                      "mappend(mappend(a, b), c), checked across instances -- "
+                      "mappend(mappend(a, b), c), checked across instances - "
                       "including the non-commutative ones, where the law is "
                       "the substantive claim",
                       &tests_mappend_associativity },
                     { "tests_mappend_order_preserved",
-                      "mappend passes its operands to combine in order -- so "
+                      "mappend passes its operands to combine in order - so "
                       "on a non-commutative instance the two orderings "
                       "differ, and the left-to-right result is the one "
                       "produced",
@@ -362,7 +362,7 @@ semigroup_spec()
                     { "tests_mappend_constexpr",
                       "mappend folds inside a constant expression whenever "
                       "the instance's combine is constexpr over a literal "
-                      "type -- the header's conditional-constexpr contract",
+                      "type - the header's conditional-constexpr contract",
                       &tests_mappend_constexpr },
                     { "tests_mappend_family_modular",
                       "The family instance computes modular addition, with "
@@ -386,8 +386,8 @@ semigroup_spec()
                       "so mismatched operand types are not callable",
                       &tests_mappend_requires_same_type },
                     { "tests_mappend_runtime_domain",
-                      "mappend also runs at runtime -- the other half of the "
-                      "dual domain -- over operands whose values are not "
+                      "mappend also runs at runtime - the other half of the "
+                      "dual domain - over operands whose values are not "
                       "known at compile time",
                       &tests_mappend_runtime_domain },
                 }

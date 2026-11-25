@@ -423,7 +423,7 @@ result_spec()
 {
     return dt::module_spec{
         "result",
-        "result<T, E> -- a monadic success-or-error type (C++)",
+        "result<T, E> - a monadic success-or-error type (C++)",
         {
             dt::block_spec{
                 "lifetime",

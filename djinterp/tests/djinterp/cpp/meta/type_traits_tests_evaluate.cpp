@@ -119,7 +119,7 @@ static_assert(evaluate_types_for_trait<std::tuple<int>, std::is_integral>::value
 //
 //   KNOWN BUG B4: are_all_nonvoid has a single-arg specialization that
 // directly inherits from evaluate_types_for_trait<tuple<_Type>, is_void,
-// disjunction>.  That helper hits bug B1's single-element base, so it
+// disjunction>.  That helper hits KNOWN BUG B1, its single-element base: it
 // returns true regardless of _Type, and the specialization does NOT
 // apply std::negation the way the variadic primary does. Result:
 // are_all_nonvoid<void>::value is TRUE (wrong).

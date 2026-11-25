@@ -146,7 +146,7 @@ dt::module_spec flat_spec()
         "flat",
         "The FLAT structural-kind tag: the opt-in marker for a type that "
         "holds only leaves (depth 1, no node summand). Its whole surface is "
-        "three compile-time members -- nests (false), min_depth (1), and a "
+        "three compile-time members - nests (false), min_depth (1), and a "
         "name() function returning \"flat\". This suite pins those values, their "
         "being genuine constant expressions usable as template arguments, and "
         "the emptiness of the tag. The nests bit is the load-bearing fact: the "
@@ -160,17 +160,17 @@ dt::module_spec flat_spec()
                 "member is a constant expression.",
                 {
                     { "tests_tag_flat_nests_is_false",
-                      "flat::nests is false -- flat has no node summand, the "
+                      "flat::nests is false - flat has no node summand, the "
                       "signal the structure traits read for leaf-ness.",
                       &tests_tag_flat_nests_is_false },
                     { "tests_tag_flat_min_depth_is_one",
-                      "flat::min_depth is 1 -- every component is a leaf.",
+                      "flat::min_depth is 1 - every component is a leaf.",
                       &tests_tag_flat_min_depth_is_one },
                     { "tests_tag_flat_name_is_flat",
                       "flat::name() returns the stable spelling \"flat\".",
                       &tests_tag_flat_name_is_flat },
                     { "tests_tag_flat_is_empty_tag",
-                      "flat is an empty, trivially constructible tag type -- it "
+                      "flat is an empty, trivially constructible tag type - it "
                       "carries no state, only its static members.",
                       &tests_tag_flat_is_empty_tag },
                     { "tests_tag_flat_members_are_constant_expressions",

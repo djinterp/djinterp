@@ -936,8 +936,8 @@ dt::module_spec contravariant_spec()
         "misuse is a clean resolution error), the is_contravariant detector, the "
         "contravariant_value_type extractor, the one generic operation, and the "
         "C++20 Contravariant concept. It ships no instances, so this suite "
-        "registers its own zoo -- a serializer, a predicate, an enable_if-hook "
-        "sink, and a literal-type predicate -- and exercises the protocol, the "
+        "registers its own zoo - a serializer, a predicate, an enable_if-hook "
+        "sink, and a literal-type predicate - and exercises the protocol, the "
         "structural traits, dispatch and forwarding, the two contravariant laws, "
         "and the concept face against them.",
         {
@@ -955,8 +955,8 @@ dt::module_spec contravariant_spec()
                       &tests_contravariant_traits_registration_members },
                     { "tests_contravariant_traits_rebind_shape",
                       "rebind<U> yields F<U> for the instances that supply it, "
-                      "is the identity at U = A, and is absent -- legitimately, "
-                      "since the protocol makes it optional -- on the hook "
+                      "is the identity at U = A, and is absent - legitimately, "
+                      "since the protocol makes it optional - on the hook "
                       "instance.",
                       &tests_contravariant_traits_rebind_shape },
                     { "tests_contravariant_detects_registered_instances",
@@ -977,7 +977,7 @@ dt::module_spec contravariant_spec()
                     { "tests_contravariant_detection_decays_arrays_and_functions",
                       "std::decay is applied in full, so an array of instances "
                       "collapses to a pointer and a function type to a function "
-                      "pointer -- neither of which is contravariant.",
+                      "pointer - neither of which is contravariant.",
                       &tests_contravariant_detection_decays_arrays_and_functions },
                     { "tests_contravariant_detection_bool_trait_shape",
                       "is_contravariant has the shape of a standard bool trait: "
@@ -1015,7 +1015,7 @@ dt::module_spec contravariant_spec()
                 "structural",
                 "The Section 0 structural vocabulary: contravariant_value_type, "
                 "its _t alias, and the internal helper that gives it its "
-                "soft-failure behaviour -- what the inner consumed type is, and "
+                "soft-failure behaviour - what the inner consumed type is, and "
                 "when there is none.",
                 {
                     { "tests_contravariant_value_type_of_instances",
@@ -1040,7 +1040,7 @@ dt::module_spec contravariant_spec()
                       &tests_contravariant_value_type_preserves_qualifiers },
                     { "tests_contravariant_value_type_helper_soft_failure",
                       "The internal extractor helper resolves no `type` for "
-                      "unregistered types -- the module's actual SFINAE seam -- "
+                      "unregistered types - the module's actual SFINAE seam - "
                       "while resolving one for every registered instance.",
                       &tests_contravariant_value_type_helper_soft_failure },
                     { "tests_contravariant_value_type_orthogonal_to_marker",
@@ -1138,8 +1138,8 @@ dt::module_spec contravariant_spec()
             },
             dt::block_spec{
                 "laws",
-                "The two contravariant functor laws -- contramap(id) == id and "
-                "contramap(g) . contramap(f) == contramap(f . g) -- checked "
+                "The two contravariant functor laws - contramap(id) == id and "
+                "contramap(g) . contramap(f) == contramap(f . g) - checked "
                 "observationally on every lawful instance, including the arrow "
                 "reversal that distinguishes a contravariant functor from a "
                 "covariant one.",

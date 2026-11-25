@@ -192,7 +192,7 @@ static_assert(has_variadic_constructor<not_constructible_from_self_t>::value == 
 // =========================================================================
 //   The probes ask the allocator itself for value_type, allocate(n) and
 // deallocate(p, n). They used to go through std::allocator_traits, with
-// two faults this suite pinned (B5, B6): std::allocator_traits<int> was a
+// two faults this suite pinned: std::allocator_traits<int> was a
 // hard error, so no negative case compiled, and the allocate probe passed
 // an rvalue where an lvalue is taken, so no allocator qualified. Both are
 // fixed (2026-11-09), so the negative cases are checked as well.

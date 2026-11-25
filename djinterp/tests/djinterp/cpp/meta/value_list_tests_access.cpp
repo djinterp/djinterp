@@ -198,7 +198,7 @@ bool tests_value_list_at_deep()
     static_assert(value_list_at_v<4, deep> == 4, "4");
     static_assert(value_list_at_v<5, deep> == 5, "5");
     static_assert(value_list_at_v<6, deep> == 6, "6");
-    static_assert(value_list_at_v<7, deep> == 7, "7 -- the deepest peel");
+    static_assert(value_list_at_v<7, deep> == 7, "7 - the deepest peel");
 
     ok = ok && (value_list_at_v<7, deep> == 7);
 #endif
@@ -257,7 +257,7 @@ bool tests_at_returns_carrier()
     static_assert(std::is_same<decltype(at<0>(mixed{})), val_t<10> >::value,
                   "val_t<10>");
     static_assert(std::is_same<decltype(at<1>(mixed{})), val_t<'x'> >::value,
-                  "val_t<'x'> -- the char survives");
+                  "val_t<'x'> - the char survives");
     static_assert(std::is_same<decltype(at<2>(mixed{})), val_t<true> >::value,
                   "val_t<true>");
 
@@ -341,11 +341,11 @@ bool tests_traits_require_an_unqualified_list()
 
     // a cv-ref spelling falls through to the undefined primary.
     static_assert(!is_complete<value_list_size<const list> >::value,
-                  "size<const list> is INCOMPLETE -- no clean_t");
+                  "size<const list> is INCOMPLETE - no clean_t");
     static_assert(!is_complete<value_list_size<list&> >::value,
                   "size<list&> is INCOMPLETE");
     static_assert(!is_complete<value_list_at<0, const list> >::value,
-                  "at<0, const list> is INCOMPLETE -- no clean_t");
+                  "at<0, const list> is INCOMPLETE - no clean_t");
     static_assert(!is_complete<value_list_at<0, list&> >::value,
                   "at<0, list&> is INCOMPLETE");
 

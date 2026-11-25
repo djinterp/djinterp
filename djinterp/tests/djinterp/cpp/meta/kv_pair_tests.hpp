@@ -197,12 +197,12 @@ dt::module_spec kv_pair_spec()
         "The minimal key-value pair kv_pair<K, V>: two public members, the "
         "key_type / value_type typedefs, four constructors (default, const-ref, "
         "rvalue), three comparison operators, and the make_kv factory. The one "
-        "semantic that matters is that comparison is KEY-ONLY -- operator==, != "
+        "semantic that matters is that comparison is KEY-ONLY - operator==, != "
         "and < all consult the key and ignore the value, so equal-keyed pairs "
         "compare equal and a sorted option_set orders by key alone. The "
         "constructors and operators are constexpr. This suite pins construction "
         "and member layout, make_kv's decayed-type deduction, the move behaviour "
-        "of the rvalue constructor, and -- centrally -- the key-only comparison "
+        "of the rvalue constructor, and - centrally - the key-only comparison "
         "across value and key variation.",
         {
             dt::block_spec{
@@ -229,8 +229,8 @@ dt::module_spec kv_pair_spec()
                       "type.",
                       &tests_construction_rvalue_constructor_moves },
                     { "tests_construction_make_kv_deduces_decayed_types",
-                      "make_kv deduces decayed key and value types -- a string "
-                      "literal and a const int& become std::string and int -- "
+                      "make_kv deduces decayed key and value types - a string "
+                      "literal and a const int& become std::string and int - "
                       "and builds the corresponding kv_pair.",
                       &tests_construction_make_kv_deduces_decayed_types },
                     { "tests_construction_is_constexpr_constructible",
@@ -260,7 +260,7 @@ dt::module_spec kv_pair_spec()
                       &tests_comparison_ordering_is_by_key },
                     { "tests_comparison_value_is_ignored_entirely",
                       "Holding the key fixed and varying only the value changes "
-                      "no comparison result -- ==, != and < are all invariant in "
+                      "no comparison result - ==, != and < are all invariant in "
                       "the value.",
                       &tests_comparison_value_is_ignored_entirely },
                     { "tests_comparison_operators_are_constexpr",

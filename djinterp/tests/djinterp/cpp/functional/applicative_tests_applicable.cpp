@@ -178,7 +178,7 @@ dt::block_spec applicative_applicable_block()
 
     block.tests.push_back(dt::test_spec{
         "not applicable: wrapped non-function",
-        "ap(box<int>, box<int>) -- value not callable",
+        "ap(box<int>, box<int>) - value not callable",
         &tests_applicable_wrapped_nonfunc });
 
     block.tests.push_back(dt::test_spec{
@@ -193,7 +193,7 @@ dt::block_spec applicative_applicable_block()
 
     block.tests.push_back(dt::test_spec{
         "not applicable: mismatched kinds",
-        "ap(box<fn>, ident<arg>) -- must be same applicative",
+        "ap(box<fn>, ident<arg>) - must be same applicative",
         &tests_applicable_mismatched_kinds });
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES

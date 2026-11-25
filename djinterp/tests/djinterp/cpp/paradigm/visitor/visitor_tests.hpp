@@ -831,7 +831,7 @@ inline
         dt::block_spec block;
 
         block.name       = "static";
-        block.descriptor = "CRTP compile-time dispatch -- no vtable, no RTTI";
+        block.descriptor = "CRTP compile-time dispatch - no vtable, no RTTI";
 
         block.tests.push_back({"visit_result_deduces_the_return_type",
             "visit_result<V,E>::type is decltype(v.visit(e))",
@@ -940,7 +940,7 @@ inline
             "visitor_for admits a visitor covering every element",
             &tests_concept_visitor_for});
         block.tests.push_back({"concept_visitor_for_rejects_partial_visitor",
-            "and rejects one missing an overload -- the fold is over ALL",
+            "and rejects one missing an overload - the fold is over ALL",
             &tests_concept_visitor_for_rejects_partial_visitor});
         block.tests.push_back({"concept_acyclic_visitor_for",
             "acyclic_visitor_for admits a proper acyclic visitor",

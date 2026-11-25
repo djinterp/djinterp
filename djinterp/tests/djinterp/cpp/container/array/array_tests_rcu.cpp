@@ -6,7 +6,7 @@
 * array while a writer publishes.
 *
 *   One reader thread at a time: DRcuProtected registers one reader slot, so
-* concurrent readers would share it (a sync/rcu.hpp limit, noted to lane B).
+* concurrent readers would share it (a sync/rcu.hpp limit, for now).
 *
 *
 * path:      /tests/djinterp/cpp/container/array/array_tests_rcu.cpp

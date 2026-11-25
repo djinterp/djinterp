@@ -25,7 +25,7 @@ headers do not compile in this corpus:
     - transducer.hpp : includes functional_traits.hpp, absent from the corpus
     - accumulator.hpp: same missing include
     - the monoid newtypes are reachable only flat in `djinterp`, because
-      monoid.hpp never opens `namespace monoids` (D-3), so this file spells
+      monoid.hpp never opens `namespace monoids`, so this file spells
       them `djinterp::sum<...>` rather than `djinterp::monoids::sum<...>`.
   What is compared here is the algebra (Semigroup, Monoid) and the fold, which
 is the layer every other row is specified over.

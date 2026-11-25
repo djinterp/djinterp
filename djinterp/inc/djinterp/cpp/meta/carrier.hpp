@@ -50,8 +50,8 @@
 *   An optional `constant<V>` with overloaded constexpr operators (the Hana
 * technique) could let a single runtime leaf such as [](auto x){ return x*2; }
 * also drive value carriers, shrinking the value-domain leaf layer.  It is purely
-* additive over val_t and is intentionally NOT defined here pending the Q2
-* decision in the roadmap; the locked design (D5) keeps leaves domain-specific.
+* additive over val_t and is intentionally NOT defined here pending a
+* decision in the roadmap; the locked design keeps leaves domain-specific.
 *
 *
 * path:      /inc/djinterp/cpp/meta/carrier.hpp

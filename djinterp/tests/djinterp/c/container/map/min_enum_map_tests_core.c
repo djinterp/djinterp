@@ -1058,7 +1058,7 @@ bool d_tests_min_enum_map_new_copy(struct dj_test_suite* _suite)
                            (copy)       &&
                            (copy->count == original->count) );
 
-    //   test 4: the copy holds exactly its entries (C7): it allocates the
+    //   test 4: the copy holds exactly its entries: it allocates the
     // source's count, so its capacity is that count, not the source's
     test_capacity_matches = ( (original)   &&
                               (copy)       &&

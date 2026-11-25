@@ -38,6 +38,6 @@ main()
     return dt::run_module(
         tt::result_spec(),
         "result.hpp unit tests",
-        "result<T, E> -- a monadic success-or-error type (C++)",
+        "result<T, E> - a monadic success-or-error type (C++)",
         opts);
 }

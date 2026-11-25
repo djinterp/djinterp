@@ -267,10 +267,10 @@ dt::module_spec member_types_spec()
 {
     return dt::module_spec{
         "member_types",
-        "The framework's shared nested-typedef detectors -- has_input_type, "
+        "The framework's shared nested-typedef detectors - has_input_type, "
         "has_result_type, has_item_type, has_kind_type, has_value_type, "
         "has_key_type, has_mapped_type, has_size_type, has_difference_type, "
-        "has_allocator_type -- each emitted by D_TYPE_TRAIT_HAS_TYPE as a SFINAE "
+        "has_allocator_type - each emitted by D_TYPE_TRAIT_HAS_TYPE as a SFINAE "
         "bool trait that probes `typename clean_t<T>::<name>` (cv-ref stripped, "
         "with a `_v` companion on C++14+), plus internal::pick_member_type, the "
         "extract-or-fall-back chooser. This suite pins what the detectors report "
@@ -297,7 +297,7 @@ dt::module_spec member_types_spec()
                     { "tests_detectors_each_fires_only_on_its_own_typedef",
                       "For each of the ten, a fixture exposing only that typedef "
                       "makes exactly that detector true and the other nine "
-                      "false -- no detector keys on the wrong member.",
+                      "false - no detector keys on the wrong member.",
                       &tests_detectors_each_fires_only_on_its_own_typedef },
                     { "tests_detectors_on_standard_containers",
                       "std::vector and std::string expose value_type, size_type, "
@@ -327,7 +327,7 @@ dt::module_spec member_types_spec()
                     { "tests_semantics_strip_cv_ref_via_clean_t",
                       "has_X<const T&>, has_X<volatile T> and has_X<T&&> all "
                       "agree with has_X<T>, because the probe strips cv-ref "
-                      "first -- in both the true and the false direction.",
+                      "first - in both the true and the false direction.",
                       &tests_semantics_strip_cv_ref_via_clean_t },
                     { "tests_semantics_pointer_is_not_seen_through",
                       "has_X<T*> is false even when T has the typedef: a "
@@ -379,7 +379,7 @@ dt::module_spec member_types_spec()
                       &tests_extraction_absent_yields_fallback },
                     { "tests_extraction_fallback_ignores_extracted",
                       "The false branch yields the fallback regardless of what "
-                      "the extracted type is -- even a distinct tag it never "
+                      "the extracted type is - even a distinct tag it never "
                       "names.",
                       &tests_extraction_fallback_ignores_extracted },
                     { "tests_extraction_distinct_types_are_distinguished",

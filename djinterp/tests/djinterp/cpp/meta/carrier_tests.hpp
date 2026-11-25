@@ -258,7 +258,7 @@ carrier_spec()
                       &tests_carrier_value_recover_cvref },
                     { "tests_carrier_value_runtime",
                       "Verifies a value carrier collapses to an ordinary "
-                      "runtime value -- the carrier contract",
+                      "runtime value - the carrier contract",
                       &tests_carrier_value_runtime },
                 }
             },
@@ -278,7 +278,7 @@ carrier_spec()
                       &tests_carrier_concept_carrier },
                     { "tests_carrier_concept_constrains",
                       "Verifies the Carrier concept actually constrains "
-                      "overload resolution -- its intended use",
+                      "overload resolution - its intended use",
                       &tests_carrier_concept_constrains },
                 }
             },

@@ -1,12 +1,12 @@
-/******************************************************************************
-* djinterp [test]                                traversable_tests_runner.cpp
+/*******************************************************************************
+* djinterp [cpp][functional]                        traversable_tests_runner.cpp
 *
 *   Runner (the main() entry point) for the traversable.hpp unit suite.  Per the
 * DTest authoring guide a runner is thin: main() only chooses a few options and
 * hands the spec to run_module, whose exit code is the whole of main.
 *
 *   WHERE THE SPEC COMES FROM.  traversable_tests.hpp declares its tests_*
-* predicates flat (visible to every consumer) but - unlike the cofree suite --
+* predicates flat (visible to every consumer) but - unlike the cofree suite -
 * ships NO per-section block_spec provider and NO inline traversable_spec()
 * provider (it predates the DTEST_SPEC_MODE two-faced-header idiom, and does not
 * pull in test_defaults.hpp).  The module_spec is therefore assembled here, from
@@ -23,10 +23,12 @@
 * bodies, not around them), so the spec below lists them all without feature
 * guards.
 *
+*
 * path:      /build/cmake/config/testing/djinterp/cpp/functional/traversable/traversable_tests_runner.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.20
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.20
+*                                                            revised: 2026.11.25
+*******************************************************************************/
 
 // std
 #include <string>
@@ -55,7 +57,7 @@ namespace
     {
         return dt::module_spec{
             "traversable",
-            "traversable.hpp -- the capstone of the functional layer: walk a "
+            "traversable.hpp - the capstone of the functional layer: walk a "
             "structure T left-to-right, run an applicative effect f : A -> F<B> "
             "at each element, and collect the results back into the same shape "
             "(T<A> -> F<T'<B>>).  Covers the traversable_traits protocol and "

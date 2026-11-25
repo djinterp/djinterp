@@ -574,7 +574,7 @@ parse_table(
     {
         return result_type::make_error(
             parse::DParseStatusMalformed, _origin,
-            "parse_table: no delimited line found -- a table is a grid of rows "
+            "parse_table: no delimited line found - a table is a grid of rows "
             "bounded by the cell delimiter.");
     }
 
@@ -585,7 +585,7 @@ parse_table(
     {
         return result_type::make_error(
             parse::DParseStatusMalformed, _origin,
-            "parse_table: the grid resolves no columns -- a row needs at least "
+            "parse_table: the grid resolves no columns - a row needs at least "
             "two delimiters to bound one cell.");
     }
 

@@ -383,13 +383,13 @@ functional_common_spec()
                     { "tests_is_callable_const_lvalue",
                       "The defining contract: the probe is a CONST-LVALUE "
                       "call, so a callable that cannot be invoked on a const "
-                      "lvalue is not callable -- however happily it would "
+                      "lvalue is not callable - however happily it would "
                       "answer a non-const call",
                       &tests_is_callable_const_lvalue },
                     { "tests_is_callable_templated_operator",
                       "The trait probes an expression, so it succeeds on "
                       "generic lambdas and other templated operator() "
-                      "callables -- the header's headline claim, and the "
+                      "callables - the header's headline claim, and the "
                       "shape a declared-signature probe would miss",
                       &tests_is_callable_templated_operator },
                     { "tests_is_callable_overload_set",
@@ -409,7 +409,7 @@ functional_common_spec()
                       &tests_is_callable_integral_constant },
                     { "tests_is_callable_reuses_invocable_with",
                       "is_callable is the functional-facing NAME for "
-                      "function_traits.hpp's is_invocable_with -- a thin "
+                      "function_traits.hpp's is_invocable_with - a thin "
                       "reuse, not a reimplementation",
                       &tests_is_callable_reuses_invocable_with },
                     { "tests_callable_result_basic",
@@ -421,7 +421,7 @@ functional_common_spec()
                       "call is made on an rvalue Function",
                       &tests_callable_result_absent },
                     { "tests_callable_result_preserves_reference",
-                      "The alias reports the call's DECLARED result type -- "
+                      "The alias reports the call's DECLARED result type - "
                       "references are preserved, not decayed away",
                       &tests_callable_result_preserves_reference },
                     { "tests_callable_result_agrees",
@@ -450,7 +450,7 @@ functional_common_spec()
                       &tests_is_predicate_negative },
                     { "tests_is_predicate_convertible_results",
                       "The requirement is convertibility to bool, not a bool "
-                      "result -- so the ordinary standard conversions qualify",
+                      "result - so the ordinary standard conversions qualify",
                       &tests_is_predicate_convertible_results },
                     { "tests_is_predicate_explicit_operator_bool",
                       "The conversion must be IMPLICIT: a result whose "
@@ -464,7 +464,7 @@ functional_common_spec()
                       "from the call detection it is built on",
                       &tests_is_predicate_const_lvalue },
                     { "tests_is_predicate_arg_type",
-                      "A predicate is a predicate OVER an argument type -- "
+                      "A predicate is a predicate OVER an argument type - "
                       "the same callable can be a predicate for one _Arg and "
                       "not for another",
                       &tests_is_predicate_arg_type },
@@ -474,13 +474,13 @@ functional_common_spec()
                       "argument type it accepts with a bool-convertible result",
                       &tests_is_predicate_templated_operator },
                     { "tests_is_predicate_single_argument",
-                      "is_predicate takes exactly one _Arg -- it is the "
+                      "is_predicate takes exactly one _Arg - it is the "
                       "one-argument, bool-convertible case, not a variadic "
                       "trait",
                       &tests_is_predicate_single_argument },
                     { "tests_is_predicate_reuses_invocable_r_with",
                       "is_predicate is defined as the bool case of "
-                      "function_traits.hpp's is_invocable_r_with -- a thin "
+                      "function_traits.hpp's is_invocable_r_with - a thin "
                       "reuse, not a reimplementation",
                       &tests_is_predicate_reuses_invocable_r_with },
                     { "tests_is_predicate_integral_constant",
@@ -520,7 +520,7 @@ functional_common_spec()
                 "Concepts",
                 {
                     { "tests_concept_callable_mirrors_trait",
-                      "Callable is the concept face of is_callable -- the "
+                      "Callable is the concept face of is_callable - the "
                       "same answer, in concept syntax",
                       &tests_concept_callable_mirrors_trait },
                     { "tests_concept_predicate_mirrors_trait",
@@ -528,7 +528,7 @@ functional_common_spec()
                       &tests_concept_predicate_mirrors_trait },
                     { "tests_concept_constrained_parameter",
                       "Predicate is usable as a CONSTRAINED TEMPLATE "
-                      "PARAMETER -- partially applied to its argument type, "
+                      "PARAMETER - partially applied to its argument type, "
                       "as the header's usage shows: template<Predicate<const "
                       "int&> P>",
                       &tests_concept_constrained_parameter },
@@ -537,12 +537,12 @@ functional_common_spec()
                       "header's usage shows: requires Callable<F, const T&>",
                       &tests_concept_requires_clause },
                     { "tests_concept_overload_gating",
-                      "The concepts really GATE overload resolution -- they "
+                      "The concepts really GATE overload resolution - they "
                       "are constraints, not just bools that happen to be true",
                       &tests_concept_overload_gating },
                     { "tests_concept_callable_but_not_predicate",
                       "The two faces are distinct: every predicate is "
-                      "callable, but not every callable is a predicate -- "
+                      "callable, but not every callable is a predicate - "
                       "Predicate is the strictly stronger constraint",
                       &tests_concept_callable_but_not_predicate },
                     { "tests_concepts_gating",

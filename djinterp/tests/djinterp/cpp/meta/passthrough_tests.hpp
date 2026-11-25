@@ -254,9 +254,9 @@ dt::module_spec passthrough_spec()
         "concept. The opt-in is by inheritance and detection is by is_base_of, "
         "so this suite pins the marker's shape, direct and inherited detection, "
         "the cv-ref stripping clean_t confers, and the is_base_of quirks the "
-        "trait inherits -- transitivity, access-insensitivity (private "
+        "trait inherits - transitivity, access-insensitivity (private "
         "inheritance still counts), a class being its own base, and pointer "
-        "opacity -- plus the concept's agreement with the trait. is_base_of "
+        "opacity - plus the concept's agreement with the trait. is_base_of "
         "requires a complete derived type, so incomplete types are documented "
         "as a hard-error precondition rather than probed.",
         {
@@ -278,7 +278,7 @@ dt::module_spec passthrough_spec()
                       &tests_marker_direct_inheritor_is_passthrough },
                     { "tests_marker_non_inheritor_is_not_passthrough",
                       "A struct that inherits nothing, and one that inherits an "
-                      "unrelated base, are both not passthroughs -- inheriting "
+                      "unrelated base, are both not passthroughs - inheriting "
                       "SOMETHING is not inheriting the marker.",
                       &tests_marker_non_inheritor_is_not_passthrough },
                     { "tests_marker_fundamentals_and_void_are_not_passthrough",

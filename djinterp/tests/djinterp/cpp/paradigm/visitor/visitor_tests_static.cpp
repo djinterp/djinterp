@@ -139,7 +139,7 @@ bool tests_visit_result_is_sfinae_friendly()
                   "for each handled element");
 
     static_assert(!has_visit_result<id_visitor, static_tri>::value,
-                  "an UNHANDLED element has no ::type -- and asking is not an error");
+                  "an UNHANDLED element has no ::type - and asking is not an error");
 
     // and the consequence: apply() simply is not there for that pair
     static_assert(has_apply<id_visitor, static_circle>::value,

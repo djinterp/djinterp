@@ -100,7 +100,7 @@ bool tests_concept_reducer_ignores_result()
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
     static_assert(Reducer<void_reducer, int, int>,
-                  "void result still satisfies Reducer -- arity only");
+                  "void result still satisfies Reducer - arity only");
     static_assert(std::is_same<decltype(std::declval<void_reducer&>()(0, 0)),
                                void>::value, "and it really does yield void");
 

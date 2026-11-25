@@ -661,7 +661,7 @@ structural_traits_spec()
                       "result is detected",
                       &tests_has_match_result_type_positive },
                     { "tests_has_match_result_type_negative",
-                      "The detector requires a nested TYPE -- a data member "
+                      "The detector requires a nested TYPE - a data member "
                       "of the same name is not one",
                       &tests_has_match_result_type_negative },
                     { "tests_has_match_result_type_cvref",
@@ -669,8 +669,8 @@ structural_traits_spec()
                       "references before looking",
                       &tests_has_match_result_type_cvref },
                     { "tests_has_find_method_positive",
-                      "The searchable-pattern shape -- find(const In&, "
-                      "size_t&, Result&) -> bool -- is detected, so "
+                      "The searchable-pattern shape - find(const In&, "
+                      "size_t&, Result&) -> bool - is detected, so "
                       "pattern_scanner can static_assert the requirement "
                       "instead of failing deep inside an instantiation",
                       &tests_has_find_method_positive },
@@ -685,17 +685,17 @@ structural_traits_spec()
                       "Types that do not carry the shape are rejected, cleanly",
                       &tests_has_find_method_negative },
                     { "tests_has_find_method_return_conversion",
-                      "The result is taken through static_cast<bool> -- an "
+                      "The result is taken through static_cast<bool> - an "
                       "EXPLICIT conversion",
                       &tests_has_find_method_return_conversion },
                     { "tests_has_find_method_const_lvalue",
                       "has_find_method probes `declval<const "
-                      "_Type&>().find(...)` -- a CONST lvalue -- so a "
+                      "_Type&>().find(...)` - a CONST lvalue - so a "
                       "non-const find is not detected",
                       &tests_has_find_method_const_lvalue },
                     { "tests_has_find_method_parameter_binding",
-                      "The probe passes lvalues -- a const Input&, a size_t&, "
-                      "and a Result& -- so any find whose parameters bind to "
+                      "The probe passes lvalues - a const Input&, a size_t&, "
+                      "and a Result& - so any find whose parameters bind to "
                       "those lvalues qualifies",
                       &tests_has_find_method_parameter_binding },
                     { "tests_has_find_method_cvref",
@@ -710,21 +710,21 @@ structural_traits_spec()
                 "Arity",
                 {
                     { "tests_is_nullary_callable_positive",
-                      "A nullary callable -- the \"next\" step that drives a "
-                      "pull-based source -- is detected",
+                      "A nullary callable - the \"next\" step that drives a "
+                      "pull-based source - is detected",
                       &tests_is_nullary_callable_positive },
                     { "tests_is_nullary_callable_negative",
                       "Rejected cleanly (SFINAE, not a hard error)",
                       &tests_is_nullary_callable_negative },
                     { "tests_is_unary_callable_positive",
-                      "A unary callable -- the transform and predicate shape "
+                      "A unary callable - the transform and predicate shape "
                       "-- is detected",
                       &tests_is_unary_callable_positive },
                     { "tests_is_unary_callable_negative",
                       "is unary callable negative",
                       &tests_is_unary_callable_negative },
                     { "tests_is_binary_callable_positive",
-                      "A binary callable -- the reducer step (acc, x) -> acc "
+                      "A binary callable - the reducer step (acc, x) -> acc "
                       "-- is detected",
                       &tests_is_binary_callable_positive },
                     { "tests_is_binary_callable_negative",
@@ -732,11 +732,11 @@ structural_traits_spec()
                       &tests_is_binary_callable_negative },
                     { "tests_arity_mutable_lvalue_contract",
                       "The defining contract of all three: the probe is "
-                      "declval<_Type&>() -- a MUTABLE LVALUE",
+                      "declval<_Type&>() - a MUTABLE LVALUE",
                       &tests_arity_mutable_lvalue_contract },
                     { "tests_arity_argument_decay",
                       "clean_t is applied to _Arg, so every cv-ref spelling "
-                      "of an argument collapses to the same query -- and the "
+                      "of an argument collapses to the same query - and the "
                       "probe then offers an RVALUE",
                       &tests_arity_argument_decay },
                     { "tests_arity_type_decay",
@@ -765,7 +765,7 @@ structural_traits_spec()
                       "The other half",
                       &tests_produces_optional_like_requires_deref },
                     { "tests_produces_optional_like_requires_nullary",
-                      "The source step is NULLARY -- a unary step is a "
+                      "The source step is NULLARY - a unary step is a "
                       "different role (that is is_unfold_step's job)",
                       &tests_produces_optional_like_requires_nullary },
                     { "tests_produces_optional_like_pull_protocol",
@@ -822,7 +822,7 @@ structural_traits_spec()
                     { "tests_aliases_gating",
                       "The shorthands exist exactly where the standard allows "
                       "them: gated on variable templates (C++14+), with the "
-                      "::value forms as the always-present floor -- the "
+                      "::value forms as the always-present floor - the "
                       "header degrades to C++11",
                       &tests_aliases_gating },
                 }
@@ -836,12 +836,12 @@ structural_traits_spec()
                       "is_binary_callable",
                       &tests_concept_binary_callable_mirrors },
                     { "tests_concept_reducer",
-                      "Reducer is the reduction step -- the pure `step` half "
+                      "Reducer is the reduction step - the pure `step` half "
                       "of the step/driver split, defined over BinaryCallable",
                       &tests_concept_reducer },
                     { "tests_concept_reducer_ignores_result",
                       "Worth pinning honestly: Reducer is defined as "
-                      "BinaryCallable, so it constrains ARITY ONLY -- it does "
+                      "BinaryCallable, so it constrains ARITY ONLY - it does "
                       "not check that the result is the accumulator type, "
                       "though the documented shape is (acc, x) -> acc",
                       &tests_concept_reducer_ignores_result },
@@ -851,7 +851,7 @@ structural_traits_spec()
                       "transformed one",
                       &tests_concept_transducer },
                     { "tests_concept_unfold_step",
-                      "UnfoldStep is the concept face of is_unfold_step -- "
+                      "UnfoldStep is the concept face of is_unfold_step - "
                       "the pull-based source step State -> maybe<(value, "
                       "state)>",
                       &tests_concept_unfold_step },
@@ -861,14 +861,14 @@ structural_traits_spec()
                       "driver pulls a source to exhaustion",
                       &tests_concept_drives_the_protocols },
                     { "tests_concept_overload_gating",
-                      "The concepts really GATE overload resolution -- they "
+                      "The concepts really GATE overload resolution - they "
                       "are constraints, not merely bools that happen to be "
                       "true",
                       &tests_concept_overload_gating },
                     { "tests_concepts_gating",
                       "The faces exist exactly where the standard allows "
                       "them: guarded away below C++20, leaving the structural "
-                      "traits -- which degrade to C++11 -- as the floor",
+                      "traits - which degrade to C++11 - as the floor",
                       &tests_concepts_gating },
                 }
             },

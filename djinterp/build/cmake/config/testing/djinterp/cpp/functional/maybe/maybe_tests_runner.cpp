@@ -38,6 +38,6 @@ main()
     return dt::run_module(
         tt::maybe_spec(),
         "maybe.hpp unit tests",
-        "maybe<T> -- a monadic optional value type (C++)",
+        "maybe<T> - a monadic optional value type (C++)",
         opts);
 }

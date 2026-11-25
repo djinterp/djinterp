@@ -347,7 +347,7 @@ bool type_traits_tests_tuple()
     record_assertion(verdict,
         std::is_same<to_tuple_t<std::tuple<int>, char>,
                      std::tuple<std::tuple<int>, char>>::value,
-        "to_tuple_t<tuple<int>, char> -- tuple+other wraps (NOT unwrapped)");
+        "to_tuple_t<tuple<int>, char> - tuple+other wraps (NOT unwrapped)");
     record_assertion(verdict,
         std::is_same<to_tuple_t<to_tuple_t<int>>, to_tuple_t<int>>::value,
         "to_tuple is idempotent (scalar)");

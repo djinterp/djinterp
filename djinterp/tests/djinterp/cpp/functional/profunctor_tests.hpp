@@ -316,7 +316,7 @@ profunctor_spec()
                       "instance are recognised",
                       &tests_is_profunctor_positive },
                     { "tests_is_profunctor_negative",
-                      "Non-profunctors are rejected -- including a bare "
+                      "Non-profunctors are rejected - including a bare "
                       "callable, which is precisely why the arrow wrapper "
                       "exists",
                       &tests_is_profunctor_negative },
@@ -350,7 +350,7 @@ profunctor_spec()
                       "post-composes post onto the output",
                       &tests_dimap_both_ends },
                     { "tests_dimap_type_change",
-                      "dimap can change BOTH parameters -- the input from A "
+                      "dimap can change BOTH parameters - the input from A "
                       "to A' and the output from B to B'",
                       &tests_dimap_type_change },
                     { "tests_lmap_input_only",
@@ -394,7 +394,7 @@ profunctor_spec()
                       "The profn instance's dimap builds exactly post ",
                       &tests_instance_composition_order },
                     { "tests_instance_returns_profn",
-                      "dimap composes a NEW arrow without unwrapping -- the "
+                      "dimap composes a NEW arrow without unwrapping - the "
                       "result is again a profn",
                       &tests_instance_returns_profn },
                     { "tests_instance_composable",
@@ -412,7 +412,7 @@ profunctor_spec()
                     { "tests_instance_generic_dispatch",
                       "The generic operations dispatch through "
                       "profunctor_traits, so a SECOND, unrelated instance "
-                      "(DPfArrow) works identically -- and its results are "
+                      "(DPfArrow) works identically - and its results are "
                       "its own carrier, not profn",
                       &tests_instance_generic_dispatch },
                 }

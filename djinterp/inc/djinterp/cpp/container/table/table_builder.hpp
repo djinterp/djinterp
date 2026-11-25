@@ -1153,7 +1153,7 @@ public:
         "table_builder: a row does not fit the declared columns.  Its cells' "
         "spans must sum to the table's width (a merged / split cell counts for "
         "the whole box it spans), and a flat rows<> must fill whole rows.  "
-        "Relax this with a cell_count option -- truncate_counts (drop a "
+        "Relax this with a cell_count option - truncate_counts (drop a "
         "surplus), pad_counts (fill a shortfall), or lenient_counts (either).");
 
     // layout_conforms - whether the declared merges form a valid cover of the
@@ -1163,7 +1163,7 @@ public:
 
     static_assert(layout_conforms,
         "table_builder: the declared merged / split cells do not form a valid "
-        "cover -- a spanning cell runs past the table's extents, or two of them "
+        "cover - a spanning cell runs past the table's extents, or two of them "
         "overlap.  A layout cell's region must lie within the table and no two "
         "may share an atomic position.");
 };

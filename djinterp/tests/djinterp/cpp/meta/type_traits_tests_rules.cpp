@@ -177,7 +177,7 @@ bool type_traits_tests_rules()
         "follows_rule_of_five<int> (builtin)");
     record_assertion(verdict,
         follows_rule_of_five<nc>::value == false,
-        "follows_rule_of_five<noncopyable_t> -- copy deleted");
+        "follows_rule_of_five<noncopyable_t> - copy deleted");
     record_assertion(verdict,
         follows_rule_of_five<void>::value == false,
         "follows_rule_of_five<void>");

@@ -546,7 +546,7 @@ reduce_spec()
                       "for the same data and reducer",
                       &tests_rt_both_forms_agree },
                     { "tests_rt_empty_returns_the_seed",
-                      "An empty range folds to the accumulator, untouched -- "
+                      "An empty range folds to the accumulator, untouched - "
                       "the reducer is never invoked",
                       &tests_rt_empty_returns_the_seed },
                     { "tests_rt_is_a_left_fold",
@@ -562,7 +562,7 @@ reduce_spec()
                     { "tests_rt_accumulator_type_is_fixed",
                       "reduce_rt assigns the reducer's result back into its "
                       "accumulator and returns _Acc, so the accumulator TYPE "
-                      "IS FIXED across the fold -- it is the seed's type, "
+                      "IS FIXED across the fold - it is the seed's type, "
                       "whatever the reducer returns",
                       &tests_rt_accumulator_type_is_fixed },
                     { "tests_rt_pulls_a_lazy_generated_source",
@@ -571,12 +571,12 @@ reduce_spec()
                     { "tests_rt_finds_begin_end_by_adl",
                       "The iterable form says `using std::begin; using "
                       "std::end;` and then calls them unqualified, so a range "
-                      "that exposes only FREE begin/end -- no members at all "
+                      "that exposes only FREE begin/end - no members at all "
                       "-- is still admitted, found by argument-dependent "
                       "lookup",
                       &tests_rt_finds_begin_end_by_adl },
                     { "tests_rt_visits_each_element_once",
-                      "The loop pulls each element exactly once, in order -- "
+                      "The loop pulls each element exactly once, in order - "
                       "no element is skipped and none is folded twice",
                       &tests_rt_visits_each_element_once },
                     { "tests_rt_does_not_consume_its_source",
@@ -619,7 +619,7 @@ reduce_spec()
                       "recursion before the base case",
                       &tests_ct_value_list_single_element },
                     { "tests_ct_value_list_visits_each_element_once",
-                      "The recursion peels exactly one head per step -- no "
+                      "The recursion peels exactly one head per step - no "
                       "element is skipped and none is folded twice",
                       &tests_ct_value_list_visits_each_element_once },
                 }
@@ -643,7 +643,7 @@ reduce_spec()
                       &tests_ct_tuple_both_entries_agree },
                     { "tests_ct_tuple_empty_returns_the_seed",
                       "The base case: the empty tuple folds to the "
-                      "accumulator, untouched -- the reducer is never invoked",
+                      "accumulator, untouched - the reducer is never invoked",
                       &tests_ct_tuple_empty_returns_the_seed },
                     { "tests_ct_tuple_is_a_left_fold",
                       "The recursion folds the HEAD type into the accumulator "
@@ -667,7 +667,7 @@ reduce_spec()
                       &tests_ct_tuple_duplicate_types },
                     { "tests_ct_tuple_accumulator_may_evolve",
                       "The recursion recomputes the accumulator type at every "
-                      "step -- it is decltype(rf(acc, type_c<T0>)) -- so, as "
+                      "step - it is decltype(rf(acc, type_c<T0>)) - so, as "
                       "in the value domain and unlike reduce_rt, the "
                       "accumulator's TYPE may change as the fold proceeds",
                       &tests_ct_tuple_accumulator_may_evolve },
@@ -680,7 +680,7 @@ reduce_spec()
                       "leaf reads a fact about each one in turn",
                       &tests_ct_tuple_heterogeneous_sizes },
                     { "tests_ct_tuple_visits_each_element_once",
-                      "The recursion peels exactly one head type per step -- "
+                      "The recursion peels exactly one head type per step - "
                       "none skipped, none folded twice",
                       &tests_ct_tuple_visits_each_element_once },
                 }
@@ -695,7 +695,7 @@ reduce_spec()
                     { "tests_only_the_driver_and_the_leaf_differ",
                       "The finer form of the thesis: where a reducer must "
                       "actually LOOK at its element, the body still does not "
-                      "change -- only the LEAF does",
+                      "change - only the LEAF does",
                       &tests_only_the_driver_and_the_leaf_differ },
                     { "tests_the_drivers_differ_on_the_accumulator",
                       "Where the two drivers genuinely part company",
@@ -703,7 +703,7 @@ reduce_spec()
                     { "tests_the_drivers_agree_on_the_same_data",
                       "The same numbers, expressed once as a runtime range "
                       "and once as an NTTP sequence, fold to the same answer "
-                      "under the same reducer body -- which is what it means "
+                      "under the same reducer body - which is what it means "
                       "for the domains to be two views of one computation",
                       &tests_the_drivers_agree_on_the_same_data },
                     { "tests_the_drivers_are_unconstrained",

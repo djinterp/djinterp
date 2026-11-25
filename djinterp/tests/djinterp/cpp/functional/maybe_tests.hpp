@@ -415,7 +415,7 @@ maybe_spec()
 {
     return dt::module_spec{
         "maybe",
-        "maybe<T> -- a monadic optional value type (C++)",
+        "maybe<T> - a monadic optional value type (C++)",
         {
             dt::block_spec{
                 "lifetime",

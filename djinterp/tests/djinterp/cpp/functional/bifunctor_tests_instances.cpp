@@ -232,12 +232,12 @@ dt::block_spec bifunctor_instances_block()
 
     block.tests.push_back(dt::test_spec{
         "kv_pair: value-map preserves ==",
-        "key-only equality -- mapped value still equal",
+        "key-only equality - mapped value still equal",
         &tests_kv_key_only_eq_value_map });
 
     block.tests.push_back(dt::test_spec{
         "kv_pair: key-map breaks ==",
-        "key-only equality -- mapped key not equal",
+        "key-only equality - mapped key not equal",
         &tests_kv_key_only_eq_key_map });
 
     return block;

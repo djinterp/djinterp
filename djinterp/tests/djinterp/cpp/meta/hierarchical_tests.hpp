@@ -148,7 +148,7 @@ dt::module_spec hierarchical_spec()
         "hierarchical",
         "The HIERARCHICAL structural-kind tag: the opt-in marker for a type"
         "that nests (depth >= 2, a node summand present). Its whole "
-        "surface is three compile-time members -- nests (true), min_depth (2), "
+        "surface is three compile-time members - nests (true), min_depth (2), "
         "and a name() function returning \"hierarchical\". This suite pins those "
         "values, their being genuine constant expressions, and the emptiness of "
         "the tag. The nests bit is the load-bearing fact: the structure traits "
@@ -162,11 +162,11 @@ dt::module_spec hierarchical_spec()
                 "empty, and every member is a constant expression.",
                 {
                     { "tests_tag_hierarchical_nests_is_true",
-                      "hierarchical::nests is true -- a node summand is present, "
+                      "hierarchical::nests is true - a node summand is present, "
                       "the signal the structure traits read for hierarchy.",
                       &tests_tag_hierarchical_nests_is_true },
                     { "tests_tag_hierarchical_min_depth_is_two",
-                      "hierarchical::min_depth is 2 -- some component is a node.",
+                      "hierarchical::min_depth is 2 - some component is a node.",
                       &tests_tag_hierarchical_min_depth_is_two },
                     { "tests_tag_hierarchical_name_is_hierarchical",
                       "hierarchical::name() returns the stable spelling "
@@ -174,7 +174,7 @@ dt::module_spec hierarchical_spec()
                       &tests_tag_hierarchical_name_is_hierarchical },
                     { "tests_tag_hierarchical_is_empty_tag",
                       "hierarchical is an empty, trivially constructible tag "
-                      "type -- it carries no state, only its static members.",
+                      "type - it carries no state, only its static members.",
                       &tests_tag_hierarchical_is_empty_tag },
                     { "tests_tag_hierarchical_members_are_constant_expressions",
                       "nests and min_depth are usable in constant expressions "

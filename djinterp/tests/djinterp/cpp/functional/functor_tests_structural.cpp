@@ -49,7 +49,7 @@ bool tests_functor_value_type()
                                int>::value, "dbl : int -> int");
     static_assert(std::is_same<
         functor_value_type<DLazyView<int, is_even> >::type,
-        bool>::value, "is_even : int -> bool -- the OUTPUT type");
+        bool>::value, "is_even : int -> bool - the OUTPUT type");
     static_assert(std::is_same<
         functor_value_type<DLazyView<int, DToStr> >::type,
         std::string>::value, "to_str : int -> string");
@@ -120,7 +120,7 @@ bool tests_functor_value_type_helper_sfinae()
 
     // and the failure IS soft: the primary is a complete, memberless struct.
     static_assert(is_complete<vt_helper<DNotAFunctor> >::value,
-                  "complete, but memberless -- a soft failure");
+                  "complete, but memberless - a soft failure");
 
     // the helper and the public face agree wherever the public face is usable.
     static_assert(std::is_same<vt_helper<DTmaybe<int> >::type,

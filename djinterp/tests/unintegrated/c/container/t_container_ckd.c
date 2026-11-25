@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c][container]                                      t_container_ckd.c
 *
-*   Regression tests for lane C's checked sizes in c/container and
+*   Regression tests for the checked sizes in c/container and
 * c/functional, and for the four memory faults found while making them: each
 * size computed from a count is now made with d_ckd_add, d_ckd_sub or
 * d_ckd_mul (c/dckdint.h) and a size that does not fit is refused, as the
@@ -45,7 +45,7 @@
 // std
 #include <errno.h>    // ENOMEM
 #include <stdarg.h>   // va_list
-#include <stdio.h>    // printf, sprintf
+#include <stdio.h>    // printf, snprintf
 #include <stdlib.h>   // free
 #include <string.h>   // memcmp, memcpy, memset, strcmp
 // djinterp
@@ -1102,7 +1102,7 @@ d_tests_ckd_sites_file_tree(void)
 
     for (i = 0; i < 20; ++i)
     {
-        sprintf(name, "d%d", i);
+        snprintf(name, sizeof(name), "d%d", i);
         D_TESTS_CKD_CHECK(d_file_tree_add_dir(tree, name) == 0);
     }
 

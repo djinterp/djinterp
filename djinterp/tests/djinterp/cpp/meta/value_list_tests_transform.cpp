@@ -101,7 +101,7 @@ bool tests_transform_law_identity()
     static_assert(std::is_same<decltype(transform(DValueList<1, 'x', true>{},
                                                   DIdentOp{})),
                                DValueList<1, 'x', true> >::value,
-                  "identity, heterogeneous -- types survive");
+                  "identity, heterogeneous - types survive");
 
     ok = ok && (std::is_same<decltype(transform(DValueList<1, 2>{},
                                                 DIdentOp{})),

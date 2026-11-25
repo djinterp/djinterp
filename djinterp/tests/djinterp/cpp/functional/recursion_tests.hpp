@@ -562,7 +562,7 @@ recursion_spec()
                       &tests_is_corecursive },
                     { "tests_custom_carrier_registration",
                       "A native carrier (std::vector<int>) is made foldable "
-                      "and buildable purely by specialising the traits -- no "
+                      "and buildable purely by specialising the traits - no "
                       "rewrite as a fixed point",
                       &tests_custom_carrier_registration },
                 }
@@ -578,7 +578,7 @@ recursion_spec()
                       "Folds a list to the sum of its elements",
                       &tests_cata_list_sum },
                     { "tests_cata_list_length",
-                      "Folds a list to its length -- the algebra ignores the "
+                      "Folds a list to its length - the algebra ignores the "
                       "head payload and counts only structure, exercising the "
                       "payload-vs-hole distinction",
                       &tests_cata_list_length },
@@ -588,17 +588,17 @@ recursion_spec()
                       "-- exercising the explicit _Result pin",
                       &tests_cata_list_to_string },
                     { "tests_cata_tree_leaf_sum",
-                      "Folds a binary tree to the sum of its leaves -- a "
+                      "Folds a binary tree to the sum of its leaves - a "
                       "Branch algebra combines the results of BOTH recursive "
                       "holes",
                       &tests_cata_tree_leaf_sum },
                     { "tests_cata_tree_height",
-                      "Folds a binary tree to its height -- a Branch algebra "
+                      "Folds a binary tree to its height - a Branch algebra "
                       "takes the max over both holes, another two-child fold",
                       &tests_cata_tree_height },
                     { "tests_cata_native_vector",
                       "Folds a plain std::vector<int> as a list, via its "
-                      "recursive_traits registration -- cata runs over a "
+                      "recursive_traits registration - cata runs over a "
                       "native carrier, not a mu",
                       &tests_cata_native_vector },
                     { "tests_cata_base_case",
@@ -626,12 +626,12 @@ recursion_spec()
                       "Unfolds a seed into a descending list",
                       &tests_ana_list_range },
                     { "tests_ana_tree_balanced",
-                      "Unfolds a depth seed into a full binary tree -- a "
+                      "Unfolds a depth seed into a full binary tree - a "
                       "coalgebra with TWO holes (Branch seeds both children)",
                       &tests_ana_tree_balanced },
                     { "tests_ana_native_vector",
                       "Unfolds a seed directly into a std::vector<int>, via "
-                      "its corecursive_traits registration -- ana builds a "
+                      "its corecursive_traits registration - ana builds a "
                       "native carrier, not a mu",
                       &tests_ana_native_vector },
                     { "tests_ana_base_case",

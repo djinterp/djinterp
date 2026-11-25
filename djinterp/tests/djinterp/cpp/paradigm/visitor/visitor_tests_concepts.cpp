@@ -194,7 +194,7 @@ bool tests_concept_visitable_type_rejects_non_visitable()
 {
 #if D_VISITOR_HAS_CONCEPTS
     static_assert(!visitable_type<no_accept, total_visitor>,
-                  "no accept() -- rejected");
+                  "no accept() - rejected");
     static_assert(!visitable_type<int, total_visitor>,
                   "nor does a scalar qualify");
 
@@ -263,7 +263,7 @@ bool tests_concept_visitor_for_rejects_partial_visitor()
 
     // ...but it is fine for the element it does handle: the rejection is specific
     static_assert(visitor_for<partial_visitor, static_circle>,
-                  "the visitor is not malformed -- it simply lacks static_rect");
+                  "the visitor is not malformed - it simply lacks static_rect");
     static_assert(!visitor_for<partial_visitor, static_rect>,
                   "which is exactly the element it is rejected for");
 
@@ -297,7 +297,7 @@ bool tests_concept_acyclic_visitor_for()
 #if D_VISITOR_HAS_CONCEPTS
     static_assert(acyclic_visitor_for<plain_acyclic,
                                       acyclic_circle, acyclic_rect>,
-                  "root + every visitor_of<E> -- admitted");
+                  "root + every visitor_of<E> - admitted");
 
     static_assert(acyclic_visitor_for<plain_acyclic, acyclic_circle>,
                   "and for each element on its own");
@@ -332,11 +332,11 @@ bool tests_concept_acyclic_visitor_for_rejects_plain_visitor()
 #if D_VISITOR_HAS_CONCEPTS
     // has visitor_of<acyclic_circle>, but not the root
     static_assert(!acyclic_visitor_for<rootless_acyclic, acyclic_circle>,
-                  "no acyclic_visitor root -- rejected, however many interfaces");
+                  "no acyclic_visitor root - rejected, however many interfaces");
 
     // has the root, but is missing the interface for acyclic_tri
     static_assert(!acyclic_visitor_for<round_visitor, acyclic_tri>,
-                  "missing the per-type interface -- rejected for that element");
+                  "missing the per-type interface - rejected for that element");
     static_assert(acyclic_visitor_for<round_visitor, acyclic_circle>,
                   "while still admitted for the elements it does implement");
     static_assert(!acyclic_visitor_for<round_visitor,

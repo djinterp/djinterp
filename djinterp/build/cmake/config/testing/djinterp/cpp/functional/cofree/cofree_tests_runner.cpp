@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                     cofree_tests_runner.cpp
+/*******************************************************************************
+* djinterp [cpp][functional]                             cofree_tests_runner.cpp
 *
 *   Runner (the main() entry point) for the cofree.hpp unit suite.  Per the DTest
 * authoring guide, a runner is thin: it assembles the module's spec, chooses a
@@ -21,10 +21,12 @@
 * blocks.  The block providers themselves gate their C++14 / C++20 rows on the
 * relevant feature macros, so this runner needs no feature guards of its own.
 *
+*
 * path:      /build/cmake/config/testing/djinterp/cpp/functional/cofree/cofree_tests_runner.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.20
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.20
+*                                                            revised: 2026.11.25
+*******************************************************************************/
 
 // std
 #include <string>
@@ -44,7 +46,7 @@ int main()
     // block_spec (name + descriptor + the section's unit tests).
     const dt::module_spec spec{
         "cofree",
-        "cofree<F, A>: the cofree comonad over a single-argument functor F -- a "
+        "cofree<F, A>: the cofree comonad over a single-argument functor F - a "
         "non-empty descending chain / tree whose every node carries a head value "
         "of type A over an F-layer of children.  Registers BOTH functor_traits "
         "and comonad_traits.  Exercises the type itself, cofree_map (the "
