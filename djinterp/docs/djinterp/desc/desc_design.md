@@ -502,6 +502,29 @@ followed fails desc's tests in the window it lands, naming the type and the
 field, while the type's own module still builds; a module that changes a
 described type says so, so that the describer's change lands with it.
 
+The record is a struct of the type's fields in the type's order, under the
+same knobs (`dj_mem_desc_arena_record` beside `dj_arena`), and a layout
+row sets the record's size, offsets and widths beside the type's
+(`desc/of/desc_of.h`). The rows are a header inline, so a program compiles
+them with its own knobs, and the library gives the same rows as it was
+built: `d_desc_of_mem_agrees` is 0 where the two lay a type out
+differently. That happens: a test build's `D_TESTING` turns on
+`D_CFG_MEM_STATS`, which adds an arena's and a pool's tally and a source's
+name, so a library built without it reads a test program's arena wrong.
+desc's leaf compiles the describers' unit itself for that reason, with
+memory's common and source units as memory's own leaf does, and its suite
+checks that the two agree.
+
+Memory's describers (Wednesday 11-25): the arena, the pool, a memory
+source, a memory block, and an allocation tally (`struct dj_mem_stats`),
+each a `struct dj_desc_type` (`D_DESC_OF(dj_arena)`), with units for prose
+and a field list for facts, and `units<T>` in `cpp/desc/of/mem_desc.hpp`.
+None of memory's types holds a lock or a field another thread writes, so
+every public field is described. A describer reads fields and calls none
+of memory's functions, so the library needs memory's headers, not its
+units. An arena over a caller's buffer does not say where its source
+would have sent it, since its one region is the caller's.
+
 ## When each part lands
 
 - **Friday 11-13**: desc.h's core with its machines; the units engine and
@@ -513,9 +536,13 @@ described type says so, so that the describer's change lands with it.
   `json_nonfinite` options and their knobs; `d_desc_write`,
   `d_desc_write_with` and `d_desc_write_shaped`; a JSON shape member; a
   frame's settings as facts (`option_env_desc.h`).
-- **Week 3**: the name registry (decision 33); describers in decision 34's
-  order, in `djinterp_c_desc_of` (decision 82), memory's first; the
-  declaring macros per family, with the containers' module (decision 31).
+- **Wednesday 11-25**: `djinterp_c_desc_of`, with memory's describers,
+  their layout check, and their C++ units (decision 82); desc's suite
+  gains their section (`c_desc_tests`: 31 tests, 275 checks), and a C++
+  harness, `tests/unintegrated/cpp/desc/t_mem_desc.cpp`, runs from C++98.
+- **Week 3**: the name registry (decision 33); the next describers in
+  decision 34's order, in `djinterp_c_desc_of`; the declaring macros per
+  family, with the containers' module (decision 31).
 
 ## Settled
 

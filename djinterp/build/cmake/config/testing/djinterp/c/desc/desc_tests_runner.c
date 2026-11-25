@@ -1,16 +1,17 @@
 /*******************************************************************************
 * djinterp [c][desc]                                         desc_tests_runner.c
 *
-* The runner for c/desc's suite: options, then its three sections,
-* d_tests_desc over desc.h's core, d_tests_desc_units over the units engine
-* and d_tests_desc_machines over the machines, each building desc's module
-* call by call (test_suite.h 3.2).
+* The runner for c/desc's suite: options, then its four sections,
+* d_tests_desc over desc.h's core, d_tests_desc_units over the units
+* engine, d_tests_desc_machines over the machines and d_tests_desc_of_mem
+* over the describers of memory's types, each building desc's module call
+* by call (test_suite.h 3.2).
 *
 *
 * path:      /build/cmake/config/testing/djinterp/c/desc/desc_tests_runner.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 #include <stdio.h>  // fprintf, stderr
 
@@ -52,6 +53,7 @@ main(
     d_tests_desc(suite);
     d_tests_desc_units(suite);
     d_tests_desc_machines(suite);
+    d_tests_desc_of_mem(suite);
 
     rc = d_test_suite_run(suite, NULL);
     d_test_suite_free(suite);

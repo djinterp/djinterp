@@ -3,14 +3,15 @@
 *
 *   The suite of c/desc's core, in DTest's C face: the sink a describer emits
 * facts into, what it wants, how it stops and how it nests, the machine it
-* writes to, and both describer forms. It has one section, its entry point,
-* and the runner in its CMake leaf makes the suite and runs it.
+* writes to, and both describer forms; then the units engine, the machines,
+* and the describers of memory's types. The runner in its CMake leaf makes
+* the suite and runs each section.
 *
 *
 * path:      /tests/djinterp/c/desc/desc_tests.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_C_DESC_TESTS_H
@@ -46,6 +47,17 @@ stream as the options say, each test in the block of desc_machines.h, in the
 module d_tests_desc opened; call it after d_tests_desc_units.
 */
 void d_tests_desc_machines(
+    struct dj_test_suite* _suite
+);
+
+/*
+d_tests_desc_of_mem
+  section: desc's describers of memory's types: each type against its
+describer's record of it, then each describer's facts and prose, each test
+in the block of desc/of/mem_desc.h, in the module d_tests_desc opened; call
+it after d_tests_desc_machines.
+*/
+void d_tests_desc_of_mem(
     struct dj_test_suite* _suite
 );
 
