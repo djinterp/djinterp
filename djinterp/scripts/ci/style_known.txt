@@ -102,7 +102,6 @@ build/cmake/config/testing/djinterp/cpp/sync/atomic/atomic_tests_runner.cpp	B	1
 build/cmake/config/testing/djinterp/cpp/util/metadata/metadata_concepts/metadata_concepts_tests_runner.cpp	B	1
 build/cmake/config/testing/djinterp/cpp/util/metadata/metadata_traits/metadata_traits_tests_runner.cpp	B	1
 build/cmake/config/testing/re_std/cpp/move_family_tests_runner.cpp	B	1
-inc/djinterp/c/cli/cli_option.h	H	1
 inc/djinterp/c/container/array/array.h	H	1
 inc/djinterp/c/container/array/array.h	V	2
 inc/djinterp/c/container/array/array_common.h	H	1
@@ -2448,11 +2447,6 @@ tests/dawk/same_tokens/differ/two_tokens_made_one.before.c	B	1
 tests/dawk/same_tokens/same/layout.after.c	B	1
 tests/dawk/same_tokens/same/layout.before.c	B	1
 tests/dawk/test_dext.c	B	1
-tests/djinterp/c/cli/test_cli_option_sa.c	B	1
-tests/djinterp/c/cli/test_cli_unix_sa.c	B	1
-tests/djinterp/c/cli/test_common_tests_sa.c	B	1
-tests/djinterp/c/cli/test_common_tests_sa.h	B	1
-tests/djinterp/c/cli/test_common_tests_sa_cli_option.c	B	1
 tests/djinterp/c/functional/test_carriers.c	B	1
 tests/djinterp/c/functional/test_foldable.c	B	1
 tests/djinterp/c/functional/test_functional_laws.c	B	1

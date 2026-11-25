@@ -39,9 +39,6 @@ src/djinterp/tools/dawk/ext/wiki/dwiki_driver.h	stdint.h
 src/djinterp/tools/dawk/ext/wiki/dwiki_tables.h	stdint.h
 tests/dawk/fixtures/c_style/includes/fixed_width.c	inttypes.h, stdint.h
 tests/dawk/fixtures/c_style/structure/shared.hpp	cstdint
-tests/djinterp/c/cli/test_cli_option_sa.h	stdint.h
-tests/djinterp/c/cli/test_cli_unix_sa.h	stdint.h
-tests/djinterp/c/cli/test_common_tests_sa.h	stdint.h
 tests/djinterp/c/functional/test_carriers.c	stdint.h
 tests/djinterp/c/functional/test_foldable.c	stdint.h
 tests/djinterp/c/functional/test_functional_laws.h	stdint.h
