@@ -147,3 +147,4 @@ jobs:
         run: >
           ctest --test-dir "$RUNNER_TEMP/build" -C Debug
           --label-exclude needs-server --output-on-failure --parallel 4
+          --timeout 600
