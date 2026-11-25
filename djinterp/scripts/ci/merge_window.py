@@ -29,6 +29,12 @@
 # carries it. Neither the revision alone, whose files the earlier zips
 # changed, nor HEAD, whose files other lanes changed, is that base.
 #
+#   A punch list (scripts/ci's *_known.txt, dawk's clang_tokens_known.txt)
+# merges by its rows, each keyed by what it counts (a file, a file and a
+# code, a file and a language), not by its lines' places: every lane's zip
+# edits these lists, and a row one zip adds beside a row another removes is
+# no conflict. Only a row both changed, each its own way, is one.
+#
 #   usage:   python3 scripts/ci/merge_window.py [options] ZIP[=MESSAGE] ...
 #            (from anywhere in the repository; ZIPs in the order to apply,
 #            each optionally with the file holding its commit message)
@@ -67,6 +73,13 @@ import zipfile
 
 TREE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
     __file__))))
+# the punch lists, each with how many of a row's tab-separated fields make
+# its key (0: the whole row)
+LISTS = {'scripts/ci/crt_known.txt': 1,
+         'scripts/ci/ladder_known.txt': 2,
+         'scripts/ci/stdint_known.txt': 0,
+         'scripts/ci/style_known.txt': 2,
+         'tests/dawk/clang_tokens_known.txt': 0}
 TOPS = {'inc', 'src', 'tests', 'docs', 'build', 'scripts', 'tools', 'res',
         'platform',
         'lib', 'bin', '.gitattributes', '.gitignore', 'README.md',
@@ -269,6 +282,51 @@ def main():
         shutil.rmtree(scratch, ignore_errors=True)
         return result.stdout, max(result.returncode, 0)
 
+    def merge_list(rel, base, ours, theirs):
+        """A punch list merged by its rows' keys: (merged bytes, conflicts).
+
+        Its comment lines lead it; its rows are sorted, as each gate writes
+        them. A row only one side changed (added, removed or recounted)
+        takes that side's; a row both changed alike is kept once; a row each
+        changed its own way is a conflict."""
+        width = LISTS[rel]
+
+        def split(data):
+            head, rows = [], {}
+            for line in lf(data).decode('utf-8').split('\n'):
+                if not line:
+                    continue
+                if line.startswith('#') and not rows:
+                    head.append(line)
+                    continue
+                fields = line.split('\t')
+                rows[tuple(fields[:width]) if width else (line,)] = line
+            return head, rows
+
+        head_b, rows_b = split(base)
+        head_o, rows_o = split(ours)
+        head_t, rows_t = split(theirs)
+        conflicts = 0
+        if head_o == head_b:
+            head = head_t
+        else:
+            head = head_o
+            if head_t != head_b and head_t != head_o:
+                conflicts += 1
+        rows = []
+        for key in set(rows_b) | set(rows_o) | set(rows_t):
+            was, mine, yours = rows_b.get(key), rows_o.get(key), rows_t.get(key)
+            if mine == was:
+                row = yours
+            else:
+                row = mine
+                if yours != was and yours != mine:
+                    conflicts += 1
+            if row is not None:
+                rows.append(row)
+        text = '\n'.join(head + sorted(rows)) + '\n'
+        return text.encode('utf-8'), conflicts
+
     if not options.base and not bases:
         print('  no --base: where the tree changed a file after a lane\'s '
               'base, the zip\'s whole file would undo it, and that cannot be '
@@ -320,7 +378,10 @@ def main():
                     continue
                 if text and then is not None and lf(then) != lf(now):
                     # the tree changed it after the lane's base: merge
-                    body, conflicts = merge3(then, now, data)
+                    if rel in LISTS:
+                        body, conflicts = merge_list(rel, then, now, data)
+                    else:
+                        body, conflicts = merge3(then, now, data)
                     if conflicts:
                         notes.append('CONFLICT %s: %d place%s changed by '
                                       'both the tree (or an earlier zip) and '
