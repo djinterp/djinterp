@@ -5,14 +5,15 @@
 * the separators made tidy, and the parse on expression core v2.
 *   The signature is built once, at the first parse, and sealed: core v2's
 * table for djinterp.peg's section III, as far as this step goes. A
-* command is a custom role on the word's class, which takes the words after
-* its verb while they are words; core v2 does the rest.
+* command is a custom role on the word's class, which takes the words,
+* numbers and strings after its verb; a number and a string are atoms where
+* a command could stand; core v2 does the rest.
 *
 *
 * path:      /src/djinterp/cpp/modules/interp/language.cpp
 * link(s):   /docs/djinterp/interp/DESIGN.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.22
-*                                                            revised: 2026.11.22
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 #include "../../../../../inc/djinterp/cpp/modules/interp/language.hpp"  // corresponding header
 
@@ -123,10 +124,13 @@ static void
 sexpr_of(
     const script&    _script,
     re_std::uint32_t _node,
+    bool             _in_command,
     std::string&     _out
 )
 {
-    static const char* const NAMES[] = { "?", "seq", "pipe", "cmd", "group" };
+    static const char* const NAMES[] =
+        { "?", "seq", "pipe", "cmd", "group", "or", "and", "not", "==", "!=",
+          "<", "<=", ">", ">=", "=~" };
     const struct dj_parse_expr_node* const node =
         d_parse_expr_term_node(_script.term(), _node);
 
@@ -135,22 +139,27 @@ sexpr_of(
         return;
     }
 
+    // a STRING literal in quotes; a command's words as written
     if (node->kind != D_PARSE_EXPR_NODE_APPLY)
     {
-        _out += (node->kind == D_PARSE_EXPR_NODE_LEAF) ? _script.word(_node)
-                                                       : "_";
+        const bool quoted = ( (!_in_command) &&
+                              (node->op == (re_std::uint32_t)token_string) );
+
+        _out += (node->kind != D_PARSE_EXPR_NODE_LEAF) ? std::string("_")
+              : (quoted) ? ("\"" + _script.word(_node) + "\"")
+                         : _script.word(_node);
 
         return;
     }
 
-    _out += (node->op <= (re_std::uint32_t)op_group) ? NAMES[node->op] : "?";
+    _out += (node->op <= (re_std::uint32_t)op_match) ? NAMES[node->op] : "?";
     _out += '(';
 
     for (re_std::uint32_t i = 0u; i < node->count; ++i)
     {
         _out += (i > 0u) ? ", " : "";
         sexpr_of(_script, d_parse_expr_term_child(_script.term(), _node, i),
-                 _out);
+                 (node->op == (re_std::uint32_t)op_cmd), _out);
     }
 
     _out += ')';
@@ -164,7 +173,7 @@ std::string script::sexpr() const
 
     if (ok())
     {
-        sexpr_of(*this, m_held->root, out);
+        sexpr_of(*this, m_held->root, false, out);
     }
 
     return out;
@@ -175,10 +184,42 @@ std::string script::sexpr() const
 // 2.  READING A LINE
 //==============================================================================
 
+bool is_number(
+    const std::string& _word
+)
+{
+    std::size_t at     = (!_word.empty() && (_word[0] == '-')) ? 1u : 0u;
+    std::size_t digits = 0u;
+
+    while ( (at < _word.size()) && (_word[at] >= '0') && (_word[at] <= '9') )
+    {
+        ++at;
+        ++digits;
+    }
+
+    if ( (digits > 0u) &&
+         (at + 1u < _word.size()) &&
+         (_word[at] == '.') )
+    {
+        digits = 0u;
+        ++at;
+
+        while ( (at < _word.size()) && (_word[at] >= '0') &&
+                (_word[at] <= '9') )
+        {
+            ++at;
+            ++digits;
+        }
+    }
+
+    return ( (digits > 0u) &&
+             (at == _word.size()) );
+}
+
 /*
 operator_of
-  The class a word standing alone has: an operator's, a keyword's, a
-comparison's; a word's otherwise.
+  The class a bare word standing alone has: an operator's, a keyword's, a
+comparison's, a number's; a word's otherwise.
 */
 static token_class
 operator_of(
@@ -198,15 +239,15 @@ operator_of(
     if (_word == "or") { return token_or; }
     if (_word == "not") { return token_not; }
 
-    for (const char* each : COMPARE)
+    for (std::size_t i = 0u; i < sizeof(COMPARE) / sizeof(COMPARE[0]); ++i)
     {
-        if (_word == each)
+        if (_word == COMPARE[i])
         {
-            return token_compare;
+            return (token_class)((int)token_eq + (int)i);
         }
     }
 
-    return token_word;
+    return (is_number(_word)) ? token_number : token_word;
 }
 
 /*
@@ -273,7 +314,8 @@ lex_quoted(
 lex_word
   A word from where it begins: bare and quoted parts, until a blank or a
 metacharacter outside quotes. Returns the index after it; `*_quoted` says
-whether any part was quoted, so that `and` quoted is a word.
+whether any part was quoted, so that `and` quoted is no keyword, and
+`*_string` whether the word is wholly one quoted part, a STRING.
 */
 static std::size_t
 lex_word(
@@ -281,10 +323,13 @@ lex_word(
     std::size_t              _at,
     std::string&             _word,
     bool*                    _quoted,
+    bool*                    _string,
     std::vector<diagnostic>& _errors
 )
 {
-    std::size_t at = _at;
+    std::size_t at    = _at;
+    std::size_t parts = 0u;
+    bool        bare  = false;
 
     *_quoted = false;
 
@@ -296,12 +341,16 @@ lex_word(
         {
             *_quoted = true;
             at       = lex_quoted(_text, at, _word, _errors);
+            ++parts;
 
             continue;
         }
 
+        bare   = true;
         _word += _text[at++];
     }
+
+    *_string = ( (*_quoted) && (!bare) && (parts == 1u) );
 
     return at;
 }
@@ -348,6 +397,7 @@ lex_line(
         token one{ token_word, std::string(), (re_std::uint32_t)at, 0u, space,
                    line };
         bool  quoted = false;
+        bool  string = false;
 
         if (c == '\n')
         {
@@ -363,8 +413,11 @@ lex_line(
         }
         else
         {
-            at       = lex_word(_text, at, one.text, &quoted, _errors);
-            one.cls  = (quoted) ? token_word : operator_of(one.text);
+            at       = lex_word(_text, at, one.text, &quoted, &string,
+                                _errors);
+            one.cls  = (string) ? token_string
+                     : (quoted) ? token_word
+                                : operator_of(one.text);
         }
 
         one.length = (re_std::uint32_t)(at - one.offset);
@@ -397,10 +450,11 @@ is_separator(
 /*
 tidy
   The separators as the grammar reads them: a newline at the start, at the
-end, after `(`, `|` or another separator, or before `)`, is passed over --
-blank lines, and a pipeline continued on the next line after its operator;
-a `;` at the end, or before `)`, ends its sequence, and is passed over too.
-Two `;` in a row stay, for the parse to refuse.
+end, after `(`, `|`, a keyword, a comparison or another separator, or before
+`)`, is passed over - blank lines, and a pipeline or a predicate continued
+on the next line after its operator; a `;` at the end, or before `)`, ends
+its sequence, and is passed over too. Two `;` in a row stay, for the parse
+to refuse.
 */
 static std::vector<token>
 tidy(
@@ -419,6 +473,11 @@ tidy(
         const bool        lead = ( (last == token_end) ||
                                    (last == token_lparen) ||
                                    (last == token_bar) ||
+                                   (last == token_and) ||
+                                   (last == token_or) ||
+                                   (last == token_not) ||
+                                   ( (last >= token_eq) &&
+                                     (last <= token_match) ) ||
                                    (is_separator(last)) );
         const bool        tail = ( (next == token_end) ||
                                    (next == token_rparen) ||
@@ -445,9 +504,10 @@ tidy(
 
 /*
 take_command
-  The command's role: the verb's leaf, then a leaf for each word after it
-while the next token is a word; one `cmd` node over them, spanning them.
-A leaf's value is its token's place, so the script can give its word.
+  The command's role: the verb's leaf, then a leaf for each argument after
+it while the next token is a word, a number or a string; one `cmd` node
+over them, spanning them. A leaf's value is its token's place, so the
+script can give its word.
 */
 static int
 take_command(
@@ -471,7 +531,9 @@ take_command(
 
     while ( (d_parse_expr_peek(_parser, D_PARSE_EXPR_OPERATOR, 0u,
                                &next) > 0) &&
-            (next.cls == (re_std::uint32_t)token_word) )
+            ( (next.cls == (re_std::uint32_t)token_word) ||
+              (next.cls == (re_std::uint32_t)token_number) ||
+              (next.cls == (re_std::uint32_t)token_string) ) )
     {
         (void)d_parse_expr_take(_parser, D_PARSE_EXPR_OPERATOR, 0u, &next);
         parts.push_back(d_parse_expr_term_leaf(term, next.cls, next.value,
@@ -539,6 +601,60 @@ define_operators(
 }
 
 /*
+define_logic
+  The operators of the second step: `or` a flattened `or` at 30, `and` a
+flattened `and` at 40, each spelled as a word; `not` a prefix at 50; the
+comparisons at 60, none beside another; and a number and a string atoms,
+literals where a command could stand.
+*/
+static bool
+define_logic(
+    struct dj_parse_expr_signature* _s
+)
+{
+    static const char* const COMPARE[] =
+        { "==", "!=", "<", "<=", ">", ">=", "=~" };
+    bool made =
+        ( (d_parse_expr_define_op(_s, op_or, D_PARSE_EXPR_FORM_INFIX, 30,
+                                  D_PARSE_EXPR_ASSOC_LEFT,
+                                  D_PARSE_EXPR_OP_FLATTEN |
+                                  D_PARSE_EXPR_OP_WORD, "or")) &&
+          (d_parse_expr_define_op(_s, op_and, D_PARSE_EXPR_FORM_INFIX, 40,
+                                  D_PARSE_EXPR_ASSOC_LEFT,
+                                  D_PARSE_EXPR_OP_FLATTEN |
+                                  D_PARSE_EXPR_OP_WORD, "and")) &&
+          (d_parse_expr_define_op(_s, op_not, D_PARSE_EXPR_FORM_PREFIX, 50,
+                                  D_PARSE_EXPR_ASSOC_RIGHT,
+                                  D_PARSE_EXPR_OP_WORD, "not")) &&
+          (d_parse_expr_define_token(_s, token_or, D_PARSE_EXPR_OPERATOR,
+                                     op_or, 0u)) &&
+          (d_parse_expr_define_token(_s, token_and, D_PARSE_EXPR_OPERATOR,
+                                     op_and, 0u)) &&
+          (d_parse_expr_define_token(_s, token_not, D_PARSE_EXPR_OPERAND,
+                                     op_not, 0u)) &&
+          (d_parse_expr_define_atom(_s, token_number, 0u)) &&
+          (d_parse_expr_define_atom(_s, token_string, 0u)) );
+
+    // each comparison its own operator and token, in op_id's order
+    for (re_std::uint32_t i = 0u;
+         (made) && (i < sizeof(COMPARE) / sizeof(COMPARE[0]));
+         ++i)
+    {
+        made = ( (d_parse_expr_define_op(_s, (re_std::uint32_t)op_eq + i,
+                                         D_PARSE_EXPR_FORM_INFIX, 60,
+                                         D_PARSE_EXPR_ASSOC_NONE, 0u,
+                                         COMPARE[i])) &&
+                 (d_parse_expr_define_token(_s,
+                                            (re_std::uint32_t)token_eq + i,
+                                            D_PARSE_EXPR_OPERATOR,
+                                            (re_std::uint32_t)op_eq + i,
+                                            0u)) );
+    }
+
+    return made;
+}
+
+/*
 signature
   The language's signature, built and sealed at the first call; NULL where
 it could not be.
@@ -564,6 +680,7 @@ signature()
 
             d_parse_expr_signature_init_heap(&table);
             ok = ( (define_operators(&table)) &&
+                   (define_logic(&table)) &&
                    (d_parse_expr_define_role(&table, &command)) &&
                    (d_parse_expr_signature_seal(&table, nullptr)) );
         }

@@ -1,11 +1,13 @@
 /*******************************************************************************
 * djinterp [cpp][interp]                                      skeleton_tests.hpp
 *
-* The suite of the interpreter's skeleton, its first step (language.hpp,
+* The suite of the interpreter's skeleton, its second step (language.hpp,
 * evaluate.hpp): a line and a command line read into their terms - words,
-* quotes, comments, separators, brackets - and what each refuses; the
-* value's stand-in; and sequences and pipelines run, a pipeline ended by its
-* first stage in trouble, its later stages not run.
+* quotes, comments, separators, brackets, the keywords, the comparisons and
+* literals, by precedence - and what each refuses; the value's stand-in;
+* sequences and pipelines run, a pipeline ended by its first stage in
+* trouble, its later stages not run; `and` and `or` short-circuiting by
+* truth, `not`, and the comparisons by number, by text and by structure.
 *
 * HOW TO USE
 * ----------
@@ -25,7 +27,7 @@
 * path:      /tests/djinterp/cpp/modules/interp/skeleton_tests.hpp
 * link(s):   /docs/djinterp/interp/DESIGN.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.22
-*                                                            revised: 2026.11.22
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 /*
@@ -51,6 +53,7 @@ TABLE OF CONTENTS
 bool d_tests_interp_read_terms();
 bool d_tests_interp_read_words();
 bool d_tests_interp_read_refused();
+bool d_tests_interp_read_logic();
 // 2.  READING A COMMAND LINE
 bool d_tests_interp_read_argv();
 // 3.  VALUES
@@ -59,6 +62,8 @@ bool d_tests_interp_values();
 bool d_tests_interp_run_sequences();
 bool d_tests_interp_run_pipelines();
 bool d_tests_interp_run_trouble();
+bool d_tests_interp_run_logic();
+bool d_tests_interp_run_compare();
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 

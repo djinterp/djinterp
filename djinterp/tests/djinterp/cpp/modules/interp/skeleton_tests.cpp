@@ -8,13 +8,15 @@
 * gives its words as text, `upper` its input upper-cased, `count` its
 * input's length, `no` comes to status 1, `fail` to trouble, `throws`
 * throws, and `seen` notes that it ran, so that a case can say which stages
-* a pipeline ran.
+* a pipeline ran, and which operands a predicate did. `quiet` and `nope`
+* come to nothing, status 0 and 1, a status alone; `pair` and `reals` to
+* lists, `rec` and `cer` to records, alike by the language's rule.
 *
 *
 * path:      /tests/djinterp/cpp/modules/interp/skeleton_tests.cpp
 * link(s):   /docs/djinterp/interp/DESIGN.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.22
-*                                                            revised: 2026.11.22
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 #include "./skeleton_tests.hpp"  // corresponding header
 
@@ -130,6 +132,32 @@ table()
     out.add("throws", [](const std::vector<std::string>&,
                          const value&) -> outcome {
         throw std::runtime_error("boom");
+    });
+    out.add("quiet", [](const std::vector<std::string>&, const value&) {
+        return outcome{ value(), 0, "", 0u, 0u };
+    });
+    out.add("nope", [](const std::vector<std::string>&, const value&) {
+        return outcome{ value(), 1, "", 0u, 0u };
+    });
+    out.add("pair", [](const std::vector<std::string>&, const value&) {
+        return outcome{ value::of_list({ value::of_integer(1),
+                                         value::of_integer(2) }),
+                        0, "", 0u, 0u };
+    });
+    out.add("reals", [](const std::vector<std::string>&, const value&) {
+        return outcome{ value::of_list({ value::of_real(1.0),
+                                         value::of_real(2.0) }),
+                        0, "", 0u, 0u };
+    });
+    out.add("rec", [](const std::vector<std::string>&, const value&) {
+        return outcome{ value::of_record({ { "a", value::of_integer(1) },
+                                           { "b", value::of_text("x") } }),
+                        0, "", 0u, 0u };
+    });
+    out.add("cer", [](const std::vector<std::string>&, const value&) {
+        return outcome{ value::of_record({ { "b", value::of_text("x") },
+                                           { "a", value::of_real(1.0) } }),
+                        0, "", 0u, 0u };
     });
     out.add("seen", [](const std::vector<std::string>& _argv,
                        const value& _in) {
@@ -248,7 +276,9 @@ d_tests_interp_read_refused
   Tests the following:
   - an operand missing, at either side of `|` or between two `;`
   - an unclosed bracket, and an unopened one
-  - a keyword, a comparison and a brace, which this step gives no role
+  - a second comparison beside a first; a keyword or a comparison with an
+    operand missing; a literal followed by a word; a brace, which this
+    step gives no role
   - an unclosed quote, at the quote
   - nothing to read
   - each with its first error's place, and no root
@@ -266,8 +296,13 @@ bool d_tests_interp_read_refused()
         { "a ; ; b",   4u },
         { "(a",        0u },
         { "a )",       2u },
-        { "a and b",   2u },
-        { "a == b",    2u },
+        { "a == b == c", 7u },
+        { "a < b <= c", 6u },
+        { "not",       3u },
+        { "a and",     5u },
+        { "or a",      0u },
+        { "a ==",      4u },
+        { "'x' y",     4u },
         { "a { b }",   2u },
         { "echo 'x",   5u },
         { "echo \"x",  5u },
@@ -299,6 +334,62 @@ bool d_tests_interp_read_refused()
                                 each.offset) )) &&
                (held);
     }
+
+    return held;
+}
+
+
+/*
+d_tests_interp_read_logic
+  Tests the following:
+  - `or` looser than `and`, `and` than `not`, `not` than a comparison;
+    `or` and `and` flattened; `|` looser than them all (decision 3)
+  - each comparison a node of two, its operands commands or literals
+  - a NUMBER and a STRING are literals where a command could stand, and a
+    command's arguments after its verb; a STRING in quotes in the term
+  - a predicate continued on the next line after its operator
+  - a command line reads as its line
+*/
+bool d_tests_interp_read_logic()
+{
+    static const read_case CASES[] =
+    {
+        { "a and b",                "and(cmd(a), cmd(b))" },
+        { "a and b and c",          "and(cmd(a), cmd(b), cmd(c))" },
+        { "a or b and c",           "or(cmd(a), and(cmd(b), cmd(c)))" },
+        { "a and b or c",           "or(and(cmd(a), cmd(b)), cmd(c))" },
+        { "not a and b",            "and(not(cmd(a)), cmd(b))" },
+        { "not not a",              "not(not(cmd(a)))" },
+        { "not a == b",             "not(==(cmd(a), cmd(b)))" },
+        { "test -f x and test -r x | report",
+          "pipe(and(cmd(test, -f, x), cmd(test, -r, x)), cmd(report))" },
+        { "size > 100",             ">(cmd(size), 100)" },
+        { "a == 'x'",               "==(cmd(a), \"x\")" },
+        { "a != b ; c <= -1.5",
+          "seq(!=(cmd(a), cmd(b)), <=(cmd(c), -1.5))" },
+        { "n >= 2 or name =~ 'a.*'",
+          "or(>=(cmd(n), 2), =~(cmd(name), \"a.*\"))" },
+        { "(a == b) == c",          "==(==(cmd(a), cmd(b)), cmd(c))" },
+        { "a < (b)",                "<(cmd(a), cmd(b))" },
+        { "echo 'x' 3 -1.5 \"y\"z", "cmd(echo, x, 3, -1.5, yz)" },
+        { "-1 < 2",                 "<(-1, 2)" },
+        { "'and'",                  "\"and\"" },
+        { "a and\n  b",             "and(cmd(a), cmd(b))" },
+        { "a ==\n b",               "==(cmd(a), cmd(b))" },
+        { "not\n a",                "not(cmd(a))" }
+    };
+    const script words = djinterp::interp::parse_argv(
+        { "size", ">", "100", "and", "not", "x", "==", "-2" });
+    const script line  = djinterp::interp::parse_line(
+        "size > 100 and not x == -2");
+    bool         held  = reads_as(CASES, sizeof(CASES) / sizeof(CASES[0]));
+
+    held = (D_TEST_EXPECT( (words.ok()) &&
+                           (words.sexpr() == line.sexpr()) &&
+                           (words.sexpr() ==
+                            "and(>(cmd(size), 100), not(==(cmd(x), -2)))") &&
+                           (words.tokens()[2].cls ==
+                            djinterp::interp::token_number) )) && (held);
 
     return held;
 }
@@ -489,6 +580,115 @@ bool d_tests_interp_run_trouble()
 }
 
 
+/*
+d_tests_interp_run_logic
+  Tests the following:
+  - `and` runs its next operand only while each before is true, `or` only
+    while each is false; each comes to the operand that decided it, its
+    status 0 where that is true and 1 where false
+  - truth: a text true unless empty, a number unless zero; a command that
+    comes to nothing, its status alone, true where it is 0
+  - `not` the opposite truth value
+  - an operand in trouble is the whole's trouble, the rest not run
+  - each operand given the construct's input
+*/
+bool d_tests_interp_run_logic()
+{
+    bool held = true;
+
+    held = (runs_as("echo x and echo y", value(), value::of_text("y"), 0,
+                    "")) && (held);
+    held = (runs_as("echo and seen z", value(), value::of_text(""), 1,
+                    "")) && (held);
+    held = (runs_as("echo or seen z", value(), value(), 0, "z")) && (held);
+    held = (runs_as("echo x or seen z", value(), value::of_text("x"), 0,
+                    "")) && (held);
+    held = (runs_as("nope or quiet", value(), value(), 0, "")) && (held);
+    held = (runs_as("quiet and nope", value(), value(), 1, "")) && (held);
+    held = (runs_as("0 or 2", value(), value::of_integer(2), 0, "")) &&
+           (held);
+    held = (runs_as("1 and 0.0", value(), value::of_real(0.0), 1, "")) &&
+           (held);
+    held = (runs_as("not echo", value(), value::of_truth(true), 0, "")) &&
+           (held);
+    held = (runs_as("not echo x", value(), value::of_truth(false), 1,
+                    "")) && (held);
+    held = (runs_as("fail and seen z", value(), value(), 2, "")) && (held);
+    held = (runs_as("fail or seen z", value(), value(), 2, "")) && (held);
+    held = (runs_as("not fail", value(), value(), 2, "")) && (held);
+    held = (runs_as("seen a and seen b or seen c", value::of_text("in"),
+                    value::of_text("in"), 0, "a,b")) && (held);
+    held = (runs_as("upper | count == 2 and seen z", value::of_text("ab"),
+                    value::of_text("AB"), 0, "z")) && (held);
+
+    return held;
+}
+
+/*
+d_tests_interp_run_compare
+  Tests the following:
+  - two numbers numerically, an integer and a real alike; a number and a
+    text that reads wholly as one numerically; two texts by code point,
+    UTF-8's bytes in its code points' order
+  - `==` and `!=` on lists item by item, on records whatever their keys'
+    order, the scalars inside by the same rule; on anything else by
+    structure
+  - an ordering of two values it cannot order is trouble, at the
+    comparison
+  - `=~` a POSIX ERE matched anywhere in the text; a pattern that does not
+    compile is trouble
+  - a comparison comes to a truth value, status 0 for true and 1 for false
+*/
+bool d_tests_interp_run_compare()
+{
+    const value yes  = value::of_truth(true);
+    const value no   = value::of_truth(false);
+    bool        held = true;
+
+    held = (runs_as("3 < 10", value(), yes, 0, "")) && (held);
+    held = (runs_as("'3' < '10'", value(), no, 1, "")) && (held);
+    held = (runs_as("echo 3 < 10", value(), yes, 0, "")) && (held);
+    held = (runs_as("1 == 1.0 and 2 != 2.5", value(), yes, 0, "")) &&
+           (held);
+    held = (runs_as("'1' == '1.0'", value(), no, 1, "")) && (held);
+    held = (runs_as("'\xc3\xa9' > 'z' and 'b' >= 'b'", value(), yes, 0,
+                    "")) && (held);
+    held = (runs_as("count >= 2", value::of_text("ab"), yes, 0, "")) &&
+           (held);
+    held = (runs_as("pair == reals and rec == cer", value(), yes, 0, "")) &&
+           (held);
+    held = (runs_as("pair != rec", value(), yes, 0, "")) && (held);
+    held = (runs_as("quiet == quiet", value(), yes, 0, "")) && (held);
+    held = (runs_as("echo abc =~ 'b+c$'", value(), yes, 0, "")) && (held);
+    held = (runs_as("echo abc =~ '^b'", value(), no, 1, "")) && (held);
+    held = (runs_as("not 1 == 2", value(), yes, 0, "")) && (held);
+
+    // trouble: at the comparison, with why
+    const commands table_of = table();
+    const outcome  order    = djinterp::interp::evaluate(
+        djinterp::interp::parse_line("echo x ; 'x' < 3"), table_of);
+    const outcome  lists    = djinterp::interp::evaluate(
+        djinterp::interp::parse_line("pair < reals"), table_of);
+    const outcome  pattern  = djinterp::interp::evaluate(
+        djinterp::interp::parse_line("echo x =~ '('"), table_of);
+
+    held = (D_TEST_EXPECT( (order.status == 2) &&
+                           (order.message ==
+                            "'<' does not order \"x\" and 3") &&
+                           (order.offset == 9u) &&
+                           (order.length == 7u) )) && (held);
+    held = (D_TEST_EXPECT( (lists.status == 2) &&
+                           (lists.message ==
+                            "'<' does not order [1, 2] and [1, 2]") )) &&
+           (held);
+    held = (D_TEST_EXPECT( (pattern.status == 2) &&
+                           (pattern.message.find("'(' is not a pattern") ==
+                            0u) )) && (held);
+
+    return held;
+}
+
+
 //==============================================================================
 // THE SUITE
 //==============================================================================
@@ -506,6 +706,9 @@ static const struct dj_test_case_spec d_tests_interp_skeleton[] =
     { "interp_read_refused",
       "what a line cannot be, each at its first error",
       d_tests_interp_read_refused },
+    { "interp_read_logic",
+      "and, or, not, the comparisons and literals, by precedence",
+      d_tests_interp_read_logic },
     { "interp_read_argv",
       "a command line a token a word, as its line reads",
       d_tests_interp_read_argv },
@@ -520,7 +723,13 @@ static const struct dj_test_case_spec d_tests_interp_skeleton[] =
       d_tests_interp_run_pipelines },
     { "interp_run_trouble",
       "trouble ends a pipeline; unknown verbs, throws, bad scripts",
-      d_tests_interp_run_trouble }
+      d_tests_interp_run_trouble },
+    { "interp_run_logic",
+      "and and or by truth, short-circuiting; not; trouble in an operand",
+      d_tests_interp_run_logic },
+    { "interp_run_compare",
+      "comparisons by number, by text, by structure; =~ by ERE",
+      d_tests_interp_run_compare }
 };
 
 // d_tests_interp_skeleton_blocks
@@ -528,7 +737,7 @@ static const struct dj_test_case_spec d_tests_interp_skeleton[] =
 static const struct dj_test_block_spec d_tests_interp_skeleton_blocks[] =
 {
     { "skeleton",
-      "the interpreter's first step: sequences and pipelines",
+      "the interpreter's second step: sequences, pipelines and predicates",
       d_tests_interp_skeleton,
       sizeof(d_tests_interp_skeleton) / sizeof(d_tests_interp_skeleton[0]) }
 };

@@ -2,18 +2,20 @@
 * djinterp [cpp][interp]                                            evaluate.cpp
 *
 * The command language run, declared in evaluate.hpp: the value's stand-in,
-* the commands' table, and the fold, a walk of the term.
+* the commands' table, what the operators do, and the fold, a walk of the
+* term.
 *   The walk keeps a frame for each application it is inside: the input the
-* node was given, what its last child came to, and, for a pipeline, whether
-* a stage has been in trouble. Entering a node gives it its input from its
-* parent's frame; leaving it gives its outcome back. A command is run where
-* it is entered, its words read from its leaves, which the walk then skips.
+* node was given, what its first child and its last came to, and whether
+* the rest are to be skipped. Entering a node gives it its input from its
+* parent's frame; leaving it folds what its children came to and gives that
+* back. A command is run where it is entered, its words read from its
+* leaves, which the walk then skips; a literal is its value.
 *
 *
 * path:      /src/djinterp/cpp/modules/interp/evaluate.cpp
 * link(s):   /docs/djinterp/interp/DESIGN.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.22
-*                                                            revised: 2026.11.22
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 #include "../../../../../inc/djinterp/cpp/modules/interp/evaluate.hpp"  // corresponding header
 
@@ -21,12 +23,14 @@
 
 // std
 #include <cstdio>     // std::snprintf
+#include <cstdlib>    // std::strtod, std::strtoll
 #include <exception>  // std::exception
 #include <string>     // std::string
 #include <utility>    // std::move
 #include <vector>     // std::vector
 // djinterp
 #include "../../../../../inc/djinterp/c/modules/parse/expr/expr.h"  // core v2
+#include "../../../../../inc/djinterp/c/util/dregex.h"  // =~'s patterns
 
 
 NS_DJINTERP
@@ -214,18 +218,345 @@ const command_fn* commands::find(
 
 
 //==============================================================================
-// 3.  THE FOLD
+// 3.  WHAT THE OPERATORS DO
+//==============================================================================
+
+/*
+truth_of
+  What decides an `and`, an `or` and a `not` (DESIGN.md, section 5): a
+truth value as it is; zero, an empty text, bytes, list or record false.
+The stand-in has no tag for a command's status alone, so a construct that
+comes to nothing is its status: true where it is 0.
+*/
+static bool
+truth_of(
+    const outcome& _outcome
+)
+{
+    const value& it = _outcome.result;
+
+    switch (it.kind())
+    {
+        case value::truth:   return it.as_truth();
+        case value::integer: return (it.as_integer() != 0);
+        case value::real:    return (it.as_real() != 0.0);
+        case value::text:
+        case value::bytes:   return (!it.as_text().empty());
+        case value::list:    return (!it.items().empty());
+        case value::record:  return (!it.fields().empty());
+        default:             return (_outcome.status == status_yes);
+    }
+}
+
+/*
+decided
+  A predicate's outcome: its value, and the status its truth gives, 0 yes
+and 1 no.
+*/
+static outcome
+decided(
+    const value& _value,
+    bool         _truth
+)
+{
+    return outcome{ _value, (_truth) ? status_yes : status_no,
+                    std::string(), 0u, 0u };
+}
+
+// number
+//   struct: a value read as a number: an integer, or a real.
+struct number
+{
+    bool            whole;
+    re_std::int64_t integer;
+    double          real;
+};
+
+/*
+number_of
+  A value as a number: an integer or a real as it is; with `_text`, a text
+that reads wholly as one - an optional '-', digits, a fraction - too.
+False for anything else.
+*/
+static bool
+number_of(
+    const value& _value,
+    bool         _text,
+    number&      _out
+)
+{
+    if (_value.kind() == value::integer)
+    {
+        _out = number{ true, _value.as_integer(), 0.0 };
+
+        return true;
+    }
+
+    if (_value.kind() == value::real)
+    {
+        _out = number{ false, 0, _value.as_real() };
+
+        return true;
+    }
+
+    if ( (!_text) ||
+         (_value.kind() != value::text) )
+    {
+        return false;
+    }
+
+    const std::string& word = _value.as_text();
+
+    if (!is_number(word))
+    {
+        return false;
+    }
+
+    _out.whole   = (word.find('.') == std::string::npos);
+    _out.integer = (_out.whole) ? (re_std::int64_t)std::strtoll(
+                                      word.c_str(), nullptr, 10)
+                                : 0;
+    _out.real    = (_out.whole) ? 0.0 : std::strtod(word.c_str(), nullptr);
+
+    return true;
+}
+
+/*
+order_of
+  How two numbers order: -1, 0 or 1; integers exactly, else as reals.
+*/
+static int
+order_of(
+    const number& _a,
+    const number& _b
+)
+{
+    if ( (_a.whole) && (_b.whole) )
+    {
+        return (_a.integer < _b.integer) ? -1 : (_a.integer > _b.integer);
+    }
+
+    const double a = (_a.whole) ? (double)_a.integer : _a.real;
+    const double b = (_b.whole) ? (double)_b.integer : _b.real;
+
+    return (a < b) ? -1 : (a > b);
+}
+
+/*
+same_as
+  `==` by the language's rule, for two values of any kind: two numbers, or
+a number and a text that reads as one, numerically; two lists item by
+item; two records by their keys, whatever their order, and each key's
+value; anything else by structure.
+*/
+static bool
+same_as(
+    const value& _a,
+    const value& _b
+)
+{
+    number a;
+    number b;
+
+    if ( (number_of(_a, (_b.kind() == value::integer) ||
+                        (_b.kind() == value::real), a)) &&
+         (number_of(_b, (_a.kind() == value::integer) ||
+                        (_a.kind() == value::real), b)) )
+    {
+        return (order_of(a, b) == 0);
+    }
+
+    if ( (_a.kind() == value::list) &&
+         (_b.kind() == value::list) )
+    {
+        bool same = (_a.items().size() == _b.items().size());
+
+        for (std::size_t i = 0u; (same) && (i < _a.items().size()); ++i)
+        {
+            same = same_as(_a.items()[i], _b.items()[i]);
+        }
+
+        return same;
+    }
+
+    if ( (_a.kind() == value::record) &&
+         (_b.kind() == value::record) )
+    {
+        bool same = (_a.fields().size() == _b.fields().size());
+
+        for (const auto& field : _a.fields())
+        {
+            bool found = false;
+
+            for (const auto& other : _b.fields())
+            {
+                found = ( (found) ||
+                          ( (other.first == field.first) &&
+                            (same_as(field.second, other.second)) ) );
+            }
+
+            same = (same) && (found);
+        }
+
+        return same;
+    }
+
+    return (_a == _b);
+}
+
+/*
+matches
+  `a =~ b`: b's text a POSIX ERE (c/util/dregex.h), true where it matches
+anywhere in a's text; a number's text is its own. Trouble, with why, for
+a pattern that does not compile or an operand that is no text.
+*/
+static outcome
+matches(
+    const value& _a,
+    const value& _b
+)
+{
+    const bool texts = ( ( (_a.kind() == value::text) ||
+                           (_a.kind() == value::integer) ||
+                           (_a.kind() == value::real) ) &&
+                         (_b.kind() == value::text) );
+    const std::string subject = (_a.kind() == value::text) ? _a.as_text()
+                                                          : _a.show();
+
+    if (!texts)
+    {
+        return outcome{ value(), status_trouble,
+                        "=~ matches a text against a pattern's text, not " +
+                        _a.show() + " against " + _b.show(), 0u, 0u };
+    }
+
+    enum dj_regex_status   status  = D_REGEX_OK;
+    struct dj_regex* const pattern = d_regex_compile(_b.as_text().c_str(),
+                                                     &status);
+
+    if (pattern == nullptr)
+    {
+        return outcome{ value(), status_trouble,
+                        "'" + _b.as_text() + "' is not a pattern: " +
+                        d_regex_status_text(status), 0u, 0u };
+    }
+
+    const bool found = d_regex_test(pattern, subject.data(),
+                                    subject.size());
+
+    d_regex_free(pattern);
+
+    return decided(value::of_truth(found), found);
+}
+
+/*
+compared
+  A comparison's outcome (DESIGN.md, section 5): two numbers, or a number
+and a text that reads wholly as one, numerically; two texts by code point;
+`==` and `!=` on anything by same_as; the orderings on anything else
+trouble.
+*/
+static outcome
+compared(
+    re_std::uint32_t _op,
+    const value&     _a,
+    const value&     _b
+)
+{
+    static const char* const SPELLED[] = { "<", "<=", ">", ">=" };
+    const bool                numeric = ( (_a.kind() == value::integer) ||
+                                          (_a.kind() == value::real) ||
+                                          (_b.kind() == value::integer) ||
+                                          (_b.kind() == value::real) );
+    number                    a;
+    number                    b;
+    int                       order   = 0;
+
+    if (_op == (re_std::uint32_t)op_match)
+    {
+        return matches(_a, _b);
+    }
+
+    if ( (_op == (re_std::uint32_t)op_eq) ||
+         (_op == (re_std::uint32_t)op_ne) )
+    {
+        const bool same = same_as(_a, _b);
+        const bool yes  = (_op == (re_std::uint32_t)op_eq) ? same : !same;
+
+        return decided(value::of_truth(yes), yes);
+    }
+
+    if ( (numeric) &&
+         (number_of(_a, true, a)) &&
+         (number_of(_b, true, b)) )
+    {
+        order = order_of(a, b);
+    }
+    else if ( (_a.kind() == value::text) &&
+              (_b.kind() == value::text) )
+    {
+        // UTF-8's bytes order as its code points do
+        order = _a.as_text().compare(_b.as_text());
+        order = (order < 0) ? -1 : (order > 0);
+    }
+    else
+    {
+        return outcome{ value(), status_trouble,
+                        std::string("'") + SPELLED[_op - op_lt] +
+                        "' does not order " + _a.show() + " and " +
+                        _b.show(), 0u, 0u };
+    }
+
+    const bool yes = (_op == (re_std::uint32_t)op_lt) ? (order < 0)
+                   : (_op == (re_std::uint32_t)op_le) ? (order <= 0)
+                   : (_op == (re_std::uint32_t)op_gt) ? (order > 0)
+                                                      : (order >= 0);
+
+    return decided(value::of_truth(yes), yes);
+}
+
+/*
+literal_of
+  A literal leaf's value: a NUMBER an integer, or a real where it has a
+fraction; a STRING its text, quotes taken off.
+*/
+static value
+literal_of(
+    const script&                    _script,
+    re_std::uint32_t                 _node,
+    const struct dj_parse_expr_node* _leaf
+)
+{
+    const std::string& word = _script.word(_node);
+    number             read;
+
+    if ( (_leaf->op == (re_std::uint32_t)token_number) &&
+         (number_of(value::of_text(word), true, read)) )
+    {
+        return (read.whole) ? value::of_integer(read.integer)
+                            : value::of_real(read.real);
+    }
+
+    return value::of_text(word);
+}
+
+
+//==============================================================================
+// 4.  THE FOLD
 //==============================================================================
 
 // frame
 //   struct: an application the walk is inside: its node and operator; the
-// input it was given; what its last child came to; whether a child has
-// come to anything; and, for a pipeline, whether a stage was in trouble.
+// input it was given; what its first child and its last came to; whether a
+// child has come to anything; and whether the rest are to be skipped - a
+// pipeline's after a stage in trouble, an `and`'s after a false operand,
+// an `or`'s after a true one, any operator's after one in trouble.
 struct frame
 {
     re_std::uint32_t node;
     re_std::uint32_t op;
     value            input;
+    outcome          first;
     outcome          last;
     bool             any;
     bool             broken;
@@ -350,15 +681,62 @@ give(
         return;
     }
 
-    frame& parent = _walk.frames.back();
+    frame&     parent  = _walk.frames.back();
+    const bool trouble = (_outcome.status == status_trouble);
+    const bool logic   = ( (parent.op != (re_std::uint32_t)op_seq) &&
+                           (parent.op != (re_std::uint32_t)op_pipe) );
 
+    parent.first  = (parent.any) ? parent.first : _outcome;
     parent.last   = _outcome;
     parent.any    = true;
     parent.broken = ( (parent.broken) ||
-                      ( (parent.op == (re_std::uint32_t)op_pipe) &&
-                        (_outcome.status == status_trouble) ) );
+                      ( (trouble) &&
+                        ( (parent.op == (re_std::uint32_t)op_pipe) ||
+                          (logic) ) ) ||
+                      ( (parent.op == (re_std::uint32_t)op_and) &&
+                        (!truth_of(_outcome)) ) ||
+                      ( (parent.op == (re_std::uint32_t)op_or) &&
+                        (truth_of(_outcome)) ) );
 
     return;
+}
+
+/*
+folded
+  What a frame's node comes to, its children done: a sequence's and a
+pipeline's last child's outcome, a broken pipeline's the stage in trouble's;
+an `and`'s and an `or`'s the operand that decided it, its status by its
+truth; a `not`'s the opposite truth; a comparison's, its two operands'.
+An operand in trouble is the whole's trouble.
+*/
+static outcome
+folded(
+    const frame& _frame
+)
+{
+    const re_std::uint32_t op = _frame.op;
+
+    if ( (op == (re_std::uint32_t)op_seq) ||
+         (op == (re_std::uint32_t)op_pipe) ||
+         (_frame.last.status == status_trouble) )
+    {
+        return _frame.last;
+    }
+
+    if ( (op == (re_std::uint32_t)op_and) ||
+         (op == (re_std::uint32_t)op_or) )
+    {
+        return decided(_frame.last.result, truth_of(_frame.last));
+    }
+
+    if (op == (re_std::uint32_t)op_not)
+    {
+        const bool yes = !truth_of(_frame.last);
+
+        return decided(value::of_truth(yes), yes);
+    }
+
+    return compared(op, _frame.first.result, _frame.last.result);
 }
 
 /*
@@ -386,6 +764,15 @@ enter(
         return D_PARSE_EXPR_WALK_SKIP;
     }
 
+    // a literal: its value, which needs no input
+    if (node->kind == D_PARSE_EXPR_NODE_LEAF)
+    {
+        give(state, outcome{ literal_of(*state.code, _node, node), status_yes,
+                             std::string(), 0u, 0u });
+
+        return D_PARSE_EXPR_WALK_SKIP;
+    }
+
     if ( (node->kind == D_PARSE_EXPR_NODE_APPLY) &&
          (node->op == (re_std::uint32_t)op_cmd) )
     {
@@ -396,12 +783,14 @@ enter(
 
     if ( (node->kind == D_PARSE_EXPR_NODE_APPLY) &&
          ( (node->op == (re_std::uint32_t)op_seq) ||
-           (node->op == (re_std::uint32_t)op_pipe) ) )
+           ( (node->op >= (re_std::uint32_t)op_pipe) &&
+             (node->op <= (re_std::uint32_t)op_match) &&
+             (node->op != (re_std::uint32_t)op_group) ) ) )
     {
-        state.frames.push_back(frame{ _node, node->op, input_of(state),
-                                      outcome{ value(), status_yes,
-                                               std::string(), 0u, 0u },
-                                      false, false });
+        const outcome none{ value(), status_yes, std::string(), 0u, 0u };
+
+        state.frames.push_back(frame{ _node, node->op, input_of(state), none,
+                                      none, false, false });
 
         return D_PARSE_EXPR_WALK_CONTINUE;
     }
@@ -429,7 +818,6 @@ leave(
 {
     walk& state = *static_cast<walk*>(_ctx);
 
-    (void)_term;
     (void)_parent;
 
     if ( (state.frames.empty()) ||
@@ -438,10 +826,21 @@ leave(
         return D_PARSE_EXPR_WALK_CONTINUE;
     }
 
-    const outcome last = state.frames.back().last;
+    outcome done = folded(state.frames.back());
+
+    // trouble the construct found itself is said at its span
+    if ( (done.status == status_trouble) &&
+         (done.length == 0u) )
+    {
+        const struct dj_parse_expr_node* const node =
+            d_parse_expr_term_node(_term, _node);
+
+        done.offset = (node != nullptr) ? node->offset : 0u;
+        done.length = (node != nullptr) ? node->length : 0u;
+    }
 
     state.frames.pop_back();
-    give(state, last);
+    give(state, done);
 
     return D_PARSE_EXPR_WALK_CONTINUE;
 }

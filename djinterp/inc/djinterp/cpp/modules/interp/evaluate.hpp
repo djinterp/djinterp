@@ -3,7 +3,8 @@
 *
 * The command language run: a script's term folded into what it comes to
 * (docs/djinterp/interp/DESIGN.md, sections 3.3 and 5). The interpreter's
-* skeleton, its first step: sequences and pipelines.
+* skeleton, its second step: sequences, pipelines, `and`, `or`, `not`, the
+* comparisons and literals.
 *   A value is a tagged value (decision 4). Until the tagged value's header
 * lands, on 12-04, `value` here is its stand-in, with the same tags:
 * nothing, a truth value, an integer, a real, text, bytes, a list and a
@@ -17,11 +18,28 @@
 *              run; a stage that comes to no (1) does not end it
 *     cmd      the command its verb names, given its words as `argv`, the
 *              verb first, and the input; a verb no command has is trouble
+*     a and b  b run only where a is true; the operand that decided it
+*     a or b   b run only where a is false; the operand that decided it
+*     not a    the truth value opposite to a's
+*     a == b   a truth value: `==`, `!=`, `<`, `<=`, `>`, `>=` and `=~`
+*     literal  a NUMBER an integer, or a real with a fraction; a STRING text
 *
-* The term is walked with core v2's d_parse_expr_walk, a frame for each
+* Truth is section 5's: a truth value as it is; zero, an empty text, bytes,
+* list or record false. The stand-in has no tag for a command's status
+* alone, so a construct that comes to nothing is its status: true where it
+* is 0. A predicate's status is its truth's, 0 for true and 1 for false. Two
+* numbers compare numerically, and a number and a text that reads wholly as
+* one; two texts by code point; `==` and `!=` anything, lists item by item
+* and records whatever their keys' order, the scalars inside by the same
+* rule; an ordering of anything else is trouble. `=~` matches its right
+* operand's text, a POSIX ERE (c/util/dregex.h), anywhere in its left's.
+* An operand in trouble is the construct's trouble.
+*   The term is walked with core v2's d_parse_expr_walk, a frame for each
 * node entered, as section 3.3 has it: a pipeline's stages after one in
-* trouble are skipped by the walk, not run and ignored. A sequence and the
-* first stage of a pipeline are given the input the construct was given.
+* trouble, an `and`'s operands after a false one and an `or`'s after a true
+* one are skipped by the walk, not run and ignored. A sequence, the first
+* stage of a pipeline and each operand of a predicate are given the input
+* the construct was given.
 *
 * HOW TO USE
 * ----------
@@ -42,7 +60,7 @@
 * path:      /inc/djinterp/cpp/modules/interp/evaluate.hpp
 * link(s):   /docs/djinterp/interp/DESIGN.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.22
-*                                                            revised: 2026.11.22
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 /*

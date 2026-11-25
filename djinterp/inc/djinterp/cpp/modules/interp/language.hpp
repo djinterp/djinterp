@@ -3,29 +3,39 @@
 *
 * The command language read: a line or a command line into tokens, and the
 * tokens into a term, on expression core v2's C API (docs/djinterp/interp/
-* DESIGN.md, section 3). The interpreter's skeleton, its first step:
-* sequences and pipelines.
+* DESIGN.md, section 3). The interpreter's skeleton, its second step:
+* sequences, pipelines, `and`, `or`, `not`, the comparisons and literals.
 *   A line is lexed as the grammar's section I has it, with sh's quoting: a
 * word is a run of bare, single-quoted and double-quoted parts, `\"` and
 * `\\` escaped in double quotes; `#` begins a comment where a token could;
 * a newline ends a pipeline, as `;` does. A command line the shell has
 * already split is a token a word, whatever its characters: only a word
-* that is wholly an operator or a keyword is one (decision 2).
-*   The grammar of this step, lowest first:
+* that is wholly an operator, a keyword or a number is one (decision 2). A
+* word that is wholly a number is a NUMBER; on a line, one that is wholly
+* one quoted part is a STRING; either, standing where a command could, is a
+* literal (the grammar's note 4).
+*   The grammar of this step, lowest first, as djinterp.peg's section III
+* has it:
 *
-*     sequence   pipeline ((';' | newline) pipeline)*
-*     pipeline   command ('|' command)*
-*     command    WORD WORD*          - a verb, then its arguments
+*     sequence   pipeline ((';' | newline) pipeline)*       10
+*     pipeline   or ('|' or)*                               20
+*     or         and ('or' and)*                            30
+*     and        not ('and' not)*                           40
+*     not        'not' not | compare                        50, prefix
+*     compare    primary (COMPARE primary)?                 60, none
+*     primary    WORD (WORD | NUMBER | STRING)*  - a verb and its arguments
+*              | NUMBER | STRING                 - a literal
 *              | '(' sequence ')'
 *
 * A command takes the words after its verb until an operator, a keyword, a
 * bracket or the end; each keeps its text as written, for the command's own
 * parser to read. `;` and a newline make one flattened `seq` node, `|` one
-* `pipe`, the command a `cmd` node over its words' leaves; brackets leave no
-* node. A separator may end a sequence, and blank lines are passed over. The
-* keywords `and`, `or` and `not`, the comparisons and the braces are read as
-* tokens of their own and have no role yet: each is a parse error, until the
-* steps that give them one.
+* `pipe`, `or` one `or` and `and` one `and`; `not` a node of one child; a
+* comparison a node of two, which a second beside it refuses; the command a
+* `cmd` node over its words' leaves, and a literal a leaf; brackets leave no
+* node. A separator may end a sequence, and blank lines are passed over.
+* The braces are read as tokens of their own and have no role yet: each is
+* a parse error, until the step that gives blocks one.
 *
 * HOW TO USE
 * ----------
@@ -48,7 +58,7 @@
 * path:      /inc/djinterp/cpp/modules/interp/language.hpp
 * link(s):   /docs/djinterp/interp/DESIGN.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.22
-*                                                            revised: 2026.11.22
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 /*
@@ -67,6 +77,7 @@ TABLE OF CONTENTS
     -------
     1.  parse_line
     2.  parse_argv
+    3.  is_number
 */
 
 #ifndef DJINTERP_INTERP_LANGUAGE_HPP
@@ -112,10 +123,18 @@ enum token_class
     token_rparen   = 6,   // )
     token_lbrace   = 7,   // {, a block's: a later step
     token_rbrace   = 8,   // }
-    token_and      = 9,   // and: a later step
+    token_and      = 9,   // and, standing alone
     token_or       = 10,  // or
     token_not      = 11,  // not
-    token_compare  = 12   // ==, !=, <, <=, >, >=, =~ standing alone
+    token_eq       = 12,  // ==, standing alone
+    token_ne       = 13,  // !=
+    token_lt       = 14,  // <
+    token_le       = 15,  // <=
+    token_gt       = 16,  // >
+    token_ge       = 17,  // >=
+    token_match    = 18,  // =~
+    token_number   = 19,  // a word that is wholly a number
+    token_string   = 20   // a word that is wholly one quoted part
 };
 
 // 1.2
@@ -123,10 +142,20 @@ enum token_class
 //   enum: the term's operators, core v2's ids; 0 is none.
 enum op_id
 {
-    op_seq   = 1,  // ; and newline, flattened, at 10
-    op_pipe  = 2,  // |, flattened, at 20
-    op_cmd   = 3,  // a command: its verb and arguments, built by its role
-    op_group = 4   // ( ), transparent: it leaves no node
+    op_seq   = 1,   // ; and newline, flattened, at 10
+    op_pipe  = 2,   // |, flattened, at 20
+    op_cmd   = 3,   // a command: its verb and arguments, built by its role
+    op_group = 4,   // ( ), transparent: it leaves no node
+    op_or    = 5,   // or, flattened, at 30
+    op_and   = 6,   // and, flattened, at 40
+    op_not   = 7,   // not, prefix, at 50
+    op_eq    = 8,   // ==, at 60, as each comparison: none beside another
+    op_ne    = 9,   // !=
+    op_lt    = 10,  // <
+    op_le    = 11,  // <=
+    op_gt    = 12,  // >
+    op_ge    = 13,  // >=
+    op_match = 14   // =~
 };
 
 
@@ -182,7 +211,8 @@ public:
     re_std::uint32_t root() const;
     // a leaf's word: the text of the token it was made from
     const std::string& word(re_std::uint32_t _node) const;
-    // the term as an s-expression: seq(pipe(cmd(ls, -l), cmd(wc)), cmd(x))
+    // the term as an s-expression: seq(pipe(cmd(ls, -l), cmd(wc)), cmd(x)),
+    // and(cmd(a), ==(cmd(b), "x"), not(2)): a STRING literal in quotes
     std::string sexpr() const;
 
 private:
@@ -210,6 +240,12 @@ script parse_line(const std::string& _text);
 // parse_argv
 //   reading: a command line the shell has split, a token a word.
 script parse_argv(const std::vector<std::string>& _words);
+
+// 3.3
+// is_number
+//   query: whether a word is wholly a number, as the grammar's NUMBER is:
+// an optional '-', digits, and a fraction's '.' and digits.
+bool is_number(const std::string& _word);
 
 // parse_tokens
 //   reading: tokens already lexed, from `_text`, the reader's errors with

@@ -1,13 +1,14 @@
 #*******************************************************************************
 # djinterp [test]                                                 CMakeLists.txt
 #
-# Test leaf for the interpreter's skeleton, its first step: language.hpp and
+# Test leaf for the interpreter's skeleton, its second step: language.hpp and
 # evaluate.hpp, on expression core v2's C API. Its own leaf, and nothing of
 # it is installed: the skeleton is a preview (the interpreter's design,
 # decision 1).
-#   The core's C sources, with parse's diagnostics and storage, are compiled
-# once as C at the C floor; the skeleton's sources, its suite and the runner
-# at each C++ level from its floor, C++11, each run held to the suite's 8
+#   The core's C sources, with parse's diagnostics and storage and the
+# regular expressions `=~` matches with (c/util/dregex.c), are compiled once
+# as C at the C floor; the skeleton's sources, its suite and the runner at
+# each C++ level from its floor, C++11, each run held to the suite's 11
 # tests, every one passed. It stands alone, or below another project that
 # enables C and C++.
 #   Run it with
@@ -17,7 +18,7 @@
 # path:      /build/cmake/config/testing/djinterp/cpp/modules/interp/skeleton/CMakeLists.txt
 # link(s):   /docs/djinterp/interp/DESIGN.md
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.22
-#                                                            revised: 2026.11.23
+#                                                            revised: 2026.11.25
 #*******************************************************************************
 cmake_minimum_required(VERSION 3.16)
 
@@ -69,6 +70,7 @@ add_library(djinterp_interp_skeleton_core STATIC
     ${_core}
     "${_parse}/diagnostic.c"
     "${_parse}/storage.c"
+    "${_root}/src/djinterp/c/util/dregex.c"
     "${_root}/src/djinterp/c/modules/test/test_suite.c")
 set_target_properties(djinterp_interp_skeleton_core PROPERTIES
     C_STANDARD          99
@@ -127,7 +129,7 @@ foreach(_level IN LISTS DJINTERP_INTERP_SKELETON_CXX_LEVELS)
     # stopped being compiled fails the run, not shrinks it
     add_test(NAME ${_target} COMMAND ${_target})
     set_tests_properties(${_target} PROPERTIES
-        PASS_REGULAR_EXPRESSION "tests: +8 \\(8 passed, 0 failed, 0 skipped\\)")
+        PASS_REGULAR_EXPRESSION "tests: +11 \\(11 passed, 0 failed, 0 skipped\\)")
 
     set_property(GLOBAL APPEND PROPERTY DJINTERP_TEST_TARGETS ${_target})
     set_property(GLOBAL APPEND PROPERTY DJINTERP_TEST_TARGET_DIRS
