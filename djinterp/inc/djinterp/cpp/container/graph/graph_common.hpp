@@ -8,10 +8,10 @@
 * graph itself; only describes properties.
 *
 *   Most of the property / classification enums refine concepts already
-* declared in `math_common.hpp` - e.g., `DGraphDirection` reuses
-* `math::directionality`, `DGraphAcyclicity` is a refinement of the
+* declared in meta's `math_vocabulary.hpp` - e.g., `DGraphDirection` reuses
+* `DDirectionality`, `DGraphAcyclicity` is a refinement of the
 * acyclic-relation property.  Consumers that want the most general form
-* should use the `math::` enums directly; `graph_*` enums add finer
+* should use those enums directly; `graph_*` enums add finer
 * graph-only categories (e.g. tournament, DAG, tree, forest).
 *
 * DESIGN PRINCIPLES:
@@ -30,7 +30,7 @@
 * path:      /inc/djinterp/cpp/container/graph/graph_common.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.27
-*                                                            revised: 2026.11.11
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 /*
@@ -45,7 +45,7 @@ I.    Vertex / Edge Identifier Types
 
 II.   Graph Direction
       ---------------
-      1.    graph_direction enum (refines math::directionality)
+      1.    graph_direction enum (refines DDirectionality)
       2.    helpers: is_directed_v, is_undirected_v
 
 III.  Edge Multiplicity / Self-Loop Policy
@@ -117,7 +117,7 @@ IX.   Adjacency Container Concept Helpers
 #include <vector>
 // djinterp
 #include "../../djinterp.hpp"  // framework root
-#include "./math_common.hpp"      // math::directionality, math::multiplicity
+#include "../../meta/math_vocabulary.hpp"  // DDirectionality, DSelfLoopPolicy
 // re_std
 #include "../../../../re_std/cpp/cstdint/cstdint.hpp"  // re_std::uint8_t, uint32_t
 
@@ -132,7 +132,7 @@ NS_CONTAINER
     // invalid_id
     //   function (template): the canonical sentinel for an unsigned-integer
     // ID type: always (UInt)-1. (In djinterp::math, in math_common.hpp, until
-    // 2026.11.11, when it became graph's alone.)
+    // 2026.11.11: the name is graph's alone.)
     template<typename UInt>
     D_CONSTEXPR_INLINE
     UInt invalid_id() noexcept
@@ -347,7 +347,7 @@ NS_CONTAINER
 
     // DGraphDirection
     //   enum: graph-wide direction policy. This is a re-spelling of
-    // math::directionality with names tuned for graph theory; the values are
+    // DDirectionality with names tuned for graph theory; the values are
     // kept in sync via the conversion helpers below.
     enum class DGraphDirection : re_std::uint8_t
     {
@@ -379,19 +379,19 @@ NS_CONTAINER
     using graph_direction = DGraphDirection;
 
     // to_math_directionality
-    //   function: convert graph_direction into math::directionality.
+    //   function: convert graph_direction into DDirectionality.
     D_CONSTEXPR_INLINE
-    djinterp::math::DDirectionality to_math_directionality(
+    djinterp::DDirectionality to_math_directionality(
         DGraphDirection _d
     ) noexcept
     {
-        return ( (_d == DGraphDirection::undirected) ? djinterp::math::DDirectionality::undirected :
-                 (_d == DGraphDirection::directed)   ? djinterp::math::DDirectionality::directed   :
-                 (_d == DGraphDirection::mixed)      ? djinterp::math::DDirectionality::mixed      :
-                 (_d == DGraphDirection::oriented)   ? djinterp::math::DDirectionality::oriented   :
-                 (_d == DGraphDirection::tournament) ? djinterp::math::DDirectionality::tournament :
-                 (_d == DGraphDirection::bidirected) ? djinterp::math::DDirectionality::bidirected :
-                                                       djinterp::math::DDirectionality::unknown );
+        return ( (_d == DGraphDirection::undirected) ? djinterp::DDirectionality::undirected :
+                 (_d == DGraphDirection::directed)   ? djinterp::DDirectionality::directed   :
+                 (_d == DGraphDirection::mixed)      ? djinterp::DDirectionality::mixed      :
+                 (_d == DGraphDirection::oriented)   ? djinterp::DDirectionality::oriented   :
+                 (_d == DGraphDirection::tournament) ? djinterp::DDirectionality::tournament :
+                 (_d == DGraphDirection::bidirected) ? djinterp::DDirectionality::bidirected :
+                                                       djinterp::DDirectionality::unknown );
     }
 
 
@@ -401,7 +401,7 @@ NS_CONTAINER
 
     // DEdgeMultiplicity
     //   enum: graph-wide policy on duplicate edges between the same (u, v)
-    // pair. Refines math::multiplicity in graph terms.
+    // pair. Refines meta's DMultiplicityKind in graph terms.
     enum class DEdgeMultiplicity : re_std::uint8_t
     {
         unspecified = 0,
@@ -420,8 +420,8 @@ NS_CONTAINER
     using edge_multiplicity = DEdgeMultiplicity;
 
     // DLoopPolicy
-    //   alias: re-export math::self_loop_policy under a graph-friendly name.
-    using DLoopPolicy = djinterp::math::DSelfLoopPolicy;
+    //   alias: re-export DSelfLoopPolicy under a graph-friendly name.
+    using DLoopPolicy = djinterp::DSelfLoopPolicy;
 
     // old name, until 0.9.0-rc.1
     using loop_policy = DLoopPolicy;

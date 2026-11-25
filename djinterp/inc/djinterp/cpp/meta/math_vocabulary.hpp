@@ -1,35 +1,42 @@
 /*******************************************************************************
-* djinterp [cpp][container]                                      math_common.hpp
+* djinterp [cpp][meta]                                       math_vocabulary.hpp
 *
-* Foundational mathematical types shared by the `math` and `container`
-* submodules.
-*   This header sits below `math.hpp` and `interval.hpp`; it owns the
-* container-agnostic vocabulary that both submodules need to spell:
-* cardinality, multiplicity, directionality, ordering kinds, relation
-* properties, closure of intervals, algebraic-structure tags, and a
-* handful of small types (arity, degree, parity, sign).
+* Math Vocabulary:
+*   Enums and small types that describe a property of a set, a relation or a
+* function: arity and degree, parity, sign and handedness, cardinality,
+* self-loops, directionality and orientation, the closure of an interval,
+* order strength and strictness, a relation's properties and kind, algebraic
+* structures, compile-time pairs and triples, and two sentinels. Nothing here
+* knows what a container or a graph is; a container labels its axes with
+* these, and math classifies expressions and morphisms with them.
+*   Each enum is an enum class with an explicit underlying type, and each has
+* an unknown member at 0, so that a default is "not classified". Every
+* property is also detectable structurally; the enums only name it.
+*   Until 2026.11.25 this vocabulary was graph's math_common.hpp, in
+* djinterp::math. Its names are in djinterp now; math's ordering enum is
+* DOrderStrength, beside container's DOrderingKind; and each old name stays
+* in djinterp::math until 0.9.0-rc.1 (section XI).
 *
-*   Nothing here knows what a container is.  Nothing here knows what
-* a graph is.  Everything here is a description of a property of a
-* set, a relation, or a function.  Container modules consume these
-* enums to label their axes; math modules consume them to classify
-* expressions and morphisms.
+* HOW TO USE
+* ----------
+*   Include it and name a property: DDirectionality::directed,
+* DCardinality::countable_infinite, is_finite_cardinality<C>::value.
+* DRelationProperty is a bitmask: combine
+* with |, test with has_relation_property(set, property).
 *
-* DESIGN PRINCIPLES:
-*   1. No tag types are required for end users - detection is structural.
-*      The tags below are *available* for users who want explicit opt-in,
-*      but every property is also detectable purely structurally.
-*   2. Every enum has a `none` / `unknown` member at value 0 to allow
-*      default construction and "not classified" semantics.
-*   3. Every enum is `enum class` with an explicit underlying type so
-*      bit-packing into trait classification structs is predictable.
-*   4. C++11 baseline; feature-gated extensions for >= C++14/17/20.
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_ knob changes it. Below C++11 the header is empty.
 *
 *
-* path:      /inc/djinterp/cpp/container/graph/math_common.hpp
+* path:      /inc/djinterp/cpp/meta/math_vocabulary.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.27
-*                                                            revised: 2026.11.11
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 /*
@@ -44,12 +51,11 @@ I.    Numeric Vocabulary Types
 II.   Cardinality
       -----------
       1.    cardinality enum
-      2.    is_finite_v / is_countable_v
+      2.    is_finite_cardinality / is_countable_cardinality
 
-III.  Multiplicity
-      ------------
-      1.    multiplicity enum
-      2.    self_loop_policy enum
+III.  Self-Loops
+      ----------
+      1.    DSelfLoopPolicy enum
 
 IV.   Directionality
       --------------
@@ -59,10 +65,11 @@ IV.   Directionality
 V.    Closure (interval boundary kinds)
       ---------------------------------
 
-VI.   Ordering Kinds
+VI.   Order Strength
       --------------
-      1.    ordering_kind enum (none / partial / total / well)
-      2.    strictness enum (strict / non_strict)
+      1.    DOrderStrength enum (unordered / sequenced / partial / total /
+            well-ordered)
+      2.    DStrictness enum (strict / non_strict)
 
 VII.  Relation Properties
       -------------------
@@ -78,30 +85,31 @@ IX.   Small Compile-Time Pair / Triple Helpers
 
 X.    Sentinel / Null Helpers
       -----------------------
+
+XI.   The Old Names, in djinterp::math
+      ---------------------------------
 */
 
-#ifndef DJINTERP_CONTAINER_GRAPH_MATH_COMMON_HPP
-#define DJINTERP_CONTAINER_GRAPH_MATH_COMMON_HPP 1
 
-// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
-// 2's rule). The owner's ruling: compile at every level first; port down only
-// where something needs it.
-#include "../../../env/env.h"  // D_ENV_LANG_*
+#ifndef DJINTERP_META_MATH_VOCABULARY_HPP
+#define DJINTERP_META_MATH_VOCABULARY_HPP 1
+
+// FLOOR: below C++11 this file is empty, rather than an error; its enums
+// are enum classes.
+#include "../../env/env.h"  // D_ENV_LANG_*
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
-#include <cstddef>
-#include <limits>
-#include <type_traits>
+#include <cstddef>      // std::size_t
+#include <type_traits>  // std::integral_constant
 // djinterp
-#include "../../djinterp.hpp"
+#include "../djinterp.hpp"  // framework root
 // re_std
-#include "../../../../re_std/cpp/cstdint/cstdint.hpp"  // re_std::int8_t, uint8_t,
-                                                   // uint16_t
+#include "../../../re_std/cpp/cstdint/cstdint.hpp"  // re_std::int8_t, uint8_t,
+                                                    // uint16_t
 
 
-NS_DJINTERP  // djinterp
-NS_MATH      // math
+NS_DJINTERP
 
 
 // =============================================================================
@@ -134,9 +142,6 @@ enum class DParity : re_std::uint8_t
     odd     = 2
 };
 
-// old name, until 0.9.0-rc.1
-using parity = DParity;
-
 // DSign
 //   enum: tri-state sign of a real value.
 enum class DSign : re_std::int8_t
@@ -147,9 +152,6 @@ enum class DSign : re_std::int8_t
     positive = 2
 };
 
-// old name, until 0.9.0-rc.1
-using sign = DSign;
-
 // DHandedness
 //   enum: chirality of a coordinate system or transformation.
 enum class DHandedness : re_std::uint8_t
@@ -159,9 +161,6 @@ enum class DHandedness : re_std::uint8_t
     right   = 2,
     neither = 3       // achiral
 };
-
-// old name, until 0.9.0-rc.1
-using handedness = DHandedness;
 
 
 // =============================================================================
@@ -191,9 +190,6 @@ enum class DCardinality : re_std::uint8_t
     uncountable        = 5
 };
 
-// old name, until 0.9.0-rc.1
-using cardinality = DCardinality;
-
 // is_finite_cardinality
 //   trait: true if the cardinality is finite (any of empty, finite_static,
 // finite_dynamic).
@@ -219,30 +215,8 @@ struct is_countable_cardinality
 
 
 // =============================================================================
-// III.  MULTIPLICITY
+// III.  SELF-LOOPS
 // =============================================================================
-
-// DMultiplicity
-//   enum: whether a collection allows duplicate elements, and if so, in what
-// regime. Containers consume this for their `DMultiplicity` axis; math consumes
-// it for multisets and multi-edges in graphs.
-enum class DMultiplicity : re_std::uint8_t
-{
-    unknown   = 0,
-
-    // every element appears at most once (set / simple graph)
-    unique    = 1,
-
-    // duplicates allowed, no upper bound (multiset / multigraph)
-    multi     = 2,
-
-    // duplicates allowed up to a fixed compile-time bound k (k-multiset;
-    // concrete k carried by `multiplicity_interval`)
-    bounded   = 3
-};
-
-// old name, until 0.9.0-rc.1
-using multiplicity = DMultiplicity;
 
 // DSelfLoopPolicy
 //   enum: whether a relation may relate an element to itself. Equivalent to
@@ -261,9 +235,6 @@ enum class DSelfLoopPolicy : re_std::uint8_t
     // x ~ x is required for every x (reflexive)
     require    = 3
 };
-
-// old name, until 0.9.0-rc.1
-using self_loop_policy = DSelfLoopPolicy;
 
 
 // =============================================================================
@@ -300,9 +271,6 @@ enum class DDirectionality : re_std::uint8_t
     bidirected   = 6
 };
 
-// old name, until 0.9.0-rc.1
-using directionality = DDirectionality;
-
 // DOrientation
 //   enum: direction of a single edge relative to a vertex. Finer-grained than
 // `DDirectionality` (graph-wide); answers the question "with respect to vertex
@@ -315,9 +283,6 @@ enum class DOrientation : re_std::uint8_t
     incident   = 3,    // undirected (both)
     self_loop  = 4     // edge starts and ends at this vertex
 };
-
-// old name, until 0.9.0-rc.1
-using orientation = DOrientation;
 
 
 // =============================================================================
@@ -336,9 +301,6 @@ enum class DClosure : re_std::uint8_t
     left_open  = 3,    // (a, b]
     right_open = 4     // [a, b)
 };
-
-// old name, until 0.9.0-rc.1
-using closure = DClosure;
 
 // closure_includes_left
 //   trait: true if the closure includes its left endpoint. (Not named
@@ -365,14 +327,16 @@ struct closure_includes_right
 
 
 // =============================================================================
-// VI.   ORDERING KINDS
+// VI.   ORDER STRENGTH
 // =============================================================================
 
-// DOrderingKind
-//   enum: the strongest ordering invariant a set / sequence satisfies. Used by
-// container's `ordering` axis (sorted vs. ordered vs. unordered) and by math
-// for posets, lattices, and chains.
-enum class DOrderingKind : re_std::uint8_t
+// DOrderStrength
+//   enum: how strong an order relation is, a ladder from no order to a
+// well-order: what a set or sequence's order relation guarantees, for posets,
+// lattices and chains. (math::ordering_kind, and math::DOrderingKind, until
+// 2026.11.25. djinterp::DOrderingKind is a container's place on the order
+// axis, in ordered_container_traits.hpp: a different question.)
+enum class DOrderStrength : re_std::uint8_t
 {
     unknown          = 0,
 
@@ -394,21 +358,15 @@ enum class DOrderingKind : re_std::uint8_t
     well_ordered     = 5
 };
 
-// old name, until 0.9.0-rc.1
-using ordering_kind = DOrderingKind;
-
 // DStrictness
 //   enum: whether a relation is strict (irreflexive) or non-strict
-// (reflexive). Pairs with ordering_kind to spell `<` vs `<=` etc.
+// (reflexive). Pairs with DOrderStrength to spell `<` vs `<=` etc.
 enum class DStrictness : re_std::uint8_t
 {
     unknown    = 0,
     strict     = 1,    // < or > ; irreflexive
     non_strict = 2     // <= or >= ; reflexive
 };
-
-// old name, until 0.9.0-rc.1
-using strictness = DStrictness;
 
 
 // =============================================================================
@@ -465,9 +423,6 @@ enum class DRelationProperty : re_std::uint16_t
     // Euclidean:        x R y and x R z => y R z
     euclidean      = 1u << 12
 };
-
-// old name, until 0.9.0-rc.1
-using relation_property = DRelationProperty;
 
 // operator| / operator& / operator^ / operator~ for relation_property
 //   convenience: bitwise composition of relation properties.
@@ -576,9 +531,6 @@ enum class DRelationKind : re_std::uint8_t
     function         = 13
 };
 
-// old name, until 0.9.0-rc.1
-using relation_kind = DRelationKind;
-
 
 // =============================================================================
 // VIII. ALGEBRAIC STRUCTURE TAGS
@@ -628,9 +580,6 @@ enum class DAlgebraicStructure : re_std::uint8_t
     ordered_field  = 10
 };
 
-// old name, until 0.9.0-rc.1
-using algebraic_structure = DAlgebraicStructure;
-
 // has_identity_element
 //   trait: true if the structure contains an identity element for its primary
 // operation.
@@ -668,7 +617,7 @@ struct is_commutative_structure
 // =============================================================================
 // IX.   COMPILE-TIME PAIR / TRIPLE HELPERS
 // =============================================================================
-// Pure-value pair / triple structs in the math namespace.  Carry
+// Pure-value pair / triple structs.  Carry
 // no semantics beyond grouping; both math and container modules
 // use them to express bounds, edge endpoints, and indexed values
 // in constexpr contexts where std::pair was historically
@@ -685,11 +634,6 @@ struct DTypePair
     using second = Second;
 };
 
-// old name, until 0.9.0-rc.1
-template<typename First,
-         typename Second>
-using type_pair = DTypePair<First, Second>;
-
 // DTypeTriple
 //   struct: compile-time triple of types.
 template<typename First,
@@ -701,12 +645,6 @@ struct DTypeTriple
     using second = Second;
     using third  = Third;
 };
-
-// old name, until 0.9.0-rc.1
-template<typename First,
-         typename Second,
-         typename Third>
-using type_triple = DTypeTriple<First, Second, Third>;
 
 // DValuePair
 //   struct: compile-time pair of values of the same type. Used for vertex/edge
@@ -721,12 +659,6 @@ struct DValuePair
     static D_CONSTEXPR value_type first  = First;
     static D_CONSTEXPR value_type second = Second;
 };
-
-// old name, until 0.9.0-rc.1
-template<typename Type,
-         Type     First,
-         Type     Second>
-using value_pair = DValuePair<Type, First, Second>;
 
 // DIndexedValue
 //   struct: compile-time (index, value) pair. Used by sparse vector / matrix
@@ -743,12 +675,6 @@ struct DIndexedValue
     static D_CONSTEXPR value_type  value = Value;
 };
 
-// old name, until 0.9.0-rc.1
-template<std::size_t Index,
-         typename    Type,
-         Type        Value>
-using indexed_value = DIndexedValue<Index, Type, Value>;
-
 
 // =============================================================================
 // X.    SENTINEL / NULL HELPERS
@@ -764,15 +690,218 @@ static D_CONSTEXPR std::size_t kInvalidSize =
 static D_CONSTEXPR std::size_t kInvalidIndex =
     static_cast<std::size_t>(-1);
 
-// (depth_t, kUnknownDepth, invalid_id and is_invalid_id were graph's alone,
-// and live in graph_common.hpp, in djinterp::container, since 2026.11.11 --
-// kUnknownDepth as unknown_depth (decision X2). The rest of this vocabulary
-// moves to meta in week 3, merged with meta's multiplicity.hpp.)
+// (depth_t, unknown_depth, invalid_id and is_invalid_id are graph's alone,
+// in graph_common.hpp, in djinterp::container.)
 
+
+// =============================================================================
+// XI.   THE OLD NAMES, IN djinterp::math
+// =============================================================================
+//   Until 2026.11.25 this vocabulary was in djinterp::math, in
+// container/graph/math_common.hpp. Each name it had there stays there, an
+// alias of its name here, until 0.9.0-rc.1; each line says so, so that the
+// sweep that deprecates the old names finds it.
+//   graph's multiplicity enum is the one exception: meta's DMultiplicityKind
+// (multiplicity.hpp) is djinterp's multiplicity vocabulary, and draws the
+// distinction this enum blurs, a sequence's "no cap" from a multiset's. The
+// enum stays in djinterp::math alone, under its two old names, until rc.1.
+NS_MATH
+
+// DMultiplicity
+//   enum: whether a collection allows duplicates: unique, multi (no cap) or
+// bounded. Kept as an old name only; DMultiplicityKind is the vocabulary.
+enum class DMultiplicity : re_std::uint8_t
+{
+    unknown   = 0,
+
+    // every element appears at most once (set / simple graph)
+    unique    = 1,
+
+    // duplicates allowed, no upper bound (multiset / multigraph)
+    multi     = 2,
+
+    // duplicates allowed up to a fixed compile-time bound k (k-multiset;
+    // concrete k carried by `multiplicity_interval`)
+    bounded   = 3
+};
+
+// old name, until 0.9.0-rc.1
+using multiplicity = DMultiplicity;
+
+// old name, until 0.9.0-rc.1
+using DParity = ::djinterp::DParity;
+
+// old name, until 0.9.0-rc.1
+using DSign = ::djinterp::DSign;
+
+// old name, until 0.9.0-rc.1
+using DHandedness = ::djinterp::DHandedness;
+
+// old name, until 0.9.0-rc.1
+using DCardinality = ::djinterp::DCardinality;
+
+// old name, until 0.9.0-rc.1
+using DSelfLoopPolicy = ::djinterp::DSelfLoopPolicy;
+
+// old name, until 0.9.0-rc.1
+using DDirectionality = ::djinterp::DDirectionality;
+
+// old name, until 0.9.0-rc.1
+using DOrientation = ::djinterp::DOrientation;
+
+// old name, until 0.9.0-rc.1
+using DClosure = ::djinterp::DClosure;
+
+// old name, until 0.9.0-rc.1
+using DStrictness = ::djinterp::DStrictness;
+
+// old name, until 0.9.0-rc.1
+using DRelationProperty = ::djinterp::DRelationProperty;
+
+// old name, until 0.9.0-rc.1
+using DRelationKind = ::djinterp::DRelationKind;
+
+// old name, until 0.9.0-rc.1
+using DAlgebraicStructure = ::djinterp::DAlgebraicStructure;
+
+// old name, until 0.9.0-rc.1
+using DOrderingKind = ::djinterp::DOrderStrength;
+
+// old name, until 0.9.0-rc.1
+using arity_t = ::djinterp::arity_t;
+
+// old name, until 0.9.0-rc.1
+using degree_t = ::djinterp::degree_t;
+
+// old name, until 0.9.0-rc.1
+using ::djinterp::kVariadicArity;
+
+// old name, until 0.9.0-rc.1
+using ::djinterp::kInvalidSize;
+
+// old name, until 0.9.0-rc.1
+using ::djinterp::kInvalidIndex;
+
+// old name, until 0.9.0-rc.1
+using ::djinterp::has_relation_property;
+
+// old name, until 0.9.0-rc.1
+using parity = ::djinterp::DParity;
+
+// old name, until 0.9.0-rc.1
+using sign = ::djinterp::DSign;
+
+// old name, until 0.9.0-rc.1
+using handedness = ::djinterp::DHandedness;
+
+// old name, until 0.9.0-rc.1
+using cardinality = ::djinterp::DCardinality;
+
+// old name, until 0.9.0-rc.1
+using self_loop_policy = ::djinterp::DSelfLoopPolicy;
+
+// old name, until 0.9.0-rc.1
+using directionality = ::djinterp::DDirectionality;
+
+// old name, until 0.9.0-rc.1
+using orientation = ::djinterp::DOrientation;
+
+// old name, until 0.9.0-rc.1
+using closure = ::djinterp::DClosure;
+
+// old name, until 0.9.0-rc.1
+using ordering_kind = ::djinterp::DOrderStrength;
+
+// old name, until 0.9.0-rc.1
+using strictness = ::djinterp::DStrictness;
+
+// old name, until 0.9.0-rc.1
+using relation_property = ::djinterp::DRelationProperty;
+
+// old name, until 0.9.0-rc.1
+using relation_kind = ::djinterp::DRelationKind;
+
+// old name, until 0.9.0-rc.1
+using algebraic_structure = ::djinterp::DAlgebraicStructure;
+
+// old name, until 0.9.0-rc.1
+template<typename First,
+         typename Second>
+using type_pair = ::djinterp::DTypePair<First, Second>;
+
+// old name, until 0.9.0-rc.1
+template<typename First,
+         typename Second,
+         typename Third>
+using type_triple = ::djinterp::DTypeTriple<First, Second, Third>;
+
+// old name, until 0.9.0-rc.1
+template<typename Type,
+         Type     First,
+         Type     Second>
+using value_pair = ::djinterp::DValuePair<Type, First, Second>;
+
+// old name, until 0.9.0-rc.1
+template<std::size_t Index,
+         typename    Type,
+         Type        Value>
+using indexed_value = ::djinterp::DIndexedValue<Index, Type, Value>;
+
+// old name, until 0.9.0-rc.1
+template<DCardinality C>
+using is_finite_cardinality = ::djinterp::is_finite_cardinality<C>;
+
+// old name, until 0.9.0-rc.1
+template<DCardinality C>
+using is_countable_cardinality = ::djinterp::is_countable_cardinality<C>;
+
+// old name, until 0.9.0-rc.1
+template<DClosure C>
+using closure_includes_left = ::djinterp::closure_includes_left<C>;
+
+// old name, until 0.9.0-rc.1
+template<DClosure C>
+using closure_includes_right = ::djinterp::closure_includes_right<C>;
+
+// old name, until 0.9.0-rc.1
+template<DAlgebraicStructure S>
+using has_identity_element = ::djinterp::has_identity_element<S>;
+
+// old name, until 0.9.0-rc.1
+template<DAlgebraicStructure S>
+using has_inverses = ::djinterp::has_inverses<S>;
+
+// old name, until 0.9.0-rc.1
+template<DAlgebraicStructure S>
+using is_commutative_structure = ::djinterp::is_commutative_structure<S>;
+
+// old name, until 0.9.0-rc.1
+template<typename First,
+         typename Second>
+using DTypePair = ::djinterp::DTypePair<First, Second>;
+
+// old name, until 0.9.0-rc.1
+template<typename First,
+         typename Second,
+         typename Third>
+using DTypeTriple = ::djinterp::DTypeTriple<First, Second, Third>;
+
+// old name, until 0.9.0-rc.1
+template<typename Type,
+         Type     First,
+         Type     Second>
+using DValuePair = ::djinterp::DValuePair<Type, First, Second>;
+
+// old name, until 0.9.0-rc.1
+template<std::size_t Index,
+         typename    Type,
+         Type        Value>
+using DIndexedValue = ::djinterp::DIndexedValue<Index, Type, Value>;
 
 NS_END  // math
+
 NS_END  // djinterp
 
-#endif  // floor, for now
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_CONTAINER_GRAPH_MATH_COMMON_HPP
+#endif  // DJINTERP_META_MATH_VOCABULARY_HPP
