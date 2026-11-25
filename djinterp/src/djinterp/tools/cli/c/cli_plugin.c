@@ -21,7 +21,7 @@
 * path:      /src/djinterp/tools/cli/c/cli_plugin.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.11.19
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 #include "../../../../../inc/djinterp/tools/cli/c/cli_plugin.h"  // corresponding header
 // std
@@ -1813,6 +1813,24 @@ void d_cli_program_set_plugin_versions(
         : (int)D_CLI_PLUGIN_VERSIONS_DEFAULT;
 
     return;
+}
+
+/*
+d_cli_program_set_plugin_privileged
+  The settings keep it: they read it when they are made.
+*/
+bool d_cli_program_set_plugin_privileged(
+    struct dj_cli_program* _program,
+    int                    _privileged
+)
+{
+    // nothing to set
+    if (!_program)
+    {
+        return false;
+    }
+
+    return d_cli_settings_privileged(_privileged);
 }
 
 /*

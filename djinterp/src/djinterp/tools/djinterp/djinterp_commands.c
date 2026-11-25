@@ -15,9 +15,17 @@
 * from and what lies under it. `set` checks each setting as the file will
 * bind it and binds it for the run, so that a name or a value the setting
 * does not take is refused before anything is written, then writes the
-* user's file whole, under each setting's canonical name: a line that sets
-* the same name alone is replaced, and each new statement goes at its end,
-* where it is read last. Results go through the kit's watched output
+* user's file whole, under each setting's canonical name, as the run reads
+* the file: in every program's lines, or in `--section`'s program's. A line
+* among them that sets the same name alone is replaced; the new statements
+* go after the last statement of every program's first lines, before the
+* first header, or of the program's last section, which is made at the
+* file's end where it has none; and a line kept after them that sets the
+* same name for a program that reads them is said, by its line, since that
+* program reads it last. The headers are kept as the file's structure even
+* in a run that reads it as one part (`cli.settings_sections` false), so
+* that no other program's lines are taken for this one's. Results go
+* through the kit's watched output
 * (d_cli_program_watched), so that an output that refuses them is said with
 * the system's reason.
 *
@@ -25,7 +33,7 @@
 * path:      /src/djinterp/tools/djinterp/djinterp_commands.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.22
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 #include "./djinterp_commands.h"  // corresponding header
 // std
@@ -80,9 +88,9 @@
 
 // d_internal_djinterp_reserved
 //   constant: the names the program keeps for its own commands and the
-// kit's, and those of its manual's pages in sections 5 and 7 --
-// djinterp-settings(5), djinterp-cli(7) and djinterp-language(7) - which a
-// djin's page, djinterp-NAME(1), would otherwise share.
+// kit's, and those of its manual's pages in sections 5 and 7, which a
+// djin's page, djinterp-NAME(1), would otherwise share: djinterp-settings(5),
+// djinterp-cli(7) and djinterp-language(7).
 static const char* const d_internal_djinterp_reserved[] =
 {
     "list", "describe", "get", "set", "help", "completion",
@@ -730,6 +738,58 @@ d_internal_djinterp_work_get(
 // 4.  SET
 //==============================================================================
 
+// D_INTERNAL_DJINTERP_LINE_*
+//   constants: what a line of the user's file holds, to `set`: nothing but
+// blanks; a comment alone; a statement, or more than one; a section's
+// header, as the kit finds one (cli_settings.h, 1.4).
+#define D_INTERNAL_DJINTERP_LINE_BLANK     0
+#define D_INTERNAL_DJINTERP_LINE_COMMENT   1
+#define D_INTERNAL_DJINTERP_LINE_STATEMENT 2
+#define D_INTERNAL_DJINTERP_LINE_HEADER    3
+
+// D_INTERNAL_DJINTERP_IN_*
+//   constants: whose a line is, by the header above it: every program's,
+// before the first header; every program's again, after `[*]`; one
+// program's, after `[NAME]`; no program's, after a header the kit cannot
+// read. A file read without sections is every program's, whole.
+#define D_INTERNAL_DJINTERP_IN_LEADING 0
+#define D_INTERNAL_DJINTERP_IN_EVERY   1
+#define D_INTERNAL_DJINTERP_IN_SECTION 2
+#define D_INTERNAL_DJINTERP_IN_NOBODY  3
+
+// dj_internal_djinterp_place
+//   struct: where `set` writes its statements: the section they are for, or
+// every program's lines; the line of the old text they go before, or its
+// end; and whether a header is to be written there first.
+struct dj_internal_djinterp_place
+{
+    const char* section;    // the program's name, NUL-ended; NULL for
+                            // every program's lines
+    bool        sectioned;  // whether the file's headers are read
+    size_t      at;         // a line's start in the old text, or its end
+    bool        header;     // whether `[SECTION]` goes there first
+};
+
+// dj_internal_djinterp_lines
+//   struct: a walk over the user's file, a line at a time: each line's kind,
+// and whose it is.
+struct dj_internal_djinterp_lines
+{
+    const char*                   text;       // the old text, NUL-ended
+    size_t                        length;     // its length
+    bool                          sectioned;  // whether headers are read
+    bool                          found;      // whether `next` is a header
+    struct dj_cli_settings_header next;       // the next header
+    size_t                        at;         // the next line's start
+    size_t                        start;      // the line's start
+    size_t                        size;       // its length, '\n' aside
+    long                          number;     // its number, from 1
+    int                           kind;       // D_INTERNAL_DJINTERP_LINE_*
+    int                           region;     // D_INTERNAL_DJINTERP_IN_*
+    const char*                   name;       // its section's name
+    size_t                        name_size;  // that name's length
+};
+
 /*
 d_internal_djinterp_bind
   Each NAME=VALUE bound for the run, above every other source, each
@@ -801,16 +861,195 @@ d_internal_djinterp_bind(
 }
 
 /*
-d_internal_djinterp_sets_alone
-  Whether a line of the file is one statement that sets `_name`, alone: its
-name, then '=' after spaces, and no ';' or '#' after it.
+d_internal_djinterp_lines_begin
+  A walk from the old text's first line.
+*/
+static void
+d_internal_djinterp_lines_begin(
+    struct dj_internal_djinterp_lines* _lines,
+    const char*                        _text,
+    size_t                             _length,
+    bool                               _sectioned
+)
+{
+    memset(_lines, 0, sizeof(*_lines));
+    _lines->text      = (_text != NULL) ? _text : "";
+    _lines->length    = (_text != NULL) ? _length : 0u;
+    _lines->sectioned = _sectioned;
+    _lines->region    = D_INTERNAL_DJINTERP_IN_LEADING;
+    _lines->found     = (_sectioned) &&
+                        (d_cli_settings_next_header(_lines->text, 0u,
+                                                    &_lines->next));
+
+    return;
+}
+
+/*
+d_internal_djinterp_lines_next
+  The walk on to the next line: its kind, and whose it is; a header's line
+the first of its section's. False past the last.
 */
 static bool
-d_internal_djinterp_sets_alone(
+d_internal_djinterp_lines_next(
+    struct dj_internal_djinterp_lines* _lines
+)
+{
+    const char* const text = _lines->text;
+    const char*       end;
+    size_t            at;
+
+    if (_lines->at >= _lines->length)
+    {
+        return false;
+    }
+
+    end            = (const char*)memchr(text + _lines->at, '\n',
+                                         _lines->length - _lines->at);
+    _lines->start  = _lines->at;
+    _lines->size   = (end != NULL) ? (size_t)(end - text) - _lines->at
+                                   : _lines->length - _lines->at;
+    _lines->at    += _lines->size + 1u;
+    _lines->number += 1;
+
+    if ( (_lines->found) &&
+         (_lines->next.at <= _lines->start + _lines->size) )
+    {
+        _lines->kind      = D_INTERNAL_DJINTERP_LINE_HEADER;
+        _lines->name      = _lines->next.name;
+        _lines->name_size = _lines->next.size;
+        _lines->region    = (_lines->next.size == 0u)
+                            ? D_INTERNAL_DJINTERP_IN_NOBODY
+                            : ( (_lines->next.size == 1u) &&
+                                (_lines->next.name[0] == '*') )
+                              ? D_INTERNAL_DJINTERP_IN_EVERY
+                              : D_INTERNAL_DJINTERP_IN_SECTION;
+        _lines->found     = d_cli_settings_next_header(
+                                text, _lines->next.end, &_lines->next);
+
+        return true;
+    }
+
+    for (at = _lines->start;
+         ( (at < _lines->start + _lines->size) &&
+           ( (text[at] == ' ') || (text[at] == '\t') ||
+             (text[at] == '\r') ) );
+         ++at)
+    {
+    }
+
+    _lines->kind = (at == _lines->start + _lines->size)
+                   ? D_INTERNAL_DJINTERP_LINE_BLANK
+                   : (text[at] == '#')
+                     ? D_INTERNAL_DJINTERP_LINE_COMMENT
+                     : D_INTERNAL_DJINTERP_LINE_STATEMENT;
+
+    return true;
+}
+
+/*
+d_internal_djinterp_ours
+  Whether the walk's line is among those the statements are written for:
+every program's, or the section's, as the place says.
+*/
+static bool
+d_internal_djinterp_ours(
+    const struct dj_internal_djinterp_lines* _lines,
+    const struct dj_internal_djinterp_place* _place
+)
+{
+    if (_place->section == NULL)
+    {
+        return ( (_lines->region == D_INTERNAL_DJINTERP_IN_LEADING) ||
+                 (_lines->region == D_INTERNAL_DJINTERP_IN_EVERY) );
+    }
+
+    return ( (_lines->region == D_INTERNAL_DJINTERP_IN_SECTION) &&
+             (d_cli_settings_section_reads(_lines->name, _lines->name_size,
+                                           _place->section)) );
+}
+
+/*
+d_internal_djinterp_place
+  Where the statements go: in every program's lines before the first
+header, or in the section's last, after its last statement; with none,
+after the comments it begins with, else at its start. A section the file
+does not have yet goes at the file's end, under a new header.
+*/
+static void
+d_internal_djinterp_place(
+    const char*                        _old,
+    size_t                             _length,
+    struct dj_internal_djinterp_place* _place
+)
+{
+    struct dj_internal_djinterp_lines walk;
+    const size_t                      none    = (size_t)-1;
+    bool                              in      = (_place->section == NULL);
+    bool                              any     = in;
+    bool                              heading = true;
+    size_t                            start   = 0u;
+    size_t                            stated  = none;
+    size_t                            comment = none;
+
+    d_internal_djinterp_lines_begin(&walk, _old, _length,
+                                    _place->sectioned);
+
+    while (d_internal_djinterp_lines_next(&walk))
+    {
+        const size_t after = (walk.at < _length) ? walk.at : _length;
+
+        if (walk.kind == D_INTERNAL_DJINTERP_LINE_HEADER)
+        {
+            // every program's first lines end at the first header
+            in = (_place->section != NULL) &&
+                 (d_internal_djinterp_ours(&walk, _place));
+
+            if (in)
+            {
+                any     = true;
+                heading = true;
+                start   = after;
+                stated  = none;
+                comment = none;
+            }
+
+            continue;
+        }
+
+        if (!in)
+        {
+            continue;
+        }
+
+        stated  = (walk.kind == D_INTERNAL_DJINTERP_LINE_STATEMENT)
+                  ? after : stated;
+        heading = (heading) &&
+                  (walk.kind == D_INTERNAL_DJINTERP_LINE_COMMENT);
+        comment = (heading) ? after : comment;
+    }
+
+    _place->header = !any;
+    _place->at     = (!any)            ? _length
+                   : (stated != none)  ? stated
+                   : (comment != none) ? comment
+                                       : start;
+
+    return;
+}
+
+/*
+d_internal_djinterp_sets
+  Whether a line of the file begins with a statement that sets `_name`: its
+name, then '=' after blanks; `_alone`, one that holds nothing else, no ';'
+or '#' after it.
+*/
+static bool
+d_internal_djinterp_sets(
     const char* _line,
     size_t      _length,
     const char* _name,
-    size_t      _size
+    size_t      _size,
+    bool        _alone
 )
 {
     size_t at = 0u;
@@ -839,8 +1078,9 @@ d_internal_djinterp_sets_alone(
 
     return ( (at < _length) &&
              (_line[at] == '=') &&
-             (memchr(_line + at, ';', _length - at) == NULL) &&
-             (memchr(_line + at, '#', _length - at) == NULL) );
+             ( (!_alone) ||
+               ( (memchr(_line + at, ';', _length - at) == NULL) &&
+                 (memchr(_line + at, '#', _length - at) == NULL) ) ) );
 }
 
 /*
@@ -869,23 +1109,24 @@ d_internal_djinterp_canonical(
 }
 
 /*
-d_internal_djinterp_drops
-  Whether an old line is one a statement replaces: one that sets, alone, the
-name as given or as canonical.
+d_internal_djinterp_named
+  Which statement's setting a line of the file sets, as `_alone` asks
+(d_internal_djinterp_sets): the name as given or as canonical; `_count`
+for none.
 */
-static bool
-d_internal_djinterp_drops(
+static size_t
+d_internal_djinterp_named(
     const char*                _line,
     size_t                     _length,
     const struct dj_pack_text* _items,
-    size_t                     _count
+    size_t                     _count,
+    bool                       _alone
 )
 {
     struct dj_internal_djinterp_setting setting;
     char                                name[D_INTERNAL_DJINTERP_ROOM];
-    bool                                drop = false;
 
-    for (size_t i = 0u; (!drop) && (i < _count); ++i)
+    for (size_t i = 0u; i < _count; ++i)
     {
         const size_t given = (size_t)((const char*)memchr(
                                  _items[i].data, '=', _items[i].length) -
@@ -896,72 +1137,86 @@ d_internal_djinterp_drops(
                                                              sizeof(name))
                              : 0u;
 
-        drop = ( (d_internal_djinterp_sets_alone(_line, _length,
-                                                 _items[i].data, given)) ||
-                 ( (size != 0u) &&
-                   (d_internal_djinterp_sets_alone(_line, _length, name,
-                                                   size)) ) );
+        if ( (d_internal_djinterp_sets(_line, _length, _items[i].data, given,
+                                       _alone)) ||
+             ( (size != 0u) &&
+               (d_internal_djinterp_sets(_line, _length, name, size,
+                                         _alone)) ) )
+        {
+            return i;
+        }
     }
 
-    return drop;
+    return _count;
 }
 
 /*
-d_internal_djinterp_compose
-  The file's new text into `_text`: each old line kept but one that sets a
-name given alone, then each statement under the setting's canonical name, as
-get writes it; how long it is, or 0 when it does not fit.
+d_internal_djinterp_drops
+  Whether the walk's line is one a statement replaces: among the lines the
+statements are for, one that sets, alone, a setting given.
+*/
+static bool
+d_internal_djinterp_drops(
+    const struct dj_internal_djinterp_lines* _lines,
+    const struct dj_internal_djinterp_place* _place,
+    const struct dj_pack_text*               _items,
+    size_t                                   _count
+)
+{
+    return ( (_lines->kind == D_INTERNAL_DJINTERP_LINE_STATEMENT) &&
+             (d_internal_djinterp_ours(_lines, _place)) &&
+             (d_internal_djinterp_named(_lines->text + _lines->start,
+                                        _lines->size, _items, _count,
+                                        true) < _count) );
+}
+
+/*
+d_internal_djinterp_statements
+  The statements written at `_used` in `_text`, after the section's header
+where the place says, under each setting's canonical name, as get writes
+it; how long the text is then, or 0 when it does not fit.
 */
 static size_t
-d_internal_djinterp_compose(
-    const char*                _old,
-    size_t                     _old_length,
-    const struct dj_pack_text* _items,
-    size_t                     _count,
-    char*                      _text,
-    size_t                     _capacity
+d_internal_djinterp_statements(
+    const struct dj_internal_djinterp_place* _place,
+    const struct dj_pack_text*               _items,
+    size_t                                   _count,
+    char*                                    _text,
+    size_t                                   _used,
+    size_t                                   _capacity
 )
 {
     struct dj_internal_djinterp_setting setting;
     char                                value[D_INTERNAL_DJINTERP_ROOM];
-    size_t                              used = 0u;
+    size_t                              used = _used;
+    bool                                fits = true;
+    int                                 wrote;
 
-    for (size_t at = 0u; at < _old_length; )
+    if (_place->header)
     {
-        const char* const end   = (const char*)memchr(_old + at, '\n',
-                                                      _old_length - at);
-        const size_t      line  = (end != NULL) ? (size_t)(end - _old) - at
-                                                : _old_length - at;
-        const bool        drop  = d_internal_djinterp_drops(_old + at, line,
-                                                            _items, _count);
+        // a blank line between the old text and the new section
+        const bool apart = (used == 0u) ||
+                           ( (_text[used - 1u] == '\n') &&
+                             ( (used == 1u) ||
+                               (_text[used - 2u] == '\n') ) );
 
-        if ( (!drop) &&
-             (used + line + 1u < _capacity) )
-        {
-            memcpy(_text + used, _old + at, line);
-            used         += line;
-            _text[used++] = '\n';
-        }
-        else if (!drop)
-        {
-            return 0u;
-        }
-
-        at += line + 1u;
+        wrote = snprintf(_text + used, _capacity - used, "%s[%s]\n",
+                         (apart) ? "" : "\n", _place->section);
+        fits  = (wrote >= 0) && ((size_t)wrote < _capacity - used);
+        used += (fits) ? (size_t)wrote : 0u;
     }
 
-    for (size_t i = 0u; i < _count; ++i)
+    for (size_t i = 0u; (fits) && (i < _count); ++i)
     {
-        const size_t name  = (size_t)((const char*)memchr(
-                                 _items[i].data, '=', _items[i].length) -
-                                 _items[i].data);
+        const size_t name = (size_t)((const char*)memchr(
+                                _items[i].data, '=', _items[i].length) -
+                                _items[i].data);
         char         canonical[D_INTERNAL_DJINTERP_ROOM];
         size_t       size;
-        int          wrote;
 
         (void)d_internal_djinterp_find(_items[i].data, name, &setting);
-        size = d_internal_djinterp_canonical(&setting, canonical,
-                                             sizeof(canonical));
+        size  = d_internal_djinterp_canonical(&setting, canonical,
+                                              sizeof(canonical));
         (void)d_option_env_format_quoted(setting.frame, setting.scope,
                                          setting.var, value, sizeof(value));
         wrote = (size != 0u)
@@ -969,17 +1224,205 @@ d_internal_djinterp_compose(
                            canonical, value)
                 : snprintf(_text + used, _capacity - used, "%.*s = %s\n",
                            (int)name, _items[i].data, value);
+        fits  = (wrote >= 0) && ((size_t)wrote < _capacity - used);
+        used += (fits) ? (size_t)wrote : 0u;
+    }
 
-        if ( (wrote < 0) ||
-             ((size_t)wrote >= _capacity - used) )
+    return (fits) ? used : 0u;
+}
+
+/*
+d_internal_djinterp_compose
+  The file's new text into `_text`: each old line kept but one a statement
+replaces, and the statements where the place says; how long it is, or 0
+when it does not fit.
+*/
+static size_t
+d_internal_djinterp_compose(
+    const char*                              _old,
+    size_t                                   _old_length,
+    const struct dj_internal_djinterp_place* _place,
+    const struct dj_pack_text*               _items,
+    size_t                                   _count,
+    char*                                    _text,
+    size_t                                   _capacity
+)
+{
+    struct dj_internal_djinterp_lines walk;
+    size_t                            used    = 0u;
+    bool                              written = false;
+
+    d_internal_djinterp_lines_begin(&walk, _old, _old_length,
+                                    _place->sectioned);
+
+    while (d_internal_djinterp_lines_next(&walk))
+    {
+        if ( (!written) &&
+             (walk.start >= _place->at) )
+        {
+            used    = d_internal_djinterp_statements(_place, _items, _count,
+                                                     _text, used, _capacity);
+            written = true;
+
+            if (used == 0u)
+            {
+                return 0u;
+            }
+        }
+
+        if (d_internal_djinterp_drops(&walk, _place, _items, _count))
+        {
+            continue;
+        }
+
+        if (used + walk.size + 1u >= _capacity)
         {
             return 0u;
         }
 
-        used += (size_t)wrote;
+        memcpy(_text + used, _old + walk.start, walk.size);
+        used         += walk.size;
+        _text[used++] = '\n';
     }
 
-    return used;
+    return (written) ? used
+                     : d_internal_djinterp_statements(_place, _items, _count,
+                                                      _text, used,
+                                                      _capacity);
+}
+
+/*
+d_internal_djinterp_after
+  Each line kept after the new statements that sets one of their settings
+for a program that reads them, said as a warning by its line in the new
+text: that program reads it last, so its value stands there.
+*/
+static void
+d_internal_djinterp_after(
+    const struct dj_cli_program*             _program,
+    const char*                              _path,
+    const char*                              _old,
+    size_t                                   _old_length,
+    const struct dj_internal_djinterp_place* _place,
+    const struct dj_pack_text*               _items,
+    size_t                                   _count
+)
+{
+    struct dj_internal_djinterp_lines walk;
+    char                              whose[D_INTERNAL_DJINTERP_ROOM];
+    long                              dropped = 0;
+
+    d_internal_djinterp_lines_begin(&walk, _old, _old_length,
+                                    _place->sectioned);
+
+    while (d_internal_djinterp_lines_next(&walk))
+    {
+        const bool section = (walk.region == D_INTERNAL_DJINTERP_IN_SECTION);
+        const bool every   = (walk.region == D_INTERNAL_DJINTERP_IN_LEADING) ||
+                             (walk.region == D_INTERNAL_DJINTERP_IN_EVERY);
+        const bool reads   = (every) ||
+                             ( (section) &&
+                               ( (_place->section == NULL) ||
+                                 (d_internal_djinterp_ours(&walk,
+                                                           _place)) ) );
+        size_t     which;
+        size_t     name;
+
+        if (d_internal_djinterp_drops(&walk, _place, _items, _count))
+        {
+            ++dropped;
+
+            continue;
+        }
+
+        if ( (walk.kind != D_INTERNAL_DJINTERP_LINE_STATEMENT) ||
+             (walk.start < _place->at) ||
+             (!reads) )
+        {
+            continue;
+        }
+
+        which = d_internal_djinterp_named(_old + walk.start, walk.size,
+                                          _items, _count, false);
+
+        if (which == _count)
+        {
+            continue;
+        }
+
+        name = (size_t)((const char*)memchr(_items[which].data, '=',
+                                            _items[which].length) -
+                        _items[which].data);
+        (void)( (section)
+                ? snprintf(whose, sizeof(whose), "[%.*s]",
+                           (int)walk.name_size, walk.name)
+                : snprintf(whose, sizeof(whose), "every program") );
+        // its number in the new text: the statements before it, a line each
+        d_cli_report_at(_program, (int)D_CLI_SEVERITY_WARNING, _path,
+                        walk.number - dropped + (long)_count, 0,
+                        "this line sets '%.*s' too, and %s "
+                        "reads it after the new one", (int)name,
+                        _items[which].data, whose);
+    }
+
+    return;
+}
+
+/*
+d_internal_djinterp_section
+  `--section`'s program into `_name`, and into the place; `*`, or none, for
+every program's lines. The file's headers are its structure, kept whether
+or not this run reads them, so that a run that reads the file as one part
+never takes another program's lines for its own. D_CLI_EXIT_OK; a usage
+error, said, for a name no header can hold.
+*/
+static int
+d_internal_djinterp_section(
+    struct dj_cli_program*             _program,
+    struct dj_arg_command*             _command,
+    struct dj_internal_djinterp_place* _place,
+    char*                              _name,
+    size_t                             _capacity
+)
+{
+    size_t                           count = 0u;
+    const struct dj_pack_text* const value = d_arg_option_values(
+        d_arg_command_option(_command, "--section"), &count);
+    struct dj_cli_settings_header    header;
+    char                             line[D_INTERNAL_DJINTERP_ROOM];
+    const int                        made  = (count != 0u)
+        ? snprintf(line, sizeof(line), "[%.*s]", (int)value->length,
+                   value->data)
+        : 0;
+
+    memset(_place, 0, sizeof(*_place));
+    _place->sectioned = true;
+
+    if ( (count == 0u) ||
+         ( (value->length == 1u) &&
+           (value->data[0] == '*') ) )
+    {
+        return D_CLI_EXIT_OK;
+    }
+
+    if ( (value->length == 0u) ||
+         (made <= 0) ||
+         ((size_t)made >= sizeof(line)) ||
+         (value->length >= _capacity) ||
+         (!d_cli_settings_next_header(line, 0u, &header)) ||
+         (header.size != value->length) )
+    {
+        return d_cli_usage_error(_program, _command,
+                                 "--section: '%.*s' is not a program's "
+                                 "name: letters, digits, '_', '-' and '.'; "
+                                 "or *", (int)value->length, value->data);
+    }
+
+    memcpy(_name, value->data, value->length);
+    _name[value->length] = '\0';
+    _place->section      = _name;
+
+    return D_CLI_EXIT_OK;
 }
 
 /*
@@ -1015,7 +1458,8 @@ d_internal_djinterp_folder(
 
 /*
 d_internal_djinterp_work_set
-  Bound for the run first, every one, then the file written whole.
+  Bound for the run first, every one, then the file written whole: in
+every program's lines, or in `--section`'s.
 */
 static int
 d_internal_djinterp_work_set(
@@ -1024,18 +1468,28 @@ d_internal_djinterp_work_set(
     void*                  _context
 )
 {
-    size_t                           count  = 0u;
-    const struct dj_pack_text* const items  = d_arg_option_values(
+    size_t                            count  = 0u;
+    const struct dj_pack_text* const  items  = d_arg_option_values(
         d_arg_command_option(_command, "SETTING"), &count);
-    char                             path[D_INTERNAL_DJINTERP_ROOM];
-    char*                            old    = NULL;
-    size_t                           length = 0u;
-    char*                            text;
-    size_t                           room;
-    size_t                           made;
-    int                              failed;
+    struct dj_internal_djinterp_place place;
+    char                              section[D_INTERNAL_DJINTERP_ROOM];
+    char                              path[D_INTERNAL_DJINTERP_ROOM];
+    char*                             old    = NULL;
+    size_t                            length = 0u;
+    char*                             text;
+    size_t                            room;
+    size_t                            made;
+    int                               failed;
 
     (void)_context;
+
+    failed = d_internal_djinterp_section(_program, _command, &place, section,
+                                         sizeof(section));
+
+    if (failed != D_CLI_EXIT_OK)
+    {
+        return failed;
+    }
 
     if (!d_internal_djinterp_bind(_program, _command, items, count))
     {
@@ -1062,17 +1516,17 @@ d_internal_djinterp_work_set(
         return d_cli_file_error(_program, "read", path, failed);
     }
 
-    // the old text and a line's room for each statement, where that fits
-    room = ( (count < ((size_t)-1 / D_INTERNAL_DJINTERP_ROOM) - 1u) &&
-             (length < (size_t)-1 - (count + 1u) * D_INTERNAL_DJINTERP_ROOM) )
-           ? length + (count + 1u) * D_INTERNAL_DJINTERP_ROOM
+    // the old text, a header's line, and a line's room for each statement
+    room = ( (count < ((size_t)-1 / D_INTERNAL_DJINTERP_ROOM) - 2u) &&
+             (length < (size_t)-1 - (count + 2u) * D_INTERNAL_DJINTERP_ROOM) )
+           ? length + (count + 2u) * D_INTERNAL_DJINTERP_ROOM
            : 0u;
     text = (room != 0u) ? (char*)D_INTERNAL_CLI_MALLOC(room) : NULL;
+    d_internal_djinterp_place(old, length, &place);
     made = (text != NULL)
-           ? d_internal_djinterp_compose(old, length, items, count, text,
-                                         room)
+           ? d_internal_djinterp_compose(old, length, &place, items, count,
+                                         text, room)
            : 0u;
-    d_cli_free(old);
 
     failed = (text == NULL)   ? ENOMEM
            : (made == 0u)     ? ENOMEM
@@ -1080,6 +1534,14 @@ d_internal_djinterp_work_set(
     failed = (failed != 0) ? failed
                            : d_cli_write_file(path, text, made);
     D_INTERNAL_CLI_FREE(text);
+
+    if (failed == 0)
+    {
+        d_internal_djinterp_after(_program, path, old, length, &place, items,
+                                  count);
+    }
+
+    d_cli_free(old);
 
     return (failed == 0) ? D_CLI_EXIT_OK
                          : d_cli_file_error(_program, "write", path, failed);
@@ -1133,9 +1595,16 @@ d_internal_djinterp_commands(
                                    "NAME=VALUE: a setting's full name, and "
                                    "its value")
         : NULL;
+    struct dj_arg_option*        section  = (set != NULL)
+        ? d_arg_command_add_option(set, "--section",
+                                   "the program whose section of the file "
+                                   "the settings are written in; * for "
+                                   "every program's lines, as without it")
+        : NULL;
 
     if ( (list == NULL) || (djin == NULL) || (which == NULL) ||
          (format == NULL) || (names == NULL) || (items == NULL) ||
+         (section == NULL) ||
          (d_arg_command_add_flag(get, "--show-origin",
                                  "say where each value came from, and "
                                  "what lies under it") == NULL) )
@@ -1146,6 +1615,7 @@ d_internal_djinterp_commands(
     d_arg_option_set_required(djin, true);
     d_arg_option_set_expected_range(which, 0, 1);
     (void)d_arg_option_set_type_name(format, "FORMAT");
+    (void)d_arg_option_set_type_name(section, "PROGRAM");
     d_arg_option_set_expected_range(names, 0, D_ARG_EXPECTED_UNLIMITED);
     d_arg_option_set_expected_range(items, 1, D_ARG_EXPECTED_UNLIMITED);
     d_arg_option_set_required(items, true);

@@ -31,6 +31,7 @@
 #include "../../../../inc/djinterp/c/filesys/file_dir.h"  // d_path_resolve
 #include "../../../../inc/djinterp/env/tools/cli/env_cli.h"  // D_ENV_CLI_*
 #include "../../../../inc/djinterp/tools/cli/cli.hpp"  // the kit's C++ face
+#include "../../../../inc/djinterp/tools/cli/c/cli_settings.h"  // d_cli_settings_reset
 #include "../../c/modules/parse/cli/arg_parser/arg_tests_files.h"  // scratch directories
 #include "./c/cli_tests_support.h"  // checks, the environment, files
 // re_std
@@ -1120,6 +1121,23 @@ bool d_tests_cli_cpp_plugins()
                               "G05",
                               "a run's settings, as the C record keeps "
                               "them") && held;
+
+#if RE_STD_HAS_INT64
+    // a privileged run's say, taken until the settings are made
+    d_cli_settings_reset();
+    held = D_TESTS_CLI_CHECK( (told.plugin_privileged(
+                                   kit::plugin_privileged::trust) ==
+                               (D_INTERNAL_CLI_PRIVILEGED_OPTION == 1))    &&
+                              (told.plugin_privileged(
+                                   kit::plugin_privileged::build_default)) &&
+                              (d_cli_settings_djin() != D_NULLPTR)         &&
+                              (!told.plugin_privileged(
+                                   kit::plugin_privileged::refuse)),
+                              "G06",
+                              "a privileged run's say, until the settings "
+                              "are made") && held;
+    d_cli_settings_reset();
+#endif
 
 #if (D_INTERNAL_CLI_PLUGINS == 1)
     kit::DPluginModule module;

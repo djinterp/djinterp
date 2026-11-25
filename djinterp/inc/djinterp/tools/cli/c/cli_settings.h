@@ -12,7 +12,10 @@
 * D_CFG_CLI_PLUGIN_VARIABLE is 0, the caller is not to choose what code a
 * program loads, so those two refuse every source the caller controls - the
 * user's file, the environment, the command line - and only the program
-* and an override bind them (D_OPTION_ENV_REFUSES_CALLER).
+* and an override bind them (D_OPTION_ENV_REFUSES_CALLER). So do they in a
+* run with privileges its caller lacks, unless `cli.privileged_refuse`,
+* which only the program sets in such a run, says otherwise (cfg_cli.h,
+* 1.6).
 *   At a program's first parse the kit:
 *     - registers its djin, after every djin a module registered before the
 *       program ran;
@@ -22,7 +25,10 @@
 *       `DJINTERP_CLI_PLUGIN_SEARCH`;
 *     - reads the user's settings file, a statement a line, as
 *       `cli.plugin_strict_version = false`: a statement that fails is said
-*       by its line, as a warning, and the rest are read on;
+*       by its line, as a warning, and the rest are read on. A line
+*       `[PROGRAM]` begins the lines for the program of that name alone,
+*       which every other program passes over, and `[*]` those for every
+*       program again (`cli.settings_sections`);
 *     - sets its hook on the program's parser, which offers it the
 *       command line's settings where the parse reads them as options:
 *       `--NAME=VALUE`, `--NAME` for a bool's true and `--no-NAME` for its
@@ -33,8 +39,9 @@
 *       a plugin command's module is to read.
 *   A setting the command line names badly is a usage error, exit 2: a
 * name that names no setting, with the nearest that does; a djin not
-* registered here, where none is near; a value the setting does not take;
-* one this build does not have.
+* registered here, where none is near, told as `cli.unknown_djin` says; a
+* value the setting does not take; one this build does not have; a setting
+* that is not taken from the command line.
 *   The settings are the program's, as its registry is: read and written
 * by one thread at a time, before the program starts its threads.
 *
@@ -46,15 +53,24 @@
 * A program of its own djins registers them before the run, so that their
 * settings are read from the same three sources. A program that sets a
 * setting hook of its own on its parser before the run keeps it, and can
-* hand an argument on to the kit's, d_cli_settings_hook.
+* hand an argument on to the kit's, d_cli_settings_hook. A program that
+* would choose for itself what a privileged run does says so with
+* d_cli_program_set_plugin_privileged, before its first parse. A program
+* that writes the user's file finds its sections as the kit reads them,
+* with 1.4's d_cli_settings_next_header and d_cli_settings_section_reads;
+* d_cli_settings_sectioned says whether this run reads them.
 *
 * OPTIONS
 * -------
 *   `cli.plugin_strict_version` (bool), `cli.plugin_search` (text), the
 * root's `plugin_path` (text), and what the user's file is said for:
-* `cli.unknown_settings` (none, typos, all or error; typos by default) and
-* `cli.shared_refusals` (none, verbose, warn or error; verbose by default).
-* Each is set from the user's file
+* `cli.unknown_settings` (none, typos, all or error; typos by default),
+* `cli.shared_refusals` (none, verbose, warn or error; verbose by default)
+* and `cli.unknown_djin` (reason or lookup; reason by default); whether the
+* user's file is read in sections, `cli.settings_sections` (bool; true by
+* default), which neither the file nor the command line sets; and
+* `cli.privileged_refuse` (bool; true by default), which only the program
+* sets in a privileged run. Each is set from the user's file
 * ($XDG_CONFIG_HOME/djinterp/settings), the environment (`DJINTERP_` and the
 * program's own prefix) and the command line (`--NAME=VALUE`, `--NAME`,
 * `--no-NAME`, `--set NAME=VALUE`), in that order of standing, the command
@@ -64,15 +80,17 @@
 * -------------
 *   Each setting's default is its knob in cfg_cli.h:
 * D_CFG_CLI_PLUGIN_STRICT_VERSION, D_CFG_CLI_PLUGIN_SEARCH,
-* D_CFG_CLI_UNKNOWN_SETTINGS and D_CFG_CLI_SHARED_REFUSALS.
-* D_CFG_CLI_PLUGIN_VARIABLE 0 makes the two plugin settings refuse every
-* source the caller controls.
+* D_CFG_CLI_UNKNOWN_SETTINGS, D_CFG_CLI_SHARED_REFUSALS,
+* D_CFG_CLI_UNKNOWN_DJIN, D_CFG_CLI_SETTINGS_SECTIONS and
+* D_CFG_CLI_PRIVILEGED_REFUSE. D_CFG_CLI_PLUGIN_VARIABLE 0 makes the two
+* plugin settings refuse every source the caller controls;
+* D_CFG_CLI_PRIVILEGED_OPTION 0 leaves `cli.privileged_refuse` out.
 *
 *
 * path:      /inc/djinterp/tools/cli/c/cli_settings.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.21
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 /*
@@ -82,6 +100,7 @@ TABLE OF CONTENTS
     ------------------
     1.  The djin
          1.  d_cli_settings_djin
+         2.  d_cli_settings_privileged
     2.  A run's settings
          1.  d_cli_settings_start
          2.  d_cli_settings_hook
@@ -93,8 +112,15 @@ TABLE OF CONTENTS
          1.  d_cli_settings_plugin_search
          2.  d_cli_settings_plugin_path
          3.  d_cli_settings_plugin_strict_version
-    4.  Testing
+         4.  d_cli_settings_closed
+    4.  The file's sections
+         1.  dj_cli_settings_header
+         2.  d_cli_settings_next_header
+         3.  d_cli_settings_section_reads
+         4.  d_cli_settings_sectioned
+    5.  Testing
          1.  d_cli_settings_reset
+         2.  d_cli_settings_pretend_privileged
 */
 
 #ifndef DJINTERP_TOOLS_CLI_C_CLI_SETTINGS_H
@@ -127,6 +153,24 @@ D_EXTERN_C_BEGIN
 // program's registry by the first d_cli_settings_start. NULL where the
 // option core is not built, as without a 64-bit integer.
 D_CLI_API struct dj_option_env* d_cli_settings_djin(void);
+
+// 1.1.2
+// d_cli_settings_privileged
+/**
+ * @brief Keeps the program's say on a run with privileges its caller lacks
+ *        (dj_cli_plugin_privileged), for the djin to read when it is made.
+ *
+ * @note d_cli_program_set_plugin_privileged calls it. Once the djin is
+ *       made it is too late; a build without `cli.privileged_refuse`
+ *       takes no say but the build's.
+ *
+ * @param[in] _say  a dj_cli_plugin_privileged; any other value is the
+ *                  build's.
+ * @return true when the say will be followed; false otherwise.
+ */
+D_CLI_API bool d_cli_settings_privileged(
+    int _say
+);
 
 
 // 1.2    A run's settings
@@ -311,17 +355,92 @@ D_CLI_API bool d_cli_settings_plugin_strict_version(
 );
 
 
-// 1.4    Testing
+// 1.3.4
+// d_cli_settings_closed
+//   query: whether the plugin settings refuse the caller's sources in this
+// run: the build's D_CFG_CLI_PLUGIN_VARIABLE 0, or a privileged run that
+// refuses them (cfg_cli.h, 1.6). Makes the djin, if it is not made.
+D_CLI_API bool d_cli_settings_closed(void);
+
+
+// 1.4    The file's sections
+//------------------------------------------------------------------------------
+// 1.4.1
+// dj_cli_settings_header
+//   struct: a section's header in a settings file's text, as the kit reads
+// one: where its '[' is, where its line ends, and what its brackets hold.
+struct dj_cli_settings_header
+{
+    size_t      at;    // where its '[' is
+    size_t      end;   // its line's end: the '\n', or the text's NUL
+    const char* name;  // what its brackets hold: NAME, or `*`
+    size_t      size;  // its length; 0 where the header is malformed
+};
+
+// 1.4.2
+// d_cli_settings_next_header
+/**
+ * @brief Finds the next section's header in a settings file's text, as the
+ *        kit finds one when it reads the file in sections: a '[' where a
+ *        statement could begin, after blanks, line breaks, ';' and
+ *        comments; never one inside a statement. The header is `[NAME]` or
+ *        `[*]`, blanks and a comment after it allowed, NAME of letters,
+ *        digits, '_', '-' and '.'; any other is malformed, and the lines
+ *        after it are no program's until the next header.
+ *
+ * @param[in]  _text    the text, ended by a NUL.
+ * @param[in]  _from    where to look from: 0, or where a statement could
+ *                      begin, as the `end` of the header before.
+ * @param[out] _header  receives the header; where there is none, `at` and
+ *                      `end` are the text's end and `size` is 0.
+ * @return whether a header was found; false for a NULL argument.
+ */
+D_CLI_API bool d_cli_settings_next_header(
+    const char*                    _text,
+    size_t                         _from,
+    struct dj_cli_settings_header* _header
+);
+
+// 1.4.3
+// d_cli_settings_section_reads
+//   query: whether a section of the name its header holds is read by the
+// program named `_program`: `*` always; NAME where it is the program's,
+// letters' case aside. False for a NULL program and another name.
+D_CLI_API bool d_cli_settings_section_reads(
+    const char* _name,
+    size_t      _size,
+    const char* _program
+);
+
+// 1.4.4
+// d_cli_settings_sectioned
+//   query: whether this run reads the user's file in sections:
+// `cli.settings_sections`, or D_CFG_CLI_SETTINGS_SECTIONS before the
+// settings are started. False in a build without the option core.
+D_CLI_API bool d_cli_settings_sectioned(void);
+
+
+// 1.5    Testing
 //------------------------------------------------------------------------------
 #if defined(D_TESTING)
 #if (D_TESTING == 1)
 
-// 1.4.1
+// 1.5.1
 // d_cli_settings_reset
 //   testing: lets go of the run's settings - the kit's djin taken out of
 // the program's registry, its bindings and the root's gone - so that the
 // next d_cli_settings_start starts them again, as a new run would.
 D_CLI_API void d_cli_settings_reset(void);
+
+// 1.5.2
+// d_cli_settings_pretend_privileged
+//   function, testing builds: makes the kit take the run as privileged, 1,
+// or not, 0, until it is given -1, the system's answer again; read when
+// the djin is made, so given before the first parse, after
+// d_cli_settings_reset.
+D_CLI_API void d_cli_settings_pretend_privileged(
+    int _answer
+);
 
 #endif  // D_TESTING
 #endif  // defined(D_TESTING)

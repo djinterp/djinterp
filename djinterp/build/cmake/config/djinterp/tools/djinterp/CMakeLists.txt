@@ -18,7 +18,7 @@
 # path:      /build/cmake/config/djinterp/tools/djinterp/CMakeLists.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-#                                                            revised: 2026.11.22
+#                                                            revised: 2026.11.25
 #*******************************************************************************
 cmake_minimum_required(VERSION 3.16)
 
@@ -273,6 +273,58 @@ if(DJINTERP_PROGRAM_BUILD_TESTS)
         STATUS 0
         MATCHES "= false  [(]command line[)]\n    under it   true   [(]file[)]"
         NEEDS djinterp_again)
+
+    # the file's sections: another program's passed over, the program's
+    # own read; every program's lines written before the first header, and
+    # the program's section after them said; the file read without
+    # sections, its headers said so, and still written in its sections.
+    # The home starts empty at each run of the suite, not at configuring
+    # alone.
+    add_test(NAME djinterp_section_fresh
+             COMMAND "${CMAKE_COMMAND}" -E remove_directory
+                     "${CMAKE_CURRENT_BINARY_DIR}/homes/sections")
+    set_tests_properties(djinterp_section_fresh PROPERTIES
+        FIXTURES_SETUP djinterp_section_fresh)
+    djinterp_program_test(djinterp_section_other sections
+        COMMAND set --section=vparse cli.plugin_strict_version=false
+        STATUS 0
+        NEEDS djinterp_section_fresh SETUP djinterp_section_a)
+    djinterp_program_test(djinterp_section_passed sections
+        COMMAND get --show-origin cli.plugin_strict_version STATUS 0
+        MATCHES "^cli[.]plugin_strict_version = true  [(]D_CFG_"
+        NEEDS djinterp_section_a SETUP djinterp_section_b)
+    djinterp_program_test(djinterp_section_own sections
+        COMMAND set --section=djinterp cli.plugin_strict_version=false
+        STATUS 0
+        NEEDS djinterp_section_b SETUP djinterp_section_c)
+    djinterp_program_test(djinterp_section_read sections
+        COMMAND get --show-origin cli.plugin_strict_version STATUS 0
+        MATCHES "^cli[.]plugin_strict_version = false  [(]file[)]"
+        NEEDS djinterp_section_c SETUP djinterp_section_d)
+    djinterp_program_test(djinterp_section_shared sections
+        COMMAND set cli.plugin_strict_version=true STATUS 0
+        MATCHES "settings:3: warning: this line sets 'cli[.]plugin_strict_version' too, and [[]vparse[]] reads it after the new one\n.*settings:6: warning: this line sets 'cli[.]plugin_strict_version' too, and [[]djinterp[]] reads it after the new one"
+        NEEDS djinterp_section_d SETUP djinterp_section_e)
+    djinterp_program_test(djinterp_section_flat sections
+        COMMAND get cli.plugin_strict_version STATUS 0
+        MATCHES "settings:2: warning: '[[]vparse[]]' is a section's header, and this run reads the file without sections"
+        NEEDS djinterp_section_e SETUP djinterp_section_f)
+    set_property(TEST djinterp_section_flat APPEND PROPERTY
+        ENVIRONMENT "DJINTERP_CLI_SETTINGS_SECTIONS=false")
+    # a run that reads the file as one part still writes in its sections:
+    # [vparse]'s line replaced, and every program's lines left alone
+    djinterp_program_test(djinterp_section_flat_set sections
+        COMMAND set --section=vparse cli.plugin_strict_version=true STATUS 0
+        NEEDS djinterp_section_f SETUP djinterp_section_g)
+    set_property(TEST djinterp_section_flat_set APPEND PROPERTY
+        ENVIRONMENT "DJINTERP_CLI_SETTINGS_SECTIONS=false")
+    djinterp_program_test(djinterp_section_flat_kept sections
+        COMMAND get --show-origin cli.plugin_strict_version STATUS 0
+        MATCHES "^cli[.]plugin_strict_version = false  [(]file[)]\n"
+        NEEDS djinterp_section_g)
+    djinterp_program_test(djinterp_section_name plain
+        COMMAND set --section=a/b cli.plugin_strict_version=true STATUS 2
+        MATCHES "set: --section: 'a/b' is not a program's name")
 
     # an output that refuses what a command writes, said with its reason
     if(EXISTS "/dev/full")

@@ -6,15 +6,18 @@
 * makes it before it starts any thread, as it parses before it works. The
 * command line's settings are the parser's to offer: its setting hook is
 * offered each long option the parse does not know, where the parse reads
-* it, so that a setting is only ever taken where an option could stand --
+* it, so that a setting is only ever taken where an option could stand:
 * in a response file, after an abbreviated option's value, never in a
-* prefix command's arguments - by the parser's own rules.
+* prefix command's arguments, by the parser's own rules.
+*   Which rows the djin declares is chosen when it is made, from the
+* build's knobs, whether the run is privileged and the program's say: the
+* rows are const, so nothing is skipped when a setting is read.
 *
 *
 * path:      /src/djinterp/tools/cli/c/cli_settings.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.21
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 #include "../../../../../inc/djinterp/tools/cli/c/cli_settings.h"  // corresponding header
 // std
@@ -53,7 +56,7 @@
 // dj_internal_cli_settings_storage
 //   struct: the djin's storage: a binding per source for each of its few
 // variables, and the text their values take.
-D_OPTION_ENV_DECLARE(dj_internal_cli_settings_storage, 16u, 4u, 2048u);
+D_OPTION_ENV_DECLARE(dj_internal_cli_settings_storage, 32u, 8u, 2048u);
 
 // D_INTERNAL_CLI_PLUGIN_REFUSED
 //   constant: the sources the plugin rows refuse. None where the caller may
@@ -68,9 +71,16 @@ D_OPTION_ENV_DECLARE(dj_internal_cli_settings_storage, 16u, 4u, 2048u);
     #define D_INTERNAL_CLI_PLUGIN_REFUSED D_OPTION_ENV_REFUSES_CALLER
 #endif
 
-// d_internal_cli_settings_unknown_names, _refusal_names
-//   constants: the words `cli.unknown_settings` and `cli.shared_refusals`
-// take (cfg_cli.h, 1.5).
+// D_INTERNAL_CLI_SETTINGS_FIXED
+//   constant: the sources `cli.settings_sections` refuses: the user's file,
+// which it says how to read, and the command line, read after the file.
+#define D_INTERNAL_CLI_SETTINGS_FIXED                                          \
+    ( D_OPTION_ENV_REFUSES(D_OPTION_ENV_SOURCE_FILE) |                         \
+      D_OPTION_ENV_REFUSES(D_OPTION_ENV_SOURCE_COMMAND_LINE) )
+
+// d_internal_cli_settings_unknown_names, _refusal_names, _djin_names
+//   constants: the words `cli.unknown_settings`, `cli.shared_refusals` and
+// `cli.unknown_djin` take (cfg_cli.h, 1.5).
 static const struct dj_option_env_name d_internal_cli_settings_unknown_names[] =
 {
     { "none",  D_CLI_UNKNOWN_SETTINGS_NONE  },
@@ -87,46 +97,120 @@ static const struct dj_option_env_name d_internal_cli_settings_refusal_names[] =
     { "error",   D_CLI_SHARED_REFUSALS_ERROR   }
 };
 
-// d_internal_cli_settings_rows
-//   constant: the kit's variables, each defaulting to its knob.
-static const struct dj_option_env_var d_internal_cli_settings_rows[] =
+static const struct dj_option_env_name d_internal_cli_settings_djin_names[] =
 {
-    D_OPTION_ENV_ROW_REFUSING(D_OPTION_ENV_KIND_TEXT, "plugin_search", NULL,
-                              0u, NULL, 0u, D_CFG_CLI_PLUGIN_SEARCH, 0,
-                              INT64_MIN, INT64_MAX, 0.0, NULL,
-                              "D_CFG_CLI_PLUGIN_SEARCH",
-                              "the directories a command's module is looked "
-                              "for in, after the run's and plugin_path's",
-                              D_INTERNAL_CLI_PLUGIN_REFUSED),
-    D_OPTION_ENV_BOOL_KNOB("plugin_strict_version",
-                           D_CFG_CLI_PLUGIN_STRICT_VERSION,
-                           "whether a module of another version of the "
-                           "program is refused, or loaded with a warning"),
-    D_OPTION_ENV_CHOICE_KNOB("unknown_settings",
-                             d_internal_cli_settings_unknown_names,
-                             D_CFG_CLI_UNKNOWN_SETTINGS,
-                             "what is said of a line of the user's file "
-                             "that names no setting here: none, typos, all "
-                             "or error"),
-    D_OPTION_ENV_CHOICE_KNOB("shared_refusals",
-                             d_internal_cli_settings_refusal_names,
-                             D_CFG_CLI_SHARED_REFUSALS,
-                             "what is said when the user's file or "
-                             "DJINTERP_ sets a setting that refuses it: "
-                             "none, verbose, warn or error")
+    { "reason", D_CLI_UNKNOWN_DJIN_REASON },
+    { "lookup", D_CLI_UNKNOWN_DJIN_LOOKUP }
 };
 
-// d_internal_cli_settings_path_row
-//   constant: the program's own `plugin_path`, on the registry's root, read
-// as PROGRAM_PLUGIN_PATH: directories looked in before the build's.
+// D_INTERNAL_CLI_SETTINGS_PRIVILEGED_ROW
+//   macro: `cli.privileged_refuse`, refusing `_refused`, where the build
+// declares it (cfg_cli.h, 1.6.2); nothing where it does not.
+#if (D_INTERNAL_CLI_PRIVILEGED_OPTION == 1)
+    #define D_INTERNAL_CLI_SETTINGS_PRIVILEGED_ROW(_refused)                   \
+        , D_OPTION_ENV_ROW_REFUSING(D_OPTION_ENV_KIND_BOOL,                    \
+                                    "privileged_refuse", NULL, 0u, NULL, 0u,   \
+                                    NULL,                                      \
+                                    (D_CFG_CLI_PRIVILEGED_REFUSE != 0) ? 1 : 0,\
+                                    INT64_MIN, INT64_MAX, 0.0, NULL,           \
+                                    "D_CFG_CLI_PRIVILEGED_REFUSE",             \
+                                    "whether a run with privileges its "       \
+                                    "caller lacks refuses the caller the "     \
+                                    "plugin settings",                         \
+                                    (_refused))
+#else
+    #define D_INTERNAL_CLI_SETTINGS_PRIVILEGED_ROW(_refused)
+#endif
+
+// D_INTERNAL_CLI_SETTINGS_ROWS
+//   macro: the kit's variables, each defaulting to its knob: the plugin
+// rows refusing `_plugins`, and `cli.privileged_refuse` `_privileged`.
+#define D_INTERNAL_CLI_SETTINGS_ROWS(_plugins, _privileged)                    \
+{                                                                              \
+    D_OPTION_ENV_ROW_REFUSING(D_OPTION_ENV_KIND_TEXT, "plugin_search", NULL,   \
+                              0u, NULL, 0u, D_CFG_CLI_PLUGIN_SEARCH, 0,        \
+                              INT64_MIN, INT64_MAX, 0.0, NULL,                 \
+                              "D_CFG_CLI_PLUGIN_SEARCH",                       \
+                              "the directories a command's module is looked "  \
+                              "for in, after the run's and plugin_path's",     \
+                              (_plugins)),                                     \
+    D_OPTION_ENV_BOOL_KNOB("plugin_strict_version",                            \
+                           D_CFG_CLI_PLUGIN_STRICT_VERSION,                    \
+                           "whether a module of another version of the "      \
+                           "program is refused, or loaded with a warning"),   \
+    D_OPTION_ENV_CHOICE_KNOB("unknown_settings",                               \
+                             d_internal_cli_settings_unknown_names,            \
+                             D_CFG_CLI_UNKNOWN_SETTINGS,                       \
+                             "what is said of a line of the user's file "      \
+                             "that names no setting here: none, typos, all "   \
+                             "or error"),                                      \
+    D_OPTION_ENV_CHOICE_KNOB("shared_refusals",                                \
+                             d_internal_cli_settings_refusal_names,            \
+                             D_CFG_CLI_SHARED_REFUSALS,                        \
+                             "what is said when the user's file or "           \
+                             "DJINTERP_ sets a setting that refuses it: "      \
+                             "none, verbose, warn or error"),                  \
+    D_OPTION_ENV_CHOICE_KNOB("unknown_djin",                                   \
+                             d_internal_cli_settings_djin_names,               \
+                             D_CFG_CLI_UNKNOWN_DJIN,                           \
+                             "how a name for a djin not registered here is "  \
+                             "told: by the registry's reason, or by the "      \
+                             "kit's lookup of its first part"),                \
+    D_OPTION_ENV_ROW_REFUSING(D_OPTION_ENV_KIND_BOOL, "settings_sections",     \
+                              NULL, 0u, NULL, 0u, NULL,                        \
+                              (D_CFG_CLI_SETTINGS_SECTIONS != 0) ? 1 : 0,      \
+                              INT64_MIN, INT64_MAX, 0.0, NULL,                 \
+                              "D_CFG_CLI_SETTINGS_SECTIONS",                   \
+                              "whether the user's file is read in sections, "  \
+                              "[PROGRAM] the lines for one program alone",     \
+                              D_INTERNAL_CLI_SETTINGS_FIXED)                   \
+    D_INTERNAL_CLI_SETTINGS_PRIVILEGED_ROW(_privileged)                        \
+}
+
+// d_internal_cli_settings_rows, _closed, _trusted
+//   constants: the rows of an ordinary run, which refuse what the build
+// says; of a privileged run that refuses the caller the plugin settings
+// (cfg_cli.h, 1.6); and of a privileged run whose program, or build,
+// trusts the caller with them. In either privileged run only the program
+// sets `cli.privileged_refuse`.
+static const struct dj_option_env_var d_internal_cli_settings_rows[] =
+    D_INTERNAL_CLI_SETTINGS_ROWS(D_INTERNAL_CLI_PLUGIN_REFUSED, 0u);
+
+static const struct dj_option_env_var d_internal_cli_settings_rows_closed[] =
+    D_INTERNAL_CLI_SETTINGS_ROWS(D_OPTION_ENV_REFUSES_CALLER,
+                                 D_OPTION_ENV_REFUSES_CALLER);
+
+static const struct dj_option_env_var d_internal_cli_settings_rows_trusted[] =
+    D_INTERNAL_CLI_SETTINGS_ROWS(D_INTERNAL_CLI_PLUGIN_REFUSED,
+                                 D_OPTION_ENV_REFUSES_CALLER);
+
+// D_INTERNAL_CLI_SETTINGS_ROW_COUNT
+//   constant: how many rows each of the three holds.
+#define D_INTERNAL_CLI_SETTINGS_ROW_COUNT                                      \
+    ((uint32_t)(sizeof(d_internal_cli_settings_rows) /                         \
+                sizeof(d_internal_cli_settings_rows[0])))
+
+// D_INTERNAL_CLI_SETTINGS_PATH_ROW
+//   macro: the program's own `plugin_path`, on the registry's root, read as
+// PROGRAM_PLUGIN_PATH: directories looked in before the build's, refusing
+// `_refused`.
+#define D_INTERNAL_CLI_SETTINGS_PATH_ROW(_refused)                             \
+    D_OPTION_ENV_ROW_REFUSING(D_OPTION_ENV_KIND_TEXT, "plugin_path", NULL, 0u, \
+                              NULL, 0u, NULL, 0, INT64_MIN, INT64_MAX, 0.0,    \
+                              NULL, NULL,                                      \
+                              "the directories a command's module is looked "  \
+                              "for in first, separated as PATH separates "     \
+                              "them",                                          \
+                              (_refused))
+
+// d_internal_cli_settings_path_row, _path_row_closed
+//   constants: `plugin_path` as the build says, and as a privileged run that
+// refuses the caller declares it.
 static const struct dj_option_env_var d_internal_cli_settings_path_row =
-    D_OPTION_ENV_ROW_REFUSING(D_OPTION_ENV_KIND_TEXT, "plugin_path", NULL, 0u,
-                              NULL, 0u, NULL, 0, INT64_MIN, INT64_MAX, 0.0,
-                              NULL, NULL,
-                              "the directories a command's module is looked "
-                              "for in first, separated as PATH separates "
-                              "them",
-                              D_INTERNAL_CLI_PLUGIN_REFUSED);
+    D_INTERNAL_CLI_SETTINGS_PATH_ROW(D_INTERNAL_CLI_PLUGIN_REFUSED);
+
+static const struct dj_option_env_var d_internal_cli_settings_path_row_closed =
+    D_INTERNAL_CLI_SETTINGS_PATH_ROW(D_OPTION_ENV_REFUSES_CALLER);
 
 // d_internal_cli_settings_frame, _room, _made, _started
 //   variables: the djin, its storage, whether it is made, and whether the
@@ -136,6 +220,14 @@ static struct dj_internal_cli_settings_storage d_internal_cli_settings_room;
 static bool                                    d_internal_cli_settings_made;
 static bool                                    d_internal_cli_settings_started;
 
+// d_internal_cli_settings_say, _privileged, _closed
+//   variables: the program's say on a privileged run, a
+// dj_cli_plugin_privileged; and, from when the djin is made, whether the run
+// is privileged, and whether the plugin rows refuse the caller.
+static int  d_internal_cli_settings_say = (int)D_CLI_PLUGIN_PRIVILEGED_DEFAULT;
+static bool d_internal_cli_settings_privileged;
+static bool d_internal_cli_settings_closed;
+
 // D_INTERNAL_CLI_SETTINGS_HELD
 //   constant: the most notes the run's start holds; past them, counted.
 #define D_INTERNAL_CLI_SETTINGS_HELD 32u
@@ -144,21 +236,24 @@ static bool                                    d_internal_cli_settings_started;
 //   enum: what a held note is about, which decides what says it.
 enum dj_internal_cli_settings_kind
 {
-    D_INTERNAL_CLI_HELD_FOREIGN = 0,  // a djin not registered here
-    D_INTERNAL_CLI_HELD_UNKNOWN = 1,  // a near miss, or a djin's unknown
-    D_INTERNAL_CLI_HELD_SHARED  = 2,  // refused from a shared source
-    D_INTERNAL_CLI_HELD_OWN     = 3,  // refused from the program's prefix
-    D_INTERNAL_CLI_HELD_VALUE   = 4   // a value the setting does not take
+    D_INTERNAL_CLI_HELD_FOREIGN    = 0,  // a djin not registered here
+    D_INTERNAL_CLI_HELD_UNKNOWN    = 1,  // a near miss, or a djin's unknown
+    D_INTERNAL_CLI_HELD_SHARED     = 2,  // refused from a shared source
+    D_INTERNAL_CLI_HELD_OWN        = 3,  // refused from the program's prefix
+    D_INTERNAL_CLI_HELD_VALUE      = 4,  // a value the setting does not take
+    D_INTERNAL_CLI_HELD_PRIVILEGED = 5   // a privileged run trusts the caller
 };
 
 // dj_internal_cli_settings_note
-//   struct: a note the run's start held: its kind, its line in the user's
-// file (0 for the environment), and its words.
+//   struct: a note the run's start held: its kind and words as each way of
+// telling an unknown djin reads it (cfg_cli.h, 1.5.3), the two the same for
+// any other note, so the way the run ends with decides; and its line in the
+// user's file, 0 for the environment.
 struct dj_internal_cli_settings_note
 {
-    int  kind;
+    int  kind[2];
     long line;
-    char text[D_INTERNAL_CLI_SETTINGS_ROOM];
+    char text[2][D_INTERNAL_CLI_SETTINGS_ROOM];
 };
 
 // d_internal_cli_settings_notes, _count, _past, _path
@@ -181,14 +276,17 @@ static char   d_internal_cli_settings_refused_argument[
 static size_t d_internal_cli_settings_refused_size;
 
 /*
-d_internal_cli_settings_hold
-  A note kept for d_cli_settings_report; past the room, counted.
+d_internal_cli_settings_hold_both
+  A note kept for d_cli_settings_report, as each way of telling an unknown
+djin reads it; past the room, counted.
 */
 static void
-d_internal_cli_settings_hold(
+d_internal_cli_settings_hold_both(
     int         _kind,
+    int         _kind_lookup,
     long        _line,
-    const char* _text
+    const char* _text,
+    const char* _text_lookup
 )
 {
     struct dj_internal_cli_settings_note* note;
@@ -200,40 +298,134 @@ d_internal_cli_settings_hold(
         return;
     }
 
-    note       = &d_internal_cli_settings_notes[d_internal_cli_settings_count];
-    note->kind = _kind;
-    note->line = _line;
-    (void)snprintf(note->text, sizeof(note->text), "%s", _text);
+    note          = &d_internal_cli_settings_notes[
+                        d_internal_cli_settings_count];
+    note->kind[0] = _kind;
+    note->kind[1] = _kind_lookup;
+    note->line    = _line;
+    (void)snprintf(note->text[0], sizeof(note->text[0]), "%s", _text);
+    (void)snprintf(note->text[1], sizeof(note->text[1]), "%s", _text_lookup);
     ++d_internal_cli_settings_count;
 
     return;
 }
 
 /*
+d_internal_cli_settings_hold
+  A note either way of telling an unknown djin reads alike.
+*/
+static void
+d_internal_cli_settings_hold(
+    int         _kind,
+    long        _line,
+    const char* _text
+)
+{
+    d_internal_cli_settings_hold_both(_kind, _kind, _line, _text, _text);
+
+    return;
+}
+
+/*
+d_internal_cli_settings_refusing
+  Whether a privileged run refuses the caller the plugin settings: the
+program's say, where it gave one and the build declares the setting; else
+the knob.
+*/
+static bool
+d_internal_cli_settings_refusing(void)
+{
+#if (D_INTERNAL_CLI_PRIVILEGED_OPTION == 1)
+    if (d_internal_cli_settings_say == (int)D_CLI_PLUGIN_PRIVILEGED_REFUSE)
+    {
+        return true;
+    }
+
+    if (d_internal_cli_settings_say == (int)D_CLI_PLUGIN_PRIVILEGED_TRUST)
+    {
+        return false;
+    }
+#endif
+
+    return (D_INTERNAL_CLI_PRIVILEGED_REFUSE == 1);
+}
+
+/*
 d_cli_settings_djin
-  Made at the first call: the frame over its storage, named, its variables
-declared.
+  Made at the first call: the frame over its storage, named, the rows the
+run calls for declared (cfg_cli.h, 1.6).
 */
 struct dj_option_env* d_cli_settings_djin(void)
 {
-    if (!d_internal_cli_settings_made)
+    const struct dj_option_env_var* rows = d_internal_cli_settings_rows;
+
+    if (d_internal_cli_settings_made)
     {
-        d_internal_cli_settings_made =
-            ( (D_OPTION_ENV_VIEW(&d_internal_cli_settings_frame,
-                                 d_internal_cli_settings_room).is_ok) &&
-              (d_option_env_set_name(&d_internal_cli_settings_frame,
-                                     "cli").is_ok) &&
-              (d_option_env_declare_all(
-                   &d_internal_cli_settings_frame,
-                   d_internal_cli_settings_rows,
-                   (uint32_t)(sizeof(d_internal_cli_settings_rows) /
-                              sizeof(d_internal_cli_settings_rows[0])))
-                   .is_ok) );
+        return &d_internal_cli_settings_frame;
     }
+
+    d_internal_cli_settings_privileged = d_cli_internal_privileged();
+    d_internal_cli_settings_closed     =
+        ( (D_INTERNAL_CLI_PLUGIN_VARIABLE == 0) ||
+          ( (d_internal_cli_settings_privileged) &&
+            (d_internal_cli_settings_refusing()) ) );
+
+    if (d_internal_cli_settings_privileged)
+    {
+        rows = (d_internal_cli_settings_refusing())
+               ? d_internal_cli_settings_rows_closed
+               : d_internal_cli_settings_rows_trusted;
+    }
+
+    memset(&d_internal_cli_settings_room, 0,
+           sizeof(d_internal_cli_settings_room));
+    d_internal_cli_settings_made =
+        ( (D_OPTION_ENV_VIEW(&d_internal_cli_settings_frame,
+                             d_internal_cli_settings_room).is_ok) &&
+          (d_option_env_set_name(&d_internal_cli_settings_frame,
+                                 "cli").is_ok) &&
+          (d_option_env_declare_all(&d_internal_cli_settings_frame, rows,
+                                    D_INTERNAL_CLI_SETTINGS_ROW_COUNT)
+               .is_ok) );
 
     return (d_internal_cli_settings_made)
            ? &d_internal_cli_settings_frame
            : NULL;
+}
+
+/*
+d_cli_settings_privileged
+  Kept until the djin is made, which reads it; too late after.
+*/
+bool d_cli_settings_privileged(
+    int _say
+)
+{
+    if ( (d_internal_cli_settings_made) ||
+         ( (D_INTERNAL_CLI_PRIVILEGED_OPTION == 0) &&
+           (_say != (int)D_CLI_PLUGIN_PRIVILEGED_DEFAULT) ) )
+    {
+        return false;
+    }
+
+    d_internal_cli_settings_say =
+        ( (_say == (int)D_CLI_PLUGIN_PRIVILEGED_REFUSE) ||
+          (_say == (int)D_CLI_PLUGIN_PRIVILEGED_TRUST) )
+        ? _say
+        : (int)D_CLI_PLUGIN_PRIVILEGED_DEFAULT;
+
+    return true;
+}
+
+/*
+d_cli_settings_closed
+  The build's knob, or a privileged run that refuses the caller.
+*/
+bool d_cli_settings_closed(void)
+{
+    (void)d_cli_settings_djin();
+
+    return d_internal_cli_settings_closed;
 }
 
 
@@ -277,17 +469,92 @@ d_internal_cli_settings_reason(
 }
 
 /*
-d_cli_settings_why
-  What a binding's failure means, for a setting `_name` (of `_size` bytes)
-given `_value`, or none: written into `_buffer`. A name that names nothing
-is given the nearest that does, where there is one; one whose first part
-names no djin, where none is near, says so.
+d_internal_cli_settings_choice_of
+  A choice of the kit's djin, by name: `_fallback`, its knob, before the
+settings are started or where the djin has no such row.
 */
-void d_cli_settings_why(
+static int64_t
+d_internal_cli_settings_choice_of(
+    const char* _name,
+    int64_t     _fallback
+);
+
+/*
+d_internal_cli_settings_flag
+  A bool of the kit's djin, by name: `_fallback`, its knob, before the
+settings are started or where the djin has no such row.
+*/
+static bool
+d_internal_cli_settings_flag(
+    const char* _name,
+    bool        _fallback
+);
+
+/*
+d_internal_cli_settings_foreign
+  Whether `_name` (of `_size` bytes) names a djin not registered here, as
+`_way` tells it (cfg_cli.h, 1.5.3): the registry's reason FRAME; or no djin
+here having its first part. A name with no '.' names a root setting, never
+a djin.
+*/
+static bool
+d_internal_cli_settings_foreign(
+    const char* _name,
+    size_t      _size,
+    const char* _value,
+    int64_t     _way
+)
+{
+    const char* const dot = (_name != NULL)
+                            ? (const char*)memchr(_name, '.', _size)
+                            : NULL;
+
+    if (dot == NULL)
+    {
+        return false;
+    }
+
+    if (_way == D_CLI_UNKNOWN_DJIN_LOOKUP)
+    {
+        return (d_option_env_registry_find(d_option_env_registry(), _name,
+                                           (size_t)(dot - _name)) == NULL);
+    }
+
+    return (d_internal_cli_settings_reason(_name, _size, _value,
+                                           (int32_t)D_OPTION_ENV_SOURCE_FILE)
+            == (int32_t)D_OPTION_ENV_REASON_FRAME);
+}
+
+/*
+d_internal_cli_settings_source_word
+  How a source is named where a setting refuses it.
+*/
+static const char*
+d_internal_cli_settings_source_word(
+    int32_t _source
+)
+{
+    return (_source == (int32_t)D_OPTION_ENV_SOURCE_COMMAND_LINE)
+           ? "the command line"
+           : (_source == (int32_t)D_OPTION_ENV_SOURCE_ENVIRONMENT)
+             ? "the environment"
+             : "the user's settings file";
+}
+
+/*
+d_internal_cli_settings_why_by
+  d_cli_settings_why for a setting given from `_source`, an unknown djin
+told `_way`: a refusal because the setting does not take that source says
+so; a policy that refuses the value, that the build does.
+*/
+static void
+d_internal_cli_settings_why_by(
     int32_t     _status,
     const char* _name,
     size_t      _size,
     const char* _value,
+    int32_t     _source,
+    int64_t     _way,
     char*       _buffer,
     size_t      _capacity
 )
@@ -300,24 +567,17 @@ void d_cli_settings_why(
 
     if (_status == (int32_t)D_OPTION_STATUS_KEY_ABSENT)
     {
-        const char* const dot = (_name != NULL)
-                                ? (const char*)memchr(_name, '.', _size)
-                                : NULL;
-
         found = d_option_env_registry_suggest(d_option_env_registry(),
                                               _name, _size,
                                               near, sizeof(near));
 
         // no djin by the first part, and none near: the djin is said
         if ( (found == 0u) &&
-             (dot != NULL) &&
-             (d_internal_cli_settings_reason(
-                  _name, _size, _value,
-                  (int32_t)D_OPTION_ENV_SOURCE_FILE) ==
-              (int32_t)D_OPTION_ENV_REASON_FRAME) )
+             (d_internal_cli_settings_foreign(_name, _size, _value, _way)) )
         {
             (void)snprintf(_buffer, _capacity, "no djin is named '%.*s'",
-                           (int)(dot - _name), _name);
+                           (int)((const char*)memchr(_name, '.', _size) -
+                                 _name), _name);
 
             return;
         }
@@ -331,6 +591,15 @@ void d_cli_settings_why(
                        ( (found > 0u) &&
                          (found < sizeof(near)) ) ? near : "");
     }
+    else if ( (_status == (int32_t)D_OPTION_STATUS_POLICY_REJECTED) &&
+              (d_internal_cli_settings_reason(_name, _size, _value,
+                                              _source) ==
+               (int32_t)D_OPTION_ENV_REASON_SOURCE) )
+    {
+        (void)snprintf(_buffer, _capacity, "'%.*s' is not taken from %s",
+                       shown, _name,
+                       d_internal_cli_settings_source_word(_source));
+    }
     else if (_status == (int32_t)D_OPTION_STATUS_POLICY_REJECTED)
     {
         (void)snprintf(_buffer, _capacity,
@@ -343,12 +612,41 @@ void d_cli_settings_why(
                        "'%s' is not a value '%.*s' takes",
                        _value, shown, _name);
     }
+    else if (_status == (int32_t)D_OPTION_STATUS_INVALID_ARGUMENT)
+    {
+        // text with no '=' where a statement was to be
+        (void)snprintf(_buffer, _capacity,
+                       "'%.*s' is not a statement: NAME = VALUE",
+                       shown, _name);
+    }
     else
     {
         (void)snprintf(_buffer, _capacity,
                        "'%.*s' cannot be set so (%s)",
                        shown, _name, d_option_status_name(_status));
     }
+
+    return;
+}
+
+/*
+d_cli_settings_why
+  As the user's file gives it, an unknown djin told as the run says now.
+*/
+void d_cli_settings_why(
+    int32_t     _status,
+    const char* _name,
+    size_t      _size,
+    const char* _value,
+    char*       _buffer,
+    size_t      _capacity
+)
+{
+    d_internal_cli_settings_why_by(
+        _status, _name, _size, _value, (int32_t)D_OPTION_ENV_SOURCE_FILE,
+        d_internal_cli_settings_choice_of("unknown_djin",
+                                          D_CFG_CLI_UNKNOWN_DJIN),
+        _buffer, _capacity);
 
     return;
 }
@@ -504,10 +802,9 @@ d_internal_cli_settings_value_at(
 /*
 d_internal_cli_settings_kind_of
   What a statement's failure is about: a name no setting here has, from a
-djin not registered here, or near one or a djin's that is, the two kinds
-`cli.unknown_settings` tells apart (cfg_cli.h, 1.5.1); a source the setting
-refuses; or a value it does not take. The words for a refused source go
-into `_why`.
+djin not registered here as `_way` tells it, or near one or a djin's that
+is, the two kinds `cli.unknown_settings` tells apart (cfg_cli.h, 1.5.1); a
+source the setting refuses; or a value it does not take.
 */
 static int
 d_internal_cli_settings_kind_of(
@@ -515,14 +812,12 @@ d_internal_cli_settings_kind_of(
     const char* _name,
     size_t      _size,
     const char* _value,
-    char*       _why,
-    size_t      _capacity
+    int64_t     _way
 )
 {
     char near[D_INTERNAL_CLI_SETTINGS_ROOM];
 
-    // a djin not registered here: the registry's check says so, where no
-    // name is near (option_env's reason FRAME)
+    // a djin not registered here, where no name is near
     if (_status == (int32_t)D_OPTION_STATUS_KEY_ABSENT)
     {
         const size_t found = d_option_env_registry_suggest(
@@ -530,10 +825,8 @@ d_internal_cli_settings_kind_of(
                                  near, sizeof(near));
 
         return ( (found == 0u) &&
-                 (d_internal_cli_settings_reason(
-                      _name, _size, _value,
-                      (int32_t)D_OPTION_ENV_SOURCE_FILE) ==
-                  (int32_t)D_OPTION_ENV_REASON_FRAME) )
+                 (d_internal_cli_settings_foreign(_name, _size, _value,
+                                                  _way)) )
                ? (int)D_INTERNAL_CLI_HELD_FOREIGN
                : (int)D_INTERNAL_CLI_HELD_UNKNOWN;
     }
@@ -544,14 +837,75 @@ d_internal_cli_settings_kind_of(
               _name, _size, _value, (int32_t)D_OPTION_ENV_SOURCE_FILE) ==
           (int32_t)D_OPTION_ENV_REASON_SOURCE) )
     {
-        (void)snprintf(_why, _capacity,
-                       "'%.*s' is not taken from the user's settings file",
-                       (int)_size, _name);
-
         return (int)D_INTERNAL_CLI_HELD_SHARED;
     }
 
     return (int)D_INTERNAL_CLI_HELD_VALUE;
+}
+
+/*
+d_internal_cli_settings_header
+  The section header at `_at`, which holds a '[', into `_header`: where its
+line ends, and what its brackets hold; a `size` of 0 where the line is not
+`[NAME]` or `[*]`, blanks and a comment after it allowed, NAME of letters,
+digits, '_', '-' and '.'.
+*/
+static void
+d_internal_cli_settings_header(
+    const char*                    _text,
+    size_t                         _at,
+    struct dj_cli_settings_header* _header
+)
+{
+    size_t end   = _at;
+    size_t close = _at + 1u;
+    bool   good  = true;
+
+    while ( (_text[end] != '\0') &&
+            (_text[end] != '\n') )
+    {
+        ++end;
+    }
+
+    while ( (close < end) &&
+            (_text[close] != ']') )
+    {
+        const char c = _text[close];
+
+        good = ( (good) &&
+                 ( ( (c >= 'a') && (c <= 'z') ) ||
+                   ( (c >= 'A') && (c <= 'Z') ) ||
+                   ( (c >= '0') && (c <= '9') ) ||
+                   (c == '_') || (c == '-') || (c == '.') ||
+                   ( (c == '*') && (close == _at + 1u) &&
+                     (_text[close + 1u] == ']') ) ) );
+        ++close;
+    }
+
+    _header->at   = _at;
+    _header->end  = end;
+    _header->name = _text + _at + 1u;
+    _header->size = ( (good) && (close < end) && (close > _at + 1u) )
+                    ? (close - _at - 1u)
+                    : 0u;
+
+    // after the ']', only blanks and a comment
+    for (size_t at = close + 1u; (_header->size > 0u) && (at < end); ++at)
+    {
+        if (_text[at] == '#')
+        {
+            break;
+        }
+
+        if ( (_text[at] != ' ') &&
+             (_text[at] != '\t') &&
+             (_text[at] != '\r') )
+        {
+            _header->size = 0u;
+        }
+    }
+
+    return;
 }
 
 /*
@@ -570,6 +924,7 @@ d_internal_cli_settings_load(
 
     while (_script[offset] != '\0')
     {
+        struct dj_cli_settings_header header;
         size_t                        failed = 0u;
         const struct dj_option_result done   = d_option_env_registry_load(
                                                    d_option_env_registry(),
@@ -581,9 +936,10 @@ d_internal_cli_settings_load(
         const char*                   name   = NULL;
         size_t                        size;
         char                          value[D_INTERNAL_CLI_SETTINGS_ROOM];
-        char                          why[D_INTERNAL_CLI_SETTINGS_ROOM];
+        char                          why[2][D_INTERNAL_CLI_SETTINGS_ROOM];
         const char*                   given;
-        int                           kind;
+        int                           kind[2];
+        int32_t                       status;
 
         if (done.is_ok)
         {
@@ -599,14 +955,42 @@ d_internal_cli_settings_load(
         end  = d_option_env_statement_end(_script, at);
         size = d_internal_cli_settings_name_at(_script, at, end, &name);
 
-        given = d_internal_cli_settings_value_at(_script, at, end, value,
-                                                 sizeof(value));
-        d_cli_settings_why(d_option_result_status(&done), name, size, given,
-                           why, sizeof(why));
-        kind  = d_internal_cli_settings_kind_of(d_option_result_status(&done),
-                                                name, size, given, why,
-                                                sizeof(why));
-        d_internal_cli_settings_hold(kind, line, why);
+        given  = d_internal_cli_settings_value_at(_script, at, end, value,
+                                                  sizeof(value));
+        status = d_option_result_status(&done);
+
+        // each way of telling an unknown djin, the run's end to choose
+        for (int way = 0; way < 2; ++way)
+        {
+            d_internal_cli_settings_why_by(status, name, size, given,
+                                           (int32_t)D_OPTION_ENV_SOURCE_FILE,
+                                           (int64_t)way, why[way],
+                                           sizeof(why[way]));
+            kind[way] = d_internal_cli_settings_kind_of(status, name, size,
+                                                        given, (int64_t)way);
+        }
+
+        // a header, in a file read without sections
+        header.size = 0u;
+
+        if (_script[at] == '[')
+        {
+            d_internal_cli_settings_header(_script, at, &header);
+        }
+
+        if (header.size > 0u)
+        {
+            (void)snprintf(why[0], sizeof(why[0]), "'%.*s' is a section's "
+                           "header, and this run reads the file without "
+                           "sections (cli.settings_sections)",
+                           (int)(header.size + 2u), _script + at);
+            (void)memcpy(why[1], why[0], sizeof(why[1]));
+            kind[0] = (int)D_INTERNAL_CLI_HELD_VALUE;
+            kind[1] = kind[0];
+        }
+
+        d_internal_cli_settings_hold_both(kind[0], kind[1], line, why[0],
+                                          why[1]);
 
         // on from the end of the one that failed, and never back
         offset = (end > at) ? end : (at + 1u);
@@ -616,10 +1000,145 @@ d_internal_cli_settings_load(
 }
 
 /*
+d_internal_cli_settings_blank
+  The text from `_from` to `_to` made blanks, its line breaks kept, so that
+the statements after it are found on the lines they were written on.
+*/
+static void
+d_internal_cli_settings_blank(
+    char*  _text,
+    size_t _from,
+    size_t _to
+)
+{
+    for (size_t at = _from; at < _to; ++at)
+    {
+        _text[at] = (_text[at] == '\n') ? '\n' : ' ';
+    }
+
+    return;
+}
+
+bool d_cli_settings_next_header(
+    const char*                    _text,
+    size_t                         _from,
+    struct dj_cli_settings_header* _header
+)
+{
+    size_t at = _from;
+
+    if ( (_text == NULL) ||
+         (_header == NULL) )
+    {
+        return false;
+    }
+
+    while (_text[at] != '\0')
+    {
+        const char c = _text[at];
+        size_t     end;
+
+        // between statements: blanks, line breaks, ';' and comments
+        if ( (c == ' ') || (c == '\t') || (c == '\r') || (c == '\n') ||
+             (c == ';') )
+        {
+            ++at;
+
+            continue;
+        }
+
+        if (c == '[')
+        {
+            d_internal_cli_settings_header(_text, at, _header);
+
+            return true;
+        }
+
+        end = (c == '#') ? (at + strcspn(_text + at, "\n"))
+                         : d_option_env_statement_end(_text, at);
+        at  = (end > at) ? end : (at + 1u);
+    }
+
+    _header->at   = at;
+    _header->end  = at;
+    _header->name = _text + at;
+    _header->size = 0u;
+
+    return false;
+}
+
+bool d_cli_settings_sectioned(void)
+{
+    return d_internal_cli_settings_flag(
+        "settings_sections", (D_INTERNAL_CLI_SETTINGS_SECTIONS == 1));
+}
+
+/*
+d_internal_cli_settings_sections
+  The user's file read in sections (cfg_cli.h, 1.5.4): each header, and the
+text of each section another program's, made blanks; a header the kit cannot
+read held as a note, the lines after it no program's until the next.
+*/
+static void
+d_internal_cli_settings_sections(
+    char*       _text,
+    const char* _program
+)
+{
+    struct dj_cli_settings_header header;
+    size_t                        at    = 0u;
+    bool                          mine  = true;
+    bool                          found = true;
+    long                          line  = 1;
+    size_t                        count = 0u;
+
+    while (found)
+    {
+        char said[D_INTERNAL_CLI_SETTINGS_ROOM];
+
+        found = d_cli_settings_next_header(_text, at, &header);
+
+        if (!mine)
+        {
+            d_internal_cli_settings_blank(_text, at, header.at);
+        }
+
+        if (!found)
+        {
+            break;
+        }
+
+        mine = (header.size > 0u) &&
+               (d_cli_settings_section_reads(header.name, header.size,
+                                             _program));
+
+        if (header.size == 0u)
+        {
+            for (; count < header.at; ++count)
+            {
+                line += (_text[count] == '\n') ? 1 : 0;
+            }
+
+            (void)snprintf(said, sizeof(said),
+                           "'%.*s' is not a section's header: [PROGRAM] or "
+                           "[*]", (int)(header.end - header.at),
+                           _text + header.at);
+            d_internal_cli_settings_hold(
+                (int)D_INTERNAL_CLI_HELD_UNKNOWN, line, said);
+        }
+
+        d_internal_cli_settings_blank(_text, header.at, header.end);
+        at = header.end;
+    }
+
+    return;
+}
+
+/*
 d_internal_cli_settings_read_file
   The user's file, read whole: one not there, or that the system names no
 home for, is nothing; one that cannot be read otherwise is said, and passed
-over.
+over. Read in sections where `cli.settings_sections` says so.
 */
 static int
 d_internal_cli_settings_read_file(
@@ -660,6 +1179,14 @@ d_internal_cli_settings_read_file(
     {
         (void)snprintf(d_internal_cli_settings_path,
                        sizeof(d_internal_cli_settings_path), "%s", path);
+
+        if (d_internal_cli_settings_flag(
+                "settings_sections", (D_INTERNAL_CLI_SETTINGS_SECTIONS == 1)))
+        {
+            d_internal_cli_settings_sections(
+                text, (_program != NULL) ? _program->name : NULL);
+        }
+
         d_internal_cli_settings_load(text);
     }
 
@@ -762,10 +1289,93 @@ d_internal_cli_settings_reported(
 }
 
 /*
+d_internal_cli_settings_privileged_said
+  The program's say on a privileged run, bound as the program's own; and,
+in a privileged run that trusts the caller with the plugin settings, a
+note that says so, and whose word it is: the program's, or the build's
+(cfg_cli.h, 1.6).
+*/
+static void
+d_internal_cli_settings_privileged_said(void)
+{
+#if (D_INTERNAL_CLI_PRIVILEGED_OPTION == 1)
+    if (d_internal_cli_settings_say != (int)D_CLI_PLUGIN_PRIVILEGED_DEFAULT)
+    {
+        (void)d_option_env_registry_load(
+                  d_option_env_registry(),
+                  (d_internal_cli_settings_say ==
+                   (int)D_CLI_PLUGIN_PRIVILEGED_REFUSE)
+                  ? "cli.privileged_refuse = true"
+                  : "cli.privileged_refuse = false",
+                  D_OPTION_ENV_SOURCE_PROGRAM, NULL);
+    }
+#endif
+
+    // the caller's sources cannot set cli.privileged_refuse here: it is
+    // the program's say, or the build's
+    if ( (d_internal_cli_settings_privileged) &&
+         (!d_internal_cli_settings_closed) )
+    {
+        d_internal_cli_settings_hold(
+            (int)D_INTERNAL_CLI_HELD_PRIVILEGED, 0L,
+            (d_internal_cli_settings_say ==
+             (int)D_CLI_PLUGIN_PRIVILEGED_TRUST)
+            ? "running with privileges its caller lacks, and taking the "
+              "plugin settings from the caller, as the program says"
+            : "running with privileges its caller lacks, and taking the "
+              "plugin settings from the caller, as the build says "
+              "(D_CFG_CLI_PRIVILEGED_REFUSE)");
+    }
+
+    return;
+}
+
+/*
+d_internal_cli_settings_path_declare
+  The root's `plugin_path` declared as `_row` says. Where a start before
+this one, in the same process, declared the kit's other row, this one takes
+its place: the two differ in the sources they refuse alone, and the root
+keeps every declaration it is given (option_env.h, 2.1.2). A row of
+another's by that name is left as it is.
+*/
+static void
+d_internal_cli_settings_path_declare(
+    struct dj_option_env*           _root,
+    const struct dj_option_env_var* _row
+)
+{
+    const struct dj_option_result found = d_option_env_find(
+                                              _root, "plugin_path", 11u);
+    uint32_t                      index;
+
+    if (!found.is_ok)
+    {
+        (void)d_option_env_declare(_root, _row);
+
+        return;
+    }
+
+    index = D_OPTION_ENV_ID_INDEX(found.payload.value);
+
+    if ( (_root->depth == 0u) &&
+         (index < _root->var_count) &&
+         (_root->vars[index] != _row) &&
+         ( (_root->vars[index] == &d_internal_cli_settings_path_row) ||
+           (_root->vars[index] == &d_internal_cli_settings_path_row_closed) ) )
+    {
+        _root->vars[index] = _row;
+        ++_root->generation;
+    }
+
+    return;
+}
+
+/*
 d_cli_settings_start
-  Once: the djin and the program's own variable, the environment under the
-shared prefix and then the program's own, and the user's file, each failure
-held for d_cli_settings_report.
+  Once: the djin and the program's own variable, the program's say on a
+privileged run, the environment under the shared prefix and then the
+program's own, and the user's file, in its sections, each failure held for
+d_cli_settings_report.
 */
 int d_cli_settings_start(
     const struct dj_cli_program* _program
@@ -789,8 +1399,13 @@ int d_cli_settings_start(
         (void)d_option_env_registry_add(registry, djin);
     }
 
-    (void)d_option_env_declare(d_option_env_registry_frame(registry),
-                               &d_internal_cli_settings_path_row);
+    d_internal_cli_settings_path_declare(
+        d_option_env_registry_frame(registry),
+        ( (d_internal_cli_settings_privileged) &&
+          (d_internal_cli_settings_closed) )
+        ? &d_internal_cli_settings_path_row_closed
+        : &d_internal_cli_settings_path_row);
+    d_internal_cli_settings_privileged_said();
 
     // the shared prefix, then the program's own, whose binding wins
     d_internal_cli_settings_prefix((_program != NULL) ? _program->name
@@ -862,6 +1477,7 @@ d_internal_cli_settings_words(
     const char* text  = (!set) ? (_argv[_at] + 2)
                                : (_at + 1 < _argc) ? _argv[_at + 1]
                                                    : NULL;
+    const char* value = "true";
     size_t      size;
     char        why[D_INTERNAL_CLI_SETTINGS_ROOM];
 
@@ -880,7 +1496,8 @@ d_internal_cli_settings_words(
          (strncmp(text, "no-", 3u) == 0) &&
          (strchr(text, '=') == NULL) )
     {
-        text += 3;
+        text  += 3;
+        value  = "false";
     }
 
     size = strcspn(text, "=");
@@ -899,9 +1516,13 @@ d_internal_cli_settings_words(
         return;
     }
 
-    d_cli_settings_why(_status, text, size,
-                       (text[size] == '=') ? (text + size + 1u) : NULL,
-                       why, sizeof(why));
+    // a bool's form checked as the value it gives
+    d_internal_cli_settings_why_by(
+        _status, text, size, (text[size] == '=') ? (text + size + 1u) : value,
+        (int32_t)D_OPTION_ENV_SOURCE_COMMAND_LINE,
+        d_internal_cli_settings_choice_of("unknown_djin",
+                                          D_CFG_CLI_UNKNOWN_DJIN),
+        why, sizeof(why));
     (void)snprintf(_buffer, _capacity, "%.*s: %s",
                    (int)strcspn(_argv[_at], "="), _argv[_at], why);
 
@@ -1098,12 +1719,11 @@ bool d_cli_settings_plugin_strict_version(
 }
 
 /*
-d_internal_cli_settings_choice
-  A choice of the kit's djin, by name: `_fallback`, its knob, before the
-settings are started.
+d_internal_cli_settings_choice_of
+  As declared above: the binding in force once the settings are started.
 */
 static int64_t
-d_internal_cli_settings_choice(
+d_internal_cli_settings_choice_of(
     const char* _name,
     int64_t     _fallback
 )
@@ -1121,6 +1741,32 @@ d_internal_cli_settings_choice(
 
     return (found.is_ok) ? d_option_env_int(djin, D_OPTION_ENV_GLOBAL,
                                             (uint32_t)found.payload.value)
+                         : _fallback;
+}
+
+/*
+d_internal_cli_settings_flag
+  As declared above: the binding in force once the settings are started.
+*/
+static bool
+d_internal_cli_settings_flag(
+    const char* _name,
+    bool        _fallback
+)
+{
+    struct dj_option_env* const djin = d_cli_settings_djin();
+    struct dj_option_result     found;
+
+    if ( (!d_internal_cli_settings_started) ||
+         (djin == NULL) )
+    {
+        return _fallback;
+    }
+
+    found = d_option_env_find(djin, _name, strlen(_name));
+
+    return (found.is_ok) ? d_option_env_bool(djin, D_OPTION_ENV_GLOBAL,
+                                             (uint32_t)found.payload.value)
                          : _fallback;
 }
 
@@ -1166,6 +1812,35 @@ d_internal_cli_settings_severity(
 }
 
 /*
+d_internal_cli_settings_in_order
+  The held notes in the order a reader meets them: the environment's and
+the run's first, as held, then the file's by line, as held within a line.
+*/
+static void
+d_internal_cli_settings_in_order(void)
+{
+    struct dj_internal_cli_settings_note* const notes =
+        d_internal_cli_settings_notes;
+
+    for (size_t i = 1u; i < d_internal_cli_settings_count; ++i)
+    {
+        struct dj_internal_cli_settings_note held = notes[i];
+        size_t                               at   = i;
+
+        while ( (at > 0u) &&
+                (notes[at - 1u].line > held.line) )
+        {
+            notes[at] = notes[at - 1u];
+            --at;
+        }
+
+        notes[at] = held;
+    }
+
+    return;
+}
+
+/*
 d_cli_settings_report
   Each held note, as the two settings now say - the command line's among
 them - once; an error among them makes the run's trouble.
@@ -1174,20 +1849,25 @@ int d_cli_settings_report(
     const struct dj_cli_program* _program
 )
 {
-    const int64_t unknown  = d_internal_cli_settings_choice(
+    const int64_t unknown  = d_internal_cli_settings_choice_of(
                                  "unknown_settings",
                                  D_CFG_CLI_UNKNOWN_SETTINGS);
-    const int64_t refusals = d_internal_cli_settings_choice(
+    const int64_t refusals = d_internal_cli_settings_choice_of(
                                  "shared_refusals",
                                  D_CFG_CLI_SHARED_REFUSALS);
+    const int     way      = (d_internal_cli_settings_choice_of(
+                                  "unknown_djin", D_CFG_CLI_UNKNOWN_DJIN) ==
+                              D_CLI_UNKNOWN_DJIN_LOOKUP) ? 1 : 0;
     const bool    verbose  = (d_cli_program_verbosity(_program) > 0);
     int           status   = D_CLI_EXIT_OK;
+
+    d_internal_cli_settings_in_order();
 
     for (size_t i = 0u; i < d_internal_cli_settings_count; ++i)
     {
         const struct dj_internal_cli_settings_note* const note =
             &d_internal_cli_settings_notes[i];
-        const int severity = d_internal_cli_settings_severity(note->kind,
+        const int severity = d_internal_cli_settings_severity(note->kind[way],
                                                               unknown,
                                                               refusals,
                                                               verbose);
@@ -1203,11 +1883,11 @@ int d_cli_settings_report(
         if (note->line > 0L)
         {
             d_cli_report_at(_program, severity, d_internal_cli_settings_path,
-                            note->line, 0L, "%s", note->text);
+                            note->line, 0L, "%s", note->text[way]);
         }
         else
         {
-            d_cli_report(_program, severity, "%s", note->text);
+            d_cli_report(_program, severity, "%s", note->text[way]);
         }
     }
 
@@ -1229,7 +1909,9 @@ int d_cli_settings_report(
 
 /*
 d_cli_settings_reset
-  The djin off the list, every binding gone, and the start due again.
+  The djin off the list and to be made again, as the next run calls for,
+every binding gone, the program's say on a privileged run forgotten, and
+the start due again.
 */
 void d_cli_settings_reset(void)
 {
@@ -1243,10 +1925,22 @@ void d_cli_settings_reset(void)
     }
 
     d_option_env_clear(d_option_env_registry_frame(registry));
+    d_internal_cli_settings_made         = false;
+    d_internal_cli_settings_say          =
+        (int)D_CLI_PLUGIN_PRIVILEGED_DEFAULT;
     d_internal_cli_settings_started      = false;
     d_internal_cli_settings_count        = 0u;
     d_internal_cli_settings_past         = 0u;
     d_internal_cli_settings_refused_size = 0u;
+
+    return;
+}
+
+void d_cli_settings_pretend_privileged(
+    int _answer
+)
+{
+    d_cli_internal_privileged_pretend(_answer);
 
     return;
 }
@@ -1264,6 +1958,44 @@ void d_cli_settings_reset(void)
 struct dj_option_env* d_cli_settings_djin(void)
 {
     return NULL;
+}
+
+bool d_cli_settings_privileged(
+    int _say
+)
+{
+    (void)_say;
+
+    return false;
+}
+
+bool d_cli_settings_closed(void)
+{
+    return (D_INTERNAL_CLI_PLUGIN_VARIABLE == 0);
+}
+
+bool d_cli_settings_next_header(
+    const char*                    _text,
+    size_t                         _from,
+    struct dj_cli_settings_header* _header
+)
+{
+    (void)_text;
+
+    if (_header != NULL)
+    {
+        _header->at   = _from;
+        _header->end  = _from;
+        _header->name = NULL;
+        _header->size = 0u;
+    }
+
+    return false;
+}
+
+bool d_cli_settings_sectioned(void)
+{
+    return false;
 }
 
 int d_cli_settings_start(
@@ -1368,7 +2100,57 @@ void d_cli_settings_reset(void)
     return;
 }
 
+void d_cli_settings_pretend_privileged(
+    int _answer
+)
+{
+    d_cli_internal_privileged_pretend(_answer);
+
+    return;
+}
+
 #endif  // D_TESTING
 #endif  // defined(D_TESTING)
 
 #endif  // RE_STD_HAS_INT64
+
+
+//==============================================================================
+// IN EVERY BUILD
+//==============================================================================
+
+bool d_cli_settings_section_reads(
+    const char* _name,
+    size_t      _size,
+    const char* _program
+)
+{
+    if ( (_name != NULL) &&
+         (_size == 1u) &&
+         (_name[0] == '*') )
+    {
+        return true;
+    }
+
+    if ( (_name == NULL) ||
+         (_program == NULL) ||
+         (strlen(_program) != _size) )
+    {
+        return false;
+    }
+
+    for (size_t i = 0u; i < _size; ++i)
+    {
+        const char a = ( (_name[i] >= 'A') && (_name[i] <= 'Z') )
+                       ? (char)(_name[i] - 'A' + 'a') : _name[i];
+        const char b = ( (_program[i] >= 'A') && (_program[i] <= 'Z') )
+                       ? (char)(_program[i] - 'A' + 'a') : _program[i];
+
+        if (a != b)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}

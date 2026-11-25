@@ -10,8 +10,8 @@
 # stopped being compiled would otherwise read as a smaller pass; these are
 # the counts that make it a failure instead: DTest's summary must say this
 # many tests passed, and none failed or skipped.
-#   Both builds read this file -- CMakeLists.txt and run_cli_tests.sh, beside
-# it -- so there is one place to change when a section is added. A line is
+#   Both builds read this file, CMakeLists.txt and run_cli_tests.sh beside
+# it, so there is one place to change when a section is added. A line is
 # `<build> <sections>`; anything else is a comment.
 #   A build under a configuration knob runs fewer sections, by design, and is
 # not held to these counts: DJINTERP_CLI_EXPECT_COUNTS in CMakeLists.txt.
@@ -19,14 +19,14 @@
 # path:      /build/cmake/config/testing/djinterp/tools/cli/expected_sections.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-#                                                            revised: 2026.11.22
+#                                                            revised: 2026.11.25
 
 # the C suites: streams and files 8, help 6, the program 18, commands that
-# change a file 4, operands that name no file 2, plugins 9, settings 7
-c99 54
-c11 54
-c17 54
-c23 54
+# change a file 4, operands that name no file 2, plugins 9, settings 10
+c99 57
+c11 57
+c17 57
+c23 57
 
 # the allocation sweep, at the C floor: making, endings, work, files,
 # plugins

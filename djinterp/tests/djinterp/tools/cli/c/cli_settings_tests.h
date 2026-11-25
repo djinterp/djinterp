@@ -6,10 +6,12 @@
 * else - never past `--`, never an option's value; those it names badly,
 * each a usage error; the user's settings file, its failing statements said
 * by their lines and the rest read on; the environment under both prefixes,
-* the program's winning; what the kit reads, each source standing where the
-* pattern puts it; and the parser's hook, reading settings where the parse
-* reads options - a response file's, an abbreviated option's value, a
-* plugin command's arguments left to it.
+* the program's winning; the file's sections, and the file read as one part;
+* an unknown djin, told each way `cli.unknown_djin` names; what the kit
+* reads, each source standing where the pattern puts it; a privileged run,
+* the caller's sources refused or trusted; and the parser's hook, reading
+* settings where the parse reads options - a response file's, an
+* abbreviated option's value, a plugin command's arguments left to it.
 *   Each case table runs a program the section's fixture makes, a fresh one
 * for each case, the run's settings let go of between them, and compares the
 * status it exits with and all it writes. The cases run with the user's
@@ -29,14 +31,15 @@
 * CONFIGURATION
 * -------------
 *   D_TESTING 1 and the option core (RE_STD_HAS_INT64) give the suite its
-* sections; without either it has none. D_CFG_CLI_PLUGIN_VARIABLE decides
-* which plugin settings' cases run.
+* sections; without either it has none. D_CFG_CLI_PLUGIN_VARIABLE,
+* D_CFG_CLI_PRIVILEGED_REFUSE and D_CFG_CLI_PRIVILEGED_OPTION decide which
+* plugin settings' cases run.
 *
 *
 * path:      /tests/djinterp/tools/cli/c/cli_settings_tests.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.21
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 /*
@@ -46,7 +49,11 @@ TABLE OF CONTENTS
 2.  REFUSED
 3.  THE USER'S FILE
 4.  THE ENVIRONMENT
+4a. THE SHARED FILE
+4b. THE FILE'S SECTIONS
+4c. AN UNKNOWN DJIN
 5.  WHAT THE KIT READS
+5a. A PRIVILEGED RUN
 6.  THE PARSER'S HOOK
 */
 
@@ -68,9 +75,16 @@ bool d_tests_cli_settings_refused(void);
 bool d_tests_cli_settings_file(void);
 // 4.  THE ENVIRONMENT
 bool d_tests_cli_settings_environment(void);
-// 5.  WHAT THE KIT READS
+// 4a. THE SHARED FILE
 bool d_tests_cli_settings_shared(void);
+// 4b. THE FILE'S SECTIONS
+bool d_tests_cli_settings_sections(void);
+// 4c. AN UNKNOWN DJIN
+bool d_tests_cli_settings_unknown_djin(void);
+// 5.  WHAT THE KIT READS
 bool d_tests_cli_settings_reads(void);
+// 5a. A PRIVILEGED RUN
+bool d_tests_cli_settings_privileged(void);
 // 6.  THE PARSER'S HOOK
 bool d_tests_cli_settings_hooked(void);
 

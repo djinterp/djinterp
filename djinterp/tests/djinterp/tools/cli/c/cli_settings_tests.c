@@ -17,7 +17,7 @@
 * path:      /tests/djinterp/tools/cli/c/cli_settings_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.21
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 #include "./cli_settings_tests.h"  // corresponding header
 // std
@@ -159,9 +159,9 @@ bool d_tests_cli_settings_make(
 
 /**
  * @brief Puts the user's settings in a scratch directory of the cases'
- *        own, `cli_settings_home_` and the C level under the current one --
- *        each level's suite runs beside the others' - holding a file of
- *        `_text`, or none for NULL.
+ *        own, `cli_settings_home_` and the C level under the current one,
+ *        since each level's suite runs beside the others', holding a file
+ *        of `_text`, or none for NULL.
  *
  * @param[out] _path      receives the file's path.
  * @param[in]  _capacity  its room.
@@ -223,7 +223,10 @@ void d_tests_cli_settings_unset(void)
         "PROG_CLI_PLUGIN_SEARCH",
         "PROG_PLUGIN_PATH",
         "DJINTERP_PROBE_SECRET",
-        "PROG_PROBE_SECRET"
+        "PROG_PROBE_SECRET",
+        "DJINTERP_CLI_SETTINGS_SECTIONS",
+        "PROG_CLI_SETTINGS_SECTIONS",
+        "DJINTERP_CLI_UNKNOWN_DJIN"
     };
 
     for (size_t i = 0u; i < D_TESTS_CLI_SETTINGS_COUNT(NAMES); ++i)
@@ -785,6 +788,289 @@ bool d_tests_cli_settings_shared(void)
 }
 
 //==============================================================================
+// 4b. THE FILE'S SECTIONS
+//==============================================================================
+
+// D_TESTS_CLI_SETTINGS_SEARCHED
+//   constant: `show`'s search after SECTIONS_TEXT: the last line's, where
+// the build takes `cli.plugin_search` from the file.
+#if (D_INTERNAL_CLI_PLUGIN_VARIABLE == 1)
+    #define D_TESTS_CLI_SETTINGS_SEARCHED "/every"
+#else
+    #define D_TESTS_CLI_SETTINGS_SEARCHED "default"
+#endif
+
+// SECTIONS_TEXT
+//   constant: a user's file in sections: every program's line, another
+// program's, the program's own under its name in capitals, a header the kit
+// cannot read and a line under it, then every program's lines again.
+static const char SECTIONS_TEXT[] =
+    "cli.plugin_search = /shared\n"
+    "[other]\n"
+    "cli.plugin_strict_version = maybe\n"
+    "[PROG]  # the cases' program\n"
+    "cli.plugin_strict_version = false\n"
+    "[bad header\n"
+    "cli.nosuch = 1\n"
+    "[*]\n"
+    "cli.plugin_search = /every\n";
+
+/*
+d_tests_cli_settings_headers
+  The section 1.4 queries, on text of their own: a header after a ';' and
+a comment, one inside a statement passed over, `[*]`, a malformed one, the
+text's end; whose a section is.
+*/
+static bool
+d_tests_cli_settings_headers(void)
+{
+    static const char TEXT[]  = "a = 1 ; [x] # c\nb = \"[y]\"\n[*]\n";
+    static const char WRONG[] = "[a b]\n";
+    struct dj_cli_settings_header header;
+    bool                          held;
+
+    held = D_TESTS_CLI_CHECK(
+               (d_cli_settings_next_header(TEXT, 0u, &header)) &&
+               (header.at == 8u) && (header.end == 15u) &&
+               (header.size == 1u) && (header.name[0] == 'x') &&
+               (d_cli_settings_next_header(TEXT, header.end, &header)) &&
+               (header.at == 26u) && (header.size == 1u) &&
+               (header.name[0] == '*') &&
+               (!d_cli_settings_next_header(TEXT, header.end, &header)) &&
+               (header.at == sizeof(TEXT) - 1u) && (header.size == 0u),
+               "N05",
+               "each header where a statement could begin, and none past");
+    held = D_TESTS_CLI_CHECK(
+               (d_cli_settings_next_header(WRONG, 0u, &header)) &&
+               (header.at == 0u) && (header.size == 0u) &&
+               (!d_cli_settings_next_header(NULL, 0u, &header)),
+               "N06",
+               "a malformed header found, its size 0; none in no text") &&
+           (held);
+    held = D_TESTS_CLI_CHECK(
+               (d_cli_settings_section_reads("PROG", 4u, "prog")) &&
+               (d_cli_settings_section_reads("*", 1u, NULL)) &&
+               (!d_cli_settings_section_reads("prog", 4u, NULL)) &&
+               (!d_cli_settings_section_reads("pro", 3u, "prog")) &&
+               (!d_cli_settings_section_reads("other", 5u, "prog")),
+               "N07",
+               "a section the program's by name, case aside, or `*`") &&
+           (held);
+
+    d_cli_settings_reset();
+
+    return D_TESTS_CLI_CHECK(
+               d_cli_settings_sectioned() ==
+               (D_INTERNAL_CLI_SETTINGS_SECTIONS == 1),
+               "N08",
+               "before the settings start, the knob says whether") &&
+           (held);
+}
+
+/*
+d_tests_cli_settings_sections
+  Tests the following:
+  - in sections, whatever the knob: the program's own section read,
+    another program's passed over, a header's name matched whatever its
+    letters' case
+  - a header the kit cannot read said by its line, the lines under it no
+    program's; `[*]` every program's again
+  - `cli.settings_sections` false, from either prefix: the file read as one
+    part, each header said as such
+  - the setting refused from the command line
+  - the queries a program that writes the file finds the headers with
+*/
+bool d_tests_cli_settings_sections(void)
+{
+    struct dj_tests_cli_case cases[4];
+    char                     said[2][D_TESTS_CLI_SETTINGS_ROOM * 8u];
+    char                     path[D_TESTS_CLI_SETTINGS_ROOM];
+    static const char* const prefix[2] =
+        { "DJINTERP_CLI_SETTINGS_SECTIONS", "PROG_CLI_SETTINGS_SECTIONS" };
+    bool                     held;
+
+    d_tests_cli_settings_unset();
+    held = D_TESTS_CLI_CHECK(d_tests_cli_settings_home(path, sizeof(path),
+                                                       SECTIONS_TEXT),
+                             "N00",
+                             "a scratch home holding a file in sections");
+
+    (void)snprintf(said[0], sizeof(said[0]),
+                   "%s:6: warning: '[bad header' is not a section's header: "
+                   "[PROGRAM] or [*]\n", path);
+    (void)snprintf(said[1], sizeof(said[1]),
+                   "%s:2: warning: '[other]' is a section's header, and this "
+                   "run reads the file without sections "
+                   "(cli.settings_sections)\n"
+                   "%s:3: warning: 'maybe' is not a value "
+                   "'cli.plugin_strict_version' takes\n"
+                   "%s:4: warning: '[PROG]' is a section's header, and this "
+                   "run reads the file without sections "
+                   "(cli.settings_sections)\n"
+                   "%s:6: warning: '[bad header' is not a statement: NAME = "
+                   "VALUE\n"
+                   "%s:7: warning: no setting is named 'cli.nosuch'\n"
+                   "%s:8: warning: '[*]' is a section's header, and this run "
+                   "reads the file without sections (cli.settings_sections)\n",
+                   path, path, path, path, path, path);
+
+    cases[0].tag    = "N01";
+    cases[0].line   = "prog show";
+    cases[0].status = 0;
+    cases[0].out    = "strict=0 search=" D_TESTS_CLI_SETTINGS_SEARCHED
+                      " path=- level=- output=- mode=- words=-\n";
+    cases[0].err    = said[0];
+    cases[1]        = cases[0];
+    cases[1].tag    = "N02";
+    cases[1].err    = said[1];
+    cases[2]        = cases[1];
+    cases[2].tag    = "N03";
+    cases[3].tag    = "N04";
+    cases[3].line   = "prog --cli.settings_sections=false show";
+    cases[3].status = 2;
+    cases[3].out    = "";
+    cases[3].err    = "prog: error: --cli.settings_sections: "
+                      "'cli.settings_sections' is not taken from the command "
+                      "line\nTry 'prog --help' for more information.\n";
+
+    // in sections whatever the knob, the environment being the one source
+    (void)d_tests_cli_setenv(prefix[0], "true");
+    held = (d_tests_cli_case_run(&cases[0],
+                                 d_tests_cli_settings_make)) && (held);
+    (void)d_tests_cli_setenv(prefix[0], NULL);
+
+    for (size_t i = 0u; i < 2u; ++i)
+    {
+        (void)d_tests_cli_setenv(prefix[i], "false");
+        held = (d_tests_cli_case_run(&cases[1u + i],
+                                     d_tests_cli_settings_make)) && (held);
+        (void)d_tests_cli_setenv(prefix[i], NULL);
+    }
+
+    held = (d_tests_cli_case_run(&cases[3],
+                                 d_tests_cli_settings_make)) && (held);
+    held = (d_tests_cli_settings_home(path, sizeof(path), NULL)) && (held);
+
+    return d_tests_cli_settings_headers() && (held);
+}
+
+
+//==============================================================================
+// 4c. AN UNKNOWN DJIN
+//==============================================================================
+
+// d_tests_cli_settings_net
+//   constant: the root's one scope in the unknown djin's cases, a name no
+// djin has.
+static const char* const d_tests_cli_settings_net[1] = { "net" };
+
+/*
+d_tests_cli_settings_make_net
+  The cases' program, the root frame given the scope `net`, which no djin
+is named: a name whose first part the registry finds, but no frame.
+*/
+static bool
+d_tests_cli_settings_make_net(
+    struct dj_cli_program* _program,
+    struct dj_arg_parser*  _parser
+)
+{
+    return ( (d_tests_cli_settings_make(_program, _parser)) &&
+             (d_option_env_set_scopes(
+                  d_option_env_registry_frame(d_option_env_registry()),
+                  d_tests_cli_settings_net, 1u).is_ok) );
+}
+
+// UNKNOWN_TEXT
+//   constant: a file naming the root's scope, and a djin nothing has.
+static const char UNKNOWN_TEXT[] =
+    "net.depth = 3\n"
+    "nosuch.depth = 3\n";
+
+/*
+d_tests_cli_settings_unknown_djin
+  Tests the following:
+  - reason: a name whose first part is a root scope is a setting no one
+    has, said as a near miss is; one whose first part nothing has is a
+    djin not registered here, quiet
+  - lookup: both first parts name no frame, so both are djins not
+    registered here, quiet, and said as such at cli.unknown_settings all
+  - from the environment, and on the command line, each way
+*/
+bool d_tests_cli_settings_unknown_djin(void)
+{
+    struct dj_tests_cli_case cases[6];
+    char                     said[2][D_TESTS_CLI_SETTINGS_ROOM * 4u];
+    char                     path[D_TESTS_CLI_SETTINGS_ROOM];
+    struct dj_option_env*    root;
+    const char* const*       scopes;
+    uint32_t                 scope_count;
+    bool                     held;
+
+    d_tests_cli_settings_unset();
+    root        = d_option_env_registry_frame(d_option_env_registry());
+    scopes      = root->scopes;
+    scope_count = root->scope_count;
+    held        = D_TESTS_CLI_CHECK(
+                      d_tests_cli_settings_home(path, sizeof(path),
+                                                UNKNOWN_TEXT),
+                      "U00", "a scratch home naming an unknown djin");
+
+    (void)snprintf(said[0], sizeof(said[0]),
+                   "%s:1: warning: no setting is named 'net.depth'\n", path);
+    (void)snprintf(said[1], sizeof(said[1]),
+                   "%s:1: warning: no djin is named 'net'\n"
+                   "%s:2: warning: no djin is named 'nosuch'\n", path, path);
+
+    cases[0].tag    = "U01";
+    cases[0].line   = "prog --cli.unknown_djin=reason show";
+    cases[0].status = 0;
+    cases[0].out    = D_TESTS_CLI_SETTINGS_SHOW;
+    cases[0].err    = said[0];
+    cases[1]        = cases[0];
+    cases[1].tag    = "U02";
+    cases[1].line   = "prog --cli.unknown_djin=lookup show";
+    cases[1].err    = "";
+    cases[2]        = cases[1];
+    cases[2].tag    = "U03";
+    cases[2].line   = "prog --cli.unknown_djin=lookup "
+                      "--cli.unknown_settings=all show";
+    cases[2].err    = said[1];
+    cases[3]        = cases[2];
+    cases[3].tag    = "U04";
+    cases[3].line   = "prog --cli.unknown_settings=all show";
+    held = (d_tests_cli_cases_run(cases, 3u,
+                                  d_tests_cli_settings_make_net)) && (held);
+
+    // the environment's way, under the command line's words
+    (void)d_tests_cli_setenv("DJINTERP_CLI_UNKNOWN_DJIN", "lookup");
+    held = (d_tests_cli_case_run(&cases[3],
+                                 d_tests_cli_settings_make_net)) && (held);
+    (void)d_tests_cli_setenv("DJINTERP_CLI_UNKNOWN_DJIN", NULL);
+
+    // on the command line, a usage error either way
+    held = (d_tests_cli_settings_home(path, sizeof(path), NULL)) && (held);
+    cases[4].tag    = "U05";
+    cases[4].line   = "prog --cli.unknown_djin=reason --net.depth=3 show";
+    cases[4].status = 2;
+    cases[4].out    = "";
+    cases[4].err    = "prog: error: --net.depth: no setting is named "
+                      "'net.depth'\nTry 'prog --help' for more "
+                      "information.\n";
+    cases[5]        = cases[4];
+    cases[5].tag    = "U06";
+    cases[5].line   = "prog --cli.unknown_djin=lookup --net.depth=3 show";
+    cases[5].err    = "prog: error: --net.depth: no djin is named 'net'\n"
+                      "Try 'prog --help' for more information.\n";
+    held = (d_tests_cli_cases_run(cases + 4, 2u,
+                                  d_tests_cli_settings_make_net)) && (held);
+
+    (void)d_option_env_set_scopes(root, scopes, scope_count);
+
+    return held;
+}
+
+//==============================================================================
 // 5.  WHAT THE KIT READS
 //==============================================================================
 
@@ -840,6 +1126,157 @@ bool d_tests_cli_settings_reads(void)
     d_arg_buffer_release(&out);
     d_arg_buffer_release(&err);
     d_tests_cli_settings_unset();
+    d_cli_settings_reset();
+
+    return held;
+}
+
+
+//==============================================================================
+// 5a. A PRIVILEGED RUN
+//==============================================================================
+
+#if (D_INTERNAL_CLI_PLUGIN_VARIABLE == 1) &&                                   \
+    (D_INTERNAL_CLI_PRIVILEGED_OPTION == 1)
+/*
+d_tests_cli_settings_make_trust
+  The cases' program, which trusts its caller in a privileged run
+(cli_plugin.h, D_CLI_PLUGIN_PRIVILEGED_TRUST).
+*/
+static bool
+d_tests_cli_settings_make_trust(
+    struct dj_cli_program* _program,
+    struct dj_arg_parser*  _parser
+)
+{
+    return ( (d_tests_cli_settings_make(_program, _parser)) &&
+             (d_cli_program_set_plugin_privileged(
+                  _program, (int)D_CLI_PLUGIN_PRIVILEGED_TRUST)) );
+}
+#endif
+
+/*
+d_tests_cli_settings_privileged_runs
+  The privileged run's cases of d_tests_cli_settings_privileged, the run
+taken as privileged and the plugin settings set from the environment.
+*/
+static bool
+d_tests_cli_settings_privileged_runs(void)
+{
+    static const struct dj_tests_cli_case CLOSED =
+    {
+        "P01", "prog show", 0, D_TESTS_CLI_SETTINGS_SHOW,
+        "prog: warning: PROG_PLUGIN_PATH: 'plugin_path' is not taken from "
+        "the environment\n"
+    };
+    static const struct dj_tests_cli_case TRUSTED =
+    {
+        "P02", "prog show", 0,
+        "strict=1 search=/s path=/env level=- output=- mode=- words=-\n",
+        "prog: warning: running with privileges its caller lacks, and "
+        "taking the plugin settings from the caller, as the program "
+        "says\n"
+    };
+    static const struct dj_tests_cli_case REFUSED =
+    {
+        "P03", "prog --no-cli.privileged_refuse show", 2, "",
+        "prog: error: --no-cli.privileged_refuse: 'cli.privileged_refuse' "
+        "is not taken from the command line\nTry 'prog --help' for more "
+        "information.\n"
+    };
+    static const struct dj_tests_cli_case BUILT =
+    {
+        "P01", "prog show", 0,
+        "strict=1 search=/s path=/env level=- output=- mode=- words=-\n",
+        "prog: warning: running with privileges its caller lacks, and "
+        "taking the plugin settings from the caller, as the build says "
+        "(D_CFG_CLI_PRIVILEGED_REFUSE)\n"
+    };
+    bool held = true;
+
+    d_tests_cli_settings_unset();
+    (void)d_tests_cli_setenv("PROG_PLUGIN_PATH", "/env");
+    (void)d_tests_cli_setenv("DJINTERP_CLI_PLUGIN_SEARCH", "/s");
+
+    // refused by default; trusted where the build says so
+#if (D_INTERNAL_CLI_PLUGIN_VARIABLE == 1) &&                                   \
+    (D_INTERNAL_CLI_PRIVILEGED_REFUSE == 1)
+    held = (d_tests_cli_case_run(&CLOSED,
+                                 d_tests_cli_settings_make)) && (held);
+    (void)BUILT;
+#elif (D_INTERNAL_CLI_PLUGIN_VARIABLE == 1)
+    held = (d_tests_cli_case_run(&BUILT,
+                                 d_tests_cli_settings_make)) && (held);
+    (void)CLOSED;
+#else
+    (void)CLOSED;
+    (void)BUILT;
+#endif
+
+#if (D_INTERNAL_CLI_PLUGIN_VARIABLE == 1) &&                                   \
+    (D_INTERNAL_CLI_PRIVILEGED_OPTION == 1)
+    held = (d_tests_cli_case_run(&TRUSTED,
+                                 d_tests_cli_settings_make_trust)) && (held);
+    held = (d_tests_cli_case_run(&REFUSED,
+                                 d_tests_cli_settings_make)) && (held);
+#else
+    (void)TRUSTED;
+    (void)REFUSED;
+#endif
+
+    d_tests_cli_settings_unset();
+
+    return held;
+}
+
+/*
+d_tests_cli_settings_privileged
+  Tests the following:
+  - a privileged run refuses the plugin settings from the caller's sources,
+    by default (D_CFG_CLI_PRIVILEGED_REFUSE), a refusal under the
+    program's own prefix said; trusts the caller where the build says so,
+    and says that
+  - a program that trusts its caller is taken at its word, and that said
+  - `cli.privileged_refuse` is refused from the command line then; taken
+    in a run that is not privileged
+  - the program's say comes too late once the djin is made
+*/
+bool d_tests_cli_settings_privileged(void)
+{
+    static const struct dj_tests_cli_case PLAIN =
+    {
+        "P04", "prog --no-cli.privileged_refuse show", 0,
+        D_TESTS_CLI_SETTINGS_SHOW, ""
+    };
+    char path[D_TESTS_CLI_SETTINGS_ROOM];
+    bool held = d_tests_cli_settings_home(path, sizeof(path), NULL);
+
+    d_cli_settings_pretend_privileged(1);
+    held = (d_tests_cli_settings_privileged_runs()) && (held);
+
+    // once the djin is made, the say is too late, and the run's own
+    d_cli_settings_reset();
+    held = D_TESTS_CLI_CHECK(
+               (d_cli_settings_djin() != NULL) &&
+               (!d_cli_settings_privileged(
+                    (int)D_CLI_PLUGIN_PRIVILEGED_TRUST)) &&
+               (d_cli_settings_closed() ==
+                ( (D_INTERNAL_CLI_PLUGIN_VARIABLE == 0) ||
+                  (D_INTERNAL_CLI_PRIVILEGED_REFUSE == 1) )),
+               "P05",
+               "the program's say too late once the djin is made") &&
+           (held);
+
+    d_cli_settings_pretend_privileged(0);
+
+#if (D_INTERNAL_CLI_PRIVILEGED_OPTION == 1)
+    held = (d_tests_cli_case_run(&PLAIN,
+                                 d_tests_cli_settings_make)) && (held);
+#else
+    (void)PLAIN;
+#endif
+
+    d_cli_settings_pretend_privileged(-1);
     d_cli_settings_reset();
 
     return held;
@@ -1220,9 +1657,18 @@ const struct dj_test_case_spec d_tests_cli_settings[] =
     { "cli_settings_shared",
       "what the shared file and environment are said for",
       d_tests_cli_settings_shared },
+    { "cli_settings_sections",
+      "the user's file in sections, and read as one part",
+      d_tests_cli_settings_sections },
+    { "cli_settings_unknown_djin",
+      "an unknown djin told by reason and by lookup",
+      d_tests_cli_settings_unknown_djin },
     { "cli_settings_reads",
       "each setting's knob, the program's say, the sources",
       d_tests_cli_settings_reads },
+    { "cli_settings_privileged",
+      "a privileged run: the caller's sources refused, or trusted",
+      d_tests_cli_settings_privileged },
     { "cli_settings_hooked",
       "settings as the parser reads them, through its hook",
       d_tests_cli_settings_hooked }

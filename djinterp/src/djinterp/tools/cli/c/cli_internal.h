@@ -17,7 +17,7 @@
 * path:      /src/djinterp/tools/cli/c/cli_internal.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.11.22
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 /*
@@ -44,6 +44,9 @@ TABLE OF CONTENTS
     6.  Errors and files
          1.  d_cli_internal_error_text
          2.  d_cli_internal_mode_kind
+    7.  Privileges
+         1.  d_cli_internal_privileged
+         2.  d_cli_internal_privileged_pretend
 2.  TEXT
     ----
     1.  Copies
@@ -210,6 +213,28 @@ const char* d_cli_internal_error_text(
 int d_cli_internal_mode_kind(
     uint32_t _mode
 );
+
+
+// 1.7    Privileges
+//------------------------------------------------------------------------------
+// 1.7.1
+// d_cli_internal_privileged
+//   query: whether the process runs with privileges its caller lacks - set-
+// user-ID, set-group-ID or capabilities - by D_ENV_CLI_PRIVILEGE's way;
+// false where the platform has none (cfg_cli.h, 1.6).
+bool d_cli_internal_privileged(void);
+
+#if defined(D_TESTING)
+#if (D_TESTING == 1)
+// 1.7.2
+// d_cli_internal_privileged_pretend
+//   function, testing builds: makes d_cli_internal_privileged answer
+// `_answer` - 0 or 1 - until it is given -1, the system's answer again.
+void d_cli_internal_privileged_pretend(
+    int _answer
+);
+#endif  // D_TESTING
+#endif  // defined(D_TESTING)
 
 
 //==============================================================================

@@ -1399,7 +1399,6 @@ inc/djinterp/tools/cli/cli_edit.hpp	H	1
 inc/djinterp/tools/cli/cli_io.hpp	H	1
 inc/djinterp/tools/cli/cli_operand.hpp	H	1
 inc/djinterp/tools/cli/cli_plugin.hpp	H	1
-inc/djinterp/tools/cli/cli_program.hpp	H	1
 inc/djinterp/tools/dawk/daudit.h	H	1
 inc/djinterp/tools/dawk/dawk.h	H	1
 inc/djinterp/tools/dawk/dbanner.h	H	1

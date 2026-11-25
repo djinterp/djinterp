@@ -32,6 +32,13 @@
 * names both. A module loaded stays loaded until the process ends: what it
 * started - a window system's or a GPU driver's threads - may outlive its
 * run.
+*   A PRIVILEGED RUN. A program run with privileges its caller lacks - set-
+* user-ID, set-group-ID or given capabilities - does not let its caller
+* choose the code it loads: the plugin settings refuse the user's file, the
+* environment and the command line, whatever D_CFG_CLI_PLUGIN_VARIABLE says,
+* unless the build (D_CFG_CLI_PRIVILEGED_REFUSE) or the program
+* (d_cli_program_set_plugin_privileged) trusts the caller, which the run
+* then says.
 *   ITS PROGRAM. A module reads its arguments with its own parser and the
 * same kit: d_cli_program_init_plugin names its program as the host's and
 * takes the host's verbosity and colour, so that `bitwisedom -v gui` is
@@ -55,20 +62,23 @@
 *   `cli.plugin_search`, the root's `plugin_path` and
 * `cli.plugin_strict_version`, from the user's file, the environment and the
 * command line (cli_settings.h); a program's own path
-* (d_cli_program_set_plugin_path) and its say on versions.
+* (d_cli_program_set_plugin_path), its say on versions, and its say on a
+* privileged run, `cli.privileged_refuse`, which only the program sets in
+* such a run.
 *
 * CONFIGURATION
 * -------------
 *   D_CFG_CLI_PLUGINS 0 removes the loader; D_CFG_CLI_PLUGIN_SEARCH,
 * D_CFG_CLI_PLUGIN_VARIABLE and D_CFG_CLI_PLUGIN_STRICT_VERSION are the
-* settings' defaults and whether the caller may choose where modules come from
-* (cfg_cli.h).
+* settings' defaults and whether the caller may choose where modules come
+* from; D_CFG_CLI_PRIVILEGED_REFUSE and D_CFG_CLI_PRIVILEGED_OPTION, what a
+* privileged run does and whether the program may choose (cfg_cli.h, 1.6).
 *
 *
 * path:      /inc/djinterp/tools/cli/c/cli_plugin.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.11.21
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 /*
@@ -96,6 +106,7 @@ TABLE OF CONTENTS
          1.  dj_cli_module
          2.  D_CLI_MODULE_INIT
          3.  dj_cli_plugin_versions
+         4.  dj_cli_plugin_privileged
     2.  Finding
          1.  d_cli_plugin_find
          2.  d_cli_plugin_find_with
@@ -108,6 +119,7 @@ TABLE OF CONTENTS
          1.  d_cli_program_add_plugin
          2.  d_cli_program_set_plugin_path
          3.  d_cli_program_set_plugin_versions
+         4.  d_cli_program_set_plugin_privileged
     2.  The module's side
          1.  d_cli_program_init_plugin
 */
@@ -116,7 +128,8 @@ TABLE OF CONTENTS
 #define DJINTERP_TOOLS_CLI_C_CLI_PLUGIN_H 1
 
 // std
-#include <stddef.h>  // offsetof, size_t
+#include <stdbool.h>  // bool
+#include <stddef.h>   // offsetof, size_t
 // djinterp
 #include "../../../c/djinterp.h"                         // framework root
 #include "../../../config/tools/cli/cfg_cli.h"           // D_INTERNAL_CLI_*
@@ -315,6 +328,19 @@ enum dj_cli_plugin_versions
     D_CLI_PLUGIN_VERSIONS_WARN    = 2
 };
 
+// 3.1.4
+// dj_cli_plugin_privileged
+//   enum: what a run with privileges its caller lacks does with the plugin
+// settings the caller could give - what the build says
+// (D_CFG_CLI_PRIVILEGED_REFUSE); refuse them; or take them, which the run
+// says. An ordinary run is never changed.
+enum dj_cli_plugin_privileged
+{
+    D_CLI_PLUGIN_PRIVILEGED_DEFAULT = 0,
+    D_CLI_PLUGIN_PRIVILEGED_REFUSE  = 1,
+    D_CLI_PLUGIN_PRIVILEGED_TRUST   = 2
+};
+
 // 3.2    Finding
 //------------------------------------------------------------------------------
 // 3.2.1
@@ -505,6 +531,30 @@ D_CLI_API int d_cli_program_set_plugin_path(
 D_CLI_API void d_cli_program_set_plugin_versions(
     struct dj_cli_program* _program,
     int                    _versions
+);
+
+// 4.1.4
+// d_cli_program_set_plugin_privileged
+/**
+ * @brief Says what a run with privileges its caller lacks does with the
+ *        plugin settings its caller could give: `cli.privileged_refuse`,
+ *        bound as the program's own, which no caller can change in such a
+ *        run.
+ *
+ * @note It is read when the kit's settings are first made, at the
+ *       program's first parse, so it must come before; after, it is
+ *       refused. A build without the setting (D_CFG_CLI_PRIVILEGED_OPTION
+ *       0) refuses any say but the build's.
+ *
+ * @param[in,out] _program    the program; NULL is refused.
+ * @param[in]     _privileged a dj_cli_plugin_privileged; any other value is
+ *                            D_CLI_PLUGIN_PRIVILEGED_DEFAULT, the build's.
+ * @return true when the say will be followed; false when it came too late,
+ *         or this build does not take it.
+ */
+D_CLI_API bool d_cli_program_set_plugin_privileged(
+    struct dj_cli_program* _program,
+    int                    _privileged
 );
 
 // 4.2    The module's side

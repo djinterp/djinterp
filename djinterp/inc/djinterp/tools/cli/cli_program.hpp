@@ -31,12 +31,35 @@
 * program's own code, the constructors being inline - so that `--version
 * --verbose` says it with nothing asked of the program; add_build() adds
 * lines of its own.
+*   PLUGINS. plugin_path(), plugin_versions() and plugin_privileged() are
+* the program's say on where modules are looked for, what a module of
+* another version gets, and whether a privileged run takes the plugin
+* settings from its caller (cli_plugin.h).
+*
+* HOW TO USE
+* ----------
+*   Make a `cli::program` with the program's name and version, define its
+* options and commands on it as on any parser, give each command its work,
+* and return run(argc, argv) from main. A program with its own say on
+* plugins gives it before run().
+*
+* OPTIONS
+* -------
+*   The kit's standard options and commands (cli_program.h), and the
+* settings the kit keeps (cli_settings.h), on every program; each flag of
+* program_flags adds or takes away one of the standard behaviours.
+*
+* CONFIGURATION
+* -------------
+*   As the C program's (cfg_cli.h): D_CFG_CLI_PLUGINS and the plugin knobs
+* decide what the plugin calls do; D_CFG_CLI_PRIVILEGED_OPTION 0 refuses
+* any say on a privileged run but the build's.
 *
 *
 * path:      /inc/djinterp/tools/cli/cli_program.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.11.11
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 /*
@@ -50,6 +73,7 @@ TABLE OF CONTENTS
     2.  Program flags
          1.  program_flags
          2.  plugin_versions
+         3.  plugin_privileged
 2.  THE PROGRAM
     -----------
     1.  The class
@@ -175,6 +199,21 @@ struct plugin_versions
     };
 };
 
+// 1.2.3
+// plugin_privileged
+//   enum: the dj_cli_plugin_privileged values: what a privileged run does
+// with the plugin settings from its caller's sources - the build's choice,
+// refuse them, or take them, said.
+struct plugin_privileged
+{
+    enum value
+    {
+        build_default = D_CLI_PLUGIN_PRIVILEGED_DEFAULT,
+        refuse        = D_CLI_PLUGIN_PRIVILEGED_REFUSE,
+        trust         = D_CLI_PLUGIN_PRIVILEGED_TRUST
+    };
+};
+
 
 //==============================================================================
 // 2.  THE PROGRAM
@@ -296,6 +335,13 @@ public:
     ) D_NOEXCEPT;
     program& plugin_versions(
         cli::plugin_versions::value _versions
+    ) D_NOEXCEPT;
+
+    // what a privileged run does with the plugin settings from the
+    // caller's sources: d_cli_program_set_plugin_privileged; false where it
+    // came after the program's first parse, or the build takes no say
+    bool plugin_privileged(
+        cli::plugin_privileged::value _privileged
     ) D_NOEXCEPT;
 
     // running: d_cli_program_run, d_cli_program_parse and
@@ -803,7 +849,7 @@ status program::add_build(
                                           _value.get()));
 }
 
-// program::plugin_path / plugin_versions
+// program::plugin_path / plugin_versions / plugin_privileged
 //   The C calls.
 inline
 status program::plugin_path(
@@ -823,6 +869,15 @@ program& program::plugin_versions(
                                       static_cast<int>(_versions));
 
     return *this;
+}
+
+inline
+bool program::plugin_privileged(
+    cli::plugin_privileged::value _privileged
+) D_NOEXCEPT
+{
+    return d_cli_program_set_plugin_privileged(&m_program,
+                                               static_cast<int>(_privileged));
 }
 
 inline

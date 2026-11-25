@@ -5,7 +5,8 @@
 *   What the platform decides for a program built with the kit: how a
 * loadable module is opened and what its file name ends in, how the running
 * program finds its own file, how it asks whether a stream is a terminal and
-* writes to one, and what separates the directories of a search path.
+* writes to one, what separates the directories of a search path, and how
+* it asks whether it runs with privileges its caller lacks.
 *   It includes no system header. Each fact is derived from env.h's OS
 * classification, is #ifndef-guarded so a build may define it first, and is
 * read only by cfg_cli.h and the kit's sources: the system headers the facts
@@ -15,7 +16,7 @@
 * path:      /inc/djinterp/env/tools/cli/env_cli.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.10.27
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 /*
@@ -53,6 +54,13 @@ TABLE OF CONTENTS
          1.  D_ENV_CLI_PATH_LIST_SEPARATOR
          2.  D_ENV_CLI_PATH_SEPARATOR
          3.  D_ENV_CLI_HELP_SLASH
+    4.  Privileges
+         1.  Privilege identifiers
+              1.  D_ENV_CLI_PRIVILEGE_NONE
+              2.  D_ENV_CLI_PRIVILEGE_AUXVAL
+              3.  D_ENV_CLI_PRIVILEGE_ISSETUGID
+              4.  D_ENV_CLI_PRIVILEGE_IDS
+         2.  D_ENV_CLI_PRIVILEGE
 */
 
 #ifndef DJINTERP_ENV_TOOLS_CLI_ENV_CLI_H
@@ -280,6 +288,60 @@ TABLE OF CONTENTS
         #define D_ENV_CLI_HELP_SLASH 0
     #endif
 #endif  // D_ENV_CLI_HELP_SLASH
+
+// 2.4    Privileges
+//------------------------------------------------------------------------------
+// 2.4.1
+// Privilege identifiers
+//   constant: the ways a program asks whether it runs with privileges its
+// caller lacks - set-user-ID, set-group-ID, or capabilities given to the
+// file - for D_ENV_CLI_PRIVILEGE (cfg_cli.h, 1.6).
+
+// 2.4.1.1
+// D_ENV_CLI_PRIVILEGE_NONE
+//   constant: no way to ask, or nothing to ask: no run is privileged. So on
+// Windows, where a process's elevation is never inherited from its caller.
+#define D_ENV_CLI_PRIVILEGE_NONE      0
+
+// 2.4.1.2
+// D_ENV_CLI_PRIVILEGE_AUXVAL
+//   constant: getauxval(AT_SECURE), from <sys/auxv.h>: set for set-user-ID,
+// set-group-ID and capabilities alike. Linux, where glibc (2.16 and later,
+// D_ENV_LINUX_GLIBC_HAS_GETAUXVAL), musl or Android's C library has it;
+// with an older glibc the source falls back to D_ENV_CLI_PRIVILEGE_IDS.
+#define D_ENV_CLI_PRIVILEGE_AUXVAL    1
+
+// 2.4.1.3
+// D_ENV_CLI_PRIVILEGE_ISSETUGID
+//   constant: issetugid(), from <unistd.h>: the BSDs and Apple's systems
+// (D_ENV_BSD_HAS_ISSETUGID, D_ENV_APPLE_HAS_ISSETUGID).
+#define D_ENV_CLI_PRIVILEGE_ISSETUGID 2
+
+// 2.4.1.4
+// D_ENV_CLI_PRIVILEGE_IDS
+//   constant: the real user and group against the effective ones, from
+// <unistd.h>: any other POSIX system. Capabilities are not seen.
+#define D_ENV_CLI_PRIVILEGE_IDS       3
+
+// 2.4.2
+// D_ENV_CLI_PRIVILEGE
+//   detection: how a privileged run is known here.
+#ifndef D_ENV_CLI_PRIVILEGE
+    #if D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)
+        #define D_ENV_CLI_PRIVILEGE D_ENV_CLI_PRIVILEGE_NONE
+    #elif ( (D_ENV_IS_OS_LINUX(D_ENV_OS_ID)) ||                               \
+            (D_ENV_OS_ID == D_ENV_OS_FLAG_ANDROID) )
+        #define D_ENV_CLI_PRIVILEGE D_ENV_CLI_PRIVILEGE_AUXVAL
+    #elif ( (D_ENV_IS_OS_BSD(D_ENV_OS_ID)) ||                                 \
+            (D_ENV_IS_OS_MACOS(D_ENV_OS_ID)) ||                               \
+            (D_ENV_OS_ID == D_ENV_OS_FLAG_IOS) )
+        #define D_ENV_CLI_PRIVILEGE D_ENV_CLI_PRIVILEGE_ISSETUGID
+    #elif D_ENV_IS_OS_POSIX_COMPLIANT(D_ENV_OS_ID)
+        #define D_ENV_CLI_PRIVILEGE D_ENV_CLI_PRIVILEGE_IDS
+    #else
+        #define D_ENV_CLI_PRIVILEGE D_ENV_CLI_PRIVILEGE_NONE
+    #endif
+#endif  // D_ENV_CLI_PRIVILEGE
 
 
 #endif  // DJINTERP_ENV_TOOLS_CLI_ENV_CLI_H

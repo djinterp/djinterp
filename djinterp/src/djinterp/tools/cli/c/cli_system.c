@@ -9,8 +9,9 @@
 * through TIOCGWINSZ or the console's screen buffer, the standard streams in
 * binary mode on Windows and a console written through WriteConsoleW, the
 * environment through _wgetenv on Windows and getenv elsewhere, the
-* program's file through the system's own way of saying it, and modules
-* through dlopen or LoadLibraryExW. On Windows every text that crosses is
+* program's file through the system's own way of saying it, modules
+* through dlopen or LoadLibraryExW, and a privileged run through AT_SECURE,
+* issetugid or the process's IDs. On Windows every text that crosses is
 * UTF-8 on the kit's side and UTF-16 on the system's.
 *   Needs POSIX.1-2008 with XSI where the C library hides it in a strict ISO
 * mode, as the C guide has every build give it (`-D_XOPEN_SOURCE=700`); and,
@@ -21,7 +22,7 @@
 * path:      /src/djinterp/tools/cli/c/cli_system.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.10.24
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 #include "./cli_internal.h"  // corresponding header
 // std
@@ -59,6 +60,18 @@
 #endif
 #if (D_ENV_CLI_MODULES == D_ENV_CLI_MODULES_DLOPEN)
     #include <dlfcn.h>      // dlopen, dlsym, dlclose, dlerror
+#endif
+#if (D_ENV_CLI_PRIVILEGE == D_ENV_CLI_PRIVILEGE_AUXVAL)
+    // after the C library's own headers, which say which it is
+    #include "../../../../../inc/djinterp/env/os/env_linux.h"  // D_ENV_LINUX_*
+    #if ( (D_ENV_LINUX_GLIBC_HAS_GETAUXVAL) ||                                \
+          (D_ENV_LINUX_MUSL_HAS_GETAUXVAL) ||                                 \
+          (D_ENV_OS_ID == D_ENV_OS_FLAG_ANDROID) )
+        #include <sys/auxv.h>   // getauxval, AT_SECURE
+        #define D_INTERNAL_CLI_SYSTEM_AUXVAL 1
+    #else
+        #define D_INTERNAL_CLI_SYSTEM_AUXVAL 0
+    #endif
 #endif
 #if (D_ENV_CLI_EXECUTABLE == D_ENV_CLI_EXECUTABLE_MACOS)
     #include <mach-o/dyld.h>  // _NSGetExecutablePath
@@ -1396,5 +1409,64 @@ int d_cli_internal_mode_kind(
     return (S_ISREG(mode)) ? 1
          : (S_ISDIR(mode)) ? 2
                            : 0;
+#endif
+}
+
+// 1.7    Privileges
+//------------------------------------------------------------------------------
+
+#if defined(D_TESTING)
+#if (D_TESTING == 1)
+// d_internal_cli_system_pretend
+//   variable, testing builds: the answer d_cli_internal_privileged gives
+// instead of the system's, or -1 for the system's.
+static int d_internal_cli_system_pretend = -1;
+
+/*
+d_cli_internal_privileged_pretend
+  0 or 1 from now on; -1, the system's answer again.
+*/
+void d_cli_internal_privileged_pretend(
+    int _answer
+)
+{
+    d_internal_cli_system_pretend = ( (_answer == 0) ||
+                                      (_answer == 1) )
+                                    ? _answer
+                                    : -1;
+
+    return;
+}
+#endif  // D_TESTING
+#endif  // defined(D_TESTING)
+
+/*
+d_cli_internal_privileged
+  AT_SECURE where the C library gives it, which counts capabilities too;
+issetugid on the BSDs and Apple's; else the real IDs against the effective
+ones; never on Windows, where no caller's elevation is inherited.
+*/
+bool d_cli_internal_privileged(void)
+{
+#if defined(D_TESTING)
+#if (D_TESTING == 1)
+    if (d_internal_cli_system_pretend >= 0)
+    {
+        return (d_internal_cli_system_pretend == 1);
+    }
+#endif  // D_TESTING
+#endif  // defined(D_TESTING)
+
+#if ( (D_ENV_CLI_PRIVILEGE == D_ENV_CLI_PRIVILEGE_AUXVAL) &&                  \
+      (D_INTERNAL_CLI_SYSTEM_AUXVAL == 1) )
+    return (getauxval(AT_SECURE) != 0ul);
+#elif (D_ENV_CLI_PRIVILEGE == D_ENV_CLI_PRIVILEGE_ISSETUGID)
+    return (issetugid() != 0);
+#elif ( (D_ENV_CLI_PRIVILEGE == D_ENV_CLI_PRIVILEGE_IDS) ||                   \
+        (D_ENV_CLI_PRIVILEGE == D_ENV_CLI_PRIVILEGE_AUXVAL) )
+    return ( (getuid() != geteuid()) ||
+             (getgid() != getegid()) );
+#else
+    return false;
 #endif
 }

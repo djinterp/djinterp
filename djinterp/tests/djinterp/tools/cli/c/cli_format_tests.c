@@ -23,7 +23,7 @@
 * path:      /tests/djinterp/tools/cli/c/cli_format_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.22
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 #include "./cli_format_tests.h"  // corresponding header
 // std
@@ -586,7 +586,7 @@ static const struct dj_tests_cli_case PAGES[] =
       "                      of the page cannot hold it, so it is wrapped under its own\n"
       "                      column\n"
       "  help                display help for a command\n"
-      "  completion          print a completion script for a shell\n"
+      D_TESTS_CLI_COMPLETION_ROW
       "\n"
       "Making:\n"
       "  build               make everything the sheet describes\n"
@@ -811,8 +811,10 @@ static const struct dj_tests_cli_case NARROW[] =
       "                      own column\n"
       "  help                display help for a\n"
       "                      command\n"
+#if (D_INTERNAL_ARG_PARSER_COMPLETION == 1)
       "  completion          print a completion\n"
       "                      script for a shell\n"
+#endif
       "\n"
       "Making:\n"
       "  build               make everything\n"
@@ -949,7 +951,7 @@ static const struct dj_tests_cli_case WIDE[] =
       "  long                a command whose description is long enough that one line of the page cannot\n"
       "                      hold it, so it is wrapped under its own column\n"
       "  help                display help for a command\n"
-      "  completion          print a completion script for a shell\n"
+      D_TESTS_CLI_COMPLETION_ROW
       "\n"
       "Making:\n"
       "  build               make everything the sheet describes\n"

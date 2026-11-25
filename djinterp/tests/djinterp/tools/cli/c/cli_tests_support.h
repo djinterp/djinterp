@@ -24,11 +24,29 @@
 * returns whether it held, so that a section can make every check and look
 * once.
 *
+* HOW TO USE
+* ----------
+*   A suite file writes its cases as dj_tests_cli_case tables and a fixture
+* for each, and runs a table with d_tests_cli_cases_run; a check of its own
+* goes through D_TESTS_CLI_CHECK. Where the build leaves the parser's
+* `completion` command out, an expected help or usage error takes 1.4's
+* pieces in its place.
+*
+* OPTIONS
+* -------
+*   D_TESTS_CLI_DUMP, in the environment: each case also prints what it came
+* to, as the table entry that would hold it.
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_ARG_PARSER_COMPLETION decides 1.4's pieces; D_TESTING 1, the
+* kit's testing build, is what the suites are built in.
+*
 *
 * path:      /tests/djinterp/tools/cli/c/cli_tests_support.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.18
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 /*
@@ -46,6 +64,10 @@ TABLE OF CONTENTS
     3.  Cases
          1.  dj_tests_cli_make_fn
          2.  dj_tests_cli_case
+    4.  The parser's completion
+         1.  D_TESTS_CLI_COMPLETION_ROW
+         2.  D_TESTS_CLI_COMPLETION_WIDE
+         3.  D_TESTS_CLI_COMPLETION_NAMED
 2.  OPERATIONS
     ----------
     1.  Command lines
@@ -91,6 +113,7 @@ TABLE OF CONTENTS
 #include "../../../../../inc/djinterp/c/modules/parse/cli/arg_parser/arg_command.h"  // dj_arg_command
 #include "../../../../../inc/djinterp/c/modules/parse/cli/arg_parser/arg_common.h"  // dj_arg_buffer
 #include "../../../../../inc/djinterp/c/modules/parse/cli/arg_parser/arg_parser.h"  // dj_arg_parser
+#include "../../../../../inc/djinterp/config/c/modules/parse/cli/arg_parser/cfg_arg_parser.h"  // D_INTERNAL_ARG_PARSER_COMPLETION
 #include "../../../../../inc/djinterp/tools/cli/c/cli_program.h"  // dj_cli_program
 
 
@@ -160,6 +183,30 @@ struct dj_tests_cli_case
     const char* out;
     const char* err;
 };
+
+// 1.4    The parser's completion
+//------------------------------------------------------------------------------
+//   The `completion` command where a help lists the commands, at the
+// formatter's first column and at its widest, and at the end of the list of
+// commands a usage error gives; nothing, where the parser is built without
+// completion (D_CFG_ARG_PARSER_COMPLETION 0).
+#if (D_INTERNAL_ARG_PARSER_COMPLETION == 1)
+    // 1.4.1
+    // D_TESTS_CLI_COMPLETION_ROW
+    #define D_TESTS_CLI_COMPLETION_ROW                                         \
+        "  completion          print a completion script for a shell\n"
+    // 1.4.2
+    // D_TESTS_CLI_COMPLETION_WIDE
+    #define D_TESTS_CLI_COMPLETION_WIDE                                        \
+        "  completion                  print a completion script for a shell\n"
+    // 1.4.3
+    // D_TESTS_CLI_COMPLETION_NAMED
+    #define D_TESTS_CLI_COMPLETION_NAMED ", completion"
+#else
+    #define D_TESTS_CLI_COMPLETION_ROW   ""
+    #define D_TESTS_CLI_COMPLETION_WIDE  ""
+    #define D_TESTS_CLI_COMPLETION_NAMED ""
+#endif
 
 
 D_EXTERN_C_BEGIN

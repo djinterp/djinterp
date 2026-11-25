@@ -13,10 +13,12 @@
 * command says the program was built without them and exits 2; without
 * colour no stream is coloured; without the kit's layout help is the
 * argument parser's own.
-*   The plugin knobs of 1.4 are DEFAULTS: each sets what a program does
-* when nothing at run time says otherwise, and the program's own setting --
-* d_cli_program_set_plugin_path and d_cli_program_set_plugin_versions,
-* which the run-time options are read into - overrides it per run.
+*   The plugin knobs of 1.4, the shared file's of 1.5 and the privileged
+* run's of 1.6 are DEFAULTS: each sets what a program does when nothing at
+* run time says otherwise. The program's own say - d_cli_program_set_
+* plugin_path, _plugin_versions and _plugin_privileged - and the settings
+* of cli_settings.h, read from the user's file, the environment and the
+* command line, override it per run.
 *   targets:  the C headers in tools/cli/c/, their sources, and the C++ faces
 *             beside them -> D_INTERNAL_CLI_*
 *   requires: cfg_common.h; env_cli.h, for what the platform can do
@@ -24,22 +26,25 @@
 * HOW TO USE
 * ----------
 *   Define a knob before the kit's headers are included - on the compiler's
-* command line, as -DD_CFG_CLI_PLUGINS=0, so every unit sees the same --
-* and the kit reads the D_INTERNAL_CLI_* it resolves to. The kit's headers
-* include it; a program on the kit reads its D_INTERNAL_CLI_* through them.
+* command line, as -DD_CFG_CLI_PLUGINS=0, so that every unit sees the
+* same - and the kit reads the D_INTERNAL_CLI_* it resolves to. The kit's
+* headers include it; a program on the kit reads its D_INTERNAL_CLI_*
+* through them.
 *
 * OPTIONS
 * -------
 *   None: this header holds build-time knobs alone. The run-time settings
 * whose defaults they are - `cli.plugin_strict_version`,
-* `cli.plugin_search`, `plugin_path`, `cli.unknown_settings` and
-* `cli.shared_refusals` - are cli_settings.h's.
+* `cli.plugin_search`, `plugin_path`, `cli.unknown_settings`,
+* `cli.shared_refusals`, `cli.unknown_djin`, `cli.settings_sections` and
+* `cli.privileged_refuse` - are cli_settings.h's.
 *
 * CONFIGURATION
 * -------------
 *   Section 1's knobs: the parts compiled (D_CFG_CLI_PLUGINS, colour, the
 * kit's help layout, a Windows console's wide writes), help's widths, the
-* plugin defaults of 1.4, and what 1.5 says of the shared settings file.
+* plugin defaults of 1.4, what 1.5 says of the shared settings file, and
+* what 1.6 does in a run with privileges its caller lacks.
 * Each is checked where it is resolved, and a value it does not take is an
 * #error.
 *
@@ -47,7 +52,7 @@
 * path:      /inc/djinterp/config/tools/cli/cfg_cli.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.11.21
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 /*
@@ -73,7 +78,12 @@ TABLE OF CONTENTS
     5.  The shared settings file
          1.  D_CFG_CLI_UNKNOWN_SETTINGS
          2.  D_CFG_CLI_SHARED_REFUSALS
-    6.  Validation
+         3.  D_CFG_CLI_UNKNOWN_DJIN
+         4.  D_CFG_CLI_SETTINGS_SECTIONS
+    6.  Privileged runs
+         1.  D_CFG_CLI_PRIVILEGED_REFUSE
+         2.  D_CFG_CLI_PRIVILEGED_OPTION
+    7.  Validation
 2.  RESOLVED VALUES
     ---------------
     1.  Features
@@ -94,6 +104,10 @@ TABLE OF CONTENTS
              D_INTERNAL_CLI_FREE
     5.  Linkage
          1.  D_CLI_API
+    6.  Settings
+         1.  D_INTERNAL_CLI_SETTINGS_SECTIONS
+         2.  D_INTERNAL_CLI_PRIVILEGED_REFUSE
+         3.  D_INTERNAL_CLI_PRIVILEGED_OPTION
 */
 
 #ifndef DJINTERP_CONFIG_TOOLS_CLI_CFG_CLI_H
@@ -312,7 +326,71 @@ TABLE OF CONTENTS
     #define D_CFG_CLI_SHARED_REFUSALS    D_CLI_SHARED_REFUSALS_VERBOSE
 #endif  // D_CFG_CLI_SHARED_REFUSALS
 
-// 1.6    Validation
+// 1.5.3
+// D_CLI_UNKNOWN_DJIN_*, D_CFG_CLI_UNKNOWN_DJIN
+//   knob: the default of `cli.unknown_djin`, how a program tells that a
+// setting's name names a djin it does not register - the line another
+// program's, which 1.5.1 says nothing of at its default - from a name it
+// should know:
+//     D_CLI_UNKNOWN_DJIN_REASON  the registry's own reason: the name's first
+//                                part names no djin, and the root takes it
+//                                neither as a name nor as a scope
+//                                (option_env's D_OPTION_ENV_REASON_FRAME);
+//     D_CLI_UNKNOWN_DJIN_LOOKUP  the kit's own lookup: no djin registered
+//                                here has the name's first part, whatever
+//                                the root takes.
+// The two differ only for a first part the root takes as a scope: REASON
+// counts such a name as one the program should know, LOOKUP as another
+// program's. Default D_CLI_UNKNOWN_DJIN_REASON.
+#define D_CLI_UNKNOWN_DJIN_REASON  0
+#define D_CLI_UNKNOWN_DJIN_LOOKUP  1
+
+#ifndef D_CFG_CLI_UNKNOWN_DJIN
+    #define D_CFG_CLI_UNKNOWN_DJIN       D_CLI_UNKNOWN_DJIN_REASON
+#endif  // D_CFG_CLI_UNKNOWN_DJIN
+
+// 1.5.4
+// D_CFG_CLI_SETTINGS_SECTIONS
+//   knob: the default of `cli.settings_sections`, whether the user's file
+// is read in sections: 1 (the default), a line `[PROGRAM]` begins the lines
+// for the program of that name alone, which every other program passes
+// over, and `[*]` the lines for every program again; the lines before the
+// first are every program's, so a file with no section is read as one
+// without sections. 0: no line is a section's, and `[PROGRAM]` is a
+// statement the file cannot take.
+#ifndef D_CFG_CLI_SETTINGS_SECTIONS
+    #define D_CFG_CLI_SETTINGS_SECTIONS  1
+#endif  // D_CFG_CLI_SETTINGS_SECTIONS
+
+// 1.6    Privileged runs
+//------------------------------------------------------------------------------
+// 1.6.1
+// D_CFG_CLI_PRIVILEGED_REFUSE
+//   knob: the default of `cli.privileged_refuse`, whether a run with
+// privileges its caller lacks - a set-user-ID or set-group-ID program, or
+// one given capabilities (AT_SECURE; issetugid) - refuses to let its caller
+// choose the modules it loads: 1 (the default), the plugin settings,
+// `cli.plugin_search` and `plugin_path`, refuse the user's file, the
+// environment and the command line in such a run, as at
+// D_CFG_CLI_PLUGIN_VARIABLE 0, whatever that knob says; 0, they take them.
+// An ordinary run is never changed. Where the platform cannot tell
+// (D_ENV_CLI_PRIVILEGE_NONE), no run is privileged.
+#ifndef D_CFG_CLI_PRIVILEGED_REFUSE
+    #define D_CFG_CLI_PRIVILEGED_REFUSE  1
+#endif  // D_CFG_CLI_PRIVILEGED_REFUSE
+
+// 1.6.2
+// D_CFG_CLI_PRIVILEGED_OPTION
+//   knob: 1 (the default) declares the setting `cli.privileged_refuse`,
+// whose default is 1.6.1's, so that a program can choose at run time; in
+// a privileged run its row refuses the caller's sources too, so only the
+// program (d_cli_program_set_plugin_privileged) can change it. 0 compiles
+// the setting out, 1.6.1 alone deciding.
+#ifndef D_CFG_CLI_PRIVILEGED_OPTION
+    #define D_CFG_CLI_PRIVILEGED_OPTION  1
+#endif  // D_CFG_CLI_PRIVILEGED_OPTION
+
+// 1.7    Validation
 //------------------------------------------------------------------------------
 #if !D_CFG_IS_BOOL(D_CFG_CLI_PLUGINS)
     #error "cfg_cli: D_CFG_CLI_PLUGINS must be 0 or 1"
@@ -346,6 +424,23 @@ TABLE OF CONTENTS
 #if ( (D_CFG_NORM(D_CFG_CLI_SHARED_REFUSALS) < 0) ||                          \
       (D_CFG_NORM(D_CFG_CLI_SHARED_REFUSALS) > 3) )
     #error "cfg_cli: D_CFG_CLI_SHARED_REFUSALS must lie in [0, 3]"
+#endif
+
+#if ( (D_CFG_NORM(D_CFG_CLI_UNKNOWN_DJIN) < 0) ||                             \
+      (D_CFG_NORM(D_CFG_CLI_UNKNOWN_DJIN) > 1) )
+    #error "cfg_cli: D_CFG_CLI_UNKNOWN_DJIN must be 0 or 1"
+#endif
+
+#if !D_CFG_IS_BOOL(D_CFG_CLI_SETTINGS_SECTIONS)
+    #error "cfg_cli: D_CFG_CLI_SETTINGS_SECTIONS must be 0 or 1"
+#endif
+
+#if !D_CFG_IS_BOOL(D_CFG_CLI_PRIVILEGED_REFUSE)
+    #error "cfg_cli: D_CFG_CLI_PRIVILEGED_REFUSE must be 0 or 1"
+#endif
+
+#if !D_CFG_IS_BOOL(D_CFG_CLI_PRIVILEGED_OPTION)
+    #error "cfg_cli: D_CFG_CLI_PRIVILEGED_OPTION must be 0 or 1"
 #endif
 
 #if ( (D_CFG_NORM(D_CFG_CLI_HELP_WIDTH) < 40) ||                              \
@@ -482,6 +577,28 @@ D_CFG_CLI_HELP_WIDTH - 20]"
 #else
     #define D_CLI_API
 #endif
+
+// 2.6    Settings
+//------------------------------------------------------------------------------
+// 2.6.1
+// D_INTERNAL_CLI_SETTINGS_SECTIONS
+//   resolved: 1 when the user's file is read in sections, unless a run's
+// `cli.settings_sections` says otherwise.
+#define D_INTERNAL_CLI_SETTINGS_SECTIONS                                       \
+    D_CFG_NORM(D_CFG_CLI_SETTINGS_SECTIONS)
+
+// 2.6.2
+// D_INTERNAL_CLI_PRIVILEGED_REFUSE
+//   resolved: 1 when a privileged run refuses its caller the plugin
+// settings, unless the program says otherwise.
+#define D_INTERNAL_CLI_PRIVILEGED_REFUSE                                       \
+    D_CFG_NORM(D_CFG_CLI_PRIVILEGED_REFUSE)
+
+// 2.6.3
+// D_INTERNAL_CLI_PRIVILEGED_OPTION
+//   resolved: 1 when `cli.privileged_refuse` is declared.
+#define D_INTERNAL_CLI_PRIVILEGED_OPTION                                       \
+    D_CFG_NORM(D_CFG_CLI_PRIVILEGED_OPTION)
 
 
 #endif  // DJINTERP_CONFIG_TOOLS_CLI_CFG_CLI_H

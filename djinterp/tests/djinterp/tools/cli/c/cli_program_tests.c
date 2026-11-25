@@ -26,7 +26,7 @@
 * path:      /tests/djinterp/tools/cli/c/cli_program_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 #include "./cli_program_tests.h"  // corresponding header
 // std
@@ -644,7 +644,7 @@ static const char HELP_ROOT[] =
     "  fail                end with a usage error of its own\n"
     "  open                read a file\n"
     "  help                display help for a command\n"
-    "  completion          print a completion script for a shell\n"
+    D_TESTS_CLI_COMPLETION_ROW
     "\n"
     "Options:\n"
     "  -q, --quiet         say nothing but errors\n"
@@ -844,7 +844,7 @@ static const struct dj_tests_cli_case COMMANDS[] =
       "",
       "prog: error: a command is required\n"
       "Usage: prog [OPTION]... COMMAND [ARGUMENT]...\n"
-      "Commands: show, check, group, fail, open, help, completion\n"
+      "Commands: show, check, group, fail, open, help" D_TESTS_CLI_COMPLETION_NAMED "\n"
       "Try 'prog --help' for more information.\n" },
     { "C13", "prog fail", 2,
       "",
@@ -890,6 +890,7 @@ static const struct dj_tests_cli_case STANDARD[] =
     { "S06", "prog help --help", 0,
       HELP_HELP,
       "" },
+#if (D_INTERNAL_ARG_PARSER_COMPLETION == 1)
     { "S07", "prog completion", 2,
       "",
       "prog: error: completion: SHELL is required\n"
@@ -898,6 +899,12 @@ static const struct dj_tests_cli_case STANDARD[] =
       "",
       "prog: error: completion: 'tcsh' is not a shell: bash, zsh, fish or powershell\n"
       "Try 'prog completion --help' for more information.\n" }
+#else
+    { "S07", "prog completion", 2,
+      "",
+      "prog: error: 'completion' is not a command\n"
+      "Try 'prog --help' for more information.\n" }
+#endif
 };
 
 // OPTIONS
@@ -1268,7 +1275,7 @@ static const struct dj_tests_cli_case REPEATS[] =
       "",
       "prog: error: a command is required\n"
       "Usage: prog [OPTION]... COMMAND [ARGUMENT]...\n"
-      "Commands: show, check, group, fail, open, pick, help, completion\n"
+      "Commands: show, check, group, fail, open, pick, help" D_TESTS_CLI_COMPLETION_NAMED "\n"
       "Try 'prog --help' for more information.\n" }
 };
 
@@ -1399,7 +1406,7 @@ static const struct dj_tests_cli_case PLAIN[] =
       "",
       "prog: a command is required\n"
       "Usage: prog [OPTION]... COMMAND [ARGUMENT]...\n"
-      "Commands: show, check, group, fail, open, help, completion\n"
+      "Commands: show, check, group, fail, open, help" D_TESTS_CLI_COMPLETION_NAMED "\n"
       "Try 'prog --help' for more information.\n" },
     { "Q05", "prog --color=always frob", 2,
       "",
@@ -1552,7 +1559,7 @@ static const struct dj_tests_cli_case LAYOUT[] =
       "  fail                        end with a usage error of its own\n"
       "  open                        read a file\n"
       "  help                        display help for a command\n"
-      "  completion                  print a completion script for a shell\n",
+      D_TESTS_CLI_COMPLETION_WIDE,
       "" },
     { "Y02", "prog show --help", 0,
       "list what a sheet holds\n"
@@ -1599,7 +1606,7 @@ static const struct dj_tests_cli_case LAYOUT[] =
       "",
       "prog: error: a command is required\n"
       "Usage: prog [OPTIONS] [SUBCOMMAND]\n"
-      "Commands: show, check, group, fail, open, help, completion\n"
+      "Commands: show, check, group, fail, open, help" D_TESTS_CLI_COMPLETION_NAMED "\n"
       "Try 'prog --help' for more information.\n" },
     { "Y05", "prog frob", 2,
       "",
@@ -1626,7 +1633,7 @@ static const char HELP_RESPONDING[] =
     "  fail                end with a usage error of its own\n"
     "  open                read a file\n"
     "  help                display help for a command\n"
-    "  completion          print a completion script for a shell\n"
+    D_TESTS_CLI_COMPLETION_ROW
     "\n"
     "Options:\n"
     "  -q, --quiet         say nothing but errors\n"
@@ -1741,7 +1748,7 @@ static const struct dj_tests_cli_case RESPONDING_LAYOUT[] =
       "  fail                        end with a usage error of its own\n"
       "  open                        read a file\n"
       "  help                        display help for a command\n"
-      "  completion                  print a completion script for a shell\n",
+      D_TESTS_CLI_COMPLETION_WIDE,
       "" },
     { "R07", "prog help group one", 0,
       "the group's first command\n"
@@ -1944,6 +1951,7 @@ bool d_tests_cli_making_standard(void)
                                               &status);
     const size_t after  = parser.command.subcommands.count;
 
+#if (D_INTERNAL_ARG_PARSER_COMPLETION == 1)
     held = D_TESTS_CLI_CHECK( (!ended)                                &&
                               (status == -1)                          &&
                               (after == before + 2u)                  &&
@@ -1955,6 +1963,17 @@ bool d_tests_cli_making_standard(void)
                               "M05",
                               "help and completion, last, at the first "
                               "parse") && held;
+#else
+    // a parser without completion: help alone
+    held = D_TESTS_CLI_CHECK( (!ended)                                &&
+                              (status == -1)                          &&
+                              (after == before + 1u)                  &&
+                              (program.help_command ==
+                               parser.command.subcommands.items[before]) &&
+                              (program.completion_command == NULL),
+                              "M05",
+                              "help, last, at the first parse") && held;
+#endif
     (void)d_cli_program_parse(&program,
                               3,
                               argv,
@@ -2408,6 +2427,7 @@ bool d_tests_cli_program_commands(void)
 // 4.  STANDARD COMMANDS
 //==============================================================================
 
+#if (D_INTERNAL_ARG_PARSER_COMPLETION == 1)
 /**
  * @brief Runs `prog completion SHELL` and checks it wrote a script that
  *        names the program and its commands, and nothing on the error
@@ -2465,6 +2485,7 @@ bool d_tests_cli_completion(
 
     return held;
 }
+#endif
 
 /*
 d_tests_cli_program_standard
