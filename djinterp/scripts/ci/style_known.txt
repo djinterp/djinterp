@@ -320,10 +320,10 @@ inc/djinterp/c/modules/net/ssh/ssh_known_hosts.h	H	1
 inc/djinterp/c/modules/net/ssh/ssh_libssh2.h	H	1
 inc/djinterp/c/modules/net/ssh/ssh_session.h	H	1
 inc/djinterp/c/modules/net/ssh/ssh_wire.h	H	1
-inc/djinterp/c/modules/net/ssl/ssl.h	H	1
-inc/djinterp/c/modules/net/ssl/ssl_openssl.h	H	1
 inc/djinterp/c/modules/net/starttls/starttls.h	H	1
 inc/djinterp/c/modules/net/tcp/tcp.h	H	1
+inc/djinterp/c/modules/net/tls/tls.h	H	1
+inc/djinterp/c/modules/net/tls/tls_openssl.h	H	1
 inc/djinterp/c/modules/parse/charset.h	H	1
 inc/djinterp/c/modules/parse/diagnostic.h	H	1
 inc/djinterp/c/modules/parse/expr/expr.h	H	1
@@ -502,9 +502,9 @@ inc/djinterp/config/c/modules/net/http/cfg_http.h	H	1
 inc/djinterp/config/c/modules/net/pop/cfg_pop.h	H	1
 inc/djinterp/config/c/modules/net/sftp/cfg_sftp.h	H	1
 inc/djinterp/config/c/modules/net/ssh/cfg_ssh.h	H	1
-inc/djinterp/config/c/modules/net/ssl/cfg_ssl.h	H	1
 inc/djinterp/config/c/modules/net/starttls/cfg_starttls.h	H	1
 inc/djinterp/config/c/modules/net/tcp/cfg_tcp.h	H	1
+inc/djinterp/config/c/modules/net/tls/cfg_tls.h	H	1
 inc/djinterp/config/c/modules/parse/cfg_parse.h	H	1
 inc/djinterp/config/c/modules/parse/cli/arg_parser/cfg_arg_parser.h	H	1
 inc/djinterp/config/c/modules/parsegen/cfg_parsegen.h	H	1

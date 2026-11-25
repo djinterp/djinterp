@@ -15,8 +15,8 @@ src/djinterp/c/modules/db/postgres/postgres_protocol.c	2
 src/djinterp/c/modules/net/ssh/ssh_key.c	1
 src/djinterp/c/modules/net/ssh/ssh_known_hosts.c	2
 src/djinterp/c/modules/net/ssh/ssh_session.c	2
-src/djinterp/c/modules/net/ssl/ssl_openssl.c	2
 src/djinterp/c/modules/net/tcp/tcp.c	3
+src/djinterp/c/modules/net/tls/tls_openssl.c	2
 src/djinterp/c/modules/parse/cli/arg_parser/arg_parser.c	1
 src/djinterp/c/modules/parse/cli/arg_parser/arg_system.c	5
 src/djinterp/c/option/option_env.c	1

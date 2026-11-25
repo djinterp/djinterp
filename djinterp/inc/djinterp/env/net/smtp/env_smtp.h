@@ -12,7 +12,7 @@
 *     - rolled-up capabilities: connecting, serving, and TLS            [1]
 *   Like env_ssl.h, it answers "is this present to call?", never "will the
 * peer agree?": whether a server offers STARTTLS is a runtime fact, and so
-* is whether an engine was compiled in, which d_ssl_engine_openssl reports.
+* is whether an engine was compiled in, which d_tls_engine_openssl reports.
 *   Naming: D_ENV_SMTP_CAN_<ACTION> is 1 if the action can run here, 0
 * otherwise.
 *   Every flag is #ifndef-guarded, so a project may pre-define any

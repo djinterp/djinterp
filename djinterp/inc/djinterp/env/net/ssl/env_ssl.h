@@ -9,9 +9,9 @@
 *     - the OpenSSL-family API surface, version-gated                   [3]
 *     - the platform trust store and its candidate CA locations         [4]
 *     - rolled-up capability summaries (CAN_OPENSSL, AVAILABLE)         [5]
-*   The common kernel, net/ssl/ssl.h, links no TLS library and needs none
+*   The common kernel, net/tls/tls.h, links no TLS library and needs none
 * of this to build; these flags gate the engines derived from it, by way of
-* the D_CFG_SSL_* defaults in cfg_ssl.h.
+* the D_CFG_TLS_* defaults in cfg_tls.h.
 *   Naming: D_ENV_SSL_HAS_<FEATURE> is 1 if available, 0 otherwise;
 * D_ENV_SSL_<FEATURE> is a non-boolean detected value or identifier.
 *   Every flag is #ifndef-guarded, so a project may pre-define any
@@ -118,7 +118,7 @@ TABLE OF CONTENTS
 // 2.1.1
 // D_ENV_SSL_BACKEND
 //   value: the preferred TLS library, as a D_ENV_TLS_BACKEND_* identifier.
-// The kernel's enum dj_ssl_backend uses the same values, and ssl.c asserts it.
+// The kernel's enum dj_tls_backend uses the same values, and tls.c asserts it.
 #ifndef D_ENV_SSL_BACKEND
     #define D_ENV_SSL_BACKEND D_ENV_TLS_BACKEND
 #endif  // D_ENV_SSL_BACKEND
@@ -309,7 +309,7 @@ TABLE OF CONTENTS
 // family keeps them in PEM files whose location varies by distribution. An
 // engine whose library already knows the platform store uses it; one that
 // does not (an embedded library, say) probes the candidate files below, which
-// the kernel exposes at run time through d_ssl_ca_file_candidates.
+// the kernel exposes at run time through d_tls_ca_file_candidates.
 //   The lists follow the ones Go's crypto/x509 has converged on. They are
 // candidates, not facts: a path is only worth opening if it exists on the
 // target, which only the target can tell.
@@ -466,9 +466,9 @@ TABLE OF CONTENTS
 // 5.  CAPABILITY SUMMARIES
 //==============================================================================
 // What the SSL modules can do on this target. None of these gate the common
-// kernel (net/ssl/ssl.h), which is library-free and builds anywhere; they gate
-// the engines derived from it, by way of the D_CFG_SSL_* defaults in
-// cfg_ssl.h. As engines for further libraries arrive, each adds a CAN_ flag
+// kernel (net/tls/tls.h), which is library-free and builds anywhere; they gate
+// the engines derived from it, by way of the D_CFG_TLS_* defaults in
+// cfg_tls.h. As engines for further libraries arrive, each adds a CAN_ flag
 // here and joins D_ENV_SSL_AVAILABLE.
 
 

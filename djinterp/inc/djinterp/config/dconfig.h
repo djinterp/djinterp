@@ -144,7 +144,7 @@
 #include "djinterp/config/c/modules/net/curl/cfg_curl.h"      // libcurl
 #include "djinterp/config/c/modules/net/pop/cfg_pop.h"        // POP3
 #include "djinterp/config/c/modules/net/ssh/cfg_ssh.h"        // SSH
-#include "djinterp/config/c/modules/net/ssl/cfg_ssl.h"        // SSL/TLS
+#include "djinterp/config/c/modules/net/tls/cfg_tls.h"        // TLS
 #include "djinterp/config/c/modules/net/starttls/cfg_starttls.h"  // STARTTLS
 #include "djinterp/config/c/modules/net/tcp/cfg_tcp.h"        // TCP transport
 #include "djinterp/config/c/modules/net/http/cfg_http.h"      // HTTP
