@@ -16,7 +16,8 @@
 *     - parametric curves and surfaces  (parametric_curve / parametric_surface);
 *     - implicit functions and level sets  (implicit / level_set);
 *     - math_function, the callable top-level wrapper, with scalar-pack,
-*       std::array, and std::tuple evaluation; and
+*       std::array, std::tuple and linalg::vector evaluation, the last a
+*       coordinate system's point; and
 *     - the system-aware builder  function(system).of(...).returns(EXPR).
 *
 * Unlike the original (compile-time-only, static evaluate), every form here
@@ -31,26 +32,42 @@
 *     Vector-valued:  static constexpr bool is_vector_valued  = true;  output_dimension
 *     Named function: static constexpr bool is_math_function  = true;
 *
+* LEVELS (step 30, 5b)
+*   C++11 is the floor, as for expression.hpp, and the header is empty below
+* it. From C++11 every form, its operators and the builder are as above, and
+* each is a constant expression wherever its operands' evaluation is: each
+* constexpr function is one return, the index sequences re_std's. The _v
+* variable templates are from C++14, where variable templates are.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/function/function.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.06
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.22
 *******************************************************************************/
 
 #ifndef DJINTERP_MATH_FUNCTION_FUNCTION_HPP
 #define DJINTERP_MATH_FUNCTION_FUNCTION_HPP 1
 
-// std
-#include <array>
-#include <cstddef>
-#include <tuple>
-#include <type_traits>
-#include <utility>
 // djinterp
-#include "../../../djinterp.hpp"
-#include "../expression.hpp"
-#include "../coordinate/coordinate.hpp"
+#include "../../../djinterp.hpp"  // framework root
+
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
+// std
+#include <array>        // std::array
+#include <cstddef>      // std::size_t
+#include <tuple>        // std::tuple, std::get, std::tuple_size
+#include <type_traits>  // std::enable_if, std::decay, std::integral_constant
+// djinterp
+#include "../expression.hpp"             // expressions
+#include "../coordinate/coordinate.hpp"  // is_coord_system
+#include "../linear_algebra/vector.hpp"  // linalg::vector, a system's point
+// re_std
+#include "../../../../../re_std/cpp/utility/integer_sequence.hpp"       // index_
+                                                                        // sequence
+#include "../../../../../re_std/cpp/utility/make_integer_sequence.hpp"  // make_index_
+                                                                        // sequence
 
 
 NS_DJINTERP
@@ -62,11 +79,19 @@ NS_MATH
 
 NS_INTERNAL
 
-    // void_t
+    // make_void / void_t
     //   alias: maps any type list to void (detection idiom). std::void_t is
-    // C++17; this keeps the header usable from C++14.
+    // C++17; this keeps the header usable from C++11. The alias names a
+    // member of a class template, so that an ill-formed argument is a
+    // substitution failure under every compiler (CWG 1558).
     template<typename...>
-    using void_t = void;
+    struct make_void
+    {
+        typedef void type;
+    };
+
+    template<typename... _Types>
+    using void_t = typename make_void<_Types...>::type;
 
     // max_size_t
     //   meta: compile-time maximum of a pack of std::size_t (0 for empty).
@@ -94,10 +119,10 @@ NS_INTERNAL
                 : max_size_t<_Rest...>::value;
     };
 
-    // is_std_array / is_std_tuple / first_is_container
-    //   traits: recognise std::array and std::tuple, and detect the
-    // "single container argument" case used to disambiguate math_function's
-    // scalar-pack operator() from its array/tuple overloads.
+    // is_std_array / is_std_tuple / is_linalg_vector / first_is_container
+    //   traits: recognise std::array, std::tuple and linalg::vector, and
+    // detect the "single container argument" case used to disambiguate
+    // math_function's scalar-pack operator() from its container overloads.
     template<typename>
     struct is_std_array : std::false_type {};
 
@@ -110,6 +135,12 @@ NS_INTERNAL
     template<typename... _T>
     struct is_std_tuple<std::tuple<_T...>> : std::true_type {};
 
+    template<typename>
+    struct is_linalg_vector : std::false_type {};
+
+    template<typename _T, std::size_t _N>
+    struct is_linalg_vector<linalg::vector<_T, _N>> : std::true_type {};
+
     template<typename... _Args>
     struct first_is_container : std::false_type {};
 
@@ -118,7 +149,8 @@ NS_INTERNAL
         : std::integral_constant<bool,
               (sizeof...(_Rest) == 0) &&
               ( is_std_array<typename std::decay<_First>::type>::value ||
-                is_std_tuple<typename std::decay<_First>::type>::value )>
+                is_std_tuple<typename std::decay<_First>::type>::value ||
+                is_linalg_vector<typename std::decay<_First>::type>::value )>
     {
     };
 
@@ -158,9 +190,9 @@ NS_INTERNAL
     D_CONSTEXPR std::array<double, sizeof...(_Is)>
     eval_components
     (
-        const _Tuple&             _components,
-        std::index_sequence<_Is...>,
-        _Args&&...                _args
+        const _Tuple&                  _components,
+        re_std::index_sequence<_Is...>,
+        _Args&&...                     _args
     )
     {
         return std::array<double, sizeof...(_Is)>{{
@@ -175,10 +207,22 @@ NS_END  // internal
 // II.   DETECTION TRAITS  (folded in from function_traits.hpp)
 // ============================================================================
 
+// D_DETECT_MARKER_V
+//   defines TRAIT##_v, the variable template of a trait, where variable
+// templates exist (C++14); nothing below.
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    #define D_DETECT_MARKER_V(TRAIT)                                            \
+        template<typename _T>                                                   \
+        D_INLINE_VAR constexpr bool TRAIT##_v = TRAIT<_T>::value;
+#else
+    #define D_DETECT_MARKER_V(TRAIT)
+#endif
+
 // D_DETECT_MARKER
-//   defines a trait TRAIT<T> (plus TRAIT##_v) that is true when T carries a
-// static constexpr member MEMBER whose value is true. This reproduces the
-// marker-member detection contract of the original function_traits.hpp.
+//   defines a trait TRAIT<T> (plus TRAIT##_v from C++14) that is true when T
+// carries a static constexpr member MEMBER whose value is true. This
+// reproduces the marker-member detection contract of the original
+// function_traits.hpp.
 #define D_DETECT_MARKER(TRAIT, MEMBER)                                          \
     NS_INTERNAL                                                                 \
     template<typename _T, typename = void>                                      \
@@ -193,8 +237,7 @@ NS_END  // internal
     NS_END                                                                      \
     template<typename _T>                                                       \
     struct TRAIT : internal::TRAIT##_impl<typename std::decay<_T>::type> {};    \
-    template<typename _T>                                                       \
-    D_INLINE_VAR constexpr bool TRAIT##_v = TRAIT<_T>::value;
+    D_DETECT_MARKER_V(TRAIT)
 
 D_DETECT_MARKER(is_inequality,        is_inequality)
 D_DETECT_MARKER(is_piecewise,         is_piecewise)
@@ -307,16 +350,18 @@ struct relation_node
                                        !is_expression<_S>::value ), int>::type = 0> \
     D_CONSTEXPR auto operator SYM (_L _l, _S _s) noexcept                       \
         -> relation_node<internal::TAG, _L, decltype(internal::as_expr(_s))>    \
-    { auto r = internal::as_expr(_s);                                           \
-      return relation_node<internal::TAG, _L, decltype(r)>(_l, r); }            \
+    { return relation_node<internal::TAG, _L,                                   \
+                           decltype(internal::as_expr(_s))>(                    \
+                 _l, internal::as_expr(_s)); }                                  \
                                                                                 \
     template<typename _S, typename _R,                                          \
              typename std::enable_if<( !is_expression<_S>::value &&             \
                                        is_expression<_R>::value ), int>::type = 0> \
     D_CONSTEXPR auto operator SYM (_S _s, _R _r) noexcept                       \
         -> relation_node<internal::TAG, decltype(internal::as_expr(_s)), _R>    \
-    { auto l = internal::as_expr(_s);                                           \
-      return relation_node<internal::TAG, decltype(l), _R>(l, _r); }
+    { return relation_node<internal::TAG,                                       \
+                           decltype(internal::as_expr(_s)), _R>(                \
+                 internal::as_expr(_s), _r); }
 
 D_EXPR_RELATION_OP(<,  rel_lt)
 D_EXPR_RELATION_OP(<=, rel_le)
@@ -497,8 +542,8 @@ auto when(
     _Body _b
 ) noexcept -> piece_t<_Cond, decltype(internal::as_expr(_b))>
 {
-    auto b = internal::as_expr(_b);
-    return piece_t<_Cond, decltype(b)>(_c, b);
+    return piece_t<_Cond, decltype(internal::as_expr(_b))>(
+        _c, internal::as_expr(_b));
 }
 
 // otherwise
@@ -509,8 +554,8 @@ auto otherwise(
     _Body _b
 ) noexcept -> piece_t<always_true_node, decltype(internal::as_expr(_b))>
 {
-    auto b = internal::as_expr(_b);
-    return piece_t<always_true_node, decltype(b)>(always_true_node{}, b);
+    return piece_t<always_true_node, decltype(internal::as_expr(_b))>(
+        always_true_node{}, internal::as_expr(_b));
 }
 
 NS_INTERNAL
@@ -518,18 +563,17 @@ NS_INTERNAL
     // pw_run
     //   evaluates the first branch whose predicate holds; the final branch is
     // the fallback (its predicate is not tested). Two overloads, selected by
-    // whether the index is the last, keep this C++14-clean (no if constexpr).
+    // whether the index is the last, keep this C++11-clean (no if constexpr),
+    // each one return.
     template<std::size_t _I, typename _Value, typename _Tuple, typename... _Args,
              typename std::enable_if<
                  (_I + 1 < std::tuple_size<typename std::decay<_Tuple>::type>::value),
                  int>::type = 0>
     D_CONSTEXPR _Value pw_run(const _Tuple& _t, _Args&&... _a)
     {
-        if (std::get<_I>(_t).test(_a...))
-        {
-            return static_cast<_Value>(std::get<_I>(_t).body(_a...));
-        }
-        return pw_run<_I + 1, _Value>(_t, _a...);
+        return std::get<_I>(_t).test(_a...)
+                   ? static_cast<_Value>(std::get<_I>(_t).body(_a...))
+                   : pw_run<_I + 1, _Value>(_t, _a...);
     }
 
     template<std::size_t _I, typename _Value, typename _Tuple, typename... _Args,
@@ -606,7 +650,7 @@ struct vector_node
     {
         return internal::eval_components(
             components,
-            std::make_index_sequence<sizeof...(_Components)>{},
+            re_std::make_index_sequence<sizeof...(_Components)>{},
             _args...);
     }
 };
@@ -664,7 +708,7 @@ struct parametric_node
     {
         return internal::eval_components(
             components,
-            std::make_index_sequence<sizeof...(_Components)>{},
+            re_std::make_index_sequence<sizeof...(_Components)>{},
             _args...);
     }
 };
@@ -728,8 +772,7 @@ struct implicit_node
         _Args&&... _args
     ) const noexcept
     {
-        value_type v = expr(_args...);
-        return (v > -_epsilon) && (v < _epsilon);
+        return within(expr(_args...), _epsilon);
     }
 
     // sign
@@ -740,9 +783,31 @@ struct implicit_node
         _Args&&... _args
     ) const noexcept
     {
-        value_type v = expr(_args...);
-        return (v < static_cast<value_type>(0)) ? -1
-             : (v > static_cast<value_type>(0)) ?  1
+        return sign_of(expr(_args...));
+    }
+
+private:
+    // within
+    //   whether a residual lies strictly inside (-epsilon, epsilon); the
+    // residual is evaluated once, by the caller.
+    static D_CONSTEXPR
+    bool within(
+        value_type _v,
+        value_type _epsilon
+    ) noexcept
+    {
+        return (_v > -_epsilon) && (_v < _epsilon);
+    }
+
+    // sign_of
+    //   -1, 0, or +1: a residual's sign.
+    static D_CONSTEXPR
+    int sign_of(
+        value_type _v
+    ) noexcept
+    {
+        return (_v < static_cast<value_type>(0)) ? -1
+             : (_v > static_cast<value_type>(0)) ?  1
              :                                      0;
     }
 };
@@ -760,8 +825,8 @@ auto level_set(
     _Level _level
 ) noexcept -> implicit_node<decltype(_e - internal::as_expr(_level))>
 {
-    auto residual = _e - internal::as_expr(_level);
-    return implicit_node<decltype(residual)>(residual);
+    return implicit_node<decltype(_e - internal::as_expr(_level))>(
+        _e - internal::as_expr(_level));
 }
 
 
@@ -824,9 +889,10 @@ namespace spherical_axes
 
 // math_function
 //   the callable top-level wrapper: an expression bound to a coordinate
-// system and a declared arity. Evaluable from a scalar pack, a std::array, or
-// a std::tuple (the latter two explode into the pack), so a coordinate point
-// - which is just the system's point_type, a std::array - evaluates directly.
+// system and a declared arity. Evaluable from a scalar pack, a std::array, a
+// std::tuple or a linalg::vector (the latter three explode into the pack), so
+// a coordinate point - the system's point_type, a linalg::vector --
+// evaluates directly.
 template<typename _System, typename _Expr, std::size_t _Arity>
 struct math_function
 {
@@ -844,8 +910,8 @@ struct math_function
     D_CONSTEXPR math_function(_System _s, _Expr _e) noexcept
         : system(_s), expr(_e) {}
 
-    // scalar pack - excluded for a single array/tuple argument so the
-    // dedicated overloads below win unambiguously.
+    // scalar pack - excluded for a single array, tuple or vector argument
+    // so the dedicated overloads below win unambiguously.
     template<typename... _Args,
              typename std::enable_if<
                  !internal::first_is_container<_Args...>::value, int>::type = 0>
@@ -855,22 +921,33 @@ struct math_function
     // std::array of coordinates
     template<typename _T, std::size_t _N>
     D_CONSTEXPR value_type operator()(const std::array<_T, _N>& _point) const noexcept
-    { return eval_array(_point, std::make_index_sequence<_N>{}); }
+    { return eval_array(_point, re_std::make_index_sequence<_N>{}); }
 
     // std::tuple of coordinates
     template<typename... _TArgs>
     D_CONSTEXPR value_type operator()(const std::tuple<_TArgs...>& _point) const noexcept
-    { return eval_tuple(_point, std::make_index_sequence<sizeof...(_TArgs)>{}); }
+    { return eval_tuple(_point,
+                        re_std::make_index_sequence<sizeof...(_TArgs)>{}); }
+
+    // linalg::vector of coordinates: a coordinate system's point
+    template<typename _T, std::size_t _N>
+    D_CONSTEXPR value_type
+    operator()(const linalg::vector<_T, _N>& _point) const noexcept
+    { return eval_array(_point, re_std::make_index_sequence<_N>{}); }
 
 private:
-    template<typename _T, std::size_t _N, std::size_t... _Is>
+    // eval_array
+    //   explodes an indexable point (a std::array or a linalg::vector).
+    template<typename _Point, std::size_t... _Is>
     D_CONSTEXPR value_type
-    eval_array(const std::array<_T, _N>& _p, std::index_sequence<_Is...>) const noexcept
+    eval_array(const _Point&                  _p,
+               re_std::index_sequence<_Is...>) const noexcept
     { return expr(_p[_Is]...); }
 
     template<typename _Tuple, std::size_t... _Is>
     D_CONSTEXPR value_type
-    eval_tuple(const _Tuple& _p, std::index_sequence<_Is...>) const noexcept
+    eval_tuple(const _Tuple&                  _p,
+               re_std::index_sequence<_Is...>) const noexcept
     { return expr(std::get<_Is>(_p)...); }
 };
 
@@ -935,10 +1012,13 @@ D_CONSTEXPR function_builder<_System> function(_System _s) noexcept
 
 
 #undef D_DETECT_MARKER
+#undef D_DETECT_MARKER_V
 #undef D_EXPR_RELATION_OP
 
 NS_END  // math
 NS_END  // djinterp
 
+
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 #endif  // DJINTERP_MATH_FUNCTION_FUNCTION_HPP

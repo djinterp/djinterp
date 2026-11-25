@@ -40,8 +40,9 @@ complex matrices' products and solve too, in the C core and both faces
 (S409).
 `eigenvalues_qr` and `general_eigen` were fixed in chunk 13 (M1 and M2).
 
-Not ported yet: the compile-time expression engine and what stands on it,
-function, calculus and values (C++14 for now).
+The compile-time expression core (chunk 53) and function, functional and
+values on it (chunk 56) compile from C++11, each empty below it. Not ported
+yet: calculus (C++14 for now), and `math.hpp`, which includes it.
 
 The framework's shared expression core, `parse/expression/`, has a term type,
 folds, a parser, a renderer and a compile-time term. P0 (chunk 27) fixed what
@@ -121,12 +122,12 @@ every step from 22 on moved three further, 4a from step 22 to step 25.
 | 2: The expression bones (P0, then 2a to 2f) | 12 to 18 | 7 of 7 |
 | 3: Linear algebra, complex numbers and quaternions in expressions (3a to 3f) | 19 to 24 | 6 of 6 |
 | 4: Calculus in expressions (4a to 4d) | 25 to 28 | 0 of 4 |
-| 5: The compile-time face and the remaining ports (5a to 5g) | 29 to 35 | 1 of 7 |
-| 6: Precision (6a to 6e) | 36 to 40 | 0 of 5 |
+| 5: The compile-time face and the remaining ports (5a to 5g) | 29 to 35 | 2 of 7 |
+| 6: Precision (6a to 6e) | 36 to 40 | 1 of 5 |
 | 7: Comparison with other libraries (7a, 7b) | 41 and 42 | 0 of 2 |
 | 8: Bignum (P1 to P7) | 43 to 49 | 1 of 7 |
 | When ready: C6 (the 09.29 lane) and C4b (a CI workflow) | 50 and 51 | 0 of 2 |
-| **All** | **1 to 51** | **26 of 51** |
+| **All** | **1 to 51** | **28 of 51** |
 
 "Later, not yet decided" is not counted.
 
@@ -936,8 +937,18 @@ of a term, `str()` writes as the renderer does, `x ^ 2 * sin(x)`.
   C++14, one answer at every level; and the placeholders `x` to `phi` are
   in `math::variables`, which leaves `math.hpp` clean under `-Wshadow`
   (S403). `t_expression_face.cpp` checks it at every rung.
-- [ ] **5b** (step 30) `function.hpp`, `functional.hpp` and `values.hpp` to
-  C++11.
+- [x] **5b** (step 30) (chunk 56) `function.hpp`, `functional.hpp` and
+  `values.hpp` to C++11, each empty below it as `expression.hpp` is, each
+  constexpr function one return and the index sequences re_std's (S441,
+  S442): relations, logic, implicit functions and level sets constant
+  expressions from C++11, the forms over `std::tuple` from C++14, where
+  `std::get` is. Two of their own failures fixed: `math_function` took no
+  coordinate system's point, a `linalg::vector`, which its banner promised
+  (S443), and `sample_over` sampled an interval open below from its bound,
+  (0, 4] giving 0 to 3 where its members are 1 to 4 (S444).
+  `t_function_face.cpp`, `t_values_face.cpp` and `t_functional_face.cpp`,
+  the last with the functional subframework itself, check them at every
+  rung (S445).
 - [ ] **5c** (step 31) `calculus/*` to C++11.
 - [ ] **5d** (step 32) `reify`: compile-time expression to run-time term, so
   that a compile-time expression can be printed and differentiated at run
@@ -967,8 +978,9 @@ of a term, `str()` writes as the renderer does, `x ^ 2 * sin(x)`.
   follows from the double kernels; long double keeps its own.
 - [ ] **6b** (step 37) The speed of `sqrt_c` in 32-bit builds (chunk 10's
   options), and `binade_of`'s table.
-- [ ] **6c** (step 38) The generator's 189 misaligned parameter lists
-  (whitespace only).
+- [x] **6c** (step 38) (chunk 55) The generator's 189 misaligned parameter
+  lists (whitespace only): each list one parameter a line, its names in one
+  column, as the owner aligned `cmat.h`'s (S435).
 - [ ] **6d** (step 39) Clang on the 32-bit x87 (S37). MSVC, where `long
   double` is `double`. PowerPC's double-double `long double`. For the
   double family the x87 is decided: a build that uses it where double is

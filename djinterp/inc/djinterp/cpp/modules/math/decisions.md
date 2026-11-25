@@ -1,4 +1,4 @@
-# djinterp math: the lane's decisions, S1 to S440
+# djinterp math: the lane's decisions, S1 to S449
 
 Every decision the math lane has taken, in the words of the record that took
 it, with the alternative it set aside. The numbers run across the lane's
@@ -19,14 +19,19 @@ the first of the double family's rewrite as he ruled it, stand by his
 correctly rounded, by his "continue" of the same day, and chunk 53's, step
 29 (5a) with 0.8's items as he ruled them, by his "continue" of 2026.11.21,
 and chunk 54's, `log_c` 1.7 to 1.85 times as fast, by his "continue" of the
-same day. S435 to S440 are chunk 55's, open until his word on it: math's
+same day. S435 to S440 are chunk 55's, open until his word on them: math's
 largest files split, as he ruled on 2026.11.21, each old name kept - the
 eight largest generated headers, the language's matrix kind, its face test
 and the generator - and the delivery over his main of 2026.11.21 with chunk
-52 laid over it, without the records. His word of 2026.11.14 on the
-language's names, which kept them flat in `djinterp::math`, is S397's. Where
-a later decision changes an earlier one, the later one says so; the earlier
-one stays here as it was taken.
+52 laid over it, without the records; his "continue for now" of 2026.11.22
+went on while he weighs them. S441 to S446 are chunk 56's, open too: step 30
+(5b), `function.hpp`, `functional.hpp` and `values.hpp` from C++11, with two
+of their own failures fixed. S447 to S449 are chunk 57's, open too: chunks
+55's and 56's zips cut again on his push of 2026.11.23, the lane's prose and
+the generator's strings with one hyphen for a dash. His word of 2026.11.14
+on the language's names, which kept them flat in `djinterp::math`, is
+S397's. Where a later decision changes an earlier one, the later one says
+so; the earlier one stays here as it was taken.
 
 A decision names files as they were when it was taken. Chunk 48 merged the
 two quaternion classes (S398) and renamed or split five of the language's
@@ -39,8 +44,10 @@ headers (S400, S401): `expr/complex.hpp` is `expr/complex_kind.hpp`,
 split the largest files (S436 to S439): each old name is still a header,
 which includes its parts. A record's text is here as the record has it, but
 for the merge window's rewordings of two of chunk 51's lines and the
-lane-name check's of a line each of chunks 52's and 53's (S440).
-`expr/expr_common.hpp`'s banner maps the language's headers as they are.
+lane-name check's of a line each of chunks 52's and 53's (S440), and the
+owner's push of 2026.11.23, which gave every dash one hyphen and reworded a
+line of chunk 52's (S447). `expr/expr_common.hpp`'s banner maps the
+language's headers as they are.
 
 Each decision is followed by its review, written from chunk 34 on at the
 owner's asking, each chunk reviewing its own: what the path taken gains and
@@ -59,7 +66,7 @@ C6 and N1 to N6, are in the consolidation's record
 followed it; his rulings on them are the roadmap's principles and items
 (`roadmap.md`). From chunk 34 on, each chunk's delivery brings this file,
 its own decisions added at the end. This file is made by
-`_handoffs/math98_chunk55_2026.11.21/tools/decisions_c55.py`.
+`_handoffs/math98_chunk57_2026.11.23/tools/decisions_c57.py`.
 
 ## 1. Outstanding decisions
 
@@ -67,7 +74,7 @@ The 21 flagged decisions: those whose review recommends what is not yet
 done, or names a significant drawback of what was. Each gives when it is
 due, by the roadmap's steps, its flag and its review's recommendation; the
 decision itself and its whole review are in its record's part of section 2.
-The groups and the steps are `decisions_outstanding_c55.md`'s, in chunk 55's
+The groups and the steps are `decisions_outstanding_c57.md`'s, in chunk 57's
 record.
 
 ### 1.1 The expression language
@@ -9649,3 +9656,214 @@ before it compares.
 > Against: the zip cut on a main with chunk 52's zip laid over it, not on
 > the main Monday's push will name, so the window lays it three ways. The
 > alternative: chunk 54's form, refused. Recommended: as taken. Taken.
+
+### S441 to S446: chunk 56, 2026.11.22
+
+The record: `_handoffs/math98_chunk56_2026.11.22/README.md`.
+
+Chunk 56's decisions, S441 to S446: step 30 (5b), `function/function.hpp`,
+`values.hpp` and `functional.hpp` from C++11, as the owner's N1 asks and as
+chunk 53 brought `expression.hpp`. Chunk 55's decisions, S435 to S440, are
+open: the owner's "continue for now" of 2026.11.22 at 20:40 went on while he
+weighs them, with rulings 12 to 15. Nothing here rests on them but the
+zip's base (S446) and the three documents both chunks change.
+
+**S441. `function/function.hpp`, `values.hpp` and `functional.hpp` compile
+at every level, each empty below C++11, as `expression.hpp` is (N1,
+S430).** Each includes the framework's root first and, from C++11 only, the
+standard headers and the core. Below C++11 the forms have nothing to stand
+on: their nodes are `expression.hpp`'s, empty there, and the functional
+subframework the bridge adapts to is empty below C++11 too. Each was on
+the ladder's punch list at C++98 and C++11, failing at `<array>`'s warning
+and at `std::index_sequence`; each now passes at every rung, plain and
+testing, with g++ and clang++.
+- Alternative: C++98 forms of the three: forms over a core that has none,
+  where the owner's ruling is a C++11 floor for the expression engine and
+  what stands on it (N1).
+
+> **Review.** Taken: for, the three headers on the ladder at every rung,
+> each as the core it stands on, one floor for the compile-time face, as
+> ruled. Against: a C++98 program that includes them gets nothing, not an
+> error saying why; `math.hpp` still includes the calculus headers, which
+> fail below C++14, until steps 31 and 33. The alternative: C++98 forms over
+> a core that has none. Recommended: as taken. Taken.
+
+**S442. From C++11 each constexpr function of the three is one return, so
+that each form is a constant expression wherever its operands' evaluation
+is; the index sequences are re_std's; the traits' `_v` forms are from
+C++14, where variable templates are; and `void_t` names a member of a
+class template.** The relations with a scalar on one side, `when`,
+`otherwise` and `level_set` built their result from a local; `pw_run`
+chose its branch by `if`; `implicit_node`'s `contains` and `sign` named the
+residual, and now hand it to a static helper, so that it is still
+evaluated once. `std::index_sequence` is C++14's; re_std's is C++11's.
+`D_DETECT_MARKER` defined each `_v` at every level; `D_DETECT_MARKER_V`
+defines it where variable templates exist, as `is_coordinate_system_v`
+already was. A bare alias `void_t` is not a substitution failure under
+every compiler of C++11 (CWG 1558); through `make_void` it is. The
+relations, the logic, implicit functions, level sets and the axis sets are
+constant expressions from C++11; the forms over `std::tuple`, piecewise,
+vector-valued and parametric, and `math_function`'s calls from a
+`std::array` or a `std::tuple`, are by the standard from C++14, where
+`std::get` and `std::array`'s `const` `operator[]` are constexpr, and from
+C++11 with libstdc++, which marks them so, as both compilers' builds here
+use it. The face test asserts the standard's levels.
+- Alternative: a tuple of the lane's own, constant-evaluable at C++11:
+  `pieces_type` and `components_type`, which are public, would change, for
+  C++11 with a library other than libstdc++ alone.
+- Alternative: `contains` and `sign` evaluating the expression twice in
+  one return: each call twice the work.
+
+> **Review.** Taken: for, each form a constant expression from the first
+> level its operands allow, the residual evaluated once; the `_v` forms
+> where the language has them; detection right under every compiler of
+> C++11. Against: the forms over `std::tuple` constant expressions at C++11
+> only with libstdc++, at run time with another library until C++14. The
+> alternatives: a tuple of the lane's own, public types changing; the
+> residual evaluated twice. Recommended: as taken. Taken.
+
+**S443. `math_function` takes a coordinate system's point, a
+`linalg::vector`, beside a scalar pack, a `std::array` and a
+`std::tuple`.** Its banner said that a point, "just the system's
+point_type, a std::array", evaluated directly; but every system's
+`point_type` is a `linalg::vector`, as ruled on 2026.10.05, and the
+scalar-pack overload took it as the one argument:
+`function(cartesian<3>()).returns(x + y * z)(p)` failed to compile,
+`variable_node` asking for more arguments. An overload explodes the vector
+by its constexpr `operator[]`, and `first_is_container` keeps the scalar
+pack from it. The call is a constant expression from C++14, where the
+vector's constructors are.
+- Alternative: the banner corrected alone: the builder's documented use
+  still a compile error, a point taken apart by hand at each call.
+
+> **Review.** Taken: for, the builder's documented use working, a point
+> evaluated as the banner says, a constant expression from C++14. Against:
+> one more overload and one more trait beside the array's and the tuple's.
+> The alternative: the banner corrected alone. Recommended: as taken. Taken.
+
+**S444. `sample_over<I>(e)` evaluates `e` at each of the interval's
+members, `I::at(0)` to `I::at(I::size() - 1)`, where it evaluated at
+`lower_bound + i * step`.** For an interval open below that took the bound,
+which is no member, and lost the last member: (0, 4] gave 0, 1, 2 and 3,
+where its members are 1 to 4; (0, 6] by 2 gave 0, 2 and 4, where they are
+1, 3 and 5; (-3, 3) gave -3 to 1, where they are -2 to 2. A closed
+interval's samples are as they were. `sample_over` is from C++14, where the
+interval's `size()` and `at()` are constant expressions, the C core's
+count being one there; `sample` is from C++11.
+- Alternative: the first member and the step, `first() + i * step`: the
+  same points, by a second rule beside the interval's own, which `at` is.
+
+> **Review.** Taken: for, every sample a member and their count the
+> interval's, by the interval's own rule; a closed interval's samples
+> unchanged. Against: a change for an interval open below, which a caller
+> relying on the bound would see; none in the tree does, the owner's
+> standalone test's interval being closed. The alternative: the first member
+> and the step. Recommended: as taken. Taken.
+
+**S445. Three face tests: `t_function_face.cpp`, 22 checks from C++14 and
+19 at C++11; `t_values_face.cpp`, 9 and 5; `t_functional_face.cpp`, 7; each
+1 check below C++11, that the header reads and is empty. Each passes its
+64 builds of the full tier and its 4 of the fused.** Each asserts at
+compile time what is a constant expression at its level, as
+`t_expression_face.cpp` does, and checks at run time what is not. The
+bridge's test uses the functional subframework itself, `compose`, `pipe`,
+`curry`, `flip` and `pipeline_from`, where `test_functional.cpp`, one of
+the owner's standalone tests, which the runner does not build, used
+stand-ins, saying that the subframework could not be compiled; it compiles
+from C++11. The owner's standalone tests, `test.cpp`,
+`test_functional.cpp`, `test_calc.cpp` and `test_constants_values.cpp`,
+are left as they were, and pass as before.
+- Alternative: one face test for the three: a failure in one header
+  stopping the others' checks, where the runner has a test a header
+  elsewhere.
+
+> **Review.** Taken: for, each header checked at every rung, the bridge
+> against the subframework itself, so that a change there which breaks the
+> adapters shows. Against: the owner's standalone tests left beside the face
+> tests, one of them saying what is no longer so. The alternative: one test
+> for the three. Recommended: as taken. Taken.
+
+**S446. Chunk 56's zip is cut over the owner's main of 2026.11.21 with
+chunks 52's and 55's zips laid over it, as the merge window's relay of
+2026.11.21 asks of a zip cut before the push that would land them, and
+holds chunk 56's files alone. Today's note, which chunk 55's record began,
+goes on in chunk 56's, and the day's last zip carries both chunks' zips in
+place of the afternoon's.** Chunk 55's zip is for Wednesday's window, chunk
+56's for Friday's: should Wednesday land chunk 55 other than as its zip,
+chunk 56 is cut again over that commit by Thursday at 20:00. The ladder
+now passes `function.hpp`, `functional.hpp` and `values.hpp` everywhere,
+as it has `expression.hpp` since chunk 53: the note asks for their four
+lines of `scripts/ci/ladder_known.txt`, his shared file, to go.
+- Alternative: one zip of chunks 53 to 56 over main with chunk 52's laid
+  over it, in place of chunk 55's: Wednesday's window given a zip that
+  changes again before Friday's.
+
+> **Review.** Taken: for, each window its own zip, Wednesday's unchanged;
+> the punch list's lines named for the owner to drop. Against: chunk 56's
+> zip right only over chunk 55's: laid alone over main, its three documents
+> would bring chunk 55's text without its files. The alternative: one zip of
+> chunks 53 to 56 in place of chunk 55's. Recommended: as taken. Taken.
+
+### S447 to S449: chunk 57, 2026.11.23
+
+The record: `_handoffs/math98_chunk57_2026.11.23/README.md`.
+
+Chunk 57's decisions, S447 to S449: chunks 55's and 56's zips cut again on
+the owner's push of 2026.11.23, `6ee9dce1`, which holds chunk 52 as he
+committed it and gives the tree's prose one hyphen for a dash. No C or C++
+token changed. Chunks 55's and 56's decisions are still open, with his
+rulings 12 to 15.
+
+**S447. Wednesday's zip is cut again over the owner's main of 2026.11.23,
+`6ee9dce1`, and holds the files chunks 53 to 55 changed or made, 123 of
+them, 83 new: one fewer than on 2026.11.21, since main now has
+`math_tests_log_refs.h` as chunk 55 had it. Friday's zip is cut over that
+main with Wednesday's zip laid over it, and holds chunk 56's 10 files, 3
+new, its documents with this chunk's lines. Every file is laid three ways
+over his push, his fix for double hyphens is run over the lane's files
+before the cut, and his push's rewording of a line of chunk 52's, "is on
+the owner's", is kept.** Both zips pass his merge window's gates, laid in
+order over his push, and the lane-name check, each over the tree it goes
+on.
+- Alternative: the zips of 2026.11.21 and 2026.11.22 as sent, over his
+  main of 2026.11.21: no longer the main the window starts from, and their
+  double hyphens refused by its new gate.
+
+> **Review.** Taken: for, each zip right over the main the window starts
+> from, its gates run before it is sent. Against: two zips sent again, the
+> same files but for their dashes and the banner chunk 52's landing changed.
+> The alternative: the zips as sent, which the window stops. Recommended: as
+> taken. Taken.
+
+**S448. The generator's strings turn with the prose: a double hyphen in the
+comment text it writes is one hyphen, a dash that ends or starts one of its
+string lines too, since it rewraps some paragraphs and would join the two
+halves into a double hyphen. Its 64 headers have the tokens of the headers
+the owner's fix turns in place, each checked: 36 the same byte for byte, 28
+differing in their comments' line breaks alone, where a rewrapped line is a
+character shorter. Its `--check` holds on his main again, which the pass,
+turning the headers and not the generator, had made fail in 19 headers.**
+The tree's other strings and code keep their double hyphens, as the pass
+asks; math's files have none left.
+- Alternative: the generator as it was and the turned headers kept: its
+  `--check` failing on main, and its next run bringing every double hyphen
+  back into their comments.
+
+> **Review.** Taken: for, the generator and its headers agreeing again, the
+> gate passing on what it writes. Against: 28 headers' comments wrapped
+> otherwise than his pass left them. The alternative: the generator as it
+> was, which fails its check. Recommended: as taken. Taken.
+
+**S449. Each zip holds its files at their paths under the tree's root,
+`inc/`, `scripts/`, `tests/`, as the owner's `merge_window.py` reads a
+lane's zip, and nothing beside them; chunks 55's and 56's put them under a
+`djinterp/` folder, which the window reads as a top level that is not the
+tree's root.** The notes, manifests and records go beside the zips, as
+before (S440).
+- Alternative: the `djinterp/` folder of chunks 55 and 56, unwrapped by
+  hand before the window can read the zip.
+
+> **Review.** Taken: for, the zip the window reads as it is, the gates run
+> on exactly what is sent. Against: a layout unlike the lane's earlier zips.
+> The alternative: the folder, unwrapped by hand. Recommended: as taken.
+> Taken.

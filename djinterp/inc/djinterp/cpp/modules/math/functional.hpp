@@ -19,37 +19,41 @@
 * still composing through the functional combinators.
 *
 * LAYOUT NOTE:
-*   The functional-framework includes below assume math/ and functional/ are
-* sibling directories under the same include root (inc/math/, inc/functional/).
-* Adjust the "../functional/..." paths if your tree differs. Define
-* DJINTERP_MATH_FUNCTIONAL_NO_DEPS before including this header to take only the
-* std-only adapter layer (e.g. to use the adapters without pulling the whole
+*   The functional subframework is inc/djinterp/cpp/functional/, which the
+* includes below reach as "../../functional/...". Define
+* DJINTERP_MATH_FUNCTIONAL_NO_DEPS before including this header to take only
+* the adapter layer (e.g. to use the adapters without pulling the whole
 * functional subframework).
+*
+* LEVELS (step 30, 5b)
+*   C++11 is the floor, as for expression.hpp and the functional
+* subframework, and the header is empty below it. From C++11 each adapter's
+* call is a constant expression wherever its expression's evaluation is.
 *
 *
 * path:      /inc/djinterp/cpp/modules/math/functional.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.22
 *******************************************************************************/
 
 #ifndef DJINTERP_MATH_FUNCTIONAL_HPP
 #define DJINTERP_MATH_FUNCTIONAL_HPP 1
 
-// std
-#include <type_traits>
-#include <utility>
 // djinterp
+#include "../../djinterp.hpp"  // framework root
+
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
 // djinterp - math
-#include "../../djinterp.hpp"
-#include "./expression.hpp"
-#include "function/function.hpp"
+#include "./expression.hpp"           // expressions
+#include "./function/function.hpp"    // relations, math_function
 
 // djinterp - functional subframework (see LAYOUT NOTE)
 #ifndef DJINTERP_MATH_FUNCTIONAL_NO_DEPS
-#  include "../../functional/compose.hpp"             // compose / pipe / pipe_all
-#  include "../../functional/curry.hpp"               // curry / flip / uncurry
-#  include "../../functional/pipeline.hpp"            // DFunctionPipeline
+    #include "../../functional/compose.hpp"   // compose / pipe / pipe_all
+    #include "../../functional/curry.hpp"     // curry / flip / uncurry
+    #include "../../functional/pipeline.hpp"  // DFunctionPipeline
 #endif
 
 
@@ -171,6 +175,7 @@ NS_END  // djinterp
 *
 *   using namespace djinterp;
 *   using namespace djinterp::math;
+*   using namespace djinterp::math::variables;  // x to phi (S403)
 *   namespace mf = djinterp::math::functional;
 *
 *   // expression as a unary transformer in a pipeline:
@@ -192,5 +197,7 @@ NS_END  // djinterp
 * work directly with the combinators; the adapters add fixed-signature
 * introspectability and a stable value type.
 ******************************************************************************/
+
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 #endif  // DJINTERP_MATH_FUNCTIONAL_HPP

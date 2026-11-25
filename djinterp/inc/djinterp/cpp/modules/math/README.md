@@ -81,7 +81,7 @@ step chained after it.
 
 ---
 
-## 1. Status (2026.11.20)
+## 1. Status (2026.11.22)
 
 | Part | Headers | Compiles from | Notes |
 |---|---|---|---|
@@ -92,7 +92,8 @@ step chained after it.
 | geometry | 14 | ISO strict C++98 | collections are `re_std::array`s |
 | `constants.hpp`, `quaternion.hpp`, `math_common.hpp` | 3 | ISO strict C++98 | named constants are constant expressions from C++11; the one quaternion, `math::quaternion<T>`, which `linalg::quaternion<T>` names (chunk 48, S398), takes every function of `quat.h`, the accurate forms by default, constant expressions from C++14, and the `_fast` forms for a renderer (chunk 44) |
 | `expression.hpp` | 1 | C++11, empty below | the compile-time core (chunk 53, step 29, S430): the nodes, + - * /, `squared`, `abs` and `dot` constant expressions from C++11; `exp`, `sin`, `cos`, `tan` and `sqrt` the C core's `_c` kernels, one answer at every level, constant expressions from C++14; the placeholders `x` to `phi` in `math::variables` (S403) |
-| values, function, functional, calculus (6), `math.hpp` | 10 | C++14 | to be C++11 (owner's N1, steps 30, 31 and 33); calculus's own kernels to move onto the C core (N3, step 31); `math.hpp` includes every header of the module, `expr/` and `linear_algebra/` among them (chunk 48, S399), clean under `-Wshadow` since chunk 53 (S403) |
+| `values.hpp`, `function/function.hpp`, `functional.hpp` | 3 | C++11, empty below | on the compile-time core (chunk 56, step 30, S441 to S445): relations, logic, implicit functions and level sets constant expressions from C++11, piecewise, vector-valued and parametric forms and `math_function`'s calls from a `std::array`, a `std::tuple` or a system's point from C++14, where `std::get` and a point's constructors are constant expressions; `math_function` takes a coordinate system's point, a `linalg::vector` (S443); `sample` from C++11, `sample_over` from C++14, at an interval's members (S444); the bridge's adapters with the functional subframework itself |
+| calculus (6), `math.hpp` | 7 | C++14 | to be C++11 (owner's N1, steps 31 and 33); calculus's own kernels to move onto the C core (N3, step 31); `math.hpp` includes every header of the module, `expr/` and `linear_algebra/` among them (chunk 48, S399), clean under `-Wshadow` since chunk 53 (S403) |
 | `numeric_compare.hpp` | 1 | ISO strict C++98 | numbers written as text compared exactly (chunk 21, M3) |
 | `value.hpp` | 1 | ISO strict C++98 | the generic value's face (chunk 25): `math::value` holds any kind, a box as an `int` holds its number; `inline_value`'s operations are constant expressions from C++14, `math::value`'s from C++20; a complex value's modulus squared, exact where it is (chunk 43) |
 | `number_traits.hpp` | 1 | ISO strict C++98 | the static side (chunk 26): what generic code needs of a number type, the type two numbers combine to, and from C++20 the concept `number`; the field's and the order's traits, the magnitude, the epsilon and a relative tolerance (chunk 38); `number_modulus_squared`, \|x\|^2, which a type of numbers not all real overloads (chunk 43) |
@@ -113,9 +114,9 @@ header with g++ and clang++, plain and testing, at every rung from that one
 to C++26. Every header not on the ladder's known list
 (`scripts/ci/ladder_known.txt`) passes all of them.
 
-Tests: 27 C harnesses (`tests/djinterp/c/modules/math/`) and 40 face tests
+Tests: 28 C harnesses (`tests/djinterp/c/modules/math/`) and 43 face tests
 (`tests/djinterp/cpp/modules/math/`), one of them for `parse/expression/`,
-one for the compile-time core (chunk 53) and eight for `expr/`: four its complex numbers', two its quaternions' and
+four for the compile-time core (chunks 53 and 56) and eight for `expr/`: four its complex numbers', two its quaternions' and
 one its compiled terms' (section 3). In the full matrix (section 5) every
 harness and face test passes in every configuration.
 
@@ -1012,6 +1013,28 @@ same bytes (S439). The generator also aligns each parameter list's names,
 as the owner aligned `cmat.h`'s, and writes the banners' converted tag
 (S435). No result changed.
 
+**Functions, sampling and the bridge from C++11.** Chunk 56 (S441 to
+S446), step 30 (5b): `function/function.hpp`, `values.hpp` and
+`functional.hpp` stand on the compile-time core from C++11, each empty
+below it as the core is (S441). Each constexpr function is one return, the
+index sequences are re_std's, and the traits' `_v` forms wait for variable
+templates: the relations, the logic, implicit functions and level sets are
+constant expressions from C++11, the forms over `std::tuple` and
+`math_function`'s calls from a `std::array` or a `std::tuple` from C++14,
+where `std::get` is (S442). Two of the headers' own failures went on the
+way: `math_function` now takes a coordinate system's point, a
+`linalg::vector`, as its banner said it did (S443), and `sample_over`
+samples an interval's members, where an interval open below gave its bound
+and lost its last member, (0, 4] giving 0 to 3 (S444). Three face tests
+check them at every rung, the bridge's with the functional subframework
+itself (S445).
+
+**One hyphen for a dash.** Chunk 57 (S447 to S449) cut chunks 55's and 56's
+zips again on the owner's push of 2026.11.23, which gives the tree's prose
+one hyphen for a dash: the lane's files have it too, and so do the strings
+the generator writes its headers' comments from, so that its `--check`
+holds on his main again (S448). No C or C++ token changed.
+
 **Decimal text.** `decimal.h` reads a decimal number of any length as the
 nearest `float`, `double` or `long double`, ties to even, whatever the
 rounding mode, and says when the result overflowed to an infinity or
@@ -1184,8 +1207,8 @@ Each face compiles from its floor and adds features as the language allows:
 | Level | What the faces gain |
 |---|---|
 | ISO strict C++98 | everything in the first six rows of section 1; no `long long`, and on a 32-bit target no 64-bit integer at all |
-| C++11 | `constexpr` constants; conversions to and from `std::array`; `math::value` moves; `common_number_t`; the run-time expression language, `math/expr/` |
-| C++14 | the `_c` kernels are constant expressions; variable templates (`constants::pi<T>`); `math::inline_value`'s operations are constant expressions, and vectors and matrices of inline values |
+| C++11 | `constexpr` constants; conversions to and from `std::array`; `math::value` moves; `common_number_t`; the run-time expression language, `math/expr/`; the compile-time core, `expression.hpp`, and on it functions, sampling and the bridge to the functional subframework |
+| C++14 | the `_c` kernels are constant expressions; variable templates (`constants::pi<T>`); `math::inline_value`'s operations are constant expressions, and vectors and matrices of inline values; the compile-time core's transcendentals and forms over `std::tuple` are constant expressions, and `sample_over` |
 | C++20 | `std::is_constant_evaluated` lets a face use `_c` in constant evaluation and the library at run time; `math::value` is a constant expression for the inline kinds, with `<=>` and the concept `number` |
 
 ISO strict means `-std=c++98 -pedantic-errors -DD_CFG_ENV_ISO_STRICT=1
@@ -1410,7 +1433,11 @@ chunks 51's and 52's with its own (S431), and chunk 54's chunks 51's to
 53's with its own (S434). From chunk 55 (2026.11.21) the zip goes over the
 owner's main as his push names it, with the chunks before it that have not
 landed laid over it, and carries no record: the records stay with the
-lane's own deliveries (S440).
+lane's own deliveries (S440); chunk 56's goes over his main of 2026.11.21
+with chunks 52's and 55's zips laid over it, and holds chunk 56's files
+alone (S446). Both were cut again on his main of 2026.11.23, Friday's over
+Wednesday's, their files at the tree's root as his merge window reads a
+zip (S447, S449).
 From 2026.11.18 the lane's notes and deliveries go out once a day.
 
 Outside `cpp/modules/math/`, `c/modules/math/` and their tests, this lane

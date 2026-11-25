@@ -7,8 +7,9 @@
 * djinterp::math with linear algebra in djinterp::math::linalg (S399). New
 * code may include the specific sub-headers directly to keep compile times
 * tight: the run-time language alone is expr/expr.hpp. It compiles from
-* C++14, the compile-time expression core's floor; expr/ is empty below
-* C++11.
+* C++14, the calculus headers' floor until step 31; the compile-time core,
+* expression.hpp, and the headers on it, function, functional and values,
+* are empty below C++11, as expr/ is.
 *
 * WHERE TO START:
 *   a formula as text, parsed, evaluated, compiled, differentiated: the handle
@@ -56,7 +57,7 @@
 * path:      /inc/djinterp/cpp/modules/math/math.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2024.04.24
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.22
 *******************************************************************************/
 
 #ifndef DJINTERP_MATH_MATH_HPP
