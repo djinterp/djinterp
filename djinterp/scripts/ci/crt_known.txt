@@ -87,9 +87,9 @@ tests/djinterp/c/modules/net/ftps/ftps_tests_interop.c	3
 tests/djinterp/c/modules/net/net_tests_pki.c	3
 tests/djinterp/c/modules/net/net_tests_ssh_toy.c	2
 tests/djinterp/c/modules/net/sftp/sftp_tests.c	10
-tests/djinterp/c/modules/net/starttls/starttls_tests_sa_openssl.c	6
-tests/djinterp/c/modules/net/starttls/starttls_tests_sa_support.c	2
-tests/djinterp/c/modules/net/starttls/starttls_tests_sa_tcp.c	7
+tests/djinterp/c/modules/net/starttls/starttls_tests_openssl.c	6
+tests/djinterp/c/modules/net/starttls/starttls_tests_support.c	2
+tests/djinterp/c/modules/net/starttls/starttls_tests_tcp.c	7
 tests/djinterp/c/modules/net/tcp/tcp_tests_native.c	3
 tests/djinterp/c/modules/net/tcp/tcp_tests_transport.c	1
 tests/djinterp/c/modules/parse/cli/arg_parser/arg_common_tests.c	1
