@@ -22,7 +22,7 @@
 * path:      /inc/djinterp/cpp/container/tree/tree_path.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.03.22
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_TREE_TREE_PATH_HPP
@@ -113,7 +113,7 @@ public:
         index_type            _id
     ) const
     {
-        return _arena[_id].parent;
+        return _arena[_id].parent();
     }
 
     // first_child
@@ -123,7 +123,7 @@ public:
         index_type            _id
     ) const
     {
-        return _arena[_id].first_child;
+        return _arena[_id].first_child();
     }
 
     // next_sibling
@@ -133,7 +133,7 @@ public:
         index_type            _id
     ) const
     {
-        return _arena[_id].next_sibling;
+        return _arena[_id].next_sibling();
     }
 
     // component

@@ -62,7 +62,7 @@
 * path:      /inc/djinterp/cpp/container/tree/radix/text_radix_tree.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.29
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_TREE_RADIX_TEXT_RADIX_TREE_HPP
@@ -1762,11 +1762,36 @@ private:
             _node->edge.data() + _split_pos,
             _node->edge.size() - _split_pos);
 
-        node_type* lower =
+        //   Every node, and the lower half's copy of the terminal, comes
+        // before the tree changes: a fixed tree that is full throws bad_alloc
+        // from the second allocation, and the tree must still be the tree it
+        // was, every node compressed and none of the slab lost.
+        node_type* lower  =
             m_allocate_node(lower_edge, _node->is_terminal);
+        node_type* branch = nullptr;
 
-        lower->terminal = _node->terminal;
-        lower->parent   = _node;
+        try
+        {
+            if (!_remaining_key.empty())
+            {
+                branch = m_allocate_node(_remaining_key, true);
+            }
+
+            lower->terminal = _node->terminal;
+        }
+        catch (...)
+        {
+            if (branch != nullptr)
+            {
+                m_free_node(branch);
+            }
+
+            m_free_node(lower);
+
+            throw;
+        }
+
+        lower->parent = _node;
 
         // the WHOLE subtree moves down, in one adopt
         lower->children.adopt(_node->children);
@@ -1793,12 +1818,10 @@ private:
         _node->children.set(lc, lower);
 
         // and the new key branches off here
-        if (_remaining_key.empty())
+        if (branch == nullptr)
         {
             return _node;   // the key ends exactly at the meet
         }
-
-        node_type* branch = m_allocate_node(_remaining_key, true);
 
         branch->parent = _node;
 
@@ -1867,10 +1890,19 @@ private:
                 // one compressed edge. This is compression, on the way in.
                 node_type* leaf = m_allocate_node(rest, true);
 
+                try
+                {
+                    leaf->terminal.value = static_cast<FwdValue&&>(_value);
+                }
+                catch (...)
+                {
+                    m_free_node(leaf);
+
+                    throw;
+                }
+
                 leaf->terminal.present = true;
-                leaf->terminal.value   =
-                    static_cast<FwdValue&&>(_value);
-                leaf->parent = n;
+                leaf->parent           = n;
 
                 n->children.set(c, leaf);
 

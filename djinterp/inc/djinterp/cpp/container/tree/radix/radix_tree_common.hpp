@@ -131,7 +131,7 @@
 * path:      /inc/djinterp/cpp/container/tree/radix/radix_tree_common.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.29
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_TREE_RADIX_RADIX_TREE_COMMON_HPP
@@ -209,8 +209,10 @@ NS_END  // internal
 
 // is_text_key
 //   trait: a key the TEXT tree can descend - one convertible to a
-// re_std::string_view (std::string, const char*, a literal). The label alphabet
-// is then the byte, and the child slot is the byte's value.
+// re_std::string_view (const char*, a literal, a re_std::string_view). The
+// label alphabet is then the byte, and the child slot is the byte's value.
+//   A std::string is not one: re_std::string_view has no constructor from it,
+// so it is passed as re_std::string_view(s.data(), s.size()).
 template<typename Type>
 struct is_text_key
     : re_std::bool_constant<internal::is_text_key_helper<Type>::value>

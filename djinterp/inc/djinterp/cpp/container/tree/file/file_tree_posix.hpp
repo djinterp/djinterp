@@ -9,7 +9,8 @@
 * repeated full-path string construction and root-relative path walks
 * that a plain lstat(full_path) incurs on deep trees.
 *
-*   Type and size come from a single fstatat per entry.  Where the
+*   Type and size come from a single fstatat per entry; the size is a
+* regular file's, and 0 for anything else, as in every scanner.  Where the
 * platform populates dirent::d_type, bsd_scanner (file_tree_bsd.hpp)
 * specializes this to skip the stat for non-size queries; this baseline
 * stays correct everywhere by always stat-ing.
@@ -22,7 +23,7 @@
 * path:      /inc/djinterp/cpp/container/tree/file/file_tree_posix.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.03.22
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_TREE_FILE_FILE_TREE_POSIX_HPP
@@ -141,9 +142,12 @@ struct DPosixScanner
                 continue;
             }
 
+            // a size for a regular file only, as every other scanner: a
+            // directory's or a link's st_size is the file system's, not data.
             DFileType        type = classify(st.st_mode);
-            re_std::uint64_t sz    =
-                static_cast<re_std::uint64_t>(st.st_size);
+            re_std::uint64_t sz    = (type == file_type_regular)
+                ? static_cast<re_std::uint64_t>(st.st_size)
+                : 0;
 
             DFileNodeId id = _ctx.intern_child(
                 _parent, child_name, child_len, type, sz);

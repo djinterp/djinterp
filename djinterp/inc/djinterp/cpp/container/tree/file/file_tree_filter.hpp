@@ -52,7 +52,7 @@
 * path:      /inc/djinterp/cpp/container/tree/file/file_tree_filter.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.03.22
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_TREE_FILE_FILE_TREE_FILTER_HPP
@@ -885,7 +885,7 @@ std::vector<DFileNodeId> collect_matching(
 }
 
 // collect_matching (entire tree)
-//   overload that starts from node 0 (root).
+//   overload that starts from the tree's root.
 template<typename Tree>
 inline
 std::vector<DFileNodeId> collect_matching(
@@ -898,7 +898,7 @@ std::vector<DFileNodeId> collect_matching(
         return std::vector<DFileNodeId>();
     }
 
-    return collect_matching(_tree, 0, _predicate);
+    return collect_matching(_tree, _tree.root(), _predicate);
 }
 
 // count_matching
@@ -996,21 +996,22 @@ public:
     // --------------------------------------------------------
 
     // file_tree_query
-    //   constructs a query over the entire tree.
+    //   constructs a query over the entire tree, or over the subtree at _root
+    // when one is given.
     explicit
     DFileTreeQuery
     (
         const tree_type& _tree,
-        DFileNodeId          _root = 0
+        DFileNodeId          _root = null_file_node
     )
         : m_tree(_tree),
-          m_root(_root),
+          m_root((_root == null_file_node) ? _tree.root() : _root),
           m_ids ()
     {
         if (!_tree.empty())
         {
             // seed with all node_ids via BFS.
-            _tree.visit_breadth_first(_root,
+            _tree.visit_breadth_first(m_root,
                 [this](DFileNodeId _id, std::size_t)
                 {
                     m_ids.push_back(_id);
@@ -1026,7 +1027,7 @@ public:
         std::vector<DFileNodeId>&& _ids
     )
         : m_tree(_tree),
-          m_root(0),
+          m_root(null_file_node),
           m_ids (std::move(_ids))
     {}
 

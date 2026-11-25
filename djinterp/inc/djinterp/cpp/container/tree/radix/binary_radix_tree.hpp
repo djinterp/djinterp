@@ -53,7 +53,7 @@
 * path:      /inc/djinterp/cpp/container/tree/radix/binary_radix_tree.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.29
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_TREE_RADIX_BINARY_RADIX_TREE_HPP
@@ -1116,8 +1116,18 @@ private:
                 // becomes ONE edge. Compression, on the way in.
                 node_type* leaf = m_allocate_node(k_key_bits, _key);
 
+                try
+                {
+                    leaf->terminal.value = static_cast<FwdValue&&>(_value);
+                }
+                catch (...)
+                {
+                    m_free_node(leaf);
+
+                    throw;
+                }
+
                 leaf->terminal.present = true;
-                leaf->terminal.value   = static_cast<FwdValue&&>(_value);
                 leaf->is_terminal      = true;
                 leaf->parent           = n;
 
@@ -1146,7 +1156,30 @@ private:
             //   [n.bit, m) + [m, child.bit) == [n.bit, child.bit): the range
             // is
             //   re-bracketed, not changed, so child's address does not move.
-            node_type* mid = m_allocate_node(m, child->key);
+            //
+            //   Both nodes, and the leaf's value, come before the tree changes:
+            // a fixed tree that is full throws bad_alloc from the second
+            // allocation, and the tree must still be the tree it was, every
+            // node compressed and none of the slab lost.
+            node_type* mid  = m_allocate_node(m, child->key);
+            node_type* leaf = nullptr;
+
+            try
+            {
+                leaf = m_allocate_node(k_key_bits, _key);
+                leaf->terminal.value = static_cast<FwdValue&&>(_value);
+            }
+            catch (...)
+            {
+                if (leaf != nullptr)
+                {
+                    m_free_node(leaf);
+                }
+
+                m_free_node(mid);
+
+                throw;
+            }
 
             mid->parent    = n;
             n->children[b] = mid;
@@ -1157,10 +1190,7 @@ private:
             mid->children[cb] = child;
             child->parent     = mid;
 
-            node_type* leaf = m_allocate_node(k_key_bits, _key);
-
             leaf->terminal.present = true;
-            leaf->terminal.value   = static_cast<FwdValue&&>(_value);
             leaf->is_terminal      = true;
             leaf->parent           = mid;
 

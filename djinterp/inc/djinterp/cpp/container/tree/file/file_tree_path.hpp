@@ -33,7 +33,7 @@
 * path:      /inc/djinterp/cpp/container/tree/file/file_tree_path.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.03.22
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_TREE_FILE_FILE_TREE_PATH_HPP
@@ -243,13 +243,14 @@ public:
     // --------------------------------------------------------
 
     // resolve
-    //   walks a path string from _root through the tree. Both '/' and '\\' are
-    // accepted as separators. Returns null_file_node if any component is not found.
+    //   walks a path string from _root (the tree's root when none is given)
+    // through the tree. Both '/' and '\\' are accepted as separators. Returns
+    // null_file_node if any component is not found.
     DFileNodeId
     resolve
     (
         const char* _path,
-        DFileNodeId     _root = 0
+        DFileNodeId     _root = null_file_node
     ) const
     {
         if (m_tree.empty())
@@ -260,7 +261,7 @@ public:
         return container_path_resolve(
             m_policy,
             m_tree,
-            _root,
+            start(_root),
             _path,
             std::strlen(_path));
     }
@@ -271,7 +272,7 @@ public:
     resolve
     (
         const std::string& _path,
-        DFileNodeId            _root = 0
+        DFileNodeId            _root = null_file_node
     ) const
     {
         return resolve(_path.c_str(), _root);
@@ -284,7 +285,7 @@ public:
     resolve_many
     (
         const std::vector<std::string>& _paths,
-        DFileNodeId                         _root = 0
+        DFileNodeId                         _root = null_file_node
     ) const
     {
         std::vector<DFileNodeId> result;
@@ -567,11 +568,11 @@ public:
 
     // all_paths
     //   returns the full path of every node in the tree (BFS order from
-    // _root).
+    // _root, the tree's root when none is given).
     std::vector<std::string>
     all_paths
     (
-        DFileNodeId _root = 0,
+        DFileNodeId _root = null_file_node,
         char    _sep  = '/'
     ) const
     {
@@ -582,7 +583,7 @@ public:
             return result;
         }
 
-        m_tree.visit_breadth_first(_root,
+        m_tree.visit_breadth_first(start(_root),
             [&](DFileNodeId _id, std::size_t)
             {
                 result.push_back(build(_id, _sep));
@@ -634,12 +635,13 @@ public:
     }
 
     // nodes_at_depth
-    //   returns all node_ids at a specific depth from _root.
+    //   returns all node_ids at a specific depth from _root (the tree's root
+    // when none is given).
     std::vector<DFileNodeId>
     nodes_at_depth
     (
         std::size_t _depth,
-        DFileNodeId     _root = 0
+        DFileNodeId     _root = null_file_node
     ) const
     {
         std::vector<DFileNodeId> result;
@@ -649,7 +651,7 @@ public:
             return result;
         }
 
-        m_tree.visit_breadth_first(_root,
+        m_tree.visit_breadth_first(start(_root),
             [&](DFileNodeId _id, std::size_t _d)
             {
                 if (_d == _depth)
@@ -717,6 +719,18 @@ public:
 
 
 private:
+    // start
+    //   _root, or the tree's root when _root is null_file_node: the default of
+    // every function here that takes a starting node.
+    DFileNodeId
+    start
+    (
+        DFileNodeId _root
+    ) const
+    {
+        return (_root == null_file_node) ? m_tree.root() : _root;
+    }
+
     const tree_type& m_tree;
     policy_type      m_policy;
 };
