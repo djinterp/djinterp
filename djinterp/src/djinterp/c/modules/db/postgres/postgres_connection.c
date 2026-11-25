@@ -25,7 +25,7 @@
 * path:      /src/djinterp/c/modules/db/postgres/postgres_connection.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 // D_INTERNAL_POSTGRES_SOURCE
 //   macro: this file is one of the PostgreSQL layer's own sources, for which
@@ -37,8 +37,8 @@
 #include <stddef.h>  // size_t, NULL
 #include <stdio.h>   // snprintf
 #include <stdlib.h>  // getenv, malloc, free, strtol
-#include <string.h>  // memcpy, memset, strcat, strchr, strlen,
-                     // strncmp, strcmp, strstr
+#include <string.h>  // memcpy, memset, strchr, strlen, strncmp,
+                     // strcmp, strstr
 // djinterp
 #include "../../../../../../inc/djinterp/c/modules/db/db_common.h"  // D_DB_*
 #include "../../../../../../inc/djinterp/c/dckdint.h"  // d_ckd_add, d_ckd_mul
@@ -399,13 +399,19 @@ int d_internal_postgres_check_keywords(
         return D_POSTGRES_SQLSTATE_OUT_OF_MEMORY;
     }
 
-    probe[0] = '\0';
+    size_t used = 0u;
 
+    // each keyword and an empty value, in the room counted for them
     for (i = 0u; i < _count; ++i)
     {
-        (void)strcat(probe, _keywords[i]);
-        (void)strcat(probe, "='' ");
+        const size_t length = strlen(_keywords[i]);
+
+        memcpy(&probe[used], _keywords[i], length);
+        memcpy(&probe[used + length], "='' ", 4u);
+        used += length + 4u;
     }
+
+    probe[used] = '\0';
 
     char*                   reason = NULL;
     PQconninfoOption* const parsed = PQconninfoParse(probe, &reason);

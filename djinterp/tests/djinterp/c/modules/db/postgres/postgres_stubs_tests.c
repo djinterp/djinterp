@@ -20,11 +20,11 @@
 * path:      /tests/djinterp/c/modules/db/postgres/postgres_stubs_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 #include "./postgres_stubs_tests.h"  // corresponding header
 // std
-#include <string.h>  // memset, strcmp, strncpy, strstr
+#include <string.h>  // memcpy, memset, strcmp, strlen, strstr
 // djinterp
 #include "../../../../../../inc/djinterp/c/modules/db/postgres/postgres.h"  // under test
 // re_std
@@ -888,8 +888,13 @@ enum dj_db_vendor_kind d_tests_postgres_stubs_kind_fn(
     // the SQLSTATE lasts only the call: keep a copy
     if (_sqlstate)
     {
-        strncpy(g_kind_state, _sqlstate, sizeof(g_kind_state) - 1u);
-        g_kind_state[sizeof(g_kind_state) - 1u] = '\0';
+        const size_t length = strlen(_sqlstate);
+        const size_t kept   = (length < sizeof(g_kind_state))
+                              ? length
+                              : (sizeof(g_kind_state) - 1u);
+
+        memcpy(g_kind_state, _sqlstate, kept);
+        g_kind_state[kept] = '\0';
         g_kind_sqlstate = g_kind_state;
     }
 
