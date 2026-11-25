@@ -4,7 +4,8 @@
 #
 # Repositories are made here with git: a history with branches, a merge and
 # tags of each kind, its refs packed and its objects packed with deltas and
-# some left loose; a reflog and an upstream; a work tree holding every kind
+# some left loose; a reflog, gc having expired its commits' lines, and an
+# upstream; a reflog a branch began again in; a work tree holding every kind
 # of change status reports - staged, changed, gone, a type changed, a
 # conflict, intent to add, skip-worktree, untracked and ignored files and
 # directories, names that need quotes, \r\n endings and attributes over
@@ -19,6 +20,9 @@
 # git_changelog.awk, over the same repositories.
 #   Without git, nothing is compared, and the suite passes saying so; with
 # no dawk - "none" in its place, as CMake's suite runs it - only dgit is.
+# dgit reads @{n} as git 2.45 and later do; before 2.45, git read it
+# otherwise past a gap or a line that made the ref, and those two are not
+# compared.
 #
 #   sh tests/djinterp/tools/dawk/ext/git/git.sh [build/dawk] [build/test_dgit]
 DAWK=${1:-build/dawk}
@@ -53,6 +57,15 @@ git config --global advice.detachedHead false
 git config --global advice.nestedTag false
 git config --global user.useConfigOnly false
 tick=1700000000
+
+# at_least MAJOR MINOR: whether this git is that version or later
+at_least() {
+    # shellcheck disable=SC2046
+    set -- "$1" "$2" $(git --version |
+        sed -n 's/^git version \([0-9]*\)\.\([0-9]*\).*/\1 \2/p')
+    [ "${3:-0}" -gt "$1" ] ||
+        { [ "${3:-0}" -eq "$1" ] && [ "${4:-0}" -ge "$2" ]; }
+}
 
 # commit DIRECTORY MESSAGE [ARGS...]: a commit a minute after the last
 commit() {
@@ -231,13 +244,21 @@ revs "$R" HEAD @ main side topic lw v1 v1-of-tag v2 "v1^{}" "v1-of-tag^{}" \
     HEAD~2^2 "HEAD^^2~1" HEAD~9 HEAD~99 "HEAD:a.txt" "HEAD:src/lib" \
     "HEAD:src/lib/big.c" "side:side.txt" ":a.txt" ":0:a.txt" "HEAD:nope" \
     origin/main refs/remotes/origin/main heads/main tags/v1 "HEAD@{0}" \
-    "HEAD@{1}" "HEAD@{4}" "main@{1}" "@{-1}" "@{-2}" "@{u}" "main@{u}" \
+    "HEAD@{1}" "main@{1}" "@{-1}" "@{-2}" "@{u}" "main@{u}" \
     "topic@{upstream}" "side@{u}" nosuch "HEAD^{blob}" \
     "$(git -C "$R" rev-parse HEAD | cut -c1-5)" \
     "$(git -C "$R" rev-parse HEAD | cut -c1-12)"
 walks "$R" HEAD "HEAD ^side" "side ^HEAD" "--first-parent HEAD" \
     "HEAD -- side.txt" "HEAD -- src/lib/big.c" "HEAD -- src" "-n 3 HEAD" \
     "v1 side" "HEAD ^v1" "topic ^main" "--first-parent -n 2 HEAD"
+# HEAD@{4} is past a gap: gc expired the lines of the commits, whose times
+# are 2023's, and kept the checkouts', whose are today's
+if at_least 2 45; then
+    revs "$R" "HEAD@{4}"
+else
+    echo "note: git before 2.45 reads @{n} past a gap otherwise;" \
+         "HEAD@{4} is not compared"
+fi
 for pair in "main side" "v1 side" "topic side" "main topic" "lw v2"; do
     # shellcheck disable=SC2086
     same "merge-base $pair" "$(git -C "$R" merge-base --all $pair)" \
@@ -249,6 +270,31 @@ reads "$R"
 reads "$work/r.git"
 revs "$work/r.git" HEAD main v1 "v2^{}" HEAD~3
 walks "$work/r.git" HEAD "main ^side"
+
+# --- a reflog a branch began again in ----------------------------------------
+O=$work/o
+git init -q "$O"
+printf 'one\n' > "$O/a"
+git -C "$O" add -A
+commit "$O" one
+printf 'two\n' > "$O/a"
+commit "$O" two -a
+git -C "$O" checkout -q --orphan again
+printf 'three\n' > "$O/a"
+git -C "$O" add -A
+commit "$O" three
+printf 'four\n' > "$O/a"
+commit "$O" four -a
+revs "$O" "HEAD@{0}" "HEAD@{1}" "HEAD@{3}" "HEAD@{4}" "HEAD@{5}" \
+    "again@{1}" "again@{2}" "main@{1}"
+# HEAD@{2} is past the line again's first commit wrote, which made the ref
+# anew: git 2.45 and later give the value now
+if at_least 2 45; then
+    revs "$O" "HEAD@{2}"
+else
+    echo "note: git before 2.45 reads @{n} past a line that made the ref" \
+         "otherwise; HEAD@{2} is not compared"
+fi
 
 # --- a work tree of every change ---------------------------------------------
 W=$work/w

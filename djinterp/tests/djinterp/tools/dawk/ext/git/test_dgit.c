@@ -7,9 +7,9 @@
 * attributes over scopes; keys, values and quoting; the documents: every
 * change a file takes, each refusal leaving it as it was, and saving; and a
 * repository built here from nothing - loose objects deflated by hand and
-* by zlib, refs loose and packed, a history with a merge, an index and a
-* work tree - read for its objects, revisions, history, status, ignored
-* files and attributes.
+* by zlib, refs loose and packed, a history with a merge, reflogs, an index
+* and a work tree - read for its objects, revisions, history, status,
+* ignored files and attributes.
 *   With --corpus, it reads every ignore, attribute and configuration file
 * under the directories named, proving each reading sound, and every
 * repository it finds there, reading each object its refs reach and proving
@@ -32,7 +32,7 @@
 * path:      /tests/djinterp/tools/dawk/ext/git/test_dgit.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.20
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/tools/dawk/ext/git/dgit_repo.h"  // corresponding header
 // std
@@ -2677,6 +2677,88 @@ void d_tests_revisions(
 
 
 /*
+d_tests_reflogs
+  @{n} and @{-n} over logs written here, as git from 2.45 reads them: a
+gap, where lines were expired; a line that made the ref again; lines git
+calls corrupt, and skips - a time of 0, a zone with no sign, no space after
+the identity, a last line with no newline - and a tab in a name; an empty
+log; and a date, which is not read. The answers are git 2.56's over the
+same lines.
+*/
+static
+void d_tests_reflogs(
+    struct dj_tests_world*         _world,
+    const struct dj_tests_history* _history
+)
+{
+    static const char zero[] = "0000000000000000000000000000000000000000";
+    struct dj_git_oid oid;
+    char             hex[5][(2u * D_GIT_OID_MOST) + 1u];
+    char             text[2048];
+    char             path[1100];
+
+    // each commit's name, in hex
+    for (size_t at = 0u; at < 5u; ++at)
+    {
+        d_git_repo_hex(_world->repo, &_history->commits[at], hex[at]);
+    }
+
+    (void)snprintf(text, sizeof(text),
+                   "%s %s Pat <p@x> 1000000000 +0000\tcommit (initial): "
+                   "one\n"
+                   "%s %s Pat <p@x> 1000001000 +0000\tcommit: two\n"
+                   "%s %s Pat\tTab <p@x> 1000002000 -0230\tcheckout: "
+                   "moving from main to side\n"
+                   "%s %s Pat <p@x> 0 +0000\tcheckout: moving from zero "
+                   "to time\n"
+                   "%s %s Pat <p@x> 1000002500 0000\tcheckout: moving from "
+                   "no to sign\n"
+                   "%s %s Pat <p@x>1000002600 +0000\tcheckout: moving from "
+                   "no to space\n"
+                   "%s %s Pat <p@x> 1000003000 +0000\tcommit (initial): "
+                   "again\n"
+                   "%s %s Pat <p@x> 1000004000 +0000\tcommit: four\n"
+                   "%s %s Pat <p@x> 1000005000 +0000\tcheckout: moving from "
+                   "no to newline",
+                   zero, hex[0], hex[0], hex[1], hex[3], hex[2], hex[0],
+                   hex[1], hex[0], hex[1], hex[0], hex[1], zero, hex[3],
+                   hex[3], hex[2], hex[4], hex[0]);
+    d_tests_check( (d_tests_put_text(_world->git_dir, "logs/HEAD", text)) &&
+                   (d_tests_put_text(_world->git_dir,
+                                     "logs/refs/heads/side", "")),
+                   "the logs are written");
+
+    puts("reflogs, as git 2.45 and later read them");
+    d_tests_names_of(_world, "HEAD@{0}", &_history->commits[4]);
+    d_tests_names_of(_world, "HEAD@{1}", &_history->commits[3]);
+    d_tests_names_of(_world, "HEAD@{2}", &_history->commits[4]);
+    d_tests_names_of(_world, "HEAD@{3}", &_history->commits[1]);
+    d_tests_names_of(_world, "HEAD@{4}", &_history->commits[0]);
+    d_tests_names_of(_world, "@{-1}", &_history->commits[4]);
+    d_tests_names_of(_world, "side@{0}", &_history->commits[2]);
+    d_tests_check(!d_git_repo_rev(_world->repo, "HEAD@{5}", &oid),
+                  "@{n} past a line that made the ref refused");
+    d_tests_check(!d_git_repo_rev(_world->repo, "HEAD@{6}", &oid),
+                  "@{n} past the log refused");
+    d_tests_check(!d_git_repo_rev(_world->repo, "@{-2}", &oid),
+                  "a checkout only a corrupt line tells of refused");
+    d_tests_check(!d_git_repo_rev(_world->repo, "side@{1}", &oid),
+                  "@{1} of an empty log refused");
+    d_tests_check(!d_git_repo_rev(_world->repo, "HEAD@{100000000}", &oid),
+                  "a date refused");
+
+    // the logs gone again, for what follows
+    (void)snprintf(path, sizeof(path), "%s/logs/HEAD", _world->git_dir);
+    (void)remove(path);
+    (void)snprintf(path, sizeof(path), "%s/logs/refs/heads/side",
+                   _world->git_dir);
+    (void)remove(path);
+
+    return;
+}
+
+
+/*
 d_tests_log_is
   Whether a walk gives the commits expected, by their indices, newest
 first.
@@ -3201,6 +3283,7 @@ void d_tests_repository(
     if (d_tests_history_make(&sha1, &history))
     {
         d_tests_revisions(&sha1, &history);
+        d_tests_reflogs(&sha1, &history);
         d_tests_walks(&sha1, &history);
         d_tests_bases(&sha1, &history);
         d_tests_objects(&sha1, &history);

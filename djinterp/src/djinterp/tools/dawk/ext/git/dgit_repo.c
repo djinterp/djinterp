@@ -18,16 +18,19 @@
 * tree's own names from its directory, any other from the common one, a
 * loose ref before a packed one, symbolic refs followed five deep. A
 * revision is read from its end, as get_oid_1 reads one: ^ and ~, then ^{},
-* then a name in hex, a ref, a describe's -g, a prefix in hex. History is
-* walked as revision.c walks it: a list by commit date, ties first in first
-* out, the parents of a commit put on it as it comes off, and, when a
-* revision is excluded, the whole walk first, then what is left of it.
+* then a name in hex, a ref, a describe's -g, a prefix in hex. A reflog's
+* lines are read as the files backend reads them, and @{n} is counted as
+* git 2.45 counts it, past lines expired from within a log and past a line
+* that made the ref. History is walked as revision.c walks it: a list by
+* commit date, ties first in first out, the parents of a commit put on it as
+* it comes off, and, when a revision is excluded, the whole walk first, then
+* what is left of it.
 *
 *
 * path:      /src/djinterp/tools/dawk/ext/git/dgit_repo.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.20
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/tools/dawk/ext/git/dgit_repo.h"  // corresponding header
 // std
@@ -3769,10 +3772,97 @@ struct dj_internal_reflog
 
 
 /*
+d_internal_reflog_line
+  One line of a reflog, its newline taken off, as git's show_one_reflog_ent
+reads one: the old name and the new in hex, a space after each; an
+identity to its first `>`, and a space; a time as strtoumax reads one -
+spaces, a sign, digits - and not 0; a space, a sign and four digits; the
+message, past a tab if one follows. False for any other line, which git
+skips.
+*/
+static
+bool d_internal_reflog_line(
+    const struct dj_git_repo*        _repo,
+    const char*                      _line,
+    struct dj_internal_reflog_entry* _out
+)
+{
+    const size_t hash = d_git_repo_hash_size(_repo);
+    const size_t hex  = hash * 2u;
+
+    // two names in hex, a space after each
+    if ( (strlen(_line) < ((hex * 2u) + 2u)) ||
+         (_line[hex] != ' ') ||
+         (_line[(hex * 2u) + 1u] != ' ') ||
+         (!d_internal_parse_hex_of(_line, hash, &_out->old_oid)) ||
+         (!d_internal_parse_hex_of(&_line[hex + 1u], hash,
+                                   &_out->new_oid)) )
+    {
+        return false;
+    }
+
+    const char* const email = strchr(&_line[(hex * 2u) + 2u], '>');
+
+    // the identity's end, and a space
+    if ( (!email) ||
+         (email[1] != ' ') )
+    {
+        return false;
+    }
+
+    const char* at      = &email[2];
+    bool        nonzero = false;
+
+    // the spaces strtoumax passes over
+    while ( (*at == ' ') ||
+            ( (*at >= '\t') && (*at <= '\r') ) )
+    {
+        ++at;
+    }
+
+    at += ( (*at == '+') || (*at == '-') ) ? 1 : 0;
+
+    const char* const digits = at;
+
+    // the time's digits; strtoumax reads none as 0
+    while ( (*at >= '0') && (*at <= '9') )
+    {
+        nonzero = ( (nonzero) || (*at != '0') );
+        ++at;
+    }
+
+    // a time not 0, then the zone: a space, a sign, four digits
+    if ( (at == digits) ||
+         (!nonzero) ||
+         (at[0] != ' ') ||
+         ( (at[1] != '+') && (at[1] != '-') ) )
+    {
+        return false;
+    }
+
+    // the zone's digits
+    for (size_t place = 2u; place < 6u; ++place)
+    {
+        // one that is not
+        if ( (at[place] < '0') ||
+             (at[place] > '9') )
+        {
+            return false;
+        }
+    }
+
+    _out->message        = (at[6] == '\t') ? &at[7] : &at[6];
+    _out->message_length = strlen(_out->message);
+
+    return true;
+}
+
+
+/*
 d_internal_reflog_read
-  A ref's reflog, logs/<ref> - a work tree's own refs' in its directory --
-each line two names in hex, an identity, a tab and a message. False when
-there is none.
+  A ref's reflog, logs/<ref> - a work tree's own refs' in its directory -
+each line ended by a newline and read as git reads one; any other git
+skips, and so is it skipped here. False when there is no log.
 */
 static
 bool d_internal_reflog_read(
@@ -3781,7 +3871,6 @@ bool d_internal_reflog_read(
     struct dj_internal_reflog* _out
 )
 {
-    const size_t hash   = d_git_repo_hash_size(_repo);
     char* const  logs   = d_git_path_join((d_internal_worktree_ref(_ref))
                                           ? _repo->git_dir
                                           : _repo->common_dir,
@@ -3810,14 +3899,12 @@ bool d_internal_reflog_read(
 
     _out->entries = calloc(lines + 1u, sizeof(*_out->entries));
 
-    // each line that reads as one
+    // each line a newline ends; a last one without is skipped, as git
+    // skips it
     for (char* line = _out->text;
          ( (_out->entries) && (line) && (*line != '\0') );)
     {
         char* const end = strchr(line, '\n');
-        char* const tab = strchr(line, '\t');
-        struct dj_internal_reflog_entry* const entry =
-            &_out->entries[_out->count];
 
         // the line alone
         if (end)
@@ -3825,15 +3912,11 @@ bool d_internal_reflog_read(
             *end = '\0';
         }
 
-        // two names, a space between, and a message after a tab
-        if ( (strlen(line) > ((hash * 4u) + 1u)) &&
-             (line[hash * 2u] == ' ') &&
-             (d_internal_parse_hex_of(line, hash, &entry->old_oid)) &&
-             (d_internal_parse_hex_of(&line[(hash * 2u) + 1u], hash,
-                                      &entry->new_oid)) )
+        // a line ended, that reads as one
+        if ( (end) &&
+             (d_internal_reflog_line(_repo, line,
+                                     &_out->entries[_out->count])) )
         {
-            entry->message        = (tab) ? (tab + 1) : "";
-            entry->message_length = strlen(entry->message);
             ++_out->count;
         }
 
@@ -3889,9 +3972,14 @@ bool d_internal_is_null(
 
 /*
 d_internal_reflog_nth
-  A ref's value n changes ago, as git's read_ref_at counts them: @{0} the
-newest line's new name; @{n} the old name of the nth newest - or of the
-first older with one, past a line that made the ref.
+  A ref's value n changes ago, as git's read_ref_at counts them from git
+2.45, the log's lines counted from the newest, 0: @{0} is the ref's value
+now; @{n} is the nth line's new name, but the value now where the next
+newer line made the ref (git warns that the log ended there); and @{n} for
+a log of n lines is the oldest line's old name, if it has one. An empty
+log's @{0} is the value now. Before 2.45, git read the old name of the line
+just newer than the nth, which a gap - lines expired from within the log -
+makes another name.
 */
 static
 bool d_internal_reflog_nth(
@@ -3902,46 +3990,65 @@ bool d_internal_reflog_nth(
 )
 {
     struct dj_internal_reflog log;
+    struct dj_git_oid         now;
 
-    // a log, with lines
-    if ( (!d_internal_reflog_read(_repo, _ref, &log)) ||
-         (log.count == 0u) )
+    // the value now, which git begins from
+    if (!d_git_repo_resolve(_repo, _ref, &now, NULL))
+    {
+        return false;
+    }
+
+    // a log
+    if (!d_internal_reflog_read(_repo, _ref, &log))
     {
         d_internal_reflog_free(&log);
 
         return d_git_repo_fail(_repo, "the ref has no reflog", _ref);
     }
 
-    // the newest line's new name
-    if (_nth == 0u)
-    {
-        *_out = log.entries[log.count - 1u].new_oid;
-        d_internal_reflog_free(&log);
+    const size_t count = log.count;
+    bool         found = true;
 
-        return true;
+    // the nth line's new name, unless the next newer line made the ref;
+    // one past the oldest, its old name, when it has one; an empty log's
+    // @{0}
+    if (_nth < count)
+    {
+        const size_t at = (count - 1u) - (size_t)_nth;
+
+        *_out = ( (_nth > 0u) &&
+                  (!d_internal_is_null(_repo,
+                                       &log.entries[at + 1u].old_oid)) )
+                ? log.entries[at].new_oid
+                : now;
     }
-
-    bool found = false;
-
-    // from the nth newest back, the first old name that is one
-    for (size_t at = (_nth <= log.count) ? (log.count - _nth) : 0u;
-         ( (_nth <= log.count) && (!found) );
-         --at)
+    else if ( (_nth == count) &&
+              (count > 0u) &&
+              (!d_internal_is_null(_repo, &log.entries[0].old_oid)) )
     {
-        found = !d_internal_is_null(_repo, &log.entries[at].old_oid);
-        *_out = (found) ? log.entries[at].old_oid : *_out;
-
-        // the oldest line ends the search
-        if (at == 0u)
-        {
-            break;
-        }
+        *_out = log.entries[0].old_oid;
+    }
+    else if (_nth == 0u)
+    {
+        *_out = now;
+    }
+    else
+    {
+        found = false;
     }
 
     d_internal_reflog_free(&log);
 
-    return (found) ? true : d_git_repo_fail(_repo, "log only has so many "
-                                                   "entries", _ref);
+    // why not, when not
+    if (!found)
+    {
+        return d_git_repo_fail(_repo, (count == 0u)
+                                      ? "the ref's reflog is empty"
+                                      : "log only has so many entries",
+                               _ref);
+    }
+
+    return true;
 }
 
 
@@ -4371,8 +4478,10 @@ bool d_internal_at_mark(
 
         return found;
     }
-    else if (!d_internal_digits(inner, length, &nth))
+    else if ( (!d_internal_digits(inner, length, &nth)) ||
+              (nth >= 100000000u) )
     {
+        // a date, as git reads a number from 100000000 up
         return d_git_repo_fail(_repo, "reflog dates and @{push} are not "
                                       "read", NULL);
     }
