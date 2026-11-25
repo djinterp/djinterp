@@ -10,7 +10,7 @@ inc/djinterp/cpp/modules/net/reactor.hpp	9
 inc/djinterp/cpp/modules/net/server.hpp	1
 inc/djinterp/cpp/modules/net/tls/tls.hpp	1
 inc/djinterp/cpp/util/pdf/pdf_builtin_backend.hpp	1
-src/djinterp/c/modules/db/postgres/postgres_connection.c	4
+src/djinterp/c/modules/db/postgres/postgres_connection.c	2
 src/djinterp/c/modules/db/postgres/postgres_protocol.c	2
 src/djinterp/c/modules/net/ssh/ssh_key.c	1
 src/djinterp/c/modules/net/ssh/ssh_known_hosts.c	2
@@ -66,12 +66,9 @@ tests/djinterp/c/filesys/file_tests_temp.c	1
 tests/djinterp/c/filesys/file_tests_util.c	1
 tests/djinterp/c/filesys/t_file_width.c	2
 tests/djinterp/c/log/log_tests.c	3
-tests/djinterp/c/modules/db/mariadb/mariadb_stubs_tests.c	1
 tests/djinterp/c/modules/db/mariadb/mariadb_tests.c	2
 tests/djinterp/c/modules/db/mongodb/mongodb_tests.c	5
-tests/djinterp/c/modules/db/postgres/postgres_stubs_tests.c	1
 tests/djinterp/c/modules/db/postgres/postgres_tests.c	9
-tests/djinterp/c/modules/db/sqlite/sqlite_stubs_tests.c	1
 tests/djinterp/c/modules/db/sqlite/sqlite_tests.c	4
 tests/djinterp/c/modules/math/t_decimal.c	6
 tests/djinterp/c/modules/math/t_interval.c	2
