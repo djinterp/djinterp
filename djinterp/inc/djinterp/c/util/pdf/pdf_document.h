@@ -252,10 +252,10 @@ int32_t d_pdf_document_last_status(
 
 // VII. layout assertions
 D_STATIC_ASSERT(D_PDF_DOC_OK == 0,
-                "success must be the zero status -- a zeroed status field "
+                "success must be the zero status - a zeroed status field "
                 "means nothing has gone wrong yet");
 D_STATIC_ASSERT(offsetof(struct dj_pdf_backend, size) == 0,
-                "size must be the FIRST member -- it is the version field, and "
+                "size must be the FIRST member - it is the version field, and "
                 "reading it must not depend on the rest of the layout");
 
 D_EXTERN_C_END

@@ -128,14 +128,14 @@ int32_t d_pdf_backend_preferred(void);
 
 // III. layout assertions
 D_STATIC_ASSERT(D_PDF_BACKEND_BUILTIN == 0,
-                "the builtin backend must be the zero selector -- a zeroed "
+                "the builtin backend must be the zero selector - a zeroed "
                 "kind is the always-available one");
 D_STATIC_ASSERT(D_PDF_BACKEND_COUNT == 5,
-                "a backend was added to env_pdf.h -- extend d_pdf_backend_name "
+                "a backend was added to env_pdf.h - extend d_pdf_backend_name "
                 "and d_pdf_backend_is_available");
 D_STATIC_ASSERT(sizeof(struct dj_pdf_capabilities) ==
                     (D_PDF_CAPABILITY_COUNT * sizeof(int32_t)),
-                "dj_pdf_capabilities gained a member of another type -- "
+                "dj_pdf_capabilities gained a member of another type - "
                 "D_PDF_CAPABILITY_COUNT no longer describes it");
 
 D_EXTERN_C_END

@@ -269,18 +269,18 @@ struct dj_pdf_paint d_pdf_paint_init(void);
 
 // VI.  layout assertions
 D_STATIC_ASSERT(D_PDF_FONT_COUNT == 14,
-                "a standard-14 face was added -- extend the name table, the "
+                "a standard-14 face was added - extend the name table, the "
                 "advance factors, and pdf_metrics's width dispatch");
 D_STATIC_ASSERT(D_PDF_PAGE_COUNT == 6,
-                "a page preset was added -- extend d_pdf_page_size");
+                "a page preset was added - extend d_pdf_page_size");
 D_STATIC_ASSERT(D_PDF_COLOR_SPACE_COUNT == 3,
-                "a colour space was added -- extend d_pdf_color_channel_count");
+                "a colour space was added - extend d_pdf_color_channel_count");
 D_STATIC_ASSERT(offsetof(struct dj_pdf_color, g) ==
                     offsetof(struct dj_pdf_color, r) + sizeof(double),
-                "dj_pdf_color layout drift -- g must follow r");
+                "dj_pdf_color layout drift - g must follow r");
 D_STATIC_ASSERT(offsetof(struct dj_pdf_color, b) ==
                     offsetof(struct dj_pdf_color, g) + sizeof(double),
-                "dj_pdf_color layout drift -- b must follow g");
+                "dj_pdf_color layout drift - b must follow g");
 
 D_EXTERN_C_END
 

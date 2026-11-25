@@ -274,10 +274,10 @@ d_tests_xml_accessors(void)
     using namespace djinterp;
     using namespace djinterp::xml;
 
-    D_TESTS_TEXT_CHECK(has_name_method<DTestsXmlShortAttribute>::value &&
+    D_TESTS_TEXT_CHECK(xml::has_name_method<DTestsXmlShortAttribute>::value &&
                        !has_get_name_method<DTestsXmlShortAttribute>::value);
     D_TESTS_TEXT_CHECK(has_get_name_method<DTestsXmlGetterAttribute>::value &&
-                       !has_name_method<DTestsXmlGetterAttribute>::value);
+                       !xml::has_name_method<DTestsXmlGetterAttribute>::value);
     D_TESTS_TEXT_CHECK(has_name_access<DTestsXmlShortAttribute>::value &&
                        has_name_access<DTestsXmlGetterAttribute>::value);
     D_TESTS_TEXT_CHECK(has_value_method<DTestsXmlShortAttribute>::value &&
@@ -298,7 +298,7 @@ d_tests_xml_accessors(void)
     D_TESTS_TEXT_CHECK(has_text_access<DTestsXmlGetterNode>::value &&
                        !has_text_access<DTestsXmlNameOnly>::value);
 
-    D_TESTS_TEXT_CHECK(!has_name_method<DTestsXmlMutableName>::value &&
+    D_TESTS_TEXT_CHECK(!xml::has_name_method<DTestsXmlMutableName>::value &&
                        !has_name_access<DTestsXmlMutableName>::value);
 
     return;
@@ -345,15 +345,15 @@ d_tests_xml_structure(void)
         has_attribute_count_method<DTestsXmlFullNode>::value);
     D_TESTS_TEXT_CHECK(
         has_find_child_method<DTestsXmlFullNode>::value &&
-        has_add_child_method<DTestsXmlFullNode>::value &&
+        xml::has_add_child_method<DTestsXmlFullNode>::value &&
         has_remove_child_method<DTestsXmlFullNode>::value &&
         has_child_count_method<DTestsXmlFullNode>::value &&
-        has_parent_method<DTestsXmlFullNode>::value &&
+        xml::has_parent_method<DTestsXmlFullNode>::value &&
         has_set_text_method<DTestsXmlFullNode>::value);
     D_TESTS_TEXT_CHECK(
         !has_set_attribute_method<DTestsXmlGetterNode>::value &&
-        !has_add_child_method<DTestsXmlGetterNode>::value &&
-        !has_parent_method<DTestsXmlGetterNode>::value);
+        !xml::has_add_child_method<DTestsXmlGetterNode>::value &&
+        !xml::has_parent_method<DTestsXmlGetterNode>::value);
 
     D_TESTS_TEXT_CHECK(full::is_node && full::is_element && full::has_name &&
                        full::has_value && full::has_kind && full::has_text);

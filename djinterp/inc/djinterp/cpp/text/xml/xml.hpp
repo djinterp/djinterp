@@ -51,12 +51,15 @@
 * path:      /inc/djinterp/cpp/text/xml/xml.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.08
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
+(probe): one of the eight tree probes container/traits/node_probes.hpp
+         defines once for every tree; xml's name asks xml's question of it.
+
 I.    SHARED TYPES & CONSTANTS
       ------------------------
       i.    DXmlString
@@ -88,7 +91,7 @@ IV.   BACKEND TAG DETECTION
 
 V.    ACCESSOR DETECTION (NAME / VALUE / KIND)
       ----------------------------------------
-      a. has_name_method,         has_get_name_method
+      a. has_name_method (probe), has_get_name_method
       b. has_value_method,        has_get_value_method
       c.    has_kind_method,         has_get_kind_method
             d. has_name_access,         has_value_access, has_kind_access
@@ -104,13 +107,13 @@ VI.   ATTRIBUTE DETECTION
 
 VII.  CHILD / TRAVERSAL DETECTION
       ---------------------------
-      a. has_children_method,     has_get_children_method
-      b. has_first_child_method
-      c.    has_parent_method
+      a. has_children_method (probe), has_get_children_method
+      b. has_first_child_method (probe)
+      c.    has_parent_method (probe)
             d. has_find_child_method
-            e. has_add_child_method
+            e. has_add_child_method (probe)
             f. has_remove_child_method
-            g. has_child_count_method
+            g. has_child_count_method (probe)
             h. has_traversal
 
 VIII. TEXT CONTENT DETECTION
@@ -128,7 +131,7 @@ IX.   NODE CLASSIFICATION
 X.    DOCUMENT DETECTION
       ------------------
       a. has_root_element_method, has_document_element_method
-      b. has_version_method
+      b. has_version_method (probe)
       c.    has_encoding_method
             d. has_standalone_method
             e. has_parse_method
@@ -139,7 +142,7 @@ X.    DOCUMENT DETECTION
 
 XI.   BACKEND PROTOCOL DETECTION
       --------------------------
-      a. has_node_type_alias
+      a. has_node_type_alias (probe)
       b. has_attribute_type_alias
       c.    has_document_type_alias
             d. has_make_document_method
@@ -169,9 +172,10 @@ XIII. CONCEPTS (C++20)
 // std
 #include <cstddef>      // std::size_t
 #include <string>       // std::string
-#include <type_traits>  // std::false_type, std::true_type
+#include <type_traits>  // std::add_lvalue_reference, std::true_type
 // djinterp
 #include "../../djinterp.hpp"  // framework root
+#include "../../container/traits/node_probes.hpp"  // the eight tree probes
 // re_std
 #include "../../../../re_std/cpp/cstdint/cstdint.hpp"  // re_std::uint8_t
 
@@ -411,17 +415,9 @@ namespace xml {
 
 // has_name_method
 //   trait: true if Type exposes a `name()` const method (pugixml /
-// short-form convention).
-template<typename Type,
-         typename = void>
-struct has_name_method : std::false_type
-{};
-
+// short-form convention): the shared probe, asked of a const Type.
 template<typename Type>
-struct has_name_method<Type, void_t<
-    decltype(std::declval<const Type&>().name())
->> : std::true_type
-{};
+using has_name_method = ::djinterp::has_name_method<const Type>;
 
 
 // has_get_name_method
@@ -678,17 +674,8 @@ struct is_xml_attribute
 
 // has_children_method
 //   trait: true if Type exposes `children()` const returning an
-// iterable.
-template<typename Type,
-         typename = void>
-struct has_children_method : std::false_type
-{};
-
-template<typename Type>
-struct has_children_method<Type, void_t<
-    decltype(std::declval<const Type&>().children())
->> : std::true_type
-{};
+// iterable: the shared probe, which asks the same.
+using ::djinterp::has_children_method;
 
 
 // has_get_children_method
@@ -707,31 +694,17 @@ struct has_get_children_method<Type, void_t<
 
 // has_first_child_method
 //   trait: true if Type exposes `first_child()` (pugixml /
-// linked-list traversal style).
-template<typename Type,
-         typename = void>
-struct has_first_child_method : std::false_type
-{};
-
-template<typename Type>
-struct has_first_child_method<Type, void_t<
-    decltype(std::declval<const Type&>().first_child())
->> : std::true_type
-{};
+// linked-list traversal style): the shared probe, which asks the same.
+using ::djinterp::has_first_child_method;
 
 
 // has_parent_method
-//   trait: true if Type exposes `parent()` const.
-template<typename Type,
-         typename = void>
-struct has_parent_method : std::false_type
-{};
-
+//   trait: true if Type exposes `parent()` const: the shared probe, asked
+// of a const Type lvalue. add_lvalue_reference spells it, so that void is
+// false rather than an error.
 template<typename Type>
-struct has_parent_method<Type, void_t<
-    decltype(std::declval<const Type&>().parent())
->> : std::true_type
-{};
+using has_parent_method = ::djinterp::has_parent_method<
+    typename std::add_lvalue_reference<const Type>::type>;
 
 
 // has_find_child_method
@@ -750,18 +723,11 @@ struct has_find_child_method<Type, void_t<
 
 
 // has_add_child_method
-//   trait: true if Type exposes `add_child(name)`.
-template<typename Type,
-         typename = void>
-struct has_add_child_method : std::false_type
-{};
-
+//   trait: true if Type exposes `add_child(name)`: the shared probe, with a
+// name's argument.
 template<typename Type>
-struct has_add_child_method<Type, void_t<
-    decltype(std::declval<Type&>().add_child(
-        std::declval<const std::string&>()))
->> : std::true_type
-{};
+using has_add_child_method =
+    ::djinterp::has_add_child_method<Type, const std::string&>;
 
 
 // has_remove_child_method
@@ -780,17 +746,9 @@ struct has_remove_child_method<Type, void_t<
 
 
 // has_child_count_method
-//   trait: true if Type exposes `child_count()` const.
-template<typename Type,
-         typename = void>
-struct has_child_count_method : std::false_type
-{};
-
-template<typename Type>
-struct has_child_count_method<Type, void_t<
-    decltype(std::declval<const Type&>().child_count())
->> : std::true_type
-{};
+//   trait: true if Type exposes `child_count()` const: the shared probe,
+// which asks the same.
+using ::djinterp::has_child_count_method;
 
 
 // has_traversal
@@ -997,17 +955,9 @@ struct has_root_access
 
 
 // has_version_method
-//   trait: true if Type exposes `version()` const.
-template<typename Type,
-         typename = void>
-struct has_version_method : std::false_type
-{};
-
-template<typename Type>
-struct has_version_method<Type, void_t<
-    decltype(std::declval<const Type&>().version())
->> : std::true_type
-{};
+//   trait: true if Type exposes `version()` const: the shared probe, which
+// asks the same.
+using ::djinterp::has_version_method;
 
 
 // has_encoding_method
@@ -1135,17 +1085,10 @@ struct DXmlDocumentClass
 // has_node_type_alias
 //   trait: true if Type exposes a nested `node_type` alias. A
 // backend's `node_type` names the concrete node class for that
-// backend.
-template<typename Type,
-         typename = void>
-struct has_node_type_alias : std::false_type
-{};
-
+// backend. It is the shared has_node_type, which cleans Type the same
+// way; nary_tree_traits' probe of this name asks of Type as given.
 template<typename Type>
-struct has_node_type_alias<Type, void_t<
-    typename clean_t<Type>::node_type
->> : std::true_type
-{};
+using has_node_type_alias = ::djinterp::has_node_type<Type>;
 
 
 // has_attribute_type_alias

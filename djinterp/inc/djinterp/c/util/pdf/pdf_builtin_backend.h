@@ -123,7 +123,7 @@ size_t d_pdf_begin_object(
 
 // VI.  layout assertions
 D_STATIC_ASSERT(D_PDF_DATE_MAX == 16,
-                "a PDF date is D:YYYYMMDDHHmmSS -- exactly sixteen bytes");
+                "a PDF date is D:YYYYMMDDHHmmSS - exactly sixteen bytes");
 D_STATIC_ASSERT(D_PDF_ESCAPE_WORST_CASE == 4,
                 "an octal escape is a backslash and three digits");
 
