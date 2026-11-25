@@ -4,7 +4,7 @@
 #    Test leaf for container/registry/registry.h, in DTest's C face: the runner
 # in this directory, the section translation units globbed from the tests tree,
 # the sources under test and their dependencies, and DTest's C face, which
-# djinterp_c_runtime does not yet carry (a request to lane A).
+# it links as the framework's library, djinterp_c_test.
 #
 # author(s): Samuel 'teer' Neal-Blim                            date: 2026.11.09
 # =============================================================================
@@ -20,6 +20,7 @@ djinterp_add_test_executable(c_registry_tests
         "${DJINTERP_SRC_ROOT}/djinterp/c/container/registry/registry_common.c"
         "${DJINTERP_SRC_ROOT}/djinterp/c/string_fn.c"
         "${DJINTERP_SRC_ROOT}/djinterp/c/memory/dmemory.c"
-        "${DJINTERP_SRC_ROOT}/djinterp/c/modules/test/test_suite.c"
     INCLUDES
-        "${_tests_dir}")
+        "${_tests_dir}"
+    LIBRARIES
+        djinterp_c_test)

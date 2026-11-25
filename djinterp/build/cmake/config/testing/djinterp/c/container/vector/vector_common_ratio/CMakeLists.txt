@@ -24,12 +24,10 @@ djinterp_add_test_executable(c_vector_common_ratio_tests
         "${DJINTERP_SRC_ROOT}/djinterp/c/string_fn.c"
         "${DJINTERP_SRC_ROOT}/djinterp/c/container/array/array_common.c"
         "${DJINTERP_SRC_ROOT}/djinterp/c/memory/dmemory.c"
-        "${DJINTERP_SRC_ROOT}/djinterp/c/modules/test/test_suite.c"
     DEFINES
         D_VECTOR_GROWTH_FACTOR=1.5
         D_TESTS_VECTOR_GROWTH_EXPECT=1536
     INCLUDES
         "${_tests_dir}"
-    # libm, until djinterp_c_runtime links it
     LIBRARIES
-        "$<$<NOT:$<C_COMPILER_ID:MSVC>>:m>")
+        djinterp_c_test)
