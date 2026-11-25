@@ -12,8 +12,10 @@
 *     - `indexed` requires BOTH data() and a random-access iterator, so a
 *       std::deque (random-access, but no data()) is `bidirectional`, not
 *       `indexed` - contiguity, not just index-ability, is the line.
-*     - a std::unordered_set is forward-only, so it is `forward` even though it
-*       is fully filterable.
+*     - a std::unordered_set is `forward` where its iterator is forward-only
+*       (libstdc++, libc++), even though it is fully filterable; MSVC's
+*       library gives it a bidirectional iterator, so it is `bidirectional`
+*       there.
 *   `native` is confirmed to win ahead of `indexed` (DNativeFilterable), while a
 *   wrong-signature filter() does not (DNativeWrongSig is `indexed`).
 *
@@ -88,9 +90,12 @@ bool tests_container_filter_strategy()
     D_CF_CHECK( (DContainerFilterStrategy<std::map<int, int>>::value
                      == DFilterStrategy::bidirectional) );
 
-    // forward: a filterable but forward-only container
+    // forward: a filterable container whose iterator is forward-only, as
+    // std::unordered_set's is outside MSVC's library
     D_CF_CHECK( (DContainerFilterStrategy<std::unordered_set<int>>::value
-                     == DFilterStrategy::forward) );
+                     == (unordered_set_is_bidirectional()
+                             ? DFilterStrategy::bidirectional
+                             : DFilterStrategy::forward)) );
 
     // external: a source that cannot build its own result
     D_CF_CHECK( (DContainerFilterStrategy<std::forward_list<int>>::value

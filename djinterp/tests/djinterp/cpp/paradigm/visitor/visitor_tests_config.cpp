@@ -14,7 +14,7 @@
 // language feature is available, and the sections below them are compiled or not
 // on that basis.  A gate that lies does not fail loudly - it silently compiles
 // out a whole dispatch strategy, or admits one the compiler cannot support.  So
-// each gate is checked against the dialect DIRECTLY, from __cplusplus, rather than
+// each gate is checked against the dialect DIRECTLY, from the compiler, rather than
 // against the D_ENV_* macros it is defined in terms of, which would only prove the
 // header agrees with itself.
 //
@@ -38,26 +38,41 @@ NS_TESTING
 
 namespace
 {
+    // dialect
+    //   fixture: the dialect the compiler says it compiles, read straight
+    // from the compiler rather than from the D_ENV_* macros the gates are
+    // defined in terms of.  Checking a gate against the macro it is defined
+    // as would be a tautology.  MSVC keeps __cplusplus at 199711L unless
+    // /Zc:__cplusplus is given, and states its dialect in _MSVC_LANG at
+    // every setting, so on MSVC that is the one read.
+    D_CONSTEXPR
+    long dialect()
+    {
+#if defined(_MSVC_LANG)
+        return static_cast<long>(_MSVC_LANG);
+#else
+        return static_cast<long>(__cplusplus);
+#endif
+    }
+
     // dialect_is
-    //   fixture: the dialect, read straight from __cplusplus rather than from the
-    // D_ENV_* macros the gates are defined in terms of.  Checking a gate against
-    // the macro it is defined as would be a tautology.
+    //   fixture: whether the dialect is at least the one named.
     D_CONSTEXPR
     bool dialect_is_cpp11_or_higher()
     {
-        return (__cplusplus >= 201103L);
+        return (dialect() >= 201103L);
     }
 
     D_CONSTEXPR
     bool dialect_is_cpp17_or_higher()
     {
-        return (__cplusplus >= 201703L);
+        return (dialect() >= 201703L);
     }
 
     D_CONSTEXPR
     bool dialect_is_cpp20_or_higher()
     {
-        return (__cplusplus >= 202002L);
+        return (dialect() >= 202002L);
     }
 }
 

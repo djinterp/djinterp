@@ -12,7 +12,7 @@
 * external (the source-only test precedes the indexed test); std::deque is
 * random-access but has NO data(), so it is bidirectional, not indexed; and
 * std::unordered_set is the one standard container whose transformable iterator is
-* forward-only.
+* forward-only, outside MSVC's library, which gives it a bidirectional one.
 *
 *
 * path:      /tests/djinterp/cpp/container/traits/container_transform_traits_tests_strategy.cpp
@@ -69,8 +69,12 @@ bool tests_container_transform_strategy()
     D_TX_CHECK( (DContainerTransformStrategy<std::map<int, int>>::value == DTransformStrategy::bidirectional) );
     D_TX_CHECK( (DContainerTransformStrategy<Box<int>>::value         == DTransformStrategy::bidirectional) );
 
-    // forward: transformable but forward-only iterator
-    D_TX_CHECK( (DContainerTransformStrategy<std::unordered_set<int>>::value == DTransformStrategy::forward) );
+    // forward: transformable but forward-only iterator, as std::unordered_set's
+    // is outside MSVC's library
+    D_TX_CHECK( (DContainerTransformStrategy<std::unordered_set<int>>::value
+                     == (unordered_set_is_bidirectional()
+                             ? DTransformStrategy::bidirectional
+                             : DTransformStrategy::forward)) );
 
     // external: a source that cannot build (even array, though contiguous + RA)
     D_TX_CHECK( (DContainerTransformStrategy<std::forward_list<int>>::value == DTransformStrategy::external) );

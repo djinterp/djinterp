@@ -36,7 +36,7 @@ bool tests_container_transform_class()
 {
     bool _tx_ok = true;
 
-    // - std::vector<int>: indexed, runtime, transformable, order preserved --
+    // - std::vector<int>: indexed, runtime, transformable, order preserved -
     {
         using C = DContainerTransformClass<std::vector<int>>;
         D_TX_CHECK( (C::is_transformable && C::is_source && !C::is_input_only && !C::has_native) );
@@ -47,7 +47,7 @@ bool tests_container_transform_class()
         D_TX_CHECK( (!C::preserves_sortedness && !C::preserves_uniqueness) );
     }
 
-    // - std::set<int>: bidirectional, runtime, transformable, NO order --
+    // - std::set<int>: bidirectional, runtime, transformable, NO order -
     {
         using C = DContainerTransformClass<std::set<int>>;
         D_TX_CHECK( (C::is_transformable && C::is_source && !C::is_input_only) );
@@ -57,15 +57,17 @@ bool tests_container_transform_class()
         D_TX_CHECK( (!C::preserves_sortedness && !C::preserves_uniqueness) );  // even a sorted, unique set
     }
 
-    // - std::unordered_set<int>: forward, transformable --
+    // - std::unordered_set<int>: forward, transformable -
     {
         using C = DContainerTransformClass<std::unordered_set<int>>;
         D_TX_CHECK( (C::is_transformable) );
-        D_TX_CHECK( (C::strategy == DTransformStrategy::forward) );
+        D_TX_CHECK( (C::strategy == (unordered_set_is_bidirectional()
+                                         ? DTransformStrategy::bidirectional
+                                         : DTransformStrategy::forward)) );
         D_TX_CHECK( (!C::preserves_order) );
     }
 
-    // - std::array<int,4>: input-only, external, but COMPILE-TIME --
+    // - std::array<int,4>: input-only, external, but COMPILE-TIME -
     {
         using C = DContainerTransformClass<std::array<int, 4>>;
         D_TX_CHECK( (!C::is_transformable && C::is_source && C::is_input_only) );
@@ -74,7 +76,7 @@ bool tests_container_transform_class()
         D_TX_CHECK( (C::preserves_order) );
     }
 
-    // - std::forward_list<int>: input-only, external, runtime --
+    // - std::forward_list<int>: input-only, external, runtime -
     {
         using C = DContainerTransformClass<std::forward_list<int>>;
         D_TX_CHECK( (!C::is_transformable && C::is_source && C::is_input_only) );
@@ -83,7 +85,7 @@ bool tests_container_transform_class()
         D_TX_CHECK( (C::preserves_order) );
     }
 
-    // - DNativeBox: native, compile-time, transformable --
+    // - DNativeBox: native, compile-time, transformable -
     {
         using C = DContainerTransformClass<DNativeBox>;
         D_TX_CHECK( (C::is_transformable && C::has_native) );
@@ -92,7 +94,7 @@ bool tests_container_transform_class()
         D_TX_CHECK( (C::preserves_order) );
     }
 
-    // - int: unsupported / none, yet size + capacity preservation read true --
+    // - int: unsupported / none, yet size + capacity preservation read true -
     {
         using C = DContainerTransformClass<int>;
         D_TX_CHECK( (!C::is_transformable && !C::is_source && !C::is_input_only && !C::has_native) );
@@ -125,7 +127,10 @@ bool tests_transform_variable_templates()
 
     // realization companions (enums)
     D_TX_CHECK( (container_transform_strategy_v<std::vector<int>> == DTransformStrategy::indexed) );
-    D_TX_CHECK( (container_transform_strategy_v<std::unordered_set<int>> == DTransformStrategy::forward) );
+    D_TX_CHECK( (container_transform_strategy_v<std::unordered_set<int>>
+                     == (unordered_set_is_bidirectional()
+                             ? DTransformStrategy::bidirectional
+                             : DTransformStrategy::forward)) );
     D_TX_CHECK( (transform_stage_of_v<std::array<int, 4>> == DTransformStage::compile_time) );
     D_TX_CHECK( (transform_stage_of_v<std::vector<int>> == DTransformStage::runtime) );
 

@@ -50,10 +50,12 @@
 #include <cstdio>
 #include <deque>
 #include <forward_list>
+#include <iterator>
 #include <list>
 #include <map>
 #include <set>
 #include <string>
+#include <type_traits>
 #include <unordered_set>
 #include <vector>
 // djinterp
@@ -107,6 +109,21 @@ NS_TESTING
 
 // dt names DTest; unconditional, the spec provider needs it
 namespace dt = ::djinterp::test;
+
+// unordered_set_is_bidirectional
+//   fixture: whether this standard library's std::unordered_set<int>
+// iterator is bidirectional. The standard asks only for a forward one;
+// libstdc++ and libc++ give exactly that, and MSVC's library gives a
+// bidirectional one. The strategy a std::unordered_set earns follows its
+// iterator, so the checks expect it from the library in use.
+D_CONSTEXPR
+bool unordered_set_is_bidirectional()
+{
+    return std::is_base_of<
+        std::bidirectional_iterator_tag,
+        std::iterator_traits<
+            std::unordered_set<int>::iterator>::iterator_category>::value;
+}
 
 #ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
@@ -246,30 +263,30 @@ struct DIterableNoValue
 // Test-function declarations (defined in the section .cpp files)
 // ===========================================================================
 
-// - I.   Capability detection --
+// - I.   Capability detection -
 bool tests_is_filter_source();
 bool tests_is_container_filterable();
 bool tests_is_filter_input_only();
 bool tests_has_native_filter();
 
-// - II.  Strategy (the realization) --
+// - II.  Strategy (the realization) -
 bool tests_filter_strategy_name();
 bool tests_container_filter_strategy();
 
-// - III. Stage (when a selection may run) --
+// - III. Stage (when a selection may run) -
 bool tests_filter_stage_name();
 bool tests_filter_stage_of();
 
-// - IV.  Preservation --
+// - IV.  Preservation -
 bool tests_filter_preserves_order();
 bool tests_filter_preserves_sortedness();
 bool tests_filter_preserves_uniqueness();
 bool tests_filter_preserves_capacity_bounds();
 
-// - V.   Result type --
+// - V.   Result type -
 bool tests_filter_result_type();
 
-// - VI.  Combined classification + variable-template companions --
+// - VI.  Combined classification + variable-template companions -
 bool tests_container_filter_class();
 bool tests_filter_variable_templates();
 

@@ -687,16 +687,26 @@ D_ENV_PP_VARIADIC_QUIET_BEGIN
 
 // D_INTERNAL_TYPE_TRAIT_20
 //   macro (internal): emits TRAIT_NAME<Type> (the same two-parameter shape
-// as the void_t engine's), a std::bool_constant of a requires-expression over
-// REQUIREMENTS, plus the `_v` companion: the trait defined from the
-// constraint, as decision 4.8 has it. C++20 with concepts.
+// as the void_t engine's), false, and its partial specialization for
+// <Type, void>, true where a requires-expression over REQUIREMENTS holds,
+// plus the `_v` companion: the trait defined from the constraint, as decision
+// 4.8 has it. C++20 with concepts.
+//   Every form of this engine puts its requires-expression in a constraint
+// on a partial specialization, never in a base-specifier: MSVC treats a
+// private member as accessible in a requires-expression that is a base's
+// template argument, so the probes there admitted private members on MSVC
+// alone.
 #if ( (D_ENV_LANG_IS_CPP20_OR_HIGHER) &&                                     \
       (D_ENV_CPP_FEATURE_LANG_CONCEPTS) )
     #define D_INTERNAL_TYPE_TRAIT_20(TRAIT_NAME, REQUIREMENTS)                \
         template<typename Type,                                             \
                  typename = void>                                            \
-        struct TRAIT_NAME                                                    \
-            : std::bool_constant<requires { REQUIREMENTS }>                  \
+        struct TRAIT_NAME : std::false_type                                  \
+        {};                                                                  \
+                                                                             \
+        template<typename Type>                                             \
+            requires requires { REQUIREMENTS }                               \
+        struct TRAIT_NAME<Type, void> : std::true_type                      \
         {};                                                                  \
                                                                              \
         D_TYPE_TRAIT_VALUE_BOOL(TRAIT_NAME)
@@ -725,17 +735,22 @@ D_ENV_PP_VARIADIC_QUIET_BEGIN
     // D_INTERNAL_TYPE_TRAIT_20_HAS_BOOL_CONSTANT / _OPT_IN
     //   macro (internal): the bool-constant shape and the opt-in reading, as
     // documented above, from the requires engine: the constant is a
-    // type-requirement on std::integral_constant<bool, ...>, so a name that
-    // cannot be one fails the requirement rather than the build.
+    // type-requirement on std::integral_constant<bool, ...>, in a constraint
+    // on the partial specialization, so a name that cannot be one fails the
+    // requirement rather than the build.
     #define D_INTERNAL_TYPE_TRAIT_20_HAS_BOOL_CONSTANT(TRAIT_NAME,           \
                                                        MEMBER_NAME)          \
         template<typename Type,                                              \
                  typename = void>                                            \
-        struct TRAIT_NAME                                                    \
-            : std::bool_constant<requires {                                  \
-                  typename std::integral_constant<bool,                      \
-                      ::djinterp::clean_t<Type>::MEMBER_NAME>;               \
-              }>                                                             \
+        struct TRAIT_NAME : std::false_type                                  \
+        {};                                                                  \
+                                                                             \
+        template<typename Type>                                              \
+            requires requires {                                              \
+                typename std::integral_constant<bool,                        \
+                    ::djinterp::clean_t<Type>::MEMBER_NAME>;                 \
+            }                                                                \
+        struct TRAIT_NAME<Type, void> : std::true_type                       \
         {};                                                                  \
                                                                              \
         D_TYPE_TRAIT_VALUE_BOOL(TRAIT_NAME)
@@ -759,36 +774,59 @@ D_ENV_PP_VARIADIC_QUIET_BEGIN
 
     // D_INTERNAL_TYPE_TRAIT_20_HAS_METHOD_WITH
     //   macro (internal): D_TYPE_TRAIT_HAS_METHOD_WITH from the requires
-    // engine; the call is a simple requirement, so no detector is emitted.
+    // engine: the void_t engine's helper, internal::TRAIT_NAME##_helper,
+    // with the call as a simple requirement on its partial specialization.
     #define D_INTERNAL_TYPE_TRAIT_20_HAS_METHOD_WITH(TRAIT_NAME,             \
                                                      METHOD_NAME)            \
+        NS_INTERNAL                                                          \
+                                                                             \
+            template<typename    Void,                                       \
+                     typename    Type,                                       \
+                     typename... Args>                                       \
+            struct TRAIT_NAME##_helper : std::false_type                     \
+            {};                                                              \
+                                                                             \
+            template<typename    Type,                                       \
+                     typename... Args>                                       \
+                requires requires {                                          \
+                    std::declval<Type&>().METHOD_NAME(                       \
+                        std::declval<Args>()...);                            \
+                }                                                            \
+            struct TRAIT_NAME##_helper<void, Type, Args...>                  \
+                : std::true_type                                             \
+            {};                                                              \
+                                                                             \
+        NS_END                                                               \
+                                                                             \
         template<typename    Type,                                           \
                  typename... Args>                                           \
         struct TRAIT_NAME                                                    \
-            : std::bool_constant<requires {                                  \
-                  std::declval<Type&>().METHOD_NAME(                         \
-                      std::declval<Args>()...);                              \
-              }>                                                             \
+            : internal::TRAIT_NAME##_helper<void, Type, Args...>             \
         {};                                                                  \
                                                                              \
         D_INTERNAL_TYPE_TRAIT_VALUE_BOOL_ARGS(TRAIT_NAME)
 
     // D_INTERNAL_TYPE_TRAIT_20_TRUE
     //   macro (internal): the requires engine's D_TYPE_TRAIT_TRUE: the same
-    // two-parameter shape, a std::bool_constant of a requires-expression
-    // whose one type-requirement is that every type in `...` can be formed
-    // (void_t's condition, as trait_detect_pack_sink spells it), plus the
-    // `_v` companion. A requirement that cannot be formed for Type makes the
-    // requires-expression false, as a failed substitution makes the void_t
+    // two-parameter shape, false, and its partial specialization for
+    // <Type, void>, constrained by a requires-expression whose one
+    // type-requirement is that every type in `...` can be formed (void_t's
+    // condition, as trait_detect_pack_sink spells it), plus the `_v`
+    // companion. A requirement that cannot be formed for Type leaves the
+    // constraint unsatisfied, as a failed substitution makes the void_t
     // engine's partial specialization not match.
     #define D_INTERNAL_TYPE_TRAIT_20_TRUE(TRAIT_NAME, ...)                    \
         template<typename Type,                                             \
                  typename = void>                                            \
-        struct TRAIT_NAME                                                    \
-            : std::bool_constant<requires {                                  \
-                  typename ::djinterp::internal::trait_detect_pack_sink<     \
-                      __VA_ARGS__>::type;                                    \
-              }>                                                             \
+        struct TRAIT_NAME : std::false_type                                  \
+        {};                                                                  \
+                                                                             \
+        template<typename Type>                                             \
+            requires requires {                                              \
+                typename ::djinterp::internal::trait_detect_pack_sink<       \
+                    __VA_ARGS__>::type;                                      \
+            }                                                                \
+        struct TRAIT_NAME<Type, void> : std::true_type                      \
         {};                                                                  \
                                                                              \
         D_TYPE_TRAIT_VALUE_BOOL(TRAIT_NAME)
