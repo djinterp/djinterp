@@ -24,9 +24,9 @@
 set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/cpp/option")
 
 set(_option_sections
-    "${_tests_dir}/option_sentinels_tests.cpp"
-    "${_tests_dir}/option_core_tests.cpp"
-    "${_tests_dir}/option_is_option_tests.cpp"
+    "${_tests_dir}/option_tests_sentinels.cpp"
+    "${_tests_dir}/option_tests_core.cpp"
+    "${_tests_dir}/option_tests_is_option.cpp"
     "${_tests_dir}/option_tests_concepts.cpp")
 
 set(_sources "")

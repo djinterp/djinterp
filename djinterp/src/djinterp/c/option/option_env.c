@@ -29,7 +29,7 @@
 * path:      /src/djinterp/c/option/option_env.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.28
-*                                                            revised: 2026.11.19
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/option/option_env.h"  // corresponding header
 // std
@@ -4288,7 +4288,9 @@ d_internal_option_env_ask(
 
 /*
 d_option_env_getenv_c
-  getenv's text copied out whole, or not at all.
+  getenv's text copied out whole, or not at all. Under the Microsoft
+runtime, whose /sdl refuses getenv, getenv_s copies it out and gives the
+size it needs, its terminator counted: 0 when the variable is unset.
 */
 int32_t
 d_option_env_getenv_c(
@@ -4299,6 +4301,34 @@ d_option_env_getenv_c(
     size_t*     _length
 )
 {
+#if D_ENV_COMPILER_MSVC_FAMILY
+    size_t needed = 0u;
+    int    status = -1;
+
+    (void)_context;
+
+    if (_name != NULL)
+    {
+        status = ( (_value != NULL) &&
+                   (_size > 0u) )
+                     ? (int)getenv_s(&needed, _value, _size, _name)
+                     : (int)getenv_s(&needed, NULL, 0u, _name);
+    }
+
+    if (_length != NULL)
+    {
+        *_length = (needed > 0u) ? (needed - 1u) : 0u;
+    }
+
+    if (needed == 0u)
+    {
+        return 0;
+    }
+
+    return ( (status == 0)     &&
+             (_value != NULL)  &&
+             (_size > 0u) ) ? 1 : -1;
+#else
     const char* const text = (_name != NULL) ? getenv(_name) : NULL;
     const size_t      size = (text != NULL) ? strlen(text) : 0u;
 
@@ -4323,6 +4353,7 @@ d_option_env_getenv_c(
     memcpy(_value, text, size + 1u);
 
     return 1;
+#endif  // D_ENV_COMPILER_MSVC_FAMILY
 }
 
 /*

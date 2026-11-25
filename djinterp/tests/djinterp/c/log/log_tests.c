@@ -10,22 +10,30 @@
 * path:      /tests/djinterp/c/log/log_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.19
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 
 #include "./log_tests.h"  // corresponding header
 
 // std
-#include <stdio.h>   // snprintf, fopen, fread, remove
-#include <stdlib.h>  // setenv, getenv
+#include <stdio.h>   // snprintf, fread, remove
+#include <stdlib.h>  // setenv, unsetenv
 #include <string.h>  // strcmp, strstr, strlen, strchr
 #include <time.h>    // tzset
-#if defined(__unix__) || defined(__APPLE__)
-    #include <unistd.h>  // getpid
-#endif
 // djinterp
 #include "../../../../inc/djinterp/c/log/log.h"             // the log
 #include "../../../../inc/djinterp/c/event/event_common.h"  // keys
+#include "../../../../inc/djinterp/c/filesys/file_open.h"   // the file
+#include "../../../../inc/djinterp/c/option/option_env.h"   // the reader
+
+// the process id the resource names, as log_writers.c reads it
+#if D_ENV_COMPILER_MSVC_FAMILY
+    #include <process.h>  // _getpid
+    #define D_TESTS_LOG_PID() ((long)_getpid())
+#elif defined(__unix__) || defined(__APPLE__)
+    #include <unistd.h>  // getpid
+    #define D_TESTS_LOG_PID() ((long)getpid())
+#endif
 
 
 //==============================================================================
@@ -718,7 +726,7 @@ d_tests_log_otlp(
             "\"peer\",\"value\":{\"kvlistValue\":{\"values\":[{\"key\":"
             "\"addr\",\"value\":{\"stringValue\":\"10.0.0.1\"}},{\"key\":"
             "\"rtt\",\"value\":{\"doubleValue\":1.5}}]}}}]}]}]}]}\n",
-            (long)getpid());
+            D_TESTS_LOG_PID());
         (void)d_tests_log_put("format=otlp");
         (void)d_tests_log_put("service=probe");
         d_tests_log_peer_record();
@@ -890,12 +898,12 @@ d_tests_log_programs(
         D_LOG(tnet, connect_timeout, D_LOG_FACT_TEXT("host", "db 1"),
                                      D_LOG_FACT_INT("timeout_ms", 500));
         d_log_shutdown();
-        file = fopen(path, "rb");
+        file = d_file_open_stream(path, "rb");
 
         if (file != NULL)
         {
             got = fread(text, 1u, sizeof(text) - 1u, file);
-            (void)fclose(file);
+            (void)d_file_close_stream(file);
         }
 
         text[got] = '\0';
@@ -958,29 +966,39 @@ d_tests_log_times(
                                          "2099-12-31T23:59:59Z"));
 #if defined(__unix__) || defined(__APPLE__)
     {
-        const char* const zone = getenv("TZ");
-        char              kept[64];
+        // the zone as it was, read through option_env's own reader; a
+        // zone too long to keep whole is left as it is, and these checks
+        // skipped
+        char          kept[64];
+        size_t        length = 0u;
+        const int32_t zone   = d_option_env_getenv_c(NULL, "TZ", kept,
+                                                     sizeof(kept),
+                                                     &length);
 
-        (void)snprintf(kept, sizeof(kept), "%s", (zone != NULL) ? zone : "");
-        (void)setenv("TZ", "UTC+5", 1);
-        tzset();
-        D_TEST_CHECK(_suite, D_TESTS_TIME_IS(D_TESTS_TIME, 5u,
-                         "2025-11-13T10:04:05.123-05:00"));
-        (void)setenv("TZ", "UTC-5:30", 1);
-        tzset();
-        D_TEST_CHECK(_suite, D_TESTS_TIME_IS(D_TESTS_TIME, 4u,
-                         "2025-11-13T20:34:05+05:30"));
+        (void)length;
 
-        if (zone != NULL)
+        if (zone >= 0)
         {
-            (void)setenv("TZ", kept, 1);
-        }
-        else
-        {
-            (void)unsetenv("TZ");
-        }
+            (void)setenv("TZ", "UTC+5", 1);
+            tzset();
+            D_TEST_CHECK(_suite, D_TESTS_TIME_IS(D_TESTS_TIME, 5u,
+                             "2025-11-13T10:04:05.123-05:00"));
+            (void)setenv("TZ", "UTC-5:30", 1);
+            tzset();
+            D_TEST_CHECK(_suite, D_TESTS_TIME_IS(D_TESTS_TIME, 4u,
+                             "2025-11-13T20:34:05+05:30"));
 
-        tzset();
+            if (zone == 1)
+            {
+                (void)setenv("TZ", kept, 1);
+            }
+            else
+            {
+                (void)unsetenv("TZ");
+            }
+
+            tzset();
+        }
     }
 #endif
 #undef D_TESTS_TIME_IS

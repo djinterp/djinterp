@@ -36,7 +36,7 @@
 * path:      /inc/djinterp/cpp/option/option_diff.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.12
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 
 /*
@@ -421,11 +421,17 @@ enum class DMergeMode
 
 NS_INTERNAL
 
+    // merge_keep_extend
+    //   policy: the base wins on a shared key, and a key only the delta
+    // has is added. DOverrideKeep alone drops such a key, which the
+    // runtime option_merge never does.
+    using merge_keep_extend = DWithOnDeltaOnly<DKeepBase, identity_t>;
+
     // merge_mode_policy
     //   helper: map a DMergeMode to the override policy that realizes
     // it at the type level.
-    //     overwrite                  -> DOverrideReplace  (delta wins)
-    //     add_new_only/keep_existing -> DOverrideKeep      (base wins)
+    //     overwrite                  -> DOverrideReplace   (delta wins)
+    //     add_new_only/keep_existing -> merge_keep_extend  (base wins)
     // In every case delta-only keys are added (extension is allowed),
     // matching the runtime option_merge, which always inserts new keys.
     template<DMergeMode Mode>
@@ -437,13 +443,13 @@ NS_INTERNAL
     template<>
     struct merge_mode_policy<DMergeMode::add_new_only>
     {
-        using type = DOverrideKeep;
+        using type = merge_keep_extend;
     };
 
     template<>
     struct merge_mode_policy<DMergeMode::keep_existing>
     {
-        using type = DOverrideKeep;
+        using type = merge_keep_extend;
     };
 
 NS_END  // internal

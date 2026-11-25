@@ -19,7 +19,7 @@
 * path:      /tests/djinterp/cpp/option/option_diff_tests_ct_merge.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 
 // djinterp
@@ -82,28 +82,34 @@ using DDeltaC = opt<diff_key::gamma, 3>;
         } });
 
     block.tests.push_back({
-        "policy_add_new_only_is_keep",
-        "add_new_only maps to override_keep (base wins)",
+        "policy_add_new_only_keeps_base",
+        "add_new_only: base wins on a shared key; a delta-only key is added",
         []() -> bool
         {
-            constexpr bool ok = std::is_same_v<
-                typename ::djinterp::internal::merge_mode_policy<
-                    DMergeMode::add_new_only>::type,
-                ::djinterp::DOverrideKeep >;
-            static_assert(ok, "policy(add_new_only) == override_keep");
+            using policy = typename ::djinterp::internal::merge_mode_policy<
+                DMergeMode::add_new_only>::type;
+            constexpr bool ok =
+                ( std::is_same_v<
+                      typename policy::template on_both<int, long>, int> &&
+                  std::is_same_v<
+                      typename policy::template on_base_only<int>, int> &&
+                  std::is_same_v<
+                      typename policy::template on_delta_only<long>, long> );
+            static_assert(ok, "policy(add_new_only): base wins, extends");
             return ok;
         } });
 
     block.tests.push_back({
-        "policy_keep_existing_is_keep",
-        "keep_existing maps to override_keep as well",
+        "policy_keep_existing_is_add_new_only",
+        "keep_existing maps to add_new_only's policy",
         []() -> bool
         {
             constexpr bool ok = std::is_same_v<
                 typename ::djinterp::internal::merge_mode_policy<
                     DMergeMode::keep_existing>::type,
-                ::djinterp::DOverrideKeep >;
-            static_assert(ok, "policy(keep_existing) == override_keep");
+                typename ::djinterp::internal::merge_mode_policy<
+                    DMergeMode::add_new_only>::type >;
+            static_assert(ok, "policy(keep_existing) == add_new_only's");
             return ok;
         } });
 

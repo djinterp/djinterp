@@ -13,7 +13,7 @@
 
 set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/cpp/option")
 
-file(GLOB _sections CONFIGURE_DEPENDS "${_tests_dir}/option_override_*_tests.cpp")
+file(GLOB _sections CONFIGURE_DEPENDS "${_tests_dir}/option_override_tests_*.cpp")
 list(FILTER _sections EXCLUDE REGEX "_main\\.cpp$")
 
 djinterp_add_test_executable(option_override_tests

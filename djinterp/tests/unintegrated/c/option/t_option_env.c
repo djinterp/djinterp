@@ -21,7 +21,7 @@
 * path:      /tests/unintegrated/c/option/t_option_env.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.28
-*                                                            revised: 2026.11.19
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 // std
 #include <locale.h>   // setlocale, LC_NUMERIC
@@ -31,6 +31,7 @@
 #include <string.h>   // memcmp, memcpy, strcmp, strlen
 // djinterp
 #include "../../../../inc/djinterp/c/option/option_env.h"  // the environment
+#include "../../../../inc/djinterp/c/filesys/file_open.h"  // the report's file
 // re_std
 #include "../../../../inc/re_std/c/cstdint/dstdint.h"  // int64_t, INT64_MIN
 
@@ -45,6 +46,11 @@
 //   macro: a result's status.
 #define D_TESTS_OPTION_ENV_STATUS(result)                                      \
     d_tests_option_env_status(result)
+
+// D_TESTS_REPORT_FILE
+//   constant: the file the stock report is written to and read back
+// from, in the harness's folder, and removed after.
+#define D_TESTS_REPORT_FILE "t_option_env_report.txt"
 
 static size_t   d_tests_option_env_checks;
 static size_t   d_tests_option_env_failures;
@@ -3043,7 +3049,8 @@ d_tests_option_env_reasons(void)
     struct dj_option_result      result;
     char                         line[128];
     size_t                       i;
-    FILE*                        out = tmpfile();
+    FILE*                        out =
+        d_file_open_stream(D_TESTS_REPORT_FILE, "w+b");
 
     printf("  reasons, the caller's sources, and the stock report\n");
 
@@ -3145,7 +3152,8 @@ d_tests_option_env_reasons(void)
                                    != NULL) &&
                                   (strcmp(line, "X=5: no such djin\n")
                                    == 0) );
-        (void)fclose(out);
+        (void)d_file_close_stream(out);
+        (void)remove(D_TESTS_REPORT_FILE);
     }
 
     // a reason read for a good status, and every reason's words

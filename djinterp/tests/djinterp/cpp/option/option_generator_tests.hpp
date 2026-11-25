@@ -29,7 +29,7 @@
 * path:      /tests/djinterp/cpp/option/option_generator_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 
 #ifndef DJINTERP_OPTION_GENERATOR_TESTS_
@@ -43,9 +43,7 @@
 // djinterp
 // djinterp [test] - framework runner
 // djinterp [option] - the header under test (pulls in option.hpp + option_set.hpp)
-#ifdef DTEST_SPEC_MODE
 #include <djinterp/cpp/modules/test/test_defaults.hpp>
-#endif  // DTEST_SPEC_MODE
 #ifndef DTEST_SPEC_MODE
 #include "../../../../inc/djinterp/cpp/option/option_generator.hpp"
 #endif  // !DTEST_SPEC_MODE

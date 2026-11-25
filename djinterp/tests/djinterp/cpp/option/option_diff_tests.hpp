@@ -45,7 +45,7 @@
 * path:      /tests/djinterp/cpp/option/option_diff_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 
 #ifndef DJINTERP_OPTION_DIFF_TESTS_
@@ -73,9 +73,7 @@ namespace djinterp
 // djinterp [test] - framework runner + report options surface
 #include "../../../../inc/djinterp/cpp/modules/test/test_options.hpp"
 // djinterp [option] - the header under test (extract_actual shim above)
-#ifdef DTEST_SPEC_MODE
 #include <djinterp/cpp/modules/test/test_defaults.hpp>
-#endif  // DTEST_SPEC_MODE
 #ifndef DTEST_SPEC_MODE
 #include "../../../../inc/djinterp/cpp/option/option_diff.hpp"
 #endif  // !DTEST_SPEC_MODE

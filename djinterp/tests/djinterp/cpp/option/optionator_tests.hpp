@@ -39,7 +39,7 @@
 * path:      /tests/djinterp/cpp/option/optionator_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 
 #ifndef DJINTERP_OPTIONATOR_TESTS_
@@ -58,9 +58,7 @@
 #include "../../../../inc/djinterp/cpp/functional/transducer.hpp"
 // djinterp [option] - option_set (field<> slots + queries) and the header under test
 #include "../../../../inc/djinterp/cpp/option/option_set.hpp"
-#ifdef DTEST_SPEC_MODE
 #include <djinterp/cpp/modules/test/test_defaults.hpp>
-#endif  // DTEST_SPEC_MODE
 #ifndef DTEST_SPEC_MODE
 #include "../../../../inc/djinterp/cpp/option/optionator.hpp"
 #endif  // !DTEST_SPEC_MODE
@@ -327,7 +325,9 @@ NS_END  // djinterp
 
 
 // ---- configures<> adapters (specialized in djinterp, over the testing tags) --
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+//   Fixtures, like the tags they specialize over: normal face only.
+#if ( D_ENV_LANG_IS_CPP17_OR_HIGHER && \
+      !defined(DTEST_SPEC_MODE) )
 
 NS_DJINTERP
 
@@ -430,6 +430,6 @@ NS_DJINTERP
 
 NS_END  // djinterp
 
-#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER && !DTEST_SPEC_MODE
 
 #endif  // DJINTERP_OPTIONATOR_TESTS_

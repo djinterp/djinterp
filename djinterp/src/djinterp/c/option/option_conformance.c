@@ -21,7 +21,7 @@
 * path:      /src/djinterp/c/option/option_conformance.c
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.07.30
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 
 // std
@@ -127,7 +127,7 @@ int main(void)
         struct dj_option_result dup =
             d_option_set_add(&a.set, k_foo, (dj_type_info16)7,
                              (dj_type_info16)9, 4u, 4u);
-        check("C01", "k(.) is injective -- duplicate yields KEY_DUPLICATE",
+        check("C01", "k(.) is injective - duplicate yields KEY_DUPLICATE",
               (!dup.is_ok) &&
               (dup.payload.error == (int32_t)D_OPTION_STATUS_KEY_DUPLICATE));
     }
@@ -287,7 +287,7 @@ int main(void)
             (void)d_option_set_canon(&ab_c.set);
             (void)d_option_set_canon(&a_bc.set);
 
-            check("C18", "(A (+) B) (+) C == A (+) (B (+) C)  -- associative",
+            check("C18", "(A (+) B) (+) C == A (+) (B (+) C) - associative",
                   same(&ab_c.set, &a_bc.set));
         }
 

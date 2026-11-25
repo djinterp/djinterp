@@ -40,6 +40,11 @@ djinterp_add_test_executable(option_tests_all
     SOURCES
         "${CMAKE_CURRENT_SOURCE_DIR}/option_tests_all_runner.cpp"
         ${_all_sections}
+        # the archive and compress engines the runner's
+        # D_TEST_REPORT_ENABLE_ARCHIVE reaches: internal::archive_create
+        # and internal::compress_buffer
+        "${DJINTERP_SRC_ROOT}/djinterp/cpp/util/compress/compress.cpp"
+        "${DJINTERP_SRC_ROOT}/djinterp/cpp/util/archive/archive.cpp"
     INCLUDES
         "${DJINTERP_INC_ROOT}/djinterp/cpp/option"
         "${_tests_dir}")
