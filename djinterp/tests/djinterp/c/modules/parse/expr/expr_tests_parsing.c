@@ -8,7 +8,7 @@
 * path:      /tests/djinterp/c/modules/parse/expr/expr_tests_parsing.c
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.20
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 #include "./expr_tests.h"  // corresponding header
 
@@ -38,62 +38,23 @@ static const struct dj_tests_expr_code_row D_TESTS_EXPR_CODE_ROWS[] =
 };
 
 /*
-d_tests_expr_has_fact
-  Whether a row's list of facts, as its brackets spell it ("(a, b)"), holds a
-name of a length.
-*/
-static bool
-d_tests_expr_has_fact(
-    const char* _facts,
-    const char* _name,
-    size_t      _length
-)
-{
-    const char* at = _facts;
-
-    while (*at != '\0')
-    {
-        size_t run = strcspn(at, "(), ");
-
-        if ( (run == _length) &&
-             (run > 0u)       &&
-             (strncmp(at, _name, _length) == 0) )
-        {
-            return true;
-        }
-
-        at += (run > 0u) ? run : 1u;
-    }
-
-    return false;
-}
-
-/*
 d_tests_expr_template_holds
-  Whether every fact a row's template names, in braces, is among its facts.
+  Whether a row's template is one parse writes as the log does, naming only
+the facts its row carries (d_parse_diag_template_check).
 */
 static bool
 d_tests_expr_template_holds(
     const struct dj_tests_expr_code_row* _row
 )
 {
-    const char* at = _row->text;
+    const int32_t at = d_parse_diag_template_check(_row->text, _row->facts);
 
-    while ( (at = strchr(at, '{')) != NULL )
+    if (at >= 0)
     {
-        const char* close = strchr(at, '}');
+        D_TEST_NOTE("row %d's template fails at byte %ld: \"%s\"",
+                    _row->number, (long)at, _row->text);
 
-        if ( (!close) ||
-             (!d_tests_expr_has_fact(_row->facts, at + 1,
-                                     (size_t)(close - at - 1))) )
-        {
-            D_TEST_NOTE("row %d's template names a fact it does not carry",
-                        _row->number);
-
-            return false;
-        }
-
-        at = close + 1;
+        return false;
     }
 
     return true;
@@ -108,7 +69,8 @@ d_tests_expr_code_table
   - every row graded rejected, in the syntax family or one of the three
     other classes its codes take (quantity.depth, constraint.violated,
     argument.invalid)
-  - every fact a template names is among its row's facts
+  - every template is one parse writes as the log does, and names only its
+    row's facts
 */
 bool
 d_tests_expr_code_table(void)
@@ -170,7 +132,7 @@ d_tests_expr_code_table(void)
                               "each row rejected, in a known class",
                               __LINE__)) && (ok);
     ok = (d_tests_expr_expect(facts,
-                              "each template names only its facts",
+                              "each template sound, naming only its facts",
                               __LINE__)) && (ok);
 
     return ok;
@@ -648,6 +610,12 @@ d_tests_expr_message_of(
         got = d_parse_diag_message(&run.sink, &run.items[0]);
     }
 
+    // a build that carries no text stores none
+    if (D_INTERNAL_PARSE_DIAG_TEXT == 0)
+    {
+        _expected = "";
+    }
+
     held = ( (run.status == D_PARSE_EXPR_ERROR) &&
              (got)                              &&
              (strcmp(got, _expected) == 0) );
@@ -793,7 +761,9 @@ d_tests_expr_diagnostics(void)
              (run.items[1].span.offset == 2u) &&
              (run.items[1].code == D_PARSE_EXPR_DIAG_NON_ASSOCIATIVE) &&
              (strcmp(d_parse_diag_message(&run.sink, &run.items[0]),
-                     "'==' cannot follow '<' without brackets") == 0),
+                     (D_INTERNAL_PARSE_DIAG_TEXT == 1)
+                     ? "'==' cannot follow '<' without brackets"
+                     : "") == 0),
              "a refused pair names both, its note at the first under its "
              "code", __LINE__);
     d_parse_expr_term_release(&run.term);

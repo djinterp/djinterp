@@ -9,7 +9,7 @@
 * path:      /tests/djinterp/c/modules/parse/expr/expr_tests_fixtures.c
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.18
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 #include "./expr_tests.h"  // corresponding header
 
@@ -420,7 +420,8 @@ d_tests_expr_sexpr(
 /*
 d_tests_expr_parse
   Lexes and parses a text by a signature, the options given or the defaults,
-the text given to the options for messages.
+the text given to the options for messages, into a sink with room for
+records, their text and their facts.
 */
 int
 d_tests_expr_parse(
@@ -439,6 +440,8 @@ d_tests_expr_parse(
 
     d_parse_diag_sink_init(&_run->sink, _run->items, 32u, _run->text,
                            (uint32_t)sizeof(_run->text));
+    d_parse_diag_sink_facts(&_run->sink, _run->facts,
+                            (uint32_t)sizeof(_run->facts));
     d_parse_expr_term_init_heap(&_run->term);
     d_parse_expr_source_array(&source, &state, _run->tokens,
                               (count > 0) ? (uint32_t)count : 0u,

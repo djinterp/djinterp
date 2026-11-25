@@ -12,7 +12,7 @@
 * path:      /tests/djinterp/cpp/modules/parse/expr/expr_face_tests_bridge.cpp
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 
 #include "./expr_face_tests.hpp"  // corresponding header
@@ -159,6 +159,100 @@ d_tests_face_v1_of(
         },
         _out,
         _flags);
+}
+
+// DTestsFaceAnnotated
+//   type: an annotated term of the stand-in's operators and atoms, each node
+// carrying an int.
+using DTestsFaceAnnotated =
+    djinterp::annotated_expression<re_std::uint32_t, std::string, int>;
+
+/*
+d_tests_face_annotated_leaf, d_tests_face_annotated_apply
+  A leaf of an atom, and an application of children, each annotated.
+*/
+DTestsFaceAnnotated
+d_tests_face_annotated_leaf(
+    const std::string& _atom,
+    int                _annotation
+)
+{
+    return DTestsFaceAnnotated::make(
+        _annotation, DTestsFaceAnnotated::layer_type::leaf(_atom));
+}
+
+DTestsFaceAnnotated
+d_tests_face_annotated_apply(
+    re_std::uint32_t                          _op,
+    const std::vector<DTestsFaceAnnotated>&   _children,
+    int                                       _annotation
+)
+{
+    std::vector<std::shared_ptr<DTestsFaceAnnotated> > boxed;
+
+    for (std::size_t i = 0u; i < _children.size(); ++i)
+    {
+        boxed.push_back(std::make_shared<DTestsFaceAnnotated>(_children[i]));
+    }
+
+    return DTestsFaceAnnotated::make(
+        _annotation, DTestsFaceAnnotated::layer_type::apply(_op, boxed));
+}
+
+/*
+d_tests_face_annotation_sum
+  A generic function over any annotated term, called with no template
+arguments: the sum of its annotations, read through its children as the
+node type.
+*/
+template<typename OpId,
+         typename Atom,
+         typename Annotation>
+Annotation
+d_tests_face_annotation_sum(
+    const djinterp::annotated_expression<OpId, Atom, Annotation>& _node
+)
+{
+    Annotation sum = _node.head();
+
+    if (_node.unwrap().is_leaf())
+    {
+        return sum;
+    }
+
+    const std::vector<std::shared_ptr<
+        djinterp::annotated_expression<OpId, Atom, Annotation> > >& children =
+        _node.unwrap().children();
+
+    for (std::size_t i = 0u; i < children.size(); ++i)
+    {
+        sum += d_tests_face_annotation_sum(*children[i]);
+    }
+
+    return sum;
+}
+
+/*
+d_tests_face_annotation_size
+  An extend's function: the nodes of a whole subterm.
+*/
+int
+d_tests_face_annotation_size(
+    const DTestsFaceAnnotated& _node
+)
+{
+    int size = 1;
+
+    if (!_node.unwrap().is_leaf())
+    {
+        for (std::size_t i = 0u; i < _node.unwrap().children().size(); ++i)
+        {
+            size += d_tests_face_annotation_size(
+                        *_node.unwrap().children()[i]);
+        }
+    }
+
+    return size;
 }
 
 #endif  // D_TESTS_FACE_BRIDGE
@@ -395,6 +489,126 @@ d_tests_face_bridge_from(void)
     D_TEST_REQUIRE( (r.ok()) && (d_tests_face_v1_of(r, TEXT, v1) == 0) );
     D_TEST_REQUIRE(d_tests_face_v1_text(v1) ==
                    "(31 (36 1) (34 (33 2 (35 3 (35 2 1))) (37 a)))");
+
+    return true;
+#else
+    D_TEST_SKIP(D_TESTS_FACE_BELOW);
+#endif  // D_TESTS_FACE_BRIDGE
+}
+
+
+/*
+d_tests_face_bridge_annotated
+  v1's annotated term, a class derived from the cofree, so a generic function
+deduces its parameters.
+  Tests the following:
+  - a node's children are shared_ptr to the node type, so a const reference
+    binds to them, and make gives the node type
+  - a generic function over any annotated term, called with no template
+    arguments, deduces it, at every level from C++11
+  - the map, extend, extract, functor_map, duplicate and annotated_cata keep
+    the type, and their results read as before
+  - it converts to the cofree it derives from and back, and copies and moves
+    as a value
+*/
+bool
+d_tests_face_bridge_annotated(void)
+{
+#if (D_TESTS_FACE_BRIDGE == 1)
+    typedef DTestsFaceAnnotated::base_type DTestsFaceCofree;
+
+    // the children are the node's type
+    D_TEST_REQUIRE( (std::is_same<
+                        DTestsFaceAnnotated::layer_type,
+                        djinterp::expr_layer<
+                            re_std::uint32_t, std::string,
+                            std::shared_ptr<DTestsFaceAnnotated> > >::value) );
+    D_TEST_REQUIRE( (std::is_base_of<DTestsFaceCofree,
+                                     DTestsFaceAnnotated>::value) );
+
+    // 1 + (2 * x), annotated 10, 1, 20, 2, 3
+    std::vector<DTestsFaceAnnotated> inner;
+
+    inner.push_back(d_tests_face_annotated_leaf("2", 2));
+    inner.push_back(d_tests_face_annotated_leaf("x", 3));
+
+    std::vector<DTestsFaceAnnotated> outer;
+
+    outer.push_back(d_tests_face_annotated_leaf("1", 1));
+    outer.push_back(d_tests_face_annotated_apply(33u, inner, 20));
+
+    const DTestsFaceAnnotated term =
+        d_tests_face_annotated_apply(31u, outer, 10);
+
+    // deduced, with no template arguments
+    D_TEST_REQUIRE(d_tests_face_annotation_sum(term) == 36);
+
+    // the map keeps the term and the type
+    const djinterp::annotated_expression<re_std::uint32_t, std::string,
+                                         std::string> named =
+        djinterp::cofree_map(term,
+                             [](int _n) -> std::string
+                             {
+                                 return std::string(1, (char)('a' + _n % 26));
+                             });
+
+    D_TEST_REQUIRE( (named.head() == "k") &&
+                    (named.unwrap().op() == 31u) &&
+                    (named.unwrap().children()[1]->unwrap().children()[1]
+                         ->head() == "d") &&
+                    (named.unwrap().children()[1]->unwrap().children()[1]
+                         ->unwrap().atom() == "x") );
+
+    // extend gives each node its subterm's size, as an annotated term
+    const DTestsFaceAnnotated sizes =
+        djinterp::extend(term, d_tests_face_annotation_size);
+
+    D_TEST_REQUIRE( (djinterp::extract(sizes) == 5) &&
+                    (sizes.unwrap().children()[1]->head() == 3) &&
+                    (d_tests_face_annotation_sum(sizes) == 11) );
+
+    // functor_map and duplicate, through the traits
+    const DTestsFaceAnnotated doubled =
+        djinterp::functor_map(term, [](int _n) { return _n * 2; });
+    const djinterp::annotated_expression<re_std::uint32_t, std::string,
+                                         DTestsFaceAnnotated> copies =
+        djinterp::duplicate(term);
+
+    D_TEST_REQUIRE( (d_tests_face_annotation_sum(doubled) == 72) &&
+                    (d_tests_face_annotation_sum(copies.head()) == 36) &&
+                    (copies.unwrap().children()[0]->head().head() == 1) );
+
+    // the annotated fold: annotations and leaves counted, children folded
+    const int folded = djinterp::annotated_cata<int>(
+        [](int _annotation,
+           const djinterp::expr_layer<re_std::uint32_t, std::string, int>&
+               _layer) -> int
+        {
+            int sum = _annotation;
+
+            if (!_layer.is_leaf())
+            {
+                for (std::size_t i = 0u; i < _layer.children().size(); ++i)
+                {
+                    sum += _layer.children()[i];
+                }
+            }
+
+            return sum;
+        },
+        term);
+
+    D_TEST_REQUIRE(folded == 36);
+
+    // to the cofree and back; a copy and a move are values
+    const DTestsFaceCofree&   plain = term;
+    const DTestsFaceAnnotated again(plain);
+    DTestsFaceAnnotated       moved = static_cast<DTestsFaceAnnotated&&>(
+                                          DTestsFaceAnnotated(again));
+
+    D_TEST_REQUIRE( (d_tests_face_annotation_sum(again) == 36) &&
+                    (d_tests_face_annotation_sum(moved) == 36) &&
+                    (moved.unwrap().children()[0]->unwrap().atom() == "1") );
 
     return true;
 #else

@@ -26,13 +26,12 @@
 * path:      /src/djinterp/c/modules/parse/expr/parse.c
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.20
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/c/modules/parse/expr/parse.h"  // corresponding header
 // std
-#include <stdio.h>   // snprintf
 #include <stdlib.h>  // malloc, free
-#include <string.h>  // memcpy, memset
+#include <string.h>  // memcpy, memset, strlen
 // djinterp
 #include "../../../../../../inc/djinterp/c/dckdint.h"  // d_ckd_add, d_ckd_mul
 #include "./expr_internal.h"                           // d_internal_expr_decide,
@@ -306,111 +305,184 @@ d_internal_expr_frame_spelling(
 }
 
 /**
- * @brief Writes a token's text, quoted, or a word for it, into a buffer.
+ * @brief The length a quotation of some bytes keeps: all of them, or the
+ *        first D_INTERNAL_EXPR_QUOTE_MAX, cut before a character's lead
+ *        byte so that no UTF-8 sequence is split.
  *
- *   Without the text, a token is named by its spelling in the signature, and
- * only where the signature gives it none, as "a token" (the design's 7.1).
- *
- * @param[in]  _p         the parser.
- * @param[in]  _offset    the text's first byte.
- * @param[in]  _length    its length.
- * @param[in]  _spelling  the token's spelling in the signature, or NULL.
- * @param[out] _out       the buffer.
- * @param[in]  _size      its size.
+ * @param[in] _bytes   the bytes.
+ * @param[in] _length  how many.
+ * @return how many to keep.
  */
-static void
-d_internal_expr_quote(
+static uint32_t
+d_internal_expr_kept(
+    const char* _bytes,
+    uint32_t    _length
+)
+{
+    uint32_t kept = (uint32_t)D_INTERNAL_EXPR_QUOTE_MAX;
+
+    if (_length <= kept)
+    {
+        return _length;
+    }
+
+    // back off over continuation bytes, 10xxxxxx, to the lead byte
+    while ( (kept > 0u) &&
+            ((((unsigned char)_bytes[kept]) & 0xC0u) == 0x80u) )
+    {
+        --kept;
+    }
+
+    return kept;
+}
+
+/**
+ * @brief A token as a fact: its text, unquoted - the token's own bytes where
+ *        the parse has the text and the span lies in it, else its spelling
+ *        in the signature - or no value, which the templates word "a token".
+ *
+ *   The end of the input has no text; the row that can name it says so with
+ * its own flag, at_end (the design's 7.1).
+ *
+ * @param[in] _p         the parser.
+ * @param[in] _name      the fact's name.
+ * @param[in] _offset    the text's first byte.
+ * @param[in] _length    its length.
+ * @param[in] _spelling  the token's spelling in the signature, or NULL.
+ * @return the fact; its text borrows the parse's text or the signature's.
+ */
+static struct dj_parse_diag_fact
+d_internal_expr_named(
     const struct dj_parse_expr_parser* _p,
+    const char*                        _name,
     uint32_t                           _offset,
     uint32_t                           _length,
-    const char*                        _spelling,
-    char*                              _out,
-    size_t                             _size
+    const char*                        _spelling
 )
 {
     size_t end = 0u;
 
-    // the end of the input has no text
-    if (_length == 0u)
-    {
-        (void)snprintf(_out, _size, "the end of the input");
-
-        return;
-    }
-
-    // quote the text where it is given and the span lies in it
-    if ( (_p->text)                                                   &&
+    // the text where it is given and the span lies in it
+    if ( (_length > 0u)                                               &&
+         (_p->text)                                                   &&
          (!d_ckd_add(&end, (size_t)_offset, (size_t)_length))         &&
          (end <= _p->text_length) )
     {
-        const int shown = (_length > (uint32_t)D_INTERNAL_EXPR_QUOTE_MAX)
-                          ? D_INTERNAL_EXPR_QUOTE_MAX
-                          : (int)_length;
-
-        (void)snprintf(_out, _size, "'%.*s'", shown, _p->text + _offset);
-
-        return;
+        return d_parse_diag_fact_text(_name, _p->text + _offset,
+                                      d_internal_expr_kept(_p->text + _offset,
+                                                           _length));
     }
 
     // otherwise the signature's spelling, as the renderer would write it
     if ( (_spelling) &&
          (_spelling[0] != '\0') )
     {
-        (void)snprintf(_out, _size, "'%.*s'", D_INTERNAL_EXPR_QUOTE_MAX,
-                       _spelling);
+        const size_t   size   = strlen(_spelling);
+        const uint32_t length = (size > (size_t)0xFFFFFFFFu)
+                                ? 0xFFFFFFFFu
+                                : (uint32_t)size;
 
-        return;
+        return d_parse_diag_fact_text(_name, _spelling,
+                                      d_internal_expr_kept(_spelling,
+                                                           length));
     }
 
-    (void)snprintf(_out, _size, "a token");
-
-    return;
+    return d_parse_diag_fact_none(_name);
 }
 
 /**
- * @brief Writes a token's text, quoted, or its class's spelling.
+ * @brief A token as a fact, by its text or its class's spelling.
  *
- * @param[in]  _p      the parser.
- * @param[in]  _token  the token.
- * @param[out] _out    the buffer.
- * @param[in]  _size   its size.
+ * @param[in] _p      the parser.
+ * @param[in] _name   the fact's name.
+ * @param[in] _token  the token.
+ * @return the fact.
  */
-static void
-d_internal_expr_quote_token(
+static struct dj_parse_diag_fact
+d_internal_expr_named_token(
     const struct dj_parse_expr_parser* _p,
-    const struct dj_parse_expr_token*  _token,
-    char*                              _out,
-    size_t                             _size
+    const char*                        _name,
+    const struct dj_parse_expr_token*  _token
 )
 {
-    d_internal_expr_quote(_p, _token->offset, _token->length,
-                          d_internal_expr_spelling_of(_p->sig, _token->cls),
-                          _out, _size);
-
-    return;
+    return d_internal_expr_named(_p, _name, _token->offset, _token->length,
+                                 d_internal_expr_spelling_of(_p->sig,
+                                                             _token->cls));
 }
 
 /**
- * @brief Writes the token a frame opened at, quoted, or its spelling.
+ * @brief The token a frame opened at as a fact, by its text or its spelling.
  *
- * @param[in]  _p     the parser.
- * @param[in]  _f     the frame.
- * @param[out] _out   the buffer.
- * @param[in]  _size  its size.
+ * @param[in] _p     the parser.
+ * @param[in] _name  the fact's name.
+ * @param[in] _f     the frame.
+ * @return the fact.
  */
-static void
-d_internal_expr_quote_frame(
+static struct dj_parse_diag_fact
+d_internal_expr_named_frame(
     const struct dj_parse_expr_parser*   _p,
-    const struct dj_internal_expr_frame* _f,
-    char*                                _out,
-    size_t                               _size
+    const char*                          _name,
+    const struct dj_internal_expr_frame* _f
 )
 {
-    d_internal_expr_quote(_p, _f->token_offset, _f->token_length,
-                          d_internal_expr_frame_spelling(_f), _out, _size);
-
-    return;
+    return d_internal_expr_named(_p, _name, _f->token_offset,
+                                 _f->token_length,
+                                 d_internal_expr_frame_spelling(_f));
 }
+
+#if (D_INTERNAL_PARSE_DIAG_TEXT == 1)
+
+// a row's template, by its code: a switch, so two rows of one number do not
+// compile
+#define D_INTERNAL_EXPR_PATTERN_ROW(_module, _number, _name, _class, _grade,  \
+                                    _template, _facts)                        \
+    case (_number): return (_template);
+
+/**
+ * @brief The template a code's row of parse.expr's table gives.
+ *
+ * @param[in] _code  the code.
+ * @return the template, or NULL for a code with no row.
+ */
+static const char*
+d_internal_expr_pattern(
+    uint16_t _code
+)
+{
+    switch (_code)
+    {
+        D_PARSE_EXPR_CODES(D_INTERNAL_EXPR_PATTERN_ROW, d_internal_m)
+        default:
+            return NULL;
+    }
+}
+
+/**
+ * @brief The template a code's row of parse.core's table gives.
+ *
+ * @param[in] _code  the code.
+ * @return the template, or NULL for a code with no row.
+ */
+static const char*
+d_internal_expr_core_pattern(
+    uint16_t _code
+)
+{
+    switch (_code)
+    {
+        D_PARSE_CORE_CODES(D_INTERNAL_EXPR_PATTERN_ROW, d_internal_m)
+        default:
+            return NULL;
+    }
+}
+
+#else
+
+// no text is carried, so no template is kept
+#define d_internal_expr_pattern(_code)       ((void)(_code), (const char*)NULL)
+#define d_internal_expr_core_pattern(_code)  ((void)(_code), (const char*)NULL)
+
+#endif  // D_INTERNAL_PARSE_DIAG_TEXT
 
 /**
  * @brief Whether an error code is about the brackets' structure.
@@ -491,32 +563,61 @@ d_internal_expr_count_error(
 }
 
 /**
- * @brief Reports an error of the EXPR domain at a span.
+ * @brief Reports an error of the EXPR domain at a span, written from its
+ *        row's template and its facts, with the note that continues it where
+ *        there is one.
  *
- * @param[in,out] _p        the parser.
- * @param[in]     _code     its code.
- * @param[in]     _offset   its span's first byte.
- * @param[in]     _length   its span's length.
- * @param[in]     _message  its text.
+ *   The note is reported with the error, so that a streaming hook is given
+ * them together, flagged a continuation under the error's code, so that a
+ * reader keyed on domain and code finds the note's text.
+ *
+ * @param[in,out] _p            the parser.
+ * @param[in]     _code         its code.
+ * @param[in]     _offset       its span's first byte.
+ * @param[in]     _length       its span's length.
+ * @param[in]     _facts        its facts; may be NULL with 0.
+ * @param[in]     _count        how many.
+ * @param[in]     _note         the note's words, or NULL for none.
+ * @param[in]     _note_offset  the note's span's first byte.
+ * @param[in]     _note_length  its length.
  */
 static void
 d_internal_expr_error(
-    struct dj_parse_expr_parser* _p,
-    uint16_t                     _code,
-    uint32_t                     _offset,
-    uint32_t                     _length,
-    const char*                  _message
+    struct dj_parse_expr_parser*     _p,
+    uint16_t                         _code,
+    uint32_t                         _offset,
+    uint32_t                         _length,
+    const struct dj_parse_diag_fact* _facts,
+    uint16_t                         _count,
+    const char*                      _note,
+    uint32_t                         _note_offset,
+    uint32_t                         _note_length
 )
 {
-    const uint32_t before = (_p->sink) ? _p->sink->count : 0u;
+    const uint32_t              before = (_p->sink) ? _p->sink->count : 0u;
+    struct dj_parse_diag_report reports[2];
 
-    (void)d_parse_diag_emit(_p->sink,
-                            D_PARSE_SEVERITY_ERROR,
-                            (uint16_t)D_PARSE_DIAG_DOMAIN_EXPR,
-                            _code,
-                            d_parse_span_located(_p->source_id, _offset,
-                                                 _length, 0u, 0u),
-                            _message);
+    memset(reports, 0, sizeof(reports));
+
+    reports[0].severity   = (uint8_t)D_PARSE_SEVERITY_ERROR;
+    reports[0].domain     = (uint16_t)D_PARSE_DIAG_DOMAIN_EXPR;
+    reports[0].code       = _code;
+    reports[0].fact_count = _count;
+    reports[0].span       = d_parse_span_located(_p->source_id, _offset,
+                                                 _length, 0u, 0u);
+    reports[0].pattern    = d_internal_expr_pattern(_code);
+    reports[0].facts      = _facts;
+
+    reports[1].severity   = (uint8_t)D_PARSE_SEVERITY_NOTE;
+    reports[1].flags      = (uint8_t)D_PARSE_DIAG_FLAG_CONTINUATION;
+    reports[1].domain     = (uint16_t)D_PARSE_DIAG_DOMAIN_EXPR;
+    reports[1].code       = _code;
+    reports[1].span       = d_parse_span_located(_p->source_id,
+                                                 _note_offset, _note_length,
+                                                 0u, 0u);
+    reports[1].message    = _note;
+
+    (void)d_parse_diag_report(_p->sink, reports, (_note) ? 2u : 1u);
 
     d_internal_expr_count_error(
         _p,
@@ -530,66 +631,46 @@ d_internal_expr_error(
 }
 
 /**
- * @brief Reports a note continuing the error before it, under that error's
- *        code, so a reader keyed on domain and code finds the note's text.
- *
- * @param[in,out] _p        the parser.
- * @param[in]     _code     the code of the error it continues.
- * @param[in]     _offset   its span's first byte.
- * @param[in]     _length   its span's length.
- * @param[in]     _message  its text.
- */
-static void
-d_internal_expr_note(
-    struct dj_parse_expr_parser* _p,
-    uint16_t                     _code,
-    uint32_t                     _offset,
-    uint32_t                     _length,
-    const char*                  _message
-)
-{
-    (void)d_parse_diag_emit_flagged(_p->sink,
-                                    D_PARSE_SEVERITY_NOTE,
-                                    (uint16_t)D_PARSE_DIAG_DOMAIN_EXPR,
-                                    _code,
-                                    D_PARSE_DIAG_FLAG_CONTINUATION,
-                                    d_parse_span_located(_p->source_id,
-                                                         _offset,
-                                                         _length,
-                                                         0u,
-                                                         0u),
-                                    _message);
-
-    return;
-}
-
-/**
- * @brief Reports a failure the parse cannot go on from, and stops it.
+ * @brief Reports a failure the parse cannot go on from, and stops it: its
+ *        text written from a template and its facts, or words of its own.
  *
  * @param[in,out] _p        the parser.
  * @param[in]     _domain   its domain.
  * @param[in]     _code     its code.
  * @param[in]     _offset   where the parse was.
- * @param[in]     _message  its text.
+ * @param[in]     _pattern  its row's template, or NULL.
+ * @param[in]     _message  its words, where it has no template; or NULL.
+ * @param[in]     _facts    its facts; may be NULL with 0.
+ * @param[in]     _count    how many.
  */
 static void
 d_internal_expr_fatal(
-    struct dj_parse_expr_parser* _p,
-    uint16_t                     _domain,
-    uint16_t                     _code,
-    uint32_t                     _offset,
-    const char*                  _message
+    struct dj_parse_expr_parser*     _p,
+    uint16_t                         _domain,
+    uint16_t                         _code,
+    uint32_t                         _offset,
+    const char*                      _pattern,
+    const char*                      _message,
+    const struct dj_parse_diag_fact* _facts,
+    uint16_t                         _count
 )
 {
-    const uint32_t before = (_p->sink) ? _p->sink->count : 0u;
+    const uint32_t              before = (_p->sink) ? _p->sink->count : 0u;
+    struct dj_parse_diag_report report;
 
-    (void)d_parse_diag_emit(_p->sink,
-                            D_PARSE_SEVERITY_FATAL,
-                            _domain,
-                            _code,
-                            d_parse_span_located(_p->source_id, _offset, 0u,
-                                                 0u, 0u),
-                            _message);
+    memset(&report, 0, sizeof(report));
+
+    report.severity   = (uint8_t)D_PARSE_SEVERITY_FATAL;
+    report.domain     = _domain;
+    report.code       = _code;
+    report.fact_count = _count;
+    report.span       = d_parse_span_located(_p->source_id, _offset, 0u, 0u,
+                                             0u);
+    report.pattern    = _pattern;
+    report.message    = _message;
+    report.facts      = _facts;
+
+    (void)d_parse_diag_report(_p->sink, &report, 1u);
     d_internal_expr_count_error(
         _p,
         _domain,
@@ -600,6 +681,36 @@ d_internal_expr_fatal(
 
     _p->fatal   = true;
     _p->stopped = true;
+
+    return;
+}
+
+/**
+ * @brief Reports that the parse passed its depth guard, and stops it.
+ *
+ * @param[in,out] _p       the parser.
+ * @param[in]     _offset  the operator that passed it.
+ */
+static void
+d_internal_expr_too_deep(
+    struct dj_parse_expr_parser* _p,
+    uint32_t                     _offset
+)
+{
+    const struct dj_parse_diag_fact facts[1] =
+    {
+        d_parse_diag_fact_unsigned("limit", (unsigned long)_p->max_depth)
+    };
+
+    d_internal_expr_fatal(_p,
+                          (uint16_t)D_PARSE_DIAG_DOMAIN_EXPR,
+                          (uint16_t)D_PARSE_EXPR_DIAG_TOO_DEEP,
+                          _offset,
+                          d_internal_expr_pattern(
+                              (uint16_t)D_PARSE_EXPR_DIAG_TOO_DEEP),
+                          NULL,
+                          facts,
+                          1u);
 
     return;
 }
@@ -629,11 +740,20 @@ d_internal_expr_no_room(
 
     if (fixed)
     {
+        const struct dj_parse_diag_fact what[1] =
+        {
+            d_parse_diag_fact_text("what", "expression", 10u)
+        };
+
         d_internal_expr_fatal(_p,
                               (uint16_t)D_PARSE_DIAG_DOMAIN_CORE,
                               (uint16_t)D_PARSE_DIAG_CAPACITY,
                               at,
-                              "the expression's storage is full");
+                              d_internal_expr_core_pattern(
+                                  (uint16_t)D_PARSE_DIAG_CAPACITY),
+                              NULL,
+                              what,
+                              1u);
 
         return;
     }
@@ -642,7 +762,11 @@ d_internal_expr_no_room(
                           (uint16_t)D_PARSE_DIAG_DOMAIN_CORE,
                           (uint16_t)D_PARSE_DIAG_OUT_OF_MEMORY,
                           at,
-                          "out of memory");
+                          d_internal_expr_core_pattern(
+                              (uint16_t)D_PARSE_DIAG_OUT_OF_MEMORY),
+                          NULL,
+                          NULL,
+                          0u);
 
     return;
 }
@@ -800,11 +924,7 @@ d_internal_expr_push_frame(
     // open operators nest at least as deep as the term they make
     if (_p->frame_count >= _p->max_depth)
     {
-        d_internal_expr_fatal(_p,
-                              (uint16_t)D_PARSE_DIAG_DOMAIN_EXPR,
-                              (uint16_t)D_PARSE_EXPR_DIAG_TOO_DEEP,
-                              _frame->token_offset,
-                              "the expression nests deeper than its limit");
+        d_internal_expr_too_deep(_p, _frame->token_offset);
 
         return false;
     }
@@ -1011,7 +1131,11 @@ d_internal_expr_run_check(
                           (uint16_t)D_PARSE_EXPR_DIAG_REFUSED,
                           node->offset,
                           node->length,
-                          "the language refuses this");
+                          NULL,
+                          0u,
+                          NULL,
+                          0u,
+                          0u);
 
     return;
 }
@@ -1063,13 +1187,9 @@ d_internal_expr_make(
     // the operator whose node passes it, where one is known
     if ((uint32_t)_p->term->nodes[node].depth > _p->max_depth)
     {
-        d_internal_expr_fatal(_p,
-                              (uint16_t)D_PARSE_DIAG_DOMAIN_EXPR,
-                              (uint16_t)D_PARSE_EXPR_DIAG_TOO_DEEP,
-                              (_p->blame != D_PARSE_EXPR_NO_NODE)
-                              ? _p->blame
-                              : _start,
-                              "the expression nests deeper than its limit");
+        d_internal_expr_too_deep(_p, (_p->blame != D_PARSE_EXPR_NO_NODE)
+                                     ? _p->blame
+                                     : _start);
 
         return D_PARSE_EXPR_NO_NODE;
     }
@@ -1373,19 +1493,15 @@ d_internal_expr_nonassoc(
     const struct dj_parse_expr_token*    _token
 )
 {
-    char second[48];
-    char first[48];
-    char text[128];
+    struct dj_parse_diag_fact facts[2];
 
-    d_internal_expr_quote_token(_p, _token, second, sizeof(second));
-    d_internal_expr_quote_frame(_p, _f, first, sizeof(first));
-    (void)snprintf(text, sizeof(text), "%s cannot follow %s without brackets",
-                   second, first);
+    // `'==' cannot follow '<' without brackets`, and where the first is
+    facts[0] = d_internal_expr_named_token(_p, "second", _token);
+    facts[1] = d_internal_expr_named_frame(_p, "first", _f);
     d_internal_expr_error(_p, (uint16_t)D_PARSE_EXPR_DIAG_NON_ASSOCIATIVE,
-                          _token->offset, _token->length, text);
-    d_internal_expr_note(_p, (uint16_t)D_PARSE_EXPR_DIAG_NON_ASSOCIATIVE,
-                         _f->token_offset, _f->token_length,
-                         "the first operator is here");
+                          _token->offset, _token->length, facts, 2u,
+                          "the first operator is here",
+                          _f->token_offset, _f->token_length);
 
     return;
 }
@@ -1521,8 +1637,11 @@ d_internal_expr_check_items(
     uint32_t                             _end
 )
 {
-    const struct dj_parse_expr_mixfix* m = &_f->op->mixfix;
-    char                               text[96];
+    const struct dj_parse_expr_mixfix* m         = &_f->op->mixfix;
+    const bool                         unbounded =
+        (m->max_items == D_PARSE_EXPR_ITEMS_UNBOUNDED);
+    struct dj_parse_diag_fact          facts[4];
+    uint16_t                           count     = 0u;
 
     // within its bounds, nothing to say
     if ( (_f->items >= (uint32_t)m->min_items) &&
@@ -1531,27 +1650,29 @@ d_internal_expr_check_items(
         return;
     }
 
-    if (m->max_items == D_PARSE_EXPR_ITEMS_UNBOUNDED)
+    // the most is given only where there is one
+    facts[count++] = d_parse_diag_fact_unsigned("items",
+                                                (unsigned long)_f->items);
+    facts[count++] = d_parse_diag_fact_unsigned("min",
+                                                (unsigned long)m->min_items);
+
+    if (!unbounded)
     {
-        (void)snprintf(text, sizeof(text),
-                       "%lu items, where at least %lu are needed",
-                       (unsigned long)_f->items,
-                       (unsigned long)m->min_items);
+        facts[count++] = d_parse_diag_fact_unsigned(
+                             "max", (unsigned long)m->max_items);
     }
-    else
-    {
-        (void)snprintf(text, sizeof(text),
-                       "%lu items, where %lu to %lu are taken",
-                       (unsigned long)_f->items,
-                       (unsigned long)m->min_items,
-                       (unsigned long)m->max_items);
-    }
+
+    facts[count++] = d_parse_diag_fact_flag("unbounded", (unbounded) ? 1 : 0);
 
     d_internal_expr_error(_p,
                           (uint16_t)D_PARSE_EXPR_DIAG_ARITY,
                           _f->token_offset,
                           _end - _f->token_offset,
-                          text);
+                          facts,
+                          count,
+                          NULL,
+                          0u,
+                          0u);
 
     return;
 }
@@ -1928,9 +2049,12 @@ d_internal_expr_run_custom(
                               (uint16_t)D_PARSE_DIAG_DOMAIN_CORE,
                               (uint16_t)D_PARSE_DIAG_BAD_ARGUMENT,
                               _p->peeked.offset,
+                              NULL,
                               "a custom role left a token it read in "
                               "another mode, or declined after a "
-                              "sub-parse");
+                              "sub-parse",
+                              NULL,
+                              0u);
 
         return -1;
     }
@@ -1954,7 +2078,10 @@ d_internal_expr_run_custom(
                               (uint16_t)D_PARSE_DIAG_DOMAIN_CORE,
                               (uint16_t)D_PARSE_DIAG_BAD_ARGUMENT,
                               token.offset,
-                              "a custom role gave no node, or one too deep");
+                              NULL,
+                              "a custom role gave no node, or one too deep",
+                              NULL,
+                              0u);
 
         return -1;
     }
@@ -2185,8 +2312,7 @@ d_internal_expr_step_operand(
     const struct dj_parse_expr_role* roles =
         d_parse_expr_find_roles(_p->sig, _token->cls, D_PARSE_EXPR_OPERAND,
                                 &count);
-    char                             quote[48];
-    char                             text[96];
+    struct dj_parse_diag_fact        facts[2];
 
     // the first role that fits
     for (uint32_t i = 0u; i < count; ++i)
@@ -2230,7 +2356,7 @@ d_internal_expr_step_operand(
         return;
     }
 
-    d_internal_expr_quote_token(_p, _token, quote, sizeof(quote));
+    facts[0] = d_internal_expr_named_token(_p, "token", _token);
 
     // the end, a part or a separator where an operand must stand; or, where
     // the expression stops, a token with no role in either position
@@ -2240,10 +2366,12 @@ d_internal_expr_step_operand(
            (!d_internal_expr_has_role(_p, _token,
                                       D_PARSE_EXPR_OPERATOR)) ) )
     {
-        (void)snprintf(text, sizeof(text), "an operand is missing before %s",
-                       quote);
+        facts[1] = d_parse_diag_fact_flag(
+                       "at_end",
+                       (_token->cls == D_PARSE_EXPR_CLASS_END) ? 1 : 0);
         d_internal_expr_error(_p, (uint16_t)D_PARSE_EXPR_DIAG_MISSING_OPERAND,
-                              _token->offset, _token->length, text);
+                              _token->offset, _token->length, facts, 2u,
+                              NULL, 0u, 0u);
 
         if (d_internal_expr_hole(_p, _token->offset))
         {
@@ -2254,9 +2382,10 @@ d_internal_expr_step_operand(
     }
 
     // anything else is skipped
-    (void)snprintf(text, sizeof(text), "unexpected %s", quote);
+    facts[1] = d_parse_diag_fact_flag("after_operand", 0);
     d_internal_expr_error(_p, (uint16_t)D_PARSE_EXPR_DIAG_UNEXPECTED,
-                          _token->offset, _token->length, text);
+                          _token->offset, _token->length, facts, 2u,
+                          NULL, 0u, 0u);
     d_internal_expr_advance(_p);
 
     return;
@@ -2596,25 +2725,23 @@ d_internal_expr_mismatched(
     const struct dj_parse_expr_token* _token
 )
 {
-    char quote[48];
-    char outer[48];
-    char inner[48];
-    char text[192];
+    struct dj_parse_diag_fact facts[3];
 
     // `']' closes '[' while '(' is open`: the token, what it closes, and the
-    // innermost open operator it leaves
-    d_internal_expr_quote_token(_p, _token, quote, sizeof(quote));
-    d_internal_expr_quote_frame(_p, &_p->frames[_target], outer,
-                                sizeof(outer));
-    d_internal_expr_quote_frame(_p, &_p->frames[_m], inner, sizeof(inner));
-    (void)snprintf(text, sizeof(text), "%s closes %s while %s is open",
-                   quote, outer, inner);
+    // innermost open operator it leaves; an outer operator with no text nor
+    // spelling is worded as a token that does not close the innermost
+    facts[0] = d_internal_expr_named_token(_p, "token", _token);
+    facts[1] = d_internal_expr_named_frame(_p, "open", &_p->frames[_m]);
+    facts[2] = d_internal_expr_named_frame(_p, "outer",
+                                           &_p->frames[_target]);
     d_internal_expr_error(_p, (uint16_t)D_PARSE_EXPR_DIAG_MISMATCHED,
-                          _token->offset, _token->length, text);
-    d_internal_expr_note(_p, (uint16_t)D_PARSE_EXPR_DIAG_MISMATCHED,
-                         _p->frames[_m].token_offset,
-                         _p->frames[_m].token_length,
-                         "the innermost open operator begins here");
+                          _token->offset, _token->length, facts,
+                          (facts[2].kind == (uint8_t)D_PARSE_DIAG_FACT_NONE)
+                          ? 2u
+                          : 3u,
+                          "the innermost open operator begins here",
+                          _p->frames[_m].token_offset,
+                          _p->frames[_m].token_length);
 
     // close everything inside the operator the token closes
     while ( (!_p->stopped) &&
@@ -2696,18 +2823,16 @@ d_internal_expr_finish(
         if ( (!reported) &&
              (!_p->stopped) )
         {
-            char quote[48];
-            char text[96];
+            const struct dj_parse_diag_fact open[1] =
+            {
+                d_internal_expr_named_frame(_p, "open", &_p->frames[m])
+            };
 
-            d_internal_expr_quote_frame(_p, &_p->frames[m], quote,
-                                        sizeof(quote));
-            (void)snprintf(text, sizeof(text), "%s is never closed", quote);
             d_internal_expr_error(_p, (uint16_t)D_PARSE_EXPR_DIAG_UNCLOSED,
                                   _p->frames[m].token_offset,
-                                  _p->frames[m].token_length, text);
-            d_internal_expr_note(_p, (uint16_t)D_PARSE_EXPR_DIAG_UNCLOSED,
-                                 _token->offset, 0u,
-                                 "the expression ends here");
+                                  _p->frames[m].token_length, open, 1u,
+                                  "the expression ends here",
+                                  _token->offset, 0u);
             reported = true;
         }
 
@@ -2737,28 +2862,24 @@ d_internal_expr_finish(
  * @param[in,out] _p      the parser.
  * @param[in]     _m      the innermost open mixfix frame.
  * @param[in]     _token  the closing part, taken.
- * @param[in]     _quote  its text, quoted.
  */
 static void
 d_internal_expr_wrong_close(
     struct dj_parse_expr_parser*      _p,
     uint32_t                          _m,
-    const struct dj_parse_expr_token* _token,
-    const char*                       _quote
+    const struct dj_parse_expr_token* _token
 )
 {
-    char open[48];
-    char text[128];
+    struct dj_parse_diag_fact facts[2];
 
     // `']' does not close '('`: the token, and the operator it would close
-    d_internal_expr_quote_frame(_p, &_p->frames[_m], open, sizeof(open));
-    (void)snprintf(text, sizeof(text), "%s does not close %s", _quote, open);
+    facts[0] = d_internal_expr_named_token(_p, "token", _token);
+    facts[1] = d_internal_expr_named_frame(_p, "open", &_p->frames[_m]);
     d_internal_expr_error(_p, (uint16_t)D_PARSE_EXPR_DIAG_MISMATCHED,
-                          _token->offset, _token->length, text);
-    d_internal_expr_note(_p, (uint16_t)D_PARSE_EXPR_DIAG_MISMATCHED,
-                         _p->frames[_m].token_offset,
-                         _p->frames[_m].token_length,
-                         "the innermost open operator begins here");
+                          _token->offset, _token->length, facts, 2u,
+                          "the innermost open operator begins here",
+                          _p->frames[_m].token_offset,
+                          _p->frames[_m].token_length);
     d_internal_expr_reduce_above(_p, _m);
 
     // the slip is read as the close it should have been
@@ -2793,8 +2914,7 @@ d_internal_expr_no_role(
                             : D_PARSE_EXPR_NO_NODE;
     const bool     closes = d_internal_expr_is_structural(_p, _token->cls,
                                                           true);
-    char           quote[48];
-    char           text[96];
+    struct dj_parse_diag_fact facts[2];
 
     if (target != D_PARSE_EXPR_NO_NODE)
     {
@@ -2814,31 +2934,30 @@ d_internal_expr_no_role(
         return;
     }
 
-    d_internal_expr_quote_token(_p, _token, quote, sizeof(quote));
-
     // a closing part of another kind closes the innermost open operator: one
     // slip, one error
     if ( (_m != D_PARSE_EXPR_NO_NODE) &&
          (closes) )
     {
-        d_internal_expr_wrong_close(_p, _m, _token, quote);
+        d_internal_expr_wrong_close(_p, _m, _token);
 
         return;
     }
 
+    facts[0] = d_internal_expr_named_token(_p, "token", _token);
+
     if (closes)
     {
-        (void)snprintf(text, sizeof(text), "%s closes nothing that is open",
-                       quote);
         d_internal_expr_error(_p, (uint16_t)D_PARSE_EXPR_DIAG_UNOPENED,
-                              _token->offset, _token->length, text);
+                              _token->offset, _token->length, facts, 1u,
+                              NULL, 0u, 0u);
     }
     else
     {
-        (void)snprintf(text, sizeof(text), "unexpected %s after an operand",
-                       quote);
+        facts[1] = d_parse_diag_fact_flag("after_operand", 1);
         d_internal_expr_error(_p, (uint16_t)D_PARSE_EXPR_DIAG_UNEXPECTED,
-                              _token->offset, _token->length, text);
+                              _token->offset, _token->length, facts, 2u,
+                              NULL, 0u, 0u);
     }
 
     d_internal_expr_advance(_p);
@@ -3366,8 +3485,11 @@ d_parse_expr_sub(
                               (uint16_t)D_PARSE_DIAG_BAD_ARGUMENT,
                               (p->has_peeked) ? p->peeked.offset
                                               : p->current.offset,
+                              NULL,
                               "a sub-parse was asked for in a mode other "
-                              "than its next token's");
+                              "than its next token's",
+                              NULL,
+                              0u);
 
         return -1;
     }

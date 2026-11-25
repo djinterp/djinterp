@@ -18,17 +18,6 @@
 #define D_TESTS_OVERFLOW_HALF   (((size_t)-1 / 2u) + 1u)
 
 /*
-d_tests_overflow_wide
-  Whether size_t is wider than 32 bits, so that a 32-bit count times a
-record's size cannot overflow it.
-*/
-static bool
-d_tests_overflow_wide(void)
-{
-    return (sizeof(size_t) > 4u);
-}
-
-/*
 d_tests_overflow_syntax
   The syntax module's three sites (syntax_group.c 148 and 149, syntax_item.c
 2026 to 2031); the item's only where parse may allocate, since the
@@ -113,6 +102,21 @@ d_tests_overflow_arg_grow(void)
 #define D_TESTS_OVERFLOW_NO_HEAP                                              \
     "every heap constructor of parse and parsegen is compiled out "           \
     "(their heap knobs are 0)"
+
+#if (D_TESTS_OVERFLOW_ANY_HEAP == 1)
+
+/*
+d_tests_overflow_wide
+  Whether size_t is wider than 32 bits, so that a 32-bit count times a
+record's size cannot overflow it.
+*/
+static bool
+d_tests_overflow_wide(void)
+{
+    return (sizeof(size_t) > 4u);
+}
+
+#endif  // D_TESTS_OVERFLOW_ANY_HEAP
 
 /*
 d_tests_overflow_heap_refused

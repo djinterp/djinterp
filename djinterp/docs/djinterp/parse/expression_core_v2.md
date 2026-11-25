@@ -675,20 +675,58 @@ stage's.
 | 8 | `refused` | the node | the language's check refused it; its own message |
 | 9 | `bad_signature` | none | sealing found the table inconsistent |
 
-The names are lane E's registry's (agreed 11-05): the enum's tails,
-lower-cased, under `parse.expr`, one spelling for the code; parse.expr's
-registry table is written beside the enum in week 3.
+The names are the codes registry's (agreed 11-05): the enum's tails,
+lower-cased, under `parse.expr`, one spelling for the code.
 
-Codes are append-only, as the foundation's are. Out of memory and a full
-arena are the core domain's `D_PARSE_DIAG_OUT_OF_MEMORY` and
-`D_PARSE_DIAG_CAPACITY`: a term or stack that could have grown and could not
-is out of memory; one on the caller's storage, or in a build without the
-heap, that is full is at capacity. A note is a record flagged
-`D_PARSE_DIAG_FLAG_CONTINUATION`, following its error under its error's code,
-so a reader keyed on domain and code finds the note's own text. A message
-names the token where the text is given
-(`unexpected '*'`, `a '(' is never closed`); without the text it names the
-class's spelling, or says `token`.
+**One definition for each message (built 11-25).** The ten rows are a table
+beside the enum, `D_PARSE_EXPR_CODES(X, m)` in `expr/parse.h`, in the log's
+form (`log.h`'s section 2.4): each row's number, name, class, grade,
+template and facts. The core domain's ten codes have theirs beside
+`diagnostic.h`'s enum, `D_PARSE_CORE_CODES`, as the module `parse.core`.
+A diagnostic carries its facts, the values its template names: a token's
+text, unquoted, or none where neither the text nor a spelling is known; a
+count; a flag (`after_operand`, `at_end`, `unbounded`). The parser hands
+each error to the sink with its row's template and its facts
+(`d_parse_diag_report`), and the sink writes the text from them, only where
+it stores the text or a streaming hook asks for it. So the sink's text and
+the log's record come from one template, written by two writers of the same
+template language, and parse's suites hold them to each other: every
+message is its template written from the facts stored with it, and for
+every row the log's body is the sink's text, byte for byte. A template uses
+the language's text, fields and blocks (`{?fact}...{:}...{/}`); a field's
+specification is not parse's, and `d_parse_diag_template_check` refuses it.
+
+The messages read as before, so math's tests see no change: a token is
+quoted where it is named (`unexpected '*'`, `'(' is never closed`), and
+named by its class's spelling without the text, or as `a token` without
+either. A long token is cut at 32 bytes, before a character's lead byte, so
+no UTF-8 sequence is split.
+
+What a diagnostic carries is chosen three ways, each on by default:
+
+| layer | text | facts | the log |
+|---|---|---|---|
+| a build's knob | `D_CFG_PARSE_DIAG_TEXT` | `D_CFG_PARSE_DIAG_FACTS` | `D_CFG_PARSE_LOG` |
+| a run's row of `parse` | `diag_text` | `diag_facts` | `log` |
+| a streaming hook's flag | `D_PARSE_DIAG_STREAM_TEXT` | `D_PARSE_DIAG_STREAM_FACTS` | |
+
+A sink stores a record's facts in an arena of their own, which the caller
+gives it (`d_parse_diag_sink_facts`) or its heap form allocates, so a sink
+sized for messages keeps every message it kept before. A record is 36 bytes,
+offsets into its arenas and no pointers, and the arenas copy with it. The
+streaming hook (`d_parse_diag_sink_stream`) is given each diagnostic once,
+with its notes, after the per-record hook has seen each record; it is given
+its text and its facts as it asked, of what the sink's diagnostics carry,
+and its installation returns what that is.
+
+Parse's log unit (`parse_log.h`, built where `D_CFG_PARSE_LOG` is on) is
+such a hook. It declares and defines both tables for the log, registers
+them, and writes each diagnostic as one record of its code at its grade's
+level, with its span, its facts, and its notes as a level `note`, or
+`notes` keyed `"0"`, `"1"`. It asks for facts alone, since the log writes
+the text from the template. A diagnostic whose emitter gave words of its own
+(the machine's, the program's) is written with its code's template and those
+words as the fact `message`.
 
 Math maps them onto its statuses: 0 to `unexpected_token`, 1 to
 `missing_operand`, 2, 3 and 4 to `unbalanced`, 6 to `wrong_arity`, 7 to a new
@@ -845,7 +883,16 @@ a group of names), each defaulting to its knob:
   named INT rows bring in its window of 11-11;
 - `expr_max_errors`: `D_OPTION_ENV_INT_RANGE_KNOB`, 1 to 65535;
 - `expr_error_order`: `D_OPTION_ENV_CHOICE_KNOB` over `leftmost` (1) and
-  `structure_first` (2), the values `cfg_parse.h` gives the knob.
+  `structure_first` (2), the values `cfg_parse.h` gives the knob;
+- `diag_text`, `diag_facts` and `log` (built 11-25):
+  `D_OPTION_ENV_BOOL_KNOB` each, defaulting to `D_CFG_PARSE_DIAG_TEXT`,
+  `D_CFG_PARSE_DIAG_FACTS` and `D_CFG_PARSE_LOG`: whether diagnostics carry
+  their text and their facts, and whether parse's log unit attaches
+  (section 7.1). Each chooses among what the build has: on, in a build
+  without its facility, gives nothing, and the sink says so. A record
+  reaches the log only where `log` is on and the log wants its code
+  (`log.level`, `log.parse_expr.level` and its grade's level), so `log` off
+  saves even gathering its facts.
 
 So `DJINTERP_PARSE_EXPR_MAX_DEPTH=unbounded` and
 `--parse.expr_error_order=structure_first` work. An option of 0 means the
@@ -864,7 +911,8 @@ unless a reader has been installed with `d_parse_expr_settings_from(reader)`,
 in which case the reader fills them and each value is checked as an
 option's would be, a value out of range falling back to its knob.
 `d_parse_register` installs the group's reader, which reads the three rows
-through their caches; `d_parse_unregister` takes it out. So a program that
+through their caches, and the diagnostics' reader of the last three
+(`d_parse_diag_settings_from`); `d_parse_unregister` takes both out. So a program that
 links the core alone links no option code, and a parse costs one call more
 than it did when 0 meant the knob.
 
@@ -877,6 +925,10 @@ than it did when 0 meant the knob.
 | `D_CFG_PARSE_EXPR_RENDER` | 1 | none | the renderer compiled in |
 | `D_CFG_PARSE_EXPR_SCAN` | `D_CFG_PARSE_ALL`, else 1 | none | the default scanner compiled in (section 10) |
 | `D_CFG_PARSE_SETTINGS` | `D_CFG_PARSE_ALL`, else 1 | none | the `parse` settings group compiled in; off, an option of 0 is the knob |
+| `D_CFG_PARSE_DIAG_TEXT` | `D_CFG_PARSE_ALL`, else 1 | none | diagnostics carry their text; off, no text and no templates are built |
+| `D_CFG_PARSE_DIAG_FACTS` | `D_CFG_PARSE_ALL`, else 1 | none | diagnostics carry their facts |
+| `D_CFG_PARSE_LOG` | `D_CFG_PARSE_ALL`, else `D_CFG_LOG_ENABLED` | none | parse's log unit compiled in |
+| `D_CFG_PARSE_LOG_CODES` | `D_CFG_LOG_CODES` | none | the tables' names, templates and facts built into the log's records |
 | none | | `flags` | `D_PARSE_EXPR_OPTION_STOP`: end at a token the expression cannot go on with (F17) |
 
 A build without the heap is a full one: every structure has a fixed-storage

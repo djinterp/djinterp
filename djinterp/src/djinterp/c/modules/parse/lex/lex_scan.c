@@ -19,7 +19,7 @@
 * path:      /src/djinterp/c/modules/parse/lex/lex_scan.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.20
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/c/modules/parse/lex/lex_scan.h"  // corresponding header
 // std
@@ -608,7 +608,9 @@ void d_internal_check_encoding(
  *                                  or (size_t)-1.
  * @param[out]    _out_comment_end  receives the offset just past that comment.
  * @param[out]    _out_flags        receives the comment's
- *                                  D_TOKEN_FLAG_COMMENT_* bits.
+ *                                  D_TOKEN_FLAG_COMMENT_* bits, and
+ *                                  D_TOKEN_FLAG_SPLICED where a splice lies
+ *                                  in its byte range, before it or in it.
  * @return `true` if a comment was met and the caller asked for comments,
  *         `false` otherwise.
  */
@@ -653,6 +655,11 @@ bool d_internal_skip_trivia(
         {
             const size_t start = d_reader_offset(&_lexer->reader);
             const int    third = d_reader_peek(&_lexer->reader, 2u);
+
+            // a splice before the comment, or in it, is in its byte range:
+            // the flag says so, as for any token, so a reader of the bytes
+            // drops it
+            _lexer->reader.spliced = false;
 
             _lexer->comment_line   = d_reader_line(&_lexer->reader);
             _lexer->comment_column = d_reader_column(&_lexer->reader);
@@ -706,6 +713,9 @@ bool d_internal_skip_trivia(
             {
                 *_out_comment     = start;
                 *_out_comment_end = d_reader_offset(&_lexer->reader);
+                *_out_flags      |= _lexer->reader.spliced
+                                    ? D_TOKEN_FLAG_SPLICED
+                                    : D_TOKEN_FLAG_NONE;
                 return true;
             }
 
@@ -724,6 +734,7 @@ bool d_internal_skip_trivia(
 
             _lexer->comment_line   = d_reader_line(&_lexer->reader);
             _lexer->comment_column = d_reader_column(&_lexer->reader);
+            _lexer->reader.spliced = false;
 
             // `///` is documentation and `////` is a rule; `//!` is either way
             *_out_flags = D_TOKEN_FLAG_COMMENT_LINE |
@@ -745,6 +756,9 @@ bool d_internal_skip_trivia(
             {
                 *_out_comment     = start;
                 *_out_comment_end = d_reader_offset(&_lexer->reader);
+                *_out_flags      |= _lexer->reader.spliced
+                                    ? D_TOKEN_FLAG_SPLICED
+                                    : D_TOKEN_FLAG_NONE;
                 return true;
             }
 
@@ -1383,9 +1397,10 @@ int d_internal_scan_raw_string(
 /**
  * @brief Consumes the longest operator spelled at the position.
  *
- * @note Maximal munch, with the one exception the standard names: `<::` is `<`
+ * @note Maximal munch, with the one exception C++11 names: `<::` is `<`
  *       followed by `::` unless a `:` or `>` follows, so that `A<::B>` means
- *       what it appears to mean rather than opening a digraph bracket.
+ *       what it appears to mean rather than opening a digraph bracket. C,
+ *       C23 with its `::` included, and C++98 read the digraph.
  *
  * @param[in,out] _lexer     the scanner to advance.
  * @param[out]    _out_kind  receives the operator's kind.
@@ -1423,10 +1438,10 @@ bool d_internal_scan_operator(
         return false;
     }
 
-    // the `<::` rule, which only arises where digraphs exist
+    // the `<::` rule, where the dialect has it
     if ( (available >= 3u) &&
          (window[0] == '<') && (window[1] == ':') && (window[2] == ':') &&
-         d_lex_dialect_has(_lexer->dialect, D_LEX_FEATURE_DIGRAPH) )
+         d_lex_dialect_has(_lexer->dialect, D_LEX_FEATURE_LESS_SCOPE) )
     {
         const int fourth = (available >= 4u) ? (int)window[3] : D_SOURCE_END;
 

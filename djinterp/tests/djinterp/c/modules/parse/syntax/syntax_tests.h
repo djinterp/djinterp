@@ -195,6 +195,8 @@ bool d_tests_syntax_cpp_head_macros(void);
 bool d_tests_syntax_cpp_namespaces(void);
 bool d_tests_syntax_cpp_c_unchanged(void);
 bool d_tests_syntax_case_blocks(void);
+bool d_tests_syntax_lex_scope(void);
+bool d_tests_syntax_lex_splice(void);
 
 
 //==============================================================================
@@ -259,6 +261,18 @@ static const struct dj_test_case_spec d_tests_parse_syntax_labels_rows[] =
       d_tests_syntax_case_blocks }
 };
 
+// d_tests_parse_syntax_lex_rows
+//   constant: the lex block's rows.
+static const struct dj_test_case_spec d_tests_parse_syntax_lex_rows[] =
+{
+    { "d_tests_syntax_lex_scope",
+      "C23's :: one punctuator, two colons before it",
+      d_tests_syntax_lex_scope },
+    { "d_tests_syntax_lex_splice",
+      "a comment a splice comes before begins there, flagged spliced",
+      d_tests_syntax_lex_splice }
+};
+
 // d_tests_parse_syntax_blocks
 //   constant: the module's blocks.
 static const struct dj_test_block_spec d_tests_parse_syntax_blocks[] =
@@ -277,7 +291,12 @@ static const struct dj_test_block_spec d_tests_parse_syntax_blocks[] =
       "the levels of what a case or a default holds",
       d_tests_parse_syntax_labels_rows,
       sizeof(d_tests_parse_syntax_labels_rows) /
-          sizeof(d_tests_parse_syntax_labels_rows[0]) }
+          sizeof(d_tests_parse_syntax_labels_rows[0]) },
+    { "lex",
+      "the scanner as Clang's raw lexer reads a text",
+      d_tests_parse_syntax_lex_rows,
+      sizeof(d_tests_parse_syntax_lex_rows) /
+          sizeof(d_tests_parse_syntax_lex_rows[0]) }
 };
 
 // d_tests_parse_syntax_module

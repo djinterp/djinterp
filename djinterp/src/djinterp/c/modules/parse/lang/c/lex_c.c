@@ -18,7 +18,7 @@
 * path:      /src/djinterp/c/modules/parse/lang/c/lex_c.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.20
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 #include "../../../../../../../inc/djinterp/c/modules/parse/lang/c/lex_c.h"  // corresponding header
 // std
@@ -61,7 +61,11 @@ static const struct dj_lex_operator d_internal_c_operators[] =
     { "<:",   D_TOKEN_BRACKET_OPEN,   D_LEX_C99, D_LEX_ROW_DIGRAPH },
     { ":>",   D_TOKEN_BRACKET_CLOSE,  D_LEX_C99, D_LEX_ROW_DIGRAPH },
     { "%:",   D_TOKEN_HASH,           D_LEX_C99, D_LEX_ROW_DIGRAPH },
-    { "%:%:", D_TOKEN_HASH_HASH,      D_LEX_C99, D_LEX_ROW_DIGRAPH }
+    { "%:%:", D_TOKEN_HASH_HASH,      D_LEX_C99, D_LEX_ROW_DIGRAPH },
+
+    // C23's one punctuator from C++, for an attribute's prefix
+    // ([[gnu::unused]]): C++'s kind, so a reader of both languages sees one
+    { "::",   D_TOKEN_SCOPE,          D_LEX_C23, D_LEX_ROW_NONE }
 };
 
 // 1.3    Literal prefixes

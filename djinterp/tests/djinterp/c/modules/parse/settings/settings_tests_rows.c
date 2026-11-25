@@ -8,7 +8,7 @@
 * path:      /tests/djinterp/c/modules/parse/settings/settings_tests_rows.c
 * link(s):   /docs/djinterp/option/knob_and_option.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 #include "./settings_tests.h"  // corresponding header
 
@@ -488,6 +488,91 @@ d_tests_settings_unregister(void)
 }
 
 
+/*
+d_tests_settings_switches
+  The three switches for parse's diagnostics, each a row of the djin.
+  Tests the following:
+  - before the djin is registered, the switches are the knobs, of what the
+    build has; registered and unbound, each row reads its knob from
+    DEFAULT, and names it
+  - the environment's DJINTERP_PARSE_DIAG_TEXT, the command line's
+    `--parse.diag_facts` and a file's `parse.log` turn each off, and a sink
+    made then carries neither text nor facts
+  - off the registry, the knobs again
+*/
+bool
+d_tests_settings_switches(void)
+{
+    static struct dj_option_env_registry registry;
+    static char                          name[]   = "t";
+    static char                          option[] = "--parse.diag_facts=off";
+    char* const                          argv[]   = { name, option, NULL };
+    struct dj_parse_diag_settings        before;
+    struct dj_parse_diag_settings        bound;
+    struct dj_parse_diag_settings        after;
+    struct dj_parse_diag_sink            sink;
+    struct dj_option_env_value           value;
+    struct dj_option_result              taken;
+    size_t                               offset = 0u;
+    int                                  at     = 1;
+
+    d_parse_diag_settings(&before);
+    D_TEST_REQUIRE(before.text == (uint8_t)D_INTERNAL_PARSE_DIAG_TEXT);
+    D_TEST_REQUIRE(before.facts == (uint8_t)D_INTERNAL_PARSE_DIAG_FACTS);
+    D_TEST_REQUIRE(before.log == (uint8_t)D_INTERNAL_PARSE_LOG);
+
+    D_TEST_REQUIRE(d_tests_settings_open(&registry));
+
+    const uint32_t text_id = d_tests_settings_id(D_PARSE_SETTING_DIAG_TEXT);
+    const bool     read    = d_option_env_get(d_parse_djin(),
+                                              D_OPTION_ENV_GLOBAL, text_id,
+                                              &value).is_ok;
+    const struct dj_option_env_var* row =
+        d_option_env_var_at(d_parse_djin(), text_id);
+    const struct dj_option_env_var* log =
+        d_option_env_var_at(d_parse_djin(),
+                            d_tests_settings_id(D_PARSE_SETTING_LOG));
+
+    const bool file = d_option_env_registry_load(&registry,
+                          "parse.log = off\n",
+                          D_OPTION_ENV_SOURCE_FILE, &offset).is_ok;
+
+    d_tests_settings_putenv("DJINTERP_PARSE_DIAG_TEXT", "off");
+
+    const bool environment =
+        d_option_env_registry_import(&registry, "DJINTERP_").is_ok;
+    const int  command     =
+        d_option_env_registry_take_option(&registry, 2, argv, &at, &taken);
+
+    d_tests_settings_putenv("DJINTERP_PARSE_DIAG_TEXT", NULL);
+    d_parse_diag_settings(&bound);
+    d_parse_diag_sink_init(&sink, NULL, 0u, NULL, 0u);
+    d_tests_settings_close();
+    d_parse_diag_settings(&after);
+
+    D_TEST_REQUIRE(read);
+    D_TEST_REQUIRE( (value.integer != 0) ==
+                    (D_CFG_PARSE_DIAG_TEXT != 0) );
+    D_TEST_REQUIRE(value.source == D_OPTION_ENV_SOURCE_DEFAULT);
+    D_TEST_REQUIRE( (row) && (row->knob) &&
+                    (strcmp(row->knob, "D_CFG_PARSE_DIAG_TEXT") == 0) );
+    D_TEST_REQUIRE( (log) && (log->knob) &&
+                    (strcmp(log->knob, "D_CFG_PARSE_LOG") == 0) );
+    D_TEST_REQUIRE(file);
+    D_TEST_REQUIRE(environment);
+    D_TEST_REQUIRE(command == 1);
+    D_TEST_REQUIRE(bound.text == 0u);
+    D_TEST_REQUIRE(bound.facts == 0u);
+    D_TEST_REQUIRE(bound.log == 0u);
+    D_TEST_REQUIRE(sink.carry == 0u);
+    D_TEST_REQUIRE(after.text == before.text);
+    D_TEST_REQUIRE(after.facts == before.facts);
+    D_TEST_REQUIRE(after.log == before.log);
+
+    return true;
+}
+
+
 #else
 
 
@@ -553,6 +638,12 @@ d_tests_settings_standing(void)
 
 bool
 d_tests_settings_named(void)
+{
+    D_TEST_SKIP(D_TESTS_SETTINGS_WITHOUT);
+}
+
+bool
+d_tests_settings_switches(void)
 {
     D_TEST_SKIP(D_TESTS_SETTINGS_WITHOUT);
 }

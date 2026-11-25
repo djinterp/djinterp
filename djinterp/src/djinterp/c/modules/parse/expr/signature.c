@@ -12,13 +12,12 @@
 * path:      /src/djinterp/c/modules/parse/expr/signature.c
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/c/modules/parse/expr/signature.h"  // corresponding header
 // std
-#include <stdio.h>   // snprintf
 #include <stdlib.h>  // free
-#include <string.h>  // memset
+#include <string.h>  // memset, strlen
 // djinterp
 #include "../../../../../../inc/djinterp/c/modules/parse/expr/parse.h"  // the codes, the end
 #include "../../../../../../inc/djinterp/c/modules/parse/storage.h"     // d_parse_grow
@@ -516,8 +515,37 @@ d_internal_expr_sig_op(
            : NULL;
 }
 
+#if (D_INTERNAL_PARSE_DIAG_TEXT == 1)
+
+// a row's template, by its code, for the one row the seal reports
+#define D_INTERNAL_EXPR_SIG_PATTERN_ROW(_module, _number, _name, _class,      \
+                                        _grade, _template, _facts)            \
+    case (_number): return (_template);
+
 /**
- * @brief Reports one problem the seal found.
+ * @brief The template a code's row of parse.expr's table gives.
+ *
+ * @param[in] _code  the code.
+ * @return the template, or NULL for a code with no row.
+ */
+static const char*
+d_internal_expr_sig_pattern(
+    uint16_t _code
+)
+{
+    switch (_code)
+    {
+        D_PARSE_EXPR_CODES(D_INTERNAL_EXPR_SIG_PATTERN_ROW, parse_expr)
+        default:
+            return NULL;
+    }
+}
+
+#endif  // D_INTERNAL_PARSE_DIAG_TEXT
+
+/**
+ * @brief Reports one problem the seal found, written from its row's template
+ *        and its facts: what is wrong, and the id it is about.
  *
  * @param[in,out] _sink     the sink; may be NULL.
  * @param[in]     _message  what is wrong.
@@ -530,16 +558,28 @@ d_internal_expr_sig_problem(
     uint32_t                   _id
 )
 {
-    char text[128];
+    struct dj_parse_diag_fact   facts[2];
+    struct dj_parse_diag_report report;
+    const size_t                size = strlen(_message);
 
-    (void)snprintf(text, sizeof(text), "%s (%lu)", _message,
-                   (unsigned long)_id);
-    (void)d_parse_diag_emit(_sink,
-                            D_PARSE_SEVERITY_ERROR,
-                            (uint16_t)D_PARSE_DIAG_DOMAIN_EXPR,
-                            (uint16_t)D_PARSE_EXPR_DIAG_BAD_SIGNATURE,
-                            d_parse_span_unknown(),
-                            text);
+    facts[0] = d_parse_diag_fact_text("reason", _message,
+                                      (size > (size_t)0xFFFFu)
+                                      ? 0xFFFFu
+                                      : (uint32_t)size);
+    facts[1] = d_parse_diag_fact_unsigned("id", (unsigned long)_id);
+
+    memset(&report, 0, sizeof(report));
+    report.severity   = (uint8_t)D_PARSE_SEVERITY_ERROR;
+    report.domain     = (uint16_t)D_PARSE_DIAG_DOMAIN_EXPR;
+    report.code       = (uint16_t)D_PARSE_EXPR_DIAG_BAD_SIGNATURE;
+    report.fact_count = 2u;
+    report.span       = d_parse_span_unknown();
+#if (D_INTERNAL_PARSE_DIAG_TEXT == 1)
+    report.pattern    = d_internal_expr_sig_pattern(report.code);
+#endif  // D_INTERNAL_PARSE_DIAG_TEXT
+    report.facts      = facts;
+
+    (void)d_parse_diag_report(_sink, &report, 1u);
 
     return;
 }

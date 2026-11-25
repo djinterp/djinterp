@@ -3,7 +3,8 @@
 *
 * Expression core v2's C suite in DTest's C face (c/modules/test/
 * test_suite.h): the term, the signature, the parser, the renderer, folds
-* and walks, the scanner and the scratch, each through the C API alone.
+* and walks, the scanner and the scratch, and the diagnostics parse reports,
+* each through the C API alone.
 *   Two faces, chosen by DTEST_SPEC_MODE as in every C suite: the section
 * translation units see the core and the fixtures; the runner, which
 * defines DTEST_SPEC_MODE first, sees the tests and the spec provider,
@@ -33,7 +34,7 @@
 * path:      /tests/djinterp/c/modules/parse/expr/expr_tests.h
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.10
-*                                                            revised: 2026.11.18
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_C_PARSE_EXPR_TESTS_H
@@ -111,6 +112,7 @@ struct dj_tests_expr_run
     struct dj_parse_expr_token   tokens[4096];
     struct dj_parse_diagnostic   items[32];
     char                         text[4096];
+    char                         facts[4096];
     struct dj_parse_diag_sink    sink;
     struct dj_parse_expr_term    term;
     struct dj_parse_expr_result  result;
@@ -266,6 +268,13 @@ d_tests_expr_atom_name(
 #define D_TESTS_EXPR_NO_RENDER                                                \
     "the heap or the renderer is compiled out "                               \
     "(D_CFG_PARSE_EXPR_HEAP or D_CFG_PARSE_EXPR_RENDER is 0)"
+#define D_TESTS_EXPR_NO_TEXT                                                  \
+    "diagnostics carry no text in this build (D_CFG_PARSE_DIAG_TEXT is 0)"
+#define D_TESTS_EXPR_NO_FACTS                                                 \
+    "diagnostics carry no facts in this build (D_CFG_PARSE_DIAG_FACTS is 0)"
+#define D_TESTS_EXPR_NO_SOURCE                                                \
+    "the heap, the text or the facts are compiled out "                       \
+    "(D_CFG_PARSE_EXPR_HEAP, D_CFG_PARSE_DIAG_TEXT or _FACTS is 0)"
 
 #endif  // DTEST_SPEC_MODE
 
@@ -291,6 +300,13 @@ bool d_tests_expr_fold_walk(void);
 bool d_tests_expr_locate(void);
 bool d_tests_expr_scan(void);
 bool d_tests_expr_scratch(void);
+bool d_tests_expr_core_table(void);
+bool d_tests_expr_diag_write(void);
+bool d_tests_expr_diag_check(void);
+bool d_tests_expr_diag_facts(void);
+bool d_tests_expr_diag_stream(void);
+bool d_tests_expr_diag_carry(void);
+bool d_tests_expr_one_source(void);
 
 
 //==============================================================================
@@ -382,6 +398,33 @@ static const struct dj_test_case_spec d_tests_parse_expr_sources_rows[] =
       d_tests_expr_scratch }
 };
 
+// d_tests_parse_expr_reporting_rows
+//   constant: the reporting block's rows.
+static const struct dj_test_case_spec d_tests_parse_expr_reporting_rows[] =
+{
+    { "d_tests_expr_core_table",
+      "parse.core's code table, as the log reads it",
+      d_tests_expr_core_table },
+    { "d_tests_expr_diag_write",
+      "a template written from its facts",
+      d_tests_expr_diag_write },
+    { "d_tests_expr_diag_check",
+      "a template's soundness, and each refusal",
+      d_tests_expr_diag_check },
+    { "d_tests_expr_diag_facts",
+      "facts stored with their record, and read back",
+      d_tests_expr_diag_facts },
+    { "d_tests_expr_diag_stream",
+      "the streaming hook: each diagnostic with its notes",
+      d_tests_expr_diag_stream },
+    { "d_tests_expr_diag_carry",
+      "what a sink's diagnostics carry, and the run's switches",
+      d_tests_expr_diag_carry },
+    { "d_tests_expr_one_source",
+      "each message is its row's template written from its facts",
+      d_tests_expr_one_source }
+};
+
 // d_tests_parse_expr_blocks
 //   constant: the module's blocks.
 static const struct dj_test_block_spec d_tests_parse_expr_blocks[] =
@@ -410,7 +453,12 @@ static const struct dj_test_block_spec d_tests_parse_expr_blocks[] =
       "the default scanner and the caller's scratch",
       d_tests_parse_expr_sources_rows,
       sizeof(d_tests_parse_expr_sources_rows) /
-          sizeof(d_tests_parse_expr_sources_rows[0]) }
+          sizeof(d_tests_parse_expr_sources_rows[0]) },
+    { "reporting",
+      "diagnostics: their tables, templates, facts and hooks",
+      d_tests_parse_expr_reporting_rows,
+      sizeof(d_tests_parse_expr_reporting_rows) /
+          sizeof(d_tests_parse_expr_reporting_rows[0]) }
 };
 
 // d_tests_parse_expr_module

@@ -2,6 +2,9 @@
 * djinterp [parse]                                                 token_cpp.def
 *
 * The token kinds C++ has and C does not.
+*   One of them, `::`, C23 has too, for an attribute's prefix
+* ([[gnu::unused]]): C's table from C23 spells it as this kind, so a reader
+* of both languages sees one kind for it.
 *   Four punctuators and thirty-nine keywords, which is the whole lexical
 * difference between the languages once the shared list is accounted for.  The
 * alternative tokens -- `and`, `bitor`, `not_eq` and the rest -- are absent on
@@ -16,7 +19,7 @@
 * path:      /inc/djinterp/parse/lex/token_cpp.def
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.20
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 
 /*

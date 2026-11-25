@@ -10,9 +10,14 @@
 *
 * targets:  parse/c/diagnostic.h -> D_INTERNAL_PARSE_DIAG_HEAP /
 *                                 D_INTERNAL_PARSE_DIAG_FORMAT /
+*                                 D_INTERNAL_PARSE_DIAG_TEXT /
+*                                 D_INTERNAL_PARSE_DIAG_FACTS /
 *                                 D_PARSE_DIAG_DEFAULT_ITEMS /
 *                                 D_PARSE_DIAG_DEFAULT_TEXT /
+*                                 D_PARSE_DIAG_DEFAULT_FACTS /
 *                                 D_PARSE_DIAG_MESSAGE_MAX
+*           parse/c/parse_log.h  -> D_INTERNAL_PARSE_LOG /
+*                                 D_CFG_PARSE_LOG_CODES
 *           parse/c/pool.h       -> D_INTERNAL_PARSE_POOL_HEAP /
 *                                 D_PARSE_POOL_DEFAULT_BYTES /
 *                                 D_PARSE_POOL_DEFAULT_ENTRIES
@@ -31,7 +36,8 @@
 *           parse/c/settings.h -> D_INTERNAL_PARSE_SETTINGS
 *           the parse sources  -> D_INTERNAL_PARSE_HEAP
 *           parse/cpp/parsers/ -> D_INTERNAL_PARSE_LIBCLANG
-* requires: cfg_common.h (helpers, and the testing preset it applies)
+* requires: cfg_common.h (helpers, and the testing preset it applies);
+*           cfg_log.h, for two knobs' defaults
 *
 *
 * path:      /inc/djinterp/config/c/modules/parse/cfg_parse.h
@@ -45,6 +51,8 @@
 
 // (0) root first: helpers, user overrides, testing flag/preset.
 #include "../../../cfg_common.h"  // D_CFG_ helpers, overrides, testing
+// (1) the log's knobs, which two of parse's default to; no code
+#include "../../log/cfg_log.h"    // D_CFG_LOG_ENABLED, D_CFG_LOG_CODES
 
 
 //==============================================================================
@@ -216,6 +224,60 @@
 
 
 // 1.3.7
+// D_CFG_PARSE_DIAG_TEXT
+//   brief: 1 lets a diagnostic carry its text: a sink stores it, and the
+// messages parse words itself are written from their code tables'
+// templates; 0 leaves every diagnostic without text, and compiles out the
+// template writer and the templates. The row parse.diag_text turns it off
+// for a run. Default 1.
+#ifndef D_CFG_PARSE_DIAG_TEXT
+#   if defined(D_CFG_PARSE_ALL)
+#       define D_CFG_PARSE_DIAG_TEXT        D_CFG_PARSE_ALL
+#   else
+#       define D_CFG_PARSE_DIAG_TEXT        1
+#   endif
+#endif
+
+// 1.3.8
+// D_CFG_PARSE_DIAG_FACTS
+//   brief: 1 lets a diagnostic carry its facts, the values its template
+// names: a sink with room for them stores them, and a streaming hook that
+// asks is given them; 0 leaves every diagnostic with its code and span
+// alone. The row parse.diag_facts turns it off for a run. Default 1.
+#ifndef D_CFG_PARSE_DIAG_FACTS
+#   if defined(D_CFG_PARSE_ALL)
+#       define D_CFG_PARSE_DIAG_FACTS       D_CFG_PARSE_ALL
+#   else
+#       define D_CFG_PARSE_DIAG_FACTS       1
+#   endif
+#endif
+
+// 1.3.9
+// D_CFG_PARSE_LOG
+//   brief: 1 compiles parse_log.h and parse_log.c, which write parse's
+// diagnostics to the log as its records; 0 leaves parse without them, and
+// nothing of parse names the log. The row parse.log turns it off for a run.
+// Default: the log's own D_CFG_LOG_ENABLED, as for any module the log is
+// not built on; with the log off, the unit builds and writes nothing.
+#ifndef D_CFG_PARSE_LOG
+#   if defined(D_CFG_PARSE_ALL)
+#       define D_CFG_PARSE_LOG              D_CFG_PARSE_ALL
+#   else
+#       define D_CFG_PARSE_LOG              D_CFG_LOG_ENABLED
+#   endif
+#endif
+
+// 1.3.10
+// D_CFG_PARSE_LOG_CODES
+//   brief: 1 builds the names, templates and facts of parse's two tables of
+// codes into the log's records (parse_log.c); 0 writes each code as its
+// module and number, "parse.expr:4". Parse's own messages do not change
+// with it. Default: the log's D_CFG_LOG_CODES.
+#ifndef D_CFG_PARSE_LOG_CODES
+#   define D_CFG_PARSE_LOG_CODES            D_CFG_LOG_CODES
+#endif
+
+// 1.3.11
 // D_CFG_PARSE_LIBCLANG
 //   brief: 1 compiles the libclang parsers - parsers/c/c_parser.hpp,
 // parsers/cpp/cpp_parser.hpp, cpp_def_parser.hpp and clang_util.hpp - where
@@ -267,6 +329,18 @@
 #if !D_CFG_IS_BOOL(D_CFG_PARSE_LIBCLANG)
 #   error "D_CFG_PARSE_LIBCLANG must be 0 or 1"
 #endif
+#if !D_CFG_IS_BOOL(D_CFG_PARSE_DIAG_TEXT)
+#   error "D_CFG_PARSE_DIAG_TEXT must be 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_PARSE_DIAG_FACTS)
+#   error "D_CFG_PARSE_DIAG_FACTS must be 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_PARSE_LOG)
+#   error "D_CFG_PARSE_LOG must be 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_PARSE_LOG_CODES)
+#   error "D_CFG_PARSE_LOG_CODES must be 0 or 1"
+#endif
 
 
 //==============================================================================
@@ -297,10 +371,18 @@
 #endif
 
 // 2.1.3
+// D_PARSE_DIAG_DEFAULT_FACTS
+//   brief: bytes of facts arena a heap-backed sink reserves when the caller
+// does not say: each fact takes 16 bytes, and its name and text after that.
+#ifndef D_PARSE_DIAG_DEFAULT_FACTS
+#   define D_PARSE_DIAG_DEFAULT_FACTS       4096
+#endif
+
+// 2.1.4
 // D_PARSE_DIAG_MESSAGE_MAX
-//   brief: the largest formatted message d_parse_diag_emitf will produce, and
-// therefore the size of the stack buffer it formats into. Longer messages are
-// truncated, never dropped.
+//   brief: the largest message written on the stack: by d_parse_diag_emitf,
+// and from a template for a streaming hook when the sink does not store the
+// text. Longer messages are truncated there, never dropped.
 #ifndef D_PARSE_DIAG_MESSAGE_MAX
 #   define D_PARSE_DIAG_MESSAGE_MAX         512
 #endif
@@ -532,6 +614,38 @@
 #endif
 #ifndef D_INTERNAL_PARSE_LIBCLANG
 #   define D_INTERNAL_PARSE_LIBCLANG        0
+#endif
+
+// 3.1.13
+// D_INTERNAL_PARSE_DIAG_TEXT
+//   brief: 1 when a diagnostic may carry its text. Computed from
+// D_CFG_PARSE_DIAG_TEXT; read by diagnostic.h, diagnostic.c and the emitters
+// that word their messages from templates.
+#if D_CFG_IS_ON(D_CFG_PARSE_DIAG_TEXT)
+#   define D_INTERNAL_PARSE_DIAG_TEXT       1
+#else
+#   define D_INTERNAL_PARSE_DIAG_TEXT       0
+#endif
+
+// 3.1.14
+// D_INTERNAL_PARSE_DIAG_FACTS
+//   brief: 1 when a diagnostic may carry its facts. Computed from
+// D_CFG_PARSE_DIAG_FACTS; read by diagnostic.h and diagnostic.c.
+#if D_CFG_IS_ON(D_CFG_PARSE_DIAG_FACTS)
+#   define D_INTERNAL_PARSE_DIAG_FACTS      1
+#else
+#   define D_INTERNAL_PARSE_DIAG_FACTS      0
+#endif
+
+// 3.1.15
+// D_INTERNAL_PARSE_LOG
+//   brief: 1 when parse_log.h and parse_log.c are compiled. Computed from
+// D_CFG_PARSE_LOG; read by those two, which also need the log's 64-bit
+// floor (RE_STD_HAS_INT64), as log.h does.
+#if D_CFG_IS_ON(D_CFG_PARSE_LOG)
+#   define D_INTERNAL_PARSE_LOG             1
+#else
+#   define D_INTERNAL_PARSE_LOG             0
 #endif
 
 // 3.2    Aggregate consequences

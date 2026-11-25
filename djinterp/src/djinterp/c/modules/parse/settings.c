@@ -2,7 +2,8 @@
 * djinterp [c][parse]                                                 settings.c
 *
 * Parse's settings group (settings.h): the schema, the djin over storage of
-* its own, its registration, and the reader expression core v2 consults.
+* its own, its registration, and the readers expression core v2 and the
+* diagnostics consult.
 *   The djin's frame is made over its storage the first time it is
 * registered, before the program's threads start, and keeps its variables
 * when it is taken off and registered again. The reader reads each row
@@ -13,7 +14,7 @@
 * path:      /src/djinterp/c/modules/parse/settings.c
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/modules/parse/settings.h"  // corresponding header
 
@@ -24,6 +25,7 @@
 #include <stddef.h>  // NULL
 #include <string.h>  // memset
 // djinterp
+#include "../../../../../inc/djinterp/c/modules/parse/diagnostic.h"  // the switches
 #include "../../../../../inc/djinterp/c/modules/parse/expr/parse.h"  // the core's settings
 
 
@@ -34,8 +36,8 @@
 
 // D_INTERNAL_PARSE_SETTINGS_BINDINGS
 //   constant: the djin's room for bindings: one per source, per row bound,
-// for the six sources and the three rows, with room to spare.
-#define D_INTERNAL_PARSE_SETTINGS_BINDINGS  24u
+// for the six sources and the six rows, with room to spare.
+#define D_INTERNAL_PARSE_SETTINGS_BINDINGS  48u
 
 // D_INTERNAL_PARSE_SETTINGS_TEXT
 //   constant: the djin's text arena; its rows hold no text of their own.
@@ -71,7 +73,18 @@ static const struct dj_option_env_var SCHEMA[D_PARSE_SETTINGS] =
     D_OPTION_ENV_CHOICE_KNOB("expr_error_order", D_PARSE_EXPR_ORDERS,
                              D_CFG_PARSE_EXPR_ERROR_ORDER,
                              "which error is the error: leftmost or "
-                             "structure_first")
+                             "structure_first"),
+    D_OPTION_ENV_BOOL_KNOB("diag_text", D_CFG_PARSE_DIAG_TEXT,
+                           "whether diagnostics carry their text; on only "
+                           "where the build has it (D_CFG_PARSE_DIAG_TEXT)"),
+    D_OPTION_ENV_BOOL_KNOB("diag_facts", D_CFG_PARSE_DIAG_FACTS,
+                           "whether diagnostics carry their facts; on only "
+                           "where the build has them "
+                           "(D_CFG_PARSE_DIAG_FACTS)"),
+    D_OPTION_ENV_BOOL_KNOB("log", D_CFG_PARSE_LOG,
+                           "whether parse's diagnostics are written to the "
+                           "log; on only where the build has parse's log "
+                           "unit (D_CFG_PARSE_LOG)")
 };
 
 
@@ -188,6 +201,44 @@ d_internal_parse_read(
     return;
 }
 
+/*
+d_internal_parse_read_diag
+  The reader the diagnostics consult (d_parse_diag_settings): the three
+switches' rows through their caches. diagnostic.c keeps each to what the
+build has.
+*/
+static void
+d_internal_parse_read_diag(
+    struct dj_parse_diag_settings* _settings
+)
+{
+    struct dj_internal_parse_djin* const d    = &d_internal_parse_djin;
+    const uint32_t                       base = d->base;
+
+    if (base == D_OPTION_ENV_NONE)
+    {
+        return;
+    }
+
+    _settings->text  = (uint8_t)(d_option_env_cached(
+                           &d->frame, D_OPTION_ENV_GLOBAL,
+                           base + D_PARSE_SETTING_DIAG_TEXT,
+                           &d->cache[D_PARSE_SETTING_DIAG_TEXT])->integer
+                       != 0);
+    _settings->facts = (uint8_t)(d_option_env_cached(
+                           &d->frame, D_OPTION_ENV_GLOBAL,
+                           base + D_PARSE_SETTING_DIAG_FACTS,
+                           &d->cache[D_PARSE_SETTING_DIAG_FACTS])->integer
+                       != 0);
+    _settings->log   = (uint8_t)(d_option_env_cached(
+                           &d->frame, D_OPTION_ENV_GLOBAL,
+                           base + D_PARSE_SETTING_LOG,
+                           &d->cache[D_PARSE_SETTING_LOG])->integer
+                       != 0);
+
+    return;
+}
+
 
 //==============================================================================
 // 3.  REGISTERING
@@ -221,6 +272,7 @@ d_parse_register(
         d->base     = d_internal_parse_base();
         memset(d->cache, 0, sizeof(d->cache));
         d_parse_expr_settings_from(d_internal_parse_read);
+        d_parse_diag_settings_from(d_internal_parse_read_diag);
     }
 
     return r;
@@ -242,6 +294,7 @@ d_parse_unregister(void)
     }
 
     d_parse_expr_settings_from(NULL);
+    d_parse_diag_settings_from(NULL);
     r = d_option_env_registry_remove(d->registry, &d->frame);
     d->registry = NULL;
     d->base     = d_internal_parse_base();

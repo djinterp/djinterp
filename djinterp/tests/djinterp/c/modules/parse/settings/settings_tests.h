@@ -27,7 +27,7 @@
 * path:      /tests/djinterp/c/modules/parse/settings/settings_tests.h
 * link(s):   /docs/djinterp/option/knob_and_option.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_C_PARSE_SETTINGS_TESTS_H
@@ -76,6 +76,7 @@ bool d_tests_settings_named(void);
 bool d_tests_settings_suggest(void);
 bool d_tests_settings_parse(void);
 bool d_tests_settings_unregister(void);
+bool d_tests_settings_switches(void);
 
 
 //==============================================================================
@@ -116,7 +117,10 @@ static const struct dj_test_case_spec d_tests_parse_settings_core_rows[] =
       d_tests_settings_parse },
     { "d_tests_settings_unregister",
       "off the registry, the core is back on its knobs",
-      d_tests_settings_unregister }
+      d_tests_settings_unregister },
+    { "d_tests_settings_switches",
+      "diag_text, diag_facts and log: what diagnostics carry, and the log",
+      d_tests_settings_switches }
 };
 
 // d_tests_parse_settings_blocks

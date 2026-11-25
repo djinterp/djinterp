@@ -10,7 +10,7 @@
 * path:      /tests/djinterp/cpp/modules/parse/expr/expr_face_tests_face.cpp
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 
 #include "./expr_face_tests.hpp"  // corresponding header
@@ -764,7 +764,9 @@ d_tests_face_diagnostics(void)
 
     D_TEST_REQUIRE( (d.severity() == D_PARSE_SEVERITY_ERROR) &&
                     (!d.continuation()) && (d.domain() == r.domain()) &&
-                    (d.code() == r.code()) && (!d.message().empty()) &&
+                    (d.code() == r.code()) &&
+                    (d.message().empty() ==
+                     (D_INTERNAL_PARSE_DIAG_TEXT == 0)) &&
                     (d_tests_face_same_span(d.span(), r.span())) );
 
     DResult copy = r;

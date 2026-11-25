@@ -32,7 +32,8 @@
 *
 *   WHAT LIVES WHERE.  This header is the noun: the operator model, the
 * signature functor and its Functor instance, the term and its constructors,
-* the annotated alias, and detection.  The verbs - fold / evaluate / query /
+* the annotated term - a class derived from the cofree, so that a function
+* template deduces it - and detection.  The verbs - fold / evaluate / query /
 * rewrite / substitute - live in expression_ops.hpp; a compile-time typed
 * mirror in expression_static.hpp; precedence-aware printing in
 * expression_render.hpp; the precedence-climbing parser in
@@ -49,7 +50,7 @@
 * path:      /inc/djinterp/cpp/modules/parse/expression/expression.hpp
 * link(s):   ch-recursion.tex, ch-synthesis.tex
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
-*                                                            revised: 2026.11.18
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 
 /*
@@ -72,7 +73,8 @@ IV.   THE EXPRESSION TERM
       1.    expression<OpId, Atom>           (= mu<expr_layer>)
       2.    constructors                      (expr_leaf / expr_apply)
       3.    observers                         (is_leaf / atom_of / ...)
-      4.    annotated_expression<OpId, Atom, Ann>   (= cofree<expr_layer, Ann>)
+      4.    annotated_expression<OpId, Atom, Ann>   (a cofree<expr_layer, Ann>)
+            cofree_map / cofree_extend / annotated_cata, and its traits
 
 V.    STRUCTURAL DETECTION                  (is_expr_layer / is_expression)
       ---------------------------------------------------------------------
@@ -89,6 +91,7 @@ V.    STRUCTURAL DETECTION                  (is_expr_layer / is_expression)
 
 // std
 #include <cstddef>
+#include <memory>       // std::shared_ptr, std::make_shared
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -98,6 +101,7 @@ V.    STRUCTURAL DETECTION                  (is_expr_layer / is_expression)
 #include "../../../meta/kv_pair.hpp"
 #include "../../../util/lookup/lookup_sentinels.hpp"
 #include "../../../functional/functor.hpp"
+#include "../../../functional/comonad.hpp"
 #include "../../../functional/recursion.hpp"
 #include "../../../functional/cofree.hpp"
 // re_std
@@ -654,18 +658,406 @@ const std::vector<expression<OpId, Atom> >& children_of(
 //  4. annotated_expression<OpId, Atom, Ann>
 // =================================================================
 
-// annotated_expression
-//   alias: an expression whose every node also carries an annotation of
-// type Annotation - the cofree comonad over the very same signature
-// functor.  Attribute grammars, inferred-type decoration, source spans, and
-// cached values are all annotations; extract reads a node's, extend
-// re-decorates from whole sub-trees (comonad.hpp), and unfold_cofree builds
-// one (cofree.hpp).
+// annotated_expression (forward)
+//   class: declared ahead of its carrier, which names it as the type of a
+// node's children.
 template<typename OpId,
          typename Atom,
          typename Annotation>
-using annotated_expression =
-    DCofree<internal::expr_carrier<OpId, Atom>::template layer, Annotation>;
+class annotated_expression;
+
+
+NS_INTERNAL
+
+    // expr_child
+    //   helper: the type a layer of an annotated expression holds where its
+    // carrier is given Child. A cofree hands its functor
+    // shared_ptr<cofree<F, Ann>> as the recursive hole; for the annotated
+    // expression's own carrier that one hole is retyped to the node,
+    // shared_ptr<annotated_expression<OpId, Atom, Ann>>, so a node's
+    // children read as the node and a const reference binds to them. Every
+    // other Child - the folded F<Result> that cata rebuilds, the values
+    // project reads - is left as it is.
+    template<typename OpId,
+             typename Atom,
+             typename Child>
+    struct expr_child
+    {
+        using type = Child;
+    };
+
+    // annotated_carrier
+    //   helper: expr_layer as the single-argument functor the annotated
+    // expression's cofree is over, its children's type through expr_child.
+    // The plain term keeps expr_carrier.
+    template<typename OpId,
+             typename Atom>
+    struct annotated_carrier
+    {
+        template<typename Child>
+        using layer =
+            expr_layer<OpId, Atom,
+                       typename expr_child<OpId, Atom, Child>::type>;
+    };
+
+    template<typename OpId,
+             typename Atom,
+             typename Annotation>
+    struct expr_child<
+        OpId,
+        Atom,
+        std::shared_ptr<DCofree<annotated_carrier<OpId, Atom>::template layer,
+                                Annotation> > >
+    {
+        using type = std::shared_ptr<
+            ::djinterp::annotated_expression<OpId, Atom, Annotation> >;
+    };
+
+NS_END  // internal
+
+
+// annotated_expression
+//   class: an expression whose every node also carries an annotation of
+// type Annotation - the cofree comonad over the very same signature functor.
+// Attribute grammars, inferred-type decoration, source spans, and cached
+// values are all annotations; extract reads a node's, extend re-decorates
+// from whole sub-trees (comonad.hpp), and annotated_cata folds one.
+//   A class derived from the cofree, not an alias of it: an alias puts its
+// three parameters in a non-deduced context ([temp.deduct.type]/5), so a
+// function template taking one could not deduce them. As a class, a call
+// such as emit(doc) deduces OpId, Atom and Annotation. A node's children are
+// shared_ptr<annotated_expression>, so they read as the node; make, the
+// map, extend and annotated_cata below keep the type, so a result is an
+// annotated_expression too. It converts from the cofree it derives from,
+// and to it, as a derived class does. Copying and moving are the implicit
+// ones.
+template<typename OpId,
+         typename Atom,
+         typename Annotation>
+class annotated_expression
+    : public DCofree<internal::annotated_carrier<OpId, Atom>::template layer,
+                     Annotation>
+{
+public:
+    using base_type  =
+        DCofree<internal::annotated_carrier<OpId, Atom>::template layer,
+                Annotation>;
+    using layer_type = typename base_type::layer_type;
+    using value_type = Annotation;
+
+    // annotated_expression (default)
+    //   a node with a default annotation and a default layer, as the
+    // cofree's.
+    annotated_expression()
+        : base_type()
+    {}
+
+    // annotated_expression (from the cofree)
+    //   the node the cofree is: a conversion, so a value the cofree's own
+    // functions make is one of these again.
+    annotated_expression(
+        const base_type& _node
+    )
+        : base_type(_node)
+    {}
+
+    // make
+    //   factory: a node with the given annotation and layer of children.
+    static annotated_expression make(
+        const Annotation& _head,
+        const layer_type& _layer
+    )
+    {
+        return annotated_expression(base_type::make(_head, _layer));
+    }
+};
+
+
+// cofree_map, cofree_extend (annotated_expression; declared)
+//   declared ahead of the helpers below, which call them for each child, so
+// that the helpers find them and not the cofree's own.
+template<typename OpId,
+         typename Atom,
+         typename Annotation,
+         typename Function>
+D_NODISCARD
+annotated_expression<OpId, Atom,
+                     typename std::decay<decltype(std::declval<Function&>()(
+                         std::declval<const Annotation&>()))>::type>
+cofree_map(
+    const annotated_expression<OpId, Atom, Annotation>& _node,
+    Function                                            _function
+);
+
+template<typename OpId,
+         typename Atom,
+         typename Annotation,
+         typename Function>
+D_NODISCARD
+annotated_expression<OpId, Atom,
+                     typename std::decay<decltype(std::declval<Function&>()(
+                         std::declval<const annotated_expression<
+                             OpId, Atom, Annotation>&>()))>::type>
+cofree_extend(
+    const annotated_expression<OpId, Atom, Annotation>& _node,
+    Function                                            _function
+);
+
+
+NS_INTERNAL
+
+    // annotated_rebuild
+    //   helper: a node of annotation Result at a node's place: its head
+    // given, its children each made by _child, its leaf's atom or its
+    // application's operator kept.
+    template<typename Result,
+             typename OpId,
+             typename Atom,
+             typename Annotation,
+             typename ChildFn>
+    annotated_expression<OpId, Atom, Result> annotated_rebuild(
+        const annotated_expression<OpId, Atom, Annotation>& _node,
+        const Result&                                       _head,
+        ChildFn&                                            _child
+    )
+    {
+        using result_type = annotated_expression<OpId, Atom, Result>;
+        using layer       = typename result_type::layer_type;
+
+        if (_node.unwrap().is_leaf())
+        {
+            return result_type::make(_head,
+                                     layer::leaf(_node.unwrap().atom()));
+        }
+
+        std::vector<std::shared_ptr<result_type> > _children;
+
+        _children.reserve(_node.unwrap().children().size());
+
+        for (std::size_t _i = 0; _i < _node.unwrap().children().size(); ++_i)
+        {
+            _children.push_back(std::make_shared<result_type>(
+                _child(*_node.unwrap().children()[_i])));
+        }
+
+        return result_type::make(_head,
+                                 layer::apply(_node.unwrap().op(),
+                                              _children));
+    }
+
+    // annotated_map_step, annotated_extend_step
+    //   helpers: a child of cofree_map's and of cofree_extend's, recursing.
+    template<typename Function>
+    struct annotated_map_step
+    {
+        Function function;
+
+        template<typename Node>
+        auto operator()(
+            const Node& _child
+        ) -> decltype(::djinterp::cofree_map(_child, function))
+        {
+            return ::djinterp::cofree_map(_child, function);
+        }
+    };
+
+    template<typename Function>
+    struct annotated_extend_step
+    {
+        Function function;
+
+        template<typename Node>
+        auto operator()(
+            const Node& _child
+        ) -> decltype(::djinterp::cofree_extend(_child, function))
+        {
+            return ::djinterp::cofree_extend(_child, function);
+        }
+    };
+
+NS_END  // internal
+
+
+// cofree_map (annotated_expression)
+//   function: (A -> B) applied to the annotation of every node, the term
+// kept: the result is an annotated_expression<OpId, Atom, B>. Chosen over
+// the cofree's own for an annotated expression, whose children are this
+// type and not the cofree's.
+template<typename OpId,
+         typename Atom,
+         typename Annotation,
+         typename Function>
+D_NODISCARD
+annotated_expression<OpId, Atom,
+                     typename std::decay<decltype(std::declval<Function&>()(
+                         std::declval<const Annotation&>()))>::type>
+cofree_map(
+    const annotated_expression<OpId, Atom, Annotation>& _node,
+    Function                                            _function
+)
+{
+    using result_t = typename std::decay<decltype(
+        std::declval<Function&>()(std::declval<const Annotation&>()))>::type;
+
+    internal::annotated_map_step<Function> _step = { _function };
+
+    return internal::annotated_rebuild<result_t>(_node, _function(
+                                                     _node.head()),
+                                                 _step);
+}
+
+// cofree_extend (annotated_expression)
+//   function: the comonadic extend - each node's annotation becomes
+// f(the whole node), the term kept: the result is an
+// annotated_expression<OpId, Atom, B>, and f is given each node as an
+// annotated_expression<OpId, Atom, Annotation>.
+template<typename OpId,
+         typename Atom,
+         typename Annotation,
+         typename Function>
+D_NODISCARD
+annotated_expression<OpId, Atom,
+                     typename std::decay<decltype(std::declval<Function&>()(
+                         std::declval<const annotated_expression<
+                             OpId, Atom, Annotation>&>()))>::type>
+cofree_extend(
+    const annotated_expression<OpId, Atom, Annotation>& _node,
+    Function                                            _function
+)
+{
+    using result_t = typename std::decay<decltype(
+        std::declval<Function&>()(std::declval<const annotated_expression<
+            OpId, Atom, Annotation>&>()))>::type;
+
+    internal::annotated_extend_step<Function> _step = { _function };
+
+    return internal::annotated_rebuild<result_t>(_node, _function(_node),
+                                                 _step);
+}
+
+// annotated_cata (annotated_expression)
+//   function: the cofree's annotated fold, by its binary algebra
+// phi : (Annotation, expr_layer<OpId, Atom, Result>) -> Result, named for
+// the annotated expression so that a call on one deduces it as itself.
+template<typename Result,
+         typename OpId,
+         typename Atom,
+         typename Annotation,
+         typename BinaryAlgebra>
+D_NODISCARD
+Result annotated_cata(
+    BinaryAlgebra                                       _algebra,
+    const annotated_expression<OpId, Atom, Annotation>& _value
+)
+{
+    using base_type =
+        typename annotated_expression<OpId, Atom, Annotation>::base_type;
+
+    return ::djinterp::annotated_cata<Result>(
+        _algebra, static_cast<const base_type&>(_value));
+}
+
+
+//   The annotated expression is a Functor, a Comonad and a foldable carrier
+// as the cofree is, each registered for it, so functor_map, extract, extend,
+// duplicate and cata take it directly and give it back.
+
+// functor_traits<annotated_expression<OpId, Atom, Annotation>>
+template<typename OpId,
+         typename Atom,
+         typename Annotation>
+struct functor_traits<annotated_expression<OpId, Atom, Annotation>, void>
+{
+    using is_specialized = std::true_type;
+    using value_type     = Annotation;
+
+    template<typename To>
+    using rebind = annotated_expression<OpId, Atom, To>;
+
+    template<typename Node,
+             typename Function>
+    static
+    auto map(
+        Node&&   _node,
+        Function _function
+    ) -> decltype(::djinterp::cofree_map(
+                      static_cast<const annotated_expression<
+                          OpId, Atom, Annotation>&>(_node), _function))
+    {
+        return ::djinterp::cofree_map(
+            static_cast<const annotated_expression<OpId, Atom, Annotation>&>(
+                _node),
+            _function);
+    }
+};
+
+// comonad_traits<annotated_expression<OpId, Atom, Annotation>>
+template<typename OpId,
+         typename Atom,
+         typename Annotation>
+struct comonad_traits<annotated_expression<OpId, Atom, Annotation>, void>
+{
+    using is_specialized = std::true_type;
+    using value_type     = Annotation;
+
+    static
+    Annotation extract(
+        const annotated_expression<OpId, Atom, Annotation>& _node
+    )
+    {
+        return _node.head();
+    }
+
+    template<typename Node,
+             typename Function>
+    static
+    auto extend(
+        Node&&   _node,
+        Function _function
+    ) -> decltype(::djinterp::cofree_extend(
+                      static_cast<const annotated_expression<
+                          OpId, Atom, Annotation>&>(_node), _function))
+    {
+        return ::djinterp::cofree_extend(
+            static_cast<const annotated_expression<OpId, Atom, Annotation>&>(
+                _node),
+            _function);
+    }
+};
+
+// recursive_traits<annotated_expression<OpId, Atom, Annotation>>
+//   its base functor is the cofree's, DEnvLayer: the annotation paired with
+// a layer whose holes are the children, read as annotated expressions.
+template<typename OpId,
+         typename Atom,
+         typename Annotation>
+struct recursive_traits<annotated_expression<OpId, Atom, Annotation>, void>
+{
+    using is_specialized = std::true_type;
+
+    template<typename X>
+    using base = DEnvLayer<Annotation,
+                           internal::annotated_carrier<OpId, Atom>::template
+                               layer,
+                           X>;
+
+    static
+    base<annotated_expression<OpId, Atom, Annotation> > project(
+        const annotated_expression<OpId, Atom, Annotation>& _node
+    )
+    {
+        using node_type = annotated_expression<OpId, Atom, Annotation>;
+
+        return base<node_type>{
+            _node.head(),
+            ::djinterp::functor_map(
+                _node.unwrap(),
+                [](const std::shared_ptr<node_type>& _child) -> node_type
+                {
+                    return (*_child);
+                }) };
+    }
+};
 
 
 ///////////////////////////////////////////////////////////////////////////////

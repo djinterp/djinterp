@@ -4,15 +4,27 @@
 * Parse's settings group: the djin `parse`, whose rows are the settings an
 * option of 0 stands for (lane E's knob-and-option pattern, knob_and_option.md
 * section 2; the design's section 11).
-*   Three rows, flat, each defaulting to its knob:
+*   Six rows, flat, each defaulting to its knob:
 *     expr_max_depth    1 to 65535, or `unbounded`  D_CFG_PARSE_EXPR_MAX_DEPTH
 *     expr_max_errors   1 to 65535                  D_CFG_PARSE_EXPR_MAX_ERRORS
 *     expr_error_order  leftmost or structure_first D_CFG_PARSE_EXPR_ERROR_ORDER
-* so `--parse.expr_max_depth=unbounded` and DJINTERP_PARSE_EXPR_MAX_ERRORS=1
-* work once d_parse_register has run. It installs the group's reader into
-* expression core v2 (d_parse_expr_settings_from), which reads the rows
-* through their caches as a parse starts; until then, and in a build without
-* the group (D_CFG_PARSE_SETTINGS 0), an option of 0 means its knob.
+*     diag_text         on or off                   D_CFG_PARSE_DIAG_TEXT
+*     diag_facts        on or off                   D_CFG_PARSE_DIAG_FACTS
+*     log               on or off                   D_CFG_PARSE_LOG
+* so `--parse.expr_max_depth=unbounded`, DJINTERP_PARSE_EXPR_MAX_ERRORS=1 and
+* DJINTERP_PARSE_DIAG_TEXT=off work once d_parse_register has run. It
+* installs the group's readers into expression core v2
+* (d_parse_expr_settings_from), which reads the first three rows through
+* their caches as a parse starts, and into the diagnostics
+* (d_parse_diag_settings_from), which read the last three as a sink is made
+* and as parse's log unit is attached; until then, and in a build without
+* the group (D_CFG_PARSE_SETTINGS 0), each means its knob.
+*   The last three choose among what a build has: diag_text on in a build
+* without text (D_CFG_PARSE_DIAG_TEXT 0) gives none, and the sink says so
+* (d_parse_diag_sink_carry, d_parse_diag_sink_stream). A record reaches the
+* log only where log is on and the log wants its code: log.level,
+* log.parse_expr.level and its grade's level decide the rest, so log off
+* saves even gathering its facts.
 *   The group is registered, and its values bound, before the program starts
 * its threads: a parse reads the rows, and nothing in it writes them.
 *
@@ -21,7 +33,7 @@
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 *            /docs/djinterp/option/knob_and_option.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 
 /*
@@ -65,7 +77,10 @@ enum dj_parse_setting
     D_PARSE_SETTING_EXPR_MAX_DEPTH   = 0,
     D_PARSE_SETTING_EXPR_MAX_ERRORS  = 1,
     D_PARSE_SETTING_EXPR_ERROR_ORDER = 2,
-    D_PARSE_SETTINGS                 = 3
+    D_PARSE_SETTING_DIAG_TEXT        = 3,
+    D_PARSE_SETTING_DIAG_FACTS       = 4,
+    D_PARSE_SETTING_LOG              = 5,
+    D_PARSE_SETTINGS                 = 6
 };
 
 
@@ -79,8 +94,9 @@ D_EXTERN_C_BEGIN
 // 2.1    Registering
 //------------------------------------------------------------------------------
 /**
- * @brief Registers the djin `parse` in a registry, and installs its reader
- *        into expression core v2, so that an option of 0 reads its row.
+ * @brief Registers the djin `parse` in a registry, and installs its readers
+ *        into expression core v2, so that an option of 0 reads its row, and
+ *        into the diagnostics, so that their switches read theirs.
  *
  * @param[in,out] _registry  the registry; NULL for the program's
  *                           (d_option_env_registry()).
@@ -95,7 +111,7 @@ struct dj_option_result d_parse_register(
 
 /**
  * @brief Takes the djin off the registry it is in, and puts expression core
- *        v2 back on its knobs.
+ *        v2 and the diagnostics back on their knobs.
  *
  * @return D_OPTION_STATUS_OK, or the registry's failure where the djin is in
  *         none.

@@ -22,7 +22,7 @@
 * path:      /inc/djinterp/c/modules/parse/lex/lex_dialect.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.20
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 
 /*
@@ -92,6 +92,7 @@ TABLE OF CONTENTS
 #define D_LEX_FEATURE_EXTENDED_FLOAT   0x080000u  // `f16`, `f32`, `bf16`, ...
 #define D_LEX_FEATURE_UCN_ANY_LITERAL  0x100000u  // `"\u0041"` is allowed
 #define D_LEX_FEATURE_IDENTIFIER_NFC   0x200000u  // a name must be in NFC
+#define D_LEX_FEATURE_LESS_SCOPE       0x400000u  // `<::` is `<` `::` (C++11)
 
 // 1.1.2
 // Table row flags

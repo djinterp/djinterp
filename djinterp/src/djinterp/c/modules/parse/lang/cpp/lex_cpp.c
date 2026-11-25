@@ -17,7 +17,7 @@
 * path:      /src/djinterp/c/modules/parse/lang/cpp/lex_cpp.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.20
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 #include "../../../../../../../inc/djinterp/c/modules/parse/lang/cpp/lex_cpp.h"  // corresponding header
 // std
@@ -69,7 +69,8 @@ static const struct dj_lex_operator d_internal_cpp_operators[] =
 #include "../../../../../../../inc/djinterp/c/modules/parse/lex/token_shared.def"
 #undef D_TOKEN_PUNCT
 
-    // the four C++ has and C does not; `<=>` arrived last
+    // the four C++ has and C does not, but for `::`, which C23 has too;
+    // `<=>` arrived last
     { "::",   D_TOKEN_SCOPE,          D_LEX_CPP98, D_LEX_ROW_NONE },
     { ".*",   D_TOKEN_DOT_STAR,       D_LEX_CPP98, D_LEX_ROW_NONE },
     { "->*",  D_TOKEN_ARROW_STAR,     D_LEX_CPP98, D_LEX_ROW_NONE },
@@ -130,10 +131,12 @@ static const struct dj_lex_prefix d_internal_cpp_prefixes[] =
      D_LEX_FEATURE_UTF8_IDENTIFIER | D_LEX_FEATURE_IDENTIFIER_NFC| \
      D_LEX_FEATURE_UCN_ANY_LITERAL)
 
+// C++11 added the one exception to maximal munch, so `A<::B>` reads as it
+// looks; before it, `<::` was a digraph bracket and a colon, as in C.
 #define D_INTERNAL_CPP11_FEATURES                                  \
     (D_INTERNAL_CPP98_FEATURES                                     | \
      D_LEX_FEATURE_RAW_STRING      | D_LEX_FEATURE_USER_SUFFIX     | \
-     D_LEX_FEATURE_LONG_LONG)
+     D_LEX_FEATURE_LONG_LONG       | D_LEX_FEATURE_LESS_SCOPE)
 
 #define D_INTERNAL_CPP14_FEATURES                                  \
     (D_INTERNAL_CPP11_FEATURES                                     | \

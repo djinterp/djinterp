@@ -20,7 +20,7 @@
 * path:      /inc/djinterp/c/modules/parse/expr/parse.h
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.20
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 
 /*
@@ -118,39 +118,50 @@ enum dj_parse_expr_diag
 //     it against the vocabulary where the log expands the table;
 //   - grade: what it did, as a token; every code here is REJECTED, since a
 //     refused text changes nothing;
-//   - template: its message, each fact named in braces;
+//   - template: its message, in the template language
+//     (text/ostream_template.h): each fact named in braces, and a block
+//     {?fact}...{:}...{/} worded by whether the fact holds;
 //   - facts: the names of the facts it carries, as a list in brackets. Every
 //     record carries its span too: offset, length, line and column.
-// Where a row's flag fact holds, the parser words the message another way:
-//   0, after_operand: "unexpected {token} after an operand";
-//   1, at_end:        {token} is "the end of the input";
-//   4, outer:         "{token} closes {outer} while {open} is open";
-//   6, unbounded:     "{items} items, where at least {min} are needed".
-// Row 8's message is the language's own, where its check gave one; its class
-// is constraint.violated, a rule the language adds past its grammar. The
-// table needs no header: it is text until expanded. parse.c holds each row's
-// m, name and number to this header at compile time.
+//   The parser writes every message from its row's template and the facts
+// it gives (diagnostic.h's d_parse_diag_report), so the sink's text and the
+// log's record come from this one definition. A token's text is a fact
+// unquoted: the token's own bytes where the parse has the text, else its
+// spelling in the signature, else none, which the templates word "a token".
+// The flags: after_operand, the token follows an operand; at_end, the
+// token is the end of the input; unbounded, the list has no most. Row 4's
+// outer is given where the token closes an outer operator, and row 8's
+// message is the language's own, where its check gave one; its class is
+// constraint.violated, a rule the language adds past its grammar. The table
+// needs no header: it is text until expanded. parse.c holds each row's m,
+// name and number to this header at compile time.
 #define D_PARSE_EXPR_CODES(X, m)                                              \
     X(m, 0, unexpected,      SYNTAX_UNEXPECTED,   REJECTED,                   \
-      "unexpected {token}",                                                   \
+      "unexpected {?token}'{token}'{:}a token{/}"                             \
+      "{?after_operand} after an operand{/}",                                 \
       (token, after_operand))                                                 \
     X(m, 1, missing_operand, SYNTAX_MISSING,      REJECTED,                   \
-      "an operand is missing before {token}",                                 \
+      "an operand is missing before {?at_end}the end of the input"            \
+      "{:}{?token}'{token}'{:}a token{/}{/}",                                 \
       (token, at_end))                                                        \
     X(m, 2, unclosed,        SYNTAX_UNBALANCED,   REJECTED,                   \
-      "{open} is never closed",                                               \
+      "{?open}'{open}'{:}a token{/} is never closed",                         \
       (open))                                                                 \
     X(m, 3, unopened,        SYNTAX_UNBALANCED,   REJECTED,                   \
-      "{token} closes nothing that is open",                                  \
+      "{?token}'{token}'{:}a token{/} closes nothing that is open",           \
       (token))                                                                \
     X(m, 4, mismatched,      SYNTAX_UNBALANCED,   REJECTED,                   \
-      "{token} does not close {open}",                                        \
+      "{?token}'{token}'{:}a token{/} {?outer}closes '{outer}' while "        \
+      "{?open}'{open}'{:}a token{/} is open"                                  \
+      "{:}does not close {?open}'{open}'{:}a token{/}{/}",                    \
       (token, open, outer))                                                   \
     X(m, 5, non_associative, SYNTAX_AMBIGUOUS,    REJECTED,                   \
-      "{second} cannot follow {first} without brackets",                      \
+      "{?second}'{second}'{:}a token{/} cannot follow "                       \
+      "{?first}'{first}'{:}a token{/} without brackets",                      \
       (second, first))                                                        \
     X(m, 6, arity,           SYNTAX_ARITY,        REJECTED,                   \
-      "{items} items, where {min} to {max} are taken",                        \
+      "{items} items, where {?unbounded}at least {min} are needed"            \
+      "{:}{min} to {max} are taken{/}",                                       \
       (items, min, max, unbounded))                                           \
     X(m, 7, too_deep,        QUANTITY_DEPTH,      REJECTED,                   \
       "the expression nests deeper than its limit",                           \

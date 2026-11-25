@@ -35,7 +35,7 @@
 * path:      /tests/djinterp/cpp/modules/parse/expr/expr_face_tests.hpp
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_CPP_PARSE_EXPR_FACE_TESTS_HPP
@@ -216,6 +216,7 @@ bool d_tests_face_bridge_to(void);
 bool d_tests_face_bridge_shares(void);
 bool d_tests_face_bridge_refusals(void);
 bool d_tests_face_bridge_from(void);
+bool d_tests_face_bridge_annotated(void);
 
 
 //==============================================================================
@@ -299,7 +300,10 @@ static const struct dj_test_case_spec d_tests_parse_expr_face_bridge[] =
       d_tests_face_bridge_refusals },
     { "d_tests_face_bridge_from",
       "a v1 table defined in a v2 signature, which parses by it",
-      d_tests_face_bridge_from }
+      d_tests_face_bridge_from },
+    { "d_tests_face_bridge_annotated",
+      "v1's annotated term deduced, its results keeping the type",
+      d_tests_face_bridge_annotated }
 };
 
 // d_tests_parse_expr_face_blocks
