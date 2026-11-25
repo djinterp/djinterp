@@ -12,7 +12,7 @@
 * path:      /src/djinterp/tools/dawk/dtokens.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.19
-*                                                            revised: 2026.11.19
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dtokens.h"  // corresponding header
 // std
@@ -717,10 +717,47 @@ void d_internal_clang_say(
 }
 
 /*
+d_internal_clang_lead
+  How many bytes of line splices begin a token, before its first character:
+each a backslash, a carriage return or none, and a newline.
+*/
+static
+size_t d_internal_clang_lead(
+    const struct dj_tokens_file* _file,
+    const struct dj_token*       _token
+)
+{
+    const char* const text   = _file->source.text + _token->span.offset;
+    const size_t      length = _token->span.length;
+    size_t            at     = 0u;
+
+    while ( (at < length) && (text[at] == '\\') )
+    {
+        size_t next = at + 1u;
+
+        if ( (next < length) && (text[next] == '\r') )
+        {
+            ++next;
+        }
+
+        if ( (next >= length) || (text[next] != '\n') )
+        {
+            break;
+        }
+
+        at = next + 1u;
+    }
+
+    return at;
+}
+
+/*
 d_internal_clang_matches
   Whether a token and a record agree: name, spelling, line and column (the
 token's, in bytes, `_column`). Clang spells a token without its line
-splices, as the compiler reads it, but a comment as it is written.
+splices, as the compiler reads it, but a comment as it is written, from its
+first character: the splices before that are left out, those inside kept.
+Line and column are where the token begins, at its first splice.
 */
 static
 bool d_internal_clang_matches(
@@ -731,12 +768,17 @@ bool d_internal_clang_matches(
 )
 {
     const char* const name = d_tokens_clang_name(_file, _token);
+    const size_t      lead = (_token->kind == D_TOKEN_COMMENT)
+                             ? d_internal_clang_lead(_file, _token)
+                             : 0u;
 
     return ( (strlen(name) == _clang->name_length)                      &&
              (memcmp(name, _clang->name, _clang->name_length) == 0)     &&
              ( (_token->kind == D_TOKEN_COMMENT)
-                 ? ( (_token->span.length == _clang->spelling_length) &&
-                     (memcmp(_file->source.text + _token->span.offset,
+                 ? ( ((_token->span.length - lead) ==
+                      _clang->spelling_length)                        &&
+                     (memcmp(_file->source.text + _token->span.offset
+                                 + lead,
                              _clang->spelling,
                              _clang->spelling_length) == 0) )
                  : d_internal_tokens_text_is(_file, _token,

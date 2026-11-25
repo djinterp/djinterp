@@ -1,32 +1,9 @@
-# clang_tokens_known.txt -- the files where parse's lexer and Clang's raw
+# clang_tokens_known.txt - the files where parse's lexer and Clang's raw
 # lexer disagree, each with where and why: the punch list of
 # tests/dawk/clang_tokens.sh and the CTest suite djinterp_dawk_clang_tokens.
 # A file listed here may disagree; a file that agrees is taken off. Each line
 # is the path, a tab, and where the first disagreement stands and what it is.
-# Both kinds are the lexer's, in c/modules/parse:
-#   - C23's :: read as two colons: C23 makes :: a punctuator, for attribute
-#     prefixes ([[gnu::...]]), and the C tables hold it as C++'s alone;
-#   - a line splice read into the token after it: after a comment, a
-#     backslash-newline before the next token is read as that token's first
-#     characters, so the token starts a line early, at the backslash.
-inc/djinterp/c/modules/math/coord.h	3686:12: C23's :: read as two colons
-inc/djinterp/c/modules/math/elementary.h	1652:27: C23's :: read as two colons
-inc/djinterp/c/modules/math/exponential.h	755:15: C23's :: read as two colons
-inc/djinterp/c/modules/math/hyperbolic.h	526:15: C23's :: read as two colons
-inc/djinterp/c/modules/math/nearest_integer.h	240:15: C23's :: read as two colons
-inc/djinterp/c/modules/math/power.h	1091:15: C23's :: read as two colons
-inc/djinterp/c/modules/math/remainder.h	160:15: C23's :: read as two colons
-inc/djinterp/c/modules/math/tangent.h	248:15: C23's :: read as two colons
-inc/djinterp/c/sync/datomic.h	120:18: C23's :: read as two colons
-inc/djinterp/env/c/env_attributes.h	271:37: C23's :: read as two colons
-inc/djinterp/env/c/env_vendor_attributes.h	814:34: C23's :: read as two colons
-src/re_std/c/cstdint/dstdint.c	1152:52: C23's :: read as two colons
-tests/djinterp/c/modules/math/t_cmat.c	172:80: a line splice read into the token after it
-tests/djinterp/c/modules/math/t_compensated.c	147:80: a line splice read into the token after it
-tests/djinterp/c/modules/math/t_cplx.c	223:80: a line splice read into the token after it
-tests/djinterp/c/modules/math/t_decomp.c	140:80: a line splice read into the token after it
-tests/djinterp/c/modules/math/t_isect.c	69:80: a line splice read into the token after it
-tests/djinterp/c/modules/math/t_mat.c	294:80: a line splice read into the token after it
-tests/djinterp/c/modules/math/t_plane.c	67:80: a line splice read into the token after it
-tests/djinterp/c/modules/math/t_quat.c	441:80: a line splice read into the token after it
-tests/djinterp/c/modules/math/t_vec.c	106:80: a line splice read into the token after it
+# None disagrees now. The last 21 came off on 2026-11-25: 12 where the
+# lexer read C23's :: as two colons, which it reads as one punctuator now,
+# and 9 where a comment began with a line splice, which Clang's spelling of
+# a comment leaves out and the comparison now leaves out too.
