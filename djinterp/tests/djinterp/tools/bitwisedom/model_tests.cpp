@@ -18,7 +18,7 @@
 * path:      /tests/djinterp/tools/bitwisedom/model_tests.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 // std
 #include <cmath>    // std::fabs
@@ -2518,7 +2518,7 @@ void sorted_and_shown()
     set_shown(d.grid, { txen }, 3, 0, shown_part::names, -1, false);
     expect( (!at(txen, 1).names) &&
             (d.grid.rules.size() == 3),
-           "another region -- every bit -- leaves it alone");
+           "another region - every bit - leaves it alone");
 
     set_shown(d.grid, { txen }, 0, 3, shown_part::names, -1, false);
     expect( (at(txen, 1).names) &&

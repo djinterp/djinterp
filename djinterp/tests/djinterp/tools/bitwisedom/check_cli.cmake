@@ -17,12 +17,19 @@
 #     > TEXT        a line of its standard output; `>` alone, an empty one
 #     ! TEXT        a line of its standard error; `!` alone, an empty one
 #     ? STATUS      the status it exits with; 0 when the command says none
+#     = NAME=VALUE  an environment variable it runs with
 #     + NAME        a file made in the work directory, before the command
 #                   after it, of the `| TEXT` lines that follow
 #
 # The lines after a command, up to the next command or file, are its. The
 # terminal is said to be 80 columns wide, so help is wrapped as the
-# transcript has it, whatever runs the test.
+# transcript has it, whatever runs the test. The work directory is the
+# programs' home too - XDG_CONFIG_HOME, HOME and APPDATA - so that the
+# user's settings file they read is the transcript's own,
+# `djinterp/settings` there, made with `+`, and never the user's; and the
+# variables of bitwisedom's own settings are unset unless `=` sets them. A
+# path in the work directory that a program writes is compared as relative,
+# the directory's own path dropped.
 #
 #     BITWISEDOM BITWISEDOM_GEN TRANSCRIPT WORK, and EMULATOR: what runs the
 #     programs where this machine cannot - in a cross build,
@@ -31,7 +38,7 @@
 # path:      /tests/djinterp/tools/bitwisedom/check_cli.cmake
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-#                                                            revised: 2026.10.22
+#                                                            revised: 2026.11.25
 #*******************************************************************************
 file(REMOVE_RECURSE "${WORK}")
 file(MAKE_DIRECTORY "${WORK}")
@@ -42,8 +49,8 @@ set(_commands 0)
 
 #[[
 cli_run
-  The command held -- its arguments, its input and what is expected of it --
-run and compared; each difference added to the failures.
+  The command held, with its arguments, its input, its environment and what
+is expected of it, run and compared; each difference added to the failures.
 ]]
 macro(cli_run)
     separate_arguments(_args UNIX_COMMAND "${_command}")
@@ -62,6 +69,12 @@ macro(cli_run)
     file(WRITE "${_input}" "${_stdin}")
     execute_process(
         COMMAND "${CMAKE_COMMAND}" -E env COLUMNS=80
+                "XDG_CONFIG_HOME=${WORK}" "HOME=${WORK}" "APPDATA=${WORK}"
+                --unset=DJINTERP_BITWISEDOM_KEYS
+                --unset=BITWISEDOM_BITWISEDOM_KEYS
+                --unset=DJINTERP_BITWISEDOM_SHEETS
+                --unset=BITWISEDOM_BITWISEDOM_SHEETS
+                ${_environment}
                 ${EMULATOR} "${_executable}" ${_args}
         WORKING_DIRECTORY "${WORK}"
         INPUT_FILE        "${_input}"
@@ -69,6 +82,11 @@ macro(cli_run)
         OUTPUT_VARIABLE   _out
         ERROR_VARIABLE    _err)
     math(EXPR _commands "${_commands} + 1")
+
+    # the work directory, where a program names a file in it, read as
+    # nothing: the transcript has the file's path as relative
+    string(REPLACE "${WORK}/" "" _out "${_out}")
+    string(REPLACE "${WORK}/" "" _err "${_err}")
 
     if( (NOT _out STREQUAL _expected_out) OR
         (NOT _err STREQUAL _expected_err) OR
@@ -140,6 +158,7 @@ while(NOT _text STREQUAL "")
 
     if(_kind STREQUAL "$")
         set(_command "${_rest}")
+        set(_environment "")
         set(_stdin "")
         set(_expected_out "")
         set(_expected_err "")
@@ -155,6 +174,8 @@ while(NOT _text STREQUAL "")
         string(APPEND _expected_err "${_rest}\n")
     elseif(_kind STREQUAL "?")
         set(_expected_status "${_rest}")
+    elseif(_kind STREQUAL "=")
+        list(APPEND _environment "${_rest}")
     elseif( (NOT _kind STREQUAL "#") AND (NOT _kind STREQUAL "") )
         message(FATAL_ERROR "${TRANSCRIPT}: a line that is nothing a "
                             "transcript holds: ${_line}")

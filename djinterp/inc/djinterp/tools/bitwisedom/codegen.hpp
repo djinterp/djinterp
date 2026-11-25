@@ -2,7 +2,7 @@
 * djinterp [cpp][tools]                                              codegen.hpp
 *
 * The C/C++ header generator: a sheet as macros.
-*   Every symbol becomes an object-like macro - or, for C++, a constant --
+*   Every symbol becomes an object-like macro - or, for C++, a constant -
 * named by the affix cascade and valued by its definition, written in the
 * radix and with the integer suffix the cascade gives it. An expression
 * keeps its form with every name replaced by a macro name; a macro row is
@@ -17,6 +17,25 @@
 * needs C23 or C++14, `ull` needs C99 or C++11, `inline constexpr` C++17. A
 * setting the level cannot honour is replaced by the nearest it can, and a
 * note says so.
+*
+* HOW TO USE
+* ----------
+*   generate writes a resolved sheet's header, with the generator's notes
+* (generated); generate_code writes the code of some rows alone, a group
+* standing for everything in it. format_literal and standard_name are its
+* pieces, for a caller that shows one.
+*
+* OPTIONS
+* -------
+*   Every choice is the sheet's generator settings (sheet.hpp, 3.3): the style,
+* the form, the language and level, the guard, the radix and suffixes, and which
+* templates go beside each symbol; the command line's `gen` options set them for
+* a run.
+*
+* CONFIGURATION
+* -------------
+*   None of its own. Below C++17 the file is empty rather than an error
+* (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of bitwisedom's is.
 *
 *
 * path:      /inc/djinterp/tools/bitwisedom/codegen.hpp

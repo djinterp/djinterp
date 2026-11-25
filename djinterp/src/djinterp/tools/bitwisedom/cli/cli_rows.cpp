@@ -6,7 +6,9 @@
 *   set and get take a setting by its registry name, the window's, or by its
 * path in a sheet file, as --keys says - by default as the build says
 * (D_CFG_BITWISEDOM_KEYS), a name where the registry has one and a path for
-* the rest (ruling cli-taken 16).
+* the rest (ruling cli-taken 16); without --keys, as the setting
+* `bitwisedom.keys` says, from the user's file, the environment or the
+* command line (cli.hpp, 3).
 *   Each reads its sheet, finds every row it names before it changes
 * anything - a name no row has stops it, nothing written - makes the
 * change with the model's own edits, the window's, and stores the sheet as
@@ -20,7 +22,7 @@
 * path:      /src/djinterp/tools/bitwisedom/cli/cli_rows.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 #include "./cli_internal.hpp"  // corresponding header
 
@@ -35,6 +37,7 @@
 #include <vector>     // std::vector
 // bitwisedom
 #include <djinterp/tools/bitwisedom/bits.hpp>      // format_hex
+#include <djinterp/tools/bitwisedom/cli.hpp>       // keys_setting
 #include <djinterp/tools/bitwisedom/edit.hpp>      // duplicate_rows
 #include <djinterp/tools/bitwisedom/json.hpp>      // json_value
 #include <djinterp/tools/bitwisedom/ops.hpp>       // preview_op, apply_op_to
@@ -495,7 +498,7 @@ int run_sort(
                  "rows sorted by " + words[static_cast<std::size_t>(key) -
                                            1u] +
                  (down ? ", descending" : "") +
-                 ((groups == 0) ? " -- they were in that order already"
+                 ((groups == 0) ? " - they were in that order already"
                                 : ""),
                  before);
 }
@@ -538,8 +541,9 @@ struct get_request
 
 /*
 keys_taken
-  What --keys asked for, as D_CFG_BITWISEDOM_KEYS_* bits; 0, the usage error
-said, for a word it does not take.
+  What --keys asked for, as D_CFG_BITWISEDOM_KEYS_* bits; where it was not
+given, `bitwisedom.keys`, which the kit has checked; 0, the usage error
+said, for a word --keys does not take.
 */
 int keys_taken(
     kit::program&      _program,
@@ -548,6 +552,15 @@ int keys_taken(
     int&               _status
 )
 {
+    const int setting = keys_setting();
+
+    if ( (!given(_command, "--keys")) &&
+         (setting >= D_CFG_BITWISEDOM_KEYS_NAMES) &&
+         (setting <= D_CFG_BITWISEDOM_KEYS_BOTH) )
+    {
+        return setting;
+    }
+
     const int index = choice_of(_word, keys_words());
 
     if (index < 0)
@@ -573,9 +586,9 @@ void add_keys(
     _command.add_option("--keys", _which,
                         "what a KEY is: names, as the window's Options "
                         "show; paths, as a sheet file holds; or both, a "
-                        "name where there is one")
-            .type_name("WHICH")
-            .default_str(_which);
+                        "name where there is one (default: the setting "
+                        "bitwisedom.keys, " + _which + " unless set)")
+            .type_name("WHICH");
 
     return;
 }
@@ -1363,7 +1376,7 @@ void define_op(
     const auto   request = std::make_shared<op_request>();
     kit::command made    = _program.add_command(
         "op",
-        "preview an operation over rows -- a shift, a rotation, a byte "
+        "preview an operation over rows - a shift, a rotation, a byte "
         "swap, arithmetic; --apply applies it",
         [request](kit::program& _p, kit::command _c)
         {

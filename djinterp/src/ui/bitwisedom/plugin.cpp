@@ -7,9 +7,12 @@
 * `bitwisedom gui --help` is the window's help, and what the window says, it
 * says as bitwisedom does. Its operands are SHEETs, every one handed to the
 * window, what it will not open said on standard error as it starts and the
-* run ending in trouble when it closes (window_sheet_opens); or, by --sheets
-* or the build (D_CFG_BITWISEDOM_GUI_SHEETS), refused by the commands' own
-* rules before any window opens (window_sheet_of) - ruling cli-taken 25.
+* run ending in trouble when it closes (window_sheet_opens); or, by --sheets,
+* the setting `bitwisedom.sheets` or the build (D_CFG_BITWISEDOM_GUI_SHEETS),
+* refused by the commands' own rules before any window opens
+* (window_sheet_of) - ruling cli-taken 25. The module registers bitwisedom's
+* djin before its program runs, so that its own run reads the setting from
+* the user's file, the environment and its command line.
 * Its options are the window's size and the
 * display's scale, and, for building and testing, the events posted before
 * the first frame and what the host linked can do besides: a screenshot on
@@ -31,7 +34,7 @@
 * path:      /src/ui/bitwisedom/plugin.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 // std
 #include <cstddef>    // std::size_t
@@ -58,7 +61,8 @@
                                        // BITWISEDOM_GUI_SHEETS
 // bitwisedom
 #include <djinterp/tools/bitwisedom/cli.hpp>      // window_sheet_of,
-                                                  // window_sheet_opens
+                                                  // window_sheet_opens,
+                                                  // register_djin
 #include <djinterp/tools/bitwisedom/version.hpp>  // BITWISEDOM_PROGRAM,
                                                   // BITWISEDOM_VERSION
 #include "../../../inc/ui/bitwisedom/host.hpp"    // run_window,
@@ -348,9 +352,10 @@ void add_options(
                      _request.unopened,
                      "what to do with a SHEET the window cannot open: report "
                      "it on standard error, open the rest and end in "
-                     "trouble; or refuse it before the window opens")
+                     "trouble; or refuse it before the window opens "
+                     "(default: the setting bitwisedom.sheets, " +
+                     _request.unopened + " unless set)")
          .type_name("HOW")
-         .default_str(_request.unopened)
          .check(sheets_problem);
     _root.add_option("--size",
                      _request.size,
@@ -471,6 +476,28 @@ void leave_console()
 }
 
 /*
+reporting
+  Whether a SHEET the window cannot open is reported, the rest opened: as
+--sheets says, or where it was not given, as `bitwisedom.sheets` does.
+*/
+bool reporting(
+    kit::command          _root,
+    const window_request& _request
+)
+{
+    const int setting = bitwisedom::sheets_setting();
+
+    if ( (_root.count("--sheets") == 0u) &&
+         ( (setting == D_CFG_BITWISEDOM_GUI_SHEETS_REFUSE) ||
+           (setting == D_CFG_BITWISEDOM_GUI_SHEETS_REPORT) ) )
+    {
+        return (setting == D_CFG_BITWISEDOM_GUI_SHEETS_REPORT);
+    }
+
+    return (_request.unopened == SHEETS_WORDS[1]);
+}
+
+/*
 open_window
   The module's work: the sheets named, then each --do, as the events the
 window posts first; the size asked; and the window, run - its status, or
@@ -478,11 +505,12 @@ trouble where a sheet it was handed could not be opened.
 */
 int open_window(
     kit::program&   _program,
+    kit::command    _root,
     window_request& _request
 )
 {
     window_options& options  = _request.options;
-    const bool      report   = (_request.unopened == SHEETS_WORDS[1]);
+    const bool      report   = reporting(_root, _request);
     bool            unopened = false;
 
     if (!post_sheets(_program, _request.sheets, report, options, unopened))
@@ -561,11 +589,20 @@ int run_gui(
                     *request);
         add_window_build(window);
         window.set_main(
-            [request](kit::program& _program, kit::command)
+            [request](kit::program& _program, kit::command _root)
             {
                 return open_window(_program,
+                                   _root,
                                    *request);
             });
+
+        // bitwisedom's djin, so that this program reads its settings too
+        if (!bitwisedom::register_djin())
+        {
+            window.report(kit::severity::warning,
+                          "bitwisedom's settings could not be registered: "
+                          "the build's defaults stand");
+        }
 
         return window.run(_argc,
                           _argv);

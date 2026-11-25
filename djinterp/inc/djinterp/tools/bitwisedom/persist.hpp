@@ -12,6 +12,22 @@
 * a file that is not JSON, or not a sheet, or from a newer version, is
 * refused with the reason.
 *
+* HOW TO USE
+* ----------
+*   save_sheet writes a sheet file and load_sheet reads one, or says why not;
+* sheet_object and sheet_from_object are the same, as a json_value, for those
+* that hold the file's object themselves.
+*
+* OPTIONS
+* -------
+*   None: a file holds every setting of its sheet, and nothing is read from
+* elsewhere.
+*
+* CONFIGURATION
+* -------------
+*   None of its own. Below C++17 the file is empty rather than an error
+* (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of bitwisedom's is.
+*
 *
 * path:      /inc/djinterp/tools/bitwisedom/persist.hpp
 * link(s):   TBA

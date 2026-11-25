@@ -8,19 +8,41 @@
 * what `bitwisedom gui` does with a SHEET the window cannot open: hands it
 * over with the rest, says so on standard error and ends in trouble when the
 * window closes, or refuses it before any window opens (ruling cli-taken
-* 25). Each knob sets a default, which an option overrides for a run:
-* `--keys=WHICH` on `set` and `get`, `--sheets=WHEN` on `gui`.
-*   targets:  the command line's `set` and `get` (cli_rows.cpp), through
+* 25). Each knob is the default of a setting of bitwisedom's djin,
+* `bitwisedom.keys` and `bitwisedom.sheets` (cli.hpp, 3), which the user's
+* file, the environment and the command line set, and which an option
+* overrides for a run: `--keys=WHICH` on `set` and `get`, `--sheets=HOW` on
+* `gui`.
+*   targets:  the djin's rows (cli_common.cpp), and the command line's
+*             `set` and `get` (cli_rows.cpp), through
 *             D_INTERNAL_BITWISEDOM_KEYS; the window's module (plugin.cpp,
 *             built in build/cmake/config/ui), through
 *             D_INTERNAL_BITWISEDOM_GUI_SHEETS
 *   requires: cfg_common.h
 *
+* HOW TO USE
+* ----------
+*   Define a knob before this header is read: with -D, in a prefix header,
+* or in cfg_custom.h. Nothing else reads it; bitwisedom reads 3's resolved
+* values.
+*
+* OPTIONS
+* -------
+*   The settings each knob is the default of, `bitwisedom.keys` (names,
+* paths or both) and `bitwisedom.sheets` (refuse or report), and the
+* options above them, `--keys` and `--sheets`.
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_BITWISEDOM_KEYS (one of D_CFG_BITWISEDOM_KEYS_*; BOTH by default)
+* and D_CFG_BITWISEDOM_GUI_SHEETS (one of D_CFG_BITWISEDOM_GUI_SHEETS_*;
+* REPORT by default); a value of neither stops the build (2).
+*
 *
 * path:      /inc/djinterp/config/tools/bitwisedom/cfg_bitwisedom.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 /*

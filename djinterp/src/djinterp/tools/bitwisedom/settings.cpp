@@ -17,7 +17,7 @@
 * path:      /src/djinterp/tools/bitwisedom/settings.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 #include <djinterp/tools/bitwisedom/settings.hpp>  // corresponding header
 
@@ -429,7 +429,7 @@ void cells_part(
                             return _s.grid.square_cells;
                         },
                         "every row as tall as a bit's cell is wide, times "
-                        "the share below -- 100% for square cells: the "
+                        "the share below - 100% for square cells: the "
                         "rows follow the cells' width, and the cell height "
                         "is not used"));
     _out.push_back(real("grid.cell_ratio", "Row height, of cell width", 0.4,
@@ -534,7 +534,7 @@ sheet_setting names_by_setting()
     made.high    = static_cast<double>(NAMES_BY_VALUE +
                                        VALUE_FORM_COUNT - 1);
     made.help    = "what the symbols column writes for each row: its "
-                   "symbol name, its own name, or its value -- as the "
+                   "symbol name, its own name, or its value - as the "
                    "header writes it, or every row alike, lined up";
     made.read    = [](const sheet& _s)
     {
@@ -618,7 +618,7 @@ const grid_flag GRID_FLAGS[] = {
     { "grid.show_labels", "Names across ranges", &grid_settings::show_labels,
       "" },
     { "grid.show_colours", "Colours in cells", &grid_settings::show_colours,
-      "the rows' colours in their cells: off, their bits are drawn plain -- "
+      "the rows' colours in their cells: off, their bits are drawn plain - "
       "the grid's display rules may show them in places" },
     { "grid.show_cell_boxes", "Cell boxes", &grid_settings::show_cell_boxes,
       "draw each cell as its own rounded box" },
@@ -704,7 +704,7 @@ void order_part(
         [](sheet& _s) -> sort_key& { return _s.grid.sort_by; });
 
     sort_by.help = "the order the grid and the tree show each group's rows "
-                   "in: the sheet's own, or sorted -- groups first, a row "
+                   "in: the sheet's own, or sorted - groups first, a row "
                    "the key says nothing of last. The header keeps the "
                    "sheet's order";
     _out.push_back(std::move(sort_by));
@@ -945,8 +945,8 @@ void generator_part(
         { "lp64", "llp64", "ilp32" },
         [](sheet& _s) -> data_model& { return _s.gen.model; });
 
-    model.help = "the widths C leaves to the target -- long's, a "
-                 "pointer's -- as macros are evaluated";
+    model.help = "the widths C leaves to the target - long's, a "
+                 "pointer's - as macros are evaluated";
     _out.push_back(std::move(model));
 
     return;

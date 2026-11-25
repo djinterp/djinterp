@@ -88,3 +88,39 @@ $ bitwisedom set --keys=nonsense s.json probe=0x1
 ! bitwisedom: error: set: --keys: 'nonsense' is not names, paths or both
 ! Try 'bitwisedom set --help' for more information.
 ? 2
+# bitwisedom's own djin: bitwisedom.keys, from the user's file - its
+# [bitwisedom] section, never another program's - then the environment,
+# then the command line, and --keys above them all
++ djinterp/settings
+| bitwisedom.keys = names
+| [vparse]
+| bitwisedom.keys = both
+| [bitwisedom]
+| bitwisedom.keys = paths
+$ bitwisedom get s.json gen.level
+! bitwisedom: error: get: 'gen.level' is not a path of a sheet file; 'bitwisedom get --keys=paths SHEET' lists them
+! Try 'bitwisedom get --help' for more information.
+? 2
+$ bitwisedom get s.json generator.level
+> c11
+$ bitwisedom get s.json gen.level
+= BITWISEDOM_BITWISEDOM_KEYS=both
+> c11
+$ bitwisedom get s.json gen.level
+= DJINTERP_BITWISEDOM_KEYS=names
+> c11
+$ bitwisedom --bitwisedom.keys=both get s.json gen.level
+= BITWISEDOM_BITWISEDOM_KEYS=paths
+> c11
+$ bitwisedom get --keys=names s.json gen.level
+> c11
+# a value the setting does not take, from the file, said by its line
++ djinterp/settings
+| bitwisedom.keys = nonsense
+$ bitwisedom get s.json gen.level
+! djinterp/settings:1: warning: 'nonsense' is not a value 'bitwisedom.keys' takes
+> c11
+$ bitwisedom --bitwisedom.keys=nonsense get s.json gen.level
+! bitwisedom: error: --bitwisedom.keys: 'nonsense' is not a value 'bitwisedom.keys' takes
+! Try 'bitwisedom --help' for more information.
+? 2

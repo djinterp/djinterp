@@ -9,6 +9,22 @@
 *   The reader takes RFC 8259 JSON. It is not a validator of the sheet: that
 * is persist.hpp's job, on the value this produces.
 *
+* HOW TO USE
+* ----------
+*   parse_json reads text into a json_value, or says where it stopped;
+* write_json writes one back, its members in their order. set and push build a
+* value member by member.
+*
+* OPTIONS
+* -------
+*   None: a number keeps its text and an object its members' order, as the
+* description says.
+*
+* CONFIGURATION
+* -------------
+*   None of its own. Below C++17 the file is empty rather than an error
+* (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of bitwisedom's is.
+*
 *
 * path:      /inc/djinterp/tools/bitwisedom/json.hpp
 * link(s):   TBA

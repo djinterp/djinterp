@@ -28,6 +28,26 @@
 * evaluated, so their problems are not problems.
 *   NOTHING HERE THROWS.
 *
+* HOW TO USE
+* ----------
+*   Make a c_env at the sheet's c_settings, define each macro in order - the
+* sheet's environment text and its macro rows among them - then evaluate a text
+* as an integer constant expression, with a c_scope for the names beyond the
+* macros, or as an #if condition: each answers a c_result, its value and type or
+* why there is none, with its diagnostics. expand shows an expansion, lint
+* checks a definition, and constant_value types a literal as C does.
+*
+* OPTIONS
+* -------
+*   The language, level and data model (c_settings) and whether the standard
+* headers' definitions come first, when the environment is made; the scope at
+* each evaluation.
+*
+* CONFIGURATION
+* -------------
+*   None of its own. Below C++17 the file is empty rather than an error
+* (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of bitwisedom's is.
+*
 *
 * path:      /inc/djinterp/tools/bitwisedom/cenv.hpp
 * link(s):   TBA
@@ -173,7 +193,7 @@ enum class c_problem : int
 // 1.3.3
 // c_diagnostic
 //   struct: one thing evaluation found. `chain` is the invocations it was
-// found inside, innermost first, each as it was written --
+// found inside, innermost first, each as it was written -
 // "D_BYTE_BIT_R(3, 0)"; `column` is where it stands in the evaluated text,
 // when it stands there at all (0 otherwise).
 struct c_diagnostic

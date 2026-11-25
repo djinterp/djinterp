@@ -12,6 +12,20 @@
 *   A group's name is in no macro name, so renaming one changes nothing
 * else; a group's prefix or suffix would, and is not a rename.
 *
+* HOW TO USE
+* ----------
+*   rename_row renames a row in a sheet and rewrites every reference to it;
+* renamed says what changed, or why nothing could.
+*
+* OPTIONS
+* -------
+*   None.
+*
+* CONFIGURATION
+* -------------
+*   None of its own. Below C++17 the file is empty rather than an error
+* (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of bitwisedom's is.
+*
 *
 * path:      /inc/djinterp/tools/bitwisedom/rename.hpp
 * link(s):   TBA

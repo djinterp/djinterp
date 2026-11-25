@@ -16,6 +16,25 @@
 *   LEVELS. The floor is C++17, as it is for uxoxo, which the application
 * stands on: below it the file is empty rather than an error.
 *
+* HOW TO USE
+* ----------
+*   Give each call a value and the width it lives in: range_mask and range_of
+* for masks, shift_left, rotate_left, reverse_bits and their kin to move bits,
+* encode and decode for a signed field, format_hex and its kin and parse_integer
+* for text. A sheet wider than 64 bits holds its values as `wide`, whose calls
+* and parse_wide do the same.
+*
+* OPTIONS
+* -------
+*   The width, the encoding and its bias, the radix, and the digit grouping of
+* each call's text, all given at the call; nothing is kept between calls.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: MAX_WIDTH is how wide a sheet may be. None of its own.
+* Below C++17 the file is empty rather than an error
+* (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of bitwisedom's is.
+*
 *
 * path:      /inc/djinterp/tools/bitwisedom/bits.hpp
 * link(s):   TBA
@@ -159,7 +178,7 @@ D_NODISCARD i64 sign_extend(
 //------------------------------------------------------------------------------
 // 1.4.1
 // wide
-//   class: a set of bits, as many 64-bit words as its highest bit needs --
+//   class: a set of bits, as many 64-bit words as its highest bit needs -
 // bit n is bit n % 64 of word n / 64. It has no width of its own: the
 // functions that move or count within a width take one, as the u64 ones
 // do. A u64 converts to a wide implicitly, so a narrow value is a wide one.

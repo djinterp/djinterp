@@ -18,7 +18,7 @@
 * path:      /src/ui/bitwisedom/settings.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 #include "../../../inc/ui/bitwisedom/settings.hpp"  // corresponding header
 
@@ -287,7 +287,7 @@ std::vector<env_setting> make_environment()
     out.push_back(env_flag(
         "environment.restore", "Open where I left off",
         "the window opens as it was closed: its workspaces, every sheet "
-        "in them -- unsaved changes too -- and how they were laid out",
+        "in them - unsaved changes too - and how they were laid out",
         [](shell_state& _s) -> bool& { return _s.prefs.restore; }));
     out.push_back(env_choice(
         "environment.merged", "The symbols tree",
@@ -339,7 +339,7 @@ std::vector<env_setting> make_environment()
         (tab_row_places() >= 1)
             ? "the row of a sheet's tabs: across the whole width, as it "
               "always was; or over one of the sheet's columns, as Visual "
-              "Studio's code tabs run over the code -- the rest of the row "
+              "Studio's code tabs run over the code - the rest of the row "
               "the grid's, up to the window's top. A column hidden is every "
               "column"
             : "the row of a sheet's tabs: across the whole width, whatever "

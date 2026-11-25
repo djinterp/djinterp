@@ -8,7 +8,7 @@
 * each target's value before and after, how many of its bits fell off the
 * end, how its definition would be rewritten, and the distribution of the
 * sheet's allocations before and after, with the collisions each makes.
-*   Operations that only move bits - shifts, rotations, swaps, reversals --
+*   Operations that only move bits - shifts, rotations, swaps, reversals -
 * also have a flow: for each bit of the result, the bit of the operand it
 * came from, which is what the flow view draws.
 *   APPLYING keeps a definition's kind where the result still fits it: a bit
@@ -16,6 +16,23 @@
 * a field_value moved within its field is still a field_value, and an
 * expression is wrapped in the operation, so the header still spells it.
 * Otherwise the symbol becomes a literal of the bits it now has.
+*
+* HOW TO USE
+* ----------
+*   Name the operation (op_kind), its operand and its targets: preview_op gives
+* each target before and after, the bits lost and the distribution before and
+* after (op_preview); apply_op_to makes it the sheet's; bit_flow gives the flow
+* a moving operation draws.
+*
+* OPTIONS
+* -------
+*   The operation, its operand, and its targets, the symbols named or the probe,
+* at each call.
+*
+* CONFIGURATION
+* -------------
+*   None of its own. Below C++17 the file is empty rather than an error
+* (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of bitwisedom's is.
 *
 *
 * path:      /inc/djinterp/tools/bitwisedom/ops.hpp

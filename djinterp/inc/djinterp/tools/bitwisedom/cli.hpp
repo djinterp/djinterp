@@ -18,12 +18,39 @@
 * the run ending in trouble when it closes (window_sheet_opens, the default);
 * or by the commands' rules, so that `bitwisedom gui` refuses what they
 * refuse, in their words, before any window opens (window_sheet_of).
+*   Both programs and the window keep their settings in a djin of
+* bitwisedom's own, `bitwisedom`: `bitwisedom.keys`, what `set` and `get`
+* take as a KEY, and `bitwisedom.sheets`, what the window does with a SHEET
+* it cannot open. Each is read from the user's settings file (in its
+* `[bitwisedom]` section, or every program's lines), from the environment
+* (`DJINTERP_BITWISEDOM_KEYS`, then `BITWISEDOM_BITWISEDOM_KEYS`) and from
+* the command line (`--bitwisedom.keys=paths`), as every djin's setting is;
+* `--keys` and `--sheets` stand above it for a run.
+*
+* HOW TO USE
+* ----------
+*   main calls run_cli or run_gen_front with its arguments. The window's
+* module takes its operands through window_sheet_of or window_sheet_opens,
+* and registers the djin with register_djin before its program runs, as
+* run_cli does.
+*
+* OPTIONS
+* -------
+*   `--keys=WHICH` on `set` and `get` (names, paths or both), `--sheets=HOW`
+* on `gui` (report or refuse), and the settings `bitwisedom.keys` and
+* `bitwisedom.sheets` beneath them; every djinterp program's standard
+* options and settings besides.
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_BITWISEDOM_KEYS and D_CFG_BITWISEDOM_GUI_SHEETS
+* (cfg_bitwisedom.h) are the two settings' defaults.
 *
 *
 * path:      /inc/djinterp/tools/bitwisedom/cli.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 /*
@@ -38,6 +65,11 @@ TABLE OF CONTENTS
     1.  window_sheet
     2.  window_sheet_of
     3.  window_sheet_opens
+3.  THE DJIN
+    --------
+    1.  register_djin
+    2.  keys_setting
+    3.  sheets_setting
 */
 
 #ifndef DJINTERP_TOOLS_BITWISEDOM_CLI_HPP
@@ -164,6 +196,43 @@ D_NODISCARD bool window_sheet_opens(
     const std::string&        _operand,
     window_sheet&             _sheet
 );
+
+
+//==============================================================================
+// 3.  THE DJIN
+//==============================================================================
+
+
+// 3.1.1
+// register_djin
+/**
+ * @brief Registers bitwisedom's djin, `bitwisedom`, in the program's
+ *        registry, its two rows' defaults the knobs: `keys` (names, paths
+ *        or both; D_CFG_BITWISEDOM_KEYS) and `sheets` (refuse or report;
+ *        D_CFG_BITWISEDOM_GUI_SHEETS). Before the program's first parse,
+ *        so that the kit reads them from the user's file, the environment
+ *        and the command line.
+ *
+ * @note One already there is kept. A program that cannot register it reads
+ *       the knobs, as the two queries below do.
+ *
+ * @return `true` if the djin is in the registry.
+ */
+D_NODISCARD bool register_djin();
+
+// 3.1.2
+// keys_setting
+//   query: `bitwisedom.keys`, as D_CFG_BITWISEDOM_KEYS_* bits: what `set`
+// and `get` take as a KEY where `--keys` does not say; the knob where the
+// djin is not registered.
+D_NODISCARD int keys_setting();
+
+// 3.1.3
+// sheets_setting
+//   query: `bitwisedom.sheets`, one of D_CFG_BITWISEDOM_GUI_SHEETS_*: what
+// the window does with a SHEET it cannot open where `--sheets` does not
+// say; the knob where the djin is not registered.
+D_NODISCARD int sheets_setting();
 
 
 }  // namespace bitwisedom

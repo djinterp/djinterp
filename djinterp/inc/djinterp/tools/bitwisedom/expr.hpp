@@ -21,6 +21,23 @@
 *   NOTHING HERE THROWS: a malformed expression is a parse result with an
 * error and the position it was found at.
 *
+* HOW TO USE
+* ----------
+*   parse_expression turns text into an expression, or an error and its place;
+* evaluate gives its value, each name looked up through a name_lookup,
+* evaluate_wide its bits for a sheet wider than an integer; print_c writes it
+* back as C with each name its macro name; referenced_names lists the names it
+* uses.
+*
+* OPTIONS
+* -------
+*   None: the language and its arithmetic are fixed, as the description says.
+*
+* CONFIGURATION
+* -------------
+*   None of its own. Below C++17 the file is empty rather than an error
+* (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of bitwisedom's is.
+*
 *
 * path:      /inc/djinterp/tools/bitwisedom/expr.hpp
 * link(s):   TBA

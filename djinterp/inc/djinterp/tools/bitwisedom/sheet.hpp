@@ -8,7 +8,7 @@
 * tree of rows. A row is a group or
 * a symbol; groups hold rows and collapse like the nodes of a tree. A symbol
 * is one C macro to be: a name, mapped to a value, and the definition the
-* value comes from --
+* value comes from -
 *
 *     bit          one bit:                          (1u << 3)
 *     range        a run of bits, as a mask:         (0x7u << 4)
@@ -23,7 +23,7 @@
 *   NAMES are built from affixes: the sheet's prefix, then each enclosing
 * group's prefix, outermost first, then the row's own; the suffixes close in
 * the reverse order. A group may isolate itself from the groups around it.
-* The same cascade carries the literal format - radix and integer suffix --
+* The same cascade carries the literal format - radix and integer suffix -
 * down from the sheet to the row.
 *   The sheet also carries how it is looked at and how it is written out:
 * the grid's lines, cells and columns, its colours, and the C/C++ generator's
@@ -34,6 +34,24 @@
 *   Rows have ids, unique within a sheet and never reused; everything that
 * refers to a row (a field_value's range, the selection, a drag) holds an
 * id, so rows can move without breaking references.
+*
+* HOW TO USE
+* ----------
+*   make_sheet makes an empty sheet and make_document a whole one; insert_row,
+* move_row and remove_row change its tree, find_row and parent_of walk it; the
+* sheet's settings structs are its grid, colours and generator, kept with it and
+* saved with it (persist.hpp).
+*
+* OPTIONS
+* -------
+*   Every setting a sheet keeps, in sections 3.1 to 3.3, each with its default;
+* the window's Options and the command line's `set` change them.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: MAX_WIDTH (bits.hpp) bounds the width. None of its own.
+* Below C++17 the file is empty rather than an error
+* (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of bitwisedom's is.
 *
 *
 * path:      /inc/djinterp/tools/bitwisedom/sheet.hpp
@@ -587,7 +605,7 @@ struct colour_settings
 
 // 3.2.3
 // scheme_colours
-//   struct: what a colour scheme gives one theme: the window's surfaces --
+//   struct: what a colour scheme gives one theme: the window's surfaces -
 // behind everything, behind the panels, behind fields, and the text - and
 // a value for everything a sheet may leave automatic.
 struct scheme_colours
@@ -1006,7 +1024,7 @@ D_NODISCARD cell_shows shown_at(
 
 /**
  * @brief Sets whether a region of the grid shows a part: the last rule, if
- *        it is over just that region, takes it, else a new rule does --
+ *        it is over just that region, takes it, else a new rule does -
  *        so it wins over every rule before it - and the part is taken from
  *        any earlier rule over just that region. Rules left setting nothing
  *        are dropped.
@@ -1056,8 +1074,8 @@ D_NODISCARD const char* place_name(
 );
 
 /**
- * @brief Keeps the grid's special rows whole: one of each kind at least --
- *        a kind with none gets one, pinned at the bottom, probe first --
+ * @brief Keeps the grid's special rows whole: one of each kind at least -
+ *        a kind with none gets one, pinned at the bottom, probe first -
  *        every one with an id of its own, and every one among the rows
  *        anchored only to rows the sheet has: a row gone is let go of, its
  *        parent then, and the sheet's own rows last.

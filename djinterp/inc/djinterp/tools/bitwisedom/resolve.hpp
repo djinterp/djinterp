@@ -24,6 +24,23 @@
 * sorted by a key - a name, the value, the lowest bit - which a window
 * asks for; the header follows the sheet's own order either way.
 *
+* HOW TO USE
+* ----------
+*   resolve a sheet whenever it changes, and read the resolution: each row's
+* macro name, value, colour, type and issues, and the bits' usage. display_order
+* gives the order rows are shown in; is_identifier and is_reserved check a name
+* as C would.
+*
+* OPTIONS
+* -------
+*   None of its own: the order shown is the sheet's `grid.sort_by`, and
+* everything else the sheet's own.
+*
+* CONFIGURATION
+* -------------
+*   None of its own. Below C++17 the file is empty rather than an error
+* (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of bitwisedom's is.
+*
 *
 * path:      /inc/djinterp/tools/bitwisedom/resolve.hpp
 * link(s):   TBA

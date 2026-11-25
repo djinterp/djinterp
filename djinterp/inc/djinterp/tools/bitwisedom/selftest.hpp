@@ -12,6 +12,20 @@
 * is how the generator is proved rather than merely run.
 *   `bitwisedom gen --self-test` and `bitwisedom-gen --self-test` write it.
 *
+* HOW TO USE
+* ----------
+*   self_test writes the C or C++ file that proves a resolved sheet's header, to
+* be compiled beside it; `gen --self-test` is the command line's way to it.
+*
+* OPTIONS
+* -------
+*   The language and level are the sheet's generator settings.
+*
+* CONFIGURATION
+* -------------
+*   None of its own. Below C++17 the file is empty rather than an error
+* (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of bitwisedom's is.
+*
 *
 * path:      /inc/djinterp/tools/bitwisedom/selftest.hpp
 * link(s):   TBA

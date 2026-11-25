@@ -10,12 +10,15 @@
 * an operand or by --example, and the two jobs it always had beside the
 * header - listing the examples and saving one - as the options it always
 * spelled them with. Its work is gen's, so the two cannot drift apart.
+*   `bitwisedom` registers its djin, `bitwisedom`, before its first parse
+* (cli.hpp, 3); `bitwisedom-gen` takes neither of its settings, and reads
+* the user's lines for it as those of a djin it does not register.
 *
 *
 * path:      /src/djinterp/tools/bitwisedom/cli/cli_main.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.10.22
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 #include <djinterp/tools/bitwisedom/cli.hpp>  // corresponding header
 
@@ -176,6 +179,15 @@ int run_cli(
                          BITWISEDOM_VERSION,
                          DESCRIPTION,
                          kit::program_flags::commands);
+
+    // the djin before the first parse, which reads its settings; without
+    // it, the knobs stand, and that is said
+    if (!register_djin())
+    {
+        program.report(kit::severity::warning,
+                       "bitwisedom's settings could not be registered: "
+                       "the build's defaults stand");
+    }
 
     add_read_commands(program);
     add_edit_commands(program);

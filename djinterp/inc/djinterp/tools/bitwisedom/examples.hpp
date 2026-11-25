@@ -11,6 +11,22 @@
 * JSON in examples/large and built in: every HRESULT winerror.h defines,
 * 1,376 codes, and ten of CPUID's feature registers, 320 bits.
 *
+* HOW TO USE
+* ----------
+*   example_names and example_list say what there is; make_example builds one by
+* its name, as `example:NAME` operands name it.
+*
+* OPTIONS
+* -------
+*   None.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: the large examples are built in from examples/large by the
+* build (EmbedExamples.cmake). None of its own. Below C++17 the file is empty
+* rather than an error (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of
+* bitwisedom's is.
+*
 *
 * path:      /inc/djinterp/tools/bitwisedom/examples.hpp
 * link(s):   TBA

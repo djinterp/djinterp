@@ -25,6 +25,22 @@
 * row has been read.
 *   docs/json.md describes the three, key by key.
 *
+* HOW TO USE
+* ----------
+*   read_json_sheet reads any of the three shapes and says which it was
+* (json_read); write_bitfield and write_export write the two shapes other
+* programs read. docs/json.md describes each key.
+*
+* OPTIONS
+* -------
+*   The shape to write, chosen by the call; a shape read is told by its `format`
+* key, a bitfield where there is none.
+*
+* CONFIGURATION
+* -------------
+*   None of its own. Below C++17 the file is empty rather than an error
+* (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of bitwisedom's is.
+*
 *
 * path:      /inc/djinterp/tools/bitwisedom/exchange.hpp
 * link(s):   TBA
@@ -137,7 +153,7 @@ D_NODISCARD json_read read_json_sheet(
  * @brief Writes a sheet as a bitfield.
  *
  * @note The definitions only, each key left out where the default says
- *       it: the window's settings - the grid, its colours, its widths --
+ *       it: the window's settings - the grid, its colours, its widths -
  *       stay in the sheet file. The generator settings that differ from a
  *       new sheet's are kept. Read back, it writes the same header.
  *

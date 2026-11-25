@@ -6,7 +6,7 @@
 * rows - was the window's to know; it is the model's, so that `bitwisedom
 * add` refuses what the Add node window refuses, in the same words, and a
 * row added either way takes the same name and the same bits.
-*   A NEW ROW. A row is named, when it is given no name, for its kind --
+*   A NEW ROW. A row is named, when it is given no name, for its kind -
 * FLAG, FIELD, VALUE, COMBINED, MACRO, Group - made unique with _2, _3 and
 * on; a bit or a range starts at the lowest bit its group leaves free, or,
 * in a range with none free, at the range's own lowest bit, where the
@@ -18,6 +18,23 @@
 * the sheet to keep when it is not.
 *   SORTING. The order the window shows each group's rows in, by a key, is
 * made the sheet's own - the order its header follows.
+*
+* HOW TO USE
+* ----------
+*   unique_name and fresh_name name a new row; range_choices, container_choices
+* and place_bit say where it may go; try_insert and try_change try it in a copy
+* (trial) before it is kept; duplicate_rows, remove_rows, move_by and sort_rows
+* change the rows of a sheet, the window's and the command line's commands
+* alike.
+*
+* OPTIONS
+* -------
+*   The rows, the place and the key to sort by, given at each call.
+*
+* CONFIGURATION
+* -------------
+*   None of its own. Below C++17 the file is empty rather than an error
+* (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of bitwisedom's is.
 *
 *
 * path:      /inc/djinterp/tools/bitwisedom/edit.hpp

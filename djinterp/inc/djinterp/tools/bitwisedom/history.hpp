@@ -9,6 +9,22 @@
 * ends a run, so the next edit starts a step of its own even with the same
 * key.
 *
+* HOW TO USE
+* ----------
+*   Call record with the sheet as it was before each edit, and its merge key;
+* undo and redo put a step's sheet in place of the current one, can_undo and
+* can_redo say whether there is one; seal ends a run of edits; clear forgets
+* every step.
+*
+* OPTIONS
+* -------
+*   The merge key, given with each edit; nothing else.
+*
+* CONFIGURATION
+* -------------
+*   None of its own. Below C++17 the file is empty rather than an error
+* (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of bitwisedom's is.
+*
 *
 * path:      /inc/djinterp/tools/bitwisedom/history.hpp
 * link(s):   TBA

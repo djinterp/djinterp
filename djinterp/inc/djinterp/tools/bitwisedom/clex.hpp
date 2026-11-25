@@ -3,7 +3,7 @@
 *
 * C and C++ text as tokens, read by djinterp's scanners.
 *   bitwisedom reads C in three places - a macro row's body, a header it is
-* asked to import, and the environment of #defines a sheet is evaluated in --
+* asked to import, and the environment of #defines a sheet is evaluated in -
 * and reads it as a compiler would: djinterp's lexer, at the sheet's
 * language and level, does the scanning. This is the bridge. djinterp's
 * tokens are C records over a borrowed source; these own their spelling, so
@@ -15,6 +15,24 @@
 *   The scanners run in the preprocessor's view: identifiers are never
 * resolved to keywords, since a directive's names and a macro's body are
 * read before phase 7, and comments are reported only when asked for.
+*
+* HOW TO USE
+* ----------
+*   lex_c scans a text into c_tokens at a standard, a C++ one reading C++,
+* comments tokens only when asked for; lex_level and cpp_level map a standard to
+* the lexer's; decode_literal reads an integer or character literal's value,
+* base and suffix.
+*
+* OPTIONS
+* -------
+*   The standard and whether comments are tokens, at each call; nothing is kept
+* between calls.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: the scanning is djinterp's lexer's, and its knobs apply.
+* None of its own. Below C++17 the file is empty rather than an error
+* (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of bitwisedom's is.
 *
 *
 * path:      /inc/djinterp/tools/bitwisedom/clex.hpp

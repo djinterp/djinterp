@@ -7,6 +7,20 @@
 * (GRAMMAR.md, section 7). The build passes the project's version as
 * BITWISEDOM_VERSION; a build that does not gets the one below.
 *
+* HOW TO USE
+* ----------
+*   Use BITWISEDOM_VERSION and BITWISEDOM_PROGRAM wherever the program, the
+* window or a module says what it is.
+*
+* OPTIONS
+* -------
+*   None.
+*
+* CONFIGURATION
+* -------------
+*   BITWISEDOM_VERSION, defined by the build to the project's version; a build
+* that does not gets the one here.
+*
 *
 * path:      /inc/djinterp/tools/bitwisedom/version.hpp
 * link(s):   TBA

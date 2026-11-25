@@ -2,7 +2,7 @@
 * djinterp [cpp][tools]                                              cimport.hpp
 *
 * C and C++ code read into a sheet: its #defines become rows.
-*   A header - or any text with #defines in it, a snippet pasted from one --
+*   A header - or any text with #defines in it, a snippet pasted from one -
 * is read as a preprocessor reads it, by djinterp's lexer at the sheet's
 * language and level, its conditionals followed the way the define
 * environment follows them (cenv.hpp). Each #define in a branch taken
@@ -24,6 +24,24 @@
 * and `#pragma once` become the generator's settings, and a djinterp
 * banner its author. Declarations and code are not definitions, and are
 * left out, and said to be.
+*
+* HOW TO USE
+* ----------
+*   Pass the code to import_code with import_options: the sheet it became comes
+* back, with what was left out and why (imported). merge_rows lays an imported
+* sheet's rows into another, replacing a symbol of the same macro name in place
+* and adding the rest (merged). looks_like_sheet tells a sheet's JSON from code
+* first.
+*
+* OPTIONS
+* -------
+*   import_options: the level the code is read at, the data model, and the title
+* and file name of the sheet it becomes.
+*
+* CONFIGURATION
+* -------------
+*   None of its own. Below C++17 the file is empty rather than an error
+* (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of bitwisedom's is.
 *
 *
 * path:      /inc/djinterp/tools/bitwisedom/cimport.hpp
@@ -154,7 +172,7 @@ struct merged
  *
  * @note A symbol whose macro name the sheet already has replaces that
  *       symbol's definition, in place; the rest are added under _parent,
- *       their groups with them. A name is made local to where it lands --
+ *       their groups with them. A name is made local to where it lands -
  *       the prefixes and suffixes around it taken off - so its macro name
  *       stays what it was.
  *

@@ -31,7 +31,7 @@
 * path:      /src/djinterp/tools/bitwisedom/examples.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.11
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 #include <djinterp/tools/bitwisedom/examples.hpp>  // corresponding header
 
@@ -1119,7 +1119,7 @@ sheet win32_window_style()
 
     m.open("Styles", "WS_", "A window's style, as CreateWindowEx takes it "
            "and winuser.h names it: the high sixteen bits are every "
-           "window's, the low sixteen its class's own -- a button's BS_*, "
+           "window's, the low sixteen its class's own - a button's BS_*, "
            "an edit control's ES_*.");
     m.literal("OVERLAPPED", 0x00000000u, "no bits: an overlapped window");
     m.bit("POPUP", 31, "a pop-up window");
@@ -1288,7 +1288,7 @@ sheet macos_cpu_type()
            "the Power Mac G5");
 
     m.open("Subtypes", "CPU_SUBTYPE_", "A cpu_subtype_t has the same shape: "
-           "feature bits on top, the subtype below -- and its top bit means "
+           "feature bits on top, the subtype below - and its top bit means "
            "one thing for x86-64 and another for arm64e.");
     m.shared();
     m.range("MASK", 24, 8, "the feature bits");
@@ -1449,7 +1449,7 @@ sheet linux_capabilities()
     m.use_template("{NAME}_BIT", true);
 
     m.open("Files", "", "A capability set: a bit for each capability, the "
-           "bit numbered as linux/capability.h numbers the capability -- "
+           "bit numbered as linux/capability.h numbers the capability - "
            "its _BIT is the kernel's CAP_ number.");
     m.bit("CHOWN", 0, "change a file's owner");
     m.bit("DAC_OVERRIDE", 1, "pass file permission checks");

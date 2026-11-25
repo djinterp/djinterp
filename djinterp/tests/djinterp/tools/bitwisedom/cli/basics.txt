@@ -36,7 +36,7 @@ $ bitwisedom --help
 >   sort                put each group's rows in order, for the header to follow
 >   set                 change settings, by name or by a sheet file's path
 >   get                 print settings; every one, without a KEY
->   op                  preview an operation over rows -- a shift, a rotation, a
+>   op                  preview an operation over rows - a shift, a rotation, a
 >                       byte swap, arithmetic; --apply applies it
 >
 > The window:

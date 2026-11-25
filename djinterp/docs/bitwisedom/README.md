@@ -934,8 +934,9 @@ input. `set` and `get` take a setting by the name the window's Options show,
 `gen.level`, and anything else a sheet file holds by its path in the file,
 `probe` or `rows.0.name`: read as the file has it, and written as the
 member there is, refused where the sheet would not keep the value.
-`--keys=names` or `--keys=paths` takes the one alone; the build's
-`D_CFG_BITWISEDOM_KEYS` chooses which is the default. A command exits 0
+`--keys=names` or `--keys=paths` takes the one alone; without it, the
+setting `bitwisedom.keys` chooses, and the build's `D_CFG_BITWISEDOM_KEYS`
+is that setting's default. A command exits 0
 when it did what was asked, 1 when the answer it was asked for is no, and 2
 for trouble: the command line, a file, or the program.
 
@@ -947,9 +948,29 @@ SHEET it is given - any file the window opens, a header to import among
 them - and says on standard error, as the window starts, each it cannot
 open, as the commands would say it; the window opens on the rest, and the
 run ends with 2 when it closes, so that a script still learns of a typo.
-`--sheets=refuse` refuses such a SHEET before any window opens instead (the
-build's `D_CFG_BITWISEDOM_GUI_SHEETS` chooses the default), and `bitwisedom
-gui --help` lists the window's own options.
+`--sheets=refuse` refuses such a SHEET before any window opens instead
+(without it, the setting `bitwisedom.sheets` chooses, its default the
+build's `D_CFG_BITWISEDOM_GUI_SHEETS`), and `bitwisedom gui --help` lists
+the window's own options.
+
+The two settings are a djin of bitwisedom's own, `bitwisedom`, kept as
+every djinterp program keeps its settings: in the user's settings file
+(`$XDG_CONFIG_HOME/djinterp/settings`, shared by every djinterp program),
+in the environment and on the command line, each above the one before:
+
+```
+[bitwisedom]
+bitwisedom.keys = paths
+```
+
+```
+BITWISEDOM_BITWISEDOM_SHEETS=refuse bitwisedom gui sheet.json
+bitwisedom --bitwisedom.keys=names get sheet.json gen.level
+```
+
+The file's `[bitwisedom]` section is bitwisedom's alone; every other
+program passes over it, and reads a `bitwisedom.` line outside it as one
+for a djin it does not register, saying nothing of it.
 
 `bitwisedom-gen` is the generator's command line from before, kept so that
 build scripts written for it run unchanged: `bitwisedom gen`'s work, under

@@ -20,7 +20,7 @@
 * path:      /src/ui/bitwisedom/app.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 #include "../../../inc/ui/bitwisedom/app.hpp"  // corresponding header
 
@@ -768,7 +768,7 @@ app::app(
         (void)open_document();
         load_sheet_into(make_example("uart_cr"), "uart_cr.bitwisedom.json");
         doc().ui.browsing = true;
-        status("uart_cr: an example -- File > Examples has more", false);
+        status("uart_cr: an example - File > Examples has more", false);
     }
 }
 
@@ -4354,7 +4354,7 @@ void app::sorted_note()
 {
     if (doc().doc.grid.sort_by != sort_key::sheet)
     {
-        status("moved in the sheet's own order; the rows are shown sorted -- "
+        status("moved in the sheet's own order; the rows are shown sorted - "
                "Make it the sheet's own order, on the Sort menu, to order "
                "them by hand",
                false);
@@ -6490,7 +6490,7 @@ void app::help_dialog()
             { "Ctrl+D", "duplicate the selected rows" },
             { "Del", "delete the selected rows" },
             { "Alt+Up, Alt+Down", "move the selected row up or down" },
-            { "F2", "rename the selected row -- in the grid, in place" },
+            { "F2", "rename the selected row - in the grid, in place" },
             { "Ctrl+Shift+C", "copy the selected row as code" },
             { "Ctrl+Shift+V", "paste code after the selected row" },
             { "Ctrl+Shift+Plus", "expand every group (or Ctrl+keypad +)" },
@@ -6506,7 +6506,7 @@ void app::help_dialog()
             { "Enter", "in an \"Add child...\" field: add a bit of that "
                        "name" },
             { "Escape", "in an \"Add child...\" field: clear it" },
-            { "", "The keyboard, in the grid -- as Excel's" },
+            { "", "The keyboard, in the grid - as Excel's" },
             { "arrows", "move the cursor a cell; Shift extends the range" },
             { "Ctrl+arrow", "to the edge of the bits set, or the end; "
                             "Ctrl+Shift extends" },
@@ -6518,9 +6518,9 @@ void app::help_dialog()
             { "Page Up, Page Down", "a screen of rows; Shift extends" },
             { "Alt+Page Up, Down", "a screen of columns" },
             { "Ctrl+Page Up, Down", "the sheet before or after" },
-            { "Enter, Shift+Enter", "down, up -- round a range; back to "
+            { "Enter, Shift+Enter", "down, up - round a range; back to "
                                     "where a run of Tabs began" },
-            { "Tab, Shift+Tab", "right, left -- round a range" },
+            { "Tab, Shift+Tab", "right, left - round a range" },
             { "Shift+Space", "select the range's rows" },
             { "Ctrl+Space", "select the range's columns" },
             { "Ctrl+A", "select everything (or Ctrl+Shift+Space)" },
@@ -6553,8 +6553,8 @@ void app::help_dialog()
             { "right-click a row or a band",
               "show digits, names or colours there, or there only" },
             { "drag the probe or usage",
-              "by its name, among the rows -- in a group, a usage row "
-              "counts the group's -- or pin it, from its menu" },
+              "by its name, among the rows - in a group, a usage row "
+              "counts the group's - or pin it, from its menu" },
             { "+ under a group's rows", "the Add node window, for it" },
             { "", "The windows" },
             { "drag a tab", "dock it beside, above or below another, or "
@@ -6610,7 +6610,7 @@ void app::help_dialog()
         ImGui::PopFont();
         ImGui::TextUnformatted("A bitfield manager: symbols mapped to "
                                "values, shown across their bits, and");
-        ImGui::TextUnformatted("written out as C and C++ macros -- and C "
+        ImGui::TextUnformatted("written out as C and C++ macros - and C "
                                "read back in as a sheet.");
         ImGui::TextDisabled("Built on djinterp, its window drawn by uxoxo "
                             "over Dear ImGui %s.",
@@ -7158,11 +7158,11 @@ void app::import_code_text(
 
     status("imported " + doc().ui.import_name + ": " +
                format_dec(static_cast<u64>(in.definitions)) +
-               " definition(s) -- " +
+               " definition(s) - " +
                format_dec(static_cast<u64>(in.literals)) + " literal(s), " +
                format_dec(static_cast<u64>(in.allocations)) +
                " bit(s) or range(s), " +
-               format_dec(static_cast<u64>(in.macros)) + " macro(s) -- in " +
+               format_dec(static_cast<u64>(in.macros)) + " macro(s) - in " +
                format_dec(static_cast<u64>(in.groups)) +
                " group(s); see Issues",
            false);

@@ -26,6 +26,24 @@
 * object, and must keep the value, or nothing changes: a value the sheet
 * does not keep is refused, never dropped in silence (ruling cli-taken 16).
 *
+* HOW TO USE
+* ----------
+*   sheet_settings is the table; find_sheet_setting finds a setting by its path,
+* setting_text reads one as text and set_setting writes one. sheet_file_paths,
+* sheet_file_value and set_sheet_file_value reach anything a sheet file holds by
+* its path in the file.
+*
+* OPTIONS
+* -------
+*   Which vocabulary a KEY is in is the command line's choice, `--keys` and the
+* setting `bitwisedom.keys` (cli.hpp); the table itself is fixed.
+*
+* CONFIGURATION
+* -------------
+*   None of its own; D_CFG_BITWISEDOM_KEYS is the command line's
+* (cfg_bitwisedom.h). None of its own. Below C++17 the file is empty rather than
+* an error (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of bitwisedom's is.
+*
 *
 * path:      /inc/djinterp/tools/bitwisedom/settings.hpp
 * link(s):   TBA

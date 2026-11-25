@@ -17,12 +17,15 @@
 * ruling 25 has it by default (window_sheet_opens). An example is a named
 * operand, `example:NAME`, read through the kit, which says so when a file
 * has the operand's name too (ruling 11).
+*   bitwisedom's djin is kept here too, so that the window's module, which
+* links the commands, registers the same rows (cli.hpp, 3): `keys` and
+* `sheets`, each a choice by the knob's own numbers.
 *
 *
 * path:      /src/djinterp/tools/bitwisedom/cli/cli_common.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 #include "./cli_internal.hpp"  // corresponding header
 
@@ -34,6 +37,7 @@
 #include <cstddef>    // std::size_t
 #include <cstdio>     // std::snprintf
 #include <ctime>      // std::time, std::localtime
+#include <cstring>    // std::strlen
 #include <map>        // std::map
 #include <utility>    // std::move
 // bitwisedom
@@ -47,6 +51,10 @@
 #include <djinterp/tools/bitwisedom/exchange.hpp>  // read_json_sheet
 #include <djinterp/tools/bitwisedom/persist.hpp>   // save_sheet
 #include <djinterp/tools/bitwisedom/version.hpp>   // BITWISEDOM_PROGRAM
+// djinterp
+#include <djinterp/c/option/option_env.h>           // the djin's frame
+#include <djinterp/c/option/option_env_registry.h>  // the registry
+#include <djinterp/config/tools/bitwisedom/cfg_bitwisedom.h>  // the knobs
 
 
 namespace bitwisedom
@@ -681,8 +689,8 @@ int row_named(
         (void)_program.usage_error(_command,
                                    place + "'" + _name + "' names " +
                                    std::to_string(named.size()) +
-                                   " rows -- " + which_rows(named) +
-                                   " -- name one by its macro name");
+                                   " rows - " + which_rows(named) +
+                                   " - name one by its macro name");
 
         return 0;
     }
@@ -1365,6 +1373,134 @@ bool window_sheet_opens(
                                   "no #define to import"));
 
     return in.ok;
+}
+
+
+//------------------------------------------------------------------------------
+// the djin
+//------------------------------------------------------------------------------
+
+namespace
+{
+
+// DJIN_NAME
+//   constant: the djin's name, the first part of each of its settings'.
+const char* const DJIN_NAME = "bitwisedom";
+
+// DJIN_KEYS / DJIN_SHEETS
+//   constants: the two rows' values by name, the knobs' own numbers
+// (cfg_bitwisedom.h), so that a setting and its knob read alike.
+const struct dj_option_env_name DJIN_KEYS[] =
+{
+    { "names", D_CFG_BITWISEDOM_KEYS_NAMES },
+    { "paths", D_CFG_BITWISEDOM_KEYS_PATHS },
+    { "both",  D_CFG_BITWISEDOM_KEYS_BOTH  }
+};
+
+const struct dj_option_env_name DJIN_SHEETS[] =
+{
+    { "refuse", D_CFG_BITWISEDOM_GUI_SHEETS_REFUSE },
+    { "report", D_CFG_BITWISEDOM_GUI_SHEETS_REPORT }
+};
+
+// DJIN_ROWS
+//   constant: the djin's rows, each a choice whose default is its knob.
+const struct dj_option_env_var DJIN_ROWS[] =
+{
+    D_OPTION_ENV_ROW(D_OPTION_ENV_KIND_CHOICE, "keys", DJIN_KEYS,
+                     sizeof(DJIN_KEYS) / sizeof(DJIN_KEYS[0]), nullptr, 0u,
+                     nullptr, D_INTERNAL_BITWISEDOM_KEYS, INT64_MIN,
+                     INT64_MAX, 0.0, nullptr, "D_CFG_BITWISEDOM_KEYS",
+                     "what set and get take as a KEY: names, as the "
+                     "window's Options show; paths, as a sheet file "
+                     "holds; or both"),
+    D_OPTION_ENV_ROW(D_OPTION_ENV_KIND_CHOICE, "sheets", DJIN_SHEETS,
+                     sizeof(DJIN_SHEETS) / sizeof(DJIN_SHEETS[0]), nullptr,
+                     0u, nullptr, D_INTERNAL_BITWISEDOM_GUI_SHEETS,
+                     INT64_MIN, INT64_MAX, 0.0, nullptr,
+                     "D_CFG_BITWISEDOM_GUI_SHEETS",
+                     "what the window does with a SHEET it cannot open: "
+                     "report it and open the rest, or refuse it")
+};
+
+// djin_storage, djin
+//   the djin's frame, the storage it points into, and whether it is made.
+D_OPTION_ENV_DECLARE(djin_storage, 8u, 2u, 64u);
+
+struct djin_frame
+{
+    struct dj_option_env frame;
+    djin_storage         storage;
+    bool                 made = false;
+};
+
+djin_frame& djin()
+{
+    static djin_frame frame;
+
+    return frame;
+}
+
+/*
+setting_of
+  A row of the djin's, as the registry holds it; `_knob` where the djin is
+not registered, or the row not there.
+*/
+int setting_of(
+    const char* _row,
+    int         _knob
+)
+{
+    const struct dj_option_env* const frame = d_option_env_registry_find(
+        d_option_env_registry(), DJIN_NAME, std::strlen(DJIN_NAME));
+    const struct dj_option_result     found = (frame != nullptr)
+        ? d_option_env_find(frame, _row, std::strlen(_row))
+        : d_option_fail(static_cast<int32_t>(D_OPTION_STATUS_KEY_ABSENT));
+
+    return found.is_ok
+           ? static_cast<int>(d_option_env_int(
+                 frame, D_OPTION_ENV_GLOBAL,
+                 static_cast<uint32_t>(found.payload.value)))
+           : _knob;
+}
+
+}  // anonymous namespace
+
+bool register_djin()
+{
+    struct dj_option_env_registry* const registry = d_option_env_registry();
+    djin_frame&                          made     = djin();
+
+    // one a module or an earlier call registered, kept
+    if (d_option_env_registry_find(registry, DJIN_NAME,
+                                   std::strlen(DJIN_NAME)) != nullptr)
+    {
+        return true;
+    }
+
+    if (!made.made)
+    {
+        made.made =
+            ( (D_OPTION_ENV_VIEW(&made.frame, made.storage).is_ok) &&
+              (d_option_env_set_name(&made.frame, DJIN_NAME).is_ok) &&
+              (d_option_env_declare_all(
+                   &made.frame, DJIN_ROWS,
+                   static_cast<uint32_t>(sizeof(DJIN_ROWS) /
+                                         sizeof(DJIN_ROWS[0]))).is_ok) );
+    }
+
+    return ( (made.made) &&
+             (d_option_env_registry_add(registry, &made.frame).is_ok) );
+}
+
+int keys_setting()
+{
+    return setting_of("keys", D_INTERNAL_BITWISEDOM_KEYS);
+}
+
+int sheets_setting()
+{
+    return setting_of("sheets", D_INTERNAL_BITWISEDOM_GUI_SHEETS);
 }
 
 }  // namespace bitwisedom
