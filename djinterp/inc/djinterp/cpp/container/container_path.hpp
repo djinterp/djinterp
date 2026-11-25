@@ -825,7 +825,7 @@ bool container_path_is_separating(
 
 
 // container_path_is_separating_subtree
-//   function: true if EVERY node of the subtree rooted at _root separates --
+//   function: true if EVERY node of the subtree rooted at _root separates -
 // the
 // condition under which the whole subtree is ADDRESSABLE, and under which the
 // round trip below is guaranteed.
@@ -857,7 +857,7 @@ bool container_path_is_separating_subtree(
 
 
 // container_path_round_trips
-//   function: the PROPOSITION of the Addressability axis, made executable --
+//   function: the PROPOSITION of the Addressability axis, made executable -
 //
 //       resolve(root, address(root, n)) == n     for every n in the subtree,
 //

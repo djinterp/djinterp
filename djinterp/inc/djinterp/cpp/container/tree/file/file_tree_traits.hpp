@@ -56,7 +56,7 @@
 NS_DJINTERP
 
 
-// file_node_id and file_type appear in every has_*_method probe below --
+// file_node_id and file_type appear in every has_*_method probe below -
 // name(file_node_id), resolve(...) -> file_node_id, add_child(file_node_id, const char*,
 // file_type) - and this header imported them from NOWHERE: it included only
 // <cstddef>, <cstdint>, <type_traits> and djinterp.hpp. Every probe was a hard

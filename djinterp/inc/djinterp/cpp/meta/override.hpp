@@ -130,7 +130,7 @@ NS_INTERNAL
 
     // override_policy_helper
     //   helper: SFINAE probe for the two nested template aliases a policy
-    // must expose. The probe types (int, int / int) are deliberate stand-ins --
+    // must expose. The probe types (int, int / int) are deliberate stand-ins -
     // element shape is the engine's concern, not the policy contract's.
     template<typename Policy,
              typename Enable = void>

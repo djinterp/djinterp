@@ -46,7 +46,7 @@
 * not be in the include set: a translation unit seeing cofree.hpp must get the
 * same is_recursive<cofree<...>> answer as every other, and a separate
 * registration header cannot guarantee that. Keeping all three of cofree's
-* instances in one place also matches how the rest of the layer is arranged --
+* instances in one place also matches how the rest of the layer is arranged -
 * recursion.hpp registers mu's traits, cofree.hpp registers cofree's.
 *
 *   The DEnvLayer machinery itself is generic: it names no client, so any

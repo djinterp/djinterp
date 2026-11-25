@@ -19,7 +19,7 @@
 *   These traits operate on any type that structurally resembles a
 * DNodeContainer - no base class check is performed.  A type is
 * recognized as a node container if it exposes the structural
-* minimum: a node_type alias AND at least one entry reference --
+* minimum: a node_type alias AND at least one entry reference -
 * entry_point(), root(), head(), or the entry set entries().
 *
 *

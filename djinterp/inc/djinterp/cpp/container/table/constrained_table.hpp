@@ -15,7 +15,7 @@
 *     domain delta_I (bag-level) every cell lies in a closed interval
 *                                          [lo, hi]: a value outside the
 *                                        domain is
-*                                          refused. The domain is optional --
+*                                          refused. The domain is optional -
 *                                        a
 *                                          constrained_table may carry only
 *                                        the

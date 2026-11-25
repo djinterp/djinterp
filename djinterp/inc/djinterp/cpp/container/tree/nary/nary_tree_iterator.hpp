@@ -15,7 +15,7 @@
 * LOCAL walks of that relation: each next node is reached by a bounded
 * sequence
 * of child / sibling / parent steps. A local walk needs NO AUXILIARY STORAGE
-* --
+* -
 * the parent link is the way back up - and it runs in O(1) space with a
 * noexcept step. This is why pre-order, post-order, and leaf order below carry
 * nothing but a node, an anchor, and a level.
@@ -376,7 +376,7 @@ nary_find_child
 
 
 // nary_children_separating
-//   function: true if the children of _parent bear pairwise distinct labels --
+//   function: true if the children of _parent bear pairwise distinct labels -
 // the SEPARATION condition of the Addressability axis, imposed at one node.
 //
 //   Separation is the multiplicity restriction mu_1 read sibling-wise: under

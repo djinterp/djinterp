@@ -123,7 +123,7 @@ tests_visit_result_is_sfinae_friendly
   load-bearing: visit_result appears in the return type of every apply() and
   accept() overload, so if it hard-errored for an unhandled pair it would take the
   entire overload set down with it rather than simply removing the one candidate.
-  Under this strategy "the visitor cannot handle that" IS a substitution failure --
+  Under this strategy "the visitor cannot handle that" IS a substitution failure -
   there is no runtime path for it at all.
   Tests the following:
   - visit_result<V, E> has a ::type for a handled element
@@ -277,7 +277,7 @@ bool tests_static_visitor_apply_selects_const_element_overload()
 
 /*
 tests_static_visitor_apply_selects_const_visitor_overload
-  Verifies a CONST VISITOR selects the third overload - apply(const E&) const --
+  Verifies a CONST VISITOR selects the third overload - apply(const E&) const -
   which is the only one whose `this` is const and therefore the only one that can
   reach a const-qualified visit().  This is a different axis from the element's
   constness, and the two are easy to conflate.

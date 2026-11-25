@@ -406,7 +406,7 @@ tests_constrained_accept_is_gated_by_the_concept
   dispatch machinery with an error naming the header's internals; with it, the call
   is simply not viable, and the compiler says so at the call site.
 
-  The rejection must also be DETECTABLE - a substitution failure, not a hard error --
+  The rejection must also be DETECTABLE - a substitution failure, not a hard error -
   or the function could not be used in any SFINAE context and would take the enclosing
   overload set down with it.  That is what the trait below measures: a hard error
   inside constrained_accept's body would fail to compile this test rather than report

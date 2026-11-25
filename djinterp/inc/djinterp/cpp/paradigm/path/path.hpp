@@ -494,7 +494,7 @@ std::string path_normalize(
                 stack.push_back(comp);
             }
 
-            // absolute: an ascent above the root is not an address.  Drop it --
+            // absolute: an ascent above the root is not an address.  Drop it -
             // "/../a" is "/a", as it must be.
 
             continue;

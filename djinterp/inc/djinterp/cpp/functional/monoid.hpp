@@ -14,7 +14,7 @@
 * from its semigroup_traits). mempty<T>() returns the identity (T explicit,
 * since it cannot be deduced); mconcat / fold_monoid then collapse a Foldable.
 *
-*   The standard instances live here, each defining a type's full algebra --
+*   The standard instances live here, each defining a type's full algebra -
 * its semigroup combine and its monoid identity - in one place:
 *     - std::string            : concatenation,           identity "".
 *     - std::vector<T>          : concatenation,           identity {}.

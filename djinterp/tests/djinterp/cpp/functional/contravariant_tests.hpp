@@ -363,7 +363,7 @@ struct is_sink_context< sink_of<_Type> >
 
 // DCtComposed
 //   struct: the literal-type composition an adapter and a predicate body fold
-// into.  `inner` (the adapter) runs first, then `outer` (the original body) --
+// into.  `inner` (the adapter) runs first, then `outer` (the original body) -
 // pre-composition, spelled out as data so it stays a literal type.
 template<typename _Outer,
          typename _Inner>

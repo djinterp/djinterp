@@ -20,7 +20,7 @@
 //
 //   That last clause is the whole distinction, and it is what
 // tests_d_acyclic_visitable_ignores_unhandled exists to pin.  It runs the SAME
-// scenario as the classic section's tests_d_visitable_unhandled_element_throws --
+// scenario as the classic section's tests_d_visitable_unhandled_element_throws -
 // a visitor that covers only part of the element set, handed an element outside
 // it - and requires the OPPOSITE outcome: silently skipped, default returned.
 // The two tests are the contracts, stated from both sides.  A header that swapped
@@ -31,7 +31,7 @@
 //   acyclic_visitable<> is also where bug C lived: the class carried a second
 // template parameter, `_ReturnType _DefaultReturn = _ReturnType()`, which is a
 // NON-TYPE parameter of type _ReturnType.  void is not a permitted type for one,
-// so the default spelling - and the one the header's own usage example gives --
+// so the default spelling - and the one the header's own usage example gives -
 // was ill-formed.  Every fixture in this section uses acyclic_visitable<>, so the
 // section as a whole would not compile against the shipped header.
 
@@ -465,7 +465,7 @@ tests_acyclic_visitor_is_decoupled_from_the_element_set
 
   late_element and late_visitor stand in for that: they are declared in this
   translation unit, long after round_visitor, and round_visitor's declaration has
-  no idea they exist.  Under the classic form this could not be expressed at all --
+  no idea they exist.  Under the classic form this could not be expressed at all -
   concrete_visitor's element list would have had to name them.
   Tests the following:
   - the visitor ROOT is not parameterized on any element type

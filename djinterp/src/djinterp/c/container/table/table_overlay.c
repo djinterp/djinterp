@@ -18,7 +18,7 @@
 
 /*
 d_table_overlay_admits_row
-  Asks whether appending _row would leave the table still wearing _overlay --
+  Asks whether appending _row would leave the table still wearing _overlay -
 the PRESERVATION question, asked before the mutation rather than after it. This
 is what distinguishes an overlay from an assertion: the restriction is kept, not
 merely tested.
@@ -536,7 +536,7 @@ D_NODISCARD D_INLINE_DEF int d_table_overlay_in_domain(
 
 /*
 d_table_overlay_key
-  eta's projection of a cell, or the cell itself when the bundle is not keyed --
+  eta's projection of a cell, or the cell itself when the bundle is not keyed -
   an unkeyed duplicate-equivalence is over whole values.
 
 Parameter(s):

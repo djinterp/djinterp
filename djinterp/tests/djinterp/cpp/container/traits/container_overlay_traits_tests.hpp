@@ -183,31 +183,31 @@ struct keyed_half
 // Test-function declarations (defined in the section .cpp files)
 // ===========================================================================
 
-// - I.   Restriction vocabulary --
+// - I.   Restriction vocabulary -
 bool tests_restriction_scope_name();
 bool tests_restriction_kind_name();
 bool tests_scope_of_restriction();
 
-// - II.  Overlay-specific signals (eta) --
+// - II.  Overlay-specific signals (eta) -
 bool tests_is_keyed_container();
 
-// - III. Overlay descriptor + algebra --
+// - III. Overlay descriptor + algebra -
 bool tests_overlay_top();
 bool tests_is_order_blind();
 bool tests_overlay_subsumes();
 bool tests_overlay_meet();
 
-// - IV.  The overlay a container wears --
+// - IV.  The overlay a container wears -
 bool tests_overlay_of();
 bool tests_is_order_blind_overlay();
 bool tests_wears_overlay();
 
-// - V.   Canonical overlays --
+// - V.   Canonical overlays -
 bool tests_canonical_overlay_name();
 bool tests_classify_canonical();
 bool tests_canonical_overlay_of();
 
-// - VI.  Aggregate snapshot + variable-template companions --
+// - VI.  Aggregate snapshot + variable-template companions -
 bool tests_overlay_container_class();
 bool tests_overlay_variable_templates();
 

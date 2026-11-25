@@ -16,7 +16,7 @@
 * to
 * an edit that moves a key: reject (leave the entry) or reposition (erase the
 * stale slot and reinsert at the new key). Reposition IS structural mutation
-* --
+* -
 * it changes the set of positions - so it is unavailable here: a
 * fixed_registry
 * pins the rekey policy to reject_rekey and exposes update() (reject-only) and

@@ -378,7 +378,7 @@ struct has_parent_field : has_parent<Type>
 
 // The parent() method and the unified field-or-method probe are
 // node_common.hpp's has_parent_method and has_parent_access (decision L1).
-// This header asks them of a const tree - has_parent_access<const Type&> --
+// This header asks them of a const tree - has_parent_access<const Type&> -
 // as its own copies did.
 
 // has_depth_method

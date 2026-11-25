@@ -24,7 +24,7 @@
 *                              layout (Gamma) the builder folds, plus the
 *                            option
 *                              packs.  Pure compile time; no storage.
-*     - table_model_value<...> a VALUE: the same three layers as data --
+*     - table_model_value<...> a VALUE: the same three layers as data -
 *   cells,
 *                              a runtime_layout, and the headers / open
 *                            key-value

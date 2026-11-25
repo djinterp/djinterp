@@ -197,7 +197,7 @@ tests_concrete_visitor_multiple_elements
   where the chain actually recurses.
   Tests the following:
   - concrete_visitor<R, A, B, C> instantiates
-  - each element reaches its own overload, and the three results are DISTINCT --
+  - each element reaches its own overload, and the three results are DISTINCT -
     a chain that collapsed the overloads onto one another would still return a
     string, just the wrong one
 */

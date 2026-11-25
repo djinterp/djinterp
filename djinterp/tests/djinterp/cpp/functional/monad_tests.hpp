@@ -381,7 +381,7 @@ NS_END  // testing
 
 // monad_traits<DTestMaybe<T>>
 //   trait: the monad protocol implementation for the test monad.
-// Provides value_type, rebind, unit, and a short-circuiting bind --
+// Provides value_type, rebind, unit, and a short-circuiting bind -
 // the three primitives the generic operations build on.
 template<typename _Type>
 struct monad_traits< ::djinterp::DTestMaybe<_Type> >

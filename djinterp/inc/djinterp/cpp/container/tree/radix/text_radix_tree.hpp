@@ -34,7 +34,7 @@
 * ============================================================================
 *   ADDRESS. A node's address is the CONCATENATION of the edge labels from the
 * root down to it. The root's edge is empty - THE ROOT CONTRIBUTES NO LABEL
-* --
+* -
 * so the root's address is the EMPTY KEY, and find("") is the root. That is
 * the
 * base of the induction, not a special case.  keys() recovers every stored

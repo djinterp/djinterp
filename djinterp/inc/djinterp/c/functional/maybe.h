@@ -61,7 +61,7 @@
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it - ISO strict C++98
-// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
+// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS -
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
 #if RE_STD_HAS_INT64
@@ -81,7 +81,7 @@ struct dj_maybe
 // D_MAYBE_FIELDS
 //   macro: THE declaration of a maybe cell's layout, and the only one.
 // Goal 4 requires a shared type to be declared once and compiled by both
-// languages. A C++ face cannot reuse `D_MAYBE_DECLARE` inside a template --
+// languages. A C++ face cannot reuse `D_MAYBE_DECLARE` inside a template -
 // the macro names the struct - so the FIELDS are factored out here, and both
 // the C macro below and the C++ template in functional_face.hpp expand this
 // same text. Neither language restates the members.

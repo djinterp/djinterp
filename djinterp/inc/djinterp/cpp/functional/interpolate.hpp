@@ -1342,7 +1342,7 @@ public:
     {}
 
     // - resolver building: each returns a prepared interpolation SHARING the
-    //    cache (a refcount bump, never a piece copy) --
+    //    cache (a refcount bump, never a piece copy) -
 
     // interpolate - append a resolver frame (lazy; folds in on a terminal)
     template<typename R2>
@@ -1397,7 +1397,7 @@ public:
             m_template);
     }
 
-    // - terminals: replay the cache, never re-scan --
+    // - terminals: replay the cache, never re-scan -
 
     // str - render with the bound resolver chain
     D_NODISCARD string_type str() const
@@ -1424,7 +1424,7 @@ public:
     // - hot-path terminals: supply the resolver per render.  The cache is
     //    reused in place and the bound resolver is bypassed (it is the identity
     //    for a freshly prepared template), so reach for these when each render
-    //    carries its own complete bindings --
+    //    carries its own complete bindings -
 
     // str - render with a supplied resolver
     template<typename R2>

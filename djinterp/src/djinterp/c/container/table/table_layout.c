@@ -154,7 +154,7 @@ d_table_layout_split
   Replaces the merge at _which by _pieces, which must partition it. The cover is
 edited in place in the caller's array: the split cell is removed, and every
 piece that is itself a merge is appended. Pieces that come out singleton are NOT
-stored, because Gamma_0 already gives every uncovered position its own cell --
+stored, because Gamma_0 already gives every uncovered position its own cell -
 storing them would be a second spelling of the same cover.
 
   This is the OVERLAY move. Splitting a cell whose region is already a singleton

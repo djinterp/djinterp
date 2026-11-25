@@ -168,7 +168,7 @@ static_assert(has_nested_template_type<int>::value == false,
 // =========================================================================
 // III. has_variadic_constructor  (compile-time)
 // =========================================================================
-//   The trait's probe is `decltype(_Type(std::declval<_Type>()))` --
+//   The trait's probe is `decltype(_Type(std::declval<_Type>()))` -
 // i.e. constructible from itself.  Any copy- or move-constructible type
 // passes; only types that delete or hide the relevant constructor fail.
 

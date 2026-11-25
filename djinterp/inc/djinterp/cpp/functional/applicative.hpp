@@ -3,7 +3,7 @@
 *
 * Applicative protocol and its generic operations: ap and lift_a2 (C++).
 *   An applicative functor sits between Functor and Monad: it is a context
-* F<T> that, beyond plain map, can (1) lift a bare value into the context --
+* F<T> that, beyond plain map, can (1) lift a bare value into the context -
 * pure - and (2) apply a wrapped function to a wrapped argument - ap, the
 * operation written `<*>` in Haskell, F<(A -> B)> -> F<A> -> F<B>. From those
 * two, lift_a2 lifts an ordinary binary function (A, B) -> C to operate on two

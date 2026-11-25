@@ -73,7 +73,7 @@ TABLE OF CONTENTS
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it - ISO strict C++98
-// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
+// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS -
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
 #if RE_STD_HAS_INT64
@@ -160,7 +160,7 @@ struct dj_comparator_binding
 // 2.  ARRAY OPERATIONS
 //==============================================================================
 // Eager operations over contiguous arrays. None allocates. A call whose
-// parameters are unusable writes nothing and returns `false`, 0 or NULL --
+// parameters are unusable writes nothing and returns `false`, 0 or NULL -
 // values an ordinary call can also return, so they do not by themselves show
 // misuse.
 

@@ -617,7 +617,7 @@ using registry = DRegistry<Record, KeyProj, ValueProj, KeyCompare, UniqueKeys, K
 // ===========================================================================
 
 // DKvKey / kv_value
-//   projections: the canonical Key x Val projections for a DKvPair record --
+//   projections: the canonical Key x Val projections for a DKvPair record -
 // the key (.key, read only) and the value (.value, writable). Forwarding
 // call operators keep const-ness, so one functor serves reads and writes.
 struct DKvKey

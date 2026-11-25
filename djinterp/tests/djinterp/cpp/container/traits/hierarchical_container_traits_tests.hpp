@@ -209,25 +209,25 @@ using vec3 = std::vector<std::vector<std::vector<int>>>;
 // Test-function declarations (defined in the section .cpp files)
 // ===========================================================================
 
-// - I.   Structural detection signals --
+// - I.   Structural detection signals -
 bool tests_is_container_shape();
 bool tests_has_node_summand();
 bool tests_has_structure_category();
 
-// - II.  Recursive depth --
+// - II.  Recursive depth -
 bool tests_container_depth();
 bool tests_container_depth_maxdepth_cap();
 bool tests_max_depth_of();
 
-// - III. Tag reading + verdict --
+// - III. Tag reading + verdict -
 bool tests_is_hierarchical_container();
 bool tests_is_depth_bounded_container();
 
-// - IV.  Structure-kind summary --
+// - IV.  Structure-kind summary -
 bool tests_structure_kind_name();
 bool tests_structure_kind_of();
 
-// - V.   Aggregate snapshot + variable-template companions --
+// - V.   Aggregate snapshot + variable-template companions -
 bool tests_hierarchical_container_class();
 bool tests_variable_templates();
 

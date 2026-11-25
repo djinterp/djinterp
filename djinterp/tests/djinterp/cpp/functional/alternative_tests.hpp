@@ -10,7 +10,7 @@
 * producer specialize it in their own headers), so a suite must SUPPLY one.
 * Two fixtures are provided here:
 *
-*     - opt<T> : a maybe-like Alternative - engaged (holds a value) or empty --
+*     - opt<T> : a maybe-like Alternative - engaged (holds a value) or empty -
 *       with its own alternative_traits specialization (empty() = the disengaged
 *       value; choice(a, b) keeps the first that is engaged).  This is the
 *       uniform alternative every generic op (aempty / alt / asum) is driven on.

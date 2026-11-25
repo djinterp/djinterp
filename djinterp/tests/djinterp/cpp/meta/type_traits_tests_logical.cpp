@@ -26,7 +26,7 @@
 *   - disjunction: symmetric (empty pack -> std::false_type)
 *   - negation: flips the boolean of any unary trait
 *   - D_CONJUNCTION/D_DISJUNCTION/D_NEGATION: macros must resolve to a
-*     functioning logical metafunction in the active language mode --
+*     functioning logical metafunction in the active language mode -
 *     we use them in the same shape as the bare names and confirm equal
 *     answers.
 *

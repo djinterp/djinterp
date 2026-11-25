@@ -188,7 +188,7 @@ struct DLiteralNoopt
 };
 
 // nonliteral
-//   struct: a non-literal type (user-provided destructor) with no opt-in --
+//   struct: a non-literal type (user-provided destructor) with no opt-in -
 // classifies via the conservative runtime fallback.
 struct nonliteral
 {

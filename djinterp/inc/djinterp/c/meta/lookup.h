@@ -52,7 +52,7 @@
 *
 * WHAT A MISS RETURNS
 * ===================
-*   `found` false, `record` NULL, and `index` set to THE INSERTION POINT --
+*   `found` false, `record` NULL, and `index` set to THE INSERTION POINT -
 * where the key would go to keep the array ordered. That is what a caller
 * adding a row wants and what a bare "not found" throws away. For an unsorted
 * view the insertion point is `count`, because appending is the only placement
@@ -61,8 +61,8 @@
 *
 * WHAT THIS MODULE IS NOT
 * =======================
-*   IT DOES NOT OWN A SORTED INDEX. dj_registry keeps a permutation array --
-* `struct dj_registry_lookup_entry { const char* key; size_t row_index; }` --
+*   IT DOES NOT OWN A SORTED INDEX. dj_registry keeps a permutation array -
+* `struct dj_registry_lookup_entry { const char* key; size_t row_index; }` -
 * so that the rows themselves may stay in insertion order while lookup stays
 * logarithmic. That is a second container with its own invariants, and it
 * lands with the registry rather than being guessed at here. A view over the
@@ -95,7 +95,7 @@
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it - ISO strict C++98
-// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
+// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS -
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
 #if RE_STD_HAS_INT64

@@ -288,7 +288,7 @@ tests_traversable_concept
   GATES overload resolution.
   Tests the following:
   - it mirrors the trait, on both instances and on the negatives
-  - a constrained overload wins for a traversable and is excluded otherwise --
+  - a constrained overload wins for a traversable and is excluded otherwise -
     including for the mere applicative and for the marker-less near-miss
 */
 bool tests_traversable_concept()

@@ -331,7 +331,7 @@ bool tests_rt_pulls_a_lazy_generated_source()
 /*
 tests_rt_finds_begin_end_by_adl
   The iterable form says `using std::begin; using std::end;` and then calls them
-  unqualified, so a range that exposes only FREE begin/end - no members at all --
+  unqualified, so a range that exposes only FREE begin/end - no members at all -
   is still admitted, found by argument-dependent lookup.
   Tests the following:
   - a range with no member begin()/end() folds correctly

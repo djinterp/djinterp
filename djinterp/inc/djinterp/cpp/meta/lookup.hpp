@@ -8,7 +8,7 @@
 * WHAT C++ ADDS, AND WHY IT IS NOT JUST A WRAPPER
 * ===============================================
 *   lookup.h has to compare keys through a widened carrier, because a runtime
-* descriptor cannot name a type. That is why it has four find entry points --
+* descriptor cannot name a type. That is why it has four find entry points -
 * unsigned, signed, string, bytes - and why a key that is none of those has
 * nowhere to go.
 *
@@ -30,7 +30,7 @@
 * passed at zero cost through a struct. Here it is a template parameter with a
 * default, so `ascii_fold_less` is one comparator among any number and the
 * framework's own is not privileged. `DCiLess` is provided because the ASCII
-* fold is the one comparison the C side had to get right for determinacy --
+* fold is the one comparison the C side had to get right for determinacy -
 * std::tolower is locale-dependent, so a registry keyed on it answers
 * differently under different locales, and that reasoning is unchanged here.
 *

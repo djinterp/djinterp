@@ -4,7 +4,7 @@
 * `free<F,A>` and `cofree<F,A>`: the two recursive carriers of Table 7.2.
 *   `free<F,A> = mu X. (A + F X)` is a tree whose leaves are either a HOLE
 * carrying an `A` or a NODE carrying a label and its children. The parity
-* assessment calls it "the single most valuable C type in this whole plan --
+* assessment calls it "the single most valuable C type in this whole plan -
 * templates, open documents, and the parser all reduce to it", and the reason is
 * the hole: a free tree is a structure with typed gaps in it, and `bind` is
 * substitution into those gaps.
@@ -62,7 +62,7 @@
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it - ISO strict C++98
-// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
+// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS -
 // the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
 // question 1, (a)).
 #if RE_STD_HAS_INT64

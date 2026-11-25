@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                                    table_options.hpp
 *
-*   The option vocabulary shared by the two table declaration front ends --
+*   The option vocabulary shared by the two table declaration front ends -
 * table_builder (the compile-time TYPE DSL) and table_parser (the TEXT DSL).
 * Both build the same table (Overlays: parse and compose are opposite legs of
 * one prism; ch-parsing.tex), so both must read their configuration from ONE
@@ -715,7 +715,7 @@ D_CONSTEXPR bool is_table_option_pack_v =
     is_table_option_pack<Options...>::value;
 
 // DTableOptionSet
-//   type: the set of table options. A plain alias over option_set<> --
+//   type: the set of table options. A plain alias over option_set<> -
 // IDENTITY, not a subclass - so the section-VI readers (which pattern-match
 // option_set<>) consume it directly. Every entry shares key_type
 // table_opt_key, so option_set's single-key-type check rejects a stray foreign
@@ -743,7 +743,7 @@ using table_option_set = DTableOptionSet<Options...>;
 // positions of container_options.hpp - lifetime, bounds, ordering, ...).  They
 // cannot share a set: option_set resolves keys with == and so requires one
 // key_type per set, and the two vocabularies key off different enums
-// (table_opt_key vs container_axis).  A mixed pack is therefore PARTITIONED --
+// (table_opt_key vs container_axis).  A mixed pack is therefore PARTITIONED -
 // each half lifted into its own set - and each half read by its own reader
 // (the section-VI *_of<> shorthands here; container_axis_value_v there).
 //

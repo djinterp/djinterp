@@ -144,7 +144,7 @@ NS_END  // djinterp
 ///                IV.  seq<T> FOLDABLE PROTOCOL SPECIALIZATION              ///
 ///////////////////////////////////////////////////////////////////////////////
 //   Specialized in namespace djinterp (where the primary lives), written in the
-// same explicit <F, void> form the std::vector instance uses.  One obligation --
+// same explicit <F, void> form the std::vector instance uses.  One obligation -
 // the strict left fold - is enough for every generic fold to work over seq<T>.
 
 NS_DJINTERP

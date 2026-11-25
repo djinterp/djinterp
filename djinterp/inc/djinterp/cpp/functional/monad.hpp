@@ -267,7 +267,7 @@ NS_INTERNAL
     {};
 
     // is_monad_combinator_helper
-    //   helper: detection sink for "c.apply(m) is well-formed" --
+    //   helper: detection sink for "c.apply(m) is well-formed" -
     // i.e. Combinator is a pipeline combinator accepting a Monad
     // (primary: false).
     template<typename AlwaysVoid,
@@ -324,7 +324,7 @@ template<typename Monad,
 using monad_rebind_t = typename monad_rebind<Monad, To>::type;
 
 // is_monadic_function
-//   trait: true when Function is a valid Kleisli arrow for Monad --
+//   trait: true when Function is a valid Kleisli arrow for Monad -
 // callable with the monad's value type and yielding a (decayed)
 // result that is itself a monad.  SFINAE-safe for every argument: a
 // non-monad Monad, a non-callable Function, or a non-monad result

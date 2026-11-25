@@ -156,7 +156,7 @@ tests_ct_value_list_accumulator_may_evolve
   reducer's result becomes the next accumulator, so its TYPE may change at every
   step.
   Tests the following:
-  - folding with append grows a DValueList - a different type at each step --
+  - folding with append grows a DValueList - a different type at each step -
     ending as the copied list
   - folding with prepend REVERSES it, which pins the traversal order a second way
   - the empty case still yields the seed's type

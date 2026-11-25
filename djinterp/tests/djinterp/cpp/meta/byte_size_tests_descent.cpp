@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][meta]                               byte_size_tests_descent.cpp
 *
-*   Section IV of byte_size.hpp: byte_dynamic_helper's two specializations --
+*   Section IV of byte_size.hpp: byte_dynamic_helper's two specializations -
 * the primary (element is a leaf: stop at this level's own region) and the
 * recursing one (element is a nested container: own region plus the dynamic
 * footprint of every element).

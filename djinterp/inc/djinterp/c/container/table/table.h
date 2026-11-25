@@ -8,7 +8,7 @@
 * it.  If a change to this header would change a cell, the change belongs in
 * the core instead.
 *
-*   THE MODULE SPLIT, following the container subframework's own layout --
+*   THE MODULE SPLIT, following the container subframework's own layout -
 * `<mod>.h` beside `<mod>_common.h`, as array.h/array_common.h,
 * vector.h/vector_common.h and registry.h/registry_common.h already do.  There
 * is no umbrella: a consumer includes the face of its own language.

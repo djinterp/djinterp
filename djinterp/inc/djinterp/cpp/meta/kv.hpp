@@ -372,7 +372,7 @@ typename std::enable_if<is_kv_scalar<Type>::value, bool>::type kv_store(
 
 // kv_read
 //   function: copy an opaque span out into a typed destination. The width
-// contract is the C one - the slot and the destination must agree exactly --
+// contract is the C one - the slot and the destination must agree exactly -
 // and the trivially-copyable requirement is asserted rather than hoped for.
 template<typename Type>
 D_INLINE
@@ -482,7 +482,7 @@ kv_fields_disjoint() D_NOEXCEPT
 
 //   THERE ARE NO LAYOUT ASSERTIONS HERE EITHER, and for the same reason as in
 // kv.h. The four that used to sit at the bottom of this file all asserted that
-// the `kv_field` wrapper had not disturbed the C struct it inherited from --
+// the `kv_field` wrapper had not disturbed the C struct it inherited from -
 // that its sizeof matched, that it stayed standard-layout, that it stayed
 // trivially copyable. With no wrapper and no struct, there is no such claim to
 // make and nothing that could quietly stop being true.

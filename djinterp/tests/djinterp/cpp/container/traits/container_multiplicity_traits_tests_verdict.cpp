@@ -37,14 +37,14 @@ bool tests_multiplicity_kind_of()
 {
     bool _cmp_ok = true;
 
-    // - sequence: countable, comparator-less --
+    // - sequence: countable, comparator-less -
     D_CMP_CHECK( (multiplicity_kind_of<std::vector<int>>::value == DMultiplicityKind::sequence) );
     D_CMP_CHECK( (multiplicity_kind_of<std::deque<int>>::value  == DMultiplicityKind::sequence) );
     D_CMP_CHECK( (multiplicity_kind_of<std::list<int>>::value   == DMultiplicityKind::sequence) );
     D_CMP_CHECK( (multiplicity_kind_of<std::array<int, 4>>::value == DMultiplicityKind::sequence) );
     D_CMP_CHECK( (multiplicity_kind_of<std::string>::value      == DMultiplicityKind::sequence) );
 
-    // - unique: keyed + unique insert, an interval, or an opt-in of 1 --
+    // - unique: keyed + unique insert, an interval, or an opt-in of 1 -
     D_CMP_CHECK( (multiplicity_kind_of<std::set<int>>::value           == DMultiplicityKind::unique) );
     D_CMP_CHECK( (multiplicity_kind_of<std::unordered_set<int>>::value == DMultiplicityKind::unique) );
     D_CMP_CHECK( (multiplicity_kind_of<std::map<int, int>>::value      == DMultiplicityKind::unique) );
@@ -52,17 +52,17 @@ bool tests_multiplicity_kind_of()
     D_CMP_CHECK( (multiplicity_kind_of<DIntervalKeyed>::value          == DMultiplicityKind::unique) );  // interval > keyed
     D_CMP_CHECK( (multiplicity_kind_of<DOptinUnique>::value            == DMultiplicityKind::unique) );  // opt-in 1
 
-    // - unbounded_multiset: keyed, insert returns a bare iterator, or opt-in inf --
+    // - unbounded_multiset: keyed, insert returns a bare iterator, or opt-in inf -
     D_CMP_CHECK( (multiplicity_kind_of<std::multiset<int>>::value           == DMultiplicityKind::unbounded_multiset) );
     D_CMP_CHECK( (multiplicity_kind_of<std::multimap<int, int>>::value      == DMultiplicityKind::unbounded_multiset) );
     D_CMP_CHECK( (multiplicity_kind_of<std::unordered_multiset<int>>::value == DMultiplicityKind::unbounded_multiset) );
     D_CMP_CHECK( (multiplicity_kind_of<DOptinUnbounded>::value              == DMultiplicityKind::unbounded_multiset) );
 
-    // - bounded_multiset: reachable ONLY through the opt-in (1 < m < inf) --
+    // - bounded_multiset: reachable ONLY through the opt-in (1 < m < inf) -
     D_CMP_CHECK( (multiplicity_kind_of<DOptinBounded>::value       == DMultiplicityKind::bounded_multiset) );
     D_CMP_CHECK( (multiplicity_kind_of<DOptinOverInterval>::value == DMultiplicityKind::bounded_multiset) );  // opt-in > interval
 
-    // - unknown: not countable, or an opt-in of 0 (below the floor) --
+    // - unknown: not countable, or an opt-in of 0 (below the floor) -
     D_CMP_CHECK( (multiplicity_kind_of<std::forward_list<int>>::value == DMultiplicityKind::unknown) );  // no size()
     D_CMP_CHECK( (multiplicity_kind_of<DKeyedNoSize>::value          == DMultiplicityKind::unknown) );  // guard precedes key logic
     D_CMP_CHECK( (multiplicity_kind_of<int>::value                    == DMultiplicityKind::unknown) );

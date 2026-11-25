@@ -6,7 +6,7 @@
 * registry:
 * a single option, an option (sub)set, a runtime key/value, or a pair all
 * drive
-* the same primitive.  The governing idea --
+* the same primitive.  The governing idea -
 *
 *       AN OPTION IS SHORTHAND FOR (lookup by key) + (set value in its
 *     column).
@@ -474,7 +474,7 @@ Reg& apply_all(
 // registry (value projection = whole_record). Routed through update(), so the
 // key stays guarded: a value column commits; the key column trips the rekey
 // strategy (Policy, defaulting to the registry's). For a
-// distinct-value-column registry, "the value column" is already the target --
+// distinct-value-column registry, "the value column" is already the target -
 // use apply_option() instead.
 template<std::size_t J,
          typename    Policy = void,

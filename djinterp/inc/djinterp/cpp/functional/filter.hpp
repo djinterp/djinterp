@@ -1359,7 +1359,7 @@ DTypedFilter<Type, internal::DTypedIdentity<Type> > make_typed_filter()
 // header keeps its C++11 floor and pulls in no container header for them.
 // (changed 2026-11-09)
 //
-//   The detection idiom underneath - is_detected, detected_or_t, nonesuch --
+//   The detection idiom underneath - is_detected, detected_or_t, nonesuch -
 // is core/meta/type_traits.hpp's. (This header used to keep its own copy in
 // djinterp::internal, as accumulator.hpp did, on the belief that identical
 // definitions do not conflict; within one translation unit they do, so no
@@ -1619,7 +1619,7 @@ template<typename Fn,
 concept filter_operation_c = is_filter_operation<Fn, Elem>::value;
 
 // filter_applicable_c
-//   concept: satisfied when Type can be applied over a vector<Elem> --
+//   concept: satisfied when Type can be applied over a vector<Elem> -
 // i.e. exposes .apply(const vector<Elem>&). Modelled by DFilterChain,
 // DFilterBuilder, and DTypedFilter.
 template<typename Type,

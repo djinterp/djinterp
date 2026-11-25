@@ -215,7 +215,7 @@ bool tests_functor_cata_integration();
 ///             IV.   TRAVERSABLE INSTANCES                                 ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// traversable_traits specialisations (only poly_var / poly_unit / poly_const --
+// traversable_traits specialisations (only poly_var / poly_unit / poly_const -
 // poly_sum / poly_product are Functor-only), traverse, and sequence
 bool tests_is_traversable_poly();
 bool tests_is_traversable_negative();

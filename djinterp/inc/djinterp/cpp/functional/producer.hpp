@@ -1365,7 +1365,7 @@ NS_INTERNAL
 
 
     // is_producer_helper
-    //   trait: detects whether Type satisfies the producer protocol --
+    //   trait: detects whether Type satisfies the producer protocol -
     // it has a nested value_type, is const-invocable with no arguments,
     // and the call result is a DProducerStep. Primary / failure case.
     template<typename Type,

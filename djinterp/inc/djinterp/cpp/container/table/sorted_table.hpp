@@ -11,7 +11,7 @@
 *
 *     sorted  (sequence-level)  the rows are kept in non-decreasing order of a
 *                               designated KEY COLUMN under a cell comparator
-*                             --
+*                             -
 *                               the restriction varsigma of the vocabulary.
 *
 *   and, optionally, a second restriction composing with it:

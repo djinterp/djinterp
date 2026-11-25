@@ -101,7 +101,7 @@ struct const_fn
     int operator()(int _x) const { return _x * 2; }
 };
 
-// nonconst_fn: operator() is NOT const, so a const-lvalue call is ill-formed --
+// nonconst_fn: operator() is NOT const, so a const-lvalue call is ill-formed -
 // the trait must reject it.
 struct nonconst_fn
 {

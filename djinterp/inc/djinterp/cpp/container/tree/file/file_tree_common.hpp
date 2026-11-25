@@ -33,7 +33,7 @@
 * INCLUDED THE ROOT'S OWN NAME; resolve(p) starts AT the root and descends.
 * They
 * disagreed by exactly one component, so resolve(full_path(n)) == null_file_node,
-* never n. The round trip - the one contract an addressable container owes --
+* never n. The round trip - the one contract an addressable container owes -
 * was broken for every node in the tree, and it took every path predicate down
 * with it: by_path_prefix("src") could never match, because every full_path
 * began "project/...". THE ROOT CONTRIBUTES NO LABEL. address() now names a
@@ -97,7 +97,7 @@
 * same operation.
 *
 *   RENAMING. A map over names keeps every position, and so keeps every path
-* --
+* -
 * but only while the names stay APART.  A rename that is not injective ON
 * SIBLINGS collides two entries onto one name, and on a filesystem that is not
 * an abstraction being violated, it is two files becoming one.
@@ -1446,7 +1446,7 @@ public:
 
     // rename
     //   const: a NEW TREE of the SAME SHAPE, every name rewritten to
-    // _fn(name). Every position is kept, so every path carries over --
+    // _fn(name). Every position is kept, so every path carries over -
     // PROVIDED the rename separates. Ask rename_preserves_separation() first;
     // where it says no, two
     // siblings collide and the second is dropped rather than silently
@@ -1489,7 +1489,7 @@ public:
 
     // transform
     //   const: a NEW TREE of the SAME SHAPE, every PAYLOAD rewritten to
-    // _fn(entry). The names are the tree's labels and are NOT touched here --
+    // _fn(entry). The names are the tree's labels and are NOT touched here -
     // that is rename()'s job, and the reason it is a separate operation is
     // that renaming can break separation while re-typing and re-sizing cannot.
     //
@@ -1556,7 +1556,7 @@ public:
     // add_child
     //   inserts a child under _parent and returns its id. SEPARATION IS AN
     // INVARIANT, NOT A HOPE. If _parent already holds a child of this name,
-    // THE EXISTING ID IS RETURNED and no second node is made --
+    // THE EXISTING ID IS RETURNED and no second node is made -
     // a
     // directory cannot hold two entries of one name, and the old code, which
     // wrote `m_lookup[key] = id`, did not so much reject the duplicate as

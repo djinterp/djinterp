@@ -189,25 +189,25 @@ struct no_signal
 // Test-function declarations (defined in the section .cpp files)
 // ===========================================================================
 
-// - I.   Storage-shape signals --
+// - I.   Storage-shape signals -
 bool tests_has_static_storage_signal();
 bool tests_has_dynamic_storage_signal();
 
-// - II.  The container siting classifier --
+// - II.  The container siting classifier -
 bool tests_storage_duration_of();
 bool tests_storage_duration_of_companions();
 
-// - III. Container siting predicates --
+// - III. Container siting predicates -
 bool tests_is_static_storage_container();
 bool tests_is_dynamic_storage_container();
 bool tests_is_hybrid_storage_container();
 bool tests_has_static_storage_component_container();
 bool tests_has_dynamic_storage_component_container();
 
-// - IV.  Cross-axis entailment --
+// - IV.  Cross-axis entailment -
 bool tests_static_storage_implies_constexpr_size();
 
-// - V.   Aggregate snapshot + variable-template companions --
+// - V.   Aggregate snapshot + variable-template companions -
 bool tests_container_storage_class();
 bool tests_storage_variable_templates();
 

@@ -37,7 +37,7 @@ bool tests_container_memory_discipline()
 {
     bool _cm_ok = true;
 
-    // - individual: the plain-allocator default (step 2, discipline_of -> unknown) --
+    // - individual: the plain-allocator default (step 2, discipline_of -> unknown) -
     D_CM_CHECK( (container_memory_discipline<std::vector<int>>::value        == DMemoryDiscipline::individual) );
     D_CM_CHECK( (container_memory_discipline<std::deque<int>>::value         == DMemoryDiscipline::individual) );
     D_CM_CHECK( (container_memory_discipline<std::list<int>>::value          == DMemoryDiscipline::individual) );
@@ -54,19 +54,19 @@ bool tests_container_memory_discipline()
     // individual via allocator precedence over a static signal (step 2 beats step 3)
     D_CM_CHECK( (container_memory_discipline<alloc_beats_static>::value      == DMemoryDiscipline::individual) );
 
-    // - none: an inline aggregate (step 3) or a descriptive strategy (step 1) --
+    // - none: an inline aggregate (step 3) or a descriptive strategy (step 1) -
     D_CM_CHECK( (container_memory_discipline<std::array<int, 4>>::value      == DMemoryDiscipline::none) );  // tuple_size signal
     D_CM_CHECK( (container_memory_discipline<extent_aggregate>::value        == DMemoryDiscipline::none) );  // extent signal
     D_CM_CHECK( (container_memory_discipline<descriptive_via_strategy>::value == DMemoryDiscipline::none) );  // strategy allocates nothing
 
-    // - pooled: an explicit alias, or an allocator that declares the discipline --
+    // - pooled: an explicit alias, or an allocator that declares the discipline -
     D_CM_CHECK( (container_memory_discipline<pooled_via_strategy>::value     == DMemoryDiscipline::pooled) );   // step 1
     D_CM_CHECK( (container_memory_discipline<pooled_via_allocator>::value    == DMemoryDiscipline::pooled) );   // step 2 declared
 
-    // - arena: an explicit alias to a monotone strategy --
+    // - arena: an explicit alias to a monotone strategy -
     D_CM_CHECK( (container_memory_discipline<arena_via_strategy>::value      == DMemoryDiscipline::arena) );
 
-    // - unknown: not resolvable --
+    // - unknown: not resolvable -
     D_CM_CHECK( (container_memory_discipline<int>::value                     == DMemoryDiscipline::unknown) );  // step 5
     // alias precedence: the alias resolves to unknown and wins over the allocator
     D_CM_CHECK( (container_memory_discipline<alias_unknown_container>::value == DMemoryDiscipline::unknown) );

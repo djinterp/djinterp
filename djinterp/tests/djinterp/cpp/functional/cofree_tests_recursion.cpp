@@ -453,7 +453,7 @@ dt::block_spec cofree_recursion_block()
     block.descriptor =
         "annotated base functor; recursive_traits registration; annotated fold";
 
-    // - IV. DEnvLayer and its Functor --
+    // - IV. DEnvLayer and its Functor -
 
     block.tests.push_back(dt::test_spec{
         "is_functor: env_layer",
@@ -485,7 +485,7 @@ dt::block_spec cofree_recursion_block()
         "env_layer<B, F, mapped hole>",
         &tests_env_layer_map_result_type });
 
-    // - V. recursion registration --
+    // - V. recursion registration -
 
     block.tests.push_back(dt::test_spec{
         "is_recursive: cofree (from cofree.hpp alone)",
@@ -517,7 +517,7 @@ dt::block_spec cofree_recursion_block()
         "annotation plus an empty layer",
         &tests_project_leaf });
 
-    // - VI. annotated fold --
+    // - VI. annotated fold -
 
     block.tests.push_back(dt::test_spec{
         "annotated_cata: sum of heads",

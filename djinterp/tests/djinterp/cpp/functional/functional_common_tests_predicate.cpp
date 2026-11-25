@@ -100,7 +100,7 @@ bool tests_is_predicate_convertible_results()
 /*
 tests_is_predicate_explicit_operator_bool
   The conversion must be IMPLICIT: a result whose operator bool is explicit is
-  not convertible in the trait's sense, so such a callable is not a predicate --
+  not convertible in the trait's sense, so such a callable is not a predicate -
   even though `if (p(x))` would compile via contextual conversion.
   Tests the following:
   - an explicit operator bool result is rejected

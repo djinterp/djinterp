@@ -817,7 +817,7 @@ using fn_builder_input_type_t =
 
 
 // fn_builder_current_type
-//   trait: the current (output) element type CurrentType of a builder --
+//   trait: the current (output) element type CurrentType of a builder -
 // the element type its execute() yields. SFINAE-friendly.
 template<typename Builder>
 struct fn_builder_current_type

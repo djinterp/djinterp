@@ -3,7 +3,7 @@
 *
 * Enum-keyed map container.
 *   A map whose key type is constrained to be an enumeration (scoped or
-* unscoped).  Values have a fixed, template-parameterized type --
+* unscoped).  Values have a fixed, template-parameterized type -
 * consequently, an enum_map always has homogeneous values.
 *
 *   enum_map participates fully in the djinterp container trait system:

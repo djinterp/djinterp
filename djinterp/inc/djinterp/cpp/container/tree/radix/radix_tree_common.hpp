@@ -49,7 +49,7 @@
 *      (section V) so the two trees keep compiling while they are ported.
 *
 *   3. A POINTER KEY PASSED THE TRAIT AND THEN FAILED TO COMPILE.
-*      is_binary_key admitted pointers --
+*      is_binary_key admitted pointers -
 *
 *          ( is_integral<T> || is_pointer<T> ) && is_trivially_copyable<T>
 *
@@ -1007,7 +1007,7 @@ DTextPrefixMatchResult text_prefix_compare(
 // significant bit, so the word reads root-first - the order a descent
 // consumes it in.
 //
-//   POINTER KEYS WORK NOW. The old body shifted _key directly, so a pointer --
+//   POINTER KEYS WORK NOW. The old body shifted _key directly, so a pointer -
 // which is_binary_key has always admitted - was a hard compile error at the
 // first instantiation ("invalid static_cast from 'long unsigned int' to
 // 'int*'"). The shift happens on key_bits(), so a pointer is shifted as its

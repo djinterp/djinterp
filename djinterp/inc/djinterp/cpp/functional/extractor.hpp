@@ -534,7 +534,7 @@ NS_INTERNAL
     // DDefaultedHelper
     //   helper: lifts a maybe-returning extractor back to a total
     // extractor by substituting a stored default whenever the
-    // inner returns nothing. The inner MUST return a maybe<T> --
+    // inner returns nothing. The inner MUST return a maybe<T> -
     // this is the dual of filtered/guarded/try_extract.
     template<typename Extractor,
              typename Default>

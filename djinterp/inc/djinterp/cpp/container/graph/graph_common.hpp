@@ -21,8 +21,8 @@
 *      is a typed wrapper around an unsigned integer, every policy is
 *      a tag struct of type aliases and `static constexpr` flags.
 *   3. Containers as storage: the adjacency container per vertex is
-*      a template parameter of `DGraph<>`, so any djinterp container --
-*      sequential, sorted, hashed, threadsafe, even another graph --
+*      a template parameter of `DGraph<>`, so any djinterp container -
+*      sequential, sorted, hashed, threadsafe, even another graph -
 *      may serve as the adjacency list.
 *   4. C++11 baseline; feature-gated extensions for >= C++14/17/20.
 *

@@ -114,7 +114,7 @@ struct ident
 ///                II.  CO-KLEISLI FUNCTORS                                  ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// - generic (any comonad, via extract) --
+// - generic (any comonad, via extract) -
 
 // DCoExtract
 //   W -> A: the focus.  extend(w, DCoExtract) is the comonad left identity.
@@ -182,7 +182,7 @@ struct DCoId
     }
 };
 
-// - environment-reading (prove extend sees the whole context) --
+// - environment-reading (prove extend sees the whole context) -
 
 // DPairEnvFocus
 //   std::pair<std::string,int> -> int: focus plus the environment's length, so

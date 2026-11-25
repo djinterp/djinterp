@@ -35,7 +35,7 @@ bool tests_iterable_container_class()
 {
     bool _ic_ok = true;
 
-    // - std::vector<int>: fully iterable, settable --
+    // - std::vector<int>: fully iterable, settable -
     {
         using C = DIterableContainerClass<std::vector<int>>;
         D_IC_CHECK( (C::has_begin && C::has_end) );
@@ -46,7 +46,7 @@ bool tests_iterable_container_class()
         D_IC_CHECK( (ic_cstr_eq(C::mode_name, "non_const")) );
     }
 
-    // - std::set<int>: iterable, const element -> const_only --
+    // - std::set<int>: iterable, const element -> const_only -
     {
         using C = DIterableContainerClass<std::set<int>>;
         D_IC_CHECK( (C::has_begin && C::has_end) );
@@ -56,14 +56,14 @@ bool tests_iterable_container_class()
         D_IC_CHECK( (ic_cstr_eq(C::mode_name, "const_only")) );
     }
 
-    // - std::map<int,int>: const KEY (not a const element) -> also const_only --
+    // - std::map<int,int>: const KEY (not a const element) -> also const_only -
     {
         using C = DIterableContainerClass<std::map<int, int>>;
         D_IC_CHECK( (C::is_iterable && C::provides_const && !C::provides_mutable) );
         D_IC_CHECK( (C::mode == DIterationMode::const_only) );
     }
 
-    // - DMutableOnlyIter: settable, but nothing callable on a const lvalue --
+    // - DMutableOnlyIter: settable, but nothing callable on a const lvalue -
     {
         using C = DIterableContainerClass<DMutableOnlyIter>;
         D_IC_CHECK( (C::has_begin && C::has_end) );
@@ -74,7 +74,7 @@ bool tests_iterable_container_class()
         D_IC_CHECK( (C::mode == DIterationMode::non_const) );
     }
 
-    // - DConstOnlyIter: a const-only traversal --
+    // - DConstOnlyIter: a const-only traversal -
     {
         using C = DIterableContainerClass<DConstOnlyIter>;
         D_IC_CHECK( (C::has_begin && C::has_end && C::is_iterable) );
@@ -82,7 +82,7 @@ bool tests_iterable_container_class()
         D_IC_CHECK( (C::mode == DIterationMode::const_only) );
     }
 
-    // - DNoValueTypeIter: iterable, but not container-shaped --
+    // - DNoValueTypeIter: iterable, but not container-shaped -
     {
         using C = DIterableContainerClass<DNoValueTypeIter>;
         D_IC_CHECK( (C::is_iterable) );
@@ -91,7 +91,7 @@ bool tests_iterable_container_class()
         D_IC_CHECK( (C::mode == DIterationMode::const_only) );
     }
 
-    // - positional_only: the canonical NON-iterable container --
+    // - positional_only: the canonical NON-iterable container -
     {
         using C = DIterableContainerClass<positional_only>;
         D_IC_CHECK( (!C::has_begin && !C::has_end) );
@@ -101,7 +101,7 @@ bool tests_iterable_container_class()
         D_IC_CHECK( (ic_cstr_eq(C::mode_name, "none")) );
     }
 
-    // - DBeginOnly: every layer disagreeing at once --
+    // - DBeginOnly: every layer disagreeing at once -
     {
         using C = DIterableContainerClass<DBeginOnly>;
         D_IC_CHECK( (C::has_begin && !C::has_end) );     // half a traversal ...
@@ -111,7 +111,7 @@ bool tests_iterable_container_class()
         D_IC_CHECK( (C::mode == DIterationMode::none) );  // ... but the mode gates on iterability
     }
 
-    // - DAliasOnly: aliases with no traversal and no value_type --
+    // - DAliasOnly: aliases with no traversal and no value_type -
     {
         using C = DIterableContainerClass<DAliasOnly>;
         D_IC_CHECK( (C::has_iter_alias && C::has_const_iter_alias) );
@@ -120,7 +120,7 @@ bool tests_iterable_container_class()
         D_IC_CHECK( (C::mode == DIterationMode::none) );
     }
 
-    // - int: nothing at all --
+    // - int: nothing at all -
     {
         using C = DIterableContainerClass<int>;
         D_IC_CHECK( (!C::has_begin && !C::has_end) );
@@ -131,7 +131,7 @@ bool tests_iterable_container_class()
         D_IC_CHECK( (ic_cstr_eq(C::mode_name, "none")) );
     }
 
-    // - const std::vector<int>&: cv-ref stripped, so it matches the bare type --
+    // - const std::vector<int>&: cv-ref stripped, so it matches the bare type -
     {
         using C = DIterableContainerClass<const std::vector<int>&>;
         D_IC_CHECK( (C::is_iterable && C::provides_mutable) );

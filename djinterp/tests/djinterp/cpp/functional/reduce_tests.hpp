@@ -19,7 +19,7 @@
 *                    UNCHANGED to all three drivers.  If the thesis holds it
 *                    returns the element count in every domain, and it does.
 *
-*     DSumWith<Leaf> is one reducer body parameterised by a LEAF.  Three leaves --
+*     DSumWith<Leaf> is one reducer body parameterised by a LEAF.  Three leaves -
 *                    DRtLeaf (a runtime value), DValLeaf (a val_t carrier),
 *                    DTypeLeaf (a type_t carrier) - are the only thing that
 *                    changes between the domains, which is exactly what the

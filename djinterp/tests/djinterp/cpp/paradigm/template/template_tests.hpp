@@ -21,7 +21,7 @@
 * dialects.
 *
 *   BUILD PREREQUISITE (see the accompanying report): as shipped, the tagless
-* detectors deduce `invoke_result_t<_Fn, ...>` - probing _Fn as an RVALUE --
+* detectors deduce `invoke_result_t<_Fn, ...>` - probing _Fn as an RVALUE -
 * while the algebra stores F by value and invokes it from CONST member
 * functions (DTransformerHelper::operator(), DTemplateSystem::apply).  A functor
 * whose operator() is non-const therefore satisfies is_transformation (and the

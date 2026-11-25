@@ -205,7 +205,7 @@ bool tests_has_find_method_return_conversion()
 
 /*
 tests_has_find_method_const_lvalue
-  has_find_method probes `declval<const _Type&>().find(...)` - a CONST lvalue --
+  has_find_method probes `declval<const _Type&>().find(...)` - a CONST lvalue -
   so a non-const find is not detected. Worth pinning: it is the opposite of the
   arity trilogy in this same header, which probes a mutable lvalue.
   Tests the following:

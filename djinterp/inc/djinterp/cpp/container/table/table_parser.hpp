@@ -17,7 +17,7 @@
 * but
 * because both name one carrier and the text leg is invertible.
 *
-*   ALIGNMENT CARRIES THE SPANS. A merged cell is not announced in the text --
+*   ALIGNMENT CARRIES THE SPANS. A merged cell is not announced in the text -
 * it
 * is SEEN.  Its span is read from where the delimiters fall:
 *

@@ -7,7 +7,7 @@
 * the axes (columns<> / rows<>) and the cells (row<>, cell<>, merged_cell<>,
 * split_cell<>), which this header FOLDS into the table model - a table_shape
 * (the domain I_T and the cell types tau_c) and a layout (the overlay Gamma)
-* --
+* -
 * whence a concrete container is realized.  It is the compose leg of the prism
 * (ch-parsing.tex) with C++ types, rather than text, as the surface; the text
 * leg
@@ -988,7 +988,7 @@ NS_END  // internal
 //   type: a table declared as a type. Reads its declarators, folds them into a
 // shape and a layout, and exposes the model the realization consumes.
 //
-//   Decls...: the declarators, in order --
+//   Decls...: the declarators, in order -
 //     columns<...> an axis group (its types are the column types)
 //     rows<...> a flat run of cell entries (wrapped at the width), or,
 //                       when it LEADS, the transposed axis declarator

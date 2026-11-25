@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                               table_tests_sorted.cpp
 *
-* sorted_table.hpp: the rank-2 table kept sorted on a key column --
+* sorted_table.hpp: the rank-2 table kept sorted on a key column -
 * construction, lookup, insertion with unique and repeated keys, refusal, and
 * erasure.
 *

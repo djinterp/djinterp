@@ -16,7 +16,7 @@
 *
 *   USE - IN CONJUNCTION WITH STRUCTURAL DETECTION:
 *   The structure axis is decided primarily by structural SFINAE traits (see
-* hierarchical_container_traits.hpp): a node_type member - the F[T] summand --
+* hierarchical_container_traits.hpp): a node_type member - the F[T] summand -
 * is the strong, authoritative tell, and a container-shaped value_type is a
 * weaker structural heuristic.  This tag is the OPT-IN supplement a type carries
 * through `using structure_category = hierarchical;`, asserting hierarchy that

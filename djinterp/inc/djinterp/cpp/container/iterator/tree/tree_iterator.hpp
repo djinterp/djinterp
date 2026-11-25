@@ -846,7 +846,7 @@ private:
 
     // advance_post
     //   steps to the next node in post-order: the root is last; otherwise the
-    // leftmost leaf of the next sibling, or - there being no next sibling --
+    // leftmost leaf of the next sibling, or - there being no next sibling -
     // the parent, whose children are now complete.
     D_CONSTEXPR_CPP14
     void

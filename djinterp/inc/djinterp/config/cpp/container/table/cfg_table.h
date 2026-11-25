@@ -651,7 +651,7 @@ TABLE OF CONTENTS
 // go.
 
 // D_INTERNAL_TABLE_<CHARACTER>
-//   internal: the dialect characters as the modules read them --
+//   internal: the dialect characters as the modules read them -
 // D_INTERNAL_TABLE_DELIMITER, _PAD, _SEPARATOR_FILL, _ELLIPSIS and
 // _ITERATION_SIGIL, each its D_CFG_TABLE_* knob unchanged.
 

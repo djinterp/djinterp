@@ -20,7 +20,7 @@
 // with no boilerplate at all - no pure virtuals to satisfy, nothing to derive
 // from.
 //
-//   This is also the section the shipped header could not reach.  Bug A --
+//   This is also the section the shipped header could not reach.  Bug A -
 // `static constexpr dispatch_fn table[]` inside a D_CONSTEXPR_INLINE function, which
 // is ill-formed before C++23 - meant the header did not compile AT ALL at C++17 or
 // C++20, with nothing instantiated.  The two dialects the variant visitor exists for

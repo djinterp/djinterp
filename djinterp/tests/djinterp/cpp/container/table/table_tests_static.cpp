@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][container]                               table_tests_static.cpp
 *
-* static_table.hpp: the compile-time, read-only rank-2 table --
+* static_table.hpp: the compile-time, read-only rank-2 table -
 * construction, constant evaluation, map, equality, the serial pair and
 * detection.
 *

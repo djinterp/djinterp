@@ -7,7 +7,7 @@
 * complicating either:
 *
 *     1. CELL INTERPOLATION.  A cell's text may carry {key} placeholders; a
-*        resolver says what each becomes. This is not re-implemented here --
+*        resolver says what each becomes. This is not re-implemented here -
 *      it
 *        IS interpolate.hpp (DBraceScanner / resolver / sink), applied per
 *      cell.
@@ -392,7 +392,7 @@ NS_INTERNAL
 
     // expand_header_stack (an opaque stack)
     //   function: a header representation this layer cannot read is left alone
-    // --
+    // -
     // the same stance table_metadata takes with header_extent, and render with
     // is_header_stack.
     template<typename Stack>
@@ -560,7 +560,7 @@ D_NODISCARD parse::parse_result<DTableModelValue<Cell, Metadata>> expand_multi_p
 // (DBraceScanner over the cell, the caller's resolver, a string sink), so the
 // table surface inherits that module's whole vocabulary - inline bindings, a
 // callable lookup, chained frames, predicate-gated frames, recursive expansion
-// --
+// -
 // for free, and behaves identically to every other interpolated text in the
 // framework. In particular a MISS LEAVES THE PLACEHOLDER STANDING, so a table
 // may be filled in passes.

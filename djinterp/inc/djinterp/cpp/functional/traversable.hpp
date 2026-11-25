@@ -27,7 +27,7 @@
 * header (maybe / result over their zero-or-one element; view / producer by
 * folding the sequence and materialising into F<std::vector<B>>).
 *
-*   F (the effect) cannot be deduced from the value of an empty structure --
+*   F (the effect) cannot be deduced from the value of an empty structure -
 * a nothing or an empty sequence never calls f - so it is recovered from the
 * *type* of f's result, decltype(f(declval<A>())) = F<B>; the empty case then
 * uses pure to inject the empty shape. This is why traverse works even when f

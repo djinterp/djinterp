@@ -5,8 +5,8 @@
 * shared fixtures only; each predicate is defined in the section translation unit
 * that owns it, and every test is flat in djinterp::testing.
 *
-*   The header under test offers FOUR dispatch strategies over the same idea --
-* "let an operation be added to a hierarchy without touching the hierarchy" --
+*   The header under test offers FOUR dispatch strategies over the same idea -
+* "let an operation be added to a hierarchy without touching the hierarchy" -
 * and they trade against each other along two axes: WHEN the element type is
 * recovered, and WHAT happens when the visitor does not handle it.
 *
@@ -28,7 +28,7 @@
 *
 *   The two runtime forms are the interesting pair, because they are so easily
 * conflated: both use RTTI, both are "the visitor pattern".  The difference is
-* the CONTRACT, and the suite pins it from both sides --
+* the CONTRACT, and the suite pins it from both sides -
 * tests_d_visitable_unhandled_element_throws and
 * tests_d_acyclic_visitable_ignores_unhandled are the same scenario with opposite
 * required outcomes, and a header that got either one backwards would still pass
@@ -313,7 +313,7 @@ class acyclic_tri;
 
 // acyclic_circle / acyclic_rect / acyclic_tri
 //   fixture: three independent elements.  They share no element root beyond
-// acyclic_visitable<> and, crucially, the VISITOR base knows nothing about them --
+// acyclic_visitable<> and, crucially, the VISITOR base knows nothing about them -
 // that is the acyclicity.  acyclic_tri exists to be the element the partial
 // visitor below does not handle.
 class acyclic_circle : public DAcyclicVisitable<>

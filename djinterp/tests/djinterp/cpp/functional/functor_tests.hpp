@@ -698,7 +698,7 @@ struct functor_traits<testing::DLazyView<_Src, _Fn>, void>
     // NOTE: deliberately NO rebind - there is no single F<U> to name.
 
     // map is SFINAE-constrained on _Gn being applicable to what this view
-    // currently yields, so an unusable function makes the pair unmappable --
+    // currently yields, so an unusable function makes the pair unmappable -
     // as it would for any real view.
     template<typename _Gn,
              typename = decltype(std::declval<_Gn&>()(

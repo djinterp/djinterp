@@ -49,7 +49,7 @@ NS_DJINTERP
 
 
 // SortedEnumerable
-//   concept: enumerating it is GUARANTEED to yield comparator order --
+//   concept: enumerating it is GUARANTEED to yield comparator order -
 // monotone (keyed, comparator-equipped) or sorted (positional,
 // invariant-held).
 // This is the property that lets a container be PRESENTED in order without

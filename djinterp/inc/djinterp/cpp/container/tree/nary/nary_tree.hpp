@@ -1740,12 +1740,12 @@ public:
 
     // transform
     //   const: a NEW TREE of the SAME SHAPE, every value rewritten to _fn(v).
-    // Every position is kept and every arrangement with it, so every PATH --
+    // Every position is kept and every arrangement with it, so every PATH -
     // and hence every ADDRESS - carries over intact.
     //
     //   WITH ONE EXCEPTION, and it is the spec's. Where the label is DERIVED
     // from the value (gamma = lab . val), an _fn that is not injective ON
-    // LABELS can collide two siblings onto one label and BREAK SEPARATION --
+    // LABELS can collide two siblings onto one label and BREAK SEPARATION -
     // and a tree that does not separate is not addressable, whatever its
     // shape.
     // This is not a new hazard: it is the loss of mu_1 that the
@@ -1865,7 +1865,7 @@ public:
     // 10. SEQUENCE BRIDGE
     // -----------------------------------------------------------------
     //   filter.hpp is a SEQUENCE library: its operations are
-    // std::function<vector<size_t>(const vector<T>&)>, and its is_filterable --
+    // std::function<vector<size_t>(const vector<T>&)>, and its is_filterable -
     // like the framework's is_container_filterable - wants push_back or
     // insert. This container has neither and should have neither: a tree has no
     // "back" to push onto, and WHERE a new node goes is a structural decision,

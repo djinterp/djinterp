@@ -269,7 +269,7 @@ struct DCountOp
 
 // - negatives / look-alikes ----------------------------------------------
 
-// DFakeList: mimics the interface but is NOT a DValueList specialization --
+// DFakeList: mimics the interface but is NOT a DValueList specialization -
 // detection is specialization-based, so this must be refused.
 struct DFakeList
 {

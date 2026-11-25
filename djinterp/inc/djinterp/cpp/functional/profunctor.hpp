@@ -6,7 +6,7 @@
 * first parameter and *covariant* in its second - the shape of a computation
 * "from A to B". The one operation, dimap(p, pre, post), pre-composes pre : A'
 * -> A onto the input and post-composes post : B -> B' onto the output, turning
-* a P<A, B> into a P<A', B'>. For the canonical instance - a function arrow --
+* a P<A, B> into a P<A', B'>. For the canonical instance - a function arrow -
 * dimap(f, pre, post) is exactly post . f . pre. Where Bifunctor mapped both
 * parameters covariantly, Profunctor flips the first: you adapt the input by
 * mapping *into* the original domain, and adapt the output by mapping *out* of
@@ -187,7 +187,7 @@ NS_INTERNAL
     };
 
     // DProfunctorDimapHelper
-    //   helper: the composed callable behind a function arrow's dimap --
+    //   helper: the composed callable behind a function arrow's dimap -
     //   post . fn . pre. Stored inside a fresh profn. A named functor (not a
     // lambda) so the composition works on every floor, including C++11.
     template<typename Pre,

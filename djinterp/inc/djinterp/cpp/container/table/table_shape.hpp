@@ -8,7 +8,7 @@
 * rectangular, at the type level:
 *
 *     - the DOMAIN I_T, a box {0..height-1} x {0..width-1}, and
-*     - the CELL-TYPE assignment, one type per column (tau_{r,c} = tau_c) --
+*     - the CELL-TYPE assignment, one type per column (tau_{r,c} = tau_c) -
 *       the axis-typed / column-typed reading, of which the cell-homogeneous
 *       table (every tau_c equal) is the special case S = empty.
 *
@@ -17,7 +17,7 @@
 * into (realization_kind): a static or dynamic height crossed with a
 * homogeneous
 * or heterogeneous column list picks static_table / table / record_table.  The
-* shape is thus the pivot between the surface DSL and the container trio --
+* shape is thus the pivot between the surface DSL and the container trio -
 * the
 * builder computes a shape, and the realization kind names its backing.
 *

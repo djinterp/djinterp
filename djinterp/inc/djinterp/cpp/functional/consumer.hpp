@@ -245,7 +245,7 @@ template<typename Consumer,
 using consumer_result_t = typename consumer_result<Consumer, Type>::type;
 
 // is_consumer
-//   trait: true when Consumer is callable as `void(const Type&)` --
+//   trait: true when Consumer is callable as `void(const Type&)` -
 // i.e. accepts a `const Type&` and returns void.  This is the defining
 // structural property of a consumer sink.
 template<typename Consumer,

@@ -143,7 +143,7 @@ struct DExplicitBool
 // - patterns (the scanner protocol) --------------------------------------
 
 // DPatScan
-//   fixture pattern: the canonical searchable shape --
+//   fixture pattern: the canonical searchable shape -
 // `bool find(const In&, size_t&, Result&) const` - and it really scans, so the
 // detected shape can be driven, not merely recognised. Finds each 'x' in the
 // input, writing the position into the result and advancing pos.

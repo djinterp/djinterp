@@ -127,7 +127,7 @@ std::vector<_A> chain_to_vector(
 ///                III. NAMED FUNCTORS                                       ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// - head maps (A -> B) --
+// - head maps (A -> B) -
 
 // dbl
 //   int -> int, double.
@@ -165,7 +165,7 @@ struct show
     }
 };
 
-// - whole-node maps (cofree<opt,int> -> B), for extend --
+// - whole-node maps (cofree<opt,int> -> B), for extend -
 
 // DHeadOfNode
 //   cofree<opt,int> -> int: the node's own head (extend with this is identity
@@ -214,7 +214,7 @@ struct suffix_len
     }
 };
 
-// - unfold builders (Seed -> A ; Seed -> F<Seed>) --
+// - unfold builders (Seed -> A ; Seed -> F<Seed>) -
 
 // DIdHead
 //   int -> int: each node's head is its seed unchanged.
@@ -242,7 +242,7 @@ struct DTimesTen
 };
 
 // descend
-//   int -> opt<int>: the child seed is seed-1 while seed > 1, else no child --
+//   int -> opt<int>: the child seed is seed-1 while seed > 1, else no child -
 // so unfold builds a finite descending chain and terminates.
 struct DDescend
 {
@@ -254,7 +254,7 @@ struct DDescend
     }
 };
 
-// - annotated_cata algebras (B, F<Result>) -> Result --
+// - annotated_cata algebras (B, F<Result>) -> Result -
 //   Each takes a node's ANNOTATION and its ALREADY-FOLDED children, so the
 // child slot carries a Result (an int / size_t / string), never a sub-tree.
 // The empty layer is the base case: it contributes the algebra's identity.

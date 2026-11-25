@@ -572,7 +572,7 @@ inline constexpr bool has_map_hash_infrastructure_v =
 // --- sorted + contiguous detection ---
 
 // has_sorted_contiguous_layout
-//   trait: true if the container is sorted, contiguous, and random-access --
+//   trait: true if the container is sorted, contiguous, and random-access -
 // the flat-map pattern.
 template<typename Container>
 struct has_sorted_contiguous_layout

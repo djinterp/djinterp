@@ -25,7 +25,7 @@
 *     ikey<K>            an entry carrying `static constexpr int key = K`; the
 *                        canonical value-keyed entry, ordered by `<` on ::key.
 *     DTagKey<K, T>      an entry with the same ::key plus a distinct tag T, so
-*                        two entries can share a key yet be different types --
+*                        two entries can share a key yet be different types -
 *                        the material for the duplicate-key landing test.
 *     DAscPreds<N>       the ASCENDING needle predicates for an int needle N:
 *                        below(E) = E::key < N, above(E) = N < E::key.  This is
@@ -50,7 +50,7 @@
 *
 *   MODULE NOTES (behaviour this suite pins, not defects)
 *     1. DUPLICATE KEYS.  When several entries compare equal to the needle, the
-*        engine reports whichever equal entry the bisection first lands on --
+*        engine reports whichever equal entry the bisection first lands on -
 *        NOT necessarily the first (leftmost) occurrence.  For three equal keys
 *        at indices {0,1,2} the first probe is mid = 0 + (3-0)/2 = 1, a hit, so
 *        index 1 is reported.  This is stable and deterministic but is a

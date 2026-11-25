@@ -111,7 +111,7 @@ NS_DJINTERP
 // is the number of atomic positions it holds. A region is non-empty by
 // construction.
 //
-//   Row0, Col0: the top-left (lexicographically least) atomic position --
+//   Row0, Col0: the top-left (lexicographically least) atomic position -
 // the
 //                 cell's ANCHOR.
 //   Rows, Cols: the box shape; the cell is MERGED along a coordinate when
@@ -365,7 +365,7 @@ NS_INTERNAL
 NS_END  // internal
 
 // layout_valid
-//   trait: whether Layout is a valid cover of an Height x Width table --
+//   trait: whether Layout is a valid cover of an Height x Width table -
 // every declared merge within bounds and no two overlapping. (Positions no
 // merge covers are singletons, so disjoint, in-bounds merges are exactly what
 // a valid partition needs.)

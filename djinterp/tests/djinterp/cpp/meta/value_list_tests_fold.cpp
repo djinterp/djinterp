@@ -91,7 +91,7 @@ bool tests_fold_empty_returns_seed()
 /*
 tests_fold_is_left_associative
   fold is a LEFT fold: it folds the head into the accumulator and recurses on the
-  tail, so the elements arrive first-to-last. A non-commutative reducer --
+  tail, so the elements arrive first-to-last. A non-commutative reducer -
   (acc * 10) + v - pins that order: 1, 2, 3 from a seed of 0 gives 123 under a
   left fold and could not under any other.
   Tests the following:

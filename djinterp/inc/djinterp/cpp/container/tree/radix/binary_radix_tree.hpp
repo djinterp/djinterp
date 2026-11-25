@@ -1029,7 +1029,7 @@ private:
 
     // m_find_node
     //   resolve: fold the descent step along the key's bits. At each node the
-    // next bit picks the only child that could match; then the child's EDGE --
+    // next bit picks the only child that could match; then the child's EDGE -
     // the bit range it skips - must agree with the key, or the key is not
     // here.
     node_type*

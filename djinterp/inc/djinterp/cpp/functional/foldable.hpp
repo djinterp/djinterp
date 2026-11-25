@@ -225,7 +225,7 @@ struct foldable_traits<std::vector<Type>, void>
 
     // fold_left
     //   strict left fold over the vector's elements; the accumulator is
-    // threaded by move so collecting folds stay O(n). D_CONSTEXPR --
+    // threaded by move so collecting folds stay O(n). D_CONSTEXPR -
     // std::vector is a literal type only from C++20.
     template<typename Acc,
              typename Function>

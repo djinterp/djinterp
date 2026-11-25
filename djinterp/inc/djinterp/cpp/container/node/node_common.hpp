@@ -10,7 +10,7 @@
 *     node_traits.hpp -> the node TRAITS (has_next, is_dynamic_node, ...)
 *
 *   Keeping the vertex/node types next to the traits that classify them makes
-* this the natural place to express the monograph's node-level vocabulary --
+* this the natural place to express the monograph's node-level vocabulary -
 * nodes as a vertex paired with an edge collection, and the classification of
 * vertices by the arity of that collection (edgeless / fixed / n-ary /
 * hybrid).  The container-level counterparts (ownership, entry points, graph
@@ -1504,7 +1504,7 @@ bool is_null_link(
 // n-ary is the presence of a COMPILE-TIME link count: a fixed vertex reports
 // a finite node_link_count (num_links / edge_groups), whereas an n-ary
 // vertex exposes an edges() container with no compile-time bound.  This is
-// why is_dynamic_node alone (which only detects edges()) is insufficient --
+// why is_dynamic_node alone (which only detects edges()) is insufficient -
 // DLinkedNode exposes edges() over a fixed std::array yet is fixed, not
 // n-ary.
 

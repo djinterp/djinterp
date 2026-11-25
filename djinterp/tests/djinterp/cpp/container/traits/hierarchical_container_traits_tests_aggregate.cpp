@@ -32,7 +32,7 @@ bool tests_hierarchical_container_class()
 {
     bool _hc_ok = true;
 
-    // - vector<int>: ordinary flat container --
+    // - vector<int>: ordinary flat container -
     {
         using C = DHierarchicalContainerClass<vec1>;
         D_HC_CHECK( (!C::node_summand && !C::has_structure_tag && C::is_container) );
@@ -42,7 +42,7 @@ bool tests_hierarchical_container_class()
         D_HC_CHECK( (hc_cstr_eq(C::kind_name, "flat")) );
     }
 
-    // - vector<vector<int>>: depth-heuristic hierarchy --
+    // - vector<vector<int>>: depth-heuristic hierarchy -
     {
         using C = DHierarchicalContainerClass<vec2>;
         D_HC_CHECK( (!C::node_summand && !C::has_structure_tag && C::is_container) );
@@ -52,7 +52,7 @@ bool tests_hierarchical_container_class()
         D_HC_CHECK( (hc_cstr_eq(C::kind_name, "hierarchical")) );
     }
 
-    // - node_box: node summand -> hierarchical at depth 1 --
+    // - node_box: node summand -> hierarchical at depth 1 -
     {
         using C = DHierarchicalContainerClass<node_box>;
         D_HC_CHECK( (C::node_summand && !C::has_structure_tag && C::is_container) );
@@ -61,7 +61,7 @@ bool tests_hierarchical_container_class()
         D_HC_CHECK( (C::kind == DStructureKind::hierarchical) );
     }
 
-    // - tagged_flat_str: flat tag -> flat despite depth 2 --
+    // - tagged_flat_str: flat tag -> flat despite depth 2 -
     {
         using C = DHierarchicalContainerClass<tagged_flat_str>;
         D_HC_CHECK( (!C::node_summand && C::has_structure_tag && C::is_container) );
@@ -70,7 +70,7 @@ bool tests_hierarchical_container_class()
         D_HC_CHECK( (C::kind == DStructureKind::flat) );
     }
 
-    // - hier_tagged: hierarchical tag at depth 1 --
+    // - hier_tagged: hierarchical tag at depth 1 -
     {
         using C = DHierarchicalContainerClass<hier_tagged>;
         D_HC_CHECK( (C::has_structure_tag && !C::node_summand) );
@@ -78,7 +78,7 @@ bool tests_hierarchical_container_class()
         D_HC_CHECK( (C::kind == DStructureKind::hierarchical) );
     }
 
-    // - node_handle_box: excluded node-handle -> flat --
+    // - node_handle_box: excluded node-handle -> flat -
     {
         using C = DHierarchicalContainerClass<node_handle_box>;
         D_HC_CHECK( (!C::node_summand && C::is_container) );  // node_type present, but not a node summand
@@ -86,7 +86,7 @@ bool tests_hierarchical_container_class()
         D_HC_CHECK( (C::kind == DStructureKind::flat) );
     }
 
-    // - int: non-container --
+    // - int: non-container -
     {
         using C = DHierarchicalContainerClass<int>;
         D_HC_CHECK( (!C::is_container && !C::node_summand && !C::has_structure_tag) );
