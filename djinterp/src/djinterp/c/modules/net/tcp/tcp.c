@@ -12,7 +12,7 @@
 * path:      /src/djinterp/c/modules/net/tcp/tcp.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.10.31
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 // enable POSIX.1-2008 (getaddrinfo, poll, inet_ntop, gethostname) under a
 // strict C compiler, and Windows Vista's API (WSAPoll, InitOnceExecuteOnce)
@@ -581,6 +581,50 @@ d_tcp_os_await_accept(
             return ((watched[0].revents & POLLIN) != 0)
                        ? D_NET_OK
                        : D_NET_ERROR_UNKNOWN;
+        }
+    }
+}
+
+/*
+d_tcp_os_await_connect
+  Waits until a connect under way finishes, one way or the other, which
+poll reports as writable, or until the wait runs out; a negative wait is
+unlimited. A signal restarts the wait with its whole limit, which can
+stretch it.
+*/
+static enum dj_net_error
+d_tcp_os_await_connect(
+    dj_tcp_socket _socket,
+    int          _wait_ms
+)
+{
+    struct pollfd watched = { .fd      = d_tcp_os_handle(_socket),
+                              .events  = POLLOUT,
+                              .revents = 0 };
+
+    // wait, retrying what a signal interrupts
+    for (;;)
+    {
+        const int ready = d_tcp_os_poll(&watched,
+                                        1u,
+                                        _wait_ms);
+
+        // finished, one way or the other
+        if (ready > 0)
+        {
+            return D_NET_OK;
+        }
+
+        // out of time
+        if (ready == 0)
+        {
+            return D_NET_ERROR_TIMED_OUT;
+        }
+
+        // anything but an interruption is the answer
+        if (!d_tcp_os_interrupted())
+        {
+            return d_tcp_os_error();
         }
     }
 }
@@ -1273,6 +1317,53 @@ d_tcp_os_await_accept(
 }
 
 /*
+d_tcp_os_await_connect
+  Waits until a connect under way finishes, one way or the other, or until
+the wait runs out; a negative wait is unlimited. Winsock reports a connect
+that succeeded as writable and one that failed in select's exceptfds, its
+documented contract; WSAPoll has not always reported a failed one, so
+select watches both.
+*/
+static enum dj_net_error
+d_tcp_os_await_connect(
+    dj_tcp_socket _socket,
+    int          _wait_ms
+)
+{
+    const SOCKET   handle   = d_tcp_os_handle(_socket);
+    struct timeval limit    =
+    {
+        .tv_sec  = (long)(_wait_ms / 1000),
+        .tv_usec = (long)((_wait_ms % 1000) * 1000)
+    };
+    fd_set         writable;
+    fd_set         failed;
+
+    FD_ZERO(&writable);
+    FD_ZERO(&failed);
+    FD_SET(handle,
+           &writable);
+    FD_SET(handle,
+           &failed);
+
+    // Winsock's select takes no count, and is not interrupted by signals
+    const int ready = select(0,
+                             NULL,
+                             &writable,
+                             &failed,
+                             (_wait_ms < 0) ? NULL : &limit);
+
+    // finished, one way or the other
+    if (ready > 0)
+    {
+        return D_NET_OK;
+    }
+
+    return (ready == 0) ? D_NET_ERROR_TIMED_OUT
+                        : d_tcp_os_error();
+}
+
+/*
 d_tcp_os_unix_address
   Unix-domain sockets are not served under Winsock: a facility the platform
 does not have, which no retry helps.
@@ -1702,50 +1793,6 @@ d_tcp_take(
 }
 
 /*
-d_tcp_wait_writable
-  Waits until a socket is writable, which is how a connect under way
-reports finishing, or until the timeout expires; a negative timeout waits
-indefinitely. A signal restarts the wait with its whole timeout, which can
-stretch it.
-*/
-static enum dj_net_error
-d_tcp_wait_writable(
-    dj_tcp_socket _socket,
-    int          _wait_ms
-)
-{
-    struct pollfd watched = { .fd      = d_tcp_os_handle(_socket),
-                              .events  = POLLOUT,
-                              .revents = 0 };
-
-    // wait, retrying what a signal interrupts
-    for (;;)
-    {
-        const int ready = d_tcp_os_poll(&watched,
-                                        1u,
-                                        _wait_ms);
-
-        // finished, one way or the other
-        if (ready > 0)
-        {
-            return D_NET_OK;
-        }
-
-        // out of time
-        if (ready == 0)
-        {
-            return D_NET_ERROR_TIMED_OUT;
-        }
-
-        // anything but an interruption is the answer
-        if (!d_tcp_os_interrupted())
-        {
-            return d_tcp_os_error();
-        }
-    }
-}
-
-/*
 d_tcp_pending_error
   A finished connect's outcome: the socket's pending error, SO_ERROR.
 */
@@ -1798,8 +1845,8 @@ d_tcp_connect_once(
     if ( (d_tcp_os_in_progress()) ||
          (d_tcp_os_interrupted()) )
     {
-        const enum dj_net_error ready = d_tcp_wait_writable(_socket,
-                                                           _wait_ms);
+        const enum dj_net_error ready = d_tcp_os_await_connect(_socket,
+                                                              _wait_ms);
 
         return (ready == D_NET_OK) ? d_tcp_pending_error(_socket)
                                            : ready;

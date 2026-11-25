@@ -10,7 +10,7 @@
 * path:      /tests/djinterp/c/modules/net/tcp/tcp_tests_transport.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.10.18
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 #include "./tcp_tests.h"  // the suite
 #include "../../../../../../inc/djinterp/c/modules/test/test_suite.h"  // DTest
@@ -460,6 +460,9 @@ d_tests_tcp_refused
   Tests the following:
   - connecting to a port nothing listens on reports a refusal, blocking or
     with a timeout, and leaves the connection closed
+  The timeout is far above the refusal's time: Windows tries a refused
+connect again for about two seconds, even on loopback, before reporting
+it, and the test is of the refusal, not its speed.
 */
 bool d_tests_tcp_refused(
     struct dj_test_suite* _suite
@@ -474,7 +477,7 @@ bool d_tests_tcp_refused(
 
     d_tcp_listener_init(&listener);
     d_tcp_options_init(&timed);
-    timed.connect_timeout_ms = 2000;
+    timed.connect_timeout_ms = 10000;
 
     // a port just released has no listener
     const bool freed = ( (d_tests_tcp_endpoint(&where,
@@ -976,7 +979,7 @@ bool d_tests_tcp_listener_errors(
 /*
 d_tests_tcp_unix_refused
   Without unix-domain support: listen and connect both refuse a unix-domain
-endpoint as ADDRESS_INVALID, as tcp.h says, leaving no path behind.
+endpoint as UNSUPPORTED, as tcp.h says, leaving no path behind.
 */
 static
 bool d_tests_tcp_unix_refused(
@@ -1005,11 +1008,11 @@ bool d_tests_tcp_unix_refused(
                            (d_tcp_listen(&listener,
                                          &where,
                                          NULL) ==
-                            D_NET_ERROR_ADDRESS_INVALID)                 &&
+                            D_NET_ERROR_UNSUPPORTED)                     &&
                            (d_tcp_connect(&connection,
                                           &where,
                                           NULL) ==
-                            D_NET_ERROR_ADDRESS_INVALID)                 &&
+                            D_NET_ERROR_UNSUPPORTED)                     &&
                            (!d_tests_tcp_path_exists(path)) );
 
     d_tcp_connection_close(&connection);
