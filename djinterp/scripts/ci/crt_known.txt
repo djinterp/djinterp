@@ -68,7 +68,7 @@ tests/djinterp/c/filesys/t_file_width.c	2
 tests/djinterp/c/log/log_tests.c	3
 tests/djinterp/c/modules/db/mariadb/mariadb_tests.c	2
 tests/djinterp/c/modules/db/mongodb/mongodb_tests.c	5
-tests/djinterp/c/modules/db/postgres/postgres_tests.c	9
+tests/djinterp/c/modules/db/postgres/postgres_tests.c	5
 tests/djinterp/c/modules/db/sqlite/sqlite_tests.c	4
 tests/djinterp/c/modules/math/t_decimal.c	6
 tests/djinterp/c/modules/math/t_interval.c	2
