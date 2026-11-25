@@ -40,8 +40,9 @@ if ! command -v git > /dev/null 2>&1; then
 fi
 
 ROOT=$(pwd)
-case $DAWK in /*) ;; *) DAWK=$ROOT/$DAWK ;; esac
-case $HELPER in /*) ;; *) HELPER=$ROOT/$HELPER ;; esac
+# a path from the root, or, on Windows, from a drive, as CMake gives one
+case $DAWK in /*|[A-Za-z]:[/\\]*) ;; *) DAWK=$ROOT/$DAWK ;; esac
+case $HELPER in /*|[A-Za-z]:[/\\]*) ;; *) HELPER=$ROOT/$HELPER ;; esac
 unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_OBJECT_DIRECTORY \
       GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_CEILING_DIRECTORIES \
       GIT_ATTR_SOURCE GIT_CONFIG GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT \

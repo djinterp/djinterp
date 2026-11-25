@@ -8,22 +8,22 @@
 *   The record text is the file's path.  A path is what a file node's
 * to_string would return, so a program written against this source stays
 * written correctly when the source is replaced by a real node tree.
-*   This translation unit uses POSIX directory reading and is therefore not
-* part of the conforming core.  The conformance build never links it.
+*   Directories are read through dfs.h, the one unit that asks the system,
+* on POSIX and on Windows alike; this unit is ISO C. The conformance build
+* never links it.
 *
 *
 * path:      /src/djinterp/tools/dawk/dtree.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.20
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dtree.h"  // corresponding header
 // std
 #include <stdlib.h>  // malloc, realloc, free, qsort
 #include <string.h>  // strcmp, strlen, memcpy
-// posix
-#include <dirent.h>     // DIR, opendir, readdir, closedir
-#include <sys/stat.h>   // struct stat, stat, S_ISDIR
+// djinterp
+#include "../../../../inc/djinterp/tools/dawk/dfs.h"  // d_fs_names, d_fs_kind_of
 
 
 // d_internal_tree
@@ -149,58 +149,39 @@ void d_internal_tree_expand(
     const char*              _dir
 )
 {
-    DIR* const handle = opendir(_dir);
+    char** names = NULL;
+    size_t found = 0u;
 
-    // an unreadable directory contributes no records and is not an error
-    if (!handle)
+    // an unreadable directory contributes no records and is not an error;
+    // dfs leaves out the two navigation entries, which would make the walk
+    // cyclic
+    if (!d_fs_names(_dir, &names, &found))
     {
         return;
     }
 
-    char** names    = NULL;
-    size_t count    = 0;
-    size_t capacity = 0;
+    size_t count = 0u;
 
-    for (const struct dirent* entry = readdir(handle);
-         entry;
-         entry = readdir(handle))
+    // each name made a path beneath the directory, in its place; memory
+    // running out ends the directory there
+    for (; count < found; ++count)
     {
-        // the two navigation entries would make the walk cyclic
-        if ( (strcmp(entry->d_name, ".")  == 0) ||
-             (strcmp(entry->d_name, "..") == 0) )
-        {
-            continue;
-        }
-
-        if (count == capacity)
-        {
-            const size_t grown_capacity = (capacity == 0) ? 16u
-                                                          : (capacity * 2u);
-
-            char** const grown = realloc(names,
-                                         grown_capacity * sizeof(char*));
-
-            if (!grown)
-            {
-                break;
-            }
-
-            names    = grown;
-            capacity = grown_capacity;
-        }
-
-        char* const joined = d_internal_tree_join(_dir, entry->d_name);
+        char* const joined = d_internal_tree_join(_dir, names[count]);
 
         if (!joined)
         {
             break;
         }
 
+        free(names[count]);
         names[count] = joined;
-        ++count;
     }
 
-    (void)closedir(handle);
+    // the names not made paths
+    for (size_t at = count; at < found; ++at)
+    {
+        free(names[at]);
+    }
 
     if (count > 1)
     {
@@ -243,16 +224,17 @@ bool d_internal_tree_next(
 
         char* const path = tree->pending[tree->pending_count];
 
-        struct stat info;
+        const enum dj_fs_kind kind = d_fs_kind_of(path);
 
-        // a path that cannot be stat'd is skipped along with its subtree
-        if (stat(path, &info) != 0)
+        // a path that names nothing readable is skipped along with its
+        // subtree
+        if (kind == D_FS_KIND_NONE)
         {
             free(path);
             continue;
         }
 
-        if (S_ISDIR(info.st_mode))
+        if (kind == D_FS_KIND_DIRECTORY)
         {
             d_internal_tree_expand(tree, path);
             free(path);

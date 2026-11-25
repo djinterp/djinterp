@@ -5,14 +5,14 @@
 *   Declares the one entry point that fills a dj_awk_source with a walk over a
 * directory tree.  Files are yielded in document order and the record text is
 * the file's path.
-*   POSIX directory reading lives behind this seam, so the conforming core
-* never links it.
+*   The walk reads directories through dfs.h, behind this seam, so the
+* conforming core never links it.
 *
 *
 * path:      /inc/djinterp/tools/dawk/dtree.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.20
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 #ifndef DJINTERP_TOOLS_DAWK_DTREE_H
