@@ -8,14 +8,16 @@
 * certificate from a second CA that the tests never trust. Each valid one is
 * good from a day ago to a week ahead, so nothing in a suite expires, and
 * nothing private is kept in the tree. The files go to a fresh directory
-* under TMPDIR, or /tmp, and leave with it. The TLS, STARTTLS and SMTP
-* suites share it; it began as STARTTLS's own.
+* under TMPDIR, or /tmp - on Windows, under the system's temporary
+* directory - and leave with it. OpenSSL writes them itself, through a BIO,
+* so no C runtime's FILE crosses into its library. The TLS, STARTTLS and
+* SMTP suites share it; it began as STARTTLS's own.
 *
 *
 * path:      /tests/djinterp/c/modules/net/net_tests_pki.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.07
-*                                                            revised: 2026.11.19
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 // POSIX.1-2008 (mkdtemp) under a strict C compiler; a feature-test macro
 // must precede every include, so it sits ahead of the corresponding header
@@ -26,17 +28,26 @@
 #include "./net_tests_pki.h"  // corresponding header
 // std
 #include <stdbool.h>  // bool
-#include <stdio.h>    // FILE, fclose, fopen, remove, snprintf
+#include <stdio.h>    // remove, snprintf
 #include <stdlib.h>   // getenv, mkdtemp
 #include <string.h>   // memset
-// posix
-#include <unistd.h>  // rmdir
+#if defined(_WIN32)
+    // windows, 64-bit Windows among it: _WIN32 is defined there too
+    #ifndef WIN32_LEAN_AND_MEAN
+        #define WIN32_LEAN_AND_MEAN
+    #endif  // WIN32_LEAN_AND_MEAN
+    #include <windows.h>  // CreateDirectoryA, GetTempPathA, RemoveDirectoryA
+#else
+    // posix
+    #include <unistd.h>  // rmdir
+#endif  // _WIN32
 
 
 #if (D_ENV_TLS_HAS_OPENSSL == 1)
 
 // openssl
 #include <openssl/asn1.h>     // ASN1_INTEGER_set, ASN1_TIME
+#include <openssl/bio.h>      // BIO, BIO_new_file, BIO_free
 #include <openssl/ec.h>       // EVP_PKEY_CTX_set_ec_paramgen_curve_nid
 #include <openssl/evp.h>      // EVP_PKEY, EVP_PKEY_CTX, EVP_sha256
 #include <openssl/obj_mac.h>  // NID_*
@@ -281,7 +292,10 @@ bool d_tests_net_pki_path(
 
 /*
 d_tests_net_pki_write
-  Writes a certificate, or with `_certificate` NULL a private key, as PEM.
+  Writes a certificate, or with `_certificate` NULL a private key, as PEM,
+through a BIO OpenSSL opens itself: a FILE from this program's C runtime
+handed to OpenSSL's library is one runtime's stream read by another on
+Windows, where the two need not be the same.
 */
 static
 bool d_tests_net_pki_write(
@@ -290,8 +304,8 @@ bool d_tests_net_pki_write(
     EVP_PKEY*   _key
 )
 {
-    FILE* file = fopen(_path,
-                       "w");
+    BIO* const file = BIO_new_file(_path,
+                                   "w");
 
     if (!file)
     {
@@ -299,18 +313,23 @@ bool d_tests_net_pki_write(
     }
 
     const bool written = (_certificate)
-                             ? (PEM_write_X509(file,
-                                               _certificate) == 1)
-                             : (PEM_write_PrivateKey(file,
-                                                     _key,
-                                                     NULL,
-                                                     NULL,
-                                                     0,
-                                                     NULL,
-                                                     NULL) == 1);
+                             ? (PEM_write_bio_X509(file,
+                                                   _certificate) == 1)
+                             : (PEM_write_bio_PrivateKey(file,
+                                                         _key,
+                                                         NULL,
+                                                         NULL,
+                                                         0,
+                                                         NULL,
+                                                         NULL) == 1);
 
-    return ( (fclose(file) == 0) &&
-             (written) );
+    // what is still buffered written out, then the file closed
+    const bool flushed = (BIO_flush(file) == 1);
+
+    (void)BIO_free(file);
+
+    return ( (written) &&
+             (flushed) );
 }
 
 // dj_tests_net_pki_parts
@@ -540,6 +559,86 @@ bool d_tests_net_pki_paths(
 }
 
 /*
+d_tests_net_pki_directory
+  A fresh directory for the files, its path into `_out`: on POSIX,
+mkdtemp's under TMPDIR, or /tmp; on Windows, one named for the process and
+a count under the system's temporary directory, the first such name not
+taken.
+*/
+static
+bool d_tests_net_pki_directory(
+    char*  _out,
+    size_t _capacity
+)
+{
+#if defined(_WIN32)
+    char        base[MAX_PATH + 1];
+    const DWORD length = GetTempPathA((DWORD)sizeof(base),
+                                      base);
+
+    // the temporary directory, which the system gives with a separator
+    if ( (length == 0u) ||
+         (length >= sizeof(base)) )
+    {
+        return false;
+    }
+
+    if ( (base[length - 1u] == '\\') ||
+         (base[length - 1u] == '/') )
+    {
+        base[length - 1u] = '\0';
+    }
+
+    // the first name not taken
+    for (unsigned attempt = 0u; attempt < 1000u; ++attempt)
+    {
+        char name[64];
+
+        (void)snprintf(name,
+                       sizeof(name),
+                       "d_net_pki_%lu_%u",
+                       (unsigned long)GetCurrentProcessId(),
+                       attempt);
+
+        if (!d_tests_net_pki_path(_out,
+                                  _capacity,
+                                  base,
+                                  name))
+        {
+            return false;
+        }
+
+        if (CreateDirectoryA(_out,
+                             NULL))
+        {
+            return true;
+        }
+
+        if (GetLastError() != ERROR_ALREADY_EXISTS)
+        {
+            return false;
+        }
+    }
+
+    return false;
+#else
+    const char* base = getenv("TMPDIR");
+
+    if ( (!base) ||
+         (base[0] == '\0') )
+    {
+        base = "/tmp";
+    }
+
+    return ( (d_tests_net_pki_path(_out,
+                                   _capacity,
+                                   base,
+                                   "d_net_pki_XXXXXX")) &&
+             (mkdtemp(_out) != NULL) );
+#endif  // _WIN32
+}
+
+/*
 d_tests_net_pki_make
   The directory first, then the keys and certificates, then the files; a
 failure part-way removes whatever was written.
@@ -552,23 +651,12 @@ bool d_tests_net_pki_make(
     {
         .ca_key = NULL
     };
-    const char* base = getenv("TMPDIR");
-
     memset(_pki,
            0,
            sizeof(*_pki));
 
-    if ( (!base) ||
-         (base[0] == '\0') )
-    {
-        base = "/tmp";
-    }
-
-    if ( (!d_tests_net_pki_path(_pki->directory,
-                                sizeof(_pki->directory),
-                                base,
-                                "d_net_pki_XXXXXX")) ||
-         (!mkdtemp(_pki->directory)) )
+    if (!d_tests_net_pki_directory(_pki->directory,
+                                   sizeof(_pki->directory)))
     {
         _pki->directory[0] = '\0';
 
@@ -672,7 +760,11 @@ void d_tests_net_pki_remove(
         }
     }
 
+#if defined(_WIN32)
+    (void)RemoveDirectoryA(_pki->directory);
+#else
     (void)rmdir(_pki->directory);
+#endif  // _WIN32
 
     return;
 }
