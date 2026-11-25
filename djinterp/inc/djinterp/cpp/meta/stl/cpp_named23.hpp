@@ -43,7 +43,7 @@
 * path:      /inc/djinterp/cpp/meta/stl/cpp_named23.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.27
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 #ifndef DJINTERP_META_STL_CPP_NAMED23_HPP
@@ -610,6 +610,8 @@ NS_END  // concepts
 // IX.  CONTAINER ELEMENT STATIC ASSERTION MACROS (C++23)
 // =========================================================================
 
+D_ENV_PP_VARIADIC_QUIET_BEGIN
+
 // D_STATIC_ASSERT_DEFAULT_INSERTABLE
 //   macro: static_assert that T is DefaultInsertable with
 // allocator A (defaults to std::allocator<T>).
@@ -645,6 +647,8 @@ NS_END  // concepts
         djinterp::re_std::is_erasable_v<T __VA_OPT__(,)                  \
             __VA_ARGS__>,                                                  \
         "Type " #T " does not satisfy Erasable")
+
+D_ENV_PP_VARIADIC_QUIET_END
 
 
 // =========================================================================

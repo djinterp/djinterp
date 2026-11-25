@@ -8,7 +8,7 @@
 * path:      /inc/djinterp/c/container/array/ptr_array.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.09.29
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 #ifndef DJINTERP_C_CONTAINER_ARRAY_PTR_ARRAY_H
@@ -35,6 +35,8 @@
 #endif  // D_PTR_ARRAY_DEFAULT_CAPACITY
 
 #if D_ENV_PP_HAS_VARIADIC_MACROS
+D_ENV_PP_VARIADIC_QUIET_BEGIN
+
 // D_PTR_ARRAY_INIT
 //   macro: brace initializer for a stack-allocated `dj_ptr_array`. Each
 // variadic argument is an `element_type` initializer; the elements are laid
@@ -51,6 +53,8 @@
                                   __VA_ARGS__)         \
         }                                              \
     }
+
+D_ENV_PP_VARIADIC_QUIET_END
 #endif  // D_ENV_PP_HAS_VARIADIC_MACROS
 
 

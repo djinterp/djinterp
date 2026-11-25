@@ -27,7 +27,7 @@
 * path:      /inc/djinterp/c/container/array/array.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.01.30
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 /*
@@ -121,6 +121,8 @@ TABLE OF CONTENTS
 
 
 #if D_ENV_PP_HAS_VARIADIC_MACROS
+D_ENV_PP_VARIADIC_QUIET_BEGIN
+
 // D_ARRAY_INIT
 //   macro: brace initializer for a stack-allocated `dj_array`. Sets `count`
 // from the number of variadic arguments and points `elements` at a compound
@@ -146,6 +148,8 @@ TABLE OF CONTENTS
         .elements     = (element_type[]){ __VA_ARGS__ }, \
         .element_size = sizeof(element_type)             \
     }
+
+D_ENV_PP_VARIADIC_QUIET_END
 #endif  // D_ENV_PP_HAS_VARIADIC_MACROS
 
 // dj_array

@@ -38,7 +38,7 @@
 * path:      /inc/djinterp/cpp/meta/type_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2024.03.09
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 #ifndef DJINTERP_META_TYPE_TRAITS_HPP
@@ -277,6 +277,8 @@ NS_END  // djinterp
         return_type>                                                          \
     >
 
+D_ENV_PP_VARIADIC_QUIET_BEGIN
+
 // HAS_METHOD_OF_TYPE_ARGS
 //   macro: SFINAE-guard expression for methods with arguments.
 #define HAS_METHOD_OF_TYPE_ARGS(method_name, return_type, ...)                \
@@ -291,6 +293,8 @@ NS_END  // djinterp
         decltype(std::declval<T>().method_name(__VA_ARGS__)),                 \
         return_type                                                           \
     >
+
+D_ENV_PP_VARIADIC_QUIET_END
 
 // HAS_METHOD_OF_TYPE_V
 //   macro: bool-valued version for methods without arguments.

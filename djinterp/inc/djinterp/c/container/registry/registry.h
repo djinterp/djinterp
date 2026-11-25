@@ -12,7 +12,7 @@
 * path:      /inc/djinterp/c/container/registry/registry.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.16
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 #ifndef DJINTERP_C_CONTAINER_REGISTRY_REGISTRY_H
@@ -183,6 +183,8 @@ struct dj_registry_iterator
 /******************************************************************************
  * STATIC TABLE GENERATION MACROS
  *****************************************************************************/
+
+D_ENV_PP_VARIADIC_QUIET_BEGIN
 
 #if D_ENV_PP_HAS_VARIADIC_MACROS
 // D_REGISTRY_ROW
@@ -373,6 +375,8 @@ struct dj_registry_iterator
 // my_aliases[] = D_REGISTRY_ALIASES("alt1", "alt2", "alt3");
 #define D_REGISTRY_ALIASES(...) { __VA_ARGS__, NULL }
 #endif  // D_ENV_PP_HAS_VARIADIC_MACROS
+
+D_ENV_PP_VARIADIC_QUIET_END
 
 /******************************************************************************
  * ROW ACCESS MACROS

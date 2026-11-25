@@ -8,7 +8,7 @@
 * path:      /inc/djinterp/c/container/array/byte_array.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.06
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 #ifndef DJINTERP_C_CONTAINER_ARRAY_BYTE_ARRAY_H
@@ -214,6 +214,8 @@
 // one included, maps the same way: the map's first step takes the first
 // element and no element is split off ahead of the others. A builder writes
 // its count with no comma after it, and the elements follow.
+
+D_ENV_PP_VARIADIC_QUIET_BEGIN
 
 #if D_ENV_PP_HAS_VARIADIC_MACROS
 // D_INTERNAL_BYTE_ARRAY_MAP_END
@@ -601,5 +603,7 @@
                                           first_row, __VA_ARGS__)              \
     }
 #endif  // D_ENV_PP_HAS_VARIADIC_MACROS
+
+D_ENV_PP_VARIADIC_QUIET_END
 
 #endif  // DJINTERP_C_CONTAINER_ARRAY_BYTE_ARRAY_H

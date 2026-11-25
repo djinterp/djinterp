@@ -79,7 +79,7 @@
 * path:      /inc/djinterp/cpp/meta/trait_detect.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.04
-*                                                            revised: 2026.11.11
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 #ifndef DJINTERP_META_TRAIT_DETECT_HPP
@@ -338,6 +338,8 @@ NS_END  // djinterp
     template<typename Type>                                                 \
     struct TRAIT_NAME<Type, D_VOID_T<DETECTION_EXPR>> : INHERIT_EXPR        \
     {};
+
+D_ENV_PP_VARIADIC_QUIET_BEGIN
 
 // D_TYPE_TRAIT_TRUE
 //   macro: the bread-and-butter SFINAE trait.  Emits `TRAIT_NAME<Type>`,
@@ -857,6 +859,8 @@ NS_END  // djinterp
     #define D_TYPE_TRAIT_HAS_METHOD_WITH                                      \
         D_INTERNAL_TYPE_TRAIT_11_HAS_METHOD_WITH
 #endif  // C++20 with concepts
+
+D_ENV_PP_VARIADIC_QUIET_END
 
 
 #else  // below C++11: the named shapes from the sizeof engine

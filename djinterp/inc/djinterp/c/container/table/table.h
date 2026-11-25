@@ -66,7 +66,7 @@
 * path:      /inc/djinterp/c/container/table/table.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.01
-*                                                            revised: 2026.10.31
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 /*
@@ -223,6 +223,8 @@ D_NODISCARD D_INLINE struct dj_table_alloc d_table_alloc_stdlib(void)
     ((_type*)d_table_row((_table), (size_t)(_r)))
 
 #if D_ENV_PP_HAS_VARIADIC_MACROS
+D_ENV_PP_VARIADIC_QUIET_BEGIN
+
 // D_TABLE_PUSH_ROW
 //   macro: append a row written as a braced initialiser, e.g.
 //     D_TABLE_PUSH_ROW(&t, int, &alloc, {1, 2, 3}); The width is deduced from
@@ -235,6 +237,8 @@ D_NODISCARD D_INLINE struct dj_table_alloc d_table_alloc_stdlib(void)
         (const void*)((const _type[])__VA_ARGS__),            \
         (sizeof((const _type[])__VA_ARGS__) / sizeof(_type)), \
         (_alloc))
+
+D_ENV_PP_VARIADIC_QUIET_END
 #endif  // D_ENV_PP_HAS_VARIADIC_MACROS
 
 

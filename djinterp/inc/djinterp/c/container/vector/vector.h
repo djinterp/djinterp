@@ -8,7 +8,7 @@
 * path:      /inc/djinterp/c/container/vector/vector.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.01.30
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 #ifndef DJINTERP_C_CONTAINER_VECTOR_VECTOR_H
@@ -27,6 +27,8 @@
 
 
 #if D_ENV_PP_HAS_VARIADIC_MACROS
+D_ENV_PP_VARIADIC_QUIET_BEGIN
+
 // D_VECTOR_INIT
 //   macro: brace initializer for a stack-allocated `dj_vector`. Backs the
 // vector with a compound literal of `element_type` and sets `capacity` equal
@@ -56,6 +58,8 @@
         .count        = D_ARRAY_COUNT_T(element_type,    \
                                         __VA_ARGS__)     \
     }
+
+D_ENV_PP_VARIADIC_QUIET_END
 #endif  // D_ENV_PP_HAS_VARIADIC_MACROS
 
 

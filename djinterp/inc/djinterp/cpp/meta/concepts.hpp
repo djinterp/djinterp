@@ -39,7 +39,7 @@
 * path:      /inc/djinterp/cpp/meta/concepts.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2024.03.21
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 #ifndef DJINTERP_META_CONCEPTS_HPP
@@ -115,6 +115,8 @@
         _t.METHOD_NAME();                                                     \
     };
 
+D_ENV_PP_VARIADIC_QUIET_BEGIN
+
 // D_CONCEPT_HAS_METHOD_ARGS
 //   macro: emits a concept that is satisfied when `Type` has a callable
 // member named METHOD_NAME taking an argument of the given type. Concept
@@ -177,6 +179,8 @@
         { _t.METHOD_NAME(std::declval<__VA_ARGS__>()) }                       \
             -> std::convertible_to<RET>;                                      \
     };
+
+D_ENV_PP_VARIADIC_QUIET_END
 
 // D_CONCEPT_HAS_TYPE
 //   macro: emits a concept that is satisfied when `Type` has a nested

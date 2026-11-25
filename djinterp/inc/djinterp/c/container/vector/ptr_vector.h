@@ -11,7 +11,7 @@
 * path:      /inc/djinterp/c/container/vector/ptr_vector.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.14
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 #ifndef DJINTERP_C_CONTAINER_VECTOR_PTR_VECTOR_H
@@ -31,6 +31,8 @@
 
 
 #if D_ENV_PP_HAS_VARIADIC_MACROS
+D_ENV_PP_VARIADIC_QUIET_BEGIN
+
 // D_PTR_VECTOR_INIT
 //   macro: brace initializer for a stack-allocated `dj_ptr_vector`. Sets both
 // `count` and `capacity` to the number of variadic arguments, so the vector
@@ -45,6 +47,8 @@
                                                      __VA_ARGS__) },      \
         .capacity = D_VARG_COUNT(__VA_ARGS__)                             \
     }
+
+D_ENV_PP_VARIADIC_QUIET_END
 #endif  // D_ENV_PP_HAS_VARIADIC_MACROS
 
 // dj_ptr_vector

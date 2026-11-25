@@ -11,7 +11,7 @@
 * path:      /inc/djinterp/c/container/array/circular_array.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.05.08
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 #ifndef DJINTERP_C_CONTAINER_ARRAY_CIRCULAR_ARRAY_H
@@ -34,6 +34,8 @@
     #define D_CIRCULAR_ARRAY_DEFAULT_CAPACITY 32
 #endif  // D_CIRCULAR_ARRAY_DEFAULT_CAPACITY
 
+
+D_ENV_PP_VARIADIC_QUIET_BEGIN
 
 #ifndef D_CIRCULAR_ARRAY_COUNT_T
     #if D_ENV_PP_HAS_VARIADIC_MACROS
@@ -61,6 +63,8 @@
         .tail         = D_CIRCULAR_ARRAY_COUNT_T(element_type, __VA_ARGS__)  \
     }
 #endif  // D_ENV_PP_HAS_VARIADIC_MACROS
+
+D_ENV_PP_VARIADIC_QUIET_END
 
 
 // dj_circular_array
