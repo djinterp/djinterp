@@ -16,7 +16,7 @@
 *     imag, conj and arg of a matrix and complex(A, B) element by element
 *     (S350); indexing and blocks;
 *   - linear algebra (S351): a dense matrix's det, inv and solve cmat.h's
-*     bit for bit, solve its elimination (S413), trace the kernels', norm
+*     bit for bit, solve refined (S428), trace the kernels', norm
 *     of the moduli, the face's
 *     frobenius_norm and norm, dot conjugating its first operand, the
 *     face's vdot; an exact matrix's exactly; the face's norms of values
@@ -36,7 +36,7 @@
 * path:      /tests/djinterp/cpp/modules/math/expr/t_expr_complex_matrix_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.02
-*                                                            revised: 2026.11.15
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/evaluate.hpp"
 // std
@@ -826,8 +826,8 @@ namespace
     //==========================================================================
 
     // d_tests_dense_algebra
-    //   S351 in Type: det, inv and solve cmat.h's bit for bit, solve its
-    // elimination, d_cmat_solve_fast (S413), trace the kernels', norm the
+    //   S351 in Type: det, inv and solve cmat.h's bit for bit, solve the
+    // refined d_cmat_solve (S428), trace the kernels', norm the
     // face's frobenius_norm and norm, dot the face's vdot, cross by its
     // formula, a singular matrix's a pole.
     template<typename Type>
@@ -853,8 +853,9 @@ namespace
             const m::value A = d_tests_complex_matrix<Type>(3, 3, a);
             const m::value B = d_tests_complex_matrix<Type>(3, 2, b);
             const m::value R = d_tests_real_matrix<Type>(3, 3, r);
-            std::vector<core_type> ca, cb, cr, scratch(9), inverse(9),
+            std::vector<core_type> ca, cb, cr, scratch(21), inverse(9),
                                    solution(6), real_solution(6);
+            std::vector<std::size_t> pivots(3);
 
             for (std::size_t i = 0; i < 9; ++i)
             {
@@ -874,11 +875,10 @@ namespace
                                                          scratch.data(),
                                                          ca.data(),
                                                          3);
-            const bool         solved   = d_cmat_solve_fast(
-                solution.data(), scratch.data(), ca.data(), cb.data(), 3, 2);
-            const bool         real_ok  = d_cmat_solve_fast(
-                real_solution.data(), scratch.data(), cr.data(), cb.data(), 3,
-                2);
+            const bool         solved   = d_cmat_solve(solution.data(),
+                scratch.data(), pivots.data(), ca.data(), cb.data(), 3, 2);
+            const bool         real_ok  = d_cmat_solve(real_solution.data(),
+                scratch.data(), pivots.data(), cr.data(), cb.data(), 3, 2);
             std::vector<complex_type> inv(9), x(6), rx(6);
 
             for (std::size_t i = 0; i < 9; ++i)
@@ -1202,11 +1202,10 @@ namespace
                         "dot conjugating its first; trace; cross "
                         "unconjugated (S351)");
 
-        // a values matrix of an inexact real element and an exact complex
-        // one in complex long double; a dense real A's solve of an exact
-        // complex B in complex long double too; a complex norm past
-        // double's range, of values, rescued by the scaled norm of the
-        // parts (S351)
+        // a values matrix of an inexact real element and an exact complex one
+        // in complex long double; a dense real A's solve of an exact complex
+        // B in complex long double too; a complex norm past double's range,
+        // of values, rescued by the scaled norm of the parts (S351)
         typedef m::complex<long double>    cld;
         typedef cld::core_type             core_ld;
 
@@ -1222,7 +1221,8 @@ namespace
             cld(0.0L).c_value(), cld(2.0L).c_value() };
         const core_ld          right_cores[2] = {
             cld(0.0L, 2.0L).c_value(), cld(4.0L).c_value() };
-        core_ld                scratch_ld[4];
+        core_ld                scratch_ld[12];
+        std::size_t            pivots_ld[2];
         core_ld                solved_ld[2];
         std::vector<core_ld>   mixed_copy(mixed_cores, mixed_cores + 4);
         std::vector<core_ld>   system_copy(system_cores, system_cores + 4);
@@ -1230,8 +1230,8 @@ namespace
                                              mixed_copy.data(),
                                              scratch_ld,
                                              2));
-        const bool             solved_ok = d_cmat_solve_fast(
-            solved_ld, scratch_ld, system_copy.data(), right_cores, 2, 1);
+        const bool             solved_ok = d_cmat_solve(solved_ld,
+            scratch_ld, pivots_ld, system_copy.data(), right_cores, 2, 1);
         const m::value         far = m::expr_matrix(
             1, 2, { m::expr_complex(m::value(1e200), m::value(1e200)),
                     m::value(1) }).value();

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                 hyperbolic.h
+* djinterp [c][math]                                                hyperbolic.h
 *
 * Hyperbolic functions: the C core's sinh, cosh and tanh, and their
 * inverses asinh, acosh and atanh, for float, double and long double.
@@ -22,7 +22,7 @@
 * path:      /inc/djinterp/c/modules/math/hyperbolic.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.09
-*                                                            revised: 2026.11.16
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*
@@ -482,7 +482,7 @@ d_internal_math_f_scale_pair(
 //------------------------------------------------------------------------------
 // sinh_c is the hyperbolic sine in pure arithmetic, a constant expression from
 // C++14: the kernel's pair (section 1.1) rounded once to the family. It is
-// odd; below 2^-(P/2 + 1), P long double's precision, a value is its own --
+// odd; below 2^-(P/2 + 1), P long double's precision, a value is its own -
 // the cube's term lies below half its last place - and so are the zeros and
 // the infinities; past the largest finite result it is +-inf; NaN gives NaN.
 // sinh is the C library's.
@@ -853,7 +853,7 @@ d_internal_math_d_scale_pair(
 //------------------------------------------------------------------------------
 // sinh_c is the hyperbolic sine in pure arithmetic, a constant expression from
 // C++14: the kernel's pair (section 1.1) rounded once to the family. It is
-// odd; below 2^-(P/2 + 1), P long double's precision, a value is its own --
+// odd; below 2^-(P/2 + 1), P long double's precision, a value is its own -
 // the cube's term lies below half its last place - and so are the zeros and
 // the infinities; past the largest finite result it is +-inf; NaN gives NaN.
 // sinh is the C library's.
@@ -1224,7 +1224,7 @@ d_internal_math_ld_scale_pair(
 //------------------------------------------------------------------------------
 // sinh_c is the hyperbolic sine in pure arithmetic, a constant expression from
 // C++14: the kernel's pair (section 1.1) rounded once to the family. It is
-// odd; below 2^-(P/2 + 1), P long double's precision, a value is its own --
+// odd; below 2^-(P/2 + 1), P long double's precision, a value is its own -
 // the cube's term lies below half its last place - and so are the zeros and
 // the infinities; past the largest finite result it is +-inf; NaN gives NaN.
 // sinh is the C library's.

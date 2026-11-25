@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                            nearest_integer.h
+* djinterp [c][math]                                           nearest_integer.h
 *
 * Nearest integers: the C core's floor, ceil, trunc and round, for
 * float, double and long double.
@@ -21,7 +21,7 @@
 * path:      /inc/djinterp/c/modules/math/nearest_integer.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.11.16
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*

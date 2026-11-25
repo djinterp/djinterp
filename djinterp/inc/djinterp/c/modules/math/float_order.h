@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                float_order.h
+* djinterp [c][math]                                               float_order.h
 *
 * The order of a floating-point type's values: successor, predecessor,
 * ordinal distance and advance, for float, double and long double.
@@ -17,7 +17,7 @@
 * path:      /inc/djinterp/c/modules/math/float_order.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.16
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*
@@ -257,7 +257,7 @@ d_internal_math_f_place_of(
 //   the inverse of place_of: the value at binade _binade, offset _offset.
 D_MATH_FN float
 d_internal_math_f_value_of(
-    int _binade,
+    int   _binade,
     float _offset
 )
 {
@@ -353,7 +353,7 @@ d_internal_math_f_steps_up(
 // largest finite value.
 D_MATH_FN float
 d_internal_math_f_climb(
-    float          _from,
+    float        _from,
     dj_math_umax _steps
 )
 {
@@ -415,7 +415,7 @@ d_internal_math_f_climb(
 // place lies past the last binade, which value_of does not build.
 D_MATH_FN float
 d_internal_math_f_descend(
-    float          _from,
+    float        _from,
     dj_math_umax _steps
 )
 {
@@ -539,7 +539,7 @@ d_math_f_next_down(
 
 // 1.3    Ordinal distance and advance
 //------------------------------------------------------------------------------
-// steps is how many values lie in [_from, _to) - for adjacent values 1 --
+// steps is how many values lie in [_from, _to) - for adjacent values 1 -
 // for _from <= _to, saturating at D_MATH_UMAX_MAX; advance is the value
 // _steps above _from, +inf past the largest finite value, and no steps
 // leave _from where it is. The infinities are the order's ends, one step
@@ -587,7 +587,7 @@ d_math_f_steps(
 
 D_MATH_FN float
 d_math_f_advance(
-    float          _from,
+    float        _from,
     dj_math_umax _steps
 )
 {
@@ -823,7 +823,7 @@ d_internal_math_d_place_of(
 //   the inverse of place_of: the value at binade _binade, offset _offset.
 D_MATH_FN double
 d_internal_math_d_value_of(
-    int _binade,
+    int    _binade,
     double _offset
 )
 {
@@ -919,7 +919,7 @@ d_internal_math_d_steps_up(
 // largest finite value.
 D_MATH_FN double
 d_internal_math_d_climb(
-    double          _from,
+    double       _from,
     dj_math_umax _steps
 )
 {
@@ -981,7 +981,7 @@ d_internal_math_d_climb(
 // place lies past the last binade, which value_of does not build.
 D_MATH_FN double
 d_internal_math_d_descend(
-    double          _from,
+    double       _from,
     dj_math_umax _steps
 )
 {
@@ -1105,7 +1105,7 @@ d_math_d_next_down(
 
 // 2.3    Ordinal distance and advance
 //------------------------------------------------------------------------------
-// steps is how many values lie in [_from, _to) - for adjacent values 1 --
+// steps is how many values lie in [_from, _to) - for adjacent values 1 -
 // for _from <= _to, saturating at D_MATH_UMAX_MAX; advance is the value
 // _steps above _from, +inf past the largest finite value, and no steps
 // leave _from where it is. The infinities are the order's ends, one step
@@ -1153,7 +1153,7 @@ d_math_d_steps(
 
 D_MATH_FN double
 d_math_d_advance(
-    double          _from,
+    double       _from,
     dj_math_umax _steps
 )
 {
@@ -1389,7 +1389,7 @@ d_internal_math_ld_place_of(
 //   the inverse of place_of: the value at binade _binade, offset _offset.
 D_MATH_FN long double
 d_internal_math_ld_value_of(
-    int _binade,
+    int         _binade,
     long double _offset
 )
 {
@@ -1485,7 +1485,7 @@ d_internal_math_ld_steps_up(
 // largest finite value.
 D_MATH_FN long double
 d_internal_math_ld_climb(
-    long double          _from,
+    long double  _from,
     dj_math_umax _steps
 )
 {
@@ -1547,7 +1547,7 @@ d_internal_math_ld_climb(
 // place lies past the last binade, which value_of does not build.
 D_MATH_FN long double
 d_internal_math_ld_descend(
-    long double          _from,
+    long double  _from,
     dj_math_umax _steps
 )
 {
@@ -1671,7 +1671,7 @@ d_math_ld_next_down(
 
 // 3.3    Ordinal distance and advance
 //------------------------------------------------------------------------------
-// steps is how many values lie in [_from, _to) - for adjacent values 1 --
+// steps is how many values lie in [_from, _to) - for adjacent values 1 -
 // for _from <= _to, saturating at D_MATH_UMAX_MAX; advance is the value
 // _steps above _from, +inf past the largest finite value, and no steps
 // leave _from where it is. The infinities are the order's ends, one step
@@ -1719,7 +1719,7 @@ d_math_ld_steps(
 
 D_MATH_FN long double
 d_math_ld_advance(
-    long double          _from,
+    long double  _from,
     dj_math_umax _steps
 )
 {

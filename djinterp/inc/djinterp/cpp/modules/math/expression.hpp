@@ -7,6 +7,7 @@
 * same node objects therefore evaluate at compile time (in a constexpr
 * context) and at runtime, with no change of code:
 *
+*     using namespace djinterp::math::variables;          // x, y, ... phi
 *     constexpr auto e = constant(2.0) * squared(x);   // compile time
 *     constexpr double a = e(3.0);                     // == 18.0, constant-expr
 *     auto e2 = constant(2.0) * squared(x);             // runtime
@@ -24,33 +25,53 @@
 *   - Operators (+ - * /) and unary minus are defined ONCE, constrained to
 *     operands modelling `expression`, so every node type composes and adding
 *     a new node type needs zero new operators. Scalars auto-lift to constant.
-*   - Transcendentals evaluate via a constexpr math kernel at compile time and
-*     via <cmath> at runtime (std::is_constant_evaluated dispatch).
+*   - Transcendentals evaluate by the C core's correctly rounded or
+*     faithful `_c` kernels, d_math_exp_c, d_math_sin_c, d_math_cos_c,
+*     d_math_tan_c and d_math_sqrt_c, at compile time and at run time alike,
+*     so that one call has one answer at every level (N3, S430); abs is
+*     exact.
+*
+* LEVELS (step 29, 5a; S430)
+*   C++11 is the floor, and the header is empty below it (N1). From C++11
+* the nodes, the leaves, + - * / and unary minus, squared, abs and dot are
+* constant expressions; exp, sin, cos, tan and sqrt are from C++14, where the
+* C core's kernels are (D_MATH_FN), and evaluate at run time below it. The
+* named placeholders x, y, z, t, r, rho, theta and phi live in the namespace
+* djinterp::math::variables, so that no local of those names in a function
+* of djinterp::math shadows them (S403, ruled 2026.11.16); var<I, T>, a
+* variable template, is from C++14. On a 32-bit x87, where double is
+* evaluated wider, exp is refused at compile time, as the double family's
+* correctly rounded functions are (S418, S426).
 *
 *
 * path:      /inc/djinterp/cpp/modules/math/expression.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                                created: TBA
-*                                                            revised: 2026.10.18
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 
 #ifndef DJINTERP_MATH_EXPRESSION_HPP
 #define DJINTERP_MATH_EXPRESSION_HPP 1
 
-// std
-#include <cmath>
-#include <cstddef>
-#include <tuple>
-#include <type_traits>
-#include <utility>
 // djinterp
-#include "../../djinterp.hpp"
+#include "../../djinterp.hpp"  // framework root
+
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
+// std
+#include <cstddef>      // std::size_t
+#include <type_traits>  // std::enable_if, std::is_base_of, std::decay
+// djinterp
+#include "../../../c/modules/math/elementary.h"   // d_math_sqrt_c, sin_c, cos_c
+#include "../../../c/modules/math/exponential.h"  // d_math_exp_c
+#include "../../../c/modules/math/tangent.h"      // d_math_tan_c
 
 
 // D_INLINE_VAR: `inline` for namespace-scope constexpr variables under C++17+
 // (one shared, ODR-merged object). Under C++14 it is empty: a namespace-scope
 // constexpr variable already has internal linkage, so each TU gets its own
-// copy with no ODR conflict. (Provided by the djinterp env header when present.)
+// copy with no ODR conflict. (Provided by the djinterp env header when
+// present.)
 #ifndef D_INLINE_VAR
     #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
         #define D_INLINE_VAR inline
@@ -138,111 +159,19 @@ struct vec3
 
 NS_INTERNAL
 
-    // ---- constexpr scalar kernel (compile-time fallback for <cmath>) -------
+    // ---- scalar kernels -------------------------------------------------
+    // exp, sin, cos, tan and sqrt are the C core's `_c` kernels, one answer
+    // at compile time and at run time (N3, S430); the kernels this header
+    // once had of its own gave sqrt(1e300) as 7.89e269 and exp up to 10,800
+    // ulps off, and a C++20 program the C library's answer at run time and
+    // theirs in a constant expression.
 
-    // cabs
+    // expr_abs
+    //   |_x|, exact: -0 gives +0, as fabs does; a NaN passes.
     inline D_CONSTEXPR double
-    cabs(double _x) noexcept
+    expr_abs(double _x) noexcept
     {
-        return (_x < 0.0) ? -_x : _x;
-    }
-
-    // csqrt: Newton-Raphson.
-    inline D_CONSTEXPR double
-    csqrt(double _x) noexcept
-    {
-        if (_x <= 0.0)
-        {
-            return 0.0;
-        }
-
-        double g = _x;
-
-        for (int i = 0; i < 100; ++i)
-        {
-            g = 0.5 * (g + _x / g);
-        }
-
-        return g;
-    }
-
-    // cexp: range-halve to |a| <= 0.5, Maclaurin series, then re-square.
-    inline D_CONSTEXPR double
-    cexp(double _x) noexcept
-    {
-        const bool neg = (_x < 0.0);
-        double     a   = neg ? -_x : _x;
-        int        k   = 0;
-
-        while (a > 0.5)
-        {
-            a *= 0.5;
-            ++k;
-        }
-
-        double term = 1.0;
-        double sum  = 1.0;
-
-        for (int n = 1; n < 24; ++n)
-        {
-            term *= a / static_cast<double>(n);
-            sum  += term;
-        }
-
-        for (int i = 0; i < k; ++i)
-        {
-            sum *= sum;
-        }
-
-        return neg ? (1.0 / sum) : sum;
-    }
-
-    // creduce: bring an angle into approximately [-pi, pi].
-    inline D_CONSTEXPR double
-    creduce(double _x) noexcept
-    {
-        const double two_pi = 6.283185307179586476925286766559;
-        const double q      = _x / two_pi;
-        const double r      = (q >= 0.0) ? (q + 0.5) : (q - 0.5);
-        const long long m   = static_cast<long long>(r);
-
-        return _x - static_cast<double>(m) * two_pi;
-    }
-
-    // csin
-    inline D_CONSTEXPR double
-    csin(double _x) noexcept
-    {
-        const double y  = creduce(_x);
-        const double y2 = y * y;
-        double       term = y;
-        double       sum  = y;
-
-        for (int n = 1; n < 16; ++n)
-        {
-            term *= -y2 / static_cast<double>((2 * n) * (2 * n + 1));
-            sum  += term;
-        }
-
-        return sum;
-    }
-
-    // ccos
-    inline D_CONSTEXPR double
-    ccos(double _x) noexcept
-    {
-        const double y  = creduce(_x);
-        const double y2 = y * y;
-        double       term = 1.0;
-        double       sum  = 1.0;
-
-        for (int n = 1; n < 16; ++n)
-        {
-            term *= -y2 / static_cast<double>((2 * n - 1) * (2 * n));
-            sum  += term;
-        }
-
-        return sum;
+        return (_x < 0.0) ? -_x : ( (_x == 0.0) ? 0.0 : _x );
     }
 
     // vec_dot
@@ -253,105 +182,108 @@ NS_INTERNAL
         return (_a.x * _b.x) + (_a.y * _b.y) + (_a.z * _b.z);
     }
 
-    // ctan
-    inline D_CONSTEXPR double
-    ctan(double _x) noexcept
-    {
-        return csin(_x) / ccos(_x);
-    }
-
     // ---- binary operation functors ----------------------------------------
 
     struct op_add
     {
         template<typename _A, typename _B>
-        static D_CONSTEXPR auto apply(_A _a, _B _b) { return _a + _b; }
+        static D_CONSTEXPR auto apply(_A _a, _B _b) -> decltype(_a + _b)
+        {
+            return _a + _b;
+        }
     };
 
     struct op_sub
     {
         template<typename _A, typename _B>
-        static D_CONSTEXPR auto apply(_A _a, _B _b) { return _a - _b; }
+        static D_CONSTEXPR auto apply(_A _a, _B _b) -> decltype(_a - _b)
+        {
+            return _a - _b;
+        }
     };
 
     struct op_mul
     {
         template<typename _A, typename _B>
-        static D_CONSTEXPR auto apply(_A _a, _B _b) { return _a * _b; }
+        static D_CONSTEXPR auto apply(_A _a, _B _b) -> decltype(_a * _b)
+        {
+            return _a * _b;
+        }
     };
 
     struct op_div
     {
         template<typename _A, typename _B>
-        static D_CONSTEXPR auto apply(_A _a, _B _b) { return _a / _b; }
+        static D_CONSTEXPR auto apply(_A _a, _B _b) -> decltype(_a / _b)
+        {
+            return _a / _b;
+        }
     };
 
     struct op_dot
     {
         template<typename _A, typename _B>
-        static D_CONSTEXPR double apply(_A _a, _B _b) { return vec_dot(_a, _b); }
+        static D_CONSTEXPR double apply(_A _a, _B _b)
+        {
+            return vec_dot(_a, _b);
+        }
     };
 
     // ---- unary operation functors -----------------------------------------
 
-    // D_MATH_DISPATCH: pick the constexpr kernel during constant evaluation and
-    // libm at runtime where std::is_constant_evaluated is available (C++20);
-    // otherwise always use the constexpr kernel (valid in both contexts).
-#if D_ENV_CPP_FEATURE_STL_IS_CONSTANT_EVALUATED
-    #define D_MATH_DISPATCH(KERNEL, STDFN, ARG) \
-        (std::is_constant_evaluated() ? KERNEL(ARG) : STDFN(ARG))
-#else
-    #define D_MATH_DISPATCH(KERNEL, STDFN, ARG) (KERNEL(ARG))
-#endif
-
+    // The transcendental functors are constant expressions from C++14, where
+    // the C core's kernels are (D_MATH_FN), and run-time calls below it.
     struct op_neg
     {
         template<typename _X>
-        static D_CONSTEXPR _X apply(_X _x) { return -_x; }
+        static D_CONSTEXPR _X apply(_X _x)
+        {
+            return -_x;
+        }
     };
 
     struct fn_exp
     {
         template<typename _X>
-        static D_CONSTEXPR double apply(_X _x)
+        static D_CONSTEXPR_CPP14 double apply(_X _x)
         {
-            return D_MATH_DISPATCH(cexp, std::exp, static_cast<double>(_x));
+            return d_math_exp_c(static_cast<double>(_x));
         }
     };
 
     struct fn_sin
     {
         template<typename _X>
-        static D_CONSTEXPR double apply(_X _x)
+        static D_CONSTEXPR_CPP14 double apply(_X _x)
         {
-            return D_MATH_DISPATCH(csin, std::sin, static_cast<double>(_x));
+            return d_math_sin_c(static_cast<double>(_x));
         }
     };
 
     struct fn_cos
     {
         template<typename _X>
-        static D_CONSTEXPR double apply(_X _x)
+        static D_CONSTEXPR_CPP14 double apply(_X _x)
         {
-            return D_MATH_DISPATCH(ccos, std::cos, static_cast<double>(_x));
+            return d_math_cos_c(static_cast<double>(_x));
         }
     };
 
     struct fn_tan
     {
         template<typename _X>
-        static D_CONSTEXPR double apply(_X _x)
+        static D_CONSTEXPR_CPP14 double apply(_X _x)
         {
-            return D_MATH_DISPATCH(ctan, std::tan, static_cast<double>(_x));
+            return d_math_tan_c(static_cast<double>(_x));
         }
     };
 
     struct fn_sqrt
     {
         template<typename _X>
-        static D_CONSTEXPR double apply(_X _x)
+        static D_CONSTEXPR_CPP14 double apply(_X _x)
         {
-            return D_MATH_DISPATCH(csqrt, std::sqrt, static_cast<double>(_x));
+            return d_math_sqrt_c(static_cast<double>(_x));
         }
     };
 
@@ -360,11 +292,9 @@ NS_INTERNAL
         template<typename _X>
         static D_CONSTEXPR double apply(_X _x)
         {
-            return cabs(static_cast<double>(_x));
+            return expr_abs(static_cast<double>(_x));
         }
     };
-
-#undef D_MATH_DISPATCH
 
 NS_END  // internal
 
@@ -414,6 +344,36 @@ constant(_T _v)
 // V.   LEAVES: VARIABLE (positional binding)
 // ===========================================================================
 
+NS_INTERNAL
+
+    // expr_pick
+    //   the _Index-th of the arguments as _ValueType: std::get and
+    // std::forward_as_tuple are constant expressions only from C++14.
+    template<std::size_t _Index,
+             typename    _ValueType>
+    struct expr_pick
+    {
+        template<typename _A, typename... _Rest>
+        static D_CONSTEXPR _ValueType
+        get(const _A&, const _Rest&... _rest) noexcept
+        {
+            return expr_pick<(_Index - 1), _ValueType>::get(_rest...);
+        }
+    };
+
+    template<typename _ValueType>
+    struct expr_pick<0, _ValueType>
+    {
+        template<typename _A, typename... _Rest>
+        static D_CONSTEXPR _ValueType
+        get(const _A& _a, const _Rest&...) noexcept
+        {
+            return static_cast<_ValueType>(_a);
+        }
+    };
+
+NS_END  // internal
+
 // variable_node
 //   struct: independent variable bound to evaluation-argument index _Index.
 template<std::size_t _Index,
@@ -432,9 +392,7 @@ struct variable_node : expression_base<variable_node<_Index, _ValueType>>
         static_assert((sizeof...(_Args) > _Index),
                       "variable_node: not enough arguments for this index.");
 
-        return static_cast<value_type>(
-            std::get<_Index>(
-                std::forward_as_tuple(std::forward<_Args>(_args)...)));
+        return internal::expr_pick<_Index, value_type>::get(_args...);
     }
 };
 
@@ -445,18 +403,26 @@ template<std::size_t _Index, typename _T = double>
 D_INLINE_VAR constexpr variable_node<_Index, _T> var{};
 #endif
 
-// Named scalar placeholders (positional indices). Different names may share an
-// index (e.g. x and r are both argument 0); do not mix naming schemes within
-// one function.
-D_INLINE_VAR constexpr variable_node<0> x{};
-D_INLINE_VAR constexpr variable_node<1> y{};
-D_INLINE_VAR constexpr variable_node<2> z{};
-D_INLINE_VAR constexpr variable_node<3> t{};
+// variables
+//   namespace: the named scalar placeholders (positional indices), in a
+// namespace of their own, so that a local x or theta in a function of
+// djinterp::math shadows nothing (S403, ruled 2026.11.16); bring them in
+// with `using namespace djinterp::math::variables;`. Different names may
+// share an index (e.g. x and r are both argument 0); do not mix naming
+// schemes within one function. (function.hpp's cartesian_axes and the rest
+// give each coordinate system's names at its own indices.)
+namespace variables
+{
+    D_INLINE_VAR constexpr variable_node<0> x{};
+    D_INLINE_VAR constexpr variable_node<1> y{};
+    D_INLINE_VAR constexpr variable_node<2> z{};
+    D_INLINE_VAR constexpr variable_node<3> t{};
 
-D_INLINE_VAR constexpr variable_node<0> r{};
-D_INLINE_VAR constexpr variable_node<0> rho{};
-D_INLINE_VAR constexpr variable_node<1> theta{};
-D_INLINE_VAR constexpr variable_node<2> phi{};
+    D_INLINE_VAR constexpr variable_node<0> r{};
+    D_INLINE_VAR constexpr variable_node<0> rho{};
+    D_INLINE_VAR constexpr variable_node<1> theta{};
+    D_INLINE_VAR constexpr variable_node<2> phi{};
+}  // namespace variables
 
 
 // ===========================================================================
@@ -464,6 +430,18 @@ D_INLINE_VAR constexpr variable_node<2> phi{};
 // ===========================================================================
 
 NS_INTERNAL
+
+    // expr_of
+    //   trait: the node as_expr makes of a _T: _T where it is an expression,
+    // and otherwise its constant_node.
+    template<typename _T>
+    struct expr_of
+    {
+        typedef typename std::conditional<
+            is_expression<_T>::value,
+            typename std::decay<_T>::type,
+            constant_node<typename std::decay<_T>::type> >::type type;
+    };
 
     // as_expr: pass expressions through; wrap non-expressions in constant().
     template<typename _T>
@@ -518,7 +496,7 @@ struct binary_node : expression_base<binary_node<_Op, _Left, _Right>>
     }
 
     template<typename... _Args>
-    D_CONSTEXPR auto
+    D_CONSTEXPR value_type
     operator()(_Args&&... _args) const
     {
         return _Op::apply(left(_args...), right(_args...));
@@ -547,7 +525,7 @@ struct unary_node : expression_base<unary_node<_Op, _Arg>>
     }
 
     template<typename... _Args>
-    D_CONSTEXPR auto
+    D_CONSTEXPR value_type
     operator()(_Args&&... _args) const
     {
         return _Op::apply(arg(_args...));
@@ -567,7 +545,8 @@ struct unary_node : expression_base<unary_node<_Op, _Arg>>
              typename std::enable_if<is_expression<_L>::value &&              \
                                      is_expression<_R>::value,                \
                                      int>::type = 0>                          \
-    D_CONSTEXPR auto operator SYM (_L _l, _R _r)                              \
+    D_CONSTEXPR binary_node<internal::TAG, _L, _R>                            \
+    operator SYM (_L _l, _R _r)                                               \
     {                                                                         \
         return binary_node<internal::TAG, _L, _R>(_l, _r);                    \
     }                                                                         \
@@ -577,9 +556,13 @@ struct unary_node : expression_base<unary_node<_Op, _Arg>>
                                      std::is_arithmetic<                      \
                                          typename std::decay<_S>::type        \
                                      >::value, int>::type = 0>                \
-    D_CONSTEXPR auto operator SYM (_L _l, _S _s)                              \
+    D_CONSTEXPR binary_node<internal::TAG, _L,                                \
+                            constant_node<typename std::decay<_S>::type> >    \
+    operator SYM (_L _l, _S _s)                                               \
     {                                                                         \
-        return _l SYM constant(_s);                                          \
+        return binary_node<internal::TAG, _L,                                 \
+                           constant_node<typename std::decay<_S>::type> >(    \
+            _l, constant(_s));                                                \
     }                                                                         \
     template<typename _S, typename _R,                                        \
              typename std::enable_if<std::is_arithmetic<                      \
@@ -587,9 +570,13 @@ struct unary_node : expression_base<unary_node<_Op, _Arg>>
                                      >::value &&                              \
                                      is_expression<_R>::value,                \
                                      int>::type = 0>                          \
-    D_CONSTEXPR auto operator SYM (_S _s, _R _r)                              \
+    D_CONSTEXPR binary_node<internal::TAG,                                    \
+                            constant_node<typename std::decay<_S>::type>, _R> \
+    operator SYM (_S _s, _R _r)                                               \
     {                                                                         \
-        return constant(_s) SYM _r;                                          \
+        return binary_node<internal::TAG,                                     \
+                           constant_node<typename std::decay<_S>::type>,      \
+                           _R>(constant(_s), _r);                             \
     }
 
 D_EXPR_BINARY_OP(+, op_add)
@@ -602,7 +589,7 @@ D_EXPR_BINARY_OP(/, op_div)
 // unary minus
 template<typename _A,
          typename std::enable_if<is_expression<_A>::value, int>::type = 0>
-D_CONSTEXPR auto
+D_CONSTEXPR unary_node<internal::op_neg, _A>
 operator-(_A _a)
 {
     return unary_node<internal::op_neg, _A>(_a);
@@ -616,10 +603,13 @@ operator-(_A _a)
 // One macro per elementwise unary function.
 #define D_EXPR_UNARY_FN(NAME, TAG)                                            \
     template<typename _A>                                                     \
-    D_CONSTEXPR auto NAME (_A _a)                                             \
+    D_CONSTEXPR unary_node<internal::TAG,                                     \
+                           typename internal::expr_of<_A>::type>              \
+    NAME (_A _a)                                                              \
     {                                                                         \
-        auto e = internal::as_expr(_a);                                       \
-        return unary_node<internal::TAG, decltype(e)>(e);                     \
+        return unary_node<internal::TAG,                                      \
+                          typename internal::expr_of<_A>::type>(              \
+            internal::as_expr(_a));                                           \
     }
 
 D_EXPR_UNARY_FN(exp,  fn_exp)
@@ -636,11 +626,15 @@ D_EXPR_UNARY_FN(abs,  fn_abs)
 //   rather than `square` so it does not collide with the geometry square<>
 //   shape, which shares the djinterp::math namespace.
 template<typename _A>
-D_CONSTEXPR auto
+D_CONSTEXPR binary_node<internal::op_mul,
+                        typename internal::expr_of<_A>::type,
+                        typename internal::expr_of<_A>::type>
 squared(_A _a)
 {
-    auto e = internal::as_expr(_a);
-    return e * e;
+    return binary_node<internal::op_mul,
+                       typename internal::expr_of<_A>::type,
+                       typename internal::expr_of<_A>::type>(
+        internal::as_expr(_a), internal::as_expr(_a));
 }
 
 // pow
@@ -651,18 +645,23 @@ squared(_A _a)
 // dot
 //   combinator: dot product of two vector-valued sub-expressions -> scalar.
 template<typename _A, typename _B>
-D_CONSTEXPR auto
+D_CONSTEXPR binary_node<internal::op_dot,
+                        typename internal::expr_of<_A>::type,
+                        typename internal::expr_of<_B>::type>
 dot(_A _a, _B _b)
 {
-    auto ea = internal::as_expr(_a);
-    auto eb = internal::as_expr(_b);
-
-    return binary_node<internal::op_dot, decltype(ea), decltype(eb)>(ea, eb);
+    return binary_node<internal::op_dot,
+                       typename internal::expr_of<_A>::type,
+                       typename internal::expr_of<_B>::type>(
+        internal::as_expr(_a), internal::as_expr(_b));
 }
 
 
 NS_END  // math
 NS_END  // djinterp
+
+
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
 #endif  // DJINTERP_MATH_EXPRESSION_HPP

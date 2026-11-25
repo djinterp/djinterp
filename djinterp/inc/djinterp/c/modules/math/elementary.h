@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                 elementary.h
+* djinterp [c][math]                                                elementary.h
 *
 * Elementary functions: the C core's square root, arc-sine, arc-cosine,
 * sine and cosine, for float, double and long double, and the long double
@@ -22,7 +22,7 @@
 * path:      /inc/djinterp/c/modules/math/elementary.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.16
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*
@@ -719,7 +719,7 @@ d_internal_math_ld_trig(
 // exact by Sterbenz's lemma, the quotient's residual by Dekker's product).
 // atan t = t - t^3/3 + t^5/5 - ..., to its 24th term, past a quad's
 // precision; atan c and pi/2 are each held as a head of at most 32 bits,
-// exact as written, and the rest; and the heads and t are summed exactly --
+// exact as written, and the rest; and the heads and t are summed exactly -
 // q pi/2 + atan c is exact for each q - so that only the last addition
 // rounds, and what it rounds off is kept.
 
@@ -1247,7 +1247,7 @@ d_internal_math_f_sqrt_settle(
 //   struct: a whole number in digits of 16 bits, the least first, each held
 // in a dj_math_umax: a digit times a digit, with a digit and a carry added,
 // stays below 2^32, which the narrowest dj_math_umax holds. Room for numbers
-// below 2^(2P+4): sqrt_settle_digits's, where two limbs do not hold them --
+// below 2^(2P+4): sqrt_settle_digits's, where two limbs do not hold them -
 // S M, the largest, lies below 2^(2P).
 struct dj_internal_math_f_digits
 {
@@ -1564,7 +1564,7 @@ d_internal_math_f_sqrt_settle_digits(
 
 // d_internal_math_f_sqrt_unit
 //   the correctly rounded square root of _m in [1, 4): Newton's iteration
-// from a line within 6% of it - six steps pass any precision to a quad's --
+// from a line within 6% of it - six steps pass any precision to a quad's -
 // then the last bit settled. Where two limbs hold (2^(P+1))^2 - float, and
 // double with a 64-bit dj_math_umax - it is settled in integers
 // (sqrt_settle), exact however the build evaluates floating point. Where
@@ -2132,7 +2132,7 @@ d_internal_math_d_sqrt_settle(
 //   struct: a whole number in digits of 16 bits, the least first, each held
 // in a dj_math_umax: a digit times a digit, with a digit and a carry added,
 // stays below 2^32, which the narrowest dj_math_umax holds. Room for numbers
-// below 2^(2P+4): sqrt_settle_digits's, where two limbs do not hold them --
+// below 2^(2P+4): sqrt_settle_digits's, where two limbs do not hold them -
 // S M, the largest, lies below 2^(2P).
 struct dj_internal_math_d_digits
 {
@@ -2449,7 +2449,7 @@ d_internal_math_d_sqrt_settle_digits(
 
 // d_internal_math_d_sqrt_unit
 //   the correctly rounded square root of _m in [1, 4): Newton's iteration
-// from a line within 6% of it - six steps pass any precision to a quad's --
+// from a line within 6% of it - six steps pass any precision to a quad's -
 // then the last bit settled. Where two limbs hold (2^(P+1))^2 - float, and
 // double with a 64-bit dj_math_umax - it is settled in integers
 // (sqrt_settle), exact however the build evaluates floating point. Where
@@ -2988,7 +2988,7 @@ d_internal_math_ld_sqrt_settle(
 //   struct: a whole number in digits of 16 bits, the least first, each held
 // in a dj_math_umax: a digit times a digit, with a digit and a carry added,
 // stays below 2^32, which the narrowest dj_math_umax holds. Room for numbers
-// below 2^(2P+4): sqrt_settle_digits's, where two limbs do not hold them --
+// below 2^(2P+4): sqrt_settle_digits's, where two limbs do not hold them -
 // S M, the largest, lies below 2^(2P).
 struct dj_internal_math_ld_digits
 {
@@ -3305,7 +3305,7 @@ d_internal_math_ld_sqrt_settle_digits(
 
 // d_internal_math_ld_sqrt_unit
 //   the correctly rounded square root of _m in [1, 4): Newton's iteration
-// from a line within 6% of it - six steps pass any precision to a quad's --
+// from a line within 6% of it - six steps pass any precision to a quad's -
 // then the last bit settled. Where two limbs hold (2^(P+1))^2 - float, and
 // double with a 64-bit dj_math_umax - it is settled in integers
 // (sqrt_settle), exact however the build evaluates floating point. Where

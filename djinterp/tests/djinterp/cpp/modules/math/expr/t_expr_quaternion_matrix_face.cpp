@@ -42,7 +42,7 @@
 * path:      /tests/djinterp/cpp/modules/math/expr/t_expr_quaternion_matrix_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.08
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/evaluate.hpp"
 // std
@@ -102,12 +102,14 @@ namespace
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
-#include <cmath>    // std::signbit, std::fabs, std::ldexp
+#include <cmath>    // std::signbit, std::fabs, std::ldexp, std::atan2
 #include <cstddef>  // std::size_t
 #include <limits>   // std::numeric_limits
 #include <string>   // std::string
 #include <vector>   // std::vector
 // djinterp
+#include "../../../../../../inc/djinterp/c/modules/math/decomp.h"      // the test's K
+#include "../../../../../../inc/djinterp/c/modules/math/elementary.h"  // d_math_sqrt
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/function_table.hpp"  // the tables
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/matrix_function.hpp"  // det, inv, eig, solve
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/matrix_kind.hpp"      // the kind
@@ -2065,17 +2067,85 @@ namespace
         return m::expr_matrix(3, 3, e).value();
     }
 
+    // d_tests_nearest_q
+    //   the test's own nearest rotation to the 3 by 3 _r, Bar-Itzhack's: the
+    // eigenvector of the largest eigenvalue of K, by decomp.h's cyclic Jacobi
+    // with the library's tolerance, unit, w >= 0 (S429).
+    template<typename Type>
+    m::quaternion<Type>
+    d_tests_nearest_q(
+        const Type (&_r)[9]
+    )
+    {
+        const Type* r = _r;
+        Type k[16] = {
+            ( (r[0] - r[4]) - r[8]), (r[1] + r[3]), (r[2] + r[6]),
+            (r[7] - r[5]),
+            (r[1] + r[3]), ( (r[4] - r[0]) - r[8]), (r[5] + r[7]),
+            (r[2] - r[6]),
+            (r[2] + r[6]), (r[5] + r[7]), ( (r[8] - r[0]) - r[4]),
+            (r[3] - r[1]),
+            (r[7] - r[5]), (r[2] - r[6]), (r[3] - r[1]),
+            ( (r[0] + r[4]) + r[8]) };
+        Type values[4]   = { Type(0), Type(0), Type(0), Type(0) };
+        Type vectors[16] = { Type(1), Type(0), Type(0), Type(0),
+                             Type(0), Type(1), Type(0), Type(0),
+                             Type(0), Type(0), Type(1), Type(0),
+                             Type(0), Type(0), Type(0), Type(1) };
+        Type size = Type(0);
+
+        for (std::size_t i = 0; i < 16; ++i)
+        {
+            size += (k[i] * k[i]);
+        }
+
+        d_decomp_sym_eigen(k, values, vectors, 4,
+                           ( std::numeric_limits<Type>::epsilon() *
+                             d_math_sqrt(size) ));
+
+        Type q[4] = { vectors[3], vectors[7], vectors[11], vectors[15] };
+        const Type length = d_math_sqrt( ( (q[0] * q[0]) + (q[1] * q[1]) ) +
+                                         ( (q[2] * q[2]) + (q[3] * q[3]) ) );
+        const Type sign   = (q[3] < Type(0)) ? Type(-1) : Type(1);
+
+        for (std::size_t i = 0; i < 4; ++i)
+        {
+            q[i] = sign * (q[i] / length);
+        }
+
+        return d_tests_q(q[3], q[0], q[1], q[2]);
+    }
+
+    // d_tests_close_q
+    //   whether two quaternions agree part by part within _tolerance.
+    template<typename Type>
+    bool
+    d_tests_close_q(
+        const m::quaternion<Type>& _a,
+        const m::quaternion<Type>& _b,
+        Type                       _tolerance
+    )
+    {
+        return ( (std::fabs(_a.m_w - _b.m_w) <= _tolerance) &&
+                 (std::fabs(_a.m_x - _b.m_x) <= _tolerance) &&
+                 (std::fabs(_a.m_y - _b.m_y) <= _tolerance) &&
+                 (std::fabs(_a.m_z - _b.m_z) <= _tolerance) );
+    }
+
     // d_tests_dense_rotations
-    //   S391 in Type: rotmat quat.h's to_matrix3, rotquat its from_matrix3,
-    // a quaternion of Type,
-    // slerp its slerp of the normalized operands, each bit for bit.
+    //   S391 in Type: rotmat quat.h's to_matrix3, bit for bit; rotquat the
+    // nearest rotation's, Bar-Itzhack's, a quaternion of Type, the test's own
+    // bit for bit and within 32 epsilons of q's, unit, w >= 0 (S429); slerp
+    // its slerp of the normalized operands, bit for bit.
     template<typename Type>
     bool
     d_tests_dense_rotations(
         d_tests_rng& _rng
     )
     {
-        bool ok = true;
+        const Type tolerance = ( Type(32) *
+                                 std::numeric_limits<Type>::epsilon() );
+        bool       ok        = true;
 
         for (int round = 0; round < 10; ++round)
         {
@@ -2089,6 +2159,14 @@ namespace
             const m::value             back =
                 m::expr_quaternion_of_rotation(rotm);
             const std::vector<m::value> r   = d_tests_elements(rotm);
+            const m::quaternion<Type>  unit = normalize(q[0]);
+            const m::quaternion<Type>  turn =
+                (unit.m_w < Type(0))
+                    ? d_tests_q(-unit.m_w, -unit.m_x, -unit.m_y, -unit.m_z)
+                    : unit;
+            Type                       e[9] = { Type(0), Type(0), Type(0),
+                                                Type(0), Type(0), Type(0),
+                                                Type(0), Type(0), Type(0) };
 
             ok = ( (ok) &&
                    (r.size() == 9) &&
@@ -2097,17 +2175,18 @@ namespace
 
             for (std::size_t i = 0; ( (ok) && (i < 9) ); ++i)
             {
-                Type x = Type(0);
-
-                ok = ( (r[i].to(x)) &&
-                       (d_tests_same_bits(x, R((i / 3), (i % 3)))) );
+                ok = ( (r[i].to(e[i])) &&
+                       (d_tests_same_bits(e[i], R((i / 3), (i % 3)))) );
             }
 
             ok = ( (ok) &&
                    (m::internal::expr_quaternion_type_of(back.c_value()) ==
                         m::value(Type(1)).kind()) &&
                    (d_tests_same_quaternion(d_tests_dense_q<Type>(back),
-                                            m::from_matrix(R))) &&
+                                            d_tests_nearest_q<Type>(e))) &&
+                   (d_tests_close_q(d_tests_dense_q<Type>(back),
+                                    turn,
+                                    tolerance)) &&
                    (d_tests_same_quaternion(
                         d_tests_dense_q<Type>(m::expr_quaternion_slerp(
                             p, s, m::value(t))),
@@ -2115,6 +2194,54 @@ namespace
         }
 
         return ok;
+    }
+
+    // d_tests_nearest_rotations
+    //   rotquat of a matrix that is no rotation's but near one: the nearest
+    // rotation's (S429), in double for a drifted 30-degree turn about z whose
+    // cosine is a double, in long double for exact ones, a shear and 1.1 I,
+    // the latter's the identity's; NaNs for a NaN element. (The language's
+    // decimals are exact: 0.866 is 433/500.)
+    bool
+    d_tests_nearest_rotations()
+    {
+        const double      deps  = std::numeric_limits<double>::epsilon();
+        const long double ldeps = std::numeric_limits<long double>::epsilon();
+        const double      turn  = std::atan2(0.5, 0.866);
+        const long double shear = -std::atan(1.0L / 2000.0L);
+        const m::value    drift =
+            d_tests_value_of("rotquat([x, -0.5, 0; 0.5, x, 0; 0, 0, 1])",
+                             m::value(0.866));
+        const m::value    exact =
+            d_tests_value_of("rotquat([1, 1/1000, 0; 0, 1, 0; 0, 0, 1])");
+        const m::value    swell =
+            d_tests_value_of("rotquat([1.1, 0, 0; 0, 1.1, 0; 0, 0, 1.1])");
+        const m::quaternion<double> nans = d_tests_dense_q<double>(
+            d_tests_value_of("rotquat([1.0, 0, 0; 0, 1, 0; 0, 0, x])",
+                             m::value(std::numeric_limits<double>::
+                                          quiet_NaN())));
+
+        return ( (m::internal::expr_quaternion_type_of(drift.c_value()) ==
+                      D_MATH_VALUE_DOUBLE) &&
+                 (d_tests_close_q(d_tests_dense_q<double>(drift),
+                                  d_tests_q(std::cos(turn / 2.0), 0.0, 0.0,
+                                            std::sin(turn / 2.0)),
+                                  (8.0 * deps))) &&
+                 (m::internal::expr_quaternion_type_of(exact.c_value()) ==
+                      D_MATH_VALUE_LONG_DOUBLE) &&
+                 (d_tests_close_q(d_tests_dense_q<long double>(exact),
+                                  d_tests_q(std::cos(shear / 2.0L), 0.0L,
+                                            0.0L, std::sin(shear / 2.0L)),
+                                  (8.0L * ldeps))) &&
+                 (m::internal::expr_quaternion_type_of(swell.c_value()) ==
+                      D_MATH_VALUE_LONG_DOUBLE) &&
+                 (d_tests_same_quaternion(
+                      d_tests_dense_q<long double>(swell),
+                      d_tests_q(1.0L, 0.0L, 0.0L, 0.0L))) &&
+                 (nans.m_w != nans.m_w) &&
+                 (nans.m_x != nans.m_x) &&
+                 (nans.m_y != nans.m_y) &&
+                 (nans.m_z != nans.m_z) );
     }
 
     // d_tests_long_double_rotations
@@ -2143,7 +2270,8 @@ namespace
     }
 
     // d_tests_rotations
-    //   S391: rotmat, rotquat and slerp, exact and dense; their errors.
+    //   S391, S429: rotmat, rotquat and slerp, exact and dense; their
+    // errors are d_tests_rotation_errors's.
     void
     d_tests_rotations()
     {
@@ -2189,15 +2317,45 @@ namespace
                         (d_tests_dense_rotations<double>(rng)) &&
                         (d_tests_dense_rotations<long double>(rng)),
                         "in float, double and long double: rotmat quat.h's "
-                        "to_matrix3, rotquat its from_matrix3, slerp its "
-                        "slerp of the normalized operands, bit for bit "
-                        "(S391)");
+                        "to_matrix3 and slerp its slerp of the normalized "
+                        "operands, bit for bit; rotquat the nearest "
+                        "rotation's, Bar-Itzhack's, the test's own bit for "
+                        "bit and within 32 epsilons of q's (S391, S429)");
+        D_TESTS_EXPECT(d_tests_nearest_rotations(),
+                       "rotquat of a matrix near a rotation's: the nearest "
+                       "rotation's, in double for a drifted turn, in long "
+                       "double for exact ones, a shear and 1.1 I, the "
+                       "latter's the identity's; NaNs for a NaN element "
+                       "(S429)");
+
+        return;
+    }
+
+    // d_tests_rotation_errors
+    //   S391, S429: rotmat's, rotquat's and slerp's errors; slerp from a
+    // dense 0.
+    void
+    d_tests_rotation_errors()
+    {
         D_TESTS_EXPECT( (d_tests_domain("rotmat(0)")) &&
                         (d_tests_domain("rotmat([1, 2])")) &&
                         (d_tests_domain("rotquat([1, 0; 0, 1])")) &&
                         (d_tests_domain("rotquat([1, 0, 0; 0, im, 0; 0, 0, "
                                         "1])")) &&
                         (d_tests_domain("rotquat(jm)")) &&
+                        (d_tests_domain("rotquat([1, 0, 0; 0, 1, 0; 0, 0, "
+                                        "-1])")) &&
+                        (d_tests_is_error(
+                             d_tests_value_of("rotquat([x, 0, 0; 0, 1, 0; 0, "
+                                              "0, -1])",
+                                              m::value(1.0)),
+                             D_MATH_VALUE_ERROR_DOMAIN)) &&
+                        (d_tests_domain("rotquat([0, 0, 0; 0, 0, 0; 0, 0, "
+                                        "0])")) &&
+                        (d_tests_domain("rotquat([2, 0, 0; 0, 2, 0; 0, 0, "
+                                        "2])")) &&
+                        (d_tests_domain("rotquat([1.3, 0, 0; 0, 1.3, 0; 0, "
+                                        "0, 1.3])")) &&
                         (d_tests_domain("slerp(0, jm, 1/2)")) &&
                         (d_tests_domain("slerp(1, jm, im)")) &&
                         (d_tests_is_error(d_tests_value_of("slerp(1/0, jm, "
@@ -2209,8 +2367,10 @@ namespace
                                           D_MATH_VALUE_ERROR_POLE)),
                         "an exact 0 names no rotation; rotmat of a matrix, "
                         "rotquat of no 3 by 3 or 4 by 4 matrix of real "
-                        "numbers, slerp of no real t a domain error; an "
-                        "error passes, the first (S391)");
+                        "numbers, of a reflection, exact or dense, of a "
+                        "matrix of det 0, and of one farther than 1/2 from "
+                        "any rotation's, slerp of no real t a domain error; "
+                        "an error passes, the first (S391, S429)");
 
         const m::quaternion<double> nans = d_tests_dense_q<double>(
             d_tests_value_of("slerp(x, 1, 1/2)",
@@ -2293,6 +2453,7 @@ namespace
         d_tests_algebra();
         d_tests_eig();
         d_tests_rotations();
+        d_tests_rotation_errors();
         d_tests_folds();
 
         return;

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                         dd.h
+* djinterp [c][math]                                                        dd.h
 *
 * Pairs of doubles: a value held as high + low, unevaluated, |low| at
 * most half an ulp of high: some 106 significant bits, twice double's,
@@ -27,7 +27,7 @@
 * path:      /inc/djinterp/c/modules/math/dd.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.16
-*                                                            revised: 2026.11.16
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*

@@ -11,11 +11,17 @@
 * R v = q v q^-1, as MATLAB's rotmat(q, 'point') is, each exact where q is,
 * its elements sums of the parts' products over |q|^2, and otherwise quat.h's
 * accurate forms, each element within a step of the correctly rounded one
-* (S360). rotquat(R) is the unit quaternion of a rotation's matrix, 3 by 3 or
-* the upper left of a 4 by 4, w >= 0, by Shepperd's method as quat.h computes
-* it: exact where R is and the root its largest candidate takes is rational,
-* and otherwise quat.h's, each part rounded once, in R's floating-point type,
-* a long double for an exact R (S391).
+* (S360). rotquat(R) is the unit quaternion of the rotation nearest R, 3 by
+* 3 or the upper left of a 4 by 4, w >= 0 (S391, S429): where R is exact and
+* exactly a rotation's matrix, by Shepperd's method as quat.h computes it,
+* exact where the root its largest candidate takes is rational and otherwise
+* quat.h's in long double; and otherwise by Bar-Itzhack's method, the
+* eigenvector of a symmetric 4 by 4's largest eigenvalue, in R's
+* floating-point type, a long double for an exact R, a domain error for a
+* reflection or a matrix farther than 1/2 from any rotation's. MATLAB's
+* equivalents are quat2rotm and rotm2quat (Robotics) or rotmat and
+* quaternion(R, 'rotmat', 'point'); SciPy's Rotation.as_matrix and
+* Rotation.from_matrix, which orthogonalizes a matrix that is no rotation's.
 *   INTERPOLATION. slerp(p, q, t) blends the rotations p and q name along the
 * shorter arc at a constant speed, p / |p| at t = 0 and q / |q| or its
 * negative at t = 1: each normalized by quat.h's scaled normalization, then
@@ -35,7 +41,7 @@
 * path:      /inc/djinterp/cpp/modules/math/expr/rotation.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.07
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 
 /*
@@ -73,8 +79,10 @@ TABLE OF CONTENTS
 #include <limits>   // std::numeric_limits
 #include <vector>   // std::vector
 // djinterp
-#include "../../../../c/modules/math/value.h"  // d_math_value_cmp
-#include "../linear_algebra/matrix.hpp"        // linalg::matrix
+#include "../../../../c/modules/math/decomp.h"      // d_decomp_sym_eigen
+#include "../../../../c/modules/math/elementary.h"  // d_math_sqrt
+#include "../../../../c/modules/math/value.h"       // d_math_value_cmp
+#include "../linear_algebra/matrix.hpp"             // linalg::matrix
 #include "../math_common.hpp"                  // NS_MATH
 #include "../quaternion.hpp"                   // to_matrix3, from_matrix, slerp
 #include "../value.hpp"                        // value, value_root_of
@@ -693,9 +701,160 @@ NS_INTERNAL
         return true;
     }
 
+    // expr_rotation_is_exactly
+    //   function: whether the exact 3 by 3 _m is exactly a rotation's
+    // matrix: R^T R = I and det(R) = 1, in exact arithmetic.
+    inline bool
+    expr_rotation_is_exactly(
+        const std::vector<value>& _m
+    )
+    {
+        const value zero(0);
+        const value one(1);
+        const value det =
+            ( ( (_m[0] * ( (_m[4] * _m[8]) - (_m[5] * _m[7]) )) -
+                (_m[1] * ( (_m[3] * _m[8]) - (_m[5] * _m[6]) )) ) +
+              (_m[2] * ( (_m[3] * _m[7]) - (_m[4] * _m[6]) )) );
+
+        if (d_math_value_cmp(det.c_value(), one.c_value()) !=
+                D_MATH_VALUE_EQUAL)
+        {
+            return false;
+        }
+
+        // R^T R, element by element
+        for (std::size_t i = 0; i < 3; ++i)
+        {
+            for (std::size_t j = i; j < 3; ++j)
+            {
+                const value dot = ( ( (_m[i] * _m[j]) +
+                                      (_m[3 + i] * _m[3 + j]) ) +
+                                    (_m[6 + i] * _m[6 + j]) );
+
+                if (d_math_value_cmp(dot.c_value(),
+                                     ((i == j) ? one : zero).c_value()) !=
+                        D_MATH_VALUE_EQUAL)
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    // expr_rotation_nearest_as
+    //   function: the unit quaternion, w >= 0, of the rotation nearest the 3
+    // by 3 _m in the Frobenius norm, in Type, by Bar-Itzhack's method (J.
+    // Guidance, Control and Dynamics 23(6), 2000): the eigenvector of the
+    // largest eigenvalue of the symmetric 4 by 4 K that R's sums and
+    // differences make, K q = 3 q where R is q's rotation, by decomp.h's
+    // cyclic Jacobi, normalized; with _flags. A domain error where det(R) is
+    // not above 0, a reflection or no rotation at all, and where R lies
+    // farther than 1/2 from that rotation, which is far from any (a
+    // rotation's matrix is of norm sqrt(3)); NaNs for a NaN or an infinite
+    // element, as quat.h's from_matrix3 gives.
+    template<typename Type>
+    value
+    expr_rotation_nearest_as(
+        const std::vector<value>& _m,
+        unsigned                  _flags
+    )
+    {
+        const Type nan = std::numeric_limits<Type>::quiet_NaN();
+        Type       r[9] = { Type(0), Type(0), Type(0), Type(0), Type(0),
+                            Type(0), Type(0), Type(0), Type(0) };
+
+        // each element its nearest Type; a NaN or an infinity: NaNs
+        for (std::size_t i = 0; i < 9; ++i)
+        {
+            static_cast<void>(_m[i].to(r[i]));
+
+            if ( (!(r[i] == r[i])) ||
+                 (r[i] > std::numeric_limits<Type>::max()) ||
+                 (r[i] < -std::numeric_limits<Type>::max()) )
+            {
+                return expr_quaternion_dense(
+                    math::quaternion<Type>(nan, nan, nan, nan), _flags);
+            }
+        }
+
+        const Type det = ( ( (r[0] * ( (r[4] * r[8]) - (r[5] * r[7]) )) -
+                             (r[1] * ( (r[3] * r[8]) - (r[5] * r[6]) )) ) +
+                           (r[2] * ( (r[3] * r[7]) - (r[4] * r[6]) )) );
+
+        // a reflection, or no rotation: a domain error
+        if (!(det > Type(0)))
+        {
+            return value(D_MATH_VALUE_ERROR_DOMAIN);
+        }
+
+        // K, its rows and columns x, y, z, w
+        Type k[16] = {
+            ( (r[0] - r[4]) - r[8]), (r[1] + r[3]), (r[2] + r[6]),
+            (r[7] - r[5]),
+            (r[1] + r[3]), ( (r[4] - r[0]) - r[8]), (r[5] + r[7]),
+            (r[2] - r[6]),
+            (r[2] + r[6]), (r[5] + r[7]), ( (r[8] - r[0]) - r[4]),
+            (r[3] - r[1]),
+            (r[7] - r[5]), (r[2] - r[6]), (r[3] - r[1]),
+            ( (r[0] + r[4]) + r[8]) };
+        Type values[4]   = { Type(0), Type(0), Type(0), Type(0) };
+        Type vectors[16] = { Type(1), Type(0), Type(0), Type(0),
+                             Type(0), Type(1), Type(0), Type(0),
+                             Type(0), Type(0), Type(1), Type(0),
+                             Type(0), Type(0), Type(0), Type(1) };
+        Type size = Type(0);
+
+        for (std::size_t i = 0; i < 16; ++i)
+        {
+            size += (k[i] * k[i]);
+        }
+
+        d_decomp_sym_eigen(k,
+                           values,
+                           vectors,
+                           4,
+                           ( std::numeric_limits<Type>::epsilon() *
+                             d_math_sqrt(size) ));
+
+        // the largest eigenvalue's, the last column; unit, w >= 0
+        Type q[4] = { vectors[3], vectors[7], vectors[11], vectors[15] };
+        const Type length = d_math_sqrt( ( (q[0] * q[0]) + (q[1] * q[1]) ) +
+                                         ( (q[2] * q[2]) + (q[3] * q[3]) ) );
+        const Type sign   = (q[3] < Type(0)) ? Type(-1) : Type(1);
+
+        for (std::size_t i = 0; i < 4; ++i)
+        {
+            q[i] = sign * (q[i] / length);
+        }
+
+        // its constructor takes x, y, z, w
+        const math::quaternion<Type> out(q[0], q[1], q[2], q[3]);
+        const linalg::matrix<Type, 3, 3> near = to_matrix3(out);
+        Type far = Type(0);
+
+        // far from any rotation: a domain error
+        for (std::size_t i = 0; i < 9; ++i)
+        {
+            const Type d = r[i] - near((i / 3), (i % 3));
+
+            far += (d * d);
+        }
+
+        if (!(far <= Type(0.25)))
+        {
+            return value(D_MATH_VALUE_ERROR_DOMAIN);
+        }
+
+        return expr_quaternion_dense(out, _flags);
+    }
+
     // expr_rotation_quaternion_as
     //   function: the unit quaternion of the 3 by 3 _m in Type, by quat.h's
-    // from_matrix3, each part rounded once, with _flags.
+    // from_matrix3, each part rounded once, with _flags: for an exact
+    // rotation's matrix whose root is irrational, which is its own nearest
+    // rotation.
     template<typename Type>
     value
     expr_rotation_quaternion_as(
@@ -723,18 +882,23 @@ NS_END  // internal
 // expr_quaternion_of_rotation
 /**
  * @brief The unit quaternion of a rotation's matrix, the language's
- *        rotquat(R) (S391): rotmat's inverse, q or -q, w >= 0, by Shepperd's
- *        method; of a 4 by 4 matrix, its upper-left 3 by 3.
+ *        rotquat(R) (S391, S429): rotmat's inverse, q or -q, w >= 0; of
+ *        the matrix nearest R that is a rotation's, Bar-Itzhack's; of a 4 by
+ *        4 matrix, its upper-left 3 by 3.
  *
  * @param[in] _m  the matrix, 3 by 3 or 4 by 4, of real numbers.
- * @return the quaternion: exactly where R's elements are exact and the root
- *         Shepperd's largest candidate takes is rational, as the kind makes
- *         an exact one, rotquat of the identity being 1; otherwise in their
- *         widest floating-point type, a long double for exact ones, by
- *         quat.h's from_matrix3, each part rounded once, NaNs for a NaN or
- *         infinite element; a matrix a few steps from orthogonal gives a
- *         quaternion as many from unit length. Carrying R's flags. An error
- *         passes; a domain error where R is no such matrix.
+ * @return the quaternion: where R's elements are exact and R is exactly a
+ *         rotation's matrix, R^T R = I and det(R) = 1, Shepperd's, exact
+ *         where the root of his largest candidate is rational, rotquat of
+ *         the identity being 1, and otherwise quat.h's
+ *         from_matrix3 in long double, each part rounded once; otherwise
+ *         the nearest rotation's, in the elements' widest floating-point
+ *         type, a long double for exact ones, by Bar-Itzhack's method, NaNs
+ *         for a NaN or infinite element. Carrying R's flags. An error
+ *         passes; a domain error where R is no such matrix, where det(R) is
+ *         not above 0, a reflection or no rotation, and where R lies farther
+ *         than 1/2 from the nearest rotation's matrix, in the Frobenius
+ *         norm.
  */
 D_NODISCARD inline value
 expr_quaternion_of_rotation(
@@ -764,27 +928,33 @@ expr_quaternion_of_rotation(
         flags    |= m[i].flags();
     }
 
-    // exactly, where the root is rational
+    // exactly a rotation: exactly where the root is rational, and
+    // otherwise Shepperd's in long double
     if ( (all_exact) &&
-         (internal::expr_rotation_quaternion_exactly(m, flags, exact)) )
+         (internal::expr_rotation_is_exactly(m)) )
     {
-        return exact;
+        if (internal::expr_rotation_quaternion_exactly(m, flags, exact))
+        {
+            return exact;
+        }
+
+        return internal::expr_rotation_quaternion_as<long double>(m, flags);
     }
 
-    // in the elements' widest type
+    // the nearest rotation's, in the elements' widest type
     switch (internal::expr_quaternion_widest(m.data(), m.size()))
     {
         case D_MATH_VALUE_FLOAT:
-            return internal::expr_rotation_quaternion_as<float>(m, flags);
+            return internal::expr_rotation_nearest_as<float>(m, flags);
 
         case D_MATH_VALUE_DOUBLE:
-            return internal::expr_rotation_quaternion_as<double>(m, flags);
+            return internal::expr_rotation_nearest_as<double>(m, flags);
 
         default:
             break;
     }
 
-    return internal::expr_rotation_quaternion_as<long double>(m, flags);
+    return internal::expr_rotation_nearest_as<long double>(m, flags);
 }
 
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                    tangent.h
+* djinterp [c][math]                                                   tangent.h
 *
 * Tangent and arc-tangent: the C core's tan, atan and atan2, for float,
 * double and long double.
@@ -19,7 +19,7 @@
 * path:      /inc/djinterp/c/modules/math/tangent.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.09
-*                                                            revised: 2026.11.16
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*

@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/modules/math/test_functional.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 // test_functional.cpp - verifies the math <-> functional wiring.
 //
@@ -25,6 +25,7 @@
 #include "djinterp/cpp/modules/math/functional.hpp"
 
 using namespace djinterp::math;
+using namespace djinterp::math::variables;  // x to phi (S403)
 namespace mf = djinterp::math::functional;
 
 // ---------------------------------------------------------------------------

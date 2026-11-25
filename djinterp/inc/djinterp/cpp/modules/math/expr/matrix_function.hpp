@@ -10,10 +10,11 @@
 * (function_table.hpp) calls them by name: exactly for exact elements, by
 * the generic kernels, a solution by the elimination of [A | B] (S257); in a
 * dense type by the C core's, LU with partial pivoting, Gauss-Jordan and the
-* eigenvalues' Jacobi and Francis's double-shift QR (S257, S258, S269), the
+* eigenvalues' Jacobi and Francis's double-shift QR (S257, S258, S269), a
+* solution refined with extra precision as la::solve's is (S406, S428), the
 * norm scaled where its squares would leave the range (S256); a matrix of
 * complex numbers' in the widest of its elements' types, by cmat.h's LU,
-* Gauss-Jordan and elimination of [A | B] where dense (S351); and one of
+* Gauss-Jordan and refined solve where dense (S351, S428); and one of
 * quaternions' by the generic kernels' Gauss-Jordan and elimination, each
 * product in its order and each row divided on the left, as A X = B asks, on
 * the kind's operands or on values whose traits say they do not commute,
@@ -50,7 +51,7 @@
 * path:      /inc/djinterp/cpp/modules/math/expr/matrix_function.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.14
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 
 /*
@@ -90,9 +91,10 @@ TABLE OF CONTENTS
 #include "../../../../c/modules/math/cmat.h"        // d_cmat_eigen,
                                                     // _hermitian_eigen
 #include "../../../../c/modules/math/decomp.h"      // d_decomp_lu, _lu_det,
-                                                    // _lu_solve, _eigenvalues,
+                                                    // _eigenvalues,
                                                     // _sym_eigen, _eigen
 #include "../../../../c/modules/math/elementary.h"  // d_math_sqrt
+#include "../../../../c/modules/math/mat.h"         // d_mat_solve
 #include "../linear_algebra/linalg_common.hpp"      // linalg_kernel
 #include "../math_common.hpp"                       // NS_MATH
 #include "../value.hpp"                             // value
@@ -458,9 +460,11 @@ NS_INTERNAL
 
     // expr_matrix_solve_in
     //   function: X for A X = B, A of _n rows, B of _columns columns, its
-    // elements row by row in _b's, in Type: A's LU with partial pivoting,
-    // and each of B's columns solved by it; a pole for a singular A. X is of
-    // _shape.
+    // elements row by row in _b's, in Type: mat.h's d_mat_solve, A's LU with
+    // partial pivoting, each of B's columns solved by it and then refined
+    // with extra precision, as LAPACK's dgerfsx refines, each part correctly
+    // rounded where A is far enough from singular, as la::solve's are (S406,
+    // S428); a pole for a singular A. X is of _shape.
     template<typename Type>
     value
     expr_matrix_solve_in(
@@ -471,41 +475,22 @@ NS_INTERNAL
         const expr_shape& _shape
     )
     {
-        std::vector<Type>        lu = expr_matrix_dense_of<Type>(_a);
-        const std::vector<Type>  b  = expr_matrix_dense_of<Type>(_b);
-        std::vector<std::size_t> perm(_n);
-        std::vector<Type>        column(_n);
-        std::vector<Type>        x(_n);
+        const std::vector<Type>  a = expr_matrix_dense_of<Type>(_a);
+        const std::vector<Type>  b = expr_matrix_dense_of<Type>(_b);
+        std::vector<Type>        scratch((_n * _n) + (2 * _n));
+        std::vector<std::size_t> pivots(_n);
         std::vector<Type>        out(_n * _columns);
-        Type                     sign = Type(1);
 
         // singular: a pole
-        if (d_decomp_lu(lu.data(),
-                        _n,
-                        perm.data(),
-                        &sign))
+        if (!d_mat_solve(out.data(),
+                         scratch.data(),
+                         pivots.data(),
+                         a.data(),
+                         b.data(),
+                         _n,
+                         _columns))
         {
             return value(D_MATH_VALUE_ERROR_POLE);
-        }
-
-        // each column of B
-        for (std::size_t j = 0; j < _columns; ++j)
-        {
-            for (std::size_t i = 0; i < _n; ++i)
-            {
-                column[i] = b[(i * _columns) + j];
-            }
-
-            d_decomp_lu_solve(lu.data(),
-                              perm.data(),
-                              _n,
-                              column.data(),
-                              x.data());
-
-            for (std::size_t i = 0; i < _n; ++i)
-            {
-                out[(i * _columns) + j] = x[i];
-            }
         }
 
         return expr_matrix_of_dense<Type>(_shape,

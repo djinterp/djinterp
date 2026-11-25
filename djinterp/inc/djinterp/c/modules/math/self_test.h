@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                  self_test.h
+* djinterp [c][math]                                                 self_test.h
 *
 * The double family's start-up self-test: whether this translation
 * unit's build keeps the family's guarantees, and whether it fuses the
@@ -21,7 +21,7 @@
 * path:      /inc/djinterp/c/modules/math/self_test.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.16
-*                                                            revised: 2026.11.20
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*

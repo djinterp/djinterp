@@ -70,7 +70,7 @@
 * path:      /tests/djinterp/c/modules/math/t_exponential.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.08
-*                                                            revised: 2026.11.20
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 // std
 #include <float.h>   // FLT_MAX, DBL_MAX, LDBL_MANT_DIG
@@ -732,8 +732,11 @@ d_tests_log_group(
         volatile double x_v = d_tests_exp_value(_refs[i].x, _refs[i].x_e);
         const double    x   = x_v;
         const double    y   = d_tests_exp_value(_refs[i].y, _refs[i].y_e);
+        // reduced as log_c reduces it: a subnormal lifted by 2^54 (S432)
         const struct dj_internal_math_d_ln_arg a =
-            d_internal_math_d_ln_arg_of(x);
+            (x < DBL_MIN)
+                ? d_internal_math_d_ln_arg_of(x * 18014398509481984.0, -54)
+                : d_internal_math_d_ln_arg_of(x, 0);
         const struct dj_internal_math_d_exp_result one =
             d_internal_math_d_ln_phase1(a);
         const struct dj_internal_math_d_exp_result two =

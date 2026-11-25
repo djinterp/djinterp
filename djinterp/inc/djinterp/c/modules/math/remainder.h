@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                  remainder.h
+* djinterp [c][math]                                                 remainder.h
 *
 * Remainders: the C core's fmod, remainder and remquo, for float, double
 * and long double.
@@ -21,7 +21,7 @@
 * path:      /inc/djinterp/c/modules/math/remainder.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.11.16
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*
@@ -76,7 +76,7 @@ TABLE OF CONTENTS
 
 // 1.1    The truncated remainder
 //------------------------------------------------------------------------------
-// fmod_c is x - n y, n the quotient x / y truncated toward 0, exactly --
+// fmod_c is x - n y, n the quotient x / y truncated toward 0, exactly -
 // the remainder of two values of the family is a value of it - in pure
 // arithmetic, a constant expression from C++14. m = |y| 2^j, the largest
 // not past |x|, is taken away where it fits, then halved, down to |y|: the
@@ -440,7 +440,7 @@ d_math_f_remquo(
 
 // 2.1    The truncated remainder
 //------------------------------------------------------------------------------
-// fmod_c is x - n y, n the quotient x / y truncated toward 0, exactly --
+// fmod_c is x - n y, n the quotient x / y truncated toward 0, exactly -
 // the remainder of two values of the family is a value of it - in pure
 // arithmetic, a constant expression from C++14. m = |y| 2^j, the largest
 // not past |x|, is taken away where it fits, then halved, down to |y|: the
@@ -804,7 +804,7 @@ d_math_d_remquo(
 
 // 3.1    The truncated remainder
 //------------------------------------------------------------------------------
-// fmod_c is x - n y, n the quotient x / y truncated toward 0, exactly --
+// fmod_c is x - n y, n the quotient x / y truncated toward 0, exactly -
 // the remainder of two values of the family is a value of it - in pure
 // arithmetic, a constant expression from C++14. m = |y| 2^j, the largest
 // not past |x|, is taken away where it fits, then halved, down to |y|: the

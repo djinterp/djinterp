@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/modules/math/test.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.11.03
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 // std
 #include <array>
@@ -23,6 +23,7 @@
 #include "djinterp/cpp/modules/math/function/function.hpp"
 
 using namespace djinterp::math;
+using namespace djinterp::math::variables;  // x to phi (S403)
 
 constexpr double PI        = 3.141592653589793238462643383279502884;
 constexpr double PI_OVER_6 = PI / 6.0;

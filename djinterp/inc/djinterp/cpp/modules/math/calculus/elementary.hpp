@@ -21,7 +21,7 @@
 * path:      /inc/djinterp/cpp/modules/math/calculus/elementary.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 
 #ifndef DJINTERP_MATH_CALCULUS_ELEMENTARY_HPP
@@ -95,8 +95,10 @@ NS_INTERNAL
         if (_x < 0.0) { _x = -_x; neg = true; }
         if (_x > 1.0) { _x = 1.0 / _x; recip = true; }
 
-        _x = _x / (1.0 + csqrt(1.0 + _x * _x));
-        _x = _x / (1.0 + csqrt(1.0 + _x * _x));
+        // the C core's sqrt, as expression.hpp's sqrt is since step 29 (5a,
+        // S430); this header's own kernels move onto the C core at step 31
+        _x = _x / (1.0 + d_math_sqrt_c(1.0 + _x * _x));
+        _x = _x / (1.0 + d_math_sqrt_c(1.0 + _x * _x));
 
         const double x2 = _x * _x;
         double       term = _x;
@@ -326,8 +328,10 @@ auto exp2(
 namespace fn
 {
     // ---- transcendentals: evaluate the AST combinators at a point ----------
-    // (constexpr-capable: the kernels run during constant evaluation, libm at
-    //  run time, through the same dispatch as the expression layer.)
+    // (constexpr-capable: sin, cos, tan, exp and sqrt the C core's kernels at
+    //  compile time and at run time alike, as the expression layer's are
+    //  since step 29 (S430); log and atan this header's own kernels, libm at
+    //  run time, through its own dispatch until step 31.)
 
     inline D_CONSTEXPR double sin (double _x) { return ::djinterp::math::sin (constant(_x))(); }
     inline D_CONSTEXPR double cos (double _x) { return ::djinterp::math::cos (constant(_x))(); }

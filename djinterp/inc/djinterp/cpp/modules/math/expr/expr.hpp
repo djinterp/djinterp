@@ -39,7 +39,7 @@
 * path:      /inc/djinterp/cpp/modules/math/expr/expr.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*
@@ -76,7 +76,10 @@ TABLE OF CONTENTS
 #include "./function_table.hpp"   // the function and constant tables
 #include "./logic.hpp"            // the relations and logic
 #include "./matrix_function.hpp"  // det, inv, eig, solve, ...
-#include "./matrix_kind.hpp"      // matrix values
+#include "./matrix_kind.hpp"      // matrix values, which includes its parts:
+#include "./matrix_kind_storage.hpp"     // storage, entries, table (S437)
+#include "./matrix_kind_arithmetic.hpp"  // arithmetic
+#include "./matrix_kind_transpose.hpp"   // transposes, blocks
 #include "./numeric.hpp"          // expr_integrate, expr_derivative_at
 #include "./operator.hpp"         // expr_op, expr_signature
 #include "./parse.hpp"            // expr_parse

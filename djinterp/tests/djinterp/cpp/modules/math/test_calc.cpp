@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/modules/math/test_calc.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 // std
 #include <array>
@@ -16,6 +16,7 @@
 #include "djinterp/cpp/modules/math/calculus/calculus.hpp"
 
 using namespace djinterp::math;
+using namespace djinterp::math::variables;  // x to phi (S403)
 
 // ---- tiny harness ----------------------------------------------------------
 static int g_pass = 0;

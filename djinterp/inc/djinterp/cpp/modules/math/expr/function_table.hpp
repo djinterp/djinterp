@@ -73,7 +73,8 @@
 * otherwise quat.h's accurate rotation (S360); q may be any number but an
 * exact 0, which names no rotation, a real one rotating nothing. rotmat(q) is
 * that rotation's 3 by 3 matrix, rotquat(R) the unit quaternion of a
-* rotation's matrix, w >= 0, and slerp(p, q, t) the shorter arc between two
+* rotation's matrix, w >= 0, of the nearest rotation's where R is near one
+* but no rotation's (S429), and slerp(p, q, t) the shorter arc between two
 * rotations at a constant speed (S391, rotation.hpp). Linear algebra takes
 * quaternions (S388, S390, matrix_function.hpp): det of one, or of a matrix
 * of them, is a domain error (S277); eig of one its standard eigenvalue, w +
@@ -100,7 +101,7 @@
 * path:      /inc/djinterp/cpp/modules/math/expr/function_table.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 
 /*
@@ -870,7 +871,8 @@ NS_INTERNAL
     // 3.3.3
     // expr_rotmat_value, expr_rotquat_value, expr_slerp_value
     //   functions: rotmat(q), the 3 by 3 matrix of the rotation q names;
-    // rotquat(R), the unit quaternion of a rotation's matrix, w >= 0; and
+    // rotquat(R), the unit quaternion of a rotation's matrix, w >= 0, the
+    // nearest rotation's where R is no rotation's (S429); and
     // slerp(p, q, t), the shorter arc from p's rotation to q's (S391), as
     // values: rotation.hpp's expr_quaternion_matrix,
     // expr_quaternion_of_rotation and expr_quaternion_slerp. In a type each

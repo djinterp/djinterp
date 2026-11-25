@@ -1,11 +1,11 @@
-# djinterp math: the lane's decisions, S1 to S427
+# djinterp math: the lane's decisions, S1 to S440
 
 Every decision the math lane has taken, in the words of the record that took
 it, with the alternative it set aside. The numbers run across the lane's
 records from S1 (slice 3, 2026.10.08); each record's section of decisions is
 here as its README has it, its own first lines among it. A decision was the
 lane's to take within the owner's rulings, and stands once his next word on
-its delivery, his "continue", has accepted it: S1 to S423 stand, his own
+its delivery, his "continue", has accepted it: S1 to S434 stand, his own
 rulings of 2026.10.27 on complex numbers and quaternions, S265 to S278, the
 design of steps 22 to 24, and his choice of 2026.11.07, S383, among them.
 His rulings of 2026.11.03 and 2026.11.04 on the flagged decisions are in the
@@ -13,15 +13,20 @@ reviews they rule, each "Ruled 2026.11.04", two of them, S336 and S340, his
 own choice of an alternative the review had set aside, made in chunk 46
 (S384, S385). His rulings of 2026.11.16 on the decisions of 2026.11.15 are
 in chunk 51's opening lines and, for S391, S403 and S413, in their reviews,
-each "Ruled 2026.11.16"; chunk 51's decisions, the first of the double
-family's rewrite as he ruled it, stand by his "continue for now" of
-2026.11.20. S424 to S427 are chunk 52's, open until his word on it: the
-second, `log_c` correctly rounded in double arithmetic alone as `exp_c` is,
-its references and the self-test's logarithm, the x87 refused for it too,
-and the delivery over his tree of 2026.11.16 with chunks 51 and 52 together.
-His word of 2026.11.14 on the language's names, which kept them flat in
-`djinterp::math`, is S397's. Where a later decision changes an earlier one,
-the later one says so; the earlier one stays here as it was taken.
+each "Ruled 2026.11.16", and each done in chunk 53; chunk 51's decisions,
+the first of the double family's rewrite as he ruled it, stand by his
+"continue for now" of 2026.11.20, and chunk 52's, the second, `log_c`
+correctly rounded, by his "continue" of the same day, and chunk 53's, step
+29 (5a) with 0.8's items as he ruled them, by his "continue" of 2026.11.21,
+and chunk 54's, `log_c` 1.7 to 1.85 times as fast, by his "continue" of the
+same day. S435 to S440 are chunk 55's, open until his word on it: math's
+largest files split, as he ruled on 2026.11.21, each old name kept - the
+eight largest generated headers, the language's matrix kind, its face test
+and the generator - and the delivery over his main of 2026.11.21 with chunk
+52 laid over it, without the records. His word of 2026.11.14 on the
+language's names, which kept them flat in `djinterp::math`, is S397's. Where
+a later decision changes an earlier one, the later one says so; the earlier
+one stays here as it was taken.
 
 A decision names files as they were when it was taken. Chunk 48 merged the
 two quaternion classes (S398) and renamed or split five of the language's
@@ -30,7 +35,11 @@ headers (S400, S401): `expr/complex.hpp` is `expr/complex_kind.hpp`,
 `expr/summation.hpp`; `expr/matrix.hpp` became `expr/matrix_kind.hpp` and
 `expr/matrix_function.hpp`, and `expr/function.hpp`
 `expr/function_table.hpp`, `expr/arithmetic.hpp` and `expr/logic.hpp`;
-`linalg::quaternion`'s `to_matrix` is `to_matrix3` in both names.
+`linalg::quaternion`'s `to_matrix` is `to_matrix3` in both names. Chunk 55
+split the largest files (S436 to S439): each old name is still a header,
+which includes its parts. A record's text is here as the record has it, but
+for the merge window's rewordings of two of chunk 51's lines and the
+lane-name check's of a line each of chunks 52's and 53's (S440).
 `expr/expr_common.hpp`'s banner maps the language's headers as they are.
 
 Each decision is followed by its review, written from chunk 34 on at the
@@ -40,7 +49,7 @@ judged on accuracy and functionality, the best solution rather than the
 cheapest. A review ends "Taken" where the path taken is the one it
 recommends, or "Ruled" where the owner ruled it; it ends in a flag where the
 path taken is not the one it recommends, or has a significant drawback. The
-24 flagged decisions, the outstanding ones, come first, in six groups by
+21 flagged decisions, the outstanding ones, come first, in five groups by
 what they concern, the most urgent first in each (section 1); then every
 decision, by record (section 2).
 
@@ -50,15 +59,15 @@ C6 and N1 to N6, are in the consolidation's record
 followed it; his rulings on them are the roadmap's principles and items
 (`roadmap.md`). From chunk 34 on, each chunk's delivery brings this file,
 its own decisions added at the end. This file is made by
-`_handoffs/math98_chunk52_2026.11.20/tools/decisions_c52.py`.
+`_handoffs/math98_chunk55_2026.11.21/tools/decisions_c55.py`.
 
 ## 1. Outstanding decisions
 
-The 24 flagged decisions: those whose review recommends what is not yet
+The 21 flagged decisions: those whose review recommends what is not yet
 done, or names a significant drawback of what was. Each gives when it is
 due, by the roadmap's steps, its flag and its review's recommendation; the
 decision itself and its whole review are in its record's part of section 2.
-The groups and the steps are `decisions_outstanding_c52.md`'s, in chunk 52's
+The groups and the steps are `decisions_outstanding_c55.md`'s, in chunk 55's
 record.
 
 ### 1.1 The expression language
@@ -83,17 +92,6 @@ record.
   core v2's design: core v2 if its parser holds postfix operators and calls,
   S209 and S252 then following it; otherwise the language's own precedence
   parser, as S190's review recommends.
-- S391. When: before 0.8, 2026.11.30, which fixes the language's names: the
-  docs' equivalents and `rotquat`'s nearest rotation, as ruled 2026.11.16;
-  minor. Minor: until it is done before 0.8, the docs name neither MATLAB's
-  nor SciPy's equivalents, and `rotquat` takes its matrix for a rotation's
-  untested. Recommended: as taken, the names for the owner's word before 0.8
-  fixes them. Ruled 2026.11.16: `rotmat` and `rotquat` kept, the docs
-  listing MATLAB's and SciPy's equivalents, as recommended (9a, A);
-  `rotquat` the quaternion of the nearest true rotation, Bar-Itzhack's, an
-  error for a reflection or a matrix far from any rotation, an exact matrix
-  that is exactly a rotation keeping its exact answer (9b, C); both before
-  0.8.
 - S203. When: step 36 (6a): `gamma`, `lgamma`, `erf` and `erfc` with their
   kernels and the correctly rounded forms (S379). Functionality gap, now
   `gamma`, `erf` and the rest alone. Recommended: those five in the table in
@@ -137,17 +135,49 @@ record.
   Recommended: as taken, with S251's declared domains at step 25 (4a), a
   variable declared complex or a quaternion then keeping its place.
 
-### 1.3 Linear algebra and eigenvalues
+### 1.3 Precision and one answer
 
-- S413. When: before 0.8, 2026.11.30: the language's float, double and long
-  double solves refined, real and complex, with step 29 (5a), as ruled
-  2026.11.16. Significant: the language's dense solves unrefined while the
-  faces' are refined. Recommended: the alternative, the real solves by
-  `d_mat_solve` and the complex by `d_cmat_solve`, with step 29 (5a) or the
-  next chunk that touches the language's matrices, before 0.8. Ruled
-  2026.11.16: as recommended (decision 8, B): the language's float, double
-  and long double solves refined, real and complex, before 0.8, with step
-  29.
+- S15. When: step 36 (6a), where one answer becomes bit-identity; sooner at
+  no cost. Not the recommendation; two answers across levels. Recommended:
+  the library's functions wherever `<math.h>` declares them, the `_c` forms
+  only where it does not. Ruled 2026.11.04 (the owner's, settled): as
+  recommended, one answer per platform, at step 36 (6a).
+- S424. When: before the plain double `log` follows ruling 12 in early
+  December: `log_c` 1.95 to 3.03 times the C library's time after chunk 54
+  (S432, S433), past twice. `log_c` is still 1.95 to 3.03 times the C
+  library's time, past the twice that ruling 12's recommendation asks before
+  the plain form becomes the correctly rounded one. Recommended: as taken,
+  then inverses of 8 bits, so that r is exact in one double, before the
+  plain double `log` follows ruling 12; an outside review of the proofs when
+  one can be had. In chunk 54 (S432, S433) `log_c` became 1.70 to 1.85 times
+  as fast, its results the same bits.
+- S9. When: step 39 (6d), with MSVC. Significant drawback on compilers
+  without the builtin. Recommended: as taken, plus `std::bit_cast` from
+  C++20 where the builtin is missing, so every C++20 compiler gets it. Taken
+  in part. Ruled 2026.11.04: as recommended, at step 39 (6d).
+- S37. When: step 39 (6d), where clang on the x87 is taken up; documented
+  until then. Significant drawback on clang's x87, documented. Recommended:
+  as taken, given that C allows no fix inside a constant expression; keep
+  the SSE advice prominent. Taken. Ruled 2026.11.04: as taken, the SSE
+  advice kept prominent.
+- S39. When: step 39 (6d), with the x87. Not the recommendation.
+  Recommended: the alternative, as S38 does for the roots. Ruled 2026.11.04:
+  the alternative, as recommended, at step 39 (6d).
+- S370. When: step 40 (6e): chunk 42's whole power, in the family's own
+  type, a `_fast` form where measured demand asks for one. Significant
+  drawback: the plain forms' whole powers cost 2.0 to 3.5 times chunk 44's
+  time for double and 3.3 to 6.2 for float, n from 2 to 100. Recommended: as
+  taken, every part within its bound before a power is fast, as the
+  roadmap's seventh principle has it; chunk 42's squaring in the family's
+  own type, the faster, kept for a `_fast` form at step 40 (6e), where
+  measured demand asks for one.
+- S20. When: at any step that touches `power.h`; minor. Not the
+  recommendation (minor). Recommended: the alternative, at its small cost.
+  Ruled 2026.11.04: the alternative, as recommended, at any step that
+  touches `power.h`.
+
+### 1.4 Linear algebra and eigenvalues
+
 - S392. When: step 40 (6e), or sooner on demand: `math::quaternion<T>` a
   number type, both faces' matrices taking it. Not the earlier review's
   recommendation in full: neither face's matrix holds quaternions; the
@@ -176,55 +206,7 @@ record.
   carrying |v| as a pair, as the product's double pairs do, at the next step
   that touches `quat.h`'s kernels.
 
-### 1.4 The compile-time core
-
-- S403. When: step 29 (5a): `expression.hpp`'s variables `x` to `phi` in a
-  namespace of their own, as ruled 2026.11.16; minor. Minor: `math.hpp` is
-  not clean under `-Wshadow` until step 29. Recommended: as taken; at step
-  29 (5a), `expression.hpp`'s variables in a namespace of their own, which
-  ends every such warning at once. Ruled 2026.11.16: as recommended
-  (decision 10, A), at step 29.
-
-### 1.5 Precision and one answer
-
-- S15. When: step 36 (6a), where one answer becomes bit-identity; sooner at
-  no cost. Not the recommendation; two answers across levels. Recommended:
-  the library's functions wherever `<math.h>` declares them, the `_c` forms
-  only where it does not. Ruled 2026.11.04 (the owner's, settled): as
-  recommended, one answer per platform, at step 36 (6a).
-- S424. When: at the next step of 6a, before the plain double `log` follows
-  ruling 12 in early December: inverses of 8 bits. `log_c` is 4.7 times the
-  C library's speed, past the twice that ruling 12's recommendation asks
-  before the plain form becomes the correctly rounded one. Recommended: as
-  taken, then inverses of 8 bits, so that r is exact in one double, before
-  the plain double `log` follows ruling 12; an outside review of the proofs
-  when one can be had.
-- S9. When: step 39 (6d), with MSVC. Significant drawback on compilers
-  without the builtin. Recommended: as taken, plus `std::bit_cast` from
-  C++20 where the builtin is missing, so every C++20 compiler gets it. Taken
-  in part. Ruled 2026.11.04: as recommended, at step 39 (6d).
-- S37. When: step 39 (6d), where clang on the x87 is taken up; documented
-  until then. Significant drawback on clang's x87, documented. Recommended:
-  as taken, given that C allows no fix inside a constant expression; keep
-  the SSE advice prominent. Taken. Ruled 2026.11.04: as taken, the SSE
-  advice kept prominent.
-- S39. When: step 39 (6d), with the x87. Not the recommendation.
-  Recommended: the alternative, as S38 does for the roots. Ruled 2026.11.04:
-  the alternative, as recommended, at step 39 (6d).
-- S370. When: step 40 (6e): chunk 42's whole power, in the family's own
-  type, a `_fast` form where measured demand asks for one. Significant
-  drawback: the plain forms' whole powers cost 2.0 to 3.5 times chunk 44's
-  time for double and 3.3 to 6.2 for float, n from 2 to 100. Recommended: as
-  taken, every part within its bound before a power is fast, as the
-  roadmap's seventh principle has it; chunk 42's squaring in the family's
-  own type, the faster, kept for a `_fast` form at step 40 (6e), where
-  measured demand asks for one.
-- S20. When: at any step that touches `power.h`; minor. Not the
-  recommendation (minor). Recommended: the alternative, at its small cost.
-  Ruled 2026.11.04: the alternative, as recommended, at any step that
-  touches `power.h`.
-
-### 1.6 Number types and the value's kinds
+### 1.5 Number types and the value's kinds
 
 - S130. When: step 45 (P3), big rationals, as planned. Significant drawback
   until P3. Recommended: as taken as an interim, big rationals in P3, as
@@ -7789,9 +7771,9 @@ matrix is, a domain error; in a typed fold each is a NaN, as `parts` is.**
 > recommended (9a, A); `rotquat` the quaternion of the nearest true
 > rotation, Bar-Itzhack's, an error for a reflection or a matrix far from
 > any rotation, an exact matrix that is exactly a rotation keeping its exact
-> answer (9b, C); both before 0.8. **Flag:** minor: until it is done before
-> 0.8, the docs name neither MATLAB's nor SciPy's equivalents, and `rotquat`
-> takes its matrix for a rotation's untested.
+> answer (9b, C); both before 0.8. Done in chunk 53 (S429): the docs list
+> both, and `rotquat` gives the nearest rotation's quaternion, a domain
+> error for a reflection or a matrix farther than 1/2 from any rotation.
 
 **S392. `linalg::dynamic_matrix<T>` takes every element type the fixed-size
 matrix takes, each that `number_traits` specializes (S354): float, double
@@ -8277,8 +8259,8 @@ them.
 > alternatives: the 26 renamed now too. Recommended: as taken; at step 29
 > (5a), `expression.hpp`'s variables in a namespace of their own, which ends
 > every such warning at once. Ruled 2026.11.16: as recommended (decision 10,
-> A), at step 29. **Flag:** minor: `math.hpp` is not clean under `-Wshadow`
-> until step 29.
+> A), at step 29. Done in chunk 53 (S430): the placeholders in
+> `djinterp::math::variables`, `math.hpp` clean under `-Wshadow`.
 
 ### S404 to S408: chunk 49, 2026.11.14
 
@@ -8614,9 +8596,8 @@ elimination (S406).** This chunk changes no solve of the language.
 > `d_cmat_solve`, with step 29 (5a) or the next chunk that touches the
 > language's matrices, before 0.8. Ruled 2026.11.16: as recommended
 > (decision 8, B): the language's float, double and long double solves
-> refined, real and complex, before 0.8, with step 29. **Flag:**
-> significant: the language's dense solves unrefined while the faces' are
-> refined.
+> refined, real and complex, before 0.8, with step 29. Done in chunk 53
+> (S428): the real solves by `d_mat_solve`, the complex by `d_cmat_solve`.
 
 ### S414 to S423: chunk 51, 2026.11.16
 
@@ -9117,9 +9098,10 @@ rest, phase 3 none. The plain `d_math_d_log` stays the C library's
 > phase 1 with r^2/2 rounded; a table of 256. Recommended: as taken, then
 > inverses of 8 bits, so that r is exact in one double, before the plain
 > double `log` follows ruling 12; an outside review of the proofs when one
-> can be had. **Flag:** `log_c` is 4.7 times the C library's speed, past the
-> twice that ruling 12's recommendation asks before the plain form becomes
-> the correctly rounded one.
+> can be had. In chunk 54 (S432, S433) `log_c` became 1.70 to 1.85 times as
+> fast, its results the same bits. **Flag:** `log_c` is still 1.95 to 3.03
+> times the C library's time, past the twice that ruling 12's recommendation
+> asks before the plain form becomes the correctly rounded one.
 
 **S425. `log_c` is checked against references made by mpmath at 400 bits, as
 `exp_c` is (S422): `math_tests_log_refs.h`, made by `tools/refs_log_c52.py`,
@@ -9202,3 +9184,468 @@ what he has, and copied over his 11-16 tree, without it, it brings both.
 > his tree lacks them, chunk 51's, and nothing of his or other lanes'.
 > Against: chunk 51's 36 files sent again. The alternative: chunk 52's files
 > alone, broken over the 11-16 tree. Recommended: as taken. Taken.
+
+### S428 to S431: chunk 53, 2026.11.20
+
+The record: `_handoffs/math98_chunk53_2026.11.20/README.md`.
+
+Chunk 53's decisions, S428 to S431: step 29 (5a), with 0.8's items as the
+owner ruled them on 2026.11.16 - the language's dense solves refined
+(ruling 8, B), the docs' equivalents of `rotmat` and `rotquat` (9a, A),
+`rotquat` the nearest rotation's quaternion (9b, C), and `expression.hpp`'s
+variables in a namespace of their own (10, A) - each before 0.8 on
+2026.11.30. Chunk 52's decisions, S424 to S427, stand: the owner's
+"continue" of 2026.11.20 at 14:23 followed its delivery.
+
+**S428. The language's dense solves of real matrices, in float, double and
+long double, are `mat.h`'s `d_mat_solve`, and of complex matrices
+`cmat.h`'s `d_cmat_solve`: A's LU with partial pivoting, each of B's
+columns solved by it and then refined with extra precision as LAPACK's
+dgerfsx and zgerfsx refine - the residual by Dot2, the solution carried as
+a pair, until the corrections converge or stop halving - each part then
+rounded once, correctly rounded where A is far enough from singular, as
+`la::solve`'s are (S406, S410), as ruled (8, B).** Before, the real solve
+was `decomp.h`'s LU and its substitutions, and the complex
+`d_cmat_solve_fast`, unrefined (S413). Exact solves keep the exact
+elimination (S257) and matrices of quaternions the generic one; a singular
+A is a pole, as it was. Measured (`raw/s428_solve.txt`), over 20,000
+random 4 by 4 systems of doubles, entries uniform in [-1, 1], against the
+exact solution in rational arithmetic: unrefined, 23.03% of the solution's
+entries correctly rounded and 219 systems wholly; refined, every entry of
+every system; at about nine times the time, 1,201 ns a solve against 127
+(gcc -O2, the C core's kernels alone, the machine otherwise idle).
+`t_expr_face.cpp`'s and `t_expr_complex_matrix_face.cpp`'s solves are
+checked against `d_mat_solve`'s and `d_cmat_solve`'s bits.
+- Alternative: the unrefined solve kept beside it as a second function of
+  the language, `solve_fast`: speed for a user who asks, and one more name
+  for 0.8 to fix, where an interpreter's user rarely feels a microsecond.
+
+> **Review.** Taken: for, the language's dense solutions what the faces
+> give, each part correctly rounded where the system is well conditioned --
+> every entry of 20,000 random 4 by 4 systems, where the unrefined
+> elimination rounded 23% correctly - with one kernel for the language and
+> `la::solve`, so that one answer holds across them; a singular matrix a
+> pole as before. Against: about nine times the unrefined solve's time on a
+> small system, and the scratch of n^2 + 2n entries, 4n for a complex one;
+> for an ill-conditioned system refinement stops where it no longer halves
+> its corrections, so the gain is the conditioning's to allow. The
+> alternative: `solve_fast` beside it. Recommended: as taken. Ruled
+> 2026.11.16 (decision 8, B).
+
+**S429. `rotquat(R)` is the quaternion of the rotation nearest R, as ruled
+(9b, C): where R's elements are exact and R is exactly a rotation's matrix
+-- R^T R = I and det(R) = 1 in exact arithmetic - Shepperd's method as
+before, exact where the root of its largest candidate is rational and
+otherwise `quat.h`'s `from_matrix3` in long double (S391); every other R,
+dense or exact, by Bar-Itzhack's method (J. Guidance, Control and Dynamics
+23(6), 2000): the eigenvector of the largest eigenvalue of the symmetric 4
+by 4 matrix K that R's sums and differences make, K q = 3 q where R is q's
+rotation, by `decomp.h`'s cyclic Jacobi to a tolerance of the type's
+epsilon times K's norm, normalized, w >= 0, in the elements' widest
+floating-point type, a long double where all are exact. A domain error
+where det(R) is not above 0, a reflection or no rotation, and where R lies
+farther than 1/2 from the rotation found, in the Frobenius norm, far from
+any rotation (a rotation's matrix is of norm sqrt(3)): s I is taken for
+|s - 1| up to 1/(2 sqrt(3)), about 0.289; NaNs for a NaN or infinite
+element. The docs - the README, `rotation.hpp`'s banner, the function
+table and `comparison.md` - list MATLAB's equivalents, `rotmat(q,
+'point')` and `quaternion(R, 'rotmat', 'point')`, with the Robotics
+toolbox's `quat2rotm` and `rotm2quat`, and SciPy's, `Rotation.as_matrix`
+and `Rotation.from_matrix`, as ruled (9a, A).** Bar-Itzhack's eigenvector
+is the Frobenius-nearest rotation's quaternion, the polar factor's, with
+no SVD and no sign to fix; the gap between K's largest eigenvalue and the
+next is 4 for an exact rotation, so the eigenvector is accurate to some
+epsilons. A dense rotation's matrix now gives Bar-Itzhack's bits rather
+than `from_matrix3`'s: `t_expr_quaternion_matrix_face.cpp` checks them
+against the test's own computation bit for bit and within 32 epsilons of
+the generating quaternion, in float, double and long double; a drifted
+30-degree turn in double; an exact shear, [1, 1/1000, 0; 0, 1, 0; 0, 0,
+1], in long double, the rotation by -atan(1/2000) about z within 8
+epsilons; 1.1 I the identity's; reflections exact and dense, the zero
+matrix, 2 I and 1.3 I domain errors; and a NaN NaNs.
+- Alternative: a strict threshold, a few hundred epsilons: a matrix that
+  is no rotation's refused early; and refused too where products of many
+  rotations have drifted, the case the ruling's "far from any rotation"
+  spares, against the lane's promise of 2026.11.15 of a generous one.
+- Alternative: the polar factor by an SVD, then Shepperd's method: the
+  same rotation by two kernels and a determinant's sign to correct, where
+  K's eigenvector gives it in one.
+- Alternative: Markley's method, SciPy's: the best-conditioned of four
+  candidate columns, faster, and not the nearest rotation's in general.
+
+> **Review.** Taken: for, `rotquat` meaningful for every matrix a user is
+> likely to have - a rotation's, exact or rounded, or one drifted through
+> many products - by the nearest rotation, the answer the ruling asked, in
+> one kernel the C core has, its accuracy set by K's eigenvalue gap of 4; an
+> exact rotation's exact answer kept; a reflection or a matrix far from any
+> rotation an error instead of a quaternion that means nothing; MATLAB's and
+> SciPy's names in the docs, so a user arriving from either finds it.
+> Against: a dense rotation's quaternion no longer `from_matrix3`'s bits, so
+> `rotquat` and `quat.h`'s kernel differ in the last bits where they agreed;
+> a cyclic Jacobi on a 4 by 4 per call, dearer than Shepperd's few
+> operations; 1/2 is the lane's choice of "far", generous as promised, and
+> an exact matrix that is no rotation's but near one now gives a long
+> double, not an error. The alternatives: a strict threshold; the polar
+> factor by an SVD; Markley's method. Recommended: as taken. Ruled
+> 2026.11.16 (decisions 9a, A, and 9b, C).
+
+**S430. `expression.hpp`, the compile-time core, compiles from C++11 and is
+empty below it (N1), its kernels the C core's (N3), its placeholders in a
+namespace of their own (S403; ruling 10, A): step 29 (5a). From C++11 its
+leaves, nodes and operators, `squared`, `abs` and `dot` are constant
+expressions - each function one return, each return type spelled, a
+variable's argument picked by a small recursive template where `std::get`
+is not yet constexpr; `exp`, `sin`, `cos`, `tan` and `sqrt` are
+`d_math_exp_c`, `d_math_sin_c`, `d_math_cos_c`, `d_math_tan_c` and
+`d_math_sqrt_c` at compile time and at run time alike, constant expressions
+from C++14, where the C core's are; `abs` is exact, of -0 +0; `x`, `y`,
+`z`, `t`, `r`, `rho`, `theta` and `phi` are in `djinterp::math::variables`,
+brought in by `using namespace djinterp::math::variables;`, and `var<I,
+T>` stays in `djinterp::math`, from C++14.** The header's own kernels gave
+(`raw/old_kernels.txt`) `sqrt(1e300)` as 7.89e269 and `sqrt(-1)` as 0;
+`exp` up to 13,408 ulps from the C library's over two million points in
+[-700, 700]; `sin` up to 1.2 times 10^7 ulps over [-100, 100] and a NaN at
+1e22; and from C++20 a program had the C library's answer at run time and
+theirs in a constant expression. Now one call has one answer at every
+level: the double `exp` correctly rounded (S416), `sqrt` correctly rounded,
+`sin`, `cos` and `tan` the C core's until 6a rewrites them. `math.hpp`,
+which reads every header, gives no `-Wshadow` warning at C++14, 17 or 20,
+where it gave 31 at 26 places, all of `function/` and `geometry/`. Its
+users follow: `calculus/elementary.hpp`'s arctangent takes `d_math_sqrt_c`
+where it took the header's `csqrt`, its log and atan its own until step 31;
+the owner's standalone tests, `test.cpp`, `test_calc.cpp`,
+`test_constants_values.cpp` and `test_functional.cpp`, bring the variables
+in and pass at C++14, 17 and 20 (`test_functional.cpp` from C++17, as
+before). The ladder passes `expression.hpp` at every rung, gcc and clang,
+and names its line of the punch list to go; the eight units that read it
+and fail at C++11 and below fail at their own code now, for steps 30, 31
+and 33. On the x87 a program that calls the core's `exp` is refused at
+compile time, as `exp_c` is (S418), where it was 13,408 ulps off. A new
+face, `t_expression_face.cpp`, checks it at every rung: the nodes folded
+at compile time from C++11, the placeholders' indices, a function of
+`djinterp::math` naming locals `x` to `phi` under `-Wshadow -Werror`, the
+five functions the C core's bits over twenty arguments from -745.25 to
+1e300, `abs`, and from C++14 each function folded at compile time with the
+run time's bits.
+- Alternative: the C library at run time and the `_c` kernel in a
+  constant expression, as before but on the C core's kernels: the library's
+  speed, and two answers to one call wherever the two differ.
+- Alternative: the placeholders kept in `djinterp::math` and the 26
+  locals renamed: no user's code to change, and every future local of
+  those names a warning again.
+
+> **Review.** Taken: for, the compile-time core at the floor the owner ruled
+> (N1), its nodes constant expressions from C++11, and one answer at every
+> level for its five functions, each the C core's - a correctly rounded
+> `exp` and `sqrt` where they were 13,408 ulps and 10^119 times off - with
+> nothing of its own left to drift; its placeholders out of
+> `djinterp::math`, so that `math.hpp` is clean under `-Wshadow` and stays
+> so; the ladder's punch list one line shorter. Against: a user's code that
+> named `x` to `phi` from `djinterp::math` needs one using-directive; the
+> five functions are run-time calls at C++11, constant expressions only from
+> C++14; the `_c` kernels' time where the C library's was taken at run time;
+> on the x87 a program calling the core's `exp` no longer builds; the other
+> compile-time headers still fail below C++14 until steps 30, 31 and 33. The
+> alternatives: the library at run time and the kernel in a constant
+> expression; the placeholders kept and the locals renamed. Recommended: as
+> taken (N1, N3). Taken; the placeholders' namespace ruled 2026.11.16
+> (decision 10, A).
+
+**S431. The delivery is over the owner's tree of 2026.11.16 16:00,
+`7de55b67`, as chunks 51's and 52's were (S423, S427), and holds chunks 51,
+52 and 53 together: every file of the lane's working tree that his tree
+has not or holds otherwise (S394), with the records, `NOTE.md`,
+`MANIFEST.md` and `HANDOFF.md` beside the `djinterp/` folder and
+`decisions.md` and `zip_check.txt` apart.** The lane has had no word that
+chunk 51's or 52's zip is in his repository; copied over a tree that holds
+them, this zip changes only chunk 53's files, and over his 11-16 tree it
+brings all three. The ladder's punch list, his shared file, is not in it:
+the note asks for `expression.hpp`'s line to go.
+- Alternative: chunk 53's files alone: smaller, and broken over the 11-16
+  tree, where the double `exp_c` the core now calls is chunk 51's.
+
+> **Review.** Taken: for, one zip right over the tree the owner has, whether
+> or not he has copied chunks 51 and 52 in; nothing of his or other lanes'
+> changed, the punch list's line asked to go. Against: chunks 51's and 52's
+> files sent a third and a second time. The alternative: chunk 53's files
+> alone, broken over the 11-16 tree. Recommended: as taken. Taken.
+
+### S432 to S434: chunk 54, 2026.11.21
+
+The record: `_handoffs/math98_chunk54_2026.11.21/README.md`.
+
+Chunk 54's decisions, S432 to S434: `log_c`'s speed, the next step of 6a
+that S424's flag asks before the plain double `log` follows ruling 12 in
+early December. Chunk 53's decisions, S428 to S431, stand: the owner's
+"continue" of 2026.11.21 at 16:01 followed its delivery.
+
+**S432. `log_c`'s reduction is cheaper and gives the same bits: the
+table's 127 inverses that are not 1 are rounded to 26 significant bits,
+within 2^-26 of 1/c, where they were doubles within 2^-53, and from i = 53
+the table holds the inverse halved, so that m is never halved and e is
+raised by an integer test; m inv is exact as a pair by Dekker's product
+with m alone split, the inverse whole where its split would leave it so,
+or by a fused multiply-add where the target has one; and every positive
+normal x is taken in one test, x >= DBL_MIN and x <= DBL_MAX, the rest --
+NaN, infinities, zeros, negatives, subnormals, the last lifted by 2^54 as
+before - after it; log(1) is +0 as the phases give it, with no test of its
+own.** Every bound chunk 52 proved holds again (S424): |r| below 2^-8 at
+every i, at most 2^-8.011 from i = 1, as the slack between a c's
+neighbourhood and 2^-8 takes an inverse's error of 2^-27; the table's pairs
+within 2^-107.06 of -log(inv); each stored inverse of at most 26 bits, so
+that the product's split of m alone is exact (proofs/log_consts.py). The
+halving was the slowest part, a branch on i that a random argument's m
+mispredicts half the time; with the product's two splits, it was
+eleven of chunk 52's 20 ns a call. Measured (`raw/timing.txt`, `raw/
+identical.txt`): with S433, 151 instructions a call where chunk 52's took
+206 and the C library's log 66, and no mispredicted branch where chunk 52's
+had half of one; 12.2 ns a call where chunk 52's took 22.2, the C
+library's 5.3, over arguments from e^-690 to e^690 (gcc -O2), 1.70 to 1.85
+times as fast as chunk 52's in each of nine builds and sets, 1.95 to 3.03
+times the library's time, the machine otherwise idle, its times varying by
+a fifth from run to run where their ratio to chunk 52's does not; and its
+results chunk 52's, bit for bit, at 26,214,412 arguments, by gcc with and
+without a fused multiply-add.
+- Alternative: inverses of 8 bits, as S424's review named, so that r is one
+  exact double: |r| then passes 2^-8, every polynomial and bound of phases 1
+  to 3 to be made and proven again, for a saving of the low part's few
+  operations, where 26 bits give the product's saving with every bound kept.
+- Alternative: a table of 256, |r| below 2^-9: phase 1's polynomial of
+  degree 5, at a table of 6 KB and every bound proven again.
+
+> **Review.** Taken: for, the halving's mispredicted branch gone and the
+> product's split on m alone, the two dearest parts of chunk 52's reduction;
+> every bound of chunk 52's proofs kept, `log_consts.py` checking the new
+> table against them, so that phases 2 and 3 stand as proven; the same bits
+> as chunk 52's at 26 million arguments, with and without a fused
+> multiply-add; one test for every ordinary argument. Against: the table's
+> inverses no longer the doubles nearest 1/c, which a reader of the table
+> may not expect; the subnormal path a separate call of the reduction. The
+> alternatives: inverses of 8 bits; a table of 256. Recommended: as taken.
+> Taken.
+
+**S433. `log_c`'s first phase sums rh^2 q(rh), q of degree 6 with q(0) =
+-1/2 (Sollya's, within 2^-65.05 of (log1p(r) - r)/r^2), where it split rh^2
+exactly into a third exact sum; and it decides where the result is within
+2^-90 of itself plus 11 2^-55 rh^2 of the logarithm, where it tested against
+2^-64 of the result: its error is of the order of 2^-53 rh^2, from the
+rounding of rh^2 q, and of 2^-93 of the result besides, so that the test
+grows with rh as the error does.** Proven in each of S424's three cases
+(proofs/): Gappa bounds the error's two parts, Z, of every part but rh^2
+q's, within 2^-93.18 of |log(x)|, and W, of rh^2 q's roundings, within
+2^-51.00 of it, checking as a rewriting that the computed sum less the exact
+one is Z + rh^2 q W; exact arithmetic checks the test sound at both ends of
+rh^2/|log(x)|'s interval in each case, the condition being linear in it.
+Phase 1 is within 2^-66.45 of the logarithm where e is not 0 and 2^-59.99
+at worst, where rh^2 is largest against it. Over two million arguments of
+each set (`raw/identical.txt`), it leaves undecided 0.39% of those within
+2^-7 of 1, more than chunk 52's 0.07%, the price of the cheaper sum; 0.01%
+of those over [0.5, 2], where chunk 52's left 0.07%; and none from e^-690
+to e^690, where chunk 52's left 0.0002%. `t_exponential.c`'s
+near-midpoint references, which chunk 52's phase 1 left all to phase 2, it
+decides 245 of 256, its error far below 2^-64 where rh is small. The rest of
+the phase is chunk 52's: e LN2H and L's high part, then rh, by Fast2Sum, rl
+(1 - rh), the low parts summed, rh^2 q added last. A test that chose its
+room by whether e is 0, a first form, gcc compiled to a branch whichever
+way it was written, mispredicted half the time over [0.5, 2] (cachegrind);
+the uniform test has no branch.
+- Alternative: chunk 52's phase 1 with S432's reduction: its bounds kept as
+  proven, at some 15 ns a call, where S433 gives 10.
+- Alternative: the room chosen by e's being 0, 2^-66 or 2^-60 of the result:
+  a select that compilers make a branch of, and 1.2% undecided near 1.
+- Alternative: rh^2 split exactly, as chunk 52 had it, near 1 too: 0.07%
+  undecided there, at some 2 ns a call everywhere.
+
+> **Review.** Taken: for, phase 1 some 4 ns cheaper, its test no longer a
+> fixed fraction but the error's own shape, so that it decides far more
+> where rh is small and as much as before where it is large, with no branch;
+> proven by splitting its error in two and checking the test at both ends of
+> the one quantity it grows with; the near-midpoint references now mostly
+> decided in phase 1. Against: arguments within 2^-7 of 1 go to phase 2, 89
+> ns, five times as often as before, 0.39% of them; a proof shape new to the
+> lane's logarithm, Z and W bounded apart and joined in exact arithmetic,
+> which no specialist has reviewed; the test's two constants, 2^-90 and 11
+> 2^-55, chosen with some 9% to spare at its tightest. The alternatives:
+> chunk 52's phase 1 kept; the room chosen by e; rh^2 split exactly.
+> Recommended: as taken, with an outside review of the proofs when one can
+> be had. Taken.
+
+**S434. The delivery is over the owner's tree of 2026.11.16 16:00,
+`7de55b67`, as chunks 51's to 53's were (S423, S427, S431), and holds chunks
+51 to 54 together: every file of the lane's working tree that his tree has
+not or holds otherwise (S394), with the records, `NOTE.md`, `MANIFEST.md`
+and `HANDOFF.md` beside the `djinterp/` folder and `decisions.md` and
+`zip_check.txt` apart.** The lane has had no word that any of chunks 51 to
+53's zips is in his repository; copied over a tree that holds them, this
+zip changes only chunk 54's files.
+- Alternative: chunk 54's files alone: smaller, and broken over the 11-16
+  tree, where `exponential.h`'s double family is chunk 51's.
+
+> **Review.** Taken: for, one zip right over the tree the owner has, whether
+> or not he has copied chunks 51 to 53 in; nothing of his or other lanes'
+> changed. Against: chunks 51's to 53's files sent again. The alternative:
+> chunk 54's files alone, broken over the 11-16 tree. Recommended: as taken.
+> Taken.
+
+### S435 to S440: chunk 55, 2026.11.21
+
+The record: `_handoffs/math98_chunk55_2026.11.21/README.md`.
+
+Chunk 55's decisions, S435 to S440: math's largest files split, as the
+owner ruled on 2026.11.21 - no modules of math's own, and no file past
+about 4,000 lines, each old name kept; the deeper modularization not now;
+the other modules left to their own keepers. Chunk 54's decisions, S432
+to S434, stand: the owner's "continue" of 2026.11.21 at 19:16 followed its
+delivery. His question of 2026.11.19, whether to split math into
+modules, is answered by the same ruling.
+
+**S435. The generator aligns each parameter list it writes one parameter a
+line, its names in one column one space past its longest type, as the
+owner aligned `cmat.h`'s float family by hand on 2026.11.21; and every
+generated header's banner carries the converted tag, `[c][math]`.** The
+templates align their lists for the placeholders, so each family's type
+and suffix shifted them: 1,548 lines of the twenty headers were out of
+column, in every family, where the owner's edit fixed eight. A list holding
+a comment, a function pointer or a default is left as it is. The tag is
+the one `banner_tags.py` gives the hand-written files, which skips the
+generated ones. Only whitespace and the tag change: `diff -w` shows the
+tag lines alone. His edit dropped `cmat.h`'s last newline, which every
+generated header has; it comes back.
+- Alternative: his eight lines kept by hand in the generated file: the
+  generator's `--check` failing from then on, and the other families
+  still out of column.
+
+> **Review.** Taken: for, the generator in step with the owner's edit and
+> his column rule kept in every family, so that no generated list is out of
+> column and `--check` passes again; the converted tag in every banner, as
+> in the hand-written files. Against: 1,548 lines of whitespace changed in
+> the generated headers, which a reader of a diff must pass over. The
+> alternative: his lines by hand, the check failing. Recommended: as taken.
+> Taken.
+
+**S436. The eight largest generated headers - `decomp.h`, 25,732 lines;
+`cmat.h`, 15,827; `cplx.h`, 13,242; `quat.h`, 8,809; `vec.h`, 7,959;
+`coord.h`, 5,380; `mat.h`, 4,942; `exponential.h`, 4,670 - are written as
+44 parts of 3,989 lines and fewer, each a header that stands alone, named
+for its header and what it holds: a family's suffix (`decomp_f.h`), a part
+of a family's section (`decomp_f_eigen_c.h`, `decomp_f_eigen.h`), the
+kernels the families share (`quat_kernels.h`), the C++ names
+(`decomp_cpp.h`). The header of each name keeps its banner and contents,
+lists its parts and includes them in order.** The generator writes each
+header's text as before and cuts it at section headings (`SPLITS`): a part
+holds the header's own includes, the parts before it whose names it uses,
+its slice inside the no-fusing pragma as the whole header was, and gcc's
+`-Warray-bounds` set aside in the part that sets it aside and again in the
+part a section continues into. So an includer of the header sees the same
+code in the same order: preprocessed, each of the eight gives the same
+text by gcc at C99, GNU C11 with a fused multiply-add and C++98 and C++14,
+and by clang at C11, the pragmas apart, but for C++98's static assertions,
+whose names carry their line. Every part compiles alone at six rungs,
+warnings as errors. No includer changes. The proofs of `log_c` read
+`exponential_d.h`, which holds section 3 whole.
+- Alternative: parts by algorithm across the families (`decomp_lu.h`
+  holding all three LUs): a reader's grouping, but the families' order
+  changed, so the preprocessed text no longer the same, and `decomp.h`'s
+  general eigensolver, 6,674 lines a family, still to be cut within a
+  family.
+- Alternative: the headers kept whole and the parts made by hand: the
+  generator's one text lost.
+
+> **Review.** Taken: for, no generated header past 3,989 lines, each part a
+> header that stands alone and a reader's unit, a family or a part of one;
+> the header of each name the same to every includer, the preprocessed text
+> the same, which is the strongest check a move of code can have; one text
+> kept in the generator, cut where its sections begin. Against: 44 more
+> headers, each with the original's includes again; a reader looking for one
+> algorithm across the families opens three parts, not one; the ladder has
+> 44 more units to compile. The alternatives: parts by algorithm; parts by
+> hand. Recommended: as taken. Taken.
+
+**S437. `expr/matrix_kind.hpp`, 4,822 lines, is three headers that stand
+alone - `matrix_kind_storage.hpp`, sections 1 to 3.1, the shape and the
+kind's storage, entries and table, and making and reading values;
+`matrix_kind_arithmetic.hpp`, section 3.2, 3,250 lines; and
+`matrix_kind_transpose.hpp`, sections 3.3 and 3.4 - and `matrix_kind.hpp`
+keeps its banner and contents and includes them in order.** The kind's
+table names two functions section 3.2 defines, `expr_matrix_negated` and
+`expr_matrix_operation`, so the storage part includes the arithmetic after
+its own text, and each part compiles alone, from C++98 (empty) to C++20,
+warnings as errors and `-Wshadow`. Preprocessed, the header gives the
+same text, but for the namespaces closed and opened again between parts.
+Each part's banner carries HOW TO USE, OPTIONS and CONFIGURATION. As
+S400 and S401 ask of every header of `expr/`, `expr.hpp` includes the
+three parts, and the face test includes each and checks its guard.
+- Alternative: sections 1 to 3.2 in one part: 4,400 lines, past the
+  ruling's limit.
+
+> **Review.** Taken: for, the language's largest header in three of its own
+> concepts, each standing alone, the same text to every includer but the
+> namespaces reopened. Against: the storage part includes the arithmetic
+> after it, since the kind's table names two of its functions: a part that
+> pulls in the one after it, which a reader may not expect. The alternative:
+> sections 1 to 3.2 together, past the limit. Recommended: as taken. Taken.
+
+**S438. The face test `t_expr_face.cpp`, 11,685 lines, is one program in
+eight parts of 3,054 lines and fewer, `t_expr_face_*.hpp` beside it - the
+helpers, the types, parsing, the rewrites, three of matrices and the
+handle - each including the one before it; the test keeps its banner, the
+module's driver and main, and includes them in order.** It gives the same
+checks, 520 from C++11 and 1 below, by g++ and clang++. The parts share
+the test's anonymous namespace, reopened in each.
+- Alternative: one test per part: eight programs, the runner's list and
+  every tier's counts changed.
+
+> **Review.** Taken: for, the face test in parts a reader can open, one
+> program and the same checks, so that no tier's count moves. Against: parts
+> that are not programs, each only one piece of the test, which compile only
+> in it. The alternative: eight programs. Recommended: as taken. Taken.
+
+**S439. The generator, `scripts/gen_c_math_float.py`, 32,498 lines, is a
+package, `scripts/gen_c_math/`, of 26 modules of 3,741 lines and fewer --
+`common` for what every header's text shares, one module for a header's
+text or two (`decomp_text` and `decomp`, `cplx_text` and `cplx`, where one
+module would pass the limit), `split` for S436's parts, `driver` for the
+outputs and main - and the script is its entry point, its usage the
+same.** Each top-level statement went, with the comments above it, to the
+module of the section it stood in, and each module imports by name what it
+uses of the others', in an order without a cycle. It writes the same
+bytes: `--check` passes on the headers the single script wrote, and
+written afresh they are the same files. The script writes no bytecode
+into the package (`sys.dont_write_bytecode`).
+- Alternative: the script kept whole: 32,000 lines, eight times the limit.
+
+> **Review.** Taken: for, the generator in 26 modules, each a header's text
+> or two, writing the same bytes, its usage the same; no bytecode written.
+> Against: a module's names imported from the others by name, a list to keep
+> when a template moves; the two halves of `decomp`'s and `cplx`'s texts cut
+> where their sizes balance, not at a concept. The alternative: the script
+> whole. Recommended: as taken. Taken.
+
+**S440. The delivery is over the owner's main of 2026.11.21, `4c536f19`,
+which holds chunk 51 as he committed it, with chunk 52's zip laid over it,
+as the merge window asks of a zip cut before Monday's push: it carries the
+files chunks 53 to 55 changed or made, and no record, the records staying
+with the lane's own deliveries. Chunks 52 to 54 are laid three ways over
+his tree's converted banners and the window's rewordings, and the lane's
+decision texts are read with the window's rewordings (chunk 51's two lines)
+and the lane-name check's (a line each of chunks 52's and 53's; a review's
+line in the reviews), so that `decisions.md` adds no line the check
+refuses; and the two files of chunks 52 and 53 his main had not yet,
+`math_tests_log_refs.h` and `t_expression_face.cpp`, have their banner's
+tag converted by his `banner_tags.py`, every zip being cut on converted
+banners.** Chunk 52 lands on Monday as the window has it; this zip is for
+Wednesday's window. The earlier records keep their words; the tool rewords
+as it reads. The reference tools of chunks 51 and 52 write the old tag, so
+their own `--check` differs from his main in that line;
+`refs_tags_c55.sh` makes the references again and converts the tag
+before it compares.
+- Alternative: chunk 54's form, over the 11-16 tree with every chunk since
+  51 and the records: refused by the window, which keeps the records out
+  of main and lands chunk 52 first.
+
+> **Review.** Taken: for, the zip the window can lay over Monday's main,
+> chunk 52 landing first as it planned, no record in the tree; the decisions
+> file passing the lane-name check with the earlier records' words kept.
+> Against: the zip cut on a main with chunk 52's zip laid over it, not on
+> the main Monday's push will name, so the window lays it three ways. The
+> alternative: chunk 54's form, refused. Recommended: as taken. Taken.

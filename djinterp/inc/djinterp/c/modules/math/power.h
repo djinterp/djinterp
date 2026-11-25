@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                      power.h
+* djinterp [c][math]                                                     power.h
 *
 * Powers and roots: the C core's cube root, power and hypotenuse, for
 * float, double and long double.
@@ -24,7 +24,7 @@
 * path:      /inc/djinterp/c/modules/math/power.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.11.16
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*
@@ -299,7 +299,7 @@ d_internal_math_ld_cbrt_newton(
 // A pair is high + low, low below high's last place (elementary.h's section
 // 1.1). The sum and the product of two pairs are pairs again: the highs'
 // sum or product exactly, by Knuth's two-sum or Dekker's product, the lows'
-// terms added to what that left, and the whole renormalized by a two-sum --
+// terms added to what that left, and the whole renormalized by a two-sum -
 // off by a few units of the low part's last place, some 2^(-2P) of the value.
 
 // d_internal_math_ld_pair_sum
@@ -860,7 +860,7 @@ d_internal_math_ld_hypot_sign_exact(
 //   the sign of (_t + _h)^2 - (a^2 + b^2), _a2 and _b2 the squares as
 // Dekker's pairs, for a in [1, 2), b in [2^-(P' + 2), a] and _h a power of
 // 2 or its negation: the terms summed in long double, by seven roundings,
-// each off by at most half a last place of the terms' magnitudes summed --
+// each off by at most half a last place of the terms' magnitudes summed -
 // t^2 and a^2 counted by their difference, which cancels - decide it where
 // the sum lies past 16 such half places; the exact sum otherwise.
 D_MATH_FN int
@@ -911,7 +911,7 @@ d_internal_math_ld_hypot_sign(
 
 // d_internal_math_f_cbrt_unit
 //   the correctly rounded cube root of _m in [1, 8): Newton's, in long
-// double (section 1.3), rounded to the family, then the last bit settled --
+// double (section 1.3), rounded to the family, then the last bit settled -
 // up while the root lies past the midpoint above, down while it lies short of
 // the one below, the gap below a power of 2 being half the gap above.
 D_MATH_FN float
@@ -1356,7 +1356,7 @@ d_math_f_pow(
 // constant expression from C++14, and with no overflow or underflow on the
 // way: |x| and |y| scaled by one power of 2, the larger into [1, 2), the
 // root of their squares' sum taken in long double, put on the family's
-// values, and its last bit settled exactly (sections 2.1 and 1.8) --
+// values, and its last bit settled exactly (sections 2.1 and 1.8) -
 // on the subnormals' spacing below the normal range, so that a result there
 // is rounded once, and on a midpoint, where a Pythagorean triple can put it,
 // to even. Where the smaller lies below 2^-(P + 2) of the larger it moves
@@ -1467,7 +1467,7 @@ d_math_f_hypot(
 
 // d_internal_math_d_cbrt_unit
 //   the correctly rounded cube root of _m in [1, 8): Newton's, in long
-// double (section 1.3), rounded to the family, then the last bit settled --
+// double (section 1.3), rounded to the family, then the last bit settled -
 // up while the root lies past the midpoint above, down while it lies short of
 // the one below, the gap below a power of 2 being half the gap above.
 D_MATH_FN double
@@ -1912,7 +1912,7 @@ d_math_d_pow(
 // constant expression from C++14, and with no overflow or underflow on the
 // way: |x| and |y| scaled by one power of 2, the larger into [1, 2), the
 // root of their squares' sum taken in long double, put on the family's
-// values, and its last bit settled exactly (sections 3.1 and 1.8) --
+// values, and its last bit settled exactly (sections 3.1 and 1.8) -
 // on the subnormals' spacing below the normal range, so that a result there
 // is rounded once, and on a midpoint, where a Pythagorean triple can put it,
 // to even. Where the smaller lies below 2^-(P + 2) of the larger it moves
@@ -2023,7 +2023,7 @@ d_math_d_hypot(
 
 // d_internal_math_ld_cbrt_unit
 //   the correctly rounded cube root of _m in [1, 8): Newton's, in long
-// double (section 1.3), rounded to the family, then the last bit settled --
+// double (section 1.3), rounded to the family, then the last bit settled -
 // up while the root lies past the midpoint above, down while it lies short of
 // the one below, the gap below a power of 2 being half the gap above.
 D_MATH_FN long double
@@ -2468,7 +2468,7 @@ d_math_ld_pow(
 // constant expression from C++14, and with no overflow or underflow on the
 // way: |x| and |y| scaled by one power of 2, the larger into [1, 2), the
 // root of their squares' sum taken in long double, put on the family's
-// values, and its last bit settled exactly (sections 4.1 and 1.8) --
+// values, and its last bit settled exactly (sections 4.1 and 1.8) -
 // on the subnormals' spacing below the normal range, so that a result there
 // is rounded once, and on a midpoint, where a Pythagorean triple can put it,
 // to even. Where the smaller lies below 2^-(P + 2) of the larger it moves

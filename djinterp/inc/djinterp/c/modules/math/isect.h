@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                      isect.h
+* djinterp [c][math]                                                     isect.h
 *
 * Intersections: the C core of the geometry headers' ray tests - a ray
 * against an axis-aligned box and against a triangle - for float, double
@@ -14,7 +14,7 @@
 * path:      /inc/djinterp/c/modules/math/isect.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.16
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*

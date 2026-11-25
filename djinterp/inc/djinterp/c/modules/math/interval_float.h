@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                             interval_float.h
+* djinterp [c][math]                                            interval_float.h
 *
 * Floating-point intervals: the C core of math/interval for float,
 * double and long double.
@@ -22,7 +22,7 @@
 * path:      /inc/djinterp/c/modules/math/interval_float.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.16
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*
@@ -111,8 +111,8 @@ struct dj_interval_f
 // _step, the product formed apart so no compiler fuses it into the sum.
 D_MATH_FN float
 d_internal_interval_f_member(
-    float          _first,
-    float          _step,
+    float        _first,
+    float        _step,
     dj_math_umax _index
 )
 {
@@ -231,10 +231,10 @@ d_internal_interval_f_is_void(
 
 D_MATH_FN struct dj_interval_f
 d_interval_f_make(
-    float      _lower,
-    float      _upper,
+    float    _lower,
+    float    _upper,
     unsigned _bounds,
-    float      _step
+    float    _step
 )
 {
     struct dj_interval_f result = { (float)0,
@@ -367,7 +367,7 @@ d_interval_f_count(
 D_MATH_FN float
 d_interval_f_at(
     struct dj_interval_f _interval,
-    dj_math_umax           _index
+    dj_math_umax         _index
 )
 {
     const float low = d_interval_f_inclusive_lower(_interval);
@@ -393,7 +393,7 @@ d_interval_f_at(
 D_MATH_FN bool
 d_interval_f_contains_in_range(
     struct dj_interval_f _interval,
-    float                    _value
+    float                _value
 )
 {
     const bool left_ok =
@@ -411,7 +411,7 @@ d_interval_f_contains_in_range(
 D_MATH_FN bool
 d_interval_f_contains(
     struct dj_interval_f _interval,
-    float                    _value
+    float                _value
 )
 {
     // outside the bounds is outside the interval
@@ -439,7 +439,7 @@ d_interval_f_contains(
 D_MATH_FN float
 d_interval_f_clamp(
     struct dj_interval_f _interval,
-    float                    _value
+    float                _value
 )
 {
     const float low  = d_interval_f_inclusive_lower(_interval);
@@ -478,7 +478,7 @@ d_interval_f_clamp(
 D_MATH_FN float
 d_interval_f_clamp_nearest(
     struct dj_interval_f _interval,
-    float                    _value
+    float                _value
 )
 {
     // NaN, a continuous interval, and anything outside one: as clamp
@@ -519,7 +519,7 @@ d_interval_f_clamp_nearest(
 D_MATH_FN dj_math_umax
 d_interval_f_index_of(
     struct dj_interval_f _interval,
-    float                    _value
+    float                _value
 )
 {
     // a value that is not a member has the index one past the last
@@ -685,7 +685,7 @@ d_internal_interval_f_terms(
 D_MATH_FN struct dj_math_ratio
 d_interval_f_normalize_terms(
     struct dj_interval_f _interval,
-    float                    _value
+    float                _value
 )
 {
     return d_internal_interval_f_terms(_interval.lower,
@@ -696,7 +696,7 @@ d_interval_f_normalize_terms(
 D_MATH_FN struct dj_math_ratio
 d_interval_f_normalize_effective_terms(
     struct dj_interval_f _interval,
-    float                    _value
+    float                _value
 )
 {
     return d_internal_interval_f_terms(
@@ -708,7 +708,7 @@ d_interval_f_normalize_effective_terms(
 D_MATH_FN struct dj_math_ratio
 d_interval_f_normalize_discrete_terms(
     struct dj_interval_f _interval,
-    float                    _value
+    float                _value
 )
 {
     // a continuous interval normalizes over its inclusive bounds
@@ -758,14 +758,14 @@ d_interval_f_normalize_discrete_terms(
 
 // d_internal_interval_f_put_value
 //   writes _value at _position as the fewest significant digits (from
-// FLT_DIG) that read back as the same value - 0.1, not 0.10000000000000001 --
+// FLT_DIG) that read back as the same value - 0.1, not 0.10000000000000001 -
 // and returns the position after it.
 D_MATH_FN_RT size_t
 d_internal_interval_f_put_value(
     char*  _buffer,
     size_t _capacity,
     size_t _position,
-    float    _value
+    float  _value
 )
 {
     char   text[64] = { 0 };
@@ -810,8 +810,8 @@ d_internal_interval_f_put_value(
  */
 D_MATH_FN_RT size_t
 d_interval_f_format(
-    char*                  _buffer,
-    size_t                 _capacity,
+    char*                _buffer,
+    size_t               _capacity,
     struct dj_interval_f _interval
 )
 {
@@ -880,8 +880,8 @@ struct dj_interval_d
 // _step, the product formed apart so no compiler fuses it into the sum.
 D_MATH_FN double
 d_internal_interval_d_member(
-    double          _first,
-    double          _step,
+    double       _first,
+    double       _step,
     dj_math_umax _index
 )
 {
@@ -1000,10 +1000,10 @@ d_internal_interval_d_is_void(
 
 D_MATH_FN struct dj_interval_d
 d_interval_d_make(
-    double      _lower,
-    double      _upper,
+    double   _lower,
+    double   _upper,
     unsigned _bounds,
-    double      _step
+    double   _step
 )
 {
     struct dj_interval_d result = { (double)0,
@@ -1136,7 +1136,7 @@ d_interval_d_count(
 D_MATH_FN double
 d_interval_d_at(
     struct dj_interval_d _interval,
-    dj_math_umax           _index
+    dj_math_umax         _index
 )
 {
     const double low = d_interval_d_inclusive_lower(_interval);
@@ -1162,7 +1162,7 @@ d_interval_d_at(
 D_MATH_FN bool
 d_interval_d_contains_in_range(
     struct dj_interval_d _interval,
-    double                    _value
+    double               _value
 )
 {
     const bool left_ok =
@@ -1180,7 +1180,7 @@ d_interval_d_contains_in_range(
 D_MATH_FN bool
 d_interval_d_contains(
     struct dj_interval_d _interval,
-    double                    _value
+    double               _value
 )
 {
     // outside the bounds is outside the interval
@@ -1208,7 +1208,7 @@ d_interval_d_contains(
 D_MATH_FN double
 d_interval_d_clamp(
     struct dj_interval_d _interval,
-    double                    _value
+    double               _value
 )
 {
     const double low  = d_interval_d_inclusive_lower(_interval);
@@ -1247,7 +1247,7 @@ d_interval_d_clamp(
 D_MATH_FN double
 d_interval_d_clamp_nearest(
     struct dj_interval_d _interval,
-    double                    _value
+    double               _value
 )
 {
     // NaN, a continuous interval, and anything outside one: as clamp
@@ -1288,7 +1288,7 @@ d_interval_d_clamp_nearest(
 D_MATH_FN dj_math_umax
 d_interval_d_index_of(
     struct dj_interval_d _interval,
-    double                    _value
+    double               _value
 )
 {
     // a value that is not a member has the index one past the last
@@ -1454,7 +1454,7 @@ d_internal_interval_d_terms(
 D_MATH_FN struct dj_math_ratio
 d_interval_d_normalize_terms(
     struct dj_interval_d _interval,
-    double                    _value
+    double               _value
 )
 {
     return d_internal_interval_d_terms(_interval.lower,
@@ -1465,7 +1465,7 @@ d_interval_d_normalize_terms(
 D_MATH_FN struct dj_math_ratio
 d_interval_d_normalize_effective_terms(
     struct dj_interval_d _interval,
-    double                    _value
+    double               _value
 )
 {
     return d_internal_interval_d_terms(
@@ -1477,7 +1477,7 @@ d_interval_d_normalize_effective_terms(
 D_MATH_FN struct dj_math_ratio
 d_interval_d_normalize_discrete_terms(
     struct dj_interval_d _interval,
-    double                    _value
+    double               _value
 )
 {
     // a continuous interval normalizes over its inclusive bounds
@@ -1527,14 +1527,14 @@ d_interval_d_normalize_discrete_terms(
 
 // d_internal_interval_d_put_value
 //   writes _value at _position as the fewest significant digits (from
-// DBL_DIG) that read back as the same value - 0.1, not 0.10000000000000001 --
+// DBL_DIG) that read back as the same value - 0.1, not 0.10000000000000001 -
 // and returns the position after it.
 D_MATH_FN_RT size_t
 d_internal_interval_d_put_value(
     char*  _buffer,
     size_t _capacity,
     size_t _position,
-    double    _value
+    double _value
 )
 {
     char   text[64] = { 0 };
@@ -1579,8 +1579,8 @@ d_internal_interval_d_put_value(
  */
 D_MATH_FN_RT size_t
 d_interval_d_format(
-    char*                  _buffer,
-    size_t                 _capacity,
+    char*                _buffer,
+    size_t               _capacity,
     struct dj_interval_d _interval
 )
 {
@@ -1649,8 +1649,8 @@ struct dj_interval_ld
 // _step, the product formed apart so no compiler fuses it into the sum.
 D_MATH_FN long double
 d_internal_interval_ld_member(
-    long double          _first,
-    long double          _step,
+    long double  _first,
+    long double  _step,
     dj_math_umax _index
 )
 {
@@ -1769,10 +1769,10 @@ d_internal_interval_ld_is_void(
 
 D_MATH_FN struct dj_interval_ld
 d_interval_ld_make(
-    long double      _lower,
-    long double      _upper,
-    unsigned _bounds,
-    long double      _step
+    long double _lower,
+    long double _upper,
+    unsigned    _bounds,
+    long double _step
 )
 {
     struct dj_interval_ld result = { (long double)0,
@@ -1905,7 +1905,7 @@ d_interval_ld_count(
 D_MATH_FN long double
 d_interval_ld_at(
     struct dj_interval_ld _interval,
-    dj_math_umax           _index
+    dj_math_umax          _index
 )
 {
     const long double low = d_interval_ld_inclusive_lower(_interval);
@@ -1931,7 +1931,7 @@ d_interval_ld_at(
 D_MATH_FN bool
 d_interval_ld_contains_in_range(
     struct dj_interval_ld _interval,
-    long double                    _value
+    long double           _value
 )
 {
     const bool left_ok =
@@ -1949,7 +1949,7 @@ d_interval_ld_contains_in_range(
 D_MATH_FN bool
 d_interval_ld_contains(
     struct dj_interval_ld _interval,
-    long double                    _value
+    long double           _value
 )
 {
     // outside the bounds is outside the interval
@@ -1977,7 +1977,7 @@ d_interval_ld_contains(
 D_MATH_FN long double
 d_interval_ld_clamp(
     struct dj_interval_ld _interval,
-    long double                    _value
+    long double           _value
 )
 {
     const long double low  = d_interval_ld_inclusive_lower(_interval);
@@ -2016,7 +2016,7 @@ d_interval_ld_clamp(
 D_MATH_FN long double
 d_interval_ld_clamp_nearest(
     struct dj_interval_ld _interval,
-    long double                    _value
+    long double           _value
 )
 {
     // NaN, a continuous interval, and anything outside one: as clamp
@@ -2057,7 +2057,7 @@ d_interval_ld_clamp_nearest(
 D_MATH_FN dj_math_umax
 d_interval_ld_index_of(
     struct dj_interval_ld _interval,
-    long double                    _value
+    long double           _value
 )
 {
     // a value that is not a member has the index one past the last
@@ -2223,7 +2223,7 @@ d_internal_interval_ld_terms(
 D_MATH_FN struct dj_math_ratio
 d_interval_ld_normalize_terms(
     struct dj_interval_ld _interval,
-    long double                    _value
+    long double           _value
 )
 {
     return d_internal_interval_ld_terms(_interval.lower,
@@ -2234,7 +2234,7 @@ d_interval_ld_normalize_terms(
 D_MATH_FN struct dj_math_ratio
 d_interval_ld_normalize_effective_terms(
     struct dj_interval_ld _interval,
-    long double                    _value
+    long double           _value
 )
 {
     return d_internal_interval_ld_terms(
@@ -2246,7 +2246,7 @@ d_interval_ld_normalize_effective_terms(
 D_MATH_FN struct dj_math_ratio
 d_interval_ld_normalize_discrete_terms(
     struct dj_interval_ld _interval,
-    long double                    _value
+    long double           _value
 )
 {
     // a continuous interval normalizes over its inclusive bounds
@@ -2296,14 +2296,14 @@ d_interval_ld_normalize_discrete_terms(
 
 // d_internal_interval_ld_put_value
 //   writes _value at _position as the fewest significant digits (from
-// LDBL_DIG) that read back as the same value - 0.1, not 0.10000000000000001 --
+// LDBL_DIG) that read back as the same value - 0.1, not 0.10000000000000001 -
 // and returns the position after it.
 D_MATH_FN_RT size_t
 d_internal_interval_ld_put_value(
-    char*  _buffer,
-    size_t _capacity,
-    size_t _position,
-    long double    _value
+    char*       _buffer,
+    size_t      _capacity,
+    size_t      _position,
+    long double _value
 )
 {
     char   text[64] = { 0 };
@@ -2348,8 +2348,8 @@ d_internal_interval_ld_put_value(
  */
 D_MATH_FN_RT size_t
 d_interval_ld_format(
-    char*                  _buffer,
-    size_t                 _capacity,
+    char*                 _buffer,
+    size_t                _capacity,
     struct dj_interval_ld _interval
 )
 {

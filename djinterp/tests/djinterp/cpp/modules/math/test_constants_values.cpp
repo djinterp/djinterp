@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/modules/math/test_constants_values.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 // std
 #include <array>
@@ -13,6 +13,7 @@
 // djinterp
 #include "djinterp/cpp/modules/math/math.hpp"
 using namespace djinterp::math;
+using namespace djinterp::math::variables;  // x to phi (S403)
 
 int main()
 {

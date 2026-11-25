@@ -121,12 +121,12 @@ every step from 22 on moved three further, 4a from step 22 to step 25.
 | 2: The expression bones (P0, then 2a to 2f) | 12 to 18 | 7 of 7 |
 | 3: Linear algebra, complex numbers and quaternions in expressions (3a to 3f) | 19 to 24 | 6 of 6 |
 | 4: Calculus in expressions (4a to 4d) | 25 to 28 | 0 of 4 |
-| 5: The compile-time face and the remaining ports (5a to 5g) | 29 to 35 | 0 of 7 |
+| 5: The compile-time face and the remaining ports (5a to 5g) | 29 to 35 | 1 of 7 |
 | 6: Precision (6a to 6e) | 36 to 40 | 0 of 5 |
 | 7: Comparison with other libraries (7a, 7b) | 41 and 42 | 0 of 2 |
 | 8: Bignum (P1 to P7) | 43 to 49 | 1 of 7 |
 | When ready: C6 (the 09.29 lane) and C4b (a CI workflow) | 50 and 51 | 0 of 2 |
-| **All** | **1 to 51** | **25 of 51** |
+| **All** | **1 to 51** | **26 of 51** |
 
 "Later, not yet decided" is not counted.
 
@@ -926,10 +926,16 @@ of a term, `str()` writes as the renderer does, `x ^ 2 * sin(x)`.
 
 ## Phase 5 — The compile-time face and the remaining ports
 
-- [ ] **5a** (step 29) `expression.hpp` to C++11, with its kernels taken from
-  the C core (N3). This fixes its own sqrt, exp and sin, which today give
-  wrong answers: `sqrt(1e300)` is 7.89e269, `exp` is up to 10,800 ulps off,
-  and a C++20 program gets two answers to one call.
+- [x] **5a** (step 29) (chunk 53) `expression.hpp` to C++11, with its kernels
+  taken from the C core (N3, S430). This fixed its own sqrt, exp and sin,
+  which gave wrong answers: `sqrt(1e300)` was 7.89e269, `exp` up to 10,800
+  ulps off, and a C++20 program got two answers to one call. Now the header
+  is empty below C++11; its nodes and arithmetic are constant expressions
+  from C++11; `exp`, `sin`, `cos`, `tan` and `sqrt` are the C core's `_c`
+  kernels at compile time and at run time alike, constant expressions from
+  C++14, one answer at every level; and the placeholders `x` to `phi` are
+  in `math::variables`, which leaves `math.hpp` clean under `-Wshadow`
+  (S403). `t_expression_face.cpp` checks it at every rung.
 - [ ] **5b** (step 30) `function.hpp`, `functional.hpp` and `values.hpp` to
   C++11.
 - [ ] **5c** (step 31) `calculus/*` to C++11.
@@ -954,8 +960,10 @@ of a term, `str()` writes as the renderer does, `x ^ 2 * sin(x)`.
   is bit-identity everywhere (row G6): exp in chunk 51 (S416), on `dd.h`'s pairs
   (S417), its exact products immune to fusing (S414), with a start-up
   self-test (S419); log in chunk 52 (S424 to S426), 4.7 times the C
-  library's time, its speed outstanding (S424); then, after 0.8's items and
-  core v2, sin, cos, tan, atan, pow and the hyperbolic functions. Float
+  library's time, made 1.70 to 1.85 times as fast in chunk 54 (S432, S433),
+  1.95 to 3.03 times the library's, its speed still outstanding (S424); then,
+  after 0.8's items and core v2, sin, cos, tan, atan, pow and the
+  hyperbolic functions. Float
   follows from the double kernels; long double keeps its own.
 - [ ] **6b** (step 37) The speed of `sqrt_c` in 32-bit builds (chunk 10's
   options), and `binade_of`'s table.
@@ -1094,12 +1102,26 @@ the owner's tree of 2026.11.16 (S423). Chunk 52 made the second: `log_c`
 correctly rounded in double arithmetic alone, in three phases with bounds
 proven in each of three cases (S424), its references and the self-test's
 logarithm (S425), and the x87 refused for it as for `exp_c` (S426); its
-delivery is over the same tree, with chunk 51's (S427). Step 29, 5a,
-follows, as asked, with 0.8's items the owner ruled on 2026.11.16
-(S413, S391, S403), before 0.8 on 2026.11.30. The owner's question of
-2026.11.19, whether to split math into modules, goes to the owner's decisions
-page; the lane recommends one chunk after 0.8, before the rest of the
-double family lands.
+delivery is over the same tree, with chunk 51's (S427). Chunk 53 made
+step 29, 5a, as asked, with 0.8's items the owner ruled on
+2026.11.16, before 0.8 on 2026.11.30: the language's dense solves refined
+(S413, S428); `rotquat` the nearest rotation's quaternion, by
+Bar-Itzhack's method, and the docs' MATLAB and SciPy equivalents (S391,
+S429); `expression.hpp` to C++11 on the C core's kernels, its variables
+in a namespace of their own (S403, S430); its delivery is over the same
+tree, with chunks 51's and 52's (S431). Chunk 54 made `log_c` 1.70 to 1.85
+times as fast, its results the same bits: a cheaper reduction, inverses of
+26 bits held halved from 53 (S432), and a lighter first phase whose test
+takes its error's own shape (S433); 1.95 to 3.03 times the C library's time,
+still past ruling 12's twice; its delivery is over the same tree, with
+chunks 51's to 53's (S434). The owner's question of 2026.11.19, whether
+to split math into modules, he ruled on 2026.11.21: no modules, but math's
+largest files split, each to about 4,000 lines at most, the deeper
+modularization not now. Chunk 55 split them: the eight largest generated
+headers in parts (S436), `expr/matrix_kind.hpp` (S437), the face test
+`t_expr_face.cpp` (S438) and the generator itself (S439), each old name
+kept, no result changed; its delivery is over the owner's main of
+2026.11.21 with chunk 52 laid over it, without the records (S440).
 The outstanding decisions of `decisions.md`, its section 1, by group and
 urgency, and the suggestions of `comparison.md`'s section 9 are the owner's
 to take or leave before then.
