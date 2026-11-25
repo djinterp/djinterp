@@ -81,7 +81,6 @@ tests/djinterp/c/modules/math/t_value_wide.c	11
 tests/djinterp/c/modules/net/ftp/ftp_tests.c	3
 tests/djinterp/c/modules/net/ftps/ftps_tests.c	1
 tests/djinterp/c/modules/net/ftps/ftps_tests_interop.c	3
-tests/djinterp/c/modules/net/net_tests_pki.c	3
 tests/djinterp/c/modules/net/net_tests_ssh_toy.c	2
 tests/djinterp/c/modules/net/sftp/sftp_tests.c	10
 tests/djinterp/c/modules/net/starttls/starttls_tests_openssl.c	6
