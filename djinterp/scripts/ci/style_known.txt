@@ -399,7 +399,6 @@ inc/djinterp/c/text/text_template.h	H	1
 inc/djinterp/c/text/unicode/unicode.h	H	1
 inc/djinterp/c/util/archive/archive.h	H	1
 inc/djinterp/c/util/archive/archive_common.h	H	1
-inc/djinterp/c/util/cli/cli_option.h	H	1
 inc/djinterp/c/util/color/color.h	H	1
 inc/djinterp/c/util/color/color_cmyk.h	H	1
 inc/djinterp/c/util/color/color_common.h	H	1
@@ -538,8 +537,6 @@ inc/djinterp/config/cpp/modules/math/expr/cfg_expr.h	H	1
 inc/djinterp/config/cpp/option/cfg_option.h	H	1
 inc/djinterp/config/cpp/text/cfg_text.h	H	1
 inc/djinterp/config/cpp/text/text_config.h	H	1
-inc/djinterp/config/cpp/util/cli/cfg_cli_option.h	H	1
-inc/djinterp/config/cpp/util/cli/cli_option_config.h	H	1
 inc/djinterp/config/cpp/util/output/cfg_output_packaging.h	H	1
 inc/djinterp/config/cpp/util/sort/cfg_sort.h	H	1
 inc/djinterp/config/dconfig.h	B	1
@@ -2476,18 +2473,6 @@ tests/djinterp/c/text/text_template_tests_marker.c	B	1
 tests/djinterp/c/text/text_template_tests_render.c	B	1
 tests/djinterp/c/text/text_template_tests_utility.c	B	1
 tests/djinterp/c/text/text_template_tests_wrap.c	B	1
-tests/djinterp/c/util/cli/cli_unix.c	B	1
-tests/djinterp/c/util/cli/cli_unix.h	B	1
-tests/djinterp/c/util/cli/main_cli_option.c	B	1
-tests/djinterp/c/util/cli/main_cli_unix.c	B	1
-tests/djinterp/c/util/cli/test_cli_option_sa.c	B	1
-tests/djinterp/c/util/cli/test_cli_option_sa.c	S	1
-tests/djinterp/c/util/cli/test_cli_option_sa.h	B	1
-tests/djinterp/c/util/cli/test_cli_unix_sa.c	B	1
-tests/djinterp/c/util/cli/test_cli_unix_sa.h	B	1
-tests/djinterp/c/util/cli/test_common_tests_sa.c	B	1
-tests/djinterp/c/util/cli/test_common_tests_sa.h	B	1
-tests/djinterp/c/util/cli/test_common_tests_sa_cli_option.c	B	1
 tests/djinterp/cpp/binary/decode_tests_reader.cpp	B	1
 tests/djinterp/cpp/binary/decode_tests_result.cpp	B	1
 tests/djinterp/cpp/binary/encode_options_tests_enums.cpp	B	1

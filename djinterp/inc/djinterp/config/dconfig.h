@@ -74,12 +74,11 @@
 #include "djinterp/config/cpp/container/array/cfg_array.h"
 #include "djinterp/config/cpp/container/table/cfg_table.h"
 // configs that define no knobs yet: the C++ iterators, registries,
-// functional and text modules, and the command-line options
+// functional, text and sort modules
 #include "djinterp/config/cpp/container/iterator/cfg_container_iterator.h"
 #include "djinterp/config/cpp/container/registry/cfg_registry.h"
 #include "djinterp/config/cpp/functional/cfg_functional.h"
 #include "djinterp/config/cpp/text/cfg_text.h"
-#include "djinterp/config/cpp/util/cli/cfg_cli_option.h"
 #include "djinterp/config/cpp/util/sort/cfg_sort.h"
 // c/event: the shared knobs, then each part's
 #include "djinterp/config/c/event/cfg_event_common.h"

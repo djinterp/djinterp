@@ -47,9 +47,6 @@ tests/djinterp/c/functional/test_sequence.c	stdint.h
 tests/djinterp/c/functional/test_tier34.c	stdint.h
 tests/djinterp/c/text/test_number_to_string_it.c	inttypes.h
 tests/djinterp/c/text/test_number_to_string_pt.c	inttypes.h
-tests/djinterp/c/util/cli/test_cli_option_sa.h	stdint.h
-tests/djinterp/c/util/cli/test_cli_unix_sa.h	stdint.h
-tests/djinterp/c/util/cli/test_common_tests_sa.h	stdint.h
 tests/djinterp/cpp/event/event_handler_tests.hpp	cstdint
 tests/djinterp/cpp/functional/test_functional_parity_quantifiers.cpp	cstdint
 tests/djinterp/cpp/modules/parse/parse_tests.hpp	cstdint
