@@ -1,36 +1,34 @@
 /*******************************************************************************
 * djinterp [c][net]                                                 ftp_client.h
 *
-* An FTP client, plain or secured with TLS: FTPS (RFC 4217).
+* An FTP client, plain, or secured by a layer it is given: FTPS (RFC 4217)
+* with module ftps.
 *   The client speaks the control protocol through the net/ftp/ vocabulary and
 * moves bytes through the TCP transport (net/tcp/tcp.h), reading and writing
 * every connection through net.h's dj_net_connection, so the client itself
-* holds no OS code. For FTPS it runs TLS through the TLS kernel
-* (net/tls/tls.h), carried over each connection: explicitly, upgrading the
-* control connection with AUTH TLS, or implicitly, from the first byte on
-* port 990; and, after PBSZ 0 and PROT P, on every data connection, where
-* the client is always the TLS client (RFC 4217 section 7) in passive and
-* active mode alike.
-*   The TLS library is whatever engine the caller's dj_tls_context was made
-* with. Control and data sessions come from that one context and name the
-* same host, so an engine that caches client sessions by host resumes the
-* control session on each data connection, as servers such as vsftpd require
-* by default. d_ftp_client_tls_config() fills a kernel configuration from the
-* options.
-*   Security settings are never weakened silently: a context whose plan checks
-* less than the options ask is refused before connecting; with
-* require_security set, a server that refuses AUTH TLS ends the session before
-* any credential is sent, and one that refuses PBSZ or PROT P fails the login;
-* plaintext received after the server agreed to AUTH TLS, which an attacker
-* could have injected, aborts the upgrade; and a TLS data stream that stops
-* without close_notify is reported as truncated, not complete.
+* holds no OS code. It speaks RFC 2228's security commands too - AUTH, PBSZ,
+* PROT, CCC - and runs the mechanism they agree on through a security layer
+* (2.2): explicitly, upgrading the control connection after AUTH, or
+* implicitly, from the first byte on port 990; and, after PBSZ 0 and PROT P,
+* on every data connection, where the client is always the client of the
+* mechanism (RFC 4217 section 7) in passive and active mode alike. Module
+* ftps gives it TLS through the TLS kernel (net/ftps/ftps.h). Without a
+* layer the client is plain FTP, links no TLS, and refuses options that ask
+* for security.
+*   Security settings are never weakened silently: a layer that checks less
+* than the options ask is refused before connecting; with require_security
+* set, a server that refuses AUTH ends the session before any credential is
+* sent, and one that refuses PBSZ or PROT P fails the login; plaintext
+* received after the server agreed to AUTH, which an attacker could have
+* injected, aborts the upgrade; and a secured data stream that stops without
+* its close is reported as truncated, not complete.
 *   Every call blocks. The options bound each connection attempt by
 * connect_timeout_ms, each read and write on the control connection by
 * response_timeout_ms, and each on a data connection by idle_timeout_ms; an
 * active-mode transfer waits for the server's connection without limit.
-* A client holds two TLS sessions and its buffers, so it is large: give it
-* static or heap storage, and do not copy it once initialized. Buffer sizes
-* come from cfg_ftp.h.
+* A client holds its buffers, so it is large: give it static or heap
+* storage, and do not copy it once initialized. Buffer sizes come from
+* cfg_ftp.h.
 *
 *   Where D_INTERNAL_NET_HAS_INT64 is 0, with no 64-bit integer type, it
 * compiles to nothing, unless D_CFG_NET_REQUIRE_BACKENDS asks for an #error
@@ -40,7 +38,7 @@
 * path:      /inc/djinterp/c/modules/net/ftp/ftp_client.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.27
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 
 /*
@@ -53,12 +51,16 @@ TABLE OF CONTENTS
          2.  D_FTP_CLIENT_INPUT_SIZE
          3.  D_FTP_CLIENT_LINE_SIZE
          4.  D_FTP_CLIENT_CHUNK_SIZE
+         5.  D_FTP_CLIENT_HOST_SIZE
 2.  TYPES
     -----
     1.  Transfer callbacks
          1.  dj_ftp_sink_fn
          2.  dj_ftp_source_fn
-    2.  Connections and clients
+    2.  Security layers
+         1.  dj_ftp_io
+         2.  dj_ftp_security_ops
+    3.  Connections and clients
          1.  dj_ftp_connection
          2.  dj_ftp_client
 3.  CLIENT
@@ -79,7 +81,6 @@ TABLE OF CONTENTS
 #include "../../../djinterp.h"                // framework root
 #include "../../../../config/c/modules/net/ftp/cfg_ftp.h"  // D_INTERNAL_FTP_*
 #include "../net_common.h"                   // dj_net_error
-#include "../tls/tls.h"                      // dj_tls_context, dj_tls_session
 #include "../tcp/tcp.h"                      // dj_tcp_connection
 #include "./ftp_command.h"                   // dj_ftp_command
 #include "./ftp_common.h"                    // dj_ftp_error
@@ -137,6 +138,13 @@ D_EXTERN_C_BEGIN
 // D_CFG_FTP_CHUNK_SIZE.
 #define D_FTP_CLIENT_CHUNK_SIZE D_INTERNAL_FTP_CHUNK_SIZE
 
+// 1.1.5
+// D_FTP_CLIENT_HOST_SIZE
+//   constant: bytes kept of the server's host name: the longest a name may
+// be, 253 characters (RFC 1035 section 2.3.4), a trailing dot, and the
+// terminator. The host is what a security layer checks the server against.
+#define D_FTP_CLIENT_HOST_SIZE  255u
+
 
 //==============================================================================
 // 2.  TYPES
@@ -165,32 +173,107 @@ typedef enum dj_ftp_error (*dj_ftp_source_fn)(void*   _context,
                                             size_t* _out_size);
 
 
-// 2.2    Connections and clients
+// 2.2    Security layers
 //------------------------------------------------------------------------------
+//   A layer is a mechanism's functions over its own state, which the client
+// is given once (d_ftp_client_set_security) and calls on its control and
+// data connections. Each function takes the connection it acts on, one of
+// the client's two, and one that can fail stores the mechanism's own status
+// in `*_status`, which the client keeps as `security_status` when it reports
+// D_FTP_ERROR_TLS. Over a secured connection the layer reads and writes the
+// connection's `tcp.base` itself, and keeps its `failure` as the transport
+// last left it.
+
+struct dj_ftp_connection;
+
 // 2.2.1
-// dj_ftp_connection
-//   struct: one connection: its TCP transport, read and written as a
-// dj_net_connection through `tcp.base`, and the TLS session over it while
-// `secured` is set. `failure` is the transport's last error, kept even when
-// TLS is what reported the failure.
-struct dj_ftp_connection
+// dj_ftp_io
+//   enum: how a read, a write, a close or the securing of a connection went,
+// the same whether a layer carries it or the connection is plain.
+enum dj_ftp_io
 {
-    struct dj_tcp_connection tcp;      // the transport
-    struct dj_tls_session    tls;      // valid while secured
-    bool                    secured;  // TLS in force
-    enum dj_net_error        failure;  // the transport's last error
+    D_FTP_IO_OK = 0,     // done
+    D_FTP_IO_CLOSED,     // the stream ended, or the peer no longer reads
+    D_FTP_IO_TRANSPORT,  // the connection failed: its error in `failure`
+    D_FTP_IO_TRUNCATED,  // a secured stream ended without its close
+    D_FTP_IO_SECURITY    // the mechanism failed: its status in `*_status`
 };
 
 // 2.2.2
+// dj_ftp_security_ops
+//   struct: a security layer's functions, each over `_layer`, the state the
+// layer was given with them.
+//     mechanism        AUTH's argument: "TLS" for RFC 4217.
+//     honours          whether the mechanism, as set up, checks at least what
+//                      `_options` ask - a peer verified, its name checked;
+//                      the client refuses to connect otherwise.
+//     secure           secures `_connection` as the client of the mechanism
+//                      naming `_host`; `_resume` is the secured control
+//                      connection, for a data connection to resume its
+//                      session, or NULL. A failure leaves nothing behind.
+//     read, write      move bytes through the secured connection; a write
+//                      sends all of them. The end of the stream is CLOSED.
+//     shutdown         sends the mechanism's close, in order.
+//     drop             forgets the connection's security, without a word.
+//     transport_error  what the transport under it last reported.
+struct dj_ftp_security_ops
+{
+    const char* mechanism;
+    bool              (*honours)(const void*                  _layer,
+                                 const struct dj_ftp_options* _options);
+    enum dj_ftp_io    (*secure)(void*                           _layer,
+                                struct dj_ftp_connection*       _connection,
+                                const struct dj_ftp_connection* _resume,
+                                const char*                     _host,
+                                int32_t*                        _status);
+    enum dj_ftp_io    (*read)(void*                     _layer,
+                              struct dj_ftp_connection* _connection,
+                              void*                     _buffer,
+                              size_t                    _capacity,
+                              size_t*                   _out_read,
+                              int32_t*                  _status);
+    enum dj_ftp_io    (*write)(void*                     _layer,
+                               struct dj_ftp_connection* _connection,
+                               const void*               _data,
+                               size_t                    _size,
+                               int32_t*                  _status);
+    enum dj_ftp_io    (*shutdown)(void*                     _layer,
+                                  struct dj_ftp_connection* _connection,
+                                  int32_t*                  _status);
+    void              (*drop)(void*                     _layer,
+                              struct dj_ftp_connection* _connection);
+    enum dj_net_error (*transport_error)(
+                          const void*                     _layer,
+                          const struct dj_ftp_connection* _connection);
+};
+
+
+// 2.3    Connections and clients
+//------------------------------------------------------------------------------
+// 2.3.1
+// dj_ftp_connection
+//   struct: one connection: its TCP transport, read and written as a
+// dj_net_connection through `tcp.base`, and secured by the client's layer
+// while `secured` is set. `failure` is the transport's last error, kept even
+// when the layer is what reported the failure.
+struct dj_ftp_connection
+{
+    struct dj_tcp_connection tcp;      // the transport
+    bool                    secured;  // the layer in force
+    enum dj_net_error        failure;  // the transport's last error
+};
+
+// 2.3.2
 // dj_ftp_client
 //   struct: a client session. `reply`, `features`, `protection`,
-// `tls_status`, `net_error`, the flags, and each connection's `secured` may
-// be read freely; the other fields are the client's own.
+// `security_status`, `net_error`, the flags, and each connection's `secured`
+// may be read freely; the other fields are the client's own.
 struct dj_ftp_client
 {
-    struct dj_ftp_options        options;          // copied at init
-    const struct dj_tls_context* tls;              // borrowed; NULL: plain only
-    char                        host[D_TLS_HOSTNAME_MAX + 2];
+    struct dj_ftp_options              options;          // copied at init
+    const struct dj_ftp_security_ops*  security;         // NULL: plain only
+    void*                              security_layer;   // the layer's state
+    char                              host[D_FTP_CLIENT_HOST_SIZE];
     struct dj_ftp_connection     control;          // the control connection
     struct dj_ftp_connection     data;             // the transfer's connection
     struct dj_ftp_reply_parser   parser;           // reads control replies
@@ -205,7 +288,10 @@ struct dj_ftp_client
     bool                        logged_in;        // login accepted
     bool                        type_sent;        // TYPE set this session
     bool                        extended_refused; // EPSV or EPRT refused
-    enum dj_tls_error            tls_status;       // cause of ERROR_TLS
+    int32_t                     security_status;  // the layer's, for
+                                                  // ERROR_TLS; 0 for none
+    int32_t                     security_last;    // the layer's last
+                                                  // failure
     enum dj_net_error            net_error;        // cause of a lost link
 };
 
@@ -217,29 +303,34 @@ struct dj_ftp_client
 
 // 3.1    Setup
 //------------------------------------------------------------------------------
-// d_ftp_client_tls_config() fills a kernel configuration for an FTPS client:
-// a client's, verifying the server's chain and its name as the options'
-// verify_peer and verify_host ask, against the system trust store. Set trust
-// anchors or pins on it before d_tls_context_init(). NULL arguments are
-// ignored.
-void d_ftp_client_tls_config(
-    const struct dj_ftp_options* _options,
-    struct dj_tls_config*        _config
-);
 /**
- * @brief Prepares a client: closed, with its options copied.
+ * @brief Prepares a client: closed, plain, with its options copied.
  *
  * @param[out] _client  the client.
  * @param[in]  _options the options, copied; NULL for d_ftp_options_init()'s
  *                      defaults. The strings they point to must outlive the
  *                      client.
- * @param[in]  _tls     the TLS context for FTPS, a client's, borrowed for the
- *                      client's life; NULL allows plain FTP only.
  */
 void d_ftp_client_init(
     struct dj_ftp_client*        _client,
-    const struct dj_ftp_options* _options,
-    const struct dj_tls_context* _tls
+    const struct dj_ftp_options* _options
+);
+
+/**
+ * @brief Gives a closed client the security layer that options asking for
+ *        security run through: module ftps does, for FTPS
+ *        (d_ftps_client_init). NULL ops make the client plain again.
+ *
+ * @param[in,out] _client  the client, not connected.
+ * @param[in]     _ops     the layer's functions; they must outlive the
+ *                         client.
+ * @param[in]     _layer   the state they are given; it must outlive the
+ *                         client.
+ */
+void d_ftp_client_set_security(
+    struct dj_ftp_client*             _client,
+    const struct dj_ftp_security_ops* _ops,
+    void*                             _layer
 );
 
 
@@ -249,9 +340,10 @@ void d_ftp_client_init(
  * @brief Connects, secures the control connection as the options ask, and
  *        reads the server's features.
  *
- * Implicit FTPS handshakes before the greeting; explicit FTPS sends AUTH TLS
- * after it. FEAT follows once the connection is as secure as it will get, so
- * no one on the path can edit the list.
+ * Implicit security secures before the greeting; explicit security sends
+ * AUTH, with the layer's mechanism, after it. FEAT follows once the
+ * connection is as secure as it will get, so no one on the path can edit
+ * the list.
  *
  * @param[in,out] _client the client, closed.
  * @param[in]     _host   the server's host name or address literal: where to
@@ -259,17 +351,16 @@ void d_ftp_client_init(
  * @param[in]     _port   the control port; 0 for the security mode's
  *                        default, 990 for implicit FTPS and 21 otherwise.
  * @post   On success the client is connected; secured if the options asked
- *         for TLS, unless the server refused it and require_security is off.
+ *         for it, unless the server refused it and require_security is off.
  *         On failure it is closed again.
  * @return D_FTP_OK; D_FTP_ERROR_INVALID_ARGUMENT for NULL, empty, or overlong
- *         arguments, a client already connected, TLS options without a
- *         context, or a context whose plan checks less than the options
- *         require; D_FTP_ERROR_RESOLVE, D_FTP_ERROR_CONNECT, or
+ *         arguments, a client already connected, security options without a
+ *         layer, or a layer that checks less than the options require; D_FTP_ERROR_RESOLVE, D_FTP_ERROR_CONNECT, or
  *         D_FTP_ERROR_TIMED_OUT when no connection is made, with the
  *         transport's error in `net_error`; D_FTP_ERROR_TLS for a
- *         failed handshake, with the kernel's status in `tls_status`;
- *         D_FTP_ERROR_SECURITY if the server refused AUTH TLS while security
- *         is required, or sent plaintext after agreeing to it; the error of
+ *         failed handshake, with the layer's status in `security_status`;
+ *         D_FTP_ERROR_SECURITY if the server refused AUTH while security is
+ *         required, or sent plaintext after agreeing to it; the error of
  *         a greeting other than 220; or a control-connection failure.
  */
 enum dj_ftp_error d_ftp_client_connect(
@@ -333,16 +424,16 @@ enum dj_ftp_error d_ftp_client_command(
 // 3.4    Transfers
 //------------------------------------------------------------------------------
 // Each transfer opens a data connection as the options' data_mode says,
-// sending TYPE first if it has not been sent, and runs TLS over it while PROT
-// P is in force. Each needs a logged-in client, and returns D_FTP_OK only once
+// sending TYPE first if it has not been sent, and secures it with the layer
+// while PROT P is in force. Each needs a logged-in client, and returns D_FTP_OK only once
 // all the data has moved and the server has confirmed it. Failing, it
 // returns the first error: D_FTP_ERROR_BAD_SEQUENCE when not logged in;
 // D_FTP_ERROR_INVALID_ARGUMENT for NULL or empty arguments; the error of a
 // refused command or of the final reply; the callback's own error, which
 // abandons the transfer; D_FTP_ERROR_DATA_CONNECTION or D_FTP_ERROR_TIMED_OUT
 // for a data connection that could not be made or failed; D_FTP_ERROR_TLS for
-// TLS that failed on it, or that ended without close_notify; or a
-// control-connection failure. `reply` holds the last reply read.
+// the layer failing on it, or a secured stream that ended without its close
+// (TLS's close_notify); or a control-connection failure. `reply` holds the last reply read.
 /**
  * @brief Downloads a file (RETR) into a sink.
  *
@@ -365,8 +456,8 @@ enum dj_ftp_error d_ftp_client_retrieve(
  * @brief Uploads a file (STOR) from a source.
  *
  * With an ASCII representation type, LF line ends from the source go out as
- * CR LF. Over TLS the data ends with close_notify, so the server can tell a
- * complete upload from a cut one.
+ * CR LF. Secured, the data ends with the layer's close (TLS's close_notify),
+ * so the server can tell a complete upload from a cut one.
  *
  * @param[in,out] _client  the client, logged in.
  * @param[in]     _path    the file to write.
@@ -408,7 +499,7 @@ enum dj_ftp_error d_ftp_client_list(
 // 3.5    Teardown
 //------------------------------------------------------------------------------
 /**
- * @brief Says QUIT, closes TLS in order, and closes the connections.
+ * @brief Says QUIT, closes the layer in order, and closes the connections.
  *
  * @param[in,out] _client the client.
  * @post   The client is closed, whatever the result, and may connect again.

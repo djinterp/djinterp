@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][net]                                                    ftp.hpp
 *
-* Umbrella for the FTP and FTPS module, in C++.
+* Umbrella for the FTP module, in C++; FTPS is ftps.hpp's.
 *   Includes ftp.h, the C foundation and client, and ftp_client.hpp, the
 * tiered C++ client over it: C++98 and up, with enum classes, deleted
 * copies, and noexcept from C++11.
@@ -10,7 +10,7 @@
 * path:      /inc/djinterp/cpp/modules/net/ftp/ftp.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 
 #ifndef DJINTERP_NET_FTP_FTP_HPP

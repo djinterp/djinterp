@@ -1,8 +1,8 @@
 /*******************************************************************************
-* djinterp [c][net]                                          ftp_tests_interop.c
+* djinterp [c][net]                                         ftps_tests_interop.c
 *
-* FTP interop tests: the net/ftp/ client against a real FTP server, plain
-* and over TLS through the TLS kernel's OpenSSL engine.
+* FTP interop tests: the net/ftp/ client, plain, and the net/ftps/ client,
+* over TLS through the TLS kernel's OpenSSL engine, against a real server.
 *   Opt-in, like the SFTP integration: without FTP_TEST_PORT the suite skips.
 *     FTP_TEST_PORT           plain FTP and explicit FTPS (AUTH TLS)
 *     FTP_TEST_USER           an account that may write in its directory
@@ -16,17 +16,17 @@
 *                             on data connections, as vsftpd does by default
 *   Every session uploads 300 KB, checks its SIZE, downloads and compares it,
 * finds it in a listing, and deletes it, in passive and in active mode.
-*   Block interop of the suite's module ftp: d_tests_ftp_interop runs each
+*   Block interop of the suite's module ftps: d_tests_ftps_interop runs each
 * kind of session as a test, its outcome a note; what the environment does
 * not name is a skipped test.
 *
 *
-* path:      /tests/djinterp/c/modules/net/ftp/ftp_tests_interop.c
+* path:      /tests/djinterp/c/modules/net/ftps/ftps_tests_interop.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.29
 *                                                            revised: 2026.11.20
 *******************************************************************************/
-#include "./ftp_tests.h"  // the suite
+#include "./ftps_tests.h"  // the suite
 // std
 #include <stdbool.h>  // bool, true, false
 #include <stddef.h>   // size_t
@@ -35,12 +35,13 @@
 #include <string.h>   // memcpy, memcmp, strstr
 // djinterp
 #include "../../../../../../inc/djinterp/c/modules/net/ftp/ftp.h"          // d_ftp_client_*
+#include "../../../../../../inc/djinterp/c/modules/net/ftps/ftps.h"        // d_ftps_client_*
 #include "../../../../../../inc/djinterp/c/modules/net/tls/tls.h"          // dj_tls_context
 #include "../../../../../../inc/djinterp/c/modules/net/tls/tls_openssl.h"  // the OpenSSL engine
 
 
 // g_suite
-//   variable: the suite d_tests_ftp_interop records into; the tests' checks reach it
+//   variable: the suite d_tests_ftps_interop records into; the tests' checks reach it
 // through D_TESTS_FTP_INTEROP_CHECK.
 static struct dj_test_suite* g_suite = NULL;
 
@@ -50,11 +51,11 @@ static struct dj_test_suite* g_suite = NULL;
 static size_t g_failed = 0u;
 
 /*
-d_tests_ftp_interop_held
+d_tests_ftps_interop_held
   Counts a check that failed, and gives back whether it held.
 */
 static
-bool d_tests_ftp_interop_held(
+bool d_tests_ftps_interop_held(
     bool _held
 )
 {
@@ -71,7 +72,7 @@ bool d_tests_ftp_interop_held(
 //   macro: one check of the open test, recorded with its condition's text,
 // file and line.
 #define D_TESTS_FTP_INTEROP_CHECK(c)                                           \
-    d_tests_ftp_interop_held(d_test_suite_check(g_suite,                       \
+    d_tests_ftps_interop_held(d_test_suite_check(g_suite,                       \
                                                 ((c) ? true : false),          \
                                                 #c,                            \
                                                 __FILE__,                      \
@@ -167,7 +168,8 @@ report(
                             _label,
                             d_ftp_error_string(_e),
                             _c->reply.code,
-                            d_tls_error_name(_c->tls_status),
+                            d_tls_error_name(
+                                (enum dj_tls_error)_c->security_status),
                             d_net_error_string(_c->net_error));
 
     return;
@@ -268,9 +270,11 @@ void session(
     uint16_t                     _port
 )
 {
-    static struct dj_ftp_client c = { 0 };
-    char                       name[64];  // filled before it is read
-    enum dj_ftp_error          e = D_FTP_OK;
+    static struct dj_ftp_client  plain  = { 0 };
+    static struct dj_ftps_client secure = { 0 };
+    struct dj_ftp_client* const  c      = (_tls) ? &secure.ftp : &plain;
+    char                         name[64];  // filled before it is read
+    enum dj_ftp_error            e      = D_FTP_OK;
 
     const size_t failures = g_failed;
 
@@ -278,42 +282,52 @@ void session(
              sizeof name,
              "interop_%s.bin",
              _label);
-    d_ftp_client_init(&c,
-                      _o,
-                      _tls);
-    e = d_ftp_client_connect(&c,
+    // a plain session runs ftp's own client, a secured one ftps's
+    if (_tls)
+    {
+        d_ftps_client_init(&secure,
+                           _o,
+                           _tls);
+    }
+    else
+    {
+        d_ftp_client_init(&plain,
+                          _o);
+    }
+
+    e = d_ftp_client_connect(c,
                              _host,
                              _port);
     D_TESTS_FTP_INTEROP_CHECK(e == D_FTP_OK);
     if (e != D_FTP_OK)
     {
         report(_label,
-               &c,
+               c,
                e);
-        d_ftp_client_close(&c);
+        d_ftp_client_close(c);
 
         return;
     }
 
-    e = d_ftp_client_login(&c);
+    e = d_ftp_client_login(c);
     D_TESTS_FTP_INTEROP_CHECK(e == D_FTP_OK);
     if (e != D_FTP_OK)
     {
         report(_label,
-               &c,
+               c,
                e);
-        d_ftp_client_close(&c);
+        d_ftp_client_close(c);
 
         return;
     }
 
     D_TESTS_FTP_INTEROP_CHECK((_o->security == D_FTP_SECURITY_NONE) ==
-                              !c.control.secured);
-    session_file(&c,
+                              !c->control.secured);
+    session_file(c,
                  _label,
                  name,
                  failures);
-    d_ftp_client_close(&c);
+    d_ftp_client_close(c);
 
     return;
 }
@@ -351,8 +365,8 @@ int context(
 )
 {
     struct dj_tls_config config = { 0 };
-    d_ftp_client_tls_config(_o,
-                            &config);
+    d_ftps_client_tls_config(_o,
+                             &config);
     config.ca_file          = _ca;
     config.use_system_trust = (_ca == NULL);
 
@@ -473,7 +487,7 @@ void run_untrusted(
 {
     struct dj_ftp_options o   = { 0 };
     struct dj_tls_context ctx = { 0 };
-    static struct dj_ftp_client c = { 0 };
+    static struct dj_ftps_client c = { 0 };
     (void)d_test_suite_test(g_suite, "untrusted certificate");
     options(&o,
             D_FTP_SECURITY_EXPLICIT,
@@ -481,18 +495,18 @@ void run_untrusted(
     D_TESTS_FTP_INTEROP_CHECK(context(&ctx,
                                       &o,
                                       NULL));
-    d_ftp_client_init(&c,
-                      &o,
-                      &ctx);
-    const enum dj_ftp_error e = d_ftp_client_connect(&c,
+    d_ftps_client_init(&c,
+                       &o,
+                       &ctx);
+    const enum dj_ftp_error e = d_ftp_client_connect(&c.ftp,
                                                     _tls_host,
                                                     _port);
     D_TESTS_FTP_INTEROP_CHECK( (e == D_FTP_ERROR_TLS) &&
-                               (!c.connected) );
+                               (!c.ftp.connected) );
     report("refused",
-           &c,
+           &c.ftp,
            e);
-    d_ftp_client_close(&c);
+    d_ftp_client_close(&c.ftp);
     d_tls_context_destroy(&ctx);
 
     return;
@@ -514,7 +528,7 @@ void run_reuse(
 {
     struct dj_ftp_options o   = { 0 };
     struct dj_tls_context ctx = { 0 };
-    static struct dj_ftp_client c = { 0 };
+    static struct dj_ftps_client c = { 0 };
     struct dj_tests_ftp_interop_buffer back = { g_back, 0, sizeof g_back };
     (void)d_test_suite_test(g_suite, "session reuse");
     (void)d_test_suite_describe(g_suite,
@@ -526,15 +540,15 @@ void run_reuse(
     D_TESTS_FTP_INTEROP_CHECK(context(&ctx,
                                       &o,
                                       _ca));
-    d_ftp_client_init(&c,
-                      &o,
-                      &ctx);
-    D_TESTS_FTP_INTEROP_CHECK(d_ftp_client_connect(&c,
+    d_ftps_client_init(&c,
+                       &o,
+                       &ctx);
+    D_TESTS_FTP_INTEROP_CHECK(d_ftp_client_connect(&c.ftp,
                                                    _tls_host,
                                                    _reuse) == D_FTP_OK);
-    D_TESTS_FTP_INTEROP_CHECK(d_ftp_client_login(&c) == D_FTP_OK);
+    D_TESTS_FTP_INTEROP_CHECK(d_ftp_client_login(&c.ftp) == D_FTP_OK);
     const enum dj_ftp_error e =
-        d_ftp_client_list(&c,
+        d_ftp_client_list(&c.ftp,
                           NULL,
                           sink_mem,
                           &back,
@@ -553,33 +567,33 @@ void run_reuse(
         // the refusal is reported; vsftpd then ends the session, which
         // the next command must report cleanly as a closed connection
         report("listing",
-               &c,
+               &c.ftp,
                e);
         const enum dj_ftp_error next =
-            d_ftp_client_command(&c,
+            d_ftp_client_command(&c.ftp,
                                  D_FTP_COMMAND_NOOP,
                                  NULL);
         D_TESTS_FTP_INTEROP_CHECK( (next == D_FTP_OK) ||
                                    (next == D_FTP_ERROR_CLOSED) );
         report("next command",
-               &c,
+               &c.ftp,
                next);
     }
 
-    d_ftp_client_close(&c);
+    d_ftp_client_close(&c.ftp);
     d_tls_context_destroy(&ctx);
 
     return;
 }
 
 /*
-d_tests_ftp_interop
+d_tests_ftps_interop
   Block interop: reads the server from the environment, a skipped test
 without one; runs plain FTP, then FTPS where a CA is named and the OpenSSL
 engine is built, each a skipped test where it is not. True if every check
 passed.
 */
-bool d_tests_ftp_interop(
+bool d_tests_ftps_interop(
     struct dj_test_suite* _suite
 )
 {

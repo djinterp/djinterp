@@ -13,7 +13,7 @@
 * path:      /inc/djinterp/cpp/modules/net/net.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 #ifndef DJINTERP_NET_NET_HPP
 #define DJINTERP_NET_NET_HPP 1
@@ -27,7 +27,8 @@
 #include "./client.hpp"             // HTTP clients
 #include "./server.hpp"             // HTTP servers
 #include "./curl/curl.hpp"          // libcurl's transfers
-#include "./ftp/ftp.hpp"            // FTP and FTPS
+#include "./ftp/ftp.hpp"            // FTP
+#include "./ftps/ftps.hpp"          // FTPS
 #include "./sftp/sftp.hpp"          // SFTP
 #include "./smtp/smtp.hpp"          // SMTP
 #include "./reactor.hpp"            // the event reactor

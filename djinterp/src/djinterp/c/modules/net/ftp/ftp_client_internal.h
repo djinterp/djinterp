@@ -12,7 +12,7 @@
 * path:      /src/djinterp/c/modules/net/ftp/ftp_client_internal.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 
 /*
@@ -37,7 +37,6 @@ TABLE OF CONTENTS
 #include "../../../../../../inc/djinterp/c/modules/net/ftp/ftp_client.h"     // dj_ftp_client
 #include "../../../../../../inc/djinterp/c/modules/net/ftp/ftp_command.h"    // dj_ftp_command
 #include "../../../../../../inc/djinterp/c/modules/net/ftp/ftp_common.h"     // dj_ftp_error
-#include "../../../../../../inc/djinterp/c/modules/net/tls/tls.h"            // dj_tls_error
 // re_std
 #include "../../../../../../inc/re_std/c/cstdint/dstdint.h"  // uint16_t
 
@@ -54,33 +53,41 @@ D_EXTERN_C_BEGIN
 
 // 1.1    Transfers
 //------------------------------------------------------------------------------
-// Reads and writes go through a connection's TLS session while one is in
-// force and through its transport otherwise, both reported as TLS statuses:
-// D_TLS_ERROR_CLOSED at the end of the stream, and
-// D_TLS_ERROR_TRANSPORT for a transport failure. A write sends everything
-// and flushes it. The transport's last error is the connection's `failure`
-// without TLS, and the session's record of its transport with it.
-// d_ftp_internal_client_failure() turns a failed status, from these calls or
-// from the session called directly, into an FTP error, taking the
-// transport's error into `failure` and `net_error` first: a timeout, `_lost`
-// for a stream that ended or broke, or D_FTP_ERROR_TLS with the status kept
-// - a TLS stream ending without close_notify counts as lost, not as TLS,
-// on the control connection alone, whose replies frame themselves.
-enum dj_tls_error d_ftp_internal_client_read(
+// Reads, writes and closes go through the client's security layer while it
+// is in force on a connection and to its transport otherwise, both reported
+// as dj_ftp_io: CLOSED at the end of the stream, and TRANSPORT for a
+// transport failure. A write sends everything and flushes it; a plain
+// connection has no close to send. The transport's last error is the
+// connection's `failure` when plain, and the layer's record of its
+// transport when secured; the layer's own status for a failure is kept in
+// the client's `security_last`.
+// d_ftp_internal_client_failure() turns a failed outcome of these calls into
+// an FTP error, taking the transport's error into `failure` and `net_error`
+// first: a timeout, `_lost` for a stream that ended or broke, or
+// D_FTP_ERROR_TLS with the layer's status kept in `security_status` - a
+// secured stream ending without its close counts as lost, not as TLS, on
+// the control connection alone, whose replies frame themselves.
+enum dj_ftp_io d_ftp_internal_client_read(
+    struct dj_ftp_client*     _client,
     struct dj_ftp_connection* _connection,
     void*                     _buffer,
     size_t                    _capacity,
     size_t*                   _out_read
 );
-enum dj_tls_error d_ftp_internal_client_write(
+enum dj_ftp_io d_ftp_internal_client_write(
+    struct dj_ftp_client*     _client,
     struct dj_ftp_connection* _connection,
     const void*               _data,
     size_t                    _size
 );
+enum dj_ftp_io d_ftp_internal_client_shutdown(
+    struct dj_ftp_client*     _client,
+    struct dj_ftp_connection* _connection
+);
 enum dj_ftp_error d_ftp_internal_client_failure(
     struct dj_ftp_client*     _client,
     struct dj_ftp_connection* _connection,
-    enum dj_tls_error         _status,
+    enum dj_ftp_io            _io,
     enum dj_ftp_error         _lost
 );
 
@@ -95,10 +102,11 @@ enum dj_ftp_error d_ftp_internal_client_failure(
 // d_ftp_internal_client_bound() bounds a connection's reads and writes: the
 // control connection's by response_timeout_ms, a data connection's by
 // idle_timeout_ms, 0 being no limit; it returns the transport's error.
-// d_ftp_internal_client_secure() runs a TLS client handshake over a
-// connection, naming the server's host, and leaves no session behind on
-// failure. d_ftp_internal_client_drop() closes a connection, saying
-// close_notify first when `_orderly`.
+// d_ftp_internal_client_secure() secures a connection with the client's
+// layer, as the mechanism's client naming the server's host, and leaves no
+// security behind on failure: D_FTP_ERROR_TLS with the layer's status in
+// `security_status`, or D_FTP_ERROR_TIMED_OUT. d_ftp_internal_client_drop()
+// closes a connection, sending the layer's close first when `_orderly`.
 enum dj_net_error d_ftp_internal_client_bound(
     struct dj_ftp_client*     _client,
     struct dj_ftp_connection* _connection
@@ -115,6 +123,7 @@ enum dj_ftp_error d_ftp_internal_client_secure(
     struct dj_ftp_connection* _connection
 );
 void d_ftp_internal_client_drop(
+    struct dj_ftp_client*     _client,
     struct dj_ftp_connection* _connection,
     bool                      _orderly
 );

@@ -1,22 +1,21 @@
 /*******************************************************************************
 * djinterp [c][net]                                                 ftp_client.c
 *
-* Implementation of the FTP and FTPS client declared in ftp_client.h: the
-* session, and the helpers ftp_client_data.c shares.
+* Implementation of the FTP client declared in ftp_client.h: the session,
+* and the helpers ftp_client_data.c shares.
 *   Every connection is a TCP connection read and written through net.h. A
-* TLS session runs over it as the TLS kernel's transport, and a plain
-* connection is read and written as the kernel reads and writes a
-* transport, its results mapped onto TLS statuses the same way, so the
-* protocol code above them never asks which is in force. Control replies are
-* parsed from a read-ahead buffer; whatever the parser has not taken stays
-* there for the next reply, which is also how an AUTH TLS upgrade can tell
-* that nothing was left over.
+* security layer, when the client has one, runs over it; a plain connection
+* is read and written directly, its results put as the layer puts its own,
+* so the protocol code above them never asks which is in force. Control
+* replies are parsed from a read-ahead buffer; whatever the parser has not
+* taken stays there for the next reply, which is also how an AUTH upgrade
+* can tell that nothing was left over.
 *
 *
 * path:      /src/djinterp/c/modules/net/ftp/ftp_client.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.27
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/c/modules/net/ftp/ftp_client.h"  // corresponding header
 // std
@@ -34,7 +33,6 @@
 #include "../../../../../../inc/djinterp/c/modules/net/ftp/ftp_reply.h"     // replies
 #include "../../../../../../inc/djinterp/c/modules/net/ftp/ftp_security.h"  // PROT levels
 #include "../../../../../../inc/djinterp/c/modules/net/net_common.h"        // dj_net_endpoint
-#include "../../../../../../inc/djinterp/c/modules/net/tls/tls.h"           // dj_tls_session
 #include "../../../../../../inc/djinterp/c/modules/net/tcp/tcp.h"           // d_tcp_connect
 #include "./ftp_client_internal.h"                          // shared helpers
 // re_std
@@ -47,12 +45,11 @@
 
 /*
 d_ftp_internal_client_plain_read
-  File-local: reads the TCP connection directly, its result mapped as the TLS
-kernel maps its transport's: the end of the stream, a count of 0 without an
-error, reads as CLOSED, and any error as TRANSPORT, kept in the connection's
-`failure`.
+  File-local: reads the TCP connection directly: the end of the stream, a
+count of 0 without an error, reads as CLOSED, and any error as TRANSPORT,
+kept in the connection's `failure`.
 */
-D_STATIC enum dj_tls_error
+D_STATIC enum dj_ftp_io
 d_ftp_internal_client_plain_read(
     struct dj_ftp_connection* _connection,
     void*                    _buffer,
@@ -71,20 +68,20 @@ d_ftp_internal_client_plain_read(
     // a failed read
     if (result.error != D_NET_OK)
     {
-        return D_TLS_ERROR_TRANSPORT;
+        return D_FTP_IO_TRANSPORT;
     }
 
-    return (result.count == 0u) ? D_TLS_ERROR_CLOSED
-                                : D_TLS_OK;
+    return (result.count == 0u) ? D_FTP_IO_CLOSED
+                                : D_FTP_IO_OK;
 }
 
 /*
 d_ftp_internal_client_plain_write
   File-local: writes all of `_data` to the TCP connection directly. A peer
-that has gone reads as CLOSED, which the kernel defines as "no longer
-reads"; a write that took nothing, or failed otherwise, is TRANSPORT.
+that has gone reads as CLOSED, one that no longer reads; a write that took
+nothing, or failed otherwise, is TRANSPORT.
 */
-D_STATIC enum dj_tls_error
+D_STATIC enum dj_ftp_io
 d_ftp_internal_client_plain_write(
     struct dj_ftp_connection* _connection,
     const void*              _data,
@@ -110,36 +107,37 @@ d_ftp_internal_client_plain_write(
             return ( (result.error == D_NET_ERROR_CLOSED)             ||
                      (result.error == D_NET_ERROR_CONNECTION_RESET)   ||
                      (result.error == D_NET_ERROR_CONNECTION_ABORTED) )
-                   ? D_TLS_ERROR_CLOSED
-                   : D_TLS_ERROR_TRANSPORT;
+                   ? D_FTP_IO_CLOSED
+                   : D_FTP_IO_TRANSPORT;
         }
 
         // a write that took nothing would loop forever
         if (result.count == 0u)
         {
-            return D_TLS_ERROR_TRANSPORT;
+            return D_FTP_IO_TRANSPORT;
         }
 
         done += result.count;
     }
 
-    return D_TLS_OK;
+    return D_FTP_IO_OK;
 }
 
 /*
 d_ftp_internal_client_read
-  Without TLS the connection is read directly, mapped as a TLS session maps
-its transport.
+  Without the layer the connection is read directly; with it, the layer's
+status for a failure is kept for d_ftp_internal_client_failure.
 */
-enum dj_tls_error
+enum dj_ftp_io
 d_ftp_internal_client_read(
+    struct dj_ftp_client*     _client,
     struct dj_ftp_connection* _connection,
     void*                    _buffer,
     size_t                   _capacity,
     size_t*                  _out_read
 )
 {
-    // without TLS, the connection itself
+    // without the layer, the connection itself
     if (!_connection->secured)
     {
         return d_ftp_internal_client_plain_read(_connection,
@@ -148,25 +146,28 @@ d_ftp_internal_client_read(
                                                 _out_read);
     }
 
-    return d_tls_session_read(&_connection->tls,
-                              _buffer,
-                              _capacity,
-                              _out_read);
+    return _client->security->read(_client->security_layer,
+                                   _connection,
+                                   _buffer,
+                                   _capacity,
+                                   _out_read,
+                                   &_client->security_last);
 }
 
 /*
 d_ftp_internal_client_write
-  Without TLS the connection is written directly, mapped as a TLS session
-maps its transport.
+  Without the layer the connection is written directly; with it, the
+layer's status for a failure is kept for d_ftp_internal_client_failure.
 */
-enum dj_tls_error
+enum dj_ftp_io
 d_ftp_internal_client_write(
+    struct dj_ftp_client*     _client,
     struct dj_ftp_connection* _connection,
     const void*              _data,
     size_t                   _size
 )
 {
-    // without TLS, the connection itself
+    // without the layer, the connection itself
     if (!_connection->secured)
     {
         return d_ftp_internal_client_plain_write(_connection,
@@ -174,35 +175,58 @@ d_ftp_internal_client_write(
                                                  _size);
     }
 
-    return d_tls_session_write_all(&_connection->tls,
-                                   _data,
-                                   _size,
-                                   NULL);
+    return _client->security->write(_client->security_layer,
+                                    _connection,
+                                    _data,
+                                    _size,
+                                    &_client->security_last);
+}
+
+/*
+d_ftp_internal_client_shutdown
+  Sends the layer's close on a secured connection; a plain one has none to
+send.
+*/
+enum dj_ftp_io
+d_ftp_internal_client_shutdown(
+    struct dj_ftp_client*     _client,
+    struct dj_ftp_connection* _connection
+)
+{
+    // a plain connection has no close of its own
+    if (!_connection->secured)
+    {
+        return D_FTP_IO_OK;
+    }
+
+    return _client->security->shutdown(_client->security_layer,
+                                       _connection,
+                                       &_client->security_last);
 }
 
 /*
 d_ftp_internal_client_failure
-  The transport's own error decides first, since a TLS session reports every
-transport failure alike; the rest is TLS's. A session keeps its transport's
-last outcome itself, so under TLS the connection's `failure` is taken from it
-here, whichever call failed: a read or write of this file's, or one made on
-the session directly.
+  The transport's own error decides first, since a layer reports every
+transport failure alike; the rest is the layer's. A layer keeps its
+transport's last outcome itself, so when secured the connection's `failure`
+is taken from it here, whichever call failed.
 */
 enum dj_ftp_error
 d_ftp_internal_client_failure(
     struct dj_ftp_client*     _client,
     struct dj_ftp_connection* _connection,
-    enum dj_tls_error         _status,
+    enum dj_ftp_io            _io,
     enum dj_ftp_error         _lost
 )
 {
     const bool framed = (_connection == &_client->control);
 
-    // under TLS, the session has the transport's last word
+    // secured, the layer has the transport's last word
     if (_connection->secured)
     {
         _connection->failure =
-            d_tls_session_transport_error(&_connection->tls);
+            _client->security->transport_error(_client->security_layer,
+                                               _connection);
     }
 
     _client->net_error = _connection->failure;
@@ -214,15 +238,15 @@ d_ftp_internal_client_failure(
     }
 
     // the stream ended or broke
-    if ( (_status == D_TLS_ERROR_CLOSED)    ||
-         (_status == D_TLS_ERROR_TRANSPORT) ||
+    if ( (_io == D_FTP_IO_CLOSED)    ||
+         (_io == D_FTP_IO_TRANSPORT) ||
          ( (framed) &&
-           (_status == D_TLS_ERROR_TRUNCATED) ) )
+           (_io == D_FTP_IO_TRUNCATED) ) )
     {
         return _lost;
     }
 
-    _client->tls_status = _status;
+    _client->security_status = _client->security_last;
 
     return D_FTP_ERROR_TLS;
 }
@@ -358,12 +382,11 @@ d_ftp_internal_client_dial(
 
 /*
 d_ftp_internal_client_secure
-  The session names the server's host, which the kernel checks the
-certificate against and, for a name, sends as SNI. Every connection of a
-session uses the same context and host, and a data connection is offered the
-control connection's session to resume (d_tls_session_resume): a server may
-require it, as vsftpd does by default. Whether the server took it is the
-handshake's to say.
+  The layer names the server's host, which it checks the server against.
+Every connection of a session uses the same layer and host, and a data
+connection is offered the control connection to resume its session from: a
+server may require it, as vsftpd does by default. Whether the server took it
+is the handshake's to say.
 */
 enum dj_ftp_error
 d_ftp_internal_client_secure(
@@ -371,40 +394,25 @@ d_ftp_internal_client_secure(
     struct dj_ftp_connection* _connection
 )
 {
-    const struct dj_pack_text host   =
-    {
-        _client->host,
-        strlen(_client->host)
-    };
-    enum dj_tls_error         status =
-        d_tls_session_init(&_connection->tls,
-                           _client->tls,
-                           &_connection->tcp.base,
-                           host);
+    const struct dj_ftp_connection* const resume =
+        ( (_connection != &_client->control) &&
+          (_client->control.secured) ) ? &_client->control
+                                       : NULL;
+    int32_t                              status = 0;
+    const enum dj_ftp_io                 io     =
+        (_client->security)
+        ? _client->security->secure(_client->security_layer,
+                                    _connection,
+                                    resume,
+                                    _client->host,
+                                    &status)
+        : D_FTP_IO_SECURITY;
 
-    // a data connection offers the control connection's session
-    if ( (status == D_TLS_OK)               &&
-         (_connection != &_client->control) &&
-         (_client->control.secured) )
+    // a failure leaves nothing behind but the transport's error
+    if (io != D_FTP_IO_OK)
     {
-        status = d_tls_session_resume(&_connection->tls,
-                                      &_client->control.tls);
-    }
-
-    // the handshake runs only on a session that could be made
-    if (status == D_TLS_OK)
-    {
-        status = d_tls_session_handshake(&_connection->tls);
-    }
-
-    // a failure leaves nothing behind
-    if (status != D_TLS_OK)
-    {
-        _connection->failure =
-            d_tls_session_transport_error(&_connection->tls);
-        _client->tls_status  = status;
-        _client->net_error   = _connection->failure;
-        d_tls_session_destroy(&_connection->tls);
+        _client->security_status = status;
+        _client->net_error       = _connection->failure;
 
         return (_connection->failure == D_NET_ERROR_TIMED_OUT)
                ? D_FTP_ERROR_TIMED_OUT
@@ -418,24 +426,27 @@ d_ftp_internal_client_secure(
 
 /*
 d_ftp_internal_client_drop
-  The session is released before the transport it runs over, and the
+  The layer is released before the transport it runs over, and the
 transport's error is forgotten with it.
 */
 void d_ftp_internal_client_drop(
+    struct dj_ftp_client*     _client,
     struct dj_ftp_connection* _connection,
     bool                      _orderly
 )
 {
-    // TLS goes before the transport it runs over
+    // the layer goes before the transport it runs over
     if (_connection->secured)
     {
-        // close_notify, when the close is orderly
+        // its close, when the close is orderly
         if (_orderly)
         {
-            (void)d_tls_session_shutdown(&_connection->tls);
+            (void)d_ftp_internal_client_shutdown(_client,
+                                                 _connection);
         }
 
-        d_tls_session_destroy(&_connection->tls);
+        _client->security->drop(_client->security_layer,
+                                _connection);
         _connection->secured = false;
     }
 
@@ -457,9 +468,11 @@ void d_ftp_internal_client_reset(
     bool                  _orderly
 )
 {
-    d_ftp_internal_client_drop(&_client->data,
+    d_ftp_internal_client_drop(_client,
+                               &_client->data,
                                false);
-    d_ftp_internal_client_drop(&_client->control,
+    d_ftp_internal_client_drop(_client,
+                               &_client->control,
                                _orderly);
     d_ftp_reply_parser_reset(&_client->parser);
 
@@ -506,20 +519,21 @@ d_ftp_internal_client_reply(
                                                      : D_FTP_ERROR_MALFORMED;
         }
 
-        size_t                 received = 0u;
-        const enum dj_tls_error status   =
-            d_ftp_internal_client_read(&_client->control,
+        size_t               received = 0u;
+        const enum dj_ftp_io io       =
+            d_ftp_internal_client_read(_client,
+                                       &_client->control,
                                        _client->input,
                                        sizeof(_client->input),
                                        &received);
 
         // the control connection failed
-        if (status != D_TLS_OK)
+        if (io != D_FTP_IO_OK)
         {
             return d_ftp_internal_client_failure(
                        _client,
                        &_client->control,
-                       status,
+                       io,
                        D_FTP_ERROR_CLOSED);
         }
 
@@ -555,17 +569,18 @@ d_ftp_internal_client_send(
         return D_FTP_ERROR_INVALID_ARGUMENT;
     }
 
-    const enum dj_tls_error status =
-        d_ftp_internal_client_write(&_client->control,
+    const enum dj_ftp_io io =
+        d_ftp_internal_client_write(_client,
+                                    &_client->control,
                                     buffer.data,
                                     buffer.length);
 
     // the control connection failed
-    if (status != D_TLS_OK)
+    if (io != D_FTP_IO_OK)
     {
         return d_ftp_internal_client_failure(_client,
                                              &_client->control,
-                                             status,
+                                             io,
                                              D_FTP_ERROR_CLOSED);
     }
 
@@ -633,74 +648,29 @@ d_ftp_internal_client_refusal(
 }
 
 /*
-d_ftp_internal_client_plan_ok
-  File-local: reports whether the TLS context checks at least what the
-options require: a client's plan that verifies the chain, or pins, when
-verify_peer is set, and the host name too when verify_host is.
+d_ftp_internal_client_honoured
+  File-local: reports whether the client has a layer that checks at least
+what the options require.
 */
 D_STATIC
-bool d_ftp_internal_client_plan_ok(
+bool d_ftp_internal_client_honoured(
     const struct dj_ftp_client* _client
 )
 {
-    const struct dj_ftp_options* const options = &_client->options;
-
-    // no context, or one never initialized
-    if ( (!_client->tls) ||
-         (!_client->tls->engine) )
-    {
-        return false;
-    }
-
-    const struct dj_tls_plan* const plan = &_client->tls->plan;
-
-    return ( (plan->role == D_TLS_ROLE_CLIENT) &&
-             ( (!options->verify_peer) ||
-               (plan->verify_chain)    ||
-               (plan->check_pins) )     &&
-             ( (!options->verify_peer) ||
-               (!options->verify_host) ||
-               (plan->verify_hostname) ) );
-}
-
-/*
-d_ftp_client_tls_config
-  The kernel's client defaults already verify the chain and the host name
-against the system trust store; only what the options turn off changes.
-*/
-void d_ftp_client_tls_config(
-    const struct dj_ftp_options* _options,
-    struct dj_tls_config*        _config
-)
-{
-    // parameter validation
-    if ( (!_options) ||
-         (!_config) )
-    {
-        return;
-    }
-
-    d_tls_config_init(_config,
-                      D_TLS_ROLE_CLIENT);
-
-    _config->verify          = (_options->verify_peer) ? D_TLS_VERIFY_REQUIRED
-                                                       : D_TLS_VERIFY_NONE;
-    _config->verify_hostname = ( (_options->verify_peer) &&
-                                 (_options->verify_host) );
-
-    return;
+    return ( (_client->security) &&
+             (_client->security->honours(_client->security_layer,
+                                         &_client->options)) );
 }
 
 /*
 d_ftp_client_init
   Zeroes the whole client first, so every private field starts defined, then
 sets what zero does not mean: closed connections, a parser over the reply
-storage, and clear data protection.
+storage, and clear data protection. A client starts plain.
 */
 void d_ftp_client_init(
     struct dj_ftp_client*        _client,
-    const struct dj_ftp_options* _options,
-    const struct dj_tls_context* _tls
+    const struct dj_ftp_options* _options
 )
 {
     // parameter validation
@@ -723,16 +693,41 @@ void d_ftp_client_init(
         d_ftp_options_init(&_client->options);
     }
 
-    _client->tls        = _tls;
-    _client->protection = D_FTP_PROTECTION_CLEAR;
-    _client->tls_status = D_TLS_OK;
-    _client->net_error  = D_NET_OK;
+    _client->security        = NULL;
+    _client->security_layer  = NULL;
+    _client->protection      = D_FTP_PROTECTION_CLEAR;
+    _client->security_status = 0;
+    _client->net_error       = D_NET_OK;
 
     d_tcp_connection_init(&_client->control.tcp);
     d_tcp_connection_init(&_client->data.tcp);
     d_ftp_reply_parser_init(&_client->parser,
                             _client->reply_text,
                             sizeof(_client->reply_text));
+
+    return;
+}
+
+/*
+d_ftp_client_set_security
+  Only a closed client takes a layer: one in force on a connection cannot be
+swapped under it.
+*/
+void d_ftp_client_set_security(
+    struct dj_ftp_client*             _client,
+    const struct dj_ftp_security_ops* _ops,
+    void*                             _layer
+)
+{
+    // parameter validation
+    if ( (!_client) ||
+         (_client->connected) )
+    {
+        return;
+    }
+
+    _client->security       = _ops;
+    _client->security_layer = (_ops) ? _layer : NULL;
 
     return;
 }
@@ -768,13 +763,13 @@ d_ftp_internal_client_greeting(
 
 /*
 d_ftp_internal_client_upgrade
-  File-local: upgrades the control connection with AUTH TLS. Bytes received
-after the 234 but before the handshake are plaintext the server had no
-business sending: the shape of a STARTTLS command injection, where a forged
-reply rides in the clear behind the real one and a careless client reads it
-as protected. Such bytes already buffered refuse the upgrade here; ones
-still in flight reach the handshake first, where the kernel's sniffing
-rejects them as NOT_TLS.
+  File-local: upgrades the control connection with AUTH and the layer's
+mechanism. Bytes received after the 234 but before the handshake are
+plaintext the server had no business sending: the shape of a STARTTLS
+command injection, where a forged reply rides in the clear behind the real
+one and a careless client reads it as protected. Such bytes already buffered
+refuse the upgrade here; ones still in flight reach the handshake first,
+where TLS's sniffing rejects them.
 */
 D_STATIC enum dj_ftp_error
 d_ftp_internal_client_upgrade(
@@ -784,7 +779,7 @@ d_ftp_internal_client_upgrade(
     const enum dj_ftp_error error =
         d_ftp_internal_client_exchange(_client,
                                        D_FTP_COMMAND_AUTH,
-                                       "TLS");
+                                       _client->security->mechanism);
 
     // the exchange itself failed
     if (error != D_FTP_OK)
@@ -845,10 +840,10 @@ d_ftp_internal_client_features(
 
 /*
 d_ftp_internal_client_open
-  File-local: everything a connection needs before the login: TLS before the
-first byte for implicit FTPS, the greeting, AUTH TLS after it for explicit
-FTPS, and the features, read once the connection is as secure as it will
-be, so no one on the path can edit the list.
+  File-local: everything a connection needs before the login: the layer
+before the first byte for implicit security, the greeting, AUTH after it
+for explicit security, and the features, read once the connection is as
+secure as it will be, so no one on the path can edit the list.
 */
 D_STATIC enum dj_ftp_error
 d_ftp_internal_client_open(
@@ -858,7 +853,7 @@ d_ftp_internal_client_open(
     const enum dj_ftp_security security = _client->options.security;
     enum dj_ftp_error          error    = D_FTP_OK;
 
-    // implicit FTPS: TLS before the first byte
+    // implicit security: the layer before the first byte
     if (security == D_FTP_SECURITY_IMPLICIT)
     {
         error = d_ftp_internal_client_secure(_client,
@@ -871,7 +866,7 @@ d_ftp_internal_client_open(
         error = d_ftp_internal_client_greeting(_client);
     }
 
-    // explicit FTPS: AUTH TLS after the greeting
+    // explicit security: AUTH after the greeting
     if ( (error == D_FTP_OK) &&
          (security == D_FTP_SECURITY_EXPLICIT) )
     {
@@ -889,8 +884,8 @@ d_ftp_internal_client_open(
 
 /*
 d_ftp_client_connect
-  Checks the TLS context against the options before any byte is sent, so a
-misconfigured context fails here instead of verifying less than asked.
+  Checks the layer against the options before any byte is sent, so a
+misconfigured one fails here instead of verifying less than asked.
 */
 enum dj_ftp_error
 d_ftp_client_connect(
@@ -911,10 +906,10 @@ d_ftp_client_connect(
     const enum dj_ftp_security security = _client->options.security;
     const size_t              length   = strlen(_host);
 
-    // a host that fits, and a context that checks what the options require
+    // a host that fits, and a layer that checks what the options require
     if ( (length >= sizeof(_client->host)) ||
          ( (security != D_FTP_SECURITY_NONE) &&
-           (!d_ftp_internal_client_plan_ok(_client)) ) )
+           (!d_ftp_internal_client_honoured(_client)) ) )
     {
         return D_FTP_ERROR_INVALID_ARGUMENT;
     }
@@ -1008,8 +1003,8 @@ d_ftp_internal_client_credentials(
 
 /*
 d_ftp_internal_client_protect
-  File-local: PBSZ 0, then PROT. TLS protects all or nothing, so only C and
-P mean anything (RFC 4217 section 9). A refusal keeps the data clear, which
+  File-local: PBSZ 0, then PROT. TLS, the one mechanism a layer gives,
+protects all or nothing, so only C and P mean anything (RFC 4217 section 9). A refusal keeps the data clear, which
 only a caller who did not require security accepts.
 */
 D_STATIC enum dj_ftp_error
@@ -1064,8 +1059,8 @@ d_ftp_internal_client_protect(
 
 /*
 d_ftp_internal_client_clear
-  File-local: CCC. Once the server agrees, both ends close TLS: this end's
-close_notify goes first, then the server's must arrive before anything else,
+  File-local: CCC. Once the server agrees, both ends close the layer: this
+end's close goes first, then the server's must arrive before anything else,
 and the transport carries plaintext from there on.
 */
 D_STATIC enum dj_ftp_error
@@ -1085,36 +1080,39 @@ d_ftp_internal_client_clear(
         return error;
     }
 
-    char             scratch[1] = { 0 };
-    size_t           received   = 0u;
-    enum dj_tls_error status     =
-        d_tls_session_shutdown(&_client->control.tls);
+    char           scratch[1] = { 0 };
+    size_t         received   = 0u;
+    enum dj_ftp_io io         =
+        d_ftp_internal_client_shutdown(_client,
+                                       &_client->control);
 
-    // the server's close_notify is the only thing that may come next
-    if (status == D_TLS_OK)
+    // the server's close is the only thing that may come next
+    if (io == D_FTP_IO_OK)
     {
-        status = d_tls_session_read(&_client->control.tls,
-                                    scratch,
-                                    sizeof(scratch),
-                                    &received);
+        io = d_ftp_internal_client_read(_client,
+                                        &_client->control,
+                                        scratch,
+                                        sizeof(scratch),
+                                        &received);
 
-        // data where close_notify belonged
-        if (status == D_TLS_OK)
+        // data where the close belonged
+        if (io == D_FTP_IO_OK)
         {
             return D_FTP_ERROR_SECURITY;
         }
     }
 
-    // anything but the server's close_notify is a failure
-    if (status != D_TLS_ERROR_CLOSED)
+    // anything but the server's close is a failure
+    if (io != D_FTP_IO_CLOSED)
     {
         return d_ftp_internal_client_failure(_client,
                                              &_client->control,
-                                             status,
+                                             io,
                                              D_FTP_ERROR_CLOSED);
     }
 
-    d_tls_session_destroy(&_client->control.tls);
+    _client->security->drop(_client->security_layer,
+                            &_client->control);
     _client->control.secured = false;
 
     return D_FTP_OK;

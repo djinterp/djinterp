@@ -1,8 +1,9 @@
 /*******************************************************************************
 * djinterp [cpp][net]                                       ftp_client_tests.cpp
 *
-* C++ tests for net/ftp/ftp_client.hpp: the interface over the C client,
-* against the threaded FTP and FTPS server of ftps_tests_support.c. The core
+* C++ tests for net/ftp/ftp_client.hpp and net/ftps/ftps.hpp: the interfaces
+* over the C clients, against the threaded FTP and FTPS server of
+* ftps_tests_support.c. The core
 * compiles at C++98; the section guarded by C++11 adds lambdas and the
 * compile-time guarantees C++11 can state. The enumerations are scoped in
 * structs at every level (decision 3.4): an error is an ftp::error::value.
@@ -11,7 +12,7 @@
 * path:      /tests/djinterp/cpp/modules/net/ftp/ftp_client_tests.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.29
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 // std
 #include <cstddef>  // std::size_t
@@ -19,20 +20,22 @@
 #include <cstring>  // std::memcmp, std::memcpy, std::memset, std::strcmp
 #include <string>   // std::string
 // djinterp
-#include "../../../../../../inc/djinterp/cpp/modules/net/ftp/ftp.hpp"  // ftp::client
+#include "../../../../../../inc/djinterp/cpp/modules/net/ftp/ftp.hpp"    // ftp::client
+#include "../../../../../../inc/djinterp/cpp/modules/net/ftps/ftps.hpp"  // ftps::client
 
 // the clients need a 64-bit integer type; where there is none (ISO strict C++98
 // wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS)
 // they compile to nothing, and the tests with them
 #if (D_INTERNAL_NET_HAS_INT64 == 1)
-#include "../../../../c/modules/net/ftp/ftps_tests_support.h"  // the server, the toy engine
+#include "../../../../c/modules/net/ftps/ftps_tests_support.h"  // the server, the toy engine
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 #include <algorithm>    // std::find, std::min
 #include <type_traits>  // std::is_same, std::is_enum, ...
 #endif
 
 
-namespace ftp = djinterp::net::ftp;
+namespace ftp  = djinterp::net::ftp;
+namespace ftps = djinterp::net::ftps;
 
 // each enumerator is its C counterpart, at compile time at every level; at
 // namespace scope, since below C++11 D_STATIC_ASSERT is a typedef, which a
@@ -268,8 +271,8 @@ void t_secure(void)
         .require_security(true);
 
     dj_tls_config config;
-    ftp::client::tls_config(o,
-                            config);
+    ftps::client::tls_config(o,
+                             config);
     dj_tls_context context;
     D_TESTS_FTP_CLIENT_CHECK(d_tls_context_init(&context,
                                                 &TOY,
@@ -279,8 +282,8 @@ void t_secure(void)
     struct dj_tests_ftps_server s;
     D_TESTS_FTP_CLIENT_CHECK(start(s));
     {
-        ftp::client c(o,
-                      &context);
+        ftps::client c(o,
+                       &context);
         D_TESTS_FTP_CLIENT_CHECK(c.connect("localhost",
                                            s.port) ==
                                  ftp::error::none);

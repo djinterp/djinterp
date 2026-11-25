@@ -33,7 +33,6 @@
 #include "../../../../../../inc/djinterp/c/modules/net/ftp/ftp_security.h"  // PROT levels
 #include "../../../../../../inc/djinterp/c/modules/net/ftp/ftp_transfer.h"  // TYPE, ASCII
 #include "../../../../../../inc/djinterp/c/modules/net/net_common.h"        // dj_net_endpoint
-#include "../../../../../../inc/djinterp/c/modules/net/tls/tls.h"           // dj_tls_session
 #include "../../../../../../inc/djinterp/c/modules/net/tcp/tcp.h"           // dj_tcp_listener
 #include "./ftp_client_internal.h"                          // shared helpers
 // re_std
@@ -616,7 +615,8 @@ d_ftp_internal_client_begin(
     // a transfer that cannot start leaves no data connection
     if (error != D_FTP_OK)
     {
-        d_ftp_internal_client_drop(&_client->data,
+        d_ftp_internal_client_drop(_client,
+                                   &_client->data,
                                    false);
     }
 
@@ -760,26 +760,28 @@ d_ftp_internal_client_receive(
     // until the data ends
     for (;;)
     {
-        size_t                 received = 0u;
-        const enum dj_tls_error status   =
-            d_ftp_internal_client_read(&_client->data,
+        size_t               received = 0u;
+        const enum dj_ftp_io io       =
+            d_ftp_internal_client_read(_client,
+                                       &_client->data,
                                        chunk,
                                        sizeof(chunk),
                                        &received);
 
-        // close_notify, or a plain stream's end: the data is complete
-        if (status == D_TLS_ERROR_CLOSED)
+        // the layer's close, or a plain stream's end: the data is complete
+        if (io == D_FTP_IO_CLOSED)
         {
             break;
         }
 
-        // anything else failed, TLS ending without close_notify included
-        if (status != D_TLS_OK)
+        // anything else failed, a secured stream ending without its close
+        // included
+        if (io != D_FTP_IO_OK)
         {
             return d_ftp_internal_client_failure(
                        _client,
                        &_client->data,
-                       status,
+                       io,
                        D_FTP_ERROR_DATA_CONNECTION);
         }
 
@@ -818,16 +820,17 @@ d_ftp_internal_client_write_data(
         return D_FTP_OK;
     }
 
-    const enum dj_tls_error status =
-        d_ftp_internal_client_write(&_client->data,
+    const enum dj_ftp_io io =
+        d_ftp_internal_client_write(_client,
+                                    &_client->data,
                                     _data,
                                     _size);
 
-    return (status == D_TLS_OK)
+    return (io == D_FTP_IO_OK)
            ? D_FTP_OK
            : d_ftp_internal_client_failure(_client,
                                            &_client->data,
-                                           status,
+                                           io,
                                            D_FTP_ERROR_DATA_CONNECTION);
 }
 
@@ -965,7 +968,8 @@ d_ftp_internal_client_download(
                                               _transfer);
     }
 
-    d_ftp_internal_client_drop(&_client->data,
+    d_ftp_internal_client_drop(_client,
+                               &_client->data,
                                (error == D_FTP_OK));
 
     // once started, the final reply is owed whatever happened
@@ -981,44 +985,46 @@ d_ftp_internal_client_download(
 
 /*
 d_ftp_internal_client_close_upload
-  File-local: ends an upload's TLS stream both ways: this end's close_notify,
-then the server's in reply, before the connection closes. Servers such as
-vsftpd answer close_notify with their own and count a connection gone
-before theirs is written as a failed transfer. Once this end's close_notify
-is on the wire the upload is complete, and the server's final reply is the
-verdict, so however the wait ends - close_notify, the end of the stream,
-or a failure - is no error; anything else the server sends is discarded,
-up to one chunk.
+  File-local: ends an upload's secured stream both ways: this end's close
+(TLS's close_notify), then the server's in reply, before the connection
+closes. Servers such as vsftpd answer close_notify with their own and count
+a connection gone before theirs is written as a failed transfer. Once this
+end's close is on the wire the upload is complete, and the server's final
+reply is the verdict, so however the wait ends - its close, the end of the
+stream, or a failure - is no error; anything else the server sends is
+discarded, up to one chunk.
 */
 D_STATIC enum dj_ftp_error
 d_ftp_internal_client_close_upload(
     struct dj_ftp_client* _client
 )
 {
-    char             scratch[256] = { 0 };
-    enum dj_tls_error status       =
-        d_tls_session_shutdown(&_client->data.tls);
+    char           scratch[256] = { 0 };
+    enum dj_ftp_io io           =
+        d_ftp_internal_client_shutdown(_client,
+                                       &_client->data);
 
-    // without close_notify the server cannot tell the upload is complete
-    if (status != D_TLS_OK)
+    // without its close the server cannot tell the upload is complete
+    if (io != D_FTP_IO_OK)
     {
         return d_ftp_internal_client_failure(_client,
                                              &_client->data,
-                                             status,
+                                             io,
                                              D_FTP_ERROR_DATA_CONNECTION);
     }
 
-    // then the server's close_notify, or the end of the stream
+    // then the server's close, or the end of the stream
     for (size_t discarded = 0u;
-         (status == D_TLS_OK) &&
+         (io == D_FTP_IO_OK) &&
          (discarded <= D_FTP_CLIENT_CHUNK_SIZE); )
     {
         size_t received = 0u;
 
-        status     = d_tls_session_read(&_client->data.tls,
-                                        scratch,
-                                        sizeof(scratch),
-                                        &received);
+        io         = d_ftp_internal_client_read(_client,
+                                                &_client->data,
+                                                scratch,
+                                                sizeof(scratch),
+                                                &received);
         discarded += received;
     }
 
@@ -1056,7 +1062,8 @@ d_ftp_internal_client_upload(
         error = d_ftp_internal_client_close_upload(_client);
     }
 
-    d_ftp_internal_client_drop(&_client->data,
+    d_ftp_internal_client_drop(_client,
+                               &_client->data,
                                false);
 
     // once started, the final reply is owed whatever happened

@@ -1,9 +1,11 @@
 /*******************************************************************************
 * djinterp [cpp][net]                                             ftp_client.hpp
 *
-* The C++ interface to the FTP and FTPS client.
+* The C++ interface to the FTP client.
 *   A zero-cost view of ftp_client.h: `client` holds a dj_ftp_client, and each
-* member forwards to one C function, inline. Callbacks are templates, so any
+* member forwards to one C function, inline. The members live in
+* internal::client_base, over whatever client a class holds, so FTPS's
+* client (ftps.hpp) shares them. Callbacks are templates, so any
 * functor - or, from C++11, any lambda - serves as a sink or a source with
 * no virtual call and no allocation.
 *   C++98 is the floor; C++11 only adds: copying is deleted rather than hidden,
@@ -23,7 +25,7 @@
 * path:      /inc/djinterp/cpp/modules/net/ftp/ftp_client.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 
 /*
@@ -54,7 +56,8 @@ TABLE OF CONTENTS
          4.  internal::sink_call
          5.  internal::source_call
     2.  Sessions
-         1.  client
+         1.  internal::client_base
+         2.  client
 */
 
 #ifndef DJINTERP_NET_FTP_FTP_CLIENT_HPP
@@ -67,7 +70,6 @@ TABLE OF CONTENTS
 // djinterp
 #include "../../../djinterp.hpp"  // framework root
 #include "../net_common.hpp"   // io_error; dj_net_error, through it
-#include "../../../../c/modules/net/tls/tls.h"        // dj_tls_context, dj_tls_error
 #include "../../../../c/modules/net/ftp/ftp_client.h"      // the C client
 #include "../../../../c/modules/net/ftp/ftp_command.h"     // dj_ftp_command
 #include "../../../../c/modules/net/ftp/ftp_common.h"      // dj_ftp_error, d_ftp_error_string
@@ -636,60 +638,27 @@ namespace internal {
 
 // 3.2    Sessions
 //------------------------------------------------------------------------------
+namespace internal {
+
 // 3.2.1
-// client
-//   class: an FTP or FTPS session: connect, login, then commands and
-// transfers, then quit. Every member blocks, as the C client does, and
-// reports its outcome as an error; the destructor closes whatever is open,
-// sending nothing. The C client holds pointers into itself, so a client can
-// be neither copied nor moved: hold it where it is made, or on the heap.
-class client
+// internal::client_base
+//   class template: the members of a client session - connect, login, then
+// commands and transfers, then quit - over the dj_ftp_client that Derived's
+// c_client() gives. Every member blocks, as the C client does, and reports
+// its outcome as an error. ftp::client derives from it, and so does FTPS's.
+template<typename Derived>
+class client_base
 {
 public:
-    client() D_NOEXCEPT
-    {
-        ::d_ftp_client_init(&m_client,
-                            NULL,
-                            NULL);
-    }
-
-    // _tls: the TLS context for FTPS, borrowed for the client's lifetime;
-    // NULL for plain FTP
-    explicit
-    client(
-        const ftp::options&           _options,
-        const ::dj_tls_context* const _tls = NULL
-    ) D_NOEXCEPT
-    {
-        ::d_ftp_client_init(&m_client,
-                            &_options.c_options(),
-                            _tls);
-    }
-
-    ~client()
-    {
-        ::d_ftp_client_close(&m_client);
-    }
-
-    // tls_config - fills a TLS configuration from the options
-    static
-    void tls_config(
-        const ftp::options& _options,
-        ::dj_tls_config&    _config
-    ) D_NOEXCEPT
-    {
-        ::d_ftp_client_tls_config(&_options.c_options(),
-                                  &_config);
-    }
-
-    // connect - connects and reads the greeting; FTPS secures the control
-    // connection first; port 0 picks 21, or 990 for implicit TLS
+    // connect - connects and reads the greeting; a client with a security
+    // layer secures the control connection as the options ask; port 0 picks
+    // 21, or 990 for implicit security
     error::value connect(
         const char* _host,
         uint16_t    _port = 0u
     ) D_NOEXCEPT
     {
-        return from_c(::d_ftp_client_connect(&m_client,
+        return from_c(::d_ftp_client_connect(&this->c(),
                                              _host,
                                              _port));
     }
@@ -703,10 +672,10 @@ public:
                        _port);
     }
 
-    // login - USER, PASS, and ACCT as asked; under TLS, PBSZ and PROT
+    // login - USER, PASS, and ACCT as asked; secured, PBSZ and PROT
     error::value login() D_NOEXCEPT
     {
-        return from_c(::d_ftp_client_login(&m_client));
+        return from_c(::d_ftp_client_login(&this->c()));
     }
 
     // command - one command that neither changes session state nor opens a
@@ -716,7 +685,7 @@ public:
         const char*      _argument = NULL
     ) D_NOEXCEPT
     {
-        return from_c(::d_ftp_client_command(&m_client,
+        return from_c(::d_ftp_client_command(&this->c(),
                                              _command,
                                              _argument));
     }
@@ -728,7 +697,7 @@ public:
         Sink&       _sink
     ) D_NOEXCEPT
     {
-        return from_c(::d_ftp_client_retrieve(&m_client,
+        return from_c(::d_ftp_client_retrieve(&this->c(),
                                               _path,
                                               &internal::sink_call<Sink>,
                                               internal::context_of(_sink)));
@@ -741,7 +710,7 @@ public:
     ) D_NOEXCEPT
     {
         return from_c(::d_ftp_client_retrieve(
-                          &m_client,
+                          &this->c(),
                           _path,
                           &internal::sink_call<const Sink>,
                           internal::context_of(_sink)));
@@ -766,7 +735,7 @@ public:
         Source&     _source
     ) D_NOEXCEPT
     {
-        return from_c(::d_ftp_client_store(&m_client,
+        return from_c(::d_ftp_client_store(&this->c(),
                                            _path,
                                            &internal::source_call<Source>,
                                            internal::context_of(_source)));
@@ -779,7 +748,7 @@ public:
     ) D_NOEXCEPT
     {
         return from_c(::d_ftp_client_store(
-                          &m_client,
+                          &this->c(),
                           _path,
                           &internal::source_call<const Source>,
                           internal::context_of(_source)));
@@ -817,7 +786,7 @@ public:
         ::dj_ftp_listing_format* _out_format = NULL
     ) D_NOEXCEPT
     {
-        return from_c(::d_ftp_client_list(&m_client,
+        return from_c(::d_ftp_client_list(&this->c(),
                                           _path,
                                           &internal::sink_call<Sink>,
                                           internal::context_of(_sink),
@@ -831,7 +800,7 @@ public:
         ::dj_ftp_listing_format* _out_format = NULL
     ) D_NOEXCEPT
     {
-        return from_c(::d_ftp_client_list(&m_client,
+        return from_c(::d_ftp_client_list(&this->c(),
                                           _path,
                                           &internal::sink_call<const Sink>,
                                           internal::context_of(_sink),
@@ -855,13 +824,13 @@ public:
     // quit - QUIT, then closes every connection in order
     error::value quit() D_NOEXCEPT
     {
-        return from_c(::d_ftp_client_quit(&m_client));
+        return from_c(::d_ftp_client_quit(&this->c()));
     }
 
     // close - closes every connection, sending nothing
     void close() D_NOEXCEPT
     {
-        ::d_ftp_client_close(&m_client);
+        ::d_ftp_client_close(&this->c());
 
         return;
     }
@@ -869,53 +838,107 @@ public:
     // state - O(1) reads of the session
     bool connected() const D_NOEXCEPT
     {
-        return m_client.connected;
+        return this->c().connected;
     }
 
     bool logged_in() const D_NOEXCEPT
     {
-        return m_client.logged_in;
+        return this->c().logged_in;
     }
 
     unsigned reply_code() const D_NOEXCEPT
     {
-        return m_client.reply.code;
+        return this->c().reply.code;
     }
 
     std::string reply_text() const
     {
-        return std::string(m_client.reply.text.data,
-                           m_client.reply.text.length);
+        return std::string(this->c().reply.text.data,
+                           this->c().reply.text.length);
     }
 
     const ::dj_ftp_reply& reply() const D_NOEXCEPT
     {
-        return m_client.reply;
+        return this->c().reply;
     }
 
     uint32_t features() const D_NOEXCEPT
     {
-        return m_client.features;
+        return this->c().features;
     }
 
     ftp::protection::value protection() const D_NOEXCEPT
     {
-        return from_c(m_client.protection);
+        return from_c(this->c().protection);
     }
 
     bool control_secured() const D_NOEXCEPT
     {
-        return m_client.control.secured;
+        return this->c().control.secured;
     }
 
-    ::dj_tls_error tls_status() const D_NOEXCEPT
+    // security_status - the layer's status for the last ERROR_TLS; 0 for
+    // none
+    int32_t security_status() const D_NOEXCEPT
     {
-        return m_client.tls_status;
+        return this->c().security_status;
     }
 
     ::dj_net_error net_error() const D_NOEXCEPT
     {
-        return m_client.net_error;
+        return this->c().net_error;
+    }
+
+protected:
+    client_base() D_NOEXCEPT
+    {
+    }
+
+    ~client_base()
+    {
+    }
+
+    // c - the C client beneath, the derived class's
+    ::dj_ftp_client& c() D_NOEXCEPT
+    {
+        return static_cast<Derived*>(this)->c_client();
+    }
+
+    const ::dj_ftp_client& c() const D_NOEXCEPT
+    {
+        return static_cast<const Derived*>(this)->c_client();
+    }
+};
+
+}  // namespace internal
+
+// 3.2.2
+// client
+//   class: a plain FTP session, its members internal::client_base's; the
+// destructor closes whatever is open, sending nothing. The C client holds
+// pointers into itself, so a client can be neither copied nor moved: hold
+// it where it is made, or on the heap. FTPS is ftps::client's (ftps.hpp).
+class client : public internal::client_base<client>
+{
+public:
+    client() D_NOEXCEPT
+    {
+        ::d_ftp_client_init(&m_client,
+                            NULL);
+    }
+
+    explicit
+    client(
+        const ftp::options& _options
+    ) D_NOEXCEPT
+    {
+        ::d_ftp_client_init(&m_client,
+                            &_options.c_options());
+    }
+
+    ~client()
+    {
+        ::d_ftp_client_close(&m_client);
     }
 
     // c_client - the dj_ftp_client beneath, for what has no member here

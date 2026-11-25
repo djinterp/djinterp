@@ -1,8 +1,8 @@
 /*******************************************************************************
-* djinterp [c][net]                                             ftp_tests_ftps.c
+* djinterp [c][net]                                        ftps_tests_loopback.c
 *
-* FTPS tests: the net/ftp/ client over real loopback sockets, secured through
-* the TLS kernel with a deterministic test engine, against a threaded server
+* FTPS tests: the net/ftps/ client over real loopback sockets, secured
+* through the TLS kernel with a deterministic test engine, against a threaded server
 * that the same kernel secures in the server role. Both live in
 * ftps_tests_support.c, which the C++ suite shares.
 *   The engine ("toy") frames every message as a TLS record, so the kernel's
@@ -10,28 +10,29 @@
 * is the identity. Its client contexts cache one session per host and offer
 * it again, which is how a real engine resumes the control session on FTPS
 * data connections.
-*   Block ftps of the suite's module ftp: d_tests_ftp_ftps runs each
-* scenario as a test of its own.
+*   Block loopback of the suite's module ftps: d_tests_ftps_loopback runs
+* each scenario as a test of its own.
 *
 *
-* path:      /tests/djinterp/c/modules/net/ftp/ftp_tests_ftps.c
+* path:      /tests/djinterp/c/modules/net/ftps/ftps_tests_loopback.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.29
 *                                                            revised: 2026.11.20
 *******************************************************************************/
-#include "./ftp_tests.h"           // the suite
+#include "./ftps_tests.h"          // the suite
 #include "./ftps_tests_support.h"  // the server, the toy engine
 // std
 #include <stdbool.h>  // bool, true, false
 #include <stddef.h>   // size_t
 #include <string.h>   // memcpy, memcmp
 // djinterp
-#include "../../../../../../inc/djinterp/c/modules/net/ftp/ftp.h"  // d_ftp_client_*
+#include "../../../../../../inc/djinterp/c/modules/net/ftp/ftp.h"    // d_ftp_client_*
+#include "../../../../../../inc/djinterp/c/modules/net/ftps/ftps.h"  // d_ftps_client_*
 #include "../../../../../../inc/djinterp/c/modules/net/tls/tls.h"  // d_tls_session_info
 
 
 // g_suite
-//   variable: the suite d_tests_ftp_ftps records into; the tests' checks reach it
+//   variable: the suite d_tests_ftps_loopback records into; the tests' checks reach it
 // through D_TESTS_FTPS_CHECK.
 static struct dj_test_suite* g_suite = NULL;
 
@@ -76,7 +77,7 @@ static struct
     char   data[300000];
     size_t len;
 } g_sink;
-static struct dj_ftp_client  g_client;
+static struct dj_ftps_client g_client;
 static struct dj_tls_context g_ctx;
 
 static enum dj_ftp_error
@@ -157,8 +158,8 @@ int setup(
 )
 {
     struct dj_tls_config c = { 0 };
-    d_ftp_client_tls_config(_o,
-                            &c);
+    d_ftps_client_tls_config(_o,
+                             &c);
     enum dj_tls_error st = d_tls_context_init(&g_ctx,
                                              &TOY,
                                              &c);
@@ -179,9 +180,9 @@ int setup(
         return 0;
     }
 
-    d_ftp_client_init(&g_client,
-                      _o,
-                      &g_ctx);
+    d_ftps_client_init(&g_client,
+                       _o,
+                       &g_ctx);
 
     return 1;
 }
@@ -191,7 +192,7 @@ void teardown(
     struct dj_tests_ftps_server* _s
 )
 {
-    d_ftp_client_close(&g_client);
+    d_ftp_client_close(&g_client.ftp);
     d_tests_ftps_server_stop(_s);
     d_tls_context_destroy(&g_ctx);
 
@@ -203,7 +204,7 @@ int fetch_hello(void)
 {
     g_sink.len = 0;
 
-    return d_ftp_client_retrieve(&g_client,
+    return d_ftp_client_retrieve(&g_client.ftp,
                                  "hello.txt",
                                  sink_mem,
                                  NULL) ==
@@ -225,7 +226,7 @@ void t_explicit_listing(void)
     enum dj_ftp_listing_format fmt = D_FTP_LISTING_UNIX;
 
     g_sink.len = 0;
-    D_TESTS_FTPS_CHECK( (d_ftp_client_list(&g_client,
+    D_TESTS_FTPS_CHECK( (d_ftp_client_list(&g_client.ftp,
                                            NULL,
                                            sink_mem,
                                            NULL,
@@ -253,17 +254,17 @@ void t_explicit_listing(void)
 
     D_TESTS_FTPS_CHECK( (files == 1) &&
                         (dirs == 1) );
-    D_TESTS_FTPS_CHECK( (d_ftp_client_command(&g_client,
+    D_TESTS_FTPS_CHECK( (d_ftp_client_command(&g_client.ftp,
                                               D_FTP_COMMAND_SIZE,
                                               "hello.txt") == D_FTP_OK) &&
-                        (g_client.reply.code == 213) );
+                        (g_client.ftp.reply.code == 213) );
     D_TESTS_FTPS_CHECK(
-        d_ftp_client_command(&g_client,
+        d_ftp_client_command(&g_client.ftp,
                              D_FTP_COMMAND_RETR,
                              "x") ==
         D_FTP_ERROR_INVALID_ARGUMENT);
     D_TESTS_FTPS_CHECK(
-        d_ftp_client_command(&g_client,
+        d_ftp_client_command(&g_client.ftp,
                              D_FTP_COMMAND_CCC,
                              NULL) ==
         D_FTP_ERROR_INVALID_ARGUMENT);
@@ -291,24 +292,24 @@ void t_explicit(void)
         return;
     }
 
-    D_TESTS_FTPS_CHECK( (d_ftp_client_connect(&g_client,
+    D_TESTS_FTPS_CHECK( (d_ftp_client_connect(&g_client.ftp,
                                               "localhost",
                                               s.port) == D_FTP_OK) &&
-                        (g_client.control.secured) );
+                        (g_client.ftp.control.secured) );
     D_TESTS_FTPS_CHECK(
-        (g_client.features &
+        (g_client.ftp.features &
          (D_FTP_FEATURE_EPSV | D_FTP_FEATURE_MLST | D_FTP_FEATURE_UTF8)) ==
         (D_FTP_FEATURE_EPSV | D_FTP_FEATURE_MLST | D_FTP_FEATURE_UTF8));
-    D_TESTS_FTPS_CHECK( (d_tls_session_info(&g_client.control.tls,
+    D_TESTS_FTPS_CHECK( (d_tls_session_info(&g_client.control_tls,
                                             &info))            &&
                         (info.version == D_TLS_VERSION_TLS1_3) &&
                         (!info.resumed)                        &&
                         (info.has_peer_certificate) );
-    D_TESTS_FTPS_CHECK( (d_ftp_client_login(&g_client) == D_FTP_OK) &&
-                        (g_client.protection == D_FTP_PROTECTION_PRIVATE) );
+    D_TESTS_FTPS_CHECK( (d_ftp_client_login(&g_client.ftp) == D_FTP_OK) &&
+                        (g_client.ftp.protection == D_FTP_PROTECTION_PRIVATE) );
     D_TESTS_FTPS_CHECK(fetch_hello());
     g_sink.len = 0;
-    D_TESTS_FTPS_CHECK( (d_ftp_client_retrieve(&g_client,
+    D_TESTS_FTPS_CHECK( (d_ftp_client_retrieve(&g_client.ftp,
                                                "big.bin",
                                                sink_mem,
                                                NULL) == D_FTP_OK) &&
@@ -317,14 +318,14 @@ void t_explicit(void)
                                  g_big,
                                  sizeof g_big)) );
     D_TESTS_FTPS_CHECK(
-        d_ftp_client_store(&g_client,
+        d_ftp_client_store(&g_client.ftp,
                            "up.txt",
                            source_mem,
                            &up) == D_FTP_OK);
     t_explicit_listing();
-    D_TESTS_FTPS_CHECK( (d_ftp_client_quit(&g_client) == D_FTP_OK) &&
-                        (!g_client.connected)                      &&
-                        (!g_client.control.secured) );
+    D_TESTS_FTPS_CHECK( (d_ftp_client_quit(&g_client.ftp) == D_FTP_OK) &&
+                        (!g_client.ftp.connected)                      &&
+                        (!g_client.ftp.control.secured) );
     teardown(&s);
     D_TESTS_FTPS_CHECK( (!s.saw_user_in_clear) &&
                         (s.logins == 1)        &&
@@ -361,13 +362,13 @@ void t_implicit(void)
         return;
     }
 
-    D_TESTS_FTPS_CHECK( (d_ftp_client_connect(&g_client,
+    D_TESTS_FTPS_CHECK( (d_ftp_client_connect(&g_client.ftp,
                                               "localhost",
                                               s.port) == D_FTP_OK) &&
-                        (g_client.control.secured) );
-    D_TESTS_FTPS_CHECK( (d_ftp_client_login(&g_client) == D_FTP_OK) &&
+                        (g_client.ftp.control.secured) );
+    D_TESTS_FTPS_CHECK( (d_ftp_client_login(&g_client.ftp) == D_FTP_OK) &&
                         (fetch_hello()) );
-    D_TESTS_FTPS_CHECK(d_ftp_client_quit(&g_client) == D_FTP_OK);
+    D_TESTS_FTPS_CHECK(d_ftp_client_quit(&g_client.ftp) == D_FTP_OK);
     teardown(&s);
     D_TESTS_FTPS_CHECK( (!s.saw_user_in_clear) &&
                         (s.data_tls == 1)      &&
@@ -394,11 +395,11 @@ void t_downgrade(void)
         return;
     }
 
-    D_TESTS_FTPS_CHECK( (d_ftp_client_connect(&g_client,
+    D_TESTS_FTPS_CHECK( (d_ftp_client_connect(&g_client.ftp,
                                               "localhost",
                                               s.port) ==
                          D_FTP_ERROR_SECURITY) &&
-                        (!g_client.connected) );
+                        (!g_client.ftp.connected) );
     teardown(&s);
     D_TESTS_FTPS_CHECK( (!s.saw_user_in_clear) &&
                         (s.logins == 0) );
@@ -413,14 +414,14 @@ void t_downgrade(void)
         return;
     }
 
-    D_TESTS_FTPS_CHECK( (d_ftp_client_connect(&g_client,
+    D_TESTS_FTPS_CHECK( (d_ftp_client_connect(&g_client.ftp,
                                               "localhost",
                                               s.port) == D_FTP_OK) &&
-                        (!g_client.control.secured) );
-    D_TESTS_FTPS_CHECK( (d_ftp_client_login(&g_client) == D_FTP_OK)     &&
-                        (g_client.protection == D_FTP_PROTECTION_CLEAR) &&
+                        (!g_client.ftp.control.secured) );
+    D_TESTS_FTPS_CHECK( (d_ftp_client_login(&g_client.ftp) == D_FTP_OK)     &&
+                        (g_client.ftp.protection == D_FTP_PROTECTION_CLEAR) &&
                         (fetch_hello()) );
-    D_TESTS_FTPS_CHECK(d_ftp_client_quit(&g_client) == D_FTP_OK);
+    D_TESTS_FTPS_CHECK(d_ftp_client_quit(&g_client.ftp) == D_FTP_OK);
     teardown(&s);
     D_TESTS_FTPS_CHECK( (s.saw_user_in_clear) &&
                         (s.data_plain == 1)   &&
@@ -448,13 +449,13 @@ void t_injection(void)
         return;
     }
 
-    err = d_ftp_client_connect(&g_client,
+    err = d_ftp_client_connect(&g_client.ftp,
                                "localhost",
                                s.port);
     D_TESTS_FTPS_CHECK( (err == D_FTP_ERROR_SECURITY) ||
-                        (err == D_FTP_ERROR_TLS && g_client.tls_status ==
+                        (err == D_FTP_ERROR_TLS && d_ftps_client_tls_status(&g_client) ==
                          D_TLS_ERROR_NOT_TLS) );
-    D_TESTS_FTPS_CHECK(!g_client.connected);
+    D_TESTS_FTPS_CHECK(!g_client.ftp.connected);
     teardown(&s);
     D_TESTS_FTPS_CHECK( (s.logins == 0) &&
                         (!s.saw_user_in_clear) );
@@ -482,21 +483,21 @@ void t_reuse_required(void)
         return;
     }
 
-    D_TESTS_FTPS_CHECK( (d_ftp_client_connect(&g_client,
+    D_TESTS_FTPS_CHECK( (d_ftp_client_connect(&g_client.ftp,
                                               "localhost",
                                               s.port) == D_FTP_OK) &&
-                        (d_ftp_client_login(&g_client) == D_FTP_OK) );
+                        (d_ftp_client_login(&g_client.ftp) == D_FTP_OK) );
     g_sink.len = 0;
-    D_TESTS_FTPS_CHECK( (d_ftp_client_retrieve(&g_client,
+    D_TESTS_FTPS_CHECK( (d_ftp_client_retrieve(&g_client.ftp,
                                                "hello.txt",
                                                sink_mem,
                                                NULL) == D_FTP_ERROR_TLS) &&
-                        (g_client.reply.code == 522) );
-    D_TESTS_FTPS_CHECK( (d_ftp_client_command(&g_client,
+                        (g_client.ftp.reply.code == 522) );
+    D_TESTS_FTPS_CHECK( (d_ftp_client_command(&g_client.ftp,
                                               D_FTP_COMMAND_SIZE,
                                               "hello.txt") == D_FTP_OK) &&
-                        (g_client.reply.code == 213) );
-    D_TESTS_FTPS_CHECK(d_ftp_client_quit(&g_client) == D_FTP_OK);
+                        (g_client.ftp.reply.code == 213) );
+    D_TESTS_FTPS_CHECK(d_ftp_client_quit(&g_client.ftp) == D_FTP_OK);
     teardown(&s);
     g_toy.client_cache = 1;
     D_TESTS_FTPS_CHECK( (s.data_fresh == 1) &&
@@ -523,21 +524,21 @@ void t_truncation(void)
         return;
     }
 
-    D_TESTS_FTPS_CHECK( (d_ftp_client_connect(&g_client,
+    D_TESTS_FTPS_CHECK( (d_ftp_client_connect(&g_client.ftp,
                                               "localhost",
                                               s.port) == D_FTP_OK) &&
-                        (d_ftp_client_login(&g_client) == D_FTP_OK) );
+                        (d_ftp_client_login(&g_client.ftp) == D_FTP_OK) );
     g_sink.len = 0;
     D_TESTS_FTPS_CHECK(
-        d_ftp_client_retrieve(&g_client,
+        d_ftp_client_retrieve(&g_client.ftp,
                               "hello.txt",
                               sink_mem,
                               NULL) ==
         D_FTP_ERROR_TLS);
-    D_TESTS_FTPS_CHECK( (g_client.tls_status == D_TLS_ERROR_TRUNCATED) &&
-                        (g_client.reply.code == 226)                   &&
+    D_TESTS_FTPS_CHECK( (d_ftps_client_tls_status(&g_client) == D_TLS_ERROR_TRUNCATED) &&
+                        (g_client.ftp.reply.code == 226)                               &&
                         (g_sink.len == 24) );
-    D_TESTS_FTPS_CHECK(d_ftp_client_quit(&g_client) == D_FTP_OK);
+    D_TESTS_FTPS_CHECK(d_ftp_client_quit(&g_client.ftp) == D_FTP_OK);
     teardown(&s);
 
     return;
@@ -562,14 +563,14 @@ void t_pasv_fallback(void)
         return;
     }
 
-    D_TESTS_FTPS_CHECK( (d_ftp_client_connect(&g_client,
+    D_TESTS_FTPS_CHECK( (d_ftp_client_connect(&g_client.ftp,
                                               "localhost",
                                               s.port) == D_FTP_OK) &&
-                        (d_ftp_client_login(&g_client) == D_FTP_OK) );
+                        (d_ftp_client_login(&g_client.ftp) == D_FTP_OK) );
     D_TESTS_FTPS_CHECK( (fetch_hello()) &&
                         (fetch_hello()) &&
-                        (g_client.extended_refused) );
-    D_TESTS_FTPS_CHECK(d_ftp_client_quit(&g_client) == D_FTP_OK);
+                        (g_client.ftp.extended_refused) );
+    D_TESTS_FTPS_CHECK(d_ftp_client_quit(&g_client.ftp) == D_FTP_OK);
     teardown(&s);
     D_TESTS_FTPS_CHECK( (s.epsv_count == 1) &&
                         (s.data_tls == 2) );
@@ -596,16 +597,16 @@ void t_active(void)
         return;
     }
 
-    D_TESTS_FTPS_CHECK( (d_ftp_client_connect(&g_client,
+    D_TESTS_FTPS_CHECK( (d_ftp_client_connect(&g_client.ftp,
                                               "localhost",
                                               s.port) == D_FTP_OK) &&
-                        (d_ftp_client_login(&g_client) == D_FTP_OK) );
+                        (d_ftp_client_login(&g_client.ftp) == D_FTP_OK) );
     D_TESTS_FTPS_CHECK( (fetch_hello()) &&
-                        (d_ftp_client_store(&g_client,
+                        (d_ftp_client_store(&g_client.ftp,
                                             "a.txt",
                                             source_mem,
                                             &up) == D_FTP_OK) );
-    D_TESTS_FTPS_CHECK(d_ftp_client_quit(&g_client) == D_FTP_OK);
+    D_TESTS_FTPS_CHECK(d_ftp_client_quit(&g_client.ftp) == D_FTP_OK);
     teardown(&s);
     D_TESTS_FTPS_CHECK( (s.data_tls == 2)     &&
                         (s.data_resumed == 2) &&
@@ -633,14 +634,14 @@ void t_ccc(void)
         return;
     }
 
-    D_TESTS_FTPS_CHECK( (d_ftp_client_connect(&g_client,
+    D_TESTS_FTPS_CHECK( (d_ftp_client_connect(&g_client.ftp,
                                               "localhost",
                                               s.port) == D_FTP_OK) &&
-                        (d_ftp_client_login(&g_client) == D_FTP_OK) );
-    D_TESTS_FTPS_CHECK( (!g_client.control.secured)                       &&
-                        (g_client.protection == D_FTP_PROTECTION_PRIVATE) &&
+                        (d_ftp_client_login(&g_client.ftp) == D_FTP_OK) );
+    D_TESTS_FTPS_CHECK( (!g_client.ftp.control.secured)                       &&
+                        (g_client.ftp.protection == D_FTP_PROTECTION_PRIVATE) &&
                         (fetch_hello()) );
-    D_TESTS_FTPS_CHECK(d_ftp_client_quit(&g_client) == D_FTP_OK);
+    D_TESTS_FTPS_CHECK(d_ftp_client_quit(&g_client.ftp) == D_FTP_OK);
     teardown(&s);
     D_TESTS_FTPS_CHECK( (s.ccc_done) &&
                         (s.data_tls == 1) );
@@ -668,10 +669,10 @@ void t_verify(void)
         return;
     }
 
-    D_TESTS_FTPS_CHECK( (d_ftp_client_connect(&g_client,
+    D_TESTS_FTPS_CHECK( (d_ftp_client_connect(&g_client.ftp,
                                               "localhost",
                                               s.port) == D_FTP_ERROR_TLS) &&
-                        (g_client.tls_status == D_TLS_ERROR_VERIFY) );
+                        (d_ftps_client_tls_status(&g_client) == D_TLS_ERROR_VERIFY) );
     teardown(&s);
     g_toy.cert_name = "localhost";
     D_TESTS_FTPS_CHECK( (s.logins == 0) &&
@@ -689,10 +690,10 @@ void t_verify(void)
         return;
     }
 
-    D_TESTS_FTPS_CHECK( (d_ftp_client_connect(&g_client,
+    D_TESTS_FTPS_CHECK( (d_ftp_client_connect(&g_client.ftp,
                                               "localhost",
                                               s.port) == D_FTP_ERROR_TLS) &&
-                        (g_client.tls_status == D_TLS_ERROR_VERIFY) );
+                        (d_ftps_client_tls_status(&g_client) == D_TLS_ERROR_VERIFY) );
     teardown(&s);
     g_toy.chain_verdict = 0;
 
@@ -702,17 +703,17 @@ void t_verify(void)
     D_TESTS_FTPS_CHECK(d_tls_context_init(&g_ctx,
                                           &TOY,
                                           &c) == D_TLS_OK);
-    d_ftp_client_init(&g_client,
-                      &o,
-                      &g_ctx);
-    D_TESTS_FTPS_CHECK(d_ftp_client_connect(&g_client,
+    d_ftps_client_init(&g_client,
+                       &o,
+                       &g_ctx);
+    D_TESTS_FTPS_CHECK(d_ftp_client_connect(&g_client.ftp,
                                             "localhost",
                                             1) ==
                        D_FTP_ERROR_INVALID_ARGUMENT);
-    d_ftp_client_init(&g_client,
-                      &o,
-                      NULL);
-    D_TESTS_FTPS_CHECK(d_ftp_client_connect(&g_client,
+    d_ftps_client_init(&g_client,
+                       &o,
+                       NULL);
+    D_TESTS_FTPS_CHECK(d_ftp_client_connect(&g_client.ftp,
                                             "localhost",
                                             1) ==
                        D_FTP_ERROR_INVALID_ARGUMENT);
@@ -741,12 +742,12 @@ void t_ascii(void)
         return;
     }
 
-    D_TESTS_FTPS_CHECK( (d_ftp_client_connect(&g_client,
+    D_TESTS_FTPS_CHECK( (d_ftp_client_connect(&g_client.ftp,
                                               "localhost",
                                               s.port) == D_FTP_OK) &&
-                        (d_ftp_client_login(&g_client) == D_FTP_OK) );
+                        (d_ftp_client_login(&g_client.ftp) == D_FTP_OK) );
     g_sink.len = 0;
-    D_TESTS_FTPS_CHECK( (d_ftp_client_retrieve(&g_client,
+    D_TESTS_FTPS_CHECK( (d_ftp_client_retrieve(&g_client.ftp,
                                                "hello.txt",
                                                sink_mem,
                                                NULL) == D_FTP_OK) &&
@@ -755,11 +756,11 @@ void t_ascii(void)
                                  "Hello, FTPS!\nLine two\n",
                                  22)) );
     D_TESTS_FTPS_CHECK(
-        d_ftp_client_store(&g_client,
+        d_ftp_client_store(&g_client.ftp,
                            "a.txt",
                            source_mem,
                            &up) == D_FTP_OK);
-    D_TESTS_FTPS_CHECK(d_ftp_client_quit(&g_client) == D_FTP_OK);
+    D_TESTS_FTPS_CHECK(d_ftp_client_quit(&g_client.ftp) == D_FTP_OK);
     teardown(&s);
     D_TESTS_FTPS_CHECK( (s.type == 'A')     &&
                         (s.stored_len == 6) &&
@@ -787,22 +788,22 @@ void t_plain_and_login(void)
         return;
     }
 
-    D_TESTS_FTPS_CHECK( (d_ftp_client_connect(&g_client,
+    D_TESTS_FTPS_CHECK( (d_ftp_client_connect(&g_client.ftp,
                                               "127.0.0.1",
                                               s.port) == D_FTP_OK) &&
-                        (!g_client.control.secured) );
+                        (!g_client.ftp.control.secured) );
     D_TESTS_FTPS_CHECK(
-        d_ftp_client_retrieve(&g_client,
+        d_ftp_client_retrieve(&g_client.ftp,
                               "hello.txt",
                               sink_mem,
                               NULL) ==
         D_FTP_ERROR_BAD_SEQUENCE);
-    D_TESTS_FTPS_CHECK( (d_ftp_client_login(&g_client) == D_FTP_OK) &&
+    D_TESTS_FTPS_CHECK( (d_ftp_client_login(&g_client.ftp) == D_FTP_OK) &&
                         (fetch_hello()) );
-    D_TESTS_FTPS_CHECK(d_ftp_client_login(&g_client) ==
+    D_TESTS_FTPS_CHECK(d_ftp_client_login(&g_client.ftp) ==
                        D_FTP_ERROR_BAD_SEQUENCE);
-    D_TESTS_FTPS_CHECK( (d_ftp_client_quit(&g_client) == D_FTP_OK) &&
-                        (d_ftp_client_quit(&g_client) ==
+    D_TESTS_FTPS_CHECK( (d_ftp_client_quit(&g_client.ftp) == D_FTP_OK) &&
+                        (d_ftp_client_quit(&g_client.ftp) ==
                          D_FTP_ERROR_BAD_SEQUENCE) );
     teardown(&s);
     D_TESTS_FTPS_CHECK(s.data_plain == 1);
@@ -817,15 +818,15 @@ void t_plain_and_login(void)
         return;
     }
 
-    D_TESTS_FTPS_CHECK(d_ftp_client_connect(&g_client,
+    D_TESTS_FTPS_CHECK(d_ftp_client_connect(&g_client.ftp,
                                             "127.0.0.1",
                                             s.port) ==
                        D_FTP_OK);
-    D_TESTS_FTPS_CHECK( (d_ftp_client_login(&g_client) ==
+    D_TESTS_FTPS_CHECK( (d_ftp_client_login(&g_client.ftp) ==
                          D_FTP_ERROR_LOGIN_DENIED) &&
-                        (!g_client.logged_in)      &&
-                        (g_client.reply.code == 530) );
-    D_TESTS_FTPS_CHECK(d_ftp_client_quit(&g_client) == D_FTP_OK);
+                        (!g_client.ftp.logged_in)  &&
+                        (g_client.ftp.reply.code == 530) );
+    D_TESTS_FTPS_CHECK(d_ftp_client_quit(&g_client.ftp) == D_FTP_OK);
     teardown(&s);
 
     return;
@@ -841,7 +842,7 @@ struct dj_tests_ftps_case
 };
 
 // D_TESTS_FTPS_CASES
-//   constant: block ftps's tests, in the order run.
+//   constant: block loopback's tests, in the order run.
 static const struct dj_tests_ftps_case D_TESTS_FTPS_CASES[] =
 {
     { "explicit FTPS",   t_explicit },
@@ -859,11 +860,11 @@ static const struct dj_tests_ftps_case D_TESTS_FTPS_CASES[] =
 };
 
 /*
-d_tests_ftp_ftps
-  Block ftps: fills the big file's pattern, then runs each scenario as a test
+d_tests_ftps_loopback
+  Block loopback: fills the big file's pattern, then runs each scenario as a test
 of its own. True if every check passed.
 */
-bool d_tests_ftp_ftps(
+bool d_tests_ftps_loopback(
     struct dj_test_suite* _suite
 )
 {
@@ -872,7 +873,7 @@ bool d_tests_ftp_ftps(
     const size_t before = g_failed;
 
     g_suite = _suite;
-    (void)d_test_suite_block(_suite, "ftps");
+    (void)d_test_suite_block(_suite, "loopback");
     (void)d_test_suite_describe(_suite,
                                 "the client over loopback, secured by the "
                                 "toy engine, against a threaded server");

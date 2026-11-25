@@ -6,10 +6,10 @@
 * files it serves.
 *
 *
-* path:      /tests/djinterp/c/modules/net/ftp/ftps_tests_support.h
+* path:      /tests/djinterp/c/modules/net/ftps/ftps_tests_support.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.29
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 #ifndef DJINTERP_NET_FTP_FTPS_TESTS_SUPPORT_H
 #define DJINTERP_NET_FTP_FTPS_TESTS_SUPPORT_H 1

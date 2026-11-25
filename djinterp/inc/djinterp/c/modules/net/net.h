@@ -12,7 +12,7 @@
 * path:      /inc/djinterp/c/modules/net/net.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 #ifndef DJINTERP_C_NET_NET_H
 #define DJINTERP_C_NET_NET_H 1
@@ -28,7 +28,8 @@
 #include "./starttls/starttls.h"  // STARTTLS
 #include "./http/http.h"          // HTTP's vocabulary
 #include "./http/http1.h"         // HTTP/1.1's message syntax
-#include "./ftp/ftp.h"            // FTP and FTPS
+#include "./ftp/ftp.h"            // FTP
+#include "./ftps/ftps.h"          // FTPS
 #include "./ssh/ssh.h"            // SSH
 #include "./sftp/sftp.h"          // SFTP
 #include "./smtp/smtp.h"          // SMTP

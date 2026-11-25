@@ -2,8 +2,8 @@
 * djinterp [c][net]                                         ftps_tests_support.c
 *
 * FTPS test support: a deterministic TLS engine and a threaded FTP and FTPS
-* server over the TCP transport, shared by the C suite's block ftps
-* (ftp_tests_ftps.c) and the C++ suite (ftp_client_tests.cpp).
+* server over the TCP transport, shared by the C suite's block loopback
+* (ftps_tests_loopback.c) and the C++ suite (ftp_client_tests.cpp).
 *   The engine ("toy") frames every message as a TLS record, so the kernel's
 * sniffing, pumping, and identity checks all run for real; its "encryption"
 * is the identity. Its client contexts cache one session per host and offer
@@ -11,7 +11,7 @@
 * data connections.
 *
 *
-* path:      /tests/djinterp/c/modules/net/ftp/ftps_tests_support.c
+* path:      /tests/djinterp/c/modules/net/ftps/ftps_tests_support.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.29
 *                                                            revised: 2026.11.20
