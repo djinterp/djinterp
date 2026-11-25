@@ -1,8 +1,9 @@
 # The djinterp interpreter and its command language: design
 
-Written 2026-11-04, amended 2026-11-09, 2026-11-11, 2026-11-13, 2026-11-18 and 2026-11-20. Agreed with the
-designs it depends on: expression core v2's, the options' and the
-registry's, and dawk's. The owner rules what they do not settle.
+Written 2026-11-04, amended 2026-11-09, 2026-11-11, 2026-11-13,
+2026-11-18, 2026-11-20 and 2026-11-25. Agreed with the designs it depends
+on: expression core v2's, the options' and the registry's, and dawk's. The
+owner rules what they do not settle.
 
 Release numbers are the renumbered ones:
 
@@ -140,8 +141,8 @@ Later its C core goes in `c/modules/interp/`, as parse has both.
   - The header defines those two until the root's keyword list
     (`djinterp.h`) names them, on 11-13. `D_KEYWORD_CLI` is the root's, and
     stays.
-  - Its two variable templates take `D_CONSTEXPR_INLINE_VAR`, as `cpp/cli`
-    does.
+  - Its two variable templates take `D_CONSTEXPR_INLINE_VAR`, as the old
+    `cpp/cli` headers did before they retired (11-25).
   - Its suite, `tests/djinterp/cpp/modules/interp/spine_tests.cpp`, holds
     what it does, with its leaf in
     `build/cmake/config/testing/djinterp/cpp/modules/interp/`.

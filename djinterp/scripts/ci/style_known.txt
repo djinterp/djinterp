@@ -580,11 +580,6 @@ inc/djinterp/cpp/binary/encode.hpp	H	1
 inc/djinterp/cpp/binary/encode.hpp	R	1
 inc/djinterp/cpp/binary/encode_options.hpp	H	1
 inc/djinterp/cpp/binary/encode_options.hpp	R	1
-inc/djinterp/cpp/cli/cli.hpp	H	1
-inc/djinterp/cpp/cli/cli.hpp	R	1
-inc/djinterp/cpp/cli/cli_render.hpp	H	1
-inc/djinterp/cpp/cli/cli_string.hpp	H	1
-inc/djinterp/cpp/cli/cli_string.hpp	R	1
 inc/djinterp/cpp/container/arena/arena.hpp	H	1
 inc/djinterp/cpp/container/arena/arena_concepts.hpp	H	1
 inc/djinterp/cpp/container/arena/arena_traits.hpp	H	1
