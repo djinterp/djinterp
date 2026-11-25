@@ -54,7 +54,7 @@
 # path:      /scripts/ci/merge_window.py
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-#                                                            revised: 2026.11.22
+#                                                            revised: 2026.11.23
 #*******************************************************************************
 import argparse
 import os
@@ -284,6 +284,7 @@ def main():
         base = bases.get(name, (options.base, []) if options.base else None)
         added = changed = same = merged = 0
         notes = []
+        own = {}   # each file as this zip leaves it, which its commit holds
         for problem in problems:
             notes.append('LAYOUT %s' % problem)
             failed = True
@@ -337,6 +338,7 @@ def main():
                                  'undoes %s cannot be told' % (
                                      rel, name, earlier))
             written[rel] = result
+            own[rel] = result
             carried[rel] = name
         for rel in deletions.get(name, []):
             if current(rel, written) is None:
@@ -350,20 +352,24 @@ def main():
                                                 else 's')) if removed else ''))
         for note in notes:
             print('    ' + note)
-        plan.append((name, message, sorted(files), deletions.get(name, [])))
+        plan.append((name, message, sorted(files), deletions.get(name, []),
+                     own))
 
     if options.gates:
         failed = gates(written, head,
                        [message for _, message in zips if message]) or failed
 
     if options.apply and not failed:
-        for name, message, rels, removed in plan:
+        for name, message, rels, removed, own in plan:
+            # each zip's files as that zip left them, not as the window
+            # ends: a later zip of the chain changes or deletes them in its
+            # own commit
             for rel in rels:
-                if rel in written and written[rel] is not None:
+                if own.get(rel) is not None:
                     full = os.path.join(TREE, rel)
                     os.makedirs(os.path.dirname(full), exist_ok=True)
                     with open(full, 'wb') as handle:
-                        handle.write(written[rel])
+                        handle.write(own[rel])
             for rel in removed:
                 full = os.path.join(TREE, rel)
                 if os.path.isfile(full):
