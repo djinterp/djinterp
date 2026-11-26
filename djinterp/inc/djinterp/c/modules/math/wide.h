@@ -50,7 +50,7 @@
 * path:      /inc/djinterp/c/modules/math/wide.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.17
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*
@@ -554,6 +554,93 @@ d_internal_math_wide_divmod_1(
     return (dj_math_wide_limb)rest;
 }
 
+// d_internal_math_wide_divmod_step
+//   one quotient limb of d_internal_math_wide_divmod, its _j-th, Knuth's
+// steps D3 to D6: guessed from _u's limbs _j + _nb and _j + _nb - 1 and _v's
+// top one, the excess taken away by _v's second limb, the guess times _v
+// taken from _u's limbs _j to _j + _nb, and _v added back where that went
+// below zero. _v, _nb limbs, is the normalized divisor, its top bit set, and
+// _u the normalized dividend, of which the step leaves the remainder so far
+// in the limbs _j to _j + _nb - 1. Returns the quotient limb.
+D_MATH_FN dj_math_wide_limb
+d_internal_math_wide_divmod_step(
+    dj_math_wide_limb*       _u,
+    const dj_math_wide_limb* _v,
+    size_t                   _nb,
+    size_t                   _j
+)
+{
+    const dj_math_umax base    = D_INTERNAL_MATH_WIDE_LIMB_MASK + 1u;
+    const dj_math_umax top_two =
+        ((dj_math_umax)_u[_j + _nb] << D_MATH_WIDE_LIMB_BITS) |
+        (dj_math_umax)_u[_j + _nb - 1u];
+
+    dj_math_umax guess  = top_two / (dj_math_umax)_v[_nb - 1u];
+    dj_math_umax rest   = top_two % (dj_math_umax)_v[_nb - 1u];
+    dj_math_umax carry  = 0u;
+    dj_math_umax borrow = 0u;
+    dj_math_umax have   = 0u;
+    dj_math_umax take   = 0u;
+    size_t       i      = 0u;
+
+    // too large: a limb's range or more, or past what the divisor's
+    // second limb allows; the test needs rest below a limb's range
+    while ( (guess >= base) ||
+            ( (guess * (dj_math_umax)_v[_nb - 2u]) >
+              ((rest << D_MATH_WIDE_LIMB_BITS) |
+               (dj_math_umax)_u[_j + _nb - 2u]) ) )
+    {
+        --guess;
+        rest = rest + (dj_math_umax)_v[_nb - 1u];
+
+        if (rest >= base)
+        {
+            break;
+        }
+    }
+
+    // the guess times the divisor, taken from the dividend's limbs _j to
+    // _j + _nb
+    for (i = 0u; i < _nb; ++i)
+    {
+        const dj_math_umax part = (guess * (dj_math_umax)_v[i]) + carry;
+
+        have       = (dj_math_umax)_u[i + _j];
+        take       = (part & D_INTERNAL_MATH_WIDE_LIMB_MASK) + borrow;
+        carry      = part >> D_MATH_WIDE_LIMB_BITS;
+        _u[i + _j] = (dj_math_wide_limb)((have - take) &
+                                         D_INTERNAL_MATH_WIDE_LIMB_MASK);
+        borrow     = (have < take) ? 1u : 0u;
+    }
+
+    // the top limb: below zero where more is taken than it holds. What
+    // is left is below the divisor, so that limb is 0 after, and no step
+    // reads it again: the next works a limb lower, and the remainder is
+    // the low _nb limbs
+    have = (dj_math_umax)_u[_j + _nb];
+    take = carry + borrow;
+
+    // below zero: one too large still, and the divisor added back; its
+    // carry out cancels the borrow
+    if (have < take)
+    {
+        --guess;
+        carry = 0u;
+
+        for (i = 0u; i < _nb; ++i)
+        {
+            const dj_math_umax sum = (dj_math_umax)_u[i + _j] +
+                                     (dj_math_umax)_v[i] + carry;
+
+            _u[i + _j] = (dj_math_wide_limb)(sum &
+                                             D_INTERNAL_MATH_WIDE_LIMB_MASK);
+            carry      = sum >> D_MATH_WIDE_LIMB_BITS;
+        }
+    }
+
+    return (dj_math_wide_limb)guess;
+}
+
 // d_internal_math_wide_divmod
 //   _a / _b, of _na and _nb limbs, _b's top limb nonzero and _nb at most _na:
 // the quotient into _q's _na - _nb + 1 limbs, the remainder into _r's _nb
@@ -584,7 +671,6 @@ d_internal_math_wide_divmod(
     dj_math_wide_limb* v     = _work + _na + 1u;   // _b, _nb limbs
     dj_math_umax       top   = 0u;
     unsigned           shift = 0u;
-    size_t             i     = 0u;
     size_t             j     = 0u;
 
     // a divisor of one limb: the short division
@@ -614,74 +700,7 @@ d_internal_math_wide_divmod(
     while (j > 0u)
     {
         --j;
-
-        const dj_math_umax top_two =
-            ((dj_math_umax)u[j + _nb] << D_MATH_WIDE_LIMB_BITS) |
-            (dj_math_umax)u[j + _nb - 1u];
-
-        dj_math_umax guess  = top_two / (dj_math_umax)v[_nb - 1u];
-        dj_math_umax rest   = top_two % (dj_math_umax)v[_nb - 1u];
-        dj_math_umax carry  = 0u;
-        dj_math_umax borrow = 0u;
-        dj_math_umax have   = 0u;
-        dj_math_umax take   = 0u;
-
-        // too large: a limb's range or more, or past what the divisor's
-        // second limb allows; the test needs rest below a limb's range
-        while ( (guess >= base) ||
-                ( (guess * (dj_math_umax)v[_nb - 2u]) >
-                  ((rest << D_MATH_WIDE_LIMB_BITS) |
-                   (dj_math_umax)u[j + _nb - 2u]) ) )
-        {
-            --guess;
-            rest = rest + (dj_math_umax)v[_nb - 1u];
-
-            if (rest >= base)
-            {
-                break;
-            }
-        }
-
-        // the guess times the divisor, taken from the dividend's limbs j to
-        // j + _nb
-        for (i = 0u; i < _nb; ++i)
-        {
-            const dj_math_umax part = (guess * (dj_math_umax)v[i]) + carry;
-
-            have     = (dj_math_umax)u[i + j];
-            take     = (part & D_INTERNAL_MATH_WIDE_LIMB_MASK) + borrow;
-            carry    = part >> D_MATH_WIDE_LIMB_BITS;
-            u[i + j] = (dj_math_wide_limb)((have - take) &
-                                           D_INTERNAL_MATH_WIDE_LIMB_MASK);
-            borrow   = (have < take) ? 1u : 0u;
-        }
-
-        // the top limb: below zero where more is taken than it holds. What
-        // is left is below the divisor, so that limb is 0 after, and no step
-        // reads it again: the next works a limb lower, and the remainder is
-        // the low _nb limbs
-        have = (dj_math_umax)u[j + _nb];
-        take = carry + borrow;
-
-        // below zero: one too large still, and the divisor added back; its
-        // carry out cancels the borrow
-        if (have < take)
-        {
-            --guess;
-            carry = 0u;
-
-            for (i = 0u; i < _nb; ++i)
-            {
-                const dj_math_umax sum = (dj_math_umax)u[i + j] +
-                                         (dj_math_umax)v[i] + carry;
-
-                u[i + j] = (dj_math_wide_limb)(sum &
-                                               D_INTERNAL_MATH_WIDE_LIMB_MASK);
-                carry    = sum >> D_MATH_WIDE_LIMB_BITS;
-            }
-        }
-
-        _q[j] = (dj_math_wide_limb)guess;
+        _q[j] = d_internal_math_wide_divmod_step(u, v, _nb, j);
     }
 
     // the remainder, below the divisor, in the low _nb limbs: shifted back

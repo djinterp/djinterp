@@ -34,8 +34,17 @@
 * path:      /inc/djinterp/cpp/modules/math/functional.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
-*                                                            revised: 2026.11.22
+*                                                            revised: 2026.11.24
 *******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+1.  FIXED-SIGNATURE ADAPTERS
+    ------------------------
+2.  ADAPTER FACTORIES
+    -----------------
+*/
 
 #ifndef DJINTERP_MATH_FUNCTIONAL_HPP
 #define DJINTERP_MATH_FUNCTIONAL_HPP 1
@@ -62,107 +71,107 @@ NS_MATH
 
 namespace functional
 {
-    // ========================================================================
-    // I.    FIXED-SIGNATURE ADAPTERS
-    // ========================================================================
+    //==========================================================================
+    // 1.  FIXED-SIGNATURE ADAPTERS
+    //==========================================================================
     // Each adapter stores an expression by value and exposes a concrete,
     // non-template operator(), so the result is introspectable by
     // function_traits.hpp and usable anywhere a plain callable is expected.
     // The value type defaults to double, matching the expression kernel.
 
     // unary_adapter
-    //   wraps an expression as a concrete _T(_T) callable.
-    template<typename _Expr,
-             typename _T = double>
+    //   wraps an expression as a concrete T(T) callable.
+    template<typename Expr,
+             typename T = double>
     struct unary_adapter
     {
-        _Expr expression;
+        Expr expression;
 
-        D_CONSTEXPR _T
-        operator()(_T _x) const
+        D_CONSTEXPR T
+        operator()(T _x) const
         {
-            return static_cast<_T>(expression(_x));
+            return static_cast<T>(expression(_x));
         }
     };
 
     // binary_adapter
-    //   wraps an expression as a concrete _T(_T, _T) callable.
-    template<typename _Expr,
-             typename _T = double>
+    //   wraps an expression as a concrete T(T, T) callable.
+    template<typename Expr,
+             typename T = double>
     struct binary_adapter
     {
-        _Expr expression;
+        Expr expression;
 
-        D_CONSTEXPR _T
-        operator()(_T _x, _T _y) const
+        D_CONSTEXPR T
+        operator()(T _x, T _y) const
         {
-            return static_cast<_T>(expression(_x, _y));
+            return static_cast<T>(expression(_x, _y));
         }
     };
 
     // ternary_adapter
-    //   wraps an expression as a concrete _T(_T, _T, _T) callable (e.g. a
+    //   wraps an expression as a concrete T(T, T, T) callable (e.g. a
     // cylindrical or spherical scalar field).
-    template<typename _Expr,
-             typename _T = double>
+    template<typename Expr,
+             typename T = double>
     struct ternary_adapter
     {
-        _Expr expression;
+        Expr expression;
 
-        D_CONSTEXPR _T
-        operator()(_T _x, _T _y, _T _z) const
+        D_CONSTEXPR T
+        operator()(T _x, T _y, T _z) const
         {
-            return static_cast<_T>(expression(_x, _y, _z));
+            return static_cast<T>(expression(_x, _y, _z));
         }
     };
 
     // predicate_adapter
-    //   wraps a relation/expression as a concrete bool(_T) predicate.
-    template<typename _Rel,
-             typename _T = double>
+    //   wraps a relation/expression as a concrete bool(T) predicate.
+    template<typename Rel,
+             typename T = double>
     struct predicate_adapter
     {
-        _Rel relation;
+        Rel relation;
 
         D_CONSTEXPR bool
-        operator()(_T _x) const
+        operator()(T _x) const
         {
             return static_cast<bool>(relation(_x));
         }
     };
 
-    // ========================================================================
-    // II.   ADAPTER FACTORIES
-    // ========================================================================
-    // By-value parameters give a fully decayed _Expr, so the adapter stores a
+    //==========================================================================
+    // 2.  ADAPTER FACTORIES
+    //==========================================================================
+    // By-value parameters give a fully decayed Expr, so the adapter stores a
     // clean value with no dangling references.
 
-    template<typename _T = double, typename _Expr>
-    D_CONSTEXPR unary_adapter<_Expr, _T>
-    as_unary(_Expr _e)
+    template<typename T = double, typename Expr>
+    D_CONSTEXPR unary_adapter<Expr, T>
+    as_unary(Expr _e)
     {
-        return unary_adapter<_Expr, _T>{ _e };
+        return unary_adapter<Expr, T>{ _e };
     }
 
-    template<typename _T = double, typename _Expr>
-    D_CONSTEXPR binary_adapter<_Expr, _T>
-    as_binary(_Expr _e)
+    template<typename T = double, typename Expr>
+    D_CONSTEXPR binary_adapter<Expr, T>
+    as_binary(Expr _e)
     {
-        return binary_adapter<_Expr, _T>{ _e };
+        return binary_adapter<Expr, T>{ _e };
     }
 
-    template<typename _T = double, typename _Expr>
-    D_CONSTEXPR ternary_adapter<_Expr, _T>
-    as_ternary(_Expr _e)
+    template<typename T = double, typename Expr>
+    D_CONSTEXPR ternary_adapter<Expr, T>
+    as_ternary(Expr _e)
     {
-        return ternary_adapter<_Expr, _T>{ _e };
+        return ternary_adapter<Expr, T>{ _e };
     }
 
-    template<typename _T = double, typename _Rel>
-    D_CONSTEXPR predicate_adapter<_Rel, _T>
-    as_predicate(_Rel _r)
+    template<typename T = double, typename Rel>
+    D_CONSTEXPR predicate_adapter<Rel, T>
+    as_predicate(Rel _r)
     {
-        return predicate_adapter<_Rel, _T>{ _r };
+        return predicate_adapter<Rel, T>{ _r };
     }
 
 }  // functional

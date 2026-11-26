@@ -1,11 +1,11 @@
-# djinterp math: the lane's decisions, S1 to S468
+# djinterp math: the lane's decisions, S1 to S473
 
 Every decision the math lane has taken, in the words of the record that took
 it, with the alternative it set aside. The numbers run across the lane's
 records from S1 (slice 3, 2026.10.08); each record's section of decisions is
 here as its README has it, its own first lines among it. A decision was the
 lane's to take within the owner's rulings, and stands once his next word on
-its delivery, his "continue", has accepted it: S1 to S462 stand, his own
+its delivery, his "continue", has accepted it: S1 to S468 stand, his own
 rulings of 2026.10.27 on complex numbers and quaternions, S265 to S278, the
 design of steps 22 to 24, and his choice of 2026.11.07, S383, among them.
 His rulings of 2026.11.03 and 2026.11.04 on the flagged decisions are in the
@@ -31,9 +31,11 @@ generator's strings with one hyphen for a dash; and chunk 58's, step 31
 (5c), the calculus headers from C++11, and with them step 33 (5e),
 `math.hpp` at every rung; and chunk 59's, step 32 (5d), `reify`, a
 compile-time expression made a term of the run-time language, by his
-"continue" of 21:32 the same day. S463 to S468 are chunk 60's, open until
-his word on them: step 34 (5f), the opt-in lazy type of linear algebra. His
-word of 2026.11.14 on the language's names, which kept them flat in
+"continue" of 21:32 the same day; and chunk 60's, step 34 (5f), the opt-in
+lazy type of linear algebra, by his "continue" of 2026.11.24 at 08:13. S469
+to S473 are chunk 61's, open until his word on them: step 35 (5g), the
+compile-time headers' style debt, which closes Phase 5. His word of
+2026.11.14 on the language's names, which kept them flat in
 `djinterp::math`, is S397's. Where a later decision changes an earlier one,
 the later one says so; the earlier one stays here as it was taken.
 
@@ -70,7 +72,7 @@ C6 and N1 to N6, are in the consolidation's record
 followed it; his rulings on them are the roadmap's principles and items
 (`roadmap.md`). From chunk 34 on, each chunk's delivery brings this file,
 its own decisions added at the end. This file is made by
-`_handoffs/math98_chunk60_2026.11.23/tools/decisions_c60.py`.
+`_handoffs/math98_chunk61_2026.11.24/tools/decisions_c61.py`.
 
 ## 1. Outstanding decisions
 
@@ -78,7 +80,7 @@ The 22 flagged decisions: those whose review recommends what is not yet
 done, or names a significant drawback of what was. Each gives when it is
 due, by the roadmap's steps, its flag and its review's recommendation; the
 decision itself and its whole review are in its record's part of section 2.
-The groups and the steps are `decisions_outstanding_c60.md`'s, in chunk 60's
+The groups and the steps are `decisions_outstanding_c61.md`'s, in chunk 61's
 record.
 
 ### 1.1 The expression language
@@ -10317,3 +10319,135 @@ root (S449, S462).** It goes after chunk 59's zip.
 > chunk 59's, the gates run over the five in order. Against: chunk 60 right
 > only over the four zips laid in order. The alternative: chunk 59's zip
 > changed to carry chunk 60. Recommended: as taken. Taken.
+
+### S469 to S473: chunk 61, 2026.11.24
+
+The record: `_handoffs/math98_chunk61_2026.11.24/README.md`.
+
+Chunk 61's decisions, S469 to S473: step 35 (5g), the style debt of the
+compile-time headers, the last step of Phase 5. Chunk 60's decisions stand
+by the owner's "continue" of 2026.11.24 at 08:13; his rulings 12 to 15 are
+still to come.
+
+**S469. Every template parameter of math's headers that began with the
+underscore and capital the language reserves loses the underscore and
+nothing else: `_Type` is `Type`, `_T` `T`, `_Args` `Args`, as the style
+guides spell a template parameter, undecorated, and as the tree already
+does. That is 397 declarations, in the compile-time headers
+(`expression.hpp`, `function/function.hpp`, `functional.hpp`, `values.hpp`
+and five of `calculus/`), in `expr/reify.hpp`, which chunk 59 wrote with 43
+of them, in one of `expr/evaluate.hpp`'s, and in two tests,
+`t_calculus_face.cpp` and `test_functional.cpp`. Each name changes
+everywhere it stands in its file, its comments and one `static_assert`
+message among them, and only where its file declares it.** No new name
+already stood in its file's code. Where a name's shortening would move a
+column that lines up (parameter names, trailing comments, a macro's
+backslashes), the lines are padded or closed up to keep it. After this
+chunk no name of math's own in its headers has the reserved form; what is
+left is the implementation's (`_Complex`, `_MSC_VER`, MSVC's `_Interlocked`
+functions) and, in prose, the C core's macro names cut short (`_EQUAL` for
+`D_MATH_VALUE_EQUAL`). The roadmap's figure of
+238 counted lines with such a declaration before `reify.hpp`; the lists
+themselves hold 397. `linalg.hpp`'s banner, which named vector's and
+matrix's parameters as they were once spelled, names them as they are:
+`Type`, `N`, `Rows`, `Cols`.
+- Alternative: a descriptive name chosen for each parameter, `Expression`
+  for `_E` or `Count` for `_N`: a judgment at each of 117 names against the
+  tree's own `T` and `N`, and no change a token comparison could prove.
+- Alternative: only the declarations the roadmap counted: `reify.hpp`'s 43,
+  the lane's own from chunk 59, and the two tests' 13 left.
+
+> **Review.** Taken: for, no reserved name left in math's headers' code,
+> each parameter spelled as the guides and the tree spell one, the change
+> mechanical and so provable, columns kept. Against: single letters stay
+> single letters, T and A, where a longer name could say more. The
+> alternatives: a name chosen for each parameter, 117 judgments no
+> comparison could check; the roadmap's count alone, the lane's own
+> reify.hpp left reserved. Recommended: as taken. Taken.
+
+**S470. The nine headers' 40 Roman-numeral sections are numbered as the
+guides number them, 1. on: each section's rules are the guide's, // and 78
+equals signs to character 80, its name in capitals with two spaces after
+its number, and a parenthesis that is a phrase rather than part of the name
+becomes the section's description, on the line after the rule. Each header
+gains the guide's table of contents, its sections named as the body names
+them.** The sections keep their contents, order and spacing; no
+subsection is made where there was none.
+- Alternative: subsections and items numbered within each section as well:
+  nine headers' contents restructured for numbers that name nothing the
+  headers lack today.
+
+> **Review.** Taken: for, the guides' numbering, rules and capitals, each
+> header's table of contents agreeing with its body, the contents untouched.
+> Against: the long sections stay long, unnumbered within. The alternative:
+> subsections made throughout, a restructuring step 35 does not ask for.
+> Recommended: as taken. Taken.
+
+**S471. The four functions of math past the owner's limit of 100 lines,
+which S378 left for step 35's sweep, are split along a seam each, their
+results as before: in `decimal.h`, the reader (132 lines) keeps a
+significant digit by `d_internal_math_decimal_keep` and reads its exponent
+by `d_internal_math_decimal_read_exponent`, and the rounding (106) scales
+into [1/2, 1) by `d_internal_math_decimal_scale`; in `wide.h`, the long
+division (110) takes each quotient limb by
+`d_internal_math_wide_divmod_step`, Knuth's steps D3 to D6; and
+`numeric_compare.hpp`'s `parse_number` (129) reads a fraction or a mixed
+number by `internal::numeric_read_fraction` and a decimal number by
+`internal::numeric_read_decimal`.** `check_style.py` counts no function
+past the limit in math's headers now. Each helper is of its function's
+kind, `D_MATH_FN` in the C core, and `parse_number` hands its result's
+members to its helpers by reference, so that only it needs to be the
+class's friend.
+- Alternative: the four left as they are, their tests passing: against
+  S378, which scheduled them here.
+
+> **Review.** Taken: for, the owner's limit kept by every function of math's
+> headers, each split where the function already had a seam, every harness's
+> check as before. Against: four helpers more, each called from one place.
+> The alternative: the four left, against S378's schedule. Recommended: as
+> taken. Taken.
+
+**S472. That step 35 changed no behaviour is checked, not argued. In the
+13 files of S469 and S470, the code read token by token, comments out, is
+chunk 60's once each reserved name is spelled without its underscore, and
+the comments differ only in the sections, the tables of contents and the
+revised dates (`tools/same_tokens_c61.py`). The 11 tests that include
+those headers, the language's eight apart, seven face tests and four older
+ones, compile to the same bytes as chunk 60's objects, by g++ and clang++
+at C++11, C++14, C++17 and C++20 and by g++ -m32, 85 objects, or fail in
+both trees alike, 14 builds of the older ones (`tools/objects_c61.sh`).
+The split functions' harnesses and face test give every check they
+gave.** The language's eight face tests, each two
+minutes a build, are covered by the token comparison of `evaluate.hpp`, its
+one renamed parameter, and by the smoke tier.
+- Alternative: the face tests alone: they would miss a renamed parameter
+  that changed which name a body finds, which the token comparison cannot
+  miss.
+
+> **Review.** Taken: for, the names' and sections' change proved token for
+> token and object for object, the splits by their harnesses. Against: the
+> language's eight face tests compared by tokens and run, not compiled
+> twice, two minutes a build. The alternative: the tests alone, blind to a
+> name lookup changed. Recommended: as taken. Taken.
+
+**S473. Step 35 leaves the rest of the style guides' debt in math's
+headers as it was: the banners' HOW TO USE, OPTIONS and CONFIGURATION
+(ruled 2026.11.17), which 91 of math's headers lack, and the `created: TBA`
+of `expression.hpp` and `numeric_compare.hpp`, whose dates are not known;
+both are on the owner's punch list, and neither is step 35's as the roadmap
+writes it. Chunk 61's zip is cut over the owner's main of 2026.11.23,
+`6ee9dce1`, with Wednesday's, Friday's and chunks 58's to 60's zips laid
+over it, in that order, and holds chunk 61's files alone, at the tree's
+root (S449, S468).** It goes after chunk 60's zip.
+- Alternative: the banners' sections written now, for 91 headers: what
+  each lets a run choose and what each build knob changes, a step's work of
+  its own, not this one's.
+- Alternative: chunks 60 and 61 in one zip in place of chunk 60's: a zip
+  already gated and given out, changed.
+
+> **Review.** Taken: for, step 35 done as the roadmap and S378 define it,
+> the banners' sections and two unknown dates left on the punch list where
+> the owner tracks them; the zips sent unchanged, chunk 61's own after chunk
+> 60's. Against: 91 headers still without the banners' three sections. The
+> alternatives: those sections written now, a step of their own; chunk 60's
+> zip changed to carry chunk 61. Recommended: as taken. Taken.

@@ -36,7 +36,7 @@
 * path:      /inc/djinterp/c/modules/math/decimal.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.14
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*
@@ -534,6 +534,86 @@ d_internal_math_decimal_place(
     return (below) ? -(long)size : (long)size;
 }
 
+// d_internal_math_decimal_keep
+//   a significant digit, _value, read into *_d where there is room for it;
+// where there is none, a nonzero one marks *_d truncated. Nothing where _d
+// is NULL.
+D_MATH_FN void
+d_internal_math_decimal_keep(
+    struct dj_internal_math_decimal* _d,
+    unsigned char                    _value
+)
+{
+    // room for it, or a nonzero digit dropped
+    if ( (_d != NULL) &&
+         (_d->count < D_INTERNAL_MATH_DECIMAL_DIGITS) )
+    {
+        _d->digit[_d->count] = _value;
+        ++_d->count;
+    }
+    else if ( (_d != NULL) &&
+              (_value != 0u) )
+    {
+        _d->truncated = true;
+    }
+
+    return;
+}
+
+// d_internal_math_decimal_read_exponent
+//   the exponent of a decimal number of _text whose digits end at _end: an
+// e or E, a sign, and digits, its size into *_size, held at most past it,
+// and whether it is negative into *_below, each only where a digit follows
+// the e and its sign. Returns where the number ends: past the exponent's
+// last digit, or _end where it has none.
+D_MATH_FN size_t
+d_internal_math_decimal_read_exponent(
+    const char* _text,
+    size_t      _length,
+    size_t      _end,
+    size_t*     _size,
+    bool*       _below
+)
+{
+    const size_t most = ~(size_t)0;
+
+    size_t end   = _end;
+    size_t j     = _end + 1u;
+    bool   minus = false;
+
+    // no e: no exponent
+    if ( (_end >= _length) ||
+         ( (_text[_end] != 'e') &&
+           (_text[_end] != 'E') ) )
+    {
+        return _end;
+    }
+
+    // its sign
+    if ( (j < _length) &&
+         ( (_text[j] == '+') ||
+           (_text[j] == '-') ) )
+    {
+        minus = (_text[j] == '-');
+        ++j;
+    }
+
+    // its digits, the size held at most past it
+    while ( (j < _length) &&
+            (d_internal_math_decimal_is_digit(_text[j])) )
+    {
+        const size_t digit = (size_t)(_text[j] - '0');
+
+        *_size  = (*_size > ((most - digit) / 10u)) ? most
+                                                    : ((*_size * 10u) + digit);
+        *_below = minus;
+        ++j;
+        end     = j;
+    }
+
+    return end;
+}
+
 // d_internal_math_decimal_read
 //   reads the decimal number at the start of _text: its digits and their
 // place into *_d, which starts empty, and its sign into *_negative, each
@@ -548,8 +628,6 @@ d_internal_math_decimal_read(
     size_t                           _length
 )
 {
-    const size_t most = ~(size_t)0;
-
     size_t i        = 0u;
     size_t end      = 0u;
     size_t whole    = 0u;     // the digits kept before the point
@@ -589,18 +667,7 @@ d_internal_math_decimal_read(
                 started = true;
                 whole   = (after) ? whole : (whole + 1u);
 
-                // room for it, or a nonzero digit dropped
-                if ( (_d != NULL) &&
-                     (_d->count < D_INTERNAL_MATH_DECIMAL_DIGITS) )
-                {
-                    _d->digit[_d->count] = value;
-                    ++_d->count;
-                }
-                else if ( (_d != NULL) &&
-                          (value != 0u) )
-                {
-                    _d->truncated = true;
-                }
+                d_internal_math_decimal_keep(_d, value);
             }
             // a zero after the point, before any other digit
             else if (after)
@@ -632,35 +699,11 @@ d_internal_math_decimal_read(
     end = i;
 
     // the exponent, where a digit follows its e and sign
-    if ( (i < _length) &&
-         ( (_text[i] == 'e') ||
-           (_text[i] == 'E') ) )
-    {
-        size_t j     = i + 1u;
-        bool   minus = false;
-
-        // its sign
-        if ( (j < _length) &&
-             ( (_text[j] == '+') ||
-               (_text[j] == '-') ) )
-        {
-            minus = (_text[j] == '-');
-            ++j;
-        }
-
-        // its digits, the size held at most past it
-        while ( (j < _length) &&
-                (d_internal_math_decimal_is_digit(_text[j])) )
-        {
-            const size_t digit = (size_t)(_text[j] - '0');
-
-            size  = (size > ((most - digit) / 10u)) ? most
-                                                    : ((size * 10u) + digit);
-            below = minus;
-            ++j;
-            end   = j;
-        }
-    }
+    end = d_internal_math_decimal_read_exponent(_text,
+                                                _length,
+                                                end,
+                                                &size,
+                                                &below);
 
     // the point in place
     if (_d != NULL)
@@ -686,6 +729,40 @@ d_internal_math_decimal_read(
 //==============================================================================
 // 4.  ROUNDING TO A TYPE
 //==============================================================================
+
+// d_internal_math_decimal_scale
+//   _d, positive, shifted by powers of two into [1/2, 1): down below 1, then
+// up to 1/2 or more. Returns the shifts' sum, the power of two _d was
+// divided by.
+D_MATH_FN long
+d_internal_math_decimal_scale(
+    struct dj_internal_math_decimal* _d
+)
+{
+    long exponent = 0;
+
+    // down below 1
+    while (_d->point > 0)
+    {
+        const unsigned step = d_internal_math_decimal_pow_shift(_d->point);
+
+        d_internal_math_decimal_shift_right(_d, step);
+        exponent = exponent + (long)step;
+    }
+
+    // up to 1/2 or more
+    while ( (_d->point < 0) ||
+            ( (_d->point == 0) &&
+              (_d->digit[0] < 5u) ) )
+    {
+        const unsigned step = d_internal_math_decimal_pow_shift(-_d->point);
+
+        d_internal_math_decimal_shift_left(_d, step);
+        exponent = exponent - (long)step;
+    }
+
+    return exponent;
+}
 
 // d_internal_math_decimal_round
 //   _d, positive or 0, rounded to a type of _precision bits, at most 2w, and
@@ -739,25 +816,8 @@ d_internal_math_decimal_round(
         return result;
     }
 
-    // down below 1
-    while (_d->point > 0)
-    {
-        const unsigned step = d_internal_math_decimal_pow_shift(_d->point);
-
-        d_internal_math_decimal_shift_right(_d, step);
-        exponent = exponent + (long)step;
-    }
-
-    // up to 1/2 or more
-    while ( (_d->point < 0) ||
-            ( (_d->point == 0) &&
-              (_d->digit[0] < 5u) ) )
-    {
-        const unsigned step = d_internal_math_decimal_pow_shift(-_d->point);
-
-        d_internal_math_decimal_shift_left(_d, step);
-        exponent = exponent - (long)step;
-    }
+    // into [1/2, 1)
+    exponent = d_internal_math_decimal_scale(_d);
 
     // below the normal range: onto the subnormal grid
     if (exponent < _min_exp)

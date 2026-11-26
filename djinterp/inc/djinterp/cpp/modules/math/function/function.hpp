@@ -43,8 +43,37 @@
 * path:      /inc/djinterp/cpp/modules/math/function/function.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.06
-*                                                            revised: 2026.11.22
+*                                                            revised: 2026.11.24
 *******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+1.  INTERNAL SUPPORT
+    ----------------
+2.  DETECTION TRAITS
+    ----------------
+3.  RELATIONAL LAYER
+    ----------------
+4.  LOGICAL LAYER
+    -------------
+5.  PIECEWISE FUNCTIONS
+    -------------------
+6.  VECTOR-VALUED FUNCTIONS
+    -----------------------
+7.  PARAMETRIC CURVES AND SURFACES
+    ------------------------------
+8.  IMPLICIT FUNCTIONS
+    ------------------
+9.  MIGRATION ALIASES
+    -----------------
+10. COORDINATE AXIS VARIABLE SETS
+    -----------------------------
+11. NAMED FUNCTION WRAPPER
+    ----------------------
+12. FLUENT BUILDER
+    --------------
+*/
 
 #ifndef DJINTERP_MATH_FUNCTION_FUNCTION_HPP
 #define DJINTERP_MATH_FUNCTION_FUNCTION_HPP 1
@@ -73,9 +102,9 @@
 NS_DJINTERP
 NS_MATH
 
-// ============================================================================
-// I.    INTERNAL SUPPORT
-// ============================================================================
+//==============================================================================
+// 1.  INTERNAL SUPPORT
+//==============================================================================
 
 NS_INTERNAL
 
@@ -90,8 +119,8 @@ NS_INTERNAL
         typedef void type;
     };
 
-    template<typename... _Types>
-    using void_t = typename make_void<_Types...>::type;
+    template<typename... Types>
+    using void_t = typename make_void<Types...>::type;
 
     // max_size_t
     //   meta: compile-time maximum of a pack of std::size_t (0 for empty).
@@ -104,19 +133,19 @@ NS_INTERNAL
         static constexpr std::size_t value = 0;
     };
 
-    template<std::size_t _N>
-    struct max_size_t<_N>
+    template<std::size_t N>
+    struct max_size_t<N>
     {
-        static constexpr std::size_t value = _N;
+        static constexpr std::size_t value = N;
     };
 
-    template<std::size_t _N, std::size_t... _Rest>
-    struct max_size_t<_N, _Rest...>
+    template<std::size_t N, std::size_t... Rest>
+    struct max_size_t<N, Rest...>
     {
         static constexpr std::size_t value =
-            (_N > max_size_t<_Rest...>::value)
-                ? _N
-                : max_size_t<_Rest...>::value;
+            (N > max_size_t<Rest...>::value)
+                ? N
+                : max_size_t<Rest...>::value;
     };
 
     // is_std_array / is_std_tuple / is_linalg_vector / first_is_container
@@ -126,31 +155,31 @@ NS_INTERNAL
     template<typename>
     struct is_std_array : std::false_type {};
 
-    template<typename _T, std::size_t _N>
-    struct is_std_array<std::array<_T, _N>> : std::true_type {};
+    template<typename T, std::size_t N>
+    struct is_std_array<std::array<T, N>> : std::true_type {};
 
     template<typename>
     struct is_std_tuple : std::false_type {};
 
-    template<typename... _T>
-    struct is_std_tuple<std::tuple<_T...>> : std::true_type {};
+    template<typename... T>
+    struct is_std_tuple<std::tuple<T...>> : std::true_type {};
 
     template<typename>
     struct is_linalg_vector : std::false_type {};
 
-    template<typename _T, std::size_t _N>
-    struct is_linalg_vector<linalg::vector<_T, _N>> : std::true_type {};
+    template<typename T, std::size_t N>
+    struct is_linalg_vector<linalg::vector<T, N>> : std::true_type {};
 
-    template<typename... _Args>
+    template<typename... Args>
     struct first_is_container : std::false_type {};
 
-    template<typename _First, typename... _Rest>
-    struct first_is_container<_First, _Rest...>
+    template<typename First, typename... Rest>
+    struct first_is_container<First, Rest...>
         : std::integral_constant<bool,
-              (sizeof...(_Rest) == 0) &&
-              ( is_std_array<typename std::decay<_First>::type>::value ||
-                is_std_tuple<typename std::decay<_First>::type>::value ||
-                is_linalg_vector<typename std::decay<_First>::type>::value )>
+              (sizeof...(Rest) == 0) &&
+              ( is_std_array<typename std::decay<First>::type>::value ||
+                is_std_tuple<typename std::decay<First>::type>::value ||
+                is_linalg_vector<typename std::decay<First>::type>::value )>
     {
     };
 
@@ -158,27 +187,27 @@ NS_INTERNAL
     //   helpers for the system-aware builder. system_dimension yields the
     // coordinate system's dimension (or 0 if it has none); arity_ok checks a
     // declared parameter count against it, allowing dimensionless systems.
-    template<typename _S, typename = void>
+    template<typename S, typename = void>
     struct has_dimension : std::false_type {};
 
-    template<typename _S>
-    struct has_dimension<_S, void_t<decltype(_S::dimension)>> : std::true_type {};
+    template<typename S>
+    struct has_dimension<S, void_t<decltype(S::dimension)>> : std::true_type {};
 
-    template<typename _S, bool = has_dimension<_S>::value>
+    template<typename S, bool = has_dimension<S>::value>
     struct system_dimension : std::integral_constant<std::size_t, 0>
     {
     };
 
-    template<typename _S>
-    struct system_dimension<_S, true>
-        : std::integral_constant<std::size_t, _S::dimension>
+    template<typename S>
+    struct system_dimension<S, true>
+        : std::integral_constant<std::size_t, S::dimension>
     {
     };
 
-    template<typename _S, std::size_t _N>
+    template<typename S, std::size_t N>
     struct arity_ok
         : std::integral_constant<bool,
-              (!has_dimension<_S>::value) || (system_dimension<_S>::value == _N)>
+              (!has_dimension<S>::value) || (system_dimension<S>::value == N)>
     {
     };
 
@@ -186,34 +215,35 @@ NS_INTERNAL
     //   evaluates each element of a component tuple against the same argument
     // pack, returning the values as a std::array<double, N>. Shared by the
     // vector-valued and parametric forms.
-    template<typename _Tuple, std::size_t... _Is, typename... _Args>
-    D_CONSTEXPR std::array<double, sizeof...(_Is)>
+    template<typename Tuple, std::size_t... Is, typename... Args>
+    D_CONSTEXPR std::array<double, sizeof...(Is)>
     eval_components
     (
-        const _Tuple&                  _components,
-        re_std::index_sequence<_Is...>,
-        _Args&&...                     _args
+        const Tuple&                  _components,
+        re_std::index_sequence<Is...>,
+        Args&&...                     _args
     )
     {
-        return std::array<double, sizeof...(_Is)>{{
-            static_cast<double>(std::get<_Is>(_components)(_args...))...
+        return std::array<double, sizeof...(Is)>{{
+            static_cast<double>(std::get<Is>(_components)(_args...))...
         }};
     }
 
 NS_END  // internal
 
 
-// ============================================================================
-// II.   DETECTION TRAITS  (folded in from function_traits.hpp)
-// ============================================================================
+//==============================================================================
+// 2.  DETECTION TRAITS
+//==============================================================================
+// folded in from function_traits.hpp.
 
 // D_DETECT_MARKER_V
 //   defines TRAIT##_v, the variable template of a trait, where variable
 // templates exist (C++14); nothing below.
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     #define D_DETECT_MARKER_V(TRAIT)                                            \
-        template<typename _T>                                                   \
-        D_INLINE_VAR constexpr bool TRAIT##_v = TRAIT<_T>::value;
+        template<typename T>                                                    \
+        D_INLINE_VAR constexpr bool TRAIT##_v = TRAIT<T>::value;
 #else
     #define D_DETECT_MARKER_V(TRAIT)
 #endif
@@ -225,18 +255,18 @@ NS_END  // internal
 // function_traits.hpp.
 #define D_DETECT_MARKER(TRAIT, MEMBER)                                          \
     NS_INTERNAL                                                                 \
-    template<typename _T, typename = void>                                      \
+    template<typename T, typename = void>                                       \
     struct TRAIT##_has : std::false_type {};                                    \
-    template<typename _T>                                                       \
-    struct TRAIT##_has<_T, void_t<decltype(_T::MEMBER)>> : std::true_type {};   \
-    template<typename _T, bool = TRAIT##_has<_T>::value>                        \
+    template<typename T>                                                        \
+    struct TRAIT##_has<T, void_t<decltype(T::MEMBER)>> : std::true_type {};     \
+    template<typename T, bool = TRAIT##_has<T>::value>                          \
     struct TRAIT##_impl : std::false_type {};                                   \
-    template<typename _T>                                                       \
-    struct TRAIT##_impl<_T, true>                                               \
-        : std::integral_constant<bool, static_cast<bool>(_T::MEMBER)> {};       \
+    template<typename T>                                                        \
+    struct TRAIT##_impl<T, true>                                                \
+        : std::integral_constant<bool, static_cast<bool>(T::MEMBER)> {};        \
     NS_END                                                                      \
-    template<typename _T>                                                       \
-    struct TRAIT : internal::TRAIT##_impl<typename std::decay<_T>::type> {};    \
+    template<typename T>                                                        \
+    struct TRAIT : internal::TRAIT##_impl<typename std::decay<T>::type> {};     \
     D_DETECT_MARKER_V(TRAIT)
 
 D_DETECT_MARKER(is_inequality,        is_inequality)
@@ -253,114 +283,114 @@ D_DETECT_MARKER(is_spherical_system,  is_spherical)
 
 // is_coordinate_system
 //   trait: a structural coordinate system (delegates to coordinate.hpp).
-template<typename _Type>
-struct is_coordinate_system : is_coord_system<_Type>
+template<typename Type>
+struct is_coordinate_system : is_coord_system<Type>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-template<typename _Type>
+template<typename Type>
 D_INLINE_VAR constexpr bool is_coordinate_system_v =
-    is_coordinate_system<_Type>::value;
+    is_coordinate_system<Type>::value;
 #endif
 
 // function_arity / function_value_type
 //   convenience accessors for any expression, form, or named function.
-template<typename _Type>
+template<typename Type>
 struct function_arity
     : std::integral_constant<std::size_t,
-                             std::decay<_Type>::type::arity>
+                             std::decay<Type>::type::arity>
 {
 };
 
-template<typename _Type>
-using function_value_type = typename std::decay<_Type>::type::value_type;
+template<typename Type>
+using function_value_type = typename std::decay<Type>::type::value_type;
 
 
-// ============================================================================
-// III.  RELATIONAL LAYER
-// ============================================================================
+//==============================================================================
+// 3.  RELATIONAL LAYER
+//==============================================================================
 
 NS_INTERNAL
 
     // relational operation functors. Each returns bool.
-    struct rel_lt { template<typename _A, typename _B>
-        static D_CONSTEXPR bool apply(_A _a, _B _b) noexcept { return _a <  _b; } };
-    struct rel_le { template<typename _A, typename _B>
-        static D_CONSTEXPR bool apply(_A _a, _B _b) noexcept { return _a <= _b; } };
-    struct rel_gt { template<typename _A, typename _B>
-        static D_CONSTEXPR bool apply(_A _a, _B _b) noexcept { return _a >  _b; } };
-    struct rel_ge { template<typename _A, typename _B>
-        static D_CONSTEXPR bool apply(_A _a, _B _b) noexcept { return _a >= _b; } };
-    struct rel_eq { template<typename _A, typename _B>
-        static D_CONSTEXPR bool apply(_A _a, _B _b) noexcept { return _a == _b; } };
-    struct rel_ne { template<typename _A, typename _B>
-        static D_CONSTEXPR bool apply(_A _a, _B _b) noexcept { return _a != _b; } };
+    struct rel_lt { template<typename A, typename B>
+        static D_CONSTEXPR bool apply(A _a, B _b) noexcept { return _a <  _b; } };
+    struct rel_le { template<typename A, typename B>
+        static D_CONSTEXPR bool apply(A _a, B _b) noexcept { return _a <= _b; } };
+    struct rel_gt { template<typename A, typename B>
+        static D_CONSTEXPR bool apply(A _a, B _b) noexcept { return _a >  _b; } };
+    struct rel_ge { template<typename A, typename B>
+        static D_CONSTEXPR bool apply(A _a, B _b) noexcept { return _a >= _b; } };
+    struct rel_eq { template<typename A, typename B>
+        static D_CONSTEXPR bool apply(A _a, B _b) noexcept { return _a == _b; } };
+    struct rel_ne { template<typename A, typename B>
+        static D_CONSTEXPR bool apply(A _a, B _b) noexcept { return _a != _b; } };
 
 NS_END  // internal
 
 // relation_node
 //   expression: a boolean comparison of two sub-expressions. Carries the
 // is_inequality marker so it is recognised as a relational/predicate form.
-template<typename _Op, typename _Left, typename _Right>
+template<typename Op, typename Left, typename Right>
 struct relation_node
-    : expression_base<relation_node<_Op, _Left, _Right>>
+    : expression_base<relation_node<Op, Left, Right>>
 {
     using value_type = bool;
 
-    _Left  left;
-    _Right right;
+    Left  left;
+    Right right;
 
     static constexpr std::size_t arity =
-        internal::max_size_t<_Left::arity, _Right::arity>::value;
+        internal::max_size_t<Left::arity, Right::arity>::value;
     static constexpr bool is_inequality = true;
 
     D_CONSTEXPR
     relation_node
     (
-        _Left  _l,
-        _Right _r
+        Left  _l,
+        Right _r
     ) noexcept
         : left(_l), right(_r)
     {
     }
 
-    template<typename... _Args>
+    template<typename... Args>
     D_CONSTEXPR
     bool operator()(
-        _Args&&... _args
+        Args&&... _args
     ) const noexcept
     {
-        return _Op::apply(left(_args...), right(_args...));
+        return Op::apply(left(_args...), right(_args...));
     }
 };
 
 // Relational operators, defined once over the expression role: expr (.) expr,
 // expr (.) scalar, and scalar (.) expr. Scalars are lifted to constants.
 #define D_EXPR_RELATION_OP(SYM, TAG)                                            \
-    template<typename _L, typename _R,                                          \
-             typename std::enable_if<( is_expression<_L>::value &&              \
-                                       is_expression<_R>::value ), int>::type = 0> \
-    D_CONSTEXPR relation_node<internal::TAG, _L, _R>                            \
-    operator SYM (_L _l, _R _r) noexcept                                        \
-    { return relation_node<internal::TAG, _L, _R>(_l, _r); }                    \
+    template<typename L, typename R,                                            \
+             typename std::enable_if<( is_expression<L>::value &&               \
+                                       is_expression<R>::value ), int>::type =  0> \
+    D_CONSTEXPR relation_node<internal::TAG, L, R>                              \
+    operator SYM (L _l, R _r) noexcept                                          \
+    { return relation_node<internal::TAG, L, R>(_l, _r); }                      \
                                                                                 \
-    template<typename _L, typename _S,                                          \
-             typename std::enable_if<( is_expression<_L>::value &&              \
-                                       !is_expression<_S>::value ), int>::type = 0> \
-    D_CONSTEXPR auto operator SYM (_L _l, _S _s) noexcept                       \
-        -> relation_node<internal::TAG, _L, decltype(internal::as_expr(_s))>    \
-    { return relation_node<internal::TAG, _L,                                   \
+    template<typename L, typename S,                                           \
+             typename std::enable_if<( is_expression<L>::value &&              \
+                                       !is_expression<S>::value ), int>::type = 0> \
+    D_CONSTEXPR auto operator SYM (L _l, S _s) noexcept                         \
+        -> relation_node<internal::TAG, L, decltype(internal::as_expr(_s))>     \
+    { return relation_node<internal::TAG, L,                                    \
                            decltype(internal::as_expr(_s))>(                    \
                  _l, internal::as_expr(_s)); }                                  \
                                                                                 \
-    template<typename _S, typename _R,                                          \
-             typename std::enable_if<( !is_expression<_S>::value &&             \
-                                       is_expression<_R>::value ), int>::type = 0> \
-    D_CONSTEXPR auto operator SYM (_S _s, _R _r) noexcept                       \
-        -> relation_node<internal::TAG, decltype(internal::as_expr(_s)), _R>    \
+    template<typename S, typename R,                                            \
+             typename std::enable_if<( !is_expression<S>::value &&              \
+                                       is_expression<R>::value ), int>::type =  0> \
+    D_CONSTEXPR auto operator SYM (S _s, R _r) noexcept                         \
+        -> relation_node<internal::TAG, decltype(internal::as_expr(_s)), R>     \
     { return relation_node<internal::TAG,                                       \
-                           decltype(internal::as_expr(_s)), _R>(                \
+                           decltype(internal::as_expr(_s)), R>(                 \
                  internal::as_expr(_s), _r); }
 
 D_EXPR_RELATION_OP(<,  rel_lt)
@@ -371,132 +401,132 @@ D_EXPR_RELATION_OP(==, rel_eq)
 D_EXPR_RELATION_OP(!=, rel_ne)
 
 
-// ============================================================================
-// IV.   LOGICAL LAYER
-// ============================================================================
+//==============================================================================
+// 4.  LOGICAL LAYER
+//==============================================================================
 
 // logical_and_node / logical_or_node / logical_not_node
 //   boolean-valued expressions combining predicates. Each carries the
 // is_inequality marker (a predicate is a relational form).
-template<typename _Left, typename _Right>
+template<typename Left, typename Right>
 struct logical_and_node
-    : expression_base<logical_and_node<_Left, _Right>>
+    : expression_base<logical_and_node<Left, Right>>
 {
     using value_type = bool;
 
-    _Left  left;
-    _Right right;
+    Left  left;
+    Right right;
 
     static constexpr std::size_t arity =
-        internal::max_size_t<_Left::arity, _Right::arity>::value;
+        internal::max_size_t<Left::arity, Right::arity>::value;
     static constexpr bool is_inequality = true;
 
-    D_CONSTEXPR logical_and_node(_Left _l, _Right _r) noexcept
+    D_CONSTEXPR logical_and_node(Left _l, Right _r) noexcept
         : left(_l), right(_r) {}
 
-    template<typename... _Args>
+    template<typename... Args>
     D_CONSTEXPR
     bool operator()(
-        _Args&&... _args
+        Args&&... _args
     ) const noexcept
     { return static_cast<bool>(left(_args...)) &&
              static_cast<bool>(right(_args...)); }
 };
 
-template<typename _Left, typename _Right>
+template<typename Left, typename Right>
 struct logical_or_node
-    : expression_base<logical_or_node<_Left, _Right>>
+    : expression_base<logical_or_node<Left, Right>>
 {
     using value_type = bool;
 
-    _Left  left;
-    _Right right;
+    Left  left;
+    Right right;
 
     static constexpr std::size_t arity =
-        internal::max_size_t<_Left::arity, _Right::arity>::value;
+        internal::max_size_t<Left::arity, Right::arity>::value;
     static constexpr bool is_inequality = true;
 
-    D_CONSTEXPR logical_or_node(_Left _l, _Right _r) noexcept
+    D_CONSTEXPR logical_or_node(Left _l, Right _r) noexcept
         : left(_l), right(_r) {}
 
-    template<typename... _Args>
+    template<typename... Args>
     D_CONSTEXPR
     bool operator()(
-        _Args&&... _args
+        Args&&... _args
     ) const noexcept
     { return static_cast<bool>(left(_args...)) ||
              static_cast<bool>(right(_args...)); }
 };
 
-template<typename _Arg>
+template<typename Arg>
 struct logical_not_node
-    : expression_base<logical_not_node<_Arg>>
+    : expression_base<logical_not_node<Arg>>
 {
     using value_type = bool;
 
-    _Arg arg;
+    Arg arg;
 
-    static constexpr std::size_t arity = _Arg::arity;
+    static constexpr std::size_t arity = Arg::arity;
     static constexpr bool is_inequality = true;
 
-    D_CONSTEXPR explicit logical_not_node(_Arg _a) noexcept : arg(_a) {}
+    D_CONSTEXPR explicit logical_not_node(Arg _a) noexcept : arg(_a) {}
 
-    template<typename... _Args>
-    D_CONSTEXPR bool operator()(_Args&&... _args) const noexcept
+    template<typename... Args>
+    D_CONSTEXPR bool operator()(Args&&... _args) const noexcept
     { return !static_cast<bool>(arg(_args...)); }
 };
 
-template<typename _L, typename _R,
-         typename std::enable_if<( is_expression<_L>::value &&
-                                   is_expression<_R>::value ), int>::type = 0>
-D_CONSTEXPR logical_and_node<_L, _R> operator&&(_L _l, _R _r) noexcept
-{ return logical_and_node<_L, _R>(_l, _r); }
+template<typename L, typename R,
+         typename std::enable_if<( is_expression<L>::value &&
+                                   is_expression<R>::value ), int>::type = 0>
+D_CONSTEXPR logical_and_node<L, R> operator&&(L _l, R _r) noexcept
+{ return logical_and_node<L, R>(_l, _r); }
 
-template<typename _L, typename _R,
-         typename std::enable_if<( is_expression<_L>::value &&
-                                   is_expression<_R>::value ), int>::type = 0>
-D_CONSTEXPR logical_or_node<_L, _R> operator||(_L _l, _R _r) noexcept
-{ return logical_or_node<_L, _R>(_l, _r); }
+template<typename L, typename R,
+         typename std::enable_if<( is_expression<L>::value &&
+                                   is_expression<R>::value ), int>::type = 0>
+D_CONSTEXPR logical_or_node<L, R> operator||(L _l, R _r) noexcept
+{ return logical_or_node<L, R>(_l, _r); }
 
-template<typename _A,
-         typename std::enable_if<is_expression<_A>::value, int>::type = 0>
-D_CONSTEXPR logical_not_node<_A> operator!(_A _a) noexcept
-{ return logical_not_node<_A>(_a); }
+template<typename A,
+         typename std::enable_if<is_expression<A>::value, int>::type = 0>
+D_CONSTEXPR logical_not_node<A> operator!(A _a) noexcept
+{ return logical_not_node<A>(_a); }
 
 // Named combinators. land/lor/lnot mirror the operators; all_of/any_of fold a
 // pack of predicates into a nested tree.
-template<typename _L, typename _R>
-D_CONSTEXPR logical_and_node<_L, _R> land(_L _l, _R _r) noexcept
-{ return logical_and_node<_L, _R>(_l, _r); }
+template<typename L, typename R>
+D_CONSTEXPR logical_and_node<L, R> land(L _l, R _r) noexcept
+{ return logical_and_node<L, R>(_l, _r); }
 
-template<typename _L, typename _R>
-D_CONSTEXPR logical_or_node<_L, _R> lor(_L _l, _R _r) noexcept
-{ return logical_or_node<_L, _R>(_l, _r); }
+template<typename L, typename R>
+D_CONSTEXPR logical_or_node<L, R> lor(L _l, R _r) noexcept
+{ return logical_or_node<L, R>(_l, _r); }
 
-template<typename _A>
-D_CONSTEXPR logical_not_node<_A> lnot(_A _a) noexcept
-{ return logical_not_node<_A>(_a); }
+template<typename A>
+D_CONSTEXPR logical_not_node<A> lnot(A _a) noexcept
+{ return logical_not_node<A>(_a); }
 
-template<typename _C>
-D_CONSTEXPR _C all_of(_C _c) noexcept { return _c; }
+template<typename C>
+D_CONSTEXPR C all_of(C _c) noexcept { return _c; }
 
-template<typename _C0, typename _C1, typename... _Rest>
-D_CONSTEXPR auto all_of(_C0 _c0, _C1 _c1, _Rest... _rest) noexcept
+template<typename C0, typename C1, typename... Rest>
+D_CONSTEXPR auto all_of(C0 _c0, C1 _c1, Rest... _rest) noexcept
     -> decltype(land(_c0, all_of(_c1, _rest...)))
 { return land(_c0, all_of(_c1, _rest...)); }
 
-template<typename _C>
-D_CONSTEXPR _C any_of(_C _c) noexcept { return _c; }
+template<typename C>
+D_CONSTEXPR C any_of(C _c) noexcept { return _c; }
 
-template<typename _C0, typename _C1, typename... _Rest>
-D_CONSTEXPR auto any_of(_C0 _c0, _C1 _c1, _Rest... _rest) noexcept
+template<typename C0, typename C1, typename... Rest>
+D_CONSTEXPR auto any_of(C0 _c0, C1 _c1, Rest... _rest) noexcept
     -> decltype(lor(_c0, any_of(_c1, _rest...)))
 { return lor(_c0, any_of(_c1, _rest...)); }
 
 
-// ============================================================================
-// V.    PIECEWISE FUNCTIONS
-// ============================================================================
+//==============================================================================
+// 5.  PIECEWISE FUNCTIONS
+//==============================================================================
 
 // always_true_node
 //   predicate that is always true; the condition of an otherwise() branch.
@@ -506,52 +536,52 @@ struct always_true_node : expression_base<always_true_node>
     static constexpr std::size_t arity = 0;
     static constexpr bool is_inequality = true;
 
-    template<typename... _Args>
-    D_CONSTEXPR bool operator()(_Args&&...) const noexcept { return true; }
+    template<typename... Args>
+    D_CONSTEXPR bool operator()(Args&&...) const noexcept { return true; }
 };
 
 // piece_t
 //   one branch of a piecewise function: a predicate paired with a body
 // expression. Not itself an expression node.
-template<typename _Cond, typename _Body>
+template<typename Cond, typename Body>
 struct piece_t
 {
-    using condition_type  = _Cond;
-    using expression_type = _Body;
-    using value_type      = typename _Body::value_type;
+    using condition_type  = Cond;
+    using expression_type = Body;
+    using value_type      = typename Body::value_type;
 
-    _Cond cond;
-    _Body body;
+    Cond cond;
+    Body body;
 
     static constexpr std::size_t arity =
-        internal::max_size_t<_Cond::arity, _Body::arity>::value;
+        internal::max_size_t<Cond::arity, Body::arity>::value;
 
-    D_CONSTEXPR piece_t(_Cond _c, _Body _b) noexcept : cond(_c), body(_b) {}
+    D_CONSTEXPR piece_t(Cond _c, Body _b) noexcept : cond(_c), body(_b) {}
 
-    template<typename... _Args>
-    D_CONSTEXPR bool test(_Args&&... _args) const noexcept
+    template<typename... Args>
+    D_CONSTEXPR bool test(Args&&... _args) const noexcept
     { return static_cast<bool>(cond(_args...)); }
 };
 
 // when
 //   builds a branch: when(condition, body). The body may be a bare scalar.
-template<typename _Cond, typename _Body>
+template<typename Cond, typename Body>
 D_CONSTEXPR
 auto when(
-    _Cond _c,
-    _Body _b
-) noexcept -> piece_t<_Cond, decltype(internal::as_expr(_b))>
+    Cond _c,
+    Body _b
+) noexcept -> piece_t<Cond, decltype(internal::as_expr(_b))>
 {
-    return piece_t<_Cond, decltype(internal::as_expr(_b))>(
+    return piece_t<Cond, decltype(internal::as_expr(_b))>(
         _c, internal::as_expr(_b));
 }
 
 // otherwise
 //   builds the fallback branch (an always-true condition).
-template<typename _Body>
+template<typename Body>
 D_CONSTEXPR
 auto otherwise(
-    _Body _b
+    Body _b
 ) noexcept -> piece_t<always_true_node, decltype(internal::as_expr(_b))>
 {
     return piece_t<always_true_node, decltype(internal::as_expr(_b))>(
@@ -565,102 +595,102 @@ NS_INTERNAL
     // the fallback (its predicate is not tested). Two overloads, selected by
     // whether the index is the last, keep this C++11-clean (no if constexpr),
     // each one return.
-    template<std::size_t _I, typename _Value, typename _Tuple, typename... _Args,
+    template<std::size_t I, typename Value, typename Tuple, typename... Args,
              typename std::enable_if<
-                 (_I + 1 < std::tuple_size<typename std::decay<_Tuple>::type>::value),
+                 (I + 1 < std::tuple_size<typename std::decay<Tuple>::type>::value),
                  int>::type = 0>
-    D_CONSTEXPR _Value pw_run(const _Tuple& _t, _Args&&... _a)
+    D_CONSTEXPR Value pw_run(const Tuple& _t, Args&&... _a)
     {
-        return std::get<_I>(_t).test(_a...)
-                   ? static_cast<_Value>(std::get<_I>(_t).body(_a...))
-                   : pw_run<_I + 1, _Value>(_t, _a...);
+        return std::get<I>(_t).test(_a...)
+                   ? static_cast<Value>(std::get<I>(_t).body(_a...))
+                   : pw_run<I + 1, Value>(_t, _a...);
     }
 
-    template<std::size_t _I, typename _Value, typename _Tuple, typename... _Args,
+    template<std::size_t I, typename Value, typename Tuple, typename... Args,
              typename std::enable_if<
-                 (_I + 1 == std::tuple_size<typename std::decay<_Tuple>::type>::value),
+                 (I + 1 == std::tuple_size<typename std::decay<Tuple>::type>::value),
                  int>::type = 0>
-    D_CONSTEXPR _Value pw_run(const _Tuple& _t, _Args&&... _a)
+    D_CONSTEXPR Value pw_run(const Tuple& _t, Args&&... _a)
     {
-        return static_cast<_Value>(std::get<_I>(_t).body(_a...));
+        return static_cast<Value>(std::get<I>(_t).body(_a...));
     }
 
 NS_END  // internal
 
 // piecewise_node
 //   expression: a piecewise-defined function over a sequence of branches.
-template<typename... _Pieces>
+template<typename... Pieces>
 struct piecewise_node
-    : expression_base<piecewise_node<_Pieces...>>
+    : expression_base<piecewise_node<Pieces...>>
 {
-    using value_type  = typename std::common_type<typename _Pieces::value_type...>::type;
-    using pieces_type = std::tuple<_Pieces...>;
+    using value_type  = typename std::common_type<typename Pieces::value_type...>::type;
+    using pieces_type = std::tuple<Pieces...>;
 
-    std::tuple<_Pieces...> pieces;
+    std::tuple<Pieces...> pieces;
 
-    static constexpr std::size_t num_pieces = sizeof...(_Pieces);
+    static constexpr std::size_t num_pieces = sizeof...(Pieces);
     static constexpr std::size_t arity =
-        internal::max_size_t<_Pieces::arity...>::value;
+        internal::max_size_t<Pieces::arity...>::value;
     static constexpr bool is_piecewise = true;
 
-    D_CONSTEXPR explicit piecewise_node(_Pieces... _p) noexcept : pieces(_p...) {}
+    D_CONSTEXPR explicit piecewise_node(Pieces... _p) noexcept : pieces(_p...) {}
 
-    template<typename... _Args>
-    D_CONSTEXPR value_type operator()(_Args&&... _args) const noexcept
+    template<typename... Args>
+    D_CONSTEXPR value_type operator()(Args&&... _args) const noexcept
     { return internal::pw_run<0, value_type>(pieces, _args...); }
 };
 
-template<typename... _Pieces>
-D_CONSTEXPR piecewise_node<_Pieces...> piecewise(_Pieces... _p) noexcept
-{ return piecewise_node<_Pieces...>(_p...); }
+template<typename... Pieces>
+D_CONSTEXPR piecewise_node<Pieces...> piecewise(Pieces... _p) noexcept
+{ return piecewise_node<Pieces...>(_p...); }
 
 
-// ============================================================================
-// VI.   VECTOR-VALUED FUNCTIONS
-// ============================================================================
+//==============================================================================
+// 6.  VECTOR-VALUED FUNCTIONS
+//==============================================================================
 
 // vector_node
 //   expression: f : R^n -> R^m given by m component expressions sharing the
 // same inputs. operator() returns the m values as a std::array.
-template<typename... _Components>
+template<typename... Components>
 struct vector_node
-    : expression_base<vector_node<_Components...>>
+    : expression_base<vector_node<Components...>>
 {
-    using value_type      = std::array<double, sizeof...(_Components)>;
-    using components_type = std::tuple<_Components...>;
+    using value_type      = std::array<double, sizeof...(Components)>;
+    using components_type = std::tuple<Components...>;
 
-    std::tuple<_Components...> components;
+    std::tuple<Components...> components;
 
-    static constexpr std::size_t output_dimension = sizeof...(_Components);
+    static constexpr std::size_t output_dimension = sizeof...(Components);
     static constexpr std::size_t arity =
-        internal::max_size_t<_Components::arity...>::value;
+        internal::max_size_t<Components::arity...>::value;
     static constexpr bool is_vector_valued = true;
 
-    D_CONSTEXPR explicit vector_node(_Components... _c) noexcept
+    D_CONSTEXPR explicit vector_node(Components... _c) noexcept
         : components(_c...) {}
 
-    template<std::size_t _I>
-    using component = typename std::tuple_element<_I, components_type>::type;
+    template<std::size_t I>
+    using component = typename std::tuple_element<I, components_type>::type;
 
-    template<typename... _Args>
+    template<typename... Args>
     D_CONSTEXPR
     value_type operator()(
-        _Args&&... _args
+        Args&&... _args
     ) const noexcept
     {
         return internal::eval_components(
             components,
-            re_std::make_index_sequence<sizeof...(_Components)>{},
+            re_std::make_index_sequence<sizeof...(Components)>{},
             _args...);
     }
 };
 
 // vec
 //   builds a vector-valued expression; bare scalar components are lifted.
-template<typename... _Components>
+template<typename... Components>
 D_CONSTEXPR
 auto vec(
-    _Components... _c
+    Components... _c
 ) noexcept -> vector_node<decltype(internal::as_expr(_c))...>
 {
     return vector_node<decltype(internal::as_expr(_c))...>(
@@ -669,55 +699,55 @@ auto vec(
 
 // vector_function
 //   alias of vec, matching the original public name.
-template<typename... _Components>
-D_CONSTEXPR auto vector_function(_Components... _c) noexcept
+template<typename... Components>
+D_CONSTEXPR auto vector_function(Components... _c) noexcept
     -> decltype(vec(_c...))
 { return vec(_c...); }
 
 
-// ============================================================================
-// VII.  PARAMETRIC CURVES AND SURFACES
-// ============================================================================
+//==============================================================================
+// 7.  PARAMETRIC CURVES AND SURFACES
+//==============================================================================
 
 // parametric_node
 //   expression: a parametric mapping with a fixed parameter count. Carries
 // both is_parametric (with parameter_count) and is_vector_valued markers.
-template<std::size_t _ParamCount, typename... _Components>
+template<std::size_t ParamCount, typename... Components>
 struct parametric_node
-    : expression_base<parametric_node<_ParamCount, _Components...>>
+    : expression_base<parametric_node<ParamCount, Components...>>
 {
-    using value_type      = std::array<double, sizeof...(_Components)>;
-    using components_type = std::tuple<_Components...>;
+    using value_type      = std::array<double, sizeof...(Components)>;
+    using components_type = std::tuple<Components...>;
 
-    std::tuple<_Components...> components;
+    std::tuple<Components...> components;
 
-    static constexpr std::size_t output_dimension = sizeof...(_Components);
-    static constexpr std::size_t parameter_count  = _ParamCount;
-    static constexpr std::size_t arity            = _ParamCount;
+    static constexpr std::size_t output_dimension = sizeof...(Components);
+    static constexpr std::size_t parameter_count  = ParamCount;
+    static constexpr std::size_t arity            = ParamCount;
     static constexpr bool is_parametric    = true;
     static constexpr bool is_vector_valued = true;
 
-    D_CONSTEXPR explicit parametric_node(_Components... _c) noexcept
+    D_CONSTEXPR explicit parametric_node(Components... _c) noexcept
         : components(_c...) {}
 
-    template<typename... _Args>
+    template<typename... Args>
     D_CONSTEXPR
     value_type operator()(
-        _Args&&... _args
+        Args&&... _args
     ) const noexcept
     {
         return internal::eval_components(
             components,
-            re_std::make_index_sequence<sizeof...(_Components)>{},
+            re_std::make_index_sequence<sizeof...(Components)>{},
             _args...);
     }
 };
 
 // parametric_curve  (one parameter t)
-template<typename... _Components>
+template<typename... Components>
 D_CONSTEXPR
 auto parametric_curve(
-    _Components... _c
+    Components... _c
 ) noexcept -> parametric_node<1, decltype(internal::as_expr(_c))...>
 {
     return parametric_node<1, decltype(internal::as_expr(_c))...>(
@@ -725,10 +755,10 @@ auto parametric_curve(
 }
 
 // parametric_surface  (two parameters u, v)
-template<typename... _Components>
+template<typename... Components>
 D_CONSTEXPR
 auto parametric_surface(
-    _Components... _c
+    Components... _c
 ) noexcept -> parametric_node<2, decltype(internal::as_expr(_c))...>
 {
     return parametric_node<2, decltype(internal::as_expr(_c))...>(
@@ -736,40 +766,40 @@ auto parametric_surface(
 }
 
 
-// ============================================================================
-// VIII. IMPLICIT FUNCTIONS
-// ============================================================================
+//==============================================================================
+// 8.  IMPLICIT FUNCTIONS
+//==============================================================================
 
 // implicit_node
 //   expression: a function defined implicitly by F(x, y, ...) = 0. operator()
 // returns the residual F; contains() and sign() locate a point relative to
 // the zero set.
-template<typename _Expr>
+template<typename Expr>
 struct implicit_node
-    : expression_base<implicit_node<_Expr>>
+    : expression_base<implicit_node<Expr>>
 {
-    using expression_type = _Expr;
-    using value_type      = typename _Expr::value_type;
+    using expression_type = Expr;
+    using value_type      = typename Expr::value_type;
 
-    _Expr expr;
+    Expr expr;
 
-    static constexpr std::size_t arity = _Expr::arity;
+    static constexpr std::size_t arity = Expr::arity;
     static constexpr bool is_implicit = true;
 
-    D_CONSTEXPR explicit implicit_node(_Expr _e) noexcept : expr(_e) {}
+    D_CONSTEXPR explicit implicit_node(Expr _e) noexcept : expr(_e) {}
 
-    template<typename... _Args>
-    D_CONSTEXPR value_type operator()(_Args&&... _args) const noexcept
+    template<typename... Args>
+    D_CONSTEXPR value_type operator()(Args&&... _args) const noexcept
     { return expr(_args...); }
 
     // contains
     //   true when |F(args...)| < epsilon. (epsilon is first so it may precede
     // the variadic coordinate pack.)
-    template<typename... _Args>
+    template<typename... Args>
     D_CONSTEXPR
     bool contains(
         value_type _epsilon,
-        _Args&&... _args
+        Args&&... _args
     ) const noexcept
     {
         return within(expr(_args...), _epsilon);
@@ -777,10 +807,10 @@ struct implicit_node
 
     // sign
     //   -1, 0, or +1: which side of the zero set the point lies on.
-    template<typename... _Args>
+    template<typename... Args>
     D_CONSTEXPR
     int sign(
-        _Args&&... _args
+        Args&&... _args
     ) const noexcept
     {
         return sign_of(expr(_args...));
@@ -812,17 +842,17 @@ private:
     }
 };
 
-template<typename _Expr>
-D_CONSTEXPR implicit_node<_Expr> implicit(_Expr _e) noexcept
-{ return implicit_node<_Expr>(_e); }
+template<typename Expr>
+D_CONSTEXPR implicit_node<Expr> implicit(Expr _e) noexcept
+{ return implicit_node<Expr>(_e); }
 
 // level_set
 //   the set { F(x,...) = level }, represented as implicit(F - level).
-template<typename _Expr, typename _Level>
+template<typename Expr, typename Level>
 D_CONSTEXPR
 auto level_set(
-    _Expr  _e,
-    _Level _level
+    Expr   _e,
+    Level  _level
 ) noexcept -> implicit_node<decltype(_e - internal::as_expr(_level))>
 {
     return implicit_node<decltype(_e - internal::as_expr(_level))>(
@@ -830,26 +860,27 @@ auto level_set(
 }
 
 
-// ============================================================================
-// IX.   MIGRATION ALIASES
-// ============================================================================
+//==============================================================================
+// 9.  MIGRATION ALIASES
+//==============================================================================
 
 // multivariable / mvar_*
 //   the original positional-variable names, mapped onto variable_node.
-template<typename _ValueType, std::size_t _ID>
-using multivariable = variable_node<_ID, _ValueType>;
+template<typename ValueType, std::size_t ID>
+using multivariable = variable_node<ID, ValueType>;
 
-template<typename _T = double> using mvar_x = variable_node<0, _T>;
-template<typename _T = double> using mvar_y = variable_node<1, _T>;
-template<typename _T = double> using mvar_z = variable_node<2, _T>;
-template<typename _T = double> using mvar_w = variable_node<3, _T>;
-template<typename _T = double> using mvar_u = variable_node<0, _T>;
-template<typename _T = double> using mvar_v = variable_node<1, _T>;
+template<typename T = double> using mvar_x = variable_node<0, T>;
+template<typename T = double> using mvar_y = variable_node<1, T>;
+template<typename T = double> using mvar_z = variable_node<2, T>;
+template<typename T = double> using mvar_w = variable_node<3, T>;
+template<typename T = double> using mvar_u = variable_node<0, T>;
+template<typename T = double> using mvar_v = variable_node<1, T>;
 
 
-// ============================================================================
-// X.    COORDINATE AXIS VARIABLE SETS  (correctly indexed per system)
-// ============================================================================
+//==============================================================================
+// 10.  COORDINATE AXIS VARIABLE SETS
+//==============================================================================
+// correctly indexed per system.
 
 // Per-system axis placeholders with the indices each system actually uses.
 // Bringing the right set into scope keeps axis names unambiguous - in
@@ -883,9 +914,9 @@ namespace spherical_axes
 }
 
 
-// ============================================================================
-// XI.   NAMED FUNCTION WRAPPER
-// ============================================================================
+//==============================================================================
+// 11.  NAMED FUNCTION WRAPPER
+//==============================================================================
 
 // math_function
 //   the callable top-level wrapper: an expression bound to a coordinate
@@ -893,122 +924,122 @@ namespace spherical_axes
 // std::tuple or a linalg::vector (the latter three explode into the pack), so
 // a coordinate point - the system's point_type, a linalg::vector --
 // evaluates directly.
-template<typename _System, typename _Expr, std::size_t _Arity>
+template<typename System, typename Expr, std::size_t Arity>
 struct math_function
 {
-    using system_type       = _System;
-    using coordinate_system = _System;
-    using expression_type   = _Expr;
-    using value_type        = typename _Expr::value_type;
+    using system_type       = System;
+    using coordinate_system = System;
+    using expression_type   = Expr;
+    using value_type        = typename Expr::value_type;
 
-    _System system;
-    _Expr   expr;
+    System system;
+    Expr   expr;
 
-    static constexpr std::size_t arity = _Arity;
+    static constexpr std::size_t arity = Arity;
     static constexpr bool is_math_function = true;
 
-    D_CONSTEXPR math_function(_System _s, _Expr _e) noexcept
+    D_CONSTEXPR math_function(System _s, Expr _e) noexcept
         : system(_s), expr(_e) {}
 
     // scalar pack - excluded for a single array, tuple or vector argument
     // so the dedicated overloads below win unambiguously.
-    template<typename... _Args,
+    template<typename... Args,
              typename std::enable_if<
-                 !internal::first_is_container<_Args...>::value, int>::type = 0>
-    D_CONSTEXPR value_type operator()(_Args&&... _args) const noexcept
+                 !internal::first_is_container<Args...>::value, int>::type = 0>
+    D_CONSTEXPR value_type operator()(Args&&... _args) const noexcept
     { return expr(_args...); }
 
     // std::array of coordinates
-    template<typename _T, std::size_t _N>
-    D_CONSTEXPR value_type operator()(const std::array<_T, _N>& _point) const noexcept
-    { return eval_array(_point, re_std::make_index_sequence<_N>{}); }
+    template<typename T, std::size_t N>
+    D_CONSTEXPR value_type operator()(const std::array<T, N>& _point) const noexcept
+    { return eval_array(_point, re_std::make_index_sequence<N>{}); }
 
     // std::tuple of coordinates
-    template<typename... _TArgs>
-    D_CONSTEXPR value_type operator()(const std::tuple<_TArgs...>& _point) const noexcept
+    template<typename... TArgs>
+    D_CONSTEXPR value_type operator()(const std::tuple<TArgs...>& _point) const noexcept
     { return eval_tuple(_point,
-                        re_std::make_index_sequence<sizeof...(_TArgs)>{}); }
+                        re_std::make_index_sequence<sizeof...(TArgs)>{}); }
 
     // linalg::vector of coordinates: a coordinate system's point
-    template<typename _T, std::size_t _N>
+    template<typename T, std::size_t N>
     D_CONSTEXPR value_type
-    operator()(const linalg::vector<_T, _N>& _point) const noexcept
-    { return eval_array(_point, re_std::make_index_sequence<_N>{}); }
+    operator()(const linalg::vector<T, N>& _point) const noexcept
+    { return eval_array(_point, re_std::make_index_sequence<N>{}); }
 
 private:
     // eval_array
     //   explodes an indexable point (a std::array or a linalg::vector).
-    template<typename _Point, std::size_t... _Is>
+    template<typename Point, std::size_t... Is>
     D_CONSTEXPR value_type
-    eval_array(const _Point&                  _p,
-               re_std::index_sequence<_Is...>) const noexcept
-    { return expr(_p[_Is]...); }
+    eval_array(const Point&                  _p,
+               re_std::index_sequence<Is...>) const noexcept
+    { return expr(_p[Is]...); }
 
-    template<typename _Tuple, std::size_t... _Is>
+    template<typename Tuple, std::size_t... Is>
     D_CONSTEXPR value_type
-    eval_tuple(const _Tuple&                  _p,
-               re_std::index_sequence<_Is...>) const noexcept
-    { return expr(std::get<_Is>(_p)...); }
+    eval_tuple(const Tuple&                  _p,
+               re_std::index_sequence<Is...>) const noexcept
+    { return expr(std::get<Is>(_p)...); }
 };
 
 
-// ============================================================================
-// XII.  FLUENT BUILDER
-// ============================================================================
+//==============================================================================
+// 12.  FLUENT BUILDER
+//==============================================================================
 
 // function_of
 //   the builder stage after .of(...): the arity is fixed, awaiting .returns.
-template<typename _System, std::size_t _Arity>
+template<typename System, std::size_t Arity>
 struct function_of
 {
-    _System system;
+    System system;
 
-    D_CONSTEXPR explicit function_of(_System _s) noexcept : system(_s) {}
+    D_CONSTEXPR explicit function_of(System _s) noexcept : system(_s) {}
 
-    template<typename _Expr>
-    D_CONSTEXPR math_function<_System, _Expr, _Arity>
-    returns(_Expr _e) const noexcept
-    { return math_function<_System, _Expr, _Arity>(system, _e); }
+    template<typename Expr>
+    D_CONSTEXPR math_function<System, Expr, Arity>
+    returns(Expr _e) const noexcept
+    { return math_function<System, Expr, Arity>(system, _e); }
 };
 
 // function_builder
 //   the initial builder stage produced by function(system).
-template<typename _System>
+template<typename System>
 struct function_builder
 {
-    _System system;
+    System system;
 
-    D_CONSTEXPR explicit function_builder(_System _s) noexcept : system(_s) {}
+    D_CONSTEXPR explicit function_builder(System _s) noexcept : system(_s) {}
 
     // .of(vars...) - declares the parameter list. The count must match the
     // system dimension when the system has one.
-    template<typename... _Vars>
-    D_CONSTEXPR function_of<_System, sizeof...(_Vars)>
-    of(_Vars...) const noexcept
+    template<typename... Vars>
+    D_CONSTEXPR function_of<System, sizeof...(Vars)>
+    of(Vars...) const noexcept
     {
-        static_assert(internal::arity_ok<_System, sizeof...(_Vars)>::value,
+        static_assert(internal::arity_ok<System, sizeof...(Vars)>::value,
                       "function(system).of(...): parameter count must match "
                       "the coordinate system dimension.");
-        return function_of<_System, sizeof...(_Vars)>(system);
+        return function_of<System, sizeof...(Vars)>(system);
     }
 
     // .returns(expr) directly - arity is taken from the system dimension.
-    template<typename _Expr>
+    template<typename Expr>
     D_CONSTEXPR
-    math_function<_System, _Expr, internal::system_dimension<_System>::value> returns(
-        _Expr _e
+    math_function<System, Expr, internal::system_dimension<System>::value> returns(
+        Expr _e
     ) const noexcept
     {
-        return math_function<_System, _Expr,
-                             internal::system_dimension<_System>::value>(system, _e);
+        return math_function<System, Expr,
+                             internal::system_dimension<System>::value>(system, _e);
     }
 };
 
 // function
 //   entry point: function(system) -> builder.
-template<typename _System>
-D_CONSTEXPR function_builder<_System> function(_System _s) noexcept
-{ return function_builder<_System>(_s); }
+template<typename System>
+D_CONSTEXPR function_builder<System> function(System _s) noexcept
+{ return function_builder<System>(_s); }
 
 
 #undef D_DETECT_MARKER

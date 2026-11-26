@@ -26,8 +26,17 @@
 * path:      /inc/djinterp/cpp/modules/math/calculus/integration.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
-*                                                            revised: 2026.11.23
+*                                                            revised: 2026.11.24
 *******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+1.  QUADRATURE RULES (CALLABLE INTEGRAND)
+    -------------------------------------
+2.  EXPRESSION CONVENIENCE
+    ----------------------
+*/
 
 #ifndef DJINTERP_MATH_CALCULUS_INTEGRATION_HPP
 #define DJINTERP_MATH_CALCULUS_INTEGRATION_HPP 1
@@ -47,16 +56,16 @@
 NS_DJINTERP
 NS_MATH
 
-// ============================================================================
-// I.    QUADRATURE RULES (callable integrand)
-// ============================================================================
+//==============================================================================
+// 1.  QUADRATURE RULES (CALLABLE INTEGRAND)
+//==============================================================================
 
 // trapezoid
 //   composite trapezoidal rule with _n subintervals.
-template<typename _F>
+template<typename F>
 D_CONSTEXPR_CPP14
 double trapezoid(
-    _F          _f,
+    F           _f,
     double      _a,
     double      _b,
     std::size_t _n = 128
@@ -77,10 +86,10 @@ double trapezoid(
 
 // simpson
 //   composite Simpson's rule; _n is rounded up to the next even number.
-template<typename _F>
+template<typename F>
 D_CONSTEXPR_CPP14
 double simpson(
-    _F          _f,
+    F           _f,
     double      _a,
     double      _b,
     std::size_t _n = 128
@@ -107,10 +116,10 @@ NS_INTERNAL
     //   the 5-point rule about _mid with half-width _half: the loop's sum,
     // from 0.0, each weighted point added in order, then times _half; the
     // loop's bits wherever double is evaluated as double, fused or not.
-    template<typename _F>
+    template<typename F>
     D_CONSTEXPR
     double gauss_legendre5_on(
-        _F     _f,
+        F      _f,
         double _mid,
         double _half
     )
@@ -133,10 +142,10 @@ NS_END  // internal
 
 // gauss_legendre5
 //   5-point Gauss-Legendre on [a, b]; exact for polynomials up to degree 9.
-template<typename _F>
+template<typename F>
 D_CONSTEXPR
 double gauss_legendre5(
-    _F     _f,
+    F      _f,
     double _a,
     double _b
 )
@@ -145,21 +154,21 @@ double gauss_legendre5(
 }
 
 // romberg
-//   Romberg integration: _Levels rows of trapezoidal refinement combined by
-// Richardson extrapolation. Higher _Levels -> higher accuracy.
-template<std::size_t _Levels = 6, typename _F>
+//   Romberg integration: Levels rows of trapezoidal refinement combined by
+// Richardson extrapolation. Higher Levels -> higher accuracy.
+template<std::size_t Levels = 6, typename F>
 D_CONSTEXPR_CPP14 double
-romberg(_F _f, double _a, double _b)
+romberg(F _f, double _a, double _b)
 {
-    static_assert(_Levels >= 1, "romberg: need at least one level.");
+    static_assert(Levels >= 1, "romberg: need at least one level.");
 
-    double row[_Levels]  = {};
-    double prev[_Levels] = {};
+    double row[Levels]  = {};
+    double prev[Levels] = {};
 
     double h = _b - _a;
     prev[0]  = 0.5 * h * (_f(_a) + _f(_b));
 
-    for (std::size_t k = 1; k < _Levels; ++k)
+    for (std::size_t k = 1; k < Levels; ++k)
     {
         // refined trapezoid: add the new midpoints
         h *= 0.5;
@@ -184,22 +193,22 @@ romberg(_F _f, double _a, double _b)
         for (std::size_t j = 0; j <= k; ++j) { prev[j] = row[j]; }
     }
 
-    return prev[_Levels - 1];
+    return prev[Levels - 1];
 }
 
 
-// ============================================================================
-// II.   EXPRESSION CONVENIENCE
-// ============================================================================
+//==============================================================================
+// 2.  EXPRESSION CONVENIENCE
+//==============================================================================
 
 NS_INTERNAL
 
     // expr_eval1: turn a univariate expression into a constexpr-friendly unary
     // functor (avoids lambdas, which are not constexpr before C++17).
-    template<typename _Expr>
+    template<typename Expr>
     struct expr_eval1
     {
-        _Expr expr;
+        Expr expr;
 
         D_CONSTEXPR
         double operator()(
@@ -215,12 +224,12 @@ NS_END  // internal
 // integrate
 //   definite integral of a univariate expression (argument 0) over [a, b]
 // using composite Simpson's rule.
-template<typename _Expr,
-         typename std::enable_if<is_expression<_Expr>::value, int>::type = 0>
+template<typename Expr,
+         typename std::enable_if<is_expression<Expr>::value, int>::type = 0>
 D_CONSTEXPR_CPP14 double
-integrate(const _Expr& _e, double _a, double _b, std::size_t _n = 128)
+integrate(const Expr& _e, double _a, double _b, std::size_t _n = 128)
 {
-    return simpson(internal::expr_eval1<_Expr>{_e}, _a, _b, _n);
+    return simpson(internal::expr_eval1<Expr>{_e}, _a, _b, _n);
 }
 
 NS_END  // math

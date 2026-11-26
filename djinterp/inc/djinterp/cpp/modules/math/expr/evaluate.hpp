@@ -168,7 +168,7 @@
 * path:      /inc/djinterp/cpp/modules/math/expr/evaluate.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*
@@ -947,13 +947,13 @@ NS_INTERNAL
     // 2.4.4
     // expr_operands
     //   class: a call's or an operator's operands in one type, as an array:
-    // in the frame up to _Frame, by default eight, which every operator and
+    // in the frame up to Frame, by default eight, which every operator and
     // every function but a long min or max takes, else on the heap; so that
     // an operation of the complex fold, which reads its operands' real
     // parts or complex numbers apart, allocates nothing where it needs no
     // more, nor a compiled term's run its variables' (S395).
     template<typename Number,
-             std::size_t _Frame = 8>
+             std::size_t Frame = 8>
     class expr_operands
     {
     public:
@@ -965,7 +965,7 @@ NS_INTERNAL
               m_data(m_frame)
         {
             // past the frame: the heap
-            if (_n > _Frame)
+            if (_n > Frame)
             {
                 m_heap.resize(_n);
                 m_data = m_heap.data();
@@ -990,7 +990,7 @@ NS_INTERNAL
         }
 
     private:
-        Number              m_frame[_Frame];
+        Number              m_frame[Frame];
         std::vector<Number> m_heap;
         Number*             m_data;
     };

@@ -47,8 +47,31 @@
 * path:      /inc/djinterp/cpp/modules/math/expression.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                                created: TBA
-*                                                            revised: 2026.11.20
+*                                                            revised: 2026.11.24
 *******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+1.  EXPRESSION BASE (CRTP) + STRUCTURAL DETECTION
+    ---------------------------------------------
+2.  SMALL VECTOR VALUE TYPE
+    -----------------------
+3.  CONSTEXPR MATH KERNEL + OPERATION FUNCTORS (INTERNAL)
+    -----------------------------------------------------
+4.  LEAVES: CONSTANT / VALUE
+    ------------------------
+5.  LEAVES: VARIABLE (POSITIONAL BINDING)
+    -------------------------------------
+6.  SCALAR LIFTING HELPER (INTERNAL)
+    --------------------------------
+7.  NODES: BINARY / UNARY
+    ---------------------
+8.  OPERATORS
+    ---------
+9.  FREE COMBINATORS
+    ----------------
+*/
 
 #ifndef DJINTERP_MATH_EXPRESSION_HPP
 #define DJINTERP_MATH_EXPRESSION_HPP 1
@@ -84,50 +107,50 @@
 NS_DJINTERP
 NS_MATH
 
-// ===========================================================================
-// I.   EXPRESSION BASE (CRTP) + STRUCTURAL DETECTION
-// ===========================================================================
+//==============================================================================
+// 1.  EXPRESSION BASE (CRTP) + STRUCTURAL DETECTION
+//==============================================================================
 
 // expression_base
 //   struct: CRTP base every expression node inherits. Presence of this base
 // is what is_expression / expression_c detect.
-template<typename _Derived>
+template<typename Derived>
 struct expression_base
 {
-    using derived_type = _Derived;
+    using derived_type = Derived;
 
-    D_CONSTEXPR const _Derived&
+    D_CONSTEXPR const Derived&
     self() const noexcept
     {
-        return static_cast<const _Derived&>(*this);
+        return static_cast<const Derived&>(*this);
     }
 };
 
 // is_expression / is_expression_v
 //   trait: detects an expression node (derives expression_base<itself>).
-template<typename _Type>
+template<typename Type>
 struct is_expression
-    : std::is_base_of<expression_base<typename std::decay<_Type>::type>,
-                      typename std::decay<_Type>::type>
+    : std::is_base_of<expression_base<typename std::decay<Type>::type>,
+                      typename std::decay<Type>::type>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-template<typename _Type>
-D_INLINE_VAR constexpr bool is_expression_v = is_expression<_Type>::value;
+template<typename Type>
+D_INLINE_VAR constexpr bool is_expression_v = is_expression<Type>::value;
 #endif
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 // expression_c
 //   concept: parallel to is_expression for constraint syntax.
-template<typename _Type>
-concept expression_c = is_expression<_Type>::value;
+template<typename Type>
+concept expression_c = is_expression<Type>::value;
 #endif
 
 
-// ===========================================================================
-// II.  SMALL VECTOR VALUE TYPE
-// ===========================================================================
+//==============================================================================
+// 2.  SMALL VECTOR VALUE TYPE
+//==============================================================================
 // A minimal literal vector usable as an expression value_type (e.g. for
 // dot(constant(vec3{...}), p)). Kept here so leaves can carry vector values.
 
@@ -153,9 +176,9 @@ struct vec3
 };
 
 
-// ===========================================================================
-// III. CONSTEXPR MATH KERNEL + OPERATION FUNCTORS (internal)
-// ===========================================================================
+//==============================================================================
+// 3.  CONSTEXPR MATH KERNEL + OPERATION FUNCTORS (INTERNAL)
+//==============================================================================
 
 NS_INTERNAL
 
@@ -186,8 +209,8 @@ NS_INTERNAL
 
     struct op_add
     {
-        template<typename _A, typename _B>
-        static D_CONSTEXPR auto apply(_A _a, _B _b) -> decltype(_a + _b)
+        template<typename A, typename B>
+        static D_CONSTEXPR auto apply(A _a, B _b) -> decltype(_a + _b)
         {
             return _a + _b;
         }
@@ -195,8 +218,8 @@ NS_INTERNAL
 
     struct op_sub
     {
-        template<typename _A, typename _B>
-        static D_CONSTEXPR auto apply(_A _a, _B _b) -> decltype(_a - _b)
+        template<typename A, typename B>
+        static D_CONSTEXPR auto apply(A _a, B _b) -> decltype(_a - _b)
         {
             return _a - _b;
         }
@@ -204,8 +227,8 @@ NS_INTERNAL
 
     struct op_mul
     {
-        template<typename _A, typename _B>
-        static D_CONSTEXPR auto apply(_A _a, _B _b) -> decltype(_a * _b)
+        template<typename A, typename B>
+        static D_CONSTEXPR auto apply(A _a, B _b) -> decltype(_a * _b)
         {
             return _a * _b;
         }
@@ -213,8 +236,8 @@ NS_INTERNAL
 
     struct op_div
     {
-        template<typename _A, typename _B>
-        static D_CONSTEXPR auto apply(_A _a, _B _b) -> decltype(_a / _b)
+        template<typename A, typename B>
+        static D_CONSTEXPR auto apply(A _a, B _b) -> decltype(_a / _b)
         {
             return _a / _b;
         }
@@ -222,8 +245,8 @@ NS_INTERNAL
 
     struct op_dot
     {
-        template<typename _A, typename _B>
-        static D_CONSTEXPR double apply(_A _a, _B _b)
+        template<typename A, typename B>
+        static D_CONSTEXPR double apply(A _a, B _b)
         {
             return vec_dot(_a, _b);
         }
@@ -235,8 +258,8 @@ NS_INTERNAL
     // the C core's kernels are (D_MATH_FN), and run-time calls below it.
     struct op_neg
     {
-        template<typename _X>
-        static D_CONSTEXPR _X apply(_X _x)
+        template<typename X>
+        static D_CONSTEXPR X apply(X _x)
         {
             return -_x;
         }
@@ -244,8 +267,8 @@ NS_INTERNAL
 
     struct fn_exp
     {
-        template<typename _X>
-        static D_CONSTEXPR_CPP14 double apply(_X _x)
+        template<typename X>
+        static D_CONSTEXPR_CPP14 double apply(X _x)
         {
             return d_math_exp_c(static_cast<double>(_x));
         }
@@ -253,8 +276,8 @@ NS_INTERNAL
 
     struct fn_sin
     {
-        template<typename _X>
-        static D_CONSTEXPR_CPP14 double apply(_X _x)
+        template<typename X>
+        static D_CONSTEXPR_CPP14 double apply(X _x)
         {
             return d_math_sin_c(static_cast<double>(_x));
         }
@@ -262,8 +285,8 @@ NS_INTERNAL
 
     struct fn_cos
     {
-        template<typename _X>
-        static D_CONSTEXPR_CPP14 double apply(_X _x)
+        template<typename X>
+        static D_CONSTEXPR_CPP14 double apply(X _x)
         {
             return d_math_cos_c(static_cast<double>(_x));
         }
@@ -271,8 +294,8 @@ NS_INTERNAL
 
     struct fn_tan
     {
-        template<typename _X>
-        static D_CONSTEXPR_CPP14 double apply(_X _x)
+        template<typename X>
+        static D_CONSTEXPR_CPP14 double apply(X _x)
         {
             return d_math_tan_c(static_cast<double>(_x));
         }
@@ -280,8 +303,8 @@ NS_INTERNAL
 
     struct fn_sqrt
     {
-        template<typename _X>
-        static D_CONSTEXPR_CPP14 double apply(_X _x)
+        template<typename X>
+        static D_CONSTEXPR_CPP14 double apply(X _x)
         {
             return d_math_sqrt_c(static_cast<double>(_x));
         }
@@ -289,8 +312,8 @@ NS_INTERNAL
 
     struct fn_abs
     {
-        template<typename _X>
-        static D_CONSTEXPR double apply(_X _x)
+        template<typename X>
+        static D_CONSTEXPR double apply(X _x)
         {
             return expr_abs(static_cast<double>(_x));
         }
@@ -299,16 +322,16 @@ NS_INTERNAL
 NS_END  // internal
 
 
-// ===========================================================================
-// IV.  LEAVES: CONSTANT / VALUE
-// ===========================================================================
+//==============================================================================
+// 4.  LEAVES: CONSTANT / VALUE
+//==============================================================================
 
 // constant_node
 //   struct: leaf holding a stored value; ignores evaluation arguments.
-template<typename _ValueType>
-struct constant_node : expression_base<constant_node<_ValueType>>
+template<typename ValueType>
+struct constant_node : expression_base<constant_node<ValueType>>
 {
-    using value_type = _ValueType;
+    using value_type = ValueType;
 
     value_type value;
 
@@ -320,9 +343,9 @@ struct constant_node : expression_base<constant_node<_ValueType>>
     {
     }
 
-    template<typename... _Args>
+    template<typename... Args>
     D_CONSTEXPR value_type
-    operator()(_Args&&...) const noexcept
+    operator()(Args&&...) const noexcept
     {
         return value;
     }
@@ -332,75 +355,75 @@ struct constant_node : expression_base<constant_node<_ValueType>>
 //   factory: leaf holding a scalar, a numeric literal or any other value
 // (a vec3). The factory once also named value is gone: math::value
 // (value.hpp) is the generic value's class.
-template<typename _T>
-D_CONSTEXPR constant_node<typename std::decay<_T>::type>
-constant(_T _v)
+template<typename T>
+D_CONSTEXPR constant_node<typename std::decay<T>::type>
+constant(T _v)
 {
-    return constant_node<typename std::decay<_T>::type>(_v);
+    return constant_node<typename std::decay<T>::type>(_v);
 }
 
 
-// ===========================================================================
-// V.   LEAVES: VARIABLE (positional binding)
-// ===========================================================================
+//==============================================================================
+// 5.  LEAVES: VARIABLE (POSITIONAL BINDING)
+//==============================================================================
 
 NS_INTERNAL
 
     // expr_pick
-    //   the _Index-th of the arguments as _ValueType: std::get and
+    //   the Index-th of the arguments as ValueType: std::get and
     // std::forward_as_tuple are constant expressions only from C++14.
-    template<std::size_t _Index,
-             typename    _ValueType>
+    template<std::size_t Index,
+             typename    ValueType>
     struct expr_pick
     {
-        template<typename _A, typename... _Rest>
-        static D_CONSTEXPR _ValueType
-        get(const _A&, const _Rest&... _rest) noexcept
+        template<typename A, typename... Rest>
+        static D_CONSTEXPR ValueType
+        get(const A&, const Rest&... _rest) noexcept
         {
-            return expr_pick<(_Index - 1), _ValueType>::get(_rest...);
+            return expr_pick<(Index - 1), ValueType>::get(_rest...);
         }
     };
 
-    template<typename _ValueType>
-    struct expr_pick<0, _ValueType>
+    template<typename ValueType>
+    struct expr_pick<0, ValueType>
     {
-        template<typename _A, typename... _Rest>
-        static D_CONSTEXPR _ValueType
-        get(const _A& _a, const _Rest&...) noexcept
+        template<typename A, typename... Rest>
+        static D_CONSTEXPR ValueType
+        get(const A& _a, const Rest&...) noexcept
         {
-            return static_cast<_ValueType>(_a);
+            return static_cast<ValueType>(_a);
         }
     };
 
 NS_END  // internal
 
 // variable_node
-//   struct: independent variable bound to evaluation-argument index _Index.
-template<std::size_t _Index,
-         typename    _ValueType = double>
-struct variable_node : expression_base<variable_node<_Index, _ValueType>>
+//   struct: independent variable bound to evaluation-argument index Index.
+template<std::size_t Index,
+         typename    ValueType = double>
+struct variable_node : expression_base<variable_node<Index, ValueType>>
 {
-    using value_type = _ValueType;
+    using value_type = ValueType;
 
-    static constexpr std::size_t index = _Index;
-    static constexpr std::size_t arity = _Index + 1;
+    static constexpr std::size_t index = Index;
+    static constexpr std::size_t arity = Index + 1;
 
-    template<typename... _Args>
+    template<typename... Args>
     D_CONSTEXPR value_type
-    operator()(_Args&&... _args) const noexcept
+    operator()(Args&&... _args) const noexcept
     {
-        static_assert((sizeof...(_Args) > _Index),
+        static_assert((sizeof...(Args) > Index),
                       "variable_node: not enough arguments for this index.");
 
-        return internal::expr_pick<_Index, value_type>::get(_args...);
+        return internal::expr_pick<Index, value_type>::get(_args...);
     }
 };
 
 // var
 //   factory: generic positional variable.
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-template<std::size_t _Index, typename _T = double>
-D_INLINE_VAR constexpr variable_node<_Index, _T> var{};
+template<std::size_t Index, typename T = double>
+D_INLINE_VAR constexpr variable_node<Index, T> var{};
 #endif
 
 // variables
@@ -425,38 +448,38 @@ namespace variables
 }  // namespace variables
 
 
-// ===========================================================================
-// VI.  SCALAR LIFTING HELPER (internal)
-// ===========================================================================
+//==============================================================================
+// 6.  SCALAR LIFTING HELPER (INTERNAL)
+//==============================================================================
 
 NS_INTERNAL
 
     // expr_of
-    //   trait: the node as_expr makes of a _T: _T where it is an expression,
+    //   trait: the node as_expr makes of a T: T where it is an expression,
     // and otherwise its constant_node.
-    template<typename _T>
+    template<typename T>
     struct expr_of
     {
         typedef typename std::conditional<
-            is_expression<_T>::value,
-            typename std::decay<_T>::type,
-            constant_node<typename std::decay<_T>::type> >::type type;
+            is_expression<T>::value,
+            typename std::decay<T>::type,
+            constant_node<typename std::decay<T>::type> >::type type;
     };
 
     // as_expr: pass expressions through; wrap non-expressions in constant().
-    template<typename _T>
+    template<typename T>
     D_CONSTEXPR
-    typename std::enable_if<is_expression<_T>::value, _T>::type
-    as_expr(_T _e)
+    typename std::enable_if<is_expression<T>::value, T>::type
+    as_expr(T _e)
     {
         return _e;
     }
 
-    template<typename _T>
+    template<typename T>
     D_CONSTEXPR
-    typename std::enable_if<!is_expression<_T>::value,
-                            constant_node<typename std::decay<_T>::type>>::type
-    as_expr(_T _v)
+    typename std::enable_if<!is_expression<T>::value,
+                            constant_node<typename std::decay<T>::type>>::type
+    as_expr(T _v)
     {
         return constant(_v);
     }
@@ -464,119 +487,120 @@ NS_INTERNAL
 NS_END  // internal
 
 
-// ===========================================================================
-// VII. NODES: BINARY / UNARY
-// ===========================================================================
+//==============================================================================
+// 7.  NODES: BINARY / UNARY
+//==============================================================================
 
 // binary_node
 //   struct: binary operation over two sub-expressions, stored by value.
-template<typename _Op,
-         typename _Left,
-         typename _Right>
-struct binary_node : expression_base<binary_node<_Op, _Left, _Right>>
+template<typename Op,
+         typename Left,
+         typename Right>
+struct binary_node : expression_base<binary_node<Op, Left, Right>>
 {
-    using op_type    = _Op;
-    using left_type  = _Left;
-    using right_type = _Right;
-    using value_type = decltype(_Op::apply(
-        std::declval<typename _Left::value_type>(),
-        std::declval<typename _Right::value_type>()));
+    using op_type    = Op;
+    using left_type  = Left;
+    using right_type = Right;
+    using value_type = decltype(Op::apply(
+        std::declval<typename Left::value_type>(),
+        std::declval<typename Right::value_type>()));
 
-    _Left  left;
-    _Right right;
+    Left  left;
+    Right right;
 
     static constexpr std::size_t arity =
-        (_Left::arity > _Right::arity) ? _Left::arity : _Right::arity;
+        (Left::arity > Right::arity) ? Left::arity : Right::arity;
 
     D_CONSTEXPR
-    binary_node(_Left _l, _Right _r)
+    binary_node(Left _l, Right _r)
         : left(_l)
         , right(_r)
     {
     }
 
-    template<typename... _Args>
+    template<typename... Args>
     D_CONSTEXPR value_type
-    operator()(_Args&&... _args) const
+    operator()(Args&&... _args) const
     {
-        return _Op::apply(left(_args...), right(_args...));
+        return Op::apply(left(_args...), right(_args...));
     }
 };
 
 // unary_node
 //   struct: unary operation over one sub-expression, stored by value.
-template<typename _Op,
-         typename _Arg>
-struct unary_node : expression_base<unary_node<_Op, _Arg>>
+template<typename Op,
+         typename Arg>
+struct unary_node : expression_base<unary_node<Op, Arg>>
 {
-    using op_type    = _Op;
-    using arg_type   = _Arg;
-    using value_type = decltype(_Op::apply(
-        std::declval<typename _Arg::value_type>()));
+    using op_type    = Op;
+    using arg_type   = Arg;
+    using value_type = decltype(Op::apply(
+        std::declval<typename Arg::value_type>()));
 
-    _Arg arg;
+    Arg arg;
 
-    static constexpr std::size_t arity = _Arg::arity;
+    static constexpr std::size_t arity = Arg::arity;
 
     D_CONSTEXPR explicit
-    unary_node(_Arg _a)
+    unary_node(Arg _a)
         : arg(_a)
     {
     }
 
-    template<typename... _Args>
+    template<typename... Args>
     D_CONSTEXPR value_type
-    operator()(_Args&&... _args) const
+    operator()(Args&&... _args) const
     {
-        return _Op::apply(arg(_args...));
+        return Op::apply(arg(_args...));
     }
 };
 
 
-// ===========================================================================
-// VIII. OPERATORS (defined once; cover every node type; auto-lift scalars)
-// ===========================================================================
+//==============================================================================
+// 8.  OPERATORS
+//==============================================================================
+// defined once; cover every node type; auto-lift scalars.
 
 // One macro emits the three overloads (expr.expr, expr.scalar, scalar.expr)
 // for an operator. Constraints are on the `expression` role, never on concrete
 // node types, so a new node composes with no new operators.
 #define D_EXPR_BINARY_OP(SYM, TAG)                                            \
-    template<typename _L, typename _R,                                        \
-             typename std::enable_if<is_expression<_L>::value &&              \
-                                     is_expression<_R>::value,                \
+    template<typename L, typename R,                                          \
+             typename std::enable_if<is_expression<L>::value &&               \
+                                     is_expression<R>::value,                 \
                                      int>::type = 0>                          \
-    D_CONSTEXPR binary_node<internal::TAG, _L, _R>                            \
-    operator SYM (_L _l, _R _r)                                               \
+    D_CONSTEXPR binary_node<internal::TAG, L, R>                              \
+    operator SYM (L _l, R _r)                                                 \
     {                                                                         \
-        return binary_node<internal::TAG, _L, _R>(_l, _r);                    \
+        return binary_node<internal::TAG, L, R>(_l, _r);                      \
     }                                                                         \
-    template<typename _L, typename _S,                                        \
-             typename std::enable_if<is_expression<_L>::value &&              \
-                                     !is_expression<_S>::value &&             \
+    template<typename L, typename S,                                          \
+             typename std::enable_if<is_expression<L>::value &&               \
+                                     !is_expression<S>::value &&              \
                                      std::is_arithmetic<                      \
-                                         typename std::decay<_S>::type        \
+                                         typename std::decay<S>::type         \
                                      >::value, int>::type = 0>                \
-    D_CONSTEXPR binary_node<internal::TAG, _L,                                \
-                            constant_node<typename std::decay<_S>::type> >    \
-    operator SYM (_L _l, _S _s)                                               \
+    D_CONSTEXPR binary_node<internal::TAG, L,                                 \
+                            constant_node<typename std::decay<S>::type> >     \
+    operator SYM (L _l, S _s)                                                 \
     {                                                                         \
-        return binary_node<internal::TAG, _L,                                 \
-                           constant_node<typename std::decay<_S>::type> >(    \
+        return binary_node<internal::TAG, L,                                  \
+                           constant_node<typename std::decay<S>::type> >(     \
             _l, constant(_s));                                                \
     }                                                                         \
-    template<typename _S, typename _R,                                        \
+    template<typename S, typename R,                                          \
              typename std::enable_if<std::is_arithmetic<                      \
-                                         typename std::decay<_S>::type        \
+                                         typename std::decay<S>::type         \
                                      >::value &&                              \
-                                     is_expression<_R>::value,                \
+                                     is_expression<R>::value,                 \
                                      int>::type = 0>                          \
     D_CONSTEXPR binary_node<internal::TAG,                                    \
-                            constant_node<typename std::decay<_S>::type>, _R> \
-    operator SYM (_S _s, _R _r)                                               \
+                            constant_node<typename std::decay<S>::type>, R>   \
+    operator SYM (S _s, R _r)                                                 \
     {                                                                         \
         return binary_node<internal::TAG,                                     \
-                           constant_node<typename std::decay<_S>::type>,      \
-                           _R>(constant(_s), _r);                             \
+                           constant_node<typename std::decay<S>::type>,       \
+                           R>(constant(_s), _r);                              \
     }
 
 D_EXPR_BINARY_OP(+, op_add)
@@ -587,28 +611,29 @@ D_EXPR_BINARY_OP(/, op_div)
 #undef D_EXPR_BINARY_OP
 
 // unary minus
-template<typename _A,
-         typename std::enable_if<is_expression<_A>::value, int>::type = 0>
-D_CONSTEXPR unary_node<internal::op_neg, _A>
-operator-(_A _a)
+template<typename A,
+         typename std::enable_if<is_expression<A>::value, int>::type = 0>
+D_CONSTEXPR unary_node<internal::op_neg, A>
+operator-(A _a)
 {
-    return unary_node<internal::op_neg, _A>(_a);
+    return unary_node<internal::op_neg, A>(_a);
 }
 
 
-// ===========================================================================
-// IX.  FREE COMBINATORS (elementwise functions; auto-lift scalar arguments)
-// ===========================================================================
+//==============================================================================
+// 9.  FREE COMBINATORS
+//==============================================================================
+// elementwise functions; auto-lift scalar arguments.
 
 // One macro per elementwise unary function.
 #define D_EXPR_UNARY_FN(NAME, TAG)                                            \
-    template<typename _A>                                                     \
+    template<typename A>                                                      \
     D_CONSTEXPR unary_node<internal::TAG,                                     \
-                           typename internal::expr_of<_A>::type>              \
-    NAME (_A _a)                                                              \
+                           typename internal::expr_of<A>::type>               \
+    NAME (A _a)                                                               \
     {                                                                         \
         return unary_node<internal::TAG,                                      \
-                          typename internal::expr_of<_A>::type>(              \
+                          typename internal::expr_of<A>::type>(               \
             internal::as_expr(_a));                                           \
     }
 
@@ -625,15 +650,15 @@ D_EXPR_UNARY_FN(abs,  fn_abs)
 //   combinator: a * a (no transcendental kernel needed). Named `squared`
 //   rather than `square` so it does not collide with the geometry square<>
 //   shape, which shares the djinterp::math namespace.
-template<typename _A>
+template<typename A>
 D_CONSTEXPR binary_node<internal::op_mul,
-                        typename internal::expr_of<_A>::type,
-                        typename internal::expr_of<_A>::type>
-squared(_A _a)
+                        typename internal::expr_of<A>::type,
+                        typename internal::expr_of<A>::type>
+squared(A _a)
 {
     return binary_node<internal::op_mul,
-                       typename internal::expr_of<_A>::type,
-                       typename internal::expr_of<_A>::type>(
+                       typename internal::expr_of<A>::type,
+                       typename internal::expr_of<A>::type>(
         internal::as_expr(_a), internal::as_expr(_a));
 }
 
@@ -644,15 +669,15 @@ squared(_A _a)
 
 // dot
 //   combinator: dot product of two vector-valued sub-expressions -> scalar.
-template<typename _A, typename _B>
+template<typename A, typename B>
 D_CONSTEXPR binary_node<internal::op_dot,
-                        typename internal::expr_of<_A>::type,
-                        typename internal::expr_of<_B>::type>
-dot(_A _a, _B _b)
+                        typename internal::expr_of<A>::type,
+                        typename internal::expr_of<B>::type>
+dot(A _a, B _b)
 {
     return binary_node<internal::op_dot,
-                       typename internal::expr_of<_A>::type,
-                       typename internal::expr_of<_B>::type>(
+                       typename internal::expr_of<A>::type,
+                       typename internal::expr_of<B>::type>(
         internal::as_expr(_a), internal::as_expr(_b));
 }
 

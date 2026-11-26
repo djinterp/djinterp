@@ -21,8 +21,15 @@
 * path:      /inc/djinterp/cpp/modules/math/values.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.04
-*                                                            revised: 2026.11.22
+*                                                            revised: 2026.11.24
 *******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+1.  SAMPLING
+    --------
+*/
 
 #ifndef DJINTERP_MATH_VALUES_HPP
 #define DJINTERP_MATH_VALUES_HPP 1
@@ -49,9 +56,9 @@
 NS_DJINTERP
 NS_MATH
 
-// ============================================================================
-// I.    SAMPLING
-// ============================================================================
+//==============================================================================
+// 1.  SAMPLING
+//==============================================================================
 
 NS_INTERNAL
 
@@ -59,32 +66,32 @@ NS_INTERNAL
     //   helper: builds the array by evaluating _e at start + i*step for each
     // index i in the pack (functor-free, one return, so that it is a constant
     // expression from C++11).
-    template<typename _Expr, std::size_t... _Is>
-    D_CONSTEXPR std::array<double, sizeof...(_Is)>
-    sample_impl(const _Expr& _e, double _start, double _step,
-                re_std::index_sequence<_Is...>)
+    template<typename Expr, std::size_t... Is>
+    D_CONSTEXPR std::array<double, sizeof...(Is)>
+    sample_impl(const Expr& _e, double _start, double _step,
+                re_std::index_sequence<Is...>)
     {
         return {{
             static_cast<double>(
-                _e(_start + static_cast<double>(_Is) * _step))...
+                _e(_start + static_cast<double>(Is) * _step))...
         }};
     }
 
 NS_END  // internal
 
 // sample
-//   evaluates _e at _Count points beginning at _start, spaced by _step, and
-// returns the results as a std::array<double, _Count>.
-template<std::size_t _Count, typename _Expr>
+//   evaluates _e at Count points beginning at _start, spaced by _step, and
+// returns the results as a std::array<double, Count>.
+template<std::size_t Count, typename Expr>
 D_CONSTEXPR
-std::array<double, _Count> sample(
-    const _Expr& _e,
+std::array<double, Count> sample(
+    const Expr&  _e,
     double       _start,
     double       _step = 1.0
 )
 {
     return internal::sample_impl(_e, _start, _step,
-                                 re_std::make_index_sequence<_Count>{});
+                                 re_std::make_index_sequence<Count>{});
 }
 
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
@@ -94,13 +101,13 @@ NS_INTERNAL
     // sample_members_impl
     //   helper: builds the array by evaluating _e at the interval's member
     // at(i) for each index i in the pack.
-    template<typename _Interval, typename _Expr, std::size_t... _Is>
-    D_CONSTEXPR std::array<double, sizeof...(_Is)>
-    sample_members_impl(const _Expr& _e, re_std::index_sequence<_Is...>)
+    template<typename Interval, typename Expr, std::size_t... Is>
+    D_CONSTEXPR std::array<double, sizeof...(Is)>
+    sample_members_impl(const Expr& _e, re_std::index_sequence<Is...>)
     {
         return {{
             static_cast<double>(
-                _e(static_cast<double>(_Interval::at(_Is))))...
+                _e(static_cast<double>(Interval::at(Is))))...
         }};
     }
 
@@ -110,16 +117,16 @@ NS_END  // internal
 //   evaluates _e at each of an interval's members, at(0) to at(size() - 1):
 // from its first member (past an open lower bound), by its step when
 // discrete and by 1 otherwise.
-template<typename _Interval, typename _Expr>
-D_CONSTEXPR std::array<double, _Interval::size()>
-sample_over(const _Expr& _e)
+template<typename Interval, typename Expr>
+D_CONSTEXPR std::array<double, Interval::size()>
+sample_over(const Expr& _e)
 {
-    static_assert(is_interval<_Interval>::value,
-                  "sample_over: _Interval must be an interval type.");
+    static_assert(is_interval<Interval>::value,
+                  "sample_over: Interval must be an interval type.");
 
-    return internal::sample_members_impl<_Interval>(
+    return internal::sample_members_impl<Interval>(
         _e,
-        re_std::make_index_sequence<_Interval::size()>{});
+        re_std::make_index_sequence<Interval::size()>{});
 }
 
 #endif  // D_ENV_LANG_IS_CPP14_OR_HIGHER

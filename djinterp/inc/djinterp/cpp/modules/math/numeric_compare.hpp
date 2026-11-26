@@ -34,7 +34,7 @@
 * path:      /inc/djinterp/cpp/modules/math/numeric_compare.hpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*
@@ -990,6 +990,136 @@ rational_value::m_compare_magnitude(
 
 // 4.1    parse_number
 //------------------------------------------------------------------------------
+NS_INTERNAL
+
+    // numeric_read_fraction
+    //   the fraction or mixed number of _text, _length characters, whose sign
+    // ends at _start and whose first run of digits ends at _end, at a slash
+    // or a space: its numerator into _numerator and its denominator into
+    // _denominator, a mixed number w n/d's numerator w d + n.
+    inline void
+    numeric_read_fraction(
+        const char*    _text,
+        std::size_t    _length,
+        std::size_t    _start,
+        std::size_t    _end,
+        integer_value& _numerator,
+        integer_value& _denominator
+    )
+    {
+        const std::size_t whole_end = _end;
+        std::size_t       num       = _end;
+
+        // a mixed number's spaces, then its fraction's numerator
+        if (_text[_end] == ' ')
+        {
+            // the spaces
+            while (_text[num] == ' ')
+            {
+                ++num;
+            }
+        }
+        else
+        {
+            num = _start;
+        }
+
+        std::size_t slash = num;
+
+        // the numerator
+        while (_text[slash] != '/')
+        {
+            ++slash;
+        }
+
+        const integer_value n(numeric_text(_text + num, slash - num));
+        const integer_value d(numeric_text(_text + slash + 1u,
+                                           _length - slash - 1u));
+
+        _numerator   = n;
+        _denominator = d;
+
+        // a mixed number w n/d is (w d + n)/d
+        if (num != _start)
+        {
+            const integer_value w(numeric_text(_text + _start,
+                                               whole_end - _start));
+
+            _numerator = (w * d) + n;
+        }
+
+        return;
+    }
+
+    // numeric_read_decimal
+    //   the decimal number of _text, _length characters, whose sign ends at
+    // _start and whose first run of digits ends at _end: its digits, those
+    // after a point among them, into _numerator, and its power of ten, the
+    // exponent less the digits after the point, into _exponent.
+    inline void
+    numeric_read_decimal(
+        const char*     _text,
+        std::size_t     _length,
+        std::size_t     _start,
+        std::size_t     _end,
+        integer_value&  _numerator,
+        numeric_signed& _exponent
+    )
+    {
+        const std::size_t whole_end = _end;
+        std::size_t       i         = _end;
+        std::size_t       part      = _end;
+        std::size_t       part_end  = _end;
+
+        // the digits after a point
+        if ( (i < _length) &&
+             (_text[i] == '.') )
+        {
+            part = i + 1u;
+            i    = part;
+
+            // the digits
+            while ( (i < _length) &&
+                    (_text[i] >= '0') &&
+                    (_text[i] <= '9') )
+            {
+                ++i;
+            }
+
+            part_end = i;
+        }
+
+        std::string digits(_text + _start, whole_end - _start);
+
+        digits.append(_text + part, part_end - part);
+        _numerator = integer_value(numeric_text(digits));
+
+        // the point: k = -(digits after it)
+        _exponent = numeric_signed(numeric_integer_of_size(part_end - part),
+                                   true);
+
+        // an exponent: e or E, a sign, digits
+        if (i < _length)
+        {
+            const bool        exponent_negative = (_text[i + 1u] == '-');
+            const std::size_t first             = ( (_text[i + 1u] == '-') ||
+                                                    (_text[i + 1u] == '+') )
+                                                      ? (i + 2u)
+                                                      : (i + 1u);
+
+            _exponent = numeric_signed_add(
+                            _exponent,
+                            numeric_signed(integer_value(numeric_text(
+                                               _text + first,
+                                               _length - first)),
+                                           exponent_negative));
+        }
+
+        return;
+    }
+
+NS_END  // internal
+
 // parse_number
 //   the number _text is: a decimal number, a fraction or a mixed number, as
 // literal.h reads one, the whole text, exactly. Not a number where the text
@@ -1029,99 +1159,21 @@ parse_number(
          ( (text[i] == '/') ||
            (text[i] == ' ') ) )
     {
-        const std::size_t whole_end = i;
-        std::size_t       num       = i;
-
-        // a mixed number's spaces, then its fraction's numerator
-        if (text[i] == ' ')
-        {
-            // the spaces
-            while (text[num] == ' ')
-            {
-                ++num;
-            }
-        }
-        else
-        {
-            num = start;
-        }
-
-        std::size_t slash = num;
-
-        // the numerator
-        while (text[slash] != '/')
-        {
-            ++slash;
-        }
-
-        const integer_value n(numeric_text(text + num, slash - num));
-        const integer_value d(numeric_text(text + slash + 1u,
-                                           length - slash - 1u));
-
-        result.m_numerator   = n;
-        result.m_denominator = d;
-
-        // a mixed number w n/d is (w d + n)/d
-        if (num != start)
-        {
-            const integer_value w(numeric_text(text + start,
-                                               whole_end - start));
-
-            result.m_numerator = (w * d) + n;
-        }
+        internal::numeric_read_fraction(text,
+                                        length,
+                                        start,
+                                        i,
+                                        result.m_numerator,
+                                        result.m_denominator);
     }
     else
     {
-        const std::size_t whole_end = i;
-        std::size_t       part      = i;
-        std::size_t       part_end  = i;
-
-        // the digits after a point
-        if ( (i < length) &&
-             (text[i] == '.') )
-        {
-            part = i + 1u;
-            i    = part;
-
-            // the digits
-            while ( (i < length) &&
-                    (text[i] >= '0') &&
-                    (text[i] <= '9') )
-            {
-                ++i;
-            }
-
-            part_end = i;
-        }
-
-        std::string digits(text + start, whole_end - start);
-
-        digits.append(text + part, part_end - part);
-        result.m_numerator = integer_value(numeric_text(digits));
-
-        // the point: k = -(digits after it)
-        result.m_exponent = internal::numeric_signed(
-                                internal::numeric_integer_of_size(
-                                    part_end - part),
-                                true);
-
-        // an exponent: e or E, a sign, digits
-        if (i < length)
-        {
-            const bool        exponent_negative = (text[i + 1u] == '-');
-            const std::size_t first             = ( (text[i + 1u] == '-') ||
-                                                    (text[i + 1u] == '+') )
-                                                      ? (i + 2u)
-                                                      : (i + 1u);
-
-            result.m_exponent = internal::numeric_signed_add(
-                                    result.m_exponent,
-                                    internal::numeric_signed(
-                                        integer_value(numeric_text(
-                                            text + first,
-                                            length - first)),
-                                        exponent_negative));
-        }
+        internal::numeric_read_decimal(text,
+                                       length,
+                                       start,
+                                       i,
+                                       result.m_numerator,
+                                       result.m_exponent);
     }
 
     result.m_negative = (text[0] == '-');

@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/modules/math/test_functional.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.11.20
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 // test_functional.cpp - verifies the math <-> functional wiring.
 //
@@ -31,36 +31,36 @@ namespace mf = djinterp::math::functional;
 // ---------------------------------------------------------------------------
 // Local stand-ins for djinterp::functional (sandbox only) - documented behaviour
 // ---------------------------------------------------------------------------
-template<typename _F, typename _G>
+template<typename F, typename G>
 struct composed                       // compose(f, g): math order f(g(x))
 {
-    _F f; _G g;
-    template<typename _X>
-    constexpr auto operator()(_X _x) const -> decltype(f(g(_x))) { return f(g(_x)); }
+    F f; G g;
+    template<typename X>
+    constexpr auto operator()(X _x) const -> decltype(f(g(_x))) { return f(g(_x)); }
 };
-template<typename _F, typename _G>
-constexpr composed<_F,_G> compose(_F _f, _G _g) { return { _f, _g }; }
+template<typename F, typename G>
+constexpr composed<F,G> compose(F _f, G _g) { return { _f, _g }; }
 
-template<typename _F, typename _G>
+template<typename F, typename G>
 struct piped                          // pipe(f, g): left-to-right g(f(x))
 {
-    _F f; _G g;
-    template<typename _X>
-    constexpr auto operator()(_X _x) const -> decltype(g(f(_x))) { return g(f(_x)); }
+    F f; G g;
+    template<typename X>
+    constexpr auto operator()(X _x) const -> decltype(g(f(_x))) { return g(f(_x)); }
 };
-template<typename _F, typename _G>
-constexpr piped<_F,_G> pipe(_F _f, _G _g) { return { _f, _g }; }
+template<typename F, typename G>
+constexpr piped<F,G> pipe(F _f, G _g) { return { _f, _g }; }
 
-template<typename _F>                 // curry a binary callable: f(a)(b)
+template<typename F>                 // curry a binary callable: f(a)(b)
 struct curried2
 {
-    _F f;
-    struct bound { _F f; double a;
+    F f;
+    struct bound { F f; double a;
         constexpr double operator()(double _b) const { return f(a, _b); } };
     constexpr bound operator()(double _a) const { return { f, _a }; }
 };
-template<typename _F>
-constexpr curried2<_F> curry2(_F _f) { return { _f }; }
+template<typename F>
+constexpr curried2<F> curry2(F _f) { return { _f }; }
 
 // ===========================================================================
 int main()

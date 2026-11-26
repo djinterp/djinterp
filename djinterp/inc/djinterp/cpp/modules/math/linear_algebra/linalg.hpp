@@ -11,10 +11,10 @@
 *                       structural traits (is_vector / is_matrix /
 *                       is_square_matrix), the constexpr scalar kernel
 *                       (sqrt / abs / acos), and the default tolerance
-*   vector.hpp        - fixed-size vector<_T, _N>: arithmetic, dot, cross,
+*   vector.hpp        - fixed-size vector<Type, N>: arithmetic, dot, cross,
 *                       norms, normalize, projection/rejection, angle, lerp,
 *                       map/reduce, and the procedural free-function spellings
-*   matrix.hpp        - fixed-size matrix<_T, _Rows, _Cols>: arithmetic,
+*   matrix.hpp        - fixed-size matrix<Type, Rows, Cols>: arithmetic,
 *                       matrix*matrix and matrix*vector products, transpose,
 *                       trace, Frobenius norm, integer powers, the linear-map
 *                       operator() bridge, and the procedural spellings
@@ -41,7 +41,7 @@
 *                       Moore-Penrose pseudoinverse; svd / pseudoinverse / pinv
 *   dynamic_matrix.hpp - runtime-sized, heap-backed matrix companion (NOT
 *                       constexpr) mirroring the fixed-size API, with a
-*                       from_fixed / to_fixed bridge to matrix<_T,_Rows,_Cols>
+*                       from_fixed / to_fixed bridge to matrix<Type, Rows, Cols>
 *   lazy.hpp          - the opt-in lazy type, from C++11 (empty below it):
 *                       lazy(x) and its operators build an expression of
 *                       vectors and matrices, eval and assign compute it
@@ -60,7 +60,7 @@
 * path:      /inc/djinterp/cpp/modules/math/linear_algebra/linalg.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.22
-*                                                            revised: 2026.11.23
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 #ifndef DJINTERP_MATH_LINEAR_ALGEBRA_LINALG_HPP

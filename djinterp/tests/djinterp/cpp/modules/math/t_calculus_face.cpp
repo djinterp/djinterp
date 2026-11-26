@@ -25,7 +25,7 @@
 * path:      /tests/djinterp/cpp/modules/math/t_calculus_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.23
-*                                                            revised: 2026.11.23
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 #include "../../../../../inc/djinterp/cpp/modules/math/calculus/calculus.hpp"  // the
                                                                     // tested
@@ -155,10 +155,10 @@ namespace
     // d_tests_gauss_loop
     //   the 5-point rule as its loop was written before step 31: the one
     // return must give its bits.
-    template<typename _F>
+    template<typename F>
     double
     d_tests_gauss_loop(
-        _F     _f,
+        F      _f,
         double _a,
         double _b
     )

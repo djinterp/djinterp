@@ -52,7 +52,7 @@
 * path:      /inc/djinterp/cpp/modules/math/expr/reify.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.23
-*                                                            revised: 2026.11.23
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*
@@ -119,7 +119,7 @@ NS_INTERNAL
     // expr_reify_false
     //   trait: false, for a type, so that a static_assert fails only where
     // its template is made.
-    template<typename _Type>
+    template<typename Type>
     struct expr_reify_false
     {
         static const bool value = false;
@@ -133,19 +133,19 @@ NS_INTERNAL
     //   function: a float, double or long double as a number: the exact
     // integer where it is one, of magnitude below 2^53 and not -0; its value
     // in its type otherwise, NaNs and infinities among them.
-    template<typename _Float>
+    template<typename Float>
     value
     expr_reify_floating(
-        _Float _x
+        Float _x
     )
     {
-        const _Float limit = static_cast<_Float>(9007199254740992.0);
+        const Float limit = static_cast<Float>(9007199254740992.0);
 
         // an integer below 2^53, -0 apart
         if ( (_x > -limit) &&
              (_x < limit)  &&
-             (_x == static_cast<_Float>(static_cast<long long>(_x))) &&
-             (!( (_x == static_cast<_Float>(0)) && (std::signbit(_x)) )) )
+             (_x == static_cast<Float>(static_cast<long long>(_x))) &&
+             (!( (_x == static_cast<Float>(0)) && (std::signbit(_x)) )) )
         {
             return value(static_cast<long long>(_x));
         }
@@ -157,39 +157,39 @@ NS_INTERNAL
     // expr_reify_number
     //   trait: a constant's term, by its type: an arithmetic type's number,
     // a bool's constant, a vec3's vector literal; any other refused.
-    template<typename _Type,
+    template<typename Type,
              typename = void>
     struct expr_reify_number
     {
-        static_assert(expr_reify_false<_Type>::value,
+        static_assert(expr_reify_false<Type>::value,
                       "reify: a constant of a type the language has no "
                       "number for; a constant is an integer, a float, a "
                       "double, a long double, a bool or a vec3.");
     };
 
-    template<typename _Type>
-    struct expr_reify_number<_Type,
+    template<typename Type>
+    struct expr_reify_number<Type,
                              typename std::enable_if<
-                                 std::is_integral<_Type>::value &&
-                                 !std::is_same<_Type, bool>::value>::type>
+                                 std::is_integral<Type>::value &&
+                                 !std::is_same<Type, bool>::value>::type>
     {
         static expr_term
         make(
-            _Type _v
+            Type _v
         )
         {
             return expr_number(value(_v));
         }
     };
 
-    template<typename _Type>
-    struct expr_reify_number<_Type,
+    template<typename Type>
+    struct expr_reify_number<Type,
                              typename std::enable_if<
-                                 std::is_floating_point<_Type>::value>::type>
+                                 std::is_floating_point<Type>::value>::type>
     {
         static expr_term
         make(
-            _Type _v
+            Type _v
         )
         {
             return expr_number(expr_reify_floating(_v));
@@ -234,16 +234,16 @@ NS_INTERNAL
     //   trait: an operation functor's term over its operands' terms: an
     // operator of the language, or a call of its function; any other
     // refused.
-    template<typename _Op>
+    template<typename Op>
     struct expr_reify_op
     {
-        static_assert(expr_reify_false<_Op>::value,
+        static_assert(expr_reify_false<Op>::value,
                       "reify: an operation the language has no operator or "
                       "function for.");
     };
 
     // the operators, and a call of one or two arguments by name
-    template<expr_op_kind _Kind>
+    template<expr_op_kind Kind>
     struct expr_reify_kind
     {
         static expr_term
@@ -251,7 +251,7 @@ NS_INTERNAL
             const expr_term& _a
         )
         {
-            return expr_application(_Kind, _a);
+            return expr_application(Kind, _a);
         }
 
         static expr_term
@@ -260,11 +260,11 @@ NS_INTERNAL
             const expr_term& _b
         )
         {
-            return expr_application(_Kind, _a, _b);
+            return expr_application(Kind, _a, _b);
         }
     };
 
-    template<typename _Name>
+    template<typename Name>
     struct expr_reify_call
     {
         static expr_term
@@ -272,7 +272,7 @@ NS_INTERNAL
             const expr_term& _a
         )
         {
-            return expr_call(_Name::text(), std::vector<expr_term>(1, _a));
+            return expr_call(Name::text(), std::vector<expr_term>(1, _a));
         }
 
         static expr_term
@@ -286,7 +286,7 @@ NS_INTERNAL
             arguments.push_back(_a);
             arguments.push_back(_b);
 
-            return expr_call(_Name::text(), arguments);
+            return expr_call(Name::text(), arguments);
         }
     };
 
@@ -357,128 +357,128 @@ NS_INTERNAL
     //   trait: a node's term, its operands' made first, in order, with the
     // variables' names given; any node the language has no term for
     // refused.
-    template<typename _Node>
+    template<typename Node>
     struct expr_reify
     {
-        static_assert(expr_reify_false<_Node>::value,
+        static_assert(expr_reify_false<Node>::value,
                       "reify: a node the language has no term for, as a "
                       "parametric or an implicit function.");
     };
 
     // the term of a node, by its type
-    template<typename _Node>
+    template<typename Node>
     expr_term
     expr_reify_of(
-        const _Node&            _node,
+        const Node&             _node,
         const expr_reify_names& _names
     )
     {
-        return expr_reify<typename std::decay<_Node>::type>::make(_node,
+        return expr_reify<typename std::decay<Node>::type>::make(_node,
                                                                   _names);
     }
 
     // a constant: its number
-    template<typename _ValueType>
-    struct expr_reify<constant_node<_ValueType> >
+    template<typename ValueType>
+    struct expr_reify<constant_node<ValueType> >
     {
         static expr_term
         make(
-            const constant_node<_ValueType>& _node,
+            const constant_node<ValueType>& _node,
             const expr_reify_names&
         )
         {
-            return expr_reify_number<_ValueType>::make(_node.value);
+            return expr_reify_number<ValueType>::make(_node.value);
         }
     };
 
     // a variable: its name, by its index
-    template<std::size_t _Index,
-             typename    _ValueType>
-    struct expr_reify<variable_node<_Index, _ValueType> >
+    template<std::size_t Index,
+             typename    ValueType>
+    struct expr_reify<variable_node<Index, ValueType> >
     {
         static expr_term
         make(
-            const variable_node<_Index, _ValueType>&,
+            const variable_node<Index, ValueType>&,
             const expr_reify_names& _names
         )
         {
-            return expr_variable(_names[_Index]);
+            return expr_variable(_names[Index]);
         }
     };
 
     // a binary operation: its operator over its two operands
-    template<typename _Op,
-             typename _Left,
-             typename _Right>
-    struct expr_reify<binary_node<_Op, _Left, _Right> >
+    template<typename Op,
+             typename Left,
+             typename Right>
+    struct expr_reify<binary_node<Op, Left, Right> >
     {
         static_assert(!std::is_integral<
-                          typename binary_node<_Op, _Left,
-                                               _Right>::value_type>::value,
+                          typename binary_node<Op, Left,
+                                               Right>::value_type>::value,
                       "reify: arithmetic in an integer type, whose division "
                       "and overflow the language has no term for; make a "
                       "constant a double, constant(2.0).");
 
         static expr_term
         make(
-            const binary_node<_Op, _Left, _Right>& _node,
+            const binary_node<Op, Left, Right>&    _node,
             const expr_reify_names&                _names
         )
         {
-            return expr_reify_op<_Op>::make(expr_reify_of(_node.left, _names),
+            return expr_reify_op<Op>::make(expr_reify_of(_node.left, _names),
                                             expr_reify_of(_node.right,
                                                           _names));
         }
     };
 
     // a unary operation: its operator or function over its operand
-    template<typename _Op,
-             typename _Arg>
-    struct expr_reify<unary_node<_Op, _Arg> >
+    template<typename Op,
+             typename Arg>
+    struct expr_reify<unary_node<Op, Arg> >
     {
         static_assert(!std::is_integral<
-                          typename unary_node<_Op, _Arg>::value_type>::value,
+                          typename unary_node<Op, Arg>::value_type>::value,
                       "reify: arithmetic in an integer type, which the "
                       "language has no term for; make a constant a double, "
                       "constant(2.0).");
 
         static expr_term
         make(
-            const unary_node<_Op, _Arg>& _node,
+            const unary_node<Op, Arg>&   _node,
             const expr_reify_names&      _names
         )
         {
-            return expr_reify_op<_Op>::make(expr_reify_of(_node.arg,
+            return expr_reify_op<Op>::make(expr_reify_of(_node.arg,
                                                           _names));
         }
     };
 
     // a relation: its operator over its two operands
-    template<typename _Op,
-             typename _Left,
-             typename _Right>
-    struct expr_reify<relation_node<_Op, _Left, _Right> >
+    template<typename Op,
+             typename Left,
+             typename Right>
+    struct expr_reify<relation_node<Op, Left, Right> >
     {
         static expr_term
         make(
-            const relation_node<_Op, _Left, _Right>& _node,
+            const relation_node<Op, Left, Right>&    _node,
             const expr_reify_names&                  _names
         )
         {
-            return expr_reify_op<_Op>::make(expr_reify_of(_node.left, _names),
+            return expr_reify_op<Op>::make(expr_reify_of(_node.left, _names),
                                             expr_reify_of(_node.right,
                                                           _names));
         }
     };
 
     // and, or, not
-    template<typename _Left,
-             typename _Right>
-    struct expr_reify<logical_and_node<_Left, _Right> >
+    template<typename Left,
+             typename Right>
+    struct expr_reify<logical_and_node<Left, Right> >
     {
         static expr_term
         make(
-            const logical_and_node<_Left, _Right>& _node,
+            const logical_and_node<Left, Right>&   _node,
             const expr_reify_names&                _names
         )
         {
@@ -488,13 +488,13 @@ NS_INTERNAL
         }
     };
 
-    template<typename _Left,
-             typename _Right>
-    struct expr_reify<logical_or_node<_Left, _Right> >
+    template<typename Left,
+             typename Right>
+    struct expr_reify<logical_or_node<Left, Right> >
     {
         static expr_term
         make(
-            const logical_or_node<_Left, _Right>& _node,
+            const logical_or_node<Left, Right>&   _node,
             const expr_reify_names&               _names
         )
         {
@@ -504,12 +504,12 @@ NS_INTERNAL
         }
     };
 
-    template<typename _Arg>
-    struct expr_reify<logical_not_node<_Arg> >
+    template<typename Arg>
+    struct expr_reify<logical_not_node<Arg> >
     {
         static expr_term
         make(
-            const logical_not_node<_Arg>& _node,
+            const logical_not_node<Arg>&  _node,
             const expr_reify_names&       _names
         )
         {
@@ -535,24 +535,24 @@ NS_INTERNAL
     // expr_reify_pieces
     //   the arguments of piecewise from a piecewise node's branches: each
     // branch's condition and body, the last's body alone, its otherwise.
-    template<std::size_t _I,
-             std::size_t _Count,
-             bool        _Last = ((_I + 1) == _Count)>
+    template<std::size_t I,
+             std::size_t Count,
+             bool        Last = ((I + 1) == Count)>
     struct expr_reify_pieces
     {
-        template<typename _Tuple>
+        template<typename Tuple>
         static void
         add(
-            const _Tuple&            _pieces,
+            const Tuple&             _pieces,
             const expr_reify_names&  _names,
             std::vector<expr_term>&  _arguments
         )
         {
-            _arguments.push_back(expr_reify_of(std::get<_I>(_pieces).cond,
+            _arguments.push_back(expr_reify_of(std::get<I>(_pieces).cond,
                                                _names));
-            _arguments.push_back(expr_reify_of(std::get<_I>(_pieces).body,
+            _arguments.push_back(expr_reify_of(std::get<I>(_pieces).body,
                                                _names));
-            expr_reify_pieces<(_I + 1), _Count>::add(_pieces,
+            expr_reify_pieces<(I + 1), Count>::add(_pieces,
                                                      _names,
                                                      _arguments);
 
@@ -560,19 +560,19 @@ NS_INTERNAL
         }
     };
 
-    template<std::size_t _I,
-             std::size_t _Count>
-    struct expr_reify_pieces<_I, _Count, true>
+    template<std::size_t I,
+             std::size_t Count>
+    struct expr_reify_pieces<I, Count, true>
     {
-        template<typename _Tuple>
+        template<typename Tuple>
         static void
         add(
-            const _Tuple&            _pieces,
+            const Tuple&             _pieces,
             const expr_reify_names&  _names,
             std::vector<expr_term>&  _arguments
         )
         {
-            _arguments.push_back(expr_reify_of(std::get<_I>(_pieces).body,
+            _arguments.push_back(expr_reify_of(std::get<I>(_pieces).body,
                                                _names));
 
             return;
@@ -580,18 +580,18 @@ NS_INTERNAL
     };
 
     // a piecewise: a call of piecewise, its branches in order
-    template<typename... _Pieces>
-    struct expr_reify<piecewise_node<_Pieces...> >
+    template<typename... Pieces>
+    struct expr_reify<piecewise_node<Pieces...> >
     {
         static expr_term
         make(
-            const piecewise_node<_Pieces...>& _node,
+            const piecewise_node<Pieces...>&  _node,
             const expr_reify_names&           _names
         )
         {
             std::vector<expr_term> arguments;
 
-            expr_reify_pieces<0, sizeof...(_Pieces)>::add(_node.pieces,
+            expr_reify_pieces<0, sizeof...(Pieces)>::add(_node.pieces,
                                                           _names,
                                                           arguments);
 
@@ -601,18 +601,18 @@ NS_INTERNAL
 
     // expr_reify_components
     //   a vector node's components' terms, in order.
-    template<typename _Tuple,
-             std::size_t... _Indices>
+    template<typename Tuple,
+             std::size_t... Indices>
     std::vector<expr_term>
     expr_reify_components(
-        const _Tuple&            _components,
+        const Tuple&             _components,
         const expr_reify_names&  _names,
-        re_std::index_sequence<_Indices...>
+        re_std::index_sequence<Indices...>
     )
     {
         std::vector<expr_term> elements;
         const int expand[] = { 0,
-            ( elements.push_back(expr_reify_of(std::get<_Indices>(_components),
+            ( elements.push_back(expr_reify_of(std::get<Indices>(_components),
                                                _names)), 0 )... };
 
         static_cast<void>(expand);
@@ -622,12 +622,12 @@ NS_INTERNAL
     }
 
     // a vector: a vector literal of its components
-    template<typename... _Components>
-    struct expr_reify<vector_node<_Components...> >
+    template<typename... Components>
+    struct expr_reify<vector_node<Components...> >
     {
         static expr_term
         make(
-            const vector_node<_Components...>& _node,
+            const vector_node<Components...>&  _node,
             const expr_reify_names&            _names
         )
         {
@@ -636,23 +636,23 @@ NS_INTERNAL
                 expr_reify_components(
                     _node.components,
                     _names,
-                    re_std::make_index_sequence<sizeof...(_Components)>()));
+                    re_std::make_index_sequence<sizeof...(Components)>()));
         }
     };
 
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
     // a rational: the exact fraction, an integer where its denominator is 1
-    template<re_std::intmax_t _Numerator,
-             re_std::intmax_t _Denominator>
-    struct expr_reify<rational<_Numerator, _Denominator> >
+    template<re_std::intmax_t Numerator,
+             re_std::intmax_t Denominator>
+    struct expr_reify<rational<Numerator, Denominator> >
     {
         static expr_term
         make(
-            const rational<_Numerator, _Denominator>&,
+            const rational<Numerator, Denominator>&,
             const expr_reify_names&
         )
         {
-            typedef rational<_Numerator, _Denominator> fraction;
+            typedef rational<Numerator, Denominator> fraction;
 
             dj_rational exact;
 
@@ -686,15 +686,15 @@ NS_END  // internal
  * @return the term, of _e's shape, each node its operator, call or atom, as
  *         the banner says; printed by expr_render, wrapped by math::expr.
  */
-template<typename _Expr,
-         typename std::enable_if<is_expression<_Expr>::value,
+template<typename Expr,
+         typename std::enable_if<is_expression<Expr>::value,
                                  int>::type = 0>
 D_NODISCARD expr_term
 reify(
-    const _Expr& _e
+    const Expr& _e
 )
 {
-    static_assert((std::decay<_Expr>::type::arity <= 4),
+    static_assert((std::decay<Expr>::type::arity <= 4),
                   "reify: an expression that reads an index past 3, which "
                   "x, y, z and t do not name; give its names, "
                   "reify(e, \"a\", \"b\", ...).");
@@ -719,19 +719,19 @@ reify(
  *                    anything a std::string is made from.
  * @return the term, as reify(_e)'s, each variable of index i the i-th name.
  */
-template<typename    _Expr,
-         typename    _First,
-         typename... _Rest,
-         typename std::enable_if<is_expression<_Expr>::value,
+template<typename    Expr,
+         typename    First,
+         typename... Rest,
+         typename std::enable_if<is_expression<Expr>::value,
                                  int>::type = 0>
 D_NODISCARD expr_term
 reify(
-    const _Expr&    _e,
-    const _First&   _first,
-    const _Rest&... _rest
+    const Expr&    _e,
+    const First&   _first,
+    const Rest&... _rest
 )
 {
-    static_assert((std::decay<_Expr>::type::arity <= (1 + sizeof...(_Rest))),
+    static_assert((std::decay<Expr>::type::arity <= (1 + sizeof...(Rest))),
                   "reify: an expression that reads an index past the names "
                   "given; give a name for each index it reads.");
 
@@ -739,7 +739,7 @@ reify(
 
     return internal::expr_reify_of(
         _e,
-        internal::expr_reify_names(given, given + (1 + sizeof...(_Rest))));
+        internal::expr_reify_names(given, given + (1 + sizeof...(Rest))));
 }
 
 

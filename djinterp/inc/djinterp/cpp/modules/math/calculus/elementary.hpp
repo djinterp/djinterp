@@ -42,8 +42,19 @@
 * path:      /inc/djinterp/cpp/modules/math/calculus/elementary.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
-*                                                            revised: 2026.11.23
+*                                                            revised: 2026.11.24
 *******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+1.  NEW PRIMITIVE OPERATION FUNCTORS (INTERNAL)
+    -------------------------------------------
+2.  AST COMBINATORS
+    ---------------
+3.  SCALAR HELPERS
+    --------------
+*/
 
 #ifndef DJINTERP_MATH_CALCULUS_ELEMENTARY_HPP
 #define DJINTERP_MATH_CALCULUS_ELEMENTARY_HPP 1
@@ -67,9 +78,9 @@
 NS_DJINTERP
 NS_MATH
 
-// ============================================================================
-// I.    NEW PRIMITIVE OPERATION FUNCTORS (internal)
-// ============================================================================
+//==============================================================================
+// 1.  NEW PRIMITIVE OPERATION FUNCTORS (INTERNAL)
+//==============================================================================
 
 NS_INTERNAL
 
@@ -79,10 +90,10 @@ NS_INTERNAL
     // calls of the same kernels below it.
     struct fn_log
     {
-        template<typename _X>
+        template<typename X>
         static D_CONSTEXPR_CPP14
         double apply(
-            _X _x
+            X _x
         )
         {
             return d_math_log_c(static_cast<double>(_x));
@@ -91,10 +102,10 @@ NS_INTERNAL
 
     struct fn_atan
     {
-        template<typename _X>
+        template<typename X>
         static D_CONSTEXPR_CPP14
         double apply(
-            _X _x
+            X _x
         )
         {
             return d_math_atan_c(static_cast<double>(_x));
@@ -121,110 +132,111 @@ NS_INTERNAL
     // calc_gcd_of
     //   Euclid's steps on two magnitudes, as the loop took them: as many as
     // a type's Fibonacci numbers allow, 92 for 64 bits.
-    template<typename _T>
+    template<typename T>
     D_CONSTEXPR
-    _T calc_gcd_of(
-        _T _a,
-        _T _b
+    T calc_gcd_of(
+        T _a,
+        T _b
     )
     {
-        return (_b != 0) ? calc_gcd_of(_b, static_cast<_T>(_a % _b)) : _a;
+        return (_b != 0) ? calc_gcd_of(_b, static_cast<T>(_a % _b)) : _a;
     }
 
 NS_END  // internal
 
 
-// ============================================================================
-// II.   AST COMBINATORS  (extend the expression vocabulary)
-// ============================================================================
+//==============================================================================
+// 2.  AST COMBINATORS
+//==============================================================================
+// extend the expression vocabulary.
 
 // log / ln  - natural logarithm (new primitive)
-template<typename _A>
+template<typename A>
 D_CONSTEXPR
-unary_node<internal::fn_log, typename internal::expr_of<_A>::type>
+unary_node<internal::fn_log, typename internal::expr_of<A>::type>
 log(
-    _A _a
+    A _a
 )
 {
     return unary_node<internal::fn_log,
-                      typename internal::expr_of<_A>::type>(
+                      typename internal::expr_of<A>::type>(
         internal::as_expr(_a));
 }
 
-template<typename _A>
+template<typename A>
 D_CONSTEXPR
 auto ln(
-    _A _a
+    A _a
 ) -> decltype(log(_a))
 {
     return log(_a);
 }
 
 // atan  - arctangent (new primitive)
-template<typename _A>
+template<typename A>
 D_CONSTEXPR
-unary_node<internal::fn_atan, typename internal::expr_of<_A>::type>
+unary_node<internal::fn_atan, typename internal::expr_of<A>::type>
 atan(
-    _A _a
+    A _a
 )
 {
     return unary_node<internal::fn_atan,
-                      typename internal::expr_of<_A>::type>(
+                      typename internal::expr_of<A>::type>(
         internal::as_expr(_a));
 }
 
 // log2 / log10  - change of base
-template<typename _A>
+template<typename A>
 D_CONSTEXPR
 auto log2(
-    _A _a
+    A _a
 ) -> decltype(log(_a) / constant(constants::of<double>::ln2()))
 {
     return log(_a) / constant(constants::of<double>::ln2());
 }
 
-template<typename _A>
+template<typename A>
 D_CONSTEXPR
 auto log10(
-    _A _a
+    A _a
 ) -> decltype(log(_a) / constant(constants::of<double>::ln10()))
 {
     return log(_a) / constant(constants::of<double>::ln10());
 }
 
 // reciprocal trig  - sec, csc, cot
-template<typename _A>
+template<typename A>
 D_CONSTEXPR
 auto sec(
-    _A _a
+    A _a
 ) -> decltype(constant(1.0) / cos(_a))
 {
     return constant(1.0) / cos(_a);
 }
 
-template<typename _A>
+template<typename A>
 D_CONSTEXPR
 auto csc(
-    _A _a
+    A _a
 ) -> decltype(constant(1.0) / sin(_a))
 {
     return constant(1.0) / sin(_a);
 }
 
-template<typename _A>
+template<typename A>
 D_CONSTEXPR
 auto cot(
-    _A _a
+    A _a
 ) -> decltype(cos(internal::as_expr(_a)) / sin(internal::as_expr(_a)))
 {
     return cos(internal::as_expr(_a)) / sin(internal::as_expr(_a));
 }
 
 // hyperbolic  - sinh, cosh, tanh  (composed from exp)
-template<typename _A>
+template<typename A>
 D_CONSTEXPR
 auto sinh(
-    _A _a
+    A _a
 ) -> decltype((exp(internal::as_expr(_a)) - exp(-internal::as_expr(_a)))
               / constant(2.0))
 {
@@ -232,10 +244,10 @@ auto sinh(
          / constant(2.0);
 }
 
-template<typename _A>
+template<typename A>
 D_CONSTEXPR
 auto cosh(
-    _A _a
+    A _a
 ) -> decltype((exp(internal::as_expr(_a)) + exp(-internal::as_expr(_a)))
               / constant(2.0))
 {
@@ -243,10 +255,10 @@ auto cosh(
          / constant(2.0);
 }
 
-template<typename _A>
+template<typename A>
 D_CONSTEXPR
 auto tanh(
-    _A _a
+    A _a
 ) -> decltype((exp(internal::as_expr(_a)) - exp(-internal::as_expr(_a)))
               / (exp(internal::as_expr(_a)) + exp(-internal::as_expr(_a))))
 {
@@ -255,10 +267,10 @@ auto tanh(
 }
 
 // inverse trig  - asin, acos  (composed from atan and sqrt)
-template<typename _A>
+template<typename A>
 D_CONSTEXPR
 auto asin(
-    _A _a
+    A _a
 ) -> decltype(atan(internal::as_expr(_a)
                    / sqrt(constant(1.0)
                           - internal::as_expr(_a) * internal::as_expr(_a))))
@@ -268,10 +280,10 @@ auto asin(
                        - internal::as_expr(_a) * internal::as_expr(_a)));
 }
 
-template<typename _A>
+template<typename A>
 D_CONSTEXPR
 auto acos(
-    _A _a
+    A _a
 ) -> decltype(constant(constants::of<double>::half_pi())
               - asin(internal::as_expr(_a)))
 {
@@ -280,29 +292,29 @@ auto acos(
 }
 
 // powers  - pow, cbrt, exp2  (composed from exp and log)
-template<typename _Base, typename _Exp>
+template<typename Base, typename Exp>
 D_CONSTEXPR
 auto pow(
-    _Base _b,
-    _Exp  _e
+    Base _b,
+    Exp  _e
 ) -> decltype(exp(internal::as_expr(_e) * log(internal::as_expr(_b))))
 {
     return exp(internal::as_expr(_e) * log(internal::as_expr(_b)));
 }
 
-template<typename _A>
+template<typename A>
 D_CONSTEXPR
 auto cbrt(
-    _A _a
+    A _a
 ) -> decltype(pow(_a, constant(1.0 / 3.0)))
 {
     return pow(_a, constant(1.0 / 3.0));
 }
 
-template<typename _A>
+template<typename A>
 D_CONSTEXPR
 auto exp2(
-    _A _a
+    A _a
 ) -> decltype(exp(internal::as_expr(_a)
                   * constant(constants::of<double>::ln2())))
 {
@@ -310,9 +322,10 @@ auto exp2(
 }
 
 
-// ============================================================================
-// III.  SCALAR HELPERS  (djinterp::math::fn)
-// ============================================================================
+//==============================================================================
+// 3.  SCALAR HELPERS
+//==============================================================================
+// djinterp::math::fn.
 
 namespace fn
 {
@@ -366,9 +379,9 @@ namespace fn
 
     inline D_CONSTEXPR double abs(double _x)   { return (_x < 0.0) ? -_x : _x; }
 
-    template<typename _T>
-    D_CONSTEXPR int sign(_T _x)
-    { return (_T(0) < _x) - (_x < _T(0)); }
+    template<typename T>
+    D_CONSTEXPR int sign(T _x)
+    { return (T(0) < _x) - (_x < T(0)); }
 
     // floor, ceil: the truncation, one less or one more where it passed _x,
     // as the locals of the C++14 forms had it.
@@ -401,15 +414,15 @@ namespace fn
     inline D_CONSTEXPR double fract(double _x)
     { return _x - floor(_x); }
 
-    template<typename _T>
-    D_CONSTEXPR _T clamp(_T _v, _T _lo, _T _hi)
+    template<typename T>
+    D_CONSTEXPR T clamp(T _v, T _lo, T _hi)
     { return (_v < _lo) ? _lo : ((_v > _hi) ? _hi : _v); }
 
     inline D_CONSTEXPR double saturate(double _x)
     { return clamp(_x, 0.0, 1.0); }
 
-    template<typename _T>
-    D_CONSTEXPR _T lerp(_T _a, _T _b, _T _t)
+    template<typename T>
+    D_CONSTEXPR T lerp(T _a, T _b, T _t)
     { return _a + (_b - _a) * _t; }
 
     inline D_CONSTEXPR double radians(double _deg)
@@ -446,38 +459,38 @@ namespace fn
         return r;
     }
 
-    template<typename _T>
+    template<typename T>
     D_CONSTEXPR
-    _T gcd(
-        _T _a,
-        _T _b
+    T gcd(
+        T _a,
+        T _b
     )
     {
-        return internal::calc_gcd_of(static_cast<_T>((_a < 0) ? -_a : _a),
-                              static_cast<_T>((_b < 0) ? -_b : _b));
+        return internal::calc_gcd_of(static_cast<T>((_a < 0) ? -_a : _a),
+                              static_cast<T>((_b < 0) ? -_b : _b));
     }
 
-    template<typename _T>
+    template<typename T>
     D_CONSTEXPR
-    _T lcm(
-        _T _a,
-        _T _b
+    T lcm(
+        T _a,
+        T _b
     )
     {
-        return (_a == 0 || _b == 0) ? _T(0) : (_a / gcd(_a, _b)) * _b;
+        return (_a == 0 || _b == 0) ? T(0) : (_a / gcd(_a, _b)) * _b;
     }
 
     // horner: evaluate a polynomial whose coefficients are highest-degree
     // first, i.e. c[0]*x^(N-1) + c[1]*x^(N-2) + ... + c[N-1].
-    template<std::size_t _N, typename _T>
+    template<std::size_t N, typename T>
     D_CONSTEXPR_CPP14
-    _T horner(
-        const std::array<_T, _N>& _coeffs,
-        _T                        _x
+    T horner(
+        const std::array<T, N>&  _coeffs,
+        T                        _x
     )
     {
-        _T acc = _T(0);
-        for (std::size_t i = 0; i < _N; ++i)
+        T acc = T(0);
+        for (std::size_t i = 0; i < N; ++i)
         {
             acc = acc * _x + _coeffs[i];
         }

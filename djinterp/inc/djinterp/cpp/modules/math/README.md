@@ -1097,6 +1097,19 @@ a quarter of the eager arithmetic's time and `assign` a third to a fifth,
 and about half where the fence is (chunk 60's record, `raw/measure/`).
 `t_lazy_face.cpp` checks it at every rung (S467).
 
+**The style debt.** Chunk 61 (S469 to S473), step 35 (5g), which closes
+Phase 5. The compile-time headers' template parameters, and `reify.hpp`'s,
+no longer begin with the underscore and capital the language reserves:
+`Type`, `T`, `Args`, as the style guides spell them, each name everywhere in
+its file, the code token for token as it was and its objects the same bytes
+(S469, S472). Their Roman-numeral sections are numbered 1. on, each header
+with a table of contents (S470). The four functions of math past the
+owner's limit of 100 lines, two in `decimal.h`, one in `wide.h` and
+`parse_number`, are split along a seam each, every result as before
+(S471). Left as they were: the banners' HOW TO USE, OPTIONS and
+CONFIGURATION, which 91 of math's headers do not have yet, and two
+`created: TBA`, both on the owner's punch list (S473).
+
 **Decimal text.** `decimal.h` reads a decimal number of any length as the
 nearest `float`, `double` or `long double`, ties to even, whatever the
 rounding mode, and says when the result overflowed to an infinity or
@@ -1448,6 +1461,7 @@ module:
 | 2026.11.14 | accuracy before 0.8 for the float and double families: compensated sums and a refined solve, then their `_c` forms correctly rounded, provably, at today's speed; the long double family and the plain forms at step 36 (S404 to S408) |
 | 2026.11.23 | chunks 55 to 58's decisions stand ("continue"): step 32 (5d), `reify`, next |
 | 2026.11.23 | chunk 59's decisions stand ("continue"): step 34 (5f), the lazy type, next |
+| 2026.11.24 | chunk 60's decisions stand ("continue"): step 35 (5g), the style debt, next |
 
 ---
 
@@ -1503,7 +1517,8 @@ alone (S446). Both were cut again on his main of 2026.11.23, Friday's over
 Wednesday's, their files at the tree's root as his merge window reads a
 zip (S447, S449); chunk 58's goes over that main with both laid over it, in
 order (S455), chunk 59's over that with chunk 58's laid too (S462), and
-chunk 60's after chunk 59's (S468).
+chunk 60's after chunk 59's (S468), and chunk 61's after chunk 60's
+(S473).
 From 2026.11.18 the lane's notes and deliveries go out once a day.
 
 Outside `cpp/modules/math/`, `c/modules/math/` and their tests, this lane
