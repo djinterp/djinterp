@@ -6,8 +6,8 @@
 *
 * path:      /src/djinterp/c/text/number_to_string_fr.c
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.20
+* author(s): TBA                                             created: 2026.09.20
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/text/number_to_string_fr.h"
 
@@ -362,7 +362,7 @@ void nts_fr_parse_sub100_ordinal(
         nts_fr_put_word(dst, dst_cap, total, g_tens[tens]);
         if (ones == 1u) {
             nts_fr_put_et(dst, dst_cap, total);
-            nts_fr_put_mem(dst, dst_cap, total, "unième", 8u);
+            nts_fr_put_word(dst, dst_cap, total, g_ordinal_0_16[1]);
             return;
         }
 

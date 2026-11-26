@@ -6,7 +6,7 @@
 *
 * path:      /src/djinterp/c/util/sort/merge_sort.c
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
+* author(s): TBA                                             created: 2026.08.10
 *                                                            revised: 2026.10.03
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/util/sort/merge_sort.h"

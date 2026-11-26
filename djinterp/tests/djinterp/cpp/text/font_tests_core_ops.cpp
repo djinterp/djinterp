@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/text/font_tests_core_ops.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): TBA                                             created: 2026.07.25
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 // djinterp [test]  font_tests_core_ops.cpp
 //   Section 9a: the free functions over the always-present core - family,
@@ -407,7 +407,7 @@ bool tests_fn_effective_weight_honours_any_nonzero_numeric()
 tests_fn_effective_weight_is_noexcept
   Tests the following:
   - fn_effective_weight is noexcept (a renderer calls it on the hot path)
-  - it returns std::uint16_t
+  - it returns uint16_t
   - it takes the font by const reference
 */
 bool tests_fn_effective_weight_is_noexcept()
@@ -416,7 +416,7 @@ bool tests_fn_effective_weight_is_noexcept()
 
     D_FT_CHECK(noexcept(fn_effective_weight(f)));
     D_FT_CHECK((std::is_same<decltype(fn_effective_weight(f)),
-                             std::uint16_t>::value));
+                             uint16_t>::value));
 
     // fn_is_bold rides on it and is noexcept too
     D_FT_CHECK(noexcept(fn_is_bold(f)));
@@ -799,7 +799,7 @@ bool tests_fn_is_italic_covers_italic_and_oblique()
     D_FT_CHECK(fn_is_italic(f));
 
     // exhaustive: the enum has exactly these three
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontSlant::oblique) == 2u);
+    D_FT_CHECK(static_cast<uint8_t>(DFontSlant::oblique) == 2u);
 
     return true;
 }

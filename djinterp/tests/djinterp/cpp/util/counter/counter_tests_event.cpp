@@ -8,7 +8,7 @@
 * path:      /tests/djinterp/cpp/util/counter/counter_tests_event.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.09
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 // djinterp
 #include "counter_tests.hpp"
@@ -37,7 +37,7 @@ bool tests_counter_event_counts()
 
     dispatcher.fire<DEvCtrTick>();
     dispatcher.fire<DEvCtrTick>();
-    dispatcher.fire<DEvCtrAmount>(std::int64_t{40});
+    dispatcher.fire<DEvCtrAmount>(int64_t{40});
 
     D_CTR_CHECK(ticks.value() == 4);
 
@@ -101,8 +101,8 @@ bool tests_counter_event_add_payload()
         make_counter_handler(bytes,
                              DCounterEventOp::add));
 
-    dispatcher.fire<DEvCtrAmount>(std::int64_t{40});
-    dispatcher.fire<DEvCtrAmount>(std::int64_t{-15});
+    dispatcher.fire<DEvCtrAmount>(int64_t{40});
+    dispatcher.fire<DEvCtrAmount>(int64_t{-15});
     dispatcher.fire<DEvCtrTick>();
     dispatcher.fire<DEvCtrLabel>("ignored");
 
@@ -149,8 +149,8 @@ bool tests_counter_event_other_counters()
 {
     DEventDispatcher             dispatcher;
     DCtr                         plain(0);
-    atomic_counter<std::int64_t> atomic(0);
-    mutex_counter<std::int64_t>  guarded(0);
+    atomic_counter<int64_t> atomic(0);
+    mutex_counter<int64_t>  guarded(0);
 
     (void)dispatcher.bind<DEvCtrAmount>(
         make_counter_handler(plain,
@@ -162,7 +162,7 @@ bool tests_counter_event_other_counters()
         make_counter_handler(guarded,
                              DCounterEventOp::add));
 
-    dispatcher.fire<DEvCtrAmount>(std::int64_t{6});
+    dispatcher.fire<DEvCtrAmount>(int64_t{6});
 
     D_CTR_CHECK(plain.value() == 6);
     D_CTR_CHECK(atomic.value() == 6);

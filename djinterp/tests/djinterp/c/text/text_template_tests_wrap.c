@@ -4,7 +4,7 @@
 *
 * path:      /tests/djinterp/c/text/text_template_tests_wrap.c
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
+* author(s): TBA                                             created: 2026.10.15
 *                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp

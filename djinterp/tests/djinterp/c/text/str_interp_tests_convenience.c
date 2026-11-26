@@ -4,7 +4,7 @@
 *
 * path:      /tests/djinterp/c/text/str_interp_tests_convenience.c
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
+* author(s): TBA                                             created: 2026.02.26
 *                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp

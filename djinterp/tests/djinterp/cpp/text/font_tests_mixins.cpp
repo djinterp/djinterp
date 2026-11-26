@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/text/font_tests_mixins.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): TBA                                             created: 2026.07.25
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 // djinterp [test]  font_tests_mixins.cpp
 //   Section 7: the font_mixin EBO layer.  Every optional capability is a
@@ -214,8 +214,8 @@ bool tests_mixin_axes_defaults()
     D_FT_CHECK(sp.spacing == DFontSpacing::any);
 
     // the distinction that matters: stretch is NOT zero-initialised
-    D_FT_CHECK(static_cast<std::uint8_t>(st.stretch) != 0u);
-    D_FT_CHECK(static_cast<std::uint8_t>(sp.spacing) == 0u);
+    D_FT_CHECK(static_cast<uint8_t>(st.stretch) != 0u);
+    D_FT_CHECK(static_cast<uint8_t>(sp.spacing) == 0u);
 
     return true;
 }

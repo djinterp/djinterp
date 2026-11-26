@@ -4,7 +4,7 @@
 *
 * path:      /inc/djinterp/cpp/util/pdf/pdf_builtin_backend.hpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
+* author(s): TBA                                             created: 2026.06.25
 *                                                            revised: 2026.11.18
 *******************************************************************************/
 #ifndef DJINTERP_UTIL_PDF_PDF_BUILTIN_BACKEND_HPP

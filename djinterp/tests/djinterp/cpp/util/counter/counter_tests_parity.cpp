@@ -3,7 +3,7 @@
 *
 * The counter suite's parity tests. The C++ counter is the C counter's
 * counterpart, not a face over it (the owner's ruling of 2026-11-12), so the two
-* are kept one behaviour by test: a counter<std::int64_t> and a struct
+* are kept one behaviour by test: a counter<int64_t> and a struct
 * dj_counter (c/util/counter/counter.h), given the same range and the same
 * steps, must hold the same value after every step and report the same cuts.
 *   One difference is by design and is not compared: an unbounded C counter is
@@ -15,7 +15,7 @@
 * path:      /tests/djinterp/cpp/util/counter/counter_tests_parity.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 // std
 #include <cstddef>  // std::size_t
@@ -35,7 +35,7 @@ namespace
 //   value: the starts and amounts the parity tests try: both ends of the
 // int64_t range and their neighbours, small steps either side of zero, and a
 // step larger than any bounded range here.
-const std::int64_t k_parity_values[] =
+const int64_t k_parity_values[] =
 {
     k_lowest,
     k_lowest + 1,
@@ -61,8 +61,8 @@ const std::size_t k_parity_value_count =
 // counter; `lower` and `upper` are then the whole of int64_t.
 struct parity_range
 {
-    std::int64_t lower;
-    std::int64_t upper;
+    int64_t lower;
+    int64_t upper;
     bool         is_bounded;
 };
 
@@ -103,7 +103,7 @@ bool
 parity_make(
     parity_pair&        _pair,
     const parity_range& _range,
-    std::int64_t        _initial
+    int64_t        _initial
 )
 {
     _pair.cpp = DCtr(_initial,
@@ -136,7 +136,7 @@ bool
 parity_step(
     parity_pair& _pair,
     bool         _is_decrement,
-    std::int64_t _amount
+    int64_t _amount
 )
 {
     const bool cpp_exact = (_is_decrement)
@@ -178,7 +178,7 @@ void
 parity_report(
     const char*         _what,
     const parity_range& _range,
-    std::int64_t        _initial,
+    int64_t        _initial,
     const parity_pair&  _pair
 )
 {
@@ -200,7 +200,7 @@ parity_report(
 bool
 parity_in_range(
     const parity_range& _range,
-    std::int64_t        _value
+    int64_t        _value
 )
 {
     return ( (_range.lower <= _value) &&
@@ -234,7 +234,7 @@ parity_step_by(
 bool
 parity_merge_one(
     const parity_range& _range,
-    std::int64_t        _start,
+    int64_t        _start,
     std::size_t         _dest_step,
     std::size_t         _source_start,
     std::size_t         _source_step
@@ -243,7 +243,7 @@ parity_merge_one(
     const parity_range           whole = k_parity_ranges[0];
     parity_pair                  dest;
     parity_pair                  source;
-    atomic_counter<std::int64_t> shared(_start,
+    atomic_counter<int64_t> shared(_start,
                                         _range.lower,
                                         _range.upper);
 
@@ -291,7 +291,7 @@ parity_merge_one(
 bool
 parity_merge_self(
     const parity_range& _range,
-    std::int64_t        _start,
+    int64_t        _start,
     std::size_t         _step
 )
 {
@@ -341,7 +341,7 @@ bool tests_counter_parity_steps()
 
         for (s = 0; s < k_parity_value_count; ++s)
         {
-            const std::int64_t start = k_parity_values[s];
+            const int64_t start = k_parity_values[s];
             std::size_t        step  = 0;
 
             if (!parity_in_range(range, start))
@@ -403,7 +403,7 @@ bool tests_counter_parity_merge()
 
         for (s = 0; s < k_parity_value_count; ++s)
         {
-            const std::int64_t start = k_parity_values[s];
+            const int64_t start = k_parity_values[s];
             std::size_t        d     = 0;
 
             if (!parity_in_range(range, start))

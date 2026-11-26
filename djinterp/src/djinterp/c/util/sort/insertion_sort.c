@@ -6,7 +6,7 @@
 *
 * path:      /src/djinterp/c/util/sort/insertion_sort.c
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
+* author(s): TBA                                             created: 2026.08.10
 *                                                            revised: 2026.09.20
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/util/sort/insertion_sort.h"

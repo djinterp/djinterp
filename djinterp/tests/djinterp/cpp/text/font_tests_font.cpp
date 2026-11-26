@@ -4,7 +4,7 @@
 *
 * path:      /tests/djinterp/cpp/text/font_tests_font.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
+* author(s): TBA                                             created: 2026.07.25
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  font_tests_font.cpp

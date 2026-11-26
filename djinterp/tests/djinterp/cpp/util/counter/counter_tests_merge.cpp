@@ -8,7 +8,7 @@
 * path:      /tests/djinterp/cpp/util/counter/counter_tests_merge.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.09
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 // djinterp
 #include "counter_tests.hpp"
@@ -162,8 +162,8 @@ tests_atomic_counter_compare_merge
 */
 bool tests_atomic_counter_compare_merge()
 {
-    atomic_counter<std::int64_t> dest(0, 0, 100);
-    atomic_counter<std::int64_t> src(2);
+    atomic_counter<int64_t> dest(0, 0, 100);
+    atomic_counter<int64_t> src(2);
     DCtr                         plain(7);
 
     src.increment(5);
@@ -196,8 +196,8 @@ tests_mutex_counter_compare_merge
 */
 bool tests_mutex_counter_compare_merge()
 {
-    mutex_counter<std::int64_t> dest(1, 0, 50);
-    mutex_counter<std::int64_t> src(1);
+    mutex_counter<int64_t> dest(1, 0, 50);
+    mutex_counter<int64_t> src(1);
     DCtr                        plain(0);
 
     src.increment(4);

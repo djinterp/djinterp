@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/util/counter/counter_tests_constructors.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): TBA                                             created: 2026.09.21
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 // djinterp
 #include "counter_tests.hpp"
@@ -22,12 +22,12 @@ tests_counter_default_ctor
   - value() and initial() are both zero
   - min() is the lowest representable value_type, max() the largest
   - the counter owns no children and observes nothing
-  - the template's default value_type is std::int64_t
+  - the template's default value_type is int64_t
 */
 bool tests_counter_default_ctor()
 {
-    static_assert(std::is_same<counter<>::value_type, std::int64_t>::value,
-                  "default counter value_type should be std::int64_t");
+    static_assert(std::is_same<counter<>::value_type, int64_t>::value,
+                  "default counter value_type should be int64_t");
 
     DCtr c;
 

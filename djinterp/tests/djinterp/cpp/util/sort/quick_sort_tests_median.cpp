@@ -4,7 +4,7 @@
 *
 * path:      /tests/djinterp/cpp/util/sort/quick_sort_tests_median.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
+* author(s): TBA                                             created: 2026.09.21
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp

@@ -4,7 +4,7 @@
 *
 * path:      /tests/djinterp/c/text/text_lineup_tests_lineup.c
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
+* author(s): TBA                                             created: 2026.02.28
 *                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp

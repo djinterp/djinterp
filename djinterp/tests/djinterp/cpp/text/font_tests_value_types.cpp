@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/text/font_tests_value_types.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): TBA                                             created: 2026.07.25
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 // djinterp [test]  font_tests_value_types.cpp
 //   Sections 3-6: the plain value types - DFontColor, the OpenType tag
@@ -152,16 +152,16 @@ bool tests_font_color_equality_is_constexpr_and_noexcept()
 /*
 tests_opentype_tag_is_uint32
   Tests the following:
-  - DOpentypeTag is exactly std::uint32_t, so it drops into hb_tag_t /
+  - DOpentypeTag is exactly uint32_t, so it drops into hb_tag_t /
     DWRITE_FONT_FEATURE_TAG / CTFontFeatureTag with a plain cast
 */
 bool tests_opentype_tag_is_uint32()
 {
-    static_assert(std::is_same<DOpentypeTag, std::uint32_t>::value,
+    static_assert(std::is_same<DOpentypeTag, uint32_t>::value,
                   "DOpentypeTag must be uint32_t");
 
     D_FT_CHECK(sizeof(DOpentypeTag) == 4u);
-    D_FT_CHECK((std::is_same<DOpentypeTag, std::uint32_t>::value));
+    D_FT_CHECK((std::is_same<DOpentypeTag, uint32_t>::value));
 
     return true;
 }

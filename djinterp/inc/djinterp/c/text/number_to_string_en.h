@@ -4,7 +4,7 @@
 *
 * path:      /inc/djinterp/c/text/number_to_string_en.h
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
+* author(s): TBA                                             created: 2026.10.04
 *                                                            revised: 2026.11.17
 *******************************************************************************/
 #ifndef DJINTERP_C_TEXT_NUMBER_TO_STRING_EN_H

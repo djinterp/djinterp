@@ -6,7 +6,7 @@
 *
 * path:      /src/djinterp/c/text/str_interp.c
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
+* author(s): TBA                                             created: 2026.02.26
 *                                                            revised: 2026.09.20
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/text/str_interp.h"

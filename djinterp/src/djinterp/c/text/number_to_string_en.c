@@ -6,7 +6,7 @@
 *
 * path:      /src/djinterp/c/text/number_to_string_en.c
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
+* author(s): TBA                                             created: 2026.10.03
 *                                                            revised: 2026.10.03
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/text/number_to_string_en.h"  // corresponding header

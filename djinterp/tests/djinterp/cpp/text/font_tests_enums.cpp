@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/text/font_tests_enums.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): TBA                                             created: 2026.07.25
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 // djinterp [test]  font_tests_enums.cpp
 //   Section 2: DFontWeight, DFontSlant, DFontStretch, DFontSpacing,
@@ -23,13 +23,13 @@ NS_TESTING
 /*
 tests_font_weight_underlying_type
   Tests the following:
-  - DFontWeight is backed by std::uint16_t (it must hold 950)
+  - DFontWeight is backed by uint16_t (it must hold 950)
   - it is a scoped enum
 */
 bool tests_font_weight_underlying_type()
 {
     static_assert(std::is_same<std::underlying_type<DFontWeight>::type,
-                               std::uint16_t>::value,
+                               uint16_t>::value,
                   "DFontWeight must be backed by uint16_t");
 
     D_FT_CHECK(std::is_enum<DFontWeight>::value);
@@ -72,7 +72,7 @@ in declaration order or the comparison means nothing.
 */
 bool tests_font_weight_is_monotonic()
 {
-    const std::uint16_t scale[] =
+    const uint16_t scale[] =
     {
         weight_of(DFontWeight::thin),        weight_of(DFontWeight::extra_light),
         weight_of(DFontWeight::light),       weight_of(DFontWeight::normal),
@@ -102,13 +102,13 @@ bool tests_font_weight_is_monotonic()
 /*
 tests_font_slant_underlying_type
   Tests the following:
-  - DFontSlant is backed by std::uint8_t
+  - DFontSlant is backed by uint8_t
   - it is scoped (no implicit int conversion)
 */
 bool tests_font_slant_underlying_type()
 {
     static_assert(std::is_same<std::underlying_type<DFontSlant>::type,
-                               std::uint8_t>::value,
+                               uint8_t>::value,
                   "font_slant must be backed by uint8_t");
 
     D_FT_CHECK(!std::is_convertible<DFontSlant, int>::value);
@@ -125,9 +125,9 @@ tests_font_slant_values
 */
 bool tests_font_slant_values()
 {
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontSlant::upright) == 0u);
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontSlant::italic)  == 1u);
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontSlant::oblique) == 2u);
+    D_FT_CHECK(static_cast<uint8_t>(DFontSlant::upright) == 0u);
+    D_FT_CHECK(static_cast<uint8_t>(DFontSlant::italic)  == 1u);
+    D_FT_CHECK(static_cast<uint8_t>(DFontSlant::oblique) == 2u);
 
     D_FT_CHECK(DFontSlant::upright != DFontSlant::italic);
     D_FT_CHECK(DFontSlant::italic  != DFontSlant::oblique);
@@ -139,12 +139,12 @@ bool tests_font_slant_values()
 /*
 tests_font_stretch_underlying_type
   Tests the following:
-  - DFontStretch is backed by std::uint8_t
+  - DFontStretch is backed by uint8_t
 */
 bool tests_font_stretch_underlying_type()
 {
     static_assert(std::is_same<std::underlying_type<DFontStretch>::type,
-                               std::uint8_t>::value,
+                               uint8_t>::value,
                   "DFontStretch must be backed by uint8_t");
 
     D_FT_CHECK(!std::is_convertible<DFontStretch, int>::value);
@@ -163,18 +163,18 @@ mixin default-initialises it to `normal` rather than leaving it {}.
 */
 bool tests_font_stretch_values()
 {
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontStretch::ultra_condensed) == 1u);
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontStretch::extra_condensed) == 2u);
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontStretch::condensed)       == 3u);
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontStretch::semi_condensed)  == 4u);
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontStretch::normal)          == 5u);
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontStretch::semi_expanded)   == 6u);
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontStretch::expanded)        == 7u);
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontStretch::extra_expanded)  == 8u);
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontStretch::ultra_expanded)  == 9u);
+    D_FT_CHECK(static_cast<uint8_t>(DFontStretch::ultra_condensed) == 1u);
+    D_FT_CHECK(static_cast<uint8_t>(DFontStretch::extra_condensed) == 2u);
+    D_FT_CHECK(static_cast<uint8_t>(DFontStretch::condensed)       == 3u);
+    D_FT_CHECK(static_cast<uint8_t>(DFontStretch::semi_condensed)  == 4u);
+    D_FT_CHECK(static_cast<uint8_t>(DFontStretch::normal)          == 5u);
+    D_FT_CHECK(static_cast<uint8_t>(DFontStretch::semi_expanded)   == 6u);
+    D_FT_CHECK(static_cast<uint8_t>(DFontStretch::expanded)        == 7u);
+    D_FT_CHECK(static_cast<uint8_t>(DFontStretch::extra_expanded)  == 8u);
+    D_FT_CHECK(static_cast<uint8_t>(DFontStretch::ultra_expanded)  == 9u);
 
     // 1-based: zero is not a width class
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontStretch::ultra_condensed) != 0u);
+    D_FT_CHECK(static_cast<uint8_t>(DFontStretch::ultra_condensed) != 0u);
 
     return true;
 }
@@ -188,26 +188,26 @@ tests_font_stretch_normal_is_the_midpoint
 */
 bool tests_font_stretch_normal_is_the_midpoint()
 {
-    const std::uint8_t lo  = static_cast<std::uint8_t>(
+    const uint8_t lo  = static_cast<uint8_t>(
         DFontStretch::ultra_condensed);
-    const std::uint8_t mid = static_cast<std::uint8_t>(DFontStretch::normal);
-    const std::uint8_t hi  = static_cast<std::uint8_t>(
+    const uint8_t mid = static_cast<uint8_t>(DFontStretch::normal);
+    const uint8_t hi  = static_cast<uint8_t>(
         DFontStretch::ultra_expanded);
 
     D_FT_CHECK((static_cast<unsigned>(lo) + static_cast<unsigned>(hi)) ==
                (2u * static_cast<unsigned>(mid)));
 
-    const std::uint8_t scale[] =
+    const uint8_t scale[] =
     {
-        static_cast<std::uint8_t>(DFontStretch::ultra_condensed),
-        static_cast<std::uint8_t>(DFontStretch::extra_condensed),
-        static_cast<std::uint8_t>(DFontStretch::condensed),
-        static_cast<std::uint8_t>(DFontStretch::semi_condensed),
-        static_cast<std::uint8_t>(DFontStretch::normal),
-        static_cast<std::uint8_t>(DFontStretch::semi_expanded),
-        static_cast<std::uint8_t>(DFontStretch::expanded),
-        static_cast<std::uint8_t>(DFontStretch::extra_expanded),
-        static_cast<std::uint8_t>(DFontStretch::ultra_expanded)
+        static_cast<uint8_t>(DFontStretch::ultra_condensed),
+        static_cast<uint8_t>(DFontStretch::extra_condensed),
+        static_cast<uint8_t>(DFontStretch::condensed),
+        static_cast<uint8_t>(DFontStretch::semi_condensed),
+        static_cast<uint8_t>(DFontStretch::normal),
+        static_cast<uint8_t>(DFontStretch::semi_expanded),
+        static_cast<uint8_t>(DFontStretch::expanded),
+        static_cast<uint8_t>(DFontStretch::extra_expanded),
+        static_cast<uint8_t>(DFontStretch::ultra_expanded)
     };
 
     // strictly increasing
@@ -222,12 +222,12 @@ bool tests_font_stretch_normal_is_the_midpoint()
 /*
 tests_font_spacing_underlying_type
   Tests the following:
-  - DFontSpacing is backed by std::uint8_t
+  - DFontSpacing is backed by uint8_t
 */
 bool tests_font_spacing_underlying_type()
 {
     static_assert(std::is_same<std::underlying_type<DFontSpacing>::type,
-                               std::uint8_t>::value,
+                               uint8_t>::value,
                   "font_spacing must be backed by uint8_t");
 
     D_FT_CHECK(!std::is_convertible<DFontSpacing, int>::value);
@@ -246,11 +246,11 @@ adapter reading it will not filter.
 */
 bool tests_font_spacing_values()
 {
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontSpacing::any)          == 0u);
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontSpacing::proportional) == 1u);
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontSpacing::monospace)    == 2u);
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontSpacing::dual_width)   == 3u);
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontSpacing::charcell)     == 4u);
+    D_FT_CHECK(static_cast<uint8_t>(DFontSpacing::any)          == 0u);
+    D_FT_CHECK(static_cast<uint8_t>(DFontSpacing::proportional) == 1u);
+    D_FT_CHECK(static_cast<uint8_t>(DFontSpacing::monospace)    == 2u);
+    D_FT_CHECK(static_cast<uint8_t>(DFontSpacing::dual_width)   == 3u);
+    D_FT_CHECK(static_cast<uint8_t>(DFontSpacing::charcell)     == 4u);
 
     return true;
 }
@@ -258,12 +258,12 @@ bool tests_font_spacing_values()
 /*
 tests_font_size_unit_underlying_type
   Tests the following:
-  - DFontSizeUnit is backed by std::uint8_t
+  - DFontSizeUnit is backed by uint8_t
 */
 bool tests_font_size_unit_underlying_type()
 {
     static_assert(std::is_same<std::underlying_type<DFontSizeUnit>::type,
-                               std::uint8_t>::value,
+                               uint8_t>::value,
                   "font_size_unit must be backed by uint8_t");
 
     D_FT_CHECK(!std::is_convertible<DFontSizeUnit, int>::value);
@@ -283,11 +283,11 @@ unconverted value.
 */
 bool tests_font_size_unit_values()
 {
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontSizeUnit::points)       == 0u);
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontSizeUnit::pixels)       == 1u);
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontSizeUnit::em)           == 2u);
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontSizeUnit::percent)      == 3u);
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontSizeUnit::device_units) == 4u);
+    D_FT_CHECK(static_cast<uint8_t>(DFontSizeUnit::points)       == 0u);
+    D_FT_CHECK(static_cast<uint8_t>(DFontSizeUnit::pixels)       == 1u);
+    D_FT_CHECK(static_cast<uint8_t>(DFontSizeUnit::em)           == 2u);
+    D_FT_CHECK(static_cast<uint8_t>(DFontSizeUnit::percent)      == 3u);
+    D_FT_CHECK(static_cast<uint8_t>(DFontSizeUnit::device_units) == 4u);
 
     const DFontSizeUnit units[] =
     {
@@ -358,7 +358,7 @@ bool tests_enum_defaults_match_the_model()
     D_FT_CHECK(ax.spacing == DFontSpacing::any);
 
     // the stretch default is a VALID width class; zero-init would not be
-    D_FT_CHECK(static_cast<std::uint8_t>(ax.stretch) == 5u);
+    D_FT_CHECK(static_cast<uint8_t>(ax.stretch) == 5u);
 
     return true;
 }

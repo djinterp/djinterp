@@ -7,7 +7,7 @@
 * `djinterp::testing`; a test returns true on success and false on the first
 * failed check.
 *
-*   The suite drives a single `counter<std::int64_t>` specialization (aliased
+*   The suite drives a single `counter<int64_t>` specialization (aliased
 * `ctr`) through every branch: increment/decrement bound clamping, reset and
 * recursive reset_all, the bound-query accessors, and both the owning
 * (by-value) and observing (by-pointer) child models.
@@ -21,14 +21,13 @@
 * path:      /tests/djinterp/cpp/util/counter/counter_tests.hpp
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.06.24
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 
 #ifndef DJINTERP_UTILITY_COUNTER_TESTS_
 #define DJINTERP_UTILITY_COUNTER_TESTS_ 1
 
 // std
-#include <cstdint>
 #include <cstdio>
 #include <limits>
 #include <type_traits>
@@ -38,6 +37,8 @@
 #include "../../../../../inc/djinterp/cpp/util/counter/mutex_counter.hpp"
 #include "../../../../../inc/djinterp/cpp/util/counter/counter_event.hpp"
 #include "../../../../../inc/djinterp/cpp/event/event_dispatcher.hpp"
+// re_std
+#include "../../../../../inc/re_std/cpp/cstdint/cstdint.hpp"  // uintN_t, intN_t
 
 
 // D_CTR_CHECK
@@ -71,10 +72,10 @@ NS_TESTING
 
 // ctr
 //   type: the counter specialization exercised throughout the suite. it fixes
-// the value type to std::int64_t (the template's own default), so the entire
+// the value type to int64_t (the template's own default), so the entire
 // suite shares a single instantiation and the bound arithmetic stays in a
 // signed 64-bit domain.
-using DCtr = counter<std::int64_t>;
+using DCtr = counter<int64_t>;
 
 
 // -----------------------------------------------------------------
@@ -84,12 +85,12 @@ using DCtr = counter<std::int64_t>;
 // k_lowest
 //   value: the lower sentinel a default-constructed counter reports from
 // min() (the lowest representable value_type).
-constexpr std::int64_t k_lowest = std::numeric_limits<std::int64_t>::lowest();
+constexpr int64_t k_lowest = std::numeric_limits<int64_t>::lowest();
 
 // k_highest
 //   value: the upper sentinel a default-constructed counter reports from
 // max() (the largest representable value_type).
-constexpr std::int64_t k_highest = std::numeric_limits<std::int64_t>::max();
+constexpr int64_t k_highest = std::numeric_limits<int64_t>::max();
 
 
 // -----------------------------------------------------------------
@@ -225,7 +226,7 @@ bool tests_counter_parity_compare_reset();
 //   type: an event with no payload, one carrying an amount, and one
 // carrying a value no counter can add.
 D_EVENT_EMPTY(DEvCtrTick, "t.counter.tick");
-D_EVENT(DEvCtrAmount, "t.counter.amount", std::int64_t);
+D_EVENT(DEvCtrAmount, "t.counter.amount", int64_t);
 D_EVENT(DEvCtrLabel, "t.counter.label", const char*);
 
 // event bindings (counter_tests_event.cpp)

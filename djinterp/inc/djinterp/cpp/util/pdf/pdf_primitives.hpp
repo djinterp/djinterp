@@ -4,7 +4,7 @@
 *
 * path:      /inc/djinterp/cpp/util/pdf/pdf_primitives.hpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
+* author(s): TBA                                             created: 2026.06.25
 *                                                            revised: 2026.11.17
 *******************************************************************************/
 #ifndef DJINTERP_UTIL_PDF_PDF_PRIMITIVES_HPP

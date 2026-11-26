@@ -31,7 +31,7 @@
 * path:      /tests/djinterp/cpp/text/font_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.12
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 
 #ifndef DJINTERP_TEXT_FONT_TESTS_
@@ -39,12 +39,13 @@
 
 // std
 #include <cstddef>
-#include <cstdint>
 #include <string>
 #include <type_traits>
 #include <vector>
 // djinterp
 #include "../../../../inc/djinterp/cpp/text/font.hpp"
+// re_std
+#include "../../../../inc/re_std/cpp/cstdint/cstdint.hpp"  // uintN_t, intN_t
 
 // font.hpp is C++17 at its floor and empty below it; so is its suite.
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
@@ -108,11 +109,11 @@ bool approx_eq(
 // weight_of
 //   function: the numeric value behind a symbolic DFontWeight.
 constexpr
-std::uint16_t weight_of(
+uint16_t weight_of(
     DFontWeight _w
 ) noexcept
 {
-    return static_cast<std::uint16_t>(_w);
+    return static_cast<uint16_t>(_w);
 }
 
 
@@ -127,9 +128,9 @@ std::uint16_t weight_of(
 // on any property of djinterp::rgb.
 struct probe_color
 {
-    std::uint8_t  r = 0;
-    std::uint8_t  g = 0;
-    std::uint8_t  b = 0;
+    uint8_t  r = 0;
+    uint8_t  g = 0;
+    uint8_t  b = 0;
 
     constexpr
     bool operator==(

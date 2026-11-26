@@ -4,7 +4,7 @@
 *
 * path:      /tests/djinterp/cpp/text/test_output_harness.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
+* author(s): TBA                                             created: 2026.10.15
 *                                                            revised: 2026.11.09
 *******************************************************************************/
 // T4 verification harness — test_output (report -> multi-format bundle -> write).

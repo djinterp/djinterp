@@ -4,7 +4,7 @@
 *
 * path:      /tests/djinterp/cpp/util/metadata/metadata_traits_tests_protocol.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
+* author(s): TBA                                             created: 2026.09.21
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp

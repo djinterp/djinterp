@@ -6,8 +6,8 @@
 *
 * path:      /inc/djinterp/c/text/number_to_string_la.h
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.10.23
+* author(s): TBA                                             created: 2026.10.04
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 #ifndef DJINTERP_C_TEXT_NUMBER_TO_STRING_LA_H
 #define DJINTERP_C_TEXT_NUMBER_TO_STRING_LA_H 1
@@ -96,7 +96,9 @@ size_t nts_la_ordinal_i64(
  *   1  -> I.
  *   21 -> XXI.
  *
- * 0 falls back to "0." because Classical Latin has no native zero numeral.
+ * 0 falls back to "0." because Classical Latin has no native zero numeral,
+ * and a magnitude past 3999 (MMMCMXCIX), where the standard numerals end,
+ * to its digits and a period: 4000 -> "4000.", -44 -> "-XLIV.".
  *
  * Returns the number of bytes that would have been written, excluding the
  * terminating '\0'. Pass dst = NULL and/or dst_cap = 0 to query length.

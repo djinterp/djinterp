@@ -6,8 +6,8 @@
 *
 * path:      /src/djinterp/c/text/number_to_string_la.c
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.20
+* author(s): TBA                                             created: 2026.09.20
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/text/number_to_string_la.h"
 
@@ -687,6 +687,26 @@ size_t nts_la_ordinal_abbrev_i64(
 
     if (mag == 0u) {
         nts_la_put_char(dst, dst_cap, &total, '0');
+        nts_la_put_char(dst, dst_cap, &total, '.');
+        nts_la_term(dst, dst_cap, total);
+        return total;
+    }
+
+    // past MMMCMXCIX the standard numerals end; digits, as for 0, rather
+    // than one M for every thousand (INT64_MIN would take 9.2e15 of them)
+    if (mag > UINT64_C(3999)) {
+        char digits[20];
+        unsigned count = 0u;
+
+        while (mag != 0u) {
+            digits[count++] = (char)('0' + (int)(mag % 10u));
+            mag /= 10u;
+        }
+
+        while (count != 0u) {
+            nts_la_put_char(dst, dst_cap, &total, digits[--count]);
+        }
+
         nts_la_put_char(dst, dst_cap, &total, '.');
         nts_la_term(dst, dst_cap, total);
         return total;

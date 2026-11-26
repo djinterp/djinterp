@@ -4,7 +4,7 @@
 *
 * path:      /tests/djinterp/cpp/util/sort/sort_common_tests_order.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
+* author(s): TBA                                             created: 2026.10.15
 *                                                            revised: 2026.11.12
 *******************************************************************************/
 // djinterp

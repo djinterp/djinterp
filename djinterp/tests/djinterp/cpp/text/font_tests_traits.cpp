@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/text/font_tests_traits.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): TBA                                             created: 2026.07.25
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 // djinterp [test]  font_tests_traits.cpp
 //   Section 10, parts I and II: the expression detectors and the individual
@@ -42,7 +42,7 @@ changed underneath it.
   - font_family_t and font_style_name_t are std::string
   - font_size_t is float
   - font_size_unit_t is DFontSizeUnit
-  - font_weight_t is DFontWeight, font_weight_numeric_t is std::uint16_t
+  - font_weight_t is DFontWeight, font_weight_numeric_t is uint16_t
   - font_slant_t is DFontSlant
 */
 bool tests_detector_core_member_types()
@@ -55,7 +55,7 @@ bool tests_detector_core_member_types()
                              DFontSizeUnit>::value));
     D_FT_CHECK((std::is_same<font_weight_t<bare_font>, DFontWeight>::value));
     D_FT_CHECK((std::is_same<font_weight_numeric_t<bare_font>,
-                             std::uint16_t>::value));
+                             uint16_t>::value));
     D_FT_CHECK((std::is_same<font_slant_t<bare_font>, DFontSlant>::value));
 
     // and on a duck type that never met DFont<>

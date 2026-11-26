@@ -4,7 +4,7 @@
 *
 * path:      /tests/djinterp/cpp/util/timer/timer_tests_constructors.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
+* author(s): TBA                                             created: 2026.09.21
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp
