@@ -128,6 +128,8 @@ SPLITS = {
 PART_CREATED = "2026.11.21"
 PART_DATE = "2026.11.24"
 SPLIT_DATE = "2026.11.24"
+# a part revised since PART_DATE: its own date
+PART_REVISED = {"exponential_d.h": "2026.11.25"}
 
 
 def strip_c_comments(text):
@@ -250,7 +252,8 @@ def split_header(name, text, spec):
             own = "// the parts before this one whose names it uses\n" + own
         files[part] = (
             banner(part, textwrap.wrap(" ".join(l for l in lines_[:1]), 72)
-                   + lines_[1:], PART_CREATED, PART_DATE,
+                   + lines_[1:], PART_CREATED,
+                   PART_REVISED.get(part, PART_DATE),
                    tuple(t % {"header": name, "count": NUMBERS[len(spec)]}
                          for t in PART)) + "\n\n" +
             "#ifndef %s\n#define %s 1\n\n" % (guard_p, guard_p) +

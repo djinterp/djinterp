@@ -97,11 +97,14 @@ def exp_d_constants():
     m2, e2 = exp_d_round((L - L1).numerator, (L - L1).denominator, 35)
     L2 = Fraction(m2) * Fraction(2) ** e2
     m3, e3 = exp_d_round((L - L1 - L2).numerator, (L - L1 - L2).denominator)
+    # exp_fast's second part: ln2/128 - L1 rounded to double (chunk 65)
+    mf, ef = exp_d_round((L - L1).numerator, (L - L1).denominator)
     consts = {
         "INVL": exp_d_literal(*invl),
         "L1": exp_d_literal(m1, e1),
         "L2": exp_d_literal(m2, e2),
         "L3": exp_d_literal(m3, e3),
+        "L2F": exp_d_literal(mf, ef),
     }
     rows = []
     for j in range(128):
@@ -109,7 +112,21 @@ def exp_d_constants():
         mh, eh = exp_d_round(t.numerator, t.denominator)
         hi = Fraction(mh) * Fraction(2) ** eh
         ml, el = exp_d_round((t - hi).numerator, (t - hi).denominator)
-        rows.append((exp_d_literal(mh, eh), exp_d_literal(ml, el)))
+        # hi rounded to a multiple of 2^-25, ties to even, as phase 1's
+        # shifter rounds it (S489), and the exact rest
+        u = hi * 2 ** 25
+        n = u.numerator // u.denominator
+        rest = u - n
+        if rest > Fraction(1, 2) or (rest == Fraction(1, 2) and n % 2 == 1):
+            n += 1
+        t1 = Fraction(n, 2 ** 25)
+        t2 = hi - t1
+        m1t, e1t = exp_d_round(t1.numerator, t1.denominator)
+        m2t, e2t = exp_d_round(t2.numerator, t2.denominator)
+        assert Fraction(m1t) * Fraction(2) ** e1t == t1
+        assert Fraction(m2t) * Fraction(2) ** e2t == t2
+        rows.append((exp_d_literal(mh, eh), exp_d_literal(ml, el),
+                     exp_d_literal(m1t, e1t), exp_d_literal(m2t, e2t)))
     return consts, rows
 
 
@@ -134,12 +151,13 @@ EXP_D_P2 = [("0x1.5555555555555p-3", "0x1.5555557ae255ep-57"),
 
 
 def exp_d_table_macro(rows):
-    """the table of 2^(j/128) as a macro's initializer, one value a line."""
+    """the table of 2^(j/128) as a macro's initializer, one value a line, four
+    to a row: the pair, then the high part's split."""
     out = ["#define D_INTERNAL_MATH_D_EXP_TABLE" + " " * 44 + "\\",
            "    {" + " " * 74 + "\\"]
-    for j, (hi, lo) in enumerate(rows):
-        for k, v in enumerate((hi, lo)):
-            last = (j == 127 and k == 1)
+    for j, row in enumerate(rows):
+        for k, v in enumerate(row):
+            last = (j == 127 and k == len(row) - 1)
             text = "        " + v + ("" if last else ",")
             out.append(text + " " * (79 - len(text)) + "\\")
     out.append("    }")
@@ -160,7 +178,8 @@ EXP_D_SECTION = r"""// 3.2    Exponential
 // (S416). x is reduced to (128 e + j) ln2/128 + r, 128 e + j the integer
 // nearest x 128/ln2 and |r| < 0.00271, ln2/128 in three parts whose first two
 // products by that integer are exact; then exp(x) = 2^e 2^(j/128) e^r, with
-// 2^(j/128) from a table of 128 pairs of doubles. Three phases follow, each
+// 2^(j/128) from a table of 128 pairs of doubles, each high part beside its
+// split as the first phase takes it. Three phases follow, each
 // with a bound proven in chunk 51's record (proofs/), each giving its result
 // where the interval its bound allows rounds one way, as Ziv's method has
 // it: phase 1, in doubles, within 2^-63.5 of the exponential, relatively,
@@ -182,6 +201,19 @@ EXP_D_SECTION = r"""// 3.2    Exponential
 // every platform and at compile time. Where double is evaluated wider than
 // double, exp is the C library's, so that the plain form builds everywhere
 // (S479).
+//   exp_c's common path, x from 2^-53 to 708 in size and its first phase
+// deciding, is inlined into each caller and kept small: the two later phases
+// are out of line (math_common.h's D_MATH_FN_COLD), the table holds each
+// high part's split, and there the result is normal and below 2^1022, so the
+// first phase's rounding needs no test of the subnormals or of overflow
+// (S489). The bits are those of the three phases as above, at every x.
+//   exp_fast is e^x within 0.511 of an ulp, at the C library's time: x
+// reduced with ln2/128 in two parts, e^r - 1 by the first phase's
+// polynomial, r + r^2 (c2 + r c3) + r^4 (c4 + r c5), then T (1 + that) from
+// the table's pair, rounded once; the bound proven by Gappa whether or not
+// the compiler fuses a multiply and an add (chunk 65's record, proofs/).
+// Outside 2^-53 < |x| <= 708 it is exp_c, and where double is evaluated
+// wider than double, the C library's exp (S490).
 
 @TABLE@
 
@@ -193,26 +225,27 @@ template <int Unused>
 struct dj_internal_math_d_exp_table
 {
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    static constexpr double value[256] = D_INTERNAL_MATH_D_EXP_TABLE;
+    static constexpr double value[512] = D_INTERNAL_MATH_D_EXP_TABLE;
 #else
-    static const double value[256];
+    static const double value[512];
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 };
 
 #if !D_ENV_LANG_IS_CPP11_OR_HIGHER
 template <int Unused>
-const double dj_internal_math_d_exp_table<Unused>::value[256] =
+const double dj_internal_math_d_exp_table<Unused>::value[512] =
     D_INTERNAL_MATH_D_EXP_TABLE;
 #elif !D_ENV_LANG_IS_CPP17_OR_HIGHER
 template <int Unused>
-constexpr double dj_internal_math_d_exp_table<Unused>::value[256];
+constexpr double dj_internal_math_d_exp_table<Unused>::value[512];
 #endif
 #endif  // __cplusplus
 
 // d_internal_math_d_exp_t
-//   the table's _index-th value: 2^(j/128)'s high part at 2 j, its low part
-// at 2 j + 1, each exact as written. In C a function's own table, so that a
-// translation unit that never reaches it holds none.
+//   the table's _index-th value: 2^(j/128)'s high part at 4 j, its low part
+// at 4 j + 1, the high part rounded to a multiple of 2^-25 at 4 j + 2, and the
+// rest of the high part at 4 j + 3, each exact as written. In C a function's
+// own table, so that a translation unit that never reaches it holds none.
 D_MATH_FN double
 d_internal_math_d_exp_t(
     int _index
@@ -221,7 +254,7 @@ d_internal_math_d_exp_t(
 #ifdef __cplusplus
     return dj_internal_math_d_exp_table<0>::value[_index];
 #else
-    static const double table[256] = D_INTERNAL_MATH_D_EXP_TABLE;
+    static const double table[512] = D_INTERNAL_MATH_D_EXP_TABLE;
 
     return table[_index];
 #endif  // __cplusplus
@@ -281,7 +314,8 @@ struct dj_internal_math_d_exp_result
 // t rounded or not (fused), so |k| < 2^18; x - k L1 is exact, a multiple of
 // x's ulp below 2^-8 where k is not 0, and x where it is; k L1 and k L2 are
 // exact, L1 and L2 of 35 bits; so x - k L1 - k L2 is exactly r1 + r2's first
-// form, and k L3 adds below 2^-114.
+// form, and k L3 adds below 2^-114. j and e are k's remainder and quotient
+// by 128, taken from k + 2^18, which is positive.
 D_MATH_FN struct dj_internal_math_d_exp_arg
 d_internal_math_d_exp_arg_of(
     double _x
@@ -297,13 +331,13 @@ d_internal_math_d_exp_arg_of(
     const double shift = 6755399441055744.0;
     const double t     = _x * invl;
     const double k     = (t + shift) - shift;
-    const int    ki    = (int)k;
+    const int    kb    = (int)k + 262144;
     const struct dj_math_dd r = d_math_dd_two_sum(_x - (k * l1), -(k * l2));
     struct dj_internal_math_d_exp_arg result = { 0.0, 0, 0, 0.0, 0.0 };
 
     result.k  = k;
-    result.j  = ((ki % 128) + 128) % 128;
-    result.e  = (ki - result.j) / 128;
+    result.j  = kb & 127;
+    result.e  = (kb >> 7) - 2048;
     result.r1 = r.high;
     result.r2 = r.low - (k * l3);
 
@@ -413,15 +447,25 @@ d_internal_math_d_exp_decide(
     return result;
 }
 
-// d_internal_math_d_exp_phase1
-//   exp(x) from _a in doubles: e^r1 - 1 - r1 = r1^2 q(r1), q of degree 3
+// dj_internal_math_d_exp_estimate
+//   struct: the first phase's pair, high + low, and the bound err on its
+// distance from exp(x) 2^-e.
+struct dj_internal_math_d_exp_estimate
+{
+    double high;
+    double low;
+    double err;
+};
+
+// d_internal_math_d_exp_estimate_of
+//   exp(x) 2^-e from _a in doubles: e^r1 - 1 - r1 = r1^2 q(r1), q of degree 3
 // (Sollya's), within 2^-63.66; T r1 split so that its high product, 26 bits
-// by 27, is exact; T + T r1 taken exactly by Fast2Sum. Within 2^-63.5 of
-// exp(x), relatively (proofs/exp_phase1.g): tested against 2^-63 times the
-// result's high part. Where k is 0, T is 1 and the bound shrinks with x^2:
-// 2^-46 z + 2^-52 (|lo| + |b|) (proofs/exp_phase1_n0.g).
-D_MATH_FN struct dj_internal_math_d_exp_result
-d_internal_math_d_exp_phase1(
+// by 27, is exact, T's split read from the table; T + T r1 taken exactly by
+// Fast2Sum. Within 2^-63.5 of exp(x), relatively (proofs/exp_phase1.g): err
+// is 2^-63 times the result's high part. Where k is 0, T is 1 and the bound
+// shrinks with x^2: 2^-46 z + 2^-52 (|lo| + |b|) (proofs/exp_phase1_n0.g).
+D_MATH_FN struct dj_internal_math_d_exp_estimate
+d_internal_math_d_exp_estimate_of(
     struct dj_internal_math_d_exp_arg _a
 )
 {
@@ -429,31 +473,47 @@ d_internal_math_d_exp_phase1(
     const double c3  = @C3@;
     const double c4  = @C4@;
     const double c5  = @C5@;
-    // 1.5 2^17 and 1.5 2^27: they round r1 to a multiple of 2^-35, and a
-    // table value in [1, 2) to one of 2^-25
+    // 1.5 2^17: it rounds r1 to a multiple of 2^-35
     const double s35 = 196608.0;
-    const double s25 = 201326592.0;
-    const double thi = d_internal_math_d_exp_t(2 * _a.j);
-    const double tlo = d_internal_math_d_exp_t((2 * _a.j) + 1);
+    const double thi = d_internal_math_d_exp_t(4 * _a.j);
+    const double tlo = d_internal_math_d_exp_t((4 * _a.j) + 1);
+    const double t1  = d_internal_math_d_exp_t((4 * _a.j) + 2);
+    const double t2  = d_internal_math_d_exp_t((4 * _a.j) + 3);
     const double r1  = _a.r1;
     const double z   = r1 * r1;
     const double q   = c2 + (r1 * (c3 + (r1 * (c4 + (r1 * c5)))));
     const double pq  = z * q;
     const double rh  = (r1 + s35) - s35;
     const double rl  = r1 - rh;
-    const double t1  = (thi + s25) - s25;
-    const double t2  = thi - t1;
     const double b   = ( (t2 * rh) + (thi * ((rl + _a.r2) + pq)) ) +
                        (tlo * (1.0 + r1));
     const struct dj_math_dd h = d_math_dd_fast_two_sum(thi, t1 * rh);
     const double lo  = h.low + b;
-    const double err = (_a.k != 0.0)
+    struct dj_internal_math_d_exp_estimate result = { 0.0, 0.0, 0.0 };
+
+    result.high = h.high;
+    result.low  = lo;
+    result.err  = (_a.k != 0.0)
         ? (h.high * (1.0 / 9223372036854775808.0))
         : ( (z * (1.0 / 70368744177664.0)) +
             ( (((lo < 0.0) ? -lo : lo) + ((b < 0.0) ? -b : b)) *
               (1.0 / 4503599627370496.0) ) );
 
-    return d_internal_math_d_exp_decide(h.high, lo, err, _a.e);
+    return result;
+}
+
+// d_internal_math_d_exp_phase1
+//   exp(x) from _a in doubles: the estimate, rounded where its bound allows,
+// in the normal range or the subnormals'.
+D_MATH_FN struct dj_internal_math_d_exp_result
+d_internal_math_d_exp_phase1(
+    struct dj_internal_math_d_exp_arg _a
+)
+{
+    const struct dj_internal_math_d_exp_estimate one =
+        d_internal_math_d_exp_estimate_of(_a);
+
+    return d_internal_math_d_exp_decide(one.high, one.low, one.err, _a.e);
 }
 
 // d_internal_math_d_exp_phase2
@@ -480,8 +540,8 @@ d_internal_math_d_exp_phase2(
     const double a7 = @A7@;
     const double a8 = @A8@;
     const double a9 = @A9@;
-    const struct dj_math_dd t  = { d_internal_math_d_exp_t(2 * _a.j),
-                                   d_internal_math_d_exp_t((2 * _a.j) + 1) };
+    const struct dj_math_dd t  = { d_internal_math_d_exp_t(4 * _a.j),
+                                   d_internal_math_d_exp_t((4 * _a.j) + 1) };
     const struct dj_math_dd r  = d_math_dd_two_sum(_a.r1, _a.r2);
     const double            rh = r.high;
     const double            tt =
@@ -941,8 +1001,29 @@ d_internal_math_d_exp_phase3(
     }
 }
 
+// d_internal_math_d_exp_slow
+//   exp(_x) by the second phase and, where it does not decide, the third:
+// the some 0.2% of arguments the first leaves. Out of line, so that exp_c's
+// common path, inlined into its callers, keeps the small frame the first
+// phase needs.
+D_MATH_FN_COLD double
+d_internal_math_d_exp_slow(
+    double _x
+)
+{
+    const struct dj_internal_math_d_exp_arg a =
+        d_internal_math_d_exp_arg_of(_x);
+    const struct dj_internal_math_d_exp_result two =
+        d_internal_math_d_exp_phase2(a);
+
+    return two.decided ? two.value : d_internal_math_d_exp_phase3(_x, a);
+}
+
 // d_math_d_exp_c
-//   e^_x, correctly rounded; see above.
+//   e^_x, correctly rounded; see above. Where 2^-53 < |x| <= 708, |k| is at
+// most 130743, so e runs from -1022 to 1021, and e^x is at least 2^-1021.4:
+// the first phase's value low 2^e, low in [0.99, 2.01], is normal and
+// finite, the product exact.
 D_MATH_FN double
 d_math_d_exp_c(
     double _x
@@ -954,8 +1035,27 @@ d_math_d_exp_c(
     const double first = -(6554261109157969.0 / 8796093022208.0);
     // 2^-53: below it, and down to -2^-53, 1 + x is the correct rounding
     const double tiny  = 1.0 / 9007199254740992.0;
+    // x^2, rounded: above 2^-106 and at most 708^2 just where 2^-53 < |x| <=
+    // 708, as both are squares of doubles and rounding keeps the order; no
+    // test of x's sign, which a caller's arguments may not let a processor
+    // predict
+    const double xx    = _x * _x;
 
     D_MATH_DBL_REFUSE(_x)
+
+    // the common path: no NaN, and the result normal
+    if ( (xx > (tiny * tiny)) && (xx <= 501264.0) )
+    {
+        const struct dj_internal_math_d_exp_arg a =
+            d_internal_math_d_exp_arg_of(_x);
+        const struct dj_internal_math_d_exp_estimate one =
+            d_internal_math_d_exp_estimate_of(a);
+        const double low  = one.high + (one.low - one.err);
+        const double high = one.high + (one.low + one.err);
+
+        return (low == high) ? (low * d_internal_math_d_exp_pow2(a.e))
+                             : d_internal_math_d_exp_slow(_x);
+    }
 
     if (_x != _x)
     {
@@ -977,21 +1077,15 @@ d_math_d_exp_c(
         return 1.0 + _x;
     }
 
+    // near the ends of the range, where the result may be subnormal, and at
+    // 2^-53 itself
     {
         const struct dj_internal_math_d_exp_arg a =
             d_internal_math_d_exp_arg_of(_x);
         const struct dj_internal_math_d_exp_result one =
             d_internal_math_d_exp_phase1(a);
-        struct dj_internal_math_d_exp_result two = { false, 0.0 };
 
-        if (one.decided)
-        {
-            return one.value;
-        }
-
-        two = d_internal_math_d_exp_phase2(a);
-
-        return two.decided ? two.value : d_internal_math_d_exp_phase3(_x, a);
+        return one.decided ? one.value : d_internal_math_d_exp_slow(_x);
     }
 }
 
@@ -1004,6 +1098,57 @@ d_math_d_exp(
 )
 {
 #if !D_MATH_DBL_EVAL_WIDE
+    return d_math_d_exp_c(_x);
+#elif defined(__cplusplus)
+    return std::exp(_x);
+#else
+    return exp(_x);
+#endif  // !D_MATH_DBL_EVAL_WIDE
+}
+
+// d_math_d_exp_fast
+//   e^_x within 0.511 of an ulp, at the C library's time; see above. r is
+// x - k L1 - k L2F rounded, within 2^-62 of x - k ln2/128, |r| < 0.00271;
+// T (1 + p) is thi + (tlo + thi p), within 2^-58.5 of it before its last
+// rounding where it is at least 1, and 2^-59.7 where it is below; the
+// product by 2^e is exact, the result normal and finite, as exp_c's is.
+D_MATH_FN_RT double
+d_math_d_exp_fast(
+    double _x
+)
+{
+#if !D_MATH_DBL_EVAL_WIDE
+    // 128/ln2; ln2/128 = L1 + L2F but for 2^-98.4, L1 of 35 bits
+    const double invl  = @INVL@;
+    const double l1    = @L1@;
+    const double l2    = @L2F@;
+    const double c2    = @C2@;
+    const double c3    = @C3@;
+    const double c4    = @C4@;
+    const double c5    = @C5@;
+    const double shift = 6755399441055744.0;
+    // 2^-53, and x^2: 2^-53 < |x| <= 708 just where 2^-106 < x^2 <= 708^2,
+    // as exp_c tests it
+    const double tiny  = 1.0 / 9007199254740992.0;
+    const double xx    = _x * _x;
+
+    if ( (xx > (tiny * tiny)) && (xx <= 501264.0) )
+    {
+        const double t   = _x * invl;
+        const double k   = (t + shift) - shift;
+        const int    kb  = (int)k + 262144;
+        const int    j   = kb & 127;
+        const int    e   = (kb >> 7) - 2048;
+        const double r   = (_x - (k * l1)) - (k * l2);
+        const double thi = d_internal_math_d_exp_t(4 * j);
+        const double tlo = d_internal_math_d_exp_t((4 * j) + 1);
+        const double z   = r * r;
+        const double p   = r + ( (z * (c2 + (r * c3))) +
+                                 ((z * z) * (c4 + (r * c5))) );
+
+        return (thi + (tlo + (thi * p))) * d_internal_math_d_exp_pow2(e);
+    }
+
     return d_math_d_exp_c(_x);
 #elif defined(__cplusplus)
     return std::exp(_x);

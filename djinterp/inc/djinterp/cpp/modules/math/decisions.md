@@ -1,11 +1,11 @@
-# djinterp math: the lane's decisions, S1 to S488
+# djinterp math: the lane's decisions, S1 to S494
 
 Every decision the math lane has taken, in the words of the record that took
 it, with the alternative it set aside. The numbers run across the lane's
 records from S1 (slice 3, 2026.10.08); each record's section of decisions is
 here as its README has it, its own first lines among it. A decision was the
 lane's to take within the owner's rulings, and stands once his next word on
-its delivery, his "continue", has accepted it: S1 to S482 stand, his own
+its delivery, his "continue", has accepted it: S1 to S488 stand, his own
 rulings of 2026.10.27 on complex numbers and quaternions, S265 to S278, the
 design of steps 22 to 24, and his choice of 2026.11.07, S383, among them.
 His rulings of 2026.11.03 and 2026.11.04 on the flagged decisions are in the
@@ -40,10 +40,12 @@ OPTIONS and CONFIGURATION in every header of math, by his rulings of 14:20
 and 14:37, S476 as he ruled it, its alternative; and chunk 63's, the plain
 double exp correctly rounded, as his ruling 12 has it, and chunk 62's
 objects compared, by his rulings of 21:16, S482 as he ruled it, its
-alternative. His rulings 12 to 15 of that day are in chunk 63's opening
-lines. S483 to S488 are chunk 64's, open until his word on them: the scalar
-helpers of ruling 13, and the terps' needs numbered as Phase 9, steps 52 to
-62. His word of 2026.11.14 on the language's names, which kept them flat in
+alternative; and chunk 64's, the scalar helpers of ruling 13 and the terps'
+needs numbered as Phase 9, steps 52 to 62, by his "continue" of 2026.11.25.
+His rulings 12 to 15 of 2026.11.24 are in chunk 63's opening lines. S489 to
+S494 are chunk 65's, open until his word on them: step 53, exp's speed step,
+and the fast exp his note on S478 asked for; and S359's precedent corrected.
+His word of 2026.11.14 on the language's names, which kept them flat in
 `djinterp::math`, is S397's. Where a later decision changes an earlier one,
 the later one says so; the earlier one stays here as it was taken.
 
@@ -70,7 +72,7 @@ judged on accuracy and functionality, the best solution rather than the
 cheapest. A review ends "Taken" where the path taken is the one it
 recommends, or "Ruled" where the owner ruled it; it ends in a flag where the
 path taken is not the one it recommends, or has a significant drawback. The
-23 flagged decisions, the outstanding ones, come first, in five groups by
+22 flagged decisions, the outstanding ones, come first, in five groups by
 what they concern, the most urgent first in each (section 1); then every
 decision, by record (section 2).
 
@@ -80,15 +82,15 @@ C6 and N1 to N6, are in the consolidation's record
 followed it; his rulings on them are the roadmap's principles and items
 (`roadmap.md`). From chunk 34 on, each chunk's delivery brings this file,
 its own decisions added at the end. This file is made by
-`_handoffs/math98_chunk64_2026.11.24/tools/decisions_c64.py`.
+`_handoffs/math98_chunk65_2026.11.25/tools/decisions_c65.py`.
 
 ## 1. Outstanding decisions
 
-The 23 flagged decisions: those whose review recommends what is not yet
+The 22 flagged decisions: those whose review recommends what is not yet
 done, or names a significant drawback of what was. Each gives when it is
 due, by the roadmap's steps, its flag and its review's recommendation; the
 decision itself and its whole review are in its record's part of section 2.
-The groups and the steps are `decisions_outstanding_c64.md`'s, in chunk 64's
+The groups and the steps are `decisions_outstanding_c65.md`'s, in chunk 65's
 record.
 
 ### 1.1 The expression language
@@ -193,16 +195,6 @@ record.
   roadmap's seventh principle has it; chunk 42's squaring in the family's
   own type, the faster, kept for a `_fast` form at step 40 (6e), where
   measured demand asks for one.
-- S478. When: step 53 (T2), as the owner's note on it has it (S487): `exp_c`
-  made as fast as glibc's exp, or else a `_fast` exp beside it; the plain
-  double exp, `exp_c` since chunk 63, 2.1 to 2.6 times the C library's time
-  on ordinary arguments by gcc, up to 3.0 by clang. On ordinary arguments
-  the plain exp is past the twice that ruling 12 names; until the speed
-  step, the owner may hold the switch instead. The owner kept it, 2026.11.24
-  at 21:16, noting "Let's make a fast and slow version? Unless we can make
-  it as good as GCC": step 53's plan (chunk 64, S487). Recommended: as
-  taken, as decision 48 ruled it, then a speed step for exp_c's first phase
-  on ordinary arguments, as S424's for log.
 - S424. When: step 54 (T3), before the plain double `log` follows ruling 12
   (made 2026.11.24): `log_c` 1.95 to 3.03 times the C library's time after
   chunk 54 (S432, S433), past twice. `log_c` is still 1.95 to 3.03 times the
@@ -6784,7 +6776,8 @@ quotient is a times b's inverse, the product as written.**
 > formula and Eigen give it; an infinity's inverse 0, as 1 / inf is;
 > against, no infinity for 1 / 0, where a complex number has Annex G's. The
 > alternatives: 1 / 0 an infinity, with no one direction; MATLAB's names.
-> Recommended: as taken. Taken.
+> Recommended: as taken. Taken. Corrected 2026.11.25 (chunk 65, S494): Eigen
+> gives the zero quaternion, not NaNs; the NaN is the formula's and GLM's.
 
 **S360. The rotation is q v q^-1 for any q not 0: `rotate`, and
 `to_matrix3` and `to_matrix4`, R / |q|^2, so that a q a few steps from unit
@@ -10660,11 +10653,11 @@ section's comment and `exponential.h`'s banner say so.
 > the kernel, a second text to keep bit for bit; the switch held until log
 > qualifies. Recommended: as taken, as decision 48 ruled it, then a speed
 > step for exp_c's first phase on ordinary arguments, as S424's for log.
-> **Flag:** on ordinary arguments the plain exp is past the twice that
-> ruling 12 names; until the speed step, the owner may hold the switch
-> instead. The owner kept it, 2026.11.24 at 21:16, noting "Let's make a fast
-> and slow version? Unless we can make it as good as GCC": step 53's plan
-> (chunk 64, S487).
+> Ruled 2026.11.24 (21:16): as recommended, the owner noting "Let's make a
+> fast and slow version? Unless we can make it as good as GCC": step 53's
+> plan (chunk 64, S487). Done in chunk 65 (S489, S490): exp_c's common path
+> kept small, 1.6 to 2.2 times glibc's time on ordinary arguments, the bits
+> unchanged; and d_math_d_exp_fast, within 0.511 of an ulp, at glibc's time.
 
 **S479. Where double is evaluated wider than double, a 32-bit x87, the
 plain double exp stays the C library's, so that the plain form builds
@@ -10922,3 +10915,162 @@ from now. The zip goes after chunk 63's.
 > 9c. Against: the steps' numbers no longer run in the order of work, 52
 > coming before 37. The alternative: Phase 9 among the others, every later
 > step renumbered. Recommended: as taken. Taken.
+
+### S489 to S494: chunk 65, 2026.11.25
+
+The record: `_handoffs/math98_chunk65_2026.11.25/README.md`.
+
+Chunk 65's decisions, S489 to S494: step 53 of 62 (T2), exp's speed, as the
+owner's note on S478 has it - "Let's make a fast and slow version? Unless
+we can make it as good as GCC" - and as S487 planned it: a speed step for
+`exp_c` first, and, since it does not reach glibc's time, a fast exp
+beside it; and a precedent of S359 corrected, found by the owner's question
+of 2026.11.25 on how other libraries handle a NaN. His "continue" of
+2026.11.25 (06:55) accepted chunk 64's decisions, S483 to S488.
+
+**S489. `exp_c`'s common path, 2^-53 < |x| <= 708 with its first phase
+deciding, is kept small enough to inline into each caller: its second and
+third phases are out of line, a new function `d_internal_math_d_exp_slow`
+under a new qualifier, `math_common.h`'s `D_MATH_FN_COLD` (never inlined,
+constexpr from C++14 as `D_MATH_FN`); the table holds each 2^(j/128)'s high
+part beside the split the first phase made of it by a shifter, 512 doubles
+for 256; the reduction takes j and e from k + 2^18, positive, by a mask
+and a shift, not by signed division; there the result is normal and below
+2^1022, so the first phase's value is low 2^e with no test of the
+subnormals or of overflow; and the range is tested by x^2 against 2^-106
+and 708^2, both squares of doubles, so that no branch hangs on x's sign.
+The bits are the three phases' at every argument: the first phase computes
+the same values, decides where it decided, and the second and third are
+reached as before. On ordinary arguments the plain exp, which is `exp_c`,
+takes 1.6 to 2.2 times glibc's time where it took 2.5 to 2.9 (gcc, clang
+and g++, -O2); over exp's whole range 1.1 to 1.35 where it took 1.4 to
+1.8.** Ubuntu's compilers protect the stack of a function with an array:
+with the third phase's limbs forced inline, every call paid for a frame of
+a thousand bytes, six saved registers and the canary's check. glibc's exp
+runs here with fused multiply-adds, chosen when it loads; the lane's
+builds have none.
+- Alternative: a first phase on fused multiply-adds where the target has
+  them, its exact product one instruction: a second text with its own
+  proof, and none in a default x86-64 build.
+- Alternative: the phases inline, as they were: the frame on every call.
+
+> **Review.** Taken: for, the plain exp, which is exp_c, faster by a third
+> on ordinary arguments and by a fifth over the whole range, its bits the
+> three phases' at every argument, by changes that compute the same values:
+> what runs at every call is the first phase alone. Against: one more
+> qualifier in the kit, and a table twice the size, 4 KiB. The alternatives:
+> a fused first phase, a second proven text that a default build never runs;
+> the phases inline, a frame of a thousand bytes and a canary on every call.
+> Recommended: as taken. Taken.
+
+**S490. The fast exp the owner's note asked for: `d_math_d_exp_fast`,
+e^x within 0.511 of an ulp, at glibc's time - 0.8 to 1.07 times it on
+ordinary arguments, 0.67 to 0.83 over the whole range. glibc's exp in
+pure arithmetic: x reduced by k ln2/128 in two parts, L1 of 35 bits, so k
+L1 exact, and L2F, ln2/128 - L1 rounded; e^r - 1 by the first phase's
+polynomial, r + r^2 (c2 + r c3) + r^4 (c4 + r c5); then thi + (tlo + thi
+p) from the table's pair, rounded once, times 2^e. Gappa proves the
+bound, whether or not the build fuses a product into its sum, with the
+polynomial's 2^-63.66 and the table's 2^-107 (chunk 65's record,
+proofs/): 0.510556 of an ulp where the value is at least 1, 0.509196
+below. Measured at ten million arguments: 0.5068, 0.5063 where the build
+fuses, and some 0.07% rounded otherwise than `exp_c`.** Outside 2^-53 <
+|x| <= 708 it is `exp_c`, so its specials, subnormals and overflow are
+correctly rounded too.
+- Alternative: the fast exp the C library's: glibc's time by definition,
+  with each library's bits and accuracy, and never the same function on
+  two platforms.
+- Alternative: no fast form, `exp_c` alone: against the owner's note,
+  `exp_c` being still past glibc's time.
+
+> **Review.** Taken: for, the owner's note answered as he put it: exp_c
+> cannot be made glibc's, so a fast form beside it, at glibc's time, by the
+> lane's own text with a proven bound, the same function on every platform
+> where double is double, its specials exp_c's. Against: a second exp, which
+> rounds otherwise than exp_c at some 0.07% of arguments, and whose bits may
+> differ where a build fuses, within the same bound. The alternatives: the C
+> library's exp under the name, each library's bits; no fast form.
+> Recommended: as taken. Taken.
+
+**S491. `exp_fast`'s place: the double family's alone, as the correctly
+rounded `exp_c` it stands beside is; no C++ overload, since one family has
+it; `D_MATH_FN_RT`, never a constant expression, as the plain forms are;
+where double is evaluated wider than double, a 32-bit x87, the C library's
+exp, as the plain exp is there (S479), since `exp_c` refuses to compile
+there and the bound is not proven for a wider evaluation. The plain exp
+stays `exp_c`, as ruling 12 has it; the language's exp and the complex
+plain exponentials stay with it. `exponential.h`'s banner names the fast
+form in HOW TO USE and in OPTIONS, a third form chosen by name.**
+- Alternative: an `exp_fast` for every family, float's by double's,
+  long double's the library's: three names where one was asked for.
+- Alternative: a constant expression from C++14, refused on the x87 as
+  `exp_c` is: a fast form for run time is what the note asked for, and a
+  constant evaluation has `exp_c`.
+
+> **Review.** Taken: for, the fast form where it was asked for and no
+> further: the double exponential, at run time, the x87 given the library's,
+> as the plain exp is there; the plain exp kept correctly rounded, as ruling
+> 12 has it. Against: a C++ caller names it by its C name, as no overload
+> has it. The alternatives: a fast form for every family; a constant
+> expression refused on the x87. Recommended: as taken. Taken.
+
+**S492. The tests: `t_exponential` checks, at ten million random
+arguments - three in four across [-708, 708], one in four of every size
+from 2^-8 down to 2^-53 - and at the 129 doubles about each end of the
+common path, that `exp_c` gives the three phases' value bit for bit, taken
+in turn as `exp_c` took it before; that `exp_fast` is within an ulp of
+`exp_c`; and, where long double holds 64 bits, within 0.511 of an ulp of
+the exact value as `expl` gives it, to 2^-9 of an ulp, `expl`'s own
+error; that `exp_fast` is `exp_c` at the specials and outside the common
+path; and on the x87, that the plain exp and `exp_fast` are the library's.
+Its 16 builds of the full tier and 6 of the fused tier pass, 214.7 million
+checks each, 164.8 million on the x87. `tools/timing_c65.c` measures both,
+before and after, by gcc, clang and g++ (raw/timing.txt, two runs).**
+- Alternative: `exp_fast` checked within an ulp of `exp_c` alone: the
+  bound proven but not measured.
+
+> **Review.** Taken: for, the common path held to the three phases at ten
+> million arguments and about its ends, so that no bit changed unseen;
+> exp_fast's bound measured as well as proven, where long double can measure
+> it; the x87's library forms checked. Against: the measure leans on expl,
+> 2^-9 of an ulp of slack, and only where long double holds 64 bits. The
+> alternative: exp_fast checked against exp_c alone. Recommended: as taken.
+> Taken.
+
+**S493. Step 53 is done: the roadmap's T2 ticked, 35 of 62, and its 6e
+says the double exp's `_fast` form is made; S478 leaves the outstanding
+decisions, its speed step taken, 22 remaining, S424 due at step 54.
+Chunk 65's zip is cut over the owner's main of 2026.11.23, `6ee9dce1`,
+with Wednesday's, Friday's and chunks 58's to 64's zips laid over it, in
+that order, and holds chunk 65's files alone, at the tree's root; it goes
+after chunk 64's. 2026.11.25 is a new day: its note, and the day's zips,
+start again, holding chunk 65's.**
+- Alternative: S478 kept outstanding until `exp_c` reaches glibc: a speed
+  step with no plan behind it, where the owner's note made the fast form
+  the answer.
+
+> **Review.** Taken: for, the step closed where its plan was met, S478 with
+> it, the roadmap counting it; the zip after chunk 64's, as each chunk's has
+> been; the day's note and zips begun again for 2026.11.25. Against: none.
+> The alternative: S478 kept open for a speed step with no plan.
+> Recommended: as taken. Taken.
+
+**S494. S359's precedent corrected: Eigen's `inverse` of the zero quaternion
+is the zero quaternion, which its source calls an invalid result that flags
+the error, not a NaN in each part; GLM's, `conjugate(q) / dot(q, q)`, is the
+formula's 0 / 0, a NaN in each part. `quat.h`'s inverse of 0 stays a NaN in
+each part, as S359 took it, for the formula's and GLM's sake; S359's text
+stays as it was taken, and its review says so.** The owner's question of
+2026.11.25 on how other libraries and standards handle a NaN, answered
+against every decision that names one, found it; the code and its comments
+name Eigen only for the order of a quaternion's parts and for the rotation,
+both right.
+- Alternative: Eigen's zero quaternion: a value a caller can take for a
+  quaternion, whose inverse is zero again by the same rule, where a NaN
+  cannot be mistaken and passes on to every result made from it.
+
+> **Review.** Taken: for, the record corrected where it named a precedent
+> wrongly, the decision kept as the formula and GLM give it, a NaN that no
+> caller takes for a quaternion. Against: Eigen, whose answer many of a
+> renderer's callers know, gives zeros. The alternative: Eigen's zero
+> quaternion, a value that looks valid. Recommended: as taken. Taken.

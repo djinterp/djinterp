@@ -19,10 +19,14 @@
 * reached. log_c likewise (S424), at the 2,354 arguments of
 * math_tests_log_refs.h - random ones over the whole range, subnormals and
 * arguments near 1 among them, ones within 2^-66 and 2^-99 of a midpoint,
-* the edges - its phases each checked alone. The family's self-test must
-* give 0 (self_test.h). Ten million
-* random arguments each: exp_c over its whole finite range and past both
-* ends, log_c over random positive patterns (the subnormals included) and
+* the edges - its phases each checked alone. exp_c's common path, 2^-53 <
+* |x| <= 708 (S489), must give the three phases' value, bit for bit, at ten
+* million random arguments and about its ends; exp_fast (S490) must be within
+* an ulp of exp_c there and, where long double holds 64 bits, within 0.511
+* of an ulp of the exact value as expl gives it, and exp_c itself outside
+* the common path. The family's self-test must give 0 (self_test.h). Ten
+* million random arguments each: exp_c over its whole finite range and past
+* both ends, log_c over random positive patterns (the subnormals included) and
 * over 1 + d, d down to 2^-53. Both must be within an ulp of exp and log, the
 * library's; how many differ at all is printed. The edges - the last finite
 * exponential, the last nonzero one, eight thousand doubles about each - and
@@ -70,7 +74,7 @@
 * path:      /tests/djinterp/c/modules/math/t_exponential.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.08
-*                                                            revised: 2026.11.21
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 // std
 #include <float.h>   // FLT_MAX, DBL_MAX, LDBL_MANT_DIG
@@ -440,7 +444,10 @@ d_tests_double(void)
         D_TESTS_EXPECT(d_tests_same_d(d_math_d_exp(x), d_math_d_exp_c(x)),
                        "d exp is exp_c", x);
 #else
-        (void)x;
+        // there the plain exp and exp_fast are the library's (S479, S490)
+        D_TESTS_EXPECT( (d_tests_same_d(d_math_d_exp(x), g_exp(x))) &&
+                        (d_tests_same_d(d_math_d_exp_fast(x), g_exp(x))),
+                        "d exp and exp_fast are the library's", x);
 #endif  // !D_MATH_DBL_EVAL_WIDE
 
         // NaN past DBL_MAX: the specials are checked below; log_c, as
@@ -595,6 +602,142 @@ d_tests_double_exp_edges(void)
             x = nextafter(x, 1000.0);
         }
     }
+
+    return;
+}
+
+// d_tests_exp_by_phases
+//   exp(_x) by the three phases in turn, as exp_c took it before its common
+// path (S489): the first's value where it decides, else the second's, else
+// the third's; for 2^-53 < |_x| at most 745.14.
+static double
+d_tests_exp_by_phases(
+    double _x
+)
+{
+    const struct dj_internal_math_d_exp_arg a =
+        d_internal_math_d_exp_arg_of(_x);
+    const struct dj_internal_math_d_exp_result one =
+        d_internal_math_d_exp_phase1(a);
+    const struct dj_internal_math_d_exp_result two =
+        d_internal_math_d_exp_phase2(a);
+
+    if (one.decided)
+    {
+        return one.value;
+    }
+
+    return two.decided ? two.value : d_internal_math_d_exp_phase3(_x, a);
+}
+
+// d_tests_double_exp_paths
+//   exp_c's common path, 2^-53 < |x| <= 708 (S489), the three phases' value
+// bit for bit at ten million random arguments - three in four across
+// [-708, 708], one in four of every size from 2^-8 down to 2^-53 - and at
+// those about 708 and 2^-53; and exp_fast (S490) within an ulp of exp_c at
+// each, and where long double holds 64 bits, within 0.511 of an ulp of the
+// exact value by expl's, to 2^-9 of an ulp, expl's own error; how many it
+// rounds otherwise than exp_c is printed. Outside the common path exp_fast
+// is exp_c, bit for bit.
+static void
+d_tests_double_exp_paths(void)
+{
+    const double tiny  = 1.0 / 9007199254740992.0;
+    const double inf   = (double)HUGE_VAL;
+    double       worst = 0.0;
+    long         diff  = 0;
+    long         i     = 0;
+    int          k     = 0;
+
+    for (i = 0; i < 10000000; ++i)
+    {
+        // stored, so x is a double, as d_tests_double's are
+        volatile double stored = ((i % 4) == 3)
+            ? ldexp((2.0 * d_tests_unit()) - 1.0,
+                    -8 - (int)d_tests_below(46u))
+            : (-708.0 + (1416.0 * d_tests_unit()));
+        const double    x      = stored;
+        const double    c      = d_math_d_exp_c(x);
+        const double    f      = d_math_d_exp_fast(x);
+
+        if ( (x > tiny) || (x < -tiny) )
+        {
+            D_TESTS_EXPECT(d_tests_same_d(c, d_tests_exp_by_phases(x)),
+                           "d exp_c's common path is the three phases'", x);
+        }
+
+        D_TESTS_EXPECT(D_TESTS_ULPS_D(f, c) <= 1.0,
+                       "d exp_fast within an ulp of exp_c", x);
+        diff += d_tests_same_d(f, c) ? 0 : 1;
+#if (LDBL_MANT_DIG >= 64)
+        {
+            const double e = D_TESTS_ULPS_D(f, g_expl((long double)x));
+
+            worst = (e > worst) ? e : worst;
+            D_TESTS_EXPECT(e <= 0.511 + (1.0 / 512.0),
+                           "d exp_fast within 0.511 of an ulp", x);
+        }
+#endif
+    }
+
+    // about the common path's ends: the three phases' value, and exp_fast
+    // within an ulp
+    for (i = 0; i < 4; ++i)
+    {
+        static const double ends[4] = { 708.0, -708.0,
+                                        1.0 / 9007199254740992.0,
+                                        -1.0 / 9007199254740992.0 };
+        double x = ends[i];
+
+        for (k = 0; k < 64; ++k)
+        {
+            x = nextafter(x, 0.0);
+        }
+
+        for (k = 0; k < 129; ++k)
+        {
+            D_TESTS_EXPECT(d_tests_same_d(d_math_d_exp_c(x),
+                                          d_tests_exp_by_phases(x)),
+                           "d exp_c about a common path's end", x);
+            D_TESTS_EXPECT(D_TESTS_ULPS_D(d_math_d_exp_fast(x),
+                                          d_math_d_exp_c(x)) <= 1.0,
+                           "d exp_fast about a common path's end", x);
+            x = nextafter(x, ((i % 2) == 0) ? 1000.0 : -1000.0);
+        }
+    }
+
+    // outside the common path, exp_fast is exp_c
+    {
+        static const double outside[] = {
+            0.0, -0.0, 1.0 / 9007199254740992.0, -1.0 / 9007199254740992.0,
+            4.9406564584124654e-324, 708.5, -708.5, 709.78271289338397,
+            -745.13321910194111, 709.79, -745.14, 1e300, -1e300
+        };
+        size_t j = 0;
+
+        for (j = 0; j < (sizeof(outside) / sizeof(outside[0])); ++j)
+        {
+            D_TESTS_EXPECT(d_tests_same_d(d_math_d_exp_fast(outside[j]),
+                                          d_math_d_exp_c(outside[j])),
+                           "d exp_fast is exp_c outside the common path",
+                           outside[j]);
+        }
+
+        D_TESTS_EXPECT( (isnan(d_math_d_exp_fast(nan("")))) &&
+                        (d_tests_same_d(d_math_d_exp_fast(inf), inf)) &&
+                        (d_tests_same_d(d_math_d_exp_fast(-inf), 0.0)),
+                        "d exp_fast of NaN and the infinities", 0);
+    }
+
+#if (LDBL_MANT_DIG >= 64)
+    printf("double: exp_c's common path is the three phases' at 10000000 "
+           "arguments; exp_fast rounds otherwise than exp_c at %ld, within "
+           "%.4f of an ulp\n", diff, worst);
+#else
+    printf("double: exp_c's common path is the three phases' at 10000000 "
+           "arguments; exp_fast rounds otherwise than exp_c at %ld\n", diff);
+    (void)worst;
+#endif
 
     return;
 }
@@ -2098,6 +2241,7 @@ main(int _argc, char** _argv)
 #if !D_MATH_DBL_EVAL_WIDE
     d_tests_double_edges();
     d_tests_double_exp_edges();
+    d_tests_double_exp_paths();
     d_tests_double_exp_refs();
     d_tests_double_log_refs();
 #endif  // !D_MATH_DBL_EVAL_WIDE

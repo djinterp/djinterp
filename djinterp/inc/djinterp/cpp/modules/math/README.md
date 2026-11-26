@@ -1137,8 +1137,9 @@ on every platform and at compile time (S478); on a 32-bit x87 it stays the
 C library's, so that the plain form builds everywhere (S479). Measured
 again, the plain exp takes 1.3 to 1.7 times the library's time over exp's
 whole range but 2.1 to 2.6 on ordinary arguments with gcc, up to 3.0 with
-clang, past the twice there; a speed step for `exp_c`'s first phase is
-outstanding (S478). `t_exponential` checks the plain exp against `exp_c`
+clang, past the twice there; chunk 65's speed step brought it to 1.6 to 2.2
+(S489), and `d_math_d_exp_fast` is there for glibc's time (S490), as the
+owner's note asked. `t_exponential` checks the plain exp against `exp_c`
 bit for bit at ten million arguments, and `t_reify_face.cpp` a reified
 term's exp against the expression's (S480). The float and long double
 plain exp, and every other plain double function, stay the library's
@@ -1162,6 +1163,31 @@ glibc's C23 `fminimum` and its kin, and in C++20 `lerp` against
 a fast and a slow form unless `exp_c` can match glibc, is step 53's plan
 (S487); his ruling numbered the terps' needs as steps 52 to 62, Phase 9
 (S488).
+
+**exp's speed, and a fast exp.** Chunk 65 (S489 to S494), step 53 of 62,
+as the owner's note on chunk 63's exp has it: a fast and a slow form,
+unless `exp_c` can be made as good as glibc's. `exp_c`'s common path,
+2^-53 < |x| <= 708 with its first phase deciding, is now small enough to
+inline: its second and third phases are out of line, under
+`math_common.h`'s new `D_MATH_FN_COLD`; the table holds each high part
+with its split; the reduction's index is taken without a division; there
+the result is normal, so the subnormals' test is skipped; and the range is
+tested by x^2, with no branch on the sign. The bits are the three phases'
+at every argument. On ordinary arguments the plain exp, which is `exp_c`,
+went from 2.5 to 2.9 times glibc's time to 1.6 to 2.2 (S489): faster, but
+not glibc's, whose exp this machine runs with fused multiply-adds. So
+`d_math_d_exp_fast` sits beside it, e^x within 0.511 of an ulp, proven by
+Gappa whether or not the build fuses, in glibc's shape and in pure
+arithmetic: 0.8 to 1.07 times glibc's time (S490). It is the double
+family's alone, with no C++ overload, never a constant expression, `exp_c`
+outside the common path and the C library's on a 32-bit x87; the plain exp
+stays `exp_c`, as ruling 12 has it (S491). `t_exponential` checks the
+common path against the three phases at ten million arguments, and
+`exp_fast` within an ulp of `exp_c` and within 0.511 of the exact value
+(S492). The owner's question of 2026.11.25, how other libraries handle a
+NaN, found one precedent named wrongly: Eigen's inverse of the zero
+quaternion is the zero quaternion, not NaNs; `quat.h`'s stays NaN, as the
+formula and GLM give it (S494, correcting S359's reason).
 
 **Decimal text.** `decimal.h` reads a decimal number of any length as the
 nearest `float`, `double` or `long double`, ties to even, whatever the
@@ -1214,7 +1240,8 @@ inc/djinterp/c/modules/math/            the C core
   elementary.h         sqrt, sin, cos, asin, acos, exact helpers
   exponential.h        exp, log, exp2, log2, log10, log1p, expm1; the
                        double exp_c and log_c correctly rounded in double
-                       arithmetic (chunks 51 and 52); in parts
+                       arithmetic (chunks 51 and 52); the double exp_fast
+                       within 0.511 of an ulp (chunk 65); in parts
   dd.h                 pairs of doubles: exact sums and products, proven
                        bounds (chunk 51)
   self_test.h          the double family's start-up self-test; whether the
@@ -1523,6 +1550,7 @@ module:
 | 2026.11.24 | rulings 12, 13, 14's 9b and 15, each as recommended: each plain double function correctly rounded once within about twice the C library's time; `min` and `max` as IEEE 754-2019's, with `min_num` and `max_num`; random numbers math's, the seeds and keys simterp's; the elementary block first, then root finding, banded solves and table lookups, the number types, random numbers, the rest; chunk 62's S474, S475 and S477 stand |
 | 2026.11.24 | ruling 14's 9a and 9c: the ODE steppers math's, `st_math` the terps'; S476 B, chunk 62's objects compared as well; the rulings' work now, exp's switch first, then the scalar helpers |
 | 2026.11.24 | chunk 63's decisions stand, S482 B: the terps' needs numbered now, steps 52 on; on S478, a fast and a slow exp unless `exp_c` can match glibc |
+| 2026.11.25 | chunk 64's decisions stand ("continue"): step 53, exp's speed, next |
 
 ---
 
@@ -1580,7 +1608,8 @@ zip (S447, S449); chunk 58's goes over that main with both laid over it, in
 order (S455), chunk 59's over that with chunk 58's laid too (S462), and
 chunk 60's after chunk 59's (S468), chunk 61's after chunk 60's
 (S473), chunk 62's after chunk 61's (S477), chunk 63's after chunk 62's
-(S482), and chunk 64's after chunk 63's (S488).
+(S482), chunk 64's after chunk 63's (S488), and chunk 65's after chunk
+64's (S493).
 From 2026.11.18 the lane's notes and deliveries go out once a day.
 
 Outside `cpp/modules/math/`, `c/modules/math/` and their tests, this lane

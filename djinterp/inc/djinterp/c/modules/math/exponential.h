@@ -14,7 +14,9 @@
 * arithmetic alone, by three phases each with a proven bound (sections
 * 3.2 and 3.3), and its plain exp is exp_c (ruling 12, S478), but where
 * double is evaluated wider than double, where it is the C library's
-* (S479). The other _c forms are computed once, in long double, by
+* (S479); its exp_fast is e^x within 0.511 of an ulp, at the C library's
+* time, for a caller who wants that time rather than the correct rounding
+* (S490). The other _c forms are computed once, in long double, by
 * kernels that carry their reduced argument and last sum as exact pairs,
 * and rounded once to the family: a long double result is within an ulp
 * of the exact one, exp's, log1p's and expm1's within 0.53 of one, a
@@ -32,7 +34,8 @@
 *   Include it from C or C++; it includes its five parts. d_math_d_exp, _log,
 * _exp2, _log2, _log10, _log1p and _expm1 call the C library, but for
 * d_math_d_exp, which is d_math_d_exp_c, correctly rounded, wherever double is
-* evaluated in double (S478); their _c forms compute the same in pure
+* evaluated in double (S478), and d_math_d_exp_fast, e^x within 0.511 of an ulp
+* at the C library's time (S490); their _c forms compute the same in pure
 * arithmetic, the double family's exp_c and log_c correctly rounded. Each name
 * comes for each family, _f, _d and _ld after d_math_, as d_math_d_sqrt; in C++
 * the family's own name, d_math_sqrt, is overloaded on the three.
@@ -40,7 +43,8 @@
 * OPTIONS
 * -------
 *   Which form runs is the caller's, by name: the _c form, a constant
-* expression, or the plain one on the C library; nothing is chosen at run time.
+* expression, the plain one on the C library, or for double's exponential the
+* fast one; nothing is chosen at run time.
 *
 * CONFIGURATION
 * -------------

@@ -47,7 +47,9 @@ their names and sections are the style guides' (chunk 61). Every header
 of math has the banners' HOW TO USE, OPTIONS and CONFIGURATION (chunk 62).
 The plain double exp is the correctly rounded one, as the owner's ruling
 12 has it (chunk 63). The scalar helpers of his ruling 13 are in
-`scalar.h` (chunk 64, step 52 of 62).
+`scalar.h` (chunk 64, step 52 of 62). The plain exp is faster, and
+`d_math_d_exp_fast` gives glibc's time within 0.511 of an ulp (chunk 65,
+step 53 of 62).
 `reify` (chunk 59) makes a compile-time expression a term of the run-time
 language, which prints, simplifies and evaluates it by name. Linear algebra
 has an opt-in lazy type from C++11 (chunk 60), each element the eager bits.
@@ -137,8 +139,8 @@ no earlier step moving (S488).
 | 7: Comparison with other libraries (7a, 7b) | 41 and 42 | 0 of 2 |
 | 8: Bignum (P1 to P7) | 43 to 49 | 1 of 7 |
 | When ready: C6 (the 09.29 lane) and C4b (a CI workflow) | 50 and 51 | 0 of 2 |
-| 9: The terps' needs (T1 to T11) | 52 to 62 | 1 of 11 |
-| **All** | **1 to 62** | **34 of 62** |
+| 9: The terps' needs (T1 to T11) | 52 to 62 | 2 of 11 |
+| **All** | **1 to 62** | **35 of 62** |
 
 "Later, not yet decided" is not counted.
 
@@ -1038,7 +1040,8 @@ of a term, `str()` writes as the renderer does, `x ^ 2 * sin(x)`.
   (ruling 4, S418); the rest stays for the other families.
 - [ ] **6e** (step 40) `_fast` variants where measured demand exists: rsqrt and
   normalize, sincos, exp. For exp the owner asked for one on 2026.11.24,
-  unless `exp_c` can be made as fast as glibc's (T2, step 53; S487).
+  unless `exp_c` can be made as fast as glibc's (T2, step 53; S487): it
+  could not, and the double `d_math_d_exp_fast` is done (chunk 65, S490).
 
 ## Phase 7 — Comparison with other libraries (decision 5)
 
@@ -1087,10 +1090,13 @@ within 6a, step 36, each as ruling 12 allows: exp in chunk 63 (S478).
   over, as C23 has both; `clamp`, which keeps a NaN; `lerp`, exact at both
   ends and never past them, as C++20's is; and `ldexp` and `frexp` (S483 to
   S486).
-- [ ] **T2** (step 53) exp's speed (S478), as the owner's note on decision
-  49 has it: `exp_c` made as fast as glibc's exp, if it can be; if not, a
-  fast form beside the correctly rounded plain one, 6e's `_fast` exp, so
-  that a caller chooses by name (S487).
+- [x] **T2** (step 53) (chunk 65) exp's speed (S478), as the owner's note on
+  decision 49 has it: `exp_c` made as fast as glibc's exp, if it can be; if
+  not, a fast form beside the correctly rounded plain one, 6e's `_fast` exp,
+  so that a caller chooses by name (S487). `exp_c`'s common path kept small,
+  from 2.5 to 2.9 times glibc's time to 1.6 to 2.2, the bits unchanged
+  (S489); not glibc's, so `d_math_d_exp_fast`, within 0.511 of an ulp,
+  proven, at 0.8 to 1.07 times glibc's time (S490, S491).
 - [ ] **T3** (step 54) log's speed (S424), and then its switch (ruling 12).
 - [ ] **T4** (step 55) Stumpff functions and exact angle wrapping, with sin
   and cos in 6a (ruling 15).
@@ -1245,7 +1251,9 @@ that day and his decision 48 have it, made the plain double exp the
 correctly rounded one and compared chunk 62's objects (S478 to S482),
 which stand by his rulings of 21:16 the same day, S482 as he ruled it; and
 chunk 64 wrote the scalar helpers of ruling 13, Phase 9's first step, and
-numbered the phase, as he ruled (S483 to S488). The work rulings 12 to 15
+numbered the phase, as he ruled (S483 to S488), which stand by his
+"continue" of 2026.11.25; and chunk 65 made step 53, exp's speed step and
+the fast exp his note asked for (S489 to S494). The work rulings 12 to 15
 make is Phase 9, below, in ruling 15's order.
 The outstanding decisions of `decisions.md`, its section 1, by group and
 urgency, and the suggestions of `comparison.md`'s section 9 are the owner's

@@ -242,8 +242,13 @@ def exp_d_section():
     consts, rows = exp_d_constants()
     l240, t224 = exp_d_phase3_digits()
     text = EXP_D_SECTION.replace("@TABLE@", exp_d_table_macro(rows))
-    for key in ("INVL", "L1", "L2", "L3"):
+    for key in ("INVL", "L1", "L2F", "L2", "L3"):
         text = text.replace("@" + key + "@", consts[key])
+    third = EXP_D_SECTION_3
+    for key in ("INVL", "L1", "L2F"):
+        third = third.replace("@" + key + "@", consts[key])
+    for i, h in enumerate(EXP_D_P1):
+        third = third.replace("@C%d@" % (i + 2), exp_d_hex_literal(h))
     for i, h in enumerate(EXP_D_P1):
         text = text.replace("@C%d@" % (i + 2), exp_d_hex_literal(h))
     for i, (h, l) in enumerate(EXP_D_P2):
@@ -254,7 +259,6 @@ def exp_d_section():
             text = text.replace("@A%dH@" % k, exp_d_hex_literal(h))
             text = text.replace("@A%dL@" % k, exp_d_hex_literal(l))
     every = l240 + t224
-    third = EXP_D_SECTION_3
     for key, part in (("@DIGITS_A@", every[:3708]), ("@DIGITS_B@", every[3708:])):
         digits = exp_d_digits_literal("", part, 57)
         lines = []

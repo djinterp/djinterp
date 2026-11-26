@@ -7,7 +7,7 @@
 * compiled by both languages: a C program calls it, and the C++ faces under
 * inc/djinterp/cpp/modules/math/ forward to it rather than restating it.
 *
-*   A kernel is a header-defined function. Five qualifiers say what kind:
+*   A kernel is a header-defined function. Six qualifiers say what kind:
 *
 *     D_MATH_FN     pure arithmetic: constexpr from C++14 (the bodies are
 *                   statements, which C++11's constexpr cannot hold), a
@@ -34,6 +34,10 @@
 *     D_MATH_FN_KERNEL_RT  such a large kernel that calls the C library, as
 *                   the plain forms of decomp.h's and cmat.h's eigensolvers
 *                   do: never constexpr, and never forced inline.
+*     D_MATH_FN_COLD  a kernel's rare path, as exp_c's second and third
+*                   phases are: constexpr from C++14, as D_MATH_FN, but kept
+*                   out of line, so that the common path that calls it,
+*                   forced inline into its callers, keeps a small frame.
 *
 *   In C a header inline is the root's D_INLINE, which is a `static inline`:
 * every translation unit that uses a kernel gets its own copy, and no .c file
@@ -69,9 +73,10 @@
 * ----------
 *   Every header of the C core includes it first; a caller need not. It gives
 * the kernels' qualifiers (D_MATH_FN, D_MATH_FN_RT, D_MATH_FN_ENTRY,
-* D_MATH_FN_KERNEL and D_MATH_FN_KERNEL_RT), the widest integers (dj_math_imax,
-* dj_math_umax), the family's evaluation widths (D_MATH_FLT_EVAL_WIDE and
-* D_MATH_DBL_EVAL_WIDE) and where a target fuses a multiply and an add.
+* D_MATH_FN_KERNEL, D_MATH_FN_KERNEL_RT and D_MATH_FN_COLD), the widest
+* integers (dj_math_imax, dj_math_umax), the family's evaluation widths
+* (D_MATH_FLT_EVAL_WIDE and D_MATH_DBL_EVAL_WIDE) and where a target fuses a
+* multiply and an add.
 *
 * OPTIONS
 * -------
@@ -87,7 +92,7 @@
 * path:      /inc/djinterp/c/modules/math/math_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.24
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 /*
@@ -101,6 +106,7 @@ TABLE OF CONTENTS
          3.  D_MATH_FN_ENTRY
          4.  D_MATH_FN_KERNEL
          5.  D_MATH_FN_KERNEL_RT
+         6.  D_MATH_FN_COLD
 2.  WIDEST INTEGERS
     ---------------
     1.  Types
@@ -216,6 +222,24 @@ TABLE OF CONTENTS
     #define D_MATH_FN_KERNEL_RT     inline
 #else
     #define D_MATH_FN_KERNEL_RT     static D_ENV_COMPILER_INLINE
+#endif  // __cplusplus
+
+// 1.1.6
+// D_MATH_FN_COLD
+//   qualifier: a kernel's rare path, as exp_c's second and third phases are
+// (S489): pure arithmetic, constexpr from C++14 when the header is compiled
+// as C++, as D_MATH_FN is, but never inlined, so that the common path that
+// calls it, forced inline into each caller, keeps the small frame it needs
+// rather than the rare path's. In C a static function, which gcc and clang
+// are told may go unused: gcc warns of an inline function told never to
+// inline, and both of a static one a translation unit never calls.
+#if defined(__cplusplus)
+    #define D_MATH_FN_COLD          D_NOINLINE D_CONSTEXPR_CPP14 inline
+#elif ( (defined(D_ENV_COMPILER_GCC)) ||                                       \
+        (defined(D_ENV_COMPILER_CLANG)) )
+    #define D_MATH_FN_COLD          __attribute__((noinline, unused)) static
+#else
+    #define D_MATH_FN_COLD          D_NOINLINE static D_ENV_COMPILER_INLINE
 #endif  // __cplusplus
 
 
