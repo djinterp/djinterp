@@ -44,3 +44,9 @@ djinterp_add_test_executable(mariadb_core_tests
         "${_core_dir}/mariadb/mariadb.cpp"
         ${_layer} ${_common}
     LIBRARIES ${_client})
+
+# it needs a server: labelled needs-server, which a run without one leaves
+# out (ctest -LE needs-server, as CI's test step does)
+if (BUILD_TESTING)
+    set_property(TEST mariadb_core_tests APPEND PROPERTY LABELS needs-server)
+endif()

@@ -33,3 +33,9 @@ djinterp_add_test_executable(postgres_core_tests
         "${_core_dir}/postgres/postgres.cpp"
         ${_layer} ${_common}
     LIBRARIES ${_client})
+
+# it needs a server: labelled needs-server, which a run without one leaves
+# out (ctest -LE needs-server, as CI's test step does)
+if (BUILD_TESTING)
+    set_property(TEST postgres_core_tests APPEND PROPERTY LABELS needs-server)
+endif()
