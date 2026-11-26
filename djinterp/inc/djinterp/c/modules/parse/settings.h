@@ -28,12 +28,30 @@
 *   The group is registered, and its values bound, before the program starts
 * its threads: a parse reads the rows, and nothing in it writes them.
 *
+* HOW TO USE
+* ----------
+*   Call d_parse_register once, before threads start, to add the djin `parse`
+* and install its readers; d_parse_unregister takes them away. Its rows are
+* then set like any option: on the command line, in the environment
+* (DJINTERP_PARSE_*) or from a file.
+*
+* OPTIONS
+* -------
+*   The six rows: expr_max_depth, expr_max_errors, expr_error_order, diag_text,
+* diag_facts and log. d_parse_djin is the djin's frame, for reading or binding
+* a row by its id, d_parse_setting_id.
+*
+* CONFIGURATION
+* -------------
+*   Built only with D_CFG_PARSE_SETTINGS on (cfg_parse.h). Each row defaults to
+* its knob.
+*
 *
 * path:      /inc/djinterp/c/modules/parse/settings.h
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 *            /docs/djinterp/option/knob_and_option.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
-*                                                            revised: 2026.11.23
+*                                                            revised: 2026.11.27
 *******************************************************************************/
 
 /*

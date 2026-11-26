@@ -9,11 +9,27 @@
 *   The face is C++98, strict, up to C++26; it links against the C core
 * (c/modules/parse/expr/, with diagnostic.c and storage.c).
 *
+* HOW TO USE
+* ----------
+*   Include it for the whole face: DSignature to define a language, parse() for
+* a DResult, fold() and walk(), render(). bridge.hpp, v1's term, is included
+* on its own.
+*
+* OPTIONS
+* -------
+*   DOptions for a parse, DScanConfig for the scanner, DRenderOptions for a
+* render.
+*
+* CONFIGURATION
+* -------------
+*   Compiles at C++98 and later, over the C core, so the C core's knobs apply
+* (cfg_parse.h).
+*
 *
 * path:      /inc/djinterp/cpp/modules/parse/expr/expr.hpp
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.27
 *******************************************************************************/
 
 #ifndef DJINTERP_PARSE_EXPR_HPP

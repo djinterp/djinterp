@@ -16,17 +16,16 @@
 * path:      /src/djinterp/c/modules/parse/lex/lex_literal.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.22
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.27
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/c/modules/parse/lex/lex_literal.h"  // corresponding header
 // std
 #include <limits.h>   // CHAR_BIT
 #include <locale.h>   // localeconv
 #include <stdbool.h>  // bool
-#include <stddef.h>   // size_t, NULL
+#include <stddef.h>   // size_t, NULL, wchar_t
 #include <stdlib.h>   // malloc, free, strtod
 #include <string.h>   // memset, memcmp, strcmp
-#include <wchar.h>    // WCHAR_MAX
 // djinterp
 #include "../../../../../../inc/djinterp/c/modules/parse/lex/lex_unicode.h"      // UTF-8
 #include "../../../../../../inc/djinterp/c/modules/parse/source/source_reader.h" // decoding
@@ -1812,7 +1811,7 @@ const struct dj_lex_target* d_lex_target_preset(
     static const struct dj_lex_target host =
     {
         (unsigned)CHAR_BIT,
-        (WCHAR_MAX > 0xFFFF) ? 32u : 16u,
+        ((sizeof(wchar_t) * CHAR_BIT) > 16u) ? 32u : 16u,
         (unsigned)(sizeof(long long) * CHAR_BIT)
     };
     static const struct dj_lex_target unix_like = { 8u, 32u, 64u };

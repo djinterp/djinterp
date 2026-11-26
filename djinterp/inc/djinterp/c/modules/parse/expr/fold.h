@@ -14,11 +14,27 @@
 *   No node is made by default: a term with holes is refused by a fold unless
 * its caller asks for them.
 *
+* HOW TO USE
+* ----------
+*   d_parse_expr_fold applies an algebra bottom-up: give it a term, a callback
+* for each node and an array of one value per node; d_parse_expr_fold_child
+* reads a child's value in the callback. d_parse_expr_walk visits depth first,
+* calling `enter` and `leave`.
+*
+* OPTIONS
+* -------
+*   A fold may accept holes, or refuse a term with any. A walk's `enter` may
+* skip a node's children, and either callback may stop the walk.
+*
+* CONFIGURATION
+* -------------
+*   None: both run on the caller's storage, at every level.
+*
 *
 * path:      /inc/djinterp/c/modules/parse/expr/fold.h
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.21
+*                                                            revised: 2026.11.27
 *******************************************************************************/
 
 /*

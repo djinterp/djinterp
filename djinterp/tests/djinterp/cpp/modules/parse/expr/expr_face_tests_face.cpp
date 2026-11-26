@@ -739,8 +739,8 @@ d_tests_face_sources(void)
 /*
 d_tests_face_diagnostics
   Without a sink, the diagnostics are copied into the result with their
-messages, and a copied result copies them; with the caller's sink they stay
-there, and the result holds none.
+messages and facts, and a copied result copies them; with the caller's sink
+they stay there, and the result holds none.
 */
 bool
 d_tests_face_diagnostics(void)
@@ -769,11 +769,27 @@ d_tests_face_diagnostics(void)
                      (D_INTERNAL_PARSE_DIAG_TEXT == 0)) &&
                     (d_tests_face_same_span(d.span(), r.span())) );
 
+    // its facts, where the build keeps them: "1 +" ends at the input's end
+#if (D_INTERNAL_PARSE_DIAG_FACTS == 1)
+    const djinterp::parse::expr::DDiagnosticFact* const at_end =
+        d.fact("at_end");
+
+    D_TEST_REQUIRE( (!d.facts().empty()) && (at_end != NULL) &&
+                    (at_end->kind() ==
+                     (re_std::uint8_t)D_PARSE_DIAG_FACT_FLAG) &&
+                    (at_end->flag()) && (at_end->text().empty()) &&
+                    (d.fact("no_such_fact") == NULL) );
+#else
+    D_TEST_REQUIRE(d.facts().empty());
+#endif  // D_INTERNAL_PARSE_DIAG_FACTS
+
     DResult copy = r;
 
     D_TEST_REQUIRE( (copy.diagnostics().size() == r.diagnostics().size()) &&
                     (copy.diagnostics()[0].message() ==
                      r.diagnostics()[0].message()) &&
+                    (copy.diagnostics()[0].facts().size() ==
+                     r.diagnostics()[0].facts().size()) &&
                     (copy.term() == r.term()) );
 
     // the caller's sink

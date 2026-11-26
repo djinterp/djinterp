@@ -24,11 +24,24 @@
 * from lang/cpp.hpp (the codebase is flat outside djinterp::parse, so they
 * are reached unqualified from here via enclosing-namespace lookup).
 *
+* HOW TO USE
+* ----------
+*   A parser allocates symbol_data into a symbol_tree, a DNodeArena, each with
+* its source_location; a reader walks the tree by node id.
+*
+* OPTIONS
+* -------
+*   None: these are data types.
+*
+* CONFIGURATION
+* -------------
+*   Compiles from C++17; below it this file is empty.
+*
 *
 * path:      /inc/djinterp/cpp/modules/parse/symbol_model.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.30
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.27
 *******************************************************************************/
 
 #ifndef DJINTERP_PARSE_SYMBOL_MODEL_HPP
@@ -195,8 +208,8 @@ struct symbol_data
 
 // symbol_tree
 //   typedef: the arena the parser allocates symbol_data into.
-//   `arena` is the flat core container template (arena/arena.hpp),
-//   reached unqualified from djinterp::parse.
+//   `DNodeArena` is the flat core container template
+//   (container/arena/arena.hpp), reached unqualified from djinterp::parse.
 typedef DNodeArena<symbol_data>  symbol_tree;
 
 

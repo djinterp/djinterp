@@ -19,11 +19,29 @@
 *   Every value is 32 bits wide, so the header serves ISO strict C++98 on every
 * target, where a 64-bit integer may not exist.
 *
+* HOW TO USE
+* ----------
+*   A parse fills a term. To hold one, give it storage with
+* d_parse_expr_term_init, or let it grow with d_parse_expr_term_init_heap and
+* free it with d_parse_expr_term_release. Read a node with
+* d_parse_expr_term_node; check the invariants with d_parse_expr_term_verify;
+* compare two terms with d_parse_expr_term_equal; copy one with
+* d_parse_expr_term_assign or d_parse_expr_term_copy_scratch.
+*
+* OPTIONS
+* -------
+*   None: a term is data. Its flags say what it holds, holes among them.
+*
+* CONFIGURATION
+* -------------
+*   d_parse_expr_term_init_heap exists only with D_CFG_PARSE_EXPR_HEAP on
+* (cfg_parse.h). Every value is 32 bits wide, at every level.
+*
 *
 * path:      /inc/djinterp/c/modules/parse/expr/term.h
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.27
 *******************************************************************************/
 
 /*

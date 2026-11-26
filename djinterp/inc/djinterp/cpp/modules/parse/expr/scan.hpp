@@ -9,6 +9,21 @@
 *   Compiled where the scanner is (D_CFG_PARSE_EXPR_SCAN).
 *
 *
+* HOW TO USE
+* ----------
+*   Bind a DScanner to a signature, a DScanConfig and a text, and pass its
+* source() to parse().
+*
+* OPTIONS
+* -------
+*   DScanConfig: the class numbers and the extra spellings.
+*
+* CONFIGURATION
+* -------------
+*   Compiles at C++98 and later, over the C core, so the C core's knobs apply
+* (cfg_parse.h). Built only with D_CFG_PARSE_EXPR_SCAN on.
+*
+*
 * TABLE OF CONTENTS
 * =================
 * 1.  THE CONFIGURATION
@@ -22,7 +37,7 @@
 * path:      /inc/djinterp/cpp/modules/parse/expr/scan.hpp
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.27
 *******************************************************************************/
 
 #ifndef DJINTERP_PARSE_EXPR_SCAN_HPP

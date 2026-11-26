@@ -21,11 +21,29 @@
 *   - match_simple   /  match_compound  /  match_complex
 *   - match_selector_list        with optional specificity capture
 *
+* HOW TO USE
+* ----------
+*   Fill a style_target_view for each of the host's objects, with its parent and
+* previous sibling, and call match_selector_list (or match_complex,
+* match_compound, match_simple) with a parsed selector. Register state
+* pseudo-classes in a style_match_options, and give it a pseudo callback for
+* the rest.
+*
+* OPTIONS
+* -------
+*   style_match_options: the state bits the host registers (:hover and the like)
+* and the pseudo callback with its user pointer. match_selector_list can also
+* give the matching selector's specificity.
+*
+* CONFIGURATION
+* -------------
+*   Compiles from C++11; below it this file is empty.
+*
 *
 * path:      /inc/djinterp/cpp/modules/parse/parsers/css/css_match.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.25
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.27
 *******************************************************************************/
 
 #ifndef DJINTERP_PARSE_PARSERS_CSS_MATCH_HPP
@@ -636,6 +654,113 @@ NS_INTERNAL
         return false;
     }
 
+    // has_class
+    //   function: whether the target carries the class `_name`.
+    inline
+    bool has_class(
+        const style_target_view& _t,
+        const char*              _name
+    )
+    {
+        std::size_t i;
+
+        for (i = 0u; i < _t.classes_count; ++i)
+        {
+            if (ascii_streq(_t.classes[i], _name))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // match_pseudo_class
+    //   function: tests a pseudo-class against the target: the
+    // structural ones are evaluated here, then a state the host
+    // registered, then the host's callback for everything else.
+    inline
+    bool match_pseudo_class(
+        const css_simple_selector& _s,
+        const style_target_view&   _t,
+        const style_match_options& _opt
+    )
+    {
+        unsigned bit;
+
+        if (_s.name == std::string("first-child"))
+        {
+            return (_t.index_in_parent == 0u);
+        }
+
+        if (_s.name == std::string("last-child"))
+        {
+            return ( (_t.parent_child_count > 0u) &&
+                     (_t.index_in_parent ==
+                      (_t.parent_child_count - 1u)) );
+        }
+
+        if (_s.name == std::string("only-child"))
+        {
+            return (_t.parent_child_count == 1u);
+        }
+
+        if (_s.name == std::string("root"))
+        {
+            return (_t.parent == nullptr);
+        }
+
+        if (_s.name == std::string("empty"))
+        {
+            return (_t.parent_child_count == 0u);
+        }
+
+        // registered state pseudo (e.g. :hover -> bit 0)
+        if (_opt.find_state_bit(_s.name, bit))
+        {
+            re_std::uint64_t mask =
+                (static_cast<re_std::uint64_t>(1u) << bit);
+
+            return ( (_t.state_flags & mask) != 0u );
+        }
+
+        if (_opt.pseudo_callback)
+        {
+            return _opt.pseudo_callback(
+                _s.name.c_str(),
+                _s.pseudo_arg.c_str(),
+                _t,
+                _opt.pseudo_user
+            );
+        }
+
+        return false;
+    }
+
+    // match_pseudo_element
+    //   function: tests a pseudo-element (::before, ::after,
+    // ::placeholder).  These name rendered things rather than the
+    // target itself, so only the host's callback can answer.
+    inline
+    bool match_pseudo_element(
+        const css_simple_selector& _s,
+        const style_target_view&   _t,
+        const style_match_options& _opt
+    )
+    {
+        if (_opt.pseudo_callback)
+        {
+            return _opt.pseudo_callback(
+                _s.name.c_str(),
+                "",
+                _t,
+                _opt.pseudo_user
+            );
+        }
+
+        return false;
+    }
+
 NS_END  // internal
 
 
@@ -674,20 +799,7 @@ bool match_simple(
             return internal::ascii_streq(_t.id, _s.name.c_str());
 
         case DCssSimpleKindClass:
-        {
-            std::size_t i;
-
-            for (i = 0u; i < _t.classes_count; ++i)
-            {
-                if (internal::ascii_streq(_t.classes[i],
-                                          _s.name.c_str()))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
+            return internal::has_class(_t, _s.name.c_str());
 
         case DCssSimpleKindAttribute:
         {
@@ -709,78 +821,10 @@ bool match_simple(
         }
 
         case DCssSimpleKindPseudoClass:
-        {
-            unsigned bit;
-
-            // structural pseudos that we evaluate ourselves
-            if (_s.name == std::string("first-child"))
-            {
-                return (_t.index_in_parent == 0u);
-            }
-
-            if (_s.name == std::string("last-child"))
-            {
-                return ( (_t.parent_child_count > 0u) &&
-                         (_t.index_in_parent ==
-                          (_t.parent_child_count - 1u)) );
-            }
-
-            if (_s.name == std::string("only-child"))
-            {
-                return (_t.parent_child_count == 1u);
-            }
-
-            if (_s.name == std::string("root"))
-            {
-                return (_t.parent == nullptr);
-            }
-
-            if (_s.name == std::string("empty"))
-            {
-                return (_t.parent_child_count == 0u);
-            }
-
-            // registered state pseudo (e.g. :hover -> bit 0)
-            if (_opt.find_state_bit(_s.name, bit))
-            {
-                re_std::uint64_t mask =
-                    (static_cast<re_std::uint64_t>(1u) << bit);
-
-                return ( (_t.state_flags & mask) != 0u );
-            }
-
-            // fall through to host callback for everything else
-            if (_opt.pseudo_callback)
-            {
-                return _opt.pseudo_callback(
-                    _s.name.c_str(),
-                    _s.pseudo_arg.c_str(),
-                    _t,
-                    _opt.pseudo_user
-                );
-            }
-
-            return false;
-        }
+            return internal::match_pseudo_class(_s, _t, _opt);
 
         case DCssSimpleKindPseudoElement:
-        {
-            // pseudo-elements (::before, ::after, ::placeholder)
-            // are usually addressed via the pseudo callback
-            // since they refer to "rendered things" rather than
-            // the target itself.
-            if (_opt.pseudo_callback)
-            {
-                return _opt.pseudo_callback(
-                    _s.name.c_str(),
-                    "",
-                    _t,
-                    _opt.pseudo_user
-                );
-            }
-
-            return false;
-        }
+            return internal::match_pseudo_element(_s, _t, _opt);
 
         case DCssSimpleKindNegation:
         {
@@ -831,18 +875,105 @@ bool match_compound(
 //  match_complex
 // ================================================================
 
+NS_INTERNAL
+
+    // compound_at
+    //   function: the compound at position `_i` of a complex
+    // selector's chain: the head at 0, then the tail's compounds.
+    inline
+    const css_compound_selector& compound_at(
+        const css_complex_selector& _c,
+        std::size_t                 _i
+    )
+    {
+        return (_i == 0u) ? _c.head : _c.tail[_i - 1u].compound;
+    }
+
+    // match_leftward
+    //   function: given that the compound at chain position `_i`
+    // matches `_t`, tests whether the compounds left of it match
+    // targets related to `_t` by their combinators.  A descendant or
+    // general sibling combinator admits several targets: each is
+    // tried, nearest first, and the next is tried when the rest of
+    // the chain fails on it.  So the chain matches whenever any
+    // choice of targets satisfies it, as Selectors Level 4 defines.
+    inline
+    bool match_leftward(
+        const css_complex_selector& _c,
+        std::size_t                 _i,
+        const style_target_view&    _t,
+        const style_match_options&  _opt
+    )
+    {
+        const style_target_view* next = nullptr;
+        bool                     up   = true;
+        bool                     many = false;
+
+        if (_i == 0u)
+        {
+            return true;
+        }
+
+        switch (_c.tail[_i - 1u].combinator)
+        {
+            case DCssCombinatorChild:
+                next = _t.parent;
+                break;
+
+            case DCssCombinatorDescendant:
+                next = _t.parent;
+                many = true;
+                break;
+
+            case DCssCombinatorAdjacentSibling:
+                next = _t.prev_sibling;
+                up   = false;
+                break;
+
+            case DCssCombinatorGeneralSibling:
+                next = _t.prev_sibling;
+                up   = false;
+                many = true;
+                break;
+        }
+
+        while (next != nullptr)
+        {
+            if ( (match_compound(compound_at(_c, _i - 1u), *next, _opt)) &&
+                 (match_leftward(_c, _i - 1u, *next, _opt)) )
+            {
+                return true;
+            }
+
+            if (!many)
+            {
+                break;
+            }
+
+            next = (up) ? next->parent : next->prev_sibling;
+        }
+
+        return false;
+    }
+
+NS_END  // internal
+
 // match_complex
 //   function: tests whether the complex selector matches the
 // target.  Walks right-to-left: the rightmost compound is matched
-// against `_t`, then for each preceding compound a relevant
-// related target is sought via the combinator that introduced
-// the next compound.
+// against `_t`, then each compound to its left against a target
+// related by the combinator between them.
 //
 //   Combinator semantics:
 //     descendant       - some ancestor of current must match
 //     child            - the parent of current must match
 //     adjacent_sibling - the immediately-preceding sibling must
 //     general_sibling  - some earlier sibling must match
+//
+//   Where a combinator admits several targets, each is tried in
+// turn (internal::match_leftward), so `a > b c` matches a `c`
+// whose nearest `b` ancestor has no `a` parent but a farther one
+// has.
 inline
 bool match_complex(
     const css_complex_selector& _c,
@@ -850,137 +981,10 @@ bool match_complex(
     const style_match_options&  _opt
 )
 {
-    // collect compounds in document order: head first, then tail.
-    // We do not actually allocate - index in [0..N-1] resolves
-    // through the structure directly.
-    std::size_t total;
-    std::size_t i;
+    const std::size_t last = _c.tail.size();
 
-    total = 1u + _c.tail.size();
-
-    // rightmost compound must match the target
-    {
-        const css_compound_selector& last = (_c.tail.empty())
-                                                  ? _c.head
-                                                  : _c.tail.back().compound;
-
-        if (!match_compound(last, _t, _opt))
-        {
-            return false;
-        }
-    }
-
-    // walk leftward through tail combinators, pairing each with
-    // the compound immediately preceding it.
-    const style_target_view* current = &_t;
-
-    for (i = total - 1u; i > 0u; --i)
-    {
-        // the combinator at chain position `i` introduces the
-        // compound at position `i`; we need to find a target for
-        // the compound at position `i-1` that satisfies the
-        // combinator relative to `current`.
-        DCssCombinator                  combo;
-        const css_compound_selector*    prev_cmp;
-
-        // tail is indexed 0..tail.size()-1 corresponding to chain
-        // positions 1..tail.size().
-        combo    = _c.tail[i - 1u].combinator;
-        prev_cmp = (i == 1u)
-                       ? &_c.head
-                       : &_c.tail[i - 2u].compound;
-
-        switch (combo)
-        {
-            case DCssCombinatorChild:
-            {
-                if (!current->parent)
-                {
-                    return false;
-                }
-
-                if (!match_compound(*prev_cmp,
-                                    *current->parent,
-                                    _opt))
-                {
-                    return false;
-                }
-
-                current = current->parent;
-                break;
-            }
-
-            case DCssCombinatorDescendant:
-            {
-                const style_target_view* anc = current->parent;
-                bool                     found = false;
-
-                while (anc != nullptr)
-                {
-                    if (match_compound(*prev_cmp, *anc, _opt))
-                    {
-                        found   = true;
-                        current = anc;
-                        break;
-                    }
-
-                    anc = anc->parent;
-                }
-
-                if (!found)
-                {
-                    return false;
-                }
-
-                break;
-            }
-
-            case DCssCombinatorAdjacentSibling:
-            {
-                if (!current->prev_sibling)
-                {
-                    return false;
-                }
-
-                if (!match_compound(*prev_cmp,
-                                    *current->prev_sibling,
-                                    _opt))
-                {
-                    return false;
-                }
-
-                current = current->prev_sibling;
-                break;
-            }
-
-            case DCssCombinatorGeneralSibling:
-            {
-                const style_target_view* sib = current->prev_sibling;
-                bool                     found = false;
-
-                while (sib != nullptr)
-                {
-                    if (match_compound(*prev_cmp, *sib, _opt))
-                    {
-                        found   = true;
-                        current = sib;
-                        break;
-                    }
-
-                    sib = sib->prev_sibling;
-                }
-
-                if (!found)
-                {
-                    return false;
-                }
-
-                break;
-            }
-        }
-    }
-
-    return true;
+    return ( (match_compound(internal::compound_at(_c, last), _t, _opt)) &&
+             (internal::match_leftward(_c, last, _t, _opt)) );
 }
 
 

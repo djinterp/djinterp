@@ -13,6 +13,24 @@
 *   Compiled where the renderer is (D_CFG_PARSE_EXPR_RENDER).
 *
 *
+* HOW TO USE
+* ----------
+*   render() returns a term's text as a std::string; render_to() writes it
+* through a writer of one's own. DNoAtomWriter and DStringWriter are the
+* defaults.
+*
+* OPTIONS
+* -------
+*   DRenderOptions, the C render options: the atom writer, the source text, a
+* hole's spelling and the flags.
+*
+* CONFIGURATION
+* -------------
+*   Compiles at C++98 and later, over the C core, so the C core's knobs apply
+* (cfg_parse.h). Built only with D_CFG_PARSE_EXPR_RENDER on. What a writer or
+* an atom writer throws stops at the face, and the render fails.
+*
+*
 * TABLE OF CONTENTS
 * =================
 * 1.  OPTIONS
@@ -30,7 +48,7 @@
 * path:      /inc/djinterp/cpp/modules/parse/expr/render.hpp
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.27
 *******************************************************************************/
 
 #ifndef DJINTERP_PARSE_EXPR_RENDER_HPP

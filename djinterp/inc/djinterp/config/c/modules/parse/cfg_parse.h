@@ -39,11 +39,28 @@
 * requires: cfg_common.h (helpers, and the testing preset it applies);
 *           cfg_log.h, for two knobs' defaults
 *
+* HOW TO USE
+* ----------
+*   Define a knob before including any parse header, on the compiler's command
+* line or in a project's configuration, to change what parse builds or how it
+* sizes. Leave it undefined for its default.
+*
+* OPTIONS
+* -------
+*   None at run time: these are compile-time knobs. A run's choices are the rows
+* of the djin `parse` (settings.h).
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_PARSE_ALL sets every gate left unset, except D_CFG_PARSE_LIBCLANG.
+* Each knob is validated here, and a value out of range stops the build with
+* an error that names it.
+*
 *
 * path:      /inc/djinterp/config/c/modules/parse/cfg_parse.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-*                                                            revised: 2026.11.23
+*                                                            revised: 2026.11.27
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_C_PARSE_CFG_PARSE_H

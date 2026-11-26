@@ -15,18 +15,33 @@
 *   - cross_ref         the index itself
 *
 * Design:
-*   The index is intentionally decoupled from the arena template.  It
+*   The index is intentionally decoupled from `DNodeArena`.  It
 * stores only integer identifiers and does not hold references or
 * pointers into any arena.  This means arenas can reallocate freely
 * without invalidating the index.  The cost is one hash-map lookup per
 * cross-reference query — acceptable for the wiki/sync paths where it
 * is used, and never on the hot parse loop.
 *
+* HOW TO USE
+* ----------
+*   bind a stable id to a (domain, node id) pair in each arena that holds the
+* entity, or bind_arena a whole arena at once; find an id's bindings, or
+* find_in_domain its node in one domain; unbind or unbind_domain when an arena
+* drops it.
+*
+* OPTIONS
+* -------
+*   None: the index holds only integers, so arenas may reallocate freely.
+*
+* CONFIGURATION
+* -------------
+*   Compiles from C++17; below it this file is empty.
+*
 *
 * path:      /inc/djinterp/cpp/modules/parse/parsers/cpp/cross_ref.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.03.18
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.27
 *******************************************************************************/
 
 #ifndef DJINTERP_PARSE_PARSERS_CPP_CROSS_REF_HPP
@@ -155,7 +170,7 @@ public:
     // arena convenience — template, stays in header
     template<typename Payload>
     void bind_arena(
-        domain_id             _domain,
+        domain_id                  _domain,
         const DNodeArena<Payload>& _arena
     )
     {

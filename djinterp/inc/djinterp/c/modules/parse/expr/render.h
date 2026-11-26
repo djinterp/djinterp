@@ -13,11 +13,26 @@
 * into a buffer. Nothing recurses: a task stack of the renderer's own holds
 * what is still to be written.
 *
+* HOW TO USE
+* ----------
+*   d_parse_expr_render writes a term through a write function;
+* d_parse_expr_render_buffer writes it into a buffer. Both write brackets only
+* where reading the text back would group otherwise.
+*
+* OPTIONS
+* -------
+*   dj_parse_expr_render_options: the atom writer for the leaves, the source
+* text they point into, the spelling of a hole, and the flags.
+*
+* CONFIGURATION
+* -------------
+*   Built only with D_CFG_PARSE_EXPR_RENDER on (cfg_parse.h).
+*
 *
 * path:      /inc/djinterp/c/modules/parse/expr/render.h
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.27
 *******************************************************************************/
 
 /*

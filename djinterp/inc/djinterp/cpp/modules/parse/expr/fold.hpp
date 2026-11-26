@@ -23,6 +23,22 @@
 * given.
 *
 *
+* HOW TO USE
+* ----------
+*   fold() applies an algebra bottom-up, each node given as a DNodeView with its
+* children's values; walk() visits depth first, a DWalkFrame for each node it
+* is in.
+*
+* OPTIONS
+* -------
+*   A fold may accept holes; a walk may skip a node's children or stop.
+*
+* CONFIGURATION
+* -------------
+*   Compiles at C++98 and later, over the C core, so the C core's knobs apply
+* (cfg_parse.h).
+*
+*
 * TABLE OF CONTENTS
 * =================
 * 1.  FOLDS
@@ -36,7 +52,7 @@
 * path:      /inc/djinterp/cpp/modules/parse/expr/fold.hpp
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.27
 *******************************************************************************/
 
 #ifndef DJINTERP_PARSE_EXPR_FOLD_HPP

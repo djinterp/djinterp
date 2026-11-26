@@ -16,11 +16,37 @@
 * The parse goes on after an error, to find one further left that it learns of
 * only later, and names the leftmost as the error.
 *
+* HOW TO USE
+* ----------
+*   Give d_parse_expr_parse a sealed signature, a token source
+* (d_parse_expr_source_array, the default scanner, or one's own), options or
+* NULL, a term to fill and a sink. Read the result's status and the leftmost
+* error's code and span; its diagnostics are in the sink. A hook may read
+* further tokens with d_parse_expr_peek and d_parse_expr_take, or run a
+* sub-parse with d_parse_expr_sub.
+*
+* OPTIONS
+* -------
+*   dj_parse_expr_options: the depth guard, the error allowance, the starting
+* mode, the error order, the flags (the stop option among them), the source's
+* id and text, a check after the grammar, and the caller's scratch
+* (d_parse_expr_scratch_size). A depth, allowance or order of 0 stands for the
+* setting in force: the djin `parse`'s row once d_parse_register has run
+* (settings.h), else its knob.
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_PARSE_EXPR_MAX_DEPTH, D_CFG_PARSE_EXPR_MAX_ERRORS and
+* D_CFG_PARSE_EXPR_ERROR_ORDER set the defaults; D_CFG_PARSE_EXPR_HEAP lets a
+* parse grow its stacks on the heap, without which it runs on the caller's
+* scratch (cfg_parse.h). The code table, D_PARSE_EXPR_CODES, words each
+* diagnostic from its facts (diagnostic.h).
+*
 *
 * path:      /inc/djinterp/c/modules/parse/expr/parse.h
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.23
+*                                                            revised: 2026.11.27
 *******************************************************************************/
 
 /*

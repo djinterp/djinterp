@@ -245,7 +245,7 @@ static const struct dj_test_case_spec d_tests_parse_expr_face_face[] =
       "functor, callable, array and vector sources; a throw stops a parse",
       d_tests_face_sources },
     { "d_tests_face_diagnostics",
-      "copied with their messages, or left in the caller's sink",
+      "copied with their messages and facts, or left in the caller's sink",
       d_tests_face_diagnostics },
     { "d_tests_face_render",
       "into a string, through a writer and an atom writer; a throw fails",

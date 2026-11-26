@@ -18,7 +18,27 @@
 * catches it, and the source has failed.
 *   DDiagnostics is the C++98 view this face carries of the sink's records
 * (the design's section 13 decision: the foundation's diagnostic.hpp is
-* C++11-floored, and a copy is what a value result needs anyway).
+* C++11-floored, and a copy is what a value result needs anyway). Each
+* DDiagnostic copies its message and its facts, as DDiagnosticFact values,
+* where the build keeps them.
+*
+*
+* HOW TO USE
+* ----------
+*   Call parse() with a signature and a source: a C source, an array of tokens,
+* a functor, or from C++11 a lambda through make_source(). Read the DResult:
+* its term, status, error and DDiagnostics, each with its message and facts.
+* Pass a sink of one's own to keep the records there instead.
+*
+* OPTIONS
+* -------
+*   DOptions, the C options: an option of 0 stands for the setting in force.
+*
+* CONFIGURATION
+* -------------
+*   Compiles at C++98 and later, over the C core, so the C core's knobs apply
+* (cfg_parse.h). A record's text and facts are there as the build and the run
+* carry them (D_CFG_PARSE_DIAG_TEXT, _FACTS).
 *
 *
 * TABLE OF CONTENTS
@@ -26,7 +46,7 @@
 * 1.  OPTIONS AND DIAGNOSTICS
 *     -----------------------
 *     1.  DOptions
-*     2.  DDiagnostic
+*     2.  DDiagnosticFact, DDiagnostic
 * 2.  RESULTS
 *     -------
 *     1.  DResult
@@ -43,7 +63,7 @@
 * path:      /inc/djinterp/cpp/modules/parse/expr/parse.hpp
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.27
 *******************************************************************************/
 
 #ifndef DJINTERP_PARSE_EXPR_PARSE_HPP
@@ -95,8 +115,98 @@ D_STATIC_ASSERT(sizeof(DOptions) == sizeof(::dj_parse_expr_options),
 
 // 1.2    DDiagnostic
 //------------------------------------------------------------------------------
+// DDiagnosticFact
+//   class: one fact of a record, copied: its name and kind, and its text,
+// integer or flag.
+class DDiagnosticFact
+{
+public:
+    DDiagnosticFact()
+        : m_kind((re_std::uint8_t)D_PARSE_DIAG_FACT_NONE),
+          m_negative(false),
+          m_low(0u),
+          m_high(0u)
+    {}
+
+    explicit DDiagnosticFact(
+        const ::dj_parse_diag_fact& _fact
+    )
+        : m_name((_fact.name) ? _fact.name : ""),
+          m_kind(_fact.kind),
+          m_negative(_fact.negative != 0u),
+          m_low(_fact.low),
+          m_high(_fact.high)
+    {
+        if ( (_fact.kind == (re_std::uint8_t)D_PARSE_DIAG_FACT_TEXT) &&
+             (_fact.text) )
+        {
+            m_text.assign(_fact.text, (std::size_t)_fact.size);
+        }
+    }
+
+    // its name, as its row's facts list it
+    const std::string&
+    name() const
+    {
+        return m_name;
+    }
+
+    // D_PARSE_DIAG_FACT_TEXT, _INTEGER, _FLAG or _NONE
+    re_std::uint8_t
+    kind() const
+    {
+        return m_kind;
+    }
+
+    // TEXT: its text; empty for any other kind
+    const std::string&
+    text() const
+    {
+        return m_text;
+    }
+
+    // INTEGER: its magnitude's bits 0 to 31 and 32 to 63, and its sign
+    re_std::uint32_t
+    low() const
+    {
+        return m_low;
+    }
+
+    re_std::uint32_t
+    high() const
+    {
+        return m_high;
+    }
+
+    bool
+    negative() const
+    {
+        return m_negative;
+    }
+
+    // FLAG: its value; false for any other kind
+    bool
+    flag() const
+    {
+        return ( (m_kind == (re_std::uint8_t)D_PARSE_DIAG_FACT_FLAG) &&
+                 (m_low != 0u) );
+    }
+
+private:
+    std::string      m_name;
+    std::string      m_text;
+    re_std::uint8_t  m_kind;
+    bool             m_negative;
+    re_std::uint32_t m_low;
+    re_std::uint32_t m_high;
+};
+
+// DDiagnosticFacts
+//   type: a record's facts, in its row's order.
+typedef std::vector<DDiagnosticFact> DDiagnosticFacts;
+
 // DDiagnostic
-//   class: one record of the sink, copied with its message.
+//   class: one record of the sink, copied with its message and its facts.
 class DDiagnostic
 {
 public:
@@ -119,7 +229,18 @@ public:
           m_code(_record.code),
           m_span(_record.span),
           m_message(d_parse_diag_message(_sink, &_record))
-    {}
+    {
+        ::dj_parse_diag_fact fact;
+        re_std::uint32_t     i;
+
+        for (i = 0u; i < (re_std::uint32_t)_record.fact_count; ++i)
+        {
+            if (d_parse_diag_fact_at(_sink, &_record, i, &fact) == 1)
+            {
+                m_facts.push_back(DDiagnosticFact(fact));
+            }
+        }
+    }
 
     // D_PARSE_SEVERITY_NOTE, _WARNING, _ERROR or _FATAL
     re_std::uint8_t
@@ -159,6 +280,32 @@ public:
         return m_message;
     }
 
+    // its facts; empty where the build or the sink keeps none
+    const DDiagnosticFacts&
+    facts() const
+    {
+        return m_facts;
+    }
+
+    // the fact named `_name`, or NULL
+    const DDiagnosticFact*
+    fact(
+        const char* _name
+    ) const
+    {
+        std::size_t i;
+
+        for (i = 0u; i < m_facts.size(); ++i)
+        {
+            if (m_facts[i].name() == _name)
+            {
+                return &m_facts[i];
+            }
+        }
+
+        return NULL;
+    }
+
 private:
     re_std::uint8_t  m_severity;
     re_std::uint8_t  m_flags;
@@ -166,6 +313,7 @@ private:
     re_std::uint16_t m_code;
     ::dj_parse_span  m_span;
     std::string      m_message;
+    DDiagnosticFacts m_facts;
 };
 
 // DDiagnostics
@@ -412,9 +560,12 @@ parse(
         (std::size_t)D_PARSE_DIAG_DEFAULT_ITEMS);
     std::vector<char>                    text(
         (std::size_t)D_PARSE_DIAG_DEFAULT_TEXT);
+    std::vector<char>                    facts(
+        (std::size_t)D_PARSE_DIAG_DEFAULT_FACTS);
 
     d_parse_diag_sink_init(&own, &items[0], (re_std::uint32_t)items.size(),
                            &text[0], (re_std::uint32_t)text.size());
+    d_parse_diag_sink_facts(&own, &facts[0], (re_std::uint32_t)facts.size());
 
     ::dj_parse_diag_sink* const sink = (_sink) ? _sink : &own;
 

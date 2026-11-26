@@ -14,11 +14,28 @@
 * command language its own, whose words are the shell's; both fill
 * dj_parse_expr_token as this does, with their own class numbers.
 *
+* HOW TO USE
+* ----------
+*   Bind a scanner to a text and a sealed signature with d_parse_expr_scan, and
+* pass it to d_parse_expr_parse as the source. It reads names, numbers,
+* strings and every spelling the signature gives, longest first.
+*
+* OPTIONS
+* -------
+*   dj_parse_expr_scan_config: the class numbers it gives names, numbers,
+* strings, newlines and stray bytes, and the words the caller adds for tokens
+* its hooks read.
+*
+* CONFIGURATION
+* -------------
+*   Built only with D_CFG_PARSE_EXPR_SCAN on (cfg_parse.h); without it, a client
+* brings its own lexer.
+*
 *
 * path:      /inc/djinterp/c/modules/parse/expr/scan.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.10
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.27
 *******************************************************************************/
 
 /*

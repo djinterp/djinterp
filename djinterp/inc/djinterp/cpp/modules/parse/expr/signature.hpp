@@ -12,6 +12,22 @@
 * it is not copied; it is moved from C++11.
 *
 *
+* HOW TO USE
+* ----------
+*   Build a DSignature with its define functions and DMixfix, seal it, and pass
+* it to parse(). It is not copied; it moves from C++11.
+*
+* OPTIONS
+* -------
+*   An operator's form, precedence, association and spelling; a role's position
+* and kind; a mixfix's parts.
+*
+* CONFIGURATION
+* -------------
+*   Compiles at C++98 and later, over the C core, so the C core's knobs apply
+* (cfg_parse.h).
+*
+*
 * TABLE OF CONTENTS
 * =================
 * 1.  MIXFIX DESCRIPTORS
@@ -25,7 +41,7 @@
 * path:      /inc/djinterp/cpp/modules/parse/expr/signature.hpp
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.27
 *******************************************************************************/
 
 #ifndef DJINTERP_PARSE_EXPR_SIGNATURE_HPP

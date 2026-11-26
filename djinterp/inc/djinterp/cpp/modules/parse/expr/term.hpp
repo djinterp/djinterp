@@ -14,6 +14,22 @@
 * says so in good().
 *
 *
+* HOW TO USE
+* ----------
+*   A DResult holds a DTerm; a DNodeView reads one node in place, as a fold's
+* algebra and a walk's visitor are given it. A DTerm copies, and moves from
+* C++11; it compares by its roots' meaning, spans aside.
+*
+* OPTIONS
+* -------
+*   None: a term is a value.
+*
+* CONFIGURATION
+* -------------
+*   Compiles at C++98 and later, over the C core, so the C core's knobs apply
+* (cfg_parse.h).
+*
+*
 * TABLE OF CONTENTS
 * =================
 * 1.  NAMESPACE
@@ -30,7 +46,7 @@
 * path:      /inc/djinterp/cpp/modules/parse/expr/term.hpp
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.27
 *******************************************************************************/
 
 #ifndef DJINTERP_PARSE_EXPR_TERM_HPP

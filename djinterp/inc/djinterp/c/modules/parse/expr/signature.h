@@ -15,11 +15,31 @@
 *   A signature is built once, sealed (checked and indexed), and read-only
 * after that, so threads may share it.
 *
+* HOW TO USE
+* ----------
+*   Initialize a signature (d_parse_expr_signature_init, or _init_heap), define
+* its operators (d_parse_expr_define_op, _chain, _mixfix,
+* d_parse_expr_juxtapose) and its tokens' roles (d_parse_expr_define_role,
+* _token, _atom), then seal it with d_parse_expr_signature_seal, which checks
+* and indexes it. Pass the sealed signature to every parse; free a heap one
+* with d_parse_expr_signature_release.
+*
+* OPTIONS
+* -------
+*   An operator's form, precedence, association and spelling; a role's position
+* and kind; a mixfix's parts and hole mode. A sealed signature is read-only,
+* so threads may share it.
+*
+* CONFIGURATION
+* -------------
+*   d_parse_expr_signature_init_heap exists only with D_CFG_PARSE_EXPR_HEAP on
+* (cfg_parse.h).
+*
 *
 * path:      /inc/djinterp/c/modules/parse/expr/signature.h
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.27
 *******************************************************************************/
 
 /*

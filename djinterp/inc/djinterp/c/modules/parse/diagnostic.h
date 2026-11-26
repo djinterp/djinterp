@@ -32,11 +32,35 @@
 *
 *   Requires: c/djinterp.h (qualifier kit) and config/parse/cfg_parse.h.
 *
+* HOW TO USE
+* ----------
+*   Initialize a sink on caller storage (d_parse_diag_sink_init, with
+* d_parse_diag_sink_facts for its facts) or on the heap
+* (d_parse_diag_sink_init_heap), and hand it to each stage. A stage reports
+* with d_parse_diag_report, or d_parse_diag_emit for a plain message. Read the
+* results with d_parse_diag_failed, d_parse_diag_at, d_parse_diag_message and
+* d_parse_diag_fact_at; set a hook with d_parse_diag_sink_hook, or a streaming
+* hook with d_parse_diag_sink_stream.
+*
+* OPTIONS
+* -------
+*   A sink's filter (d_parse_diag_sink_filter); what it carries, text and facts
+* (d_parse_diag_sink_carry); what a streaming hook asks for
+* (D_PARSE_DIAG_STREAM_TEXT, _FACTS). The rows parse.diag_text and
+* parse.diag_facts choose what a run carries (settings.h).
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_PARSE_DIAG_TEXT and D_CFG_PARSE_DIAG_FACTS choose what a build holds;
+* D_CFG_PARSE_DIAG_HEAP allows the heap sink; D_CFG_PARSE_DIAG_FORMAT compiles
+* d_parse_diag_emitf's formatting. D_PARSE_DIAG_DEFAULT_ITEMS, _TEXT and
+* _FACTS size a heap sink (cfg_parse.h).
+*
 *
 * path:      /inc/djinterp/c/modules/parse/diagnostic.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-*                                                            revised: 2026.11.23
+*                                                            revised: 2026.11.27
 *******************************************************************************/
 
 /*

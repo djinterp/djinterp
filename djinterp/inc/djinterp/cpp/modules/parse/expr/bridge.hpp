@@ -22,6 +22,22 @@
 * and is left to the caller, counted.
 *
 *
+* HOW TO USE
+* ----------
+*   to_expression() turns the subtree a v2 root reaches into v1's term, calling
+* the caller's functions for each application's operator and each leaf's atom.
+* from_operator_signature() defines a v1 table's prefix, infix and postfix
+* rows in a v2 signature, and returns how many rows it left to the caller.
+*
+* OPTIONS
+* -------
+*   The flags of a fold: D_PARSE_EXPR_FOLD_HOLES to take holes as leaves.
+*
+* CONFIGURATION
+* -------------
+*   Compiles from C++11, as v1's term does; below it this file is empty.
+*
+*
 * TABLE OF CONTENTS
 * =================
 * 1.  TO V1
@@ -36,7 +52,7 @@
 * path:      /inc/djinterp/cpp/modules/parse/expr/bridge.hpp
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.27
 *******************************************************************************/
 
 #ifndef DJINTERP_PARSE_EXPR_BRIDGE_HPP
