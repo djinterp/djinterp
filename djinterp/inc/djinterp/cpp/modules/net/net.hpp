@@ -13,7 +13,7 @@
 * path:      /inc/djinterp/cpp/modules/net/net.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.11.20
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 #ifndef DJINTERP_NET_NET_HPP
 #define DJINTERP_NET_NET_HPP 1
@@ -31,6 +31,7 @@
 #include "./ftps/ftps.hpp"          // FTPS
 #include "./sftp/sftp.hpp"          // SFTP
 #include "./smtp/smtp.hpp"          // SMTP
+#include "./lmtp/lmtp.hpp"          // LMTP
 #include "./reactor.hpp"            // the event reactor
 #include "./api/claude.hpp"         // the Claude API
 

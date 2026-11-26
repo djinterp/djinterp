@@ -11,7 +11,7 @@
 * path:      /src/djinterp/c/modules/net/smtp/smtp_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.10.31
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/c/modules/net/smtp/smtp_common.h"  // corresponding header
 // std
@@ -76,7 +76,8 @@ static const struct dj_internal_smtp_name VERB_NAMES[] =
     { "VRFY",     D_SMTP_VERB_VRFY },
     { "HELP",     D_SMTP_VERB_HELP },
     { "STARTTLS", D_SMTP_VERB_STARTTLS },
-    { "AUTH",     D_SMTP_VERB_AUTH }
+    { "AUTH",     D_SMTP_VERB_AUTH },
+    { "LHLO",     D_SMTP_VERB_LHLO }
 };
 
 // ATEXT_SPECIALS

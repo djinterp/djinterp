@@ -11,12 +11,16 @@
 *   Nothing here performs I/O or allocates. Every function works on
 * caller-owned memory, which is what lets one implementation serve the client,
 * the server, and the C++ facade in net/smtp/smtp.hpp.
+*   The kernel speaks two dialects: SMTP, and LMTP (RFC 2033), which net/lmtp
+* presents as a module of its own. They differ in three places: LMTP's LHLO
+* takes the place of EHLO and HELO, its DATA draws one final reply for each
+* recipient accepted, and DATA with no recipient accepted fails with 503.
 *
 *
 * path:      /inc/djinterp/c/modules/net/smtp/smtp_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*
@@ -27,6 +31,8 @@ TABLE OF CONTENTS
     1.  Ports
     2.  Protocol limits
     3.  Kernel limits
+    4.  Dialects
+         1.  dj_smtp_dialect
 2.  ERRORS AND BUFFERS
     ------------------
     1.  Error codes
@@ -137,6 +143,21 @@ D_EXTERN_C_BEGIN
 // under RFC 4954, and lenient peers exceed the 512-byte reply limit. Longer
 // lines are reported as D_SMTP_ERROR_LINE_TOO_LONG without losing stream sync.
 #define D_SMTP_LINE_MAX             4096u
+
+// 1.4    Dialects
+//------------------------------------------------------------------------------
+// 1.4.1
+// dj_smtp_dialect
+//   enum: the protocol a session speaks. LMTP (RFC 2033) is SMTP but in
+// three things: LHLO in place of EHLO and HELO, one final reply to the data
+// for each recipient accepted, in the order of their RCPTs, and 503 for DATA
+// with no recipient accepted. It is never spoken on port 25 (RFC 2033
+// section 5).
+enum dj_smtp_dialect
+{
+    D_SMTP_DIALECT_SMTP = 0,  // RFC 5321
+    D_SMTP_DIALECT_LMTP       // RFC 2033
+};
 
 
 //==============================================================================
@@ -539,7 +560,7 @@ bool d_smtp_domain_is_valid(
 //------------------------------------------------------------------------------
 // 5.2.1
 // dj_smtp_verb
-//   enum: the commands a server recognizes.
+//   enum: the commands a server recognizes, LMTP's LHLO among them.
 enum dj_smtp_verb
 {
     D_SMTP_VERB_UNKNOWN = 0,
@@ -554,7 +575,8 @@ enum dj_smtp_verb
     D_SMTP_VERB_VRFY,
     D_SMTP_VERB_HELP,
     D_SMTP_VERB_STARTTLS,
-    D_SMTP_VERB_AUTH
+    D_SMTP_VERB_AUTH,
+    D_SMTP_VERB_LHLO      // LMTP's (RFC 2033 section 4.1)
 };
 
 // 5.2.2

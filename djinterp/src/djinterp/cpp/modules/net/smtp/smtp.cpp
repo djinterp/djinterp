@@ -17,7 +17,7 @@
 * path:      /src/djinterp/cpp/modules/net/smtp/smtp.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/cpp/modules/net/smtp/smtp.hpp"  // corresponding header
 
@@ -41,6 +41,7 @@
 #include "../../../../../../inc/djinterp/c/modules/net/tls/tls.h"            // TLS
 #include "../../../../../../inc/djinterp/c/modules/net/tls/tls_openssl.h"    // the engine
 #include "../../../../../../inc/djinterp/c/modules/net/tcp/tcp.h"            // TCP
+#include "../../../../../../inc/djinterp/env/net/tcp/env_tcp.h"            // D_ENV_TCP_HAS_UNIX
 
 
 NS_DJINTERP
@@ -52,19 +53,20 @@ NS_INTERNAL
     // client_state
     //   struct: a kernel client; when attached, the connection it reads
     // through, which it owns, and the adapter that makes a C connection of
-    // it; the host open() connected to; and the TLS context the facade made
-    // for the kernel's TLS session, which must outlive it. Heap-allocated,
-    // so the kernel's pointers into it stay valid however the owning client
-    // moves.
+    // it; the host open() connected to; the TLS context the facade made
+    // for the kernel's TLS session, which must outlive it; and the last
+    // send's report. Heap-allocated, so the kernel's pointers into it stay
+    // valid however the owning client moves.
     struct client_state
     {
-        client_state() D_NOEXCEPT
+        client_state()
             : kernel(),
               stream(D_NULLPTR),
               adapter(D_NULLPTR),
               host(),
               context(D_NULLPTR),
-              lease()
+              lease(),
+              report()
         {
             ::d_smtp_client_init(&kernel);
         }
@@ -77,6 +79,7 @@ NS_INTERNAL
         std::string                host;     // open()'s; empty if attached
         ::dj_tls_context*           context;  // owned; null unless made
         tls_lease                  lease;    // held while TLS may use it
+        send_report                report;   // the last send's
 
     private:
         D_DELETED_FN(client_state(const client_state&))
@@ -439,6 +442,9 @@ NS_INTERNAL
         _out->connect_timeout_ms  = _options.connect_timeout_ms;
         _out->io_timeout_ms       = _options.io_timeout_ms;
         _out->allow_insecure_auth = _options.allow_insecure_auth;
+        _out->dialect             = static_cast< ::dj_smtp_dialect>(
+                                        _options.dialect);
+        _out->local               = _options.local;
 
         return;
     }
@@ -509,7 +515,7 @@ NS_INTERNAL
         return lifted;
     }
 
-    // ask_mail, ask_rcpt, ask_message, ask_auth
+    // ask_mail, ask_rcpt, ask_message, ask_deliver, ask_auth
     //   struct: each handler's call, as a function object the guard can
     // make.
     struct ask_mail
@@ -553,6 +559,25 @@ NS_INTERNAL
         std::size_t                  length;
     };
 
+    struct ask_deliver
+    {
+        unsigned int operator()() const
+        {
+            return state->handler.on_deliver(lift(*info),
+                                             index,
+                                             std::string(recipient),
+                                             re_std::string_view(data,
+                                                                 length));
+        }
+
+        const server_state*          state;
+        const ::dj_smtp_session_info* info;
+        std::size_t                  index;
+        const char*                  recipient;
+        const char*                  data;
+        std::size_t                  length;
+    };
+
     struct ask_auth
     {
         bool operator()() const
@@ -566,7 +591,7 @@ NS_INTERNAL
         const char*         secret;
     };
 
-    // on_mail, on_rcpt, on_message, on_auth
+    // on_mail, on_rcpt, on_message, on_deliver, on_auth
     //   function: the kernel's callbacks, forwarded to the handlers; a
     // throwing handler answers 451 (or refuses AUTH).
     unsigned int on_mail(
@@ -614,6 +639,27 @@ NS_INTERNAL
                        call);
     }
 
+    unsigned int on_deliver(
+        void*                         _context,
+        const ::dj_smtp_session_info* _info,
+        std::size_t                   _index,
+        const char*                   _recipient,
+        const char*                   _data,
+        std::size_t                   _length
+    ) D_NOEXCEPT
+    {
+        const ask_deliver call = { static_cast<const server_state*>(
+                                       _context),
+                                   _info,
+                                   _index,
+                                   _recipient,
+                                   _data,
+                                   _length };
+
+        return guarded(451u,
+                       call);
+    }
+
     bool on_auth(
         void*       _context,
         const char* _user,
@@ -643,6 +689,8 @@ NS_INTERNAL
         _state.config.require_tls         = _state.options.require_tls;
         _state.config.require_auth        = _state.options.require_auth;
         _state.config.allow_insecure_auth = _state.options.allow_insecure_auth;
+        _state.config.dialect             = static_cast< ::dj_smtp_dialect>(
+                                                _state.options.dialect);
 
         return;
     }
@@ -785,6 +833,8 @@ NS_INTERNAL
                                                                  : D_NULLPTR;
         handler.auth    = (!_state->handler.on_auth.empty()) ? on_auth
                                                              : D_NULLPTR;
+        handler.deliver = (!_state->handler.on_deliver.empty()) ? on_deliver
+                                                                 : D_NULLPTR;
 
         // implicit TLS first, or the session over the connection itself
         if (config.secure)
@@ -1115,7 +1165,9 @@ client::open
   The state is made first and kept only when the opening succeeds, so a
 failed open leaves the client closed. A mode that can use TLS gets a
 context; only STARTTLS_OPTIONAL goes on without one when the build has no
-engine to make it with, as it would go on without the upgrade.
+engine to make it with, as it would go on without the upgrade - or when it
+would have nothing to check the server against: a unix-domain socket, with
+no name given, to a server the context would verify.
 */
 void_result client::open(
     const client_options& _options
@@ -1131,8 +1183,18 @@ void_result client::open(
     delete m_state;
     m_state = D_NULLPTR;
 
+    // nothing to verify an optional upgrade against: none is attempted
+    const bool unchecked = ( (_options.mode ==
+                              smtp::security::starttls_optional) &&
+                             (_options.local)                    &&
+                             (_options.tls.server_name.empty())  &&
+                             (_options.tls.verify_peer)          &&
+                             (!_options.tls.context)             &&
+                             (!_options.tls.lease.get()) );
+
     // a context for a mode that can use one
-    if (_options.mode != smtp::security::none)
+    if ( (_options.mode != smtp::security::none) &&
+         (!unchecked) )
     {
         options.tls = internal::client_context(_options.tls,
                                                &made,
@@ -1233,6 +1295,8 @@ void_result client::open(
     ::d_smtp_client_attach_options_init(&kernel_options);
     kernel_options.secure              = _options.secure;
     kernel_options.allow_insecure_auth = _options.allow_insecure_auth;
+    kernel_options.dialect             = static_cast< ::dj_smtp_dialect>(
+                                             _options.dialect);
 
     ::dj_smtp_error code = (state->adapter)
                               ? ::d_smtp_client_attach_with(
@@ -1373,6 +1437,12 @@ smtp::reply client::last_reply() const
                      : smtp::reply();
 }
 
+send_report client::last_report() const
+{
+    return (m_state) ? m_state->report
+                     : send_report();
+}
+
 /*
 client::starttls
   The context is made, if the caller gave none, before the kernel is asked;
@@ -1453,7 +1523,8 @@ reply_result client::authenticate(
 /*
 client::send
   The recipients are lowered to a pointer array for the kernel, and its
-per-recipient report is lifted back alongside the addresses.
+per-recipient report is lifted back alongside the addresses - and kept,
+whatever the outcome, for last_report().
 */
 report_result client::send(
     const envelope&     _envelope,
@@ -1470,6 +1541,7 @@ report_result client::send(
     const std::size_t                       count = _envelope.recipients.size();
     std::vector<const char*>                recipients;
     std::vector< ::dj_smtp_recipient_status> statuses(count);
+    std::vector< ::dj_smtp_recipient_status> finals(count);
 
     recipients.reserve(count);
 
@@ -1487,36 +1559,48 @@ report_result client::send(
         _envelope.eight_bit,
         _envelope.utf8
     };
-    ::dj_smtp_send_report    report  = { (count) ? &statuses[0] : D_NULLPTR,
-                                        0u,
-                                        0u };
+    ::dj_smtp_send_report    report  =
+    {
+        (count) ? &statuses[0] : D_NULLPTR,
+        0u,
+        0u,
+        (count) ? &finals[0] : D_NULLPTR,
+        0u
+    };
     const ::dj_smtp_error    code    = ::d_smtp_client_send(&m_state->kernel,
                                                            &lowered,
                                                            _message.data(),
                                                            _message.size(),
                                                            &report);
+    send_report              lifted;
+
+    lifted.accepted  = report.accepted;
+    lifted.data_code = report.data_code;
+    lifted.delivered = report.delivered;
+
+    // each recipient's answer to RCPT and to the data, beside its address
+    for (std::size_t i = 0; i < count; ++i)
+    {
+        recipient_result entry;
+        recipient_result delivery;
+
+        entry.address    = _envelope.recipients[i];
+        entry.code       = statuses[i].code;
+        entry.status     = smtp::status(statuses[i].status);
+        delivery.address = _envelope.recipients[i];
+        delivery.code    = finals[i].code;
+        delivery.status  = smtp::status(finals[i].status);
+        lifted.recipients.push_back(entry);
+        lifted.deliveries.push_back(delivery);
+    }
+
+    m_state->report = lifted;
 
     // a failed transaction carries the reply that ended it
     if (code != D_SMTP_OK)
     {
         return internal::fail(code,
                               &m_state->kernel.reply);
-    }
-
-    send_report lifted;
-
-    lifted.accepted  = report.accepted;
-    lifted.data_code = report.data_code;
-
-    // each recipient's answer, beside its address
-    for (std::size_t i = 0; i < count; ++i)
-    {
-        recipient_result entry;
-
-        entry.address = _envelope.recipients[i];
-        entry.code    = statuses[i].code;
-        entry.status  = smtp::status(statuses[i].status);
-        lifted.recipients.push_back(entry);
     }
 
     return lifted;
@@ -1716,6 +1800,78 @@ port_result server::listen(
     m_state->port = endpoint.port;
 
     return port_result(m_state->port);
+}
+
+/*
+server::listen_local
+  listen()'s order on a unix-domain socket: the TLS context first, then the
+path, which tcp.h clears of an old socket before binding and removes when
+the listener closes.
+*/
+void_result server::listen_local(
+    const std::string& _path
+)
+{
+    ::dj_net_endpoint endpoint = ::dj_net_endpoint();
+    ::dj_tcp_options  options  = ::dj_tcp_options();
+    ::dj_smtp_error   code     = D_SMTP_OK;
+
+    // no path, a listener already open, or no sockets of the kind
+    if ( (_path.empty()) ||
+         (_path.size() > D_NET_HOST_MAX) )
+    {
+        code = D_SMTP_ERROR_INVALID_ARGUMENT;
+    }
+    else if (::d_tcp_listener_is_open(&m_state->listener))
+    {
+        code = D_SMTP_ERROR_STATE;
+    }
+    else if ( (!::d_tcp_available()) ||
+              (D_ENV_TCP_HAS_UNIX != 1) )
+    {
+        code = D_SMTP_ERROR_UNSUPPORTED;
+    }
+    else if (!m_state->tls)
+    {
+        code = internal::server_tls(*m_state);
+    }
+
+    if (code != D_SMTP_OK)
+    {
+        return internal::fail(code,
+                              D_NULLPTR);
+    }
+
+    ::d_net_endpoint_init(&endpoint);
+    ::d_tcp_options_init(&options);
+    std::memcpy(endpoint.host,
+                _path.c_str(),
+                _path.size() + 1u);
+    endpoint.protocol     = D_NET_PROTOCOL_UNIX;
+    options.io_timeout_ms = m_state->options.io_timeout_ms;
+
+    const ::dj_net_error opened = ::d_tcp_listen(&m_state->listener,
+                                                &endpoint,
+                                                &options);
+
+    // a path too long for the platform is the caller's; the rest, the
+    // socket's
+    if (opened != D_NET_OK)
+    {
+        ::d_tcp_listener_close(&m_state->listener);
+
+        return internal::fail(
+                   (opened == D_NET_ERROR_ADDRESS_INVALID)
+                       ? D_SMTP_ERROR_INVALID_ARGUMENT
+                       : (opened == D_NET_ERROR_UNSUPPORTED)
+                             ? D_SMTP_ERROR_UNSUPPORTED
+                             : internal::listen_error(opened),
+                   D_NULLPTR);
+    }
+
+    m_state->port = 0u;
+
+    return void_result();
 }
 
 /*

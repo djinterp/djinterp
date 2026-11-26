@@ -11,6 +11,12 @@
 *   The engine owns no sockets and no threads. A caller accepts connections
 * (tcp.h's listeners serve) and decides how sessions run in parallel; the
 * C++ facade, smtp.hpp, runs each on a thread of its own.
+*   A configuration that names D_SMTP_DIALECT_LMTP serves LMTP (RFC 2033),
+* as net/lmtp's server: LHLO in place of EHLO and HELO, which it refuses;
+* 503 for DATA with no recipient accepted; and, for the data, one reply for
+* each recipient accepted, in the order of their RCPTs, from the handler's
+* `deliver` when it has one, and otherwise its `message`'s one verdict for
+* all.
 *   Hardening: plaintext pipelined behind STARTTLS is discarded (the
 * CVE-2011-0411 injection) and the session starts over after the upgrade;
 * only CRLF "." CRLF ends message data, closing the SMTP-smuggling ambiguity
@@ -22,7 +28,7 @@
 * path:      /inc/djinterp/c/modules/net/smtp/smtp_server.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*
@@ -90,8 +96,8 @@ D_EXTERN_C_BEGIN
 // dj_smtp_server_config
 //   struct: one server's settings. Strings, and `tls`, are borrowed and must
 // outlive every session that uses them. `tls` is a server context of the
-// TLS kernel - its certificate, its key, and what it asks of clients --
-// and STARTTLS is offered only with one.
+// TLS kernel - its certificate, its key, and what it asks of clients -
+// and STARTTLS is offered only with one. `dialect` is the protocol served.
 struct dj_smtp_server_config
 {
     const char*                 domain;               // name in replies
@@ -103,6 +109,7 @@ struct dj_smtp_server_config
     bool                        require_auth;         // MAIL needs AUTH first
     bool                        allow_insecure_auth;  // AUTH without TLS
     bool                        secure;               // already encrypted
+    enum dj_smtp_dialect         dialect;              // SMTP, or LMTP
 };
 
 
@@ -123,7 +130,7 @@ struct dj_smtp_server_config
 // valid only for the duration of the callback.
 struct dj_smtp_session_info
 {
-    const char*        client_domain;    // EHLO or HELO argument
+    const char*        client_domain;    // EHLO, HELO or LHLO argument
     const char*        user;             // authenticated identity, or NULL
     const char*        sender;           // open transaction's reverse-path,
                                          // "" for the null sender, or NULL
@@ -159,6 +166,19 @@ typedef unsigned int (*dj_smtp_server_message_fn)(
                          const char*                       _data,
                          size_t                            _length);
 
+// dj_smtp_server_deliver_fn
+//   function type: takes delivery of a complete message for one recipient,
+// as LMTP does: called once for each recipient accepted, in the order of
+// their RCPTs, `_index` being the recipient's place among them, and its
+// answer is that recipient's reply. The data is as `message` has it.
+typedef unsigned int (*dj_smtp_server_deliver_fn)(
+                         void*                             _context,
+                         const struct dj_smtp_session_info* _session,
+                         size_t                            _index,
+                         const char*                       _recipient,
+                         const char*                       _data,
+                         size_t                            _length);
+
 // dj_smtp_server_auth_fn
 //   function type: checks a user and password; true accepts.
 typedef bool         (*dj_smtp_server_auth_fn)(void*       _context,
@@ -177,6 +197,7 @@ struct dj_smtp_server_handler
     dj_smtp_server_rcpt_fn    rcpt;      // NULL: every recipient accepted
     dj_smtp_server_message_fn message;   // NULL: accepted and discarded
     dj_smtp_server_auth_fn    auth;      // NULL: AUTH is not offered
+    dj_smtp_server_deliver_fn deliver;   // LMTP's; NULL: `message` for all
 };
 
 
@@ -189,7 +210,7 @@ struct dj_smtp_server_handler
 //------------------------------------------------------------------------------
 // defaults - neither fails, NULL is ignored. A configuration starts as
 // "localhost" with the D_SMTP_SERVER_* limits, PLAIN and LOGIN, no context,
-// and no requirements; a handler starts with every callback NULL.
+// no requirements, and SMTP; a handler starts with every callback NULL.
 void d_smtp_server_config_init(
     struct dj_smtp_server_config* _config
 );
@@ -201,7 +222,7 @@ void d_smtp_server_handler_init(
 //------------------------------------------------------------------------------
 /**
  * @brief Serves one connection, from the 220 greeting until QUIT or until
- *        the connection fails.
+ *        the connection fails, in the configuration's dialect.
  *
  * @note STARTTLS makes a TLS session of the TLS kernel over the connection,
  *       from the configuration's context, and the session then runs over

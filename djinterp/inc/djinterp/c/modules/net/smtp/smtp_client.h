@@ -21,6 +21,11 @@
 * CR, LF and NUL can never inject a command.
 *   The client holds its TLS session, so the header needs the TLS kernel's
 * 64-bit integer type, and compiles to nothing where the build has none.
+*   It speaks LMTP (RFC 2033) too, as net/lmtp's client: a session whose
+* options name D_SMTP_DIALECT_LMTP says LHLO, never HELO, reads one final
+* reply to the data for each recipient accepted, and refuses port 25. A
+* client of either dialect may connect to a unix-domain socket, as LMTP's
+* servers commonly listen.
 *
 *   Where D_INTERNAL_NET_HAS_INT64 is 0, with no 64-bit integer type, it
 * compiles to nothing, unless D_CFG_NET_REQUIRE_BACKENDS asks for an #error
@@ -30,7 +35,7 @@
 * path:      /inc/djinterp/c/modules/net/smtp/smtp_client.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*
@@ -143,9 +148,13 @@ struct dj_smtp_credentials
 // need one, and STARTTLS_OPTIONAL without one stays in plaintext.
 // `server_name` is the name the server's certificate must carry, and the
 // SNI sent; it comes from the caller, never from the server.
+//   With `local`, `host` is the path of a unix-domain socket (where
+// D_ENV_TCP_HAS_UNIX), `port` is not read, and a context that checks names
+// needs `server_name`, since a path is no name to check. LMTP has no port
+// of its own: its sessions over TCP need one, and never 25.
 struct dj_smtp_client_options
 {
-    const char*                 host;
+    const char*                 host;                 // or a socket's path
     unsigned int                port;                 // 0: by security mode
     enum dj_smtp_security        security;
     const struct dj_tls_context* tls;                  // NULL: plaintext only
@@ -154,18 +163,22 @@ struct dj_smtp_client_options
     long                        connect_timeout_ms;
     long                        io_timeout_ms;
     bool                        allow_insecure_auth;  // AUTH without TLS
+    enum dj_smtp_dialect         dialect;              // SMTP, or LMTP
+    bool                        local;                // `host` is a socket
 };
 
 // dj_smtp_client_attach_options
 //   struct: what d_smtp_client_attach_with() takes with a caller's stream:
 // whether it is already encrypted, the identity d_smtp_client_hello()
-// announces when given NULL, and whether AUTH may run without TLS (decision
-// 107 of the register). Strings are borrowed for the call.
+// announces when given NULL, whether AUTH may run without TLS (decision
+// 107 of the register), and the dialect the session speaks. Strings are
+// borrowed for the call.
 struct dj_smtp_client_attach_options
 {
-    bool        secure;               // the stream is already encrypted
-    const char* helo_domain;          // NULL: hello() names one
-    bool        allow_insecure_auth;  // AUTH without TLS
+    bool                secure;               // the stream is encrypted
+    const char*         helo_domain;          // NULL: hello() names one
+    bool                allow_insecure_auth;  // AUTH without TLS
+    enum dj_smtp_dialect dialect;              // SMTP, or LMTP
 };
 
 
@@ -194,7 +207,8 @@ struct dj_smtp_envelope
 //------------------------------------------------------------------------------
 // 2.2.1
 // dj_smtp_recipient_status
-//   struct: the server's answer to one RCPT.
+//   struct: the server's answer to one RCPT, or to the data for one
+// recipient.
 struct dj_smtp_recipient_status
 {
     unsigned int         code;
@@ -203,14 +217,22 @@ struct dj_smtp_recipient_status
 
 // 2.2.2
 // dj_smtp_send_report
-//   struct: what became of a transaction. `recipients`, when not NULL, is
-// caller-owned storage for one entry per envelope recipient.
+//   struct: what became of a transaction. `recipients` and `deliveries`,
+// when not NULL, are each caller-owned storage for one entry per envelope
+// recipient: `recipients` the reply to its RCPT, `deliveries` the final
+// reply that concerns it - SMTP's one reply to the data, for every
+// recipient accepted, or LMTP's own reply for each. A recipient refused, or
+// whose final reply never came, has a delivery code of 0: RFC 2033 section
+// 5 has a client take such a one as a temporary failure.
 struct dj_smtp_send_report
 {
     struct dj_smtp_recipient_status* recipients;
     size_t                          accepted;    // recipients accepted
-    unsigned int                    data_code;   // reply to the data; 0 if
-                                                 // the data was not sent
+    unsigned int                    data_code;   // the last final reply's
+                                                 // code; 0 if the data was
+                                                 // not sent
+    struct dj_smtp_recipient_status* deliveries;  // final replies, or NULL
+    size_t                          delivered;   // recipients delivered to
 };
 
 
@@ -265,13 +287,17 @@ struct dj_smtp_client
     bool                       allow_insecure_auth;
     bool                       authenticated;
     bool                       utf8;                 // SMTPUTF8 transaction
+    enum dj_smtp_dialect        dialect;              // SMTP, or LMTP
+    size_t                     accepted;             // RCPTs accepted in the
+                                                     // open transaction
     char                       helo[D_SMTP_DOMAIN_MAX + 1u];
 };
 
 // 3.2    Session setup
 //------------------------------------------------------------------------------
 // initialization - neither fails; NULL is ignored. Options default to
-// STARTTLS and the D_SMTP_CLIENT_*_TIMEOUT_MS limits, without a context.
+// SMTP over TCP, STARTTLS and the D_SMTP_CLIENT_*_TIMEOUT_MS limits,
+// without a context.
 void d_smtp_client_options_init(
     struct dj_smtp_client_options* _options
 );
@@ -280,25 +306,33 @@ void d_smtp_client_init(
 );
 
 /**
- * @brief Connects, reads the greeting, says EHLO, and applies the STARTTLS
- *        policy, leaving the session ready for authentication or mail.
+ * @brief Connects, reads the greeting, says EHLO - LHLO in LMTP - and
+ *        applies the STARTTLS policy, leaving the session ready for
+ *        authentication or mail.
  *
  * @note Opening the connection is judged apart from what the session reads
  *       and writes: a host whose name does not resolve, or that no route
  *       reaches, is D_SMTP_ERROR_RESOLVE - tcp.h reports them as
  *       D_NET_ERROR_HOST_NOT_FOUND and D_NET_ERROR_HOST_UNREACHABLE - and
  *       one that refuses or drops the connection D_SMTP_ERROR_CONNECT.
+ *       A socket's path too long for the platform is malformed, and
+ *       D_SMTP_ERROR_RESOLVE too.
+ * @note With no `helo_domain` over a unix-domain socket, the identity is
+ *       this machine's fully qualified name, or "localhost" where it has
+ *       none: a local socket has no address to name.
  *
  * @param[in,out] _client   a closed client.
  * @param[in]     _options  where and how to connect.
  * @post On failure the client is closed again; `_client->reply` explains a
  *       D_SMTP_ERROR_REJECTED.
  * @return D_SMTP_OK; D_SMTP_ERROR_INVALID_ARGUMENT for bad options, a mode
- *         that requires TLS without a client context, or a context that
- *         checks names with neither a server name nor a host to check;
+ *         that requires TLS without a client context, a context that
+ *         checks names with neither a server name nor a host to check, or
+ *         an LMTP session over TCP on port 0 or 25;
  *         D_SMTP_ERROR_UNSUPPORTED when STARTTLS is required but not
- *         offered, without a TCP backend, or with no `helo_domain` and no
- *         identity d_smtp_client_identity() can find; D_SMTP_ERROR_RESOLVE;
+ *         offered, without a TCP backend, for a unix-domain socket where
+ *         the platform has none, or with no `helo_domain` and no identity
+ *         d_smtp_client_identity() can find; D_SMTP_ERROR_RESOLVE;
  *         D_SMTP_ERROR_CONNECT; D_SMTP_ERROR_TIMED_OUT; any error of
  *         d_smtp_client_starttls(); or D_SMTP_ERROR_REJECTED.
  */
@@ -371,7 +405,8 @@ enum dj_smtp_error d_smtp_client_greeting(
 
 /**
  * @brief Sends EHLO, falling back to HELO when the server does not know
- *        EHLO, and records the capabilities offered.
+ *        EHLO, and records the capabilities offered. An LMTP session sends
+ *        LHLO, and has no fallback: an LMTP server never accepts HELO.
  *
  * @param[in,out] _client  a greeted client.
  * @param[in]     _domain  identity to announce, or NULL to reuse the last.
@@ -470,6 +505,9 @@ enum dj_smtp_error d_smtp_client_rcpt(
  * @brief Sends the message with DATA, applying transparency and CRLF
  *        normalization, and ends the transaction.
  *
+ * @note It is d_smtp_client_data_replies() keeping no reply but the last,
+ *       in `_client->reply`.
+ *
  * @param[in,out] _client   a client in D_SMTP_CLIENT_MAIL.
  * @param[in]     _message  the message, headers included.
  * @param[in]     _length   its length.
@@ -483,6 +521,38 @@ enum dj_smtp_error d_smtp_client_data(
 );
 
 /**
+ * @brief Sends the message with DATA, as d_smtp_client_data() does, and
+ *        keeps each final reply: SMTP's one, or LMTP's one per recipient
+ *        accepted, in the order of their RCPTs.
+ *
+ * @note An LMTP server answers each recipient as it delivers to it; if the
+ *       connection fails partway, the replies that came are kept and
+ *       counted, and RFC 2033 section 5 has the rest taken as temporary
+ *       failures.
+ *
+ * @param[in,out] _client    a client in D_SMTP_CLIENT_MAIL.
+ * @param[in]     _message   the message, headers included.
+ * @param[in]     _length    its length.
+ * @param[out]    _replies   storage for the final replies, or NULL.
+ * @param[in]     _capacity  entries `_replies` holds; replies past it are
+ *                           read and not kept.
+ * @param[out]    _count     how many final replies came, or NULL.
+ * @return D_SMTP_OK when at least one final reply is positive, the last
+ *         reply read in `_client->reply`; D_SMTP_ERROR_REJECTED when none
+ *         is, the last refusal there; D_SMTP_ERROR_INVALID_ARGUMENT;
+ *         D_SMTP_ERROR_STATE; D_SMTP_ERROR_LINE_TOO_LONG for a line over
+ *         998 bytes; or a transport error.
+ */
+enum dj_smtp_error d_smtp_client_data_replies(
+    struct dj_smtp_client*           _client,
+    const char*                      _message,
+    size_t                           _length,
+    struct dj_smtp_recipient_status* _replies,
+    size_t                           _capacity,
+    size_t*                          _count
+);
+
+/**
  * @brief Carries out a whole transaction: MAIL, every RCPT, DATA and the
  *        message - batched in one write when the server offers PIPELINING.
  *
@@ -490,6 +560,10 @@ enum dj_smtp_error d_smtp_client_data(
  *       the report says which were refused. When no recipient is accepted,
  *       or MAIL or DATA is refused, the transaction is reset and the reply
  *       that refused it is left in `_client->reply`.
+ * @note In LMTP each recipient accepted has a final reply of its own, which
+ *       the report's `deliveries` keep, and the call succeeds when one of
+ *       them is positive; in SMTP the one reply to the data stands for
+ *       every recipient accepted.
  *
  * @param[in,out] _client    a client in D_SMTP_CLIENT_READY.
  * @param[in]     _envelope  sender, recipients and extension flags.

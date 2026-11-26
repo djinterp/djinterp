@@ -7,12 +7,15 @@
 * validated parts into fixed buffers, so nothing a caller passes can smuggle
 * CR or LF onto the wire; SASL buffers holding secrets are wiped through
 * volatile stores once used.
+*   LMTP (RFC 2033) is a dialect of the same machine: LHLO where EHLO is,
+* no HELO, and one final reply for each recipient accepted where SMTP has
+* one for the data.
 *
 *
 * path:      /src/djinterp/c/modules/net/smtp/smtp_client.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.10.31
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/c/modules/net/smtp/smtp_client.h"  // corresponding header
 // std
@@ -55,6 +58,30 @@ struct dj_internal_smtp_pipeline
     bool                mail_ok;
     size_t              accepted;
     struct dj_smtp_reply cause;
+};
+
+// D_INTERNAL_SMTP_AWAITED
+//   macro: the code a send's report gives a recipient accepted, until its
+// final reply comes; no reply has it, since codes run from 200 to 599.
+#define D_INTERNAL_SMTP_AWAITED   1u
+
+// dj_internal_smtp_finals
+//   struct: where the final replies to the data go, and what they said.
+// In order, the k-th reply goes to `replies[k]`, within `capacity`; by
+// marks, to the entries marked D_INTERNAL_SMTP_AWAITED, in order, SMTP's
+// one reply to every such entry. `refusal` is the last reply not 2yz.
+struct dj_internal_smtp_finals
+{
+    struct dj_smtp_recipient_status* replies;
+    size_t                          capacity;
+    bool                            marked;
+    size_t                          count;      // final replies read
+    size_t                          positive;   // of them, 2yz
+    size_t                          delivered;  // recipients given a 2yz
+    size_t                          next;       // the next entry to fill
+    unsigned int                    last;       // the last one's code
+    bool                            refused;    // `refusal` holds one
+    struct dj_smtp_reply             refusal;
 };
 
 /*
@@ -239,8 +266,9 @@ d_internal_smtp_command(
 
 /*
 d_smtp_client_options_init
-  Every field to the documented default: STARTTLS, no TLS context,
-the connect and I/O timeouts of smtp_client.h, AUTH in the clear refused.
+  Every field to the documented default: SMTP over TCP, STARTTLS, no TLS
+context, the connect and I/O timeouts of smtp_client.h, AUTH in the clear
+refused.
 */
 void d_smtp_client_options_init(
     struct dj_smtp_client_options* _options
@@ -261,6 +289,8 @@ void d_smtp_client_options_init(
     _options->connect_timeout_ms  = D_SMTP_CLIENT_CONNECT_TIMEOUT_MS;
     _options->io_timeout_ms       = D_SMTP_CLIENT_IO_TIMEOUT_MS;
     _options->allow_insecure_auth = false;
+    _options->dialect             = D_SMTP_DIALECT_SMTP;
+    _options->local               = false;
 
     return;
 }
@@ -269,7 +299,7 @@ void d_smtp_client_options_init(
 d_smtp_client_init
   Zeroes the whole client, then sets what zero does not mean: the
 reader with no connection, an unopened TCP connection, the closed state,
-and D_TLS_OK.
+and D_TLS_OK. Zero is SMTP's dialect.
 */
 void d_smtp_client_init(
     struct dj_smtp_client* _client
@@ -351,7 +381,7 @@ d_smtp_client_attach(
 /*
 d_smtp_client_attach_options_init
   The defaults are the refusals: nothing is taken as encrypted, and AUTH
-waits for TLS.
+waits for TLS. The dialect is SMTP.
 */
 void d_smtp_client_attach_options_init(
     struct dj_smtp_client_attach_options* _options
@@ -362,6 +392,7 @@ void d_smtp_client_attach_options_init(
         _options->secure              = false;
         _options->helo_domain         = NULL;
         _options->allow_insecure_auth = false;
+        _options->dialect             = D_SMTP_DIALECT_SMTP;
     }
 
     return;
@@ -383,8 +414,9 @@ d_smtp_client_attach_with(
 )
 {
     // parameter validation first
-    if ( (!_client)  ||
-         (!_options) ||
+    if ( (!_client)                                 ||
+         (!_options)                                ||
+         (_options->dialect > D_SMTP_DIALECT_LMTP)  ||
          (!d_net_connection_is_complete(_connection)) )
     {
         return D_SMTP_ERROR_INVALID_ARGUMENT;
@@ -415,6 +447,8 @@ d_smtp_client_attach_with(
     _client->allow_insecure_auth = _options->allow_insecure_auth;
     _client->authenticated       = false;
     _client->utf8                = false;
+    _client->dialect             = _options->dialect;
+    _client->accepted            = 0u;
 
     return D_SMTP_OK;
 }
@@ -461,8 +495,9 @@ d_smtp_client_greeting(
 
 /*
 d_internal_smtp_greet
-  One EHLO or HELO exchange. EHLO's reply lists the extensions; HELO's
-carries none, so the capabilities are cleared.
+  One EHLO or HELO exchange - LMTP's LHLO, where EHLO would be. EHLO's
+reply, and LHLO's, lists the extensions; HELO's carries none, so the
+capabilities are cleared.
 */
 static enum dj_smtp_error
 d_internal_smtp_greet(
@@ -474,9 +509,13 @@ d_internal_smtp_greet(
     struct dj_smtp_buffer              line    = { .data     = storage,
                                                   .capacity = sizeof(storage),
                                                   .length   = 0 };
+    const char* const                 verb    =
+        (!_extended)                                 ? "HELO "
+        : (_client->dialect == D_SMTP_DIALECT_LMTP)  ? "LHLO "
+                                                     : "EHLO ";
     const struct dj_pack_text parts[] =
     {
-        { (_extended) ? "EHLO " : "HELO ", 5 },
+        { verb,                            5 },
         { _client->helo,                   strlen(_client->helo) },
         { "\r\n",                          2 }
     };
@@ -517,8 +556,9 @@ d_internal_smtp_greet(
 d_smtp_client_hello
   Keeps the identity first, then sends EHLO. A server that does not
 know EHLO answers 500 or 502 (RFC 5321 section 3.2), and HELO is tried
-once; any other refusal stands. A client already READY says hello again,
-as after STARTTLS.
+once; any other refusal stands. LMTP says LHLO and tries nothing after: an
+LMTP server never accepts HELO (RFC 2033 section 4.1). A client already
+READY says hello again, as after STARTTLS.
 */
 enum dj_smtp_error
 d_smtp_client_hello(
@@ -550,7 +590,8 @@ d_smtp_client_hello(
                                                            true);
 
     // a server that does not know EHLO answers 500 or 502 (RFC 5321 3.2)
-    if ( (result == D_SMTP_ERROR_REJECTED) &&
+    if ( (result == D_SMTP_ERROR_REJECTED)               &&
+         (_client->dialect == D_SMTP_DIALECT_SMTP)       &&
          ( (_client->reply.code == 500u) ||
            (_client->reply.code == 502u) ) )
     {
@@ -1398,8 +1439,9 @@ d_smtp_client_mail(
 
     if (result == D_SMTP_OK)
     {
-        _client->state = D_SMTP_CLIENT_MAIL;
-        _client->utf8  = _envelope->utf8;
+        _client->state    = D_SMTP_CLIENT_MAIL;
+        _client->utf8     = _envelope->utf8;
+        _client->accepted = 0u;
     }
 
     return result;
@@ -1409,6 +1451,7 @@ d_smtp_client_mail(
 d_smtp_client_rcpt
   One RCPT TO line, built as MAIL's is, expecting 2yz; the
 transaction's SMTPUTF8 choice decides whether the address may carry it.
+Each recipient accepted is counted: LMTP answers the data once for each.
 */
 enum dj_smtp_error
 d_smtp_client_rcpt(
@@ -1441,10 +1484,14 @@ d_smtp_client_rcpt(
         return built;
     }
 
-    return d_internal_smtp_exchange(_client,
-                                    line.data,
-                                    line.length,
-                                    2u);
+    const enum dj_smtp_error result = d_internal_smtp_exchange(_client,
+                                                              line.data,
+                                                              line.length,
+                                                              2u);
+
+    _client->accepted += (result == D_SMTP_OK) ? 1u : 0u;
+
+    return result;
 }
 
 /*
@@ -1477,15 +1524,138 @@ d_internal_smtp_check_lines(
 }
 
 /*
+d_internal_smtp_entry
+  One entry of a report's or a caller's replies, set from the reply.
+*/
+static
+void d_internal_smtp_entry(
+    struct dj_smtp_recipient_status* _entry,
+    const struct dj_smtp_reply*      _reply
+)
+{
+    _entry->code   = _reply->code;
+    _entry->status = _reply->status;
+
+    return;
+}
+
+/*
+d_internal_smtp_final
+  Keeps one final reply, the session's last: in order, in the next entry;
+by marks, in the next awaited entry - or, in SMTP, which has one reply for
+all, in every awaited entry.
+*/
+static
+void d_internal_smtp_final(
+    const struct dj_smtp_client*    _client,
+    struct dj_internal_smtp_finals* _finals
+)
+{
+    const bool positive = ((_client->reply.code / 100u) == 2u);
+    const bool each     = (_client->dialect == D_SMTP_DIALECT_LMTP);
+
+    _finals->count    += 1u;
+    _finals->positive += (positive) ? 1u : 0u;
+    _finals->last      = _client->reply.code;
+
+    if (!positive)
+    {
+        _finals->refused = true;
+        _finals->refusal = _client->reply;
+    }
+
+    // in order: the next entry, while there is room
+    if ( (_finals->replies) &&
+         (!_finals->marked) )
+    {
+        if (_finals->next < _finals->capacity)
+        {
+            d_internal_smtp_entry(&_finals->replies[_finals->next],
+                                  &_client->reply);
+        }
+
+        _finals->next      += 1u;
+        _finals->delivered += (positive) ? 1u : 0u;
+
+        return;
+    }
+
+    // by marks: the next awaited entry, or, for SMTP, every one
+    for (size_t at = _finals->next;
+         ( (_finals->replies) &&
+           (at < _finals->capacity) );
+         ++at)
+    {
+        if (_finals->replies[at].code != D_INTERNAL_SMTP_AWAITED)
+        {
+            continue;
+        }
+
+        d_internal_smtp_entry(&_finals->replies[at],
+                              &_client->reply);
+        _finals->delivered += (positive) ? 1u : 0u;
+        _finals->next       = at + 1u;
+
+        if (each)
+        {
+            break;
+        }
+    }
+
+    // without entries, the count is the dialect's
+    if (!_finals->replies)
+    {
+        _finals->delivered += (!positive) ? 0u
+                            : (each)      ? 1u
+                                          : _client->accepted;
+    }
+
+    return;
+}
+
+/*
+d_internal_smtp_unawaited
+  A report's entries still awaited when the replies stop: none came, and
+the code is 0, which RFC 2033 section 5 has a client take as a temporary
+failure.
+*/
+static
+void d_internal_smtp_unawaited(
+    struct dj_internal_smtp_finals* _finals
+)
+{
+    for (size_t at = 0u;
+         ( (_finals->replies) &&
+           (_finals->marked)  &&
+           (at < _finals->capacity) );
+         ++at)
+    {
+        if (_finals->replies[at].code == D_INTERNAL_SMTP_AWAITED)
+        {
+            memset(&_finals->replies[at],
+                   0,
+                   sizeof(_finals->replies[at]));
+        }
+    }
+
+    return;
+}
+
+/*
 d_internal_smtp_body
   Streams the encoded message after a 354 in chunks, then the end-of-data
-marker, and reads the final reply. The transaction is over either way.
+marker, and reads the final replies: SMTP's one, LMTP's one for each
+recipient accepted, each kept as `_finals` says. The transaction is over
+once they are read, whatever they say; it succeeds when one is 2yz, the
+last reply read in the session, and is refused otherwise, the last
+refusal there.
 */
 static enum dj_smtp_error
 d_internal_smtp_body(
-    struct dj_smtp_client* _client,
-    const char*           _message,
-    size_t                _length
+    struct dj_smtp_client*          _client,
+    const char*                     _message,
+    size_t                          _length,
+    struct dj_internal_smtp_finals* _finals
 )
 {
     char                       storage[D_INTERNAL_SMTP_CHUNK] = { 0 };
@@ -1522,28 +1692,55 @@ d_internal_smtp_body(
 
     if (result == D_SMTP_OK)
     {
-        result = d_internal_smtp_exchange(_client,
-                                          tail.data,
-                                          tail.length,
-                                          2u);
+        result = d_internal_smtp_send(_client,
+                                      tail.data,
+                                      tail.length);
     }
 
-    // a final reply of either kind ends the transaction
-    if ( (result == D_SMTP_OK) ||
-         (result == D_SMTP_ERROR_REJECTED) )
+    const size_t expected = (_client->dialect == D_SMTP_DIALECT_LMTP)
+                            ? _client->accepted
+                            : 1u;
+
+    // every final reply is read, as each comes (RFC 2033 section 5)
+    for (size_t at = 0u;
+         ( (result == D_SMTP_OK) &&
+           (at < expected) );
+         ++at)
     {
-        _client->state = D_SMTP_CLIENT_READY;
-        _client->utf8  = false;
+        result = d_internal_smtp_read_reply(_client);
+
+        if (result == D_SMTP_OK)
+        {
+            d_internal_smtp_final(_client,
+                                  _finals);
+        }
     }
 
-    return result;
+    d_internal_smtp_unawaited(_finals);
+
+    if (result != D_SMTP_OK)
+    {
+        return result;
+    }
+
+    // the final replies end the transaction, whatever they said
+    _client->state    = D_SMTP_CLIENT_READY;
+    _client->utf8     = false;
+    _client->accepted = 0u;
+
+    if (_finals->positive > 0u)
+    {
+        return D_SMTP_OK;
+    }
+
+    _client->reply = _finals->refusal;
+
+    return D_SMTP_ERROR_REJECTED;
 }
 
 /*
 d_smtp_client_data
-  Every line of the message is checked against RFC 5321's limit before
-DATA goes out, since a server may truncate or refuse a long line partway
-through; then DATA, expecting 3yz, and the dot-stuffed body.
+  d_smtp_client_data_replies(), keeping only the last reply.
 */
 enum dj_smtp_error
 d_smtp_client_data(
@@ -1552,6 +1749,42 @@ d_smtp_client_data(
     size_t                _length
 )
 {
+    return d_smtp_client_data_replies(_client,
+                                      _message,
+                                      _length,
+                                      NULL,
+                                      0u,
+                                      NULL);
+}
+
+/*
+d_smtp_client_data_replies
+  Every line of the message is checked against RFC 5321's limit before
+DATA goes out, since a server may truncate or refuse a long line partway
+through; then DATA, expecting 3yz, and the dot-stuffed body, and its final
+replies kept in order.
+*/
+enum dj_smtp_error
+d_smtp_client_data_replies(
+    struct dj_smtp_client*           _client,
+    const char*                      _message,
+    size_t                           _length,
+    struct dj_smtp_recipient_status* _replies,
+    size_t                           _capacity,
+    size_t*                          _count
+)
+{
+    struct dj_internal_smtp_finals finals = { .replies  = _replies,
+                                             .capacity = (_replies)
+                                                         ? _capacity
+                                                         : 0u,
+                                             .marked   = false };
+
+    if (_count)
+    {
+        *_count = 0u;
+    }
+
     // parameter validation first
     if ( (!_client) ||
          ( (!_message) &&
@@ -1582,14 +1815,24 @@ d_smtp_client_data(
         return opened;
     }
 
-    return d_internal_smtp_body(_client,
-                                (_message) ? _message : "",
-                                _length);
+    const enum dj_smtp_error result = d_internal_smtp_body(
+                                         _client,
+                                         (_message) ? _message : "",
+                                         _length,
+                                         &finals);
+
+    if (_count)
+    {
+        *_count = finals.count;
+    }
+
+    return result;
 }
 
 /*
 d_internal_smtp_record
-  Stores one RCPT outcome in the caller's report, if there is one.
+  Stores one RCPT outcome in the caller's report, if there is one, and
+marks the recipient's delivery: awaited when accepted, 0 when refused.
 */
 static
 void d_internal_smtp_record(
@@ -1607,6 +1850,17 @@ void d_internal_smtp_record(
     {
         _report->recipients[_index].code   = _reply->code;
         _report->recipients[_index].status = _reply->status;
+    }
+
+    if (_report->deliveries)
+    {
+        memset(&_report->deliveries[_index],
+               0,
+               sizeof(_report->deliveries[_index]));
+        _report->deliveries[_index].code =
+            (d_smtp_code_is_positive(_reply->code))
+            ? D_INTERNAL_SMTP_AWAITED
+            : 0u;
     }
 
     if (d_smtp_code_is_positive(_reply->code))
@@ -1884,8 +2138,9 @@ d_internal_smtp_open_pipelined(
          (tally.accepted > 0) &&
          (data_ok) )
     {
-        _client->state = D_SMTP_CLIENT_MAIL;
-        _client->utf8  = _envelope->utf8;
+        _client->state    = D_SMTP_CLIENT_MAIL;
+        _client->utf8     = _envelope->utf8;
+        _client->accepted = tally.accepted;
 
         return D_SMTP_OK;
     }
@@ -1987,6 +2242,19 @@ d_smtp_client_send(
     {
         _report->accepted  = 0;
         _report->data_code = 0;
+        _report->delivered = 0;
+    }
+
+    // each delivery is 0 until its recipient is accepted
+    for (size_t i = 0;
+         ( (_report)             &&
+           (_report->deliveries) &&
+           (i < _envelope->recipient_count) );
+         ++i)
+    {
+        memset(&_report->deliveries[i],
+               0,
+               sizeof(_report->deliveries[i]));
     }
 
     enum dj_smtp_error result = d_internal_smtp_check_envelope(_client,
@@ -2004,8 +2272,17 @@ d_smtp_client_send(
         return result;
     }
 
-    const bool pipelined = ((_client->capabilities.extensions &
-                             D_SMTP_EXTENSION_PIPELINING) != 0u);
+    const bool                     pipelined =
+        ((_client->capabilities.extensions &
+          D_SMTP_EXTENSION_PIPELINING) != 0u);
+    struct dj_internal_smtp_finals finals    =
+    {
+        .replies  = (_report) ? _report->deliveries : NULL,
+        .capacity = ( (_report) &&
+                      (_report->deliveries) ) ? _envelope->recipient_count
+                                              : 0u,
+        .marked   = true
+    };
 
     result = (pipelined) ? d_internal_smtp_open_pipelined(_client,
                                                           _envelope,
@@ -2016,18 +2293,25 @@ d_smtp_client_send(
                                                        _length,
                                                        _report);
 
+    // no data went: no recipient is awaiting a reply to it
     if (result != D_SMTP_OK)
     {
+        d_internal_smtp_unawaited(&finals);
+
         return result;
     }
 
     result = d_internal_smtp_body(_client,
                                   (_message) ? _message : "",
-                                  _length);
+                                  _length,
+                                  &finals);
 
-    if (_report)
+    if ( (_report) &&
+         (finals.count > 0u) )
     {
-        _report->data_code = _client->reply.code;
+        // the reply last read, which a hang-up after it has since cleared
+        _report->data_code = finals.last;
+        _report->delivered = finals.delivered;
     }
 
     return result;
@@ -2061,8 +2345,9 @@ d_smtp_client_reset(
 
     if (result == D_SMTP_OK)
     {
-        _client->state = D_SMTP_CLIENT_READY;
-        _client->utf8  = false;
+        _client->state    = D_SMTP_CLIENT_READY;
+        _client->utf8     = false;
+        _client->accepted = 0u;
     }
 
     return result;
@@ -2295,15 +2580,17 @@ d_smtp_client_identity(
 /*
 d_internal_smtp_name_for
   The name to check the server's certificate against: the one given, or
-else the host connected to.
+else the host connected to - never a unix-domain socket's path, which is
+no name.
 */
 static
 const char* d_internal_smtp_name_for(
     const struct dj_smtp_client_options* _options
 )
 {
-    return (_options->server_name) ? _options->server_name
-                                   : _options->host;
+    return ( (_options->server_name) ||
+             (_options->local) ) ? _options->server_name
+                                 : _options->host;
 }
 
 /*
@@ -2336,7 +2623,8 @@ bool d_internal_smtp_tls_fits(
 /*
 d_internal_smtp_port
   The port by security mode, unless one was given: implicit TLS on 465,
-STARTTLS submission on 587, plaintext relay on 25.
+STARTTLS submission on 587, plaintext relay on 25. An LMTP session's was
+given, as connect checks.
 */
 static
 unsigned int d_internal_smtp_port(
@@ -2375,6 +2663,8 @@ d_internal_smtp_connect_error(
     {
         case D_NET_OK:
             return D_SMTP_OK;
+        case D_NET_ERROR_UNSUPPORTED:
+            return D_SMTP_ERROR_UNSUPPORTED;
         case D_NET_ERROR_INVALID_ARGUMENT:
             return D_SMTP_ERROR_INVALID_ARGUMENT;
         case D_NET_ERROR_OUT_OF_MEMORY:
@@ -2394,7 +2684,6 @@ d_internal_smtp_connect_error(
         case D_NET_ERROR_CONNECTION_ABORTED:
         case D_NET_ERROR_ADDRESS_IN_USE:
         case D_NET_ERROR_NETWORK_DOWN:
-        case D_NET_ERROR_UNSUPPORTED:
         case D_NET_ERROR_ACCESS_DENIED:
         case D_NET_ERROR_MESSAGE_TOO_LARGE:
         case D_NET_ERROR_TOO_MANY_OPEN_FILES:
@@ -2408,7 +2697,8 @@ d_internal_smtp_connect_error(
 
 /*
 d_internal_smtp_open
-  Opens the TCP connection the client owns, and adopts it.
+  Opens the connection the client owns - TCP, or a unix-domain socket's -
+and adopts it.
 */
 static enum dj_smtp_error
 d_internal_smtp_open(
@@ -2431,8 +2721,11 @@ d_internal_smtp_open(
     memcpy(endpoint.host,
            _options->host,
            length + 1u);
-    endpoint.port          = (dj_net_port)d_internal_smtp_port(_options);
-    endpoint.protocol      = D_NET_PROTOCOL_TCP;
+    endpoint.port          = (_options->local)
+                             ? 0u
+                             : (dj_net_port)d_internal_smtp_port(_options);
+    endpoint.protocol      = (_options->local) ? D_NET_PROTOCOL_UNIX
+                                               : D_NET_PROTOCOL_TCP;
     tcp.connect_timeout_ms = _options->connect_timeout_ms;
     tcp.io_timeout_ms      = _options->io_timeout_ms;
 
@@ -2457,7 +2750,8 @@ d_internal_smtp_open(
 /*
 d_internal_smtp_settle
   Negotiates implicit TLS, then settles the EHLO identity: the one given,
-or this machine's.
+or this machine's - over a unix-domain socket, which has no address to name,
+"localhost" where the machine has no fully qualified name.
 */
 static enum dj_smtp_error
 d_internal_smtp_settle(
@@ -2492,8 +2786,14 @@ d_internal_smtp_settle(
                                       .capacity = sizeof(_client->helo),
                                       .length   = 0 };
 
-    return d_smtp_client_identity(&_client->tcp.base,
-                                  &identity);
+    result = d_smtp_client_identity(&_client->tcp.base,
+                                    &identity);
+
+    return ( (result == D_SMTP_ERROR_UNSUPPORTED) &&
+             (_options->local) )
+           ? d_internal_smtp_set_helo(_client,
+                                      "localhost")
+           : result;
 }
 
 /*
@@ -2541,7 +2841,8 @@ d_internal_smtp_establish(
 
 /*
 d_smtp_client_connect
-  Everything the options say is checked before a connection is opened.
+  Everything the options say is checked before a connection is opened. An
+LMTP session over TCP names its port, and never 25 (RFC 2033 section 5).
 */
 enum dj_smtp_error
 d_smtp_client_connect(
@@ -2557,6 +2858,11 @@ d_smtp_client_connect(
          (strlen(_options->host) > D_NET_HOST_MAX)  ||
          (_options->port > 65535u)                  ||
          (_options->security > D_SMTP_SECURITY_TLS) ||
+         (_options->dialect > D_SMTP_DIALECT_LMTP)  ||
+         ( (_options->dialect == D_SMTP_DIALECT_LMTP) &&
+           (!_options->local)                         &&
+           ( (_options->port == 0u) ||
+             (_options->port == D_SMTP_PORT) ) )    ||
          (!d_internal_smtp_tls_fits(_options)) )
     {
         return D_SMTP_ERROR_INVALID_ARGUMENT;
@@ -2575,6 +2881,9 @@ d_smtp_client_connect(
 
     enum dj_smtp_error result = d_internal_smtp_open(_client,
                                                     _options);
+
+    // the session speaks the options' dialect from its greeting on
+    _client->dialect = _options->dialect;
 
     if (result == D_SMTP_OK)
     {

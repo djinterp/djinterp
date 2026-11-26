@@ -31,6 +31,10 @@
 * codec, sink_common.c and dmutex.c, with the TLS library. The client holds
 * the kernel's TLS session, so the header needs a 64-bit integer type, and
 * compiles to nothing where the build has none, as smtp_client.h does.
+*   The kernel speaks LMTP (RFC 2033) as a dialect of its own, and so does
+* the facade: options name the dialect, a send's report holds the final
+* reply each recipient was given, and a handler can answer each recipient
+* after the data. lmtp/lmtp.hpp is LMTP's own face over this one.
 *
 *   Where D_INTERNAL_NET_HAS_INT64 is 0, with no 64-bit integer type, it
 * compiles to nothing, unless D_CFG_NET_REQUIRE_BACKENDS asks for an #error
@@ -40,7 +44,7 @@
 * path:      /inc/djinterp/cpp/modules/net/smtp/smtp.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*
@@ -53,6 +57,7 @@ TABLE OF CONTENTS
          2.  security
          3.  mechanism
          4.  extension
+         5.  dialect
     2.  Status and capabilities
          1.  status
          2.  capabilities
@@ -219,6 +224,19 @@ struct extension
     };
 };
 
+// 1.1.5
+// dialect
+//   enum: dj_smtp_dialect, scoped: SMTP, or LMTP (RFC 2033), which greets
+// with LHLO and gives a final reply to the data for each recipient.
+struct dialect
+{
+    enum value
+    {
+        smtp = D_SMTP_DIALECT_SMTP,
+        lmtp = D_SMTP_DIALECT_LMTP
+    };
+};
+
 // to_string - a short label for an error; O(1), never null. to_net - the
 // io_error an error maps to, by the rules net.h gives with dj_net_error
 D_NODISCARD const char* to_string(
@@ -372,6 +390,10 @@ struct tls_options
 // 2.1.2
 // client_options
 //   struct: dj_smtp_client_options with owned strings and the same defaults.
+// With `local`, `host` is a unix-domain socket's path and `port` is unused,
+// as LMTP's servers are commonly offered; there the name for TLS to check
+// is `tls.server_name`'s alone, and without one an optional upgrade to a
+// server the context would verify is not attempted.
 struct client_options
 {
     client_options()
@@ -382,7 +404,9 @@ struct client_options
           helo_domain(),
           connect_timeout_ms(D_SMTP_CLIENT_CONNECT_TIMEOUT_MS),
           io_timeout_ms(D_SMTP_CLIENT_IO_TIMEOUT_MS),
-          allow_insecure_auth(false)
+          allow_insecure_auth(false),
+          dialect(smtp::dialect::smtp),
+          local(false)
     {}
 
     std::string           host;
@@ -393,24 +417,28 @@ struct client_options
     long                  connect_timeout_ms;
     long                  io_timeout_ms;
     bool                  allow_insecure_auth;
+    smtp::dialect::value  dialect;
+    bool                  local;
 };
 
 // 2.1.3
 // attach_options
 //   struct: what open() and attach() take with a caller's stream: whether it
-// is already encrypted, the identity to announce, and whether AUTH may run
-// without TLS (decision 107 of the register).
+// is already encrypted, the identity to announce, whether AUTH may run
+// without TLS (decision 107 of the register), and the dialect.
 struct attach_options
 {
     attach_options()
         : secure(false),
           helo_domain(),
-          allow_insecure_auth(false)
+          allow_insecure_auth(false),
+          dialect(smtp::dialect::smtp)
     {}
 
-    bool        secure;
-    std::string helo_domain;
-    bool        allow_insecure_auth;
+    bool                 secure;
+    std::string          helo_domain;
+    bool                 allow_insecure_auth;
+    smtp::dialect::value dialect;
 };
 
 // 2.1.4
@@ -467,18 +495,27 @@ struct recipient_result
 
 // 2.2.3
 // send_report
-//   struct: what became of a transaction.
+//   struct: what became of a transaction: each recipient's answer to RCPT,
+// and, in `deliveries`, the final reply each was given after the data, in
+// the envelope's order - LMTP's own for each, SMTP's one for all; a code of
+// 0 where none came, for a recipient refused at RCPT, or one whose reply a
+// closed connection kept (RFC 2033 section 5: a temporary failure).
+// `delivered` counts the 2yz among them.
 struct send_report
 {
     send_report()
         : recipients(),
           accepted(0u),
-          data_code(0u)
+          data_code(0u),
+          deliveries(),
+          delivered(0u)
     {}
 
     std::vector<recipient_result> recipients;
     std::size_t                   accepted;
     unsigned int                  data_code;
+    std::vector<recipient_result> deliveries;
+    std::size_t                   delivered;
 };
 
 // 2.3    Client
@@ -587,12 +624,17 @@ public:
     );
 #endif  // D_MOVE_ENABLED
 
-    // session state - O(1), never fail; a closed client reports closed
+    // session state - O(1), never fail; a closed client reports closed.
+    // last_report is the last send's, whatever its outcome: after a send
+    // that failed partway through LMTP's final replies, which recipients
+    // the message was delivered to before it did. Like last_reply, it
+    // outlives close(), until the next open()
     D_NODISCARD bool is_open() const D_NOEXCEPT;
     D_NODISCARD bool is_secure() const D_NOEXCEPT;
     D_NODISCARD bool is_authenticated() const D_NOEXCEPT;
     D_NODISCARD smtp::capabilities features() const D_NOEXCEPT;
     D_NODISCARD smtp::reply last_reply() const;
+    D_NODISCARD send_report last_report() const;
 
     // commands - each returns the server's reply, or the failure; errors
     // are those of the d_smtp_client_* function of the same name. starttls
@@ -658,7 +700,7 @@ D_NODISCARD report_result send(
 // the I/O limit for accepted connections. With a certificate and key in
 // `tls`, or a context of the caller's, the server offers STARTTLS, or
 // speaks TLS from the first byte when `implicit_tls`; with neither, it
-// offers no TLS at all.
+// offers no TLS at all. `dialect` is the one its sessions speak.
 struct server_options
 {
     server_options()
@@ -671,19 +713,21 @@ struct server_options
           require_tls(false),
           require_auth(false),
           allow_insecure_auth(false),
-          io_timeout_ms(D_SMTP_CLIENT_IO_TIMEOUT_MS)
+          io_timeout_ms(D_SMTP_CLIENT_IO_TIMEOUT_MS),
+          dialect(smtp::dialect::smtp)
     {}
 
-    std::string  domain;
-    std::size_t  max_message_size;
-    std::size_t  max_recipients;
-    tls_options  tls;
-    bool         implicit_tls;
-    unsigned int auth_mechanisms;
-    bool         require_tls;
-    bool         require_auth;
-    bool         allow_insecure_auth;
-    long         io_timeout_ms;
+    std::string          domain;
+    std::size_t          max_message_size;
+    std::size_t          max_recipients;
+    tls_options          tls;
+    bool                 implicit_tls;
+    unsigned int         auth_mechanisms;
+    bool                 require_tls;
+    bool                 require_auth;
+    bool                 allow_insecure_auth;
+    long                 io_timeout_ms;
+    smtp::dialect::value dialect;
 };
 
 // 3.1.2
@@ -714,7 +758,10 @@ struct session
 // server_handler
 //   struct: the policy callbacks; each returns 0 to accept or a 4yz/5yz
 // code to refuse. An empty function takes the kernel's default: accept,
-// or, for `on_auth`, do not offer AUTH.
+// or, for `on_auth`, do not offer AUTH. `on_deliver` is LMTP's: it is
+// asked once for each accepted recipient, given its place among them, and
+// its answer is that recipient's final reply; empty, `on_message` answers
+// for all of them.
 struct server_handler
 {
     re_std::function<unsigned int(const session&,
@@ -725,6 +772,10 @@ struct server_handler
                                   re_std::string_view)>  on_message;
     re_std::function<bool(const std::string&,
                           const std::string&)>           on_auth;
+    re_std::function<unsigned int(const session&,
+                                  std::size_t,
+                                  const std::string&,
+                                  re_std::string_view)>  on_deliver;
 };
 
 // 3.2    Server
@@ -760,6 +811,23 @@ public:
     D_NODISCARD port_result listen(
         const std::string& _host,
         unsigned int       _port
+    );
+
+    /**
+     * @brief listen() on a unix-domain socket: a file already at the path
+     *        is removed first, and the path is removed when the server
+     *        goes. port() is 0.
+     *
+     * @param[in] _path  the socket's path.
+     * @return nothing, or the failure: error::invalid_argument for an
+     *         empty path, or one too long for the platform; error::state
+     *         when already listening; error::unsupported where there are
+     *         no unix-domain sockets, or without an engine to make the
+     *         context with; error::tls when the certificate or key will
+     *         not load; or error::transport when the path cannot be bound.
+     */
+    D_NODISCARD void_result listen_local(
+        const std::string& _path
     );
 
     /**

@@ -9,12 +9,15 @@
 * doubling up to the configured limit, so memory tracks the largest message
 * actually received rather than the largest allowed. STARTTLS makes a TLS
 * session of the TLS kernel over the connection, held in that state.
+*   In LMTP (RFC 2033) the same loop says LHLO's reply where EHLO's would
+* be, refuses EHLO and HELO, and answers the data once for each recipient
+* accepted, as soon as each is decided.
 *
 *
 * path:      /src/djinterp/c/modules/net/smtp/smtp_server.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/c/modules/net/smtp/smtp_server.h"  // corresponding header
 // std
@@ -1534,10 +1537,68 @@ struct dj_internal_smtp_verdict d_internal_smtp_judge(
 }
 
 /*
+d_internal_smtp_deliveries
+  LMTP's final replies: one for each recipient accepted, in the order of
+their RCPTs, each sent as it is decided (RFC 2033 section 5). A limit the
+data broke refuses every recipient alike; otherwise the handler's
+`deliver` decides each, or, without one, its `message` decides once for
+all.
+*/
+static enum dj_smtp_error
+d_internal_smtp_deliveries(
+    struct dj_internal_smtp_session*      _session,
+    const struct dj_internal_smtp_intake* _intake
+)
+{
+    const struct dj_smtp_server_handler* handler = _session->handler;
+    const bool                          each    =
+        ( (handler->deliver)    &&
+          (!_intake->oversize)  &&
+          (!_intake->overlong)  &&
+          (!_intake->no_memory) );
+    const struct dj_internal_smtp_verdict shared = (each)
+        ? (struct dj_internal_smtp_verdict){ 0u, NULL, NULL }
+        : d_internal_smtp_judge(_session,
+                                _intake);
+    enum dj_smtp_error result = D_SMTP_OK;
+
+    for (size_t at = 0u;
+         ( (result == D_SMTP_OK) &&
+           (at < _session->info.recipient_count) );
+         ++at)
+    {
+        const struct dj_internal_smtp_verdict verdict = (each)
+            ? d_internal_smtp_decide(
+                  handler->deliver(handler->context,
+                                   &_session->info,
+                                   at,
+                                   _session->info.recipients[at],
+                                   (_session->message) ? _session->message
+                                                       : "",
+                                   _session->message_length),
+                  "5.6.0",
+                  "4.3.0",
+                  "Message rejected")
+            : shared;
+
+        result = (verdict.code != 0) ? d_internal_smtp_refuse(_session,
+                                                              &verdict)
+                                     : d_internal_smtp_respond(
+                                           _session,
+                                           250u,
+                                           "2.0.0",
+                                           "Message accepted");
+    }
+
+    return result;
+}
+
+/*
 d_internal_smtp_on_data
   DATA with no recipient accepted draws 554, the reply RFC 2920 requires so
-that a pipelining client which already sent DATA knows no data should follow.
-The transaction ends with the final reply, whatever it is.
+that a pipelining client which already sent DATA knows no data should follow;
+LMTP's is 503 (RFC 2033 section 4.2). The transaction ends with the final
+replies, whatever they are.
 */
 static enum dj_smtp_error
 d_internal_smtp_on_data(
@@ -1567,10 +1628,12 @@ d_internal_smtp_on_data(
 
     if (_session->info.recipient_count == 0)
     {
-        return d_internal_smtp_respond(_session,
-                                       554u,
-                                       "5.5.1",
-                                       "No valid recipients");
+        return d_internal_smtp_respond(
+                   _session,
+                   (_session->config->dialect == D_SMTP_DIALECT_LMTP) ? 503u
+                                                                      : 554u,
+                   "5.5.1",
+                   "No valid recipients");
     }
 
     enum dj_smtp_error result = d_internal_smtp_respond(
@@ -1590,6 +1653,16 @@ d_internal_smtp_on_data(
         return result;
     }
 
+    // LMTP: a reply for each recipient, before the transaction ends
+    if (_session->config->dialect == D_SMTP_DIALECT_LMTP)
+    {
+        result = d_internal_smtp_deliveries(_session,
+                                            &intake);
+        d_internal_smtp_reset(_session);
+
+        return result;
+    }
+
     const struct dj_internal_smtp_verdict verdict = d_internal_smtp_judge(
                                                        _session,
                                                        &intake);
@@ -1606,9 +1679,10 @@ d_internal_smtp_on_data(
 
 /*
 d_internal_smtp_dispatch
-  One command, by verb. VRFY answers 252 - "cannot verify, but will try" --
+  One command, by verb. VRFY answers 252 - "cannot verify, but will try" -
 as RFC 5321 section 3.5.3 recommends for a server that does not disclose its
-users.
+users. LMTP's greeting is LHLO alone: EHLO and HELO are refused, never with
+a positive reply (RFC 2033 section 4.1), and SMTP knows no LHLO.
 */
 static enum dj_smtp_error
 d_internal_smtp_dispatch(
@@ -1616,14 +1690,34 @@ d_internal_smtp_dispatch(
     const struct dj_smtp_command*    _command
 )
 {
+    const bool lmtp = (_session->config->dialect == D_SMTP_DIALECT_LMTP);
+
     switch (_command->verb)
     {
         case D_SMTP_VERB_EHLO:
         case D_SMTP_VERB_HELO:
+            if (lmtp)
+            {
+                return d_internal_smtp_fault(_session,
+                                             500u,
+                                             "5.5.1",
+                                             "This is LMTP: say LHLO");
+            }
+
             return d_internal_smtp_on_hello(_session,
                                             _command,
                                             (_command->verb ==
                                              D_SMTP_VERB_EHLO));
+
+        case D_SMTP_VERB_LHLO:
+            if (lmtp)
+            {
+                return d_internal_smtp_on_hello(_session,
+                                                _command,
+                                                true);
+            }
+
+            break;
 
         case D_SMTP_VERB_STARTTLS:
             return d_internal_smtp_on_starttls(_session,
@@ -1678,7 +1772,8 @@ d_internal_smtp_dispatch(
             return d_internal_smtp_respond(_session,
                                            214u,
                                            "2.0.0",
-                                           "See RFC 5321");
+                                           (lmtp) ? "See RFC 2033"
+                                                  : "See RFC 5321");
 
         case D_SMTP_VERB_UNKNOWN:
         default:
@@ -1808,7 +1903,7 @@ void d_internal_smtp_session_free(
 d_smtp_server_config_init
   The documented defaults: "localhost", the message and recipient
 limits of smtp_server.h, PLAIN and LOGIN, no TLS context, nothing
-required, AUTH in the clear refused, the channel taken as plain.
+required, AUTH in the clear refused, the channel taken as plain, SMTP.
 */
 void d_smtp_server_config_init(
     struct dj_smtp_server_config* _config
@@ -1829,6 +1924,7 @@ void d_smtp_server_config_init(
     _config->require_auth        = false;
     _config->allow_insecure_auth = false;
     _config->secure              = false;
+    _config->dialect             = D_SMTP_DIALECT_SMTP;
 
     return;
 }
@@ -1853,6 +1949,7 @@ void d_smtp_server_handler_init(
     _handler->rcpt    = NULL;
     _handler->message = NULL;
     _handler->auth    = NULL;
+    _handler->deliver = NULL;
 
     return;
 }
@@ -1867,9 +1964,10 @@ bool d_internal_smtp_config_ok(
     const struct dj_smtp_server_config* _config
 )
 {
-    return ( (_config->domain)               &&
-             (_config->max_message_size > 0) &&
-             (_config->max_recipients > 0)   &&
+    return ( (_config->domain)                          &&
+             (_config->max_message_size > 0)            &&
+             (_config->max_recipients > 0)              &&
+             (_config->dialect <= D_SMTP_DIALECT_LMTP)  &&
              (d_smtp_domain_is_valid(_config->domain,
                                      strlen(_config->domain),
                                      false)) &&
@@ -1915,10 +2013,13 @@ d_smtp_server_session(
     struct dj_smtp_buffer text   = { .data     = storage,
                                     .capacity = sizeof(storage),
                                     .length   = 0 };
-    enum dj_smtp_error    result = d_internal_smtp_join(&text,
-                                                       _config->domain,
-                                                       " ESMTP ready",
-                                                       NULL);
+    enum dj_smtp_error    result = d_internal_smtp_join(
+                                     &text,
+                                     _config->domain,
+                                     (_config->dialect == D_SMTP_DIALECT_LMTP)
+                                     ? " LMTP ready"
+                                     : " ESMTP ready",
+                                     NULL);
 
     if (result == D_SMTP_OK)
     {
