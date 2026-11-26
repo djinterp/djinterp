@@ -29,6 +29,7 @@ bool tests_curl_stream();
 bool tests_curl_throwing_sink();
 bool tests_curl_errors();
 bool tests_curl_errors_to_net();
+bool tests_curl_versions();
 bool tests_curl_run_all();
 
 NS_END  // testing

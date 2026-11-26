@@ -3,6 +3,8 @@
 *
 * The C++ face of the libcurl binding: http.hpp's requests, performed through
 * net/curl/curl.h.
+*   djinterp's HTTP goes through libcurl for now. Someday it will hold a
+* native implementation as well, beside this binding.
 *   A derived layer. Every transfer runs through d_curl_perform; this header
 * translates http.hpp's vocabulary into the binding's records and back, and
 * adds what C lacks:
@@ -31,7 +33,7 @@
 * path:      /inc/djinterp/cpp/modules/net/curl/curl.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.16
-*                                                            revised: 2026.11.19
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*
@@ -56,7 +58,8 @@ TABLE OF CONTENTS
     ---------
     1.  Sinks and options
          1.  body_sink
-         2.  options
+         2.  version_choice
+         3.  options
     2.  The bridge to C
          1.  stream_state
     3.  Drivers
@@ -359,6 +362,27 @@ typedef re_std::function<bool(const char*,
                               std::size_t)> body_sink;
 
 // 4.1.2
+// version_choice
+//   enum: which HTTP version a transfer asks for, valued as
+// dj_curl_http_version, whose comment in curl.h says what each asks. The
+// version a response came in is the response's own, as http.hpp's
+// http_version.
+struct version_choice
+{
+    enum value
+    {
+        libcurl_default        = D_CURL_HTTP_DEFAULT,
+        http_1_0               = D_CURL_HTTP_1_0,
+        http_1_1               = D_CURL_HTTP_1_1,
+        http_2                 = D_CURL_HTTP_2,
+        http_2_tls             = D_CURL_HTTP_2_TLS,
+        http_2_prior_knowledge = D_CURL_HTTP_2_PRIOR_KNOWLEDGE,
+        http_3                 = D_CURL_HTTP_3,
+        http_3_only            = D_CURL_HTTP_3_ONLY
+    };
+};
+
+// 4.1.3
 // options
 //   struct: how a transfer runs. The defaults are d_curl_options_init's,
 // but for the User-Agent, which is http.hpp's.
@@ -376,6 +400,8 @@ typedef re_std::function<bool(const char*,
 //                         reads the environment's proxy variables.
 //     bypass_proxy        use no proxy at all, whatever proxy and the
 //                         environment say.
+//     http_version        the HTTP version to ask for; libcurl_default for
+//                         libcurl's choice.
 struct options
 {
     options()
@@ -388,19 +414,21 @@ struct options
           accept_encoding(),
           user_agent(D_NET_HTTP_DEFAULT_USER_AGENT),
           proxy(),
-          bypass_proxy(false)
+          bypass_proxy(false),
+          http_version(version_choice::libcurl_default)
     {}
 
-    long        timeout_ms;
-    long        connect_timeout_ms;
-    bool        follow_redirects;
-    long        max_redirects;
-    bool        verify_tls;
-    bool        verbose;
-    std::string accept_encoding;
-    std::string user_agent;
-    std::string proxy;
-    bool        bypass_proxy;
+    long                  timeout_ms;
+    long                  connect_timeout_ms;
+    bool                  follow_redirects;
+    long                  max_redirects;
+    bool                  verify_tls;
+    bool                  verbose;
+    std::string           accept_encoding;
+    std::string           user_agent;
+    std::string           proxy;
+    bool                  bypass_proxy;
+    version_choice::value http_version;
 };
 
 // 4.2    The bridge to C
@@ -774,6 +802,8 @@ NS_INTERNAL
         settings.proxy              = (_options.proxy.empty())
                                           ? D_NULLPTR
                                           : _options.proxy.c_str();
+        settings.http_version       =
+            static_cast< ::dj_curl_http_version>(_options.http_version);
 
         // no proxy at all, whatever the environment says
         if (_options.bypass_proxy)
@@ -833,9 +863,10 @@ NS_END  // internal
 /**
  * @brief Performs a request, streaming its body to `_sink` as it arrives.
  *
- * @note `_meta` receives the status, the header fields of every response in
- *       a redirect chain, and the error; the body goes to the sink alone.
- *       The status is set only for a transfer that completed.
+ * @note `_meta` receives the status and the HTTP version, the header fields
+ *       of every response in a redirect chain, and the error; the body goes
+ *       to the sink alone. The status and version are set only for a
+ *       transfer that completed.
  *
  * @param[in]  _request  the request; borrowed for the call.
  * @param[in]  _sink     receives the body; an empty sink discards it.
@@ -843,8 +874,9 @@ NS_END  // internal
  * @param[in]  _options  how the transfer runs.
  * @return the outcome, as stored in `_meta.error`: none once a response
  *         arrived, whatever its HTTP status; unsupported_protocol without
- *         libcurl; unknown for a header field the binding refuses - a
- *         colon in its name, or a line break or NUL in either part.
+ *         libcurl, or for an HTTP version the libcurl in use lacks; unknown
+ *         for a header field the binding refuses - a colon in its name, or
+ *         a line break or NUL in either part.
  * @throws whatever `_sink` threw, rethrown once the transfer has ended and
  *         been cleaned up; and std::bad_alloc.
  */
@@ -879,7 +911,7 @@ D_NODISCARD inline transport_error::value perform_stream(
     const ::dj_curl_sink                 c_sink    =
         internal::c_sink(state);
     ::dj_curl_result                     result    =
-        { D_CURL_OK, 0, 0 };
+        { D_CURL_OK, 0, 0, D_HTTP_VERSION_UNKNOWN };
 
     (void)::d_curl_perform(&c_request,
                            &c_options,
@@ -888,10 +920,11 @@ D_NODISCARD inline transport_error::value perform_stream(
     internal::rethrow_caught(state);
     _meta.error = to_transport_error(result.status);
 
-    // the status belongs to a completed transfer only
+    // the status and version belong to a completed transfer only
     if (_meta.error == transport_error::none)
     {
-        _meta.status = static_cast<int>(result.http_status);
+        _meta.status  = static_cast<int>(result.http_status);
+        _meta.version = from_c(result.http_version);
     }
 
     return _meta.error;

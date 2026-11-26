@@ -13,12 +13,14 @@
 *     - each error's name                                                  [7]
 *   Nothing allocates and nothing blocks. HTTP/1.1's message syntax (RFC 9112)
 * builds on this header, as does every HTTP backend.
+*   Transfers go through libcurl (net/curl/curl.h) for now. Someday djinterp's
+* HTTP will hold a native implementation as well, beside it.
 *
 *
 * path:      /inc/djinterp/c/modules/net/http/http.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

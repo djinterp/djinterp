@@ -13,7 +13,7 @@
 * path:      /tests/djinterp/cpp/modules/net/curl/curl_tests.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.19
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 #include "./curl_tests.hpp"  // corresponding header
 // std
@@ -635,6 +635,96 @@ bool tests_curl_errors_to_net()
 }
 
 /*
+tests_curl_versions
+  Tests the following:
+  - options ask for libcurl's choice of HTTP version by default
+  - asking for HTTP/1.1 gets the 200 over HTTP/1.1, which the response says
+  - libcurl's choice, in the clear, is HTTP/1.1 too
+  - where libcurl has HTTP/2, prior knowledge to this HTTP/1.1 server fails,
+    with no version; c/modules/net/curl's suite tests HTTP/2 itself
+  - where libcurl has HTTP/3, http_3 in the clear is HTTP/1.1; where it
+    hasn't, http_3_only is an unsupported protocol
+*/
+bool tests_curl_versions()
+{
+    internal::http_server server;
+    net::request          hello;
+    curl::options         one_one   = internal::quiet();
+    curl::options         prior     = internal::quiet();
+    curl::options         quic      = internal::quiet();
+    const curl::options   defaulted = internal::quiet();
+    const bool            has_h2    = curl::supports(curl::feature::http2);
+    const bool            has_h3    = curl::supports(curl::feature::http3);
+    bool                  result    = true;
+
+    const bool started = internal::start(server,
+                                         2u + ((has_h2) ? 1u : 0u) +
+                                         ((has_h3) ? 1u : 0u));
+
+    hello.url             = internal::url(server,
+                                          "/hello");
+    one_one.http_version = curl::version_choice::http_1_1;
+    prior.http_version   = curl::version_choice::http_2_prior_knowledge;
+    quic.http_version    = (has_h3) ? curl::version_choice::http_3
+                                    : curl::version_choice::http_3_only;
+
+    const net::response old_one = curl::perform(hello,
+                                                one_one);
+    const net::response chosen  = curl::perform(hello,
+                                                defaulted);
+    net::response       framed;
+
+    // only a libcurl with HTTP/2 sends its preface
+    if (has_h2)
+    {
+        framed = curl::perform(hello,
+                               prior);
+    }
+
+    // with HTTP/3, a transfer to this server; without, a refusal
+    const net::response quick = curl::perform(hello,
+                                              quic);
+
+    internal::finish(server);
+    result = internal::check(defaulted.http_version ==
+                             curl::version_choice::libcurl_default,
+                             "the default asks for libcurl's choice") &&
+             result;
+    result = internal::check( (started)                                    &&
+                              (old_one.error == net::transport_error::none) &&
+                              (old_one.status == 200)                      &&
+                              (old_one.version ==
+                               net::http_version::http_1_1),
+                             "HTTP/1.1 asked for, and said") && result;
+    result = internal::check( (chosen.error == net::transport_error::none) &&
+                              (chosen.version ==
+                               net::http_version::http_1_1),
+                             "libcurl's choice in the clear is HTTP/1.1") &&
+             result;
+    result = internal::check( (!has_h2) ||
+                              ( (framed.error !=
+                                 net::transport_error::none) &&
+                                (framed.version ==
+                                 net::http_version::unknown) ),
+                             "HTTP/2's preface to HTTP/1.1 fails") &&
+             result;
+    result = internal::check( (has_h3)
+                                  ? ( (quick.error ==
+                                       net::transport_error::none) &&
+                                      (quick.version ==
+                                       net::http_version::http_1_1) )
+                                  : (quick.error ==
+                                     net::transport_error::
+                                         unsupported_protocol),
+                             (has_h3)
+                                 ? "http_3 in the clear is HTTP/1.1"
+                                 : "http_3_only needs a libcurl with it") &&
+             result;
+
+    return result;
+}
+
+/*
 tests_curl_run_all
   Runs every test, reporting each, and the tally.
 */
@@ -653,7 +743,8 @@ bool tests_curl_run_all()
         { "stream",         tests_curl_stream },
         { "throwing sinks", tests_curl_throwing_sink },
         { "errors",         tests_curl_errors },
-        { "errors to net",  tests_curl_errors_to_net }
+        { "errors to net",  tests_curl_errors_to_net },
+        { "versions",       tests_curl_versions }
     };
     bool all = true;
 

@@ -15,12 +15,15 @@
 *   Everything that needs libcurl is selected per function: a build without
 * it gets stubs reporting D_CURL_ERROR_UNSUPPORTED, after the same argument
 * checks, so the two builds agree on every call that libcurl never sees.
+*   An HTTP version is asked for only when the options name one, so DEFAULT
+* leaves libcurl's choice untouched; one the headers predate fails as an
+* unsupported protocol, as libcurl fails one it lacks.
 *
 *
 * path:      /src/djinterp/c/modules/net/curl/curl.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.27
-*                                                            revised: 2026.11.19
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/c/modules/net/curl/curl.h"  // corresponding header
 // std
@@ -170,6 +173,7 @@ void d_curl_options_init(
     _options->accept_encoding    = "";
     _options->user_agent         = NULL;
     _options->proxy              = NULL;
+    _options->http_version       = D_CURL_HTTP_DEFAULT;
 
     return;
 }
@@ -279,6 +283,40 @@ bool d_internal_curl_request_ok(
     }
 
     return true;
+}
+
+/*
+d_internal_curl_options_ok
+  Checks options as d_curl_perform documents: their HTTP version is one
+dj_curl_http_version lists. NULL options are d_curl_options_init's, and
+pass.
+*/
+static
+bool d_internal_curl_options_ok(
+    const struct dj_curl_options* _options
+)
+{
+    // the defaults pass
+    if (_options == NULL)
+    {
+        return true;
+    }
+
+    switch (_options->http_version)
+    {
+        case D_CURL_HTTP_DEFAULT:
+        case D_CURL_HTTP_1_0:
+        case D_CURL_HTTP_1_1:
+        case D_CURL_HTTP_2:
+        case D_CURL_HTTP_2_TLS:
+        case D_CURL_HTTP_2_PRIOR_KNOWLEDGE:
+        case D_CURL_HTTP_3:
+        case D_CURL_HTTP_3_ONLY:
+            return true;
+
+        default:
+            return false;
+    }
 }
 
 /*
@@ -632,9 +670,91 @@ CURLcode d_internal_curl_then_text(
 }
 
 /*
+d_internal_curl_http_version
+  libcurl's value for an HTTP version the options ask for, or -1 for one these
+headers predate: HTTP/2 arrived in 7.33, its TLS-only form in 7.47, prior
+knowledge in 7.49, HTTP/3 in 7.66 and HTTP/3 alone in 7.88. DEFAULT never
+reaches here.
+*/
+static
+long d_internal_curl_http_version(
+    enum dj_curl_http_version _version
+)
+{
+    switch (_version)
+    {
+        case D_CURL_HTTP_1_0:
+            return (long)CURL_HTTP_VERSION_1_0;
+
+        case D_CURL_HTTP_1_1:
+            return (long)CURL_HTTP_VERSION_1_1;
+
+#if (LIBCURL_VERSION_NUM >= 0x072100)
+        case D_CURL_HTTP_2:
+            return (long)CURL_HTTP_VERSION_2_0;
+#endif  // 7.33.0
+
+#if (LIBCURL_VERSION_NUM >= 0x072F00)
+        case D_CURL_HTTP_2_TLS:
+            return (long)CURL_HTTP_VERSION_2TLS;
+#endif  // 7.47.0
+
+#if (LIBCURL_VERSION_NUM >= 0x073100)
+        case D_CURL_HTTP_2_PRIOR_KNOWLEDGE:
+            return (long)CURL_HTTP_VERSION_2_PRIOR_KNOWLEDGE;
+#endif  // 7.49.0
+
+#if (LIBCURL_VERSION_NUM >= 0x074200)
+        case D_CURL_HTTP_3:
+            return (long)CURL_HTTP_VERSION_3;
+#endif  // 7.66.0
+
+#if (LIBCURL_VERSION_NUM >= 0x075800)
+        case D_CURL_HTTP_3_ONLY:
+            return (long)CURL_HTTP_VERSION_3ONLY;
+#endif  // 7.88.0
+
+        default:
+            return -1;
+    }
+}
+
+/*
+d_internal_curl_version_used
+  The dj_http_version of libcurl's CURLINFO_HTTP_VERSION answer: 1 for
+HTTP/1.0, 2 for HTTP/1.1, 3 for HTTP/2 and 30 for HTTP/3 (libcurl's
+CURL_HTTP_VERSION_* values, which 7.66's headers first name for HTTP/3), and
+0 for none.
+*/
+static
+enum dj_http_version d_internal_curl_version_used(
+    long _version
+)
+{
+    switch (_version)
+    {
+        case 1:
+            return D_HTTP_VERSION_1_0;
+
+        case 2:
+            return D_HTTP_VERSION_1_1;
+
+        case 3:
+            return D_HTTP_VERSION_2;
+
+        case 30:
+            return D_HTTP_VERSION_3;
+
+        default:
+            return D_HTTP_VERSION_UNKNOWN;
+    }
+}
+
+/*
 d_internal_curl_configure_connection
   How the connection behaves: no signals, the two timeouts (0 keeps
-libcurl's), verbosity, and the proxy when the options name one.
+libcurl's), verbosity, the proxy when the options name one, and the HTTP
+version when they ask for one.
 */
 static
 CURLcode d_internal_curl_configure_connection(
@@ -666,6 +786,21 @@ CURLcode d_internal_curl_configure_connection(
                                          code,
                                          CURLOPT_PROXY,
                                          _options->proxy);
+    }
+
+    // an HTTP version asked for; one these headers predate is unsupported
+    if (_options->http_version != D_CURL_HTTP_DEFAULT)
+    {
+        const long version =
+            d_internal_curl_http_version(_options->http_version);
+
+        code = (version >= 0)
+                   ? d_internal_curl_then_long(_easy,
+                                               code,
+                                               CURLOPT_HTTP_VERSION,
+                                               version)
+                   : ( (code != CURLE_OK) ? code
+                                          : CURLE_UNSUPPORTED_PROTOCOL );
     }
 
     return code;
@@ -861,16 +996,23 @@ void d_internal_curl_transfer(
         code = curl_easy_perform(easy);
     }
 
-    long http_status = 0;
+    long http_status  = 0;
+    long http_version = 0;
 
     (void)curl_easy_getinfo(easy,
                             CURLINFO_RESPONSE_CODE,
                             &http_status);
-    _result->status      = (status != D_CURL_OK)
-                               ? status
-                               : d_internal_curl_status(code);
-    _result->code        = (int)code;
-    _result->http_status = http_status;
+#if (LIBCURL_VERSION_NUM >= 0x073200)
+    (void)curl_easy_getinfo(easy,
+                            CURLINFO_HTTP_VERSION,
+                            &http_version);
+#endif  // 7.50.0
+    _result->status       = (status != D_CURL_OK)
+                                ? status
+                                : d_internal_curl_status(code);
+    _result->code         = (int)code;
+    _result->http_status  = http_status;
+    _result->http_version = d_internal_curl_version_used(http_version);
     curl_slist_free_all(fields);
     curl_easy_cleanup(easy);
 
@@ -1012,13 +1154,15 @@ d_curl_perform(
 )
 {
     // parameter validation
-    if (!d_internal_curl_request_ok(_request))
+    if ( (!d_internal_curl_request_ok(_request)) ||
+         (!d_internal_curl_options_ok(_options)) )
     {
         const struct dj_curl_result refused =
         {
             D_CURL_ERROR_INVALID_ARGUMENT,
             0,
-            0
+            0,
+            D_HTTP_VERSION_UNKNOWN
         };
 
         return d_internal_curl_report(_out,
@@ -1026,7 +1170,13 @@ d_curl_perform(
     }
 
     struct dj_curl_options defaults = { .timeout_ms = 0 };
-    struct dj_curl_result  result   = { D_CURL_OK, 0, 0 };
+    struct dj_curl_result  result   =
+    {
+        D_CURL_OK,
+        0,
+        0,
+        D_HTTP_VERSION_UNKNOWN
+    };
 
     d_curl_options_init(&defaults);
     d_internal_curl_transfer(_request,
@@ -1118,14 +1268,15 @@ d_curl_perform(
 {
     const struct dj_curl_result result =
     {
-        (d_internal_curl_request_ok(_request))
+        ( (d_internal_curl_request_ok(_request)) &&
+          (d_internal_curl_options_ok(_options)) )
             ? D_CURL_ERROR_UNSUPPORTED
             : D_CURL_ERROR_INVALID_ARGUMENT,
         0,
-        0
+        0,
+        D_HTTP_VERSION_UNKNOWN
     };
 
-    (void)_options;
     (void)_sink;
 
     return d_internal_curl_report(_out,

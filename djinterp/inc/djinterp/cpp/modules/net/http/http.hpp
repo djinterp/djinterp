@@ -10,15 +10,16 @@
 *     - common field names and media types, from http.h's literals         [2]
 *     - methods, versions, status codes, field syntax, and error names     [3]
 *   C++98 and later, over the standard library and net.hpp, so any header may
-* include it. The native client this path held is retired to
-* _retired/relay94_net_http; its successor arrives with HTTP/1.1's message
-* syntax.
+* include it.
+*   Transfers go through libcurl (curl.hpp) for now. Someday djinterp's HTTP
+* will hold a native implementation as well: the successor of the native
+* client this path held, which is retired to _retired/relay94_net_http.
 *
 *
 * path:      /inc/djinterp/cpp/modules/net/http/http.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.11.19
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*
@@ -1149,16 +1150,20 @@ struct request
 // response
 //   struct: a library-neutral HTTP response, as filled in by a backend.
 // `status` is the HTTP status code (0 when the exchange never produced one);
-// `error` records any transport-level failure in neutral terms.
+// `version` the HTTP version it came in (unknown when none came, or the
+// backend can't say); `error` records any transport-level failure in
+// neutral terms.
 struct response
 {
     int                    status;
+    http_version::value    version;
     header_list            headers;
     std::string            body;
     transport_error::value error;
 
     response()
         : status(0),
+          version(http_version::unknown),
           headers(),
           body(),
           error(transport_error::none)

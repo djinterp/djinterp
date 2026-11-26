@@ -2,6 +2,8 @@
 * djinterp [c][net]                                                       curl.h
 *
 * The libcurl binding: HTTP and the other URL schemes libcurl speaks, from C.
+*   djinterp's HTTP goes through libcurl for now. Someday it will hold a
+* native implementation as well, beside this binding.
 *   A request - method, URL, header fields, body - and a set of options go
 * in; the response's status comes back, and its body and header fields flow
 * to callbacks as they arrive. One call performs one transfer on its own easy
@@ -24,7 +26,7 @@
 * path:      /inc/djinterp/c/modules/net/curl/curl.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.27
-*                                                            revised: 2026.11.19
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*
@@ -51,7 +53,8 @@ TABLE OF CONTENTS
     1.  Request records
          1.  dj_curl_header
          2.  dj_curl_request
-         3.  dj_curl_options
+         3.  dj_curl_http_version
+         4.  dj_curl_options
     2.  Request operations
 5.  TRANSFERS
     ---------
@@ -73,6 +76,7 @@ TABLE OF CONTENTS
 #include "../../../djinterp.h"          // framework root
 #include "../../../util/sink_common.h"  // dj_pack_text, dj_pack_bytes
 #include "../net_common.h"             // dj_net_error
+#include "../http/http.h"              // dj_http_version
 // re_std
 #include "../../../../../re_std/c/cstdint/dstdint.h"  // uint32_t
 
@@ -115,7 +119,8 @@ D_EXTERN_C_BEGIN
 //   enum: the result of a transfer or a library call. Values are pinned. The
 // less obvious ones:
 //     UNSUPPORTED           the build has no libcurl.
-//     UNSUPPORTED_PROTOCOL  libcurl does not speak the URL's scheme.
+//     UNSUPPORTED_PROTOCOL  libcurl does not speak the URL's scheme, or the
+//                           HTTP version the options ask for.
 //     URL_MALFORMED         the URL does not parse.
 //     TLS                   the TLS handshake failed, or the peer failed
 //                           verification.
@@ -273,6 +278,51 @@ struct dj_curl_request
 };
 
 // 4.1.3
+// dj_curl_http_version
+//   enum: which HTTP version a transfer asks for. Values are pinned.
+//     DEFAULT                 libcurl's choice: from 7.62, HTTP_2_TLS where
+//                             libcurl has HTTP/2 and HTTP_1_1 where it
+//                             doesn't; before 7.62, HTTP_1_1.
+//     HTTP_1_0                HTTP/1.0.
+//     HTTP_1_1                HTTP/1.1, never HTTP/2.
+//     HTTP_2                  HTTP/2 where the server agrees: by ALPN over
+//                             TLS, and by an Upgrade to h2c in the clear;
+//                             HTTP/1.1 where it doesn't.
+//     HTTP_2_TLS              HTTP/2 over TLS, as HTTP_2; HTTP/1.1 in the
+//                             clear.
+//     HTTP_2_PRIOR_KNOWLEDGE  HTTP/2 from the first byte in the clear, with
+//                             no Upgrade, for a server known to speak it; a
+//                             server that doesn't fails the transfer. Over
+//                             TLS, as HTTP_2.
+//     HTTP_3                  HTTP/3 over QUIC where the server answers it,
+//                             and HTTP/2 or HTTP/1.1 over TLS where QUIC
+//                             doesn't connect; from libcurl 7.88. Before
+//                             7.88 libcurl has no fallback, and it is
+//                             HTTP_3_ONLY.
+//     HTTP_3_ONLY             HTTP/3 over QUIC, or the transfer fails.
+//   QUIC carries its own TLS, so HTTP/3 is an https URL's alone. In the
+// clear, HTTP_3 is HTTP/1.1, and HTTP_3_ONLY fails before connecting
+// (libcurl 8.11 reports it as URL_MALFORMED).
+//   Any but DEFAULT needs a libcurl that has it. HTTP/2's three need
+// d_curl_supports(D_CURL_FEATURE_HTTP2), and headers from 7.33 (HTTP_2), 7.47
+// (HTTP_2_TLS) and 7.49 (HTTP_2_PRIOR_KNOWLEDGE); HTTP/3's two need
+// d_curl_supports(D_CURL_FEATURE_HTTP3), and headers from 7.66 (HTTP_3) and
+// 7.88 (HTTP_3_ONLY). Without them the transfer fails as
+// UNSUPPORTED_PROTOCOL before a byte is sent. dj_curl_result says which
+// version the response came in.
+enum dj_curl_http_version
+{
+    D_CURL_HTTP_DEFAULT           = 0,
+    D_CURL_HTTP_1_0               = 1,
+    D_CURL_HTTP_1_1               = 2,
+    D_CURL_HTTP_2                 = 3,
+    D_CURL_HTTP_2_TLS             = 4,
+    D_CURL_HTTP_2_PRIOR_KNOWLEDGE = 5,
+    D_CURL_HTTP_3                 = 6,
+    D_CURL_HTTP_3_ONLY            = 7
+};
+
+// 4.1.4
 // dj_curl_options
 //   struct: how to send it.
 //     timeout_ms          the whole transfer's limit; 0 for none.
@@ -288,24 +338,28 @@ struct dj_curl_request
 //     proxy               the proxy URL; NULL for libcurl's default, which
 //                         reads the environment's proxy variables, and ""
 //                         for none, whatever the environment says.
+//     http_version        the HTTP version to ask for; DEFAULT for
+//                         libcurl's choice.
 struct dj_curl_options
 {
-    long        timeout_ms;
-    long        connect_timeout_ms;
-    bool        follow_redirects;
-    long        max_redirects;
-    bool        verify_tls;
-    bool        verbose;
-    const char* accept_encoding;
-    const char* user_agent;
-    const char* proxy;
+    long                      timeout_ms;
+    long                      connect_timeout_ms;
+    bool                      follow_redirects;
+    long                      max_redirects;
+    bool                      verify_tls;
+    bool                      verbose;
+    const char*               accept_encoding;
+    const char*               user_agent;
+    const char*               proxy;
+    enum dj_curl_http_version http_version;
 };
 
 // 4.2    Request operations
 //------------------------------------------------------------------------------
 // d_curl_options_init fills _options with the defaults: no timeouts,
 // redirects followed up to D_CURL_MAX_REDIRECTS_DEFAULT, TLS verified, quiet,
-// every coding accepted, the default User-Agent, and libcurl's default proxy.
+// every coding accepted, the default User-Agent, libcurl's default proxy, and
+// libcurl's choice of HTTP version.
 // A NULL _options is ignored.
 void d_curl_options_init(
     struct dj_curl_options* _options
@@ -363,11 +417,15 @@ struct dj_curl_sink
 //     http_status  the last response's status code, 0 if none arrived --
 //                  set even when the transfer then failed, as when a sink
 //                  ended it.
+//     http_version the HTTP version the last response came in;
+//                  D_HTTP_VERSION_UNKNOWN if none arrived, or where
+//                  libcurl predates 7.50, which first reports it.
 struct dj_curl_result
 {
-    enum dj_curl_error status;
-    int               code;
-    long              http_status;
+    enum dj_curl_error   status;
+    int                  code;
+    long                 http_status;
+    enum dj_http_version http_version;
 };
 
 // 5.2    Performing a transfer
@@ -387,8 +445,9 @@ struct dj_curl_result
  * @return the transfer's status, as stored in `_out->status`:
  *         D_CURL_OK once a response has been received, whatever its
  *         HTTP status; D_CURL_ERROR_INVALID_ARGUMENT for a NULL `_request`
- *         or URL, a header field breaking dj_curl_header's rules, or a span
- *         with a NULL pointer and a nonzero size, checked before libcurl is
+ *         or URL, a header field breaking dj_curl_header's rules, a span
+ *         with a NULL pointer and a nonzero size, or an http_version
+ *         dj_curl_http_version doesn't list, checked before libcurl is
  *         asked anything; D_CURL_ERROR_UNSUPPORTED without libcurl; or the
  *         category of the transfer's failure.
  */
