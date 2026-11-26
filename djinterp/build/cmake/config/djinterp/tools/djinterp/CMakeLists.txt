@@ -347,6 +347,49 @@ if(DJINTERP_PROGRAM_BUILD_TESTS)
         COMMAND set --section=a/b cli.plugin_strict_version=true STATUS 2
         MATCHES "set: --section: 'a/b' is not a program's name")
 
+    # another program's settings: refused, with a note, unless --unchecked,
+    # which writes them as given, each said, a value quoted where it must
+    # be, and replaces a line of its own as any setting's; a djin this
+    # program has, or a name out of shape, is refused even so
+    add_test(NAME djinterp_unchecked_fresh
+             COMMAND "${CMAKE_COMMAND}" -E remove_directory
+                     "${CMAKE_CURRENT_BINARY_DIR}/homes/unchecked")
+    set_tests_properties(djinterp_unchecked_fresh PROPERTIES
+        FIXTURES_SETUP djinterp_unchecked_fresh)
+    djinterp_program_test(djinterp_unchecked_refused unchecked
+        COMMAND set bitwisedom.keys=paths STATUS 2
+        MATCHES "error: no djin is named 'bitwisedom'\n.*note: --unchecked writes another program's setting as given"
+        NEEDS djinterp_unchecked_fresh SETUP djinterp_unchecked_a)
+    djinterp_program_test(djinterp_unchecked_written unchecked
+        COMMAND set --unchecked --section=bitwisedom bitwisedom.keys=paths
+                "bitwisedom.note=a #b"
+        STATUS 0
+        MATCHES "warning: 'bitwisedom[.]keys' is written unchecked: no djin of this program's has it, and the program that reads it judges it when it runs\ndjinterp: warning: 'bitwisedom[.]note' is written unchecked"
+        NEEDS djinterp_unchecked_a SETUP djinterp_unchecked_b)
+    add_test(NAME djinterp_unchecked_file
+             COMMAND "${CMAKE_COMMAND}" -E cat
+                     "${CMAKE_CURRENT_BINARY_DIR}/homes/unchecked/djinterp/settings")
+    set_tests_properties(djinterp_unchecked_file PROPERTIES
+        PASS_REGULAR_EXPRESSION "^[[]bitwisedom[]]\nbitwisedom[.]keys = paths\nbitwisedom[.]note = \"a #b\"\n$"
+        FIXTURES_REQUIRED djinterp_unchecked_b
+        FIXTURES_SETUP    djinterp_unchecked_c)
+    djinterp_program_test(djinterp_unchecked_replaced unchecked
+        COMMAND set --unchecked --section=bitwisedom bitwisedom.keys=names
+        STATUS 0
+        NEEDS djinterp_unchecked_c SETUP djinterp_unchecked_d)
+    add_test(NAME djinterp_unchecked_file_again
+             COMMAND "${CMAKE_COMMAND}" -E cat
+                     "${CMAKE_CURRENT_BINARY_DIR}/homes/unchecked/djinterp/settings")
+    set_tests_properties(djinterp_unchecked_file_again PROPERTIES
+        PASS_REGULAR_EXPRESSION "^[[]bitwisedom[]]\nbitwisedom[.]note = \"a #b\"\nbitwisedom[.]keys = names\n$"
+        FIXTURES_REQUIRED djinterp_unchecked_d)
+    djinterp_program_test(djinterp_unchecked_known plain
+        COMMAND set --unchecked cli.nosuch=1 STATUS 2
+        MATCHES "error: no setting is named 'cli[.]nosuch'")
+    djinterp_program_test(djinterp_unchecked_shape plain
+        COMMAND set --unchecked bitwisedom.ke-ys=1 STATUS 2
+        MATCHES "error: 'bitwisedom[.]ke-ys' is not a setting's full name")
+
     # an output that refuses what a command writes, said with its reason
     if(EXISTS "/dev/full")
         foreach(_command IN ITEMS list describe get json help)

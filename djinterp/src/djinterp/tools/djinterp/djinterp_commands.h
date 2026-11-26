@@ -12,11 +12,13 @@
 *     djinterp get [--show-origin] [NAME]...
 *                                          settings as statements that load
 *                                          back; every one, without a NAME
-*     djinterp set [--section=PROGRAM] SETTING...
+*     djinterp set [--section=PROGRAM] [--unchecked] SETTING...
 *                                          settings, each NAME=VALUE,
 *                                          written to the user's file, for
 *                                          every program or PROGRAM alone,
-*                                          read as FILE's next run
+*                                          read as FILE's next run; another
+*                                          program's, at --unchecked, as
+*                                          given
 *
 *   The djins are the program's own, registered before its first parse;
 * the 0.8 preview has none yet, so `list` names the settings the registry
@@ -26,7 +28,7 @@
 * path:      /src/djinterp/tools/djinterp/djinterp_commands.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.25
+*                                                            revised: 2026.11.27
 *******************************************************************************/
 
 #ifndef DJINTERP_TOOLS_DJINTERP_COMMANDS_H

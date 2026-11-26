@@ -17,7 +17,7 @@
 * path:      /src/djinterp/tools/cli/c/cli_settings.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.25
+*                                                            revised: 2026.11.27
 *******************************************************************************/
 #include "../../../../../inc/djinterp/tools/cli/c/cli_settings.h"  // corresponding header
 // std
@@ -649,6 +649,22 @@ void d_cli_settings_why(
         _buffer, _capacity);
 
     return;
+}
+
+/*
+d_cli_settings_foreign
+  As the user's file's lines are told: the run's `cli.unknown_djin`.
+*/
+bool d_cli_settings_foreign(
+    const char* _name,
+    size_t      _size,
+    const char* _value
+)
+{
+    return d_internal_cli_settings_foreign(
+        _name, _size, _value,
+        d_internal_cli_settings_choice_of("unknown_djin",
+                                          D_CFG_CLI_UNKNOWN_DJIN));
 }
 
 
@@ -2060,6 +2076,19 @@ void d_cli_settings_why(
                    (int)_size, _name);
 
     return;
+}
+
+bool d_cli_settings_foreign(
+    const char* _name,
+    size_t      _size,
+    const char* _value
+)
+{
+    (void)_name;
+    (void)_size;
+    (void)_value;
+
+    return false;
 }
 
 const char* d_cli_settings_plugin_search(void)

@@ -353,7 +353,10 @@ read from the same three sources.
   `d_cli_settings_section_reads` says whether a program reads the lines
   under it. `d_cli_settings_sectioned` says whether this run reads the file
   in sections at all. Keep the headers either way: they are the file's
-  structure, not one run's view of it.
+  structure, not one run's view of it. `d_cli_settings_foreign` says
+  whether a setting's name is another program's, as the run tells the
+  file's lines (`cli.unknown_djin`): the only names such a program may
+  write without checking them.
 - **A program run with privileges its caller lacks** (set-user-ID,
   set-group-ID, or capabilities given to its file) refuses the caller the
   plugin settings by default. A program that would choose for itself says

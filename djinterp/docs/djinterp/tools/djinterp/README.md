@@ -24,7 +24,7 @@ djinterp get [--show-origin] [NAME]...
                                       settings as statements that load back,
                                       every one without a NAME; where each
                                       value came from
-djinterp set [--section=PROGRAM] NAME=VALUE...
+djinterp set [--section=PROGRAM] [--unchecked] NAME=VALUE...
                                       settings written to the user's file
 ```
 
@@ -71,6 +71,19 @@ cli.unknown_settings = none
   sets the same name for a program that reads it is said by its line,
   since that program reads it last. The headers are kept even in a run that
   reads the file as one part.
+- **Another program's settings.** A djin `djinterp` does not register is
+  one it cannot check, so `set` refuses its settings, with a note. With
+  `--unchecked` it writes them as given, each said, its name's shape
+  checked and its value quoted where it must be; the program that reads
+  them judges them when it next runs:
+
+  ```
+  $ djinterp set bitwisedom.keys=paths
+  djinterp: error: no djin is named 'bitwisedom'
+  djinterp: note: --unchecked writes another program's setting as given, for that program to judge
+  $ djinterp set --unchecked --section=bitwisedom bitwisedom.keys=paths
+  djinterp: warning: 'bitwisedom.keys' is written unchecked: no djin of this program's has it, and the program that reads it judges it when it runs
+  ```
 - **`describe`** writes a djin's description, or one command's; for a frame
   no djin names, its settings. `--format=json` writes
   `"djinterp.describe/1.0"`. `help --format=json` adds two members to the
@@ -87,15 +100,6 @@ line stand, and how its sections are read: the kit's grammar, section 6.
   from the first djin with commands of its own, in 0.9. Its names are kept
   now: no djin may be named `list`, `describe`, `get`, `set`, `help`,
   `completion`, `settings`, `cli` or `language`.
-- **Another program's settings.** A djin `djinterp` does not register is
-  one it cannot check, so `set` refuses its settings:
-
-  ```
-  $ djinterp set bitwisedom.keys=paths
-  djinterp: error: no djin is named 'bitwisedom'
-  ```
-
-  Such lines are written by hand, in the program's section.
 - **Loadable djins,** `djinterp-DJIN` modules found as the kit finds a
   command's module (DESIGN.md, 6.5).
 - **`--show-origin`'s file and line.** 0.8 shows the source's word.

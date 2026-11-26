@@ -17,7 +17,7 @@
 * path:      /tests/djinterp/tools/cli/c/cli_settings_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.25
+*                                                            revised: 2026.11.27
 *******************************************************************************/
 #include "./cli_settings_tests.h"  // corresponding header
 // std
@@ -996,6 +996,10 @@ d_tests_cli_settings_unknown_djin
   - lookup: both first parts name no frame, so both are djins not
     registered here, quiet, and said as such at cli.unknown_settings all
   - from the environment, and on the command line, each way
+  - d_cli_settings_foreign tells another program's name as the run's way
+    says: the root's scope a name to know by reason, another's by lookup;
+    a djin nothing has another's either way; a name without a `.`, or the
+    kit's own, never another's
 */
 bool d_tests_cli_settings_unknown_djin(void)
 {
@@ -1039,8 +1043,22 @@ bool d_tests_cli_settings_unknown_djin(void)
     cases[3]        = cases[2];
     cases[3].tag    = "U04";
     cases[3].line   = "prog --cli.unknown_settings=all show";
-    held = (d_tests_cli_cases_run(cases, 3u,
+    held = (d_tests_cli_cases_run(cases, 1u,
                                   d_tests_cli_settings_make_net)) && (held);
+    held = D_TESTS_CLI_CHECK(
+               (!d_cli_settings_foreign("net.depth", 9u, "3")) &&
+               (d_cli_settings_foreign("nosuch.depth", 12u, "3")) &&
+               (!d_cli_settings_foreign("nodot", 5u, "3")) &&
+               (!d_cli_settings_foreign("cli.plugin_search", 17u, "x")),
+               "U07", "another program's name, by reason") && (held);
+    held = (d_tests_cli_cases_run(cases + 1, 2u,
+                                  d_tests_cli_settings_make_net)) && (held);
+    held = D_TESTS_CLI_CHECK(
+               (d_cli_settings_foreign("net.depth", 9u, "3")) &&
+               (d_cli_settings_foreign("nosuch.depth", 12u, "3")) &&
+               (!d_cli_settings_foreign("nodot", 5u, "3")) &&
+               (!d_cli_settings_foreign("cli.plugin_search", 17u, "x")),
+               "U08", "another program's name, by lookup") && (held);
 
     // the environment's way, under the command line's words
     (void)d_tests_cli_setenv("DJINTERP_CLI_UNKNOWN_DJIN", "lookup");

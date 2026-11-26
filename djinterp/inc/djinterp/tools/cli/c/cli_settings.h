@@ -58,7 +58,9 @@
 * d_cli_program_set_plugin_privileged, before its first parse. A program
 * that writes the user's file finds its sections as the kit reads them,
 * with 1.4's d_cli_settings_next_header and d_cli_settings_section_reads;
-* d_cli_settings_sectioned says whether this run reads them.
+* d_cli_settings_sectioned says whether this run reads them, and
+* d_cli_settings_foreign whether a name is another program's, as the run
+* tells the file's lines.
 *
 * OPTIONS
 * -------
@@ -90,7 +92,7 @@
 * path:      /inc/djinterp/tools/cli/c/cli_settings.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.25
+*                                                            revised: 2026.11.27
 *******************************************************************************/
 
 /*
@@ -108,6 +110,7 @@ TABLE OF CONTENTS
          4.  d_cli_settings_file
          5.  d_cli_settings_why
          6.  d_cli_settings_report
+         7.  d_cli_settings_foreign
     3.  What the kit reads
          1.  d_cli_settings_plugin_search
          2.  d_cli_settings_plugin_path
@@ -320,6 +323,31 @@ D_CLI_API void d_cli_settings_why(
  */
 D_CLI_API int d_cli_settings_report(
     const struct dj_cli_program* _program
+);
+
+// 1.2.7
+// d_cli_settings_foreign
+/**
+ * @brief Whether a setting's full name is another program's: its first
+ *        part names a djin this program does not register, told as
+ *        `cli.unknown_djin` says now - by the registry's reason, or by the
+ *        kit's lookup of the first part - as the user's file's lines are.
+ *
+ * @note A program that writes another program's lines, as `djinterp set
+ *       --unchecked` does, asks this first, so that it writes only what no
+ *       djin of its own could have checked.
+ *
+ * @param[in] _name   the full name; need not end in a NUL.
+ * @param[in] _size   its length.
+ * @param[in] _value  the value it would be given, NUL-terminated; NULL for
+ *                    none.
+ * @return true for another program's name; false for a name without a
+ *         `.`, and for one this program could check.
+ */
+D_CLI_API bool d_cli_settings_foreign(
+    const char* _name,
+    size_t      _size,
+    const char* _value
 );
 
 // 1.3    What the kit reads

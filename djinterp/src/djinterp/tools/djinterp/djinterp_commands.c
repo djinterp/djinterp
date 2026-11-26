@@ -16,7 +16,12 @@
 * bind it and binds it for the run, so that a name or a value the setting
 * does not take is refused before anything is written, then writes the
 * user's file whole, under each setting's canonical name, as the run reads
-* the file: in every program's lines, or in `--section`'s program's. A line
+* the file: in every program's lines, or in `--section`'s program's. With
+* `--unchecked`, a setting of a djin the program does not register - another
+* program's, told as the kit tells the file's lines - is written as given,
+* its name's shape checked and its value quoted as the option core quotes a
+* text, and said to be unchecked; its own program judges it when it runs. A
+* line
 * among them that sets the same name alone is replaced; the new statements
 * go after the last statement of every program's first lines, before the
 * first header, or of the program's last section, which is made at the
@@ -33,7 +38,7 @@
 * path:      /src/djinterp/tools/djinterp/djinterp_commands.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.25
+*                                                            revised: 2026.11.27
 *******************************************************************************/
 #include "./djinterp_commands.h"  // corresponding header
 // std
@@ -791,19 +796,119 @@ struct dj_internal_djinterp_lines
 };
 
 /*
+d_internal_djinterp_shaped
+  Whether a name is a setting's full name in shape: two parts or more,
+joined by '.', each a name the option core takes - letters, digits and
+'_', not starting with a digit.
+*/
+static bool
+d_internal_djinterp_shaped(
+    const char* _name,
+    size_t      _size
+)
+{
+    size_t parts = 0u;
+    size_t at    = 0u;
+
+    while (at <= _size)
+    {
+        const size_t start = at;
+
+        while ( (at < _size) &&
+                ( ((_name[at] >= 'a') && (_name[at] <= 'z')) ||
+                  ((_name[at] >= 'A') && (_name[at] <= 'Z')) ||
+                  ((_name[at] >= '0') && (_name[at] <= '9')) ||
+                  (_name[at] == '_') ) )
+        {
+            ++at;
+        }
+
+        if ( (at == start) ||
+             ( (_name[start] >= '0') &&
+               (_name[start] <= '9') ) ||
+             ( (at < _size) &&
+               (_name[at] != '.') ) )
+        {
+            return false;
+        }
+
+        ++parts;
+        ++at;
+    }
+
+    return (parts >= 2u);
+}
+
+/*
+d_internal_djinterp_refused
+  A setting the run could not bind: at `_unchecked`, another program's with
+its name in shape is said as a warning, and is to be written as given;
+anything else is said as an error, with a note where `--unchecked` would
+have written it. Whether it is to be written.
+*/
+static bool
+d_internal_djinterp_refused(
+    struct dj_cli_program*     _program,
+    const struct dj_pack_text* _item,
+    size_t                     _name,
+    const char*                _value,
+    int32_t                    _status,
+    bool                       _unchecked
+)
+{
+    char       why[D_INTERNAL_DJINTERP_ROOM];
+    const bool foreign = d_cli_settings_foreign(_item->data, _name, _value);
+
+    if ( (_unchecked) &&
+         (foreign) )
+    {
+        if (d_internal_djinterp_shaped(_item->data, _name))
+        {
+            d_cli_report(_program, (int)D_CLI_SEVERITY_WARNING,
+                         "'%.*s' is written unchecked: no djin of this "
+                         "program's has it, and the program that reads it "
+                         "judges it when it runs", (int)_name, _item->data);
+
+            return true;
+        }
+
+        d_cli_report(_program, (int)D_CLI_SEVERITY_ERROR,
+                     "'%.*s' is not a setting's full name: names of "
+                     "letters, digits and '_', joined by '.'",
+                     (int)_name, _item->data);
+
+        return false;
+    }
+
+    d_cli_settings_why(_status, _item->data, _name, _value, why,
+                       sizeof(why));
+    d_cli_report(_program, (int)D_CLI_SEVERITY_ERROR, "%s", why);
+
+    if (foreign)
+    {
+        d_cli_report(_program, (int)D_CLI_SEVERITY_NOTE,
+                     "--unchecked writes another program's setting as "
+                     "given, for that program to judge");
+    }
+
+    return false;
+}
+
+/*
 d_internal_djinterp_bind
   Each NAME=VALUE bound for the run, above every other source, each
-refusal said; whether all were bound.
+refusal said; at `_unchecked`, another program's left unbound, to be
+written as given. Whether all were bound or so left.
 */
 static bool
 d_internal_djinterp_bind(
     struct dj_cli_program*       _program,
     struct dj_arg_command*       _command,
     const struct dj_pack_text*   _items,
-    size_t                       _count
+    size_t                       _count,
+    bool                         _unchecked
 )
 {
-    char why[D_INTERNAL_DJINTERP_ROOM];
     char value[D_INTERNAL_DJINTERP_ROOM];
     bool held = true;
 
@@ -849,11 +954,10 @@ d_internal_djinterp_bind(
         {
             (void)snprintf(value, sizeof(value), "%.*s", (int)size,
                            equals + 1);
-            d_cli_settings_why(d_option_result_status(&bound),
-                               _items[i].data, name, value,
-                               why, sizeof(why));
-            d_cli_report(_program, (int)D_CLI_SEVERITY_ERROR, "%s", why);
-            held = false;
+            held = (d_internal_djinterp_refused(
+                        _program, &_items[i], name, value,
+                        d_option_result_status(&bound), _unchecked)) &&
+                   (held);
         }
     }
 
@@ -1170,11 +1274,64 @@ d_internal_djinterp_drops(
                                         true) < _count) );
 }
 
+// d_internal_djinterp_raw_row
+//   constant: the one row of the frame a value written unchecked is quoted
+// through, so that it is quoted exactly as the option core quotes a text.
+static const struct dj_option_env_var d_internal_djinterp_raw_row =
+    D_OPTION_ENV_ROW(D_OPTION_ENV_KIND_TEXT, "value", NULL, 0u, NULL, 0u,
+                     NULL, 0, INT64_MIN, INT64_MAX, 0.0, NULL, NULL,
+                     "a value written unchecked");
+
+// dj_internal_djinterp_raw
+//   struct: that frame's storage: one binding, one row, a value's room.
+D_OPTION_ENV_DECLARE(dj_internal_djinterp_raw, 1u, 1u,
+                     D_INTERNAL_DJINTERP_ROOM);
+
+/*
+d_internal_djinterp_quoted
+  A value no setting here takes, as text the file reads back as given:
+quoted, with the option core's escapes, where it must be. How long it is,
+or 0 when it does not fit.
+*/
+static size_t
+d_internal_djinterp_quoted(
+    const char* _value,
+    size_t      _size,
+    char*       _buffer,
+    size_t      _capacity
+)
+{
+    struct dj_internal_djinterp_raw storage = D_OPTION_ENV_STORAGE_INIT;
+    struct dj_option_env            env;
+    struct dj_option_result         made    = D_OPTION_ENV_VIEW(&env,
+                                                                storage);
+    size_t                          size    = 0u;
+
+    made = (made.is_ok)
+           ? d_option_env_declare(&env, &d_internal_djinterp_raw_row)
+           : made;
+
+    if ( (made.is_ok) &&
+         (d_option_env_set_text_copy(&env, D_OPTION_ENV_GLOBAL,
+                                     (uint32_t)made.payload.value, _value,
+                                     _size).is_ok) )
+    {
+        size = d_option_env_format_quoted(&env, D_OPTION_ENV_GLOBAL,
+                                          (uint32_t)made.payload.value,
+                                          _buffer, _capacity);
+    }
+
+    d_option_env_clear(&env);
+
+    return (size < _capacity) ? size : 0u;
+}
+
 /*
 d_internal_djinterp_statements
   The statements written at `_used` in `_text`, after the section's header
 where the place says, under each setting's canonical name, as get writes
-it; how long the text is then, or 0 when it does not fit.
+it, and a setting `--unchecked` left unbound under its name as given, its
+value as given; how long the text is then, or 0 when it does not fit.
 */
 static size_t
 d_internal_djinterp_statements(
@@ -1212,13 +1369,23 @@ d_internal_djinterp_statements(
                                 _items[i].data, '=', _items[i].length) -
                                 _items[i].data);
         char         canonical[D_INTERNAL_DJINTERP_ROOM];
-        size_t       size;
+        size_t       size = 0u;
 
-        (void)d_internal_djinterp_find(_items[i].data, name, &setting);
-        size  = d_internal_djinterp_canonical(&setting, canonical,
-                                              sizeof(canonical));
-        (void)d_option_env_format_quoted(setting.frame, setting.scope,
-                                         setting.var, value, sizeof(value));
+        if (d_internal_djinterp_find(_items[i].data, name, &setting))
+        {
+            size = d_internal_djinterp_canonical(&setting, canonical,
+                                                 sizeof(canonical));
+            (void)d_option_env_format_quoted(setting.frame, setting.scope,
+                                             setting.var, value,
+                                             sizeof(value));
+        }
+        else if (d_internal_djinterp_quoted(_items[i].data + name + 1u,
+                                            _items[i].length - name - 1u,
+                                            value, sizeof(value)) == 0u)
+        {
+            return 0u;
+        }
+
         wrote = (size != 0u)
                 ? snprintf(_text + used, _capacity - used, "%s = %s\n",
                            canonical, value)
@@ -1458,8 +1625,9 @@ d_internal_djinterp_folder(
 
 /*
 d_internal_djinterp_work_set
-  Bound for the run first, every one, then the file written whole: in
-every program's lines, or in `--section`'s.
+  Bound for the run first, every one, or at `--unchecked` left as another
+program's, then the file written whole: in every program's lines, or in
+`--section`'s.
 */
 static int
 d_internal_djinterp_work_set(
@@ -1491,7 +1659,9 @@ d_internal_djinterp_work_set(
         return failed;
     }
 
-    if (!d_internal_djinterp_bind(_program, _command, items, count))
+    if (!d_internal_djinterp_bind(_program, _command, items, count,
+                                  (d_arg_option_count(d_arg_command_option(
+                                       _command, "--unchecked")) > 0u)))
     {
         return D_CLI_EXIT_TROUBLE;
     }
@@ -1607,7 +1777,11 @@ d_internal_djinterp_commands(
          (section == NULL) ||
          (d_arg_command_add_flag(get, "--show-origin",
                                  "say where each value came from, and "
-                                 "what lies under it") == NULL) )
+                                 "what lies under it") == NULL) ||
+         (d_arg_command_add_flag(set, "--unchecked",
+                                 "write a setting of a djin this program "
+                                 "does not register as given, for its "
+                                 "own program to judge") == NULL) )
     {
         return false;
     }

@@ -505,7 +505,7 @@ djinterp get [--show-origin] [NAME]...
                                       settings as statements that load back,
                                       every one without a NAME; where each
                                       value came from
-djinterp set [--section=PROGRAM] NAME=VALUE...
+djinterp set [--section=PROGRAM] [--unchecked] NAME=VALUE...
                                       settings written to the user's file
 djinterp help, completion, --version  the kit's
 ```
@@ -579,9 +579,15 @@ does not.
     environment), so that no other program's lines are taken for this
     one's.
   - A setting of a djin `djinterp` does not register, as
-    `bitwisedom.keys`, is refused as one no djin has, `--section` or not;
-    another program's lines are written by hand. Whether `set` may write
-    such a line unchecked is still the owner's to rule.
+    `bitwisedom.keys`, is another program's, told as the kit tells the
+    file's lines (`cli.unknown_djin`). `set` refuses it as one no djin has,
+    with a note. With `--unchecked` it writes it as given, where
+    `--section` says, each said as a warning: its name's shape checked,
+    two names or more of letters, digits and `_` joined by `.`, and its
+    value quoted as the option core quotes a text, so that the file reads
+    back what was given. Its own program judges it when it next runs, and
+    says by line what it refuses. A setting of a djin `djinterp` has is
+    checked even so.
   - A one-run override is `--set NAME=VALUE`, as in every program on the
     kit.
   - In the 0.9 interpreter's prompt, `set` binds from `COMMAND_LINE` for the
@@ -719,7 +725,7 @@ into the language's types.
 | Fri 11-20 | `djinterp` registers every core djin. `describe DJIN [COMMAND]` and `--format=json`. `set` checks each setting as the file will bind it, and writes its canonical name. The plugin rows refuse the caller's sources where `D_CFG_CLI_PLUGIN_VARIABLE` is 0. The kit's suites run on DTest. The kit holds what the user's file and the environment could not set, and says it once the parse ends, as two settings of its own say: `cli.unknown_settings` (by default, nothing for a djin the program does not register) and `cli.shared_refusals` (by default, a note at `-v`). |
 | Mon 11-23 | The kit reads the command line's settings through the argument parser's setting hook. `help --format=json` writes the program's description, `"djinterp.help/1.0"` (`docs/djinterp/tools/cli/HELP_JSON.md`). The interpreter's skeleton, its first step: `language.hpp` reads a line or a command line, sequences and pipelines, into core v2's term through its C API, and `evaluate.hpp` walks it, a pipeline ended by its first stage in trouble. Its suite runs at each C++ level from C++11, in its own leaf (`build/cmake/config/testing/djinterp/cpp/modules/interp/skeleton/`); nothing of it is installed. |
 | Wed 11-25 | The user's settings file read in sections, `[PROGRAM]` and `[*]` (`cli.settings_sections`), and `djinterp set --section=PROGRAM`. A privileged run refuses the plugin settings from its caller's sources unless the program or the build trusts it (`cli.privileged_refuse`). An unknown djin told either way, by the registry's reason or the kit's lookup (`cli.unknown_djin`). bitwisedom's own djin, `bitwisedom.keys` and `bitwisedom.sheets`. The skeleton's second step: `and`, `or` and `not` by truth, short-circuiting; the comparisons by number, text and structure, `=~` by ERE; numbers and strings as literals. Its suite has 11 tests. |
-| Fri 11-27 | The preview's docs: 6.4 and 6.5 final, the kit's grammar's section 6 on its settings and the file's sections, and the kit's and `djinterp`'s READMEs. Every header of the kit, `djinterp::ui` and the kit's environment carries HOW TO USE, OPTIONS and CONFIGURATION. |
+| Fri 11-27 | `set --unchecked` for another program's settings. The preview's docs: 6.4 and 6.5 final, the kit's grammar's section 6 on its settings and the file's sections, and the kit's and `djinterp`'s READMEs. Every header of the kit, `djinterp::ui` and the kit's environment carries HOW TO USE, OPTIONS and CONFIGURATION. |
 | Weeks 2 and 3 | The 0.8 preview (6.4) whole: `describe DJIN COMMAND` and `--format=json` on desc's sink, and a djin's commands run. The interpreter's skeleton on core v2 - sequences and pipelines - behind it. |
 | Week 4 | The preview's suites and docs; this note's December half, refined. |
 | December | Predicates, blocks and values; djins through the interpreter; awk run by dawk; the language frozen 12-11; suites, docs and the man page by 12-18. |
