@@ -9,8 +9,10 @@
 * describer exists, and a run chooses only how a description is written
 * (desc.form, desc.format).
 *   targets:  c/desc/of/desc_of.h, c/desc/of/mem_desc.h,
-*             cpp/desc/of/desc_of.hpp, cpp/desc/of/mem_desc.hpp ->
-*                 D_CFG_DESC_OF, D_CFG_DESC_OF_MEMORY
+*             c/desc/of/filesys_desc.h, c/desc/of/test_desc.h,
+*             cpp/desc/of/desc_of.hpp and each module's .hpp ->
+*                 D_CFG_DESC_OF, D_CFG_DESC_OF_MEMORY,
+*                 D_CFG_DESC_OF_FILESYS, D_CFG_DESC_OF_TEST
 *   requires: cfg_common.h, cfg_desc.h
 *
 * HOW TO USE
@@ -24,7 +26,8 @@
 *
 * CONFIGURATION
 * -------------
-*   D_CFG_DESC_OF and D_CFG_DESC_OF_MEMORY, below.
+*   D_CFG_DESC_OF, D_CFG_DESC_OF_MEMORY, D_CFG_DESC_OF_FILESYS and
+* D_CFG_DESC_OF_TEST, below.
 *
 *
 * path:      /inc/djinterp/config/c/desc/cfg_desc_of.h
@@ -40,12 +43,16 @@ TABLE OF CONTENTS
     -----
     1.  D_CFG_DESC_OF
     2.  D_CFG_DESC_OF_MEMORY
+    3.  D_CFG_DESC_OF_FILESYS
+    4.  D_CFG_DESC_OF_TEST
 2.  VALIDATION
     ----------
     1.  Ranges
 3.  DERIVED
     -------
     1.  D_INTERNAL_DESC_OF_MEMORY
+    2.  D_INTERNAL_DESC_OF_FILESYS
+    3.  D_INTERNAL_DESC_OF_TEST
 */
 
 #ifndef DJINTERP_CONFIG_C_DESC_CFG_DESC_OF_H
@@ -80,6 +87,26 @@ TABLE OF CONTENTS
     #define D_CFG_DESC_OF_MEMORY 1
 #endif
 
+// 1.3
+// D_CFG_DESC_OF_FILESYS
+//   configuration: 0 leaves filesys's describers out of the library (a
+// file's status, a directory entry and a filesys notice, at each width
+// filesys builds), and their C++ units with them. filesys's headers are
+// all they need. 1 by default.
+#ifndef D_CFG_DESC_OF_FILESYS
+    #define D_CFG_DESC_OF_FILESYS 1
+#endif
+
+// 1.4
+// D_CFG_DESC_OF_TEST
+//   configuration: 0 leaves DTest's describers out of the library (a
+// run's summary and options, and a module's, a block's and a test's
+// spec), and their C++ units with them. DTest's C header is all they
+// need. 1 by default.
+#ifndef D_CFG_DESC_OF_TEST
+    #define D_CFG_DESC_OF_TEST 1
+#endif
+
 
 //==============================================================================
 // 2.  VALIDATION
@@ -88,9 +115,11 @@ TABLE OF CONTENTS
 // 2.1    Ranges
 //------------------------------------------------------------------------------
 
-#if ( (D_CFG_DESC_OF < 0) || (D_CFG_DESC_OF > 1)               ||           \
-      (D_CFG_DESC_OF_MEMORY < 0) || (D_CFG_DESC_OF_MEMORY > 1) )
-    #error "D_CFG_DESC_OF and D_CFG_DESC_OF_MEMORY are 0 or 1"
+#if ( (D_CFG_DESC_OF < 0) || (D_CFG_DESC_OF > 1)                 ||         \
+      (D_CFG_DESC_OF_MEMORY < 0) || (D_CFG_DESC_OF_MEMORY > 1)   ||         \
+      (D_CFG_DESC_OF_FILESYS < 0) || (D_CFG_DESC_OF_FILESYS > 1) ||         \
+      (D_CFG_DESC_OF_TEST < 0) || (D_CFG_DESC_OF_TEST > 1) )
+    #error "D_CFG_DESC_OF and each D_CFG_DESC_OF_<MODULE> are 0 or 1"
 #endif
 
 
@@ -106,6 +135,24 @@ TABLE OF CONTENTS
     #define D_INTERNAL_DESC_OF_MEMORY 1
 #else
     #define D_INTERNAL_DESC_OF_MEMORY 0
+#endif
+
+// 3.2
+// D_INTERNAL_DESC_OF_FILESYS
+//   constant: 1 when filesys's describers are built; else 0.
+#if ( D_CFG_DESC_ENABLED && D_CFG_DESC_OF && D_CFG_DESC_OF_FILESYS )
+    #define D_INTERNAL_DESC_OF_FILESYS 1
+#else
+    #define D_INTERNAL_DESC_OF_FILESYS 0
+#endif
+
+// 3.3
+// D_INTERNAL_DESC_OF_TEST
+//   constant: 1 when DTest's describers are built; else 0.
+#if ( D_CFG_DESC_ENABLED && D_CFG_DESC_OF && D_CFG_DESC_OF_TEST )
+    #define D_INTERNAL_DESC_OF_TEST 1
+#else
+    #define D_INTERNAL_DESC_OF_TEST 0
 #endif
 
 

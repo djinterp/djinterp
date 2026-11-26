@@ -4,8 +4,8 @@
 *   The suite of c/desc's core, in DTest's C face: the sink a describer emits
 * facts into, what it wants, how it stops and how it nests, the machine it
 * writes to, and both describer forms; then the units engine, the machines,
-* and the describers of memory's types. The runner in its CMake leaf makes
-* the suite and runs each section.
+* and the describers of memory's, filesys's and DTest's types. The runner
+* in its CMake leaf makes the suite and runs each section.
 *
 *
 * path:      /tests/djinterp/c/desc/desc_tests.h
@@ -58,6 +58,25 @@ in the block of desc/of/mem_desc.h, in the module d_tests_desc opened; call
 it after d_tests_desc_machines.
 */
 void d_tests_desc_of_mem(
+    struct dj_test_suite* _suite
+);
+
+/*
+d_tests_desc_of_filesys
+  section: desc's describers of filesys's types, as d_tests_desc_of_mem's
+are memory's, in the block of desc/of/filesys_desc.h; call it after
+d_tests_desc_of_mem.
+*/
+void d_tests_desc_of_filesys(
+    struct dj_test_suite* _suite
+);
+
+/*
+d_tests_desc_of_test
+  section: desc's describers of DTest's C types, in the block of
+desc/of/test_desc.h; call it after d_tests_desc_of_filesys.
+*/
+void d_tests_desc_of_test(
     struct dj_test_suite* _suite
 );
 

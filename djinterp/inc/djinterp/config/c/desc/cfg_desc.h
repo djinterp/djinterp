@@ -22,11 +22,26 @@
 *                 D_CFG_DESC_JSON_INTEGERS, D_CFG_DESC_JSON_NONFINITE
 *   requires: cfg_common.h
 *
+* HOW TO USE
+* ----------
+*   Set a knob with -D before any djinterp header; each header in the
+* targets above includes this one.
+*
+* OPTIONS
+* -------
+*   The knobs build what the options choose among: desc.ring, desc.layers,
+* desc.style, desc.form, desc.format and desc.text, and each declared
+* type's desc.<name>.ring (desc_options.h).
+*
+* CONFIGURATION
+* -------------
+*   The knobs below, in their sections.
+*
 *
 * path:      /inc/djinterp/config/c/desc/cfg_desc.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 
 /*
@@ -171,10 +186,11 @@ TABLE OF CONTENTS
 // 1.4.2
 // D_CFG_DESC_SCOPES
 //   configuration: the types that may have options of their own: one scope
-// each, named when the type is declared to desc (d_desc_declare). 16 by
-// default.
+// each, named when the type is declared to desc (d_desc_declare), and a
+// pointer each. 64 by default: memory's, filesys's and DTest's describers
+// alone are fifteen types, and the modules after them add more.
 #ifndef D_CFG_DESC_SCOPES
-    #define D_CFG_DESC_SCOPES 16
+    #define D_CFG_DESC_SCOPES 64
 #endif
 
 // 1.4.3

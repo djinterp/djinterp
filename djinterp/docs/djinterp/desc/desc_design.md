@@ -397,7 +397,7 @@ type that gives neither fails to compile.
 | `D_CFG_DESC_LAYERS` | 0x1FF | the layers shown when nobody says |
 | `D_CFG_DESC_ARTICLES` | 1 | "a" and "an", and the code that chooses them |
 | `D_CFG_DESC_OPTIONS` | 1 | desc's djin |
-| `D_CFG_DESC_SCOPES` | 16 | the types that may have options of their own |
+| `D_CFG_DESC_SCOPES` | 64 | the types that may have options of their own |
 | `D_CFG_DESC_BINDINGS` | 64 | the djin's bindings |
 | `D_CFG_DESC_MACRO` | 1 | the macro layer |
 | `D_CFG_DESC_AT_BUILD` | 0 | desc's build sentence, printed while compiling |
@@ -525,6 +525,21 @@ of memory's functions, so the library needs memory's headers, not its
 units. An arena over a caller's buffer does not say where its source
 would have sent it, since its one region is the caller's.
 
+filesys's and DTest's describers (Friday 11-27), in the same library and
+the same form, each with its records, layout rows and agreement check
+(`d_desc_of_filesys_agrees`, `d_desc_of_test_agrees`). filesys's: a file's
+status and a directory entry at each width filesys builds (`dj_stat64_t`
+and `dj_stat32_t`, `dj_dirent64_t` and `dj_dirent32_t`; `D_DESC_OF(dj_stat_t)`
+names the default width's, as `dj_stat_t` does), and a filesys notice. A
+status's kind is its noun ("a regular file with 1234 bytes", "a
+directory"), and its permissions are three triplets; a change or creation
+time of 0, which filesys reports for want of one, is none. DTest's: a
+run's summary and options, and a module's, a block's and a test's spec;
+a module spec's contents are its blocks, a level each keyed by its name,
+and a block's are its tests' names. A suite is opaque and is not
+described. With fifteen types described, `D_CFG_DESC_SCOPES` is 64 by
+default, where it was 16.
+
 ## When each part lands
 
 - **Friday 11-13**: desc.h's core with its machines; the units engine and
@@ -540,9 +555,14 @@ would have sent it, since its one region is the caller's.
   their layout check, and their C++ units (decision 82); desc's suite
   gains their section (`c_desc_tests`: 31 tests, 275 checks), and a C++
   harness, `tests/unintegrated/cpp/desc/t_mem_desc.cpp`, runs from C++98.
-- **Week 3**: the name registry (decision 33); the next describers in
-  decision 34's order, in `djinterp_c_desc_of`; the declaring macros per
-  family, with the containers' module (decision 31).
+- **Friday 11-27**: filesys's and DTest's describers, in
+  `djinterp_c_desc_of`, with their C++ units; desc's suite gains their
+  sections (`c_desc_tests`: 42 tests, 386 checks), and a C++ harness,
+  `tests/unintegrated/cpp/desc/t_desc_of.cpp`, runs from C++98.
+- **Still to come**: the name registry (decision 33); the next
+  describers in decision 34's order (db, net), in `djinterp_c_desc_of`;
+  the declaring macros per family, with the containers' module (decision
+  31).
 
 ## Settled
 
