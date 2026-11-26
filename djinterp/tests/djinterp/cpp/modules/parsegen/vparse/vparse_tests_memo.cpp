@@ -16,15 +16,18 @@
 * path:      /tests/djinterp/cpp/modules/parsegen/vparse/vparse_tests_memo.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.17
-*                                                            revised: 2026.10.17
+*                                                            revised: 2026.11.27
 *******************************************************************************/
 #include "./vparse_tests.hpp"  // helpers, and the section declarations
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER  // the floor its header has
 
 // std
 #include <algorithm>         // std::max, std::find
+#include <cctype>            // std::isspace
+#include <climits>           // INT_MIN, INT_MAX
 #include <cstddef>           // std::size_t
-#include <cstdio>            // std::sscanf
+#include <cstdlib>           // std::strtol
+#include <cstring>           // std::strlen, std::strncmp
 #include <initializer_list>  // std::initializer_list
 #include <set>               // std::set
 #include <string>            // std::string
@@ -158,6 +161,51 @@ outcome counted(
 }
 
 /**
+ * @brief Reads one `name=value` field of a trace line, after any blanks,
+ *        and moves past it.
+ *
+ * @param[in,out] _at    where the field begins; past it when it reads.
+ * @param[in]     _name  the field's name.
+ * @param[out]    _out   its value.
+ * @return `true` when the field reads as `_name`, `=` and a decimal int.
+ */
+bool read_field(
+    const char*& _at,
+    const char*  _name,
+    int&         _out
+)
+{
+    const std::size_t length = std::strlen(_name);
+    char*             end    = nullptr;
+    long              value  = 0;
+
+    while (std::isspace(static_cast<unsigned char>(*_at)))
+    {
+        ++_at;
+    }
+
+    if ( (std::strncmp(_at, _name, length) != 0) ||
+         (_at[length] != '=') )
+    {
+        return false;
+    }
+
+    value = std::strtol(_at + length + 1, &end, 10);
+
+    if ( (end == _at + length + 1) ||
+         (value < INT_MIN)         ||
+         (value > INT_MAX) )
+    {
+        return false;
+    }
+
+    _out = static_cast<int>(value);
+    _at  = end;
+
+    return true;
+}
+
+/**
  * @brief Reads a trace line's fields.
  *
  * @param[in] _text  the line, as run() writes it.
@@ -167,17 +215,16 @@ line read_line(
     const std::string& _text
 )
 {
-    line out;
+    line        out;
+    const char* at = _text.c_str();
 
     // the six fields before the instruction, or none of them
-    if (std::sscanf(_text.c_str(),
-                    "ip=%d off=%d calls=%d back=%d marks=%d caps=%d",
-                    &out.ip,
-                    &out.off,
-                    &out.calls,
-                    &out.back,
-                    &out.marks,
-                    &out.caps) != 6)
+    if (!( (read_field(at, "ip", out.ip))       &&
+           (read_field(at, "off", out.off))     &&
+           (read_field(at, "calls", out.calls)) &&
+           (read_field(at, "back", out.back))   &&
+           (read_field(at, "marks", out.marks)) &&
+           (read_field(at, "caps", out.caps)) ))
     {
         out.ip = -1;
     }
