@@ -11,7 +11,8 @@
 * the term's value in double the expression's, bit for bit, where its
 * arithmetic, sqrt and abs are all it holds, and each function's within an
 * ulp of the C core's kernel, the plain functions' being the language's
-* (ruling 12); a derivative reified, simplified to its text, and its value
+* (ruling 12), exp's bit for bit, as the plain exp is the kernel (S478); a
+* derivative reified, simplified to its text, and its value
 * the compile-time derivative's; the handle math::expr over a reified term.
 * From C++14: constants.hpp's rational, an exact fraction. Where double is
 * evaluated wider than double, a 32-bit x87, the compile-time face's run time
@@ -28,7 +29,7 @@
 * path:      /tests/djinterp/cpp/modules/math/t_reify_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.23
-*                                                            revised: 2026.11.23
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 #include "../../../../../inc/djinterp/cpp/modules/math/expr/reify.hpp"  // the
                                                                 // tested
@@ -385,10 +386,11 @@ namespace
                                                      a, b, c),
                                        dm::atan(dv::x)(a));
     #if !D_MATH_DBL_EVAL_WIDE
+            // exp bit for bit: the plain exp is exp_c (ruling 12, S478)
             fns   = fns &&
-                    d_tests_within_ulp(d_tests_value(dm::reify(dm::exp(dv::x)),
-                                                     a, b, c),
-                                       dm::exp(dv::x)(a)) &&
+                    d_tests_same_bits(d_tests_value(dm::reify(dm::exp(dv::x)),
+                                                    a, b, c),
+                                      dm::exp(dv::x)(a)) &&
                     d_tests_within_ulp(d_tests_value(dm::reify(dm::log(dv::y)),
                                                      a, b, c),
                                        dm::log(dv::y)(a, b));
@@ -404,9 +406,9 @@ namespace
                         "a relation 1 or 0, a piecewise its branch's value, "
                         "at 200 points");
         D_TESTS_EXPECT( fns,
-                        "sin, cos, tan and atan, and exp and log where double "
-                        "is evaluated as double, within an ulp of the C "
-                        "core's kernels, at 200 points");
+                        "sin, cos, tan and atan, and log where double is "
+                        "evaluated as double, within an ulp of the C core's "
+                        "kernels, and there exp bit for bit, at 200 points");
 
         return;
     }

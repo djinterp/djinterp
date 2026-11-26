@@ -175,7 +175,13 @@ EXP_D_SECTION = r"""// 3.2    Exponential
 // finite result, 709.78, the result is +inf, and below -745.13, +0. Where
 // double is evaluated wider than double, a 32-bit x87, exp_c refuses to
 // compile: build with -msse2 -mfpmath=sse (math_common.h,
-// D_MATH_DBL_REFUSE). exp is the C library's.
+// D_MATH_DBL_REFUSE).
+//   exp, the plain form, is exp_c, as the owner's ruling 12 has a plain
+// double function once its correctly rounded form is within about twice the
+// C library's time (S478): every call is correctly rounded, the same bits on
+// every platform and at compile time. Where double is evaluated wider than
+// double, exp is the C library's, so that the plain form builds everywhere
+// (S479).
 
 @TABLE@
 
@@ -989,15 +995,20 @@ d_math_d_exp_c(
     }
 }
 
+// d_math_d_exp
+//   e^_x, correctly rounded: exp_c; the C library's where double is
+// evaluated wider than double; see above.
 D_MATH_FN_RT double
 d_math_d_exp(
     double _x
 )
 {
-#ifdef __cplusplus
+#if !D_MATH_DBL_EVAL_WIDE
+    return d_math_d_exp_c(_x);
+#elif defined(__cplusplus)
     return std::exp(_x);
 #else
     return exp(_x);
-#endif
+#endif  // !D_MATH_DBL_EVAL_WIDE
 }
 """

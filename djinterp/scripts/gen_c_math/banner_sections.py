@@ -81,8 +81,10 @@ SECTIONS = {
         LEVELS + " A long double wider than the reduction by pi/2 was "
         "written for is refused at compile time."),
     "exponential.h": (
-        "Include it from C or C++; it includes its five parts. d_math_d_exp, "
-        "_log, _exp2, _log2, _log10, _log1p and _expm1 call the C library; "
+        "Include it from C or C++; it includes its five parts. "
+        "d_math_d_exp, _log, _exp2, _log2, _log10, _log1p and _expm1 call "
+        "the C library, but for d_math_d_exp, which is d_math_d_exp_c, "
+        "correctly rounded, wherever double is evaluated in double (S478); "
         "their _c forms compute the same in pure arithmetic, the double "
         "family's exp_c and log_c correctly rounded. " + FAMILY,
         TWICE,

@@ -1,11 +1,11 @@
-# djinterp math: the lane's decisions, S1 to S477
+# djinterp math: the lane's decisions, S1 to S482
 
 Every decision the math lane has taken, in the words of the record that took
 it, with the alternative it set aside. The numbers run across the lane's
 records from S1 (slice 3, 2026.10.08); each record's section of decisions is
 here as its README has it, its own first lines among it. A decision was the
 lane's to take within the owner's rulings, and stands once his next word on
-its delivery, his "continue", has accepted it: S1 to S473 stand, his own
+its delivery, his "continue", has accepted it: S1 to S477 stand, his own
 rulings of 2026.10.27 on complex numbers and quaternions, S265 to S278, the
 design of steps 22 to 24, and his choice of 2026.11.07, S383, among them.
 His rulings of 2026.11.03 and 2026.11.04 on the flagged decisions are in the
@@ -35,12 +35,15 @@ compile-time expression made a term of the run-time language, by his
 lazy type of linear algebra, by his "continue" of 2026.11.24 at 08:13; and
 chunk 61's, step 35 (5g), the compile-time headers' style debt, which closes
 Phase 5, by his "continue" of 12:34 the same day, S473 as his word of 10:30
-ruled it, its first alternative. S474 to S477 are chunk 62's, open until his
-word on them: the banners' HOW TO USE, OPTIONS and CONFIGURATION in every
-header of math. His word of 2026.11.14 on the language's names, which kept
-them flat in `djinterp::math`, is S397's. Where a later decision changes an
-earlier one, the later one says so; the earlier one stays here as it was
-taken.
+ruled it, its first alternative; and chunk 62's, the banners' HOW TO USE,
+OPTIONS and CONFIGURATION in every header of math, by his rulings of 14:20
+and 14:37, S476 as he ruled it, its alternative. His rulings 12 to 15 of
+that day are in chunk 63's opening lines. S478 to S482 are chunk 63's, open
+until his word on them: the plain double exp correctly rounded, as ruling 12
+has it, and chunk 62's objects compared. His word of 2026.11.14 on the
+language's names, which kept them flat in `djinterp::math`, is S397's. Where
+a later decision changes an earlier one, the later one says so; the earlier
+one stays here as it was taken.
 
 A decision names files as they were when it was taken. Chunk 48 merged the
 two quaternion classes (S398) and renamed or split five of the language's
@@ -65,7 +68,7 @@ judged on accuracy and functionality, the best solution rather than the
 cheapest. A review ends "Taken" where the path taken is the one it
 recommends, or "Ruled" where the owner ruled it; it ends in a flag where the
 path taken is not the one it recommends, or has a significant drawback. The
-22 flagged decisions, the outstanding ones, come first, in five groups by
+23 flagged decisions, the outstanding ones, come first, in five groups by
 what they concern, the most urgent first in each (section 1); then every
 decision, by record (section 2).
 
@@ -75,15 +78,15 @@ C6 and N1 to N6, are in the consolidation's record
 followed it; his rulings on them are the roadmap's principles and items
 (`roadmap.md`). From chunk 34 on, each chunk's delivery brings this file,
 its own decisions added at the end. This file is made by
-`_handoffs/math98_chunk62_2026.11.24/tools/decisions_c62.py`.
+`_handoffs/math98_chunk63_2026.11.24/tools/decisions_c63.py`.
 
 ## 1. Outstanding decisions
 
-The 22 flagged decisions: those whose review recommends what is not yet
+The 23 flagged decisions: those whose review recommends what is not yet
 done, or names a significant drawback of what was. Each gives when it is
 due, by the roadmap's steps, its flag and its review's recommendation; the
 decision itself and its whole review are in its record's part of section 2.
-The groups and the steps are `decisions_outstanding_c62.md`'s, in chunk 62's
+The groups and the steps are `decisions_outstanding_c63.md`'s, in chunk 63's
 record.
 
 ### 1.1 The expression language
@@ -158,22 +161,34 @@ record.
   the library's functions wherever `<math.h>` declares them, the `_c` forms
   only where it does not. Ruled 2026.11.04 (the owner's, settled): as
   recommended, one answer per platform, at step 36 (6a).
-- S424. When: before the plain double `log` follows ruling 12 in early
-  December: `log_c` 1.95 to 3.03 times the C library's time after chunk 54
-  (S432, S433), past twice. `log_c` is still 1.95 to 3.03 times the C
-  library's time, past the twice that ruling 12's recommendation asks before
-  the plain form becomes the correctly rounded one. Recommended: as taken,
-  then inverses of 8 bits, so that r is exact in one double, before the
-  plain double `log` follows ruling 12; an outside review of the proofs when
-  one can be had. In chunk 54 (S432, S433) `log_c` became 1.70 to 1.85 times
-  as fast, its results the same bits.
-- S460. When: with ruling 12 in early December: a reified term's exp, sin,
-  cos, tan, log and atan the plain functions, one ulp from the C core's
-  correctly rounded kernels at 1 to 56 of 20,000 arguments each. Until
-  ruling 12, a reified term's transcendentals can differ from the
+- S424. When: before the plain double `log` follows ruling 12 (made
+  2026.11.24): `log_c` 1.95 to 3.03 times the C library's time after chunk
+  54 (S432, S433), past twice. `log_c` is still 1.95 to 3.03 times the C
+  library's time, past the twice that ruling 12 asks before the plain form
+  becomes the correctly rounded one. Recommended: as taken, then inverses of
+  8 bits, so that r is exact in one double, before the plain double `log`
+  follows ruling 12; an outside review of the proofs when one can be had. In
+  chunk 54 (S432, S433) `log_c` became 1.70 to 1.85 times as fast, its
+  results the same bits. Ruling 12, made 2026.11.24 as recommended, switches
+  a plain double function once its correctly rounded form is within about
+  twice the library's time; the plain `exp` switched in chunk 63 (S478).
+- S460. When: as ruling 12 (made 2026.11.24) switches each plain function: a
+  reified term's sin, cos, tan, log and atan the plain functions, one ulp
+  from the C core's correctly rounded kernels at 1 to 56 of 20,000 arguments
+  each; exp the kernel since chunk 63 (S478). Until each plain function
+  switches, a reified term's sin, cos, tan, log and atan can differ from the
   expression's in the last bit, the expression's being the right one.
   Recommended: as taken, the plain functions made the correctly rounded
-  kernels as ruling 12 decides.
+  kernels as ruling 12 decides. Taken in part: ruling 12, made 2026.11.24,
+  switched the plain `exp` in chunk 63, and a reified term's exp is now the
+  expression's, bit for bit (S478, S480).
+- S478. When: a speed step for `exp_c`'s first phase, before or with `log`'s
+  (S424): the plain double exp, `exp_c` since chunk 63, 2.1 to 2.6 times the
+  C library's time on ordinary arguments by gcc, up to 3.0 by clang. On
+  ordinary arguments the plain exp is past the twice that ruling 12 names;
+  until the speed step, the owner may hold the switch instead. Recommended:
+  as taken, as decision 48 ruled it, then a speed step for exp_c's first
+  phase on ordinary arguments, as S424's for log.
 - S9. When: step 39 (6d), with MSVC. Significant drawback on compilers
   without the builtin. Recommended: as taken, plus `std::bit_cast` from
   C++20 where the builtin is missing, so every C++20 compiler gets it. Taken
@@ -9122,9 +9137,12 @@ rest, phase 3 none. The plain `d_math_d_log` stays the C library's
 > inverses of 8 bits, so that r is exact in one double, before the plain
 > double `log` follows ruling 12; an outside review of the proofs when one
 > can be had. In chunk 54 (S432, S433) `log_c` became 1.70 to 1.85 times as
-> fast, its results the same bits. **Flag:** `log_c` is still 1.95 to 3.03
-> times the C library's time, past the twice that ruling 12's recommendation
-> asks before the plain form becomes the correctly rounded one.
+> fast, its results the same bits. Ruling 12, made 2026.11.24 as
+> recommended, switches a plain double function once its correctly rounded
+> form is within about twice the library's time; the plain `exp` switched in
+> chunk 63 (S478). **Flag:** `log_c` is still 1.95 to 3.03 times the C
+> library's time, past the twice that ruling 12 asks before the plain form
+> becomes the correctly rounded one.
 
 **S425. `log_c` is checked against references made by mpmath at 400 bits, as
 `exp_c` is (S422): `math_tests_log_refs.h`, made by `tools/refs_log_c52.py`,
@@ -10150,9 +10168,11 @@ arithmetic, sqrt and abs differ at none.
 > the correctly rounded value. The alternative: the C core's kernels for
 > reified terms alone, two answers in one language. Recommended: as taken,
 > the plain functions made the correctly rounded kernels as ruling 12
-> decides. **Flag:** until ruling 12, a reified term's transcendentals can
-> differ from the expression's in the last bit, the expression's being the
-> right one.
+> decides. Taken in part: ruling 12, made 2026.11.24, switched the plain
+> `exp` in chunk 63, and a reified term's exp is now the expression's, bit
+> for bit (S478, S480). **Flag:** until each plain function switches, a
+> reified term's sin, cos, tan, log and atan can differ from the
+> expression's in the last bit, the expression's being the right one.
 
 **S461. A face test, `t_reify_face.cpp`, checks reify at every rung: 1
 check below C++11, 19 at C++11 and 21 from C++14, 17 and 19 on the 32-bit
@@ -10560,7 +10580,9 @@ window's ladder compiles the changed units with the other zips'.
 > line for line of each diff, the style's H count cleared, the smoke tier as
 > before. Against: no object compared, which chunk 61 did. The alternative:
 > the objects compared, hours of builds for what the tokens show.
-> Recommended: as taken. Taken.
+> Recommended: as taken. Ruled 2026.11.24 (the owner's rulings of 14:37):
+> the alternative, against the recommendation, the objects compared as well;
+> done in chunk 63 (S481).
 
 **S477. Chunk 62's zip is cut over the owner's main of 2026.11.23,
 `6ee9dce1`, with Wednesday's, Friday's and chunks 58's to 61's zips laid
@@ -10580,3 +10602,150 @@ after chunk 61's zip.
 > that is gone, which the style check reports as fixed. The alternative: the
 > punch list lowered in the zip, a shared file of the owner's. Recommended:
 > as taken. Taken.
+
+### S478 to S482: chunk 63, 2026.11.24
+
+The record: `_handoffs/math98_chunk63_2026.11.24/README.md`.
+
+Chunk 63's decisions, S478 to S482: the plain double exp made the correctly
+rounded one, as the owner ruled; chunk 62's objects compared, as he ruled
+S476; and his rulings of the day recorded. His rulings of 2026.11.24 at
+14:20, on the page after chunk 62, made rulings 12, 13, 14's 9b and 15,
+each as recommended, and accepted S474, S475 and S477; at 14:37 he made
+14's 9a and 9c as recommended, ruled S476 B, against the recommendation,
+the objects compared as well, and ruled that the rulings' work start now,
+exp's switch first, then the helpers (the page's decision 48, A).
+
+**S478. The plain double exp, `d_math_d_exp`, is `d_math_d_exp_c`, the
+correctly rounded exponential, as ruling 12 has a plain double function
+once its correctly rounded form is within about twice the C library's
+time: measured today (`tools/timing_c63.c`, gcc and clang at -O2 and g++ at
+C++14), it takes 1.3 to 1.7 times the library's time over exp's whole
+range, [-745, 709.7], the range over which chunk 51 measured 1.5, but 2.1
+to 2.6 times over [-1, 1] and [-50, 50] by gcc and g++, and up to 3.0 by
+clang: past twice there. The switch is made as decision 48 ruled it, and
+flagged, with a speed step for `exp_c`'s first phase, which decides
+99.86% of arguments, to bring ordinary arguments within twice. Every
+plain double exp now gives the same bits on every platform where double
+is evaluated in double, and at compile time;
+through it the language's `exp` (`d_math_exp`, which `expr_fn::exp`
+calls), the complex numbers' plain functions that take a real exponential
+(`cplx_kernels_lib.h`'s exp, cosh, sinh and tanh paths) and the C++
+overload `d_math_exp(double)`. The float and long double families' plain
+exp, and every other plain double function, stay the C library's until
+each comes within twice: `log` after a further step (S424), the rest as
+each is rewritten (step 36, 6a).** The change is the generator's
+(`scripts/gen_c_math/exp_d.py`): the plain form returns `exp_c` and the
+section's comment and `exponential.h`'s banner say so.
+- Alternative: a run-time copy of `exp_c`'s kernel, free of the constant
+  expression's limits, an explicit fused multiply-add throughout: a second
+  text to keep the same bits as the first, for a gain the measurement does
+  not ask for.
+- Alternative: the plain exp the C library's until `log` qualifies too,
+  both switched at once: a plain exp left a step longer than the ruling
+  asks.
+
+> **Review.** Taken: for, every plain double exp correctly rounded, the same
+> bits on every platform where double is evaluated in double and at compile
+> time, the language's exp and the complex plain functions with it, by one
+> text, the constant expression's. Against: the plain exp 2.1 to 2.6 times
+> the C library's time on ordinary arguments by gcc, up to 3.0 by clang,
+> where the 1.5 times that the recommendation of ruling 12 quoted was the
+> whole range's; inlined at each call. The alternatives: a run-time copy of
+> the kernel, a second text to keep bit for bit; the switch held until log
+> qualifies. Recommended: as taken, as decision 48 ruled it, then a speed
+> step for exp_c's first phase on ordinary arguments, as S424's for log.
+> **Flag:** on ordinary arguments the plain exp is past the twice that
+> ruling 12 names; until the speed step, the owner may hold the switch
+> instead.
+
+**S479. Where double is evaluated wider than double, a 32-bit x87, the
+plain double exp stays the C library's, so that the plain form builds
+everywhere: `exp_c` refuses to compile there (S418), and every 32-bit C++
+build of the full tier is such a build, the language's face tests among
+them.** There a plain exp's bits are the platform's, as before; `exp_c`
+keeps refusing, with the flags that give the correctly rounded value,
+`-msse2 -mfpmath=sse`.
+- Alternative: the plain exp refusing there too, ruling 4 taken to the
+  plain form: every x87 build that calls exp refused, the language's and
+  the complex faces' 32-bit builds with it.
+- Alternative: the long double kernel's exponential rounded to double, as
+  `expm1_c`'s far path takes it there: rounded twice, so not correctly
+  rounded either, and slower than the library.
+
+> **Review.** Taken: for, the plain form building wherever it built, the
+> x87's own step left to step 39, the correctly rounded value one flag away.
+> Against: on those builds a plain exp's bits are the platform's, one answer
+> short there. The alternatives: the plain form refused there too, every x87
+> build of the language refused; the long double kernel rounded twice,
+> neither correctly rounded nor fast. Recommended: as taken. Taken.
+
+**S480. The tests say it: `t_exponential` checks that the plain double exp
+is `exp_c` bit for bit at its 10,000,000 arguments, at 1.5 and through the
+C++ overload, and the C library's on the x87; `t_reify_face` checks a
+reified term's exp bit for bit against the compile-time face's, where it
+checked within an ulp, so that S460's gap closes for exp, the term's value
+the expression's.** S460's flag narrows to sin, cos, tan, log and atan,
+which differ until each plain function switches; S424 and S460 are now due
+as ruling 12 switches each function, not "in early December".
+- Alternative: the tests left checking within an ulp: they would pass a
+  plain exp that was not `exp_c`.
+
+> **Review.** Taken: for, the claim checked as made, bit for bit at ten
+> million arguments and through the C++ overload, the reified term's exp the
+> expression's, S460's gap closed for exp. Against: ten million more checks,
+> about a second of the harness's time. The alternative: within an ulp, as
+> before, which a plain exp that was not exp_c would pass. Recommended: as
+> taken. Taken.
+
+**S481. Chunk 62's objects compared, as the owner ruled S476 (B): each of the
+smoke tier's 166 builds, and the same 166 by clang and clang++, compiled to an
+object without debug information in chunk 61's tree and in chunk 62's, from
+each tree's root by the same paths (`tools/objects_c63.sh`): 322 of the 332
+objects are the same bytes, and every build compiled in both trees. The other
+10, `t_dynamic_matrix_face`'s and `t_lazy_face`'s at each of their three levels
+by both compilers, differ in the line numbers their assert messages carry, from
+`dynamic_matrix.hpp` and `lazy.hpp`, whose banners grew; with chunk 61's
+headers padded to chunk 62's line counts, a bare `*` in the banner for each
+line chunk 62 inserted (`tools/pad_banners_c63.py`), they are the same bytes
+too.** About 40 minutes of builds on two processors. The padded tree is chunk
+61's code with chunk 62's line numbers, so the comparison tells a difference
+that is a line number's alone from any other.
+- Alternative: the tokens and diffs alone, as chunk 62 had it: the
+  alternative the owner set aside.
+
+> **Review.** Taken: for, the compiler's own word, as the owner asked, on
+> every build the smoke tier makes, by two compilers, every object accounted
+> for, the line numbers' differences told from any other by a padded tree.
+> Against: about forty minutes of builds, for what the tokens had shown. The
+> alternative: the tokens and diffs alone, which the owner set aside.
+> Recommended: as taken. Taken.
+
+**S482. The owner's rulings of 2026.11.24 are recorded where the lane's
+documents keep rulings: the module README's table, the roadmap, and
+`decisions.html`'s record of ruling events. The roadmap gains the work they
+make, in ruling 15's order, not yet numbered as steps: in the elementary
+block, each plain double function switched as ruling 12 allows (`exp` in
+this chunk, `log` after S424's step), with the special functions placed
+in it (Stumpff functions and exact angle wrapping with sin and cos; erf,
+erfc and the inverse normal with gamma, as S203 has them); the scalar
+helpers of ruling 13 next, in chunk 64 (decision 48, A); then root
+finding, banded solves and table lookups; the number types once simterp
+rules A6; random numbers, math's by ruling 14's 9b, once A9 places the
+seeds; ODE steppers, math's by 9a, and the rest as simterp rules each
+need. `st_math` stays the terps' (9c). Chunk 63's zip is cut over the
+owner's main of 2026.11.23, `6ee9dce1`, with Wednesday's, Friday's and
+chunks 58's to 62's zips laid over it, in that order, and holds chunk 63's
+files alone, at the tree's root.** Each item gets its step's number when
+it is scheduled, so that the roadmap's 51 steps and their numbers stand
+until then. The zip goes after chunk 62's.
+- Alternative: every item numbered now, as steps 52 on: numbers for work
+  whose order past the next few items waits on simterp's rulings.
+
+> **Review.** Taken: for, the rulings where the lane's documents keep
+> rulings, the work they make listed in ruling 15's order, numbered as each
+> is scheduled, the 51 steps and their numbers kept; the zips sent
+> unchanged, chunk 63's own after chunk 62's. Against: the progress table
+> does not count the new work yet. The alternative: every item numbered now,
+> for an order past the next few items that waits on simterp's rulings.
+> Recommended: as taken. Taken.

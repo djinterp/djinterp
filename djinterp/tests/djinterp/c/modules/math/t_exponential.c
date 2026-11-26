@@ -436,6 +436,9 @@ d_tests_double(void)
         worst_exp = (e > worst_exp) ? e : worst_exp;
         diff_exp += (e > 0.0) ? 1 : 0;
         D_TESTS_EXPECT(e <= 1.0, "d exp_c within an ulp of exp", x);
+        // and the plain exp is exp_c, bit for bit (ruling 12, S478)
+        D_TESTS_EXPECT(d_tests_same_d(d_math_d_exp(x), d_math_d_exp_c(x)),
+                       "d exp is exp_c", x);
 #else
         (void)x;
 #endif  // !D_MATH_DBL_EVAL_WIDE
@@ -1259,9 +1262,19 @@ d_tests_specials(void)
                     "log2_c(1) and log10_c(1) are +0", 0);
 
     // the plain forms are the C library's: read through volatiles, so that
-    // no compiler folds a call into its own correctly rounded constant
+    // no compiler folds a call into its own correctly rounded constant; but
+    // the plain double exp, which is exp_c wherever double is evaluated in
+    // double (ruling 12, S478), and the C library's elsewhere (S479)
+#if !D_MATH_DBL_EVAL_WIDE
     D_TESTS_EXPECT(d_tests_same_d(d_math_d_exp(one_and_half),
-                                  g_exp(one_and_half)), "d exp", 0);
+                                  d_math_d_exp_c(one_and_half)),
+                   "d exp is exp_c", 0);
+#else
+    D_TESTS_EXPECT(d_tests_same_d(d_math_d_exp(one_and_half),
+                                  g_exp(one_and_half)),
+                   "d exp is the C library's where double is evaluated "
+                   "wider", 0);
+#endif  // !D_MATH_DBL_EVAL_WIDE
     D_TESTS_EXPECT(d_tests_same_f(d_math_f_log(three_f), g_logf(three_f)),
                    "f log", 0);
     D_TESTS_EXPECT( (d_tests_same_d(d_math_d_log10(three), g_log10(three))) &&
@@ -1766,7 +1779,7 @@ d_tests_overloads(void)
                                     d_math_f_log_c(3.0f))) &&
                     (d_tests_same_ld(d_math_log_c(3.0L),
                                      d_math_ld_log_c(3.0L))) &&
-                    (d_tests_same_d(d_math_exp(0.25), g_exp(0.25))) &&
+                    (d_tests_same_d(d_math_exp(0.25), d_math_d_exp(0.25))) &&
                     (d_tests_same_d(d_math_log(3.0), g_log(3.0))),
                     "the C++ overloads are the families' functions", 0);
     D_TESTS_EXPECT( (d_tests_same_f(d_math_exp2_c(0.25f),

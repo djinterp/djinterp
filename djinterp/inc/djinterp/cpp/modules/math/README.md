@@ -938,7 +938,8 @@ in pairs; phase 3 in fixed point, within 2^-218.3, for the arguments within
 2^-100 of a rounding boundary. It costs 9.9 ns a call over its range,
 against the C library's 6.7 and chunk 50's 266, and is a constant
 expression from C++14 through all three phases (S416); the plain
-`d_math_d_exp` stays the C library's until the owner's ruling 12. `dd.h`,
+`d_math_d_exp` stayed the C library's until the owner's ruling 12 (chunk
+63, below). `dd.h`,
 new, is a public pair of doubles, `struct dj_math_dd`: the exact sum and
 product, then sums, products, quotients and a square root, each within a
 proven bound (S417). Every exact product in the core takes its low part by
@@ -1075,7 +1076,8 @@ branch is its otherwise, as C++ evaluates it, and arithmetic in an integer
 type is refused (S459). In double the term's arithmetic, sqrt and abs give
 the expression's value bit for bit; its exp, sin, cos, tan, log and atan are
 the language's plain functions, one ulp from the C core's correctly rounded
-kernels at 1 to 56 of 20,000 arguments each, until ruling 12 (S460). The
+kernels at 1 to 56 of 20,000 arguments each, until ruling 12 (S460); exp's
+since chunk 63 the kernel's, bit for bit (S480). The
 run-time derivative is step 25's (4a), which takes the term when it comes.
 `t_reify_face.cpp` checks reify at every rung (S461).
 
@@ -1119,8 +1121,28 @@ levels it compiles at and any flag it needs (S474). The 91 hand-written
 headers that lacked them have them; the 64 the generator writes take
 theirs from `scripts/gen_c_math/banner_sections.py`, which refuses a new
 header without them, each part of a split header pointing to its header
-(S475). The code is chunk 61's token for token (S476). The two
-`created: TBA` stay, their dates not known (S477).
+(S475). The code is chunk 61's token for token (S476), and, as the owner
+ruled, its objects are too, by g++ and clang over every smoke build, two
+tests' differing only in their asserts' line numbers (chunk 63, S481). The
+two `created: TBA` stay, their dates not known (S477).
+
+**The plain double exp correctly rounded.** Chunk 63 (S478 to S482), as
+the owner ruled on 2026.11.24: ruling 12 makes each plain double function
+the correctly rounded one once that is within about twice the C library's
+time, and his decision 48 asked for exp's switch first. `d_math_d_exp` is
+`d_math_d_exp_c` wherever double is evaluated in double, so that every
+plain exp call, the language's `exp` and the complex numbers' plain
+exponentials among them, gives the correctly rounded value, the same bits
+on every platform and at compile time (S478); on a 32-bit x87 it stays the
+C library's, so that the plain form builds everywhere (S479). Measured
+again, the plain exp takes 1.3 to 1.7 times the library's time over exp's
+whole range but 2.1 to 2.6 on ordinary arguments with gcc, up to 3.0 with
+clang, past the twice there; a speed step for `exp_c`'s first phase is
+outstanding (S478). `t_exponential` checks the plain exp against `exp_c`
+bit for bit at ten million arguments, and `t_reify_face.cpp` a reified
+term's exp against the expression's (S480). The float and long double
+plain exp, and every other plain double function, stay the library's
+until each comes within twice, `log` first after S424's step.
 
 **Decimal text.** `decimal.h` reads a decimal number of any length as the
 nearest `float`, `double` or `long double`, ties to even, whatever the
@@ -1475,6 +1497,8 @@ module:
 | 2026.11.23 | chunk 59's decisions stand ("continue"): step 34 (5f), the lazy type, next |
 | 2026.11.24 | chunk 60's decisions stand ("continue"): step 35 (5g), the style debt, next |
 | 2026.11.24 | S473 ruled: the banners' HOW TO USE, OPTIONS and CONFIGURATION written today; chunk 61's decisions stand ("continue") |
+| 2026.11.24 | rulings 12, 13, 14's 9b and 15, each as recommended: each plain double function correctly rounded once within about twice the C library's time; `min` and `max` as IEEE 754-2019's, with `min_num` and `max_num`; random numbers math's, the seeds and keys simterp's; the elementary block first, then root finding, banded solves and table lookups, the number types, random numbers, the rest; chunk 62's S474, S475 and S477 stand |
+| 2026.11.24 | ruling 14's 9a and 9c: the ODE steppers math's, `st_math` the terps'; S476 B, chunk 62's objects compared as well; the rulings' work now, exp's switch first, then the scalar helpers |
 
 ---
 
@@ -1531,7 +1555,8 @@ Wednesday's, their files at the tree's root as his merge window reads a
 zip (S447, S449); chunk 58's goes over that main with both laid over it, in
 order (S455), chunk 59's over that with chunk 58's laid too (S462), and
 chunk 60's after chunk 59's (S468), chunk 61's after chunk 60's
-(S473), and chunk 62's after chunk 61's (S477).
+(S473), chunk 62's after chunk 61's (S477), and chunk 63's after chunk
+62's (S482).
 From 2026.11.18 the lane's notes and deliveries go out once a day.
 
 Outside `cpp/modules/math/`, `c/modules/math/` and their tests, this lane

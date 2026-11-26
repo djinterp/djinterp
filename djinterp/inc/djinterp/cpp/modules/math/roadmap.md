@@ -45,6 +45,8 @@ values on it (chunk 56) and calculus (chunk 58) compile from C++11, each
 empty below it, and `math.hpp`, which includes them all, at every level;
 their names and sections are the style guides' (chunk 61). Every header
 of math has the banners' HOW TO USE, OPTIONS and CONFIGURATION (chunk 62).
+The plain double exp is the correctly rounded one, as the owner's ruling
+12 has it (chunk 63).
 `reify` (chunk 59) makes a compile-time expression a term of the run-time
 language, which prints, simplifies and evaluates it by name. Linear algebra
 has an opt-in lazy type from C++11 (chunk 60), each element the eager bits.
@@ -973,7 +975,8 @@ of a term, `str()` writes as the renderer does, `x ^ 2 * sin(x)`.
   integral constants exact, so that a reified derivative simplifies; what
   the language has no term for refused at compile time (S456 to S459). In
   double its arithmetic is the expression's bit for bit, its functions the
-  language's plain ones until ruling 12 (S460). The run-time derivative is
+  language's plain ones until ruling 12 (S460), exp's the kernel's since
+  chunk 63 (S480). The run-time derivative is
   4a's (step 25), which takes the term when it comes; until then a
   compile-time derivative is reified. `t_reify_face.cpp` checks it at every
   rung (S461).
@@ -1013,7 +1016,12 @@ of a term, `str()` writes as the renderer does, `x ^ 2 * sin(x)`.
   1.95 to 3.03 times the library's, its speed still outstanding (S424); then,
   after 0.8's items and core v2, sin, cos, tan, atan, pow and the
   hyperbolic functions. Float
-  follows from the double kernels; long double keeps its own.
+  follows from the double kernels; long double keeps its own. By ruling 12
+  (2026.11.24) each plain double function becomes the correctly rounded one
+  once it is within about twice the C library's time: the plain exp in
+  chunk 63 (S478), 2.1 to 2.6 times the library's on ordinary arguments,
+  its own speed step outstanding (S478); `log` once S424's step brings it
+  within twice.
 - [ ] **6b** (step 37) The speed of `sqrt_c` in 32-bit builds (chunk 10's
   options), and `binade_of`'s table.
 - [x] **6c** (step 38) (chunk 55) The generator's 189 misaligned parameter
@@ -1057,6 +1065,40 @@ C++20.
   arithmetic.
 - [ ] **P7** (step 49) `evaluate(context)` at any precision, and an optional
   GMP/MPFR backend behind a configuration switch.
+
+## The terps' needs, as ruled 2026.11.24 (rulings 12 to 15)
+
+The owner's rulings 12 to 15 of 2026.11.24, on simterp's and genterp's
+needs list, give math this work, in ruling 15's order. It is not yet
+numbered as steps: each item gets its step's number when it is scheduled,
+and is counted in the progress table from then (S482).
+
+- **The elementary block** (ruling 15): each plain double function made the
+  correctly rounded one once it is within about twice the C library's time
+  (ruling 12) - exp in chunk 63 (S478), its own speed step outstanding,
+  then log after S424's step - and the rest of the double family as 6a
+  rewrites it, with the special functions placed in it: Stumpff functions
+  and exact angle wrapping with sin and cos; erf, erfc and the inverse
+  normal with gamma, at the block's end (S203).
+- **The scalar helpers** (ruling 13, B), in chunk 64 as the owner's
+  decision 48 has it: `abs`, `clamp`, `lerp`, `copysign`, `ldexp`,
+  `frexp`, `is_finite`, and `min` and `max` as IEEE 754-2019's minimum and
+  maximum, a NaN in giving NaN out and -0 below +0, with `min_num` and
+  `max_num`, which ignore a NaN, as C23 has both; `clamp` of a NaN NaN, and
+  `lerp` exact at both ends and never overshooting, as C++20's is.
+- **Root finding, banded solves and table lookups** (ruling 15).
+- **The number types** - dual numbers, enclosing intervals, affine
+  arithmetic - once simterp rules its A6 (ruling 15).
+- **Random numbers**, math's (ruling 14, 9b): a counter-based generator
+  keyed by seed, entity and purpose, Sobol sequences and the distributions
+  as pure functions of the bits, simterp choosing the seeds and keys; once
+  simterp's A9 places the seeds (ruling 15).
+- **ODE steppers**, math's (ruling 14, 9a): Dormand-Prince 5(4) with dense
+  output and IAS15, written from its paper; simterp's symplectic N-body
+  maps stay simterp's. With the rest, as simterp rules each need (ruling
+  15).
+- `st_math`, the terps' frozen library, stays in simterp and genterp
+  (ruling 14, 9c).
 
 ## Later, not yet decided
 
@@ -1182,9 +1224,14 @@ Chunk 59 made step 32, 5d, `reify` (S456 to S462), which stand by his
 "continue" of 21:32; chunk 60 made step 34, 5f, the lazy type (S463 to
 S468), which stand by his "continue" of 2026.11.24; chunk 61 made step 35,
 5g, the style debt, which closes Phase 5 (S469 to S473), which stand by
-his "continue" of 12:34 the same day; and chunk 62, as he ruled S473,
+his "continue" of 12:34 the same day; chunk 62, as he ruled S473,
 wrote the banners' three sections in every header of math (S474 to
-S477).
+S477), which stand by his rulings of 14:20 and 14:37, S476 as he ruled it,
+the objects compared as well; and chunk 63, as his rulings 12 to 15 of
+that day and his decision 48 have it, made the plain double exp the
+correctly rounded one and compared chunk 62's objects (S478 to S482). The
+work rulings 13 to 15 make is in "The terps' needs", below, in ruling 15's
+order.
 The outstanding decisions of `decisions.md`, its section 1, by group and
 urgency, and the suggestions of `comparison.md`'s section 9 are the owner's
 to take or leave before then.
