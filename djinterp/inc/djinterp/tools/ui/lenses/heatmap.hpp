@@ -11,6 +11,27 @@
 *   Absent samples are left as NaN in the field and produce no cell.  Cells and
 * the field share the metric range, so their colourings agree.
 *
+* HOW TO USE
+* ----------
+*   heatmap_lens().build(state, config, frame) samples each cell's value over up
+* to two display axes into the scene's field, adds one coloured cell per present
+* sample, and draws the frame's path. It keeps no state, so one instance serves
+* any number of builds. Draw its field with layout_field or field_svg, its cells
+* with project_scene.
+*
+* OPTIONS
+* -------
+*   The config's lens.axes, at most two, empty for the first two (more is
+* too_many_axes); colors, for cells and field alike; layout.coords and spacing
+* for the cells. A continuous axis is sampled at a fixed resolution.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: no knob or macro changes it. Below C++17 the file is empty
+* rather than an error (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of
+* djinterp::ui's is, though the module's own floor is C++11: the FLOOR note
+* below says why.
+*
 *
 * path:      /inc/djinterp/tools/ui/lenses/heatmap.hpp
 * link(s):   TBA

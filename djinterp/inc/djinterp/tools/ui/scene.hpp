@@ -8,6 +8,26 @@
 * or UI-framework notion — just positioned cells, a styled path, an optional
 * scalar field, and per-axis decorations.
 *
+* HOW TO USE
+* ----------
+*   A lens produces one for one frame, and a renderer reads it; nothing in it
+* knows how it will be viewed. dimensions is 1, 2 or 3; cells are the shapes
+* placed in render space; path is the frame's path; field is the heatmap lens's
+* grid of values, row by row, NaN where a cell has none, and absent from the
+* slice lens; axes are each displayed axis's label and ticks; bounds boxes them
+* all. project_scene and layout_field (draw.hpp) draw it.
+*
+* OPTIONS
+* -------
+*   None.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: no knob or macro changes it. Below C++17 the file is empty
+* rather than an error (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of
+* djinterp::ui's is, though the module's own floor is C++11: the FLOOR note
+* below says why.
+*
 *
 * path:      /inc/djinterp/tools/ui/scene.hpp
 * link(s):   TBA

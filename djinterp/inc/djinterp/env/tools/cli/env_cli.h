@@ -12,6 +12,34 @@
 * read only by cfg_cli.h and the kit's sources: the system headers the facts
 * call for are included by one source, cli_system.c, and by no header.
 *
+* HOW TO USE
+* ----------
+*   Nothing to call, and no program includes it: cfg_cli.h does, and the kit's
+* sources read its facts. D_ENV_CLI_MODULES and D_ENV_CLI_MODULE_SUFFIX say how
+* a module is loaded and named; D_ENV_CLI_EXECUTABLE and
+* D_ENV_CLI_EXECUTABLE_LINK, how the program finds its own file;
+* D_ENV_CLI_CONSOLE, how a stream is asked whether it is a terminal;
+* D_ENV_CLI_PATH_LIST_SEPARATOR, D_ENV_CLI_PATH_SEPARATOR and
+* D_ENV_CLI_HELP_SLASH, the separators; and D_ENV_CLI_PRIVILEGE, how a run is
+* asked whether it has privileges its caller lacks.
+*
+* OPTIONS
+* -------
+*   Each fact's values are its identifiers: D_ENV_CLI_MODULES_NONE, _DLOPEN or
+* _WINDOWS; D_ENV_CLI_EXECUTABLE_ARGV, _PROC, _WINDOWS, _MACOS, _SYSCTL or
+* _SOLARIS; D_ENV_CLI_CONSOLE_NONE, _POSIX or _WINDOWS;
+* D_ENV_CLI_PRIVILEGE_NONE, _AUXVAL, _ISSETUGID or _IDS.
+*
+* CONFIGURATION
+* -------------
+*   Define any fact before this header is read, with -D or in a prefix header,
+* and the kit takes it as given: D_ENV_CLI_MODULES as D_ENV_CLI_MODULES_NONE
+* to build without loadable modules, say, or the facts of a platform env.h
+* does not classify.
+* Otherwise each is derived from env.h's: the privilege check is AUXVAL on Linux
+* and Android (IDS with a glibc before 2.16), ISSETUGID on the BSDs and Apple's
+* systems, IDS on any other POSIX system, and NONE on Windows and elsewhere.
+*
 *
 * path:      /inc/djinterp/env/tools/cli/env_cli.h
 * link(s):   TBA

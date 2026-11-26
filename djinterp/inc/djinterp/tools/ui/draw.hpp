@@ -14,6 +14,37 @@
 * backend's text metrics. pick_field() and field_cell_rect() map between panel
 * points and field cells, so every backend hit-tests the same way.
 *
+* HOW TO USE
+* ----------
+*   For a scene's cells, project_scene(scene, camera, viewport, config, hover,
+* selected) gives a draw_list: filled rects and translucent quads under stroked
+* segments, then labels, each kind in the order to paint it, back to front.
+* pick_cell(scene, camera, viewport, point) is the cell under a screen point, or
+* no_cell.
+*   For a scene's field, layout_field(scene, canvas, scale, style, text,
+* overlay) lays out the whole labelled panel. project_field draws the grid
+* alone; pick_field is the cell under a point, and field_cell_rect a cell's
+* rectangle, in the same coordinates. Any 2D backend paints a draw_list: an
+* immediate-mode window, svg.hpp's writer, a raster.
+*
+* OPTIONS
+* -------
+*   project_scene reads the config's colours, filling and interaction, and takes
+* the cells to show hovered and selected. field_scale: the colormap and the
+* value range [low, high]; scale_of gives the field's own. field_style: the
+* backdrop, text, grid and highlight colours, whether the range and the axis
+* titles show, the tooltip, and the padding. text_metrics: the backend's line
+* height and string width; without a width, text is measured as a monospace font
+* half as wide as a line is tall. field_overlay: the cells marked, outlined or
+* filled, and a trail through cell centres.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: no knob or macro changes it. Below C++17 the file is empty
+* rather than an error (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of
+* djinterp::ui's is, though the module's own floor is C++11: the FLOOR note
+* below says why.
+*
 *
 * path:      /inc/djinterp/tools/ui/draw.hpp
 * link(s):   TBA
@@ -103,7 +134,7 @@ struct draw_label
 };
 
 // draw_list
-//   struct: the flattened 2D content of a scene, ready for any 2D backend --
+//   struct: the flattened 2D content of a scene, ready for any 2D backend:
 // filled `rects` (backdrop) and `quads` (translucent faces, back to front)
 // underneath stroked `segments`, with `labels` (text) drawn last on top.
 struct draw_list

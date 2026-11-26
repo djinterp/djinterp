@@ -1,9 +1,9 @@
 # The djinterp interpreter and its command language: design
 
 Written 2026-11-04, amended 2026-11-09, 2026-11-11, 2026-11-13,
-2026-11-18, 2026-11-20 and 2026-11-25. Agreed with the designs it depends
-on: expression core v2's, the options' and the registry's, and dawk's. The
-owner rules what they do not settle.
+2026-11-18, 2026-11-20, 2026-11-25 and 2026-11-27. Agreed with the designs
+it depends on: expression core v2's, the options' and the registry's, and
+dawk's. The owner rules what they do not settle.
 
 Release numbers are the renumbered ones:
 
@@ -20,6 +20,7 @@ Read it with:
   section 17.2 is this note's other half;
 - `docs/djinterp/option/knob_and_option.md`, the pattern every setting
   follows;
+- `docs/djinterp/tools/djinterp/README.md`, the program as 0.8 has it;
 - the cli registers' rulings in `docs/djinterp_decisions.md`, Part C;
 - `desc.txt`.
 
@@ -493,35 +494,53 @@ one source").
 
 ### 6.4 The 0.8 preview's command line
 
+*(Final for 0.8, 11-27.)*
+
 ```
-djinterp list                        the djins, a line each: name, version,
-                                     summary
-djinterp describe DJIN [COMMAND]     desc's facts, as text, or JSON
-                                     (--format=json)
-djinterp get [--show-origin] NAME... settings' values, as statements that
-                                     load back; where each came from
-djinterp set NAME=VALUE...           settings written to the user's file
-djinterp DJIN COMMAND [ARGUMENT]...  a djin's command, run
-djinterp help, completion, --version the kit's
+djinterp list                         the djins, a line each: name, version,
+                                      summary; then the frames no djin names
+djinterp describe DJIN [COMMAND]      a djin, or one of its commands, as
+                                      text, or JSON (--format=json)
+djinterp get [--show-origin] [NAME]...
+                                      settings as statements that load back,
+                                      every one without a NAME; where each
+                                      value came from
+djinterp set [--section=PROGRAM] NAME=VALUE...
+                                      settings written to the user's file
+djinterp help, completion, --version  the kit's
 ```
 
-Each djin is a command group, as `git`'s subcommands are. A djin named as a
-built-in command is refused at registration, by name.
+Each djin is a command group, as `git`'s subcommands are:
+`djinterp DJIN COMMAND [ARGUMENT]...` runs a djin's command. 0.8 registers
+no djin with commands of its own, so the form waits for 0.9's first, but
+its names are kept from now: a djin is refused at registration, by name,
+where its name is one of the program's commands or the kit's (`list`,
+`describe`, `get`, `set`, `help`, `completion`), or the name of one of the
+manual's pages in sections 5 and 7 (`settings`, `cli`, `language`), which
+its own page, `djinterp-NAME(1)`, would otherwise share.
 
-In the preview of 11-13, `describe` takes a djin alone, as text. From
-11-20 it takes `COMMAND` too, one of the djin's commands, and
-`--format=json`, which writes an object of the shape
-`"djinterp.describe/1.0"`, named first as `"format"`, through desc's JSON
-machine (`c/modules/interp/djin_desc.h`). The settings in it are the option
-core's own reading of them (`option_env_desc.h`), so `describe`, `help` and
-`get --show-origin` cannot disagree. With no djin of the program's own yet,
-`list` names the registry's frames as "settings only": every core djin's
--- parse's, desc's, the environment printer's and the log's, which
-`djinterp` registers from 11-20 - and the kit's `cli`.
+With no djin of the program's own yet, `list` names the registry's frames
+as "settings only": every core djin's, parse's, desc's, the environment
+printer's and the log's, which `djinterp` registers before it runs, and the
+kit's `cli`. bitwisedom's djin is bitwisedom's to register, and djinterp
+does not.
 
+- **`describe DJIN`** writes a djin's description, and **`describe DJIN
+  COMMAND`** one of its commands alone; for a frame no djin names, its
+  settings. A name no djin or frame has is a usage error, `no djin is named
+  'net'`. `--format=json` writes an object of the shape
+  `"djinterp.describe/1.0"`, named first as `"format"`, through desc's JSON
+  machine (`c/modules/interp/djin_desc.h`). The settings in it are the
+  option core's own reading of them (`option_env_desc.h`), so `describe`,
+  `help` and `get --show-origin` cannot disagree.
+- **`help --format=json`** is the kit's description of the program,
+  `"djinterp.help/1.0"` (the kit's `HELP_JSON.md`), with two members of
+  djinterp's own: `djins`, each djin's name, version, summary and commands,
+  then each frame no djin names, its settings alone, in `list`'s order; and
+  `reserved`, the names above that a djin may not take.
 - **`get`** prints statements, `net.timeout_ms = 5000`, one a line, with
-  `d_option_env_format_quoted`. So its output can be pasted into a settings
-  file.
+  `d_option_env_format_quoted`, so its output can be pasted into a settings
+  file. Without a NAME it prints every setting the registry holds.
   - An unset text prints as a comment, `# plugin_path is unset`, which loads
     as nothing.
   - With `--show-origin`, each value is followed by its source and the
@@ -538,21 +557,47 @@ core's own reading of them (`option_env_desc.h`), so `describe`, `help` and
 - **`set`** writes each statement to the user's settings file, with
   `d_option_env_format_quoted`. Its bindings are `FILE`'s on the next run.
   - Each is checked first as the file will bind it
-    (`d_option_env_registry_check_from`), so a setting that refuses the file
-    is refused before anything is written.
+    (`d_option_env_registry_check_from`), then bound for the run, so a name
+    no djin has, or a value the setting does not take, is refused, each
+    refusal said, before anything is written.
   - Each is written under its canonical name: its row's, after its djin's.
-  - A one-run override is `--set NAME=VALUE`.
+  - The file is written whole, as the run reads it, in sections (the kit's
+    grammar, section 6): `[PROGRAM]` begins the lines that program alone
+    reads, and `[*]` every program's again. Without `--section`, or with
+    `--section='*'`, the statements go among every program's lines: a line
+    there that sets the same name alone is replaced, and the new ones go
+    after the last statement before the first header. With
+    `--section=PROGRAM` they go in that program's lines: a line of its
+    sections that sets the name alone is replaced, and the new ones go after
+    the last statement of its last section, which is made at the file's end
+    where it has none. Either way, a line kept after the new ones that sets
+    the same name for a program that reads them is said by its line, as a
+    warning, since that program reads it last. A line among other
+    programs' is never replaced.
+  - The headers are the file's structure, kept even in a run that reads
+    the file as one part (`cli.settings_sections` false, from the
+    environment), so that no other program's lines are taken for this
+    one's.
+  - A setting of a djin `djinterp` does not register, as
+    `bitwisedom.keys`, is refused as one no djin has, `--section` or not;
+    another program's lines are written by hand. Whether `set` may write
+    such a line unchecked is still the owner's to rule.
+  - A one-run override is `--set NAME=VALUE`, as in every program on the
+    kit.
   - In the 0.9 interpreter's prompt, `set` binds from `COMMAND_LINE` for the
     session instead.
-- **`get` and `set` for a djin with a file of its own.** They take the
-  registry's names and, for a djin whose settings come from a file of its
-  own, fall back to that file's raw path for anything the registry does not
-  list. That is bitwisedom's rule (cli-taken 16), made the language's.
+- **A djin whose settings come from a file of its own.** `get` and `set`
+  are to take the registry's names and fall back to that file's raw path
+  for anything the registry does not list: bitwisedom's rule (cli-taken
+  16), made the language's. No djin `djinterp` registers in 0.8 has such a
+  file, so the fallback comes with the first that does.
 
 The 0.9 interpreter adds `djinterp -c 'LINE'`, `djinterp FILE` for scripts,
 and standard input.
 
 ### 6.5 Loadable djins
+
+*(Final for 0.8, 11-27: what 0.8 has of it is the search list's rules.)*
 
 Not in 0.8. In 0.9:
 
@@ -572,6 +617,21 @@ an override still bind them. A builder who trusts one of those sources
 defines `D_OPTION_ENV_REFUSES_CALLER` as its own set; no run-time option
 relaxes it. A row names the sources it refuses, and a binding from one fails
 by name.
+
+**A run with privileges its caller lacks** (a set-user-ID or set-group-ID
+program, or one given capabilities) refuses its caller the same rows,
+whatever `D_CFG_CLI_PLUGIN_VARIABLE` says, where `D_CFG_CLI_PRIVILEGED_REFUSE`
+(1 by default) or the program (`d_cli_program_set_plugin_privileged`) has
+it so. In such a run `cli.privileged_refuse` is the program's alone, and
+`D_CFG_CLI_PRIVILEGED_OPTION` 0 compiles it out. A privileged run that
+trusts its caller says so, as a warning naming whose word it is, the
+program's or the build's. The run asks the system as its loader does
+(`env_cli.h`, `D_ENV_CLI_PRIVILEGE`): `AT_SECURE` on Linux and Android,
+`issetugid` on the BSDs and Apple's systems, the user and group ids on any
+other POSIX system; on Windows no run is privileged.
+
+Both rules hold from 0.8 for every program's plugins; 0.9's djins inherit
+them.
 
 
 ## 7. awk
@@ -659,6 +719,7 @@ into the language's types.
 | Fri 11-20 | `djinterp` registers every core djin. `describe DJIN [COMMAND]` and `--format=json`. `set` checks each setting as the file will bind it, and writes its canonical name. The plugin rows refuse the caller's sources where `D_CFG_CLI_PLUGIN_VARIABLE` is 0. The kit's suites run on DTest. The kit holds what the user's file and the environment could not set, and says it once the parse ends, as two settings of its own say: `cli.unknown_settings` (by default, nothing for a djin the program does not register) and `cli.shared_refusals` (by default, a note at `-v`). |
 | Mon 11-23 | The kit reads the command line's settings through the argument parser's setting hook. `help --format=json` writes the program's description, `"djinterp.help/1.0"` (`docs/djinterp/tools/cli/HELP_JSON.md`). The interpreter's skeleton, its first step: `language.hpp` reads a line or a command line, sequences and pipelines, into core v2's term through its C API, and `evaluate.hpp` walks it, a pipeline ended by its first stage in trouble. Its suite runs at each C++ level from C++11, in its own leaf (`build/cmake/config/testing/djinterp/cpp/modules/interp/skeleton/`); nothing of it is installed. |
 | Wed 11-25 | The user's settings file read in sections, `[PROGRAM]` and `[*]` (`cli.settings_sections`), and `djinterp set --section=PROGRAM`. A privileged run refuses the plugin settings from its caller's sources unless the program or the build trusts it (`cli.privileged_refuse`). An unknown djin told either way, by the registry's reason or the kit's lookup (`cli.unknown_djin`). bitwisedom's own djin, `bitwisedom.keys` and `bitwisedom.sheets`. The skeleton's second step: `and`, `or` and `not` by truth, short-circuiting; the comparisons by number, text and structure, `=~` by ERE; numbers and strings as literals. Its suite has 11 tests. |
+| Fri 11-27 | The preview's docs: 6.4 and 6.5 final, the kit's grammar's section 6 on its settings and the file's sections, and the kit's and `djinterp`'s READMEs. Every header of the kit, `djinterp::ui` and the kit's environment carries HOW TO USE, OPTIONS and CONFIGURATION. |
 | Weeks 2 and 3 | The 0.8 preview (6.4) whole: `describe DJIN COMMAND` and `--format=json` on desc's sink, and a djin's commands run. The interpreter's skeleton on core v2 - sequences and pipelines - behind it. |
 | Week 4 | The preview's suites and docs; this note's December half, refined. |
 | December | Predicates, blocks and values; djins through the interpreter; awk run by dawk; the language frozen 12-11; suites, docs and the man page by 12-18. |

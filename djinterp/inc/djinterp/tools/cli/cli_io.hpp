@@ -8,6 +8,26 @@
 * std::string for the bytes. A file call returns 0 or an errno value, as the
 * C call does, for d_cli_file_error or program::file_error to report.
 *
+* HOW TO USE
+* ----------
+*   Write a result through output_sink() and a diagnostic through error_sink();
+* ask colour_wanted whether a stream is to be coloured, and is_terminal and
+* terminal_columns about the terminal. Read and write a whole file with
+* read_file and write_file, the bytes in a std::string and `-` the standard
+* stream (is_standard); each returns 0 or an errno value, for
+* program::file_error to report.
+*
+* OPTIONS
+* -------
+*   `--color` (always, auto, never; colour::automatic is auto), and NO_COLOR and
+* TERM=dumb from the environment.
+*
+* CONFIGURATION
+* -------------
+*   As cli_io.h's: D_CFG_CLI_COLOUR 0 never colours; D_CFG_CLI_CONSOLE_WIDE 0
+* writes UTF-8 bytes to a Windows console (cfg_cli.h);
+* D_CFG_FILE_WRITE_CREATE_MODE is the mode a new file is made with.
+*
 *
 * path:      /inc/djinterp/tools/cli/cli_io.hpp
 * link(s):   TBA
@@ -134,7 +154,7 @@ std::size_t terminal_columns() D_NOEXCEPT;
 
 // 2.2.3
 // colour_wanted
-//   query: d_cli_colour_wanted: whether a stream takes colour under a mode --
+//   query: d_cli_colour_wanted: whether a stream takes colour under a mode:
 // always, never, or, automatically, a terminal that is not `TERM=dumb` with
 // `NO_COLOR` unset or empty, and one the console takes ANSI sequences for.
 bool colour_wanted(

@@ -8,6 +8,29 @@
 * frontend and lens reads from; `in_memory_state_source` is a simple concrete
 * implementation.
 *
+* HOW TO USE
+* ----------
+*   Describe the space as axes: each continuous, over [min, max], or discrete,
+* its labels its values. A cell_address names a cell by its level, 0 being the
+* whole space, and one index per axis at that level.
+*   Everything is read through a state_source. For a large or streaming source,
+* implement its five calls: axis_count, axis_at, frame_count, current_path at a
+* frame, and value_at a cell and frame, nothing where the cell has no value. For
+* data already in hand, give in_memory_state_source the axes, one path per frame
+* and a value_fn. visit_source (sources/) is a ready one for counts over time.
+*
+* OPTIONS
+* -------
+*   None; a state source is data, and a visualization's settings are
+* config.hpp's.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: no knob or macro changes it. Below C++17 the file is empty
+* rather than an error (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of
+* djinterp::ui's is, though the module's own floor is C++11: the FLOOR note
+* below says why.
+*
 *
 * path:      /inc/djinterp/tools/ui/state.hpp
 * link(s):   TBA

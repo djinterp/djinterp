@@ -32,6 +32,8 @@ loaded only when that command runs.
 The kit is C99 (`c/`, the `d_cli_` library), with a C++ face beside it
 (`cli_program.hpp`, `cli_io.hpp`, `cli_plugin.hpp`) that adds no state of its
 own: a `kit::program` *is* the parser and holds the kit's C record.
+*(added 11-27)* The class is `djinterp::cli::program`, and the face has two
+headers more, `cli_edit.hpp` and `cli_operand.hpp`.
 
 ---
 
@@ -44,12 +46,14 @@ own: a `kit::program` *is* the parser and holds the kit's C record.
 | `c/cli_help.h` | *(added 11-23)* the program's description as JSON, `help --format=json` (HELP_JSON.md), and the small writer it is written with, which a program's hook adds its own members with |
 | `c/cli_io.h` | the standard streams, terminals, colour, and files read and written whole |
 | `c/cli_plugin.h` | the plugin interface, finding and loading a command's module, both sides of a plugin |
-| `c/cli_settings.h` | the run's settings on the knob-and-option pattern: the kit's own, the user's file, the environment, those the command line gives *(added 11-13)*. *(added 11-20)* What the file and the environment could not set is held, and said once the parse ends, as `cli.unknown_settings` and `cli.shared_refusals` say; a variable set empty is taken as not set |
+| `c/cli_settings.h` | the run's settings on the knob-and-option pattern: the kit's own, the user's file, the environment, those the command line gives *(added 11-13)*. *(added 11-20)* What the file and the environment could not set is held, and said once the parse ends, as `cli.unknown_settings` and `cli.shared_refusals` say; a variable set empty is taken as not set. *(added 11-27)* The file's sections, for a program that writes it (`d_cli_settings_next_header`, `d_cli_settings_section_reads`); a privileged run's refusals; `cli.unknown_djin` |
+| `c/cli_edit.h` | *(added 11-27)* a command that changes a file: its operand, `-o`, `-n` and `-i`, and the result written where the program's rule sends it |
+| `c/cli_operand.h` | *(added 11-27)* operands that name something other than a file, by a prefix (`example:uart_cr`) |
 | `c/cli.h` | every C header of the kit, and the parser's |
-| `cli_program.hpp`, `cli_io.hpp`, `cli_plugin.hpp` | the C++ face of each |
+| `cli_program.hpp`, `cli_io.hpp`, `cli_plugin.hpp` | the C++ face of each; *(added 11-27)* and `cli_edit.hpp`, `cli_operand.hpp` |
 | `cli.hpp` | every C++ header of the kit, and the parser's face |
 | `../../config/parse/cli/cfg_cli.h` | the kit's knobs |
-| `../../env/parse/cli/env_cli.h` | what the platform has: consoles, modules, the program's own file |
+| `../../env/parse/cli/env_cli.h` | what the platform has: consoles, modules, the program's own file; *(added 11-27)* the search path's separators, and how a run is asked whether it has privileges its caller lacks |
 | `src/djinterp/parse/cli/c/cli_system.c` | everything the kit asks of the system; the only source that includes a system header |
 
 ---
@@ -328,6 +332,38 @@ different settings still agree on every layout.
 | `D_CFG_CLI_PLUGIN_STRICT_VERSION` | 1 | a module of another program version refused; 0 loads it with a warning naming both versions; a program sets it per run with `d_cli_program_set_plugin_versions`, and a module of another interface version is always refused *(added 11-04: cli-taken 15)* |
 | `D_CFG_CLI_UNKNOWN_SETTINGS` | `D_CLI_UNKNOWN_SETTINGS_TYPOS` | *(added 11-20)* the default of `cli.unknown_settings`: what is said of a line of the user's file - which every program shares - that names no setting here. `none`; `typos`, a warning for a near miss and for a djin's setting that djin lacks, nothing for a djin the program does not register; `all`, a warning for each; `error`, an error for each, and exit 2 |
 | `D_CFG_CLI_SHARED_REFUSALS` | `D_CLI_SHARED_REFUSALS_VERBOSE` | *(added 11-20)* the default of `cli.shared_refusals`: what is said when the user's file or `DJINTERP_` sets a setting that refuses that source. `none`; `verbose`, a note at `-v`; `warn`; `error`, and exit 2. The program's own prefix is always warned of, and the command line refused |
+| `D_CFG_CLI_UNKNOWN_DJIN` | `D_CLI_UNKNOWN_DJIN_REASON` | *(added 11-27)* the default of `cli.unknown_djin`: how a name for a djin the program does not register is told from one it should know. `reason`, the registry's own reason; `lookup`, the kit's lookup of the name's first part. They differ only for a first part the root takes as a scope |
+| `D_CFG_CLI_SETTINGS_SECTIONS` | 1 | *(added 11-27)* the default of `cli.settings_sections`: the user's file read in sections, `[PROGRAM]` the lines for one program and `[*]` every program's again (GRAMMAR.md, section 6); 0 reads it as one part. The setting refuses the file and the command line |
+| `D_CFG_CLI_PRIVILEGED_REFUSE` | 1 | *(added 11-27)* the default of `cli.privileged_refuse`: in a run with privileges its caller lacks, `plugin_path` and `cli.plugin_search` refuse the caller's sources, whatever `D_CFG_CLI_PLUGIN_VARIABLE` says; 0, they take them, with a warning. An ordinary run is never changed |
+| `D_CFG_CLI_PRIVILEGED_OPTION` | 1 | *(added 11-27)* whether `cli.privileged_refuse` is declared, so that a program can choose at run time (`d_cli_program_set_plugin_privileged`); in a privileged run only the program sets it. 0 compiles it out |
+
+---
+
+## Settings and privileged runs
+
+*(added 11-27)* A program on the kit calls nothing to have its settings:
+the run starts them at its first parse, from the user's file, the
+environment and the command line (GRAMMAR.md, section 6). A program with
+djins of its own registers them before the run, so that their settings are
+read from the same three sources.
+
+- **A program that writes the user's file,** as `djinterp set` does, finds
+  its sections as the kit reads them: `d_cli_settings_next_header` finds
+  the next header where a statement could begin, and
+  `d_cli_settings_section_reads` says whether a program reads the lines
+  under it. `d_cli_settings_sectioned` says whether this run reads the file
+  in sections at all. Keep the headers either way: they are the file's
+  structure, not one run's view of it.
+- **A program run with privileges its caller lacks** (set-user-ID,
+  set-group-ID, or capabilities given to its file) refuses the caller the
+  plugin settings by default. A program that would choose for itself says
+  so before its first parse, with
+  `d_cli_program_set_plugin_privileged(program, D_CLI_PLUGIN_PRIVILEGED_REFUSE)`
+  or `D_CLI_PLUGIN_PRIVILEGED_TRUST`; `D_CLI_PLUGIN_PRIVILEGED_DEFAULT`
+  leaves it to the build. A run that trusts its caller says so, as a
+  warning naming whose word it is. The question is asked as the loader asks
+  it (`env_cli.h`, `D_ENV_CLI_PRIVILEGE`), and a testing build can pretend
+  either answer with `d_cli_settings_pretend_privileged`.
 
 ---
 

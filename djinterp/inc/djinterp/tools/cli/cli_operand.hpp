@@ -9,6 +9,21 @@
 * file's name; where a file has the operand's name too, the run says so,
 * once, and how to reach it.
 *
+* HOW TO USE
+* ----------
+*   Read each operand through named_operand, giving the program, the word, the
+* prefixes the command names things with and what it names: it gives the name
+* after the prefix in a std::string, or says the operand is a file's name, as
+* d_cli_named_operand does.
+*
+* OPTIONS
+* -------
+*   The prefixes, per call: two lowercase letters or more before a colon.
+*
+* CONFIGURATION
+* -------------
+*   Nothing at build time.
+*
 *
 * path:      /inc/djinterp/tools/cli/cli_operand.hpp
 * link(s):   TBA

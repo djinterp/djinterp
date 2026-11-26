@@ -16,6 +16,27 @@
 *   Fixed (non-displayed) axes are held at index 0 until the configuration grows
 * a per-axis slice selection.
 *
+* HOW TO USE
+* ----------
+*   slice_lens().build(state, config, frame) lays up to three display axes out
+* as a grid of structural cells, the other axes held at index 0, and draws the
+* frame's path through it, coloured by each node's metric. It keeps no state, so
+* one instance serves any number of builds. Draw it with project_scene.
+*
+* OPTIONS
+* -------
+*   The config's lens.axes, at most three, empty for the first three (more is
+* too_many_axes); layout.coords and spacing; layout.visible_levels, above 1 for
+* the nested layout, with shapes_per_level its branching, focused on the path's
+* last vertex; colors and line for the path.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: no knob or macro changes it. Below C++17 the file is empty
+* rather than an error (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of
+* djinterp::ui's is, though the module's own floor is C++11: the FLOOR note
+* below says why.
+*
 *
 * path:      /inc/djinterp/tools/ui/lenses/slice.hpp
 * link(s):   TBA

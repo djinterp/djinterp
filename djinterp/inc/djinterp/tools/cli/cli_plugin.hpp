@@ -11,6 +11,31 @@
 * not let an exception out into the C frame that calls it - running a
 * cli::program, whose work is guarded, is the usual way to be sure.
 *
+* HOW TO USE
+* ----------
+*   A program declares a command that is a module with program::add_plugin, and
+* the run finds, loads, checks and runs it. A module defines its entry point
+* with D_CLI_PLUGIN and makes its own program from the host, program(host). For
+* a loader's tests and tools: executable_path is the program's own file,
+* find_plugin searches for a command's module, and a DPluginModule loads one and
+* unloads it when it goes.
+*
+* OPTIONS
+* -------
+*   As cli_plugin.h's: `cli.plugin_search`, the root's `plugin_path` and
+* `cli.plugin_strict_version` (cli_settings.h); a program's own path, its say on
+* versions, and its say on a privileged run, `cli.privileged_refuse`, which only
+* the program sets in such a run.
+*
+* CONFIGURATION
+* -------------
+*   As cli_plugin.h's: D_CFG_CLI_PLUGINS 0 removes the loader;
+* D_CFG_CLI_PLUGIN_SEARCH, D_CFG_CLI_PLUGIN_VARIABLE and
+* D_CFG_CLI_PLUGIN_STRICT_VERSION are the settings' defaults and whether the
+* caller may choose where modules come from; D_CFG_CLI_PRIVILEGED_REFUSE and
+* D_CFG_CLI_PRIVILEGED_OPTION, what a privileged run does and whether the
+* program may choose (cfg_cli.h, 1.6).
+*
 *
 * path:      /inc/djinterp/tools/cli/cli_plugin.hpp
 * link(s):   TBA

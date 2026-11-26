@@ -6,6 +6,22 @@
 *   GRAMMAR.md, beside this file, is the grammar every program the kit makes
 * follows; README.md is how a program is made with it.
 *
+* HOW TO USE
+* ----------
+*   Include it once for the whole kit, in C++: cli::program and the rest of the
+* kit's C++ face, its streams and files, its operands, its commands that change
+* a file and its plugins, with the argument parser's C++ face and both C
+* libraries beneath them.
+*
+* OPTIONS
+* -------
+*   None of its own: each header it includes says its own.
+*
+* CONFIGURATION
+* -------------
+*   cfg_cli.h's knobs, as for the C kit (cli.h); D_CFG_CLI_ALL 0 builds the
+* smallest kit.
+*
 *
 * path:      /inc/djinterp/tools/cli/cli.hpp
 * link(s):   TBA

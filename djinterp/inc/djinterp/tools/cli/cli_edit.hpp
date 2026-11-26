@@ -12,6 +12,24 @@
 * was read, and a program made with program_flags::edits_to_output (B)
 * writes standard output unless given `-i`.
 *
+* HOW TO USE
+* ----------
+*   Keep a cli::edit in the command. Declare its operand with add_operand where
+* the command's operands are, and its options with add_options where its options
+* are; in the command's work, ask target() and dry_run() where the result goes,
+* and write it with write(). record() is the C record, for the calls of
+* cli_edit.h.
+*
+* OPTIONS
+* -------
+*   `-o FILE`, `-n`, and `-i` where the program writes standard output by
+* default, as the program's flags make it.
+*
+* CONFIGURATION
+* -------------
+*   program_flags::edits_to_output, a program's flag (cli_program.hpp), chooses
+* between the two defaults; nothing at build time.
+*
 *
 * path:      /inc/djinterp/tools/cli/cli_edit.hpp
 * link(s):   TBA

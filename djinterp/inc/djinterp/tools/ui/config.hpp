@@ -7,6 +7,30 @@
 * This is the single source of truth the interactive UI, the file exporter, and
 * the DSL all drive.
 *
+* HOW TO USE
+* ----------
+*   Make a config, change the fields you need, and hand it to a lens's build or
+* to a visualization; every field has a usable default. The same config drives
+* the live frontend and the file export.
+*
+* OPTIONS
+* -------
+*   colors, the colormap for cells, fields and paths (cool_warm). layout:
+* coords, the shape, the spacing between shapes, visible_levels (above 1, the
+* slice lens nests finer levels around the path's end) and shapes_per_level, the
+* branching at each. shape: its colour and opacity, and filled faces behind the
+* wireframe. gridlines and line: their colour, thickness and style. axes: the
+* labels, lines and scales drawn, and whether discrete axes may show. lens: the
+* mode and the display axes, empty for the first ones. interaction: hover, and
+* the highlight and selection colours. time: playback, and the speeds offered.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: no knob or macro changes it. Below C++17 the file is empty
+* rather than an error (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of
+* djinterp::ui's is, though the module's own floor is C++11: the FLOOR note
+* below says why.
+*
 *
 * path:      /inc/djinterp/tools/ui/config.hpp
 * link(s):   TBA

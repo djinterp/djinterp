@@ -9,6 +9,28 @@
 * yellow-orange-red ramp for light backgrounds, and greyscale. Stop colours
 * are display colours, as the frontends draw them.
 *
+* HOW TO USE
+* ----------
+*   Take a preset, colormap::cool_warm(), yellow_orange_red() or grayscale(), or
+* list stops sorted by position; sample(t) is the colour at a metric t in [0,
+* 1], and sample(t, alpha) the same with an opacity. A config's colors is the
+* colormap its cells, field and path are drawn in, and a field_scale (draw.hpp)
+* pairs one with a value range. heat_color(t, alpha) is cool_warm, for a caller
+* without a configuration.
+*
+* OPTIONS
+* -------
+*   A colormap's stops: each a position in [0, 1] and a display colour, sorted
+* by position. A metric past either end takes that end's colour; a colormap with
+* no stops samples as black.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: no knob or macro changes it. Below C++17 the file is empty
+* rather than an error (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of
+* djinterp::ui's is, though the module's own floor is C++11: the FLOOR note
+* below says why.
+*
 *
 * path:      /inc/djinterp/tools/ui/colormap.hpp
 * link(s):   TBA

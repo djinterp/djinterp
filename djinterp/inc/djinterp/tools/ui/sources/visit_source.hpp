@@ -14,6 +14,27 @@
 * cell. (Per the style guide these bodies would normally move to a .cpp; they
 * are inline here to keep djinterp::ui header-only.)
 *
+* HOW TO USE
+* ----------
+*   Make one over discrete axes and a frame count, with a path function if the
+* frames have paths: `visit_source v(axes, frames, paths);`. visit(indices,
+* frame) records a visit, or returns false and records nothing for a cell
+* outside the space; count, total and first_visit read one cell. As a
+* state_source, a cell's value at a frame is its count up to that frame, nothing
+* if unvisited; the heatmap lens draws it.
+*
+* OPTIONS
+* -------
+*   None of its own. Every axis must be discrete, its labels its cells. Visits
+* may come in any order; frame order is cheapest.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: no knob or macro changes it. Below C++17 the file is empty
+* rather than an error (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of
+* djinterp::ui's is, though the module's own floor is C++11: the FLOOR note
+* below says why.
+*
 *
 * path:      /inc/djinterp/tools/ui/sources/visit_source.hpp
 * link(s):   TBA

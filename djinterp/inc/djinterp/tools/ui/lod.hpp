@@ -8,6 +8,29 @@
 * on `scalar` — it knows nothing about coordinate systems, the scene, or the
 * renderer, so a lens turns these cells into render geometry separately.
 *
+* HOW TO USE
+* ----------
+*   generate_lod_cells(dim, focus, scheme, visible_levels, window_radius) gives
+* the nested layout over dim axes in normalised [0, 1] space, the focus one
+* coordinate per axis: level 0 fills the space, and each finer level adds the
+* cells within window_radius cells of the focus. A lens maps the cells into
+* render space; the slice lens does, for a config whose layout.visible_levels is
+* above 1, focused on the path's last vertex.
+*
+* OPTIONS
+* -------
+*   lod_scheme: base_resolution, the cells along each axis at level 0 (1);
+* branching, the factor to each next level, one entry per level, and
+* default_branching (2) past its end. divisions_at(level) and
+* branching_at(level) read it. window_radius is 1 unless given.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: no knob or macro changes it. Below C++17 the file is empty
+* rather than an error (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of
+* djinterp::ui's is, though the module's own floor is C++11: the FLOOR note
+* below says why.
+*
 *
 * path:      /inc/djinterp/tools/ui/lod.hpp
 * link(s):   TBA

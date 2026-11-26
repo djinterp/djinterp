@@ -12,6 +12,26 @@
 * to the maths `cylindrical` system — polar in the xy-plane with a height z —
 * which is its natural three-dimensional form for a scene.
 *
+* HOW TO USE
+* ----------
+*   make_coordinate_mapper(system) gives the mapper for a coordinate_system
+* chosen at run time; its to_cartesian turns a point in that system's
+* coordinates into a render position. cartesian passes points through, polar
+* takes (rho, phi, z) through the math library's cylindrical system, and
+* spherical takes (r, theta, phi). A lens makes one from its config's
+* layout.coords.
+*
+* OPTIONS
+* -------
+*   The coordinate_system: cartesian, polar or spherical (types.hpp).
+*
+* CONFIGURATION
+* -------------
+*   None of its own: no knob or macro changes it. Below C++17 the file is empty
+* rather than an error (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of
+* djinterp::ui's is, though the module's own floor is C++11: the FLOOR note
+* below says why.
+*
 *
 * path:      /inc/djinterp/tools/ui/coordinate_mapper.hpp
 * link(s):   TBA

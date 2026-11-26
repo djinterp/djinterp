@@ -12,6 +12,26 @@
 * placed from the font size, so no renderer-specific alignment is relied on.
 * Text keeps its spaces, as the layout measured them.
 *
+* HOW TO USE
+* ----------
+*   to_svg(list, size, options) writes any draw_list as a standalone SVG
+* document of size pixels; field_svg(scene, size, scale, style, overlay,
+* options) lays out a field panel and writes it in one call. Each returns the
+* document as a string, for the caller to save.
+*
+* OPTIONS
+* -------
+*   svg_options: the background (left out at zero alpha), the font family
+* (monospace) and size (12), and a title. svg_text_metrics(options) is the
+* text_metrics that font implies, for a layout made elsewhere and written here.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: no knob or macro changes it. Below C++17 the file is empty
+* rather than an error (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of
+* djinterp::ui's is, though the module's own floor is C++11: the FLOOR note
+* below says why.
+*
 *
 * path:      /inc/djinterp/tools/ui/export/svg.hpp
 * link(s):   TBA

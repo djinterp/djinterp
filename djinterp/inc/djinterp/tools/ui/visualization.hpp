@@ -7,6 +7,26 @@
 * its configuration, swaps its lens, and asks it to build the scene for a
 * frame.  It owns its lens but only references its state source.
 *
+* HOW TO USE
+* ----------
+*   Make one from a config, a state_source it only refers to, which must outlive
+* it, and a lens it owns: `visualization v(cfg, source,
+* std::make_unique<heatmap_lens>());`. A frontend edits configuration(), swaps
+* the lens with set_lens when the user changes mode, and calls
+* build_scene(frame) for each frame it draws; with no lens, build_scene answers
+* unsupported_mode.
+*
+* OPTIONS
+* -------
+*   None of its own: the config it holds.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: no knob or macro changes it. Below C++17 the file is empty
+* rather than an error (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of
+* djinterp::ui's is, though the module's own floor is C++11: the FLOOR note
+* below says why.
+*
 *
 * path:      /inc/djinterp/tools/ui/visualization.hpp
 * link(s):   TBA

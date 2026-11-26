@@ -5,9 +5,32 @@
 * visualization module: the `scalar` value type, the `rgb`/`rgba` colour types
 * (re-exported from the djinterp colour module), and the small enumerations
 * describing coordinate systems, shape primitives, line styles, and lens modes.
-*   The geometry types are aliases onto the math and render3d subframeworks --
+*   The geometry types are aliases onto the math and render3d subframeworks -
 * `vec`, `aabb3`, `camera`, `viewport` and `ray` - so the module has no vector
 * or camera code of its own.
+*
+* HOW TO USE
+* ----------
+*   Nothing to call: the module's vocabulary. scalar is every continuous
+* quantity; rgb and rgba are the colour module's, with its lerp; vec<N>, aabb3,
+* camera, viewport and ray are the math and render subframeworks' types under
+* the ui's names, and to_point gives a vec<3> as the point math::aabb and
+* math::ray take.
+*
+* OPTIONS
+* -------
+*   The four enumerations are the values of a config's choices:
+* coordinate_system (cartesian, polar, spherical), shape_kind (cube,
+* tetrahedron, octahedron; the draw layer draws every cell as a cube),
+* line_style (solid, dashed, dotted) and lens_mode (slice, projection, flatten,
+* heatmap, parametric; slice and heatmap have lenses).
+*
+* CONFIGURATION
+* -------------
+*   None of its own: no knob or macro changes it. Below C++17 the file is empty
+* rather than an error (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of
+* djinterp::ui's is, though the module's own floor is C++11: the FLOOR note
+* below says why.
 *
 *
 * path:      /inc/djinterp/tools/ui/types.hpp

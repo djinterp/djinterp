@@ -5,8 +5,29 @@
 * expresses only what makes it distinct.  Covers display-axis resolution, the
 * placement rule that maps axis coordinates into render space (and its
 * normalised inverse), path projection, axis decorations, and the bridge that
-* turns LOD cells (lod.hpp) into render cells.  Colour comes from color.hpp.
-* All helpers live in the internal namespace.
+* turns LOD cells (lod.hpp) into render cells.  Colour comes from the
+* configuration's colormap (colormap.hpp).  All helpers live in the internal
+* namespace.
+*
+* HOW TO USE
+* ----------
+*   Not for callers: the building blocks of a lens, in djinterp::ui::internal,
+* as slice.hpp and heatmap.hpp use them. A new lens takes its display axes from
+* resolve_display_axes, places coordinates with place, denormalize and
+* normalize_coord, adds the path with build_path and each axis with
+* make_decoration, and turns nested cells into render cells with
+* build_lod_render_cells.
+*
+* OPTIONS
+* -------
+*   None of its own.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: no knob or macro changes it. Below C++17 the file is empty
+* rather than an error (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of
+* djinterp::ui's is, though the module's own floor is C++11: the FLOOR note
+* below says why.
 *
 *
 * path:      /inc/djinterp/tools/ui/lenses/common.hpp

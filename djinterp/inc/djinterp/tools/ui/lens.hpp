@@ -7,6 +7,26 @@
 * mode is chosen at runtime, so the interface is virtual.  The shared core
 * knows only this contract.
 *
+* HOW TO USE
+* ----------
+*   A lens maps a state_source onto a scene for one frame, under a config:
+* build(state, config, frame) gives the scene, or a lens_error: no_axes,
+* too_few_axes or too_many_axes for the display axes asked, frame_out_of_range,
+* or unsupported_mode. mode() says which lens_mode it implements. Use slice_lens
+* or heatmap_lens, or derive a new one; a visualization holds one and swaps it
+* at run time.
+*
+* OPTIONS
+* -------
+*   None of its own: a lens reads the config it is given.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: no knob or macro changes it. Below C++17 the file is empty
+* rather than an error (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of
+* djinterp::ui's is, though the module's own floor is C++11: the FLOOR note
+* below says why.
+*
 *
 * path:      /inc/djinterp/tools/ui/lens.hpp
 * link(s):   TBA

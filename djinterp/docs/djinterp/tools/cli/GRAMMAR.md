@@ -227,6 +227,58 @@ the file. A statement of the file that fails is said by its line, as a
 warning, and the file is read on; a setting the command line names badly
 is a usage error, the nearest name suggested (R26).
 
+**The kit's own settings** *(added 11-27)*, each defaulting to its knob in
+`cfg_cli.h`:
+
+| setting | does |
+|---|---|
+| `cli.plugin_search` | the directories a command's module is looked for in, after the run's and `plugin_path`'s |
+| `plugin_path` | the program's own directories, looked in first: on the root, so set with `--set`, and read from `PROGRAM_PLUGIN_PATH` |
+| `cli.plugin_strict_version` | whether a module of another version of the program is refused (the default) or loaded with a warning |
+| `cli.unknown_settings` | what is said of a line of the user's file that names no setting the program has: `none`; `typos` (the default), a near miss and a djin's setting that djin lacks, but nothing for a djin the program does not register, whose lines are another program's; `all`, a warning for each; `error`, an error for each, and the run ends with 2 |
+| `cli.shared_refusals` | what is said when the user's file or the environment under `DJINTERP_` sets a setting that refuses it: `none`, `verbose` (the default: a note at `-v`), `warn` or `error` |
+| `cli.unknown_djin` | how a name for a djin the program does not register is told from one it should know: `reason` (the default), the registry's own reason, or `lookup`, the kit's lookup of the name's first part. They differ only for a first part the root takes as a scope, which `reason` counts as the program's and `lookup` as another program's. The run's final setting decides for every line of the file |
+| `cli.settings_sections` | whether the user's file is read in sections, below (the default); from the environment alone, since the file cannot say how it is read, and the command line is read after it |
+| `cli.privileged_refuse` | whether a run with privileges its caller lacks refuses the caller the plugin settings (the default); in such a run the program's alone |
+
+**Sections of the user's file** *(added 11-27)*. Every program reads the
+one file, so a line can be kept for one program: `[PROGRAM]` begins the
+lines only the program of that name reads, and `[*]` every program's again.
+The lines before the first header are every program's, so a file with no
+header reads as before.
+
+```
+cli.unknown_settings = all        # every program
+[vparse]
+cli.unknown_settings = none       # vparse alone
+[*]
+cli.plugin_strict_version = false # every program again
+```
+
+- A header is found where a statement could begin, after blanks, `;` and
+  comments, never inside a statement. Its name is letters, digits, `_`, `-`
+  and `.`, matched whatever its letters' case; blanks and a comment may
+  follow it.
+- A line that begins with `[` but is no such header is said by its line, as
+  a warning, `'[bad header' is not a section's header: [PROGRAM] or [*]`,
+  and the lines after it are no program's until the next header: a typo
+  never spreads one program's lines to every other.
+- The file is read in its order, each program reading its own lines and
+  every program's, so the last line that sets a name for a program decides
+  for it.
+- With `cli.settings_sections` false, from the environment, the file is one
+  part, and each header is said as a statement the file cannot take.
+- `djinterp set --section=PROGRAM` writes in a program's lines, and keeps
+  the headers whatever the run reads (djinterp's design, 6.4).
+
+**Privileged runs** *(added 11-27)*. A run with privileges its caller lacks,
+a set-user-ID or set-group-ID program or one given capabilities, refuses
+its caller the plugin settings, `plugin_path` and `cli.plugin_search`: they
+refuse the user's file, the environment and the command line, as at
+`D_CFG_CLI_PLUGIN_VARIABLE` 0, unless the program or the build trusts the
+caller. A run that trusts it says so, as a warning naming whose word it is.
+On Windows no run is privileged.
+
 **Help** is wrapped to the terminal's width when standard output is a
 terminal, and to 80 columns otherwise, so that what a script captures does
 not depend on the window it ran in.

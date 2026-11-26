@@ -13,6 +13,30 @@
 * frontend is /inc/ui/frontends/imgui.hpp.  Later phases (the remaining lenses
 * and the DSL) add their own headers alongside these.
 *
+* HOW TO USE
+* ----------
+*   Include this one header for the module, `#include
+* <djinterp/tools/ui/ui.hpp>`, and name its parts as djinterp::ui::... .
+* Everything runs one pipeline: a state_source (state.hpp, or visit_source) is
+* mapped by a lens (slice_lens, heatmap_lens) under a config into a scene for
+* one frame; project_scene or layout_field turns the scene into a draw_list for
+* any 2D backend, and to_svg or field_svg writes one to a file. visualization
+* holds the three together for a frontend.
+*   The ImGui frontend is not included: include /inc/ui/frontends/imgui.hpp
+* where ImGui is linked.
+*
+* OPTIONS
+* -------
+*   None of its own; each part's are in its own header, and config.hpp holds
+* every setting a frontend exposes.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: no knob or macro changes it. Below C++17 the file is empty
+* rather than an error (D_ENV_LANG_IS_CPP17_OR_HIGHER), as every header of
+* djinterp::ui's is, though the module's own floor is C++11: the FLOOR note
+* below says why.
+*
 *
 * path:      /inc/djinterp/tools/ui/ui.hpp
 * link(s):   TBA
