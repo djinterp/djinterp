@@ -1,11 +1,11 @@
-# djinterp math: the lane's decisions, S1 to S455
+# djinterp math: the lane's decisions, S1 to S462
 
 Every decision the math lane has taken, in the words of the record that took
 it, with the alternative it set aside. The numbers run across the lane's
 records from S1 (slice 3, 2026.10.08); each record's section of decisions is
 here as its README has it, its own first lines among it. A decision was the
 lane's to take within the owner's rulings, and stands once his next word on
-its delivery, his "continue", has accepted it: S1 to S434 stand, his own
+its delivery, his "continue", has accepted it: S1 to S455 stand, his own
 rulings of 2026.10.27 on complex numbers and quaternions, S265 to S278, the
 design of steps 22 to 24, and his choice of 2026.11.07, S383, among them.
 His rulings of 2026.11.03 and 2026.11.04 on the flagged decisions are in the
@@ -19,21 +19,22 @@ the first of the double family's rewrite as he ruled it, stand by his
 correctly rounded, by his "continue" of the same day, and chunk 53's, step
 29 (5a) with 0.8's items as he ruled them, by his "continue" of 2026.11.21,
 and chunk 54's, `log_c` 1.7 to 1.85 times as fast, by his "continue" of the
-same day. S435 to S440 are chunk 55's, open until his word on them: math's
-largest files split, as he ruled on 2026.11.21, each old name kept - the
-eight largest generated headers, the language's matrix kind, its face test
-and the generator - and the delivery over his main of 2026.11.21 with chunk
-52 laid over it, without the records; his "continue for now" of 2026.11.22
-went on while he weighs them. S441 to S446 are chunk 56's, open too: step 30
-(5b), `function.hpp`, `functional.hpp` and `values.hpp` from C++11, with two
-of their own failures fixed. S447 to S449 are chunk 57's, open too: chunks
-55's and 56's zips cut again on his push of 2026.11.23, the lane's prose and
-the generator's strings with one hyphen for a dash. S450 to S455 are chunk
-58's, open too: step 31 (5c), the calculus headers from C++11, and with them
-step 33 (5e), `math.hpp` at every rung. His word of 2026.11.14 on the
-language's names, which kept them flat in `djinterp::math`, is S397's. Where
-a later decision changes an earlier one, the later one says so; the earlier
-one stays here as it was taken.
+same day. Chunks 55's to 58's stand by his "continue" of 2026.11.23 at
+19:54: chunk 55's, math's largest files split, as he ruled on 2026.11.21,
+each old name kept - the eight largest generated headers, the language's
+matrix kind, its face test and the generator - and the delivery over his
+main of 2026.11.21 with chunk 52 laid over it, without the records; chunk
+56's, step 30 (5b), `function.hpp`, `functional.hpp` and `values.hpp` from
+C++11, with two of their own failures fixed; chunk 57's, chunks 55's and
+56's zips cut again on his push of 2026.11.23, the lane's prose and the
+generator's strings with one hyphen for a dash; and chunk 58's, step 31
+(5c), the calculus headers from C++11, and with them step 33 (5e),
+`math.hpp` at every rung. S456 to S462 are chunk 59's, open until his word
+on them: step 32 (5d), `reify`, a compile-time expression made a term of the
+run-time language. His word of 2026.11.14 on the language's names, which
+kept them flat in `djinterp::math`, is S397's. Where a later decision
+changes an earlier one, the later one says so; the earlier one stays here as
+it was taken.
 
 A decision names files as they were when it was taken. Chunk 48 merged the
 two quaternion classes (S398) and renamed or split five of the language's
@@ -58,7 +59,7 @@ judged on accuracy and functionality, the best solution rather than the
 cheapest. A review ends "Taken" where the path taken is the one it
 recommends, or "Ruled" where the owner ruled it; it ends in a flag where the
 path taken is not the one it recommends, or has a significant drawback. The
-21 flagged decisions, the outstanding ones, come first, in five groups by
+22 flagged decisions, the outstanding ones, come first, in five groups by
 what they concern, the most urgent first in each (section 1); then every
 decision, by record (section 2).
 
@@ -68,15 +69,15 @@ C6 and N1 to N6, are in the consolidation's record
 followed it; his rulings on them are the roadmap's principles and items
 (`roadmap.md`). From chunk 34 on, each chunk's delivery brings this file,
 its own decisions added at the end. This file is made by
-`_handoffs/math98_chunk58_2026.11.23/tools/decisions_c58.py`.
+`_handoffs/math98_chunk59_2026.11.23/tools/decisions_c59.py`.
 
 ## 1. Outstanding decisions
 
-The 21 flagged decisions: those whose review recommends what is not yet
+The 22 flagged decisions: those whose review recommends what is not yet
 done, or names a significant drawback of what was. Each gives when it is
 due, by the roadmap's steps, its flag and its review's recommendation; the
 decision itself and its whole review are in its record's part of section 2.
-The groups and the steps are `decisions_outstanding_c58.md`'s, in chunk 58's
+The groups and the steps are `decisions_outstanding_c59.md`'s, in chunk 59's
 record.
 
 ### 1.1 The expression language
@@ -160,6 +161,13 @@ record.
   plain double `log` follows ruling 12; an outside review of the proofs when
   one can be had. In chunk 54 (S432, S433) `log_c` became 1.70 to 1.85 times
   as fast, its results the same bits.
+- S460. When: with ruling 12 in early December: a reified term's exp, sin,
+  cos, tan, log and atan the plain functions, one ulp from the C core's
+  correctly rounded kernels at 1 to 56 of 20,000 arguments each. Until
+  ruling 12, a reified term's transcendentals can differ from the
+  expression's in the last bit, the expression's being the right one.
+  Recommended: as taken, the plain functions made the correctly rounded
+  kernels as ruling 12 decides.
 - S9. When: step 39 (6d), with MSVC. Significant drawback on compilers
   without the builtin. Recommended: as taken, plus `std::bit_cast` from
   C++20 where the builtin is missing, so every C++20 compiler gets it. Taken
@@ -10017,3 +10025,162 @@ chunk 58 is cut again over that commit.
 > it, the gates run over the three in order. Against: chunk 58 right only
 > over Wednesday's and Friday's zips laid in order. The alternative:
 > Friday's zip changed to carry chunk 58. Recommended: as taken. Taken.
+
+### S456 to S462: chunk 59, 2026.11.23
+
+The record: `_handoffs/math98_chunk59_2026.11.23/README.md`.
+
+Chunk 59's decisions, S456 to S462: step 32 (5d), `reify`, a compile-time
+expression made a term of the run-time language, so that it can be
+printed, simplified and evaluated by name, and differentiated where the
+language differentiates. Chunks 55's to 58's decisions stand by the owner's
+"continue" of 2026.11.23 at 19:54; his rulings 12 to 15 are still to come.
+
+**S456. `reify(e)`, in `expr/reify.hpp`, makes a compile-time expression a
+term of the run-time language, `expr_term`, node for node in its shape,
+nothing rewritten: its constants numbers, its variables names, + - * / and
+unary - the language's operators, exp, sin, cos, tan, sqrt, abs, log, atan
+and dot calls of the functions of those names, the relations, and, or and
+not the language's, a piecewise a call of piecewise and a vector a vector
+literal, and from C++14 constants.hpp's rational an exact fraction. What
+the language has no term for, a parametric or an implicit function, is
+refused at compile time, with a message. The header is empty below C++11;
+`math.hpp` includes it, and `expr/expr.hpp` does not.** The term prints by
+`expr_render`, simplifies by `expr_simplify`, substitutes and evaluates by
+name, and `math::expr` wraps it. Step 32 is done with it: the run-time
+derivative the step names is step 25's (4a), whose `expr_derivative` will
+take the term when it comes; until then a compile-time derivative,
+`derivative<I>(e)`, is reified and simplified (S458, S461).
+- Alternative: a member, `e.reify()`, on every node: each node's header
+  then includes the language's, which the compile-time core does not need.
+- Alternative: the compile-time core rebuilt on the parse module's static
+  terms (`expression_static.hpp`), reified by its own `reify<OpId, Atom>`:
+  another lane's module under the core, for one bridge.
+
+> **Review.** Taken: for, a compile-time expression printed, simplified,
+> substituted and evaluated by name in the language, its shape kept, what
+> has no term refused at compile time with a message; the compile-time core
+> free of the language, the language's handle free of the core. Against: the
+> run-time derivative the step names waits for step 25 (4a); until then a
+> compile-time derivative is reified. The alternatives: a member on every
+> node, each node's header pulling in the language; or the core rebuilt on
+> the parse module's static terms. Recommended: as taken. Taken.
+
+**S457. Variables are named by index: x, y, z and t by `reify(e)`, as
+`math::variables` names indices 0 to 3, an expression that reads a later
+index refused at compile time; or the names given, in index order, by
+`reify(e, "r", "theta", ...)`, as many as the expression reads at least,
+checked at compile time.** A name is anything a `std::string` is made
+from. A name the constant table holds, pi, e, im, jm, km, true or false,
+evaluates as the variable it is in the term, but its text reads back as the
+constant.
+- Alternative: a run-time list of names, with an error where it is short:
+  every call's result an `expr_result`, for a check the compiler can make.
+- Alternative: x4, x5 and so on for indices past 3: names the caller never
+  wrote.
+
+> **Review.** Taken: for, math::variables' names by default, any names
+> given, both checked at compile time, no result to unwrap. Against: a name
+> the constant table holds reads back from the text as the constant. The
+> alternatives: a run-time list with an error; invented names past index 3.
+> Recommended: as taken. Taken.
+
+**S458. A constant whose value is an integer, of magnitude below 2^53 and
+not -0, is that exact integer, as the language reads 2 from its text; any
+other float, double or long double is its value in its type; an integer
+type's constant is exact, a bool the constant true or false, and a vec3 a
+vector literal.** So `expr_simplify` collects a reified derivative's
+coefficients, the rules' 0.0 and 1.0 exact as it needs them: `1 * sin(x) +
+x * (cos(x) * 1)` simplifies to `sin(x) + x * cos(x)`. A term's text reads
+back as the same term's value, and in a typed fold the integer converts to
+the same double. -0, and integers from 2^53 on, keep their double, whose
+sign or size an exact integer would not keep.
+- Alternative: every floating constant its double: the simplifier, which
+  collects exact coefficients only, leaves a derivative as the rules built
+  it.
+
+> **Review.** Taken: for, a derivative's coefficients exact, so that the
+> simplifier collects them; the term's text reading back as the term's
+> value; the same double in a typed fold. Against: an integral double's kind
+> exact in the term, where C++ held a double; -0 and integers from 2^53 keep
+> their double. The alternative: every floating constant its double, a
+> derivative left as the rules built it. Recommended: as taken. Taken.
+
+**S459. reify rewrites nothing, and refuses what it cannot carry: a
+piecewise's last branch is the call's otherwise, its condition dropped, as
+the compile-time face evaluates it, never testing it; and arithmetic in an
+integer type, whose division truncates and whose overflow wraps in C++, as
+the language's exact integers do not, is refused at compile time, with the
+message to make a constant a double.** A last branch that is `otherwise(d)`
+loses nothing; one that is `when(c, d)` is the otherwise it is in C++.
+- Alternative: the last branch's condition kept: a NaN in the term where
+  C++ gives the branch's value.
+- Alternative: integer arithmetic reified as the language's: `constant(1) /
+  constant(2)` 0 in C++ and 1/2 in the term.
+
+> **Review.** Taken: for, the term the expression's value wherever C++ gives
+> one, nothing rewritten, integer arithmetic refused where C++ and the
+> language differ. Against: a last branch's condition, never tested in C++,
+> not in the term's text. The alternatives: the condition kept, a NaN where
+> C++ gives a value; integer arithmetic reified, 0 in C++ and 1/2 in the
+> term. Recommended: as taken. Taken.
+
+**S460. A reified term's value is the language's: in double its
+arithmetic, sqrt and abs give the expression's value bit for bit, and its
+exp, sin, cos, tan, log and atan are the language's plain functions, which
+ruling 12 decides, where the compile-time face's are the C core's kernels
+(N3).** At 20,000 arguments each, the term's value and the expression's
+differ at 18 of exp's, 35 of sin's, 26 of cos's, 56 of tan's, 1 of log's
+and 3 of atan's, by one ulp, and at each the C core's kernel gives the
+correctly rounded value and the C library's plain function does not;
+arithmetic, sqrt and abs differ at none.
+- Alternative: the language's functions the C core's kernels for reified
+  terms alone: two answers in one language, before ruling 12 gives one.
+
+> **Review.** Taken: for, one language, whose functions are its own; the
+> arithmetic, sqrt and abs bit for bit the expression's. Against: exp, sin,
+> cos, tan, log and atan the C library's plain functions, one ulp from the C
+> core's kernels at 1 to 56 of 20,000 arguments each, and at each the kernel
+> the correctly rounded value. The alternative: the C core's kernels for
+> reified terms alone, two answers in one language. Recommended: as taken,
+> the plain functions made the correctly rounded kernels as ruling 12
+> decides. **Flag:** until ruling 12, a reified term's transcendentals can
+> differ from the expression's in the last bit, the expression's being the
+> right one.
+
+**S461. A face test, `t_reify_face.cpp`, checks reify at every rung: 1
+check below C++11, 19 at C++11 and 21 from C++14, 17 and 19 on the 32-bit
+x87, where the bit-for-bit checks of the arithmetic and the checks of exp
+and log are left out; 64 of 64 builds of the full tier and 4 of 4 of the
+fused tier pass.** It checks each leaf's term and kind, and the names by
+index and given; each node's text, which reads back to the same value at 40
+points; the values at 200 points, the arithmetic's bit for bit, the
+functions' within an ulp of the C core's kernels, a relation 1 or 0 and a
+piecewise its branch's; a compile-time derivative reified, as the rules
+built it and simplified, `sin(x) + x * cos(x)` and `6 * x + 2`, its value
+the derivative's bit for bit; `math::expr` over a reified term; and from
+C++14 the rational's exact fraction.
+- Alternative: reify's checks in `t_expr_face.cpp`, the language's face
+  test: a test that needs no compile-time core made to include it.
+
+> **Review.** Taken: for, reify checked at every rung: each leaf, kind and
+> name, each node's text read back, the values bit for bit where the
+> language computes as C++ does, a derivative reified and simplified, the
+> rational. Against: on the x87 the arithmetic's bit-for-bit checks and
+> exp's and log's left out. The alternative: the checks in the language's
+> face test, which needs no compile-time core. Recommended: as taken. Taken.
+
+**S462. Chunk 59's zip is cut over the owner's main of 2026.11.23,
+`6ee9dce1`, with Wednesday's, Friday's and chunk 58's zips laid over it, in
+that order, and holds chunk 59's files alone, at the tree's root (S449,
+S455).** It goes after chunk 58's zip. Among its files, `math.hpp`, whose
+banner chunk 58 left saying that the umbrella compiled from C++14, says
+that it compiles at every level.
+- Alternative: chunks 58 and 59 in one zip in place of chunk 58's: a zip
+  already gated and given out, changed.
+
+> **Review.** Taken: for, the zips sent unchanged, chunk 59's own after
+> chunk 58's, the gates run over the four in order; math.hpp's banner right.
+> Against: chunk 59 right only over the three zips laid in order. The
+> alternative: chunk 58's zip changed to carry chunk 59. Recommended: as
+> taken. Taken.

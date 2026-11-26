@@ -6,10 +6,11 @@
 * module, so that one `#include "math.hpp"` pulls in everything, in
 * djinterp::math with linear algebra in djinterp::math::linalg (S399). New
 * code may include the specific sub-headers directly to keep compile times
-* tight: the run-time language alone is expr/expr.hpp. It compiles from
-* C++14, the calculus headers' floor until step 31; the compile-time core,
-* expression.hpp, and the headers on it, function, functional and values,
-* are empty below C++11, as expr/ is.
+* tight: the run-time language alone is expr/expr.hpp. It compiles at every
+* level, each header from its own floor: the compile-time core,
+* expression.hpp, and the headers on it, function, functional, values and
+* calculus, are empty below C++11, as expr/ is (steps 29 to 31), and so is
+* expr/reify.hpp, the bridge from the one to the other (step 32).
 *
 * WHERE TO START:
 *   a formula as text, parsed, evaluated, compiled, differentiated: the handle
@@ -48,7 +49,9 @@
 *   linear_algebra/ - vectors, matrices, dynamic matrices, decompositions,
 *                     solving, eigenvalues, the SVD, transforms
 *   expr/           - the run-time expression language: parsing,
-*                     evaluating, compiling, simplifying, differentiating
+*                     evaluating, compiling, simplifying, differentiating;
+*                     expr/reify.hpp makes a compile-time expression its
+*                     term (math::reify)
 *   geometry/       - geometry subframework (edges, surfaces, solids, measures)
 *   calculus/       - calculus subframework (differentiation, integration,
 *                     sequences, series, elementary functions)
@@ -57,7 +60,7 @@
 * path:      /inc/djinterp/cpp/modules/math/math.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2024.04.24
-*                                                            revised: 2026.11.22
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 
 #ifndef DJINTERP_MATH_MATH_HPP
@@ -91,6 +94,7 @@
 #include "./geometry/geometry.hpp"
 #include "./calculus/calculus.hpp"
 #include "./expr/expr.hpp"
+#include "./expr/reify.hpp"
 
 
 #endif  // DJINTERP_MATH_MATH_HPP

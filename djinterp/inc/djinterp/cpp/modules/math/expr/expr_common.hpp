@@ -17,12 +17,15 @@
 *                       once for a type; render.hpp, to text
 *     5. the rewrites   substitute.hpp, simplify.hpp; Phase 4's
 *                       derivative.hpp
-*     6. the handle     expr.hpp: math::expr, which includes every header.
+*     6. the handle     expr.hpp: math::expr, which includes every header
+*                       but reify.hpp.
 * Beside them stand Phase 3's kinds, complex_kind.hpp, quaternion_kind.hpp
 * and matrix_kind.hpp, with matrix_function.hpp and rotation.hpp, and Phase
 * 4's numeric.hpp, summation.hpp and antiderivative.hpp. Step 13 (2a) made
 * every header, with its declarations; each step from 14 on fills one or
-* two.
+* two. reify.hpp, step 32's (5d), makes a compile-time expression
+* (expression.hpp) a term; math.hpp includes it, and expr.hpp does not, so
+* that the language needs no compile-time core.
 *   ERRORS. A step that can fail returns expr_result<T>, which is result<T,
 * expr_error> (core/functional/result.hpp): its answer, or an expr_error,
 * which says what went wrong, where in the text when there is a place, and in
@@ -44,7 +47,7 @@
 * path:      /inc/djinterp/cpp/modules/math/expr/expr_common.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 
 /*
