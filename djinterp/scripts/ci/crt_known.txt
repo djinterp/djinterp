@@ -19,7 +19,6 @@ src/djinterp/c/modules/net/tcp/tcp.c	3
 src/djinterp/c/modules/net/tls/tls_openssl.c	2
 src/djinterp/c/modules/parse/cli/arg_parser/arg_parser.c	1
 src/djinterp/c/modules/parse/cli/arg_parser/arg_system.c	5
-src/djinterp/c/text/text_source.c	2
 src/djinterp/c/util/ostream/ostream_console.c	3
 src/djinterp/c/util/pdf/pdf_builtin_backend.c	2
 src/djinterp/cpp/modules/net/smtp/smtp.cpp	1
@@ -94,7 +93,6 @@ tests/djinterp/c/modules/parse/stress/stress_fuzz.c	1
 tests/djinterp/c/modules/test/test_suite_tests_fixtures.c	1
 tests/djinterp/c/modules/test/test_suite_tests_report.c	1
 tests/djinterp/c/modules/test/test_suite_tests_text.c	1
-tests/djinterp/c/text/text_source_tests_source.c	1
 tests/djinterp/c/util/ostream/ostream_tests.c	9
 tests/djinterp/cpp/filesys/file_dir_tests_sa.cpp	1
 tests/djinterp/cpp/filesys/file_link_tests_sa.cpp	1
@@ -112,7 +110,6 @@ tests/djinterp/cpp/modules/net/server_tests.cpp	3
 tests/djinterp/cpp/modules/net/sftp/sftp_client_tests.cpp	7
 tests/djinterp/cpp/modules/net/tcp/tcp_tests.cpp	5
 tests/djinterp/cpp/modules/net/tls/tls_tests.cpp	5
-tests/djinterp/cpp/modules/parsegen/vparse/vparse_tests_memo.cpp	1
 tests/djinterp/cpp/modules/test/output/test_report_runner_tests.hpp	3
 tests/djinterp/cpp/modules/test/test_suite_tests.hpp	1
 tests/djinterp/cpp/text/writer_stream_tests.cpp	2
