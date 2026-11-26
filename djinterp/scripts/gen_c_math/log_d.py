@@ -108,6 +108,87 @@ def log_d_constants():
     return consts, rows, "".join(digits)
 
 
+# log_fast's table (S500): x = 2^k z, z in [0x1.6p-1, 0x1.6p0), as the
+# bits of x less those of 0x1.6p-1 give them; row i, the bits of z's
+# significand from the 46th, holds z in [0x1.6p-1 + i 2^-8, + 2^-8) for i
+# below 80 and [1 + (i - 80) 2^-7, + 2^-7) from 80, with c the row's middle;
+# inv a double near 1/c, chosen so that 1/inv = chi + clo within 2^-66, chi
+# a double and clo a multiple of 2^-60, which makes z - chi - clo exact; L =
+# -log(inv) as L1, a multiple of 2^-42 so that k LN2H + L1 is exact, and L2,
+# the rest rounded.
+LOG_D_FAST_CLO = 60
+LOG_D_FAST_RES = 66
+
+
+def log_d_fast_interval(i):
+    """row i's z, as [lo, hi), exact."""
+    from fractions import Fraction
+    if i < 80:
+        lo = Fraction(11, 16) + Fraction(i, 256)
+        return lo, lo + Fraction(1, 256)
+    lo = 1 + Fraction(i - 80, 128)
+    return lo, lo + Fraction(1, 128)
+
+
+def log_d_fast_rows():
+    """log_fast's table: 128 rows of (inv, chi, clo, L1, L2), as literals,
+    each value checked exact as written."""
+    from fractions import Fraction
+    B = LOG_D_BITS
+    unit = Fraction(1, 1 << LOG_D_FAST_CLO)
+    rows = []
+    for i in range(128):
+        lo, hi = log_d_fast_interval(i)
+        c = (lo + hi) / 2
+        m0, e0 = exp_d_round(c.denominator, c.numerator)
+        ulp = Fraction(2) ** e0
+        found = None
+        for k in range(0, 4096):
+            for step in ((k,) if k == 0 else (k, -k)):
+                inv = (m0 + step) * ulp
+                cp = 1 / inv
+                mh, eh = exp_d_round(cp.numerator, cp.denominator)
+                rem = cp - Fraction(mh) * Fraction(2) ** eh
+                n = round(rem / unit)
+                if abs(rem - n * unit) <= Fraction(1, 1 << LOG_D_FAST_RES):
+                    found = (inv, mh, eh, n)
+                    break
+            if found:
+                break
+        assert found, "no inverse found for row %d" % i
+        inv, mh, eh, n = found
+        # -log(inv) = log(1/inv), 1/inv in [1/2, 2]
+        cp = 1 / inv
+        L, err = log_d_ln_fixed(cp.numerator, cp.denominator)
+        lo_r = ((L - err) + (1 << (B - 43))) >> (B - 42)
+        hi_r = ((L + err) + (1 << (B - 43))) >> (B - 42)
+        assert lo_r == hi_r, "L1 undecided"
+        l1 = lo_r
+        ml, el = log_d_round_interval((L - err) - (l1 << (B - 42)),
+                                      (L + err) - (l1 << (B - 42)), B)
+        rows.append((exp_d_literal(*exp_d_round(inv.numerator,
+                                                 inv.denominator)),
+                     exp_d_literal(mh, eh),
+                     exp_d_literal(*exp_d_round(n, 1 << LOG_D_FAST_CLO))
+                     if n else "0.0",
+                     exp_d_literal(*exp_d_round(l1, 1 << 42)) if l1 else
+                     "0.0",
+                     exp_d_literal(ml, el) if ml else "0.0"))
+    return rows
+
+
+# Sollya's coefficients (chunk 67's record, proofs/log_fast_poly.out):
+# log_fast's A, degree 4, with log1p(r) = r + r^2 A(r) on the table's path,
+# and B, degree 9, with log1p(r) = r - r^2/2 + r^3 B(r) near 1 (S500)
+LOG_D_FAST_A = ["-0x1p-1", "0x1.55555555279e5p-2", "-0x1.ffffffff6fff5p-3",
+                "0x1.999b07518cd5dp-3", "-0x1.5556e22399966p-3"]
+LOG_D_FAST_B = ["0x1.5555555555558p-2", "-0x1.fffffffffff96p-3",
+                "0x1.99999999886a5p-3", "-0x1.55555555b868cp-3",
+                "0x1.249249ab35c54p-3", "-0x1.fffffd26a75acp-4",
+                "0x1.c71994128709fp-4", "-0x1.999cc56cd59b5p-4",
+                "0x1.778b51962f2e5p-4", "-0x1.55647c7f8e79p-4"]
+
+
 # Sollya's coefficients (proofs/log_poly.out): phase 1's q, degree 6, with
 # log1p(r) = r + r^2 q(r) (S432); phase 2's P, degree 10, its first five
 # coefficients as pairs
@@ -122,6 +203,9 @@ LOG_D_P = [("0x1.5555555555555p-2", "0x1.5555555555555p-56"),
            ("-0x1.000000000000bp-3", None), ("0x1.c71c71c71c745p-4", None),
            ("-0x1.999999967504fp-4", None), ("0x1.745d174176c9ap-4", None),
            ("-0x1.555879eab4efap-4", None), ("0x1.3b17310bb3497p-4", None)]
+
+# log_fast's bounds, in ulps, proven in chunk 67's record (proofs/)
+LOG_D_FAST_BOUNDS = {"all": "0.53", "near1": "0.52", "table": "0.53"}
 
 # the bounds proven in chunks 52's and 54's records (proofs/)
 LOG_D_BOUNDS = {"p1a": "2^-66.4", "p1": "2^-59.9", "qerr": "2^-65.05",
@@ -810,6 +894,203 @@ d_math_d_log(
     return log(_x);
 #endif  // !D_MATH_DBL_EVAL_WIDE
 }
+
+// log_fast is the natural logarithm within @LFBOUND@ of an ulp, at the C
+// library's time, for a caller who wants that time rather than the correct
+// rounding (S500), as exp_fast is for e^x: glibc's method, in this file's
+// arithmetic, with its own table and polynomials. A positive normal x within
+// [1 - 2^-4, 1 + 0x1.09p-4) takes r = x - 1, exact, and log1p(r) as r -
+// r^2/2 + r^3 B(r), B of degree 9, r^2/2 split so that r + -r^2/2 is a pair
+// before the last sum; every other positive normal x, x = 2^k z, z in
+// [0x1.6p-1, 0x1.6p0) and row i from its bits less those of 0x1.6p-1, then r
+// = (z - chi - clo) inv, z - chi - clo exact, inv a double near 1/c with
+// 1/inv = chi + clo within 2^-66, so that r is within 2^-61.8 of z inv - 1,
+// |r| < 2^-8, and log(x) = (k LN2H + L1) + r + (k LN2L + L2) + r^2 A(r), A
+// of degree 4, k LN2H + L1 exact, the result at least 2^-4 there.
+// The bounds hold whether or not the compiler fuses a multiply and an add
+// (chunk 67's record, proofs/). A subnormal, zero, negative, infinite or NaN
+// x, log_c's answer, and log_c's too where the language cannot read a
+// double's bits (D_INTERNAL_MATH_D_LN_BITS); where double is evaluated wider
+// than double, the C library's log. Double alone: no float, long double or
+// C++ overload, and never a constant expression (S501).
+
+// D_INTERNAL_MATH_D_LN_FAST_TABLE
+//   log_fast's: for i from 0 to 127, row i holding z in [0x1.6p-1 + i 2^-8,
+// + 2^-8) below 80 and [1 + (i - 80) 2^-7, + 2^-7) from 80, c its middle: at
+// 5 i inv, a double near 1/c whose reciprocal is chi + clo within 2^-66; at
+// 5 i + 1 chi, a double, and at 5 i + 2 clo, a multiple of 2^-60; at 5 i + 3
+// and 5 i + 4 L1 and L2, -log(inv) as L1, a multiple of 2^-42, and the rest
+// rounded, within 2^-96 of it; each exact as written (chunk 67's record,
+// proofs/log_fast_consts.py).
+@FAST_TABLE@
+
+#ifdef __cplusplus
+// dj_internal_math_d_ln_fast_table
+//   struct: log_fast's table as a template's static member, as log_c's is.
+template <int Unused>
+struct dj_internal_math_d_ln_fast_table
+{
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    static constexpr double value[640] = D_INTERNAL_MATH_D_LN_FAST_TABLE;
+#else
+    static const double value[640];
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+};
+
+#if !D_ENV_LANG_IS_CPP11_OR_HIGHER
+template <int Unused>
+const double dj_internal_math_d_ln_fast_table<Unused>::value[640] =
+    D_INTERNAL_MATH_D_LN_FAST_TABLE;
+#elif !D_ENV_LANG_IS_CPP17_OR_HIGHER
+template <int Unused>
+constexpr double dj_internal_math_d_ln_fast_table<Unused>::value[640];
+#endif
+#endif  // __cplusplus
+
+// d_internal_math_d_ln_fast_row
+//   log_fast's table's row _i, its five values from the pointer returned;
+// in C a function's own table, as log_c's.
+D_MATH_FN_RT const double*
+d_internal_math_d_ln_fast_row(
+    int _i
+)
+{
+#ifdef __cplusplus
+    return dj_internal_math_d_ln_fast_table<0>::value + (5 * _i);
+#else
+    static const double table[640] = D_INTERNAL_MATH_D_LN_FAST_TABLE;
+
+    return table + (5 * _i);
+#endif  // __cplusplus
+}
+
+// d_internal_math_d_ln_fast_near1
+//   log(_x) within @LFBOUNDN@ of an ulp, _x in [1 - 2^-4, 1 + 0x1.09p-4): r = x -
+// 1, exact; rhi, r to 26 bits, so that rhi^2 / 2 is exact, and r^2/2 =
+// rhi^2/2 + rlo (rhi + r)/2; hi + lo = r - rhi^2/2 exactly; the rest, r^3
+// B(r) and -rlo (rhi + r)/2, added to lo before hi.
+D_MATH_FN_RT double
+d_internal_math_d_ln_fast_near1(
+    double _x
+)
+{
+    const double b0  = @LFB0@;
+    const double b1  = @LFB1@;
+    const double b2  = @LFB2@;
+    const double b3  = @LFB3@;
+    const double b4  = @LFB4@;
+    const double b5  = @LFB5@;
+    const double b6  = @LFB6@;
+    const double b7  = @LFB7@;
+    const double b8  = @LFB8@;
+    const double b9  = @LFB9@;
+    const double r   = _x - 1.0;
+    const double r2  = r * r;
+    const double r3  = r * r2;
+    const double p   = r3 * ( ((b0 + (r * b1)) + (r2 * b2)) +
+                              (r3 * ( ((b3 + (r * b4)) + (r2 * b5)) +
+                                      (r3 * ( ((b6 + (r * b7)) +
+                                               (r2 * b8)) +
+                                              (r3 * b9) )) )) );
+    const double t   = r * 134217728.0;
+    const double rhi = (r + t) - t;
+    const double rlo = r - rhi;
+    const double w   = (rhi * rhi) * -0.5;
+    const double hi  = r + w;
+    const double lo  = ((r - hi) + w) + ((-0.5 * rlo) * (rhi + r));
+
+    return (p + lo) + hi;
+}
+
+#if D_INTERNAL_MATH_D_LN_BITS
+// d_internal_math_d_ln_fast_table_path
+//   log(_x) within @LFBOUNDT@ of an ulp, _x positive, normal and finite,
+// outside [1 - 2^-4, 1 + 0x1.09p-4): t, x's bits less 0x1.6p-1's; i its bits
+// from the 46th, 7 of them; k its top 12 as a signed integer, so that z = x
+// 2^-k, x's bits less k's in the exponent, lies in [0x1.6p-1, 0x1.6p0); k
+// as a double by 2^52 + 2^20 + k, built from its bits, less 2^52 + 2^20,
+// both exact, no conversion from an integer, which some compilers let wait
+// on an earlier result; z - chi - clo exact; w = k LN2H + L1 exact; hi + lo
+// = w + r exactly, and k LN2L + L2 and r^2 A(r) added to lo before hi.
+D_MATH_FN_RT double
+d_internal_math_d_ln_fast_table_path(
+    double _x
+)
+{
+    const double   ln2h = @LN2H@;
+    const double   ln2l = @LN2L1@;
+    const double   a0   = @LFA0@;
+    const double   a1   = @LFA1@;
+    const double   a2   = @LFA2@;
+    const double   a3   = @LFA3@;
+    const double   a4   = @LFA4@;
+    const uint64_t ix   = d_internal_math_d_ln_bits(_x);
+    const uint64_t t    = ix - (((uint64_t)0x3FE6) << 48);
+    const int      top  = (int)(t >> 52);
+    const int      k    = (top ^ 2048) - 2048;
+    const double*  row  =
+        d_internal_math_d_ln_fast_row((int)((t >> 45) & 127u));
+    const double   z    =
+        d_internal_math_d_ln_double(ix - (t & (((uint64_t)0xFFF) << 52)));
+    const double   e    =
+        d_internal_math_d_ln_double( (((uint64_t)0x433) << 52) |
+                                     (uint64_t)(k + 1048576) ) -
+        4503599628419072.0;
+    const double   r    = ((z - row[1]) - row[2]) * row[0];
+    const double   w    = (e * ln2h) + row[3];
+    const double   hi   = w + r;
+    const double   lo   = ((w - hi) + r) + ((e * ln2l) + row[4]);
+    const double   r2   = r * r;
+
+    return ( (lo + (r2 * a0)) +
+             ((r * r2) * ((a1 + (r * a2)) + (r2 * (a3 + (r * a4))))) ) + hi;
+}
+#endif  // D_INTERNAL_MATH_D_LN_BITS
+
+// d_internal_math_d_ln_fast_near
+//   whether _v is within [1 - 2^-4, 1 + 0x1.09p-4): from its bits by one
+// unsigned comparison where the language reads them, by two elsewhere.
+D_MATH_FN_RT bool
+d_internal_math_d_ln_fast_near(
+    double _v
+)
+{
+#if D_INTERNAL_MATH_D_LN_BITS
+    return ( (d_internal_math_d_ln_bits(_v) - (((uint64_t)0x3FEE) << 48)) <
+             ((((uint64_t)0x3FF109) << 40) - (((uint64_t)0x3FEE) << 48)) );
+#else
+    return ( (_v >= 0.9375) &&
+             (_v < 1.064697265625) );
+#endif  // D_INTERNAL_MATH_D_LN_BITS
+}
+
+// d_math_d_log_fast
+//   log(_x) within @LFBOUND@ of an ulp, at the C library's time; see above.
+D_MATH_FN_RT double
+d_math_d_log_fast(
+    double _x
+)
+{
+#if !D_MATH_DBL_EVAL_WIDE
+    if (d_internal_math_d_ln_fast_near(_x))
+    {
+        return d_internal_math_d_ln_fast_near1(_x);
+    }
+
+#if D_INTERNAL_MATH_D_LN_BITS
+    if (d_internal_math_d_ln_normal(_x))
+    {
+        return d_internal_math_d_ln_fast_table_path(_x);
+    }
+#endif  // D_INTERNAL_MATH_D_LN_BITS
+
+    return d_math_d_log_c(_x);
+#elif defined(__cplusplus)
+    return std::log(_x);
+#else
+    return log(_x);
+#endif  // !D_MATH_DBL_EVAL_WIDE
+}
 """
 
 
@@ -839,6 +1120,19 @@ def log_d_section():
                 out.append(line)
         third = third.replace(key, "\n".join(out))
     text += third
+    text = text.replace("@FAST_TABLE@", log_d_table_macro(
+        log_d_fast_rows()).replace("D_INTERNAL_MATH_D_LN_TABLE ",
+                                   "D_INTERNAL_MATH_D_LN_FAST_TABLE"))
+    for i, h in enumerate(LOG_D_FAST_A):
+        text = text.replace("@LFA%d@" % i, exp_d_hex_literal(h))
+    for i, h in enumerate(LOG_D_FAST_B):
+        text = text.replace("@LFB%d@" % i, exp_d_hex_literal(h))
+    for key, value in (("@LFBOUND@", LOG_D_FAST_BOUNDS["all"]),
+                       ("@LFBOUNDN@", LOG_D_FAST_BOUNDS["near1"]),
+                       ("@LFBOUNDT@", LOG_D_FAST_BOUNDS["table"])):
+        text = text.replace(key, value)
+    for key in ("LN2H", "LN2L1"):
+        text = text.replace("@" + key + "@", consts[key])
     for key, value in (("@B1A@", LOG_D_BOUNDS["p1a"]),
                        ("@B1@", LOG_D_BOUNDS["p1"]),
                        ("@QERR@", LOG_D_BOUNDS["qerr"]),

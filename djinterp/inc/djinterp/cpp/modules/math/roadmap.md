@@ -50,7 +50,8 @@ The plain double exp is the correctly rounded one, as the owner's ruling
 `scalar.h` (chunk 64, step 52 of 62). The plain exp is faster, and
 `d_math_d_exp_fast` gives glibc's time within 0.511 of an ulp (chunk 65,
 step 53 of 62). `log_c` is faster, the same bits, and the plain double log
-is the correctly rounded one (chunk 66, step 54 of 62).
+is the correctly rounded one (chunk 66, step 54 of 62). `d_math_d_log_fast`
+gives glibc's time within 0.53 of an ulp (chunk 67, before step 55).
 `reify` (chunk 59) makes a compile-time expression a term of the run-time
 language, which prints, simplifies and evaluates it by name. Linear algebra
 has an opt-in lazy type from C++11 (chunk 60), each element the eager bits.
@@ -1043,7 +1044,9 @@ of a term, `str()` writes as the renderer does, `x ^ 2 * sin(x)`.
 - [ ] **6e** (step 40) `_fast` variants where measured demand exists: rsqrt and
   normalize, sincos, exp. For exp the owner asked for one on 2026.11.24,
   unless `exp_c` can be made as fast as glibc's (T2, step 53; S487): it
-  could not, and the double `d_math_d_exp_fast` is done (chunk 65, S490).
+  could not, and the double `d_math_d_exp_fast` is done (chunk 65, S490);
+  the double `d_math_d_log_fast` beside it, as the owner's decision 71
+  asked (chunk 67, S500).
 
 ## Phase 7 — Comparison with other libraries (decision 5)
 
@@ -1262,7 +1265,10 @@ numbered the phase, as he ruled (S483 to S488), which stand by his
 "continue" of 2026.11.25; and chunk 65 made step 53, exp's speed step and
 the fast exp his note asked for (S489 to S494), which stand by his rulings
 of 08:38 the same day, each as recommended; and chunk 66 made step 54,
-log's speed step and the plain log correctly rounded (S495 to S499). The
+log's speed step and the plain log correctly rounded (S495 to S499), which
+stand by his rulings of 14:42 the same day, each as recommended; and
+chunk 67, as his decision 71 of then asked, a fast log beside `log_c`
+(S500 to S504). The
 work rulings 12 to 15
 make is Phase 9, below, in ruling 15's order.
 The outstanding decisions of `decisions.md`, its section 1, by group and

@@ -190,10 +190,11 @@ fails if the headers are out of step. `math_common.h`, `interval.h`,
 are written by hand. The generator is a package, `scripts/gen_c_math/`, of
 modules of at most about 4,000 lines, one for a header's text or two, and
 the script runs them (S439). It writes the eight largest headers in parts of
-at most about 4,000 lines - `decomp.h` in ten, `cmat.h` in seven, `cplx.h`,
-`quat.h` and `exponential.h` in five, `vec.h`, `coord.h` and `mat.h` in four
--- each part a header that stands alone, named for its header and what it
-holds (`decomp_f.h`, `decomp_f_eigen_c.h`, ..., `decomp_cpp.h`), and the
+at most about 4,000 lines - `decomp.h` in ten, `cmat.h` in seven,
+`exponential.h` in six (S502), `cplx.h` and `quat.h` in five, `vec.h`,
+`coord.h` and `mat.h` in four - each part a header that stands alone,
+named for its header and what it holds (`decomp_f.h`,
+`decomp_f_eigen_c.h`, ..., `decomp_cpp.h`), and the
 header of the name includes them in order, so that an includer sees the
 same code in the same order (S436). It aligns each parameter list's names
 (S435).
@@ -1213,6 +1214,27 @@ arguments; `t_reify_face.cpp` a reified term's log against the
 expression's (S498). S424's flag closes; S460's narrows to sin, cos, tan
 and atan (S499).
 
+**A fast log.** Chunk 67 (S500 to S504), as the owner's decision 71 of
+2026.11.25 asked, before step 55. `d_math_d_log_fast` sits beside `log_c`
+as `exp_fast` sits beside `exp_c`: log x within 0.53 of an ulp, glibc's
+method in pure arithmetic, proven by Gappa whether or not the build fuses.
+Near 1, x within [1 - 2^-4, 1 + 0x1.09p-4), it takes r = x - 1 and
+log1p(r) as r - r^2/2 + r^3 B(r), r^2/2 split so that the first sum is
+exact; elsewhere x = 2^k z, z in [0x1.6p-1, 0x1.6p0), a row of 128 from z's
+bits, r = (z - chi - clo) inv, z - chi - clo exact, and log x = (k LN2H +
+L1) + r + (k LN2L + L2) + r^2 A(r) (S500). It takes 1.10 to
+1.24 times glibc's time by pointer and 0.84 to 1.04 inline where the build
+does not fuse, 0.82 to 1.08 and 0.70 to 0.87 where it does; measured,
+0.5210 of an ulp at worst. It is the double family's alone, never a
+constant expression, `log_c` at the specials and subnormals and wherever
+the language cannot read a double's bits, and the C library's on a 32-bit
+x87; the plain log stays `log_c` (S501). With it `exponential_d.h` would
+have passed 4,000 lines, so the double family's logarithms are a part of
+their own, `exponential_d_log.h` (S502). `t_exponential` checks it within
+an ulp of `log_c` and within each path's bound of the exact value at ten
+million arguments, about nine seams, and `log_c`'s value where it hands
+over (S503).
+
 **Decimal text.** `decimal.h` reads a decimal number of any length as the
 nearest `float`, `double` or `long double`, ties to even, whatever the
 rounding mode, and says when the result overflowed to an infinity or
@@ -1266,7 +1288,8 @@ inc/djinterp/c/modules/math/            the C core
                        double exp_c and log_c correctly rounded in double
                        arithmetic (chunks 51 and 52), the plain double
                        exp and log those (chunks 63 and 66); the double
-                       exp_fast within 0.511 of an ulp (chunk 65); in parts
+                       exp_fast and log_fast within 0.511 and 0.53 of an
+                       ulp (chunks 65 and 67); in parts
   dd.h                 pairs of doubles: exact sums and products, proven
                        bounds (chunk 51)
   self_test.h          the double family's start-up self-test; whether the
@@ -1577,6 +1600,7 @@ module:
 | 2026.11.24 | chunk 63's decisions stand, S482 B: the terps' needs numbered now, steps 52 on; on S478, a fast and a slow exp unless `exp_c` can match glibc |
 | 2026.11.25 | chunk 64's decisions stand ("continue"): step 53, exp's speed, next |
 | 2026.11.25 | chunk 65's decisions ruled, each as recommended (08:38): step 54, log's speed, next |
+| 2026.11.25 | chunk 66's decisions ruled, each as recommended (14:42); decision 71: a fast log next, in chunk 67, before step 55 |
 
 ---
 
@@ -1635,7 +1659,8 @@ order (S455), chunk 59's over that with chunk 58's laid too (S462), and
 chunk 60's after chunk 59's (S468), chunk 61's after chunk 60's
 (S473), chunk 62's after chunk 61's (S477), chunk 63's after chunk 62's
 (S482), chunk 64's after chunk 63's (S488), chunk 65's after chunk 64's
-(S493), and chunk 66's after chunk 65's (S499).
+(S493), chunk 66's after chunk 65's (S499), and chunk 67's after chunk 66's
+(S504).
 From 2026.11.18 the lane's notes and deliveries go out once a day.
 
 Outside `cpp/modules/math/`, `c/modules/math/` and their tests, this lane

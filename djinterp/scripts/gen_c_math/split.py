@@ -117,7 +117,11 @@ SPLITS = {
          "the long double kernels every family shares"),
         ("exponential_f.h", r"^// 2\.  THE FLOAT", "the float family"),
         ("exponential_d.h", r"^// 3\.  THE DOUBLE",
-         "the double family, its correctly rounded exp and log among it"),
+         "the double family's helpers and exponential, its correctly rounded "
+         "and fast exp among them"),
+        ("exponential_d_log.h", r"^// 3\.3    Natural logarithm",
+         "the double family's logarithms, its correctly rounded and fast log "
+         "among them, and exp2 and expm1 with them (S502)"),
         ("exponential_ld.h", r"^// 4\.  THE LONG DOUBLE",
          "the long double family"),
         ("exponential_cpp.h", r"^// 5\.  ONE NAME",
@@ -126,10 +130,19 @@ SPLITS = {
 }
 
 PART_CREATED = "2026.11.21"
+# a part made after PART_CREATED: its own date
+PART_CREATED_AT = {"exponential_d_log.h": "2026.11.25"}
 PART_DATE = "2026.11.24"
 SPLIT_DATE = "2026.11.24"
+# a split header revised since SPLIT_DATE: its own date
+SPLIT_REVISED = {"exponential.h": "2026.11.25"}
 # a part revised since PART_DATE: its own date
-PART_REVISED = {"exponential_d.h": "2026.11.25"}
+PART_REVISED = {"exponential_kernels.h": "2026.11.25",
+                "exponential_f.h": "2026.11.25",
+                "exponential_d.h": "2026.11.25",
+                "exponential_d_log.h": "2026.11.25",
+                "exponential_ld.h": "2026.11.25",
+                "exponential_cpp.h": "2026.11.25"}
 
 
 def strip_c_comments(text):
@@ -252,7 +265,7 @@ def split_header(name, text, spec):
             own = "// the parts before this one whose names it uses\n" + own
         files[part] = (
             banner(part, textwrap.wrap(" ".join(l for l in lines_[:1]), 72)
-                   + lines_[1:], PART_CREATED,
+                   + lines_[1:], PART_CREATED_AT.get(part, PART_CREATED),
                    PART_REVISED.get(part, PART_DATE),
                    tuple(t % {"header": name, "count": NUMBERS[len(spec)]}
                          for t in PART)) + "\n\n" +
@@ -263,8 +276,9 @@ def split_header(name, text, spec):
     # the header of the name: its banner and contents, then the parts
     stop = head.index("\n#ifndef " + guard)
     top = head[:stop].rstrip("\n")
-    top = re.sub(r"revised: \d{4}\.\d\d\.\d\d", "revised: " + SPLIT_DATE,
-                 top, count=1)
+    top = re.sub(r"revised: \d{4}\.\d\d\.\d\d",
+                 "revised: " + SPLIT_REVISED.get(name, SPLIT_DATE), top,
+                 count=1)
     note = ("*   Its text is in %d parts, each a header that stands alone, "
             "included\n* below in order (S436)." % len(spec))
     # before the sections, which close the description (S474)

@@ -11,7 +11,7 @@
 *
 * HOW TO USE
 * ----------
-*   Include exponential.h, which includes its five parts in order; or this part
+*   Include exponential.h, which includes its six parts in order; or this part
 * alone, which includes the parts before it whose names it uses.
 *
 * OPTIONS
@@ -26,7 +26,7 @@
 * path:      /inc/djinterp/c/modules/math/exponential_kernels.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.21
-*                                                            revised: 2026.11.24
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 #ifndef DJINTERP_C_MATH_EXPONENTIAL_KERNELS_H

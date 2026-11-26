@@ -27,7 +27,11 @@
 * path. log_c's common path (S495) must give the three phases' value, bit for
 * bit, and its reduction, from a double's bits, the one by frexp and dd.h's
 * exact product, at ten million random arguments and about the reduction's
-* seams. The family's self-test must give 0 (self_test.h). Ten million random
+* seams; log_fast (S500) must be within an ulp of log_c there and, where long
+* double holds 64 bits, within 0.52 of an ulp of the exact value as logl gives
+* it near 1 and 0.53 elsewhere, within an ulp of log_c about its seams, and
+* log_c itself where it hands over. The family's self-test must give 0
+* (self_test.h). Ten million random
 * arguments each: exp_c over its whole finite range and past both ends, log_c
 * over random positive patterns (the subnormals included) and over 1 + d, d
 * down to 2^-53. Both must be within an ulp of exp and log, the library's; how
@@ -38,8 +42,8 @@
 * rounding would get wrong, such as exp(2^-53) and log(1 - 2^-53). Where
 * double is evaluated wider than double, a 32-bit x87, the double family's
 * exp_c and log_c refuse to compile (S418): their checks are skipped, the
-* harness says so, and the plain exp and log must be the library's (S479,
-* S497). exp2_c, log2_c and log10_c, three million
+* harness says so, and the plain exp and log, and exp_fast and log_fast,
+* must be the library's (S479, S490, S497, S501). exp2_c, log2_c and log10_c, three million
 * arguments each, must be within three ulps of exp2, log2 and log10 (glibc's
 * log10 is up to two from the correctly rounded value); exact against values
 * from a 400-bit computation - the ends of exp2's range and the tie at half
@@ -469,9 +473,10 @@ d_tests_double(void)
                            "d log is log_c", p);
         }
 #else
-        // there the plain log is the library's (S497)
-        D_TESTS_EXPECT(d_tests_same_d(d_math_d_log(p), g_log(p)),
-                       "d log is the library's", p);
+        // there the plain log and log_fast are the library's (S497, S501)
+        D_TESTS_EXPECT( (d_tests_same_d(d_math_d_log(p), g_log(p))) &&
+                        (d_tests_same_d(d_math_d_log_fast(p), g_log(p))),
+                        "d log and log_fast are the library's", p);
         (void)e;
 #endif  // !D_MATH_DBL_EVAL_WIDE
     }
@@ -889,6 +894,148 @@ d_tests_double_log_paths(void)
 
     printf("double: log_c's common path is the three phases' and its "
            "reduction chunk 65's at 10000000 arguments and about 6 seams\n");
+
+    return;
+}
+
+// d_tests_double_log_fast
+//   log_fast (S500) within an ulp of log_c at ten million random arguments
+// - one in four a random positive pattern, subnormals among them, one 1 +
+// d, d of every size from 2^-4 down to 2^-53, the path near 1, one in [1/2,
+// 2] and one in [1, 1e6] - and, where long double holds 64 bits, within
+// 0.52 of an ulp of the exact value by logl's near 1 and 0.53 elsewhere, to
+// 2^-9 of an ulp, logl's own error; how many it rounds otherwise than log_c
+// is printed, and each path's largest error. About each seam - the ends of
+// the range near 1, 0x1.6p-1 and 0x1.6p0, where k changes, and 0x1.6p1023,
+// where it reaches 1024, a row's edge below 1 and above, the least normal
+// and the largest double - within an ulp of log_c; at zero, the subnormals,
+// the negatives, the infinities and NaN, log_c's value, bit for bit (S501).
+static void
+d_tests_double_log_fast(void)
+{
+    const double inf         = (double)HUGE_VAL;
+    double       worst_near  = 0.0;
+    double       worst_table = 0.0;
+    long         diff        = 0;
+    long         i           = 0;
+    int          k           = 0;
+
+    for (i = 0; i < 10000000; ++i)
+    {
+        double x = 0.0;
+        double f = 0.0;
+
+        if ((i % 4) == 0)
+        {
+            d_tests_pattern_d(&x, 1);
+        }
+        else
+        {
+            // stored, so x is a double, as d_tests_double's are
+            volatile double stored = ((i % 4) == 1)
+                ? 1.0 + ldexp((2.0 * d_tests_unit()) - 1.0,
+                              -4 - (int)d_tests_below(50u))
+                : (((i % 4) == 2) ? (0.5 + (1.5 * d_tests_unit()))
+                                  : (1.0 + (999999.0 * d_tests_unit())));
+
+            x = stored;
+        }
+
+        if ( !(x > 0.0) || (x > DBL_MAX) )
+        {
+            continue;
+        }
+
+        f = d_math_d_log_fast(x);
+        D_TESTS_EXPECT(D_TESTS_ULPS_D(f, d_math_d_log_c(x)) <= 1.0,
+                       "d log_fast within an ulp of log_c", x);
+        diff += d_tests_same_d(f, d_math_d_log_c(x)) ? 0 : 1;
+#if (LDBL_MANT_DIG >= 64)
+        {
+            const double e    = D_TESTS_ULPS_D(f, g_logl((long double)x));
+            const bool   near = d_internal_math_d_ln_fast_near(x);
+
+            if (near)
+            {
+                worst_near = (e > worst_near) ? e : worst_near;
+            }
+            else
+            {
+                worst_table = (e > worst_table) ? e : worst_table;
+            }
+
+            D_TESTS_EXPECT(e <= ((near ? 0.52 : 0.53) + (1.0 / 512.0)),
+                           "d log_fast within its bound", x);
+        }
+#endif
+    }
+
+    // about the seams, 129 doubles each
+    for (i = 0; i < 9; ++i)
+    {
+        static const double m[9] = { 0.9375, 1.064697265625, 0.6875, 1.375,
+                                     0.6875, 0.69140625, 1.0703125, 1.0,
+                                     1.0 };
+        static const int    e[9] = { 0, 0, 0, 0, 1024, 0, 0, -1022, 1024 };
+        double x = ldexp(m[i], e[i]);
+
+        // the largest double, from below
+        x = (i == 8) ? DBL_MAX : x;
+
+        for (k = 0; k < 64; ++k)
+        {
+            x = nextafter(x, 0.0);
+        }
+
+        for (k = 0; k < 129; ++k)
+        {
+            if (x <= DBL_MAX)
+            {
+                D_TESTS_EXPECT(D_TESTS_ULPS_D(d_math_d_log_fast(x),
+                                              d_math_d_log_c(x)) <= 1.0,
+                               "d log_fast about a seam", x);
+            }
+
+            x = nextafter(x, inf);
+        }
+    }
+
+    // log_c's own value where log_fast hands it over, and at 1
+    {
+        static const double where[] = {
+            0.0, -0.0, 4.9406564584124654e-324, -4.9406564584124654e-324,
+            2.2250738585072009e-308, 1.0e-310, -1.0, -1.0e300, 1.0
+        };
+        size_t j = 0;
+
+        for (j = 0; j < (sizeof(where) / sizeof(where[0])); ++j)
+        {
+            D_TESTS_EXPECT( (d_tests_same_d(d_math_d_log_fast(where[j]),
+                                            d_math_d_log_c(where[j]))) ||
+                            ( (isnan(d_math_d_log_fast(where[j]))) &&
+                              (isnan(d_math_d_log_c(where[j]))) ),
+                            "d log_fast is log_c where it hands over",
+                            where[j]);
+        }
+
+        D_TESTS_EXPECT( (isnan(d_math_d_log_fast(nan("")))) &&
+                        (isnan(d_math_d_log_fast(-inf))) &&
+                        (d_tests_same_d(d_math_d_log_fast(inf), inf)) &&
+                        (d_tests_same_d(d_math_d_log_fast(0.0), -inf)) &&
+                        (d_tests_same_d(d_math_d_log_fast(1.0), 0.0)),
+                        "d log_fast of NaN, the infinities, 0 and 1", 0);
+    }
+
+#if (LDBL_MANT_DIG >= 64)
+    printf("double: log_fast rounds otherwise than log_c at %ld of 10000000 "
+           "arguments; within %.4f of an ulp near 1, %.4f elsewhere\n",
+           diff, worst_near, worst_table);
+#else
+    printf("double: log_fast rounds otherwise than log_c at %ld of 10000000 "
+           "arguments\n", diff);
+    (void)worst_near;
+    (void)worst_table;
+#endif
 
     return;
 }
@@ -2394,6 +2541,7 @@ main(int _argc, char** _argv)
     d_tests_double_exp_edges();
     d_tests_double_exp_paths();
     d_tests_double_log_paths();
+    d_tests_double_log_fast();
     d_tests_double_exp_refs();
     d_tests_double_log_refs();
 #endif  // !D_MATH_DBL_EVAL_WIDE

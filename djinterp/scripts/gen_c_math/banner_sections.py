@@ -81,18 +81,20 @@ SECTIONS = {
         LEVELS + " A long double wider than the reduction by pi/2 was "
         "written for is refused at compile time."),
     "exponential.h": (
-        "Include it from C or C++; it includes its five parts. "
+        "Include it from C or C++; it includes its six parts. "
         "d_math_d_exp, _log, _exp2, _log2, _log10, _log1p and _expm1 call "
         "the C library, but for d_math_d_exp and d_math_d_log, which are "
         "d_math_d_exp_c and d_math_d_log_c, correctly rounded, wherever "
-        "double is evaluated in double (S478, S496), and d_math_d_exp_fast, "
-        "e^x within 0.511 of an ulp at the C library's time (S490); their _c "
+        "double is evaluated in double (S478, S496), and d_math_d_exp_fast "
+        "and d_math_d_log_fast, e^x within 0.511 of an ulp and log x within "
+        "0.53 of one, at the C library's time (S490, S500); their _c "
         "forms compute the same in pure arithmetic, the double family's "
         "exp_c and log_c correctly rounded. "
         + FAMILY,
         "Which form runs is the caller's, by name: the _c form, a constant "
         "expression, the plain one on the C library, or for double's "
-        "exponential the fast one; nothing is chosen at run time.",
+        "exponential and logarithm the fast one; nothing is chosen at run "
+        "time.",
         LEVELS + WIDE),
     "tangent.h": (
         "Include it from C or C++. d_math_d_tan, _atan and _atan2 call the "

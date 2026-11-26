@@ -1,11 +1,11 @@
-# djinterp math: the lane's decisions, S1 to S499
+# djinterp math: the lane's decisions, S1 to S504
 
 Every decision the math lane has taken, in the words of the record that took
 it, with the alternative it set aside. The numbers run across the lane's
 records from S1 (slice 3, 2026.10.08); each record's section of decisions is
 here as its README has it, its own first lines among it. A decision was the
 lane's to take within the owner's rulings, and stands once his next word on
-its delivery, his "continue", has accepted it: S1 to S494 stand, his own
+its delivery, his "continue", has accepted it: S1 to S499 stand, his own
 rulings of 2026.10.27 on complex numbers and quaternions, S265 to S278, the
 design of steps 22 to 24, and his choice of 2026.11.07, S383, among them.
 His rulings of 2026.11.03 and 2026.11.04 on the flagged decisions are in the
@@ -44,13 +44,15 @@ alternative; and chunk 64's, the scalar helpers of ruling 13 and the terps'
 needs numbered as Phase 9, steps 52 to 62, by his "continue" of 2026.11.25;
 and chunk 65's, step 53, exp's speed step and the fast exp his note on S478
 asked for, and S359's precedent corrected, by his rulings of 08:38 the same
-day, each as recommended. His rulings 12 to 15 of 2026.11.24 are in chunk
-63's opening lines. S495 to S499 are chunk 66's, open until his word on
-them: step 54, `log_c`'s speed step and the plain double `log` correctly
-rounded, as ruling 12 has it. His word of 2026.11.14 on the language's
-names, which kept them flat in `djinterp::math`, is S397's. Where a later
-decision changes an earlier one, the later one says so; the earlier one
-stays here as it was taken.
+day, each as recommended; and chunk 66's, step 54, `log_c`'s speed step and
+the plain double `log` correctly rounded, as ruling 12 has it, by his
+rulings of 14:42 the same day, each as recommended. His rulings 12 to 15 of
+2026.11.24 are in chunk 63's opening lines. S500 to S504 are chunk 67's,
+open until his word on them: `d_math_d_log_fast`, a fast log beside `log_c`,
+as his decision 71 of 14:42 asked, before step 55. His word of 2026.11.14 on
+the language's names, which kept them flat in `djinterp::math`, is S397's.
+Where a later decision changes an earlier one, the later one says so; the
+earlier one stays here as it was taken.
 
 A decision names files as they were when it was taken. Chunk 48 merged the
 two quaternion classes (S398) and renamed or split five of the language's
@@ -85,7 +87,7 @@ C6 and N1 to N6, are in the consolidation's record
 followed it; his rulings on them are the roadmap's principles and items
 (`roadmap.md`). From chunk 34 on, each chunk's delivery brings this file,
 its own decisions added at the end. This file is made by
-`_handoffs/math98_chunk66_2026.11.25/tools/decisions_c66.py`.
+`_handoffs/math98_chunk67_2026.11.25/tools/decisions_c67.py`.
 
 ## 1. Outstanding decisions
 
@@ -93,7 +95,7 @@ The 21 flagged decisions: those whose review recommends what is not yet
 done, or names a significant drawback of what was. Each gives when it is
 due, by the roadmap's steps, its flag and its review's recommendation; the
 decision itself and its whole review are in its record's part of section 2.
-The groups and the steps are `decisions_outstanding_c66.md`'s, in chunk 66's
+The groups and the steps are `decisions_outstanding_c67.md`'s, in chunk 67's
 record.
 
 ### 1.1 The expression language
@@ -11217,5 +11219,145 @@ chunk 65's text too.** The roadmap reads 36 of 62, Phase 9 3 of 11.
   would undo the earlier zips' lines in them.
 
 > **Review.** Taken: for, step 54 closed with S424's flag, the zip in its
+> order. Against, none. The alternative: the zip alone, undoing the earlier
+> zips' lines in the documents. Recommended: as taken. Taken.
+
+### S500 to S504: chunk 67, 2026.11.25
+
+The record: `_handoffs/math98_chunk67_2026.11.25/README.md`.
+
+Chunk 67's decisions, S500 to S504: a fast log beside `log_c`, as the
+owner's decision 71 of 2026.11.25 (14:42) asked, "log_fast next, in chunk
+67, before step 55": `d_math_d_log_fast`, glibc's method in this file's
+arithmetic, proven whether or not the build fuses, as `exp_fast` is. The
+same rulings accepted chunk 66's decisions, S495 to S499, each as
+recommended.
+
+**S500. The fast log: `d_math_d_log_fast`, log x within 0.53 of an ulp, at
+glibc's time - 1.10 to 1.24 times it by pointer and 0.84 to 1.04 inline
+where the build does not fuse, 0.82 to 1.08 and 0.70 to 0.87 where it
+does, as glibc's log fuses on this machine by its own dispatch; `log_c`
+takes 1.5 to 2.3 times. glibc's method, with its own table and
+polynomials: a positive normal x within [1 - 2^-4, 1 + 0x1.09p-4) takes r
+= x - 1, exact, and log1p(r) as r - r^2/2 + r^3 B(r), B of degree 9, with
+r^2/2 split by r's 26 high bits, rhi, so that hi + lo = r - rhi^2/2
+exactly and the rest, r^3 B(r) and -rlo (rhi + r)/2, is added to lo before
+hi; every other positive normal x is 2^k z, z in [0x1.6p-1, 0x1.6p0), its
+row of 128 from z's bits, r = (z - chi - clo) inv, z - chi - clo exact and
+inv a double whose reciprocal is chi + clo within 2^-66, and log x = (k
+LN2H + L1) + r + (k LN2L + L2) + r^2 A(r), A of degree 4, k LN2H + L1
+exact, k made a double from its bits, not converted from an integer. The
+bound is proven (chunk 67's record, proofs/): Sollya's fits, the table and
+constants in exact arithmetic, Gappa for the table's path, k = 0 and every
+k, and for the path near 1 over each binade of r, the top ones in eighths,
+each product written so that the bound holds fused or not: 0.5261 of an
+ulp where k is 0, 0.5066 elsewhere, 0.5147 near 1. Measured at ten million
+arguments: 0.5210 at worst, 0.5063 near 1, 0.5078 there where the build
+fuses; some 0.035% rounded otherwise than `log_c`.** Outside the two paths
+it is `log_c`, so its subnormals, zeros, negatives, infinities and NaN
+are correctly rounded too.
+- Alternative: the fast log the C library's: glibc's time by definition,
+  with each library's bits and accuracy, never the same function on two
+  platforms.
+- Alternative: one path, the table's down to 1: no second polynomial, but
+  near 1, where log x is small, the table's r^2 A(r) and its L2 would need
+  a longer A and a finer table to keep the bound in ulps of a small
+  result.
+
+> **Review.** Taken: for, decision 71 answered as asked: a fast log beside
+> the correctly rounded one, at glibc's time where the build fuses and
+> within a quarter of it where it does not, by the lane's own text with a
+> proven bound, the same function on every platform where double is double,
+> its specials `log_c`'s. Against: a second log, which rounds otherwise than
+> `log_c` at some 0.035% of arguments, and whose bits may differ where a
+> build fuses, within the same bound; a bound of 0.53 where glibc's
+> `e_log.c`, the same method and degrees, estimates 0.519 for its table's
+> path and about 0.507 near 1 by a formula (ours measures 0.5210 and
+> 0.5063); past glibc's time by pointer in a build that does not fuse. The
+> alternatives: the C library's log under the name, each library's bits; one
+> path, a longer polynomial and a finer table for the same bound near 1.
+> Recommended: as taken. Taken.
+
+**S501. `log_fast`'s place, as `exp_fast`'s (S491): the double family's
+alone, as `log_c` is; no C++ overload; `D_MATH_FN_RT`, never a constant
+expression; where double is evaluated wider than double, a 32-bit x87, the
+C library's log, as the plain log is there (S497). Where the language
+cannot read a double's bits (`D_INTERNAL_MATH_D_LN_BITS` 0), the path near
+1 stays, by two comparisons, and every other argument is `log_c`'s. The
+plain log stays `log_c`, as ruling 12 has it; `exponential.h`'s banner
+names the fast log beside the fast exp in HOW TO USE and OPTIONS.**
+- Alternative: the table's path without the bits too, z and k by `frexp`:
+  a call to the library inside the fast form, where no build of the tiers
+  lacks the bits.
+- Alternative: a constant expression from C++14, refused on the x87: a
+  constant evaluation has `log_c`, correctly rounded.
+
+> **Review.** Taken: for, the fast log where it was asked for and no
+> further, placed as the fast exp is, so that the two read alike; a build
+> without the bits keeps a correct answer at `log_c`'s time. Against: a C++
+> caller names it by its C name; without the bits it is `log_c` away from 1.
+> The alternatives: `frexp` in the fast path; a constant expression.
+> Recommended: as taken. Taken.
+
+**S502. `exponential.h`'s double family is two parts now: `exponential_d.h`,
+its helpers and the exponential, `exp_c` and `exp_fast` among them, and
+`exponential_d_log.h` (new), from the natural logarithm on - `log_c`,
+`log_fast`, the plain log and the rest of section 3, exp2 and expm1 among
+them - so that `exponential.h` is in six parts. With `log_fast`,
+`exponential_d.h` would have held 4,118 lines, past the four thousand of
+S436 and S439.** Every part stands alone and includes the parts before it
+whose names it uses; `exponential.h` includes the six in order, so an
+includer sees the same code in the same order. The generator's `split.py`
+cuts at section 3.3's heading and dates the new part from today.
+- Alternative: `log_fast` in a part of its own: the smallest change, but a
+  part of some 250 lines cut from the logarithm whose helpers it shares.
+- Alternative: `exponential_d.h` left at 4,118 lines: past the rule by a
+  little, and further with each function the section gains.
+
+> **Review.** Taken: for, the rule kept, the cut at a section's heading, the
+> exponential and the logarithm each in a part with its helpers. Against: a
+> new file for the owner's tree, and the zip's list of exponential's parts
+> longer by one. The alternatives: a small part for `log_fast` alone; the
+> rule broken. Recommended: as taken. Taken.
+
+**S503. The tests: `t_exponential`'s new `d_tests_double_log_fast` checks,
+at ten million random arguments - random positive patterns, the subnormals
+among them, 1 + d for d of every size from 2^-4 down to 2^-53, [1/2, 2] and
+[1, 1e6] - that `log_fast` is within an ulp of `log_c`, and, where long
+double holds 64 bits, within 0.52 of an ulp of the exact value as `logl`
+gives it near 1 and 0.53 elsewhere, to 2^-9 of an ulp, `logl`'s own error;
+within an ulp of `log_c` at the 129 doubles about each of nine seams - the
+two ends of the range near 1, 0x1.6p-1 and 0x1.6p0, where k changes,
+0x1.6p1023, where k reaches 1024, a row's edge below 1 and above, the least
+normal and the largest double; and `log_c`'s value, bit for bit, at zero,
+the subnormals, the negatives, the infinities, NaN and 1. On the x87, the
+plain log and `log_fast` are the library's. Its 16 builds of the full tier
+and 6 of the fused tier pass, 264.7 million checks each, 174.8 million on
+the x87. The path without the bits was run once by hand, every check
+passing. `tools/timing_c67.c` measures `log_c` and `log_fast` against glibc
+by gcc and clang, plain and fused, and g++ (raw/timing_c67_1.txt and
+_2.txt).**
+- Alternative: `log_fast` checked within an ulp of `log_c` alone: the
+  bound proven but not measured.
+
+> **Review.** Taken: for, each path's bound measured as well as proven,
+> where long double can measure it, about every seam the two paths and the
+> table have, and `log_c`'s answers where `log_fast` hands over; the x87's
+> library forms checked. Against: the measure leans on `logl`, 2^-9 of an
+> ulp of slack, and only where long double holds 64 bits; the path without
+> the bits checked by hand, not by a tier. The alternative: `log_fast`
+> against `log_c` alone. Recommended: as taken. Taken.
+
+**S504. Chunk 67 is done as decision 71 ruled, before step 55: no step of
+the roadmap's, which still reads 36 of 62; its 6e says the double log's
+fast form is made beside the exp's. Chunk 67's zip goes after chunk 66's,
+over the owner's main `6ee9dce1` with Wednesday's, Friday's and chunks
+58's to 66's zips laid over it, in that order: its documents carry chunk
+66's text too.**
+- Alternative: the zip alone, over his main: its `README.md`,
+  `roadmap.md` and `decisions.md` hold every chunk's lines since 53, so it
+  would undo the earlier zips' lines in them.
+
+> **Review.** Taken: for, decision 71 done in its place, the zip in its
 > order. Against, none. The alternative: the zip alone, undoing the earlier
 > zips' lines in the documents. Recommended: as taken. Taken.

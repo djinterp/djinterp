@@ -14,38 +14,40 @@
 * arithmetic alone, by three phases each with a proven bound (sections 3.2
 * and 3.3), and its plain exp and log are exp_c and log_c (ruling 12,
 * S478, S496), but where double is evaluated wider than double, where they
-* are the C library's (S479, S497); its exp_fast is e^x within 0.511 of an
-* ulp, at the C library's time, for a caller who wants that time rather
-* than the correct rounding (S490). The other _c forms are computed once,
-* in long double, by kernels that carry their reduced argument and last
-* sum as exact pairs, and rounded once to the family: a long double result
-* is within an ulp of the exact one, exp's, log1p's and expm1's within
-* 0.53 of one, a float or double result correctly rounded but where the
-* exact value lies within the kernel's error of a midpoint. C++ before
-* C++11 has no exp2, log2, log1p or expm1, and there the plain forms are
-* the _c ones. No overflow is evaluated, as a constant expression forbids:
-* an infinity is HUGE_VAL, a NaN NAN.
+* are the C library's (S479, S497); its exp_fast and log_fast are e^x
+* within 0.511 of an ulp and log x within 0.53 of one, at the C library's
+* time, for a caller who wants that time rather than the correct rounding
+* (S490, S500). The other _c forms are computed once, in long double, by
+* kernels that carry their reduced argument and last sum as exact pairs,
+* and rounded once to the family: a long double result is within an ulp of
+* the exact one, exp's, log1p's and expm1's within 0.53 of one, a float or
+* double result correctly rounded but where the exact value lies within
+* the kernel's error of a midpoint. C++ before C++11 has no exp2, log2,
+* log1p or expm1, and there the plain forms are the _c ones. No overflow
+* is evaluated, as a constant expression forbids: an infinity is HUGE_VAL,
+* a NaN NAN.
 *
-*   Its text is in 5 parts, each a header that stands alone, included
+*   Its text is in 6 parts, each a header that stands alone, included
 * below in order (S436).
 *
 * HOW TO USE
 * ----------
-*   Include it from C or C++; it includes its five parts. d_math_d_exp, _log,
+*   Include it from C or C++; it includes its six parts. d_math_d_exp, _log,
 * _exp2, _log2, _log10, _log1p and _expm1 call the C library, but for
 * d_math_d_exp and d_math_d_log, which are d_math_d_exp_c and d_math_d_log_c,
 * correctly rounded, wherever double is evaluated in double (S478, S496), and
-* d_math_d_exp_fast, e^x within 0.511 of an ulp at the C library's time (S490);
-* their _c forms compute the same in pure arithmetic, the double family's exp_c
-* and log_c correctly rounded. Each name comes for each family, _f, _d and _ld
-* after d_math_, as d_math_d_sqrt; in C++ the family's own name, d_math_sqrt,
-* is overloaded on the three.
+* d_math_d_exp_fast and d_math_d_log_fast, e^x within 0.511 of an ulp and log x
+* within 0.53 of one, at the C library's time (S490, S500); their _c forms
+* compute the same in pure arithmetic, the double family's exp_c and log_c
+* correctly rounded. Each name comes for each family, _f, _d and _ld after
+* d_math_, as d_math_d_sqrt; in C++ the family's own name, d_math_sqrt, is
+* overloaded on the three.
 *
 * OPTIONS
 * -------
 *   Which form runs is the caller's, by name: the _c form, a constant
-* expression, the plain one on the C library, or for double's exponential the
-* fast one; nothing is chosen at run time.
+* expression, the plain one on the C library, or for double's exponential and
+* logarithm the fast one; nothing is chosen at run time.
 *
 * CONFIGURATION
 * -------------
@@ -59,7 +61,7 @@
 * path:      /inc/djinterp/c/modules/math/exponential.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.08
-*                                                            revised: 2026.11.24
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 /*
@@ -108,8 +110,11 @@ THE PARTS
 =========
 exponential_kernels.h  the long double kernels every family shares
 exponential_f.h        the float family
-exponential_d.h        the double family, its correctly rounded exp and log
-                       among it
+exponential_d.h        the double family's helpers and exponential, its
+                       correctly rounded and fast exp among them
+exponential_d_log.h    the double family's logarithms, its correctly rounded
+                       and fast log among them, and exp2 and expm1 with them
+                       (S502)
 exponential_ld.h       the long double family
 exponential_cpp.h      one name for every family (C++)
 */
@@ -120,6 +125,7 @@ exponential_cpp.h      one name for every family (C++)
 #include "./exponential_kernels.h"
 #include "./exponential_f.h"
 #include "./exponential_d.h"
+#include "./exponential_d_log.h"
 #include "./exponential_ld.h"
 #include "./exponential_cpp.h"
 
