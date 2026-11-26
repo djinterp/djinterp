@@ -18,23 +18,28 @@
 * How many each decides is printed; the second and the third must each be
 * reached. log_c likewise (S424), at the 2,354 arguments of
 * math_tests_log_refs.h - random ones over the whole range, subnormals and
-* arguments near 1 among them, ones within 2^-66 and 2^-99 of a midpoint,
-* the edges - its phases each checked alone. exp_c's common path, 2^-53 <
-* |x| <= 708 (S489), must give the three phases' value, bit for bit, at ten
-* million random arguments and about its ends; exp_fast (S490) must be within
-* an ulp of exp_c there and, where long double holds 64 bits, within 0.511
-* of an ulp of the exact value as expl gives it, and exp_c itself outside
-* the common path. The family's self-test must give 0 (self_test.h). Ten
-* million random arguments each: exp_c over its whole finite range and past
-* both ends, log_c over random positive patterns (the subnormals included) and
-* over 1 + d, d down to 2^-53. Both must be within an ulp of exp and log, the
-* library's; how many differ at all is printed. The edges - the last finite
+* arguments near 1 among them, ones within 2^-66 and 2^-99 of a midpoint, the
+* edges - its phases each checked alone. exp_c's common path, 2^-53 < |x| <=
+* 708 (S489), must give the three phases' value, bit for bit, at ten million
+* random arguments and about its ends; exp_fast (S490) must be within an ulp
+* of exp_c there and, where long double holds 64 bits, within 0.511 of an ulp
+* of the exact value as expl gives it, and exp_c itself outside the common
+* path. log_c's common path (S495) must give the three phases' value, bit for
+* bit, and its reduction, from a double's bits, the one by frexp and dd.h's
+* exact product, at ten million random arguments and about the reduction's
+* seams. The family's self-test must give 0 (self_test.h). Ten million random
+* arguments each: exp_c over its whole finite range and past both ends, log_c
+* over random positive patterns (the subnormals included) and over 1 + d, d
+* down to 2^-53. Both must be within an ulp of exp and log, the library's; how
+* many differ at all is printed; and the plain exp and log must be exp_c and
+* log_c, bit for bit (ruling 12, S478, S496). The edges - the last finite
 * exponential, the last nonzero one, eight thousand doubles about each - and
 * the specials must be exact, and so must the values a long double's double
 * rounding would get wrong, such as exp(2^-53) and log(1 - 2^-53). Where
 * double is evaluated wider than double, a 32-bit x87, the double family's
-* exp_c and log_c refuse to compile (S418): their checks are skipped, and the
-* harness says so. exp2_c, log2_c and log10_c, three million
+* exp_c and log_c refuse to compile (S418): their checks are skipped, the
+* harness says so, and the plain exp and log must be the library's (S479,
+* S497). exp2_c, log2_c and log10_c, three million
 * arguments each, must be within three ulps of exp2, log2 and log10 (glibc's
 * log10 is up to two from the correctly rounded value); exact against values
 * from a 400-bit computation - the ends of exp2's range and the tie at half
@@ -459,9 +464,14 @@ d_tests_double(void)
             worst_log = (e > worst_log) ? e : worst_log;
             diff_log += (e > 0.0) ? 1 : 0;
             D_TESTS_EXPECT(e <= 1.0, "d log_c within an ulp of log", p);
+            // and the plain log is log_c, bit for bit (ruling 12, S496)
+            D_TESTS_EXPECT(d_tests_same_d(d_math_d_log(p), d_math_d_log_c(p)),
+                           "d log is log_c", p);
         }
 #else
-        (void)p;
+        // there the plain log is the library's (S497)
+        D_TESTS_EXPECT(d_tests_same_d(d_math_d_log(p), g_log(p)),
+                       "d log is the library's", p);
         (void)e;
 #endif  // !D_MATH_DBL_EVAL_WIDE
     }
@@ -738,6 +748,147 @@ d_tests_double_exp_paths(void)
            "arguments; exp_fast rounds otherwise than exp_c at %ld\n", diff);
     (void)worst;
 #endif
+
+    return;
+}
+
+// d_tests_log_by_phases
+//   log(_x) by the three phases in turn, as log_c took them before its slow
+// phases went out of line (S495): the first's value where it decides, else
+// the second's, else the third's; _x positive and finite, a subnormal lifted
+// by 2^54.
+static double
+d_tests_log_by_phases(
+    double _x
+)
+{
+    const struct dj_internal_math_d_ln_arg a =
+        (_x < DBL_MIN)
+            ? d_internal_math_d_ln_arg_of(_x * 18014398509481984.0, -54)
+            : d_internal_math_d_ln_arg_of(_x, 0);
+    const struct dj_internal_math_d_exp_result one =
+        d_internal_math_d_ln_phase1(a);
+    struct dj_internal_math_d_exp_result two = { false, 0.0 };
+
+    if (one.decided)
+    {
+        return one.value;
+    }
+
+    two = d_internal_math_d_ln_phase2(a);
+
+    return two.decided ? two.value : d_internal_math_d_ln_phase3(a);
+}
+
+// d_tests_log_reduction_same
+//   whether log_c's reduction of _x, from its bits (S495), is the one chunk
+// 65's took, made here by other means: m and e by the C library's frexp, i
+// the integer nearest 128 (m - 1), and m inv by dd.h's two_product, both
+// factors split; e, i, rh and rl each the same, bit for bit. _x positive,
+// normal and finite.
+static bool
+d_tests_log_reduction_same(
+    double _x
+)
+{
+    const struct dj_internal_math_d_ln_arg a =
+        d_internal_math_d_ln_arg_of(_x, 0);
+    int          e = 0;
+    const double m = 2.0 * frexp(_x, &e);
+    const int    i = (int)(((m - 1.0) * 128.0) + 0.5);
+    const struct dj_math_dd p =
+        d_math_dd_two_product(m, d_internal_math_d_ln_t(3 * i));
+    const struct dj_math_dd r = d_math_dd_fast_two_sum(p.high - 1.0, p.low);
+
+    return ( (a.e == ((e - 1) + ((i >= 53) ? 1 : 0))) &&
+             (a.i == i) &&
+             (d_tests_same_d(a.rh, r.high)) &&
+             (d_tests_same_d(a.rl, r.low)) );
+}
+
+// d_tests_double_log_paths
+//   log_c's common path (S495), the three phases' value bit for bit, and
+// its reduction from the bits the one by frexp and dd.h's exact product, at
+// ten million random arguments - one in four a random positive pattern,
+// subnormals among them, one 1 + d, d of every size from 2^-1 down to
+// 2^-53, one in [1/2, 2] and one in [1, 1e6] - and at the 129 doubles about
+// each of the reduction's seams: the least normal, the largest double, 1,
+// 2, sqrt(2)'s neighbourhood where i goes from 52 to 53, and 2 - 2^-8, where
+// it goes from 127 to 128.
+static void
+d_tests_double_log_paths(void)
+{
+    long i = 0;
+    int  k = 0;
+
+    for (i = 0; i < 10000000; ++i)
+    {
+        double x = 0.0;
+
+        if ((i % 4) == 0)
+        {
+            d_tests_pattern_d(&x, 1);
+        }
+        else
+        {
+            // stored, so x is a double, as d_tests_double's are
+            volatile double stored = ((i % 4) == 1)
+                ? 1.0 + ldexp((2.0 * d_tests_unit()) - 1.0,
+                              -1 - (int)d_tests_below(53u))
+                : (((i % 4) == 2) ? (0.5 + (1.5 * d_tests_unit()))
+                                  : (1.0 + (999999.0 * d_tests_unit())));
+
+            x = stored;
+        }
+
+        if ( !(x > 0.0) || (x > DBL_MAX) )
+        {
+            continue;
+        }
+
+        D_TESTS_EXPECT(d_tests_same_d(d_math_d_log_c(x),
+                                      d_tests_log_by_phases(x)),
+                       "d log_c's common path is the three phases'", x);
+
+        if (x >= DBL_MIN)
+        {
+            D_TESTS_EXPECT(d_tests_log_reduction_same(x),
+                           "d log_c's reduction from the bits", x);
+        }
+    }
+
+    // about the reduction's seams
+    for (i = 0; i < 6; ++i)
+    {
+        static const double seams[6] = {
+            2.2250738585072014e-308, 1.7976931348623157e+308, 1.0, 2.0,
+            1.41015625, 1.99609375
+        };
+        double x = seams[i];
+
+        for (k = 0; k < 64; ++k)
+        {
+            x = nextafter(x, 0.0);
+        }
+
+        for (k = 0; k < 129; ++k)
+        {
+            if (x <= DBL_MAX)
+            {
+                D_TESTS_EXPECT(d_tests_same_d(d_math_d_log_c(x),
+                                              d_tests_log_by_phases(x)),
+                               "d log_c about a seam of its reduction", x);
+                D_TESTS_EXPECT( (x < DBL_MIN) ||
+                                (d_tests_log_reduction_same(x)),
+                                "d log_c's reduction about a seam", x);
+            }
+
+            x = nextafter(x, (double)HUGE_VAL);
+        }
+    }
+
+    printf("double: log_c's common path is the three phases' and its "
+           "reduction chunk 65's at 10000000 arguments and about 6 seams\n");
 
     return;
 }
@@ -2242,6 +2393,7 @@ main(int _argc, char** _argv)
     d_tests_double_edges();
     d_tests_double_exp_edges();
     d_tests_double_exp_paths();
+    d_tests_double_log_paths();
     d_tests_double_exp_refs();
     d_tests_double_log_refs();
 #endif  // !D_MATH_DBL_EVAL_WIDE

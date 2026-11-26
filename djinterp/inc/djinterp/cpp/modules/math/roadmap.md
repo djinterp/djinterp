@@ -49,7 +49,8 @@ The plain double exp is the correctly rounded one, as the owner's ruling
 12 has it (chunk 63). The scalar helpers of his ruling 13 are in
 `scalar.h` (chunk 64, step 52 of 62). The plain exp is faster, and
 `d_math_d_exp_fast` gives glibc's time within 0.511 of an ulp (chunk 65,
-step 53 of 62).
+step 53 of 62). `log_c` is faster, the same bits, and the plain double log
+is the correctly rounded one (chunk 66, step 54 of 62).
 `reify` (chunk 59) makes a compile-time expression a term of the run-time
 language, which prints, simplifies and evaluates it by name. Linear algebra
 has an opt-in lazy type from C++11 (chunk 60), each element the eager bits.
@@ -139,8 +140,8 @@ no earlier step moving (S488).
 | 7: Comparison with other libraries (7a, 7b) | 41 and 42 | 0 of 2 |
 | 8: Bignum (P1 to P7) | 43 to 49 | 1 of 7 |
 | When ready: C6 (the 09.29 lane) and C4b (a CI workflow) | 50 and 51 | 0 of 2 |
-| 9: The terps' needs (T1 to T11) | 52 to 62 | 2 of 11 |
-| **All** | **1 to 62** | **35 of 62** |
+| 9: The terps' needs (T1 to T11) | 52 to 62 | 3 of 11 |
+| **All** | **1 to 62** | **36 of 62** |
 
 "Later, not yet decided" is not counted.
 
@@ -1019,15 +1020,16 @@ of a term, `str()` writes as the renderer does, `x ^ 2 * sin(x)`.
   (S417), its exact products immune to fusing (S414), with a start-up
   self-test (S419); log in chunk 52 (S424 to S426), 4.7 times the C
   library's time, made 1.70 to 1.85 times as fast in chunk 54 (S432, S433),
-  1.95 to 3.03 times the library's, its speed still outstanding (S424); then,
+  1.95 to 3.03 times the library's, and in chunk 66 1.6 to 2.6 times
+  glibc's (S495); then,
   after 0.8's items and core v2, sin, cos, tan, atan, pow and the
   hyperbolic functions. Float
   follows from the double kernels; long double keeps its own. By ruling 12
   (2026.11.24) each plain double function becomes the correctly rounded one
   once it is within about twice the C library's time: the plain exp in
   chunk 63 (S478), 2.1 to 2.6 times the library's on ordinary arguments,
-  its own speed step outstanding (S478); `log` once S424's step brings it
-  within twice.
+  its own speed step done in chunk 65 (S489); `log` in chunk 66 (S496),
+  after its own (S495).
 - [ ] **6b** (step 37) The speed of `sqrt_c` in 32-bit builds (chunk 10's
   options), and `binade_of`'s table.
 - [x] **6c** (step 38) (chunk 55) The generator's 189 misaligned parameter
@@ -1097,7 +1099,12 @@ within 6a, step 36, each as ruling 12 allows: exp in chunk 63 (S478).
   from 2.5 to 2.9 times glibc's time to 1.6 to 2.2, the bits unchanged
   (S489); not glibc's, so `d_math_d_exp_fast`, within 0.511 of an ulp,
   proven, at 0.8 to 1.07 times glibc's time (S490, S491).
-- [ ] **T3** (step 54) log's speed (S424), and then its switch (ruling 12).
+- [x] **T3** (step 54) (chunk 66) log's speed (S424), and then its switch
+  (ruling 12). `log_c`'s reduction from a double's bits by integer
+  operations and its slow phases out of line, the same bits, 1.6 to 2.6
+  times glibc's time where it took 2.4 to 3.6 (S495); within about twice,
+  so the plain double log is `log_c`, the C library's only on the x87
+  (S496, S497).
 - [ ] **T4** (step 55) Stumpff functions and exact angle wrapping, with sin
   and cos in 6a (ruling 15).
 - [ ] **T5** (step 56) erf, erfc and the inverse normal, with gamma, at the
@@ -1253,7 +1260,10 @@ which stand by his rulings of 21:16 the same day, S482 as he ruled it; and
 chunk 64 wrote the scalar helpers of ruling 13, Phase 9's first step, and
 numbered the phase, as he ruled (S483 to S488), which stand by his
 "continue" of 2026.11.25; and chunk 65 made step 53, exp's speed step and
-the fast exp his note asked for (S489 to S494). The work rulings 12 to 15
+the fast exp his note asked for (S489 to S494), which stand by his rulings
+of 08:38 the same day, each as recommended; and chunk 66 made step 54,
+log's speed step and the plain log correctly rounded (S495 to S499). The
+work rulings 12 to 15
 make is Phase 9, below, in ruling 15's order.
 The outstanding decisions of `decisions.md`, its section 1, by group and
 urgency, and the suggestions of `comparison.md`'s section 9 are the owner's

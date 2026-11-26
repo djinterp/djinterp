@@ -11,20 +11,20 @@
 * arithmetic, so the same text is a constant expression from C++14; the
 * plain form calls the C library (std:: in C++), fast at run time. The
 * double family's exp_c and log_c are correctly rounded, in double
-* arithmetic alone, by three phases each with a proven bound (sections
-* 3.2 and 3.3), and its plain exp is exp_c (ruling 12, S478), but where
-* double is evaluated wider than double, where it is the C library's
-* (S479); its exp_fast is e^x within 0.511 of an ulp, at the C library's
-* time, for a caller who wants that time rather than the correct rounding
-* (S490). The other _c forms are computed once, in long double, by
-* kernels that carry their reduced argument and last sum as exact pairs,
-* and rounded once to the family: a long double result is within an ulp
-* of the exact one, exp's, log1p's and expm1's within 0.53 of one, a
-* float or double result correctly rounded but where the exact value lies
-* within the kernel's error of a midpoint. C++ before C++11 has no exp2,
-* log2, log1p or expm1, and there the plain forms are the _c ones. No
-* overflow is evaluated, as a constant expression forbids: an infinity is
-* HUGE_VAL, a NaN NAN.
+* arithmetic alone, by three phases each with a proven bound (sections 3.2
+* and 3.3), and its plain exp and log are exp_c and log_c (ruling 12,
+* S478, S496), but where double is evaluated wider than double, where they
+* are the C library's (S479, S497); its exp_fast is e^x within 0.511 of an
+* ulp, at the C library's time, for a caller who wants that time rather
+* than the correct rounding (S490). The other _c forms are computed once,
+* in long double, by kernels that carry their reduced argument and last
+* sum as exact pairs, and rounded once to the family: a long double result
+* is within an ulp of the exact one, exp's, log1p's and expm1's within
+* 0.53 of one, a float or double result correctly rounded but where the
+* exact value lies within the kernel's error of a midpoint. C++ before
+* C++11 has no exp2, log2, log1p or expm1, and there the plain forms are
+* the _c ones. No overflow is evaluated, as a constant expression forbids:
+* an infinity is HUGE_VAL, a NaN NAN.
 *
 *   Its text is in 5 parts, each a header that stands alone, included
 * below in order (S436).
@@ -33,12 +33,13 @@
 * ----------
 *   Include it from C or C++; it includes its five parts. d_math_d_exp, _log,
 * _exp2, _log2, _log10, _log1p and _expm1 call the C library, but for
-* d_math_d_exp, which is d_math_d_exp_c, correctly rounded, wherever double is
-* evaluated in double (S478), and d_math_d_exp_fast, e^x within 0.511 of an ulp
-* at the C library's time (S490); their _c forms compute the same in pure
-* arithmetic, the double family's exp_c and log_c correctly rounded. Each name
-* comes for each family, _f, _d and _ld after d_math_, as d_math_d_sqrt; in C++
-* the family's own name, d_math_sqrt, is overloaded on the three.
+* d_math_d_exp and d_math_d_log, which are d_math_d_exp_c and d_math_d_log_c,
+* correctly rounded, wherever double is evaluated in double (S478, S496), and
+* d_math_d_exp_fast, e^x within 0.511 of an ulp at the C library's time (S490);
+* their _c forms compute the same in pure arithmetic, the double family's exp_c
+* and log_c correctly rounded. Each name comes for each family, _f, _d and _ld
+* after d_math_, as d_math_d_sqrt; in C++ the family's own name, d_math_sqrt,
+* is overloaded on the three.
 *
 * OPTIONS
 * -------

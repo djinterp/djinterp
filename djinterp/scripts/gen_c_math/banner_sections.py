@@ -83,11 +83,12 @@ SECTIONS = {
     "exponential.h": (
         "Include it from C or C++; it includes its five parts. "
         "d_math_d_exp, _log, _exp2, _log2, _log10, _log1p and _expm1 call "
-        "the C library, but for d_math_d_exp, which is d_math_d_exp_c, "
-        "correctly rounded, wherever double is evaluated in double (S478), "
-        "and d_math_d_exp_fast, e^x within 0.511 of an ulp at the C "
-        "library's time (S490); their _c forms compute the same in pure "
-        "arithmetic, the double family's exp_c and log_c correctly rounded. "
+        "the C library, but for d_math_d_exp and d_math_d_log, which are "
+        "d_math_d_exp_c and d_math_d_log_c, correctly rounded, wherever "
+        "double is evaluated in double (S478, S496), and d_math_d_exp_fast, "
+        "e^x within 0.511 of an ulp at the C library's time (S490); their _c "
+        "forms compute the same in pure arithmetic, the double family's "
+        "exp_c and log_c correctly rounded. "
         + FAMILY,
         "Which form runs is the caller's, by name: the _c form, a constant "
         "expression, the plain one on the C library, or for double's "

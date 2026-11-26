@@ -1,11 +1,11 @@
-# djinterp math: the lane's decisions, S1 to S494
+# djinterp math: the lane's decisions, S1 to S499
 
 Every decision the math lane has taken, in the words of the record that took
 it, with the alternative it set aside. The numbers run across the lane's
 records from S1 (slice 3, 2026.10.08); each record's section of decisions is
 here as its README has it, its own first lines among it. A decision was the
 lane's to take within the owner's rulings, and stands once his next word on
-its delivery, his "continue", has accepted it: S1 to S488 stand, his own
+its delivery, his "continue", has accepted it: S1 to S494 stand, his own
 rulings of 2026.10.27 on complex numbers and quaternions, S265 to S278, the
 design of steps 22 to 24, and his choice of 2026.11.07, S383, among them.
 His rulings of 2026.11.03 and 2026.11.04 on the flagged decisions are in the
@@ -41,13 +41,16 @@ and 14:37, S476 as he ruled it, its alternative; and chunk 63's, the plain
 double exp correctly rounded, as his ruling 12 has it, and chunk 62's
 objects compared, by his rulings of 21:16, S482 as he ruled it, its
 alternative; and chunk 64's, the scalar helpers of ruling 13 and the terps'
-needs numbered as Phase 9, steps 52 to 62, by his "continue" of 2026.11.25.
-His rulings 12 to 15 of 2026.11.24 are in chunk 63's opening lines. S489 to
-S494 are chunk 65's, open until his word on them: step 53, exp's speed step,
-and the fast exp his note on S478 asked for; and S359's precedent corrected.
-His word of 2026.11.14 on the language's names, which kept them flat in
-`djinterp::math`, is S397's. Where a later decision changes an earlier one,
-the later one says so; the earlier one stays here as it was taken.
+needs numbered as Phase 9, steps 52 to 62, by his "continue" of 2026.11.25;
+and chunk 65's, step 53, exp's speed step and the fast exp his note on S478
+asked for, and S359's precedent corrected, by his rulings of 08:38 the same
+day, each as recommended. His rulings 12 to 15 of 2026.11.24 are in chunk
+63's opening lines. S495 to S499 are chunk 66's, open until his word on
+them: step 54, `log_c`'s speed step and the plain double `log` correctly
+rounded, as ruling 12 has it. His word of 2026.11.14 on the language's
+names, which kept them flat in `djinterp::math`, is S397's. Where a later
+decision changes an earlier one, the later one says so; the earlier one
+stays here as it was taken.
 
 A decision names files as they were when it was taken. Chunk 48 merged the
 two quaternion classes (S398) and renamed or split five of the language's
@@ -72,7 +75,7 @@ judged on accuracy and functionality, the best solution rather than the
 cheapest. A review ends "Taken" where the path taken is the one it
 recommends, or "Ruled" where the owner ruled it; it ends in a flag where the
 path taken is not the one it recommends, or has a significant drawback. The
-22 flagged decisions, the outstanding ones, come first, in five groups by
+21 flagged decisions, the outstanding ones, come first, in five groups by
 what they concern, the most urgent first in each (section 1); then every
 decision, by record (section 2).
 
@@ -82,15 +85,15 @@ C6 and N1 to N6, are in the consolidation's record
 followed it; his rulings on them are the roadmap's principles and items
 (`roadmap.md`). From chunk 34 on, each chunk's delivery brings this file,
 its own decisions added at the end. This file is made by
-`_handoffs/math98_chunk65_2026.11.25/tools/decisions_c65.py`.
+`_handoffs/math98_chunk66_2026.11.25/tools/decisions_c66.py`.
 
 ## 1. Outstanding decisions
 
-The 22 flagged decisions: those whose review recommends what is not yet
+The 21 flagged decisions: those whose review recommends what is not yet
 done, or names a significant drawback of what was. Each gives when it is
 due, by the roadmap's steps, its flag and its review's recommendation; the
 decision itself and its whole review are in its record's part of section 2.
-The groups and the steps are `decisions_outstanding_c65.md`'s, in chunk 65's
+The groups and the steps are `decisions_outstanding_c66.md`'s, in chunk 66's
 record.
 
 ### 1.1 The expression language
@@ -166,15 +169,17 @@ record.
   only where it does not. Ruled 2026.11.04 (the owner's, settled): as
   recommended, one answer per platform, at step 36 (6a).
 - S460. When: as ruling 12 (made 2026.11.24) switches each plain function: a
-  reified term's sin, cos, tan, log and atan the plain functions, one ulp
-  from the C core's correctly rounded kernels at 1 to 56 of 20,000 arguments
-  each; exp the kernel since chunk 63 (S478). Until each plain function
-  switches, a reified term's sin, cos, tan, log and atan can differ from the
-  expression's in the last bit, the expression's being the right one.
-  Recommended: as taken, the plain functions made the correctly rounded
-  kernels as ruling 12 decides. Taken in part: ruling 12, made 2026.11.24,
-  switched the plain `exp` in chunk 63, and a reified term's exp is now the
-  expression's, bit for bit (S478, S480).
+  reified term's sin, cos, tan and atan the plain functions, one ulp from
+  the C core's correctly rounded kernels at 3 to 56 of 20,000 arguments
+  each; exp the kernel since chunk 63 (S478), log since chunk 66 (S496).
+  Until each plain function switches, a reified term's sin, cos, tan and
+  atan can differ from the expression's in the last bit, the expression's
+  being the right one. Recommended: as taken, the plain functions made the
+  correctly rounded kernels as ruling 12 decides. Taken in part: ruling 12,
+  made 2026.11.24, switched the plain `exp` in chunk 63, and a reified
+  term's exp is now the expression's, bit for bit (S478, S480); the plain
+  `log` switched in chunk 66, and a reified term's log is the expression's
+  too (S496, S498).
 - S9. When: step 39 (6d), with MSVC. Significant drawback on compilers
   without the builtin. Recommended: as taken, plus `std::bit_cast` from
   C++20 where the builtin is missing, so every C++20 compiler gets it. Taken
@@ -195,17 +200,6 @@ record.
   roadmap's seventh principle has it; chunk 42's squaring in the family's
   own type, the faster, kept for a `_fast` form at step 40 (6e), where
   measured demand asks for one.
-- S424. When: step 54 (T3), before the plain double `log` follows ruling 12
-  (made 2026.11.24): `log_c` 1.95 to 3.03 times the C library's time after
-  chunk 54 (S432, S433), past twice. `log_c` is still 1.95 to 3.03 times the
-  C library's time, past the twice that ruling 12 asks before the plain form
-  becomes the correctly rounded one. Recommended: as taken, then inverses of
-  8 bits, so that r is exact in one double, before the plain double `log`
-  follows ruling 12; an outside review of the proofs when one can be had. In
-  chunk 54 (S432, S433) `log_c` became 1.70 to 1.85 times as fast, its
-  results the same bits. Ruling 12, made 2026.11.24 as recommended, switches
-  a plain double function once its correctly rounded form is within about
-  twice the library's time; the plain `exp` switched in chunk 63 (S478).
 - S20. When: at any step that touches `power.h`; minor. Not the
   recommendation (minor). Recommended: the alternative, at its small cost.
   Ruled 2026.11.04: the alternative, as recommended, at any step that
@@ -9138,9 +9132,12 @@ rest, phase 3 none. The plain `d_math_d_log` stays the C library's
 > fast, its results the same bits. Ruling 12, made 2026.11.24 as
 > recommended, switches a plain double function once its correctly rounded
 > form is within about twice the library's time; the plain `exp` switched in
-> chunk 63 (S478). **Flag:** `log_c` is still 1.95 to 3.03 times the C
-> library's time, past the twice that ruling 12 asks before the plain form
-> becomes the correctly rounded one.
+> chunk 63 (S478). In chunk 66 (S495) `log_c` took its reduction from a
+> double's bits and its slow phases out of line, its results the same bits,
+> at 1.6 to 2.6 times the library's time, within about twice, without the
+> inverses of 8 bits, which stay an alternative of their own design and
+> proofs; the plain `log` is now `log_c` (S496). Taken in part: an outside
+> review of the proofs is still to come.
 
 **S425. `log_c` is checked against references made by mpmath at 400 bits, as
 `exp_c` is (S422): `math_tests_log_refs.h`, made by `tools/refs_log_c52.py`,
@@ -10168,9 +10165,11 @@ arithmetic, sqrt and abs differ at none.
 > the plain functions made the correctly rounded kernels as ruling 12
 > decides. Taken in part: ruling 12, made 2026.11.24, switched the plain
 > `exp` in chunk 63, and a reified term's exp is now the expression's, bit
-> for bit (S478, S480). **Flag:** until each plain function switches, a
-> reified term's sin, cos, tan, log and atan can differ from the
-> expression's in the last bit, the expression's being the right one.
+> for bit (S478, S480); the plain `log` switched in chunk 66, and a reified
+> term's log is the expression's too (S496, S498). **Flag:** until each
+> plain function switches, a reified term's sin, cos, tan and atan can
+> differ from the expression's in the last bit, the expression's being the
+> right one.
 
 **S461. A face test, `t_reify_face.cpp`, checks reify at every rung: 1
 check below C++11, 19 at C++11 and 21 from C++14, 17 and 19 on the 32-bit
@@ -11074,3 +11073,149 @@ both right.
 > caller takes for a quaternion. Against: Eigen, whose answer many of a
 > renderer's callers know, gives zeros. The alternative: Eigen's zero
 > quaternion, a value that looks valid. Recommended: as taken. Taken.
+
+### S495 to S499: chunk 66, 2026.11.25
+
+The record: `_handoffs/math98_chunk66_2026.11.25/README.md`.
+
+Chunk 66's decisions, S495 to S499: step 54 of 62 (T3), log's speed and
+then its switch, as ruling 12 has it: a speed step for `log_c` that keeps
+its bits, and, since it brings `log_c` within about twice the C library's
+time, the plain double `log` correctly rounded, as the plain exp became in
+chunk 63. The owner's rulings of 2026.11.25 (08:38) accepted chunk 65's
+decisions, S489 to S494, each as recommended.
+
+**S495. `log_c`'s speed step, its results the same bits: where the language
+reads a double's bits - in C with a 64-bit integer, by a union, and in C++
+by `__builtin_bit_cast`, every build of the tiers - the reduction takes them
+alone: e from the exponent field, i, the integer nearest 128 (m - 1), as (f
++ 2^44) >> 45, f the 52 bits below m's leading one, and mh, the part of m by
+which m inv is taken exactly, as m with f's last 26 bits cleared, where
+chunk 65's code took i from 128 (m - 1) + 1/2 converted to an integer and mh
+by Veltkamp's split; the second and third phases are out of line, in a new
+`d_internal_math_d_ln_slow` under `D_MATH_FN_COLD`, as exp's are (S489); a
+positive normal x is told by one unsigned comparison of its bits; and the
+first phase's test takes |b.high| as the greater of b.high and -b.high,
+which gcc makes two instructions, a negation and a maximum, where the
+comparison took five. Elsewhere the reduction is chunk 65's, by the binade's
+search. The reduction gives the same e, i, rh and rl as before at every
+argument, so each phase computes the same values and decides where it
+decided: mh inv and (m - mh) inv are exact, mh being of 27 significant bits
+and m - mh of 26, inv of 26; mh inv less its rounding high is a multiple of
+2^-53 below 2^-25, exact; and that plus (m - mh) inv is m inv - high, a
+multiple of 2^-79 at most 2^-53, exact too. `log_c` takes 7.0 ns a call
+where chunk 65's took 10.2 (gcc -O2, every binade, by pointer): 1.6 to 2.6
+times glibc's time across gcc, clang and g++, by pointer and inline, over
+every binade, [1/2, 2], within 2^-7 of 1 and [1, 1e6], where it took 2.4 to
+3.6.** By compiler: 2.2 to 2.6 by gcc and g++ but on [1/2, 2], 1.9 to 2.0
+there, and 1.6 to 2.3 by clang, glibc's log running here with fused
+multiply-adds; two runs, five of their 96 lines left out, each with a time
+more than a quarter off the other run's (chunk 66's record). The common path
+is 108 instructions, from the call to the first phase's decision, where
+chunk 65's inlined all three phases, 4,150 instructions with a frame of
+1,112 bytes and the stack's canary checked. Chunk 54's proofs hold as they
+were recorded, run again against the new header (`raw/proofs.txt`): its
+Gappa tool reads phase 1's test in either form. The product's exactness is
+checked too in exact arithmetic at the ends of each of the 129 rows and at
+4,000 random points in each (chunk 66's record, `proofs/ln_product.py`).
+- Alternative: inverses of 8 bits, so that r = m inv - 1 is one double,
+  exact, S424's first alternative: no low part of r and a shorter product,
+  for a longer polynomial, |r| then up to 2^-7.4; a new table and new
+  proofs for all three phases, for perhaps a nanosecond.
+- Alternative: Estrin's scheme for phase 1's polynomial, and e LN2H + L
+  exact by an L of 42 bits, so that phase 1 has one exact sum fewer: tried,
+  some 0.1 and 0.25 ns a call; the second puts L's low part, up to 2^-43,
+  into phase 1's sum, which where e is 0 and log(x) as small as 2^-9 needs
+  2^-99, so the test would decide fewer arguments there; each a new proof.
+
+> **Review.** Taken: for, `log_c` some 30% faster, 1.6 to 2.6 times glibc's
+> time where it took 2.4 to 3.6, its results the same bits at every
+> argument, shown in exact arithmetic for the product and checked at ten
+> million arguments and about the reduction's seams, chunk 54's proofs
+> holding as recorded; the common path 108 instructions with no frame.
+> Against: a second way of reducing x, from the bits, beside the binade's
+> search, which no build of the tiers takes and a hand-run alone checked; an
+> internal macro a test may set. The alternatives: inverses of 8 bits, a new
+> design and proofs for perhaps a nanosecond; Estrin's scheme and an exact
+> first sum, a tenth and a quarter of a nanosecond, the second costing phase
+> 1's decisions where e is 0. Recommended: as taken. Taken.
+
+**S496. The plain double log, `d_math_d_log`, is `d_math_d_log_c`, the
+correctly rounded logarithm, as ruling 12 has a plain double function once
+its correctly rounded form is within about twice the C library's time:
+1.6 to 2.6 times after S495, where the plain exp switched in chunk 63 at
+2.1 to 2.6 on ordinary arguments, up to 3.0 by clang (S478). Every plain
+double log gives the same bits on every platform where double is evaluated
+in double, and at compile time; through it the language's `log`
+(`d_math_log`, which `expr_fn::log` calls), the complex numbers' plain
+functions that take a real logarithm (`cplx_kernels_lib.h`'s log and the
+paths that take log |z|) and the C++ overload `d_math_log(double)`. The
+float and long double families' plain log, and every other plain double
+function but exp, stay the C library's.** The change is the generator's
+(`scripts/gen_c_math/log_d.py`): the plain form returns `log_c`, and the
+section's comment and `exponential.h`'s banner say so.
+- Alternative: the switch held until `log_c` is within twice in every
+  build and range, after S424's inverses of 8 bits: a plain log left the
+  library's a step longer for a few tenths of the library's time.
+
+> **Review.** Taken: for, every plain double log correctly rounded, the same
+> bits on every platform where double is evaluated in double and at compile
+> time, the language's log and the complex plain functions with it, by the
+> one text, as ruling 12 has it. Against: the plain log 1.6 to 2.6 times the
+> library's time, past twice in some builds and ranges, where the
+> recommendation of ruling 12 asked about twice; inlined at each call. The
+> alternative: the switch held until the inverses of 8 bits, a step longer
+> for a few tenths of the library's time. Recommended: as taken, the plain
+> exp's precedent (S478) at a nearer ratio. Taken.
+
+**S497. Where double is evaluated wider than double, a 32-bit x87, the
+plain double log stays the C library's, as the plain exp does there
+(S479): `log_c` refuses to compile there (S418).** There a plain log's bits
+are the platform's, as before.
+- Alternative: the plain log refusing there too: every x87 build that
+  calls log refused, the language's 32-bit builds among them.
+
+> **Review.** Taken: for, the plain log building wherever it built. Against:
+> on the x87 a plain log's bits are the platform's. The alternative:
+> refusing there, the x87 builds that call log refused. Recommended: as
+> taken, as S479 for exp. Taken.
+
+**S498. The tests say it: `t_exponential` checks that the plain double log
+is `log_c`, bit for bit, at its ten million random arguments, and the C
+library's on the x87; that `log_c`'s common path gives the three phases'
+value, bit for bit, at ten million more - random positive patterns, the
+subnormals among them, 1 + d for d of every size down to 2^-53, [1/2, 2]
+and [1, 1e6] - and at the 129 doubles about each of six seams of the
+reduction (the least normal, the largest double, 1, 2, where i turns from
+52 to 53, and from 127 to 128); and that its reduction from the bits gives
+the e, i, rh and rl that frexp and dd.h's exact product give, at each.
+`t_reify_face` checks a reified term's log against the expression's bit for
+bit, where it checked within an ulp, so that S460's gap closes for log.**
+The other path, by the binade's search, which no build of the tiers takes,
+was run once by hand with `-DD_INTERNAL_MATH_D_LN_BITS=0`, every check
+passing (chunk 66's record, `raw/exponential_other_path.txt`).
+- Alternative: the tests left checking within an ulp: they would pass a
+  plain log that was not `log_c`, and a reduction that differed.
+
+> **Review.** Taken: for, each claim checked as made, bit for bit: the plain
+> log, the common path, the reduction against an independent one, the
+> reified term's log; S460's gap closed for log. Against: some 30 million
+> more checks, though the harness's time is about the same, `log_c` being
+> faster (23.9 s against 23.7, gcc -O2); the other path of the reduction
+> checked by hand, not by a tier. The alternative: within an ulp, which
+> would pass a plain log that was not `log_c`. Recommended: as taken. Taken.
+
+**S499. Step 54 (T3) is done: S424's flag, `log_c` past twice the
+library's time, closes, its review "Taken in part", the proofs' outside
+review still to come; S424 leaves the outstanding decisions, 21 remaining;
+S460's flag narrows to sin, cos, tan and atan. Chunk 66's zip goes after
+chunk 65's, over the owner's main `6ee9dce1` with Wednesday's, Friday's and
+chunks 58's to 65's zips laid over it, in that order: its documents carry
+chunk 65's text too.** The roadmap reads 36 of 62, Phase 9 3 of 11.
+- Alternative: the zip alone, over his main: its `README.md`,
+  `roadmap.md` and `decisions.md` hold every chunk's lines since 53, so it
+  would undo the earlier zips' lines in them.
+
+> **Review.** Taken: for, step 54 closed with S424's flag, the zip in its
+> order. Against, none. The alternative: the zip alone, undoing the earlier
+> zips' lines in the documents. Recommended: as taken. Taken.

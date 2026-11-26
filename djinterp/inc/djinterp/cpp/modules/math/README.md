@@ -1143,7 +1143,8 @@ owner's note asked. `t_exponential` checks the plain exp against `exp_c`
 bit for bit at ten million arguments, and `t_reify_face.cpp` a reified
 term's exp against the expression's (S480). The float and long double
 plain exp, and every other plain double function, stay the library's
-until each comes within twice, `log` first after S424's step.
+until each comes within twice; `log` switched after its speed step, in
+chunk 66 (S496).
 
 **The scalar helpers.** Chunk 64 (S483 to S488), as the owner's ruling 13
 has them, step 52 of 62. `c/modules/math/scalar.h`, generated, gives each
@@ -1188,6 +1189,29 @@ common path against the three phases at ten million arguments, and
 NaN, found one precedent named wrongly: Eigen's inverse of the zero
 quaternion is the zero quaternion, not NaNs; `quat.h`'s stays NaN, as the
 formula and GLM give it (S494, correcting S359's reason).
+
+**log's speed, and the plain log correctly rounded.** Chunk 66 (S495 to
+S499), step 54 of 62, as ruling 12 has it: a speed step for `log_c`, then
+the plain double `log` switched once it is within about twice glibc's
+time. Where the language reads a double's bits, as every build of the
+tiers does, `log_c`'s reduction takes e, the table's row and m's split for
+the exact product from them by integer operations, where it took them in
+floating point; its second and third phases are out of line under
+`D_MATH_FN_COLD`, as exp's are; a positive normal x is one comparison of
+its bits; and the first phase's absolute value is a negation and a
+maximum. The reduction gives the same values at every argument, so the
+bits are the three phases' and chunk 54's proofs hold as recorded. A call
+takes 7.0 ns where it took 10.2 (gcc -O2, every binade): 1.6 to 2.6 times
+glibc's time where it took 2.4 to 3.6 (S495). So `d_math_d_log` is now
+`d_math_d_log_c`, the correctly rounded logarithm, wherever double is
+evaluated in double, and through it the language's `log` and the complex
+numbers' plain functions that take a real logarithm; on a 32-bit x87 the
+C library's (S496, S497). `t_exponential` checks the plain log against
+`log_c` bit for bit, the common path against the three phases and the
+reduction against one by `frexp` and an exact product, each at ten million
+arguments; `t_reify_face.cpp` a reified term's log against the
+expression's (S498). S424's flag closes; S460's narrows to sin, cos, tan
+and atan (S499).
 
 **Decimal text.** `decimal.h` reads a decimal number of any length as the
 nearest `float`, `double` or `long double`, ties to even, whatever the
@@ -1240,8 +1264,9 @@ inc/djinterp/c/modules/math/            the C core
   elementary.h         sqrt, sin, cos, asin, acos, exact helpers
   exponential.h        exp, log, exp2, log2, log10, log1p, expm1; the
                        double exp_c and log_c correctly rounded in double
-                       arithmetic (chunks 51 and 52); the double exp_fast
-                       within 0.511 of an ulp (chunk 65); in parts
+                       arithmetic (chunks 51 and 52), the plain double
+                       exp and log those (chunks 63 and 66); the double
+                       exp_fast within 0.511 of an ulp (chunk 65); in parts
   dd.h                 pairs of doubles: exact sums and products, proven
                        bounds (chunk 51)
   self_test.h          the double family's start-up self-test; whether the
@@ -1551,6 +1576,7 @@ module:
 | 2026.11.24 | ruling 14's 9a and 9c: the ODE steppers math's, `st_math` the terps'; S476 B, chunk 62's objects compared as well; the rulings' work now, exp's switch first, then the scalar helpers |
 | 2026.11.24 | chunk 63's decisions stand, S482 B: the terps' needs numbered now, steps 52 on; on S478, a fast and a slow exp unless `exp_c` can match glibc |
 | 2026.11.25 | chunk 64's decisions stand ("continue"): step 53, exp's speed, next |
+| 2026.11.25 | chunk 65's decisions ruled, each as recommended (08:38): step 54, log's speed, next |
 
 ---
 
@@ -1608,8 +1634,8 @@ zip (S447, S449); chunk 58's goes over that main with both laid over it, in
 order (S455), chunk 59's over that with chunk 58's laid too (S462), and
 chunk 60's after chunk 59's (S468), chunk 61's after chunk 60's
 (S473), chunk 62's after chunk 61's (S477), chunk 63's after chunk 62's
-(S482), chunk 64's after chunk 63's (S488), and chunk 65's after chunk
-64's (S493).
+(S482), chunk 64's after chunk 63's (S488), chunk 65's after chunk 64's
+(S493), and chunk 66's after chunk 65's (S499).
 From 2026.11.18 the lane's notes and deliveries go out once a day.
 
 Outside `cpp/modules/math/`, `c/modules/math/` and their tests, this lane

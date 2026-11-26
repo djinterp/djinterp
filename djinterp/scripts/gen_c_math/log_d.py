@@ -166,7 +166,10 @@ LOG_D_SECTION = r"""// 3.3    Natural logarithm
 // logarithms, log(+-0) is -inf, a negative x gives NaN, and log(1) is +0.
 // Where double is evaluated wider than double, a 32-bit x87, log_c refuses
 // to compile: build with -msse2 -mfpmath=sse (math_common.h,
-// D_MATH_DBL_REFUSE). log is the C library's.
+// D_MATH_DBL_REFUSE). The plain log is log_c, as ruling 12 has a plain
+// double function once its correctly rounded form is within about twice the
+// C library's time (S496), but where double is evaluated wider than double,
+// where it is the C library's (S497).
 
 // D_INTERNAL_MATH_D_LN_TABLE
 //   for i from 0 to 128, at 3 i: inv, 1 at 0 and 128, otherwise 1/c (below
@@ -217,52 +220,133 @@ d_internal_math_d_ln_t(
 }
 
 // dj_internal_math_d_ln_split
-//   struct: a positive normal double as m 2^e, m in [1, 2).
+//   struct: a positive normal double as m 2^e, m in [1, 2); i, the integer
+// nearest 128 (m - 1); and mh, m's high part, by which m inv is taken
+// exactly (d_internal_math_d_ln_product).
 struct dj_internal_math_d_ln_split
 {
     double m;
+    double mh;
     int    e;
+    int    i;
 };
 
-// d_internal_math_d_ln_split
-//   a positive normal _v as m 2^e, m in [1, 2), exactly: from its bits where
-// the language can read a double's (as d_internal_math_d_exp_pow2 makes
-// one), and by float_order.h's binade search elsewhere.
-D_MATH_FN struct dj_internal_math_d_ln_split
-d_internal_math_d_ln_split(
+#if ( ( !defined(__cplusplus) && defined(UINT64_MAX) ) ||                     \
+      ( defined(__cplusplus) && defined(UINT64_MAX) &&                         \
+        defined(D_INTERNAL_MATH_HAS_BIT_CAST) ) )
+    // D_INTERNAL_MATH_D_LN_BITS
+    //   1 where log_c reads a double's bits: in C with a 64-bit integer, by a
+    // union, and in C++ by __builtin_bit_cast, a constant expression. A test
+    // may define it 0 first, to take the other path where it is 1.
+    #ifndef D_INTERNAL_MATH_D_LN_BITS
+        #define D_INTERNAL_MATH_D_LN_BITS 1
+    #endif
+#else
+    #undef D_INTERNAL_MATH_D_LN_BITS
+    #define D_INTERNAL_MATH_D_LN_BITS 0
+#endif
+
+#if D_INTERNAL_MATH_D_LN_BITS
+// d_internal_math_d_ln_bits
+//   _v's bits.
+D_MATH_FN uint64_t
+d_internal_math_d_ln_bits(
     double _v
 )
 {
-    struct dj_internal_math_d_ln_split result = { 1.0, 0 };
-#if ( !defined(__cplusplus) && defined(UINT64_MAX) )
+#ifdef __cplusplus
+    return __builtin_bit_cast(uint64_t, _v);
+#else
     union
     {
         uint64_t bits;
         double   value;
     } v = { 0 };
 
-    v.value  = _v;
-    result.e = (int)((v.bits >> 52) & 0x7FFu) - 1023;
-    v.bits   = (v.bits & ((((uint64_t)1) << 52) - 1)) |
-               (((uint64_t)1023) << 52);
-    result.m = v.value;
-#elif ( defined(__cplusplus) && defined(UINT64_MAX) &&                         \
-        defined(D_INTERNAL_MATH_HAS_BIT_CAST) )
-    const uint64_t bits = __builtin_bit_cast(uint64_t, _v);
+    v.value = _v;
 
-    result.e = (int)((bits >> 52) & 0x7FFu) - 1023;
-    result.m = __builtin_bit_cast(double,
-                                  (bits & ((((uint64_t)1) << 52) - 1)) |
-                                  (((uint64_t)1023) << 52));
+    return v.bits;
+#endif  // __cplusplus
+}
+
+// d_internal_math_d_ln_double
+//   the double whose bits are _bits.
+D_MATH_FN double
+d_internal_math_d_ln_double(
+    uint64_t _bits
+)
+{
+#ifdef __cplusplus
+    return __builtin_bit_cast(double, _bits);
+#else
+    union
+    {
+        uint64_t bits;
+        double   value;
+    } v = { 0 };
+
+    v.bits = _bits;
+
+    return v.value;
+#endif  // __cplusplus
+}
+#endif  // D_INTERNAL_MATH_D_LN_BITS
+
+// d_internal_math_d_ln_split
+//   a positive normal _v as m 2^e, m in [1, 2), exactly, with i and mh.
+// Where the language reads a double's bits, from them alone: m's 52 bits
+// below its leading one are f, so that 128 (m - 1) + 1/2 is (f + 2^44)
+// 2^-45 and i that shifted by 45, and mh is m with f's last 26 bits cleared,
+// of 27 significant bits, m - mh of at most 26. Elsewhere by float_order.h's
+// binade search, i from 128 (m - 1) + 1/2, a multiple of 2^-45 below 128.5,
+// and mh by Veltkamp's split, of 26 bits (S495).
+D_MATH_FN struct dj_internal_math_d_ln_split
+d_internal_math_d_ln_split(
+    double _v
+)
+{
+    struct dj_internal_math_d_ln_split result = { 1.0, 1.0, 0, 0 };
+#if D_INTERNAL_MATH_D_LN_BITS
+    const uint64_t bits = d_internal_math_d_ln_bits(_v);
+    const uint64_t f    = bits & ((((uint64_t)1) << 52) - 1);
+    const uint64_t one  = ((uint64_t)1023) << 52;
+
+    result.e  = (int)((bits >> 52) & 0x7FFu) - 1023;
+    result.i  = (int)((f + (((uint64_t)1) << 44)) >> 45);
+    result.m  = d_internal_math_d_ln_double(f | one);
+    result.mh = d_internal_math_d_ln_double(
+        (f & ~((((uint64_t)1) << 26) - 1)) | one);
 #else
     const struct dj_internal_math_d_binade b =
         d_internal_math_d_binade_of(_v);
+    const double m = _v / b.power;
+    const double t = d_internal_math_d_veltkamp() * m;
 
-    result.e = b.exponent;
-    result.m = _v / b.power;
-#endif
+    result.e  = b.exponent;
+    result.i  = (int)(((m - 1.0) * 128.0) + 0.5);
+    result.m  = m;
+    result.mh = t - (t - m);
+#endif  // D_INTERNAL_MATH_D_LN_BITS
 
     return result;
+}
+
+// d_internal_math_d_ln_normal
+//   whether _v is a positive normal finite double, every double but the
+// rest: from its bits by one unsigned comparison where the language reads
+// them, by two comparisons elsewhere (S495).
+D_MATH_FN bool
+d_internal_math_d_ln_normal(
+    double _v
+)
+{
+#if D_INTERNAL_MATH_D_LN_BITS
+    return ( (d_internal_math_d_ln_bits(_v) - (((uint64_t)1) << 52)) <
+             (((uint64_t)0x7FE) << 52) );
+#else
+    return ( (_v >= DBL_MIN) &&
+             (_v <= DBL_MAX) );
+#endif  // D_INTERNAL_MATH_D_LN_BITS
 }
 
 // dj_internal_math_d_ln_arg
@@ -279,12 +363,16 @@ struct dj_internal_math_d_ln_arg
 // d_internal_math_d_ln_product
 //   _m _inv exactly, as high + low, high its rounding, _inv of at most 26
 // significant bits: the low part by a fused multiply-add where the target
-// has one, and otherwise by Dekker's product with _m alone split, as
-// d_math_dd_two_product's split of _inv would leave it whole, so that both
-// give the same bits as d_math_dd_two_product (S432).
+// has one, and otherwise by Dekker's product with _m alone split, at _mh,
+// so that both give the same bits as d_math_dd_two_product (S432). _mh of
+// at most 27 significant bits and _m - _mh of at most 26, each product by
+// _inv is exact; mh inv less high is a multiple of 2^-53 below 2^-25, and
+// exact; that plus (m - mh) inv is m inv - high, a multiple of 2^-79 at most
+// 2^-53, exact too (S495; chunk 66's record, proofs/).
 D_MATH_FN struct dj_math_dd
 d_internal_math_d_ln_product(
     double _m,
+    double _mh,
     double _inv
 )
 {
@@ -301,22 +389,18 @@ d_internal_math_d_ln_product(
 #endif  // D_MATH_DBL_FMA
 
     {
-        const double t    = d_internal_math_d_veltkamp() * _m;
-        const double m_hi = t - (t - _m);
-        const double m_lo = _m - m_hi;
         const double high = _m * _inv;
 
         result.high = high;
-        result.low  = ((m_hi * _inv) - high) + (m_lo * _inv);
+        result.low  = ((_mh * _inv) - high) + ((_m - _mh) * _inv);
 
         return result;
     }
 }
 
 // d_internal_math_d_ln_arg_of
-//   _v 2^_lift, _v positive, normal and finite, reduced. (m - 1) 128 is a
-// multiple of 2^-45 below 128, and so is it plus 1/2, both exact: i is the
-// integer nearest it, so that |m - c| <= 1/256. From i = 53 the table holds
+//   _v 2^_lift, _v positive, normal and finite, reduced. i is the integer
+// nearest (m - 1) 128, so that |m - c| <= 1/256. From i = 53 the table holds
 // inv halved, so that m times it is m/2 times inv, exactly, and e is raised
 // by 1 (S432). m inv is exact as a pair; its high part lies within 2^-7 of
 // 1, so that it minus 1 is exact (Sterbenz's lemma), and at least the low
@@ -330,9 +414,9 @@ d_internal_math_d_ln_arg_of(
 {
     const struct dj_internal_math_d_ln_split s =
         d_internal_math_d_ln_split(_v);
-    const int    i = (int)(((s.m - 1.0) * 128.0) + 0.5);
-    const struct dj_math_dd p =
-        d_internal_math_d_ln_product(s.m, d_internal_math_d_ln_t(3 * i));
+    const int    i = s.i;
+    const struct dj_math_dd p = d_internal_math_d_ln_product(
+        s.m, s.mh, d_internal_math_d_ln_t(3 * i));
     const struct dj_math_dd r = d_math_dd_fast_two_sum(p.high - 1.0, p.low);
     struct dj_internal_math_d_ln_arg result = { 0, 0, 0.0, 0.0 };
 
@@ -414,7 +498,9 @@ d_internal_math_d_ln_phase1(
     // part of the error that grows with it (S432)
     const double room1 = @EA@;
     const double room2 = @KAPPA@;
-    const double err   = (((b.high < 0.0) ? -b.high : b.high) * room1) +
+    // |b.high| as the greater of it and its negation, a negation and a
+    // maximum where a comparison took five instructions (S495)
+    const double err   = (((b.high > -b.high) ? b.high : -b.high) * room1) +
                          (r2 * room2);
 
     return d_internal_math_d_ln_decide(b.high, lo, err);
@@ -632,26 +718,38 @@ d_internal_math_d_ln_phase3(
     }
 }
 
+// d_internal_math_d_ln_slow
+//   log(_x 2^_lift), _x positive, normal and finite, by the second phase
+// and, where it does not decide, the third: the arguments the first leaves.
+// Out of line, so that log_c's common path, inlined into its callers, keeps
+// the small frame the first phase needs.
+D_MATH_FN_COLD double
+d_internal_math_d_ln_slow(
+    double _x,
+    int    _lift
+)
+{
+    const struct dj_internal_math_d_ln_arg a =
+        d_internal_math_d_ln_arg_of(_x, _lift);
+    const struct dj_internal_math_d_exp_result two =
+        d_internal_math_d_ln_phase2(a);
+
+    return two.decided ? two.value : d_internal_math_d_ln_phase3(a);
+}
+
 // d_internal_math_d_ln_of
-//   log(x) from _a, x reduced: phase 1's result, where it decides the
-// rounding; else phase 2's, where it does; else phase 3's.
+//   log(_x 2^_lift), _x positive, normal and finite: phase 1's result,
+// where it decides the rounding; else the slow phases'.
 D_MATH_FN double
 d_internal_math_d_ln_of(
-    struct dj_internal_math_d_ln_arg _a
+    double _x,
+    int    _lift
 )
 {
     const struct dj_internal_math_d_exp_result one =
-        d_internal_math_d_ln_phase1(_a);
-    struct dj_internal_math_d_exp_result two = { false, 0.0 };
+        d_internal_math_d_ln_phase1(d_internal_math_d_ln_arg_of(_x, _lift));
 
-    if (one.decided)
-    {
-        return one.value;
-    }
-
-    two = d_internal_math_d_ln_phase2(_a);
-
-    return two.decided ? two.value : d_internal_math_d_ln_phase3(_a);
+    return one.decided ? one.value : d_internal_math_d_ln_slow(_x, _lift);
 }
 
 // d_math_d_log_c
@@ -668,10 +766,9 @@ d_math_d_log_c(
 
     D_MATH_DBL_REFUSE(_x)
 
-    if ( (_x >= DBL_MIN) &&
-         (_x <= DBL_MAX) )
+    if (d_internal_math_d_ln_normal(_x))
     {
-        return d_internal_math_d_ln_of(d_internal_math_d_ln_arg_of(_x, 0));
+        return d_internal_math_d_ln_of(_x, 0);
     }
 
     // NaN and +inf are their own logarithms
@@ -694,20 +791,24 @@ d_math_d_log_c(
     }
 
     // a positive subnormal, lifted
-    return d_internal_math_d_ln_of(
-        d_internal_math_d_ln_arg_of(_x * lift, -54));
+    return d_internal_math_d_ln_of(_x * lift, -54);
 }
 
+// d_math_d_log
+//   log(_x), correctly rounded: log_c; the C library's where double is
+// evaluated wider than double; see above.
 D_MATH_FN_RT double
 d_math_d_log(
     double _x
 )
 {
-#ifdef __cplusplus
+#if !D_MATH_DBL_EVAL_WIDE
+    return d_math_d_log_c(_x);
+#elif defined(__cplusplus)
     return std::log(_x);
 #else
     return log(_x);
-#endif
+#endif  // !D_MATH_DBL_EVAL_WIDE
 }
 """
 
