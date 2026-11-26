@@ -178,11 +178,16 @@ not taken before anything is bound.
   read, its text, the setting's full name ("cli.plugin_strict_version"),
   the frame, scope and variable, the status and the reason. It grows by its
   `size` member, so members can be added after the freeze (option_env's
-  decision 71). The stock report, `d_option_env_report_print`, writes
-  "DJINTERP_X=maybe: not a bool" to a C stream, control bytes escaped; the
-  plain imports use it with `D_CFG_OPTION_ENV_IMPORT_REPORT 1`, and say
-  nothing by default, since a library writes to a program's error stream
-  only when asked (option_env's decision 38).
+  decision 71). The stock report, `d_option_env_report_write`, writes
+  "DJINTERP_X=maybe: not a bool" through djinterp's stream, a `struct
+  dj_ostream*` its context, standard error through the stream's console
+  for none, control bytes escaped (option_env's decision 86); a program
+  with a `FILE*` wraps it with `d_ostream_init_file`. It is a unit of its
+  own, `option_env_report.c`, so a program that never reports links neither
+  it nor the console. The plain imports use it with
+  `D_CFG_OPTION_ENV_IMPORT_REPORT 1`, and say nothing by default, since a
+  library writes to a program's error stream only when asked (option_env's
+  decision 38).
 - A **reason** says which rule refused a value, finer than its status: a
   name, a kind, a refused source, a value not built, a range, a choice, text
   the kind does not read, room. `d_option_env_reason_of` gives it for any

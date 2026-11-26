@@ -31,7 +31,7 @@
 # path:      /build/cmake/config/testing/djinterp/c/modules/parse/log/CMakeLists.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.23
-#                                                            revised: 2026.11.23
+#                                                            revised: 2026.11.25
 #*******************************************************************************
 cmake_minimum_required(VERSION 3.16)
 
@@ -63,6 +63,8 @@ get_filename_component(_root
 # whether the compiler builds a level as itself, asked of every level
 # below; the enclosing project has it already
 include("${_root}/build/cmake/djinterp/standards.cmake")
+# the units of the tables below the log, compiled with the log
+include("${_root}/build/cmake/djinterp/log_codes.cmake")
 
 set(DJINTERP_PARSE_LOG_C_LEVELS "99;11;17;23" CACHE STRING
     "C levels the log suite is built and run at")
@@ -95,6 +97,7 @@ set(_sources
     "${_parse}/storage.c"
     "${_c}/log/log.c"
     "${_c}/log/log_writers.c"
+    ${DJINTERP_LOG_CODES_SOURCES}
     "${_c}/desc/desc_machines.c"
     "${_c}/desc/desc_units.c"
     "${_c}/desc/desc_options.c"

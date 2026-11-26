@@ -13,6 +13,7 @@
 *                 D_CFG_LOG_BODY_MAX, D_CFG_LOG_TEMPLATE_OPS,
 *                 D_CFG_LOG_CODES, D_CFG_LOG_MODULES_MAX,
 *                 D_CFG_LOG_GRADE_LEVEL, D_CFG_LOG_CLASSES_EXTRA,
+*                 D_CFG_LOG_CODES_BELOW,
 *                 D_CFG_LOG_FORMATS, D_CFG_LOG_FORMAT,
 *                 D_CFG_LOG_CODE_STYLE, D_CFG_LOG_NESTING,
 *                 D_CFG_LOG_JSON_INTEGERS, D_CFG_LOG_JSON_NONFINITE,
@@ -28,7 +29,7 @@
 * path:      /inc/djinterp/config/c/log/cfg_log.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.19
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 /*
@@ -54,6 +55,7 @@ TABLE OF CONTENTS
          2.  D_CFG_LOG_MODULES_MAX
          3.  D_CFG_LOG_GRADE_LEVEL
          4.  D_CFG_LOG_CLASSES_EXTRA
+         5.  D_CFG_LOG_CODES_BELOW
     5.  Writers
          1.  D_CFG_LOG_FORMATS
          2.  D_CFG_LOG_FORMAT
@@ -235,6 +237,18 @@ TABLE OF CONTENTS
 // and the tree's own tables use only the vocabulary. None by default.
 #ifndef D_CFG_LOG_CLASSES_EXTRA
     #define D_CFG_LOG_CLASSES_EXTRA(X)
+#endif
+
+// 1.4.5
+// D_CFG_LOG_CODES_BELOW
+//   configuration: 1 has the log register the code tables of the modules
+// below it (log_codes.h) from d_log_register and d_log_init, so
+// log.<module>.level and d_log_code_find work for each in every program
+// that has both; 0 leaves them to the program, which calls
+// d_log_codes_add, or d_log_module_add for the ones it wants. 1 by
+// default.
+#ifndef D_CFG_LOG_CODES_BELOW
+    #define D_CFG_LOG_CODES_BELOW 1
 #endif
 
 

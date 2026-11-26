@@ -22,7 +22,7 @@
 * path:      /inc/djinterp/config/c/option/cfg_option_env.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.19
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 /*
@@ -94,9 +94,11 @@ TABLE OF CONTENTS
 // D_CFG_OPTION_ENV_IMPORT_REPORT
 //   configuration: what d_option_env_import and d_option_env_registry_import
 // do with a value they could not bind, where no report is passed: 0 nothing,
-// the first failure returned; 1 the stock report, a line on stderr for each
-// (d_option_env_report_print). A library never writes to a program's error
-// stream unasked, so 0 by default; import_each takes any report.
+// the first failure returned; 1 the stock report, a line on standard error
+// for each, through the stream's console (d_option_env_report_write, in
+// option_env_report.c, which a build with 1 links, with the console unit).
+// A library never writes to a program's error stream unasked, so 0 by
+// default; import_each takes any report.
 #ifndef D_CFG_OPTION_ENV_IMPORT_REPORT
     #define D_CFG_OPTION_ENV_IMPORT_REPORT 0
 #endif  // D_CFG_OPTION_ENV_IMPORT_REPORT

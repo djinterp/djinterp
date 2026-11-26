@@ -3,15 +3,15 @@
 desc's design, for the agreement of Friday 11-13 (decision 29): the APIs of
 all three of desc's layers - the units, the facts and the macro layer - as
 they are in the tree, and the C++ face over them. It records the owner's
-rulings of 11-12, 11-17 and 11-18, by desc's decision numbers: 20
+rulings of 11-12, 11-17, 11-18 and 11-25, by desc's decision numbers: 20
 (describer forms and machines), 28 (d) (one authored form), 30 (a) (op
 arrays), 31 (c) (a declaring macro per family), 32 (b) (dmacro's tools), 33
-(c) (where a describer is found), 34 (a) (the order of adoption), 68 (c)
-and 82 (a) (where other modules' describers live), and 74 (JSON that names
-its shape). It builds on desc.txt (the owner's idea and the first C++
-sketch) and on what the tree already has: the stream's value and templates
-(`c/text/ostream_template.h`), the environment printer and option_env with
-its registry.
+(c) (where a describer is found), 34 (a) (the order of adoption), 68 (c) and
+82 (a) (where other modules' describers live), 74 (JSON that names its
+shape), and 86 (b) (a put through the stream). It builds on desc.txt (the
+owner's idea and the first C++ sketch) and on what the tree already has: the
+stream's value and templates (`c/text/ostream_template.h`), the environment
+printer and option_env with its registry.
 
 ## What desc is
 
@@ -207,8 +207,11 @@ The text goes to desc.h's `fn_desc_put`, only ever appended to. It returns
 0 when written, 1 when the put asked to stop (the put is not called again),
 and -1 for a null argument or a build without units. desc gives two puts:
 `d_desc_put_buffer`, into a caller's `struct dj_desc_buffer`, which keeps
-what fits and a NUL after it and stops when full; and `d_desc_put_file`,
-into a `FILE*`.
+what fits and a NUL after it and stops when full; and `d_desc_put_ostream`
+(`desc_machines.h`), into djinterp's stream, `struct dj_ostream`, so a
+file, a buffer and a module's host take the same bytes. The `FILE*` put is
+gone (decision 86): a program with a `FILE*` wraps it with
+`d_ostream_init_file`.
 
 ## 2. The facts (`desc.h`)
 

@@ -14,14 +14,13 @@
 * path:      /src/djinterp/c/desc/desc_units.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 #include "../../../../inc/djinterp/c/desc/desc_units.h"  // corresponding header
 
 // std
 #include <ctype.h>   // tolower, toupper
-#include <stdio.h>   // fwrite
 #include <string.h>  // strchr, strlen
 // djinterp
 #include "../../../../inc/djinterp/c/desc/desc_macro.h"  // D_DESC_MACRO_BUILD
@@ -32,26 +31,6 @@
 #if D_CFG_DESC_ENABLED && D_CFG_DESC_MACRO && D_CFG_DESC_AT_BUILD
     #pragma message(D_DESC_MACRO_BUILD)
 #endif
-
-
-/*
-d_desc_put_file
-  A put into a FILE*.
-*/
-int
-d_desc_put_file(
-    void*       _context,
-    const char* _text,
-    size_t      _size
-)
-{
-    if ( (_context == NULL) || (_size == 0u) )
-    {
-        return 0;
-    }
-
-    return (fwrite(_text, 1u, _size, (FILE*)_context) == _size) ? 0 : 1;
-}
 
 
 #if D_CFG_DESC_ENABLED && D_CFG_DESC_UNITS

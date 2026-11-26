@@ -24,6 +24,7 @@ djinterp_add_test_executable(c_db_log_tests
         "${_c}/modules/db/db_log.c"
         "${_c}/log/log.c"
         "${_c}/log/log_writers.c"
+        ${DJINTERP_LOG_CODES_SOURCES}
         "${_c}/desc/desc_machines.c"
         "${_c}/desc/desc_units.c"
         "${_c}/desc/desc_options.c"

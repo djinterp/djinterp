@@ -21,7 +21,7 @@
 * path:      /tests/unintegrated/c/option/t_option_env.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.28
-*                                                            revised: 2026.11.23
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 // std
 #include <locale.h>   // setlocale, LC_NUMERIC
@@ -31,7 +31,8 @@
 #include <string.h>   // memcmp, memcpy, strcmp, strlen
 // djinterp
 #include "../../../../inc/djinterp/c/option/option_env.h"  // the environment
-#include "../../../../inc/djinterp/c/filesys/file_open.h"  // the report's file
+#include "../../../../inc/djinterp/c/util/ostream/ostream.h"  // the report's
+                                                              // stream
 // re_std
 #include "../../../../inc/re_std/c/cstdint/dstdint.h"  // int64_t, INT64_MIN
 
@@ -46,11 +47,6 @@
 //   macro: a result's status.
 #define D_TESTS_OPTION_ENV_STATUS(result)                                      \
     d_tests_option_env_status(result)
-
-// D_TESTS_REPORT_FILE
-//   constant: the file the stock report is written to and read back
-// from, in the harness's folder, and removed after.
-#define D_TESTS_REPORT_FILE "t_option_env_report.txt"
 
 static size_t   d_tests_option_env_checks;
 static size_t   d_tests_option_env_failures;
@@ -2988,6 +2984,30 @@ d_tests_option_env_checking(void)
 }
 
 /*
+d_tests_option_env_report_line
+  The stock report's line for a record, written into _line through a fixed
+stream; 1 when it is _expected.
+*/
+static int
+d_tests_option_env_report_line(
+    const struct dj_option_env_report* _report,
+    char*                              _line,
+    size_t                             _capacity,
+    const char*                        _expected
+)
+{
+    struct dj_ostream       os;
+    struct dj_ostream_fixed fixed;
+
+    _line[0] = '\0';
+    (void)d_ostream_init_fixed(&os, &fixed, _line, _capacity, 1);
+    d_option_env_report_write(&os, _report);
+    (void)d_ostream_close(&os);
+
+    return (strcmp(_line, _expected) == 0) ? 1 : 0;
+}
+
+/*
 d_tests_option_env_reasons
   Tests the following:
   - a check's record says which rule refused, finer than the status: a
@@ -2999,9 +3019,10 @@ d_tests_option_env_reasons
     variable or source
   - D_OPTION_ENV_REFUSES_CALLER refuses the file, the environment and the
     command line, and takes the program and an override
-  - the stock report words each refusal from its row, and writes control
-    bytes as \xNN; a frame refused names the djin its setting's first part
-    asked for, "no djin named net"
+  - the stock report words each refusal from its row, through the stream,
+    and writes control bytes as \xNN; a frame refused names the djin its
+    setting's first part asked for, "no djin named net"; a record too old
+    to carry its reason, and a null one, write nothing
 */
 static void
 d_tests_option_env_reasons(void)
@@ -3049,8 +3070,6 @@ d_tests_option_env_reasons(void)
     struct dj_option_result      result;
     char                         line[128];
     size_t                       i;
-    FILE*                        out =
-        d_file_open_stream(D_TESTS_REPORT_FILE, "w+b");
 
     printf("  reasons, the caller's sources, and the stock report\n");
 
@@ -3085,76 +3104,56 @@ d_tests_option_env_reasons(void)
                                       (record.var == D_OPTION_ENV_NONE) );
         }
 
-        // the stock report, worded from the row
-        if (out != NULL)
-        {
-            report.size     = (uint32_t)sizeof(report);
-            report.source   = D_OPTION_ENV_SOURCE_FILE;
-            report.variable = "X";
-            report.value    = CASES[i].value;
-            report.setting  = CASES[i].name;
-            report.frame    = record.frame;
-            report.scope    = record.scope;
-            report.var      = record.var;
-            report.result   = result;
-            report.reason   = record.reason;
-            rewind(out);
-            d_option_env_report_print(out, &report);
-            (void)fputc('\0', out);
-            rewind(out);
-            line[0] = '\0';
-            D_TESTS_OPTION_ENV_CHECK( (fgets(line, (int)sizeof(line), out)
-                                       != NULL) &&
-                                      (strcmp(line, CASES[i].line) == 0) );
+        // the stock report, worded from the row, read from a fixed stream
+        report.size     = (uint32_t)sizeof(report);
+        report.source   = D_OPTION_ENV_SOURCE_FILE;
+        report.variable = "X";
+        report.value    = CASES[i].value;
+        report.setting  = CASES[i].name;
+        report.frame    = record.frame;
+        report.scope    = record.scope;
+        report.var      = record.var;
+        report.result   = result;
+        report.reason   = record.reason;
+        D_TESTS_OPTION_ENV_CHECK(
+            d_tests_option_env_report_line(&report, line, sizeof(line),
+                                           CASES[i].line));
 
-            if (strcmp(line, CASES[i].line) != 0)
-            {
-                printf("    wrote:    %s    expected: %s", line,
-                       CASES[i].line);
-            }
+        if (strcmp(line, CASES[i].line) != 0)
+        {
+            printf("    wrote:    %s    expected: %s", line, CASES[i].line);
         }
     }
 
     // a value that would steer a terminal is written harmless
-    if (out != NULL)
-    {
-        report.value  = "a\x1B]0;owned\x07";
-        report.reason = (int32_t)D_OPTION_ENV_REASON_ROOM;
-        rewind(out);
-        d_option_env_report_print(out, &report);
-        (void)fputc('\0', out);
-        rewind(out);
-        D_TESTS_OPTION_ENV_CHECK( (fgets(line, (int)sizeof(line), out)
-                                   != NULL) &&
-                                  (strcmp(line, "X=a\\x1B]0;owned\\x07: no "
-                                                "room to bind it\n") == 0) );
+    report.value  = "a\x1B]0;owned\x07";
+    report.reason = (int32_t)D_OPTION_ENV_REASON_ROOM;
+    D_TESTS_OPTION_ENV_CHECK(
+        d_tests_option_env_report_line(&report, line, sizeof(line),
+                                       "X=a\\x1B]0;owned\\x07: no room to "
+                                       "bind it\n"));
 
-        // a frame refused: the djin the setting's first part asked for
-        report.value   = "5";
-        report.setting = "net.timeout";
-        report.frame   = NULL;
-        report.var     = D_OPTION_ENV_NONE;
-        report.reason  = (int32_t)D_OPTION_ENV_REASON_FRAME;
-        rewind(out);
-        d_option_env_report_print(out, &report);
-        (void)fputc('\0', out);
-        rewind(out);
-        D_TESTS_OPTION_ENV_CHECK( (fgets(line, (int)sizeof(line), out)
-                                   != NULL) &&
-                                  (strcmp(line, "X=5: no djin named net\n")
-                                   == 0) );
-        report.setting = "timeout";
-        rewind(out);
-        d_option_env_report_print(out, &report);
-        (void)fputc('\0', out);
-        rewind(out);
-        D_TESTS_OPTION_ENV_CHECK( (fgets(line, (int)sizeof(line), out)
-                                   != NULL) &&
-                                  (strcmp(line, "X=5: no such djin\n")
-                                   == 0) );
-        (void)d_file_close_stream(out);
-        (void)remove(D_TESTS_REPORT_FILE);
-    }
+    // a frame refused: the djin the setting's first part asked for
+    report.value   = "5";
+    report.setting = "net.timeout";
+    report.frame   = NULL;
+    report.var     = D_OPTION_ENV_NONE;
+    report.reason  = (int32_t)D_OPTION_ENV_REASON_FRAME;
+    D_TESTS_OPTION_ENV_CHECK(
+        d_tests_option_env_report_line(&report, line, sizeof(line),
+                                       "X=5: no djin named net\n"));
+    report.setting = "timeout";
+    D_TESTS_OPTION_ENV_CHECK(
+        d_tests_option_env_report_line(&report, line, sizeof(line),
+                                       "X=5: no such djin\n"));
+
+    // a record too old to carry its reason writes nothing; nor does null
+    report.size = (uint32_t)(sizeof(report) - 1u);
+    D_TESTS_OPTION_ENV_CHECK(
+        d_tests_option_env_report_line(&report, line, sizeof(line), ""));
+    D_TESTS_OPTION_ENV_CHECK(
+        d_tests_option_env_report_line(NULL, line, sizeof(line), ""));
+    report.size = (uint32_t)sizeof(report);
 
     // a reason read for a good status, and every reason's words
     D_TESTS_OPTION_ENV_CHECK(d_option_env_reason_of(&env, 0u, 0u,

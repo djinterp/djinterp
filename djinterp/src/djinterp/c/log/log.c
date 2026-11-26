@@ -11,7 +11,7 @@
 * path:      /src/djinterp/c/log/log.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.19
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 #include "../../../../inc/djinterp/c/log/log.h"  // corresponding header
@@ -25,6 +25,7 @@
 #include <time.h>    // clock_gettime, timespec_get, time
 // djinterp
 #include "../../../../inc/djinterp/c/event/event_common.h"      // keys
+#include "../../../../inc/djinterp/c/log/log_codes.h"            // below
 #include "../../../../inc/djinterp/c/util/ostream/ostream_console.h"  // stderr
 #include "../../../../inc/djinterp/c/util/ostream/ostream_file.h"  // files
 #if D_CFG_LOG_THREADSAFE
@@ -692,6 +693,12 @@ d_log_register(
     struct dj_option_env_registry* _registry
 )
 {
+    // the tables below the log first, so their scopes are there when the
+    // registry's settings reach the djin
+#if D_CFG_LOG_CODES_BELOW
+    (void)d_log_codes_add();
+#endif
+
     return d_option_env_registry_add((_registry != NULL)
                                          ? _registry
                                          : d_option_env_registry(),
@@ -930,6 +937,37 @@ d_log_module_add(
     d_internal_log.generation = 0u;
 
     return 0;
+}
+
+// d_internal_log_codes_below
+//   constant: the code tables of the modules below the log (log_codes.h),
+// a row a module as its table lands, each with its header above and its
+// unit in log_codes.cmake; the null ends it. None has landed yet.
+static const struct dj_log_module* const d_internal_log_codes_below[] =
+{
+    NULL
+};
+
+/*
+d_log_codes_add
+  Each table below the log through d_log_module_add, the rest tried after a
+refusal.
+*/
+int
+d_log_codes_add(void)
+{
+    size_t index;
+    int    failed = 0;
+
+    for (index = 0u; d_internal_log_codes_below[index] != NULL; ++index)
+    {
+        if (d_log_module_add(d_internal_log_codes_below[index]) != 0)
+        {
+            failed = -1;
+        }
+    }
+
+    return failed;
 }
 
 const struct dj_log_code*
@@ -1307,6 +1345,11 @@ int
 d_log_init(void)
 {
     int failed;
+
+#if D_CFG_LOG_CODES_BELOW
+    // a program without the registry still finds their codes
+    (void)d_log_codes_add();
+#endif
 
     d_internal_log_lock();
     d_internal_log_levels_from_text();

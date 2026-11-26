@@ -29,7 +29,7 @@
 * path:      /src/djinterp/c/option/option_env.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.28
-*                                                            revised: 2026.11.23
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/option/option_env.h"  // corresponding header
 // std
@@ -54,6 +54,16 @@ int32_t D_CFG_OPTION_ENV_GETENV(void*       _context,
                                 char*       _value,
                                 size_t      _size,
                                 size_t*     _length);
+
+// D_INTERNAL_OPTION_ENV_STOCK_REPORT
+//   constant: the report the plain imports pass: the stock report
+// (option_env_report.c) with D_CFG_OPTION_ENV_IMPORT_REPORT 1, none with 0,
+// so a program that never reports links neither it nor the stream's console.
+#if D_CFG_OPTION_ENV_IMPORT_REPORT
+    #define D_INTERNAL_OPTION_ENV_STOCK_REPORT  d_option_env_report_write
+#else
+    #define D_INTERNAL_OPTION_ENV_STOCK_REPORT  NULL
+#endif
 
 
 #if RE_STD_HAS_INT64
@@ -4512,175 +4522,6 @@ d_option_env_refuses(
 }
 
 /*
-d_internal_option_env_print_text
-  Text to a C stream, each control byte as \xNN, so a value read from the
-environment cannot move a terminal's cursor or retitle its window.
-*/
-static void
-d_internal_option_env_print_text(
-    FILE*       _out,
-    const char* _text
-)
-{
-    for (; (_text != NULL) && (*_text != '\0'); ++_text)
-    {
-        const unsigned char c = (unsigned char)*_text;
-
-        if ( (c < 0x20u) || (c == 0x7Fu) )
-        {
-            (void)fprintf(_out, "\\x%02X", (unsigned int)c);
-        }
-        else
-        {
-            (void)fputc((int)c, _out);
-        }
-    }
-
-    return;
-}
-
-/*
-d_internal_option_env_print_djin
-  "no djin named net", for a setting's full name, net.timeout; the reason's
-stock words when the name has no first part.
-*/
-static void
-d_internal_option_env_print_djin(
-    FILE*       _out,
-    const char* _setting
-)
-{
-    char         head[D_INTERNAL_OPTION_ENV_NAME_MAX + 1u];
-    const char*  dot  = (_setting != NULL) ? strchr(_setting, '.') : NULL;
-    const size_t size = (dot != NULL) ? (size_t)(dot - _setting) : 0u;
-
-    if ( (size == 0u) ||
-         (size > D_INTERNAL_OPTION_ENV_NAME_MAX) )
-    {
-        (void)fputs(d_option_env_reason_name(
-                        (int32_t)D_OPTION_ENV_REASON_FRAME), _out);
-
-        return;
-    }
-
-    memcpy(head, _setting, size);
-    head[size] = '\0';
-    (void)fputs("no djin named ", _out);
-    d_internal_option_env_print_text(_out, head);
-
-    return;
-}
-
-/*
-d_internal_option_env_print_why
-  A reason in the row's own terms: the kind a text is not, the range and the
-names an int takes, a choice's names, the source refused.
-*/
-static void
-d_internal_option_env_print_why(
-    FILE*                              _out,
-    const struct dj_option_env_report* _report,
-    const struct dj_option_env_var*    _decl
-)
-{
-    // by D_OPTION_ENV_KIND_*, from BOOL, 1, to FLAGS, 6
-    static const char* const KINDS[] =
-    {
-        "readable", "a bool", "an int", "a real", "text",
-        "one of its names", "a set of its flags"
-    };
-    static const char* const SOURCES[] =
-    {
-        "the default", "the program", "a settings file", "the environment",
-        "the command line", "an override"
-    };
-    uint32_t i;
-
-    // without the row, every reason is said in its stock words
-    switch ( ( (_decl != NULL) ||
-               (_report->reason == (int32_t)D_OPTION_ENV_REASON_SOURCE) ||
-               (_report->reason == (int32_t)D_OPTION_ENV_REASON_FRAME) )
-                 ? _report->reason : -1 )
-    {
-        case D_OPTION_ENV_REASON_FRAME:
-            d_internal_option_env_print_djin(_out, _report->setting);
-            break;
-        case D_OPTION_ENV_REASON_TEXT:
-            (void)fprintf(_out, "not %s",
-                          ( (_decl->kind >= (int32_t)D_OPTION_ENV_KIND_BOOL) &&
-                            (_decl->kind <= (int32_t)D_OPTION_ENV_KIND_FLAGS) )
-                              ? KINDS[_decl->kind] : KINDS[0]);
-            break;
-        case D_OPTION_ENV_REASON_RANGE:
-            (void)fprintf(_out, "not from %lld to %lld",
-                          (long long)_decl->minimum,
-                          (long long)_decl->maximum);
-
-            for (i = 0u; i < _decl->name_count; ++i)
-            {
-                (void)fprintf(_out, (i == 0u) ? ", nor %s" : " or %s",
-                              _decl->names[i].name);
-            }
-
-            break;
-        case D_OPTION_ENV_REASON_CHOICE:
-            (void)fputs("not one of ", _out);
-
-            for (i = 0u; i < _decl->name_count; ++i)
-            {
-                (void)fprintf(_out, (i == 0u) ? "%s" : ", %s",
-                              _decl->names[i].name);
-            }
-
-            break;
-        case D_OPTION_ENV_REASON_SOURCE:
-            (void)fprintf(_out, "not taken from %s in this program",
-                          ( (_report->source >= 0) &&
-                            (_report->source <= 5) )
-                              ? SOURCES[_report->source] : "this source");
-            break;
-        default:
-            (void)fputs(d_option_env_reason_name(_report->reason), _out);
-            break;
-    }
-
-    return;
-}
-
-/*
-d_option_env_report_print
-  "VARIABLE=value: why", a line each; a record too old to carry its reason
-is said in the status's terms.
-*/
-void
-d_option_env_report_print(
-    void*                              _context,
-    const struct dj_option_env_report* _report
-)
-{
-    FILE* const out = (_context != NULL) ? (FILE*)_context : stderr;
-
-    if ( (_report == NULL) ||
-         (_report->size < (uint32_t)sizeof(struct dj_option_env_report)) )
-    {
-        return;
-    }
-
-    d_internal_option_env_print_text(out, _report->variable);
-    (void)fputc('=', out);
-    d_internal_option_env_print_text(out, _report->value);
-    (void)fputs(": ", out);
-    d_internal_option_env_print_why(out, _report,
-                                    (_report->frame != NULL)
-                                        ? d_internal_option_env_decl(
-                                              _report->frame, _report->var)
-                                        : NULL);
-    (void)fputc('\n', out);
-
-    return;
-}
-
-/*
 d_internal_option_env_setting
   A variable's full name as the registry resolves it: a djin's frame - one
 with a name and a parent - before it and a dot; a root's, or a lone
@@ -4936,8 +4777,7 @@ d_option_env_import(
 )
 {
     return d_option_env_import_each(_env, _prefix,
-                                    (D_CFG_OPTION_ENV_IMPORT_REPORT != 0)
-                                        ? d_option_env_report_print : NULL,
+                                    D_INTERNAL_OPTION_ENV_STOCK_REPORT,
                                     NULL);
 }
 

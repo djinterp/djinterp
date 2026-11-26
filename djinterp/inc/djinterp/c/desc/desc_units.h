@@ -29,7 +29,7 @@
 * path:      /inc/djinterp/c/desc/desc_units.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 /*
@@ -60,9 +60,8 @@ TABLE OF CONTENTS
     3.  dj_desc_buffer
     4.  d_desc_buffer_init
     5.  d_desc_put_buffer
-    6.  d_desc_put_file
-    7.  d_desc_facts
-    8.  d_desc_run_facts
+    6.  d_desc_facts
+    7.  d_desc_run_facts
 4.  OPTIONS
     -------
     1.  d_desc_declare
@@ -75,7 +74,6 @@ TABLE OF CONTENTS
 
 // std
 #include <stddef.h>  // size_t, NULL
-#include <stdio.h>   // FILE
 #include <string.h>  // memcpy
 // djinterp
 #include "./desc.h"                                // facts, sinks, puts
@@ -410,15 +408,6 @@ d_desc_put_buffer(
 
     return (buffer->truncated != 0u) ? 1 : 0;
 }
-
-/**
- * @brief A put into a FILE*, its context.
- *
- * @return 0 when written; 1 on a write error.
- */
-int d_desc_put_file(void*       _context,
-                    const char* _text,
-                    size_t      _size);
 
 /**
  * @brief The facts a type's field list derives, into a sink: first "type",

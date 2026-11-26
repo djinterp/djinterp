@@ -18,7 +18,7 @@
 * path:      /src/djinterp/c/option/option_env_registry.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.19
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/option/option_env_registry.h"  // corresponding header
 // std
@@ -36,6 +36,16 @@
 // D_INTERNAL_OPTION_ENV_REGISTRY_PREFIX
 //   constant: the bytes a djin's environment prefix is built in.
 #define D_INTERNAL_OPTION_ENV_REGISTRY_PREFIX  256u
+
+// D_INTERNAL_OPTION_ENV_REGISTRY_REPORT
+//   constant: the report the plain import passes: the stock report
+// (option_env_report.c) with D_CFG_OPTION_ENV_IMPORT_REPORT 1, none with 0,
+// so a program that never reports links neither it nor the stream's console.
+#if D_CFG_OPTION_ENV_IMPORT_REPORT
+    #define D_INTERNAL_OPTION_ENV_REGISTRY_REPORT  d_option_env_report_write
+#else
+    #define D_INTERNAL_OPTION_ENV_REGISTRY_REPORT  NULL
+#endif
 
 // d_internal_option_env_program
 //   variable: the program's registry, its root frame over its own storage,
@@ -694,8 +704,7 @@ d_option_env_registry_import(
 {
     return d_option_env_registry_import_each(
                _registry, _prefix,
-               (D_CFG_OPTION_ENV_IMPORT_REPORT != 0) ? d_option_env_report_print
-                                                     : NULL,
+               D_INTERNAL_OPTION_ENV_REGISTRY_REPORT,
                NULL);
 }
 

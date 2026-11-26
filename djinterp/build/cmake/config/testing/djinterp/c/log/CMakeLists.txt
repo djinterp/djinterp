@@ -14,7 +14,7 @@
 #
 # path:      /build/cmake/config/testing/djinterp/c/log/CMakeLists.txt
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-#                                                            revised: 2026.11.21
+#                                                            revised: 2026.11.25
 # =============================================================================
 
 set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/c/log")
@@ -29,6 +29,7 @@ djinterp_add_test_executable(c_log_tests
         "${_tests_dir}/log_tests.c"
         "${_c}/log/log.c"
         "${_c}/log/log_writers.c"
+        ${DJINTERP_LOG_CODES_SOURCES}
         "${_c}/desc/desc_machines.c"
         "${_c}/desc/desc_units.c"
         "${_c}/desc/desc_options.c"

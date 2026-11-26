@@ -10,7 +10,7 @@
 * path:      /tests/djinterp/c/log/log_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.23
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 #include "./log_tests.h"  // corresponding header
@@ -22,6 +22,7 @@
 #include <time.h>    // tzset
 // djinterp
 #include "../../../../inc/djinterp/c/log/log.h"             // the log
+#include "../../../../inc/djinterp/c/log/log_codes.h"       // below it
 #include "../../../../inc/djinterp/c/event/event_common.h"  // keys
 #include "../../../../inc/djinterp/c/filesys/file_open.h"   // the file
 #include "../../../../inc/djinterp/c/option/option_env.h"   // the reader
@@ -350,6 +351,8 @@ d_tests_log_codes
   - a code by its module's name and its number; its key is the event
     system's key of its full name
   - the vocabulary's names
+  - the tables of the modules below the log register, and again, none
+    refused
 */
 static void
 d_tests_log_codes(
@@ -388,6 +391,8 @@ d_tests_log_codes(
         (strcmp(d_log_class_name(D_LOG_CLASS_COUNT), "?") == 0) &&
         (strcmp(d_log_grade_name(D_LOG_GRADE_REJECTED), "rejected") == 0) &&
         (strcmp(d_log_grade_name(D_LOG_GRADE_COUNT), "?") == 0));
+    D_TEST_CHECK(_suite, (d_log_codes_add() == 0) &&
+                         (d_log_codes_add() == 0));
 
     return;
 }

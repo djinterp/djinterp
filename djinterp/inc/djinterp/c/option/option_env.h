@@ -56,7 +56,7 @@
 * path:      /inc/djinterp/c/option/option_env.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.28
-*                                                            revised: 2026.11.19
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 /*
@@ -1109,17 +1109,21 @@ typedef void (*fn_option_env_report)(
                  const struct dj_option_env_report* _report);
 
 /**
- * @brief The stock report: one line to a C stream for each value refused,
- *        the variable as read, its text and why, worded from the row:
- *        "DJINTERP_X=maybe: not a bool". Control bytes in the text are
- *        written as \xNN, so a value cannot steer a terminal.
+ * @brief The stock report: one line through djinterp's stream for each
+ *        value refused, the variable as read, its text and why, worded from
+ *        the row: "DJINTERP_X=maybe: not a bool". Control bytes in the text
+ *        are written as \xNN, so a value cannot steer a terminal.
  *
  * @note What d_option_env_import uses with D_CFG_OPTION_ENV_IMPORT_REPORT 1.
+ *       It is option_env_report.c, which a program that reports links with
+ *       the stream's console unit (option_env's decision 86). A program
+ *       with a FILE* wraps it with d_ostream_init_file.
  *
- * @param[in] _context  a FILE*; null for stderr.
+ * @param[in] _context  a struct dj_ostream*; null for standard error,
+ *                      through the stream's console.
  * @param[in] _report   the refusal.
  */
-void d_option_env_report_print(void*                              _context,
+void d_option_env_report_write(void*                              _context,
                                const struct dj_option_env_report* _report);
 
 /**
@@ -1240,7 +1244,7 @@ struct dj_option_result d_option_env_load(struct dj_option_env* _env,
  *       are read too, "DJINTERP_DESC_SHELF_RING" for "shelf.ring", and bound
  *       in that scope. A value a variable does not accept, or one longer
  *       than D_CFG_OPTION_ENV_VALUE_MAX, is skipped; the rest are still
- *       read. Each refusal goes nowhere, or to d_option_env_report_print
+ *       read. Each refusal goes nowhere, or to d_option_env_report_write
  *       with D_CFG_OPTION_ENV_IMPORT_REPORT 1; import_each takes a report.
  *
  * @param[in,out] _env     the frame.

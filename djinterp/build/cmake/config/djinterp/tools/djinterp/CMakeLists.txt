@@ -41,6 +41,8 @@ endif()
 
 # the kit, and the argument parser it is made on
 include("${DJINTERP_ROOT}/build/cmake/config/djinterp/tools/cli/DjinterpCli.cmake")
+# the units of the tables below the log, compiled with the log
+include("${DJINTERP_ROOT}/build/cmake/djinterp/log_codes.cmake")
 
 
 #-------------------------------------------------------------------------------
@@ -63,6 +65,7 @@ add_executable(djinterp
     "${_djinterp_sources}/env/env_printer.c"
     "${_djinterp_sources}/c/log/log.c"
     "${_djinterp_sources}/c/log/log_writers.c"
+    ${DJINTERP_LOG_CODES_SOURCES}
     "${_djinterp_sources}/c/option/option_env_desc.c"
     "${_djinterp_sources}/c/util/ostream/ostream.c"
     "${_djinterp_sources}/c/util/ostream/ostream_console.c"

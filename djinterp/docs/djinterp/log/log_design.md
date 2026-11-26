@@ -2,7 +2,8 @@
 
 The log's design, agreed Friday 11-13: what a log record is, how it is
 written, and how it relates to events, message codes and desc. It records
-the owner's rulings of 11-12 and 11-17, cited by the log's decision numbers.
+the owner's rulings of 11-12, 11-17 and 11-25, cited by the log's decision
+numbers.
 The code lands on Wednesday 11-18 (decisions 27 and 80): `c/log/log.h`,
 `src/djinterp/c/log/log.c` and `log_writers.c`,
 its knobs in `config/c/log/cfg_log.h`, and its suite, `c_log_tests`. Every feature is
@@ -228,6 +229,13 @@ keys for tools that want flat attributes.
   header can hold it without depending on the log. `D_LOG_CODES_DECLARE`
   and `_DEFINE` need `log.h`, so they go in the unit that logs for the
   module (parse's subscriber, for instance), built only when the log is.
+  For a module below the log there is no such unit, so the two lines are
+  the log's (decision 87): a header and a unit a module under `log/codes/`
+  (`ostream_codes.h` and `ostream_codes.c`, say), listed in
+  `log_codes.cmake` and built wherever the log is, and the log registers
+  the table itself, from `d_log_register` and `d_log_init`, before
+  settings are read (`log_codes.h`). Each lane owns its table's rows;
+  the two lines are the log's, and come in the window the table lands.
   The generator checks each row against the enum beside it: a constant
   whose name ends in the row's name, upper-cased, with the row's number.
 
@@ -255,7 +263,8 @@ keys for tools that want flat attributes.
   the stream, filesys, sync and the option core return their codes, and
   their callers log them, finding each by its number with
   `d_log_code_find`, and adding the facts only the caller knows. The
-  module's table still sits beside its enum, as inert text. A module may
+  module's table still sits beside its enum, as inert text, and the log
+  declares, defines and registers it (decision 87). A module may
   log from inside - a broken invariant where it happens - only under a
   knob of its own, `D_CFG_<MODULE>_LOG`, 0 by default, and a run then
   chooses its records with `log.<module>.level`. Parse, above the log,
@@ -278,6 +287,7 @@ keys for tools that want flat attributes.
 |---|---|---|
 | `D_CFG_LOG_CODES` | 1 | 1 builds code names and templates; 0 keeps numbers only ("net:207") |
 | `D_CFG_<MODULE>_LOG_CODES` | as `D_CFG_LOG_CODES` | the same, per module |
+| `D_CFG_LOG_CODES_BELOW` | 1 | 1 has the log register the tables of the modules below it; 0 leaves them to the program (`d_log_codes_add`) |
 
 The option `log.code_style` writes a code by name, number or both, in text.
 
@@ -387,6 +397,10 @@ as well, through the module's scope.
   half lands.
 - **Week 3**: the codes generator and its CI job; the modules' code tables,
   each module its own.
+- **Friday 11-27**: the place for the tables of the modules below the log,
+  `log/codes/`, and the log's registration of them (decision 87); each
+  table's two lines in the window it lands, the stream's, compress's and
+  archive's first.
 
 ## Settled
 
@@ -405,3 +419,6 @@ as well, through the module's scope.
 7. Code tables: one per enum of codes; numbers signed; modules below the
    log return codes and their callers log them; vendors' codes as kinds
    (decisions 64 and 67, 75 to 77), above.
+8. A module below the log keeps its table's rows; the log declares,
+   defines and registers it, two lines a module under `log/codes/`
+   (decision 87), above.

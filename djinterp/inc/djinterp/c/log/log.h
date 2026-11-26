@@ -42,7 +42,7 @@
 * path:      /inc/djinterp/c/log/log.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.19
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 /*
@@ -299,6 +299,8 @@ struct dj_log_module
 //     D_LOG_CODES_DEFINE(net, "net", D_NET_LOG_CODES)    // in one source
 // Class and grade are D_LOG_CLASS_* and D_LOG_GRADE_* without their prefix,
 // checked by the compiler; the facts are the names the template may use.
+// A module below the log keeps only the rows; the two lines are the log's,
+// and the log registers its table itself (log_codes.h).
 // The declaration gives d_log_code_<m>_<name> and d_log_module_<m>, and a
 // code's grade as a constant, d_log_grade_<m>_<name>, for D_LOG.
 
@@ -658,6 +660,9 @@ void d_log_write_time(struct dj_ostream* _os,
  *        says. Call it before the program starts its threads, after its
  *        settings are read; calling it again applies changed settings.
  *
+ * @note With D_CFG_LOG_CODES_BELOW 1 it first registers the code tables of
+ *       the modules below the log (log_codes.h), if d_log_register has not.
+ *
  * @return 0; -1 when the destination could not be opened, the log then
  *         writing to standard error.
  */
@@ -703,6 +708,10 @@ struct dj_option_env* d_log_djin(void);
 
 /**
  * @brief Registers the log's djin, so the registry's settings reach it.
+ *
+ * @note With D_CFG_LOG_CODES_BELOW 1 it first registers the code tables of
+ *       the modules below the log (log_codes.h), so log.<module>.level is
+ *       there for each when settings are read.
  *
  * @param[in,out] _registry  the registry; null for the program's.
  * @return as d_option_env_registry_add; INVALID_ARGUMENT without the djin.
