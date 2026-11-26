@@ -23,11 +23,32 @@
 *   Its text is in 7 parts, each a header that stands alone, included
 * below in order (S436).
 *
+* HOW TO USE
+* ----------
+*   Include it from C or C++; it includes its seven parts. Matrices are the
+* caller's row-major arrays of struct dj_cplx_d (and _f, _ld): d_cmat_d_lu,
+* _determinant, _inverse, _solve, _hermitian_eigen and _eigen, with _f and _ld
+* beside them; the linear-algebra faces' complex element types reach them.
+*
+* OPTIONS
+* -------
+*   None: the product and the solve have _fast forms, the formulas as written,
+* chosen by name (S410); the iterative kernels take a tolerance and a step
+* budget as arguments.
+*
+* CONFIGURATION
+* -------------
+*   One knob, D_CFG_MATH_MAT_REFINE_STEPS (config/c/modules/math/cfg_mat.h):
+* how many steps the solve refines a solution, 10 by default, at least 1
+* (S407). The header compiles as C, and as C++ from ISO strict C++98; its _c
+* forms and its pure kernels are constant expressions from C++14
+* (math_common.h's D_MATH_FN).
+*
 *
 * path:      /inc/djinterp/c/modules/math/cmat.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.29
-*                                                            revised: 2026.11.21
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

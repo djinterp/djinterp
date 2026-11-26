@@ -28,11 +28,30 @@
 * bounds were taken as signed numbers - (2, 3) clamps every value to 3 or 2
 * - so a caller that cares tests is_empty() first.
 *
+* HOW TO USE
+* ----------
+*   Include it from C or C++, or through the C++ interval templates
+* (cpp/modules/math/interval/), which forward to it. Make an interval with
+* d_interval_imax_make or _umax_make, its bounds, their openness and its
+* stride, then ask it what it contains (_contains, _count, _at, _index_of) and
+* how it meets another (_intersects, _overlaps, _clamp).
+*
+* OPTIONS
+* -------
+*   None: an interval's bounds, openness and stride are its arguments, not
+* options.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it is C, and compiles as C from C89's headers on and as
+* C++ from C++98; its kernels are constant expressions from C++14
+* (math_common.h's D_MATH_FN).
+*
 *
 * path:      /inc/djinterp/c/modules/math/interval.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

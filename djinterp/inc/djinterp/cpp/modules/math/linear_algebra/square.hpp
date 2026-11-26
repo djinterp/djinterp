@@ -46,11 +46,24 @@
 *     compose directly with the core fluent members, e.g.
 *       inverse(a).transposed()        determinant(a.transposed())
 *
+* HOW TO USE
+* ----------
+*   Include it, or linalg.hpp. determinant, inverse, minor, cofactor, adjugate
+* and the invertibility and orthogonality tests take a square matrix.
+*
+* OPTIONS
+* -------
+*   The tests take a tolerance, default_tolerance<T>() by default.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from ISO strict C++98.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/linear_algebra/square.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.22
-*                                                            revised: 2026.11.02
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

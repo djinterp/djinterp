@@ -453,7 +453,7 @@ def tangent():
         "library's. tan_c reduces its argument by pi/2 exactly at every finite",
         "value, as elementary.h's sine and cosine do.",
     ]
-    text = banner("tangent.h", lines, "2026.10.09", "2026.11.21")
+    text = banner("tangent.h", lines, "2026.10.09", "2026.11.24")
     text += "\n" + TANGENT_HEAD
     text += TANGENT_KERNELS
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):

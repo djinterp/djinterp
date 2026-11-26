@@ -50,11 +50,30 @@
 * are, and C99's functions by their own names from C++20, where
 * std::is_constant_evaluated tells a constant expression from a run.
 *
+* HOW TO USE
+* ----------
+*   Include it, or math.hpp. math::complex<T>, for float, double and long
+* double, is used as std::complex is: its operators, real() and imag(), and
+* abs, exp, sqrt, pow and C99's other functions by their own names; their _c
+* names give the correctly rounded forms. c_value() lends the C core's struct
+* to a C call.
+*
+* OPTIONS
+* -------
+*   None: which form a function takes is its name's choice, made in the code
+* (S336, S384), not a run's.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from C++98; its arithmetic is a
+* constant expression from C++14, and the functions by their own names are the
+* _c forms in a constant expression from C++20.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/complex.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.30
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

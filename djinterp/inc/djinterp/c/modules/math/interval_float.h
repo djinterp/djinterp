@@ -18,11 +18,27 @@
 * is in no interval.
 * Every kernel but formatting is pure arithmetic, so constexpr from C++14.
 *
+* HOW TO USE
+* ----------
+*   Include it from C or C++, or through the C++ interval templates with a
+* floating-point value type. Make an interval with d_interval_d_make, its
+* bounds, their openness and its step, then ask it what it contains and how it
+* meets another, as interval.h's integer families do; _f and _ld beside it.
+*
+* OPTIONS
+* -------
+*   None: an interval's bounds, openness and step are its arguments.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: every kernel but formatting is a constant expression from
+* C++14; it assumes subnormals, as float_order.h does.
+*
 *
 * path:      /inc/djinterp/c/modules/math/interval_float.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.21
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

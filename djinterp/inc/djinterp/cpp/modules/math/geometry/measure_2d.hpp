@@ -26,11 +26,27 @@
 * circle bounding_box_of_circle measures; without it the header compiled
 * at no level.
 *
+* HOW TO USE
+* ----------
+*   Include it, or geometry.hpp. curve_length, perimeter, area and centroid
+* take an edge or a shape, and use its closed form where it has one, numerical
+* integration otherwise.
+*
+* OPTIONS
+* -------
+*   curve_length's numerical fallback takes its number of samples, 64 by
+* default; the closed forms choose nothing.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from ISO strict C++98, as its
+* LEVELS paragraph above says, which names any form that needs a later level.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/geometry/measure_2d.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.10.14
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

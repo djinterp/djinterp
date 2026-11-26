@@ -47,11 +47,26 @@
 * containment tests ask c/math/plane.h's crossing test, through
 * shape_2d.hpp's dispatch, where each wrote it out.
 *
+* HOW TO USE
+* ----------
+*   Include it, or geometry.hpp. star_polygon<System, N, K> is Schlafli's
+* {n/k}; n_pointed_star<System, N> the simple star of outer points and inner
+* valleys; named instances are beside them.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from ISO strict C++98, as its
+* LEVELS paragraph above says, which names any form that needs a later level.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/geometry/star_2d.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.10.06
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

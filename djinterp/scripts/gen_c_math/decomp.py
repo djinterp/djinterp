@@ -3022,7 +3022,7 @@ def decomp():
         "as the elementary functions do: the _c form a constant expression from",
         "C++14, the plain one on the C library's root.",
     ]
-    text = banner("decomp.h", lines, DATE, "2026.11.21")
+    text = banner("decomp.h", lines, DATE, "2026.11.24")
     text += "\n" + DECOMP_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()

@@ -21,11 +21,26 @@
 * evaluates on a std::tuple and shape_from_edges is variadic: both are
 * C++11's.
 *
+* HOW TO USE
+* ----------
+*   Include it, or geometry.hpp. Describe a planar shape by vertices (polygon),
+* a closed curve (parametric_region), an inequality (implicit_region) or edges
+* (shape_from_edges); measure_2d.hpp measures it.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from ISO strict C++98, as its
+* LEVELS paragraph above says, which names any form that needs a later level.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/geometry/shape_2d.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.10.06
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

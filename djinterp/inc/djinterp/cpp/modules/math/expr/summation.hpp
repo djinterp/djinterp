@@ -18,11 +18,26 @@
 *   STEPS. Step 27 (4c) fills every entry. Until then each answers
 * expr_status::not_yet.
 *
+* HOW TO USE
+* ----------
+*   Reached through expr.hpp. expr_sum, expr_product, expr_limit and
+* expr_taylor bind a variable and fold the term over it; each is also a call in
+* the language.
+*
+* OPTIONS
+* -------
+*   The index's bounds, the limit's point and the Taylor order are arguments.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11, as the run-time language does, and
+* is empty below it.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/summation.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

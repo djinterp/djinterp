@@ -631,7 +631,7 @@ def float_order():
         "neighbour. Subnormals are assumed (IEEE 754): a build that flushes them",
         "to zero sees gaps the order does not know about.",
     ]
-    text = banner("float_order.h", lines, DATE, "2026.11.21")
+    text = banner("float_order.h", lines, DATE, "2026.11.24")
     text += "\n" + FLOAT_ORDER_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()
@@ -1491,7 +1491,7 @@ def interval_float():
         "is in no interval.",
         "Every kernel but formatting is pure arithmetic, so constexpr from C++14.",
     ]
-    text = banner("interval_float.h", lines, DATE, "2026.11.21")
+    text = banner("interval_float.h", lines, DATE, "2026.11.24")
     text += "\n" + INTERVAL_FLOAT_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()

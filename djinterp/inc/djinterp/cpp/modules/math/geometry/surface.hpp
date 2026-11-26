@@ -37,11 +37,26 @@
 * only, as before - through a base class, which C++98 can spell, so that
 * has_closed_form_area answers as it did.
 *
+* HOW TO USE
+* ----------
+*   Include it, or geometry.hpp. The triangle, planar polygon and parametric
+* surfaces each model the surface interface, in any coordinate system of three
+* dimensions or more.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from ISO strict C++98, as its
+* LEVELS paragraph above says, which names any form that needs a later level.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/geometry/surface.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.10.06
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

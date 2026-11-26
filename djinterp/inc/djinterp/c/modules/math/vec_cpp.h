@@ -8,11 +8,24 @@
 *   It stands alone, and vec.h includes it with the other parts, in
 * order: what it holds is described there.
 *
+* HOW TO USE
+* ----------
+*   Include vec.h, which includes its four parts in order; or this part alone,
+* which includes the parts before it whose names it uses.
+*
+* OPTIONS
+* -------
+*   As vec.h's, whose banner says.
+*
+* CONFIGURATION
+* -------------
+*   As vec.h's, whose banner says.
+*
 *
 * path:      /inc/djinterp/c/modules/math/vec_cpp.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.21
-*                                                            revised: 2026.11.21
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 #ifndef DJINTERP_C_MATH_VEC_CPP_H

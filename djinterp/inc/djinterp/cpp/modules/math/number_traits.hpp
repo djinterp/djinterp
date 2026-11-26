@@ -33,11 +33,28 @@
 *   From C++20 the concept number names the types generic code computes
 * with.
 *
+* HOW TO USE
+* ----------
+*   Include it, or math.hpp; generic code asks number_traits<T> what it needs
+* of a number type (zero, one, magnitude, tolerance, a root) and
+* common_number<A, B> what two types combine to. A new number type joins by
+* specializing number_traits.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from C++98, common_number
+* through decltype from C++11, its _v forms from C++14 and the concept number
+* from C++20.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/number_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.18
-*                                                            revised: 2026.11.02
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

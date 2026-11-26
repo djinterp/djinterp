@@ -15,11 +15,27 @@
 *   targets:  c/math/mat.h -> D_CFG_MATH_MAT_REFINE_STEPS
 *   requires: cfg_common.h (user overrides, the testing preset)
 *
+* HOW TO USE
+* ----------
+*   Not included by a caller: dconfig.h includes it, and so do mat.h's and
+* cmat.h's parts. Set the knob before the first of them, with -D, in
+* cfg_custom.h or in the including file.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_MATH_MAT_REFINE_STEPS: how many steps d_mat_*_solve and
+* d_cmat_*_solve refine a solution, 10 by default, LAPACK's ITHRESH, at least 1
+* (S407, S410).
+*
 *
 * path:      /inc/djinterp/config/c/modules/math/cfg_mat.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.14
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

@@ -24,6 +24,21 @@
 * as their bounds or count say: constant expressions from C++14, and at
 * C++11 the same loops at run time, with the same bits.
 *
+* HOW TO USE
+* ----------
+*   Include it, or calculus.hpp, from C++11. sum adds a callable over a range
+* of indices, partial_sum a sequence's first terms; the closed forms and
+* taylor_eval and maclaurin_eval are beside them.
+*
+* OPTIONS
+* -------
+*   The range, the number of terms and a Taylor polynomial's degree are
+* arguments; nothing else is chosen.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11 and is empty below it (N1).
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/calculus/series.hpp
 * link(s):   TBA

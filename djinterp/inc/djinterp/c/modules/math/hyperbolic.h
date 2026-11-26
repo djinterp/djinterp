@@ -18,11 +18,30 @@
 * bits. C++ before C++11 has no asinh, acosh or atanh, and there the
 * plain forms are the _c ones.
 *
+* HOW TO USE
+* ----------
+*   Include it from C or C++. d_math_d_sinh, _cosh, _tanh, _asinh, _acosh and
+* _atanh call the C library; their _c forms compute the same in pure
+* arithmetic. Each name comes for each family, _f, _d and _ld after d_math_, as
+* d_math_d_sqrt; in C++ the family's own name, d_math_sqrt, is overloaded on
+* the three.
+*
+* OPTIONS
+* -------
+*   Which form runs is the caller's, by name: the _c form, a constant
+* expression, or the plain one on the C library; nothing is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles as C, and as C++ from ISO strict C++98; its _c
+* forms and its pure kernels are constant expressions from C++14
+* (math_common.h's D_MATH_FN).
+*
 *
 * path:      /inc/djinterp/c/modules/math/hyperbolic.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.09
-*                                                            revised: 2026.11.21
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

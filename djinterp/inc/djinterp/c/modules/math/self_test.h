@@ -17,11 +17,28 @@
 * formulas' bits, the _fast forms' among them, but not the correctly
 * rounded functions'.
 *
+* HOW TO USE
+* ----------
+*   Include it from C or C++ and call d_math_self_test() once, at start-up: it
+* says whether this translation unit's build keeps the double family's
+* guarantees. d_math_formulas_fuse() says whether the build fuses a multiply
+* and an add, which changes the plain formulas' bits and the _fast forms',
+* never the correctly rounded functions'.
+*
+* OPTIONS
+* -------
+*   None: what it checks is fixed; what to do on a failure is the caller's.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it checks the build it is compiled in, such flags as
+* -ffast-math among what it can catch.
+*
 *
 * path:      /inc/djinterp/c/modules/math/self_test.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.16
-*                                                            revised: 2026.11.21
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

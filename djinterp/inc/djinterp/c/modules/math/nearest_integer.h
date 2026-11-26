@@ -17,11 +17,29 @@
 * either and not know which ran. C++ before C++11 has no trunc or round,
 * so that there those are the _c forms.
 *
+* HOW TO USE
+* ----------
+*   Include it from C or C++. d_math_d_floor, _ceil, _trunc and _round, and
+* their _c forms, agree bit for bit, a zero's sign included; the plain ones
+* call the C library. Each name comes for each family, _f, _d and _ld after
+* d_math_, as d_math_d_sqrt; in C++ the family's own name, d_math_sqrt, is
+* overloaded on the three.
+*
+* OPTIONS
+* -------
+*   None: the two forms give the same bits, so which runs changes nothing.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles as C, and as C++ from ISO strict C++98; its _c
+* forms and its pure kernels are constant expressions from C++14
+* (math_common.h's D_MATH_FN).
+*
 *
 * path:      /inc/djinterp/c/modules/math/nearest_integer.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.11.21
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

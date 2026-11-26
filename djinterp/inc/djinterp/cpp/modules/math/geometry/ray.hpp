@@ -22,11 +22,25 @@
 * where one is taken. Everything compiles from C++98; the tests are constant
 * expressions from C++14.
 *
+* HOW TO USE
+* ----------
+*   Include it, or geometry.hpp. A ray is an origin and a direction in
+* Cartesian space; intersect it with an aabb by the slab test or with a
+* triangle by Moller and Trumbore's.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from ISO strict C++98.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/geometry/ray.hpp
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.06.18
-*                                                            revised: 2026.10.06
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

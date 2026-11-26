@@ -13,11 +13,28 @@
 * neighbour. Subnormals are assumed (IEEE 754): a build that flushes them
 * to zero sees gaps the order does not know about.
 *
+* HOW TO USE
+* ----------
+*   Include it from C or C++. d_math_d_next_up and _next_down give a double's
+* neighbours, d_math_d_steps the count of values between two and
+* d_math_d_advance the value some steps away, with _f and _ld beside them;
+* interval_float.h walks its intervals by them.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it is pure arithmetic, a constant expression from C++14.
+* It assumes subnormals: a build that flushes them to zero sees gaps the order
+* does not know.
+*
 *
 * path:      /inc/djinterp/c/modules/math/float_order.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.21
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

@@ -17,6 +17,21 @@
 * interval's size(), and its points the interval's at(), constant
 * expressions from C++14, where the C core's count is.
 *
+* HOW TO USE
+* ----------
+*   Include it, or math.hpp, from C++11. sample<Count>(e, start, step) and
+* sample_over<Interval>(e) evaluate an expression at points into a std::array,
+* at compile time where the expression is a constant expression.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11 and is empty below it (N1). The
+* forms over std::tuple are from C++14.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/values.hpp
 * link(s):   TBA

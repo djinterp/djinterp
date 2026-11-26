@@ -30,11 +30,29 @@
 * requirement checks sit at class scope; centroid_3d keeps its enable_if,
 * re_std's, which every level has.
 *
+* HOW TO USE
+* ----------
+*   Include it, or geometry.hpp. patch_area, surface_area, volume and
+* centroid_3d take a surface or a solid, and use its closed form where it has
+* one, numerical integration otherwise (centroid_3d has the closed form alone);
+* the bounding boxes are beside them.
+*
+* OPTIONS
+* -------
+*   patch_area and volume_divergence take their grid, 32 by 32 by default, and
+* bounding_box_of_surface its samples, 16 by 16; the closed forms choose
+* nothing.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from ISO strict C++98, as its
+* LEVELS paragraph above says, which names any form that needs a later level.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/geometry/measure_3d.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.10.14
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

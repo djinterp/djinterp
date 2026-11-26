@@ -36,11 +36,25 @@
 *                         helpers
 *   platonic.hpp        - the five Platonic solids as triangle meshes
 *
+* HOW TO USE
+* ----------
+*   Include it, or math.hpp, for the whole geometry subframework; or include
+* one of its headers alone to keep compile times down.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own. Each header it includes keeps its own level and knobs, as
+* its banner says.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/geometry/geometry.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 #ifndef DJINTERP_MATH_GEOMETRY_GEOMETRY_HPP

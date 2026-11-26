@@ -31,11 +31,27 @@
 *   EVERY LEVEL. Nothing here needs more than C++98. The kernels are
 * constexpr from C++14 (D_MATH_FN), so the templates' operations are too.
 *
+* HOW TO USE
+* ----------
+*   Included by the interval templates; a caller does not include it. It maps a
+* value type to its kernels, the C core's integer families or the generic path,
+* and gives the iterator over an interval's members.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from ISO strict C++98, as
+* interval_common.hpp says; its operations are constant expressions from C++14,
+* as the C core's kernels are.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/interval/interval_common.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

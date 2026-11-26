@@ -1442,7 +1442,7 @@ def mat():
         "refines its solution with extra precision; their _fast forms are the",
         "formulas as written (S404, S406).",
     ]
-    text = banner("mat.h", lines, revised_on="2026.11.21")
+    text = banner("mat.h", lines, revised_on="2026.11.24")
     text += "\n" + MAT_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()

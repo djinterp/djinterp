@@ -97,11 +97,27 @@
 * the rules of the derivatives. A function that binds a variable of its own,
 * as sum(f, k, a, b) does, is step 27's (4c) to shape.
 *
+* HOW TO USE
+* ----------
+*   Reached through expr.hpp. expr_standard_functions() and
+* expr_standard_constants() are the tables every fold reads, a call's function
+* and a constant's value looked up by name (S210); an entry holds a function's
+* name, its arities and its evaluators.
+*
+* OPTIONS
+* -------
+*   None in the tables; each evaluator is given the fold's expr_context (S385).
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11, as the run-time language does, and
+* is empty below it.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/function_table.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.20
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

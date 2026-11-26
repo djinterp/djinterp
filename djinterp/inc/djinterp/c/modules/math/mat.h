@@ -17,11 +17,31 @@
 *   Its text is in 4 parts, each a header that stands alone, included
 * below in order (S436).
 *
+* HOW TO USE
+* ----------
+*   Include it from C or C++; it includes its four parts. A matrix is the
+* caller's row-major array: d_mat_d_multiply, _transpose, _determinant,
+* _inverse, _solve and the rest, with _f and _ld beside them;
+* linear_algebra/matrix.hpp is its C++ face.
+*
+* OPTIONS
+* -------
+*   None: the products, the trace and the solve have _fast forms, the formulas
+* as written, chosen by name (S404, S406).
+*
+* CONFIGURATION
+* -------------
+*   One knob, D_CFG_MATH_MAT_REFINE_STEPS (config/c/modules/math/cfg_mat.h):
+* how many steps the solve refines a solution, 10 by default, at least 1
+* (S407). The header compiles as C, and as C++ from ISO strict C++98; its _c
+* forms and its pure kernels are constant expressions from C++14
+* (math_common.h's D_MATH_FN).
+*
 *
 * path:      /inc/djinterp/c/modules/math/mat.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.21
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

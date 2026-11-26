@@ -43,11 +43,26 @@
 * built from them at every level, of more from C++11 (or from an array at
 * every level); std::array interoperates from C++11.
 *
+* HOW TO USE
+* ----------
+*   Include it, or linalg.hpp. vector<T, N> is a value: its operators return
+* new vectors, and dot, cross, norm, normalize and the rest are members and
+* free functions alike.
+*
+* OPTIONS
+* -------
+*   Comparisons take a tolerance, default_tolerance<T>() by default; each
+* compensated kernel has a _fast twin, chosen by name.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from ISO strict C++98.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/linear_algebra/vector.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.22
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

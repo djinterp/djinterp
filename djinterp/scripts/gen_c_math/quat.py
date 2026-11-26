@@ -3561,7 +3561,7 @@ def quat():
         lines += ([""] if blank else []) + textwrap.wrap(
             lead + paragraph, 72, break_long_words=False,
             break_on_hyphens=False)
-    text = banner("quat.h", lines, "2026.10.04", "2026.11.21")
+    text = banner("quat.h", lines, "2026.10.04", "2026.11.24")
     text += "\n" + QUAT_HEAD
     text += QUAT_KERNELS_PURE
     for sub, ks, kq, root, title, prose in QUAT_ROOT_FORMS:

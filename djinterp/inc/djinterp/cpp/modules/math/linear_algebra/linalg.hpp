@@ -56,6 +56,21 @@
 * includes in /inc/math/math.hpp to pull the subframework into the math
 * umbrella.
 *
+* HOW TO USE
+* ----------
+*   Include it, or math.hpp, for the whole linear-algebra subframework, in
+* djinterp::math::linalg; or include one of its headers alone.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from C++98; lazy.hpp is from
+* C++11, empty below. Each header it includes keeps its own level and knobs, as
+* its banner says.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/linear_algebra/linalg.hpp
 * link(s):   TBA

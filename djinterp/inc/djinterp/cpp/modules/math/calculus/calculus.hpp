@@ -22,11 +22,26 @@
 * banner says which of its forms are constant expressions from C++11 and
 * which from C++14.
 *
+* HOW TO USE
+* ----------
+*   Include it for the whole calculus subframework, or math.hpp for the module;
+* or include one of its headers alone. Everything is in djinterp::math, the
+* scalar helpers in djinterp::math::fn.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11 and is empty below it (N1). Each
+* header it includes keeps its own level and knobs, as its banner says.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/calculus/calculus.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
-*                                                            revised: 2026.11.23
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 #ifndef DJINTERP_MATH_CALCULUS_CALCULUS_HPP

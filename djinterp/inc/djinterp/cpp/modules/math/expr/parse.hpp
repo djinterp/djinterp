@@ -95,11 +95,26 @@
 * expr_status::not_yet. The names mod, and, or and not are operators: none
 * of the four names a variable.
 *
+* HOW TO USE
+* ----------
+*   Reached through expr.hpp: math::parse and math::try_parse call it.
+* expr_parse(text) gives a term or the error at its character.
+*
+* OPTIONS
+* -------
+*   An expr_syntax chooses implied multiplication and absolute bars, each off
+* by default.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11, as the run-time language does, and
+* is empty below it.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/parse.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

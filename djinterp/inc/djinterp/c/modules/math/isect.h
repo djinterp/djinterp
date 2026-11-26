@@ -10,11 +10,26 @@
 *   Points and directions are a caller's 3-arrays, the faces' vectors'
 * storage. Each test is a constant expression from C++14.
 *
+* HOW TO USE
+* ----------
+*   Include it from C or C++. d_isect_d_ray_aabb and d_isect_d_ray_triangle
+* test a ray, its origin and direction 3-arrays, against a box or a triangle,
+* with _f and _ld beside them; geometry/ray.hpp is its C++ face.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles as C, and as C++ from ISO strict C++98; its
+* functions are constant expressions from C++14 (math_common.h's D_MATH_FN).
+*
 *
 * path:      /inc/djinterp/c/modules/math/isect.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.21
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

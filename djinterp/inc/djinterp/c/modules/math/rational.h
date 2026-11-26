@@ -37,11 +37,30 @@
 * for the value layer, which keeps an exact result too wide for a rational
 * as the nearest long double.
 *
+* HOW TO USE
+* ----------
+*   Include it from C or C++. Bring a numerator and a nonzero denominator to a
+* rational's one form with d_rational_make, then add, subtract, multiply and
+* divide (d_rational_add to _div), compare (_cmp, _eq) and convert
+* (d_rational_to_f, _to_d, _to_ld, each the nearest value). Each kernel returns
+* a status, D_RATIONAL_OK only where it stored the exact result.
+*
+* OPTIONS
+* -------
+*   None: every conversion rounds to nearest, ties to even, whatever the
+* rounding mode (S61); nothing is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it is C, and compiles as C from C89's headers on and as
+* C++ from C++98; its kernels are constant expressions from C++14
+* (math_common.h's D_MATH_FN).
+*
 *
 * path:      /inc/djinterp/c/modules/math/rational.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.14
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

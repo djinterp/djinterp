@@ -27,11 +27,26 @@
 * no default type below C++11, so each factory also has a plain overload in
 * double, for the call with no arguments, tetrahedron_mesh().
 *
+* HOW TO USE
+* ----------
+*   Include it, or geometry.hpp. Each factory gives a Platonic solid as a
+* triangle mesh of a chosen circumradius, centred at the origin, its faces
+* wound outward.
+*
+* OPTIONS
+* -------
+*   The circumradius is an argument; nothing else is chosen.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from ISO strict C++98, as its
+* LEVELS paragraph above says, which names any form that needs a later level.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/geometry/platonic.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.18
-*                                                            revised: 2026.10.06
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

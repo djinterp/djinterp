@@ -35,11 +35,25 @@
 * the norm too, on the C core's correctly rounded root - built from an array
 * of Rows * Cols entries at every level, from std::array from C++11.
 *
+* HOW TO USE
+* ----------
+*   Include it, or linalg.hpp. matrix<T, Rows, Cols> is a value: its operators
+* and members (transpose, trace, power, the products) return new matrices.
+*
+* OPTIONS
+* -------
+*   Comparisons take a tolerance, default_tolerance<T>() by default; each
+* compensated product has a _fast twin, chosen by name.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from ISO strict C++98.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/linear_algebra/matrix.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.22
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

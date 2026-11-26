@@ -41,11 +41,26 @@
 * templates, from C++14. From C++11, the Cartesian helpers also take the
 * std::array points the geometry used before C++98 was its floor.
 *
+* HOW TO USE
+* ----------
+*   Included by every geometry header. It gives the structural interfaces of
+* edges and shapes, their detection traits, system-aware lerp and distance,
+* aabb and composite Simpson's rule.
+*
+* OPTIONS
+* -------
+*   integrate_simpson takes its number of intervals, 64 by default.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from ISO strict C++98, as its
+* LEVELS paragraph above says, which names any form that needs a later level.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/geometry/geometry_common.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.10.06
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

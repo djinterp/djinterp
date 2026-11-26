@@ -450,7 +450,7 @@ def remainder():
         "C++11 has neither remainder nor remquo, so that there they are the _c",
         "forms.",
     ]
-    text = banner("remainder.h", lines, "2026.10.10", "2026.11.21")
+    text = banner("remainder.h", lines, "2026.10.10", "2026.11.24")
     text += "\n" + REMAINDER_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()

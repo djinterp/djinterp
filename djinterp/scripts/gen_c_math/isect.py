@@ -232,7 +232,7 @@ def isect():
         "  Points and directions are a caller's 3-arrays, the faces' vectors'",
         "storage. Each test is a constant expression from C++14.",
     ]
-    text = banner("isect.h", lines, DATE, "2026.11.21")
+    text = banner("isect.h", lines, DATE, "2026.11.24")
     text += "\n" + ISECT_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()

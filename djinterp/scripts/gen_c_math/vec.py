@@ -2431,7 +2431,7 @@ def vec():
         "whose terms are not arrays of one family, cmat.h's and linalg's complex",
         "sums (S410, S411).",
     ]
-    text = banner("vec.h", lines, DATE, "2026.11.21")
+    text = banner("vec.h", lines, DATE, "2026.11.24")
     text += "\n" + VEC_HEAD + VEC_SHARED
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()

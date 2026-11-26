@@ -45,11 +45,26 @@
 * from a helper where they came from a lambda; the closed forms are the
 * formulas they were, on <cmath>.
 *
+* HOW TO USE
+* ----------
+*   Include it, or geometry.hpp. stellate<Mesh, Height>(base, h) raises a
+* pyramid on each face of a triangle mesh; stella_octangula and the other named
+* instances are beside it.
+*
+* OPTIONS
+* -------
+*   The height h, outward or inward, is an argument.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from ISO strict C++98, as its
+* LEVELS paragraph above says, which names any form that needs a later level.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/geometry/star_3d.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.10.14
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

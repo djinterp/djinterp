@@ -46,11 +46,26 @@
 * literal's kinds and indexing, which the parser layer and the renderer
 * read and write themselves.
 *
+* HOW TO USE
+* ----------
+*   Reached through expr.hpp. It holds expr_op, every operator's kind, and the
+* operator table the parser and the renderer read; a caller extends the
+* language through the function table (function_table.hpp), not here.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11, as the run-time language does, and
+* is empty below it.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/operator.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.10.26
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

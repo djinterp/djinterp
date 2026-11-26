@@ -88,11 +88,32 @@
 *   Its text is in 5 parts, each a header that stands alone, included
 * below in order (S436).
 *
+* HOW TO USE
+* ----------
+*   Include it from C or C++; it includes its five parts. A complex number is
+* struct dj_cplx_d (and _f, _ld), the real part first: d_cplx_d_add and the
+* arithmetic, then C99's 22 functions, d_cplx_d_exp, _log, _sqrt, _pow and the
+* rest; complex.hpp is its C++ face. Where the C compiler has _Complex, its
+* section 5 converts.
+*
+* OPTIONS
+* -------
+*   None: the functions' _c forms and plain forms are chosen by name, not at
+* run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles as C, and as C++ from ISO strict C++98; its _c
+* forms and its pure kernels are constant expressions from C++14
+* (math_common.h's D_MATH_FN). Where float and double are evaluated wider, as
+* on a 32-bit x87, their exact steps are taken in long double
+* (D_MATH_FLT_EVAL_WIDE, D_MATH_DBL_EVAL_WIDE).
+*
 *
 * path:      /inc/djinterp/c/modules/math/cplx.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.27
-*                                                            revised: 2026.11.21
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

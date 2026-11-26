@@ -31,6 +31,22 @@
 * its callable; numeric_partial from C++14, where std::array's operator[]
 * is. The index sequences are re_std's.
 *
+* HOW TO USE
+* ----------
+*   Include it, or calculus.hpp, from C++11. derivative<I>(e) is e's exact
+* partial derivative by argument I, itself an expression to evaluate, print
+* through reify or differentiate again; nth_derivative, gradient and
+* numeric_partial are beside it.
+*
+* OPTIONS
+* -------
+*   The numerical rules take their step as an argument; the symbolic ones
+* choose nothing at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11 and is empty below it (N1).
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/calculus/differentiation.hpp
 * link(s):   TBA

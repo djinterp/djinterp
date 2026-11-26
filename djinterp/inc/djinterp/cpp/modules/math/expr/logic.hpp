@@ -36,11 +36,25 @@
 * 23 (3e), its first part, complex numbers' relations; step 24 (3f), its
 * second part, in chunk 45, quaternions' (S275).
 *
+* HOW TO USE
+* ----------
+*   Reached through the function table and the folds; a caller does not include
+* it. It holds the relations', the logic's and piecewise's evaluators.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11, as the run-time language does, and
+* is empty below it.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/logic.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.14
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

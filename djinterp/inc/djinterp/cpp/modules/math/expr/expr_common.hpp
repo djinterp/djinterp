@@ -43,11 +43,29 @@
 *   LEVELS. C++11 and up, by the owner's ruling N1: below C++11 every header
 * of math/expr/ is empty.
 *
+* HOW TO USE
+* ----------
+*   Included by every header of the language; a caller reaches it through
+* expr.hpp. It holds expr_error and its statuses, the result type every
+* fallible step returns, the syntax switches and the fold's context.
+*
+* OPTIONS
+* -------
+*   expr_syntax: implied_multiplication (2x as 2 * x) and absolute_bars (|x| as
+* abs(x)), each off unless set. expr_context: real_results, off by default,
+* where a real function outside its real domain gives its principal complex
+* value; on, a domain error (S272, S340).
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11, as the run-time language does, and
+* is empty below it.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/expr_common.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.23
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

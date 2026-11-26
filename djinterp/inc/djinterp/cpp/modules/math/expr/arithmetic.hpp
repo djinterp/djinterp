@@ -136,11 +136,27 @@
 * and complex(A, B) (S350); step 24 (3f), its second part, in chunk 45, the
 * functions and powers of quaternions (S275).
 *
+* HOW TO USE
+* ----------
+*   Reached through the function table and the folds; a caller does not include
+* it. It holds the standard functions' evaluators in a type, in a complex type
+* and as a value, and the arithmetic of ^ and mod.
+*
+* OPTIONS
+* -------
+*   Each evaluator reads the fold's expr_context: real_results, off by default,
+* decides complex results outside the real domain.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11, as the run-time language does, and
+* is empty below it.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/arithmetic.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.14
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

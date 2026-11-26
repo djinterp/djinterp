@@ -18,11 +18,26 @@
 *             call malloc and free, which value_wide.h declares through
 *             <stdlib.h>
 *
+* HOW TO USE
+* ----------
+*   Not included by a caller: dconfig.h includes it, and so does value_wide.h.
+* Set the knobs before the first of them, with -D, in cfg_custom.h or in the
+* including file.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_MATH_VALUE_WIDE_MALLOC and D_CFG_MATH_VALUE_WIDE_FREE: calls, malloc
+* and free by default, for a host with an arena of its own (S134).
+*
 *
 * path:      /inc/djinterp/config/c/modules/math/cfg_value_wide.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.17
-*                                                            revised: 2026.10.17
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

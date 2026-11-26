@@ -34,11 +34,27 @@
 * point is a linalg::vector<value_type, 3>, written {{a, b, c}}. Everything
 * compiles from C++98.
 *
+* HOW TO USE
+* ----------
+*   Include it, or coordinate.hpp. spherical<T> is the 3D system (r, theta,
+* phi) in the ISO convention, with its scale factors and the conversions to and
+* from Cartesian and cylindrical coordinates.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from ISO strict C++98, as
+* coordinate.hpp's LEVELS paragraph says; its _v variable templates are from
+* C++14.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/coordinate/spherical.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.06
-*                                                            revised: 2026.10.06
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

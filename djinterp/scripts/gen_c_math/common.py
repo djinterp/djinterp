@@ -21,8 +21,37 @@ FAMILIES = [
 DATE = "2026.10.04"
 
 
-def banner(filename, lines, created_on=DATE, revised_on=DATE):
-    """the standard header banner, its fixed geometry included."""
+# the three sections every banner carries under its description (ruled
+# 2026.11.17; chunk 62, S474)
+SECTION_HEADS = ("HOW TO USE", "OPTIONS", "CONFIGURATION")
+
+
+def banner_sections(texts):
+    """the three sections' lines, before banner() prefixes each with "* ":
+    a heading over its dashes, then the text indented two on its first
+    line, so that the banner's lines run to 79."""
+    assert len(texts) == len(SECTION_HEADS)
+    out = []
+    for head, text in zip(SECTION_HEADS, texts):
+        out += ["", head, "-" * len(head)]
+        out += textwrap.wrap(" ".join(text.split()), width=77,
+                             initial_indent="  ", break_long_words=False,
+                             break_on_hyphens=False)
+    return out
+
+
+def banner(filename, lines, created_on=DATE, revised_on=DATE,
+           sections=None):
+    """the standard header banner, its fixed geometry included; sections
+    are the three sections' texts, by default banner_sections.SECTIONS's
+    for the file, which must have them."""
+    from .banner_sections import SECTIONS
+    if sections is None:
+        if filename not in SECTIONS:
+            raise SystemExit("gen_c_math: %s has no banner sections "
+                             "(banner_sections.py)" % filename)
+        sections = SECTIONS[filename]
+    lines = list(lines) + banner_sections(sections)
     path = "/" + CORE + "/" + filename
     title = "* djinterp [c][math]"
     head = title + " " * (80 - len(title) - len(filename)) + filename

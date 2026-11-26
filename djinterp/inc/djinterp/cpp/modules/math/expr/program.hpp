@@ -56,11 +56,27 @@
 *
 *   Build: included, as the language is, through expr/expr.hpp, from C++11.
 *
+* HOW TO USE
+* ----------
+*   Reached through expr.hpp. expr_compile<T>(term) or expr_compile<T>(term,
+* names) compiles a term once; run the program at many values, each run the
+* typed fold's answer bit for bit (S395).
+*
+* OPTIONS
+* -------
+*   The variables' order and values are the caller's, per run.
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_MATH_EXPR_PROGRAM_STACK (config/cpp/modules/math/expr/cfg_expr.h):
+* operands kept in the caller's frame before the heap, 32 by default. It
+* compiles from C++11, as the language does.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/program.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

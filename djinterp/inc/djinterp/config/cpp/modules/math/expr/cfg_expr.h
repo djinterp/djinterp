@@ -12,11 +12,26 @@
 *   targets:  cpp/modules/math/expr/program.hpp -> D_CFG_MATH_EXPR_PROGRAM_STACK
 *   requires: cfg_common.h (user overrides, the testing preset)
 *
+* HOW TO USE
+* ----------
+*   Not included by a caller: dconfig.h includes it, and so does
+* expr/program.hpp. Set the knob before the first of them, with -D, in
+* cfg_custom.h or in the including file.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_MATH_EXPR_PROGRAM_STACK: how many operands a compiled term keeps in
+* the caller's frame before it asks the heap, from 1, 32 by default (S395).
+*
 *
 * path:      /inc/djinterp/config/cpp/modules/math/expr/cfg_expr.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

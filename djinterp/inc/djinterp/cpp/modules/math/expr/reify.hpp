@@ -48,6 +48,21 @@
 * reify builds a run-time term, and so is no constant expression; the
 * rational overload is from C++14, as constants.hpp's rational is.
 *
+* HOW TO USE
+* ----------
+*   Include it, or math.hpp, from C++11. reify(e) makes a compile-time
+* expression a term of the run-time language, its variables x, y, z and t;
+* reify(e, "r", "theta") names them.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11, as the run-time language does, and
+* is empty below it. Integral constants are exact below 2^53 (S458).
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/reify.hpp
 * link(s):   TBA

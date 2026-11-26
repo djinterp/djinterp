@@ -30,6 +30,22 @@
 * counts: two fractions with terms of 1,000 digits take a few milliseconds.
 *   ONE INTERFACE AT EVERY LEVEL from C++98. From C++11 the values move.
 *
+* HOW TO USE
+* ----------
+*   Include it, or math.hpp. compare(a, b) orders two numbers written as text
+* exactly, -1, 0, 1, or 2 where either is not a number; the predicates (less,
+* equal and the rest) read as their names say. A numeric_text is made from a C
+* string, a std::string or, from C++17, a std::string_view.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from C++98, the
+* std::string_view constructor from C++17.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/numeric_compare.hpp
 * link(s):   TBA

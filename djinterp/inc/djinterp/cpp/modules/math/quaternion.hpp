@@ -46,11 +46,27 @@
 * from_axis_angle and slerp_fast take the C library's sine and cosine at run
 * time, and are constant expressions from C++20.
 *
+* HOW TO USE
+* ----------
+*   Include it, or math.hpp; linalg::quaternion names the same class. Make a
+* quaternion from an axis and angle, a rotation matrix or two vectors; multiply
+* to compose rotations, rotate a vector, convert to a matrix, and slerp between
+* two.
+*
+* OPTIONS
+* -------
+*   None: each accurate operation has a _fast twin chosen by name in the code
+* (S405), not at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from ISO strict C++98.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/quaternion.hpp
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.06.18
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

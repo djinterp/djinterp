@@ -27,11 +27,26 @@
 * sine at run time, as before); a polyline's points are a re_std::array
 * (from C++11 a std::array of points converts).
 *
+* HOW TO USE
+* ----------
+*   Include it, or geometry.hpp. line_segment, arc, the parametric, implicit
+* and polyline edges and the Bezier curves each model the edge interface, in
+* any coordinate system.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from ISO strict C++98, as its
+* LEVELS paragraph above says, which names any form that needs a later level.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/geometry/edge.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.10.06
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

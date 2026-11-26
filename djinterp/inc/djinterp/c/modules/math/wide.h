@@ -46,6 +46,25 @@
 *   TEXT. Decimal both ways: an optional sign, then digits. A wide integer's
 * text needs at most D_MATH_WIDE_TEXT_SIZE characters, its NUL among them.
 *
+* HOW TO USE
+* ----------
+*   Include it from C or C++. Make a wide integer from a machine integer, a
+* rational or text (d_math_wide_from_imax, _from_umax, _from_rational,
+* _from_text), compute with d_math_wide_add, _sub, _mul, _divmod and _gcd, and
+* convert it back (d_math_wide_to_imax, _to_d, _to_text and the rest). Each
+* kernel returns a status and stores nothing where it fails.
+*
+* OPTIONS
+* -------
+*   None: division truncates as C's does (S117), and the conversions round to
+* nearest; nothing is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it is C, and compiles as C from C89's headers on and as
+* C++ from C++98; its kernels are constant expressions from C++14
+* (math_common.h's D_MATH_FN).
+*
 *
 * path:      /inc/djinterp/c/modules/math/wide.h
 * link(s):   TBA

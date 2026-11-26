@@ -22,11 +22,31 @@
 *   Its text is in 10 parts, each a header that stands alone, included
 * below in order (S436).
 *
+* HOW TO USE
+* ----------
+*   Include it from C or C++; it includes its ten parts. Matrices are the
+* caller's row-major arrays: d_decomp_d_lu, _cholesky, _qr, the substitutions,
+* the SVD and the eigensolvers, with _f and _ld beside them;
+* linear_algebra/decomposition.hpp, solve.hpp, svd.hpp and eigen.hpp are its
+* C++ faces.
+*
+* OPTIONS
+* -------
+*   The Jacobi kernels take a tolerance, and the general eigensolvers a step
+* budget, as arguments; what takes a root comes as a _c form and a plain one,
+* by name.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles as C, and as C++ from ISO strict C++98; its _c
+* forms and its pure kernels are constant expressions from C++14
+* (math_common.h's D_MATH_FN).
+*
 *
 * path:      /inc/djinterp/c/modules/math/decomp.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.21
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

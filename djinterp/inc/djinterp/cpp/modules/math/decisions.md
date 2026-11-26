@@ -1,11 +1,11 @@
-# djinterp math: the lane's decisions, S1 to S473
+# djinterp math: the lane's decisions, S1 to S477
 
 Every decision the math lane has taken, in the words of the record that took
 it, with the alternative it set aside. The numbers run across the lane's
 records from S1 (slice 3, 2026.10.08); each record's section of decisions is
 here as its README has it, its own first lines among it. A decision was the
 lane's to take within the owner's rulings, and stands once his next word on
-its delivery, his "continue", has accepted it: S1 to S468 stand, his own
+its delivery, his "continue", has accepted it: S1 to S473 stand, his own
 rulings of 2026.10.27 on complex numbers and quaternions, S265 to S278, the
 design of steps 22 to 24, and his choice of 2026.11.07, S383, among them.
 His rulings of 2026.11.03 and 2026.11.04 on the flagged decisions are in the
@@ -32,12 +32,15 @@ generator's strings with one hyphen for a dash; and chunk 58's, step 31
 `math.hpp` at every rung; and chunk 59's, step 32 (5d), `reify`, a
 compile-time expression made a term of the run-time language, by his
 "continue" of 21:32 the same day; and chunk 60's, step 34 (5f), the opt-in
-lazy type of linear algebra, by his "continue" of 2026.11.24 at 08:13. S469
-to S473 are chunk 61's, open until his word on them: step 35 (5g), the
-compile-time headers' style debt, which closes Phase 5. His word of
-2026.11.14 on the language's names, which kept them flat in
-`djinterp::math`, is S397's. Where a later decision changes an earlier one,
-the later one says so; the earlier one stays here as it was taken.
+lazy type of linear algebra, by his "continue" of 2026.11.24 at 08:13; and
+chunk 61's, step 35 (5g), the compile-time headers' style debt, which closes
+Phase 5, by his "continue" of 12:34 the same day, S473 as his word of 10:30
+ruled it, its first alternative. S474 to S477 are chunk 62's, open until his
+word on them: the banners' HOW TO USE, OPTIONS and CONFIGURATION in every
+header of math. His word of 2026.11.14 on the language's names, which kept
+them flat in `djinterp::math`, is S397's. Where a later decision changes an
+earlier one, the later one says so; the earlier one stays here as it was
+taken.
 
 A decision names files as they were when it was taken. Chunk 48 merged the
 two quaternion classes (S398) and renamed or split five of the language's
@@ -72,7 +75,7 @@ C6 and N1 to N6, are in the consolidation's record
 followed it; his rulings on them are the roadmap's principles and items
 (`roadmap.md`). From chunk 34 on, each chunk's delivery brings this file,
 its own decisions added at the end. This file is made by
-`_handoffs/math98_chunk61_2026.11.24/tools/decisions_c61.py`.
+`_handoffs/math98_chunk62_2026.11.24/tools/decisions_c62.py`.
 
 ## 1. Outstanding decisions
 
@@ -80,7 +83,7 @@ The 22 flagged decisions: those whose review recommends what is not yet
 done, or names a significant drawback of what was. Each gives when it is
 due, by the roadmap's steps, its flag and its review's recommendation; the
 decision itself and its whole review are in its record's part of section 2.
-The groups and the steps are `decisions_outstanding_c61.md`'s, in chunk 61's
+The groups and the steps are `decisions_outstanding_c62.md`'s, in chunk 62's
 record.
 
 ### 1.1 The expression language
@@ -10450,4 +10453,130 @@ root (S449, S468).** It goes after chunk 60's zip.
 > the owner tracks them; the zips sent unchanged, chunk 61's own after chunk
 > 60's. Against: 91 headers still without the banners' three sections. The
 > alternatives: those sections written now, a step of their own; chunk 60's
-> zip changed to carry chunk 61. Recommended: as taken. Taken.
+> zip changed to carry chunk 61. Recommended: as taken. Ruled 2026.11.24
+> (the owner's word at 10:30): the first alternative, the banners' sections
+> written now, in chunk 62 (S474 to S477); the rest as taken.
+
+### S474 to S477: chunk 62, 2026.11.24
+
+The record: `_handoffs/math98_chunk62_2026.11.24/README.md`.
+
+Chunk 62's decisions, S474 to S477: the banners' three sections, HOW TO
+USE, OPTIONS and CONFIGURATION (ruled 2026.11.17), in every header of math
+that lacked them. The owner ruled S473 on 2026.11.24 at 10:30 ("Let's
+write the headers today (S473)"): its first alternative, the sections
+written now, a step of their own. Chunk 61's S469 to S472 stand by his
+"continue" of 2026.11.24 at 12:34; his rulings 12 to 15 are still to
+come.
+
+**S474. Each section says one thing. HOW TO USE: how a caller reaches the
+header, included from C or C++ or through the header or face that
+includes it, and the names it gives, spelled as its family spells them.
+OPTIONS: what a run, or a caller, chooses, and how (an argument, a form
+chosen by name, such as `_c` or `_fast`); where nothing is chosen at run
+time, one line says so: "None: nothing in this header is chosen at run
+time." CONFIGURATION: the build's part, each `D_CFG_` knob the header
+reads, with its configuration header, its default and any bound on it,
+the language levels it compiles at, as its own LEVELS paragraph has them, and
+any flag it needs, the x87's `-msse2 -mfpmath=sse`; where it has no knob
+of its own, it says so and what it compiles at. An umbrella says that each
+header it includes keeps its own level and knobs, as its banner says. The
+form is the guides': each heading over a row of dashes as long as it,
+after a blank line, the text indented three on its first line and one
+after, to 79 columns, the sections under the description and before the
+two blank lines above `path:`.** The 91 hand-written headers that lacked
+the sections have them, 8 of the C core, the four configuration headers
+and 79 C++ headers, written by hand and each name in them checked against
+its code: the four knobs as their headers define them
+(`D_CFG_MATH_MAT_REFINE_STEPS`, 10; `D_CFG_MATH_VALUE_ATOMIC_HOLDERS`, 1;
+`D_CFG_MATH_VALUE_WIDE_MALLOC` and `_FREE`; `D_CFG_MATH_EXPR_PROGRAM_STACK`,
+32), each included by `dconfig.h` and by the headers that read it. A
+header's `revised:` is 2026.11.24.
+- Alternative: a section with nothing to say left out: against the rule,
+  which asks each banner for the three, and a reader cannot tell a section
+  left out from one forgotten.
+- Alternative: CONFIGURATION listing every macro a header reads, the
+  environment's `D_ENV_` ones among them: the root's own list repeated in
+  155 banners, the header's own knobs lost among them.
+
+> **Review.** Taken: for, each section answering one question, how a header
+> is reached, what a caller chooses and what the build changes, every name
+> in it checked against the code, and a section with nothing to say saying
+> so in a line. Against: 155 banners longer by about ten lines each, and
+> their text a second place to keep right when a header changes. The
+> alternatives: empty sections left out, which a reader cannot tell from
+> forgotten ones; every macro a header reads listed, its own knobs lost
+> among the root's. Recommended: as taken. Taken.
+
+**S475. A generated header takes its sections from its generator, as the
+guide asks. `scripts/gen_c_math/banner_sections.py` holds the sections of
+the 20 headers `gen_c_math_float.py` writes; `common.banner` adds them
+under the description and refuses a header the file does not name, so a
+new header must say how it is used. Each of a split header's 44 parts
+(S436) points to its header: "Include decomp.h, which includes its ten
+parts in order; or this part alone, which includes the parts before it
+whose names it uses", and its OPTIONS and CONFIGURATION "As decomp.h's,
+whose banner says". A split header's note of its parts moves above HOW TO
+USE, the end of its description.** The 64 headers are regenerated, their
+`revised:` 2026.11.24, each part's `created:` still 2026.11.21; the
+generator's `--check` passes. The split asserts that a header's own HOW TO
+USE counts its parts as the split does. The 20 headers' text shares five
+phrases, among them the family's naming (`d_math_d_sqrt`, with `_f` and
+`_ld` beside it, and `d_math_sqrt` overloaded in C++) and the levels (C,
+and C++ from ISO strict C++98; the `_c` forms constant expressions from
+C++14). The figure of 64 is the one chunk 62 gave at its start: 20
+headers and 44 parts.
+- Alternative: the generated headers' banners edited by hand: against the
+  rule to edit the generator, and undone by the next run, which `--check`
+  would catch.
+- Alternative: each part carrying its header's three sections whole: 44
+  copies of eight texts, where a part's description already sends a
+  reader to its header.
+
+> **Review.** Taken: for, the generated headers' text where their code is
+> made, a new header refused until it says how it is used, each part sent to
+> its header, the generator's check passing. Against: 20 headers' prose in
+> one more file of the generator, beside the descriptions in each module.
+> The alternatives: the banners edited by hand, which the next run undoes;
+> each part with its header's sections whole, 44 copies of eight texts.
+> Recommended: as taken. Taken.
+
+**S476. That chunk 62 changed only comments is checked, not argued. In
+the 155 headers it changed, the code read token by token, comments out, is
+chunk 61's, file for file (`tools/same_tokens_c62.py`); and each header's
+diff is inside its banner, the only line taken away its `revised:`, each
+section in the guides' form (`tools/sections_check_c62.py`). Over the 155,
+`check_style.py --known` counts no H, where chunk 61's copies count 91,
+and every other count as chunk 61's; the smoke tier gives chunk 61's
+results, line for line (`tools/smoke_compare_c62.py`).** No object is
+compared and no full tier run: a comment reaches no object, and the
+inserted lines hold no comment's delimiter and end in no backslash. The
+window's ladder compiles the changed units with the other zips'.
+- Alternative: chunk 61's object comparison repeated over the 155
+  headers' tests: hours of builds to show what the token comparison
+  already shows.
+
+> **Review.** Taken: for, comments alone proved changed, token for token and
+> line for line of each diff, the style's H count cleared, the smoke tier as
+> before. Against: no object compared, which chunk 61 did. The alternative:
+> the objects compared, hours of builds for what the tokens show.
+> Recommended: as taken. Taken.
+
+**S477. Chunk 62's zip is cut over the owner's main of 2026.11.23,
+`6ee9dce1`, with Wednesday's, Friday's and chunks 58's to 61's zips laid
+over it, in that order, and holds chunk 62's files alone, at the tree's
+root (S449, S468): the 155 headers and the generator's 22 files. The
+punch list's 89 math lines of H, which the sections clear, can go; the
+note asks, as for the ladder's lines (S468), since `style_known.txt` is
+the owner's and is not in the zip. The `created: TBA` of `expression.hpp` and
+`numeric_compare.hpp` stays, its dates still not known (S473).** It goes
+after chunk 61's zip.
+- Alternative: `style_known.txt` lowered in the zip: a file of the
+  owner's that lanes do not send.
+
+> **Review.** Taken: for, the zips sent unchanged, chunk 62's own after
+> chunk 61's, the owner's punch list left to its keepers, the note asking.
+> Against: until they are lowered, 89 lines of the punch list count an H
+> that is gone, which the style check reports as fixed. The alternative: the
+> punch list lowered in the zip, a shared file of the owner's. Recommended:
+> as taken. Taken.

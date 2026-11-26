@@ -30,11 +30,26 @@
 * Everything compiles from C++98; what takes no root is a constant
 * expression from C++14, and the roots too as the vector's are.
 *
+* HOW TO USE
+* ----------
+*   Include it, or coordinate.hpp. cartesian<N, T> is the N-dimensional system:
+* its point type, scale factors and differential elements, all trivial.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from ISO strict C++98, as
+* coordinate.hpp's LEVELS paragraph says; its _v variable templates are from
+* C++14.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/coordinate/cartesian.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.06
-*                                                            revised: 2026.10.14
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

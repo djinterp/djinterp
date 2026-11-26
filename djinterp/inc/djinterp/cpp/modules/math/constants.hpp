@@ -24,11 +24,26 @@
 * number_base<Type, 2> is what binary_base<Type> names) and the traits' _v
 * variable templates from C++14.
 *
+* HOW TO USE
+* ----------
+*   Include it, or math.hpp. Each constant is constants::of<Type>::pi() and its
+* kin; from C++14 also the variable template constants::pi<Type>, double by
+* default. The compile-time rational and the number bases are beside them.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from C++98, each constant a
+* constant expression from C++11 and a variable template from C++14.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/constants.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.04
-*                                                            revised: 2026.10.08
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

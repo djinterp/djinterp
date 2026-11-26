@@ -22,6 +22,21 @@
 * as their subintervals or levels say: constant expressions from C++14, and
 * at C++11 the same loops at run time, with the same bits.
 *
+* HOW TO USE
+* ----------
+*   Include it, or calculus.hpp, from C++11. trapezoid, simpson,
+* gauss_legendre5 and romberg take a callable and an interval; integrate takes
+* a one-variable expression.
+*
+* OPTIONS
+* -------
+*   The number of subintervals (trapezoid, simpson) and Romberg's levels are
+* the caller's to choose, as arguments.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11 and is empty below it (N1).
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/calculus/integration.hpp
 * link(s):   TBA

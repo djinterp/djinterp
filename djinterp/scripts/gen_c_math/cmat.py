@@ -3222,7 +3222,7 @@ def cmat():
         "product is compensated and the solve refined with extra precision, each",
         "with a _fast form as written (S410).",
     ]
-    text = banner("cmat.h", lines, "2026.10.29", "2026.11.21")
+    text = banner("cmat.h", lines, "2026.10.29", "2026.11.24")
     text += "\n" + CMAT_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         body = CMAT_FAMILY_HEAD + CMAT_LU + CMAT_HERMITIAN_HEAD

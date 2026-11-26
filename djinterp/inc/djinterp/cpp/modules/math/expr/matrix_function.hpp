@@ -47,11 +47,26 @@
 * eigenvalues; step 24 (3f), in its third, chunk 46, linear algebra's
 * functions of quaternions and their standard eigenvalues (S386 to S390).
 *
+* HOW TO USE
+* ----------
+*   Reached through the function table; a caller does not include it. It holds
+* det, inv, trace, norm, eig, dot, cross and solve of the language's matrices.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11, as the run-time language does, and
+* is empty below it. The dense solves refine as mat.h's do, by
+* D_CFG_MATH_MAT_REFINE_STEPS (cfg_mat.h).
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/matrix_function.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.14
-*                                                            revised: 2026.11.20
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

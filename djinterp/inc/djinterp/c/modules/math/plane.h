@@ -11,11 +11,27 @@
 * interleaved, the faces' vectors' storage converted to Cartesian. Each
 * kernel is a constant expression from C++14.
 *
+* HOW TO USE
+* ----------
+*   Include it from C or C++. d_plane_d_ray_crosses,
+* d_plane_d_polygon_contains, _polygon_area and _polygon_centroid take a point
+* as an (x, y) pair and a polygon's vertices interleaved, with _f and _ld
+* beside them; geometry/shape_2d.hpp's polygons are its C++ face.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles as C, and as C++ from ISO strict C++98; its
+* functions are constant expressions from C++14 (math_common.h's D_MATH_FN).
+*
 *
 * path:      /inc/djinterp/c/modules/math/plane.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.21
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

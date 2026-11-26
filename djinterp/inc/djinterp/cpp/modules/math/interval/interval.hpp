@@ -47,11 +47,27 @@
 *   value_type, size_type, lower_bound, upper_bound, step,
 *   is_left_open, is_right_open
 *
+* HOW TO USE
+* ----------
+*   Include it, or math.hpp. interval<...> is every interval at once, its value
+* type, bounds, openness, step and size type its template arguments, with
+* conversions to the three simpler templates.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from ISO strict C++98, as
+* interval_common.hpp says; its operations are constant expressions from C++14,
+* as the C core's kernels are.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/interval/interval.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2024.04.23
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

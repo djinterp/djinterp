@@ -56,11 +56,28 @@
 * a))`). The free functions are thin and delegate to the members; the two
 * spellings always compute the same thing.
 *
+* HOW TO USE
+* ----------
+*   Included by every linear-algebra header. It gives the namespace, the
+* forward declarations, the road from an element type to the C core's kernels
+* or the generic path, the structural traits and default_tolerance.
+*
+* OPTIONS
+* -------
+*   default_tolerance<T>() is what every comparison and factorization takes
+* when the caller gives none.
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_MATH_MAT_REFINE_STEPS (cfg_mat.h) bounds the generic path's refined
+* solve, as it bounds mat.h's. It compiles at every level from C++98; its _v
+* forms are from C++14 and its concepts from C++20.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/linear_algebra/linalg_common.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.22
-*                                                            revised: 2026.11.15
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

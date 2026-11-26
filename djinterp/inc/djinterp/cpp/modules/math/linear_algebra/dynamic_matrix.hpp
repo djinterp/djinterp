@@ -47,11 +47,25 @@
 *   - Like the fixed-size type, every operation returns a new value, so results
 *     still chain: a.transposed().scaled(2.0).times(b).
 *
+* HOW TO USE
+* ----------
+*   Include it, or linalg.hpp. dynamic_matrix<T> is sized at run time and
+* mirrors the fixed matrix's members; from_fixed and to_fixed bridge the two.
+*
+* OPTIONS
+* -------
+*   Its rows and columns are chosen at run time; comparisons take a tolerance.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from ISO strict C++98. It is
+* not constexpr: it allocates.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/linear_algebra/dynamic_matrix.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.23
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

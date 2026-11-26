@@ -21,11 +21,26 @@
 * evaluates on a std::tuple and shape_from_surfaces is variadic: both are
 * C++11's.
 *
+* HOW TO USE
+* ----------
+*   Include it, or geometry.hpp. Describe a solid by a triangle mesh, a closed
+* surface (parametric_volume), an inequality (implicit_volume) or surfaces
+* (shape_from_surfaces); measure_3d.hpp measures it.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from ISO strict C++98, as its
+* LEVELS paragraph above says, which names any form that needs a later level.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/geometry/solid.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.10.06
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

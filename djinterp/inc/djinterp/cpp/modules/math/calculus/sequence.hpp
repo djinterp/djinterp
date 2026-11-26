@@ -23,6 +23,20 @@
 * from C++14, where a constexpr function may loop; at C++11 it is the same
 * loop at run time, so its bits are the same at every level.
 *
+* HOW TO USE
+* ----------
+*   Include it, or calculus.hpp, from C++11. Wrap a functor of the index in
+* sequence, or use the named ones, arithmetic, geometric, power and Fibonacci,
+* each with term(n) and partial sums.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11 and is empty below it (N1).
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/calculus/sequence.hpp
 * link(s):   TBA

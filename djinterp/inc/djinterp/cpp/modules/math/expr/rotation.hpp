@@ -37,11 +37,26 @@
 * after both; parts and rotate came here from quaternion_kind.hpp in chunk 46
 * (S391).
 *
+* HOW TO USE
+* ----------
+*   Reached through expr.hpp; a caller does not include it. It holds the
+* language's parts, rotate, rotmat, rotquat and slerp, a quaternion's functions
+* of vectors and matrices.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11, as the run-time language does, and
+* is empty below it.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/rotation.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.07
-*                                                            revised: 2026.11.20
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

@@ -77,11 +77,26 @@
 * step 24 (3f) kept the order of its quaternions, and of complex numbers
 * beside them (S277); step 25 (4a) adds what the derivative needs.
 *
+* HOW TO USE
+* ----------
+*   Reached through expr.hpp: expr::simplify calls it. expr_simplify(term)
+* gives a term no larger, of the same value wherever each part's value is
+* finite.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11, as the run-time language does, and
+* is empty below it.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/simplify.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

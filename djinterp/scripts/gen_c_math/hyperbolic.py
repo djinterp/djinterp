@@ -839,7 +839,7 @@ def hyperbolic():
         "bits. C++ before C++11 has no asinh, acosh or atanh, and there the",
         "plain forms are the _c ones.",
     ]
-    text = banner("hyperbolic.h", lines, "2026.10.09", "2026.11.21")
+    text = banner("hyperbolic.h", lines, "2026.10.09", "2026.11.24")
     text += "\n" + HYPERBOLIC_HEAD
     text += HYPERBOLIC_KERNELS
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):

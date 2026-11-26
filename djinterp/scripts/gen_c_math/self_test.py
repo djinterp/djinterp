@@ -210,7 +210,7 @@ def self_test():
         "formulas' bits, the _fast forms' among them, but not the correctly",
         "rounded functions'.",
     ]
-    text = banner("self_test.h", lines, "2026.11.16", "2026.11.21")
+    text = banner("self_test.h", lines, "2026.11.16", "2026.11.24")
     body = SELF_TEST_BODY
     prods = []
     for i, row in enumerate(SELF_TEST_PRODUCTS):

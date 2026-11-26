@@ -411,7 +411,7 @@ def dd():
         "than double, a 32-bit x87, no bound holds: build with -msse2",
         "-mfpmath=sse.",
     ]
-    text = banner("dd.h", lines, "2026.11.16", "2026.11.21")
+    text = banner("dd.h", lines, "2026.11.16", "2026.11.24")
     text += "\n" + DD_HEAD + DD_BODY.replace("@DIVD@", DD_BOUNDS["div_d"]).replace(
         "@DIV@", DD_BOUNDS["div"]).replace("@SQRT@", DD_BOUNDS["sqrt"])
     text += DD_TAIL

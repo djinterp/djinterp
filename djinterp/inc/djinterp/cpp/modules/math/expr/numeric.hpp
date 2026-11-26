@@ -13,11 +13,27 @@
 *   STEPS. Step 26 (4b) fills both entries. Until then each answers
 * expr_status::not_yet.
 *
+* HOW TO USE
+* ----------
+*   Reached through expr.hpp. expr_integrate<T>(term, name, a, b) and
+* expr_derivative_at<T>(term, name, x) compute a definite integral and a
+* derivative at a point in a floating-point type.
+*
+* OPTIONS
+* -------
+*   The variable, the bounds or the point, and the other variables' bindings
+* are arguments; the rule's step is chosen for T.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11, as the run-time language does, and
+* is empty below it.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/numeric.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.10.30
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

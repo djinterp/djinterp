@@ -35,11 +35,29 @@
 * arithmetic arithmetic.hpp, the relations and logic logic.hpp, and the
 * matrices' functions matrix_function.hpp (S400, S401).
 *
+* HOW TO USE
+* ----------
+*   Include it, or math.hpp, from C++11, for the whole run-time language:
+* math::parse(text) gives a handle, math::expr, whose members chain, diff,
+* simplify, subs, str and eval<T>; math::try_parse gives a result to branch on.
+*
+* OPTIONS
+* -------
+*   parse takes an expr_syntax, implied multiplication and absolute bars each
+* off by default; eval takes an expr_context, its real_results off by default
+* (expr_common.hpp).
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11, as the run-time language does, and
+* is empty below it. D_CFG_MATH_EXPR_PROGRAM_STACK (cfg_expr.h) sizes compiled
+* terms' frames.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/expr.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.21
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

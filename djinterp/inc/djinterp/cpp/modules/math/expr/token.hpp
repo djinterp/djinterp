@@ -23,11 +23,25 @@
 * round brackets; step 15 (2c) the comma; step 19 (3a) the square brackets
 * and the semicolon.
 *
+* HOW TO USE
+* ----------
+*   Reached through expr.hpp; parse.hpp calls the tokenizer. Call it directly
+* only to inspect a text's tokens, each with its kind, text and offset.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11, as the run-time language does, and
+* is empty below it.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/token.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.10.25
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

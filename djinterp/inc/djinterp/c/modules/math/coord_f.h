@@ -8,11 +8,24 @@
 *   It stands alone, and coord.h includes it with the other parts, in
 * order: what it holds is described there.
 *
+* HOW TO USE
+* ----------
+*   Include coord.h, which includes its four parts in order; or this part
+* alone, which includes the parts before it whose names it uses.
+*
+* OPTIONS
+* -------
+*   As coord.h's, whose banner says.
+*
+* CONFIGURATION
+* -------------
+*   As coord.h's, whose banner says.
+*
 *
 * path:      /inc/djinterp/c/modules/math/coord_f.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.21
-*                                                            revised: 2026.11.21
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 #ifndef DJINTERP_C_MATH_COORD_F_H

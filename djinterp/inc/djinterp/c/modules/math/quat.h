@@ -82,11 +82,32 @@
 *   Its text is in 5 parts, each a header that stands alone, included
 * below in order (S436).
 *
+* HOW TO USE
+* ----------
+*   Include it from C or C++; it includes its five parts. A quaternion is the
+* caller's array [x, y, z, w]: d_quat_d_multiply, _inverse, _from_axis_angle,
+* _rotate, _slerp, _exp, _log and the rest, with _f and _ld beside them;
+* quaternion.hpp is its C++ face.
+*
+* OPTIONS
+* -------
+*   None: each accurate operation has a _fast form, the formula as written,
+* chosen by name (S405); a root or a sine takes the _c form or the plain one,
+* by name.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles as C, and as C++ from ISO strict C++98; its _c
+* forms and its pure kernels are constant expressions from C++14
+* (math_common.h's D_MATH_FN). Where double is evaluated wider than double, a
+* 32-bit x87, the double family's correctly rounded forms need -msse2
+* -mfpmath=sse (math_common.h's D_MATH_DBL_EVAL_WIDE).
+*
 *
 * path:      /inc/djinterp/c/modules/math/quat.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.21
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

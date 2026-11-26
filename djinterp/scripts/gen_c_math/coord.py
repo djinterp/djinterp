@@ -637,7 +637,7 @@ def coord():
         "constant expression from C++14, the plain one on the C library's. The",
         "angles' canonical forms are exact, so one form serves.",
     ]
-    text = banner("coord.h", lines, DATE, "2026.11.21")
+    text = banner("coord.h", lines, DATE, "2026.11.24")
     text += "\n" + COORD_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()

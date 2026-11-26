@@ -38,6 +38,22 @@
 * whose operator[] is a constant expression from C++14. The constants are
 * constants::of<double>'s, one spelling at every level.
 *
+* HOW TO USE
+* ----------
+*   Include it, or calculus.hpp, from C++11. Its combinators, log, atan, pow
+* and the rest, build expressions as expression.hpp's do; its scalar helpers in
+* djinterp::math::fn take plain numbers.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11 and is empty below it (N1). The
+* transcendental kernels are constant expressions from C++14, as the C core's
+* _c forms are.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/calculus/elementary.hpp
 * link(s):   TBA

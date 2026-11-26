@@ -1127,7 +1127,7 @@ def exponential():
         "overflow is evaluated, as a constant expression forbids: an infinity is",
         "HUGE_VAL, a NaN NAN.",
     ]
-    text = banner("exponential.h", lines, "2026.10.08", "2026.11.21")
+    text = banner("exponential.h", lines, "2026.10.08", "2026.11.24")
     text += "\n" + EXPONENTIAL_HEAD
     text += EXPONENTIAL_KERNELS
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):

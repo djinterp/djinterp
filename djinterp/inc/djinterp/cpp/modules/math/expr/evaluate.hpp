@@ -164,6 +164,22 @@
 * operands where they lie, with no vector, which a compiled term runs
 * (expr/program.hpp, S395).
 *
+* HOW TO USE
+* ----------
+*   Reached through expr.hpp: expr::eval calls it. expr_evaluate<T>(term,
+* bindings) folds a term to float, double, long double or a math::complex of
+* each; expr_evaluate(term, bindings) to an exact math::value where it can be.
+*
+* OPTIONS
+* -------
+*   The bindings give the variables' values, and an expr_context whether
+* results stay real (real_results, off by default).
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11, as the run-time language does, and
+* is empty below it.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/evaluate.hpp
 * link(s):   TBA

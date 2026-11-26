@@ -43,7 +43,8 @@ complex matrices' products and solve too, in the C core and both faces
 The compile-time expression core (chunk 53), function, functional and
 values on it (chunk 56) and calculus (chunk 58) compile from C++11, each
 empty below it, and `math.hpp`, which includes them all, at every level;
-their names and sections are the style guides' (chunk 61).
+their names and sections are the style guides' (chunk 61). Every header
+of math has the banners' HOW TO USE, OPTIONS and CONFIGURATION (chunk 62).
 `reify` (chunk 59) makes a compile-time expression a term of the run-time
 language, which prints, simplifies and evaluates it by name. Linear algebra
 has an opt-in lazy type from C++11 (chunk 60), each element the eager bits.
@@ -1180,7 +1181,10 @@ chunks 55 to 58's decisions stand by the owner's "continue" of 2026.11.23.
 Chunk 59 made step 32, 5d, `reify` (S456 to S462), which stand by his
 "continue" of 21:32; chunk 60 made step 34, 5f, the lazy type (S463 to
 S468), which stand by his "continue" of 2026.11.24; chunk 61 made step 35,
-5g, the style debt, which closes Phase 5 (S469 to S473).
+5g, the style debt, which closes Phase 5 (S469 to S473), which stand by
+his "continue" of 12:34 the same day; and chunk 62, as he ruled S473,
+wrote the banners' three sections in every header of math (S474 to
+S477).
 The outstanding decisions of `decisions.md`, its section 1, by group and
 urgency, and the suggestions of `comparison.md`'s section 9 are the owner's
 to take or leave before then.

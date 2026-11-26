@@ -30,6 +30,20 @@
 * subframework, and the header is empty below it. From C++11 each adapter's
 * call is a constant expression wherever its expression's evaluation is.
 *
+* HOW TO USE
+* ----------
+*   Include it from C++11 to use math expressions with the functional
+* subframework: adapt one with as_unary, as_binary, as_ternary or as_predicate,
+* then compose, curry or pipe it as any callable.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11 and is empty below it (N1).
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/functional.hpp
 * link(s):   TBA

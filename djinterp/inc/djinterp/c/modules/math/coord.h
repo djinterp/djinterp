@@ -16,11 +16,31 @@
 *   Its text is in 4 parts, each a header that stands alone, included
 * below in order (S436).
 *
+* HOW TO USE
+* ----------
+*   Include it from C or C++; it includes its four parts. A point is the
+* caller's array: d_coord_d_polar_from_cartesian and the other conversions,
+* then each system's distances, norms and canonical forms, with _f and _ld
+* beside them; in C++ d_coord_polar_from_cartesian and the rest are overloaded
+* on the three, and the math/coordinate headers are its C++ faces.
+*
+* OPTIONS
+* -------
+*   None: each function that needs a root, a sine or an arc-tangent comes as a
+* _c form and a plain one, and in C++ an _auto form that from C++20 takes the
+* _c one in a constant expression; the choice is the name's.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles as C, and as C++ from ISO strict C++98; its _c
+* forms and its pure kernels are constant expressions from C++14
+* (math_common.h's D_MATH_FN).
+*
 *
 * path:      /inc/djinterp/c/modules/math/coord.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.21
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

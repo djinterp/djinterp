@@ -20,11 +20,26 @@
 *   - static bool is_left_open  = false
 *   - static bool is_right_open = false
 *
+* HOW TO USE
+* ----------
+*   Include it, or interval.hpp. discrete_interval<T, Lower, Upper, Step> holds
+* Lower and every Step after it up to Upper.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from ISO strict C++98, as
+* interval_common.hpp says; its operations are constant expressions from C++14,
+* as the C core's kernels are.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/interval/discrete_interval.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2024.04.23
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

@@ -18,11 +18,25 @@
 *   STEPS. Step 18 (2f) filled expr_substitute; until then it gave the term
 * unchanged.
 *
+* HOW TO USE
+* ----------
+*   Reached through expr.hpp: expr::subs calls it. expr_substitute(term, name,
+* replacement) puts a term in place of a variable, and only a variable.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11, as the run-time language does, and
+* is empty below it.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/substitute.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.10.24
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

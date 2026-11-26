@@ -56,11 +56,28 @@
 * there for the inline kinds. From C++20, <=> gives a partial ordering, and
 * both classes satisfy the concept number.
 *
+* HOW TO USE
+* ----------
+*   Include it, or math.hpp. math::value holds any number the module computes
+* with, as a double holds its number: v + 1, x == 0.5, v.to(d) to read it out.
+* math::inline_value holds the kinds that need no box, and is a constant
+* expression from C++14.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from C++98; inline_value is
+* constexpr from C++14 and value from C++20. value.h's
+* D_CFG_MATH_VALUE_ATOMIC_HOLDERS reaches its boxes.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/value.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.18
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

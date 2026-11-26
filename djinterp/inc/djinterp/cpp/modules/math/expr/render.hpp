@@ -68,11 +68,26 @@
 * complex numbers, and step 24 (3f) for quaternions.
 * A term made by default, which is no term, is written as the empty string.
 *
+* HOW TO USE
+* ----------
+*   Reached through expr.hpp: expr::str calls it. expr_render(term) writes a
+* term back as math text, bracketed only where its operands would otherwise
+* regroup.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11, as the run-time language does, and
+* is empty below it.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/render.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

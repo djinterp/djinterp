@@ -35,11 +35,29 @@
 * at a time: about 12 KB in an optimized build where long double is the
 * x87's.
 *
+* HOW TO USE
+* ----------
+*   Include it from C or C++. d_math_literal_length gives the length of the
+* literal at the start of a text, a decimal, a fraction or a mixed number;
+* d_math_literal_to_value reads it into a dj_math_value, exact where its value
+* allows and otherwise the nearest long double, flagged inexact.
+* numeric_compare.hpp reads its texts through it.
+*
+* OPTIONS
+* -------
+*   None: the syntax is fixed (S83, S95); nothing is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it is C, and compiles as C from C89's headers on and as
+* C++ from C++98; its kernels are constant expressions from C++14
+* (math_common.h's D_MATH_FN).
+*
 *
 * path:      /inc/djinterp/c/modules/math/literal.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

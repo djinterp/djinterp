@@ -84,11 +84,26 @@
 * elements this header's operands compute, its parts and its rotation moved
 * to rotation.hpp, which matrix_kind.hpp's kind comes before (S387, S391).
 *
+* HOW TO USE
+* ----------
+*   Reached through expr.hpp; a caller does not include it. It is the
+* language's quaternion kind, rank 950: jm, km, quat(w, x, y, z) and their
+* arithmetic as values.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11, as the run-time language does, and
+* is empty below it.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/quaternion_kind.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.06
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

@@ -42,11 +42,26 @@
 * std::is_constant_evaluated asks for. Everything compiles from C++98; it is
 * constexpr from C++14, as it was.
 *
+* HOW TO USE
+* ----------
+*   Include it, or linalg.hpp. lu(A), qr(A) and cholesky(A) factor once; then
+* ask the object to solve, give its determinant or its factors.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from ISO strict C++98. Its
+* factorizations are constant expressions from C++14 where the element type's
+* arithmetic is, and its C++20 parts are concept constraints.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/linear_algebra/decomposition.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.22
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

@@ -25,11 +25,33 @@
 *   Its text is in 5 parts, each a header that stands alone, included
 * below in order (S436).
 *
+* HOW TO USE
+* ----------
+*   Include it from C or C++; it includes its five parts. d_math_d_exp, _log,
+* _exp2, _log2, _log10, _log1p and _expm1 call the C library; their _c forms
+* compute the same in pure arithmetic, the double family's exp_c and log_c
+* correctly rounded. Each name comes for each family, _f, _d and _ld after
+* d_math_, as d_math_d_sqrt; in C++ the family's own name, d_math_sqrt, is
+* overloaded on the three.
+*
+* OPTIONS
+* -------
+*   Which form runs is the caller's, by name: the _c form, a constant
+* expression, or the plain one on the C library; nothing is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles as C, and as C++ from ISO strict C++98; its _c
+* forms and its pure kernels are constant expressions from C++14
+* (math_common.h's D_MATH_FN). Where double is evaluated wider than double, a
+* 32-bit x87, the double family's correctly rounded forms need -msse2
+* -mfpmath=sse (math_common.h's D_MATH_DBL_EVAL_WIDE).
+*
 *
 * path:      /inc/djinterp/c/modules/math/exponential.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.08
-*                                                            revised: 2026.11.21
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

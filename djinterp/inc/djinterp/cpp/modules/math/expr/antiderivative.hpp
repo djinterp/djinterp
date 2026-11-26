@@ -12,11 +12,25 @@
 *   STEPS. Step 28 (4d) fills expr_antiderivative. Until then it answers
 * expr_status::not_yet.
 *
+* HOW TO USE
+* ----------
+*   Reached through expr.hpp. expr_antiderivative(term, name) integrates a term
+* symbolically from the table of elementary forms, or gives no_closed_form.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11, as the run-time language does, and
+* is empty below it.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/antiderivative.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.10.30
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

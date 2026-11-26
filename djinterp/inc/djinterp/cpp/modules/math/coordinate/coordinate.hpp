@@ -36,11 +36,27 @@
 * where both systems' are. The _v variable templates are C++14's, and the
 * point_2d / point_3d alias templates C++11's.
 *
+* HOW TO USE
+* ----------
+*   Include it, or math.hpp, for every system and the conversions between them:
+* coord_point<System> is a point of a system, coord_convert<From, To> converts
+* between any two.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from ISO strict C++98, as
+* coordinate.hpp's LEVELS paragraph says; its _v variable templates are from
+* C++14.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/coordinate/coordinate.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.06
-*                                                            revised: 2026.10.06
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

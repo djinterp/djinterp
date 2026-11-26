@@ -57,11 +57,30 @@
 * calls through the table reach, D_MATH_FN_ENTRY, which no compiler is told
 * it must inline.
 *
+* HOW TO USE
+* ----------
+*   Include it from C or C++; it includes value.h and wide.h.
+* d_math_value_from_wide makes a value of the wide integer kind and
+* d_math_value_to_wide reads one back; the kind's table,
+* d_math_value_wide_kind, is what value.h dispatches through, and arithmetic on
+* its values is value.h's own calls.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_MATH_VALUE_WIDE_MALLOC and D_CFG_MATH_VALUE_WIDE_FREE
+* (config/c/modules/math/cfg_value_wide.h): where its boxes are allocated and
+* freed, malloc and free unless set before it is first included (S134). The
+* holders' count follows value.h's D_CFG_MATH_VALUE_ATOMIC_HOLDERS.
+*
 *
 * path:      /inc/djinterp/c/modules/math/value_wide.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.17
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

@@ -28,11 +28,27 @@
 *             helpers); env/env_compiler.h (D_ENV_COMPILER_HAS_ATOMIC_BUILTINS,
 *             D_ENV_COMPILER_MSVC_FAMILY)
 *
+* HOW TO USE
+* ----------
+*   Not included by a caller: dconfig.h includes it, and so does value.h. Set
+* the knob before the first of them, with -D, in cfg_custom.h or in the
+* including file.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_MATH_VALUE_ATOMIC_HOLDERS: a flag, on by default where the compiler
+* gives atomic operations; off counts holders in a plain integer, for a
+* single-threaded build (S326).
+*
 *
 * path:      /inc/djinterp/config/c/modules/math/cfg_value.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.31
-*                                                            revised: 2026.10.31
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

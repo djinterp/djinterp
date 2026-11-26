@@ -1476,7 +1476,7 @@ def power():
         "double, its last bit settled by an exact sum, with no overflow or",
         "underflow on the way; C++ before C++11 has no hypot either.",
     ]
-    text = banner("power.h", lines, "2026.10.10", "2026.11.21")
+    text = banner("power.h", lines, "2026.10.10", "2026.11.24")
     text += "\n" + POWER_HEAD
     text += POWER_KERNELS
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):

@@ -8,11 +8,24 @@
 *   It stands alone, and cmat.h includes it with the other parts, in
 * order: what it holds is described there.
 *
+* HOW TO USE
+* ----------
+*   Include cmat.h, which includes its seven parts in order; or this part
+* alone, which includes the parts before it whose names it uses.
+*
+* OPTIONS
+* -------
+*   As cmat.h's, whose banner says.
+*
+* CONFIGURATION
+* -------------
+*   As cmat.h's, whose banner says.
+*
 *
 * path:      /inc/djinterp/c/modules/math/cmat_cpp.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.21
-*                                                            revised: 2026.11.21
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 #ifndef DJINTERP_C_MATH_CMAT_CPP_H

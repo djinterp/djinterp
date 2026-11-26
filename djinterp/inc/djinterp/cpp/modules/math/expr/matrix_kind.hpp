@@ -88,11 +88,26 @@
 * matrix_kind_arithmetic.hpp, section 3.2; and
 * matrix_kind_transpose.hpp, sections 3.3 and 3.4.
 *
+* HOW TO USE
+* ----------
+*   Reached through expr.hpp. It includes its three parts in order (S437): the
+* matrix kind of the language, its literals, arithmetic, transposes, blocks and
+* indexing as values.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11, as the run-time language does, and
+* is empty below it.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/matrix_kind.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.21
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

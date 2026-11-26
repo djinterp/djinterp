@@ -32,6 +32,26 @@
 * within GCC's and clang's default limits; a long double's are not
 * (-fconstexpr-ops-limit, -fconstexpr-steps).
 *
+* HOW TO USE
+* ----------
+*   Include it from C or C++. d_math_decimal_length gives the length of the
+* decimal number at the start of a text, 0 where there is none;
+* d_math_decimal_to_f, _to_d and _to_ld store the nearest float, double or long
+* double through their first argument and return a status, overflow and
+* underflow among them. literal.h and the run-time language read their numbers
+* through it.
+*
+* OPTIONS
+* -------
+*   None: the rounding is always to nearest, ties to even, whatever the
+* environment's rounding mode (S76); nothing else is chosen.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it is C, and compiles as C from C89's headers on and as
+* C++ from C++98; its kernels are constant expressions from C++14
+* (math_common.h's D_MATH_FN).
+*
 *
 * path:      /inc/djinterp/c/modules/math/decimal.h
 * link(s):   TBA

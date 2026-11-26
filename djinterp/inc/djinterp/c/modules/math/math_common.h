@@ -65,11 +65,29 @@
 * fuse; and every generated header tells clang not to fuse at all, where
 * clang can be told (section 5).
 *
+* HOW TO USE
+* ----------
+*   Every header of the C core includes it first; a caller need not. It gives
+* the kernels' qualifiers (D_MATH_FN, D_MATH_FN_RT, D_MATH_FN_ENTRY,
+* D_MATH_FN_KERNEL and D_MATH_FN_KERNEL_RT), the widest integers (dj_math_imax,
+* dj_math_umax), the family's evaluation widths (D_MATH_FLT_EVAL_WIDE and
+* D_MATH_DBL_EVAL_WIDE) and where a target fuses a multiply and an add.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own. It reads the build: the language and its level (constexpr
+* kernels from C++14), FLT_EVAL_METHOD for the evaluation widths, and the
+* compiler's fused multiply-add macros; djinterp's D_ENV_ detection gives each.
+*
 *
 * path:      /inc/djinterp/c/modules/math/math_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.16
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

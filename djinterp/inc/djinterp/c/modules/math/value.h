@@ -66,11 +66,30 @@
 * between members of before C++20. A boxed kind's operations are its own,
 * and run at run time.
 *
+* HOW TO USE
+* ----------
+*   Include it from C or C++; value.hpp is its C++ face. Make a value with
+* d_math_value_from_int, _from_d, _from_ratio and their kin, compute with
+* d_math_value_add to _div, _neg and _abs, compare with _cmp, and give back
+* every value made with d_math_value_release. A boxed kind registers by its
+* table (struct dj_math_boxed_kind), as value_wide.h's does.
+*
+* OPTIONS
+* -------
+*   None: the tower decides each result's kind; nothing is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_MATH_VALUE_ATOMIC_HOLDERS (config/c/modules/math/cfg_value.h):
+* whether a box counts its holders atomically, on by default where the compiler
+* gives atomic operations (S326). It compiles as C and as C++ from C++98; its
+* pure kernels are constant expressions from C++14.
+*
 *
 * path:      /inc/djinterp/c/modules/math/value.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.14
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

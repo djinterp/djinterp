@@ -9,11 +9,24 @@
 *   It stands alone, and decomp.h includes it with the other parts, in
 * order: what it holds is described there.
 *
+* HOW TO USE
+* ----------
+*   Include decomp.h, which includes its ten parts in order; or this part
+* alone, which includes the parts before it whose names it uses.
+*
+* OPTIONS
+* -------
+*   As decomp.h's, whose banner says.
+*
+* CONFIGURATION
+* -------------
+*   As decomp.h's, whose banner says.
+*
 *
 * path:      /inc/djinterp/c/modules/math/decomp_f_eigen.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.21
-*                                                            revised: 2026.11.21
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 #ifndef DJINTERP_C_MATH_DECOMP_F_EIGEN_H

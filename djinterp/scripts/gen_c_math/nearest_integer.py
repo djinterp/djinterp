@@ -312,7 +312,7 @@ def nearest_integer():
         "either and not know which ran. C++ before C++11 has no trunc or round,",
         "so that there those are the _c forms.",
     ]
-    text = banner("nearest_integer.h", lines, "2026.10.11", "2026.11.21")
+    text = banner("nearest_integer.h", lines, "2026.10.11", "2026.11.24")
     text += "\n" + NEAREST_INTEGER_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()

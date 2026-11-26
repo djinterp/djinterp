@@ -43,6 +43,23 @@
 * evaluated wider, exp is refused at compile time, as the double family's
 * correctly rounded functions are (S418, S426).
 *
+* HOW TO USE
+* ----------
+*   Include it, or math.hpp, from C++11, and bring the placeholders in with
+* using namespace djinterp::math::variables. Build an expression from
+* constant(v), the placeholders and the operators, then call it, e(3.0), at
+* compile time or at run time; reify (expr/reify.hpp) makes it a term of the
+* run-time language.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11 and is empty below it (N1). Its
+* transcendentals are the C core's _c kernels, constant expressions from C++14.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/expression.hpp
 * link(s):   TBA

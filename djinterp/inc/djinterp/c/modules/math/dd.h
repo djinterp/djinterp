@@ -23,11 +23,29 @@
 * than double, a 32-bit x87, no bound holds: build with -msse2
 * -mfpmath=sse.
 *
+* HOW TO USE
+* ----------
+*   Included by the double family's correctly rounded functions; a caller may
+* include it from C or C++ for the pairs themselves: d_math_dd_two_sum and
+* d_math_dd_two_product, the exact sum and product of two doubles, then
+* d_math_dd_add, _sub, _mul, _div and _sqrt of pairs, d_math_dd_of to make one
+* and d_math_dd_value to round one to a double.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: every function is a constant expression from C++14. Its
+* bounds need double evaluated in double: on a 32-bit x87, build with -msse2
+* -mfpmath=sse.
+*
 *
 * path:      /inc/djinterp/c/modules/math/dd.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.16
-*                                                            revised: 2026.11.21
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

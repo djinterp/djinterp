@@ -31,11 +31,26 @@
 * <cmath>, as before; a regular polygon's containment is c/math/plane.h's
 * crossing test, through shape_2d.hpp's dispatch.
 *
+* HOW TO USE
+* ----------
+*   Include it, or geometry.hpp. Circles, ellipses, rectangles, regular
+* polygons and the other named shapes give their area, perimeter and centroid
+* in closed form, in any 2D coordinate system.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from ISO strict C++98, as its
+* LEVELS paragraph above says, which names any form that needs a later level.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/geometry/named_2d.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.10.06
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

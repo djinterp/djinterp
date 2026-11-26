@@ -56,11 +56,27 @@
 *   calculus/       - calculus subframework (differentiation, integration,
 *                     sequences, series, elementary functions)
 *
+* HOW TO USE
+* ----------
+*   Include it for the whole math module, in djinterp::math, linear algebra in
+* djinterp::math::linalg; or include one header alone. Its banner's entry
+* points say where to start for each part.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level, each header from its own
+* floor. Each header it includes keeps its own level and knobs, as its banner
+* says.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/math.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2024.04.24
-*                                                            revised: 2026.11.23
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 #ifndef DJINTERP_MATH_MATH_HPP

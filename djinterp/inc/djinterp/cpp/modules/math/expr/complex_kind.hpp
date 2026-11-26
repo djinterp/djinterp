@@ -82,11 +82,27 @@
 * as elements, and densely math::complex<T>, and take real, imag, conj and
 * arg of a matrix element by element (S348, S350).
 *
+* HOW TO USE
+* ----------
+*   Reached through expr.hpp; a caller does not include it. It is the
+* language's complex kind, rank 900: im, complex(x, y), and their arithmetic,
+* order, conversion and text as values.
+*
+* OPTIONS
+* -------
+*   The fold's expr_context decides whether a real function outside its real
+* domain gives a complex value (real_results, off by default).
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11, as the run-time language does, and
+* is empty below it.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/complex_kind.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.31
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

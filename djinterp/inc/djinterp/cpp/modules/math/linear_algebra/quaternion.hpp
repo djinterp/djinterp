@@ -23,11 +23,24 @@
 * conventions, its accuracy and its constant expressions are
 * ../quaternion.hpp's.
 *
+* HOW TO USE
+* ----------
+*   Include it, or linalg.hpp. linalg::quaternion and its functions are
+* math::quaternion's (S398), named here for linear algebra's callers.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from ISO strict C++98.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/linear_algebra/quaternion.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.23
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 #ifndef DJINTERP_MATH_LINEAR_ALGEBRA_QUATERNION_HPP
 #define DJINTERP_MATH_LINEAR_ALGEBRA_QUATERNION_HPP 1

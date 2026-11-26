@@ -228,7 +228,7 @@ def plane():
         "interleaved, the faces' vectors' storage converted to Cartesian. Each",
         "kernel is a constant expression from C++14.",
     ]
-    text = banner("plane.h", lines, DATE, "2026.11.21")
+    text = banner("plane.h", lines, DATE, "2026.11.24")
     text += "\n" + PLANE_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()

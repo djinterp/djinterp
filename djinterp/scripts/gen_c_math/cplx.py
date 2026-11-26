@@ -2195,7 +2195,7 @@ def cplx():
         "carry, within |n| 2^(3 - 2P) of the larger part (measured 0.031 of it).",
         "The plain form's whole power is the _c form's, bit for bit.",
     ]
-    text = banner("cplx.h", lines, "2026.10.27", "2026.11.21")
+    text = banner("cplx.h", lines, "2026.10.27", "2026.11.24")
     text += "\n" + CPLX_HEAD
     structs = []
     for n, (suffix, ctype, prefix, prose) in enumerate(FAMILIES, 1):

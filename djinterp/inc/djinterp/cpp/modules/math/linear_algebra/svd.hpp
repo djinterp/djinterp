@@ -43,11 +43,25 @@
 * enable_if default.
 *
 *
+* HOW TO USE
+* ----------
+*   Include it, or linalg.hpp. svd(A) gives U, the singular values and V by
+* one-sided Jacobi; pseudoinverse(A), or pinv(A), is the Moore-Penrose inverse.
+*
+* OPTIONS
+* -------
+*   The decomposition takes a tolerance and rank and the pseudoinverse a
+* cutoff, rcond, each default_tolerance<T>() by default.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from ISO strict C++98.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/linear_algebra/svd.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.23
-*                                                            revised: 2026.10.07
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

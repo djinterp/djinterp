@@ -1808,7 +1808,7 @@ def elementary():
         "std::is_constant_evaluated - and, for the square root, cannot be seen to",
         "have picked.",
     ]
-    text = banner("elementary.h", lines, DATE, "2026.11.21")
+    text = banner("elementary.h", lines, DATE, "2026.11.24")
     text += "\n" + ELEMENTARY_HEAD
     text += ELEMENTARY_KERNELS.replace("@TWO_OVER_PI@", two_over_pi_literal()) \
                               .replace("@DIGITS@", str(TWO_OVER_PI_DIGITS)) \

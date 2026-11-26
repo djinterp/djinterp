@@ -68,11 +68,27 @@
 * eigenvalues, bit for bit, barring overflow and underflow. Everything
 * compiles from C++98; it is constexpr from C++14.
 *
+* HOW TO USE
+* ----------
+*   Include it, or linalg.hpp. eigen_symmetric(A) (cyclic Jacobi),
+* power_iteration(A), eigenvalues_qr(A) (real eigenvalues) and eigen_general(A)
+* (every eigenvalue and eigenvector, as complex numbers) each give a small
+* result object; ask it whether it converged.
+*
+* OPTIONS
+* -------
+*   Each takes a tolerance, default_tolerance<T>() by default, and the
+* iterative ones a step budget, 1000 by default.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from ISO strict C++98.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/linear_algebra/eigen.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.22
-*                                                            revised: 2026.10.30
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

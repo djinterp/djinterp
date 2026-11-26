@@ -49,11 +49,28 @@
 *     linalg vector, so a transform built here applies to geometry points
 *     without any coupling between the two subframeworks' headers.
 *
+* HOW TO USE
+* ----------
+*   Include it, or linalg.hpp. scaling_2d and _3d, rotation_2d, rotation_x to
+* rotation_z, rotation_axis, translation and homogeneous build the standard
+* matrices, which compose with matrix.hpp's products; transform_point and
+* transform_direction apply them.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from ISO strict C++98; the
+* geometry bridge, to_array and to_vector, is from C++11, where std::array is,
+* and what takes no angle is a constant expression from C++14.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/linear_algebra/transform.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.22
-*                                                            revised: 2026.10.14
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

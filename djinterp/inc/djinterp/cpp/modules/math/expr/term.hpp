@@ -18,11 +18,26 @@
 *   STEPS. Step 13 (2a) made this header whole: its types, constructors and
 * observers are what every later step builds terms of.
 *
+* HOW TO USE
+* ----------
+*   Reached through expr.hpp. expr_term is the tree a text parses into: its
+* atoms (numbers held as math::value with their literal, variables and
+* constants by name) and its operators; the folds and rewrites take it.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11, as the run-time language does, and
+* is empty below it.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/term.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

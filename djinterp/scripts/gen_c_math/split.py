@@ -2,8 +2,14 @@
 
 One module of scripts/gen_c_math_float.py, which runs them all; see it."""
 
+from .banner_sections import PART
 from .common import (NO_CONTRACT_CLOSE, NO_CONTRACT_OPEN, banner, re,
                      textwrap)
+
+# the counts of parts, as a banner's prose spells them
+NUMBERS = {2: "two", 3: "three", 4: "four", 5: "five", 6: "six",
+           7: "seven", 8: "eight", 9: "nine", 10: "ten", 11: "eleven",
+           12: "twelve"}
 
 
 # -----------------------------------------------------------------------------
@@ -119,8 +125,9 @@ SPLITS = {
     ],
 }
 
-PART_DATE = "2026.11.21"
-SPLIT_DATE = "2026.11.21"
+PART_CREATED = "2026.11.21"
+PART_DATE = "2026.11.24"
+SPLIT_DATE = "2026.11.24"
 
 
 def strip_c_comments(text):
@@ -243,7 +250,9 @@ def split_header(name, text, spec):
             own = "// the parts before this one whose names it uses\n" + own
         files[part] = (
             banner(part, textwrap.wrap(" ".join(l for l in lines_[:1]), 72)
-                   + lines_[1:], PART_DATE, PART_DATE) + "\n\n" +
+                   + lines_[1:], PART_CREATED, PART_DATE,
+                   tuple(t % {"header": name, "count": NUMBERS[len(spec)]}
+                         for t in PART)) + "\n\n" +
             "#ifndef %s\n#define %s 1\n\n" % (guard_p, guard_p) +
             includes + own + NO_CONTRACT_OPEN + lead + "\n\n" +
             piece.strip("\n") + "\n" + tail + NO_CONTRACT_CLOSE +
@@ -255,8 +264,14 @@ def split_header(name, text, spec):
                  top, count=1)
     note = ("*   Its text is in %d parts, each a header that stands alone, "
             "included\n* below in order (S436)." % len(spec))
-    top = top.replace("\n*\n*\n* path:", "\n*\n" + note + "\n*\n*\n* path:",
-                      1)
+    # before the sections, which close the description (S474)
+    assert top.count("\n*\n* HOW TO USE\n") == 1, name
+    top = top.replace("\n*\n* HOW TO USE\n",
+                      "\n*\n" + note + "\n*\n* HOW TO USE\n", 1)
+    # the header's own sections count its parts as the split does
+    prose = " ".join(" ".join(l[2:] for l in top.split("\n")
+                              if l.startswith("* ")).split())
+    assert ("its %s parts" % NUMBERS[len(spec)]) in prose, name
     width = max(len(p) for p, _, _ in spec) + 2
     listing = []
     for p, _, w in spec:

@@ -12,11 +12,26 @@
 *   STEPS. Step 25 (4a) fills every entry. Until then each answers
 * expr_status::not_yet.
 *
+* HOW TO USE
+* ----------
+*   Reached through expr.hpp: expr::diff calls it. expr_derivative(term, name)
+* and expr_gradient(term, names) differentiate symbolically, the result
+* simplified.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11, as the run-time language does, and
+* is empty below it.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/derivative.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

@@ -39,6 +39,22 @@
 * constexpr function is one return, the index sequences re_std's. The _v
 * variable templates are from C++14, where variable templates are.
 *
+* HOW TO USE
+* ----------
+*   Include it, or math.hpp, from C++11. Relations, logic, piecewise,
+* vector-valued, parametric and implicit functions build on expression.hpp's
+* nodes; math_function binds an expression to a coordinate system, and
+* function_of(...).returns(...) builds one fluently.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11 and is empty below it (N1). The
+* forms over std::tuple are from C++14.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/function/function.hpp
 * link(s):   TBA

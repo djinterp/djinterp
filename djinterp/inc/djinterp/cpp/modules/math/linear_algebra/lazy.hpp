@@ -39,11 +39,28 @@
 * expression: the fence is a run-time barrier, and laziness is a run-time
 * economy.
 *
+* HOW TO USE
+* ----------
+*   Include it, or linalg.hpp, from C++11. Wrap operands in lazy(x), write the
+* expression, then eval(e) into a new value or assign(dst, e) in place: each
+* element once, its bits the eager arithmetic's.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles from C++11 and is empty below it (N1). Where
+* the target may fuse a multiply and an add, or evaluates float and double
+* wider, the elements are fenced (D_LINALG_LAZY_FENCED, D_LINALG_LAZY_WIDE,
+* read from the build; S464).
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/linear_algebra/lazy.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.23
-*                                                            revised: 2026.11.23
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

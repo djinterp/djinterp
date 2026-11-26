@@ -31,11 +31,26 @@
 * double and long double. A point is a linalg::vector<value_type, 2>,
 * written {{r, theta}}. Everything compiles from C++98.
 *
+* HOW TO USE
+* ----------
+*   Include it, or coordinate.hpp. polar<T> is the 2D system (r, theta), with
+* its scale factors and the conversions to and from Cartesian coordinates.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from ISO strict C++98, as
+* coordinate.hpp's LEVELS paragraph says; its _v variable templates are from
+* C++14.
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/coordinate/polar.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.06
-*                                                            revised: 2026.10.06
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*

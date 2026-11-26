@@ -54,11 +54,25 @@
 * where decomposition.hpp's is).
 *
 *
+* HOW TO USE
+* ----------
+*   Include it, or linalg.hpp. solve(A, b), the substitutions, solve_spd and
+* least_squares turn the factorizations into the operations one reaches for.
+*
+* OPTIONS
+* -------
+*   solve refines its solution unless solve_fast is called by name (S406).
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it compiles at every level from C++98. The refinement's
+* steps are D_CFG_MATH_MAT_REFINE_STEPS (cfg_mat.h).
+*
 *
 * path:      /inc/djinterp/cpp/modules/math/linear_algebra/solve.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.22
-*                                                            revised: 2026.11.15
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 
 /*
