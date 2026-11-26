@@ -92,29 +92,22 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    PROBE DECLARATORS
-      -----------------
-
-II.   READING A PROBE
-      ---------------
-
-III.  TYPE-SET QUANTIFIERS
-      --------------------
-
-IV.   TRAIT SHAPE
-      -----------
-
-V.    CV-REF AGREEMENT
-      ----------------
-
-VI.   FIXTURES  (the type zoo)
-      ------------------------
-
-VII.  BUILD-TIME PINS
-      ---------------
-
-VIII. CONCEPT LAYER  (C++20)
-      ----------------------
+1.  PROBE DECLARATORS
+    -----------------
+2.  READING A PROBE
+    ---------------
+3.  TYPE-SET QUANTIFIERS
+    --------------------
+4.  TRAIT SHAPE
+    -----------
+5.  CV-REF AGREEMENT
+    ----------------
+6.  FIXTURES  (the type zoo)
+    ------------------------
+7.  BUILD-TIME PINS
+    ---------------
+8.  CONCEPT LAYER  (C++20)
+    ----------------------
 */
 
 #ifndef DJINTERP_TEST_TRAITS_HPP
@@ -150,9 +143,9 @@ NS_DJINTERP
 NS_TEST
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                I.   PROBE DECLARATORS                                    ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  PROBE DECLARATORS
+//==============================================================================
 //
 //   A PROBE is an alias template whose instantiation is well-formed exactly
 // when the thing under test is.  It is the unit of a trait test: the probe
@@ -284,9 +277,9 @@ NS_TEST
         std::integral_constant<int, ((void)(__VA_ARGS__), 0)>;
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                II.  READING A PROBE                                      ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  READING A PROBE
+//==============================================================================
 //
 //   The plain readings are already spelled, in type_traits.hpp section 0.2,
 // and are used from here unchanged:
@@ -449,9 +442,9 @@ D_NODISCARD D_CONSTEXPR bool is_valid(
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                III. TYPE-SET QUANTIFIERS                                 ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  TYPE-SET QUANTIFIERS
+//==============================================================================
 //
 //   "The trait is true for these and false for those" is the shape of nearly
 // every trait test, and conjunction / disjunction are the wrong tools for it.
@@ -576,9 +569,9 @@ struct holds_for_none
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                IV.  TRAIT SHAPE                                          ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  TRAIT SHAPE
+//==============================================================================
 //
 //   A trait is not just a `::value`.  The standard's UnaryTypeTrait contract -
 // which every trait emitted by trait_detect.hpp inherits by construction, and
@@ -701,9 +694,9 @@ struct trait_is_well_formed
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                V.   CV-REF AGREEMENT                                     ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 5.  CV-REF AGREEMENT
+//==============================================================================
 //
 //   Almost every trait in the framework is written to be cv-ref agnostic -
 // D_TYPE_TRAIT_HAS_TYPE strips through `clean_t`, and traits that dispatch on
@@ -894,9 +887,9 @@ struct trait_ignores_cvref
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                VI.  FIXTURES  (the type zoo)                             ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 6.  FIXTURES  (the type zoo)
+//==============================================================================
 //
 //   A trait test is only as good as the types it is tried on, and the types a
 // trait's author thinks of are, by construction, the types the trait already
@@ -1265,9 +1258,9 @@ NS_END  // fixtures
     D_TEST_HOSTILE_NONCLASS_TYPES
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                VII. BUILD-TIME PINS                                      ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 7.  BUILD-TIME PINS
+//==============================================================================
 
 // D_TEST_STATIC
 //   macro: pins a compile-time fact, failing the BUILD rather than the report.
@@ -1288,9 +1281,9 @@ NS_END  // fixtures
     static_assert((__VA_ARGS__), "djinterp test: " #__VA_ARGS__)
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                VIII. CONCEPT LAYER  (C++20)                              ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 8.  CONCEPT LAYER  (C++20)
+//==============================================================================
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 

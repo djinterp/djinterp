@@ -22,6 +22,15 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  OPERATIONS
+    ----------
+    1.  Computed values
+    2.  Table layout
+*/
+
 #ifndef DJINTERP_TOOLS_DAWK_DLAYOUT_H
 #define DJINTERP_TOOLS_DAWK_DLAYOUT_H 1
 

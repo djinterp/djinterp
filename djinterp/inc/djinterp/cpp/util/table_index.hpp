@@ -89,40 +89,35 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    Strategy Tags
-      -------------
-      1.    linear_index_strategy
-      2.    sorted_index_strategy
-      3.    hashed_index_strategy
-
-II.   Uniqueness Tags
-      ---------------
-      1.    unique_index
-      2.    non_unique_index
-
-III.  Index Capability Traits
-      -----------------------
-      1.    is_index_strategy               (+ _v)
-      2.    is_index_uniqueness             (+ _v)
-
-IV.   Index Storage Primitives
-      ------------------------
-      1.    index_entry
-
-V.    table_index (primary template + strategy specializations)
-      ---------------------------------------------------------
-      1.    linear / non-unique
-      2.    linear / unique
-      3.    sorted  / non-unique
-      4.    sorted  / unique
-      5.    hashed  / non-unique
-      6.    hashed  / unique
-
-VI.   Convenience Factories
-      ---------------------
-      1.    make_linear_index
-      2.    make_sorted_index
-      3.    make_hashed_index
+1.  Strategy Tags
+    -------------
+    1.    linear_index_strategy
+    2.    sorted_index_strategy
+    3.    hashed_index_strategy
+2.  Uniqueness Tags
+    ---------------
+    1.    unique_index
+    2.    non_unique_index
+3.  Index Capability Traits
+    -----------------------
+    1.    is_index_strategy               (+ _v)
+    2.    is_index_uniqueness             (+ _v)
+4.  Index Storage Primitives
+    ------------------------
+    1.    index_entry
+5.  table_index (primary template + strategy specializations)
+    ---------------------------------------------------------
+    1.    linear / non-unique
+    2.    linear / unique
+    3.    sorted  / non-unique
+    4.    sorted  / unique
+    5.    hashed  / non-unique
+    6.    hashed  / unique
+6.  Convenience Factories
+    ---------------------
+    1.    make_linear_index
+    2.    make_sorted_index
+    3.    make_hashed_index
 */
 
 #ifndef DJINTERP_UTIL_TABLE_INDEX_HPP
@@ -151,9 +146,9 @@ VI.   Convenience Factories
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   Strategy Tags
-// ===========================================================================
+//==============================================================================
+// 1.  Strategy Tags
+//==============================================================================
 
 // linear_index_strategy
 //   tag: no acceleration; index storage is a flat vector of
@@ -175,9 +170,9 @@ struct hashed_index_strategy
 {};
 
 
-// ===========================================================================
-// II.  Uniqueness Tags
-// ===========================================================================
+//==============================================================================
+// 2.  Uniqueness Tags
+//==============================================================================
 
 // unique_index
 //   tag: each column value maps to at most one row.  Insertion of a
@@ -193,9 +188,9 @@ struct non_unique_index
 {};
 
 
-// ===========================================================================
-// III. Index Capability Traits
-// ===========================================================================
+//==============================================================================
+// 3.  Index Capability Traits
+//==============================================================================
 
 // is_index_strategy
 //   trait: true iff Type is one of the recognized index strategy
@@ -226,9 +221,9 @@ inline constexpr bool is_index_uniqueness_v =
     is_index_uniqueness<Type>::value;
 
 
-// ===========================================================================
-// IV.  Index Storage Primitives
-// ===========================================================================
+//==============================================================================
+// 4.  Index Storage Primitives
+//==============================================================================
 
 // index_entry
 //   struct: a single (column_value, row_offset) pair used as the
@@ -286,9 +281,9 @@ struct index_entry
 };
 
 
-// ===========================================================================
-// V.   table_index (primary template + strategy specializations)
-// ===========================================================================
+//==============================================================================
+// 5.  table_index (primary template + strategy specializations)
+//==============================================================================
 
 // table_index
 //   class: a database-style secondary index over column Column of
@@ -1379,9 +1374,9 @@ private:
 };
 
 
-// ===========================================================================
-// VI.  Convenience Factories
-// ===========================================================================
+//==============================================================================
+// 6.  Convenience Factories
+//==============================================================================
 
 // make_linear_index
 //   function: builds a linear, non-unique table_index over column

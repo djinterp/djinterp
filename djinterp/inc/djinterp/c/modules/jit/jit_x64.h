@@ -118,9 +118,9 @@
 #define D_JIT_X64_PFX_SEG_GS        0x65
 
 
-// ===========================================================================
-// C.   REX PREFIX
-// ===========================================================================
+//==============================================================================
+// 100. REX PREFIX
+//==============================================================================
 //   REX is a single optional byte 0100WRXB that must immediately precede the
 // opcode (after any legacy prefixes). W promotes the operation to 64-bit;
 // R/X/B are the high (4th) bits of the ModR/M.reg, SIB.index, and ModR/M.rm
@@ -196,9 +196,9 @@
 #define D_JIT_X64_REX_WRXB_BYTE  0x4F
 
 
-// ===========================================================================
-// D.   MODR/M AND SIB FIELDS
-// ===========================================================================
+//==============================================================================
+// 500. MODR/M AND SIB FIELDS
+//==============================================================================
 //   The ModR/M byte is mod(2) reg(3) rm(3); SIB is scale(2) index(3) base(3).
 // `reg` is either a register operand or an opcode extension digit (the `/n`
 // in Intel syntax). Three encodings are special: rm=100 with mod!=11 means
@@ -524,9 +524,9 @@
 #define D_JIT_X64_OP_CMP_RM_R     0x39
 
 
-// ===========================================================================
-// I.   CONTROL TRANSFER + CONDITION CODES
-// ===========================================================================
+//==============================================================================
+// 1.  CONTROL TRANSFER + CONDITION CODES
+//==============================================================================
 //   Relative branches take a signed displacement measured from the END of the
 // branch instruction. Jcc has a 2-byte rel8 form (0x70+cc) and a 6-byte rel32
 // form (0F 80+cc). Indirect call/jmp through a register or memory use the

@@ -28,6 +28,15 @@
 *                                                            revised: 2026.11.24
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  THE FLOAT FAMILY (_f)
+    ---------------------
+    1.  Angles and canonical forms
+    2.  Conversions, distances, measures
+*/
+
 #ifndef DJINTERP_C_MATH_COORD_F_H
 #define DJINTERP_C_MATH_COORD_F_H 1
 

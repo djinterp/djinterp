@@ -18,6 +18,22 @@
 *                                                            revised: 2026.11.17
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  TYPES
+    -----
+    1.  Records
+         1.  dj_node_attribute
+         2.  dj_node
+         3.  dj_node_tree
+2.  OPERATIONS
+    ----------
+    1.  Lifecycle
+    2.  Construction
+    3.  Inspection
+*/
+
 #ifndef DJINTERP_TOOLS_DAWK_DNODE_H
 #define DJINTERP_TOOLS_DAWK_DNODE_H 1
 

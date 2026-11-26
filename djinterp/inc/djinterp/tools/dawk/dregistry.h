@@ -20,6 +20,16 @@
 *                                                            revised: 2026.09.20
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  OPERATIONS
+    ----------
+    1.  Evaluation
+    2.  Derivation
+    3.  Repair
+*/
+
 #ifndef DJINTERP_TOOLS_DAWK_DREGISTRY_H
 #define DJINTERP_TOOLS_DAWK_DREGISTRY_H 1
 

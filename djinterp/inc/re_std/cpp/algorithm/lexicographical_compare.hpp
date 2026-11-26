@@ -22,6 +22,17 @@
 *                                                            revised: 2026.10.01
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+0.  COMPATIBILITY MACROS
+    --------------------
+1.  LEXICOGRAPHICAL_COMPARE (DEFAULT operator<)
+    -------------------------------------------
+2.  LEXICOGRAPHICAL_COMPARE (COMPARATOR)
+    ------------------------------------
+*/
+
 #ifndef RE_STD_ALGORITHM_LEXICOGRAPHICAL_COMPARE_HPP
 #define RE_STD_ALGORITHM_LEXICOGRAPHICAL_COMPARE_HPP 1
 
@@ -29,18 +40,18 @@
 #include "../../config.hpp"  // RE_STD_* configuration
 
 
-// ===========================================================================
-// 0.   COMPATIBILITY MACROS
-// ===========================================================================
+//==============================================================================
+// 0.  COMPATIBILITY MACROS
+//==============================================================================
 
 
 namespace re_std
 {
 
 
-// ===========================================================================
-// I.   LEXICOGRAPHICAL_COMPARE (DEFAULT operator<)
-// ===========================================================================
+//==============================================================================
+// 1.  LEXICOGRAPHICAL_COMPARE (DEFAULT operator<)
+//==============================================================================
 
 // lexicographical_compare
 //   function: true iff range 1 precedes range 2 in dictionary order.
@@ -73,9 +84,9 @@ lexicographical_compare(
 }
 
 
-// ===========================================================================
-// II.  LEXICOGRAPHICAL_COMPARE (COMPARATOR)
-// ===========================================================================
+//==============================================================================
+// 2.  LEXICOGRAPHICAL_COMPARE (COMPARATOR)
+//==============================================================================
 
 // lexicographical_compare (comparator)
 //   function: as above but ordering is decided by _comp.

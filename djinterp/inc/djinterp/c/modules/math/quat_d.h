@@ -28,6 +28,19 @@
 *                                                            revised: 2026.11.24
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+3.  THE DOUBLE FAMILY (_d)
+    ----------------------
+    1.  Helpers
+    2.  Algebra
+    3.  Norms
+    4.  Rotation
+    5.  Construction and interpolation
+    6.  Exponential, logarithm and powers
+*/
+
 #ifndef DJINTERP_C_MATH_QUAT_D_H
 #define DJINTERP_C_MATH_QUAT_D_H 1
 

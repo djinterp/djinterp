@@ -17,6 +17,14 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  OPERATIONS
+    ----------
+    1.  Construction
+*/
+
 #ifndef DJINTERP_TOOLS_DAWK_DINCLUDE_H
 #define DJINTERP_TOOLS_DAWK_DINCLUDE_H 1
 

@@ -38,6 +38,13 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  LITERAL_ZERO_HELPER
+    -------------------
+*/
+
 #ifndef RE_STD_COMPARE_LITERAL_ZERO_HELPER_HPP
 #define RE_STD_COMPARE_LITERAL_ZERO_HELPER_HPP 1
 
@@ -58,9 +65,9 @@ namespace internal
 {
 
 
-// =============================================================================
-// I.   LITERAL_ZERO_HELPER
-// =============================================================================
+//==============================================================================
+// 1.  LITERAL_ZERO_HELPER
+//==============================================================================
 
 // literal_zero_helper
 //   class: pseudo-type that accepts only the literal 0 (via the

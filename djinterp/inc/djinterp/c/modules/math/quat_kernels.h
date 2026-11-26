@@ -28,6 +28,20 @@
 *                                                            revised: 2026.11.24
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  THE KERNELS
+    -----------
+    1.  Pairs and scaling
+    2.  The algebra
+    3.  The algebra in double
+    4.  Rotation
+    5.  Roots: the _c forms'
+    6.  Roots: the plain forms'
+    7.  The _c forms' functions
+*/
+
 #ifndef DJINTERP_C_MATH_QUAT_KERNELS_H
 #define DJINTERP_C_MATH_QUAT_KERNELS_H 1
 

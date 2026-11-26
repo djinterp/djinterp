@@ -36,14 +36,12 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    Sequential Container Traits
-      ---------------------------
-
-II.   DSequentialBase (CRTP)
-      ----------------------
-
-III.  Free-Function Order Algorithms
-      ------------------------------
+1.  Sequential Container Traits
+    ---------------------------
+2.  DSequentialBase (CRTP)
+    ----------------------
+3.  Free-Function Order Algorithms
+    ------------------------------
 */
 
 #ifndef DJINTERP_CONTAINER_SEQUENTIAL_CONTAINER_HPP
@@ -70,9 +68,9 @@ III.  Free-Function Order Algorithms
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   Sequential Container Traits
-// ===========================================================================
+//==============================================================================
+// 1.  Sequential Container Traits
+//==============================================================================
 
 // is_sequential_container
 //   type trait: true if the container preserves insertion order. Structurally:
@@ -195,9 +193,9 @@ template<typename Type>
 inline constexpr DSequentialKind sequential_kind_v = sequential_kind<Type>::value;
 
 
-// ===========================================================================
-// II.  DSequentialBase (CRTP)
-// ===========================================================================
+//==============================================================================
+// 2.  DSequentialBase (CRTP)
+//==============================================================================
 // Provides order-dependent operations for any sequential
 // container.  The derived class must expose:
 //   - begin() / end()
@@ -433,9 +431,9 @@ public:
 };
 
 
-// ===========================================================================
-// III. Free-Function Order Algorithms
-// ===========================================================================
+//==============================================================================
+// 3.  Free-Function Order Algorithms
+//==============================================================================
 // Non-member algorithms that work on any sequential
 // container.
 

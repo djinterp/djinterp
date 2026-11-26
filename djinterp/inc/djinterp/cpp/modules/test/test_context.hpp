@@ -64,11 +64,10 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    TEST CONTEXT               (the focus struct)
-      ---------------------------------------------
-
-II.   FOCUS BUILDERS             (at_run / at_module / at_unit / at_check)
-      --------------------------------------------------------------------
+1.  TEST CONTEXT               (the focus struct)
+    ---------------------------------------------
+2.  FOCUS BUILDERS             (at_run / at_module / at_unit / at_check)
+    --------------------------------------------------------------------
 */
 
 #ifndef DJINTERP_TEST_CONTEXT_HPP
@@ -89,9 +88,9 @@ NS_DJINTERP
 NS_TEST
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                I.   TEST CONTEXT                                         ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  TEST CONTEXT
+//==============================================================================
 
 // test_context
 //   struct: the focus the DTest document layer reads from.  Four nullable
@@ -118,9 +117,9 @@ struct test_context
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                II.  FOCUS BUILDERS                                       ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  FOCUS BUILDERS
+//==============================================================================
 //   Convenience constructors that name common focus shapes.  The standard
 // sections in test_document re-focus by hand (so they can install indices),
 // but a caller who wants to address one specific node without iterating uses

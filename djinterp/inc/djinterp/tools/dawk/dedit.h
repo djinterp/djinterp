@@ -19,6 +19,16 @@
 *                                                            revised: 2026.11.05
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  OPERATIONS
+    ----------
+    1.  Reading
+    2.  Writing
+    3.  Shifting
+*/
+
 #ifndef DJINTERP_TOOLS_DAWK_DEDIT_H
 #define DJINTERP_TOOLS_DAWK_DEDIT_H 1
 

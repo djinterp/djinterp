@@ -44,37 +44,30 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    PRIMARY TEMPLATE                   (inspects T::operator())
-      -----------------------------------------------------------
-
-II.   FUNCTION-TYPE SPECIALIZATION       (R(Args...))
-      -----------------------------------------------
-
-III.  FUNCTION-POINTER SPECIALIZATION    (R(*)(Args...))
-      --------------------------------------------------
-
-IV.   MEMBER-FUNCTION SPECIALIZATIONS    (R(C::*)(Args...) etc.)
-      ----------------------------------------------------------
-
-V.    STD::FUNCTION SPECIALIZATION
-      ----------------------------
-
-VI.   CONVENIENCE ALIASES
-      -------------------
-      1.    return_type_t<F>
-      2.    arg_t<F, N>
-      3.    arity_v<F>
-      4.    args_tuple_t<F>
-
-VII.  PREDICATE TRAITS
-      ----------------
-      1.    is_inspectable<F>              (can function_traits succeed?)
-
-VIII. CALL DETECTION                     (works on generic / templated callables)
-      ---------------------------------------------------------------------------
-      1.    call_result_t<F, Args...>      (decltype of the call, or nonesuch)
-      2.    is_invocable_with<F, Args...>  (can F be called on Args?)
-      3.    is_invocable_r_with<R, F, Args...>
+1.  PRIMARY TEMPLATE                   (inspects T::operator())
+    -----------------------------------------------------------
+2.  FUNCTION-TYPE SPECIALIZATION       (R(Args...))
+    -----------------------------------------------
+3.  FUNCTION-POINTER SPECIALIZATION    (R(*)(Args...))
+    --------------------------------------------------
+4.  MEMBER-FUNCTION SPECIALIZATIONS    (R(C::*)(Args...) etc.)
+    ----------------------------------------------------------
+5.  STD::FUNCTION SPECIALIZATION
+    ----------------------------
+6.  CONVENIENCE ALIASES
+    -------------------
+    1.    return_type_t<F>
+    2.    arg_t<F, N>
+    3.    arity_v<F>
+    4.    args_tuple_t<F>
+7.  PREDICATE TRAITS
+    ----------------
+    1.    is_inspectable<F>              (can function_traits succeed?)
+8.  CALL DETECTION                     (works on generic / templated callables)
+    ---------------------------------------------------------------------------
+    1.    call_result_t<F, Args...>      (decltype of the call, or nonesuch)
+    2.    is_invocable_with<F, Args...>  (can F be called on Args?)
+    3.    is_invocable_r_with<R, F, Args...>
 */
 
 
@@ -99,9 +92,9 @@ VIII. CALL DETECTION                     (works on generic / templated callables
 
 NS_DJINTERP
 
-///////////////////////////////////////////////////////////////////////////////
-///             I.    PRIMARY TEMPLATE                                      ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  PRIMARY TEMPLATE
+//==============================================================================
 
 // function_traits
 //   trait: primary template, used for any callable that is not a
@@ -137,9 +130,9 @@ struct function_traits<const Type>
 {};
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             II.   FUNCTION-TYPE SPECIALIZATION                          ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  FUNCTION-TYPE SPECIALIZATION
+//==============================================================================
 
 // function_traits (function type)
 //   trait: specialization for the canonical function type
@@ -191,9 +184,9 @@ struct function_traits<Return(Args...)>
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             III.  FUNCTION-POINTER SPECIALIZATION                       ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  FUNCTION-POINTER SPECIALIZATION
+//==============================================================================
 
 // function_traits (function pointer)
 //   trait: specialization for a pointer to a free function.
@@ -213,9 +206,9 @@ struct function_traits<Return(&)(Args...)>
 {};
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             IV.   MEMBER-FUNCTION SPECIALIZATIONS                       ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  MEMBER-FUNCTION SPECIALIZATIONS
+//==============================================================================
 
 // function_traits (non-const member function pointer)
 //   trait: specialization for &Class::member. Inherits return_type
@@ -265,9 +258,9 @@ struct function_traits<Return(Class::*)(Args...) const volatile>
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             V.    STD::FUNCTION SPECIALIZATION                          ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 5.  STD::FUNCTION SPECIALIZATION
+//==============================================================================
 
 // function_traits (std::function)
 //   trait: specialization for std::function<Sig>. Forwards to the
@@ -279,9 +272,9 @@ struct function_traits<std::function<Return(Args...)>>
 {};
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             VI.   CONVENIENCE ALIASES                                   ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 6.  CONVENIENCE ALIASES
+//==============================================================================
 
 // return_type_t
 //   alias: shorthand for function_traits<F>::return_type.
@@ -314,9 +307,9 @@ static constexpr std::size_t arity_v = function_traits<Fn>::arity;
 #endif
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             VII.  PREDICATE TRAITS                                      ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 7.  PREDICATE TRAITS
+//==============================================================================
 
 NS_INTERNAL
 
@@ -366,9 +359,9 @@ static constexpr bool is_inspectable_v = is_inspectable<Fn>::value;
 #endif
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             VIII. CALL DETECTION                                        ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 8.  CALL DETECTION
+//==============================================================================
 //   function_traits (above) inspects the DECLARED shape of a callable and so
 // cannot see through a templated / generic operator() - exactly the shape a
 // transducer's reducer-producing closures take. The traits here answer the

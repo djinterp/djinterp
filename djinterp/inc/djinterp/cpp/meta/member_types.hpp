@@ -29,6 +29,15 @@
 *                                                            revised: 2026.10.01
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  shared nested-typedef detectors
+    -------------------------------
+2.  extract-a-typedef-or-fall-back
+    ------------------------------
+*/
+
 #ifndef DJINTERP_META_MEMBER_TYPES_HPP
 #define DJINTERP_META_MEMBER_TYPES_HPP 1
 
@@ -48,9 +57,9 @@
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   shared nested-typedef detectors
-// ===========================================================================
+//==============================================================================
+// 1.  shared nested-typedef detectors
+//==============================================================================
 //   Defining each here once means a fix to the detection idiom (in
 // trait_detect.hpp) propagates to every consumer instead of needing an edit
 // per subsystem.  Each emits `has_<name>` and (on C++14+) `has_<name>_v`.
@@ -108,9 +117,9 @@ D_TYPE_TRAIT_HAS_TYPE(has_difference_type, difference_type)
 D_TYPE_TRAIT_HAS_TYPE(has_allocator_type, allocator_type)
 
 
-// ===========================================================================
-// II.  extract-a-typedef-or-fall-back
-// ===========================================================================
+//==============================================================================
+// 2.  extract-a-typedef-or-fall-back
+//==============================================================================
 
 NS_INTERNAL
 

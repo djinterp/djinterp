@@ -29,6 +29,22 @@
 *                                                            revised: 2026.11.24
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  THE TYPES
+    ---------
+    1.  The complex types
+         1.  dj_cplx_f
+         2.  dj_cplx_d
+         3.  dj_cplx_ld
+2.  THE ARITHMETIC
+    --------------
+    1.  The float family (_f)
+    2.  The double family (_d)
+    3.  The long double family (_ld)
+*/
+
 #ifndef DJINTERP_C_MATH_CPLX_ARITH_H
 #define DJINTERP_C_MATH_CPLX_ARITH_H 1
 

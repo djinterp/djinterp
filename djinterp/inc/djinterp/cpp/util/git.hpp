@@ -17,6 +17,21 @@
 *                                                            revised: 2026.10.01
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+0.  MODULE KEYWORD & NAMESPACE MACROS
+    ---------------------------------
+1.  VALUE TYPES
+    -----------
+2.  COMMIT-LOG CONTAINER
+    --------------------
+3.  OPERATION RESULTS
+    -----------------
+4.  REPOSITORY FACADE
+    -----------------
+*/
+
 #ifndef DJINTERP_UTIL_GIT_HPP
 #define DJINTERP_UTIL_GIT_HPP 1
 
@@ -35,9 +50,9 @@
 #include "../djinterp.hpp"
 
 
-// =============================================================================
-// 0.   MODULE KEYWORD & NAMESPACE MACROS
-// =============================================================================
+//==============================================================================
+// 0.  MODULE KEYWORD & NAMESPACE MACROS
+//==============================================================================
 // NOTE: djinterp.hpp owns the framework keyword/namespace macros but does not
 // yet define a `git` keyword. These are guarded so that, should `git` later be
 // promoted into djinterp.hpp, this block becomes a harmless no-op.
@@ -61,9 +76,9 @@
 NS_DJINTERP
 NS_GIT
 
-// =============================================================================
-// I.   VALUE TYPES
-// =============================================================================
+//==============================================================================
+// 1.  VALUE TYPES
+//==============================================================================
 
 // object_id
 //   type: a git object identifier (a hexadecimal SHA digest). Stored as a
@@ -93,9 +108,9 @@ struct commit
 };
 
 
-// =============================================================================
-// II.  COMMIT-LOG CONTAINER
-// =============================================================================
+//==============================================================================
+// 2.  COMMIT-LOG CONTAINER
+//==============================================================================
 // NOTE: this is the portion governed by containers_howto.md, which is not
 // present in the project. `commit_log` is therefore modelled to satisfy the
 // container vocabulary the framework's own concepts test for (value_type,
@@ -163,9 +178,9 @@ private:
 };
 
 
-// =============================================================================
-// III. OPERATION RESULTS
-// =============================================================================
+//==============================================================================
+// 3.  OPERATION RESULTS
+//==============================================================================
 // NOTE: error reporting is kept module-local pending integration with
 // djinterp::error / djinterp::exception, whose definitions are not in the
 // project. `status` plus `result<Value>` is a lightweight stand-in.
@@ -215,9 +230,9 @@ private:
 };
 
 
-// =============================================================================
-// IV.  REPOSITORY FACADE
-// =============================================================================
+//==============================================================================
+// 4.  REPOSITORY FACADE
+//==============================================================================
 
 // repository
 //   class: a facade over a single git working tree. Operations are forwarded

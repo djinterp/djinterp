@@ -33,6 +33,19 @@
 *                                                            revised: 2026.10.01
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  RANGE_ADAPTOR_CLOSURE  (CRTP marker base)
+    -----------------------------------------
+2.  IS_RANGE_ADAPTOR_CLOSURE  (SFINAE detection trait)
+    --------------------------------------------------
+3.  PIPE_COMPOSITION  (itself a closure)
+    ------------------------------------
+4.  OPERATOR|  (the two pipe overloads)
+    -----------------------------------
+*/
+
 #ifndef RE_STD_RANGES_RANGE_ADAPTOR_CLOSURE_HPP
 #define RE_STD_RANGES_RANGE_ADAPTOR_CLOSURE_HPP 1
 
@@ -48,9 +61,9 @@ namespace re_std
 {
 
 
-// ===========================================================================
-// I.   RANGE_ADAPTOR_CLOSURE  (CRTP marker base)
-// ===========================================================================
+//==============================================================================
+// 1.  RANGE_ADAPTOR_CLOSURE  (CRTP marker base)
+//==============================================================================
 
 // range_adaptor_closure<Derived>
 //   class: empty CRTP base. Closures derive from this to be
@@ -65,9 +78,9 @@ struct range_adaptor_closure
 };
 
 
-// ===========================================================================
-// II.  IS_RANGE_ADAPTOR_CLOSURE  (SFINAE detection trait)
-// ===========================================================================
+//==============================================================================
+// 2.  IS_RANGE_ADAPTOR_CLOSURE  (SFINAE detection trait)
+//==============================================================================
 
 namespace internal
 {
@@ -118,9 +131,9 @@ RE_STD_CONSTEXPR bool is_range_adaptor_closure_v =
 #endif  // variable templates
 
 
-// ===========================================================================
-// III. PIPE_COMPOSITION  (itself a closure)
-// ===========================================================================
+//==============================================================================
+// 3.  PIPE_COMPOSITION  (itself a closure)
+//==============================================================================
 
 // pipe_composition<C1, C2>
 //   class: holds two closures and applies them in sequence —
@@ -167,9 +180,9 @@ struct pipe_composition : range_adaptor_closure<pipe_composition<C1, C2> >
 };
 
 
-// ===========================================================================
-// IV.  OPERATOR|  (the two pipe overloads)
-// ===========================================================================
+//==============================================================================
+// 4.  OPERATOR|  (the two pipe overloads)
+//==============================================================================
 
 // operator| (non-closure | closure)
 //   function: when the LHS is anything OTHER than a range adaptor

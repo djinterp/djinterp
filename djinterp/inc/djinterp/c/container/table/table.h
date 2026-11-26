@@ -72,20 +72,16 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    configuration           (the stdlib-strategy knob)
-      --------------------------------------------------
-
-II.   d_table_alloc_stdlib    (the one named malloc strategy)
-      -------------------------------------------------------
-
-III.  cell access macros      (typed access without a generated family)
-      -----------------------------------------------------------------
-
-IV.   D_TABLE_DECLARE_TYPED   (the generated typed family)
-      ----------------------------------------------------
-
-V.    iteration macros        (atomic order, row order, column order)
-      ---------------------------------------------------------------
+1.  configuration           (the stdlib-strategy knob)
+    --------------------------------------------------
+2.  d_table_alloc_stdlib    (the one named malloc strategy)
+    -------------------------------------------------------
+3.  cell access macros      (typed access without a generated family)
+    -----------------------------------------------------------------
+4.  D_TABLE_DECLARE_TYPED   (the generated typed family)
+    ----------------------------------------------------
+5.  iteration macros        (atomic order, row order, column order)
+    ---------------------------------------------------------------
 */
 
 #ifndef DJINTERP_C_CONTAINER_TABLE_TABLE_H
@@ -107,17 +103,17 @@ V.    iteration macros        (atomic order, row order, column order)
 D_EXTERN_C_BEGIN
 
 
-// ===========================================================================
-// I.   configuration
-// ===========================================================================
+//==============================================================================
+// 1.  configuration
+//==============================================================================
 
 //   D_CFG_TABLE_STDLIB_ALLOC, which offers the realloc/free strategy below, is
 // resolved in config/c/container/table/cfg_table.h (through table_common.h).
 
 
-// ===========================================================================
-// II.  d_table_alloc_stdlib
-// ===========================================================================
+//==============================================================================
+// 2.  d_table_alloc_stdlib
+//==============================================================================
 
 #if D_CFG_IS_ON(D_CFG_TABLE_STDLIB_ALLOC)
 
@@ -172,9 +168,9 @@ D_NODISCARD D_INLINE struct dj_table_alloc d_table_alloc_stdlib(void)
 #endif  // D_CFG_TABLE_STDLIB_ALLOC
 
 
-// ===========================================================================
-// III. cell access macros
-// ===========================================================================
+//==============================================================================
+// 3.  cell access macros
+//==============================================================================
 
 // D_TABLE_CELL_SIZE_OF
 //   macro: the cell width to declare a table of _type with. A cast of sizeof,
@@ -242,9 +238,9 @@ D_ENV_PP_VARIADIC_QUIET_END
 #endif  // D_ENV_PP_HAS_VARIADIC_MACROS
 
 
-// ===========================================================================
-// IV.  D_TABLE_DECLARE_TYPED
-// ===========================================================================
+//==============================================================================
+// 4.  D_TABLE_DECLARE_TYPED
+//==============================================================================
 
 // D_TABLE_DECLARE_TYPED
 //   macro: generate a typed wrapper family over the kernel for cells of _type,
@@ -336,9 +332,9 @@ D_ENV_PP_VARIADIC_QUIET_END
     }
 
 
-// ===========================================================================
-// V.   iteration macros
-// ===========================================================================
+//==============================================================================
+// 5.  iteration macros
+//==============================================================================
 
 // D_TABLE_FOR_EACH_ROW
 //   macro: sweep the rows in order, binding _r to each row index. The row

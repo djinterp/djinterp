@@ -32,6 +32,25 @@
 *                                                            revised: 2026.11.04
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  TRIVIALLY-QUALIFIED VARIANTS (C++17)
+    ------------------------------------
+2.  COMPOUND REQUIREMENT TRAITS (C++17)
+    -----------------------------------
+3.  INLINE CONSTEXPR VARIABLE TEMPLATES (C++17)
+    -------------------------------------------
+4.  STD-BACKED SWAPPABLE TRAITS (C++17)
+    -----------------------------------
+5.  STD-BACKED INVOCABLE / CALLABLE TRAITS (C++17)
+    ----------------------------------------------
+6.  CONTIGUOUS CONTAINER TRAIT (C++17)
+    ----------------------------------
+7.  LEGACY CONTIGUOUS ITERATOR TRAIT (C++17)
+    ----------------------------------------
+*/
+
 #ifndef DJINTERP_META_STL_CPP_NAMED17_HPP
 #define DJINTERP_META_STL_CPP_NAMED17_HPP 1
 
@@ -57,9 +76,9 @@
 NS_DJINTERP
 D_NAMESPACE(stl)
 
-// =========================================================================
-// I.   TRIVIALLY-QUALIFIED VARIANTS (C++17)
-// =========================================================================
+//==============================================================================
+// 1.  TRIVIALLY-QUALIFIED VARIANTS (C++17)
+//==============================================================================
 
 // is_trivially_default_constructible
 //   trait: evaluates to true if T is trivially default-constructible
@@ -121,9 +140,9 @@ struct is_trivially_move_assignable
 #endif  // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
 
 
-// =========================================================================
-// II.  COMPOUND REQUIREMENT TRAITS (C++17)
-// =========================================================================
+//==============================================================================
+// 2.  COMPOUND REQUIREMENT TRAITS (C++17)
+//==============================================================================
 
 // is_fully_copyable
 //   trait: evaluates to true if T satisfies both CopyConstructible and
@@ -191,9 +210,9 @@ struct is_value_type
 #endif  // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
 
 
-// =========================================================================
-// III. INLINE CONSTEXPR VARIABLE TEMPLATES (C++17)
-// =========================================================================
+//==============================================================================
+// 3.  INLINE CONSTEXPR VARIABLE TEMPLATES (C++17)
+//==============================================================================
 
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 
@@ -280,9 +299,9 @@ inline constexpr bool is_value_type_v =
 #endif  // D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 
 
-// =========================================================================
-// IV.  STD-BACKED SWAPPABLE TRAITS (C++17)
-// =========================================================================
+//==============================================================================
+// 4.  STD-BACKED SWAPPABLE TRAITS (C++17)
+//==============================================================================
 
 // is_nothrow_swappable
 //   trait: evaluates to true if T is swappable without throwing
@@ -322,9 +341,9 @@ inline constexpr bool is_swappable_with_v =
 #endif  // D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 
 
-// =========================================================================
-// V.   STD-BACKED INVOCABLE / CALLABLE TRAITS (C++17)
-// =========================================================================
+//==============================================================================
+// 5.  STD-BACKED INVOCABLE / CALLABLE TRAITS (C++17)
+//==============================================================================
 
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 
@@ -333,9 +352,9 @@ inline constexpr bool is_swappable_with_v =
 #endif  // D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 
 
-// =========================================================================
-// VI.  CONTIGUOUS CONTAINER TRAIT (C++17)
-// =========================================================================
+//==============================================================================
+// 6.  CONTIGUOUS CONTAINER TRAIT (C++17)
+//==============================================================================
 
 NS_INTERNAL
 
@@ -391,9 +410,9 @@ inline constexpr bool is_contiguous_container_v =
 #endif  // D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 
 
-// =========================================================================
-// VII. LEGACY CONTIGUOUS ITERATOR TRAIT (C++17)
-// =========================================================================
+//==============================================================================
+// 7.  LEGACY CONTIGUOUS ITERATOR TRAIT (C++17)
+//==============================================================================
 
 NS_INTERNAL
 

@@ -42,14 +42,12 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    GRAMMAR                              (expression_grammar / factory)
-      -------------------------------------------------------------------
-
-II.   PRATT CORE                           (internal: nud / climb)
-      ------------------------------------------------------------
-
-III.  PARSE ENTRY                          (parse_expression)
-      -------------------------------------------------------
+1.  GRAMMAR                              (expression_grammar / factory)
+    -------------------------------------------------------------------
+2.  PRATT CORE                           (internal: nud / climb)
+    ------------------------------------------------------------
+3.  PARSE ENTRY                          (parse_expression)
+    -------------------------------------------------------
 */
 
 #ifndef DJINTERP_PARSE_EXPRESSION_PARSE_HPP
@@ -75,9 +73,9 @@ III.  PARSE ENTRY                          (parse_expression)
 NS_DJINTERP
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             I.    GRAMMAR                                               ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  GRAMMAR
+//==============================================================================
 
 // expression_grammar
 //   struct: the language-specific hooks the precedence climber needs, over a
@@ -140,9 +138,9 @@ make_expression_grammar
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             II.   PRATT CORE                                            ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  PRATT CORE
+//==============================================================================
 //   The precedence climber.  parse_nud reads a start-of-expression form;
 // parse_climb reads one and folds in trailing operators down to a minimum
 // precedence.  The two are mutually recursive (a prefix operand and a
@@ -396,9 +394,9 @@ NS_INTERNAL
 NS_END  // internal
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             III.  PARSE ENTRY                                           ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  PARSE ENTRY
+//==============================================================================
 
 // parse_expression (over a cursor)
 //   function: parses a whole expression from a parse_state, requiring the

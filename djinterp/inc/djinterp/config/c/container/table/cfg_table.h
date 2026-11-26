@@ -26,6 +26,17 @@
 *                                                            revised: 2026.10.31
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  KNOBS
+    -----
+2.  VALIDATION
+    ----------
+3.  RESOLVED VALUES
+    ---------------
+*/
+
 #ifndef DJINTERP_CONFIG_C_CONTAINER_TABLE_CFG_TABLE_H
 #define DJINTERP_CONFIG_C_CONTAINER_TABLE_CFG_TABLE_H 1
 

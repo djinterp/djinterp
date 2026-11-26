@@ -34,11 +34,11 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    HTML PRINT POLICY
-      -----------------
-      a. DHtmlPrintPolicy
-      b. html_policy
-      c.    DHtmlDocument
+1.  HTML PRINT POLICY
+    -----------------
+    a. DHtmlPrintPolicy
+    b. html_policy
+    c.    DHtmlDocument
 */
 
 #ifndef DJINTERP_TEXT_HTML_HTML_PRINTER_HPP
@@ -64,9 +64,9 @@ I.    HTML PRINT POLICY
 NS_DJINTERP
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                  I.   HTML PRINT POLICY                                 ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  HTML PRINT POLICY
+//==============================================================================
 
 // DHtmlPrintPolicy
 //   struct: HTML serialisation rules. Text/attribute escaping match XML's

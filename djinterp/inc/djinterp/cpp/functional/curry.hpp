@@ -56,40 +56,35 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    INTERNAL MACHINERY
-      ------------------
-      1.    index_seq / make_index_seq          (C++11 index_sequence fallback)
-      2.    apply_tuple                         (tuple-to-args invocation)
-      3.    DCurryHelper                        (variadic curry accumulator)
-      4.    curry_n_helper                      (fixed-arity curry accumulator)
-      5.    DFlipHelper                         (argument swap)
-      6.    DAlwaysHelper                       (constant function)
-      7.    DUncurryHelper                      (curried -> n-ary)
-
-II.   PREDICATE CONCEPTS                 (C++20; the traits are
-      ------------------                  functional_common.hpp's)
-      1.    nullary_predicate                   (arity-0 predicate)
-      2.    unary_predicate                     (arity-1 predicate)
-      3.    binary_predicate                    (arity-2 predicate)
-
-III.  CURRY FACTORIES
-      ---------------
-      1.    curry                               (auto-arity)
-      2.    curry_n                             (fixed-arity, by template)
-
-IV.   UNCURRYING
-      ----------
-      1.    uncurry                             (back to multi-arg form)
-
-V.    ARGUMENT TRANSFORMATIONS
-      ------------------------
-      1.    flip                                (swap first two args)
-
-VI.   CONSTANT-VALUED COMBINATORS
-      ---------------------------
-      1.    identity                            (returns its argument)
-      2.    always (constant)                   (returns a fixed value)
-      3.    never                               (always-false predicate)
+1.  INTERNAL MACHINERY
+    ------------------
+    1.    index_seq / make_index_seq          (C++11 index_sequence fallback)
+    2.    apply_tuple                         (tuple-to-args invocation)
+    3.    DCurryHelper                        (variadic curry accumulator)
+    4.    curry_n_helper                      (fixed-arity curry accumulator)
+    5.    DFlipHelper                         (argument swap)
+    6.    DAlwaysHelper                       (constant function)
+    7.    DUncurryHelper                      (curried -> n-ary)
+2.  PREDICATE CONCEPTS                 (C++20; the traits are
+    ------------------                  functional_common.hpp's)
+    1.    nullary_predicate                   (arity-0 predicate)
+    2.    unary_predicate                     (arity-1 predicate)
+    3.    binary_predicate                    (arity-2 predicate)
+3.  CURRY FACTORIES
+    ---------------
+    1.    curry                               (auto-arity)
+    2.    curry_n                             (fixed-arity, by template)
+4.  UNCURRYING
+    ----------
+    1.    uncurry                             (back to multi-arg form)
+5.  ARGUMENT TRANSFORMATIONS
+    ------------------------
+    1.    flip                                (swap first two args)
+6.  CONSTANT-VALUED COMBINATORS
+    ---------------------------
+    1.    identity                            (returns its argument)
+    2.    always (constant)                   (returns a fixed value)
+    3.    never                               (always-false predicate)
 */
 
 #ifndef DJINTERP_FUNCTIONAL_CURRY_HPP
@@ -119,9 +114,9 @@ VI.   CONSTANT-VALUED COMBINATORS
 NS_DJINTERP
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             I.    INTERNAL MACHINERY                                    ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  INTERNAL MACHINERY
+//==============================================================================
 
 NS_INTERNAL
     // index_seq
@@ -631,9 +626,9 @@ NS_INTERNAL
 NS_END  // internal
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             II.   PREDICATE CONCEPTS                                    ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  PREDICATE CONCEPTS
+//==============================================================================
 // A predicate is any callable whose result is convertible to bool. The traits
 // that classify one - is_predicate and its arity forms is_nullary_predicate,
 // is_unary_predicate and is_binary_predicate, with their _v shorthands - are
@@ -669,9 +664,9 @@ concept binary_predicate = Predicate<Fn, A, B>;
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             III.  CURRY FACTORIES                                       ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  CURRY FACTORIES
+//==============================================================================
 
 // curry
 //   function: wraps _fn in an auto-arity curried form. Each call
@@ -711,9 +706,9 @@ internal::curry_n_helper<N, typename std::decay<Fn>::type> curry_n(
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             IV.   UNCURRYING                                            ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  UNCURRYING
+//==============================================================================
 
 // uncurry
 //   function: produces a wrapper for a curried function that
@@ -731,9 +726,9 @@ internal::DUncurryHelper<typename std::decay<Fn>::type> uncurry(
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             V.    ARGUMENT TRANSFORMATIONS                              ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 5.  ARGUMENT TRANSFORMATIONS
+//==============================================================================
 
 // flip
 //   function: returns a wrapper that swaps the first two arguments
@@ -751,9 +746,9 @@ internal::DFlipHelper<typename std::decay<Fn>::type> flip(
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             VI.   CONSTANT-VALUED COMBINATORS                           ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 6.  CONSTANT-VALUED COMBINATORS
+//==============================================================================
 
 NS_INTERNAL
     // DIdentityFnHelper

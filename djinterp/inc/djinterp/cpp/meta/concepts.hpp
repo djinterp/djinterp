@@ -42,6 +42,17 @@
 *                                                            revised: 2026.11.25
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+0.  CONCEPT DEFINITION MACROS
+    -------------------------
+1.  STANDARD LIBRARY CONCEPT RE-EXPORTS
+    -----------------------------------
+2.  CUSTOM DJINTERP CONCEPTS
+    ------------------------
+*/
+
 #ifndef DJINTERP_META_CONCEPTS_HPP
 #define DJINTERP_META_CONCEPTS_HPP 1
 
@@ -77,9 +88,9 @@
 #include <type_traits>  // std::is_*, std::remove_cvref_t, ...
 
 
-// =============================================================================
-// 0.   CONCEPT DEFINITION MACROS
-// =============================================================================
+//==============================================================================
+// 0.  CONCEPT DEFINITION MACROS
+//==============================================================================
 // Parallels the D_TYPE_TRAIT_HAS_* family, which now lives in trait_detect.hpp
 // (formerly the D_TRAIT_HAS_* family in type_traits.hpp section 0.3). Each
 // macro below emits a concept definition (not a trait struct), one per member
@@ -227,9 +238,9 @@ D_ENV_PP_VARIADIC_QUIET_END
 NS_DJINTERP
 
 
-// =============================================================================
-// I.   STANDARD LIBRARY CONCEPT RE-EXPORTS
-// =============================================================================
+//==============================================================================
+// 1.  STANDARD LIBRARY CONCEPT RE-EXPORTS
+//==============================================================================
 // Re-exports of standard library concepts for convenience. These are the
 // concept equivalents of many standard type traits and parallel the portable
 // standard-library traits exposed in type_traits.hpp section I.
@@ -286,9 +297,9 @@ using std::equivalence_relation;
 using std::strict_weak_order;
 
 
-// =============================================================================
-// II.  CUSTOM DJINTERP CONCEPTS
-// =============================================================================
+//==============================================================================
+// 2.  CUSTOM DJINTERP CONCEPTS
+//==============================================================================
 // Custom concepts to supplement the standard library concepts above. Parallel
 // to the custom traits in type_traits.hpp section III; where a custom trait
 // `is_X` exists there, an analogous concept (`is_X_c` or a natural-language

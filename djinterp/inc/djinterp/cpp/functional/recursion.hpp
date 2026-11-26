@@ -62,6 +62,26 @@
 *                                                            revised: 2026.10.01
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  mu<F>  —  the least fixed point μF
+    ----------------------------------
+2.  recursive_traits / corecursive_traits
+    -------------------------------------
+    100. base<A> must be a registered Functor.  The primary is left
+3.  is_recursive / is_corecursive + concepts
+    ----------------------------------------
+4.  mu<F> instances
+    ---------------
+5.  cata[φ]  —  the universal fold
+    ------------------------------
+6.  ana[ψ]  —  the universal unfold
+    -------------------------------
+7.  hylo  —  refold without materialising μF
+    ----------------------------------------
+*/
+
 #ifndef DJINTERP_FUNCTIONAL_RECURSION_HPP
 #define DJINTERP_FUNCTIONAL_RECURSION_HPP 1
 
@@ -83,9 +103,9 @@
 NS_DJINTERP
 
 
-// ================================================================
-//  I.   mu<F>  —  the least fixed point μF
-// ================================================================
+//==============================================================================
+// 1.  mu<F>  —  the least fixed point μF
+//==============================================================================
 
 // DMu
 //   class: the least fixed point of the functor F.  A value is one
@@ -152,9 +172,9 @@ template<template<typename> class F>
 using mu = DMu<F>;
 
 
-// ================================================================
-//  II.  recursive_traits / corecursive_traits
-// ================================================================
+//==============================================================================
+// 2.  recursive_traits / corecursive_traits
+//==============================================================================
 
 // recursive_traits
 //   trait: the fold-side structure of a recursive carrier C.  A
@@ -166,7 +186,8 @@ using mu = DMu<F>;
 //
 // where F is the base functor (F(A) with the recursive holes at A)
 // and project exposes C as one F-layer whose children are still
-// C.  base<A> must be a registered Functor.  The primary is left
+// 2.100  base<A> must be a registered Functor.  The primary is left
+//------------------------------------------------------------------------------
 // undefined so cata on a non-recursive type is a clean error.
 template<typename Carrier,
          typename Enable = void>
@@ -188,9 +209,9 @@ template<typename Carrier,
 struct corecursive_traits;
 
 
-// ================================================================
-//  III. is_recursive / is_corecursive + concepts
-// ================================================================
+//==============================================================================
+// 3.  is_recursive / is_corecursive + concepts
+//==============================================================================
 
 NS_INTERNAL
 
@@ -279,9 +300,9 @@ struct is_corecursive
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
-// ================================================================
-//  IV.  mu<F> instances
-// ================================================================
+//==============================================================================
+// 4.  mu<F> instances
+//==============================================================================
 
 // recursive_traits<mu<F>>
 //   specialisation: the canonical fixed point folds via out.
@@ -322,9 +343,9 @@ struct corecursive_traits<DMu<F>, void>
 };
 
 
-// ================================================================
-//  V.   cata[φ]  —  the universal fold
-// ================================================================
+//==============================================================================
+// 5.  cata[φ]  —  the universal fold
+//==============================================================================
 
 // cata
 //   function: the catamorphism cata[φ] : μF → A for an F-algebra
@@ -372,9 +393,9 @@ Result cata(
 }
 
 
-// ================================================================
-//  VI.  ana[ψ]  —  the universal unfold
-// ================================================================
+//==============================================================================
+// 6.  ana[ψ]  —  the universal unfold
+//==============================================================================
 
 // ana
 //   function: the anamorphism ana[ψ] : A → μF for an F-coalgebra
@@ -422,9 +443,9 @@ Carrier ana(
 }
 
 
-// ================================================================
-//  VII. hylo  —  refold without materialising μF
-// ================================================================
+//==============================================================================
+// 7.  hylo  —  refold without materialising μF
+//==============================================================================
 
 // hylo
 //   function: the hylomorphism hylo[φ, ψ] : A → B — an ana

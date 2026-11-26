@@ -39,6 +39,13 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  NON_PROPAGATING_CACHE
+    ---------------------
+*/
+
 #ifndef RE_STD_RANGES_NON_PROPAGATING_CACHE_HPP
 #define RE_STD_RANGES_NON_PROPAGATING_CACHE_HPP 1
 
@@ -57,9 +64,9 @@ namespace internal
 {
 
 
-// ===========================================================================
-// I.   NON_PROPAGATING_CACHE
-// ===========================================================================
+//==============================================================================
+// 1.  NON_PROPAGATING_CACHE
+//==============================================================================
 
 // non_propagating_cache<T>
 //   class: holds an optional T whose presence does NOT survive

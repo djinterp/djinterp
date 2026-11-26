@@ -54,6 +54,19 @@
 *                                                            revised: 2026.10.23
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  `metadata` CONCEPTS
+    -------------------
+2.  `metadata_type` CONCEPTS
+    ------------------------
+3.  `metadata_container_type` CONCEPTS
+    ----------------------------------
+4.  TYPE-EXTRACTION RE-EXPORTS
+    --------------------------
+*/
+
 #ifndef DJINTERP_UTIL_METADATA_METADATA_CONCEPTS_HPP
 #define DJINTERP_UTIL_METADATA_METADATA_CONCEPTS_HPP 1
 
@@ -77,9 +90,9 @@ NS_DJINTERP
 namespace concepts {
 
 
-// =========================================================================
-// I.   `metadata` CONCEPTS
-// =========================================================================
+//==============================================================================
+// 1.  `metadata` CONCEPTS
+//==============================================================================
 //   Concept-form detection of the `metadata` name across the
 // three natural class-member shapes. The unifying `has_metadata`
 // concept is satisfied if any of the shapes is well-formed.
@@ -126,9 +139,9 @@ concept has_metadata =
       has_metadata_nested_type<Type> );
 
 
-// =========================================================================
-// II.  `metadata_type` CONCEPTS
-// =========================================================================
+//==============================================================================
+// 2.  `metadata_type` CONCEPTS
+//==============================================================================
 //   Mirror of section I for the `metadata_type` name. In typical
 // usage `metadata_type` will be a nested type alias, but member
 // and method forms are detected for completeness.
@@ -171,9 +184,9 @@ concept has_metadata_type =
       has_metadata_type_nested_type<Type> );
 
 
-// =========================================================================
-// III. `metadata_container_type` CONCEPTS
-// =========================================================================
+//==============================================================================
+// 3.  `metadata_container_type` CONCEPTS
+//==============================================================================
 //   Mirror of section I for the `metadata_container_type` name.
 
 // has_metadata_container_type_data_member
@@ -214,9 +227,9 @@ concept has_metadata_container_type =
       has_metadata_container_type_nested_type<Type> );
 
 
-// =========================================================================
-// IV.  TYPE-EXTRACTION RE-EXPORTS
-// =========================================================================
+//==============================================================================
+// 4.  TYPE-EXTRACTION RE-EXPORTS
+//==============================================================================
 //   The `_t` aliases live in `metadata_traits.hpp` and are
 // re-exported here so callers using the `concepts` namespace
 // don't need to switch namespaces for type extraction.

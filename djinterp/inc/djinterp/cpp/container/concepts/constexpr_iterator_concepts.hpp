@@ -36,17 +36,14 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    Feature Gate
-      ------------
-
-II.   Method-Level Concepts
-      ---------------------
-
-III.  Type-Alias Concept
-      ------------------
-
-IV.   Aggregate Concept
-      -----------------
+1.  Feature Gate
+    ------------
+2.  Method-Level Concepts
+    ---------------------
+3.  Type-Alias Concept
+    ------------------
+4.  Aggregate Concept
+    -----------------
 */
 
 #ifndef DJINTERP_CONTAINER_CONCEPTS_CONSTEXPR_ITERATOR_CONCEPTS_HPP
@@ -65,9 +62,9 @@ IV.   Aggregate Concept
 #include "../iterator/constexpr_iterator_traits.hpp"
 
 
-// ===========================================================================
-// I.   Feature Gate
-// ===========================================================================
+//==============================================================================
+// 1.  Feature Gate
+//==============================================================================
 // Concepts are a C++20 language feature.  This entire header
 // is empty in older standards; callers should fall back to
 // SFINAE traits directly.
@@ -78,9 +75,9 @@ NS_DJINTERP
 NS_CONCEPTS
 
 
-// ===========================================================================
-// II.  Method-Level Concepts
-// ===========================================================================
+//==============================================================================
+// 2.  Method-Level Concepts
+//==============================================================================
 
 // ConstexprBeginCapable
 //   concept: constrains types exposing a constexpr_begin() const member.
@@ -95,9 +92,9 @@ concept ConstexprEndCapable =
     has_constexpr_end_method_v<clean_t<Type>>;
 
 
-// ===========================================================================
-// III. Type-Alias Concept
-// ===========================================================================
+//==============================================================================
+// 3.  Type-Alias Concept
+//==============================================================================
 
 // ConstexprIterAlias
 //   concept: constrains types declaring a nested `DConstexprIterator` type
@@ -107,9 +104,9 @@ concept ConstexprIterAlias =
     has_constexpr_iterator_alias_v<clean_t<Type>>;
 
 
-// ===========================================================================
-// IV.  Aggregate Concept
-// ===========================================================================
+//==============================================================================
+// 4.  Aggregate Concept
+//==============================================================================
 
 // ConstexprIterable
 //   concept: the umbrella concept. A type is constexpr-iterable when it is

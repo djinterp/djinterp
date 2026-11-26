@@ -103,6 +103,19 @@
 *                                                            revised: 2026.10.31
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  RESULT
+    ------
+2.  THE NODE
+    --------
+3.  LAYOUT AND VALUE ASSERTIONS
+    ---------------------------
+4.  OPERATIONS
+    ----------
+*/
+
 #ifndef DJINTERP_C_TEST_OBJECT_H
 #define DJINTERP_C_TEST_OBJECT_H 1
 
@@ -142,9 +155,9 @@
 D_EXTERN_C_BEGIN
 
 
-// =============================================================================
-// I.   RESULT
-// =============================================================================
+//==============================================================================
+// 1.  RESULT
+//==============================================================================
 
 
 // dj_test_object_result
@@ -173,9 +186,9 @@ enum dj_test_object_result
 // built under the message-code rules carries one identity for both.
 
 
-// =============================================================================
-// II.  THE NODE
-// =============================================================================
+//==============================================================================
+// 2.  THE NODE
+//==============================================================================
 
 // dj_test_object
 //   struct: one test element.  Plain data, trivially copyable, identical
@@ -231,9 +244,9 @@ struct dj_test_object
 }
 
 
-// =============================================================================
-// III. LAYOUT AND VALUE ASSERTIONS
-// =============================================================================
+//==============================================================================
+// 3.  LAYOUT AND VALUE ASSERTIONS
+//==============================================================================
 //   The three scalars are fixed-width and are asserted exactly.  The metadata
 // container is pointer-bearing and is asserted for ORDER only.
 
@@ -284,9 +297,9 @@ D_STATIC_ASSERT(D_TEST_STATUS_PENDING == 3, "test_object: pending must be 3");
 D_STATIC_ASSERT(D_TEST_STATUS_ERROR   == 4, "test_object: error must be 4");
 
 
-// =============================================================================
-// IV.  OPERATIONS
-// =============================================================================
+//==============================================================================
+// 4.  OPERATIONS
+//==============================================================================
 
 //   THE SEVEN d_test_metadata_* OPERATIONS ARE DECLARED IN
 // test_metadata.h, not here.  A caller that wants both includes both.

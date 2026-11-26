@@ -45,55 +45,38 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    XML ATTRIBUTE
-      -------------
-      a. DXmlAttribute
-
-      - name, value
-
-      - default + parameterised constructors
-
-      - operator==
-
-II.   DEFAULT BACKEND
-      ---------------
-      a. DDefaultNode     (internal in-memory node)
-      b. DDefaultDocument (internal in-memory document)
-      c.    DXmlDefaultBackend (tag + nested type aliases)
-
-III.  TEMPLATED NODE
-      --------------
-      a. DXmlNode<Backend>
-
-      - backend_handle accessor
-
-      - name / kind / value
-
-      - attributes / children iteration
-
-      - find_child / find_attribute
-
-      - add_child / set_attribute / remove_*
-
-      - text / set_text
-
-IV.   TEMPLATED DOCUMENT
-      ------------------
-      a. DXmlDocument<Backend>
-
-      - default + parameterised constructors
-
-      - root_element accessor
-
-      - version / encoding / standalone
-
-      - parse / write / save
-
-V.    FREE FUNCTIONS
-      --------------
-      a. make_attribute
-      b. make_default_document
-      c.    find_child_by_path  (slash-delimited XPath subset)
+1.  XML ATTRIBUTE
+    -------------
+    a. DXmlAttribute
+    - name, value
+    - default + parameterised constructors
+    - operator==
+2.  DEFAULT BACKEND
+    ---------------
+    a. DDefaultNode     (internal in-memory node)
+    b. DDefaultDocument (internal in-memory document)
+    c.    DXmlDefaultBackend (tag + nested type aliases)
+3.  TEMPLATED NODE
+    --------------
+    a. DXmlNode<Backend>
+    - backend_handle accessor
+    - name / kind / value
+    - attributes / children iteration
+    - find_child / find_attribute
+    - add_child / set_attribute / remove_*
+    - text / set_text
+4.  TEMPLATED DOCUMENT
+    ------------------
+    a. DXmlDocument<Backend>
+    - default + parameterised constructors
+    - root_element accessor
+    - version / encoding / standalone
+    - parse / write / save
+5.  FREE FUNCTIONS
+    --------------
+    a. make_attribute
+    b. make_default_document
+    c.    find_child_by_path  (slash-delimited XPath subset)
 */
 
 #ifndef DJINTERP_TEXT_XML_TEMPLATE_HPP
@@ -133,9 +116,9 @@ template<typename Backend>
 class DXmlDocument;
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                I.   XML ATTRIBUTE                                        ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  XML ATTRIBUTE
+//==============================================================================
 
 // DXmlAttribute
 //   struct: backend-agnostic name/value pair representing a single
@@ -176,9 +159,9 @@ struct DXmlAttribute
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                II.   DEFAULT BACKEND                                     ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  DEFAULT BACKEND
+//==============================================================================
 
 NS_INTERNAL
 
@@ -306,9 +289,9 @@ struct DXmlDefaultBackend
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                III.   TEMPLATED NODE                                     ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  TEMPLATED NODE
+//==============================================================================
 
 // DXmlNode
 //   class: templated facade over a backend node handle. The
@@ -575,9 +558,9 @@ private:
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                IV.   TEMPLATED DOCUMENT                                  ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  TEMPLATED DOCUMENT
+//==============================================================================
 
 // DXmlDocument
 //   class: templated facade over a backend document. Owns the
@@ -858,9 +841,9 @@ private:
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                V.   FREE FUNCTIONS                                       ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 5.  FREE FUNCTIONS
+//==============================================================================
 
 // make_attribute
 //   function: convenience factory for an `DXmlAttribute`.

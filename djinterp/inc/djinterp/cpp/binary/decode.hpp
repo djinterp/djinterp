@@ -55,6 +55,25 @@
 *                                                            revised: 2026.10.02
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  The medium (B*) - reader side
+    -----------------------------
+2.  DByteReader - a cursor over a bit string
+    ----------------------------------------
+3.  DDecodeResult<T> - a recovered value, or failure
+    ------------------------------------------------
+4.  Member-decoder detection (the customization surface)
+    ----------------------------------------------------
+5.  Fixed-width byte readers (internal)
+    -----------------------------------
+6.  dec_tau - the leaf element decoder
+    ----------------------------------
+7.  Leaf-decodability trait
+    -----------------------
+*/
+
 #ifndef DJINTERP_BINARY_DECODE_HPP
 #define DJINTERP_BINARY_DECODE_HPP 1
 
@@ -81,9 +100,9 @@
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   The medium (B*) - reader side
-// ===========================================================================
+//==============================================================================
+// 1.  The medium (B*) - reader side
+//==============================================================================
 //   `byte` and `DByteString` are the same medium encode.hpp names; declared
 // here too so this header stands alone.  Identical `using` aliases are
 // compatible, so the two coexist when both headers are included.
@@ -108,9 +127,9 @@ using DDecodeLengthType = re_std::uint64_t;
 using decode_length_type = DDecodeLengthType;
 
 
-// ===========================================================================
-// II.  DByteReader - a cursor over a bit string
-// ===========================================================================
+//==============================================================================
+// 2.  DByteReader - a cursor over a bit string
+//==============================================================================
 
 // DByteReader
 //   class: a forward cursor over a run of bytes.  It advances as fields are
@@ -218,9 +237,9 @@ private:
 };
 
 
-// ===========================================================================
-// III. DDecodeResult<T> - a recovered value, or failure
-// ===========================================================================
+//==============================================================================
+// 3.  DDecodeResult<T> - a recovered value, or failure
+//==============================================================================
 
 // DDecodeResult
 //   struct: the outcome of a decode - `ok` records whether a value was
@@ -254,9 +273,9 @@ DDecodeResult<Type> decode_failure()
 }
 
 
-// ===========================================================================
-// IV.  Member-decoder detection (the customization surface)
-// ===========================================================================
+//==============================================================================
+// 4.  Member-decoder detection (the customization surface)
+//==============================================================================
 
 // has_member_decode
 //   trait: true iff `Type` exposes a static `decode(DByteReader&)` yielding a
@@ -277,9 +296,9 @@ struct has_member_decode<Type,
 {};
 
 
-// ===========================================================================
-// V.   Fixed-width byte readers (internal)
-// ===========================================================================
+//==============================================================================
+// 5.  Fixed-width byte readers (internal)
+//==============================================================================
 
 NS_INTERNAL
 
@@ -489,9 +508,9 @@ NS_INTERNAL
 NS_END  // internal
 
 
-// ===========================================================================
-// VI.  dec_tau - the leaf element decoder
-// ===========================================================================
+//==============================================================================
+// 6.  dec_tau - the leaf element decoder
+//==============================================================================
 
 // decode
 //   function: dec_tau for a leaf `Type` - reads one value of `Type` from the
@@ -519,9 +538,9 @@ DDecodeResult<clean_t<Type>> decode(
 }
 
 
-// ===========================================================================
-// VII. Leaf-decodability trait
-// ===========================================================================
+//==============================================================================
+// 7.  Leaf-decodability trait
+//==============================================================================
 
 NS_INTERNAL
 

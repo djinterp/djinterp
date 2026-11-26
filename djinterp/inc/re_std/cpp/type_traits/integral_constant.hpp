@@ -26,6 +26,15 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  INTEGRAL_CONSTANT
+    -----------------
+2.  OUT-OF-CLASS DEFINITION OF ::value
+    ----------------------------------
+*/
+
 #ifndef RE_STD_TYPE_TRAITS_INTEGRAL_CONSTANT_HPP
 #define RE_STD_TYPE_TRAITS_INTEGRAL_CONSTANT_HPP 1
 
@@ -37,9 +46,9 @@ namespace re_std
 {
 
 
-// =============================================================================
-// I.   INTEGRAL_CONSTANT
-// =============================================================================
+//==============================================================================
+// 1.  INTEGRAL_CONSTANT
+//==============================================================================
 
 // integral_constant
 //   trait: wraps a compile-time constant of arithmetic type Type with
@@ -76,9 +85,9 @@ struct integral_constant
 };
 
 
-// =============================================================================
-// II.  OUT-OF-CLASS DEFINITION OF ::value
-// =============================================================================
+//==============================================================================
+// 2.  OUT-OF-CLASS DEFINITION OF ::value
+//==============================================================================
 // Required for ODR-safety on C++98/03 when ::value is taken by reference
 // or address. Harmless on C++11+/C++17+ where inline variables make it
 // redundant.

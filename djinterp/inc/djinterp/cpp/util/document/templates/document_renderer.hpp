@@ -47,11 +47,10 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    DDocumentRenderer            (the abstract semantic sink)
-      ---------------------------------------------------------
-
-II.   DPlainDocumentRenderer      (the plain-text reference realisation)
-      -------------------------------------------------------------------
+1.  DDocumentRenderer            (the abstract semantic sink)
+    ---------------------------------------------------------
+2.  DPlainDocumentRenderer      (the plain-text reference realisation)
+    -------------------------------------------------------------------
 */
 
 #ifndef DJINTERP_UTIL_DOCUMENT_TEMPLATES_DOCUMENT_RENDERER_HPP
@@ -77,9 +76,9 @@ II.   DPlainDocumentRenderer      (the plain-text reference realisation)
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   DDocumentRenderer
-// ===========================================================================
+//==============================================================================
+// 1.  DDocumentRenderer
+//==============================================================================
 
 // DDocumentRenderer
 //   class: the abstract per-dialect back end a document template renders into.
@@ -210,9 +209,9 @@ protected:
 };
 
 
-// ===========================================================================
-// II.  DPlainDocumentRenderer
-// ===========================================================================
+//==============================================================================
+// 2.  DPlainDocumentRenderer
+//==============================================================================
 
 // DPlainDocumentRenderer
 //   class: the plain-text / console realisation of DDocumentRenderer - the

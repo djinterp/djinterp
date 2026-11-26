@@ -74,6 +74,19 @@
 *                                                            revised: 2026.11.11
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  Capability signals (structural SFINAE + the opt-in tag)
+    -------------------------------------------------------
+2.  Capability classification
+    -------------------------
+3.  read_write predicate + tag re-emission
+    --------------------------------------
+4.  Aggregate snapshot
+    ------------------
+*/
+
 #ifndef DJINTERP_CONTAINER_TRAITS_READ_WRITE_CONTAINER_TRAITS_HPP
 #define DJINTERP_CONTAINER_TRAITS_READ_WRITE_CONTAINER_TRAITS_HPP 1
 
@@ -98,9 +111,9 @@
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   Capability signals (structural SFINAE + the opt-in tag)
-// ===========================================================================
+//==============================================================================
+// 1.  Capability signals (structural SFINAE + the opt-in tag)
+//==============================================================================
 
 NS_INTERNAL
 
@@ -335,9 +348,9 @@ NS_INTERNAL
 NS_END  // internal
 
 
-// ===========================================================================
-// II.  Capability classification
-// ===========================================================================
+//==============================================================================
+// 2.  Capability classification
+//==============================================================================
 
 // DAccessCapability
 //   enum: a type's position on the access axis - the capability a handle
@@ -423,9 +436,9 @@ using access_capability_of_t = typename access_capability_of<Type>::type;
 #endif
 
 
-// ===========================================================================
-// III. read_write predicate + tag re-emission
-// ===========================================================================
+//==============================================================================
+// 3.  read_write predicate + tag re-emission
+//==============================================================================
 
 // is_read_write_container
 //   trait: true iff a handle to the type grants BOTH observation and mutation
@@ -486,9 +499,9 @@ template<typename Type>
 using access_tag_of_t = typename access_tag_of<Type>::type;
 
 
-// ===========================================================================
-// IV.  Aggregate snapshot
-// ===========================================================================
+//==============================================================================
+// 4.  Aggregate snapshot
+//==============================================================================
 
 template<typename Type>
 struct DAccessContainerClass

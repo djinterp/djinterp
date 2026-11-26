@@ -77,9 +77,9 @@ NS_DB
 namespace oracle {
 
 
-// =============================================================================
-// I.   OCI SQLT TYPE CODES
-// =============================================================================
+//==============================================================================
+// 1.  OCI SQLT TYPE CODES
+//==============================================================================
 // OCI uses SQLT_* constants for binding (OCIBindByPos/Name) and defining
 // (OCIDefineByPos) column/parameter types. These constants are stable
 // across all OCI versions. Declared as a scoped enum so that <oci.h>
@@ -176,9 +176,9 @@ enum class oci_sqlt : re_std::uint16_t
 };
 
 
-// =============================================================================
-// II.  SQLT-TO-FIELD_TYPE MAPPING
-// =============================================================================
+//==============================================================================
+// 2.  SQLT-TO-FIELD_TYPE MAPPING
+//==============================================================================
 
 // oci_sqlt_to_field_type
 //   function: maps an OCI SQLT_* type code to the generic djinterp
@@ -313,9 +313,9 @@ const char* field_type_to_oracle_sql(
 }
 
 
-// =============================================================================
-// III. SESSION MODE
-// =============================================================================
+//==============================================================================
+// 3.  SESSION MODE
+//==============================================================================
 
 // oci_session_mode
 //   enumeration: OCI session modes for OCISessionBegin / OCILogon2.
@@ -333,9 +333,9 @@ enum class oci_session_mode : re_std::uint32_t
 };
 
 
-// =============================================================================
-// IV.  FEATURE SUPPORT (compile-time, version × edition × option gated)
-// =============================================================================
+//==============================================================================
+// 4.  FEATURE SUPPORT (compile-time, version × edition × option gated)
+//==============================================================================
 
 // ora_type_support
 //   struct: compile-time data type availability flags.
@@ -691,9 +691,9 @@ struct ora_feature_support
 };
 
 
-// =============================================================================
-// V.   VERSION INFORMATION
-// =============================================================================
+//==============================================================================
+// 5.  VERSION INFORMATION
+//==============================================================================
 
 // ora_version_info
 //   struct: compile-time version decomposition.
@@ -745,9 +745,9 @@ struct ora_version_info
 };
 
 
-// =============================================================================
-// VI.  ORACLE CONNECTION CONFIGURATION
-// =============================================================================
+//==============================================================================
+// 6.  ORACLE CONNECTION CONFIGURATION
+//==============================================================================
 
 // ora_connect_config
 //   struct: Oracle-specific connection configuration. Oracle supports
@@ -845,9 +845,9 @@ struct ora_connect_config
 };
 
 
-// =============================================================================
-// VII. ORACLE CONNECTION
-// =============================================================================
+//==============================================================================
+// 7.  ORACLE CONNECTION
+//==============================================================================
 
 // oracle_connection
 //   class: concrete Oracle Database connection implementation via OCI.
@@ -1278,9 +1278,9 @@ private:
 };
 
 
-// =============================================================================
-// VIII. FORWARD DECLARATIONS
-// =============================================================================
+//==============================================================================
+// 8.  FORWARD DECLARATIONS
+//==============================================================================
 
 // oracle_result_set_impl
 //   struct: forward declaration of the Oracle result set implementation.
@@ -1299,9 +1299,9 @@ struct oracle_statement_impl;
 // so detection lives with the connection it describes. Traits build at C++17;
 // concepts appear under C++20.
 
-// =============================================================================
-// IX.   EXPRESSION DETECTORS
-// =============================================================================
+//==============================================================================
+// 9.  EXPRESSION DETECTORS
+//==============================================================================
 
 // -------------------------------------------------------------------------
 // A.  statement caching
@@ -1508,9 +1508,9 @@ using oci_unsubscribe_t =
     decltype(std::declval<T&>().unsubscribe());
 
 
-// =============================================================================
-// X.  TAGGED CAPABILITY TRAITS (struct-based)
-// =============================================================================
+//==============================================================================
+// 10. TAGGED CAPABILITY TRAITS (struct-based)
+//==============================================================================
 
 // has_oci_statement_cache
 //   trait: checks if type T supports statement caching.
@@ -1716,9 +1716,9 @@ struct is_oci_connection : djinterp::conjunction<
 #endif
 
 
-// =============================================================================
-// XI. TAGLESS CAPABILITY TRAITS (constexpr bool)
-// =============================================================================
+//==============================================================================
+// 11. TAGLESS CAPABILITY TRAITS (constexpr bool)
+//==============================================================================
 
 // -------------------------------------------------------------------------
 // A.  individual capability tags
@@ -1888,9 +1888,9 @@ constexpr bool oci_is_full_connection =
       oci_can_get_implicit_results<clean_t<T>> );
 
 
-// =============================================================================
-// XII.  SFINAE HELPERS
-// =============================================================================
+//==============================================================================
+// 12. SFINAE HELPERS
+//==============================================================================
 
 // enable_if_oci_connection
 //   type: SFINAE helper for Oracle OCI connection constraints.
@@ -1923,9 +1923,9 @@ using enable_if_has_oci_session_pool =
     typename std::enable_if<has_oci_session_pool<clean_t<T>>::value>::type;
 
 
-// ===========================================================================
-// XIII.   C++20 CONCEPTS
-// ===========================================================================
+//==============================================================================
+// 13. C++20 CONCEPTS
+//==============================================================================
 //   The Oracle (OCI) classification concepts, folded in from the former
 // oracle_concepts.hpp.  Each forwards to a trait / tagless capability declared
 // above.  Gated on concept support so the traits remain usable at the C++17
@@ -1936,9 +1936,9 @@ using enable_if_has_oci_session_pool =
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
-// =============================================================================
-// I.   Core Oracle Connection Concepts
-// =============================================================================
+//==============================================================================
+// 1.  Core Oracle Connection Concepts
+//==============================================================================
 
 // oci_connection
 //   concept: constrains types implementing the Oracle OCI connection
@@ -1973,9 +1973,9 @@ concept oci_schema_query_connection =
     has_oci_schema_query<clean_t<Type>>::value;
 
 
-// =============================================================================
-// II.  Oracle Capability Concepts
-// =============================================================================
+//==============================================================================
+// 2.  Oracle Capability Concepts
+//==============================================================================
 
 // oci_statement_cache_connection
 //   concept: constrains types supporting statement caching.
@@ -2044,9 +2044,9 @@ concept oci_cqn_connection =
     has_oci_cqn<clean_t<Type>>::value;
 
 
-// =============================================================================
-// III. Tagless Oracle Capability Concepts
-// =============================================================================
+//==============================================================================
+// 3.  Tagless Oracle Capability Concepts
+//==============================================================================
 
 // oci_batch_executable
 //   concept: constrains types satisfying the tagless batch-DML capability.

@@ -79,6 +79,21 @@
 *                                                            revised: 2026.11.10
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  THE KEY-SET DELTA
+    -----------------
+2.  CHANGED, AND ITS COMPLEMENT
+    ---------------------------
+3.  THE FULL DIFFERENCE
+    -------------------
+4.  THE DIFFERENCE AS DATA
+    ----------------------
+5.  LAYOUT ASSERTIONS
+    -----------------
+*/
+
 #ifndef DJINTERP_C_OPTION_DIFF_COMMON_H
 #define DJINTERP_C_OPTION_DIFF_COMMON_H 1
 
@@ -103,9 +118,9 @@
 
 D_EXTERN_C_BEGIN
 
-///////////////////////////////////////////////////////////////////////////////
-///             I.    THE KEY-SET DELTA                                     ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  THE KEY-SET DELTA
+//==============================================================================
 //
 //   `added` and `removed` need no projection and no comparator: they are
 // defined by set difference on keys alone, and no value is read. Only
@@ -144,9 +159,9 @@ struct dj_option_result d_option_set_keys(
 );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             II.   CHANGED, AND ITS COMPLEMENT                           ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  CHANGED, AND ITS COMPLEMENT
+//==============================================================================
 //
 //   The only part of the difference that reads values, and therefore the only
 // part that takes pi. Pass NULL for pi = id.
@@ -185,9 +200,9 @@ struct dj_option_result d_option_set_unchanged_keys(
 );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             III.  THE FULL DIFFERENCE                                   ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  THE FULL DIFFERENCE
+//==============================================================================
 
 // d_option_set_diff_keys
 //   function: diff_pi = added u changed_pi u removed. THE operator this file
@@ -258,9 +273,9 @@ struct dj_option_result d_option_set_diff_count(
 );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             IV.   THE DIFFERENCE AS DATA                                ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  THE DIFFERENCE AS DATA
+//==============================================================================
 //
 //   Sections I to III answer questions about a difference. This section IS
 // one: a flat record of per-key verdicts, which is what a report projects and
@@ -321,9 +336,9 @@ const char* d_option_diff_verdict_name(
 );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             V.    LAYOUT ASSERTIONS                                     ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 5.  LAYOUT ASSERTIONS
+//==============================================================================
 
 D_STATIC_ASSERT(sizeof(struct dj_option_diff_entry) == 16,
                 "dj_option_diff_entry layout drift: expected 16 bytes");

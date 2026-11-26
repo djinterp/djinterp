@@ -28,6 +28,18 @@
 *                                                            revised: 2026.11.24
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+4.  THE LONG DOUBLE FAMILY (_ld)
+    ----------------------------
+    1.  Element-wise arithmetic
+    3.  Products and reductions
+    4.  Norms and distances
+    5.  Projection and angle
+    6.  Comparison
+*/
+
 #ifndef DJINTERP_C_MATH_VEC_LD_H
 #define DJINTERP_C_MATH_VEC_LD_H 1
 

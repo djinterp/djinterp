@@ -62,17 +62,14 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    POLICIES                      (DSpanPolicy / DHeaderLevelPolicy)
-      -----------------------------------------------------------------
-
-II.   DTableRenderOptions          (+ table_render_defaults)
-      -------------------------------------------------------
-
-III.  render_table_model            (the traversal)
-      ---------------------------------------------
-
-IV.   ONE-SHOT CONVENIENCE         (see table_model_dialect.hpp)
-      ----------------------------------------------------------
+1.  POLICIES                      (DSpanPolicy / DHeaderLevelPolicy)
+    -----------------------------------------------------------------
+2.  DTableRenderOptions          (+ table_render_defaults)
+    -------------------------------------------------------
+3.  render_table_model            (the traversal)
+    ---------------------------------------------
+4.  ONE-SHOT CONVENIENCE         (see table_model_dialect.hpp)
+    ----------------------------------------------------------
 */
 
 #ifndef DJINTERP_UTIL_DOCUMENT_TEMPLATES_TABLE_MODEL_RENDER_HPP
@@ -98,9 +95,9 @@ IV.   ONE-SHOT CONVENIENCE         (see table_model_dialect.hpp)
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   POLICIES
-// ===========================================================================
+//==============================================================================
+// 1.  POLICIES
+//==============================================================================
 
 // DSpanPolicy
 //   enum: how a model's merge cover reaches the renderer.  See the header note
@@ -124,9 +121,9 @@ enum class DHeaderLevelPolicy
 };
 
 
-// ===========================================================================
-// II.  DTableRenderOptions
-// ===========================================================================
+//==============================================================================
+// 2.  DTableRenderOptions
+//==============================================================================
 
 // DTableRenderOptions
 //   struct: how a model is streamed.  Defaults are the safe, every-dialect
@@ -187,9 +184,9 @@ D_NODISCARD inline DTableRenderOptions table_render_defaults(
 }
 
 
-// ===========================================================================
-// III. render_table_model
-// ===========================================================================
+//==============================================================================
+// 3.  render_table_model
+//==============================================================================
 
 NS_INTERNAL
 
@@ -497,9 +494,9 @@ void render_table_model(
 }
 
 
-// ===========================================================================
-// IV.  ONE-SHOT CONVENIENCE
-// ===========================================================================
+//==============================================================================
+// 4.  ONE-SHOT CONVENIENCE
+//==============================================================================
 //   `render_table_model_to_string(model, format)` - pick the dialect, apply
 // the per-format defaults, render, hand back the bytes - lives in
 // table_model_dialect.hpp, not here.  It needs document_dialect.hpp, which

@@ -59,15 +59,14 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    Internal Views and Cursors
-      --------------------------
-      1.    basic_row_view        (rank-1 subtable T[r])
-      2.    column_cursor         (strided iterator over a column)
-      3.    basic_column_view     (projection T[*,c])
-      4.    row_cursor            (iterator over rows)
-
-II.   table_base (CRTP read-only rank-2 surface)
-      ------------------------------------------
+1.  Internal Views and Cursors
+    --------------------------
+    1.    basic_row_view        (rank-1 subtable T[r])
+    2.    column_cursor         (strided iterator over a column)
+    3.    basic_column_view     (projection T[*,c])
+    4.    row_cursor            (iterator over rows)
+2.  table_base (CRTP read-only rank-2 surface)
+    ------------------------------------------
 */
 
 #ifndef DJINTERP_CONTAINER_TABLE_TABLE_BASE_HPP
@@ -108,9 +107,9 @@ II.   table_base (CRTP read-only rank-2 surface)
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   Internal Views and Cursors
-// ===========================================================================
+//==============================================================================
+// 1.  Internal Views and Cursors
+//==============================================================================
 
 NS_INTERNAL
 
@@ -681,9 +680,9 @@ NS_INTERNAL
 NS_END  // internal
 
 
-// ===========================================================================
-// II.  table_base (CRTP read-only rank-2 surface)
-// ===========================================================================
+//==============================================================================
+// 2.  table_base (CRTP read-only rank-2 surface)
+//==============================================================================
 
 // DTableBase
 //   class: CRTP mixin supplying the read-only surface every rank-2

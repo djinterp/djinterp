@@ -28,6 +28,19 @@
 *                                                            revised: 2026.11.24
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  THE FLOAT FAMILY (_f)
+    ---------------------
+    1.  Construction
+    2.  Rows, columns and the transpose
+    3.  Products
+    4.  Square-matrix queries
+    5.  Determinant, inverse, solution and cofactors
+    6.  Rotations
+*/
+
 #ifndef DJINTERP_C_MATH_MAT_F_H
 #define DJINTERP_C_MATH_MAT_F_H 1
 

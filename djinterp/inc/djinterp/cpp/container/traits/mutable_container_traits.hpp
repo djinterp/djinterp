@@ -75,9 +75,9 @@
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   SFINAE mutator detection
-// ===========================================================================
+//==============================================================================
+// 1.  SFINAE mutator detection
+//==============================================================================
 //   Each detector is named with a `_signal` suffix to avoid clashing with any
 // homonym elsewhere in the trait family.  A "signal" is one piece of evidence;
 // the umbrellas below combine them.  Probes strip cv-ref via clean_t, so the
@@ -132,9 +132,9 @@ D_TYPE_TRAIT_TRUE(has_mutable_data_signal,
 // (included above); this file consumes it from there.
 
 
-// ===========================================================================
-// II.  Capability umbrellas
-// ===========================================================================
+//==============================================================================
+// 2.  Capability umbrellas
+//==============================================================================
 
 // is_element_mutable_container
 //   trait: true iff an existing element can be overwritten in place.
@@ -186,9 +186,9 @@ struct is_immutable_container
 D_TYPE_TRAIT_VALUE_BOOL(is_immutable_container)
 
 
-// ===========================================================================
-// III. The mutability grade
-// ===========================================================================
+//==============================================================================
+// 3.  The mutability grade
+//==============================================================================
 
 // DMutability
 //   enum: the summary of the two independent capabilities - the four corners
@@ -327,9 +327,9 @@ template<typename Type>
 using mutability_grade_of = mutability_of<Type>;
 
 
-// ===========================================================================
-// IV.  The access dimension  (the 2-D model)
-// ===========================================================================
+//==============================================================================
+// 4.  The access dimension  (the 2-D model)
+//==============================================================================
 // The grade above answers WHICH KINDS of change a container admits. This
 // second, orthogonal dimension answers, for the element-mutation capability,
 // WHICH COORDINATE the discipline leaves settable. An overlay may hold one
@@ -452,9 +452,9 @@ struct constrains_key
 D_TYPE_TRAIT_VALUE_BOOL(constrains_key)
 
 
-// ===========================================================================
-// V.   Aggregate snapshot
-// ===========================================================================
+//==============================================================================
+// 5.  Aggregate snapshot
+//==============================================================================
 
 template<typename Type>
 struct DMutableContainerClass

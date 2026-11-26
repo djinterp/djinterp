@@ -44,9 +44,9 @@ NS_DJINTERP
 
 #if defined(__cpp_concepts) && (__cpp_concepts >= 201907L)
 
-// ===========================================================================
-// I.   Child Access Model Concepts
-// ===========================================================================
+//==============================================================================
+// 1.  Child Access Model Concepts
+//==============================================================================
 
 // lcrs_child_access_type
 //   concept: constrains types exposing left-child/right-sibling child access.
@@ -92,9 +92,9 @@ concept classified_edge_child_access_type =
     ( child_access_strategy<Type>::value == DNaryChildAccess::edges );
 
 
-// ===========================================================================
-// II.  Core Tree Identity Concepts
-// ===========================================================================
+//==============================================================================
+// 2.  Core Tree Identity Concepts
+//==============================================================================
 
 // nary_tree_container_type
 //   concept: constrains types satisfying the n-ary tree protocol.
@@ -116,9 +116,9 @@ concept rooted_nary_tree_type =
       has_has_root_method<Type>::value );
 
 
-// ===========================================================================
-// III. Navigation Concepts
-// ===========================================================================
+//==============================================================================
+// 3.  Navigation Concepts
+//==============================================================================
 
 // parent_navigable_nary_tree
 //   concept: constrains n-ary trees with parent traversal.
@@ -170,9 +170,9 @@ concept root_query_nary_tree =
       has_is_root_method<const Type>::value );
 
 
-// ===========================================================================
-// IV.  Mutation Concepts
-// ===========================================================================
+//==============================================================================
+// 4.  Mutation Concepts
+//==============================================================================
 
 // mutable_nary_tree_type
 //   concept: constrains n-ary trees with basic mutation support.
@@ -226,9 +226,9 @@ concept removable_subtree_nary_tree =
       internal::nary_has_remove_subtree<Type>::value );
 
 
-// ===========================================================================
-// V.   Handle Form Concepts
-// ===========================================================================
+//==============================================================================
+// 5.  Handle Form Concepts
+//==============================================================================
 
 // index_handle_nary_tree
 //   concept: constrains n-ary trees using integral index handles.
@@ -252,9 +252,9 @@ concept smart_pointer_handle_nary_tree =
       DUsesSmartPointerHandles<Type>::value );
 
 
-// ===========================================================================
-// VI.  Memory Model Concepts
-// ===========================================================================
+//==============================================================================
+// 6.  Memory Model Concepts
+//==============================================================================
 
 // arena_backed_nary_tree
 //   concept: constrains arena-backed n-ary trees.
@@ -286,9 +286,9 @@ concept standard_memory_nary_tree =
       memory_model_strategy<Type>::value == DNaryMemoryModel::standard );
 
 
-// ===========================================================================
-// VII.  Identity and Versioning Concepts
-// ===========================================================================
+//==============================================================================
+// 7.  Identity and Versioning Concepts
+//==============================================================================
 
 // stable_identity_nary_tree
 //   concept: constrains n-ary trees exposing stable identity.
@@ -312,9 +312,9 @@ concept change_tracked_nary_tree =
       DNaryTreeClass<Type>::has_change_tracking );
 
 
-// ===========================================================================
-// VIII. Complexity-Oriented Concepts
-// ===========================================================================
+//==============================================================================
+// 8.  Complexity-Oriented Concepts
+//==============================================================================
 
 // o1_append_nary_tree
 //   concept: constrains n-ary trees with O(1) append capability.
@@ -338,9 +338,9 @@ concept o1_sibling_insert_nary_tree =
       has_o1_sibling_insert<Type>::value );
 
 
-// ===========================================================================
-// IX.  Aggregate Classification Concepts
-// ===========================================================================
+//==============================================================================
+// 9.  Aggregate Classification Concepts
+//==============================================================================
 
 // classified_nary_tree
 //   concept: shorthand for any type recognized by nary_tree_class.

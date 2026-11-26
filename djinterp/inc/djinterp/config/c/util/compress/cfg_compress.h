@@ -40,23 +40,23 @@
 /*
 TABLE OF CONTENTS
 =================
-0.    COMPRESSION CONFIGURATION
-      -------------------------
-      1.    Aggregate                    (D_CFG_COMPRESS_ALL)
-      2.    Per-codec enables            (D_CFG_COMPRESS_CODEC_*)
-      3.    Determinism                  (D_CFG_COMPRESS_PIN_*)
-      4.    Sizes and defaults           (D_CFG_COMPRESS_CHUNK, _DEFAULT_LEVEL,
-                                         _GZIP_OS)
-      5.    Validation                   (D_CFG_COMPRESS_VALIDATE)
-      6.    C++ surface                  (D_CFG_COMPRESS_EXCEPTIONS)
-      7.    Validation of the knobs
-      8.    Derived values               (D_INTERNAL_COMPRESS_*)
+0.  COMPRESSION CONFIGURATION
+    -------------------------
+    1.    Aggregate                    (D_CFG_COMPRESS_ALL)
+    2.    Per-codec enables            (D_CFG_COMPRESS_CODEC_*)
+    3.    Determinism                  (D_CFG_COMPRESS_PIN_*)
+    4.    Sizes and defaults           (D_CFG_COMPRESS_CHUNK, _DEFAULT_LEVEL,
+                                       _GZIP_OS)
+    5.    Validation                   (D_CFG_COMPRESS_VALIDATE)
+    6.    C++ surface                  (D_CFG_COMPRESS_EXCEPTIONS)
+    7.    Validation of the knobs
+    8.    Derived values               (D_INTERNAL_COMPRESS_*)
 */
 
 
-// ===========================================================================
-// 0.   COMPRESSION CONFIGURATION
-// ===========================================================================
+//==============================================================================
+// 0.  COMPRESSION CONFIGURATION
+//==============================================================================
 
 // --- 0.1  Aggregate ---
 

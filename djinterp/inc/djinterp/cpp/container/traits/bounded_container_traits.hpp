@@ -52,6 +52,21 @@
 *                                                            revised: 2026.10.01
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  Structural signals
+    ------------------
+2.  Capacity classification
+    -----------------------
+3.  Domain classification (orthogonal sub-axis)
+    -------------------------------------------
+4.  Capacity-bound summary
+    ----------------------
+5.  Aggregate snapshot
+    ------------------
+*/
+
 #ifndef DJINTERP_CONTAINER_TRAITS_BOUNDED_CONTAINER_TRAITS_HPP
 #define DJINTERP_CONTAINER_TRAITS_BOUNDED_CONTAINER_TRAITS_HPP 1
 
@@ -74,9 +89,9 @@
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   Structural signals
-// ===========================================================================
+//==============================================================================
+// 1.  Structural signals
+//==============================================================================
 
 // has_fixed_extent_signal
 //   trait: detects a static `extent` constant - the djinterp compile-time
@@ -126,9 +141,9 @@ D_TYPE_TRAIT_TRUE(has_size_signal,
     decltype(std::declval<const clean_t<Type>&>().size()))
 
 
-// ===========================================================================
-// II.  Capacity classification
-// ===========================================================================
+//==============================================================================
+// 2.  Capacity classification
+//==============================================================================
 
 // is_bounded_container
 //   trait: true iff the container has compile-time-or-fixed capacity evidence
@@ -169,9 +184,9 @@ public:
 D_TYPE_TRAIT_VALUE_BOOL(is_unbounded_container)
 
 
-// ===========================================================================
-// III. Domain classification (orthogonal sub-axis)
-// ===========================================================================
+//==============================================================================
+// 3.  Domain classification (orthogonal sub-axis)
+//==============================================================================
 
 // is_domain_bounded_container
 //   trait: true iff the container confines its values to a closed-interval
@@ -185,9 +200,9 @@ struct is_domain_bounded_container
 D_TYPE_TRAIT_VALUE_BOOL(is_domain_bounded_container)
 
 
-// ===========================================================================
-// IV.  Capacity-bound summary
-// ===========================================================================
+//==============================================================================
+// 4.  Capacity-bound summary
+//==============================================================================
 
 // DCapacityBound
 //   enum: the container's position on the capacity sub-axis. Ordered by
@@ -252,9 +267,9 @@ using capacity_bound_of_t = typename capacity_bound_of<Type>::type;
 #endif
 
 
-// ===========================================================================
-// V.   Aggregate snapshot
-// ===========================================================================
+//==============================================================================
+// 5.  Aggregate snapshot
+//==============================================================================
 
 // DBoundedContainerClass
 //   trait: one-shot snapshot of the boundedness axis for `Type`. Gathers

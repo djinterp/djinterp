@@ -28,6 +28,15 @@
 *                                                            revised: 2026.11.24
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+3.  THE LONG DOUBLE FAMILY (_ld)
+    ----------------------------
+    1.  Angles and canonical forms
+    2.  Conversions, distances, measures
+*/
+
 #ifndef DJINTERP_C_MATH_COORD_LD_H
 #define DJINTERP_C_MATH_COORD_LD_H 1
 

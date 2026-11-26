@@ -31,6 +31,35 @@
 *                                                            revised: 2026.11.04
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  VARIABLE TEMPLATE HELPERS (C++14)
+    ---------------------------------
+2.  NOTHROW VARIABLE TEMPLATE HELPERS (C++14)
+    -----------------------------------------
+3.  TYPE CLASSIFICATION _v HELPERS (C++14)
+    --------------------------------------
+4.  COMPARISON AND BOOLEAN _v HELPERS (C++14)
+    -----------------------------------------
+5.  CONTAINER _v HELPERS (C++14)
+    ----------------------------
+6.  CONTAINER ELEMENT _v HELPERS (C++14)
+    ------------------------------------
+7.  ITERATOR _v HELPERS (C++14)
+    ---------------------------
+8.  STREAM I/O _v HELPERS (C++14)
+    -----------------------------
+9.  RANDOM NUMBER GENERATION _v HELPERS (C++14)
+    -------------------------------------------
+10. CONCURRENCY _v HELPERS (C++14)
+    ------------------------------
+11. TYPE TRAIT META-TRAIT _v HELPERS (C++14)
+    ----------------------------------------
+12. CLOCK, CHARTRAITS, MISC _v HELPERS (C++14)
+    ------------------------------------------
+*/
+
 #ifndef DJINTERP_META_STL_CPP_NAMED14_HPP
 #define DJINTERP_META_STL_CPP_NAMED14_HPP 1
 
@@ -53,9 +82,9 @@
 NS_DJINTERP
 D_NAMESPACE(stl)
 
-// =========================================================================
-// I.   VARIABLE TEMPLATE HELPERS (C++14)
-// =========================================================================
+//==============================================================================
+// 1.  VARIABLE TEMPLATE HELPERS (C++14)
+//==============================================================================
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
@@ -100,9 +129,9 @@ D_INLINE_VAR constexpr bool is_move_assignable_v =
 #endif  // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
 
 
-// =========================================================================
-// II.  NOTHROW VARIABLE TEMPLATE HELPERS (C++14)
-// =========================================================================
+//==============================================================================
+// 2.  NOTHROW VARIABLE TEMPLATE HELPERS (C++14)
+//==============================================================================
 
 // is_nothrow_default_constructible_v
 //   value: shorthand for is_nothrow_default_constructible<T>::value.
@@ -145,9 +174,9 @@ D_INLINE_VAR constexpr bool is_nothrow_move_assignable_v =
 #endif  // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
 
 
-// =========================================================================
-// III. TYPE CLASSIFICATION _v HELPERS (C++14)
-// =========================================================================
+//==============================================================================
+// 3.  TYPE CLASSIFICATION _v HELPERS (C++14)
+//==============================================================================
 
 // is_scalar_v
 //   value: shorthand for is_scalar<T>::value.
@@ -182,9 +211,9 @@ D_INLINE_VAR constexpr bool is_pod_v =
     is_pod<T>::value;
 
 
-// =========================================================================
-// IV.  COMPARISON AND BOOLEAN _v HELPERS (C++14)
-// =========================================================================
+//==============================================================================
+// 4.  COMPARISON AND BOOLEAN _v HELPERS (C++14)
+//==============================================================================
 
 // is_boolean_testable_v
 //   value: shorthand for is_boolean_testable<T>::value.
@@ -264,9 +293,9 @@ D_INLINE_VAR constexpr bool is_compare_v =
     is_compare<F, T>::value;
 
 
-// =========================================================================
-// V.   CONTAINER _v HELPERS (C++14)
-// =========================================================================
+//==============================================================================
+// 5.  CONTAINER _v HELPERS (C++14)
+//==============================================================================
 
 // is_container_v
 //   value: shorthand for is_container<C>::value.
@@ -306,9 +335,9 @@ D_INLINE_VAR constexpr bool is_unordered_associative_container_v =
     is_unordered_associative_container<C>::value;
 
 
-// =========================================================================
-// VI.  CONTAINER ELEMENT _v HELPERS (C++14)
-// =========================================================================
+//==============================================================================
+// 6.  CONTAINER ELEMENT _v HELPERS (C++14)
+//==============================================================================
 
 // is_default_insertable_v
 //   value: shorthand for is_default_insertable<T, A>::value.
@@ -352,9 +381,9 @@ D_INLINE_VAR constexpr bool is_erasable_v =
     is_erasable<T, A>::value;
 
 
-// =========================================================================
-// VII. ITERATOR _v HELPERS (C++14)
-// =========================================================================
+//==============================================================================
+// 7.  ITERATOR _v HELPERS (C++14)
+//==============================================================================
 
 // is_legacy_iterator_v
 //   value: shorthand for is_legacy_iterator<I>::value.
@@ -393,9 +422,9 @@ D_INLINE_VAR constexpr bool is_legacy_random_access_iterator_v =
     is_legacy_random_access_iterator<I>::value;
 
 
-// =========================================================================
-// VIII. STREAM I/O _v HELPERS (C++14)
-// =========================================================================
+//==============================================================================
+// 8.  STREAM I/O _v HELPERS (C++14)
+//==============================================================================
 
 // is_unformatted_input_stream_v
 //   value: shorthand for is_unformatted_input_stream<S>::value.
@@ -422,9 +451,9 @@ D_INLINE_VAR constexpr bool is_formatted_output_stream_v =
     is_formatted_output_stream<S>::value;
 
 
-// =========================================================================
-// IX.  RANDOM NUMBER GENERATION _v HELPERS (C++14)
-// =========================================================================
+//==============================================================================
+// 9.  RANDOM NUMBER GENERATION _v HELPERS (C++14)
+//==============================================================================
 
 // is_seed_sequence_v
 //   value: shorthand for is_seed_sequence<S>::value.
@@ -460,9 +489,9 @@ D_INLINE_VAR constexpr bool is_random_number_distribution_v =
     is_random_number_distribution<D>::value;
 
 
-// =========================================================================
-// X.   CONCURRENCY _v HELPERS (C++14)
-// =========================================================================
+//==============================================================================
+// 10. CONCURRENCY _v HELPERS (C++14)
+//==============================================================================
 
 // is_basic_lockable_v
 //   value: shorthand for is_basic_lockable<M>::value.
@@ -519,9 +548,9 @@ D_INLINE_VAR constexpr bool is_shared_timed_mutex_v =
     is_shared_timed_mutex<M>::value;
 
 
-// =========================================================================
-// XI.  TYPE TRAIT META-TRAIT _v HELPERS (C++14)
-// =========================================================================
+//==============================================================================
+// 11. TYPE TRAIT META-TRAIT _v HELPERS (C++14)
+//==============================================================================
 
 // is_unary_type_trait_v
 //   value: shorthand for is_unary_type_trait<T>::value.
@@ -542,9 +571,9 @@ D_INLINE_VAR constexpr bool is_transformation_trait_v =
     is_transformation_trait<T>::value;
 
 
-// =========================================================================
-// XII. CLOCK, CHARTRAITS, MISC _v HELPERS (C++14)
-// =========================================================================
+//==============================================================================
+// 12. CLOCK, CHARTRAITS, MISC _v HELPERS (C++14)
+//==============================================================================
 
 // is_clock_v
 //   value: shorthand for is_clock<C>::value.

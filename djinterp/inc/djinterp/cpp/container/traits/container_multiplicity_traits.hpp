@@ -51,6 +51,19 @@
 *                                                            revised: 2026.10.03
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  Structural signals
+    ------------------
+2.  Verdict
+    -------
+3.  Classification predicates
+    -------------------------
+4.  Aggregate snapshot
+    ------------------
+*/
+
 #ifndef DJINTERP_CONTAINER_TRAITS_CONTAINER_MULTIPLICITY_TRAITS_HPP
 #define DJINTERP_CONTAINER_TRAITS_CONTAINER_MULTIPLICITY_TRAITS_HPP 1
 
@@ -74,9 +87,9 @@
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   Structural signals
-// ===========================================================================
+//==============================================================================
+// 1.  Structural signals
+//==============================================================================
 
 // is_countable_container
 //   trait: the container guard for this axis - a value_type (the class type)
@@ -161,9 +174,9 @@ struct has_multiplicity_bound
 D_TYPE_TRAIT_VALUE_BOOL(has_multiplicity_bound)
 
 
-// ===========================================================================
-// II.  Verdict
-// ===========================================================================
+//==============================================================================
+// 2.  Verdict
+//==============================================================================
 
 // multiplicity_kind_of
 //   trait: the container's multiplicity kind. Precedence: a non-container is
@@ -235,9 +248,9 @@ public:
 #endif
 
 
-// ===========================================================================
-// III. Classification predicates
-// ===========================================================================
+//==============================================================================
+// 3.  Classification predicates
+//==============================================================================
 
 // is_sequence_container
 //   trait: true for the comparator-less kind (identity default, m = inf).
@@ -270,9 +283,9 @@ struct is_multiset_container
 D_TYPE_TRAIT_VALUE_BOOL(is_multiset_container)
 
 
-// ===========================================================================
-// IV.  Aggregate snapshot
-// ===========================================================================
+//==============================================================================
+// 4.  Aggregate snapshot
+//==============================================================================
 
 // DMultiplicityContainerClass
 //   trait: one-shot snapshot of the multiplicity axis for `Type`. Gathers

@@ -61,26 +61,20 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    SPAN BUILDERS             (text / bytes as expressions)
-      -------------------------------------------------------
-
-II.   ENTRY BUILDERS            (file / text / dir / entry lists)
-      -----------------------------------------------------------
-
-III.  OPTION BUILDERS           (container option sets)
-      -------------------------------------------------
-
-IV.   FORMAT NAMING             (_Generic over enumerator or string)
-      --------------------------------------------------------------
-
-V.    SHORTHAND CALLS
-      ---------------
-
-VI.   EXTRACTION PATTERN        (the measure / supply / extract shape)
-      ----------------------------------------------------------------
-
-VII.  ITERATION                 (entries, formats)
-      --------------------------------------------
+1.  SPAN BUILDERS             (text / bytes as expressions)
+    -------------------------------------------------------
+2.  ENTRY BUILDERS            (file / text / dir / entry lists)
+    -----------------------------------------------------------
+3.  OPTION BUILDERS           (container option sets)
+    -------------------------------------------------
+4.  FORMAT NAMING             (_Generic over enumerator or string)
+    --------------------------------------------------------------
+5.  SHORTHAND CALLS
+    ---------------
+6.  EXTRACTION PATTERN        (the measure / supply / extract shape)
+    ----------------------------------------------------------------
+7.  ITERATION                 (entries, formats)
+    --------------------------------------------
 */
 
 #ifndef DJINTERP_C_UTIL_ARCHIVE_ARCHIVE_H
@@ -97,9 +91,9 @@ VII.  ITERATION                 (entries, formats)
 #include "../../../../re_std/c/cstdint/dstdint.h"  // int32_t, int64_t, uint32_t
 
 
-// =============================================================================
-// I.   SPAN BUILDERS
-// =============================================================================
+//==============================================================================
+// 1.  SPAN BUILDERS
+//==============================================================================
 //   A dj_pack_text or dj_pack_bytes in two forms, and the distinction is not
 // cosmetic - it is forced by C and getting it wrong is a compile error at
 // every static call site.
@@ -208,9 +202,9 @@ VII.  ITERATION                 (entries, formats)
     d_pack_bytes_from_span((_arr), D_ARRAY_STATIC_SIZE(_arr))
 
 
-// =============================================================================
-// II.  ENTRY BUILDERS
-// =============================================================================
+//==============================================================================
+// 2.  ENTRY BUILDERS
+//==============================================================================
 //   One expression per entry, every field accounted for - and, as in section
 // I, an _INIT form for the static case.  A file-scope entry table is the normal
 // shape for a fixture, so the _INIT forms are not an edge case.
@@ -297,9 +291,9 @@ D_ENV_PP_VARIADIC_QUIET_BEGIN
 D_ENV_PP_VARIADIC_QUIET_END
 #endif  // D_ENV_PP_HAS_VARIADIC_MACROS
 
-// =============================================================================
-// III. OPTION BUILDERS
-// =============================================================================
+//==============================================================================
+// 3.  OPTION BUILDERS
+//==============================================================================
 //   As compress.h section II, including the reason these are functions rather
 // than compound literals with designated initialisers: C zero-initialises every
 // member an initialiser does not name, so a macro form would quietly set the
@@ -411,9 +405,9 @@ struct dj_archive_options d_archive_encrypted_zip(
 }
 
 
-// =============================================================================
-// IV.  FORMAT NAMING
-// =============================================================================
+//==============================================================================
+// 4.  FORMAT NAMING
+//==============================================================================
 //   One argument, two spellings, exactly as D_CODEC.  D_FORMAT(zip) is the
 // enumerator; D_FORMAT("7z") is the string.  The string arm exists for the same
 // reason: a format that arrives from a config file or a command line is text,
@@ -466,9 +460,9 @@ d_internal_format_from_any(
 #endif  // D_ENV_LANG_IS_C11_OR_HIGHER
 
 
-// =============================================================================
-// V.   SHORTHAND CALLS
-// =============================================================================
+//==============================================================================
+// 5.  SHORTHAND CALLS
+//==============================================================================
 //   The core's transforms with the options argument omitted.  As in compress.h,
 // a NULL options pointer means the core's pinned defaults, resolved in exactly
 // one place; these are shorthands and not a second default policy.
@@ -505,9 +499,9 @@ d_internal_format_from_any(
                      (_arr), D_ARRAY_STATIC_SIZE(_arr), (_out_size))
 
 
-// =============================================================================
-// VI.  EXTRACTION PATTERN
-// =============================================================================
+//==============================================================================
+// 6.  EXTRACTION PATTERN
+//==============================================================================
 //   Extraction is the three-step shape described in archive_common.h section X:
 // measure both regions, supply both, extract.  A caller writing it by hand gets
 // it wrong in one specific way - sizing the entry array from the arena size or
@@ -578,9 +572,9 @@ d_internal_format_from_any(
                             (_out), (_cap), (_out_size))
 
 
-// =============================================================================
-// VII. ITERATION
-// =============================================================================
+//==============================================================================
+// 7.  ITERATION
+//==============================================================================
 //   The loops a capability banner, a listing, and a differential sweep all
 // write.  D_FOR_EACH_FORMAT visits every format the framework NAMES;
 // D_FOR_EACH_WRITABLE_FORMAT visits only those this build can create.

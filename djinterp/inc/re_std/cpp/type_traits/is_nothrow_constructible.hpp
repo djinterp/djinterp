@@ -22,6 +22,15 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  IS_NOTHROW_CONSTRUCTIBLE
+    ------------------------
+2.  IS_NOTHROW_CONSTRUCTIBLE_V (C++14+ variable template)
+    -----------------------------------------------------
+*/
+
 #ifndef RE_STD_TYPE_TRAITS_IS_NOTHROW_CONSTRUCTIBLE_HPP
 #define RE_STD_TYPE_TRAITS_IS_NOTHROW_CONSTRUCTIBLE_HPP 1
 
@@ -63,9 +72,9 @@ namespace re_std
 {
 
 
-// =============================================================================
-// I.   IS_NOTHROW_CONSTRUCTIBLE
-// =============================================================================
+//==============================================================================
+// 1.  IS_NOTHROW_CONSTRUCTIBLE
+//==============================================================================
 
 #if RE_STD_HAS_IS_NOTHROW_CONSTRUCTIBLE
 
@@ -124,9 +133,9 @@ namespace re_std
 #endif  // RE_STD_HAS_IS_NOTHROW_CONSTRUCTIBLE
 
 
-// =============================================================================
-// II.  IS_NOTHROW_CONSTRUCTIBLE_V (C++14+ variable template)
-// =============================================================================
+//==============================================================================
+// 2.  IS_NOTHROW_CONSTRUCTIBLE_V (C++14+ variable template)
+//==============================================================================
 
 #if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 

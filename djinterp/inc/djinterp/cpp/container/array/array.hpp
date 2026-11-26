@@ -45,23 +45,18 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    Policy enums and tag dispatch
-      -----------------------------
-
-II.   Universal-to-Array translation helpers
-      --------------------------------------
-
-III.  array primary template (options-pack)
-      -------------------------------------
-
-IV.   Convenience aliases
-      -------------------
-
-V.    Free-function factories
-      -----------------------
-
-VI.   Free-function bulk algorithms
-      -----------------------------
+1.  Policy enums and tag dispatch
+    -----------------------------
+2.  Universal-to-Array translation helpers
+    --------------------------------------
+3.  array primary template (options-pack)
+    -------------------------------------
+4.  Convenience aliases
+    -------------------
+5.  Free-function factories
+    -----------------------
+6.  Free-function bulk algorithms
+    -----------------------------
 */
 
 #ifndef DJINTERP_CONTAINER_ARRAY_ARRAY_HPP
@@ -103,9 +98,9 @@ VI.   Free-function bulk algorithms
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   Policy enums and tag dispatch
-// ===========================================================================
+//==============================================================================
+// 1.  Policy enums and tag dispatch
+//==============================================================================
 
 // DArrayIterability and DArrayLifetime are defined in array_traits.hpp.
 // Re-exported by inclusion above.
@@ -238,9 +233,9 @@ NS_INTERNAL
     {};
 
 
-// ===========================================================================
-// II.  Universal-to-Array translation helpers
-// ===========================================================================
+//==============================================================================
+// 2.  Universal-to-Array translation helpers
+//==============================================================================
 
     // to_array_lifetime
     //   helper: translates a universal `DContainerLifetime` to the
@@ -323,9 +318,9 @@ NS_INTERNAL
 NS_END  // internal
 
 
-// ===========================================================================
-// III. array primary template (options-pack)
-// ===========================================================================
+//==============================================================================
+// 3.  array primary template (options-pack)
+//==============================================================================
 
 // DArray
 //   class template: fixed- or dynamic-extent contiguous container.
@@ -664,9 +659,9 @@ struct is_contiguous_array<DArray<Options...>>
 {};
 
 
-// ===========================================================================
-// IV.  Convenience aliases
-// ===========================================================================
+//==============================================================================
+// 4.  Convenience aliases
+//==============================================================================
 
 #if D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
 
@@ -721,9 +716,9 @@ struct is_contiguous_array<DArray<Options...>>
 #endif  // D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
 
 
-// ===========================================================================
-// V.   Free-function factories
-// ===========================================================================
+//==============================================================================
+// 5.  Free-function factories
+//==============================================================================
 
 #if (D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES \
         && D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES)
@@ -751,9 +746,9 @@ struct is_contiguous_array<DArray<Options...>>
 #endif
 
 
-// ===========================================================================
-// VI.  Free-function bulk algorithms
-// ===========================================================================
+//==============================================================================
+// 6.  Free-function bulk algorithms
+//==============================================================================
 
 // array_equal
 template<typename... OptsA,

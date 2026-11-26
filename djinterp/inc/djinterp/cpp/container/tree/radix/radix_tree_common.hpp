@@ -134,6 +134,31 @@
 *                                                            revised: 2026.11.25
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  KEY TRAITS
+    ----------
+2.  KEY CATEGORY
+    ------------
+3.  NODE SHAPE TRAITS
+    -----------------
+4.  CONTAINER INTERFACE TRAITS
+    --------------------------
+5.  OPTIONS
+    -------
+6.  TEXT PREFIX UTILITIES  -  THE MEET
+    ----------------------------------
+7.  BINARY PREFIX UTILITIES  -  THE MEET, BITWISE
+    ---------------------------------------------
+8.  NODE TYPES
+    ----------
+9.  TRAVERSAL FRAME
+    ---------------
+10. CONSTANTS
+    ---------
+*/
+
 #ifndef DJINTERP_CONTAINER_TREE_RADIX_RADIX_TREE_COMMON_HPP
 #define DJINTERP_CONTAINER_TREE_RADIX_RADIX_TREE_COMMON_HPP 1
 
@@ -173,9 +198,9 @@
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   KEY TRAITS
-// ===========================================================================
+//==============================================================================
+// 1.  KEY TRAITS
+//==============================================================================
 //   NOTE.  void_t and clean_t are NOT redefined here.  They come from
 // djinterp.hpp, which has always had them; redefining them in this same
 // namespace made the old traits header impossible to include alongside the
@@ -373,9 +398,9 @@ struct key_bit_width
 };
 
 
-// ===========================================================================
-// II.  KEY CATEGORY
-// ===========================================================================
+//==============================================================================
+// 2.  KEY CATEGORY
+//==============================================================================
 
 // DRadixKeyCategory
 //   enum: which of the two descent alphabets a key uses.
@@ -448,9 +473,9 @@ struct radix_key_category_of
 };
 
 
-// ===========================================================================
-// III. NODE SHAPE TRAITS
-// ===========================================================================
+//==============================================================================
+// 3.  NODE SHAPE TRAITS
+//==============================================================================
 
 NS_INTERNAL
 
@@ -505,9 +530,9 @@ struct is_radix_node
 {};
 
 
-// ===========================================================================
-// IV.  CONTAINER INTERFACE TRAITS
-// ===========================================================================
+//==============================================================================
+// 4.  CONTAINER INTERFACE TRAITS
+//==============================================================================
 
 NS_INTERNAL
 
@@ -608,9 +633,9 @@ struct is_radix_tree_base
 #endif  // inline variables (C++17); use the ::value form below C++17
 
 
-// ===========================================================================
-// V.   OPTIONS
-// ===========================================================================
+//==============================================================================
+// 5.  OPTIONS
+//==============================================================================
 //   THE FRAMEWORK'S AXES ARE THE SOURCE OF TRUTH.  container_options.hpp holds
 // nine of them, type-level.  DContainerOption held three of the same nine as
 // bits, and called itself the option system "for every djinterp container".
@@ -911,9 +936,9 @@ DContainerStorageKind radix_storage_kind_of(
 }
 
 
-// ===========================================================================
-// VI.  TEXT PREFIX UTILITIES  -  THE MEET
-// ===========================================================================
+//==============================================================================
+// 6.  TEXT PREFIX UTILITIES  -  THE MEET
+//==============================================================================
 
 #if D_RADIX_HAVE_TEXT_KEYS
 
@@ -998,9 +1023,9 @@ DTextPrefixMatchResult text_prefix_compare(
 #endif  // D_RADIX_HAVE_TEXT_KEYS
 
 
-// ===========================================================================
-// VII. BINARY PREFIX UTILITIES  -  THE MEET, BITWISE
-// ===========================================================================
+//==============================================================================
+// 7.  BINARY PREFIX UTILITIES  -  THE MEET, BITWISE
+//==============================================================================
 
 // bit_at
 //   the label at position _pos of _key's address. Position 0 is the MOST
@@ -1051,9 +1076,9 @@ binary_prefix_length(
 }
 
 
-// ===========================================================================
-// VIII. NODE TYPES
-// ===========================================================================
+//==============================================================================
+// 8.  NODE TYPES
+//==============================================================================
 
 // DRadixTerminal
 //   struct: the value stored where a key ENDS. A plain flag rather than
@@ -1126,9 +1151,9 @@ template<typename Derived>
 using radix_node_base = DRadixNodeBase<Derived>;
 
 
-// ===========================================================================
-// IX.  TRAVERSAL FRAME
-// ===========================================================================
+//==============================================================================
+// 9.  TRAVERSAL FRAME
+//==============================================================================
 
 // DRadixTraversalFrame
 //   struct: one frame of an explicit descent stack. Iterative, so a deep trie
@@ -1151,9 +1176,9 @@ template<typename NodePtr>
 using radix_traversal_frame = DRadixTraversalFrame<NodePtr>;
 
 
-// ===========================================================================
-// X.   CONSTANTS
-// ===========================================================================
+//==============================================================================
+// 10. CONSTANTS
+//==============================================================================
 //   These were object-like macros.  A macro does not respect namespaces, cannot
 // be qualified, and will happily rewrite an unrelated identifier in a header
 // included after it.  They are constants; the macro spellings are kept so the

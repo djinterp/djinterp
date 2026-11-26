@@ -39,6 +39,17 @@
 *                                                            revised: 2026.10.01
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  Category detection (gated on iterability)
+    -----------------------------------------
+2.  Storage-shape signals
+    ---------------------
+3.  Category summary
+    ----------------
+*/
+
 #ifndef DJINTERP_CONTAINER_ITERATOR_ITERATOR_CATEGORY_TRAITS_HPP
 #define DJINTERP_CONTAINER_ITERATOR_ITERATOR_CATEGORY_TRAITS_HPP 1
 
@@ -62,9 +73,9 @@
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   Category detection (gated on iterability)
-// ===========================================================================
+//==============================================================================
+// 1.  Category detection (gated on iterability)
+//==============================================================================
 
 NS_INTERNAL
 
@@ -138,9 +149,9 @@ struct is_random_access_iterable
 D_TYPE_TRAIT_VALUE_BOOL(is_random_access_iterable)
 
 
-// ===========================================================================
-// II.  Storage-shape signals
-// ===========================================================================
+//==============================================================================
+// 2.  Storage-shape signals
+//==============================================================================
 
 // has_data_accessor
 //   trait: detects a data() accessor - the mark of contiguous storage.
@@ -161,9 +172,9 @@ struct is_contiguous_iterable
 D_TYPE_TRAIT_VALUE_BOOL(is_contiguous_iterable)
 
 
-// ===========================================================================
-// III. Category summary
-// ===========================================================================
+//==============================================================================
+// 3.  Category summary
+//==============================================================================
 
 // DIteratorCategoryKind
 //   enum: the strongest category a container's iterator satisfies.

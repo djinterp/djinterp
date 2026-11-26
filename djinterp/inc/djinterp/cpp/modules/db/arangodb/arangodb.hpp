@@ -83,9 +83,9 @@ NS_DB
 namespace arangodb {
 
 
-// =============================================================================
-// I.   VELOCYPACK VALUE TYPES
-// =============================================================================
+//==============================================================================
+// 1.  VELOCYPACK VALUE TYPES
+//==============================================================================
 // ArangoDB stores and transmits data in VelocyPack (VPack), a compact
 // binary format that is a superset of JSON. Every VPack value has a
 // type tag. These are declared here so that VelocyPack headers do not
@@ -119,9 +119,9 @@ enum class vpack_type : re_std::uint8_t
 };
 
 
-// =============================================================================
-// II.  COLLECTION TYPES
-// =============================================================================
+//==============================================================================
+// 2.  COLLECTION TYPES
+//==============================================================================
 
 // arango_collection_type
 //   enumeration: ArangoDB collection types.
@@ -134,9 +134,9 @@ enum class arango_collection_type : int
 };
 
 
-// =============================================================================
-// III. TYPE MAPPING
-// =============================================================================
+//==============================================================================
+// 3.  TYPE MAPPING
+//==============================================================================
 
 // vpack_type_to_field_type
 //   function: maps a VelocyPack value type to the generic djinterp
@@ -226,9 +226,9 @@ const char* field_type_to_arango_json(
 }
 
 
-// =============================================================================
-// IV.  FEATURE SUPPORT (compile-time, version × edition gated)
-// =============================================================================
+//==============================================================================
+// 4.  FEATURE SUPPORT (compile-time, version × edition gated)
+//==============================================================================
 
 // arango_type_support
 //   struct: compile-time data type and model availability flags.
@@ -601,9 +601,9 @@ struct arango_feature_support
 };
 
 
-// =============================================================================
-// V.   VERSION INFORMATION
-// =============================================================================
+//==============================================================================
+// 5.  VERSION INFORMATION
+//==============================================================================
 
 // arango_version_info
 //   struct: compile-time version decomposition.
@@ -639,9 +639,9 @@ struct arango_version_info
 };
 
 
-// =============================================================================
-// VI.  ARANGODB CONNECTION CONFIGURATION
-// =============================================================================
+//==============================================================================
+// 6.  ARANGODB CONNECTION CONFIGURATION
+//==============================================================================
 
 // arango_auth_method
 //   enumeration: authentication methods for ArangoDB HTTP API.
@@ -734,9 +734,9 @@ struct arango_connect_config
 };
 
 
-// =============================================================================
-// VII. ARANGODB CONNECTION
-// =============================================================================
+//==============================================================================
+// 7.  ARANGODB CONNECTION
+//==============================================================================
 
 // arango_connection
 //   class: concrete ArangoDB connection implementation.
@@ -1388,9 +1388,9 @@ private:
 };
 
 
-// =============================================================================
-// VIII. FORWARD DECLARATIONS
-// =============================================================================
+//==============================================================================
+// 8.  FORWARD DECLARATIONS
+//==============================================================================
 
 // arango_result_set_impl
 //   struct: forward declaration of the ArangoDB result set
@@ -1404,9 +1404,9 @@ struct arango_result_set_impl;
 //   Folded in from the former arango_traits.hpp / arango_concepts.hpp so detection
 // lives with the connection it describes. Traits build at C++17; concepts under C++20.
 
-// =============================================================================
-// IX.   EXPRESSION DETECTORS
-// =============================================================================
+//==============================================================================
+// 9.  EXPRESSION DETECTORS
+//==============================================================================
 
 // -------------------------------------------------------------------------
 // A.  AQL execution
@@ -1632,9 +1632,9 @@ using arango_create_view_t =
         std::declval<const std::string&>()));
 
 
-// =============================================================================
-// X.  TAGGED CAPABILITY TRAITS (struct-based)
-// =============================================================================
+//==============================================================================
+// 10. TAGGED CAPABILITY TRAITS (struct-based)
+//==============================================================================
 
 // has_arango_aql
 //   trait: checks if type Type supports AQL execution.
@@ -1796,9 +1796,9 @@ struct is_arango_connection : djinterp::conjunction<
 #endif
 
 
-// =============================================================================
-// XI. TAGLESS CAPABILITY TRAITS (constexpr bool)
-// =============================================================================
+//==============================================================================
+// 11. TAGLESS CAPABILITY TRAITS (constexpr bool)
+//==============================================================================
 
 // -------------------------------------------------------------------------
 // A.  individual capability tags
@@ -1935,9 +1935,9 @@ constexpr bool arango_is_full_connection =
       arango_can_create_collection<clean_t<Type>> );
 
 
-// =============================================================================
-// XII.  SFINAE HELPERS
-// =============================================================================
+//==============================================================================
+// 12. SFINAE HELPERS
+//==============================================================================
 
 template<typename Type>
 using enable_if_arango_connection =
@@ -1956,9 +1956,9 @@ using enable_if_has_arango_database_ops =
     typename std::enable_if<has_arango_database_ops<clean_t<Type>>::value>::type;
 
 
-// ===========================================================================
-// XIII.   C++20 CONCEPTS
-// ===========================================================================
+//==============================================================================
+// 13. C++20 CONCEPTS
+//==============================================================================
 //   The ArangoDB classification concepts, folded in from the former
 // arango_concepts.hpp. The connection concept is capitalized (Arango_connection)
 // so it does not collide with the arango_connection class. Gated on concept
@@ -2176,9 +2176,9 @@ concept view_create_connection =
     arango_can_create_view<clean_t<Type>>;
 
 
-// ===========================================================================
-// C. Tagless ArangoDB Capability Concepts
-// ===========================================================================
+//==============================================================================
+// 100. Tagless ArangoDB Capability Concepts
+//==============================================================================
 
 // arango_document_crud_connection
 //   concept: constrains types satisfying the tagless full document-CRUD

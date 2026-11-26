@@ -30,21 +30,19 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    DCowArray
-      ---------
-      a. Type aliases (forwarded from wrapped array)
-      b. Strategy tag and trait constants
-      c.    Construction
-            d. Read Access
-            e. Snapshot
-            f. Write Access
-            g. Version Query
-
-II.   Trait Specializations (axis preservation)
-      -----------------------------------------
-
-III.  Static Verification
-      -------------------
+1.  DCowArray
+    ---------
+    a. Type aliases (forwarded from wrapped array)
+    b. Strategy tag and trait constants
+    c.    Construction
+          d. Read Access
+          e. Snapshot
+          f. Write Access
+          g. Version Query
+2.  Trait Specializations (axis preservation)
+    -----------------------------------------
+3.  Static Verification
+    -------------------
 */
 
 #ifndef DJINTERP_CONTAINER_ARRAY_COW_ARRAY_HPP
@@ -78,9 +76,9 @@ NS_DJINTERP
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-// =============================================================================
-// I.   DCowArray
-// =============================================================================
+//==============================================================================
+// 1.  DCowArray
+//==============================================================================
 
 template<typename... Options>
 class DCowArray
@@ -255,9 +253,9 @@ private:
 };
 
 
-// =============================================================================
-// II.  Trait Specializations (axis preservation)
-// =============================================================================
+//==============================================================================
+// 2.  Trait Specializations (axis preservation)
+//==============================================================================
 //   The DCowArray's positional axes are inherited from the wrapped
 // array<...>, so each trait specialization defers to the trait's
 // value on the inner array<...>.
@@ -283,9 +281,9 @@ struct array_lifetime_of<DCowArray<Options...>>
 {};
 
 
-// =============================================================================
-// III. Static Verification
-// =============================================================================
+//==============================================================================
+// 3.  Static Verification
+//==============================================================================
 
 NS_INTERNAL
 

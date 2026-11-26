@@ -83,9 +83,9 @@
 #include "../type_traits/remove_reference.hpp"
 
 
-// =============================================================================
-// 0.   COMPATIBILITY
-// =============================================================================
+//==============================================================================
+// 0.  COMPATIBILITY
+//==============================================================================
 // In C++11 a constexpr member function is IMPLICITLY const. That makes the
 // non-const and const accessor pairs below (head / head_ref / tail_ref)
 // collapse into two functions differing only in return type - ill-formed,
@@ -227,9 +227,9 @@ namespace internal
 }  // internal
 
 
-// =============================================================================
-// I.   TUPLE
-// =============================================================================
+//==============================================================================
+// 1.  TUPLE
+//==============================================================================
 // The forward declaration in tuple_size.hpp / tuple_element.hpp is
 // matched here. The primary definition lives in this file.
 

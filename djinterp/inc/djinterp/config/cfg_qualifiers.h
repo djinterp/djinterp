@@ -58,39 +58,39 @@
 /*
 TABLE OF CONTENTS
 =================
-0.    QUALIFIER CONFIGURATION
-      -----------------------
-      1.    Master Switch
-      a. D_CFG_DEFINE_QUALIFIERS
-      2.    Per-Qualifier Toggles (all build modes)
-      a. D_CFG_DEFINE_STATIC
-      b. D_CFG_DEFINE_INLINE
-      c.    D_CFG_DEFINE_CONSTEXPR
-            d. D_CFG_DEFINE_EXTERN_C
-            e. D_CFG_EXTERN_C_LINKAGE
-            3.    Testing-Mode Toggles (consulted only in testing mode)
-            a. D_CFG_TESTING_DEFINE_STATIC
-            b. D_CFG_TESTING_DEFINE_INLINE
-      c.    D_CFG_TESTING_STRIP_CONSTEXPR
-            4.    Legacy / Compatibility Bridges
-            a. D_TESTING_CONSTEXPR   (deprecated alias)
-            5.    Configuration Validation
-            6.    Effective (Derived) Values
-            a. D_INTERNAL_QUAL_TESTING
-            b. D_INTERNAL_CFG_STATIC, D_INTERNAL_CFG_INLINE
-      c.    D_INTERNAL_CFG_CONSTEXPR
-            d. D_INTERNAL_QUAL_STRIP_CONSTEXPR
-            e. D_INTERNAL_CFG_EXTERN_C, D_INTERNAL_QUAL_EXTERN_C_LINKAGE
-            7.    Public Query Macros
-            a. D_QUAL_TESTING_IS_ACTIVE
-            b. D_QUAL_CONSTEXPR_IS_STRIPPED
-      c.    D_QUAL_EXTERN_C_IS_ACTIVE
+0.  QUALIFIER CONFIGURATION
+    -----------------------
+    1.    Master Switch
+    a. D_CFG_DEFINE_QUALIFIERS
+    2.    Per-Qualifier Toggles (all build modes)
+    a. D_CFG_DEFINE_STATIC
+    b. D_CFG_DEFINE_INLINE
+    c.    D_CFG_DEFINE_CONSTEXPR
+          d. D_CFG_DEFINE_EXTERN_C
+          e. D_CFG_EXTERN_C_LINKAGE
+          3.    Testing-Mode Toggles (consulted only in testing mode)
+          a. D_CFG_TESTING_DEFINE_STATIC
+          b. D_CFG_TESTING_DEFINE_INLINE
+    c.    D_CFG_TESTING_STRIP_CONSTEXPR
+          4.    Legacy / Compatibility Bridges
+          a. D_TESTING_CONSTEXPR   (deprecated alias)
+          5.    Configuration Validation
+          6.    Effective (Derived) Values
+          a. D_INTERNAL_QUAL_TESTING
+          b. D_INTERNAL_CFG_STATIC, D_INTERNAL_CFG_INLINE
+    c.    D_INTERNAL_CFG_CONSTEXPR
+          d. D_INTERNAL_QUAL_STRIP_CONSTEXPR
+          e. D_INTERNAL_CFG_EXTERN_C, D_INTERNAL_QUAL_EXTERN_C_LINKAGE
+          7.    Public Query Macros
+          a. D_QUAL_TESTING_IS_ACTIVE
+          b. D_QUAL_CONSTEXPR_IS_STRIPPED
+    c.    D_QUAL_EXTERN_C_IS_ACTIVE
 */
 
 
-// ===========================================================================
-// 0.   QUALIFIER CONFIGURATION
-// ===========================================================================
+//==============================================================================
+// 0.  QUALIFIER CONFIGURATION
+//==============================================================================
 //   Every knob follows the framework convention: pre-define it before
 // including this header to override; otherwise it takes the default here.
 // A value of 1 enables, 0 disables.

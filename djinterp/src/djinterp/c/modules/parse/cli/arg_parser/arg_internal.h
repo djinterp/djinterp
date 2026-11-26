@@ -2824,7 +2824,7 @@ int d_arg_internal_command_line(
 
 
 //==============================================================================
-// 10.  HELP
+// 10. HELP
 //==============================================================================
 // What the help formatter's default steps share: CLI11's numbers as it
 // computes them, its text helpers, the widths a line width leaves, and its
@@ -2981,7 +2981,7 @@ int d_arg_internal_help_make(
 
 
 //==============================================================================
-// 11.  COMPLETION
+// 11. COMPLETION
 //==============================================================================
 // The command tree as shell completion sees it - what help shows, in the
 // order the parse searches it - and the writers that make a script of it

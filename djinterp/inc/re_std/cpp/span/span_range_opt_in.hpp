@@ -36,6 +36,15 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  ENABLE_BORROWED_RANGE<span>
+    ---------------------------
+2.  ENABLE_VIEW<span>
+    -----------------
+*/
+
 #ifndef RE_STD_SPAN_SPAN_RANGE_OPT_IN_HPP
 #define RE_STD_SPAN_SPAN_RANGE_OPT_IN_HPP 1
 
@@ -57,9 +66,9 @@ namespace re_std
 {
 
 
-// ===========================================================================
-// I.   ENABLE_BORROWED_RANGE<span>
-// ===========================================================================
+//==============================================================================
+// 1.  ENABLE_BORROWED_RANGE<span>
+//==============================================================================
 
 // enable_borrowed_range<span<Type, Extent>>
 //   trait: span refers to storage it does not own, so an iterator
@@ -73,9 +82,9 @@ struct enable_borrowed_range<span<Type, Extent> >
 {};
 
 
-// ===========================================================================
-// II.  ENABLE_VIEW<span>
-// ===========================================================================
+//==============================================================================
+// 2.  ENABLE_VIEW<span>
+//==============================================================================
 
 // enable_view<span<Type, Extent>>
 //   trait: span is a pointer plus (at most) a size, so copy and destroy

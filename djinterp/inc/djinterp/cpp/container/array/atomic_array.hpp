@@ -34,22 +34,20 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    DAtomicArray
-      ------------
-      a. Type aliases
-      b. Strategy tag and trait constants
-      c.    Construction
-            d. Element Atomic Access
-            e. Element Atomic Updates
-            f. Element CAS
-            g. Bulk Operations
-            h. Iteration (per-element atomic)
-
-II.   Trait Specializations (axis preservation)
-      -----------------------------------------
-
-III.  Static Verification
-      -------------------
+1.  DAtomicArray
+    ------------
+    a. Type aliases
+    b. Strategy tag and trait constants
+    c.    Construction
+          d. Element Atomic Access
+          e. Element Atomic Updates
+          f. Element CAS
+          g. Bulk Operations
+          h. Iteration (per-element atomic)
+2.  Trait Specializations (axis preservation)
+    -----------------------------------------
+3.  Static Verification
+    -------------------
 */
 
 #ifndef DJINTERP_CONTAINER_ARRAY_ATOMIC_ARRAY_HPP
@@ -82,9 +80,9 @@ III.  Static Verification
 NS_DJINTERP
 
 
-// =============================================================================
-// I.   DAtomicArray
-// =============================================================================
+//==============================================================================
+// 1.  DAtomicArray
+//==============================================================================
 
 template<typename... Options>
 class DAtomicArray
@@ -347,9 +345,9 @@ private:
 };
 
 
-// =============================================================================
-// II.  Trait Specializations (axis preservation)
-// =============================================================================
+//==============================================================================
+// 2.  Trait Specializations (axis preservation)
+//==============================================================================
 //   DAtomicArray's element type at the trait level is the resolved
 // `value_type` (not `std::atomic<value_type>`).  Storage layout is
 // contiguous, extent is static, iteration is provided when the
@@ -388,9 +386,9 @@ struct array_lifetime_of<DAtomicArray<Options...>>
 NS_END  // djinterp
 
 
-// =============================================================================
-// III. Static Verification
-// =============================================================================
+//==============================================================================
+// 3.  Static Verification
+//==============================================================================
 
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
 

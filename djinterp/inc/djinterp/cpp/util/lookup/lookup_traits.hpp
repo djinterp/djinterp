@@ -72,37 +72,32 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    Row Classification
-      ------------------
-      1.    is_tuple_row                    (+ _v)
-      2.    is_singular_row                 (+ _v)
-      3.    lookup_row_arity                (+ _v)
-
-II.   Column Index Customization
-      --------------------------
-      1.    has_key_column_member           (+ _v)
-      2.    has_value_column_member         (+ _v)
-      3.    lookup_row_key_column           (+ _v)
-      4.    lookup_row_value_column         (+ _v)
-
-III.  Value Column Presence
-      ---------------------
-      1.    has_value_column                (+ _v)
-
-IV.   Column Type Resolution
-      ----------------------
-      1.    lookup_row_column_type          (+ _t)
-      2.    lookup_row_key_type             (+ _t)
-      3.    lookup_row_value_type           (+ _t)
-
-V.    Column Extraction (runtime)
-      ---------------------------
-      1.    lookup_key_of
-      2.    lookup_value_of
-      3.    lookup_column_of
-
-VI.   Convenience _v / _t Aliases
-      ---------------------------
+1.  Row Classification
+    ------------------
+    1.    is_tuple_row                    (+ _v)
+    2.    is_singular_row                 (+ _v)
+    3.    lookup_row_arity                (+ _v)
+2.  Column Index Customization
+    --------------------------
+    1.    has_key_column_member           (+ _v)
+    2.    has_value_column_member         (+ _v)
+    3.    lookup_row_key_column           (+ _v)
+    4.    lookup_row_value_column         (+ _v)
+3.  Value Column Presence
+    ---------------------
+    1.    has_value_column                (+ _v)
+4.  Column Type Resolution
+    ----------------------
+    1.    lookup_row_column_type          (+ _t)
+    2.    lookup_row_key_type             (+ _t)
+    3.    lookup_row_value_type           (+ _t)
+5.  Column Extraction (runtime)
+    ---------------------------
+    1.    lookup_key_of
+    2.    lookup_value_of
+    3.    lookup_column_of
+6.  Convenience _v / _t Aliases
+    ---------------------------
 */
 
 #ifndef DJINTERP_UTIL_LOOKUP_LOOKUP_TRAITS_HPP
@@ -128,9 +123,9 @@ VI.   Convenience _v / _t Aliases
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   Row Classification
-// ===========================================================================
+//==============================================================================
+// 1.  Row Classification
+//==============================================================================
 
 // ---------------------------------------------------------------------------
 // 1. is_tuple_row
@@ -181,9 +176,9 @@ struct lookup_row_arity<Row, true>
 {};
 
 
-// ===========================================================================
-// II.  Column Index Customization
-// ===========================================================================
+//==============================================================================
+// 2.  Column Index Customization
+//==============================================================================
 
 // ---------------------------------------------------------------------------
 // 1. has_key_column_member
@@ -295,9 +290,9 @@ struct lookup_row_value_column<Row, true>
 {};
 
 
-// ===========================================================================
-// III. Value Column Presence
-// ===========================================================================
+//==============================================================================
+// 3.  Value Column Presence
+//==============================================================================
 
 // has_value_column
 //   trait: true iff Row is a tuple with arity strictly greater than
@@ -317,9 +312,9 @@ struct has_value_column<Row, true>
 {};
 
 
-// ===========================================================================
-// IV.  Column Type Resolution
-// ===========================================================================
+//==============================================================================
+// 4.  Column Type Resolution
+//==============================================================================
 
 // ---------------------------------------------------------------------------
 // 1. lookup_row_column_type
@@ -413,9 +408,9 @@ using lookup_row_value_type_t =
     typename lookup_row_value_type<Row>::type;
 
 
-// ===========================================================================
-// V.   Column Extraction (runtime)
-// ===========================================================================
+//==============================================================================
+// 5.  Column Extraction (runtime)
+//==============================================================================
 
 // ---------------------------------------------------------------------------
 // 1. lookup_key_of
@@ -547,9 +542,9 @@ lookup_column_of(
 }
 
 
-// ===========================================================================
-// VI.  Convenience _v / _t Aliases
-// ===========================================================================
+//==============================================================================
+// 6.  Convenience _v / _t Aliases
+//==============================================================================
 
 template<typename Row>
 inline constexpr bool is_tuple_row_v =

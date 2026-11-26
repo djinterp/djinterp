@@ -36,6 +36,34 @@
 *                                                            revised: 2026.10.03
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+2.  SINGLE-OPERATION FILTER FUNCTIONS
+    ---------------------------------
+    1.  take operations
+    2.  skip operations
+    3.  range and slice operations
+    4.  predicate-based operations
+    5.  index-based operations
+    6.  transformation operations
+3.  IN-PLACE FILTER OPERATIONS
+    --------------------------
+    1.  in-place predicate filter
+    2.  in-place positional operations
+4.  CHAIN AND COMBINATOR APPLICATION
+    --------------------------------
+    1.  chain application
+    2.  combinator application
+5.  QUERY FUNCTIONS
+    ---------------
+    1.  counting
+    2.  existence
+    3.  search
+6.  RESULT MANAGEMENT
+    -----------------
+*/
+
 #ifndef DJINTERP_C_CONTAINER_ARRAY_ARRAY_FILTER_H
 #define DJINTERP_C_CONTAINER_ARRAY_ARRAY_FILTER_H 1
 
@@ -71,11 +99,12 @@ struct dj_contiguous_filter_result
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             II.   SINGLE-OPERATION FILTER FUNCTIONS                     ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  SINGLE-OPERATION FILTER FUNCTIONS
+//==============================================================================
 
-// i.    take operations
+// 2.1    take operations
+//------------------------------------------------------------------------------
 struct dj_contiguous_filter_result d_contiguous_filter_take_first(
     const void* _elements,
     size_t      _count,
@@ -105,7 +134,8 @@ struct dj_contiguous_filter_result d_contiguous_filter_tail(
     size_t      _element_size
 );
 
-// ii.   skip operations
+// 2.2    skip operations
+//------------------------------------------------------------------------------
 struct dj_contiguous_filter_result d_contiguous_filter_skip_first(
     const void* _elements,
     size_t      _count,
@@ -129,7 +159,8 @@ struct dj_contiguous_filter_result d_contiguous_filter_rest(
     size_t      _element_size
 );
 
-// iii.  range and slice operations
+// 2.3    range and slice operations
+//------------------------------------------------------------------------------
 struct dj_contiguous_filter_result d_contiguous_filter_range(
     const void* _elements,
     size_t      _count,
@@ -146,7 +177,8 @@ struct dj_contiguous_filter_result d_contiguous_filter_slice(
     size_t      _step
 );
 
-// iv.   predicate-based operations
+// 2.4    predicate-based operations
+//------------------------------------------------------------------------------
 struct dj_contiguous_filter_result d_contiguous_filter_where(
     const void*  _elements,
     size_t       _count,
@@ -162,7 +194,8 @@ struct dj_contiguous_filter_result d_contiguous_filter_where_not(
     void*        _context
 );
 
-// v.    index-based operations
+// 2.5    index-based operations
+//------------------------------------------------------------------------------
 struct dj_contiguous_filter_result d_contiguous_filter_at_indices(
     const void*   _elements,
     size_t        _count,
@@ -171,7 +204,8 @@ struct dj_contiguous_filter_result d_contiguous_filter_at_indices(
     size_t        _index_count
 );
 
-// vi.   transformation operations
+// 2.6    transformation operations
+//------------------------------------------------------------------------------
 struct dj_contiguous_filter_result d_contiguous_filter_distinct(
     const void*            _elements,
     size_t                 _count,
@@ -185,11 +219,12 @@ struct dj_contiguous_filter_result d_contiguous_filter_reverse(
 );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             III.  IN-PLACE FILTER OPERATIONS                           ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  IN-PLACE FILTER OPERATIONS
+//==============================================================================
 
-// i.    in-place predicate filter
+// 3.1    in-place predicate filter
+//------------------------------------------------------------------------------
 size_t d_contiguous_filter_in_place(
     void*        _elements,
     size_t       _count,
@@ -205,7 +240,8 @@ size_t d_contiguous_filter_in_place_not(
     void*        _context
 );
 
-// ii.   in-place positional operations
+// 3.2    in-place positional operations
+//------------------------------------------------------------------------------
 size_t d_contiguous_filter_in_place_take_first(
     void*  _elements,
     size_t _count,
@@ -226,11 +262,12 @@ size_t d_contiguous_filter_in_place_distinct(
 );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             IV.   CHAIN AND COMBINATOR APPLICATION                      ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  CHAIN AND COMBINATOR APPLICATION
+//==============================================================================
 
-// i.    chain application
+// 4.1    chain application
+//------------------------------------------------------------------------------
 struct dj_contiguous_filter_result d_contiguous_filter_apply_chain(
     const void*                   _elements,
     size_t                        _count,
@@ -238,7 +275,8 @@ struct dj_contiguous_filter_result d_contiguous_filter_apply_chain(
     const struct dj_filter_chain* _chain
 );
 
-// ii.   combinator application
+// 4.2    combinator application
+//------------------------------------------------------------------------------
 struct dj_contiguous_filter_result d_contiguous_filter_apply_union(
     const void*                   _elements,
     size_t                        _count,
@@ -262,11 +300,12 @@ struct dj_contiguous_filter_result d_contiguous_filter_apply_difference(
 );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             V.    QUERY FUNCTIONS                                       ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 5.  QUERY FUNCTIONS
+//==============================================================================
 
-// i.    counting
+// 5.1    counting
+//------------------------------------------------------------------------------
 size_t d_contiguous_filter_count_where(
     const void*  _elements,
     size_t       _count,
@@ -275,7 +314,8 @@ size_t d_contiguous_filter_count_where(
     void*        _context
 );
 
-// ii.   existence
+// 5.2    existence
+//------------------------------------------------------------------------------
 bool d_contiguous_filter_any_match(
     const void*  _elements,
     size_t       _count,
@@ -298,7 +338,8 @@ bool d_contiguous_filter_none_match(
     void*        _context
 );
 
-// iii.  search
+// 5.3    search
+//------------------------------------------------------------------------------
 void* d_contiguous_filter_find_first(
     const void*  _elements,
     size_t       _count,
@@ -315,9 +356,9 @@ void* d_contiguous_filter_find_last(
 );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             VI.   RESULT MANAGEMENT                                     ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 6.  RESULT MANAGEMENT
+//==============================================================================
 
 // i.    result access
 void* d_contiguous_filter_result_data(

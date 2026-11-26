@@ -53,32 +53,24 @@
 /*
 TABLE OF CONTENTS
 =================
-II.   FORMAT IDENTITY
-      ---------------
-
-III.  THE KNOB TABLE
-      --------------
-
-IV.   OPTION OPERATIONS
-      -----------------
-
-V.    CAPABILITY AND ENTRY VALIDITY
-      -----------------------------
-
-VI.   SIGNATURES
-      ----------
-
-VII.  BYTE-ORDER PRIMITIVES
-      ---------------------
-
-VIII. THE BUILT-IN USTAR WRITER / READER
-      ----------------------------------
-
-IX.   THE BUILT-IN ZIP WRITER / READER
-      --------------------------------
-
-X.    TRANSFORMS
-      ----------
+2.  FORMAT IDENTITY
+    ---------------
+3.  THE KNOB TABLE
+    --------------
+4.  OPTION OPERATIONS
+    -----------------
+5.  CAPABILITY AND ENTRY VALIDITY
+    -----------------------------
+6.  SIGNATURES
+    ----------
+7.  BYTE-ORDER PRIMITIVES
+    ---------------------
+8.  THE BUILT-IN USTAR WRITER / READER
+    ----------------------------------
+9.  THE BUILT-IN ZIP WRITER / READER
+    --------------------------------
+10. TRANSFORMS
+    ----------
 */
 
 // std
@@ -120,9 +112,9 @@ X.    TRANSFORMS
 #define D_INTERNAL_ZIP_EOCD_SIZE    22u
 
 
-// =============================================================================
-// II.  FORMAT IDENTITY
-// =============================================================================
+//==============================================================================
+// 2.  FORMAT IDENTITY
+//==============================================================================
 
 // d_internal_format_names
 //   table: the format names, indexed by dj_format_id.
@@ -335,9 +327,9 @@ d_format_default_codec(
 }
 
 
-// =============================================================================
-// III. THE KNOB TABLE
-// =============================================================================
+//==============================================================================
+// 3.  THE KNOB TABLE
+//==============================================================================
 
 // d_internal_archive_knob_names
 //   table: the qualified name of each container knob, indexed by
@@ -417,9 +409,9 @@ d_archive_knob_is_text(
 
 
 
-// =============================================================================
-// IV.  OPTION OPERATIONS
-// =============================================================================
+//==============================================================================
+// 4.  OPTION OPERATIONS
+//==============================================================================
 
 /*
 d_internal_archive_knob_value
@@ -1160,9 +1152,9 @@ d_archive_options_validate(
 }
 
 
-// =============================================================================
-// V.   CAPABILITY AND ENTRY VALIDITY
-// =============================================================================
+//==============================================================================
+// 5.  CAPABILITY AND ENTRY VALIDITY
+//==============================================================================
 
 /*
 d_format_is_readable
@@ -1566,9 +1558,9 @@ int d_archive_entry_is_valid(
 }
 
 
-// =============================================================================
-// VI.  SIGNATURES
-// =============================================================================
+//==============================================================================
+// 6.  SIGNATURES
+//==============================================================================
 
 /*
 d_format_signature_length
@@ -1719,9 +1711,9 @@ d_format_detect(
 }
 
 
-// =============================================================================
-// VII. BYTE-ORDER PRIMITIVES
-// =============================================================================
+//==============================================================================
+// 7.  BYTE-ORDER PRIMITIVES
+//==============================================================================
 //   ZIP is little-endian on the wire regardless of the host, and tar writes its
 // numbers as ASCII octal.  Both are done by explicit byte arithmetic rather
 // than by casting a struct over the buffer: a packed-struct overlay would
@@ -2027,9 +2019,9 @@ uint32_t d_internal_entry_mode(
 }
 
 
-// =============================================================================
-// VIII. THE BUILT-IN USTAR WRITER / READER
-// =============================================================================
+//==============================================================================
+// 8.  THE BUILT-IN USTAR WRITER / READER
+//==============================================================================
 //   POSIX ustar, written from the specification with no dependency.  Every
 // structure is a multiple of 512 bytes; numbers are ASCII octal; the archive
 // ends with two zero records.
@@ -3908,9 +3900,9 @@ d_internal_tar_find(
 }
 
 
-// =============================================================================
-// IX.  THE BUILT-IN ZIP WRITER / READER
-// =============================================================================
+//==============================================================================
+// 9.  THE BUILT-IN ZIP WRITER / READER
+//==============================================================================
 //   The ZIP appnote's classic 32-bit layout, written from the specification
 // with no dependency.  Each member is a local header followed by its data; a
 // central directory repeats the headers at the end, and an end-of-central-
@@ -5041,9 +5033,9 @@ d_internal_zip_find(
                                         : D_PACK_STATUS_INVALID_ARGUMENT;
 }
 
-// =============================================================================
-// X.   TRANSFORMS
-// =============================================================================
+//==============================================================================
+// 10. TRANSFORMS
+//==============================================================================
 //   The public leaves.  Each validates, resolves options once, dispatches to a
 // writer or a walker, and adapts between the sink and buffer forms.  No format
 // knowledge lives here; no buffer-protocol knowledge lives in a writer.

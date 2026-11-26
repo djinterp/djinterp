@@ -1476,7 +1476,7 @@ struct dj_tls_engine
 
 
 //==============================================================================
-// 10.  CONTEXTS AND SESSIONS
+// 10. CONTEXTS AND SESSIONS
 //==============================================================================
 // A context is a configuration made live in an engine: trust loaded, keys
 // parsed, the plan fixed. A session is one TLS connection over one

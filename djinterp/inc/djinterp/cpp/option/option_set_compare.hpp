@@ -34,20 +34,16 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    DKeyList + option_set_keys     (key extraction)
-      -----------------------------------------------
-
-II.   key-list operations            (subset, equal)
-      ----------------------------------------------
-
-III.  congruity traits               (key, type)
-      ------------------------------------------
-
-IV.   value-carrier sentinels        (DValueAbsent, DValuePresent)
-      ------------------------------------------------------------
-
-V.    option_set_value_eq            (parameterized value equality)
-      -------------------------------------------------------------
+1.  DKeyList + option_set_keys     (key extraction)
+    -----------------------------------------------
+2.  key-list operations            (subset, equal)
+    ----------------------------------------------
+3.  congruity traits               (key, type)
+    ------------------------------------------
+4.  value-carrier sentinels        (DValueAbsent, DValuePresent)
+    ------------------------------------------------------------
+5.  option_set_value_eq            (parameterized value equality)
+    -------------------------------------------------------------
 */
 
 #ifndef DJINTERP_OPTION_SET_COMPARE_HPP
@@ -71,9 +67,9 @@ V.    option_set_value_eq            (parameterized value equality)
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   DKeyList + option_set_keys
-// ===========================================================================
+//==============================================================================
+// 1.  DKeyList + option_set_keys
+//==============================================================================
 
 // DKeyList
 //   type: heterogeneous-ready compile-time pack of NTTP keys.
@@ -113,9 +109,9 @@ template<typename Set>
 using option_set_keys_t = typename option_set_keys<Set>::type;
 
 
-// ===========================================================================
-// II.  key-list operations
-// ===========================================================================
+//==============================================================================
+// 2.  key-list operations
+//==============================================================================
 
 NS_INTERNAL
 
@@ -163,9 +159,9 @@ D_CONSTEXPR bool key_list_equal_v =
     key_list_equal<Lhs, Rhs>::value;
 
 
-// ===========================================================================
-// III. congruity traits
-// ===========================================================================
+//==============================================================================
+// 3.  congruity traits
+//==============================================================================
 
 // option_set_key_congruent
 //   trait: true iff A and B have the same key set (order-insensitive).
@@ -216,9 +212,9 @@ D_CONSTEXPR bool option_set_type_congruent_v =
     option_set_type_congruent<A, B>::value;
 
 
-// ===========================================================================
-// IV.  value-carrier sentinels
-// ===========================================================================
+//==============================================================================
+// 4.  value-carrier sentinels
+//==============================================================================
 
 // DValueAbsent
 //   type: extractor result for "this option carries no value of the
@@ -261,9 +257,9 @@ NS_INTERNAL
 NS_END  // internal
 
 
-// ===========================================================================
-// V.   option_set_value_eq
-// ===========================================================================
+//==============================================================================
+// 5.  option_set_value_eq
+//==============================================================================
 
 // option_set_value_eq
 //   trait: parameterized over a single-arg extractor.  Two sets are

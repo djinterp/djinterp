@@ -73,20 +73,18 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    rcu_array
-      ---------
-      a. Type aliases (forwarded from wrapped array)
-      b. Strategy tag and trait constants
-      c.    Construction
-            d. Read Access (epoch-guarded)
-            e. Update (copy-modify-publish)
-            f. Snapshot
-
-II.   Trait Specializations (axis preservation)
-      -----------------------------------------
-
-III.  Static Verification
-      -------------------
+1.  rcu_array
+    ---------
+    a. Type aliases (forwarded from wrapped array)
+    b. Strategy tag and trait constants
+    c.    Construction
+          d. Read Access (epoch-guarded)
+          e. Update (copy-modify-publish)
+          f. Snapshot
+2.  Trait Specializations (axis preservation)
+    -----------------------------------------
+3.  Static Verification
+    -------------------
 */
 
 #ifndef DJINTERP_CONTAINER_ARRAY_RCU_ARRAY_HPP
@@ -119,9 +117,9 @@ III.  Static Verification
 NS_DJINTERP
 
 
-// =============================================================================
-// I.   rcu_array
-// =============================================================================
+//==============================================================================
+// 1.  rcu_array
+//==============================================================================
 
 template<typename... Options>
 class DRcuArray
@@ -309,9 +307,9 @@ template<typename... Options>
 using rcu_array = DRcuArray<Options...>;
 
 
-// =============================================================================
-// II.  Trait Specializations (axis preservation)
-// =============================================================================
+//==============================================================================
+// 2.  Trait Specializations (axis preservation)
+//==============================================================================
 //   The primaries for `is_contiguous_array`, `is_iterable_array`,
 // `has_static_extent`, and `array_lifetime_of` live directly in
 // `djinterp::` (see array_traits.hpp), NOT in `djinterp::`.
@@ -347,9 +345,9 @@ struct array_lifetime_of<DRcuArray<Options...>>
 NS_END  // djinterp
 
 
-// =============================================================================
-// III. Static Verification
-// =============================================================================
+//==============================================================================
+// 3.  Static Verification
+//==============================================================================
 
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
 

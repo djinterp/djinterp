@@ -41,35 +41,26 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    FILTER OPERATION TYPE
-      ---------------------
-
-II.   FILTER OPERATION FACTORIES
-      --------------------------
-
-III.  FILTER RESULT
-      -------------
-
-IV.   FILTER CHAIN
-      ------------
-
-V.    FILTER COMBINATORS
-      ------------------
-
-VI.   FILTER ITERATOR
-      ---------------
-
-VII.  FLUENT FILTER BUILDER
-      ---------------------
-
-VIII. TYPED FAST-PATH  (de-erased)
-      ----------------------------
-
-IX.   FILTERABLE CONTAINER TRAITS  (folded from filterable_traits.hpp)
-      ----------------------------------------------------------------
-
-X.    FILTER STRUCTURAL TRAITS & CONCEPTS
-      -----------------------------------
+1.  FILTER OPERATION TYPE
+    ---------------------
+2.  FILTER OPERATION FACTORIES
+    --------------------------
+3.  FILTER RESULT
+    -------------
+4.  FILTER CHAIN
+    ------------
+5.  FILTER COMBINATORS
+    ------------------
+6.  FILTER ITERATOR
+    ---------------
+7.  FLUENT FILTER BUILDER
+    ---------------------
+8.  TYPED FAST-PATH  (de-erased)
+    ----------------------------
+9.  FILTERABLE CONTAINER TRAITS  (folded from filterable_traits.hpp)
+    ----------------------------------------------------------------
+10. FILTER STRUCTURAL TRAITS & CONCEPTS
+    -----------------------------------
 */
 
 #ifndef DJINTERP_FUNCTIONAL_FILTER_HPP
@@ -117,9 +108,9 @@ NS_DJINTERP
 // and reduce.hpp).  The callable vocabulary (is_callable / callable_result_t /
 // is_predicate) comes from functional_traits.
 
-///////////////////////////////////////////////////////////////////////////////
-///             I.    FILTER OPERATION TYPE                                 ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  FILTER OPERATION TYPE
+//==============================================================================
 
 // DFilterOpFn
 //   type: a filter operation is a function that accepts an input
@@ -129,9 +120,9 @@ using DFilterOpFn = std::function<
     std::vector<std::size_t>(const std::vector<Type>&)>;
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             II.   FILTER OPERATION FACTORIES                            ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  FILTER OPERATION FACTORIES
+//==============================================================================
 
 NS_INTERNAL
     // make_take_first_op
@@ -438,9 +429,9 @@ NS_INTERNAL
 NS_END  // internal
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             III.  FILTER RESULT                                         ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  FILTER RESULT
+//==============================================================================
 
 // DFilterResultStatus
 //   enum: status of a filter operation.
@@ -533,9 +524,9 @@ public:
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             IV.   FILTER CHAIN                                          ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  FILTER CHAIN
+//==============================================================================
 
 // DFilterChain
 //   class: chain of sequential filter operations.
@@ -649,9 +640,9 @@ public:
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             V.    FILTER COMBINATORS                                    ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 5.  FILTER COMBINATORS
+//==============================================================================
 
 // filter_union
 //   function: applies union semantics (OR) over multiple filter
@@ -768,9 +759,9 @@ DFilterResult<Type> filter_difference(
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             VI.   FILTER ITERATOR                                       ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 6.  FILTER ITERATOR
+//==============================================================================
 
 // DFilterIterator
 //   class: lazily iterates over filtered results.
@@ -817,9 +808,9 @@ public:
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             VII.  FLUENT FILTER BUILDER                                 ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 7.  FLUENT FILTER BUILDER
+//==============================================================================
 
 // DFilterBuilder
 //   class: fluent builder for constructing filter chains.
@@ -1098,9 +1089,9 @@ public:
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             VIII. TYPED FAST-PATH  (de-erased)                          ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 8.  TYPED FAST-PATH  (de-erased)
+//==============================================================================
 // The DFilterChain / DFilterBuilder above type-erase each operation via
 // DFilterOpFn = std::function, which is required for the heterogeneous
 // storage that filter_union / filter_intersection / filter_difference
@@ -1338,9 +1329,9 @@ DTypedFilter<Type, internal::DTypedIdentity<Type> > make_typed_filter()
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             IX.   FILTERABLE CONTAINER TRAITS                           ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 9.  FILTERABLE CONTAINER TRAITS
+//==============================================================================
 //   Folded in from filterable_traits.hpp (which this header supersedes).
 // SFINAE-based detection of whether a container type supports filtering:
 // iteration (begin/end), element access (value_type), output construction
@@ -1462,9 +1453,9 @@ using filterable_value_t =
                             internal::value_type_expr, Type>;
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             X.    FILTER STRUCTURAL TRAITS & CONCEPTS                   ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 10. FILTER STRUCTURAL TRAITS & CONCEPTS
+//==============================================================================
 //   Where section IX answers "is this CONTAINER filterable?", this section
 // answers "is this type one of the filter module's own shapes?": a filter
 // operation (the DFilterOpFn protocol), an applicable filter (chain /

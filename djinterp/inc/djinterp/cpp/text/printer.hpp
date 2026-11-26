@@ -55,43 +55,37 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    PRINT OPTIONS
-      -------------
-      a. DPrintOptions
-
-II.   OUTPUT SINKS
-      ------------
-      a. DStringSink
-      b. DStreamSink
-
-III.  PROTOCOL ACCESS (internal)
-      --------------------------
-      a. to_string_value
-      b. read_name,  read_text,  read_kind
-      c.    read_attributes,        read_children
-            d. read_attribute_name,    read_attribute_value
-
-IV.   PRINT POLICY
-      ------------
-      a. DElementForm
-      b. DXmlPrintPolicy
-      c.    DBoxedPrintPolicy
-            d. box_policy, xml_policy
-
-V.    DOCUMENT PRINTER
-      ----------------
-      a. DDocumentPrinter<Sink, Policy>
-
-VI.   CONVENIENCE FUNCTIONS
-      ---------------------
-      a. print_node
-      b. node_to_string
-      c.    render
-
-VII.  FILE PRINTER
-      ------------
-      a. DFilePrinter
-      b. print_document_to_file
+1.  PRINT OPTIONS
+    -------------
+    a. DPrintOptions
+2.  OUTPUT SINKS
+    ------------
+    a. DStringSink
+    b. DStreamSink
+3.  PROTOCOL ACCESS (internal)
+    --------------------------
+    a. to_string_value
+    b. read_name,  read_text,  read_kind
+    c.    read_attributes,        read_children
+          d. read_attribute_name,    read_attribute_value
+4.  PRINT POLICY
+    ------------
+    a. DElementForm
+    b. DXmlPrintPolicy
+    c.    DBoxedPrintPolicy
+          d. box_policy, xml_policy
+5.  DOCUMENT PRINTER
+    ----------------
+    a. DDocumentPrinter<Sink, Policy>
+6.  CONVENIENCE FUNCTIONS
+    ---------------------
+    a. print_node
+    b. node_to_string
+    c.    render
+7.  FILE PRINTER
+    ------------
+    a. DFilePrinter
+    b. print_document_to_file
 */
 
 #ifndef DJINTERP_TEXT_PRINTER_HPP
@@ -126,9 +120,9 @@ VII.  FILE PRINTER
 NS_DJINTERP
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                  I.   PRINT OPTIONS                                     ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  PRINT OPTIONS
+//==============================================================================
 
 // DPrintOptions
 //   struct: the format-agnostic rendering knobs. `indent` is the string
@@ -151,9 +145,9 @@ struct DPrintOptions
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                  II.   OUTPUT SINKS                                     ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  OUTPUT SINKS
+//==============================================================================
 
 //   The output sinks (`DStringSink`, `DStreamSink`, `DOutputStreamSink`) live
 // in `writer.hpp` - the generic IO foundation this header includes - because
@@ -164,9 +158,9 @@ struct DPrintOptions
 // with ok().
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                III.   PROTOCOL ACCESS (internal)                        ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  PROTOCOL ACCESS (internal)
+//==============================================================================
 
 //   These helpers read the node protocol uniformly, hiding the short-form
 // vs getter-form naming split behind compile-time dispatch. Each is valid
@@ -327,9 +321,9 @@ NS_INTERNAL
 NS_END  // internal
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                  IV.   PRINT POLICY                                     ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  PRINT POLICY
+//==============================================================================
 
 // DElementForm
 //   enum: how an element is closed - the one place markup dialects diverge.
@@ -556,9 +550,9 @@ D_NODISCARD inline DBoxedPrintPolicy xml_policy()
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                  V.   DOCUMENT PRINTER                                      ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 5.  DOCUMENT PRINTER
+//==============================================================================
 
 // DDocumentPrinter
 //   class: the protocol-generic printer. `Sink` is any callable
@@ -963,9 +957,9 @@ private:
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                VI.   CONVENIENCE FUNCTIONS                              ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 6.  CONVENIENCE FUNCTIONS
+//==============================================================================
 
 // print_node
 //   function: print `_node` to `_sink` with `_options`, constructing a
@@ -1031,9 +1025,9 @@ D_NODISCARD inline DXmlString render(
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                  VII.   FILE PRINTER                                    ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 7.  FILE PRINTER
+//==============================================================================
 
 // DFilePrinter
 //   class: a byte sink targeting a file, with a convenience to print a whole

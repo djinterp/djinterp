@@ -732,7 +732,7 @@ TABLE OF CONTENTS
 
 
 //==============================================================================
-// 10.  INDEXING AND VIEWS
+// 10. INDEXING AND VIEWS
 //==============================================================================
 
 
@@ -776,7 +776,7 @@ TABLE OF CONTENTS
 
 
 //==============================================================================
-// 11.  USER-DEFINED FUNCTIONS AND AGGREGATES
+// 11. USER-DEFINED FUNCTIONS AND AGGREGATES
 //==============================================================================
 
 
@@ -798,7 +798,7 @@ TABLE OF CONTENTS
 
 
 //==============================================================================
-// 12.  STORAGE ENGINE AND COMPACTION
+// 12. STORAGE ENGINE AND COMPACTION
 //==============================================================================
 // Cassandra uses a log-structured merge-tree (LSM) storage engine:
 // writes go to a commit log and an in-memory memtable, then flush to
@@ -855,7 +855,7 @@ TABLE OF CONTENTS
 
 
 //==============================================================================
-// 13.  REPLICATION, CONSISTENCY, AND DISTRIBUTION
+// 13. REPLICATION, CONSISTENCY, AND DISTRIBUTION
 //==============================================================================
 
 
@@ -905,7 +905,7 @@ TABLE OF CONTENTS
 
 
 //==============================================================================
-// 14.  SECURITY
+// 14. SECURITY
 //==============================================================================
 
 
@@ -967,7 +967,7 @@ TABLE OF CONTENTS
 
 
 //==============================================================================
-// 15.  DSE-SPECIFIC FEATURES
+// 15. DSE-SPECIFIC FEATURES
 //==============================================================================
 // These features are only available on DataStax Enterprise. They require
 // D_ENV_CASS_IS_DSE to be set.
@@ -1004,7 +1004,7 @@ TABLE OF CONTENTS
 
 
 //==============================================================================
-// 16.  COMPOSITE CHECKS
+// 16. COMPOSITE CHECKS
 //==============================================================================
 
 
@@ -1066,7 +1066,7 @@ TABLE OF CONTENTS
 
 
 //==============================================================================
-// 17.  DEPRECATION AND REMOVAL
+// 17. DEPRECATION AND REMOVAL
 //==============================================================================
 
 
@@ -1097,7 +1097,7 @@ TABLE OF CONTENTS
 
 
 //==============================================================================
-// 18.  CONSUMER COMPATIBILITY LAYER
+// 18. CONSUMER COMPATIBILITY LAYER
 //==============================================================================
 // The djinterp Cassandra connection layer (cassandra.hpp) consumes a stable,
 // flattened vocabulary prefixed D_ENV_CASSANDRA_*. This section publishes it

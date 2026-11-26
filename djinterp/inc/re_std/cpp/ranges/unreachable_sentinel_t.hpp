@@ -23,6 +23,15 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  UNREACHABLE_SENTINEL_T
+    ----------------------
+2.  UNREACHABLE_SENTINEL (convenience constant)
+    -------------------------------------------
+*/
+
 #ifndef RE_STD_RANGES_UNREACHABLE_SENTINEL_T_HPP
 #define RE_STD_RANGES_UNREACHABLE_SENTINEL_T_HPP 1
 
@@ -36,9 +45,9 @@ namespace re_std
 {
 
 
-// ===========================================================================
-// I.   UNREACHABLE_SENTINEL_T
-// ===========================================================================
+//==============================================================================
+// 1.  UNREACHABLE_SENTINEL_T
+//==============================================================================
 
 // unreachable_sentinel_t
 //   class: sentinel that compares unequal to any iterator. Used as
@@ -93,9 +102,9 @@ struct unreachable_sentinel_t
 };
 
 
-// ===========================================================================
-// II.  UNREACHABLE_SENTINEL (convenience constant)
-// ===========================================================================
+//==============================================================================
+// 2.  UNREACHABLE_SENTINEL (convenience constant)
+//==============================================================================
 
 #if RE_STD_LANG_IS_CPP17_OR_HIGHER
 

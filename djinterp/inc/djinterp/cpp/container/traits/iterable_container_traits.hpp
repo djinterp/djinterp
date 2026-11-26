@@ -107,9 +107,9 @@
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   SFINAE method / alias detection
-// ===========================================================================
+//==============================================================================
+// 1.  SFINAE method / alias detection
+//==============================================================================
 //   Probes strip cv-ref via clean_t.  begin()/end() are probed on a non-const
 // lvalue, so the presence of a traversal is detected whether the entry points
 // are const- or non-const-qualified (the const/non-const MODE is separated in
@@ -139,9 +139,9 @@ D_TYPE_TRAIT_HAS_TYPE(has_const_iterator_alias, const_iterator)
 D_TYPE_TRAIT_HAS_TYPE(has_value_type_alias, value_type)
 
 
-// ===========================================================================
-// II.  Base classification (iterable vs non-iterable)
-// ===========================================================================
+//==============================================================================
+// 2.  Base classification (iterable vs non-iterable)
+//==============================================================================
 
 // is_iterable_container
 //   trait: true iff the container exposes a begin()/end() traversal.
@@ -168,9 +168,9 @@ struct is_non_iterable_container
 D_TYPE_TRAIT_VALUE_BOOL(is_non_iterable_container)
 
 
-// ===========================================================================
-// III. Mode sub-axis (const vs non-const iteration)
-// ===========================================================================
+//==============================================================================
+// 3.  Mode sub-axis (const vs non-const iteration)
+//==============================================================================
 
 // provides_const_iteration
 //   trait: true iff a const traversal is available - begin() and end() are
@@ -345,9 +345,9 @@ struct is_mutable_iterable_container
 D_TYPE_TRAIT_VALUE_BOOL(is_mutable_iterable_container)
 
 
-// ===========================================================================
-// V.   Aggregate snapshot
-// ===========================================================================
+//==============================================================================
+// 5.  Aggregate snapshot
+//==============================================================================
 
 // DIterableContainerClass
 //   trait: one-shot snapshot of the iterability axis for `Type`. Gathers

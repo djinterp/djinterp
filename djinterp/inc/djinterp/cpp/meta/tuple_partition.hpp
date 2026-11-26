@@ -66,44 +66,37 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    sizes wrapper
-      -------------
-
-II.   Type-level partitioning — variable sizes
-      ----------------------------------------
-      1.    partition_tuples<Sizes, Source...>
-      2.    partition_tuples_t
-
-III.  Type-level partitioning — uniform size
-      --------------------------------------
-      1.    partition_tuples_sized<N, Source...>
-      2.    partition_tuples_sized_t
-
-IV.   Value-level copy — uniform size
-      -------------------------------
-      1.    copy_tuples_sized<N>(args...)            (pack)
-      2.    copy_tuples_sized<N>(tuple)              (tuple)
-
-V.    Value-level copy — variable sizes
-      ---------------------------------
-      1.    copy_tuples<sizes>(args...)               (pack)
-      2.    copy_tuples<sizes>(tuple)                 (tuple)
-
-VI.   Value-level partition — uniform size
-      ------------------------------------
-      1.    partition_tuples_sized<N>(args&&...)     (pack)
-      2.    partition_tuples_sized<N>(tuple&&)       (tuple)
-
-VII.  Value-level partition — variable sizes
-      --------------------------------------
-      1.    partition_tuples<sizes>(args&&...)        (pack)
-      2.    partition_tuples<sizes>(tuple&&)          (tuple)
-
-VIII. Auto-NTTP forms (C++20)
-      -----------------------
-      1.    DNttpChunk<Vs...>
-      2.    DPartitionPackSized<N, Vs...>
-      3.    partition_pack<Sizes, Vs...>
+1.  sizes wrapper
+    -------------
+2.  Type-level partitioning — variable sizes
+    ----------------------------------------
+    1.    partition_tuples<Sizes, Source...>
+    2.    partition_tuples_t
+3.  Type-level partitioning — uniform size
+    --------------------------------------
+    1.    partition_tuples_sized<N, Source...>
+    2.    partition_tuples_sized_t
+4.  Value-level copy — uniform size
+    -------------------------------
+    1.    copy_tuples_sized<N>(args...)            (pack)
+    2.    copy_tuples_sized<N>(tuple)              (tuple)
+5.  Value-level copy — variable sizes
+    ---------------------------------
+    1.    copy_tuples<sizes>(args...)               (pack)
+    2.    copy_tuples<sizes>(tuple)                 (tuple)
+6.  Value-level partition — uniform size
+    ------------------------------------
+    1.    partition_tuples_sized<N>(args&&...)     (pack)
+    2.    partition_tuples_sized<N>(tuple&&)       (tuple)
+7.  Value-level partition — variable sizes
+    --------------------------------------
+    1.    partition_tuples<sizes>(args&&...)        (pack)
+    2.    partition_tuples<sizes>(tuple&&)          (tuple)
+8.  Auto-NTTP forms (C++20)
+    -----------------------
+    1.    DNttpChunk<Vs...>
+    2.    DPartitionPackSized<N, Vs...>
+    3.    partition_pack<Sizes, Vs...>
 */
 
 #ifndef DJINTERP_META_TUPLE_PARTITION_HPP
@@ -128,9 +121,9 @@ VIII. Auto-NTTP forms (C++20)
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   sizes wrapper
-// ===========================================================================
+//==============================================================================
+// 1.  sizes wrapper
+//==============================================================================
 
 // DSizes
 //   alias: explicit boundary between chunk sizes and types in
@@ -145,9 +138,9 @@ template<std::size_t... Ns>
 using sizes = DSizes<Ns...>;
 
 
-// ===========================================================================
-// II.  Type-level partitioning — variable sizes
-// ===========================================================================
+//==============================================================================
+// 2.  Type-level partitioning — variable sizes
+//==============================================================================
 
 NS_INTERNAL
 
@@ -354,9 +347,9 @@ using partition_tuples_t =
     typename partition_tuples_trait<Sizes, Source...>::type;
 
 
-// ===========================================================================
-// III. Type-level partitioning — uniform size
-// ===========================================================================
+//==============================================================================
+// 3.  Type-level partitioning — uniform size
+//==============================================================================
 
 NS_INTERNAL
 
@@ -453,9 +446,9 @@ using partition_tuples_sized_t =
     typename DPartitionTuplesSizedTrait<N, Source...>::type;
 
 
-// ===========================================================================
-// IV.  Value-level copy — uniform size
-// ===========================================================================
+//==============================================================================
+// 4.  Value-level copy — uniform size
+//==============================================================================
 //   Reads from a const-reference source, produces a fresh tuple-of-
 // tuples.  The source is untouched.  Decayed types are used in the
 // result so that lifetime issues at the call site become obvious.
@@ -561,9 +554,9 @@ auto copy_tuples_sized(
 }
 
 
-// ===========================================================================
-// V.   Value-level copy — variable sizes
-// ===========================================================================
+//==============================================================================
+// 5.  Value-level copy — variable sizes
+//==============================================================================
 
 NS_INTERNAL
 
@@ -748,9 +741,9 @@ auto copy_tuples(
 }
 
 
-// ===========================================================================
-// VI.  Value-level partition — uniform size
-// ===========================================================================
+//==============================================================================
+// 6.  Value-level partition — uniform size
+//==============================================================================
 //   Destructive overloads: rvalue-reference input, elements are MOVED
 // into the result.  Same shapes as the copy_* counterparts.
 
@@ -852,9 +845,9 @@ auto partition_tuples_sized(
 }
 
 
-// ===========================================================================
-// VII. Value-level partition — variable sizes
-// ===========================================================================
+//==============================================================================
+// 7.  Value-level partition — variable sizes
+//==============================================================================
 
 NS_INTERNAL
 
@@ -972,9 +965,9 @@ auto partition_tuples(
 }
 
 
-// ===========================================================================
-// VIII. Auto-NTTP forms (C++20)
-// ===========================================================================
+//==============================================================================
+// 8.  Auto-NTTP forms (C++20)
+//==============================================================================
 //   The auto-NTTP analogue of the variable / uniform forms.  Source
 // is a flat `auto... Vs` pack; each chunk becomes an `DNttpChunk<...>`
 // preserving its values as non-type template parameters.

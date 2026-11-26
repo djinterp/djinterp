@@ -57,22 +57,22 @@
 /*
 TABLE OF CONTENTS
 =================
-0.    PARITY ORACLE CONFIGURATION
-      ---------------------------
-      1.    Master switch              (D_CFG_TEST_PARITY)
-      2.    What may be recorded       (D_CFG_TEST_PARITY_RECORD_*)
-      3.    Sizes                      (D_CFG_TEST_PARITY_PATH_MAX)
-      4.    The wire grammar           (D_CFG_TEST_PARITY_DELIM, _ESCAPE,
-                                        _VERSION)
-      5.    Strictness                 (D_CFG_TEST_PARITY_STRICT)
-      6.    Validation of the knobs
-      7.    Derived values             (D_INTERNAL_TEST_PARITY_*)
+0.  PARITY ORACLE CONFIGURATION
+    ---------------------------
+    1.    Master switch              (D_CFG_TEST_PARITY)
+    2.    What may be recorded       (D_CFG_TEST_PARITY_RECORD_*)
+    3.    Sizes                      (D_CFG_TEST_PARITY_PATH_MAX)
+    4.    The wire grammar           (D_CFG_TEST_PARITY_DELIM, _ESCAPE,
+                                      _VERSION)
+    5.    Strictness                 (D_CFG_TEST_PARITY_STRICT)
+    6.    Validation of the knobs
+    7.    Derived values             (D_INTERNAL_TEST_PARITY_*)
 */
 
 
-// ===========================================================================
-// 0.   PARITY ORACLE CONFIGURATION
-// ===========================================================================
+//==============================================================================
+// 0.  PARITY ORACLE CONFIGURATION
+//==============================================================================
 
 // --- 0.1  Master switch ---
 

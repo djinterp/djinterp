@@ -28,6 +28,13 @@
 *                                                            revised: 2026.11.24
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+5.  ONE NAME FOR EVERY FAMILY (C++)
+    -------------------------------
+*/
+
 #ifndef DJINTERP_C_MATH_QUAT_CPP_H
 #define DJINTERP_C_MATH_QUAT_CPP_H 1
 

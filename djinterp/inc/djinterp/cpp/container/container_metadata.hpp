@@ -51,17 +51,14 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    DContainerMetadata (class)
-      --------------------------
-
-II.   is_container_metadata (detection trait)
-      ---------------------------------------
-
-III.  equality
-      --------
-
-IV.   DMetadataCarrier (protocol-exposing mixin)
-      ------------------------------------------
+1.  DContainerMetadata (class)
+    --------------------------
+2.  is_container_metadata (detection trait)
+    ---------------------------------------
+3.  equality
+    --------
+4.  DMetadataCarrier (protocol-exposing mixin)
+    ------------------------------------------
 */
 
 #ifndef DJINTERP_CONTAINER_CONTAINER_METADATA_HPP
@@ -86,9 +83,9 @@ IV.   DMetadataCarrier (protocol-exposing mixin)
 
 NS_DJINTERP
 
-// ===========================================================================
-// I.   DContainerMetadata (class)
-// ===========================================================================
+//==============================================================================
+// 1.  DContainerMetadata (class)
+//==============================================================================
 
 // DContainerMetadata
 //   class: an ordered collection of Key -> Value metadata entries over an
@@ -260,9 +257,9 @@ private:
 };
 
 
-// ===========================================================================
-// II.  is_container_metadata (detection trait)
-// ===========================================================================
+//==============================================================================
+// 2.  is_container_metadata (detection trait)
+//==============================================================================
 
 // is_container_metadata
 //   trait: true when Type (after stripping cv/ref) is a specialization of
@@ -294,9 +291,9 @@ inline constexpr bool is_container_metadata_v =
 #endif
 
 
-// ===========================================================================
-// III. equality
-// ===========================================================================
+//==============================================================================
+// 3.  equality
+//==============================================================================
 
 // operator== / operator!=
 //   two metadata collections are equal iff they bind the same keys to equal
@@ -342,9 +339,9 @@ D_NODISCARD bool operator!=(
 }
 
 
-// ===========================================================================
-// IV.  DMetadataCarrier (protocol-exposing mixin)
-// ===========================================================================
+//==============================================================================
+// 4.  DMetadataCarrier (protocol-exposing mixin)
+//==============================================================================
 
 // DMetadataCarrier
 //   class: a mixin a container inherits to CARRY a metadata object and expose

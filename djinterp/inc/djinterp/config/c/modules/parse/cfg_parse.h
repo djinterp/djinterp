@@ -63,6 +63,71 @@
 *                                                            revised: 2026.11.27
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  FEATURE GATES
+    -------------
+    1.  Aggregate
+         1.  D_CFG_PARSE_ALL
+    2.  Allocation
+         1.  D_CFG_PARSE_DIAG_HEAP
+         2.  D_CFG_PARSE_OP_SET_HEAP
+         3.  D_CFG_PARSE_POOL_HEAP
+         4.  D_CFG_PARSE_PROGRAM_HEAP
+         5.  D_CFG_PARSE_EXPR_HEAP
+    3.  Optional facilities
+         1.  D_CFG_PARSE_DIAG_FORMAT
+         2.  D_CFG_PARSE_MACHINE_TRACE
+         3.  D_CFG_PARSE_PROGRAM_TRANSPORT
+         4.  D_CFG_PARSE_EXPR_RENDER
+         5.  D_CFG_PARSE_EXPR_SCAN
+         6.  D_CFG_PARSE_SETTINGS
+         7.  D_CFG_PARSE_DIAG_TEXT
+         8.  D_CFG_PARSE_DIAG_FACTS
+         9.  D_CFG_PARSE_LOG
+         10. D_CFG_PARSE_LOG_CODES
+         11. D_CFG_PARSE_LIBCLANG
+    4.  Validation
+2.  SIZING CONSTANTS
+    ----------------
+    1.  Diagnostic sink
+         1.  D_PARSE_DIAG_DEFAULT_ITEMS
+         2.  D_PARSE_DIAG_DEFAULT_TEXT
+         3.  D_PARSE_DIAG_DEFAULT_FACTS
+         4.  D_PARSE_DIAG_MESSAGE_MAX
+    2.  Operand pool and program
+         1.  D_PARSE_POOL_DEFAULT_BYTES
+         2.  D_PARSE_POOL_DEFAULT_ENTRIES
+         3.  D_PARSE_PROGRAM_DEFAULT_CODE
+    3.  Machine
+         1.  D_PARSE_MACHINE_STEP_LIMIT
+    4.  Expression core v2
+         1.  D_CFG_PARSE_EXPR_MAX_DEPTH
+         2.  D_CFG_PARSE_EXPR_MAX_ERRORS
+         3.  D_CFG_PARSE_EXPR_ERROR_ORDER
+3.  DERIVED VALUES
+    --------------
+    1.  Effective gates
+         1.  D_INTERNAL_PARSE_DIAG_HEAP
+         2.  D_INTERNAL_PARSE_OP_SET_HEAP
+         3.  D_INTERNAL_PARSE_DIAG_FORMAT
+         4.  D_INTERNAL_PARSE_MACHINE_TRACE
+         5.  D_INTERNAL_PARSE_POOL_HEAP
+         6.  D_INTERNAL_PARSE_PROGRAM_HEAP
+         7.  D_INTERNAL_PARSE_PROGRAM_TRANSPORT
+         8.  D_INTERNAL_PARSE_EXPR_HEAP
+         9.  D_INTERNAL_PARSE_EXPR_RENDER
+         10. D_INTERNAL_PARSE_EXPR_SCAN
+         11. D_INTERNAL_PARSE_SETTINGS
+         12. D_INTERNAL_PARSE_LIBCLANG
+         13. D_INTERNAL_PARSE_DIAG_TEXT
+         14. D_INTERNAL_PARSE_DIAG_FACTS
+         15. D_INTERNAL_PARSE_LOG
+    2.  Aggregate consequences
+         1.  D_INTERNAL_PARSE_HEAP
+*/
+
 #ifndef DJINTERP_CONFIG_C_PARSE_CFG_PARSE_H
 #define DJINTERP_CONFIG_C_PARSE_CFG_PARSE_H 1
 

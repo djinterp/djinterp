@@ -18,6 +18,15 @@
 *                                                            revised: 2026.10.01
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+0.  COMPATIBILITY MACROS
+    --------------------
+1.  ALL_OF
+    ------
+*/
+
 #ifndef RE_STD_ALGORITHM_ALL_OF_HPP
 #define RE_STD_ALGORITHM_ALL_OF_HPP 1
 
@@ -25,9 +34,9 @@
 #include "../../config.hpp"  // RE_STD_* configuration
 
 
-// ===========================================================================
-// 0.   COMPATIBILITY MACROS
-// ===========================================================================
+//==============================================================================
+// 0.  COMPATIBILITY MACROS
+//==============================================================================
 // RE_STD_CONSTEXPR_CPP14: constexpr from C++14 onward; empty on C++98/03/11.
 // Required by every loop-bodied algorithm in this module. Local
 // redefinition pending a global qualifier-macro-table entry.
@@ -37,9 +46,9 @@ namespace re_std
 {
 
 
-// ===========================================================================
-// I.   ALL_OF
-// ===========================================================================
+//==============================================================================
+// 1.  ALL_OF
+//==============================================================================
 
 // all_of
 //   function: returns true if _pred holds for every element in

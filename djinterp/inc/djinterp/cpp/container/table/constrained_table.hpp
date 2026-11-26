@@ -60,19 +60,17 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    is_constrained_table (detection trait)
-      --------------------------------------
-
-II.   constrained_table (class)
-      -------------------------
-      1.    member types and overlay / axis markers
-      2.    construction
-      3.    read surface (delegated, const)
-      4.    restriction queries (capacity / domain)
-      5.    structural mutation (restriction-preserving)
-
-III.  make_constrained_table
-      ----------------------
+1.  is_constrained_table (detection trait)
+    --------------------------------------
+2.  constrained_table (class)
+    -------------------------
+    1.    member types and overlay / axis markers
+    2.    construction
+    3.    read surface (delegated, const)
+    4.    restriction queries (capacity / domain)
+    5.    structural mutation (restriction-preserving)
+3.  make_constrained_table
+    ----------------------
 */
 
 #ifndef DJINTERP_CONTAINER_TABLE_CONSTRAINED_TABLE_HPP
@@ -98,9 +96,9 @@ III.  make_constrained_table
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   is_constrained_table (detection trait)
-// ===========================================================================
+//==============================================================================
+// 1.  is_constrained_table (detection trait)
+//==============================================================================
 
 // DConstrainedTable (fwd)
 template<typename    Type,
@@ -141,9 +139,9 @@ inline constexpr bool is_constrained_table_v =
 #endif
 
 
-// ===========================================================================
-// II.  constrained_table (class)
-// ===========================================================================
+//==============================================================================
+// 2.  constrained_table (class)
+//==============================================================================
 
 // DConstrainedTable
 //   class: a table capped at MaxRows rows and, optionally, with cells
@@ -472,9 +470,9 @@ template<typename    Type,
 using constrained_table = DConstrainedTable<Type, MaxRows, SizeType, DifferenceType, Options...>;
 
 
-// ===========================================================================
-// III. make_constrained_table
-// ===========================================================================
+//==============================================================================
+// 3.  make_constrained_table
+//==============================================================================
 
 // make_constrained_table
 //   function: a capacity-only constrained_table<Type, MaxRows>.

@@ -76,9 +76,9 @@
 NS_DJINTERP
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             I.    CONTRAVARIANT PROTOCOL                                ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  CONTRAVARIANT PROTOCOL
+//==============================================================================
 
 // contravariant_traits
 //   trait: primary template, undefined by default.  Each concrete
@@ -146,9 +146,9 @@ static constexpr bool is_contravariant_v = is_contravariant<Type>::value;
 #endif
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             0.    PREDICATE SFINAE STRUCTURAL TRAITS                    ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 0.  PREDICATE SFINAE STRUCTURAL TRAITS
+//==============================================================================
 //   Self-contained detection vocabulary for the contravariant protocol,
 // mirroring functor.hpp Section 0.  is_contravariant (above) answers "does a
 // contravariant_traits specialization exist?"; the trait here answers "what is
@@ -196,9 +196,9 @@ using contravariant_value_type_t =
     typename contravariant_value_type<Contravariant>::type;
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             II.   GENERIC CONTRAVARIANT OPERATIONS                      ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  GENERIC CONTRAVARIANT OPERATIONS
+//==============================================================================
 
 // contramap
 //   function: the contravariant map.  Pre-composes _g : B -> A onto the

@@ -50,12 +50,12 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    SORTED RUN                DSortedRun<Type, Compare>
-II.   MERGE PRIMITIVE           internal::merge_sorted_helper
-III.  ALGEBRA REGISTRATION      semigroup_traits<DSortedRun<...> >,
-                                monoid_traits<DSortedRun<...> >
-IV.   FACTORIES                 make_sorted_run, adopt_sorted_run,
-                                singleton_run, to_singleton_runs
+1.  SORTED RUN                DSortedRun<Type, Compare>
+2.  MERGE PRIMITIVE           internal::merge_sorted_helper
+3.  ALGEBRA REGISTRATION      semigroup_traits<DSortedRun<...> >,
+                              monoid_traits<DSortedRun<...> >
+4.  FACTORIES                 make_sorted_run, adopt_sorted_run,
+                              singleton_run, to_singleton_runs
 */
 
 #ifndef DJINTERP_UTIL_SORT_MONOID_HPP
@@ -83,9 +83,9 @@ IV.   FACTORIES                 make_sorted_run, adopt_sorted_run,
 NS_DJINTERP
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                    I.   SORTED RUN                                      ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  SORTED RUN
+//==============================================================================
 
 // DSortedRun
 //   class: a value-semantic sequence of Type held in Compare order - the
@@ -172,9 +172,9 @@ private:
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                    II.  MERGE PRIMITIVE                                 ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  MERGE PRIMITIVE
+//==============================================================================
 
 NS_INTERNAL
 
@@ -238,9 +238,9 @@ NS_INTERNAL
 NS_END  // internal
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                    III. ALGEBRA REGISTRATION                            ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  ALGEBRA REGISTRATION
+//==============================================================================
 //   Both protocols are specialized in the explicit two-argument <T, void>
 // form against the SFINAE-hooked primaries of semigroup.hpp and monoid.hpp,
 // as every instance in monoid.hpp is written.  Neither operation is
@@ -300,9 +300,9 @@ struct monoid_traits<DSortedRun<Type, Compare>, void>
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                    IV.  FACTORIES                                       ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  FACTORIES
+//==============================================================================
 
 // make_sorted_run
 //   function: sorts _data under _compare with merge_sort, which is stable,

@@ -36,26 +36,20 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    BLOCK CONCEPTS
-      --------------
-
-II.   INLINE CONCEPTS
-      ---------------
-
-III.  CAPABILITY CONCEPTS
-      -------------------
-
-IV.   DOCUMENT CONCEPTS
-      -----------------
-
-V.    RENDER-TARGET CONCEPTS
-      ----------------------
-
-VI.   COMPOSITE CONCEPTS
-      ------------------
-
-VII.  BACKEND CONCEPTS
-      ----------------
+1.  BLOCK CONCEPTS
+    --------------
+2.  INLINE CONCEPTS
+    ---------------
+3.  CAPABILITY CONCEPTS
+    -------------------
+4.  DOCUMENT CONCEPTS
+    -----------------
+5.  RENDER-TARGET CONCEPTS
+    ----------------------
+6.  COMPOSITE CONCEPTS
+    ------------------
+7.  BACKEND CONCEPTS
+    ----------------
 */
 
 #ifndef DJINTERP_TEXT_MARKDOWN_MARKDOWN_TEMPLATE_CONCEPTS_HPP
@@ -84,9 +78,9 @@ NS_DJINTERP
 namespace markdown {
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                I.   BLOCK CONCEPTS                                      ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  BLOCK CONCEPTS
+//==============================================================================
 
 // markdown_block_type
 //   concept: satisfied by any type that satisfies the markdown
@@ -169,9 +163,9 @@ concept table_block_type =
     && ( has_table_alignment_method<Type>::value );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                II.   INLINE CONCEPTS                                    ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  INLINE CONCEPTS
+//==============================================================================
 
 // markdown_inline_type
 //   concept: satisfied by any type that satisfies the markdown
@@ -215,9 +209,9 @@ concept styled_inline_type =
     && ( has_children_access<Type>::value );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                III.   CAPABILITY CONCEPTS                               ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  CAPABILITY CONCEPTS
+//==============================================================================
 
 // mutable_block_type
 //   concept: a block exposing text mutation.
@@ -235,9 +229,9 @@ concept mutable_inline_type =
     && ( has_set_text_method<Type>::value );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                IV.   DOCUMENT CONCEPTS                                  ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  DOCUMENT CONCEPTS
+//==============================================================================
 
 // markdown_document_type
 //   concept: a document type exposing flavor + at least one
@@ -262,9 +256,9 @@ concept flavoured_markdown_document =
     has_flavor_access<Type>::value;
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                V.   RENDER-TARGET CONCEPTS                              ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 5.  RENDER-TARGET CONCEPTS
+//==============================================================================
 
 // markdown_renderable_document
 //   concept: a document exposing render_to_markdown.
@@ -294,9 +288,9 @@ concept plaintext_renderable_document =
     has_render_to_plaintext_method<Type>::value;
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                VI.   COMPOSITE CONCEPTS                                 ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 6.  COMPOSITE CONCEPTS
+//==============================================================================
 
 // full_markdown_document
 //   concept: a document exposing every render target plus the
@@ -310,9 +304,9 @@ concept full_markdown_document =
     && ( plaintext_renderable_document<Type> );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                VII.   BACKEND CONCEPTS                                  ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 7.  BACKEND CONCEPTS
+//==============================================================================
 
 // markdown_backend_type
 //   concept: satisfied by any type tagged with

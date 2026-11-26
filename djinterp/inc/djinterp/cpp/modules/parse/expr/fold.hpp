@@ -55,6 +55,17 @@
 *                                                            revised: 2026.11.27
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  FOLDS
+    -----
+    1.  fold
+2.  WALKS
+    -----
+    1.  walk
+*/
+
 #ifndef DJINTERP_PARSE_EXPR_FOLD_HPP
 #define DJINTERP_PARSE_EXPR_FOLD_HPP 1
 

@@ -20,6 +20,25 @@
 *                                                            revised: 2026.10.01
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  Graph protocol concepts
+    -----------------------
+2.  Direction concepts
+    ------------------
+3.  Multiplicity / loops concepts
+    -----------------------------
+4.  Topology concepts
+    -----------------
+5.  Storage-strategy concepts
+    -------------------------
+6.  Capability concepts
+    -------------------
+7.  Classification-based shorthand concepts
+    ---------------------------------------
+*/
+
 #ifndef DJINTERP_CONTAINER_GRAPH_GRAPH_CONCEPTS_HPP
 #define DJINTERP_CONTAINER_GRAPH_GRAPH_CONCEPTS_HPP 1
 
@@ -42,9 +61,9 @@ NS_CONTAINER
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
-// ===========================================================================
-// I.    Graph protocol concepts
-// ===========================================================================
+//==============================================================================
+// 1.  Graph protocol concepts
+//==============================================================================
 
 template<typename Type>
 concept graph_type = traits::is_graph<Type>::value;
@@ -77,9 +96,9 @@ template<typename Type>
 concept edge_query_graph = traits::has_has_edge_method<Type>::value;
 
 
-// ===========================================================================
-// II.   Direction concepts
-// ===========================================================================
+//==============================================================================
+// 2.  Direction concepts
+//==============================================================================
 
 template<typename Type>
 concept directed_graph_type = traits::is_directed_graph_t<Type>::value;
@@ -100,9 +119,9 @@ template<typename Type>
 concept bidirected_graph_type = traits::is_bidirected_graph_t<Type>::value;
 
 
-// ===========================================================================
-// III.  Multiplicity / loops concepts
-// ===========================================================================
+//==============================================================================
+// 3.  Multiplicity / loops concepts
+//==============================================================================
 
 template<typename Type>
 concept simple_graph_type = traits::is_simple_graph_t<Type>::value;
@@ -117,9 +136,9 @@ template<typename Type>
 concept self_loop_graph_type = traits::allows_self_loops_t<Type>::value;
 
 
-// ===========================================================================
-// IV.   Topology concepts
-// ===========================================================================
+//==============================================================================
+// 4.  Topology concepts
+//==============================================================================
 
 template<typename Type>
 concept dag_graph_type = traits::is_dag_t<Type>::value;
@@ -131,9 +150,9 @@ template<typename Type>
 concept forest_graph_type = traits::is_forest_t<Type>::value;
 
 
-// ===========================================================================
-// V.    Storage-strategy concepts
-// ===========================================================================
+//==============================================================================
+// 5.  Storage-strategy concepts
+//==============================================================================
 
 template<typename Type>
 concept adjacency_list_graph_type =
@@ -167,9 +186,9 @@ concept hyperedge_storage_graph_type =
     traits::is_hyperedge_storage_t<Type>::value;
 
 
-// ===========================================================================
-// VI.   Capability concepts
-// ===========================================================================
+//==============================================================================
+// 6.  Capability concepts
+//==============================================================================
 
 template<typename Type>
 concept weighted_graph_type = traits::is_weighted_graph_t<Type>::value;
@@ -194,9 +213,9 @@ template<typename Type>
 concept out_degree_graph = traits::has_out_degree_method<Type>::value;
 
 
-// ===========================================================================
-// VII.  Classification-based shorthand concepts
-// ===========================================================================
+//==============================================================================
+// 7.  Classification-based shorthand concepts
+//==============================================================================
 
 template<typename Type>
 concept classified_graph_type = traits::DGraphClass<Type>::is_graph_type;

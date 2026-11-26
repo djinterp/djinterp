@@ -25,6 +25,17 @@
 *                                                            revised: 2026.10.04
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+0.  CONDITIONAL INCLUDES
+    --------------------
+1.  BAD_EXPECTED_ACCESS<void>  (base class)
+    ---------------------------------------
+2.  BAD_EXPECTED_ACCESS<E>  (carries the error payload)
+    ---------------------------------------------------
+*/
+
 #ifndef RE_STD_EXPECTED_BAD_EXPECTED_ACCESS_HPP
 #define RE_STD_EXPECTED_BAD_EXPECTED_ACCESS_HPP 1
 
@@ -35,9 +46,9 @@
 // both; the derived class's ref-qualified accessors are C++11's, and below
 // C++11 it takes and hands back its error by copy.
 
-// ===========================================================================
-// 0.   CONDITIONAL INCLUDES
-// ===========================================================================
+//==============================================================================
+// 0.  CONDITIONAL INCLUDES
+//==============================================================================
 
 #if RE_STD_HAS_EXCEPTIONS
     // std
@@ -49,9 +60,9 @@ namespace re_std
 {
 
 
-// ===========================================================================
-// I.   BAD_EXPECTED_ACCESS<void>  (base class)
-// ===========================================================================
+//==============================================================================
+// 1.  BAD_EXPECTED_ACCESS<void>  (base class)
+//==============================================================================
 
 #if RE_STD_HAS_EXCEPTIONS
 
@@ -107,9 +118,9 @@ public:
 #endif  // RE_STD_HAS_EXCEPTIONS
 
 
-// ===========================================================================
-// II.  BAD_EXPECTED_ACCESS<E>  (carries the error payload)
-// ===========================================================================
+//==============================================================================
+// 2.  BAD_EXPECTED_ACCESS<E>  (carries the error payload)
+//==============================================================================
 
 // bad_expected_access<E>
 //   class: thrown by expected<T, E>::value() when *this holds no

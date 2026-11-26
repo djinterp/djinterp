@@ -44,17 +44,14 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    DDocAttributes                 (the hint bag: a DContainerMetadata alias)
-      -------------------------------------------------------------------------
-
-II.   Standard hint keys             (the shared key vocabulary)
-      ----------------------------------------------------------
-
-III.  Alignment interchange          (DTextAlignment <-> string)
-      ----------------------------------------------------------
-
-IV.   Accessors                      (attr_has / attr_or / attr_flag / attr_align)
-      ----------------------------------------------------------------------------
+1.  DDocAttributes                 (the hint bag: a DContainerMetadata alias)
+    -------------------------------------------------------------------------
+2.  Standard hint keys             (the shared key vocabulary)
+    ----------------------------------------------------------
+3.  Alignment interchange          (DTextAlignment <-> string)
+    ----------------------------------------------------------
+4.  Accessors                      (attr_has / attr_or / attr_flag / attr_align)
+    ----------------------------------------------------------------------------
 */
 
 #ifndef DJINTERP_UTIL_DOCUMENT_TEMPLATES_DOCUMENT_ATTRIBUTES_HPP
@@ -79,9 +76,9 @@ IV.   Accessors                      (attr_has / attr_or / attr_flag / attr_alig
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   DDocAttributes
-// ===========================================================================
+//==============================================================================
+// 1.  DDocAttributes
+//==============================================================================
 
 // DDocAttributes
 //   type: a document node's presentation-hint bag - an open string -> string
@@ -90,9 +87,9 @@ NS_DJINTERP
 using DDocAttributes = DContainerMetadata<std::string, std::string>;
 
 
-// ===========================================================================
-// II.  Standard hint keys
-// ===========================================================================
+//==============================================================================
+// 2.  Standard hint keys
+//==============================================================================
 //   The shared key names templates set and renderers read.  A convention, not
 // a closed set: any renderer may honour additional keys, and any renderer may
 // ignore any of these.  Exposed as symbols so both sides avoid stringly typos.
@@ -177,9 +174,9 @@ using DDocAttributes = DContainerMetadata<std::string, std::string>;
 #endif  // D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 
 
-// ===========================================================================
-// III. Alignment interchange
-// ===========================================================================
+//==============================================================================
+// 3.  Alignment interchange
+//==============================================================================
 
 // align_to_string
 //   function: the canonical token for an alignment, for writing into the
@@ -225,9 +222,9 @@ D_NODISCARD inline DTextAlignment align_from_string(
 }
 
 
-// ===========================================================================
-// IV.  Accessors
-// ===========================================================================
+//==============================================================================
+// 4.  Accessors
+//==============================================================================
 //   Thin readers over DDocAttributes so a renderer need not repeat the
 // find-or-default dance.  All are non-throwing (unlike DDocAttributes::at).
 

@@ -43,6 +43,21 @@
 *                                                            revised: 2026.10.03
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  Static footprint (exact)
+    ------------------------
+2.  Storage-shape signals
+    ---------------------
+3.  Own dynamic footprint (this level's acquired region)
+    ----------------------------------------------------
+4.  Recursive dynamic descent
+    -------------------------
+5.  Public footprint functions
+    --------------------------
+*/
+
 #ifndef DJINTERP_META_BYTE_SIZE_HPP
 #define DJINTERP_META_BYTE_SIZE_HPP 1
 
@@ -69,9 +84,9 @@
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   Static footprint (exact)
-// ===========================================================================
+//==============================================================================
+// 1.  Static footprint (exact)
+//==============================================================================
 
 // static_byte_size
 //   trait: the exact size in bytes of the container OBJECT - its inline cells
@@ -96,9 +111,9 @@ struct static_byte_size
 #endif
 
 
-// ===========================================================================
-// II.  Storage-shape signals
-// ===========================================================================
+//==============================================================================
+// 2.  Storage-shape signals
+//==============================================================================
 //   The surface probes that decide a container's dynamic footprint.  Kept as
 // local `_helper` detectors so byte-sizing carries its own siting evidence: the
 // dynamic signals mirror the Storage-axis has_dynamic_storage_signal (allocator
@@ -204,9 +219,9 @@ NS_INTERNAL
 NS_END  // internal
 
 
-// ===========================================================================
-// III. Own dynamic footprint (this level's acquired region)
-// ===========================================================================
+//==============================================================================
+// 3.  Own dynamic footprint (this level's acquired region)
+//==============================================================================
 //   The heap bytes of ONE container level, before descending into elements.
 // Dispatched on a compile-time shape so the hazardous sizeof(cell) is never
 // named for a static-sited type (whose cell type may be void): the tag selects
@@ -310,9 +325,9 @@ NS_INTERNAL
 NS_END  // internal
 
 
-// ===========================================================================
-// IV.  Recursive dynamic descent
-// ===========================================================================
+//==============================================================================
+// 4.  Recursive dynamic descent
+//==============================================================================
 
 NS_INTERNAL
 
@@ -358,9 +373,9 @@ NS_INTERNAL
 NS_END  // internal
 
 
-// ===========================================================================
-// V.   Public footprint functions
-// ===========================================================================
+//==============================================================================
+// 5.  Public footprint functions
+//==============================================================================
 
 // dynamic_byte_size
 //   function: the heap bytes a container holds out of line - zero for a

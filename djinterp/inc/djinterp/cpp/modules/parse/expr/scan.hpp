@@ -40,6 +40,17 @@
 *                                                            revised: 2026.11.27
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  THE CONFIGURATION
+    -----------------
+    1.  DScanConfig
+2.  THE SCANNER
+    -----------
+    1.  DScanner
+*/
+
 #ifndef DJINTERP_PARSE_EXPR_SCAN_HPP
 #define DJINTERP_PARSE_EXPR_SCAN_HPP 1
 

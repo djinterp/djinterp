@@ -92,9 +92,9 @@ NS_DB
 namespace dynamodb {
 
 
-// =============================================================================
-// I.   DYNAMODB ATTRIBUTE TYPE ENUMERATION
-// =============================================================================
+//==============================================================================
+// 1.  DYNAMODB ATTRIBUTE TYPE ENUMERATION
+//==============================================================================
 // DynamoDB describes every attribute value with a single-letter type
 // descriptor on the wire. Unlike SQL OIDs these are not numeric identifiers;
 // the values below are djinterp-local enumerators mapping onto those
@@ -139,9 +139,9 @@ enum class dynamodb_attribute_type : re_std::uint16_t
 };
 
 
-// =============================================================================
-// II.  ATTRIBUTE-TYPE-TO-FIELD_TYPE MAPPING
-// =============================================================================
+//==============================================================================
+// 2.  ATTRIBUTE-TYPE-TO-FIELD_TYPE MAPPING
+//==============================================================================
 
 // dynamodb_attribute_type_to_field_type
 //   function: maps a DynamoDB attribute type to the generic djinterp
@@ -283,9 +283,9 @@ const char* field_type_to_dynamodb_descriptor(
 }
 
 
-// =============================================================================
-// III. FEATURE SUPPORT (compile-time, version-gated)
-// =============================================================================
+//==============================================================================
+// 3.  FEATURE SUPPORT (compile-time, version-gated)
+//==============================================================================
 
 // dynamodb_type_support
 //   struct: compile-time attribute type availability flags gated by
@@ -474,9 +474,9 @@ struct dynamodb_feature_support
 };
 
 
-// =============================================================================
-// IV.  DYNAMODB API VERSION INFORMATION
-// =============================================================================
+//==============================================================================
+// 4.  DYNAMODB API VERSION INFORMATION
+//==============================================================================
 // DynamoDB is a managed service: there is no on-premises server version to
 // query. What is versioned is the service API contract (date-stamped, e.g.
 // "2012-08-10") and the AWS SDK build in use. This struct exposes that
@@ -519,9 +519,9 @@ struct dynamodb_version_info
 };
 
 
-// =============================================================================
-// V.   DYNAMODB MODE / CONSISTENCY ENUMERATIONS
-// =============================================================================
+//==============================================================================
+// 5.  DYNAMODB MODE / CONSISTENCY ENUMERATIONS
+//==============================================================================
 
 // dynamodb_capacity_mode
 //   enumeration: table throughput billing mode.
@@ -560,9 +560,9 @@ enum class dynamodb_return_values : re_std::uint8_t
 };
 
 
-// =============================================================================
-// VI.  DYNAMODB CONNECTION CONFIGURATION
-// =============================================================================
+//==============================================================================
+// 6.  DYNAMODB CONNECTION CONFIGURATION
+//==============================================================================
 
 // dynamodb_connect_config
 //   struct: DynamoDB-specific connection configuration extending the
@@ -641,9 +641,9 @@ struct dynamodb_connect_config
 };
 
 
-// =============================================================================
-// VII. DYNAMODB CONNECTION
-// =============================================================================
+//==============================================================================
+// 7.  DYNAMODB CONNECTION
+//==============================================================================
 
 // dynamodb_connection
 //   class: concrete DynamoDB connection implementation via the AWS SDK
@@ -1621,9 +1621,9 @@ private:
 };
 
 
-// =============================================================================
-// VIII. FORWARD DECLARATIONS
-// =============================================================================
+//==============================================================================
+// 8.  FORWARD DECLARATIONS
+//==============================================================================
 
 // dynamodb_result_set_impl
 //   struct: forward declaration of the DynamoDB result set
@@ -1638,9 +1638,9 @@ struct dynamodb_result_set_impl;
 // so detection lives with the connection it describes. Traits build at C++17;
 // concepts appear under C++20.
 
-// =============================================================================
-// 0.   DYNAMODB ITEM / KEY TYPE ALIASES
-// =============================================================================
+//==============================================================================
+// 0.  DYNAMODB ITEM / KEY TYPE ALIASES
+//==============================================================================
 // DynamoDB items are schemaless attribute maps. At this abstraction layer an
 // attribute value is represented by the generic djinterp `value` variant
 // (from database.hpp); the wire-level distinction between DynamoDB's S / N /
@@ -1657,9 +1657,9 @@ using dynamodb_item = std::map<std::string, value>;
 using dynamodb_key = std::map<std::string, value>;
 
 
-// =============================================================================
-// IX.   EXPRESSION DETECTORS
-// =============================================================================
+//==============================================================================
+// 9.  EXPRESSION DETECTORS
+//==============================================================================
 
 // -------------------------------------------------------------------------
 // A.  item operations
@@ -2089,9 +2089,9 @@ using dynamodb_list_tags_of_resource_t =
         std::declval<const std::string&>()));
 
 
-// =============================================================================
-// X.  TAGGED CAPABILITY TRAITS (struct-based)
-// =============================================================================
+//==============================================================================
+// 10. TAGGED CAPABILITY TRAITS (struct-based)
+//==============================================================================
 
 // has_dynamodb_item_ops
 //   trait: checks if type Type supports core item operations
@@ -2351,9 +2351,9 @@ struct is_dynamodb_connection : djinterp::conjunction<
 #endif
 
 
-// =============================================================================
-// XI. TAGLESS CAPABILITY TRAITS (constexpr bool)
-// =============================================================================
+//==============================================================================
+// 11. TAGLESS CAPABILITY TRAITS (constexpr bool)
+//==============================================================================
 
 // -------------------------------------------------------------------------
 // A.  individual capability tags
@@ -2711,9 +2711,9 @@ constexpr bool dynamodb_is_full_connection =
       dynamodb_does_batch_ops<clean_t<Type>> );
 
 
-// =============================================================================
-// XII.  SFINAE HELPERS
-// =============================================================================
+//==============================================================================
+// 12. SFINAE HELPERS
+//==============================================================================
 
 // enable_if_dynamodb_connection
 //   type: SFINAE helper for DynamoDB connection constraints.
@@ -2746,9 +2746,9 @@ using enable_if_has_dynamodb_global_tables =
     typename std::enable_if<has_dynamodb_global_tables<clean_t<Type>>::value>::type;
 
 
-// ===========================================================================
-// XIII.   C++20 CONCEPTS
-// ===========================================================================
+//==============================================================================
+// 13. C++20 CONCEPTS
+//==============================================================================
 //   The DynamoDB classification concepts, folded in from the former
 // dynamodb_concepts.hpp.  Each forwards to a trait / tagless capability declared
 // above.  Gated on concept support so the traits remain usable at the C++17
@@ -2977,9 +2977,9 @@ concept dynamodb_global_table_creatable_connection =
     dynamodb_can_create_global_table<clean_t<Type>>;
 
 
-// =============================================================================
-// C. Tagless DynamoDB Capability Concepts
-// =============================================================================
+//==============================================================================
+// 100. Tagless DynamoDB Capability Concepts
+//==============================================================================
 
 // dynamodb_item_addressable
 //   concept: constrains types satisfying the full tagless item-

@@ -29,33 +29,29 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    KERNEL DISPATCH HELPERS (internal)
-      ----------------------------------
-      a. to_rgb            (per-model overloads)
-      b. rgb_to            (per-model re-wrap)
-
-II.   CONVERSION IMPLEMENTATION (internal)
-      ------------------------------------
-      a. color_convert_impl              (primary: route via RGB)
-      b. color_convert_impl<Type,Type> (identity)
-      c.    color_convert_impl<xyz, lab>    (direct)
-            d. color_convert_impl<lab, xyz>    (direct)
-
-III.  PUBLIC INTERFACE
-      ----------------
-      a. color_convert
-      b. color_cast
-
-IV.   TRAITS
-      ------
-      a. color_convert_impl (internal)
-      b. is_convertible_color
-      a. is_convertible_color_v
-
-V.    CONCEPTS (C++20)
-      ----------------
-      a. color_model_type
-      b. convertible_color_type
+1.  KERNEL DISPATCH HELPERS (internal)
+    ----------------------------------
+    a. to_rgb            (per-model overloads)
+    b. rgb_to            (per-model re-wrap)
+2.  CONVERSION IMPLEMENTATION (internal)
+    ------------------------------------
+    a. color_convert_impl              (primary: route via RGB)
+    b. color_convert_impl<Type,Type> (identity)
+    c.    color_convert_impl<xyz, lab>    (direct)
+          d. color_convert_impl<lab, xyz>    (direct)
+3.  PUBLIC INTERFACE
+    ----------------
+    a. color_convert
+    b. color_cast
+4.  TRAITS
+    ------
+    a. color_convert_impl (internal)
+    b. is_convertible_color
+    a. is_convertible_color_v
+5.  CONCEPTS (C++20)
+    ----------------
+    a. color_model_type
+    b. convertible_color_type
 */
 
 #ifndef DJINTERP_UTIL_COLOR_CONVERT_HPP
@@ -84,9 +80,9 @@ V.    CONCEPTS (C++20)
 NS_DJINTERP
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             I.   KERNEL DISPATCH HELPERS (internal)                     ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  KERNEL DISPATCH HELPERS (internal)
+//==============================================================================
 
 NS_INTERNAL
 
@@ -245,9 +241,9 @@ NS_INTERNAL
 NS_END  // internal
 
 
-///////////////////////////////////////////////////////////////////////////////
-///            II.   CONVERSION IMPLEMENTATION (internal)                   ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  CONVERSION IMPLEMENTATION (internal)
+//==============================================================================
 
 NS_INTERNAL
 
@@ -313,9 +309,9 @@ NS_INTERNAL
 NS_END  // internal
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                    III.   PUBLIC INTERFACE                              ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  PUBLIC INTERFACE
+//==============================================================================
 
 // color_convert
 //   trait: public conversion entry point. Strips qualifiers from
@@ -349,9 +345,9 @@ To color_cast(
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                          IV.   TRAITS                                   ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  TRAITS
+//==============================================================================
 
 NS_INTERNAL
 
@@ -400,9 +396,9 @@ D_STATIC_CONSTEXPR bool is_convertible_color_v =
     is_convertible_color<From, To>::value;
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                      V.   CONCEPTS (C++20)                              ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 5.  CONCEPTS (C++20)
+//==============================================================================
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
 

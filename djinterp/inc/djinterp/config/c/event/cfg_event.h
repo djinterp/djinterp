@@ -22,6 +22,15 @@
 *                                                            revised: 2026.11.01
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  CROSS-CUTTING DERIVED VALUES
+    ----------------------------
+2.  CROSS-CUTTING VALIDATION
+    ------------------------
+*/
+
 #ifndef DJINTERP_CONFIG_C_EVENT_CFG_EVENT_H
 #define DJINTERP_CONFIG_C_EVENT_CFG_EVENT_H 1
 
@@ -35,9 +44,9 @@
 #include "cfg_event_dispatcher.h"
 
 
-// ===========================================================================
-//  1.  CROSS-CUTTING DERIVED VALUES
-// ===========================================================================
+//==============================================================================
+// 1.  CROSS-CUTTING DERIVED VALUES
+//==============================================================================
 
 // D_INTERNAL_EVENT_LAYOUT_ID
 //   brief: a small integer identifying the byte layout this build produces
@@ -67,9 +76,9 @@
 #endif
 
 
-// ===========================================================================
-//  2.  CROSS-CUTTING VALIDATION
-// ===========================================================================
+//==============================================================================
+// 2.  CROSS-CUTTING VALIDATION
+//==============================================================================
 // These are the checks a single layer's config cannot make, because it cannot
 // see the layer above it. They are warnings about coherence, not about
 // syntax - each names a combination that compiles and then disappoints.

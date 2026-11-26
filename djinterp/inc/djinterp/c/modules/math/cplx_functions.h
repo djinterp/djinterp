@@ -29,6 +29,24 @@
 *                                                            revised: 2026.11.24
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+4.  THE FUNCTIONS
+    -------------
+    1.  The float family (_f)
+         1.  d_cplx_f_abs_c, d_cplx_f_abs, d_cplx_f_arg_c, d_cplx_f_arg
+    2.  The double family (_d)
+         1.  d_cplx_d_abs_c, d_cplx_d_abs, d_cplx_d_arg_c, d_cplx_d_arg
+    3.  The long double family (_ld)
+         1.  d_cplx_ld_abs_c, d_cplx_ld_abs, d_cplx_ld_arg_c, d_cplx_ld_arg
+5.  C99'S _Complex (C ONLY)
+    -----------------------
+    1.  The float family (_f)
+    2.  The double family (_d)
+    3.  The long double family (_ld)
+*/
+
 #ifndef DJINTERP_C_MATH_CPLX_FUNCTIONS_H
 #define DJINTERP_C_MATH_CPLX_FUNCTIONS_H 1
 

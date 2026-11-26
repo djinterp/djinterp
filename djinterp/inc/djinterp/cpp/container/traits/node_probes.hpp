@@ -40,10 +40,10 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    The Tree Methods
-      ----------------
-II.   The Node Type
-      -------------
+1.  The Tree Methods
+    ----------------
+2.  The Node Type
+    -------------
 */
 
 #ifndef DJINTERP_CONTAINER_TRAITS_NODE_PROBES_HPP
@@ -64,9 +64,9 @@ II.   The Node Type
 
 NS_DJINTERP
 
-// ===========================================================================
-// I.   The Tree Methods
-// ===========================================================================
+//==============================================================================
+// 1.  The Tree Methods
+//==============================================================================
 //   Each probe is a struct, its value true when the expression is well
 // formed, with a _v companion where the language has variable templates.
 // Two take the call's argument types at the use, as std::is_invocable takes
@@ -118,9 +118,9 @@ D_TYPE_TRAIT_TRUE(has_version_method,
     decltype(std::declval<const Type&>().version()))
 
 
-// ===========================================================================
-// II.  The Node Type
-// ===========================================================================
+//==============================================================================
+// 2.  The Node Type
+//==============================================================================
 
 // has_node_type
 //   trait: true if Type, references and cv-qualifiers removed, has a nested

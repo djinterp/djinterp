@@ -63,6 +63,25 @@
 *                                                            revised: 2026.11.18
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  parser_layer
+    ------------
+2.  parsing_program
+    ---------------
+3.  construction / interpretation
+    -----------------------------
+4.  free_parser  —  monadic stratum
+    -------------------------------
+5.  free_ap_parser  —  applicative stratum
+    --------------------------------------
+6.  free_sel_parser  —  selective stratum
+    -------------------------------------
+7.  Cross-stratum lifts
+    -------------------
+*/
+
 #ifndef DJINTERP_PARSE_PARSER_FREE_HPP
 #define DJINTERP_PARSE_PARSER_FREE_HPP 1
 
@@ -94,9 +113,9 @@ NS_DJINTERP
 NS_PARSE
 
 
-// ================================================================
-//  I.   parser_layer
-// ================================================================
+//==============================================================================
+// 1.  parser_layer
+//==============================================================================
 
 // parser_layer
 //   meta: namespace holding the single-template-arg functor used
@@ -119,9 +138,9 @@ struct parser_layer
 };
 
 
-// ================================================================
-//  II.  parsing_program
-// ================================================================
+//==============================================================================
+// 2.  parsing_program
+//==============================================================================
 
 // parsing_program
 //   alias: the formal free monad over the parser_layer functor.
@@ -143,9 +162,9 @@ using parsing_program =
     ::djinterp::free<parser_layer<E>::template at, R>;
 
 
-// ================================================================
-//  III. construction / interpretation
-// ================================================================
+//==============================================================================
+// 3.  construction / interpretation
+//==============================================================================
 
 // lift_to_program
 //   function: lifts a single atomic parser into a parsing_program.
@@ -277,9 +296,9 @@ parser<R, E> to_parser(
 }
 
 
-// ================================================================
-//  IV.  free_parser  —  monadic stratum
-// ================================================================
+//==============================================================================
+// 4.  free_parser  —  monadic stratum
+//==============================================================================
 
 // free_parser
 //   class: the monadic stratum's DParserExpr face.  Carries a
@@ -486,9 +505,9 @@ auto free_map(
 }
 
 
-// ================================================================
-//  V.   free_ap_parser  —  applicative stratum
-// ================================================================
+//==============================================================================
+// 5.  free_ap_parser  —  applicative stratum
+//==============================================================================
 //   Parser-flavoured wrapper.  The functional companion does not
 // (yet) carry a free_applicative<F, A>; when it does, this class
 // will be re-pointed to wrap that and use its protocol surface,
@@ -676,9 +695,9 @@ auto ap_map(
 }
 
 
-// ================================================================
-//  VI.  free_sel_parser  —  selective stratum
-// ================================================================
+//==============================================================================
+// 6.  free_sel_parser  —  selective stratum
+//==============================================================================
 //   Parser-flavoured wrapper.  Built on top of the functional
 // companion's Selective protocol (functional/selective.hpp) via
 // the monad bridge: parser<R, E> is a Monad, every Monad is a
@@ -869,9 +888,9 @@ free_sel_parser<Out, E> sel_branch(
 }
 
 
-// ================================================================
-//  VII. Cross-stratum lifts
-// ================================================================
+//==============================================================================
+// 7.  Cross-stratum lifts
+//==============================================================================
 //   The strata form a chain
 //
 //       FreeAp F A  ⊂  FreeSel F A  ⊂  Free F A

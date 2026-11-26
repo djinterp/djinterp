@@ -36,14 +36,13 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    Emitted style names          (the shared style-name vocabulary)
-      ---------------------------------------------------------------
-
-II.   DTitlePage (class)
-      ------------------
-      a. construction / fields
-      b. layout knobs
-      c.    render / to_string
+1.  Emitted style names          (the shared style-name vocabulary)
+    ---------------------------------------------------------------
+2.  DTitlePage (class)
+    ------------------
+    a. construction / fields
+    b. layout knobs
+    c.    render / to_string
 */
 
 #ifndef DJINTERP_UTIL_DOCUMENT_TEMPLATES_TITLE_PAGE_HPP
@@ -69,9 +68,9 @@ II.   DTitlePage (class)
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   Emitted style names
-// ===========================================================================
+//==============================================================================
+// 1.  Emitted style names
+//==============================================================================
 //   The style-name hints DTitlePage attaches to its blocks.  A producer may
 // register a renderer style under each of these names to theme the cover; any
 // left unregistered fall back to the renderer's own heading / body styling.
@@ -94,9 +93,9 @@ NS_DJINTERP
 #endif  // D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 
 
-// ===========================================================================
-// II.  DTitlePage (class)
-// ===========================================================================
+//==============================================================================
+// 2.  DTitlePage (class)
+//==============================================================================
 
 // DTitlePage
 //   class: a cover page as a content model - title, subtitle, banner, and an

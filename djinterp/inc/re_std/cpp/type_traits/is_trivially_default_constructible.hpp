@@ -12,6 +12,15 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  IS_TRIVIALLY_DEFAULT_CONSTRUCTIBLE
+    ----------------------------------
+2.  IS_TRIVIALLY_DEFAULT_CONSTRUCTIBLE_V
+    ------------------------------------
+*/
+
 #ifndef RE_STD_TYPE_TRAITS_IS_TRIVIALLY_DEFAULT_CONSTRUCTIBLE_HPP
 #define RE_STD_TYPE_TRAITS_IS_TRIVIALLY_DEFAULT_CONSTRUCTIBLE_HPP 1
 
@@ -31,9 +40,9 @@ namespace re_std
 {
 
 
-// =============================================================================
-// I.   IS_TRIVIALLY_DEFAULT_CONSTRUCTIBLE
-// =============================================================================
+//==============================================================================
+// 1.  IS_TRIVIALLY_DEFAULT_CONSTRUCTIBLE
+//==============================================================================
 
 template<typename Type>
 struct is_trivially_default_constructible
@@ -42,9 +51,9 @@ struct is_trivially_default_constructible
 {};
 
 
-// =============================================================================
-// II.  IS_TRIVIALLY_DEFAULT_CONSTRUCTIBLE_V
-// =============================================================================
+//==============================================================================
+// 2.  IS_TRIVIALLY_DEFAULT_CONSTRUCTIBLE_V
+//==============================================================================
 
 #if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 

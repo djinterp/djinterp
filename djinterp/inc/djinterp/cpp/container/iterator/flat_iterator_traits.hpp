@@ -33,23 +33,18 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    Nested Iterable Detection
-      -------------------------
-
-II.   Hierarchical Flatten Detection
-      ------------------------------
-
-III.  Flatten Strategy Classification
-      -------------------------------
-
-IV.   Leaf Type Extraction
-      --------------------
-
-V.    Convenience Predicates
-      ----------------------
-
-VI.   Combined Classification
-      -----------------------
+1.  Nested Iterable Detection
+    -------------------------
+2.  Hierarchical Flatten Detection
+    ------------------------------
+3.  Flatten Strategy Classification
+    -------------------------------
+4.  Leaf Type Extraction
+    --------------------
+5.  Convenience Predicates
+    ----------------------
+6.  Combined Classification
+    -----------------------
 */
 
 #ifndef DJINTERP_CONTAINER_ITERATOR_FLAT_ITERATOR_TRAITS_HPP
@@ -78,9 +73,9 @@ NS_DJINTERP
 NS_CONTAINER
 NS_TRAITS
 
-// ===========================================================================
-// I.   Nested Iterable Detection
-// ===========================================================================
+//==============================================================================
+// 1.  Nested Iterable Detection
+//==============================================================================
 // Detects whether the container's value_type is itself an
 // iterable range, enabling recursive flattening of nested
 // containers (vector<vector<T>>, list<deque<T>>, etc.).
@@ -250,9 +245,9 @@ inline constexpr std::size_t nesting_depth_v =
     DNestingDepth<Type>::value;
 
 
-// ===========================================================================
-// II.  Hierarchical Flatten Detection
-// ===========================================================================
+//==============================================================================
+// 2.  Hierarchical Flatten Detection
+//==============================================================================
 // Detects whether a hierarchical container can be
 // flattened via DFS or BFS traversal of its children().
 
@@ -302,9 +297,9 @@ using ::djinterp::has_child_count_method;
 using ::djinterp::has_child_count_method_v;
 
 
-// ===========================================================================
-// III. Flatten Strategy Classification
-// ===========================================================================
+//==============================================================================
+// 3.  Flatten Strategy Classification
+//==============================================================================
 
 // DFlattenStrategy
 //   enum: compile-time flattening approach.
@@ -375,9 +370,9 @@ inline constexpr DFlattenStrategy
         container_flatten_strategy<Type>::value;
 
 
-// ===========================================================================
-// IV.  Leaf Type Extraction
-// ===========================================================================
+//==============================================================================
+// 4.  Leaf Type Extraction
+//==============================================================================
 // Extracts the innermost (leaf) element type after full
 // recursive flattening.
 
@@ -428,9 +423,9 @@ using leaf_element_type_t =
     typename DLeafElementType<Type>::type;
 
 
-// ===========================================================================
-// V.   Convenience Predicates
-// ===========================================================================
+//==============================================================================
+// 5.  Convenience Predicates
+//==============================================================================
 
 // is_flattenable
 //   type trait: true if the container can be flattened via any mechanism.
@@ -472,9 +467,9 @@ inline constexpr bool needs_recursive_flatten_v =
     DNeedsRecursiveFlatten<Type>::value;
 
 
-// ===========================================================================
-// VI.  Combined Classification
-// ===========================================================================
+//==============================================================================
+// 6.  Combined Classification
+//==============================================================================
 
 template<typename Type>
 struct DFlatIteratorClass

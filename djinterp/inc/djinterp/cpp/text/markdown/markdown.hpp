@@ -42,35 +42,26 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    SHARED TYPES & CONSTANTS
-      ------------------------
-
-II.   FLAVOUR & RENDER TARGET ENUMS
-      -----------------------------
-
-III.  BLOCK KIND ENUM
-      ---------------
-
-IV.   INLINE KIND ENUM
-      ----------------
-
-V.    BLOCK CATEGORY CLASSIFICATION
-      -----------------------------
-
-VI.   INLINE CATEGORY CLASSIFICATION
-      ------------------------------
-
-VII.  HEADING / LIST / CODE FENCE STYLE
-      ---------------------------------
-
-VIII. BACKEND TAG DISPATCH
-      --------------------
-
-IX.   BACKEND DETECTION
-      -----------------
-
-X.    SUB-MODULE INCLUDES
-      -------------------
+1.  SHARED TYPES & CONSTANTS
+    ------------------------
+2.  FLAVOUR & RENDER TARGET ENUMS
+    -----------------------------
+3.  BLOCK KIND ENUM
+    ---------------
+4.  INLINE KIND ENUM
+    ----------------
+5.  BLOCK CATEGORY CLASSIFICATION
+    -----------------------------
+6.  INLINE CATEGORY CLASSIFICATION
+    ------------------------------
+7.  HEADING / LIST / CODE FENCE STYLE
+    ---------------------------------
+8.  BACKEND TAG DISPATCH
+    --------------------
+9.  BACKEND DETECTION
+    -----------------
+10. SUB-MODULE INCLUDES
+    -------------------
 */
 
 #ifndef DJINTERP_TEXT_MARKDOWN_MARKDOWN_HPP
@@ -91,9 +82,9 @@ X.    SUB-MODULE INCLUDES
 #include "../../../../re_std/cpp/cstdint/cstdint.hpp"  // re_std::uint8_t
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                I.   SHARED TYPES & CONSTANTS                            ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  SHARED TYPES & CONSTANTS
+//==============================================================================
 
 NS_DJINTERP
 
@@ -147,9 +138,9 @@ using DMarkdownSize   = std::size_t;
 #endif
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                II.   FLAVOUR & RENDER TARGET ENUMS                      ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  FLAVOUR & RENDER TARGET ENUMS
+//==============================================================================
 
 // DMarkdownFlavor
 //   enum: identifies the document's target markdown dialect.
@@ -188,9 +179,9 @@ enum class DMarkdownRenderTarget : re_std::uint8_t
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                III.   BLOCK KIND ENUM                                   ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  BLOCK KIND ENUM
+//==============================================================================
 
 // DMarkdownBlockKind
 //   enum: discriminator for every standard markdown block-level
@@ -254,9 +245,9 @@ enum class DMarkdownBlockKind : re_std::uint8_t
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                IV.   INLINE KIND ENUM                                   ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  INLINE KIND ENUM
+//==============================================================================
 
 // DMarkdownInlineKind
 //   enum: discriminator for every standard markdown
@@ -307,9 +298,9 @@ enum class DMarkdownInlineKind : re_std::uint8_t
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                V.   BLOCK CATEGORY CLASSIFICATION                       ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 5.  BLOCK CATEGORY CLASSIFICATION
+//==============================================================================
 
 // DMarkdownBlockCategory
 //   enum: bitmask describing the categorical properties of a
@@ -523,9 +514,9 @@ DMarkdownBlockKind heading_kind_from_level(
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                VI.   INLINE CATEGORY CLASSIFICATION                     ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 6.  INLINE CATEGORY CLASSIFICATION
+//==============================================================================
 
 // DMarkdownInlineCategory
 //   enum: bitmask describing the categorical properties of an
@@ -660,9 +651,9 @@ bool is_break_inline_kind(
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                VII.   HEADING / LIST / CODE FENCE STYLE                 ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 7.  HEADING / LIST / CODE FENCE STYLE
+//==============================================================================
 
 // DMarkdownHeadingStyle
 //   enum: ATX (`# Heading`) vs Setext (`Heading\n=======`).
@@ -708,9 +699,9 @@ enum class DMarkdownTableAlignment : re_std::uint8_t
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                VIII.   BACKEND TAG DISPATCH                             ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 8.  BACKEND TAG DISPATCH
+//==============================================================================
 
 // DMarkdownBackendTag
 //   struct: empty base tag for all markdown backend tag types.
@@ -749,9 +740,9 @@ struct DMarkdownMmarkBackendTag : DMarkdownBackendTag
 {};
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                IX.   BACKEND DETECTION                                  ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 9.  BACKEND DETECTION
+//==============================================================================
 
 }   // namespace markdown
 NS_INTERNAL
@@ -806,9 +797,9 @@ struct is_markdown_backend
 NS_END  // djinterp
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                X.   SUB-MODULE INCLUDES                                 ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 10. SUB-MODULE INCLUDES
+//==============================================================================
 
 #include "./markdown_template_traits.hpp"
 #include "./markdown_template.hpp"

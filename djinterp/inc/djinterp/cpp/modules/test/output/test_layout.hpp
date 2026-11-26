@@ -72,19 +72,16 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    report_to_layout            (the fold: report -> DLayoutDoc<DReportOp>)
-      -----------------------------------------------------------------------
-
-II.   report_metadata_bag         (cover / meta_ref bindings)
-      -------------------------------------------------------
-
-III.  make_report_resolver        (DContentResolver over a borrowed report)
-      ---------------------------------------------------------------------
-
-IV.   render_test_report          (drive any DDocumentRenderer)
-      ---------------------------------------------------------
-      1.    render_report_layout  (render_document, for a report term)
-      2.    render_test_report    (fold, bind, render)
+1.  report_to_layout            (the fold: report -> DLayoutDoc<DReportOp>)
+    -----------------------------------------------------------------------
+2.  report_metadata_bag         (cover / meta_ref bindings)
+    -------------------------------------------------------
+3.  make_report_resolver        (DContentResolver over a borrowed report)
+    ---------------------------------------------------------------------
+4.  render_test_report          (drive any DDocumentRenderer)
+    ---------------------------------------------------------
+    1.    render_report_layout  (render_document, for a report term)
+    2.    render_test_report    (fold, bind, render)
 */
 
 #ifndef DJINTERP_TEST_OUTPUT_TEST_LAYOUT_HPP
@@ -118,9 +115,9 @@ NS_DJINTERP
 NS_TEST
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                I.   report_to_layout                                    ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  report_to_layout
+//==============================================================================
 
 // report_to_layout
 //   function: the fold from the report model to the document term.  Structure
@@ -181,9 +178,9 @@ D_NODISCARD inline ::djinterp::DLayoutDoc< ::djinterp::DReportOp> report_to_layo
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                II.  report_metadata_bag                                 ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  report_metadata_bag
+//==============================================================================
 
 // report_metadata_bag
 //   function: the flat bag meta_ref leaves resolve against, and the seed the
@@ -215,9 +212,9 @@ D_NODISCARD inline ::djinterp::DDocAttributes report_metadata_bag(
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                III. make_report_resolver                                ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  make_report_resolver
+//==============================================================================
 
 // make_report_resolver
 //   function: the content side of the boundary - a body_ref key to how it
@@ -256,9 +253,9 @@ D_NODISCARD inline ::djinterp::DContentResolver make_report_resolver(
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                IV.  render_test_report                                  ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  render_test_report
+//==============================================================================
 
 // render_report_layout
 //   function: layout_interpret.hpp's render_document for a DReportOp term --

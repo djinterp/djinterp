@@ -39,24 +39,24 @@
 /*
 TABLE OF CONTENTS
 =================
-0.    ARCHIVE CONFIGURATION
-      ---------------------
-      1.    Aggregate                    (D_CFG_ARCHIVE_ALL)
-      2.    Per-format enables           (D_CFG_ARCHIVE_FORMAT_*)
-      3.    Built-in writers             (D_CFG_ARCHIVE_PREFER_BUILTIN)
-      4.    Reproducibility              (D_CFG_ARCHIVE_REPRODUCIBLE, _EPOCH)
-      5.    Safety                       (D_CFG_ARCHIVE_CHECK_ENTRY_NAMES)
-      6.    Composition                  (D_CFG_ARCHIVE_TAR_GZ_STAGING)
-      7.    Entry compression            (D_CFG_ARCHIVE_STORE_ONLY, _LEVEL,
-                                          _ZIP_METHOD, _SEVENZIP_METHOD)
-      8.    Validation of the knobs
-      9.    Derived values               (D_INTERNAL_ARCHIVE_*)
+0.  ARCHIVE CONFIGURATION
+    ---------------------
+    1.    Aggregate                    (D_CFG_ARCHIVE_ALL)
+    2.    Per-format enables           (D_CFG_ARCHIVE_FORMAT_*)
+    3.    Built-in writers             (D_CFG_ARCHIVE_PREFER_BUILTIN)
+    4.    Reproducibility              (D_CFG_ARCHIVE_REPRODUCIBLE, _EPOCH)
+    5.    Safety                       (D_CFG_ARCHIVE_CHECK_ENTRY_NAMES)
+    6.    Composition                  (D_CFG_ARCHIVE_TAR_GZ_STAGING)
+    7.    Entry compression            (D_CFG_ARCHIVE_STORE_ONLY, _LEVEL,
+                                        _ZIP_METHOD, _SEVENZIP_METHOD)
+    8.    Validation of the knobs
+    9.    Derived values               (D_INTERNAL_ARCHIVE_*)
 */
 
 
-// ===========================================================================
-// 0.   ARCHIVE CONFIGURATION
-// ===========================================================================
+//==============================================================================
+// 0.  ARCHIVE CONFIGURATION
+//==============================================================================
 
 // --- 0.1  Aggregate ---
 

@@ -88,6 +88,21 @@
 *                                                            revised: 2026.10.03
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  Container strategy-alias detection
+    ----------------------------------
+2.  Container discipline classifier
+    -------------------------------
+3.  Container discipline predicates
+    -------------------------------
+4.  Cross-axis consistency (Discipline <-> Storage siting)
+    ------------------------------------------------------
+5.  Aggregate snapshot
+    ------------------
+*/
+
 #ifndef DJINTERP_CONTAINER_TRAITS_CONTAINER_MEMORY_TRAITS_HPP
 #define DJINTERP_CONTAINER_TRAITS_CONTAINER_MEMORY_TRAITS_HPP 1
 
@@ -114,9 +129,9 @@
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   Container strategy-alias detection
-// ===========================================================================
+//==============================================================================
+// 1.  Container strategy-alias detection
+//==============================================================================
 
 // has_memory_strategy_alias
 //   trait: detects an explicit `using memory_strategy = S;` member - the
@@ -124,9 +139,9 @@ NS_DJINTERP
 D_TYPE_TRAIT_HAS_TYPE(has_memory_strategy_alias, memory_strategy)
 
 
-// ===========================================================================
-// II.  Container discipline classifier
-// ===========================================================================
+//==============================================================================
+// 2.  Container discipline classifier
+//==============================================================================
 
 NS_INTERNAL
 
@@ -225,9 +240,9 @@ using container_memory_discipline_t =
 #endif
 
 
-// ===========================================================================
-// III. Container discipline predicates
-// ===========================================================================
+//==============================================================================
+// 3.  Container discipline predicates
+//==============================================================================
 
 // container_has_inline_storage
 //   trait: true iff the container allocates nothing - its cells are embedded
@@ -295,9 +310,9 @@ struct container_memory_resolved
 D_TYPE_TRAIT_VALUE_BOOL(container_memory_resolved)
 
 
-// ===========================================================================
-// IV.  Cross-axis consistency (Discipline <-> Storage siting)
-// ===========================================================================
+//==============================================================================
+// 4.  Cross-axis consistency (Discipline <-> Storage siting)
+//==============================================================================
 
 // container_memory_consistent
 //   trait: true iff the container's resolved DISCIPLINE and its independently
@@ -317,9 +332,9 @@ struct container_memory_consistent
 D_TYPE_TRAIT_VALUE_BOOL(container_memory_consistent)
 
 
-// ===========================================================================
-// V.   Aggregate snapshot
-// ===========================================================================
+//==============================================================================
+// 5.  Aggregate snapshot
+//==============================================================================
 
 // DContainerMemoryClass
 //   trait: a one-stop record of a container's position on the memory axis -

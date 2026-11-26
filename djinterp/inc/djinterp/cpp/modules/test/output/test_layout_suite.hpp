@@ -56,14 +56,12 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    FIXTURES                    (build the same document four ways)
-      ---------------------------------------------------------------
-
-II.   demo_render                 (assemble + render, the worked example)
-      -------------------------------------------------------------------
-
-III.  register_layout_tests       (the module the runner executes)
-      ------------------------------------------------------------
+1.  FIXTURES                    (build the same document four ways)
+    ---------------------------------------------------------------
+2.  demo_render                 (assemble + render, the worked example)
+    -------------------------------------------------------------------
+3.  register_layout_tests       (the module the runner executes)
+    ------------------------------------------------------------
 */
 
 #ifndef DJINTERP_TEST_OUTPUT_TEST_LAYOUT_SUITE_HPP
@@ -93,9 +91,9 @@ NS_DJINTERP
 NS_TEST
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                I.   FIXTURES                                            ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  FIXTURES
+//==============================================================================
 //   Moved verbatim from report_surfaces.hpp's section IV.  Each builds the SAME
 // document through a different front end; the module below renders all four and
 // compares.
@@ -284,9 +282,9 @@ D_NODISCARD inline bool surfaces_equivalent()
 
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                II.  demo_render                                         ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  demo_render
+//==============================================================================
 
 // demo_render
 //   function: assemble a document with the combinator surface, resolve its
@@ -371,9 +369,9 @@ D_NODISCARD inline std::string demo_render()
 
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                III. register_layout_tests                               ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  register_layout_tests
+//==============================================================================
 
 // register_layout_tests
 //   function: record the layout subframework's checks against _rb.  Call it

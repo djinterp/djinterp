@@ -51,19 +51,17 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    TRAITS
-      ------
-      a. is_detached_handle
-      b. is_detached_convertible
-
-II.   DDetached<Facade>
-      -----------------
-      a. construction, moves and make
-      b. get, the arrow and the node
-
-III.  ADOPTION
-      --------
-      a. internal::detached_access
+1.  TRAITS
+    ------
+    a. is_detached_handle
+    b. is_detached_convertible
+2.  DDetached<Facade>
+    -----------------
+    a. construction, moves and make
+    b. get, the arrow and the node
+3.  ADOPTION
+    --------
+    a. internal::detached_access
 */
 
 #ifndef  DJINTERP_TEXT_DETACHED_HPP
@@ -95,9 +93,9 @@ NS_INTERNAL
 NS_END  // internal
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                I.   TRAITS                                              ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  TRAITS
+//==============================================================================
 
 // is_detached_handle
 //   trait: true for a DDetached<Facade>, false for anything else, a facade
@@ -126,9 +124,9 @@ struct is_detached_convertible
 {};
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                II.   DDetached<Facade>                                  ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  DDetached<Facade>
+//==============================================================================
 
 // DDetached
 //   class: owns one node made outside a tree, until a parent adopts it. The
@@ -296,9 +294,9 @@ private:
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                III.   ADOPTION                                          ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  ADOPTION
+//==============================================================================
 
 NS_INTERNAL
 

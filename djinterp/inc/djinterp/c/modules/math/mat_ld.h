@@ -28,6 +28,19 @@
 *                                                            revised: 2026.11.24
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+3.  THE LONG DOUBLE FAMILY (_ld)
+    ----------------------------
+    1.  Construction
+    2.  Rows, columns and the transpose
+    3.  Products
+    4.  Square-matrix queries
+    5.  Determinant, inverse, solution and cofactors
+    6.  Rotations
+*/
+
 #ifndef DJINTERP_C_MATH_MAT_LD_H
 #define DJINTERP_C_MATH_MAT_LD_H 1
 

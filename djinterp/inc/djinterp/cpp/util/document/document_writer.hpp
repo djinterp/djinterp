@@ -44,29 +44,25 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    ARENA NODE
-      ----------
-      a. DDocAttribute, DDocNode, DDocArena
-      b. k_none
-
-II.   NODE VIEW (protocol bridge)
-      ---------------------------
-      a. DAttributeView / DAttributeRange
-      b. DChildRange
-      c.    DDocView
-
-III.  CURSOR
-      ------
-      a. cursor
-
-IV.   DOCUMENT WRITER
-      ---------------
-      a. DDocumentWriter
-
-V.    FAN-OUT HELPERS
-      ---------------
-      a. to_head
-      b. broadcast
+1.  ARENA NODE
+    ----------
+    a. DDocAttribute, DDocNode, DDocArena
+    b. k_none
+2.  NODE VIEW (protocol bridge)
+    ---------------------------
+    a. DAttributeView / DAttributeRange
+    b. DChildRange
+    c.    DDocView
+3.  CURSOR
+    ------
+    a. cursor
+4.  DOCUMENT WRITER
+    ---------------
+    a. DDocumentWriter
+5.  FAN-OUT HELPERS
+    ---------------
+    a. to_head
+    b. broadcast
 */
 
 #ifndef DJINTERP_UTIL_DOCUMENT_DOCUMENT_WRITER_HPP
@@ -95,9 +91,9 @@ V.    FAN-OUT HELPERS
 NS_DJINTERP
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                  I.   ARENA NODE                                        ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  ARENA NODE
+//==============================================================================
 
 // k_none
 //   constant: the sentinel `dj_index` meaning "no node" (no parent, no child,
@@ -137,9 +133,9 @@ struct DDocNode
 using DDocArena = std::vector<DDocNode>;
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                II.   NODE VIEW (protocol bridge)                        ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  NODE VIEW (protocol bridge)
+//==============================================================================
 
 // DAttributeView
 //   class: a read-only view of one arena attribute. Exposes `name()` and
@@ -352,9 +348,9 @@ DDocView DChildRange::iterator::operator*() const
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                  III.   CURSOR                                          ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  CURSOR
+//==============================================================================
 
 // DCursor
 //   class: a position-holding handle into a document arena - `{arena,
@@ -521,9 +517,9 @@ private:
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                  IV.   DOCUMENT WRITER                                  ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  DOCUMENT WRITER
+//==============================================================================
 
 // DDocumentWriter
 //   class: owns the document arena and hands out cursors. The arena lives
@@ -585,9 +581,9 @@ private:
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                  V.   FAN-OUT HELPERS                                   ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 5.  FAN-OUT HELPERS
+//==============================================================================
 
 // to_head
 //   function: adapt a cursor + a renderer into an event consumer. Each call

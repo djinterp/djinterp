@@ -47,17 +47,14 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    NAMED MAGIC PREDICATES
-      ----------------------
-
-II.   GENERAL SIGNATURE QUERY
-      -----------------------
-
-III.  DETECTION
-      ---------
-
-IV.   CHECKSUM
-      --------
+1.  NAMED MAGIC PREDICATES
+    ----------------------
+2.  GENERAL SIGNATURE QUERY
+    -----------------------
+3.  DETECTION
+    ---------
+4.  CHECKSUM
+    --------
 */
 
 #ifndef DJINTERP_UTIL_COMPRESS_COMPRESS_DETECT_HPP
@@ -74,9 +71,9 @@ IV.   CHECKSUM
 NS_DJINTERP
 
 
-// =============================================================================
-// I.   NAMED MAGIC PREDICATES
-// =============================================================================
+//==============================================================================
+// 1.  NAMED MAGIC PREDICATES
+//==============================================================================
 //   One per codec that has a fixed framing.  Each forwards to the kernel, so
 // the framing rule lives with the codec rather than being restated here.
 
@@ -113,9 +110,9 @@ inline bool has_lz4_frame_magic(const std::string& _b)
 { return codec_magic_at(D_CODEC_ID_LZ4,   _b.data(), _b.size()); }
 
 
-// =============================================================================
-// II.  GENERAL SIGNATURE QUERY
-// =============================================================================
+//==============================================================================
+// 2.  GENERAL SIGNATURE QUERY
+//==============================================================================
 
 // codec_signature_matches
 //   function: whether _blob carries the framing _codec is required to emit.
@@ -140,9 +137,9 @@ codec_signature_length(
 }
 
 
-// =============================================================================
-// III. DETECTION
-// =============================================================================
+//==============================================================================
+// 3.  DETECTION
+//==============================================================================
 //   The kernel tries the codecs in an order that puts longer, more specific
 // signatures first, so a blob is not claimed by a shorter prefix.
 
@@ -171,9 +168,9 @@ detect_codec(
 }
 
 
-// =============================================================================
-// IV.  CHECKSUM
-// =============================================================================
+//==============================================================================
+// 4.  CHECKSUM
+//==============================================================================
 //   Here rather than in the archive layer because BOTH need it: the gzip
 // trailer carries a CRC32 of the uncompressed data, and every ZIP local header
 // and central-directory record carries one per entry.  IEEE 802.3, reflected

@@ -20,6 +20,20 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  TYPES
+    -----
+    1.  Enumerations
+         1.  dj_audit_kind
+    2.  Records
+         1.  dj_audit_claim
+2.  OPERATIONS
+    ----------
+    1.  Verification
+*/
+
 #ifndef DJINTERP_TOOLS_DAWK_DAUDIT_H
 #define DJINTERP_TOOLS_DAWK_DAUDIT_H 1
 

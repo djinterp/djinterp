@@ -70,6 +70,23 @@
 *                                                            revised: 2026.11.11
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  The memory-discipline taxonomy
+    ------------------------------
+2.  Discipline algebra
+    ------------------
+3.  Type-level carrier
+    ------------------
+4.  Cross-axis bridge to Storage
+    ----------------------------
+5.  Strategy-contract detection
+    ---------------------------
+6.  Strategy-level classifier
+    -------------------------
+*/
+
 #ifndef DJINTERP_META_MEMORY_DISCIPLINE_HPP
 #define DJINTERP_META_MEMORY_DISCIPLINE_HPP 1
 
@@ -92,9 +109,9 @@
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   The memory-discipline taxonomy
-// ===========================================================================
+//==============================================================================
+// 1.  The memory-discipline taxonomy
+//==============================================================================
 
 // DMemoryDiscipline
 //   enum: the acquisition-and-release discipline a strategy governs storage by.
@@ -117,9 +134,9 @@ struct DMemoryDiscipline
 using memory_discipline = DMemoryDiscipline;
 
 
-// ===========================================================================
-// II.  Discipline algebra
-// ===========================================================================
+//==============================================================================
+// 2.  Discipline algebra
+//==============================================================================
 //   Plain `constexpr` predicates and a name, usable in constant expressions
 // (including the static initializers of the traits below) regardless of the
 // constexpr-instrumentation toggle.
@@ -216,9 +233,9 @@ const char* memory_discipline_name(
 }
 
 
-// ===========================================================================
-// III. Type-level carrier
-// ===========================================================================
+//==============================================================================
+// 3.  Type-level carrier
+//==============================================================================
 
 // memory_discipline_constant
 //   type: an integral_constant specialized to a memory_discipline value.
@@ -235,9 +252,9 @@ using pooled_discipline     = memory_discipline_constant<DMemoryDiscipline::pool
 using arena_discipline      = memory_discipline_constant<DMemoryDiscipline::arena>;
 
 
-// ===========================================================================
-// IV.  Cross-axis bridge to Storage
-// ===========================================================================
+//==============================================================================
+// 4.  Cross-axis bridge to Storage
+//==============================================================================
 //   The discipline partly fixes the siting (meta/storage.hpp).  These value-
 // level helpers state which; the per-type check lives with the container memory
 // traits (it needs a container's resolved siting).
@@ -278,9 +295,9 @@ bool discipline_siting_consistent(
 }
 
 
-// ===========================================================================
-// V.   Strategy-contract detection
-// ===========================================================================
+//==============================================================================
+// 5.  Strategy-contract detection
+//==============================================================================
 //   The three facts the discipline is read from, each detected (and, for the
 // booleans, read) from the strategy's own declared surface.  cv-ref is stripped
 // via clean_t so the answer agrees for S, const S, S&.
@@ -333,9 +350,9 @@ NS_INTERNAL
 NS_END  // internal
 
 
-// ===========================================================================
-// VI.  Strategy-level classifier
-// ===========================================================================
+//==============================================================================
+// 6.  Strategy-level classifier
+//==============================================================================
 
 // discipline_of
 //   trait: the memory_discipline of a STRATEGY type, read from its contract.

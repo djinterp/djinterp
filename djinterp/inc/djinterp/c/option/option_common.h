@@ -62,6 +62,29 @@
 *                                                            revised: 2026.11.10
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  STATUS
+    ------
+2.  FLAGS
+    -----
+3.  THE CELL
+    --------
+    1.  construction
+    2.  inspection
+4.  ORDERING - KEY ONLY
+    -------------------
+5.  THE CARRIER AND THE PROJECTION
+    ------------------------------
+6.  IDENTITY - KEY AND VALUE
+    ------------------------
+7.  SLOT ACCESS
+    -----------
+8.  LAYOUT ASSERTIONS
+    -----------------
+*/
+
 #ifndef DJINTERP_C_OPTION_COMMON_H
 #define DJINTERP_C_OPTION_COMMON_H 1
 
@@ -86,9 +109,9 @@
 
 D_EXTERN_C_BEGIN
 
-///////////////////////////////////////////////////////////////////////////////
-///             I.    STATUS                                                ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  STATUS
+//==============================================================================
 
 // dj_option_status
 //   enum: the result of any option operation.
@@ -199,9 +222,9 @@ int32_t d_option_result_status(
 );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             II.   FLAGS                                                 ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  FLAGS
+//==============================================================================
 
 // D_OPTION_FLAG_NONE
 //   constant: no flag set.
@@ -237,9 +260,9 @@ int32_t d_option_result_status(
 #define D_OPTION_FLAG_MASK          ((uint32_t)0x00000007u)
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             III.  THE CELL                                              ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  THE CELL
+//==============================================================================
 
 // dj_option
 //   struct: one option - a key and the description of its value column.
@@ -265,7 +288,8 @@ struct dj_option
       (dj_type_info16)(key_type), (dj_type_info16)(value_type),               \
       (uint32_t)(flags) }
 
-// I.     construction
+// 3.1    construction
+//------------------------------------------------------------------------------
 struct dj_option d_option_make(
     uint64_t       _key,
     dj_type_info16 _key_type,
@@ -282,7 +306,8 @@ bool d_option_is_valid(
     const struct dj_option* _option
 );
 
-// II.    inspection
+// 3.2    inspection
+//------------------------------------------------------------------------------
 bool d_option_is_unary(
     const struct dj_option* _option
 );
@@ -297,9 +322,9 @@ uint32_t d_option_value_size(
 );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             IV.   ORDERING - KEY ONLY                                  ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  ORDERING - KEY ONLY
+//==============================================================================
 //
 //   The ordering relation is key-only, and correctly so: it is what makes a
 // set of options sortable and searchable, and a value has no place in it. The
@@ -324,9 +349,9 @@ bool d_option_key_eq(
 );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             V.    THE CARRIER AND THE PROJECTION                        ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 5.  THE CARRIER AND THE PROJECTION
+//==============================================================================
 //
 //   body-options.tex, Difference: fix a VALUE PROJECTION pi mapping an option
 // to the carrier being compared,
@@ -413,9 +438,9 @@ bool d_option_carrier_eq(
 );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             VI.   IDENTITY - KEY AND VALUE                             ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 6.  IDENTITY - KEY AND VALUE
+//==============================================================================
 //
 //   "Two options are IDENTICAL if, and only if, they have the same key and the
 // same value." A DIFFERENT relation from section IV, and deliberately not
@@ -464,9 +489,9 @@ bool d_option_value_eq(
 );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             VII.  SLOT ACCESS                                           ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 7.  SLOT ACCESS
+//==============================================================================
 //
 //   The "set value in its column" half of the governing identity. These take
 // the value block rather than a set so that a caller holding a bare cell and
@@ -506,9 +531,9 @@ struct dj_option_result d_option_write(
 );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             VIII. LAYOUT ASSERTIONS                                     ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 8.  LAYOUT ASSERTIONS
+//==============================================================================
 //
 //   The Layout law: one declaration, `sizeof` / `offsetof` / `alignof`
 // asserted in BOTH dialects. This header is compiled by both, so these fire in

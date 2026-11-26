@@ -46,8 +46,8 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    RUNTIME FACTORY               (make_print_policy / make_boxed_document)
-      -----------------------------------------------------------------------
+1.  RUNTIME FACTORY               (make_print_policy / make_boxed_document)
+    -----------------------------------------------------------------------
 */
 
 #ifndef DJINTERP_UTIL_DOCUMENT_DOCUMENT_FORMAT_POLICY_HPP
@@ -76,9 +76,9 @@ I.    RUNTIME FACTORY               (make_print_policy / make_boxed_document)
 NS_DJINTERP
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                  I.   RUNTIME FACTORY                                   ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  RUNTIME FACTORY
+//==============================================================================
 
 // make_print_policy
 //   function: bridge a runtime format selector to a boxed print policy for the

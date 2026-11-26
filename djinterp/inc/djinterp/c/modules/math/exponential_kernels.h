@@ -29,6 +29,18 @@
 *                                                            revised: 2026.11.25
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  THE KERNELS (long double)
+    -------------------------
+    1.  The exponential's core
+    2.  The logarithm's core
+    3.  The base-2 exponential's core
+    4.  The base-2 and base-10 logarithms' cores
+    5.  The logarithm of 1 + x and the exponential less 1
+*/
+
 #ifndef DJINTERP_C_MATH_EXPONENTIAL_KERNELS_H
 #define DJINTERP_C_MATH_EXPONENTIAL_KERNELS_H 1
 

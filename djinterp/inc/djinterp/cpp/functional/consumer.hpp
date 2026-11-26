@@ -42,44 +42,41 @@
 /*
 TABLE OF CONTENTS
 =================
-0.    PREDICATE SFINAE STRUCTURAL TRAITS & CONCEPTS
-      ---------------------------------------------
-
-I.    INTERNAL CONSUMER HELPER CLASSES
-      --------------------------------
-      1.    DPrintToHelper
-      2.    DWriteToHelper
-      3.    DDiscardHelper
-      4.    DCountIntoHelper
-      5.    ref_consumer_helper                 (consumer<T>& as callable)
-      6.    DFilteredConsumerHelper
-      7.    DMappedConsumerHelper              (contramap)
-      8.    DTeeConsumerHelper                 (variadic broadcast)
-      9.    DBatchedConsumerHelper             (every-N invocation)
-      10.   DTakeConsumerHelper                (first-N then ignore)
-      11.   DDropConsumerHelper                (skip first-N)
-      12.   conditional_consumer_helper         (predicate branch)
-      13.   DFallbackConsumerHelper            (try primary, else secondary)
-
-II.   CONSUMER FACTORIES  (namespace consumers)
-      -----------------------------------------
-      1.    print_to                            (stream sink)
-      2.    write_to                            (container append)
-      3.    discard                             (null sink)
-      4.    count_into                          (increment counter)
-      5.    filtered                            (predicate gate)
-      6.    mapped                              (input transform / contramap)
-      7.    tee                                 (broadcast)
-      8.    batched
-      9.    take
-      10.   drop
-      11.   conditional
-      12.   fallback
-
-III.  TYPE ERASURE
-      ------------
-      1.    DBoxedConsumer<T>                   (std::function<void(const T&)>)
-      2.    box                                 (any consumer -> DBoxedConsumer)
+0.  PREDICATE SFINAE STRUCTURAL TRAITS & CONCEPTS
+    ---------------------------------------------
+1.  INTERNAL CONSUMER HELPER CLASSES
+    --------------------------------
+    1.    DPrintToHelper
+    2.    DWriteToHelper
+    3.    DDiscardHelper
+    4.    DCountIntoHelper
+    5.    ref_consumer_helper                 (consumer<T>& as callable)
+    6.    DFilteredConsumerHelper
+    7.    DMappedConsumerHelper              (contramap)
+    8.    DTeeConsumerHelper                 (variadic broadcast)
+    9.    DBatchedConsumerHelper             (every-N invocation)
+    10.   DTakeConsumerHelper                (first-N then ignore)
+    11.   DDropConsumerHelper                (skip first-N)
+    12.   conditional_consumer_helper         (predicate branch)
+    13.   DFallbackConsumerHelper            (try primary, else secondary)
+2.  CONSUMER FACTORIES  (namespace consumers)
+    -----------------------------------------
+    1.    print_to                            (stream sink)
+    2.    write_to                            (container append)
+    3.    discard                             (null sink)
+    4.    count_into                          (increment counter)
+    5.    filtered                            (predicate gate)
+    6.    mapped                              (input transform / contramap)
+    7.    tee                                 (broadcast)
+    8.    batched
+    9.    take
+    10.   drop
+    11.   conditional
+    12.   fallback
+3.  TYPE ERASURE
+    ------------
+    1.    DBoxedConsumer<T>                   (std::function<void(const T&)>)
+    2.    box                                 (any consumer -> DBoxedConsumer)
 */
 
 
@@ -119,9 +116,9 @@ NS_DJINTERP
 // type-level or compile-time "consumption", because a side effect cannot occur
 // during translation.
 
-///////////////////////////////////////////////////////////////////////////////
-///             0.    PREDICATE SFINAE STRUCTURAL TRAITS & CONCEPTS         ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 0.  PREDICATE SFINAE STRUCTURAL TRAITS & CONCEPTS
+//==============================================================================
 //   Self-contained detection vocabulary for the consumer machinery.
 // Every predicate reduces to a `static constexpr bool value` (or, for
 // the type-yielding traits, a `::type`), built on the core ::void_t
@@ -363,9 +360,9 @@ using contramap_input_t = typename contramap_input<Function, Input>::type;
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             I.    INTERNAL CONSUMER HELPER CLASSES                      ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  INTERNAL CONSUMER HELPER CLASSES
+//==============================================================================
 
 NS_INTERNAL
 
@@ -829,9 +826,9 @@ NS_INTERNAL
 NS_END  // internal
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             II.   CONSUMER FACTORIES                                    ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  CONSUMER FACTORIES
+//==============================================================================
 
 // print_to
 //   function: builds a consumer that writes each value to the
@@ -1070,9 +1067,9 @@ fallback(
             std::forward<Secondary>(_secondary));
 }
 
-///////////////////////////////////////////////////////////////////////////////
-///             III.  TYPE ERASURE                                          ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  TYPE ERASURE
+//==============================================================================
 
 // DBoxedConsumer
 //   type: type-erased consumer of T. Useful for storing heterogeneous

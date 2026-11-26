@@ -66,6 +66,21 @@
 *                                                            revised: 2026.10.01
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  Structural detection signals
+    ----------------------------
+2.  Recursive depth (the weak structural heuristic)
+    -----------------------------------------------
+3.  Tag reading + verdict
+    ---------------------
+4.  Structure-kind summary
+    ----------------------
+5.  Aggregate snapshot
+    ------------------
+*/
+
 #ifndef DJINTERP_CONTAINER_TRAITS_HIERARCHICAL_CONTAINER_TRAITS_HPP
 #define DJINTERP_CONTAINER_TRAITS_HIERARCHICAL_CONTAINER_TRAITS_HPP 1
 
@@ -89,9 +104,9 @@
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   Structural detection signals
-// ===========================================================================
+//==============================================================================
+// 1.  Structural detection signals
+//==============================================================================
 
 // is_container_shape
 //   trait: true iff Type quacks like a container - a nested value_type AND a
@@ -133,9 +148,9 @@ D_TYPE_TRAIT_VALUE_BOOL(has_node_summand)
 D_TYPE_TRAIT_HAS_TYPE(has_structure_category, structure_category)
 
 
-// ===========================================================================
-// II.  Recursive depth (the weak structural heuristic)
-// ===========================================================================
+//==============================================================================
+// 2.  Recursive depth (the weak structural heuristic)
+//==============================================================================
 
 NS_INTERNAL
 
@@ -208,9 +223,9 @@ struct max_depth_of
 #endif
 
 
-// ===========================================================================
-// III. Tag reading + verdict
-// ===========================================================================
+//==============================================================================
+// 3.  Tag reading + verdict
+//==============================================================================
 
 NS_INTERNAL
 
@@ -291,9 +306,9 @@ struct is_depth_bounded_container
 {};
 
 
-// ===========================================================================
-// IV.  Structure-kind summary
-// ===========================================================================
+//==============================================================================
+// 4.  Structure-kind summary
+//==============================================================================
 
 // DStructureKind
 //   enum: the container's position on the structure axis. Ordered by nesting:
@@ -354,9 +369,9 @@ using structure_kind_of_t = typename structure_kind_of<Type>::type;
 #endif
 
 
-// ===========================================================================
-// V.   Aggregate snapshot
-// ===========================================================================
+//==============================================================================
+// 5.  Aggregate snapshot
+//==============================================================================
 
 template<typename Type>
 struct DHierarchicalContainerClass

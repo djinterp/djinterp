@@ -18,6 +18,15 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  IS_MEMBER_OBJECT_POINTER
+    ------------------------
+2.  IS_MEMBER_OBJECT_POINTER_V (C++14+ variable template)
+    -----------------------------------------------------
+*/
+
 #ifndef RE_STD_TYPE_TRAITS_IS_MEMBER_OBJECT_POINTER_HPP
 #define RE_STD_TYPE_TRAITS_IS_MEMBER_OBJECT_POINTER_HPP 1
 
@@ -32,9 +41,9 @@ namespace re_std
 {
 
 
-// =============================================================================
-// I.   IS_MEMBER_OBJECT_POINTER
-// =============================================================================
+//==============================================================================
+// 1.  IS_MEMBER_OBJECT_POINTER
+//==============================================================================
 
 // is_member_object_pointer
 //   trait: composite (member pointer that is NOT a function pointer).
@@ -46,9 +55,9 @@ struct is_member_object_pointer
 {};
 
 
-// =============================================================================
-// II.  IS_MEMBER_OBJECT_POINTER_V (C++14+ variable template)
-// =============================================================================
+//==============================================================================
+// 2.  IS_MEMBER_OBJECT_POINTER_V (C++14+ variable template)
+//==============================================================================
 
 #if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 

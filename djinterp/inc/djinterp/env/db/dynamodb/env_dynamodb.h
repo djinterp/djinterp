@@ -581,7 +581,7 @@ TABLE OF CONTENTS
 
 
 //==============================================================================
-// 10.  CAPACITY AND SCALING
+// 10. CAPACITY AND SCALING
 //==============================================================================
 // These are cloud-only operational features; DynamoDB Local ignores
 // capacity settings entirely.
@@ -619,7 +619,7 @@ TABLE OF CONTENTS
 
 
 //==============================================================================
-// 11.  REQUEST AND QUERY FEATURES
+// 11. REQUEST AND QUERY FEATURES
 //==============================================================================
 // These are protocol/API features available wherever the service (or its
 // local emulation) responds. Gated on detection, with opt-out for unusual
@@ -680,7 +680,7 @@ TABLE OF CONTENTS
 
 
 //==============================================================================
-// 12.  STREAMS AND CHANGE DATA
+// 12. STREAMS AND CHANGE DATA
 //==============================================================================
 
 
@@ -704,7 +704,7 @@ TABLE OF CONTENTS
 
 
 //==============================================================================
-// 13.  REPLICATION, BACKUP, AND LIFECYCLE
+// 13. REPLICATION, BACKUP, AND LIFECYCLE
 //==============================================================================
 // These are cloud-only managed features with no local emulation.
 
@@ -756,7 +756,7 @@ TABLE OF CONTENTS
 
 
 //==============================================================================
-// 14.  CACHING (DAX)
+// 14. CACHING (DAX)
 //==============================================================================
 
 
@@ -772,7 +772,7 @@ TABLE OF CONTENTS
 
 
 //==============================================================================
-// 15.  SECURITY
+// 15. SECURITY
 //==============================================================================
 
 
@@ -822,7 +822,7 @@ TABLE OF CONTENTS
 
 
 //==============================================================================
-// 16.  COMPOSITE CHECKS
+// 16. COMPOSITE CHECKS
 //==============================================================================
 
 
@@ -879,7 +879,7 @@ TABLE OF CONTENTS
 
 
 //==============================================================================
-// 17.  CONSUMER COMPATIBILITY LAYER
+// 17. CONSUMER COMPATIBILITY LAYER
 //==============================================================================
 // The djinterp DynamoDB connection layer (dynamodb.hpp, dynamodb_table.hpp)
 // consumes a stable vocabulary prefixed D_ENV_DYNAMODB_*, while this header

@@ -38,6 +38,21 @@
 *                                                            revised: 2026.11.11
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  Root Method Detection
+    ---------------------
+2.  Tree Mutation Detection
+    -----------------------
+3.  Arena Tree Identity
+    -------------------
+4.  Navigation Classification
+    -------------------------
+5.  Combined Classification
+    -----------------------
+*/
+
 #ifndef DJINTERP_CONTAINER_ARENA_TREE_ARENA_TREE_TRAITS_HPP
 #define DJINTERP_CONTAINER_ARENA_TREE_ARENA_TREE_TRAITS_HPP 1
 
@@ -60,9 +75,9 @@
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   Root Method Detection
-// ===========================================================================
+//==============================================================================
+// 1.  Root Method Detection
+//==============================================================================
 
 // root(), has_root() and is_root(node_id) are probed by node_container_traits.hpp
 // (decision L1): has_root_method, has_has_root_method, and
@@ -94,9 +109,9 @@ struct has_set_root_method<Type,
 #endif
 
 
-// ===========================================================================
-// II.  Tree Mutation Detection
-// ===========================================================================
+//==============================================================================
+// 2.  Tree Mutation Detection
+//==============================================================================
 
 // has_create_root_method
 //   trait: detects create_root(Payload).
@@ -148,9 +163,9 @@ NS_END  // internal
 // has_remove_subtree_method<Type, node_id>.
 
 
-// ===========================================================================
-// III. Arena Tree Identity
-// ===========================================================================
+//==============================================================================
+// 3.  Arena Tree Identity
+//==============================================================================
 
 // is_arena_tree
 //   trait: detects whether Type satisfies the arena tree protocol - an arena
@@ -183,9 +198,9 @@ struct is_rooted_arena : is_arena_tree<Type>
 #endif
 
 
-// ===========================================================================
-// IV.  Navigation Classification
-// ===========================================================================
+//==============================================================================
+// 4.  Navigation Classification
+//==============================================================================
 // These traits inspect the link policy of an arena to
 // determine navigational capabilities.
 
@@ -323,9 +338,9 @@ struct is_nary_arena
 #endif
 
 
-// ===========================================================================
-// V.   Combined Classification
-// ===========================================================================
+//==============================================================================
+// 5.  Combined Classification
+//==============================================================================
 
 // DArenaTreeClass
 //   struct: comprehensive classification of an arena tree.

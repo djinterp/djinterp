@@ -28,6 +28,20 @@
 *                                                            revised: 2026.11.25
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+4.  THE LONG DOUBLE FAMILY (_ld)
+    ----------------------------
+    1.  Internal helpers
+    2.  Exponential
+    3.  Natural logarithm
+    4.  Base-2 exponential
+    5.  Base-2 and base-10 logarithms
+    6.  Logarithm of 1 + x
+    7.  Exponential less 1
+*/
+
 #ifndef DJINTERP_C_MATH_EXPONENTIAL_LD_H
 #define DJINTERP_C_MATH_EXPONENTIAL_LD_H 1
 

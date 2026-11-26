@@ -66,24 +66,21 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    is_registry (detection trait)
-      -----------------------------
-
-II.   registry (class)
-      ----------------
-      1.    member types and overlay / axis markers
-      2.    construction
-      3.    record access (delegated, const)
-      4.    key queries (binary search over the sorted key order)
-      5.    value surface (key-const: read always; write when KeyDisjoint)
-      6.    structural mutation (insert / erase, invariant-preserving)
-      7.    value update (the guarded fold; guarded / relaxed entry points)
-
-III.  kv projections + kv_registry
-      ----------------------------
-
-IV.   make_registry
-      -------------
+1.  is_registry (detection trait)
+    -----------------------------
+2.  registry (class)
+    ----------------
+    1.    member types and overlay / axis markers
+    2.    construction
+    3.    record access (delegated, const)
+    4.    key queries (binary search over the sorted key order)
+    5.    value surface (key-const: read always; write when KeyDisjoint)
+    6.    structural mutation (insert / erase, invariant-preserving)
+    7.    value update (the guarded fold; guarded / relaxed entry points)
+3.  kv projections + kv_registry
+    ----------------------------
+4.  make_registry
+    -------------
 */
 
 #ifndef DJINTERP_CONTAINER_REGISTRY_REGISTRY_HPP
@@ -113,9 +110,9 @@ IV.   make_registry
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   is_registry (detection trait)
-// ===========================================================================
+//==============================================================================
+// 1.  is_registry (detection trait)
+//==============================================================================
 
 // DRegistry (fwd)
 template<typename    Record,
@@ -166,9 +163,9 @@ inline constexpr bool is_registry_v = is_registry<Type>::value;
 #endif
 
 
-// ===========================================================================
-// II.  registry (class)
-// ===========================================================================
+//==============================================================================
+// 2.  registry (class)
+//==============================================================================
 
 // DRegistry
 //   class: a sorted map (unique keys) or multimap (repeated keys) of Record,
@@ -612,9 +609,9 @@ template<typename    Record,
 using registry = DRegistry<Record, KeyProj, ValueProj, KeyCompare, UniqueKeys, KeyDisjoint, RekeyPolicy, SizeType, DifferenceType, Options...>;
 
 
-// ===========================================================================
-// III. kv projections + kv_registry
-// ===========================================================================
+//==============================================================================
+// 3.  kv projections + kv_registry
+//==============================================================================
 
 // DKvKey / kv_value
 //   projections: the canonical Key x Val projections for a DKvPair record -
@@ -677,9 +674,9 @@ template<typename Key,
 using kv_registry = DKvRegistry<Key, Value, KeyCompare, UniqueKeys, RekeyPolicy>;
 
 
-// ===========================================================================
-// IV.  make_registry
-// ===========================================================================
+//==============================================================================
+// 4.  make_registry
+//==============================================================================
 
 // make_registry (kv)
 //   function: a unique-key kv_registry from a list of kv_pairs, deducing the

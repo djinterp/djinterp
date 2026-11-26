@@ -37,6 +37,21 @@
 *                                                            revised: 2026.11.10
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  THE STEP
+    --------
+2.  THE VOID-CALLBACK ADAPTER
+    -------------------------
+3.  SEQUENCING (the monoid operation)
+    ---------------------------------
+4.  FOLDING A WORD
+    --------------
+5.  LAYOUT ASSERTIONS
+    -----------------
+*/
+
 #ifndef DJINTERP_C_EVENT_HANDLER_COMMON_H
 #define DJINTERP_C_EVENT_HANDLER_COMMON_H 1
 
@@ -60,9 +75,9 @@
 D_EXTERN_C_BEGIN
 
 
-///////////////////////////////////////////////////////////////////////////////
-///        I.    THE STEP                                                   ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  THE STEP
+//==============================================================================
 
 // fn_event_step
 //   function pointer: the erased handler. `_payload` points at the packed
@@ -143,9 +158,9 @@ int32_t d_event_step_invoke(
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///        II.   THE VOID-CALLBACK ADAPTER                                  ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  THE VOID-CALLBACK ADAPTER
+//==============================================================================
 // The C++ face accepts a void-returning callable as an always-pass handler,
 // because the monoid unit yields pass. The C equivalent is an adapter over
 // fn_callback - which is also the migration path for every handler written
@@ -216,9 +231,9 @@ struct dj_event_step d_event_step_from_callback(
 #endif  // D_INTERNAL_EVENT_HANDLER_ADAPTER
 
 
-///////////////////////////////////////////////////////////////////////////////
-///        III.  SEQUENCING (the monoid operation)                          ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  SEQUENCING (the monoid operation)
+//==============================================================================
 // seq runs the first step; if it consumes, the second is NOT invoked and
 // consume is returned; otherwise the second runs and its verdict is the
 // result. Both stages see the same payload block, so a handler that mutates
@@ -273,9 +288,9 @@ struct dj_event_step d_event_step_seq(
 #endif  // D_INTERNAL_EVENT_HANDLER_SEQ
 
 
-///////////////////////////////////////////////////////////////////////////////
-///        IV.   FOLDING A WORD                                             ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  FOLDING A WORD
+//==============================================================================
 // The inner fold, factored out of the registry so that the fused path and the
 // erased path provably share it. Two implementations of one fold is exactly
 // the divergence the fused/erased coherence law exists to rule out, so there
@@ -295,9 +310,9 @@ int32_t d_event_step_fold(
 );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///        V.    LAYOUT ASSERTIONS                                          ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 5.  LAYOUT ASSERTIONS
+//==============================================================================
 // The monoid laws are not asserted here - they are universally quantified and
 // therefore sampled, not checked. They belong in the conformance suite
 // (property-based, over a shared generator, per AGENT_README.md section 6

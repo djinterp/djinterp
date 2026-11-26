@@ -44,6 +44,17 @@
 *                                                            revised: 2026.11.27
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  MIXFIX DESCRIPTORS
+    ------------------
+    1.  DMixfix
+2.  SIGNATURES
+    ----------
+    1.  DSignature
+*/
+
 #ifndef DJINTERP_PARSE_EXPR_SIGNATURE_HPP
 #define DJINTERP_PARSE_EXPR_SIGNATURE_HPP 1
 

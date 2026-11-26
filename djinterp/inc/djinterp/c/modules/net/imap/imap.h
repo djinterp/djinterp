@@ -1431,7 +1431,7 @@ bool d_imap_mailbox_is_inbox(
 
 
 //==============================================================================
-// 10.  SEQUENCE SETS
+// 10. SEQUENCE SETS
 //==============================================================================
 // Message sets such as "1:4,7,9:*", naming sequence numbers or UIDs. "*" is
 // the largest number in use, and "4:2" means the same as "2:4". The saved
@@ -1507,7 +1507,7 @@ bool d_imap_seqset_contains(
 
 
 //==============================================================================
-// 11.  DATES
+// 11. DATES
 //==============================================================================
 // SEARCH takes a date ("1-Feb-2026"); APPEND and INTERNALDATE carry a quoted
 // date-time with a numeric zone ("\" 1-Feb-2026 09:05:07 -0500\""). Years
@@ -1618,7 +1618,7 @@ enum dj_imap_error d_imap_datetime_parse(
 
 
 //==============================================================================
-// 12.  RESPONSES
+// 12. RESPONSES
 //==============================================================================
 // A server line is tagged ("A0001 OK ..."), untagged ("* ..."), or a
 // continuation request ("+ ..."). A status response carries a condition, an
@@ -1793,7 +1793,7 @@ enum dj_imap_error d_imap_response_parse(
 
 
 //==============================================================================
-// 13.  LEXER
+// 13. LEXER
 //==============================================================================
 // Splits response data into tokens: atoms, numbers, NIL, quoted strings,
 // literals, backslash flags, and punctuation. Spaces separate tokens and are
@@ -1912,7 +1912,7 @@ struct dj_pack_text d_imap_lexer_rest(
 
 
 //==============================================================================
-// 14.  RESPONSE DATA
+// 14. RESPONSE DATA
 //==============================================================================
 // Parsers for the untagged data every client meets, built on the lexer. Each
 // takes the data after its keyword, as dj_imap_response.rest holds it: after

@@ -36,19 +36,17 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    DDocumentColumn              (a column: header + alignment / width / style)
-      ---------------------------------------------------------------------------
-
-II.   DDocumentTable (class)
-      ----------------------
-      a. construction / configuration
-      b. columns
-      c.    rows
-            d. queries
-            e. render / to_string
-
-III.  make_document_table          (factory)
-      --------------------------------------
+1.  DDocumentColumn              (a column: header + alignment / width / style)
+    ---------------------------------------------------------------------------
+2.  DDocumentTable (class)
+    ----------------------
+    a. construction / configuration
+    b. columns
+    c.    rows
+          d. queries
+          e. render / to_string
+3.  make_document_table          (factory)
+    --------------------------------------
 */
 
 #ifndef DJINTERP_UTIL_DOCUMENT_TEMPLATES_DOCUMENT_TABLE_HPP
@@ -75,9 +73,9 @@ III.  make_document_table          (factory)
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   DDocumentColumn
-// ===========================================================================
+//==============================================================================
+// 1.  DDocumentColumn
+//==============================================================================
 
 // DDocumentColumn
 //   struct: one table column - a header label and the hints that govern its
@@ -120,9 +118,9 @@ struct DDocumentColumn
 };
 
 
-// ===========================================================================
-// II.  DDocumentTable (class)
-// ===========================================================================
+//==============================================================================
+// 2.  DDocumentTable (class)
+//==============================================================================
 
 // DDocumentTable
 //   class: a table as a content model - an ordered list of document_columns
@@ -430,9 +428,9 @@ private:
 };
 
 
-// ===========================================================================
-// III. make_document_table
-// ===========================================================================
+//==============================================================================
+// 3.  make_document_table
+//==============================================================================
 
 // make_document_table
 //   function: a DDocumentTable whose columns are the given headers, all left-

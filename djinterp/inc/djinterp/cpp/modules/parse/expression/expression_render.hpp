@@ -41,11 +41,10 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    RENDER CARRIER & LAYOUT              (internal: precedence, wrapping)
-      ---------------------------------------------------------------------
-
-II.   RENDER                               (expression -> std::string)
-      ----------------------------------------------------------------
+1.  RENDER CARRIER & LAYOUT              (internal: precedence, wrapping)
+    ---------------------------------------------------------------------
+2.  RENDER                               (expression -> std::string)
+    ----------------------------------------------------------------
 */
 
 #ifndef DJINTERP_PARSE_EXPRESSION_RENDER_HPP
@@ -69,9 +68,9 @@ II.   RENDER                               (expression -> std::string)
 NS_DJINTERP
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             I.    RENDER CARRIER & LAYOUT                               ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  RENDER CARRIER & LAYOUT
+//==============================================================================
 //   The fold that renders carries, for each sub-term, its rendered text, the
 // precedence of its top operator, and whether it is atomic - a leaf, a
 // constant, or a functional form that never needs wrapping.  A parent uses
@@ -225,9 +224,9 @@ NS_INTERNAL
 NS_END  // internal
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             II.   RENDER                                                ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  RENDER
+//==============================================================================
 
 // render
 //   function: renders an expression to a parenthesized string.  _signature

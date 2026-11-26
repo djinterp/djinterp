@@ -63,19 +63,17 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    is_keyed_table (detection trait)
-      --------------------------------
-
-II.   keyed_table (class)
-      -------------------
-      1.    member types and overlay / axis markers
-      2.    construction
-      3.    record access (delegated, const)
-      4.    key queries (binary search over the sorted key order)
-      5.    structural mutation (invariant-preserving)
-
-III.  make_keyed_table
-      ----------------
+1.  is_keyed_table (detection trait)
+    --------------------------------
+2.  keyed_table (class)
+    -------------------
+    1.    member types and overlay / axis markers
+    2.    construction
+    3.    record access (delegated, const)
+    4.    key queries (binary search over the sorted key order)
+    5.    structural mutation (invariant-preserving)
+3.  make_keyed_table
+    ----------------
 */
 
 #ifndef DJINTERP_CONTAINER_TABLE_KEYED_TABLE_HPP
@@ -102,9 +100,9 @@ III.  make_keyed_table
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   is_keyed_table (detection trait)
-// ===========================================================================
+//==============================================================================
+// 1.  is_keyed_table (detection trait)
+//==============================================================================
 
 // DKeyedTable (fwd)
 template<typename    RowType,
@@ -148,9 +146,9 @@ inline constexpr bool is_keyed_table_v = is_keyed_table<Type>::value;
 #endif
 
 
-// ===========================================================================
-// II.  keyed_table (class)
-// ===========================================================================
+//==============================================================================
+// 2.  keyed_table (class)
+//==============================================================================
 
 // DKeyedTable
 //   class: a relational table of RowType records, kept sorted by the key that
@@ -484,9 +482,9 @@ template<typename    RowType,
 using keyed_table = DKeyedTable<RowType, KeyProj, KeyCompare, UniqueKeys, SizeType, DifferenceType, Options...>;
 
 
-// ===========================================================================
-// III. make_keyed_table
-// ===========================================================================
+//==============================================================================
+// 3.  make_keyed_table
+//==============================================================================
 
 // make_keyed_table
 //   function: build a unique-key (map) keyed_table over RowType records with

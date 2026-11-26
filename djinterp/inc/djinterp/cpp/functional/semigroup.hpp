@@ -40,14 +40,13 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    SEMIGROUP PROTOCOL
-      ------------------
-      1.    semigroup_traits<T>                     (primary, undefined)
-      2.    is_semigroup<T>                         (detection trait)
-
-II.   GENERIC SEMIGROUP OPERATION
-      ---------------------------
-      1.    mappend                                 (associative combine)
+1.  SEMIGROUP PROTOCOL
+    ------------------
+    1.    semigroup_traits<T>                     (primary, undefined)
+    2.    is_semigroup<T>                         (detection trait)
+2.  GENERIC SEMIGROUP OPERATION
+    ---------------------------
+    1.    mappend                                 (associative combine)
 */
 
 
@@ -70,9 +69,9 @@ II.   GENERIC SEMIGROUP OPERATION
 NS_DJINTERP
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             I.    SEMIGROUP PROTOCOL                                    ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  SEMIGROUP PROTOCOL
+//==============================================================================
 
 // semigroup_traits
 //   trait: primary template, undefined by default. Each concrete
@@ -149,9 +148,9 @@ static constexpr bool is_semigroup_v = is_semigroup<Type>::value;
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             II.   GENERIC SEMIGROUP OPERATION                           ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  GENERIC SEMIGROUP OPERATION
+//==============================================================================
 //   DUAL DOMAIN. mappend is D_CONSTEXPR and delegates to
 // semigroup_traits<T>::combine; it folds at compile time under C++20 (and
 // earlier, wherever the instance's combine is itself constexpr over a literal

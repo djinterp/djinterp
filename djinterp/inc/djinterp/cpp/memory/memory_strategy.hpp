@@ -42,16 +42,16 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    DArenaMemoryStrategy<T>
-      ------------------------
-II.   DPoolMemoryStrategy<P>
-      -----------------------
-III.  DBufferMemoryStrategy<T, N>
-      ----------------------------
-IV.   DAllocatorMemoryStrategy<A>
-      ----------------------------
-V.    CONTRACT CONFORMANCE
-      --------------------
+1.  DArenaMemoryStrategy<T>
+    ------------------------
+2.  DPoolMemoryStrategy<P>
+    -----------------------
+3.  DBufferMemoryStrategy<T, N>
+    ----------------------------
+4.  DAllocatorMemoryStrategy<A>
+    ----------------------------
+5.  CONTRACT CONFORMANCE
+    --------------------
 */
 
 #ifndef DJINTERP_MEMORY_MEMORY_STRATEGY_HPP
@@ -78,9 +78,9 @@ V.    CONTRACT CONFORMANCE
 NS_DJINTERP
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                I.   DArenaMemoryStrategy<T>                            ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  DArenaMemoryStrategy<T>
+//==============================================================================
 
 // DArenaMemoryStrategy
 //   class: a byte-typed strategy drawing from an arena.
@@ -190,9 +190,9 @@ private:
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                 II.   DPoolMemoryStrategy<P>                           ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  DPoolMemoryStrategy<P>
+//==============================================================================
 
 // DPoolMemoryStrategy
 //   class: an element-typed strategy drawing from a DPool<T, Policy>.
@@ -312,9 +312,9 @@ private:
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///              III.   DBufferMemoryStrategy<T, N>                        ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  DBufferMemoryStrategy<T, N>
+//==============================================================================
 
 // DBufferMemoryStrategy
 //   class: an element-typed monotonic bump strategy over an inline array of
@@ -456,9 +456,9 @@ private:
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             IV.   DAllocatorMemoryStrategy<A>                          ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  DAllocatorMemoryStrategy<A>
+//==============================================================================
 
 // DAllocatorMemoryStrategy
 //   class: an element-typed strategy over any standard Allocator.
@@ -552,9 +552,9 @@ private:
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                 V.   CONTRACT CONFORMANCE                               ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 5.  CONTRACT CONFORMANCE
+//==============================================================================
 //   Each strategy is checked against the contract HERE, at the point of
 // definition, rather than left for a container to discover. A strategy that
 // stopped satisfying it would otherwise fail at some instantiation site far

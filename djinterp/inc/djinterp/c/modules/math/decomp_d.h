@@ -29,6 +29,15 @@
 *                                                            revised: 2026.11.24
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+2.  THE DOUBLE FAMILY (_d)
+    ----------------------
+    1.  LU, with partial pivoting
+    2.  QR, the SVD, the symmetric eigensolver and Cholesky
+*/
+
 #ifndef DJINTERP_C_MATH_DECOMP_D_H
 #define DJINTERP_C_MATH_DECOMP_D_H 1
 

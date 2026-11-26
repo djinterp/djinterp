@@ -86,14 +86,12 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    NODE FORWARD DECLARATIONS
-      -------------------------
-
-II.   BUILT-IN EVENT ALPHABET     (djinterp::test::events)
-      ----------------------------------------------------
-
-III.  CUSTOM EVENT DECLARATION    (D_TEST_EVENT family)
-      -------------------------------------------------
+1.  NODE FORWARD DECLARATIONS
+    -------------------------
+2.  BUILT-IN EVENT ALPHABET     (djinterp::test::events)
+    ----------------------------------------------------
+3.  CUSTOM EVENT DECLARATION    (D_TEST_EVENT family)
+    -------------------------------------------------
 */
 
 #ifndef DJINTERP_TEST_EVENT_HPP
@@ -122,9 +120,9 @@ NS_DJINTERP
 NS_TEST
 
 
-// =========================================================================
-// I.   NODE FORWARD DECLARATIONS
-// =========================================================================
+//==============================================================================
+// 1.  NODE FORWARD DECLARATIONS
+//==============================================================================
 
 // DTestMetadata
 //   the default per-node metadata container (DBasicMetadata<>) is NOT
@@ -152,9 +150,9 @@ struct DTestObject;
 using basic_test = DTestObject<re_std::uint8_t, DTestMetadata>;
 
 
-// =========================================================================
-// II.  BUILT-IN EVENT ALPHABET
-// =========================================================================
+//==============================================================================
+// 2.  BUILT-IN EVENT ALPHABET
+//==============================================================================
 //
 //   The lifecycle tags fired by the framework's walkers (test_handler.hpp,
 // test_builder.hpp).  Each is declared with D_EVENT / D_EVENT_EMPTY from
@@ -247,9 +245,9 @@ NS_END  // test
 NS_END  // djinterp
 
 
-// =========================================================================
-// III. CUSTOM EVENT DECLARATION
-// =========================================================================
+//==============================================================================
+// 3.  CUSTOM EVENT DECLARATION
+//==============================================================================
 //
 //   Future users declare custom test events with the macros below (or, for a
 // fully arbitrary payload, with D_EVENT / D_EVENT_EMPTY from event.hpp

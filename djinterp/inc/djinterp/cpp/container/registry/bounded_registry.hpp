@@ -57,19 +57,17 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    is_bounded_registry (detection trait)
-      -------------------------------------
-
-II.   bounded_registry (class)
-      ------------------------
-      1.    re-exported base surface (member types, lookup, value, update)
-      2.    axis markers (bounds overridden to bounded; capacity)
-      3.    construction (capacity-checked)
-      4.    capacity queries (capacity / full / remaining)
-      5.    structural mutation (capacity-guarded insert; base erase/clear)
-
-III.  bounded_kv_registry
-      -------------------
+1.  is_bounded_registry (detection trait)
+    -------------------------------------
+2.  bounded_registry (class)
+    ------------------------
+    1.    re-exported base surface (member types, lookup, value, update)
+    2.    axis markers (bounds overridden to bounded; capacity)
+    3.    construction (capacity-checked)
+    4.    capacity queries (capacity / full / remaining)
+    5.    structural mutation (capacity-guarded insert; base erase/clear)
+3.  bounded_kv_registry
+    -------------------
 */
 
 #ifndef DJINTERP_CONTAINER_REGISTRY_BOUNDED_REGISTRY_HPP
@@ -95,9 +93,9 @@ III.  bounded_kv_registry
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   is_bounded_registry (detection trait)
-// ===========================================================================
+//==============================================================================
+// 1.  is_bounded_registry (detection trait)
+//==============================================================================
 
 // DBoundedRegistry (fwd)
 template<typename    Record,
@@ -139,9 +137,9 @@ inline constexpr bool is_bounded_registry_v = is_bounded_registry<Type>::value;
 #endif
 
 
-// ===========================================================================
-// II.  bounded_registry (class)
-// ===========================================================================
+//==============================================================================
+// 2.  bounded_registry (class)
+//==============================================================================
 
 // DBoundedRegistry
 //   class: the base registry plus a capacity kappa = Capacity. Private
@@ -371,9 +369,9 @@ template<typename    Record,
 using bounded_registry = DBoundedRegistry<Record, KeyProj, ValueProj, Capacity, KeyCompare, UniqueKeys, KeyDisjoint, RekeyPolicy, SizeType, DifferenceType, Options...>;
 
 
-// ===========================================================================
-// III. bounded_kv_registry
-// ===========================================================================
+//==============================================================================
+// 3.  bounded_kv_registry
+//==============================================================================
 
 // DBoundedKvRegistry
 //   alias: a capacity-capped kv map/multimap - kv_registry with kappa. Value

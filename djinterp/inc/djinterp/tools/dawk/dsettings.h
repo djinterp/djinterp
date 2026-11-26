@@ -23,6 +23,26 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  TYPES
+    -----
+    1.  Enumerations
+         1.  dj_setting_kind
+         2.  dj_setting_source
+    2.  Records
+         1.  dj_setting_def
+         2.  dj_settings
+2.  OPERATIONS
+    ----------
+    1.  Lifecycle and registration
+    2.  Assignment
+    3.  Reading
+    4.  Listing
+    5.  Command line
+*/
+
 #ifndef DJINTERP_TOOLS_DAWK_DSETTINGS_H
 #define DJINTERP_TOOLS_DAWK_DSETTINGS_H 1
 

@@ -38,95 +38,85 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    CONFIGURATION
-      -------------
-      1.    Include guards and dependencies
-      2.    Tuning constants
-
-II.   CORE FILTER TYPES
-      -----------------
-      1.    Filter operation enumeration
-      2.    Filter result status enumeration
-      3.    Filter operation parameter structure
-      4.    Filter operation structure
-      5.    Filter chain structure
-      6.    Filter result structure
-
-III.  FILTER OPERATIONS
-      -----------------
-      1.    Take operations (first, last, nth, head, tail)
-      2.    Skip operations (first, last, init, rest)
-      3.    Range and slice operations
-      4.    Predicate-based filtering
-      5.    Index-based selection
-      6.    Transformation operations (distinct, reverse)
-      7.    Operation cleanup
-
-IV.   FILTER CHAIN MANAGEMENT
-      -----------------------
-      1.    Chain creation and cloning
-      2.    Adding operations
-      3.    Convenience add helpers
-      4.    Combining chains
-      5.    Chain manipulation
-      6.    Chain properties
-      7.    Chain cleanup
-
-V.    FILTER COMBINATORS
-      ------------------
-      1.    Union (OR semantics)
-      2.    Intersection (AND semantics)
-      3.    Difference (A - B)
-
-VI.   EXECUTION AND APPLICATION
-      -------------------------
-      1.    Apply single operation
-      2.    Apply filter chain
-      3.    Apply combinators
-      4.    Counting and querying
-      5.    Index retrieval
-      6.    In-place filtering
-      7.    Result management
-
-VII.  UTILITY FUNCTIONS
-      -----------------
-      1.    Validation
-      2.    Description / serialization
-      3.    Parsing (from string)
-      4.    Optimization
-      5.    Statistics
-
-VIII. ITERATOR INTERFACE
-      ------------------
-      1.    Iterator creation
-      2.    Iterator operations
-      3.    Iterator cleanup
-
-IX.   FLUENT FILTER BUILDER
-      ---------------------
-      1.    Builder creation
-      2.    Fluent operations
-      3.    Builder finalization
-      4.    Builder error handling
-      5.    Builder cleanup
-
-X.    CONVENIENCE MACROS
-      ------------------
-      1.    Single-expression shortcuts
-      2.    Chain construction helpers
-      3.    Fluent chain syntax
-
-XI.   TYPED FILTER WRAPPERS (C11+)
-      ----------------------------
+1.  CONFIGURATION
+    -------------
+    1.    Include guards and dependencies
+    2.    Tuning constants
+2.  CORE FILTER TYPES
+    -----------------
+    1.    Filter operation enumeration
+    2.    Filter result status enumeration
+    3.    Filter operation parameter structure
+    4.    Filter operation structure
+    5.    Filter chain structure
+    6.    Filter result structure
+3.  FILTER OPERATIONS
+    -----------------
+    1.    Take operations (first, last, nth, head, tail)
+    2.    Skip operations (first, last, init, rest)
+    3.    Range and slice operations
+    4.    Predicate-based filtering
+    5.    Index-based selection
+    6.    Transformation operations (distinct, reverse)
+    7.    Operation cleanup
+4.  FILTER CHAIN MANAGEMENT
+    -----------------------
+    1.    Chain creation and cloning
+    2.    Adding operations
+    3.    Convenience add helpers
+    4.    Combining chains
+    5.    Chain manipulation
+    6.    Chain properties
+    7.    Chain cleanup
+5.  FILTER COMBINATORS
+    ------------------
+    1.    Union (OR semantics)
+    2.    Intersection (AND semantics)
+    3.    Difference (A - B)
+6.  EXECUTION AND APPLICATION
+    -------------------------
+    1.    Apply single operation
+    2.    Apply filter chain
+    3.    Apply combinators
+    4.    Counting and querying
+    5.    Index retrieval
+    6.    In-place filtering
+    7.    Result management
+7.  UTILITY FUNCTIONS
+    -----------------
+    1.    Validation
+    2.    Description / serialization
+    3.    Parsing (from string)
+    4.    Optimization
+    5.    Statistics
+8.  ITERATOR INTERFACE
+    ------------------
+    1.    Iterator creation
+    2.    Iterator operations
+    3.    Iterator cleanup
+9.  FLUENT FILTER BUILDER
+    ---------------------
+    1.    Builder creation
+    2.    Fluent operations
+    3.    Builder finalization
+    4.    Builder error handling
+    5.    Builder cleanup
+10. CONVENIENCE MACROS
+    ------------------
+    1.    Single-expression shortcuts
+    2.    Chain construction helpers
+    3.    Fluent chain syntax
+11. TYPED FILTER WRAPPERS (C11+)
+    ----------------------------
 */
 
 #ifndef DJINTERP_C_FUNCTIONAL_FILTER_H
 #define DJINTERP_C_FUNCTIONAL_FILTER_H 1
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             I.    CONFIGURATION                                         ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  CONFIGURATION
+//==============================================================================
 
 // std
 #include <stddef.h>
@@ -155,9 +145,9 @@ XI.   TYPED FILTER WRAPPERS (C11+)
 #endif
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             II.   CORE FILTER TYPES                                     ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  CORE FILTER TYPES
+//==============================================================================
 
 // dj_filter_op_type
 //   enum: types of filter operations.
@@ -239,11 +229,12 @@ struct dj_filter_result
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             III.  FILTER OPERATIONS                                     ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  FILTER OPERATIONS
+//==============================================================================
 
-// i.    take operations
+// 3.1    take operations
+//------------------------------------------------------------------------------
 struct dj_filter_operation* d_filter_take_first(
     size_t _n
 );
@@ -256,7 +247,8 @@ struct dj_filter_operation* d_filter_take_nth(
 struct dj_filter_operation* d_filter_head(void);
 struct dj_filter_operation* d_filter_tail(void);
 
-// ii.   skip operations
+// 3.2    skip operations
+//------------------------------------------------------------------------------
 struct dj_filter_operation* d_filter_skip_first(
     size_t _n
 );
@@ -266,7 +258,8 @@ struct dj_filter_operation* d_filter_skip_last(
 struct dj_filter_operation* d_filter_init(void);
 struct dj_filter_operation* d_filter_rest(void);
 
-// iii.  range and slice operations
+// 3.3    range and slice operations
+//------------------------------------------------------------------------------
 struct dj_filter_operation* d_filter_range(
     size_t _start,
     size_t _end
@@ -277,7 +270,8 @@ struct dj_filter_operation* d_filter_slice(
     size_t _step
 );
 
-// iv.   predicate-based operations
+// 3.4    predicate-based operations
+//------------------------------------------------------------------------------
 struct dj_filter_operation* d_filter_where(
     fn_predicate _test
 );
@@ -293,7 +287,8 @@ struct dj_filter_operation* d_filter_where_not_context(
     void*        _context
 );
 
-// v.    index-based operations
+// 3.5    index-based operations
+//------------------------------------------------------------------------------
 struct dj_filter_operation* d_filter_at(
     size_t _index
 );
@@ -302,23 +297,26 @@ struct dj_filter_operation* d_filter_at_indices(
     size_t        _count
 );
 
-// vi.   transformation operations
+// 3.6    transformation operations
+//------------------------------------------------------------------------------
 struct dj_filter_operation* d_filter_distinct(
     fn_function_comparator _comparator
 );
 struct dj_filter_operation* d_filter_reverse(void);
 
-// vii.  operation cleanup
+// 3.7    operation cleanup
+//------------------------------------------------------------------------------
 void d_filter_operation_free(
     struct dj_filter_operation* _op
 );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             IV.   FILTER CHAIN MANAGEMENT                              ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  FILTER CHAIN MANAGEMENT
+//==============================================================================
 
-// i.    chain creation
+// 4.1    chain creation
+//------------------------------------------------------------------------------
 struct dj_filter_chain* d_filter_chain_new(void);
 struct dj_filter_chain* d_filter_chain_new_with_capacity(
     size_t _capacity
@@ -327,13 +325,15 @@ struct dj_filter_chain* d_filter_chain_clone(
     const struct dj_filter_chain* _chain
 );
 
-// ii.   adding operations (generic)
+// 4.2    adding operations (generic)
+//------------------------------------------------------------------------------
 bool d_filter_chain_add(
     struct dj_filter_chain*           _chain,
     const struct dj_filter_operation* _op
 );
 
-// iii.  convenience add helpers
+// 4.3    convenience add helpers
+//------------------------------------------------------------------------------
 bool d_filter_chain_add_take_first(
     struct dj_filter_chain* _chain,
     size_t                  _n
@@ -365,7 +365,8 @@ bool d_filter_chain_add_where_context(
     void*                   _context
 );
 
-// iv.   combining chains
+// 4.4    combining chains
+//------------------------------------------------------------------------------
 struct dj_filter_chain* d_filter_chain_concat(
     const struct dj_filter_chain* _first,
     const struct dj_filter_chain* _second
@@ -375,7 +376,8 @@ bool d_filter_chain_append(
     const struct dj_filter_chain* _source
 );
 
-// v.    chain manipulation
+// 4.5    chain manipulation
+//------------------------------------------------------------------------------
 bool d_filter_chain_insert(
     struct dj_filter_chain*           _chain,
     size_t                            _index,
@@ -389,7 +391,8 @@ void d_filter_chain_clear(
     struct dj_filter_chain* _chain
 );
 
-// vi.   chain properties
+// 4.6    chain properties
+//------------------------------------------------------------------------------
 size_t d_filter_chain_length(
     const struct dj_filter_chain* _chain
 );
@@ -397,15 +400,16 @@ bool d_filter_chain_is_empty(
     const struct dj_filter_chain* _chain
 );
 
-// vii.  chain cleanup
+// 4.7    chain cleanup
+//------------------------------------------------------------------------------
 void d_filter_chain_free(
     struct dj_filter_chain* _chain
 );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             V.    FILTER COMBINATORS                                    ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 5.  FILTER COMBINATORS
+//==============================================================================
 
 // struct dj_filter_union
 //   struct: union of multiple filter chains (OR semantics).
@@ -436,7 +440,8 @@ struct dj_filter_difference
     struct dj_filter_chain* exclude;
 };
 
-// i.    combinator creation
+// 5.1    combinator creation
+//------------------------------------------------------------------------------
 struct dj_filter_union* d_filter_union_new(
     size_t _capacity
 );
@@ -448,7 +453,8 @@ struct dj_filter_difference* d_filter_difference_new(
     struct dj_filter_chain* _exclude
 );
 
-// ii.   adding filters to combinators
+// 5.2    adding filters to combinators
+//------------------------------------------------------------------------------
 bool d_filter_union_add(
     struct dj_filter_union*       _union,
     const struct dj_filter_chain* _filter
@@ -458,7 +464,8 @@ bool d_filter_intersection_add(
     const struct dj_filter_chain*  _filter
 );
 
-// iii.  combinator cleanup
+// 5.3    combinator cleanup
+//------------------------------------------------------------------------------
 void d_filter_union_free(
     struct dj_filter_union* _union
 );
@@ -470,11 +477,12 @@ void d_filter_difference_free(
 );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             VI.   EXECUTION AND APPLICATION                             ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 6.  EXECUTION AND APPLICATION
+//==============================================================================
 
-// i.    apply single operation
+// 6.1    apply single operation
+//------------------------------------------------------------------------------
 struct dj_filter_result* d_filter_apply_operation(
     const struct dj_filter_operation* _op,
     const void*                       _input,
@@ -482,7 +490,8 @@ struct dj_filter_result* d_filter_apply_operation(
     size_t                            _element_size
 );
 
-// ii.   apply filter chain
+// 6.2    apply filter chain
+//------------------------------------------------------------------------------
 struct dj_filter_result* d_filter_apply_chain(
     const struct dj_filter_chain* _chain,
     const void*                   _input,
@@ -490,7 +499,8 @@ struct dj_filter_result* d_filter_apply_chain(
     size_t                        _element_size
 );
 
-// iii.  apply combinators
+// 6.3    apply combinators
+//------------------------------------------------------------------------------
 struct dj_filter_result* d_filter_apply_union(
     const struct dj_filter_union* _union,
     const void*                   _input,
@@ -510,7 +520,8 @@ struct dj_filter_result* d_filter_apply_difference(
     size_t                             _element_size
 );
 
-// iv.   counting and querying
+// 6.4    counting and querying
+//------------------------------------------------------------------------------
 size_t d_filter_count_matches(
     const struct dj_filter_chain* _chain,
     const void*                   _input,
@@ -536,7 +547,8 @@ bool d_filter_none_match(
     size_t                        _element_size
 );
 
-// v.    index retrieval (no element copying)
+// 6.5    index retrieval (no element copying)
+//------------------------------------------------------------------------------
 size_t* d_filter_get_indices(
     const struct dj_filter_chain* _chain,
     const void*                   _input,
@@ -545,7 +557,8 @@ size_t* d_filter_get_indices(
     size_t*                       _out_count
 );
 
-// vi.   in-place filtering (modifies original array)
+// 6.6    in-place filtering (modifies original array)
+//------------------------------------------------------------------------------
 size_t d_filter_apply_in_place(
     const struct dj_filter_chain* _chain,
     void*                         _array,
@@ -553,7 +566,8 @@ size_t d_filter_apply_in_place(
     size_t                        _element_size
 );
 
-// vii.  single-element evaluation
+// 6.7    single-element evaluation
+//------------------------------------------------------------------------------
 bool d_filter_chain_matches_element(
     const struct dj_filter_chain* _chain,
     const void*                   _element,
@@ -566,11 +580,12 @@ void d_filter_result_free(
 );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             VII.  UTILITY FUNCTIONS                                     ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 7.  UTILITY FUNCTIONS
+//==============================================================================
 
-// i.    validation
+// 7.1    validation
+//------------------------------------------------------------------------------
 bool d_filter_operation_is_valid(
     const struct dj_filter_operation* _op
 );
@@ -578,7 +593,8 @@ bool d_filter_chain_is_valid(
     const struct dj_filter_chain* _chain
 );
 
-// ii.   description / serialization
+// 7.2    description / serialization
+//------------------------------------------------------------------------------
 char* d_filter_operation_to_string(
     const struct dj_filter_operation* _op
 );
@@ -586,7 +602,8 @@ char* d_filter_chain_to_string(
     const struct dj_filter_chain* _chain
 );
 
-// iii.  parsing (from string)
+// 7.3    parsing (from string)
+//------------------------------------------------------------------------------
 struct dj_filter_operation* d_filter_operation_from_string(
     const char* _str
 );
@@ -594,21 +611,23 @@ struct dj_filter_chain* d_filter_chain_from_string(
     const char* _str
 );
 
-// iv.   optimization
+// 7.4    optimization
+//------------------------------------------------------------------------------
 struct dj_filter_chain* d_filter_chain_optimize(
     const struct dj_filter_chain* _chain
 );
 
-// v.    statistics
+// 7.5    statistics
+//------------------------------------------------------------------------------
 size_t d_filter_estimate_result_size(
     const struct dj_filter_chain* _chain,
     size_t                        _input_count
 );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             VIII. ITERATOR INTERFACE                                    ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 8.  ITERATOR INTERFACE
+//==============================================================================
 
 // struct dj_filter_iterator
 //   struct: iterator for lazily evaluating filtered results.
@@ -626,7 +645,8 @@ struct dj_filter_iterator
     bool                         exhausted;     // no more elements
 };
 
-// i.    iterator creation
+// 8.1    iterator creation
+//------------------------------------------------------------------------------
 struct dj_filter_iterator* d_filter_iterator_new(
     const struct dj_filter_chain* _chain,
     const void*                   _input,
@@ -634,7 +654,8 @@ struct dj_filter_iterator* d_filter_iterator_new(
     size_t                        _element_size
 );
 
-// ii.   iterator operations
+// 8.2    iterator operations
+//------------------------------------------------------------------------------
 bool d_filter_iterator_has_next(
     const struct dj_filter_iterator* _iter
 );
@@ -645,15 +666,16 @@ void d_filter_iterator_reset(
     struct dj_filter_iterator* _iter
 );
 
-// iii.  iterator cleanup
+// 8.3    iterator cleanup
+//------------------------------------------------------------------------------
 void d_filter_iterator_free(
     struct dj_filter_iterator* _iter
 );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             IX.   FLUENT FILTER BUILDER                                 ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 9.  FLUENT FILTER BUILDER
+//==============================================================================
 
 // struct dj_filter_builder
 //   struct: fluent builder for constructing filter chains.
@@ -667,13 +689,15 @@ struct dj_filter_builder
     char*                  error_message;
 };
 
-// i.    builder creation
+// 9.1    builder creation
+//------------------------------------------------------------------------------
 struct dj_filter_builder* d_filter_builder_new(void);
 struct dj_filter_builder* d_filter_builder_from_chain(
     struct dj_filter_chain* _chain
 );
 
-// ii.   fluent operations (return builder for chaining)
+// 9.2    fluent operations (return builder for chaining)
+//------------------------------------------------------------------------------
 struct dj_filter_builder* d_filter_builder_take_first(
     struct dj_filter_builder* _builder,
     size_t                    _n
@@ -735,7 +759,8 @@ struct dj_filter_builder* d_filter_builder_at_indices(
     size_t                    _n
 );
 
-// iii.  builder finalization
+// 9.3    builder finalization
+//------------------------------------------------------------------------------
 struct dj_filter_chain* d_filter_builder_build(
     struct dj_filter_builder* _builder
 );
@@ -746,7 +771,8 @@ struct dj_filter_result* d_filter_builder_apply(
     size_t                    _element_size
 );
 
-// iv.   builder error handling
+// 9.4    builder error handling
+//------------------------------------------------------------------------------
 bool d_filter_builder_has_error(
     const struct dj_filter_builder* _builder
 );
@@ -757,15 +783,16 @@ char* d_filter_builder_get_error_message(
     const struct dj_filter_builder* _builder
 );
 
-// v.    builder cleanup
+// 9.5    builder cleanup
+//------------------------------------------------------------------------------
 void d_filter_builder_free(
     struct dj_filter_builder* _builder
 );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             X.    CONVENIENCE MACROS                                    ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 10. CONVENIENCE MACROS
+//==============================================================================
 
 // D_FILTER
 //   macro: creates and applies a simple filter in one expression.
@@ -870,9 +897,9 @@ void d_filter_builder_free(
     d_filter_builder_apply((BUILDER), (INPUT), (COUNT), (SIZE))
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             XI.   TYPED FILTER WRAPPERS (C11+)                         ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 11. TYPED FILTER WRAPPERS (C11+)
+//==============================================================================
 
 #if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
 

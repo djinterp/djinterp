@@ -62,6 +62,13 @@
 *                                                            revised: 2026.09.30
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  RE-EXPORTS
+    ----------
+*/
+
 #ifndef DJINTERP_TEST_COMPRESS_OPTIONS_HPP
 #define DJINTERP_TEST_COMPRESS_OPTIONS_HPP 1
 
@@ -80,9 +87,9 @@ NS_DJINTERP
 NS_TEST
 
 
-// =============================================================================
-// I.   RE-EXPORTS
-// =============================================================================
+//==============================================================================
+// 1.  RE-EXPORTS
+//==============================================================================
 //   Ordinary enclosing-namespace lookup would already find these from inside
 // djinterp::test, but the call sites spell them dt::, which requires the name
 // to be a member of djinterp::test.  These declarations make it one without

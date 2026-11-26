@@ -25,59 +25,52 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    POD TYPES
-      ---------
-      a. dj_color_rgb
-      b. dj_color_rgba
-      c.    dj_color_rgba_premul
-            d. dj_color_rgb_u8
-            e. dj_color_rgba_u8
-            f. dj_color_rgb_hex, dj_color_rgba_hex
-
-II.   CONSTRUCTION
-      ------------
-      a. d_color_rgb_make
-      b. d_color_rgba_make
-      c.    d_color_rgba_premul_make
-            d. d_color_rgb_u8_make
-            e. d_color_rgba_u8_make
-
-III.  VALIDATION & CLAMPING
-      ---------------------
-      a. d_color_rgb_is_valid / d_color_rgba_is_valid
-      b. d_color_rgb_clamp / d_color_rgba_clamp
-
-IV.   sRGB GAMMA TRANSFER
-      -------------------
-      a. d_color_srgb_to_linear_component / d_color_linear_to_srgb_component
-      b. d_color_rgb_from_srgb / d_color_rgb_to_srgb
-
-V.    ALPHA
-      -----
-      a. d_color_rgba_from_rgb / d_color_rgb_from_rgba
-      b. d_color_rgba_premultiply / d_color_rgba_unpremultiply
-      c.    d_color_rgba_blend_over / d_color_rgba_blend_over_straight
-
-VI.   8-BIT (de)serialization
-      -----------------------
-      a. d_color_rgb_from_u8 / d_color_rgb_to_u8
-      b. d_color_rgba_from_u8 / d_color_rgba_to_u8
-
-VII.  HEX (de)serialization
-      ---------------------
-      a. d_color_rgb_from_hex / d_color_rgb_to_hex
-      b. d_color_rgba_from_hex / d_color_rgba_to_hex
-      c.    d_color_rgb_from_hex_string / d_color_rgba_from_hex_string
-            d. d_color_rgb_hex_from_string
-
-VIII. OPERATIONS
-      ----------
-      a. d_color_rgb_luminance / d_color_rgba_luminance
-      b. d_color_rgb_contrast_ratio
-      c.    d_color_rgb_to_grayscale
-            d. d_color_rgb_invert
-            e. d_color_rgb_lerp / d_color_rgba_lerp
-            f. d_color_rgb_from_temperature
+1.  POD TYPES
+    ---------
+    a. dj_color_rgb
+    b. dj_color_rgba
+    c.    dj_color_rgba_premul
+          d. dj_color_rgb_u8
+          e. dj_color_rgba_u8
+          f. dj_color_rgb_hex, dj_color_rgba_hex
+2.  CONSTRUCTION
+    ------------
+    a. d_color_rgb_make
+    b. d_color_rgba_make
+    c.    d_color_rgba_premul_make
+          d. d_color_rgb_u8_make
+          e. d_color_rgba_u8_make
+3.  VALIDATION & CLAMPING
+    ---------------------
+    a. d_color_rgb_is_valid / d_color_rgba_is_valid
+    b. d_color_rgb_clamp / d_color_rgba_clamp
+4.  sRGB GAMMA TRANSFER
+    -------------------
+    a. d_color_srgb_to_linear_component / d_color_linear_to_srgb_component
+    b. d_color_rgb_from_srgb / d_color_rgb_to_srgb
+5.  ALPHA
+    -----
+    a. d_color_rgba_from_rgb / d_color_rgb_from_rgba
+    b. d_color_rgba_premultiply / d_color_rgba_unpremultiply
+    c.    d_color_rgba_blend_over / d_color_rgba_blend_over_straight
+6.  8-BIT (de)serialization
+    -----------------------
+    a. d_color_rgb_from_u8 / d_color_rgb_to_u8
+    b. d_color_rgba_from_u8 / d_color_rgba_to_u8
+7.  HEX (de)serialization
+    ---------------------
+    a. d_color_rgb_from_hex / d_color_rgb_to_hex
+    b. d_color_rgba_from_hex / d_color_rgba_to_hex
+    c.    d_color_rgb_from_hex_string / d_color_rgba_from_hex_string
+          d. d_color_rgb_hex_from_string
+8.  OPERATIONS
+    ----------
+    a. d_color_rgb_luminance / d_color_rgba_luminance
+    b. d_color_rgb_contrast_ratio
+    c.    d_color_rgb_to_grayscale
+          d. d_color_rgb_invert
+          e. d_color_rgb_lerp / d_color_rgba_lerp
+          f. d_color_rgb_from_temperature
 */
 
 #ifndef DJINTERP_C_UTIL_COLOR_COLOR_RGB_H
@@ -102,9 +95,9 @@ VIII. OPERATIONS
 D_COLOR_NS_OPEN
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                       I.   POD TYPES                                    ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  POD TYPES
+//==============================================================================
 
 // dj_color_rgb
 //   POD: linear RGB color, channels in [0, 1].
@@ -163,9 +156,9 @@ typedef uint32_t dj_color_rgb_hex;
 typedef uint32_t dj_color_rgba_hex;
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                      II.   CONSTRUCTION                                 ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  CONSTRUCTION
+//==============================================================================
 
 /*
 d_color_rgb_make
@@ -279,9 +272,9 @@ struct dj_color_rgba_u8 d_color_rgba_u8_make(
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                 III.   VALIDATION & CLAMPING                            ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  VALIDATION & CLAMPING
+//==============================================================================
 
 /*
 d_color_rgb_is_valid
@@ -366,9 +359,9 @@ struct dj_color_rgba d_color_rgba_clamp(
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                  IV.   sRGB GAMMA TRANSFER                              ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  sRGB GAMMA TRANSFER
+//==============================================================================
 
 /*
 d_color_srgb_to_linear_component
@@ -457,9 +450,9 @@ struct dj_color_rgb d_color_rgb_to_srgb(
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                          V.   ALPHA                                     ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 5.  ALPHA
+//==============================================================================
 
 /*
 d_color_rgba_from_rgb
@@ -599,9 +592,9 @@ struct dj_color_rgba d_color_rgba_blend_over_straight(
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                  VI.   8-BIT (de)serialization                          ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 6.  8-BIT (de)serialization
+//==============================================================================
 
 /*
 d_color_rgb_from_u8
@@ -696,9 +689,9 @@ struct dj_color_rgba_u8 d_color_rgba_to_u8(
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                  VII.   HEX (de)serialization                           ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 7.  HEX (de)serialization
+//==============================================================================
 
 /*
 d_color_rgb_from_hex
@@ -940,9 +933,9 @@ dj_color_rgb_hex d_color_rgb_hex_from_string(
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                      VIII.   OPERATIONS                                 ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 8.  OPERATIONS
+//==============================================================================
 
 /*
 d_color_rgb_luminance

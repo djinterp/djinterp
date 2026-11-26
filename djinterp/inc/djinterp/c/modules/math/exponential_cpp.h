@@ -28,6 +28,13 @@
 *                                                            revised: 2026.11.25
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+5.  ONE NAME FOR EVERY FAMILY (C++)
+    -------------------------------
+*/
+
 #ifndef DJINTERP_C_MATH_EXPONENTIAL_CPP_H
 #define DJINTERP_C_MATH_EXPONENTIAL_CPP_H 1
 

@@ -105,9 +105,9 @@
 #define D_JIT_X86_PFX_SEG_GS        0x65
 
 
-// ===========================================================================
-// C.   MODR/M AND SIB FIELDS
-// ===========================================================================
+//==============================================================================
+// 100. MODR/M AND SIB FIELDS
+//==============================================================================
 //   Identical layout to x86-64 (there is no REX to extend the fields). The
 // special encodings differ in one place: rm=101 with mod=00 is a plain disp32
 // absolute address in 32-bit mode (x86-64 reinterprets it as RIP-relative).
@@ -191,9 +191,9 @@
 #endif
 
 
-// ===========================================================================
-// D.   REGISTER OPERAND NUMBERS
-// ===========================================================================
+//==============================================================================
+// 500. REGISTER OPERAND NUMBERS
+//==============================================================================
 //   The eight 32-bit general registers, in the legacy A,C,D,B,SP,BP,SI,DI
 // order. The same 3-bit numbers name the 16- and 8-bit registers.
 
@@ -503,9 +503,9 @@
 #endif
 
 
-// ===========================================================================
-// I.   COMPLETE BYTE SEQUENCES
-// ===========================================================================
+//==============================================================================
+// 1.  COMPLETE BYTE SEQUENCES
+//==============================================================================
 //   32-bit fixed fragments. The prologue/epilogue use EBP; the first cdecl
 // integer argument sits at [EBP+8] once the frame is set up.
 

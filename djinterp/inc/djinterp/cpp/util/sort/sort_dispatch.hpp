@@ -45,15 +45,15 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    SELECTOR                  DSortAlgorithm
-II.   ALGORITHM TAGS            DSortTagBase, D*SortTag, DDynamicAlgorithm,
-                                DDefaultSortTag, is_sort_tag
-III.  TRAIT BRIDGE              sort_algorithm_traits, algorithm_tag_t,
-                                sort_traits, properties_of, name_of
-IV.   RUN-TIME DISPATCH         internal::visit_sort_algorithm,
-                                internal::dispatch_runtime
-V.    SORTER                    DSorter<Tag>, DSorter<DDynamicAlgorithm>
-VI.   ENTRY POINT               sort
+1.  SELECTOR                  DSortAlgorithm
+2.  ALGORITHM TAGS            DSortTagBase, D*SortTag, DDynamicAlgorithm,
+                              DDefaultSortTag, is_sort_tag
+3.  TRAIT BRIDGE              sort_algorithm_traits, algorithm_tag_t,
+                              sort_traits, properties_of, name_of
+4.  RUN-TIME DISPATCH         internal::visit_sort_algorithm,
+                              internal::dispatch_runtime
+5.  SORTER                    DSorter<Tag>, DSorter<DDynamicAlgorithm>
+6.  ENTRY POINT               sort
 */
 
 #ifndef DJINTERP_UTIL_SORT_DISPATCH_HPP
@@ -86,9 +86,9 @@ VI.   ENTRY POINT               sort
 NS_DJINTERP
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                    I.   SELECTOR                                        ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  SELECTOR
+//==============================================================================
 
 // DSortAlgorithm
 //   enum: names each algorithm of the subsystem at run time.  Every
@@ -106,9 +106,9 @@ enum class DSortAlgorithm : re_std::uint8_t
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                    II.  ALGORITHM TAGS                                  ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  ALGORITHM TAGS
+//==============================================================================
 //   A tag is an empty type naming one algorithm at compile time.  It inherits
 // its algorithm's traits struct, so is_stable, is_in_place and is_adaptive
 // have one source; adds the run-time enumerator as `value` and the name; and
@@ -188,9 +188,9 @@ struct is_sort_tag
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                    III. TRAIT BRIDGE                                    ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  TRAIT BRIDGE
+//==============================================================================
 
 // sort_algorithm_traits
 //   trait: maps a DSortAlgorithm value known at compile time to its tag and
@@ -258,9 +258,9 @@ struct sort_traits
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                    IV.  RUN-TIME DISPATCH                               ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  RUN-TIME DISPATCH
+//==============================================================================
 
 NS_INTERNAL
 
@@ -463,9 +463,9 @@ const char* name_of(
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                    V.   SORTER                                          ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 5.  SORTER
+//==============================================================================
 //   The facility as a callable object.  DSorter<Tag> fixes the algorithm in
 // its type and is empty; DSorter<> - DSorter<DDynamicAlgorithm> - holds a
 // DSortAlgorithm and resolves it on every call.  The two have the same three
@@ -700,9 +700,9 @@ private:
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                    VI.  ENTRY POINT                                     ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 6.  ENTRY POINT
+//==============================================================================
 
 NS_INTERNAL
 

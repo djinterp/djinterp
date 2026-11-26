@@ -54,18 +54,16 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    is_fixed_registry (detection trait)
-      -----------------------------------
-
-II.   fixed_registry (class)
-      ----------------------
-      1.    re-exported base surface (member types, lookup, value)
-      2.    axis markers (lifetime immutable; structurally_fixed; value_mutable)
-      3.    construction (the key set is settled here, once)
-      4.    value update (reject-only; no reposition)
-
-III.  fixed_kv_registry
-      -----------------
+1.  is_fixed_registry (detection trait)
+    -----------------------------------
+2.  fixed_registry (class)
+    ----------------------
+    1.    re-exported base surface (member types, lookup, value)
+    2.    axis markers (lifetime immutable; structurally_fixed; value_mutable)
+    3.    construction (the key set is settled here, once)
+    4.    value update (reject-only; no reposition)
+3.  fixed_kv_registry
+    -----------------
 */
 
 #ifndef DJINTERP_CONTAINER_REGISTRY_FIXED_REGISTRY_HPP
@@ -90,9 +88,9 @@ III.  fixed_kv_registry
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   is_fixed_registry (detection trait)
-// ===========================================================================
+//==============================================================================
+// 1.  is_fixed_registry (detection trait)
+//==============================================================================
 
 // DFixedRegistry (fwd)
 template<typename    Record,
@@ -131,9 +129,9 @@ inline constexpr bool is_fixed_registry_v = is_fixed_registry<Type>::value;
 #endif
 
 
-// ===========================================================================
-// II.  fixed_registry (class)
-// ===========================================================================
+//==============================================================================
+// 2.  fixed_registry (class)
+//==============================================================================
 
 // DFixedRegistry
 //   class: the base registry with structural mutation withdrawn and the rekey
@@ -301,9 +299,9 @@ template<typename    Record,
 using fixed_registry = DFixedRegistry<Record, KeyProj, ValueProj, KeyCompare, UniqueKeys, KeyDisjoint, SizeType, DifferenceType, Options...>;
 
 
-// ===========================================================================
-// III. fixed_kv_registry
-// ===========================================================================
+//==============================================================================
+// 3.  fixed_kv_registry
+//==============================================================================
 
 // DFixedKvRegistry
 //   alias: a structurally-frozen kv map/multimap - fixed keys, settable

@@ -29,6 +29,15 @@
 *                                                            revised: 2026.11.24
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+4.  ONE NAME FOR EVERY FAMILY (C++)
+    -------------------------------
+5.  ONE NAME FOR EVERY LEVEL, AND ANY TYPE (C++)
+    --------------------------------------------
+*/
+
 #ifndef DJINTERP_C_MATH_COORD_CPP_H
 #define DJINTERP_C_MATH_COORD_CPP_H 1
 

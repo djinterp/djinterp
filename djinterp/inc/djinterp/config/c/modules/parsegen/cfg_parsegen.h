@@ -25,6 +25,29 @@
 *                                                            revised: 2026.09.19
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  FEATURE GATES
+    -------------
+    1.  Aggregate
+         1.  D_CFG_PARSEGEN_ALL
+    2.  Allocation
+         1.  D_CFG_PARSEGEN_GRAMMAR_HEAP
+         2.  D_CFG_PARSEGEN_REGISTRY_HEAP
+    3.  Validation
+2.  SIZING CONSTANTS
+    ----------------
+    1.  Grammar
+         1.  D_PARSEGEN_GRAMMAR_DEFAULT_NODES
+         2.  D_PARSEGEN_GRAMMAR_DEFAULT_RULES
+3.  DERIVED VALUES
+    --------------
+    1.  Effective gates
+         1.  D_INTERNAL_PARSEGEN_GRAMMAR_HEAP
+         2.  D_INTERNAL_PARSEGEN_REGISTRY_HEAP
+*/
+
 #ifndef DJINTERP_CONFIG_C_PARSEGEN_CFG_PARSEGEN_H
 #define DJINTERP_CONFIG_C_PARSEGEN_CFG_PARSEGEN_H 1
 

@@ -34,6 +34,15 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  GET BY INDEX
+    ------------
+2.  GET BY TYPE  (C++14+)
+    ---------------------
+*/
+
 #ifndef RE_STD_TUPLE_PAIR_GET_HPP
 #define RE_STD_TUPLE_PAIR_GET_HPP 1
 
@@ -59,9 +68,9 @@ namespace re_std
 {
 
 
-// =============================================================================
-// I.   GET BY INDEX
-// =============================================================================
+//==============================================================================
+// 1.  GET BY INDEX
+//==============================================================================
 // The index-based form uses ordinary function overloading on the
 // non-type template parameter via tag-dispatch through internal
 // helpers. The dispatch picks first vs. second based on I.
@@ -207,9 +216,9 @@ get(
 }
 
 
-// =============================================================================
-// II.  GET BY TYPE  (C++14+)
-// =============================================================================
+//==============================================================================
+// 2.  GET BY TYPE  (C++14+)
+//==============================================================================
 // SFINAE-rejected when T1 == T2 (the requested type is not unique).
 // For each value category, two overloads dispatch on which member
 // matches T.

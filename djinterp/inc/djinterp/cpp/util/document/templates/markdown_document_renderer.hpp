@@ -48,8 +48,8 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    DMarkdownDocumentRenderer   (the renderer)
-      -------------------------------------------
+1.  DMarkdownDocumentRenderer   (the renderer)
+    -------------------------------------------
 */
 
 #ifndef DJINTERP_UTIL_DOCUMENT_TEMPLATES_MARKDOWN_DOCUMENT_RENDERER_HPP
@@ -76,9 +76,9 @@ I.    DMarkdownDocumentRenderer   (the renderer)
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   DMarkdownDocumentRenderer
-// ===========================================================================
+//==============================================================================
+// 1.  DMarkdownDocumentRenderer
+//==============================================================================
 
 // DMarkdownDocumentRenderer
 //   class: the Markdown realisation of DDocumentRenderer.  It accumulates a

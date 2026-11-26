@@ -44,14 +44,12 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    option_partition_wrap       (typename-only wrapper for partition)
-      -----------------------------------------------------------------
-
-II.   tuple_to_option_set         (tuple-of-entries -> option_set)
-      ------------------------------------------------------------
-
-III.  option_set_from_flat_t      (end-to-end pipeline alias)
-      -------------------------------------------------------
+1.  option_partition_wrap       (typename-only wrapper for partition)
+    -----------------------------------------------------------------
+2.  tuple_to_option_set         (tuple-of-entries -> option_set)
+    ------------------------------------------------------------
+3.  option_set_from_flat_t      (end-to-end pipeline alias)
+    -------------------------------------------------------
 */
 
 #ifndef DJINTERP_OPTION_BUILDER_HPP
@@ -81,9 +79,9 @@ III.  option_set_from_flat_t      (end-to-end pipeline alias)
 
 NS_DJINTERP
 
-// ===========================================================================
-// I.   option_partition_wrap
-// ===========================================================================
+//==============================================================================
+// 1.  option_partition_wrap
+//==============================================================================
 
 NS_INTERNAL
 
@@ -141,9 +139,9 @@ template<typename... Args>
 using option_partition_wrap = typename internal::option_partition_wrap_impl<Args...>::type;
 
 
-// ===========================================================================
-// II.  tuple_to_option_set
-// ===========================================================================
+//==============================================================================
+// 2.  tuple_to_option_set
+//==============================================================================
 
 // tuple_to_option_set
 //   trait: lift std::tuple<Entries...> into
@@ -168,9 +166,9 @@ using tuple_to_option_set_t =
     typename tuple_to_option_set<Tuple>::type;
 
 
-// ===========================================================================
-// III. option_set_from_flat_t
-// ===========================================================================
+//==============================================================================
+// 3.  option_set_from_flat_t
+//==============================================================================
 
 // option_set_from_flat_t
 //   alias: end-to-end pipeline.  Partitions Schema... into

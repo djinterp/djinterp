@@ -54,17 +54,14 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    constexpr_iterator
-      ------------------
-
-II.   DConstexprRange
-      ---------------
-
-III.  Factory Functions
-      -----------------
-
-IV.   Compile-Time Algorithms
-      -----------------------
+1.  constexpr_iterator
+    ------------------
+2.  DConstexprRange
+    ---------------
+3.  Factory Functions
+    -----------------
+4.  Compile-Time Algorithms
+    -----------------------
 */
 
 #ifndef DJINTERP_CONTAINER_ITERATOR_CONSTEXPR_ITERATOR_HPP
@@ -99,9 +96,9 @@ IV.   Compile-Time Algorithms
 
 NS_DJINTERP
 
-// ===========================================================================
-// I.   constexpr_iterator
-// ===========================================================================
+//==============================================================================
+// 1.  constexpr_iterator
+//==============================================================================
 
 // DConstexprIterator
 //   class: a fully constexpr random-access iterator over contiguous const
@@ -332,9 +329,9 @@ template<typename Type>
 using constexpr_iterator = DConstexprIterator<Type>;
 
 
-// ===========================================================================
-// II.  DConstexprRange
-// ===========================================================================
+//==============================================================================
+// 2.  DConstexprRange
+//==============================================================================
 
 // DConstexprRange
 //   class: a compile-time range adapter over contiguous const storage.
@@ -456,9 +453,9 @@ private:
 };
 
 
-// ===========================================================================
-// III. Factory Functions
-// ===========================================================================
+//==============================================================================
+// 3.  Factory Functions
+//==============================================================================
 
 // make_constexpr_range
 //   function: constructs a DConstexprRange from a pointer and count.
@@ -499,9 +496,9 @@ DConstexprRange<Type> make_constexpr_range(
 }
 
 
-// ===========================================================================
-// IV.  Compile-Time Algorithms
-// ===========================================================================
+//==============================================================================
+// 4.  Compile-Time Algorithms
+//==============================================================================
 // Minimal constexpr algorithm vocabulary operating on
 // DConstexprRange or any constexpr_iterator pair.
 

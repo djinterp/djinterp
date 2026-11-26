@@ -44,17 +44,17 @@
 /*
 TABLE OF CONTENTS
 =================
-0.    PDF CONFIGURATION
-      -----------------
-      1.    Defaults                     (D_CFG_PDF_COMPRESS, _LEVEL)
-      2.    Validation of the knobs
-      3.    Derived values               (D_INTERNAL_PDF_*)
+0.  PDF CONFIGURATION
+    -----------------
+    1.    Defaults                     (D_CFG_PDF_COMPRESS, _LEVEL)
+    2.    Validation of the knobs
+    3.    Derived values               (D_INTERNAL_PDF_*)
 */
 
 
-// ===========================================================================
-// 0.   PDF CONFIGURATION
-// ===========================================================================
+//==============================================================================
+// 0.  PDF CONFIGURATION
+//==============================================================================
 
 // --- 0.1  Defaults ---
 

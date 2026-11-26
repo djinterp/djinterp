@@ -30,6 +30,27 @@
 *                                                            revised: 2026.11.11
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  CORE ALIAS DETECTION
+    --------------------
+2.  SCANNING SURFACE DETECTION
+    --------------------------
+3.  RESOLUTION SURFACE DETECTION
+    ----------------------------
+4.  NAMING SURFACE DETECTION
+    ------------------------
+5.  TRAVERSAL SURFACE DETECTION
+    ---------------------------
+6.  MUTATION SURFACE DETECTION
+    --------------------------
+7.  PAYLOAD SHAPE DETECTION
+    -----------------------
+8.  MASTER CLASSIFICATION STRUCT
+    ----------------------------
+*/
+
 #ifndef DJINTERP_CONTAINER_TREE_FILE_FILE_TREE_TRAITS_HPP
 #define DJINTERP_CONTAINER_TREE_FILE_FILE_TREE_TRAITS_HPP 1
 
@@ -65,9 +86,9 @@ NS_DJINTERP
 // both.
 
 
-// =========================================================================
-// I.   CORE ALIAS DETECTION
-// =========================================================================
+//==============================================================================
+// 1.  CORE ALIAS DETECTION
+//==============================================================================
 
 // has_node_type
 //   node_container_traits.hpp's, which reads the alias of the cleaned type
@@ -142,9 +163,9 @@ using file_payload_type_of_t =
         file_node_type_of_t<Type>>::type;
 
 
-// =========================================================================
-// II.  SCANNING SURFACE DETECTION
-// =========================================================================
+//==============================================================================
+// 2.  SCANNING SURFACE DETECTION
+//==============================================================================
 
 // has_scan_method
 //   trait: evaluates to true if Type exposes a `scan(const char*)` method -
@@ -171,9 +192,9 @@ struct has_scan_method<Type, void_t<decltype(
 #endif
 
 
-// =========================================================================
-// III. RESOLUTION SURFACE DETECTION
-// =========================================================================
+//==============================================================================
+// 3.  RESOLUTION SURFACE DETECTION
+//==============================================================================
 
 // has_resolve_method
 //   trait: evaluates to true if Type exposes a `resolve(const char*)` method
@@ -199,9 +220,9 @@ struct has_resolve_method<Type, void_t<decltype(
 #endif
 
 
-// =========================================================================
-// IV.  NAMING SURFACE DETECTION
-// =========================================================================
+//==============================================================================
+// 4.  NAMING SURFACE DETECTION
+//==============================================================================
 
 // has_name_method
 //   node_container_traits.hpp's (decisions L1 and X5), given a file tree's
@@ -258,9 +279,9 @@ struct has_full_path_method<Type, void_t<decltype(
 #endif
 
 
-// =========================================================================
-// V.   TRAVERSAL SURFACE DETECTION
-// =========================================================================
+//==============================================================================
+// 5.  TRAVERSAL SURFACE DETECTION
+//==============================================================================
 // Traversal methods are templates on the visitor, so detection probes
 // with a trivial no-op callable.
 
@@ -333,9 +354,9 @@ struct has_breadth_first_method<Type, void_t<decltype(
 #endif
 
 
-// =========================================================================
-// VI.  MUTATION SURFACE DETECTION
-// =========================================================================
+//==============================================================================
+// 6.  MUTATION SURFACE DETECTION
+//==============================================================================
 
 // has_add_child_method
 //   node_container_traits.hpp's (decision L1), given a file tree's arguments
@@ -364,9 +385,9 @@ struct has_clear_method<Type, void_t<decltype(
 #endif
 
 
-// =========================================================================
-// VII. PAYLOAD SHAPE DETECTION
-// =========================================================================
+//==============================================================================
+// 7.  PAYLOAD SHAPE DETECTION
+//==============================================================================
 // A file_entry-shaped payload carries a pooled-name reference
 // (offset + length), a typed kind, and a size.  These traits probe
 // the payload type directly so that alternate trees carrying
@@ -458,9 +479,9 @@ struct is_file_entry_payload
 #endif
 
 
-// =========================================================================
-// VIII. MASTER CLASSIFICATION STRUCT
-// =========================================================================
+//==============================================================================
+// 8.  MASTER CLASSIFICATION STRUCT
+//==============================================================================
 // Note: uses ::value syntax for C++11 compatibility.  The _v variable
 // templates above are a convenience layer that requires C++14.
 

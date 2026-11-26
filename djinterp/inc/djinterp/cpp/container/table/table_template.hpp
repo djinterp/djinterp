@@ -55,22 +55,17 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    template_syntax             (the markers: ellipsis, iteration sigil)
-      --------------------------------------------------------------------
-
-II.   placeholder detection       (is_multi_placeholder / multi_placeholder_key
-      -------------------------------------------------------------------------
-
-      / is_iterated / iteration_of)
-
-III.  multi_bindings              (key -> a run of values)
-      ----------------------------------------------------
-
-IV.   expand_multi_placeholders   (the run expansion; placeholder_fit applied)
-      ------------------------------------------------------------------------
-
-V.    interpolate_cells           ({key} per cell, via interpolate.hpp)
-      -----------------------------------------------------------------
+1.  template_syntax             (the markers: ellipsis, iteration sigil)
+    --------------------------------------------------------------------
+2.  placeholder detection       (is_multi_placeholder / multi_placeholder_key
+    -------------------------------------------------------------------------
+    / is_iterated / iteration_of)
+3.  multi_bindings              (key -> a run of values)
+    ----------------------------------------------------
+4.  expand_multi_placeholders   (the run expansion; placeholder_fit applied)
+    ------------------------------------------------------------------------
+5.  interpolate_cells           ({key} per cell, via interpolate.hpp)
+    -----------------------------------------------------------------
 */
 
 #ifndef DJINTERP_CONTAINER_TABLE_TABLE_TEMPLATE_HPP
@@ -111,9 +106,9 @@ V.    interpolate_cells           ({key} per cell, via interpolate.hpp)
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   template_syntax
-// ===========================================================================
+//==============================================================================
+// 1.  template_syntax
+//==============================================================================
 
 // DTemplateSyntax
 //   struct: the markers the text surface spells a template with. Kept as data
@@ -136,9 +131,9 @@ struct DTemplateSyntax
 using template_syntax = DTemplateSyntax;
 
 
-// ===========================================================================
-// II.  placeholder detection
-// ===========================================================================
+//==============================================================================
+// 2.  placeholder detection
+//==============================================================================
 
 // is_multi_placeholder
 //   function: whether _text names a RUN of cells rather than one - it ends
@@ -215,9 +210,9 @@ D_NODISCARD inline std::string iteration_of(
 }
 
 
-// ===========================================================================
-// III. multi_bindings
-// ===========================================================================
+//==============================================================================
+// 3.  multi_bindings
+//==============================================================================
 
 // DMultiBindings
 //   class: what a run placeholder resolves to - a key bound to a RUN of
@@ -295,9 +290,9 @@ private:
 using multi_bindings = DMultiBindings;
 
 
-// ===========================================================================
-// IV.  expand_multi_placeholders
-// ===========================================================================
+//==============================================================================
+// 4.  expand_multi_placeholders
+//==============================================================================
 
 NS_INTERNAL
 
@@ -550,9 +545,9 @@ D_NODISCARD parse::parse_result<DTableModelValue<Cell, Metadata>> expand_multi_p
 }
 
 
-// ===========================================================================
-// V.   interpolate_cells
-// ===========================================================================
+//==============================================================================
+// 5.  interpolate_cells
+//==============================================================================
 
 // interpolate_cells
 //   function: resolve the {key} placeholders in every cell. Not a

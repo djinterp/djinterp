@@ -81,9 +81,9 @@ NS_DB
 namespace redis {
 
 
-// =============================================================================
-// I.   REDIS DATA TYPE ENUMERATION
-// =============================================================================
+//==============================================================================
+// 1.  REDIS DATA TYPE ENUMERATION
+//==============================================================================
 // Redis identifies stored values by a small set of canonical types. These
 // are returned by the TYPE <key> command. Module-provided types (ReJSON,
 // search index, graph, ts) extend this set at runtime through the
@@ -125,9 +125,9 @@ enum class redis_type : re_std::uint16_t
 };
 
 
-// =============================================================================
-// II.  REDIS-TYPE-TO-FIELD_TYPE MAPPING
-// =============================================================================
+//==============================================================================
+// 2.  REDIS-TYPE-TO-FIELD_TYPE MAPPING
+//==============================================================================
 
 // redis_type_to_field_type
 //   function: maps a Redis native type to the generic djinterp
@@ -278,9 +278,9 @@ const char* field_type_to_redis_native(
 }
 
 
-// =============================================================================
-// III. FEATURE SUPPORT (compile-time, version-gated)
-// =============================================================================
+//==============================================================================
+// 3.  FEATURE SUPPORT (compile-time, version-gated)
+//==============================================================================
 
 // redis_type_support
 //   struct: compile-time data type availability flags gated by
@@ -581,9 +581,9 @@ struct redis_feature_support
 };
 
 
-// =============================================================================
-// IV.  REDIS VERSION INFORMATION
-// =============================================================================
+//==============================================================================
+// 4.  REDIS VERSION INFORMATION
+//==============================================================================
 
 // redis_version_info
 //   struct: compile-time version decomposition.
@@ -620,9 +620,9 @@ struct redis_version_info
 };
 
 
-// =============================================================================
-// V.   REDIS CONNECTION MODE / TLS ENUMERATIONS
-// =============================================================================
+//==============================================================================
+// 5.  REDIS CONNECTION MODE / TLS ENUMERATIONS
+//==============================================================================
 
 // redis_connection_mode
 //   enumeration: deployment topology the connection talks to.
@@ -652,9 +652,9 @@ enum class redis_tls_mode : re_std::uint8_t
 };
 
 
-// =============================================================================
-// VI.  REDIS CONNECTION CONFIGURATION
-// =============================================================================
+//==============================================================================
+// 6.  REDIS CONNECTION CONFIGURATION
+//==============================================================================
 
 // redis_connect_config
 //   struct: Redis-specific connection configuration extending the
@@ -731,9 +731,9 @@ struct redis_connect_config
 };
 
 
-// =============================================================================
-// VII. REDIS CONNECTION
-// =============================================================================
+//==============================================================================
+// 7.  REDIS CONNECTION
+//==============================================================================
 
 // redis_connection
 //   class: concrete Redis connection implementation via hiredis (or
@@ -1800,9 +1800,9 @@ private:
 };
 
 
-// =============================================================================
-// VIII. FORWARD DECLARATIONS
-// =============================================================================
+//==============================================================================
+// 8.  FORWARD DECLARATIONS
+//==============================================================================
 
 // redis_result_set_impl
 //   struct: forward declaration of the Redis result set
@@ -1817,9 +1817,9 @@ struct redis_result_set_impl;
 // so detection lives with the connection it describes. Traits build at C++17;
 // concepts appear under C++20.
 
-// =============================================================================
-// IX.   EXPRESSION DETECTORS
-// =============================================================================
+//==============================================================================
+// 9.  EXPRESSION DETECTORS
+//==============================================================================
 
 // -------------------------------------------------------------------------
 // A.  command dispatch
@@ -2364,9 +2364,9 @@ using redis_lastsave_t =
     decltype(std::declval<const Type&>().lastsave());
 
 
-// =============================================================================
-// X.  TAGGED CAPABILITY TRAITS (struct-based)
-// =============================================================================
+//==============================================================================
+// 10. TAGGED CAPABILITY TRAITS (struct-based)
+//==============================================================================
 
 // has_redis_command_dispatch
 //   trait: checks if type Type supports core command dispatch
@@ -2696,9 +2696,9 @@ struct is_redis_connection : djinterp::conjunction<
 #endif
 
 
-// =============================================================================
-// XI. TAGLESS CAPABILITY TRAITS (constexpr bool)
-// =============================================================================
+//==============================================================================
+// 11. TAGLESS CAPABILITY TRAITS (constexpr bool)
+//==============================================================================
 
 // -------------------------------------------------------------------------
 // A.  individual capability tags
@@ -3060,9 +3060,9 @@ constexpr bool redis_is_full_connection =
       redis_can_expire<clean_t<Type>> );
 
 
-// =============================================================================
-// XII.  SFINAE HELPERS
-// =============================================================================
+//==============================================================================
+// 12. SFINAE HELPERS
+//==============================================================================
 
 // enable_if_redis_connection
 //   type: SFINAE helper for Redis connection constraints.
@@ -3101,9 +3101,9 @@ using enable_if_has_redis_cluster_ops =
     typename std::enable_if<has_redis_cluster_ops<clean_t<Type>>::value>::type;
 
 
-// ===========================================================================
-// XIII.   C++20 CONCEPTS
-// ===========================================================================
+//==============================================================================
+// 13. C++20 CONCEPTS
+//==============================================================================
 //   The Redis classification concepts, folded in from the former
 // redis_concepts.hpp.  Each forwards to a trait / tagless capability declared
 // above.  Gated on concept support so the traits remain usable at the C++17
@@ -3349,9 +3349,9 @@ concept redis_db_switch_connection =
     redis_can_use_database<clean_t<Type>>;
 
 
-// =============================================================================
-// C. Tagless Redis Capability Concepts
-// =============================================================================
+//==============================================================================
+// 100. Tagless Redis Capability Concepts
+//==============================================================================
 
 // redis_command_dispatchable
 //   concept: constrains types satisfying the full tagless command-

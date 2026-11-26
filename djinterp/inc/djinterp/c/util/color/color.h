@@ -22,24 +22,22 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    CONSTANTS
-      ---------
-      a. D_COLOR_PI
-
-II.   RGB MANIPULATION (HSL-mediated)
-      -------------------------------
-      a. d_color_rgb_adjust_saturation
-      b. d_color_rgb_adjust_brightness
-      c.    d_color_rgb_rotate_hue
-
-III.  PERCEPTUAL DIFFERENCE
-      ---------------------
-      a. d_internal_color_de_hue_delta
-      b. d_internal_color_de_hue_mean
-      c. d_internal_color_de_hue_weight
-      d. d_internal_color_de_rotation
-      e. d_color_delta_e        (CIEDE2000, on L*a*b*)
-      f. d_color_rgb_delta_e    (convenience, via L*a*b*)
+1.  CONSTANTS
+    ---------
+    a. D_COLOR_PI
+2.  RGB MANIPULATION (HSL-mediated)
+    -------------------------------
+    a. d_color_rgb_adjust_saturation
+    b. d_color_rgb_adjust_brightness
+    c.    d_color_rgb_rotate_hue
+3.  PERCEPTUAL DIFFERENCE
+    ---------------------
+    a. d_internal_color_de_hue_delta
+    b. d_internal_color_de_hue_mean
+    c. d_internal_color_de_hue_weight
+    d. d_internal_color_de_rotation
+    e. d_color_delta_e        (CIEDE2000, on L*a*b*)
+    f. d_color_rgb_delta_e    (convenience, via L*a*b*)
 */
 
 #ifndef DJINTERP_C_UTIL_COLOR_H
@@ -68,18 +66,18 @@ III.  PERCEPTUAL DIFFERENCE
 
 D_COLOR_NS_OPEN
 
-///////////////////////////////////////////////////////////////////////////////
-///                        I.    CONSTANTS                                  ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  CONSTANTS
+//==============================================================================
 
 // D_COLOR_PI
 //   constant: pi, as used by the CIEDE2000 trigonometry.
 #define D_COLOR_PI 3.14159265f
 
 
-///////////////////////////////////////////////////////////////////////////////
-///              II.    RGB MANIPULATION (HSL-mediated)                     ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  RGB MANIPULATION (HSL-mediated)
+//==============================================================================
 
 /*
 d_color_rgb_adjust_saturation
@@ -158,9 +156,9 @@ struct dj_color_rgb d_color_rgb_rotate_hue(
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                 III.  PERCEPTUAL DIFFERENCE                             ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  PERCEPTUAL DIFFERENCE
+//==============================================================================
 
 /*
 d_internal_color_de_hue_delta

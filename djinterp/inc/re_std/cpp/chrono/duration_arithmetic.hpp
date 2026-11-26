@@ -40,6 +40,15 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  DURATION AGAINST DURATION
+    -------------------------
+2.  DURATION AGAINST A SCALAR
+    -------------------------
+*/
+
 #ifndef RE_STD_CHRONO_DURATION_ARITHMETIC_HPP
 #define RE_STD_CHRONO_DURATION_ARITHMETIC_HPP 1
 
@@ -62,9 +71,9 @@ namespace re_std
 namespace chrono
 {
 
-// ===========================================================================
-// I.   DURATION AGAINST DURATION
-// ===========================================================================
+//==============================================================================
+// 1.  DURATION AGAINST DURATION
+//==============================================================================
 
     // operator+
     //   function: sum, in the finest period that represents both operands.
@@ -127,9 +136,9 @@ namespace chrono
     }
 
 
-// ===========================================================================
-// II.  DURATION AGAINST A SCALAR
-// ===========================================================================
+//==============================================================================
+// 2.  DURATION AGAINST A SCALAR
+//==============================================================================
 
     // operator*
     //   function: scale up. The period is unchanged; only the count moves.

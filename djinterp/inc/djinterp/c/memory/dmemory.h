@@ -55,6 +55,15 @@
 *                                                            revised: 2026.11.07
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  ERROR CODES AND LIMITS
+    ----------------------
+2.  MEMORY OPERATIONS
+    -----------------
+*/
+
 #ifndef DJINTERP_C_MEMORY_DMEMORY_H
 #define DJINTERP_C_MEMORY_DMEMORY_H 1
 
@@ -70,7 +79,7 @@
 
 
 //==============================================================================
-// I.   ERROR CODES AND LIMITS
+// 1.  ERROR CODES AND LIMITS
 //==============================================================================
 //   The bounded functions report failure through <errno.h>'s codes. This header
 // declares none of Annex K's names (errno_t, rsize_t, RSIZE_MAX): a typedef is
@@ -105,7 +114,7 @@
 
 
 //==============================================================================
-// II.  MEMORY OPERATIONS
+// 2.  MEMORY OPERATIONS
 //==============================================================================
 
 D_EXTERN_C_BEGIN

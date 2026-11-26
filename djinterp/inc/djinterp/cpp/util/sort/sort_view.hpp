@@ -40,9 +40,9 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    SORT TERMINALS            internal::DSortDefaultTerminal,
-                                internal::DSortWithTerminal<Compare>
-II.   TERMINAL FACTORIES        sorted, sorted_by
+1.  SORT TERMINALS            internal::DSortDefaultTerminal,
+                              internal::DSortWithTerminal<Compare>
+2.  TERMINAL FACTORIES        sorted, sorted_by
 */
 
 #ifndef DJINTERP_UTIL_SORT_VIEW_HPP
@@ -66,9 +66,9 @@ II.   TERMINAL FACTORIES        sorted, sorted_by
 NS_DJINTERP
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                    I.   SORT TERMINALS                                  ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  SORT TERMINALS
+//==============================================================================
 //   view.hpp recognises a terminal by shape: a template apply(const View&)
 // whose result is not a view.  Both terminals below drain the upstream view
 // into a vector, as to_vector does, and sort it in place with the run-time
@@ -168,9 +168,9 @@ NS_INTERNAL
 NS_END  // internal
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                    II.  TERMINAL FACTORIES                              ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  TERMINAL FACTORIES
+//==============================================================================
 //   Each returns a terminal that view.hpp's (view | terminal) and
 // (container | terminal) overloads drive, as to_vector() and count() do.
 // Without an algorithm they use DDefaultSortTag's.

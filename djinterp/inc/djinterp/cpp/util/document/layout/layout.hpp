@@ -55,21 +55,17 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    DLayoutAtom                        (the content-reference leaf)
-      ---------------------------------------------------------------
-
-II.   TERM ALIASES                       (layout / DLayoutDoc)
-      --------------------------------------------------------
-
-III.  NODE BUILDERS                      (apply_node / make_leaf_node +
-                                          atom sugar)
-      ------------------------------------------------------------------------
-
-IV.   OBSERVERS                          (bag_of / is_leaf / atom_of / ...)
-      ---------------------------------------------------------------------
-
-V.    FORGET / ANNOTATE                  (bridge to the bare expression term)
-      -----------------------------------------------------------------------
+1.  DLayoutAtom                        (the content-reference leaf)
+    ---------------------------------------------------------------
+2.  TERM ALIASES                       (layout / DLayoutDoc)
+    --------------------------------------------------------
+3.  NODE BUILDERS                      (apply_node / make_leaf_node +
+                                        atom sugar)
+    ------------------------------------------------------------------------
+4.  OBSERVERS                          (bag_of / is_leaf / atom_of / ...)
+    ---------------------------------------------------------------------
+5.  FORGET / ANNOTATE                  (bridge to the bare expression term)
+    -----------------------------------------------------------------------
 */
 
 #ifndef DJINTERP_UTIL_DOCUMENT_LAYOUT_LAYOUT_HPP
@@ -105,9 +101,9 @@ V.    FORGET / ANNOTATE                  (bridge to the bare expression term)
 NS_DJINTERP
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             I.    DLayoutAtom                                           ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  DLayoutAtom
+//==============================================================================
 
 // DLayoutAtom
 //   struct: what a structure leaf carries - the boundary between structure
@@ -186,9 +182,9 @@ struct DLayoutAtom
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             II.   TERM ALIASES                                          ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  TERM ALIASES
+//==============================================================================
 
 // DLayout
 //   alias: the BARE document-structure term over operator ids OpId and atoms
@@ -208,9 +204,9 @@ template<typename OpId,
 using DLayoutDoc = annotated_expression<OpId, Atom, DDocAttributes>;
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             III.  NODE BUILDERS                                         ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  NODE BUILDERS
+//==============================================================================
 //   Construct annotated nodes directly.  cofree has no expr_leaf / expr_apply
 // analogue (its children are shared_ptr-boxed), so these wrap the plumbing: an
 // application node from an op, its params bag, and its child subtrees; a leaf
@@ -268,9 +264,9 @@ DLayoutDoc<OpId, Atom> make_leaf_node(
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             IV.   OBSERVERS                                             ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  OBSERVERS
+//==============================================================================
 //   Thin readers over an annotated node.  The annotation is the head; the node
 // kind, atom, operator, and (boxed) children live in the layer.
 
@@ -335,9 +331,9 @@ const std::vector<std::shared_ptr<DLayoutDoc<OpId, Atom> > >& children_of(
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             V.    FORGET / ANNOTATE                                     ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 5.  FORGET / ANNOTATE
+//==============================================================================
 //   Bridges to the bare expression term.  The env-pair keeps everything in one
 // annotated tree; when an algebraic rewrite from expression_ops.hpp is wanted
 // (transform_bottom_up, rewrite_to_fixpoint, ...), drop the annotations, rewrite

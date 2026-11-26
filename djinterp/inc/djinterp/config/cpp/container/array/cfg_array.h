@@ -71,6 +71,17 @@
 *                                                            revised: 2026.10.31
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  SUB-GROUP TOGGLES
+    -----------------
+2.  PER-TYPE TOGGLES
+    ----------------
+3.  VALIDATION
+    ----------
+*/
+
 #ifndef DJINTERP_CONFIG_CPP_CONTAINER_ARRAY_CFG_ARRAY_H
 #define DJINTERP_CONFIG_CPP_CONTAINER_ARRAY_CFG_ARRAY_H 1
 
@@ -79,9 +90,9 @@
 #include "../../../c/container/cfg_container.h"
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             I.    SUB-GROUP TOGGLES                                     ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  SUB-GROUP TOGGLES
+//==============================================================================
 // Each sub-group inherits from D_CFG_CONTAINER_ARRAY_FILTER unless
 // the user has already defined it.
 
@@ -112,9 +123,9 @@
 #endif  // D_CFG_CONTAINER_FILTER_ARRAY_POINTER
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             II.   PER-TYPE TOGGLES                                      ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  PER-TYPE TOGGLES
+//==============================================================================
 // Each per-type toggle inherits from its most specific sub-group, or from
 // D_CFG_CONTAINER_ARRAY_FILTER when no sub-group applies.
 
@@ -197,9 +208,9 @@
         D_CFG_CONTAINER_ARRAY_FILTER
 #endif  // D_CFG_CONTAINER_FILTER_STATIC_ARRAY
 
-///////////////////////////////////////////////////////////////////////////////
-///             III.  VALIDATION                                          ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  VALIDATION
+//==============================================================================
 // Every gate is a boolean; a misspelled value would read as 0.
 
 #if !D_CFG_IS_BOOL(D_CFG_CONTAINER_FILTER_ARRAY_MINIMAL)

@@ -30,17 +30,17 @@
 /*
 TABLE OF CONTENTS
 =================
-0.    OUTPUT PACKAGING CONFIGURATION
-      ------------------------------
-      1.    Defaults                     (D_CFG_OUTPUT_PACK, _CODEC, _FORMAT)
-      2.    Validation of the knobs
-      3.    Derived values               (D_INTERNAL_OUTPUT_*)
+0.  OUTPUT PACKAGING CONFIGURATION
+    ------------------------------
+    1.    Defaults                     (D_CFG_OUTPUT_PACK, _CODEC, _FORMAT)
+    2.    Validation of the knobs
+    3.    Derived values               (D_INTERNAL_OUTPUT_*)
 */
 
 
-// ===========================================================================
-// 0.   OUTPUT PACKAGING CONFIGURATION
-// ===========================================================================
+//==============================================================================
+// 0.  OUTPUT PACKAGING CONFIGURATION
+//==============================================================================
 
 // --- 0.1  Defaults ---
 

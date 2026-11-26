@@ -44,6 +44,17 @@
 *                                                            revised: 2026.10.02
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  OWNERSHIP POLICIES
+    ------------------
+2.  NODE CONTAINER
+    --------------
+3.  CONVENIENCE ALIASES
+    -------------------
+*/
+
 #ifndef DJINTERP_CONTAINER_NODE_CONTAINER_HPP
 #define DJINTERP_CONTAINER_NODE_CONTAINER_HPP 1
 
@@ -64,9 +75,9 @@
 NS_DJINTERP
 
 
-// ===========================================================================
-//  1.  OWNERSHIP POLICIES
-// ===========================================================================
+//==============================================================================
+// 1.  OWNERSHIP POLICIES
+//==============================================================================
 //   Static-interface structs that control how a DNodeContainer stores
 // its entry point(s) into the node graph.  The policy interface is
 // uniform so DNodeContainer can dispatch through it without branching
@@ -445,9 +456,9 @@ struct DSharedOwningPolicy
 using shared_owning_policy = DSharedOwningPolicy;
 
 
-// ===========================================================================
-//  2.  NODE CONTAINER
-// ===========================================================================
+//==============================================================================
+// 2.  NODE CONTAINER
+//==============================================================================
 //   The foundational base for all node-based containers.  Manages a
 // single entry point into the node graph, a size counter, and an
 // allocator.  Derived containers add topology-specific semantics:
@@ -850,9 +861,9 @@ private:
 };
 
 
-// ===========================================================================
-//  3.  CONVENIENCE ALIASES
-// ===========================================================================
+//==============================================================================
+// 3.  CONVENIENCE ALIASES
+//==============================================================================
 
 // DOwningNodeContainer
 //   alias: DNodeContainer with unique_owning_policy.

@@ -63,6 +63,23 @@
 *                                                            revised: 2026.11.10
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  THE VERDICT
+    -----------
+2.  THE POLICY DICTIONARY
+    ---------------------
+3.  THE NAMED POLICIES
+    ------------------
+4.  MERGE MODES
+    -----------
+5.  THE ALGEBRAIC LAWS
+    ------------------
+6.  THE ENGINE
+    ----------
+*/
+
 #ifndef DJINTERP_C_OPTION_OVERRIDE_COMMON_H
 #define DJINTERP_C_OPTION_OVERRIDE_COMMON_H 1
 
@@ -85,9 +102,9 @@
 D_EXTERN_C_BEGIN
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             I.    THE VERDICT                                           ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  THE VERDICT
+//==============================================================================
 
 // D_OPTION_KEEP
 //   constant: the policy produced an option; append it to the result. The hook
@@ -108,9 +125,9 @@ D_EXTERN_C_BEGIN
 #define D_OPTION_VERDICT_STATUS(v)      ((int32_t)(-(int32_t)(v)))
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             II.   THE POLICY DICTIONARY                                 ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  THE POLICY DICTIONARY
+//==============================================================================
 
 // fn_option_on_both
 //   function pointer: the key appears in BOTH sets. Decide what the result
@@ -180,9 +197,9 @@ bool d_option_policy_is_valid(
 );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             III.  THE NAMED POLICIES                                    ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  THE NAMED POLICIES
+//==============================================================================
 //
 //   The five policies that lower cleanly, each the exact image of the C++
 // alias named beside it. Returned by value from a function rather than exposed
@@ -217,9 +234,9 @@ struct dj_option_policy d_option_policy_strict(void);
 struct dj_option_policy d_option_policy_filter(void);
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             IV.   MERGE MODES                                           ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  MERGE MODES
+//==============================================================================
 //
 //   The coarse vocabulary the runtime half of option_diff.hpp speaks. It lives
 // here rather than with the diff because it selects a POLICY, and a mode that
@@ -241,9 +258,9 @@ struct dj_option_policy d_option_merge_mode_policy(
 );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             V.    THE ALGEBRAIC LAWS                                    ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 5.  THE ALGEBRAIC LAWS
+//==============================================================================
 //
 //   body-options.tex proves three things about the precedence-resolved union
 // `(+)`, and the framework RELIES on all three while recording none of them.
@@ -308,9 +325,9 @@ bool d_option_set_commutes(
 );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             VI.   THE ENGINE                                            ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 6.  THE ENGINE
+//==============================================================================
 
 // d_option_set_override
 //   function: `_out` becomes `_base` overridden by `_delta` under `_policy`.

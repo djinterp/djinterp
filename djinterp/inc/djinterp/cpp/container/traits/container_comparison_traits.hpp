@@ -70,6 +70,21 @@
 *                                                            revised: 2026.10.03
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  Comparison relations
+    --------------------
+2.  Content: the native level lambda
+    --------------------------------
+3.  Discipline: the overlay strength order
+    --------------------------------------
+4.  Realization preorders
+    ---------------------
+5.  The comparison profile
+    ----------------------
+*/
+
 #ifndef DJINTERP_CONTAINER_TRAITS_CONTAINER_COMPARISON_TRAITS_HPP
 #define DJINTERP_CONTAINER_TRAITS_CONTAINER_COMPARISON_TRAITS_HPP 1
 
@@ -95,9 +110,9 @@
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   Comparison relations
-// ===========================================================================
+//==============================================================================
+// 1.  Comparison relations
+//==============================================================================
 
 // DOrderRelation
 //   enum: the standing of a left operand against a right, on one axis. On a
@@ -147,9 +162,9 @@ DOrderRelation order_relation_meet(
 }
 
 
-// ===========================================================================
-// II.  Content: the native level lambda
-// ===========================================================================
+//==============================================================================
+// 2.  Content: the native level lambda
+//==============================================================================
 
 // DContentLevel
 //   enum: a rung of the content hierarchy, coarsest to finest. A type's native
@@ -255,9 +270,9 @@ public:
 #endif
 
 
-// ===========================================================================
-// III. Discipline: the overlay strength order
-// ===========================================================================
+//==============================================================================
+// 3.  Discipline: the overlay strength order
+//==============================================================================
 
 // discipline_relation
 //   trait: how two types' disciplines compare under the overlay strength
@@ -284,9 +299,9 @@ public:
 };
 
 
-// ===========================================================================
-// IV.  Realization preorders
-// ===========================================================================
+//==============================================================================
+// 4.  Realization preorders
+//==============================================================================
 
 // ---------------------------------------------------------------------------
 //  Lifetime (a two-point total order, compile-time the more static end)
@@ -417,9 +432,9 @@ struct storage_relation
 };
 
 
-// ===========================================================================
-// V.   The comparison profile
-// ===========================================================================
+//==============================================================================
+// 5.  The comparison profile
+//==============================================================================
 
 // DComparisonProfile
 //   trait: the assembled comparison of two types - the native content rungs

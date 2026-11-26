@@ -51,6 +51,27 @@
 *                                                            revised: 2026.11.17
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  KNOB CONSTANT SETS
+    ------------------
+2.  PER-FORMAT BLOCKS
+    -----------------
+3.  THE OPTION SET
+    --------------
+4.  COMPARISON
+    ----------
+5.  PER-FORMAT BLOCK COMPARISON
+    ---------------------------
+6.  PRISTINE-DEFAULT PREDICATES
+    ---------------------------
+7.  DIFF DESCRIPTION
+    ----------------
+8.  OPTION BUILDERS
+    ---------------
+*/
+
 #ifndef DJINTERP_UTIL_ARCHIVE_ARCHIVE_OPTIONS_HPP
 #define DJINTERP_UTIL_ARCHIVE_ARCHIVE_OPTIONS_HPP 1
 
@@ -65,9 +86,9 @@
 
 NS_DJINTERP
 
-// =============================================================================
-// I.   KNOB CONSTANT SETS
-// =============================================================================
+//==============================================================================
+// 1.  KNOB CONSTANT SETS
+//==============================================================================
 //   Aliases of the kernel's enums plus named constants, exactly as
 // compress_options.hpp does: one declaration, two vocabularies.
 
@@ -113,9 +134,9 @@ D_STATIC const sevenzip_method sevenzip_method_copy    =
 D_STATIC const int archive_knob_unset = D_ARCHIVE_KNOB_UNSET;
 
 
-// =============================================================================
-// II.  PER-FORMAT BLOCKS
-// =============================================================================
+//==============================================================================
+// 2.  PER-FORMAT BLOCKS
+//==============================================================================
 //   Declaration order MIRRORS the kernel's, member for member, so a reader can
 // diff the two field lists.  The numeric members are int rather than the
 // kernel's int32_t only where C++ callers already wrote int; lower() performs
@@ -211,9 +232,9 @@ struct DRarOptions
 };
 
 
-// =============================================================================
-// III. THE OPTION SET
-// =============================================================================
+//==============================================================================
+// 3.  THE OPTION SET
+//==============================================================================
 
 // archive_options
 //   struct: the whole container surface - the archive-level knobs, the
@@ -313,9 +334,9 @@ private:
 };
 
 
-// =============================================================================
-// IV.  COMPARISON
-// =============================================================================
+//==============================================================================
+// 4.  COMPARISON
+//==============================================================================
 //   Forwards to the kernel's knob walk over the lowered forms, so "equal"
 // means the same thing in both languages.  The lowerings are locals and die at
 // the end of the expression, which is exactly the endorsed lifetime.
@@ -343,9 +364,9 @@ bool operator!=(
 
 
 
-// =============================================================================
-// V.   PER-FORMAT BLOCK COMPARISON
-// =============================================================================
+//==============================================================================
+// 5.  PER-FORMAT BLOCK COMPARISON
+//==============================================================================
 //   One comparator per format block, for a caller that wants to prove a single
 // block moved (or did not) rather than asking about the whole aggregate.
 //
@@ -468,9 +489,9 @@ bool archive_options_equal(
 }
 
 
-// =============================================================================
-// VI.  PRISTINE-DEFAULT PREDICATES
-// =============================================================================
+//==============================================================================
+// 6.  PRISTINE-DEFAULT PREDICATES
+//==============================================================================
 //   "Did this call leave the tuning alone?"  Both forward to the kernel, which
 // owns the pristine value of every knob, rather than comparing against a
 // locally constructed baseline.
@@ -513,9 +534,9 @@ bool codec_is_default(
 }
 
 
-// =============================================================================
-// VII. DIFF DESCRIPTION
-// =============================================================================
+//==============================================================================
+// 7.  DIFF DESCRIPTION
+//==============================================================================
 //   The kernel answers WHICH knobs moved as a dense index list; naming them is
 // d_archive_knob_name's job and formatting is the caller's.  This is that
 // caller.
@@ -650,9 +671,9 @@ std::string describe_diff_from_default(
 }
 
 
-// =============================================================================
-// VIII. OPTION BUILDERS
-// =============================================================================
+//==============================================================================
+// 8.  OPTION BUILDERS
+//==============================================================================
 //   Small presets.  Each starts from a pristine set and moves exactly one
 // thing, so a caller can assert both the intended change and that nothing else
 // drifted.

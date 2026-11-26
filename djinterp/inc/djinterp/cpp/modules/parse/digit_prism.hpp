@@ -57,6 +57,21 @@
 *                                                            revised: 2026.10.01
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  the carrier and its base functor
+    --------------------------------
+2.  the structure maps  (recursive_traits / corecursive_traits)
+    -----------------------------------------------------------
+3.  the print algebra + the prism
+    -----------------------------
+4.  the dual:  ana[ψ] - build the list by unfolding a string
+    --------------------------------------------------------
+5.  swap the algebra, keep the recursion:  an evaluator
+    ---------------------------------------------------
+*/
+
 #ifndef DJINTERP_PARSE_DIGIT_PRISM_HPP
 #define DJINTERP_PARSE_DIGIT_PRISM_HPP 1
 
@@ -80,9 +95,9 @@
 #include "prism.hpp"
 
 
-// ================================================================
-//  I.   the carrier and its base functor
-// ================================================================
+//==============================================================================
+// 1.  the carrier and its base functor
+//==============================================================================
 
 NS_DJINTERP
 NS_PARSE
@@ -113,9 +128,9 @@ NS_END  // parse
 NS_END  // djinterp
 
 
-// ================================================================
-//  II.  the structure maps  (recursive_traits / corecursive_traits)
-// ================================================================
+//==============================================================================
+// 2.  the structure maps  (recursive_traits / corecursive_traits)
+//==============================================================================
 //   These live at djinterp:: scope, beside the recursion-scheme
 // primaries.  They say "digit_list IS a mu(list_base)" by exposing
 // one layer in each direction - project peels head/tail, embed
@@ -207,9 +222,9 @@ struct corecursive_traits< ::djinterp::parse::example::digit_list, void>
 NS_END  // djinterp
 
 
-// ================================================================
-//  III. the print algebra + the prism
-// ================================================================
+//==============================================================================
+// 3.  the print algebra + the prism
+//==============================================================================
 
 NS_DJINTERP
 NS_PARSE
@@ -273,9 +288,9 @@ prism<digit_list, char> make_digit_prism()
 }
 
 
-// ================================================================
-//  IV.  the dual:  ana[ψ] - build the list by unfolding a string
-// ================================================================
+//==============================================================================
+// 4.  the dual:  ana[ψ] - build the list by unfolding a string
+//==============================================================================
 
 // digit_coalgebra
 //   function: the F-coalgebra ψ : Σ* → F(Σ*).  One unfold step:
@@ -321,9 +336,9 @@ digit_list unfold_digits(
 }
 
 
-// ================================================================
-//  V.   swap the algebra, keep the recursion:  an evaluator
-// ================================================================
+//==============================================================================
+// 5.  swap the algebra, keep the recursion:  an evaluator
+//==============================================================================
 //   Nothing above is compose-specific except `algebra`.  To show
 // that, here is a *different* fold over the *same* recursive_traits<
 // digit_list> - it reads the digit list as a base-10 numeral.

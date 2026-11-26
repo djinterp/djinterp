@@ -68,9 +68,9 @@
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   Sortedness classifiers
-// ===========================================================================
+//==============================================================================
+// 1.  Sortedness classifiers
+//==============================================================================
 //   The sortedness signals (has_key_compare / interval-bounds /
 // sorted_invariant
 // helpers), the sortedness enum + sortedness_of, and the type-level predicates
@@ -83,9 +83,9 @@ NS_DJINTERP
 // the one-definition-rule conflict.
 
 
-// ===========================================================================
-// IV.  Instance-level sortedness (the checkable property)
-// ===========================================================================
+//==============================================================================
+// 4.  Instance-level sortedness (the checkable property)
+//==============================================================================
 
 // is_sorted_range
 //   function: for an ORDERED container - whose sortedness is a property of the
@@ -121,9 +121,9 @@ is_sorted_range(
 }
 
 
-// ===========================================================================
-// V.   Aggregate snapshot
-// ===========================================================================
+//==============================================================================
+// 5.  Aggregate snapshot
+//==============================================================================
 //   DSortedContainerClass is owned by sorted_container_traits.hpp (included
 // above); the duplicate that lived here was removed.
 

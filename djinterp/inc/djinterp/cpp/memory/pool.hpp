@@ -41,19 +41,19 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    DRawPool
-      --------
-      a. construction / move / destruction
-      b. acquire / release_slot / reset / release
-      c. queries
-II.   DPoolHandle<T>
-      --------------
-III.  DPool<T>
-      -------
-      a. typed acquire / release
-      b. create / destroy       (object lifetime)
-      c. handles
-IV.   THE COST LAW
+1.  DRawPool
+    --------
+    a. construction / move / destruction
+    b. acquire / release_slot / reset / release
+    c. queries
+2.  DPoolHandle<T>
+    --------------
+3.  DPool<T>
+    -------
+    a. typed acquire / release
+    b. create / destroy       (object lifetime)
+    c. handles
+4.  THE COST LAW
 */
 
 #ifndef DJINTERP_MEMORY_POOL_HPP
@@ -78,9 +78,9 @@ IV.   THE COST LAW
 NS_DJINTERP
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                        I.   DRawPool                                    ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  DRawPool
+//==============================================================================
 
 // DRawPool
 //   class: an untyped fixed-slot allocator. Derives from dj_pool and adds no
@@ -321,9 +321,9 @@ private:
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                     II.   DPoolHandle<T>                                ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  DPoolHandle<T>
+//==============================================================================
 
 #if (D_INTERNAL_POOL_GENERATIONAL == 1)
 
@@ -386,9 +386,9 @@ struct DPoolHandle : ::dj_pool_handle
 #endif  // D_INTERNAL_POOL_GENERATIONAL
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                        III.   DPool<T>                                   ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  DPool<T>
+//==============================================================================
 
 // DPool
 //   class: a fixed-slot allocator for objects of Type under release policy
@@ -614,9 +614,9 @@ private:
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                      IV.   THE COST LAW                                 ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  THE COST LAW
+//==============================================================================
 //   Every wrapper in this file adds zero bytes, and says so in a form the
 // compiler checks. The framework's own history is the argument for making
 // these assertions rather than conventions: a wrapper that silently stopped

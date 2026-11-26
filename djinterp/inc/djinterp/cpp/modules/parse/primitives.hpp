@@ -37,6 +37,19 @@
 *                                                            revised: 2026.10.01
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  nullary success / failure
+    -------------------------
+2.  input-position observers
+    ------------------------
+3.  single-element consumers
+    ------------------------
+4.  text-specific shorthands  (E == char)
+    -------------------------------------
+*/
+
 #ifndef DJINTERP_PARSE_PRIMITIVES_HPP
 #define DJINTERP_PARSE_PRIMITIVES_HPP 1
 
@@ -63,9 +76,9 @@ NS_DJINTERP
 NS_PARSE
 
 
-// ================================================================
-//  I.   nullary success / failure
-// ================================================================
+//==============================================================================
+// 1.  nullary success / failure
+//==============================================================================
 
 // succeed_parser
 //   class: a parser that always succeeds with a stored value and
@@ -174,9 +187,9 @@ fail_parser<Result, Element> fail(
 }
 
 
-// ================================================================
-//  II.  input-position observers
-// ================================================================
+//==============================================================================
+// 2.  input-position observers
+//==============================================================================
 
 // eof_parser
 //   class: succeeds with `true` iff the state is at end of input.
@@ -293,9 +306,9 @@ remaining_parser<Element> remaining()
 }
 
 
-// ================================================================
-//  III. single-element consumers
-// ================================================================
+//==============================================================================
+// 3.  single-element consumers
+//==============================================================================
 
 // any_parser
 //   class: consumes one element and returns it.  Fails at end of
@@ -568,9 +581,9 @@ none_of_set_parser<Element> none_of(
 }
 
 
-// ================================================================
-//  IV.  text-specific shorthands  (E == char)
-// ================================================================
+//==============================================================================
+// 4.  text-specific shorthands  (E == char)
+//==============================================================================
 
 // literal_parser
 //   class: matches exactly a stored character, returning it.  The

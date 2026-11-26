@@ -53,20 +53,20 @@
 /*
 TABLE OF CONTENTS
 =================
-0.    DTEST OUTPUT CONFIGURATION
-      --------------------------
-      1.    Packaging                    (D_CFG_TEST_OUTPUT_PACK, _CODEC,
-                                          _FORMAT)
-      2.    Entry compression            (D_CFG_TEST_OUTPUT_STORE_ONLY,
-                                          _LEVEL)
-      3.    Validation of the knobs
-      4.    Derived values               (D_INTERNAL_TEST_OUTPUT_*)
+0.  DTEST OUTPUT CONFIGURATION
+    --------------------------
+    1.    Packaging                    (D_CFG_TEST_OUTPUT_PACK, _CODEC,
+                                        _FORMAT)
+    2.    Entry compression            (D_CFG_TEST_OUTPUT_STORE_ONLY,
+                                        _LEVEL)
+    3.    Validation of the knobs
+    4.    Derived values               (D_INTERNAL_TEST_OUTPUT_*)
 */
 
 
-// ===========================================================================
-// 0.   DTEST OUTPUT CONFIGURATION
-// ===========================================================================
+//==============================================================================
+// 0.  DTEST OUTPUT CONFIGURATION
+//==============================================================================
 
 // --- 0.1  Packaging ---
 

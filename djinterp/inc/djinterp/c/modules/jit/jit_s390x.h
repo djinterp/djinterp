@@ -105,9 +105,9 @@
 #define D_JIT_S390X_CC_ALWAYS 0xF   // unconditional
 
 
-// ===========================================================================
-// C.   INSTRUCTION EMITTERS
-// ===========================================================================
+//==============================================================================
+// 100. INSTRUCTION EMITTERS
+//==============================================================================
 //   Each packs its operands and emits one 2-, 4-, or 6-byte big-endian
 // instruction. Two-operand arithmetic accumulates into r1 (r1 = r1 op r2).
 // Immediate widths: 'hi' forms take a signed 16-bit value, 'fi' forms a

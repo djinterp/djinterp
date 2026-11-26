@@ -29,6 +29,15 @@
 *                                                            revised: 2026.11.24
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+3.  THE LONG DOUBLE FAMILY (_ld)
+    ----------------------------
+    1.  Products, LU, determinant, inverse and solution
+    2.  Hermitian matrices
+*/
+
 #ifndef DJINTERP_C_MATH_CMAT_LD_H
 #define DJINTERP_C_MATH_CMAT_LD_H 1
 

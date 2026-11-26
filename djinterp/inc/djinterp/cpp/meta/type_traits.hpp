@@ -65,9 +65,9 @@
 #include "../../../re_std/cpp/type_traits/negation.hpp"  // re_std::negation
 
 
-// =============================================================================
-// 0.   SFINAE / DETECTION IDIOM MACHINERY
-// =============================================================================
+//==============================================================================
+// 0.  SFINAE / DETECTION IDIOM MACHINERY
+//==============================================================================
 // This section is the single point of truth for trait detection in djinterp.
 // It contains:
 //
@@ -301,9 +301,9 @@ D_ENV_PP_VARIADIC_QUIET_END
 #define HAS_METHOD_OF_TYPE_V(T, method_name, return_type)                     \
 std::is_same_v<decltype(std::declval<T>().method_name()), return_type>
 
-// =============================================================================
-// I.   PORTABLE STANDARD-LIBRARY TRAITS
-// =============================================================================
+//==============================================================================
+// 1.  PORTABLE STANDARD-LIBRARY TRAITS
+//==============================================================================
 // Portable implementations of standard type traits across supported C++
 // versions. Anything that requires only `void_t` (and not the full SFINAE
 // detection machinery in section 0) lives here.
@@ -932,9 +932,9 @@ constexpr std::size_t rank_v = std::rank<Type>::value;
     // !D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 
-// =============================================================================
-// II.  PORTABLE LOGICAL METAFUNCTION MACROS
-// =============================================================================
+//==============================================================================
+// 2.  PORTABLE LOGICAL METAFUNCTION MACROS
+//==============================================================================
 // Convenience macros for the logical metafunctions in section I.1. Resolve to
 // std:: or djinterp:: based on C++ version. The SFINAE / detection macros
 // live in section 0.3, not here.
@@ -952,9 +952,9 @@ constexpr std::size_t rank_v = std::rank<Type>::value;
 #endif
 
 
-// =============================================================================
-// III. CUSTOM TYPE TRAITS
-// =============================================================================
+//==============================================================================
+// 3.  CUSTOM TYPE TRAITS
+//==============================================================================
 // Custom type traits to supplement those found in std header <type_traits>.
 // Note: is_tuple_homogeneous is in tuple_manip.hpp
 
@@ -1569,9 +1569,9 @@ template<typename Type>
 D_INLINE_VAR constexpr bool is_valid_size_type_v = is_valid_size_type<Type>::value;
 #endif
 
-// ===========================================================================
-// X.   Indexed pack access  (pack_element)  ->  pack_element.hpp
-// ===========================================================================
+//==============================================================================
+// 10. Indexed pack access  (pack_element)  ->  pack_element.hpp
+//==============================================================================
 //   pack_element / pack_element_t now live in pack_element.hpp (included
 // above) so consumers that need only positional pack access - bsearch.hpp in
 // particular - depend on that leaf rather than on all of type_traits.hpp.

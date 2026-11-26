@@ -87,6 +87,21 @@
 *                                                            revised: 2026.11.09
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  Storage-shape signals
+    ---------------------
+2.  The container siting classifier
+    -------------------------------
+3.  Container siting predicates
+    ---------------------------
+4.  Cross-axis entailment (Storage -> Lifetime)
+    -------------------------------------------
+5.  Aggregate snapshot
+    ------------------
+*/
+
 #ifndef DJINTERP_CONTAINER_TRAITS_CONTAINER_STORAGE_TRAITS_HPP
 #define DJINTERP_CONTAINER_TRAITS_CONTAINER_STORAGE_TRAITS_HPP 1
 
@@ -115,9 +130,9 @@
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   Storage-shape signals
-// ===========================================================================
+//==============================================================================
+// 1.  Storage-shape signals
+//==============================================================================
 //   The two structural questions that decide a container's siting.  Each is a
 // disjunction of the lower-level probes already owned by the Lifetime-axis
 // trait modules - reused, not re-detected - so the two axes stay in agreement
@@ -154,9 +169,9 @@ struct has_dynamic_storage_signal
 D_TYPE_TRAIT_VALUE_BOOL(has_dynamic_storage_signal)
 
 
-// ===========================================================================
-// II.  The container siting classifier
-// ===========================================================================
+//==============================================================================
+// 2.  The container siting classifier
+//==============================================================================
 
 // storage_duration_of
 //   trait: the storage_duration of a CONTAINER - its opt-in
@@ -200,9 +215,9 @@ using storage_duration_of_t = typename storage_duration_of<Type>::type;
 #endif
 
 
-// ===========================================================================
-// III. Container siting predicates
-// ===========================================================================
+//==============================================================================
+// 3.  Container siting predicates
+//==============================================================================
 //   Boolean projections of storage_duration_of, for SFINAE and requires-
 // clauses.  The exclusive predicates (is_*) answer "is the storage purely
 // static / dynamic / hybrid?"; the component predicates (has_*_component)
@@ -264,9 +279,9 @@ struct has_dynamic_storage_component_container
 D_TYPE_TRAIT_VALUE_BOOL(has_dynamic_storage_component_container)
 
 
-// ===========================================================================
-// IV.  Cross-axis entailment (Storage -> Lifetime)
-// ===========================================================================
+//==============================================================================
+// 4.  Cross-axis entailment (Storage -> Lifetime)
+//==============================================================================
 
 // static_storage_implies_constexpr_size
 //   trait: the formal site(c) = stat => stage(|c|) = c, made checkable per
@@ -289,9 +304,9 @@ struct static_storage_implies_constexpr_size
 D_TYPE_TRAIT_VALUE_BOOL(static_storage_implies_constexpr_size)
 
 
-// ===========================================================================
-// V.   Aggregate snapshot
-// ===========================================================================
+//==============================================================================
+// 5.  Aggregate snapshot
+//==============================================================================
 
 // DContainerStorageClass
 //   trait: a one-stop record of a container's position on the Storage axis -

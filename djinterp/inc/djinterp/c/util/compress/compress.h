@@ -69,23 +69,18 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    STATUS CONTROL FLOW       (D_PACK_OK / D_PACK_TRY / retryability)
-      -----------------------------------------------------------------
-
-II.   OPTION BUILDERS           (compound-literal option sets)
-      --------------------------------------------------------
-
-III.  CODEC NAMING              (_Generic over enumerator or string)
-      --------------------------------------------------------------
-
-IV.   SHORTHAND CALLS
-      ---------------
-
-V.    FIXED-BUFFER PATTERN
-      --------------------
-
-VI.   AVAILABLE-CODEC ITERATION
-      -------------------------
+1.  STATUS CONTROL FLOW       (D_PACK_OK / D_PACK_TRY / retryability)
+    -----------------------------------------------------------------
+2.  OPTION BUILDERS           (compound-literal option sets)
+    --------------------------------------------------------
+3.  CODEC NAMING              (_Generic over enumerator or string)
+    --------------------------------------------------------------
+4.  SHORTHAND CALLS
+    ---------------
+5.  FIXED-BUFFER PATTERN
+    --------------------
+6.  AVAILABLE-CODEC ITERATION
+    -------------------------
 */
 
 #ifndef DJINTERP_C_UTIL_COMPRESS_COMPRESS_H
@@ -100,9 +95,9 @@ VI.   AVAILABLE-CODEC ITERATION
 #include "../../../../re_std/c/cstdint/dstdint.h"  // int32_t
 
 
-// =============================================================================
-// I.   STATUS CONTROL FLOW
-// =============================================================================
+//==============================================================================
+// 1.  STATUS CONTROL FLOW
+//==============================================================================
 //   The three shapes a caller writes over and over.  D_PACK_TRY is the early
 // return; D_PACK_RETRY is the grow-and-repeat that the two-call protocol was
 // designed to make possible in one step.
@@ -160,9 +155,9 @@ VI.   AVAILABLE-CODEC ITERATION
     ((_s) == D_PACK_STATUS_BUFFER_TOO_SMALL)
 
 
-// =============================================================================
-// II.  OPTION BUILDERS
-// =============================================================================
+//==============================================================================
+// 2.  OPTION BUILDERS
+//==============================================================================
 //   A tuned option set as a single expression, so a call site does not need a
 // named local and three statements to raise one knob.  Each builder starts from
 // D_COMPRESS_OPTIONS_INIT - every knob UNSET - and moves exactly what it
@@ -291,9 +286,9 @@ struct dj_compress_options d_compress_reproducible(void)
     d_compress_at_level(D_COMPRESS_LEVEL_BEST)
 
 
-// =============================================================================
-// III. CODEC NAMING
-// =============================================================================
+//==============================================================================
+// 3.  CODEC NAMING
+//==============================================================================
 //   One argument, two spellings.  D_CODEC(gzip) is the enumerator;
 // D_CODEC("gz") is the string.  Both resolve to an enum dj_codec_id, so the
 // call sites below take either.
@@ -358,9 +353,9 @@ d_internal_codec_identity(
 #endif  // D_ENV_LANG_IS_C11_OR_HIGHER
 
 
-// =============================================================================
-// IV.  SHORTHAND CALLS
-// =============================================================================
+//==============================================================================
+// 4.  SHORTHAND CALLS
+//==============================================================================
 //   The core's transforms with the options argument omitted.  A NULL options
 // pointer means "the core's pinned defaults", which is the same set
 // D_COMPRESS_OPTIONS produces - so these are shorthands and not a second
@@ -395,9 +390,9 @@ d_internal_codec_identity(
                  (_out), (_cap), (_out_size))
 
 
-// =============================================================================
-// V.   FIXED-BUFFER PATTERN
-// =============================================================================
+//==============================================================================
+// 5.  FIXED-BUFFER PATTERN
+//==============================================================================
 //   The common C shape: a buffer of known size on the stack or in static
 // storage, and a transform that must not overrun it.  These macros take the
 // ARRAY, not a pointer and a length, so the capacity comes from the array's own
@@ -429,9 +424,9 @@ d_internal_codec_identity(
                (_arr), D_ARRAY_STATIC_SIZE(_arr), (_out_size))
 
 
-// =============================================================================
-// VI.  AVAILABLE-CODEC ITERATION
-// =============================================================================
+//==============================================================================
+// 6.  AVAILABLE-CODEC ITERATION
+//==============================================================================
 //   Walking the codecs a build actually has.  This is the loop a diagnostic
 // banner, a capability report, and a differential test sweep all write, and it
 // is easy to write subtly wrong - by iterating the enumerators and forgetting

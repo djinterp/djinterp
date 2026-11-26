@@ -79,6 +79,23 @@
 *                                                            revised: 2026.10.01
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  Recursive encodability
+    ----------------------
+2.  Element count (the size |c|)
+    ----------------------------
+3.  The container encoder (forward declaration)
+    -------------------------------------------
+4.  Per-element dispatch (the sum T = tau + F[T])
+    ---------------------------------------------
+5.  The container encoder (definition)
+    ----------------------------------
+6.  Unified entry + convenience
+    ---------------------------
+*/
+
 #ifndef DJINTERP_CONTAINER_CONTAINER_ENCODE_HPP
 #define DJINTERP_CONTAINER_CONTAINER_ENCODE_HPP 1
 
@@ -104,9 +121,9 @@
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   Recursive encodability
-// ===========================================================================
+//==============================================================================
+// 1.  Recursive encodability
+//==============================================================================
 //   A type is encodable when it is a leaf enc_tau (encode.hpp) or an iterable
 // container whose element is itself encodable.  The mutual recursion peels one
 // container layer per step and bottoms out at a leaf (or a non-container, whose
@@ -170,9 +187,9 @@ struct is_encodable_container
 D_TYPE_TRAIT_VALUE_BOOL(is_encodable_container)
 
 
-// ===========================================================================
-// II.  Element count (the size |c|)
-// ===========================================================================
+//==============================================================================
+// 2.  Element count (the size |c|)
+//==============================================================================
 
 NS_INTERNAL
 
@@ -227,9 +244,9 @@ NS_INTERNAL
 NS_END  // internal
 
 
-// ===========================================================================
-// III. The container encoder (forward declaration)
-// ===========================================================================
+//==============================================================================
+// 3.  The container encoder (forward declaration)
+//==============================================================================
 //   Declared before the element dispatcher, which calls it for a nested node;
 // defined below, using that dispatcher for its own elements.
 
@@ -243,9 +260,9 @@ void encode_container_into(
 );
 
 
-// ===========================================================================
-// IV.  Per-element dispatch (the sum T = tau + F[T])
-// ===========================================================================
+//==============================================================================
+// 4.  Per-element dispatch (the sum T = tau + F[T])
+//==============================================================================
 
 NS_INTERNAL
 
@@ -288,9 +305,9 @@ NS_INTERNAL
 NS_END  // internal
 
 
-// ===========================================================================
-// V.   The container encoder (definition)
-// ===========================================================================
+//==============================================================================
+// 5.  The container encoder (definition)
+//==============================================================================
 
 template<typename Sink,
          typename Container>
@@ -316,9 +333,9 @@ void encode_container_into(
 }
 
 
-// ===========================================================================
-// VI.  Unified entry + convenience
-// ===========================================================================
+//==============================================================================
+// 6.  Unified entry + convenience
+//==============================================================================
 
 // encode_into (container overload)
 //   function: fold the leaf `encode_into` and this container encoder into one

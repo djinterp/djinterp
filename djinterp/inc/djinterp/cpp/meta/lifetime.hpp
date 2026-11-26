@@ -63,6 +63,25 @@
 *                                                            revised: 2026.10.03
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  The lifetime lattice
+    --------------------
+2.  Lifetime algebra
+    ----------------
+3.  Type-level carrier
+    ------------------
+4.  Portable literal-type probe
+    ---------------------------
+5.  Opt-in detection
+    ----------------
+6.  Classification umbrella
+    -----------------------
+7.  Derived lifetime predicates
+    ---------------------------
+*/
+
 #ifndef DJINTERP_META_LIFETIME_HPP
 #define DJINTERP_META_LIFETIME_HPP 1
 
@@ -83,9 +102,9 @@
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   The lifetime lattice
-// ===========================================================================
+//==============================================================================
+// 1.  The lifetime lattice
+//==============================================================================
 
 // DLifetime
 //   enum: a type's determination capability across the two evaluation stages
@@ -107,9 +126,9 @@ struct DLifetime
 using lifetime = DLifetime;
 
 
-// ===========================================================================
-// II.  Lifetime algebra
-// ===========================================================================
+//==============================================================================
+// 2.  Lifetime algebra
+//==============================================================================
 //   meet/join over the lattice, the stage predicates, and a builder.  Plain
 // `constexpr` (not D_CONSTEXPR) so the algebra is always usable in constant
 // expressions - including the static initializers of the traits below -
@@ -240,9 +259,9 @@ const char* lifetime_name(
 }
 
 
-// ===========================================================================
-// III. Type-level carrier
-// ===========================================================================
+//==============================================================================
+// 3.  Type-level carrier
+//==============================================================================
 //   Lets a lifetime travel through templates as a type and serve as the
 // `::type` of the classifier below.
 
@@ -260,9 +279,9 @@ using DRuntimeLifetime      = DLifetimeConstant<DLifetime::runtime>;
 using DBothLifetime         = DLifetimeConstant<DLifetime::both>;
 
 
-// ===========================================================================
-// IV.  Portable literal-type probe
-// ===========================================================================
+//==============================================================================
+// 4.  Portable literal-type probe
+//==============================================================================
 
 // is_literal_type
 //   trait: portable "is Type a literal type?" - the general structural
@@ -294,9 +313,9 @@ using DBothLifetime         = DLifetimeConstant<DLifetime::both>;
 D_TYPE_TRAIT_VALUE_BOOL(is_literal_type)
 
 
-// ===========================================================================
-// V.   Opt-in detection
-// ===========================================================================
+//==============================================================================
+// 5.  Opt-in detection
+//==============================================================================
 //   A type declares its own lifetime by exposing a static member
 //       static constexpr djinterp::lifetime::value lifetime_category = ...;
 // This is the highest-priority signal: it overrides the structural default.
@@ -334,9 +353,9 @@ NS_INTERNAL
 NS_END  // internal
 
 
-// ===========================================================================
-// VI.  Classification umbrella
-// ===========================================================================
+//==============================================================================
+// 6.  Classification umbrella
+//==============================================================================
 
 // lifetime_of
 //   trait: classifies a type's lifetime.  Priority: an opt-in
@@ -377,9 +396,9 @@ using lifetime_of_t = typename lifetime_of<Type>::type;
 #endif
 
 
-// ===========================================================================
-// VII. Derived lifetime predicates
-// ===========================================================================
+//==============================================================================
+// 7.  Derived lifetime predicates
+//==============================================================================
 //   Boolean trait projections of lifetime_of, for SFINAE branches and
 // requires-clauses.  Each emits its `_v` companion through the canonical
 // trait_detect macro.

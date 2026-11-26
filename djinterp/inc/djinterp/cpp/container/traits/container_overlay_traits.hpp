@@ -59,6 +59,23 @@
 *                                                            revised: 2026.11.11
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  Restriction vocabulary
+    ----------------------
+2.  Overlay-specific signals (eta, sigma)
+    -------------------------------------
+3.  The overlay descriptor + algebra
+    --------------------------------
+4.  The overlay a container wears
+    -----------------------------
+5.  Canonical overlays
+    ------------------
+6.  Aggregate snapshot
+    ------------------
+*/
+
 #ifndef DJINTERP_CONTAINER_TRAITS_CONTAINER_OVERLAY_TRAITS_HPP
 #define DJINTERP_CONTAINER_TRAITS_CONTAINER_OVERLAY_TRAITS_HPP 1
 
@@ -82,9 +99,9 @@
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   Restriction vocabulary
-// ===========================================================================
+//==============================================================================
+// 1.  Restriction vocabulary
+//==============================================================================
 
 // DRestrictionScope
 //   enum: what part of a container a restriction inspects.
@@ -144,9 +161,9 @@ DRestrictionScope scope_of_restriction(
 }
 
 
-// ===========================================================================
-// II.  Overlay-specific signals (eta, sigma)
-// ===========================================================================
+//==============================================================================
+// 2.  Overlay-specific signals (eta, sigma)
+//==============================================================================
 
 // is_keyed_container
 //   trait: the keyed restriction eta (static) - the value type is a pair Key x
@@ -179,9 +196,9 @@ NS_INTERNAL
 NS_END  // internal
 
 
-// ===========================================================================
-// III. The overlay descriptor + algebra
-// ===========================================================================
+//==============================================================================
+// 3.  The overlay descriptor + algebra
+//==============================================================================
 
 // DOverlay
 //   value type: the restrictions a container's contents bear. mu is carried as
@@ -261,9 +278,9 @@ DOverlay overlay_meet(
 }
 
 
-// ===========================================================================
-// IV.  The overlay a container wears
-// ===========================================================================
+//==============================================================================
+// 4.  The overlay a container wears
+//==============================================================================
 
 // overlay_of
 //   trait: assembles the overlay a type wears from the per-axis verdicts -
@@ -323,9 +340,9 @@ wears_overlay(DOverlay _target) noexcept
 }
 
 
-// ===========================================================================
-// V.   Canonical overlays
-// ===========================================================================
+//==============================================================================
+// 5.  Canonical overlays
+//==============================================================================
 
 // DCanonicalOverlay
 //   enum: the named overlays - the 2x2 of keyed? against may-repeat? A type
@@ -407,9 +424,9 @@ using canonical_overlay_of_t = typename canonical_overlay_of<Type>::type;
 #endif
 
 
-// ===========================================================================
-// VI.  Aggregate snapshot
-// ===========================================================================
+//==============================================================================
+// 6.  Aggregate snapshot
+//==============================================================================
 
 template<typename Type>
 struct DOverlayContainerClass

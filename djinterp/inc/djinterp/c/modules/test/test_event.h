@@ -157,6 +157,27 @@
 *                                                            revised: 2026.11.17
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+0.  TYPES FROM CONFIGURATION
+    ------------------------
+1.  THE OBSERVATION RECORD
+    ----------------------
+2.  THE ALPHABET
+    ------------
+3.  PAYLOAD
+    -------
+4.  THE SIGNATURE TABLE, CLAIMED AT COMPILE TIME
+    --------------------------------------------
+5.  DISPATCH
+    --------
+6.  LAYOUT ASSERTIONS
+    -----------------
+7.  OPERATIONS
+    ----------
+*/
+
 #ifndef DJINTERP_C_TEST_EVENT_H
 #define DJINTERP_C_TEST_EVENT_H 1
 
@@ -192,9 +213,9 @@
 D_EXTERN_C_BEGIN
 
 
-// =============================================================================
-// 0.   TYPES FROM CONFIGURATION
-// =============================================================================
+//==============================================================================
+// 0.  TYPES FROM CONFIGURATION
+//==============================================================================
 //   FIRST THING IN THE FILE, and deliberately.  A knob originates in
 // cfg_test_event.h with a default and a validation block; the typedef that
 // turns it into a type belongs in the module that owns the type, so a reader
@@ -230,9 +251,9 @@ D_STATIC_ASSERT((sizeof(dj_test_event_id) == 1) ||
                 "dj_test_event_id: width must be 1, 2, 4 or 8 bytes");
 
 
-// =============================================================================
-// I.   THE OBSERVATION RECORD
-// =============================================================================
+//==============================================================================
+// 1.  THE OBSERVATION RECORD
+//==============================================================================
 //   Independent of everything below it.  A module that wants to record what
 // happened to a node needs this and none of the alphabet; a module that
 // dispatches needs the alphabet and none of this.
@@ -300,9 +321,9 @@ struct dj_test_event
 // side of it this module sits on.
 
 
-// =============================================================================
-// II.  THE ALPHABET
-// =============================================================================
+//==============================================================================
+// 2.  THE ALPHABET
+//==============================================================================
 //   The twelve built-in lifecycle summands, in the order test_event.hpp
 // declares them.  Values are pinned: a kind is recorded in a parity stream and
 // crosses the DTest bridge, so a renumbering is a wire change.
@@ -373,9 +394,9 @@ enum dj_test_event_kind
 // be wrong about three of twelve, which is why the table is explicit.
 
 
-// =============================================================================
-// III. PAYLOAD
-// =============================================================================
+//==============================================================================
+// 3.  PAYLOAD
+//==============================================================================
 
 // dj_test_event_payload
 //   struct: a fired event - its kind, and a pointer to its arguments.
@@ -463,9 +484,9 @@ struct dj_test_event_payload
 // `context` straight at the node, and DOnSessionStart carries null.
 
 
-// =============================================================================
-// IV.  THE SIGNATURE TABLE, CLAIMED AT COMPILE TIME
-// =============================================================================
+//==============================================================================
+// 4.  THE SIGNATURE TABLE, CLAIMED AT COMPILE TIME
+//==============================================================================
 //   The macro half.  Usable in #if, in a static assertion, and - in the C++
 // face - against std::tuple_size<payload_type>.  d_test_event_arity() is the
 // runtime half of the same claim and the two are tied in the .c.
@@ -484,9 +505,9 @@ struct dj_test_event_payload
 #define D_TEST_EVENT_ARITY_LISTENER_THREW   2
 
 
-// =============================================================================
-// V.   DISPATCH
-// =============================================================================
+//==============================================================================
+// 5.  DISPATCH
+//==============================================================================
 
 // -----------------------------------------------------------------------------
 //      THE VERDICT SET P
@@ -649,9 +670,9 @@ enum dj_test_dispatch_result
 }
 
 
-// =============================================================================
-// VI.  LAYOUT ASSERTIONS
-// =============================================================================
+//==============================================================================
+// 6.  LAYOUT ASSERTIONS
+//==============================================================================
 //   Fixed-width members are asserted exactly; everything pointer-bearing is
 // asserted for ORDER only, since where the padding lands is a data-model
 // property and nothing here reads it.
@@ -689,9 +710,9 @@ D_STATIC_ASSERT(offsetof(struct dj_test_dispatch, count) >
                 "dj_test_dispatch: count must follow listeners");
 
 
-// =============================================================================
-// VII. OPERATIONS
-// =============================================================================
+//==============================================================================
+// 7.  OPERATIONS
+//==============================================================================
 
 // -----------------------------------------------------------------------------
 //   a.  THE RECORD

@@ -26,6 +26,17 @@
 *                                                            revised: 2026.10.01
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+0.  WHAT EACH FORM CAN RETURN
+    -------------------------
+1.  POINTER OVERLOADS (unchecked - always available)
+    ------------------------------------------------
+2.  VALUE AND REFERENCE OVERLOADS (checked or unchecked)
+    ----------------------------------------------------
+*/
+
 #ifndef RE_STD_ANY_ANY_CAST_HPP
 #define RE_STD_ANY_ANY_CAST_HPP 1
 
@@ -50,9 +61,9 @@ namespace re_std
 {
 
 
-// ===========================================================================
-// 0.   WHAT EACH FORM CAN RETURN
-// ===========================================================================
+//==============================================================================
+// 0.  WHAT EACH FORM CAN RETURN
+//==============================================================================
 //   any keeps heap-stored types as objects and scalars (bool, integers,
 // floating point, enums, pointers) converted into a wider small-buffer
 // member. So any_cast can return a VALUE of any stored type - get<Type>()
@@ -162,9 +173,9 @@ namespace internal
 }  // internal
 
 
-// ===========================================================================
-// 1.   POINTER OVERLOADS (unchecked - always available)
-// ===========================================================================
+//==============================================================================
+// 1.  POINTER OVERLOADS (unchecked - always available)
+//==============================================================================
 // These return RE_STD_NULLPTR when the stored type does not match Type. No
 // exception is thrown; the caller must check the return value. Heap-stored
 // types only (section 0).
@@ -214,9 +225,9 @@ RE_STD_NOEXCEPT
 #endif  // RE_STD_HAS_HEADER_NEW
 
 
-// ===========================================================================
-// 2.   VALUE AND REFERENCE OVERLOADS (checked or unchecked)
-// ===========================================================================
+//==============================================================================
+// 2.  VALUE AND REFERENCE OVERLOADS (checked or unchecked)
+//==============================================================================
 //   As std's: any_cast<Type> returns Type, a value or - when Type is a
 // reference - the stored object. The any must hold Type with references
 // and cv-qualifiers removed. With exceptions on, a mismatch throws

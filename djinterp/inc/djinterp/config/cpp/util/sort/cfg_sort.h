@@ -26,17 +26,17 @@
 /*
 TABLE OF CONTENTS
 =================
-0.    SORT CONFIGURATION
-      ------------------
-      1.    Defaults                     (D_CFG_SORT_QUICK_INSERTION_THRESHOLD)
-      2.    Validation of the knobs
-      3.    Derived values               (D_INTERNAL_SORT_*)
+0.  SORT CONFIGURATION
+    ------------------
+    1.    Defaults                     (D_CFG_SORT_QUICK_INSERTION_THRESHOLD)
+    2.    Validation of the knobs
+    3.    Derived values               (D_INTERNAL_SORT_*)
 */
 
 
-// ===========================================================================
-// 0.   SORT CONFIGURATION
-// ===========================================================================
+//==============================================================================
+// 0.  SORT CONFIGURATION
+//==============================================================================
 
 // --- 0.1  Defaults ---
 

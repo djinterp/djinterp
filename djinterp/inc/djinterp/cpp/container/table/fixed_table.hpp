@@ -40,14 +40,12 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    is_fixed_table (detection trait)
-      --------------------------------
-
-II.   fixed_table (class)
-      -------------------
-
-III.  make_fixed_table / equality / swap
-      ----------------------------------
+1.  is_fixed_table (detection trait)
+    --------------------------------
+2.  fixed_table (class)
+    -------------------
+3.  make_fixed_table / equality / swap
+    ----------------------------------
 */
 
 #ifndef DJINTERP_CONTAINER_TABLE_FIXED_TABLE_HPP
@@ -89,9 +87,9 @@ III.  make_fixed_table / equality / swap
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   is_fixed_table (detection trait)
-// ===========================================================================
+//==============================================================================
+// 1.  is_fixed_table (detection trait)
+//==============================================================================
 
 // DFixedTable (fwd)
 //   class: forward declaration for the detection trait below.
@@ -140,9 +138,9 @@ inline constexpr bool is_fixed_table_v = is_fixed_table<Type>::value;
 #endif
 
 
-// ===========================================================================
-// II.  fixed_table (class)
-// ===========================================================================
+//==============================================================================
+// 2.  fixed_table (class)
+//==============================================================================
 
 // DFixedTable
 //   class: a fixed-shape mutable rank-2 cell-homogeneous table of Rows by
@@ -672,9 +670,9 @@ namespace table_axis_conformance
 }
 
 
-// ===========================================================================
-// III. make_fixed_table / equality / swap
-// ===========================================================================
+//==============================================================================
+// 3.  make_fixed_table / equality / swap
+//==============================================================================
 
 // make_fixed_table
 //   function: builds a fixed_table<Type, Rows, Cols> from R*C cell values

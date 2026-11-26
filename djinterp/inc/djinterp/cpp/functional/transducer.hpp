@@ -58,51 +58,46 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    REDUCED WRAPPER
-      ---------------
-      1.    reduced<Acc>                           (short-circuit signal)
-      2.    is_reduced<T>
-      3.    unwrap_reduced(r)
-
-II.   CORE TRANSDUCERS  (namespace transducers)
-      -----------------------------------------
-      1.    map(f)                                  (transform each value)
-      2.    filter(p)                               (drop non-matching)
-      3.    filter_not(p)
-      4.    take_transducer(n)                      (first-n then short-circuit)
-      5.    drop_transducer(n)
-      6.    take_while(p)
-      7.    drop_while(p)
-      8.    distinct()
-      9.    tap(side_effect)                        (peek without changing)
-      10.   flat_map(f)                             (one-to-many expansion)
-      11.   partition_by(key_fn)                    (chunk while key unchanged)
-
-III.  COMPOSITION
-      -----------
-      1.    compose(t1, t2, ...)                    (n-ary composition)
-      2.    operator|(transducer, transducer)
-
-IV.   DRIVERS / RUNNERS
-      -----------------
-      1.    transduce(xform, reducer, init, container)
-      2.    transduce_into_vector<T>(xform, container)
-      3.    transduce_into_accumulator(xform, acc, container)
-      4.    transduce_producer_to_consumer(xform, producer, consumer)
-      5.    into_reducer(xform, downstream)         (apply transducer to reducer)
-
-V.    STRUCTURAL TRAITS & CONCEPTS
-      ----------------------------
-      1.    is_reducing_state<T>                     (a DReducingState<Acc>)
-      2.    reducing_state_acc_t<T>                  (its accumulator type)
-      3.    is_reducer<Fn, Acc, Value>               ((state&, const value&)->void)
-      4.    is_transducer (marker, pre-existing)     (derives DTransducerBase)
-      5.    transduces_reducer<X, Reducer>           (X applied to a reducer
-
-      yields a reducer)
-      6.    transducer_result_t<X, Reducer>          (the produced reducer type)
-      7.    *_v aliases  (C++14)                      (variable-template shorthands)
-      8.    reducer_c / transducer_c / reducing_state_c (C++20)
+1.  REDUCED WRAPPER
+    ---------------
+    1.    reduced<Acc>                           (short-circuit signal)
+    2.    is_reduced<T>
+    3.    unwrap_reduced(r)
+2.  CORE TRANSDUCERS  (namespace transducers)
+    -----------------------------------------
+    1.    map(f)                                  (transform each value)
+    2.    filter(p)                               (drop non-matching)
+    3.    filter_not(p)
+    4.    take_transducer(n)                      (first-n then short-circuit)
+    5.    drop_transducer(n)
+    6.    take_while(p)
+    7.    drop_while(p)
+    8.    distinct()
+    9.    tap(side_effect)                        (peek without changing)
+    10.   flat_map(f)                             (one-to-many expansion)
+    11.   partition_by(key_fn)                    (chunk while key unchanged)
+3.  COMPOSITION
+    -----------
+    1.    compose(t1, t2, ...)                    (n-ary composition)
+    2.    operator|(transducer, transducer)
+4.  DRIVERS / RUNNERS
+    -----------------
+    1.    transduce(xform, reducer, init, container)
+    2.    transduce_into_vector<T>(xform, container)
+    3.    transduce_into_accumulator(xform, acc, container)
+    4.    transduce_producer_to_consumer(xform, producer, consumer)
+    5.    into_reducer(xform, downstream)         (apply transducer to reducer)
+5.  STRUCTURAL TRAITS & CONCEPTS
+    ----------------------------
+    1.    is_reducing_state<T>                     (a DReducingState<Acc>)
+    2.    reducing_state_acc_t<T>                  (its accumulator type)
+    3.    is_reducer<Fn, Acc, Value>               ((state&, const value&)->void)
+    4.    is_transducer (marker, pre-existing)     (derives DTransducerBase)
+    5.    transduces_reducer<X, Reducer>           (X applied to a reducer
+    yields a reducer)
+    6.    transducer_result_t<X, Reducer>          (the produced reducer type)
+    7.    *_v aliases  (C++14)                      (variable-template shorthands)
+    8.    reducer_c / transducer_c / reducing_state_c (C++20)
 */
 
 
@@ -219,9 +214,9 @@ struct is_transducer
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             I.    REDUCED WRAPPER                                       ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  REDUCED WRAPPER
+//==============================================================================
 
 // DReduced
 //   class: marks an accumulator as "finished early". Step
@@ -339,9 +334,9 @@ private:
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             II.   CORE TRANSDUCERS                                      ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  CORE TRANSDUCERS
+//==============================================================================
 
 NS_INTERNAL
 
@@ -949,9 +944,9 @@ D_NODISCARD D_CONSTEXPR internal::DFlatMapTransducerHelper<typename std::decay<F
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             III.  COMPOSITION                                           ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  COMPOSITION
+//==============================================================================
 
 // compose (two transducers)
 //   function: composes two transducers into one. compose(t1, t2)
@@ -1039,9 +1034,9 @@ auto operator|
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             IV.   DRIVERS / RUNNERS                                     ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  DRIVERS / RUNNERS
+//==============================================================================
 
 // into_reducer
 //   function: applies a transducer to a downstream reducer,
@@ -1221,9 +1216,9 @@ void transduce_producer_to_consumer(
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             V.    STRUCTURAL TRAITS & CONCEPTS                          ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 5.  STRUCTURAL TRAITS & CONCEPTS
+//==============================================================================
 //   Structural detection for the three shapes this module trades in:
 //
 //   * a REDUCING STATE  - a DReducingState<Acc> (the (accumulator, done)

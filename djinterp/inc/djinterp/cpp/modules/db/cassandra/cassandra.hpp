@@ -93,9 +93,9 @@ NS_DB
 namespace cassandra {
 
 
-// =============================================================================
-// I.   CASSANDRA NATIVE CQL TYPE ENUMERATION
-// =============================================================================
+//==============================================================================
+// 1.  CASSANDRA NATIVE CQL TYPE ENUMERATION
+//==============================================================================
 // Cassandra identifies every column value by a CQL native type. These are
 // returned by the DataStax driver as CASS_VALUE_TYPE_* enumerators and are
 // also recorded under system_schema.columns. The enumerators below mirror
@@ -156,9 +156,9 @@ enum class cassandra_type : re_std::uint16_t
 };
 
 
-// =============================================================================
-// II.  CASSANDRA-TYPE-TO-FIELD_TYPE MAPPING
-// =============================================================================
+//==============================================================================
+// 2.  CASSANDRA-TYPE-TO-FIELD_TYPE MAPPING
+//==============================================================================
 
 // cassandra_type_to_field_type
 //   function: maps a Cassandra native type to the generic djinterp
@@ -419,9 +419,9 @@ const char* field_type_to_cassandra_native(
 }
 
 
-// =============================================================================
-// III. FEATURE SUPPORT (compile-time, version-gated)
-// =============================================================================
+//==============================================================================
+// 3.  FEATURE SUPPORT (compile-time, version-gated)
+//==============================================================================
 
 // cassandra_type_support
 //   struct: compile-time native CQL type availability flags gated by
@@ -711,9 +711,9 @@ struct cassandra_feature_support
 };
 
 
-// =============================================================================
-// IV.  CASSANDRA VERSION INFORMATION
-// =============================================================================
+//==============================================================================
+// 4.  CASSANDRA VERSION INFORMATION
+//==============================================================================
 
 // cassandra_version_info
 //   struct: compile-time version decomposition.
@@ -750,9 +750,9 @@ struct cassandra_version_info
 };
 
 
-// =============================================================================
-// V.   CASSANDRA MODE / CONSISTENCY ENUMERATIONS
-// =============================================================================
+//==============================================================================
+// 5.  CASSANDRA MODE / CONSISTENCY ENUMERATIONS
+//==============================================================================
 
 // cassandra_consistency_level
 //   enumeration: CQL request consistency levels.
@@ -801,9 +801,9 @@ enum class cassandra_compression : re_std::uint8_t
 };
 
 
-// =============================================================================
-// VI.  CASSANDRA CONNECTION CONFIGURATION
-// =============================================================================
+//==============================================================================
+// 6.  CASSANDRA CONNECTION CONFIGURATION
+//==============================================================================
 
 // cassandra_connect_config
 //   struct: Cassandra-specific connection configuration extending the
@@ -906,9 +906,9 @@ struct cassandra_connect_config
 };
 
 
-// =============================================================================
-// VII. CASSANDRA CONNECTION
-// =============================================================================
+//==============================================================================
+// 7.  CASSANDRA CONNECTION
+//==============================================================================
 
 // cassandra_connection
 //   class: concrete Cassandra connection implementation via the DataStax
@@ -2018,9 +2018,9 @@ private:
 };
 
 
-// =============================================================================
-// VIII. FORWARD DECLARATIONS
-// =============================================================================
+//==============================================================================
+// 8.  FORWARD DECLARATIONS
+//==============================================================================
 
 // cassandra_result_set_impl
 //   struct: forward declaration of the Cassandra result set
@@ -2036,9 +2036,9 @@ struct cassandra_result_set_impl;
 // so detection lives with the connection it describes. Traits build at C++17;
 // concepts appear under C++20.
 
-// =============================================================================
-// IX.   EXPRESSION DETECTORS
-// =============================================================================
+//==============================================================================
+// 9.  EXPRESSION DETECTORS
+//==============================================================================
 
 // -------------------------------------------------------------------------
 // A.  CQL execution
@@ -2533,9 +2533,9 @@ using cassandra_fetch_next_page_t =
         std::declval<const std::string&>()));
 
 
-// =============================================================================
-// X.  TAGGED CAPABILITY TRAITS (struct-based)
-// =============================================================================
+//==============================================================================
+// 10. TAGGED CAPABILITY TRAITS (struct-based)
+//==============================================================================
 
 // has_cassandra_cql_execution
 //   trait: checks if type Type supports core CQL execution
@@ -2816,9 +2816,9 @@ struct is_cassandra_connection : djinterp::conjunction<
 #endif
 
 
-// =============================================================================
-// XI. TAGLESS CAPABILITY TRAITS (constexpr bool)
-// =============================================================================
+//==============================================================================
+// 11. TAGLESS CAPABILITY TRAITS (constexpr bool)
+//==============================================================================
 
 // -------------------------------------------------------------------------
 // A.  individual capability tags
@@ -3224,9 +3224,9 @@ constexpr bool cassandra_is_full_connection =
       cassandra_does_batch<clean_t<Type>> );
 
 
-// =============================================================================
-// XII.  SFINAE HELPERS
-// =============================================================================
+//==============================================================================
+// 12. SFINAE HELPERS
+//==============================================================================
 
 // enable_if_cassandra_connection
 //   type: SFINAE helper for Cassandra connection constraints.
@@ -3267,9 +3267,9 @@ using enable_if_has_cassandra_materialized_views =
         has_cassandra_materialized_views<clean_t<Type>>::value>::type;
 
 
-// ===========================================================================
-// XIII.   C++20 CONCEPTS
-// ===========================================================================
+//==============================================================================
+// 13. C++20 CONCEPTS
+//==============================================================================
 //   The cassandra classification concepts, folded in from the former cassandra_concepts.hpp.
 // Gated on concept support so the traits build at the C++17 baseline.
 
@@ -3520,9 +3520,9 @@ concept cassandra_pageable_connection =
     cassandra_can_page<clean_t<Type>>;
 
 
-// =============================================================================
-// C. Tagless Cassandra Capability Concepts
-// =============================================================================
+//==============================================================================
+// 100. Tagless Cassandra Capability Concepts
+//==============================================================================
 
 // cassandra_cql_executable
 //   concept: constrains types satisfying the full tagless CQL-execution

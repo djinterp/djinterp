@@ -56,6 +56,23 @@
 *                                                            revised: 2026.11.17
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  KNOB CONSTANT SETS
+    ------------------
+2.  THE OPTION SET
+    --------------
+3.  COMPARISON
+    ----------
+4.  PER-CODEC BLOCK COMPARISON
+    --------------------------
+5.  DIFF DESCRIPTION
+    ----------------
+6.  OPTION BUILDERS
+    ---------------
+*/
+
 #ifndef DJINTERP_UTIL_COMPRESS_COMPRESS_OPTIONS_HPP
 #define DJINTERP_UTIL_COMPRESS_COMPRESS_OPTIONS_HPP 1
 
@@ -69,9 +86,9 @@
 
 NS_DJINTERP
 
-// =============================================================================
-// I.   KNOB CONSTANT SETS
-// =============================================================================
+//==============================================================================
+// 1.  KNOB CONSTANT SETS
+//==============================================================================
 //   The enums keep their C++ spellings and are typedefs of the core's, not
 // second declarations.  Named constants rather than enumerators of a fresh
 // enum: one enum, two vocabularies.
@@ -144,9 +161,9 @@ D_STATIC const DBrotliMode brotli_mode_text    = D_BROTLI_MODE_TEXT;
 D_STATIC const DBrotliMode brotli_mode_font    = D_BROTLI_MODE_FONT;
 
 
-// =============================================================================
-// II.  THE OPTION SET
-// =============================================================================
+//==============================================================================
+// 2.  THE OPTION SET
+//==============================================================================
 
 // DDeflateOptions / DBzip2Options / ...
 //   type: the per-codec knob blocks, aliased from the core.  Aliases and not
@@ -184,9 +201,9 @@ D_STATIC_ASSERT(sizeof(compress_options) == sizeof(struct dj_compress_options),
                 "compress_options must cost nothing over dj_compress_options");
 
 
-// =============================================================================
-// III. COMPARISON
-// =============================================================================
+//==============================================================================
+// 3.  COMPARISON
+//==============================================================================
 //   Both operators forward to the core's knob-table walk, so "equal" means the
 // same thing in both languages by construction rather than by review.
 
@@ -210,9 +227,9 @@ bool operator!=(
 
 
 
-// =============================================================================
-// IV.  PER-CODEC BLOCK COMPARISON
-// =============================================================================
+//==============================================================================
+// 4.  PER-CODEC BLOCK COMPARISON
+//==============================================================================
 //   One comparator per codec block, for a caller that wants to prove a single
 // block moved (or did not) rather than asking about the whole set.
 //
@@ -361,9 +378,9 @@ bool compress_options_are_default(
 }
 
 
-// =============================================================================
-// V.   DIFF DESCRIPTION
-// =============================================================================
+//==============================================================================
+// 5.  DIFF DESCRIPTION
+//==============================================================================
 //   The kernel answers WHICH knobs moved, as a dense index list; naming them
 // is d_compress_knob_name's job and formatting the list is the caller's.  This
 // is that caller, for the one presentation everyone wanted: a comma-separated
@@ -413,9 +430,9 @@ std::string describe_compress_diff_from_default(
 }
 
 
-// =============================================================================
-// VI.  OPTION BUILDERS
-// =============================================================================
+//==============================================================================
+// 6.  OPTION BUILDERS
+//==============================================================================
 //   Small presets.  Each starts from a pristine set and moves exactly one
 // thing, so a caller can assert both the intended change and that nothing else
 // drifted.

@@ -59,6 +59,19 @@
 *                                                            revised: 2026.11.01
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  ALL-CONTAINER TOGGLE
+    --------------------
+2.  CATEGORY-LEVEL TOGGLES
+    ----------------------
+3.  ADDITIONAL CATEGORY GROUPINGS
+    -----------------------------
+4.  INTERNAL RESOLUTION HELPERS
+    ---------------------------
+*/
+
 #ifndef DJINTERP_CONFIG_C_CONTAINER_CFG_CONTAINER_H
 #define DJINTERP_CONFIG_C_CONTAINER_CFG_CONTAINER_H 1
 
@@ -66,9 +79,9 @@
 #include "../../cfg_common.h"  // D_CFG_* helpers, user overrides
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             I.    ALL-CONTAINER TOGGLE                                  ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  ALL-CONTAINER TOGGLE
+//==============================================================================
 
 // D_CFG_CONTAINER_ALL
 //   configuration: optional aggregate for the container subframework's
@@ -97,9 +110,9 @@
 #endif  // D_CFG_CONTAINER_FILTER
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             II.   CATEGORY-LEVEL TOGGLES                               ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  CATEGORY-LEVEL TOGGLES
+//==============================================================================
 
 // D_CFG_CONTAINER_ARRAY_FILTER
 //   configuration: enable filter for contiguous (array-like) containers.
@@ -145,9 +158,9 @@
 #endif  // D_CFG_CONTAINER_FILTER_SET
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             III.  ADDITIONAL CATEGORY GROUPINGS                         ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  ADDITIONAL CATEGORY GROUPINGS
+//==============================================================================
 // These are convenience aliases that group categories differently. Each
 // inherits from D_CFG_CONTAINER_FILTER unless overridden.
 
@@ -201,9 +214,9 @@
 #endif
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             IV.   INTERNAL RESOLUTION HELPERS                           ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  INTERNAL RESOLUTION HELPERS
+//==============================================================================
 // These macros are used by individual container headers to resolve their
 // own toggle from the category they belong to.  They are NOT intended for
 // direct use by consumers.

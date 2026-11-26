@@ -55,6 +55,18 @@
 *                                                            revised: 2026.11.27
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  TO V1
+    -----
+    1.  DBridgeAlgebra
+    2.  to_expression
+2.  FROM V1
+    -------
+    1.  from_operator_signature
+*/
+
 #ifndef DJINTERP_PARSE_EXPR_BRIDGE_HPP
 #define DJINTERP_PARSE_EXPR_BRIDGE_HPP 1
 

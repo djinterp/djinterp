@@ -62,6 +62,19 @@
 *                                                            revised: 2026.10.01
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  `metadata` DETECTION
+    --------------------
+2.  `metadata_type` DETECTION
+    -------------------------
+3.  `metadata_container_type` DETECTION
+    -----------------------------------
+4.  TYPE EXTRACTION ( _t aliases )
+    ------------------------------
+*/
+
 #ifndef DJINTERP_UTIL_METADATA_METADATA_TRAITS_HPP
 #define DJINTERP_UTIL_METADATA_METADATA_TRAITS_HPP 1
 
@@ -83,9 +96,9 @@
 NS_DJINTERP
 
 
-// =========================================================================
-// I.   `metadata` DETECTION
-// =========================================================================
+//==============================================================================
+// 1.  `metadata` DETECTION
+//==============================================================================
 //   Structural detection of the `metadata` name across the three
 // natural class-member shapes. The unifying `has_metadata` trait
 // returns true if any of the shapes is well-formed for the
@@ -126,9 +139,9 @@ struct has_metadata
 #endif
 
 
-// =========================================================================
-// II.  `metadata_type` DETECTION
-// =========================================================================
+//==============================================================================
+// 2.  `metadata_type` DETECTION
+//==============================================================================
 //   Mirror of section I for the `metadata_type` name. In typical
 // usage `metadata_type` will be a nested type alias, but member
 // and method forms are detected for completeness.
@@ -169,9 +182,9 @@ struct has_metadata_type
 #endif
 
 
-// =========================================================================
-// III. `metadata_container_type` DETECTION
-// =========================================================================
+//==============================================================================
+// 3.  `metadata_container_type` DETECTION
+//==============================================================================
 //   Mirror of section I for the `metadata_container_type` name.
 
 // has_metadata_container_type_data_member
@@ -216,9 +229,9 @@ struct has_metadata_container_type
 #endif
 
 
-// =========================================================================
-// IV.  TYPE EXTRACTION ( _t aliases )
-// =========================================================================
+//==============================================================================
+// 4.  TYPE EXTRACTION ( _t aliases )
+//==============================================================================
 //   For each canonical name, an `_t` alias yields the type
 // associated with whichever shape the queried type exposes.
 // Dispatch order on access: nested type alias first, then data

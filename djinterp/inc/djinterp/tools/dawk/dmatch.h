@@ -16,6 +16,16 @@
 *                                                            revised: 2026.09.20
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  OPERATIONS
+    ----------
+    1.  Matching
+    2.  Rule index
+    3.  Validation
+*/
+
 #ifndef DJINTERP_TOOLS_DAWK_DMATCH_H
 #define DJINTERP_TOOLS_DAWK_DMATCH_H 1
 

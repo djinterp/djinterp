@@ -11,6 +11,15 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  IS_NOTHROW_COPY_CONSTRUCTIBLE
+    -----------------------------
+2.  IS_NOTHROW_COPY_CONSTRUCTIBLE_V
+    -------------------------------
+*/
+
 #ifndef RE_STD_TYPE_TRAITS_IS_NOTHROW_COPY_CONSTRUCTIBLE_HPP
 #define RE_STD_TYPE_TRAITS_IS_NOTHROW_COPY_CONSTRUCTIBLE_HPP 1
 
@@ -32,9 +41,9 @@ namespace re_std
 {
 
 
-// =============================================================================
-// I.   IS_NOTHROW_COPY_CONSTRUCTIBLE
-// =============================================================================
+//==============================================================================
+// 1.  IS_NOTHROW_COPY_CONSTRUCTIBLE
+//==============================================================================
 
 template<typename Type>
 struct is_nothrow_copy_constructible
@@ -48,9 +57,9 @@ struct is_nothrow_copy_constructible
 {};
 
 
-// =============================================================================
-// II.  IS_NOTHROW_COPY_CONSTRUCTIBLE_V
-// =============================================================================
+//==============================================================================
+// 2.  IS_NOTHROW_COPY_CONSTRUCTIBLE_V
+//==============================================================================
 
 #if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 

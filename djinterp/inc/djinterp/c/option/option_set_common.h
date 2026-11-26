@@ -79,6 +79,28 @@
 *                                                            revised: 2026.11.10
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  THE SET
+    -------
+    1.  construction
+2.  POPULATION
+    ----------
+3.  QUERIES - THE LOOKUP HALF
+    -------------------------
+4.  ACCESS - THE COLUMN HALF
+    ------------------------
+5.  THE RELATION ALGEBRA
+    --------------------
+6.  UNION AND INTERSECTION
+    ----------------------
+7.  TRAVERSAL
+    ---------
+8.  LAYOUT ASSERTIONS
+    -----------------
+*/
+
 #ifndef DJINTERP_C_OPTION_SET_COMMON_H
 #define DJINTERP_C_OPTION_SET_COMMON_H 1
 
@@ -101,9 +123,9 @@
 
 D_EXTERN_C_BEGIN
 
-///////////////////////////////////////////////////////////////////////////////
-///             I.    THE SET                                               ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  THE SET
+//==============================================================================
 
 // dj_option_set
 //   struct: a borrowed view onto a flat option set.
@@ -155,7 +177,8 @@ struct dj_option_set
                                  sizeof(struct dj_option)),                  \
                       (uint32_t)sizeof((storage).value_block))
 
-// I.     construction
+// 1.1    construction
+//------------------------------------------------------------------------------
 struct dj_option_set d_option_set_view(
     struct dj_option* _options,
     unsigned char*    _values,
@@ -175,9 +198,9 @@ bool d_option_set_is_valid(
 );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             II.   POPULATION                                            ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  POPULATION
+//==============================================================================
 
 // d_option_set_add
 //   function: append an option column and pack its slot into the value block.
@@ -253,9 +276,9 @@ struct dj_option_result d_option_set_remove_at(
 );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             III.  QUERIES - THE LOOKUP HALF                            ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  QUERIES - THE LOOKUP HALF
+//==============================================================================
 //
 //   "An option is shorthand for (lookup by key) + (set value in its column)."
 // This section is the first half and section IV is the second, which is why
@@ -313,9 +336,9 @@ dj_type_info16 d_option_set_key_type(
 );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             IV.   ACCESS - THE COLUMN HALF                             ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  ACCESS - THE COLUMN HALF
+//==============================================================================
 
 // d_option_set_get
 //   function: copy the value at `_key` out. D_OPTION_STATUS_KEY_ABSENT when
@@ -349,9 +372,9 @@ bool d_option_set_is_assigned(
 );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             V.    THE RELATION ALGEBRA                                  ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 5.  THE RELATION ALGEBRA
+//==============================================================================
 //
 //   Four relations from body-options.tex, and they are FOUR, not one with
 // variations. Getting them confused is the defect this section exists to
@@ -449,9 +472,9 @@ bool d_option_set_conflicts(
 );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             VI.   UNION AND INTERSECTION                                ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 6.  UNION AND INTERSECTION
+//==============================================================================
 
 // d_option_set_intersection
 //   function: O1 ^ O2 := { o in O1 | k(o) in K(O2) and O2[k(o)] = o }.
@@ -510,9 +533,9 @@ struct dj_option_result d_option_set_union(
 );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             VII.  TRAVERSAL                                             ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 7.  TRAVERSAL
+//==============================================================================
 //
 //   A set is a flat sequence, so its Foldable instance is the tier 1 spine and
 // not new machinery. Every projection in the framework - printing a set,
@@ -609,9 +632,9 @@ struct dj_option_result d_option_set_compact(
 );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             VIII. LAYOUT ASSERTIONS                                     ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 8.  LAYOUT ASSERTIONS
+//==============================================================================
 //
 //   Written against `sizeof(void*)` rather than against a constant, because
 // the set carries two pointers and the framework supports 32-bit targets. The

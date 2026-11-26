@@ -19,6 +19,17 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+0.  RE_STD_HAS_HAS_VIRTUAL_DESTRUCTOR  (intrinsic detection)
+    --------------------------------------------------------
+1.  HAS_VIRTUAL_DESTRUCTOR
+    ----------------------
+2.  HAS_VIRTUAL_DESTRUCTOR_V (C++14+ variable)
+    ------------------------------------------
+*/
+
 #ifndef RE_STD_TYPE_TRAITS_HAS_VIRTUAL_DESTRUCTOR_HPP
 #define RE_STD_TYPE_TRAITS_HAS_VIRTUAL_DESTRUCTOR_HPP 1
 
@@ -29,9 +40,9 @@
 #include "./false_type.hpp"
 
 
-// =============================================================================
-// 0.   RE_STD_HAS_HAS_VIRTUAL_DESTRUCTOR  (intrinsic detection)
-// =============================================================================
+//==============================================================================
+// 0.  RE_STD_HAS_HAS_VIRTUAL_DESTRUCTOR  (intrinsic detection)
+//==============================================================================
 
 #ifndef RE_STD_HAS_HAS_VIRTUAL_DESTRUCTOR
     #if defined(__has_builtin)
@@ -55,9 +66,9 @@ namespace re_std
 {
 
 
-// =============================================================================
-// I.   HAS_VIRTUAL_DESTRUCTOR
-// =============================================================================
+//==============================================================================
+// 1.  HAS_VIRTUAL_DESTRUCTOR
+//==============================================================================
 
 #if RE_STD_HAS_HAS_VIRTUAL_DESTRUCTOR
 
@@ -80,9 +91,9 @@ struct has_virtual_destructor : false_type
 #endif  // RE_STD_HAS_HAS_VIRTUAL_DESTRUCTOR
 
 
-// =============================================================================
-// II.  HAS_VIRTUAL_DESTRUCTOR_V (C++14+ variable)
-// =============================================================================
+//==============================================================================
+// 2.  HAS_VIRTUAL_DESTRUCTOR_V (C++14+ variable)
+//==============================================================================
 
 #if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 

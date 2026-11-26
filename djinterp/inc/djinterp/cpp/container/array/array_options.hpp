@@ -45,14 +45,12 @@
 /*
 TABLE OF CONTENTS
 =================
-1.    canonical-form option aliases (array-specific)
-      ----------------------------------------------
-
-2.    array_from_options trait
-      ------------------------
-
-3.    make_array_from_options factory
-      -------------------------------
+1.  canonical-form option aliases (array-specific)
+    ----------------------------------------------
+2.  array_from_options trait
+    ------------------------
+3.  make_array_from_options factory
+    -------------------------------
 */
 
 #ifndef DJINTERP_CONTAINER_ARRAY_ARRAY_OPTIONS_HPP
@@ -77,9 +75,9 @@ TABLE OF CONTENTS
 
 NS_DJINTERP
 
-// ===========================================================================
-// 1.   canonical-form option aliases (array-specific)
-// ===========================================================================
+//==============================================================================
+// 1.  canonical-form option aliases (array-specific)
+//==============================================================================
 // Convenience aliases that wrap an array-specific axis value into a
 // fully-formed `option<key, value>`.  For the universal axes (lifetime
 // and iterability) use `DContainerOptLifetime<>` and
@@ -102,9 +100,9 @@ using DArrayOptExtent = option<array_extent_key,
                                 std::integral_constant<std::size_t, N>>;
 
 
-// ===========================================================================
-// 2.   array_from_options trait
-// ===========================================================================
+//==============================================================================
+// 2.  array_from_options trait
+//==============================================================================
 
 // array_from_options
 //   trait: exposes the `DArray<...>` instantiation produced by a given options
@@ -124,9 +122,9 @@ template<typename... Options>
 using array_from_options_t = typename array_from_options<Options...>::type;
 
 
-// ===========================================================================
-// 3.   make_array_from_options factory
-// ===========================================================================
+//==============================================================================
+// 3.  make_array_from_options factory
+//==============================================================================
 
 // make_array_from_options
 //   factory: constructs an `DArray<...>` from a template option pack and a

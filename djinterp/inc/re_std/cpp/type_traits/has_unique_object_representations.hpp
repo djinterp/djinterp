@@ -25,6 +25,17 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+0.  RE_STD_HAS_HAS_UNIQUE_OBJECT_REPRESENTATIONS  (intrinsic detection)
+    -------------------------------------------------------------------
+1.  HAS_UNIQUE_OBJECT_REPRESENTATIONS
+    ---------------------------------
+2.  HAS_UNIQUE_OBJECT_REPRESENTATIONS_V (C++14+ variable)
+    -----------------------------------------------------
+*/
+
 #ifndef RE_STD_TYPE_TRAITS_HAS_UNIQUE_OBJECT_REPRESENTATIONS_HPP
 #define RE_STD_TYPE_TRAITS_HAS_UNIQUE_OBJECT_REPRESENTATIONS_HPP 1
 
@@ -35,9 +46,9 @@
 #include "./false_type.hpp"
 
 
-// =============================================================================
-// 0.   RE_STD_HAS_HAS_UNIQUE_OBJECT_REPRESENTATIONS  (intrinsic detection)
-// =============================================================================
+//==============================================================================
+// 0.  RE_STD_HAS_HAS_UNIQUE_OBJECT_REPRESENTATIONS  (intrinsic detection)
+//==============================================================================
 
 #ifndef RE_STD_HAS_HAS_UNIQUE_OBJECT_REPRESENTATIONS
     #if defined(__has_builtin)
@@ -61,9 +72,9 @@ namespace re_std
 {
 
 
-// =============================================================================
-// I.   HAS_UNIQUE_OBJECT_REPRESENTATIONS
-// =============================================================================
+//==============================================================================
+// 1.  HAS_UNIQUE_OBJECT_REPRESENTATIONS
+//==============================================================================
 
 #if RE_STD_HAS_HAS_UNIQUE_OBJECT_REPRESENTATIONS
 
@@ -88,9 +99,9 @@ struct has_unique_object_representations : false_type
 #endif  // RE_STD_HAS_HAS_UNIQUE_OBJECT_REPRESENTATIONS
 
 
-// =============================================================================
-// II.  HAS_UNIQUE_OBJECT_REPRESENTATIONS_V (C++14+ variable)
-// =============================================================================
+//==============================================================================
+// 2.  HAS_UNIQUE_OBJECT_REPRESENTATIONS_V (C++14+ variable)
+//==============================================================================
 
 #if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 

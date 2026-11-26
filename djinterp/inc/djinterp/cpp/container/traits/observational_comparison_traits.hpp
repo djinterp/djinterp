@@ -85,6 +85,21 @@
 *                                                            revised: 2026.10.03
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  Interface-operation probes
+    --------------------------
+2.  The observational level
+    -----------------------
+3.  The level a single type's interface resolves
+    --------------------------------------------
+4.  The shared-interface principle
+    ------------------------------
+5.  Stage of a comparison
+    ---------------------
+*/
+
 #ifndef DJINTERP_CONTAINER_TRAITS_OBSERVATIONAL_COMPARISON_TRAITS_HPP
 #define DJINTERP_CONTAINER_TRAITS_OBSERVATIONAL_COMPARISON_TRAITS_HPP 1
 
@@ -111,9 +126,9 @@
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   Interface-operation probes
-// ===========================================================================
+//==============================================================================
+// 1.  Interface-operation probes
+//==============================================================================
 //   One SFINAE probe per inspection operation of the interface I.  All strip
 // cv-ref via clean_t and read on a CONST lvalue - observation leaves the
 // container invariant, so a const-callable operation is what counts.
@@ -171,9 +186,9 @@ D_TYPE_TRAIT_TRUE(has_contains_member,
         std::declval<element_type_of_t<Type>>())))
 
 
-// ===========================================================================
-// II.  The observational level
-// ===========================================================================
+//==============================================================================
+// 2.  The observational level
+//==============================================================================
 
 // DObservationalLevel
 //   enum: the finest content level an interface can DECIDE. A refinement
@@ -262,9 +277,9 @@ bool observational_level_subsumes(
 }
 
 
-// ===========================================================================
-// III. The level a single type's interface resolves
-// ===========================================================================
+//==============================================================================
+// 3.  The level a single type's interface resolves
+//==============================================================================
 
 // observational_level_of
 //   trait: the FINEST level the type's interface resolves. A cascade from
@@ -315,9 +330,9 @@ using observational_level_of_t = typename observational_level_of<Type>::type;
 #endif
 
 
-// ===========================================================================
-// IV.  The shared-interface principle
-// ===========================================================================
+//==============================================================================
+// 4.  The shared-interface principle
+//==============================================================================
 
 // shared_observational_level
 //   trait: the level at which a PAIR can be decided - the coarser of the two
@@ -356,9 +371,9 @@ using shared_observational_level_t =
 #endif
 
 
-// ===========================================================================
-// V.   Stage of a comparison
-// ===========================================================================
+//==============================================================================
+// 5.  Stage of a comparison
+//==============================================================================
 //   A comparison carries the latest stage of the accesses it uses (meta/
 // lifetime.hpp: the meet composes stages so that a composite is compile-time
 // only when every part is).  Each operand's access stage is proxied by a static

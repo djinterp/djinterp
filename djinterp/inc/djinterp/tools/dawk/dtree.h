@@ -15,6 +15,14 @@
 *                                                            revised: 2026.11.24
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  OPERATIONS
+    ----------
+    1.  Construction
+*/
+
 #ifndef DJINTERP_TOOLS_DAWK_DTREE_H
 #define DJINTERP_TOOLS_DAWK_DTREE_H 1
 

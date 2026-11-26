@@ -44,14 +44,12 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    DDocumentDialect                (the owning wrapper)
-      ----------------------------------------------------
-
-II.   make_document_dialect           (the factory)
-      ---------------------------------------------
-
-III.  render_to_string                (render any template in any dialect)
-      --------------------------------------------------------------------
+1.  DDocumentDialect                (the owning wrapper)
+    ----------------------------------------------------
+2.  make_document_dialect           (the factory)
+    ---------------------------------------------
+3.  render_to_string                (render any template in any dialect)
+    --------------------------------------------------------------------
 */
 
 #ifndef DJINTERP_UTIL_DOCUMENT_TEMPLATES_DOCUMENT_DIALECT_HPP
@@ -81,9 +79,9 @@ III.  render_to_string                (render any template in any dialect)
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   DDocumentDialect
-// ===========================================================================
+//==============================================================================
+// 1.  DDocumentDialect
+//==============================================================================
 
 // DDocumentDialect
 //   class: an owned DDocumentRenderer plus the accessors its concrete type
@@ -193,9 +191,9 @@ private:
 };
 
 
-// ===========================================================================
-// II.  make_document_dialect
-// ===========================================================================
+//==============================================================================
+// 2.  make_document_dialect
+//==============================================================================
 
 NS_INTERNAL
 
@@ -271,9 +269,9 @@ D_NODISCARD inline DDocumentDialect make_document_dialect(
 }
 
 
-// ===========================================================================
-// III. render_to_string
-// ===========================================================================
+//==============================================================================
+// 3.  render_to_string
+//==============================================================================
 
 // render_to_string
 //   function: render any document template in any served dialect, as a

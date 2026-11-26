@@ -57,6 +57,19 @@
 *                                                            revised: 2026.10.03
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  Compile-time-expressible-SIZE signals
+    -------------------------------------
+2.  Lifetime of a container
+    -----------------------
+3.  Classification umbrella
+    -----------------------
+4.  Aggregate snapshot
+    ------------------
+*/
+
 #ifndef DJINTERP_CONTAINER_TRAITS_CONSTEXPR_CONTAINER_TRAITS_HPP
 #define DJINTERP_CONTAINER_TRAITS_CONSTEXPR_CONTAINER_TRAITS_HPP 1
 
@@ -81,9 +94,9 @@
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   Compile-time-expressible-SIZE signals
-// ===========================================================================
+//==============================================================================
+// 1.  Compile-time-expressible-SIZE signals
+//==============================================================================
 //   Each answers, structurally, "is the container's size fixed by its type?"
 // All probes strip cv-ref via clean_t so the answer agrees for T, const T, T&.
 
@@ -128,9 +141,9 @@ D_TYPE_TRAIT_TRUE(has_tuple_size,
     decltype(std::tuple_size<clean_t<Type>>::value))
 
 
-// ===========================================================================
-// II.  Lifetime of a container
-// ===========================================================================
+//==============================================================================
+// 2.  Lifetime of a container
+//==============================================================================
 
 // DSizeLifetime
 //   trait: the Lifetime contribution of the container's SIZE.  Compile-time-
@@ -198,9 +211,9 @@ using container_lifetime_of_t = typename container_lifetime_of<Type>::type;
 #endif
 
 
-// ===========================================================================
-// III. Classification umbrella
-// ===========================================================================
+//==============================================================================
+// 3.  Classification umbrella
+//==============================================================================
 
 // is_constexpr_container
 //   trait: true iff the container is usable in constant evaluation - the
@@ -226,9 +239,9 @@ struct is_not_constexpr_container
 D_TYPE_TRAIT_VALUE_BOOL(is_not_constexpr_container)
 
 
-// ===========================================================================
-// IV.  Aggregate snapshot
-// ===========================================================================
+//==============================================================================
+// 4.  Aggregate snapshot
+//==============================================================================
 
 // DConstexprContainerClass
 //   struct: a one-stop summary of the compile-time signals and the resulting

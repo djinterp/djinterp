@@ -28,6 +28,19 @@
 *                                                            revised: 2026.11.24
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+4.  THE LONG DOUBLE FAMILY (_ld)
+    ----------------------------
+    1.  Helpers
+    2.  Algebra
+    3.  Norms
+    4.  Rotation
+    5.  Construction and interpolation
+    6.  Exponential, logarithm and powers
+*/
+
 #ifndef DJINTERP_C_MATH_QUAT_LD_H
 #define DJINTERP_C_MATH_QUAT_LD_H 1
 

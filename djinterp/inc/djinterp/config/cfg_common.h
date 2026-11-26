@@ -31,22 +31,22 @@
 /*
 TABLE OF CONTENTS
 =================
-0.    CONFIG COMMON
-      -------------
-      1.    Boolean sentinels          (D_CFG_ON / D_CFG_OFF)
-      2.    Flag helpers (#if-safe)    (D_CFG_NORM / D_CFG_IS_ON / D_CFG_IS_OFF)
-      3.    Literal helpers (#if-only) (D_CFG_IS_LITERAL_1 / _0 / D_CFG_IS_BOOL)
-      4.    Custom overrides           (cfg_custom.h auto-pickup)
-      5.    Master custom flag         (D_CFG_CUSTOM + D_CFG_CUSTOM_IS_APPLIED)
-      6.    Canonical testing flag     (D_CFG_TESTING)
-      7.    Testing preset             (cfg_testing.h auto-apply)
-      8.    Validation
+0.  CONFIG COMMON
+    -------------
+    1.    Boolean sentinels          (D_CFG_ON / D_CFG_OFF)
+    2.    Flag helpers (#if-safe)    (D_CFG_NORM / D_CFG_IS_ON / D_CFG_IS_OFF)
+    3.    Literal helpers (#if-only) (D_CFG_IS_LITERAL_1 / _0 / D_CFG_IS_BOOL)
+    4.    Custom overrides           (cfg_custom.h auto-pickup)
+    5.    Master custom flag         (D_CFG_CUSTOM + D_CFG_CUSTOM_IS_APPLIED)
+    6.    Canonical testing flag     (D_CFG_TESTING)
+    7.    Testing preset             (cfg_testing.h auto-apply)
+    8.    Validation
 */
 
 
-// ===========================================================================
-// 0.   CONFIG COMMON
-// ===========================================================================
+//==============================================================================
+// 0.  CONFIG COMMON
+//==============================================================================
 
 // --- 0.1  Boolean sentinels ---
 //   Framework convention: every config knob is the integer 0 or 1.

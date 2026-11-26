@@ -44,14 +44,12 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    is_static_table (detection trait)
-      ---------------------------------
-
-II.   static_table (class)
-      --------------------
-
-III.  make_static_table / equality
-      ----------------------------
+1.  is_static_table (detection trait)
+    ---------------------------------
+2.  static_table (class)
+    --------------------
+3.  make_static_table / equality
+    ----------------------------
 */
 
 #ifndef DJINTERP_CONTAINER_TABLE_STATIC_TABLE_HPP
@@ -82,9 +80,9 @@ III.  make_static_table / equality
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   is_static_table (detection trait)
-// ===========================================================================
+//==============================================================================
+// 1.  is_static_table (detection trait)
+//==============================================================================
 
 // DStaticTable (fwd)
 //   class: forward declaration for the detection trait below.
@@ -133,9 +131,9 @@ inline constexpr bool is_static_table_v = is_static_table<Type>::value;
 #endif
 
 
-// ===========================================================================
-// II.  static_table (class)
-// ===========================================================================
+//==============================================================================
+// 2.  static_table (class)
+//==============================================================================
 
 // DStaticTable
 //   class: a compile-time-constant rank-2 cell-homogeneous table of Rows by
@@ -509,9 +507,9 @@ namespace table_axis_conformance
 }
 
 
-// ===========================================================================
-// III. make_static_table / equality
-// ===========================================================================
+//==============================================================================
+// 3.  make_static_table / equality
+//==============================================================================
 
 // make_static_table
 //   function: builds a static_table<Type, Rows, Cols> from R*C cell values

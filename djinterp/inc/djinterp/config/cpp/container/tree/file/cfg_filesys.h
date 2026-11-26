@@ -66,6 +66,19 @@
 *                                                            revised: 2026.11.01
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  USER-FACING CONFIGURATION INPUTS  (all default OFF)
+    ---------------------------------------------------
+2.  NATIVE BACKEND DETECTION  (always enabled)
+    ------------------------------------------
+3.  DERIVED ENABLE MACROS  (read-only; consumed downstream)
+    -------------------------------------------------------
+4.  CONVENIENCE: anything-foreign-enabled flag
+    ------------------------------------------
+*/
+
 #ifndef DJINTERP_CONFIG_CPP_CONTAINER_TREE_FILE_CFG_FILESYS_H
 #define DJINTERP_CONFIG_CPP_CONTAINER_TREE_FILE_CFG_FILESYS_H 1
 
@@ -74,9 +87,9 @@
 #include "../../../../../env/env.h"  // D_ENV_OS_ID, D_ENV_IS_OS_*
 
 
-// ============================================================================
-// I.   USER-FACING CONFIGURATION INPUTS  (all default OFF)
-// ============================================================================
+//==============================================================================
+// 1.  USER-FACING CONFIGURATION INPUTS  (all default OFF)
+//==============================================================================
 // These are the ONLY macros a user should set.  Each defaults to 0
 // (disabled).  Setting any to 1 widens what is allowed to compile; none
 // of them can ever DISABLE the native backend.
@@ -182,9 +195,9 @@
 #endif
 
 
-// ============================================================================
-// II.  NATIVE BACKEND DETECTION  (always enabled)
-// ============================================================================
+//==============================================================================
+// 2.  NATIVE BACKEND DETECTION  (always enabled)
+//==============================================================================
 // Exactly one family below is native to the detected D_ENV_OS_ID.  The
 // native per-OS backend is forced on regardless of the D_CFG_* inputs.
 //
@@ -240,9 +253,9 @@
 #endif
 
 
-// ============================================================================
-// III. DERIVED ENABLE MACROS  (read-only; consumed downstream)
-// ============================================================================
+//==============================================================================
+// 3.  DERIVED ENABLE MACROS  (read-only; consumed downstream)
+//==============================================================================
 // A backend is enabled iff it is native OR explicitly opted into by the
 // master flag, its group flag, or its own flag.
 //
@@ -329,9 +342,9 @@
       D_CFG_FILESYS_ALLOW_WINDOWS )
 
 
-// ============================================================================
-// IV.  CONVENIENCE: anything-foreign-enabled flag
-// ============================================================================
+//==============================================================================
+// 4.  CONVENIENCE: anything-foreign-enabled flag
+//==============================================================================
 // True when at least one NON-native backend has been opted into.  Used
 // only for diagnostics / static_assert messaging downstream.
 

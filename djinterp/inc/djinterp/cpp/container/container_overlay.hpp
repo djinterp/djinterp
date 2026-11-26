@@ -37,6 +37,25 @@
 *                                                            revised: 2026.10.01
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  OVERLAY TAG
+    -----------
+2.  CONDITIONAL ALIAS FORWARDING
+    ----------------------------
+3.  ALIAS GROUPS
+    ------------
+4.  OVERLAY BASE
+    ------------
+5.  NAMED OVERLAYS
+    --------------
+6.  FACTORY FUNCTIONS
+    -----------------
+7.  OVERLAY INTROSPECTION
+    ---------------------
+*/
+
 #ifndef DJINTERP_CONTAINER_CONTAINER_OVERLAY_HPP
 #define DJINTERP_CONTAINER_CONTAINER_OVERLAY_HPP 1
 
@@ -57,9 +76,9 @@
 
 NS_DJINTERP
 
-// =============================================================================
-// I.   OVERLAY TAG
-// =============================================================================
+//==============================================================================
+// 1.  OVERLAY TAG
+//==============================================================================
 
 // overlay_tag
 //   type: empty marker base inherited by every djinterp overlay. Lets the
@@ -70,9 +89,9 @@ struct overlay_tag
 {};
 
 
-// =============================================================================
-// II.  CONDITIONAL ALIAS FORWARDING
-// =============================================================================
+//==============================================================================
+// 2.  CONDITIONAL ALIAS FORWARDING
+//==============================================================================
 // The structural heart of an overlay. Each mixin forwards one nested type
 // alias from the underlying container - but only if the underlying actually
 // provides it. An overlay then inherits exactly the groups of aliases it
@@ -227,9 +246,9 @@ D_INTERNAL_OVERLAY_FORWARD_ALIAS(forward_multiplicity_interval,
                                  probe_multiplicity_interval)
 
 
-// =============================================================================
-// III. ALIAS GROUPS
-// =============================================================================
+//==============================================================================
+// 3.  ALIAS GROUPS
+//==============================================================================
 // Axis-aligned bundles. Each named overlay is the common bundle plus the
 // groups for the axes it preserves, minus the group for the axis it flips.
 
@@ -284,9 +303,9 @@ struct forward_bounds_aliases
 {};
 
 
-// =============================================================================
-// IV.  OVERLAY BASE
-// =============================================================================
+//==============================================================================
+// 4.  OVERLAY BASE
+//==============================================================================
 
 // DOverlayBase
 //   class: zero-overhead base for container overlays. Holds the underlying by
@@ -451,9 +470,9 @@ template<typename Container>
 using overlay_base = DOverlayBase<Container>;
 
 
-// =============================================================================
-// V.   NAMED OVERLAYS
-// =============================================================================
+//==============================================================================
+// 5.  NAMED OVERLAYS
+//==============================================================================
 // Each overlay preserves every axis but one. The flipped axis is the alias
 // group it does not inherit; everything else is forwarded transparently.
 
@@ -516,9 +535,9 @@ public:
 };
 
 
-// =============================================================================
-// VI.  FACTORY FUNCTIONS
-// =============================================================================
+//==============================================================================
+// 6.  FACTORY FUNCTIONS
+//==============================================================================
 // Call-site ergonomics: deduce the underlying type and build the overlay by
 // value (cheap - it holds a reference). The overlay is bound to the lifetime
 // of the argument, exactly as the framework's other views are.
@@ -568,9 +587,9 @@ unbounded_overlay<Container> as_unbounded(
 }
 
 
-// =============================================================================
-// VII. OVERLAY INTROSPECTION
-// =============================================================================
+//==============================================================================
+// 7.  OVERLAY INTROSPECTION
+//==============================================================================
 
 
 // is_container_overlay

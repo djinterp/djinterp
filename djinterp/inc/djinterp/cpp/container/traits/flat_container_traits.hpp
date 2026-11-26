@@ -36,6 +36,15 @@
 *                                                            revised: 2026.10.01
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  Flat classification
+    -------------------
+2.  Aggregate snapshot
+    ------------------
+*/
+
 #ifndef DJINTERP_CONTAINER_TRAITS_FLAT_CONTAINER_TRAITS_HPP
 #define DJINTERP_CONTAINER_TRAITS_FLAT_CONTAINER_TRAITS_HPP 1
 
@@ -60,9 +69,9 @@
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   Flat classification
-// ===========================================================================
+//==============================================================================
+// 1.  Flat classification
+//==============================================================================
 
 // is_flat_container
 //   trait: true iff the type is a container that does NOT nest -
@@ -95,9 +104,9 @@ struct is_strictly_flat_container
 D_TYPE_TRAIT_VALUE_BOOL(is_strictly_flat_container)
 
 
-// ===========================================================================
-// II.  Aggregate snapshot
-// ===========================================================================
+//==============================================================================
+// 2.  Aggregate snapshot
+//==============================================================================
 
 // DFlatContainerClass
 //   trait: one-shot snapshot of the structure (flat side) axis for `Type`.

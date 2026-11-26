@@ -41,6 +41,15 @@
 *                                                            revised: 2026.11.17
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+0.  DPlaceholderParser  (the segment scanner DTextTemplate binds)
+    -------------------------------------------------------------
+1.  DTextTemplate
+    -------------
+*/
+
 #ifndef DJINTERP_TEXT_TEXT_TEMPLATE_HPP
 #define DJINTERP_TEXT_TEXT_TEMPLATE_HPP 1
 
@@ -71,9 +80,9 @@ NS_DJINTERP
 
 NS_INTERNAL
 
-// ===========================================================================
-// 0.   DPlaceholderParser  (the segment scanner DTextTemplate binds)
-// ===========================================================================
+//==============================================================================
+// 0.  DPlaceholderParser  (the segment scanner DTextTemplate binds)
+//==============================================================================
 
 // DPlaceholderParser
 //   class: scans a format string with `{key}` placeholders ONCE into a flat
@@ -372,9 +381,9 @@ private:
 NS_END  // internal
 
 
-// ===========================================================================
-// I.   DTextTemplate
-// ===========================================================================
+//==============================================================================
+// 1.  DTextTemplate
+//==============================================================================
 
 // DTextTemplate
 //   class: a format string with `{key}` placeholders, parsed once (by a bound

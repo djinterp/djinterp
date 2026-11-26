@@ -66,6 +66,26 @@
 *                                                            revised: 2026.11.27
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  OPTIONS AND DIAGNOSTICS
+    -----------------------
+    1.  DOptions
+    2.  DDiagnostic
+2.  RESULTS
+    -------
+    1.  DResult
+3.  SOURCES
+    -------
+    1.  The thunk
+    2.  DFunctionSource, make_source
+4.  PARSING
+    -------
+    1.  The one parse
+    2.  Every source
+*/
+
 #ifndef DJINTERP_PARSE_EXPR_PARSE_HPP
 #define DJINTERP_PARSE_EXPR_PARSE_HPP 1
 

@@ -21,6 +21,18 @@
 *                                                            revised: 2026.09.20
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  TYPES AND CONSTANTS
+    -------------------
+    1.  Constants
+         1.  D_BANNER_LINE_MAX
+2.  OPERATIONS
+    ----------
+    1.  Construction
+*/
+
 #ifndef DJINTERP_TOOLS_DAWK_DBANNER_H
 #define DJINTERP_TOOLS_DAWK_DBANNER_H 1
 

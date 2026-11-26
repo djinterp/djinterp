@@ -29,6 +29,15 @@
 *                                                            revised: 2026.11.24
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+2.  THE DOUBLE FAMILY (_d)
+    ----------------------
+    1.  Products, LU, determinant, inverse and solution
+    2.  Hermitian matrices
+*/
+
 #ifndef DJINTERP_C_MATH_CMAT_D_H
 #define DJINTERP_C_MATH_CMAT_D_H 1
 

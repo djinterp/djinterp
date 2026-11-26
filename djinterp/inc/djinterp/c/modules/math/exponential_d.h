@@ -29,6 +29,15 @@
 *                                                            revised: 2026.11.25
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+3.  THE DOUBLE FAMILY (_d)
+    ----------------------
+    1.  Internal helpers
+    2.  Exponential
+*/
+
 #ifndef DJINTERP_C_MATH_EXPONENTIAL_D_H
 #define DJINTERP_C_MATH_EXPONENTIAL_D_H 1
 

@@ -22,6 +22,23 @@
 *                                                            revised: 2026.11.11
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  CORE STRUCTURAL CONCEPTS
+    ------------------------
+2.  FILE TREE IDENTITY CONCEPTS
+    ---------------------------
+3.  TRAVERSAL CONCEPTS
+    ------------------
+4.  MUTATION CONCEPTS
+    -----------------
+5.  PAYLOAD SHAPE CONCEPTS
+    ----------------------
+6.  AGGREGATE CLASSIFICATION CONCEPTS
+    ---------------------------------
+*/
+
 #ifndef DJINTERP_CONTAINER_TREE_FILE_FILE_TREE_CONCEPTS_HPP
 #define DJINTERP_CONTAINER_TREE_FILE_FILE_TREE_CONCEPTS_HPP 1
 
@@ -43,9 +60,9 @@ NS_DJINTERP
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
-// ===========================================================================
-// I.   CORE STRUCTURAL CONCEPTS
-// ===========================================================================
+//==============================================================================
+// 1.  CORE STRUCTURAL CONCEPTS
+//==============================================================================
 
 // node_typed_file_tree
 //   concept: the type exposes a nested node_type alias.
@@ -66,9 +83,9 @@ concept resolvable_file_tree =
     has_resolve_method_v<Type>;
 
 
-// ===========================================================================
-// II.  FILE TREE IDENTITY CONCEPTS
-// ===========================================================================
+//==============================================================================
+// 2.  FILE TREE IDENTITY CONCEPTS
+//==============================================================================
 
 // file_tree_type
 //   concept: the type satisfies the minimum structural requirements of a file
@@ -96,9 +113,9 @@ concept path_addressable_file_tree =
     has_full_path_method_v<Type>;
 
 
-// ===========================================================================
-// III. TRAVERSAL CONCEPTS
-// ===========================================================================
+//==============================================================================
+// 3.  TRAVERSAL CONCEPTS
+//==============================================================================
 
 // dfs_traversable_file_tree
 //   concept: the file tree supports visit_depth_first(root, fn).
@@ -123,9 +140,9 @@ concept traversable_file_tree =
       has_breadth_first_method_v<Type> );
 
 
-// ===========================================================================
-// IV.  MUTATION CONCEPTS
-// ===========================================================================
+//==============================================================================
+// 4.  MUTATION CONCEPTS
+//==============================================================================
 
 // child_insertable_file_tree
 //   concept: the file tree supports add_child(parent, name, type).
@@ -155,9 +172,9 @@ concept mutable_file_tree =
     has_clear_method_v<Type>;
 
 
-// ===========================================================================
-// V.   PAYLOAD SHAPE CONCEPTS
-// ===========================================================================
+//==============================================================================
+// 5.  PAYLOAD SHAPE CONCEPTS
+//==============================================================================
 
 // file_entry_payload
 //   concept: the payload type carries the full file_entry shape (name_offset /
@@ -174,9 +191,9 @@ concept file_entry_carrying_tree =
     is_file_entry_payload_v<file_payload_type_of_t<Type>>;
 
 
-// ===========================================================================
-// VI.  AGGREGATE CLASSIFICATION CONCEPTS
-// ===========================================================================
+//==============================================================================
+// 6.  AGGREGATE CLASSIFICATION CONCEPTS
+//==============================================================================
 
 // classified_file_tree
 //   concept: shorthand for any type recognized as a file tree by the aggregate

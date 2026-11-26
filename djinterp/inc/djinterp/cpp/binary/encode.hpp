@@ -56,6 +56,25 @@
 *                                                            revised: 2026.10.02
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  The medium (B*)
+    ---------------
+2.  Byte-sink detection
+    -------------------
+3.  Member-encoder detection (the customization surface)
+    ----------------------------------------------------
+4.  Fixed-width byte writers (internal)
+    -----------------------------------
+5.  enc_tau - the leaf element encoder
+    ----------------------------------
+6.  Convenience: enc_tau as a total function to B*
+    ----------------------------------------------
+7.  Leaf-encodability trait
+    -----------------------
+*/
+
 #ifndef DJINTERP_BINARY_ENCODE_HPP
 #define DJINTERP_BINARY_ENCODE_HPP 1
 
@@ -82,9 +101,9 @@
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   The medium (B*)
-// ===========================================================================
+//==============================================================================
+// 1.  The medium (B*)
+//==============================================================================
 
 // byte
 //   type: one octet of the binary medium - the unit into which B* is grouped.
@@ -108,9 +127,9 @@ using DEncodeLengthType = re_std::uint64_t;
 using encode_length_type = DEncodeLengthType;
 
 
-// ===========================================================================
-// II.  Byte-sink detection
-// ===========================================================================
+//==============================================================================
+// 2.  Byte-sink detection
+//==============================================================================
 
 // has_push_back_byte
 //   trait: true iff `Sink` accepts a byte through `push_back` - the sole
@@ -130,9 +149,9 @@ struct has_push_back_byte<Sink,
 D_TYPE_TRAIT_VALUE_BOOL(has_push_back_byte)
 
 
-// ===========================================================================
-// III. Member-encoder detection (the customization surface)
-// ===========================================================================
+//==============================================================================
+// 3.  Member-encoder detection (the customization surface)
+//==============================================================================
 
 // has_member_encode_into
 //   trait: true iff a value of `Type` can write itself into a `Sink` through a
@@ -154,9 +173,9 @@ struct has_member_encode_into<Type, Sink,
 {};
 
 
-// ===========================================================================
-// IV.  Fixed-width byte writers (internal)
-// ===========================================================================
+//==============================================================================
+// 4.  Fixed-width byte writers (internal)
+//==============================================================================
 
 NS_INTERNAL
 
@@ -237,9 +256,9 @@ NS_INTERNAL
 NS_END  // internal
 
 
-// ===========================================================================
-// V.   enc_tau - the leaf element encoder
-// ===========================================================================
+//==============================================================================
+// 5.  enc_tau - the leaf element encoder
+//==============================================================================
 //   Five mutually-exclusive overloads of `encode_into`: the member surface
 // first (highest precedence, guarded away from the built-ins below), then the
 // four built-in leaf families.  A leaf that is none of these has no enc_tau and
@@ -339,9 +358,9 @@ encode_into(Sink& _sink, const Type& _value)
 }
 
 
-// ===========================================================================
-// VI.  Convenience: enc_tau as a total function to B*
-// ===========================================================================
+//==============================================================================
+// 6.  Convenience: enc_tau as a total function to B*
+//==============================================================================
 
 // encode
 //   function: the leaf encoder as the model's total map enc_tau : tau -> B* -
@@ -358,9 +377,9 @@ DByteString encode(
 }
 
 
-// ===========================================================================
-// VII. Leaf-encodability trait
-// ===========================================================================
+//==============================================================================
+// 7.  Leaf-encodability trait
+//==============================================================================
 
 NS_INTERNAL
 

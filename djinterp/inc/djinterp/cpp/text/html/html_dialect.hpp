@@ -47,20 +47,16 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    INTERNAL CLASSIFICATION HELPERS
-      -------------------------------
-
-II.   INTERNAL VALIDATION HELPERS
-      ---------------------------
-
-III.  DHtmlDialect<Flag>
-      -------------------
-
-IV.   CONVENIENCE ALIASES
-      -------------------
-
-V.    DIALECT DETECTION TRAITS
-      ------------------------
+1.  INTERNAL CLASSIFICATION HELPERS
+    -------------------------------
+2.  INTERNAL VALIDATION HELPERS
+    ---------------------------
+3.  DHtmlDialect<Flag>
+    -------------------
+4.  CONVENIENCE ALIASES
+    -------------------
+5.  DIALECT DETECTION TRAITS
+    ------------------------
 */
 
 #ifndef DJINTERP_TEXT_HTML_HTML_DIALECT_HPP
@@ -86,9 +82,9 @@ NS_DJINTERP
 namespace html {
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                I.   INTERNAL CLASSIFICATION HELPERS                     ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  INTERNAL CLASSIFICATION HELPERS
+//==============================================================================
 
 }   // namespace html
 NS_INTERNAL
@@ -163,9 +159,9 @@ NS_END  // internal
 namespace html {
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                II.   INTERNAL VALIDATION HELPERS                        ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  INTERNAL VALIDATION HELPERS
+//==============================================================================
 
 }   // namespace html
 NS_INTERNAL
@@ -288,9 +284,9 @@ NS_END  // internal
 namespace html {
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                III.   DHtmlDialect<Flag>                               ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  DHtmlDialect<Flag>
+//==============================================================================
 
 // DHtmlDialect
 //   struct: compile-time policy capturing the rules of an HTML /
@@ -472,9 +468,9 @@ struct DHtmlDialect
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                IV.   CONVENIENCE ALIASES                                ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  CONVENIENCE ALIASES
+//==============================================================================
 
 // canonical names for the standard dialects.
 using DHtmlDialectHtml5                = DHtmlDialect<DHtmlVersion::html5>;
@@ -487,9 +483,9 @@ using DHtmlDialectXhtml1Frameset       = DHtmlDialect<DHtmlVersion::xhtml1_frame
 using DHtmlDialectXhtml5               = DHtmlDialect<DHtmlVersion::xhtml5>;
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                V.   DIALECT DETECTION TRAITS                            ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 5.  DIALECT DETECTION TRAITS
+//==============================================================================
 
 }   // namespace html
 NS_INTERNAL

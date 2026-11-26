@@ -28,6 +28,18 @@
 *                                                            revised: 2026.11.24
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+3.  THE DOUBLE FAMILY (_d)
+    ----------------------
+    1.  Element-wise arithmetic
+    3.  Products and reductions
+    4.  Norms and distances
+    5.  Projection and angle
+    6.  Comparison
+*/
+
 #ifndef DJINTERP_C_MATH_VEC_D_H
 #define DJINTERP_C_MATH_VEC_D_H 1
 

@@ -68,36 +68,33 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    CALL TRAITS                        (reuse function_traits call detection)
-      -------------------------------------------------------------------------
-      1.    is_callable<F, Args...>        (can F be called on Args?)
-      2.    callable_result_t<F, Args...>  (the result of that call; absent
-                                           when it is ill-formed)
-
-II.   PREDICATE TRAITS
-      ----------------
-      1.    is_predicate<P, Args...>       (callable on Args, result -> bool)
-      2.    is_nullary_predicate<P>        (a predicate of no arguments)
-      3.    is_unary_predicate<P, Arg>     (a predicate of one argument)
-      4.    is_binary_predicate<P, A, B>   (a predicate of two arguments)
-      5.    is_predicate_contextual<P, Args...>
-                                           (result -> bool contextually, as
-                                            an if condition converts it)
-
-III.  CONVENIENCE ALIASES                (C++14 variable templates)
-      -------------------------------------------------------------
-      1.    is_callable<F, Args...>::value
-      2.    is_predicate<P, Args...>::value
-      3.    is_nullary_predicate / is_unary_predicate /
-            is_binary_predicate ::value
-      4.    is_predicate_contextual<P, Args...>::value
-
-IV.   CONCEPT FACES                      (C++20)
-      ------------------------------------------
-      1.    Callable<F, Args...>           (face of is_callable)
-      2.    Predicate<P, Args...>          (face of is_predicate)
-      3.    PredicateContextual<P, Args...>
-                                           (face of is_predicate_contextual)
+1.  CALL TRAITS                        (reuse function_traits call detection)
+    -------------------------------------------------------------------------
+    1.    is_callable<F, Args...>        (can F be called on Args?)
+    2.    callable_result_t<F, Args...>  (the result of that call; absent
+                                         when it is ill-formed)
+2.  PREDICATE TRAITS
+    ----------------
+    1.    is_predicate<P, Args...>       (callable on Args, result -> bool)
+    2.    is_nullary_predicate<P>        (a predicate of no arguments)
+    3.    is_unary_predicate<P, Arg>     (a predicate of one argument)
+    4.    is_binary_predicate<P, A, B>   (a predicate of two arguments)
+    5.    is_predicate_contextual<P, Args...>
+                                         (result -> bool contextually, as
+                                          an if condition converts it)
+3.  CONVENIENCE ALIASES                (C++14 variable templates)
+    -------------------------------------------------------------
+    1.    is_callable<F, Args...>::value
+    2.    is_predicate<P, Args...>::value
+    3.    is_nullary_predicate / is_unary_predicate /
+          is_binary_predicate ::value
+    4.    is_predicate_contextual<P, Args...>::value
+4.  CONCEPT FACES                      (C++20)
+    ------------------------------------------
+    1.    Callable<F, Args...>           (face of is_callable)
+    2.    Predicate<P, Args...>          (face of is_predicate)
+    3.    PredicateContextual<P, Args...>
+                                         (face of is_predicate_contextual)
 */
 
 #ifndef DJINTERP_FUNCTIONAL_FUNCTIONAL_COMMON_HPP
@@ -119,9 +116,9 @@ IV.   CONCEPT FACES                      (C++20)
 
 NS_DJINTERP
 
-///////////////////////////////////////////////////////////////////////////////
-///             I.    CALL TRAITS                                           ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  CALL TRAITS
+//==============================================================================
 
 // is_callable
 //   trait: true when a const-lvalue Fn can be called on Args. The
@@ -186,9 +183,9 @@ template<typename    Function,
 using callable_result_t = typename callable_result<Function, Args...>::type;
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             II.   PREDICATE TRAITS                                      ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  PREDICATE TRAITS
+//==============================================================================
 
 // is_predicate
 //   trait: true when a const-lvalue Pred can be called on Args and the result
@@ -270,9 +267,9 @@ struct is_binary_predicate : is_predicate<Pred, First, Second>
 {};
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             III.  CONVENIENCE ALIASES                                   ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  CONVENIENCE ALIASES
+//==============================================================================
 //   Variable-template shorthands; gated so the header stays clean under
 // -std=c++11. Pre-C++14 callers use the ::value forms above.
 
@@ -321,9 +318,9 @@ static D_CONSTEXPR bool is_binary_predicate_v =
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             IV.   CONCEPT FACES                                         ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  CONCEPT FACES
+//==============================================================================
 //   The C++20 faces of the vocabulary above, for code that prefers concept
 // syntax to the SFINAE traits:
 //

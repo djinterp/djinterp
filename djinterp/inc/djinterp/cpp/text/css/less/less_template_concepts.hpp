@@ -36,35 +36,26 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    RULE CONCEPTS
-      -------------
-
-II.   VARIABLE CONCEPTS
-      -----------------
-
-III.  MIXIN CONCEPTS
-      --------------
-
-IV.   GUARD CONCEPTS
-      --------------
-
-V.    EXTEND CONCEPTS
-      ---------------
-
-VI.   IMPORT CONCEPTS
-      ---------------
-
-VII.  STYLESHEET CONCEPTS
-      -------------------
-
-VIII. RENDER-TARGET CONCEPTS
-      ----------------------
-
-IX.   COMPOSITE CONCEPTS
-      ------------------
-
-X.    BACKEND CONCEPTS
-      ----------------
+1.  RULE CONCEPTS
+    -------------
+2.  VARIABLE CONCEPTS
+    -----------------
+3.  MIXIN CONCEPTS
+    --------------
+4.  GUARD CONCEPTS
+    --------------
+5.  EXTEND CONCEPTS
+    ---------------
+6.  IMPORT CONCEPTS
+    ---------------
+7.  STYLESHEET CONCEPTS
+    -------------------
+8.  RENDER-TARGET CONCEPTS
+    ----------------------
+9.  COMPOSITE CONCEPTS
+    ------------------
+10. BACKEND CONCEPTS
+    ----------------
 */
 
 #ifndef DJINTERP_TEXT_CSS_LESS_LESS_TEMPLATE_CONCEPTS_HPP
@@ -93,9 +84,9 @@ NS_DJINTERP
 namespace less {
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                I.   RULE CONCEPTS                                       ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  RULE CONCEPTS
+//==============================================================================
 
 // less_rule_type
 //   concept: satisfied by any type that satisfies the CSS rule
@@ -112,9 +103,9 @@ concept less_rule_loose_type =
     is_less_rule_loose<Type>::value;
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                II.   VARIABLE CONCEPTS                                  ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  VARIABLE CONCEPTS
+//==============================================================================
 
 // less_variable_declaration_type
 //   concept: a rule exposing variable-name and value access.
@@ -132,9 +123,9 @@ concept detached_ruleset_declaration_type =
     && ( has_is_detached_ruleset_method<Type>::value );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                III.   MIXIN CONCEPTS                                    ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  MIXIN CONCEPTS
+//==============================================================================
 
 // less_mixin_type
 //   concept: a rule exposing mixin-selector access.
@@ -160,9 +151,9 @@ concept callable_less_mixin =
     && ( has_arguments_method<Type>::value );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                IV.   GUARD CONCEPTS                                     ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  GUARD CONCEPTS
+//==============================================================================
 
 // guarded_less_rule
 //   concept: a rule exposing a guard-clause accessor.
@@ -179,9 +170,9 @@ concept guarded_less_mixin =
     && ( guarded_less_rule<Type> );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                V.   EXTEND CONCEPTS                                     ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 5.  EXTEND CONCEPTS
+//==============================================================================
 
 // less_extend_statement_type
 //   concept: a rule or selector exposing extend-target access.
@@ -198,9 +189,9 @@ concept all_extend_statement =
     && ( has_extend_all_method<Type>::value );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                VI.   IMPORT CONCEPTS                                    ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 6.  IMPORT CONCEPTS
+//==============================================================================
 
 // less_import_rule_type
 //   concept: a rule exposing import-url access.
@@ -224,9 +215,9 @@ concept less_plugin_rule_type =
     has_plugin_url_method<Type>::value;
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                VII.   STYLESHEET CONCEPTS                               ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 7.  STYLESHEET CONCEPTS
+//==============================================================================
 
 // less_stylesheet_type
 //   concept: a stylesheet exposing dialect accessor plus the
@@ -243,9 +234,9 @@ concept less_stylesheet_loose_type =
     is_less_stylesheet_loose<Type>::value;
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                VIII.   RENDER-TARGET CONCEPTS                           ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 8.  RENDER-TARGET CONCEPTS
+//==============================================================================
 
 // less_source_renderable_stylesheet
 //   concept: a stylesheet that emits Less source.
@@ -261,9 +252,9 @@ concept compilable_less_stylesheet =
     has_compile_less_to_css_method<Type>::value;
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                IX.   COMPOSITE CONCEPTS                                 ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 9.  COMPOSITE CONCEPTS
+//==============================================================================
 
 // full_less_stylesheet
 //   concept: a stylesheet exposing both Less render targets.
@@ -274,9 +265,9 @@ concept full_less_stylesheet =
     && ( compilable_less_stylesheet<Type> );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                X.   BACKEND CONCEPTS                                    ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 10. BACKEND CONCEPTS
+//==============================================================================
 
 // less_backend_type
 //   concept: satisfied by any type tagged with

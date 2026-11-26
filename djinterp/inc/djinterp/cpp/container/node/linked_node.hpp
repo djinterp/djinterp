@@ -69,6 +69,13 @@
 *                                                            revised: 2026.10.01
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  LINKED NODE
+    -----------
+*/
+
 #ifndef DJINTERP_CONTAINER_NODE_LINKED_NODE_HPP
 #define DJINTERP_CONTAINER_NODE_LINKED_NODE_HPP 1
 
@@ -120,9 +127,9 @@ NS_INTERNAL
 
 NS_END  // internal
 
-// =========================================================================
-// I.   LINKED NODE
-// =========================================================================
+//==============================================================================
+// 1.  LINKED NODE
+//==============================================================================
 
 // DLinkedNode
 //   class: a self-referential node holding a Type payload and NumLinks

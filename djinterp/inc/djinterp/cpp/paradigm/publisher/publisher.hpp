@@ -72,6 +72,31 @@
 *                                                            revised: 2026.11.04
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  STATUS CODES
+    ------------
+2.  SUBSCRIPTION TOKEN
+    ------------------
+3.  SUBSCRIPTION HANDLES
+    --------------------
+4.  MESSAGE ENVELOPE
+    ----------------
+5.  SUBSCRIBER REGISTRY
+    -------------------
+6.  BROKER (CRTP BASE)
+    ------------------
+7.  BUS (DEFAULT CONCRETE BROKER)
+    -----------------------------
+8.  CONFORMANCE TRAITS
+    ------------------
+9.  C++20 CONCEPTS
+    --------------
+10. FACTORIES
+    ---------
+*/
+
 #ifndef DJINTERP_PARADIGM_PUBLISHER_PUBLISHER_HPP
 #define DJINTERP_PARADIGM_PUBLISHER_PUBLISHER_HPP 1
 
@@ -99,9 +124,9 @@
 NS_DJINTERP
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                I.   STATUS CODES                                        ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  STATUS CODES
+//==============================================================================
 
 // pubsub_status
 //   typedef: classifies the outcome of a publish operation.
@@ -118,9 +143,9 @@ constexpr pubsub_status DPubSubStatusRejected       =  4;
 constexpr pubsub_status DPubSubStatusUserBase       = 64;
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                II.  SUBSCRIPTION TOKEN                                  ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  SUBSCRIPTION TOKEN
+//==============================================================================
 
 // DSubscriptionToken
 //   struct: an opaque, copyable identifier for a single registration.
@@ -181,9 +206,9 @@ struct DSubscriptionToken
 using subscription_token = DSubscriptionToken;
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                III. SUBSCRIPTION HANDLES                                ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  SUBSCRIPTION HANDLES
+//==============================================================================
 //
 //   A subscription owns a shared "alive" flag that is also held by the
 //   matching entry in the broker's registry.  Marking the flag false
@@ -462,9 +487,9 @@ private:
 using scoped_subscriptions = DScopedSubscriptions;
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                IV.  MESSAGE ENVELOPE                                    ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  MESSAGE ENVELOPE
+//==============================================================================
 
 // DPubsubMessage
 //   struct: a self-describing message pairing a topic with its payload.
@@ -514,9 +539,9 @@ template<typename Topic,
 using pubsub_message = DPubsubMessage<Topic, Payload>;
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                V.   SUBSCRIBER REGISTRY                                 ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 5.  SUBSCRIBER REGISTRY
+//==============================================================================
 
 // DSubscriberRegistry
 //   class: the shared storage core of every broker.  Maps each topic to
@@ -942,9 +967,9 @@ template<typename Topic,
 using subscriber_registry = DSubscriberRegistry<Topic, Handler>;
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                VI.  BROKER (CRTP BASE)                                  ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 6.  BROKER (CRTP BASE)
+//==============================================================================
 
 // DBroker
 //   class: generic CRTP base for every publish-subscribe broker.  Owns
@@ -1296,9 +1321,9 @@ template<typename Derived,
 using broker = DBroker<Derived, Topic, Payload, Handler>;
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                VII. BUS (DEFAULT CONCRETE BROKER)                       ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 7.  BUS (DEFAULT CONCRETE BROKER)
+//==============================================================================
 
 // DBus
 //   class: the batteries-included broker.  Synchronous, immediate,
@@ -1345,9 +1370,9 @@ template<typename Topic,
 using bus = DBus<Topic, Payload, Handler>;
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                VIII. CONFORMANCE TRAITS                                 ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 8.  CONFORMANCE TRAITS
+//==============================================================================
 //
 //   These traits live in djinterp:: (top-level), matching the flat-
 //   namespace convention used throughout the paradigm headers, and are
@@ -1449,9 +1474,9 @@ constexpr bool is_subscription_v = is_subscription<Type>::value;
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                IX.  C++20 CONCEPTS                                      ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 9.  C++20 CONCEPTS
+//==============================================================================
 
 #if ( defined(D_ENV_CPP_FEATURE_LANG_CONCEPTS) &&                             \
       (D_ENV_CPP_FEATURE_LANG_CONCEPTS == 1) )
@@ -1481,9 +1506,9 @@ concept publisher_handler_for = requires(Handler       _h,
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                X.   FACTORIES                                           ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 10. FACTORIES
+//==============================================================================
 
 // make_bus
 //   factory: creates a default synchronous bus for the given topic and

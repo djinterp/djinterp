@@ -1263,7 +1263,7 @@ struct is_mariadb_connection : djinterp::conjunction<
 
 
 //==============================================================================
-// 10.  TAGLESS CAPABILITY TRAITS
+// 10. TAGLESS CAPABILITY TRAITS
 //==============================================================================
 // The same capabilities as constexpr bool variable templates, for a condition
 // that needs no type: one member each, then the sets. The family's
@@ -1316,7 +1316,7 @@ constexpr bool mariadb_is_full_connection =
 
 
 //==============================================================================
-// 11.  SFINAE HELPERS
+// 11. SFINAE HELPERS
 //==============================================================================
 
 
@@ -1343,7 +1343,7 @@ using enable_if_has_mariadb_schema_query =
 
 
 //==============================================================================
-// 12.  C++20 CONCEPTS
+// 12. C++20 CONCEPTS
 //==============================================================================
 // Each concept forwards to a trait or a tagless capability above. They live
 // in db::mariadb::concepts (2026.10.21), where a concept may take the name of

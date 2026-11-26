@@ -17,6 +17,13 @@
 *                                                            revised: 2026.11.09
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+0.  CONTAINER CONFIGURATION
+    -----------------------
+*/
+
 #ifndef DJINTERP_C_CONTAINER_CONTAINER_H
 #define DJINTERP_C_CONTAINER_CONTAINER_H 1
 
@@ -24,9 +31,9 @@
 #include "../djinterp.h"                                // framework root
 #include "../../config/c/container/cfg_container.h"  // D_CFG_CONTAINER_*
 
-// ===========================================================================
-// 0.   CONTAINER CONFIGURATION
-// ===========================================================================
+//==============================================================================
+// 0.  CONTAINER CONFIGURATION
+//==============================================================================
 //   The container knobs (D_CFG_CONTAINER_FILTER, D_CFG_CONTAINER_ARRAY_FILTER,
 // the D_CFG_CONTAINER_ALL and D_CFG_FILTER aggregates) are resolved and
 // validated in djinterp/config/c/container/cfg_container.h, included above:

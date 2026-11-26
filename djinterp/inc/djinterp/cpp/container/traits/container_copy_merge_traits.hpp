@@ -78,6 +78,23 @@
 *                                                            revised: 2026.11.10
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  Operand prerequisites
+    ---------------------
+2.  Copy
+    ----
+3.  Discipline signals  (the local overlay reading)
+    -----------------------------------------------
+4.  Merge kind
+    ----------
+5.  Merge provisos
+    --------------
+6.  Aggregate snapshot
+    ------------------
+*/
+
 #ifndef DJINTERP_CONTAINER_TRAITS_CONTAINER_COPY_MERGE_TRAITS_HPP
 #define DJINTERP_CONTAINER_TRAITS_CONTAINER_COPY_MERGE_TRAITS_HPP 1
 
@@ -102,9 +119,9 @@
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   Operand prerequisites
-// ===========================================================================
+//==============================================================================
+// 1.  Operand prerequisites
+//==============================================================================
 //   Both operations rest on the operand being a container, and merge on the two
 // operands' elements being combinable.  Container-hood is is_iterable_container
 // (a container one can read); element compatibility is same-type or convertible
@@ -138,9 +155,9 @@ struct merge_elements_compatible
 #endif
 
 
-// ===========================================================================
-// II.  Copy
-// ===========================================================================
+//==============================================================================
+// 2.  Copy
+//==============================================================================
 //   A copy yields an independent container equal in content, discipline, and
 // realization, differing only in identity.  The capability is container copy-
 // construction; the preservation of every axis is a fact the spec supplies.
@@ -169,9 +186,9 @@ struct copy_preserves_all_axes : std::true_type
 D_TYPE_TRAIT_VALUE_BOOL(copy_preserves_all_axes)
 
 
-// ===========================================================================
-// III. Discipline signals  (the local overlay reading)
-// ===========================================================================
+//==============================================================================
+// 3.  Discipline signals  (the local overlay reading)
+//==============================================================================
 
 NS_INTERNAL
 
@@ -350,9 +367,9 @@ using merge_discipline_of_t = typename merge_discipline_of<Type>::type;
 #endif
 
 
-// ===========================================================================
-// IV.  Merge kind
-// ===========================================================================
+//==============================================================================
+// 4.  Merge kind
+//==============================================================================
 
 // DMergeKind
 //   enum: the combining operation of a pair, chosen at the shared discipline.
@@ -470,9 +487,9 @@ struct is_mergeable
 #endif
 
 
-// ===========================================================================
-// V.   Merge provisos
-// ===========================================================================
+//==============================================================================
+// 5.  Merge provisos
+//==============================================================================
 
 // merge_result_type
 //   trait: the shared-discipline result type of a merge. Where the disciplines
@@ -556,9 +573,9 @@ public:
 #endif
 
 
-// ===========================================================================
-// VI.  Aggregate snapshot
-// ===========================================================================
+//==============================================================================
+// 6.  Aggregate snapshot
+//==============================================================================
 
 // DMergeClass
 //   trait: the assembled reading of a Left / Right merge - the two

@@ -15,6 +15,64 @@
 *                                                            revised: 2026.11.11
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  C++ KEYWORDS & NAMESPACE MACROS
+    -------------------------------
+    1.  C++ keywords
+         1.  D_KEYWORD_CPP
+         2.  D_KEYWORD_PARADIGM
+         3.  D_KEYWORD_STL
+         4.  D_KEYWORD_TRAITS
+         5.  D_KEYWORD_CONCEPTS
+         6.  D_KEYWORD_CONTAINER
+         7.  D_KEYWORD_EXCEPTION
+    2.  Namespace macros
+         1.  D_NAMESPACE
+         2.  NS_END
+         3.  NS_CONCEPTS
+         4.  NS_CONTAINER
+         5.  NS_DATABASE
+         6.  NS_DJINTERP
+         7.  NS_ERROR
+         8.  NS_EXCEPTION
+         9.  NS_INTERNAL
+         10. NS_INTERP
+         11. NS_MATH
+         12. NS_MESSAGE
+         13. NS_PARADIGM
+         14. NS_TEST
+         15. NS_TESTING
+         16. NS_TRAITS
+2.  QUALIFIER SUPPORT
+    -----------------
+    1.  Constexpr family
+         1.  D_CONSTEXPR
+         2.  D_STATIC_CONSTEXPR
+         3.  D_CONSTEXPR_INLINE
+         4.  D_STATIC_CONSTEXPR_INLINE
+         5.  D_CONSTEXPR_CPP14
+         6.  D_CONSTEXPR_CPP17
+         7.  D_CONSTEXPR_CPP20
+         8.  D_CONSTEXPR_REQ
+    2.  Variable qualifiers
+         1.  D_INLINE_VAR
+         2.  D_CONSTEXPR_INLINE_VAR
+         3.  D_CONSTEXPR_VAR
+    3.  Template-parameter constraints
+         1.  D_CONCEPT_PARAM
+    4.  C++11 feature spellings
+         1.  D_NOEXCEPT
+         2.  D_NOEXCEPT_IF
+         3.  D_MOVE_ENABLED
+         4.  D_EXPLICIT_BOOL
+         5.  D_DELETED_FN
+         6.  D_DELETED_FN_MSG
+         7.  D_NULLPTR
+         8.  D_OVERRIDE
+*/
+
 #ifndef DJINTERP_C_DJINTERP_CPP_H
 #define DJINTERP_C_DJINTERP_CPP_H 1
 

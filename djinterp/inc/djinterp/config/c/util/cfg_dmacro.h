@@ -23,6 +23,13 @@
 *                                                            revised: 2026.11.01
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+0.  CONFIGURATION SYSTEM
+    --------------------
+*/
+
 #ifndef DJINTERP_CONFIG_C_UTIL_CFG_DMACRO_H
 #define DJINTERP_CONFIG_C_UTIL_CFG_DMACRO_H 1
 
@@ -31,9 +38,9 @@
 #include "../../../env/env.h"         // D_ENV_PP_MAX_MACRO_ARGS
 
 
-// =============================================================================
-// 0.   CONFIGURATION SYSTEM
-// =============================================================================
+//==============================================================================
+// 0.  CONFIGURATION SYSTEM
+//==============================================================================
 //
 // Controls variadic argument limits, macro variant selection, and provides
 // user-overridable settings for maximum flexibility.

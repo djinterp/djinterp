@@ -51,30 +51,24 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    STATUS CODES
-      ------------
-
-II.   HANDLER & GUARD TRAITS
-      ----------------------
-
-III.  MATCH CLAUSE (static)
-      ---------------------
-      a. match_clause
-      b. when
-
-IV.   MATCHER (runtime, type-erased)
-      ------------------------------
-
-V.    FREE-FUNCTION HELPERS
-      ---------------------
-      a. make_matcher
-      b. apply_range
-
-VI.   STRUCTURAL TRAITS
-      -----------------
-
-VII.  C++20 CONCEPTS
-      --------------
+1.  STATUS CODES
+    ------------
+2.  HANDLER & GUARD TRAITS
+    ----------------------
+3.  MATCH CLAUSE (static)
+    ---------------------
+    a. match_clause
+    b. when
+4.  MATCHER (runtime, type-erased)
+    ------------------------------
+5.  FREE-FUNCTION HELPERS
+    ---------------------
+    a. make_matcher
+    b. apply_range
+6.  STRUCTURAL TRAITS
+    -----------------
+7.  C++20 CONCEPTS
+    --------------
 */
 
 #ifndef DJINTERP_PARADIGM_MATCH_MATCH_HPP
@@ -112,9 +106,9 @@ NS_DJINTERP
 // composition over surfaces defined elsewhere.
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                I.   STATUS CODES                                        ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  STATUS CODES
+//==============================================================================
 
 // match_status
 //   typedef: classifies the outcome of a match operation.  Mirrors
@@ -131,9 +125,9 @@ constexpr match_status DMatchStatusGuardFailed =  2;
 constexpr match_status DMatchStatusUserBase    = 64;
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                II.  HANDLER & GUARD TRAITS                              ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  HANDLER & GUARD TRAITS
+//==============================================================================
 //
 //   A handler is accepted in either of two shapes - capture-aware
 //   (input, captures) or capture-oblivious (input) - with the
@@ -351,9 +345,9 @@ static D_CONSTEXPR bool is_match_guard_v =
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                III. MATCH CLAUSE (static)                              ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  MATCH CLAUSE (static)
+//==============================================================================
 
 // =================================================================
 //  a. match_clause
@@ -477,9 +471,9 @@ when
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                IV.  MATCHER (runtime, type-erased)                     ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  MATCHER (runtime, type-erased)
+//==============================================================================
 
 // DMatcher
 //   class: an ordered dispatch table - a growable list of clauses over a
@@ -796,9 +790,9 @@ template<typename Input,
 using matcher = DMatcher<Input, Output>;
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                V.   FREE-FUNCTION HELPERS                              ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 5.  FREE-FUNCTION HELPERS
+//==============================================================================
 
 // =================================================================
 //  a. make_matcher
@@ -852,9 +846,9 @@ std::vector<typename Matcher::output_type> apply_range(
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                VI.  STRUCTURAL TRAITS                                  ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 6.  STRUCTURAL TRAITS
+//==============================================================================
 
 // is_match_clause
 //   trait: detects the static clause surface - a nested input_type plus
@@ -910,9 +904,9 @@ static D_CONSTEXPR bool is_matcher_like_v = is_matcher_like<Type>::value;
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                VII. C++20 CONCEPTS                                     ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 7.  C++20 CONCEPTS
+//==============================================================================
 
 #if ( defined(D_ENV_CPP_FEATURE_LANG_CONCEPTS) &&                             \
       (D_ENV_CPP_FEATURE_LANG_CONCEPTS == 1) )

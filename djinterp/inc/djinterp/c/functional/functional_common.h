@@ -23,6 +23,39 @@
 *                                                            revised: 2026.11.09
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  PREDICATES AND COMPARATORS
+    --------------------------
+2.  TRANSFORMERS AND MAPPERS
+    ------------------------
+3.  CONSUMERS AND PRODUCERS
+    -----------------------
+4.  ACCUMULATORS AND REDUCERS
+    -------------------------
+5.  GENERIC CALLBACKS AND OPERATIONS
+    --------------------------------
+6.  INLINE AND COMPOSITION MACROS
+    -----------------------------
+7.  TYPE-GENERIC HELPERS (C11+)
+    ---------------------------
+8.  USER-DEFINED FUNCTION WRAPPERS
+    ------------------------------
+9.  UTILITY FUNCTIONS
+    -----------------
+    1.  identity functions
+    2.  constant functions
+    3.  comparison utilities
+    4.  predicate utilities
+10. HIGHER-ORDER FUNCTIONS
+    ----------------------
+    1.  map and filter
+    2.  fold
+    3.  iteration
+    4.  quantifiers
+*/
+
 #ifndef DJINTERP_C_FUNCTIONAL_FUNCTIONAL_COMMON_H
 #define DJINTERP_C_FUNCTIONAL_FUNCTIONAL_COMMON_H 1
 
@@ -33,9 +66,9 @@
 #include "../djinterp.h"
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             I.    PREDICATES AND COMPARATORS                            ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  PREDICATES AND COMPARATORS
+//==============================================================================
 
 // fn_predicate
 //   function pointer: function returning bool for a given element.
@@ -61,9 +94,9 @@ typedef int (*fn_function_comparator)(const void* _element1,
                                       void*       _context);
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             II.   TRANSFORMERS AND MAPPERS                              ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  TRANSFORMERS AND MAPPERS
+//==============================================================================
 
 // fn_transformer
 //   function pointer: function transforming input to output.
@@ -78,9 +111,9 @@ typedef bool (*fn_transformer)(const void* _input,
 typedef fn_transformer dj_mapper;
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             III.  CONSUMERS AND PRODUCERS                               ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  CONSUMERS AND PRODUCERS
+//==============================================================================
 
 // fn_consumer
 //   function pointer: function consuming a value without producing output.
@@ -103,9 +136,9 @@ typedef bool (*fn_producer)(void* _output,
                             void* _context);
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             IV.   ACCUMULATORS AND REDUCERS                             ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  ACCUMULATORS AND REDUCERS
+//==============================================================================
 
 // fn_accumulator
 //   function pointer: function combining accumulated value with new element.
@@ -125,9 +158,9 @@ typedef bool (*fn_reducer)(const void* _element1,
                            void*       _context);
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             V.    GENERIC CALLBACKS AND OPERATIONS                      ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 5.  GENERIC CALLBACKS AND OPERATIONS
+//==============================================================================
 
 // fn_unary_operation
 //   function pointer: operation taking one input and producing one output.
@@ -159,9 +192,9 @@ typedef bool (*fn_cloner)(const void* _source,
                           void*       _context);
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             VI.   INLINE AND COMPOSITION MACROS                         ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 6.  INLINE AND COMPOSITION MACROS
+//==============================================================================
 
 // D_FUNCTIONAL_LAMBDA
 //   macro: creates a simple inline function-like expression.
@@ -235,9 +268,9 @@ typedef bool (*fn_cloner)(const void* _source,
 #define D_FUNCTIONAL_COMPOSE(F, G, X) F(G(X))
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             VII.  TYPE-GENERIC HELPERS (C11+)                           ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 7.  TYPE-GENERIC HELPERS (C11+)
+//==============================================================================
 
 #if D_ENV_LANG_IS_C11_OR_HIGHER
 
@@ -259,9 +292,9 @@ typedef bool (*fn_cloner)(const void* _source,
 #endif  // D_ENV_LANG_IS_C11_OR_HIGHER
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             VIII. USER-DEFINED FUNCTION WRAPPERS                        ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 8.  USER-DEFINED FUNCTION WRAPPERS
+//==============================================================================
 
 // D_FUNCTIONAL_DEFINE_PREDICATE
 //   macro: defines a typed predicate wrapper for user types.
@@ -384,11 +417,12 @@ typedef bool (*fn_cloner)(const void* _source,
                       void*               _context)
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             IX.   UTILITY FUNCTIONS                                     ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 9.  UTILITY FUNCTIONS
+//==============================================================================
 
-// i.    identity functions
+// 9.1    identity functions
+//------------------------------------------------------------------------------
 bool d_functional_identity_transformer(
     const void* _input,
     void*       _output,
@@ -399,7 +433,8 @@ bool d_functional_identity_predicate(
     void*       _context
 );
 
-// ii.   constant functions
+// 9.2    constant functions
+//------------------------------------------------------------------------------
 bool d_functional_constant_true(
     const void* _element,
     void*       _context
@@ -409,7 +444,8 @@ bool d_functional_constant_false(
     void*       _context
 );
 
-// iii.  comparison utilities
+// 9.3    comparison utilities
+//------------------------------------------------------------------------------
 int d_functional_compare_int(
     const void* _a,
     const void* _b,
@@ -436,7 +472,8 @@ bool d_functional_equal_size_t(
     void*       _context
 );
 
-// iv.   predicate utilities
+// 9.4    predicate utilities
+//------------------------------------------------------------------------------
 bool d_functional_is_null(
     const void* _element,
     void*       _context
@@ -446,11 +483,12 @@ bool d_functional_is_not_null(
     void*       _context
 );
 
-///////////////////////////////////////////////////////////////////////////////
-///             X.    HIGHER-ORDER FUNCTIONS                                ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 10. HIGHER-ORDER FUNCTIONS
+//==============================================================================
 
-// i.    map and filter
+// 10.1   map and filter
+//------------------------------------------------------------------------------
 bool d_functional_map(
     const void*    _input,
     void*          _output,
@@ -488,7 +526,8 @@ bool d_functional_filter(
     size_t*      _out_count
 );
 
-// ii.     fold
+// 10.2   fold
+//------------------------------------------------------------------------------
 bool d_functional_fold_left(
     const void*    _input,
     size_t         _count,
@@ -506,7 +545,8 @@ bool d_functional_fold_right(
     void*          _context
 );
 
-// iii.    iteration
+// 10.3   iteration
+//------------------------------------------------------------------------------
 void d_functional_for_each(
     void*       _input,
     size_t      _count,
@@ -522,7 +562,8 @@ void d_functional_for_each_const(
     void*             _context
 );
 
-// iv.     quantifiers
+// 10.4   quantifiers
+//------------------------------------------------------------------------------
 bool d_functional_any(
     const void*  _input,
     size_t       _count,

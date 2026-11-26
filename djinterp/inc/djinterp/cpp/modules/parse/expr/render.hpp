@@ -51,6 +51,21 @@
 *                                                            revised: 2026.11.27
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  OPTIONS
+    -------
+    1.  DRenderOptions
+2.  THUNKS
+    ------
+    1.  DRenderThunks
+3.  RENDERING
+    ---------
+    1.  Through a writer
+    2.  Into a string
+*/
+
 #ifndef DJINTERP_PARSE_EXPR_RENDER_HPP
 #define DJINTERP_PARSE_EXPR_RENDER_HPP 1
 

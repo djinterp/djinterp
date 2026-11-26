@@ -94,6 +94,23 @@
 *                                                            revised: 2026.11.10
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  Capability detection
+    --------------------
+2.  Strategy (the realization)
+    --------------------------
+3.  Stage (when a mapping may run)
+    ------------------------------
+4.  Preservation (the weight of the axis)
+    -------------------------------------
+5.  Result type and element rebind
+    ------------------------------
+6.  Combined classification
+    -----------------------
+*/
+
 #ifndef DJINTERP_CONTAINER_TRAITS_CONTAINER_TRANSFORM_TRAITS_HPP
 #define DJINTERP_CONTAINER_TRAITS_CONTAINER_TRANSFORM_TRAITS_HPP 1
 
@@ -121,9 +138,9 @@
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   Capability detection
-// ===========================================================================
+//==============================================================================
+// 1.  Capability detection
+//==============================================================================
 
 NS_INTERNAL
 
@@ -194,9 +211,9 @@ struct has_native_transform
 D_TYPE_TRAIT_VALUE_BOOL(has_native_transform)
 
 
-// ===========================================================================
-// II.  Strategy (the realization)
-// ===========================================================================
+//==============================================================================
+// 2.  Strategy (the realization)
+//==============================================================================
 
 // DTransformStrategy
 //   enum: the strongest mapping realization a type's iterability grants. All
@@ -264,9 +281,9 @@ public:
 #endif
 
 
-// ===========================================================================
-// III. Stage (when a mapping may run)
-// ===========================================================================
+//==============================================================================
+// 3.  Stage (when a mapping may run)
+//==============================================================================
 
 // DTransformStage
 //   enum: the stage at which a container admits mapping. Compile-time mapping
@@ -320,9 +337,9 @@ public:
 #endif
 
 
-// ===========================================================================
-// IV.  Preservation (the weight of the axis)
-// ===========================================================================
+//==============================================================================
+// 4.  Preservation (the weight of the axis)
+//==============================================================================
 
 // transform_preserves_order
 //   trait: mapping keeps every position in its place, so the result is ordered
@@ -408,9 +425,9 @@ struct transform_preserves_uniqueness : std::false_type {};
 #endif
 
 
-// ===========================================================================
-// V.   Result type and element rebind
-// ===========================================================================
+//==============================================================================
+// 5.  Result type and element rebind
+//==============================================================================
 
 NS_INTERNAL
 
@@ -536,9 +553,9 @@ using transform_result_type_t =
     typename transform_result_type<Type, Sigma>::type;
 
 
-// ===========================================================================
-// VI.  Combined classification
-// ===========================================================================
+//==============================================================================
+// 6.  Combined classification
+//==============================================================================
 
 // DContainerTransformClass
 //   trait: the assembled Transformability of a container - its capability,

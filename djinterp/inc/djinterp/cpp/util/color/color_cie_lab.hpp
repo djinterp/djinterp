@@ -18,19 +18,18 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    cie_xyz
-      -------
-      a. model_tag, value_type, channels
-      b. constructors / converting constructor
-      c.    operator==, operator!=
-            d. is_valid / clamp
-
-II.   cie_lab
-      -------
-      a. model_tag, value_type, channels
-      b. constructors / converting constructor
-      c.    operator==, operator!=
-            d. is_valid / clamp
+1.  cie_xyz
+    -------
+    a. model_tag, value_type, channels
+    b. constructors / converting constructor
+    c.    operator==, operator!=
+          d. is_valid / clamp
+2.  cie_lab
+    -------
+    a. model_tag, value_type, channels
+    b. constructors / converting constructor
+    c.    operator==, operator!=
+          d. is_valid / clamp
 */
 
 #ifndef DJINTERP_UTIL_COLOR_CIE_LAB_HPP
@@ -51,9 +50,9 @@ II.   cie_lab
 NS_DJINTERP
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                        I.   cie_xyz                                     ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  cie_xyz
+//==============================================================================
 
 // cie_xyz
 //   struct: CIE 1931 XYZ color model. Wraps dj_color_xyz with
@@ -133,9 +132,9 @@ struct cie_xyz : dj_color_xyz
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                        II.   cie_lab                                    ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  cie_lab
+//==============================================================================
 
 // cie_lab
 //   struct: CIE L*a*b* color model. Wraps dj_color_lab with

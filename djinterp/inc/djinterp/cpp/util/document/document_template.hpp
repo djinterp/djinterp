@@ -46,17 +46,14 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    BINDINGS                    (DBindingEnv + map / chain helpers)
-      ---------------------------------------------------------------
-
-II.   DTemplateElement            (the element vocabulary)
-      ----------------------------------------------------
-
-III.  DDocumentTemplate           (the skeleton + its builders)
-      ---------------------------------------------------------
-
-IV.   render_template             (bind + emit through a renderer)
-      ------------------------------------------------------------
+1.  BINDINGS                    (DBindingEnv + map / chain helpers)
+    ---------------------------------------------------------------
+2.  DTemplateElement            (the element vocabulary)
+    ----------------------------------------------------
+3.  DDocumentTemplate           (the skeleton + its builders)
+    ---------------------------------------------------------
+4.  render_template             (bind + emit through a renderer)
+    ------------------------------------------------------------
 */
 
 #ifndef DJINTERP_UTIL_DOCUMENT_DOCUMENT_TEMPLATE_HPP
@@ -85,9 +82,9 @@ IV.   render_template             (bind + emit through a renderer)
 NS_DJINTERP
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                I.   BINDINGS                                            ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  BINDINGS
+//==============================================================================
 
 // DBindingEnv
 //   type: name -> value.  A callable rather than a container so a caller may
@@ -189,9 +186,9 @@ struct DSequenceEnv
 using DSequenceLookup = std::function<DSequenceEnv(const std::string&)>;
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                II.  DTemplateElement                                    ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  DTemplateElement
+//==============================================================================
 
 // DElementKind
 //   enum: what an element emits.  Deliberately the DDocumentRenderer verb set
@@ -276,9 +273,9 @@ struct DTemplateElement
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                III. DDocumentTemplate                                   ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  DDocumentTemplate
+//==============================================================================
 
 // DDocumentTemplate
 //   class: the skeleton - an element sequence plus the document's own frame
@@ -514,9 +511,9 @@ D_NODISCARD inline DTemplateElement tmpl_slot(
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                IV.  render_template                                     ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  render_template
+//==============================================================================
 
 // DSlotFiller
 //   type: slot NAME -> what it emits.  Returns false when the name is unknown,

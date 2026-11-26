@@ -44,44 +44,32 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    LESS RULE KIND ACCESSOR DETECTION
-      ---------------------------------
-
-II.   VARIABLE ACCESSOR DETECTION
-      ---------------------------
-
-III.  MIXIN ACCESSOR DETECTION
-      ------------------------
-
-IV.   GUARD ACCESSOR DETECTION
-      ------------------------
-
-V.    EXTEND ACCESSOR DETECTION
-      -------------------------
-
-VI.   IMPORT / PLUGIN ACCESSOR DETECTION
-      ----------------------------------
-
-VII.  NAMESPACE / DETACHED RULESET DETECTION
-      --------------------------------------
-
-VIII. STYLESHEET DIALECT DETECTION
-      ----------------------------
-
-IX.   RENDER METHOD DETECTION
-      -----------------------
-
-X.    COMPOSITE CLASSIFIERS
-      ---------------------
-
-XI.   CLASSIFICATION STRUCTS
-      ----------------------
-
-XII.  BACKEND COMPLETENESS
-      --------------------
-
-XIII. VARIABLE TEMPLATES
-      ------------------
+1.  LESS RULE KIND ACCESSOR DETECTION
+    ---------------------------------
+2.  VARIABLE ACCESSOR DETECTION
+    ---------------------------
+3.  MIXIN ACCESSOR DETECTION
+    ------------------------
+4.  GUARD ACCESSOR DETECTION
+    ------------------------
+5.  EXTEND ACCESSOR DETECTION
+    -------------------------
+6.  IMPORT / PLUGIN ACCESSOR DETECTION
+    ----------------------------------
+7.  NAMESPACE / DETACHED RULESET DETECTION
+    --------------------------------------
+8.  STYLESHEET DIALECT DETECTION
+    ----------------------------
+9.  RENDER METHOD DETECTION
+    -----------------------
+10. COMPOSITE CLASSIFIERS
+    ---------------------
+11. CLASSIFICATION STRUCTS
+    ----------------------
+12. BACKEND COMPLETENESS
+    --------------------
+13. VARIABLE TEMPLATES
+    ------------------
 */
 
 #ifndef DJINTERP_TEXT_CSS_LESS_LESS_TEMPLATE_TRAITS_HPP
@@ -109,9 +97,9 @@ NS_DJINTERP
 namespace less {
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                I.   LESS RULE KIND ACCESSOR DETECTION                   ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  LESS RULE KIND ACCESSOR DETECTION
+//==============================================================================
 
 // has_less_rule_kind_method
 template<typename Type, typename = void>
@@ -141,9 +129,9 @@ struct has_less_rule_kind_access
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                II.   VARIABLE ACCESSOR DETECTION                        ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  VARIABLE ACCESSOR DETECTION
+//==============================================================================
 
 // has_variable_name_method / has_get_variable_name_method
 template<typename Type, typename = void>
@@ -181,9 +169,9 @@ struct has_is_detached_ruleset_method<Type, void_t<
 >> : std::true_type {};
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                III.   MIXIN ACCESSOR DETECTION                          ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  MIXIN ACCESSOR DETECTION
+//==============================================================================
 
 // has_mixin_selector_method / has_get_mixin_selector_method
 template<typename Type, typename = void>
@@ -265,9 +253,9 @@ struct has_is_mixin_definition_method<Type, void_t<
 >> : std::true_type {};
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                IV.   GUARD ACCESSOR DETECTION                           ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  GUARD ACCESSOR DETECTION
+//==============================================================================
 
 // has_guard_clause_method / has_get_guard_clause_method
 template<typename Type, typename = void>
@@ -303,9 +291,9 @@ struct has_is_guarded_method<Type, void_t<
 >> : std::true_type {};
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                V.   EXTEND ACCESSOR DETECTION                           ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 5.  EXTEND ACCESSOR DETECTION
+//==============================================================================
 
 // has_extend_target_method
 //   trait: true if `Type` exposes `extend_target()` const --
@@ -329,9 +317,9 @@ struct has_extend_all_method<Type, void_t<
 >> : std::true_type {};
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                VI.   IMPORT / PLUGIN ACCESSOR DETECTION                 ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 6.  IMPORT / PLUGIN ACCESSOR DETECTION
+//==============================================================================
 
 // has_import_url_method
 //   trait: true if `Type` exposes `import_url()` const --
@@ -367,9 +355,9 @@ struct has_plugin_url_method<Type, void_t<
 >> : std::true_type {};
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                VII.   NAMESPACE / DETACHED RULESET DETECTION            ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 7.  NAMESPACE / DETACHED RULESET DETECTION
+//==============================================================================
 
 // has_namespace_path_method
 //   trait: true if `Type` exposes `namespace_path()` const --
@@ -394,9 +382,9 @@ struct has_detached_ruleset_body_method<Type, void_t<
 >> : std::true_type {};
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                VIII.   STYLESHEET DIALECT DETECTION                     ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 8.  STYLESHEET DIALECT DETECTION
+//==============================================================================
 
 // has_less_dialect_method / has_get_less_dialect_method
 template<typename Type, typename = void>
@@ -422,9 +410,9 @@ struct has_less_dialect_access
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                IX.   RENDER METHOD DETECTION                            ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 9.  RENDER METHOD DETECTION
+//==============================================================================
 
 // has_render_to_less_source_method
 //   trait: true if `Type` exposes
@@ -461,9 +449,9 @@ struct has_any_less_render_method
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                X.   COMPOSITE CLASSIFIERS                               ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 10. COMPOSITE CLASSIFIERS
+//==============================================================================
 
 // is_less_rule
 //   trait: true if `Type` satisfies the CSS rule protocol
@@ -561,9 +549,9 @@ struct is_less_stylesheet_loose
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                XI.   CLASSIFICATION STRUCTS                             ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 11. CLASSIFICATION STRUCTS
+//==============================================================================
 
 // DLessRuleClass
 //   struct: comprehensive classification of a Less-rule-shaped
@@ -622,9 +610,9 @@ struct DLessStylesheetClass
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                XII.   BACKEND COMPLETENESS                              ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 12. BACKEND COMPLETENESS
+//==============================================================================
 
 // has_less_rule_type_alias
 template<typename Type, typename = void>
@@ -664,9 +652,9 @@ struct is_less_backend_complete
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                XIII.   VARIABLE TEMPLATES                               ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 13. VARIABLE TEMPLATES
+//==============================================================================
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 

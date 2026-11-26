@@ -18,23 +18,21 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    rgb
-      ---
-      a. model_tag, value_type, channels
-      b. constructors / converting constructor
-      c.    operator==, operator!=
-            d. is_valid / clamp
-
-II.   rgba
-      ----
-      a. value_type, channels (no model_tag - transport type)
-      b. constructors / converting constructor
-      c.    operator==, operator!=
-            d. is_valid / clamp / to_rgb
-
-III.  interpolation
-      -------------
-      a. lerp (rgb, rgba)
+1.  rgb
+    ---
+    a. model_tag, value_type, channels
+    b. constructors / converting constructor
+    c.    operator==, operator!=
+          d. is_valid / clamp
+2.  rgba
+    ----
+    a. value_type, channels (no model_tag - transport type)
+    b. constructors / converting constructor
+    c.    operator==, operator!=
+          d. is_valid / clamp / to_rgb
+3.  interpolation
+    -------------
+    a. lerp (rgb, rgba)
 */
 
 #ifndef DJINTERP_UTIL_COLOR_RGB_HPP
@@ -55,9 +53,9 @@ III.  interpolation
 NS_DJINTERP
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                          I.   rgb                                       ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  rgb
+//==============================================================================
 
 // rgb
 //   struct: linear RGB color model. Wraps dj_color_rgb with constexpr
@@ -137,9 +135,9 @@ struct rgb : dj_color_rgb
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                         II.   rgba                                      ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  rgba
+//==============================================================================
 
 // rgba
 //   struct: linear RGB with straight alpha. A TRANSPORT type - it exposes no
@@ -239,9 +237,9 @@ struct rgba : dj_color_rgba
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                        III.   interpolation                             ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  interpolation
+//==============================================================================
 
 // lerp
 //   function: linear interpolation per channel, _a at _t = 0 to _b at _t = 1,

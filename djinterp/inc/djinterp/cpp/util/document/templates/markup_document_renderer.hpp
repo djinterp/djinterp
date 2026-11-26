@@ -55,19 +55,15 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    DMarkupProfile               (the dialect's vocabulary as data)
-      ---------------------------------------------------------------
-
-II.   PROFILE SELECTION            (DMarkupProfileFor<Policy>)
-      ----------------------------------------------------------
-
-III.  DMarkupDocumentRenderer     (the streaming renderer)
-      -----------------------------------------------------
-
-IV.   ALIASES                      (DXmlDocumentRenderer /
-      -----------------------------------------------------
-
-      DHtmlDocumentRenderer)
+1.  DMarkupProfile               (the dialect's vocabulary as data)
+    ---------------------------------------------------------------
+2.  PROFILE SELECTION            (DMarkupProfileFor<Policy>)
+    ----------------------------------------------------------
+3.  DMarkupDocumentRenderer     (the streaming renderer)
+    -----------------------------------------------------
+4.  ALIASES                      (DXmlDocumentRenderer /
+    -----------------------------------------------------
+    DHtmlDocumentRenderer)
 */
 
 #ifndef DJINTERP_UTIL_DOCUMENT_TEMPLATES_MARKUP_DOCUMENT_RENDERER_HPP
@@ -101,9 +97,9 @@ IV.   ALIASES                      (DXmlDocumentRenderer /
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   DMarkupProfile
-// ===========================================================================
+//==============================================================================
+// 1.  DMarkupProfile
+//==============================================================================
 
 // DMarkupProfile
 //   struct: an angle-bracket dialect expressed as data - which element spells
@@ -287,9 +283,9 @@ D_NODISCARD inline DMarkupProfile html_markup_profile()
 }
 
 
-// ===========================================================================
-// II.  PROFILE SELECTION
-// ===========================================================================
+//==============================================================================
+// 2.  PROFILE SELECTION
+//==============================================================================
 
 // DMarkupProfileFor
 //   trait: the default profile paired with an escape policy, so the renderer
@@ -318,9 +314,9 @@ struct DMarkupProfileFor<DHtmlEscapePolicy>
 };
 
 
-// ===========================================================================
-// III. DMarkupDocumentRenderer
-// ===========================================================================
+//==============================================================================
+// 3.  DMarkupDocumentRenderer
+//==============================================================================
 
 // DMarkupDocumentRenderer
 //   class: the streaming XML / HTML realisation of DDocumentRenderer.  It
@@ -1404,9 +1400,9 @@ private:
 };
 
 
-// ===========================================================================
-// IV.  ALIASES
-// ===========================================================================
+//==============================================================================
+// 4.  ALIASES
+//==============================================================================
 
 // DXmlDocumentRenderer
 //   type: the XML dialect - entity-escaped values, semantic element names,

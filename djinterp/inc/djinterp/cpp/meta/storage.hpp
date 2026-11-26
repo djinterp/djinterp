@@ -70,6 +70,25 @@
 *                                                            revised: 2026.10.03
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  The storage-duration lattice
+    ----------------------------
+2.  Storage-duration algebra
+    ------------------------
+3.  Type-level carrier
+    ------------------
+4.  Cross-axis bridge to Lifetime
+    -----------------------------
+5.  Opt-in detection
+    ----------------
+6.  Classification umbrella
+    -----------------------
+7.  Derived siting predicates
+    -------------------------
+*/
+
 #ifndef DJINTERP_META_STORAGE_HPP
 #define DJINTERP_META_STORAGE_HPP 1
 
@@ -91,9 +110,9 @@
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   The storage-duration lattice
-// ===========================================================================
+//==============================================================================
+// 1.  The storage-duration lattice
+//==============================================================================
 
 // DStorageDuration
 //   enum: a container's cell SITING - static (inline) or dynamic (out of line)
@@ -115,9 +134,9 @@ struct DStorageDuration
 using storage_duration = DStorageDuration;
 
 
-// ===========================================================================
-// II.  Storage-duration algebra
-// ===========================================================================
+//==============================================================================
+// 2.  Storage-duration algebra
+//==============================================================================
 //   join/meet over the lattice, the siting predicates, and a builder.  Plain
 // `constexpr` (not D_CONSTEXPR) so the algebra is always usable in constant
 // expressions - including the static initializers of the traits below -
@@ -251,9 +270,9 @@ const char* storage_duration_name(
 }
 
 
-// ===========================================================================
-// III. Type-level carrier
-// ===========================================================================
+//==============================================================================
+// 3.  Type-level carrier
+//==============================================================================
 //   Lets a storage_duration travel through templates as a type and serve as
 // the `::type` of the classifier below.
 
@@ -272,9 +291,9 @@ using DDynamicStorageDuration = DStorageDurationConstant<DStorageDuration::dynam
 using DHybridStorageDuration  = DStorageDurationConstant<DStorageDuration::hybrid_storage>;
 
 
-// ===========================================================================
-// IV.  Cross-axis bridge to Lifetime
-// ===========================================================================
+//==============================================================================
+// 4.  Cross-axis bridge to Lifetime
+//==============================================================================
 //   The two intrinsic axes are distinct, and meet only in a single one-way
 // entailment: static siting forces a compile-time-expressible size.  These
 // value-level helpers state it; the per-type check lives with the container
@@ -308,9 +327,9 @@ bool storage_lifetime_consistent(
 }
 
 
-// ===========================================================================
-// V.   Opt-in detection
-// ===========================================================================
+//==============================================================================
+// 5.  Opt-in detection
+//==============================================================================
 //   A type declares its own siting by exposing a static member
 //       static constexpr djinterp::storage_duration::value
 //           storage_duration_category = ...;
@@ -352,9 +371,9 @@ NS_INTERNAL
 NS_END  // internal
 
 
-// ===========================================================================
-// VI.  Classification umbrella
-// ===========================================================================
+//==============================================================================
+// 6.  Classification umbrella
+//==============================================================================
 
 // storage_of
 //   trait: the container-agnostic siting of a type - its opt-in
@@ -397,9 +416,9 @@ using storage_of_t = typename storage_of<Type>::type;
 #endif
 
 
-// ===========================================================================
-// VII. Derived siting predicates
-// ===========================================================================
+//==============================================================================
+// 7.  Derived siting predicates
+//==============================================================================
 //   Boolean trait projections of storage_of, for SFINAE branches and
 // requires-clauses.  At this container-agnostic layer they fire only for types
 // that opt in via storage_duration_category; the container storage traits

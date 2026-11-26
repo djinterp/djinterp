@@ -1913,7 +1913,7 @@ using sqlite_begin_exclusive_t =
 
 
 //==============================================================================
-// 10.  TAGGED CAPABILITY TRAITS
+// 10. TAGGED CAPABILITY TRAITS
 //==============================================================================
 // Each trait is a type with ::value, true where every detector it names finds
 // its member; name_v is the value, where the language has variable templates.
@@ -2070,7 +2070,7 @@ struct is_sqlite_connection : djinterp::conjunction<
 
 
 //==============================================================================
-// 11.  TAGLESS CAPABILITY TRAITS
+// 11. TAGLESS CAPABILITY TRAITS
 //==============================================================================
 // The same capabilities as constexpr bool variable templates, for a condition
 // that needs no type: one member each, then the sets.
@@ -2235,7 +2235,7 @@ constexpr bool sqlite_is_full_connection =
 
 
 //==============================================================================
-// 12.  SFINAE HELPERS
+// 12. SFINAE HELPERS
 //==============================================================================
 
 
@@ -2267,7 +2267,7 @@ using enable_if_has_sqlite_backup =
 
 
 //==============================================================================
-// 13.  C++20 CONCEPTS
+// 13. C++20 CONCEPTS
 //==============================================================================
 // Each concept forwards to a trait or a tagless capability above. They live
 // in db::sqlite::concepts (2026.10.21), where a concept may take the name of

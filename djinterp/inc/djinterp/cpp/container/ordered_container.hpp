@@ -46,16 +46,13 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    Order-axis traits + sequential layout
-      -------------------------------------
-
-II.   DOrderedBase (CRTP order operations)
-      ------------------------------------
-
-III.  Free-function order algorithms
-      ------------------------------
-
-      revised: 2026.06.30
+1.  Order-axis traits + sequential layout
+    -------------------------------------
+2.  DOrderedBase (CRTP order operations)
+    ------------------------------------
+3.  Free-function order algorithms
+    ------------------------------
+    revised: 2026.06.30
 */
 
 #ifndef DJINTERP_CONTAINER_ORDERED_CONTAINER_HPP
@@ -82,9 +79,9 @@ III.  Free-function order algorithms
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   Order-axis traits + sequential layout
-// ===========================================================================
+//==============================================================================
+// 1.  Order-axis traits + sequential layout
+//==============================================================================
 //   The order-axis CLASSIFIERS - is_ordered_container / is_unordered_container,
 // the ordering_kind enum + ordering_kind_of, and the sequential_layout enum +
 // sequential_layout_of - are owned by ordered_container_traits.hpp (included
@@ -95,9 +92,9 @@ NS_DJINTERP
 // and the traits header met in a translation unit.
 
 
-// ===========================================================================
-// II.  DOrderedBase (CRTP order operations)
-// ===========================================================================
+//==============================================================================
+// 2.  DOrderedBase (CRTP order operations)
+//==============================================================================
 
 //   Order-dependent operations for any ordered container. The derived class
 // exposes begin() / end() (and size() for the rotate / shift operations); this
@@ -318,9 +315,9 @@ private:
 };
 
 
-// ===========================================================================
-// III. Free-function order algorithms
-// ===========================================================================
+//==============================================================================
+// 3.  Free-function order algorithms
+//==============================================================================
 
 // starts_with
 //   function: true iff _container begins with _prefix.

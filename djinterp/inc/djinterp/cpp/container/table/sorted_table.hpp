@@ -60,19 +60,17 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    is_sorted_table (detection trait)
-      ---------------------------------
-
-II.   sorted_table (class)
-      --------------------
-      1.    member types and overlay / axis markers
-      2.    construction
-      3.    read surface (delegated, const)
-      4.    key queries (binary search over the sorted order)
-      5.    structural mutation (invariant-preserving)
-
-III.  make_sorted_table
-      -----------------
+1.  is_sorted_table (detection trait)
+    ---------------------------------
+2.  sorted_table (class)
+    --------------------
+    1.    member types and overlay / axis markers
+    2.    construction
+    3.    read surface (delegated, const)
+    4.    key queries (binary search over the sorted order)
+    5.    structural mutation (invariant-preserving)
+3.  make_sorted_table
+    -----------------
 */
 
 #ifndef DJINTERP_CONTAINER_TABLE_SORTED_TABLE_HPP
@@ -100,9 +98,9 @@ III.  make_sorted_table
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   is_sorted_table (detection trait)
-// ===========================================================================
+//==============================================================================
+// 1.  is_sorted_table (detection trait)
+//==============================================================================
 
 // DSortedTable (fwd)
 template<typename    Type,
@@ -146,9 +144,9 @@ inline constexpr bool is_sorted_table_v = is_sorted_table<Type>::value;
 #endif
 
 
-// ===========================================================================
-// II.  sorted_table (class)
-// ===========================================================================
+//==============================================================================
+// 2.  sorted_table (class)
+//==============================================================================
 
 // DSortedTable
 //   class: a table whose rows are held sorted by column KeyCol under
@@ -534,9 +532,9 @@ template<typename    Type,
 using sorted_table = DSortedTable<Type, KeyCol, CellCompare, UniqueKeys, SizeType, DifferenceType, Options...>;
 
 
-// ===========================================================================
-// III. make_sorted_table
-// ===========================================================================
+//==============================================================================
+// 3.  make_sorted_table
+//==============================================================================
 
 // make_sorted_table
 //   function: build a sorted_table<Type, KeyCol> from nested rows, deducing

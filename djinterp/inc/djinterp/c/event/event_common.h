@@ -44,6 +44,27 @@
 *                                                            revised: 2026.11.18
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  IDENTITY SCALARS
+    ----------------
+2.  THE VERDICT SET P
+    -----------------
+3.  THE PAYLOAD A_e
+    ---------------
+4.  THE ERASURE kappa
+    -----------------
+5.  DECLARING A SUMMAND OF Sigma
+    ----------------------------
+6.  SIZING CONSTANTS - moved
+    ------------------------
+7.  STATUS CODES
+    ------------
+8.  LAYOUT ASSERTIONS
+    -----------------
+*/
+
 #ifndef DJINTERP_C_EVENT_COMMON_H
 #define DJINTERP_C_EVENT_COMMON_H 1
 
@@ -67,9 +88,9 @@
 D_EXTERN_C_BEGIN
 
 
-///////////////////////////////////////////////////////////////////////////////
-///        I.    IDENTITY SCALARS                                           ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  IDENTITY SCALARS
+//==============================================================================
 
 // dj_event_key
 //   type: the image of the erasure kappa : T_e -> K. Names one summand of the
@@ -108,9 +129,9 @@ typedef dj_event_key dj_event_id;
 #define D_EVENT_INDEX_NONE          ((uint32_t)0xFFFFFFFFu)
 
 
-///////////////////////////////////////////////////////////////////////////////
-///        II.   THE VERDICT SET P                                          ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 2.  THE VERDICT SET P
+//==============================================================================
 // Values are pinned and members that store a verdict are declared int32_t,
 // following the pattern established by the archive/compress core: an enum's
 // underlying type is implementation-defined in C, and a byte-determinate
@@ -145,9 +166,9 @@ bool d_verdict_consumed(
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///        III.  THE PAYLOAD A_e                                            ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  THE PAYLOAD A_e
+//==============================================================================
 // The core never interprets payload bytes. Its only obligation is the fibre
 // condition: an erased payload is touched only by code selected by its own
 // key, which holds because bind and dispatch key by the same kappa. The size
@@ -223,9 +244,9 @@ struct dj_event_occurrence d_event_occurrence_make(
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///        IV.   THE ERASURE kappa                                          ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  THE ERASURE kappa
+//==============================================================================
 // A content-derived key: FNV-1a-64 over the declared event name. Deterministic
 // across runs, translation units, languages, and byte orders, which the
 // address-of-static form is not. Collision-bearing, which is the acknowledged
@@ -315,9 +336,9 @@ size_t d_event_next_prime(
 );
 
 
-///////////////////////////////////////////////////////////////////////////////
-///        V.    DECLARING A SUMMAND OF Sigma                               ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 5.  DECLARING A SUMMAND OF Sigma
+//==============================================================================
 //   These macros live in tier 0, not in either face, because what they
 // generate IS A LAYOUT - the packed block that carries A_e - and a layout is
 // declared once and compiled by both languages. The C face and the C++ face
@@ -589,9 +610,9 @@ D_ENV_PP_VARIADIC_QUIET_END
     D_CONCAT(d_event_view_, _name)(_block)
 
 
-///////////////////////////////////////////////////////////////////////////////
-///        VI.   SIZING CONSTANTS - moved                                  ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 6.  SIZING CONSTANTS - moved
+//==============================================================================
 //   The table and queue capacities, the rehash threshold, and the growth
 // factor used to be literal constants here. They are now knobs, and they live
 // with the module that owns them:
@@ -603,9 +624,9 @@ D_ENV_PP_VARIADIC_QUIET_END
 // living in a module header is a default nobody can override without editing
 // the tree, which is the situation the dconfig cascade exists to end.
 
-///////////////////////////////////////////////////////////////////////////////
-///        VII.  STATUS CODES                                               ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 7.  STATUS CODES
+//==============================================================================
 // A formal failure and a mechanical failure are different things and are
 // reported differently (AGENT_README.md section 10). D_EVENT_ERR_CAPACITY is
 // mechanical: the arena is full. D_EVENT_ERR_KEY is formal: the key names no
@@ -640,9 +661,9 @@ enum dj_event_status
 #endif
 
 
-///////////////////////////////////////////////////////////////////////////////
-///        VIII. LAYOUT ASSERTIONS                                          ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 8.  LAYOUT ASSERTIONS
+//==============================================================================
 // One declaration, asserted in both dialects. The assertions are gated on the
 // 64-bit data model rather than being unconditional: on a tier where the model
 // differs the sizes differ legitimately, and a hard failure there would breach

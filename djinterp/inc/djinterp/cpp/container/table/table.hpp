@@ -59,23 +59,21 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    is_table (detection trait)
-      --------------------------
-
-II.   table (class)
-      -------------
-      1.    member types and axis positions
-      2.    construction
-      3.    table_base hooks
-      4.    element access (writable)
-      5.    subtable / projection (writable)
-      6.    cell / row iteration (writable)
-      7.    row structural operations
-      8.    column structural operations
-      9.    reshape / capacity / whole-grid
-
-III.  equality / swap
-      ---------------
+1.  is_table (detection trait)
+    --------------------------
+2.  table (class)
+    -------------
+    1.    member types and axis positions
+    2.    construction
+    3.    table_base hooks
+    4.    element access (writable)
+    5.    subtable / projection (writable)
+    6.    cell / row iteration (writable)
+    7.    row structural operations
+    8.    column structural operations
+    9.    reshape / capacity / whole-grid
+3.  equality / swap
+    ---------------
 */
 
 #ifndef DJINTERP_CONTAINER_TABLE_TABLE_HPP
@@ -111,9 +109,9 @@ III.  equality / swap
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   is_table (detection trait)
-// ===========================================================================
+//==============================================================================
+// 1.  is_table (detection trait)
+//==============================================================================
 
 // DTable (fwd)
 //   class: forward declaration for the detection trait below.
@@ -158,9 +156,9 @@ inline constexpr bool is_table_v = is_table<Type>::value;
 #endif
 
 
-// ===========================================================================
-// II.  table (class)
-// ===========================================================================
+//==============================================================================
+// 2.  table (class)
+//==============================================================================
 
 // DTable
 //   class: a dynamic, fully-mutable rank-2 cell-homogeneous table, cells
@@ -1201,9 +1199,9 @@ namespace table_axis_conformance
 }
 
 
-// ===========================================================================
-// III. equality / swap
-// ===========================================================================
+//==============================================================================
+// 3.  equality / swap
+//==============================================================================
 
 // operator== / operator!=
 //   compares two tables cell-by-cell after a shape check (positional

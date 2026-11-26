@@ -49,6 +49,20 @@
 *                                                            revised: 2026.11.27
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  NAMESPACE
+    ---------
+2.  NODES
+    -----
+    1.  DNodeView
+3.  TERMS
+    -----
+    1.  DTerm
+    2.  Comparison
+*/
+
 #ifndef DJINTERP_PARSE_EXPR_TERM_HPP
 #define DJINTERP_PARSE_EXPR_TERM_HPP 1
 

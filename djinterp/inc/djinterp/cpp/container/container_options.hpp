@@ -73,35 +73,29 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    Per-Axis Configuration Enums
-      ----------------------------
-      1.    container_lifetime
-      2.    DContainerOrdering
-      3.    DContainerBounds
-      4.    DContainerMultiplicity
-      5.    container_structure
-      6.    DContainerStorageKind
-      7.    DContainerThreadSafety
-      8.    DContainerBacking
-      9.    container_iterability
-
-II.   Per-Axis Option Keys        (container_axis)
-      --------------------------------------------
-
-III.  Canonical-Form Option Aliases
-      -----------------------------
-
-IV.   Type-Carrying Keys          (lock_policy, element_type, extent)
-      ---------------------------------------------------------------
-
-V.    options_container_base
-      ----------------------
-
-VI.   container_axis_value         (read-or-default axis lookup)
-      ----------------------------------------------------------
-
-VII.  container_axis_type          (read-or-default type-carrying lookup)
-      -------------------------------------------------------------------
+1.  Per-Axis Configuration Enums
+    ----------------------------
+    1.    container_lifetime
+    2.    DContainerOrdering
+    3.    DContainerBounds
+    4.    DContainerMultiplicity
+    5.    container_structure
+    6.    DContainerStorageKind
+    7.    DContainerThreadSafety
+    8.    DContainerBacking
+    9.    container_iterability
+2.  Per-Axis Option Keys        (container_axis)
+    --------------------------------------------
+3.  Canonical-Form Option Aliases
+    -----------------------------
+4.  Type-Carrying Keys          (lock_policy, element_type, extent)
+    ---------------------------------------------------------------
+5.  options_container_base
+    ----------------------
+6.  container_axis_value         (read-or-default axis lookup)
+    ----------------------------------------------------------
+7.  container_axis_type          (read-or-default type-carrying lookup)
+    -------------------------------------------------------------------
 */
 
 #ifndef DJINTERP_CONTAINER_CONTAINER_OPTIONS_HPP
@@ -128,9 +122,9 @@ VII.  container_axis_type          (read-or-default type-carrying lookup)
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   Per-Axis Configuration Enums
-// ===========================================================================
+//==============================================================================
+// 1.  Per-Axis Configuration Enums
+//==============================================================================
 
 // DContainerLifetime
 enum class DContainerLifetime
@@ -221,9 +215,9 @@ enum class DContainerIterability
 using container_iterability = DContainerIterability;
 
 
-// ===========================================================================
-// II.  Per-Axis Option Keys
-// ===========================================================================
+//==============================================================================
+// 2.  Per-Axis Option Keys
+//==============================================================================
 
 // DContainerAxis
 //   enum: the option key for each configurable axis. option<> keys are NTTPs
@@ -256,9 +250,9 @@ using container_axis = DContainerAxis;
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 
-// ===========================================================================
-// III. Canonical-Form Option Aliases
-// ===========================================================================
+//==============================================================================
+// 3.  Canonical-Form Option Aliases
+//==============================================================================
 //   Each wraps an axis position into option<container_axis::<axis>,
 // integral_constant<enum, value>> - a fully-formed, NTTP-keyed option<> ready
 // to drop into a container's Options pack.
@@ -309,9 +303,9 @@ using DContainerOptIterability = option<
     std::integral_constant<DContainerIterability, V>>;
 
 
-// ===========================================================================
-// IV.  Type-Carrying Keys
-// ===========================================================================
+//==============================================================================
+// 4.  Type-Carrying Keys
+//==============================================================================
 
 // DContainerOptLockPolicy
 //   alias: `option<container_axis::lock_policy, Policy>` for the lock-policy
@@ -332,9 +326,9 @@ using DContainerOptLockPolicy = option<DContainerAxis::lock_policy, Policy>;
 // them with the universal axes above.
 
 
-// ===========================================================================
-// V.   options_container_base
-// ===========================================================================
+//==============================================================================
+// 5.  options_container_base
+//==============================================================================
 
 // DOptionsContainerBase
 //   class: the canonical base mixin every container in the framework inherits
@@ -398,9 +392,9 @@ template<typename... Options>
 using options_container_base = DOptionsContainerBase<Options...>;
 
 
-// ===========================================================================
-// VI.  container_axis_value
-// ===========================================================================
+//==============================================================================
+// 6.  container_axis_value
+//==============================================================================
 
 NS_INTERNAL
 
@@ -467,9 +461,9 @@ inline constexpr auto container_axis_value_v =
     container_axis_value<Set, Axis, Default>::value;
 
 
-// ===========================================================================
-// VII. container_axis_type
-// ===========================================================================
+//==============================================================================
+// 7.  container_axis_type
+//==============================================================================
 
 NS_INTERNAL
 

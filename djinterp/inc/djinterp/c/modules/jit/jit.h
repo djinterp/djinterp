@@ -31,6 +31,19 @@
 *                                                            revised: 2026.10.23
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  INSTRUCTION-CACHE FLUSH
+    -----------------------
+2.  FUNCTION-POINTER CAST
+    ---------------------
+3.  CODE BUFFER + RUNTIME API
+    -------------------------
+4.  LABELS + BACK-PATCHING
+    ----------------------
+*/
+
 #ifndef DJINTERP_C_JIT_JIT_H
 #define DJINTERP_C_JIT_JIT_H 1
 
@@ -51,9 +64,9 @@
 #if RE_STD_HAS_INT64
 
 
-// ===========================================================================
-// I.   INSTRUCTION-CACHE FLUSH
-// ===========================================================================
+//==============================================================================
+// 1.  INSTRUCTION-CACHE FLUSH
+//==============================================================================
 //   Relocated here from env_jit.h: the cache-flush OPERATION belongs with the
 // code that emits, while env_jit.h keeps only the DETECTION flags it derives
 // from (D_ENV_JIT_HAS_BUILTIN_CLEAR_CACHE / D_ENV_JIT_NEEDS_ICACHE_FLUSH).
@@ -75,9 +88,9 @@
 #endif
 
 
-// ===========================================================================
-// II.  FUNCTION-POINTER CAST
-// ===========================================================================
+//==============================================================================
+// 2.  FUNCTION-POINTER CAST
+//==============================================================================
 // D_JIT_FUNC_PTR(fn_type, code_ptr)
 //   macro: cast a finalized code pointer to a function-pointer type. ISO C
 // only conditionally supports object/function pointer casts; POSIX requires
@@ -88,9 +101,9 @@
 #endif
 
 
-// ===========================================================================
-// III. CODE BUFFER + RUNTIME API
-// ===========================================================================
+//==============================================================================
+// 3.  CODE BUFFER + RUNTIME API
+//==============================================================================
 
 //   C linkage for everything below, so a C++ translation unit can consume this
 // header and link against the C archive. Both spellings expand to nothing
@@ -192,9 +205,9 @@ void d_jit_print_info(void);
 D_EXTERN_C_END
 
 
-// ===========================================================================
-// IV.  LABELS + BACK-PATCHING
-// ===========================================================================
+//==============================================================================
+// 4.  LABELS + BACK-PATCHING
+//==============================================================================
 //   Relative branches need a displacement that often is not known when the
 // branch is emitted (a forward jump targets code that comes later). A label is
 // a branch target: emit jumps to it at any time, bind it once its position is

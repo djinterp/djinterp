@@ -22,6 +22,13 @@
 *                                                            revised: 2026.11.14
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+2.  CROSS-CUTTING DEDUCTIONS
+    ------------------------
+*/
+
 #ifndef DJINTERP_CONFIG_DCONFIG_H
 #define DJINTERP_CONFIG_DCONFIG_H 1
 
@@ -179,9 +186,9 @@
 // #include "<path>/cfg_<sub>.h"  // <- add future subframeworks here
 
 
-// ===========================================================================
-// II.  CROSS-CUTTING DEDUCTIONS
-// ===========================================================================
+//==============================================================================
+// 2.  CROSS-CUTTING DEDUCTIONS
+//==============================================================================
 //   Long-range propagation that demand-loading cannot order correctly belongs
 // here (module A influencing an otherwise-unrelated module B). Every rule is
 // #ifndef-guarded so explicit user overrides still win. Example:

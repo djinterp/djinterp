@@ -35,6 +35,17 @@
 *                                                            revised: 2026.10.02
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  SUB-UNIT PREFIXES (always available)
+    ------------------------------------
+2.  MULTIPLE PREFIXES (always available)
+    ------------------------------------
+3.  WIDE PREFIXES (only when intmax_t can represent them)
+    -----------------------------------------------------
+*/
+
 #ifndef RE_STD_RATIO_RATIO_TYPEDEFS_HPP
 #define RE_STD_RATIO_RATIO_TYPEDEFS_HPP 1
 
@@ -56,9 +67,9 @@ namespace re_std
 {
 
 
-// ===========================================================================
-// I.   SUB-UNIT PREFIXES (always available)
-// ===========================================================================
+//==============================================================================
+// 1.  SUB-UNIT PREFIXES (always available)
+//==============================================================================
 
 typedef ratio<1, 1000000000000000000> atto;
 typedef ratio<1,    1000000000000000> femto;
@@ -70,9 +81,9 @@ typedef ratio<1,                 100> centi;
 typedef ratio<1,                  10> deci;
 
 
-// ===========================================================================
-// II.  MULTIPLE PREFIXES (always available)
-// ===========================================================================
+//==============================================================================
+// 2.  MULTIPLE PREFIXES (always available)
+//==============================================================================
 
 typedef ratio<                  10, 1> deca;
 typedef ratio<                 100, 1> hecto;
@@ -84,9 +95,9 @@ typedef ratio<    1000000000000000, 1> peta;
 typedef ratio< 1000000000000000000, 1> exa;
 
 
-// ===========================================================================
-// III. WIDE PREFIXES (only when intmax_t can represent them)
-// ===========================================================================
+//==============================================================================
+// 3.  WIDE PREFIXES (only when intmax_t can represent them)
+//==============================================================================
 
 // 10^21 and 10^24 exceed a 64-bit intmax_t. The literals themselves would
 // be ill-formed, so the whole block is gated rather than the typedefs

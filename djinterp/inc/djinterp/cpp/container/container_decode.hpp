@@ -75,6 +75,23 @@
 *                                                            revised: 2026.10.01
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  Recursive decodability
+    ----------------------
+2.  Reconstruction primitives (append + reserve)
+    --------------------------------------------
+3.  The container decoder (forward declaration)
+    -------------------------------------------
+4.  Per-element dispatch (the sum T = tau + F[T])
+    ---------------------------------------------
+5.  The container decoder (definition)
+    ----------------------------------
+6.  Convenience over a whole byte_string
+    ------------------------------------
+*/
+
 #ifndef DJINTERP_CONTAINER_CONTAINER_DECODE_HPP
 #define DJINTERP_CONTAINER_CONTAINER_DECODE_HPP 1
 
@@ -99,9 +116,9 @@
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   Recursive decodability
-// ===========================================================================
+//==============================================================================
+// 1.  Recursive decodability
+//==============================================================================
 //   Symmetric with is_encodable: a type is decodable when it is a leaf dec_tau
 // (decode.hpp) or an iterable container whose element is itself decodable,
 // bounded by the same depth budget.
@@ -163,9 +180,9 @@ struct is_decodable_container
 D_TYPE_TRAIT_VALUE_BOOL(is_decodable_container)
 
 
-// ===========================================================================
-// II.  Reconstruction primitives (append + reserve)
-// ===========================================================================
+//==============================================================================
+// 2.  Reconstruction primitives (append + reserve)
+//==============================================================================
 
 NS_INTERNAL
 
@@ -278,9 +295,9 @@ NS_INTERNAL
 NS_END  // internal
 
 
-// ===========================================================================
-// III. The container decoder (forward declaration)
-// ===========================================================================
+//==============================================================================
+// 3.  The container decoder (forward declaration)
+//==============================================================================
 //   Declared before the element dispatcher, which calls it for a nested node;
 // defined below, using that dispatcher for its own elements.
 
@@ -292,9 +309,9 @@ DDecodeResult<clean_t<Container>> decode_container(
 );
 
 
-// ===========================================================================
-// IV.  Per-element dispatch (the sum T = tau + F[T])
-// ===========================================================================
+//==============================================================================
+// 4.  Per-element dispatch (the sum T = tau + F[T])
+//==============================================================================
 
 NS_INTERNAL
 
@@ -331,9 +348,9 @@ NS_INTERNAL
 NS_END  // internal
 
 
-// ===========================================================================
-// V.   The container decoder (definition)
-// ===========================================================================
+//==============================================================================
+// 5.  The container decoder (definition)
+//==============================================================================
 
 template<typename Container>
 DDecodeResult<clean_t<Container>> decode_container(
@@ -382,9 +399,9 @@ DDecodeResult<clean_t<Container>> decode_container(
 }
 
 
-// ===========================================================================
-// VI.  Convenience over a whole byte_string
-// ===========================================================================
+//==============================================================================
+// 6.  Convenience over a whole byte_string
+//==============================================================================
 
 // decode_container
 //   function: convenience over a whole `DByteString` - wraps it in a reader

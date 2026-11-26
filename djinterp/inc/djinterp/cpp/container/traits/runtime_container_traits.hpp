@@ -41,6 +41,17 @@
 *                                                            revised: 2026.10.03
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  Structural signals
+    ------------------
+2.  Classification umbrella
+    -----------------------
+3.  Aggregate snapshot
+    ------------------
+*/
+
 #ifndef DJINTERP_CONTAINER_TRAITS_RUNTIME_CONTAINER_TRAITS_HPP
 #define DJINTERP_CONTAINER_TRAITS_RUNTIME_CONTAINER_TRAITS_HPP 1
 
@@ -64,9 +75,9 @@
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   Structural signals
-// ===========================================================================
+//==============================================================================
+// 1.  Structural signals
+//==============================================================================
 //   All probes strip cv-ref via clean_t so the answer agrees for T, const T,
 // T&.
 
@@ -88,9 +99,9 @@ D_TYPE_TRAIT_TRUE(has_reserve_method_signal,
     decltype(std::declval<clean_t<Type>&>().reserve(std::declval<std::size_t>())))
 
 
-// ===========================================================================
-// II.  Classification umbrella
-// ===========================================================================
+//==============================================================================
+// 2.  Classification umbrella
+//==============================================================================
 
 // is_runtime_container
 //   trait: true iff Type is container-shaped yet NOT constexpr-capable - its
@@ -127,9 +138,9 @@ public:
 D_TYPE_TRAIT_VALUE_BOOL(requires_runtime_storage)
 
 
-// ===========================================================================
-// III. Aggregate snapshot
-// ===========================================================================
+//==============================================================================
+// 3.  Aggregate snapshot
+//==============================================================================
 
 // DRuntimeContainerClass
 //   struct: a one-stop summary of the runtime signals and the resulting

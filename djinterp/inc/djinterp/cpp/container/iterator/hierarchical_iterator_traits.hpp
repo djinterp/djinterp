@@ -37,29 +37,22 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    Node Topology Detection
-      -----------------------
-
-II.   Sibling Navigation Detection
-      ----------------------------
-
-III.  Child Access Detection
-      ----------------------
-
-IV.   Depth and Path Detection
-      ------------------------
-
-V.    Traversal Order Classification
-      ------------------------------
-
-VI.   Iteration Strategy Classification
-      ---------------------------------
-
-VII.  Convenience Predicates
-      ----------------------
-
-VIII. Combined Classification
-      -----------------------
+1.  Node Topology Detection
+    -----------------------
+2.  Sibling Navigation Detection
+    ----------------------------
+3.  Child Access Detection
+    ----------------------
+4.  Depth and Path Detection
+    ------------------------
+5.  Traversal Order Classification
+    ------------------------------
+6.  Iteration Strategy Classification
+    ---------------------------------
+7.  Convenience Predicates
+    ----------------------
+8.  Combined Classification
+    -----------------------
 */
 
 #ifndef DJINTERP_CONTAINER_ITERATOR_HIERARCHICAL_ITERATOR_TRAITS_HPP
@@ -90,9 +83,9 @@ NS_DJINTERP
 NS_CONTAINER
 NS_TRAITS
 
-// ===========================================================================
-// I.   Node Topology Detection
-// ===========================================================================
+//==============================================================================
+// 1.  Node Topology Detection
+//==============================================================================
 // Core tree navigation: parent, children, root.
 // These delegate to the existing container_traits
 // detectors where available.
@@ -142,9 +135,9 @@ inline constexpr bool is_navigable_node_v =
     is_navigable_node<Type>::value;
 
 
-// ===========================================================================
-// II.  Sibling Navigation Detection
-// ===========================================================================
+//==============================================================================
+// 2.  Sibling Navigation Detection
+//==============================================================================
 
 // (has_sibling_accessor and has_prev_sibling_accessor
 //  are defined in flat_iterator_traits.hpp - re-detect
@@ -226,9 +219,9 @@ inline constexpr bool
         has_bidirectional_siblings<Type>::value;
 
 
-// ===========================================================================
-// III. Child Access Detection
-// ===========================================================================
+//==============================================================================
+// 3.  Child Access Detection
+//==============================================================================
 
 NS_INTERNAL
 
@@ -365,9 +358,9 @@ inline constexpr bool
         has_random_access_children<Type>::value;
 
 
-// ===========================================================================
-// IV.  Depth and Path Detection
-// ===========================================================================
+//==============================================================================
+// 4.  Depth and Path Detection
+//==============================================================================
 
 NS_INTERNAL
 
@@ -442,9 +435,9 @@ inline constexpr bool has_path_method_v =
     has_path_method<Type>::value;
 
 
-// ===========================================================================
-// V.   Traversal Order Classification
-// ===========================================================================
+//==============================================================================
+// 5.  Traversal Order Classification
+//==============================================================================
 
 // DTraversalOrder
 //   enum: supported tree traversal orders.
@@ -562,9 +555,9 @@ inline constexpr DTraversalCapability
             Type>::value;
 
 
-// ===========================================================================
-// VI.  Iteration Strategy Classification
-// ===========================================================================
+//==============================================================================
+// 6.  Iteration Strategy Classification
+//==============================================================================
 
 // DHierarchicalStrategy
 //   enum: best default iteration strategy for a hierarchical container.
@@ -629,9 +622,9 @@ inline constexpr DHierarchicalStrategy
             Type>::value;
 
 
-// ===========================================================================
-// VII. Convenience Predicates
-// ===========================================================================
+//==============================================================================
+// 7.  Convenience Predicates
+//==============================================================================
 
 // is_tree_iterable
 //   type trait: true if the hierarchical container can be iterated in at least
@@ -681,9 +674,9 @@ inline constexpr bool supports_level_order_v =
     supports_level_order<Type>::value;
 
 
-// ===========================================================================
-// VIII. Combined Classification
-// ===========================================================================
+//==============================================================================
+// 8.  Combined Classification
+//==============================================================================
 
 template<typename Type>
 struct DHierarchicalIteratorClass

@@ -43,6 +43,21 @@
 *                                                            revised: 2026.11.10
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  Element type + relation probes
+    ------------------------------
+2.  Element relation (on the value_type)
+    ------------------------------------
+3.  Comparison degree
+    -----------------
+4.  Container-level comparison (the observational reading)
+    ------------------------------------------------------
+5.  Cross-container element compatibility
+    -------------------------------------
+*/
+
 #ifndef DJINTERP_CONTAINER_TRAITS_ELEMENT_RELATION_TRAITS_HPP
 #define DJINTERP_CONTAINER_TRAITS_ELEMENT_RELATION_TRAITS_HPP 1
 
@@ -68,9 +83,9 @@
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   Element type + relation probes
-// ===========================================================================
+//==============================================================================
+// 1.  Element type + relation probes
+//==============================================================================
 
 NS_INTERNAL
 
@@ -174,9 +189,9 @@ NS_INTERNAL
 NS_END  // internal
 
 
-// ===========================================================================
-// II.  Element relation (on the value_type)
-// ===========================================================================
+//==============================================================================
+// 2.  Element relation (on the value_type)
+//==============================================================================
 
 // element_type_of
 //   trait: the container's element type, or void where there is none.
@@ -257,9 +272,9 @@ struct has_three_way_comparable_elements
 D_TYPE_TRAIT_VALUE_BOOL(has_three_way_comparable_elements)
 
 
-// ===========================================================================
-// III. Comparison degree
-// ===========================================================================
+//==============================================================================
+// 3.  Comparison degree
+//==============================================================================
 
 // DComparisonDegree
 //   enum: the strongest comparison a type (element or container) reaches.
@@ -337,9 +352,9 @@ struct element_comparison_degree_of
 #endif
 
 
-// ===========================================================================
-// IV.  Container-level comparison (the observational reading)
-// ===========================================================================
+//==============================================================================
+// 4.  Container-level comparison (the observational reading)
+//==============================================================================
 
 // has_container_equality
 //   trait: the container itself admits == as a whole.
@@ -480,9 +495,9 @@ struct is_ordered_comparable_container
 D_TYPE_TRAIT_VALUE_BOOL(is_ordered_comparable_container)
 
 
-// ===========================================================================
-// V.   Cross-container element compatibility
-// ===========================================================================
+//==============================================================================
+// 5.  Cross-container element compatibility
+//==============================================================================
 
 // elements_same_type
 //   trait: the two containers share a value_type.
