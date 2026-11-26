@@ -120,6 +120,7 @@ sources="src/djinterp/c/util/sink_common.c
 # lane E's: the machine environment, the registry and the printer
 env_sources="src/djinterp/c/option/option_env.c
              src/djinterp/c/option/option_env_registry.c
+             src/djinterp/c/option/option_env_report.c
              src/djinterp/c/option/option_set_common.c
              src/djinterp/c/option/option_common.c
              src/djinterp/env/env_printer.c"
