@@ -41,7 +41,7 @@
 * path:      /inc/djinterp/cpp/util/document/layout/layout_interpret.hpp
 * link(s):   ch-synthesis.tex
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.22
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.25
 *******************************************************************************/
 
 /*
@@ -610,16 +610,16 @@ void render_document(
 )
 {
     // 1. number the sections (re-annotate)
-    DLayoutDoc<OpId, Atom> _numbered = renumber<OpId, Atom>(_doc, _signature);
+    DLayoutDoc<OpId, Atom> _numbered = renumber(_doc, _signature);
 
     // 2. assemble the context, with the outline computed from the numbered tree
     DRenderCtx _ctx;
     _ctx.body         = static_cast<DContentResolver&&>(_body);
     _ctx.metadata     = static_cast<DDocAttributes&&>(_metadata);
-    _ctx.outline_rows = outline<OpId, Atom>(_numbered, _signature);
+    _ctx.outline_rows = outline(_numbered, _signature);
 
     // 3. emit to a deferred action and 4. run it
-    DRenderAction _action = emit<OpId, Atom>(_numbered, _signature, _ctx);
+    DRenderAction _action = emit(_numbered, _signature, _ctx);
 
     _renderer.begin_document(DDocAttributes());
     _action(_renderer);

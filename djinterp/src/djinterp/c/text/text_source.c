@@ -9,15 +9,18 @@
 * path:      /src/djinterp/c/text/text_source.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.17
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/text/text_source.h"  // corresponding
                                                           // header
 // std
 #include <stdio.h>   // FILE, fopen, fread, fwrite, fclose, ferror, rename,
-                     // remove, snprintf
+                     // remove, snprintf; _fsopen in MSVC
 #include <stdlib.h>  // malloc, realloc, free
 #include <string.h>  // memcpy, memchr, strlen
+#if defined(_MSC_VER)
+    #include <share.h>  // _SH_DENYNO
+#endif
 // djinterp
 #include "../../../../inc/djinterp/c/dckdint.h"  // d_ckd_add, d_ckd_mul
 
@@ -394,6 +397,31 @@ d_text_source_locate(
 
 
 /*
+d_internal_text_open
+  Opens a file as fopen does. MSVC deprecates fopen, and its fopen_s denies
+other processes the file, so there the call is _fsopen, sharing as fopen
+does; elsewhere it is fopen.
+
+Parameter(s):
+  _path: the file's path.
+  _mode: an fopen mode.
+Return:
+  The stream, or NULL when the file cannot be opened.
+*/
+static FILE*
+d_internal_text_open(
+    const char* _path,
+    const char* _mode
+)
+{
+#if defined(_MSC_VER)
+    return _fsopen(_path, _mode, _SH_DENYNO);
+#else
+    return fopen(_path, _mode);
+#endif
+}
+
+/*
 d_text_read
   Reads in doubling chunks rather than asking the file's size, so that a
 file whose size cannot be told - a pipe - still reads. A read error is a
@@ -415,7 +443,7 @@ d_text_read(
         *_out_length = 0u;
     }
 
-    handle = (_path) ? fopen(_path, "rb") : NULL;
+    handle = (_path) ? d_internal_text_open(_path, "rb") : NULL;
 
     // a file that cannot be opened has no text
     if (!handle)
@@ -555,7 +583,7 @@ d_text_write(
     }
 
     (void)snprintf(part, span, "%s.part", _path);
-    out = fopen(part, "wb");
+    out = d_internal_text_open(part, "wb");
     ok  = (out != NULL);
 
     if ( (ok) && (_length > 0u) )

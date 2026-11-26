@@ -6,7 +6,9 @@
 # printf and templates (c/text/ostream_format.c, ostream_template.c), the
 # machine environment and the djin registry (c/option/option_env*.c over the
 # option core) and the environment printer (env/env_printer.c), with DTest's
-# C face (c/modules/test/test_suite.c), runs their suites and harnesses with
+# C face (c/modules/test/test_suite.c) and the units they call: memory's
+# source, filesys's files and the compress kernel, DEFLATE alone, through
+# zlib where the compiler finds <zlib.h>. Runs their suites and harnesses with
 # every compiler, at every language level, and fails if any build, run, JSON
 # or CSV check fails. Each DTest suite is its runner (under
 # build/cmake/config/testing/djinterp) and its sections (under
@@ -64,7 +66,7 @@
 # path:      /scripts/ci/check_ostream.sh
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.28
-#                                                            revised: 2026.11.09
+#                                                            revised: 2026.11.24
 #*******************************************************************************
 set -u
 
@@ -83,6 +85,14 @@ trap 'rm -rf "$tmp"' EXIT
 
 warnings="-pedantic-errors -Wall -Wextra -Wconversion -Wshadow -Werror"
 warnings="$warnings -Werror=undef"
+# the compress kernel with DEFLATE alone: the PDF writer's Flate needs no other
+# codec, and no other library need be installed
+warnings="$warnings -DD_CFG_COMPRESS_ALL=0 -DD_CFG_COMPRESS_CODEC_DEFLATE=1"
+libs="-lm"
+if printf '#include <zlib.h>\n' |
+       "${compilers%% *}" -E -x c - > /dev/null 2>&1; then
+    libs="-lz $libs"
+fi
 sources="src/djinterp/c/util/sink_common.c
          src/djinterp/c/util/ostream/ostream.c
          src/djinterp/c/util/ostream/ostream_string.c
@@ -96,8 +106,16 @@ sources="src/djinterp/c/util/sink_common.c
          src/djinterp/c/util/pdf/pdf_primitives.c
          src/djinterp/c/dstring.c src/djinterp/c/string_fn.c
          src/djinterp/c/djinterp.c src/djinterp/c/memory/dmemory.c
+         src/djinterp/c/memory/mem_common.c
+         src/djinterp/c/memory/mem_source.c
          src/djinterp/c/filesys/file_open.c
          src/djinterp/c/filesys/file_common.c
+         src/djinterp/c/filesys/file_desc.c
+         src/djinterp/c/filesys/file_io.c
+         src/djinterp/c/filesys/file_seek.c
+         src/djinterp/c/filesys/file_stat.c
+         src/djinterp/c/util/compress/compress_common.c
+         src/djinterp/env/util/compress/env_compress.c
          src/djinterp/c/modules/test/test_suite.c"
 # lane E's: the machine environment, the registry and the printer
 env_sources="src/djinterp/c/option/option_env.c
@@ -241,7 +259,7 @@ run_c() {
     local include="$7"
     shift 7
     $cc -std="$std" $warnings -D_XOPEN_SOURCE=700 -Iinc -I"$include" \
-        $extra $flags "$@" "$units"/*.o -lm -o "$dir/$name$suffix" &&
+        $extra $flags "$@" "$units"/*.o $libs -o "$dir/$name$suffix" &&
     run_in "$dir" "./$name$suffix" > "$dir/$name.txt"
 }
 
@@ -252,7 +270,7 @@ run_cxx() {
     local stem="$7"
     $cxx $(cxx_flags "$std") $warnings -D_XOPEN_SOURCE=700 -Iinc \
         -I"tests/djinterp/$slug" $extra $(suite_files "$slug" "$stem" cpp) \
-        "$units"/*.o -lm -o "$dir/$name$suffix" &&
+        "$units"/*.o $libs -o "$dir/$name$suffix" &&
     run_in "$dir" "./$name$suffix" > "$dir/$name.txt"
 }
 
@@ -306,7 +324,7 @@ for cc in $compilers; do
             [[ $with_env == 1 ]] || continue
             if $cc -std="$std" $warnings -D_XOPEN_SOURCE=700 -Iinc $extra \
                    $flags tests/unintegrated/c/env/t_env_printer.c \
-                   "$units"/*.o -lm -o "$dir/t_env_printer$suffix" &&
+                   "$units"/*.o $libs -o "$dir/t_env_printer$suffix" &&
                run_in "$dir" "./t_env_printer$suffix" env.json env.csv \
                    > "$dir/env.txt" &&
                check_json "$dir/env.json" &&
@@ -356,7 +374,7 @@ for cxx in $cxx_compilers; do
         if $cxx $(cxx_flags "$std") $warnings -D_XOPEN_SOURCE=700 -Iinc \
                -DD_CFG_ENV_PRINTER_CPP_FEATURES=1 $extra \
                tests/unintegrated/cpp/env/t_env_printer.cpp \
-               "$units"/*.o -lm -o "$dir/t_env_printer$suffix" &&
+               "$units"/*.o $libs -o "$dir/t_env_printer$suffix" &&
            run_in "$dir" "./t_env_printer$suffix" env.json env.csv \
                > "$dir/env.txt" &&
            check_json "$dir/env.json" &&

@@ -9,14 +9,17 @@
 * path:      /tests/djinterp/c/text/text_source_tests_source.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.17
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 #include "./text_source_tests.h"  // corresponding header
 
 // std
-#include <stdio.h>   // fopen, fclose, remove
+#include <stdio.h>   // fopen, fclose, remove; _fsopen in MSVC
 #include <stdlib.h>  // free
 #include <string.h>  // memcmp, strcmp, strlen, strstr
+#if defined(_MSC_VER)
+    #include <share.h>  // _SH_DENYNO
+#endif
 
 
 // D_TESTS_TEXT_SOURCE_FILE
@@ -66,14 +69,19 @@ d_tests_text_source_at(
 
 /*
 d_tests_text_source_exists
-  Whether a file can be opened for reading.
+  Whether a file can be opened for reading: through _fsopen in MSVC, which
+deprecates fopen, and fopen elsewhere.
 */
 static bool
 d_tests_text_source_exists(
     const char* _path
 )
 {
+#if defined(_MSC_VER)
+    FILE* const handle = _fsopen(_path, "rb", _SH_DENYNO);
+#else
     FILE* const handle = fopen(_path, "rb");
+#endif
 
     if (handle)
     {

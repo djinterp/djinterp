@@ -24,7 +24,7 @@
 * path:      /tests/djinterp/c/util/ostream/ostream_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.28
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.24
 *******************************************************************************/
 #include "ostream_tests.h"  // the suite's entry point, DTest's C face
 // std
@@ -1709,23 +1709,81 @@ d_tests_ostream_locale_case(
 }
 
 /*
+d_tests_ostream_locale_point
+  The decimal point the C library gives a locale, as snprintf writes it there:
+the program's locale is set to _name for the one call, then put back. glibc
+gives ps_AF U+066B, two bytes; MSVC's runtime gives it a comma.
+
+Parameter(s):
+  _name:     the locale's name.
+  _point:    receives the point, NUL-terminated.
+  _capacity: how many bytes _point holds.
+Return:
+  Whether the locale could be set and its point fits _point.
+*/
+static bool
+d_tests_ostream_locale_point(
+    const char* _name,
+    char*       _point,
+    size_t      _capacity
+)
+{
+    char        saved[64];
+    char        text[16];
+    const char* now;
+    size_t      length;
+
+    now = setlocale(LC_NUMERIC, NULL);
+
+    if ( (now == NULL) ||
+         (strlen(now) >= sizeof(saved)) )
+    {
+        return false;
+    }
+
+    memcpy(saved, now, strlen(now) + 1u);
+
+    if (setlocale(LC_NUMERIC, _name) == NULL)
+    {
+        return false;
+    }
+
+    (void)snprintf(text, sizeof(text), "%.1f", 1.5);
+    (void)setlocale(LC_NUMERIC, saved);
+
+    // "1", the point, "5"
+    length = strlen(text);
+
+    if ( (length < 3u) ||
+         (text[0] != '1') ||
+         (text[length - 1u] != '5') ||
+         ((length - 2u) >= _capacity) )
+    {
+        return false;
+    }
+
+    memcpy(_point, text + 1, length - 2u);
+    _point[length - 2u] = '\0';
+
+    return true;
+}
+
+/*
 d_tests_ostream_locales_named
   The named locales, where the build can make them: de_DE's ',' and ps_AF's
-two-byte point, each written while the program's locale stays C; an unknown
-name; and the C form under a program locale of de_DE.
+point (U+066B, two bytes, in glibc; a comma in MSVC's runtime), each written
+while the program's locale stays C and held to the point the C library gives
+that locale; an unknown name; and the C form under a program locale of de_DE.
 */
 static void
 d_tests_ostream_locales_named(
     const struct dj_ostream_locale* _c_form
 )
 {
-    static const char* const names[]    = { "de_DE.UTF-8", "ps_AF.UTF-8" };
-    static const char* const expected[] =
-    {
-        "1,5 -0,125 1,23e+04",
-        "1\xD9\xAB" "5 -0\xD9\xAB" "125 1\xD9\xAB" "23e+04"
-    };
+    static const char* const names[] = { "de_DE.UTF-8", "ps_AF.UTF-8" };
     struct dj_ostream_locale locale;
+    char                     point[8];
+    char                     expected[64];
     char                     text[32];
 
     for (size_t i = 0u; i < (sizeof(names) / sizeof(names[0])); ++i)
@@ -1744,8 +1802,11 @@ d_tests_ostream_locales_named(
 
         D_TESTS_OSTREAM_CHECK( (locale.handle != NULL) &&
                                (locale.is_c == 0) );
-        D_TESTS_OSTREAM_CHECK(d_tests_ostream_locale_case(&locale,
-                                                          expected[i]));
+        D_TESTS_OSTREAM_CHECK(d_tests_ostream_locale_point(names[i], point,
+                                                           sizeof(point)));
+        (void)snprintf(expected, sizeof(expected), "1%s5 -0%s125 1%s23e+04",
+                       point, point, point);
+        D_TESTS_OSTREAM_CHECK(d_tests_ostream_locale_case(&locale, expected));
         D_TESTS_OSTREAM_CHECK(strcmp(setlocale(LC_NUMERIC, NULL), "C") == 0);
         d_ostream_locale_close(&locale);
         d_ostream_locale_close(&locale);
