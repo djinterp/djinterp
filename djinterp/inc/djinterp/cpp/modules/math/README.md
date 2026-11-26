@@ -116,7 +116,7 @@ header with g++ and clang++, plain and testing, at every rung from that one
 to C++26. Every header not on the ladder's known list
 (`scripts/ci/ladder_known.txt`) passes all of them.
 
-Tests: 28 C harnesses (`tests/djinterp/c/modules/math/`) and 46 face tests
+Tests: 29 C harnesses (`tests/djinterp/c/modules/math/`) and 46 face tests
 (`tests/djinterp/cpp/modules/math/`), one of them for `parse/expression/`,
 one for the lazy type (chunk 60),
 five for the compile-time core (chunks 53, 56 and 58), one for the bridge
@@ -1144,6 +1144,25 @@ term's exp against the expression's (S480). The float and long double
 plain exp, and every other plain double function, stay the library's
 until each comes within twice, `log` first after S424's step.
 
+**The scalar helpers.** Chunk 64 (S483 to S488), as the owner's ruling 13
+has them, step 52 of 62. `c/modules/math/scalar.h`, generated, gives each
+family `abs`, `copysign` and `is_finite`; `min` and `max`, IEEE 754-2019's
+minimum and maximum, a NaN in either giving that NaN and -0 below +0, as
+the expression language's (S338); `min_num` and `max_num`, which pass a NaN
+over, as C23's `fminimum_num` does; `clamp`, max then min, which keeps a
+NaN; `lerp`, C++20's, exact at both ends, monotonic and never past an end;
+and `ldexp` and `frexp` (S483). Each is exact: `abs`, `copysign`,
+`is_finite`, `ldexp` and `frexp` come twice, the `_c` form pure arithmetic
+and the plain form the C library's, bit for bit the same; the rest, which
+C99 lacks, once; every one but the plain forms a constant expression from
+C++14 (S484, S485). `t_scalar` checks them against the C library, against
+glibc's C23 `fminimum` and its kin, and in C++20 `lerp` against
+`std::lerp` where the target has no fused multiply-add, each to the bit
+(S486). The owner's note on chunk 63's exp,
+a fast and a slow form unless `exp_c` can match glibc, is step 53's plan
+(S487); his ruling numbered the terps' needs as steps 52 to 62, Phase 9
+(S488).
+
 **Decimal text.** `decimal.h` reads a decimal number of any length as the
 nearest `float`, `double` or `long double`, ties to even, whatever the
 rounding mode, and says when the result overflowed to an infinity or
@@ -1205,6 +1224,8 @@ inc/djinterp/c/modules/math/            the C core
   power.h              cbrt, pow, hypot
   remainder.h          fmod, remainder, remquo
   nearest_integer.h    floor, ceil, trunc, round (whole range)
+  scalar.h             abs, copysign, is_finite, min, max, min_num,
+                       max_num, clamp, lerp, ldexp, frexp (chunk 64)
   vec.h, mat.h, quat.h vectors, matrices, quaternions
                        (each in parts: S436)
   decomp.h             LU, QR, Cholesky, SVD, symmetric Jacobi eigen,
@@ -1358,9 +1379,10 @@ warnings as errors, exits 0, and reports 0 failures.
 
 **The smoke tier** is the default. It builds every harness once (gcc, C99) and
 every face test at three rungs (g++ at ISO strict C++98, C++14 and C++20): 145
-builds since chunk 51. It needs only gcc and g++. On a 2.1 GHz Xeon it took 8 minutes with
-one job and 4 with two; chunk 40's, on two cores of it, 7, chunk 41's, 6,
-chunks 42's and 43's, 7, chunk 44's, 9, and chunk 45's, 7.
+builds after chunk 51, 167 after chunk 64. It needs only gcc and g++. On a
+2.1 GHz Xeon it took 8 minutes with one job and 4 with two; chunk 40's, on
+two cores of it, 7, chunk 41's, 6, chunks 42's and 43's, 7, chunk 44's, 9,
+and chunk 45's, 7.
 
 **The full tier** is the matrix. Each C harness is built 12 ways:
 
@@ -1372,9 +1394,10 @@ chunks 42's and 43's, 7, chunk 44's, 9, and chunk 45's, 7.
 - g++ ISO strict C++98 `-m32` on the x87.
 
 A harness with a C++14 section, where it checks constant evaluation
-(eighteen today), is also built at C++14 and C++20 by g++ and clang++. Each
-face test is built 64 ways: 2 compilers, 64-bit and `-m32`, 8 rungs, plain
-and testing. That makes 384 harness builds and 2,368 face builds. On two
+(twenty after chunk 64), is also built at C++14 and C++20 by g++ and
+clang++. Each face test is built 64 ways: 2 compilers, 64-bit and `-m32`,
+8 rungs, plain and testing. That made 384 harness builds and 2,368 face
+builds at chunk 26, and makes 428 and 2,944 after chunk 64. On two
 cores of a 2.8 GHz Xeon, chunk 26's run took 107 minutes: 85 for the
 harnesses, a third of it `t_power`'s, whose 16 builds compile slowly, and 22
 for the face tests; chunk 27's face test adds a minute, and chunk 28's, as
@@ -1499,6 +1522,7 @@ module:
 | 2026.11.24 | S473 ruled: the banners' HOW TO USE, OPTIONS and CONFIGURATION written today; chunk 61's decisions stand ("continue") |
 | 2026.11.24 | rulings 12, 13, 14's 9b and 15, each as recommended: each plain double function correctly rounded once within about twice the C library's time; `min` and `max` as IEEE 754-2019's, with `min_num` and `max_num`; random numbers math's, the seeds and keys simterp's; the elementary block first, then root finding, banded solves and table lookups, the number types, random numbers, the rest; chunk 62's S474, S475 and S477 stand |
 | 2026.11.24 | ruling 14's 9a and 9c: the ODE steppers math's, `st_math` the terps'; S476 B, chunk 62's objects compared as well; the rulings' work now, exp's switch first, then the scalar helpers |
+| 2026.11.24 | chunk 63's decisions stand, S482 B: the terps' needs numbered now, steps 52 on; on S478, a fast and a slow exp unless `exp_c` can match glibc |
 
 ---
 
@@ -1555,8 +1579,8 @@ Wednesday's, their files at the tree's root as his merge window reads a
 zip (S447, S449); chunk 58's goes over that main with both laid over it, in
 order (S455), chunk 59's over that with chunk 58's laid too (S462), and
 chunk 60's after chunk 59's (S468), chunk 61's after chunk 60's
-(S473), chunk 62's after chunk 61's (S477), and chunk 63's after chunk
-62's (S482).
+(S473), chunk 62's after chunk 61's (S477), chunk 63's after chunk 62's
+(S482), and chunk 64's after chunk 63's (S488).
 From 2026.11.18 the lane's notes and deliveries go out once a day.
 
 Outside `cpp/modules/math/`, `c/modules/math/` and their tests, this lane

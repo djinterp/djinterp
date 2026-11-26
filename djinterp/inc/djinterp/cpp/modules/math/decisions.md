@@ -1,11 +1,11 @@
-# djinterp math: the lane's decisions, S1 to S482
+# djinterp math: the lane's decisions, S1 to S488
 
 Every decision the math lane has taken, in the words of the record that took
 it, with the alternative it set aside. The numbers run across the lane's
 records from S1 (slice 3, 2026.10.08); each record's section of decisions is
 here as its README has it, its own first lines among it. A decision was the
 lane's to take within the owner's rulings, and stands once his next word on
-its delivery, his "continue", has accepted it: S1 to S477 stand, his own
+its delivery, his "continue", has accepted it: S1 to S482 stand, his own
 rulings of 2026.10.27 on complex numbers and quaternions, S265 to S278, the
 design of steps 22 to 24, and his choice of 2026.11.07, S383, among them.
 His rulings of 2026.11.03 and 2026.11.04 on the flagged decisions are in the
@@ -37,13 +37,15 @@ chunk 61's, step 35 (5g), the compile-time headers' style debt, which closes
 Phase 5, by his "continue" of 12:34 the same day, S473 as his word of 10:30
 ruled it, its first alternative; and chunk 62's, the banners' HOW TO USE,
 OPTIONS and CONFIGURATION in every header of math, by his rulings of 14:20
-and 14:37, S476 as he ruled it, its alternative. His rulings 12 to 15 of
-that day are in chunk 63's opening lines. S478 to S482 are chunk 63's, open
-until his word on them: the plain double exp correctly rounded, as ruling 12
-has it, and chunk 62's objects compared. His word of 2026.11.14 on the
-language's names, which kept them flat in `djinterp::math`, is S397's. Where
-a later decision changes an earlier one, the later one says so; the earlier
-one stays here as it was taken.
+and 14:37, S476 as he ruled it, its alternative; and chunk 63's, the plain
+double exp correctly rounded, as his ruling 12 has it, and chunk 62's
+objects compared, by his rulings of 21:16, S482 as he ruled it, its
+alternative. His rulings 12 to 15 of that day are in chunk 63's opening
+lines. S483 to S488 are chunk 64's, open until his word on them: the scalar
+helpers of ruling 13, and the terps' needs numbered as Phase 9, steps 52 to
+62. His word of 2026.11.14 on the language's names, which kept them flat in
+`djinterp::math`, is S397's. Where a later decision changes an earlier one,
+the later one says so; the earlier one stays here as it was taken.
 
 A decision names files as they were when it was taken. Chunk 48 merged the
 two quaternion classes (S398) and renamed or split five of the language's
@@ -78,7 +80,7 @@ C6 and N1 to N6, are in the consolidation's record
 followed it; his rulings on them are the roadmap's principles and items
 (`roadmap.md`). From chunk 34 on, each chunk's delivery brings this file,
 its own decisions added at the end. This file is made by
-`_handoffs/math98_chunk63_2026.11.24/tools/decisions_c63.py`.
+`_handoffs/math98_chunk64_2026.11.24/tools/decisions_c64.py`.
 
 ## 1. Outstanding decisions
 
@@ -86,7 +88,7 @@ The 23 flagged decisions: those whose review recommends what is not yet
 done, or names a significant drawback of what was. Each gives when it is
 due, by the roadmap's steps, its flag and its review's recommendation; the
 decision itself and its whole review are in its record's part of section 2.
-The groups and the steps are `decisions_outstanding_c63.md`'s, in chunk 63's
+The groups and the steps are `decisions_outstanding_c64.md`'s, in chunk 64's
 record.
 
 ### 1.1 The expression language
@@ -161,17 +163,6 @@ record.
   the library's functions wherever `<math.h>` declares them, the `_c` forms
   only where it does not. Ruled 2026.11.04 (the owner's, settled): as
   recommended, one answer per platform, at step 36 (6a).
-- S424. When: before the plain double `log` follows ruling 12 (made
-  2026.11.24): `log_c` 1.95 to 3.03 times the C library's time after chunk
-  54 (S432, S433), past twice. `log_c` is still 1.95 to 3.03 times the C
-  library's time, past the twice that ruling 12 asks before the plain form
-  becomes the correctly rounded one. Recommended: as taken, then inverses of
-  8 bits, so that r is exact in one double, before the plain double `log`
-  follows ruling 12; an outside review of the proofs when one can be had. In
-  chunk 54 (S432, S433) `log_c` became 1.70 to 1.85 times as fast, its
-  results the same bits. Ruling 12, made 2026.11.24 as recommended, switches
-  a plain double function once its correctly rounded form is within about
-  twice the library's time; the plain `exp` switched in chunk 63 (S478).
 - S460. When: as ruling 12 (made 2026.11.24) switches each plain function: a
   reified term's sin, cos, tan, log and atan the plain functions, one ulp
   from the C core's correctly rounded kernels at 1 to 56 of 20,000 arguments
@@ -182,13 +173,6 @@ record.
   kernels as ruling 12 decides. Taken in part: ruling 12, made 2026.11.24,
   switched the plain `exp` in chunk 63, and a reified term's exp is now the
   expression's, bit for bit (S478, S480).
-- S478. When: a speed step for `exp_c`'s first phase, before or with `log`'s
-  (S424): the plain double exp, `exp_c` since chunk 63, 2.1 to 2.6 times the
-  C library's time on ordinary arguments by gcc, up to 3.0 by clang. On
-  ordinary arguments the plain exp is past the twice that ruling 12 names;
-  until the speed step, the owner may hold the switch instead. Recommended:
-  as taken, as decision 48 ruled it, then a speed step for exp_c's first
-  phase on ordinary arguments, as S424's for log.
 - S9. When: step 39 (6d), with MSVC. Significant drawback on compilers
   without the builtin. Recommended: as taken, plus `std::bit_cast` from
   C++20 where the builtin is missing, so every C++20 compiler gets it. Taken
@@ -209,6 +193,27 @@ record.
   roadmap's seventh principle has it; chunk 42's squaring in the family's
   own type, the faster, kept for a `_fast` form at step 40 (6e), where
   measured demand asks for one.
+- S478. When: step 53 (T2), as the owner's note on it has it (S487): `exp_c`
+  made as fast as glibc's exp, or else a `_fast` exp beside it; the plain
+  double exp, `exp_c` since chunk 63, 2.1 to 2.6 times the C library's time
+  on ordinary arguments by gcc, up to 3.0 by clang. On ordinary arguments
+  the plain exp is past the twice that ruling 12 names; until the speed
+  step, the owner may hold the switch instead. The owner kept it, 2026.11.24
+  at 21:16, noting "Let's make a fast and slow version? Unless we can make
+  it as good as GCC": step 53's plan (chunk 64, S487). Recommended: as
+  taken, as decision 48 ruled it, then a speed step for exp_c's first phase
+  on ordinary arguments, as S424's for log.
+- S424. When: step 54 (T3), before the plain double `log` follows ruling 12
+  (made 2026.11.24): `log_c` 1.95 to 3.03 times the C library's time after
+  chunk 54 (S432, S433), past twice. `log_c` is still 1.95 to 3.03 times the
+  C library's time, past the twice that ruling 12 asks before the plain form
+  becomes the correctly rounded one. Recommended: as taken, then inverses of
+  8 bits, so that r is exact in one double, before the plain double `log`
+  follows ruling 12; an outside review of the proofs when one can be had. In
+  chunk 54 (S432, S433) `log_c` became 1.70 to 1.85 times as fast, its
+  results the same bits. Ruling 12, made 2026.11.24 as recommended, switches
+  a plain double function once its correctly rounded form is within about
+  twice the library's time; the plain `exp` switched in chunk 63 (S478).
 - S20. When: at any step that touches `power.h`; minor. Not the
   recommendation (minor). Recommended: the alternative, at its small cost.
   Ruled 2026.11.04: the alternative, as recommended, at any step that
@@ -10657,7 +10662,9 @@ section's comment and `exponential.h`'s banner say so.
 > step for exp_c's first phase on ordinary arguments, as S424's for log.
 > **Flag:** on ordinary arguments the plain exp is past the twice that
 > ruling 12 names; until the speed step, the owner may hold the switch
-> instead.
+> instead. The owner kept it, 2026.11.24 at 21:16, noting "Let's make a fast
+> and slow version? Unless we can make it as good as GCC": step 53's plan
+> (chunk 64, S487).
 
 **S479. Where double is evaluated wider than double, a 32-bit x87, the
 plain double exp stays the C library's, so that the plain form builds
@@ -10748,4 +10755,170 @@ until then. The zip goes after chunk 62's.
 > unchanged, chunk 63's own after chunk 62's. Against: the progress table
 > does not count the new work yet. The alternative: every item numbered now,
 > for an order past the next few items that waits on simterp's rulings.
-> Recommended: as taken. Taken.
+> Recommended: as taken. Ruled 2026.11.24 (the owner's rulings of 21:16):
+> the alternative, against the recommendation, the work numbered now, as
+> steps 52 on; done in chunk 64, Phase 9 (S488).
+
+### S483 to S488: chunk 64, 2026.11.24
+
+The record: `_handoffs/math98_chunk64_2026.11.24/README.md`.
+
+Chunk 64's decisions, S483 to S488: the scalar helpers of the owner's ruling
+13, step 52 of 62, the next of the work his rulings of 2026.11.24 start, as
+his decision 48 has it; and Phase 9 numbered, as he ruled. His rulings of
+2026.11.24 at 21:16, on the page after chunk 63, accepted S478 to S481,
+each as recommended, with a note on S478 ("Let's make a fast and slow
+version? Unless we can make it as good as GCC"), and ruled S482 B, against
+the recommendation: the terps' needs numbered now, as steps 52 on.
+
+**S483. Ruling 13's helpers are a new header of the C core,
+`c/modules/math/scalar.h`, generated from one text for the three families
+(`scripts/gen_c_math/scalar.py`), with the C++ overloads that name each for
+every family: `abs`, `copysign` and `is_finite`; `min` and `max`, IEEE
+754-2019's minimum and maximum, a NaN in either giving that NaN and -0
+less than +0, as the expression language's are (S338); `min_num` and
+`max_num`, its minimumNumber and maximumNumber, which pass a NaN over for
+the other number, NaN only where both are; `clamp`, `_x` held to `[_lo,
+_hi]`, max then min; `lerp`, as C++20's `std::lerp` is; and `ldexp` and
+`frexp`.** The names are the C core's, `d_math_d_min` with `_f` and `_ld`
+beside it and `d_math_min` in C++. It includes `float_order.h`, whose exact
+powers of two `ldexp_c` and `frexp_c` use. Its banner has the three
+sections from the generator (S475).
+- Alternative: the helpers in `math_common.h`, which every header of the
+  C core includes: eleven functions three times in a file every unit reads,
+  for the few that use them.
+- Alternative: helpers in the C++ faces alone: the C core and C callers
+  without them, and two texts where the language and the C core need one
+  answer.
+
+> **Review.** Taken: for, the helpers where the C core keeps its functions,
+> one text for three families and the C++ names with them, generated with
+> their banner sections, included only where used. Against: one more header
+> of 1,900 lines for eleven small functions. The alternatives:
+> math_common.h, read by every unit; the C++ faces alone, two texts for one
+> answer. Recommended: as taken. Taken.
+
+**S484. A helper the C library has comes twice, as `nearest_integer.h`'s
+do: `abs`, `copysign`, `is_finite`, `ldexp` and `frexp` have a `_c` form,
+pure arithmetic, a constant expression from C++14, and a plain form, the C
+library's `fabs`, `copysign`, `isfinite`, `ldexp` and `frexp`; each is
+exact, so the two agree bit for bit. Those C99 lacks, `min`, `max`,
+`min_num`, `max_num`, `clamp` and `lerp`, come once, pure arithmetic, a
+constant expression from C++14. C++ before C++11 has no `copysign` or
+`isfinite`, so there those plain forms are the `_c` forms.**
+- Alternative: one form each, pure arithmetic: `ldexp_c` scales by steps
+  and `frexp_c` searches binades, several times the library's time, where
+  the library's answer is the same bits.
+- Alternative: the plain `min` and `max` on C23's `fminimum` and
+  `fmaximum` where a library has them: absent from C99 and from most
+  libraries before 2022, and a NaN they return is quieted by arithmetic
+  whose payload differs by platform.
+
+> **Review.** Taken: for, the library's speed where the library's answer is
+> exact, the pure-arithmetic form for constant evaluation, the two the same
+> bits, as nearest_integer.h's are; one form where C99 has none. Against:
+> two names for five of the eleven. The alternatives: one form each, the
+> library's time lost for ldexp and frexp; C23's functions, absent from most
+> libraries and quieting a NaN by arithmetic. Recommended: as taken. Taken.
+
+**S485. The edges, each to the bit. `min` and `max` give the first NaN
+itself, not one an operation quieted, so that the bits are the same on
+every platform, as the language's `min` does; a zero's sign, and a NaN's,
+is read by the copysign builtin GCC and Clang evaluate in a constant
+expression, as `tangent.h`'s `negative` reads it, and elsewhere by `1 /
+_x`, no constant expression there for a zero, a NaN counting as positive.
+`clamp` is max then min: a NaN in any of the three gives NaN, and a `_lo`
+above `_hi` gives `_hi`. `lerp` is Herring's (P0811), which `std::lerp`
+follows: exactly `_a` at 0 and `_b` at 1, monotonic, never past an end for
+`_t` in `[0, 1]`, ends of opposite signs taking two products that cannot
+cancel; a NaN in any gives the first. `ldexp_c` scales down by steps of
+2^(bottom + P), so that the one rounding that counts is the last, and
+`frexp_c` takes `float_order.h`'s binade, a subnormal first scaled into the
+normal range; a zero, an infinity and NaN give themselves and exponent 0.
+`is_finite_c` is two comparisons, a constant expression at an infinity and
+at NaN, where `_x - _x` is not.**
+- Alternative: a quieted NaN from `min` and `max`, as C23's are: a payload
+  that differs by platform where both are NaN.
+- Alternative: `clamp` with `_lo` above `_hi` left undefined, as
+  `std::clamp` has it: a precondition C cannot check, where one defined
+  answer costs nothing.
+- Alternative: `lerp` as `_a + _t (_b - _a)` alone: it misses `_b` at 1
+  and overshoots near it.
+
+> **Review.** Taken: for, every edge defined to the bit: a NaN kept as it
+> came, a zero's sign read as tangent.h reads it, clamp defined past its
+> precondition, lerp as C++20's, ldexp rounded once. Against: away from GCC
+> and Clang, a zero's sign at compile time cannot be read, so min and max of
+> two zeros are no constant expression there. The alternatives: a quieted
+> NaN, its payload the platform's; clamp undefined past _lo above _hi; lerp
+> as the plain formula, past its end. Recommended: as taken. Taken.
+
+**S486. `t_scalar` checks each helper to the bit, every family: `abs_c`,
+`copysign_c`, `is_finite_c`, `ldexp_c` and `frexp_c`, and the plain forms,
+against the C library at a million random patterns of float and of double,
+`ldexp` at scales from below the least subnormal to past overflow, and long
+double at two hundred thousand values; `min`, `max`, `min_num` and
+`max_num` against a reference written from IEEE 754-2019's words and,
+where glibc has them (2.35 on), against C23's `fminimum`, `fmaximum`,
+`fminimum_num` and `fmaximum_num`; `clamp` against max then min; `lerp`'s
+promises at a million triples and, from C++20 where the target has no
+fused multiply-add, `std::lerp` bit for bit; C's special values, the C++
+overloads, and from C++14 the constant evaluation.** Its 16 builds of the
+full tier and 6 of the fused tier pass, 19.6 million checks each, 20.6
+million where `std::lerp` is compared. The fused tier's first run failed
+in clang's C++20 build: clang fuses `<cmath>`'s `lerp`, which no pragma
+keeps unfused, where `scalar.h`'s is kept; the comparison now runs only
+where the target has no fused multiply-add.
+- Alternative: `std::lerp` compared in every build: a fused build compares
+  two different formulas, and fails for the library's sake.
+
+> **Review.** Taken: for, each helper checked against an oracle the lane did
+> not write where one exists - the C library, glibc's C23 functions,
+> std::lerp - and against IEEE 754-2019's words where none does, to the bit,
+> in every build of the tiers. Against: std::lerp is compared only where the
+> target has no fused multiply-add. The alternative: std::lerp everywhere,
+> failing where the library fuses. Recommended: as taken. Taken.
+
+**S487. The owner's note on S478 is step 53's plan (T2): `exp_c` made as
+fast as glibc's exp, if a speed step can make it so; if it cannot, a fast
+form beside the correctly rounded plain exp, `d_math_d_exp_fast`, 6e's
+`_fast` exp, named as the `_fast` forms are (S404), so that a caller who
+wants glibc's time chooses it by name, the plain exp staying the correctly
+rounded one, as ruling 12 and decision 49 have it.** Step 53 measures
+first, on ordinary arguments and over the whole range (the habit S478's
+correction made), and says which it took.
+- Alternative: the fast form at once, the C library's exp, before any
+  speed step: a name kept even if `exp_c` then matches glibc.
+- Alternative: the plain exp back to the library's, `exp_c` the slow
+  form: against ruling 12 and decision 49.
+
+> **Review.** Taken: for, the owner's note as the plan: the faster answer
+> sought first, a second name only if it must be, the plain exp correctly
+> rounded either way. Against: until step 53, a caller who wants glibc's
+> time has no name for it but the C library's own exp. The alternatives: the
+> fast form now, a name kept even if it proves needless; the plain exp the
+> library's again, against ruling 12. Recommended: as taken. Taken.
+
+**S488. Phase 9, the terps' needs, numbered as the owner ruled S482 (B):
+steps 52 to 62, T1 to T11, after the rest, no earlier step moving - the
+scalar helpers (T1, this chunk, done), exp's speed (T2), log's speed and
+switch (T3), Stumpff functions and exact wrapping (T4), erf, erfc and the
+inverse normal (T5), root finding (T6), banded solves (T7), table lookups
+(T8), the number types (T9), random numbers (T10) and ODE steppers (T11);
+the progress table 34 of 62. The labels are T's, not 9a's, since the page
+calls ruling 14's parts 9a to 9c. The owner's rulings of 2026.11.24 at
+21:16 are recorded where the lane keeps rulings. Chunk 64's zip is cut over
+the owner's main of 2026.11.23, `6ee9dce1`, with Wednesday's, Friday's and
+chunks 58's to 63's zips laid over it, in that order, and holds chunk 64's
+files alone, at the tree's root.** Every chunk's note says "step N of 62"
+from now. The zip goes after chunk 63's.
+- Alternative: Phase 9's steps placed among the others, before 6b, in the
+  order of work: every step from 37 on renumbered, and every record that
+  names one read differently.
+
+> **Review.** Taken: for, the owner's ruling as he made it: Phase 9's eleven
+> steps numbered after the rest, no earlier number moving, the progress
+> table and the timeline counting them, T's labels clear of the page's 9a to
+> 9c. Against: the steps' numbers no longer run in the order of work, 52
+> coming before 37. The alternative: Phase 9 among the others, every later
+> step renumbered. Recommended: as taken. Taken.

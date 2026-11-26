@@ -121,6 +121,21 @@ SECTIONS = {
         "None: the two forms give the same bits, so which runs changes "
         "nothing.",
         LEVELS),
+    "scalar.h": (
+        "Include it from C or C++. d_math_d_abs, _copysign and _is_finite, "
+        "d_math_d_min and _max, IEEE 754-2019's minimum and maximum, "
+        "d_math_d_min_num and _max_num, which pass a NaN over, "
+        "d_math_d_clamp, d_math_d_lerp, and d_math_d_ldexp and _frexp; "
+        "abs, copysign, is_finite, ldexp and frexp have _c forms too. "
+        + FAMILY,
+        "None: nothing in this header is chosen at run time; the _c form "
+        "or the plain one is the caller's, by name, and both give the same "
+        "bits.",
+        "None of its own: it compiles as C, and as C++ from ISO strict "
+        "C++98, where copysign and is_finite are the _c forms; every "
+        "function but the plain forms is a constant expression from C++14 "
+        "(math_common.h's D_MATH_FN). It assumes subnormals, as "
+        "float_order.h does."),
     "vec.h": (
         "Include it from C or C++; it includes its four parts. A vector "
         "is the caller's array and its count: d_vec_d_add, _dot, _cross, "

@@ -46,7 +46,8 @@ empty below it, and `math.hpp`, which includes them all, at every level;
 their names and sections are the style guides' (chunk 61). Every header
 of math has the banners' HOW TO USE, OPTIONS and CONFIGURATION (chunk 62).
 The plain double exp is the correctly rounded one, as the owner's ruling
-12 has it (chunk 63).
+12 has it (chunk 63). The scalar helpers of his ruling 13 are in
+`scalar.h` (chunk 64, step 52 of 62).
 `reify` (chunk 59) makes a compile-time expression a term of the run-time
 language, which prints, simplifies and evaluates it by name. Linear algebra
 has an opt-in lazy type from C++11 (chunk 60), each element the eager bits.
@@ -117,10 +118,12 @@ laid over it (the README's section 8).
 ## Progress
 
 Every item below has a step number, in the order the lane plans to take
-them: 51 steps from Phase 0 to Phase 8. Each chunk's note says which step it
-is, as "step 6 of 51". If the order changes, the numbers are redone and the
+them: 62 steps from Phase 0 to Phase 9. Each chunk's note says which step it
+is, as "step 6 of 62". If the order changes, the numbers are redone and the
 note says so: on 2026.10.27 the owner added 3d to 3f to Phase 3 (S265), and
-every step from 22 on moved three further, 4a from step 22 to step 25.
+every step from 22 on moved three further, 4a from step 22 to step 25; on
+2026.11.24 he numbered Phase 9's eleven as steps 52 to 62, after the rest,
+no earlier step moving (S488).
 
 | Phase | Steps | Done |
 |---|---|---|
@@ -134,7 +137,8 @@ every step from 22 on moved three further, 4a from step 22 to step 25.
 | 7: Comparison with other libraries (7a, 7b) | 41 and 42 | 0 of 2 |
 | 8: Bignum (P1 to P7) | 43 to 49 | 1 of 7 |
 | When ready: C6 (the 09.29 lane) and C4b (a CI workflow) | 50 and 51 | 0 of 2 |
-| **All** | **1 to 51** | **33 of 51** |
+| 9: The terps' needs (T1 to T11) | 52 to 62 | 1 of 11 |
+| **All** | **1 to 62** | **34 of 62** |
 
 "Later, not yet decided" is not counted.
 
@@ -1033,7 +1037,8 @@ of a term, `str()` writes as the renderer does, `x ^ 2 * sin(x)`.
   evaluated wider is refused at compile time, the message naming the flags
   (ruling 4, S418); the rest stays for the other families.
 - [ ] **6e** (step 40) `_fast` variants where measured demand exists: rsqrt and
-  normalize, sincos, exp.
+  normalize, sincos, exp. For exp the owner asked for one on 2026.11.24,
+  unless `exp_c` can be made as fast as glibc's (T2, step 53; S487).
 
 ## Phase 7 — Comparison with other libraries (decision 5)
 
@@ -1066,39 +1071,47 @@ C++20.
 - [ ] **P7** (step 49) `evaluate(context)` at any precision, and an optional
   GMP/MPFR backend behind a configuration switch.
 
-## The terps' needs, as ruled 2026.11.24 (rulings 12 to 15)
+## Phase 9 — The terps' needs (rulings 12 to 15)
 
 The owner's rulings 12 to 15 of 2026.11.24, on simterp's and genterp's
-needs list, give math this work, in ruling 15's order. It is not yet
-numbered as steps: each item gets its step's number when it is scheduled,
-and is counted in the progress table from then (S482).
+needs list, give math this work, in ruling 15's order, the scalar helpers
+first as his decision 48 has it. Chunk 63 listed it unnumbered (S482);
+his ruling of 2026.11.24 at 21:16 numbered it, as steps 52 on (chunk 64,
+S488). The plain double functions switch to the correctly rounded ones
+within 6a, step 36, each as ruling 12 allows: exp in chunk 63 (S478).
 
-- **The elementary block** (ruling 15): each plain double function made the
-  correctly rounded one once it is within about twice the C library's time
-  (ruling 12) - exp in chunk 63 (S478), its own speed step outstanding,
-  then log after S424's step - and the rest of the double family as 6a
-  rewrites it, with the special functions placed in it: Stumpff functions
-  and exact angle wrapping with sin and cos; erf, erfc and the inverse
-  normal with gamma, at the block's end (S203).
-- **The scalar helpers** (ruling 13, B), in chunk 64 as the owner's
-  decision 48 has it: `abs`, `clamp`, `lerp`, `copysign`, `ldexp`,
-  `frexp`, `is_finite`, and `min` and `max` as IEEE 754-2019's minimum and
-  maximum, a NaN in giving NaN out and -0 below +0, with `min_num` and
-  `max_num`, which ignore a NaN, as C23 has both; `clamp` of a NaN NaN, and
-  `lerp` exact at both ends and never overshooting, as C++20's is.
-- **Root finding, banded solves and table lookups** (ruling 15).
-- **The number types** - dual numbers, enclosing intervals, affine
-  arithmetic - once simterp rules its A6 (ruling 15).
-- **Random numbers**, math's (ruling 14, 9b): a counter-based generator
-  keyed by seed, entity and purpose, Sobol sequences and the distributions
-  as pure functions of the bits, simterp choosing the seeds and keys; once
-  simterp's A9 places the seeds (ruling 15).
-- **ODE steppers**, math's (ruling 14, 9a): Dormand-Prince 5(4) with dense
-  output and IAS15, written from its paper; simterp's symplectic N-body
-  maps stay simterp's. With the rest, as simterp rules each need (ruling
-  15).
-- `st_math`, the terps' frozen library, stays in simterp and genterp
-  (ruling 14, 9c).
+- [x] **T1** (step 52) (chunk 64) The scalar helpers (ruling 13, B), in
+  `c/modules/math/scalar.h`: `abs`, `copysign` and `is_finite`; `min` and
+  `max` as IEEE 754-2019's minimum and maximum, a NaN in either giving
+  that NaN and -0 below +0, with `min_num` and `max_num`, which pass a NaN
+  over, as C23 has both; `clamp`, which keeps a NaN; `lerp`, exact at both
+  ends and never past them, as C++20's is; and `ldexp` and `frexp` (S483 to
+  S486).
+- [ ] **T2** (step 53) exp's speed (S478), as the owner's note on decision
+  49 has it: `exp_c` made as fast as glibc's exp, if it can be; if not, a
+  fast form beside the correctly rounded plain one, 6e's `_fast` exp, so
+  that a caller chooses by name (S487).
+- [ ] **T3** (step 54) log's speed (S424), and then its switch (ruling 12).
+- [ ] **T4** (step 55) Stumpff functions and exact angle wrapping, with sin
+  and cos in 6a (ruling 15).
+- [ ] **T5** (step 56) erf, erfc and the inverse normal, with gamma, at the
+  elementary block's end (S203, ruling 15).
+- [ ] **T6** (step 57) Root finding (ruling 15).
+- [ ] **T7** (step 58) Banded solves (ruling 15).
+- [ ] **T8** (step 59) Table lookups (ruling 15).
+- [ ] **T9** (step 60) The number types - dual numbers, enclosing intervals,
+  affine arithmetic - once simterp rules its A6 (ruling 15).
+- [ ] **T10** (step 61) Random numbers, math's (ruling 14, 9b): a
+  counter-based generator keyed by seed, entity and purpose, Sobol
+  sequences and the distributions as pure functions of the bits, simterp
+  choosing the seeds and keys; once simterp's A9 places the seeds.
+- [ ] **T11** (step 62) ODE steppers, math's (ruling 14, 9a): Dormand-Prince
+  5(4) with dense output and IAS15, written from its paper; simterp's
+  symplectic N-body maps stay simterp's. With the rest of the needs list,
+  as simterp rules each need (ruling 15).
+
+`st_math`, the terps' frozen library, stays in simterp and genterp (ruling
+14, 9c).
 
 ## Later, not yet decided
 
@@ -1229,9 +1242,11 @@ wrote the banners' three sections in every header of math (S474 to
 S477), which stand by his rulings of 14:20 and 14:37, S476 as he ruled it,
 the objects compared as well; and chunk 63, as his rulings 12 to 15 of
 that day and his decision 48 have it, made the plain double exp the
-correctly rounded one and compared chunk 62's objects (S478 to S482). The
-work rulings 13 to 15 make is in "The terps' needs", below, in ruling 15's
-order.
+correctly rounded one and compared chunk 62's objects (S478 to S482),
+which stand by his rulings of 21:16 the same day, S482 as he ruled it; and
+chunk 64 wrote the scalar helpers of ruling 13, Phase 9's first step, and
+numbered the phase, as he ruled (S483 to S488). The work rulings 12 to 15
+make is Phase 9, below, in ruling 15's order.
 The outstanding decisions of `decisions.md`, its section 1, by group and
 urgency, and the suggestions of `comparison.md`'s section 9 are the owner's
 to take or leave before then.

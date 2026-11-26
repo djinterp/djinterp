@@ -11,6 +11,7 @@ from .hyperbolic import (hyperbolic)
 from .power import (power)
 from .remainder import (remainder)
 from .nearest_integer import (nearest_integer)
+from .scalar import (scalar)
 from .vec import (vec)
 from .mat import (mat)
 from .quat import (quat)
@@ -37,6 +38,7 @@ OUTPUTS = {
     "power.h": power,
     "remainder.h": remainder,
     "nearest_integer.h": nearest_integer,
+    "scalar.h": scalar,
     "vec.h": vec,
     "mat.h": mat,
     "quat.h": quat,
