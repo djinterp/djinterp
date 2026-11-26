@@ -1,11 +1,11 @@
-# djinterp math: the lane's decisions, S1 to S462
+# djinterp math: the lane's decisions, S1 to S468
 
 Every decision the math lane has taken, in the words of the record that took
 it, with the alternative it set aside. The numbers run across the lane's
 records from S1 (slice 3, 2026.10.08); each record's section of decisions is
 here as its README has it, its own first lines among it. A decision was the
 lane's to take within the owner's rulings, and stands once his next word on
-its delivery, his "continue", has accepted it: S1 to S455 stand, his own
+its delivery, his "continue", has accepted it: S1 to S462 stand, his own
 rulings of 2026.10.27 on complex numbers and quaternions, S265 to S278, the
 design of steps 22 to 24, and his choice of 2026.11.07, S383, among them.
 His rulings of 2026.11.03 and 2026.11.04 on the flagged decisions are in the
@@ -29,12 +29,13 @@ C++11, with two of their own failures fixed; chunk 57's, chunks 55's and
 56's zips cut again on his push of 2026.11.23, the lane's prose and the
 generator's strings with one hyphen for a dash; and chunk 58's, step 31
 (5c), the calculus headers from C++11, and with them step 33 (5e),
-`math.hpp` at every rung. S456 to S462 are chunk 59's, open until his word
-on them: step 32 (5d), `reify`, a compile-time expression made a term of the
-run-time language. His word of 2026.11.14 on the language's names, which
-kept them flat in `djinterp::math`, is S397's. Where a later decision
-changes an earlier one, the later one says so; the earlier one stays here as
-it was taken.
+`math.hpp` at every rung; and chunk 59's, step 32 (5d), `reify`, a
+compile-time expression made a term of the run-time language, by his
+"continue" of 21:32 the same day. S463 to S468 are chunk 60's, open until
+his word on them: step 34 (5f), the opt-in lazy type of linear algebra. His
+word of 2026.11.14 on the language's names, which kept them flat in
+`djinterp::math`, is S397's. Where a later decision changes an earlier one,
+the later one says so; the earlier one stays here as it was taken.
 
 A decision names files as they were when it was taken. Chunk 48 merged the
 two quaternion classes (S398) and renamed or split five of the language's
@@ -69,7 +70,7 @@ C6 and N1 to N6, are in the consolidation's record
 followed it; his rulings on them are the roadmap's principles and items
 (`roadmap.md`). From chunk 34 on, each chunk's delivery brings this file,
 its own decisions added at the end. This file is made by
-`_handoffs/math98_chunk59_2026.11.23/tools/decisions_c59.py`.
+`_handoffs/math98_chunk60_2026.11.23/tools/decisions_c60.py`.
 
 ## 1. Outstanding decisions
 
@@ -77,7 +78,7 @@ The 22 flagged decisions: those whose review recommends what is not yet
 done, or names a significant drawback of what was. Each gives when it is
 due, by the roadmap's steps, its flag and its review's recommendation; the
 decision itself and its whole review are in its record's part of section 2.
-The groups and the steps are `decisions_outstanding_c59.md`'s, in chunk 59's
+The groups and the steps are `decisions_outstanding_c60.md`'s, in chunk 60's
 record.
 
 ### 1.1 The expression language
@@ -10184,3 +10185,135 @@ that it compiles at every level.
 > Against: chunk 59 right only over the three zips laid in order. The
 > alternative: chunk 58's zip changed to carry chunk 59. Recommended: as
 > taken. Taken.
+
+### S463 to S468: chunk 60, 2026.11.23
+
+The record: `_handoffs/math98_chunk60_2026.11.23/README.md`.
+
+Chunk 60's decisions, S463 to S468: step 34 (5f), the opt-in lazy type, for
+linear algebra first, as the owner's decision 2 asks: eager by default, and
+laziness an explicit opt-in from C++11 whose bits are the eager ones
+(principle 6). Chunk 59's decisions stand by the owner's "continue" of
+2026.11.23 at 21:32; his rulings 12 to 15 are still to come.
+
+**S463. The lazy type is `linear_algebra/lazy.hpp`, from C++11 and empty
+below it: `lazy(x)` wraps a vector, a matrix or a dynamic_matrix, and the
+operators on what it returns build an expression and compute nothing: + and
+- of two expressions of one shape, unary -, a scalar times an expression on
+either side, an expression of a vector divided by a scalar, as vector's /
+is, `hadamard`, the entry-wise product, the matrix product of a matrix by a
+matrix or by a vector, and `transpose`. `eval(e)`, or `e.eval()`, computes
+it into a new value of the type eager arithmetic would give, and
+`assign(dst, e)`, or `e.assign_to(dst)`, into dst, each element once, with
+no temporary for each step. `linalg.hpp` includes it.** Nothing is lazy
+unless `lazy` is written: eager arithmetic is as it was, and an expression
+of lazy operands is a type of its own until it is evaluated.
+- Alternative: every operator of the types lazy, as Eigen's are: against
+  decision 2, and a change to what every caller's `auto` holds.
+- Alternative: a lazy wrapper holding each operand by copy: a copy of each
+  dynamic matrix, for an economy of copies.
+
+> **Review.** Taken: for, laziness where it is asked for and nowhere else,
+> eager arithmetic unchanged, each element once with no temporary a step,
+> the results of the types eager arithmetic gives. Against: a second
+> spelling of the same arithmetic, `lazy(a) + lazy(b)` beside `a + b`. The
+> alternatives: every operator lazy, against decision 2; operands held by
+> copy, a copy of each dynamic matrix. Recommended: as taken. Taken.
+
+**S464. A lazy element is computed by the same operations, in the same
+order, as the eager loops compute it, so that its bits are the eager ones:
+a sum, a difference, a negation, a scaling and a division element by
+element, an entry-wise product likewise; and a matrix product and a
+transpose by the eager operations themselves, once, before the elements,
+each product's entry the compensated dot of S404. Where the build may fuse a
+multiply and an add, gcc and clang on a target with a fused multiply-add,
+each product of the element loop is fenced, so that the next sum takes it
+rounded, as the eager loops, each storing its result, always do; where
+float and double are evaluated wider than their types, a 32-bit x87, every
+element is fenced, rounded to its type.** With the fence taken out of a
+build that fuses, gnu++17 with `-march=x86-64-v3`, gcc's lazy elements
+differ from its eager ones at 54,931 of 262,000, clang's at none, its
+default fusing within one expression only (`raw/measure/fence_out.txt`);
+with it, at none. The fence costs a store and a load a product where the
+target fuses, and nothing elsewhere.
+On clang's x87 the eager fixed-size operations themselves keep the wider
+value across their steps, as S37 documents, and so differ from the lazy
+ones there, which round each step as gcc's eager ones do.
+- Alternative: a matrix product's entries computed in the element loop,
+  each the dot of a row and a column of operands that may be expressions
+  themselves: those recomputed for every entry.
+- Alternative: no fence, the lazy bits following the build where it fuses
+  (S415): against principle 6, a lazy result another number than the eager
+  one in the same build.
+
+> **Review.** Taken: for, the eager bits by construction, element by
+> element, products and transposes the eager operations' own; the fence
+> measured needed, gcc's lazy elements otherwise a fifth of them other
+> numbers in a fusing build. Against: the fence a store and a load a product
+> where the target fuses, which keeps the loop from vectorizing there; on
+> clang's x87 the eager fixed-size steps, not the lazy ones, keep the wider
+> value (S37). The alternatives: products entry by entry in the loop,
+> operands recomputed; no fence, two answers in one build. Recommended: as
+> taken. Taken.
+
+**S465. The leaves hold their operands by reference, so an expression lives
+no longer than they do, and `lazy` of a temporary is refused at compile
+time; both operands of + - and a product are lazy, a concrete operand
+wrapped explicitly, `lazy(b)`, and a scalar is any arithmetic type,
+converted to the element type as eager arithmetic converts it. Shapes are
+checked as eager arithmetic checks them: by the types for the fixed sizes,
+by assert for dynamic_matrix, a product's and a transpose's shape taken from
+their operands before anything is computed.**
+- Alternative: a concrete operand lifted to a leaf on its own: a
+  temporary's reference kept by an expression an `auto` holds past its full
+  expression.
+
+> **Review.** Taken: for, no copy of an operand, no dangling temporary,
+> nothing lazy unasked, shapes checked as eagerly as eager arithmetic checks
+> them. Against: an expression's lifetime its operands', as with any
+> reference. The alternative: concrete operands lifted on their own, a
+> temporary's reference kept past its expression. Recommended: as taken.
+> Taken.
+
+**S466. `assign(dst, e)` writes each element of e into dst in place, dst
+taking e's shape, as an eager assignment would: where e reads dst, it reads
+it only at the element being written, element-wise, or before the first is
+written, in a product or a transpose, so that no temporary is needed.**
+`assign(a, lazy(a) * k + lazy(b))` and `assign(m, lazy(m) * lazy(n) +
+lazy(m) * 0.5)` give the eager `a * k + b` and `m * n + m * 0.5`.
+- Alternative: every assignment through a temporary, then copied: an
+  allocation for each, which assign exists to save.
+
+> **Review.** Taken: for, assignment in place without a temporary, safe
+> where the expression reads the destination, the destination taking its
+> shape. Against: none measured. The alternative: every assignment through a
+> temporary. Recommended: as taken. Taken.
+
+**S467. A face test, `t_lazy_face.cpp`, checks the lazy type at every rung:
+1 check below C++11, 12 from C++11, 7 on clang's 32-bit x87, where the
+fixed-size checks are left out (S37, S464); 64 of 64 builds of the full tier
+and 4 of 4 of the fused tier pass.** It checks the types and shapes, and at
+300 draws each element of vectors of double, float, long double and complex
+numbers, fixed-size matrices with products and a transpose, and dynamic
+matrices with products, a transpose and assign, against the eager
+arithmetic, bit for bit.
+- Alternative: the lazy checks in each type's own face test: the opt-in
+  type spread over tests that need no C++11.
+
+> **Review.** Taken: for, the lazy type checked at every rung against the
+> eager arithmetic, bit for bit, in each element type and shape. Against: on
+> clang's x87 the fixed-size checks left out, as the eager side differs
+> there. The alternative: the checks spread over each type's own test.
+> Recommended: as taken. Taken.
+
+**S468. Chunk 60's zip is cut over the owner's main of 2026.11.23,
+`6ee9dce1`, with Wednesday's, Friday's and chunks 58's and 59's zips laid
+over it, in that order, and holds chunk 60's files alone, at the tree's
+root (S449, S462).** It goes after chunk 59's zip.
+- Alternative: chunks 59 and 60 in one zip in place of chunk 59's: a zip
+  already gated and given out, changed.
+
+> **Review.** Taken: for, the zips sent unchanged, chunk 60's own after
+> chunk 59's, the gates run over the five in order. Against: chunk 60 right
+> only over the four zips laid in order. The alternative: chunk 59's zip
+> changed to carry chunk 60. Recommended: as taken. Taken.

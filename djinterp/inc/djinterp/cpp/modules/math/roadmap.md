@@ -44,7 +44,8 @@ The compile-time expression core (chunk 53), function, functional and
 values on it (chunk 56) and calculus (chunk 58) compile from C++11, each
 empty below it, and `math.hpp`, which includes them all, at every level.
 `reify` (chunk 59) makes a compile-time expression a term of the run-time
-language, which prints, simplifies and evaluates it by name.
+language, which prints, simplifies and evaluates it by name. Linear algebra
+has an opt-in lazy type from C++11 (chunk 60), each element the eager bits.
 
 The framework's shared expression core, `parse/expression/`, has a term type,
 folds, a parser, a renderer and a compile-time term. P0 (chunk 27) fixed what
@@ -124,12 +125,12 @@ every step from 22 on moved three further, 4a from step 22 to step 25.
 | 2: The expression bones (P0, then 2a to 2f) | 12 to 18 | 7 of 7 |
 | 3: Linear algebra, complex numbers and quaternions in expressions (3a to 3f) | 19 to 24 | 6 of 6 |
 | 4: Calculus in expressions (4a to 4d) | 25 to 28 | 0 of 4 |
-| 5: The compile-time face and the remaining ports (5a to 5g) | 29 to 35 | 5 of 7 |
+| 5: The compile-time face and the remaining ports (5a to 5g) | 29 to 35 | 6 of 7 |
 | 6: Precision (6a to 6e) | 36 to 40 | 1 of 5 |
 | 7: Comparison with other libraries (7a, 7b) | 41 and 42 | 0 of 2 |
 | 8: Bignum (P1 to P7) | 43 to 49 | 1 of 7 |
 | When ready: C6 (the 09.29 lane) and C4b (a CI workflow) | 50 and 51 | 0 of 2 |
-| **All** | **1 to 51** | **31 of 51** |
+| **All** | **1 to 51** | **32 of 51** |
 
 "Later, not yet decided" is not counted.
 
@@ -978,8 +979,15 @@ of a term, `str()` writes as the renderer does, `x ^ 2 * sin(x)`.
   ladder's known-failures list has no math entries left: it compiles at
   every rung once the calculus headers do, so step 33 is done with step 31,
   before step 32 (S450).
-- [ ] **5f** (step 34) The opt-in lazy type (decision 2), from C++11, for linear
-  algebra first.
+- [x] **5f** (step 34) (chunk 60) The opt-in lazy type (decision 2), from
+  C++11, for linear algebra first. `lazy(x)`, in `linear_algebra/lazy.hpp`,
+  wraps a vector, a matrix or a dynamic matrix by reference; its operators
+  build an expression that `eval` or `assign` computes each element once,
+  with no temporary a step (S463), each element the eager arithmetic's bit
+  for bit: the eager loops' operations in their order, the products and
+  transposes the eager operations' own, each product of the loop fenced
+  where the build may fuse (S464). `t_lazy_face.cpp` checks it at every
+  rung (S467).
 - [ ] **5g** (step 35) Style debt in these headers: 238 template parameter
   declarations with a reserved leading underscore (`typename _Type`), and
   Roman-numeral sections. The current guides require `Type` and decimal
@@ -1163,7 +1171,9 @@ zips again on the owner's push of 2026.11.23, with one hyphen for a dash
 (S447 to S449). Chunk 58 made step 31, 5c, the calculus headers from
 C++11, and with it step 33, 5e, `math.hpp` at every rung (S450 to S455);
 chunks 55 to 58's decisions stand by the owner's "continue" of 2026.11.23.
-Chunk 59 made step 32, 5d, `reify` (S456 to S462).
+Chunk 59 made step 32, 5d, `reify` (S456 to S462), which stand by his
+"continue" of 21:32; chunk 60 made step 34, 5f, the lazy type (S463 to
+S468).
 The outstanding decisions of `decisions.md`, its section 1, by group and
 urgency, and the suggestions of `comparison.md`'s section 9 are the owner's
 to take or leave before then.

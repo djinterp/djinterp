@@ -42,6 +42,10 @@
 *   dynamic_matrix.hpp - runtime-sized, heap-backed matrix companion (NOT
 *                       constexpr) mirroring the fixed-size API, with a
 *                       from_fixed / to_fixed bridge to matrix<_T,_Rows,_Cols>
+*   lazy.hpp          - the opt-in lazy type, from C++11 (empty below it):
+*                       lazy(x) and its operators build an expression of
+*                       vectors and matrices, eval and assign compute it
+*                       each element once, the eager bits (step 34)
 *
 * NAMESPACE:
 *   All types and functions live in djinterp::math::linalg (one level deeper
@@ -56,7 +60,7 @@
 * path:      /inc/djinterp/cpp/modules/math/linear_algebra/linalg.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.22
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.23
 *******************************************************************************/
 
 #ifndef DJINTERP_MATH_LINEAR_ALGEBRA_LINALG_HPP
@@ -77,6 +81,8 @@
 #include "./transform.hpp"
 // runtime-sized companion
 #include "./dynamic_matrix.hpp"
+// the opt-in lazy type (C++11)
+#include "./lazy.hpp"
 
 
 #endif  // DJINTERP_MATH_LINEAR_ALGEBRA_LINALG_HPP

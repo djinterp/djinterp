@@ -168,7 +168,7 @@ proven behaviour is the oracle of step 41.
 | Exact determinant and inverse of rational matrices | done (step 21): Bareiss's elimination and Gauss-Jordan on exact values | no (a custom scalar can) | with fractions | yes | yes, fast |
 | Exact rational eigenvalues of a rational matrix | done (step 21): found in long double, made exact as roots of the exact characteristic polynomial | no | no | yes, and algebraic ones | yes, exact charpoly and its roots |
 | Sparse matrices | none | yes | yes | yes | unclear |
-| SIMD vectorization, expression templates | none (eager by default; a lazy type at step 34) | yes | no | no | n/a |
+| SIMD vectorization, expression templates | an opt-in lazy type, eager by default (step 34, chunk 60): one pass, no temporary a step, the eager bits; no SIMD of its own | yes | no | no | n/a |
 | `mdspan`, a `std::linalg` layer | later | part (`Map`) | no | no | no |
 
 ---

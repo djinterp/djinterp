@@ -77,6 +77,7 @@ step chained after it.
 | compute with complex numbers or quaternions | `math::complex<T>`, `math::quaternion<T>` (`linalg::quaternion<T>` is it) | `complex.hpp`, `quaternion.hpp` |
 | compute with vectors and matrices | `linalg::vector`, `linalg::matrix`, `linalg::dynamic_matrix`, `solve`, `eigen_symmetric`, `eigen_general`, `svd` | `linear_algebra/linalg.hpp` |
 | print, simplify or evaluate by name a compile-time expression, or its derivative | `math::reify(e)`, then `expr_render`, `expr_simplify`, `math::expr` | `expr/reify.hpp` |
+| compute an expression of vectors or matrices in one pass, the eager bits | `linalg::lazy(a)`, then `eval` or `assign` | `linear_algebra/lazy.hpp` (C++11) |
 | write C, or reach the kernels under every face | `d_math_*`, `dj_math_value`, `cplx.h`, `quat.h`, `mat.h`, ... | `inc/djinterp/c/modules/math/` (section 3) |
 | take all of it | everything above, in `djinterp::math` | `math.hpp` (every level) |
 
@@ -88,7 +89,7 @@ step chained after it.
 |---|---|---|---|
 | C core (`c/modules/math/`) | 28 | C99; ISO strict C++98 as C++ | `_c` forms, the rational kernels, the value layer, decimal reading, literals and wide integers are constant expressions from C++14; the value layer takes boxed kinds through a table each one fills in (chunk 22), asks a kind whether each of its values is exact, and counts every box's holders atomically (chunk 40); signed integers of 256 bits (chunk 23), a boxed kind of the value since chunk 24; complex numbers, `cplx.h`, with C99's 22 functions, 18 of them in both forms, and `log1p`, `expm1`, `asinh`, `acosh` and `atanh` (chunk 37); a general matrix's eigenvalues and eigenvectors by LAPACK's path, complex matrices in `cmat.h`, the norms scaled and the solution of [A \| B] (chunk 38); `exp2`, `log2`, `log10`, `log1p` and `expm1` of a complex number, each one long double kernel in pairs, both forms rounded once from it, `exp2`'s angle reduced exactly for every y (chunk 42); whole powers z^n carried in long double pairs and rounded once, each part within its bound, both forms (chunk 45); quaternions, `quat.h`, accurate by default: the product, inverse and quotients by Dot2 in pairs, the rotation q v q^-1 of any q not 0 and its matrices, the scaled norm and normalization, Shepperd's method, two vectors' quaternion, nlerp, a shorter-arc slerp accurate near 0, and exp, log, sqrt and real powers as the complex functions in q's plane, each part rounded once; the former formulas the `_fast` forms (chunk 44); two inline numbers' arithmetic sent to their kind's at once, before the checks that cannot hold for them, the same results, a sum or product of two doubles three times sooner (chunk 47, S396); `dot`, `cross`, `sum`, the matrix products and the trace compensated by default, each a sum rounded once from Dot2's or Sum2's pair, and `solve` refined with extra precision as LAPACK's `dgerfsx` refines, each with a `_fast` form as written (chunk 49, S404 to S406); `project` and `reject` scaled at the range's ends, and complex matrices' products compensated, each part rounded once from Dot2's pair, and their `solve` refined, each with a `_fast` form as written (chunk 50, S409, S410); the double `exp_c` correctly rounded in double arithmetic alone, by three phases with proven bounds, at 9.9 ns a call; `dd.h`, a public pair of doubles with proven bounds; every exact product immune to a compiler that fuses; the double family refused where double is evaluated wider; and `self_test.h` (chunk 51, S414 to S419); the double `log_c` correctly rounded so too, at 18.2 ns a call, its bounds proven in each of three cases, and in the self-test (chunk 52, S424 to S426) |
 | interval | 5 | ISO strict C++98 | |
-| linear algebra | 12 | ISO strict C++98 | general eigenvalues by balancing, the Hessenberg form and Francis's double-shift QR, eigenvectors from the Schur form (chunk 38, after chunk 13's), every eigenvalue and eigenvector as `math::complex<T>` (chunk 39); vectors and matrices of any number type through `number_traits`, of `math::value` exactly (chunk 26); `solve` for any number type but an integer one, products in their order, so quaternion matrices too (chunk 38); of `math::complex<T>`, their determinant, inverse and solution `cmat.h`'s bit for bit, tolerances of the real type (chunk 39); `vdot`, the conjugating inner product, the norms of the moduli, `frobenius_norm` and `is_unitary` of them, and the generic norms of the moduli, so of values holding complex numbers too (chunk 43); `dynamic_matrix` of every element type the fixed-size matrix takes, complex numbers and values among them (chunk 46); of `float`, `double` and `long double`, `dot`, `cross`, `sum`, products, the trace and `solve` the C core's compensated and refined kernels, `dot_fast` ... `solve_fast` the formulas as written (chunk 49); of `math::complex<T>` too, `cmat.h`'s bit for bit (chunk 50, S411) |
+| linear algebra | 13 | ISO strict C++98; `lazy.hpp` C++11, empty below | general eigenvalues by balancing, the Hessenberg form and Francis's double-shift QR, eigenvectors from the Schur form (chunk 38, after chunk 13's), every eigenvalue and eigenvector as `math::complex<T>` (chunk 39); vectors and matrices of any number type through `number_traits`, of `math::value` exactly (chunk 26); `solve` for any number type but an integer one, products in their order, so quaternion matrices too (chunk 38); of `math::complex<T>`, their determinant, inverse and solution `cmat.h`'s bit for bit, tolerances of the real type (chunk 39); `vdot`, the conjugating inner product, the norms of the moduli, `frobenius_norm` and `is_unitary` of them, and the generic norms of the moduli, so of values holding complex numbers too (chunk 43); `dynamic_matrix` of every element type the fixed-size matrix takes, complex numbers and values among them (chunk 46); of `float`, `double` and `long double`, `dot`, `cross`, `sum`, products, the trace and `solve` the C core's compensated and refined kernels, `dot_fast` ... `solve_fast` the formulas as written (chunk 49); of `math::complex<T>` too, `cmat.h`'s bit for bit (chunk 50, S411); the opt-in lazy type, `lazy(a) * k + lazy(b)` computed each element once by `eval` or `assign`, the eager bits, a product's element fenced where the build fuses (chunk 60, step 34, S463 to S467) |
 | coordinate | 5 | ISO strict C++98 | points are `linalg::vector`s |
 | geometry | 14 | ISO strict C++98 | collections are `re_std::array`s |
 | `constants.hpp`, `quaternion.hpp`, `math_common.hpp` | 3 | ISO strict C++98 | named constants are constant expressions from C++11; the one quaternion, `math::quaternion<T>`, which `linalg::quaternion<T>` names (chunk 48, S398), takes every function of `quat.h`, the accurate forms by default, constant expressions from C++14, and the `_fast` forms for a renderer (chunk 44) |
@@ -115,8 +116,9 @@ header with g++ and clang++, plain and testing, at every rung from that one
 to C++26. Every header not on the ladder's known list
 (`scripts/ci/ladder_known.txt`) passes all of them.
 
-Tests: 28 C harnesses (`tests/djinterp/c/modules/math/`) and 45 face tests
+Tests: 28 C harnesses (`tests/djinterp/c/modules/math/`) and 46 face tests
 (`tests/djinterp/cpp/modules/math/`), one of them for `parse/expression/`,
+one for the lazy type (chunk 60),
 five for the compile-time core (chunks 53, 56 and 58), one for the bridge
 from it to the language, `reify` (chunk 59), and eight for `expr/`: four
 its complex numbers', two its quaternions' and one its compiled terms'
@@ -1077,6 +1079,24 @@ kernels at 1 to 56 of 20,000 arguments each, until ruling 12 (S460). The
 run-time derivative is step 25's (4a), which takes the term when it comes.
 `t_reify_face.cpp` checks reify at every rung (S461).
 
+**The lazy type.** Chunk 60 (S463 to S468), step 34 (5f), as decision 2
+asks: `lazy(x)`, in `linear_algebra/lazy.hpp`, wraps a vector, a matrix or
+a dynamic matrix by reference, and its operators build an expression that
+`eval(e)` or `assign(dst, e)` computes each element once, with no temporary
+a step: sums, differences, negations, scalings, a vector divided,
+`hadamard`, the matrix products and `transpose` (S463). Each element is the
+eager arithmetic's, bit for bit: its operations in the eager loops' order,
+the products and transposes the eager operations' own, computed once before
+the elements, and each product of the loop fenced where the build may fuse
+a multiply and an add, as gcc's fuses a fifth of them otherwise (S464).
+Operands are lazy on both sides and held by reference, `lazy` of a
+temporary refused (S465); `assign` writes in place, safe where the
+expression reads the destination (S466). For a four-step expression of
+dynamic matrices of double, from 4 x 4 to 512 x 512, `eval` took a half to
+a quarter of the eager arithmetic's time and `assign` a third to a fifth,
+and about half where the fence is (chunk 60's record, `raw/measure/`).
+`t_lazy_face.cpp` checks it at every rung (S467).
+
 **Decimal text.** `decimal.h` reads a decimal number of any length as the
 nearest `float`, `double` or `long double`, ties to even, whatever the
 rounding mode, and says when the result overflowed to an infinity or
@@ -1427,6 +1447,7 @@ module:
 | 2026.11.20 | chunk 51's decisions stand ("continue for now"), and chunk 52's ("continue"): step 29 (5a) with 0.8's items next |
 | 2026.11.14 | accuracy before 0.8 for the float and double families: compensated sums and a refined solve, then their `_c` forms correctly rounded, provably, at today's speed; the long double family and the plain forms at step 36 (S404 to S408) |
 | 2026.11.23 | chunks 55 to 58's decisions stand ("continue"): step 32 (5d), `reify`, next |
+| 2026.11.23 | chunk 59's decisions stand ("continue"): step 34 (5f), the lazy type, next |
 
 ---
 
@@ -1481,7 +1502,8 @@ with chunks 52's and 55's zips laid over it, and holds chunk 56's files
 alone (S446). Both were cut again on his main of 2026.11.23, Friday's over
 Wednesday's, their files at the tree's root as his merge window reads a
 zip (S447, S449); chunk 58's goes over that main with both laid over it, in
-order (S455), and chunk 59's over that with chunk 58's laid too (S462).
+order (S455), chunk 59's over that with chunk 58's laid too (S462), and
+chunk 60's after chunk 59's (S468).
 From 2026.11.18 the lane's notes and deliveries go out once a day.
 
 Outside `cpp/modules/math/`, `c/modules/math/` and their tests, this lane
