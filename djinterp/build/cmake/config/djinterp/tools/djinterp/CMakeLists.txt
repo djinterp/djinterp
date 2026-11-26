@@ -18,7 +18,7 @@
 # path:      /build/cmake/config/djinterp/tools/djinterp/CMakeLists.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-#                                                            revised: 2026.11.25
+#                                                            revised: 2026.11.27
 #*******************************************************************************
 cmake_minimum_required(VERSION 3.16)
 
@@ -186,14 +186,15 @@ if(DJINTERP_PROGRAM_BUILD_TESTS)
         COMMAND describe nosuch STATUS 2
         MATCHES "describe: no djin is named 'nosuch'")
     # every core djin is registered, its settings read as the kit's are;
-    # parse's three rows, in their order, each read from every source, and
+    # parse's six rows, in their order: the expression core's three and its
+    # diagnostics' three; the first three each read from every source, and
     # a value each refuses said as the kit says one
     djinterp_program_test(djinterp_list_core plain
         COMMAND list STATUS 0
         MATCHES "parse +- +settings only\ndesc +- +settings only\nenv_printer +- +settings only\nlog +- +settings only\n")
     djinterp_program_test(djinterp_describe_parse plain
         COMMAND describe parse STATUS 0
-        MATCHES "\nsettings\n  parse[.]expr_max_depth +int +1000 +D_CFG_PARSE_EXPR_MAX_DEPTH +the depth guard: 1 to 65535, or unbounded\n  parse[.]expr_max_errors +int +16 +D_CFG_PARSE_EXPR_MAX_ERRORS +errors before a parse stops: 1 to 65535\n  parse[.]expr_error_order +choice +leftmost +D_CFG_PARSE_EXPR_ERROR_ORDER +which error is the error: leftmost or structure_first\n$")
+        MATCHES "\nsettings\n  parse[.]expr_max_depth +int +1000 +D_CFG_PARSE_EXPR_MAX_DEPTH +the depth guard: 1 to 65535, or unbounded\n  parse[.]expr_max_errors +int +16 +D_CFG_PARSE_EXPR_MAX_ERRORS +errors before a parse stops: 1 to 65535\n  parse[.]expr_error_order +choice +leftmost +D_CFG_PARSE_EXPR_ERROR_ORDER +which error is the error: leftmost or structure_first\n  parse[.]diag_text +bool +true +D_CFG_PARSE_DIAG_TEXT +whether diagnostics carry their text; on only where the build has it [(]D_CFG_PARSE_DIAG_TEXT[)]\n  parse[.]diag_facts +bool +true +D_CFG_PARSE_DIAG_FACTS +whether diagnostics carry their facts; on only where the build has them [(]D_CFG_PARSE_DIAG_FACTS[)]\n  parse[.]log +bool +true +D_CFG_PARSE_LOG +whether parse's diagnostics are written to the log; on only where the build has parse's log unit [(]D_CFG_PARSE_LOG[)]\n$")
     djinterp_program_test(djinterp_get_parse plain
         COMMAND --parse.expr_error_order=structure_first get
                 parse.expr_max_errors parse.expr_error_order
